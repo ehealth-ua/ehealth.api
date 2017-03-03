@@ -1,0 +1,622 @@
+FORMAT: 1A
+HOST: http://polls.apiblueprint.org/
+
+# eHealth API
+
+This is a API documentation for Ukrainian Health Services government institution back-end, that should provide:
+
+* Master Patients Index (MPI)
+* Global Medical Institutians and Doctors Regsisties
+* Partnership Relation Management (PRM) module that describes business relations between this 3 entities.
+
+Project development is fully transparent, you can find it's source code on GitHub:
+
+* [Issue Tracking Repo](https://github.com/Nebo15/ehealth)
+* [Master Patient Index](https://github.com/Nebo15/mpi.api)
+* [Reference Implementation of Hospital Information System UI]()
+* [Partnership Relation Management](https://github.com/Nebo15/prm.api)
+
+This API design in based on [Nebo #15 API Design Manifest](http://docs.apimanifest.apiary.io/).
+
+## Contribution Guidelines
+
+TODO.
+
+## Submitting Issues
+
+To submit issues you should use [Issue Tracking Repo](https://github.com/Nebo15/ehealth), issues in all other repositories are used to plan backlog and non-related issued will be closed.
+
+# Group Master Patients Index
+
+## Persons [/persons]
+
+To make sure that records will be de-duplicated, please make sure to send search request before creating a new record.
+
+### Get MPI record details by ID [GET /persons/{id}]
+
+This method allows to fetch MPI record details by ID
+
++ Request (application/json)
+    
+    + Headers
+        
+            Authorization: `Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ`
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 200 (number)
+        + data (object)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + Include `Request__Person`
+            + is_active: true (boolean, required)
+            + history (array)
+                + (object)
+                    + id: `7bca069f-21e4-4546-90cf-b65e3f39d93d` (string, required)
+            + created_at: `2017-03-02T10:45:16.000Z` (string, optional)
+            + created_by: `86e89e60-0189-45c2-b25a-9edb4841d1e9` (string, required)
+            + modified_at: `2017-03-02T10:45:16.000Z` (string, optional)
+            + modified_by: `86e89e60-0189-45c2-b25a-9edb4841d1e9` (string, required)
+
+
+### Add MPI record [POST]
+
++ Request (application/json)
+
+    + Headers
+        
+            Authorization: `Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ`
+            
+    + Attributes (Request__Person)
+
++ Response 201 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + Include `Request__Person`
+            + is_active: true (boolean, required)
+            + history (array)
+                + (object)
+                    + id: `7bca069f-21e4-4546-90cf-b65e3f39d93d` (string, required)
+            + created_at: `2017-03-02T10:45:16.000Z` (string, optional)
+            + created_by: `86e89e60-0189-45c2-b25a-9edb4841d1e9` (string, required)
+            + modified_at: `2017-03-02T10:45:16.000Z` (string, optional)
+            + modified_by: `86e89e60-0189-45c2-b25a-9edb4841d1e9` (string, required)
+
+### Edit MPI record [PUT /persons/{id}]
+
++ Request (application/json)
+
+    + Headers
+        
+            Authorization: `Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ`
+            
+    + Attributes (`Request__Person`)
+        + is_active: true (boolean, required)
+
++ Response 201 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + Include `Request__Person`
+            + is_active: true (boolean, required)
+            + history (array)
+                + (object)
+                    + id: `7bca069f-21e4-4546-90cf-b65e3f39d93d` (string, required)
+            + created_at: `2017-03-02T10:45:16.000Z` (string, optional)
+            + created_by: `86e89e60-0189-45c2-b25a-9edb4841d1e9` (string, required)
+            + modified_at: `2017-03-02T10:45:16.000Z` (string, optional)
+            + modified_by: `86e89e60-0189-45c2-b25a-9edb4841d1e9` (string, required)
+
+### Check MPI record [GET /persons/{id}/resolve]
+
++ Request (application/json)
+    
+    + Headers
+        
+            Authorization: `Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ`
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 200 (number)
+        + data (object)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + history (array)
+                + (object)
+                    + id: `7bca069f-21e4-4546-90cf-b65e3f39d93d` (string, required)
+
+# Group Partnership Relations Management
+
+## Doctors [/doctors]
+
+### Register a Doctor [POST]
+Method to register new Doctor record for the existing MPI.
+Only one doctor can be registered for one MPI.
+
+* **Authorization** header is required
+
++ Request (application/json)
+    + Attributes (Doctor)
+
++ Response 201 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (Response_Doctor)
+
+### Get Doctor record details by ID [GET /doctors/{id}]
+
+This method allows to fetch doctor record details by ID. Only record where "is_active=true" should be returned.
+
++ Request (application/json)
+    
+    + Headers
+        
+            Authorization: `Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ`
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 200 (number)
+        + data (Response_Doctor)
+
+### Update Doctor [PUT /doctors/{id}]
+This method to update the Doctor related information. 
+Personal information cannot be updated using this method.
+
++ Request (application/json)
+
+    + Headers
+        
+            Authorization: `Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ`
+            
+    + Attributes (Doctor_Update)
+
++ Response 201 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (Doctor)
+
+### Search Doctor  [GET /doctor?first_name=Іван&last_name=Іванов&second_name=Іванович&speciality=терапевт&region=Київ&area=Дарницький район]
+Methods returns list of doctors by combination of name speciality and geo.
+at least one parameter has to be passed. Othervise - error. Only records where is_active=true should be returned.
+Purpose: for future to get dictionary of doctors for the patients.
+
++ Request (application/json)
+    
+    + Headers
+        
+            Authorization: `Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ`
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 200 (number)
+        + data (array [Response_Doctor])
+
+## Declarations [/declarations]
+### Register new declaration [POST]
+Method to register new declaration record
+
++ Request (application/json)
+    + Attributes (Declaration)
+
++ Response 201 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
+            + include `Declaration`
+            + is_active: true (boolean, required)
+            + status: pending_approval (string, required)
+            + created_at: `2017-03-02T10:45:16.000Z` (string, optional)
+            + created_by: `86e89e60-0189-45c2-b25a-9edb4841d1e9` (string, required)
+            + modified_at: `2017-03-02T10:45:16.000Z` (string, optional)
+            + modified_by: `86e89e60-0189-45c2-b25a-9edb4841d1e9` (string, required)
+
+### Get Declaration  [GET /declarations/{id}]
+
+Methods returns declaration details by ID.
+
++ Request (application/json)
+    
+    + Headers
+        
+            Authorization: `Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ`
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 200 (number)
+        + data (Declaration_Response)
+
+### Search Declarations  [GET /declarations?person_id=d290f1ee-6c54-4b01-90e6-d701748f0851&doctor_id=d290f1ee-6c54-4b01-90e6-d701748f0851&msp_id=d290f1ee-6c54-4b01-90e6-d701748f0851]
+Methods returns list of declarations by combination of patient_id, doctor_id, msp_id.
+at least one parameter has to be passed. Othervise - error
+
++ Request (application/json)
+    
+    + Headers
+        
+            Authorization: `Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ`
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 200 (number)
+        + data (array [Declaration_Response])
+
+
+## Labour Contracts [/labout_contracts]
+### Register new Labour contract [POST]
+Method to create new labour contract between the Doctor and MSP.
+`msp_id` and doctor_id should already exist.
+
++ Request (application/json)
+    + Attributes (Labour_Contract)
+
++ Response 201 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
+            + include `Labour_Contract`
+            + created_at: `2017-03-02T10:45:16.000Z` (string, optional)
+            + created_by: `86e89e60-0189-45c2-b25a-9edb4841d1e9` (string, required)
+            + modified_at: `2017-03-02T10:45:16.000Z` (string, optional)
+            + modified_by: `86e89e60-0189-45c2-b25a-9edb4841d1e9` (string, required)
+
+### Get Labour contracts  [GET /labour_contracts?doctor_id=d290f1ee-6c54-4b01-90e6-d701748f0851&msp_id=d290f1ee-6c54-4b01-90e6-d701748f0851]
+Methods returns list of labour_contracts by doctor_id or msp_id or both.
+
++ Request (application/json)
+    
+    + Headers
+        
+            Authorization: `Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ`
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 200 (number)
+        + data (array [Labour_Contract_Response])
+
+### Update Labour contract [PUT /labour_contract/{id}]
+This method to update the labour contract info by ID.
+TODO: add verification logic. For ex. how and when is_active can be updated.
+
++ Request (application/json)
+
+    + Headers
+        
+            Authorization: `Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ`
+            
+    + Attributes (object)
+        + title: лікар (string, required)
+        + speciality: Педіатрія (enum) (string, required)
+        + start_date: 2017-02-28 (string, required)
+        + finished_date: 2017-02-28 (string, optional)
+        + is_active: 0, 1 (string, required)
+
++ Response 201 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + Include `Labour_Contract`
+            + created_at: `2017-03-02T10:45:16.000Z` (string, optional)
+            + created_by: `86e89e60-0189-45c2-b25a-9edb4841d1e9` (string, required)
+            + modified_at: `2017-03-02T10:45:16.000Z` (string, optional)
+            + modified_by: `86e89e60-0189-45c2-b25a-9edb4841d1e9` (string, required)
+
+## Medical Service Providers [/Medical_Service_Providers]
+TBD...
+### Register MSP [POST]
+
++ Request (application/json)
+    + Attributes (Medical_Service_Provider)
+
++ Response 201 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (Medical_Service_Provider)
+            + id: blahblah
+
+### Get Medical Service provider record details by ID [GET /msp/{id}]
+
+This method allows to fetch MSP record details by ID
+
++ Request (application/json)
+    
+    + Headers
+        
+            Authorization: `Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ`
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 200 (number)
+        + data (MSP_Response)
+            + id: blahblah
+
+### Search MSP by subset of fields [GET /msp?edrpou=432234432&name=Борис&type=PRIVATE_HOSPITAL]
+
+This method allows to fetch list of similar MSP by edrpou or name. 
+Result will be ordered by search result relevance.
+
++ Response 201 (application/json)
+    + Attributes (Response_Collection)
+        + data (array[MSP_Response])
+
+# Data Structures
+## Responses
+### `Response_Collection`
++ meta (Response__Meta, fixed-type)
++ data (array[], fixed-type)
++ paging (Response__Pagination, fixed-type)
+
+### `Response_OK`
++ meta (Response__Meta, fixed-type)
++ data (object, fixed-type)
+
+### `Response_Error`
++ meta (Response__Meta, fixed-type)
+    + code: 400 (number)
++ error (Response__Error, fixed-type)
+
+### `Response__Meta`
++ code: 200 (number) - HTTP response code.
++ url: http://example.com/resource (string) - URL to requested resource.
++ type (enum) - Type of data that is located in `data` attribute.
+    - object (string) - `data` attribute is a JSON object.
+    - list (string) - `data` attribute is a list.
++ code: 200 (number) - HTTP response code.
++ `idempotency_key`: `idemp-ssjssdjoa8308u0us0` (string, optional) - [Idempotency key](http://docs.apimanifest.apiary.io/#introduction/optional-features/idempotent-requests). Send it trough `X-Idempotency-Key` header.
++ `request_id`: `req-adasdoijasdojsda` (string) - [Request ID](http://docs.apimanifest.apiary.io/#introduction/interacting-with-api/request-id). Send it with `X-Request-ID` header.
+
+### `Response__Error`
++ type: type_atom (string) - Atom that represents error type.
++ message: Error description (string) - Human-readable error message. This is for developers, not end-users.
+
+### `Response__Error_DuplicateEntity`
++ type: `object_already_exists` (string) - Atom that represents error type.
++ message: This API already exists (string) - Human-readable error message. This is for developers, not end-users.
+
+### `Response__Error_ValidationFailed`
++ type: validation_failed (string) - type of an error.
++ message: Validation failed. You can find validators description at our API Manifest: http://docs.apimanifest.apiary.io/#introduction/interacting-with-api/errors. (string)
++ invalid (array)
+    + `entry_type`: `json_data_proprty` (string) - Type of error.
+    + entry: $.cvv (string) - JSON Path to an invalid property.
+    + rules (array)
+        + rule: required (string) - String constant that represents validation rule type. List of all types can be found in [API Manifest](http://docs.apimanifest.apiary.io/#introduction/interacting-with-api/errors).
+        + params (array) - Validation Parameters.
+
+### `Response__Pagination`
++ limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
++ cursors (object)
+    + `starting_after`: 56c31536a60ad644060041af (string) - A cursor for use in pagination. An object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, ending with `obj_foo`, your subsequent call can include `starting_after=obj_foo` in order to fetch the next page of the list.
+    + `ending_before`: 56c31536a60ad644060041aa (string) - A cursor for use in pagination. An object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with `obj_bar`, your subsequent call can include `ending_before=obj_bar` in order to fetch the previous page of the list.
++ size: 1000 (number) - Total number of objects in collection.
++ has_more: false (boolean) - Is this collection have more data to load in the same style as last request loaded it.
+
+## Persons
+### `Request__Person`
++ first_name: Петро (string, required)
++ last_name: Іванов (string, required)
++ second_name: Миколайович (string, optional)
++ birth_date: `1991-08-19T00:00:00.000Z` (string, required)
++ gender: MALE, FEMALE (enum[string], required)
++ email: email@example.com (string, optional)
++ tax_id: 3126509816 (string, optional)
++ national_id: CC7150985243 (string, optional)
++ death_date: `2015-04-07T00:00:00.000Z` (string, optional)
++ documents (array[Document], optional)
++ addresses (array[Address], optional)
++ phones (array[Phone], optional)
+
+### `Response__Person`
++ id: 889712323423487 (string, required)
++ Include `Request__Person`
++ death_date: `2017-02-28T15:12:54.000Z` (string, optional)
++ state: ACTIVE, DEAD, DEACTIVATED (enum[string], optional)
++ state_reason: Leave (string, optional)
+
+## Credentials
+### Credential
++ type: otp (enum)
+    - encrypted_key
+
+## `Media_Objects`
+### Photo
++ id
++ link
+
+## Relations
+### Relation
++ type: mother
++ person_id
++ `related_person_id`
+
+## Addresses
+### Address
++ type: RESIDENCE, REGISTRATION (enum[string], required)
++ country: UA (enum[string], required)
++ area: Житомирська (string, optional)
++ region: Бердичівський (string, optional)
++ city: Київ (string, required)
++ city_type: CITY (enum[string], required)
++ street: `вул. Ніжинська` (string, optional)
++ building: 15 (string, required)
++ apartment: 23 (string, optional)
++ zip: 02090 (string, optional)
+
+## Phones
+### Phone
++ type: MOBILE, LANDLINE (enum[string], required)
++ number: `+380503410870` (string, required)
+
+## Documents
+### Document
++ type: PASSPORT (enum[string], required)
++ number: 120518 (string, required)
++ issue_date: `2015-04-07T00:00:00.000Z`
++ expiration_date: `2015-04-07T00:00:00.000Z`
++ issued_by: DMSU
+
+## Contacts
+### Contact
++ type (enum)
+    - email
+    - phone
+    
+
+## Doctors
+### Doctor
++ person_id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
++ certificates (array[Medical_Certificate], optional) 
++ licenses (array[Medical_License], required) 
++ education (array[Medical_Education], required)
+
+
+### `Response_Doctor`
++ include `Doctor`
++ status: PENDING_APPROVAL, APPROVED, DECLINED
++ is_active: true (boolean, required)
++ name: Іванов Іван ванович (string)
+
+###`Doctor_Update`
++ include `Doctor`
++ is_active
++ status: PENDING_APPROVAL, APPROVED, DECLINED
+
+## `Medical_Certificates`
+### `Medical_Certificate`
++ name: Диплом доктора медицини (string, required)
++ number: AA1234BC (string, required)
++ degree: `Doctor of Medicine (MD, Dr.MuD, Dr.Med)` (string, required)
++ issue_date: 2017-02-28 (string, required)
++ issued_by: Національний медичний університет імені О.О. Богомольця (string, required)
++ started_date: 2016-08-29T09:12:33.001Z (string, optional)
++ finished_date: 2016-08-29T09:12:33.001Z (string, optional)
+
+## `Medical_Licenses`
+### `Medical_License`
++ category (enum, required)
+    - Атестація на визначення знань і практичних навиків
++ type (enum, required)
+    - диплом
++ issued_by: Кваліфікацйна комісія (string, required)
++ order_no: DV4312324 (string, required)
++ issued_date: 2017-02-28 (string, required)
++ expiry_date: 2017-02-28 (string, required)
+
+## `Medical_Educations`
+### `Medical_Education`
++ institution_name: Академія Богомольця (string, required)
++ certificate_Number: DD123543 (string, required)
++ degree (enum, required)
+    - Doctor of Medicine
+    - Bachelor of Medicine 
+    - Bachelor of Surgery
+    - Doctor of Osteopathic Medicine
+    - Master of Clinical Medicine
++ start_date: 2017-02-28 (string, required)
++ finished_date: 2017-02-28 (string, required)
++ speciality (enum, required)
+    - Загальна практика - сімейна медицина
+    - Педіатрія
+    - Підліткова терапія
+    - Терапія
+
+## Declarations
+### Declaration
++ person_id: "d290f1ee-6c54-4b01-90e6-d701748f0851" (string, required)
++ doctor_id: "d290f1ee-6c54-4b01-90e6-d701748f0851" (string, required)
++ msp_id: "d290f1ee-6c54-4b01-90e6-d701748f0851" (string, required)
++ `base64_encoded_patient_doctor_declaration_data`: "string"
++ signature: "string" (string, required)
++ certificate: "string" (string, required)
++ signed_at: "2017-02-28" (string, required)
++ confident_person_id: "d290f1ee-6c54-4b01-90e6-d701748f0851" (string, optional)
+
+### `Declaration_Response`
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ Include `Declaration`
++ created_at: `2017-03-02T10:45:16.000Z` (string, optional)
++ created_by: `86e89e60-0189-45c2-b25a-9edb4841d1e9` (string, required)
++ modified_at: `2017-03-02T10:45:16.000Z` (string, optional)
++ modified_by: `86e89e60-0189-45c2-b25a-9edb4841d1e9` (string, required)
+
+## `Labour_Contracts`
+### `Labour_Contract`
++ doctor_id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
++ msp_id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
++ title: лікар (string, required)
++ speciality: Педіатрія (enum)
+    - Загальна практика - сімейна медицина
+    - Педіатрія
+    - Підліткова терапія
+    - Терапія
++ start_date: 2017-02-28 (string, required)
++ finished_date: 2017-02-28 (string, optional)
++ is_active: true (boolean, required)
+
+### `Labour_Contract_Response`
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ Include `Labour_Contract`
++ created_at: `2017-03-02T10:45:16.000Z` (string, optional)
++ created_by: `86e89e60-0189-45c2-b25a-9edb4841d1e9` (string, required)
++ modified_at: `2017-03-02T10:45:16.000Z` (string, optional)
++ modified_by: `86e89e60-0189-45c2-b25a-9edb4841d1e9` (string, required)
+
+
+## `Medical_Service_Providers`
+### `Medical_Service_Provider`
++ name: Клініка Борис (string, required)
++ short_Name: Борис (string, required)
++ type (enum, required) 
+    - ФОП
+    - Клініка
++ edrpou: 5432345432 (string, required)
++ services (array[Medical_Service], required) 
++ license (array[License], optional)
++ accreditation (array[Accreditation], required)
++ addresses (array[Address], optional)
++ phones (array[Phone], optional)
++ email (string, required)
+
+### `MSP_Response`
++ id: d290f1ee-6c54-4b01-90e6-d701748f0851
++ include Medical_Service_Provider
++ created_at: `2017-02-28T15:12:54.000Z` (string, optional)
++ created_by: 223717200421984 (string, required)
++ modified_at: `2017-02-28T15:12:54.000Z` (string, optional)
++ modified_by: 223717200421984 (string, required)
+
+### `Medical_Service`
++ id
++ name
+
+### Accreditation
++ certificate_number: fd123443 (string, required)
++ issued_by: Кваліфікацйна комісія (string)
++ issued_date: 2017-02-28
++ expiry_date: 2017-02-28
+
+### License
++ license_number: fd123443 (string, required)
++ kved (array[string], required)
++ issued_by: Кваліфікацйна комісія (string)
++ issued_date: 2017-02-28
++ expiry_date: 2017-02-28
