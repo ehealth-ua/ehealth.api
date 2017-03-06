@@ -32,9 +32,7 @@ To submit issues you should use [Issue Tracking Repo](https://github.com/Nebo15/
 
 To make sure that records will be de-duplicated, please make sure to send search request before creating a new record.
 
-### Get MPI record details by ID [GET /persons/{id}]
-
-This method allows to fetch MPI record details by ID
+### Check MPI record existence [HEAD /persons/{id}]
 
 + Request (application/json)
     
@@ -46,17 +44,21 @@ This method allows to fetch MPI record details by ID
     + Attributes (Response_OK)
         + meta (Response__Meta)
             + code: 200 (number)
-        + data (object)
-            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + Include `Request__Person`
-            + is_active: true (boolean, required)
-            + history (array)
-                + (object)
-                    + id: `7bca069f-21e4-4546-90cf-b65e3f39d93d` (string, required)
-            + created_at: `2017-03-02T10:45:16.000Z` (string, optional)
-            + created_by: `86e89e60-0189-45c2-b25a-9edb4841d1e9` (string, required)
-            + modified_at: `2017-03-02T10:45:16.000Z` (string, optional)
-            + modified_by: `86e89e60-0189-45c2-b25a-9edb4841d1e9` (string, required)
+        + data (`Person_Short`)
+
+### Get MPI record details by ID [GET /persons/{id}]
+
++ Request (application/json)
+    
+    + Headers
+        
+            Authorization: `Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ`
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 200 (number)
+        + data (`Person_Full`)
 
 
 ### Add MPI record [POST]
@@ -67,23 +69,13 @@ This method allows to fetch MPI record details by ID
         
             Authorization: `Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ`
             
-    + Attributes (Request__Person)
+    + Attributes (Person)
 
 + Response 201 (application/json)
     + Attributes (Response_OK)
         + meta (Response__Meta)
             + code: 201 (number)
-        + data (object)
-            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + Include `Request__Person`
-            + is_active: true (boolean, required)
-            + history (array)
-                + (object)
-                    + id: `7bca069f-21e4-4546-90cf-b65e3f39d93d` (string, required)
-            + created_at: `2017-03-02T10:45:16.000Z` (string, optional)
-            + created_by: `86e89e60-0189-45c2-b25a-9edb4841d1e9` (string, required)
-            + modified_at: `2017-03-02T10:45:16.000Z` (string, optional)
-            + modified_by: `86e89e60-0189-45c2-b25a-9edb4841d1e9` (string, required)
+        + data (`Person_Full`)
 
 ### Edit MPI record [PUT /persons/{id}]
 
@@ -93,26 +85,25 @@ This method allows to fetch MPI record details by ID
         
             Authorization: `Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ`
             
-    + Attributes (`Request__Person`)
+    + Attributes (Person)
         + is_active: true (boolean, required)
 
 + Response 201 (application/json)
     + Attributes (Response_OK)
         + meta (Response__Meta)
             + code: 201 (number)
-        + data (object)
-            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + Include `Request__Person`
-            + is_active: true (boolean, required)
-            + history (array)
-                + (object)
-                    + id: `7bca069f-21e4-4546-90cf-b65e3f39d93d` (string, required)
-            + created_at: `2017-03-02T10:45:16.000Z` (string, optional)
-            + created_by: `86e89e60-0189-45c2-b25a-9edb4841d1e9` (string, required)
-            + modified_at: `2017-03-02T10:45:16.000Z` (string, optional)
-            + modified_by: `86e89e60-0189-45c2-b25a-9edb4841d1e9` (string, required)
+        + data (`Person_Full`)
 
-### Check MPI record [GET /persons/{id}/resolve]
+
+### Search for a single MPI record [GET /persons{?first_name,last_name,second_name,birth_date,tax_id}]
+This method allows to search MPI ID by patient personal information. Only one ID can be returned
+
++ Parameters
+    + first_name: Петро (string, required)
+    + last_name: Іванов (string, required)
+    + second_name: Миколайович (string, optional)
+    + birth_date: `1991-08-19T00:00:00.000Z` (string, required) - ISO Datetime.
+    + tax_id: 3126509816 (string, optional)
 
 + Request (application/json)
     
@@ -124,11 +115,15 @@ This method allows to fetch MPI record details by ID
     + Attributes (Response_OK)
         + meta (Response__Meta)
             + code: 200 (number)
-        + data (object)
-            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + history (array)
-                + (object)
-                    + id: `7bca069f-21e4-4546-90cf-b65e3f39d93d` (string, required)
+        + data (array[Person_Full])
+
++ Response 403 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta, fixed-type)
+            + code: 403 (number)
+        + error (Response__Error, fixed-type)
+            + type: `too_many_results`
+            + message: `This API method returns only exact match results, please retry with more specific search result` (string)
 
 # Group Partnership Relations Management
 
@@ -137,8 +132,6 @@ This method allows to fetch MPI record details by ID
 ### Register a Doctor [POST]
 Method to register new Doctor record for the existing MPI.
 Only one doctor can be registered for one MPI.
-
-* **Authorization** header is required
 
 + Request (application/json)
     + Attributes (Doctor)
@@ -411,7 +404,7 @@ Result will be ordered by search result relevance.
 + has_more: false (boolean) - Is this collection have more data to load in the same style as last request loaded it.
 
 ## Persons
-### `Request__Person`
+### `Person`
 + first_name: Петро (string, required)
 + last_name: Іванов (string, required)
 + second_name: Миколайович (string, optional)
@@ -425,12 +418,23 @@ Result will be ordered by search result relevance.
 + addresses (array[Address], optional)
 + phones (array[Phone], optional)
 
-### `Response__Person`
-+ id: 889712323423487 (string, required)
-+ Include `Request__Person`
-+ death_date: `2017-02-28T15:12:54.000Z` (string, optional)
-+ state: ACTIVE, DEAD, DEACTIVATED (enum[string], optional)
-+ state_reason: Leave (string, optional)
+### `Person_Full`
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ Include Person
++ is_active: true (boolean, required)
++ history (array)
+    + (object)
+        + id: `7bca069f-21e4-4546-90cf-b65e3f39d93d` (string, required)
++ inserted_at: `2017-03-02T10:45:16.000Z` (string, optional)
++ inserted_by: `86e89e60-0189-45c2-b25a-9edb4841d1e9` (string, required)
++ updated_at: `2017-03-02T10:45:16.000Z` (string, optional)
++ updated_by: `86e89e60-0189-45c2-b25a-9edb4841d1e9` (string, required)
+
+### `Person_Short`
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ history (array)
+    + (object)
+        + id: `7bca069f-21e4-4546-90cf-b65e3f39d93d` (string, required)
 
 ## Credentials
 ### Credential
