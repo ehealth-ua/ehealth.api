@@ -232,6 +232,12 @@ Methods returns declaration details by ID.
 
 ### Search Declarations  [GET /declarations?person_id=d290f1ee-6c54-4b01-90e6-d701748f0851&doctor_id=d290f1ee-6c54-4b01-90e6-d701748f0851&msp_id=d290f1ee-6c54-4b01-90e6-d701748f0851]
 Methods returns list of declarations by combination of patient_id, doctor_id, msp_id.
+Allowed combinztions:
+1) doctor_id
+2) msp_id
+3) doctor_id+msp_id
+4) doctor_id+Patient_id
+
 at least one parameter has to be passed. Othervise - error
 
 + Request (application/json)
