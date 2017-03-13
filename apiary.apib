@@ -207,12 +207,29 @@ Method to register new declaration record
         + data (object)
             + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
             + include `Declaration`
-            + is_active: true (boolean, required)
-            + status: pending_approval (string, required)
-            + created_at: `2017-03-02T10:45:16.000Z` (string, optional)
-            + created_by: `86e89e60-0189-45c2-b25a-9edb4841d1e9` (string, required)
-            + modified_at: `2017-03-02T10:45:16.000Z` (string, optional)
-            + modified_by: `86e89e60-0189-45c2-b25a-9edb4841d1e9` (string, required)
+            + active: false (boolean, required)
+            + status: pending_signature (string, required)
+
+### Sign declaration [PUT /declarations/{id}]
+Method to sign declaration record with the doctor's signature
+
++ Request (application/json)
+    + Attributes (object)
+        + `base64_encoded_patient_doctor_declaration_data`: "string"
+        + signature: "string" (string, required)
+        + certificate: "string" (string, required)
+        + signed_at: "2017-02-28" (string, required)
+
++ Response 201 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
+            + include `Declaration`
+            + active: true (boolean, required)
+            + status: signed (string, required)
+
 
 ### Get Declaration  [GET /declarations/{id}]
 
@@ -268,10 +285,7 @@ Method to create new labour contract between the Doctor and MSP.
         + data (object)
             + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
             + include `Labour_Contract`
-            + created_at: `2017-03-02T10:45:16.000Z` (string, optional)
-            + created_by: `86e89e60-0189-45c2-b25a-9edb4841d1e9` (string, required)
-            + modified_at: `2017-03-02T10:45:16.000Z` (string, optional)
-            + modified_by: `86e89e60-0189-45c2-b25a-9edb4841d1e9` (string, required)
+
 
 ### Get Labour contracts  [GET /labour_contracts?doctor_id=d290f1ee-6c54-4b01-90e6-d701748f0851&msp_id=d290f1ee-6c54-4b01-90e6-d701748f0851]
 Methods returns list of labour_contracts by doctor_id or msp_id or both.
@@ -556,10 +570,6 @@ Result will be ordered by search result relevance.
 + msp_id: "d290f1ee-6c54-4b01-90e6-d701748f0851" (string, required)
 + scope (enum)
     - family doctor
-+ `base64_encoded_patient_doctor_declaration_data`: "string"
-+ signature: "string" (string, required)
-+ certificate: "string" (string, required)
-+ signed_at: "2017-02-28" (string, required)
 + confident_person_id: "d290f1ee-6c54-4b01-90e6-d701748f0851" (string, optional)
 
 ### `Declaration_Response`
