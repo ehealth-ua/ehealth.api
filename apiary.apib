@@ -264,10 +264,19 @@ Personal information cannot be updated using this method.
     + Attributes (Response_OK)
         + data (Doctor)
 
-### Search Doctor  [GET /doctor?first_name=Іван&last_name=Іванов&second_name=Іванович&speciality=терапевт&region=Київ&area=Дарницький район]
+### Search Doctor [GET /doctor{?first_name,last_name,second_name,speciality,region,area}]
+
 Methods returns list of doctors by combination of name speciality and geo.
 at least one parameter has to be passed. Othervise - error. Only records where is_active=true should be returned.
 Purpose: for future to get dictionary of doctors for the patients.
+
++ Parameters
+    + first_name: Петро (string, optional)
+    + last_name: Іванов (string, optional)
+    + second_name: Миколайович (string, optional)
+    + speciality: терапевт (string, optional)
+    + region: Київ (string, optional)
+    + area: `Дарницький район` (string, optional)
 
 + Request (application/json)
 
@@ -399,8 +408,13 @@ Method to create new labour contract between the Doctor and MSP.
             + include `Labour_Contract`
 
 
-### Get Labour contracts  [GET /labour_contracts?doctor_id=d290f1ee-6c54-4b01-90e6-d701748f0851&msp_id=d290f1ee-6c54-4b01-90e6-d701748f0851]
+### Get Labour contracts  [GET /labour_contracts{?doctor_id,msp_id}]
+
 Methods returns list of labour_contracts by doctor_id or msp_id or both.
+
++ Parameters
+    + doctor_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MPI ID of a doctor.
+    + msp_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MSP ID.
 
 + Request (application/json)
 
