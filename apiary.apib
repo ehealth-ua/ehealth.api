@@ -46,7 +46,7 @@ For security purposes, we will set `X-Frame-Options: deny` header that will disa
     + client_id: `msp-001` (string, required) - Medical Service Provider ID issued upon integration request. Used to identify application developer.
     + redirect_url: http://example.com/ (string, required) - URL where user will be redirected after authentification. This url will receive `code` and `state` parameters in query string.
     + scope: `capitation_contracts:view capitation_contracts:create patients:view patients:create` (string, required) - List of scopes that is required in application business logic, separated by space. Different login forms will be shown based on scopes that you requested.
-    + response_type: code (string, fixed) - Response type, only `code` is supported.
+    + response_type: code (enum, required) - Response type, only `code` is supported.
 
 + Response 200 (text/html; charset=UTF-8)
 
@@ -95,7 +95,7 @@ This method is only for internal use of Login UI.
 + Response 200 (application/json)
     + Attributes (Response_OK)
 
-### Get oAuth token information [GET /oauth/tokens/{:id}]
+### Get oAuth token information [GET /oauth/tokens/{id}]
 
 This method can be only called from eHealth gateway.
 
@@ -321,11 +321,11 @@ Method to sign declaration record with the doctor's signature
             + status: signed (string, required)
 
 
+Methods returns declaration details by declaration ID or by mpi_id (if parameter id=mpi has been passed).
+
 ### Get Declaration  [GET /declarations/{id}?id=mpi]
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-
-Methods returns declaration details by declaration ID or by mpi_id (if parameter id=mpi has been passed).
 
 + Request (application/json)
 
