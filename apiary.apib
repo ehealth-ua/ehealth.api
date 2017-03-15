@@ -489,7 +489,7 @@ TBD...
         + data (Medical_Service_Provider)
             + id: blahblah
 
-### Get Medical Service provider record details by ID [GET /msp/{id}]
+### Get Medical Service provider record details by ID [GET /medical_service_providers/{id}]
 
 This method allows to fetch MSP record details by ID
 
@@ -504,10 +504,15 @@ This method allows to fetch MSP record details by ID
         + data (MSP_Response)
             + id: blahblah
 
-### Search MSP by subset of fields [GET /msp?edrpou=432234432&name=Борис&type=PRIVATE_HOSPITAL]
+### Search MSP by subset of fields [GET /medical_service_providers{?edrpou,name,type}]
 
 This method allows to fetch list of similar MSP by edrpou or name.
 Result will be ordered by search result relevance.
+
++ Parameters
+    + edrpou: 432234432 (number, optional)
+    + name: Борис (number, optional)
+    + type: private_hospital (number, optional)
 
 + Response 200 (application/json)
     + Attributes (Response_Collection)
