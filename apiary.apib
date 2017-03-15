@@ -1,19 +1,19 @@
 FORMAT: 1A
-HOST: http://polls.apiblueprint.org/
+HOST: http://ehealth.nebo15.com/
 
 # eHealth API
 
 This is a API documentation for Ukrainian Health Services government institution back-end, that should provide:
 
 * Master Patients Index (MPI)
-* Global Medical Institutians and Doctors Regsisties
+* Global Medical Institutions and Doctors Registries
 * Partnership Relation Management (PRM) module that describes business relations between this 3 entities.
 
 Project development is fully transparent, you can find it's source code on GitHub:
 
-* [Issue Tracking Repo](https://github.com/Nebo15/ehealth)
+* [eHealth API and issue tracker](https://github.com/Nebo15/ehealth.api)
 * [Master Patient Index](https://github.com/Nebo15/mpi.api)
-* [Reference Implementation of Hospital Information System UI]()
+* [Reference Implementation of Hospital Information System UI](https://github.com/Nebo15/prm.web)
 * [Partnership Relation Management](https://github.com/Nebo15/prm.api)
 
 This API design in based on [Nebo #15 API Design Manifest](http://docs.apimanifest.apiary.io/).
@@ -24,13 +24,23 @@ TODO.
 
 ## Submitting Issues
 
-To submit issues you should use [Issue Tracking Repo](https://github.com/Nebo15/ehealth), issues in all other repositories are used to plan backlog and non-related issued will be closed.
+To submit issues you should use [Issue Tracking Repo](https://github.com/Nebo15/ehealth.api), issues in all other repositories are used to plan backlog and non-related issued will be closed.
 
 # Group Authorization Provider
+
+For security purposes eHealth doesn't allow proxying passwords or to perform any sort back-end authorization. You should always redirect your customers (eg. doctors, we call them "consumers") to the Login UI.
+
+After obtaining `access_token` all subsequent requests should be made with `Authorization: Bearer base64(access_token:)` header.
 
 ## Login UI [/oauth]
 
 ### Show Login UI [GET /oauth/ui{?client_id,redirect_url,scope,response_type}]
+
+Responsive login page will be rendered.
+
+Page can have different structure based on what kind of scopes do you request.
+
+For security purposes, we will set `X-Frame-Options: deny` header that will disallow opening this page in an iframe.
 
 + Parameters
     + client_id: `msp-001` (string, required) - Medical Service Provider ID issued upon integration request. Used to identify application developer.
@@ -41,7 +51,7 @@ To submit issues you should use [Issue Tracking Repo](https://github.com/Nebo15/
 + Response 200 (text/html; charset=UTF-8)
 
     + Headers
-    
+
             X-CSRF-Token: my-csrf-token
 
 ## oAuth Codes [/oauth/codes]
@@ -53,14 +63,14 @@ This method is only for internal use of Login UI.
 + Request (application/json)
 
     + Headers
-        
+
             X-CSRF-Token: `my-csrf-token`
-            
+
     + Attributes (object)
         + client_id: `msp-001` (string, required) - Medical Service Provider ID issued upon integration request. Used to identify application developer.
         + login: gandalf (string, required) - Consumer login.
         + password: secret (string, required) - Consumer password.
-        + timestamp: 1489583714 (number, required) - Timestamp when request was made. If timestamp was made more than 15 minutes ago, corresponding error will be returned.
+        + timestamp: 1489583714 (number, optional) - Timestamp when request was made. If timestamp was made more than 15 minutes ago, corresponding error will be returned. Required only if `signature` is present.
         + signature: signature (string, optional) - `login + bcrypt(password) + timestamp` string signed with a consumer's private key. Required for some scopes.
 
 + Response 200 (application/json)
@@ -73,9 +83,9 @@ This method is only for internal use of Login UI.
 + Request (application/json)
 
     + Headers
-        
+
             X-CSRF-Token: `my-csrf-token`
-            
+
     + Attributes (object)
         + client_id: `msp-001` (string, required) - Medical Service Provider ID issued upon integration request. Used to identify application developer.
         + client_secret: `msp-001-secret-key` (string, required) - Medical Service Provider secret key issued upon integration request. Used to identify application developer.
@@ -90,7 +100,7 @@ This method is only for internal use of Login UI.
 This method can be only called from eHealth gateway.
 
 + Parameters
-    + id: my-oauth-token (string, required) - oAuth access token.
+    + id: `my-oauth-token` (string, required) - oAuth access token.
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
@@ -104,10 +114,13 @@ To make sure that records will be de-duplicated, please make sure to send search
 
 ### Check MPI record existence [HEAD /persons/{id}]
 
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
 + Request (application/json)
-    
+
     + Headers
-        
+
             Authorization: `Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ`
 
 + Response 200 (application/json)
@@ -116,10 +129,13 @@ To make sure that records will be de-duplicated, please make sure to send search
 
 ### Get MPI record details by ID [GET /persons/{id}]
 
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
 + Request (application/json)
-    
+
     + Headers
-        
+
             Authorization: `Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ`
 
 + Response 200 (application/json)
@@ -132,9 +148,9 @@ To make sure that records will be de-duplicated, please make sure to send search
 + Request (application/json)
 
     + Headers
-        
+
             Authorization: `Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ`
-            
+
     + Attributes (Person)
 
 + Response 201 (application/json)
@@ -145,23 +161,25 @@ To make sure that records will be de-duplicated, please make sure to send search
 
 ### Edit MPI record [PUT /persons/{id}]
 
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
 + Request (application/json)
 
     + Headers
-        
+
             Authorization: `Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ`
-            
+
     + Attributes (Person)
         + is_active: true (boolean, required)
 
-+ Response 201 (application/json)
++ Response 200 (application/json)
     + Attributes (Response_OK)
-        + meta (Response__Meta)
-            + code: 201 (number)
         + data (`Person_Full`)
 
 
 ### Search MPI records [GET /persons{?first_name,last_name,second_name,birth_date,tax_id,phone_number}]
+
 This method allows to search MPI ID by patient personal information.
 
 + Parameters
@@ -173,9 +191,9 @@ This method allows to search MPI ID by patient personal information.
     + phone_number: `+380508887700` (string, optional)
 
 + Request (application/json)
-    
+
     + Headers
-        
+
             Authorization: `Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ`
 
 + Response 200 (application/json)
@@ -195,8 +213,11 @@ This method allows to search MPI ID by patient personal information.
 ## Doctors [/doctors]
 
 ### Register a Doctor [POST]
-Method to register new Doctor record for the existing MPI.
-Only one doctor can be registered for one MPI.
+
+Register new Doctor record for the existing MPI.
+
+Limitations:
+* only one doctor can be registered for one MPI
 
 + Request (application/json)
     + Attributes (Doctor)
@@ -211,10 +232,13 @@ Only one doctor can be registered for one MPI.
 
 This method allows to fetch doctor record details by ID. Only record where "is_active=true" should be returned.
 
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
 + Request (application/json)
-    
+
     + Headers
-        
+
             Authorization: `Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ`
 
 + Response 200 (application/json)
@@ -225,18 +249,19 @@ This method allows to fetch doctor record details by ID. Only record where "is_a
 This method to update the Doctor related information. 
 Personal information cannot be updated using this method.
 
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
 + Request (application/json)
 
     + Headers
-        
+
             Authorization: `Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ`
             
     + Attributes (Doctor_Update)
 
-+ Response 201 (application/json)
++ Response 200 (application/json)
     + Attributes (Response_OK)
-        + meta (Response__Meta)
-            + code: 201 (number)
         + data (Doctor)
 
 ### Search Doctor  [GET /doctor?first_name=Іван&last_name=Іванов&second_name=Іванович&speciality=терапевт&region=Київ&area=Дарницький район]
@@ -245,9 +270,9 @@ at least one parameter has to be passed. Othervise - error. Only records where i
 Purpose: for future to get dictionary of doctors for the patients.
 
 + Request (application/json)
-    
+
     + Headers
-        
+
             Authorization: `Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ`
 
 + Response 200 (application/json)
@@ -255,7 +280,9 @@ Purpose: for future to get dictionary of doctors for the patients.
         + data (array [Response_Doctor])
 
 ## Declarations [/declarations]
+
 ### Register new declaration [POST]
+
 Method to register new declaration record
 
 + Request (application/json)
@@ -266,25 +293,27 @@ Method to register new declaration record
         + meta (Response__Meta)
             + code: 201 (number)
         + data (object)
-            + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
             + include `Declaration`
             + active: false (boolean, required)
             + status: pending_signature (string, required)
 
 ### Sign declaration [PUT /declarations/{id}]
+
 Method to sign declaration record with the doctor's signature
+
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 
 + Request (application/json)
     + Attributes (object)
         + `base64_encoded_patient_doctor_declaration_data`: "string"
-        + signature: "string" (string, required)
-        + certificate: "string" (string, required)
-        + signed_at: "2017-02-28" (string, required)
+        + signature: string (string, required)
+        + certificate: string (string, required)
+        + signed_at: `2017-02-28` (string, required)
 
-+ Response 201 (application/json)
++ Response 200 (application/json)
     + Attributes (Response_OK)
-        + meta (Response__Meta)
-            + code: 201 (number)
         + data (object)
             + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
             + include `Declaration`
@@ -293,13 +322,15 @@ Method to sign declaration record with the doctor's signature
 
 
 ### Get Declaration  [GET /declarations/{id}?id=mpi]
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 
 Methods returns declaration details by declaration ID or by mpi_id (if parameter id=mpi has been passed).
 
 + Request (application/json)
-    
+
     + Headers
-        
+
             Authorization: `Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ`
 
 + Response 200 (application/json)
@@ -319,9 +350,9 @@ Allowed combinations:
 at least one parameter has to be passed. Othervise - error
 
 + Request (application/json)
-    
+
     + Headers
-        
+
             Authorization: `Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ`
 
 + Response 200 (application/json)
@@ -331,23 +362,27 @@ at least one parameter has to be passed. Othervise - error
 ### Update confident person [PUT /declarations/confident_person/{id}]
 Method to add/remove confident person in Declaration. 
 
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
+
 + Request (application/json)
 
     + Headers
-        
-            Authorization: `Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ`
-            
-    + Attributes (object)
-        + confident_person_id: "d290f1ee-6c54-4b01-90e6-d701748f0851" (string, optional)
 
-+ Response 201 (application/json)
+            Authorization: `Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ`
+
+    + Attributes (object)
+        + confident_person_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional)
+
++ Response 200 (application/json)
     + Attributes (Response_OK)
-        + meta (Response__Meta)
-            + code: 201 (number)
         + data (Declaration_Response)
 
 ## Labour Contracts [/labout_contracts]
+
 ### Register new Labour contract [POST]
+
 Method to create new labour contract between the Doctor and MSP.
 `msp_id` and doctor_id should already exist.
 
@@ -359,7 +394,7 @@ Method to create new labour contract between the Doctor and MSP.
         + meta (Response__Meta)
             + code: 201 (number)
         + data (object)
-            + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
             + include `Labour_Contract`
 
 
@@ -367,9 +402,9 @@ Method to create new labour contract between the Doctor and MSP.
 Methods returns list of labour_contracts by doctor_id or msp_id or both.
 
 + Request (application/json)
-    
+
     + Headers
-        
+
             Authorization: `Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ`
 
 + Response 200 (application/json)
@@ -377,26 +412,30 @@ Methods returns list of labour_contracts by doctor_id or msp_id or both.
         + data (array[Labour_Contract_Response])
 
 ### Update Labour contract [PUT /labour_contract/{id}]
+
 This method to update the labour contract info by ID.
+
 TODO: add verification logic. For ex. how and when is_active can be updated.
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
 
 + Request (application/json)
 
     + Headers
-        
+
             Authorization: `Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ`
-            
+
     + Attributes (object)
         + title: лікар (string, required)
         + speciality: Педіатрія (enum) (string, required)
         + start_date: 2017-02-28 (string, required)
         + finished_date: 2017-02-28 (string, optional)
-        + is_active: 0, 1 (string, required)
+        + is_active: true (boolean, required)
 
-+ Response 201 (application/json)
++ Response 200 (application/json)
     + Attributes (Response_OK)
-        + meta (Response__Meta)
-            + code: 201 (number)
         + data (object)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
             + Include `Labour_Contract`
@@ -405,8 +444,10 @@ TODO: add verification logic. For ex. how and when is_active can be updated.
             + modified_at: `2017-03-02T10:45:16.000Z` (string, optional)
             + modified_by: `86e89e60-0189-45c2-b25a-9edb4841d1e9` (string, required)
 
-## Medical Service Providers [/Medical_Service_Providers]
+## Medical Service Providers [/medical_service_providers]
+
 TBD...
+
 ### Register MSP [POST]
 
 + Request (application/json)
@@ -424,9 +465,9 @@ TBD...
 This method allows to fetch MSP record details by ID
 
 + Request (application/json)
-    
+
     + Headers
-        
+
             Authorization: `Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ`
 
 + Response 200 (application/json)
@@ -436,10 +477,10 @@ This method allows to fetch MSP record details by ID
 
 ### Search MSP by subset of fields [GET /msp?edrpou=432234432&name=Борис&type=PRIVATE_HOSPITAL]
 
-This method allows to fetch list of similar MSP by edrpou or name. 
+This method allows to fetch list of similar MSP by edrpou or name.
 Result will be ordered by search result relevance.
 
-+ Response 201 (application/json)
++ Response 200 (application/json)
     + Attributes (Response_Collection)
         + data (array[MSP_Response])
 
@@ -448,6 +489,7 @@ Result will be ordered by search result relevance.
 ## Declarations [/reports/declarations]
 
 ### Search Declarations over the period  [GET /reports/declarations{?start_date,end_date,doctor_id,msp_id}]
+
 Methods returns agregated numbers of declarations.
 
 + Parameters
@@ -457,21 +499,23 @@ Methods returns agregated numbers of declarations.
     + msp_id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, optional)
 
 + Request (application/json)
-    
+
     + Headers
-        
+
             Authorization: `Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ`
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
-        + meta (Response__Meta)
-            + code: 200 (number)
         + data (array [Declaration_Report])
 
 # Group Medical Service Provider Integration Layer
 
 ## Declarations [/mis/declarations]
+
 ### Create declaration [POST]
+
+> FIXME
+
 Method to register new declaration record
 
 + Request (application/json)
@@ -627,8 +671,8 @@ Method to register new declaration record
 ## Doctors
 ### Doctor
 + person_id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
-+ certificates (array[Medical_Certificate], optional) 
-+ licenses (array[Medical_License], required) 
++ certificates (array[Medical_Certificate], optional)
++ licenses (array[Medical_License], required)
 + education (array[Medical_Education], required)
 
 
@@ -687,8 +731,8 @@ Method to register new declaration record
 + person_id: "d290f1ee-6c54-4b01-90e6-d701748f0851" (string, required)
 + doctor_id: "d290f1ee-6c54-4b01-90e6-d701748f0851" (string, required)
 + msp_id: "d290f1ee-6c54-4b01-90e6-d701748f0851" (string, required)
-+ scope (enum)
-    - family doctor
++ scope (enum, required)
+    - family_doctor
 + confident_persons (array[Person], optional)
 
 ### `Declaration_Request`
@@ -696,7 +740,7 @@ Method to register new declaration record
 + person_id: "d290f1ee-6c54-4b01-90e6-d701748f0851" (string, optional)
 + doctor_id: "d290f1ee-6c54-4b01-90e6-d701748f0851" (string, required)
 + msp_id: "d290f1ee-6c54-4b01-90e6-d701748f0851" (string, required)
-+ scope (enum)
++ scope (enum, required)
     - family doctor
 + confident_person_id: "d290f1ee-6c54-4b01-90e6-d701748f0851" (string, optional)
 
@@ -713,7 +757,6 @@ Method to register new declaration record
 + declarations_total: 100 (number, required)
 + declarations_created: 10 (number, required)
 + declarations_closed: 2 (number, required)
-
 
 ## `Labour_Contracts`
 ### `Labour_Contract`
@@ -737,16 +780,15 @@ Method to register new declaration record
 + modified_at: `2017-03-02T10:45:16.000Z` (string, optional)
 + modified_by: `86e89e60-0189-45c2-b25a-9edb4841d1e9` (string, required)
 
-
 ## `Medical_Service_Providers`
 ### `Medical_Service_Provider`
 + name: Клініка Борис (string, required)
 + short_Name: Борис (string, required)
-+ type (enum, required) 
++ type (enum, required)
     - ФОП
     - Клініка
 + edrpou: 5432345432 (string, required)
-+ services (array[Medical_Service], required) 
++ services (array[Medical_Service], required)
 + license (array[License], optional)
 + accreditation (array[Accreditation], required)
 + addresses (array[Address], optional)
@@ -761,6 +803,7 @@ Method to register new declaration record
 + modified_at: `2017-02-28T15:12:54.000Z` (string, optional)
 + modified_by: 223717200421984 (string, required)
 
+## `Medical_Services`
 ### `Medical_Service`
 + id
 + name
