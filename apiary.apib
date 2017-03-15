@@ -391,6 +391,30 @@ Result will be ordered by search result relevance.
     + Attributes (Response_Collection)
         + data (array[MSP_Response])
 
+# Group Reports
+
+## Declarations [/reports/declarations]
+
+### Search Declarations over the period  [GET /reports/declarations{?start_date,end_date,doctor_id,msp_id}]
+Methods returns agregated numbers of declarations.
+
++ Parameters
+    + start_date: 2017-01-28 (string, required)
+    + end_date: 2017-02-28 (string, required)
+    + doctor_id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, optional)
+    + msp_id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, optional)
+
++ Request (application/json)
+    
+    + Headers
+        
+            Authorization: `Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ`
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 200 (number)
+        + data (array [Declaration_Report])
 
 # Group Medical Service Provider Integration Layer
 
@@ -631,6 +655,13 @@ Method to register new declaration record
 + created_by: `86e89e60-0189-45c2-b25a-9edb4841d1e9` (string, required)
 + modified_at: `2017-03-02T10:45:16.000Z` (string, optional)
 + modified_by: `86e89e60-0189-45c2-b25a-9edb4841d1e9` (string, required)
+
+### `Declaration_Report`
++ date: `2017-03-02` (string, required)
++ declarations_total: 100 (number, required)
++ declarations_created: 10 (number, required)
++ declarations_closed: 2 (number, required)
+
 
 ## `Labour_Contracts`
 ### `Labour_Contract`
