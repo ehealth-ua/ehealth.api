@@ -246,7 +246,8 @@ This method allows to fetch doctor record details by ID. Only record where "is_a
         + data (Response_Doctor)
 
 ### Update Doctor [PUT /doctors/{id}]
-This method to update the Doctor related information. 
+
+This method to update the Doctor related information.
 Personal information cannot be updated using this method.
 
 + Parameters
@@ -257,7 +258,6 @@ Personal information cannot be updated using this method.
     + Headers
 
             Authorization: `Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ`
-            
     + Attributes (Doctor_Update)
 
 + Response 200 (application/json)
@@ -360,7 +360,8 @@ at least one parameter has to be passed. Othervise - error
         + data (array[Declaration_Response])
 
 ### Update confident person [PUT /declarations/confident_person/{id}]
-Method to add/remove confident person in Declaration. 
+
+Method to add/remove confident person in Declaration.
 
 + Parameters
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
