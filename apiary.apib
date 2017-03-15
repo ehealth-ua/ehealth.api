@@ -647,10 +647,13 @@ Method to register new declaration record
 + is_active: true (boolean, required)
 + name: Іванов Іван ванович (string)
 
-###`Doctor_Update`
+### `Doctor_Update`
 + include `Doctor`
-+ is_active
-+ status: PENDING_APPROVAL, APPROVED, DECLINED
++ is_active: true (boolean, optional)
++ status (enum, optional)
+    - pending_approval
+    - approved
+    - declined
 
 ## Declarations
 ### Declaration
