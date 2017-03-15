@@ -199,7 +199,7 @@ Purpose: for future to get dictionary of doctors for the patients.
 Method to register new declaration record
 
 + Request (application/json)
-    + Attributes (Declaration_Request)
+    + Attributes (Declaration)
 
 + Response 201 (application/json)
     + Attributes (Response_OK)
@@ -390,6 +390,27 @@ Result will be ordered by search result relevance.
 + Response 201 (application/json)
     + Attributes (Response_Collection)
         + data (array[MSP_Response])
+
+
+# Group Medical Service Provider Integration Layer
+
+## Declarations [/mis/declarations]
+### Create declaration [POST]
+Method to register new declaration record
+
++ Request (application/json)
+    + Attributes (Declaration_Request)
+
++ Response 201 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
+            + include `Declaration`
+            + active: false (boolean, required)
+            + status: pending_signature (string, required)
+
 
 # Data Structures
 ## Responses
