@@ -95,8 +95,8 @@ To make sure that records will be de-duplicated, please make sure to send search
         + data (`Person_Full`)
 
 
-### Search for a single MPI record [GET /persons{?first_name,last_name,second_name,birth_date,tax_id}]
-This method allows to search MPI ID by patient personal information. Only one ID can be returned
+### Search MPI records [GET /persons{?first_name,last_name,second_name,birth_date,tax_id,phone_number}]
+This method allows to search MPI ID by patient personal information.
 
 + Parameters
     + first_name: Петро (string, required)
@@ -104,6 +104,7 @@ This method allows to search MPI ID by patient personal information. Only one ID
     + second_name: Миколайович (string, optional)
     + birth_date: `1991-08-19T00:00:00.000Z` (string, required) - ISO Datetime.
     + tax_id: 3126509816 (string, optional)
+    + phone_number: `+380508887700` (string, optional)
 
 + Request (application/json)
     
@@ -115,7 +116,7 @@ This method allows to search MPI ID by patient personal information. Only one ID
     + Attributes (Response_OK)
         + meta (Response__Meta)
             + code: 200 (number)
-        + data (array[Person_Full])
+        + data (array[`Person_Short`])
 
 + Response 403 (application/json)
     + Attributes (Response_Error)
@@ -448,6 +449,7 @@ Result will be ordered by search result relevance.
 + last_name: Іванов (string, required)
 + second_name: Миколайович (string, optional)
 + birth_date: `1991-08-19T00:00:00.000Z` (string, required)
++ birth_place: `Вінниця, Україна` (string, required)
 + gender: MALE, FEMALE (enum[string], required)
 + email: email@example.com (string, optional)
 + tax_id: 3126509816 (string, optional)
@@ -471,6 +473,7 @@ Result will be ordered by search result relevance.
 
 ### `Person_Short`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ birth_place: Вінниця (string, required)
 + history (array)
     + (object)
         + id: `7bca069f-21e4-4546-90cf-b65e3f39d93d` (string, required)
