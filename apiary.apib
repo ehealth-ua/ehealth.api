@@ -619,55 +619,6 @@ Method to register new declaration record
     + (object)
         + id: `7bca069f-21e4-4546-90cf-b65e3f39d93d` (string, required)
 
-## Credentials
-### Credential
-+ type: otp (enum)
-    - encrypted_key
-
-## `Media_Objects`
-### Photo
-+ id
-+ link
-
-## Relations
-### Relation
-+ type: mother
-+ person_id
-+ `related_person_id`
-
-## Addresses
-### Address
-+ type: RESIDENCE, REGISTRATION (enum[string], required)
-+ country: UA (enum[string], required)
-+ area: Житомирська (string, optional)
-+ region: Бердичівський (string, optional)
-+ city: Київ (string, required)
-+ city_type: CITY (enum[string], required)
-+ street: `вул. Ніжинська` (string, optional)
-+ building: 15 (string, required)
-+ apartment: 23 (string, optional)
-+ zip: 02090 (string, optional)
-
-## Phones
-### Phone
-+ type: MOBILE, LANDLINE (enum[string], required)
-+ number: `+380503410870` (string, required)
-
-## Documents
-### Document
-+ type: PASSPORT (enum[string], required)
-+ number: 120518 (string, required)
-+ issue_date: `2015-04-07T00:00:00.000Z`
-+ expiration_date: `2015-04-07T00:00:00.000Z`
-+ issued_by: DMSU
-
-## Contacts
-### Contact
-+ type (enum)
-    - email
-    - phone
-    
-
 ## Doctors
 ### Doctor
 + person_id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
@@ -686,45 +637,6 @@ Method to register new declaration record
 + include `Doctor`
 + is_active
 + status: PENDING_APPROVAL, APPROVED, DECLINED
-
-## `Medical_Certificates`
-### `Medical_Certificate`
-+ name: Диплом доктора медицини (string, required)
-+ number: AA1234BC (string, required)
-+ degree: `Doctor of Medicine (MD, Dr.MuD, Dr.Med)` (string, required)
-+ issue_date: 2017-02-28 (string, required)
-+ issued_by: Національний медичний університет імені О.О. Богомольця (string, required)
-+ started_date: 2016-08-29T09:12:33.001Z (string, optional)
-+ finished_date: 2016-08-29T09:12:33.001Z (string, optional)
-
-## `Medical_Licenses`
-### `Medical_License`
-+ category (enum, required)
-    - Атестація на визначення знань і практичних навиків
-+ type (enum, required)
-    - диплом
-+ issued_by: Кваліфікацйна комісія (string, required)
-+ order_no: DV4312324 (string, required)
-+ issued_date: 2017-02-28 (string, required)
-+ expiry_date: 2017-02-28 (string, required)
-
-## `Medical_Educations`
-### `Medical_Education`
-+ institution_name: Академія Богомольця (string, required)
-+ certificate_Number: DD123543 (string, required)
-+ degree (enum, required)
-    - Doctor of Medicine
-    - Bachelor of Medicine 
-    - Bachelor of Surgery
-    - Doctor of Osteopathic Medicine
-    - Master of Clinical Medicine
-+ start_date: 2017-02-28 (string, required)
-+ finished_date: 2017-02-28 (string, required)
-+ speciality (enum, required)
-    - Загальна практика - сімейна медицина
-    - Педіатрія
-    - Підліткова терапія
-    - Терапія
 
 ## Declarations
 ### Declaration
@@ -807,6 +719,66 @@ Method to register new declaration record
 ### `Medical_Service`
 + id
 + name
+
+## Shared
+### Address
++ type: RESIDENCE, REGISTRATION (enum[string], required)
++ country: UA (enum[string], required)
++ area: Житомирська (string, optional)
++ region: Бердичівський (string, optional)
++ city: Київ (string, required)
++ city_type: CITY (enum[string], required)
++ street: `вул. Ніжинська` (string, optional)
++ building: 15 (string, required)
++ apartment: 23 (string, optional)
++ zip: 02090 (string, optional)
+
+### Phone
++ type: MOBILE, LANDLINE (enum[string], required)
++ number: `+380503410870` (string, required)
+
+### Document
++ type: PASSPORT (enum[string], required)
++ number: 120518 (string, required)
++ issue_date: `2015-04-07T00:00:00.000Z`
++ expiration_date: `2015-04-07T00:00:00.000Z`
++ issued_by: DMSU
+
+### `Medical_Certificate`
++ name: Диплом доктора медицини (string, required)
++ number: AA1234BC (string, required)
++ degree: `Doctor of Medicine (MD, Dr.MuD, Dr.Med)` (string, required)
++ issue_date: 2017-02-28 (string, required)
++ issued_by: Національний медичний університет імені О.О. Богомольця (string, required)
++ started_date: 2016-08-29T09:12:33.001Z (string, optional)
++ finished_date: 2016-08-29T09:12:33.001Z (string, optional)
+
+### `Medical_License`
++ category (enum, required)
+    - Атестація на визначення знань і практичних навиків
++ type (enum, required)
+    - диплом
++ issued_by: Кваліфікацйна комісія (string, required)
++ order_no: DV4312324 (string, required)
++ issued_date: 2017-02-28 (string, required)
++ expiry_date: 2017-02-28 (string, required)
+
+### `Medical_Education`
++ institution_name: Академія Богомольця (string, required)
++ certificate_Number: DD123543 (string, required)
++ degree (enum, required)
+    - Doctor of Medicine
+    - Bachelor of Medicine
+    - Bachelor of Surgery
+    - Doctor of Osteopathic Medicine
+    - Master of Clinical Medicine
++ start_date: 2017-02-28 (string, required)
++ finished_date: 2017-02-28 (string, required)
++ speciality (enum, required)
+    - Загальна практика - сімейна медицина
+    - Педіатрія
+    - Підліткова терапія
+    - Терапія
 
 ### Accreditation
 + certificate_number: fd123443 (string, required)
