@@ -367,10 +367,10 @@ Method to sign declaration record with the doctor's signature
             + active: true (boolean, required)
             + status: signed (string, required)
 
+### Get Declaration [GET /declarations/{id}]
 
 Methods returns declaration details by declaration ID or by mpi_id (if parameter id=mpi has been passed).
 
-### Get Declaration  [GET /declarations/{id}?id=mpi]
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 
@@ -384,17 +384,17 @@ Methods returns declaration details by declaration ID or by mpi_id (if parameter
     + Attributes (Response_OK)
         + data (Declaration_Full)
 
-### Search Declarations  [GET /declarations?person_id=d290f1ee-6c54-4b01-90e6-d701748f0851&doctor_id=d290f1ee-6c54-4b01-90e6-d701748f0851&msp_id=d290f1ee-6c54-4b01-90e6-d701748f0851&declaration_id=d290f1ee-6c54-4b01-90e6-d701748f0851]
-Methods returns list of declarations by combination of patient_id, doctor_id, msp_id.
-Allowed combinations:
-1) doctor_id
-2) msp_id
-3) doctor_id+Patient_id
-4) msp_id+Patient_id
-5) msp_id+declaration_id
-6) doctor_id+declaration_id
+### Search Declarations  [GET /declarations{?person_id,doctor_id,msp_id,is_active}]
 
-at least one parameter has to be passed. Othervise - error
+Methods returns list of declarations by combination of patient_id, doctor_id, msp_id.
+
+Response will contain only records that you have access to.
+
++ Parameters
+    + person_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MPI ID of a patient.
+    + doctor_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MPI ID of a doctor.
+    + msp_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MSP ID.
+    + is_active: true (boolean, optional) - Search only for active or disabled declarations.
 
 + Request (application/json)
 
