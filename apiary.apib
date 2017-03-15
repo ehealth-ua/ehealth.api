@@ -208,6 +208,44 @@ This method allows to search MPI ID by patient personal information.
             + type: `too_many_results`
             + message: `This API method returns only exact match results, please retry with more specific search result` (string)
 
+## Confident Persons
+
+### Add Confident Person [POST /persons/{id}/confident_persons]
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Person ID
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
+
+    + Attributes (object)
+        + person_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - Confident Person ID
+
++ Response 201 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (Person_Full)
+
+### Remove Confident Person [DELETE /persons/{id}/confident_persons/{confident_person_id}]
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Person ID
+    + confident_person_id: `d290f1ee-6c54-4b01-90e6-d701748f0852` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (Person_Full)
+
 # Group Partnership Relations Management
 
 ## Doctors [/doctors]
@@ -367,27 +405,6 @@ at least one parameter has to be passed. Othervise - error
 + Response 200 (application/json)
     + Attributes (Response_OK)
         + data (array[Declaration_Full])
-
-### Update confident person [PUT /declarations/confident_person/{id}]
-
-Method to add/remove confident person in Declaration.
-
-+ Parameters
-    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
-
-    + Attributes (object)
-        + confident_person_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional)
-
-+ Response 200 (application/json)
-    + Attributes (Response_OK)
-        + data (Declaration_Full)
 
 ## Labour Contracts [/labout_contracts]
 
@@ -617,6 +634,7 @@ Method to register new declaration record
 ### `Person_Full`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + Include Person
++ confident_persons (array[Person])
 + is_active: true (boolean, required)
 + history (array)
     + (object)
@@ -661,7 +679,6 @@ Method to register new declaration record
 + msp_id: "d290f1ee-6c54-4b01-90e6-d701748f0851" (string, required)
 + scope (enum, required)
     - family_doctor
-+ confident_persons (array[Person], optional)
 
 ### `Declaration_Request`
 + include `Person`
@@ -670,7 +687,6 @@ Method to register new declaration record
 + msp_id: "d290f1ee-6c54-4b01-90e6-d701748f0851" (string, required)
 + scope (enum, required)
     - family doctor
-+ confident_person_id: "d290f1ee-6c54-4b01-90e6-d701748f0851" (string, optional)
 
 ### `Declaration_Full`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
