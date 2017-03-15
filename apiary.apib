@@ -73,8 +73,12 @@ This method is only for internal use of Login UI.
         + timestamp: 1489583714 (number, optional) - Timestamp when request was made. If timestamp was made more than 15 minutes ago, corresponding error will be returned. Required only if `signature` is present.
         + signature: signature (string, optional) - `login + bcrypt(password) + timestamp` string signed with a consumer's private key. Required for some scopes.
 
-+ Response 200 (application/json)
++ Response 201 (application/json)
     + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + code: 299383828 (string, required) - oAuth code grant
 
 ## oAuth Tokens [/oauth/tokens]
 
@@ -89,21 +93,25 @@ This method is only for internal use of Login UI.
     + Attributes (object)
         + client_id: `msp-001` (string, required) - Medical Service Provider ID issued upon integration request. Used to identify application developer.
         + client_secret: `msp-001-secret-key` (string, required) - Medical Service Provider secret key issued upon integration request. Used to identify application developer.
-        + code: 299383828 (string, required) - oAuth code issued in .
+        + code: 299383828 (string, required) - oAuth code grant.
         + `grant_type`: authorization_code (string, fixed) - oAuth Grant Type. Currently only `authorization_code` is supported.
 
-+ Response 200 (application/json)
++ Response 201 (application/json)
     + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (Access_Token)
 
-### Get oAuth token information [GET /oauth/tokens/{id}]
+### Get oAuth token information [GET /oauth/tokens/{access_token}]
 
 This method can be only called from eHealth gateway.
 
 + Parameters
-    + id: `my-oauth-token` (string, required) - oAuth access token.
+    + access_token: `my-oauth-token` (string, required) - oAuth access token.
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
+        + data (Access_Token)
 
 
 # Group Master Patients Index
@@ -746,6 +754,14 @@ Method to register new declaration record
 ### `Medical_Service`
 + id
 + name
+
+## `Access_Tokens`
+### `Access_Token`
++ access_token: `my-oauth-token` (string, required) - oAuth access token.
++ refresh_token: `my-oauth-refresh-token` (string, required) - oAuth refresh token.
++ expires_in: 76000 (number, required) - seconds until token expiration.
++ person_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Person ID of authorized user.
++ scopes: `capitation_contracts:view capitation_contracts:create patients:view patients:create` (string, required) - scopes that assigned to access token
 
 ## Shared
 ### Address
