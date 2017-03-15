@@ -28,9 +28,9 @@ To submit issues you should use [Issue Tracking Repo](https://github.com/Nebo15/
 
 # Group Authorization Provider
 
-## oAuth [/oauth]
+## Login UI [/oauth]
 
-### Show login UI [GET /oauth/ui{?client_id,redirect_url,scope,response_type}]
+### Show Login UI [GET /oauth/ui{?client_id,redirect_url,scope,response_type}]
 
 + Parameters
     + client_id: `msp-001` (string, required) - Medical Service Provider ID issued upon integration request. Used to identify application developer.
@@ -43,6 +43,8 @@ To submit issues you should use [Issue Tracking Repo](https://github.com/Nebo15/
     + Headers
     
             X-CSRF-Token: my-csrf-token
+
+## oAuth Codes [/oauth/codes]
 
 ### Issues oAuth code [POST /oauth/codes]
 
@@ -64,7 +66,9 @@ This method is only for internal use of Login UI.
 + Response 200 (application/json)
     + Attributes (Response_OK)
 
-### Exchange oAuth code to access token [POST /oauth/tokens]
+## oAuth Tokens [/oauth/tokens]
+
+### Exchange oAuth code to access token [POST]
 
 + Request (application/json)
 
