@@ -26,6 +26,72 @@ TODO.
 
 To submit issues you should use [Issue Tracking Repo](https://github.com/Nebo15/ehealth), issues in all other repositories are used to plan backlog and non-related issued will be closed.
 
+# Group Authorization Provider
+
+## oAuth [/oauth]
+
+### Show login UI [GET /oauth/ui{?client_id,redirect_url,scope,response_type}]
+
++ Parameters
+    + client_id: `msp-001` (string, required) - Medical Service Provider ID issued upon integration request. Used to identify application developer.
+    + redirect_url: http://example.com/ (string, required) - URL where user will be redirected after authentification. This url will receive `code` and `state` parameters in query string.
+    + scope: `capitation_contracts:view capitation_contracts:create patients:view patients:create` (string, required) - List of scopes that is required in application business logic, separated by space. Different login forms will be shown based on scopes that you requested.
+    + response_type: code (string, fixed) - Response type, only `code` is supported.
+
++ Response 200 (text/html; charset=UTF-8)
+
+    + Headers
+    
+            X-CSRF-Token: my-csrf-token
+
+### Issues oAuth code [POST /oauth/codes]
+
+This method is only for internal use of Login UI.
+
++ Request (application/json)
+
+    + Headers
+        
+            X-CSRF-Token: `my-csrf-token`
+            
+    + Attributes (object)
+        + client_id: `msp-001` (string, required) - Medical Service Provider ID issued upon integration request. Used to identify application developer.
+        + login: gandalf (string, required) - Consumer login.
+        + password: secret (string, required) - Consumer password.
+        + timestamp: 1489583714 (number, required) - Timestamp when request was made. If timestamp was made more than 15 minutes ago, corresponding error will be returned.
+        + signature: signature (string, optional) - `login + bcrypt(password) + timestamp` string signed with a consumer's private key. Required for some scopes.
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+
+### Exchange oAuth code to access token [POST /oauth/tokens]
+
++ Request (application/json)
+
+    + Headers
+        
+            X-CSRF-Token: `my-csrf-token`
+            
+    + Attributes (object)
+        + client_id: `msp-001` (string, required) - Medical Service Provider ID issued upon integration request. Used to identify application developer.
+        + client_secret: `msp-001-secret-key` (string, required) - Medical Service Provider secret key issued upon integration request. Used to identify application developer.
+        + code: 299383828 (string, required) - oAuth code issued in .
+        + `grant_type`: authorization_code (string, fixed) - oAuth Grant Type. Currently only `authorization_code` is supported.
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+
+### Get oAuth token information [GET /oauth/tokens/{:id}]
+
+This method can be only called from eHealth gateway.
+
++ Parameters
+    + id: my-oauth-token (string, required) - oAuth access token.
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+
+
 # Group Master Patients Index
 
 ## Persons [/persons]
@@ -42,8 +108,6 @@ To make sure that records will be de-duplicated, please make sure to send search
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
-        + meta (Response__Meta)
-            + code: 200 (number)
         + data (`Person_Short`)
 
 ### Get MPI record details by ID [GET /persons/{id}]
@@ -56,8 +120,6 @@ To make sure that records will be de-duplicated, please make sure to send search
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
-        + meta (Response__Meta)
-            + code: 200 (number)
         + data (`Person_Full`)
 
 
@@ -114,8 +176,6 @@ This method allows to search MPI ID by patient personal information.
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
-        + meta (Response__Meta)
-            + code: 200 (number)
         + data (array[`Person_Short`])
 
 + Response 403 (application/json)
@@ -155,8 +215,6 @@ This method allows to fetch doctor record details by ID. Only record where "is_a
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
-        + meta (Response__Meta)
-            + code: 200 (number)
         + data (Response_Doctor)
 
 ### Update Doctor [PUT /doctors/{id}]
@@ -190,8 +248,6 @@ Purpose: for future to get dictionary of doctors for the patients.
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
-        + meta (Response__Meta)
-            + code: 200 (number)
         + data (array [Response_Doctor])
 
 ## Declarations [/declarations]
@@ -244,8 +300,6 @@ Methods returns declaration details by declaration ID or by mpi_id (if parameter
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
-        + meta (Response__Meta)
-            + code: 200 (number)
         + data (Declaration_Response)
 
 ### Search Declarations  [GET /declarations?person_id=d290f1ee-6c54-4b01-90e6-d701748f0851&doctor_id=d290f1ee-6c54-4b01-90e6-d701748f0851&msp_id=d290f1ee-6c54-4b01-90e6-d701748f0851&declaration_id=d290f1ee-6c54-4b01-90e6-d701748f0851]
@@ -268,9 +322,7 @@ at least one parameter has to be passed. Othervise - error
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
-        + meta (Response__Meta)
-            + code: 200 (number)
-        + data (array [Declaration_Response])
+        + data (array[Declaration_Response])
 
 ### Update confident person [PUT /declarations/confident_person/{id}]
 Method to add/remove confident person in Declaration. 
@@ -318,9 +370,7 @@ Methods returns list of labour_contracts by doctor_id or msp_id or both.
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
-        + meta (Response__Meta)
-            + code: 200 (number)
-        + data (array [Labour_Contract_Response])
+        + data (array[Labour_Contract_Response])
 
 ### Update Labour contract [PUT /labour_contract/{id}]
 This method to update the labour contract info by ID.
@@ -377,8 +427,6 @@ This method allows to fetch MSP record details by ID
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
-        + meta (Response__Meta)
-            + code: 200 (number)
         + data (MSP_Response)
             + id: blahblah
 
