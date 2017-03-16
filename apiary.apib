@@ -310,7 +310,7 @@ Personal information cannot be updated using this method.
     + Attributes (Response_OK)
         + data (Doctor)
 
-### Search for a Doctor [GET /doctor{?first_name,last_name,second_name,speciality,region,area,msp_id,is_active}]
+### Search for a Doctor [GET /doctors{?first_name,last_name,second_name,speciality,region,area,msp_id,is_active}]
 
 Methods returns list of doctors.
 at least one parameter has to be passed. Othervise - error. Only records where is_active=true should be returned.
@@ -416,7 +416,7 @@ Response will contain only records that you have access to.
     + Attributes (Response_OK)
         + data (array[Declaration_Full])
 
-## Labour Contracts [/labout_contracts]
+## Labour Contracts [/labour_contracts]
 
 ### Create Labour Contract [POST]
 
@@ -434,7 +434,7 @@ Method to create new labour contract between the Doctor and MSP.
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
             + include `Labour_Contract`
 
-### Update Labour Contract [PUT /labour_contract/{id}]
+### Update Labour Contract [PUT /labour_contracts/{id}]
 
 This method to update the labour contract info by ID.
 
@@ -487,7 +487,7 @@ Methods returns list of labour_contracts by doctor_id or msp_id or both.
 
 TBD...
 
-### Register MSP [POST]
+### Register Medical Service Provider [POST]
 
 + Request (application/json)
     + Attributes (Medical_Service_Provider)
@@ -499,7 +499,7 @@ TBD...
         + data (Medical_Service_Provider)
             + id: blahblah
 
-### Get Medical Service provider record details by ID [GET /medical_service_providers/{id}]
+### Get Medical Service Provider by ID [GET /medical_service_providers/{id}]
 
 This method allows to fetch MSP record details by ID
 
@@ -514,7 +514,7 @@ This method allows to fetch MSP record details by ID
         + data (MSP_Response)
             + id: blahblah
 
-### Search MSP by subset of fields [GET /medical_service_providers{?edrpou,name,type}]
+### Search for Medical Service Provider [GET /medical_service_providers{?edrpou,name,type}]
 
 This method allows to fetch list of similar MSP by edrpou or name.
 Result will be ordered by search result relevance.
@@ -532,7 +532,7 @@ Result will be ordered by search result relevance.
 
 ## Declarations [/reports/declarations]
 
-### Search Declarations over the period  [GET /reports/declarations{?start_date,end_date,doctor_id,msp_id}]
+### Get Declarations Histogram stats [GET /reports/declarations{?start_date,end_date,doctor_id,msp_id}]
 
 Methods returns agregated numbers of declarations.
 
@@ -556,7 +556,7 @@ Methods returns agregated numbers of declarations.
 
 ## Declarations [/mis/declarations]
 
-### Create declaration [POST]
+### Create Declaration [POST]
 
 > FIXME
 
