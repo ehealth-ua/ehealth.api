@@ -310,9 +310,9 @@ Personal information cannot be updated using this method.
     + Attributes (Response_OK)
         + data (Doctor)
 
-### Search for a Doctor [GET /doctor{?first_name,last_name,second_name,speciality,region,area}]
+### Search for a Doctor [GET /doctor{?first_name,last_name,second_name,speciality,region,area,msp_id,is_active}]
 
-Methods returns list of doctors by combination of name speciality and geo.
+Methods returns list of doctors.
 at least one parameter has to be passed. Othervise - error. Only records where is_active=true should be returned.
 Purpose: for future to get dictionary of doctors for the patients.
 
@@ -323,6 +323,8 @@ Purpose: for future to get dictionary of doctors for the patients.
     + speciality: терапевт (string, optional)
     + region: Київ (string, optional)
     + area: `Дарницький район` (string, optional)
+    + msp_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
+    + is_active: true (boolean, optional) - Search only for active or disabled doctors.
 
 + Request (application/json)
 
