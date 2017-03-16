@@ -458,7 +458,7 @@ TODO: add verification logic. For ex. how and when is_active can be updated.
         + title: лікар (string, required)
         + speciality: Педіатрія (enum) (string, required)
         + start_date: 2017-02-28 (string, required)
-        + expiry_date: 2017-02-28 (string, optional)
+        + finished_date: 2017-02-28 (string, optional)
         + is_active: true (boolean, required)
 
 + Response 200 (application/json)
@@ -726,7 +726,7 @@ Method to register new declaration record
     - Підліткова терапія
     - Терапія
 + start_date: 2017-02-28 (string, required)
-+ expiry_date: 2017-02-28 (string, optional)
++ finished_date: 2017-02-28 (string, optional)
 + is_active: true (boolean, required)
 
 ### `Labour_Contract_Full`
@@ -790,7 +790,7 @@ Method to register new declaration record
 + type: PASSPORT (enum[string], required)
 + number: 120518 (string, required)
 + issue_date: `2015-04-07T00:00:00.000Z`
-+ expiry_date: `2015-04-07T00:00:00.000Z`
++ expiration_date: `2015-04-07T00:00:00.000Z`
 + issued_by: DMSU
 
 ### `Medical_Certificate`
@@ -800,7 +800,7 @@ Method to register new declaration record
 + issue_date: 2017-02-28 (string, required)
 + issued_by: Національний медичний університет імені О.О. Богомольця (string, required)
 + started_date: 2016-08-29T09:12:33.001Z (string, optional)
-+ expiration_date: 2016-08-29T09:12:33.001Z (string, optional)
++ finished_date: 2016-08-29T09:12:33.001Z (string, optional)
 
 ### `Medical_License`
 + category (enum, required)
