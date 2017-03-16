@@ -186,9 +186,12 @@ To make sure that records will be de-duplicated, please make sure to send search
         + data (`Person_Full`)
 
 
-### Search for a Patient [GET /persons{?first_name,last_name,second_name,birth_date,tax_id,phone_number}]
+### Search for a Patient [GET /persons{?first_name,last_name,second_name,birth_date,tax_id,phone_number,birth_place}]
 
-This method allows to search MPI ID by patient personal information.
+This method allows to search for a Person without disclosing personal data:
+1. If you match single result, it will contain `person_id` of a record you were looking for.
+2. If you match up to 15 results, it will contain list of possible filters that may be applied to reduce number of matches (they may include random data).
+3. If result contains more than 15 results - you will receive 403 error.
 
 + Parameters
     + first_name: Петро (string, required)
@@ -197,6 +200,7 @@ This method allows to search MPI ID by patient personal information.
     + birth_date: `1991-08-19T00:00:00.000Z` (string, required) - ISO Datetime.
     + tax_id: 3126509816 (string, optional)
     + phone_number: `+380508887700` (string, optional)
+    + birth_place: Конотоп (string, optional)
 
 + Request (application/json)
 
@@ -740,7 +744,7 @@ Method to register new declaration record
     - Клініка
 + edrpou: 5432345432 (string, required)
 + services (array[Medical_Service], required)
-+ license (array[License], optional)
++ licenses (array[License], optional)
 + accreditation (array[Accreditation], required)
 + addresses (array[Address], optional)
 + phones (array[Phone], optional)
