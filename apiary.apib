@@ -359,7 +359,7 @@ Method to register new declaration record
             + active: false (boolean, required)
             + status: pending_signature (string, required)
 
-### Sign a Declaration [PUT /declarations/{id}]
+### Sign a Declaration [PUT /declarations/{я}]
 
 Method to sign declaration record with the doctor's signature
 
@@ -368,9 +368,7 @@ Method to sign declaration record with the doctor's signature
 
 + Request (application/json)
     + Attributes (object)
-        + `base64_encoded_patient_doctor_declaration_data`: "string"
         + signature: string (string, required)
-        + certificate: string (string, required)
         + signed_at: `2017-02-28` (string, required)
 
 + Response 200 (application/json)
@@ -380,6 +378,7 @@ Method to sign declaration record with the doctor's signature
             + include Declaration
             + active: true (boolean, required)
             + status: signed (string, required)
+            + signature: string (string, required)
 
 ### Get Declaration [GET /declarations/{id}]
 
