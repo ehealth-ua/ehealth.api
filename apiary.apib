@@ -262,9 +262,10 @@ This method allows to search for a Person without disclosing personal data:
 
 ## Doctors [/doctors]
 
-### Create a Doctor [POST]
+### Create new employee [POST]
 
-Register new Doctor record for the existing MPI.
+Register new employee record for the existing user.
+
 
 Limitations:
 * only one doctor can be registered for one MPI
@@ -419,15 +420,15 @@ Response will contain only records that you have access to.
     + Attributes (Response_Collection)
         + data (array[Declaration_Full])
 
-## Labour Contracts [/labour_contracts]
+## Employees [/employees]
 
-### Create Labour Contract [POST]
+### Create new employee [POST]
 
-Method to create new labour contract between the Doctor and MSP.
-`msp_id` and doctor_id should already exist.
+Method to create new employee record for the MSP.
+`user_id` and msp_id should already exist.
 
 + Request (application/json)
-    + Attributes (Labour_Contract)
+    + Attributes (Employee)
 
 + Response 201 (application/json)
     + Attributes (Response_OK)
@@ -435,11 +436,11 @@ Method to create new labour contract between the Doctor and MSP.
             + code: 201 (number)
         + data (object)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + include `Labour_Contract`
+            + include `Employee`
 
-### Update Labour Contract [PUT /labour_contracts/{id}]
+### Update employee [PUT /employees/{id}]
 
-This method to update the labour contract info by ID.
+This method to update the employee info by ID.
 
 TODO: add verification logic. For ex. how and when is_active can be updated.
 
@@ -459,23 +460,35 @@ TODO: add verification logic. For ex. how and when is_active can be updated.
         + start_date: 2017-02-28 (string, required)
         + expiry_date: 2017-02-28 (string, optional)
         + is_active: true (boolean, required)
+        + status: approved (enum, required)
+        + creator_signature: MIIGlQYJKoZIhvcNAQcDoIIGhjCCBoICAQAxggEEMIIBAAIBADCBqTCBmzELMAkG (string, required)
+        + employee_signature: MIIGlQYJKoZIhvcNAQcDoIIGhjCCBoICAQAxggEEMIIBAAIBADCBqTCBmzELMAkG (string, required)
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
         + data (object)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + Include `Labour_Contract`
+            + Include `Employee`
             + created_at: `2017-03-02T10:45:16.000Z` (string, optional)
             + modified_at: `2017-03-02T10:45:16.000Z` (string, optional)
 
-### Search for a Labour Contract [GET /labour_contracts{?doctor_id,msp_id}]
+### Search for an Employee [GET /employees{?user_id,msp_id,employee_type,is_active,status}]
 
 Methods returns list of labour_contracts by doctor_id or msp_id or both.
 
 + Parameters
-    + doctor_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MPI ID of a doctor.
+    + `user_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - user_id of a doctor.
     + msp_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MSP ID.
-
+    + employee_type: doctor (enum)
+        - doctor
+        - hr
+        - admin
+        - owner
+    + is_active: true (boolean, required)
+    + status: approved (enum)
+        - approved
+        - pending_approval
+        - closed
 + Request (application/json)
 
     + Headers
@@ -484,7 +497,25 @@ Methods returns list of labour_contracts by doctor_id or msp_id or both.
 
 + Response 200 (application/json)
     + Attributes (Response_Collection)
-        + data (array[Labour_Contract_Full])
+        + data (array[Employee_Full])
+
+### Get Employee details [GET /employees/{id}]
+
+Methods returns employee details by ID.
+
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (Employee_Full)
+
 
 ## Medical Service Providers [/medical_service_providers]
 
@@ -578,6 +609,51 @@ Method to register new declaration record
             + active: false (boolean, required)
             + status: pending_signature (string, required)
 
+## Employees [/mis/employees]
+
+### Register new employee [POST]
+Method to create new employee registration request
+
++ Request (application/json)
+    + Attributes (Registration_Request)
+        + creator_signature: MIIGlQYJKoZIhvcNAQcDoIIGhjCCBoICAQAxggEEMIIBAAIBADCBqTCBmzELMAkG (string, required)
+
++ Response 201 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (Registration_Request)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + include `Registration_Request`
+            + status: pending_signature (string, required)
+
+
+### Approve employee [PUT /mis/employees/{id}]
+
+This method to approve employee creation request. Should be used by the employee user.
+
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
+
+    + Attributes (Registration_Request)
+        + creator_signature: MIIGlQYJKoZIhvcNAQcDoIIGhjCCBoICAQAxggEEMIIBAAIBADCBqTCBmzELMAkG (string, required)
+        + employee_signature: MIIGlQYJKoZIhvcNAQcDoIIGhjCCBoICAQAxggEEMIIBAAIBADCBqTCBmzELMAkG (string, required)
+        + verification_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (object)
+            + Include `Employee_Full`
+            + created_at: `2017-03-02T10:45:16.000Z` (string, optional)
+            + modified_at: `2017-03-02T10:45:16.000Z` (string, optional)
 
 # Data Structures
 ## Responses
@@ -667,7 +743,6 @@ Method to register new declaration record
 
 ## Doctors
 ### Doctor
-+ person_id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
 + certificates (array[Medical_Certificate], optional)
 + licenses (array[Medical_License], required)
 + education (array[Medical_Education], required)
@@ -714,25 +789,59 @@ Method to register new declaration record
 + declarations_created: 10 (number, required)
 + declarations_closed: 2 (number, required)
 
-## `Labour_Contracts`
-### `Labour_Contract`
-+ doctor_id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
+## `Employees`
+### `Employee`
++ user_id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
 + msp_id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
++ employee_type: doctor (enum)
+    - doctor
+    - hr
+    - admin
+    - owner
 + title: лікар (string, required)
 + speciality: Педіатрія (enum)
     - Загальна практика - сімейна медицина
     - Педіатрія
     - Підліткова терапія
     - Терапія
++ employee_details (Doctor, optional)
 + start_date: 2017-02-28 (string, required)
 + expiry_date: 2017-02-28 (string, optional)
-+ is_active: true (boolean, required)
 
-### `Labour_Contract_Full`
+
+### `Employee_Full`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-+ Include `Labour_Contract`
++ Include `Employee`
++ is_active: true (boolean, required)
++ status: approved (enum)
+    - approved
+    - pending_approval
+    - closed
 + created_at: `2017-03-02T10:45:16.000Z` (string, optional)
 + modified_at: `2017-03-02T10:45:16.000Z` (string, optional)
+
+### `Employee_Details`
++ include Employee_Full
++ include user
+
+### `Registration_Request`
++ include user
++ msp_id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
++ employee_type: doctor (enum)
+    - doctor
+    - hr
+    - admin
+    - owner
++ title: лікар (string, required)
++ speciality: Педіатрія (enum)
+    - Загальна практика - сімейна медицина
+    - Педіатрія
+    - Підліткова терапія
+    - Терапія
++ employee_details (Doctor, optional)
++ start_date: 2017-02-28 (string, required)
++ expiry_date: 2017-02-28 (string, optional)
+
 
 ## `Medical_Service_Providers`
 ### `Medical_Service_Provider`
@@ -769,6 +878,30 @@ Method to register new declaration record
 + scopes: `capitation_contracts:view capitation_contracts:create patients:view patients:create` (string, required) - scopes that assigned to access token
 
 ## Shared
+### `user`
++ first_name: Петро (string, required)
++ last_name: Іванов (string, required)
++ second_name: Миколайович (string, optional)
++ birth_date: `1991-08-19T00:00:00.000Z` (string, required)
++ gender: MALE, FEMALE (enum[string], required)
++ email: email@example.com (string, required)
++ tax_id: 3126509816 (string, optional)
++ national_id: CC7150985243 (string, optional)
++ documents (array[Document], optional)
++ phones (array[Phone], optional)
++ public_key:FDSAF768ASD6F78A6FD87ADS6FA8DS7F678A678DF (string, required)
+
+### `user_full`
++ include user
++ id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
++ created_at: `2017-02-28T15:12:54.000Z` (string, optional)
++ modified_at: `2017-02-28T15:12:54.000Z` (string, optional)
++ is_active: true (boolean, required)
++ status: approved (enum)
+    - approved
+    - pending_approval
+    - closed
+
 ### Address
 + type: RESIDENCE, REGISTRATION (enum[string], required)
 + country: UA (enum[string], required)
