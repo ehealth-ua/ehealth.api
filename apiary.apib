@@ -588,6 +588,23 @@ Methods returns agregated numbers of declarations.
 
 # Group Medical Service Provider Integration Layer
 
+## Users [/users]
+
+### Authenticate user [POST /mis/users/authenticate]
+
++ Request (application/json)
+    + Attributes (object)
+        + client_id: `msp-001` (string, required) - Medical Service Provider ID issued upon integration request.
+        + username: `email@example.com` (string, required) - Username as email.
+        + timestamp: 1489583714 (number, optional) - Timestamp when request was made.
+        + signature: `signature` (string, optional) - `client_id + username + timestamp` string signed with a consumer's private key.
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + access_token: my-oauth-token,
+        + refresh_token: my-oauth-refresh-token,
+        + expires_in: 76000
+
 ## Declarations [/mis/declarations]
 
 ### Create Declaration [POST]
@@ -627,7 +644,6 @@ Method to create new employee registration request
             + include `Registration_Request`
             + status: pending_signature (string, required)
 
-
 ### Approve employee [PUT /mis/employees/{id}]
 
 This method to approve employee creation request. Should be used by the employee user.
@@ -654,6 +670,91 @@ This method to approve employee creation request. Should be used by the employee
             + Include `Employee_Full`
             + created_at: `2017-03-02T10:45:16.000Z` (string, optional)
             + modified_at: `2017-03-02T10:45:16.000Z` (string, optional)
+
+### Search for an Employee [GET /employees{?user_id,msp_id,employee_type,is_active,status}]
+
+Methods returns list of employees by msp_id or user_id or both.
+User_id or msp_id has to be passed.
+
++ Parameters
+    + `user_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - user_id of a doctor.
+    + msp_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MSP ID.
+    + employee_type: doctor (enum, required)
+        - doctor
+        - hr
+        - admin
+        - owner
+    + is_active: true (boolean, optional)
+    + status: approved (enum, optional)
+        - approved
+        - pending_approval
+        - closed
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
+
++ Response 200 (application/json)
+    + Attributes (Response_Collection)
+        + data (array[Employee_Full])
+
+## Persons [/mis/persons]
+
+### Search for a Person [GET /persons{?first_name,last_name,second_name,birth_date,tax_id,phone_number,birth_place}]
+
+This method allows to search for a Person without disclosing personal data:
+
++ Parameters
+    + first_name: Петро (string, required)
+    + last_name: Іванов (string, required)
+    + second_name: Миколайович (string, optional)
+    + birth_date: `1991-08-19T00:00:00.000Z` (string, required) - ISO Datetime.
+    + tax_id: 3126509816 (string, optional)
+    + phone_number: `+380508887700` (string, optional)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
+
++ Response 200 (application/json)
+    + Attributes (Response_Collection)
+        + data (array[`Person_Short`])
+
++ Response 403 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta, fixed-type)
+            + code: 403 (number)
+        + error (Response__Error, fixed-type)
+            + type: `too_many_results`
+            + message: `This API method returns only exact match results, please retry with more specific search result` (string)
+
+### Get Person Declarations [GET /persons/{id}/declarations]
+
+This method allows to receive person declarations only referenced to current msp_id (based on access_token)
+
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
+
++ Response 200 (application/json)
+    + Attributes (Response_Collection)
+        + data (array[Declaration_Details])
+
++ Response 403 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta, fixed-type)
+            + code: 403 (number)
+        + error (Response__Error, fixed-type)
+            + type: `found_but_forbidden`
+            + message: `Active declaration belongs to another msp` (string)
 
 # Data Structures
 ## Responses
@@ -736,6 +837,12 @@ This method to approve employee creation request. Should be used by the employee
 
 ### `Person_Short`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ first_name: Петро (string, required)
++ last_name: Іванов (string, required)
++ second_name: Миколайович (string, optional)
++ birth_date: `1991-08-19T00:00:00.000Z` (string, required) - ISO Datetime.
++ tax_id: 3126509816 (string, optional)
++ phone_number: `+380508887700` (string, optional)
 + birth_place: Вінниця (string, required)
 + history (array)
     + (object)
@@ -776,6 +883,16 @@ This method to approve employee creation request. Should be used by the employee
 + msp_id: "d290f1ee-6c54-4b01-90e6-d701748f0851" (string, required)
 + scope (enum, required)
     - family doctor
+    
+### `Declaration_Details`
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ start_date: `2017-03-02T10:45:16.000Z` (string, required)
++ end_date: `2017-03-02T10:45:16.000Z` (string, required)
++ person(`Person_Short`)
++ doctor(`Doctor_Full`)
++ msp(`MSP_Details`)
++ created_at: `2017-03-02T10:45:16.000Z` (string, optional)
++ modified_at: `2017-03-02T10:45:16.000Z` (string, optional)
 
 ### `Declaration_Full`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -857,6 +974,12 @@ This method to approve employee creation request. Should be used by the employee
 + addresses (array[Address], optional)
 + phones (array[Phone], optional)
 + email (string, required)
+
+### `MSP_Details`
++ id: d290f1ee-6c54-4b01-90e6-d701748f0851
++ include Medical_Service_Provider
++ created_at: `2017-02-28T15:12:54.000Z` (string, optional)
++ modified_at: `2017-02-28T15:12:54.000Z` (string, optional)
 
 ### `MSP_Response`
 + id: d290f1ee-6c54-4b01-90e6-d701748f0851
