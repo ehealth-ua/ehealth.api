@@ -607,14 +607,35 @@ Methods returns agregated numbers of declarations.
 
 ## Declarations [/mis/declarations]
 
-### Create Declaration [POST]
+### Create Declaration Request [POST]
 
 > FIXME
 
-Method to register new declaration record
+Method to register new declaration
 
 + Request (application/json)
-    + Attributes (Declaration_Request)
+    + Attributes (Declaration_Request_Public)
+
++ Response 201 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + request_id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
+            + verification_type: SMS (enum)
+                - SMS
+                - OFFLINE
+            + phone_number: `+380954440022` (string, optional)
+            + upload_url: `http:\\domain\file\upload` (string, optional)
+
+### Approve Declaration Request [POST /mis/declarations/approve]
+
+Method to approve new declaration
+
++ Request (application/json)
+    + Attributes (object)
+        + request_id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
+        + verification_code: 354276 (string, required)
 
 + Response 201 (application/json)
     + Attributes (Response_OK)
@@ -622,9 +643,30 @@ Method to register new declaration record
             + code: 201 (number)
         + data (object)
             + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
-            + include `Declaration`
+            + include `Declaration_Request_Public`
             + active: false (boolean, required)
             + status: pending_signature (string, required)
+            
+### Verify Declaration [PUT /mis/declarations/{id}]
+
+Method to verify new declaration
+
++ Parameters
+    + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
+
++ Request (application/json)
+    + Attributes (`Declaration_Request_Public`)
+        + status: active (string, required)
+
++ Response 201 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
+            + include `Declaration_Request_Public`
+            + active: true (boolean, required)
+            + status: active (string, required)
 
 ## Employees [/mis/employees]
 
@@ -753,7 +795,7 @@ This method allows to receive person declarations only referenced to current msp
         + meta (Response__Meta, fixed-type)
             + code: 403 (number)
         + error (Response__Error, fixed-type)
-            + type: `found_but_forbidden`
+            + type: `forbidden`
             + message: `Active declaration belongs to another msp` (string)
 
 # Data Structures
@@ -824,6 +866,13 @@ This method allows to receive person declarations only referenced to current msp
 + addresses (array[Address], optional)
 + phones (array[Phone], optional)
 
+### `Person_Request`
++ include `Person`
++ confidant_person (object)
+    + relation_type: trustee (enum)
+        - trustee
+    + include `Person`
+
 ### `Person_Full`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + Include Person
@@ -875,6 +924,21 @@ This method allows to receive person declarations only referenced to current msp
 + msp_id: "d290f1ee-6c54-4b01-90e6-d701748f0851" (string, required)
 + scope (enum, required)
     - family_doctor
+
+### `Declaration_Request_Public`
++ start_date: `2017-03-02T10:45:16.000Z` (string, required)
++ end_date: `2017-03-02T10:45:16.000Z` (string, required)
++ person(`Person_Request`, required)
+    + renewal_consent: true (boolean)
+    + signed: true (boolean)
+    + authorization_method: sms (enum, required)
+        - SMS
+        - OFFLINE
++ doctor_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ msp_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ scope (enum, required)
+    - family doctor
++ signature: MIIGlQYJKoZIhvcNAQcDoIIGhjCCBoICAQAxggEEMIIBAAIBADCBqTCBmzELMAkG (string, required)
 
 ### `Declaration_Request`
 + include `Person`
