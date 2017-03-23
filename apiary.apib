@@ -609,8 +609,6 @@ Methods returns agregated numbers of declarations.
 
 ### Create Declaration Request [POST]
 
-> FIXME
-
 Method to register new declaration
 
 + Request (application/json)
@@ -622,6 +620,8 @@ Method to register new declaration
             + code: 201 (number)
         + data (object)
             + request_id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
+            + include `Declaration_Request_Public`
+            + plaintext_content: `Declaration content` (string, required)
             + verification_type: SMS (enum)
                 - SMS
                 - OFFLINE
@@ -633,9 +633,11 @@ Method to register new declaration
 Method to approve new declaration
 
 + Request (application/json)
-    + Attributes (object)
+    + Attributes (Declaration_Request_Public)
         + request_id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
         + verification_code: 354276 (string, required)
+        + plaintext_content: `Declaration content` (string, required)
+        + signature: MIIGlQYJKoZIhvcNAQcDoIIGhjCCBoICAQAxggEEMIIBAAIBADCBqTCBmzELMAkG (string, required)
 
 + Response 201 (application/json)
     + Attributes (Response_OK)
@@ -644,8 +646,10 @@ Method to approve new declaration
         + data (object)
             + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
             + include `Declaration_Request_Public`
+            + plaintext_content: `Declaration content` (string, required)
+            + signature: MIIGlQYJKoZIhvcNAQcDoIIGhjCCBoICAQAxggEEMIIBAAIBADCBqTCBmzELMAkG (string, required)
             + active: false (boolean, required)
-            + status: pending_signature (string, required)
+            + status: pending_verification (string, required)
             
 ### Verify Declaration [PUT /mis/declarations/{id}]
 
@@ -656,6 +660,8 @@ Method to verify new declaration
 
 + Request (application/json)
     + Attributes (`Declaration_Request_Public`)
+        + plaintext_content: `Declaration content` (string, required)
+        + signature: MIIGlQYJKoZIhvcNAQcDoIIGhjCCBoICAQAxggEEMIIBAAIB
         + status: active (string, required)
 
 + Response 201 (application/json)
@@ -862,8 +868,20 @@ This method allows to receive person declarations only referenced to current msp
 + tax_id: 3126509816 (string, optional)
 + national_id: CC7150985243 (string, optional)
 + death_date: `2015-04-07T00:00:00.000Z` (string, optional)
++ secret: secret (string, required)
 + documents (array[Document], optional)
 + addresses (array[Address], optional)
++ phones (array[Phone], optional)
+
+### `Confidant_Person`
++ first_name: Петро (string, required)
++ last_name: Іванов (string, required)
++ second_name: Миколайович (string, optional)
++ birth_date: `1991-08-19T00:00:00.000Z` (string, required)
++ birth_place: `Вінниця, Україна` (string, required)
++ gender: MALE, FEMALE (enum[string], required)
++ tax_id: 3126509816 (string, optional)
++ documents (array[Document], optional)
 + phones (array[Phone], optional)
 
 ### `Emergency_Contact`
@@ -879,7 +897,7 @@ This method allows to receive person declarations only referenced to current msp
 + confidant_person (object)
     + relation_type: trustee (enum)
         - trustee
-    + include `Person`
+    + include `Confidant_Person`
 
 ### `Person_Full`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -939,14 +957,13 @@ This method allows to receive person declarations only referenced to current msp
 + person(`Person_Request`, required)
     + renewal_consent: true (boolean)
     + signed: true (boolean)
-    + authorization_method: sms (enum, required)
+    + authorization_method: SMS (enum, required)
         - SMS
         - OFFLINE
 + doctor_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + msp_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + scope (enum, required)
     - family doctor
-+ signature: MIIGlQYJKoZIhvcNAQcDoIIGhjCCBoICAQAxggEEMIIBAAIBADCBqTCBmzELMAkG (string, required)
 
 ### `Declaration_Request`
 + include `Person`
