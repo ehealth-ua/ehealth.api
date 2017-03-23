@@ -866,8 +866,16 @@ This method allows to receive person declarations only referenced to current msp
 + addresses (array[Address], optional)
 + phones (array[Phone], optional)
 
+### `Emergency_Contact`
++ first_name: Петро (string, required)
++ last_name: Іванов (string, required)
++ second_name: Миколайович (string, optional)
++ phones (array[Phone], optional)
+
 ### `Person_Request`
 + include `Person`
++ emergency_contact (object)
+    + include `Emergency_Contact`
 + confidant_person (object)
     + relation_type: trustee (enum)
         - trustee
