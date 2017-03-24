@@ -956,11 +956,13 @@ This method allows to receive person declarations only referenced to current msp
 + end_date: `2017-03-02T10:45:16.000Z` (string, required)
 + person(`Person_Request`, required)
     + renewal_consent: true (boolean)
-    + signed: true (boolean)
+    + patient_signed: true (boolean)
+    + disclosure_consent: true (boolean)
+    + process_data_consent: true (boolean)
     + authorization_method: SMS (enum, required)
         - SMS
         - OFFLINE
-+ doctor_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ employee_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - `Employee_type = Doctor`
 + msp_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + scope (enum, required)
     - family doctor
@@ -1228,3 +1230,46 @@ This method allows to receive person declarations only referenced to current msp
 + issued_by: Кваліфікацйна комісія (string)
 + issued_date: 2017-02-28 (string, required)
 + expiry_date: 2017-02-28 (string, optional)
+
+## DoctorsNew
+### DoctorNew
++ education (array[Education], required)
++ academicDegree (array[AcademicDegree], optional)
++ scienceDegree (array[ScienceDegree], optional)
+
+### Education
++ country: UA (enum[string], required)
++ city: Київ (string, required)
++ institution_name: Академія Богомольця (string, required)
++ finished_date: 2017-02-28 (string, required)
++ diploma_number: DD123543 (string, required)
++ degree (enum, required)
+    - Молодший спеціаліст
+    - Бакалавр
+    - Спеціаліст
+    - Магістр
++ speciality: Педіатр (string, required)
+
+### AcademicDegree
++ country: UA (enum[string], required)
++ city: Київ (string, required)
++ degree (enum, required)
+    - Старший дослідник
+    - Доцент
+    - Професор
++ institution_name: Академія Богомольця (string, required)
++ certificate_number: DD123543 (string, required)
++ speciality: Педіатр (string, required)
++ issued_date: 2017-02-28 (string, required)
+
+### ScienceDegree
++ country: UA (enum[string], required)
++ city: Київ (string, required)
++ degree (enum, required)
+    - Доктор філософії
+    - Доктор наук
++ institution_name: Академія Богомольця (string, required)
++ diploma_number: DD123543 (string, required)
++ speciality: Педіатр (string, required)
++ diploma_topic: `Супер педіатр та де його шукати` (string, required)
++ issued_date: 2017-02-28 (string, required)
