@@ -605,7 +605,26 @@ Methods returns agregated numbers of declarations.
         + refresh_token: my-oauth-refresh-token,
         + expires_in: 76000
 
-## Declarations [/mis/declarations/requests]
+## Declaration requests [/mis/declarations/requests]
+
+### Get declaration requests list [GET /mis/declarations/requests{?employee_id,msp_id,status}]
+
++ Parameters
+    + `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - user_id of a doctor.
+    + msp_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MSP ID.
+    + status: new (enum, optional)
+        - new
+        - pending
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
+
++ Response 200 (application/json)
+    + Attributes (Response_Collection)
+        + data (array[`Declaration_Request_Short`])
 
 ### Create Declaration Request [POST]
 
@@ -642,9 +661,8 @@ Method to approve new declaration
 
             Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
 
-    + Attributes (Declaration_Request_Public)
+    + Attributes (object)
         + verification_code: 354276 (string, required)
-        + plaintext_content: `Declaration content` (string, required)
 
 + Response 201 (application/json)
     + Attributes (Response_OK)
@@ -654,7 +672,6 @@ Method to approve new declaration
             + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
             + include `Declaration_Request_Public`
             + plaintext_content: `Declaration content` (string, required)
-            + signature: MIIGlQYJKoZIhvcNAQcDoIIGhjCCBoICAQAxggEEMIIBAAIBADCBqTCBmzELMAkG (string, required)
             + active: false (boolean, required)
             + status: pending_verification (string, required)
 
@@ -877,7 +894,7 @@ This method allows to receive person declarations only referenced to current msp
 + documents (array[Document], optional)
 + addresses (array[Address], optional)
 + phones (array[Phone], optional)
-+ authentication_methods (array[`Authentication_method`])
++ `authentication_methods` (array[Authentication_method], optional)
 
 ### `Confidant_Person`
 + first_name: Петро (string, required)
@@ -970,8 +987,7 @@ This method allows to receive person declarations only referenced to current msp
     + patient_signed: true (boolean)
     + disclosure_consent: true (boolean)
     + process_data_consent: true (boolean)
-    + Authentication_method (array[`Authentication_method`])
-+ employee_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - `Employee_type Doctor`
++ `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + msp_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + scope (enum, required)
     - family doctor
@@ -983,6 +999,20 @@ This method allows to receive person declarations only referenced to current msp
 + msp_id: "d290f1ee-6c54-4b01-90e6-d701748f0851" (string, required)
 + scope (enum, required)
     - family doctor
+
+### `Declaration_Request_Short`
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ start_date: `2017-03-02T10:45:16.000Z` (string, required)
++ end_date: `2017-03-02T10:45:16.000Z` (string, required)
++ person
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+    + first_name: Петро (string, required)
+    + last_name: Іванов (string, required)
+    + second_name: Миколайович (string, optional)
++ doctor (object)
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+    + name: `Григорій Квітка Основ'яненко`
++ msp(`MSP_Short`)
     
 ### `Declaration_Details`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -1111,6 +1141,15 @@ This method allows to receive person declarations only referenced to current msp
 + addresses (array[Address], optional)
 + phones (array[Phone], optional)
 + email (string, required)
+
+### `MSP_Short`
++ id: d290f1ee-6c54-4b01-90e6-d701748f0851
++ name: Клініка Борис (string, required)
++ short_Name: Борис (string, required)
++ type (enum, required)
+    - ФОП
+    - Клініка
++ edrpou: 5432345432 (string, required)
 
 ### `MSP_Details`
 + id: d290f1ee-6c54-4b01-90e6-d701748f0851
