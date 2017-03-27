@@ -605,13 +605,18 @@ Methods returns agregated numbers of declarations.
         + refresh_token: my-oauth-refresh-token,
         + expires_in: 76000
 
-## Declarations [/mis/declarations]
+## Declarations [/mis/declarations/requests]
 
 ### Create Declaration Request [POST]
 
 Method to register new declaration
 
 + Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
+
     + Attributes (Declaration_Request_Public)
 
 + Response 201 (application/json)
@@ -622,22 +627,24 @@ Method to register new declaration
             + request_id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
             + include `Declaration_Request_Public`
             + plaintext_content: `Declaration content` (string, required)
-            + verification_type: SMS (enum)
-                - SMS
-                - OFFLINE
-            + phone_number: `+380954440022` (string, optional)
-            + upload_url: `http:\\domain\file\upload` (string, optional)
+            + authentication_method (`Authentication_method`)
 
-### Approve Declaration Request [POST /mis/declarations/approve]
+### Approve Declaration Request [POST /mis/declarations/requests/{request_id}/approve]
 
 Method to approve new declaration
 
++ Parameters
+    + request_id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
+
 + Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
+
     + Attributes (Declaration_Request_Public)
-        + request_id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
         + verification_code: 354276 (string, required)
         + plaintext_content: `Declaration content` (string, required)
-        + signature: MIIGlQYJKoZIhvcNAQcDoIIGhjCCBoICAQAxggEEMIIBAAIBADCBqTCBmzELMAkG (string, required)
 
 + Response 201 (application/json)
     + Attributes (Response_OK)
@@ -650,19 +657,18 @@ Method to approve new declaration
             + signature: MIIGlQYJKoZIhvcNAQcDoIIGhjCCBoICAQAxggEEMIIBAAIBADCBqTCBmzELMAkG (string, required)
             + active: false (boolean, required)
             + status: pending_verification (string, required)
-            
-### Verify Declaration [PUT /mis/declarations/{id}]
+
+### Sign Declaration request [POST /mis/declarations/requests/{request_id}/sign]
 
 Method to verify new declaration
 
 + Parameters
-    + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
+    + request_id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
 
 + Request (application/json)
     + Attributes (`Declaration_Request_Public`)
         + plaintext_content: `Declaration content` (string, required)
         + signature: MIIGlQYJKoZIhvcNAQcDoIIGhjCCBoICAQAxggEEMIIBAAIB
-        + status: active (string, required)
 
 + Response 201 (application/json)
     + Attributes (Response_OK)
@@ -867,11 +873,11 @@ This method allows to receive person declarations only referenced to current msp
 + email: email@example.com (string, optional)
 + tax_id: 3126509816 (string, optional)
 + national_id: CC7150985243 (string, optional)
-+ death_date: `2015-04-07T00:00:00.000Z` (string, optional)
 + secret: secret (string, required)
 + documents (array[Document], optional)
 + addresses (array[Address], optional)
 + phones (array[Phone], optional)
++ authentication_methods (array[`Authentication_method`])
 
 ### `Confidant_Person`
 + first_name: Петро (string, required)
@@ -902,6 +908,7 @@ This method allows to receive person declarations only referenced to current msp
 ### `Person_Full`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + Include Person
++ death_date: `2015-04-07T00:00:00.000Z` (string, optional)
 + confident_persons (array[Person])
 + is_active: true (boolean, required)
 + history (array)
@@ -922,6 +929,10 @@ This method allows to receive person declarations only referenced to current msp
 + history (array)
     + (object)
         + id: `7bca069f-21e4-4546-90cf-b65e3f39d93d` (string, required)
+
+### `Authentication_method`
++ type: SMS, OFFLINE (enum, required)
++ phone_number: `+380508887700` (string, optional)
 
 ## Doctors
 ### Doctor
@@ -959,10 +970,8 @@ This method allows to receive person declarations only referenced to current msp
     + patient_signed: true (boolean)
     + disclosure_consent: true (boolean)
     + process_data_consent: true (boolean)
-    + authorization_method: SMS (enum, required)
-        - SMS
-        - OFFLINE
-+ employee_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - `Employee_type = Doctor`
+    + Authentication_method (array[`Authentication_method`])
++ employee_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - `Employee_type Doctor`
 + msp_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + scope (enum, required)
     - family doctor
