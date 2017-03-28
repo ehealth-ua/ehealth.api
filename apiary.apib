@@ -607,7 +607,7 @@ Methods returns agregated numbers of declarations.
 
 ## Declaration requests [/mis/declarations/requests]
 
-### Get declaration requests list [GET /mis/declarations/requests{?employee_id,msp_id,status}]
+### Get Declaration Requests list [GET /mis/declarations/requests{?employee_id,msp_id,status}]
 
 + Parameters
     + `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - user_id of a doctor.
@@ -625,6 +625,28 @@ Methods returns agregated numbers of declarations.
 + Response 200 (application/json)
     + Attributes (Response_Collection)
         + data (array[`Declaration_Request_Short`])
+
+### Get Declaration Details [GET /mis/declarations/requests/{request_id}]
+
++ Parameters
+    + `request_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - request identifier
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ    
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
+            + include `Declaration_Request_Short`
+            + plaintext_content: `Declaration content` (string, required)
+            + active: false (boolean, required)
+            + status: pending_verification (string, required)
 
 ### Create Declaration Request [POST]
 
@@ -1013,7 +1035,21 @@ This method allows to receive person declarations only referenced to current msp
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
     + name: `Григорій Квітка Основ'яненко`
 + msp(`MSP_Short`)
-    
+
+### `Declaration_Request_Full`
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ start_date: `2017-03-02T10:45:16.000Z` (string, required)
++ end_date: `2017-03-02T10:45:16.000Z` (string, required)
++ person
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+    + first_name: Петро (string, required)
+    + last_name: Іванов (string, required)
+    + second_name: Миколайович (string, optional)
++ doctor (object)
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+    + name: `Григорій Квітка Основ'яненко`
++ msp(`MSP_Short`)
+
 ### `Declaration_Details`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
@@ -1284,6 +1320,9 @@ This method allows to receive person declarations only referenced to current msp
 + education (array[Education], required)
 + academicDegree (array[AcademicDegree], optional)
 + scienceDegree (array[ScienceDegree], optional)
++ workExperience (array[WorkExperience], optional)
++ qualification (array[Qualification], optional)
++ professionalLevel (array[ProfessionalLevel], optional)
 
 ### Education
 + country: UA (enum[string], required)
@@ -1320,4 +1359,36 @@ This method allows to receive person declarations only referenced to current msp
 + diploma_number: DD123543 (string, required)
 + speciality: Педіатр (string, required)
 + diploma_topic: `Супер педіатр та де його шукати` (string, required)
++ issued_date: 2017-02-28 (string, required)
+
+### WorkExperience
++ country: UA (enum[string], required)
++ city: Київ (string, required)
++ work_place: `Житомирська обласна лікарня` (string, required)
++ work_position: `Директор лікарні` (string, required)
++ start_date: 2017-02-28 (string, required)
++ finish_date: 2018-02-28 (string, required)
++ work_experience: 1 (number, required) - count of work experience years
+
+### Qualification
++ type (enum, required)
+    - Інтернатура
+    - Спеціалізація
+    - Передатестаційний цикл
+    - Тематичне вдосконалення
+    - Курси інформації
+    - Стажування
++ institution_name: Академія Богомольця (string, required)
++ speciality: Педіатр (string, required)
++ issued_date: 2017-02-28 (string, required)
+
+### ProfessionalLevel
++ degree (enum, required)
+    - Друга категорія
+    - Перша категорія
+    - Вища категорія
++ qualification_type (enum, required)
+    - Присвоєння
+    - Підтвердження
++ institution_name: Академія Богомольця (string, required)
 + issued_date: 2017-02-28 (string, required)
