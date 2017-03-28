@@ -588,22 +588,27 @@ Methods returns agregated numbers of declarations.
 
 # Group Medical Service Provider Integration Layer
 
-## Users [/users]
+## OAuth [/mis/oauth]
 
-### Authenticate user [POST /mis/users/authenticate]
+### Show Login UI [GET /oauth/ui{?client_id,redirect_url,scope,response_type}]
 
-+ Request (application/json)
-    + Attributes (object)
-        + client_id: `msp-001` (string, required) - Medical Service Provider ID issued upon integration request.
-        + username: `email@example.com` (string, required) - Username as email.
-        + timestamp: 1489583714 (number, optional) - Timestamp when request was made.
-        + signature: `signature` (string, optional) - `client_id + username + timestamp` string signed with a consumer's private key.
+Responsive login page will be rendered.
 
-+ Response 200 (application/json)
-    + Attributes (Response_OK)
-        + access_token: my-oauth-token,
-        + refresh_token: my-oauth-refresh-token,
-        + expires_in: 76000
+Page can have different structure based on what kind of scopes do you request.
+
+For security purposes, we will set `X-Frame-Options: deny` header that will disallow opening this page in an iframe.
+
++ Parameters
+    + client_id: `msp-001` (string, required) - Medical Service Provider ID issued upon integration request. Used to identify application developer.
+    + redirect_url: http://example.com/ (string, required) - URL where user will be redirected after authentification. This url will receive `code` and `state` parameters in query string.
+    + scope: `capitation_contracts:view capitation_contracts:create patients:view patients:create` (string, required) - List of scopes that is required in application business logic, separated by space. Different login forms will be shown based on scopes that you requested.
+    + response_type: code (enum, required) - Response type, only `code` is supported.
+
++ Response 200 (text/html; charset=UTF-8)
+
+    + Headers
+
+            X-CSRF-Token: my-csrf-token
 
 ## Declaration requests [/mis/declarations/requests]
 
@@ -620,13 +625,13 @@ Methods returns agregated numbers of declarations.
 
     + Headers
 
-            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
+            Authorization: Bearer mF_9.B5f-4.1JqM
 
 + Response 200 (application/json)
     + Attributes (Response_Collection)
         + data (array[`Declaration_Request_Short`])
 
-### Get Declaration Details [GET /mis/declarations/requests/{request_id}]
+### Get Declaration Request Details [GET /mis/declarations/requests/{request_id}]
 
 + Parameters
     + `request_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - request identifier
@@ -635,7 +640,7 @@ Methods returns agregated numbers of declarations.
 
     + Headers
 
-            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ    
+            Authorization: Bearer mF_9.B5f-4.1JqM
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
@@ -643,7 +648,7 @@ Methods returns agregated numbers of declarations.
             + code: 201 (number)
         + data (object)
             + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
-            + include `Declaration_Request_Short`
+            + include `Declaration_Request_Details_Public`
             + plaintext_content: `Declaration content` (string, required)
             + active: false (boolean, required)
             + status: pending_verification (string, required)
@@ -656,7 +661,7 @@ Method to register new declaration
 
     + Headers
 
-            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
+            Authorization: Bearer mF_9.B5f-4.1JqM
 
     + Attributes (Declaration_Request_Public)
 
@@ -681,7 +686,7 @@ Method to approve new declaration
 
     + Headers
 
-            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
+            Authorization: Bearer mF_9.B5f-4.1JqM
 
     + Attributes (object)
         + verification_code: 354276 (string, required)
@@ -700,14 +705,255 @@ Method to approve new declaration
 ### Sign Declaration request [POST /mis/declarations/requests/{request_id}/sign]
 
 Method to verify new declaration
+This method receives signed message including signed content, digital signature signer public key
+Message contains JSON object with structured data and printout template
+
+```
+{
+   "id":"b075f148",
+   "start_date":"2017-03-02T10:45:16.000Z",
+   "end_date":"2017-03-02T10:45:16.000Z",
+   "person":{
+      "first_name":"Петро",
+      "last_name":"Іванов",
+      "second_name":"Миколайович",
+      "birth_date":"1991-08-19T00:00:00.000Z",
+      "birth_place":"Вінниця, Україна",
+      "gender":"MALE",
+      "email":"email@example.com",
+      "tax_id":"3126509816",
+      "national_id":"CC7150985243",
+      "secret":"secret",
+      "documents":[
+         {
+            "type":"PASSPORT",
+            "number":"120518",
+            "issue_date":"2015-04-07T00:00:00.000Z",
+            "expiry_date":"2015-04-07T00:00:00.000Z",
+            "issued_by":"DMSU"
+         }
+      ],
+      "addresses":[
+         {
+            "type":"RESIDENCE",
+            "country":"UA",
+            "area":"Житомирська",
+            "region":"Бердичівський",
+            "city":"Київ",
+            "city_type":"CITY",
+            "street":"вул. Ніжинська",
+            "building":"15",
+            "apartment":"23",
+            "zip":"02090"
+         }
+      ],
+      "phones":[
+         {
+            "type":"MOBILE",
+            "number":"+380503410870"
+         }
+      ],
+      "authentication_methods":[
+         {
+            "type":"SMS",
+            "phone_number":"+380508887700"
+         }
+      ],
+      "emergency_contact":{
+         "first_name":"Петро",
+         "last_name":"Іванов",
+         "second_name":"Миколайович",
+         "phones":[
+            {
+               "type":"MOBILE",
+               "number":"+380503410870"
+            }
+         ]
+      },
+      "confidant_person":{
+         "relation_type":"trustee",
+         "first_name":"Петро",
+         "last_name":"Іванов",
+         "second_name":"Миколайович",
+         "birth_date":"1991-08-19T00:00:00.000Z",
+         "birth_place":"Вінниця, Україна",
+         "gender":"MALE",
+         "tax_id":"3126509816",
+         "documents":[
+            {
+               "type":"PASSPORT",
+               "number":"120518",
+               "issue_date":"2015-04-07T00:00:00.000Z",
+               "expiry_date":"2015-04-07T00:00:00.000Z",
+               "issued_by":"DMSU"
+            }
+         ],
+         "phones":[
+            {
+               "type":"MOBILE",
+               "number":"+380503410870"
+            }
+         ]
+      },
+      "renewal_consent":true,
+      "patient_signed":true,
+      "disclosure_consent":true,
+      "process_data_consent":true
+   },
+   "employee":{
+      "id":"d290f1ee-6c54-4b01-90e6-d701748f0851",
+      "title":"лікар",
+      "party":{
+         "id":"b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
+         "first_name":"Петро",
+         "last_name":"Іванов",
+         "second_name":"Миколайович"
+      }
+   },
+   "msp":{
+      "id":"d290f1ee",
+      "name":"Клініка Борис",
+      "short_Name":"Борис",
+      "type":"ФОП",
+      "edrpou":"5432345432"
+   },
+   "scope":"family doctor",
+   "plaintext_content":"Declaration content"
+}
+```
 
 + Parameters
     + request_id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
 
-+ Request (application/json)
-    + Attributes (`Declaration_Request_Public`)
-        + plaintext_content: `Declaration content` (string, required)
-        + signature: MIIGlQYJKoZIhvcNAQcDoIIGhjCCBoICAQAxggEEMIIBAAIB
++ Request (application/pkcs7-mime)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
+    + Body
+            
+            MIIWmAYJKoZIhvcNAQcCoIIWiTCCFoUCAQExCzAJBgUrDgMCGgUAMIISuwYJKoZI
+            hvcNAQcBoIISrASCEqh7XHJ0ZjFcYW5zaVxhbnNpY3BnMTI1Mlxjb2NvYXJ0ZjE1
+            MDRcY29jb2FzdWJydGY4MTANCntcZm9udHRibFxmMFxmc3dpc3NcZmNoYXJzZXQw
+            IEhlbHZldGljYTt9DQp7XGNvbG9ydGJsO1xyZWQyNTVcZ3JlZW4yNTVcYmx1ZTI1
+            NTtccmVkNzBcZ3JlZW41M1xibHVlOTY7XHJlZDI0OVxncmVlbjI0OVxibHVlMjUx
+            O30NCntcKlxleHBhbmRlZGNvbG9ydGJsOztcY3NzcmdiXGMzNDUxMFxjMjc4NDNc
+            YzQ1MDk4O1xjc3NyZ2JcYzk4MDM5XGM5ODAzOVxjOTg4MjQ7fQ0KXG1hcmdsMTQ0
+            MFxtYXJncjE0NDBcdmlld3cxMDgwMFx2aWV3aDg0MDBcdmlld2tpbmQwDQpcZGVm
+            dGFiNzIwDQpccGFyZFxwYXJkZWZ0YWI3MjBccGFydGlnaHRlbmZhY3RvcjANCg0K
+            XGYwXGZzMjggXGNmMiBcY2IzIFxleHBuZDBcZXhwbmR0dzBca2VybmluZzANClx7
+            XA0KICAgImlkIjoiYjA3NWYxNDgiLFwNCiAgICJzdGFydF9kYXRlIjoiMjAxNy0w
+            My0wMlQxMDo0NToxNi4wMDBaIixcDQogICAiZW5kX2RhdGUiOiIyMDE3LTAzLTAy
+            VDEwOjQ1OjE2LjAwMFoiLFwNCiAgICJwZXJzb24iOlx7XA0KICAgICAgImZpcnN0
+            X25hbWUiOiJcdWMwXHUxMDU1IFx1MTA3NyBcdTEwOTAgXHUxMDg4IFx1MTA4NiAi
+            LFwNCiAgICAgICJsYXN0X25hbWUiOiJcdWMwXHUxMDMwIFx1MTA3NCBcdTEwNzIg
+            XHUxMDg1IFx1MTA4NiBcdTEwNzQgIixcDQogICAgICAic2blic Vjb25kX25hbWUiOiJc
+            dWMwXHUxMDUyIFx1MTA4MCBcdTEwODIgXHUxMDg2IFx1MTA4MyBcdTEwNzIgXHUx
+            MDgxIFx1MTA4NiBcdTEwNzQgXHUxMDgwIFx1MTA5NSAiLFwNCiAgICAgICJiaXJ0
+            aF9kYXRlIjoiMTk5MS0wOC0xOVQwMDowMDowMC4wMDBaIixcDQogICAgICAiYmly
+            dGhfcGxhY2UiOiJcdWMwXHUxMDQyIFx1MTExMCBcdTEwODUgXHUxMDg1IFx1MTA4
+            MCBcdTEwOTQgXHUxMTAzICwgXHUxMDU5IFx1MTA4MiBcdTEwODggXHUxMDcyIFx1
+            MTExMSBcdTEwODUgXHUxMDcyICIsXA0KICAgICAgImdlbmRlciI6Ik1BTEUiLFwN
+            CiAgICAgICJlbWFpbCI6ImVtYWlsQGV4YW1wbGUuY29tIixcDQogICAgICAidGF4
+            X2lkIjoiMzEyNjUwOTgxNiIsXA0KICAgICAgIm5hdGlvbmFsX2lkIjoiQ0M3MTUw
+            OTg1MjQzIixcDQogICAgICAic2VjcmV0Ijoic2VjcmV0IixcDQogICAgICAiZG9j
+            dW1lbnRzIjpbXA0KICAgICAgICAgXHtcDQogICAgICAgICAgICAidHlwZSI6IlBB
+            U1NQT1JUIixcDQogICAgICAgICAgICAibnVtYmVyIjoiMTIwNTE4IixcDQogICAg
+            ICAgICAgICAiaXNzdWVfZGF0ZSI6IjIwMTUtMDQtMDdUMDA6MDA6MDAuMDAwWiIs
+            XA0KICAgICAgICAgICAgImV4cGlyeV9kYXRlIjoiMjAxNS0wNC0wN1QwMDowMDow
+            MC4wMDBaIixcDQogICAgICAgICAgICAiaXNzdWVkX2J5IjoiRE1TVSJcDQogICAg
+            ICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImFkZHJlc3NlcyI6W1wNCiAgICAg
+            ICAgIFx7XA0KICAgICAgICAgICAgInR5cGUiOiJSRVNJREVOQ0UiLFwNCiAgICAg
+            ICAgICAgICJjb3VudHJ5IjoiVUEiLFwNCiAgICAgICAgICAgICJhcmVhIjoiXHVj
+            MFx1MTA0NiBcdTEwODAgXHUxMDkwIFx1MTA4NiBcdTEwODQgXHUxMDgwIFx1MTA4
+            OCBcdTEwODkgXHUxMTAwIFx1MTA4MiBcdTEwNzIgIixcDQogICAgICAgICAgICAi
+            cmVnaW9uIjoiXHVjMFx1MTA0MSBcdTEwNzcgXHUxMDg4IFx1MTA3NiBcdTEwODAg
+            XHUxMDk1IFx1MTExMCBcdTEwNzQgXHUxMDg5IFx1MTEwMCBcdTEwODIgXHUxMDgw
+            IFx1MTA4MSAiLFwNCiAgICAgICAgICAgICJjaXR5IjoiXHVjMFx1MTA1MCBcdTEw
+            ODAgXHUxMTExIFx1MTA3NCAiLFwNCiAgICAgICAgICAgICJjaXR5X3R5cGUiOiJD
+            SVRZIixcDQogICAgICAgICAgICAic3RyZWV0IjoiXHVjMFx1MTA3NCBcdTEwOTEg
+            XHUxMDgzIC4gXHUxMDUzIFx1MTExMCBcdTEwNzggXHUxMDgwIFx1MTA4NSBcdTEw
+            ODkgXHUxMTAwIFx1MTA4MiBcdTEwNzIgIixcDQogICAgICAgICAgICAiYnVpbGRp
+            bmciOiIxNSIsXA0KICAgICAgICAgICAgImFwYXJ0bWVudCI6IjIzIixcDQogICAg
+            ICAgICAgICAiemlwIjoiMDIwOTAiXA0KICAgICAgICAgXH1cDQogICAgICBdLFwN
+            CiAgICAgICJwaG9uZXMiOltcDQogICAgICAgICBce1wNCiAgICAgICAgICAgICJ0
+            eXBlIjoiTU9CSUxFIixcDQogICAgICAgICAgICAibnVtYmVyIjoiKzM4MDUwMzQx
+            MDg3MCJcDQogICAgICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImF1dGhlbnRp
+            Y2F0aW9uX21ldGhvZHMiOltcDQogICAgICAgICBce1wNCiAgICAgICAgICAgICJ0
+            eXBlIjoiU01TIixcDQogICAgICAgICAgICAicGhvbmVfbnVtYmVyIjoiKzM4MDUw
+            ODg4NzcwMCJcDQogICAgICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImVtZXJn
+            ZW5jeV9jb250YWN0Ijpce1wNCiAgICAgICAgICJmaXJzdF9uYW1lIjoiXHVjMFx1
+            MTA1NSBcdTEwNzcgXHUxMDkwIFx1MTA4OCBcdTEwODYgIixcDQogICAgICAgICAi
+            bGFzdF9uYW1lIjoiXHVjMFx1MTAzMCBcdTEwNzQgXHUxMDcyIFx1MTA4NSBcdTEw
+            ODYgXHUxMDc0ICIsXA0KICAgICAgICAgInNlY29uZF9uYW1lIjoiXHVjMFx1MTA1
+            MiBcdTEwODAgXHUxMDgyIFx1MTA4NiBcdTEwODMgXHUxMDcyIFx1MTA4MSBcdTEw
+            ODYgXHUxMDc0IFx1MTA4MCBcdTEwOTUgIixcDQogICAgICAgICAicGhvbmVzIjpb
+            XA0KICAgICAgICAgICAgXHtcDQogICAgICAgICAgICAgICAidHlwZSI6Ik1PQklM
+            RSIsXA0KICAgICAgICAgICAgICAgIm51bWJlciI6IiszODA1MDM0MTA4NzAiXA0K
+            ICAgICAgICAgICAgXH1cDQogICAgICAgICBdXA0KICAgICAgXH0sXA0KICAgICAg
+            ImNvbmZpZGFudF9wZXJzb24iOlx7XA0KICAgICAgICAgInJlbGF0aW9uX3R5cGUi
+            OiJ0cnVzdGVlIixcDQogICAgICAgICAiZmlyc3RfbmFtZSI6Ilx1YzBcdTEwNTUg
+            XHUxMDc3IFx1MTA5MCBcdTEwODggXHUxMDg2ICIsXA0KICAgICAgICAgImxhc3Rf
+            bmFtZSI6Ilx1YzBcdTEwMzAgXHUxMDc0IFx1MTA3MiBcdTEwODUgXHUxMDg2IFx1
+            MTA3NCAiLFwNCiAgICAgICAgICJzZWNvbmRfbmFtZSI6Ilx1YzBcdTEwNTIgXHUx
+            MDgwIFx1MTA4MiBcdTEwODYgXHUxMDgzIFx1MTA3MiBcdTEwODEgXHUxMDg2IFx1
+            MTA3NCBcdTEwODAgXHUxMDk1ICIsXA0KICAgICAgICAgImJpcnRoX2RhdGUiOiIx
+            OTkxLTA4LTE5VDAwOjAwOjAwLjAwMFoiLFwNCiAgICAgICAgICJiaXJ0aF9wbGFj
+            ZSI6Ilx1YzBcdTEwNDIgXHUxMTEwIFx1MTA4NSBcdTEwODUgXHUxMDgwIFx1MTA5
+            NCBcdTExMDMgLCBcdTEwNTkgXHUxMDgyIFx1MTA4OCBcdTEwNzIgXHUxMTExIFx1
+            MTA4NSBcdTEwNzIgIixcDQogICAgICAgICAiZ2VuZGVyIjoiTUFMRSIsXA0KICAg
+            ICAgICAgInRheF9pZCI6IjMxMjY1MDk4MTYiLFwNCiAgICAgICAgICJkb2N1bWVu
+            dHMiOltcDQogICAgICAgICAgICBce1wNCiAgICAgICAgICAgICAgICJ0eXBlIjoi
+            UEFTU1BPUlQiLFwNCiAgICAgICAgICAgICAgICJudW1iZXIiOiIxMjA1MTgiLFwN
+            CiAgICAgICAgICAgICAgICJpc3N1ZV9kYXRlIjoiMjAxNS0wNC0wN1QwMDowMDow
+            MC4wMDBaIixcDQogICAgICAgICAgICAgICAiZXhwaXJ5X2RhdGUiOiIyMDE1LTA0
+            LTA3VDAwOjAwOjAwLjAwMFoiLFwNCiAgICAgICAgICAgICAgICJpc3N1ZWRfYnki
+            OiJETVNVIlwNCiAgICAgICAgICAgIFx9XA0KICAgICAgICAgXSxcDQogICAgICAg
+            ICAicGhvbmVzIjpbXA0KICAgICAgICAgICAgXHtcDQogICAgICAgICAgICAgICAi
+            dHlwZSI6Ik1PQklMRSIsXA0KICAgICAgICAgICAgICAgIm51bWJlciI6IiszODA1
+            MDM0MTA4NzAiXA0KICAgICAgICAgICAgXH1cDQogICAgICAgICBdXA0KICAgICAg
+            XH0sXA0KICAgICAgInJlbmV3YWxfY29uc2VudCI6dHJ1ZSxcDQogICAgICAicGF0
+            aWVudF9zaWduZWQiOnRydWUsXA0KICAgICAgImRpc2Nsb3N1cmVfY29uc2VudCI6
+            dHJ1ZSxcDQogICAgICAicHJvY2Vzc19kYXRhX2NvbnNlbnQiOnRydWVcDQogICBc
+            fSxcDQogICAiZW1wbG95ZWUiOlx7XA0KICAgICAgImlkIjoiZDI5MGYxZWUtNmM1
+            NC00YjAxLTkwZTYtZDcwMTc0OGYwODUxIixcDQogICAgICAidGl0bGUiOiJcdWMw
+            XHUxMDgzIFx1MTExMCBcdTEwODIgXHUxMDcyIFx1MTA4OCAiLFwNCiAgICAgICJw
+            YXJ0eSI6XHtcDQogICAgICAgICAiaWQiOiJiMDc1ZjE0OC03ZjkzLTRmYzItYjJl
+            Yy0yZDgxYjE5YTliN2IiLFwNCiAgICAgICAgICJmaXJzdF9uYW1lIjoiXHVjMFx1
+            MTA1NSBcdTEwNzcgXHUxMDkwIFx1MTA4OCBcdTEwODYgIixcDQogICAgICAgICAi
+            bGFzdF9uYW1lIjoiXHVjMFx1MTAzMCBcdTEwNzQgXHUxMDcyIFx1MTA4NSBcdTEw
+            ODYgXHUxMDc0ICIsXA0KICAgICAgICAgInNlY29uZF9uYW1lIjoiXHVjMFx1MTA1
+            MiBcdTEwODAgXHUxMDgyIFx1MTA4NiBcdTEwODMgXHUxMDcyIFx1MTA4MSBcdTEw
+            ODYgXHUxMDc0IFx1MTA4MCBcdTEwOTUgIlwNCiAgICAgIFx9XA0KICAgXH0sXA0K
+            ICAgIm1zcCI6XHtcDQogICAgICAiaWQiOiJkMjkwZjFlZSIsXA0KICAgICAgIm5h
+            bWUiOiJcdWMwXHUxMDUwIFx1MTA4MyBcdTExMTAgXHUxMDg1IFx1MTExMCBcdTEw
+            ODIgXHUxMDcyICBcdTEwNDEgXHUxMDg2IFx1MTA4OCBcdTEwODAgXHUxMDg5ICIs
+            XA0KICAgICAgInNob3J0X05hbWUiOiJcdWMwXHUxMDQxIFx1MTA4NiBcdTEwODgg
+            XHUxMDgwIFx1MTA4OSAiLFwNCiAgICAgICJ0eXBlIjoiXHVjMFx1MTA2MCBcdTEw
+            NTQgXHUxMDU1ICIsXA0KICAgICAgImVkcnBvdSI6IjU0MzIzNDU0MzIiXA0KICAg
+            XH0sXA0KICAgInNjb3BlIjoiZmFtaWx5IGRvY3RvciIsXA0KICAgInBsYWludGV4
+            dF9jb250ZW50IjoiRGVjbGFyYXRpb24gY29udGVudCJcDQpcfX2gggIuMIICKjCC
+            AZOgAwIBAgIJANj0sC/v0hWYMA0GCSqGSIb3DQEBBQUAMBkxFzAVBgNVBAMUDlBL
+            Q1MjNyBleGFtcGxlMB4XDTE3MDMyNzE0NTczM1oXDTE3MDQyNjE0NTczM1owGTEX
+            MBUGA1UEAxQOUEtDUyM3IGV4YW1wbGUwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJ
+            AoGBAMuqrxE/0txT+ZVRKU1O85a8eaaUAOkbcAIy1mMoxQ+UBwcBeXt07Oxu32+p
+            51HSY93Pp5AlDLKE48sjSNvMbTk5vtZ6g8sqMpZxlBVqHLkXLXYBMf2rmtE4hfV6
+            yTP5YUJEs+a9cotsPN0r5KlI9g8aSpIj9Ie8mML5Vh1taQHNAgMBAAGjejB4MB0G
+            A1UdDgQWBBTET2SwL5UfUMKDyhuBGCA+CaflnzBJBgNVHSMEQjBAgBTET2SwL5Uf
+            UMKDyhuBGCA+Cafln6EdpBswGTEXMBUGA1UEAxQOUEtDUyM3IGV4YW1wbGWCCQDY
+            9LAv79IVmDAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBBQUAA4GBAF1uOGjUb6IV
+            S28UqZ2qLc/kd2oNU2hOEuAp1YeaKRL2OaG4bTubJO1ejoxCJNfVj0FFw5PXIgjn
+            w87JzkAy5KLDTiotQl8eknkd1bR3nIWINemck3GeGYkR8giG3gkNxz6ky1+63Zco
+            JkEiS46aneDhmS6BdH0V2G/3delos8+ZMYIBgDCCAXwCAQEwJjAZMRcwFQYDVQQD
+            FA5QS0NTIzcgZXhhbXBsZQIJANj0sC/v0hWYMAkGBSsOAwIaBQCggbEwGAYJKoZI
+            hvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMTcwMzI4MTE1NDEw
+            WjAjBgkqhkiG9w0BCQQxFgQU5NSvVRVYHz5tG1GW8gXrjHSnLj8wUgYJKoZIhvcN
+            AQkPMUUwQzAKBggqhkiG9w0DBzAOBggqhkiG9w0DAgICAIAwDQYIKoZIhvcNAwIC
+            AUAwBwYFKw4DAgcwDQYIKoZIhvcNAwICASgwDQYJKoZIhvcNAQEBBQAEgYCdqnN8
+            gGXw9OUmtxOvQQgHK5Ni/4/2WQWj7rxERh5AI6rhXs/hh3DNS5Z5mN6wO8z47SQu
+            edbsMQ5hf6+9BbKhXD7WKeU+DtGyfa1ner5/ubz6BeVvuT98D4PrzHlqNSpe/7Ai
+            rrA70QVO9kPoFSmGtBG6JjaqaCZBYbvF9InPRw==
 
 + Response 201 (application/json)
     + Attributes (Response_OK)
@@ -718,6 +964,28 @@ Method to verify new declaration
             + include `Declaration_Request_Public`
             + active: true (boolean, required)
             + status: active (string, required)
+
+### Upload files [POST /mis/declarations/requests/{request_id}/files/{filename}]
+
+Uload files for offline patient verification
+
++ Parameters
+    + request_id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
+    + filename: SzFxGfAg_Zj.pdf
+
++ Request (application/pdf)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+            Content-Length: 150
+            Content-Range: bytes
+    + Body
+    
+            {PDF CONTENT}
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
 
 ## Employees [/mis/employees]
 
@@ -750,7 +1018,7 @@ This method to approve employee creation request. Should be used by the employee
 
     + Headers
 
-            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
+            Authorization: Bearer mF_9.B5f-4.1JqM
 
     + Attributes (Registration_Request)
         + creator_signature: MIIGlQYJKoZIhvcNAQcDoIIGhjCCBoICAQAxggEEMIIBAAIBADCBqTCBmzELMAkG (string, required)
@@ -786,7 +1054,7 @@ User_id or msp_id has to be passed.
 
     + Headers
 
-            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
+            Authorization: Bearer mF_9.B5f-4.1JqM
 
 + Response 200 (application/json)
     + Attributes (Response_Collection)
@@ -810,7 +1078,7 @@ This method allows to search for a Person without disclosing personal data:
 
     + Headers
 
-            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
+            Authorization: Bearer mF_9.B5f-4.1JqM
 
 + Response 200 (application/json)
     + Attributes (Response_Collection)
@@ -835,7 +1103,7 @@ This method allows to receive person declarations only referenced to current msp
 
     + Headers
 
-            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
+            Authorization: Bearer mF_9.B5f-4.1JqM
 
 + Response 200 (application/json)
     + Attributes (Response_Collection)
@@ -956,6 +1224,12 @@ This method allows to receive person declarations only referenced to current msp
 + inserted_at: `2017-03-02T10:45:16.000Z` (string, optional)
 + updated_at: `2017-03-02T10:45:16.000Z` (string, optional)
 
+### `Person_Minimal`
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ first_name: Петро (string, required)
++ last_name: Іванов (string, required)
++ second_name: Миколайович (string, optional)
+
 ### `Person_Short`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + first_name: Петро (string, required)
@@ -1014,6 +1288,19 @@ This method allows to receive person declarations only referenced to current msp
 + scope (enum, required)
     - family doctor
 
+### `Declaration_Request_Details_Public`
++ start_date: `2017-03-02T10:45:16.000Z` (string, required)
++ end_date: `2017-03-02T10:45:16.000Z` (string, required)
++ person(`Person_Request`, required)
+    + renewal_consent: true (boolean)
+    + patient_signed: true (boolean)
+    + disclosure_consent: true (boolean)
+    + process_data_consent: true (boolean)
++ employee (Employee_Minimal)
++ msp(`MSP_Short`)
++ scope (enum, required)
+    - family doctor
+
 ### `Declaration_Request`
 + include `Person`
 + person_id: "d290f1ee-6c54-4b01-90e6-d701748f0851" (string, optional)
@@ -1026,28 +1313,16 @@ This method allows to receive person declarations only referenced to current msp
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2017-03-02T10:45:16.000Z` (string, required)
-+ person
-    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-    + first_name: Петро (string, required)
-    + last_name: Іванов (string, required)
-    + second_name: Миколайович (string, optional)
-+ doctor (object)
-    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-    + name: `Григорій Квітка Основ'яненко`
++ person (Person_Minimal)
++ employee (Employee_Minimal)
 + msp(`MSP_Short`)
 
 ### `Declaration_Request_Full`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2017-03-02T10:45:16.000Z` (string, required)
-+ person
-    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-    + first_name: Петро (string, required)
-    + last_name: Іванов (string, required)
-    + second_name: Миколайович (string, optional)
-+ doctor (object)
-    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-    + name: `Григорій Квітка Основ'яненко`
++ person (Person_Minimal)
++ employee (Employee_Minimal)
 + msp(`MSP_Short`)
 
 ### `Declaration_Details`
@@ -1108,6 +1383,13 @@ This method allows to receive person declarations only referenced to current msp
 + employee_details (Doctor, optional)
 + start_date: 2017-02-28 (string, required)
 + expiry_date: 2017-02-28 (string, optional)
+
+### `Employee_Minimal`
++ id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ title: лікар (string, required)
++ party (object)
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+    + include `Party_Short`
 
 ### `Employee_Short`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
