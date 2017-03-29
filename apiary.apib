@@ -315,7 +315,7 @@ Personal information cannot be updated using this method.
     + Attributes (Response_OK)
         + data (Doctor)
 
-### Search for a Doctor [GET /doctors{?first_name,last_name,second_name,speciality,region,area,msp_id,is_active}]
+### Search for a Doctor [GET /doctors{?first_name,last_name,second_name,speciality,region,area,msp_id,is_active,offset,limit}]
 
 Methods returns list of doctors.
 at least one parameter has to be passed. Othervise - error. Only records where is_active=true should be returned.
@@ -330,6 +330,8 @@ Purpose: for future to get dictionary of doctors for the patients.
     + area: `Дарницький район` (string, optional)
     + msp_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
     + is_active: true (boolean, optional) - Search only for active or disabled doctors.
+    + offset: 0 (number, optional)
+    + limit: 100 (number, optional)
 
 + Request (application/json)
 
@@ -396,7 +398,7 @@ Methods returns declaration details by declaration ID or by mpi_id (if parameter
     + Attributes (Response_OK)
         + data (Declaration_Full)
 
-### Search Declarations [GET /declarations{?person_id,doctor_id,msp_id,is_active}]
+### Search Declarations [GET /declarations{?person_id,doctor_id,msp_id,is_active,offset,limit}]
 
 Methods returns list of declarations by combination of patient_id, doctor_id, msp_id.
 
@@ -407,6 +409,8 @@ Response will contain only records that you have access to.
     + doctor_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MPI ID of a doctor.
     + msp_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MSP ID.
     + is_active: true (boolean, optional) - Search only for active or disabled declarations.
+    + offset: 0 (number, optional)
+    + limit: 100 (number, optional)
 
 + Request (application/json)
 
@@ -470,7 +474,7 @@ TODO: add verification logic. For ex. how and when is_active can be updated.
             + created_at: `2017-03-02T10:45:16.000Z` (string, optional)
             + modified_at: `2017-03-02T10:45:16.000Z` (string, optional)
 
-### Search for an Employee [GET /employees{?user_id,msp_id,employee_type,is_active,status}]
+### Search for an Employee [GET /employees{?user_id,msp_id,employee_type,is_active,status,offset,limit}]
 
 Methods returns list of labour_contracts by doctor_id or msp_id or both.
 
@@ -487,6 +491,9 @@ Methods returns list of labour_contracts by doctor_id or msp_id or both.
         - approved
         - pending_approval
         - closed
+    + offset: 0 (number, optional)
+    + limit: 100 (number, optional)
+    
 + Request (application/json)
 
     + Headers
@@ -546,7 +553,7 @@ This method allows to fetch MSP record details by ID
         + data (MSP_Response)
             + id: blahblah
 
-### Search for Medical Service Provider [GET /medical_service_providers{?edrpou,name,type}]
+### Search for Medical Service Provider [GET /medical_service_providers{?edrpou,name,type,offset,limit}]
 
 This method allows to fetch list of similar MSP by edrpou or name.
 Result will be ordered by search result relevance.
@@ -555,6 +562,8 @@ Result will be ordered by search result relevance.
     + edrpou: 432234432 (number, optional)
     + name: Борис (number, optional)
     + type: private_hospital (number, optional)
+    + offset: 0 (number, optional)
+    + limit: 100 (number, optional)
 
 + Response 200 (application/json)
     + Attributes (Response_Collection)
@@ -610,7 +619,7 @@ For security purposes, we will set `X-Frame-Options: deny` header that will disa
 
 ## Declaration requests [/mis/declarations/requests]
 
-### Get Declaration Requests list [GET /mis/declarations/requests{?employee_id,msp_id,status}]
+### Get Declaration Requests list [GET /mis/declarations/requests{?employee_id,msp_id,status,offset,limit}]
 
 + Parameters
     + `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - user_id of a doctor.
@@ -618,6 +627,8 @@ For security purposes, we will set `X-Frame-Options: deny` header that will disa
     + status: new (enum, optional)
         - new
         - pending
+    + offset: 0 (number, optional)
+    + limit: 100 (number, optional)
 
 + Request (application/json)
 
@@ -805,15 +816,68 @@ Message contains JSON object with structured data and printout template
          "id":"b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
          "first_name":"Петро",
          "last_name":"Іванов",
-         "second_name":"Миколайович"
+         "second_name":"Миколайович",
+         "email":"email@example.com",
+         "phones":[
+            {
+               "type":"MOBILE",
+               "number":"+380503410870"
+            }
+         ]
       }
    },
    "msp":{
-      "id":"d290f1ee",
       "name":"Клініка Борис",
       "short_Name":"Борис",
       "type":"ФОП",
-      "edrpou":"5432345432"
+      "edrpou":"5432345432",
+      "services":[
+         {
+            "id":"",
+            "name":""
+         }
+      ],
+      "licenses":[
+         {
+            "license_number":"fd123443",
+            "kved":[
+
+            ],
+            "issued_by":"Кваліфікацйна комісія",
+            "issued_date":"2017",
+            "expiry_date":"2017"
+         }
+      ],
+      "accreditation":[
+         {
+            "certificate_number":"fd123443",
+            "issued_by":"Кваліфікацйна комісія",
+            "issued_date":"2017",
+            "expiry_date":"2017"
+         }
+      ],
+      "addresses":[
+         {
+            "type":"RESIDENCE",
+            "country":"UA",
+            "area":"Житомирська",
+            "region":"Бердичівський",
+            "city":"Київ",
+            "city_type":"CITY",
+            "street":"вул. Ніжинська",
+            "building":"15",
+            "apartment":"23",
+            "zip":"02090"
+         }
+      ],
+      "phones":[
+         {
+            "type":"MOBILE",
+            "number":"+380503410870"
+         }
+      ],
+      "email":"email@example.com",
+      "id":"d290f1ee-6c54-4b01-90e6-d701748f0851"
    },
    "scope":"family doctor",
    "plaintext_content":"Declaration content"
@@ -1050,7 +1114,7 @@ This method to approve employee creation request. Should be used by the employee
             + created_at: `2017-03-02T10:45:16.000Z` (string, optional)
             + modified_at: `2017-03-02T10:45:16.000Z` (string, optional)
 
-### Get list of Employees [GET /employees{?user_id,legal_entity_id,division_id,employee_type,is_active,status}]
+### Get list of Employees [GET /employees{?user_id,legal_entity_id,division_id,employee_type,is_active,status,offset,limit}]
 
 Methods returns list of employees by msp_id or user_id or both.
 User_id or msp_id has to be passed.
@@ -1069,6 +1133,9 @@ User_id or msp_id has to be passed.
         - approved
         - pending_approval
         - closed
+    + offset: 0 (number, optional)
+    + limit: 100 (number, optional)
+    
 + Request (application/json)
 
     + Headers
@@ -1081,7 +1148,7 @@ User_id or msp_id has to be passed.
 
 ## Persons [/mis/persons]
 
-### Search for a Person [GET /mis/persons{?first_name,last_name,second_name,birth_date,tax_id,phone_number,birth_place}]
+### Search for a Person [GET /mis/persons{?first_name,last_name,second_name,birth_date,tax_id,phone_number,birth_place,offset,limit}]
 
 This method allows to search for a Person without disclosing personal data:
 
@@ -1092,6 +1159,8 @@ This method allows to search for a Person without disclosing personal data:
     + birth_date: `1991-08-19T00:00:00.000Z` (string, required) - ISO Datetime.
     + tax_id: 3126509816 (string, optional)
     + phone_number: `+380508887700` (string, optional)
+    + offset: 0 (number, optional)
+    + limit: 100 (number, optional)
 
 + Request (application/json)
 
@@ -1111,12 +1180,14 @@ This method allows to search for a Person without disclosing personal data:
             + type: `too_many_results`
             + message: `This API method returns only exact match results, please retry with more specific search result` (string)
 
-### Get Person Declarations [GET /mis/persons/{id}/declarations]
+### Get Person Declarations [GET /mis/persons/{id}/declarations{?offset,limit}]
 
 This method allows to receive person declarations only referenced to current msp_id (based on access_token)
 
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+    + offset: 0 (number, optional)
+    + limit: 100 (number, optional)
 
 + Request (application/json)
 
