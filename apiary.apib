@@ -1320,7 +1320,8 @@ This method allows to receive person declarations only referenced to current msp
     + disclosure_consent: true (boolean)
     + process_data_consent: true (boolean)
 + employee (Employee_Minimal)
-+ msp(`MSP_Short`)
++ msp(`Medical_Service_Provider`)
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + scope (enum, required)
     - family doctor
 
@@ -1384,6 +1385,7 @@ This method allows to receive person declarations only referenced to current msp
 + gender: MALE, FEMALE (enum[string], required)
 + tax_id: 3126509816 (string, optional)
 + national_id: CC7150985243 (string, optional)
++ email: email@example.com (string, optional)
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
 + doctor (DoctorNew, optional)
@@ -1395,6 +1397,7 @@ This method allows to receive person declarations only referenced to current msp
 + gender: MALE, FEMALE (enum[string], required)
 + tax_id: 3126509816 (string, optional)
 + national_id: CC7150985243 (string, optional)
++ email: email@example.com (string, optional)
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
 
@@ -1423,7 +1426,9 @@ This method allows to receive person declarations only referenced to current msp
 + party (object)
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
     + include `Party_Short`
-
+    + email: email@example.com (string, optional)
+    + phones (array[Phone], optional)
+    
 ### `Employee_Request`
 + legal_entity_id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
 + division_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -1509,7 +1514,7 @@ This method allows to receive person declarations only referenced to current msp
 + accreditation (array[Accreditation], required)
 + addresses (array[Address], optional)
 + phones (array[Phone], optional)
-+ email (string, required)
++ email: `email@example.com` (string, required)
 
 ### `MSP_Short`
 + id: d290f1ee-6c54-4b01-90e6-d701748f0851
