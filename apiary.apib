@@ -617,9 +617,9 @@ For security purposes, we will set `X-Frame-Options: deny` header that will disa
 
             X-CSRF-Token: my-csrf-token
 
-## Declaration requests [/mis/declarations/requests]
+## Declaration requests [/mis/declaration_requests]
 
-### Get Declaration Requests list [GET /mis/declarations/requests{?employee_id,msp_id,status,offset,limit}]
+### Get Declaration Requests list [GET /mis/declaration_requests{?employee_id,msp_id,status,offset,limit}]
 
 + Parameters
     + `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - user_id of a doctor.
@@ -640,7 +640,7 @@ For security purposes, we will set `X-Frame-Options: deny` header that will disa
     + Attributes (Response_Collection)
         + data (array[`Declaration_Request_Short`])
 
-### Get Declaration Request Details [GET /mis/declarations/requests/{request_id}]
+### Get Declaration Request Details [GET /mis/declaration_requests/{request_id}]
 
 + Parameters
     + `request_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - request identifier
@@ -684,7 +684,7 @@ Method to register new declaration
             + plaintext_content: `Declaration content` (string, required)
             + authentication_method (`Authentication_method`)
 
-### Approve Declaration Request [POST /mis/declarations/requests/{request_id}/approve]
+### Approve Declaration Request [POST /mis/declaration_requests/{request_id}/approve]
 
 Method to approve new declaration
 
@@ -711,7 +711,7 @@ Method to approve new declaration
             + active: false (boolean, required)
             + status: pending_verification (string, required)
 
-### Sign Declaration request [POST /mis/declarations/requests/{request_id}/sign]
+### Sign Declaration request [POST /mis/declaration_requests/{request_id}/sign]
 
 Method to verify new declaration
 This method receives signed message including signed content, digital signature signer public key
@@ -1027,7 +1027,7 @@ Message contains JSON object with structured data and printout template
             + active: true (boolean, required)
             + status: active (string, required)
 
-### Upload files [POST /mis/declarations/requests/{request_id}/files/{filename}]
+### Upload files [POST /mis/declaration_requests/{request_id}/files/{filename}]
 
 Uload files for offline patient verification
 
