@@ -222,7 +222,7 @@ This method allows to search for a Person without disclosing personal data:
 
 ## Confident Persons [/persons/{id}/confident_persons]
 
-### Add Confident Person [POST /persons/{id}/confident_persons]
+### Add Confidant Person [POST /persons/{id}/confident_persons]
 
 + Parameters
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Person ID
@@ -369,7 +369,6 @@ Method to sign declaration record with the doctor's signature
 
 + Request (application/json)
     + Attributes (object)
-        + signature: string (string, required)
         + signed_at: `2017-02-28` (string, required)
 
 + Response 200 (application/json)
@@ -379,7 +378,6 @@ Method to sign declaration record with the doctor's signature
             + include Declaration
             + active: true (boolean, required)
             + status: signed (string, required)
-            + signature: string (string, required)
 
 ### Get Declaration [GET /declarations/{id}]
 
@@ -982,7 +980,7 @@ Uload files for offline patient verification
             Content-Range: bytes
     + Body
     
-            {PDF CONTENT}
+            PDF CONTENT
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
@@ -990,22 +988,44 @@ Uload files for offline patient verification
 ## Employees [/mis/employees]
 
 ### Register new employee [POST]
-Method to create new employee registration request
+Method to create new employee
 
 + Request (application/json)
-    + Attributes (Registration_Request)
-        + creator_signature: MIIGlQYJKoZIhvcNAQcDoIIGhjCCBoICAQAxggEEMIIBAAIBADCBqTCBmzELMAkG (string, required)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
+    + Attributes (Employee_Request)
 
 + Response 201 (application/json)
     + Attributes (Response_OK)
         + meta (Response__Meta)
             + code: 201 (number)
-        + data (Registration_Request)
+        + data (object)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + include `Registration_Request`
-            + status: pending_signature (string, required)
+            + include `Employee_Request`
 
-### Approve employee [PUT /mis/employees/{id}]
+### Get employee details [GET /mis/employees/{id}]
+
++ Parameters
+    + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + include `Employee_Request`
+
+### Approve employee [PUT /mis/employees/{id}/approve]
 
 This method to approve employee creation request. Should be used by the employee user.
 
@@ -1021,8 +1041,6 @@ This method to approve employee creation request. Should be used by the employee
             Authorization: Bearer mF_9.B5f-4.1JqM
 
     + Attributes (Registration_Request)
-        + creator_signature: MIIGlQYJKoZIhvcNAQcDoIIGhjCCBoICAQAxggEEMIIBAAIBADCBqTCBmzELMAkG (string, required)
-        + employee_signature: MIIGlQYJKoZIhvcNAQcDoIIGhjCCBoICAQAxggEEMIIBAAIBADCBqTCBmzELMAkG (string, required)
         + verification_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 
 + Response 200 (application/json)
@@ -1032,14 +1050,15 @@ This method to approve employee creation request. Should be used by the employee
             + created_at: `2017-03-02T10:45:16.000Z` (string, optional)
             + modified_at: `2017-03-02T10:45:16.000Z` (string, optional)
 
-### Get list of Employees [GET /employees{?user_id,msp_id,employee_type,is_active,status}]
+### Get list of Employees [GET /employees{?user_id,legal_entity_id,division_id,employee_type,is_active,status}]
 
 Methods returns list of employees by msp_id or user_id or both.
 User_id or msp_id has to be passed.
 
 + Parameters
     + `user_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - user_id of a doctor.
-    + msp_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MSP ID.
+    + legal_entity_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MSP ID.
+    + division_id: `c4361142-b3b9-457e-9ec7-f01080f5e1cc` (string, optional) - division ID
     + employee_type: doctor (enum, required)
         - doctor
         - hr
@@ -1062,7 +1081,7 @@ User_id or msp_id has to be passed.
 
 ## Persons [/mis/persons]
 
-### Search for a Person [GET /persons{?first_name,last_name,second_name,birth_date,tax_id,phone_number,birth_place}]
+### Search for a Person [GET /mis/persons{?first_name,last_name,second_name,birth_date,tax_id,phone_number,birth_place}]
 
 This method allows to search for a Person without disclosing personal data:
 
@@ -1092,7 +1111,7 @@ This method allows to search for a Person without disclosing personal data:
             + type: `too_many_results`
             + message: `This API method returns only exact match results, please retry with more specific search result` (string)
 
-### Get Person Declarations [GET /persons/{id}/declarations]
+### Get Person Declarations [GET /mis/persons/{id}/declarations]
 
 This method allows to receive person declarations only referenced to current msp_id (based on access_token)
 
@@ -1116,6 +1135,10 @@ This method allows to receive person declarations only referenced to current msp
         + error (Response__Error, fixed-type)
             + type: `forbidden`
             + message: `Active declaration belongs to another msp` (string)
+
+## Medical Service Provider [/mis/msp]
+
+
 
 # Data Structures
 ## Responses
@@ -1355,6 +1378,16 @@ This method allows to receive person declarations only referenced to current msp
 + last_name: Іванов (string, required)
 + second_name: Миколайович (string, optional)
 
+### `Party_Request`
++ include `Party_Short`
++ birth_date: `1991-08-19T00:00:00.000Z` (string, required)
++ gender: MALE, FEMALE (enum[string], required)
++ tax_id: 3126509816 (string, optional)
++ national_id: CC7150985243 (string, optional)
++ documents (array[Document], optional)
++ phones (array[Phone], optional)
++ doctor (DoctorNew, optional)
+
 ### `Party_Full`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + include `Party_Short`
@@ -1365,7 +1398,7 @@ This method allows to receive person declarations only referenced to current msp
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
 
-## `Employees`
+## Employees
 ### `Employee`
 + user_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + msp_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -1390,6 +1423,26 @@ This method allows to receive person declarations only referenced to current msp
 + party (object)
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
     + include `Party_Short`
+
+### `Employee_Request`
++ legal_entity_id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
++ division_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ title: лікар (string, required)
++ speciality: Педіатрія (enum)
+    - Загальна практика - сімейна медицина
+    - Педіатрія
+    - Підліткова терапія
+    - Терапія
++ start_date: `2017-03-02T10:45:16.000Z` (string, required)
++ end_date: `2018-03-02T10:45:16.000Z` (string, optional)
++ active: true (boolean, required)
++ status: pending_verification (enum, required)
++ employee_type: doctor (enum)
+    - doctor
+    - hr
+    - admin
+    - owner
++ party (Party_Request)
 
 ### `Employee_Short`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -1427,23 +1480,21 @@ This method allows to receive person declarations only referenced to current msp
 + include user
 
 ### `Registration_Request`
-+ include user
-+ msp_id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
-+ employee_type: doctor (enum)
-    - doctor
-    - hr
-    - admin
-    - owner
++ legal_entity_id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
 + title: лікар (string, required)
 + speciality: Педіатрія (enum)
     - Загальна практика - сімейна медицина
     - Педіатрія
     - Підліткова терапія
     - Терапія
++ start_date: `2015-03-02T10:45:16.000Z` (string, required)
++ end_date: `2017-03-02T10:45:16.000Z` (string, optional)
++ employee_type: doctor (enum)
+    - doctor
+    - hr
+    - admin
+    - owner
 + employee_details (Doctor, optional)
-+ start_date: 2017-02-28 (string, required)
-+ expiry_date: 2017-02-28 (string, optional)
-
 
 ## `Medical_Service_Providers`
 ### `Medical_Service_Provider`
