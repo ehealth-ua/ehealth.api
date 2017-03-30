@@ -684,7 +684,7 @@ Method to register new declaration
             + plaintext_content: `Declaration content` (string, required)
             + authentication_method (`Authentication_method`)
 
-### Approve Declaration Request [POST /mis/declaration_requests/{request_id}/approve]
+### Approve Declaration Request [POST /mis/declaration_requests/{request_id}/actions/approve]
 
 Method to approve new declaration
 
@@ -711,7 +711,7 @@ Method to approve new declaration
             + active: false (boolean, required)
             + status: pending_verification (string, required)
 
-### Sign Declaration request [POST /mis/declaration_requests/{request_id}/sign]
+### Sign Declaration request [POST /mis/declaration_requests/{request_id}/actions/sign]
 
 Method to verify new declaration
 This method receives signed message including signed content, digital signature signer public key
@@ -1089,7 +1089,7 @@ Method to create new employee
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
             + include `Employee_Request`
 
-### Approve employee [PUT /mis/employees/{id}/approve]
+### Approve employee [PUT /mis/employees/{id}/actions/approve]
 
 This method to approve employee creation request. Should be used by the employee user.
 
@@ -1207,9 +1207,23 @@ This method allows to receive person declarations only referenced to current msp
             + type: `forbidden`
             + message: `Active declaration belongs to another msp` (string)
 
-## Medical Service Provider [/mis/msp]
+## Legal entities [/mis/legal_entities]
 
+### Get legal entities list [GET /mis/legal_entities{?edrpou,type}]
 
++ Parameters
+    + `edrpou`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - user_id of a doctor.
+    + type: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MSP ID.
+    
++ Request
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (Response_Collection)
+        + data (array[`Legal_Entity_Short`])
 
 # Data Structures
 ## Responses
@@ -1571,6 +1585,15 @@ This method allows to receive person declarations only referenced to current msp
     - admin
     - owner
 + employee_details (Doctor, optional)
+
+## Legal entities
+### `Legal_Entity_Short`
++ name: Клініка Борис (string, required)
++ short_Name: Борис (string, required)
++ type (enum, required)
+    - ФОП
+    - Клініка
++ edrpou: 5432345432 (string, required)
 
 ## `Medical_Service_Providers`
 ### `Medical_Service_Provider`
