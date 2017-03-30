@@ -26,7 +26,7 @@ TODO.
 
 To submit issues you should use [Issue Tracking Repo](https://github.com/Nebo15/ehealth.api), issues in all other repositories are used to plan backlog and non-related issued will be closed.
 
-# Group Authorization Provider
+# Group (Private) Authorization Provider
 
 For security purposes eHealth doesn't allow proxying passwords or to perform any sort back-end authorization. You should always redirect your customers (eg. doctors, we call them "consumers") to the Login UI.
 
@@ -114,7 +114,7 @@ This method can be only called from eHealth gateway.
         + data (Access_Token)
 
 
-# Group Master Patients Index
+# Group Private Master Patients Index
 
 ## Persons [/persons]
 
@@ -258,7 +258,7 @@ This method allows to search for a Person without disclosing personal data:
     + Attributes (Response_OK)
         + data (Person_Full)
 
-# Group Partnership Relations Management
+# Group Private Partnership Relations Management
 
 ## Doctors [/doctors]
 
@@ -315,7 +315,7 @@ Personal information cannot be updated using this method.
     + Attributes (Response_OK)
         + data (Doctor)
 
-### Search for a Doctor [GET /doctors{?first_name,last_name,second_name,speciality,region,area,msp_id,is_active,offset,limit}]
+### Search for a Doctor [GET /doctors{?first_name,last_name,second_name,speciality,region,area,msp_id,is_active,starting_after,ending_before,limit}]
 
 Methods returns list of doctors.
 at least one parameter has to be passed. Othervise - error. Only records where is_active=true should be returned.
@@ -330,8 +330,9 @@ Purpose: for future to get dictionary of doctors for the patients.
     + area: `Дарницький район` (string, optional)
     + msp_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
     + is_active: true (boolean, optional) - Search only for active or disabled doctors.
-    + offset: 0 (number, optional)
-    + limit: 100 (number, optional)
+    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
+    + `starting_after`: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
+    + `ending_before`: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
 
 + Request (application/json)
 
@@ -398,7 +399,7 @@ Methods returns declaration details by declaration ID or by mpi_id (if parameter
     + Attributes (Response_OK)
         + data (Declaration_Full)
 
-### Search Declarations [GET /declarations{?person_id,doctor_id,msp_id,is_active,offset,limit}]
+### Search Declarations [GET /declarations{?person_id,doctor_id,msp_id,is_active,starting_after,ending_before,limit}]
 
 Methods returns list of declarations by combination of patient_id, doctor_id, msp_id.
 
@@ -409,8 +410,9 @@ Response will contain only records that you have access to.
     + doctor_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MPI ID of a doctor.
     + msp_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MSP ID.
     + is_active: true (boolean, optional) - Search only for active or disabled declarations.
-    + offset: 0 (number, optional)
-    + limit: 100 (number, optional)
+    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
+    + `starting_after`: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
+    + `ending_before`: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
 
 + Request (application/json)
 
@@ -474,7 +476,7 @@ TODO: add verification logic. For ex. how and when is_active can be updated.
             + created_at: `2017-03-02T10:45:16.000Z` (string, optional)
             + modified_at: `2017-03-02T10:45:16.000Z` (string, optional)
 
-### Search for an Employee [GET /employees{?user_id,msp_id,employee_type,is_active,status,offset,limit}]
+### Search for an Employee [GET /employees{?user_id,msp_id,employee_type,is_active,status,starting_after,ending_before,limit}]
 
 Methods returns list of labour_contracts by doctor_id or msp_id or both.
 
@@ -491,8 +493,9 @@ Methods returns list of labour_contracts by doctor_id or msp_id or both.
         - approved
         - pending_approval
         - closed
-    + offset: 0 (number, optional)
-    + limit: 100 (number, optional)
+    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
+    + `starting_after`: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
+    + `ending_before`: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
     
 + Request (application/json)
 
@@ -553,7 +556,7 @@ This method allows to fetch MSP record details by ID
         + data (MSP_Response)
             + id: blahblah
 
-### Search for Medical Service Provider [GET /medical_service_providers{?edrpou,name,type,offset,limit}]
+### Search for Medical Service Provider [GET /medical_service_providers{?edrpou,name,type,starting_after,ending_before,limit}]
 
 This method allows to fetch list of similar MSP by edrpou or name.
 Result will be ordered by search result relevance.
@@ -562,8 +565,9 @@ Result will be ordered by search result relevance.
     + edrpou: 432234432 (number, optional)
     + name: Борис (number, optional)
     + type: private_hospital (number, optional)
-    + offset: 0 (number, optional)
-    + limit: 100 (number, optional)
+    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
+    + `starting_after`: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
+    + `ending_before`: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
 
 + Response 200 (application/json)
     + Attributes (Response_Collection)
@@ -619,7 +623,7 @@ For security purposes, we will set `X-Frame-Options: deny` header that will disa
 
 ## Declaration requests [/mis/declaration_requests]
 
-### Get Declaration Requests list [GET /mis/declaration_requests{?employee_id,msp_id,status,offset,limit}]
+### Get Declaration Requests list [GET /mis/declaration_requests{?employee_id,msp_id,status,starting_after,ending_before,limit}]
 
 + Parameters
     + `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - user_id of a doctor.
@@ -627,8 +631,9 @@ For security purposes, we will set `X-Frame-Options: deny` header that will disa
     + status: new (enum, optional)
         - new
         - pending
-    + offset: 0 (number, optional)
-    + limit: 100 (number, optional)
+    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
+    + `starting_after`: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
+    + `ending_before`: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
 
 + Request (application/json)
 
@@ -781,7 +786,7 @@ Message contains JSON object with structured data and printout template
       },
       "confidant_person":{
          "relation_type":"trustee",
-         "first_name":"Петро",
+         "first_name"offset:"Петро",
          "last_name":"Іванов",
          "second_name":"Миколайович",
          "birth_date":"1991-08-19T00:00:00.000Z",
@@ -1114,7 +1119,7 @@ This method to approve employee creation request. Should be used by the employee
             + created_at: `2017-03-02T10:45:16.000Z` (string, optional)
             + modified_at: `2017-03-02T10:45:16.000Z` (string, optional)
 
-### Get list of Employees [GET /employees{?user_id,legal_entity_id,division_id,employee_type,is_active,status,offset,limit}]
+### Get list of Employees [GET /employees{?user_id,legal_entity_id,division_id,employee_type,is_active,status,starting_after,ending_before,limit}]
 
 Methods returns list of employees by msp_id or user_id or both.
 User_id or msp_id has to be passed.
@@ -1133,8 +1138,9 @@ User_id or msp_id has to be passed.
         - approved
         - pending_approval
         - closed
-    + offset: 0 (number, optional)
-    + limit: 100 (number, optional)
+    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
+    + `starting_after`: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
+    + `ending_before`: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
     
 + Request (application/json)
 
@@ -1148,7 +1154,7 @@ User_id or msp_id has to be passed.
 
 ## Persons [/mis/persons]
 
-### Search for a Person [GET /mis/persons{?first_name,last_name,second_name,birth_date,tax_id,phone_number,birth_place,offset,limit}]
+### Search for a Person [GET /mis/persons{?first_name,last_name,second_name,birth_date,tax_id,phone_number,birth_place,starting_after,ending_before,limit}]
 
 This method allows to search for a Person without disclosing personal data:
 
@@ -1159,8 +1165,9 @@ This method allows to search for a Person without disclosing personal data:
     + birth_date: `1991-08-19T00:00:00.000Z` (string, required) - ISO Datetime.
     + tax_id: 3126509816 (string, optional)
     + phone_number: `+380508887700` (string, optional)
-    + offset: 0 (number, optional)
-    + limit: 100 (number, optional)
+    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
+    + `starting_after`: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
+    + `ending_before`: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
 
 + Request (application/json)
 
@@ -1180,14 +1187,15 @@ This method allows to search for a Person without disclosing personal data:
             + type: `too_many_results`
             + message: `This API method returns only exact match results, please retry with more specific search result` (string)
 
-### Get Person Declarations [GET /mis/persons/{id}/declarations{?offset,limit}]
+### Get Person Declarations [GET /mis/persons/{id}/declarations{?starting_after,ending_before,limit}]
 
 This method allows to receive person declarations only referenced to current msp_id (based on access_token)
 
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-    + offset: 0 (number, optional)
-    + limit: 100 (number, optional)
+    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
+    + `starting_after`: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
+    + `ending_before`: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
 
 + Request (application/json)
 
@@ -1209,13 +1217,19 @@ This method allows to receive person declarations only referenced to current msp
 
 ## Legal entities [/mis/legal_entities]
 
-### Get legal entities list [GET /mis/legal_entities{?edrpou,type}]
+### Get legal entities list [GET /mis/legal_entities{?edrpou,type,is_active,starting_after,ending_before,limit}]
 
 + Parameters
-    + `edrpou`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - user_id of a doctor.
-    + type: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MSP ID.
+    + `edrpou`: `341086` (string, optional)
+    + type: MSP (enum, optional)
+        - MSP
+        - MIS
+    + is_active: true (boolean, optional)
+    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
+    + `starting_after`: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
+    + `ending_before`: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
     
-+ Request
++ Request (application/json)
 
     + Headers
 
@@ -1224,6 +1238,48 @@ This method allows to receive person declarations only referenced to current msp
 + Response 200 (application/json)
     + Attributes (Response_Collection)
         + data (array[`Legal_Entity_Short`])
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+
+## Legal entity requests [/mis/legal_entity_requests]
+
+### Get legal entity request list [GET /mis/legal_entity_requests{?edrpou,type,status,starting_after,ending_before,limit}]
+
++ Parameters
+    + `edrpou`: `341086` (string, optional)
+    + type: MSP (enum, optional)
+        - MSP
+        - MIS
+    + status: BASIC_VERIFICATION (enum, optional)
+        - BASIC_VERIFICATION
+        - ADD_VER_EXP
+        - ADD_VERIFICATION
+    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
+    + `starting_after`: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
+    + `ending_before`: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
+    
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (Response_Collection)
+        + data (array[`Legal_Entity_Short`])
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+
+### Create legal entity request [POST]
+
++ Request (application/pkcs7-mime)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
+    + Attributes (object)
+
++ Response 201 (application/json)
+
 
 # Data Structures
 ## Responses
@@ -1347,7 +1403,7 @@ This method allows to receive person declarations only referenced to current msp
 + tax_id: 3126509816 (string, optional)
 + phone_number: `+380508887700` (string, optional)
 + birth_place: Вінниця (string, required)
-+ history (array)
++ merged_ids (array)
     + (object)
         + id: `7bca069f-21e4-4546-90cf-b65e3f39d93d` (string, required)
 
@@ -1594,6 +1650,39 @@ This method allows to receive person declarations only referenced to current msp
     - ФОП
     - Клініка
 + edrpou: 5432345432 (string, required)
+
+## Legal entity requests
+### `Legal_Entity_Request_Short`
++ name: Клініка Борис (string, required)
++ short_Name: Борис (string, required)
++ type (enum, required)
+    - ФОП
+    - Клініка
++ edrpou: 5432345432 (string, required)
++ status: BASIC_VERIFICATION (enum, required)
+    - BASIC_VERIFICATION
+    - ADD_VER_EXP
+    - ADD_VERIFICATION
+    - CANCELED
+    - DECLINED
+    - APPROVED
+
+### `Legal_Entity_Request_Public`
++ name: Клініка Борис (string, required)
++ short_Name: Борис (string, optional)
++ public_name: Борис (string, optional)
++ type (enum, required)
+    - ФОП
+    - Клініка
++ edrpou: 5432345432 (string, required)
++ kved: 86.1 (array, required)
++ services (array[Medical_Service], required)
++ licenses (array[License], required)
++ accreditation (array[Accreditation], required)
++ addresses (array[Address], required)
++ phones (array[Phone], required)
++ email: email@example.com
+
 
 ## `Medical_Service_Providers`
 ### `Medical_Service_Provider`
