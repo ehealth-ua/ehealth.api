@@ -786,7 +786,7 @@ Message contains JSON object with structured data and printout template
       },
       "confidant_person":{
          "relation_type":"trustee",
-         "first_name"offset:"Петро",
+         "first_name":"Петро",
          "last_name":"Іванов",
          "second_name":"Миколайович",
          "birth_date":"1991-08-19T00:00:00.000Z",
@@ -1057,6 +1057,7 @@ Uload files for offline patient verification
 ## Employees [/mis/employees]
 
 ### Register new employee [POST]
+
 Method to create new employee
 
 + Request (application/json)
@@ -1097,7 +1098,6 @@ Method to create new employee
 ### Approve employee [PUT /mis/employees/{id}/actions/approve]
 
 This method to approve employee creation request. Should be used by the employee user.
-
 
 + Parameters
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -1215,9 +1215,9 @@ This method allows to receive person declarations only referenced to current msp
             + type: `forbidden`
             + message: `Active declaration belongs to another msp` (string)
 
-## Legal entities [/mis/legal_entities]
+## Legal Entities [/mis/legal_entities]
 
-### Get legal entities list [GET /mis/legal_entities{?edrpou,type,is_active,starting_after,ending_before,limit}]
+### Get Legal Entities [GET /mis/legal_entities{?edrpou,type,is_active,starting_after,ending_before,limit}]
 
 + Parameters
     + `edrpou`: `341086` (string, optional)
@@ -1240,9 +1240,9 @@ This method allows to receive person declarations only referenced to current msp
         + data (array[`Legal_Entity_Short`])
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 
-## Legal entity requests [/mis/legal_entity_requests]
+## Legal Entity Requests [/mis/legal_entity_requests]
 
-### Get legal entity request list [GET /mis/legal_entity_requests{?edrpou,type,status,starting_after,ending_before,limit}]
+### Get Legal Entity Requests [GET /mis/legal_entity_requests{?edrpou,type,status,starting_after,ending_before,limit}]
 
 + Parameters
     + `edrpou`: `341086` (string, optional)
@@ -1268,7 +1268,7 @@ This method allows to receive person declarations only referenced to current msp
         + data (array[`Legal_Entity_Short`])
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 
-### Create legal entity request [POST]
+### Create Legal Entity Request [POST]
 
 + Request (application/pkcs7-mime)
 
@@ -1642,7 +1642,7 @@ This method allows to receive person declarations only referenced to current msp
     - owner
 + employee_details (Doctor, optional)
 
-## Legal entities
+## `Legal_Entities`
 ### `Legal_Entity_Short`
 + name: Клініка Борис (string, required)
 + short_Name: Борис (string, required)
@@ -1651,7 +1651,7 @@ This method allows to receive person declarations only referenced to current msp
     - Клініка
 + edrpou: 5432345432 (string, required)
 
-## Legal entity requests
+## `Legal_Entity_Requests`
 ### `Legal_Entity_Request_Short`
 + name: Клініка Борис (string, required)
 + short_Name: Борис (string, required)
