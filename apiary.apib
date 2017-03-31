@@ -1290,13 +1290,16 @@ This method allows to receive person declarations only referenced to current msp
 
 ## Legal Entities [/api/legal_entities]
 
-### Get Legal Entities [GET /api/legal_entities{?edrpou,type,is_active,starting_after,ending_before,limit}]
+### Get Legal Entities [GET /api/legal_entities{?edrpou,type,owner_property,is_active,starting_after,ending_before,limit}]
 
 + Parameters
     + `edrpou`: `341086` (string, optional)
     + type: MSP (enum, optional)
         - MSP
         - MIS
+    + owner_property: state (enum, optional)
+        - state
+        - private
     + is_active: true (boolean, optional)
     + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
     + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
@@ -1315,13 +1318,16 @@ This method allows to receive person declarations only referenced to current msp
 
 ## Legal Entity Requests [/api/legal_entity_requests]
 
-### Get Legal Entity Requests [GET /api/legal_entity_requests{?edrpou,type,status,starting_after,ending_before,limit}]
+### Get Legal Entity Requests [GET /api/legal_entity_requests{?edrpou,type,owner_property,status,starting_after,ending_before,limit}]
 
 + Parameters
     + `edrpou`: `341086` (string, optional)
     + type: MSP (enum, optional)
         - MSP
         - MIS
+    + owner_property: state (enum, optional)
+        - state
+        - private
     + status: BASIC_VERIFICATION (enum, optional)
         - BASIC_VERIFICATION
         - ADD_VER_EXP
@@ -1688,18 +1694,7 @@ This method allows to receive person declarations only referenced to current msp
 + email: email@example.com (string, optional)
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
-+ doctor (DoctorNew, optional)
 
-### `Party_Full`
-+ id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-+ include `Party_Short`
-+ birth_date: `1991-08-19T00:00:00.000Z` (string, required)
-+ gender: MALE, FEMALE (enum[string], required)
-+ tax_id: 3126509816 (string, optional)
-+ national_id: CC7150985243 (string, optional)
-+ email: email@example.com (string, optional)
-+ documents (array[Document], optional)
-+ phones (array[Phone], optional)
 
 ## Employees
 ### `Employee`
@@ -1716,7 +1711,7 @@ This method allows to receive person declarations only referenced to current msp
     - Педіатрія
     - Підліткова терапія
     - Терапія
-+ employee_details (Doctor, optional)
++ employee_details (DoctorNew, optional)
 + start_date: 2017-02-28 (string, required)
 + expiry_date: 2017-02-28 (string, optional)
 
@@ -1733,11 +1728,6 @@ This method allows to receive person declarations only referenced to current msp
 + legal_entity_id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
 + division_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + title: лікар (string, required)
-+ speciality: Педіатрія (enum)
-    - Загальна практика - сімейна медицина
-    - Педіатрія
-    - Підліткова терапія
-    - Терапія
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
 + active: true (boolean, required)
@@ -1748,6 +1738,7 @@ This method allows to receive person declarations only referenced to current msp
     - admin
     - owner
 + party (Party_Request)
++ doctor (DoctorNew, optional)
 
 ### `Employee_Request_Short`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -1760,11 +1751,6 @@ This method allows to receive person declarations only referenced to current msp
 ### `Employee_Short`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + title: лікар (string, required)
-+ speciality: Педіатрія (enum)
-    - Загальна практика - сімейна медицина
-    - Педіатрія
-    - Підліткова терапія
-    - Терапія
 + employee_type: doctor (enum)
     - doctor
     - hr
@@ -1792,30 +1778,24 @@ This method allows to receive person declarations only referenced to current msp
 + include Employee_Full
 + include user
 
-### `Registration_Request`
-+ legal_entity_id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
-+ title: лікар (string, required)
-+ speciality: Педіатрія (enum)
-    - Загальна практика - сімейна медицина
-    - Педіатрія
-    - Підліткова терапія
-    - Терапія
-+ start_date: `2015-03-02T10:45:16.000Z` (string, required)
-+ end_date: `2017-03-02T10:45:16.000Z` (string, optional)
-+ employee_type: doctor (enum)
-    - doctor
-    - hr
-    - admin
-    - owner
-+ employee_details (Doctor, optional)
 
 ## `Legal_Entities`
 ### `Legal_Entity_Short`
 + name: Клініка Борис (string, required)
 + short_Name: Борис (string, required)
 + type (enum, required)
-    - ФОП
-    - Клініка
+    - MSP
+    - MIS
++ owner_property_type: state (enum, required)
+    - state
+    - private
++ legal_form: `ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА` (enum, required)
+    - ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА
+    - АКЦІОНЕРНЕ ТОВАРИСТВО
+    - ВІДКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
+    - ЗАКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
+    - РЕЛІГІЙНА ОРГАНІЗАЦІЯ
+    - ІНШІ ОРГАНІЗАЦІЙНО-ПРАВОВІ ФОРМИ
 + edrpou: 5432345432 (string, required)
 
 ## `Legal_Entity_Requests`
@@ -1823,8 +1803,18 @@ This method allows to receive person declarations only referenced to current msp
 + name: Клініка Борис (string, required)
 + short_Name: Борис (string, required)
 + type (enum, required)
-    - ФОП
-    - Клініка
+    - MIS
+    - MSP
++ `owner_property_type`: state (enum, required)
+    - state
+    - private
++ legal_form: `ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА` (enum, required)
+    - ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА
+    - АКЦІОНЕРНЕ ТОВАРИСТВО
+    - ВІДКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
+    - ЗАКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
+    - РЕЛІГІЙНА ОРГАНІЗАЦІЯ
+    - ІНШІ ОРГАНІЗАЦІЙНО-ПРАВОВІ ФОРМИ
 + edrpou: 5432345432 (string, required)
 + status: BASIC_VERIFICATION (enum, required)
     - BASIC_VERIFICATION
@@ -1840,13 +1830,23 @@ This method allows to receive person declarations only referenced to current msp
 + public_name: Борис (string, optional)
 + legal_form (enum, required)
 + type (enum, required)
-    - ФОП
-    - Клініка
+    - MIS
+    - MSP
++ `owner_property_type`: state (enum, required)
+    - state
+    - private
++ legal_form: `ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА` (enum, required)
+    - ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА
+    - АКЦІОНЕРНЕ ТОВАРИСТВО
+    - ВІДКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
+    - ЗАКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
+    - РЕЛІГІЙНА ОРГАНІЗАЦІЯ
+    - ІНШІ ОРГАНІЗАЦІЙНО-ПРАВОВІ ФОРМИ
 + edrpou: 5432345432 (string, required)
 + kved: 86.1 (array, required)
 + services (array[Medical_Service], required)
-+ licenses (array[License], required)
-+ accreditation (array[Accreditation], required)
++ licenses (array[MSP_License], required)
++ accreditation (array[MSP_Accreditation], required)
 + addresses (array[Address], required)
 + phones (array[Phone], required)
 + email: email@example.com (string, required)
@@ -1857,11 +1857,11 @@ This method allows to receive person declarations only referenced to current msp
             + founder (Founder_Legal_Entity)
 + owner (Owner)
 + divisions (array[Division])
++ `medical_service_provider` (MSP)
 
 ## `Divisions`
 ### `Division`
 + name: Бориспільське відділення Клініки Борис (string, required)
-+ edrpou: 5432345432 (string, optional)
 + addresses (array[Address], required)
 + phones (array[Phone], required)
 + email: email@example.com (string, required)
@@ -1895,13 +1895,16 @@ This method allows to receive person declarations only referenced to current msp
 ### `Medical_Service_Provider`
 + name: Клініка Борис (string, required)
 + short_Name: Борис (string, required)
-+ type (enum, required)
-    - ФОП
-    - Клініка
++ legal_form: `ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА` (enum, required)
+    - ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА
+    - АКЦІОНЕРНЕ ТОВАРИСТВО
+    - ВІДКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
+    - ЗАКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
+    - РЕЛІГІЙНА ОРГАНІЗАЦІЯ
+    - ІНШІ ОРГАНІЗАЦІЙНО-ПРАВОВІ ФОРМИ
 + edrpou: 5432345432 (string, required)
-+ services (array[Medical_Service], required)
-+ licenses (array[License], optional)
-+ accreditation (array[Accreditation], required)
++ licenses (array[MSP_License], optional)
++ accreditation (array[MSP_Accreditation], required)
 + addresses (array[Address], optional)
 + phones (array[Phone], optional)
 + email: `email@example.com` (string, required)
@@ -1910,18 +1913,26 @@ This method allows to receive person declarations only referenced to current msp
 + id: d290f1ee-6c54-4b01-90e6-d701748f0851
 + name: Клініка Борис (string, required)
 + short_Name: Борис (string, required)
-+ type (enum, required)
-    - ФОП
-    - Клініка
++ legal_form: `ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА` (enum, required)
+    - ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА
+    - АКЦІОНЕРНЕ ТОВАРИСТВО
+    - ВІДКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
+    - ЗАКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
+    - РЕЛІГІЙНА ОРГАНІЗАЦІЯ
+    - ІНШІ ОРГАНІЗАЦІЙНО-ПРАВОВІ ФОРМИ
 + edrpou: 5432345432 (string, required)
 
 ### `MSP_Details`
 + id: d290f1ee-6c54-4b01-90e6-d701748f0851
 + name: Клініка Борис (string, required)
 + short_Name: Борис (string, required)
-+ type (enum, required)
-    - ФОП
-    - Клініка
++ legal_form: `ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА` (enum, required)
+    - ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА
+    - АКЦІОНЕРНЕ ТОВАРИСТВО
+    - ВІДКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
+    - ЗАКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
+    - РЕЛІГІЙНА ОРГАНІЗАЦІЯ
+    - ІНШІ ОРГАНІЗАЦІЙНО-ПРАВОВІ ФОРМИ
 + edrpou: 5432345432 (string, required)
 + addresses (array[Address], optional
 + created_at: `2017-02-28T15:12:54.000Z` (string, optional)
@@ -1932,6 +1943,14 @@ This method allows to receive person declarations only referenced to current msp
 + include Medical_Service_Provider
 + created_at: `2017-02-28T15:12:54.000Z` (string, optional)
 + modified_at: `2017-02-28T15:12:54.000Z` (string, optional)
+
+### `MSP`
++ mountain_group: 'група 1' (enum, required)
+    - група 1
+    - група 2
+    - група 3
++ licenses (array[MSP_License], optional)
++ accreditation (array[MSP_Accreditation], required)
 
 ## `Medical_Services`
 ### `Medical_Service`
@@ -2030,16 +2049,20 @@ This method allows to receive person declarations only referenced to current msp
     - Підліткова терапія
     - Терапія
 
-### Accreditation
-+ certificate_number: fd123443 (string, required)
-+ issued_by: Кваліфікацйна комісія (string)
-+ issued_date: 2017-02-28 (string, required)
+### `MSP_Accreditation`
++ category: друга (enum, required)
+    - друга
+    - перша
+    - вища
++ issued_date: 2017-02-28 (string, required) - дата видачі
 + expiry_date: 2017-02-28 (string, optional)
++ order_no: fd123443 (string, required) - номер наказу МОЗ
++ order_date: 2017-02-28 (string, required) - дата наказу МОЗ
 
-### License
+
+### `MSP_License`
 + license_number: fd123443 (string, required)
-+ kved (array[string], required)
-+ issued_by: Кваліфікацйна комісія (string)
++ issued_by: Кваліфікацйна комісія (string, optional)
 + issued_date: 2017-02-28 (string, required)
 + expiry_date: 2017-02-28 (string, optional)
 
