@@ -2046,11 +2046,17 @@ This method allows to receive person declarations only referenced to current msp
 ## DoctorsNew
 ### DoctorNew
 + education (array[Education], required)
-+ academicDegree (array[AcademicDegree], optional)
-+ scienceDegree (array[ScienceDegree], optional)
-+ workExperience (array[WorkExperience], optional)
 + qualification (array[Qualification], optional)
-+ professionalLevel (array[ProfessionalLevel], optional)
++ speciality: Педіатрія (enum, required)
+    - Терапевт
+    - Педіатр
+    - Сімейний лікар
++ professional_level (ProfessionalLevel, required)
++ academic_degree (AcademicDegree, optional)
++ science_degree (ScienceDegree, optional)
++ specialization (string, optional)
++ working_hours (string, optional)
+
 
 ### Education
 + country: UA (enum[string], required)
