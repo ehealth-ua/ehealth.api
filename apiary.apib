@@ -641,11 +641,16 @@ For security purposes, we will set `X-Frame-Options: deny` header that will disa
 
 ## Declaration Requests [/api/declaration_requests]
 
-### Get Declaration Requests List [GET /api/declaration_requests{?employee_id,msp_id,status,starting_after,ending_before,limit}]
+### Get Declaration Requests List [GET /api/declaration_requests{?employee_id,legal_entity_id,status,starting_after,ending_before,limit}]
+
+Use this method to obtain Declaration requests specified by search criteria. Response collection is limited by 50 objects
+To reduce response data use the `status` parameter to get only PENDING (or NEW) declaration requests, `employee_id` parameter to get requests assigned to specified employee_id as a DOCTOR
+
+Method returns short request information
 
 + Parameters
     + `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - user_id of a doctor.
-    + msp_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MSP ID.
+    + legal_entity_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MSP ID.
     + status: new (enum, optional)
         - new
         - pending
@@ -664,6 +669,8 @@ For security purposes, we will set `X-Frame-Options: deny` header that will disa
         + data (array[`Declaration_Request_Short`])
 
 ### Get Declaration Request by ID [GET /api/declaration_requests/{id}]
+
+Use this method to get all declaration request details
 
 + Parameters
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - request identifier
@@ -687,7 +694,43 @@ For security purposes, we will set `X-Frame-Options: deny` header that will disa
 
 ### Create Declaration Request [POST]
 
-Method to register new declaration
+Use this method to create new declaration request
+
+Declaration request object consist of `Declaration parameters`, `Person details` (or Patient), `Legal entity` as a contract party, `Employee` as a contract party
+
+**Declaration parameters**
+
+| Attribute      | Description
+|----------------|------------
+| **start_date** | Mandatory attribute. Should be defined on MSP side
+| *end_date*     | Optional attribute. Will be calculated on eHealth side if not specified
+
+**Person details**
+
+Person details consists of 2 mandatory objects `Identification parameters`, `Emergency contact` and one optional object `Confidant person`
+
+Confidant person should be set for disabled persons, underage persons etc
+
+**Legal entity**
+
+| Attribute           | Description
+|---------------------|------------
+| **legal_entity_id** | Mandatory attribute. Registered Medical service provider identifier 
+    
+**Employee**
+
+| Attribute           | Description
+|---------------------|------------
+| **employee_id**     | Mandatory attribute. Employee id with type=DOCTOR selected from available employees as a third contract party
+
+Service returns registered request identifier, authentication method and printout form
+
+Authentication method one of the following:
+    
+* **SMS** - returns masked phone number
+* **OFFLINE** - returns URL to upload documents
+
+Printout form - HTML document that contains filled declaration form
 
 + Request (application/json)
 
@@ -709,7 +752,10 @@ Method to register new declaration
 
 ### Approve Declaration Request [PATCH /api/declaration_requests/{id}/actions/approve]
 
-Method to approve new declaration
+Use this method to approve previously created declaration request.
+To approve declaration request verification request should be passed
+
+Verification code could be obtained from SMS or Upload file service depending on authentication method
 
 + Parameters
     + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
@@ -736,10 +782,14 @@ Method to approve new declaration
 
 ### Sign Declaration Request [PATCH /api/declaration_requests/{id}/actions/sign]
 
-Method to verify new declaration
-This method receives signed message including signed content, digital signature signer public key
-Message contains JSON object with structured data and printout template
+This method is used to sign declaration request 
+Method receives signed message (application/pkcs7-mime) including signed content, digital signature, signer public key
 
+Service will verify signature, signer certificate authoriry, signer certificate validation period etc
+
+Signed content consists of JSON object with declaration request data and printout template
+
+See content example below:
 ```
 {
    "id":"b075f148",
@@ -907,6 +957,8 @@ Message contains JSON object with structured data and printout template
 }
 ```
 
+Service stores signed content in media content storage, creates/updates MPI entity, creates declaration entity
+
 + Parameters
     + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
 
@@ -1052,7 +1104,9 @@ Message contains JSON object with structured data and printout template
 
 ### Attach files to Declaration Request  [POST /media_content_storage/msp/declaration_requests/{id}/{filename}]
 
-Uload files for offline patient verification
+Use this method to Upload files for offline patient verification
+
+Service returns verification code in exchange for uploaded file
 
 + Parameters
     + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
@@ -1071,6 +1125,7 @@ Uload files for offline patient verification
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
+        + verification code: SzFxGfAg_Zj
 
 ## Employees [/api/employees]
 
@@ -1118,8 +1173,23 @@ The end-point returns list of Short Employee Information
 
 ### Get Employee Details [GET /legal_entities/{legal_entity_id}/employees/{employee_id}]
 
-The end-point return Details of the Employee. The id of the employer (`legal_entity_id`)
+The service returns Details of the Employee. The id of the employer (`legal_entity_id`)
 and the `employee_id` should be specified both.
+
+Response structure differs depending on employee type:
+
+> HR, ADMIN, ACCOUNTANT
+
+* Person info
+* Employee info
+* User Info
+
+> DOCTOR
+
+* Person info
+* Employee info
+* User Info
+* Doctor info
 
 + Parameters
     + legal_entity_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - the id of the employer legal entity
@@ -1142,9 +1212,9 @@ In order to register new Employee or to update the existing one this end-point
 should be used in both cases.
 
 Employee_Request consits of the three mandatory parts:
-    + Person info
-    + Employee info
-    + User Info
+* Person info
+* Employee info
+* User Info
 
 Additionally to register/update Physician the `Doctor info` should be passed.
 
@@ -1169,7 +1239,7 @@ secret token will be sent to the User specified in the request.
 
 ### Get Details of Employee registration/update request [GET /employee_requests/{employee_request_id}/{employee_request_token}]
 
-The end-point to get the details. The end-point doesn't
+Service to get the Employee registration request details.
 
 + Parameters
 
@@ -1232,7 +1302,9 @@ Expected that this end-point will be called from the Auth UI.
 
 ### Search for a Person [GET /api/persons{?first_name,last_name,second_name,birth_date,tax_id,phone_number,birth_place,starting_after,ending_before,limit}]
 
-This method allows to search for a Person without disclosing personal data:
+This method allows to search for a Person (MPI) without disclosing personal data
+
+Method returns only **requested** parameter and birth place and second name in addition for manual identification on MSP side
 
 + Parameters
     + first_name: Петро (string, required)
@@ -1265,7 +1337,12 @@ This method allows to search for a Person without disclosing personal data:
 
 ### Get Person Declaration [GET /api/persons/{id}/declaration]
 
-This method allows to receive person declarations only referenced to current msp_id (based on access_token)
+This method allows to receive person declarations (ACTIVE) issued by current legal entity (based on access_token)
+
+Method returns:
+1. short declaration info if **active declaration found** issued by **this** legal entity
+2. 404 error if **active declaration not found**
+3. 403 if **active declaration found** issued by **other** legal entity
 
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -1606,7 +1683,7 @@ This method allows to receive person declarations only referenced to current msp
 
 ### `Declaration_Request_Public`
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
-+ end_date: `2017-03-02T10:45:16.000Z` (string, required)
++ end_date: `2017-03-02T10:45:16.000Z` (string, optional)
 + person(`Person_Request`, required)
     + renewal_consent: true (boolean)
     + patient_signed: true (boolean)
