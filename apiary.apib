@@ -1367,18 +1367,24 @@ Method returns:
 
 ## Legal Entities [/api/legal_entities]
 
-### Get Legal Entities [GET /api/legal_entities{?edrpou,type,owner_property,is_active,starting_after,ending_before,limit}]
+### Get Legal Entities [GET /api/legal_entities{?edrpou,type,owner_property,status,starting_after,ending_before,limit}]
+
+Use this method to obtain Legal entities specified by search criteria. 
+Response collection is limited by 50 objects. To reduce response data use additional search criteria
 
 + Parameters
     + `edrpou`: `341086` (string, optional)
     + type: MSP (enum, optional)
         - MSP
         - MIS
+        + Default: MSP
     + owner_property: state (enum, optional)
         - state
         - private
-    + is_active: true (boolean, optional)
-    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
+    + status: ACTIVE (enum, optional)
+        + Default: ACTIVE
+    + limit: 20 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
+        + Default: 50
     + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
     + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
 
@@ -1396,6 +1402,9 @@ Method returns:
 ## Legal Entity Requests [/api/legal_entity_requests]
 
 ### Get Legal Entity Requests [GET /api/legal_entity_requests{?edrpou,type,owner_property,status,starting_after,ending_before,limit}]
+
+Use this method to obtain Legal entitie requests specified by search criteria. 
+Response collection is limited by 50 objects. To reduce response data use additional search criteria
 
 + Parameters
     + `edrpou`: `341086` (string, optional)
@@ -1426,14 +1435,121 @@ Method returns:
 
 ### Create Legal Entity Request [POST]
 
+Use this method to register legal entity request.
+
+Method receives signed message (application/pkcs7-mime) including signed content, digital signature, signer public key. 
+
+Service will verify signature, signer certificate authoriry, signer certificate validation period etc. 
+
+Signed content consists of JSON object with legal entity details:
+* Legal info
+* Founders
+* Owner
+
+Optional:
+* Divisions
+
 + Request (application/json)
 
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
 
-    + Attributes (object)
-        + include `Legal_Entity_Request_Public`
+    + Body
+    
+            -----BEGIN PKCS7-----
+            MIIQ4AYJKoZIhvcNAQcCoIIQ0TCCEM0CAQExCzAJBgUrDgMCGgUAMIINAwYJKoZI
+            hvcNAQcBoIIM9ASCDPB7DQogICJuYW1lIjogItCa0LvRltC90ZbQutCwINCR0L7R
+            gNC40YEiLA0KICAic2hvcnRfTmFtZSI6ICLQkdC+0YDQuNGBIiwNCiAgInB1Ymxp
+            Y19uYW1lIjogItCR0L7RgNC40YEiLA0KICAidHlwZSI6ICJNSVMiLA0KICAib3du
+            ZXJfcHJvcGVydHlfdHlwZSI6ICJzdGF0ZSIsDQogICJsZWdhbF9mb3JtIjogItCf
+            0IbQlNCf0KDQmNCE0JzQldCm0Kwt0KTQhtCX0JjQp9Cd0JAg0J7QodCe0JHQkCIs
+            DQogICJlZHJwb3UiOiAiNTQzMjM0NTQzMiIsDQogICJrdmVkIjogWw0KICAgICI4
+            Ni4xIg0KICBdLA0KICAic2VydmljZXMiOiBbDQogICAgew0KICAgICAgImlkIjog
+            IiIsDQogICAgICAibmFtZSI6ICIiDQogICAgfQ0KICBdLA0KICAibGljZW5zZXMi
+            OiBbDQogICAgew0KICAgICAgImxpY2Vuc2VfbnVtYmVyIjogImZkMTIzNDQzIiwN
+            CiAgICAgICJpc3N1ZWRfYnkiOiAi0JrQstCw0LvRltGE0ZbQutCw0YbQudC90LAg
+            0LrQvtC80ZbRgdGW0Y8iLA0KICAgICAgImlzc3VlZF9kYXRlIjogIjIwMTciLA0K
+            ICAgICAgImV4cGlyeV9kYXRlIjogIjIwMTciDQogICAgfQ0KICBdLA0KICAiYWNj
+            cmVkaXRhdGlvbiI6IFsNCiAgICB7DQogICAgICAiY2F0ZWdvcnkiOiAi0LTRgNGD
+            0LPQsCIsDQogICAgICAiaXNzdWVkX2RhdGUiOiAiMjAxNyIsDQogICAgICAiZXhw
+            aXJ5X2RhdGUiOiAiMjAxNyIsDQogICAgICAib3JkZXJfbm8iOiAiZmQxMjM0NDMi
+            LA0KICAgICAgIm9yZGVyX2RhdGUiOiAiMjAxNyINCiAgICB9DQogIF0sDQogICJh
+            ZGRyZXNzZXMiOiBbDQogICAgew0KICAgICAgInR5cGUiOiAiUkVTSURFTkNFIiwN
+            CiAgICAgICJjb3VudHJ5IjogIlVBIiwNCiAgICAgICJhcmVhIjogItCW0LjRgtC+
+            0LzQuNGA0YHRjNC60LAiLA0KICAgICAgInJlZ2lvbiI6ICLQkdC10YDQtNC40YfR
+            ltCy0YHRjNC60LjQuSIsDQogICAgICAiY2l0eSI6ICLQmtC40ZfQsiIsDQogICAg
+            ICAiY2l0eV90eXBlIjogIkNJVFkiLA0KICAgICAgInN0cmVldCI6ICLQstGD0Lsu
+            INCd0ZbQttC40L3RgdGM0LrQsCIsDQogICAgICAiYnVpbGRpbmciOiAiMTUiLA0K
+            ICAgICAgImFwYXJ0bWVudCI6ICIyMyIsDQogICAgICAiemlwIjogIjAyMDkwIg0K
+            ICAgIH0NCiAgXSwNCiAgInBob25lcyI6IFsNCiAgICB7DQogICAgICAidHlwZSI6
+            ICJNT0JJTEUiLA0KICAgICAgIm51bWJlciI6ICIrMzgwNTAzNDEwODcwIg0KICAg
+            IH0NCiAgXSwNCiAgImVtYWlsIjogImVtYWlsQGV4YW1wbGUuY29tIiwNCiAgImZv
+            dW5kZXJzIjogWw0KICAgIHsNCiAgICAgICJmb3VuZGVyIjogew0KICAgICAgICAi
+            Zmlyc3RfbmFtZSI6ICLQn9C10YLRgNC+IiwNCiAgICAgICAgImxhc3RfbmFtZSI6
+            ICLQhtCy0LDQvdC+0LIiLA0KICAgICAgICAic2Vjb25kX25hbWUiOiAi0JzQuNC6
+            0L7Qu9Cw0LnQvtCy0LjRhyIsDQogICAgICAgICJ0YXhfaWQiOiAiMzAxNTQ5MjU2
+            MyINCiAgICAgIH0NCiAgICB9DQogIF0sDQogICJvd25lciI6IHsNCiAgICAiZmly
+            c3RfbmFtZSI6ICLQn9C10YLRgNC+IiwNCiAgICAibGFzdF9uYW1lIjogItCG0LLQ
+            sNC90L7QsiIsDQogICAgInNlY29uZF9uYW1lIjogItCc0LjQutC+0LvQsNC50L7Q
+            stC40YciLA0KICAgICJ0YXhfaWQiOiAiMzAxNTQ5MjU2MyIsDQogICAgImJpcnRo
+            X2RhdGUiOiAiMTk5MS0wOC0xOVQwMDowMDowMC4wMDBaIiwNCiAgICAiYmlydGhf
+            cGxhY2UiOiAi0JLRltC90L3QuNGG0Y8sINCj0LrRgNCw0ZfQvdCwIiwNCiAgICAi
+            Z2VuZGVyIjogIk1BTEUiLA0KICAgICJlbWFpbCI6ICJlbWFpbEBleGFtcGxlLmNv
+            bSIsDQogICAgImRvY3VtZW50cyI6IFsNCiAgICAgIHsNCiAgICAgICAgInR5cGUi
+            OiAiUEFTU1BPUlQiLA0KICAgICAgICAibnVtYmVyIjogIjEyMDUxOCIsDQogICAg
+            ICAgICJpc3N1ZV9kYXRlIjogIjIwMTUtMDQtMDdUMDA6MDA6MDAuMDAwWiIsDQog
+            ICAgICAgICJleHBpcnlfZGF0ZSI6ICIyMDE1LTA0LTA3VDAwOjAwOjAwLjAwMFoi
+            LA0KICAgICAgICAiaXNzdWVkX2J5IjogIkRNU1UiDQogICAgICB9DQogICAgXSwN
+            CiAgICAicGhvbmVzIjogWw0KICAgICAgew0KICAgICAgICAidHlwZSI6ICJNT0JJ
+            TEUiLA0KICAgICAgICAibnVtYmVyIjogIiszODA1MDM0MTA4NzAiDQogICAgICB9
+            DQogICAgXQ0KICB9LA0KICAiZGl2aXNpb25zIjogWw0KICAgIHsNCiAgICAgICJu
+            YW1lIjogItCR0L7RgNC40YHQv9GW0LvRjNGB0YzQutC1INCy0ZbQtNC00ZbQu9C1
+            0L3QvdGPINCa0LvRltC90ZbQutC4INCR0L7RgNC40YEiLA0KICAgICAgImFkZHJl
+            c3NlcyI6IFsNCiAgICAgICAgew0KICAgICAgICAgICJ0eXBlIjogIlJFU0lERU5D
+            RSIsDQogICAgICAgICAgImNvdW50cnkiOiAiVUEiLA0KICAgICAgICAgICJhcmVh
+            IjogItCW0LjRgtC+0LzQuNGA0YHRjNC60LAiLA0KICAgICAgICAgICJyZWdpb24i
+            OiAi0JHQtdGA0LTQuNGH0ZbQstGB0YzQutC40LkiLA0KICAgICAgICAgICJjaXR5
+            IjogItCa0LjRl9CyIiwNCiAgICAgICAgICAiY2l0eV90eXBlIjogIkNJVFkiLA0K
+            ICAgICAgICAgICJzdHJlZXQiOiAi0LLRg9C7LiDQndGW0LbQuNC90YHRjNC60LAi
+            LA0KICAgICAgICAgICJidWlsZGluZyI6ICIxNSIsDQogICAgICAgICAgImFwYXJ0
+            bWVudCI6ICIyMyIsDQogICAgICAgICAgInppcCI6ICIwMjA5MCINCiAgICAgICAg
+            fQ0KICAgICAgXSwNCiAgICAgICJwaG9uZXMiOiBbDQogICAgICAgIHsNCiAgICAg
+            ICAgICAidHlwZSI6ICJNT0JJTEUiLA0KICAgICAgICAgICJudW1iZXIiOiAiKzM4
+            MDUwMzQxMDg3MCINCiAgICAgICAgfQ0KICAgICAgXSwNCiAgICAgICJlbWFpbCI6
+            ICJlbWFpbEBleGFtcGxlLmNvbSINCiAgICB9DQogIF0sDQogICJtZWRpY2FsX3Nl
+            cnZpY2VfcHJvdmlkZXIiOiB7DQogICAgIm1vdW50YWluX2dyb3VwIjogIifQs9GA
+            0YPQv9CwIDEnIiwNCiAgICAibGljZW5zZXMiOiBbDQogICAgICB7DQogICAgICAg
+            ICJsaWNlbnNlX251bWJlciI6ICJmZDEyMzQ0MyIsDQogICAgICAgICJpc3N1ZWRf
+            YnkiOiAi0JrQstCw0LvRltGE0ZbQutCw0YbQudC90LAg0LrQvtC80ZbRgdGW0Y8i
+            LA0KICAgICAgICAiaXNzdWVkX2RhdGUiOiAiMjAxNyIsDQogICAgICAgICJleHBp
+            cnlfZGF0ZSI6ICIyMDE3Ig0KICAgICAgfQ0KICAgIF0sDQogICAgImFjY3JlZGl0
+            YXRpb24iOiBbDQogICAgICB7DQogICAgICAgICJjYXRlZ29yeSI6ICLQtNGA0YPQ
+            s9CwIiwNCiAgICAgICAgImlzc3VlZF9kYXRlIjogIjIwMTciLA0KICAgICAgICAi
+            ZXhwaXJ5X2RhdGUiOiAiMjAxNyIsDQogICAgICAgICJvcmRlcl9ubyI6ICJmZDEy
+            MzQ0MyIsDQogICAgICAgICJvcmRlcl9kYXRlIjogIjIwMTciDQogICAgICB9DQog
+            ICAgXQ0KICB9DQp9DQqgggIuMIICKjCCAZOgAwIBAgIJANj0sC/v0hWYMA0GCSqG
+            SIb3DQEBBQUAMBkxFzAVBgNVBAMUDlBLQ1MjNyBleGFtcGxlMB4XDTE3MDMyNzE0
+            NTczM1oXDTE3MDQyNjE0NTczM1owGTEXMBUGA1UEAxQOUEtDUyM3IGV4YW1wbGUw
+            gZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMuqrxE/0txT+ZVRKU1O85a8eaaU
+            AOkbcAIy1mMoxQ+UBwcBeXt07Oxu32+p51HSY93Pp5AlDLKE48sjSNvMbTk5vtZ6
+            g8sqMpZxlBVqHLkXLXYBMf2rmtE4hfV6yTP5YUJEs+a9cotsPN0r5KlI9g8aSpIj
+            9Ie8mML5Vh1taQHNAgMBAAGjejB4MB0GA1UdDgQWBBTET2SwL5UfUMKDyhuBGCA+
+            CaflnzBJBgNVHSMEQjBAgBTET2SwL5UfUMKDyhuBGCA+Cafln6EdpBswGTEXMBUG
+            A1UEAxQOUEtDUyM3IGV4YW1wbGWCCQDY9LAv79IVmDAMBgNVHRMEBTADAQH/MA0G
+            CSqGSIb3DQEBBQUAA4GBAF1uOGjUb6IVS28UqZ2qLc/kd2oNU2hOEuAp1YeaKRL2
+            OaG4bTubJO1ejoxCJNfVj0FFw5PXIgjnw87JzkAy5KLDTiotQl8eknkd1bR3nIWI
+            Nemck3GeGYkR8giG3gkNxz6ky1+63ZcoJkEiS46aneDhmS6BdH0V2G/3delos8+Z
+            MYIBgDCCAXwCAQEwJjAZMRcwFQYDVQQDFA5QS0NTIzcgZXhhbXBsZQIJANj0sC/v
+            0hWYMAkGBSsOAwIaBQCggbEwGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkq
+            hkiG9w0BCQUxDxcNMTcwMzMxMTQzOTQzWjAjBgkqhkiG9w0BCQQxFgQUgy/c29/t
+            2cmvW4h0WhBkLjJ2O2gwUgYJKoZIhvcNAQkPMUUwQzAKBggqhkiG9w0DBzAOBggq
+            hkiG9w0DAgICAIAwDQYIKoZIhvcNAwICAUAwBwYFKw4DAgcwDQYIKoZIhvcNAwIC
+            ASgwDQYJKoZIhvcNAQEBBQAEgYAPp9myztDYHXdFLp3e3eFy7d0QZIoxJEM4xQIm
+            TkmXBScFdX/jzn4QUcGAjMfYLWclmqJtCgTWjbbJS+wI33D/+7RHxILbmjHjD5In
+            IX0OtiN8kQx+eliFVXSEdvfb1b/27X39tsPTMdyvCgak9B0o4jobanQPZlnET3lo
+            VI7m6A==
+            -----END PKCS7-----
 
 + Response 201 (application/json)
     + Attributes (Response__Process_OK)
@@ -1496,6 +1612,7 @@ Method returns:
                 - APPROVED
 
 ### Decline Legal Entity Request [PATCH /api/legal_entity_requests/{id}/actions/decline]
+
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 
