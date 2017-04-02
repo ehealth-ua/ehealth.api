@@ -26,7 +26,7 @@ TODO.
 
 To submit issues you should use [Issue Tracking Repo](https://github.com/Nebo15/ehealth.api), issues in all other repositories are used to plan backlog and non-related issued will be closed.
 
-# Group Private. Authorization Provider
+# Group Internal. Authorization Provider
 
 For security purposes eHealth doesn't allow proxying passwords or to perform any sort back-end authorization. You should always redirect your customers (eg. doctors, we call them "consumers") to the Login UI.
 
@@ -114,7 +114,7 @@ This method can be only called from eHealth gateway.
         + data (Access_Token)
 
 
-# Group Private. Master Patients Index
+# Group Internal. Master Patients Index
 
 ## Persons [/persons]
 
@@ -256,7 +256,7 @@ This method allows to search for a Person without disclosing personal data:
     + Attributes (Response_OK)
         + data (Person_Full)
 
-# Group Private. Partnership Relations Management
+# Group Internal. Partnership Relations Management
 
 ## Doctors [/doctors]
 
@@ -569,7 +569,7 @@ Result will be ordered by search result relevance.
     + Attributes (Response_Collection)
         + data (array[MSP_Response])
 
-# Group Private. Reports
+# Group Internal. Reports
 
 ## Declarations [/reports/declarations]
 
