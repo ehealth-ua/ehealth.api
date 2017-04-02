@@ -6,7 +6,7 @@ HOST: http://ehealth.nebo15.com/
 This is a API documentation for Ukrainian Health Services government institution back-end, that should provide:
 
 * Master Patients Index (MPI)
-* Global Medical Institutions and Doctors Registries
+Fixe Global Medical Institutions and Doctors Registries
 * Partnership Relation Management (PRM) module that describes business relations between this 3 entities.
 
 Project development is fully transparent, you can find it's source code on GitHub:
@@ -78,7 +78,7 @@ For security purposes, we will set `X-Frame-Options: deny` header that will disa
 
 ### Issues oAuth Code Grant [POST /oauth/codes]
 
-API consumer *back-end* should use this method exchange Code Grant to Access Token.
+API consumer **back-end** should use this method exchange Code Grant to Access Token.
 
 + Request (application/json)
 
@@ -640,7 +640,7 @@ For security purposes, we will set `X-Frame-Options: deny` header that will disa
 
 ### Exchange oAuth Code Grant to Access Token [POST]
 
-After obtaining oAuth Code Grant, it should be exchanged to an `access_token` *on your back-end*. 
+After obtaining oAuth Code Grant, it should be exchanged to an `access_token` **on your back-end**. 
 
 General recommendations:
 
@@ -1168,13 +1168,13 @@ Method returns shortened details, to obtain full information - get Employee it b
 
 Response structure differs depending on employee type:
 
-*For HR, ADMIN or ACCOUNTANT:*
+**For HR, ADMIN or ACCOUNTANT:**
 
 * Person info
 * Employee info
 * User Info
 
-*For DOCTOR:*
+**For DOCTOR:**
 
 * Person info
 * Employee info
