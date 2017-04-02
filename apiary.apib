@@ -18,6 +18,28 @@ Project development is fully transparent, you can find it's source code on GitHu
 
 This API design in based on [Nebo #15 API Design Manifest](http://docs.apimanifest.apiary.io/).
 
+## Docs Structure
+
+This document contains both internal and public (usually `/api/..`) API specifications. If you plan to use it as outside API consumer - please refer only to sections that marked as `Public`.
+
+<!--
+## Patination
+
+We apply cursor based pagination..
+
+## Autentification
+
+We use three-legged oAuth authentication, RFC..
+-->
+
+## Context Switching for end-users
+
+Since Doctor may have multiple work-places, you MUST fetch list of possible work-contexts and apply `legal_entity_id` filter on each request, where this parameter is available.
+
+Thus you will make sure that end-user understand from which context entities are managed.
+
+If our API returns only one work context, you are free to hide context picker.
+
 ## Contribution Guidelines
 
 TODO.
@@ -36,9 +58,7 @@ After obtaining `access_token` all subsequent requests should be made with `Auth
 
 ### Show Login UI [GET /oauth/ui{?client_id,redirect_url,scope,response_type}]
 
-Responsive login page will be rendered.
-
-Page can have different structure based on what kind of scopes do you request.
+This method renders response login page. It's structure can differ by required scopes and security measures enabled by project (they can change).
 
 For security purposes, we will set `X-Frame-Options: deny` header that will disallow opening this page in an iframe.
 
@@ -56,9 +76,9 @@ For security purposes, we will set `X-Frame-Options: deny` header that will disa
 
 ## oAuth Codes [/oauth/codes]
 
-### Issues oAuth code grant [POST /oauth/codes]
+### Issues oAuth Code Grant [POST /oauth/codes]
 
-This method is only for internal use of Login UI.
+API consumer *back-end* should use this method exchange Code Grant to Access Token.
 
 + Request (application/json)
 
@@ -82,7 +102,7 @@ This method is only for internal use of Login UI.
 
 ## oAuth Tokens [/oauth/tokens]
 
-### Exchange oAuth code grant to access token [POST]
+### Exchange oAuth Code Grant to Access Token [POST]
 
 + Request (application/json)
 
@@ -102,9 +122,9 @@ This method is only for internal use of Login UI.
             + code: 201 (number)
         + data (Access_Token)
 
-### Get oAuth token information [GET /oauth/tokens/{access_token}]
+### Get oAuth Access Token details [GET /oauth/tokens/{access_token}]
 
-This method can be only called from eHealth gateway.
+This method is designed to be used only by eHealth API gateway.
 
 + Parameters
     + access_token: `my-oauth-token` (string, required) - oAuth access token.
@@ -264,7 +284,6 @@ This method allows to search for a Person without disclosing personal data:
 
 Register new employee record for the existing user.
 
-
 Limitations:
 * only one doctor can be registered for one MPI
 
@@ -316,7 +335,7 @@ Personal information cannot be updated using this method.
 ### Search for a Doctor [GET /doctors{?first_name,last_name,second_name,speciality,region,area,msp_id,is_active,starting_after,ending_before,limit}]
 
 Methods returns list of doctors.
-at least one parameter has to be passed. Othervise - error. Only records where is_active=true should be returned.
+At least one parameter has to be passed. Othervise - error. Only records where is_active=true should be returned.
 Purpose: for future to get dictionary of doctors for the patients.
 
 + Parameters
@@ -599,9 +618,9 @@ Methods returns agregated numbers of declarations.
 
 ### Show Login UI [GET /api/oauth/ui{?client_id,redirect_url,scope,response_type}]
 
-Responsive login page will be rendered.
+You MUST redirect your users to this URL to obtain oAuth Code Grant (which is later exchanged to Access Token).
 
-Page can have different structure based on what kind of scopes do you request.
+User will see rendered login page, which structure differ by a list of requested scopes and security measures applied by DevOps team.
 
 For security purposes, we will set `X-Frame-Options: deny` header that will disallow opening this page in an iframe.
 
@@ -620,6 +639,15 @@ For security purposes, we will set `X-Frame-Options: deny` header that will disa
 ## oAuth Tokens [/api/oauth/tokens]
 
 ### Exchange oAuth Code Grant to Access Token [POST]
+
+After obtaining oAuth Code Grant, it should be exchanged to an `access_token` *on your back-end*. 
+
+General recommendations:
+
+- Never expose `client_secret` to your front-end.
+- Also we recommend to avoid pushing it to the application source code, to limit number of developers that have access to it.
+
+Exposed client credentials may be blocked for a security reasons, you will need to contact administrator to receive a new credentials.
 
 + Request (application/json)
 
@@ -641,12 +669,17 @@ For security purposes, we will set `X-Frame-Options: deny` header that will disa
 
 ## Declaration Requests [/api/declaration_requests]
 
+[Declaration Request]() is a life-cycle entity that is used to perform operations on [Declarations]().
+
+After declaration request is signed and/or verified (depends on verification logic) it will be automatically moved to [Declarations]().
+
 ### Get Declaration Requests List [GET /api/declaration_requests{?employee_id,legal_entity_id,status,starting_after,ending_before,limit}]
 
-Use this method to obtain Declaration requests specified by search criteria. Response collection is limited by 50 objects
-To reduce response data use the `status` parameter to get only PENDING (or NEW) declaration requests, `employee_id` parameter to get requests assigned to specified employee_id as a DOCTOR
+Use this method to obrain list of Declaration Requests for an `empolee_id`. If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor is interested in current UI section.
 
-Method returns short request information
+Also we suggest use `employee_id` and `legal_entity_id` to make sure that end-user understands context of actions that he or she will perform.
+
+Method returns shortened details, to obtain full information - get Declaration Request it by it's ID.
 
 + Parameters
     + `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - user_id of a doctor.
@@ -670,8 +703,6 @@ Method returns short request information
 
 ### Get Declaration Request by ID [GET /api/declaration_requests/{id}]
 
-Use this method to get all declaration request details
-
 + Parameters
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - request identifier
 
@@ -694,43 +725,7 @@ Use this method to get all declaration request details
 
 ### Create Declaration Request [POST]
 
-Use this method to create new declaration request
-
-Declaration request object consist of `Declaration parameters`, `Person details` (or Patient), `Legal entity` as a contract party, `Employee` as a contract party
-
-**Declaration parameters**
-
-| Attribute      | Description
-|----------------|------------
-| **start_date** | Mandatory attribute. Should be defined on MSP side
-| *end_date*     | Optional attribute. Will be calculated on eHealth side if not specified
-
-**Person details**
-
-Person details consists of 2 mandatory objects `Identification parameters`, `Emergency contact` and one optional object `Confidant person`
-
-Confidant person should be set for disabled persons, underage persons etc
-
-**Legal entity**
-
-| Attribute           | Description
-|---------------------|------------
-| **legal_entity_id** | Mandatory attribute. Registered Medical service provider identifier 
-    
-**Employee**
-
-| Attribute           | Description
-|---------------------|------------
-| **employee_id**     | Mandatory attribute. Employee id with type=DOCTOR selected from available employees as a third contract party
-
-Service returns registered request identifier, authentication method and printout form
-
-Authentication method one of the following:
-    
-* **SMS** - returns masked phone number
-* **OFFLINE** - returns URL to upload documents
-
-Printout form - HTML document that contains filled declaration form
+This method is used to create Declaration Request (as part of Declaration creation process). Fields descriptions are listed in request Example view.
 
 + Request (application/json)
 
@@ -747,15 +742,19 @@ Printout form - HTML document that contains filled declaration form
         + data (object)
             + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
             + include `Declaration_Request_Public`
-            + plaintext_content: `Declaration content` (string, required)
-            + authentication_method (`Authentication_method`)
+            + plaintext_content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
+            + `authentication_method` (`Authentication_Method`) - 
+                
+                Currently we support two authentifciation methods:
+                
+                * **OTP** - Preffered. One-time-password (usually sent via SMS). Masked phone number will be returned. By using this verification method you MUST approve Declaration Request by a OTP token that is sent to a patient mobile phone.
+                * **OFFLINE** - For patients that is not able to pass OTP verification method. By using this verification method you MUST upload required documents to links returned in response and approve Declaration Request after upload is completed.
 
 ### Approve Declaration Request [PATCH /api/declaration_requests/{id}/actions/approve]
 
-Use this method to approve previously created declaration request.
-To approve declaration request verification request should be passed
+Use this method to approve previously created Declaration Request.
 
-Verification code could be obtained from SMS or Upload file service depending on authentication method
+This method expects one of verification methods as it's parameters. Verification method is determined on Declaration Request creation stage. (See `authentication_method` field description.)
 
 + Parameters
     + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
@@ -776,18 +775,17 @@ Verification code could be obtained from SMS or Upload file service depending on
         + data (object)
             + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
             + include `Declaration_Request_Public`
-            + plaintext_content: `Declaration content` (string, required)
+            + plaintext_content: `Declaration content` (string, required) - Same as returned on creation stage.
             + active: false (boolean, required)
             + status: pending_verification (string, required)
 
 ### Sign Declaration Request [PATCH /api/declaration_requests/{id}/actions/sign]
 
-This method is used to sign declaration request 
-Method receives signed message (application/pkcs7-mime) including signed content, digital signature, signer public key
+This method is used to sign Declaration Request. Method receives signed message (application/pkcs7-mime) including signed content, digital signature and signer public key. All signature fields will be validated (including signer certificate authority).
 
-Service will verify signature, signer certificate authoriry, signer certificate validation period etc
+This service will store signed copy of Declaration Request in Media Content Storage, created or update MPI records and create declaration if signature is all checks is passed.
 
-Signed content consists of JSON object with declaration request data and printout template
+Signed content MUST consists of JSON object with Declaration Request data and printout template returned on creation stage.
 
 See content example below:
 ```
@@ -837,7 +835,7 @@ See content example below:
       ],
       "authentication_methods":[
          {
-            "type":"SMS",
+            "type":"OTP",
             "phone_number":"+380508887700"
          }
       ],
@@ -956,8 +954,6 @@ See content example below:
    "plaintext_content":"Declaration content"
 }
 ```
-
-Service stores signed content in media content storage, creates/updates MPI entity, creates declaration entity
 
 + Parameters
     + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
@@ -1099,14 +1095,14 @@ Service stores signed content in media content storage, creates/updates MPI enti
         + data (object)
             + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
             + include `Declaration_Request_Public`
-            + active: true (boolean, required)
+            + active: true (boolean, required) - Should be defined on the client side.
             + status: active (string, required)
 
-### Attach files to Declaration Request  [POST /media_content_storage/msp/declaration_requests/{id}/{filename}]
+### Upload document copies for a Declaration Request [POST /media_content_storage/msp/declaration_requests/{id}/{filename}]
 
-Use this method to Upload files for offline patient verification
+This method is used in offline patient verification process.
 
-Service returns verification code in exchange for uploaded file
+Service returns verification code in exchange for uploaded file.
 
 + Parameters
     + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
@@ -1129,36 +1125,34 @@ Service returns verification code in exchange for uploaded file
 
 ## Employees [/api/employees]
 
-The set of the end-points to manage `Doctors`, `HR's` and `Accountants` that
-all are employees of the legal entity (such as Medical Service Provider).
+The set of the end-points may be used to manage `Doctors`, `HR's` and `Accountants` that
+are employed by legal entity (such as Medical Service Provider).
 
 According to the strong binding of the Employees to the Employer (legal entity)
 all GET-endpoints returning Employee info are mounted through the
 `/legal_entities/{legal_entity_id}` path.
 
-### Get Employees List [GET /legal_entities/{legal_entity_id}/employees{?status,type,offset,limit}]
+### Get Employees List [GET /legal_entities/{legal_entity_id}/employees{?status,type,limit,starting_after,ending_before}]
 
-Use this end-point to obtain all Employees of the legal entity spicified by the
-`legal_entity_id`. Response collection is limited by 100 objects. To reduce response data use the `status` parameter to get
-only active (or closed) employees or employee `type` to get specific employee type (Doctor, HR, Accountant).
-Use pagination parameters to obtain all required employees according to search criteria
+Use this end-point to obtain all Employees of the legal entity specified by the `legal_entity_id`. 
 
-The end-point returns list of Short Employee Information
+We suggest to use `status` filter to limit response size. Eg. you MAY want to list only active employees for everyones except HR's. Also it's a good idea to filter list by employee `type`.
+
+Method returns shortened details, to obtain full information - get Employee it by ID.
 
 + Parameters
-    + legal_entity_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Legal entity identifier
-    + status: ACTIVE (enum, optional) - Employee status
+    + legal_entity_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+    + status: ACTIVE (enum, optional)
         - ACTIVE
         - INACTIVE
         + Default: ACTIVE
-    + type: DOCTOR (enum, optional) - Employee type
+    + type: DOCTOR (enum, optional)
         - DOCTOR
         - HR
         - ACCOUNTANT
-    + offset: 100 (number, optional)
-        + Default: 0
-    + limit: 100 (number, optional)
-        + Default: 100
+    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
+    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
+    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
 
 + Request (application/json)
 
@@ -1170,21 +1164,17 @@ The end-point returns list of Short Employee Information
     + Attributes (Response_Collection)
         + data (array[`Employee_Short`])
 
-
 ### Get Employee Details [GET /legal_entities/{legal_entity_id}/employees/{employee_id}]
-
-The service returns Details of the Employee. The id of the employer (`legal_entity_id`)
-and the `employee_id` should be specified both.
 
 Response structure differs depending on employee type:
 
-> HR, ADMIN, ACCOUNTANT
+*For HR, ADMIN or ACCOUNTANT:*
 
 * Person info
 * Employee info
 * User Info
 
-> DOCTOR
+*For DOCTOR:*
 
 * Person info
 * Employee info
@@ -1192,8 +1182,8 @@ Response structure differs depending on employee type:
 * Doctor info
 
 + Parameters
-    + legal_entity_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - the id of the employer legal entity
-    + employee_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - the id of the employee
+    + legal_entity_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+    + employee_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 
 + Request (application/json)
 
@@ -1204,14 +1194,11 @@ Response structure differs depending on employee type:
 + Response 200 (application/json)
     + Attributes (Response_OK)
         + data (Employee_Request)
-            + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Employee request id
+            + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 
-### Create Employee registration/update request [POST /employee_requests]
+### Create or Update Employee via Employee Request [POST /employee_requests]
 
-In order to register new Employee or to update the existing one this end-point
-should be used in both cases.
-
-Employee_Request consits of the three mandatory parts:
+Employee_Request consist of the three mandatory parts:
 * Person info
 * Employee info
 * User Info
@@ -1220,6 +1207,8 @@ Additionally to register/update Physician the `Doctor info` should be passed.
 
 When the `Employee_Request` will be posted the Invitation e-mail with a request
 secret token will be sent to the User specified in the request.
+
+User may accept or decline Invitation.
 
 + Request (application/json)
 
@@ -1237,20 +1226,20 @@ secret token will be sent to the User specified in the request.
         + data (Employee_Request_Short)
 
 
-### Get Details of Employee registration/update request [GET /employee_requests/{employee_request_id}/{employee_request_token}]
+### Get Employee Request by ID [GET /employee_requests/{id}/{token}]
 
-Service to get the Employee registration request details.
+Service to get the Employee registration/update request details.
 
 + Parameters
 
-    + employee_request_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - the id of the request
-    + employee_request_token: `5241744750e8c2df4897c0d35775d9a2` (string, optional) - the secret token to ensure the data will be obtained by the data owner
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) 
+    + token: `5241744750e8c2df4897c0d35775d9a2` (string, optional) - the secret token to ensure the resolving is made by the User
 
 + Request
 
     + Headers
 
-            Authorization: Bearer mF_9.B5f-4.1JqM (string, optional) -- the Authorization is optional if `employee_request_token` is passed
+            Authorization: Bearer mF_9.B5f-4.1JqM (string, optional) -- the Authorization is optional if `token` is passed
 
 
 + Response 200 (application/json)
@@ -1258,13 +1247,13 @@ Service to get the Employee registration request details.
         + data (Employee_Request_Details)
 
 
-### Approve the Employee registration/update request [PATCH /employee_requests/{employee_request_id}/approve/{employee_request_token}]
+### Approve the Employee Request [PATCH /employee_requests/{id}/approve/{token}]
 
 Expected that this end-point will be called from the Auth UI.
 
 + Parameters
-    + employee_request_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - the id of the request
-    + employee_request_token: `5241744750e8c2df4897c0d35775d9a2` (string, required) - the secret token to ensure the resolving is made by the data owner
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+    + token: `5241744750e8c2df4897c0d35775d9a2` (string, required) - the secret token to ensure the resolving is made by the User
 
 + Request (application/json)
 
@@ -1280,13 +1269,13 @@ Expected that this end-point will be called from the Auth UI.
         + data (Employee_Request_Short)
 
 
-### Decline the Employee registration/update request [PATCH /employee_requests/{employee_request_id}/decline/{employee_request_token}]
+### Decline the Employee Request [PATCH /employee_requests/{id}/decline/{token}]
 
-Expected that this end-point will be called from the Auth UI.
+Expected that this end-point will be called from the Invitations UI.
 
 + Parameters
-    + employee_request_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - the id of the request
-    + employee_request_token: `5241744750e8c2df4897c0d35775d9a2` (string, required) - the secret token to ensure the resolving is made by the data owner
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+    + token: `5241744750e8c2df4897c0d35775d9a2` (string, required) - the secret token to ensure the resolving is made by the User
 
 + Request (application/json)
 
@@ -1302,9 +1291,9 @@ Expected that this end-point will be called from the Auth UI.
 
 ### Search for a Person [GET /api/persons{?first_name,last_name,second_name,birth_date,tax_id,phone_number,birth_place,starting_after,ending_before,limit}]
 
-This method allows to search for a Person (MPI) without disclosing personal data
+This method allows to search for a Person (MPI) without disclosing personal data.
 
-Method returns only **requested** parameter and birth place and second name in addition for manual identification on MSP side
+Method returns only **requested** parameters, birth place and second name in addition for manual identification on MSP side.
 
 + Parameters
     + first_name: Петро (string, required)
@@ -1337,12 +1326,12 @@ Method returns only **requested** parameter and birth place and second name in a
 
 ### Get Person Declaration [GET /api/persons/{id}/declaration]
 
-This method allows to receive person declarations (ACTIVE) issued by current legal entity (based on access_token)
+This method allows to receive active person declarations issued by current legal entity (based on access_token). It can be used to check if Patient has active declarations in other Legal Entities.
 
-Method returns:
-1. short declaration info if **active declaration found** issued by **this** legal entity
-2. 404 error if **active declaration not found**
-3. 403 if **active declaration found** issued by **other** legal entity
+It returns:
+1. Short declaration info if **active declaration found** AND issued by legal entity that is available for `access_token` scope.
+2. 404 error if **active declaration not found**.
+3. 403 if **active declaration found** issued by **other** (not available by access scopes) legal entity.
 
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -1368,9 +1357,6 @@ Method returns:
 ## Legal Entities [/api/legal_entities]
 
 ### Get Legal Entities [GET /api/legal_entities{?edrpou,type,owner_property,status,starting_after,ending_before,limit}]
-
-Use this method to obtain Legal entities specified by search criteria. 
-Response collection is limited by 50 objects. To reduce response data use additional search criteria
 
 + Parameters
     + `edrpou`: `341086` (string, optional)
@@ -1403,9 +1389,6 @@ Response collection is limited by 50 objects. To reduce response data use additi
 
 ### Get Legal Entity Requests [GET /api/legal_entity_requests{?edrpou,type,owner_property,status,starting_after,ending_before,limit}]
 
-Use this method to obtain Legal entitie requests specified by search criteria. 
-Response collection is limited by 50 objects. To reduce response data use additional search criteria
-
 + Parameters
     + `edrpou`: `341086` (string, optional)
     + type: MSP (enum, optional)
@@ -1435,19 +1418,18 @@ Response collection is limited by 50 objects. To reduce response data use additi
 
 ### Create Legal Entity Request [POST]
 
-Use this method to register legal entity request.
+Use this method to register a Legal Entity Request (as part of Legal Entity creation process).
 
-Method receives signed message (application/pkcs7-mime) including signed content, digital signature, signer public key. 
+This method is used to sign Declaration Request. Method receives signed message (application/pkcs7-mime) including signed content, digital signature and signer public key. All signature fields will be validated (including signer certificate authority).
 
-Service will verify signature, signer certificate authoriry, signer certificate validation period etc. 
+Signed content MUST consists of JSON object with Legal Entity data:
 
-Signed content consists of JSON object with legal entity details:
 * Legal info
 * Founders
 * Owner
 
 Optional:
-* Divisions
+* Divisions - may be used if Legal Entity has multiple service locations.
 
 + Request (application/json)
 
@@ -1589,6 +1571,7 @@ Optional:
                 - APPROVED
 
 ### Approve Legal Entity Request [PATCH /api/legal_entity_requests/{id}/actions/approve]
+
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 
@@ -1707,7 +1690,7 @@ Optional:
 + documents (array[Document], optional)
 + addresses (array[Address], optional)
 + phones (array[Phone], optional)
-+ `authentication_methods` (array[Authentication_method], optional)
++ `authentication_methods` (array[Authentication_Method], optional)
 
 ### `Confidant_Person`
 + first_name: Петро (string, required)
@@ -1730,7 +1713,7 @@ Optional:
 + include `Person`
 + emergency_contact (object)
     + include `Emergency_Contact`
-+ confidant_person (object)
++ confidant_person (object) - Should be set if this Person is disabled, underage, etc.
     + relation_type: trustee (enum)
         - trustee
     + include `Confidant_Person`
@@ -1739,7 +1722,7 @@ Optional:
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + Include Person
 + death_date: `2015-04-07T00:00:00.000Z` (string, optional)
-+ confident_persons (array[Person])
++ confident_persons (array[Person])  - Should be set if this Person is disabled, underage, etc.
 + is_active: true (boolean, required)
 + history (array)
     + (object)
@@ -1766,8 +1749,10 @@ Optional:
     + (object)
         + id: `7bca069f-21e4-4546-90cf-b65e3f39d93d` (string, required)
 
-### `Authentication_method`
-+ type: SMS, OFFLINE (enum, required)
+### `Authentication_Method`
++ type (enum, required)
+    - OTP
+    - OFFLINE
 + phone_number: `+380508887700` (string, optional)
 
 ## Doctors
@@ -1799,15 +1784,15 @@ Optional:
     - family_doctor
 
 ### `Declaration_Request_Public`
-+ start_date: `2017-03-02T10:45:16.000Z` (string, required)
-+ end_date: `2017-03-02T10:45:16.000Z` (string, optional)
-+ person(`Person_Request`, required)
++ start_date: `2017-03-02T10:45:16.000Z` (string, required) - Should be defined on the client side.
++ end_date: `2017-03-02T10:45:16.000Z` (string, optional) - Will be defined on eHealth side if it's not set.
++ person(`Person_Request`, required) - Object that described a Patient. Confidant person should be set for disabled persons, underage persons, etc.
     + renewal_consent: true (boolean)
     + patient_signed: true (boolean)
     + disclosure_consent: true (boolean)
     + process_data_consent: true (boolean)
-+ `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-+ msp_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Employee ID with `type=DOCTOR` selected from available Employees as a third contract party.
++ msp_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Registered Medical Service Provider identifier.
 + scope (enum, required)
     - family doctor
 
