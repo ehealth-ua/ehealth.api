@@ -856,6 +856,24 @@ This method expects one of verification methods as it's parameters. Verification
             + active: false (boolean, required)
             + status: pending_verification (string, required)
 
+### Reject Declaration Request [PATCH /api/declaration_requests/{id}/actions/reject]
+
+Use this method to reject previously created Declaration Request.
+
++ Parameters
+    + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 200 (number)
+
 ### Sign Declaration Request [PATCH /api/declaration_requests/{id}/actions/sign]
 
 This method is used to sign Declaration Request. Method receives signed message (pkcs7) including signed content, digital signature and signer public key in `signed_declaration_request` property. 
