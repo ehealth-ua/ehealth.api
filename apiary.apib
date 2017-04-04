@@ -1592,7 +1592,7 @@ Optional:
     + disclosure_consent: true (boolean)
     + process_data_consent: true (boolean)
 + `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Employee ID with `type=DOCTOR` selected from available Employees as a third contract party.
-+ msp_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Registered Medical Service Provider identifier.
++ division_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Registered Medical Service Provider identifier.
 + scope (enum, required)
     - family doctor
 
@@ -1605,7 +1605,7 @@ Optional:
     + disclosure_consent: true (boolean)
     + process_data_consent: true (boolean)
 + employee (Employee_Minimal)
-+ msp(`Medical_Service_Provider`)
++ legal_entity(`Medical_Service_Provider`)
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + scope (enum, required)
     - family doctor
@@ -1614,7 +1614,7 @@ Optional:
 + include `Person`
 + person_id: "d290f1ee-6c54-4b01-90e6-d701748f0851" (string, optional)
 + doctor_id: "d290f1ee-6c54-4b01-90e6-d701748f0851" (string, required)
-+ msp_id: "d290f1ee-6c54-4b01-90e6-d701748f0851" (string, required)
++ legal_entity_id: "d290f1ee-6c54-4b01-90e6-d701748f0851" (string, required)
 + scope (enum, required)
     - family doctor
 
@@ -1624,7 +1624,7 @@ Optional:
 + end_date: `2017-03-02T10:45:16.000Z` (string, required)
 + person (Person_Minimal)
 + employee (Employee_Minimal)
-+ msp(`MSP_Short`)
++ legal_entity(`MSP_Short`)
 
 ### `Declaration_Request_Full`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -1632,7 +1632,7 @@ Optional:
 + end_date: `2017-03-02T10:45:16.000Z` (string, required)
 + person (Person_Minimal)
 + employee (Employee_Minimal)
-+ msp(`MSP_Short`)
++ legal_entity(`MSP_Short`)
 
 ### `Declaration_Details`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -1642,7 +1642,7 @@ Optional:
 + doctor (object)
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
     + name: `Григорій Квітка Основ'яненко`
-+ msp(`MSP_Details`)
++ legal_entity(`MSP_Details`)
 + created_at: `2017-03-02T10:45:16.000Z` (string, optional)
 + modified_at: `2017-03-02T10:45:16.000Z` (string, optional)
 
