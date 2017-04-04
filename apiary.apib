@@ -1108,7 +1108,7 @@ According to the strong binding of the Employees to the Employer (legal entity)
 all GET-endpoints returning Employee info are mounted through the
 `/legal_entities/{legal_entity_id}` path.
 
-### Get Employees List [GET /legal_entities/{legal_entity_id}/employees{?status,type,limit,starting_after,ending_before}]
+### Get Employees List [GET /employees{?legal_entity_id,status,type,limit,starting_after,ending_before}]
 
 Use this end-point to obtain all Employees of the legal entity specified by the `legal_entity_id`. 
 
@@ -1140,7 +1140,7 @@ Method returns shortened details, to obtain full information - get Employee it b
     + Attributes (Response_Collection)
         + data (array[`Employee_Short`])
 
-### Get Employee Details [GET /legal_entities/{legal_entity_id}/employees/{employee_id}]
+### Get Employee Details [GET /employees/{employee_id}]
 
 Response structure differs depending on employee type:
 
@@ -1158,7 +1158,6 @@ Response structure differs depending on employee type:
 * Doctor info
 
 + Parameters
-    + legal_entity_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
     + employee_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 
 + Request (application/json)
@@ -1204,7 +1203,7 @@ For changes to take effect employee must confirm the changes
             + code: 201 (number)
         + data (Employee_Request_Short)
 
-### Update employee [PATCH /legal_entities/{legal_entity_id}/employees/{employee_id}]
+### Update Employee [PATCH /employees/{employee_id}]
 
 Use this method change employee status or to update:
 * Person info
@@ -1219,7 +1218,6 @@ The following fields can't be changed:
 * email
 
 + Parameters
-    + legal_entity_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
     + employee_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 
 + Request (application/json)
