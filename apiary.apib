@@ -743,6 +743,41 @@ Exposed client credentials may be blocked for a security reasons, you will need 
             + code: 201 (number)
         + data (Access_Token)
 
+## OTP [/api/otp]
+
+Method is used to verify that provided in declarartion request phone number is valid and is in service
+
+### Send verification code [POST /api/otp/send]
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+    
+    + Attributes (object)
+        + `phone_number`: `+380508887700` (string)
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+
+### Verify code [POST /api/otp/verify]
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+    
+    + Attributes (object)
+        + `phone_number`: `+380508887700` (string)
+        + code: 395105 (number)
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+
 ## Declaration Requests [/api/declaration_requests]
 
 [Declaration Request]() is a life-cycle entity that is used to perform operations on [Declarations]().
@@ -798,6 +833,7 @@ Method returns shortened details, to obtain full information - get Declaration R
             + plaintext_content: `Declaration content` (string, required)
             + active: false (boolean, required)
             + status: pending_verification (string, required)
+            + last_chain_hash: hash (string) - Hash of previous "block chain" element
 
 ### Create Declaration Request [POST]
 
@@ -1099,6 +1135,54 @@ Service returns verification code in exchange for uploaded file.
     + Attributes (Response_OK)
         + verification code: SzFxGfAg_Zj
 
+## Declarations [/api/declarations]
+
+### Get Declarations List [GET /api/declarations{?employee_id,legal_entity_id,active,starting_after,ending_before,limit}]
+
+Use this method to obrain list of Declarations for an `empolee_id` and legal_entity_id. If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor is interested in current UI section.
+
+Method returns shortened details, to obtain full information - get Declaration Details by it's ID.
+
++ Parameters
+    + `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - user_id of a doctor.
+    + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - MSP ID.
+    + active: true (boolean, optional)
+        + Default: true
+    + limit: 20 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
+        + Default: 50
+    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
+    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (Response_Collection)
+        + data (array[`Declaration_Request_Short`])
+
+### Get Declaration by ID [GET /api/declarations/{id}]
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - request identifier
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
+            + include `Declaration_Request_Details_Public`
+            + active: true (boolean, required)
+
 ## Employees [/api/employees]
 
 The set of the end-points may be used to manage `Doctors`, `HR's` and `Accountants` that
@@ -1232,6 +1316,47 @@ The following fields can't be changed:
     + Attributes (Response_OK)
         + data (Employee_Request)
             + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
+### Get Employee Requests List [GET /employee_requests{?legal_entity_id,status,limit,starting_after,ending_before}]
+
++ Parameters
+    + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+    + status: VERIFICATION_EXP (enum, optional)
+        - DECLINED
+        - VERIFICATION_EXP
+        + Default: VERIFICATION_EXP
+    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
+    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
+    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (Response_Collection)
+        + data (array[`Employee_Request_Short`])
+
+### Get Employee Request by ID [GET /employee_requests/{id}]
+
+This service should be used with `access_token` authetification method.
+
++ Parameters
+
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) 
+
++ Request
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM (string, optional) -- the Authorization is optional if `token` is passed
+
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (Employee_Request_Details)
 
 ## Persons [/api/persons]
 
@@ -1603,7 +1728,7 @@ Optional:
     + disclosure_consent: true (boolean)
     + process_data_consent: true (boolean)
 + employee (Employee_Minimal)
-+ legal_entity(`Medical_Service_Provider`)
++ `legal_entity` (`Medical_Service_Provider`)
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + scope (enum, required)
     - family doctor
@@ -1612,7 +1737,7 @@ Optional:
 + include `Person`
 + person_id: "d290f1ee-6c54-4b01-90e6-d701748f0851" (string, optional)
 + doctor_id: "d290f1ee-6c54-4b01-90e6-d701748f0851" (string, required)
-+ legal_entity_id: "d290f1ee-6c54-4b01-90e6-d701748f0851" (string, required)
++ `legal_entity_id`: "d290f1ee-6c54-4b01-90e6-d701748f0851" (string, required)
 + scope (enum, required)
     - family doctor
 
@@ -1622,7 +1747,7 @@ Optional:
 + end_date: `2017-03-02T10:45:16.000Z` (string, required)
 + person (Person_Minimal)
 + employee (Employee_Minimal)
-+ legal_entity(`MSP_Short`)
++ `legal_entity` (`MSP_Short`)
 
 ### `Declaration_Request_Full`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -1630,7 +1755,7 @@ Optional:
 + end_date: `2017-03-02T10:45:16.000Z` (string, required)
 + person (Person_Minimal)
 + employee (Employee_Minimal)
-+ legal_entity(`MSP_Short`)
++ `legal_entity` (MSP_Short)
 
 ### `Declaration_Details`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -1640,7 +1765,7 @@ Optional:
 + doctor (object)
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
     + name: `Григорій Квітка Основ'яненко`
-+ legal_entity(`MSP_Details`)
++ `legal_entity` (MSP_Details)
 + created_at: `2017-03-02T10:45:16.000Z` (string, optional)
 + modified_at: `2017-03-02T10:45:16.000Z` (string, optional)
 
