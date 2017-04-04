@@ -540,6 +540,81 @@ Methods returns employee details by ID.
     + Attributes (Response_OK)
         + data (Employee_Full)
 
+### Get Employee Request by ID [GET /employee_requests/{id}]
+
+This service should be used with `access_token` authetification method.
+
++ Parameters
+
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) 
+
++ Request
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM (string, optional) -- the Authorization is optional if `token` is passed
+
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (Employee_Request_Details)
+
+### Get Employee Request by ID and Token [GET /employee_requests/{id}{?token}]
+
+This service should be used by invitation recipient that does not have `access_token`.
+
++ Parameters
+
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) 
+    + `token`: `5241744750e8c2df4897c0d35775d9a2` (string, optional) - the secret token to ensure the resolving is made by the User
+
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (Employee_Request_Details)
+
+### Approve the Employee Request [PATCH /employee_requests/{id}/actions/approve]
+
+Expected that this end-point will be called from the eHealth invitations UI.
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            X-CSRF-Token: my-csrf-token
+
+    + Attributes (object)
+        + `user` (object, optional) - User that should be created (if invitation recipient doesn't have account in eHealth)
+            + login: me@example.com (string, required)
+            + password: notasecret (string, required)
+        + `token`: `5241744750e8c2df4897c0d35775d9a2` (string, optional) - the secret token to ensure the resolving is made by the User.
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (Employee_Request_Short)
+
+### Decline the Employee Request [PATCH /employee_requests/{id}/actions/decline]
+
+Expected that this end-point will be called from the Invitations UI.
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            X-CSRF-Token: my-csrf-token
+
+    + Attributes (object)
+        + `token`: `5241744750e8c2df4897c0d35775d9a2` (string, optional) - the secret token to ensure the resolving is made by the User.
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (Employee_Request_Short)
 
 ## Medical Service Providers [/medical_service_providers]
 
@@ -1107,85 +1182,6 @@ User may accept or decline Invitation.
     + Attributes (Response_OK)
         + meta (Response__Meta)
             + code: 201 (number)
-        + data (Employee_Request_Short)
-
-
-### Get Employee Request by ID [GET /employee_requests/{id}]
-
-This service should be used with `access_token` authetification method.
-
-+ Parameters
-
-    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) 
-
-+ Request
-
-    + Headers
-
-            Authorization: Bearer mF_9.B5f-4.1JqM (string, optional) -- the Authorization is optional if `token` is passed
-
-
-+ Response 200 (application/json)
-    + Attributes (Response_OK)
-        + data (Employee_Request_Details)
-
-### Get Employee Request by ID and Token [GET /employee_requests/{id}{?token}]
-
-This service should be used by invitation recipient that does not have `access_token`.
-
-+ Parameters
-
-    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) 
-    + `token`: `5241744750e8c2df4897c0d35775d9a2` (string, optional) - the secret token to ensure the resolving is made by the User
-
-
-+ Response 200 (application/json)
-    + Attributes (Response_OK)
-        + data (Employee_Request_Details)
-
-
-### Approve the Employee Request [PATCH /employee_requests/{id}/actions/approve]
-
-Expected that this end-point will be called from the eHealth invitations UI.
-
-+ Parameters
-    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-
-+ Request (application/json)
-
-    + Headers
-
-            X-CSRF-Token: my-csrf-token
-
-    + Attributes (object)
-        + `user` (object, optional) - User that should be created (if invitation recipient doesn't have account in eHealth)
-            + login: me@example.com (string, required)
-            + password: notasecret (string, required)
-        + `token`: `5241744750e8c2df4897c0d35775d9a2` (string, optional) - the secret token to ensure the resolving is made by the User.
-
-+ Response 200 (application/json)
-    + Attributes (Response_OK)
-        + data (Employee_Request_Short)
-
-
-### Decline the Employee Request [PATCH /employee_requests/{id}/actions/decline]
-
-Expected that this end-point will be called from the Invitations UI.
-
-+ Parameters
-    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-
-+ Request (application/json)
-
-    + Headers
-
-            X-CSRF-Token: my-csrf-token
-
-    + Attributes (object)
-        + `token`: `5241744750e8c2df4897c0d35775d9a2` (string, optional) - the secret token to ensure the resolving is made by the User.
-
-+ Response 200 (application/json)
-    + Attributes (Response_OK)
         + data (Employee_Request_Short)
 
 ## Persons [/api/persons]
