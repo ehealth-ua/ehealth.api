@@ -1282,8 +1282,10 @@ It returns:
     + owner_property: state (enum, optional)
         - state
         - private
-    + status: ACTIVE (enum, optional)
-        + Default: ACTIVE
+    + status: VERIFIED (enum, required)
+        - VERIFIED
+        - DECLINED
+        - VERIFICATION_EXP
     + limit: 20 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
         + Default: 50
     + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
@@ -1297,28 +1299,15 @@ It returns:
 
 + Response 200 (application/json)
     + Attributes (Response_Collection)
-        + data (array[`Legal_Entity_Short`])
-            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+        + data (array)
+            + (object)
+                + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+                + include `Legal_Entity_Short`
 
-## Legal Entity Requests [/api/legal_entity_requests]
-
-### Get Legal Entity Requests [GET /api/legal_entity_requests{?edrpou,type,owner_property,status,starting_after,ending_before,limit}]
+### Get Legal Entity by ID [GET /api/legal_entities/{id}]
 
 + Parameters
-    + `edrpou`: `341086` (string, optional)
-    + type: MSP (enum, optional)
-        - MSP
-        - MIS
-    + owner_property: state (enum, optional)
-        - state
-        - private
-    + status: BASIC_VERIFICATION (enum, optional)
-        - BASIC_VERIFICATION
-        - ADD_VER_EXP
-        - ADD_VERIFICATION
-    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
-    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
-    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 
 + Request (application/json)
 
@@ -1327,15 +1316,20 @@ It returns:
             Authorization: Bearer mF_9.B5f-4.1JqM
 
 + Response 200 (application/json)
-    + Attributes (Response_Collection)
-        + data (array[`Legal_Entity_Request_Short`])
+    + Attributes (Response__Process_OK)
+        + data (object)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + include `Legal_Entity_Request_Public`
+            + status: VERIFIED (enum, required)
+                - VERIFIED
+                - DECLINED
+                - VERIFICATION_EXP
 
-### Create Legal Entity Request [POST]
+### Create/Update Legal Entity [POST]
 
-Use this method to register a Legal Entity Request (as part of Legal Entity creation process).
+Use this method to register a new Legal Entity.
 
-This method is used to sign Declaration Request. Method receives signed message (pkcs7) including signed content, digital signature and signer public key. 
+Method receives signed message (pkcs7) including signed content, digital signature and signer public key. 
 All signature fields will be validated (including signer certificate authority).
 
 Signed content MUST consists of JSON object with Legal Entity data:
@@ -1363,15 +1357,12 @@ Optional:
         + data (object)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
             + include `Legal_Entity_Request_Public`
-            + status: BASIC_VERIFICATION (enum, required)
-                - BASIC_VERIFICATION
-                - ADD_VER_EXP
-                - ADD_VERIFICATION
-                - CANCELED
+            + status: VERIFIED (enum, required)
+                - VERIFIED
                 - DECLINED
-                - APPROVED
+                - VERIFICATION_EXP
 
-### Get Legal Entity Request by ID [GET /api/legal_entity_requests/{id}]
+### Update Legal Entity status [PATCH /api/legal_entities/{id}]
 
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -1381,67 +1372,18 @@ Optional:
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+    
+    + Attributes (object)
+        + status: VERIFIED (enum, required)
+            - VERIFIED
+            - DECLINED
+            - VERIFICATION_EXP
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + data (object)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + include `Legal_Entity_Request_Public`
-            + status: BASIC_VERIFICATION (enum, required)
-                - BASIC_VERIFICATION
-                - ADD_VER_EXP
-                - ADD_VERIFICATION
-                - CANCELED
-                - DECLINED
-                - APPROVED
-
-### Approve Legal Entity Request [PATCH /api/legal_entity_requests/{id}/actions/approve]
-
-+ Parameters
-    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer mF_9.B5f-4.1JqM
-
-+ Response 200 (application/json)
-    + Attributes (Response__Process_OK)
-        + data (object)
-            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + include `Legal_Entity_Request_Public`
-            + status: BASIC_VERIFICATION (enum, required)
-                - BASIC_VERIFICATION
-                - ADD_VER_EXP
-                - ADD_VERIFICATION
-                - CANCELED
-                - DECLINED
-                - APPROVED
-
-### Decline Legal Entity Request [PATCH /api/legal_entity_requests/{id}/actions/decline]
-
-+ Parameters
-    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer mF_9.B5f-4.1JqM
-
-+ Response 200 (application/json)
-    + Attributes (Response__Process_OK)
-        + data (object)
-            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + include `Legal_Entity_Request_Public`
-            + status: DECLINED (enum, required)
-                - BASIC_VERIFICATION
-                - ADD_VER_EXP
-                - ADD_VERIFICATION
-                - CANCELED
-                - DECLINED
-                - APPROVED
+            + include `Legal_Entity_Short`
 
 # Data Structures
 ## Responses
@@ -1740,7 +1682,6 @@ Optional:
     - doctor
     - hr
     - admin
-    - owner
 + party (Party_Request)
 + doctor (DoctorNew, optional)
 
@@ -1801,6 +1742,10 @@ Optional:
     - РЕЛІГІЙНА ОРГАНІЗАЦІЯ
     - ІНШІ ОРГАНІЗАЦІЙНО-ПРАВОВІ ФОРМИ
 + edrpou: 5432345432 (string, required)
++ status: VERIFIED (enum, required)
+    - VERIFIED
+    - DECLINED
+    - VERIFICATION_EXP
 
 ## `Legal_Entity_Requests`
 ### `Legal_Entity_Request_Short`
