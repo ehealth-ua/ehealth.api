@@ -1186,6 +1186,8 @@ secret token will be sent to the User specified in the request.
 
 User may accept or decline Invitation.
 
+For changes to take effect employee must confirm the chamges
+
 + Request (application/json)
 
     + Headers
@@ -1201,6 +1203,37 @@ User may accept or decline Invitation.
         + meta (Response__Meta)
             + code: 201 (number)
         + data (Employee_Request_Short)
+
+### Update employee [PATCH /legal_entities/{legal_entity_id}/employees/{employee_id}]
+
+Use this method change employee status or to update:
+* Person info
+* Employee info
+* Doctor Info
+
+This method does not require changes confirmation by the employee and should be limit by scopes
+
+The following fields can't be changed:
+* employee_type
+* tax_id
+* email
+
++ Parameters
+    + legal_entity_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+    + employee_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+    
+    + Attributes (`Employee_Update`)
+    
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (Employee_Request)
+            + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 
 ## Persons [/api/persons]
 
@@ -1641,6 +1674,13 @@ Optional:
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
 
+### `Party_Update`
++ include `Party_Short`
++ birth_date: `1991-08-19T00:00:00.000Z` (string, required)
++ gender: MALE, FEMALE (enum[string], required)
++ national_id: CC7150985243 (string, optional)
++ documents (array[Document], optional)
++ phones (array[Phone], optional)
 
 ## Employees
 ### `Employee`
@@ -1683,6 +1723,17 @@ Optional:
     - hr
     - admin
 + party (Party_Request)
++ doctor (DoctorNew, optional)
+
+### `Employee_Update`
++ legal_entity_id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
++ division_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ title: лікар (string, required)
++ start_date: `2017-03-02T10:45:16.000Z` (string, required)
++ end_date: `2018-03-02T10:45:16.000Z` (string, optional)
++ active: true (boolean, required)
++ status: pending_verification (enum, required)
++ party (Party_Update)
 + doctor (DoctorNew, optional)
 
 ### `Employee_Request_Short`
