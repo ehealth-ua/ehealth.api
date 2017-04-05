@@ -205,12 +205,11 @@ To make sure that records will be de-duplicated, please make sure to send search
         + data (`Person_Full`)
 
 
-### Search for a Patient [GET /persons{?first_name,last_name,second_name,birth_date,tax_id,phone_number,birth_place}]
+### Search for a Person [GET /api/persons{?first_name,last_name,second_name,birth_date,tax_id,phone_number,birth_place,starting_after,ending_before,limit}]
 
-This method allows to search for a Person without disclosing personal data:
-1. If you match single result, it will contain `person_id` of a record you were looking for.
-2. If you match up to 15 results, it will contain list of possible filters that may be applied to reduce number of matches (they may include random data).
-3. If result contains more than 15 results - you will receive 403 error.
+This method allows to search for a Person (MPI) without disclosing personal data.
+
+Method returns only **requested** parameters, birth place and second name in addition for manual identification on MSP side.
 
 + Parameters
     + first_name: Петро (string, required)
@@ -219,13 +218,15 @@ This method allows to search for a Person without disclosing personal data:
     + birth_date: `1991-08-19T00:00:00.000Z` (string, required) - ISO Datetime.
     + tax_id: 3126509816 (string, optional)
     + phone_number: `+380508887700` (string, optional)
-    + birth_place: Конотоп (string, optional)
+    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
+    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
+    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
 
 + Request (application/json)
 
     + Headers
 
-            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
+            Authorization: Bearer mF_9.B5f-4.1JqM
 
 + Response 200 (application/json)
     + Attributes (Response_Collection)
@@ -1814,7 +1815,7 @@ Optional:
     - hr
     - admin
     - owner
-+ title: лікар (string, required)
++ position: лікар (string, required)
 + speciality: Педіатрія (enum)
     - Загальна практика - сімейна медицина
     - Педіатрія
@@ -1826,7 +1827,7 @@ Optional:
 
 ### `Employee_Minimal`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-+ title: лікар (string, required)
++ position: лікар (string, required)
 + party (object)
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
     + include `Party_Short`
@@ -1836,7 +1837,7 @@ Optional:
 ### `Employee_Request`
 + legal_entity_id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
 + division_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-+ title: лікар (string, required)
++ position: лікар (string, required)
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
 + active: true (boolean, required)
@@ -1851,7 +1852,7 @@ Optional:
 ### `Employee_Update`
 + legal_entity_id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
 + division_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-+ title: лікар (string, required)
++ position: лікар (string, required)
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
 + active: true (boolean, required)
@@ -1968,8 +1969,6 @@ Optional:
 + edrpou: 5432345432 (string, required)
 + kved: 86.1 (array, required)
 + services (array[Medical_Service], required)
-+ licenses (array[MSP_License], required)
-+ accreditation (array[MSP_Accreditation], required)
 + addresses (array[Address], required)
 + phones (array[Phone], required)
 + email: email@example.com (string, required)
@@ -2191,17 +2190,11 @@ Optional:
 
 ## DoctorsNew
 ### DoctorNew
-+ education (array[Education], required)
-+ qualification (array[Qualification], optional)
-+ speciality: Педіатрія (enum, required)
-    - Терапевт
-    - Педіатр
-    - Сімейний лікар
-+ professional_level (ProfessionalLevel, required)
-+ academic_degree (AcademicDegree, optional)
++ education (array[Education], required)  - освіта
++ qualification (array[Qualification], optional) - підвищення кваліфікації
++ speciality (array[Speciality], required)
 + science_degree (ScienceDegree, optional)
 + specialization (string, optional)
-+ working_hours (string, optional)
 
 
 ### Education
@@ -2217,17 +2210,6 @@ Optional:
     - Магістр
 + speciality: Педіатр (string, required)
 
-### AcademicDegree
-+ country: UA (enum[string], required)
-+ city: Київ (string, required)
-+ degree (enum, required)
-    - Старший дослідник
-    - Доцент
-    - Професор
-+ institution_name: Академія Богомольця (string, required)
-+ certificate_number: DD123543 (string, required)
-+ speciality: Педіатр (string, required)
-+ issued_date: 2017-02-28 (string, required)
 
 ### ScienceDegree
 + country: UA (enum[string], required)
@@ -2241,14 +2223,6 @@ Optional:
 + diploma_topic: `Супер педіатр та де його шукати` (string, required)
 + issued_date: 2017-02-28 (string, required)
 
-### WorkExperience
-+ country: UA (enum[string], required)
-+ city: Київ (string, required)
-+ work_place: `Житомирська обласна лікарня` (string, required)
-+ work_position: `Директор лікарні` (string, required)
-+ start_date: 2017-02-28 (string, required)
-+ finish_date: 2018-02-28 (string, required)
-+ work_experience: 1 (number, required) - count of work experience years
 
 ### Qualification
 + type (enum, required)
@@ -2262,16 +2236,21 @@ Optional:
 + speciality: Педіатр (string, required)
 + issued_date: 2017-02-28 (string, required)
 
-### ProfessionalLevel
-+ degree (enum, required)
+### Speciality
++ speciality: Педіатрія (enum, required) - спеціальність
+    - Терапевт
+    - Педіатр
+    - Сімейний лікар
++ speciality_officio: true (boolean, required) - спеціальність за посадою
++ level: Перша категорія (enum, required) - кваліфікаційна категорія
     - Друга категорія
     - Перша категорія
     - Вища категорія
 + qualification_type (enum, required)
     - Присвоєння
     - Підтвердження
-+ institution_name: Академія Богомольця (string, required)
-+ issued_date: 2017-02-28 (string, required)
++ attestation_name: Академія Богомольця (string, required) - орган що видав
++ attestation_date: 2017-02-28 (string, required) - дата отримання
 
 ### Affordance
 + action (string, required) - Affordance action.
