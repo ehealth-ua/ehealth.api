@@ -744,11 +744,11 @@ Exposed client credentials may be blocked for a security reasons, you will need 
             + code: 201 (number)
         + data (Access_Token)
 
-## OTP [/api/otp]
+## Phone verification [/api/phone_verification]
 
 Method is used to verify that provided in declarartion request phone number is valid and is in service
 
-### Send verification code [POST /api/otp/send]
+### Send verification code [POST /api/phone_verification/send]
 
 + Request (application/json)
 
@@ -763,7 +763,7 @@ Method is used to verify that provided in declarartion request phone number is v
     + Attributes (Response_OK)
         + meta (Response__Meta)
 
-### Verify code [POST /api/otp/verify]
+### Verify code [POST /api/phone_verification/verify]
 
 + Request (application/json)
 
@@ -778,6 +778,31 @@ Method is used to verify that provided in declarartion request phone number is v
 + Response 200 (application/json)
     + Attributes (Response_OK)
         + meta (Response__Meta)
+
+### Check phone number [POST /api/phone_verification/check]
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+    
+    + Attributes (object)
+        + `phone_number`: `+380508887700` (string)
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+        + data (object)
+            + result: verified (string, required)
+
++ Response 422 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta)
+            + code: 422
+        + error
+            + type: unverified (string, required)
+            + message: `Unverified phone number` (string, required)
 
 ## Declaration Requests [/api/declaration_requests]
 
