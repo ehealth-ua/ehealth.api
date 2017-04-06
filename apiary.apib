@@ -935,15 +935,15 @@ Signed content MUST consists of JSON object with Declaration Request data and pr
       "gender":"MALE",
       "email":"email@example.com",
       "tax_id":"3126509816",
-      "national_id":"CC7150985243",
       "secret":"secret",
       "documents":[
          {
             "type":"PASSPORT",
-            "number":"120518",
-            "issue_date":"2015-04-07T00:00:00.000Z",
-            "expiry_date":"2015-04-07T00:00:00.000Z",
-            "issued_by":"DMSU"
+            "number":"120518"
+         },
+         {
+            "type":"NATIONAL_ID",
+            "number":"D736810"
          }
       ],
       "addresses":[
@@ -994,13 +994,14 @@ Signed content MUST consists of JSON object with Declaration Request data and pr
          "tax_id":"3126509816",
          "documents":[
             {
-               "type":"PASSPORT",
-               "number":"120518",
-               "issue_date":"2015-04-07T00:00:00.000Z",
-               "expiry_date":"2015-04-07T00:00:00.000Z",
-               "issued_by":"DMSU"
+                "type":"PASSPORT",
+                "number":"120518"
+            },
+            {
+                "type":"NATIONAL_ID",
+                "number":"D736810"
             }
-         ],
+        ],
          "phones":[
             {
                "type":"MOBILE",
@@ -1609,7 +1610,6 @@ Optional:
 + gender: MALE, FEMALE (enum[string], required)
 + email: email@example.com (string, optional)
 + tax_id: 3126509816 (string, optional)
-+ national_id: CC7150985243 (string, optional) - Record ID in national registry (biometric passport ID)
 + secret: secret (string, required)
 + documents (array[Document], optional)
 + addresses (array[Address], optional)
@@ -1793,7 +1793,6 @@ Optional:
 + birth_date: `1991-08-19T00:00:00.000Z` (string, required)
 + gender: MALE, FEMALE (enum[string], required)
 + tax_id: 3126509816 (string, optional)
-+ national_id: CC7150985243 (string, optional)
 + email: email@example.com (string, optional)
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
@@ -1802,7 +1801,6 @@ Optional:
 + include `Party_Short`
 + birth_date: `1991-08-19T00:00:00.000Z` (string, required)
 + gender: MALE, FEMALE (enum[string], required)
-+ national_id: CC7150985243 (string, optional)
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
 
@@ -2099,7 +2097,6 @@ Optional:
 + gender: MALE, FEMALE (enum[string], required)
 + email: email@example.com (string, required)
 + tax_id: 3126509816 (string, optional)
-+ national_id: CC7150985243 (string, optional)
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
 + public_key:FDSAF768ASD6F78A6FD87ADS6FA8DS7F678A678DF (string, required)
@@ -2133,10 +2130,11 @@ Optional:
 
 ### Document
 + type: PASSPORT (enum[string], required)
+    - PASSPORT
+    - NATIONAL_ID
+    - BIRTH_CERTIFICATE
+    - TEMPORARY_CERTIFICATE
 + number: 120518 (string, required)
-+ issue_date: `2015-04-07T00:00:00.000Z`
-+ expiry_date: `2015-04-07T00:00:00.000Z`
-+ issued_by: DMSU
 
 ### `Medical_Certificate`
 + name: Диплом доктора медицини (string, required)
