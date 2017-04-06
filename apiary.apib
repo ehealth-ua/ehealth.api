@@ -889,6 +889,14 @@ This method is used to create Declaration Request (as part of Declaration creati
                 * **OTP** - Preffered. One-time-password (usually sent via SMS). Masked phone number will be returned. By using this verification method you MUST approve Declaration Request by a OTP token that is sent to a patient mobile phone.
                 * **OFFLINE** - For patients that is not able to pass OTP verification method. By using this verification method you MUST upload required documents to links returned in response and approve Declaration Request after upload is completed.
 
++ Response 422 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta)
+            + code: 422
+        + error
+            + type: unverified (string, required)
+            + message: `Unverified phone number` (string, required)
+
 ### Approve Declaration Request [PATCH /api/declaration_requests/{id}/actions/approve]
 
 Use this method to approve previously created Declaration Request.
