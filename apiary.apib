@@ -505,6 +505,7 @@ Methods returns list of labour_contracts by doctor_id or msp_id or both.
         - hr
         - admin
         - owner
+        - accountant
     + is_active: true (boolean, required)
     + status: approved (enum)
         - approved
@@ -1864,12 +1865,12 @@ Optional:
     - hr
     - admin
     - owner
+    - accountant
 + position: лікар (string, required)
-+ speciality: Педіатрія (enum)
-    - Загальна практика - сімейна медицина
-    - Педіатрія
-    - Підліткова терапія
-    - Терапія
++ speciality: Педіатр (enum)
+    - Сімейний лікар
+    - Педіатр
+    - Терапевт
 + employee_details (DoctorNew, optional)
 + start_date: 2017-02-28 (string, required)
 + expiry_date: 2017-02-28 (string, optional)
@@ -1895,6 +1896,7 @@ Optional:
     - doctor
     - hr
     - admin
+    - accountant
 + party (Party_Request)
 + doctor (DoctorNew, optional)
 
@@ -1925,6 +1927,7 @@ Optional:
     - hr
     - admin
     - owner
+    - accountant
 + active: true (boolean, required)
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
@@ -2021,11 +2024,6 @@ Optional:
 + addresses (array[Address], required)
 + phones (array[Phone], required)
 + email: email@example.com (string, required)
-+ founders (array, required)
-    + (object)
-        + One Of
-            + founder (Founder_Person)
-            + founder (Founder_Legal_Entity)
 + owner (Owner)
 + divisions (array[Division])
 + `medical_service_provider` (MSP)
@@ -2039,18 +2037,8 @@ Optional:
 + type: clinic (enum, required)
     - clinic
     - ambulant_clinic
+    - fap
 
-## `Founders`
-### `Founder_Person`
-+ first_name: Петро (string, required)
-+ last_name: Іванов (string, required)
-+ second_name: Миколайович (string, optional)
-+ tax_id: 3015492563 (string, required)
-
-### `Founder_Legal_Entity`
-+ name: Борис (string, required)
-+ addresses (array[Address], required)
-+ edrpou: 31865420 (string, required)
 
 ## `Owners`
 ### `Owner`
@@ -2076,11 +2064,12 @@ Optional:
     - ЗАКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
     - РЕЛІГІЙНА ОРГАНІЗАЦІЯ
     - ІНШІ ОРГАНІЗАЦІЙНО-ПРАВОВІ ФОРМИ
++ public_name: ЦПМСД №1 (string, optional)
 + edrpou: 5432345432 (string, required)
 + licenses (array[MSP_License], optional)
-+ accreditation (array[MSP_Accreditation], required)
-+ addresses (array[Address], optional)
-+ phones (array[Phone], optional)
++ accreditation (MSP_Accreditation, required)
++ addresses (array[Address], required)
++ phones (array[Phone], required)
 + email: `email@example.com` (string, required)
 
 ### `MSP_Short`
@@ -2098,8 +2087,8 @@ Optional:
 
 ### `MSP_Details`
 + id: d290f1ee-6c54-4b01-90e6-d701748f0851
-+ name: Клініка Борис (string, required)
-+ short_Name: Борис (string, required)
++ name: Клініка ЦПМСД №1 (string, required)
++ short_Name: ЦПМСД №1 (string, required)
 + legal_form: `ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА` (enum, required)
     - ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА
     - АКЦІОНЕРНЕ ТОВАРИСТВО
@@ -2107,6 +2096,7 @@ Optional:
     - ЗАКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
     - РЕЛІГІЙНА ОРГАНІЗАЦІЯ
     - ІНШІ ОРГАНІЗАЦІЙНО-ПРАВОВІ ФОРМИ
++ public_name: ЦПМСД №1 (string, optional)
 + edrpou: 5432345432 (string, required)
 + addresses (array[Address], optional
 + created_at: `2017-02-28T15:12:54.000Z` (string, optional)
@@ -2119,12 +2109,8 @@ Optional:
 + modified_at: `2017-02-28T15:12:54.000Z` (string, optional)
 
 ### `MSP`
-+ mountain_group: 'група 1' (enum, required)
-    - група 1
-    - група 2
-    - група 3
 + licenses (array[MSP_License], optional)
-+ accreditation (array[MSP_Accreditation], required)
++ accreditation (MSP_Accreditation, required)
 
 ## `Medical_Services`
 ### `Medical_Service`
@@ -2239,6 +2225,8 @@ Optional:
 + issued_by: Кваліфікацйна комісія (string, optional)
 + issued_date: 2017-02-28 (string, required)
 + expiry_date: 2017-02-28 (string, optional)
++ kved: 86.1 (string, optional)
++ what_licensed: реалізація наркотичних засобів (string, optional)
 
 ## DoctorsNew
 ### DoctorNew
@@ -2268,11 +2256,11 @@ Optional:
 + city: Київ (string, required)
 + degree (enum, required)
     - Доктор філософії
+    - Кандидат наук
     - Доктор наук
 + institution_name: Академія Богомольця (string, required)
 + diploma_number: DD123543 (string, required)
 + speciality: Педіатр (string, required)
-+ diploma_topic: `Супер педіатр та де його шукати` (string, required)
 + issued_date: 2017-02-28 (string, required)
 
 
@@ -2286,7 +2274,9 @@ Optional:
     - Стажування
 + institution_name: Академія Богомольця (string, required)
 + speciality: Педіатр (string, required)
-+ issued_date: 2017-02-28 (string, required)
++ issued_date: 2017-02-28 (string, required) - дата отримання сертифікату
++ certificate_number: 2017-02-28 (string, required)
+
 
 ### Speciality
 + speciality: Педіатрія (enum, required) - спеціальність
@@ -2303,6 +2293,8 @@ Optional:
     - Підтвердження
 + attestation_name: Академія Богомольця (string, required) - орган що видав
 + attestation_date: 2017-02-28 (string, required) - дата отримання
++ valid_to_date: 2020-02-28 (string, required) - дата дії до
++ certificate_number: AB/21331 (string, required)
 
 ### Affordance
 + action (string, required) - Affordance action.
