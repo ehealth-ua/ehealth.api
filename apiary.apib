@@ -690,6 +690,19 @@ Methods returns agregated numbers of declarations.
     + Attributes (Response_OK)
         + data (array [Declaration_Report])
 
+# Group Internal. Global parameters and Products
+
+## Global parameters [/global_parameters]
+
+### Get Global Parameters [GET]
+
+Methods returns global parameters for declarations.
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (Global_Parameters)
+
+
 # Group Public. Medical Service Provider Integration Layer
 
 ## oAuth UI [/api/oauth]
@@ -2213,7 +2226,7 @@ Optional:
 + category: друга (enum, required)
     - друга
     - перша
-    - вища
+    - не акредитований
 + issued_date: 2017-02-28 (string, required) - дата видачі
 + expiry_date: 2017-02-28 (string, optional)
 + order_no: fd123443 (string, required) - номер наказу МОЗ
@@ -2299,3 +2312,9 @@ Optional:
 ### Affordance
 + action (string, required) - Affordance action.
 + url (string, required)
+
+## Global Parameters and Products 
+### `Global_Parameters`
++ term: 30 (string, required) - термін дії декларації
++ term_unit: DAYS (enum, required) - одиниця виміру терміну дії
++ adult_age: 18 (string, required) - вік повноліття
