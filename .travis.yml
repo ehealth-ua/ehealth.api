@@ -14,8 +14,14 @@ env:
     - MIX_ENV=test
     - DOCKER_HUB_ACCOUNT=nebo15
     - MAIN_BRANCHES="master" # Branches on which you want version to be incremented
+    - RELEASE_BRANCH="master"
+    # Docker credentials
+    - secure: "C6haKHmvzJXMRRvPSuH4w5hOVuNb7MHfGhWjr2vVJu9Ms8cnBAbSos6lNLCrnC6suWqZab5De7ETatJf87qI4SREA2dcdzGfEprUhhxxx5nlDzGoG67DbeWR5uBMXD1AUv3kXr+K0iDpz2gYM9TVupISI2l4gHDH9k2hoznIOoj3ttip/h/G9ofjR4uGlkPJx0SOXn10frj4OJL0LaRbmLVavL5KHoU3O3rIC0bYTqFxNamp8nw6aJqlVrnG2ByfHN9DqQuDID+1BH0q/e1TXVzR7kumpXaLKxAbfOuR42Ew7G6qDFNnPswWu9wdIL7zVydvVBZBhftSB4R1qu8ApZi8QSPsH9+6RHz3aEswmBf7flryDVVjbAiMthcT8uPoUiBBNZU1TJYYCtTqHoZoxyd5lIr8MIQ33Xf65FdYWOT9M0zoCIUYMJSJ0ks+98Xmo+JqZ9RmB4xgMQNeKChnX6MxHH3yrp4ZfNO18gLVA2wHlRcnFaAdUaDHYtTrpWjE5oMY6yEqa4je6QFC5frPqDN7qpoI7SDFVExp2rq9YyvpTR/BZ9Ve36YIwBM9l4yUR69R0+NlDEHwkX9CWEoDZa5cg98qAWWuf5j6CXbxpLI0yRdQup2IYtoU/jG/zSzhqkkSZH9ZzTxWjwlQXkFGkHD4GH1Xpt6slX2T9lcNdMU="
+
 before_install:
 script:
+  # Increment version in mix.exs
+  - ./bin/ci/version-increment.sh
   # Run all tests except pending ones
   - mix test --exclude pending --trace
   # Submit code coverage report to Coveralls
@@ -35,3 +41,6 @@ script:
   - if [ "${RUNNING_CONTAINERS//[[:space:]]/}" == "1" ]; then echo "[E] Container is not started\!"; docker logs ehealth --details --since 5h; exit 1; fi;
 after_failure:
   - docker logs ehealth --details --since 5h
+after_success:
+  # Submit Docker container to Docker Hub and create GitHub Release by pushing tag with changelog
+  - ./bin/ci/push.sh
