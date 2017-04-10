@@ -52,6 +52,7 @@ defmodule EHealth.Mixfile do
      {:confex, "~> 1.4"},
      {:logger_json, "~> 0.3.0"},
      {:poison, "~> 3.1"},
+     {:ecto, "~> 2.1"},
      {:cowboy, "~> 1.1"},
      {:httpoison, "~> 0.11.1"},
      {:phoenix, "~> 1.3.0-rc"},
