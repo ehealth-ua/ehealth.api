@@ -122,6 +122,7 @@ API consumer **back-end** should use this method exchange Code Grant to Access T
         + meta (Response__Meta)
             + code: 201 (number)
         + data (Access_Token)
+            + msp_id: null (string, optional)
 
 ### Get oAuth Access Token details [GET /oauth/tokens/{access_token}]
 
@@ -133,6 +134,22 @@ This method is designed to be used only by eHealth API gateway.
 + Response 200 (application/json)
     + Attributes (Response_OK)
         + data (Access_Token)
+
+### Set an oAuth Access Token MSP Context [PATCH /oauth/tokens/{access_token}]
+
+This method is designed to be used only by eHealth API gateway.
+
++ Parameters
+    + access_token: `my-oauth-token` (string, required) - oAuth access token.
+
++ Request (application/json)
+    + Attributes
+        + msp_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (Access_Token)
+            + msp_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 
 
 # Group Internal. Master Patients Index
@@ -757,6 +774,23 @@ Exposed client credentials may be blocked for a security reasons, you will need 
         + meta (Response__Meta)
             + code: 201 (number)
         + data (Access_Token)
+            + msp_id: null (string, optional)
+
+### Set an oAuth Access Token Context [PATCH /api/oauth/tokens/{access_token}/actions/switch_context]
+
+Set a `:msp_id` context for user `:access_token`.
+
++ Parameters
+    + access_token: `my-oauth-token` (string, required) - oAuth access token.
+
++ Request (application/json)
+    + Attributes
+        + msp_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (Access_Token)
+            + msp_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 
 ## Phone verification [/api/phone_verification]
 
