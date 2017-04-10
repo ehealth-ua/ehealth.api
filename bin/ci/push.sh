@@ -5,15 +5,15 @@
 echo "Logging in into Docker Hub";
 docker login -u=$DOCKER_USERNAME -p=$DOCKER_PASSWORD;
 
-echo "Setting Gih user/password";
+echo "Setting Git user/password";
 git config --global user.email "travis@travis-ci.com";
 git config --global user.name "Travis-CI";
 git config --global push.default upstream;
 
 # When you use Travis-CI with public repos, you need to add user token so Travis will be able to push tags bag to repo.
 # After enabling this, dont forget to set $GITHUB_TOKEN and replace `origin` to `upstream` on lines 27-28.
-# REPO_URL="https://$GITHUB_TOKEN@github.com/$TRAVIS_REPO_SLUG.git";
-# git remote add upstream $REPO_URL &> /dev/null
+REPO_URL="https://$GITHUB_TOKEN@github.com/$TRAVIS_REPO_SLUG.git";
+git remote add upstream $REPO_URL &> /dev/null
 
 if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
   # Commit incremented version
