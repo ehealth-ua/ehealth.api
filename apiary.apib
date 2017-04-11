@@ -376,6 +376,74 @@ Response will contain only records that you have access to.
     + Attributes (Response_Collection)
         + data (array[Declaration_Full])
 
+## party [/party]
+
+### Create new party [POST]
+
+Method to create new party record.
+
++ Request (application/json)
+    + Attributes (`crud_party_post`)
+
++ Response 201 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (`crud_party_get`)
+
+
+### Update employee [PATCH /party/{id}]
+
+This method to update the employee info by ID.
+
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
+
++ Request (application/json)
+    + Attributes (crud_party_post)
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (crud_party_get)
+
+
+### Search for party [GET /party{?first_name,last_name,second_name,birth_date,tax_id,phone_number,starting_after,ending_before,limit}]
+
+Methods returns list of parties.
+
++ Parameters
+    + first_name: Петро (string, required)
+    + last_name: Іванов (string, required)
+    + second_name: Миколайович (string, optional)
+    + birth_date: `1991-08-19T00:00:00.000Z` (string, required) - ISO Datetime.
+    + tax_id: 3126509816 (string, optional)
+    + phone_number: `+380508887700` (string, optional)
+    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
+    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
+    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
+
++ Request (application/json)
+
++ Response 200 (application/json)
+    + Attributes (Response_Collection)
+        + data (array[`crud_party_get`])
+
+### Get party details [GET /party/{id}]
+
+Methods returns party details by ID.
+
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+
++ Request (application/json)
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (`crud_party_get`)
+
+
 ## Employees [/employees]
 
 ### Create new employee [POST]
@@ -403,11 +471,6 @@ This method to update the employee info by ID.
 
 
 + Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
-
     + Attributes (crud_employee_post)
 
 + Response 200 (application/json)
@@ -440,10 +503,6 @@ Methods returns list of employees.
 
 + Request (application/json)
 
-    + Headers
-
-            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
-
 + Response 200 (application/json)
     + Attributes (Response_Collection)
         + data (array[crud_employee_get])
@@ -457,10 +516,6 @@ Methods returns employee details by ID.
 
 + Request (application/json)
 
-    + Headers
-
-            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
-
 + Response 200 (application/json)
     + Attributes (Response_OK)
         + data (crud_employee_get)
@@ -470,14 +525,7 @@ Methods returns employee details by ID.
 This service should be used with `access_token` authetification method.
 
 + Parameters
-
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) 
-
-+ Request
-
-    + Headers
-
-            Authorization: Bearer mF_9.B5f-4.1JqM (string, optional) -- the Authorization is optional if `token` is passed
 
 
 + Response 200 (application/json)
@@ -489,7 +537,6 @@ This service should be used with `access_token` authetification method.
 This service should be used by invitation recipient that does not have `access_token`.
 
 + Parameters
-
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) 
     + `token`: `5241744750e8c2df4897c0d35775d9a2` (string, optional) - the secret token to ensure the resolving is made by the User
 
@@ -541,6 +588,7 @@ Expected that this end-point will be called from the Invitations UI.
     + Attributes (Response_OK)
         + data (Employee_Request_Short)
         
+
 ## Doctors [/doctors]
 
 ### Create new doctor [POST]
@@ -580,10 +628,6 @@ This method to update the Doctor related information.
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 
 + Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
     + Attributes (DoctorNew)
 
 + Response 200 (application/json)
@@ -648,55 +692,63 @@ This method to update the Doctor related information.
     + Attributes (Response_OK)
         + data (`crud_legal_entity_get`)
 
-## MSP [/msp]
 
-## Medical Service Providers [/medical_service_providers]
+### Create new division [POST /legal_entities/{legal_entity_id}/divisions/]
 
-TBD...
-
-### Register Medical Service Provider [POST]
+Method to create new division record.
 
 + Request (application/json)
-    + Attributes (Medical_Service_Provider)
+    + Attributes (`Division`)
 
 + Response 201 (application/json)
     + Attributes (Response_OK)
         + meta (Response__Meta)
             + code: 201 (number)
-        + data (Medical_Service_Provider)
-            + id: blahblah
+        + data (`crud_division_get`)
 
-### Get Medical Service Provider by ID [GET /medical_service_providers/{id}]
 
-This method allows to fetch MSP record details by ID
+### Update division [PATCH /legal_entities/{legal_entity_id}/divisions/{id}]
+
+This method to update the division info by ID.
+
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
 
 + Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
+    + Attributes (`Division`)
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
-        + data (MSP_Response)
-            + id: blahblah
+        + data (`crud_division_get`)
 
-### Search for Medical Service Provider [GET /medical_service_providers{?edrpou,name,type,starting_after,ending_before,limit}]
 
-This method allows to fetch list of similar MSP by edrpou or name.
-Result will be ordered by search result relevance.
+### Search Divisions [GET /legal_entities/{legal_entity_id}/divisions/{?type}]
+
+Methods returns list of legal entity divisions.
 
 + Parameters
-    + edrpou: 432234432 (number, optional)
-    + name: Борис (number, optional)
-    + type: private_hospital (number, optional)
-    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
-    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
-    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
+    + type: clinic (string, required)
+
++ Request (application/json)
 
 + Response 200 (application/json)
     + Attributes (Response_Collection)
-        + data (array[MSP_Response])
+        + data (array[`crud_division_get`])
+
+### Get division details [GET /legal_entities/{legal_entity_id}/divisions/{id}]
+
+Methods returns Division details by ID.
+
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+
++ Request (application/json)
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (`crud_division_get`)
 
 # Group Internal. Reports
 
@@ -1943,6 +1995,28 @@ Optional:
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
 
+### `crud_party`
++ first_name: Петро (string, required)
++ last_name: Іванов (string, required)
++ second_name: Миколайович (string, optional)
++ birth_date: `1991-08-19T00:00:00.000Z` (string, required)
++ gender: MALE, FEMALE (enum[string], required)
++ tax_id: 3126509816 (string, required)
++ documents (array[Document], optional)
++ phones (array[Phone], optional)
+
+
+### `crud_party_post`
++ include `crud_party`
+
+### `crud_party_get`
++ id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
++ include `crud_party`
++ inserted_at: `1991-08-19T00:00:00.000Z` (string, required)
++ inserted_by: `userid` (string, required)
++ updated_at: `1991-08-19T00:00:00.000Z` (string, required)
++ updated_by: `userid` (string, required)
+
 ## Employees
 ### `crud_employee`
 + party_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -2216,6 +2290,10 @@ Optional:
     - ambulant_clinic
     - fap
 
+### `crud_division_get`
++ id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
++ `legal_entity_id`: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
++ include `Division`
 
 ## `Owners`
 ### `Owner`
