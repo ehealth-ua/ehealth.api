@@ -776,7 +776,32 @@ Exposed client credentials may be blocked for a security reasons, you will need 
         + data (Access_Token)
             + msp_id: null (string, optional)
 
-### Set an oAuth Access Token Context [PATCH /api/oauth/tokens/{access_token}/actions/switch_context]
+### Use Refresh Token for Access Token extension [POST /api/oauth/tokens/{access_token}]
+
+Currently `access_token` and `refresh_token` are configured to have same lifetime, so we don't expect you to refresh it. 
+
+In future, you will be able to refresh access tokens to extend `access_token` lifetime.
+
++ Request (application/json)
+
+    + Headers
+
+            X-CSRF-Token: my-csrf-token
+
+    + Attributes (object)
+        + client_id: `msp-001` (string, required) - Medical Service Provider ID issued upon integration request. Used to identify application developer.
+        + client_secret: `msp-001-secret-key` (string, required) - Medical Service Provider secret key issued upon integration request. Used to identify application developer.
+        + refresh_token: `my-oauth-refresh-token` (string, required) - oAuth refresh token.
+        + `grant_type`: refresh_token (string, fixed) - oAuth Grant Type. Currently only `authorization_code` is supported.
+
++ Response 201 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (Access_Token)
+            + msp_id: null (string, optional)
+
+### Set an oAuth Access Token Context [PATCH /api/oauth/tokens/{access_token}]
 
 Set a `:msp_id` context for user `:access_token`.
 
