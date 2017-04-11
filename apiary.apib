@@ -593,7 +593,26 @@ This method to update the Doctor related information.
 
 ## Legal Entities [/legal_entities]
 
-### Get Legal Entities List [GET /legal_entities]
+### Get Legal Entities List [GET /legal_entities{?edrpou,type,status,legal_form,owner_property_type}]
+
++ Parameters
+    + edrpou: 5432345432 (string, optional)
+    + type (enum, optional)
+        - MSP
+        - MIS
+    + status: VERIFIED (enum, optional)
+        - VERIFIED
+        - NOT_VERIFIED
+    + owner_property_type: state (enum, optional)
+        - STATE
+        - PRIVATE
+    + legal_form: `ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА` (enum, optional)
+        - ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА
+        - АКЦІОНЕРНЕ ТОВАРИСТВО
+        - ВІДКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
+        - ЗАКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
+        - РЕЛІГІЙНА ОРГАНІЗАЦІЯ
+        - ІНШІ ОРГАНІЗАЦІЙНО-ПРАВОВІ ФОРМИ
 
 + Response 200 (application/json)
     + Attributes (Response_Collection)
@@ -628,6 +647,8 @@ This method to update the Doctor related information.
 + Response 200 (application/json)
     + Attributes (Response_OK)
         + data (`crud_legal_entity_get`)
+
+## MSP [/msp]
 
 ## Medical Service Providers [/medical_service_providers]
 
@@ -2210,6 +2231,23 @@ Optional:
 + phones (array[Phone], optional)
 
 ## `Medical_Service_Providers`
+
+### `crud_msp`
++ `legal_entity_id`: 5432345432 (string, required)
++ accreditation (MSP_Accreditation, required)
++ licenses (array[MSP_License], optional)
+
+### `crud_msp_get`
++ id: 5432345432 (string, required)
++ include `crud_msp`
+
+### `crud_msp_post`
++ include `crud_msp`
+
+### `crud_msp_patch`
++ accreditation (MSP_Accreditation, required)
++ licenses (array[MSP_License], optional)
+
 ### `Medical_Service_Provider`
 + name: Клініка Борис (string, required)
 + short_Name: Борис (string, required)
