@@ -635,6 +635,44 @@ Expected that this end-point will be called from the Invitations UI.
     + Attributes (Response_OK)
         + data (Employee_Request_Short)
 
+## Legal Entities [/legal_entities]
+
+### Get Legal Entities List [GET /legal_entities]
+
++ Response 200 (application/json)
+    + Attributes (Response_Collection)
+        + data (array[crud_legal_entity_get])
+
+### Get Legal Entity Details by ID [GET /legal_entities/{id}]
+
++ Parameters
+    + id: `1341234` (string)
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (`crud_legal_entity_get`)
+
+### Create Legal Entity [POST]
+
++ Request (application/json)
+    + Attributes (crud_legal_entity_post)
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (`crud_legal_entity_get`)
+
+### Update Legal Entity [PATCH /legal_entities/{id}]
+
++ Parameters
+    + id: `24352342` (string, required)
+
++ Request (application/json)
+    + Attributes (crud_legal_entity_patch)
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (`crud_legal_entity_get`)
+
 ## Medical Service Providers [/medical_service_providers]
 
 TBD...
@@ -2022,8 +2060,71 @@ Optional:
 + include Employee_Full
 + include user
 
-
 ## `Legal_Entities`
+
+### `crud_legal_entity`
++ name: Клініка Борис (string, required)
++ short_Name: Борис (string, required)
++ type (enum, required)
+    - MSP
+    - MIS
++ edrpou: 5432345432 (string, required)
++ addresses (array[Address], required)
++ phones (array[Phone], required)
++ email: email@example.com (array[Email], required)
++ active: true (boolean)
++ public_name: Клініка Борис (string, required)
++ kved: 86.1 (array, required)
++ status: VERIFIED (enum, required)
+    - VERIFIED
+    - NOT_VERIFIED
++ owner_property_type: state (enum, required)
+    - STATE
+    - PRIVATE
++ legal_form: `ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА` (enum, required)
+    - ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА
+    - АКЦІОНЕРНЕ ТОВАРИСТВО
+    - ВІДКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
+    - ЗАКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
+    - РЕЛІГІЙНА ОРГАНІЗАЦІЯ
+    - ІНШІ ОРГАНІЗАЦІЙНО-ПРАВОВІ ФОРМИ
+
+### `crud_legal_entity_get`
++ id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
++ include `crud_legal_entity`
++ inserted_at: `1991-08-19T00:00:00.000Z` (string, required)
++ inserted_by: `userid` (string, required)
++ updated_at: `1991-08-19T00:00:00.000Z` (string, required)
++ updated_by: `userid` (string, required)
+
+### `crud_legal_entity_post`
++ include `crud_legal_entity`
+
+### `crud_legal_entity_patch`
++ name: Клініка Борис (string, optional)
++ short_Name: Борис (string, optional)
++ type (enum, optional)
+    - MSP
+    - MIS
++ addresses (array[Address], optional)
++ phones (array[Phone], optional)
++ email: email@example.com (array[Email], optional)
++ active: true (boolean)
++ public_name: Клініка Борис (string, optional)
++ status: VERIFIED (enum, optional)
+    - VERIFIED
+    - NOT_VERIFIED
++ owner_property_type: state (enum, optional)
+    - STATE
+    - PRIVATE
++ legal_form: `ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА` (enum, optional)
+    - ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА
+    - АКЦІОНЕРНЕ ТОВАРИСТВО
+    - ВІДКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
+    - ЗАКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
+    - РЕЛІГІЙНА ОРГАНІЗАЦІЯ
+    - ІНШІ ОРГАНІЗАЦІЙНО-ПРАВОВІ ФОРМИ
+
 ### `Legal_Entity_Short`
 + name: Клініка Борис (string, required)
 + short_Name: Борис (string, required)
@@ -2236,6 +2337,10 @@ Optional:
 ### Phone
 + type: MOBILE, LANDLINE (enum[string], required)
 + number: `+380503410870` (string, required)
+
+### Email
++ type: PERSONAL, PUBLIC (enum[string], required)
++ email: `email@example.com` (string, required)
 
 ### Document
 + type: PASSPORT (enum[string], required)
