@@ -297,88 +297,6 @@ Method returns only **requested** parameters, birth place and second name in add
 
 # Group Internal. Partnership Relations Management
 
-## Doctors [/doctors]
-
-### Create new employee [POST]
-
-Register new employee record for the existing user.
-
-Limitations:
-* only one doctor can be registered for one MPI
-
-+ Request (application/json)
-    + Attributes (Doctor)
-
-+ Response 201 (application/json)
-    + Attributes (Response_OK)
-        + meta (Response__Meta)
-            + code: 201 (number)
-        + data (Doctor_Full)
-
-### Get Doctor by ID [GET /doctors/{id}]
-
-This method allows to fetch doctor record details by ID. Only record where "is_active=true" should be returned.
-
-+ Parameters
-    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
-
-+ Response 200 (application/json)
-    + Attributes (Response_OK)
-        + data (Doctor_Full)
-
-### Update Doctor [PATCH /doctors/{id}]
-
-This method to update the Doctor related information.
-Personal information cannot be updated using this method.
-
-+ Parameters
-    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
-    + Attributes (Doctor_Update)
-
-+ Response 200 (application/json)
-    + Attributes (Response_OK)
-        + data (Doctor)
-
-### Search for a Doctor [GET /doctors{?first_name,last_name,second_name,speciality,region,area,msp_id,is_active,starting_after,ending_before,limit}]
-
-Methods returns list of doctors.
-At least one parameter has to be passed. Othervise - error. Only records where is_active=true should be returned.
-Purpose: for future to get dictionary of doctors for the patients.
-
-+ Parameters
-    + first_name: Петро (string, optional)
-    + last_name: Іванов (string, optional)
-    + second_name: Миколайович (string, optional)
-    + speciality: терапевт (string, optional)
-    + region: Київ (string, optional)
-    + area: `Дарницький район` (string, optional)
-    + msp_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
-    + is_active: true (boolean, optional) - Search only for active or disabled doctors.
-    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
-    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
-    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
-
-+ Response 200 (application/json)
-    + Attributes (Response_Collection)
-        + data (array[Doctor_Full])
 
 ## Declarations [/declarations]
 
@@ -463,24 +381,22 @@ Response will contain only records that you have access to.
 ### Create new employee [POST]
 
 Method to create new employee record for the MSP.
-`user_id` and msp_id should already exist.
+`party_id`, `devision_id` and msp_id should already exist.
 
 + Request (application/json)
-    + Attributes (Employee)
+    + Attributes (crud_employee_post)
 
 + Response 201 (application/json)
     + Attributes (Response_OK)
         + meta (Response__Meta)
             + code: 201 (number)
-        + data (object)
-            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + include `Employee`
+        + data (crud_employee_get)
+
 
 ### Update employee [PUT /employees/{id}]
 
 This method to update the employee info by ID.
 
-TODO: add verification logic. For ex. how and when is_active can be updated.
 
 + Parameters
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -492,31 +408,21 @@ TODO: add verification logic. For ex. how and when is_active can be updated.
 
             Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
 
-    + Attributes (object)
-        + title: лікар (string, required)
-        + speciality: Педіатрія (enum) (string, required)
-        + start_date: 2017-02-28 (string, required)
-        + expiry_date: 2017-02-28 (string, optional)
-        + is_active: true (boolean, required)
-        + status: approved (enum, required)
-        + creator_signature: MIIGlQYJKoZIhvcNAQcDoIIGhjCCBoICAQAxggEEMIIBAAIBADCBqTCBmzELMAkG (string, required)
-        + employee_signature: MIIGlQYJKoZIhvcNAQcDoIIGhjCCBoICAQAxggEEMIIBAAIBADCBqTCBmzELMAkG (string, required)
+    + Attributes (crud_employee_post)
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
-        + data (object)
-            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + Include `Employee`
-            + created_at: `2017-03-02T10:45:16.000Z` (string, optional)
-            + modified_at: `2017-03-02T10:45:16.000Z` (string, optional)
+        + data (crud_employee_get)
 
-### Search for an Employee [GET /employees{?user_id,msp_id,employee_type,is_active,status,starting_after,ending_before,limit}]
 
-Methods returns list of labour_contracts by doctor_id or msp_id or both.
+### Search for an Employee [GET /employees{?party_id,msp_id,division_id,employee_type,is_active,status,starting_after,ending_before,limit}]
+
+Methods returns list of employees.
 
 + Parameters
-    + `user_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - user_id of a doctor.
+    + `party_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - user_id of a doctor.
     + msp_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MSP ID.
+    + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - division ID.    
     + employee_type: doctor (enum)
         - doctor
         - hr
@@ -540,7 +446,7 @@ Methods returns list of labour_contracts by doctor_id or msp_id or both.
 
 + Response 200 (application/json)
     + Attributes (Response_Collection)
-        + data (array[Employee_Full])
+        + data (array[crud_employee_get])
 
 ### Get Employee details [GET /employees/{id}]
 
@@ -557,7 +463,7 @@ Methods returns employee details by ID.
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
-        + data (Employee_Full)
+        + data (crud_employee_get)
 
 ### Get Employee Request by ID [GET /employee_requests/{id}]
 
@@ -634,6 +540,56 @@ Expected that this end-point will be called from the Invitations UI.
 + Response 200 (application/json)
     + Attributes (Response_OK)
         + data (Employee_Request_Short)
+        
+## Doctors [/doctors]
+
+### Create new doctor [POST]
+
+Method to create new record in the employee_doctor table
+
+Limitations:
+* only one doctor can be registered for one employee record
+
++ Request (application/json)
+    + Attributes (DoctorNew)
+
++ Response 201 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (`crud_DoctorNew_get`)
+
+### Get Doctor Details by ID [GET /doctors/{id}]
+
+This method allows to fetch doctor record details by ID.
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
++ Request (application/json)
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (`crud_DoctorNew_get`)
+
+### Update Doctor [PATCH /doctors/{id}]
+
+This method to update the Doctor related information.
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
+    + Attributes (DoctorNew)
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (`crud_DoctorNew_get`)
+
 
 ## Legal Entities [/legal_entities]
 
@@ -1967,6 +1923,33 @@ Optional:
 + phones (array[Phone], optional)
 
 ## Employees
+### `crud_employee`
++ party_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ legal_entity_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ division_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ employee_type: doctor (enum)
+    - doctor
+    - hr
+    - admin
+    - owner
+    - accountant
++ position (key_value, required)
++ start_date: 2017-02-28 (string, required)
++ end_date: 2017-02-28 (string, optional)
++ active: true (boolean, required)
++ status: pending_verification (enum, required)
+
+### `crud_employee_get`
++ id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
++ include `crud_employee`
++ inserted_at: `1991-08-19T00:00:00.000Z` (string, required)
++ inserted_by: `userid` (string, required)
++ updated_at: `1991-08-19T00:00:00.000Z` (string, required)
++ updated_by: `userid` (string, required)
+
+### `crud_employee_post`
++ include `crud_employee`
+
 ### `Employee`
 + user_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + msp_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -2405,14 +2388,20 @@ Optional:
 + kved: 86.1 (string, optional)
 + what_licensed: реалізація наркотичних засобів (string, optional)
 
+### `key_value`
++ id
++ name
+
 ## DoctorsNew
 ### DoctorNew
 + education (array[Education], required)  - освіта
 + qualification (array[Qualification], optional) - підвищення кваліфікації
 + speciality (array[Speciality], required)
 + science_degree (ScienceDegree, optional)
-+ specialization (string, optional)
 
+### `crud_DoctorNew_get`
++ id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
++ include (DoctorNew)
 
 ### Education
 + country: UA (enum[string], required)
