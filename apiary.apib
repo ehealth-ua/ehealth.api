@@ -934,10 +934,10 @@ Method is used to verify that provided in declarartion request phone number is v
     + Attributes (Response__Process_OK)
         + data (OTP)
 
-### Complete OTP Verification [PATCH /api/otp_verifications/{id}/actions/complete]
+### Complete OTP Verification [PATCH /api/otp_verifications/{phone_number}/actions/complete]
 
 + Parameters
-  + id: 4 (string, required)
+    + `phone_number`: `+380508887700` (string, required)
 
 + Request (application/json)
 
@@ -952,11 +952,10 @@ Method is used to verify that provided in declarartion request phone number is v
     + Attributes (Response__Process_OK)
         + data (OTP)
 
-### Find Verifications by Phone Number [GET /api/otp_verifications{?phone_number,status}]
+### Find Verifications by Phone Number [GET /api/otp_verifications/{phone_number}]
 
 + Parameters
     + `phone_number`: `+380508887700` (string, required)
-    + `status`: `verified` (string, required)
 
 + Request (application/json)
 
@@ -965,8 +964,8 @@ Method is used to verify that provided in declarartion request phone number is v
             Authorization: Bearer mF_9.B5f-4.1JqM
 
 + Response 200 (application/json)
-    + Attributes (Response_Collection)
-        + data (array[OTP])
+    + Attributes (Response_OK)
+        + data (OTP)
 
 ## Declaration Requests [/api/declaration_requests]
 
