@@ -821,7 +821,7 @@ Methods returns global parameters for declarations.
 
 # Group Public. Medical Service Provider Integration Layer
 
-## oAuth UI [/api/oauth]
+## oAuth [/api/oauth]
 
 ### Show Login UI [GET /api/oauth/ui{?client_id,redirect_url,scope,response_type}]
 
@@ -843,9 +843,7 @@ For security purposes, we will set `X-Frame-Options: deny` header that will disa
 
             X-CSRF-Token: my-csrf-token
 
-## oAuth Tokens [/api/oauth/tokens]
-
-### Exchange oAuth Code Grant to Access Token [POST]
+### Exchange oAuth Code Grant to Access Token [POST /api/oauth/tokens]
 
 After obtaining oAuth Code Grant, it should be exchanged to an `access_token` **on your back-end**. 
 
@@ -875,7 +873,7 @@ Exposed client credentials may be blocked for a security reasons, you will need 
         + data (Access_Token)
             + msp_id: null (string, optional)
 
-### Use Refresh Token for Access Token extension [POST /api/oauth/tokens/{access_token}]
+### Use Refresh Token for Access Token extension [POST /api/oauth/tokens]
 
 Currently `access_token` and `refresh_token` are configured to have same lifetime, so we don't expect you to refresh it. 
 
@@ -886,6 +884,7 @@ In future, you will be able to refresh access tokens to extend `access_token` li
     + Headers
 
             X-CSRF-Token: my-csrf-token
+            Authorization: Bearer mF_9.B5f-4.1JqM
 
     + Attributes (object)
         + client_id: `mis-001` (string, required) - Medical Information System ID issued upon integration request. Used to identify application developer.
@@ -916,11 +915,11 @@ Set a `:msp_id` context for user `:access_token`.
         + data (Access_Token)
             + msp_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 
-## Phone verification [/api/phone_verification]
+## OTP Verification [/api/otp_verifications]
 
 Method is used to verify that provided in declarartion request phone number is valid and is in service
 
-### Send verification code [POST /api/phone_verification/send]
+### Initialize OTP Verification [POST]
 
 + Request (application/json)
 
@@ -929,13 +928,16 @@ Method is used to verify that provided in declarartion request phone number is v
             Authorization: Bearer mF_9.B5f-4.1JqM
     
     + Attributes (object)
-        + `phone_number`: `+380508887700` (string)
+        + `phone_number`: `+380508887700` (string, required)
 
 + Response 200 (application/json)
-    + Attributes (Response_OK)
-        + meta (Response__Meta)
+    + Attributes (Response__Process_OK)
+        + data (OTP)
 
-### Verify code [POST /api/phone_verification/verify]
+### Complete OTP Verification [PATCH /api/otp_verifications/{id}/actions/complete]
+
++ Parameters
+  + id: 4 (string, required)
 
 + Request (application/json)
 
@@ -944,37 +946,27 @@ Method is used to verify that provided in declarartion request phone number is v
             Authorization: Bearer mF_9.B5f-4.1JqM
     
     + Attributes (object)
-        + `phone_number`: `+380508887700` (string)
         + code: 395105 (number)
 
 + Response 200 (application/json)
-    + Attributes (Response_OK)
-        + meta (Response__Meta)
+    + Attributes (Response__Process_OK)
+        + data (OTP)
 
-### Check phone number [POST /api/phone_verification/check]
+### Find Verifications by Phone Number [GET /api/otp_verifications{?phone_number,status}]
+
++ Parameters
+    + `phone_number`: `+380508887700` (string, required)
+    + `status`: `verified` (string, required)
 
 + Request (application/json)
 
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
-    
-    + Attributes (object)
-        + `phone_number`: `+380508887700` (string)
 
 + Response 200 (application/json)
-    + Attributes (Response_OK)
-        + meta (Response__Meta)
-        + data (object)
-            + result: verified (string, required)
-
-+ Response 422 (application/json)
-    + Attributes (Response_Error)
-        + meta (Response__Meta)
-            + code: 422
-        + error
-            + type: unverified (string, required)
-            + message: `Unverified phone number` (string, required)
+    + Attributes (Response_Collection)
+        + data (array[OTP])
 
 ## Declaration Requests [/api/declaration_requests]
 
@@ -1483,7 +1475,39 @@ Response structure differs depending on employee type:
             + division (Division_Short)
             + `legal_entity` (`Legal_Entity_Short`)
 
-### Create or Update Employee via Employee Request [POST /employee_requests]
+### Update Employee [PATCH /employees/{employee_id}]
+
+Use this method change employee status or to update:
+* Person info
+* Employee info
+* Doctor Info
+
+This method does not require changes confirmation by the employee and should be limit by scopes
+
+The following fields can't be changed:
+* employee_type
+* tax_id
+* email
+
++ Parameters
+    + employee_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+    
+    + Attributes (`Employee_Update`)
+    
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (Employee_Request)
+            + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
+## Employee Requests [/api/employee_requests]
+
+### Create or Update Employee via Employee Request [POST]
 
 Employee_Request consist of the three mandatory parts:
 * Person info
@@ -1515,37 +1539,7 @@ For changes to take effect employee must confirm the changes
             + code: 201 (number)
         + data (Employee_Request_Short)
 
-### Update Employee [PATCH /employees/{employee_id}]
-
-Use this method change employee status or to update:
-* Person info
-* Employee info
-* Doctor Info
-
-This method does not require changes confirmation by the employee and should be limit by scopes
-
-The following fields can't be changed:
-* employee_type
-* tax_id
-* email
-
-+ Parameters
-    + employee_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer mF_9.B5f-4.1JqM
-    
-    + Attributes (`Employee_Update`)
-    
-+ Response 200 (application/json)
-    + Attributes (Response_OK)
-        + data (Employee_Request)
-            + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-
-### Get Employee Requests List [GET /employee_requests{?legal_entity_id,status,limit,starting_after,ending_before}]
+### Get Employee Requests List [GET /api/employee_requests{?legal_entity_id,status,limit,starting_after,ending_before}]
 
 + Parameters
     + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -1567,7 +1561,7 @@ The following fields can't be changed:
     + Attributes (Response_Collection)
         + data (array[`Employee_Request_Short`])
 
-### Get Employee Request by ID [GET /employee_requests/{id}]
+### Get Employee Request by ID [GET /api/employee_requests/{id}]
 
 This service should be used with `access_token` authetification method.
 
@@ -1708,7 +1702,7 @@ It returns:
                 - DECLINED
                 - VERIFICATION_EXP
 
-### Create/Update Legal Entity [POST]
+### Create/Update Legal Entity [PUT]
 
 Use this method to register a new Legal Entity.
 
@@ -1734,6 +1728,15 @@ Optional:
         + `signed_legal_entity_request`: `...` (string, required)
         + `signed_content_encoding`: base64 (string, required)
 
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (object)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + include `Legal_Entity_Request_Public`
+            + status: VERIFIED (enum, required)
+                - VERIFIED
+                - DECLINED
+                - VERIFICATION_EXP
 
 + Response 201 (application/json)
     + Attributes (Response__Process_OK)
@@ -2496,6 +2499,13 @@ Optional:
 + id
 + name
 
+## OTPs
+### OTP
++ id: 4 (string, required)
++ `phone_number`: `+380508887700` (string, required)
++ `check_digit`: 5 (number, required) - Check digit that will be first in sent OTP code. Can be validated as checksum by [Verhoeff algorithm](https://en.wikipedia.org/wiki/Verhoeff_algorithm).
+
+
 ## DoctorsNew
 ### DoctorNew
 + education (array[Education], required)  - освіта
@@ -2549,7 +2559,6 @@ Optional:
 + speciality: Педіатр (string, required)
 + issued_date: 2017-02-28 (string, required) - дата отримання сертифікату
 + certificate_number: 2017-02-28 (string, required)
-
 
 ### Speciality
 + speciality: Педіатрія (enum, required) - спеціальність
