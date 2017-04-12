@@ -295,8 +295,7 @@ Method returns only **requested** parameters, birth place and second name in add
     + Attributes (Response_OK)
         + data (Person_Full)
 
-# Group Internal. Partnership Relations Management
-
+# Group Internal. Partner Relationship Management
 
 ## Declarations [/declarations]
 
@@ -680,7 +679,9 @@ This method to update the Doctor related information.
         + data (`crud_legal_entity_get`)
 
 
-### Create new division [POST /legal_entities/{legal_entity_id}/divisions/]
+## Divisions [/divisions]
+
+### Create new division [POST]
 
 Method to create new division record.
 
@@ -694,7 +695,7 @@ Method to create new division record.
         + data (`crud_division_get`)
 
 
-### Update division [PATCH /legal_entities/{legal_entity_id}/divisions/{id}]
+### Update division [PATCH /divisions/{id}]
 
 This method to update the division info by ID.
 
@@ -711,12 +712,13 @@ This method to update the division info by ID.
         + data (`crud_division_get`)
 
 
-### Search Divisions [GET /legal_entities/{legal_entity_id}/divisions/{?type}]
+### Search Divisions [GET /divisions/{?type,legal_entity_id}]
 
 Methods returns list of legal entity divisions.
 
 + Parameters
-    + type: clinic (string, required)
+    + type: clinic (string, optional)
+    + `legal_entity_id`: 314083428 (string, optional)
 
 + Request (application/json)
 
@@ -724,7 +726,7 @@ Methods returns list of legal entity divisions.
     + Attributes (Response_Collection)
         + data (array[`crud_division_get`])
 
-### Get division details [GET /legal_entities/{legal_entity_id}/divisions/{id}]
+### Get division details [GET /divisions/{id}]
 
 Methods returns Division details by ID.
 
@@ -745,7 +747,7 @@ Method to create new record in the msp table
 
 
 + Request (application/json)
-    + Attributes (crud_msp)
+    + Attributes (`crud_msp_post`)
 
 + Response 201 (application/json)
     + Attributes (Response_OK)
@@ -753,12 +755,12 @@ Method to create new record in the msp table
             + code: 201 (number)
         + data (`crud_msp_get`)
 
-### Get MSP Details by ID [GET /msp/{id}]
+### Get MSP Details by ID [GET /msp/{legal_entity_id}]
 
 This method allows to fetch msp record details by ID.
 
 + Parameters
-    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+    + legal_entity_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 
 + Request (application/json)
 
@@ -766,12 +768,12 @@ This method allows to fetch msp record details by ID.
     + Attributes (Response_OK)
         + data (`crud_msp_get`)
 
-### Update MSP [PATCH /msp/{id}]
+### Update MSP [PATCH /msp/{legal_entity_id}]
 
 This method to update the MSP related information.
 
 + Parameters
-    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+    + legal_entity_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 
 + Request (application/json)
     + Attributes (`crud_msp_patch`)
@@ -1415,7 +1417,7 @@ According to the strong binding of the Employees to the Employer (legal entity)
 all GET-endpoints returning Employee info are mounted through the
 `/legal_entities/{legal_entity_id}` path.
 
-### Get Employees List [GET /employees{?legal_entity_id,status,type,limit,starting_after,ending_before}]
+### Get Employees List [GET /employees{?legal_entity_id,division_id,status,type,limit,starting_after,ending_before}]
 
 Use this end-point to obtain all Employees of the legal entity specified by the `legal_entity_id`. 
 
@@ -1425,6 +1427,7 @@ Method returns shortened details, to obtain full information - get Employee it b
 
 + Parameters
     + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+    + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0152` (string, optional)
     + status: ACTIVE (enum, optional)
         - ACTIVE
         - INACTIVE
@@ -1477,6 +1480,7 @@ Response structure differs depending on employee type:
     + Attributes (Response_OK)
         + data (Employee_Request)
             + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+            + division (Division_Short)
 
 ### Create or Update Employee via Employee Request [POST /employee_requests]
 
@@ -1923,9 +1927,9 @@ Optional:
 ## Declarations
 ### Declaration
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - id of the signed document stored on the Media content storage
-+ person_id: "d290f1ee-6c54-4b01-90e6-d701748f0851" (string, required)
-+ employee_id: "d290f1ee-6c54-4b01-90e6-d701748f0851" (string, required)
-+ division_id: "d290f1ee-6c54-4b01-90e6-d701748f0851" (string, required)
++ person_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ employee_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ division_id: `d290f1ee-6c54-4b01-90e6-d701748f0851`m (string, required)
 + scope (enum, required)
     - family_doctor
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
@@ -2159,6 +2163,7 @@ Optional:
 + party (object)
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
     + include `Party_Short`
++ division (`Division_Short`)
 
 ### `Employee_Full`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -2327,6 +2332,16 @@ Optional:
     - ambulant_clinic
     - fap
 
+### `Division_Short`
++ id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
++ name: Бориспільське відділення Клініки Борис (string, required)
++ `legal_entity_id`: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
++ type: clinic (enum, required)
+    - clinic
+    - ambulant_clinic
+    - fap
++ mountain_group: `group1` (string, optional)
+
 ### `crud_division_get`
 + id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
 + `legal_entity_id`: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
@@ -2354,7 +2369,6 @@ Optional:
 + licenses (array[MSP_License], optional)
 
 ### `crud_msp_get`
-+ id: 5432345432 (string, required)
 + include `crud_msp`
 
 ### `crud_msp_post`
