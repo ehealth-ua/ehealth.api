@@ -2277,7 +2277,6 @@ Optional:
     - clinic
     - ambulant_clinic
     - fap
-+ mountain_group: `group1` (string, optional)
 
 ### `Division_Details`
 + id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
@@ -2298,6 +2297,7 @@ Optional:
 + `legal_entity_id`: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
 + include `Division`
 + mountain_group: `group1` (string, optional)
++ active: true (boolean, required)
 
 ## `Owners`
 ### `Owner`
@@ -2412,8 +2412,9 @@ Optional:
 + country: UA (enum[string], required)
 + area: Житомирська (string, optional)
 + region: Бердичівський (string, optional)
-+ city: Київ (string, required)
-+ city_type: CITY (enum[string], required)
++ settlement: Київ (string, optional)
++ settlement_type: CITY (enum[string], optional)
++ settlement_id: 43432432 (string, required)
 + street: `вул. Ніжинська` (string, optional)
 + building: 15 (string, required)
 + apartment: 23 (string, optional)
