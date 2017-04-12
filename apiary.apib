@@ -235,7 +235,7 @@ Method returns only **requested** parameters, birth place and second name in add
     + birth_date: `1991-08-19T00:00:00.000Z` (string, required) - ISO Datetime.
     + tax_id: 3126509816 (string, optional)
     + phone_number: `+380508887700` (string, optional)
-    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
+    + limit: 20 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
     + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
     + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
 
@@ -1436,7 +1436,7 @@ Method returns shortened details, to obtain full information - get Employee it b
         - DOCTOR
         - HR
         - ACCOUNTANT
-    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
+    + limit: 20 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
     + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
     + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
 
@@ -1481,6 +1481,7 @@ Response structure differs depending on employee type:
         + data (Employee_Request)
             + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
             + division (Division_Short)
+            + `legal_entity` (`Legal_Entity_Short`)
 
 ### Create or Update Employee via Employee Request [POST /employee_requests]
 
@@ -1600,7 +1601,7 @@ Method returns only **requested** parameters, birth place and second name in add
     + birth_date: `1991-08-19T00:00:00.000Z` (string, required) - ISO Datetime.
     + tax_id: 3126509816 (string, optional)
     + phone_number: `+380508887700` (string, optional)
-    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
+    + limit: 20 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
     + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
     + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
 
@@ -1684,7 +1685,6 @@ It returns:
     + Attributes (Response_Collection)
         + data (array)
             + (object)
-                + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
                 + include `Legal_Entity_Short`
 
 ### Get Legal Entity by ID [GET /api/legal_entities/{id}]
@@ -1765,7 +1765,6 @@ Optional:
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + data (object)
-            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
             + include `Legal_Entity_Short`
 
 # Data Structures
@@ -1910,20 +1909,6 @@ Optional:
 + licenses (array[Medical_License], required)
 + education (array[Medical_Education], required)
 
-### `Doctor_Full`
-+ include `Doctor`
-+ status: PENDING_APPROVAL, APPROVED, DECLINED
-+ is_active: true (boolean, required)
-+ name: Іванов Іван ванович (string)
-
-### `Doctor_Update`
-+ include `Doctor`
-+ is_active: true (boolean, optional)
-+ status (enum, optional)
-    - pending_approval
-    - approved
-    - declined
-
 ## Declarations
 ### Declaration
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - id of the signed document stored on the Media content storage
@@ -1962,6 +1947,7 @@ Optional:
     + process_data_consent: true (boolean)
 + `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Employee ID with `type=DOCTOR` selected from available Employees as a third contract party.
 + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Registered Medical Service Provider Division identifier.
++ `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Registered Medical Service Provider Division identifier.
 + scope (enum, required)
     - family doctor
 
@@ -1976,6 +1962,7 @@ Optional:
 + employee (Employee_Minimal)
 + `legal_entity` (`Medical_Service_Provider`)
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ division (`Division_Details`)
 + scope (enum, required)
     - family doctor
 
@@ -1987,23 +1974,15 @@ Optional:
 + person (Person_Minimal)
 + employee (Employee_Minimal)
 + `legal_entity` (`MSP_Short`)
-
-### `Declaration_Request_Full`
-+ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-+ start_date: `2017-03-02T10:45:16.000Z` (string, required)
-+ end_date: `2017-03-02T10:45:16.000Z` (string, required)
-+ person (Person_Minimal)
-+ employee (Employee_Minimal)
-+ `legal_entity` (MSP_Short)
++ division (`Division_Short`)
 
 ### `Declaration_Details`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2017-03-02T10:45:16.000Z` (string, required)
 + person(`Person_Short`)
-+ doctor (object)
-    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-    + name: `Григорій Квітка Основ'яненко`
++ employee (`Employee_Short`)
++ division (`Division_Short`)
 + `legal_entity` (MSP_Details)
 + created_at: `2017-03-02T10:45:16.000Z` (string, optional)
 + modified_at: `2017-03-02T10:45:16.000Z` (string, optional)
@@ -2147,7 +2126,9 @@ Optional:
 + inserted_at: `2018-03-02T10:45:16.000Z` (string, required)
 
 ### `Employee_Request_Details`
-+ include `Employee_Request_Short`
++ include `Employee_Request`
++ division (`Division_Short`)
++ `legal_entity` (`Legal_Entity_Short`)
 
 ### `Employee_Short`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -2165,27 +2146,14 @@ Optional:
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
     + include `Party_Short`
 + division (`Division_Short`)
-
-### `Employee_Full`
-+ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-+ Include `Employee`
-+ is_active: true (boolean, required)
-+ status: approved (enum)
-    - approved
-    - pending_approval
-    - closed
-+ created_at: `2017-03-02T10:45:16.000Z` (string, optional)
-+ modified_at: `2017-03-02T10:45:16.000Z` (string, optional)
-
-### `Employee_Details`
-+ include Employee_Full
-+ include user
++ `legal_entity` (`Legal_Entity_Short`)
++ doctor (DoctorNew_Short)
 
 ## `Legal_Entities`
 
 ### `crud_legal_entity`
 + name: Клініка Борис (string, required)
-+ short_Name: Борис (string, required)
++ short_name: Борис (string, required)
 + type (enum, required)
     - MSP
     - MIS
@@ -2223,7 +2191,7 @@ Optional:
 
 ### `crud_legal_entity_patch`
 + name: Клініка Борис (string, optional)
-+ short_Name: Борис (string, optional)
++ short_name: Борис (string, optional)
 + type (enum, optional)
     - MSP
     - MIS
@@ -2247,11 +2215,17 @@ Optional:
     - ІНШІ ОРГАНІЗАЦІЙНО-ПРАВОВІ ФОРМИ
 
 ### `Legal_Entity_Short`
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + name: Клініка Борис (string, required)
-+ short_Name: Борис (string, required)
++ short_name: Борис (string, required)
 + type (enum, required)
     - MSP
     - MIS
++ edrpou: 5432345432 (string, required)
++ status: VERIFIED (enum, required)
+    - VERIFIED
+    - DECLINED
+    - VERIFICATION_EXP
 + owner_property_type: state (enum, required)
     - state
     - private
@@ -2262,41 +2236,12 @@ Optional:
     - ЗАКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
     - РЕЛІГІЙНА ОРГАНІЗАЦІЯ
     - ІНШІ ОРГАНІЗАЦІЙНО-ПРАВОВІ ФОРМИ
-+ edrpou: 5432345432 (string, required)
-+ status: VERIFIED (enum, required)
-    - VERIFIED
-    - DECLINED
-    - VERIFICATION_EXP
 
 ## `Legal_Entity_Requests`
-### `Legal_Entity_Request_Short`
-+ name: Клініка Борис (string, required)
-+ short_Name: Борис (string, required)
-+ type (enum, required)
-    - MIS
-    - MSP
-+ `owner_property_type`: state (enum, required)
-    - state
-    - private
-+ legal_form: `ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА` (enum, required)
-    - ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА
-    - АКЦІОНЕРНЕ ТОВАРИСТВО
-    - ВІДКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
-    - ЗАКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
-    - РЕЛІГІЙНА ОРГАНІЗАЦІЯ
-    - ІНШІ ОРГАНІЗАЦІЙНО-ПРАВОВІ ФОРМИ
-+ edrpou: 5432345432 (string, required)
-+ status: BASIC_VERIFICATION (enum, required)
-    - BASIC_VERIFICATION
-    - ADD_VER_EXP
-    - ADD_VERIFICATION
-    - CANCELED
-    - DECLINED
-    - APPROVED
 
 ### `Legal_Entity_Request_Public`
 + name: Клініка Борис (string, required)
-+ short_Name: Борис (string, optional)
++ short_name: Борис (string, optional)
 + public_name: Борис (string, optional)
 + legal_form (enum, required)
 + type (enum, required)
@@ -2334,9 +2279,13 @@ Optional:
     - fap
 + mountain_group: `group1` (string, optional)
 
+### `Division_Details`
++ id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
++ `legal_entity_id`: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
++ include Division
+
 ### `Division_Short`
 + id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
-+ name: Бориспільське відділення Клініки Борис (string, required)
 + `legal_entity_id`: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
 + type: clinic (enum, required)
     - clinic
@@ -2382,7 +2331,7 @@ Optional:
 
 ### `Medical_Service_Provider`
 + name: Клініка Борис (string, required)
-+ short_Name: Борис (string, required)
++ short_name: Борис (string, required)
 + legal_form: `ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА` (enum, required)
     - ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА
     - АКЦІОНЕРНЕ ТОВАРИСТВО
@@ -2401,7 +2350,7 @@ Optional:
 ### `MSP_Short`
 + id: d290f1ee-6c54-4b01-90e6-d701748f0851
 + name: Клініка Борис (string, required)
-+ short_Name: Борис (string, required)
++ short_name: Борис (string, required)
 + legal_form: `ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА` (enum, required)
     - ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА
     - АКЦІОНЕРНЕ ТОВАРИСТВО
@@ -2425,12 +2374,6 @@ Optional:
 + public_name: ЦПМСД №1 (string, optional)
 + edrpou: 5432345432 (string, required)
 + addresses (array[Address], optional
-+ created_at: `2017-02-28T15:12:54.000Z` (string, optional)
-+ modified_at: `2017-02-28T15:12:54.000Z` (string, optional)
-
-### `MSP_Response`
-+ id: d290f1ee-6c54-4b01-90e6-d701748f0851
-+ include Medical_Service_Provider
 + created_at: `2017-02-28T15:12:54.000Z` (string, optional)
 + modified_at: `2017-02-28T15:12:54.000Z` (string, optional)
 
@@ -2463,17 +2406,6 @@ Optional:
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
 + public_key:FDSAF768ASD6F78A6FD87ADS6FA8DS7F678A678DF (string, required)
-
-### `user_full`
-+ include user
-+ id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
-+ created_at: `2017-02-28T15:12:54.000Z` (string, optional)
-+ modified_at: `2017-02-28T15:12:54.000Z` (string, optional)
-+ is_active: true (boolean, required)
-+ status: approved (enum)
-    - approved
-    - pending_approval
-    - closed
 
 ### Address
 + type: RESIDENCE, REGISTRATION (enum[string], required)
@@ -2568,6 +2500,10 @@ Optional:
 + qualification (array[Qualification], optional) - підвищення кваліфікації
 + speciality (array[Speciality], required)
 + science_degree (ScienceDegree, optional)
+
+### `DoctorNew_Short`
++ id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
++ speciality (array[Speciality], required)
 
 ### `crud_DoctorNew_get`
 + id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
