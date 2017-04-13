@@ -98,7 +98,7 @@ CREATE TABLE IF NOT EXISTS `mydb`.`division` (
   `emails` JSON NULL,
   `mountain_group` ENUM('') NULL,
   `type` ENUM('ambulant_clinic', 'clinic') NOT NULL,
-  `active` TINYINT NOT NULL,
+  `is_active` BOOLEAN NOT NULL,
   INDEX `fk_division_msp1_idx` (`legal_entity_id` ASC),
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_division_msp1`
