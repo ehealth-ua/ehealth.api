@@ -295,7 +295,7 @@ Method returns only **requested** parameters, birth place and second name in add
     + Attributes (Response_OK)
         + data (Person_Full)
 
-# Group Internal. Partner Relationship Management
+# Group Internal. OPS DB
 
 ## Declarations [/declarations]
 
@@ -361,6 +361,7 @@ Response will contain only records that you have access to.
     + Attributes (Response_Collection)
         + data (array[`crud_Declaration_get`])
 
+# Group Internal. Partner Relationship Management
 
 ## Party [/party]
 
@@ -574,51 +575,6 @@ Expected that this end-point will be called from the Invitations UI.
     + Attributes (Response_OK)
         + data (Employee_Request_Short)
         
-
-## Doctors [/doctors]
-
-### Create new doctor [POST]
-
-Method to create new record in the employee_doctor table
-
-Limitations:
-* only one doctor can be registered for one employee record
-
-+ Request (application/json)
-    + Attributes (DoctorNew)
-
-+ Response 201 (application/json)
-    + Attributes (Response_OK)
-        + meta (Response__Meta)
-            + code: 201 (number)
-        + data (`crud_DoctorNew_get`)
-
-### Get Doctor Details by ID [GET /doctors/{id}]
-
-This method allows to fetch doctor record details by ID.
-
-+ Parameters
-    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-
-+ Request (application/json)
-
-+ Response 200 (application/json)
-    + Attributes (Response_OK)
-        + data (`crud_DoctorNew_get`)
-
-### Update Doctor [PATCH /doctors/{id}]
-
-This method to update the Doctor related information.
-
-+ Parameters
-    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-
-+ Request (application/json)
-    + Attributes (DoctorNew)
-
-+ Response 200 (application/json)
-    + Attributes (Response_OK)
-        + data (`crud_DoctorNew_get`)
 
 
 ## Legal Entities [/legal_entities]
@@ -2012,6 +1968,7 @@ Optional:
 + end_date: 2017-02-28 (string, optional)
 + active: true (boolean, required)
 + status: pending_verification (enum, required)
++ `Doctor` (DoctorNew, optional)
 
 ### `crud_employee_get`
 + id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
@@ -2468,10 +2425,6 @@ Optional:
 ### `DoctorNew_Short`
 + id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
 + speciality (array[Speciality], required)
-
-### `crud_DoctorNew_get`
-+ id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
-+ include (DoctorNew)
 
 ### Education
 + country: UA (enum[string], required)
