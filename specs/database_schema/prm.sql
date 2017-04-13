@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS `mydb`.`legal_entity` (
   `name` TEXT NOT NULL,
   `short_name` TEXT NULL,
   `type` ENUM('msp', 'mis', 'drug_store') NOT NULL,
-  `edrpou` TEXT NOT NULL,
+  `edrpou` CHAR(8) NOT NULL,
   `addresses[]` JSON NOT NULL,
   `phones[]` JSON NULL,
   `emails[]` JSON NULL,
