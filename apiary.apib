@@ -739,48 +739,7 @@ Methods returns Division details by ID.
     + Attributes (Response_OK)
         + data (`crud_division_get`)
 
-## Medical Service Providers [/msp]
 
-### Create new msp [POST]
-
-Method to create new record in the msp table
-
-
-+ Request (application/json)
-    + Attributes (`crud_msp_post`)
-
-+ Response 201 (application/json)
-    + Attributes (Response_OK)
-        + meta (Response__Meta)
-            + code: 201 (number)
-        + data (`crud_msp_get`)
-
-### Get MSP Details by ID [GET /msp/{legal_entity_id}]
-
-This method allows to fetch msp record details by ID.
-
-+ Parameters
-    + legal_entity_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-
-+ Request (application/json)
-
-+ Response 200 (application/json)
-    + Attributes (Response_OK)
-        + data (`crud_msp_get`)
-
-### Update MSP [PATCH /msp/{legal_entity_id}]
-
-This method to update the MSP related information.
-
-+ Parameters
-    + legal_entity_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-
-+ Request (application/json)
-    + Attributes (`crud_msp_patch`)
-
-+ Response 200 (application/json)
-    + Attributes (Response_OK)
-        + data (`crud_msp_get`)
 
 # Group Internal. Reports
 
@@ -2176,6 +2135,7 @@ Optional:
     - ЗАКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
     - РЕЛІГІЙНА ОРГАНІЗАЦІЯ
     - ІНШІ ОРГАНІЗАЦІЙНО-ПРАВОВІ ФОРМИ
++ `medical_service_provider` (MSP, optional)
 
 ### `crud_legal_entity_get`
 + id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
@@ -2212,6 +2172,7 @@ Optional:
     - ЗАКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
     - РЕЛІГІЙНА ОРГАНІЗАЦІЯ
     - ІНШІ ОРГАНІЗАЦІЙНО-ПРАВОВІ ФОРМИ
++ `medical_service_provider` (MSP, optional)
 
 ### `Legal_Entity_Short`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -2258,7 +2219,6 @@ Optional:
     - ІНШІ ОРГАНІЗАЦІЙНО-ПРАВОВІ ФОРМИ
 + edrpou: 5432345432 (string, required)
 + kved: 86.1 (array, required)
-+ services (array[Medical_Service], required)
 + addresses (array[Address], required)
 + phones (array[Phone], required)
 + email: email@example.com (string, required)
@@ -2380,10 +2340,6 @@ Optional:
 + licenses (array[MSP_License], optional)
 + accreditation (MSP_Accreditation, required)
 
-## `Medical_Services`
-### `Medical_Service`
-+ id
-+ name
 
 ## `Access_Tokens`
 ### `Access_Token`
