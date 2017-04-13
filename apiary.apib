@@ -721,6 +721,34 @@ Methods returns agregated numbers of declarations.
     + Attributes (Response_OK)
         + data (array [Declaration_Report])
 
+# Group Internal. Media Content Storage
+
+Media Content Storage is using Google Cloud Storage as storage back-end and [Signed URL's](https://cloud.google.com/storage/docs/access-control/create-signed-urls-program) for access control policies. 
+Before starting upload or reading a file, you need to access a short-lived Signed URL to access the resource.
+
+After obtaining token upload should be proceeded with [Google Cloud Storage API](https://cloud.google.com/storage/docs/xml-api/put-object-upload).
+
+## Resources [/media_content_storage]
+
+### Request Access to the Media Content Storage Resource [POST /media_content_storage/tokens]
+
++ Request
+    + Attributes
+        + bucket
+        + action (enum)
+            - PUT
+            - GET
+        + resource_id
+
++ Response
+    + Attributes
+        + bucket
+        + action (enum)
+            - PUT
+            - GET
+        + resource_id
+        + signed_url
+
 # Group Internal. Global parameters and Products
 
 ## Global parameters [/global_parameters]
@@ -2086,12 +2114,12 @@ Optional:
     - STATE
     - PRIVATE
 + legal_form: `ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА` (enum, required)
-    - `ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА`
+    - ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА
     - АКЦІОНЕРНЕ ТОВАРИСТВО
     - ВІДКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
     - ЗАКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
     - РЕЛІГІЙНА ОРГАНІЗАЦІЯ
-    - `ІНШІ ОРГАНІЗАЦІЙНО-ПРАВОВІ ФОРМИ`
+    - ІНШІ ОРГАНІЗАЦІЙНО-ПРАВОВІ ФОРМИ
 + `medical_service_provider` (MSP, optional)
 
 ### `crud_legal_entity_get`
@@ -2123,12 +2151,12 @@ Optional:
     - STATE
     - PRIVATE
 + legal_form: `ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА` (enum, optional)
-    - `ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА`
+    - ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА
     - АКЦІОНЕРНЕ ТОВАРИСТВО
     - ВІДКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
     - ЗАКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
     - РЕЛІГІЙНА ОРГАНІЗАЦІЯ
-    - `ІНШІ ОРГАНІЗАЦІЙНО-ПРАВОВІ ФОРМИ`
+    - ІНШІ ОРГАНІЗАЦІЙНО-ПРАВОВІ ФОРМИ
 + `medical_service_provider` (MSP, optional)
 
 ### `Legal_Entity_Short`
@@ -2487,7 +2515,7 @@ Optional:
 + action (string, required) - Affordance action.
 + url (string, required)
 
-## Global Parameters and Products
+## Global Parameters and Products 
 ### `Global_Parameters`
 + term: 30 (string, required) - термін дії декларації
 + term_unit: DAYS (enum, required) - одиниця виміру терміну дії
