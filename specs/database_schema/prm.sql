@@ -95,7 +95,7 @@ CREATE TABLE IF NOT EXISTS `mydb`.`division` (
   `address` JSON NOT NULL,
   `external_id` TEXT NULL,
   `phones[]` JSON NOT NULL,
-  `email` JSON NULL,
+  `emails` JSON NULL,
   `mountain_group` ENUM('') NULL,
   `type` ENUM('ambulant_clinic', 'clinic') NOT NULL,
   `active` TINYINT NOT NULL,
