@@ -56,7 +56,7 @@ name | varchar | not null
 address | jsonb | not null
 external_id | varchar
 phones | jsonb[] | not null
-email | jsonb
+email | varchar
 mountain_group | enum('')
 type | enum('ambulant_clinic','clinic') | not null
 inserted_at | timestamp | not null
@@ -113,7 +113,7 @@ type | enum('msp','mis','drug_store') | not null
 edrpou | varchar(8) | not null
 addresses | jsonb[] | not null
 phones | jsonb[]
-emails | jsonb[]
+email | varchar
 inserted_at | timestamp | not null
 created_by | uuid | not null
 updated_at | timestamp
