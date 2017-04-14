@@ -173,7 +173,7 @@ updated_at | timestamp | not null
 parties
 doctors
 divisions
-msps
+medical_service_providers
 employees
 legal_entities
 capitation_contracts
@@ -202,6 +202,6 @@ employees *--1 legal_entities
 parties 1--+ employees
 employees *--1 divisions
 employees 1--? employee_doctors
-msps +--1 legal_entities
+medical_service_providers 1--1 legal_entities
 parties 1--? doctors
 products *--1 legal_entities
