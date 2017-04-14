@@ -292,6 +292,34 @@ Response will contain only records that you have access to.
 
 # Group Internal. Partner Relationship Management
 
+## Dictionaries [/dictionaries]
+
+### Get dictionaries [GET]
+
++ Response 200 (application/json)
+
+        {
+          "meta": {
+            "url": "http://example.com/resource",
+            "type": "object",
+            "code": 200,
+            "idempotency_key": "idemp-ssjssdjoa8308u0us0",
+            "request_id": "req-adasdoijasdojsda"
+          },
+          "data": {
+            "GENDER": {
+              "MALE": "Чоловік",
+              "FEMALE": "Жінка"
+            },
+            "DOCUMENT_TYPE": {
+              "PASSPORT": "Паспорт",
+              "NATIONAL_ID": "Біометричний паспорт",
+              "BIRTH_CERTIFICATE": "Свідоцтво про народження",
+              "TEMPORARY_CERTIFICATE": "Тимчасовий паспорт"
+            }
+          }
+        }
+
 ## Party [/party]
 
 ### Create new party [POST]
@@ -2391,10 +2419,6 @@ Optional:
     - BIRTH_CERTIFICATE
     - TEMPORARY_CERTIFICATE
 + number: 120518 (string, required)
-
-### Dict
-+ dictionary_name
-    + `dictionary_key`: `dictionary_descritpion` (string, optional)
 
 ### `Medical_Certificate`
 + name: Диплом доктора медицини (string, required)
