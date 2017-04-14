@@ -7,7 +7,7 @@ end_date | date
 status | enum('') | not null
 signed_at | timestamp
 services | jsonb[]
-created_at | timestamp | not null
+inserted_at | timestamp | not null
 updated_at | timestamp | not null
 
 [declarations]
@@ -19,7 +19,7 @@ start_date | date | not null
 end_date | date | not null
 status | enum('') | not null
 signed_at | timestamp | not null
-created_at | timestamp | not null
+inserted_at | timestamp | not null
 created_by | uuid | not null
 updated_at | timestamp | not null
 updated_by | uuid | not null
@@ -31,14 +31,14 @@ division_id | uuid | not null
 id | uuid | not null
 created_by | uuid | not null
 data | jsonb | not null
-created_at | timestamp | not null
+inserted_at | timestamp | not null
 updated_at | timestamp | not null
 
 [declarations_signed]
 id | uuid | not null
 document_type | enum('declaration','msp_registration') | not null
 document | jsonb | not null
-created_at | timestamp | not null
+inserted_at | timestamp | not null
 updated_at | timestamp | not null
 
 [declaration_log_changes]
@@ -46,7 +46,7 @@ id | uuid | not null
 user_id | varchar | not null
 resource | varchar | not null
 what_changed | json not null
-created_at | timestamp | not null
+inserted_at | timestamp | not null
 
 [divisions]
 id | uuid | not null
@@ -58,7 +58,7 @@ phones | jsonb[] | not null
 email | jsonb
 mountain_group | enum('')
 type | enum('ambulant_clinic','clinic') | not null
-created_at | timestamp | not null
+inserted_at | timestamp | not null
 updated_at | timestamp | not null
 
 [doctors]
@@ -70,7 +70,7 @@ professional_level | jsonb | not null
 science_degree | jsonb
 academic_degree | jsonb
 specialization | varchar
-created_at | timestamp | not null
+inserted_at | timestamp | not null
 updated_at | timestamp | not null
 
 [employees]
@@ -82,7 +82,7 @@ position | varchar | not null
 start_date | date | not null
 end_date | date
 is_active | boolean | not null
-created_at | timestamp | not null
+inserted_at | timestamp | not null
 created_by | uuid | not null
 updated_by | uuid | not null
 updated_at | timestamp | not null
@@ -95,13 +95,13 @@ education | jsonb[] | not null
 qualification | jsonb[]
 specialities | jsonb[] | not null
 science_degree | jsonb
-created_at | timestamp | not null
+inserted_at | timestamp | not null
 updated_at | timestamp | not null
 
 [employee_requests]
 id | uuid | not null
 data | jsonb | not null
-created_at | timestamp | not null
+inserted_at | timestamp | not null
 updated_at | timestamp | not null
 
 [legal_entities]
@@ -113,7 +113,7 @@ edrpou | varchar(8) | not null
 addresses | jsonb[] | not null
 phones | jsonb[]
 emails | jsonb[]
-created_at | timestamp | not null
+inserted_at | timestamp | not null
 created_by | uuid | not null
 updated_at | timestamp
 updated_by | uuid | not null
@@ -129,13 +129,13 @@ id | uuid | not null
 user_id | uuid | not null
 resource | varchar | not null
 what_changed | jsonb | not null
-created_at | timestamp | not null
+inserted_at | timestamp | not null
 
 [medical_service_providers]
 id | uuid | not null
 accreditation | jsonb | not null
 license | jsonb[]
-created_at | timestamp | not null
+inserted_at | timestamp | not null
 updated_at | timestamp | not null
 
 [parties]
@@ -149,7 +149,7 @@ tax_id | varchar
 national_id | varchar
 documents | jsonb[]
 phones | jsonb[]
-created_at | timestamp | not null
+inserted_at | timestamp | not null
 created_by | uuid | not null
 updated_at | timestamp | not null
 updated_by | uuid | not null
@@ -158,14 +158,14 @@ updated_by | uuid | not null
 id | uuid | not null
 name | varchar | not null
 parameters | jsonb[] | not null
-created_at | timestamp | not null
+inserted_at | timestamp | not null
 updated_at | timestamp | not null
 
 [ukr_med_registry]
 id | uuid | not null
 edrpou | varchar(8) | not null
 name | varchar | not null
-created_at | timestamp | not null
+inserted_at | timestamp | not null
 updated_at | timestamp | not null
 
 (prm)
