@@ -26,6 +26,7 @@ updated_by | uuid | not null
 is_active | boolean
 scope | enum('') | not null
 division_id | uuid | not null
+legal_entity_id | varchar | not null
 
 [declaration_requests]
 id | uuid | not null
