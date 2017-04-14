@@ -761,6 +761,25 @@ Methods returns global parameters for declarations.
     + Attributes (Response_OK)
         + data (Global_Parameters)
 
+# Group Internal. Digital Signature
+
+## Verification [/verification]
+
+### Digital signature [POST /digitalsignature]
+
+Method checks digital signature and returns result.
+
++ Request (application/json)
+    + Attributes
+        + signature: `c3Qgb2YgdGhlIG1pbmQsIH` (string, required) - P7 file in Base64 format.
+
++ Response 200 (application/json)
+    + Attributes
+        + meta (Response__Meta)
+        + data (object, optional)
+            + content: `TWFuIGlzIGRpc3Rpbmd1aXN` (string, required) - Data in Base64 format.
+            + is_valid: true (boolean, required) - Operation result. True - verification success, False - verification failed.
+            + certificate_info (object, required) - Certificate content.
 
 # Group Public. Medical Service Provider Integration Layer
 
