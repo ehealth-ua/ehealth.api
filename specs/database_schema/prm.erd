@@ -110,7 +110,7 @@ id | uuid | not null
 name | varchar | not null
 short_name | varchar
 type | enum('msp','mis','drug_store') | not null
-edrpou | varchar(8) | not null
+edrpou | varchar(8) | not null unique
 addresses | jsonb[] | not null
 phones | jsonb[]
 email | varchar
@@ -146,7 +146,7 @@ first_name | varchar | not null
 second_name | varchar
 birth_date | date | not null
 gender | enum('gender') | not null
-tax_id | varchar
+tax_id | varchar unique
 national_id | varchar
 documents | jsonb[]
 phones | jsonb[]
