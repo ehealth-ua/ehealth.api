@@ -858,6 +858,15 @@ Set a `:msp_id` context for user `:access_token`.
         + data (Access_Token)
             + msp_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 
+## Dictionaries [/api/dictionaries]
+
+Method is used to retreive eHealth dictionaries
+
+### Get dectionaries [GET]
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+
 ## OTP Verification [/api/otp_verifications]
 
 Method is used to verify that provided in declarartion request phone number is valid and is in service
@@ -1814,7 +1823,7 @@ Optional:
 + death_date: `2015-04-07T00:00:00.000Z` (string, optional)
 + confident_persons (array[Person])  - Should be set if this Person is disabled, underage, etc.
 + is_active: true (boolean, required)
-+ history (array)
++ merged_ids (array)
     + (object)
         + id: `7bca069f-21e4-4546-90cf-b65e3f39d93d` (string, required)
 + inserted_at: `2017-03-02T10:45:16.000Z` (string, optional)
