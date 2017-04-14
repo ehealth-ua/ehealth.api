@@ -7,6 +7,8 @@ end_date | date
 status | enum('') | not null
 signed_at | timestamp
 services | jsonb[]
+created_at | timestamp | not null
+updated_at | timestamp | not null
 
 [declarations]
 id | uuid | not null
@@ -21,27 +23,30 @@ created_at | timestamp | not null
 created_by | uuid | not null
 updated_at | timestamp | not null
 updated_by | uuid | not null
-active | boolean
+is_active | boolean
 scope | enum('') | not null
 division_id | uuid | not null
 
 [declaration_requests]
 id | uuid | not null
-creator_id | varchar | not null
+created_by | uuid | not null
 data | jsonb | not null
-ts | timestamp | not null
+created_at | timestamp | not null
+updated_at | timestamp | not null
 
 [declarations_signed]
 id | uuid | not null
 document_type | enum('declaration','msp_registration') | not null
 document | jsonb | not null
+created_at | timestamp | not null
+updated_at | timestamp | not null
 
 [declaration_log_changes]
 id | uuid | not null
 user_id | varchar | not null
 resource | varchar | not null
 what_changed | json not null
-ts | timestamp | not null
+created_at | timestamp | not null
 
 [divisions]
 id | uuid | not null
@@ -53,6 +58,8 @@ phones | jsonb[] | not null
 email | jsonb
 mountain_group | enum('')
 type | enum('ambulant_clinic','clinic') | not null
+created_at | timestamp | not null
+updated_at | timestamp | not null
 
 [doctors]
 id | uuid | not null
@@ -63,6 +70,8 @@ professional_level | jsonb | not null
 science_degree | jsonb
 academic_degree | jsonb
 specialization | varchar
+created_at | timestamp | not null
+updated_at | timestamp | not null
 
 [employees]
 id | uuid | not null
@@ -72,32 +81,35 @@ division_id | uuid | not null
 position | varchar | not null
 start_date | date | not null
 end_date | date
-active | boolean | not null
+is_active | boolean | not null
 created_at | timestamp | not null
 created_by | uuid | not null
 updated_by | uuid | not null
+updated_at | timestamp | not null
 status | enum('') | not null
 employee_type | enum('doctor','hr','owner','accountant') | not null
 
 [employee_doctors]
 id | uuid | not null
-id | uuid | not null
 education | jsonb[] | not null
 qualification | jsonb[]
 specialities | jsonb[] | not null
 science_degree | jsonb
+created_at | timestamp | not null
+updated_at | timestamp | not null
 
 [employee_requests]
-id | int(11) | not null
+id | uuid | not null
 data | jsonb | not null
-ts | timestamp | not null
+created_at | timestamp | not null
+updated_at | timestamp | not null
 
 [legal_entities]
 id | uuid | not null
 name | varchar | not null
 short_name | varchar
 type | enum('msp','mis','drug_store') | not null
-edrpou | varchar | not null
+edrpou | varchar(8) | not null
 addresses | jsonb[] | not null
 phones | jsonb[]
 emails | jsonb[]
@@ -105,7 +117,7 @@ created_at | timestamp | not null
 created_by | uuid | not null
 updated_at | timestamp
 updated_by | uuid | not null
-active | boolean | not null
+is_active | boolean | not null
 public_name | varchar
 kveds | jsonb | not null
 status | enum('new','verified') | not null
@@ -117,12 +129,14 @@ id | uuid | not null
 user_id | uuid | not null
 resource | varchar | not null
 what_changed | jsonb | not null
-ts | timestamp | not null
+created_at | timestamp | not null
 
-[msps]
+[medical_service_providers]
 id | uuid | not null
 accreditation | jsonb | not null
 license | jsonb[]
+created_at | timestamp | not null
+updated_at | timestamp | not null
 
 [parties]
 id | uuid | not null
@@ -144,34 +158,15 @@ updated_by | uuid | not null
 id | uuid | not null
 name | varchar | not null
 parameters | jsonb[] | not null
-
-[registration_requests]
-id | uuid | not null
-legal_entity_id | uuid
-creator_id | uuid | not null
-data | jsonb | not null
-email | varchar | not null
-creator_signature | varchar | not null
-status | enum('') | not null
-verification_id | uuid | not null
-
-[users]
-id | uuid | not null
-party_id | uuid
-email | varchar | not null
-user_name | varchar | not null
 created_at | timestamp | not null
-created_by | uuid | not null
 updated_at | timestamp | not null
-updated_by | uuid | not null
-status | enum('active','closed') | not null
-credentials | jsonb | not null
-scopes | varchar[] | not null
 
 [ukr_med_registry]
 id | uuid | not null
-edrpou | varchar | not null
+edrpou | varchar(8) | not null
 name | varchar | not null
+created_at | timestamp | not null
+updated_at | timestamp | not null
 
 (prm)
 parties
@@ -185,10 +180,6 @@ products
 employee_doctors
 log_changes
 ukr_med_registry
-
-(auth)
-users
-registration_requests
 
 (ops_db)
 declarations
@@ -212,5 +203,4 @@ employees *--1 divisions
 employees 1--? employee_doctors
 msps +--1 legal_entities
 parties 1--? doctors
-parties ?--+ users
 products *--1 legal_entities
