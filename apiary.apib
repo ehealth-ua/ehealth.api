@@ -156,21 +156,6 @@ This method is designed to be used only by eHealth API gateway.
 
 ## Persons [/persons]
 
-To make sure that records will be de-duplicated, please make sure to send search request before creating a new record.
-
-### Check that Patient exists by ID [HEAD /persons/{id}]
-
-+ Parameters
-    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
-
-+ Response 200 (application/json)
-
 ### Get Patient by ID [GET /persons/{id}]
 
 + Parameters
@@ -187,7 +172,7 @@ To make sure that records will be de-duplicated, please make sure to send search
         + data (`Person_Full`)
 
 
-### Create Patient [POST]
+### Create or Update person [POST]
 
 + Request (application/json)
 
@@ -195,30 +180,12 @@ To make sure that records will be de-duplicated, please make sure to send search
 
             Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
 
-    + Attributes (Person)
+    + Attributes (Person_Request)
 
 + Response 201 (application/json)
     + Attributes (Response_OK)
         + meta (Response__Meta)
             + code: 201 (number)
-        + data (`Person_Full`)
-
-### Update Patient [PATCH /persons/{id}]
-
-+ Parameters
-    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
-
-    + Attributes (Person)
-        + is_active: true (boolean, required)
-
-+ Response 200 (application/json)
-    + Attributes (Response_OK)
         + data (`Person_Full`)
 
 
@@ -256,44 +223,6 @@ Method returns only **requested** parameters, birth place and second name in add
         + error (Response__Error, fixed-type)
             + type: `too_many_results`
             + message: `This API method returns only exact match results, please retry with more specific search result` (string)
-
-## Confident Persons [/persons/{id}/confident_persons]
-
-### Add Confidant Person [POST /persons/{id}/confident_persons]
-
-+ Parameters
-    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Person ID
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
-
-    + Attributes (object)
-        + person_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - Confident Person ID
-
-+ Response 201 (application/json)
-    + Attributes (Response_OK)
-        + meta (Response__Meta)
-            + code: 201 (number)
-        + data (Person_Full)
-
-### Remove Confident Person [DELETE /persons/{id}/confident_persons/{confident_person_id}]
-
-+ Parameters
-    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Person ID
-    + confident_person_id: `d290f1ee-6c54-4b01-90e6-d701748f0852` (string, required)
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
-
-+ Response 200 (application/json)
-    + Attributes (Response_OK)
-        + data (Person_Full)
 
 # Group Internal. OPS DB
 
@@ -1883,15 +1812,14 @@ Optional:
 + include `Person`
 + emergency_contact (object)
     + include `Emergency_Contact`
-+ confidant_person (object) - Should be set if this Person is disabled, underage, etc.
++ confidant_person (object, optional) - Should be set if this Person is disabled, underage, etc.
     + relation_type: trustee (enum)
         - trustee
     + include `Confidant_Person`
 
 ### `Person_Full`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-+ Include Person
-+ death_date: `2015-04-07T00:00:00.000Z` (string, optional)
++ Include Person_Request
 + confident_persons (array[Person])  - Should be set if this Person is disabled, underage, etc.
 + is_active: true (boolean, required)
 + merged_ids (array)
