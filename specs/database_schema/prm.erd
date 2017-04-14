@@ -13,8 +13,8 @@ updated_at | timestamp | not null
 [declarations]
 id | uuid | not null
 declaration_signed_id | uuid | not null
-employee_id | varchar | not null
-patient_id | varchar | not null
+employee_id | uuid | not null
+patient_id | uuid | not null
 start_date | date | not null
 end_date | date | not null
 status | enum('') | not null
@@ -26,7 +26,7 @@ updated_by | uuid | not null
 is_active | boolean
 scope | enum('') | not null
 division_id | uuid | not null
-legal_entity_id | varchar | not null
+legal_entity_id | uuid | not null
 
 [declaration_requests]
 id | uuid | not null
@@ -44,9 +44,9 @@ updated_at | timestamp | not null
 
 [declaration_log_changes]
 id | uuid | not null
-user_id | varchar | not null
+user_id | uuid | not null
 resource | varchar | not null
-what_changed | json not null
+what_changed | jsonb | not null
 inserted_at | timestamp | not null
 
 [divisions]
