@@ -1,0 +1,218 @@
+[capitation_contract]
+id | varchar(36) | NOT NULL
+msp_id | varchar(36) | NOT NULL
+product_id | varchar(36) | NOT NULL
+start_date | datetime | NOT NULL
+end_date | datetime
+status | enum('') | NOT NULL
+signed_at | datetime
+services | json[]
+
+[declaration]
+id | varchar(36) | NOT NULL
+declaration_signed_id | varchar(36) | NOT NULL
+employee_id | varchar(45) | NOT NULL
+patient_id | text | NOT NULL
+start_date | datetime | NOT NULL
+end_date | datetime | NOT NULL
+status | enum('') | NOT NULL
+signed_at | datetime | NOT NULL
+created_at | datetime | NOT NULL
+created_by | text | NOT NULL
+updated_at | datetime | NOT NULL
+updated_by | text | NOT NULL
+active | tinyint(4)
+scope | enum('') | NOT NULL
+division_id | varchar(45) | NOT NULL
+
+[declaration_request]
+id | varchar(36) | NOT NULL
+creator_id | text | NOT NULL
+data | json | NOT NULL
+TS | timestamp | NOT NULL
+
+[declaration_signed]
+id | varchar(36) | NOT NULL
+document_type | enum('declaration','msp_registration') | NOT NULL
+document | json | NOT NULL
+
+[declaration_log_changes]
+id | VARCHAR(36) NOT NULL
+user_id | VARCHAR(45) | NOT NULL
+resource | TEXT | NOT NULL
+what_changed | JSON NOT NULL
+TS | TIMESTAMP | NOT NULL
+
+[division]
+id | varchar(36) | NOT NULL
+msp_id | varchar(36) | NOT NULL
+name | varchar(45) | NOT NULL
+address | json | NOT NULL
+external_id | text
+phones | json[] | NOT NULL
+email | json
+mountain_group | enum('')
+type | enum('ambulant_clinic','clinic') | NOT NULL
+
+[doctor]
+id | varchar(36) | NOT NULL
+education | json[] | NOT NULL
+qualification | json[]
+speciality | enum('терапевт','педіатр','сімейний лікар')[] | NOT NULL
+professional_level | json | NOT NULL
+science_degree | json
+academic_degree | json
+specialization | text
+
+[employee]
+id | varchar(36) | NOT NULL
+legal_entity_id | varchar(36) | NOT NULL
+party_id | varchar(36) | NOT NULL
+division_id | varchar(45) | NOT NULL
+position | text | NOT NULL
+start_date | datetime | NOT NULL
+end_date | datetime
+active | tinyint(4) | NOT NULL
+created_at | timestamp | NOT NULL
+created_by | text | NOT NULL
+updated_by | text | NOT NULL
+status | enum('') | NOT NULL
+employee_type | enum('doctor','hr','owner','accountant') | NOT NULL
+
+[employee_doctor]
+id | varchar(36) | NOT NULL
+id | varchar(36) | NOT NULL
+education | json[] | NOT NULL
+qualification | json[]
+specialities | json[] | NOT NULL
+science_degree | json
+
+[employee_requests]
+id | int(11) | NOT NULL
+data | json | NOT NULL
+TS | timestamp | NOT NULL
+
+[legal_entity]
+id | varchar(36) | NOT NULL
+name | text | NOT NULL
+short_name | text
+type | enum('msp','mis','drug_store') | NOT NULL
+edrpou | text | NOT NULL
+addresses | json[] | NOT NULL
+phones | json[]
+emails | json[]
+created_at | datetime | NOT NULL
+created_by | text | NOT NULL
+updated_at | datetime
+updated_by | text
+active | tinyint(4) | NOT NULL
+public_name | varchar(45)
+kveds | json | NOT NULL
+status | enum('new','verified') | NOT NULL
+owner_property_type | enum('state','private') | NOT NULL
+legal_form | enum('ТОВ','ФОП') | NOT NULL
+
+[log_changes]
+id | varchar(36) | NOT NULL
+user_id | varchar(45) | NOT NULL
+resource | text | NOT NULL
+what_changed | json | NOT NULL
+TS | timestamp | NOT NULL
+
+[msp]
+id | varchar(36) | NOT NULL
+id | varchar(36) | NOT NULL
+accreditation | json | NOT NULL
+license | json[]
+
+[party]
+id | varchar(36) | NOT NULL
+id | varchar(36) | NOT NULL
+last_name | text | NOT NULL
+first_name | text | NOT NULL
+second_name | text
+birth_date | date | NOT NULL
+gender | enum('GENDER') | NOT NULL
+tax_id | text
+national_id | text
+documents | json
+phones | json
+created_at | datetime | NOT NULL
+created_by | text | NOT NULL
+updated_at | datetime | NOT NULL
+updated_by | text | NOT NULL
+
+[product]
+id | varchar(36) | NOT NULL
+name | text | NOT NULL
+parameters | json[] | NOT NULL
+
+[registration_request]
+id | varchar(36) | NOT NULL
+msp_id | varchar(45)
+creator_id | varchar(45) | NOT NULL
+data | json | NOT NULL
+email | text | NOT NULL
+creator_signature | text | NOT NULL
+status | enum('') | NOT NULL
+verification_id | varchar(45) | NOT NULL
+
+[users]
+id | varchar(36) | NOT NULL
+party_id | varchar(26)
+email | text | NOT NULL
+user_name | varchar(45) | NOT NULL
+inserted_at | datetime | NOT NULL
+inserted_by | text
+updated_at | datetime | NOT NULL
+updated_by | text | NOT NULL
+status | enum('ACTIVE','CLOSED') | NOT NULL
+credentials | json | NOT NULL
+scopes | text[] | NOT NULL
+
+[ukr_med_registry]
+id | VARCHAR(36) | NOT NULL,
+edrpou | VARCHAR(45) | NOT NULL,
+name | TEXT | NOT NULL
+
+(PRM)
+party
+doctor
+division
+msp
+employee
+legal_entity
+capitation_contract
+product
+employee_doctor
+log_changes
+ukr_med_registry
+
+(Auth)
+users
+registration_request
+
+(OPS_DB)
+declaration
+declaration_log_changes
+
+(IL_DB)
+declaration_request
+employee_requests
+
+(MediaStorage)
+declaration_signed
+
+capitation_contract 1--1 legal_entity
+capitation_contract *--1 product
+declaration 1--1 declaration_signed
+employee 1--* declaration
+division +--1 legal_entity
+employee *--1 legal_entity
+party 1--+ employee
+employee *--1 division
+employee 1--? employee_doctor
+msp +--1 legal_entity
+party 1--? doctor
+party ?--+ users
+product *--1 legal_entity
