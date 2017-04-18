@@ -147,7 +147,6 @@ second_name | varchar
 birth_date | date | not null
 gender | enum('gender') | not null
 tax_id | varchar unique
-national_id | varchar
 documents | jsonb[]
 phones | jsonb[]
 inserted_at | timestamp | not null
