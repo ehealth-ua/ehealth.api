@@ -294,7 +294,51 @@ Response will contain only records that you have access to.
 
 ## Dictionaries [/dictionaries]
 
-### Get dictionaries [GET]
+### Get dictionaries [GET /dictionaries{?name}]
+
++ Parameters
+    + name: DOCUMENT_TYPE (string, optional)
+
++ Response 200 (application/json)
+
+        {
+          "meta": {
+            "url": "http://example.com/resource",
+            "type": "object",
+            "code": 200,
+            "idempotency_key": "idemp-ssjssdjoa8308u0us0",
+            "request_id": "req-adasdoijasdojsda"
+          },
+          "data": {
+            "GENDER": {
+              "MALE": "Чоловік",
+              "FEMALE": "Жінка"
+            },
+            "DOCUMENT_TYPE": {
+              "PASSPORT": "Паспорт",
+              "NATIONAL_ID": "Біометричний паспорт",
+              "BIRTH_CERTIFICATE": "Свідоцтво про народження",
+              "TEMPORARY_CERTIFICATE": "Тимчасовий паспорт"
+            }
+          }
+        }
+
+### Update dictionary [PATCH /dictionaries]
+
++ Request (application/json)
+
+        {
+           "GENDER":{
+              "MALE":"Чоловік",
+              "FEMALE":"Жінка"
+           },
+           "DOCUMENT_TYPE":{
+              "PASSPORT":"Паспорт",
+              "NATIONAL_ID":"Біометричний паспорт",
+              "BIRTH_CERTIFICATE":"Свідоцтво про народження",
+              "TEMPORARY_CERTIFICATE":"Тимчасовий паспорт"
+           }
+        }
 
 + Response 200 (application/json)
 
@@ -652,6 +696,65 @@ Methods returns Division details by ID.
     + Attributes (Response_OK)
         + data (`crud_division_get`)
 
+## Ukrainian medical registry records [/ukr_med_registry]
+
+Registry of all the MSP's that has the `state` ownership type 
+### Create new ukr_med_registry record [POST]
+
+Method to create new ukr_med_registry record.
+
++ Request (application/json)
+    + Attributes (`crud_ukr_med_registry_post`)
+
++ Response 201 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (`crud_ukr_med_registry_get`)
+
+
+### Update ukr_med_registry record [PATCH /ukr_med_registry/{id}]
+
+This method to update the ukr_med_registry info by ID.
+
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
+
++ Request (application/json)
+    + Attributes (crud_ukr_med_registry_post)
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (crud_ukr_med_registry_get)
+
+
+### Search for the ukr_med_registry record [GET /ukr_med_registry{?edrpou}]
+
+Methods returns list of ukr_med_registry records.
+
++ Parameters
+    + edrpou: 123456 (string, required)
+ 
++ Request (application/json)
+
++ Response 200 (application/json)
+    + Attributes (Response_Collection)
+        + data (array[`crud_ukr_med_registry_get`])
+
+### Get the ukr_med_registry details [GET /ukr_med_registry/{id}]
+
+Methods returns ukr_med_registry details by ID.
+
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+
++ Request (application/json)
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (`crud_ukr_med_registry_get`)
 
 
 # Group Internal. Reports
@@ -2368,6 +2471,23 @@ Optional:
 + licenses (array[MSP_License], optional)
 + accreditation (MSP_Accreditation, required)
 
+## `Ukr_med_registries`
+### `ukr_med_registry`
++ edrpou: 5432345432 (string, required)
++ name: Клініка Борис (string, optional)
+
+### `crud_ukr_med_registry_post`
++ include `ukr_med_registry`
+
+### `crud_ukr_med_registry_get`
++ id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
++ include `ukr_med_registry`
++ inserted_at: `1991-08-19T00:00:00.000Z` (string, required)
++ inserted_by: `userid` (string, required)
++ updated_at: `1991-08-19T00:00:00.000Z` (string, required)
++ updated_by: `userid` (string, required)
+
+
 
 ## `Access_Tokens`
 ### `Access_Token`
@@ -2557,6 +2677,22 @@ Optional:
 ### Affordance
 + action (string, required) - Affordance action.
 + url (string, required)
+
+## Dictionaries
+### `Dictionary`
++ name: DOCUMENT_TYPE (string, required) - Unique dictionary name
++ label (array)
+    - S
+    - E
+
+### `Dictionary_Value`
++ `dictionary_name`: DOCUMENT_TYPE (string, required)
++ code: PASSPORT (string, required)
++ description: Паспорт (string, required)
++ label (array)
+    - S
+    - E
++ active: true (boolean, required)
 
 ## Global Parameters and Products 
 ### `Global_Parameters`
