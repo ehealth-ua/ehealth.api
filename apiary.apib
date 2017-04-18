@@ -151,6 +151,66 @@ This method is designed to be used only by eHealth API gateway.
         + data (Access_Token)
             + msp_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 
+## oAuth Invites [/oauth/invites]
+
+### Create user invite [POST]
+
++ Request (application/json)
+    + Attributes
+        + email: email@example.com (string, required)
+        + data (object)
+
++ Response 201 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + email: email@example.com (string, required)
+            + expires_at: `2017-08-19T00:00:00.000Z` (string, required) - ISO Datetime.
+
++ Response 404 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta)
+            + code: 404 (number)
+        + error (Response__Error)
+            + type: NOT_FOUND (string)
+            + message: `Object not found` (string)
+
++ Response 400 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta)
+            + code: 400 (number)
+        + error (Response__Error)
+            + type: USER_EXISTS (string)
+            + message: `User already exists` (string)
+
+### Confirm user invite [POST /oauth/invites/{id}/actions/approve]
+
++ Request (application/json)
+    + Attributes
+        + password: password (string, required)
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (object)
+            + user_id: 60f523a7-c223-4b12-b5a7-b82a53bba94f (string, required)
+
++ Response 404 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta)
+            + code: 404 (number)
+        + error (Response__Error)
+            + type: NOT_FOUND (string)
+            + message: `Object not found` (string)
+
++ Response 400 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta)
+            + code: 400 (number)
+        + error (Response__Error)
+            + type: EXPIRED (string)
+            + message: `User already exists` (string)
 
 # Group Internal. Master Patients Index
 
