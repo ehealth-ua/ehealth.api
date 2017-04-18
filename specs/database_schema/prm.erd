@@ -14,7 +14,7 @@ updated_at | timestamp | not null
 id | uuid | not null
 declaration_signed_id | uuid | not null
 employee_id | uuid | not null
-patient_id | uuid | not null
+person_id | uuid | not null
 start_date | date | not null
 end_date | date | not null
 status | enum('') | not null
