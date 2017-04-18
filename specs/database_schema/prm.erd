@@ -164,9 +164,11 @@ updated_at | timestamp | not null
 [ukr_med_registry]
 id | uuid | not null
 edrpou | varchar(8) | not null
-name | varchar | not null
+name | varchar
 inserted_at | timestamp | not null
+created_by | uuid | not null
 updated_at | timestamp | not null
+updated_by | uuid | not null
 
 (prm)
 parties
