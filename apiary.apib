@@ -212,6 +212,19 @@ This method is designed to be used only by eHealth API gateway.
             + type: EXPIRED (string)
             + message: `User already exists` (string)
 
+## oAuth Users [/oauth/users]
+
+### Get User [GET /oauth/users{?id,email}]
+
++ Parameters
+    + id: 60f523a7-c223-4b12-b5a7-b82a53bba94f (string, optional)
+    + email: email@example.com (string, optional)
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (object)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+
 # Group Internal. Master Patients Index
 
 ## Persons [/persons]
