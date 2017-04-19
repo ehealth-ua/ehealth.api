@@ -920,6 +920,50 @@ Method checks digital signature and returns result.
             + signer (object, required) - Certificate content. Contains any available signed data extracted from P7 file.
                 + ssn: 383827373 (string, optional)
 
+# Group Internal. Gandalf
+
+## Gandalf [/api.gndf.io/api]
+
+### Authentication method decision [POST /v1/tables/58f62b96e79e8521f51b5754/decisions]
+
+Method checks request with rules in AuthMethod table, and returns decision based on processed steps.
+
++ Request (application/json)
+
+    + Headers
+    
+            X-Application: 58eca20fe79e8563e803dc18
+            Authorization: Basic YmJlMGUxMGFkMTc4ZTBlMGY3MmM1Nzg4NjU0ZTQ1MDkwNTFhYjAzMzpmODQ4ZTIyNjFiYWM4M2EzZjhkMjM4ODc4NzUxOWMxZTQzZjViYjAx
+
+    + Attributes
+        + phone_availability: true (boolean, required)
+        + preferable_auth_method: `OTP_TRUSTEE` (string, required)
+
++ Response 200 (application/json)
+    + Attributes
+        + meta (object, required)
+            + code: 200 (number, required)
+        + data (object, optional)
+            + _id:`58f70df5e79e8521f451dcf0` (string, required)
+            + table (object, required)
+                + _id: `58f62b96e79e8521f51b5754` (string, required) - table UUID
+                + title: `AuthMethod` (string, required) - table name
+                + description: `Authentication method decision` (string, required)
+                + matching_type: `decision` (string, required) - table type: decision/scoring
+                + variant (object, required)
+                    + _id: `58f62b96e79e8521f51b5753` (string, required)
+                    + title: `AuthMethod` (string, required)
+                    + description: `Authentication method decision` (string, required)
+            + application: `58eca20fe79e8563e803dc18` (string, required) - application UUID
+            + title: `method is OTP_TRUSTEE` (string, required) - final decision title
+            + description: `Phone available and method OTP_TRUSTEE` (string, required) - final decision description
+            + `final_decision`: `OTP_TRUSTEE` (string, required) - final decision
+            + request (object, required)
+                + phone_availability: true (boolean, required)
+                + preferable_auth_method: `OTP_TRUSTEE` (string, required)
+            + created_at: `2017-04-19T07:12:53+0000` (string, required) - date created at
+            + updated_at: `2017-04-19T07:12:53+0000` (string, required) - date updated at
+
 # Group Public. Medical Service Provider Integration Layer
 
 ## oAuth [/api/oauth]
