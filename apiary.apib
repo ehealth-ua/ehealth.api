@@ -373,69 +373,20 @@ Response will contain only records that you have access to.
     + name: DOCUMENT_TYPE (string, optional)
 
 + Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (array[`Dictionary`])
 
-        {
-          "meta": {
-            "url": "http://example.com/resource",
-            "type": "object",
-            "code": 200,
-            "idempotency_key": "idemp-ssjssdjoa8308u0us0",
-            "request_id": "req-adasdoijasdojsda"
-          },
-          "data": {
-            "GENDER": {
-              "MALE": "Чоловік",
-              "FEMALE": "Жінка"
-            },
-            "DOCUMENT_TYPE": {
-              "PASSPORT": "Паспорт",
-              "NATIONAL_ID": "Біометричний паспорт",
-              "BIRTH_CERTIFICATE": "Свідоцтво про народження",
-              "TEMPORARY_CERTIFICATE": "Тимчасовий паспорт"
-            }
-          }
-        }
+### Update dictionary [PATCH /dictionaries/{name}]
 
-### Update dictionary [PATCH /dictionaries]
++ Parameters
+    + name: DOCUMENT_TYPE (string, required)
 
 + Request (application/json)
-
-        {
-           "GENDER":{
-              "MALE":"Чоловік",
-              "FEMALE":"Жінка"
-           },
-           "DOCUMENT_TYPE":{
-              "PASSPORT":"Паспорт",
-              "NATIONAL_ID":"Біометричний паспорт",
-              "BIRTH_CERTIFICATE":"Свідоцтво про народження",
-              "TEMPORARY_CERTIFICATE":"Тимчасовий паспорт"
-           }
-        }
+    + Attributes (Dictionary)
 
 + Response 200 (application/json)
-
-        {
-          "meta": {
-            "url": "http://example.com/resource",
-            "type": "object",
-            "code": 200,
-            "idempotency_key": "idemp-ssjssdjoa8308u0us0",
-            "request_id": "req-adasdoijasdojsda"
-          },
-          "data": {
-            "GENDER": {
-              "MALE": "Чоловік",
-              "FEMALE": "Жінка"
-            },
-            "DOCUMENT_TYPE": {
-              "PASSPORT": "Паспорт",
-              "NATIONAL_ID": "Біометричний паспорт",
-              "BIRTH_CERTIFICATE": "Свідоцтво про народження",
-              "TEMPORARY_CERTIFICATE": "Тимчасовий паспорт"
-            }
-          }
-        }
+    + Attributes (Response_OK)
+        + data (array[`Dictionary`])
 
 ## Party [/party]
 
@@ -1069,56 +1020,11 @@ Each dictionary is an object that contains *{key}*:*{value}* pairs where:
 * ***{key}*** is a dictionary record
 * ***{value}*** is a dictionary record description
 
-**Example:**
-```
-{
-  "meta": {
-    "url": "http://example.com/resource",
-    "type": "object",
-    "code": 200,
-    "idempotency_key": "idemp-ssjssdjoa8308u0us0",
-    "request_id": "req-adasdoijasdojsda"
-  },
-  "data": {
-    "GENDER": {
-      "MALE": "Чоловік",
-      "FEMALE": "Жінка"
-    },
-    "DOCUMENT_TYPE": {
-      "PASSPORT": "Паспорт",
-      "NATIONAL_ID": "Біометричний паспорт",
-      "BIRTH_CERTIFICATE": "Свідоцтво про народження",
-      "TEMPORARY_CERTIFICATE": "Тимчасовий паспорт"
-    }
-  }
-}
-```
-
 ### Get dectionaries [GET]
 
 + Response 200 (application/json)
-
-        {
-          "meta": {
-            "url": "http://example.com/resource",
-            "type": "object",
-            "code": 200,
-            "idempotency_key": "idemp-ssjssdjoa8308u0us0",
-            "request_id": "req-adasdoijasdojsda"
-          },
-          "data": {
-            "GENDER": {
-              "MALE": "Чоловік",
-              "FEMALE": "Жінка"
-            },
-            "DOCUMENT_TYPE": {
-              "PASSPORT": "Паспорт",
-              "NATIONAL_ID": "Біометричний паспорт",
-              "BIRTH_CERTIFICATE": "Свідоцтво про народження",
-              "TEMPORARY_CERTIFICATE": "Тимчасовий паспорт"
-            }
-          }
-        }
+    + Attributes (Response_OK)
+        + data (array[`Dictionary`])
 
 ## OTP Verification [/api/otp_verifications]
 
@@ -2792,17 +2698,11 @@ Optional:
 ## Dictionaries
 ### `Dictionary`
 + name: DOCUMENT_TYPE (string, required) - Unique dictionary name
-+ label (array)
-    - S
-    - E
-
-### `Dictionary_Value`
-+ `dictionary_name`: DOCUMENT_TYPE (string, required)
-+ code: PASSPORT (string, required)
-+ description: Паспорт (string, required)
-+ label (array)
-    - S
-    - E
++ values (object)
+    + key: value (string, optional) - List of dictionary entries as Key:Value pairs
++ labels (array)
+    - SYSTEM
+    - EXTERNAL
 + active: true (boolean, required)
 
 ## Global Parameters and Products 
