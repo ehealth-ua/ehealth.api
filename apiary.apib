@@ -511,6 +511,7 @@ Methods returns party details by ID.
 
 Method to create new employee record for the MSP.
 `party_id`, `devision_id` and msp_id should already exist.
+Parameter `status` = ACTIVE
 
 + Request (application/json)
     + Attributes (crud_employee_post)
@@ -539,7 +540,7 @@ This method to update the employee info by ID.
         + data (crud_employee_get)
 
 
-### Search for an Employee [GET /employees{?party_id,msp_id,division_id,employee_type,is_active,status,starting_after,ending_before,limit}]
+### Search for an Employee [GET /employees{?party_id,msp_id,division_id,employee_type,status,starting_after,ending_before,limit}]
 
 Methods returns list of employees.
 
@@ -553,11 +554,9 @@ Methods returns list of employees.
         - admin
         - owner
         - accountant
-    + is_active: true (boolean, required)
-    + status: approved (enum)
-        - approved
-        - pending_approval
-        - closed
+    + status: ACTIVE (enum)
+        - ACTIVE
+        - INACTIVE
     + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
     + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
     + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
@@ -1709,7 +1708,7 @@ The following fields can't be changed:
 
 ## Employee Requests [/api/employee_requests]
 
-### Create or Update Employee via Employee Request [POST]
+### Create Employee Request [POST]
 
 Employee_Request consist of the three mandatory parts:
 * Person info
@@ -1745,10 +1744,11 @@ For changes to take effect employee must confirm the changes
 
 + Parameters
     + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-    + status: VERIFICATION_EXP (enum, optional)
-        - DECLINED
-        - VERIFICATION_EXP
-        + Default: VERIFICATION_EXP
+    + status: NEW (enum, optional)
+        - NEW
+        - REJECTED
+        - APPROVED
+        + Default: NEW
     + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
     + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
     + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
@@ -2253,11 +2253,10 @@ Optional:
     - admin
     - owner
     - accountant
-+ position (key_value, required)
++ position (string, required)
 + start_date: 2017-02-28 (string, required)
 + end_date: 2017-02-28 (string, optional)
-+ active: true (boolean, required)
-+ status: pending_verification (enum, required)
++ status: ACTIVE, INACTIVE (enum, required)
 + `Doctor` (DoctorNew, optional)
 
 ### `crud_employee_get`
@@ -2301,11 +2300,11 @@ Optional:
 ### `Employee_Request`
 + legal_entity_id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
 + division_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ employee_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
 + position: лікар (string, required)
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
-+ active: true (boolean, required)
-+ status: pending_verification (enum, required)
++ status: NEW, REJECTED, APPROVED (enum, required)
 + employee_type: doctor (enum)
     - doctor
     - hr
@@ -2320,14 +2319,13 @@ Optional:
 + position: лікар (string, required)
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
-+ active: true (boolean, required)
-+ status: pending_verification (enum, required)
++ status: ACTIVE, INACTIVE (enum, required)
 + party (Party_Update)
 + doctor (DoctorNew, optional)
 
 ### `Employee_Request_Short`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-+ status: pending_verification (enum, required)
++ status: NEW, REJECTED, APPROVED (enum, required)
 + inserted_at: `2018-03-02T10:45:16.000Z` (string, required)
 
 ### `Employee_Request_Details`
@@ -2344,7 +2342,6 @@ Optional:
     - admin
     - owner
     - accountant
-+ active: true (boolean, required)
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
 + party (object)
@@ -2712,9 +2709,6 @@ Optional:
 + kved: 86.1 (string, optional)
 + what_licensed: реалізація наркотичних засобів (string, optional)
 
-### `key_value`
-+ id
-+ name
 
 ## OTPs
 ### OTP
@@ -2738,7 +2732,7 @@ Optional:
 + country: UA (enum[string], required)
 + city: Київ (string, required)
 + institution_name: Академія Богомольця (string, required)
-+ finished_date: 2017-02-28 (string, required)
++ issued_date: 2017-02-28 (string, required)
 + diploma_number: DD123543 (string, required)
 + degree (enum, required)
     - Молодший спеціаліст
