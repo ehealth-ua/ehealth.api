@@ -82,7 +82,6 @@ division_id | uuid | not null
 position | varchar | not null
 start_date | date | not null
 end_date | date
-is_active | boolean | not null
 inserted_at | timestamp | not null
 created_by | uuid | not null
 updated_by | uuid | not null
