@@ -858,12 +858,12 @@ Methods returns agregated numbers of declarations, MSP and doctors.
 + Response 200 (application/json)
     + Attributes (Response_OK)
         + data (object, optional)
-                + date: `01-01-2017 19:20:22.231` (string, required)
-                + declarations: 244 (number, required)
-                + doctors: 59 (number, required)
-                + `medical_system_providers`: 10 (number, required)
-                + `declarations_signed`: 300 (number, required)
-                + `declarations_terminated`: 56 (number, required)
+            + date: `01-01-2017 19:20:22.231` (string, required)
+            + declarations: 244 (number, required)
+            + doctors: 59 (number, required)
+            + `medical_system_providers`: 10 (number, required)
+            + `declarations_signed`: 300 (number, required)
+            + `declarations_terminated`: 56 (number, required)
 
 ## DetailedStats [/reports/detailedstats]
 
@@ -1608,7 +1608,7 @@ According to the strong binding of the Employees to the Employer (legal entity)
 all GET-endpoints returning Employee info are mounted through the
 `/legal_entities/{legal_entity_id}` path.
 
-### Get Employees List [GET /employees{?legal_entity_id,division_id,status,type,limit,starting_after,ending_before}]
+### Get Employees List [GET /api/employees{?legal_entity_id,division_id,status,type,limit,starting_after,ending_before}]
 
 Use this end-point to obtain all Employees of the legal entity specified by the `legal_entity_id`. 
 
@@ -1641,7 +1641,7 @@ Method returns shortened details, to obtain full information - get Employee it b
     + Attributes (Response_Collection)
         + data (array[`Employee_Short`])
 
-### Get Employee Details [GET /employees/{employee_id}]
+### Get Employee Details [GET /api/employees/{employee_id}]
 
 Response structure differs depending on employee type:
 
@@ -1674,7 +1674,7 @@ Response structure differs depending on employee type:
             + division (Division_Short)
             + `legal_entity` (`Legal_Entity_Short`)
 
-### Update Employee [PATCH /employees/{employee_id}]
+### Update Employee [PATCH /api/employees/{employee_id}]
 
 Use this method change employee status or to update:
 * Person info
