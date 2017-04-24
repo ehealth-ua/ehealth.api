@@ -824,7 +824,7 @@ Methods returns ukr_med_registry details by ID.
 
 ## Declarations [/reports/declarations]
 
-### Get Declarations Histogram stats [GET /reports/declarations{?start_date,end_date,doctor_id,msp_id}]
+### Get Declarations Histogram stats [GET /reports/declarations{?start_date,end_date,doctor_id,msp_id,area}]
 
 Methods returns agregated numbers of declarations.
 
@@ -833,6 +833,7 @@ Methods returns agregated numbers of declarations.
     + end_date: 2017-02-28 (string, required)
     + doctor_id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, optional)
     + msp_id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, optional)
+    + area: 43321 (string, optional)
 
 + Request (application/json)
 
@@ -843,6 +844,7 @@ Methods returns agregated numbers of declarations.
 + Response 200 (application/json)
     + Attributes (Response_OK)
         + data (array [Declaration_Report])
+
 
 ## MainStats [/reports/stats]
 
