@@ -1216,7 +1216,7 @@ This method is used to create Declaration Request (as part of Declaration creati
         + meta (Response__Meta)
             + code: 201 (number)
         + data (object)
-            + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
             + include `Declaration_Request_Public`
             + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
             + `authentication_method` (`Authentication_Method`) - 
@@ -1241,7 +1241,7 @@ Use this method to approve previously created Declaration Request.
 This method expects one of verification methods as it's parameters. Verification method is determined on Declaration Request creation stage. (See `authentication_method` field description.)
 
 + Parameters
-    + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 
 + Request (application/json)
 
@@ -1257,7 +1257,7 @@ This method expects one of verification methods as it's parameters. Verification
         + meta (Response__Meta)
             + code: 201 (number)
         + data (object)
-            + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
             + include `Declaration_Request_Public`
             + content: `Declaration content` (string, required) - Same as returned on creation stage.
             + active: false (boolean, required)
@@ -1286,7 +1286,7 @@ Use this method to reject previously created Declaration Request.
 Use this method to resend sms on previously created Declaration Request.
 
 + Parameters
-    + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 
 + Request (application/json)
 
@@ -1566,7 +1566,7 @@ Method returns shortened details, to obtain full information - get Declaration D
         + meta (Response__Meta)
             + code: 201 (number)
         + data (object)
-            + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
             + include `Declaration_Request_Details_Public`
             + active: true (boolean, required)
 
