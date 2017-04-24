@@ -540,8 +540,9 @@ Method to create new employee record for the MSP.
 Method creates/update party and create new employee from employee request.
 Method logic:
 * Search party_id by tax_id
-    - if found, update object party - Update party
-    - if not found, create object party - Create party
+    - if found, update object party - Update party WS
+    - if not found, create object party - Create party WS
+       - create related entity perty-user in PRM
 * Create new employee.
 
 + Request (application/json)
