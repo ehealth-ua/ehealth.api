@@ -225,6 +225,60 @@ This method is designed to be used only by eHealth API gateway.
         + data (object)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 
+# Group Internal. Portal Services
+
+## Users [/users]
+
+### Search User by Employee Request [GET /users/employee_request/{id}]
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (object)
+            + email: email@example.com (string)
+
++ Response 404 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta)
+            + code: 404 (number)
+        + error (Response__Error)
+            + type: NOT_FOUND (string)
+            + message: `Object not found` (string)
+
+
+## Employee Requests [/employee_requests]
+
+### Approve or Reject Employee Request [POST /employee_requests/{id}/actions/{action}]
+
+This service should be used for approve/reject employee request. 
+
+Available employee status transitions: 
+NEW --> REJECTED (action=reject) 
+NEW --> APPROVED (action=approve)
+
+Method logic described on [confluence page](https://edenlab.atlassian.net/wiki/pages/resumedraft.action?draftId=1316502&draftShareId=39ff8744-9673-48e0-ab0e-08fc80ed3190)
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+    + action: approve, reject (enum, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+
 # Group Internal. Master Patients Index
 
 ## Persons [/persons]
@@ -363,6 +417,15 @@ Response will contain only records that you have access to.
     + Attributes (Response_Collection)
         + data (array[`crud_Declaration_get`])
 
+### Change declarations status to Inactive by employee_id [POST /declarations/terminate]
+
++ Request (application/json)
+    + Attributes (object)
+        + employee_id: `73ebee6e-b9d9-41b0-b2ad-ab7704d5306e` (string, required)
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+
 # Group Internal. Partner Relationship Management
 
 ## Dictionaries [/dictionaries]
@@ -461,8 +524,7 @@ Methods returns party details by ID.
 ### Create new employee [POST]
 
 Method to create new employee record for the MSP.
-`party_id`, `devision_id` and msp_id should already exist.
-Parameter `status` = ACTIVE
+
 
 + Request (application/json)
     + Attributes (crud_employee_post)
@@ -472,6 +534,24 @@ Parameter `status` = ACTIVE
         + meta (Response__Meta)
             + code: 201 (number)
         + data (crud_employee_get)
+
+### Create employee [POST]
+
+Method creates/update party and create new employee from employee request.
+Method logic:
+* Search party_id by tax_id
+    - if found, update object party - Update party
+    - if not found, create object party - Create party
+* Create new employee.
+
++ Request (application/json)
+    + Attributes (Employee_Request)
+    
++ Response 201 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (Employee_Request_Short)
 
 
 ### Update employee [PUT /employees/{id}]
@@ -533,7 +613,7 @@ Methods returns employee details by ID.
 
 ### Get Employee Request by ID [GET /employee_requests/{id}]
 
-This service should be used with `access_token` authetification method.
+This service should be used for internal services/processes. Used without `access_token`
 
 + Parameters
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) 
@@ -543,62 +623,21 @@ This service should be used with `access_token` authetification method.
     + Attributes (Response_OK)
         + data (Employee_Request_Details)
 
-### Get Employee Request by ID and Token [GET /employee_requests/{id}{?token}]
 
-This service should be used by invitation recipient that does not have `access_token`.
+### Update Employee Request Status [PATCH /employee_requests/{id}/actions/{action}]
+This service should be used for update employee request status on REJECTED or APPROVED.
+
+Available transitions:
+NEW --> REJECTED (action=reject)
+NEW --> APPROVED (action=approve)
 
 + Parameters
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) 
-    + `token`: `5241744750e8c2df4897c0d35775d9a2` (string, optional) - the secret token to ensure the resolving is made by the User
+    + `action`: approve, reject (enum, required) 
 
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
-        + data (Employee_Request_Details)
-
-### Approve the Employee Request [PATCH /employee_requests/{id}/actions/approve]
-
-Expected that this end-point will be called from the eHealth invitations UI.
-
-+ Parameters
-    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-
-+ Request (application/json)
-
-    + Headers
-
-            X-CSRF-Token: my-csrf-token
-
-    + Attributes (object)
-        + `user` (object, optional) - User that should be created (if invitation recipient doesn't have account in eHealth)
-            + login: me@example.com (string, required)
-            + password: notasecret (string, required)
-        + `token`: `5241744750e8c2df4897c0d35775d9a2` (string, optional) - the secret token to ensure the resolving is made by the User.
-
-+ Response 200 (application/json)
-    + Attributes (Response_OK)
-        + data (Employee_Request_Short)
-
-### Decline the Employee Request [PATCH /employee_requests/{id}/actions/decline]
-
-Expected that this end-point will be called from the Invitations UI.
-
-+ Parameters
-    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-
-+ Request (application/json)
-
-    + Headers
-
-            X-CSRF-Token: my-csrf-token
-
-    + Attributes (object)
-        + `token`: `5241744750e8c2df4897c0d35775d9a2` (string, optional) - the secret token to ensure the resolving is made by the User.
-
-+ Response 200 (application/json)
-    + Attributes (Response_OK)
-        + data (Employee_Request_Short)
-        
 
 
 ## Legal Entities [/legal_entities]
@@ -804,6 +843,26 @@ Methods returns agregated numbers of declarations.
     + Attributes (Response_OK)
         + data (array [Declaration_Report])
 
+## MainStats [/reports/declarations]
+
+### Get Main Stats [GET /reports/mainstats]
+
+Methods returns agregated numbers of declarations, MSP and doctors.
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (object, optional)
+            + date: `01-01-2017 19:20:22.231` (string, required)
+            + declarations: 244 (number, required)
+            + doctors: 59 (number, required)
+            + `medical_system_providers`: 10 (number, required)
+
 # Group Internal. Media Content Storage
 
 Media Content Storage is using Google Cloud Storage as storage back-end and [Signed URL's](https://cloud.google.com/storage/docs/access-control/create-signed-urls-program) for access control policies. 
@@ -823,7 +882,7 @@ After obtaining token upload should be proceeded with [Google Cloud Storage API]
             - GET
         + resource_id
 
-+ Response
++ Response 200 (application/json)
     + Attributes
         + bucket
         + action (enum)
@@ -2703,7 +2762,7 @@ Optional:
 + labels (array)
     - SYSTEM
     - EXTERNAL
-+ active: true (boolean, required)
++ is_active: true (boolean, required)
 
 ## Global Parameters and Products 
 ### `Global_Parameters`
