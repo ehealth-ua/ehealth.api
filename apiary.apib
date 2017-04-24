@@ -843,9 +843,9 @@ Methods returns agregated numbers of declarations.
     + Attributes (Response_OK)
         + data (array [Declaration_Report])
 
-## MainStats [/reports/declarations]
+## MainStats [/reports/stats]
 
-### Get Main Stats [GET /reports/mainstats]
+### Get Main Stats [GET /reports/stats]
 
 Methods returns agregated numbers of declarations, MSP and doctors.
 
@@ -858,10 +858,14 @@ Methods returns agregated numbers of declarations, MSP and doctors.
 + Response 200 (application/json)
     + Attributes (Response_OK)
         + data (object, optional)
-            + date: `01-01-2017 19:20:22.231` (string, required)
-            + declarations: 244 (number, required)
-            + doctors: 59 (number, required)
-            + `medical_system_providers`: 10 (number, required)
+            + general (object, required)
+                + date: `01-01-2017 19:20:22.231` (string, required)
+                + declarations: 244 (number, required)
+                + doctors: 59 (number, required)
+                + `medical_system_providers`: 10 (number, required)
+                + `declarations_signed`: 300 (number, required)
+                + `declarations_terminated`: 56 (number, required)
+            + detailed (array[RegionalStats], required)
 
 # Group Internal. Media Content Storage
 
@@ -2681,6 +2685,15 @@ Optional:
 + `phone_number`: `+380508887700` (string, required)
 + `check_digit`: 5 (number, required) - Check digit that will be first in sent OTP code. Can be validated as checksum by [Verhoeff algorithm](https://en.wikipedia.org/wiki/Verhoeff_algorithm).
 
+## Dashboards
+### RegionalStats
++ id: `asSbcy12sYs8c` (string, required)
++ region_name: `Київ` (string, required)
++ declarations: 10
++ doctors: 5 (number, required)
++ `medical_system_providers`: 2 (number, required)
++ `declarations_signed`: 15 (number, required)
++ `declarations_terminated`: 5 (number, required)
 
 ## DoctorsNew
 ### DoctorNew
