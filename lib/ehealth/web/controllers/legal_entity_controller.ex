@@ -1,4 +1,4 @@
-defmodule EHealth.Web.PageController do
+defmodule EHealth.Web.LegalEntitityController do
   @moduledoc """
   Sample controller for generated application.
   """

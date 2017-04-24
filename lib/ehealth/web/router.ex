@@ -21,9 +21,9 @@ defmodule EHealth.Web.Router do
     # plug :allow_jsonp
   end
 
-  scope "/", EHealth.Web do
+  scope "/api", EHealth.Web do
     pipe_through :api
 
-    get "/page", PageController, :index
+    get "/legal_entities", LegalEntitityController, :index
   end
 end

@@ -7,6 +7,10 @@ config :ehealth, EHealth.Web.Endpoint,
   secret_key_base: "AcugHtFljaEFhBY1d6opAasbdFYsvV8oydwW98qS0oZOv+N/a5TE5G7DPfTZcXm9",
   render_errors: [view: EView.Views.PhoenixError, accepts: ~w(json)]
 
+# Configures Digital Signature API
+config :ehealth, EHealth.API.Signature,
+  endpoint: {:system, "DIGITAL_SIGNATURE_ENDPOINT", "http://52.58.60.8:8083/DigitalSignatureService.svc"}
+
 # Configures MediaStorage API
 config :ehealth, EHealth.API.MediaStorage,
   endpoint: {:system, "MEDIA_STORAGE_ENDPOINT", ""}
