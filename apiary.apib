@@ -865,6 +865,27 @@ Methods returns agregated numbers of declarations, MSP and doctors.
                 + `declarations_signed`: 300 (number, required)
                 + `declarations_terminated`: 56 (number, required)
 
+## DetailedStats [/reports/detailedstats]
+
+### Get Detailed Stats [GET /reports/detailedstats{?start_date,end_date,region_id}]
+
+Methods returns agregated numbers of declarations, MSP and doctors by region.
+
++ Parameters
+    + start_date: 2017-01-28 (string, optional)
+    + end_date: 2017-02-28 (string, optional)
+    + region_id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, optional)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (array[RegionalStats], optional)
+
 # Group Internal. Media Content Storage
 
 Media Content Storage is using Google Cloud Storage as storage back-end and [Signed URL's](https://cloud.google.com/storage/docs/access-control/create-signed-urls-program) for access control policies. 
