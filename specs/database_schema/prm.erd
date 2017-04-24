@@ -20,7 +20,7 @@ end_date | date | not null
 status | enum('') | not null
 signed_at | timestamp | not null
 inserted_at | timestamp | not null
-created_by | uuid | not null
+inserted_by | uuid | not null
 updated_at | timestamp | not null
 updated_by | uuid | not null
 is_active | boolean
@@ -30,7 +30,7 @@ legal_entity_id | uuid | not null
 
 [declaration_requests]
 id | uuid | not null
-created_by | uuid | not null
+inserted_by | uuid | not null
 data | jsonb | not null
 inserted_at | timestamp | not null
 updated_at | timestamp | not null
@@ -83,7 +83,7 @@ position | varchar | not null
 start_date | date | not null
 end_date | date
 inserted_at | timestamp | not null
-created_by | uuid | not null
+inserted_by | uuid | not null
 updated_by | uuid | not null
 updated_at | timestamp | not null
 status | enum('') | not null
@@ -114,7 +114,7 @@ addresses | jsonb[] | not null
 phones | jsonb[]
 email | varchar
 inserted_at | timestamp | not null
-created_by | uuid | not null
+inserted_by | uuid | not null
 updated_at | timestamp
 updated_by | uuid | not null
 is_active | boolean | not null
@@ -149,7 +149,7 @@ tax_id | varchar unique
 documents | jsonb[]
 phones | jsonb[]
 inserted_at | timestamp | not null
-created_by | uuid | not null
+inserted_by | uuid | not null
 updated_at | timestamp | not null
 updated_by | uuid | not null
 
@@ -165,7 +165,7 @@ id | uuid | not null
 edrpou | varchar(8) | not null
 name | varchar
 inserted_at | timestamp | not null
-created_by | uuid | not null
+inserted_by | uuid | not null
 updated_at | timestamp | not null
 updated_by | uuid | not null
 
