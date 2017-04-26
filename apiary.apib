@@ -1923,6 +1923,7 @@ Optional:
                 - VERIFIED
                 - DECLINED
                 - VERIFICATION_EXP
+            + `secret_key`: `secret_key` (string, required)
 
 + Response 201 (application/json)
     + Attributes (Response__Process_OK)
@@ -1933,6 +1934,7 @@ Optional:
                 - VERIFIED
                 - DECLINED
                 - VERIFICATION_EXP
+            + `secret_key`: `secret_key` (string, required)
 
 ### Update Legal Entity status [PATCH /api/legal_entities/{id}]
 
@@ -2446,7 +2448,7 @@ Optional:
     - РЕЛІГІЙНА ОРГАНІЗАЦІЯ
     - ІНШІ ОРГАНІЗАЦІЙНО-ПРАВОВІ ФОРМИ
 + edrpou: 5432345432 (string, required)
-+ kved: 86.1 (array, required)
++ kveds: 86.1 (array, required)
 + addresses (array[Address], required)
 + phones (array[Phone], required)
 + email: email@example.com (string, required)
@@ -2584,8 +2586,6 @@ Optional:
 + inserted_by: `userid` (string, required)
 + updated_at: `1991-08-19T00:00:00.000Z` (string, required)
 + updated_by: `userid` (string, required)
-
-
 
 ## `Access_Tokens`
 ### `Access_Token`
