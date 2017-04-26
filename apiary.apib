@@ -535,26 +535,6 @@ Method to create new employee record for the MSP.
             + code: 201 (number)
         + data (crud_employee_get)
 
-### Create employee [POST]
-
-Method creates/update party and create new employee from employee request.
-Method logic:
-* Search party_id by tax_id
-    - if found, update object party - Update party WS
-    - if not found, create object party - Create party WS
-       - create related entity perty-user in PRM
-* Create new employee.
-
-+ Request (application/json)
-    + Attributes (Employee_Request)
-    
-+ Response 201 (application/json)
-    + Attributes (Response_OK)
-        + meta (Response__Meta)
-            + code: 201 (number)
-        + data (Employee_Request_Short)
-
-
 ### Update employee [PUT /employees/{id}]
 
 This method to update the employee info by ID.
