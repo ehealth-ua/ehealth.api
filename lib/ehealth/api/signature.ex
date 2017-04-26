@@ -16,7 +16,7 @@ defmodule EHealth.API.Signature do
     headers ++ [{"Content-Type", "application/json"}]
   end
 
-  def validate(%{signed_legal_entity_request: content, signed_content_encoding: encoding}) do
+  def decode_and_validate(%{signed_legal_entity_request: content, signed_content_encoding: encoding}) do
     params = %{
       "signed_content" => content,
       "signed_content_encoding" => encoding

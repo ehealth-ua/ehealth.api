@@ -14,15 +14,21 @@ defmodule EHealth.API.PRM do
     headers ++ [{"Content-Type", "application/json"}]
   end
 
-  def get_legal_entity_by_edrpou(edrpou) do
+  def create_legal_entity(data) do
     "/legal_entities"
-    |> get!([], edrpou: edrpou)
+    |> post!(Poison.encode!(data))
     |> ResponseDecoder.check_response()
-    |> get_first()
   end
 
-  def get_first({:ok, list}) do
-    List.first(list)
+  def update_legal_entity(data, id) do
+    "/legal_entities/#{id}"
+    |> patch!(Poison.encode!(data))
+    |> ResponseDecoder.check_response()
   end
-  def get_first(err), do: err
+
+  def get_legal_entity_by_edrpou(edrpou) do
+    "/legal_entities"
+    |> get!([], params: [edrpou: edrpou, type: "MSP"])
+    |> ResponseDecoder.check_response()
+  end
 end

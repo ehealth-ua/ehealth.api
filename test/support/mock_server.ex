@@ -1,6 +1,9 @@
 defmodule EHealth.MockServer do
   @moduledoc false
   use Plug.Router
+
+  alias EHealth.Utils.MapDeepMerge
+
   plug :match
   plug Plug.Parsers, parsers: [:json],
                      pass:  ["application/json"],
@@ -9,7 +12,33 @@ defmodule EHealth.MockServer do
 
   # Legal Entitity
   get "/legal_entities" do
-    Plug.Conn.send_resp(conn, 200, Poison.encode!([%{
+    legal_entity =
+      case conn.params do
+        %{"edrpou" => "37367387", "type" => "MSP"} -> [get_legal_entity()]
+        _ -> []
+      end
+
+    Plug.Conn.send_resp(conn, 200, Poison.encode!(legal_entity))
+  end
+
+  post "/legal_entities" do
+    legal_entity = MapDeepMerge.merge(get_legal_entity(), conn.body_params)
+    Plug.Conn.send_resp(conn, 201, Poison.encode!(legal_entity))
+  end
+
+  patch "/legal_entities/:id" do
+
+    case conn.path_params do
+      %{"id" => "d290f1ee"} ->
+        legal_entity = MapDeepMerge.merge(get_legal_entity(), conn.body_params)
+        Plug.Conn.send_resp(conn, 200, Poison.encode!(legal_entity))
+      _ -> render_404(conn)
+    end
+
+  end
+
+  def get_legal_entity do
+    %{
       "id" => "d290f1ee",
       "name" => "Клініка Борис",
       "short_name" => "Борис",
@@ -69,19 +98,25 @@ defmodule EHealth.MockServer do
       "inserted_by" => "userid",
       "updated_at" => "1991-08-19T00.00.00.000Z",
       "updated_by" => "userid"
-    }]))
+    }
   end
 
   def render(resource, conn, status) do
-    conn =
-      conn
-      |> Plug.Conn.put_status(status)
-
+    conn = Plug.Conn.put_status(conn, status)
     conn
     |> Plug.Conn.put_resp_content_type("application/json")
     |> Plug.Conn.send_resp(status, get_resp_body(resource, conn))
   end
 
-  def get_resp_body(resource, conn), do: resource |> EView.wrap_body(conn) |> Poison.encode!()
+  def render_404(conn) do
+    "404.json"
+    |> EView.Views.Error.render()
+    |> render(conn, 404)
+  end
 
+  match _ do
+    render_404(conn)
+  end
+
+  def get_resp_body(resource, conn), do: resource |> EView.wrap_body(conn) |> Poison.encode!()
 end

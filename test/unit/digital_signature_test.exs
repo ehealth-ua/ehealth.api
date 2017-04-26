@@ -9,7 +9,7 @@ defmodule EHealth.Unit.DigitalSignatureTest do
     assert {:ok, %{"meta" => %{"code" => 200}, "data" => data}} = resp =
       %{signed_content_encoding: "base64"}
       |> Map.put(:signed_legal_entity_request, File.read!("test/data/signed_content.txt"))
-      |> Signature.validate()
+      |> Signature.decode_and_validate()
 
     assert data["is_valid"]
     assert Map.has_key?(data, "signer")
@@ -20,7 +20,7 @@ defmodule EHealth.Unit.DigitalSignatureTest do
 
   test "invalid base64 signed content" do
     assert {:error, %{"meta" => %{"code" => 422}}} =
-      Signature.validate(%{
+      Signature.decode_and_validate(%{
         signed_content_encoding: "base64",
         signed_legal_entity_request: "invalid"
       })

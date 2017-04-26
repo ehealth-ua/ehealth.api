@@ -12,7 +12,7 @@ defmodule EHealth.LegalEntity.Validator do
 
   use_schema :legal_entity, "specs/json_schemas/new_legal_entity_schema.json"
 
-  def validate(params) do
+  def decode_and_validate(params) do
     params
     |> validate_request()
     |> validate_signature()
@@ -35,7 +35,7 @@ defmodule EHealth.LegalEntity.Validator do
   end
 
   def validate_signature(%Ecto.Changeset{valid?: true, changes: changes}) do
-    Signature.validate(changes)
+    Signature.decode_and_validate(changes)
   end
   def validate_signature(err), do: err
 

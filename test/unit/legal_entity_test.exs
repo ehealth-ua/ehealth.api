@@ -3,19 +3,22 @@ defmodule EHealth.Unit.LegalEntityTest do
 
   use ExUnit.Case
 
+  import ExUnit.CaptureLog
+
+  alias EHealth.LegalEntity.API
   alias EHealth.LegalEntity.Validator
 
-  test "legal entity creation" do
+  test "successed signed content validation" do
     content = File.read!("test/data/signed_content.txt")
 
-    Validator.validate(%{
+    Validator.decode_and_validate(%{
       "signed_content_encoding" => "base64",
       "signed_legal_entity_request" => content
     })
   end
 
-  test "invalid legal entity creation" do
-    Validator.validate(%{
+  test "invalid signed content validation" do
+    Validator.decode_and_validate(%{
       "signed_content_encoding" => "base256",
       "signed_legal_entity_request" => "invalid"
     })
@@ -60,6 +63,30 @@ defmodule EHealth.Unit.LegalEntityTest do
 
     assert %Ecto.Changeset{valid?: false} = validate_edrpou(content, signer)
   end
+
+  test "process new legal entity" do
+    legal_entitity = Map.merge(get_legal_entity_data(), %{"edrpou" => "0373167380", "name" => "Nebo15 corp."})
+
+    assert {:ok, resp} = API.process_request({:ok, legal_entitity})
+    assert "Nebo15 corp." == resp["name"]
+    assert "0373167380" == resp["edrpou"]
+  end
+
+  test "process legal entity that exists" do
+    legal_entitity = Map.merge(get_legal_entity_data(), %{
+      "short_name" => "Nebo15",
+      "email" => "changed@example.com",
+      "kved" => ["12.21"]
+    })
+
+    assert {:ok, resp} = API.process_request({:ok, legal_entitity})
+    assert "Nebo15" == resp["short_name"]
+    assert "37367387" == resp["edrpou"]
+    assert "changed@example.com" == resp["email"]
+    assert ["86.1"] == resp["kved"]
+  end
+
+  # helpers
 
   defp validate_edrpou(content, signer) do
     Validator.validate_edrpou({:ok, %{
