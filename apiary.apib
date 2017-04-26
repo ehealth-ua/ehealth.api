@@ -605,17 +605,20 @@ This service should be used for internal services/processes. Used without `acces
         + data (Employee_Request_Details)
 
 
-### Update Employee Request Status [PATCH /employee_requests/{id}/actions/{action}]
+### Update Employee Request Status [PATCH /employee_requests/{id}]
 This service should be used for update employee request status on REJECTED or APPROVED.
 
 Available transitions:
-NEW --> REJECTED (action=reject)
-NEW --> APPROVED (action=approve)
+NEW --> REJECTED 
+NEW --> APPROVED
 
 + Parameters
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) 
-    + `action`: approve, reject (enum, required) 
-
+    
++ Request (application/json)
+    + Attributes
+        + status: APPROVED, REJECTED (enum, required) 
+    
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
