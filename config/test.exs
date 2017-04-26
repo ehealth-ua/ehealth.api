@@ -10,6 +10,18 @@ config :ehealth, EHealth.Web.Endpoint,
   http: [port: 4001],
   server: true
 
+config :ehealth, EHealth.API.MediaStorage,
+  endpoint: {:system, "MEDIA_STORAGE_ENDPOINT", "http://localhost:4040"}
+
+# Configures PRM API
+config :ehealth, EHealth.API.PRM,
+  endpoint: {:system, "PRM_ENDPOINT", "http://localhost:4040"}
+
+config :ehealth, mock: [
+  port: {:system, :integer, "TEST_MOCK_PORT", 4040},
+  host: {:system, "TEST_MOCK_HOST", "localhost"}
+]
+
 # Print only warnings and errors during test
 config :logger, level: :warn
 

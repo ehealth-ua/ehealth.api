@@ -15,6 +15,10 @@ config :ehealth, EHealth.API.Signature,
 config :ehealth, EHealth.API.MediaStorage,
   endpoint: {:system, "MEDIA_STORAGE_ENDPOINT", ""}
 
+# Configures PRM API
+config :ehealth, EHealth.API.PRM,
+  endpoint: {:system, "PRM_ENDPOINT", ""}
+
 # Configures Elixir's Logger
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",
