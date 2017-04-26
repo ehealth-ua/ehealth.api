@@ -912,6 +912,17 @@ Methods returns global parameters for declarations.
     + Attributes (Response_OK)
         + data (Global_Parameters)
 
+### Put Global Parameters [PUT]
+
+Method updates global parameters for declarations.
+
++ Request (application/json)
+    + Attributes (Global_Parameters)
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (Global_Parameters)
+
 # Group Internal. Digital Signature
 
 ## Verification [/verification]
@@ -2792,8 +2803,11 @@ Optional:
     - EXTERNAL
 + is_active: true (boolean, required)
 
-## Global Parameters and Products 
+## Global Parameters and Products
 ### `Global_Parameters`
-+ term: 30 (string, required) - термін дії декларації
-+ term_unit: DAYS (enum, required) - одиниця виміру терміну дії
-+ adult_age: 18 (string, required) - вік повноліття
++ `declaration_term`: 30 (number, required) - термін дії декларації
++ `declaration_request_expiration`: 30 (number, required) - термін дії заявки на створення декларації
++ `employ_request_expiration`: 30 (number, required) - термін дії заявки на створення працівника
++ verification_request_expiration`: 30 (number, required) - термін дії заявки на верифікацію декларації
++ adult_age: 18 (number, required) - вік повноліття
++ billing_date: 2 (number, required) - дата біллінгу (1-28)
