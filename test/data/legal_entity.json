@@ -1,0 +1,109 @@
+{
+  "name": "Клініка Борис",
+  "short_name": "Борис",
+  "public_name": "Борис",
+  "type": "MIS",
+  "owner_property_type": "STATE",
+  "legal_form": "ПІДПРИЄМЕЦЬ",
+  "edrpou": "37367387",
+  "kved": [
+    "86.01"
+  ],
+  "services": [
+    {
+      "id": "",
+      "name": ""
+    }
+  ],
+  "addresses": [
+    {
+      "type": "RESIDENCE",
+      "country": "UA",
+      "area": "Житомирська",
+      "region": "Бердичівський",
+      "settlement": "Київ",
+      "settlement_type": "CITY",
+      "settlement_id": "dsdafdf",
+      "street": "вул. Ніжинська",
+      "building": "15",
+      "apartment": "23",
+      "zip": "02090"
+    }
+  ],
+  "phones": [
+    {
+      "type": "MOBILE",
+      "number": "+380503410870"
+    }
+  ],
+  "email": "email@example.com",
+  "owner": {
+    "first_name": "Петро",
+    "last_name": "Іванов",
+    "second_name": "Миколайович",
+    "tax_id": "3015492563",
+    "birth_date": "1991-08-19T00:00:00.000Z",
+    "birth_place": "Вінниця, Україна",
+    "gender": "MALE",
+    "email": "email@example.com",
+    "documents": [
+      {
+        "type": "PASSPORT",
+        "number": "120518"
+      }
+    ],
+    "phones": [
+      {
+        "type": "MOBILE",
+        "number": "+380503410870"
+      }
+    ]
+  },
+  "divisions": [
+    {
+      "name": "Бориспільське відділення Клініки Борис",
+      "addresses": [
+        {
+          "type": "RESIDENCE",
+          "country": "UA",
+          "area": "Житомирська",
+          "region": "Бердичівський",
+          "settlement": "Київ",
+          "settlement_type": "CITY",
+          "settlement_id": "dasdf",
+          "street": "вул. Ніжинська",
+          "building": "15",
+          "apartment": "23",
+          "zip": "02090"
+        }
+      ],
+      "phones": [
+        {
+          "type": "MOBILE",
+          "number": "+380503410870"
+        }
+      ],
+      "email": "email@example.com",
+      "type": "CLINIC"
+    }
+  ],
+  "medical_service_provider": {
+    "licenses": [
+      {
+        "license_number": "fd123443",
+        "issued_by": "Кваліфікацйна комісія",
+        "issued_date": "1991-08-19T00:00:00.000Z",
+        "expiry_date": "1991-08-19T00:00:00.000Z",
+        "kved": "86.10",
+        "what_licensed": "реалізація наркотичних засобів"
+      }
+    ],
+    "accreditation": {
+      "category": "ДРУГА",
+      "issued_date": "1991-08-19T00:00:00.000Z",
+      "expiry_date": "1991-08-19T00:00:00.000Z",
+      "order_no": "fd123443",
+      "order_date": "1991-08-19T00:00:00.000Z"
+    }
+  }
+}

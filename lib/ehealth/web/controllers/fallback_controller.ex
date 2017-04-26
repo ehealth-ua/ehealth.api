@@ -4,6 +4,18 @@ defmodule EHealth.Web.FallbackController do
   """
   use EHealth.Web, :controller
 
+  def call(conn, {:error, json_schema_errors}) when is_list(json_schema_errors) do
+    conn
+    |> put_status(422)
+    |> render(EView.Views.ValidationError, "422.json", %{schema: json_schema_errors})
+  end
+
+  def call(conn, %Ecto.Changeset{valid?: false} = changeset) do
+    conn
+    |> put_status(:unprocessable_entity)
+    |> render(EView.Views.ValidationError, :"422", changeset)
+  end
+
   def call(conn, {:error, :access_denied}) do
     conn
     |> put_status(:unauthorized)

@@ -5,11 +5,10 @@ defmodule EHealth.Unit.DigitalSignatureTest do
 
   alias EHealth.API.Signature
 
-  @tag :pending
   test "valid digital signature" do
     assert {:ok, %{"meta" => %{"code" => 200}, "data" => data}} = resp =
-      "test/data/signature.txt"
-      |> File.read!()
+      %{signed_content_encoding: "base64"}
+      |> Map.put(:signed_legal_entity_request, File.read!("test/data/signed_content.txt"))
       |> Signature.validate()
 
     assert data["is_valid"]
@@ -20,6 +19,10 @@ defmodule EHealth.Unit.DigitalSignatureTest do
   end
 
   test "invalid base64 signed content" do
-    assert {:error, %{"meta" => %{"code" => 422}}} = Signature.validate("invalid")
+    assert {:error, %{"meta" => %{"code" => 422}}} =
+      Signature.validate(%{
+        signed_content_encoding: "base64",
+        signed_legal_entity_request: "invalid"
+      })
   end
 end

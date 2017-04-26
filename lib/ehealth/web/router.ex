@@ -1,5 +1,7 @@
-defmodule EHealth.Web.Router do
+defmodule Ehealth.Web.Router do
   @moduledoc """
+  Attention! Ehealth namespace is not a typo! This name because of Plug module name transformation
+
   The router provides a set of macros for generating routes
   that dispatch to specific controllers and actions.
   Those macros are named after HTTP verbs.
@@ -24,6 +26,6 @@ defmodule EHealth.Web.Router do
   scope "/api", EHealth.Web do
     pipe_through :api
 
-    get "/legal_entities", LegalEntitityController, :index
+    put "/legal_entities", LegalEntityController, :create_or_update
   end
 end

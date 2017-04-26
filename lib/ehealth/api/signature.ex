@@ -16,10 +16,10 @@ defmodule EHealth.API.Signature do
     headers ++ [{"Content-Type", "application/json"}]
   end
 
-  def validate(signed_content) do
+  def validate(%{signed_legal_entity_request: content, signed_content_encoding: encoding}) do
     params = %{
-      "signed_content" => signed_content,
-      "signed_content_encoding" => "base64"
+      "signed_content" => content,
+      "signed_content_encoding" => encoding
     }
 
     "/digital_signatures"

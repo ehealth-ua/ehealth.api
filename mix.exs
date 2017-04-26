@@ -26,7 +26,7 @@ defmodule EHealth.Mixfile do
     [extra_applications: [:logger, :confex, :runtime_tools, :logger_json, :poison,
                           :cowboy, :httpoison,
                           :phoenix, :multiverse,
-                          :eview],
+                          :eview, :jvalid],
      mod: {EHealth, []}]
   end
 
@@ -58,6 +58,7 @@ defmodule EHealth.Mixfile do
      {:phoenix, "~> 1.3.0-rc"},
      {:multiverse, "~> 0.4.3"},
      {:eview, "~> 0.10.1"},
+     {:jvalid, "~> 0.5.0"},
      {:benchfella, ">= 0.3.4", only: [:dev, :test]},
      {:ex_doc, ">= 0.15.0", only: [:dev, :test]},
      {:excoveralls, ">= 0.5.0", only: [:dev, :test]},
