@@ -131,6 +131,15 @@ resource | varchar | not null
 what_changed | jsonb | not null
 inserted_at | timestamp | not null
 
+[global_parameters]
+id | uuid | not null
+parameter | varchar | not null
+value | varchar | not null
+inserted_at | timestamp | not null
+inserted_by | uuid | not null
+updated_at | timestamp | not null
+updated_by | uuid | not null
+
 [medical_service_providers]
 id | uuid | not null
 accreditation | jsonb | not null
@@ -181,6 +190,7 @@ products
 employee_doctors
 log_changes
 ukr_med_registry
+global_parameters
 
 (ops_db)
 declarations
