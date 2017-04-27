@@ -18,12 +18,12 @@ defmodule EHealth.MockServer do
         _ -> []
       end
 
-    Plug.Conn.send_resp(conn, 200, Poison.encode!(legal_entity))
+    Plug.Conn.send_resp(conn, 200, Poison.encode!(%{"data" => legal_entity}))
   end
 
   post "/legal_entities" do
     legal_entity = MapDeepMerge.merge(get_legal_entity(), conn.body_params)
-    Plug.Conn.send_resp(conn, 201, Poison.encode!(legal_entity))
+    Plug.Conn.send_resp(conn, 201, Poison.encode!(%{"data" => legal_entity}))
   end
 
   patch "/legal_entities/:id" do
@@ -31,7 +31,7 @@ defmodule EHealth.MockServer do
     case conn.path_params do
       %{"id" => "d290f1ee"} ->
         legal_entity = MapDeepMerge.merge(get_legal_entity(), conn.body_params)
-        Plug.Conn.send_resp(conn, 200, Poison.encode!(legal_entity))
+        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{"data" => legal_entity}))
       _ -> render_404(conn)
     end
 
@@ -69,7 +69,7 @@ defmodule EHealth.MockServer do
       "email" => "email@example.com",
       "active" => true,
       "public_name" => "Клініка Борис",
-      "kved" => [
+      "kveds" => [
         "86.1"
       ],
       "status" => "VERIFIED",

@@ -31,6 +31,7 @@ defmodule EHealth.Web.ConnCase do
     conn =
       Phoenix.ConnTest.build_conn()
       |> Plug.Conn.put_req_header("content-type", "application/json")
+      |> Plug.Conn.put_req_header("x-consumer-id", Ecto.UUID.generate())
 
     {:ok, conn: conn}
   end

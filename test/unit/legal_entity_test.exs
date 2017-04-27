@@ -3,8 +3,6 @@ defmodule EHealth.Unit.LegalEntityTest do
 
   use ExUnit.Case
 
-  import ExUnit.CaptureLog
-
   alias EHealth.LegalEntity.API
   alias EHealth.LegalEntity.Validator
 
@@ -65,28 +63,32 @@ defmodule EHealth.Unit.LegalEntityTest do
   end
 
   test "process new legal entity" do
-    legal_entitity = Map.merge(get_legal_entity_data(), %{"edrpou" => "0373167380", "name" => "Nebo15 corp."})
+    legal_entitity = Map.merge(get_legal_entity_data(), %{"edrpou" => "07316730", "name" => "Nebo15 corp."})
 
-    assert {:ok, resp} = API.process_request({:ok, legal_entitity})
+    assert {:ok, %{"data" => resp}} = API.process_request({:ok, legal_entitity}, get_headers())
     assert "Nebo15 corp." == resp["name"]
-    assert "0373167380" == resp["edrpou"]
+    assert "07316730" == resp["edrpou"]
   end
 
   test "process legal entity that exists" do
     legal_entitity = Map.merge(get_legal_entity_data(), %{
       "short_name" => "Nebo15",
       "email" => "changed@example.com",
-      "kved" => ["12.21"]
+      "kveds" => ["12.21"]
     })
 
-    assert {:ok, resp} = API.process_request({:ok, legal_entitity})
+    assert {:ok, %{"data" => resp}} = API.process_request({:ok, legal_entitity}, get_headers())
     assert "Nebo15" == resp["short_name"]
     assert "37367387" == resp["edrpou"]
     assert "changed@example.com" == resp["email"]
-    assert ["86.1"] == resp["kved"]
+    assert ["86.1"] == resp["kveds"]
   end
 
   # helpers
+
+  defp get_headers do
+    [{"content-type", "application/json"}, {"x-consumer-id", Ecto.UUID.generate()}]
+  end
 
   defp validate_edrpou(content, signer) do
     Validator.validate_edrpou({:ok, %{

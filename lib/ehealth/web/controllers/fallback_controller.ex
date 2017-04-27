@@ -10,6 +10,15 @@ defmodule EHealth.Web.FallbackController do
     |> render(EView.Views.ValidationError, "422.json", %{schema: json_schema_errors})
   end
 
+  @doc """
+  Proxy for error response from APIs
+  """
+  def call(conn, {:error, %{"error" => error, "meta" => %{"code" => status}}}) do
+    conn
+    |> resp(status, Poison.encode!(error))
+    |> put_resp_content_type("application/json")
+  end
+
   def call(conn, %Ecto.Changeset{valid?: false} = changeset) do
     conn
     |> put_status(:unprocessable_entity)

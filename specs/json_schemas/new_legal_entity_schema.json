@@ -122,7 +122,7 @@
       "type": "string",
       "pattern": "^[0-9]{8,10}$"
     },
-    "kved": {
+    "kveds": {
       "type": "array",
       "items": {
         "type": "string",
@@ -323,7 +323,7 @@
     "owner_property_type",
     "legal_form",
     "edrpou",
-    "kved",
+    "kveds",
     "services",
     "addresses",
     "phones",
