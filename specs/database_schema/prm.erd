@@ -53,12 +53,13 @@ inserted_at | timestamp | not null
 id | uuid | not null
 legal_entity_id | uuid | not null
 name | varchar | not null
-address | jsonb | not null
+addresses | jsonb | not null
 external_id | varchar
 phones | jsonb[] | not null
 email | varchar
 mountain_group | enum('')
 type | enum('ambulant_clinic','clinic') | not null
+status | enum('active','inactive') | not null
 inserted_at | timestamp | not null
 updated_at | timestamp | not null
 
@@ -78,7 +79,7 @@ updated_at | timestamp | not null
 id | uuid | not null
 legal_entity_id | uuid | not null
 party_id | uuid | not null
-division_id | uuid | not null
+division_id | uuid
 position | varchar | not null
 start_date | date | not null
 end_date | date
@@ -108,6 +109,7 @@ updated_at | timestamp | not null
 id | uuid | not null
 name | varchar | not null
 short_name | varchar
+public_name | varchar
 type | enum('msp','mis','drug_store') | not null
 edrpou | varchar(8) | not null unique
 addresses | jsonb[] | not null
@@ -118,11 +120,11 @@ inserted_by | uuid | not null
 updated_at | timestamp
 updated_by | uuid | not null
 is_active | boolean | not null
-public_name | varchar
 kveds | jsonb | not null
 status | enum('new','verified') | not null
 owner_property_type | enum('state','private') | not null
 legal_form | enum('тов','фоп') | not null
+capitation_contract_id | uuid
 
 [log_changes]
 id | uuid | not null
@@ -143,7 +145,7 @@ updated_by | uuid | not null
 [medical_service_providers]
 id | uuid | not null
 accreditation | jsonb | not null
-license | jsonb[]
+licenses | jsonb[]
 inserted_at | timestamp | not null
 updated_at | timestamp | not null
 
@@ -207,7 +209,7 @@ capitation_contracts 1--1 legal_entities
 capitation_contracts *--1 products
 declarations 1--1 declarations_signed
 employees 1--* declarations
-divisions +--1 legal_entities
+divisions *--1 legal_entities
 employees *--1 legal_entities
 parties 1--+ employees
 employees *--1 divisions
