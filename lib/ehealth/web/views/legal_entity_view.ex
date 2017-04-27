@@ -13,7 +13,7 @@ defmodule EHealth.Web.LegalEntityView do
     render_one(legal_entity, LegalEntityView, "legal_entity.json")
   end
 
-  def render("legal_entity.json", legal_entity) do
+  def render("legal_entity.json", %{legal_entity: legal_entity}) do
     legal_entity
   end
 end
