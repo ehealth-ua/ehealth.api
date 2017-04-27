@@ -13,6 +13,7 @@ defmodule EHealth.Mixfile do
      compilers: [:phoenix] ++ Mix.compilers,
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
+     aliases: aliases(),
      deps: deps(),
      test_coverage: [tool: ExCoveralls],
      preferred_cli_env: [coveralls: :test],
@@ -24,7 +25,7 @@ defmodule EHealth.Mixfile do
   # Type "mix help compile.app" for more information
   def application do
     [extra_applications: [:logger, :confex, :runtime_tools, :logger_json, :poison,
-                          :cowboy, :httpoison,
+                          :cowboy, :httpoison, :ecto, :ecto_paging, :postgrex,
                           :phoenix, :multiverse,
                           :eview, :jvalid],
      mod: {EHealth, []}]
@@ -53,8 +54,10 @@ defmodule EHealth.Mixfile do
      {:logger_json, "~> 0.3.0"},
      {:poison, "~> 3.1"},
      {:ecto, "~> 2.1"},
+     {:ecto_paging, ">= 0.0.0"},
      {:cowboy, "~> 1.1"},
      {:httpoison, "~> 0.11.1"},
+     {:postgrex, ">= 0.0.0"},
      {:phoenix, "~> 1.3.0-rc"},
      {:multiverse, "~> 0.4.3"},
      {:eview, "~> 0.10.1"},
@@ -73,5 +76,17 @@ defmodule EHealth.Mixfile do
      licenses: ["LISENSE.md"],
      links: %{github: "https://github.com/Nebo15/ehealth"},
      files: ~w(lib LICENSE.md mix.exs README.md)]
+  end
+
+  # Aliases are shortcuts or tasks specific to the current project.
+  # For example, to create, migrate and run the seeds file at once:
+  #
+  #     $ mix ecto.setup
+  #
+  # See the documentation for `Mix` for more info on aliases.
+  defp aliases do
+    ["ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
+     "ecto.reset": ["ecto.drop", "ecto.setup"],
+     "test": ["ecto.create --quiet", "ecto.migrate", "test"]]
   end
 end

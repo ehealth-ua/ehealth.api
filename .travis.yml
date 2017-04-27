@@ -5,6 +5,9 @@ cache:
     - deps
 services:
   - docker
+  - postgresql
+addons:
+  postgresql: "9.5"
 elixir:
   - 1.4.2
 otp_release:

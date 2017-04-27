@@ -27,5 +27,6 @@ defmodule Ehealth.Web.Router do
     pipe_through :api
 
     put "/legal_entities", LegalEntityController, :create_or_update
+    post "/employee_requests", EmployeeRequestController, :create
   end
 end

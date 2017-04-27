@@ -1,6 +1,10 @@
 use Mix.Config
 
 # General application configuration
+config :ehealth,
+  ecto_repos: [EHealth.Repo],
+  namespace: EHealth
+
 # Configures the endpoint
 config :ehealth, EHealth.Web.Endpoint,
   url: [host: "localhost"],

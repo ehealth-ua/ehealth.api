@@ -27,3 +27,12 @@ config :logger, level: :warn
 
 # Run acceptance test in concurrent mode
 config :ehealth, sql_sandbox: true
+
+# Configure your database
+config :ehealth, EHealth.Repo,
+  adapter: Ecto.Adapters.Postgres,
+  username: "postgres",
+  password: "postgres",
+  database: "ehealth_test",
+  hostname: "localhost",
+  pool: Ecto.Adapters.SQL.Sandbox
