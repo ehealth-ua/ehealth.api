@@ -62,12 +62,11 @@ defmodule EHealth.Unit.LegalEntityTest do
     assert %Ecto.Changeset{valid?: false} = validate_edrpou(content, signer)
   end
 
-  test "process new legal entity" do
-    legal_entitity = Map.merge(get_legal_entity_data(), %{"edrpou" => "07316730", "name" => "Nebo15 corp."})
+  test "new legal entity status NOT_VERIFIED" do
+    legal_entitity = Map.merge(get_legal_entity_data(), %{"edrpou" => "07367380"})
 
-    assert {:ok, %{"data" => resp}} = API.process_request({:ok, legal_entitity}, get_headers())
-    assert "Nebo15 corp." == resp["name"]
-    assert "07316730" == resp["edrpou"]
+    assert {:ok, resp} = API.process_request({:ok, legal_entitity}, get_headers())
+    assert "NOT_VERIFIED" == resp["status"]
   end
 
   test "process legal entity that exists" do
@@ -77,11 +76,30 @@ defmodule EHealth.Unit.LegalEntityTest do
       "kveds" => ["12.21"]
     })
 
-    assert {:ok, %{"data" => resp}} = API.process_request({:ok, legal_entitity}, get_headers())
+    assert {:ok, resp} = API.process_request({:ok, legal_entitity}, get_headers())
+    assert "37367387" == resp["edrpou"]
+    assert "VERIFIED" == resp["status"]
+  end
+
+  test "update legal entity" do
+    legal_entitity = Map.merge(get_legal_entity_data(), %{
+      "short_name" => "Nebo15",
+      "email" => "changed@example.com",
+      "kveds" => ["12.21"]
+    })
+
+    get_legal_entity_resp = {:ok, %{
+      "data" => [
+        %{"id" => "d290f1ee"}
+      ]
+    }}
+
+    assert {:ok, %{"data" => resp}} = API.create_or_update(get_legal_entity_resp, legal_entitity, get_headers())
     assert "Nebo15" == resp["short_name"]
     assert "37367387" == resp["edrpou"]
+    assert "VERIFIED" == resp["status"]
     assert "changed@example.com" == resp["email"]
-    assert ["86.1"] == resp["kveds"]
+    assert ["86.01"] == resp["kveds"]
   end
 
   # helpers

@@ -10,6 +10,16 @@ defmodule EHealth.MockServer do
                      json_decoder: Poison
   plug :dispatch
 
+  get "/ukr_med_registry" do
+    ukr_med_registry =
+      case conn.params do
+        %{"edrpou" => "37367387"} -> [get_med_registry()]
+        _ -> []
+      end
+
+    Plug.Conn.send_resp(conn, 200, Poison.encode!(%{"data" => ukr_med_registry}))
+  end
+
   # Legal Entitity
   get "/legal_entities" do
     legal_entity =
@@ -35,6 +45,18 @@ defmodule EHealth.MockServer do
       _ -> render_404(conn)
     end
 
+  end
+
+  def get_med_registry do
+    %{
+      "id" => "5432345432",
+      "name" => "Клініка Борис",
+      "edrpou" => "37367387",
+      "inserted_at" => "1991-08-19T00.00.00.000Z",
+      "inserted_by" => "userid",
+      "updated_at" => "1991-08-19T00.00.00.000Z",
+      "updated_by" => "userid"
+    }
   end
 
   def get_legal_entity do
@@ -70,7 +92,7 @@ defmodule EHealth.MockServer do
       "active" => true,
       "public_name" => "Клініка Борис",
       "kveds" => [
-        "86.1"
+        "86.01"
       ],
       "status" => "VERIFIED",
       "owner_property_type" => "state",
@@ -82,7 +104,7 @@ defmodule EHealth.MockServer do
             "issued_by" => "Кваліфікацйна комісія",
             "issued_date" => "2017",
             "expiry_date" => "2017",
-            "kved" => "86.1",
+            "kved" => "86.01",
             "what_licensed" => "реалізація наркотичних засобів"
           }
         ],

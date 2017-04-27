@@ -31,4 +31,10 @@ defmodule EHealth.API.PRM do
     |> get!(headers, params: [edrpou: edrpou, type: "MSP"])
     |> ResponseDecoder.check_response()
   end
+
+  def check_msp_state_property_status(edrpou, headers \\ []) do
+    "/ukr_med_registry"
+    |> get!(headers, params: [edrpou: edrpou])
+    |> ResponseDecoder.check_response()
+  end
 end
