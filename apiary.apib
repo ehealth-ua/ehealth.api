@@ -959,6 +959,36 @@ Method checks digital signature and returns result.
                 + edrpou: `3323102854` (string, optional)
                 + drfo: `3323102854` (string, optional)
 
+# Group Internal. NHS Portal
+
+## Verification [/nhs_portal]
+
+### Get Declarations List [GET /nhs_portal/declarations{?status,starting_after,ending_before,limit}]
+
+Methods returns list of declarations by combination of patient_id, doctor_id, msp_id.
+
+Response will contain only records that you have access to.
+
++ Parameters
+    + status: active (text, optional) - Search only for active or disabled declarations.
+    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
+    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
+    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
+
++ Response 200 (application/json)
+    + Attributes (Response_Collection)
+        + data (array[`nhs_declaration_list`])
+
+
+### Get Declaration Details by ID [GET /nhs_portal/declarations/{id}]
+
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (`nhs_declaration`)
+
 # Group Internal. Gandalf
 
 ## Gandalf [/api.gndf.io/api]
@@ -2803,6 +2833,16 @@ Optional:
     - SYSTEM
     - EXTERNAL
 + is_active: true (boolean, required)
+
+## NHS Portal
+### `nhs_declaration_list`
++ include `Declaration`
++ person (`Person_Minimal`, required)
++ `legal_entity` (`Legal_Entity_Short`, required)
+
+### `nhs_declaration`
++ include `Declaration_Request_Public`
++ `media_content`: `http://cs5.pikabu.ru/post_img/big/2015/12/04/5/1449210847155432089.jpg`  (array, required)
 
 ## Global Parameters and Products
 ### `Global_Parameters`
