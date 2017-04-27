@@ -2185,8 +2185,8 @@ Optional:
 + employee (`Employee_Short`)
 + division (`Division_Short`)
 + `legal_entity` (MSP_Details)
-+ created_at: `2017-03-02T10:45:16.000Z` (string, optional)
-+ modified_at: `2017-03-02T10:45:16.000Z` (string, optional)
++ inserted_at: `2017-03-02T10:45:16.000Z` (string, optional)
++ updated_at: `2017-03-02T10:45:16.000Z` (string, optional)
 
 
 ### `Declaration_Report`
@@ -2360,9 +2360,9 @@ Optional:
 + addresses (array[Address], required)
 + phones (array[Phone], required)
 + email: email@example.com (array[Email], required)
-+ active: true (boolean)
++ is_active: true (boolean)
 + public_name: Клініка Борис (string, required)
-+ kved: 86.1 (array, required)
++ kveds: 86.1 (array, required)
 + status: VERIFIED (enum, required)
     - VERIFIED
     - NOT_VERIFIED
@@ -2392,13 +2392,14 @@ Optional:
 ### `crud_legal_entity_patch`
 + name: Клініка Борис (string, optional)
 + short_name: Борис (string, optional)
++ public_name: Клініка Борис (string, required)
 + type (enum, optional)
     - MSP
     - MIS
 + addresses (array[Address], optional)
 + phones (array[Phone], optional)
 + email: email@example.com (array[Email], optional)
-+ active: true (boolean)
++ is_active: true (boolean)
 + public_name: Клініка Борис (string, optional)
 + status: VERIFIED (enum, optional)
     - VERIFIED
@@ -2419,6 +2420,7 @@ Optional:
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + name: Клініка Борис (string, required)
 + short_name: Борис (string, required)
++ public_name: Клініка Борис (string, required)
 + type (enum, required)
     - MSP
     - MIS
