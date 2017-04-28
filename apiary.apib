@@ -2285,6 +2285,7 @@ Optional:
 + end_date: 2017-02-28 (string, optional)
 + status: ACTIVE, INACTIVE (enum, required)
 + `Doctor` (DoctorNew, optional)
++ `status_reason`: `new_employee` (string, optional)
 
 ### `crud_employee_get`
 + id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
@@ -2296,6 +2297,7 @@ Optional:
 
 ### `crud_employee_post`
 + include `crud_employee`
+
 
 ### `Employee`
 + user_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -2407,6 +2409,7 @@ Optional:
     - РЕЛІГІЙНА ОРГАНІЗАЦІЯ
     - ІНШІ ОРГАНІЗАЦІЙНО-ПРАВОВІ ФОРМИ
 + `medical_service_provider` (MSP, optional)
++ `created_via_mis_id`: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
 
 ### `crud_legal_entity_get`
 + id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
@@ -2843,7 +2846,7 @@ Optional:
 ### `nhs_declaration`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + include `Declaration_Request_Details_Public`
-+ `media_content`: `http://cs5.pikabu.ru/post_img/big/2015/12/04/5/1449210847155432089.jpg`  (array, required)
++ `media_content`: `http://cs5.pikabu.ru/post_img/big/2015/12/04/5/1449210847155432089.jpg`,`http://www.readersdigest.ca/wp-content/uploads/2011/01/4-ways-cheer-up-depressed-cat.jpg`  (array, required)
 
 ## Global Parameters and Products
 ### `Global_Parameters`
