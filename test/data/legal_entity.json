@@ -9,12 +9,6 @@
   "kveds": [
     "86.01"
   ],
-  "services": [
-    {
-      "id": "",
-      "name": ""
-    }
-  ],
   "addresses": [
     {
       "type": "RESIDENCE",
@@ -59,34 +53,6 @@
       }
     ]
   },
-  "divisions": [
-    {
-      "name": "Бориспільське відділення Клініки Борис",
-      "addresses": [
-        {
-          "type": "RESIDENCE",
-          "country": "UA",
-          "area": "Житомирська",
-          "region": "Бердичівський",
-          "settlement": "Київ",
-          "settlement_type": "CITY",
-          "settlement_id": "dasdf",
-          "street": "вул. Ніжинська",
-          "building": "15",
-          "apartment": "23",
-          "zip": "02090"
-        }
-      ],
-      "phones": [
-        {
-          "type": "MOBILE",
-          "number": "+380503410870"
-        }
-      ],
-      "email": "email@example.com",
-      "type": "CLINIC"
-    }
-  ],
   "medical_service_provider": {
     "licenses": [
       {
