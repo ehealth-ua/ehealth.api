@@ -129,9 +129,6 @@
         "pattern": "^[0-9]{2}\\.[0-9]{2}$"
       }
     },
-    "services": {
-      "type": "array"
-    },
     "addresses": {
       "type": "array",
       "items": {
@@ -201,39 +198,6 @@
         "gender",
         "email"
       ]
-    },
-    "divisions": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "addresses": {
-            "type": "array",
-            "items": {
-              "$ref": "#/definitions/address"
-            }
-          },
-          "phones": {
-            "type": "array",
-            "items": {
-              "$ref": "#/definitions/phone"
-            }
-          },
-          "email": {
-            "type": "string",
-            "format": "email"
-          },
-          "type": {
-            "type": "string",
-            "enum": [
-              "CLINIC"
-            ]
-          }
-        }
-      }
     },
     "medical_service_provider": {
       "type": "object",
@@ -324,12 +288,10 @@
     "legal_form",
     "edrpou",
     "kveds",
-    "services",
     "addresses",
     "phones",
     "email",
     "owner",
-    "divisions",
     "medical_service_provider"
   ],
   "additionalProperties": false
