@@ -16,6 +16,7 @@ defmodule EHealth.LegalEntity.Validator do
     params
     |> validate_request()
     |> validate_signature()
+    |> normalize_signature_error()
     |> validate_legal_entity()
     |> validate_edrpou()
   end
@@ -38,6 +39,13 @@ defmodule EHealth.LegalEntity.Validator do
     Signature.decode_and_validate(changes)
   end
   def validate_signature(err), do: err
+
+  def normalize_signature_error({:error, %{"meta" => %{"description" => error}}}) do
+    %Request{}
+    |> cast(%{}, [:signed_legal_entity_request])
+    |> add_error(:signed_legal_entity_request, error)
+  end
+  def normalize_signature_error(ok_resp), do: ok_resp
 
   # Legal Entity content validator
 
