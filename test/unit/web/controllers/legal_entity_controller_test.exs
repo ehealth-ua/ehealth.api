@@ -19,4 +19,13 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     assert Map.has_key?(resp, "error")
     assert resp["error"]
   end
+
+  test "get legal entities", %{conn: conn} do
+    conn = get conn, legal_entity_path(conn, :index, [edrpou: "37367387"])
+    resp = json_response(conn, 200)
+
+    assert Map.has_key?(resp, "data")
+    assert Map.has_key?(resp, "paging")
+    assert is_list(resp["data"])
+  end
 end

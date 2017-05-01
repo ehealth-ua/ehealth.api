@@ -28,7 +28,7 @@ defmodule EHealth.MockServer do
         _ -> []
       end
 
-    Plug.Conn.send_resp(conn, 200, Poison.encode!(%{"data" => legal_entity}))
+    Plug.Conn.send_resp(conn, 200, legal_entity |> wrap_paging_response() |> Poison.encode!())
   end
 
   post "/legal_entities" do
@@ -141,4 +141,23 @@ defmodule EHealth.MockServer do
   end
 
   def get_resp_body(resource, conn), do: resource |> EView.wrap_body(conn) |> Poison.encode!()
+
+  def wrap_paging_response(data) do
+    %{
+      "meta" => %{
+        "code" => 200,
+        "type" => "list"
+      },
+      "paging" => %{
+        "size" => nil,
+        "limit" => 2,
+        "has_more" => true,
+        "cursors" => %{
+          "starting_after" => "e9a3a1bb-da15-4f93-b414-1240af62ca51",
+          "ending_before" => nil
+        }
+      },
+      "data" => data
+    }
+  end
 end

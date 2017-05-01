@@ -5,6 +5,7 @@ defmodule EHealth.Web do
     quote do
       use Phoenix.Controller, namespace: EHealth.Web
       import Plug.Conn
+      import EHealth.Proxy
       import Ehealth.Web.Router.Helpers
     end
   end

@@ -11,12 +11,10 @@ defmodule EHealth.Web.FallbackController do
   end
 
   @doc """
-  Proxy for error response from APIs
+  Proxy response from APIs
   """
-  def call(conn, {:error, %{"error" => error, "meta" => %{"code" => status}}}) do
-    conn
-    |> resp(status, Poison.encode!(error))
-    |> put_resp_content_type("application/json")
+  def call(conn, {_, %{"meta" => %{}} = proxy_resp}) do
+    proxy(conn, proxy_resp)
   end
 
   def call(conn, %Ecto.Changeset{valid?: false} = changeset) do
@@ -29,6 +27,10 @@ defmodule EHealth.Web.FallbackController do
     conn
     |> put_status(:unauthorized)
     |> render(EView.Views.Error, :"401")
+  end
+
+  def call(conn, {:error, %{"type" => "not_found"}}) do
+    call(conn, {:error, :not_found})
   end
 
   def call(conn, {:error, :not_found}) do
