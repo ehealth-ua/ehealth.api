@@ -28,4 +28,14 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     assert Map.has_key?(resp, "paging")
     assert is_list(resp["data"])
   end
+
+  test "get legal entity by id", %{conn: conn} do
+    id = "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
+    conn = get conn, legal_entity_path(conn, :show, id)
+    resp = json_response(conn, 200)
+
+    assert id == resp["data"]["id"]
+    assert Map.has_key?(resp["data"], "medical_service_provider")
+    refute Map.has_key?(resp, "paging")
+  end
 end

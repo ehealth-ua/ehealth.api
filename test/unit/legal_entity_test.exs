@@ -90,7 +90,7 @@ defmodule EHealth.Unit.LegalEntityTest do
 
     get_legal_entity_resp = {:ok, %{
       "data" => [
-        %{"id" => "d290f1ee"}
+        %{"id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375552"}
       ]
     }}
 

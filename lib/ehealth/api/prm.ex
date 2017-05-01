@@ -32,6 +32,12 @@ defmodule EHealth.API.PRM do
     |> ResponseDecoder.check_response()
   end
 
+  def get_legal_entity_by_id(id, headers \\ []) do
+    "/legal_entities/#{id}"
+    |> get!(headers)
+    |> ResponseDecoder.check_response()
+  end
+
   def get_legal_entity_by_edrpou(edrpou, headers \\ []) do
     get_legal_entities([edrpou: edrpou, type: "MSP"], headers)
   end

@@ -20,4 +20,10 @@ defmodule EHealth.Web.LegalEntityController do
       proxy(conn, response)
     end
   end
+
+  def show(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
+    with {:ok, %{"meta" => %{}} = response} <- PRM.get_legal_entity_by_id(id, req_headers) do
+      proxy(conn, response)
+    end
+  end
 end

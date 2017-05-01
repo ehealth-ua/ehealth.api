@@ -28,7 +28,7 @@ defmodule EHealth.MockServer do
         _ -> []
       end
 
-    Plug.Conn.send_resp(conn, 200, legal_entity |> wrap_paging_response() |> Poison.encode!())
+    Plug.Conn.send_resp(conn, 200, legal_entity |> wrap_response_with_paging() |> Poison.encode!())
   end
 
   post "/legal_entities" do
@@ -37,14 +37,20 @@ defmodule EHealth.MockServer do
   end
 
   patch "/legal_entities/:id" do
-
     case conn.path_params do
-      %{"id" => "d290f1ee"} ->
+      %{"id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375552"} ->
         legal_entity = MapDeepMerge.merge(get_legal_entity(), conn.body_params)
         Plug.Conn.send_resp(conn, 200, Poison.encode!(%{"data" => legal_entity}))
       _ -> render_404(conn)
     end
+  end
 
+  get "/legal_entities/:id" do
+    case conn.path_params do
+      %{"id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375552"} ->
+        Plug.Conn.send_resp(conn, 200, get_legal_entity() |> wrap_response() |> Poison.encode!())
+      _ -> render_404(conn)
+    end
   end
 
   def get_med_registry do
@@ -61,7 +67,7 @@ defmodule EHealth.MockServer do
 
   def get_legal_entity do
     %{
-      "id" => "d290f1ee",
+      "id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375552",
       "name" => "Клініка Борис",
       "short_name" => "Борис",
       "type" => "MSP",
@@ -142,22 +148,29 @@ defmodule EHealth.MockServer do
 
   def get_resp_body(resource, conn), do: resource |> EView.wrap_body(conn) |> Poison.encode!()
 
-  def wrap_paging_response(data) do
+  def wrap_response(data) do
     %{
       "meta" => %{
         "code" => 200,
         "type" => "list"
       },
-      "paging" => %{
-        "size" => nil,
-        "limit" => 2,
-        "has_more" => true,
-        "cursors" => %{
-          "starting_after" => "e9a3a1bb-da15-4f93-b414-1240af62ca51",
-          "ending_before" => nil
-        }
-      },
       "data" => data
     }
+  end
+
+  def wrap_response_with_paging(data) do
+    paging = %{
+      "size" => nil,
+      "limit" => 2,
+      "has_more" => true,
+      "cursors" => %{
+        "starting_after" => "e9a3a1bb-da15-4f93-b414-1240af62ca51",
+        "ending_before" => nil
+      }
+    }
+
+    data
+    |> wrap_response()
+    |> Map.put("paging", paging)
   end
 end
