@@ -10,19 +10,21 @@ defmodule EHealth.API.PRM do
 
   def process_url(url), do: config()[:endpoint] <> url
 
+  def timeouts, do: config()[:timeouts]
+
   def process_request_headers(headers) do
     headers ++ [{"Content-Type", "application/json"}]
   end
 
   def create_legal_entity(data, headers \\ []) do
     "/legal_entities"
-    |> post!(Poison.encode!(data), headers)
+    |> post!(Poison.encode!(data), headers, timeouts())
     |> ResponseDecoder.check_response()
   end
 
   def update_legal_entity(data, id, headers \\ []) do
     "/legal_entities/#{id}"
-    |> patch!(Poison.encode!(data), headers)
+    |> patch!(Poison.encode!(data), headers, timeouts())
     |> ResponseDecoder.check_response()
   end
 

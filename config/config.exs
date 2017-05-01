@@ -13,15 +13,30 @@ config :ehealth, EHealth.Web.Endpoint,
 
 # Configures Digital Signature API
 config :ehealth, EHealth.API.Signature,
-  endpoint: {:system, "DIGITAL_SIGNATURE_ENDPOINT", "http://52.58.60.8:8083/DigitalSignatureService.svc"}
+  endpoint: {:system, "DIGITAL_SIGNATURE_ENDPOINT", "http://52.58.60.8:8083/DigitalSignatureService.svc"},
+  timeouts: [
+    connect_timeout: {:system, :integer, "DIGITAL_SIGNATURE_REQUEST_TIMEOUT", 30_000},
+    recv_timeout: {:system, :integer, "DIGITAL_SIGNATURE_REQUEST_TIMEOUT", 30_000},
+    timeout: {:system, :integer, "DIGITAL_SIGNATURE_REQUEST_TIMEOUT", 30_000}
+  ]
 
 # Configures MediaStorage API
 config :ehealth, EHealth.API.MediaStorage,
-  endpoint: {:system, "MEDIA_STORAGE_ENDPOINT", ""}
+  endpoint: {:system, "MEDIA_STORAGE_ENDPOINT", ""},
+  timeouts: [
+    connect_timeout: {:system, :integer, "DIGITAL_SIGNATURE_REQUEST_TIMEOUT", 30_000},
+    recv_timeout: {:system, :integer, "DIGITAL_SIGNATURE_REQUEST_TIMEOUT", 30_000},
+    timeout: {:system, :integer, "DIGITAL_SIGNATURE_REQUEST_TIMEOUT", 30_000}
+  ]
 
 # Configures PRM API
 config :ehealth, EHealth.API.PRM,
-  endpoint: {:system, "PRM_ENDPOINT", ""}
+  endpoint: {:system, "PRM_ENDPOINT", ""},
+  timeouts: [
+    connect_timeout: {:system, :integer, "PRM_REQUEST_TIMEOUT", 30_000},
+    recv_timeout: {:system, :integer, "PRM_REQUEST_TIMEOUT", 30_000},
+    timeout: {:system, :integer, "PRM_REQUEST_TIMEOUT", 30_000}
+  ]
 
 # Configures Elixir's Logger
 config :logger, :console,
