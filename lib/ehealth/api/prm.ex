@@ -8,12 +8,16 @@ defmodule EHealth.API.PRM do
 
   alias EHealth.API.ResponseDecoder
 
+  @filter_headers ["content-length", "Content-Length"]
+
   def process_url(url), do: config()[:endpoint] <> url
 
   def timeouts, do: config()[:timeouts]
 
   def process_request_headers(headers) do
-    headers ++ [{"Content-Type", "application/json"}]
+    headers
+    |> Keyword.drop(@filter_headers)
+    |> Kernel.++([{"Content-Type", "application/json"}])
   end
 
   def create_legal_entity(data, headers \\ []) do

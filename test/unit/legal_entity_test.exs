@@ -105,7 +105,11 @@ defmodule EHealth.Unit.LegalEntityTest do
   # helpers
 
   defp get_headers do
-    [{"content-type", "application/json"}, {"x-consumer-id", Ecto.UUID.generate()}]
+    [
+      {"content-type", "application/json"},
+      {"content-length", "7000"},
+      {"x-consumer-id", Ecto.UUID.generate()}
+    ]
   end
 
   defp validate_edrpou(content, signer) do
