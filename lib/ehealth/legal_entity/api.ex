@@ -5,6 +5,7 @@ defmodule EHealth.LegalEntity.API do
 
   alias Ecto.DateTime
   alias EHealth.API.PRM
+  alias EHealth.API.OAuth
   alias EHealth.LegalEntity.Validator
   alias EHealth.EmployeeRequest.API
 
@@ -38,10 +39,11 @@ defmodule EHealth.LegalEntity.API do
     request_legal_entity
     |> Map.merge(%{"status" => "NEW", "inserted_by" => consumer_id, "updated_by" => consumer_id})
     |> PRM.create_legal_entity(headers)
+    |> create_oauth_client(headers)
   end
 
   @doc """
-  Updated Legal Entity that exists and created nse Employee request in IL.
+  Updates Legal Entity that exists and creates new Employee request in IL.
   """
   def create_or_update({:ok, %{"data" => [legal_entity]}}, request_legal_entity, headers) do
     request_legal_entity
@@ -68,6 +70,22 @@ defmodule EHealth.LegalEntity.API do
   end
 
   @doc """
+  Creates a new OAuth client for MSP after successfully created a new Legal Entity
+  """
+  def create_oauth_client({:ok, %{"data" => %{"id" => id, "short_name" => name}}} = legal_entity, headers) do
+    client = %{
+      "name" => name,
+      "user_id" => get_consumer_id(headers),
+      "settings" => %{},
+      "priv_settings" => %{},
+    }
+    client
+    |> OAuth.create_client()
+    |> log_api_error_response(legal_entity, "Cannot create OAuth client for LegalEntity #{id}.")
+  end
+  def create_oauth_client(err, _headers), do: err
+
+  @doc """
   Create Employee request
   Specification: https://edenlab.atlassian.net/wiki/display/EH/IL.Create+employee+request
   """
@@ -81,15 +99,9 @@ defmodule EHealth.LegalEntity.API do
       "party" => party
     }
 
-    case API.create_employee_request(%{"employee_request" => request}) do
-      {:ok, _employee_request} ->
-        legal_entity
-
-      {:error, reason} ->
-        # ToDo: retry creating of the Employee request
-        Logger.error(fn -> "Cannot create employee request for LegalEntity #{id} with: #{inspect reason}" end)
-        legal_entity
-    end
+    %{"employee_request" => request}
+    |> API.create_employee_request()
+    |> log_api_error_response(legal_entity, "Cannot create employee request for LegalEntity #{id}.")
   end
   def create_employee_request(err, _request_data), do: err
 
@@ -99,5 +111,13 @@ defmodule EHealth.LegalEntity.API do
   def get_consumer_id(headers) do
     list = for {k, v} <- headers, k == "x-consumer-id", do: v
     List.first(list)
+  end
+
+  def log_api_error_response({:ok, _response}, return, _log_message) do
+    return
+  end
+  def log_api_error_response({:error, response}, return, log_message) do
+    Logger.error(fn -> log_message <> " Response: #{inspect response}" end)
+    return
   end
 end

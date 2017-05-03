@@ -53,6 +53,20 @@ defmodule EHealth.MockServer do
     end
   end
 
+  # OAuth
+  post "/admin/clients" do
+    client = %{
+      "id": "f9bd4210-7c4b-40b6-957f-300829ad37dc",
+      "name": "test",
+      "type": "client",
+      "secret": "secret",
+      "settings": %{},
+      "priv_settings": %{},
+      "redirect_uri": "redirect_uri",
+    }
+    Plug.Conn.send_resp(conn, 200, client |> wrap_response() |> Poison.encode!())
+  end
+
   def get_med_registry do
     %{
       "id" => "5432345432",

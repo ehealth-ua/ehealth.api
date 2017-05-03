@@ -38,6 +38,16 @@ config :ehealth, EHealth.API.PRM,
     timeout: {:system, :integer, "PRM_REQUEST_TIMEOUT", 30_000}
   ]
 
+# Configures Trump API
+config :ehealth, EHealth.API.OAuth,
+  endpoint: {:system, "OAUTH_ENDPOINT", ""},
+  client_type_id: {:system, "OAUTH_CLIENT_TYPE_ID", "31a2b65f-1286-474a-b3bd-8eb9d2f6b553"},
+  hackney_options: [
+    connect_timeout: {:system, :integer, "OAUTH_REQUEST_TIMEOUT", 30_000},
+    recv_timeout: {:system, :integer, "OAUTH_REQUEST_TIMEOUT", 30_000},
+    timeout: {:system, :integer, "OAUTH_REQUEST_TIMEOUT", 30_000}
+  ]
+
 # Configures Elixir's Logger
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",
