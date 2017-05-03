@@ -21,12 +21,16 @@ defmodule EHealth.LegalEntity.API do
   end
 
   def process_request({:ok, %{"edrpou" => edrpou} = request_legal_entity}, headers) do
-    edrpou
-    |> PRM.get_legal_entity_by_edrpou(headers)
-    |> create_or_update(request_legal_entity, headers)
+    {status, legal_entity, secret} =
+      edrpou
+      |> PRM.get_legal_entity_by_edrpou(headers)
+      |> create_or_update(request_legal_entity, headers)
+
+    {status, legal_entity}
     |> update_status(headers)
     |> create_employee_request(request_legal_entity)
     |> fetch_data()
+    |> Tuple.append(secret)
   end
   def process_request(err, _headers), do: err
 
@@ -50,6 +54,7 @@ defmodule EHealth.LegalEntity.API do
     |> Map.drop(["edrpou", "kveds"]) # filter immutable data
     |> Map.put("updated_by", get_consumer_id(headers))
     |> PRM.update_legal_entity(Map.fetch!(legal_entity, "id"), headers)
+    |> Tuple.append(nil)
   end
 
   def create_or_update({:error, _} = err, _, _), do: err
@@ -72,16 +77,19 @@ defmodule EHealth.LegalEntity.API do
   @doc """
   Creates a new OAuth client for MSP after successfully created a new Legal Entity
   """
-  def create_oauth_client({:ok, %{"data" => %{"id" => id, "short_name" => name}}} = legal_entity, headers) do
+  def create_oauth_client({:ok, %{"data" => %{"id" => id, "short_name" => name}} = legal_entity}, headers) do
     client = %{
       "name" => name,
       "user_id" => get_consumer_id(headers),
       "settings" => %{},
       "priv_settings" => %{},
     }
-    client
-    |> OAuth.create_client()
-    |> log_api_error_response(legal_entity, "Cannot create OAuth client for LegalEntity #{id}.")
+    case OAuth.create_client(client) do
+      {:ok, %{"data" => %{"secret" => secret}}} -> {:ok, legal_entity, secret}
+      {:error, response} -> Logger.error(fn ->
+        "Cannot create OAuth client for LegalEntity #{id} Response: #{inspect response}" end)
+        {:ok, legal_entity, nil}
+    end
   end
   def create_oauth_client(err, _headers), do: err
 

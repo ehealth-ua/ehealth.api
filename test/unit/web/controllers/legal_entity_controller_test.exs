@@ -10,7 +10,11 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     }
 
     conn = put conn, legal_entity_path(conn, :create_or_update), legal_entity_params
-    assert json_response(conn, 200)["data"]
+    resp = json_response(conn, 200)
+
+    assert Map.has_key?(resp["data"], "id")
+    assert Map.has_key?(resp, "urgent")
+    assert Map.has_key?(resp["urgent"], "secret_key")
   end
 
   test "invalid legal entity", %{conn: conn} do
