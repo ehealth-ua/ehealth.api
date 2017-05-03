@@ -28,6 +28,12 @@ defmodule EHealth.Web.ConnCase do
   setup tags do
     _ = tags
 
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(EHealth.Repo)
+
+    unless tags[:async] do
+      Ecto.Adapters.SQL.Sandbox.mode(EHealth.Repo, {:shared, self()})
+    end
+
     conn =
       Phoenix.ConnTest.build_conn()
       |> Plug.Conn.put_req_header("content-type", "application/json")

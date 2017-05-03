@@ -157,6 +157,9 @@
         "second_name": {
           "type": "string"
         },
+        "position": {
+          "type": "string"
+        },
         "tax_id": {
           "type": "string",
           "pattern": "^[0-9]{8,10}$"
@@ -192,6 +195,7 @@
       "required": [
         "first_name",
         "last_name",
+        "position",
         "tax_id",
         "birth_date",
         "birth_place",

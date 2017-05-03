@@ -6,8 +6,8 @@
     "start_date": "2017-03-02T10:45:16.000Z",
     "end_date": "2018-03-02T10:45:16.000Z",
     "active": true,
-    "status": "pending_verification",
-    "employee_type": "doctor",
+    "status": "PENDING_VERIFICATION",
+    "employee_type": "DOCTOR",
     "party": {
       "first_name": "Петро",
       "last_name": "Іванов",

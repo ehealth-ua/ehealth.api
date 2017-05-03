@@ -1,8 +1,12 @@
 defmodule EHealth.Unit.LegalEntityTest do
   @moduledoc false
 
-  use ExUnit.Case
+  use EHealth.Web.ConnCase
 
+  import Ecto.Query, warn: false
+
+  alias EHealth.Repo
+  alias EHealth.EmployeeRequest
   alias EHealth.LegalEntity.API
   alias EHealth.LegalEntity.Validator
 
@@ -67,6 +71,8 @@ defmodule EHealth.Unit.LegalEntityTest do
 
     assert {:ok, resp} = API.process_request({:ok, legal_entitity}, get_headers())
     assert "NOT_VERIFIED" == resp["status"]
+
+    assert 1 == Repo.one(from e in EmployeeRequest, select: count("*"))
   end
 
   test "process legal entity that exists" do
