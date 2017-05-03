@@ -23,6 +23,8 @@ branches:
   except:
     - /[0-9]*\.[0-9]*\.[0-9]*/
 before_install:
+  # Expose DB to Docker container
+  - sudo ./bin/ci/init-db.sh
 script:
   # Increment version in mix.exs
   - ./bin/ci/version-increment.sh
@@ -37,6 +39,8 @@ script:
   - mix dogma
   # Build Docker container
   - ./bin/build.sh
+  # Initialize DB for Docker container
+  - MIX_ENV=dev mix ecto.setup
   # Run Docker container
   - ./bin/start.sh
   - sleep 5
