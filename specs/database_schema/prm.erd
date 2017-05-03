@@ -102,6 +102,7 @@ updated_at | timestamp | not null
 [employee_requests]
 id | uuid | not null
 data | jsonb | not null
+status | enum('') | not null
 inserted_at | timestamp | not null
 updated_at | timestamp | not null
 
