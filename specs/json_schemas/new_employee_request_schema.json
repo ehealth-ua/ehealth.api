@@ -31,16 +31,16 @@
         "status": {
           "type": "string",
           "enum": [
-            "pending_verification"
+            "PENDING_VERIFICATION"
           ]
         },
         "employee_type": {
           "type": "string",
           "enum": [
-            "doctor",
-            "hr",
-            "admin",
-            "accountant"
+            "DOCTOR",
+            "HR",
+            "ADMIN",
+            "OWNER"
           ]
         },
         "party": {
@@ -87,7 +87,6 @@
       },
       "required": [
         "legal_entity_id",
-        "division_id",
         "position",
         "start_date",
         "status",
