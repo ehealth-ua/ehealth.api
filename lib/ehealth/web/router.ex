@@ -32,5 +32,7 @@ defmodule Ehealth.Web.Router do
     put "/legal_entities", LegalEntityController, :create_or_update
 
     post "/employee_requests", EmployeeRequestController, :create
+    post "/employee_requests/:id/approve", EmployeeRequestController, :approve
+    post "/employee_requests/:id/reject", EmployeeRequestController, :reject
   end
 end

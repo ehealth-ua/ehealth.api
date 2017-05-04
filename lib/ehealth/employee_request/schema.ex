@@ -9,6 +9,7 @@ defmodule EHealth.EmployeeRequest do
 
   schema "employee_requests" do
     field :data, :map
+    field :status, :string
 
     timestamps()
   end

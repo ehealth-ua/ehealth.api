@@ -1254,7 +1254,7 @@ Method returns shortened details, to obtain full information - get Declaration R
             + include `Declaration_Request_Details_Public`
             + content: `Declaration content` (string, required)
             + active: false (boolean, required)
-            + status: pending_verification (string, required)
+            + status: PENDING_VERIFICATION (string, required)
             + seed: hash (string) - Hash of previous block in declarations chain or other random component that should be signed with declaration.
 
 ### Create Declaration Request [POST]
@@ -1320,7 +1320,7 @@ This method expects one of verification methods as it's parameters. Verification
             + include `Declaration_Request_Public`
             + content: `Declaration content` (string, required) - Same as returned on creation stage.
             + active: false (boolean, required)
-            + status: pending_verification (string, required)
+            + status: PENDING_VERIFICATION (string, required)
 
 ### Reject Declaration Request [PATCH /api/declaration_requests/{id}/actions/reject]
 

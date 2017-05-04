@@ -53,6 +53,28 @@ defmodule EHealth.MockServer do
     end
   end
 
+  # Party
+
+  get "/party" do
+    Plug.Conn.send_resp(conn, 200, get_party() |> wrap_response_with_paging() |> Poison.encode!())
+  end
+
+  post "/party" do
+    party = MapDeepMerge.merge(get_party(), conn.body_params)
+    Plug.Conn.send_resp(conn, 201, Poison.encode!(%{"data" => party}))
+  end
+
+  patch "/party/:id" do
+    Plug.Conn.send_resp(conn, 200, Poison.encode!(%{"data" => get_party()}))
+  end
+
+  # Employee
+
+  post "/employees" do
+    employee = MapDeepMerge.merge(get_employee(), conn.body_params)
+    Plug.Conn.send_resp(conn, 201, Poison.encode!(%{"data" => employee}))
+  end
+
   # OAuth
   post "/admin/clients" do
     client = %{
@@ -76,6 +98,41 @@ defmodule EHealth.MockServer do
       "inserted_by" => "userid",
       "updated_at" => "1991-08-19T00.00.00.000Z",
       "updated_by" => "userid"
+    }
+  end
+
+  def get_employee do
+    %{
+      "id" => "7488a646-e31f-11e4-aace-600308960662",
+      "employee_type" => "hr",
+      "type" => "employee", # EView field
+      "is_active" => true,
+      "status" => "some status",
+      "position" => "some position",
+      "end_date" => "2011-04-17T14:00:00.000000",
+      "start_date" => "2010-04-17T14:00:00.000000",
+      "inserted_by" => "7488a646-e31f-11e4-aace-600308960662",
+      "updated_by" => "7488a646-e31f-11e4-aace-600308960662"
+    }
+  end
+
+  def get_party do
+    %{
+      "id" => "01981ab9-904c-4c36-88ab-959a94087483",
+      "birth_date" => "1991-08-19",
+      "first_name" => "Петро",
+      "last_name" => "Іванов",
+      "gender" => "MALE",
+      "phones" => [
+        %{"number" => "+380503410870", "type" => "MOBILE"}
+       ],
+      "documents" => [
+        %{"number" => "120518", "type" => "PASSPORT"}
+      ],
+      "second_name" => "Миколайович",
+      "tax_id" => "3126509816",
+      "inserted_by" => "12a1c9e6-9fb8-4b22-b21c-250ee2155607",
+      "updated_by" => "12a1c9e6-9fb8-4b22-b21c-250ee2155607"
     }
   end
 

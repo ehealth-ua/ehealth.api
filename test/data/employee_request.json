@@ -12,7 +12,7 @@
       "first_name": "Петро",
       "last_name": "Іванов",
       "second_name": "Миколайович",
-      "birth_date": "1991-08-19T00:00:00.000Z",
+      "birth_date": "1991-08-19",
       "gender": "MALE",
       "tax_id": "3126509816",
       "email": "email@example.com",
@@ -29,7 +29,7 @@
         }
       ]
     },
-    "doctor": {
+    "Doctor": {
       "education": [
         {
           "country": "UA",

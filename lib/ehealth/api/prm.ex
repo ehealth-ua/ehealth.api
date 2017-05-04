@@ -20,6 +20,8 @@ defmodule EHealth.API.PRM do
     |> Kernel.++([{"Content-Type", "application/json"}])
   end
 
+  # Legal Entity
+
   def create_legal_entity(data, headers \\ []) do
     "/legal_entities"
     |> post!(Poison.encode!(data), headers, timeouts())
@@ -47,6 +49,40 @@ defmodule EHealth.API.PRM do
   def get_legal_entity_by_edrpou(edrpou, headers \\ []) do
     get_legal_entities([edrpou: edrpou, type: "MSP"], headers)
   end
+
+  # Party
+
+  def create_party(data, headers \\ []) do
+    "/party"
+    |> post!(Poison.encode!(data), headers, timeouts())
+    |> ResponseDecoder.check_response()
+  end
+
+  def update_party(data, id, headers \\ []) do
+    "/party/#{id}"
+    |> patch!(Poison.encode!(data), headers, timeouts())
+    |> ResponseDecoder.check_response()
+  end
+
+  def get_parties(params, headers \\ []) do
+    "/party"
+    |> get!(headers, params: params)
+    |> ResponseDecoder.check_response()
+  end
+
+  def get_party_by_tax_id(edrpou, headers \\ []) do
+    get_parties([tax_id: edrpou], headers)
+  end
+
+  # Employee
+
+  def create_employee(data, headers \\ []) do
+    "/employees"
+    |> post!(Poison.encode!(data), headers, timeouts())
+    |> ResponseDecoder.check_response()
+  end
+
+  # Registry
 
   def check_msp_state_property_status(edrpou, headers \\ []) do
     "/ukr_med_registry"
