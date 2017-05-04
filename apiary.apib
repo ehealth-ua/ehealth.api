@@ -603,7 +603,7 @@ This service should be used for internal services/processes. Used without `acces
 + Response 200 (application/json)
     + Attributes (Response_OK)
         + data (Employee_Request_Details)
-        + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 
 
 ### Update Employee Request Status [PATCH /employee_requests/{id}]
@@ -1807,7 +1807,7 @@ This service should be used with `access_token` authetification method.
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + data (Employee_Request_Details)
-        + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 
 ## Persons [/api/persons]
 
@@ -1930,6 +1930,10 @@ It returns:
                 - VERIFIED
                 - DECLINED
                 - VERIFICATION_EXP
+            + security (object)
+                + `secret_key`: `secret_key` (string, required)
+                + `client_id`: `client_id` (string, required)
+                + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
 
 ### Create/Update Legal Entity [PUT]
 
@@ -1961,23 +1965,29 @@ Optional:
     + Attributes (Response__Process_OK)
         + data (object)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + include `Legal_Entity_Request_Public`
+            + include Legal_Entity_Request_Public
             + status: VERIFIED (enum, required)
                 - VERIFIED
                 - DECLINED
                 - VERIFICATION_EXP
-            + `secret_key`: `secret_key` (string, required)
+            + security (object)
+                + `secret_key`: `secret_key` (string, required)
+                + `client_id`: `client_id` (string, required)
+                + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
 
 + Response 201 (application/json)
     + Attributes (Response__Process_OK)
         + data (object)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + include `Legal_Entity_Request_Public`
+            + include Legal_Entity_Request_Public
             + status: VERIFIED (enum, required)
                 - VERIFIED
                 - DECLINED
                 - VERIFICATION_EXP
-            + `secret_key`: `secret_key` (string, required)
+            + security (object)
+                + `secret_key`: `secret_key` (string, required)
+                + `client_id`: `client_id` (string, required)
+                + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
 
 ### Update Legal Entity status [PATCH /api/legal_entities/{id}]
 
@@ -2502,8 +2512,8 @@ Optional:
 + email: email@example.com (string, required)
 + owner (Owner)
 + `medical_service_provider` (MSP)
-+ security (object)
-    + `redirect_uri`: `redirect_uri` (string, required) - Redirect uri
++ security (object, fixed-type)
+    + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
 
 ## `Divisions`
 ### `Division`
