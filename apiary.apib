@@ -603,6 +603,7 @@ This service should be used for internal services/processes. Used without `acces
 + Response 200 (application/json)
     + Attributes (Response_OK)
         + data (Employee_Request_Details)
+        + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 
 
 ### Update Employee Request Status [PATCH /employee_requests/{id}]
@@ -1806,6 +1807,7 @@ This service should be used with `access_token` authetification method.
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + data (Employee_Request_Details)
+        + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 
 ## Persons [/api/persons]
 
@@ -2500,6 +2502,8 @@ Optional:
 + email: email@example.com (string, required)
 + owner (Owner)
 + `medical_service_provider` (MSP)
++ security (object)
+    + `redirect_uri`: `redirect_uri` (string, required) - Redirect uri
 
 ## `Divisions`
 ### `Division`
