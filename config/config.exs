@@ -63,6 +63,16 @@ config :ehealth, EHealth.Man.Templates.EmployeeRequestInvitation,
   format: {:system, "EMPLOYEE_REQUEST_INVITATION_TEMPLATE_FORMAT", "text/html"},
   activation_link: {:system, "EMPLOYEE_REQUEST_INVITATION_TEMPLATE_FORMAT", ""}
 
+# Configures bamboo
+config :ehealth, EHealth.Bamboo.Mailer,
+  adapter: Bamboo.PostmarkAdapter,
+  api_key: System.get_env("POSTMARK_API_KEY")
+
+# Configures employee request invitation email
+config :ehealth, EHealth.Bamboo.Emails.EmployeeRequestInvitation,
+  from: {:system, "BAMBOO_EMPLOYEE_REQUEST_INVITATION_FROM", ""},
+  subject: {:system, "BAMBOO_EMPLOYEE_REQUEST_INVITATION_SUBJECT", ""}
+
 # Configures Elixir's Logger
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",
