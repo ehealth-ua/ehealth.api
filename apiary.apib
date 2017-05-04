@@ -604,6 +604,8 @@ This service should be used for internal services/processes. Used without `acces
     + Attributes (Response_OK)
         + data (Employee_Request_Details)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+        + urgent (object, optional)
+            + user_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 
 
 ### Update Employee Request Status [PATCH /employee_requests/{id}]
@@ -1808,6 +1810,8 @@ This service should be used with `access_token` authetification method.
     + Attributes (Response__Process_OK)
         + data (Employee_Request_Details)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+        + urgent (object, optional)
+            + user_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 
 ## Persons [/api/persons]
 
