@@ -458,13 +458,21 @@ Response will contain only records that you have access to.
 Method to create new party record.
 
 + Request (application/json)
-    + Attributes (`crud_party_post`)
+    + Attributes (object)
+        + party(`crud_party_post`)
+        + users(array)
+            + (object)
+                + user_id: `2de19358-0062-4f14-8a50-9dff015ed165` (string, required)
 
 + Response 201 (application/json)
     + Attributes (Response_OK)
         + meta (Response__Meta)
             + code: 201 (number)
-        + data (`crud_party_get`)
+        + data (object)
+            + party(`crud_party_get`)
+            + users(array)
+                + (object)
+                    + user_id: `2de19358-0062-4f14-8a50-9dff015ed165` (string, required)
 
 
 ### Update party [PATCH /party/{id}]
@@ -477,11 +485,21 @@ This method to update the employee info by ID.
 
 
 + Request (application/json)
-    + Attributes (crud_party_post)
+    + Attributes (object)
+        + party(`crud_party_post`)
+        + users(array)
+            + (object)
+                + user_id: `2de19358-0062-4f14-8a50-9dff015ed165` (string, required)
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
-        + data (crud_party_get)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + party(`crud_party_get`)
+            + users(array)
+                + (object)
+                    + user_id: `2de19358-0062-4f14-8a50-9dff015ed165` (string, required)
 
 
 ### Search for party [GET /party{?first_name,last_name,second_name,birth_date,tax_id,phone_number,starting_after,ending_before,limit}]
@@ -503,7 +521,13 @@ Methods returns list of parties.
 
 + Response 200 (application/json)
     + Attributes (Response_Collection)
-        + data (array[`crud_party_get`])
+        + data (array)
+            + (object)
+                + party(`crud_party_get`)
+                + users(array)
+                    + (object)
+                        + user_id: `2de19358-0062-4f14-8a50-9dff015ed165` (string, required)
+                
 
 ### Get party details [GET /party/{id}]
 
@@ -516,7 +540,11 @@ Methods returns party details by ID.
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
-        + data (`crud_party_get`)
+        + data (object)
+            + party(`crud_party_get`)
+            + users(array)
+                + (object)
+                    + user_id: `2de19358-0062-4f14-8a50-9dff015ed165` (string, required)
 
 
 ## Employees [/employees]
@@ -552,13 +580,13 @@ This method to update the employee info by ID.
         + data (crud_employee_get)
 
 
-### Search for an Employee [GET /employees{?party_id,msp_id,division_id,employee_type,status,starting_after,ending_before,limit}]
+### Search for an Employee [GET /employees{?party_id,legal_entity_id,division_id,employee_type,status,starting_after,ending_before,limit}]
 
 Methods returns list of employees.
 
 + Parameters
     + `party_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - user_id of a doctor.
-    + msp_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MSP ID.
+    + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MSP ID.
     + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - division ID.    
     + employee_type: doctor (enum)
         - doctor
@@ -1254,7 +1282,7 @@ Method returns shortened details, to obtain full information - get Declaration R
             + include `Declaration_Request_Details_Public`
             + content: `Declaration content` (string, required)
             + active: false (boolean, required)
-            + status: PENDING_VERIFICATION (string, required)
+            + status: pending_verification (string, required)
             + seed: hash (string) - Hash of previous block in declarations chain or other random component that should be signed with declaration.
 
 ### Create Declaration Request [POST]
@@ -1320,7 +1348,7 @@ This method expects one of verification methods as it's parameters. Verification
             + include `Declaration_Request_Public`
             + content: `Declaration content` (string, required) - Same as returned on creation stage.
             + active: false (boolean, required)
-            + status: PENDING_VERIFICATION (string, required)
+            + status: pending_verification (string, required)
 
 ### Reject Declaration Request [PATCH /api/declaration_requests/{id}/actions/reject]
 
