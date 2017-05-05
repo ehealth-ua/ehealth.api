@@ -165,6 +165,11 @@ inserted_by | uuid | not null
 updated_at | timestamp | not null
 updated_by | uuid | not null
 
+[party_users]
+id       | uuid | not null
+party_id | uuid | not null
+user_id  | uuid | not null
+
 [products]
 id | uuid | not null
 name | varchar | not null
@@ -183,6 +188,7 @@ updated_by | uuid | not null
 
 (prm)
 parties
+party_users
 doctors
 divisions
 medical_service_providers
@@ -213,6 +219,7 @@ employees 1--* declarations
 divisions *--1 legal_entities
 employees *--1 legal_entities
 parties 1--+ employees
+parties 1--* party_users
 employees *--1 divisions
 employees 1--? employee_doctors
 medical_service_providers 1--1 legal_entities
