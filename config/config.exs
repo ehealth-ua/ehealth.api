@@ -66,8 +66,8 @@ config :ehealth, EHealth.Man.Templates.EmployeeRequestInvitation,
 
 # Configures bamboo
 config :ehealth, EHealth.Bamboo.Mailer,
-  adapter: Bamboo.PostmarkAdapter,
-  api_key: System.get_env("POSTMARK_API_KEY")
+  adapter: EHealth.Bamboo.PostmarkAdapter,
+  api_key: {:system, "POSTMARK_API_KEY", ""}
 
 # Configures employee request invitation email
 config :ehealth, EHealth.Bamboo.Emails.EmployeeRequestInvitation,
