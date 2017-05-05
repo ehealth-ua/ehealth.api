@@ -29,7 +29,7 @@
         }
       ]
     },
-    "Doctor": {
+    "doctor": {
       "education": [
         {
           "country": "UA",
