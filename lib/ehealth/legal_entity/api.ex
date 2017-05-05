@@ -43,7 +43,7 @@ defmodule EHealth.LegalEntity.API do
     request_legal_entity
     |> Map.merge(%{"status" => "NEW", "inserted_by" => consumer_id, "updated_by" => consumer_id})
     |> PRM.create_legal_entity(headers)
-    |> create_oauth_client(headers)
+    |> oauth_create_client(headers)
   end
 
   @doc """
@@ -77,7 +77,7 @@ defmodule EHealth.LegalEntity.API do
   @doc """
   Creates a new OAuth client for MSP after successfully created a new Legal Entity
   """
-  def create_oauth_client({:ok, %{"data" => %{"id" => id, "short_name" => name}} = legal_entity}, headers) do
+  def oauth_create_client({:ok, %{"data" => %{"id" => id, "short_name" => name}} = legal_entity}, headers) do
     client = %{
       "name" => name,
       "user_id" => get_consumer_id(headers),
@@ -91,7 +91,7 @@ defmodule EHealth.LegalEntity.API do
         {:ok, legal_entity, nil}
     end
   end
-  def create_oauth_client(err, _headers), do: err
+  def oauth_create_client(err, _headers), do: err
 
   @doc """
   Create Employee request
