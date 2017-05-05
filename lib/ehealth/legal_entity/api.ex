@@ -98,7 +98,11 @@ defmodule EHealth.LegalEntity.API do
   Fetch OAuth credentials from OAuth.create_client respone
   """
   def put_oauth_security({:ok, %{"data" => oauth_data}}, legal_entity) do
-    {:ok, legal_entity, Map.take(oauth_data, ["client_id", "client_secret", "redirect_uri"])}
+    {:ok, legal_entity, %{
+      "client_id" => Map.get(oauth_data, "id"),
+      "client_secret" => Map.get(oauth_data, "secret"),
+      "redirect_uri" => Map.get(oauth_data, "redirect_uri")
+    }}
   end
 
   def put_oauth_security({:error, response}, %{"data" => %{"id" => id}} = legal_entity) do
