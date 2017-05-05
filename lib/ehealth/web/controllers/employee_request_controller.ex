@@ -9,6 +9,12 @@ defmodule EHealth.Web.EmployeeRequestController do
 
   action_fallback EHealth.Web.FallbackController
 
+  def index(conn, params) do
+    with {employee_requests, %Ecto.Paging{} = paging} <- API.list_employee_requests(params) do
+      render(conn, "index.json", employee_requests: employee_requests, paging: paging)
+    end
+  end
+
   def create(conn, params) do
     with {:ok, employee_request} <- API.create_employee_request(params) do
       email_body =

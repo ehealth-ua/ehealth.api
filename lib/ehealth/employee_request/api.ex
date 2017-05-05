@@ -14,6 +14,26 @@ defmodule EHealth.EmployeeRequest.API do
   @status_approved "APPROVED"
   @status_rejected "REJECTED"
 
+  def to_integer(value) when is_binary(value), do: String.to_integer(value)
+  def to_integer(value), do: value
+
+  def list_employee_requests(params) do
+    limit =
+      params
+      |> Map.get("limit", Confex.get(:ehealth, :employee_requests_per_page))
+      |> to_integer()
+
+    cursors = %Ecto.Paging.Cursors{
+      starting_after: Map.get(params, "starting_after"),
+      ending_before: Map.get(params, "ending_before")
+    }
+
+    query = from er in EmployeeRequest,
+      order_by: [desc: :inserted_at]
+
+    Repo.page(query, %Ecto.Paging{limit: limit, cursors: cursors})
+  end
+
   def create_employee_request(attrs \\ %{}) do
     with :ok <- validate_schema(:employee_request, attrs) do
       data = Map.fetch!(attrs, "employee_request")

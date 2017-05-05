@@ -21,6 +21,15 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
   end
 
+  test "list employee requests", %{conn: conn} do
+    conn = get conn, employee_request_path(conn, :index)
+    resp = json_response(conn, 200)
+
+    assert Map.has_key?(resp, "data")
+    assert Map.has_key?(resp, "paging")
+    assert is_list(resp["data"])
+  end
+
   test "approve employee request", %{conn: conn} do
     %{id: id} = fixture(:employee_request)
 

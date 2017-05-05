@@ -4,6 +4,10 @@ defmodule EHealth.Web.EmployeeRequestView do
   use EHealth.Web, :view
   alias EHealth.Web.EmployeeRequestView
 
+  def render("index.json", %{employee_requests: employee_requests}) do
+    render_many(employee_requests, EmployeeRequestView, "employee_request.json")
+  end
+
   def render("show.json", %{employee_request: employee_request}) do
     render_one(employee_request, EmployeeRequestView, "employee_request.json")
   end
