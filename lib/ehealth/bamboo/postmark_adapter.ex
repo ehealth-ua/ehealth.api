@@ -8,9 +8,9 @@ defmodule EHealth.Bamboo.PostmarkAdapter do
   def deliver(email, config), do: PostmarkAdapter.deliver(email, config)
 
   def handle_config(_config) do
-      :ehealth
-      |> Confex.get_map(EHealth.Bamboo.Mailer)
-      |> Enum.into(%{})
-      |> PostmarkAdapter.handle_config()
+    :ehealth
+    |> Confex.get_map(EHealth.Bamboo.Mailer)
+    |> Enum.into(%{})
+    |> PostmarkAdapter.handle_config()
   end
 end
