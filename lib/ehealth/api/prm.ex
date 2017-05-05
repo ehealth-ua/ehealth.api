@@ -88,6 +88,12 @@ defmodule EHealth.API.PRM do
     |> ResponseDecoder.check_response()
   end
 
+  def get_employee_by_id(id, headers \\ []) do
+    "/employees/#{id}"
+    |> get!(headers)
+    |> ResponseDecoder.check_response()
+  end
+
   # Registry
 
   def check_msp_state_property_status(edrpou, headers \\ []) do

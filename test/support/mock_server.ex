@@ -79,6 +79,15 @@ defmodule EHealth.MockServer do
     Plug.Conn.send_resp(conn, 200, employees)
   end
 
+  get "/employees/:id" do
+    employees =
+      get_employee()
+      |> wrap_response()
+      |> Poison.encode!()
+
+    Plug.Conn.send_resp(conn, 200, employees)
+  end
+
   post "/employees" do
     employee = MapDeepMerge.merge(get_employee(), conn.body_params)
     Plug.Conn.send_resp(conn, 201, Poison.encode!(%{"data" => employee}))

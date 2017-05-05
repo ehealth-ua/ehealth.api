@@ -13,4 +13,10 @@ defmodule EHealth.Web.EmployeesController do
     end
   end
 
+  def show(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
+    with {:ok, %{"meta" => %{}} = response} <- PRM.get_employee_by_id(id, req_headers) do
+      proxy(conn, response)
+    end
+  end
+
 end
