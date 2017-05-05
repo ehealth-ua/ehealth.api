@@ -14,7 +14,10 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
     assert Map.has_key?(resp["data"], "id")
     assert Map.has_key?(resp, "urgent")
-    assert Map.has_key?(resp["urgent"], "secret_key")
+    assert Map.has_key?(resp["urgent"], "security")
+    assert Map.has_key?(resp["urgent"]["security"], "redirect_uri")
+    assert Map.has_key?(resp["urgent"]["security"], "client_id")
+    assert Map.has_key?(resp["urgent"]["security"], "client_secret")
   end
 
   test "invalid legal entity", %{conn: conn} do

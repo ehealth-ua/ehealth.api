@@ -283,6 +283,17 @@
         "DECLINED",
         "VERIFICATION_EXP"
       ]
+    },
+    "security": {
+      "type": "object",
+      "properties": {
+        "redirect_uri": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "redirect_uri"
+      ]
     }
   },
   "required": [
@@ -296,7 +307,8 @@
     "phones",
     "email",
     "owner",
-    "medical_service_provider"
+    "medical_service_provider",
+    "security"
   ],
   "additionalProperties": false
 }

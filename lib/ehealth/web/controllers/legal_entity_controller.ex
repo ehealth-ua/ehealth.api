@@ -10,9 +10,9 @@ defmodule EHealth.Web.LegalEntityController do
   action_fallback EHealth.Web.FallbackController
 
   def create_or_update(%Plug.Conn{req_headers: req_headers} = conn, legal_entity_params) do
-    with {:ok, legal_entity, secret} <- API.create_legal_entity(legal_entity_params, req_headers) do
+    with {:ok, legal_entity, security} <- API.create_legal_entity(legal_entity_params, req_headers) do
       conn
-      |> assign_secret_key(secret)
+      |> assign_security(security)
       |> render("show.json", legal_entity: legal_entity)
     end
   end
@@ -29,8 +29,8 @@ defmodule EHealth.Web.LegalEntityController do
     end
   end
 
-  defp assign_secret_key(conn, secret_key) when is_binary(secret_key) do
-    assign(conn, :urgent, %{"secret_key" => secret_key})
+  defp assign_security(conn, security) when is_map(security) do
+    assign(conn, :urgent, %{"security" => security})
   end
-  defp assign_secret_key(conn, _), do: conn
+  defp assign_security(conn, _), do: conn
 end

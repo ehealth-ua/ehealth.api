@@ -39,11 +39,15 @@ defmodule EHealth.LegalEntity.API do
   """
   def create_or_update({:ok, %{"data" => []}}, request_legal_entity, headers) do
     consumer_id = get_consumer_id(headers)
+    redirect_uri =
+      request_legal_entity
+      |> Map.fetch!("security")
+      |> Map.fetch!("redirect_uri")
 
     request_legal_entity
     |> Map.merge(%{"status" => "NEW", "inserted_by" => consumer_id, "updated_by" => consumer_id})
     |> PRM.create_legal_entity(headers)
-    |> oauth_create_client(headers)
+    |> oauth_create_client(redirect_uri, headers)
   end
 
   @doc """
@@ -77,21 +81,31 @@ defmodule EHealth.LegalEntity.API do
   @doc """
   Creates a new OAuth client for MSP after successfully created a new Legal Entity
   """
-  def oauth_create_client({:ok, %{"data" => %{"id" => id, "short_name" => name}} = legal_entity}, headers) do
+  def oauth_create_client({:ok, %{"data" => %{"id" => id}} = legal_entity}, redirect_uri, headers) do
     client = %{
-      "name" => name,
+      "name" => Map.fetch!(legal_entity["data"], "short_name") <> "-#{id}",
+      "redirect_uri" => redirect_uri,
       "user_id" => get_consumer_id(headers),
-      "settings" => %{},
-      "priv_settings" => %{},
     }
-    case OAuth.create_client(client) do
-      {:ok, %{"data" => %{"secret" => secret}}} -> {:ok, legal_entity, secret}
-      {:error, response} -> Logger.error(fn ->
-        "Cannot create OAuth client for LegalEntity #{id} Response: #{inspect response}" end)
-        {:ok, legal_entity, nil}
-    end
+
+    client
+    |> OAuth.create_client()
+    |> put_oauth_security(legal_entity)
   end
-  def oauth_create_client(err, _headers), do: err
+  def oauth_create_client(err, _redirect_uri, _headers), do: err
+
+  @doc """
+  Fetch OAuth credentials from OAuth.create_client respone
+  """
+  def put_oauth_security({:ok, %{"data" => oauth_data}}, legal_entity) do
+    {:ok, legal_entity, Map.take(oauth_data, ["client_id", "client_secret", "redirect_uri"])}
+  end
+
+  def put_oauth_security({:error, response}, %{"data" => %{"id" => id}} = legal_entity) do
+    Logger.error(fn -> "Cannot create OAuth client for LegalEntity #{id} Response: #{inspect response}" end)
+
+    {:ok, legal_entity, nil}
+  end
 
   @doc """
   Create Employee request

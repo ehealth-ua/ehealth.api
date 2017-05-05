@@ -72,5 +72,8 @@
       "order_no": "fd123443",
       "order_date": "1991-08-19T00:00:00.000Z"
     }
+  },
+  "security": {
+    "redirect_uri": "http://example.com/redirect_uri"
   }
 }

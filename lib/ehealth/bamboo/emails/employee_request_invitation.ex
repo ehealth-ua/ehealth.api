@@ -6,7 +6,7 @@ defmodule EHealth.Bamboo.Emails.EmployeeRequestInvitation do
   alias EHealth.Bamboo.Mailer
 
   def send(to, body) do
-    new_email
+    new_email()
     |> to(to)
     |> from(config()[:from])
     |> subject(config()[:subject])
