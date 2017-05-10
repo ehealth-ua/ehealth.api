@@ -22,11 +22,11 @@
         },
         "start_date": {
           "type": "string",
-          "format": "date-time"
+          "format": "date"
         },
         "end_date": {
           "type": "string",
-          "format": "date-time"
+          "format": "date"
         },
         "status": {
           "type": "string",
@@ -205,11 +205,11 @@
         },
         "issued_date": {
           "type": "string",
-          "format": "date-time"
+          "format": "date"
         },
         "certificate_number": {
           "type": "string",
-          "format": "date-time"
+          "format": "date"
         }
       },
       "required": [
@@ -253,11 +253,11 @@
         },
         "attestation_date": {
           "type": "string",
-          "format": "date-time"
+          "format": "date"
         },
         "valid_to_date": {
           "type": "string",
-          "format": "date-time"
+          "format": "date"
         },
         "certificate_number": {
           "type": "string"
@@ -309,7 +309,7 @@
         },
         "issued_date": {
           "type": "string",
-          "format": "date-time"
+          "format": "date"
         }
       },
       "required": [
