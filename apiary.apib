@@ -1794,7 +1794,10 @@ For changes to take effect employee must confirm the changes
     + Attributes (Response__Process_OK)
         + meta (Response__Meta)
             + code: 201 (number)
-        + data (Employee_Request_Short)
+        + data (Employee_Request_Details)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + inserted_at: `2017-05-05T14:09:59.232112` (string, required)
+            + updated_at: `2017-05-05T14:09:59.232112` (string, required)
 
 ### Get Employee Requests List [GET /api/employee_requests{?legal_entity_id,status,limit,starting_after,ending_before}]
 
@@ -1838,6 +1841,8 @@ This service should be used with `access_token` authetification method.
     + Attributes (Response__Process_OK)
         + data (Employee_Request_Details)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + inserted_at: `2017-05-05T14:09:59.232112` (string, optional)
+            + updated_at: `2017-05-05T14:09:59.232112` (string, optional)
         + urgent (object, optional)
             + user_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 
@@ -1957,7 +1962,7 @@ It returns:
     + Attributes (Response__Process_OK)
         + data (object)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + include `Legal_Entity_Request_Public`
+            + include `Legal_Entity_Request_Public_Short`
             + status: VERIFIED (enum, required)
                 - VERIFIED
                 - DECLINED
@@ -2543,6 +2548,34 @@ Optional:
 + phones (array[Phone], required)
 + email: email@example.com (string, required)
 + owner (Owner)
++ `medical_service_provider` (MSP)
++ security (object, fixed-type)
+    + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
+  
+    
+### `Legal_Entity_Request_Public_Short` 
++ name: Клініка Борис (string, required)
++ short_name: Борис (string, optional)
++ public_name: Борис (string, optional)
++ legal_form (enum, required)
++ type (enum, required)
+    - MIS
+    - MSP
++ `owner_property_type`: state (enum, required)
+    - state
+    - private
++ legal_form: `ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА` (enum, required)
+    - ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА
+    - АКЦІОНЕРНЕ ТОВАРИСТВО
+    - ВІДКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
+    - ЗАКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
+    - РЕЛІГІЙНА ОРГАНІЗАЦІЯ
+    - ІНШІ ОРГАНІЗАЦІЙНО-ПРАВОВІ ФОРМИ
++ edrpou: 5432345432 (string, required)
++ kveds: 86.1 (array, required)
++ addresses (array[Address], required)
++ phones (array[Phone], required)
++ email: email@example.com (string, required)
 + `medical_service_provider` (MSP)
 + security (object, fixed-type)
     + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
