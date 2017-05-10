@@ -89,6 +89,7 @@ updated_by | uuid | not null
 updated_at | timestamp | not null
 status | enum('') | not null
 employee_type | enum('doctor','hr','owner','accountant') | not null
+status_reason | string
 
 [employee_doctors]
 id | uuid | not null
@@ -126,6 +127,7 @@ status | enum('new','verified') | not null
 owner_property_type | enum('state','private') | not null
 legal_form | enum('тов','фоп') | not null
 capitation_contract_id | uuid
+created_via_mis_id | uuid | not null
 
 [log_changes]
 id | uuid | not null
