@@ -42,7 +42,6 @@ config :ehealth, EHealth.API.PRM,
 # Configures Trump API
 config :ehealth, EHealth.API.Mithril,
   endpoint: {:system, "OAUTH_ENDPOINT", ""},
-  client_type_id: {:system, "OAUTH_CLIENT_TYPE_ID", "31a2b65f-1286-474a-b3bd-8eb9d2f6b553"},
   hackney_options: [
     connect_timeout: {:system, :integer, "OAUTH_REQUEST_TIMEOUT", 30_000},
     recv_timeout: {:system, :integer, "OAUTH_REQUEST_TIMEOUT", 30_000},

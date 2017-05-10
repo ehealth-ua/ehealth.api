@@ -18,7 +18,6 @@ config :ehealth, EHealth.API.PRM,
   endpoint: {:system, "PRM_ENDPOINT", "http://localhost:4040"}
 
 config :ehealth, EHealth.API.Mithril,
-  client_type_id: {:system, "OAUTH_CLIENT_TYPE_ID", "31a2b65f-1286-474a-b3bd-8eb9d2f6b553"},
   endpoint: {:system, "OAUTH_ENDPOINT", "http://localhost:4040"}
 
 config :ehealth, mock: [
