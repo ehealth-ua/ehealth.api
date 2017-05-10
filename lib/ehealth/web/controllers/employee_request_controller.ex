@@ -9,6 +9,11 @@ defmodule EHealth.Web.EmployeeRequestController do
 
   action_fallback EHealth.Web.FallbackController
 
+  def show(conn, %{"id" => id}) do
+    employee_request = API.get_by_id!(id)
+    render(conn, "show.json", employee_request: employee_request)
+  end
+
   def index(conn, params) do
     with {employee_requests, %Ecto.Paging{} = paging} <- API.list_employee_requests(params) do
       render(conn, "index.json", employee_requests: employee_requests, paging: paging)

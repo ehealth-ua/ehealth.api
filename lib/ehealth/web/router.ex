@@ -34,6 +34,7 @@ defmodule Ehealth.Web.Router do
     get "/employees", EmployeesController, :index
     get "/employees/:id", EmployeesController, :show
 
+    get "/employee_requests/:id", EmployeeRequestController, :show
     get "/employee_requests", EmployeeRequestController, :index
     post "/employee_requests", EmployeeRequestController, :create
     post "/employee_requests/:id/approve", EmployeeRequestController, :approve

@@ -37,7 +37,7 @@ defmodule EHealth.EmployeeRequest.API do
   def create_employee_request(attrs \\ %{}) do
     with :ok <- validate_schema(:employee_request, attrs) do
       data = Map.fetch!(attrs, "employee_request")
-      Repo.insert(%EmployeeRequest{data: data, status: Map.fetch!(data, "status")})
+      Repo.insert(%EmployeeRequest{data: Map.delete(data, "status"), status: Map.fetch!(data, "status")})
     end
   end
 
