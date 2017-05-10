@@ -7,6 +7,7 @@ defmodule EHealth.Web do
       import Plug.Conn
       import EHealth.Proxy
       import Ehealth.Web.Router.Helpers
+      import EHealth.Utils.Connection
     end
   end
 

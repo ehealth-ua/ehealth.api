@@ -5,16 +5,13 @@ defmodule EHealth.API.Signature do
 
   use HTTPoison.Base
   use Confex, otp_app: :ehealth
+  use EHealth.API.HeadersProcessor
 
   alias EHealth.API.ResponseDecoder
 
   @conn_timeouts [connect_timeout: 30_000, recv_timeout: 30_000, timeout: 30_000]
 
   def process_url(url), do: config()[:endpoint] <> url
-
-  def process_request_headers(headers) do
-    headers ++ [{"Content-Type", "application/json"}]
-  end
 
   def decode_and_validate(%{signed_legal_entity_request: content, signed_content_encoding: encoding}) do
     params = %{

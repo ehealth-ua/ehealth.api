@@ -13,11 +13,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     resp = json_response(conn, 200)
 
     assert Map.has_key?(resp["data"], "id")
-    assert Map.has_key?(resp, "urgent")
-    assert Map.has_key?(resp["urgent"], "security")
-    assert Map.has_key?(resp["urgent"]["security"], "redirect_uri")
-    assert Map.has_key?(resp["urgent"]["security"], "client_id")
-    assert Map.has_key?(resp["urgent"]["security"], "client_secret")
+    assert_security_in_urgent_response(resp)
   end
 
   test "invalid legal entity", %{conn: conn} do
@@ -44,5 +40,14 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     assert id == resp["data"]["id"]
     assert Map.has_key?(resp["data"], "medical_service_provider")
     refute Map.has_key?(resp, "paging")
+    assert_security_in_urgent_response(resp)
+  end
+
+  def assert_security_in_urgent_response(resp) do
+    assert Map.has_key?(resp, "urgent")
+    assert Map.has_key?(resp["urgent"], "security")
+    assert Map.has_key?(resp["urgent"]["security"], "redirect_uri")
+    assert Map.has_key?(resp["urgent"]["security"], "client_id")
+    assert Map.has_key?(resp["urgent"]["security"], "client_secret")
   end
 end

@@ -3,9 +3,11 @@ defmodule EHealth.LegalEntity.API do
   The boundary for the LegalEntity system.
   """
 
+  import EHealth.Utils.Connection, only: [get_consumer_id: 1]
+
   alias Ecto.DateTime
   alias EHealth.API.PRM
-  alias EHealth.API.OAuth
+  alias EHealth.OAuth.API, as: OAuth
   alias EHealth.LegalEntity.Validator
   alias EHealth.EmployeeRequest.API
 
@@ -13,6 +15,13 @@ defmodule EHealth.LegalEntity.API do
 
   @employee_request_status "PENDING_VERIFICATION"
   @employee_request_type "OWNER"
+
+  def get_legal_entity_by_id(id, headers) do
+    id
+    |> PRM.get_legal_entity_by_id(headers)
+    |> OAuth.search_client(headers)
+    |> fetch_data()
+  end
 
   def create_legal_entity(attrs, headers) do
     attrs
@@ -47,7 +56,7 @@ defmodule EHealth.LegalEntity.API do
     request_legal_entity
     |> Map.merge(%{"status" => "NEW", "inserted_by" => consumer_id, "updated_by" => consumer_id})
     |> PRM.create_legal_entity(headers)
-    |> oauth_create_client(redirect_uri, headers)
+    |> OAuth.create_client(redirect_uri, headers)
   end
 
   @doc """
@@ -58,7 +67,7 @@ defmodule EHealth.LegalEntity.API do
     |> Map.drop(["edrpou", "kveds"]) # filter immutable data
     |> Map.put("updated_by", get_consumer_id(headers))
     |> PRM.update_legal_entity(Map.fetch!(legal_entity, "id"), headers)
-    |> Tuple.append(nil)
+    |> OAuth.search_client(headers)
   end
 
   def create_or_update({:error, _} = err, _, _), do: err
@@ -76,39 +85,6 @@ defmodule EHealth.LegalEntity.API do
 
   def set_legal_entity_status({:ok, %{"data" => [_edrpou_in_registry]}}, id, headers) do
     PRM.update_legal_entity(%{"status" => "VERIFIED"}, id, headers)
-  end
-
-  @doc """
-  Creates a new OAuth client for MSP after successfully created a new Legal Entity
-  """
-  def oauth_create_client({:ok, %{"data" => %{"id" => id}} = legal_entity}, redirect_uri, headers) do
-    client = %{
-      "name" => Map.fetch!(legal_entity["data"], "short_name") <> "-#{id}",
-      "redirect_uri" => redirect_uri,
-      "user_id" => get_consumer_id(headers),
-    }
-
-    client
-    |> OAuth.create_client()
-    |> put_oauth_security(legal_entity)
-  end
-  def oauth_create_client(err, _redirect_uri, _headers), do: err
-
-  @doc """
-  Fetch OAuth credentials from OAuth.create_client respone
-  """
-  def put_oauth_security({:ok, %{"data" => oauth_data}}, legal_entity) do
-    {:ok, legal_entity, %{
-      "client_id" => Map.get(oauth_data, "id"),
-      "client_secret" => Map.get(oauth_data, "secret"),
-      "redirect_uri" => Map.get(oauth_data, "redirect_uri")
-    }}
-  end
-
-  def put_oauth_security({:error, response}, %{"data" => %{"id" => id}} = legal_entity) do
-    Logger.error(fn -> "Cannot create OAuth client for LegalEntity #{id} Response: #{inspect response}" end)
-
-    {:ok, legal_entity, nil}
   end
 
   @doc """
@@ -131,17 +107,11 @@ defmodule EHealth.LegalEntity.API do
   end
   def create_employee_request(err, _request_data), do: err
 
+  def fetch_data({:ok, %{"data" => data}, secret}), do: {:ok, data, secret}
   def fetch_data({:ok, %{"data" => data}}), do: {:ok, data}
   def fetch_data(err), do: err
 
-  def get_consumer_id(headers) do
-    list = for {k, v} <- headers, k == "x-consumer-id", do: v
-    List.first(list)
-  end
-
-  def log_api_error_response({:ok, _response}, return, _log_message) do
-    return
-  end
+  def log_api_error_response({:ok, _response}, return, _log_message), do: return
   def log_api_error_response({:error, response}, return, log_message) do
     Logger.error(fn -> log_message <> " Response: #{inspect response}" end)
     return

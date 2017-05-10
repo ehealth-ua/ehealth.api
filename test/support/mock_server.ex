@@ -21,6 +21,7 @@ defmodule EHealth.MockServer do
   end
 
   # Legal Entitity
+
   get "/legal_entities" do
     legal_entity =
       case conn.params do
@@ -56,7 +57,7 @@ defmodule EHealth.MockServer do
   # Party
 
   get "/party" do
-    Plug.Conn.send_resp(conn, 200, get_party() |> wrap_response_with_paging() |> Poison.encode!())
+    Plug.Conn.send_resp(conn, 200, [get_party()] |> wrap_response_with_paging() |> Poison.encode!())
   end
 
   post "/party" do
@@ -93,9 +94,18 @@ defmodule EHealth.MockServer do
     Plug.Conn.send_resp(conn, 201, Poison.encode!(%{"data" => employee}))
   end
 
-  # OAuth
+  # Mithril
+
+  get "/admin/clients" do
+    Plug.Conn.send_resp(conn, 200, [get_oauth_client()] |> wrap_response_with_paging() |> Poison.encode!())
+  end
+
   post "/admin/clients" do
-    client = %{
+    Plug.Conn.send_resp(conn, 200, get_oauth_client() |> wrap_response() |> Poison.encode!())
+  end
+
+  def get_oauth_client do
+    %{
       "id": "f9bd4210-7c4b-40b6-957f-300829ad37dc",
       "name": "test",
       "type": "client",
@@ -105,7 +115,6 @@ defmodule EHealth.MockServer do
       "priv_settings": %{},
       "redirect_uri": "redirect_uri",
     }
-    Plug.Conn.send_resp(conn, 200, client |> wrap_response() |> Poison.encode!())
   end
 
   def get_med_registry do

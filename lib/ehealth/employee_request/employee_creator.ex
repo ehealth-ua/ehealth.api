@@ -3,7 +3,7 @@ defmodule EHealth.EmployeeRequest.EmployeeCreator do
   Creates new employee from valid employee request
   """
 
-  import EHealth.LegalEntity.API, only: [get_consumer_id: 1]
+  import EHealth.Utils.Connection, only: [get_consumer_id: 1]
 
   alias EHealth.EmployeeRequest
   alias EHealth.API.PRM

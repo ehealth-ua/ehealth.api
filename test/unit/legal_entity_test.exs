@@ -82,7 +82,8 @@ defmodule EHealth.Unit.LegalEntityTest do
       "kveds" => ["12.21"]
     })
 
-    assert {:ok, resp, nil} = API.process_request({:ok, legal_entitity}, get_headers())
+    assert {:ok, resp, %{"client_id" => _, "client_secret" => _, "redirect_uri" => _}} =
+    API.process_request({:ok, legal_entitity}, get_headers())
     assert "37367387" == resp["edrpou"]
     assert "VERIFIED" == resp["status"]
   end
@@ -100,7 +101,8 @@ defmodule EHealth.Unit.LegalEntityTest do
       ]
     }}
 
-    assert {:ok, %{"data" => resp}, nil} = API.create_or_update(get_legal_entity_resp, legal_entitity, get_headers())
+    assert {:ok, %{"data" => resp}, %{"client_id" => _, "client_secret" => _, "redirect_uri" => _}} =
+      API.create_or_update(get_legal_entity_resp, legal_entitity, get_headers())
     assert "Nebo15" == resp["short_name"]
     assert "37367387" == resp["edrpou"]
     assert "VERIFIED" == resp["status"]
