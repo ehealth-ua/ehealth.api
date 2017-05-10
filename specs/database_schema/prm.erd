@@ -127,7 +127,7 @@ status | enum('new','verified') | not null
 owner_property_type | enum('state','private') | not null
 legal_form | enum('тов','фоп') | not null
 capitation_contract_id | uuid
-created_via_mis_id | uuid | not null
+created_via_mis_client_id | uuid | not null
 
 [log_changes]
 id | uuid | not null
