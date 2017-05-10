@@ -219,11 +219,11 @@
               },
               "issued_date": {
                 "type": "string",
-                "format": "date-time"
+                "format": "date"
               },
               "expiry_date": {
                 "type": "string",
-                "format": "date-time"
+                "format": "date"
               },
               "kved": {
                 "type": "string",
@@ -249,12 +249,12 @@
             "issued_date": {
               "type": "string",
               "description": "02-28 (string, required) - дата видачі",
-              "format": "date-time"
+              "format": "date"
             },
             "expiry_date": {
               "type": "string",
               "description": "02-28 (string, optional)",
-              "format": "date-time"
+              "format": "date"
             },
             "order_no": {
               "type": "string",
@@ -263,7 +263,7 @@
             "order_date": {
               "type": "string",
               "description": "02-28 (string, required) - дата наказу МОЗ",
-              "format": "date-time"
+              "format": "date"
             }
           },
           "required": [
