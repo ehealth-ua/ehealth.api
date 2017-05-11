@@ -1,11 +1,10 @@
 {
   "employee_request": {
-    "legal_entity_id": "335a344d-7be2-4d89-b0d3-1241801693fa",
+    "legal_entity_id": "8b797c23-ba47-45f2-bc0f-521013e01074",
     "division_id": "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
+    "employee_id": "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
     "position": "лікар",
-    "start_date": "2017-03-02T10:45:16.000Z",
-    "end_date": "2018-03-02T10:45:16.000Z",
-    "active": true,
+    "start_date": "2017-03-02",
     "status": "PENDING_VERIFICATION",
     "employee_type": "DOCTOR",
     "party": {
@@ -15,7 +14,7 @@
       "birth_date": "1991-08-19",
       "gender": "MALE",
       "tax_id": "3126509816",
-      "email": "email@example.com",
+      "email": "sp.virny@gmail.com",
       "documents": [
         {
           "type": "PASSPORT",
@@ -30,35 +29,35 @@
       ]
     },
     "doctor": {
-      "education": [
+      "educations": [
         {
           "country": "UA",
           "city": "Київ",
           "institution_name": "Академія Богомольця",
-          "finished_date": "2017",
+          "issued_date": "2017-08-05",
           "diploma_number": "DD123543",
           "degree": "Молодший спеціаліст",
           "speciality": "Педіатр"
         }
       ],
-      "qualification": [
+      "qualifications": [
         {
           "type": "Інтернатура",
           "institution_name": "Академія Богомольця",
           "speciality": "Педіатр",
-          "issued_date": "2017",
-          "certificate_number": "2017"
+          "issued_date": "2017-08-05",
+          "certificate_number": "2017-08-05"
         }
       ],
-      "speciality": [
+      "specialities": [
         {
-          "speciality": "Педіатрія",
+          "speciality": "Педіатр",
           "speciality_officio": true,
           "level": "Перша категорія",
           "qualification_type": "Присвоєння",
           "attestation_name": "Академія Богомольця",
-          "attestation_date": "2017",
-          "valid_to_date": "2020",
+          "attestation_date": "2017-08-05",
+          "valid_to_date": "2017-08-05",
           "certificate_number": "AB/21331"
         }
       ],
@@ -69,7 +68,7 @@
         "institution_name": "Академія Богомольця",
         "diploma_number": "DD123543",
         "speciality": "Педіатр",
-        "issued_date": "2017"
+        "issued_date": "2017-08-05"
       }
     }
   }
