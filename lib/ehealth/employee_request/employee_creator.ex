@@ -8,6 +8,8 @@ defmodule EHealth.EmployeeRequest.EmployeeCreator do
   alias EHealth.EmployeeRequest
   alias EHealth.API.PRM
 
+  @employee_default_status "APPROVED"
+
   def create(%EmployeeRequest{data: data} = employee_request, req_headers) do
     party = Map.fetch!(data, "party")
     party
@@ -20,13 +22,14 @@ defmodule EHealth.EmployeeRequest.EmployeeCreator do
 
   def create_employee({:ok, %{"data" => %{"id" => id}}}, %EmployeeRequest{data: employee_request}, req_headers) do
     data = %{
+      "status" => @employee_default_status,
       "party_id" => id,
       "legal_entity_id" => employee_request["legal_entity_id"],
     }
 
-    employee_request
+    data
+    |> Map.merge(employee_request)
     |> put_inserted_by(req_headers)
-    |> Map.merge(data)
     |> PRM.create_employee(req_headers)
   end
   def create_employee(err, _, _), do: err
