@@ -1,100 +1,5 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "type": "object",
-  "properties": {
-    "employee_request": {
-      "type": "object",
-      "properties": {
-        "legal_entity_id": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{8}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{12}$"
-        },
-        "division_id": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{8}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{12}$"
-        },
-        "employee_id": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{8}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{12}$"
-        },
-        "position": {
-          "type": "string"
-        },
-        "start_date": {
-          "type": "string",
-          "format": "date"
-        },
-        "end_date": {
-          "type": "string",
-          "format": "date"
-        },
-        "status": {
-          "type": "string",
-          "enum": [
-            "PENDING_VERIFICATION"
-          ]
-        },
-        "employee_type": {
-          "type": "string",
-          "enum": [
-            "DOCTOR",
-            "HR",
-            "ADMIN",
-            "OWNER"
-          ]
-        },
-        "party": {
-          "type": "object",
-          "properties": {
-            "items": {
-              "$ref": "#/definitions/party"
-            }
-          },
-          "doctor": {
-            "type": "object",
-            "properties": {
-              "education": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/definitions/education"
-                }
-              },
-              "qualification": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/definitions/qualification"
-                }
-              },
-              "speciality": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/definitions/speciality"
-                }
-              },
-              "science_degree": {
-                "type": "object",
-                "items": {
-                  "$ref": "#/definitions/science_degree"
-                }
-              },
-              "required": [
-                "education",
-                "speciality"
-              ]
-            }
-          }
-        }
-      },
-      "required": [
-        "legal_entity_id",
-        "position",
-        "start_date",
-        "status",
-        "employee_type",
-        "party"
-      ]
-    }
-  },
   "definitions": {
     "phone": {
       "type": "object",
@@ -377,6 +282,101 @@
         "phones"
       ],
       "additionalProperties": false
+    }
+  },
+  "type": "object",
+  "properties": {
+    "employee_request": {
+      "type": "object",
+      "properties": {
+        "legal_entity_id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{12}$"
+        },
+        "division_id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{12}$"
+        },
+        "employee_id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{12}$"
+        },
+        "position": {
+          "type": "string"
+        },
+        "start_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "end_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "PENDING_VERIFICATION"
+          ]
+        },
+        "employee_type": {
+          "type": "string",
+          "enum": [
+            "DOCTOR",
+            "HR",
+            "ADMIN",
+            "OWNER"
+          ]
+        },
+        "party": {
+          "type": "object",
+          "properties": {
+            "items": {
+              "$ref": "#/definitions/party"
+            }
+          }
+        },
+        "doctor": {
+          "type": "object",
+          "properties": {
+            "educations": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/education"
+              }
+            },
+            "qualifications": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/qualification"
+              }
+            },
+            "specialities": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/speciality"
+              }
+            },
+            "science_degree": {
+              "type": "object",
+              "items": {
+                "$ref": "#/definitions/science_degree"
+              }
+            }
+          },
+          "required": [
+            "educations",
+            "specialities"
+          ]
+        }
+      },
+      "required": [
+        "legal_entity_id",
+        "position",
+        "start_date",
+        "status",
+        "employee_type",
+        "party"
+      ]
     }
   },
   "required": [
