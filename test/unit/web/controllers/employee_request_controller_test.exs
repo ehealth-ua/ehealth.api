@@ -52,7 +52,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   test "approve employee request", %{conn: conn} do
     %{id: id} = fixture(:employee_request)
 
-    conn = post conn, employee_request_path(conn, :approve, id), get_headers()
+    conn = post conn, employee_request_path(conn, :approve, id)
     resp = json_response(conn, 200)["data"]
     assert "APPROVED" == resp["status"]
   end
@@ -63,13 +63,5 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     conn = post conn, employee_request_path(conn, :reject, id)
     resp = json_response(conn, 200)["data"]
     assert "REJECTED" == resp["status"]
-  end
-
-  defp get_headers do
-    [
-      {"content-type", "application/json"},
-      {"content-length", "7000"},
-      {"x-consumer-id", Ecto.UUID.generate()}
-    ]
   end
 end

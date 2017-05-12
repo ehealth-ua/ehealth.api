@@ -91,7 +91,17 @@ defmodule EHealth.MockServer do
 
   post "/employees" do
     employee = MapDeepMerge.merge(get_employee(), conn.body_params)
-    Plug.Conn.send_resp(conn, 201, Poison.encode!(%{"data" => employee}))
+    case Map.get(employee, "updated_by") do
+      nil ->
+        resp =
+          %{"error" => %{"invalid_validation" => "updated_by"}}
+          |> wrap_response()
+          |> Poison.encode!()
+        Plug.Conn.send_resp(conn, 422, resp)
+
+      _ -> Plug.Conn.send_resp(conn, 201, Poison.encode!(%{"data" => employee}))
+    end
+
   end
 
   # Mithril
@@ -247,10 +257,10 @@ defmodule EHealth.MockServer do
 
   def get_resp_body(resource, conn), do: resource |> EView.wrap_body(conn) |> Poison.encode!()
 
-  def wrap_response(data) do
+  def wrap_response(data, code \\ 200) do
     %{
       "meta" => %{
-        "code" => 200,
+        "code" => code,
         "type" => "list"
       },
       "data" => data
