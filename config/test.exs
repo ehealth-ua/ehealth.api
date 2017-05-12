@@ -17,6 +17,10 @@ config :ehealth, EHealth.API.MediaStorage,
 config :ehealth, EHealth.API.PRM,
   endpoint: {:system, "PRM_ENDPOINT", "http://localhost:4040"}
 
+# Configures Man API
+config :ehealth, EHealth.API.Man,
+  endpoint: {:system, "MAN_ENDPOINT", "http://localhost:4040"}
+
 config :ehealth, EHealth.API.Mithril,
   endpoint: {:system, "OAUTH_ENDPOINT", "http://localhost:4040"}
 

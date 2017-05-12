@@ -8,6 +8,10 @@ defmodule EHealth.EmployeeRequest.API do
   alias EHealth.Repo
   alias EHealth.EmployeeRequest
   alias EHealth.EmployeeRequest.EmployeeCreator
+  alias EHealth.Man.Templates.EmployeeRequestInvitation, as: EmployeeRequestInvitationTemplate
+  alias EHealth.Bamboo.Emails.EmployeeRequestInvitation, as: EmployeeRequestInvitationEmail
+
+  require Logger
 
   use_schema :employee_request, "specs/json_schemas/new_employee_request_schema.json"
 
@@ -37,9 +41,26 @@ defmodule EHealth.EmployeeRequest.API do
   def create_employee_request(attrs \\ %{}) do
     with :ok <- validate_schema(:employee_request, attrs) do
       data = Map.fetch!(attrs, "employee_request")
-      Repo.insert(%EmployeeRequest{data: Map.delete(data, "status"), status: Map.fetch!(data, "status")})
+
+      %EmployeeRequest{data: Map.delete(data, "status"), status: Map.fetch!(data, "status")}
+      |> Repo.insert()
+      |> try_send_invitation_email()
     end
   end
+
+  def try_send_invitation_email({:ok, %EmployeeRequest{data: data} = employee_request} = result) do
+    email_body = EmployeeRequestInvitationTemplate.render(employee_request)
+
+    try do
+      data
+      |> get_in(["party", "email"])
+      |> EmployeeRequestInvitationEmail.send(email_body) # ToDo: use postboy when it is ready
+    rescue
+      e -> Logger.error(e.message)
+    end
+    result
+  end
+  def try_send_invitation_email(error), do: error
 
   def reject_employee_request(id) do
     update_status(id, @status_rejected)

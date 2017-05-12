@@ -50,7 +50,7 @@ config :ehealth, EHealth.API.Mithril,
 
 # Configures Man API
 config :ehealth, EHealth.API.Man,
-  endpoint: {:system, "MAN_ENDPOINT", "http://ehealth-dev-gateway.nebo15.com"},
+  endpoint: {:system, "MAN_ENDPOINT", ""},
   timeouts: [
     connect_timeout: {:system, :integer, "MAN_REQUEST_TIMEOUT", 30_000},
     recv_timeout: {:system, :integer, "MAN_REQUEST_TIMEOUT", 30_000},
@@ -60,8 +60,7 @@ config :ehealth, EHealth.API.Man,
 # Configures employee request invitation template
 config :ehealth, EHealth.Man.Templates.EmployeeRequestInvitation,
   id: {:system, "EMPLOYEE_REQUEST_INVITATION_TEMPLATE_ID", 1},
-  format: {:system, "EMPLOYEE_REQUEST_INVITATION_TEMPLATE_FORMAT", "text/html"},
-  activation_link: {:system, "EMPLOYEE_REQUEST_INVITATION_TEMPLATE_FORMAT", ""}
+  format: {:system, "EMPLOYEE_REQUEST_INVITATION_TEMPLATE_FORMAT", "text/html"}
 
 # Configures bamboo
 config :ehealth, EHealth.Bamboo.Mailer,

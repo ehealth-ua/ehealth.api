@@ -50,6 +50,8 @@ defmodule EHealth.MockServer do
     case conn.path_params do
       %{"id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375552"} ->
         Plug.Conn.send_resp(conn, 200, get_legal_entity() |> wrap_response() |> Poison.encode!())
+      %{"id" => "8b797c23-ba47-45f2-bc0f-521013e01074"} ->
+        Plug.Conn.send_resp(conn, 200, get_legal_entity() |> wrap_response() |> Poison.encode!())
       _ -> render_404(conn)
     end
   end
@@ -122,6 +124,12 @@ defmodule EHealth.MockServer do
       |> Poison.encode!()
 
     Plug.Conn.send_resp(conn, 200, resp)
+  end
+
+  # Man
+
+  post "/templates/:id/actions/render" do
+    Plug.Conn.send_resp(conn, 200, get_rendered_template())
   end
 
   def get_oauth_client do
@@ -258,6 +266,8 @@ defmodule EHealth.MockServer do
       "updated_by" => "userid"
     }
   end
+
+  def get_rendered_template, do: "<html><body>Some template text</body></hrml>"
 
   def render(resource, conn, status) do
     conn = Plug.Conn.put_status(conn, status)
