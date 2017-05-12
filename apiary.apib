@@ -1981,12 +1981,92 @@ All signature fields will be validated (including signer certificate authority).
 
 Signed content MUST consists of JSON object with Legal Entity data:
 
-* Legal info
-* Founders
-* Owner
-
-Optional:
-* Divisions - may be used if Legal Entity has multiple service locations.
+```
+{
+  "name": "Клініка Адоніс2",
+  "short_name": "Адоніс2",
+  "public_name": "Адоніс2",
+  "type": "MSP",
+  "owner_property_type": "STATE",
+  "legal_form": "ПІДПРИЄМЕЦЬ",
+  "edrpou": "387823231",
+  "kveds": [
+    "86.10"
+  ],
+  "addresses": [
+    {
+      "type": "RESIDENCE",
+      "country": "UA",
+      "area": "Житомирська",
+      "region": "Бердичівський",
+      "settlement": "Київ",
+      "settlement_type": "CITY",
+      "settlement_id": "43432432",
+      "street_type": "STREET",
+      "street": "вул. Ніжинська",
+      "building": "15",
+      "apartment": "23",
+      "zip": "02090"
+    }
+  ],
+  "phones": [
+    {
+      "type": "MOBILE",
+      "number": "+380503410870"
+    }
+  ],
+  "email": "email@example.com",
+  "owner": {
+    "first_name": "Петро",
+    "last_name": "Іванов",
+    "second_name": "Миколайович",
+    "tax_id": "3015492563",
+    "birth_date": "1991-08-19T00:00:00.000Z",
+    "birth_place": "Вінниця, Україна",
+    "gender": "MALE",
+    "email": "email@example.com",
+    "documents": [
+      {
+        "type": "PASSPORT",
+        "number": "120518"
+      }
+    ],
+    "phones": [
+      {
+        "type": "MOBILE",
+        "number": "+380503410870"
+      }
+    ],
+    "position": "Голова правління"
+  },
+  "medical_service_provider": {
+    "licenses": [
+      {
+        "license_number": "fd123443",
+        "issued_by": "Кваліфікацйна комісія",
+        "issued_date": "1991-08-19T00:00:00.000Z",
+        "expiry_date": "2001-08-19T00:00:00.000Z",
+        "kved": "86.10",
+        "what_licensed": "реалізація наркотичних засобів"
+      }
+    ],
+    "accreditation": {
+      "category": "ПЕРША",
+      "issued_date": "1991-08-19T00:00:00.000Z",
+      "expiry_date": "2001-08-19T00:00:00.000Z",
+      "order_no": "fd123443",
+      "order_date": "1991-08-19T00:00:00.000Z"
+    }
+  },
+  "security": {
+    "redirect_uri": "redirect_uri"
+  },
+  "public_offer": {
+    "consent": true,
+    "consent_text": "Consent text"
+  }
+}
+```
 
 + Request (application/json)
 
@@ -2047,6 +2127,47 @@ Optional:
     + Attributes (Response__Process_OK)
         + data (object)
             + include `Legal_Entity_Short`
+
+## Divisions [/api/divisions]
+
+### Get divisions [GET]
+
++ Response 200 (application/json)
+    + Attributes (Response_Collection)
+        + data (`crud_division_get`)
+
+### Update division [PUT /api/divisions/{id}]
+
+This method to update the division info by ID.
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
++ Request (application/json)
+    + Attributes (`crud_division_post`)
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (`crud_division_get`)
+
+### Create division [POST]
+
+This method to create the division info by ID.
+
++ Request (application/json)
+    + Attributes (`crud_division_post`)
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (`crud_division_get`)
+
+### Remove division [DELETE /api/divisions/{id}]
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
 
 # Data Structures
 ## Responses
@@ -2551,6 +2672,9 @@ Optional:
 + `medical_service_provider` (MSP)
 + security (object, fixed-type)
     + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
++ public_offer (object)
+    + `consent`: true (boolean, required)
+    + `consent_text`: `Consent text` (string)
   
     
 ### `Legal_Entity_Request_Public_Short` 
@@ -2582,7 +2706,7 @@ Optional:
 
 ## `Divisions`
 ### `Division`
-+ `legal_entity_id`: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
++ `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + name: Бориспільське відділення Клініки Борис (string, required)
 + addresses (array[Address], required)
 + phones (array[Phone], required)
@@ -2591,15 +2715,14 @@ Optional:
     - clinic
     - ambulant_clinic
     - fap
-+ mountain_group: `group1` (string, optional)
 + external_id: `3213213` (string, optional)
 
 ### `Division_Details`
-+ id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
++ id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + include Division
 
 ### `Division_Short`
-+ id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
++ id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + `legal_entity_id`: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
 + type: clinic (enum, required)
     - clinic
@@ -2607,10 +2730,14 @@ Optional:
     - fap
 + mountain_group: `group1` (string, optional)
 
-### `crud_division_get`
-+ id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
-+ `legal_entity_id`: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
+### `crud_division_post`
 + include `Division`
++ active: true (boolean, required)
+
+### `crud_division_get`
++ id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ include `Division`
++ mountain_group: `group1` (string, optional)
 + active: true (boolean, required)
 
 ## `Owners`
