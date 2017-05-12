@@ -13,7 +13,7 @@ defmodule EHealth.LegalEntity.API do
 
   require Logger
 
-  @employee_request_status "PENDING_VERIFICATION"
+  @employee_request_status "NEW"
   @employee_request_type "OWNER"
 
   def get_legal_entity_by_id(id, headers) do
