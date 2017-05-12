@@ -5,7 +5,7 @@ defmodule EHealth.LegalEntity.API do
 
   import EHealth.Utils.Connection, only: [get_consumer_id: 1]
 
-  alias Ecto.DateTime
+  alias Ecto.Date
   alias EHealth.API.PRM
   alias EHealth.OAuth.API, as: OAuth
   alias EHealth.LegalEntity.Validator
@@ -92,20 +92,24 @@ defmodule EHealth.LegalEntity.API do
   Specification: https://edenlab.atlassian.net/wiki/display/EH/IL.Create+employee+request
   """
   def create_employee_request({:ok, %{"data" => %{"id" => id}}} = legal_entity, %{"owner" => party}) do
-    request = %{
-      "legal_entity_id" => id,
-      "position" => Map.fetch!(party, "position"),
-      "status" => @employee_request_status,
-      "employee_type" => @employee_request_type,
-      "start_date" => DateTime.utc() |> DateTime.to_iso8601(),
-      "party" => party
-    }
-
-    %{"employee_request" => request}
+    id
+    |> prepare_employee_request_data(party)
     |> API.create_employee_request()
     |> log_api_error_response(legal_entity, "Cannot create employee request for LegalEntity #{id}.")
   end
   def create_employee_request(err, _request_data), do: err
+
+  def prepare_employee_request_data(legal_entity_id, party) do
+    request = %{
+        "legal_entity_id" => legal_entity_id,
+        "position" => Map.fetch!(party, "position"),
+        "status" => @employee_request_status,
+        "employee_type" => @employee_request_type,
+        "start_date" => Date.to_iso8601(Date.utc()),
+        "party" => party
+      }
+    %{"employee_request" => request}
+  end
 
   def fetch_data({:ok, %{"data" => data}, secret}), do: {:ok, data, secret}
   def fetch_data({:ok, %{"data" => data}}), do: {:ok, data}

@@ -168,8 +168,8 @@ defmodule EHealth.MockServer do
       "is_active" => true,
       "status" => "some status",
       "position" => "some position",
-      "end_date" => "2011-04-17T14:00:00.000000",
-      "start_date" => "2010-04-17T14:00:00.000000",
+      "end_date" => "2011-04-17",
+      "start_date" => "2010-04-17",
       "inserted_by" => "7488a646-e31f-11e4-aace-600308960662",
       "updated_by" => "7488a646-e31f-11e4-aace-600308960662"
     }

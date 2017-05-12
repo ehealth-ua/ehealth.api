@@ -5,6 +5,7 @@ defmodule EHealth.Unit.LegalEntityTest do
 
   import Ecto.Query, warn: false
 
+  alias Ecto.UUID
   alias EHealth.Repo
   alias EHealth.EmployeeRequest
   alias EHealth.LegalEntity.API
@@ -56,6 +57,12 @@ defmodule EHealth.Unit.LegalEntityTest do
     signer = %{"edrpou" => "03736738a"}
 
     assert %Ecto.Changeset{valid?: false} = validate_edrpou(content, signer)
+  end
+
+  test "employee request start_date format" do
+    %{"employee_request" => data} = API.prepare_employee_request_data(UUID.generate(), %{"position" => "лікар"})
+    assert Map.has_key?(data, "start_date")
+    assert Regex.match?(~r/^\d{4}-\d{2}-\d{2}$/, data["start_date"])
   end
 
   test "different signer EDRPOU" do
