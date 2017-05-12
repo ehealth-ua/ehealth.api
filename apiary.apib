@@ -663,7 +663,6 @@ NEW --> APPROVED
     + edrpou: 5432345432 (string, optional)
     + type (enum, optional)
         - MSP
-        - MIS
     + status: VERIFIED (enum, optional)
         - VERIFIED
         - NOT_VERIFIED
@@ -1921,7 +1920,6 @@ It returns:
     + `edrpou`: `341086` (string, optional)
     + type: MSP (enum, optional)
         - MSP
-        - MIS
         + Default: MSP
     + owner_property: state (enum, optional)
         - state
@@ -2557,7 +2555,6 @@ This method to create the division info by ID.
 + short_name: Борис (string, required)
 + type (enum, required)
     - MSP
-    - MIS
 + edrpou: 5432345432 (string, required)
 + addresses (array[Address], required)
 + phones (array[Phone], required)
@@ -2598,7 +2595,6 @@ This method to create the division info by ID.
 + public_name: Клініка Борис (string, required)
 + type (enum, optional)
     - MSP
-    - MIS
 + addresses (array[Address], optional)
 + phones (array[Phone], optional)
 + email: email@example.com (array[Email], optional)
@@ -2626,7 +2622,6 @@ This method to create the division info by ID.
 + public_name: Клініка Борис (string, required)
 + type (enum, required)
     - MSP
-    - MIS
 + edrpou: 5432345432 (string, required)
 + status: VERIFIED (enum, required)
     - VERIFIED
@@ -2651,7 +2646,6 @@ This method to create the division info by ID.
 + public_name: Борис (string, optional)
 + legal_form (enum, required)
 + type (enum, required)
-    - MIS
     - MSP
 + `owner_property_type`: state (enum, required)
     - state
@@ -2683,7 +2677,6 @@ This method to create the division info by ID.
 + public_name: Борис (string, optional)
 + legal_form (enum, required)
 + type (enum, required)
-    - MIS
     - MSP
 + `owner_property_type`: state (enum, required)
     - state
