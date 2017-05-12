@@ -86,4 +86,10 @@ defmodule EHealth.API.Mithril do
         nil
     end
   end
+
+  def search_user(params, headers \\ []) do
+    "/admin/users"
+    |> get!(headers, params: params)
+    |> ResponseDecoder.check_response()
+  end
 end

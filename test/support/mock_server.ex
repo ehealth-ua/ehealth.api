@@ -114,6 +114,16 @@ defmodule EHealth.MockServer do
     Plug.Conn.send_resp(conn, 200, get_oauth_client() |> wrap_response() |> Poison.encode!())
   end
 
+  get "/admin/users" do
+    resp =
+      conn.query_params
+      |> get_oauth_users()
+      |> wrap_response_with_paging()
+      |> Poison.encode!()
+
+    Plug.Conn.send_resp(conn, 200, resp)
+  end
+
   def get_oauth_client do
     %{
       "id": "f9bd4210-7c4b-40b6-957f-300829ad37dc",
@@ -126,6 +136,17 @@ defmodule EHealth.MockServer do
       "redirect_uri": "redirect_uri",
     }
   end
+
+  def get_oauth_user do
+    %{
+      "id": "userid",
+      "email": "test@user.com"
+    }
+  end
+
+  def get_oauth_users(%{"email" => "test@user.com"}), do: [get_oauth_user()]
+  def get_oauth_users(%{"email" => _}), do: []
+  def get_oauth_users(_), do: [get_oauth_user()]
 
   def get_med_registry do
     %{

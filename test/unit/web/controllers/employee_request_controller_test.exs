@@ -30,7 +30,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     assert is_list(resp["data"])
   end
 
-  test "get employee request", %{conn: conn} do
+  test "get employee request with non-existing user", %{conn: conn} do
     employee_request = %{id: id} = fixture(:employee_request)
 
     conn = get conn, employee_request_path(conn, :show, id)
@@ -46,8 +46,29 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     assert NaiveDateTime.to_iso8601(Map.get(employee_request, :inserted_at)) == resp["data"]["inserted_at"]
     assert NaiveDateTime.to_iso8601(Map.get(employee_request, :updated_at)) == resp["data"]["updated_at"]
     assert "employee_request" == resp["data"]["type"]
+    refute Map.has_key?(resp, "urgent")
   end
 
+  test "get employee request with existing user", %{conn: conn} do
+    employee_request = %{id: id} = fixture(:employee_request, "test@user.com")
+
+    conn = get conn, employee_request_path(conn, :show, id)
+    resp = json_response(conn, 200)
+
+    assert Map.has_key?(resp, "data")
+
+    data = Map.drop(resp["data"], ["id", "inserted_at", "updated_at", "type", "status"])
+
+    assert Map.get(employee_request, :data) == data
+    assert Map.get(employee_request, :id) == resp["data"]["id"]
+    assert Map.get(employee_request, :status) == resp["data"]["status"]
+    assert NaiveDateTime.to_iso8601(Map.get(employee_request, :inserted_at)) == resp["data"]["inserted_at"]
+    assert NaiveDateTime.to_iso8601(Map.get(employee_request, :updated_at)) == resp["data"]["updated_at"]
+    assert "employee_request" == resp["data"]["type"]
+    assert Map.has_key?(resp, "urgent")
+    assert Map.has_key?(resp["urgent"], "user_id")
+    assert "userid" == resp["urgent"]["user_id"]
+  end
 
   test "approve employee request", %{conn: conn} do
     %{id: id} = fixture(:employee_request)

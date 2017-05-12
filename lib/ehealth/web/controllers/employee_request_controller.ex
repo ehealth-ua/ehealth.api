@@ -5,13 +5,18 @@ defmodule EHealth.Web.EmployeeRequestController do
   alias EHealth.EmployeeRequest.API
   alias EHealth.Man.Templates.EmployeeRequestInvitation, as: EmployeeRequestInvitationTemplate
   alias EHealth.Bamboo.Emails.EmployeeRequestInvitation, as: EmployeeRequestInvitationEmail
+  alias EHealth.API.Mithril
+  alias EHealth.EmployeeRequest
   require Logger
 
   action_fallback EHealth.Web.FallbackController
 
   def show(conn, %{"id" => id}) do
     employee_request = API.get_by_id!(id)
-    render(conn, "show.json", employee_request: employee_request)
+
+    conn
+    |> put_urgent_user_id(employee_request)
+    |> render("show.json", employee_request: employee_request)
   end
 
   def index(conn, params) do
@@ -50,4 +55,22 @@ defmodule EHealth.Web.EmployeeRequestController do
       render(conn, "show.json", employee_request: employee_request)
     end
   end
+
+  defp put_urgent_user_id(conn, %EmployeeRequest{data: data}) do
+    email = get_in(data, ["party", "email"])
+
+    %{email: email}
+    |> Mithril.search_user()
+    |> process_user_id(conn)
+  end
+
+  defp process_user_id({:ok, body}, conn) do
+    body
+    |> Map.get("data")
+    |> set_user_id(conn)
+  end
+  defp process_user_id({:error, _reason}, conn), do: conn
+
+  defp set_user_id([%{"id" => user_id}], conn), do: assign(conn, :urgent, %{"user_id" => user_id})
+  defp set_user_id(_, conn), do: conn
 end
