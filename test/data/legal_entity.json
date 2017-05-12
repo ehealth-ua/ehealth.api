@@ -75,5 +75,9 @@
   },
   "security": {
     "redirect_uri": "http://example.com/redirect_uri"
+  },
+  "public_offer": {
+    "consent": true,
+    "consent_text": "Consent text"
   }
 }
