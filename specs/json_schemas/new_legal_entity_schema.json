@@ -294,6 +294,21 @@
       "required": [
         "redirect_uri"
       ]
+    },
+    "public_offer": {
+      "type": "object",
+      "properties": {
+        "consent": {
+          "type": "boolean"
+        },
+        "consent_text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "consent",
+        "consent_text"
+      ]
     }
   },
   "required": [
@@ -308,7 +323,8 @@
     "email",
     "owner",
     "medical_service_provider",
-    "security"
+    "security",
+    "public_offer"
   ],
   "additionalProperties": false
 }
