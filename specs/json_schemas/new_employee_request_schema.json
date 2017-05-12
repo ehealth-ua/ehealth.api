@@ -315,7 +315,7 @@
         "status": {
           "type": "string",
           "enum": [
-            "PENDING_VERIFICATION"
+            "NEW"
           ]
         },
         "employee_type": {
