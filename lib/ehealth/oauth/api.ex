@@ -17,7 +17,7 @@ defmodule EHealth.OAuth.API do
       "id" => Map.fetch!(data, "id"),
       "name" => generate_client_name(entity),
       "redirect_uri" => redirect_uri,
-      "user_id" => get_consumer_id(headers),
+      "user_id" => get_user_id(headers)
     }
 
     client
@@ -70,7 +70,10 @@ defmodule EHealth.OAuth.API do
   end
 
   def generate_client_name(%{"data" => entity}) do
-    Map.fetch!(entity, "short_name") <> "-" <> Map.fetch!(entity, "id")
+    Map.fetch!(entity, "short_name") <> "-" <> Map.fetch!(entity, "id") <> "asd-test"
   end
 
+  def get_user_id(_headers) do
+    "aa90e091-8ddc-4238-985f-eedc8a9fa137"
+  end
 end
