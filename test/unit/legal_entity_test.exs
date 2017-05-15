@@ -8,6 +8,7 @@ defmodule EHealth.Unit.LegalEntityTest do
   alias Ecto.UUID
   alias EHealth.Repo
   alias EHealth.EmployeeRequest
+  alias EHealth.OAuth.API, as: OAuth
   alias EHealth.LegalEntity.API
   alias EHealth.LegalEntity.Validator
 
@@ -89,10 +90,16 @@ defmodule EHealth.Unit.LegalEntityTest do
       "kveds" => ["12.21"]
     })
 
-    assert {:ok, resp, %{"client_id" => _, "client_secret" => _, "redirect_uri" => _}} =
-    API.process_request({:ok, legal_entitity}, get_headers())
+    assert {:ok, resp, security} = API.process_request({:ok, legal_entitity}, get_headers())
     assert "37367387" == resp["edrpou"]
     assert "VERIFIED" == resp["status"]
+    assert Map.has_key?(security, "client_id")
+    assert Map.has_key?(security, "client_secret")
+    assert Map.has_key?(security, "redirect_uri")
+    # security
+    assert resp["id"] == security["client_id"]
+    refute nil == security["client_secret"]
+    refute nil == security["redirect_uri"]
   end
 
   test "update legal entity" do
@@ -115,6 +122,12 @@ defmodule EHealth.Unit.LegalEntityTest do
     assert "VERIFIED" == resp["status"]
     assert "changed@example.com" == resp["email"]
     assert ["86.01"] == resp["kveds"]
+  end
+
+  test "create client with legal_entity id" do
+    id = UUID.generate()
+    legal_entity = {:ok, %{"data" => %{"id" => id, "short_name" => "test"}}}
+    assert {:ok, %{"data" => %{"id" => ^id}}, _} = OAuth.create_client(legal_entity, "http://example.com", [])
   end
 
   # helpers

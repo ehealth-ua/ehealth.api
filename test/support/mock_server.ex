@@ -113,7 +113,13 @@ defmodule EHealth.MockServer do
   end
 
   post "/admin/clients" do
-    Plug.Conn.send_resp(conn, 200, get_oauth_client() |> wrap_response() |> Poison.encode!())
+    resp =
+      conn.body_params["id"]
+      |> get_oauth_client()
+      |> wrap_response()
+      |> Poison.encode!()
+
+    Plug.Conn.send_resp(conn, 200, resp)
   end
 
   get "/admin/users" do
@@ -126,15 +132,25 @@ defmodule EHealth.MockServer do
     Plug.Conn.send_resp(conn, 200, resp)
   end
 
+  get "/admin/clients/:id" do
+    resp =
+      conn.path_params["id"]
+      |> get_oauth_client()
+      |> wrap_response()
+      |> Poison.encode!()
+
+    Plug.Conn.send_resp(conn, 200, resp)
+  end
+
   # Man
 
   post "/templates/:id/actions/render" do
     Plug.Conn.send_resp(conn, 200, get_rendered_template())
   end
 
-  def get_oauth_client do
+  def get_oauth_client(id \\ "f9bd4210-7c4b-40b6-957f-300829ad37dc") do
     %{
-      "id": "f9bd4210-7c4b-40b6-957f-300829ad37dc",
+      "id": id,
       "name": "test",
       "type": "client",
       "secret": "some super secret",

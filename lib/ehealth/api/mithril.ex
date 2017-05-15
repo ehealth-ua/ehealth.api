@@ -31,6 +31,13 @@ defmodule EHealth.API.Mithril do
     |> ResponseDecoder.check_response()
   end
 
+  def get_client(id, headers \\ []) do
+    "/admin/clients/"
+    |> Kernel.<>(id)
+    |> get!(headers)
+    |> ResponseDecoder.check_response()
+  end
+
   def get_clients(params \\ [], headers \\ []) do
     "/admin/clients"
     |> get!(headers, params: params)

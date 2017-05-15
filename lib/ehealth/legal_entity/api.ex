@@ -19,7 +19,7 @@ defmodule EHealth.LegalEntity.API do
   def get_legal_entity_by_id(id, headers) do
     id
     |> PRM.get_legal_entity_by_id(headers)
-    |> OAuth.search_client(headers)
+    |> OAuth.get_client(headers)
     |> fetch_data()
   end
 
@@ -67,7 +67,7 @@ defmodule EHealth.LegalEntity.API do
     |> Map.drop(["edrpou", "kveds"]) # filter immutable data
     |> Map.put("updated_by", get_consumer_id(headers))
     |> PRM.update_legal_entity(Map.fetch!(legal_entity, "id"), headers)
-    |> OAuth.search_client(headers)
+    |> OAuth.get_client(headers)
   end
 
   def create_or_update({:error, _} = err, _, _), do: err
