@@ -78,21 +78,23 @@ defmodule EHealth.API.Mithril do
   end
 
   def get_client_type_id do
-    case get_client_type_by_name(@client_type_name) do
-      {:ok, %{"data" => [%{"id" => id}]}}
-        -> id
-      {:ok, %{"data" => [%{"id" => id} | _tail]}}
-        -> id
-      {:ok, _}
-        -> @client_type_data
-           |> create_client_type()
-           |> elem(1)
-           |> Map.fetch!("data")
-           |> Map.fetch!("id")
-      {:error, response}
-        -> Logger.error(fn -> "Cannot get Client Type from Mithril API. Response: #{inspect response}" end)
-        nil
-    end
+    # this is truly hardcore hardcode
+    "8deabf57-af71-4b01-b69e-5da0883071bd"
+#    case get_client_type_by_name(@client_type_name) do
+#      {:ok, %{"data" => [%{"id" => id}]}}
+#        -> id
+#      {:ok, %{"data" => [%{"id" => id} | _tail]}}
+#        -> id
+#      {:ok, _}
+#        -> @client_type_data
+#           |> create_client_type()
+#           |> elem(1)
+#           |> Map.fetch!("data")
+#           |> Map.fetch!("id")
+#      {:error, response}
+#        -> Logger.error(fn -> "Cannot get Client Type from Mithril API. Response: #{inspect response}" end)
+#        nil
+#    end
   end
 
   def search_user(params, headers \\ []) do
