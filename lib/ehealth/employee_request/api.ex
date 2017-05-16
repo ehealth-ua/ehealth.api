@@ -4,6 +4,7 @@ defmodule EHealth.EmployeeRequest.API do
   use JValid
 
   import Ecto.{Query, Changeset}, warn: false
+  import EHealth.Paging
 
   alias EHealth.Repo
   alias EHealth.EmployeeRequest
@@ -22,20 +23,25 @@ defmodule EHealth.EmployeeRequest.API do
   def to_integer(value), do: value
 
   def list_employee_requests(params) do
-    limit =
-      params
-      |> Map.get("limit", Confex.get(:ehealth, :employee_requests_per_page))
-      |> to_integer()
-
-    cursors = %Ecto.Paging.Cursors{
-      starting_after: Map.get(params, "starting_after"),
-      ending_before: Map.get(params, "ending_before")
-    }
-
     query = from er in EmployeeRequest,
       order_by: [desc: :inserted_at]
 
-    Repo.page(query, %Ecto.Paging{limit: limit, cursors: cursors})
+    query
+    |> filter_by_legal_entity_id(params)
+    |> filter_by_status(params)
+    |> Repo.page(get_paging(params, Confex.get(:ehealth, :employee_requests_per_page)))
+  end
+
+  defp filter_by_legal_entity_id(query, %{"legal_entity_id" => legal_entity_id}) when is_binary(legal_entity_id) do
+    where(query, [r], fragment("?->>'legal_entity_id' = ?", r.data, ^legal_entity_id))
+  end
+  defp filter_by_legal_entity_id(query, _), do: query
+
+  defp filter_by_status(query, %{"status" => status}) when is_binary(status) do
+    where(query, [r], r.status == ^status)
+  end
+  defp filter_by_status(query, _) do
+    where(query, [r], r.status == "NEW")
   end
 
   def create_employee_request(attrs \\ %{}) do

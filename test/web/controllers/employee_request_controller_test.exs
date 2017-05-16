@@ -21,13 +21,37 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
   end
 
-  test "list employee requests", %{conn: conn} do
-    conn = get conn, employee_request_path(conn, :index)
-    resp = json_response(conn, 200)
+  describe "list employee requests" do
+    test "without filters", %{conn: conn} do
+      conn = get conn, employee_request_path(conn, :index)
+      resp = json_response(conn, 200)
 
-    assert Map.has_key?(resp, "data")
-    assert Map.has_key?(resp, "paging")
-    assert is_list(resp["data"])
+      assert Map.has_key?(resp, "data")
+      assert Map.has_key?(resp, "paging")
+      assert is_list(resp["data"])
+    end
+
+    test "with valid legal_entity_id filter", %{conn: conn} do
+      %{data: %{"legal_entity_id" => legal_entity_id}} = fixture(:employee_request)
+      conn = get conn, employee_request_path(conn, :index, %{"legal_entity_id" => legal_entity_id})
+      resp = json_response(conn, 200)
+
+      assert Map.has_key?(resp, "data")
+      assert Map.has_key?(resp, "paging")
+      assert is_list(resp["data"])
+      assert 1 == length(resp["data"])
+    end
+
+    test "with invalid legal_entity_id filter", %{conn: conn} do
+      fixture(:employee_request)
+      conn = get conn, employee_request_path(conn, :index, %{"legal_entity_id" => "111"})
+      resp = json_response(conn, 200)
+
+      assert Map.has_key?(resp, "data")
+      assert Map.has_key?(resp, "paging")
+      assert is_list(resp["data"])
+      assert 0 == length(resp["data"])
+    end
   end
 
   test "get employee request with non-existing user", %{conn: conn} do
