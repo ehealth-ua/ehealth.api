@@ -44,4 +44,10 @@ defmodule EHealth.Web.FallbackController do
     |> put_status(:not_found)
     |> render(EView.Views.Error, :"404")
   end
+
+  def call(conn, {:conflict, reason}) do
+    conn
+    |> put_status(:conflict)
+    |> render(EView.Views.Error, :"409", %{message: reason})
+  end
 end

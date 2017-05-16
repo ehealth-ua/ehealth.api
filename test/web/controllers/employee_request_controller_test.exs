@@ -102,11 +102,39 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     assert "APPROVED" == resp["status"]
   end
 
+  test "cannot approve rejected employee request", %{conn: conn} do
+    test_invalid_status_transition(conn, "REJECTED", :approve)
+  end
+
+  test "cannot approve approved employee request", %{conn: conn} do
+    test_invalid_status_transition(conn, "APPROVED", :approve)
+  end
+
   test "reject employee request", %{conn: conn} do
     %{id: id} = fixture(:employee_request)
 
     conn = post conn, employee_request_path(conn, :reject, id)
     resp = json_response(conn, 200)["data"]
     assert "REJECTED" == resp["status"]
+  end
+
+  test "cannot reject rejected employee request", %{conn: conn} do
+    test_invalid_status_transition(conn, "REJECTED", :reject)
+  end
+
+  test "cannot reject approved employee request", %{conn: conn} do
+    test_invalid_status_transition(conn, "APPROVED", :reject)
+  end
+
+  def test_invalid_status_transition(conn, init_status, action) do
+    %{id: id} = employee_request("mail@example.com", init_status)
+
+    conn = post conn, employee_request_path(conn, action, id)
+    resp = json_response(conn, 409)
+    assert "Employee request status is #{init_status} and cannot be updated" == resp["error"]["message"]
+    assert 409 = resp["meta"]["code"]
+
+    conn = get conn, employee_request_path(conn, :show, id)
+    assert init_status == json_response(conn, 200)["data"]["status"]
   end
 end

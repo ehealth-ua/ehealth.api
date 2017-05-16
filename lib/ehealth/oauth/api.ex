@@ -3,8 +3,6 @@ defmodule EHealth.OAuth.API do
   OAuth service layer
   """
 
-  import EHealth.Utils.Connection, only: [get_consumer_id: 1]
-
   alias EHealth.API.Mithril
 
   require Logger

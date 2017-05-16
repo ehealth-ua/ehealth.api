@@ -16,6 +16,7 @@ defmodule EHealth.EmployeeRequest.API do
 
   use_schema :employee_request, "specs/json_schemas/new_employee_request_schema.json"
 
+  @status_new "NEW"
   @status_approved "APPROVED"
   @status_rejected "REJECTED"
 
@@ -41,7 +42,7 @@ defmodule EHealth.EmployeeRequest.API do
     where(query, [r], r.status == ^status)
   end
   defp filter_by_status(query, _) do
-    where(query, [r], r.status == "NEW")
+    where(query, [r], r.status == @status_new)
   end
 
   def create_employee_request(attrs \\ %{}) do
@@ -69,28 +70,39 @@ defmodule EHealth.EmployeeRequest.API do
   def try_send_invitation_email(error), do: error
 
   def reject_employee_request(id) do
-    update_status(id, @status_rejected)
+    id
+    |> get_by_id!()
+    |> check_transition_status()
+    |> update_status(@status_rejected)
   end
 
   def approve_employee_request(id, req_headers) do
     employee_request = get_by_id!(id)
 
     employee_request
+    |> check_transition_status()
     |> EmployeeCreator.create(req_headers)
     |> update_status(employee_request, @status_approved)
   end
 
-  def update_status(id, status) when is_binary(id) do
-    id
-    |> get_by_id!()
-    |> changeset(%{status: status})
-    |> Repo.update()
+  def check_transition_status(%EmployeeRequest{status: @status_new} = employee_request) do
+    employee_request
   end
 
-  def update_status({:ok, _}, %EmployeeRequest{} = employee_request, status) do
+  def check_transition_status(%EmployeeRequest{status: status}) do
+    {:conflict, "Employee request status is #{status} and cannot be updated"}
+  end
+  def check_transition_status(err), do: err
+
+  def update_status(%EmployeeRequest{} = employee_request, status) do
     employee_request
     |> changeset(%{status: status})
     |> Repo.update()
+  end
+  def update_status(err, _status), do: err
+
+  def update_status({:ok, _}, %EmployeeRequest{} = employee_request, status) do
+    update_status(employee_request, status)
   end
 
   def update_status(err, _employee_request, _status), do: err
