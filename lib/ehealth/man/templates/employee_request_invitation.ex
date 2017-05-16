@@ -17,6 +17,7 @@ defmodule EHealth.Man.Templates.EmployeeRequestInvitation do
 
     Man.render_template(config()[:id], %{
       format: config()[:format],
+      locale: config()[:locale],
       date: current_date("Europe/Kiev", "%d.%m.%y"),
       clinic_name: Map.get(clinic_info, :name),
       clinic_address: Map.get(clinic_info, :address),

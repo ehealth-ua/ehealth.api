@@ -60,7 +60,8 @@ config :ehealth, EHealth.API.Man,
 # Configures employee request invitation template
 config :ehealth, EHealth.Man.Templates.EmployeeRequestInvitation,
   id: {:system, "EMPLOYEE_REQUEST_INVITATION_TEMPLATE_ID", 1},
-  format: {:system, "EMPLOYEE_REQUEST_INVITATION_TEMPLATE_FORMAT", "text/html"}
+  format: {:system, "EMPLOYEE_REQUEST_INVITATION_TEMPLATE_FORMAT", "text/html"},
+  locale: {:system, "EMPLOYEE_REQUEST_INVITATION_TEMPLATE_LOCALE", "uk_UA"}
 
 # Configures bamboo
 config :ehealth, EHealth.Bamboo.Mailer,
