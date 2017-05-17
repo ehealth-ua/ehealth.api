@@ -70,7 +70,7 @@ defmodule EHealth.OAuth.API do
   end
 
   def generate_client_name(%{"data" => entity}) do
-    Map.fetch!(entity, "short_name") <> "-" <> Map.fetch!(entity, "id") <> "asd-test"
+    Map.fetch!(entity, "short_name") <> "-" <> Map.fetch!(entity, "id")
   end
 
 end

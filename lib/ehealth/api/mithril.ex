@@ -28,7 +28,7 @@ defmodule EHealth.API.Mithril do
   def create_client(%{"id" => id} = client, headers \\ []) do
     "/admin/clients/"
     |> Kernel.<>(id)
-    |> put!(prepare_client_data(client), headers, options())
+    |> put!(prepare_client_data(client, headers), headers, options())
     |> ResponseDecoder.check_response()
   end
 
@@ -53,7 +53,7 @@ defmodule EHealth.API.Mithril do
 
   def create_client_type(client_type, headers \\ []) do
     "/admin/client_types"
-    |> post!(Poison.encode!(client_type), headers, options())
+    |> post!(Poison.encode!(%{"client_type" => client_type}), headers, options())
     |> ResponseDecoder.check_response()
   end
 
@@ -64,21 +64,21 @@ defmodule EHealth.API.Mithril do
   end
 
   def get_client_type_by_name(name, headers \\ []) do
-    get_clients([name: name], headers)
+    get_client_types([name: name], headers)
   end
 
   # Helpers
 
-  def prepare_client_data(client) do
-    Poison.encode!(%{"client" => put_client_type_id(client)})
+  def prepare_client_data(client, headers \\ []) do
+    Poison.encode!(%{"client" => put_client_type_id(client, headers)})
   end
 
-  def put_client_type_id(client) do
-    Map.put(client, "client_type_id", get_client_type_id())
+  def put_client_type_id(client, headers \\ []) do
+    Map.put(client, "client_type_id", get_client_type_id(headers))
   end
 
-  def get_client_type_id do
-    case get_client_type_by_name(@client_type_name) do
+  def get_client_type_id(headers \\ []) do
+    case get_client_type_by_name(@client_type_name, headers) do
       {:ok, %{"data" => [%{"id" => id}]}}
         -> id
       {:ok, %{"data" => [%{"id" => id} | _tail]}}
