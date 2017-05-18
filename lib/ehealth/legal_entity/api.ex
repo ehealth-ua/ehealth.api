@@ -41,7 +41,7 @@ defmodule EHealth.LegalEntity.API do
     |> fetch_data()
     |> Tuple.append(secret)
   end
-  def process_request(err, _headers), do: err
+  def process_request(err, _headers), do: {:error, err}
 
   @doc """
   Creates new Legal Entity in PRM and Employee request in IL.

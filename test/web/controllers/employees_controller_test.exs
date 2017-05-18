@@ -13,7 +13,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
   end
 
   test "get employee by id", %{conn: conn} do
-    conn = get conn, employees_path(conn, :show, "7488a646-e31f-11e4-aace-600308960662")
+    conn = get conn, employees_path(conn, :show, "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b")
     resp = json_response(conn, 200)
 
     assert Map.has_key?(resp, "data")

@@ -11,6 +11,7 @@ defmodule EHealth.EmployeeRequest.API do
   alias EHealth.EmployeeRequest.EmployeeCreator
   alias EHealth.Man.Templates.EmployeeRequestInvitation, as: EmployeeRequestInvitationTemplate
   alias EHealth.Bamboo.Emails.EmployeeRequestInvitation, as: EmployeeRequestInvitationEmail
+  alias EHealth.RemoteForeignKeyValidator
 
   require Logger
 
@@ -49,7 +50,8 @@ defmodule EHealth.EmployeeRequest.API do
     with :ok <- validate_schema(:employee_request, attrs) do
       data = Map.fetch!(attrs, "employee_request")
 
-      %EmployeeRequest{data: Map.delete(data, "status"), status: Map.fetch!(data, "status")}
+      %EmployeeRequest{}
+      |> changeset(%{data: Map.delete(data, "status"), status: Map.fetch!(data, "status")})
       |> Repo.insert()
       |> try_send_invitation_email()
     end
@@ -107,6 +109,13 @@ defmodule EHealth.EmployeeRequest.API do
 
   def update_status(err, _employee_request, _status), do: err
 
+  defp validate_foreign_keys(changeset, attrs) do
+    changeset
+    |> RemoteForeignKeyValidator.validate(:legal_entity_id, get_in(attrs, [:data, "legal_entity_id"]))
+    |> RemoteForeignKeyValidator.validate(:division_id, get_in(attrs, [:data, "division_id"]))
+    |> RemoteForeignKeyValidator.validate(:employee_id, get_in(attrs, [:data, "employee_id"]))
+  end
+
   def changeset(%EmployeeRequest{} = schema, attrs) do
     fields = ~W(
       data
@@ -116,6 +125,7 @@ defmodule EHealth.EmployeeRequest.API do
     schema
     |> cast(attrs, fields)
     |> validate_required(fields)
+    |> validate_foreign_keys(attrs)
   end
 
   def get_by_id!(id) do

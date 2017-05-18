@@ -83,12 +83,11 @@ defmodule EHealth.MockServer do
   end
 
   get "/employees/:id" do
-    employees =
-      get_employee()
-      |> wrap_response()
-      |> Poison.encode!()
-
-    Plug.Conn.send_resp(conn, 200, employees)
+    case conn.path_params do
+      %{"id" => "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b"} ->
+        Plug.Conn.send_resp(conn, 200, get_employee() |> wrap_response() |> Poison.encode!())
+      _ -> render_404(conn)
+    end
   end
 
   post "/employees" do
@@ -104,6 +103,16 @@ defmodule EHealth.MockServer do
       _ -> Plug.Conn.send_resp(conn, 201, Poison.encode!(%{"data" => employee}))
     end
 
+  end
+
+  # Division
+
+  get "/divisions/:id" do
+    case conn.path_params do
+      %{"id" => "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b"} ->
+        Plug.Conn.send_resp(conn, 200, get_division() |> wrap_response() |> Poison.encode!())
+      _ -> render_404(conn)
+    end
   end
 
   # Mithril
@@ -206,6 +215,41 @@ defmodule EHealth.MockServer do
       "start_date" => "2010-04-17",
       "inserted_by" => "7488a646-e31f-11e4-aace-600308960662",
       "updated_by" => "7488a646-e31f-11e4-aace-600308960662"
+    }
+  end
+
+  def get_division do
+    %{
+      "id" => "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
+      "legal_entity_id" => "d290f1ee-6c54-4b01-90e6-d701748f0851",
+      "name" => "Бориспільське відділення Клініки Борис",
+      "addresses" => [
+        %{
+          "type" => "RESIDENCE",
+          "country" => "UA",
+          "area" => "Житомирська",
+          "region" => "Бердичівський",
+          "settlement" => "Київ",
+          "settlement_type" => "CITY",
+          "settlement_id" => "43432432",
+          "street_type" => "STREET",
+          "street" => "вул. Ніжинська",
+          "building" => "15",
+          "apartment" => "23",
+          "zip" => "02090"
+        }
+      ],
+      "phones" => [
+        %{
+          "type" => "MOBILE",
+          "number" => "+380503410870"
+        }
+      ],
+      "email" => "email@example.com",
+      "type" => "clinic",
+      "external_id" => "3213213",
+      "mountain_group" => "group1",
+      "active" => true
     }
   end
 

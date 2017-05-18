@@ -94,4 +94,12 @@ defmodule EHealth.API.PRM do
     |> get!(headers, params: [edrpou: edrpou])
     |> ResponseDecoder.check_response()
   end
+
+  # Division
+
+  def get_division_by_id(id, headers \\ []) do
+    "/divisions/#{id}"
+    |> get!(headers)
+    |> ResponseDecoder.check_response()
+  end
 end
