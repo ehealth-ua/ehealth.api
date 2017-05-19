@@ -108,7 +108,6 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     assert Map.get(employee_request, :status) == resp["data"]["status"]
     assert NaiveDateTime.to_iso8601(Map.get(employee_request, :inserted_at)) == resp["data"]["inserted_at"]
     assert NaiveDateTime.to_iso8601(Map.get(employee_request, :updated_at)) == resp["data"]["updated_at"]
-    assert "employee_request" == resp["data"]["type"]
     refute Map.has_key?(resp, "urgent")
   end
 
@@ -127,7 +126,6 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     assert Map.get(employee_request, :status) == resp["data"]["status"]
     assert NaiveDateTime.to_iso8601(Map.get(employee_request, :inserted_at)) == resp["data"]["inserted_at"]
     assert NaiveDateTime.to_iso8601(Map.get(employee_request, :updated_at)) == resp["data"]["updated_at"]
-    assert "employee_request" == resp["data"]["type"]
     assert Map.has_key?(resp, "urgent")
     assert Map.has_key?(resp["urgent"], "user_id")
     assert "userid" == resp["urgent"]["user_id"]
