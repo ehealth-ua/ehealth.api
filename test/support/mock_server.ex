@@ -33,26 +33,21 @@ defmodule EHealth.MockServer do
   end
 
   post "/legal_entities" do
-    legal_entity = MapDeepMerge.merge(get_legal_entity(), conn.body_params)
+    legal_entity = MapDeepMerge.merge(get_legal_entity(conn.path_params["id"]), conn.body_params)
     Plug.Conn.send_resp(conn, 201, Poison.encode!(%{"data" => legal_entity}))
   end
 
   patch "/legal_entities/:id" do
-    case conn.path_params do
-      %{"id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375552"} ->
-        legal_entity = MapDeepMerge.merge(get_legal_entity(), conn.body_params)
-        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{"data" => legal_entity}))
-      _ -> render_404(conn)
-    end
+    legal_entity = MapDeepMerge.merge(get_legal_entity(conn.path_params["id"]), conn.body_params)
+    Plug.Conn.send_resp(conn, 200, Poison.encode!(%{"data" => legal_entity}))
   end
 
   get "/legal_entities/:id" do
     case conn.path_params do
-      %{"id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375552"} ->
+      %{"id" => "356b4182-f9ce-4eda-b6af-43d2de8602f2"} ->
+        render_404(conn)
+      _ ->
         Plug.Conn.send_resp(conn, 200, get_legal_entity() |> wrap_response() |> Poison.encode!())
-      %{"id" => "8b797c23-ba47-45f2-bc0f-521013e01074"} ->
-        Plug.Conn.send_resp(conn, 200, get_legal_entity() |> wrap_response() |> Poison.encode!())
-      _ -> render_404(conn)
     end
   end
 
@@ -273,9 +268,9 @@ defmodule EHealth.MockServer do
     }
   end
 
-  def get_legal_entity do
+  def get_legal_entity(id \\ "7cc91a5d-c02f-41e9-b571-1ea4f2375552") do
     %{
-      "id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375552",
+      "id" => id,
       "name" => "Клініка Борис",
       "short_name" => "Борис",
       "type" => "MSP",

@@ -41,7 +41,7 @@ defmodule EHealth.Unit.LegalEntityTest do
 
     signer = %{"edrpou" => "37367387"}
 
-    assert {:ok, content} == validate_edrpou(content, signer)
+    assert {:ok, %{legal_entity_request: content}} == validate_edrpou(content, signer)
   end
 
   test "empty signer EDRPOU" do
@@ -75,11 +75,15 @@ defmodule EHealth.Unit.LegalEntityTest do
   end
 
   test "new legal entity status NOT_VERIFIED" do
-    legal_entitity = Map.merge(get_legal_entity_data(), %{"edrpou" => "07367380"})
+    assert {:ok, %{legal_entity_prm: %{"data" => legal_entity}, security: security}} =
+      API.create_legal_entity(%{
+        "signed_legal_entity_request" => File.read!("test/data/signed_content.txt"),
+        "signed_content_encoding" => "base64"},
+        get_headers()
+      )
 
-    assert {:ok, resp, secret} = API.process_request({:ok, legal_entitity}, get_headers())
-    assert "NOT_VERIFIED" == resp["status"]
-    assert secret
+    assert "NOT_VERIFIED" == legal_entity["status"]
+    assert_security(security, legal_entity["id"])
     assert 1 == Repo.one(from e in EmployeeRequest, select: count("*"))
   end
 
@@ -89,48 +93,59 @@ defmodule EHealth.Unit.LegalEntityTest do
       "email" => "changed@example.com",
       "kveds" => ["12.21"]
     })
+    request = %{
+      "signed_legal_entity_request" => "base64 encoded content"
+    }
 
-    assert {:ok, resp, security} = API.process_request({:ok, legal_entitity}, get_headers())
-    assert "37367387" == resp["edrpou"]
-    assert "VERIFIED" == resp["status"]
-    assert Map.has_key?(security, "client_id")
-    assert Map.has_key?(security, "client_secret")
-    assert Map.has_key?(security, "redirect_uri")
-    # security
-    assert resp["id"] == security["client_id"]
-    refute nil == security["client_secret"]
-    refute nil == security["redirect_uri"]
+    assert {:ok, %{legal_entity_prm: %{"data" => legal_entity}, security: security}} =
+      API.process_request({:ok, %{legal_entity_request: legal_entitity}}, request, get_headers())
+
+    assert "37367387" == legal_entity["edrpou"]
+    assert "VERIFIED" == legal_entity["status"]
+    assert_security(security, legal_entity["id"])
   end
 
   test "update legal entity" do
-    legal_entitity = Map.merge(get_legal_entity_data(), %{
+    legal_entity = Map.merge(get_legal_entity_data(), %{
+      "edrpou" => "12345678",
       "short_name" => "Nebo15",
       "email" => "changed@example.com",
       "kveds" => ["12.21"]
     })
 
-    get_legal_entity_resp = {:ok, %{
-      "data" => [
-        %{"id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375552"}
-      ]
-    }}
+    data = %{
+      legal_entity_id: UUID.generate(),
+      legal_entity_flow: :update,
+      legal_entity_request: legal_entity
+    }
 
-    assert {:ok, %{"data" => resp}, %{"client_id" => _, "client_secret" => _, "redirect_uri" => _}} =
-      API.create_or_update(get_legal_entity_resp, legal_entitity, get_headers())
-    assert "Nebo15" == resp["short_name"]
-    assert "37367387" == resp["edrpou"]
-    assert "VERIFIED" == resp["status"]
-    assert "changed@example.com" == resp["email"]
-    assert ["86.01"] == resp["kveds"]
+    assert {:ok, %{legal_entity_prm: %{"data" => legal_entity}}} =
+      API.put_legal_entity_to_prm({:ok, data}, get_headers())
+
+    assert "Nebo15" == legal_entity["short_name"]
+    assert "37367387" == legal_entity["edrpou"]
+    assert "VERIFIED" == legal_entity["status"]
+    assert "changed@example.com" == legal_entity["email"]
+    assert ["86.01"] == legal_entity["kveds"]
   end
 
   test "create client with legal_entity id" do
     id = UUID.generate()
-    legal_entity = {:ok, %{"data" => %{"id" => id, "short_name" => "test"}}}
-    assert {:ok, %{"data" => %{"id" => ^id}}, _} = OAuth.create_client(legal_entity, "http://example.com", [])
+    legal_entity = %{"id" => id, "short_name" => "test"}
+    assert {:ok, %{"data" => %{"id" => ^id}}} = OAuth.create_client(legal_entity, "http://example.com", [])
   end
 
   # helpers
+
+  def assert_security(security, id) do
+    assert Map.has_key?(security, "client_id")
+    assert Map.has_key?(security, "client_secret")
+    assert Map.has_key?(security, "redirect_uri")
+    # security
+    assert id == security["client_id"]
+    refute nil == security["client_secret"]
+    refute nil == security["redirect_uri"]
+  end
 
   defp get_headers do
     [

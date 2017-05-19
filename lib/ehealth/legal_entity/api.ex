@@ -6,7 +6,10 @@ defmodule EHealth.LegalEntity.API do
   import EHealth.Utils.Connection, only: [get_consumer_id: 1]
 
   alias Ecto.Date
+  alias Ecto.UUID
   alias EHealth.API.PRM
+  alias EHealth.API.Mithril
+  alias EHealth.API.MediaStorage
   alias EHealth.OAuth.API, as: OAuth
   alias EHealth.LegalEntity.Validator
   alias EHealth.EmployeeRequest.API
@@ -26,58 +29,148 @@ defmodule EHealth.LegalEntity.API do
   def create_legal_entity(attrs, headers) do
     attrs
     |> Validator.decode_and_validate()
-    |> process_request(headers)
+    |> process_request(attrs, headers)
   end
 
-  def process_request({:ok, %{"edrpou" => edrpou} = request_legal_entity}, headers) do
-    {status, legal_entity, secret} =
-      edrpou
-      |> PRM.get_legal_entity_by_edrpou(headers)
-      |> create_or_update(request_legal_entity, headers)
-
-    {status, legal_entity}
-    |> update_status(headers)
-    |> create_employee_request(request_legal_entity)
-    |> fetch_data()
-    |> Tuple.append(secret)
+  # for testing without signed content
+  def process_request({:ok, _} = pipe_data, attrs, headers) do
+    pipe_data
+    |> search_legal_entity_in_prm(headers)
+    |> prepare_legal_entity_id()
+    |> store_signed_content(attrs, headers)
+    |> put_legal_entity_to_prm(headers)
+    |> get_oauth_credentials(headers)
+    |> prepare_security_data()
+    |> update_legal_entity_status(headers)
+    |> create_employee_request()
   end
-  def process_request(err, _headers), do: {:error, err}
+  def process_request(err, _attrs, _headers), do: {:error, err}
+
+  def search_legal_entity_in_prm({:ok, %{legal_entity_request: %{"edrpou" => edrpou}} = pipe_data}, headers) do
+    edrpou
+    |> PRM.get_legal_entity_by_edrpou(headers)
+    |> put_success_api_response_in_pipe(:legal_entity_prm, pipe_data)
+  end
 
   @doc """
-  Creates new Legal Entity in PRM and Employee request in IL.
+  Legal Entity not found in PRM. Generate ID for Legal Entity. Set flow as create
   """
-  def create_or_update({:ok, %{"data" => []}}, request_legal_entity, headers) do
-    consumer_id = get_consumer_id(headers)
-    redirect_uri =
-      request_legal_entity
-      |> Map.fetch!("security")
-      |> Map.fetch!("redirect_uri")
+  def prepare_legal_entity_id({:ok, %{legal_entity_prm: %{"data" => []}} = pipe_data}) do
+    data = %{
+      legal_entity_id: UUID.generate(),
+      legal_entity_flow: :create
+    }
+    {:ok, Map.merge(pipe_data, data)}
+  end
 
-    request_legal_entity
-    |> Map.merge(%{"status" => "NEW", "inserted_by" => consumer_id, "updated_by" => consumer_id})
+  @doc """
+  Legal Entity found in PRM. Set flow as update
+  """
+  def prepare_legal_entity_id({:ok, %{legal_entity_prm: %{"data" => [legal_entity]}} = pipe_data}) do
+    data = %{
+      legal_entity_id: Map.fetch!(legal_entity, "id"),
+      legal_entity_flow: :update
+    }
+    {:ok, Map.merge(pipe_data, data)}
+  end
+
+  def prepare_legal_entity_id(err), do: err
+
+  @doc """
+  Creates signed url and store signed content in GCS
+  """
+  def store_signed_content({:ok, pipe_data}, input, headers) do
+    input
+    |> Map.fetch!("signed_legal_entity_request")
+    |> MediaStorage.store_signed_content(Map.fetch!(pipe_data, :legal_entity_id), headers)
+    |> validate_api_response(pipe_data, "Cannot store signed content")
+  end
+  def store_signed_content(err, _input, _headers), do: err
+
+  @doc """
+  Creates new Legal Entity in PRM
+  """
+  def put_legal_entity_to_prm({:ok, %{legal_entity_flow: :create} = pipe_data}, headers) do
+    consumer_id = get_consumer_id(headers)
+
+    creation_data = %{
+      "id" => Map.fetch!(pipe_data, :legal_entity_id),
+      "status" => "NEW",
+      "inserted_by" => consumer_id,
+      "updated_by" => consumer_id
+    }
+
+    pipe_data
+    |> Map.fetch!(:legal_entity_request)
+    |> Map.merge(creation_data)
     |> PRM.create_legal_entity(headers)
-    |> OAuth.create_client(redirect_uri, headers)
+    |> put_success_api_response_in_pipe(:legal_entity_prm, pipe_data)
   end
 
   @doc """
   Updates Legal Entity that exists and creates new Employee request in IL.
   """
-  def create_or_update({:ok, %{"data" => [legal_entity]}}, request_legal_entity, headers) do
-    request_legal_entity
+  def put_legal_entity_to_prm({:ok, %{legal_entity_flow: :update} = pipe_data}, headers) do
+    pipe_data
+    |> Map.fetch!(:legal_entity_request)
     |> Map.drop(["edrpou", "kveds"]) # filter immutable data
     |> Map.put("updated_by", get_consumer_id(headers))
-    |> PRM.update_legal_entity(Map.fetch!(legal_entity, "id"), headers)
-    |> OAuth.get_client(headers)
+    |> PRM.update_legal_entity(Map.fetch!(pipe_data, :legal_entity_id), headers)
+    |> put_success_api_response_in_pipe(:legal_entity_prm, pipe_data)
+  end
+  def put_legal_entity_to_prm(err, _headers), do: err
+
+  @doc """
+  Creates new OAuth client in Mithril API
+  """
+  def get_oauth_credentials({:ok, %{legal_entity_flow: :create} = pipe_data}, headers) do
+    redirect_uri =
+      pipe_data
+      |> Map.fetch!(:legal_entity_request)
+      |> Map.fetch!("security")
+      |> Map.fetch!("redirect_uri")
+
+    pipe_data
+    |> Map.fetch!(:legal_entity_prm)
+    |> Map.fetch!("data")
+    |> OAuth.create_client(redirect_uri, headers)
+    |> put_success_api_response_in_pipe(:oauth_client, pipe_data)
   end
 
-  def create_or_update({:error, _} = err, _, _), do: err
+  @doc """
+  Get OAuth client from Mithril API
+  """
+  def get_oauth_credentials({:ok, %{legal_entity_flow: :update} = pipe_data}, headers) do
+    pipe_data
+    |> Map.fetch!(:legal_entity_id)
+    |> Mithril.get_client(headers)
+    |> put_success_api_response_in_pipe(:oauth_client, pipe_data)
+  end
+  def get_oauth_credentials(err, _headers), do: err
 
-  def update_status({:ok, %{"data" => %{"id" => id, "edrpou" => edrpou}}}, headers) do
-    edrpou
+  def prepare_security_data({:ok, pipe_data}) do
+    oauth_client = pipe_data |> Map.fetch!(:oauth_client) |> Map.fetch!("data")
+
+    security = %{
+      "client_id" => Map.get(oauth_client, "id"),
+      "client_secret" => Map.get(oauth_client, "secret"),
+      "redirect_uri" => Map.get(oauth_client, "redirect_uri")
+    }
+
+    put_in_pipe(security, :security, pipe_data)
+  end
+  def prepare_security_data(err), do: err
+
+  def update_legal_entity_status({:ok, pipe_data}, headers) do
+    pipe_data
+    |> Map.fetch!(:legal_entity_prm)
+    |> Map.fetch!("data")
+    |> Map.fetch!("edrpou")
     |> PRM.check_msp_state_property_status(headers)
-    |> set_legal_entity_status(id, headers)
+    |> set_legal_entity_status(Map.fetch!(pipe_data, :legal_entity_id), headers)
+    |> put_success_api_response_in_pipe(:legal_entity_prm, pipe_data)
   end
-  def update_status(err, _headers), do: err
+  def update_legal_entity_status(err, _headers), do: err
 
   def set_legal_entity_status({:ok, %{"data" => []}}, id, headers) do
     PRM.update_legal_entity(%{"status" => "NOT_VERIFIED"}, id, headers)
@@ -91,13 +184,19 @@ defmodule EHealth.LegalEntity.API do
   Create Employee request
   Specification: https://edenlab.atlassian.net/wiki/display/EH/IL.Create+employee+request
   """
-  def create_employee_request({:ok, %{"data" => %{"id" => id}}} = legal_entity, %{"owner" => party}) do
+  def create_employee_request({:ok, pipe_data}) do
+    id = Map.fetch!(pipe_data, :legal_entity_id)
+    party =
+      pipe_data
+      |> Map.fetch!(:legal_entity_request)
+      |> Map.fetch!("owner")
+
     id
     |> prepare_employee_request_data(party)
     |> API.create_employee_request()
-    |> log_api_error_response(legal_entity, "Cannot create employee request for LegalEntity #{id}.")
+    |> validate_api_response(pipe_data, "Cannot create employee request for Legal Entity #{id}.")
   end
-  def create_employee_request(err, _request_data), do: err
+  def create_employee_request(err), do: err
 
   def prepare_employee_request_data(legal_entity_id, party) do
     request = %{
@@ -112,12 +211,20 @@ defmodule EHealth.LegalEntity.API do
   end
 
   def fetch_data({:ok, %{"data" => data}, secret}), do: {:ok, data, secret}
-  def fetch_data({:ok, %{"data" => data}}), do: {:ok, data}
-  def fetch_data(err), do: err
+  def fetch_data(err), do: err#
 
-  def log_api_error_response({:ok, _response}, return, _log_message), do: return
-  def log_api_error_response({:error, response}, return, log_message) do
-    Logger.error(fn -> log_message <> " Response: #{inspect response}" end)
-    return
+  def validate_api_response({:ok, _}, pipe_data, _log_message), do: {:ok, pipe_data}
+  def validate_api_response(err, _pipe_data, log_message) do
+    Logger.error(fn -> log_message <> " Response: #{inspect err}" end)
+    err
+  end
+
+  def put_success_api_response_in_pipe({:ok, resp}, key, pipe_data) do
+    put_in_pipe(resp, key, pipe_data)
+  end
+  def put_success_api_response_in_pipe(err, _key, _pipe_data), do: err
+
+  def put_in_pipe(data, key, pipe_data) do
+    {:ok, Map.put(pipe_data, key, data)}
   end
 end

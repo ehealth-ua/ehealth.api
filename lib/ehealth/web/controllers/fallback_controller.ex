@@ -39,6 +39,12 @@ defmodule EHealth.Web.FallbackController do
     |> render(EView.Views.Error, :"404")
   end
 
+  def call(conn, {:error, %{"type" => "internal_error"}}) do
+    conn
+    |> put_status(:internal_server_error)
+    |> render(EView.Views.Error, :"500", %{type: "proxied error", message: "remote server internal error"})
+  end
+
   def call(conn, nil) do
     conn
     |> put_status(:not_found)

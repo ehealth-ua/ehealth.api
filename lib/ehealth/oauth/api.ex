@@ -12,19 +12,15 @@ defmodule EHealth.OAuth.API do
   @doc """
   Creates a new Mithril client for MSP after successfully created a new Legal Entity
   """
-  def create_client({:ok, %{"data" => data} = entity}, redirect_uri, headers) do
+  def create_client(entity, redirect_uri, headers) do
     client = %{
-      "id" => Map.fetch!(data, "id"),
+      "id" => Map.fetch!(entity, "id"),
       "name" => generate_client_name(entity),
       "redirect_uri" => redirect_uri,
       "user_id" => get_consumer_id(headers)
     }
-
-    client
-    |> Mithril.create_client()
-    |> put_security(entity)
+    Mithril.create_client(client)
   end
-  def create_client(err, _redirect_uri, _headers), do: err
 
   def get_client({:ok, %{"data" => data} = entity}, headers) do
     data
@@ -70,6 +66,10 @@ defmodule EHealth.OAuth.API do
   end
 
   def generate_client_name(%{"data" => entity}) do
+    Map.fetch!(entity, "short_name") <> "-" <> Map.fetch!(entity, "id")
+  end
+
+  def generate_client_name(entity) do
     Map.fetch!(entity, "short_name") <> "-" <> Map.fetch!(entity, "id")
   end
 
