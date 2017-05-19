@@ -351,6 +351,35 @@ Method returns only **requested** parameters, birth place and second name in add
             + type: `too_many_results`
             + message: `This API method returns only exact match results, please retry with more specific search result` (string)
 
+# Group Internal. IL DB
+
+### Get Declaration requests List [GET /declaration_requests{?tax_id,employee_id,legal_entity_id,status}]
+
+Methods returns list of declaration requests by combination of patient_id, doctor_id, msp_id.
+
++ Parameters
+    + tax_id: `3381275610` (string, optional) - MPI ID of a patient.
+    + employee_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MPI ID of a doctor.
+    + `legal_entity_id`: `A7C1ABD7-4472-42CB-9C39-3F3AB1F1F4FD` (string, optional) - MSP ID.
+    + status: pending (string, optional) - Declaration request current status.
+
++ Request (application/json)
+
++ Response 200 (application/json)
+    + Attributes (`Response_Collection_OK`)
+        + data (array[`crud_Declaration_request_get`])
+
+### Update declaration requests [PATCH /declaration_requests/]
+
+This method to update the declaration request status.
+
++ Request (application/json)
+    + Attributes
+        + `declaration_requests` (array[`declaration_request_patch`])
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (array[`crud_Declaration_request_get`])
+
 # Group Internal. OPS DB
 
 ## Declarations [/declarations]
@@ -2259,6 +2288,10 @@ Get list of cities by district
 + data (array[], fixed-type)
 + paging (Response__Pagination, fixed-type)
 
+### `Response_Collection_OK`
++ meta (Response__Meta, fixed-type)
++ data (array[], fixed-type)
+
 ### `Response_OK`
 + meta (Response__Meta, fixed-type)
 + data (object, fixed-type)
@@ -2392,6 +2425,19 @@ Get list of cities by district
 + certificates (array[Medical_Certificate], optional)
 + licenses (array[Medical_License], required)
 + education (array[Medical_Education], required)
+
+## DeclarationRequests
+### `crud_Declaration_request_get`
++ id: `73FF38F0-A873-4DB4-A47A-CC0F3D7A6D6A` (string, required)
++ data: `json structure` (string, required)
++ status: `pending` (string, required)
++ inserted_by: `A65C8369-CE3A-44D6-839B-8856E3DC4CA3` (string, required)
++ inserted_at: `2005-10-30 10:45` (string, required) - timestamp
++ updated_at: `2005-10-30 10:45` (string, required) - timestamp
+
+### `declaration_request_patch`
++ id: `73FF38F0-A873-4DB4-A47A-CC0F3D7A6D6A` (string, required)
++ status: `pending` (string, required)
 
 ## Declarations
 ### Declaration
