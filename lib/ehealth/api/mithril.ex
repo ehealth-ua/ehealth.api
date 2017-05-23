@@ -67,6 +67,36 @@ defmodule EHealth.API.Mithril do
     get_client_types([name: name], headers)
   end
 
+  # Users
+
+  def search_user(params, headers \\ []) do
+    "/admin/users"
+    |> get!(headers, params: params)
+    |> ResponseDecoder.check_response()
+  end
+
+  # Roles
+
+  def get_roles_by_name(name, headers \\ []) do
+    "/admin/roles"
+    |> get!(headers, params: [name: name])
+    |> ResponseDecoder.check_response()
+  end
+
+  # User roles
+
+  def get_user_roles(user_id, role_id, headers \\ []) when is_binary(user_id) do
+    "/admin/users/#{user_id}/roles"
+    |> get!(headers, params: [role_id: role_id])
+    |> ResponseDecoder.check_response()
+  end
+
+  def create_user_role(user_id, role, headers \\ []) do
+    "/admin/users/#{user_id}/roles"
+    |> post!(Poison.encode!(%{"user_role" => role}), headers, options())
+    |> ResponseDecoder.check_response()
+  end
+
   # Helpers
 
   def prepare_client_data(client, headers \\ []) do
@@ -93,11 +123,5 @@ defmodule EHealth.API.Mithril do
         -> Logger.error(fn -> "Cannot get Client Type from Mithril API. Response: #{inspect response}" end)
         nil
     end
-  end
-
-  def search_user(params, headers \\ []) do
-    "/admin/users"
-    |> get!(headers, params: params)
-    |> ResponseDecoder.check_response()
   end
 end

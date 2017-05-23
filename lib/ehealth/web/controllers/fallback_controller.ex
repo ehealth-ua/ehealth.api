@@ -29,6 +29,12 @@ defmodule EHealth.Web.FallbackController do
     |> render(EView.Views.Error, :"401")
   end
 
+  def call(conn, {:error, :invalid_role}) do
+    conn
+    |> put_status(:bad_request)
+    |> render(EView.Views.Error, :"400", %{message: "User OAuth role does not exists"})
+  end
+
   def call(conn, {:error, %{"type" => "not_found"}}) do
     call(conn, {:error, :not_found})
   end

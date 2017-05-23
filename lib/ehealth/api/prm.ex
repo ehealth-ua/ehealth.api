@@ -67,6 +67,24 @@ defmodule EHealth.API.PRM do
     get_parties([tax_id: edrpou], headers)
   end
 
+  # Party users
+
+  def get_party_users(params \\ [], headers \\ []) do
+    "/party_users"
+    |> get!(headers, params: params)
+    |> ResponseDecoder.check_response()
+  end
+
+  def get_party_users_by_party_id(party_id, headers \\ []) do
+    get_party_users([party_id: party_id], headers)
+  end
+
+  def create_party_user(party_id, user_id, headers \\ []) do
+    "/party_users"
+    |> post!(Poison.encode!(%{user_id: user_id, party_id: party_id}), headers, timeouts())
+    |> ResponseDecoder.check_response()
+  end
+
   # Employee
 
   def create_employee(data, headers \\ []) do

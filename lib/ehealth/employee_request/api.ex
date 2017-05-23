@@ -9,6 +9,7 @@ defmodule EHealth.EmployeeRequest.API do
   alias EHealth.Repo
   alias EHealth.EmployeeRequest
   alias EHealth.EmployeeRequest.EmployeeCreator
+  alias EHealth.EmployeeRequest.UserRoleCreator
   alias EHealth.Man.Templates.EmployeeRequestInvitation, as: EmployeeRequestInvitationTemplate
   alias EHealth.Bamboo.Emails.EmployeeRequestInvitation, as: EmployeeRequestInvitationEmail
   alias EHealth.RemoteForeignKeyValidator
@@ -84,6 +85,7 @@ defmodule EHealth.EmployeeRequest.API do
     employee_request
     |> check_transition_status()
     |> EmployeeCreator.create(req_headers)
+    |> UserRoleCreator.create(req_headers)
     |> update_status(employee_request, @status_approved)
   end
 
@@ -96,18 +98,17 @@ defmodule EHealth.EmployeeRequest.API do
   end
   def check_transition_status(err), do: err
 
+  def update_status({:ok, _}, %EmployeeRequest{} = employee_request, status) do
+    update_status(employee_request, status)
+  end
+  def update_status(err, _employee_request, _status), do: err
+
   def update_status(%EmployeeRequest{} = employee_request, status) do
     employee_request
     |> changeset(%{status: status})
     |> Repo.update()
   end
   def update_status(err, _status), do: err
-
-  def update_status({:ok, _}, %EmployeeRequest{} = employee_request, status) do
-    update_status(employee_request, status)
-  end
-
-  def update_status(err, _employee_request, _status), do: err
 
   defp validate_foreign_keys(changeset, attrs) do
     changeset

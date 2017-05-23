@@ -66,6 +66,15 @@ defmodule EHealth.MockServer do
     Plug.Conn.send_resp(conn, 200, Poison.encode!(%{"data" => get_party()}))
   end
 
+  get "/party_users" do
+    Plug.Conn.send_resp(conn, 200, [get_party_user()] |> wrap_response_with_paging() |> Poison.encode!())
+  end
+
+  post "/party_users" do
+    user_party = MapDeepMerge.merge(get_party_user(), conn.body_params)
+    Plug.Conn.send_resp(conn, 201, Poison.encode!(%{"data" => user_party}))
+  end
+
   # Employee
 
   get "/employees" do
@@ -156,6 +165,34 @@ defmodule EHealth.MockServer do
     Plug.Conn.send_resp(conn, 200, resp)
   end
 
+  get "/admin/roles" do
+    resp =
+      [get_oauth_role()]
+      |> wrap_response_with_paging()
+      |> Poison.encode!()
+
+    Plug.Conn.send_resp(conn, 200, resp)
+  end
+
+  get "/admin/users/:id/roles" do
+    resp =
+      [get_oauth_user_role(conn.path_params["id"])]
+      |> wrap_response_with_paging()
+      |> Poison.encode!()
+
+    Plug.Conn.send_resp(conn, 200, resp)
+  end
+
+  post "/admin/users/:id/roles" do
+    resp =
+      conn.path_params["id"]
+      |> get_oauth_user_role()
+      |> wrap_response()
+      |> Poison.encode!()
+
+    Plug.Conn.send_resp(conn, 200, resp)
+  end
+
   # Man
 
   post "/templates/:id/actions/render" do
@@ -172,6 +209,23 @@ defmodule EHealth.MockServer do
       "settings": %{},
       "priv_settings": %{},
       "redirect_uri": "redirect_uri",
+    }
+  end
+
+  def get_oauth_role do
+    %{
+      "id" => "f9bd4210-7c4b-40b6-957f-300829ad37dc",
+      "name" => "DOCTOR",
+      "scope" => "read"
+    }
+  end
+
+  def get_oauth_user_role(user_id \\ "userid") do
+    %{
+      "id" => "7488a646-e31f-11e4-aace-600308960611",
+      "user_id" => user_id,
+      "role_id" => "f9bd4210-7c4b-40b6-957f-300829ad37dc",
+      "client_id" => "f9bd4210-7c4b-40b6-957f-300829ad37dc",
     }
   end
 
@@ -265,6 +319,14 @@ defmodule EHealth.MockServer do
       "tax_id" => "3126509816",
       "inserted_by" => "12a1c9e6-9fb8-4b22-b21c-250ee2155607",
       "updated_by" => "12a1c9e6-9fb8-4b22-b21c-250ee2155607"
+    }
+  end
+
+  def get_party_user do
+    %{
+      "id" => "01981ab9-904c-4c36-88ab-959a94087483",
+      "user_id" => "1cc91a5d-c02f-41e9-b571-1ea4f2375551",
+      "party_id" => "01981ab9-904c-4c36-88ab-959a94087483",
     }
   end
 
