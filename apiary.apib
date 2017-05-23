@@ -1198,7 +1198,7 @@ Each dictionary is an object that contains *{key}*:*{value}* pairs where:
 * ***{key}*** is a dictionary record
 * ***{value}*** is a dictionary record description
 
-### Get dectionaries [GET]
+### Get dictionaries [GET]
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
@@ -2765,23 +2765,14 @@ Get list of cities by district
 + name: Клініка Борис (string, required)
 + short_name: Борис (string, required)
 + public_name: Клініка Борис (string, required)
-+ type (enum, required)
-    - MSP
++ type: MSP (string, required)
 + edrpou: 5432345432 (string, required)
 + status: VERIFIED (enum, required)
     - VERIFIED
     - DECLINED
     - VERIFICATION_EXP
-+ owner_property_type: state (enum, required)
-    - state
-    - private
-+ legal_form: `ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА` (enum, required)
-    - ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА
-    - АКЦІОНЕРНЕ ТОВАРИСТВО
-    - ВІДКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
-    - ЗАКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
-    - РЕЛІГІЙНА ОРГАНІЗАЦІЯ
-    - ІНШІ ОРГАНІЗАЦІЙНО-ПРАВОВІ ФОРМИ
++ `owner_property_type`: STATE (string, required) - `Dictionary OWNER_PROPERTY_TYPE`
++ `legal_form`: 140 (string, required) - `Dictionary LEGAL_FORM`
 
 ## `Legal_Entity_Requests`
 
@@ -2789,19 +2780,9 @@ Get list of cities by district
 + name: Клініка Борис (string, required)
 + short_name: Борис (string, optional)
 + public_name: Борис (string, optional)
-+ legal_form (enum, required)
-+ type (enum, required)
-    - MSP
-+ `owner_property_type`: state (enum, required)
-    - state
-    - private
-+ legal_form: `ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА` (enum, required)
-    - ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА
-    - АКЦІОНЕРНЕ ТОВАРИСТВО
-    - ВІДКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
-    - ЗАКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
-    - РЕЛІГІЙНА ОРГАНІЗАЦІЯ
-    - ІНШІ ОРГАНІЗАЦІЙНО-ПРАВОВІ ФОРМИ
++ type: MSP (string, required)
++ `owner_property_type`: STATE (string, required) - `Dictionary OWNER_PROPERTY_TYPE`
++ `legal_form`: 140 (string, required) - `Dictionary LEGAL_FORM`
 + edrpou: 5432345432 (string, required)
 + kveds: 86.1 (array, required)
 + addresses (array[Address], required)
@@ -2821,18 +2802,9 @@ Get list of cities by district
 + short_name: Борис (string, optional)
 + public_name: Борис (string, optional)
 + legal_form (enum, required)
-+ type (enum, required)
-    - MSP
-+ `owner_property_type`: state (enum, required)
-    - state
-    - private
-+ legal_form: `ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА` (enum, required)
-    - ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА
-    - АКЦІОНЕРНЕ ТОВАРИСТВО
-    - ВІДКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
-    - ЗАКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
-    - РЕЛІГІЙНА ОРГАНІЗАЦІЯ
-    - ІНШІ ОРГАНІЗАЦІЙНО-ПРАВОВІ ФОРМИ
++ type: MSP (string, required)
++ `owner_property_type`: STATE (string, required) - `Dictionary OWNER_PROPERTY_TYPE`
++ `legal_form`: 140 (string, required) - `Dictionary LEGAL_FORM`
 + edrpou: 5432345432 (string, required)
 + kveds: 86.1 (array, required)
 + addresses (array[Address], required)
@@ -2886,7 +2858,7 @@ Get list of cities by district
 + tax_id: 3015492563 (string, required)
 + birth_date: `1991-08-19T00:00:00.000Z` (string, required)
 + birth_place: `Вінниця, Україна` (string, required)
-+ gender: MALE, FEMALE (enum[string], required)
++ gender: MALE (string, required) - `Dictionary GENDER`
 + email: `email@example.com` (string, required)
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
@@ -2912,13 +2884,7 @@ Get list of cities by district
 ### `Medical_Service_Provider`
 + name: Клініка Борис (string, required)
 + short_name: Борис (string, required)
-+ legal_form: `ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА` (enum, required)
-    - ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА
-    - АКЦІОНЕРНЕ ТОВАРИСТВО
-    - ВІДКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
-    - ЗАКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
-    - РЕЛІГІЙНА ОРГАНІЗАЦІЯ
-    - ІНШІ ОРГАНІЗАЦІЙНО-ПРАВОВІ ФОРМИ
++ `legal_form`: 140 (string, required) - `Dictionary LEGAL_FORM`
 + public_name: ЦПМСД №1 (string, optional)
 + edrpou: 5432345432 (string, required)
 + licenses (array[MSP_License], optional)
@@ -2931,26 +2897,14 @@ Get list of cities by district
 + id: d290f1ee-6c54-4b01-90e6-d701748f0851
 + name: Клініка Борис (string, required)
 + short_name: Борис (string, required)
-+ legal_form: `ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА` (enum, required)
-    - ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА
-    - АКЦІОНЕРНЕ ТОВАРИСТВО
-    - ВІДКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
-    - ЗАКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
-    - РЕЛІГІЙНА ОРГАНІЗАЦІЯ
-    - ІНШІ ОРГАНІЗАЦІЙНО-ПРАВОВІ ФОРМИ
++ `legal_form`: 140 (string, required) - `Dictionary LEGAL_FORM`
 + edrpou: 5432345432 (string, required)
 
 ### `MSP_Details`
 + id: d290f1ee-6c54-4b01-90e6-d701748f0851
 + name: Клініка ЦПМСД №1 (string, required)
 + short_Name: ЦПМСД №1 (string, required)
-+ legal_form: `ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА` (enum, required)
-    - ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА
-    - АКЦІОНЕРНЕ ТОВАРИСТВО
-    - ВІДКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
-    - ЗАКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
-    - РЕЛІГІЙНА ОРГАНІЗАЦІЯ
-    - ІНШІ ОРГАНІЗАЦІЙНО-ПРАВОВІ ФОРМИ
++ `legal_form`: 140 (string, required) - `Dictionary LEGAL_FORM`
 + public_name: ЦПМСД №1 (string, optional)
 + edrpou: 5432345432 (string, required)
 + addresses (array[Address], optional
@@ -2999,21 +2953,21 @@ Get list of cities by district
 + public_key:FDSAF768ASD6F78A6FD87ADS6FA8DS7F678A678DF (string, required)
 
 ### Address
-+ type: RESIDENCE, REGISTRATION (enum[string], required)
++ type: RESIDENCE (string, required) - `Dictionary ADDRESS_TYPE`
 + country: UA (enum[string], required)
 + area: Житомирська (string, optional)
 + region: Бердичівський (string, optional)
 + settlement: Київ (string, optional)
-+ settlement_type: CITY (enum[string], optional)
++ settlement_type: CITY (string, optional)
 + settlement_id: 43432432 (string, required)
-+ street_type: STREET, BOULEVARD, AVENUE (enum[string], optional)
++ street_type: STREET (string, optional)
 + street: `вул. Ніжинська` (string, optional)
 + building: 15 (string, required)
 + apartment: 23 (string, optional)
 + zip: 02090 (string, optional)
 
 ### Phone
-+ type: MOBILE, LANDLINE (enum[string], required)
++ type: MOBILE (string, required) - `Dictionary PHONE_TYPE`
 + number: `+380503410870` (string, required)
 
 ### Email
@@ -3021,11 +2975,7 @@ Get list of cities by district
 + email: `email@example.com` (string, required)
 
 ### Document
-+ type: PASSPORT (enum[string], required)
-    - PASSPORT
-    - NATIONAL_ID
-    - BIRTH_CERTIFICATE
-    - TEMPORARY_CERTIFICATE
++ type: PASSPORT (string, required) - `Dictionary DOCUMENT_TYPE`
 + number: 120518 (string, required)
 
 ### `Medical_Certificate`
