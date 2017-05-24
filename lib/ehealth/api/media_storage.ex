@@ -46,7 +46,7 @@ defmodule EHealth.API.MediaStorage do
 
   def put_signed_content({:ok, %{"data" => data}}, signed_content) do
     headers = [{"Content-Type", ""}]
-    content = Base.decode64!(signed_content)
+    content = Base.decode64!(signed_content, [ignore: :whitespace, padding: false])
 
     data
     |> Map.fetch!("secret_url")

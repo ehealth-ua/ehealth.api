@@ -23,7 +23,7 @@ config :ehealth, EHealth.API.Signature,
 
 # Configures MediaStorage API
 config :ehealth, EHealth.API.MediaStorage,
-  endpoint: {:system, "MEDIA_STORAGE_ENDPOINT", ""},
+  endpoint: {:system, "MEDIA_STORAGE_ENDPOINT", "http://api-svc.ael"},
   legal_entity_bucket: {:system, "MEDIA_STORAGE_LEGAL_ENTITY_BUCKET", "legal-entities-dev"},
   enabled?: {:system, :boolean, "MEDIA_STORAGE_ENABLED", false},
   hackney_options: [
@@ -34,7 +34,7 @@ config :ehealth, EHealth.API.MediaStorage,
 
 # Configures PRM API
 config :ehealth, EHealth.API.PRM,
-  endpoint: {:system, "PRM_ENDPOINT", ""},
+  endpoint: {:system, "PRM_ENDPOINT", "http://api-svc.prm/api"},
   timeouts: [
     connect_timeout: {:system, :integer, "PRM_REQUEST_TIMEOUT", 30_000},
     recv_timeout: {:system, :integer, "PRM_REQUEST_TIMEOUT", 30_000},
@@ -43,7 +43,7 @@ config :ehealth, EHealth.API.PRM,
 
 # Configures Trump API
 config :ehealth, EHealth.API.Mithril,
-  endpoint: {:system, "OAUTH_ENDPOINT", ""},
+  endpoint: {:system, "OAUTH_ENDPOINT", "http://api-svc.mithril"},
   hackney_options: [
     connect_timeout: {:system, :integer, "OAUTH_REQUEST_TIMEOUT", 30_000},
     recv_timeout: {:system, :integer, "OAUTH_REQUEST_TIMEOUT", 30_000},
@@ -52,7 +52,7 @@ config :ehealth, EHealth.API.Mithril,
 
 # Configures Man API
 config :ehealth, EHealth.API.Man,
-  endpoint: {:system, "MAN_ENDPOINT", ""},
+  endpoint: {:system, "MAN_ENDPOINT", "http://api-svc.man"},
   timeouts: [
     connect_timeout: {:system, :integer, "MAN_REQUEST_TIMEOUT", 30_000},
     recv_timeout: {:system, :integer, "MAN_REQUEST_TIMEOUT", 30_000},
