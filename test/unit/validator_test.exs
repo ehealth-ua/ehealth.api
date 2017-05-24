@@ -3,6 +3,8 @@ defmodule EHealth.Unit.ValidatorTest do
 
   use EHealth.Web.ConnCase
 
+  import ExUnit.CaptureLog
+
   alias EHealth.LegalEntity.Validator
 
   @phone_type %{
@@ -15,11 +17,10 @@ defmodule EHealth.Unit.ValidatorTest do
     "is_active" => true,
   }
 
-  @qualification_type %{
-    "name" => "PHONE_TYPE",
+  @unmapped %{
+    "name" => "UNMAPPED",
     "values" => %{
-      "MOBILE" => "mobile",
-      "LANDLINE" => "landline",
+      "NEW" => "yes",
     },
     "labels" => ["SYSTEM"],
     "is_active" => true,
@@ -36,5 +37,18 @@ defmodule EHealth.Unit.ValidatorTest do
 
     assert {:error, [{%{description: "value is not allowed in enum", rule: :inclusion}, "$.phones.[0].type"}]} =
       Validator.validate_legal_entity({:ok, %{"data" => %{"content" => content}}})
+  end
+
+  test "unmapped dictionary name", %{conn: conn} do
+    patch conn, dictionary_path(conn, :update, "UNMAPPED"), @unmapped
+
+    content =
+      "test/data/legal_entity.json"
+      |> File.read!()
+      |> Poison.decode!()
+
+    assert capture_log(fn ->
+      assert {:ok, _} = Validator.validate_legal_entity({:ok, %{"data" => %{"content" => content}}})
+    end) =~ "Dictionary with name UNMAPPED is not mapped"
   end
 end

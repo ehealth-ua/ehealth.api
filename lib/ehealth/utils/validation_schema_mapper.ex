@@ -21,7 +21,7 @@ defmodule EHealth.Utils.ValidationSchemaMapper do
     |> elem(1)
   end
   def map_schema(_dictionaries, _type, schema) do
-    Logger.warn("Empty dictionaries db")
+    Logger.warn(fn -> "Empty dictionaries db" end)
     schema
   end
 
@@ -82,6 +82,11 @@ defmodule EHealth.Utils.ValidationSchemaMapper do
 
   def put_dictionary_value(%Dictionary{name: "EMPLOYEE_TYPE", values: values}, schema, :legal_entity) do
     put_into_schema(["properties", "employee_request", "properties", "employee_type", "enum"], schema, values)
+  end
+
+  def put_dictionary_value(%Dictionary{name: name}, schema, _type) do
+    Logger.warn(fn -> "Dictionary with name #{name} is not mapped" end)
+    {nil, schema}
   end
 
   def put_into_schema(path, schema, values) do
