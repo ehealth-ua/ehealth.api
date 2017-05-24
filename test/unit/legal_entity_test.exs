@@ -15,16 +15,25 @@ defmodule EHealth.Unit.LegalEntityTest do
   test "successed signed content validation" do
     content = File.read!("test/data/signed_content.txt")
 
-    Validator.decode_and_validate(%{
+    assert {:ok, _} = Validator.decode_and_validate(%{
       "signed_content_encoding" => "base64",
       "signed_legal_entity_request" => content
     })
   end
 
   test "invalid signed content validation" do
-    Validator.decode_and_validate(%{
+    assert %Ecto.Changeset{valid?: false} = Validator.decode_and_validate(%{
       "signed_content_encoding" => "base256",
       "signed_legal_entity_request" => "invalid"
+    })
+  end
+
+  test "invalid signed content - no security" do
+    content = File.read!("test/data/signed_content_no_security.txt")
+
+    assert {:error, _} = Validator.decode_and_validate(%{
+      "signed_content_encoding" => "base64",
+      "signed_legal_entity_request" => content
     })
   end
 
