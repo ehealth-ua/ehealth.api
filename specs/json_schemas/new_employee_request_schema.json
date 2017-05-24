@@ -6,10 +6,7 @@
       "properties": {
         "type": {
           "type": "string",
-          "enum": [
-            "MOBILE",
-            "LANDLINE"
-          ]
+          "description": "Dictionary: PHONE_TYPE"
         },
         "number": {
           "type": "string",
@@ -27,12 +24,7 @@
       "properties": {
         "type": {
           "type": "string",
-          "enum": [
-            "PASSPORT",
-            "NATIONAL_ID",
-            "BIRTH_CERTIFICATE",
-            "TEMPORARY_CERTIFICATE"
-          ]
+          "description": "Dictionary: DOCUMENT_TYPE"
         },
         "number": {
           "type": "string"
@@ -49,9 +41,7 @@
       "properties": {
         "country": {
           "type": "string",
-          "enum": [
-            "UA"
-          ]
+          "description": "Dictionary: COUNTRY"
         },
         "city": {
           "type": "string"
@@ -67,12 +57,7 @@
         },
         "degree": {
           "type": "string",
-          "enum": [
-            "Молодший спеціаліст",
-            "Бакалавр",
-            "Спеціаліст",
-            "Магістр"
-          ]
+          "description": "Dictionary: EDUCATION_DEGREE"
         },
         "speciality": {
           "type": "string"
@@ -93,14 +78,7 @@
       "properties": {
         "type": {
           "type": "string",
-          "enum": [
-            "Інтернатура",
-            "Спеціалізація",
-            "Передатестаційний цикл",
-            "Тематичне вдосконалення",
-            "Курси інформації",
-            "Стажування"
-          ]
+          "description": "Dictionary: QUALIFICATION_TYPE"
         },
         "institution_name": {
           "type": "string"
@@ -129,29 +107,18 @@
       "properties": {
         "speciality": {
           "type": "string",
-          "enum": [
-            "Терапевт",
-            "Педіатр",
-            "Сімейний лікар"
-          ]
+          "description": "Dictionary: SPECIALITY_TYPE"
         },
         "speciality_officio": {
           "type": "boolean"
         },
         "level": {
           "type": "string",
-          "enum": [
-            "Друга категорія",
-            "Перша категорія",
-            "Вища категорія"
-          ]
+          "description": "Dictionary: SPECIALITY_LEVEL"
         },
         "qualification_type": {
           "type": "string",
-          "enum": [
-            "Присвоєння",
-            "Підтвердження"
-          ]
+          "description": "Dictionary: QUALIFICATION_TYPE"
         },
         "attestation_name": {
           "type": "string"
@@ -183,20 +150,14 @@
       "properties": {
         "country": {
           "type": "string",
-          "enum": [
-            "UA"
-          ]
+          "description": "Dictionary: COUNTRY"
         },
         "city": {
           "type": "string"
         },
         "degree": {
           "type": "string",
-          "enum": [
-            "Доктор філософії",
-            "Кандидат наук",
-            "Доктор наук"
-          ]
+          "description": "Dictionary: TDB"
         },
         "institution_name": {
           "type": "string"
@@ -206,11 +167,7 @@
         },
         "speciality": {
           "type": "string",
-          "enum": [
-            "Терапевт",
-            "Педіатр",
-            "Сімейний лікар"
-          ]
+          "description": "Dictionary: SPECIALITY_TYPE"
         },
         "issued_date": {
           "type": "string",
@@ -245,10 +202,7 @@
         },
         "gender": {
           "type": "string",
-          "enum": [
-            "MALE",
-            "FEMALE"
-          ]
+          "description": "Dictionary: GENDER"
         },
         "tax_id": {
           "type": "string",
@@ -320,12 +274,7 @@
         },
         "employee_type": {
           "type": "string",
-          "enum": [
-            "DOCTOR",
-            "HR",
-            "ADMIN",
-            "OWNER"
-          ]
+          "description": "Dictionary: EMPLOYEE_TYPE"
         },
         "party": {
           "type": "object",
