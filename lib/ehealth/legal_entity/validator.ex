@@ -9,6 +9,7 @@ defmodule EHealth.LegalEntity.Validator do
 
   alias EHealth.API.Signature
   alias EHealth.LegalEntity.Request
+  alias EHealth.Utils.ValidationSchemaMapper
 
   use_schema :legal_entity, "specs/json_schemas/new_legal_entity_schema.json"
 
@@ -54,7 +55,12 @@ defmodule EHealth.LegalEntity.Validator do
   end
 
   def validate_legal_entity({:ok, %{"data" => %{"content" => content} = data}}) do
-    case validate_schema(:legal_entity, content) do
+    schema =
+      @schemas
+      |> Keyword.get(:legal_entity)
+      |> ValidationSchemaMapper.prepare_legal_entity_schema()
+
+    case validate_schema(schema, content) do
       :ok -> {:ok, data}
       err -> err
     end

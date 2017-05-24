@@ -9,11 +9,10 @@ defmodule EHealth.Dictionaries do
   alias EHealth.Dictionaries.Dictionary
   alias EHealth.Dictionaries.DictionarySearch
 
-  def list_dictionaries(attrs) do
+  def list_dictionaries(attrs \\ %{}) do
     %DictionarySearch{}
     |> dictionary_changeset(attrs)
     |> search_dictionaries()
-
   end
 
   defp search_dictionaries(%Ecto.Changeset{valid?: true, changes: changes}) when map_size(changes) > 0 do

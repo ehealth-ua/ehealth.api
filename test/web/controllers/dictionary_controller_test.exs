@@ -39,10 +39,7 @@ defmodule EHealth.Web.DictionaryControllerTest do
     patch conn, dictionary_path(conn, :update, "DOCUMENT_TYPE"), @document_type
 
     conn = get conn, dictionary_path(conn, :index)
-    assert json_response(conn, 200)["data"] == [
-      Map.delete(@gender, "type"),
-      Map.delete(@document_type, "type"),
-    ]
+    assert json_response(conn, 200)["data"] == [@gender, @document_type]
   end
 
   test "updates chosen dictionary and renders dictionary when data is valid", %{conn: conn} do
