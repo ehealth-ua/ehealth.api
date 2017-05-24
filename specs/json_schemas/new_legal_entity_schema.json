@@ -6,14 +6,28 @@
       "properties": {
         "type": {
           "type": "string",
-          "enum": [
-            "MOBILE",
-            "LANDLINE"
-          ]
+          "description": "Dictionary: PHONE_TYPE"
         },
         "number": {
           "type": "string",
           "pattern": "^\\+38[0-9]{10}$"
+        }
+      },
+      "required": [
+        "type",
+        "number"
+      ],
+      "additionalProperties": false
+    },
+    "document": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Dictionary: DOCUMENT_TYPE"
+        },
+        "number": {
+          "type": "string"
         }
       },
       "required": [
@@ -27,10 +41,7 @@
       "properties": {
         "type": {
           "type": "string",
-          "enum": [
-            "RESIDENCE",
-            "REGISTRATION"
-          ]
+          "description": "Dictionary: ADDRESS_TYPE"
         },
         "country": {
           "type": "string"
@@ -51,13 +62,7 @@
           "type": "string"
         },
         "street_type": {
-          "type": "string",
-          "enum": [
-            "BOULEVARD",
-            "STREET",
-            "AVENUE",
-            "SQUARE"
-          ]
+          "type": "string"
         },
         "street": {
           "type": "string"
@@ -96,27 +101,16 @@
     "type": {
       "type": "string",
       "enum": [
-        "MIS",
-        "MSP"
+        "MIS"
       ]
     },
     "owner_property_type": {
       "type": "string",
-      "enum": [
-        "STATE",
-        "PRIVATE"
-      ]
+      "description": "Dictionary: OWNER_PROPERTY_TYPE"
     },
     "legal_form": {
       "type": "string",
-      "enum": [
-        "ПІДПРИЄМЕЦЬ",
-        "АКЦІОНЕРНЕ ТОВАРИСТВО",
-        "ВІДКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО",
-        "ЗАКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО",
-        "РЕЛІГІЙНА ОРГАНІЗАЦІЯ",
-        "ІНШІ ОРГАНІЗАЦІЙНО"
-      ]
+      "description": "Dictionary: LEGAL_FORM"
     },
     "edrpou": {
       "type": "string",
@@ -173,17 +167,17 @@
         },
         "gender": {
           "type": "string",
-          "enum": [
-            "MALE",
-            "FEMALE"
-          ]
+          "description": "Dictionary: GENDER"
         },
         "email": {
           "type": "string",
           "format": "email"
         },
         "documents": {
-          "type": "array"
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/document"
+          }
         },
         "phones": {
           "type": "array",
@@ -240,11 +234,7 @@
           "properties": {
             "category": {
               "type": "string",
-              "enum": [
-                "ДРУГА",
-                "ПЕРША",
-                "НЕ АКРЕДИТОВАНИЙ"
-              ]
+              "description": "Dictionary: ACCREDITATION_CATEGORY"
             },
             "issued_date": {
               "type": "string",
