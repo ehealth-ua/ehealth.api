@@ -3,8 +3,6 @@ defmodule EHealth.Unit.ValidatorTest do
 
   use EHealth.Web.ConnCase
 
-  import ExUnit.CaptureLog
-
   alias EHealth.LegalEntity.Validator
 
   @phone_type %{
@@ -47,8 +45,6 @@ defmodule EHealth.Unit.ValidatorTest do
       |> File.read!()
       |> Poison.decode!()
 
-    assert capture_log(fn ->
-      assert {:ok, _} = Validator.validate_legal_entity({:ok, %{"data" => %{"content" => content}}})
-    end) =~ "Dictionary with name UNMAPPED is not mapped"
+    assert {:ok, _} = Validator.validate_legal_entity({:ok, %{"data" => %{"content" => content}}})
   end
 end

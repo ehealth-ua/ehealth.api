@@ -9,8 +9,19 @@ defmodule EHealth.Utils.ValidationSchemaMapper do
 
   require Logger
 
-  def prepare_legal_entity_schema(%Root{schema: schema} = nex_schema) do
-    schema = map_schema(Dictionaries.list_dictionaries(%{"is_active" => true}), :legal_entity, schema)
+  def prepare_legal_entity_schema(%Root{} = nex_schema) do
+    prepare_schema(nex_schema, :legal_entity)
+  end
+
+  def prepare_employee_request_schema(%Root{} = nex_schema) do
+    prepare_schema(nex_schema, :employee_request)
+  end
+
+  def prepare_schema(%Root{schema: schema} = nex_schema, type) do
+    schema =
+      %{"is_active" => true}
+      |> Dictionaries.list_dictionaries()
+      |> map_schema(type, schema)
 
     Map.put(nex_schema, :schema, schema)
   end
@@ -25,19 +36,36 @@ defmodule EHealth.Utils.ValidationSchemaMapper do
     schema
   end
 
-  def put_dictionary_value(%Dictionary{name: "PHONE_TYPE", values: values}, schema, :legal_entity) do
+  def put_dictionary_value(%Dictionary{name: "PHONE_TYPE", values: values}, schema, _type) do
     put_into_schema(["definitions", "phone", "properties", "type", "enum"], schema, values)
   end
 
-  def put_dictionary_value(%Dictionary{name: "DOCUMENT_TYPE", values: values}, schema, :legal_entity) do
+  def put_dictionary_value(%Dictionary{name: "DOCUMENT_TYPE", values: values}, schema, _type) do
     put_into_schema(["definitions", "document", "properties", "type", "enum"], schema, values)
   end
 
   def put_dictionary_value(%Dictionary{name: "ADDRESS_TYPE", values: values}, schema, :legal_entity) do
-    put_into_schema(["definitions", "phone", "properties", "type", "enum"], schema, values)
+    put_into_schema(["definitions", "address", "properties", "type", "enum"], schema, values)
   end
 
-  def put_dictionary_value(%Dictionary{name: "COUNTRY", values: values}, schema, :legal_entity) do
+  def put_dictionary_value(%Dictionary{name: "OWNER_PROPERTY_TYPE", values: values}, schema, :legal_entity) do
+    put_into_schema(["properties", "owner_property_type", "enum"], schema, values)
+  end
+
+  def put_dictionary_value(%Dictionary{name: "LEGAL_FORM", values: values}, schema, :legal_entity) do
+    put_into_schema(["properties", "legal_form", "enum"], schema, values)
+  end
+
+  def put_dictionary_value(%Dictionary{name: "GENDER", values: values}, schema, :legal_entity) do
+    put_into_schema(["properties", "owner", "properties", "gender", "enum"], schema, values)
+  end
+
+  def put_dictionary_value(%Dictionary{name: "ACCREDITATION_CATEGORY", values: values}, schema, :legal_entity) do
+    path = ["properties", "medical_service_provider", "properties", "accreditation", "properties", "category", "enum"]
+    put_into_schema(path, schema, values)
+  end
+
+  def put_dictionary_value(%Dictionary{name: "COUNTRY", values: values}, schema, :employee_request) do
     values = Map.keys(values)
     schema =
       schema
@@ -46,11 +74,11 @@ defmodule EHealth.Utils.ValidationSchemaMapper do
     {nil, schema}
   end
 
-  def put_dictionary_value(%Dictionary{name: "EDUCATION_DEGREE", values: values}, schema, :legal_entity) do
+  def put_dictionary_value(%Dictionary{name: "EDUCATION_DEGREE", values: values}, schema, :employee_request) do
     put_into_schema(["definitions", "education", "properties", "degree", "enum"], schema, values)
   end
 
-  def put_dictionary_value(%Dictionary{name: "QUALIFICATION_TYPE", values: values}, schema, :legal_entity) do
+  def put_dictionary_value(%Dictionary{name: "QUALIFICATION_TYPE", values: values}, schema, :employee_request) do
     values = Map.keys(values)
     schema =
       schema
@@ -59,7 +87,7 @@ defmodule EHealth.Utils.ValidationSchemaMapper do
     {nil, schema}
   end
 
-  def put_dictionary_value(%Dictionary{name: "SPECIALITY_TYPE", values: values}, schema, :legal_entity) do
+  def put_dictionary_value(%Dictionary{name: "SPECIALITY_TYPE", values: values}, schema, :employee_request) do
     values = Map.keys(values)
     schema =
       schema
@@ -68,24 +96,23 @@ defmodule EHealth.Utils.ValidationSchemaMapper do
     {nil, schema}
   end
 
-  def put_dictionary_value(%Dictionary{name: "SPECIALITY_LEVEL", values: values}, schema, :legal_entity) do
+  def put_dictionary_value(%Dictionary{name: "SPECIALITY_LEVEL", values: values}, schema, :employee_request) do
     put_into_schema(["definitions", "speciality", "properties", "level", "enum"], schema, values)
   end
 
-  def put_dictionary_value(%Dictionary{name: "SCIENCE_DEGREE", values: values}, schema, :legal_entity) do
+  def put_dictionary_value(%Dictionary{name: "SCIENCE_DEGREE", values: values}, schema, :employee_request) do
     put_into_schema(["definitions", "phone", "properties", "type", "enum"], schema, values)
   end
 
-  def put_dictionary_value(%Dictionary{name: "GENDER", values: values}, schema, :legal_entity) do
+  def put_dictionary_value(%Dictionary{name: "GENDER", values: values}, schema, :employee_request) do
     put_into_schema(["definitions", "party", "properties", "gender", "enum"], schema, values)
   end
 
-  def put_dictionary_value(%Dictionary{name: "EMPLOYEE_TYPE", values: values}, schema, :legal_entity) do
+  def put_dictionary_value(%Dictionary{name: "EMPLOYEE_TYPE", values: values}, schema, :employee_request) do
     put_into_schema(["properties", "employee_request", "properties", "employee_type", "enum"], schema, values)
   end
 
-  def put_dictionary_value(%Dictionary{name: name}, schema, _type) do
-    Logger.warn(fn -> "Dictionary with name #{name} is not mapped" end)
+  def put_dictionary_value(%Dictionary{}, schema, _type) do
     {nil, schema}
   end
 

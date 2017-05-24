@@ -101,7 +101,7 @@
     "type": {
       "type": "string",
       "enum": [
-        "MIS"
+        "MSP"
       ]
     },
     "owner_property_type": {

@@ -8,6 +8,7 @@ defmodule EHealth.EmployeeRequest.API do
 
   alias EHealth.Repo
   alias EHealth.EmployeeRequest
+  alias EHealth.Utils.ValidationSchemaMapper
   alias EHealth.EmployeeRequest.EmployeeCreator
   alias EHealth.EmployeeRequest.UserRoleCreator
   alias EHealth.Man.Templates.EmployeeRequestInvitation, as: EmployeeRequestInvitationTemplate
@@ -48,7 +49,12 @@ defmodule EHealth.EmployeeRequest.API do
   end
 
   def create_employee_request(attrs \\ %{}) do
-    with :ok <- validate_schema(:employee_request, attrs) do
+    schema =
+      @schemas
+      |> Keyword.get(:employee_request)
+      |> ValidationSchemaMapper.prepare_employee_request_schema()
+
+    with :ok <- validate_schema(schema, attrs) do
       data = Map.fetch!(attrs, "employee_request")
 
       %EmployeeRequest{}
