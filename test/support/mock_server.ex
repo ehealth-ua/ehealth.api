@@ -125,16 +125,6 @@ defmodule EHealth.MockServer do
     Plug.Conn.send_resp(conn, 200, [get_oauth_client()] |> wrap_response_with_paging() |> Poison.encode!())
   end
 
-  post "/admin/clients" do
-    resp =
-      conn.body_params["id"]
-      |> get_oauth_client()
-      |> wrap_response()
-      |> Poison.encode!()
-
-    Plug.Conn.send_resp(conn, 200, resp)
-  end
-
   get "/admin/users" do
     resp =
       conn.query_params
@@ -147,8 +137,9 @@ defmodule EHealth.MockServer do
 
   put "/admin/clients/:id" do
     resp =
-      conn.path_params["id"]
+      conn.body_params["id"]
       |> get_oauth_client()
+      |> MapDeepMerge.merge(conn.body_params["client"])
       |> wrap_response()
       |> Poison.encode!()
 
@@ -201,14 +192,14 @@ defmodule EHealth.MockServer do
 
   def get_oauth_client(id \\ "f9bd4210-7c4b-40b6-957f-300829ad37dc") do
     %{
-      "id": id,
-      "name": "test",
-      "type": "client",
-      "secret": "some super secret",
-      "redirect_uri": "http://example.com/redirect_uri",
-      "settings": %{},
-      "priv_settings": %{},
-      "redirect_uri": "redirect_uri",
+      "id" => id,
+      "name" => "test",
+      "type" => "client",
+      "secret" => "some super secret",
+      "redirect_uri" => "http =>//example.com/redirect_uri",
+      "settings" => %{},
+      "priv_settings" => %{},
+      "redirect_uri" => "redirect_uri",
     }
   end
 

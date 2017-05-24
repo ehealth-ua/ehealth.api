@@ -15,7 +15,7 @@ defmodule EHealth.OAuth.API do
   def create_client(entity, redirect_uri, headers) do
     client = %{
       "id" => Map.fetch!(entity, "id"),
-      "name" => generate_client_name(entity),
+      "name" => Map.fetch!(entity, "short_name"),
       "redirect_uri" => redirect_uri,
       "user_id" => get_consumer_id(headers)
     }
@@ -29,14 +29,6 @@ defmodule EHealth.OAuth.API do
     |> put_security(entity)
   end
   def get_client(err, _headers), do: err
-
-  def search_client({:ok, entity}, headers) do
-    entity
-    |> generate_client_name()
-    |> Mithril.get_client_by_name(headers)
-    |> put_security(entity)
-  end
-  def search_client(err, _headers), do: err
 
   @doc """
   Fetch Mithril credentials from Mithril.create_client respone
@@ -63,14 +55,6 @@ defmodule EHealth.OAuth.API do
     Logger.error(fn -> "Cannot create or find Mithril client for Legal Entity #{id} Response: #{inspect response}" end)
 
     {:ok, entity, nil}
-  end
-
-  def generate_client_name(%{"data" => entity}) do
-    Map.fetch!(entity, "short_name") <> "-" <> Map.fetch!(entity, "id")
-  end
-
-  def generate_client_name(entity) do
-    Map.fetch!(entity, "short_name") <> "-" <> Map.fetch!(entity, "id")
   end
 
 end
