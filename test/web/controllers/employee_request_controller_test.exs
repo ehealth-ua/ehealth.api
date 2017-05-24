@@ -10,7 +10,8 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       employee_request_params = File.read!("test/data/employee_request.json")
 
       conn = post conn, employee_request_path(conn, :create), employee_request_params
-      assert json_response(conn, 200)["data"]
+      resp = json_response(conn, 200)["data"]
+      refute Map.has_key?(resp, "type")
     end
 
     test "with invalid params", %{conn: conn} do
