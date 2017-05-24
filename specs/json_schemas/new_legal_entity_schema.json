@@ -278,7 +278,8 @@
       "type": "object",
       "properties": {
         "redirect_uri": {
-          "type": "string"
+          "type": "string",
+          "format": "uri"
         }
       },
       "required": [
