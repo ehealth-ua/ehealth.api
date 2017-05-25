@@ -13,7 +13,7 @@ defmodule EHealth.EmployeeRequest.UserRoleCreator do
 
   def create({:ok, %{"data" => employee}}, headers) do
     {:ok, %{
-      party_id: Map.fetch!(employee, "id"),
+      party_id: Map.fetch!(employee, "party_id"),
       client_id: Map.fetch!(employee, "legal_entity_id"),
       employee: employee,
       headers: headers
