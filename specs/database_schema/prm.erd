@@ -32,8 +32,9 @@ legal_entity_id | uuid | not null
 id | uuid | not null
 inserted_by | uuid | not null
 data | jsonb | not null
-gandalf_authentication_method | varchar | not null
-gandalf_authentication_number | varchar | not null
+authentication_method_current | jsonb
+printout_content | varchar
+documents | jsonb
 inserted_at | timestamp | not null
 updated_at | timestamp | not null
 
