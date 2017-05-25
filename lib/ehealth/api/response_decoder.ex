@@ -22,7 +22,7 @@ defmodule EHealth.API.ResponseDecoder do
   def decode_response(response) do
     case Poison.decode(response) do
        {:ok, body} -> {:ok, body}
-       _           -> {:error, response}
+       _           -> {:error, {:response_json_decoder, response}}
      end
   end
 end

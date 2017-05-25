@@ -4,6 +4,8 @@ defmodule EHealth.Web.FallbackController do
   """
   use EHealth.Web, :controller
 
+  require Logger
+
   def call(conn, {:error, json_schema_errors}) when is_list(json_schema_errors) do
     conn
     |> put_status(422)
@@ -61,5 +63,19 @@ defmodule EHealth.Web.FallbackController do
     conn
     |> put_status(:conflict)
     |> render(EView.Views.Error, :"409", %{message: reason})
+  end
+
+  def call(conn, {:error, {:response_json_decoder, reason}}) do
+    Logger.error("Cannot decode HTTP JSON response: #{inspect reason}")
+    conn
+    |> put_status(:failed_dependency)
+    |> render(EView.Views.Error, :"424", %{message: "Cannot decode HTTP JSON response"})
+  end
+
+  def call(conn, params) do
+    Logger.error("No function clause matching in EHealth.Web.FallbackController.call/2: #{inspect params}")
+    conn
+    |> put_status(:not_implemented)
+    |> render(EView.Views.Error, :"501")
   end
 end
