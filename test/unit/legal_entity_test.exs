@@ -140,7 +140,7 @@ defmodule EHealth.Unit.LegalEntityTest do
 
   test "create client with legal_entity id" do
     id = UUID.generate()
-    legal_entity = %{"id" => id, "short_name" => "test"}
+    legal_entity = %{"id" => id, "name" => "test"}
     assert {:ok, %{"data" => %{"id" => ^id}}} = OAuth.create_client(legal_entity, "http://example.com", [])
   end
 

@@ -15,7 +15,7 @@ defmodule EHealth.OAuth.API do
   def create_client(entity, redirect_uri, headers) do
     client = %{
       "id" => Map.fetch!(entity, "id"),
-      "name" => Map.fetch!(entity, "short_name"),
+      "name" => Map.fetch!(entity, "name"),
       "redirect_uri" => redirect_uri,
       "user_id" => get_consumer_id(headers)
     }
