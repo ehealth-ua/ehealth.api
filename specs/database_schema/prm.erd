@@ -32,6 +32,7 @@ legal_entity_id | uuid | not null
 id | uuid | not null
 inserted_by | uuid | not null
 data | jsonb | not null
+status | enum('NEW', 'APPROVED', 'CANCELLED') | not null
 authentication_method_current | jsonb
 printout_content | varchar
 documents | jsonb
