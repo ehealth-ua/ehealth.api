@@ -51,7 +51,7 @@ defmodule EHealth.LegalEntity.Validator do
   # Legal Entity content validator
 
   def validate_legal_entity({:ok, %{"data" => %{"is_valid" => false}}}) do
-    {:error, "Signed request data is invalid"}
+    {:error, {:validation_error, "Signed request data is invalid"}}
   end
 
   def validate_legal_entity({:ok, %{"data" => %{"content" => content} = data}}) do
@@ -81,9 +81,8 @@ defmodule EHealth.LegalEntity.Validator do
     |> validate_inclusion(:edrpou, [Map.fetch!(content, "edrpou")])
     |> prepare_legal_entity(content)
   end
-  def validate_edrpou({:error, reason}), do: {:error, {:validation_error, reason}}
-  def validate_edrpou(%Ecto.Changeset{} = ch), do: {:error, ch}
-  def validate_edrpou(err), do: {:error, {:validation_error, err}}
+
+  def validate_edrpou(err), do: err
 
   def prepare_legal_entity(%Ecto.Changeset{valid?: true}, legal_entity) do
     {:ok, %{legal_entity_request: legal_entity}}
