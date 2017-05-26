@@ -25,6 +25,18 @@ defmodule EHealth.Web.FallbackController do
     |> render(EView.Views.ValidationError, :"422", changeset)
   end
 
+  def call(conn, {:error, {:validation_error, reason}}) when is_binary(reason) do
+    conn
+    |> put_status(:bad_request)
+    |> render(EView.Views.Error, :"400", %{message: reason})
+  end
+
+  def call(conn, {:error, {:validation_error, reason}}) do
+    conn
+    |> put_status(:bad_request)
+    |> render(EView.Views.Error, :"400", %{message: inspect(reason)})
+  end
+
   def call(conn, {:error, :access_denied}) do
     conn
     |> put_status(:unauthorized)

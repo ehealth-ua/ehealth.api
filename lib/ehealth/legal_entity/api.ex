@@ -45,8 +45,7 @@ defmodule EHealth.LegalEntity.API do
     |> update_legal_entity_status(headers)
     |> create_employee_request()
   end
-  def process_request({:error, _} = err, _attrs, _headers), do: err
-  def process_request(err, _attrs, _headers), do: {:error, err}
+  def process_request(err, _attrs, _headers), do: err
 
   def search_legal_entity_in_prm({:ok, %{legal_entity_request: %{"edrpou" => edrpou}} = pipe_data}, headers) do
     edrpou
