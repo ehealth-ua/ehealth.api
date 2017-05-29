@@ -1714,7 +1714,7 @@ According to the strong binding of the Employees to the Employer (legal entity)
 all GET-endpoints returning Employee info are mounted through the
 `/legal_entities/{legal_entity_id}` path.
 
-### Get Employees List [GET /api/employees{?legal_entity_id,division_id,status,type,limit,starting_after,ending_before}]
+### Get Employees List [GET /api/employees{?division_id,status,type,limit,starting_after,ending_before}]
 
 Use this end-point to obtain all Employees of the legal entity specified by the `legal_entity_id`. 
 
@@ -1723,7 +1723,6 @@ We suggest to use `status` filter to limit response size. Eg. you MAY want to li
 Method returns shortened details, to obtain full information - get Employee it by ID.
 
 + Parameters
-    + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
     + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0152` (string, optional)
     + status: ACTIVE (enum, optional)
         - ACTIVE
@@ -1847,10 +1846,9 @@ For changes to take effect employee must confirm the changes
             + inserted_at: `2017-05-05T14:09:59.232112` (string, required)
             + updated_at: `2017-05-05T14:09:59.232112` (string, required)
 
-### Get Employee Requests List [GET /api/employee_requests{?legal_entity_id,status,limit,starting_after,ending_before}]
+### Get Employee Requests List [GET /api/employee_requests{?status,limit,starting_after,ending_before}]
 
 + Parameters
-    + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
     + status: NEW (enum, optional)
         - NEW
         - REJECTED
