@@ -132,6 +132,25 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     assert "userid" == resp["urgent"]["user_id"]
   end
 
+  test "create user by employee request", %{conn: conn} do
+    %{id: id} = fixture(:employee_request, "test@user.com")
+    conn = post conn, employee_request_path(conn, :create_user, id), %{"password" => "123"}
+    resp = json_response(conn, 201)
+    assert Map.has_key?(resp["data"], "email")
+  end
+
+  test "create user by employee request invalid params", %{conn: conn} do
+    %{id: id} = fixture(:employee_request, "test@user.com")
+    conn = post conn, employee_request_path(conn, :create_user, id), %{"passwords" => "123"}
+    assert json_response(conn, 422)["errors"] != %{}
+  end
+
+  test "create user by employee request invalid id", %{conn: conn} do
+    assert_raise Ecto.NoResultsError, ~r/expected at least one result but got none in query/, fn ->
+      post conn, employee_request_path(conn, :create_user, Ecto.UUID.generate()), %{"password" => "pw"}
+    end
+  end
+
   test "approve employee request", %{conn: conn} do
     %{id: id} = fixture(:employee_request)
 

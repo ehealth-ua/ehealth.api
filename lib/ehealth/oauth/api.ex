@@ -30,6 +30,11 @@ defmodule EHealth.OAuth.API do
   end
   def get_client(err, _headers), do: err
 
+  def create_user(%Ecto.Changeset{valid?: true, changes: %{password: password}}, email, headers) do
+    Mithril.create_user(%{"password" => password, "email" => email}, headers)
+  end
+  def create_user(err, _email, _headers), do: err
+
   @doc """
   Fetch Mithril credentials from Mithril.create_client respone
   """

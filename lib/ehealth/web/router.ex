@@ -42,5 +42,6 @@ defmodule Ehealth.Web.Router do
     post "/employee_requests", EmployeeRequestController, :create
     post "/employee_requests/:id/approve", EmployeeRequestController, :approve
     post "/employee_requests/:id/reject", EmployeeRequestController, :reject
+    post "/employee_requests/:id/user", EmployeeRequestController, :create_user
   end
 end

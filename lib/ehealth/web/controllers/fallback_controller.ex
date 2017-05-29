@@ -19,6 +19,10 @@ defmodule EHealth.Web.FallbackController do
     proxy(conn, proxy_resp)
   end
 
+  def call(conn, %Ecto.Changeset{valid?: false} = changeset) do
+    call(conn, {:error, changeset})
+  end
+
   def call(conn, {:error, %Ecto.Changeset{valid?: false} = changeset}) do
     conn
     |> put_status(:unprocessable_entity)

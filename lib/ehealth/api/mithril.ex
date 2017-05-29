@@ -75,6 +75,12 @@ defmodule EHealth.API.Mithril do
     |> ResponseDecoder.check_response()
   end
 
+  def create_user(params, headers \\ []) do
+    "/admin/users"
+    |> post!(Poison.encode!(%{"user" => params}), headers, options())
+    |> ResponseDecoder.check_response()
+  end
+
   # Roles
 
   def get_roles_by_name(name, headers \\ []) do

@@ -8,6 +8,8 @@ defmodule EHealth.EmployeeRequest.API do
 
   alias EHealth.Repo
   alias EHealth.EmployeeRequest
+  alias EHealth.OAuth.API, as: OAuth
+  alias EHealth.EmployeeRequest.UserCreateRequest
   alias EHealth.Utils.ValidationSchemaMapper
   alias EHealth.EmployeeRequest.EmployeeCreator
   alias EHealth.EmployeeRequest.UserRoleCreator
@@ -62,6 +64,22 @@ defmodule EHealth.EmployeeRequest.API do
       |> Repo.insert()
       |> try_send_invitation_email()
     end
+  end
+
+  def create_user_by_employee_request(params, headers) do
+    %EmployeeRequest{data: data} =
+      params
+      |> Map.fetch!("id")
+      |> get_by_id!()
+
+    user_email =
+      data
+      |> Map.fetch!("party")
+      |> Map.fetch!("email")
+
+    %UserCreateRequest{}
+    |> user_employee_request_changeset(params)
+    |> OAuth.create_user(user_email, headers)
   end
 
   def try_send_invitation_email({:ok, %EmployeeRequest{data: data} = employee_request} = result) do
@@ -133,6 +151,16 @@ defmodule EHealth.EmployeeRequest.API do
     |> cast(attrs, fields)
     |> validate_required(fields)
     |> validate_foreign_keys(attrs)
+  end
+
+  def user_employee_request_changeset(%UserCreateRequest{} = schema, attrs) do
+    fields = ~W(
+      password
+    )a
+
+    schema
+    |> cast(attrs, fields)
+    |> validate_required(fields)
   end
 
   def get_by_id!(id) do

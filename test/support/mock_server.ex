@@ -135,6 +135,16 @@ defmodule EHealth.MockServer do
     Plug.Conn.send_resp(conn, 200, resp)
   end
 
+  post "/admin/users" do
+    resp =
+      get_oauth_user()
+      |> MapDeepMerge.merge(conn.body_params["user"])
+      |> wrap_response(201)
+      |> Poison.encode!()
+
+    Plug.Conn.send_resp(conn, 201, resp)
+  end
+
   put "/admin/clients/:id" do
     resp =
       conn.body_params["id"]
@@ -226,10 +236,12 @@ defmodule EHealth.MockServer do
     }
   end
 
-  def get_oauth_user do
+  def get_oauth_user(id \\ "userid") do
     %{
-      "id": "userid",
-      "email": "test@user.com"
+      "id" => id,
+      "settings" => %{},
+      "email" => "mis_bot_1493831618@user.com",
+      "type" => "user"
     }
   end
 
