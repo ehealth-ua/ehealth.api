@@ -683,6 +683,26 @@ NEW --> APPROVED
 + Response 200 (application/json)
     + Attributes (Response_OK)
 
+### Create User via Employee Request [POST /employee_requests/{id}/user{?password}]
+
+This service should be used for internal services/processes. Used without `access_token`
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) 
+
++ Request (application/json)
+    + Attributes
+        + password: `qwerty` (string, required) 
+
++ Response 201 (application/json)
+    + Headers
+
+            Location: /users/10
+
+    + Attributes (`Response_OK`)
+        + meta (`Response__Meta`)
+            + code: 201 (number)
+        + data (`User_Response`)
 
 ## Legal Entities [/legal_entities]
 
@@ -1018,11 +1038,11 @@ Method checks digital signature and returns result.
                 + edrpou: `3323102854` (string, optional)
                 + drfo: `3323102854` (string, optional)
 
-# Group Internal. NHS Portal
+# Group Internal. NHS Admin
 
-## Verification [/nhs_portal]
+## Verification [/nhs_admin]
 
-### Get Declarations List [GET /nhs_portal/declarations{?status,starting_after,ending_before,limit}]
+### Get Declarations List [GET /nhs_admin/declarations{?status,starting_after,ending_before,limit}]
 
 Methods returns list of declarations by combination of patient_id, doctor_id, msp_id.
 
@@ -1039,7 +1059,7 @@ Response will contain only records that you have access to.
         + data (array[`nhs_declaration_list`])
 
 
-### Get Declaration Details by ID [GET /nhs_portal/declarations/{id}]
+### Get Declaration Details by ID [GET /nhs_admin/declarations/{id}]
 
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -2940,17 +2960,6 @@ Get list of cities by district
 + scopes: `capitation_contracts:view capitation_contracts:create patients:view patients:create` (string, required) - scopes that assigned to access token
 
 ## Shared
-### `user`
-+ first_name: Петро (string, required)
-+ last_name: Іванов (string, required)
-+ second_name: Миколайович (string, optional)
-+ birth_date: `1991-08-19T00:00:00.000Z` (string, required)
-+ gender: MALE, FEMALE (enum[string], required)
-+ email: email@example.com (string, required)
-+ tax_id: 3126509816 (string, optional)
-+ documents (array[Document], optional)
-+ phones (array[Phone], optional)
-+ public_key:FDSAF768ASD6F78A6FD87ADS6FA8DS7F678A678DF (string, required)
 
 ### Address
 + type: RESIDENCE (string, required) - `Dictionary ADDRESS_TYPE`
@@ -3199,3 +3208,16 @@ Get list of cities by district
 + street_name: `Єрмоленка Володимира` (string, required) - Street name
 + street_number: 67 (string, required) - Number of building
 + postal_code: 02140 (string, required) - Postal code
+
+## Users
+### User (object)
++ email: `john@example.com` (string, required) - User email.
+
+### `User_Data` (User)
++ settings (object) - User settings.
++ priv_settings (object) - User private settings.
+
+### `User_Response` (User_Data)
++ id: `user-1380df72-275a-11e7-93ae-92361f002671` (string) - Internal user ID, a UUID string.
++ `created_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
