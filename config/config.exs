@@ -41,7 +41,7 @@ config :ehealth, EHealth.API.PRM,
     timeout: {:system, :integer, "PRM_REQUEST_TIMEOUT", 30_000}
   ]
 
-# Configures Trump API
+# Configures OAuth API
 config :ehealth, EHealth.API.Mithril,
   endpoint: {:system, "OAUTH_ENDPOINT", "http://api-svc.mithril"},
   hackney_options: [

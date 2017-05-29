@@ -9,6 +9,10 @@ defmodule EHealth do
   # See http://elixir-lang.org/docs/stable/elixir/Application.html
   # for more information on OTP Applications
   def start(_type, _args) do
+
+    # Configure Logger severity at runtime
+    configure_log_level()
+
     import Supervisor.Spec, warn: false
 
     # Define workers and child supervisors to be supervised
@@ -32,6 +36,19 @@ defmodule EHealth do
   def config_change(changed, _new, removed) do
     Endpoint.config_change(changed, removed)
     :ok
+  end
+
+  # Configures Logger level via LOG_LEVEL environment variable.
+  defp configure_log_level do
+    case System.get_env("LOG_LEVEL") do
+      nil ->
+        :ok
+      level when level in ["debug", "info", "warn", "error"] ->
+        Logger.configure(level: String.to_atom(level))
+      level ->
+        raise ArgumentError, "LOG_LEVEL environment should have one of 'debug', 'info', 'warn', 'error' values," <>
+                             "got: #{inspect level}"
+    end
   end
 
   # Loads configuration in `:on_init` callbacks and replaces `{:system, ..}` tuples via Confex
