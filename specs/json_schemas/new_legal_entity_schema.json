@@ -279,7 +279,8 @@
       "properties": {
         "redirect_uri": {
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "pattern": "^https?:\/\/.+"
         }
       },
       "required": [
