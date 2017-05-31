@@ -15,6 +15,8 @@ defmodule EHealth.EmployeeRequest.API do
   alias EHealth.EmployeeRequest.UserRoleCreator
   alias EHealth.Man.Templates.EmployeeRequestInvitation, as: EmployeeRequestInvitationTemplate
   alias EHealth.Bamboo.Emails.EmployeeRequestInvitation, as: EmployeeRequestInvitationEmail
+  alias EHealth.Man.Templates.EmployeeCreatedNotification, as: EmployeeCreatedNotificationTemplate
+  alias EHealth.Bamboo.Emails.EmployeeCreatedNotification, as: EmployeeCreatedNotificationEmail
   alias EHealth.RemoteForeignKeyValidator
 
   require Logger
@@ -62,7 +64,7 @@ defmodule EHealth.EmployeeRequest.API do
       %EmployeeRequest{}
       |> changeset(%{data: Map.delete(data, "status"), status: Map.fetch!(data, "status")})
       |> Repo.insert()
-      |> try_send_invitation_email()
+      |> send_email(EmployeeRequestInvitationTemplate, EmployeeRequestInvitationEmail)
     end
   end
 
@@ -82,19 +84,19 @@ defmodule EHealth.EmployeeRequest.API do
     |> OAuth.create_user(user_email, headers)
   end
 
-  def try_send_invitation_email({:ok, %EmployeeRequest{data: data} = employee_request} = result) do
-    email_body = EmployeeRequestInvitationTemplate.render(employee_request)
+  def send_email({:ok, %EmployeeRequest{data: data} = employee_request} = result, template, sender) do
+    email_body = template.render(employee_request)
 
     try do
       data
       |> get_in(["party", "email"])
-      |> EmployeeRequestInvitationEmail.send(email_body) # ToDo: use postboy when it is ready
+      |> sender.send(email_body) # ToDo: use postboy when it is ready
     rescue
       e -> Logger.error(e.message)
     end
     result
   end
-  def try_send_invitation_email(error), do: error
+  def send_email(error, _template, _sender), do: error
 
   def reject_employee_request(id) do
     id
@@ -111,6 +113,7 @@ defmodule EHealth.EmployeeRequest.API do
     |> EmployeeCreator.create(req_headers)
     |> UserRoleCreator.create(req_headers)
     |> update_status(employee_request, @status_approved)
+    |> send_email(EmployeeCreatedNotificationTemplate, EmployeeCreatedNotificationEmail)
   end
 
   def check_transition_status(%EmployeeRequest{status: @status_new} = employee_request) do

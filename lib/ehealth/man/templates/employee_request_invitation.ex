@@ -26,23 +26,23 @@ defmodule EHealth.Man.Templates.EmployeeRequestInvitation do
     })
   end
 
-  defp get_clinic_info({:error, _}), do: %{}
-  defp get_clinic_info({:ok, data}) do
+  def get_clinic_info({:error, _}), do: %{}
+  def get_clinic_info({:ok, data}) do
     %{
       name: get_in(data, ["data", "name"]),
       address: get_clinic_address(get_in(data, ["data", "addresses"]))
     }
   end
 
-  defp get_clinic_address(addresses) when is_list(addresses) and length(addresses) > 0 do
+  def get_clinic_address(addresses) when is_list(addresses) and length(addresses) > 0 do
     addresses
     |> Enum.find(fn(x) -> Map.get(x, "type") == "RESIDENCE" end)
     |> merge_address()
   end
-  defp get_clinic_address(_), do: ""
+  def get_clinic_address(_), do: ""
 
-  defp merge_address(nil), do: ""
-  defp merge_address(address) do
+  def merge_address(nil), do: ""
+  def merge_address(address) do
     street = Map.get(address, "street")
     building = Map.get(address, "building")
     settlement = Map.get(address, "settlement")
@@ -50,7 +50,7 @@ defmodule EHealth.Man.Templates.EmployeeRequestInvitation do
     "#{street} #{building}, #{settlement}, #{zip}"
   end
 
-  defp current_date(region, format) do
+  def current_date(region, format) do
     region
     |> CalendarDateTime.now!()
     |> Strftime.strftime!(format)

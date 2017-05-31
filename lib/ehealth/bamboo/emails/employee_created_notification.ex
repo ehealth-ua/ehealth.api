@@ -1,4 +1,4 @@
-defmodule EHealth.Bamboo.Emails.EmployeeRequestInvitation do
+defmodule EHealth.Bamboo.Emails.EmployeeCreatedNotification do
   @moduledoc false
 
   use Confex, otp_app: :ehealth

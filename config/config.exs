@@ -59,21 +59,34 @@ config :ehealth, EHealth.API.Man,
     timeout: {:system, :integer, "MAN_REQUEST_TIMEOUT", 30_000}
   ]
 
+# employee request invitation
 # Configures employee request invitation template
 config :ehealth, EHealth.Man.Templates.EmployeeRequestInvitation,
   id: {:system, "EMPLOYEE_REQUEST_INVITATION_TEMPLATE_ID", 1},
   format: {:system, "EMPLOYEE_REQUEST_INVITATION_TEMPLATE_FORMAT", "text/html"},
   locale: {:system, "EMPLOYEE_REQUEST_INVITATION_TEMPLATE_LOCALE", "uk_UA"}
 
-# Configures bamboo
-config :ehealth, EHealth.Bamboo.Mailer,
-  adapter: EHealth.Bamboo.PostmarkAdapter,
-  api_key: {:system, "POSTMARK_API_KEY", ""}
-
 # Configures employee request invitation email
 config :ehealth, EHealth.Bamboo.Emails.EmployeeRequestInvitation,
   from: {:system, "BAMBOO_EMPLOYEE_REQUEST_INVITATION_FROM", ""},
   subject: {:system, "BAMBOO_EMPLOYEE_REQUEST_INVITATION_SUBJECT", ""}
+
+# employee created notification
+# Configures employee created notification template
+config :ehealth, EHealth.Man.Templates.EmployeeCreatedNotification,
+  id: {:system, "EMPLOYEE_CREATED_NOTIFICATION_TEMPLATE_ID", 35},
+  format: {:system, "EMPLOYEE_CREATED_NOTIFICATION_TEMPLATE_FORMAT", "text/html"},
+  locale: {:system, "EMPLOYEE_CREATED_NOTIFICATION_TEMPLATE_LOCALE", "uk_UA"}
+
+# Configures employee created notification email
+config :ehealth, EHealth.Bamboo.Emails.EmployeeCreatedNotification,
+  from: {:system, "BAMBOO_EMPLOYEE_CREATED_NOTIFICATION_FROM", ""},
+  subject: {:system, "BAMBOO_EMPLOYEE_CREATED_NOTIFICATION_SUBJECT", ""}
+
+# Configures bamboo
+config :ehealth, EHealth.Bamboo.Mailer,
+  adapter: EHealth.Bamboo.PostmarkAdapter,
+  api_key: {:system, "POSTMARK_API_KEY", ""}
 
 # Configures Elixir's Logger
 config :logger, :console,

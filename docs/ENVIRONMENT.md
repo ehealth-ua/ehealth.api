@@ -74,11 +74,14 @@ Also sample `.env` can be used as payload for `docker run` cli.
 
 ## Templates
 
-| VAR_NAME                                    | Default Value | Description |
-| ------------------------------------------- | ------------- | ----------- |
-| EMPLOYEE_REQUEST_INVITATION_TEMPLATE_ID     | `1`           | Template id from Man that we will use for employee request invitation. |
-| EMPLOYEE_REQUEST_INVITATION_TEMPLATE_FORMAT | `text/html`   | Format in which we want to get the rendered template. Available values: text/html, application/json and application/pdf. |
-| EMPLOYEE_REQUEST_INVITATION_TEMPLATE_LOCALE | `uk_UA`       | Locale that we want to use for rendering the template. It should be configured in template settings on Man. |
+| VAR_NAME                                      | Default Value | Description |
+| --------------------------------------------- | ------------- | ----------- |
+| EMPLOYEE_REQUEST_INVITATION_TEMPLATE_ID       | `1`           | Template id from Man that we will use for employee request invitation. |
+| EMPLOYEE_REQUEST_INVITATION_TEMPLATE_FORMAT   | `text/html`   | Format in which we want to get the rendered template. Available values: text/html, application/json and application/pdf. |
+| EMPLOYEE_REQUEST_INVITATION_TEMPLATE_LOCALE   | `uk_UA`       | Locale that we want to use for rendering the template. It should be configured in template settings on Man. |
+| EMPLOYEE_CREATED_NOTIFICATION_TEMPLATE_ID     | `35`          | Template id from Man that we will use for success employee creation notification. |
+| EMPLOYEE_CREATED_NOTIFICATION_TEMPLATE_FORMAT | `text/html`   | Template format for Employee created notifications. Available: text/html, application/json and application/pdf. |
+| EMPLOYEE_CREATED_NOTIFICATION_TEMPLATE_LOCALE | `uk_UA`       | Template locale. It should be configured in template settings on Man. |
 
 ## Postmark
 
@@ -88,10 +91,12 @@ Also sample `.env` can be used as payload for `docker run` cli.
 
 ## Bamboo
 
-| VAR_NAME                                   | Default Value | Description |
-| ------------------------------------------ | ------------- | ----------- |
-| BAMBOO_EMPLOYEE_REQUEST_INVITATION_FROM    | ``            | Email address that will be used as a sender in employee request invitation email. |
-| BAMBOO_EMPLOYEE_REQUEST_INVITATION_SUBJECT | ``            | The subject of the employee request invitation email. |
+| VAR_NAME                                     | Default Value | Description |
+| -------------------------------------------- | ------------- | ----------- |
+| BAMBOO_EMPLOYEE_REQUEST_INVITATION_FROM      | ``            | Email address that will be used as a sender in employee request invitation email. |
+| BAMBOO_EMPLOYEE_REQUEST_INVITATION_SUBJECT   | ``            | The subject of the employee request invitation email. |
+| BAMBOO_EMPLOYEE_CREATED_NOTIFICATION_FROM    | ``            | Email address that will be used as a sender in employee created notification email. |
+| BAMBOO_EMPLOYEE_CREATED_NOTIFICATION_SUBJECT | ``            | The subject of the employee created notification email. |
 
 # Paging
 | VAR_NAME                   | Default Value | Description |
