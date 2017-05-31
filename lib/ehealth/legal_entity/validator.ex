@@ -80,7 +80,8 @@ defmodule EHealth.LegalEntity.Validator do
 
     case addresses_count do
       1 -> result
-      _ -> {:error, add_error(%Ecto.Changeset{}, "addresses", "one and only one registration address is required")}
+      _ ->{:error, [{%{description: "one and only one registration address is required", params: [], rule: :invalid},
+        "$.addresses"}]}
     end
   end
 
