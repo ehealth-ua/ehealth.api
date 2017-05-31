@@ -7,6 +7,7 @@ defmodule EHealth.Man.Templates.EmployeeRequestInvitation do
   alias EHealth.EmployeeRequest
   alias Calendar.DateTime, as: CalendarDateTime
   alias Calendar.Strftime
+  alias EHealth.Dictionaries
 
   def render(%EmployeeRequest{id: id, data: data}) do
     clinic_info =
@@ -21,9 +22,15 @@ defmodule EHealth.Man.Templates.EmployeeRequestInvitation do
       date: current_date("Europe/Kiev", "%d.%m.%y"),
       clinic_name: Map.get(clinic_info, :name),
       clinic_address: Map.get(clinic_info, :address),
-      doctor_role: Map.get(data, "position"),
+      doctor_role: get_position(data),
       request_id: id
     })
+  end
+
+  def get_position(data) do
+    data
+    |> Map.get("position")
+    |> Dictionaries.get_dictionary_value("POSITION")
   end
 
   def get_clinic_info({:error, _}), do: %{}

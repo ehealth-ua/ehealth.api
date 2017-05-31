@@ -6,6 +6,7 @@ defmodule EHealth.Dictionaries do
   import Ecto.{Query, Changeset}, warn: false
   alias EHealth.Repo
 
+  alias EHealth.Dictionaries
   alias EHealth.Dictionaries.Dictionary
   alias EHealth.Dictionaries.DictionarySearch
 
@@ -78,4 +79,14 @@ defmodule EHealth.Dictionaries do
     |> validate_required(fields)
     |> validate_subset(:labels, labels)
   end
+
+  def get_dictionary_value(value, dictionary_name) do
+    {:ok, dictionaries} = Dictionaries.list_dictionaries(%{"name": dictionary_name})
+    dictionaries
+    |> Enum.at(0)
+    |> fetch_dictionary_value(value)
+  end
+
+  defp fetch_dictionary_value(%Dictionary{values: values}, value), do: Map.get(values, value)
+  defp fetch_dictionary_value(_, _value), do: nil
 end
