@@ -59,18 +59,18 @@
       {
         "license_number": "fd123443",
         "issued_by": "Кваліфікацйна комісія",
-        "issued_date": "1991-08-19T00:00:00.000Z",
-        "expiry_date": "1991-08-19T00:00:00.000Z",
+        "issued_date": "1991-08-19",
+        "expiry_date": "1991-08-19",
         "kved": "86.10",
         "what_licensed": "реалізація наркотичних засобів"
       }
     ],
     "accreditation": {
       "category": "ДРУГА",
-      "issued_date": "1991-08-19T00:00:00.000Z",
-      "expiry_date": "1991-08-19T00:00:00.000Z",
+      "issued_date": "1991-08-19",
+      "expiry_date": "1991-08-19",
       "order_no": "fd123443",
-      "order_date": "1991-08-19T00:00:00.000Z"
+      "order_date": "1991-08-19"
     }
   },
   "security": {

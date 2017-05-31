@@ -37,6 +37,15 @@ defmodule EHealth.Unit.LegalEntityTest do
     })
   end
 
+  test "invalid signed content - birth date format" do
+    content = File.read!("test/data/signed_content_invalid_owner_birth_date.txt")
+
+    assert {:error, _} = Validator.decode_and_validate(%{
+      "signed_content_encoding" => "base64",
+      "signed_legal_entity_request" => content
+    })
+  end
+
   test "validate decoded legal entity" do
     content = get_legal_entity_data()
 

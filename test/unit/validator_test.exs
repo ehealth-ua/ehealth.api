@@ -38,6 +38,19 @@ defmodule EHealth.Unit.ValidatorTest do
       Validator.validate_legal_entity({:ok, %{"data" => %{"content" => content}}})
   end
 
+  test "JSON schema birth_date date format", %{conn: conn} do
+    patch conn, dictionary_path(conn, :update, "PHONE_TYPE"), @phone_type
+
+    content =
+      "test/data/legal_entity.json"
+      |> File.read!()
+      |> Poison.decode!()
+      |> put_in(["owner", "birth_date"], "1988.12.11")
+
+    assert {:error, [{%{description: _, rule: :format}, "$.owner.birth_date"}]} =
+      Validator.validate_legal_entity({:ok, %{"data" => %{"content" => content}}})
+  end
+
   test "unmapped dictionary name", %{conn: conn} do
     patch conn, dictionary_path(conn, :update, "UNMAPPED"), @unmapped
 
