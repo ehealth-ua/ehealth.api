@@ -43,7 +43,7 @@ defmodule EHealth.Man.Templates.EmployeeRequestInvitation do
 
   def get_clinic_address(addresses) when is_list(addresses) and length(addresses) > 0 do
     addresses
-    |> Enum.find(fn(x) -> Map.get(x, "type") == "RESIDENCE" end)
+    |> Enum.find(fn(x) -> Map.get(x, "type") == "REGISTRATION" end)
     |> merge_address()
   end
   def get_clinic_address(_), do: ""

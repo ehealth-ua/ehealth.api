@@ -283,7 +283,7 @@ defmodule EHealth.MockServer do
       "name" => "Бориспільське відділення Клініки Борис",
       "addresses" => [
         %{
-          "type" => "RESIDENCE",
+          "type" => "REGISTRATION",
           "country" => "UA",
           "area" => "Житомирська",
           "region" => "Бердичівський",
@@ -348,7 +348,7 @@ defmodule EHealth.MockServer do
       "edrpou" => "37367387",
       "addresses" => [
          %{
-          "type" => "RESIDENCE",
+          "type" => "REGISTRATION",
           "country" => "UA",
           "area" => "Житомирська",
           "region" => "Бердичівський",

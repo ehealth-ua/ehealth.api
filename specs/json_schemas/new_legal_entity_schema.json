@@ -80,6 +80,7 @@
         }
       },
       "required": [
+        "type",
         "country",
         "settlement_id",
         "building"

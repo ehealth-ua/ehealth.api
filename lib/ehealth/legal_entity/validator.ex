@@ -19,6 +19,7 @@ defmodule EHealth.LegalEntity.Validator do
     |> validate_signature()
     |> normalize_signature_error()
     |> validate_legal_entity()
+    |> validate_addresses()
     |> validate_edrpou()
   end
 
@@ -67,6 +68,23 @@ defmodule EHealth.LegalEntity.Validator do
   end
 
   def validate_legal_entity(err), do: err
+
+  # Addresses validator
+
+  def validate_addresses({:ok, %{"content" => content}} = result) do
+    addresses_count =
+      content
+      |> Map.get("addresses")
+      |> Enum.filter(fn(x) -> Map.get(x, "type") == "REGISTRATION" end)
+      |> length()
+
+    case addresses_count do
+      1 -> result
+      _ -> {:error, add_error(%Ecto.Changeset{}, "addresses", "one and only one registration address is required")}
+    end
+  end
+
+  def validate_addresses(err), do: err
 
   # Tax ID validator
 
