@@ -80,7 +80,7 @@ defmodule EHealth.LegalEntity.Validator do
 
     case addresses_count do
       1 -> result
-      _ ->{:error, [{%{description: "one and only one registration address is required", params: [], rule: :invalid},
+      _ -> {:error, [{%{description: "one and only one registration address is required", params: [], rule: :invalid},
         "$.addresses"}]}
     end
   end
