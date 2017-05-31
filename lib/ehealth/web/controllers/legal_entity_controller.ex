@@ -10,11 +10,13 @@ defmodule EHealth.Web.LegalEntityController do
   action_fallback EHealth.Web.FallbackController
 
   def create_or_update(%Plug.Conn{req_headers: req_headers} = conn, legal_entity_params) do
-    with {:ok, %{legal_entity_prm: legal_entity, security: security}} <- API.create_legal_entity(
-      legal_entity_params, req_headers) do
+    with {:ok, %{
+      legal_entity_prm: legal_entity,
+      security: security} = pipe_data} <- API.create_legal_entity(legal_entity_params, req_headers) do
 
       conn
       |> assign_security(security)
+      |> assign_employee_request_id(Map.get(pipe_data, :employee_request))
       |> render("show.json", legal_entity: Map.fetch!(legal_entity, "data"))
     end
   end
@@ -32,4 +34,9 @@ defmodule EHealth.Web.LegalEntityController do
       |> render("show.json", legal_entity: legal_entity)
     end
   end
+
+  defp assign_employee_request_id(conn, %EHealth.EmployeeRequest{id: id}) do
+    assign_urgent(conn, "employee_request_id", id)
+  end
+  defp assign_employee_request_id(conn, _employee_request_id), do: conn
 end

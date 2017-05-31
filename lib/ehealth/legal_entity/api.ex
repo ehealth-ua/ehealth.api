@@ -196,7 +196,7 @@ defmodule EHealth.LegalEntity.API do
     id
     |> prepare_employee_request_data(party)
     |> API.create_employee_request()
-    |> validate_api_response(pipe_data, "Cannot create employee request for Legal Entity #{id}.")
+    |> put_success_api_response_in_pipe(:employee_request, pipe_data)
   end
   def create_employee_request(err), do: err
 
