@@ -616,12 +616,7 @@ Methods returns list of employees.
     + `party_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - user_id of a doctor.
     + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MSP ID.
     + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - division ID.    
-    + employee_type: doctor (enum)
-        - doctor
-        - hr
-        - admin
-        - owner
-        - accountant
+    + `employee_type`: DOCTOR (string) - `Dictionary: EMPLOYEE_TYPE`
     + status: ACTIVE (enum)
         - ACTIVE
         - INACTIVE
@@ -1468,7 +1463,7 @@ Signed content MUST consists of JSON object with Declaration Request data and pr
       ],
       "addresses":[
          {
-            "type":"REGISTRATION",
+            "type":"RESIDENCE",
             "country":"UA",
             "area":"Житомирська",
             "region":"Бердичівський",
@@ -1583,7 +1578,7 @@ Signed content MUST consists of JSON object with Declaration Request data and pr
       ],
       "addresses":[
          {
-            "type":"REGISTRATION",
+            "type":"RESIDENCE",
             "country":"UA",
             "area":"Житомирська",
             "region":"Бердичівський",
@@ -1727,10 +1722,7 @@ Method returns shortened details, to obtain full information - get Employee it b
         - ACTIVE
         - INACTIVE
         + Default: ACTIVE
-    + type: DOCTOR (enum, optional)
-        - DOCTOR
-        - HR
-        - ACCOUNTANT
+    + type: DOCTOR (string, optional) - `Dictionary: EMPLOYEE_TYPE`
     + limit: 20 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
     + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
     + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
@@ -2039,7 +2031,7 @@ Signed content MUST consists of JSON object with Legal Entity data:
   ],
   "addresses": [
     {
-      "type": "REGISTRATION",
+      "type": "RESIDENCE",
       "country": "UA",
       "area": "Житомирська",
       "region": "Бердичівський",
@@ -2131,10 +2123,12 @@ Signed content MUST consists of JSON object with Legal Entity data:
                 - VERIFIED
                 - DECLINED
                 - VERIFICATION_EXP
+        + urgent (object, optional)
             + security (object)
                 + `secret_key`: `secret_key` (string, required)
                 + `client_id`: `client_id` (string, required)
                 + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
+            + employee_request_id: `d098aee7-5ab3-4a24-a6ba-811f9cf94c6d` - Employee request identifier
 
 + Response 201 (application/json)
     + Attributes (Response__Process_OK)
@@ -2145,10 +2139,12 @@ Signed content MUST consists of JSON object with Legal Entity data:
                 - VERIFIED
                 - DECLINED
                 - VERIFICATION_EXP
+        + urgent (object, optional)
             + security (object)
                 + `secret_key`: `secret_key` (string, required)
                 + `client_id`: `client_id` (string, required)
                 + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
+            + employee_request_id: `d098aee7-5ab3-4a24-a6ba-811f9cf94c6d` - Employee request identifier
 
 ### Update Legal Entity status [PATCH /api/legal_entities/{id}]
 
@@ -2564,7 +2560,7 @@ Get list of cities by district
 ### `Party_Request`
 + include `Party_Short`
 + birth_date: `1991-08-19T00:00:00.000Z` (string, required)
-+ gender: MALE, FEMALE (enum[string], required)
++ gender: MALE (string, required) - `Dictionary GENDER`
 + tax_id: 3126509816 (string, optional)
 + email: email@example.com (string, optional)
 + documents (array[Document], optional)
@@ -2573,7 +2569,7 @@ Get list of cities by district
 ### `Party_Update`
 + include `Party_Short`
 + birth_date: `1991-08-19T00:00:00.000Z` (string, required)
-+ gender: MALE, FEMALE (enum[string], required)
++ gender: MALE(string, required) - `Dictionary GENDER`
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
 
@@ -2582,7 +2578,7 @@ Get list of cities by district
 + last_name: Іванов (string, required)
 + second_name: Миколайович (string, optional)
 + birth_date: `1991-08-19T00:00:00.000Z` (string, required)
-+ gender: MALE, FEMALE (enum[string], required)
++ gender: MALE(string, required) - `Dictionary GENDER`
 + tax_id: 3126509816 (string, required)
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
@@ -2604,13 +2600,8 @@ Get list of cities by district
 + party_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + legal_entity_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional)
-+ employee_type: doctor (enum)
-    - doctor
-    - hr
-    - admin
-    - owner
-    - accountant
-+ position (string, required)
++ `employee_type`: DOCTOR (string) - `Dictionary EMPLOYEE_TYPE`
++ position: P1 (string, required) - `Dictionary POSITION`
 + start_date: 2017-02-28 (string, required)
 + end_date: 2017-02-28 (string, optional)
 + status: ACTIVE, INACTIVE (enum, required)
@@ -2632,24 +2623,16 @@ Get list of cities by district
 ### `Employee`
 + user_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + msp_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-+ employee_type: doctor (enum)
-    - doctor
-    - hr
-    - admin
-    - owner
-    - accountant
-+ position: лікар (string, required)
-+ speciality: Педіатр (enum)
-    - Сімейний лікар
-    - Педіатр
-    - Терапевт
++ `employee_type`: doctor (enum) - `Dictionary EMPLOYEE_TYPE`
++ position: P6 (string, required) - `Dictionary POSITION`
++ speciality: THERAPIST (string) - `Dictionary SPECIALITY_TYPE`
 + employee_details (DoctorNew, optional)
 + start_date: 2017-02-28 (string, required)
 + expiry_date: 2017-02-28 (string, optional)
 
 ### `Employee_Minimal`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-+ position: лікар (string, required)
++ position: P6 (string, required) - `Dictionary POSITION`
 + party (object)
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
     + include `Party_Short`
@@ -2660,15 +2643,11 @@ Get list of cities by district
 + legal_entity_id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
 + division_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
 + employee_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
-+ position: лікар (string, required)
++ position: P8 (string, required) - `Dictionary POSITION`
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
 + status: NEW, REJECTED, APPROVED (enum, required)
-+ employee_type: doctor (enum)
-    - doctor
-    - hr
-    - admin
-    - accountant
++ `employee_type`: DOCTOR (string, required) - `Dictionary EMPLOYEE_TYPE`
 + party (Party_Request)
 + doctor (DoctorNew, optional)
 
@@ -2694,13 +2673,8 @@ Get list of cities by district
 
 ### `Employee_Short`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-+ position: лікар (string, required)
-+ employee_type: doctor (enum)
-    - doctor
-    - hr
-    - admin
-    - owner
-    - accountant
++ position: P1 (string, required) - `Dictionary: POSITION`
++ `employee_type`: DOCTOR (string) - `Dictionary: EMPLOYEE_TYPE`
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
 + party (object)
@@ -2715,8 +2689,7 @@ Get list of cities by district
 ### `crud_legal_entity`
 + name: Клініка Борис (string, required)
 + short_name: Борис (string, required)
-+ type (enum, required)
-    - MSP
++ type: MSP (string, required) - `Dictionary LEGAL_ENTITY_TYPE`
 + edrpou: 5432345432 (string, required)
 + addresses (array[Address], required)
 + phones (array[Phone], required)
@@ -2727,16 +2700,8 @@ Get list of cities by district
 + status: VERIFIED (enum, required)
     - VERIFIED
     - NOT_VERIFIED
-+ owner_property_type: state (enum, required)
-    - STATE
-    - PRIVATE
-+ legal_form: `ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА` (enum, required)
-    - ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА
-    - АКЦІОНЕРНЕ ТОВАРИСТВО
-    - ВІДКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
-    - ЗАКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
-    - РЕЛІГІЙНА ОРГАНІЗАЦІЯ
-    - ІНШІ ОРГАНІЗАЦІЙНО-ПРАВОВІ ФОРМИ
++ `owner_property_type`: STATE (string, required) - `Dictionary OWNER_PROPERTY_TYPE`
++ `legal_form`: 140 (enum, required) - `Dictionary LEGAL_FORM`
 + `medical_service_provider` (MSP, optional)
 + `created_via_mis_id`: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
 
@@ -2755,8 +2720,7 @@ Get list of cities by district
 + name: Клініка Борис (string, optional)
 + short_name: Борис (string, optional)
 + public_name: Клініка Борис (string, required)
-+ type (enum, optional)
-    - MSP
++ type: MSP (string, optional) - `Dictionary LEGAL_ENTITY_TYPE`
 + addresses (array[Address], optional)
 + phones (array[Phone], optional)
 + email: email@example.com (array[Email], optional)
@@ -2765,16 +2729,8 @@ Get list of cities by district
 + status: VERIFIED (enum, optional)
     - VERIFIED
     - NOT_VERIFIED
-+ owner_property_type: state (enum, optional)
-    - STATE
-    - PRIVATE
-+ legal_form: `ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА` (enum, optional)
-    - ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА
-    - АКЦІОНЕРНЕ ТОВАРИСТВО
-    - ВІДКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
-    - ЗАКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
-    - РЕЛІГІЙНА ОРГАНІЗАЦІЯ
-    - ІНШІ ОРГАНІЗАЦІЙНО-ПРАВОВІ ФОРМИ
++ `owner_property_type`: STATE (string, required) - `Dictionary OWNER_PROPERTY_TYPE`
++ `legal_form`: 140 (enum, required) - `Dictionary LEGAL_FORM`
 + `medical_service_provider` (MSP, optional)
 
 ### `Legal_Entity_Short`
@@ -2812,13 +2768,11 @@ Get list of cities by district
 + public_offer (object)
     + `consent`: true (boolean, required)
     + `consent_text`: `Consent text` (string)
-  
-    
+
 ### `Legal_Entity_Request_Public_Short` 
 + name: Клініка Борис (string, required)
 + short_name: Борис (string, optional)
 + public_name: Борис (string, optional)
-+ legal_form (enum, required)
 + type: MSP (string, required)
 + `owner_property_type`: STATE (string, required) - `Dictionary OWNER_PROPERTY_TYPE`
 + `legal_form`: 140 (string, required) - `Dictionary LEGAL_FORM`
@@ -2879,7 +2833,7 @@ Get list of cities by district
 + email: `email@example.com` (string, required)
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
-+ position (string, required)
++ position (string, required) - `Dictionary POSITION`
 
 ## `Medical_Service_Providers`
 
@@ -2965,14 +2919,14 @@ Get list of cities by district
 ## Shared
 
 ### Address
-+ type: REGISTRATION (string, required) - `Dictionary ADDRESS_TYPE`
-+ country: UA (enum[string], required)
++ type: RESIDENCE (string, required) - `Dictionary ADDRESS_TYPE`
++ country: UA (enum[string], required) - `Dictionary COUNTRY`
 + area: Житомирська (string, optional)
 + region: Бердичівський (string, optional)
 + settlement: Київ (string, optional)
-+ settlement_type: CITY (string, optional)
++ `settlement_type`: CITY (string, optional) - `Dictionary SETTLEMENT_TYPE`
 + settlement_id: 43432432 (string, required)
-+ street_type: STREET (string, optional)
++ `street_type`: STREET (string, optional) - `Dictionary STREET_TYPE`
 + street: `вул. Ніжинська` (string, optional)
 + building: 15 (string, required)
 + apartment: 23 (string, optional)
@@ -3074,57 +3028,36 @@ Get list of cities by district
 + speciality (array[Speciality], required)
 
 ### Education
-+ country: UA (enum[string], required)
++ country: UA (string, required) - `Dictionary COUNTRY`
 + city: Київ (string, required)
 + institution_name: Академія Богомольця (string, required)
 + issued_date: 2017-02-28 (string, required)
 + diploma_number: DD123543 (string, required)
-+ degree (enum, required)
-    - Молодший спеціаліст
-    - Бакалавр
-    - Спеціаліст
-    - Магістр
++ degree: MASTER (string, required) - `Dictionary EDUCATION_DEGREE`
 + speciality: Педіатр (string, required)
 
 
 ### ScienceDegree
-+ country: UA (enum[string], required)
++ country: UA (string, required) - `Dictionary COUNTRY`
 + city: Київ (string, required)
-+ degree (enum, required)
-    - Доктор філософії
-    - Кандидат наук
-    - Доктор наук
++ degree (string, required) - `Dictionary SCIENCE_DEGREE`
 + institution_name: Академія Богомольця (string, required)
 + diploma_number: DD123543 (string, required)
 + speciality: Педіатр (string, required)
 + issued_date: 2017-02-28 (string, required)
 
 ### Qualification
-+ type (enum, required)
-    - Інтернатура
-    - Спеціалізація
-    - Передатестаційний цикл
-    - Тематичне вдосконалення
-    - Курси інформації
-    - Стажування
++ type: SPECIALIZATION (string, required) - `Dictionary QUALIFICATION_TYPE`
 + institution_name: Академія Богомольця (string, required)
 + speciality: Педіатр (string, required)
 + issued_date: 2017-02-28 (string, required) - дата отримання сертифікату
 + certificate_number: 2017-02-28 (string, required)
 
 ### Speciality
-+ speciality: Педіатрія (enum, required) - спеціальність
-    - Терапевт
-    - Педіатр
-    - Сімейний лікар
++ speciality: THERAPIST (string, required) - `Dictionary SPECIALITY_TYPE`
 + speciality_officio: true (boolean, required) - спеціальність за посадою
-+ level: Перша категорія (enum, required) - кваліфікаційна категорія
-    - Друга категорія
-    - Перша категорія
-    - Вища категорія
-+ qualification_type (enum, required)
-    - Присвоєння
-    - Підтвердження
++ level: FIRST (string, required) - `Dictionary SPECIALITY_LEVEL`
++ `qualification_type`: AWARDING (string, required) - `Dictionary QUALIFICATION_TYPE`
 + attestation_name: Академія Богомольця (string, required) - орган що видав
 + attestation_date: 2017-02-28 (string, required) - дата отримання
 + valid_to_date: 2020-02-28 (string, required) - дата дії до
