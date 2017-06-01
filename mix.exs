@@ -62,7 +62,7 @@ defmodule EHealth.Mixfile do
      {:phoenix_ecto, "~> 3.2"},
      {:multiverse, "~> 0.4.3"},
      {:eview, "~> 0.11.0"},
-     {:jvalid, "~> 0.5.0"},
+     {:jvalid, "~> 0.5.3"},
      {:bamboo, "~> 0.8"},
      {:bamboo_postmark, "~> 0.2.0"},
      {:ok_jose, "~> 2.0.0"},
