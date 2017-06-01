@@ -26,6 +26,7 @@ defmodule EHealth.MockServer do
     legal_entity =
       case conn.params do
         %{"edrpou" => "37367387", "type" => "MSP"} -> [get_legal_entity()]
+        %{"edrpou" => "10002000", "type" => "MSP"} -> [get_legal_entity("356b4182-f9ce-4eda-b6af-43d2de8602aa", false)]
         _ -> []
       end
 
@@ -46,6 +47,8 @@ defmodule EHealth.MockServer do
     case conn.path_params do
       %{"id" => "356b4182-f9ce-4eda-b6af-43d2de8602f2"} ->
         render_404(conn)
+      %{"id" => "356b4182-f9ce-4eda-b6af-43d2de8602aa" = id} ->
+        Plug.Conn.send_resp(conn, 200, id |> get_legal_entity(false) |> wrap_response() |> Poison.encode!())
       _ ->
         Plug.Conn.send_resp(conn, 200, get_legal_entity() |> wrap_response() |> Poison.encode!())
     end
@@ -307,7 +310,7 @@ defmodule EHealth.MockServer do
       "type" => "clinic",
       "external_id" => "3213213",
       "mountain_group" => "group1",
-      "active" => true
+      "is_active" => true
     }
   end
 
@@ -339,7 +342,7 @@ defmodule EHealth.MockServer do
     }
   end
 
-  def get_legal_entity(id \\ "7cc91a5d-c02f-41e9-b571-1ea4f2375552") do
+  def get_legal_entity(id \\ "7cc91a5d-c02f-41e9-b571-1ea4f2375552", is_active \\ true) do
     %{
       "id" => id,
       "name" => "Клініка Борис",
@@ -369,7 +372,7 @@ defmodule EHealth.MockServer do
         }
       ],
       "email" => "email@example.com",
-      "active" => true,
+      "is_active" => is_active,
       "public_name" => "Клініка Борис",
       "kveds" => [
         "86.01"

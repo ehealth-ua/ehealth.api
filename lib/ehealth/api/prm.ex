@@ -27,7 +27,7 @@ defmodule EHealth.API.PRM do
     |> ResponseDecoder.check_response()
   end
 
-  def get_legal_entities(params \\ [], headers \\ []) do
+  def get_legal_entities(params \\ %{}, headers \\ []) do
     "/legal_entities"
     |> get!(headers, params: params)
     |> ResponseDecoder.check_response()

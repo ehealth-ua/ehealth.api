@@ -3,6 +3,8 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
   use EHealth.Web.ConnCase
 
+  @inactive_legal_entity_id "356b4182-f9ce-4eda-b6af-43d2de8602aa"
+
   test "create legal entity", %{conn: conn} do
     legal_entity_params = %{
       "signed_content_encoding" => "base64",
@@ -43,6 +45,11 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     assert Map.has_key?(resp["data"], "medical_service_provider")
     refute Map.has_key?(resp, "paging")
     assert_security_in_urgent_response(resp)
+  end
+
+  test "get inactive legal entity by id", %{conn: conn} do
+    conn = get conn, legal_entity_path(conn, :show, @inactive_legal_entity_id)
+    assert 404 == json_response(conn, 404)["meta"]["code"]
   end
 
   def assert_security_in_urgent_response(resp) do

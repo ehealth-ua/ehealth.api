@@ -22,6 +22,7 @@ defmodule EHealth.Web.LegalEntityController do
   end
 
   def index(%Plug.Conn{req_headers: req_headers} = conn, params) do
+    params = Map.put(params, "is_active", true)
     with {:ok, %{"meta" => %{}} = response} <- PRM.get_legal_entities(params, req_headers) do
       proxy(conn, response)
     end

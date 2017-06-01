@@ -106,7 +106,7 @@ defmodule EHealth.Unit.LegalEntityTest do
   end
 
   test "process legal entity that exists" do
-    legal_entitity = Map.merge(get_legal_entity_data(), %{
+    legal_entity = Map.merge(get_legal_entity_data(), %{
       "short_name" => "Nebo15",
       "email" => "changed@example.com",
       "kveds" => ["12.21"]
@@ -116,7 +116,7 @@ defmodule EHealth.Unit.LegalEntityTest do
     }
 
     assert {:ok, %{legal_entity_prm: %{"data" => legal_entity}, security: security}} =
-      API.process_request({:ok, %{legal_entity_request: legal_entitity}}, request, get_headers())
+      API.process_request({:ok, %{legal_entity_request: legal_entity}}, request, get_headers())
 
     assert "37367387" == legal_entity["edrpou"]
     assert "VERIFIED" == legal_entity["status"]
@@ -145,6 +145,17 @@ defmodule EHealth.Unit.LegalEntityTest do
     assert "VERIFIED" == legal_entity["status"]
     assert "changed@example.com" == legal_entity["email"]
     assert ["86.01"] == legal_entity["kveds"]
+  end
+
+  test "update inactive legal entity" do
+    legal_entity = Map.merge(get_legal_entity_data(), %{
+      "edrpou" => "10002000"
+    })
+    request = %{
+      "signed_legal_entity_request" => "base64 encoded content"
+    }
+    assert {:error, :not_found} =
+      API.process_request({:ok, %{legal_entity_request: legal_entity}}, request, get_headers())
   end
 
   test "create client with legal_entity id" do

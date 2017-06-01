@@ -23,9 +23,18 @@ defmodule EHealth.LegalEntity.API do
   def get_legal_entity_by_id(id, headers) do
     id
     |> PRM.get_legal_entity_by_id(headers)
+    |> legal_entity_is_active()
     |> OAuth.get_client(headers)
     |> fetch_data()
   end
+
+  def legal_entity_is_active({:ok, %{"data" => data}} = resp) do
+    case Map.fetch!(data, "is_active") do
+      true -> resp
+      false -> {:error, :not_found}
+    end
+  end
+  def legal_entity_is_active(err), do: err
 
   def create_legal_entity(attrs, headers) do
     attrs
@@ -69,11 +78,16 @@ defmodule EHealth.LegalEntity.API do
   Legal Entity found in PRM. Set flow as update
   """
   def prepare_legal_entity_id({:ok, %{legal_entity_prm: %{"data" => [legal_entity]}} = pipe_data}) do
-    data = %{
-      legal_entity_id: Map.fetch!(legal_entity, "id"),
-      legal_entity_flow: :update
-    }
-    {:ok, Map.merge(pipe_data, data)}
+    case Map.fetch!(legal_entity, "is_active") do
+      true ->
+        data = %{
+          legal_entity_id: Map.fetch!(legal_entity, "id"),
+          legal_entity_flow: :update
+        }
+        {:ok, Map.merge(pipe_data, data)}
+
+      false -> {:error, :not_found}
+    end
   end
 
   def prepare_legal_entity_id(err), do: err
@@ -98,6 +112,7 @@ defmodule EHealth.LegalEntity.API do
     creation_data = %{
       "id" => Map.fetch!(pipe_data, :legal_entity_id),
       "status" => "NEW",
+      "is_active" => true,
       "inserted_by" => consumer_id,
       "updated_by" => consumer_id
     }
