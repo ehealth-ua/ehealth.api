@@ -256,7 +256,8 @@
           "pattern": "^[0-9a-f]{8}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{12}$"
         },
         "position": {
-          "type": "string"
+          "type": "string",
+          "description": "Dictionary: POSITION"
         },
         "start_date": {
           "type": "string",
