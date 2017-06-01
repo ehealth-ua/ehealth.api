@@ -2294,6 +2294,53 @@ Get list of cities by district
             + code: 200 (number)
         + data (array[`Response_Settlement_Short`])
 
+# Group Dummy. Create legal entity
+
+## Dummy for legal entity [/dummy/legal_entities]
+
+### Create/Update Legal Entity [PUT]
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
+    + Attributes (object)
+        + include Legal_Entity_Request_Public
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (object)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + include Legal_Entity_Request_Public
+            + status: VERIFIED (enum, required)
+                - VERIFIED
+                - DECLINED
+                - VERIFICATION_EXP
+        + urgent (object, optional)
+            + security (object)
+                + `secret_key`: `secret_key` (string, required)
+                + `client_id`: `client_id` (string, required)
+                + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
+            + employee_request_id: `d098aee7-5ab3-4a24-a6ba-811f9cf94c6d` - Employee request identifier
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (object)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + include Legal_Entity_Request_Public
+            + status: VERIFIED (enum, required)
+                - VERIFIED
+                - DECLINED
+                - VERIFICATION_EXP
+        + urgent (object, optional)
+            + security (object)
+                + `secret_key`: `secret_key` (string, required)
+                + `client_id`: `client_id` (string, required)
+                + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
+            + employee_request_id: `d098aee7-5ab3-4a24-a6ba-811f9cf94c6d` - Employee request identifier
+
 # Data Structures
 ## Responses
 ### `Response_Collection`
@@ -2640,7 +2687,6 @@ Get list of cities by district
     + phones (array[Phone], optional)
 
 ### `Employee_Request`
-+ legal_entity_id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
 + division_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
 + employee_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
 + position: P8 (string, required) - `Dictionary POSITION`
@@ -2756,15 +2802,15 @@ Get list of cities by district
 + type: MSP (string, required)
 + `owner_property_type`: STATE (string, required) - `Dictionary OWNER_PROPERTY_TYPE`
 + `legal_form`: 140 (string, required) - `Dictionary LEGAL_FORM`
-+ edrpou: 5432345432 (string, required)
-+ kveds: 86.1 (array, required)
++ edrpou: 32323454 (string, required)
++ kveds: 86.10 (array, required)
 + addresses (array[Address], required)
 + phones (array[Phone], required)
 + email: email@example.com (string, required)
 + owner (Owner)
 + `medical_service_provider` (MSP)
 + security (object, fixed-type)
-    + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
+    + `redirect_uri`: `http://example.com` (string, required, fixed) - Redirect uri
 + public_offer (object)
     + `consent`: true (boolean, required)
     + `consent_text`: `Consent text` (string)
@@ -2985,18 +3031,18 @@ Get list of cities by district
     - друга
     - перша
     - не акредитований
-+ issued_date: 2017-02-28 (string, required) - дата видачі
-+ expiry_date: 2017-02-28 (string, optional)
++ issued_date: `2017-02-28` (string, required) - дата видачі
++ expiry_date: `2017-02-28` (string, optional)
 + order_no: fd123443 (string, required) - номер наказу МОЗ
-+ order_date: 2017-02-28 (string, required) - дата наказу МОЗ
++ order_date: `2017-02-28` (string, required) - дата наказу МОЗ
 
 
 ### `MSP_License`
 + license_number: fd123443 (string, required)
 + issued_by: Кваліфікацйна комісія (string, optional)
-+ issued_date: 2017-02-28 (string, required)
-+ expiry_date: 2017-02-28 (string, optional)
-+ kved: 86.1 (string, optional)
++ issued_date: `2017-02-28` (string, required)
++ expiry_date: `2017-02-28` (string, optional)
++ kved: 86.10 (string, optional)
 + what_licensed: реалізація наркотичних засобів (string, optional)
 
 
