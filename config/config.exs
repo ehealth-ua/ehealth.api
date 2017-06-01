@@ -14,7 +14,7 @@ config :ehealth, EHealth.Web.Endpoint,
 
 # Configures Digital Signature API
 config :ehealth, EHealth.API.Signature,
-  endpoint: {:system, "DIGITAL_SIGNATURE_ENDPOINT", "http://52.58.60.8:8083/DigitalSignatureService.svc"},
+  endpoint: {:system, "DIGITAL_SIGNATURE_ENDPOINT", "http://35.187.186.145"},
   timeouts: [
     connect_timeout: {:system, :integer, "DIGITAL_SIGNATURE_REQUEST_TIMEOUT", 30_000},
     recv_timeout: {:system, :integer, "DIGITAL_SIGNATURE_REQUEST_TIMEOUT", 30_000},
