@@ -154,8 +154,8 @@ defmodule EHealth.Unit.LegalEntityTest do
     request = %{
       "signed_legal_entity_request" => "base64 encoded content"
     }
-    assert {:error, :not_found} =
-      API.process_request({:ok, %{legal_entity_request: legal_entity}}, request, get_headers())
+    assert {:ok, %{legal_entity_prm: %{"data" => %{"is_active" => true}}, security: _security}} =
+          API.process_request({:ok, %{legal_entity_request: legal_entity}}, request, get_headers())
   end
 
   test "create client with legal_entity id" do

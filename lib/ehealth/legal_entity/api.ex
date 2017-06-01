@@ -78,16 +78,11 @@ defmodule EHealth.LegalEntity.API do
   Legal Entity found in PRM. Set flow as update
   """
   def prepare_legal_entity_id({:ok, %{legal_entity_prm: %{"data" => [legal_entity]}} = pipe_data}) do
-    case Map.fetch!(legal_entity, "is_active") do
-      true ->
-        data = %{
-          legal_entity_id: Map.fetch!(legal_entity, "id"),
-          legal_entity_flow: :update
-        }
-        {:ok, Map.merge(pipe_data, data)}
-
-      false -> {:error, :not_found}
-    end
+    data = %{
+      legal_entity_id: Map.fetch!(legal_entity, "id"),
+      legal_entity_flow: :update
+    }
+    {:ok, Map.merge(pipe_data, data)}
   end
 
   def prepare_legal_entity_id(err), do: err
