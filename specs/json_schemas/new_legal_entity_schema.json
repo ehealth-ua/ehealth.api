@@ -1,6 +1,10 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
   "definitions": {
+    "date": {
+      "type": "string",
+      "pattern": "^(\\d{4}(?!\\d{2}\\b))((-)((0[1-9]|1[0-2])(\\3([12]\\d|0[1-9]|3[01]))|W([0-4]\\d|5[0-2])(-[1-7])|(00[1-9]|0[1-9]\\d|[12]\\d{2}|3([0-5]\\d|6[1-6]))))$"
+    },
     "name": {
       "type": "string",
       "pattern": "^(?!.*[ЫЪЭЁыъэё@%&$^#])[a-zA-ZА-ЯҐЇІЄа-яґїіє0-9№\\\"!\\^\\*)\\]\\[(._-].*$"
@@ -173,8 +177,7 @@
           "pattern": "^[0-9]{8,10}$"
         },
         "birth_date": {
-          "type": "string",
-          "format": "date"
+          "$ref": "#/definitions/date"
         },
         "gender": {
           "type": "string",
@@ -224,12 +227,10 @@
                 "$ref": "#/definitions/name"
               },
               "issued_date": {
-                "type": "string",
-                "format": "date"
+                "$ref": "#/definitions/date"
               },
               "expiry_date": {
-                "type": "string",
-                "format": "date"
+                "$ref": "#/definitions/date"
               },
               "kved": {
                 "type": "string",
@@ -259,23 +260,17 @@
               "description": "Dictionary: ACCREDITATION_CATEGORY"
             },
             "issued_date": {
-              "type": "string",
-              "description": "02-28 (string, required) - дата видачі",
-              "format": "date"
+              "$ref": "#/definitions/date"
             },
             "expiry_date": {
-              "type": "string",
-              "description": "02-28 (string, optional)",
-              "format": "date"
+              "$ref": "#/definitions/date"
             },
             "order_no": {
               "$ref": "#/definitions/name",
               "description": "номер наказу МОЗ"
             },
             "order_date": {
-              "type": "string",
-              "description": "02-28 (string, required) - дата наказу МОЗ",
-              "format": "date"
+              "$ref": "#/definitions/date"
             }
           },
           "required": [

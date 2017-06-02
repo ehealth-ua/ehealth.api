@@ -46,7 +46,7 @@ defmodule EHealth.Unit.ValidatorTest do
       |> Poison.decode!()
       |> put_in(["owner", "birth_date"], "1988.12.11")
 
-    assert {:error, [{%{description: _, rule: :date}, "$.owner.birth_date"}]} =
+    assert {:error, [{%{description: _, rule: :format}, "$.owner.birth_date"}]} =
       Validator.validate_legal_entity({:ok, %{"data" => %{"content" => content}}})
   end
 
@@ -57,7 +57,7 @@ defmodule EHealth.Unit.ValidatorTest do
       |> Poison.decode!()
       |> put_in(["medical_service_provider", "accreditation", "issued_date"], "20-12-2011")
 
-    assert {:error, [{%{description: _, rule: :date}, "$.medical_service_provider.accreditation.issued_date"}]} =
+    assert {:error, [{%{description: _, rule: :format}, "$.medical_service_provider.accreditation.issued_date"}]} =
       Validator.validate_legal_entity({:ok, %{"data" => %{"content" => content}}})
   end
 
@@ -68,7 +68,7 @@ defmodule EHealth.Unit.ValidatorTest do
       |> Poison.decode!()
       |> put_in(["employee_request", "doctor", "science_degree", "issued_date"], "20.12.2011")
 
-    assert {:error, [{%{description: _, rule: :date}, "$.employee_request.doctor.science_degree.issued_date"}]} =
+    assert {:error, [{%{description: _, rule: :format}, "$.employee_request.doctor.science_degree.issued_date"}]} =
       EmployeeRequestAPI.create_employee_request(content)
   end
 
@@ -77,9 +77,9 @@ defmodule EHealth.Unit.ValidatorTest do
       "test/data/employee_request.json"
       |> File.read!()
       |> Poison.decode!()
-      |> put_in(["employee_request", "start_date"], "20-12-0011")
+      |> put_in(["employee_request", "start_date"], "2012-12")
 
-    assert {:error, [{%{description: _, rule: :date}, "$.employee_request.start_date"}]} =
+    assert {:error, [{%{description: _, rule: :format}, "$.employee_request.start_date"}]} =
       EmployeeRequestAPI.create_employee_request(content)
   end
 
@@ -96,9 +96,9 @@ defmodule EHealth.Unit.ValidatorTest do
 
     content = put_in(content,
       ["employee_request", "doctor", "educations"],
-      [Map.put(education, "issued_date", "2012#12.22")])
+      [Map.put(education, "issued_date", "2012")])
 
-    assert {:error, [{%{description: _, rule: :date}, "$.employee_request.doctor.educations.[0].issued_date"}]} =
+    assert {:error, [{%{description: _, rule: :format}, "$.employee_request.doctor.educations.[0].issued_date"}]} =
       EmployeeRequestAPI.create_employee_request(content)
   end
 
