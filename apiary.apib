@@ -538,7 +538,7 @@ Methods returns list of parties.
     + first_name: Петро (string, required)
     + last_name: Іванов (string, required)
     + second_name: Миколайович (string, optional)
-    + birth_date: `1991-08-19` (string, required) - ISO Datetime.
+    + birth_date: `1991-08-19T00:00:00.000Z` (string, required) - ISO Datetime.
     + tax_id: 3126509816 (string, optional)
     + phone_number: `+380508887700` (string, optional)
     + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
@@ -1445,7 +1445,7 @@ Signed content MUST consists of JSON object with Declaration Request data and pr
       "first_name":"Петро",
       "last_name":"Іванов",
       "second_name":"Миколайович",
-      "birth_date":"1991-08-19",
+      "birth_date":"1991-08-19T00:00:00.000Z",
       "birth_place":"Вінниця, Україна",
       "gender":"MALE",
       "email":"email@example.com",
@@ -1503,7 +1503,7 @@ Signed content MUST consists of JSON object with Declaration Request data and pr
          "first_name":"Петро",
          "last_name":"Іванов",
          "second_name":"Миколайович",
-         "birth_date":"1991-08-19",
+         "birth_date":"1991-08-19T00:00:00.000Z",
          "birth_place":"Вінниця, Україна",
          "gender":"MALE",
          "tax_id":"3126509816",
@@ -1564,16 +1564,16 @@ Signed content MUST consists of JSON object with Declaration Request data and pr
 
             ],
             "issued_by":"Кваліфікацйна комісія",
-            "issued_date":"2017-08-19",
-            "expiry_date":"2017-08-19"
+            "issued_date":"2017",
+            "expiry_date":"2017"
          }
       ],
       "accreditation":[
          {
             "certificate_number":"fd123443",
             "issued_by":"Кваліфікацйна комісія",
-            "issued_date":"2017-08-19",
-            "expiry_date":"2017-08-19"
+            "issued_date":"2017",
+            "expiry_date":"2017"
          }
       ],
       "addresses":[
@@ -1895,7 +1895,7 @@ Method returns only **requested** parameters, birth place and second name in add
     + first_name: Петро (string, required)
     + last_name: Іванов (string, required)
     + second_name: Миколайович (string, optional)
-    + birth_date: `1991-08-19` (string, required) - ISO Datetime.
+    + birth_date: `1991-08-19T00:00:00.000Z` (string, required) - ISO Datetime.
     + tax_id: 3126509816 (string, optional)
     + phone_number: `+380508887700` (string, optional)
     + limit: 20 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
@@ -2057,7 +2057,7 @@ Signed content MUST consists of JSON object with Legal Entity data:
     "last_name": "Іванов",
     "second_name": "Миколайович",
     "tax_id": "3015492563",
-    "birth_date": "1991-08-19",
+    "birth_date": "1991-08-19T00:00:00.000Z",
     "birth_place": "Вінниця, Україна",
     "gender": "MALE",
     "email": "email@example.com",
@@ -2080,18 +2080,18 @@ Signed content MUST consists of JSON object with Legal Entity data:
       {
         "license_number": "fd123443",
         "issued_by": "Кваліфікацйна комісія",
-        "issued_date": "1991-08-19",
-        "expiry_date": "2001-08-19",
+        "issued_date": "1991-08-19T00:00:00.000Z",
+        "expiry_date": "2001-08-19T00:00:00.000Z",
         "kved": "86.10",
         "what_licensed": "реалізація наркотичних засобів"
       }
     ],
     "accreditation": {
       "category": "ПЕРША",
-      "issued_date": "1991-08-19",
-      "expiry_date": "2001-08-19",
+      "issued_date": "1991-08-19T00:00:00.000Z",
+      "expiry_date": "2001-08-19T00:00:00.000Z",
       "order_no": "fd123443",
-      "order_date": "1991-08-19"
+      "order_date": "1991-08-19T00:00:00.000Z"
     }
   },
   "security": {
@@ -2407,7 +2407,7 @@ Get list of cities by district
 + first_name: Петро (string, required)
 + last_name: Іванов (string, required)
 + second_name: Миколайович (string, optional)
-+ birth_date: `1991-08-19` (string, required)
++ birth_date: `1991-08-19T00:00:00.000Z` (string, required)
 + birth_place: `Вінниця, Україна` (string, required)
 + gender: MALE, FEMALE (enum[string], required)
 + email: email@example.com (string, optional)
@@ -2422,7 +2422,7 @@ Get list of cities by district
 + first_name: Петро (string, required)
 + last_name: Іванов (string, required)
 + second_name: Миколайович (string, optional)
-+ birth_date: `1991-08-19` (string, required)
++ birth_date: `1991-08-19T00:00:00.000Z` (string, required)
 + birth_place: `Вінниця, Україна` (string, required)
 + gender: MALE, FEMALE (enum[string], required)
 + tax_id: 3126509816 (string, optional)
@@ -2466,7 +2466,7 @@ Get list of cities by district
 + first_name: Петро (string, required)
 + last_name: Іванов (string, required)
 + second_name: Миколайович (string, optional)
-+ birth_date: `1991-08-19` (string, required) - ISO Datetime.
++ birth_date: `1991-08-19T00:00:00.000Z` (string, required) - ISO Datetime.
 + tax_id: 3126509816 (string, optional)
 + phone_number: `+380508887700` (string, optional)
 + birth_place: Вінниця (string, required)
@@ -2606,7 +2606,7 @@ Get list of cities by district
 
 ### `Party_Request`
 + include `Party_Short`
-+ birth_date: `1991-08-19` (string, required)
++ birth_date: `1991-08-19T00:00:00.000Z` (string, required)
 + gender: MALE (string, required) - `Dictionary GENDER`
 + tax_id: 3126509816 (string, optional)
 + email: email@example.com (string, optional)
@@ -2615,7 +2615,7 @@ Get list of cities by district
 
 ### `Party_Update`
 + include `Party_Short`
-+ birth_date: `1991-08-19` (string, required)
++ birth_date: `1991-08-19T00:00:00.000Z` (string, required)
 + gender: MALE(string, required) - `Dictionary GENDER`
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
@@ -2624,7 +2624,7 @@ Get list of cities by district
 + first_name: Петро (string, required)
 + last_name: Іванов (string, required)
 + second_name: Миколайович (string, optional)
-+ birth_date: `1991-08-19` (string, required)
++ birth_date: `1991-08-19T00:00:00.000Z` (string, required)
 + gender: MALE(string, required) - `Dictionary GENDER`
 + tax_id: 3126509816 (string, required)
 + documents (array[Document], optional)
@@ -2873,7 +2873,7 @@ Get list of cities by district
 + last_name: Іванов (string, required)
 + second_name: Миколайович (string, optional)
 + tax_id: 3015492563 (string, required)
-+ birth_date: `1991-08-19` (string, required)
++ birth_date: `1991-08-19T00:00:00.000Z` (string, required)
 + gender: MALE (string, required) - `Dictionary GENDER`
 + email: `email@example.com` (string, required)
 + documents (array[Document], optional)
@@ -3038,10 +3038,10 @@ Get list of cities by district
 
 ### `MSP_License`
 + license_number: fd123443 (string, required)
-+ issued_by: Кваліфікацйна комісія (string, optional)
++ issued_by: Кваліфікацйна комісія (string, required)
 + issued_date: `2017-02-28` (string, required)
 + expiry_date: `2017-02-28` (string, optional)
-+ kved: 86.10 (string, optional)
++ `active_from_date`: `2017-02-28` (string, required)
 + what_licensed: реалізація наркотичних засобів (string, optional)
 
 
