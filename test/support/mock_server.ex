@@ -4,6 +4,8 @@ defmodule EHealth.MockServer do
 
   alias EHealth.Utils.MapDeepMerge
 
+  @inactive_legal_entity_id "356b4182-f9ce-4eda-b6af-43d2de8602aa"
+
   plug :match
   plug Plug.Parsers, parsers: [:json],
                      pass:  ["application/json"],
@@ -39,7 +41,13 @@ defmodule EHealth.MockServer do
   end
 
   patch "/legal_entities/:id" do
-    legal_entity = MapDeepMerge.merge(get_legal_entity(conn.path_params["id"]), conn.body_params)
+    id = conn.path_params["id"]
+    legal_entity =
+      case id do
+        @inactive_legal_entity_id -> get_legal_entity(id, false)
+        _ -> get_legal_entity(id)
+      end
+    legal_entity = MapDeepMerge.merge(legal_entity, conn.body_params)
     Plug.Conn.send_resp(conn, 200, Poison.encode!(%{"data" => legal_entity}))
   end
 

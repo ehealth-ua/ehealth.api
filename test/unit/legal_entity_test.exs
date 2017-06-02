@@ -12,6 +12,8 @@ defmodule EHealth.Unit.LegalEntityTest do
   alias EHealth.LegalEntity.API
   alias EHealth.LegalEntity.Validator
 
+  @inactive_legal_entity_id "356b4182-f9ce-4eda-b6af-43d2de8602aa"
+
   test "successed signed content validation" do
     content = File.read!("test/data/signed_content.txt")
 
@@ -151,11 +153,14 @@ defmodule EHealth.Unit.LegalEntityTest do
     legal_entity = Map.merge(get_legal_entity_data(), %{
       "edrpou" => "10002000"
     })
-    request = %{
-      "signed_legal_entity_request" => "base64 encoded content"
+    data = %{
+      legal_entity_id: @inactive_legal_entity_id,
+      legal_entity_flow: :update,
+      legal_entity_request: legal_entity
     }
-    assert {:ok, %{legal_entity_prm: %{"data" => %{"is_active" => true}}, security: _security}} =
-          API.process_request({:ok, %{legal_entity_request: legal_entity}}, request, get_headers())
+    assert {:ok, %{legal_entity_prm: %{"data" => updated_legal_entity}}} =
+      API.put_legal_entity_to_prm({:ok, data}, get_headers())
+    assert true = updated_legal_entity["is_active"]
   end
 
   test "create client with legal_entity id" do
