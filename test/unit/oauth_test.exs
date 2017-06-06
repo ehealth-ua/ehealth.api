@@ -12,7 +12,7 @@ defmodule EHealth.Unit.OAuthAPITest do
       "id" => UUID.generate(),
       "name" => name
     }
-    assert {:ok, %{"data" => resp}} = API.create_client(client, "example.com", [])
+    assert {:ok, %{"data" => resp}} = API.put_client(client, "example.com", [])
     assert name == resp["name"]
   end
 end

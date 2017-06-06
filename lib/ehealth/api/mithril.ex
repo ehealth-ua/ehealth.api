@@ -25,7 +25,7 @@ defmodule EHealth.API.Mithril do
 
   # Clients
 
-  def create_client(%{"id" => id} = client, headers \\ []) do
+  def put_client(%{"id" => id} = client, headers \\ []) do
     "/admin/clients/"
     |> Kernel.<>(id)
     |> put!(prepare_client_data(client, headers), headers, options())

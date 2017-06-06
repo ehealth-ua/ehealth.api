@@ -138,7 +138,7 @@ defmodule EHealth.LegalEntity.API do
   @doc """
   Creates new OAuth client in Mithril API
   """
-  def get_oauth_credentials({:ok, %{legal_entity_flow: :create} = pipe_data}, headers) do
+  def get_oauth_credentials({:ok, pipe_data}, headers) do
     redirect_uri =
       pipe_data
       |> Map.fetch!(:legal_entity_request)
@@ -148,19 +148,10 @@ defmodule EHealth.LegalEntity.API do
     pipe_data
     |> Map.fetch!(:legal_entity_prm)
     |> Map.fetch!("data")
-    |> OAuth.create_client(redirect_uri, headers)
+    |> OAuth.put_client(redirect_uri, headers)
     |> put_success_api_response_in_pipe(:oauth_client, pipe_data)
   end
 
-  @doc """
-  Get OAuth client from Mithril API
-  """
-  def get_oauth_credentials({:ok, %{legal_entity_flow: :update} = pipe_data}, headers) do
-    pipe_data
-    |> Map.fetch!(:legal_entity_id)
-    |> Mithril.get_client(headers)
-    |> put_success_api_response_in_pipe(:oauth_client, pipe_data)
-  end
   def get_oauth_credentials(err, _headers), do: err
 
   def prepare_security_data({:ok, pipe_data}) do

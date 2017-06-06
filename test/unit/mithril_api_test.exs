@@ -19,7 +19,7 @@ defmodule EHealth.Unit.MithrilAPITest do
       "user_id" => @consumer_id
     }
 
-    assert {:ok, %{"data" => %{}}} = Mithril.create_client(client_data, get_headers())
+    assert {:ok, %{"data" => %{}}} = Mithril.put_client(client_data, get_headers())
   end
 
   def get_headers do
