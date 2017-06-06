@@ -232,14 +232,8 @@
               "expiry_date": {
                 "$ref": "#/definitions/date"
               },
-              "kved": {
-                "type": "string",
-                "enum": [
-                  "86.10",
-                  "86.21",
-                  "86.22",
-                  "86.90"
-                ]
+              "active_from_date": {
+                "$ref": "#/definitions/date"
               },
               "what_licensed": {
                 "$ref": "#/definitions/name"
@@ -247,7 +241,9 @@
             },
             "required": [
               "license_number",
-              "issued_date"
+              "issued_by",
+              "issued_date",
+              "active_from_date"
             ]
           },
           "minItems": 1
