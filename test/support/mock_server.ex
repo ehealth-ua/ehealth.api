@@ -146,6 +146,16 @@ defmodule EHealth.MockServer do
     Plug.Conn.send_resp(conn, 200, resp)
   end
 
+  get "/admin/users/:id" do
+    resp =
+      id
+      |> get_oauth_user()
+      |> wrap_response()
+      |> Poison.encode!()
+
+    Plug.Conn.send_resp(conn, 200, resp)
+  end
+
   post "/admin/users" do
     resp =
       get_oauth_user()

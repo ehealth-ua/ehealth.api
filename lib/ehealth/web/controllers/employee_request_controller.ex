@@ -35,14 +35,18 @@ defmodule EHealth.Web.EmployeeRequestController do
   end
 
   def approve(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
-    with {:ok, employee_request} <- API.approve_employee_request(id, req_headers) do
-      render(conn, "show.json", employee_request: employee_request)
+    with :ok <- API.check_employee_request(req_headers, id) do
+      with {:ok, employee_request} <- API.approve_employee_request(id, req_headers) do
+        render(conn, "show.json", employee_request: employee_request)
+      end
     end
   end
 
-  def reject(conn, %{"id" => id}) do
-    with {:ok, employee_request} <- API.reject_employee_request(id) do
-      render(conn, "show.json", employee_request: employee_request)
+  def reject(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
+    with :ok <- API.check_employee_request(req_headers, id) do
+      with {:ok, employee_request} <- API.reject_employee_request(id) do
+        render(conn, "show.json", employee_request: employee_request)
+      end
     end
   end
 

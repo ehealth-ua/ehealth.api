@@ -21,4 +21,25 @@ defmodule EHealth.Utils.Connection do
     list = for {k, v} <- headers, k == "x-consumer-id", do: v
     List.first(list)
   end
+
+  def get_client_metadata(headers) when is_list(headers) do
+    list = for {k, v} <- headers, k == "x-consumer-metadata", do: v
+    List.first(list)
+  end
+
+  def get_client_id(headers) when is_list(headers) do
+    headers
+    |> get_client_metadata()
+    |> process_client_metadata()
+  end
+
+  defp process_client_metadata(nil), do: nil
+  defp process_client_metadata(metadata) do
+    metadata
+    |> Poison.decode()
+    |> process_decoded_data()
+  end
+
+  defp process_decoded_data({:ok, data}), do: Map.get(data, "client_id")
+  defp process_decoded_data(_error), do: nil
 end

@@ -57,6 +57,12 @@ defmodule EHealth.Web.FallbackController do
     |> render(EView.Views.Error, :"404")
   end
 
+  def call(conn, {:error, :forbidden}) do
+    conn
+    |> put_status(:forbidden)
+    |> render(EView.Views.Error, :"403")
+  end
+
   def call(conn, {:error, %{"type" => "internal_error"}}) do
     conn
     |> put_status(:internal_server_error)

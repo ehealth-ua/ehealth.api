@@ -5,6 +5,7 @@ defmodule EHealth.EmployeeRequest.API do
 
   import Ecto.{Query, Changeset}, warn: false
   import EHealth.Paging
+  import EHealth.Utils.Connection
 
   alias EHealth.Repo
   alias EHealth.EmployeeRequest
@@ -18,6 +19,7 @@ defmodule EHealth.EmployeeRequest.API do
   alias EHealth.Man.Templates.EmployeeCreatedNotification, as: EmployeeCreatedNotificationTemplate
   alias EHealth.Bamboo.Emails.EmployeeCreatedNotification, as: EmployeeCreatedNotificationEmail
   alias EHealth.RemoteForeignKeyValidator
+  alias EHealth.API.Mithril
 
   require Logger
 
@@ -168,5 +170,37 @@ defmodule EHealth.EmployeeRequest.API do
 
   def get_by_id!(id) do
     Repo.get!(EmployeeRequest, id)
+  end
+
+  def check_employee_request(headers, id) do
+    client_id = get_client_id(headers)
+    user_email =
+      headers
+      |> get_consumer_id()
+      |> get_user_email()
+
+    match_employee_request(client_id, user_email, id)
+  end
+
+  defp get_user_email(nil), do: nil
+  defp get_user_email(consumer_id) do
+    consumer_id
+    |> Mithril.get_user_by_id()
+    |> fetch_user_email()
+  end
+
+  defp fetch_user_email({:ok, body}), do: get_in(body, ["data", "email"])
+  defp fetch_user_email({:error, _reason}), do: nil
+
+  defp match_employee_request(nil, _user_email, _id), do: :ok
+  defp match_employee_request(client_id, user_email, id) do
+    with %EmployeeRequest{data: data} <- get_by_id!(id) do
+      legal_entity_id = Map.get(data, "legal_entity_id")
+      email = get_in(data, ["party", "email"])
+      case {legal_entity_id, email} do
+        {^client_id, ^user_email} -> :ok
+        _ -> {:error, :forbidden}
+      end
+    end
   end
 end

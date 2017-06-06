@@ -69,6 +69,12 @@ defmodule EHealth.API.Mithril do
 
   # Users
 
+  def get_user_by_id(id, headers \\ []) do
+    "/admin/users/#{id}"
+    |> get!(headers)
+    |> ResponseDecoder.check_response()
+  end
+
   def search_user(params, headers \\ []) do
     "/admin/users"
     |> get!(headers, params: params)
