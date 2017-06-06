@@ -51,6 +51,7 @@ defmodule EHealth.EmployeeRequest.EmployeeCreator do
   def create_employee({:ok, %{"data" => %{"id" => id}}}, %EmployeeRequest{data: employee_request}, req_headers) do
     data = %{
       "status" => @employee_default_status,
+      "is_active" => true,
       "party_id" => id,
       "legal_entity_id" => employee_request["legal_entity_id"],
     }
