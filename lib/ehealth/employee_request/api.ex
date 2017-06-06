@@ -173,13 +173,10 @@ defmodule EHealth.EmployeeRequest.API do
   end
 
   def check_employee_request(headers, id) do
-    client_id = get_client_id(headers)
-    user_email =
-      headers
-      |> get_consumer_id()
-      |> get_user_email()
-
-    match_employee_request(client_id, user_email, id)
+    headers
+    |> get_consumer_id()
+    |> get_user_email()
+    |> match_employee_request(id)
   end
 
   defp get_user_email(nil), do: nil
@@ -192,13 +189,11 @@ defmodule EHealth.EmployeeRequest.API do
   defp fetch_user_email({:ok, body}), do: get_in(body, ["data", "email"])
   defp fetch_user_email({:error, _reason}), do: nil
 
-  defp match_employee_request(nil, _user_email, _id), do: :ok
-  defp match_employee_request(client_id, user_email, id) do
+  defp match_employee_request(user_email, id) do
     with %EmployeeRequest{data: data} <- get_by_id!(id) do
-      legal_entity_id = Map.get(data, "legal_entity_id")
       email = get_in(data, ["party", "email"])
-      case {legal_entity_id, email} do
-        {^client_id, ^user_email} -> :ok
+      case user_email == email do
+        true -> :ok
         _ -> {:error, :forbidden}
       end
     end

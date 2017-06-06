@@ -151,12 +151,19 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
   end
 
-  test "approve employee request", %{conn: conn} do
-    %{id: id} = fixture(:employee_request)
+  test "can approve employee request if email maches", %{conn: conn} do
+    %{id: id} = fixture(:employee_request, "mis_bot_1493831618@user.com")
 
     conn = post conn, employee_request_path(conn, :approve, id)
     resp = json_response(conn, 200)["data"]
     assert "APPROVED" == resp["status"]
+  end
+
+  test "cannot approve employee request if email doesnot match", %{conn: conn} do
+    %{id: id} = fixture(:employee_request)
+
+    conn = post conn, employee_request_path(conn, :approve, id)
+    json_response(conn, 403)
   end
 
   test "cannot approve rejected employee request", %{conn: conn} do
@@ -167,31 +174,19 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     test_invalid_status_transition(conn, "APPROVED", :approve)
   end
 
-  test "cannot approve employee request if you didn't create it'", %{conn: conn} do
-    %{id: id} = fixture(:employee_request)
-
-    x_consumer_metadata = Poison.encode!(%{"client_id": Ecto.UUID.generate()})
-    conn = put_req_header(conn, "x-consumer-metadata", x_consumer_metadata)
-    conn = post conn, employee_request_path(conn, :approve, id)
-    json_response(conn, 403)
-  end
-
-  test "can approve employee request if you created it'", %{conn: conn} do
-    %{id: id, data: data} = fixture(:employee_request, "mis_bot_1493831618@user.com")
-
-    x_consumer_metadata = Poison.encode!(%{"client_id": Map.get(data, "legal_entity_id")})
-    conn = put_req_header(conn, "x-consumer-metadata", x_consumer_metadata)
-    conn = post conn, employee_request_path(conn, :approve, id)
-    resp = json_response(conn, 200)["data"]
-    assert "APPROVED" == resp["status"]
-  end
-
-  test "reject employee request", %{conn: conn} do
-    %{id: id} = fixture(:employee_request)
+  test "can reject employee request if email matches", %{conn: conn} do
+    %{id: id} = fixture(:employee_request, "mis_bot_1493831618@user.com")
 
     conn = post conn, employee_request_path(conn, :reject, id)
     resp = json_response(conn, 200)["data"]
     assert "REJECTED" == resp["status"]
+  end
+
+  test "cannot reject employee request if email doesnot match", %{conn: conn} do
+    %{id: id} = fixture(:employee_request)
+
+    conn = post conn, employee_request_path(conn, :reject, id)
+    json_response(conn, 403)
   end
 
   test "cannot reject rejected employee request", %{conn: conn} do
@@ -202,27 +197,8 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     test_invalid_status_transition(conn, "APPROVED", :reject)
   end
 
-  test "cannot reject employee request if you didn't create it'", %{conn: conn} do
-    %{id: id} = fixture(:employee_request)
-
-    x_consumer_metadata = Poison.encode!(%{"client_id": Ecto.UUID.generate()})
-    conn = put_req_header(conn, "x-consumer-metadata", x_consumer_metadata)
-    conn = post conn, employee_request_path(conn, :reject, id)
-    json_response(conn, 403)
-  end
-
-  test "can reject employee request if you created it'", %{conn: conn} do
-    %{id: id, data: data} = fixture(:employee_request, "mis_bot_1493831618@user.com")
-
-    x_consumer_metadata = Poison.encode!(%{"client_id": Map.get(data, "legal_entity_id")})
-    conn = put_req_header(conn, "x-consumer-metadata", x_consumer_metadata)
-    conn = post conn, employee_request_path(conn, :reject, id)
-    resp = json_response(conn, 200)["data"]
-    assert "REJECTED" == resp["status"]
-  end
-
   def test_invalid_status_transition(conn, init_status, action) do
-    %{id: id} = employee_request("mail@example.com", init_status)
+    %{id: id} = employee_request("mis_bot_1493831618@user.com", init_status)
 
     conn = post conn, employee_request_path(conn, action, id)
     resp = json_response(conn, 409)
