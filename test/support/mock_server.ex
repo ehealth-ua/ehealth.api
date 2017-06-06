@@ -285,6 +285,7 @@ defmodule EHealth.MockServer do
   def get_employee do
     %{
       "id" => "7488a646-e31f-11e4-aace-600308960662",
+      "legal_entity_id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375552",
       "employee_type" => "hr",
       "type" => "employee", # EView field
       "is_active" => true,

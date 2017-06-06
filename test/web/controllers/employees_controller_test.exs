@@ -20,4 +20,20 @@ defmodule EHealth.Web.EmployeesControllerTest do
     assert is_map(resp["data"])
   end
 
+  test "cannot get employee id when legal_entity_id != client_id", %{conn: conn} do
+    x_consumer_metadata = Poison.encode!(%{"client_id": Ecto.UUID.generate()})
+    conn = put_req_header(conn, "x-consumer-metadata", x_consumer_metadata)
+    conn = get conn, employees_path(conn, :show, "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b")
+    json_response(conn, 404)
+  end
+
+  test "can get employee id when legal_entity_id == client_id", %{conn: conn} do
+    x_consumer_metadata = Poison.encode!(%{"client_id": "7cc91a5d-c02f-41e9-b571-1ea4f2375552"})
+    conn = put_req_header(conn, "x-consumer-metadata", x_consumer_metadata)
+    conn = get conn, employees_path(conn, :show, "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b")
+    resp = json_response(conn, 200)
+
+    assert Map.has_key?(resp, "data")
+    assert is_map(resp["data"])
+  end
 end
