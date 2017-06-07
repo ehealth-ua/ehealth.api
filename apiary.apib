@@ -1354,6 +1354,8 @@ This method is used to create Declaration Request (as part of Declaration creati
                 
                 * **OTP** - Preffered. One-time-password (usually sent via SMS). Masked phone number will be returned. By using this verification method you MUST approve Declaration Request by a OTP token that is sent to a patient mobile phone.
                 * **OFFLINE** - For patients that is not able to pass OTP verification method. By using this verification method you MUST upload required documents to links returned in response and approve Declaration Request after upload is completed.
+            + urgent (object, required)
+                + documents (array[`media_content`], required)
 
 + Response 422 (application/json)
     + Attributes (Response_Error)
@@ -2498,6 +2500,10 @@ Get list of cities by district
 ### `declaration_request_patch`
 + id: `73FF38F0-A873-4DB4-A47A-CC0F3D7A6D6A` (string, required)
 + status: `pending` (string, required)
+
+### `media_content`
++ type: `PASSPORT` (string, required)
++ url: `https://google.com.ua` (string, required)
 
 ## Declarations
 ### Declaration
