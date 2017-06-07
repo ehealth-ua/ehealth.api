@@ -2,7 +2,7 @@ defmodule EHealth.SimpleFactory do
   @moduledoc false
 
   alias EHealth.Repo
-  alias EHealth.EmployeeRequest
+  alias EHealth.Employee.Request
 
   def fixture(:employee_request, email \\ nil, status \\ nil), do: employee_request(email, status)
 
@@ -15,7 +15,7 @@ defmodule EHealth.SimpleFactory do
       |> set_status(status)
 
     data = Map.fetch!(attrs, "employee_request")
-    request = %EmployeeRequest{data: Map.delete(data, "status"), status: Map.fetch!(data, "status")}
+    request = %Request{data: Map.delete(data, "status"), status: Map.fetch!(data, "status")}
     {:ok, employee_request} = Repo.insert(request)
 
     employee_request

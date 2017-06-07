@@ -1,4 +1,4 @@
-defmodule EHealth.EmployeeRequest.UserRoleCreator do
+defmodule EHealth.Employee.UserRoleCreator do
   @moduledoc """
   Creates or updates user roles in Mithril
   """

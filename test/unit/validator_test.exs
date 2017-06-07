@@ -5,7 +5,7 @@ defmodule EHealth.Unit.ValidatorTest do
 
   alias EHealth.LegalEntity.Validator
   alias EHealth.API.MediaStorage
-  alias EHealth.EmployeeRequest.API, as: EmployeeRequestAPI
+  alias EHealth.Employee.API, as: EmployeeRequestAPI
 
   @phone_type %{
     "name" => "PHONE_TYPE",

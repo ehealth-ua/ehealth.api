@@ -7,7 +7,7 @@ defmodule EHealth.Unit.LegalEntityTest do
 
   alias Ecto.UUID
   alias EHealth.Repo
-  alias EHealth.EmployeeRequest
+  alias EHealth.Employee.Request
   alias EHealth.OAuth.API, as: OAuth
   alias EHealth.LegalEntity.API
   alias EHealth.LegalEntity.Validator
@@ -104,7 +104,7 @@ defmodule EHealth.Unit.LegalEntityTest do
 
     assert "NOT_VERIFIED" == legal_entity["status"]
     assert_security(security, legal_entity["id"])
-    assert 1 == Repo.one(from e in EmployeeRequest, select: count("*"))
+    assert 1 == Repo.one(from e in Request, select: count("*"))
   end
 
   test "process legal entity that exists" do

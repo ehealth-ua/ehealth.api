@@ -1,16 +1,16 @@
-defmodule EHealth.EmployeeRequest.EmployeeCreator do
+defmodule EHealth.Employee.EmployeeCreator do
   @moduledoc """
   Creates new employee from valid employee request
   """
 
   import EHealth.Utils.Connection, only: [get_consumer_id: 1]
 
-  alias EHealth.EmployeeRequest
+  alias EHealth.Employee.Request
   alias EHealth.API.PRM
 
   @employee_default_status "APPROVED"
 
-  def create(%EmployeeRequest{data: data} = employee_request, req_headers) do
+  def create(%Request{data: data} = employee_request, req_headers) do
     party = Map.fetch!(data, "party")
     party
     |> Map.fetch!("tax_id")
@@ -48,7 +48,7 @@ defmodule EHealth.EmployeeRequest.EmployeeCreator do
 
   def create_party_user(err, _req_headers), do: err
 
-  def create_employee({:ok, %{"data" => %{"id" => id}}}, %EmployeeRequest{data: employee_request}, req_headers) do
+  def create_employee({:ok, %{"data" => %{"id" => id}}}, %Request{data: employee_request}, req_headers) do
     data = %{
       "status" => @employee_default_status,
       "is_active" => true,

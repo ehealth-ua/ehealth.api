@@ -1,4 +1,4 @@
-defmodule EHealth.EmployeeRequest.API do
+defmodule EHealth.Employee.API do
   @moduledoc false
 
   use JValid
@@ -8,18 +8,19 @@ defmodule EHealth.EmployeeRequest.API do
   import EHealth.Utils.Connection
 
   alias EHealth.Repo
-  alias EHealth.EmployeeRequest
+  alias EHealth.Employee.Request
   alias EHealth.OAuth.API, as: OAuth
-  alias EHealth.EmployeeRequest.UserCreateRequest
+  alias EHealth.Employee.UserCreateRequest
   alias EHealth.Utils.ValidationSchemaMapper
-  alias EHealth.EmployeeRequest.EmployeeCreator
-  alias EHealth.EmployeeRequest.UserRoleCreator
+  alias EHealth.Employee.EmployeeCreator
+  alias EHealth.Employee.UserRoleCreator
   alias EHealth.Man.Templates.EmployeeRequestInvitation, as: EmployeeRequestInvitationTemplate
   alias EHealth.Bamboo.Emails.EmployeeRequestInvitation, as: EmployeeRequestInvitationEmail
   alias EHealth.Man.Templates.EmployeeCreatedNotification, as: EmployeeCreatedNotificationTemplate
   alias EHealth.Bamboo.Emails.EmployeeCreatedNotification, as: EmployeeCreatedNotificationEmail
   alias EHealth.RemoteForeignKeyValidator
   alias EHealth.API.Mithril
+  alias EHealth.API.PRM
 
   require Logger
 
@@ -33,7 +34,7 @@ defmodule EHealth.EmployeeRequest.API do
   def to_integer(value), do: value
 
   def list_employee_requests(params) do
-    query = from er in EmployeeRequest,
+    query = from er in Request,
       order_by: [desc: :inserted_at]
 
     query
@@ -63,7 +64,7 @@ defmodule EHealth.EmployeeRequest.API do
     with :ok <- validate_schema(schema, attrs) do
       data = Map.fetch!(attrs, "employee_request")
 
-      %EmployeeRequest{}
+      %Request{}
       |> changeset(%{data: Map.delete(data, "status"), status: Map.fetch!(data, "status")})
       |> Repo.insert()
       |> send_email(EmployeeRequestInvitationTemplate, EmployeeRequestInvitationEmail)
@@ -71,10 +72,10 @@ defmodule EHealth.EmployeeRequest.API do
   end
 
   def create_user_by_employee_request(params, headers) do
-    %EmployeeRequest{data: data} =
+    %Request{data: data} =
       params
       |> Map.fetch!("id")
-      |> get_by_id!()
+      |> get_employee_request_by_id!()
 
     user_email =
       data
@@ -86,7 +87,7 @@ defmodule EHealth.EmployeeRequest.API do
     |> OAuth.create_user(user_email, headers)
   end
 
-  def send_email({:ok, %EmployeeRequest{data: data} = employee_request} = result, template, sender) do
+  def send_email({:ok, %Request{data: data} = employee_request} = result, template, sender) do
     email_body = template.render(employee_request)
 
     try do
@@ -102,13 +103,13 @@ defmodule EHealth.EmployeeRequest.API do
 
   def reject_employee_request(id) do
     id
-    |> get_by_id!()
+    |> get_employee_request_by_id!()
     |> check_transition_status()
     |> update_status(@status_rejected)
   end
 
   def approve_employee_request(id, req_headers) do
-    employee_request = get_by_id!(id)
+    employee_request = get_employee_request_by_id!(id)
 
     employee_request
     |> check_transition_status()
@@ -118,21 +119,21 @@ defmodule EHealth.EmployeeRequest.API do
     |> send_email(EmployeeCreatedNotificationTemplate, EmployeeCreatedNotificationEmail)
   end
 
-  def check_transition_status(%EmployeeRequest{status: @status_new} = employee_request) do
+  def check_transition_status(%Request{status: @status_new} = employee_request) do
     employee_request
   end
 
-  def check_transition_status(%EmployeeRequest{status: status}) do
+  def check_transition_status(%Request{status: status}) do
     {:conflict, "Employee request status is #{status} and cannot be updated"}
   end
   def check_transition_status(err), do: err
 
-  def update_status({:ok, _}, %EmployeeRequest{} = employee_request, status) do
+  def update_status({:ok, _}, %Request{} = employee_request, status) do
     update_status(employee_request, status)
   end
   def update_status(err, _employee_request, _status), do: err
 
-  def update_status(%EmployeeRequest{} = employee_request, status) do
+  def update_status(%Request{} = employee_request, status) do
     employee_request
     |> changeset(%{status: status})
     |> Repo.update()
@@ -146,7 +147,7 @@ defmodule EHealth.EmployeeRequest.API do
     |> RemoteForeignKeyValidator.validate(:employee_id, get_in(attrs, [:data, "employee_id"]))
   end
 
-  def changeset(%EmployeeRequest{} = schema, attrs) do
+  def changeset(%Request{} = schema, attrs) do
     fields = ~W(
       data
       status
@@ -168,8 +169,8 @@ defmodule EHealth.EmployeeRequest.API do
     |> validate_required(fields)
   end
 
-  def get_by_id!(id) do
-    Repo.get!(EmployeeRequest, id)
+  def get_employee_request_by_id!(id) do
+    Repo.get!(Request, id)
   end
 
   def check_employee_request(headers, id) do
@@ -190,7 +191,7 @@ defmodule EHealth.EmployeeRequest.API do
   defp fetch_user_email({:error, _reason}), do: nil
 
   defp match_employee_request(user_email, id) do
-    with %EmployeeRequest{data: data} <- get_by_id!(id) do
+    with %Request{data: data} <- get_employee_request_by_id!(id) do
       email = get_in(data, ["party", "email"])
       case user_email == email do
         true -> :ok

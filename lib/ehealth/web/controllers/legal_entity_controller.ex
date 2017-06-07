@@ -36,7 +36,7 @@ defmodule EHealth.Web.LegalEntityController do
     end
   end
 
-  defp assign_employee_request_id(conn, %EHealth.EmployeeRequest{id: id}) do
+  defp assign_employee_request_id(conn, %EHealth.Employee.Request{id: id}) do
     assign_urgent(conn, "employee_request_id", id)
   end
   defp assign_employee_request_id(conn, _employee_request_id), do: conn

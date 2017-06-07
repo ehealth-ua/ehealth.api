@@ -2,14 +2,14 @@ defmodule EHealth.Web.EmployeeRequestController do
   @moduledoc false
 
   use EHealth.Web, :controller
-  alias EHealth.EmployeeRequest.API
+  alias EHealth.Employee.API
   alias EHealth.API.Mithril
-  alias EHealth.EmployeeRequest
+  alias EHealth.Employee.Request
 
   action_fallback EHealth.Web.FallbackController
 
   def show(conn, %{"id" => id}) do
-    employee_request = API.get_by_id!(id)
+    employee_request = API.get_employee_request_by_id!(id)
 
     conn
     |> put_urgent_user_id(employee_request)
@@ -50,7 +50,7 @@ defmodule EHealth.Web.EmployeeRequestController do
     end
   end
 
-  defp put_urgent_user_id(conn, %EmployeeRequest{data: data}) do
+  defp put_urgent_user_id(conn, %Request{data: data}) do
     email = get_in(data, ["party", "email"])
 
     %{email: email}

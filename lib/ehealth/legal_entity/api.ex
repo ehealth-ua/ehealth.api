@@ -13,7 +13,7 @@ defmodule EHealth.LegalEntity.API do
   alias EHealth.API.MediaStorage
   alias EHealth.OAuth.API, as: OAuth
   alias EHealth.LegalEntity.Validator
-  alias EHealth.EmployeeRequest.API
+  alias EHealth.Employee.API
 
   require Logger
 

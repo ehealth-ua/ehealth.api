@@ -4,12 +4,12 @@ defmodule EHealth.Man.Templates.EmployeeRequestInvitation do
   use Confex, otp_app: :ehealth
   alias EHealth.API.Man
   alias EHealth.API.PRM
-  alias EHealth.EmployeeRequest
+  alias EHealth.Employee.Request
   alias Calendar.DateTime, as: CalendarDateTime
   alias Calendar.Strftime
   alias EHealth.Dictionaries
 
-  def render(%EmployeeRequest{id: id, data: data}) do
+  def render(%Request{id: id, data: data}) do
     clinic_info =
       data
       |> Map.get("legal_entity_id")
