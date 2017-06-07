@@ -1,0 +1,145 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "definitions": {
+    "coordinate": {
+      "type": "number",
+      "pattern": "^([1-8]?[1-9]|[1-9]0)\\.{1}\\d{1,6}"
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^(?!.*[ЫЪЭЁыъэё@%&$^#])[a-zA-ZА-ЯҐЇІЄа-яґїіє0-9№\\\"!\\^\\*)\\]\\[(._-].*$"
+    },
+    "phone": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Dictionary: PHONE_TYPE"
+        },
+        "number": {
+          "type": "string",
+          "pattern": "^\\+38[0-9]{10}$"
+        }
+      },
+      "required": [
+        "type",
+        "number"
+      ],
+      "additionalProperties": false
+    },
+    "address": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Dictionary: ADDRESS_TYPE"
+        },
+        "country": {
+          "type": "string"
+        },
+        "area": {
+          "$ref": "#/definitions/name"
+        },
+        "region": {
+          "$ref": "#/definitions/name"
+        },
+        "settlement": {
+          "$ref": "#/definitions/name"
+        },
+        "settlement_type": {
+          "type": "string"
+        },
+        "settlement_id": {
+          "type": "string"
+        },
+        "street_type": {
+          "type": "string"
+        },
+        "street": {
+          "$ref": "#/definitions/name"
+        },
+        "building": {
+          "type": "string",
+          "pattern": "^[0-9]{1,3}(([ \\-]{1})?(?![ЫЪЭЁыъэё])[А-ЯҐЇЄа-яґїє]{1})?((\\s)?(\\|/)(\\s)?[0-9]{1,3}(([ \\-]{1})?(?![ЫЪЭЁыъэё])[А-ЯҐЇЄа-яґїє]{1})?)?$"
+        },
+        "apartment": {
+          "type": "string"
+        },
+        "zip": {
+          "type": "string",
+          "pattern": "^[0-9]{5}$"
+        }
+      },
+      "required": [
+        "type",
+        "country",
+        "settlement_id",
+        "building"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "type": "object",
+  "properties": {
+    "name": {
+      "$ref": "#/definitions/name"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "clinic",
+        "ambulant_clinic",
+        "fap"
+      ]
+    },
+    "external_id": {
+      "type": "string"
+    },
+    "legal_entity_id": {
+      "type": "string"
+    },
+    "addresses": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/address"
+      },
+      "minItems": 1
+    },
+    "phones": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/phone"
+      },
+      "minItems": 1
+    },
+    "email": {
+      "type": "string",
+      "format": "email"
+    },
+    "location": {
+      "type": "object",
+      "properties": {
+        "longitude": {
+          "$ref": "#/definitions/coordinate"
+        },
+        "latitude": {
+          "$ref": "#/definitions/coordinate"
+        }
+      },
+      "required": [
+        "longitude",
+        "latitude"
+      ]
+    }
+  },
+  "required": [
+    "email",
+    "external_id",
+    "name",
+    "addresses",
+    "phones",
+    "type",
+    "legal_entity_id"
+  ],
+  "additionalProperties": false
+}

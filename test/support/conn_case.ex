@@ -14,11 +14,14 @@ defmodule EHealth.Web.ConnCase do
   """
   use ExUnit.CaseTemplate
 
+  @client_id "d290f1ee-6c54-4b01-90e6-d701748f0851"
+
   using do
     quote do
       # Import conveniences for testing with connections
       use Phoenix.ConnTest
       import Ehealth.Web.Router.Helpers
+      import EHealth.Web.ConnCase
 
       # The default endpoint for testing
       @endpoint EHealth.Web.Endpoint
@@ -40,5 +43,14 @@ defmodule EHealth.Web.ConnCase do
       |> Plug.Conn.put_req_header("x-consumer-id", Ecto.UUID.generate())
 
     {:ok, conn: conn}
+  end
+
+  def put_client_id_header(conn, id \\ @client_id) do
+    data =
+      %{"client_id" => id}
+      |> Poison.encode!()
+      |> Base.encode64()
+
+    Plug.Conn.put_req_header(conn, "x-consumer-metadata", data)
   end
 end

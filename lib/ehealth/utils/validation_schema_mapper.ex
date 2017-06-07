@@ -13,6 +13,10 @@ defmodule EHealth.Utils.ValidationSchemaMapper do
     prepare_schema(nex_schema, :legal_entity)
   end
 
+  def prepare_divisions_schema(%Root{} = nex_schema) do
+    prepare_schema(nex_schema, :divisions)
+  end
+
   def prepare_employee_request_schema(%Root{} = nex_schema) do
     prepare_schema(nex_schema, :employee_request)
   end
@@ -40,11 +44,14 @@ defmodule EHealth.Utils.ValidationSchemaMapper do
     put_into_schema(["definitions", "phone", "properties", "type", "enum"], schema, values)
   end
 
-  def put_dictionary_value(%Dictionary{name: "DOCUMENT_TYPE", values: values}, schema, _type) do
+  def put_dictionary_value(%Dictionary{name: "DOCUMENT_TYPE", values: values}, schema, type)
+    when type in [:legal_entity, :employee_request] do
+
     put_into_schema(["definitions", "document", "properties", "type", "enum"], schema, values)
   end
 
-  def put_dictionary_value(%Dictionary{name: "ADDRESS_TYPE", values: values}, schema, :legal_entity) do
+  def put_dictionary_value(%Dictionary{name: "ADDRESS_TYPE", values: values}, schema, type)
+    when type in [:legal_entity, :division] do
     put_into_schema(["definitions", "address", "properties", "type", "enum"], schema, values)
   end
 

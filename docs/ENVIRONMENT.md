@@ -62,6 +62,13 @@ Also sample `.env` can be used as payload for `docker run` cli.
 | MAN_ENDPOINT        | `http://api-svc.man` | Endpoint for [Man](http://docs.man2.apiary.io/#). |
 | MAN_REQUEST_TIMEOUT | `30_000`             | HTTP timeout for hackney. |
 
+## Man
+
+| VAR_NAME                  | Default Value               | Description |
+| ------------------------- | --------------------------- | ----------- |
+| UADDRESS_ENDPOINT         | `http://api-svc.uaddresses` | Endpoint for [UAdress](http://docs.uaddress.apiary.io/). |
+| UADDRESS_ENDPOINT_TIMEOUT | `30_000`                    | HTTP timeout for hackney. |
+
 ## Digital Signature service
 
 | VAR_NAME                          | Default Value       | Description |

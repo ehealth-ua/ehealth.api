@@ -9,7 +9,6 @@ defmodule EHealth.LegalEntity.API do
   alias Ecto.Date
   alias Ecto.UUID
   alias EHealth.API.PRM
-  alias EHealth.API.Mithril
   alias EHealth.API.MediaStorage
   alias EHealth.OAuth.API, as: OAuth
   alias EHealth.LegalEntity.Validator

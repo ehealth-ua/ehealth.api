@@ -89,12 +89,7 @@ defmodule EHealth.MockServer do
   # Employee
 
   get "/employees" do
-    employees =
-      [get_employee(), get_employee()]
-      |> wrap_response_with_paging()
-      |> Poison.encode!()
-
-    Plug.Conn.send_resp(conn, 200, employees)
+    render_with_paging([get_employee(), get_employee()], conn)
   end
 
   get "/employees/:id" do
@@ -117,18 +112,45 @@ defmodule EHealth.MockServer do
 
       _ -> Plug.Conn.send_resp(conn, 201, Poison.encode!(%{"data" => employee}))
     end
-
   end
 
   # Division
 
+  get "/divisions" do
+    render_with_paging([get_division(), get_division()], conn)
+  end
+
   get "/divisions/:id" do
-    case conn.path_params do
-      %{"id" => "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b"} ->
-        Plug.Conn.send_resp(conn, 200, get_division() |> wrap_response() |> Poison.encode!())
+    case conn.path_params["id"] do
+      "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b" -> render(get_division(), conn, 200)
+
       _ -> render_404(conn)
     end
   end
+
+  post "/divisions" do
+    {code, resp} = case conn.body_params do
+      %{"legal_entity_id" => _id} ->
+        {201, MapDeepMerge.merge(get_division(), conn.body_params)}
+      _ ->
+        {422, %{"error" => %{"invalid_validation" => "legal_entity_id"}}}
+    end
+
+    render(resp, conn, code)
+  end
+
+  patch "/divisions/:id" do
+    {code, resp} =
+      case conn.path_params["id"] do
+        "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b" ->
+          {200, MapDeepMerge.merge(get_division(), conn.body_params)}
+        _ ->
+          {401, %{"error" => %{"invalid_validation" => "legal_entity_id"}}}
+      end
+
+    render(resp, conn, code)
+  end
+
 
   # Mithril
 
@@ -225,6 +247,28 @@ defmodule EHealth.MockServer do
 
   post "/templates/:id/actions/render" do
     Plug.Conn.send_resp(conn, 200, get_rendered_template())
+  end
+
+  # UAddress
+
+  get "/settlements" do
+    conn.body_params
+    |> case do
+         %{"settlement_id" => "b075f148-7f93-4fc2-b2ec-2d81b19a9b7a"} -> get_settlement("1")
+         _ -> get_settlement()
+       end
+    |> List.wrap()
+    |> render_with_paging(conn)
+  end
+
+  def get_settlement(mountain_group \\ "0") do
+    %{
+      "id": "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
+      "region": "Київ",
+      "district": "Києво-Святошинський",
+      "settlement_name": "Новосілки",
+      "mountain_group": mountain_group
+    }
   end
 
   def get_oauth_client(id \\ "f9bd4210-7c4b-40b6-957f-300829ad37dc") do
@@ -325,11 +369,15 @@ defmodule EHealth.MockServer do
           "number" => "+380503410870"
         }
       ],
+      "location" => %{
+        "longitude" => 30.45000,
+        "latitude" => 50.52333
+      },
       "email" => "email@example.com",
       "type" => "clinic",
       "external_id" => "3213213",
       "mountain_group" => "group1",
-      "is_active" => true
+      "status" => "ACTIVE"
     }
   end
 
@@ -432,6 +480,13 @@ defmodule EHealth.MockServer do
     conn
     |> Plug.Conn.put_resp_content_type("application/json")
     |> Plug.Conn.send_resp(status, get_resp_body(resource, conn))
+  end
+
+  def render_with_paging(resource, conn) do
+    conn = Plug.Conn.put_status(conn, 200)
+    conn
+    |> Plug.Conn.put_resp_content_type("application/json")
+    |> Plug.Conn.send_resp(200, resource |> wrap_response_with_paging() |> Poison.encode!())
   end
 
   def render_404(conn) do

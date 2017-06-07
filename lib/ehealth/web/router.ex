@@ -23,6 +23,12 @@ defmodule Ehealth.Web.Router do
     # plug :allow_jsonp
   end
 
+  pipeline :api_client_id do
+    plug :accepts, ["json"]
+    plug :put_secure_browser_headers
+    plug :header_required, "x-consumer-metadata"
+  end
+
   scope "/api", EHealth.Web do
     pipe_through :api
 
@@ -43,5 +49,14 @@ defmodule Ehealth.Web.Router do
     post "/employee_requests/:id/approve", EmployeeRequestController, :approve
     post "/employee_requests/:id/reject", EmployeeRequestController, :reject
     post "/employee_requests/:id/user", EmployeeRequestController, :create_user
+  end
+
+  scope "/api", EHealth.Web do
+    pipe_through :api_client_id
+
+    # Divisions
+    resources "/divisions", DivisionController, except: [:new, :edit, :delete]
+    patch "/divisions/:id/actions/activate", DivisionController, :activate
+    patch "/divisions/:id/actions/deactivate", DivisionController, :deactivate
   end
 end

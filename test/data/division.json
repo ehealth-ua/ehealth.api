@@ -1,0 +1,31 @@
+{
+  "email": "admin@example.com",
+  "external_id": "some external_id",
+  "name": "some name",
+  "type": "ambulant_clinic",
+  "addresses": [
+    {
+      "type": "REGISTRATION",
+      "country": "UA",
+      "area": "Васильківська",
+      "region": "Бердичівський",
+      "settlement": "Київ",
+      "settlement_type": "CITY",
+      "settlement_id": "Kyiv",
+      "street": "вул. Добра",
+      "building": "115",
+      "apartment": "323",
+      "zip": "04090"
+    }
+  ],
+  "phones": [
+    {
+      "type": "MOBILE",
+      "number": "+380503410870"
+    }
+  ],
+  "location": {
+    "longitude": 50.12332,
+    "latitude": 30.12332
+  }
+}

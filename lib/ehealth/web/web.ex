@@ -22,6 +22,7 @@ defmodule EHealth.Web do
       use Phoenix.Router
       import Plug.Conn
       import Phoenix.Controller
+      import EHealth.Utils.Connection
     end
   end
 

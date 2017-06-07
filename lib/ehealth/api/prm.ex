@@ -43,6 +43,32 @@ defmodule EHealth.API.PRM do
     get_legal_entities([edrpou: edrpou, type: "MSP"], headers)
   end
 
+  # Divisions
+
+  def get_divisions(params \\ [], headers \\ []) do
+    "/divisions"
+    |> get!(headers, params: params)
+    |> ResponseDecoder.check_response()
+  end
+
+  def get_division_by_id(id, headers \\ []) do
+    "/divisions/#{id}"
+    |> get!(headers)
+    |> ResponseDecoder.check_response()
+  end
+
+  def create_division(params \\ [], headers \\ []) do
+    "/divisions"
+    |> post!(Poison.encode!(params), headers, timeouts())
+    |> ResponseDecoder.check_response()
+  end
+
+  def update_division(params, id, headers \\ []) do
+    "/divisions/#{id}"
+    |> patch!(Poison.encode!(params), headers, timeouts())
+    |> ResponseDecoder.check_response()
+  end
+
   # Party
 
   def create_party(data, headers \\ []) do
@@ -110,14 +136,6 @@ defmodule EHealth.API.PRM do
   def check_msp_state_property_status(edrpou, headers \\ []) do
     "/ukr_med_registry"
     |> get!(headers, params: [edrpou: edrpou])
-    |> ResponseDecoder.check_response()
-  end
-
-  # Division
-
-  def get_division_by_id(id, headers \\ []) do
-    "/divisions/#{id}"
-    |> get!(headers)
     |> ResponseDecoder.check_response()
   end
 end

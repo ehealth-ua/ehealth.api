@@ -21,15 +21,13 @@ defmodule EHealth.Web.EmployeesControllerTest do
   end
 
   test "cannot get employee id when legal_entity_id != client_id", %{conn: conn} do
-    x_consumer_metadata = Poison.encode!(%{"client_id": Ecto.UUID.generate()})
-    conn = put_req_header(conn, "x-consumer-metadata", x_consumer_metadata)
+    conn = put_client_id_header(conn, Ecto.UUID.generate())
     conn = get conn, employees_path(conn, :show, "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b")
     json_response(conn, 404)
   end
 
   test "can get employee id when legal_entity_id == client_id", %{conn: conn} do
-    x_consumer_metadata = Poison.encode!(%{"client_id": "7cc91a5d-c02f-41e9-b571-1ea4f2375552"})
-    conn = put_req_header(conn, "x-consumer-metadata", x_consumer_metadata)
+    conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
     conn = get conn, employees_path(conn, :show, "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b")
     resp = json_response(conn, 200)
 
