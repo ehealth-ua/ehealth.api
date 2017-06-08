@@ -33,20 +33,19 @@ defmodule EHealth.Employee.API do
   def to_integer(value) when is_binary(value), do: String.to_integer(value)
   def to_integer(value), do: value
 
-  def list_employee_requests(params) do
+  def list_employee_requests(params, client_id) do
     query = from er in Request,
       order_by: [desc: :inserted_at]
 
     query
-    |> filter_by_legal_entity_id(params)
+    |> filter_by_legal_entity_id(client_id)
     |> filter_by_status(params)
     |> Repo.page(get_paging(params, Confex.get(:ehealth, :employee_requests_per_page)))
   end
 
-  defp filter_by_legal_entity_id(query, %{"legal_entity_id" => legal_entity_id}) when is_binary(legal_entity_id) do
-    where(query, [r], fragment("?->>'legal_entity_id' = ?", r.data, ^legal_entity_id))
+  defp filter_by_legal_entity_id(query, client_id) do
+    where(query, [r], fragment("?->>'legal_entity_id' = ?", r.data, ^client_id))
   end
-  defp filter_by_legal_entity_id(query, _), do: query
 
   defp filter_by_status(query, %{"status" => status}) when is_binary(status) do
     where(query, [r], r.status == ^status)

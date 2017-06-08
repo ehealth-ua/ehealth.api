@@ -71,9 +71,10 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       assert is_list(resp["data"])
     end
 
-    test "with valid legal_entity_id filter", %{conn: conn} do
+    test "with valid client_id in metadata", %{conn: conn} do
       %{data: %{"legal_entity_id" => legal_entity_id}} = fixture(:employee_request)
-      conn = get conn, employee_request_path(conn, :index, %{"legal_entity_id" => legal_entity_id})
+      conn = put_client_id_header(conn, legal_entity_id)
+      conn = get conn, employee_request_path(conn, :index)
       resp = json_response(conn, 200)
 
       assert Map.has_key?(resp, "data")
@@ -82,9 +83,10 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       assert 1 == length(resp["data"])
     end
 
-    test "with invalid legal_entity_id filter", %{conn: conn} do
+    test "with invalid client_id in metadata", %{conn: conn} do
       fixture(:employee_request)
-      conn = get conn, employee_request_path(conn, :index, %{"legal_entity_id" => "111"})
+      conn = put_client_id_header(conn, Ecto.UUID.generate())
+      conn = get conn, employee_request_path(conn, :index)
       resp = json_response(conn, 200)
 
       assert Map.has_key?(resp, "data")
