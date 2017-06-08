@@ -11,6 +11,7 @@ defmodule EHealth.SimpleFactory do
       "test/data/employee_request.json"
       |> File.read!()
       |> Poison.decode!()
+      |> put_in(["employee_request", "legal_entity_id"], "8b797c23-ba47-45f2-bc0f-521013e01074")
       |> set_email(email)
       |> set_status(status)
 

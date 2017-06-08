@@ -66,6 +66,7 @@ defmodule EHealth.Unit.ValidatorTest do
       "test/data/employee_request.json"
       |> File.read!()
       |> Poison.decode!()
+      |> put_in(["employee_request", "legal_entity_id"], "8b797c23-ba47-45f2-bc0f-521013e01074")
       |> put_in(["employee_request", "doctor", "science_degree", "issued_date"], "20.12.2011")
 
     assert {:error, [{%{description: _, rule: :format}, "$.employee_request.doctor.science_degree.issued_date"}]} =
@@ -77,6 +78,7 @@ defmodule EHealth.Unit.ValidatorTest do
       "test/data/employee_request.json"
       |> File.read!()
       |> Poison.decode!()
+      |> put_in(["employee_request", "legal_entity_id"], "8b797c23-ba47-45f2-bc0f-521013e01074")
       |> put_in(["employee_request", "start_date"], "2012-12")
 
     assert {:error, [{%{description: _, rule: :format}, "$.employee_request.start_date"}]} =
@@ -88,6 +90,7 @@ defmodule EHealth.Unit.ValidatorTest do
       "test/data/employee_request.json"
       |> File.read!()
       |> Poison.decode!()
+      |> put_in(["employee_request", "legal_entity_id"], "8b797c23-ba47-45f2-bc0f-521013e01074")
 
     education =
       content

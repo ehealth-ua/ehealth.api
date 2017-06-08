@@ -6,16 +6,29 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   import EHealth.SimpleFactory
 
   describe "create employee request" do
-    test "with valid params", %{conn: conn} do
+    test "with valid params and empty x-consumer-metadata", %{conn: conn} do
       employee_request_params = File.read!("test/data/employee_request.json")
+      conn = post conn, employee_request_path(conn, :create), employee_request_params
+      json_response(conn, 422)
+    end
 
+    test "with valid params and x-consumer-metadata that contains invalid client_id", %{conn: conn} do
+      employee_request_params = File.read!("test/data/employee_request.json")
+      conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8602f2")
+      conn = post conn, employee_request_path(conn, :create), employee_request_params
+      json_response(conn, 422)
+    end
+
+    test "with valid params and x-consumer-metadata that contains valid client_id", %{conn: conn} do
+      employee_request_params = File.read!("test/data/employee_request.json")
+      conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
       conn = post conn, employee_request_path(conn, :create), employee_request_params
       resp = json_response(conn, 200)["data"]
       refute Map.has_key?(resp, "type")
     end
 
     test "with invalid params", %{conn: conn} do
-      conn = post conn, employee_request_path(conn, :create), %{"invalid" => "data"}
+      conn = post conn, employee_request_path(conn, :create), %{"employee_request" => %{"invalid" => "data"}}
       resp = json_response(conn, 422)
       assert Map.has_key?(resp, "error")
       assert resp["error"]
@@ -26,11 +39,11 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
         "test/data/employee_request.json"
         |> File.read!()
         |> Poison.decode!()
-        |> put_in(["employee_request", "legal_entity_id"], "356b4182-f9ce-4eda-b6af-43d2de8602f2")
         |> put_in(["employee_request", "division_id"], "356b4182-f9ce-4eda-b6af-43d2de8602f2")
         |> put_in(["employee_request", "employee_id"], "356b4182-f9ce-4eda-b6af-43d2de8602f2")
         |> Poison.encode!()
 
+      conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8602f2")
       conn = post conn, employee_request_path(conn, :create), employee_request_params
       resp = json_response(conn, 422)
       assert Map.has_key?(resp, "error")
