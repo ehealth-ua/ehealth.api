@@ -30,9 +30,19 @@ defmodule EHealth.Web.LegalEntityController do
 
   def show(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
     with {:ok, legal_entity, security} <- API.get_legal_entity_by_id(id, req_headers) do
-      conn
-      |> assign_security(security)
-      |> render("show.json", legal_entity: legal_entity)
+      client_id = get_client_id(req_headers)
+      with :ok <- check_legal_entity(client_id, legal_entity) do
+        conn
+        |> assign_security(security)
+        |> render("show.json", legal_entity: legal_entity)
+      end
+    end
+  end
+
+  defp check_legal_entity(client_id, legal_entity) do
+    case client_id == Map.get(legal_entity, "created_by_mis_client_id") do
+      true -> :ok
+      _ -> {:error, :not_found}
     end
   end
 

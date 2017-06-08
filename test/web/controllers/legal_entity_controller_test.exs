@@ -36,7 +36,21 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     assert is_list(resp["data"])
   end
 
-  test "get legal entity by id", %{conn: conn} do
+  test "get legal entity by id without x-consumer-metadata", %{conn: conn} do
+    id = "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
+    conn = get conn, legal_entity_path(conn, :show, id)
+    json_response(conn, 404)
+  end
+
+  test "get legal entity by id with x-consumer-metadata that contains invalid client_id", %{conn: conn} do
+    conn = put_client_id_header(conn, Ecto.UUID.generate())
+    id = "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
+    conn = get conn, legal_entity_path(conn, :show, id)
+    json_response(conn, 404)
+  end
+
+  test "get legal entity by id with x-consumer-metadata that contains valid client_id", %{conn: conn} do
+    conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
     id = "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
     conn = get conn, legal_entity_path(conn, :show, id)
     resp = json_response(conn, 200)

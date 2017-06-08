@@ -469,7 +469,8 @@ defmodule EHealth.MockServer do
       "inserted_at" => "1991-08-19T00.00.00.000Z",
       "inserted_by" => "userid",
       "updated_at" => "1991-08-19T00.00.00.000Z",
-      "updated_by" => "userid"
+      "updated_by" => "userid",
+      "created_by_mis_client_id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
     }
   end
 
