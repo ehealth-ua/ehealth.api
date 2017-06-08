@@ -50,10 +50,10 @@ Also sample `.env` can be used as payload for `docker run` cli.
 
 ## OAuth
 
-| VAR_NAME              | Default Value        | Description |
-| --------------------- | -------------------- | ----------- |
-| OAUTH_ENDPOINT        | `http://api-svc.prm` | Endpoint for [Mithril](http://docs.mithril1.apiary.io/#). |
-| OAUTH_REQUEST_TIMEOUT | `30_000`             | HTTP timeout for hackney. |
+| VAR_NAME              | Default Value            | Description |
+| --------------------- | ------------------------ | ----------- |
+| OAUTH_ENDPOINT        | `http://api-svc.mithril` | Endpoint for [Mithril](http://docs.mithril1.apiary.io/#). |
+| OAUTH_REQUEST_TIMEOUT | `30_000`                 | HTTP timeout for hackney. |
 
 ## Man
 
@@ -62,7 +62,7 @@ Also sample `.env` can be used as payload for `docker run` cli.
 | MAN_ENDPOINT        | `http://api-svc.man` | Endpoint for [Man](http://docs.man2.apiary.io/#). |
 | MAN_REQUEST_TIMEOUT | `30_000`             | HTTP timeout for hackney. |
 
-## Man
+## UAddresses
 
 | VAR_NAME                  | Default Value               | Description |
 | ------------------------- | --------------------------- | ----------- |
