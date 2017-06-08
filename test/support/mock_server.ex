@@ -92,7 +92,8 @@ defmodule EHealth.MockServer do
   # Employee
 
   get "/employees" do
-    render_with_paging([get_employee(), get_employee()], conn)
+    legal_entity_id = Map.get(conn.params, "legal_entity_id")
+    render_with_paging([get_employee(legal_entity_id), get_employee(legal_entity_id)], conn)
   end
 
   get "/employees/:id" do
@@ -329,10 +330,10 @@ defmodule EHealth.MockServer do
     }
   end
 
-  def get_employee do
+  def get_employee(legal_entity_id \\ nil) do
     %{
       "id" => "7488a646-e31f-11e4-aace-600308960662",
-      "legal_entity_id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375552",
+      "legal_entity_id" => legal_entity_id || "7cc91a5d-c02f-41e9-b571-1ea4f2375552",
       "employee_type" => "hr",
       "type" => "employee", # EView field
       "is_active" => true,
