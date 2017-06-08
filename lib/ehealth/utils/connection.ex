@@ -3,6 +3,9 @@ defmodule EHealth.Utils.Connection do
   Plug.Conn helpers
   """
 
+  @header_consumer_id "x-consumer-id"
+  @header_consumer_metadata "x-consumer-metadata"
+
   import Plug.Conn, only: [assign: 3, put_status: 2, halt: 1]
   import Phoenix.Controller, only: [render: 4]
 
@@ -19,21 +22,21 @@ defmodule EHealth.Utils.Connection do
   end
 
   def get_consumer_id(headers) do
-    get_header(headers, "x-consumer-id")
+    get_header(headers, @header_consumer_id)
   end
 
-  def get_client_id(headers) when is_list(headers) do
+  def get_client_id(headers) do
     headers
     |> get_client_metadata()
-    |> process_client_metadata()
+    |> decode_client_metadata()
   end
 
-  def get_client_metadata(headers) when is_list(headers) do
-    get_header(headers, "x-consumer-metadata")
+  def get_client_metadata(headers) do
+    get_header(headers, @header_consumer_metadata)
   end
 
-  defp process_client_metadata(nil), do: nil
-  defp process_client_metadata(metadata) do
+  defp decode_client_metadata(nil), do: nil
+  defp decode_client_metadata(metadata) do
     metadata
     |> Base.decode64()
     |> json_decode()
@@ -51,11 +54,33 @@ defmodule EHealth.Utils.Connection do
     List.first(list)
   end
 
+  # plugs
+
   def header_required(%Plug.Conn{req_headers: req_headers} = conn, header) do
     req_headers
     |> get_header(header)
     |> validate_header_existance(header, conn)
   end
+
+  def client_id_exists(%Plug.Conn{req_headers: req_headers} = conn, _) do
+    req_headers
+    |> get_client_id()
+    |> validate_client_id_existence(conn)
+  end
+
+  defp validate_client_id_existence(nil, conn) do
+    conn
+    |> put_status(:unauthorized)
+    |> render(EView.Views.Error, :"401", %{
+      message: "Misssing Client ID",
+      invalid: [%{
+        entry_type: :header,
+        entry: @header_consumer_metadata
+      }]
+    })
+    |> halt()
+  end
+  defp validate_client_id_existence(_client_id, conn), do: conn
 
   defp validate_header_existance(nil, header_key, conn) do
     conn

@@ -5,11 +5,14 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
   import EHealth.SimpleFactory
 
+  @moduletag :with_client_id
+
   describe "create employee request" do
     test "with valid params and empty x-consumer-metadata", %{conn: conn} do
+      conn = delete_client_id_header(conn)
       employee_request_params = File.read!("test/data/employee_request.json")
       conn = post conn, employee_request_path(conn, :create), employee_request_params
-      json_response(conn, 422)
+      json_response(conn, 401)
     end
 
     test "with valid params and x-consumer-metadata that contains invalid client_id", %{conn: conn} do
@@ -249,8 +252,8 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   def test_invalid_status_transition(conn, init_status, action) do
     %{id: id} = employee_request("mis_bot_1493831618@user.com", init_status)
 
-    conn = post conn, employee_request_path(conn, action, id)
-    resp = json_response(conn, 409)
+    conn_resp = post conn, employee_request_path(conn, action, id)
+    resp = json_response(conn_resp, 409)
     assert "Employee request status is #{init_status} and cannot be updated" == resp["error"]["message"]
     assert 409 = resp["meta"]["code"]
 

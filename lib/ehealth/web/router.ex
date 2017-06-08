@@ -27,6 +27,7 @@ defmodule Ehealth.Web.Router do
     plug :accepts, ["json"]
     plug :put_secure_browser_headers
     plug :header_required, "x-consumer-metadata"
+    plug :client_id_exists
   end
 
   scope "/api", EHealth.Web do
@@ -37,11 +38,15 @@ defmodule Ehealth.Web.Router do
     get "/legal_entities", LegalEntityController, :index
     put "/legal_entities", LegalEntityController, :create_or_update
 
-    get "/employees", EmployeesController, :index
-    get "/employees/:id", EmployeesController, :show
-
     get "/dictionaries", DictionaryController, :index
     patch "/dictionaries/:name", DictionaryController, :update
+  end
+
+  scope "/api", EHealth.Web do
+    pipe_through :api_client_id
+
+    get "/employees", EmployeesController, :index
+    get "/employees/:id", EmployeesController, :show
 
     get "/employee_requests/:id", EmployeeRequestController, :show
     get "/employee_requests", EmployeeRequestController, :index
@@ -49,10 +54,6 @@ defmodule Ehealth.Web.Router do
     post "/employee_requests/:id/approve", EmployeeRequestController, :approve
     post "/employee_requests/:id/reject", EmployeeRequestController, :reject
     post "/employee_requests/:id/user", EmployeeRequestController, :create_user
-  end
-
-  scope "/api", EHealth.Web do
-    pipe_through :api_client_id
 
     # Divisions
     resources "/divisions", DivisionController, except: [:new, :edit, :delete]

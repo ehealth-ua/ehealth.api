@@ -20,7 +20,6 @@ defmodule EHealth.Employee.API do
   alias EHealth.Bamboo.Emails.EmployeeCreatedNotification, as: EmployeeCreatedNotificationEmail
   alias EHealth.RemoteForeignKeyValidator
   alias EHealth.API.Mithril
-  alias EHealth.API.PRM
 
   require Logger
 
