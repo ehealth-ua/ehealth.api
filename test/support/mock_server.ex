@@ -29,6 +29,9 @@ defmodule EHealth.MockServer do
       case conn.params do
         %{"edrpou" => "37367387", "type" => "MSP"} -> [get_legal_entity()]
         %{"edrpou" => "10002000", "type" => "MSP"} -> [get_legal_entity("356b4182-f9ce-4eda-b6af-43d2de8602aa", false)]
+        %{"edrpou" => "37367387", "created_by_mis_client_id" => "", "is_active" => "true"} -> []
+        %{"edrpou" => "37367387", "created_by_mis_client_id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375552",
+          "is_active" => "true"} -> [get_legal_entity()]
         _ -> []
       end
 

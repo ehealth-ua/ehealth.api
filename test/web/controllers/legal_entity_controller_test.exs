@@ -27,13 +27,36 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     assert resp["error"]
   end
 
-  test "get legal entities", %{conn: conn} do
+  test "get legal entities without x-consumer-metadata", %{conn: conn} do
     conn = get conn, legal_entity_path(conn, :index, [edrpou: "37367387"])
     resp = json_response(conn, 200)
 
     assert Map.has_key?(resp, "data")
     assert Map.has_key?(resp, "paging")
     assert is_list(resp["data"])
+    assert 0 == length(resp["data"])
+  end
+
+  test "get legal entities with x-consumer-metadata that contains invalid client_id", %{conn: conn} do
+    conn = put_client_id_header(conn, Ecto.UUID.generate())
+    conn = get conn, legal_entity_path(conn, :index, [edrpou: "37367387"])
+    resp = json_response(conn, 200)
+
+    assert Map.has_key?(resp, "data")
+    assert Map.has_key?(resp, "paging")
+    assert is_list(resp["data"])
+    assert 0 == length(resp["data"])
+  end
+
+  test "get legal entities with x-consumer-metadata that contains valid client_id", %{conn: conn} do
+    conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+    conn = get conn, legal_entity_path(conn, :index, [edrpou: "37367387"])
+    resp = json_response(conn, 200)
+
+    assert Map.has_key?(resp, "data")
+    assert Map.has_key?(resp, "paging")
+    assert is_list(resp["data"])
+    assert 1 == length(resp["data"])
   end
 
   test "get legal entity by id without x-consumer-metadata", %{conn: conn} do
