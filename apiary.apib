@@ -2429,7 +2429,8 @@ Get list of cities by district
 + last_name: Іванов (string, required)
 + second_name: Миколайович (string, optional)
 + birth_date: `1991-08-19T00:00:00.000Z` (string, required)
-+ birth_place: `Вінниця, Україна` (string, required)
++ birth_country: `Україна` (string, required)
++ birth_settlement: `Вінниця` (string, required)
 + gender: MALE, FEMALE (enum[string], required)
 + tax_id: 3126509816 (string, optional)
 + documents (array[Document], optional)
@@ -2893,7 +2894,7 @@ Get list of cities by district
 ### `crud_msp`
 + `legal_entity_id`: 5432345432 (string, required)
 + accreditation (MSP_Accreditation, required)
-+ licenses (array[MSP_License], optional)
++ licenses (array[MSP_License], required)
 
 ### `crud_msp_get`
 + include `crud_msp`
@@ -2903,7 +2904,7 @@ Get list of cities by district
 
 ### `crud_msp_patch`
 + accreditation (MSP_Accreditation, required)
-+ licenses (array[MSP_License], optional)
++ licenses (array[MSP_License], required)
 
 ### `Medical_Service_Provider`
 + name: Клініка Борис (string, required)
@@ -2911,7 +2912,7 @@ Get list of cities by district
 + `legal_form`: 140 (string, required) - `Dictionary LEGAL_FORM`
 + public_name: ЦПМСД №1 (string, optional)
 + edrpou: 5432345432 (string, required)
-+ licenses (array[MSP_License], optional)
++ licenses (array[MSP_License], required)
 + accreditation (MSP_Accreditation, required)
 + addresses (array[Address], required)
 + phones (array[Phone], required)
@@ -2936,7 +2937,7 @@ Get list of cities by district
 + modified_at: `2017-02-28T15:12:54.000Z` (string, optional)
 
 ### `MSP`
-+ licenses (array[MSP_License], optional)
++ licenses (array[MSP_License], required)
 + accreditation (MSP_Accreditation, required)
 
 ## `Ukr_med_registries`
