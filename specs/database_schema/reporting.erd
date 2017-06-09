@@ -79,13 +79,6 @@ science_degree | jsonb
 inserted_at | timestamp | not null
 updated_at | timestamp | not null
 
-[employee_requests]
-id | uuid | not null
-data | jsonb | not null
-status | enum('') | not null
-inserted_at | timestamp | not null
-updated_at | timestamp | not null
-
 [legal_entities]
 id | uuid | not null
 name | varchar | not null
@@ -170,7 +163,6 @@ name | VARCHAR(150) | NOT NULL
 
 capitation_contracts 1--1 legal_entities
 capitation_contracts *--1 products
-declarations 1--1 declarations_signed
 employees 1--* declarations
 divisions *--1 legal_entities
 employees *--1 legal_entities
