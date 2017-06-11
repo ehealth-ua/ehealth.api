@@ -276,7 +276,8 @@
         }
       },
       "required": [
-        "accreditation"
+        "accreditation",
+        "licenses"
       ]
     },
     "status": {
