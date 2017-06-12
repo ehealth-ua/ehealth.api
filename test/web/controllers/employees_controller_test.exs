@@ -19,6 +19,15 @@ defmodule EHealth.Web.EmployeesControllerTest do
     assert client_id == second["legal_entity_id"]
   end
 
+  test "get employee by id", %{conn: conn} do
+    conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+    conn = get conn, employees_path(conn, :show, "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b")
+    resp = json_response(conn, 200)
+    assert Map.has_key?(resp["data"], "party")
+    assert Map.has_key?(resp["data"], "division")
+    assert Map.has_key?(resp["data"], "legal_entity_id")
+  end
+
   test "cannot get employee by id when legal_entity_id != client_id", %{conn: conn} do
     conn = put_client_id_header(conn, Ecto.UUID.generate())
     conn = get conn, employees_path(conn, :show, "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b")

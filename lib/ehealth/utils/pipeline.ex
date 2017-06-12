@@ -19,4 +19,8 @@ defmodule EHealth.Utils.Pipeline do
     Logger.error(fn -> log_message <> " Response: #{inspect err}" end)
     err
   end
+
+  def end_pipe({:error, _} = err), do: err
+  def end_pipe({:ok, resp}), do: {:ok, resp}
+  def end_pipe(resp), do: {:ok, resp}
 end

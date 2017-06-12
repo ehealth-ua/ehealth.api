@@ -89,6 +89,12 @@ defmodule EHealth.API.PRM do
     |> ResponseDecoder.check_response()
   end
 
+  def get_party_by_id(id, headers \\ []) do
+    "/party/#{id}"
+    |> get!(headers)
+    |> ResponseDecoder.check_response()
+  end
+
   def get_party_by_tax_id(edrpou, headers \\ []) do
     get_parties([tax_id: edrpou], headers)
   end

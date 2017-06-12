@@ -2,9 +2,11 @@ defmodule EHealth.Employee.API do
   @moduledoc false
 
   use JValid
+  use OkJose
 
   import Ecto.{Query, Changeset}, warn: false
   import EHealth.Paging
+  import EHealth.Utils.Pipeline
   import EHealth.Utils.Connection
 
   alias EHealth.Repo
@@ -20,6 +22,7 @@ defmodule EHealth.Employee.API do
   alias EHealth.Bamboo.Emails.EmployeeCreatedNotification, as: EmployeeCreatedNotificationEmail
   alias EHealth.RemoteForeignKeyValidator
   alias EHealth.API.Mithril
+  alias EHealth.API.PRM
 
   require Logger
 
@@ -31,6 +34,10 @@ defmodule EHealth.Employee.API do
 
   def to_integer(value) when is_binary(value), do: String.to_integer(value)
   def to_integer(value), do: value
+
+  def get_employee_request_by_id!(id) do
+    Repo.get!(Request, id)
+  end
 
   def list_employee_requests(params, client_id) do
     query = from er in Request,
@@ -167,10 +174,6 @@ defmodule EHealth.Employee.API do
     |> validate_required(fields)
   end
 
-  def get_employee_request_by_id!(id) do
-    Repo.get!(Request, id)
-  end
-
   def check_employee_request(headers, id) do
     headers
     |> get_consumer_id()
@@ -197,4 +200,53 @@ defmodule EHealth.Employee.API do
       end
     end
   end
+
+  def get_employee_by_id(id, headers) do
+    {:ok, %{
+      employee_id: id,
+      client_id: get_client_id(headers),
+      headers: headers,
+    }}
+    |> get_employee()
+    |> check_employee_legal_entity_id()
+    |> get_employee_relation("party")
+    |> get_employee_relation("division")
+    |> get_employee_relation("legal_entity")
+    |> ok()
+    |> end_pipe()
+  end
+
+  def get_employee(pipe_data) do
+    pipe_data
+    |> Map.fetch!(:employee_id)
+    |> PRM.get_employee_by_id(Map.fetch!(pipe_data, :headers))
+    |> put_success_api_response_in_pipe(:employee, pipe_data)
+  end
+
+  defp check_employee_legal_entity_id(pipe_data) do
+    client_id = Map.fetch!(pipe_data, :client_id)
+    legal_entity_id = get_in(pipe_data, [:employee, "data", "legal_entity_id"])
+
+    case client_id == legal_entity_id do
+      true -> {:ok, pipe_data}
+      _ -> {:error, :not_found}
+    end
+  end
+
+  defp get_employee_relation(pipe_data, relation_key) do
+    pipe_data
+    |> get_in([:employee, "data", relation_key <> "_id"])
+    |> load_relation_from_prm(relation_key, Map.fetch!(pipe_data, :headers))
+    |> put_success_api_response_in_employee(relation_key, pipe_data)
+  end
+
+  defp load_relation_from_prm(id, "party", headers), do: PRM.get_party_by_id(id, headers)
+  defp load_relation_from_prm(id, "division", headers), do: PRM.get_division_by_id(id, headers)
+  defp load_relation_from_prm(id, "legal_entity", headers), do: PRM.get_legal_entity_by_id(id, headers)
+
+  defp put_success_api_response_in_employee({:ok, %{"data" => resp}}, key, %{employee: employee} = pipe_data) do
+    {:ok, Map.put(pipe_data, :employee, put_in(employee, ["data", key], resp))}
+  end
+  defp put_success_api_response_in_employee(err, _key, _pipe_data), do: err
+
 end

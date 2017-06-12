@@ -80,6 +80,14 @@ defmodule EHealth.MockServer do
     Plug.Conn.send_resp(conn, 200, Poison.encode!(%{"data" => get_party()}))
   end
 
+  get "/party/:id" do
+    case conn.path_params["id"] do
+      "01981ab9-904c-4c36-88ab-959a94087483" -> render(get_party(), conn, 200)
+
+      _ -> render_404(conn)
+    end
+  end
+
   get "/party_users" do
     Plug.Conn.send_resp(conn, 200, [get_party_user()] |> wrap_response_with_paging() |> Poison.encode!())
   end
@@ -333,6 +341,7 @@ defmodule EHealth.MockServer do
   def get_employee(legal_entity_id \\ nil) do
     %{
       "id" => "7488a646-e31f-11e4-aace-600308960662",
+      "party_id" => "01981ab9-904c-4c36-88ab-959a94087483",
       "legal_entity_id" => legal_entity_id || "7cc91a5d-c02f-41e9-b571-1ea4f2375552",
       "employee_type" => "hr",
       "type" => "employee", # EView field
