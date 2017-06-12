@@ -273,13 +273,55 @@ defmodule EHealth.MockServer do
     |> render_with_paging(conn)
   end
 
+  get "/settlements/:id" do
+    resp =
+      "1"
+      |> get_settlement()
+      |> wrap_response()
+      |> Poison.encode!()
+
+    Plug.Conn.send_resp(conn, 200, resp)
+  end
+
+  get "/regions/:id" do
+    resp =
+      get_region()
+      |> wrap_response()
+      |> Poison.encode!()
+
+    Plug.Conn.send_resp(conn, 200, resp)
+  end
+
+  get "/districts/:id" do
+    resp =
+      get_district()
+      |> wrap_response()
+      |> Poison.encode!()
+
+    Plug.Conn.send_resp(conn, 200, resp)
+  end
+
   def get_settlement(mountain_group \\ "0") do
     %{
       "id": "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
-      "region": "Київ",
-      "district": "Києво-Святошинський",
-      "settlement_name": "Новосілки",
+      "region_id": "18981558-ff6c-4b35-9d5f-001848f98987",
+      "district_id": "46dbf26a-2cd2-43fe-a592-c4f3c85e6d6a",
+      "name": "Київ",
       "mountain_group": mountain_group
+    }
+  end
+
+  def get_region do
+    %{
+      "id": "7e060885-6982-48fe-870c-8ccbee8744ba",
+      "name": "Житомирська"
+    }
+  end
+
+  def get_district do
+    %{
+      "id": "ed183157-e12b-4dda-aa1a-6cc5118905b2",
+      "name": "Бердичівський"
     }
   end
 

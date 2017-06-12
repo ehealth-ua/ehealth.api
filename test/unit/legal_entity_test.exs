@@ -169,6 +169,54 @@ defmodule EHealth.Unit.LegalEntityTest do
     assert {:ok, %{"data" => %{"id" => ^id}}} = OAuth.put_client(legal_entity, "http://example.com", [])
   end
 
+  test "settlement validation" do
+    legal_entity_data = get_legal_entity_data()
+    address =
+      legal_entity_data
+      |> Map.get("addresses")
+      |> Enum.at(0)
+      |> Map.put("settlement", "Новосілки")
+
+    content =
+      legal_entity_data
+      |> Map.put("addresses", [address])
+
+    assert [{%{description: "invalid settlement value", params: [], rule: :invalid},
+      "$.addresses.settlement"}] == Validator.validate_addresses({:ok, %{"content" => content}})
+  end
+
+  test "region validation" do
+    legal_entity_data = get_legal_entity_data()
+    address =
+      legal_entity_data
+      |> Map.get("addresses")
+      |> Enum.at(0)
+      |> Map.put("region", "Турійський")
+
+    content =
+      legal_entity_data
+      |> Map.put("addresses", [address])
+
+    assert [{%{description: "invalid region value", params: [], rule: :invalid},
+      "$.addresses.region"}] == Validator.validate_addresses({:ok, %{"content" => content}})
+  end
+
+  test "area validation" do
+    legal_entity_data = get_legal_entity_data()
+    address =
+      legal_entity_data
+      |> Map.get("addresses")
+      |> Enum.at(0)
+      |> Map.put("area", "Волинська")
+
+    content =
+      legal_entity_data
+      |> Map.put("addresses", [address])
+
+    assert [{%{description: "invalid area value", params: [], rule: :invalid},
+      "$.addresses.area"}] == Validator.validate_addresses({:ok, %{"content" => content}})
+  end
+
   # helpers
 
   def assert_security(security, id) do

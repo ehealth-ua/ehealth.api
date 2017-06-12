@@ -18,4 +18,22 @@ defmodule EHealth.API.UAddress do
     |> get!(headers, params: params)
     |> ResponseDecoder.check_response()
   end
+
+  def get_settlement_by_id(id, headers \\ []) do
+    "/settlements/#{id}"
+    |> get!(headers)
+    |> ResponseDecoder.check_response()
+  end
+
+  def get_region_by_id(id, headers \\ []) do
+    "/regions/#{id}"
+    |> get!(headers)
+    |> ResponseDecoder.check_response()
+  end
+
+  def get_district_by_id(id, headers \\ []) do
+    "/districts/#{id}"
+    |> get!(headers)
+    |> ResponseDecoder.check_response()
+  end
 end
