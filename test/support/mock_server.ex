@@ -29,6 +29,9 @@ defmodule EHealth.MockServer do
       case conn.params do
         %{"edrpou" => "37367387", "type" => "MSP"} -> [get_legal_entity()]
         %{"edrpou" => "10002000", "type" => "MSP"} -> [get_legal_entity("356b4182-f9ce-4eda-b6af-43d2de8602aa", false)]
+        %{"edrpou" => "37367387", "created_by_mis_client_id" => "", "is_active" => "true"} -> []
+        %{"edrpou" => "37367387", "created_by_mis_client_id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375552",
+          "is_active" => "true"} -> [get_legal_entity()]
         _ -> []
       end
 
@@ -77,6 +80,14 @@ defmodule EHealth.MockServer do
     Plug.Conn.send_resp(conn, 200, Poison.encode!(%{"data" => get_party()}))
   end
 
+  get "/party/:id" do
+    case conn.path_params["id"] do
+      "01981ab9-904c-4c36-88ab-959a94087483" -> render(get_party(), conn, 200)
+
+      _ -> render_404(conn)
+    end
+  end
+
   get "/party_users" do
     Plug.Conn.send_resp(conn, 200, [get_party_user()] |> wrap_response_with_paging() |> Poison.encode!())
   end
@@ -117,18 +128,8 @@ defmodule EHealth.MockServer do
 
       _ -> Plug.Conn.send_resp(conn, 201, Poison.encode!(%{"data" => employee}))
     end
-
   end
 
-  # Division
-
-  get "/divisions/:id" do
-    case conn.path_params do
-      %{"id" => "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b"} ->
-        Plug.Conn.send_resp(conn, 200, get_division() |> wrap_response() |> Poison.encode!())
-      _ -> render_404(conn)
-    end
-  end
 
   # Mithril
 
@@ -227,6 +228,70 @@ defmodule EHealth.MockServer do
     Plug.Conn.send_resp(conn, 200, get_rendered_template())
   end
 
+  # UAddress
+
+  get "/settlements" do
+    conn.body_params
+    |> case do
+         %{"settlement_id" => "b075f148-7f93-4fc2-b2ec-2d81b19a9b7a"} -> get_settlement("1")
+         _ -> get_settlement()
+       end
+    |> List.wrap()
+    |> render_with_paging(conn)
+  end
+
+  get "/settlements/:id" do
+    resp =
+      "1"
+      |> get_settlement()
+      |> wrap_response()
+      |> Poison.encode!()
+
+    Plug.Conn.send_resp(conn, 200, resp)
+  end
+
+  get "/regions/:id" do
+    resp =
+      get_region()
+      |> wrap_response()
+      |> Poison.encode!()
+
+    Plug.Conn.send_resp(conn, 200, resp)
+  end
+
+  get "/districts/:id" do
+    resp =
+      get_district()
+      |> wrap_response()
+      |> Poison.encode!()
+
+    Plug.Conn.send_resp(conn, 200, resp)
+  end
+
+  def get_settlement(mountain_group \\ "0") do
+    %{
+      "id": "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
+      "region_id": "18981558-ff6c-4b35-9d5f-001848f98987",
+      "district_id": "46dbf26a-2cd2-43fe-a592-c4f3c85e6d6a",
+      "name": "Київ",
+      "mountain_group": mountain_group
+    }
+  end
+
+  def get_region do
+    %{
+      "id": "7e060885-6982-48fe-870c-8ccbee8744ba",
+      "name": "Житомирська"
+    }
+  end
+
+  def get_district do
+    %{
+      "id": "ed183157-e12b-4dda-aa1a-6cc5118905b2",
+      "name": "Бердичівський"
+    }
+  end
+
   def get_oauth_client(id \\ "f9bd4210-7c4b-40b6-957f-300829ad37dc") do
     %{
       "id" => id,
@@ -282,10 +347,11 @@ defmodule EHealth.MockServer do
     }
   end
 
-  def get_employee do
+  def get_employee(legal_entity_id \\ nil) do
     %{
       "id" => "7488a646-e31f-11e4-aace-600308960662",
-      "legal_entity_id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375552",
+      "party_id" => "01981ab9-904c-4c36-88ab-959a94087483",
+      "legal_entity_id" => legal_entity_id || "7cc91a5d-c02f-41e9-b571-1ea4f2375552",
       "employee_type" => "hr",
       "type" => "employee", # EView field
       "is_active" => true,
@@ -421,7 +487,8 @@ defmodule EHealth.MockServer do
       "inserted_at" => "1991-08-19T00.00.00.000Z",
       "inserted_by" => "userid",
       "updated_at" => "1991-08-19T00.00.00.000Z",
-      "updated_by" => "userid"
+      "updated_by" => "userid",
+      "created_by_mis_client_id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
     }
   end
 
@@ -432,6 +499,13 @@ defmodule EHealth.MockServer do
     conn
     |> Plug.Conn.put_resp_content_type("application/json")
     |> Plug.Conn.send_resp(status, get_resp_body(resource, conn))
+  end
+
+  def render_with_paging(resource, conn) do
+    conn = Plug.Conn.put_status(conn, 200)
+    conn
+    |> Plug.Conn.put_resp_content_type("application/json")
+    |> Plug.Conn.send_resp(200, resource |> wrap_response_with_paging() |> Poison.encode!())
   end
 
   def render_404(conn) do
