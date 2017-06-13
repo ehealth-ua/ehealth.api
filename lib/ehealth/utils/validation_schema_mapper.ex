@@ -59,6 +59,10 @@ defmodule EHealth.Utils.ValidationSchemaMapper do
     put_into_schema(["properties", "owner_property_type", "enum"], schema, values)
   end
 
+  def put_dictionary_value(%Dictionary{name: "LEGAL_ENTITY_TYPE", values: values}, schema, :legal_entity) do
+    put_into_schema(["properties", "type", "enum"], schema, values)
+  end
+
   def put_dictionary_value(%Dictionary{name: "LEGAL_FORM", values: values}, schema, :legal_entity) do
     put_into_schema(["properties", "legal_form", "enum"], schema, values)
   end

@@ -16,6 +16,15 @@ defmodule EHealth.Unit.ValidatorTest do
     "labels" => ["SYSTEM"],
     "is_active" => true,
   }
+  @legal_entity_type %{
+    "name" => "LEGAL_ENTITY_TYPE",
+    "values" => %{
+      "MSP" => "MSP",
+      "MIS" => "MIS",
+    },
+    "labels" => ["SYSTEM"],
+    "is_active" => true,
+  }
 
   @unmapped %{
     "name" => "UNMAPPED",
@@ -25,6 +34,19 @@ defmodule EHealth.Unit.ValidatorTest do
     "labels" => ["SYSTEM"],
     "is_active" => true,
   }
+
+  test "JSON schema dictionary enum validate LEGAL_ENTITY_TYPE", %{conn: conn} do
+    patch conn, dictionary_path(conn, :update, "LEGAL_ENTITY_TYPE"), @legal_entity_type
+
+    content =
+      "test/data/legal_entity.json"
+      |> File.read!()
+      |> Poison.decode!()
+      |> Map.put("type", "STRANGE")
+
+    assert {:error, [{%{description: "value is not allowed in enum", rule: :inclusion}, "$.type"}]} =
+      Validator.validate_legal_entity({:ok, %{"data" => %{"content" => content}}})
+  end
 
   test "JSON schema dictionary enum validate PHONE_TYPE", %{conn: conn} do
     patch conn, dictionary_path(conn, :update, "PHONE_TYPE"), @phone_type
