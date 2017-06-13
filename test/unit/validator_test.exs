@@ -39,6 +39,17 @@ defmodule EHealth.Unit.ValidatorTest do
       Validator.validate_legal_entity({:ok, %{"data" => %{"content" => content}}})
   end
 
+  test "JSON schema birth_date date format with weeks" do
+    content =
+      "test/data/legal_entity.json"
+      |> File.read!()
+      |> Poison.decode!()
+      |> put_in(["owner", "birth_date"], "1985-W12-6")
+
+    assert {:error, [{%{description: _, rule: :format}, "$.owner.birth_date"}]} =
+      Validator.validate_legal_entity({:ok, %{"data" => %{"content" => content}}})
+  end
+
   test "JSON schema birth_date date format" do
     content =
       "test/data/legal_entity.json"
