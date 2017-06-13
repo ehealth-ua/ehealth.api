@@ -101,7 +101,10 @@ defmodule EHealth.MockServer do
 
   get "/employees" do
     legal_entity_id = Map.get(conn.params, "legal_entity_id")
-    render_with_paging([get_employee(legal_entity_id), get_employee(legal_entity_id)], conn)
+    expand = Map.has_key?(conn.params, "expand")
+    employee = get_employee(legal_entity_id, expand)
+
+    render_with_paging([employee, employee], conn)
   end
 
   get "/employees/:id" do
@@ -380,6 +383,18 @@ defmodule EHealth.MockServer do
     }
   end
 
+  def get_employee(legal_entity_id, false), do: get_employee(legal_entity_id)
+
+  def get_employee(legal_entity_id, true) do
+    legal_entity_id
+    |> get_employee()
+    |> Map.merge(%{
+         "party" => get_party_short(),
+         "division" => get_division_short(),
+         "legal_entity" => get_legal_entity_short(legal_entity_id),
+       })
+  end
+
   def get_employee(legal_entity_id \\ nil) do
     %{
       "id" => "7488a646-e31f-11e4-aace-600308960662",
@@ -397,6 +412,14 @@ defmodule EHealth.MockServer do
     }
   end
 
+  def get_division_short do
+    %{
+      "id" => "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
+      "legal_entity_id" => "d290f1ee-6c54-4b01-90e6-d701748f0851",
+      "name" => "Бориспільське відділення Клініки Борис",
+      "mountain_group" => "yes"
+    }
+  end
   def get_division do
     %{
       "id" => "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
@@ -436,6 +459,15 @@ defmodule EHealth.MockServer do
     }
   end
 
+  def get_party_short do
+    %{
+      "id" => "01981ab9-904c-4c36-88ab-959a94087483",
+      "first_name" => "Петро",
+      "last_name" => "Іванов",
+      "second_name" => "Іванович",
+    }
+  end
+
   def get_party do
     %{
       "id" => "01981ab9-904c-4c36-88ab-959a94087483",
@@ -461,6 +493,20 @@ defmodule EHealth.MockServer do
       "id" => "01981ab9-904c-4c36-88ab-959a94087483",
       "user_id" => "1cc91a5d-c02f-41e9-b571-1ea4f2375551",
       "party_id" => "01981ab9-904c-4c36-88ab-959a94087483",
+    }
+  end
+
+  def get_legal_entity_short(id \\ "7cc91a5d-c02f-41e9-b571-1ea4f2375552") do
+    %{
+      "id" => id,
+      "name" => "Клініка Борис",
+      "short_name" => "Борис",
+      "public_name" => "Борис",
+      "type" => "MSP",
+      "edrpou" => "37367387",
+      "status" => "VERIFIED",
+      "owner_property_type" => "state",
+      "legal_form" => "ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА",
     }
   end
 

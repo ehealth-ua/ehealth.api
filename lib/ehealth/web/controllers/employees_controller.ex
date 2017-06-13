@@ -15,7 +15,12 @@ defmodule EHealth.Web.EmployeesController do
     end
   end
 
-  defp get_search_params(params, client_id), do: Map.put(params, "legal_entity_id", client_id)
+  defp get_search_params(params, client_id) do
+    Map.merge(params, %{
+      "legal_entity_id" => client_id,
+      "expand" => true
+    })
+  end
 
   def show(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
     with {:ok, %{employee: %{"meta" => %{}} = response}} <- API.get_employee_by_id(id, req_headers) do
