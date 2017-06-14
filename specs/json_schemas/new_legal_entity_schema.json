@@ -279,7 +279,6 @@
         }
       },
       "required": [
-        "accreditation",
         "licenses"
       ]
     },
