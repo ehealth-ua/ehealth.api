@@ -59,6 +59,15 @@ config :ehealth, EHealth.API.Man,
     timeout: {:system, :integer, "MAN_REQUEST_TIMEOUT", 30_000}
   ]
 
+# Configures UAddress API
+config :ehealth, EHealth.API.UAddress,
+  endpoint: {:system, "UADDRESS_ENDPOINT", "http://api-svc.uaddresses"},
+  timeouts: [
+    connect_timeout: {:system, :integer, "UADDRESS_REQUEST_TIMEOUT", 30_000},
+    recv_timeout: {:system, :integer, "UADDRESS_REQUEST_TIMEOUT", 30_000},
+    timeout: {:system, :integer, "UADDRESS_REQUEST_TIMEOUT", 30_000}
+  ]
+
 # employee request invitation
 # Configures employee request invitation template
 config :ehealth, EHealth.Man.Templates.EmployeeRequestInvitation,
