@@ -24,8 +24,6 @@ defmodule Ehealth.Web.Router do
   end
 
   pipeline :api_client_id do
-    plug :accepts, ["json"]
-    plug :put_secure_browser_headers
     plug :header_required, "x-consumer-metadata"
     plug :client_id_exists
   end
@@ -43,7 +41,7 @@ defmodule Ehealth.Web.Router do
   end
 
   scope "/api", EHealth.Web do
-    pipe_through :api_client_id
+    pipe_through [:api, :api_client_id]
 
     get "/employees", EmployeesController, :index
     get "/employees/:id", EmployeesController, :show
