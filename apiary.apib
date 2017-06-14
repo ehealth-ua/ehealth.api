@@ -872,6 +872,21 @@ Methods returns agregated numbers of declarations, MSP and doctors grouped by se
                     + period (MainStats, required)
                     + total (MainStats, required)
  
+ 
+
+### Get Main Stats by Division [GET /reports/divisions/{division_id}]
+Methods returns agregated numbers of declarations and doctors by division
+
++ Parameters
+    + division_id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
+
++ Request (application/json)
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (object, optional)
+           + total (MainStats, required)
+
 
 ## Declarations [/reports/declarations]
 
@@ -919,21 +934,6 @@ Methods returns agregated numbers of declarations, msps and doctors.
 
  
 ## Divisions [/report/divisions]
-
-### Get Division Stats [GET /reports/divisions/{id}]
-Methods returns agregated numbers of declarations and doctors by division
-
-+ Parameters
-    + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
-
-+ Request (application/json)
-
-+ Response 200 (application/json)
-    + Attributes (Response_OK)
-        + data (object, optional)
-           + doctors: 12 (number, required)
-           + declarations (DeclarationStats, required)
-
 
 ### Search Divisions [GET /divisions{?type,name,lefttop_latitude,lefttop_longitude,rightbottom_latitude,rightbottom_longitude}]
 Method searches divisions by parameters and returnes division details
@@ -3108,7 +3108,7 @@ API for searching Ukrainian Addresses
 + coordinates (Location, optional)
 
 ### ContactInfo
-+ email (string,optional)
++ email: email@example.com (string, optional)
 + phones (array[Phone], optional)
 
 ### Location
