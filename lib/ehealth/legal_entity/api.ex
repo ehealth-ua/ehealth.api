@@ -3,7 +3,7 @@ defmodule EHealth.LegalEntity.API do
   The boundary for the LegalEntity system.
   """
 
-  import EHealth.Utils.Connection, only: [get_consumer_id: 1]
+  import EHealth.Utils.Connection, only: [get_consumer_id: 1, get_client_id: 1]
   import EHealth.Utils.Pipeline
 
   alias Ecto.Date
@@ -103,13 +103,15 @@ defmodule EHealth.LegalEntity.API do
   """
   def put_legal_entity_to_prm({:ok, %{legal_entity_flow: :create} = pipe_data}, headers) do
     consumer_id = get_consumer_id(headers)
+    client_id = get_client_id(headers)
 
     creation_data = %{
       "id" => Map.fetch!(pipe_data, :legal_entity_id),
       "status" => "NEW",
       "is_active" => true,
       "inserted_by" => consumer_id,
-      "updated_by" => consumer_id
+      "updated_by" => consumer_id,
+      "created_by_mis_client_id" => client_id
     }
 
     pipe_data
