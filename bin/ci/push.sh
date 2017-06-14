@@ -20,7 +20,7 @@ if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
   git add mix.exs;
   git commit -m "Increment version [ci skip]";
 
-  if [[ "$RELEASE_BRANCHES" =~ "$TRAVIS_BRANCH"]]; then
+  if [[ "$RELEASE_BRANCHES" =~ "$TRAVIS_BRANCH" ]]; then
     ./bin/ci/release.sh -a $DOCKER_HUB_ACCOUNT -t $TRAVIS_BRANCH -l;
   fi;
 
