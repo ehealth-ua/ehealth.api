@@ -2,11 +2,12 @@ defmodule EHealth.Utils.Connection do
   @moduledoc """
   Plug.Conn helpers
   """
+  require Logger
 
   @header_consumer_id "x-consumer-id"
   @header_consumer_metadata "x-consumer-metadata"
 
-  import Plug.Conn, only: [assign: 3, put_status: 2, halt: 1]
+  import Plug.Conn, only: [assign: 3, put_status: 2, halt: 1, get_req_header: 2]
   import Phoenix.Controller, only: [render: 4]
 
   def assign_security(conn, security) when is_map(security) do
@@ -56,10 +57,21 @@ defmodule EHealth.Utils.Connection do
 
   # plugs
 
-  def header_required(%Plug.Conn{req_headers: req_headers} = conn, header) do
-    req_headers
-    |> get_header(header)
-    |> validate_header_existance(header, conn)
+  def header_required(%Plug.Conn{} = conn, header) do
+    case get_req_header(conn, header) do
+      [] ->
+        conn
+        |> put_status(:unauthorized)
+        |> render(EView.Views.Error, :"401", %{
+          message: "Missing header #{header}",
+          invalid: [%{
+            entry_type: :header,
+            entry: header
+          }]
+        })
+        |> halt()
+      [_value | _] -> conn
+    end
   end
 
   def client_id_exists(%Plug.Conn{req_headers: req_headers} = conn, _) do
@@ -81,18 +93,4 @@ defmodule EHealth.Utils.Connection do
     |> halt()
   end
   defp validate_client_id_existence(_client_id, conn), do: conn
-
-  defp validate_header_existance(nil, header_key, conn) do
-    conn
-    |> put_status(:unauthorized)
-    |> render(EView.Views.Error, :"401", %{
-      message: "Missing header #{header_key}",
-      invalid: [%{
-        entry_type: :header,
-        entry: header_key
-      }]
-    })
-    |> halt()
-  end
-  defp validate_header_existance(_header_value, _header_key, conn), do: conn
 end
