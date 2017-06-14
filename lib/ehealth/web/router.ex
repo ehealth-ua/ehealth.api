@@ -38,6 +38,9 @@ defmodule Ehealth.Web.Router do
 
     get "/dictionaries", DictionaryController, :index
     patch "/dictionaries/:name", DictionaryController, :update
+
+    get "/employee_requests/:id", EmployeeRequestController, :show
+    post "/employee_requests/:id/user", EmployeeRequestController, :create_user
   end
 
   scope "/api", EHealth.Web do
@@ -46,12 +49,10 @@ defmodule Ehealth.Web.Router do
     get "/employees", EmployeesController, :index
     get "/employees/:id", EmployeesController, :show
 
-    get "/employee_requests/:id", EmployeeRequestController, :show
     get "/employee_requests", EmployeeRequestController, :index
     post "/employee_requests", EmployeeRequestController, :create
     post "/employee_requests/:id/approve", EmployeeRequestController, :approve
     post "/employee_requests/:id/reject", EmployeeRequestController, :reject
-    post "/employee_requests/:id/user", EmployeeRequestController, :create_user
 
     # Divisions
     resources "/divisions", DivisionController, except: [:new, :edit, :delete]
