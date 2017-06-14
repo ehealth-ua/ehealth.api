@@ -108,6 +108,7 @@ updated_at | timestamp | not null
 id | uuid | not null
 data | jsonb | not null
 status | enum('') | not null
+employee_id | uuid
 inserted_at | timestamp | not null
 updated_at | timestamp | not null
 
