@@ -224,59 +224,6 @@ This method is designed to be used only by eHealth API gateway.
         + data (object)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 
-# Group Internal. Portal Services
-
-## Users [/users]
-
-### Search User by Employee Request [GET /users/employee_request/{id}]
-
-+ Parameters
-    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
-
-+ Response 200 (application/json)
-    + Attributes (Response_OK)
-        + data (object)
-            + email: email@example.com (string)
-
-+ Response 404 (application/json)
-    + Attributes (Response_Error)
-        + meta (Response__Meta)
-            + code: 404 (number)
-        + error (Response__Error)
-            + type: NOT_FOUND (string)
-            + message: `Object not found` (string)
-
-
-## Employee Requests [/employee_requests]
-
-### Approve or Reject Employee Request [POST /employee_requests/{id}/actions/{action}]
-
-This service should be used for approve/reject employee request. 
-
-Available employee status transitions: 
-NEW --> REJECTED (action=reject) 
-NEW --> APPROVED (action=approve)
-
-Method logic described on [confluence page](https://edenlab.atlassian.net/wiki/pages/resumedraft.action?draftId=1316502&draftShareId=39ff8744-9673-48e0-ab0e-08fc80ed3190)
-
-+ Parameters
-    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-    + action: approve, reject (enum, required)
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
-
-+ Response 200 (application/json)
-    + Attributes (Response_OK)
 
 # Group Internal. Master Patients Index
 
@@ -876,74 +823,164 @@ Methods returns ukr_med_registry details by ID.
         + data (`crud_ukr_med_registry_get`)
 
 
-# Group Internal. Reports
-
-## Declarations [/reports/declarations]
-
-### Get Declarations Histogram stats [GET /reports/declarations{?start_date,end_date,doctor_id,msp_id,area}]
-
-Methods returns agregated numbers of declarations.
-
-+ Parameters
-    + start_date: 2017-01-28 (string, required)
-    + end_date: 2017-02-28 (string, required)
-    + doctor_id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, optional)
-    + msp_id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, optional)
-    + area: 43321 (string, optional)
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
-
-+ Response 200 (application/json)
-    + Attributes (Response_OK)
-        + data (array [Declaration_Report])
-
+# Group Internal. Portal and Reports
 
 ## MainStats [/reports/stats]
 
-### Get Main Stats [GET /reports/stats]
+### Get Main Stats by Regions [GET /reports/stats/regions{?from_date,to_date,region_id}]
 
-Methods returns agregated numbers of declarations, MSP and doctors.
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
-
-+ Response 200 (application/json)
-    + Attributes (Response_OK)
-        + data (object, optional)
-            + date: `01-01-2017 19:20:22.231` (string, required)
-            + declarations: 244 (number, required)
-            + doctors: 59 (number, required)
-            + `medical_system_providers`: 10 (number, required)
-            + `declarations_signed`: 300 (number, required)
-            + `declarations_terminated`: 56 (number, required)
-
-## DetailedStats [/reports/detailedstats]
-
-### Get Detailed Stats [GET /reports/detailedstats{?start_date,end_date,region_id}]
-
-Methods returns agregated numbers of declarations, MSP and doctors by region.
+Methods returns agregated numbers of declarations, MSP and doctors grouped by region_id.
 
 + Parameters
-    + start_date: 2017-01-28 (string, optional)
-    + end_date: 2017-02-28 (string, optional)
+    + from_date: 2017-01-28 (string, optional)
+    + to_date: 2017-02-28 (string, optional)
     + region_id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, optional)
 
 + Request (application/json)
 
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (object, optional)
+               + from_date: 2017-01-28 (string, required)
+               + to_date: 2017-02-28 (string, required)
+               + regions (array)
+                   + object
+                       + region (RegionReport, required)
+                       + period (MainStats, required)
+                       + total (MainStats, required)
+
+### Get Main Stats by Settlement [GET /reports/stats/settlements{?from_date,to_date,region_id,settlement_id}]
+
+Methods returns agregated numbers of declarations, MSP and doctors grouped by settlements.
+
++ Parameters
+    + from_date: 2017-01-28 (string, optional)
+    + to_date: 2017-02-28 (string, optional)
+    + region_id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
+    + settlement_id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, optional)
+
++ Request (application/json)
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (object, optional)
+            + from_date: 2017-01-28 (string, required)
+            + to_date: 2017-02-28 (string, required)
+            + settlements (array)
+                + object
+                    + settlement (SettlementReport, required)
+                    + period (MainStats, required)
+                    + total (MainStats, required)
+ 
+
+## Declarations [/reports/declarations]
+
+### Get Declarations Stats [GET /reports/declarations{?from_date,to_date,doctor_id,msp_id,division_id,region_id}]
+
+Methods returns agregated numbers of declarations.
+
++ Parameters
+    + from_date: 2017-01-28 (string, required)
+    + to_date: 2017-02-28 (string, required)
+    + doctor_id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, optional)
+    + msp_id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, optional)
+    + division_id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, optional)
+    + region_id: 43321 (string, optional)
+
++ Request (application/json)
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (object, optional)
+            + from_date: 2017-01-28 (string, required)
+            + to_date: 2017-02-28 (string, required)
+            + period (DeclarationStats, required)
+            + total (DeclarationStats, required)
+
+### Get Histogram Stats [GET /reports/histogramstat{?from_date,to_date,region_id,interval}]
+
+Methods returns agregated numbers of declarations, msps and doctors.
+
++ Parameters
+    + from_date: 2017-01-28 (string, required)
+    + to_date: 2017-02-28 (string, required)
+    + region_id: 43321 (string, optional)
+    + interval: DAY (enum, optional)
+      - DAY
+      - MONTH
+      - YEAR
+      + Default: DAY
+
++ Request (application/json)
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (array[HistogramStats], optional)
+
+ 
+## Divisions [/report/divisions]
+
+### Get Division Stats [GET /reports/divisions/{id}]
+Methods returns agregated numbers of declarations and doctors by division
+
++ Parameters
+    + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
+
++ Request (application/json)
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (object, optional)
+           + doctors: 12 (number, required)
+           + declarations (DeclarationStats, required)
+
+
+### Search Divisions [GET /divisions{?type,name,lefttop_latitude,lefttop_longitude,rightbottom_latitude,rightbottom_longitude}]
+Method searches divisions by parameters and returnes division details
+
++ Parameters
+    + type: CLINIC (enum, optional)
+       - CLINIC
+       - AMBULANT_CLINIC
+       - FAP
+    + name: Борисп (string, optional)
+    + lefttop_latitude: 30.1233 (number, required)
+    + lefttop_longitude: 50.32423 (number, required)
+    + rightbottom_latitude: 50.32423 (number, required)
+    + rightbottom_longitude: 50.32423 (number, required)
+
++ Request (application/json)
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (array[DivisionMap], optional)
+
+
+
+## Employee Requests [/employee_requests]
+
+### Approve or Reject Employee Request [POST /employee_requests/{id}/actions/{action}]
+
+This service should be used for approve/reject employee request. 
+
+Available employee status transitions: 
+NEW --> REJECTED (action=reject) 
+NEW --> APPROVED (action=approve)
+
+Method logic described on [confluence page](https://edenlab.atlassian.net/wiki/pages/resumedraft.action?draftId=1316502&draftShareId=39ff8744-9673-48e0-ab0e-08fc80ed3190)
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+    + action: approve, reject (enum, required)
+
++ Request (application/json)
+
     + Headers
 
             Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
-        + data (array[RegionalStats], optional)
 
 # Group Internal. Media Content Storage
 
@@ -2576,12 +2613,6 @@ API for searching Ukrainian Addresses
 + scope (enum, required)
     - family doctor
 
-### `Declaration_Report`
-+ date: `2017-03-02` (string, required)
-+ declarations_total: 100 (number, required)
-+ declarations_created: 10 (number, required)
-+ declarations_closed: 2 (number, required)
-
 ## Party
 ### `Party_Short`
 + first_name: Петро (string, required)
@@ -3039,14 +3070,50 @@ API for searching Ukrainian Addresses
 + `check_digit`: 5 (number, required) - Check digit that will be first in sent OTP code. Can be validated as checksum by [Verhoeff algorithm](https://en.wikipedia.org/wiki/Verhoeff_algorithm).
 
 ## Dashboards
-### RegionalStats
+### DeclarationStats
++ declarations_total: 100 (number, required)
++ declarations_created: 10 (number, required)
++ declarations_closed: 2 (number, required)
+
+### HistogramStats
++ interval (Interval, required)
++ period (MainStats, required)
++ total (MainStats, required)
+
+### Interval
++ from_date: `2017-02-01` (string, required)
++ to_date: `2017-02-30` (string, required)
+
+### MainStats
++ declarations_total: 100 (number, required)
++ declarations_created: 10 (number, required)
++ declarations_closed: 2 (number, required)
++ msps: 2 (number, required)
++ doctors: 15 (number, required)   
+
+### RegionReport
 + id: `asSbcy12sYs8c` (string, required)
-+ region_name: `Київ` (string, required)
-+ declarations: 10
-+ doctors: 5 (number, required)
-+ `medical_system_providers`: 2 (number, required)
-+ `declarations_signed`: 15 (number, required)
-+ `declarations_terminated`: 5 (number, required)
++ name: `Київ` (string, required)
+
+### SettlementReport
++ id: `asSbcy12sYs8c` (string, required)
++ name: `Київ` (string, required)
+
+### DivisionMap
++ id: `asSbcy12sYs8c` (string, required)
++ name: `Aдоніс` (string, required)
++ type: CLINIC, AMBULANT_CLINIC, FAP (enum, required)
++ address (Address, optional)
++ contacts (ContactInfo, optional)
++ coordinates (Location, optional)
+
+### ContactInfo
++ email (string,optional)
++ phones (array[Phone], optional)
+
+### Location
++ latitude: 30.1233 (number, required)
++ longitude: 50.32423 (number, required)
 
 ## DoctorsNew
 ### DoctorNew
