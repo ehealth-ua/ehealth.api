@@ -5,8 +5,6 @@ defmodule EHealth.Man.Templates.EmployeeRequestInvitation do
   alias EHealth.API.Man
   alias EHealth.API.PRM
   alias EHealth.Employee.Request
-  alias Calendar.DateTime, as: CalendarDateTime
-  alias Calendar.Strftime
   alias EHealth.Dictionaries
 
   def render(%Request{id: id, data: data}) do
@@ -59,7 +57,7 @@ defmodule EHealth.Man.Templates.EmployeeRequestInvitation do
 
   def current_date(region, format) do
     region
-    |> CalendarDateTime.now!()
-    |> Strftime.strftime!(format)
+    |> Timex.now()
+    |> Timex.format!(format, :strftime)
   end
 end
