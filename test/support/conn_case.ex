@@ -52,10 +52,7 @@ defmodule EHealth.Web.ConnCase do
   defp put_client_id(conn, _), do: conn
 
   def put_client_id_header(conn, id \\ @client_id) do
-    data =
-      %{"client_id" => id}
-      |> Poison.encode!()
-      |> Base.encode64()
+    data = Poison.encode!(%{"client_id" => id})
 
     Plug.Conn.put_req_header(conn, @header_consumer_meta, data)
   end

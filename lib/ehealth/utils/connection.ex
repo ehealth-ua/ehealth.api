@@ -39,13 +39,9 @@ defmodule EHealth.Utils.Connection do
   defp decode_client_metadata(nil), do: nil
   defp decode_client_metadata(metadata) do
     metadata
-    |> Base.decode64()
-    |> json_decode()
+    |> Poison.decode()
     |> process_decoded_data()
   end
-
-  defp json_decode({:ok, data}), do: Poison.decode(data)
-  defp json_decode(_error), do: nil
 
   defp process_decoded_data({:ok, data}), do: Map.get(data, "client_id")
   defp process_decoded_data(_error), do: nil
