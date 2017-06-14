@@ -21,7 +21,7 @@ heroku container:login
 docker login --email=_ --username=_ --password=$(heroku auth:token) registry.heroku.com
 
 if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
-  if [ "$TRAVIS_BRANCH" == "$RELEASE_BRANCH" ]; then
+  if [[ "$RELEASE_BRANCHES" =~ "$TRAVIS_BRANCH" ]]; then
     echo "Tagging container to a Heroku CE"
     docker tag "${PROJECT_NAME}:${PROJECT_VERSION}" "registry.heroku.com/${PROJECT_NAME}/web"
   fi;
