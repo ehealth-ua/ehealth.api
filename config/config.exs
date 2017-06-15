@@ -140,6 +140,10 @@ config :ehealth, EHealth.Bamboo.Mailer,
   adapter: EHealth.Bamboo.PostmarkAdapter,
   api_key: {:system, "POSTMARK_API_KEY", ""}
 
+# Configures address merger
+config :ehealth, EHealth.Utils.AddressMerger,
+  no_suffix_areas: {:system, "NO_SUFFIX_AREAS", ["М.КИЇВ", "М.СЕВАСТОПОЛЬ"]}
+
 # Configures Elixir's Logger
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",

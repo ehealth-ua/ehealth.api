@@ -6,6 +6,7 @@ defmodule EHealth.Man.Templates.EmployeeRequestInvitation do
   alias EHealth.API.PRM
   alias EHealth.Employee.Request
   alias EHealth.Dictionaries
+  alias EHealth.Utils.AddressMerger
 
   def render(%Request{id: id, data: data}) do
     clinic_info =
@@ -42,18 +43,9 @@ defmodule EHealth.Man.Templates.EmployeeRequestInvitation do
   def get_clinic_address(addresses) when is_list(addresses) and length(addresses) > 0 do
     addresses
     |> Enum.find(fn(x) -> Map.get(x, "type") == "REGISTRATION" end)
-    |> merge_address()
+    |> AddressMerger.merge_address()
   end
   def get_clinic_address(_), do: ""
-
-  def merge_address(nil), do: ""
-  def merge_address(address) do
-    street = Map.get(address, "street")
-    building = Map.get(address, "building")
-    settlement = Map.get(address, "settlement")
-    zip = Map.get(address, "zip")
-    "#{street} #{building}, #{settlement}, #{zip}"
-  end
 
   def current_date(region, format) do
     region
