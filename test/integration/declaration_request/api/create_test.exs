@@ -15,8 +15,16 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         |> generate_upload_urls()
 
       expected_documents = [
-        %{"upload_link" => "http://some_resource.com/declaration-98e0a42f-20fe-472c-a614-0ea99426a3fb/Passport.jpeg"},
-        %{"upload_link" => "http://some_resource.com/declaration-98e0a42f-20fe-472c-a614-0ea99426a3fb/SSN.jpeg"}
+        %{
+          "type" => "Passport",
+          "GET" => "http://some_resource.com/98e0a42f-20fe-472c-a614-0ea99426a3fb/declaration_request_Passport.jpeg",
+          "PUT" => "http://some_resource.com/98e0a42f-20fe-472c-a614-0ea99426a3fb/declaration_request_Passport.jpeg"
+        },
+        %{
+          "type" => "SSN",
+          "GET" => "http://some_resource.com/98e0a42f-20fe-472c-a614-0ea99426a3fb/declaration_request_SSN.jpeg",
+          "PUT" => "http://some_resource.com/98e0a42f-20fe-472c-a614-0ea99426a3fb/declaration_request_SSN.jpeg"
+        }
       ]
 
       assert get_change(changeset, :documents) == expected_documents

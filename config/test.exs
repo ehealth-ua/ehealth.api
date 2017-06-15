@@ -34,9 +34,6 @@ config :ehealth, EHealth.API.OTPVerification,
 config :ehealth, EHealth.API.MPI,
   endpoint: {:system, "MPI_ENDPOINT", "http://localhost:4040"}
 
-config :ehealth, EHealth.API.AEL,
-  endpoint: {:system, "AEL_ENDPOINT", "http://localhost:4040"}
-
 config :ehealth, EHealth.API.Gandalf,
   endpoint: {:system, "GDNF_ENDPOINT", "http://localhost:4040"}
 

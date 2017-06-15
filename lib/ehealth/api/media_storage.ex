@@ -13,7 +13,7 @@ defmodule EHealth.API.MediaStorage do
 
   def options, do: config()[:hackney_options]
 
-  def create_signed_url(action, bucket, resource_name, resource_id, headers) do
+  def create_signed_url(action, bucket, resource_name, resource_id, headers \\ []) do
     data = %{"secret" => %{
       "action" => action,
       "bucket" => bucket,

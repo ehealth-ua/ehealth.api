@@ -26,8 +26,16 @@ defmodule EHealth.Integraiton.DeclarationRequestCreateTest do
       resp["data"]["printout_content"]
 
     assert [
-      %{"upload_link" => "http://some_resource.com/declaration-#{id}/Passport.jpeg"},
-      %{"upload_link" => "http://some_resource.com/declaration-#{id}/SSN.jpeg"}
+      %{
+        "type" => "Passport",
+        "GET" => "http://some_resource.com/#{id}/declaration_request_Passport.jpeg",
+        "PUT" => "http://some_resource.com/#{id}/declaration_request_Passport.jpeg"
+      },
+      %{
+        "type" => "SSN",
+        "GET" => "http://some_resource.com/#{id}/declaration_request_SSN.jpeg",
+        "PUT" => "http://some_resource.com/#{id}/declaration_request_SSN.jpeg"
+      }
     ] == resp["data"]["documents"]
   end
 end

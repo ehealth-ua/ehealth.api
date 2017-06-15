@@ -25,6 +25,7 @@ config :ehealth, EHealth.API.Signature,
 config :ehealth, EHealth.API.MediaStorage,
   endpoint: {:system, "MEDIA_STORAGE_ENDPOINT", "http://api-svc.ael"},
   legal_entity_bucket: {:system, "MEDIA_STORAGE_LEGAL_ENTITY_BUCKET", "legal-entities-dev"},
+  declaration_request_bucket: {:system, "MEDIA_STORAGE_DECLARATION_REQUEST_BUCKET", "declaration_request_dev"},
   enabled?: {:system, :boolean, "MEDIA_STORAGE_ENABLED", false},
   hackney_options: [
     connect_timeout: {:system, :integer, "MEDIA_STORAGE_REQUEST_TIMEOUT", 30_000},
@@ -99,13 +100,6 @@ config :ehealth, EHealth.API.Gandalf,
     timeout: {:system, :integer, "GNDF_REQUEST_TIMEOUT", 30_000}
   ]
 
-# Configures AEL API
-config :ehealth, EHealth.API.AEL,
-  endpoint: {:system, "AEL_ENDPOINT", "api-svc.ael"},
-  storage_bucket: {:system, "AEL_STORAGE_BUCKET", "declaration_request_dev"},
-  declaration_request_offline_documents: {:system, :list, "DECLARATION_REQUEST_OFFLINE_DOCUMENTS", ["Passport", "SSN"]}
-
-
 # employee request invitation
 # Configures employee request invitation template
 config :ehealth, EHealth.Man.Templates.EmployeeRequestInvitation,
@@ -143,6 +137,9 @@ config :ehealth, EHealth.Bamboo.Mailer,
 # Configures address merger
 config :ehealth, EHealth.Utils.AddressMerger,
   no_suffix_areas: {:system, "NO_SUFFIX_AREAS", ["М.КИЇВ", "М.СЕВАСТОПОЛЬ"]}
+
+config :ehealth, EHealth.DeclarationRequest.API.Create,
+  declaration_request_offline_documents: {:system, :list, "DECLARATION_REQUEST_OFFLINE_DOCUMENTS", ["Passport", "SSN"]}
 
 # Configures Elixir's Logger
 config :logger, :console,

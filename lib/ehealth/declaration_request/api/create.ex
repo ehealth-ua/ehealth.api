@@ -1,14 +1,16 @@
 defmodule EHealth.DeclarationRequest.API.Create do
   @moduledoc false
 
-  alias EHealth.API.AEL
+  alias EHealth.API.MediaStorage
   alias EHealth.API.MPI
   alias EHealth.API.Gandalf
   alias EHealth.Man.Templates.DeclarationRequestPrintoutForm
 
   import Ecto.Changeset, only: [get_field: 2, put_change: 3, add_error: 3]
 
-  @ael_config Confex.get_map(:ehealth, AEL)
+  use Confex, otp_app: :ehealth
+
+  @files_storage_bucket Confex.get_map(:ehealth, EHealth.API.MediaStorage)[:declaration_request_bucket]
 
   def send_verification_code(_changeset) do
     {:ok, "Verification code was sent!"}
@@ -18,13 +20,18 @@ defmodule EHealth.DeclarationRequest.API.Create do
     id = get_field(changeset, :id)
 
     documents =
-      Enum.map @ael_config[:declaration_request_offline_documents], fn document ->
-        {:ok, %{"data" => result}} = AEL.generate_url(%{
-          id: "declaration-#{id}",
-          name: "#{document}.jpeg"
-        })
+      Enum.map config()[:declaration_request_offline_documents], fn document_type ->
+        {:ok, %{"data" => %{"upload_link" => put_link}}} =
+          MediaStorage.create_signed_url("PUT", @files_storage_bucket, "declaration_request_#{document_type}.jpeg", id)
 
-        result
+        {:ok, %{"data" => %{"upload_link" => get_link}}} =
+          MediaStorage.create_signed_url("GET", @files_storage_bucket, "declaration_request_#{document_type}.jpeg", id)
+
+        %{
+          "type" => document_type,
+          "PUT" => put_link,
+          "GET" => get_link
+        }
       end
 
     put_change(changeset, :documents, documents)
