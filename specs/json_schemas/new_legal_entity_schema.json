@@ -112,7 +112,9 @@
     },
     "type": {
       "type": "string",
-      "description": "Dictionary: LEGAL_ENTITY_TYPE"
+      "enum": [
+        "MSP"
+      ]
     },
     "owner_property_type": {
       "type": "string",
