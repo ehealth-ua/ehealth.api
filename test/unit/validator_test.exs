@@ -4,6 +4,7 @@ defmodule EHealth.Unit.ValidatorTest do
   use EHealth.Web.ConnCase
 
   alias EHealth.LegalEntity.Validator
+  alias EHealth.LegalEntity.ValidatorKVEDs
   alias EHealth.API.MediaStorage
   alias EHealth.Employee.API, as: EmployeeRequestAPI
 
@@ -16,6 +17,7 @@ defmodule EHealth.Unit.ValidatorTest do
     "labels" => ["SYSTEM"],
     "is_active" => true,
   }
+
   @legal_entity_type %{
     "name" => "LEGAL_ENTITY_TYPE",
     "values" => %{
@@ -23,6 +25,18 @@ defmodule EHealth.Unit.ValidatorTest do
       "MIS" => "MIS",
     },
     "labels" => ["SYSTEM"],
+    "is_active" => true,
+  }
+
+  @kveds %{
+    "name" => "KVEDS",
+    "values" => %{
+      "21.20": "Виробництво фармацевтичних препаратів і матеріалів",
+      "38.31": "Демонтаж (розбирання) машин і устатковання",
+      "56.21": "Постачання готових страв для подій",
+      "82.11": "Надання комбінованих офісних адміністративних послуг",
+    },
+    "labels" => ["SYSTEM", "EXTERNAL"],
     "is_active" => true,
   }
 
@@ -154,5 +168,19 @@ defmodule EHealth.Unit.ValidatorTest do
     data = {:ok, %{"data" => %{"secret_url" => "http://localhost:4040/signed_url_test"}}}
 
     assert {:ok, "http://example.com?signed_url=true"} == MediaStorage.put_signed_content(data, signed_content)
+  end
+
+  test "validate allowed kveds", %{conn: conn} do
+    patch conn, dictionary_path(conn, :update, "KVEDS"), @kveds
+    assert %Ecto.Changeset{valid?: true} = ValidatorKVEDs.validate(["82.11"])
+  end
+
+  test "validate not allowed kveds", %{conn: conn} do
+    patch conn, dictionary_path(conn, :update, "KVEDS"), @kveds
+    assert %Ecto.Changeset{valid?: false} = ValidatorKVEDs.validate(["12.11"])
+  end
+
+  test "validate kveds with empty dictionary" do
+    assert %Ecto.Changeset{valid?: true} = ValidatorKVEDs.validate(["12.11"])
   end
 end

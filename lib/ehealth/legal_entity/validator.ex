@@ -10,6 +10,7 @@ defmodule EHealth.LegalEntity.Validator do
   alias EHealth.API.Signature
   alias EHealth.LegalEntity.Request
   alias EHealth.Utils.ValidationSchemaMapper
+  alias EHealth.LegalEntity.ValidatorKVEDs
   alias EHealth.API.UAddress
 
   use_schema :legal_entity, "specs/json_schemas/new_legal_entity_schema.json"
@@ -20,6 +21,7 @@ defmodule EHealth.LegalEntity.Validator do
     |> validate_signature()
     |> normalize_signature_error()
     |> validate_legal_entity()
+    |> validate_kveds()
     |> validate_addresses()
     |> validate_edrpou()
   end
@@ -69,6 +71,17 @@ defmodule EHealth.LegalEntity.Validator do
   end
 
   def validate_legal_entity(err), do: err
+
+  def validate_kveds({:ok, %{"content" => content}} = result) do
+    content
+    |> Map.get("kveds")
+    |> ValidatorKVEDs.validate()
+    |> case do
+         %Ecto.Changeset{valid?: false} = err -> {:error, err}
+         _ -> result
+       end
+  end
+  def validate_kveds(err), do: err
 
   # Addresses validator
 

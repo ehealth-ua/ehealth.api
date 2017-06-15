@@ -126,7 +126,7 @@ defmodule EHealth.LegalEntity.API do
   def put_legal_entity_to_prm({:ok, %{legal_entity_flow: :update} = pipe_data}, headers) do
     pipe_data
     |> Map.fetch!(:legal_entity_request)
-    |> Map.drop(["edrpou", "kveds"]) # filter immutable data
+    |> Map.drop(["edrpou"]) # filter immutable data
     |> Map.merge(%{
         "updated_by" => get_consumer_id(headers),
         "is_active" => true,

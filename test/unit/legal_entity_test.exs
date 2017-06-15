@@ -48,6 +48,30 @@ defmodule EHealth.Unit.LegalEntityTest do
     })
   end
 
+  test "validate legal entity with not allowed kved", %{conn: conn} do
+    kveds = %{
+      "name" => "KVEDS",
+      "values" => %{
+        "21.20": "Виробництво фармацевтичних препаратів і матеріалів",
+      },
+      "labels" => ["SYSTEM", "EXTERNAL"],
+      "is_active" => true,
+    }
+    patch conn, dictionary_path(conn, :update, "KVEDS"), kveds
+
+    content = Map.merge(get_legal_entity_data(), %{
+      "short_name" => "Nebo15",
+      "email" => "changed@example.com",
+      "kveds" => ["12.21"]
+    })
+    request = %{"data" => %{"content" => content}}
+
+    assert {:error, %Ecto.Changeset{valid?: false}} = API.create_legal_entity(%{
+      "signed_content_encoding" => "base64",
+      "signed_legal_entity_request" => request
+    }, [])
+  end
+
   test "validate decoded legal entity" do
     content = get_legal_entity_data()
 
@@ -130,7 +154,7 @@ defmodule EHealth.Unit.LegalEntityTest do
       "edrpou" => "12345678",
       "short_name" => "Nebo15",
       "email" => "changed@example.com",
-      "kveds" => ["12.21"]
+      "kveds" => ["12.21", "86.01"]
     })
 
     data = %{
@@ -146,7 +170,7 @@ defmodule EHealth.Unit.LegalEntityTest do
     assert "37367387" == legal_entity["edrpou"]
     assert "VERIFIED" == legal_entity["status"]
     assert "changed@example.com" == legal_entity["email"]
-    assert ["86.01"] == legal_entity["kveds"]
+    assert ["12.21", "86.01"] == legal_entity["kveds"]
   end
 
   test "update inactive legal entity" do
