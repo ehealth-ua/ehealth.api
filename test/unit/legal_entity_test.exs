@@ -169,7 +169,7 @@ defmodule EHealth.Unit.LegalEntityTest do
     assert {:ok, %{"data" => %{"id" => ^id}}} = OAuth.put_client(legal_entity, "http://example.com", [])
   end
 
-  test "settlement validation" do
+  test "settlement validation with invalid settlement" do
     legal_entity_data = get_legal_entity_data()
     address =
       legal_entity_data
@@ -185,7 +185,23 @@ defmodule EHealth.Unit.LegalEntityTest do
       "$.addresses.settlement"}] == Validator.validate_addresses({:ok, %{"content" => content}})
   end
 
-  test "region validation" do
+  test "settlement validation with empty settlement" do
+    legal_entity_data = get_legal_entity_data()
+    address =
+      legal_entity_data
+      |> Map.get("addresses")
+      |> Enum.at(0)
+      |> Map.delete("settlement")
+
+    content =
+      legal_entity_data
+      |> Map.put("addresses", [address])
+
+    assert [{%{description: "invalid settlement value", params: [], rule: :invalid},
+      "$.addresses.settlement"}] == Validator.validate_addresses({:ok, %{"content" => content}})
+  end
+
+  test "region validation with invalid region" do
     legal_entity_data = get_legal_entity_data()
     address =
       legal_entity_data
@@ -201,13 +217,45 @@ defmodule EHealth.Unit.LegalEntityTest do
       "$.addresses.region"}] == Validator.validate_addresses({:ok, %{"content" => content}})
   end
 
-  test "area validation" do
+  test "region validation with empty region" do
+    legal_entity_data = get_legal_entity_data()
+    address =
+      legal_entity_data
+      |> Map.get("addresses")
+      |> Enum.at(0)
+      |> Map.delete("region")
+
+    content =
+      legal_entity_data
+      |> Map.put("addresses", [address])
+
+    assert [{%{description: "invalid region value", params: [], rule: :invalid},
+      "$.addresses.region"}] == Validator.validate_addresses({:ok, %{"content" => content}})
+  end
+
+  test "area validation with invalid area" do
     legal_entity_data = get_legal_entity_data()
     address =
       legal_entity_data
       |> Map.get("addresses")
       |> Enum.at(0)
       |> Map.put("area", "Волинська")
+
+    content =
+      legal_entity_data
+      |> Map.put("addresses", [address])
+
+    assert [{%{description: "invalid area value", params: [], rule: :invalid},
+      "$.addresses.area"}] == Validator.validate_addresses({:ok, %{"content" => content}})
+  end
+
+  test "area validation with empty area" do
+    legal_entity_data = get_legal_entity_data()
+    address =
+      legal_entity_data
+      |> Map.get("addresses")
+      |> Enum.at(0)
+      |> Map.delete("area")
 
     content =
       legal_entity_data
