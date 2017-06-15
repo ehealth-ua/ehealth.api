@@ -1,0 +1,90 @@
+{
+  "declaration_request": {
+    "person": {
+      "first_name": "Олена",
+      "last_name": "Пчілка",
+      "second_name": "Миколайович",
+      "birth_date": "2010-08-19",
+      "birth_place": "Вінниця, Україна",
+      "gender": "MALE",
+      "email": "email@example.com",
+      "tax_id": "3126509816",
+      "secret": "secret",
+      "documents": [
+        {
+          "type": "PASSPORT",
+          "number": "120518"
+        }
+      ],
+      "addresses": [
+        {
+          "type": "RESIDENCE",
+          "country": "UA",
+          "area": "Житомирська",
+          "region": "Бердичівський",
+          "settlement": "Київ",
+          "settlement_type": "CITY",
+          "settlement_id": "43432432",
+          "street_type": "STREET",
+          "street": "вул. Ніжинська",
+          "building": "15",
+          "apartment": "23",
+          "zip": "02090"
+        }
+      ],
+      "phones": [
+        {
+          "type": "MOBILE",
+          "number": "+380508887700"
+        }
+      ],
+      "authentication_methods": [
+        {
+          "type": "SMS",
+          "phone_number": "+380508887700"
+        }
+      ],
+      "emergency_contact": {
+        "first_name": "Петро",
+        "last_name": "Іванов",
+        "second_name": "Миколайович",
+        "phones": [
+          {
+            "type": "MOBILE",
+            "number": "+380503410870"
+          }
+        ]
+      },
+      "confidant_person": {
+        "relation_type": "TRUSTEE",
+        "first_name": "Петро",
+        "last_name": "Іванов",
+        "second_name": "Миколайович",
+        "birth_date": "1991-08-19T00:00:00.000Z",
+        "birth_place": "Вінниця, Україна",
+        "gender": "MALE",
+        "tax_id": "3126509816",
+        "documents": [
+          {
+            "type": "PASSPORT",
+            "number": "120518"
+          }
+        ],
+        "phones": [
+          {
+            "type": "MOBILE",
+            "number": "+380503410870"
+          }
+        ]
+      },
+      "renewal_consent": true,
+      "patient_signed": true,
+      "disclosure_consent": true,
+      "process_data_consent": true
+    },
+    "employee_id": "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
+    "division_id": "d290f1ee-6c54-4b01-90e6-d701748f0851",
+    "legal_entity_id": "d290f1ee-6c54-4b01-90e6-d701748f0851",
+    "scope": "FAMILY DOCTOR"
+  }
+}

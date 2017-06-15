@@ -31,11 +31,12 @@ legal_entity_id | uuid | not null
 [declaration_requests]
 id | uuid | not null
 inserted_by | uuid | not null
+updated_by | uuid | not null
 data | jsonb | not null
 status | enum('NEW', 'APPROVED', 'CANCELLED') | not null
-authentication_method_current | jsonb
-printout_content | varchar
-documents | jsonb
+authentication_method_current | jsonb | not null
+printout_content | varchar | not null
+documents | jsonb | not null
 inserted_at | timestamp | not null
 updated_at | timestamp | not null
 

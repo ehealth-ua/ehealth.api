@@ -28,6 +28,18 @@ config :ehealth, EHealth.API.UAddress,
 config :ehealth, EHealth.API.Mithril,
   endpoint: {:system, "OAUTH_ENDPOINT", "http://localhost:4040"}
 
+config :ehealth, EHealth.API.OTPVerification,
+  endpoint: {:system, "OTP_VERIFICATION_ENDPOINT", "http://localhost:4040"}
+
+config :ehealth, EHealth.API.MPI,
+  endpoint: {:system, "MPI_ENDPOINT", "http://localhost:4040"}
+
+config :ehealth, EHealth.API.AEL,
+  endpoint: {:system, "AEL_ENDPOINT", "http://localhost:4040"}
+
+config :ehealth, EHealth.API.Gandalf,
+  endpoint: {:system, "GDNF_ENDPOINT", "http://localhost:4040"}
+
 config :ehealth, mock: [
   port: {:system, :integer, "TEST_MOCK_PORT", 4040},
   host: {:system, "TEST_MOCK_HOST", "localhost"}

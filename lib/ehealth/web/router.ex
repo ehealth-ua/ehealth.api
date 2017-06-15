@@ -58,5 +58,8 @@ defmodule Ehealth.Web.Router do
     resources "/divisions", DivisionController, except: [:new, :edit, :delete]
     patch "/divisions/:id/actions/activate", DivisionController, :activate
     patch "/divisions/:id/actions/deactivate", DivisionController, :deactivate
+
+    # Declaration requests
+    post "/declaration_requests", DeclarationRequestController, :create
   end
 end

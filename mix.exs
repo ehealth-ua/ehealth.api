@@ -51,6 +51,7 @@ defmodule EHealth.Mixfile do
   defp deps do
     [{:distillery, "~> 1.2"},
      {:confex, "~> 1.4"},
+     {:timex, ">= 3.1.15"},
      {:logger_json, "~> 0.3.0"},
      {:poison, "~> 3.1"},
      {:ecto, "~> 2.1"},

@@ -166,6 +166,17 @@ defmodule EHealth.MockServer do
     render(resp, conn, code)
   end
 
+  get "/global_parameters" do
+    response = Poison.encode!(%{
+      data: %{
+        adult_age: 18,
+        declaration_request_term: 40,
+        declaration_request_term_unit: "YEARS"
+      }
+    })
+
+    Plug.Conn.send_resp(conn, 200, response)
+  end
 
   # Mithril
 
@@ -261,7 +272,7 @@ defmodule EHealth.MockServer do
   # Man
 
   post "/templates/:id/actions/render" do
-    Plug.Conn.send_resp(conn, 200, get_rendered_template())
+    Plug.Conn.send_resp(conn, 200, get_rendered_template(id, conn.body_params))
   end
 
   # UAddress
@@ -302,6 +313,115 @@ defmodule EHealth.MockServer do
       |> Poison.encode!()
 
     Plug.Conn.send_resp(conn, 200, resp)
+  end
+
+  # OTP Verification
+
+  get "/verifications" do
+    params =
+      conn
+      |> Plug.Conn.fetch_query_params(conn)
+      |> Map.get(:params)
+
+    response =
+      params
+      |> search_for_number
+      |> wrap_response
+      |> Poison.encode!
+
+    Plug.Conn.send_resp(conn, 200, response)
+  end
+
+  # MPI API
+
+  get "/persons" do
+    params =
+      conn
+      |> Plug.Conn.fetch_query_params(conn)
+      |> Map.get(:params)
+
+    response =
+      params
+      |> search_for_people
+      |> wrap_response
+      |> Poison.encode!
+
+    Plug.Conn.send_resp(conn, 200, response)
+  end
+
+  get "/persons/:id" do
+    response =
+      id
+      |> get_person_by_id
+      |> wrap_response
+      |> Poison.encode!
+
+    Plug.Conn.send_resp(conn, 200, response)
+  end
+
+  post "/api/v1/tables/58f62b96e79e8521f51b5754/decisions" do
+    response = %{
+      "data": %{
+        "final_decision": "OFFLINE"
+      }
+    }
+
+    Plug.Conn.send_resp(conn, 200, Poison.encode!(response))
+  end
+
+  post "/media_content_storage_secrets" do
+    response =
+      conn.body_params
+      |> generate_storage_link
+      |> wrap_response
+      |> Poison.encode!
+
+    Plug.Conn.send_resp(conn, 200, response)
+  end
+
+  def generate_storage_link(params) do
+    link =
+      ["http://some_resource.com", params["secret"]["resource_id"], params["secret"]["resource_name"]]
+      |> Enum.join("/")
+
+    %{
+      "upload_link" => link
+    }
+  end
+
+  def search_for_people(params) do
+    case params do
+      %{
+        "first_name" => "Олена",
+        "last_name" => "Пчілка",
+        "phone_number" => "+380508887700",
+        "birth_date" => "2010-08-19 00:00:00",
+        "tax_id" => "3126509816"
+      } ->
+        [%{id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c"}]
+      _ ->
+        []
+    end
+  end
+
+  def get_person_by_id(id) do
+    case id do
+      "b5350f79-f2ca-408f-b15d-1ae0a8cc861c" ->
+        %{
+          "authentication_methods": [
+            %{"type": "OTP", "number": "+380508887700"} # TODO: number or phone_number?
+          ]
+        }
+      _ ->
+        []
+    end
+  end
+
+  def search_for_number(params) do
+    case params do
+      %{ "number" => "+380508887700", "statuses" => "completed" } -> [1]
+      _ -> []
+    end
   end
 
   def get_settlement(mountain_group \\ "0") do
@@ -407,6 +527,11 @@ defmodule EHealth.MockServer do
       "position" => "some position",
       "end_date" => "2011-04-17",
       "start_date" => "2010-04-17",
+      "specialities" => [
+        %{
+          "speciality" => "PEDIATRICIAN"
+        }
+      ],
       "inserted_by" => "7488a646-e31f-11e4-aace-600308960662",
       "updated_by" => "7488a646-e31f-11e4-aace-600308960662"
     }
@@ -575,7 +700,11 @@ defmodule EHealth.MockServer do
     }
   end
 
-  def get_rendered_template, do: "<html><body>Some template text</body></hrml>"
+  def get_rendered_template("32", params) do
+    "<html><body>Printout form for declaration request ##{params["id"]}</body></hrml>"
+  end
+
+  def get_rendered_template(_, _), do: "<html><body>Some template text</body></hrml>"
 
   def render(resource, conn, status) do
     conn = Plug.Conn.put_status(conn, status)

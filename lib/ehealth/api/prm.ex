@@ -144,4 +144,12 @@ defmodule EHealth.API.PRM do
     |> get!(headers, params: [edrpou: edrpou])
     |> ResponseDecoder.check_response()
   end
+
+  # Global parameters
+
+  def get_global_parameters(headers \\ []) do
+    "/global_parameters"
+    |> get!(headers)
+    |> ResponseDecoder.check_response()
+  end
 end

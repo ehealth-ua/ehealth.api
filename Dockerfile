@@ -8,6 +8,8 @@ ENV MIX_ENV=prod \
     APP_NAME=ehealth \
     APP_PORT=4000
 
+RUN apk add --update make
+
 WORKDIR ${HOME}
 
 # Add project sources

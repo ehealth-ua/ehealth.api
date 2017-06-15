@@ -59,7 +59,7 @@ config :ehealth, EHealth.API.Man,
     timeout: {:system, :integer, "MAN_REQUEST_TIMEOUT", 30_000}
   ]
 
-# Configures Man API
+# Configures UAddress API
 config :ehealth, EHealth.API.UAddress,
   endpoint: {:system, "UADDRESS_ENDPOINT", "http://api-svc.uaddresses"},
   timeouts: [
@@ -67,6 +67,44 @@ config :ehealth, EHealth.API.UAddress,
     recv_timeout: {:system, :integer, "UADDRESS_REQUEST_TIMEOUT", 30_000},
     timeout: {:system, :integer, "UADDRESS_REQUEST_TIMEOUT", 30_000}
   ]
+
+# Configures OTP Verification API
+config :ehealth, EHealth.API.OTPVerification,
+  endpoint: {:system, "OTP_VERIFICATION_ENDPOINT", "http://api-svc.verification"},
+  timeouts: [
+    connect_timeout: {:system, :integer, "OTP_VERIFICATION_REQUEST_TIMEOUT", 30_000},
+    recv_timeout: {:system, :integer, "OTP_VERIFICATION_REQUEST_TIMEOUT", 30_000},
+    timeout: {:system, :integer, "OTP_VERIFICATION_REQUEST_TIMEOUT", 30_000}
+  ]
+
+# Configures MPI API
+config :ehealth, EHealth.API.MPI,
+  endpoint: {:system, "MPI_ENDPOINT", "http://api-svc.mpi"},
+  timeouts: [
+    connect_timeout: {:system, :integer, "MPI_REQUEST_TIMEOUT", 30_000},
+    recv_timeout: {:system, :integer, "MPI_REQUEST_TIMEOUT", 30_000},
+    timeout: {:system, :integer, "MPI_REQUEST_TIMEOUT", 30_000}
+  ]
+
+# Configures Gandalf API
+config :ehealth, EHealth.API.Gandalf,
+  endpoint: {:system, "GDNF_ENDPOINT", "https://api.gndf.io"},
+  client_id: {:system, "GDNF_CLIENT_ID", "some_client_id"},
+  client_secret: {:system, "GDNF_CLIENT_SECRET", "some_client_secret"},
+  application_id: {:system, "GNDF_APPLICATION_ID", "58eca20fe79e8563e803dc18"},
+  table_id: {:system, "GNDF_TABLE_ID", "58f62b96e79e8521f51b5754"},
+  timeouts: [
+    connect_timeout: {:system, :integer, "GNDF_REQUEST_TIMEOUT", 30_000},
+    recv_timeout: {:system, :integer, "GNDF_REQUEST_TIMEOUT", 30_000},
+    timeout: {:system, :integer, "GNDF_REQUEST_TIMEOUT", 30_000}
+  ]
+
+# Configures AEL API
+config :ehealth, EHealth.API.AEL,
+  endpoint: {:system, "AEL_ENDPOINT", "api-svc.ael"},
+  storage_bucket: {:system, "AEL_STORAGE_BUCKET", "declaration_request_dev"},
+  declaration_request_offline_documents: {:system, :list, "DECLARATION_REQUEST_OFFLINE_DOCUMENTS", ["Passport", "SSN"]}
+
 
 # employee request invitation
 # Configures employee request invitation template
@@ -86,6 +124,11 @@ config :ehealth, EHealth.Man.Templates.EmployeeCreatedNotification,
   id: {:system, "EMPLOYEE_CREATED_NOTIFICATION_TEMPLATE_ID", 35},
   format: {:system, "EMPLOYEE_CREATED_NOTIFICATION_TEMPLATE_FORMAT", "text/html"},
   locale: {:system, "EMPLOYEE_CREATED_NOTIFICATION_TEMPLATE_LOCALE", "uk_UA"}
+
+config :ehealth, EHealth.Man.Templates.DeclarationRequestPrintoutForm,
+  id: {:system, "DECLARATION_REQUEST_PRINTOUT_FORM_TEMPLATE_ID", 32},
+  format: {:system, "DECLARATION_REQUEST_PRINTOUT_FORM_TEMPLATE_FORMAT", "text/html"},
+  locale: {:system, "DECLARATION_REQUEST_PRINTOUT_FORM_TEMPLATE_LOCALE", "uk_UA"}
 
 # Configures employee created notification email
 config :ehealth, EHealth.Bamboo.Emails.EmployeeCreatedNotification,
