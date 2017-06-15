@@ -123,7 +123,7 @@ defmodule EHealth.LegalEntity.Validator do
   end
 
   defp validate_settlement({:ok, %{"meta" => _meta, "data" => data}}, address) do
-    case String.upcase(Map.get(data, "name")) == String.upcase(Map.get(address, "settlement")) do
+    case get_map_upcase_value(data, "name") == get_map_upcase_value(address, "settlement") do
       true -> get_region_info(data, address)
       _ -> [{%{
         description: "invalid settlement value",
@@ -150,7 +150,7 @@ defmodule EHealth.LegalEntity.Validator do
   end
 
   defp validate_region({:ok, %{"meta" => _meta, "data" => data}}, settlement, address) do
-    case String.upcase(Map.get(data, "name")) == String.upcase(Map.get(address, "area")) do
+    case get_map_upcase_value(data, "name") == get_map_upcase_value(address, "area") do
       true -> get_district_info(settlement, address)
       _ -> [{%{
         description: "invalid area value",
@@ -183,7 +183,7 @@ defmodule EHealth.LegalEntity.Validator do
   end
 
   defp validate_district({:ok, %{"meta" => _meta, "data" => data}}, address) do
-    case String.upcase(Map.get(data, "name")) == String.upcase(Map.get(address, "region")) do
+    case get_map_upcase_value(data, "name") == get_map_upcase_value(address, "region") do
       true -> []
       _ -> [{%{
         description: "invalid region value",
@@ -195,6 +195,12 @@ defmodule EHealth.LegalEntity.Validator do
 
   defp return_addresses_values_validation_result([], result), do: result
   defp return_addresses_values_validation_result(errors, _result), do: errors
+
+  defp get_map_upcase_value(map, key) do
+    map
+    |> Map.get(key, "")
+    |> String.upcase()
+  end
 
   # Tax ID validator
 
