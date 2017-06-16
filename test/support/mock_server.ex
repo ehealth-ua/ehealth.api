@@ -107,6 +107,16 @@ defmodule EHealth.MockServer do
     render_with_paging([employee, employee], conn)
   end
 
+  get "/employees/:id" when id == "ce377dea-d8c4-4dd8-9328-de24b1ee3879" do
+    response =
+      id
+      |> get_employee_by_id
+      |> wrap_response
+      |> Poison.encode!
+
+    Plug.Conn.send_resp(conn, 200, response)
+  end
+
   get "/employees/:id" do
     case conn.path_params do
       %{"id" => "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b"} ->
@@ -522,6 +532,27 @@ defmodule EHealth.MockServer do
       "legal_entity_id" => legal_entity_id || "7cc91a5d-c02f-41e9-b571-1ea4f2375552",
       "employee_type" => "hr",
       "type" => "employee", # EView field
+      "is_active" => true,
+      "status" => "some status",
+      "position" => "some position",
+      "end_date" => "2011-04-17",
+      "start_date" => "2010-04-17",
+      "specialities" => [
+        %{
+          "speciality" => "PEDIATRICIAN"
+        }
+      ],
+      "inserted_by" => "7488a646-e31f-11e4-aace-600308960662",
+      "updated_by" => "7488a646-e31f-11e4-aace-600308960662"
+    }
+  end
+
+  def get_employee_by_id("ce377dea-d8c4-4dd8-9328-de24b1ee3879") do
+    %{
+      "id" => "ce377dea-d8c4-4dd8-9328-de24b1ee3879",
+      "party_id" => "01981ab9-904c-4c36-88ab-959a94087483",
+      "legal_entity_id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375552",
+      "employee_type" => "doctor",
       "is_active" => true,
       "status" => "some status",
       "position" => "some position",

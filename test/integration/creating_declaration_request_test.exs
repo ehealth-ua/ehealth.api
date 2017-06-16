@@ -8,7 +8,7 @@ defmodule EHealth.Integraiton.DeclarationRequestCreateTest do
 
     conn =
       conn
-      |> put_req_header("x-consumer-id", "0e321b78-5e14-4034-9905-463435391680")
+      |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
       |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: ""}))
       |> post("/api/declaration_requests", declaration_request_params)
 
@@ -19,8 +19,8 @@ defmodule EHealth.Integraiton.DeclarationRequestCreateTest do
     assert to_string(Date.utc_today) == resp["data"]["data"]["start_date"]
     assert {:ok, _} = Date.from_iso8601(resp["data"]["data"]["end_date"])
     assert "NEW" = resp["data"]["status"]
-    assert "0e321b78-5e14-4034-9905-463435391680" = resp["data"]["updated_by"]
-    assert "0e321b78-5e14-4034-9905-463435391680" = resp["data"]["inserted_by"]
+    assert "ce377dea-d8c4-4dd8-9328-de24b1ee3879" = resp["data"]["updated_by"]
+    assert "ce377dea-d8c4-4dd8-9328-de24b1ee3879" = resp["data"]["inserted_by"]
     assert %{"number" => "+380508887700", "type" => "OTP"} = resp["data"]["authentication_method_current"]
     assert "<html><body>Printout form for declaration request ##{id}</body></hrml>" ==
       resp["data"]["printout_content"]

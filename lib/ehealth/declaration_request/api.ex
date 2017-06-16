@@ -27,28 +27,42 @@ defmodule EHealth.DeclarationRequest.API do
 
   def new_declaration_request(attrs, user_id) do
     {:ok, %{"data" => global_parameters}} = PRM.get_global_parameters()
+    {:ok, %{"data" => employee}} = PRM.get_employee_by_id(user_id)
+
     stale_declaration_requests = [status: "CANCELLED", updated_at: DateTime.utc_now()]
 
     Multi.new
     |> Multi.update_all(:previous_requests, pending_declaration_requests(attrs), set: stale_declaration_requests)
-    |> Multi.insert(:declaration_request, create_changeset(attrs, user_id, global_parameters))
+    |> Multi.insert(:declaration_request, create_changeset(attrs, employee, global_parameters))
     |> Multi.run(:verification_code, &Create.send_verification_code/1)
   end
 
-  def create_changeset(attrs, user_id, global_parameters) do
+  def create_changeset(attrs, employee, global_parameters) do
     %EHealth.DeclarationRequest{}
     |> cast(%{data: attrs}, [:data])
-    |> validate_patient_age(global_parameters["adult_age"])
+    |> validate_patient_age(Enum.map(employee["specialities"], &(&1["speciality"])), global_parameters["adult_age"])
     |> validate_patient_phone_number()
     |> put_start_end_dates(global_parameters)
+    |> put_in_data("employee_id", employee["id"])
+    |> put_in_data("legal_entity_id", employee["legal_entity_id"])
+    |> put_in_data("division_id", employee["division_id"])
     |> put_change(:id, UUID.generate())
     |> put_change(:status, "NEW")
-    |> put_change(:inserted_by, user_id)
-    |> put_change(:updated_by, user_id)
+    |> put_change(:inserted_by, employee["id"])
+    |> put_change(:updated_by, employee["id"])
     |> Create.determine_auth_method_for_mpi()
     |> Create.generate_printout_form()
     |> Create.generate_upload_urls()
     |> validate_required(@required_fields)
+  end
+
+  def put_in_data(changeset, key, value) do
+    new_data =
+      changeset
+      |> get_field(:data)
+      |> put_in([key], value)
+
+    put_change(changeset, :data, new_data)
   end
 
   def put_start_end_dates(changeset, global_parameters) do

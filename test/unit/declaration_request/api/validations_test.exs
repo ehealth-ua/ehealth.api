@@ -5,7 +5,7 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
   import EHealth.DeclarationRequest.API.Validations
   alias EHealth.DeclarationRequest
 
-  describe "validate_patient_age/2" do
+  describe "validate_patient_age/3" do
     test "patient's age matches doctor's speciality" do
       raw_declaration_request = %{
         data: %{
@@ -19,7 +19,7 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
       result =
         %DeclarationRequest{}
         |> Ecto.Changeset.change(raw_declaration_request)
-        |> validate_patient_age(18)
+        |> validate_patient_age(["PEDIATRICIAN"], 18)
 
       assert is_nil(result.errors[:data])
     end
@@ -37,7 +37,7 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
       result =
         %DeclarationRequest{}
         |> Ecto.Changeset.change(raw_declaration_request)
-        |> validate_patient_age(18)
+        |> validate_patient_age(["PEDIATRICIAN"], 18)
 
       assert result.errors[:data] == {"Doctor speciality does not meet the patient's age requirement.", []}
     end

@@ -1,7 +1,6 @@
 defmodule EHealth.DeclarationRequest.API.Validations do
   @moduledoc false
 
-  alias EHealth.API.PRM
   alias EHealth.API.OTPVerification
 
   import Ecto.Changeset
@@ -35,20 +34,13 @@ defmodule EHealth.DeclarationRequest.API.Validations do
     end
   end
 
-  def validate_patient_age(changeset, adult_age) do
+  def validate_patient_age(changeset, specialities, adult_age) do
     validate_change changeset, :data, fn :data, data ->
       patient_birth_date = Date.from_iso8601! get_in(data, ["person", "birth_date"])
 
       patient_age = Timex.diff(Timex.now(), patient_birth_date, :years)
 
-      doctor_specialities =
-        data
-        |> get_in(["employee_id"])
-        |> PRM.get_employee_by_id()
-        |> elem(1)
-        |> get_in(["data", "specialities"])
-
-      case Enum.any? doctor_specialities, &belongs_to(patient_age, adult_age, &1["speciality"]) do
+      case Enum.any? specialities, &belongs_to(patient_age, adult_age, &1) do
         true -> []
         false -> [data: "Doctor speciality does not meet the patient's age requirement."]
       end
