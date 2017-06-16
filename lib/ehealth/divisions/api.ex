@@ -12,6 +12,7 @@ defmodule EHealth.Divisions.API do
 
   use_schema :division, "specs/json_schemas/division_schema.json"
 
+  @status_active "ACTIVE"
   @default_mountain_group "0"
 
   def search(legal_entity_id, params \\ %{}, headers \\ []) do
@@ -54,20 +55,18 @@ defmodule EHealth.Divisions.API do
   def update_status(legal_entity_id, id, status, headers) do
     legal_entity_id
     |> get_by_id(id, headers)
-    |> update_division(%{"status" => status}, headers)
+    |> update_division(%{"status" => status, "is_active" => status == @status_active}, headers)
   end
 
   def create_division({:ok, data}, headers) do
     data
-    |> Map.put("is_active", true)
+    |> Map.merge(%{"status" => "ACTIVE", "is_active" => true})
     |> PRM.create_division(headers)
   end
   def create_division(err, _headers), do: err
 
   def update_division({:ok, %{"data" => division}}, data, headers) do
-    data
-    |> Map.put("is_active", true)
-    |> PRM.update_division(Map.fetch!(division, "id"), headers)
+    PRM.update_division(data, Map.fetch!(division, "id"), headers)
   end
   def update_division(err, _data, _headers), do: err
 
@@ -89,24 +88,16 @@ defmodule EHealth.Divisions.API do
       |> List.first()
       |> Map.fetch!("settlement_id")
 
-    %{"settlement_id" => settlement_id}
-    |> UAddress.search_settlements()
+    settlement_id
+    |> UAddress.get_settlement_by_id()
     |> put_mountain_group(division)
   end
 
   def put_mountain_group(err), do: err
 
-  def put_mountain_group({:ok, %{"data" => addresses}}, division) when length(addresses) > 0 do
-    mountain_group =
-      addresses
-      |> List.first()
-      |> Map.get("mountain_group", @default_mountain_group)
-
+  def put_mountain_group({:ok, %{"data" => address}}, division) do
+    mountain_group = Map.get(address, "mountain_group", @default_mountain_group)
     {:ok, Map.put(division, "mountain_group", mountain_group)}
-  end
-
-  def put_mountain_group({:ok, _}, division) do
-    {:ok, Map.put(division, "mountain_group", @default_mountain_group)}
   end
 
   def put_mountain_group(err, _division), do: err

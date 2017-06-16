@@ -65,6 +65,7 @@ email | varchar
 mountain_group | enum('')
 type | enum('ambulant_clinic','clinic') | not null
 status | enum('active','inactive') | not null
+is_active | boolean | not null
 inserted_at | timestamp | not null
 updated_at | timestamp | not null
 

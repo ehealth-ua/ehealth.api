@@ -99,7 +99,9 @@ defmodule EHealth.Web.DivisionsControllerTest do
     conn = put_client_id_header(conn)
     conn = patch conn, division_path(conn, :deactivate, "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b")
 
-    assert "INACTIVE" == json_response(conn, 200)["data"]["status"]
+    data = json_response(conn, 200)["data"]
+    assert "INACTIVE" == data["status"]
+    refute data["is_active"]
   end
 
   test "activate division with wrong legal_entity_id", %{conn: conn} do
