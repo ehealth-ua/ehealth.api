@@ -7,6 +7,9 @@ defmodule EHealth.Web.DeclarationRequestController do
   action_fallback EHealth.Web.FallbackController
 
   def create(conn, %{"declaration_request" => declaration_request}) do
+    require Logger
+    Logger.info inspect(conn.req_headers)
+
     user_id =
       conn
       |> get_req_header("x-consumer-id")
