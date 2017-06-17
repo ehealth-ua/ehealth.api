@@ -83,7 +83,7 @@ config :ehealth, EHealth.Bamboo.Emails.EmployeeRequestInvitation,
 # employee created notification
 # Configures employee created notification template
 config :ehealth, EHealth.Man.Templates.EmployeeCreatedNotification,
-  id: {:system, "EMPLOYEE_CREATED_NOTIFICATION_TEMPLATE_ID", 35},
+  id: {:system, "EMPLOYEE_CREATED_NOTIFICATION_TEMPLATE_ID", 2},
   format: {:system, "EMPLOYEE_CREATED_NOTIFICATION_TEMPLATE_FORMAT", "text/html"},
   locale: {:system, "EMPLOYEE_CREATED_NOTIFICATION_TEMPLATE_LOCALE", "uk_UA"}
 
