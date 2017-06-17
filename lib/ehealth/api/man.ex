@@ -14,6 +14,7 @@ defmodule EHealth.API.Man do
   def timeouts, do: config()[:timeouts]
 
   def render_template(id, data, headers \\ []) do
+    log_call(id, data, headers)
     "/templates/#{id}/actions/render"
     |> post!(Poison.encode!(data), headers, timeouts())
     |> process_template()
@@ -21,7 +22,15 @@ defmodule EHealth.API.Man do
 
   def process_template(%HTTPoison.Response{body: body, status_code: 200}), do: body
   def process_template(response) do
-    Logger.error(fn -> "Employee request invitation email template can not be rendered. Response: #{inspect response}" end)
+    Logger.error fn ->
+      "Employee request invitation email template can not be rendered. Response: #{inspect response}"
+    end
     nil
+  end
+
+  defp log_call(id, data, headers) do
+    Logger.info fn ->
+      "Calling POST on /templates/#{id}/actions/render with body #{inspect data} and headers #{inspect headers}."
+    end
   end
 end
