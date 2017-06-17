@@ -20,8 +20,8 @@ defmodule EHealth.API.Man do
   end
 
   def process_template(%HTTPoison.Response{body: body, status_code: 200}), do: body
-  def process_template(_) do
-    Logger.error(fn -> "Employee request invitation email template can not be rendered" end)
+  def process_template(response) do
+    Logger.error(fn -> "Employee request invitation email template can not be rendered. Response: #{response}" end)
     nil
   end
 end
