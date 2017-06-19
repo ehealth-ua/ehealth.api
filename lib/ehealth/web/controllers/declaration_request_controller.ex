@@ -2,23 +2,20 @@ defmodule EHealth.Web.DeclarationRequestController do
   @moduledoc false
 
   use EHealth.Web, :controller
-  alias EHealth.DeclarationRequest.API
+  alias EHealth.DeclarationRequest.API, as: DeclarationRequestAPI
 
   action_fallback EHealth.Web.FallbackController
 
   def create(conn, %{"declaration_request" => declaration_request}) do
-    require Logger
-    Logger.info inspect(conn.req_headers)
+    [user_id|_] = get_req_header(conn, "x-consumer-id")
 
-    user_id =
-      conn
-      |> get_req_header("x-consumer-id")
-      |> hd()
-
-    result = API.create_declaration_request(declaration_request, user_id)
-
-    with {:ok, %{declaration_request: declaration_request, previous_requests: _previous_requests}} <- result do
-      render(conn, "show.json", declaration_request: declaration_request)
+    case DeclarationRequestAPI.create(declaration_request, user_id) do
+      {:ok, %{declaration_request: declaration_request}} ->
+        render(conn, "show.json", declaration_request: declaration_request)
+      {:error, microservice_result} ->
+        conn
+        |> put_status(:failed_dependency)
+        |> render("microservice_error.json", microservice_result)
     end
   end
 end

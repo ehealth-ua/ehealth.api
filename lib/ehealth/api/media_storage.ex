@@ -8,6 +8,7 @@ defmodule EHealth.API.MediaStorage do
   use EHealth.API.HeadersProcessor
 
   alias EHealth.API.ResponseDecoder
+  alias EHealth.API.Helpers.MicroserviceCallLog, as: CallLog
 
   require Logger
 
@@ -24,6 +25,8 @@ defmodule EHealth.API.MediaStorage do
   end
 
   def create_signed_url(data, headers) do
+    CallLog.log("POST", config()[:endpoint], "/media_content_storage_secrets", data, headers)
+
     config()[:endpoint]
     |> Kernel.<>("/media_content_storage_secrets")
     |> post!(Poison.encode!(data), headers, options())

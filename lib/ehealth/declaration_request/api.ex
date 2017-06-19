@@ -21,20 +21,17 @@ defmodule EHealth.DeclarationRequest.API do
     updated_by
   )a
 
-  def create_declaration_request(attrs, user_id) do
-    Repo.transaction(new_declaration_request(attrs, user_id))
-  end
+  def create(attrs, user_id) do
+    with {:ok, %{"data" => global_parameters}} <- PRM.get_global_parameters(),
+         {:ok, %{"data" => employee}} <- PRM.get_employee_by_id(attrs["employee_id"]) do
+      updates = [status: "CANCELLED", updated_at: DateTime.utc_now(), updated_by: user_id]
 
-  def new_declaration_request(attrs, user_id) do
-    {:ok, %{"data" => global_parameters}} = PRM.get_global_parameters()
-    {:ok, %{"data" => employee}} = PRM.get_employee_by_id(user_id)
-
-    stale_declaration_requests = [status: "CANCELLED", updated_at: DateTime.utc_now()]
-
-    Multi.new
-    |> Multi.update_all(:previous_requests, pending_declaration_requests(attrs), set: stale_declaration_requests)
-    |> Multi.insert(:declaration_request, create_changeset(attrs, employee, global_parameters))
-    |> Multi.run(:verification_code, &Create.send_verification_code/1)
+      Multi.new
+      |> Multi.update_all(:previous_requests, pending_declaration_requests(attrs), set: updates)
+      |> Multi.insert(:declaration_request, create_changeset(attrs, employee, global_parameters))
+      |> Multi.run(:verification_code, &Create.send_verification_code/1)
+      |> Repo.transaction
+    end
   end
 
   def create_changeset(attrs, employee, global_parameters) do

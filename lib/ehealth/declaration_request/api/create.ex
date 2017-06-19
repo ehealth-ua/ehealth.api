@@ -12,7 +12,7 @@ defmodule EHealth.DeclarationRequest.API.Create do
 
   @files_storage_bucket Confex.get_map(:ehealth, EHealth.API.MediaStorage)[:declaration_request_bucket]
 
-  def send_verification_code(_changeset) do
+  def send_verification_code(_multi) do
     {:ok, "Verification code was sent!"}
   end
 
@@ -21,20 +21,31 @@ defmodule EHealth.DeclarationRequest.API.Create do
 
     documents =
       Enum.map config()[:declaration_request_offline_documents], fn document_type ->
-        {:ok, %{"data" => %{"upload_link" => put_link}}} =
+        result =
           MediaStorage.create_signed_url("PUT", @files_storage_bucket, "declaration_request_#{document_type}.jpeg", id)
 
-        {:ok, %{"data" => %{"upload_link" => get_link}}} =
-          MediaStorage.create_signed_url("GET", @files_storage_bucket, "declaration_request_#{document_type}.jpeg", id)
-
-        %{
-          "type" => document_type,
-          "PUT" => put_link,
-          "GET" => get_link
-        }
+        case result do
+          {:ok, %{"data" => %{"upload_link" => url}}} ->
+            %{"type" => document_type, "url" => url}
+          _ ->
+            {:error, document_type}
+        end
       end
 
-    put_change(changeset, :documents, documents)
+    failed_calls = Enum.filter(documents, &is_tuple(&1))
+
+    if length(failed_calls) > 0 do
+      failed_document_types =
+        failed_calls
+        |> Enum.map(&(elem(&1, 1)))
+        |> Enum.join(", ")
+
+      message = "Error when generating uploading URLs for #{failed_document_types}. Please, retry."
+
+      add_error(changeset, :documents, message)
+    else
+      put_change(changeset, :documents, documents)
+    end
   end
 
   def generate_printout_form(changeset) do
@@ -44,6 +55,7 @@ defmodule EHealth.DeclarationRequest.API.Create do
 
     printout_content = DeclarationRequestPrintoutForm.render(form_data)
 
+    # TODO: add proper error handling!
     put_change(changeset, :printout_content, printout_content)
   end
 

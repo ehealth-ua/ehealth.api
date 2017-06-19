@@ -17,17 +17,19 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       expected_documents = [
         %{
           "type" => "Passport",
-          "GET" => "http://some_resource.com/98e0a42f-20fe-472c-a614-0ea99426a3fb/declaration_request_Passport.jpeg",
-          "PUT" => "http://some_resource.com/98e0a42f-20fe-472c-a614-0ea99426a3fb/declaration_request_Passport.jpeg"
+          "url" => "http://some_resource.com/98e0a42f-20fe-472c-a614-0ea99426a3fb/declaration_request_Passport.jpeg"
         },
         %{
           "type" => "SSN",
-          "GET" => "http://some_resource.com/98e0a42f-20fe-472c-a614-0ea99426a3fb/declaration_request_SSN.jpeg",
-          "PUT" => "http://some_resource.com/98e0a42f-20fe-472c-a614-0ea99426a3fb/declaration_request_SSN.jpeg"
+          "url" => "http://some_resource.com/98e0a42f-20fe-472c-a614-0ea99426a3fb/declaration_request_SSN.jpeg"
         }
       ]
 
       assert get_change(changeset, :documents) == expected_documents
+    end
+
+    @tag pending: true
+    test "returns error on documents field" do
     end
   end
 
@@ -41,6 +43,10 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       expected_content = "<html><body>Printout form for declaration request #123</body></hrml>"
 
       assert get_change(changeset, :printout_content) == expected_content
+    end
+
+    @tag pending: true
+    test "returns error on printout_content field" do
     end
   end
 

@@ -12,6 +12,12 @@ defmodule EHealth.Web.DeclarationRequestView do
     declaration_request
   end
 
+  def render("microservice_error.json", %{"error" => _, "meta" => meta}) do
+    %{
+      message: "Error during microservice interaction. Accessing #{meta["url"]} resulted in #{meta["code"]}."
+    }
+  end
+
   def render("unprocessable_entity.json", %{error: error}) do
     error
   end

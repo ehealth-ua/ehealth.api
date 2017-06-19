@@ -3,11 +3,14 @@ defmodule EHealth.API.PRM do
   PRM API client
   """
 
+  require Logger
+
   use HTTPoison.Base
   use Confex, otp_app: :ehealth
   use EHealth.API.HeadersProcessor
 
   alias EHealth.API.ResponseDecoder
+  alias EHealth.API.Helpers.MicroserviceCallLog, as: CallLog
 
   def process_url(url), do: config()[:endpoint] <> url
 
@@ -132,6 +135,8 @@ defmodule EHealth.API.PRM do
   end
 
   def get_employee_by_id(id, headers \\ []) do
+    CallLog.log("GET", config()[:endpoint], "/employees/#{id}", headers)
+
     "/employees/#{id}"
     |> get!(headers)
     |> ResponseDecoder.check_response()
@@ -148,6 +153,8 @@ defmodule EHealth.API.PRM do
   # Global parameters
 
   def get_global_parameters(headers \\ []) do
+    CallLog.log("GET", config()[:endpoint], "/global_parameters", headers)
+
     "/global_parameters"
     |> get!(headers)
     |> ResponseDecoder.check_response()
