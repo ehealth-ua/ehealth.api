@@ -170,6 +170,28 @@ defmodule EHealth.Unit.ValidatorTest do
     assert {:ok, "http://example.com?signed_url=true"} == MediaStorage.put_signed_content(data, signed_content)
   end
 
+  test "validate address building" do
+    content =
+      "test/data/legal_entity.json"
+      |> File.read!()
+      |> Poison.decode!()
+
+    address =
+      content
+      |> Map.get("addresses")
+      |> List.first()
+
+    content = Map.put(content, "addresses", [
+      Map.put(address, "building", "12-И"),
+      Map.put(address, "building", "109-а/2-В"),
+      Map.put(address, "building", "10/999"),
+      Map.put(address, "building", "010"),
+    ])
+
+    assert {:error, [{%{description: _, rule: :format}, "$.addresses.[3].building"}]} =
+      Validator.validate_legal_entity({:ok, %{"data" => %{"content" => content}}})
+  end
+
   test "validate allowed kveds", %{conn: conn} do
     patch conn, dictionary_path(conn, :update, "KVEDS"), @kveds
     assert %Ecto.Changeset{valid?: true} = ValidatorKVEDs.validate(["82.11"])
