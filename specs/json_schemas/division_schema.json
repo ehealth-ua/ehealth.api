@@ -73,6 +73,9 @@
       "required": [
         "type",
         "country",
+        "area",
+        "settlement",
+        "settlement_type",
         "settlement_id",
         "building"
       ],
