@@ -142,6 +142,12 @@ defmodule EHealth.API.PRM do
     |> ResponseDecoder.check_response()
   end
 
+  def update_employee(data, employee_id, headers) do
+    "/employees/#{employee_id}"
+    |> patch!(Poison.encode!(data), headers, timeouts())
+    |> ResponseDecoder.check_response()
+  end
+
   # Registry
 
   def check_msp_state_property_status(edrpou, headers \\ []) do

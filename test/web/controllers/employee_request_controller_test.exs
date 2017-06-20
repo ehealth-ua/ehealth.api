@@ -170,7 +170,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   end
 
   test "can approve employee request if email maches", %{conn: conn} do
-    %{id: id} = fixture(:employee_request, "mis_bot_1493831618@user.com")
+    %{id: id} = fixture(:employee_request, "mis_bot_1493831618@user.com", "NEW", "OWNER")
 
     conn = post conn, employee_request_path(conn, :approve, id)
     resp = json_response(conn, 200)["data"]

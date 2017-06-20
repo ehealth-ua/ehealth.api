@@ -125,6 +125,12 @@ defmodule EHealth.MockServer do
     end
   end
 
+  patch "/employees/:id" do
+    get_employee()
+    |> MapDeepMerge.merge(conn.body_params)
+    |> render(conn, 200)
+  end
+
   post "/employees" do
     employee = MapDeepMerge.merge(get_employee(), conn.body_params)
     case Map.get(employee, "updated_by") do
@@ -530,7 +536,7 @@ defmodule EHealth.MockServer do
       "id" => "7488a646-e31f-11e4-aace-600308960662",
       "party_id" => "01981ab9-904c-4c36-88ab-959a94087483",
       "legal_entity_id" => legal_entity_id || "7cc91a5d-c02f-41e9-b571-1ea4f2375552",
-      "employee_type" => "hr",
+      "employee_type" => "OWNER",
       "type" => "employee", # EView field
       "is_active" => true,
       "status" => "some status",
@@ -552,7 +558,7 @@ defmodule EHealth.MockServer do
       "id" => "ce377dea-d8c4-4dd8-9328-de24b1ee3879",
       "party_id" => "01981ab9-904c-4c36-88ab-959a94087483",
       "legal_entity_id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375552",
-      "employee_type" => "doctor",
+      "employee_type" => "DOCTOR",
       "is_active" => true,
       "status" => "some status",
       "position" => "some position",

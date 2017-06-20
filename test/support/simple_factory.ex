@@ -4,9 +4,11 @@ defmodule EHealth.SimpleFactory do
   alias EHealth.Repo
   alias EHealth.Employee.Request
 
-  def fixture(:employee_request, email \\ nil, status \\ nil), do: employee_request(email, status)
+  def fixture(:employee_request, email \\ nil, status \\ nil, employee_type \\ nil) do
+    employee_request(email, status, employee_type)
+  end
 
-  def employee_request(email, status) do
+  def employee_request(email, status, employee_type \\ nil) do
     attrs =
       "test/data/employee_request.json"
       |> File.read!()
@@ -14,6 +16,7 @@ defmodule EHealth.SimpleFactory do
       |> put_in(["employee_request", "legal_entity_id"], "8b797c23-ba47-45f2-bc0f-521013e01074")
       |> set_email(email)
       |> set_status(status)
+      |> set_employee_type(employee_type)
 
     data = Map.fetch!(attrs, "employee_request")
     request = %Request{data: Map.delete(data, "status"), status: Map.fetch!(data, "status")}
@@ -25,6 +28,11 @@ defmodule EHealth.SimpleFactory do
   def set_status(data, nil), do: data
   def set_status(data, status) do
     put_in(data, ["employee_request", "status"], status)
+  end
+
+  def set_employee_type(data, nil), do: data
+  def set_employee_type(data, employee_type) do
+    Map.put(data, "employee_type", employee_type)
   end
 
   def set_email(data, nil), do: data
