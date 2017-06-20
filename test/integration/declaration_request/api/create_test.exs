@@ -215,7 +215,7 @@ declaration_request_SSN.jpeg"})
         send_resp(conn, 200, Poison.encode!(%{data: []}))
       end
 
-      Plug.Router.post "/api/v1/tables/58f62b96e79e8521f51b5754/decisions" do
+      Plug.Router.post "/api/v1/tables/some_gndf_table_id/decisions" do
         decision = %{
           "final_decision": "OFFLINE"
         }
@@ -316,7 +316,7 @@ declaration_request_SSN.jpeg"})
         send_resp(conn, 200, Poison.encode!(%{data: []}))
       end
 
-      Plug.Router.post "/api/v1/tables/58f62b96e79e8521f51b5754/decisions" do
+      Plug.Router.post "/api/v1/tables/some_gndf_table_id/decisions" do
         Plug.Conn.send_resp(conn, 404, Poison.encode!(%{something: "terrible"}))
       end
     end
