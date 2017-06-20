@@ -28,6 +28,15 @@ defmodule EHealth.Unit.ValidatorTest do
     "is_active" => true,
   }
 
+  @kveds_allowed %{
+    "name" => "KVEDS_ALLOWED",
+    "values" => %{
+      "21.20": "Виробництво фармацевтичних препаратів і матеріалів",
+    },
+    "labels" => ["SYSTEM", "EXTERNAL"],
+    "is_active" => true,
+  }
+
   @kveds %{
     "name" => "KVEDS",
     "values" => %{
@@ -190,6 +199,19 @@ defmodule EHealth.Unit.ValidatorTest do
 
     assert {:error, [{%{description: _, rule: :format}, "$.addresses.[3].building"}]} =
       Validator.validate_legal_entity({:ok, %{"data" => %{"content" => content}}})
+  end
+
+  test "validate allowed and required kveds", %{conn: conn} do
+    patch conn, dictionary_path(conn, :update, "KVEDS"), @kveds
+    patch conn, dictionary_path(conn, :update, "KVEDS_ALLOWED"), @kveds_allowed
+
+    assert %Ecto.Changeset{valid?: true} = ValidatorKVEDs.validate(["21.20"])
+    assert %Ecto.Changeset{valid?: true} = ValidatorKVEDs.validate(["82.11", "21.20"])
+
+    # missed required
+    assert %Ecto.Changeset{valid?: false} = ValidatorKVEDs.validate(["82.11"])
+    # not valid
+    assert %Ecto.Changeset{valid?: false} = ValidatorKVEDs.validate(["21.20", "99.11"])
   end
 
   test "validate allowed kveds", %{conn: conn} do

@@ -132,12 +132,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "enum": [
-          "86.10",
-          "86.21",
-          "86.22",
-          "86.90"
-        ]
+        "description": "Dictionary: KVEDS_ALLOWED"
       },
       "minItems": 1
     },
