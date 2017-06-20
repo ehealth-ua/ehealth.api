@@ -25,7 +25,7 @@ config :ehealth, EHealth.API.Signature,
 config :ehealth, EHealth.API.MediaStorage,
   endpoint: {:system, "MEDIA_STORAGE_ENDPOINT", "http://api-svc.ael"},
   legal_entity_bucket: {:system, "MEDIA_STORAGE_LEGAL_ENTITY_BUCKET", "legal-entities-dev"},
-  declaration_request_bucket: {:system, "MEDIA_STORAGE_DECLARATION_REQUEST_BUCKET", "declaration_request_dev"},
+  declaration_request_bucket: {:system, "MEDIA_STORAGE_DECLARATION_REQUEST_BUCKET", "declaration-requests-dev"},
   enabled?: {:system, :boolean, "MEDIA_STORAGE_ENABLED", false},
   hackney_options: [
     connect_timeout: {:system, :integer, "MEDIA_STORAGE_REQUEST_TIMEOUT", 30_000},
