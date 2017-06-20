@@ -29,9 +29,7 @@ defmodule EHealth.MockServer do
       case conn.params do
         %{"edrpou" => "37367387", "type" => "MSP"} -> [get_legal_entity()]
         %{"edrpou" => "10002000", "type" => "MSP"} -> [get_legal_entity("356b4182-f9ce-4eda-b6af-43d2de8602aa", false)]
-        %{"edrpou" => "37367387", "created_by_mis_client_id" => "", "is_active" => "true"} -> []
-        %{"edrpou" => "37367387", "created_by_mis_client_id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375552",
-          "is_active" => "true"} -> [get_legal_entity()]
+        %{"edrpou" => "37367387", "is_active" => "true"} -> [get_legal_entity()]
         _ -> []
       end
 
@@ -229,6 +227,22 @@ defmodule EHealth.MockServer do
     Plug.Conn.send_resp(conn, 200, resp)
   end
 
+  get "/admin/clients/:id/details" do
+    id = conn.path_params["id"]
+    client_type_name =
+      case id do
+        "296da7d2-3c5a-4f6a-b8b2-631063737271" -> "MIS"
+        _ -> "some_client_type"
+      end
+    resp =
+      id
+      |> get_oauth_client_details(client_type_name)
+      |> wrap_response()
+      |> Poison.encode!()
+
+    Plug.Conn.send_resp(conn, 200, resp)
+  end
+
   get "/admin/roles" do
     resp =
       [get_oauth_role()]
@@ -415,6 +429,13 @@ defmodule EHealth.MockServer do
       "settings" => %{},
       "priv_settings" => %{},
       "redirect_uri" => "redirect_uri",
+    }
+  end
+
+  def get_oauth_client_details(id, client_type_name) do
+    %{
+      "id" => id,
+      "client_type_name" => client_type_name
     }
   end
 

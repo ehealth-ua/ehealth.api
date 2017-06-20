@@ -229,7 +229,7 @@ defmodule EHealth.Employee.API do
 
     case client_id == legal_entity_id do
       true -> {:ok, pipe_data}
-      _ -> {:error, :not_found}
+      _ -> {:error, :forbidden}
     end
   end
 

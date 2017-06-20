@@ -41,7 +41,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
   test "cannot get employee by id when legal_entity_id != client_id", %{conn: conn} do
     conn = put_client_id_header(conn, Ecto.UUID.generate())
     conn = get conn, employees_path(conn, :show, "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b")
-    json_response(conn, 404)
+    json_response(conn, 403)
   end
 
   test "can get employee by id when legal_entity_id == client_id", %{conn: conn} do

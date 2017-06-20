@@ -27,66 +27,93 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     assert resp["error"]
   end
 
-  test "get legal entities without x-consumer-metadata", %{conn: conn} do
-    conn = get conn, legal_entity_path(conn, :index, [edrpou: "37367387"])
-    resp = json_response(conn, 200)
+  describe "get legal entities" do
+    test "without x-consumer-metadata", %{conn: conn} do
+      conn = get conn, legal_entity_path(conn, :index, [edrpou: "37367387"])
+      resp = json_response(conn, 200)
 
-    assert Map.has_key?(resp, "data")
-    assert Map.has_key?(resp, "paging")
-    assert is_list(resp["data"])
-    assert 0 == length(resp["data"])
+      assert Map.has_key?(resp, "data")
+      assert is_list(resp["data"])
+      assert 0 == length(resp["data"])
+    end
+
+    test "with x-consumer-metadata that contains MIS client_id", %{conn: conn} do
+      conn = put_client_id_header(conn, "296da7d2-3c5a-4f6a-b8b2-631063737271")
+      conn = get conn, legal_entity_path(conn, :index, [edrpou: "37367387"])
+      resp = json_response(conn, 200)
+
+      assert Map.has_key?(resp, "data")
+      assert Map.has_key?(resp, "paging")
+      assert is_list(resp["data"])
+      assert 1 == length(resp["data"])
+    end
+
+    test "with x-consumer-metadata that contains not MIS client_id that doesn't match any legal entity id",
+      %{conn: conn} do
+      conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8602f2")
+      conn = get conn, legal_entity_path(conn, :index, [edrpou: "37367387"])
+      resp = json_response(conn, 200)
+
+      assert Map.has_key?(resp, "data")
+      assert is_list(resp["data"])
+      assert 0 == length(resp["data"])
+    end
+
+    test "with x-consumer-metadata that contains not MIS client_id that matches one of legal entities id",
+      %{conn: conn} do
+      conn = put_client_id_header(conn, "520e372b-8378-4722-a590-653274a6cb38")
+      conn = get conn, legal_entity_path(conn, :index, [edrpou: "37367387"])
+      resp = json_response(conn, 200)
+
+      assert Map.has_key?(resp, "data")
+      assert is_list(resp["data"])
+      assert 1 == length(resp["data"])
+    end
   end
 
-  test "get legal entities with x-consumer-metadata that contains invalid client_id", %{conn: conn} do
-    conn = put_client_id_header(conn, Ecto.UUID.generate())
-    conn = get conn, legal_entity_path(conn, :index, [edrpou: "37367387"])
-    resp = json_response(conn, 200)
+  describe "get legal entity by id" do
+    test "without x-consumer-metadata", %{conn: conn} do
+      id = "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
+      conn = get conn, legal_entity_path(conn, :show, id)
+      json_response(conn, 403)
+    end
 
-    assert Map.has_key?(resp, "data")
-    assert Map.has_key?(resp, "paging")
-    assert is_list(resp["data"])
-    assert 0 == length(resp["data"])
-  end
+    test "with x-consumer-metadata that contains client_id that does not match legal entity id", %{conn: conn} do
+      conn = put_client_id_header(conn, Ecto.UUID.generate())
+      id = "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
+      conn = get conn, legal_entity_path(conn, :show, id)
+      json_response(conn, 403)
+    end
 
-  test "get legal entities with x-consumer-metadata that contains valid client_id", %{conn: conn} do
-    conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
-    conn = get conn, legal_entity_path(conn, :index, [edrpou: "37367387"])
-    resp = json_response(conn, 200)
+    test "with x-consumer-metadata that contains client_id that matches legal entity id", %{conn: conn} do
+      conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+      id = "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
+      conn = get conn, legal_entity_path(conn, :show, id)
+      resp = json_response(conn, 200)
 
-    assert Map.has_key?(resp, "data")
-    assert Map.has_key?(resp, "paging")
-    assert is_list(resp["data"])
-    assert 1 == length(resp["data"])
-  end
+      assert id == resp["data"]["id"]
+      assert Map.has_key?(resp["data"], "medical_service_provider")
+      refute Map.has_key?(resp, "paging")
+      assert_security_in_urgent_response(resp)
+    end
 
-  test "get legal entity by id without x-consumer-metadata", %{conn: conn} do
-    id = "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
-    conn = get conn, legal_entity_path(conn, :show, id)
-    json_response(conn, 404)
-  end
+    test "with x-consumer-metadata that contains MIS client_id that does not match legal entity id", %{conn: conn} do
+      conn = put_client_id_header(conn, "296da7d2-3c5a-4f6a-b8b2-631063737271")
+      id = "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
+      conn = get conn, legal_entity_path(conn, :show, id)
+      resp = json_response(conn, 200)
 
-  test "get legal entity by id with x-consumer-metadata that contains invalid client_id", %{conn: conn} do
-    conn = put_client_id_header(conn, Ecto.UUID.generate())
-    id = "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
-    conn = get conn, legal_entity_path(conn, :show, id)
-    json_response(conn, 404)
-  end
+      assert id == resp["data"]["id"]
+      assert Map.has_key?(resp["data"], "medical_service_provider")
+      refute Map.has_key?(resp, "paging")
+      assert_security_in_urgent_response(resp)
+    end
 
-  test "get legal entity by id with x-consumer-metadata that contains valid client_id", %{conn: conn} do
-    conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
-    id = "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
-    conn = get conn, legal_entity_path(conn, :show, id)
-    resp = json_response(conn, 200)
-
-    assert id == resp["data"]["id"]
-    assert Map.has_key?(resp["data"], "medical_service_provider")
-    refute Map.has_key?(resp, "paging")
-    assert_security_in_urgent_response(resp)
-  end
-
-  test "get inactive legal entity by id", %{conn: conn} do
-    conn = get conn, legal_entity_path(conn, :show, @inactive_legal_entity_id)
-    assert 404 == json_response(conn, 404)["meta"]["code"]
+    test "with x-consumer-metadata that contains client_id that matches inactive legal entity id", %{conn: conn} do
+      conn = put_client_id_header(conn, @inactive_legal_entity_id)
+      conn = get conn, legal_entity_path(conn, :show, @inactive_legal_entity_id)
+      assert 404 == json_response(conn, 404)["meta"]["code"]
+    end
   end
 
   def assert_security_in_urgent_response(resp) do

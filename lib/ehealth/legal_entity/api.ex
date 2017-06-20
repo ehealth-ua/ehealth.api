@@ -13,6 +13,7 @@ defmodule EHealth.LegalEntity.API do
   alias EHealth.OAuth.API, as: OAuth
   alias EHealth.LegalEntity.Validator
   alias EHealth.Employee.API
+  alias EHealth.API.Mithril
 
   require Logger
 
@@ -20,11 +21,33 @@ defmodule EHealth.LegalEntity.API do
   @employee_request_type "OWNER"
 
   def get_legal_entity_by_id(id, headers) do
+    client_id = get_client_id(headers)
+    client_type = Mithril.get_client_type_name(client_id)
+    case id == client_id or client_type == "MIS" do
+      true ->
+        id
+        |> PRM.get_legal_entity_by_id(headers)
+        |> legal_entity_is_active()
+        |> OAuth.get_client(headers)
+        |> fetch_data()
+      _ -> {:error, :forbidden}
+    end
+  end
+
+  def get_legal_entities(params, headers) do
+    client_id = get_client_id(headers)
+    params = Map.put(params, "is_active", true)
+    case Mithril.get_client_type_name(client_id) == "MIS" do
+      true -> PRM.get_legal_entities(params, headers)
+      _ -> {:ok, get_legal_entity_list_by_id(client_id, headers)}
+    end
+  end
+
+  def get_legal_entity_list_by_id(nil, _headers), do: []
+  def get_legal_entity_list_by_id(id, headers) do
     id
-    |> PRM.get_legal_entity_by_id(headers)
-    |> legal_entity_is_active()
-    |> OAuth.get_client(headers)
-    |> fetch_data()
+    |> get_legal_entity_by_id(headers)
+    |> fetch_to_list()
   end
 
   def legal_entity_is_active({:ok, %{"data" => data}} = resp) do
@@ -218,5 +241,8 @@ defmodule EHealth.LegalEntity.API do
   end
 
   def fetch_data({:ok, %{"data" => data}, secret}), do: {:ok, data, secret}
-  def fetch_data(err), do: err#
+  def fetch_data(err), do: err
+
+  def fetch_to_list({:ok, data, _secret}), do: [data]
+  def fetch_to_list(err), do: []
 end

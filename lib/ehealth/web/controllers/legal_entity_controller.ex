@@ -4,7 +4,6 @@ defmodule EHealth.Web.LegalEntityController do
   """
   use EHealth.Web, :controller
 
-  alias EHealth.API.PRM
   alias EHealth.LegalEntity.API
 
   action_fallback EHealth.Web.FallbackController
@@ -22,25 +21,17 @@ defmodule EHealth.Web.LegalEntityController do
   end
 
   def index(%Plug.Conn{req_headers: req_headers} = conn, params) do
-    params =
-      params
-      |> Map.put("is_active", true)
-      |> Map.put("created_by_mis_client_id", get_client_id(conn.req_headers))
-
-    with {:ok, %{"meta" => %{}} = response} <- PRM.get_legal_entities(params, req_headers) do
-      proxy(conn, response)
+    case API.get_legal_entities(params, req_headers) do
+      {:ok, %{"meta" => %{}} = response} -> proxy(conn, response)
+      {:ok, list} -> render(conn, "index.json", legal_entities: list)
     end
   end
 
   def show(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
-    case id == get_client_id(req_headers) do
-      true ->
-        with {:ok, legal_entity, security} <- API.get_legal_entity_by_id(id, req_headers) do
-          conn
-          |> assign_security(security)
-          |> render("show.json", legal_entity: legal_entity)
-        end
-      _ -> {:error, :not_found}
+    with {:ok, legal_entity, security} <- API.get_legal_entity_by_id(id, req_headers) do
+      conn
+      |> assign_security(security)
+      |> render("show.json", legal_entity: legal_entity)
     end
   end
 
