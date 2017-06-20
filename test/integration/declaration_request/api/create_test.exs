@@ -8,6 +8,37 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
   import Ecto.Changeset, only: [get_change: 2]
 
   describe "generate_upload_urls/1" do
+    defmodule UploadingFiles do
+      use MicroservicesHelper
+
+      Plug.Router.post "/media_content_storage_secrets" do
+        params = conn.body_params["secret"]
+
+        case params["resource_id"] do
+          "98e0a42f-20fe-472c-a614-0ea99426a3fb" ->
+            upload = %{
+              upload_link: "http://a.link.for/#{params["resource_id"]}/#{params["resource_name"]}"
+            }
+
+            Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: upload}))
+          "98e0a42f-0000-9999-5555-0ea99426a3fb" ->
+            Plug.Conn.send_resp(conn, 500, Poison.encode!(%{something: "went wrong with #{params["resource_name"]}"}))
+        end
+      end
+    end
+
+    setup %{conn: conn} do
+      {:ok, port, ref} = start_microservices(UploadingFiles)
+
+      System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:#{port}")
+      on_exit fn ->
+        System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:4040")
+        stop_microservices(ref)
+      end
+
+      :ok
+    end
+
     test "generates links & updates declaration request" do
       changeset =
         %DeclarationRequest{id: "98e0a42f-20fe-472c-a614-0ea99426a3fb"}
@@ -17,36 +48,86 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       expected_documents = [
         %{
           "type" => "Passport",
-          "url" => "http://some_resource.com/98e0a42f-20fe-472c-a614-0ea99426a3fb/declaration_request_Passport.jpeg"
+          "url" => "http://a.link.for/98e0a42f-20fe-472c-a614-0ea99426a3fb/declaration_request_Passport.jpeg"
         },
         %{
           "type" => "SSN",
-          "url" => "http://some_resource.com/98e0a42f-20fe-472c-a614-0ea99426a3fb/declaration_request_SSN.jpeg"
+          "url" => "http://a.link.for/98e0a42f-20fe-472c-a614-0ea99426a3fb/declaration_request_SSN.jpeg"
         }
       ]
 
       assert get_change(changeset, :documents) == expected_documents
     end
 
-    @tag pending: true
     test "returns error on documents field" do
+      changeset =
+        %DeclarationRequest{id: "98e0a42f-0000-9999-5555-0ea99426a3fb"}
+        |> Ecto.Changeset.change()
+        |> generate_upload_urls()
+
+      error_message = ~s(Error during MediaStorage interaction. Result from MediaStorage: \
+%{"something" => "went wrong with declaration_request_Passport.jpeg"}; Error during \
+MediaStorage interaction. Result from MediaStorage: %{"something" => "went wrong with \
+declaration_request_SSN.jpeg"})
+
+      assert error_message == elem(changeset.errors[:documents], 0)
     end
   end
 
   describe "generate_printout_form/1" do
+    defmodule PrintoutForm do
+      use MicroservicesHelper
+
+      Plug.Router.post "/templates/123/actions/render" do
+        printout_form = %{
+          body: "Template id=#123 and declaration request ##{conn.body_params["declaration_request_id"]}"
+        }
+
+        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: printout_form}))
+      end
+
+      Plug.Router.post "/templates/999/actions/render" do
+        Plug.Conn.send_resp(conn, 404, Poison.encode!(%{oops: "I did it again"}))
+      end
+    end
+
+    setup %{conn: conn} do
+      {:ok, port, ref} = start_microservices(PrintoutForm)
+
+      System.put_env("MAN_ENDPOINT", "http://localhost:#{port}")
+      on_exit fn ->
+        System.put_env("MAN_ENDPOINT", "http://localhost:4040")
+        stop_microservices(ref)
+      end
+
+      :ok
+    end
+
     test "updates declaration request with printout form" do
+      printout_form_id = Confex.get_map(:ehealth, EHealth.Man.Templates.DeclarationRequestPrintoutForm)[:id]
+
       changeset =
-        %DeclarationRequest{id: 123}
+        %DeclarationRequest{id: 321}
         |> Ecto.Changeset.change()
         |> generate_printout_form()
 
-      expected_content = "<html><body>Printout form for declaration request #123</body></hrml>"
+      expected_content = "Template id=##{printout_form_id} and declaration request #321"
 
       assert get_change(changeset, :printout_content) == expected_content
     end
 
-    @tag pending: true
     test "returns error on printout_content field" do
+      System.put_env("DECLARATION_REQUEST_PRINTOUT_FORM_TEMPLATE_ID", "999")
+
+      changeset =
+        %DeclarationRequest{id: 321}
+        |> Ecto.Changeset.change()
+        |> generate_printout_form()
+
+      assert ~s(Error during MAN interaction. Result from MAN: %{"oops" => "I did it again"}) ==
+        elem(changeset.errors[:printout_content], 0)
+
+      System.put_env("DECLARATION_REQUEST_PRINTOUT_FORM_TEMPLATE_ID", "123")
     end
   end
 
@@ -222,7 +303,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         |> Ecto.Changeset.change()
         |> determine_auth_method_for_mpi()
 
-      assert ~s(Error during MPI interaction. Result from MPI: {:error, %{"something" => "terrible"}}) ==
+      assert ~s(Error during MPI interaction. Result from MPI: %{"something" => "terrible"}) ==
         elem(changeset.errors[:authentication_method_current], 0)
     end
   end
@@ -236,10 +317,6 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       end
 
       Plug.Router.post "/api/v1/tables/58f62b96e79e8521f51b5754/decisions" do
-        decision = %{
-          "final_decision": "OFFLINE"
-        }
-
         Plug.Conn.send_resp(conn, 404, Poison.encode!(%{something: "terrible"}))
       end
     end
@@ -277,7 +354,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         |> Ecto.Changeset.change()
         |> determine_auth_method_for_mpi()
 
-      assert ~s(Error during Gandalf interaction. Result from Gandalf: {:error, %{"something" => "terrible"}}) ==
+      assert ~s(Error during Gandalf interaction. Result from Gandalf: %{"something" => "terrible"}) ==
         elem(changeset.errors[:authentication_method_current], 0)
     end
   end

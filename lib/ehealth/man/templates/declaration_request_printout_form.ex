@@ -9,7 +9,7 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
     # TODO: decide what data is required to render the template
 
     template_data = %{
-      id: declaration_request.id,
+      declaration_request_id: declaration_request.id,
       format: config()[:format],
       locale: config()[:locale]
     }

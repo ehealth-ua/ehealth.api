@@ -60,6 +60,23 @@ defmodule EHealth.Integraiton.DeclarationRequestCreateTest do
         send_resp(conn, 200, Poison.encode!(%{data: person}))
       end
 
+      Plug.Router.post "/templates/123/actions/render" do
+        body = "<html><body>Printout form for declaration \
+request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
+
+        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: %{body: body}}))
+      end
+
+      Plug.Router.post "/media_content_storage_secrets" do
+        params = conn.body_params["secret"]
+
+        upload = %{
+          upload_link: "http://some_resource.com/#{params["resource_id"]}/#{params["resource_name"]}"
+        }
+
+        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: upload}))
+      end
+
       match _ do
         send_resp(conn, 404, Poison.encode!(%{}))
       end
@@ -71,10 +88,14 @@ defmodule EHealth.Integraiton.DeclarationRequestCreateTest do
       System.put_env("PRM_ENDPOINT", "http://localhost:#{port}")
       System.put_env("MPI_ENDPOINT", "http://localhost:#{port}")
       System.put_env("GNDF_ENDPOINT", "http://localhost:#{port}")
+      System.put_env("MAN_ENDPOINT", "http://localhost:#{port}")
+      System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:#{port}")
       on_exit fn ->
         System.put_env("PRM_ENDPOINT", "http://localhost:4040")
         System.put_env("MPI_ENDPOINT", "http://localhost:4040")
         System.put_env("GNDF_ENDPOINT", "http://localhost:4040")
+        System.put_env("MAN_ENDPOINT", "http://localhost:4040")
+        System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
       end
 

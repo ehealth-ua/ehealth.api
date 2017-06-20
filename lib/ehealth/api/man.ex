@@ -7,6 +7,8 @@ defmodule EHealth.API.Man do
   use Confex, otp_app: :ehealth
   use EHealth.API.HeadersProcessor
 
+  alias EHealth.API.ResponseDecoder
+
   require Logger
 
   def process_url(url), do: config()[:endpoint] <> url
@@ -16,12 +18,6 @@ defmodule EHealth.API.Man do
   def render_template(id, data, headers \\ []) do
     "/templates/#{id}/actions/render"
     |> post!(Poison.encode!(data), headers, timeouts())
-    |> process_template()
-  end
-
-  def process_template(%HTTPoison.Response{body: body, status_code: 200}), do: body
-  def process_template(response) do
-    Logger.error(fn -> "Employee request invitation email template can not be rendered. Response: #{response}" end)
-    nil
+    |> ResponseDecoder.check_response()
   end
 end

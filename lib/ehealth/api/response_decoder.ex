@@ -11,6 +11,7 @@ defmodule EHealth.API.ResponseDecoder do
   end
 
   def check_response(%HTTPoison.Response{body: body}) do
+    # TODO: add response logging here
     body
     |> decode_response()
     |> map_response(:error)

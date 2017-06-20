@@ -340,26 +340,6 @@ defmodule EHealth.MockServer do
     Plug.Conn.send_resp(conn, 200, response)
   end
 
-  post "/media_content_storage_secrets" do
-    response =
-      conn.body_params
-      |> generate_storage_link
-      |> wrap_response
-      |> Poison.encode!
-
-    Plug.Conn.send_resp(conn, 200, response)
-  end
-
-  def generate_storage_link(params) do
-    link =
-      ["http://some_resource.com", params["secret"]["resource_id"], params["secret"]["resource_name"]]
-      |> Enum.join("/")
-
-    %{
-      "upload_link" => link
-    }
-  end
-
   def search_for_people(params) do
     case params do
       %{
@@ -370,19 +350,6 @@ defmodule EHealth.MockServer do
         "tax_id" => "3126509816"
       } ->
         [%{id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c"}]
-      _ ->
-        []
-    end
-  end
-
-  def get_person_by_id(id) do
-    case id do
-      "b5350f79-f2ca-408f-b15d-1ae0a8cc861c" ->
-        %{
-          "authentication_methods": [
-            %{"type": "OTP", "number": "+380508887700"} # TODO: number or phone_number?
-          ]
-        }
       _ ->
         []
     end

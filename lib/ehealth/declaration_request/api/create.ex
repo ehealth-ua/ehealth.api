@@ -27,22 +27,20 @@ defmodule EHealth.DeclarationRequest.API.Create do
         case result do
           {:ok, %{"data" => %{"upload_link" => url}}} ->
             %{"type" => document_type, "url" => url}
-          _ ->
-            {:error, document_type}
+          {:error, error_response} ->
+            {:error, error_response}
         end
       end
 
     failed_calls = Enum.filter(documents, &is_tuple(&1))
 
     if length(failed_calls) > 0 do
-      failed_document_types =
+      error_message =
         failed_calls
-        |> Enum.map(&(elem(&1, 1)))
-        |> Enum.join(", ")
+        |> Enum.map(fn {:error, error_response} -> format_error_response("MediaStorage", error_response) end)
+        |> Enum.join("; ")
 
-      message = "Error when generating uploading URLs for #{failed_document_types}. Please, retry."
-
-      add_error(changeset, :documents, message)
+      add_error(changeset, :documents, error_message)
     else
       put_change(changeset, :documents, documents)
     end
@@ -53,10 +51,12 @@ defmodule EHealth.DeclarationRequest.API.Create do
       id: get_field(changeset, :id)
     }
 
-    printout_content = DeclarationRequestPrintoutForm.render(form_data)
-
-    # TODO: add proper error handling!
-    put_change(changeset, :printout_content, printout_content)
+    case DeclarationRequestPrintoutForm.render(form_data) do
+      {:ok, %{"data" => %{"body" => printout_content}}} ->
+        put_change(changeset, :printout_content, printout_content)
+      {:error, error_response} ->
+        add_error(changeset, :printout_content, format_error_response("MAN", error_response))
+    end
   end
 
   def determine_auth_method_for_mpi(changeset) do
@@ -100,11 +100,11 @@ defmodule EHealth.DeclarationRequest.API.Create do
             }
 
             put_change(changeset, :authentication_method_current, authentication_method_current)
-          _ ->
-            add_error(changeset, :authentication_method_current, format_error_response("Gandalf", gandalf_decision))
+          {:error, error_response} ->
+            add_error(changeset, :authentication_method_current, format_error_response("Gandalf", error_response))
         end
-      _ ->
-        add_error(changeset, :authentication_method_current, format_error_response("MPI", result))
+      {:error, error_response} ->
+        add_error(changeset, :authentication_method_current, format_error_response("MPI", error_response))
     end
   end
 
