@@ -12,10 +12,10 @@ defmodule EHealth.Web.DeclarationRequestController do
     case DeclarationRequestAPI.create(declaration_request, user_id) do
       {:ok, %{declaration_request: declaration_request}} ->
         render(conn, "show.json", declaration_request: declaration_request)
-      {:error, microservice_result} ->
+      {:error, microservice_response} ->
         conn
         |> put_status(:failed_dependency)
-        |> render("microservice_error.json", microservice_result)
+        |> render("microservice_error.json", %{microservice_response: microservice_response})
     end
   end
 end

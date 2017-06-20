@@ -28,25 +28,22 @@ defmodule EHealth.DeclarationRequest.API do
 
       Multi.new
       |> Multi.update_all(:previous_requests, pending_declaration_requests(attrs), set: updates)
-      |> Multi.insert(:declaration_request, create_changeset(attrs, employee, global_parameters))
+      |> Multi.insert(:declaration_request, create_changeset(attrs, user_id, employee, global_parameters))
       |> Multi.run(:verification_code, &Create.send_verification_code/1)
       |> Repo.transaction
     end
   end
 
-  def create_changeset(attrs, employee, global_parameters) do
+  def create_changeset(attrs, user_id, employee, global_parameters) do
     %EHealth.DeclarationRequest{}
     |> cast(%{data: attrs}, [:data])
     |> validate_patient_age(Enum.map(employee["specialities"], &(&1["speciality"])), global_parameters["adult_age"])
     |> validate_patient_phone_number()
     |> put_start_end_dates(global_parameters)
-    |> put_in_data("employee_id", employee["id"])
-    |> put_in_data("legal_entity_id", employee["legal_entity_id"])
-    |> put_in_data("division_id", employee["division_id"])
     |> put_change(:id, UUID.generate())
     |> put_change(:status, "NEW")
-    |> put_change(:inserted_by, employee["id"])
-    |> put_change(:updated_by, employee["id"])
+    |> put_change(:inserted_by, user_id)
+    |> put_change(:updated_by, user_id)
     |> Create.determine_auth_method_for_mpi()
     |> Create.generate_printout_form()
     |> Create.generate_upload_urls()

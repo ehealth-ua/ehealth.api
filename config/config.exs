@@ -89,9 +89,9 @@ config :ehealth, EHealth.API.MPI,
 
 # Configures Gandalf API
 config :ehealth, EHealth.API.Gandalf,
-  endpoint: {:system, "GDNF_ENDPOINT", "https://api.gndf.io"},
-  client_id: {:system, "GDNF_CLIENT_ID", "some_client_id"},
-  client_secret: {:system, "GDNF_CLIENT_SECRET", "some_client_secret"},
+  endpoint: {:system, "GNDF_ENDPOINT", "https://api.gndf.io"},
+  client_id: {:system, "GNDF_CLIENT_ID", "some_client_id"},
+  client_secret: {:system, "GNDF_CLIENT_SECRET", "some_client_secret"},
   application_id: {:system, "GNDF_APPLICATION_ID", "58eca20fe79e8563e803dc18"},
   table_id: {:system, "GNDF_TABLE_ID", "58f62b96e79e8521f51b5754"},
   timeouts: [

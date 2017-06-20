@@ -101,14 +101,14 @@ defmodule EHealth.DeclarationRequest.API.Create do
 
             put_change(changeset, :authentication_method_current, authentication_method_current)
           _ ->
-            error_message = "Error during Gandalf interaction. Result from Gandalf: #{inspect gandalf_decision}"
-
-            add_error(changeset, :authentication_method_current, error_message)
+            add_error(changeset, :authentication_method_current, format_error_response("Gandalf", gandalf_decision))
         end
       _ ->
-        error_message = "Error during MPI interaction. Result from MPI: #{inspect result}"
-
-        add_error(changeset, :authentication_method_current, error_message)
+        add_error(changeset, :authentication_method_current, format_error_response("MPI", result))
     end
+  end
+
+  defp format_error_response(microservice, result) do
+    "Error during #{microservice} interaction. Result from #{microservice}: #{inspect result}"
   end
 end

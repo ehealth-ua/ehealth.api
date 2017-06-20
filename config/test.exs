@@ -35,7 +35,7 @@ config :ehealth, EHealth.API.MPI,
   endpoint: {:system, "MPI_ENDPOINT", "http://localhost:4040"}
 
 config :ehealth, EHealth.API.Gandalf,
-  endpoint: {:system, "GDNF_ENDPOINT", "http://localhost:4040"}
+  endpoint: {:system, "GNDF_ENDPOINT", "http://localhost:4040"}
 
 config :ehealth, mock: [
   port: {:system, :integer, "TEST_MOCK_PORT", 4040},

@@ -60,4 +60,17 @@ defmodule EHealth.Web.ConnCase do
   def delete_client_id_header(conn) do
     Plug.Conn.delete_req_header(conn, @header_consumer_meta)
   end
+
+  def start_microservices(module) do
+    {:ok, port} = :gen_tcp.listen(0, [])
+    {:ok, port_string} = :inet.port(port)
+    :erlang.port_close(port)
+    ref = make_ref()
+    {:ok, _pid} = Plug.Adapters.Cowboy.http module, [], port: port_string, ref: ref # TODO: only 1 worker here
+    {:ok, port_string, ref}
+  end
+
+  def stop_microservices(ref) do
+    Plug.Adapters.Cowboy.shutdown(ref)
+  end
 end
