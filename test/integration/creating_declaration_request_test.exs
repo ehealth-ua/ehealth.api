@@ -23,8 +23,8 @@ defmodule EHealth.Integraiton.DeclarationRequestCreateTest do
 
       Plug.Router.get "/global_parameters" do
         parameters = %{
-          adult_age: 18,
-          declaration_request_term: 40,
+          adult_age: "18",
+          declaration_request_term: "40",
           declaration_request_term_unit: "YEARS"
         }
 

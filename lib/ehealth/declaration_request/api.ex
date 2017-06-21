@@ -68,6 +68,9 @@ defmodule EHealth.DeclarationRequest.API do
       "adult_age" => adult_age
     } = global_parameters
 
+    adult_age = String.to_integer(adult_age)
+    term = String.to_integer(term)
+
     normalized_unit =
       unit
       |> String.downcase
