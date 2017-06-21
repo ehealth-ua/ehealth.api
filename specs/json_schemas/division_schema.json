@@ -137,7 +137,6 @@
   },
   "required": [
     "email",
-    "external_id",
     "name",
     "addresses",
     "phones",
