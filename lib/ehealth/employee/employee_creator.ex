@@ -44,7 +44,7 @@ defmodule EHealth.Employee.EmployeeCreator do
   def create_or_update_party(err, _data, _req_headers), do: err
 
   def create_party_user({:ok, %{"data" => %{"id" => id}}} = party, req_headers) do
-    case PRM.create_party_user(id, get_consumer_id(req_headers)) do
+    case PRM.create_party_user(id, get_consumer_id(req_headers), req_headers) do
       {:ok, _} -> party
       {:error, _} = err -> err
     end

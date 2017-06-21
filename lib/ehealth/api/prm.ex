@@ -18,13 +18,13 @@ defmodule EHealth.API.PRM do
 
   # Legal Entity
 
-  def create_legal_entity(data, headers \\ []) do
+  def create_legal_entity(data, headers) do
     "/legal_entities"
     |> post!(Poison.encode!(data), headers, timeouts())
     |> ResponseDecoder.check_response()
   end
 
-  def update_legal_entity(data, id, headers \\ []) do
+  def update_legal_entity(data, id, headers) do
     "/legal_entities/#{id}"
     |> patch!(Poison.encode!(data), headers, timeouts())
     |> ResponseDecoder.check_response()
@@ -60,13 +60,13 @@ defmodule EHealth.API.PRM do
     |> ResponseDecoder.check_response()
   end
 
-  def create_division(params \\ [], headers \\ []) do
+  def create_division(params \\ [], headers) do
     "/divisions"
     |> post!(Poison.encode!(params), headers, timeouts())
     |> ResponseDecoder.check_response()
   end
 
-  def update_division(params, id, headers \\ []) do
+  def update_division(params, id, headers) do
     "/divisions/#{id}"
     |> patch!(Poison.encode!(params), headers, timeouts())
     |> ResponseDecoder.check_response()
@@ -74,13 +74,13 @@ defmodule EHealth.API.PRM do
 
   # Party
 
-  def create_party(data, headers \\ []) do
+  def create_party(data, headers) do
     "/party"
     |> post!(Poison.encode!(data), headers, timeouts())
     |> ResponseDecoder.check_response()
   end
 
-  def update_party(data, id, headers \\ []) do
+  def update_party(data, id, headers) do
     "/party/#{id}"
     |> patch!(Poison.encode!(data), headers, timeouts())
     |> ResponseDecoder.check_response()
@@ -114,7 +114,7 @@ defmodule EHealth.API.PRM do
     get_party_users([party_id: party_id], headers)
   end
 
-  def create_party_user(party_id, user_id, headers \\ []) do
+  def create_party_user(party_id, user_id, headers) do
     "/party_users"
     |> post!(Poison.encode!(%{user_id: user_id, party_id: party_id}), headers, timeouts())
     |> ResponseDecoder.check_response()
@@ -122,7 +122,7 @@ defmodule EHealth.API.PRM do
 
   # Employee
 
-  def create_employee(data, headers \\ []) do
+  def create_employee(data, headers) do
     "/employees"
     |> post!(Poison.encode!(data), headers, timeouts())
     |> ResponseDecoder.check_response()

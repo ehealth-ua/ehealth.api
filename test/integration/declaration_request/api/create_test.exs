@@ -27,7 +27,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       end
     end
 
-    setup %{conn: conn} do
+    setup %{conn: _conn} do
       {:ok, port, ref} = start_microservices(UploadingFiles)
 
       System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:#{port}")
@@ -91,7 +91,7 @@ declaration_request_SSN.jpeg"})
       end
     end
 
-    setup %{conn: conn} do
+    setup %{conn: _conn} do
       {:ok, port, ref} = start_microservices(PrintoutForm)
 
       System.put_env("MAN_ENDPOINT", "http://localhost:#{port}")
