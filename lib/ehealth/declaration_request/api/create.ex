@@ -17,6 +17,7 @@ defmodule EHealth.DeclarationRequest.API.Create do
     {:ok, "Verification code was sent!"}
   end
 
+  # TODO: add tests for this
   def generate_upload_urls(%Changeset{valid?: false} = changeset), do: changeset
   def generate_upload_urls(changeset) do
     id = get_field(changeset, :id)
