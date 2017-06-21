@@ -564,9 +564,9 @@ Methods returns list of employees.
     + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MSP ID.
     + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - division ID.    
     + `employee_type`: DOCTOR (string) - `Dictionary: EMPLOYEE_TYPE`
-    + status: ACTIVE (enum)
-        - ACTIVE
-        - INACTIVE
+    + status: APPROVED (enum)
+        - NEW
+        - APPROVED
     + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
     + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
     + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
@@ -1758,6 +1758,7 @@ Method returns shortened details, to obtain full information - get Employee it b
 + Parameters
     + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0152` (string, optional)
     + status: APPROVED (enum, optional)
+        - NEW
         - APPROVED
     + type: DOCTOR (string, optional) - `Dictionary: EMPLOYEE_TYPE`
     + limit: 20 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
@@ -2664,7 +2665,7 @@ API for searching Ukrainian Addresses
 + position: P1 (string, required) - `Dictionary POSITION`
 + start_date: 2017-02-28 (string, required)
 + end_date: 2017-02-28 (string, optional)
-+ status: APPROVED (enum, required)
++ status: NEW, APPROVED (enum, required)
 + `Doctor` (DoctorNew, optional)
 + `status_reason`: `new_employee` (string, optional)
 
@@ -2897,7 +2898,7 @@ API for searching Ukrainian Addresses
 
 ### `crud_msp`
 + `legal_entity_id`: 5432345432 (string, required)
-+ accreditation (MSP_Accreditation, required)
++ accreditation (MSP_Accreditation, optional)
 + licenses (array[MSP_License], required)
 
 ### `crud_msp_get`
@@ -2907,7 +2908,7 @@ API for searching Ukrainian Addresses
 + include `crud_msp`
 
 ### `crud_msp_patch`
-+ accreditation (MSP_Accreditation, required)
++ accreditation (MSP_Accreditation, optional)
 + licenses (array[MSP_License], required)
 
 ### `Medical_Service_Provider`
@@ -2917,7 +2918,7 @@ API for searching Ukrainian Addresses
 + public_name: ЦПМСД №1 (string, optional)
 + edrpou: 5432345432 (string, required)
 + licenses (array[MSP_License], required)
-+ accreditation (MSP_Accreditation, required)
++ accreditation (MSP_Accreditation, optional)
 + addresses (array[Address], required)
 + phones (array[Phone], required)
 + email: `email@example.com` (string, required)
@@ -2942,7 +2943,7 @@ API for searching Ukrainian Addresses
 
 ### `MSP`
 + licenses (array[MSP_License], required)
-+ accreditation (MSP_Accreditation, required)
++ accreditation (MSP_Accreditation, optional)
 
 ## `Ukr_med_registries`
 ### `ukr_med_registry`
@@ -3046,7 +3047,7 @@ API for searching Ukrainian Addresses
     - друга
     - перша
     - не акредитований
-+ issued_date: `2017-02-28` (string, required) - дата видачі
++ issued_date: `2017-02-28` (string, optional) - дата видачі
 + expiry_date: `2017-02-28` (string, optional)
 + order_no: fd123443 (string, required) - номер наказу МОЗ
 + order_date: `2017-02-28` (string, required) - дата наказу МОЗ
