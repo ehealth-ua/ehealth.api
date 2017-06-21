@@ -588,7 +588,7 @@ Methods returns employee details by ID.
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
-        + data (crud_employee_get)
+        + data (`crud_employee_get`)
 
 ### Get Employee Request by ID [GET /employee_requests/{id}]
 
@@ -1757,10 +1757,8 @@ Method returns shortened details, to obtain full information - get Employee it b
 
 + Parameters
     + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0152` (string, optional)
-    + status: ACTIVE (enum, optional)
-        - ACTIVE
-        - INACTIVE
-        + Default: ACTIVE
+    + status: APPROVED (enum, optional)
+        - APPROVED
     + type: DOCTOR (string, optional) - `Dictionary: EMPLOYEE_TYPE`
     + limit: 20 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
     + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
@@ -2666,7 +2664,7 @@ API for searching Ukrainian Addresses
 + position: P1 (string, required) - `Dictionary POSITION`
 + start_date: 2017-02-28 (string, required)
 + end_date: 2017-02-28 (string, optional)
-+ status: ACTIVE, INACTIVE (enum, required)
++ status: APPROVED (enum, required)
 + `Doctor` (DoctorNew, optional)
 + `status_reason`: `new_employee` (string, optional)
 
