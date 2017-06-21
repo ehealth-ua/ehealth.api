@@ -118,7 +118,7 @@ defmodule EHealth.Divisions.API do
   def validate_legal_entity({:ok, %{"data" => division}} = resp, legal_entity_id) do
     case legal_entity_id == Map.fetch!(division, "legal_entity_id") do
       true -> resp
-      false -> {:error, :access_denied}
+      false -> {:error, :forbidden}
     end
   end
   def validate_legal_entity(err, _legal_entity_id), do: err
