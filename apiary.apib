@@ -1810,7 +1810,7 @@ Response structure differs depending on employee type:
 
 ### Update Employee [PATCH /api/employees/{employee_id}]
 
-Use this method change employee status or to update:
+Use this method to deactivate employee or to update:
 * Person info
 * Employee info
 * Doctor Info
@@ -1821,6 +1821,8 @@ The following fields can't be changed:
 * employee_type
 * tax_id
 * email
+
+
 
 + Parameters
     + employee_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -2717,7 +2719,8 @@ API for searching Ukrainian Addresses
 + position: лікар (string, required)
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
-+ status: ACTIVE, INACTIVE (enum, required)
++ status: NEW, APPROVED (enum, required)
++ is_active: false (boolean, required)
 + party (Party_Update)
 + doctor (DoctorNew, optional)
 
