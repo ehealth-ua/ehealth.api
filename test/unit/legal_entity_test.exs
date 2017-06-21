@@ -205,8 +205,8 @@ defmodule EHealth.Unit.LegalEntityTest do
       legal_entity_data
       |> Map.put("addresses", [address])
 
-    assert [{%{description: "invalid settlement value", params: [], rule: :invalid},
-      "$.addresses.settlement"}] == Validator.validate_addresses({:ok, %{"content" => content}})
+    assert {:error, [{%{description: "invalid settlement value", params: [], rule: :invalid},
+      "$.addresses.settlement"}]} == Validator.validate_addresses({:ok, %{"content" => content}})
   end
 
   test "settlement validation with empty settlement" do
@@ -221,8 +221,8 @@ defmodule EHealth.Unit.LegalEntityTest do
       legal_entity_data
       |> Map.put("addresses", [address])
 
-    assert [{%{description: "invalid settlement value", params: [], rule: :invalid},
-      "$.addresses.settlement"}] == Validator.validate_addresses({:ok, %{"content" => content}})
+    assert {:error, [{%{description: "invalid settlement value", params: [], rule: :invalid},
+      "$.addresses.settlement"}]} == Validator.validate_addresses({:ok, %{"content" => content}})
   end
 
   test "region validation with invalid region" do
@@ -237,8 +237,8 @@ defmodule EHealth.Unit.LegalEntityTest do
       legal_entity_data
       |> Map.put("addresses", [address])
 
-    assert [{%{description: "invalid region value", params: [], rule: :invalid},
-      "$.addresses.region"}] == Validator.validate_addresses({:ok, %{"content" => content}})
+    assert {:error, [{%{description: "invalid region value", params: [], rule: :invalid},
+      "$.addresses.region"}]} == Validator.validate_addresses({:ok, %{"content" => content}})
   end
 
   test "region validation with empty region" do
@@ -253,8 +253,8 @@ defmodule EHealth.Unit.LegalEntityTest do
       legal_entity_data
       |> Map.put("addresses", [address])
 
-    assert [{%{description: "invalid region value", params: [], rule: :invalid},
-      "$.addresses.region"}] == Validator.validate_addresses({:ok, %{"content" => content}})
+    assert {:error, [{%{description: "invalid region value", params: [], rule: :invalid},
+      "$.addresses.region"}]} == Validator.validate_addresses({:ok, %{"content" => content}})
   end
 
   test "area validation with invalid area" do
@@ -269,8 +269,8 @@ defmodule EHealth.Unit.LegalEntityTest do
       legal_entity_data
       |> Map.put("addresses", [address])
 
-    assert [{%{description: "invalid area value", params: [], rule: :invalid},
-      "$.addresses.area"}] == Validator.validate_addresses({:ok, %{"content" => content}})
+    assert {:error, [{%{description: "invalid area value", params: [], rule: :invalid},
+      "$.addresses.area"}]} == Validator.validate_addresses({:ok, %{"content" => content}})
   end
 
   test "area validation with empty area" do
@@ -285,8 +285,8 @@ defmodule EHealth.Unit.LegalEntityTest do
       legal_entity_data
       |> Map.put("addresses", [address])
 
-    assert [{%{description: "invalid area value", params: [], rule: :invalid},
-      "$.addresses.area"}] == Validator.validate_addresses({:ok, %{"content" => content}})
+    assert {:error, [{%{description: "invalid area value", params: [], rule: :invalid},
+      "$.addresses.area"}]} == Validator.validate_addresses({:ok, %{"content" => content}})
   end
 
   # helpers

@@ -67,6 +67,22 @@ defmodule EHealth.Web.DivisionsControllerTest do
     assert 401 == json_response(conn, 401)["meta"]["code"]
   end
 
+  test "create division with invalid address", %{conn: conn} do
+    division_data = get_division()
+    address =
+      division_data
+      |> Map.get("addresses")
+      |> Enum.at(0)
+      |> Map.put("settlement", "Новосілки")
+
+    division_data = Map.put(division_data, "addresses", [address])
+
+    conn = put_client_id_header(conn, UUID.generate())
+    conn = post conn, division_path(conn, :create), division_data
+
+    refute %{} == json_response(conn, 422)["error"]
+  end
+
   test "create division", %{conn: conn} do
     conn = put_client_id_header(conn, UUID.generate())
     conn = post conn, division_path(conn, :create), get_division()

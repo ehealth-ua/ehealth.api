@@ -9,6 +9,7 @@ defmodule EHealth.Divisions.API do
   alias EHealth.API.PRM
   alias EHealth.API.UAddress
   alias EHealth.Utils.ValidationSchemaMapper
+  alias EHealth.LegalEntity.ValidatorAddresses
 
   use_schema :division, "specs/json_schemas/division_schema.json"
 
@@ -49,6 +50,7 @@ defmodule EHealth.Divisions.API do
     |> Map.delete("id")
     |> Map.put("legal_entity_id", legal_entity_id)
     |> validate_division()
+    |> validate_addresses()
     |> put_mountain_group()
   end
 
@@ -81,6 +83,17 @@ defmodule EHealth.Divisions.API do
       err -> err
     end
   end
+
+  def validate_addresses({:ok, data} = return) do
+    data
+    |> Map.get("addresses")
+    |> ValidatorAddresses.validate()
+    |> case do
+         {:ok, _} -> return
+         err -> err
+       end
+  end
+  def validate_addresses(err), do: err
 
   def put_mountain_group({:ok, %{"addresses" => addresses} = division}) do
     settlement_id =
