@@ -37,7 +37,7 @@ defmodule EHealth.DeclarationRequest.API do
   def create_changeset(attrs, user_id, employee, global_parameters) do
     %EHealth.DeclarationRequest{}
     |> cast(%{data: attrs}, [:data])
-    |> validate_patient_age(Enum.map(employee["specialities"], &(&1["speciality"])), global_parameters["adult_age"])
+    |> validate_patient_age(Enum.map(employee["doctor"]["specialities"], &(&1["speciality"])), global_parameters["adult_age"])
     |> validate_patient_phone_number()
     |> put_start_end_dates(global_parameters)
     |> put_change(:id, UUID.generate())

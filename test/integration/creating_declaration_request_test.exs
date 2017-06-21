@@ -9,11 +9,13 @@ defmodule EHealth.Integraiton.DeclarationRequestCreateTest do
 
       Plug.Router.get "/employees/ce377dea-d8c4-4dd8-9328-de24b1ee3879" do
         employee = %{
-          "specialities" => [
-            %{
-              "speciality" => "PEDIATRICIAN"
-            }
-          ]
+          "doctor" => %{
+            "specialities" => [
+              %{
+                "speciality" => "PEDIATRICIAN"
+              }
+            ]
+          }
         }
 
         send_resp(conn, 200, Poison.encode!(%{data: employee}))
