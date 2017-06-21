@@ -17,7 +17,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         case params["resource_id"] do
           "98e0a42f-20fe-472c-a614-0ea99426a3fb" ->
             upload = %{
-              upload_link: "http://a.link.for/#{params["resource_id"]}/#{params["resource_name"]}"
+              secret_url: "http://a.link.for/#{params["resource_id"]}/#{params["resource_name"]}"
             }
 
             Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: upload}))

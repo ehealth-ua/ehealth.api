@@ -73,7 +73,7 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
         params = conn.body_params["secret"]
 
         upload = %{
-          upload_link: "http://some_resource.com/#{params["resource_id"]}/#{params["resource_name"]}"
+          secret_url: "http://some_resource.com/#{params["resource_id"]}/#{params["resource_name"]}"
         }
 
         Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: upload}))

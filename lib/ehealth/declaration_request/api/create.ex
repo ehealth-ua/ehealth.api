@@ -25,7 +25,7 @@ defmodule EHealth.DeclarationRequest.API.Create do
           MediaStorage.create_signed_url("PUT", @files_storage_bucket, "declaration_request_#{document_type}.jpeg", id)
 
         case result do
-          {:ok, %{"data" => %{"upload_link" => url}}} ->
+          {:ok, %{"data" => %{"secret_url" => url}}} ->
             %{"type" => document_type, "url" => url}
           {:error, error_response} ->
             {:error, error_response}
