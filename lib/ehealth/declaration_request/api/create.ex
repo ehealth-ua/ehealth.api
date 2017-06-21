@@ -100,6 +100,13 @@ defmodule EHealth.DeclarationRequest.API.Create do
             }
 
             put_change(changeset, :authentication_method_current, authentication_method_current)
+          {:ok, :fallback_to_default}
+            authentication_method_current = %{
+              "type" => "OFFLINE",
+              "number" => authentication_method["number"]
+            }
+
+            put_change(changeset, :authentication_method_current, authentication_method_current)
           {:error, error_response} ->
             add_error(changeset, :authentication_method_current, format_error_response("Gandalf", error_response))
         end

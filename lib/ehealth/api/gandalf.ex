@@ -32,8 +32,13 @@ defmodule EHealth.API.Gandalf do
       preferable_auth_method: preferable_auth_method
     })
 
-    "/api/v1/tables/#{table_id()}/decisions"
-    |> post!(request_body, headers, basic_auth)
-    |> ResponseDecoder.check_response()
+    try do
+      "/api/v1/tables/#{table_id()}/decisions"
+      |> post!(request_body, headers, basic_auth)
+      |> ResponseDecoder.check_response()
+    rescue
+      HTTPoison.Error ->
+        {:ok, :fallback_to_default}
+    end
   end
 end
