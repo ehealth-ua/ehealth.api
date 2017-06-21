@@ -5,6 +5,7 @@ defmodule EHealth.DeclarationRequest.API.Create do
   alias EHealth.API.MPI
   alias EHealth.API.Gandalf
   alias EHealth.Man.Templates.DeclarationRequestPrintoutForm
+  alias Ecto.Changeset
 
   import Ecto.Changeset, only: [get_field: 2, put_change: 3, add_error: 3]
 
@@ -16,6 +17,7 @@ defmodule EHealth.DeclarationRequest.API.Create do
     {:ok, "Verification code was sent!"}
   end
 
+  def generate_upload_urls(%Changeset{valid?: false} = changeset), do: changeset
   def generate_upload_urls(changeset) do
     id = get_field(changeset, :id)
 
@@ -46,6 +48,7 @@ defmodule EHealth.DeclarationRequest.API.Create do
     end
   end
 
+  def generate_printout_form(%Changeset{valid?: false} = changeset), do: changeset
   def generate_printout_form(changeset) do
     form_data = %{
       id: get_field(changeset, :id)
@@ -59,6 +62,7 @@ defmodule EHealth.DeclarationRequest.API.Create do
     end
   end
 
+  def determine_auth_method_for_mpi(%Changeset{valid?: false} = changeset), do: changeset
   def determine_auth_method_for_mpi(changeset) do
     data = get_field(changeset, :data)
 
