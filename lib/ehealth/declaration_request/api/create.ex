@@ -52,7 +52,7 @@ defmodule EHealth.DeclarationRequest.API.Create do
     }
 
     case DeclarationRequestPrintoutForm.render(form_data) do
-      {:ok, %{"data" => %{"body" => printout_content}}} ->
+      {:ok, printout_content} ->
         put_change(changeset, :printout_content, printout_content)
       {:error, error_response} ->
         add_error(changeset, :printout_content, format_error_response("MAN", error_response))

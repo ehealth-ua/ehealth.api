@@ -62,11 +62,11 @@ defmodule EHealth.Integraiton.DeclarationRequestCreateTest do
         send_resp(conn, 200, Poison.encode!(%{data: person}))
       end
 
-      Plug.Router.post "/templates/123/actions/render" do
-        body = "<html><body>Printout form for declaration \
+      Plug.Router.post "/templates/4/actions/render" do
+        template = "<html><body>Printout form for declaration \
 request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
 
-        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: %{body: body}}))
+        Plug.Conn.send_resp(conn, 200, template)
       end
 
       Plug.Router.post "/media_content_storage_secrets" do

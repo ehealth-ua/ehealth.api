@@ -78,16 +78,14 @@ declaration_request_SSN.jpeg"})
     defmodule PrintoutForm do
       use MicroservicesHelper
 
-      Plug.Router.post "/templates/123/actions/render" do
-        printout_form = %{
-          body: "Template id=#123 and declaration request ##{conn.body_params["declaration_request_id"]}"
-        }
+      Plug.Router.post "/templates/4/actions/render" do
+        printout_form = "Template id=#4 and declaration request ##{conn.body_params["declaration_request_id"]}"
 
-        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: printout_form}))
+        Plug.Conn.send_resp(conn, 200, printout_form)
       end
 
       Plug.Router.post "/templates/999/actions/render" do
-        Plug.Conn.send_resp(conn, 404, Poison.encode!(%{oops: "I did it again"}))
+        Plug.Conn.send_resp(conn, 404, "oops, I did it again")
       end
     end
 
@@ -124,10 +122,10 @@ declaration_request_SSN.jpeg"})
         |> Ecto.Changeset.change()
         |> generate_printout_form()
 
-      assert ~s(Error during MAN interaction. Result from MAN: %{"oops" => "I did it again"}) ==
+      assert ~s(Error during MAN interaction. Result from MAN: "oops, I did it again") ==
         elem(changeset.errors[:printout_content], 0)
 
-      System.put_env("DECLARATION_REQUEST_PRINTOUT_FORM_TEMPLATE_ID", "123")
+      System.put_env("DECLARATION_REQUEST_PRINTOUT_FORM_TEMPLATE_ID", "4")
     end
   end
 
