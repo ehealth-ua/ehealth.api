@@ -92,10 +92,6 @@ defmodule EHealth.DeclarationRequest.API.Create do
           authentication_method["type"]
         )
 
-        gandalf_error_fun = fn ->
-          "Gandalf didn't reply properly. Got #{inspect other} result instead"
-        end
-
         case gandalf_decision do
           {:ok, %{"data" => decision}} ->
             authentication_method_current = %{
@@ -108,7 +104,7 @@ defmodule EHealth.DeclarationRequest.API.Create do
             add_error(changeset, :authentication_method_current, format_error_response("Gandalf", error_response))
           other ->
             require Logger
-            Logger.info(gandalf_error_fun)
+            Logger.info("Gandalf is not responding. Falling back to default...")
 
             authentication_method_current = %{
               "type" => "OFFLINE",
