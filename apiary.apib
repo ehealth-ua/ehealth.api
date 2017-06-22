@@ -1751,7 +1751,7 @@ all GET-endpoints returning Employee info are mounted through the
 
 Use this end-point to obtain all Employees of the legal entity specified by the `legal_entity_id`. 
 
-We suggest to use `status` filter to limit response size. Eg. you MAY want to list only active employees for everyones except HR's. Also it's a good idea to filter list by employee `type`.
+We suggest to use `is_active` filter to limit response size. Eg. you MAY want to list only active employees for everyones except HR's. Also it's a good idea to filter list by employee `type`.
 
 Method returns shortened details, to obtain full information - get Employee it by ID.
 
@@ -2744,6 +2744,7 @@ API for searching Ukrainian Addresses
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + position: P1 (string, required) - `Dictionary: POSITION`
 + `employee_type`: DOCTOR (string) - `Dictionary: EMPLOYEE_TYPE`
++ status: NEW, APPROVED (enum, required) - Employee status
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
 + party (object)
