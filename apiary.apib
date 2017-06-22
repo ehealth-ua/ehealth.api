@@ -1747,7 +1747,7 @@ According to the strong binding of the Employees to the Employer (legal entity)
 all GET-endpoints returning Employee info are mounted through the
 `/legal_entities/{legal_entity_id}` path.
 
-### Get Employees List [GET /api/employees{?edrpou,tax_id,party_id,legal_entity_id,division_id,status,type,limit,starting_after,ending_before}]
+### Get Employees List [GET /api/employees{?edrpou,tax_id,party_id,legal_entity_id,division_id,status,employee_type,limit,starting_after,ending_before}]
 
 Use this end-point to obtain all Employees of the legal entity specified by the `legal_entity_id`. 
 
@@ -1764,7 +1764,7 @@ Method returns shortened details, to obtain full information - get Employee it b
     + status: APPROVED (enum, optional)
         - NEW
         - APPROVED
-    + type: DOCTOR (string, optional) - `Dictionary: EMPLOYEE_TYPE`
+    + employee_type: DOCTOR (string, optional) 
     + limit: 20 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
     + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
     + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
@@ -2633,7 +2633,6 @@ API for searching Ukrainian Addresses
 + birth_date: `1991-08-19T00:00:00.000Z` (string, required)
 + gender: MALE (string, required) - `Dictionary GENDER`
 + tax_id: 3126509816 (string, optional)
-+ email: email@example.com (string, optional)
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
 
