@@ -647,11 +647,10 @@ This service should be used for internal services/processes. Used without `acces
 
 ## Legal Entities [/legal_entities]
 
-### Get Legal Entities List [GET /legal_entities{?edrpou,legal_entity_id,type,status,legal_form,owner_property_type}]
+### Get Legal Entities List [GET /legal_entities{?edrpou,type,status,legal_form,owner_property_type}]
 
 + Parameters
     + edrpou: 5432345432 (string, optional)
-    + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional)
     + type (enum, optional)
         - MSP
     + status: VERIFIED (enum, optional)
@@ -1984,10 +1983,11 @@ It returns:
 
 ## Legal Entities [/api/legal_entities]
 
-### Get Legal Entities [GET /api/legal_entities{?edrpou,type,owner_property,status,starting_after,ending_before,limit}]
+### Get Legal Entities [GET /api/legal_entities{?edrpou,legal_entity_id,type,owner_property,status,starting_after,ending_before,limit}]
 
 + Parameters
     + `edrpou`: `341086` (string, optional)
+    + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional)
     + type: MSP (enum, optional)
         - MSP
         + Default: MSP
