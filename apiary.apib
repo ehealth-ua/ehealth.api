@@ -1807,20 +1807,10 @@ Response structure differs depending on employee type:
             + division (Division_Short)
             + `legal_entity` (`Legal_Entity_Short`)
 
-### Update Employee [PATCH /api/employees/{employee_id}]
+### Deactivate Employee [PATCH /api/employees/{employee_id}/action/deactivate]
 
-Use this method to deactivate employee or to update:
-* Person info
-* Employee info
-* Doctor Info
-
-This method does not require changes confirmation by the employee and should be limit by scopes
-
-The following fields can't be changed:
-* employee_type
-* tax_id
-* email
-
+Use this method to deactivate employee.
+Update employee parameter is_active on false and end_date is now
 
 
 + Parameters
@@ -1831,9 +1821,7 @@ The following fields can't be changed:
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
-    
-    + Attributes (`Employee_Update`)
-    
+
 + Response 200 (application/json)
     + Attributes (Response_OK)
         + data (Employee_Request)
