@@ -82,7 +82,7 @@ defmodule EHealth.Employee.EmployeeCreator do
   def deactivate_employees({:ok, %{"data" => employees}}, except_employee_id, headers, resp) do
     Enum.each(employees, fn(employee) ->
       case except_employee_id != employee["id"] do
-        true -> deactivate_employee(employee["id"], except_employee_id, headers)
+        true -> deactivate_employee(employee["id"], headers)
         false -> :ok
       end
     end)
@@ -90,9 +90,9 @@ defmodule EHealth.Employee.EmployeeCreator do
   end
   def deactivate_employees(err, _except_employee_id, _headers, _resp), do: err
 
-  def deactivate_employee(id, updated_by, headers) do
+  def deactivate_employee(id, headers) do
     %{
-      "updated_by" => updated_by,
+      "updated_by" => get_consumer_id(headers),
       "is_active" => false,
     }
     |> PRM.update_employee(id, headers)
