@@ -1751,7 +1751,7 @@ all GET-endpoints returning Employee info are mounted through the
 
 Use this end-point to obtain all Employees of the legal entity specified by the `legal_entity_id`. 
 
-We suggest to use `is_active` filter to limit response size. Eg. you MAY want to list only active employees for everyones except HR's. Also it's a good idea to filter list by employee `type`.
+We suggest to use `status` filter to limit response size. Eg. you MAY want to list only active employees for everyones except HR's. Also it's a good idea to filter list by employee `type`.
 
 Method returns shortened details, to obtain full information - get Employee it by ID.
 
