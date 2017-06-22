@@ -56,7 +56,7 @@ defmodule EHealth.DeclarationRequest.API.Validations do
   def belongs_to(age, adult_age, "PEDIATRICIAN"), do: age < adult_age
   def belongs_to(_age, _adult_age, "FAMILY_DOCTOR"), do: true
 
-  def valid_schema(attrs) do
+  def validate_schema(attrs) do
     schema =
       @schemas
       |> Keyword.get(:declaration_request)
