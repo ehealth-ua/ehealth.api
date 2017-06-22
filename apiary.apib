@@ -2634,8 +2634,19 @@ API for searching Ukrainian Addresses
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
 
+### `Party_Response`
++ id:`b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ include `Party_Short`
++ birth_date: `1991-08-19T00:00:00.000Z` (string, required)
++ gender: MALE (string, required) - `Dictionary GENDER`
++ tax_id: 3126509816 (string, optional)
++ email: email@example.com (string, optional)
++ documents (array[Document], optional)
++ phones (array[Phone], optional)
+
 ### `Party_Update`
 + include `Party_Short`
++ tax_id: 3126509816 (string, required)
 + birth_date: `1991-08-19T00:00:00.000Z` (string, required)
 + gender: MALE(string, required) - `Dictionary GENDER`
 + documents (array[Document], optional)
@@ -2715,7 +2726,7 @@ API for searching Ukrainian Addresses
 + status: NEW, APPROVED (enum, required)
 + is_active: true (boolean, required)
 + `employee_type`: DOCTOR (string, required) - `Dictionary EMPLOYEE_TYPE`
-+ party (Party_Request)
++ party (Party_Response)
 + doctor (DoctorNew, optional)
 
 ### `Employee_Update`
