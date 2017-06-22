@@ -22,27 +22,28 @@
       ],
       "additionalProperties": false
     },
+    "name": {
+      "type": "string",
+      "pattern": "^(?!.*[ЫЪЭЁыъэё@%&$^#])[a-zA-ZА-ЯҐЇІЄа-яґїіє0-9№\\\"!\\^\\*)\\]\\[(._-].*$"
+    },
     "address": {
       "type": "object",
       "properties": {
         "type": {
           "type": "string",
-          "enum": [
-            "RESIDENCE",
-            "REGISTRATION"
-          ]
+          "description": "Dictionary: ADDRESS_TYPE"
         },
         "country": {
           "type": "string"
         },
         "area": {
-          "type": "string"
+          "$ref": "#/definitions/name"
         },
         "region": {
-          "type": "string"
+          "$ref": "#/definitions/name"
         },
         "settlement": {
-          "type": "string"
+          "$ref": "#/definitions/name"
         },
         "settlement_type": {
           "type": "string"
@@ -51,20 +52,14 @@
           "type": "string"
         },
         "street_type": {
-          "type": "string",
-          "enum": [
-            "BOULEVARD",
-            "STREET",
-            "AVENUE",
-            "SQUARE"
-          ]
+          "type": "string"
         },
         "street": {
-          "type": "string"
+          "$ref": "#/definitions/name"
         },
         "building": {
           "type": "string",
-          "pattern": "^[0-9]{1,3}(([ \\-]{1})?(?![ЫЪЭЁыъэё])[А-ЯҐЇЄа-яґїє]{1})?((\\s)?(\\|/)(\\s)?[0-9]{1,3}(([ \\-]{1})?(?![ЫЪЭЁыъэё])[А-ЯҐЇЄа-яґїє]{1})?)?$"
+          "pattern": "^[1-9]([0-9]{1,2})?(([ \\-]{1})?(?![ЫЪЭЁыъэё])[А-ЯҐЇЄа-яґїє]{1})?((\\s)?(\\\\|\/)(\\s)?[1-9]([0-9]{1,2})?(([ \\-]{1})?(?![ЫЪЭЁыъэё])[А-ЯҐЇЄа-яґїє]{1})?)?$"
         },
         "apartment": {
           "type": "string"
@@ -75,7 +70,11 @@
         }
       },
       "required": [
+        "type",
         "country",
+        "area",
+        "settlement",
+        "settlement_type",
         "settlement_id",
         "building"
       ],
