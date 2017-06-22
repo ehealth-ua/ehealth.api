@@ -244,6 +244,7 @@ defmodule EHealth.Employee.API do
     |> get_employee_relation("party")
     |> get_employee_relation("division")
     |> get_employee_relation("legal_entity")
+    |> filter_employee_response()
     |> ok()
     |> end_pipe()
   end
@@ -272,6 +273,7 @@ defmodule EHealth.Employee.API do
     |> put_success_api_response_in_employee(relation_key, pipe_data)
   end
 
+  defp load_relation_from_prm(nil, key, _headers), do: {:ok, %{"data" => %{}}}
   defp load_relation_from_prm(id, "party", headers), do: PRM.get_party_by_id(id, headers)
   defp load_relation_from_prm(id, "division", headers), do: PRM.get_division_by_id(id, headers)
   defp load_relation_from_prm(id, "legal_entity", headers), do: PRM.get_legal_entity_by_id(id, headers)
@@ -281,4 +283,31 @@ defmodule EHealth.Employee.API do
   end
   defp put_success_api_response_in_employee(err, _key, _pipe_data), do: err
 
+  defp filter_employee_response(%{employee: employee_response} = pipe_data) do
+    employee =
+      employee_response
+      |> Map.get("data")
+      |> Map.drop(["updated_by", "inserted_by", "party_id", "legal_entity_id", "division_id"])
+      |> filter_party_response()
+      |> filter_legal_entity_response()
+
+    employee_response
+    |> Map.put("data", employee)
+    |> put_in_pipe(:employee, pipe_data)
+  end
+
+  def filter_party_response(%{"party" => party} = data) do
+    party = Map.drop(party, ["updated_by", "inserted_by"])
+    Map.put(data, "party", party)
+  end
+  def filter_party_response(data), do: data
+
+  def filter_legal_entity_response(%{"legal_entity" => legal_entity} = data) do
+    filter = ["updated_by", "inserted_by", "inserted_at", "updated_at", "phones", "medical_service_provider",
+              "kveds", "is_active",  "email", "created_by_mis_client_id", "addresses"]
+
+    legal_entity = Map.drop(legal_entity, filter)
+    Map.put(data, "legal_entity", legal_entity)
+  end
+  def filter_legal_entity_response(data), do: data
 end

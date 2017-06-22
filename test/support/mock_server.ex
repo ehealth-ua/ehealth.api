@@ -108,7 +108,9 @@ defmodule EHealth.MockServer do
   get "/employees/:id" do
     case conn.path_params do
       %{"id" => "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b"} ->
-        Plug.Conn.send_resp(conn, 200, get_employee() |> wrap_response() |> Poison.encode!())
+        render(get_employee(), conn, 200)
+      %{"id" => "b075f148-7f93-4fc2-b2ec-2d81b19a911a"} ->
+        render(get_employee("7cc91a5d-c02f-41e9-b571-1ea4f2375552", nil), conn, 200)
       _ -> render_404(conn)
     end
   end
@@ -448,9 +450,13 @@ defmodule EHealth.MockServer do
     }
   end
 
-  def get_employee(legal_entity_id, false), do: get_employee(legal_entity_id)
+  def get_employee, do: get_employee("7cc91a5d-c02f-41e9-b571-1ea4f2375552", "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b")
 
-  def get_employee(legal_entity_id, true) do
+  def get_employee(legal_entity_id), do: get_employee(legal_entity_id, "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b")
+
+  def get_employee(legal_entity_id, _expand = false), do: get_employee(legal_entity_id)
+
+  def get_employee(legal_entity_id, _expand = true) do
     legal_entity_id
     |> get_employee()
     |> Map.merge(%{
@@ -460,10 +466,11 @@ defmodule EHealth.MockServer do
        })
   end
 
-  def get_employee(legal_entity_id \\ nil) do
+  def get_employee(legal_entity_id, division_id) do
     %{
       "id" => "7488a646-e31f-11e4-aace-600308960662",
-      "legal_entity_id" => legal_entity_id || "7cc91a5d-c02f-41e9-b571-1ea4f2375552",
+      "legal_entity_id" => legal_entity_id,
+      "division_id" => division_id,
       "updated_by" => "e8119d87-2d48-48c2-915c-1d3a1b25b16b",
       "status" => "APPROVED",
       "start_date" => "2017-03-02",
@@ -533,7 +540,6 @@ defmodule EHealth.MockServer do
           }
         ]
       },
-      "division" => nil
     }
   end
 
