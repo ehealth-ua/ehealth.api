@@ -10,6 +10,7 @@ defmodule EHealth.DeclarationRequest.API do
   alias EHealth.API.PRM
   alias EHealth.DeclarationRequest.API.Create
   alias EHealth.DeclarationRequest.API.Helpers
+  alias EHealth.DeclarationRequest.API.Validations
 
   @required_fields ~w(
     data
@@ -22,7 +23,8 @@ defmodule EHealth.DeclarationRequest.API do
   )a
 
   def create(attrs, user_id) do
-    with {:ok, %{"data" => global_parameters}} <- PRM.get_global_parameters(),
+    with {:ok, attrs} <- Validations.valid_schema(attrs),
+         {:ok, %{"data" => global_parameters}} <- PRM.get_global_parameters(),
          {:ok, %{"data" => employee}} <- PRM.get_employee_by_id(attrs["employee_id"]) do
       updates = [status: "CANCELLED", updated_at: DateTime.utc_now(), updated_by: user_id]
 

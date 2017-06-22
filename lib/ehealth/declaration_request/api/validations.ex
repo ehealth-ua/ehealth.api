@@ -1,9 +1,14 @@
 defmodule EHealth.DeclarationRequest.API.Validations do
   @moduledoc false
 
+  use JValid
+
   alias EHealth.API.OTPVerification
+  alias EHealth.Utils.ValidationSchemaMapper
 
   import Ecto.Changeset
+
+  use_schema :declaration_request, "specs/json_schemas/declaration_request_schema.json"
 
   def validate_patient_phone_number(changeset) do
     verified? =
@@ -50,4 +55,16 @@ defmodule EHealth.DeclarationRequest.API.Validations do
   def belongs_to(age, adult_age, "THERAPIST"), do: age >= adult_age
   def belongs_to(age, adult_age, "PEDIATRICIAN"), do: age < adult_age
   def belongs_to(_age, _adult_age, "FAMILY_DOCTOR"), do: true
+
+  def valid_schema(attrs) do
+    schema =
+      @schemas
+      |> Keyword.get(:declaration_request)
+      |> ValidationSchemaMapper.prepare_declaration_request_schema()
+
+    case validate_schema(schema, attrs) do
+      :ok -> {:ok, attrs}
+      err -> err
+    end
+  end
 end

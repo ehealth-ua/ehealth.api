@@ -21,6 +21,10 @@ defmodule EHealth.Utils.ValidationSchemaMapper do
     prepare_schema(nex_schema, :employee_request)
   end
 
+  def prepare_declaration_request_schema(%Root{} = nex_schema) do
+    prepare_schema(nex_schema, :declaration_request)
+  end
+
   def prepare_schema(%Root{schema: schema} = nex_schema, type) do
     schema =
       %{"is_active" => true}

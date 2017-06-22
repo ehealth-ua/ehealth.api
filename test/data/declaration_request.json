@@ -69,6 +69,7 @@
         "documents": [
           {
             "type": "PASSPORT",
+            "identifies": "PERSON",
             "number": "120518"
           }
         ],
@@ -85,7 +86,7 @@
       "process_data_consent": true,
       "service_location_consent": true
     },
-    "scope": "family doctor",
+    "scope": "FAMILY DOCTOR",
     "employee_id": "ce377dea-d8c4-4dd8-9328-de24b1ee3879"
   }
 }
