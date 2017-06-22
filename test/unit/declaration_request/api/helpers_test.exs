@@ -37,5 +37,13 @@ defmodule EHealth.DeclarationRequest.API.HelpersTest do
 
       assert ~D[2057-10-16] == request_end_date(today, term, birth_date, 18)
     end
+
+    test "take min between 18 years and declaration term date" do
+      term       = [years: 5]
+      birth_date = "1988-10-10"
+      today      = Date.from_iso8601!("1990-10-10")
+
+      assert ~D[1995-10-10] == request_end_date(today, term, birth_date, 18)
+    end
   end
 end
