@@ -93,16 +93,16 @@ defmodule EHealth.Employee.API do
   end
 
   def send_email({:ok, %Request{data: data} = employee_request} = result, template, sender) do
-    email_body = template.render(employee_request)
-
-    try do
-      data
-      |> get_in(["party", "email"])
-      |> sender.send(email_body) # ToDo: use postboy when it is ready
-    rescue
-      e -> Logger.error(e.message)
+    with {:ok, body} <- template.render(employee_request) do
+      try do
+        data
+        |> get_in(["party", "email"])
+        |> sender.send(body) # ToDo: use postboy when it is ready
+      rescue
+        e -> Logger.error(e.message)
+      end
+      result
     end
-    result
   end
   def send_email(error, _template, _sender), do: error
 
