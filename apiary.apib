@@ -1803,7 +1803,7 @@ Response structure differs depending on employee type:
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
-        + data (Employee_Request)
+        + data (Employee_Response)
             + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
             + division (Division_Short)
             + `legal_entity` (`Legal_Entity_Short`)
@@ -2708,13 +2708,12 @@ API for searching Ukrainian Addresses
     + email: email@example.com (string, optional)
     + phones (array[Phone], optional)
 
-### `Employee_Request`
-+ division_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
+### Employee_Response
 + employee_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
 + position: P8 (string, required) - `Dictionary POSITION`
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
-+ status: NEW, REJECTED, APPROVED (enum, required)
++ status: NEW, APPROVED (enum, required)
 + `employee_type`: DOCTOR (string, required) - `Dictionary EMPLOYEE_TYPE`
 + party (Party_Request)
 + doctor (DoctorNew, optional)
@@ -2728,6 +2727,17 @@ API for searching Ukrainian Addresses
 + status: NEW, APPROVED (enum, required)
 + is_active: false (boolean, required)
 + party (Party_Update)
++ doctor (DoctorNew, optional)
+
+### `Employee_Request`
++ division_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
++ employee_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
++ position: P8 (string, required) - `Dictionary POSITION`
++ start_date: `2017-03-02T10:45:16.000Z` (string, required)
++ end_date: `2018-03-02T10:45:16.000Z` (string, optional)
++ status: NEW, REJECTED, APPROVED (enum, required)
++ `employee_type`: DOCTOR (string, required) - `Dictionary EMPLOYEE_TYPE`
++ party (Party_Request)
 + doctor (DoctorNew, optional)
 
 ### `Employee_Request_Short`
@@ -3133,7 +3143,7 @@ API for searching Ukrainian Addresses
 
 ### `DoctorNew_Short`
 + id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
-+ speciality (array[Speciality], required)
++ specialities (array[Speciality], required)
 
 ### Education
 + country: UA (string, required) - `Dictionary COUNTRY`
