@@ -201,6 +201,38 @@ defmodule EHealth.Employee.API do
     end
   end
 
+  def get_employees(params, headers) do
+    params
+    |> get_employees_search_params(get_client_id(headers))
+    |> PRM.get_employees(headers)
+    |> filter_employees_response()
+  end
+
+  def filter_employees_response({:ok, %{"data" => data} = response}) do
+    data = Enum.map(data, fn(employee) ->
+      employee
+      |> Map.drop(["inserted_by", "updated_by", "is_active"])
+      |> filter_doctor_response()
+    end)
+
+    {:ok, Map.put(response, "data", data)}
+  end
+  def filter_employees_response(err), do: err
+
+  def filter_doctor_response(%{"doctor" => doctor} = data) do
+    doctor = Map.drop(doctor, ["science_degree", "qualifications", "educations"])
+    Map.put(data, "doctor", doctor)
+  end
+  def filter_doctor_response(data), do: data
+
+  defp get_employees_search_params(params, client_id) do
+    Map.merge(params, %{
+      "legal_entity_id" => client_id,
+      "is_active" => true,
+      "expand" => true,
+    })
+  end
+
   def get_employee_by_id(id, headers) do
     {:ok, %{
       employee_id: id,

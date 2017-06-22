@@ -463,22 +463,77 @@ defmodule EHealth.MockServer do
   def get_employee(legal_entity_id \\ nil) do
     %{
       "id" => "7488a646-e31f-11e4-aace-600308960662",
-      "party_id" => "01981ab9-904c-4c36-88ab-959a94087483",
       "legal_entity_id" => legal_entity_id || "7cc91a5d-c02f-41e9-b571-1ea4f2375552",
-      "employee_type" => "OWNER",
-      "type" => "employee", # EView field
+      "updated_by" => "e8119d87-2d48-48c2-915c-1d3a1b25b16b",
+      "status" => "APPROVED",
+      "start_date" => "2017-03-02",
+      "position" => "P1",
+      "party" => %{
+        "second_name" => "Миколайович",
+        "last_name" => "Іванов",
+        "id" => "b63d802f-5225-4362-bc93-a8bba6eac167",
+        "first_name" => "Петро"
+      },
+      "legal_entity" => %{
+        "type" => "MSP",
+        "status" => "NOT_VERIFIED",
+        "short_name" => "Адоніс22",
+        "public_name" => "Адоніс22",
+        "owner_property_type" => "STATE",
+        "name" => "Клініка Адоніс22",
+        "legal_form" => "140",
+        "id" => "9c81824b-bc13-4d07-bc76-b069e2a2876b",
+        "edrpou" => "38782323"
+      },
       "is_active" => true,
-      "status" => "some status",
-      "position" => "some position",
-      "end_date" => "2011-04-17",
-      "start_date" => "2010-04-17",
-      "specialities" => [
-        %{
-          "speciality" => "PEDIATRICIAN"
-        }
-      ],
-      "inserted_by" => "7488a646-e31f-11e4-aace-600308960662",
-      "updated_by" => "7488a646-e31f-11e4-aace-600308960662"
+      "inserted_by" => "e8119d87-2d48-48c2-915c-1d3a1b25b16b",
+      "end_date" => nil,
+      "employee_type" => "OWNER",
+      "doctor" => %{
+        "id" => "e8119d87-2d48-48c2-915c-1d3a1b25b16b",
+        "specialities" => [
+          %{
+            "valid_to_date" => "2017-08-05",
+            "speciality_officio" => true,
+            "speciality" => "PEDIATRICIAN",
+            "qualification_type" => "AWARDING",
+            "level" => "FIRST",
+            "certificate_number" => "AB/21331",
+            "attestation_name" => "Академія Богомольця",
+            "attestation_date" => "2017-08-05"
+          }
+        ],
+        "science_degree" => %{
+          "speciality" => "THERAPIST",
+          "issued_date" => "2017-08-05",
+          "institution_name" => "Академія Богомольця",
+          "diploma_number" => "DD123543",
+          "degree" => "Доктор філософії",
+          "country" => "UA",
+          "city" => "Київ"
+        },
+        "qualifications" => [
+          %{
+            "type" => "AWARDING",
+            "speciality" => "Педіатр",
+            "issued_date" => "2017-08-05",
+            "institution_name" => "Академія Богомольця",
+            "certificate_number" => "2017-08-05"
+          }
+        ],
+        "educations" => [
+          %{
+            "speciality" => "Педіатр",
+            "issued_date" => "2017-08-05",
+            "institution_name" => "Академія Богомольця",
+            "diploma_number" => "DD123543",
+            "degree" => "MASTER",
+            "country" => "UA",
+            "city" => "Київ"
+          }
+        ]
+      },
+      "division" => nil
     }
   end
 

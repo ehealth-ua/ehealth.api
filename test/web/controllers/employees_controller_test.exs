@@ -24,6 +24,17 @@ defmodule EHealth.Web.EmployeesControllerTest do
     conn = get conn, employees_path(conn, :index)
     resp = json_response(conn, 200)["data"]
     employee = List.first(resp)
+
+    assert Map.has_key?(employee, "doctor")
+    assert Map.has_key?(employee["doctor"], "id")
+    refute Map.has_key?(employee["doctor"], "science_degree")
+    refute Map.has_key?(employee["doctor"], "qualifications")
+    refute Map.has_key?(employee["doctor"], "educations")
+
+    refute Map.has_key?(employee, "inserted_by")
+    refute Map.has_key?(employee, "updated_by")
+    refute Map.has_key?(employee, "is_active")
+
     assert is_map(employee["party"])
     assert is_map(employee["division"])
     assert is_map(employee["legal_entity"])

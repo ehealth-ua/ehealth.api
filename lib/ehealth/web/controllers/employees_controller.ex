@@ -3,23 +3,14 @@ defmodule EHealth.Web.EmployeesController do
 
   use EHealth.Web, :controller
 
-  alias EHealth.API.PRM
   alias EHealth.Employee.API
 
   action_fallback EHealth.Web.FallbackController
 
   def index(%Plug.Conn{req_headers: req_headers} = conn, params) do
-    client_id = get_client_id(req_headers)
-    with {:ok, %{"meta" => %{}} = response} <- PRM.get_employees(get_search_params(params, client_id), req_headers) do
+    with {:ok, %{"meta" => %{}} = response} <- API.get_employees(params, req_headers) do
       proxy(conn, response)
     end
-  end
-
-  defp get_search_params(params, client_id) do
-    Map.merge(params, %{
-      "legal_entity_id" => client_id,
-      "expand" => true
-    })
   end
 
   def show(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
