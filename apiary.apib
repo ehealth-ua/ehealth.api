@@ -647,10 +647,11 @@ This service should be used for internal services/processes. Used without `acces
 
 ## Legal Entities [/legal_entities]
 
-### Get Legal Entities List [GET /legal_entities{?edrpou,type,status,legal_form,owner_property_type}]
+### Get Legal Entities List [GET /legal_entities{?edrpou,legal_entity_id,type,status,legal_form,owner_property_type}]
 
 + Parameters
     + edrpou: 5432345432 (string, optional)
+    + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional)
     + type (enum, optional)
         - MSP
     + status: VERIFIED (enum, optional)
@@ -1747,7 +1748,7 @@ According to the strong binding of the Employees to the Employer (legal entity)
 all GET-endpoints returning Employee info are mounted through the
 `/legal_entities/{legal_entity_id}` path.
 
-### Get Employees List [GET /api/employees{?division_id,status,type,limit,starting_after,ending_before}]
+### Get Employees List [GET /api/employees{?edrpou,tax_id,party_id,legal_entity_id,division_id,status,type,limit,starting_after,ending_before}]
 
 Use this end-point to obtain all Employees of the legal entity specified by the `legal_entity_id`. 
 
@@ -1756,6 +1757,10 @@ We suggest to use `is_active` filter to limit response size. Eg. you MAY want to
 Method returns shortened details, to obtain full information - get Employee it by ID.
 
 + Parameters
+    + edrpou: 12345678 (string, optional)
+    + tax_id: 1234567898 (string, optional)
+    + party_id: `d290f1ee-6c54-4b01-90e6-d701748f0152` (string, optional)
+    + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0152` (string, optional)
     + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0152` (string, optional)
     + status: APPROVED (enum, optional)
         - NEW
