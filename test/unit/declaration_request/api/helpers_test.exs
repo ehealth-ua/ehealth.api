@@ -14,7 +14,6 @@ defmodule EHealth.DeclarationRequest.API.HelpersTest do
       assert ~D[2032-10-09] == request_end_date(today, term, birth_date, 18)
     end
 
-    @tag pending: true
     test "patient turns 18 years old tomorrow" do
       term       = [years: 40]
       birth_date = "2000-10-17"
@@ -28,8 +27,6 @@ defmodule EHealth.DeclarationRequest.API.HelpersTest do
       birth_date = "2000-10-17"
       today      = Date.from_iso8601!("2018-10-17")
 
-      # Must be 07, not 17th, see note in actual code.
-      # Result should be "+ 40 years - 10 days" (e.g. loose 1 day every year)
       assert ~D[2058-10-17] == request_end_date(today, term, birth_date, 18)
     end
 
@@ -38,8 +35,6 @@ defmodule EHealth.DeclarationRequest.API.HelpersTest do
       birth_date = "1988-10-10"
       today      = Date.from_iso8601!("2017-10-16")
 
-      # Must be 06, not 16th, see note in actual code.
-      # Result should be "+ 40 years - 10 days" (e.g. loose 1 day every year)
       assert ~D[2057-10-16] == request_end_date(today, term, birth_date, 18)
     end
   end
