@@ -1764,6 +1764,7 @@ Method returns shortened details, to obtain full information - get Employee it b
     + status: APPROVED (enum, optional)
         - NEW
         - APPROVED
+        - DISMISSED
     + employee_type: DOCTOR (string, optional) 
     + limit: 20 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
     + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
@@ -1814,7 +1815,10 @@ Response structure differs depending on employee type:
 ### Deactivate Employee - TBD [PATCH /api/employees/{employee_id}/action/deactivate]
 
 Use this method to deactivate employee.
-Update employee parameter is_active on false and end_date is now
+Update employee parameters:
+ - is_active on false 
+ - end_date is now
+ - status = DISMISSED, if employee_type not OWNER
 
 
 + Parameters
@@ -2715,7 +2719,7 @@ API for searching Ukrainian Addresses
 + position: P8 (string, required) - `Dictionary POSITION`
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
-+ status: NEW, APPROVED (enum, required)
++ status: NEW, APPROVED, DISMISSED (enum, required)
 + is_active: true (boolean, required)
 + `employee_type`: DOCTOR (string, required) - `Dictionary EMPLOYEE_TYPE`
 + party (Party_Response)
@@ -2727,7 +2731,7 @@ API for searching Ukrainian Addresses
 + position: лікар (string, required)
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
-+ status: NEW, APPROVED (enum, required)
++ status: NEW, APPROVED, DISMISSED (enum, required)
 + is_active: false (boolean, required)
 + party (Party_Update)
 + doctor (DoctorNew, optional)
@@ -2757,7 +2761,7 @@ API for searching Ukrainian Addresses
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + position: P1 (string, required) - `Dictionary: POSITION`
 + `employee_type`: DOCTOR (string) - `Dictionary: EMPLOYEE_TYPE`
-+ status: NEW, APPROVED (enum, required) - Employee status
++ status: NEW, APPROVED, DISMISSED (enum, required) - Employee status
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
 + party (object)
