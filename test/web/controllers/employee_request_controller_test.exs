@@ -75,6 +75,28 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       rule = Enum.at(invalid_employee_id["rules"], 0)
       assert "does not exist" == Map.get(rule, "description")
     end
+
+    test "with invaid tax id", %{conn: conn} do
+      employee_request_params =
+        "test/data/employee_request.json"
+        |> File.read!()
+        |> Poison.decode!()
+        |> put_in(["employee_request", "party", "tax_id"], "1111111111")
+        |> Poison.encode!()
+
+      conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8602f2")
+      conn = post conn, employee_request_path(conn, :create), employee_request_params
+      resp = json_response(conn, 422)
+      assert Map.has_key?(resp, "error")
+      assert Map.has_key?(resp["error"], "invalid")
+      assert 1 == length(resp["error"]["invalid"])
+
+      invalid_tax_id = Enum.at(resp["error"]["invalid"], 0)
+      assert Map.has_key?(invalid_tax_id, "rules")
+      assert 1 == length(invalid_tax_id["rules"])
+      rule = Enum.at(invalid_tax_id["rules"], 0)
+      assert "invalid tax_id value" == Map.get(rule, "description")
+    end
   end
 
   describe "list employee requests" do

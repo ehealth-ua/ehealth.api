@@ -33,19 +33,34 @@ defmodule EHealth.Unit.LegalEntityTest do
   test "invalid signed content - no security" do
     content = File.read!("test/data/signed_content_no_security.txt")
 
-    assert {:error, _} = Validator.decode_and_validate(%{
+    assert {:error, [{error, _}]} = Validator.decode_and_validate(%{
       "signed_content_encoding" => "base64",
       "signed_legal_entity_request" => content
     })
+    assert :required == error[:rule]
+    assert "required property security was not present" == error[:description]
   end
 
   test "invalid signed content - birth date format" do
     content = File.read!("test/data/signed_content_invalid_owner_birth_date.txt")
 
-    assert {:error, _} = Validator.decode_and_validate(%{
+    assert {:error, [{error, entry}]} = Validator.decode_and_validate(%{
       "signed_content_encoding" => "base64",
       "signed_legal_entity_request" => content
     })
+    assert "$.owner.birth_date" == entry
+    assert :format == error[:rule]
+  end
+
+  test "invalid signed content - tax id" do
+    content = File.read!("test/data/signed_content_invalid_tax_id.txt")
+
+    assert {:error, [{error, entry}]} = Validator.decode_and_validate(%{
+      "signed_content_encoding" => "base64",
+      "signed_legal_entity_request" => content
+    })
+    assert "$.owner.tax_id" == entry
+    assert :invalid == error[:rule]
   end
 
   test "validate legal entity with not allowed kved", %{conn: conn} do

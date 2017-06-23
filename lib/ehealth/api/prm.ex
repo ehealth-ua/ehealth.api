@@ -98,8 +98,8 @@ defmodule EHealth.API.PRM do
     |> ResponseDecoder.check_response()
   end
 
-  def get_party_by_tax_id(edrpou, headers \\ []) do
-    get_parties([tax_id: edrpou], headers)
+  def get_party_by_tax_id_and_birth_date(party, headers \\ []) do
+    get_parties([tax_id: Map.fetch!(party, "tax_id"), birth_date: Map.fetch!(party, "birth_date")], headers)
   end
 
   # Party users

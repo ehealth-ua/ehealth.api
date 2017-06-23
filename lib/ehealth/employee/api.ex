@@ -1,7 +1,6 @@
 defmodule EHealth.Employee.API do
   @moduledoc false
 
-  use JValid
   use OkJose
 
   import Ecto.{Query, Changeset}, warn: false
@@ -13,7 +12,6 @@ defmodule EHealth.Employee.API do
   alias EHealth.Employee.Request
   alias EHealth.OAuth.API, as: OAuth
   alias EHealth.Employee.UserCreateRequest
-  alias EHealth.Utils.ValidationSchemaMapper
   alias EHealth.Employee.EmployeeCreator
   alias EHealth.Employee.UserRoleCreator
   alias EHealth.Man.Templates.EmployeeRequestInvitation, as: EmployeeRequestInvitationTemplate
@@ -23,17 +21,13 @@ defmodule EHealth.Employee.API do
   alias EHealth.RemoteForeignKeyValidator
   alias EHealth.API.Mithril
   alias EHealth.API.PRM
+  alias EHealth.Employee.Validator
 
   require Logger
-
-  use_schema :employee_request, "specs/json_schemas/new_employee_request_schema.json"
 
   @status_new "NEW"
   @status_approved "APPROVED"
   @status_rejected "REJECTED"
-
-  def to_integer(value) when is_binary(value), do: String.to_integer(value)
-  def to_integer(value), do: value
 
   def get_employee_request_by_id!(id) do
     Repo.get!(Request, id)
@@ -61,12 +55,7 @@ defmodule EHealth.Employee.API do
   end
 
   def create_employee_request(attrs \\ %{}) do
-    schema =
-      @schemas
-      |> Keyword.get(:employee_request)
-      |> ValidationSchemaMapper.prepare_employee_request_schema()
-
-    with :ok <- validate_schema(schema, attrs) do
+    with :ok <- Validator.validate(attrs) do
       data = Map.fetch!(attrs, "employee_request")
 
       %Request{}

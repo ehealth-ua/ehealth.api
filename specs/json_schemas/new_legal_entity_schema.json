@@ -172,7 +172,7 @@
         },
         "tax_id": {
           "type": "string",
-          "pattern": "^[0-9]{8,10}$"
+          "pattern": "^[0-9]{10}$"
         },
         "birth_date": {
           "$ref": "#/definitions/date"

@@ -12,6 +12,7 @@ defmodule EHealth.LegalEntity.Validator do
   alias EHealth.Utils.ValidationSchemaMapper
   alias EHealth.LegalEntity.ValidatorKVEDs
   alias EHealth.LegalEntity.ValidatorAddresses
+  alias EHealth.Utils.TaxIDValidator
 
   use_schema :legal_entity, "specs/json_schemas/new_legal_entity_schema.json"
 
@@ -23,6 +24,7 @@ defmodule EHealth.LegalEntity.Validator do
     |> validate_legal_entity()
     |> validate_kveds()
     |> validate_addresses()
+    |> validate_tax_id()
     |> validate_edrpou()
   end
 
@@ -98,6 +100,25 @@ defmodule EHealth.LegalEntity.Validator do
   def validate_addresses(err), do: err
 
   # Tax ID validator
+
+  def validate_tax_id({:ok, %{"content" => content}} = result) do
+    content
+    |> get_in(["owner", "tax_id"])
+    |> TaxIDValidator.validate()
+    |> case do
+         true -> result
+         _ ->
+          {:error, [{%{
+            description: "invalid tax_id value",
+            params: [],
+            rule: :invalid
+          }, "$.owner.tax_id"}]}
+       end
+  end
+
+  def validate_tax_id(err), do: err
+
+  # EDRPOU validator
 
   def validate_edrpou({:ok, %{"content" => content, "signer" => signer}}) do
     data  = %{}

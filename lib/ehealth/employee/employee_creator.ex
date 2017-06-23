@@ -16,8 +16,7 @@ defmodule EHealth.Employee.EmployeeCreator do
   def create(%Request{data: data} = employee_request, req_headers) do
     party = Map.fetch!(data, "party")
     party
-    |> Map.fetch!("tax_id")
-    |> PRM.get_party_by_tax_id(req_headers)
+    |> PRM.get_party_by_tax_id_and_birth_date(req_headers)
     |> create_or_update_party(party, req_headers)
     |> create_employee(employee_request, req_headers)
     |> deactivate_employee_owners(req_headers)
