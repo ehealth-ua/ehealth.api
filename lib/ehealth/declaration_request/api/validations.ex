@@ -5,6 +5,7 @@ defmodule EHealth.DeclarationRequest.API.Validations do
 
   alias EHealth.API.OTPVerification
   alias EHealth.Utils.ValidationSchemaMapper
+  alias EHealth.LegalEntity.ValidatorAddresses
 
   import Ecto.Changeset
 
@@ -66,5 +67,9 @@ defmodule EHealth.DeclarationRequest.API.Validations do
       :ok -> {:ok, attrs}
       err -> err
     end
+  end
+
+  def validate_addresses(addresses) do
+    ValidatorAddresses.validate(addresses)
   end
 end

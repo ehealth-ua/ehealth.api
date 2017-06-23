@@ -79,7 +79,31 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
         Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: upload}))
       end
 
+      Plug.Router.get "/settlements/adaa4abf-f530-461c-bcbf-a0ac210d955b" do
+        settlement = %{
+          id: "adaa4abf-f530-461c-bcbf-a0ac210d955b",
+          region_id: "555dfcd7-2be5-4417-aaaf-ca95564f7977",
+          name: "Київ"
+        }
+
+        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{meta: "", data: settlement}))
+      end
+
+      Plug.Router.get "/regions/555dfcd7-2be5-4417-aaaf-ca95564f7977" do
+        region = %{
+          name: "М.КИЇВ"
+        }
+
+        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{meta: "", data: region}))
+      end
+
       match _ do
+        request_info = Enum.join([conn.request_path, conn.query_string], ",")
+        message = "Requested #{request_info}, but there was no such route."
+
+        require Logger
+        Logger.error(message)
+
         send_resp(conn, 404, Poison.encode!(%{}))
       end
     end
@@ -92,12 +116,14 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
       System.put_env("GNDF_ENDPOINT", "http://localhost:#{port}")
       System.put_env("MAN_ENDPOINT", "http://localhost:#{port}")
       System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:#{port}")
+      System.put_env("UADDRESS_ENDPOINT", "http://localhost:#{port}")
       on_exit fn ->
         System.put_env("PRM_ENDPOINT", "http://localhost:4040")
         System.put_env("MPI_ENDPOINT", "http://localhost:4040")
         System.put_env("GNDF_ENDPOINT", "http://localhost:4040")
         System.put_env("MAN_ENDPOINT", "http://localhost:4040")
         System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:4040")
+        System.put_env("UADDRESS_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
       end
 
@@ -154,14 +180,34 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
 
         send_resp(conn, 404, Poison.encode!(response))
       end
+
+      Plug.Router.get "/settlements/adaa4abf-f530-461c-bcbf-a0ac210d955b" do
+        settlement = %{
+          id: "adaa4abf-f530-461c-bcbf-a0ac210d955b",
+          region_id: "555dfcd7-2be5-4417-aaaf-ca95564f7977",
+          name: "Київ"
+        }
+
+        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{meta: "", data: settlement}))
+      end
+
+      Plug.Router.get "/regions/555dfcd7-2be5-4417-aaaf-ca95564f7977" do
+        region = %{
+          name: "М.КИЇВ"
+        }
+
+        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{meta: "", data: region}))
+      end
     end
 
     setup %{conn: conn} do
       {:ok, port, ref} = start_microservices(NoParams)
 
       System.put_env("PRM_ENDPOINT", "http://localhost:#{port}")
+      System.put_env("UADDRESS_ENDPOINT", "http://localhost:#{port}")
       on_exit fn ->
         System.put_env("PRM_ENDPOINT", "http://localhost:4040")
+        System.put_env("UADDRESS_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
       end
 
@@ -189,6 +235,24 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
     defmodule InvalidEmployeeID do
       use MicroservicesHelper
 
+      Plug.Router.get "/settlements/adaa4abf-f530-461c-bcbf-a0ac210d955b" do
+        settlement = %{
+          id: "adaa4abf-f530-461c-bcbf-a0ac210d955b",
+          region_id: "555dfcd7-2be5-4417-aaaf-ca95564f7977",
+          name: "Київ"
+        }
+
+        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{meta: "", data: settlement}))
+      end
+
+      Plug.Router.get "/regions/555dfcd7-2be5-4417-aaaf-ca95564f7977" do
+        region = %{
+          name: "М.КИЇВ"
+        }
+
+        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{meta: "", data: region}))
+      end
+
       Plug.Router.get "/employees/2f650a5c-7a04-4615-a1e7-00fa41bf160d" do
         response = %{
           error: %{},
@@ -209,10 +273,12 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
     setup %{conn: conn} do
       {:ok, port, ref} = start_microservices(InvalidEmployeeID)
 
+      System.put_env("UADDRESS_ENDPOINT", "http://localhost:#{port}")
       System.put_env("PRM_ENDPOINT", "http://localhost:#{port}")
       on_exit fn ->
         # TODO: This and other instances:
         # thisi is needed while mock_services.ex still exists. Remove after mock_services.ex is gone
+        System.put_env("UADDRESS_ENDPOINT", "http://localhost:4040")
         System.put_env("PRM_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
       end
@@ -239,6 +305,45 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
 
       error_message = "Error during microservice interaction. Response from microservice: \
 %{\"error\" => %{}, \"meta\" => %{\"code\" => \"404\", \"url\" => \"http://localhost:#{port}/employees/#{wrong_id}\"}}."
+      assert error_message == resp["error"]["message"]
+    end
+  end
+
+  describe "Settlement does not exist" do
+    defmodule NoSettlement do
+      use MicroservicesHelper
+
+      Plug.Router.get "/settlements/adaa4abf-f530-461c-bcbf-a0ac210d955b" do
+        Plug.Conn.send_resp(conn, 404, Poison.encode!(%{meta: "", data: %{}}))
+      end
+    end
+
+    setup %{conn: conn} do
+      {:ok, port, ref} = start_microservices(NoSettlement)
+
+      System.put_env("UADDRESS_ENDPOINT", "http://localhost:#{port}")
+      on_exit fn ->
+        System.put_env("UADDRESS_ENDPOINT", "http://localhost:4040")
+        stop_microservices(ref)
+      end
+
+      {:ok, %{conn: conn}}
+    end
+
+    test "validation error is returned (should be proper microservice error!)", %{conn: conn} do
+      declaration_request_params = File.read!("test/data/declaration_request.json")
+
+      conn =
+        conn
+        |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
+        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: ""}))
+        |> post("/api/declaration_requests", declaration_request_params)
+
+      resp = json_response(conn, 424)
+
+      error_message = ~s(Error during microservice interaction. Response from microservice: \
+[{%{description: \"settlement with id = adaa4abf-f530-461c-bcbf-a0ac210d955b does not exist\", \
+params: [], rule: :not_found}, \"$.addresses.settlement_id\"}].)
       assert error_message == resp["error"]["message"]
     end
   end
