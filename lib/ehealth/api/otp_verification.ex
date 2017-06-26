@@ -17,9 +17,9 @@ defmodule EHealth.API.OTPVerification do
   #   - phone_number
   #   - statuses
   #
-  def search(params \\ %{}, headers \\ []) do
-    "/verifications"
-    |> get!(headers, params: params)
+  def search(number, headers \\ []) do
+    "/verifications/#{number}"
+    |> get!(headers)
     |> ResponseDecoder.check_response()
   end
 end

@@ -44,6 +44,30 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
   end
 
   describe "validate_patient_phone_number/1" do
+    defmodule SuccessfulPhoneVerification do
+      use MicroservicesHelper
+
+      Plug.Router.get "/verifications/+380991234567" do
+        send_resp(conn, 200, Poison.encode!(%{data: []}))
+      end
+
+      Plug.Router.get "/verifications/+380508887700" do
+        send_resp(conn, 404, Poison.encode!(%{}))
+      end
+    end
+
+    setup do
+      {:ok, port, ref} = start_microservices(SuccessfulPhoneVerification)
+
+      System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:#{port}")
+      on_exit fn ->
+        System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:4040")
+        stop_microservices(ref)
+      end
+
+      :ok
+    end
+
     test "validation is successful" do
       raw_declaration_request = %{
         data: %{
@@ -69,8 +93,7 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
         data: %{
           "person" => %{
             "phones" => [
-              %{ "type" => "MOBILE", "number" => "+380509999888" },
-              %{ "type" => "MOBILE", "number" => "+380509999777" }
+              %{ "type" => "MOBILE", "number" => "+380508887700" }
             ]
           }
         }

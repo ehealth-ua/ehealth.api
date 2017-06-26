@@ -14,15 +14,10 @@ defmodule EHealth.DeclarationRequest.API.Validations do
   def validate_patient_phone_number(changeset) do
     verified? =
       fn phone_number ->
-        result = OTPVerification.search(%{
-          number: phone_number,
-          statuses: "completed"
-        })
-
-        case result do
-          {:ok, %{"data" => [_|_]}} -> true
-          {:ok, %{"data" => []}} -> false
-          _ ->
+        case OTPVerification.search(phone_number) do
+          {:ok, _} -> true
+          {:error, _} -> false
+          result ->
             raise "Error during OTP Verification interaction. Result from OTP Verification: #{inspect result}"
         end
       end
