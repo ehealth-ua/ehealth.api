@@ -10,7 +10,7 @@ defmodule EHealth.Web.DeclarationRequestController do
     [user_id|_] = get_req_header(conn, "x-consumer-id")
 
     case DeclarationRequestAPI.create(declaration_request, user_id) do
-      {:ok, %{declaration_request: declaration_request}} ->
+      {:ok, %{finalize: declaration_request}} ->
         render(conn, "show.json", declaration_request: declaration_request)
       {:error, _transaction_step, changeset, _} ->
         conn

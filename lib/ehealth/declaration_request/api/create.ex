@@ -14,20 +14,11 @@ defmodule EHealth.DeclarationRequest.API.Create do
 
   @files_storage_bucket Confex.get_map(:ehealth, EHealth.API.MediaStorage)[:declaration_request_bucket]
 
-  def send_verification_code(multi) do
-    number = multi.declaration_request.authentication_method_current["number"]
-
-    case OTPVerification.initialize(number) do
-      {:ok, _} = result -> result
-      {:error, _} = result -> result
-    end
+  def send_verification_code(number) do
+    OTPVerification.initialize(number)
   end
 
-  # TODO: add tests for this
-  def generate_upload_urls(%Changeset{valid?: false} = changeset), do: changeset
-  def generate_upload_urls(changeset) do
-    id = get_field(changeset, :id)
-
+  def generate_upload_urls(id) do
     documents =
       Enum.map config()[:declaration_request_offline_documents], fn document_type ->
         result =
@@ -49,9 +40,9 @@ defmodule EHealth.DeclarationRequest.API.Create do
         |> Enum.map(fn {:error, error_response} -> format_error_response("MediaStorage", error_response) end)
         |> Enum.join("; ")
 
-      add_error(changeset, :documents, error_message)
+      {:error, error_message}
     else
-      put_change(changeset, :documents, documents)
+      {:ok, documents}
     end
   end
 
@@ -113,7 +104,7 @@ defmodule EHealth.DeclarationRequest.API.Create do
             put_change(changeset, :authentication_method_current, authentication_method_current)
           {:error, error_response} ->
             add_error(changeset, :authentication_method_current, format_error_response("Gandalf", error_response))
-          other ->
+          _other ->
             require Logger
             Logger.info("Gandalf is not responding. Falling back to default...")
 

@@ -3,10 +3,11 @@ defmodule EHealth.Integraiton.DeclarationRequestCreateTest do
 
   use EHealth.Web.ConnCase, async: false
 
-  describe "Happy path" do
-    defmodule HappyPath do
+  describe "Happy paths" do
+    defmodule TwoHappyPaths do
       use MicroservicesHelper
 
+      # PRM API
       Plug.Router.get "/employees/ce377dea-d8c4-4dd8-9328-de24b1ee3879" do
         employee = %{
           "doctor" => %{
@@ -21,6 +22,7 @@ defmodule EHealth.Integraiton.DeclarationRequestCreateTest do
         send_resp(conn, 200, Poison.encode!(%{data: employee}))
       end
 
+      # PRM API
       Plug.Router.get "/global_parameters" do
         parameters = %{
           adult_age: "18",
@@ -31,27 +33,25 @@ defmodule EHealth.Integraiton.DeclarationRequestCreateTest do
         send_resp(conn, 200, Poison.encode!(%{data: parameters}))
       end
 
+      # MPI API
       Plug.Router.get "/persons" do
         confirm_params =
           conn
           |> Plug.Conn.fetch_query_params(conn)
           |> Map.get(:params)
 
-        %{
-          "first_name" => "Олена",
-          "last_name" => "Пчілка",
-          "phone_number" => "+380508887700",
-          "birth_date" => "2010-08-19 00:00:00",
-          "tax_id" => "3126509816"
-        } = confirm_params
-
-        search_result = [
-          %{id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c"}
-        ]
+        search_result =
+          case confirm_params["first_name"] do
+            "Олена" ->
+              [%{id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c"}]
+            "UnknownMIS" ->
+              []
+          end
 
         send_resp(conn, 200, Poison.encode!(%{data: search_result}))
       end
 
+      # MPI API
       Plug.Router.get "/persons/b5350f79-f2ca-408f-b15d-1ae0a8cc861c" do
         person = %{
           "authentication_methods": [
@@ -62,6 +62,7 @@ defmodule EHealth.Integraiton.DeclarationRequestCreateTest do
         send_resp(conn, 200, Poison.encode!(%{data: person}))
       end
 
+      # MAN Templates API
       Plug.Router.post "/templates/4/actions/render" do
         template = "<html><body>Printout form for declaration \
 request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
@@ -69,6 +70,7 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
         Plug.Conn.send_resp(conn, 200, template)
       end
 
+      # AEL, Media Storage API
       Plug.Router.post "/media_content_storage_secrets" do
         params = conn.body_params["secret"]
 
@@ -79,6 +81,7 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
         Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: upload}))
       end
 
+      # UAddresses API
       Plug.Router.get "/settlements/adaa4abf-f530-461c-bcbf-a0ac210d955b" do
         settlement = %{
           id: "adaa4abf-f530-461c-bcbf-a0ac210d955b",
@@ -89,6 +92,7 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
         Plug.Conn.send_resp(conn, 200, Poison.encode!(%{meta: "", data: settlement}))
       end
 
+      # UAddresses API
       Plug.Router.get "/regions/555dfcd7-2be5-4417-aaaf-ca95564f7977" do
         region = %{
           name: "М.КИЇВ"
@@ -97,13 +101,21 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
         Plug.Conn.send_resp(conn, 200, Poison.encode!(%{meta: "", data: region}))
       end
 
+      # OTP Verifications
       Plug.Router.get "/verifications/+380508887700" do
         send_resp(conn, 200, Poison.encode!(%{data: ["response_we_don't_care_about"]}))
       end
 
-      # TODO: remove this once the process is corrected. Have another test that verifies this code branch
       Plug.Router.post "/verifications/+380508887700" do
         send_resp(conn, 200, Poison.encode!(%{data: ["response_we_don't_care_about"]}))
+      end
+
+      Plug.Router.post "/api/v1/tables/some_gndf_table_id/decisions" do
+        decision = %{
+          "final_decision": "OFFLINE"
+        }
+
+        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: decision}))
       end
 
       match _ do
@@ -118,7 +130,7 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
     end
 
     setup %{conn: conn} do
-      {:ok, port, ref} = start_microservices(HappyPath)
+      {:ok, port, ref} = start_microservices(TwoHappyPaths)
 
       System.put_env("PRM_ENDPOINT", "http://localhost:#{port}")
       System.put_env("MPI_ENDPOINT", "http://localhost:#{port}")
@@ -141,7 +153,7 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
       {:ok, %{port: port, conn: conn}}
     end
 
-    test "declaration request is created", %{conn: conn} do
+    test "declaration request is created with 'OTP' verification", %{conn: conn} do
       declaration_request_params = File.read!("test/data/declaration_request.json")
 
       conn =
@@ -162,7 +174,34 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
       assert %{"number" => "+380508887700", "type" => "OTP"} = resp["data"]["authentication_method_current"]
       assert "<html><body>Printout form for declaration request ##{id}</body></hrml>" ==
         resp["data"]["printout_content"]
+      assert is_nil(resp["data"]["documents"])
+    end
 
+    test "declaration request is created with 'Offline' verification", %{conn: conn} do
+      declaration_request_params =
+        "test/data/declaration_request.json"
+        |> File.read!
+        |> Poison.decode!
+        |> put_in(["declaration_request", "person", "first_name"], "UnknownMIS")
+
+      conn =
+        conn
+        |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
+        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: ""}))
+        |> post("/api/declaration_requests", declaration_request_params)
+
+      resp = json_response(conn, 200)
+
+      id = resp["data"]["id"]
+
+      assert to_string(Date.utc_today) == resp["data"]["data"]["start_date"]
+      assert {:ok, _} = Date.from_iso8601(resp["data"]["data"]["end_date"])
+      assert "NEW" = resp["data"]["status"]
+      assert "ce377dea-d8c4-4dd8-9328-de24b1ee3879" = resp["data"]["updated_by"]
+      assert "ce377dea-d8c4-4dd8-9328-de24b1ee3879" = resp["data"]["inserted_by"]
+      assert %{"number" => "+380508887700", "type" => "OFFLINE"} = resp["data"]["authentication_method_current"]
+      assert "<html><body>Printout form for declaration request ##{id}</body></hrml>" ==
+        resp["data"]["printout_content"]
       assert [
         %{
           "type" => "Passport",

@@ -40,10 +40,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
     end
 
     test "generates links & updates declaration request" do
-      changeset =
-        %DeclarationRequest{id: "98e0a42f-20fe-472c-a614-0ea99426a3fb"}
-        |> Ecto.Changeset.change()
-        |> generate_upload_urls()
+      result = generate_upload_urls("98e0a42f-20fe-472c-a614-0ea99426a3fb")
 
       expected_documents = [
         %{
@@ -56,21 +53,18 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         }
       ]
 
-      assert get_change(changeset, :documents) == expected_documents
+      assert {:ok, expected_documents} == result
     end
 
     test "returns error on documents field" do
-      changeset =
-        %DeclarationRequest{id: "98e0a42f-0000-9999-5555-0ea99426a3fb"}
-        |> Ecto.Changeset.change()
-        |> generate_upload_urls()
+      result = generate_upload_urls("98e0a42f-0000-9999-5555-0ea99426a3fb")
 
       error_message = ~s(Error during MediaStorage interaction. Result from MediaStorage: \
 %{"something" => "went wrong with declaration_request_Passport.jpeg"}; Error during \
 MediaStorage interaction. Result from MediaStorage: %{"something" => "went wrong with \
 declaration_request_SSN.jpeg"})
 
-      assert error_message == elem(changeset.errors[:documents], 0)
+      assert {:error, error_message} == result
     end
   end
 
@@ -383,27 +377,11 @@ declaration_request_SSN.jpeg"})
     end
 
     test "code was successfully sent" do
-      multi = %{
-        declaration_request: %{
-          authentication_method_current: %{
-            "number" => "+380991234567"
-          }
-        }
-      }
-
-      assert {:ok, _} = send_verification_code(multi)
+      assert {:ok, _} = send_verification_code("+380991234567")
     end
 
     test "code was not sent" do
-      multi = %{
-        declaration_request: %{
-          authentication_method_current: %{
-            "number" => "+380508887700"
-          }
-        }
-      }
-
-      assert {:error, _} = send_verification_code(multi)
+      assert {:error, _} = send_verification_code("+380508887700")
     end
   end
 end

@@ -16,7 +16,16 @@ defmodule EHealth.DeclarationRequest.API do
     data
     status
     authentication_method_current
+    printout_content
+    inserted_by
+    updated_by
+  )a
+
+  @fields ~w(
+    data
+    status
     documents
+    authentication_method_current
     printout_content
     inserted_by
     updated_by
@@ -32,8 +41,29 @@ defmodule EHealth.DeclarationRequest.API do
       Multi.new
       |> Multi.update_all(:previous_requests, pending_declaration_requests(attrs), set: updates)
       |> Multi.insert(:declaration_request, create_changeset(attrs, user_id, employee, global_parameters))
-      |> Multi.run(:verification_code, &Create.send_verification_code/1)
+      |> Multi.run(:finalize, &finalize/1)
       |> Repo.transaction
+    end
+  end
+
+  def finalize(multi) do
+    declaration_request = multi.declaration_request
+    authorization = declaration_request.authentication_method_current
+
+    case authorization["type"] do
+      "OTP" ->
+        Create.send_verification_code(authorization["number"])
+
+        {:ok, declaration_request}
+      "OFFLINE" ->
+        case Create.generate_upload_urls(declaration_request.id) do
+          {:ok, documents} ->
+            declaration_request
+            |> update_changeset(%{documents: documents})
+            |> Repo.update
+          {:error, _} = bad_result ->
+            bad_result
+        end
     end
   end
 
@@ -51,8 +81,12 @@ defmodule EHealth.DeclarationRequest.API do
     |> put_change(:updated_by, user_id)
     |> Create.determine_auth_method_for_mpi()
     |> Create.generate_printout_form()
-    |> Create.generate_upload_urls()
     |> validate_required(@required_fields)
+  end
+
+  def update_changeset(%EHealth.DeclarationRequest{} = declaration_request, attrs) do
+    declaration_request
+    |> cast(attrs, @fields)
   end
 
   def put_start_end_dates(changeset, global_parameters) do
