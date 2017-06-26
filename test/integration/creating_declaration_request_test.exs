@@ -101,6 +101,11 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
         send_resp(conn, 200, Poison.encode!(%{data: ["response_we_don't_care_about"]}))
       end
 
+      # TODO: remove this once the process is corrected. Have another test that verifies this code branch
+      Plug.Router.post "/verifications/+380508887700" do
+        send_resp(conn, 200, Poison.encode!(%{data: ["response_we_don't_care_about"]}))
+      end
+
       match _ do
         request_info = Enum.join([conn.request_path, conn.query_string], ",")
         message = "Requested #{request_info}, but there was no such route."
