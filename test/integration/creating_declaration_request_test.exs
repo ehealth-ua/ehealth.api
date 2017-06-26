@@ -97,6 +97,10 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
         Plug.Conn.send_resp(conn, 200, Poison.encode!(%{meta: "", data: region}))
       end
 
+      Plug.Router.get "/verifications/+380508887700" do
+        send_resp(conn, 200, Poison.encode!(%{data: ["response_we_don't_care_about"]}))
+      end
+
       match _ do
         request_info = Enum.join([conn.request_path, conn.query_string], ",")
         message = "Requested #{request_info}, but there was no such route."
@@ -117,6 +121,7 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
       System.put_env("MAN_ENDPOINT", "http://localhost:#{port}")
       System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:#{port}")
       System.put_env("UADDRESS_ENDPOINT", "http://localhost:#{port}")
+      System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:#{port}")
       on_exit fn ->
         System.put_env("PRM_ENDPOINT", "http://localhost:4040")
         System.put_env("MPI_ENDPOINT", "http://localhost:4040")
@@ -124,6 +129,7 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
         System.put_env("MAN_ENDPOINT", "http://localhost:4040")
         System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:4040")
         System.put_env("UADDRESS_ENDPOINT", "http://localhost:4040")
+        System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
       end
 

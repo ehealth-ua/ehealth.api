@@ -48,7 +48,7 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
       use MicroservicesHelper
 
       Plug.Router.get "/verifications/+380991234567" do
-        send_resp(conn, 200, Poison.encode!(%{data: []}))
+        send_resp(conn, 200, Poison.encode!(%{data: ["response_we_don't_care_about"]}))
       end
 
       Plug.Router.get "/verifications/+380508887700" do
