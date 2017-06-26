@@ -13,10 +13,12 @@ defmodule EHealth.API.OTPVerification do
 
   def timeouts, do: config()[:timeouts]
 
-  # Available params:
-  #   - phone_number
-  #   - statuses
-  #
+  def initialize(number, headers \\ []) do
+    "/verifications/#{number}"
+    |> post!(headers)
+    |> ResponseDecoder.check_response()
+  end
+
   def search(number, headers \\ []) do
     "/verifications/#{number}"
     |> get!(headers)

@@ -5,6 +5,7 @@ defmodule EHealth.DeclarationRequest.API.Create do
   alias EHealth.API.MPI
   alias EHealth.API.Gandalf
   alias EHealth.Man.Templates.DeclarationRequestPrintoutForm
+  alias EHealth.API.OTPVerification
   alias Ecto.Changeset
 
   import Ecto.Changeset, only: [get_field: 2, put_change: 3, add_error: 3]
@@ -13,8 +14,13 @@ defmodule EHealth.DeclarationRequest.API.Create do
 
   @files_storage_bucket Confex.get_map(:ehealth, EHealth.API.MediaStorage)[:declaration_request_bucket]
 
-  def send_verification_code(_multi) do
-    {:ok, "Verification code was sent!"}
+  def send_verification_code(multi) do
+    number = multi.declaration_request.authentication_method_current["number"]
+
+    case EHealth.API.OTPVerification.initialize(number) do
+      {:ok, _} = result -> result
+      {:error, _} = result -> result
+    end
   end
 
   # TODO: add tests for this

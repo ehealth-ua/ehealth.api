@@ -356,4 +356,54 @@ declaration_request_SSN.jpeg"})
         elem(changeset.errors[:authentication_method_current], 0)
     end
   end
+
+  describe "send_verification_code/1" do
+    defmodule SendingVerificationCode do
+      use MicroservicesHelper
+
+      Plug.Router.post "/verifications/+380991234567" do
+        send_resp(conn, 200, Poison.encode!(%{data: ["response_we_don't_care_about"]}))
+      end
+
+      Plug.Router.post "/verifications/+380508887700" do
+        send_resp(conn, 404, Poison.encode!(%{}))
+      end
+    end
+
+    setup do
+      {:ok, port, ref} = start_microservices(SendingVerificationCode)
+
+      System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:#{port}")
+      on_exit fn ->
+        System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:4040")
+        stop_microservices(ref)
+      end
+
+      :ok
+    end
+
+    test "code was successfully sent" do
+      multi = %{
+        declaration_request: %{
+          authentication_method_current: %{
+            "number" => "+380991234567"
+          }
+        }
+      }
+
+      assert {:ok, _} = send_verification_code(multi)
+    end
+
+    test "code was not sent" do
+      multi = %{
+        declaration_request: %{
+          authentication_method_current: %{
+            "number" => "+380508887700"
+          }
+        }
+      }
+
+      assert {:error, _} = send_verification_code(multi)
+    end
+  end
 end
