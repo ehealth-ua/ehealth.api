@@ -827,13 +827,33 @@ Methods returns ukr_med_registry details by ID.
 
 ## MainStats [/reports/stats]
 
+To receive statistics on the date (total), you must submit a from_date = to_date
+
+### Get Main Stats [GET /reports/stats{?from_date,to_date}]
+
+Methods returns agregated numbers of declarations, doctors and msp.
+
++ Parameters
+    + from_date: 2017-01-28 (string, required)
+    + to_date: 2017-02-28 (string, required)
+
++ Request (application/json)
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (object, optional)
+            + from_date: 2017-01-28 (string, required)
+            + to_date: 2017-02-28 (string, required)
+            + period (MainStats, required)
+            + total (MainStats, required)
+
 ### Get Main Stats by Regions [GET /reports/stats/regions{?from_date,to_date,region_id}]
 
 Methods returns agregated numbers of declarations, MSP and doctors grouped by region_id.
 
 + Parameters
-    + from_date: 2017-01-28 (string, optional)
-    + to_date: 2017-02-28 (string, optional)
+    + from_date: 2017-01-28 (string, required)
+    + to_date: 2017-02-28 (string, required)
     + region_id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, optional)
 
 + Request (application/json)
@@ -849,32 +869,9 @@ Methods returns agregated numbers of declarations, MSP and doctors grouped by re
                        + period (MainStats, required)
                        + total (MainStats, required)
 
-### Get Main Stats by Settlement [GET /reports/stats/settlements{?from_date,to_date,region_id,settlement_id}]
 
-Methods returns agregated numbers of declarations, MSP and doctors grouped by settlements.
 
-+ Parameters
-    + from_date: 2017-01-28 (string, optional)
-    + to_date: 2017-02-28 (string, optional)
-    + region_id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
-    + settlement_id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, optional)
-
-+ Request (application/json)
-
-+ Response 200 (application/json)
-    + Attributes (Response_OK)
-        + data (object, optional)
-            + from_date: 2017-01-28 (string, required)
-            + to_date: 2017-02-28 (string, required)
-            + settlements (array)
-                + object
-                    + settlement (SettlementReport, required)
-                    + period (MainStats, required)
-                    + total (MainStats, required)
- 
- 
-
-### Get Main Stats by Division [GET /reports/divisions/{division_id}]
+### Get Main Stats by Division [GET /reports/stats/divisions/{division_id}]
 Methods returns agregated numbers of declarations and doctors by division
 
 + Parameters
@@ -888,31 +885,8 @@ Methods returns agregated numbers of declarations and doctors by division
            + total (MainStats, required)
 
 
-## Declarations [/reports/declarations]
 
-### Get Declarations Stats [GET /reports/declarations{?from_date,to_date,doctor_id,msp_id,division_id,region_id}]
-
-Methods returns agregated numbers of declarations.
-
-+ Parameters
-    + from_date: 2017-01-28 (string, required)
-    + to_date: 2017-02-28 (string, required)
-    + doctor_id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, optional)
-    + msp_id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, optional)
-    + division_id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, optional)
-    + region_id: 43321 (string, optional)
-
-+ Request (application/json)
-
-+ Response 200 (application/json)
-    + Attributes (Response_OK)
-        + data (object, optional)
-            + from_date: 2017-01-28 (string, required)
-            + to_date: 2017-02-28 (string, required)
-            + period (DeclarationStats, required)
-            + total (DeclarationStats, required)
-
-### Get Histogram Stats [GET /reports/histogramstat{?from_date,to_date,region_id,interval}]
+### Get Histogram Stats [GET /reports/stats/histogramstat{?from_date,to_date,region_id,interval}]
 
 Methods returns agregated numbers of declarations, msps and doctors.
 
@@ -1747,7 +1721,7 @@ According to the strong binding of the Employees to the Employer (legal entity)
 all GET-endpoints returning Employee info are mounted through the
 `/legal_entities/{legal_entity_id}` path.
 
-### Get Employees List [GET /api/employees{?edrpou,tax_id,party_id,legal_entity_id,division_id,status,employee_type,limit,starting_after,ending_before}]
+### Get Employees List [GET /api/employees{?division_id,status,employee_type,limit,starting_after,ending_before}]
 
 Use this end-point to obtain all Employees of the legal entity specified by the `legal_entity_id`. 
 
@@ -1756,10 +1730,6 @@ We suggest to use `status` filter to limit response size. Eg. you MAY want to li
 Method returns shortened details, to obtain full information - get Employee it by ID.
 
 + Parameters
-    + edrpou: 12345678 (string, optional)
-    + tax_id: 1234567898 (string, optional)
-    + party_id: `d290f1ee-6c54-4b01-90e6-d701748f0152` (string, optional)
-    + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0152` (string, optional)
     + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0152` (string, optional)
     + status: APPROVED (enum, optional)
         - NEW
@@ -1987,11 +1957,10 @@ It returns:
 
 ## Legal Entities [/api/legal_entities]
 
-### Get Legal Entities [GET /api/legal_entities{?edrpou,legal_entity_id,type,owner_property,status,starting_after,ending_before,limit}]
+### Get Legal Entities [GET /api/legal_entities{?edrpou,type,owner_property,status,starting_after,ending_before,limit}]
 
 + Parameters
     + `edrpou`: `341086` (string, optional)
-    + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional)
     + type: MSP (enum, optional)
         - MSP
         + Default: MSP
@@ -3096,11 +3065,7 @@ API for searching Ukrainian Addresses
 + `check_digit`: 5 (number, required) - Check digit that will be first in sent OTP code. Can be validated as checksum by [Verhoeff algorithm](https://en.wikipedia.org/wiki/Verhoeff_algorithm).
 
 ## Dashboards
-### DeclarationStats
-+ declarations_total: 100 (number, required)
-+ declarations_created: 10 (number, required)
-+ declarations_closed: 2 (number, required)
-
+Ву
 ### HistogramStats
 + interval (Interval, required)
 + period (MainStats, required)
@@ -3118,10 +3083,6 @@ API for searching Ukrainian Addresses
 + doctors: 15 (number, required)   
 
 ### RegionReport
-+ id: `asSbcy12sYs8c` (string, required)
-+ name: `Київ` (string, required)
-
-### SettlementReport
 + id: `asSbcy12sYs8c` (string, required)
 + name: `Київ` (string, required)
 
