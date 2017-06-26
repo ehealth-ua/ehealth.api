@@ -55,15 +55,6 @@ defmodule EHealth.DeclarationRequest.API do
     |> validate_required(@required_fields)
   end
 
-  def put_in_data(changeset, key, value) do
-    new_data =
-      changeset
-      |> get_field(:data)
-      |> put_in([key], value)
-
-    put_change(changeset, :data, new_data)
-  end
-
   def put_start_end_dates(changeset, global_parameters) do
     %{
       "declaration_request_term" => term,
