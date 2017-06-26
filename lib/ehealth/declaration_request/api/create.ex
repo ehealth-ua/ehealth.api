@@ -17,7 +17,7 @@ defmodule EHealth.DeclarationRequest.API.Create do
   def send_verification_code(multi) do
     number = multi.declaration_request.authentication_method_current["number"]
 
-    case EHealth.API.OTPVerification.initialize(number) do
+    case OTPVerification.initialize(number) do
       {:ok, _} = result -> result
       {:error, _} = result -> result
     end
