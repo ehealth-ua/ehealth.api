@@ -264,7 +264,7 @@ defmodule EHealth.Employee.API do
   end
   defp get_employee_relation(pipe_data, _relation_key), do: {:ok, pipe_data}
 
-  defp load_relation_from_prm(nil, key, _headers), do: {:ok, %{"data" => %{}}}
+  defp load_relation_from_prm(nil, _key, _headers), do: {:ok, %{"data" => %{}}}
   defp load_relation_from_prm(id, "party", headers), do: PRM.get_party_by_id(id, headers)
   defp load_relation_from_prm(id, "division", headers), do: PRM.get_division_by_id(id, headers)
   defp load_relation_from_prm(id, "legal_entity", headers), do: PRM.get_legal_entity_by_id(id, headers)

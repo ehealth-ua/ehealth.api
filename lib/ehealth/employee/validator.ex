@@ -13,6 +13,7 @@ defmodule EHealth.Employee.Validator do
   def validate(params) do
     params
     |> validate_employee_request()
+    |> validate_doctor_inclusion()
     |> validate_tax_id()
   end
 
@@ -29,6 +30,16 @@ defmodule EHealth.Employee.Validator do
       err -> err
     end
   end
+
+  def validate_doctor_inclusion({:ok, %{"employee_request" => %{"employee_type" => employee_type, "doctor" => _}}})
+    when employee_type != "DOCTOR" do
+    {:error, [{%{
+      description: "field doctor is not allowed",
+      params: [],
+      rule: :invalid
+    }, "$.employee_request.doctor"}]}
+  end
+  def validate_doctor_inclusion(changeset), do: changeset
 
   # Tax ID validator
 
