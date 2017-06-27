@@ -60,7 +60,7 @@ defmodule EHealth.Employee.UserRoleCreator do
 
     Enum.each(party_users, fn(%{"user_id" => user_id}) ->
       user_id
-      |> Mithril.get_user_roles(role_id, headers)
+      |> Mithril.get_user_roles([role_id: role_id], headers)
       |> create_user_role(user_id, role_id, client_id, headers)
       |> validate_api_response(pipe_data, "Failed to add role '#{role_id}' to user '#{user_id}'.")
     end)

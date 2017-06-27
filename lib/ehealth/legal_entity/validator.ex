@@ -57,7 +57,7 @@ defmodule EHealth.LegalEntity.Validator do
   # Legal Entity content validator
 
   def validate_legal_entity({:ok, %{"data" => %{"is_valid" => false}}}) do
-    {:error, {:validation_error, "Signed request data is invalid"}}
+    {:error, {:bad_request, "Signed request data is invalid"}}
   end
 
   def validate_legal_entity({:ok, %{"data" => %{"content" => content} = data}}) do

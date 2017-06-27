@@ -244,5 +244,5 @@ defmodule EHealth.LegalEntity.API do
   def fetch_data(err), do: err
 
   def fetch_to_list({:ok, data, _secret}), do: [data]
-  def fetch_to_list(err), do: []
+  def fetch_to_list(_err), do: []
 end

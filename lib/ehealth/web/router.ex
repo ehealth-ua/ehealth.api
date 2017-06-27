@@ -48,6 +48,7 @@ defmodule Ehealth.Web.Router do
 
     get "/employees", EmployeesController, :index
     get "/employees/:id", EmployeesController, :show
+    patch "/employees/:id/actions/deactivate", EmployeesController, :deactivate
 
     get "/employee_requests", EmployeeRequestController, :index
     post "/employee_requests", EmployeeRequestController, :create

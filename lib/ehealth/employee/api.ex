@@ -222,11 +222,12 @@ defmodule EHealth.Employee.API do
     })
   end
 
-  def get_employee_by_id(id, headers) do
+  def get_employee_by_id(id, headers, expand \\ true) do
     {:ok, %{
       employee_id: id,
       client_id: get_client_id(headers),
       headers: headers,
+      expand: expand,
     }}
     |> get_employee()
     |> check_employee_legal_entity_id()
@@ -255,12 +256,13 @@ defmodule EHealth.Employee.API do
     end
   end
 
-  defp get_employee_relation(pipe_data, relation_key) do
+  defp get_employee_relation(%{expand: true} = pipe_data, relation_key) do
     pipe_data
     |> get_in([:employee, "data", relation_key <> "_id"])
     |> load_relation_from_prm(relation_key, Map.fetch!(pipe_data, :headers))
     |> put_success_api_response_in_employee(relation_key, pipe_data)
   end
+  defp get_employee_relation(pipe_data, _relation_key), do: {:ok, pipe_data}
 
   defp load_relation_from_prm(nil, key, _headers), do: {:ok, %{"data" => %{}}}
   defp load_relation_from_prm(id, "party", headers), do: PRM.get_party_by_id(id, headers)

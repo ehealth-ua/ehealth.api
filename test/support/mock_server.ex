@@ -109,6 +109,17 @@ defmodule EHealth.MockServer do
     case conn.path_params do
       %{"id" => "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b"} ->
         render(get_employee(), conn, 200)
+
+      %{"id" => "b075f148-7f93-4fc2-b2ec-2d81b19a9a8a"} ->
+        get_employee()
+        |> Map.merge(%{"status" => "NEW", "is_active" => true})
+        |> render(conn, 200)
+
+      %{"id" => "b075f148-7f93-4fc2-b2ec-2d81b19a91a1"} ->
+        get_employee()
+        |> Map.merge(%{"status" => "APPROVED", "is_active" => false})
+        |> render(conn, 200)
+
       %{"id" => "b075f148-7f93-4fc2-b2ec-2d81b19a911a"} ->
         render(get_employee("7cc91a5d-c02f-41e9-b571-1ea4f2375552", nil), conn, 200)
       _ -> render_404(conn)

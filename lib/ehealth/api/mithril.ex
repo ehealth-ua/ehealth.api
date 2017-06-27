@@ -112,15 +112,49 @@ defmodule EHealth.API.Mithril do
 
   # User roles
 
-  def get_user_roles(user_id, role_id, headers \\ []) when is_binary(user_id) do
+  def get_user_roles(user_id, params, headers \\ []) when is_binary(user_id) do
     "/admin/users/#{user_id}/roles"
-    |> get!(headers, params: [role_id: role_id])
+    |> get!(headers, params: params)
     |> ResponseDecoder.check_response()
   end
 
   def create_user_role(user_id, role, headers \\ []) do
     "/admin/users/#{user_id}/roles"
     |> post!(Poison.encode!(%{"user_role" => role}), headers, options())
+    |> ResponseDecoder.check_response()
+  end
+
+  def delete_user_role(user_id, role_id, headers) do
+    "/admin/users/#{user_id}/roles/#{role_id}"
+    |> delete!(headers, options())
+    |> ResponseDecoder.check_response()
+  end
+
+  # Apps
+
+  def get_apps(params \\ [], headers \\ []) do
+    "/admin/apps"
+    |> get!(headers, params: params)
+    |> ResponseDecoder.check_response()
+  end
+
+  def delete_app(app_id, headers) do
+    "/admin/apps/#{app_id}"
+    |> delete!(headers, options())
+    |> ResponseDecoder.check_response()
+  end
+
+  # Tokens
+
+  def get_tokens(params \\ [], headers \\ []) do
+    "/admin/tokens"
+    |> get!(headers, params: params)
+    |> ResponseDecoder.check_response()
+  end
+
+  def delete_token(token_id, headers) do
+    "/admin/tokens/#{token_id}"
+    |> delete!(headers, options())
     |> ResponseDecoder.check_response()
   end
 
