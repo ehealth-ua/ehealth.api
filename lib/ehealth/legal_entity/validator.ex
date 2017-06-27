@@ -43,7 +43,9 @@ defmodule EHealth.LegalEntity.Validator do
   end
 
   def validate_signature(%Ecto.Changeset{valid?: true, changes: changes}) do
-    Signature.decode_and_validate(changes)
+    changes
+    |> Map.get(:signed_legal_entity_request)
+    |> Signature.decode_and_validate(Map.get(changes, :signed_content_encoding))
   end
   def validate_signature(err), do: err
 

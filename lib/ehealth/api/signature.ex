@@ -13,10 +13,10 @@ defmodule EHealth.API.Signature do
 
   def process_url(url), do: config()[:endpoint] <> url
 
-  def decode_and_validate(%{signed_legal_entity_request: content, signed_content_encoding: encoding}) do
+  def decode_and_validate(signed_content, signed_content_encoding) do
     params = %{
-      "signed_content" => content,
-      "signed_content_encoding" => encoding
+      "signed_content" => signed_content,
+      "signed_content_encoding" => signed_content_encoding
     }
 
     "/digital_signatures"
