@@ -115,7 +115,7 @@ defmodule EHealth.LegalEntity.API do
   def store_signed_content({:ok, pipe_data}, input, headers) do
     input
     |> Map.fetch!("signed_legal_entity_request")
-    |> MediaStorage.store_signed_content(Map.fetch!(pipe_data, :legal_entity_id), headers)
+    |> MediaStorage.store_signed_content(:legal_entity_bucket, Map.fetch!(pipe_data, :legal_entity_id), headers)
     |> validate_api_response(pipe_data, "Cannot store signed content")
   end
   def store_signed_content(err, _input, _headers), do: err
