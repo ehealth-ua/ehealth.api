@@ -827,11 +827,11 @@ Methods returns ukr_med_registry details by ID.
 
 ## MainStats [/reports/stats]
 
-To receive statistics on the date (total), you must submit a from_date = to_date
-
 ### Get Main Stats [GET /reports/stats{?from_date,to_date}]
 
 Methods returns agregated numbers of declarations, doctors and msp.
+Total statistis are calculated on the date that is transmitted in the parameter to_date
+The statistics for the period are calculated using from_date and to_date
 
 + Parameters
     + from_date: 2017-01-28 (string, required)
@@ -850,6 +850,9 @@ Methods returns agregated numbers of declarations, doctors and msp.
 ### Get Main Stats by Regions [GET /reports/stats/regions{?from_date,to_date,region_id}]
 
 Methods returns agregated numbers of declarations, MSP and doctors grouped by region_id.
+Total statistis are calculated on the date that is transmitted in the parameter to_date
+The statistics for the period are calculated using from_date and to_date
+If the region is not specified, the service returns statistics for all regions
 
 + Parameters
     + from_date: 2017-01-28 (string, required)
@@ -889,6 +892,9 @@ Methods returns agregated numbers of declarations and doctors by division
 ### Get Histogram Stats [GET /reports/stats/histogramstat{?from_date,to_date,region_id,interval}]
 
 Methods returns agregated numbers of declarations, msps and doctors.
+Total statistis are calculated on the date that is transmitted in the parameter to_date
+The statistics for the period are calculated using from_date and to_date
+If the region is not specified, the service returns statistics for all regions
 
 + Parameters
     + from_date: 2017-01-28 (string, required)
@@ -1721,7 +1727,7 @@ According to the strong binding of the Employees to the Employer (legal entity)
 all GET-endpoints returning Employee info are mounted through the
 `/legal_entities/{legal_entity_id}` path.
 
-### Get Employees List [GET /api/employees{?division_id,status,employee_type,limit,starting_after,ending_before}]
+### Get Employees List [GET /api/employees{?tax_id,edrpou,`legal_enyity_id`,division_id,status,employee_type,limit,starting_after,ending_before}]
 
 Use this end-point to obtain all Employees of the legal entity specified by the `legal_entity_id`. 
 
@@ -1730,6 +1736,9 @@ We suggest to use `status` filter to limit response size. Eg. you MAY want to li
 Method returns shortened details, to obtain full information - get Employee it by ID.
 
 + Parameters
+    + tax_id: 3015492561 (string, optional)
+    + edrpou: 38782323 (string, optional)
+    + `legal_enyity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0152` (string, optional)
     + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0152` (string, optional)
     + status: APPROVED (enum, optional)
         - NEW
@@ -1957,10 +1966,12 @@ It returns:
 
 ## Legal Entities [/api/legal_entities]
 
-### Get Legal Entities [GET /api/legal_entities{?edrpou,type,owner_property,status,starting_after,ending_before,limit}]
+### Get Legal Entities [GET /api/legal_entities{?edrpou,legal_entity_id,settlement_id,type,owner_property,status,starting_after,ending_before,limit}]
 
 + Parameters
     + `edrpou`: `341086` (string, optional)
+    + `legal_entity_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
+    + settlement_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
     + type: MSP (enum, optional)
         - MSP
         + Default: MSP
