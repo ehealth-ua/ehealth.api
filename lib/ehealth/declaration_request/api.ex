@@ -8,7 +8,9 @@ defmodule EHealth.DeclarationRequest.API do
   alias Ecto.UUID
   alias EHealth.Repo
   alias EHealth.API.PRM
+  alias EHealth.DeclarationRequest
   alias EHealth.DeclarationRequest.API.Create
+  alias EHealth.DeclarationRequest.API.Approve
   alias EHealth.DeclarationRequest.API.Helpers
   alias EHealth.DeclarationRequest.API.Validations
 
@@ -42,6 +44,17 @@ defmodule EHealth.DeclarationRequest.API do
       |> Multi.update_all(:previous_requests, pending_declaration_requests(attrs), set: updates)
       |> Multi.insert(:declaration_request, create_changeset(attrs, user_id, employee, global_parameters))
       |> Multi.run(:finalize, &finalize/1)
+      |> Repo.transaction
+    end
+  end
+
+  def approve(id, verification_code, user_id) do
+    with declaration_request <- Repo.get!(DeclarationRequest, id) do
+      updates = update_changeset(declaration_request, %{status: "APPROVED", updated_by: user_id})
+
+      Multi.new
+      |> Multi.run(:verification, fn(_) -> Approve.verify(declaration_request, verification_code) end)
+      |> Multi.update(:declaration_request, updates)
       |> Repo.transaction
     end
   end

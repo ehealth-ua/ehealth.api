@@ -62,5 +62,6 @@ defmodule Ehealth.Web.Router do
 
     # Declaration requests
     post "/declaration_requests", DeclarationRequestController, :create
+    patch "/declaration_requests/:id/approve", DeclarationRequestController, :approve
   end
 end

@@ -15,13 +15,19 @@ defmodule EHealth.API.OTPVerification do
 
   def initialize(number, headers \\ []) do
     "/verifications/#{number}"
-    |> post!(headers)
+    |> post!("", headers)
     |> ResponseDecoder.check_response()
   end
 
   def search(number, headers \\ []) do
     "/verifications/#{number}"
     |> get!(headers)
+    |> ResponseDecoder.check_response()
+  end
+
+  def complete(number, params, headers \\ []) do
+    "/verifications/#{number}/actions/complete"
+    |> patch!(Poison.encode!(params), headers)
     |> ResponseDecoder.check_response()
   end
 end

@@ -22,4 +22,17 @@ defmodule EHealth.Web.DeclarationRequestController do
         |> render("microservice_error.json", %{microservice_response: microservice_response})
     end
   end
+
+  def approve(conn, %{"id" => id, "verification_code" => verification_code}) do
+    [user_id|_] = get_req_header(conn, "x-consumer-id")
+
+    case DeclarationRequestAPI.approve(id, verification_code, user_id) do
+      {:ok, %{declaration_request: declaration_request}} ->
+        render(conn, "status.json", declaration_request: declaration_request)
+      {:error, _transaction_step, changeset, _} ->
+        conn
+        |> put_status(:unprocessable_entity)
+        |> render(EView.Views.ValidationError, :"422", changeset)
+    end
+  end
 end
