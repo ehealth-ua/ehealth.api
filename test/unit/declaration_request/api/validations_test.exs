@@ -41,6 +41,24 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
 
       assert result.errors[:data] == {"Doctor speciality does not meet the patient's age requirement.", []}
     end
+
+    test "patient's age invalid" do
+      raw_declaration_request = %{
+        data: %{
+          "person" => %{
+            "birth_date" => "1812-01-19"
+          },
+          "employee_id" => "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b"
+        }
+      }
+
+      result =
+        %DeclarationRequest{}
+        |> Ecto.Changeset.change(raw_declaration_request)
+        |> validate_patient_birth_date()
+
+      assert result.errors[:data] == {"Invalid birth date.", []}
+    end
   end
 
   describe "validate_patient_phone_number/1" do

@@ -50,6 +50,25 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       assert resp["error"]
     end
 
+    test "with invalid birth_date", %{conn: conn} do
+      employee_request_params =
+        "test/data/employee_request.json"
+        |> File.read!()
+        |> Poison.decode!()
+        |> put_in(["employee_request", "party", "birth_date"], "1860-12-12")
+
+      conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
+      conn = post conn, employee_request_path(conn, :create), employee_request_params
+
+      resp = json_response(conn, 422)
+      assert Map.has_key?(resp, "error")
+      assert "$.employee_request.party.birth_date" ==
+        resp
+        |> get_in(["error", "invalid"])
+        |> List.first()
+        |> Map.get("entry")
+    end
+
     test "with non-existent foreign keys", %{conn: conn} do
       employee_request_params =
         "test/data/employee_request.json"

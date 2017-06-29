@@ -85,6 +85,7 @@ defmodule EHealth.DeclarationRequest.API do
 
     %EHealth.DeclarationRequest{}
     |> cast(%{data: attrs}, [:data])
+    |> validate_patient_birth_date()
     |> validate_patient_age(Enum.map(specialities, &(&1["speciality"])), global_parameters["adult_age"])
     |> validate_patient_phone_number()
     |> put_start_end_dates(global_parameters)

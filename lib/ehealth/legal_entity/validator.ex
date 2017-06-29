@@ -10,8 +10,9 @@ defmodule EHealth.LegalEntity.Validator do
   alias EHealth.API.Signature
   alias EHealth.Validators.KVEDs
   alias EHealth.LegalEntity.Request
-  alias EHealth.Validators.Addresses
   alias EHealth.Validators.TaxID
+  alias EHealth.Validators.Addresses
+  alias EHealth.Validators.BirthDate
   alias EHealth.Validators.SchemaMapper
 
   use_schema :legal_entity, "specs/json_schemas/new_legal_entity_schema.json"
@@ -25,6 +26,7 @@ defmodule EHealth.LegalEntity.Validator do
     |> validate_kveds()
     |> validate_addresses()
     |> validate_tax_id()
+    |> validate_birth_date()
     |> validate_edrpou()
   end
 
@@ -135,6 +137,22 @@ defmodule EHealth.LegalEntity.Validator do
   end
 
   def validate_edrpou(err), do: err
+
+  def validate_birth_date({:ok, %{"content" => content}} = result) do
+    content
+    |> get_in(["owner", "birth_date"])
+    |> BirthDate.validate()
+    |> case do
+         true -> result
+         _ ->
+          {:error, [{%{
+            description: "invalid birth_date value",
+            params: [],
+            rule: :invalid
+          }, "$.owner.birth_date"}]}
+       end
+  end
+  def validate_birth_date(err), do: err
 
   def prepare_legal_entity(%Ecto.Changeset{valid?: true}, legal_entity) do
     {:ok, %{legal_entity_request: legal_entity}}

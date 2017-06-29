@@ -106,6 +106,35 @@ defmodule EHealth.Unit.ValidatorTest do
       Validator.validate_legal_entity({:ok, %{"data" => %{"content" => content}}})
   end
 
+  test "JSON schema birth_date more than 150 years" do
+    content =
+      "test/data/legal_entity.json"
+      |> File.read!()
+      |> Poison.decode!()
+      |> put_in(["owner", "birth_date"], "1815-12-06")
+
+    assert {:error, [{%{description: _, rule: :invalid}, "$.owner.birth_date"}]} =
+      Validator.validate_birth_date({:ok, %{"content" => content}})
+  end
+
+  test "JSON schema birth_date in future" do
+    date =
+      :seconds
+      |> :os.system_time()
+      |> Kernel.+(3600 * 24 * 180)
+      |> DateTime.from_unix!()
+      |> Date.to_iso8601()
+
+    content =
+      "test/data/legal_entity.json"
+      |> File.read!()
+      |> Poison.decode!()
+      |> put_in(["owner", "birth_date"], date)
+
+    assert {:error, [{%{description: _, rule: :invalid}, "$.owner.birth_date"}]} =
+      Validator.validate_birth_date({:ok, %{"content" => content}})
+  end
+
   test "JSON schema issued_date date format" do
     content =
       "test/data/legal_entity.json"

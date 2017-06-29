@@ -1,7 +1,6 @@
 defmodule EHealth.DeclarationRequest.API.Approve do
   @moduledoc false
 
-  alias EHealth.Repo
   alias EHealth.API.OTPVerification
 
   def verify(declaration_request, code) do

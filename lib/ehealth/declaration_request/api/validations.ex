@@ -6,6 +6,7 @@ defmodule EHealth.DeclarationRequest.API.Validations do
   alias EHealth.API.OTPVerification
   alias EHealth.Validators.SchemaMapper
   alias EHealth.Validators.Addresses
+  alias EHealth.Validators.BirthDate
 
   import Ecto.Changeset
 
@@ -35,9 +36,24 @@ defmodule EHealth.DeclarationRequest.API.Validations do
     end
   end
 
+  def validate_patient_birth_date(changeset) do
+    validate_change changeset, :data, fn :data, data ->
+      data
+      |> get_in(["person", "birth_date"])
+      |> BirthDate.validate()
+      |> case do
+        true -> []
+        false -> [data: "Invalid birth date."]
+      end
+    end
+  end
+
   def validate_patient_age(changeset, specialities, adult_age) do
     validate_change changeset, :data, fn :data, data ->
-      patient_birth_date = Date.from_iso8601! get_in(data, ["person", "birth_date"])
+      patient_birth_date =
+        data
+        |> get_in(["person", "birth_date"])
+        |> Date.from_iso8601!()
 
       patient_age = Timex.diff(Timex.now(), patient_birth_date, :years)
 
