@@ -90,7 +90,7 @@ defmodule EHealth.DeclarationRequest.API.Create do
         [authentication_method|_] = data["person"]["authentication_methods"]
 
         gandalf_decision = Gandalf.decide_auth_method(
-          not is_nil(authentication_method["number"]),
+          not is_nil(authentication_method["phone_number"]),
           authentication_method["type"]
         )
 
@@ -98,7 +98,7 @@ defmodule EHealth.DeclarationRequest.API.Create do
           {:ok, %{"data" => decision}} ->
             authentication_method_current = %{
               "type" => decision["final_decision"],
-              "number" => authentication_method["number"]
+              "number" => authentication_method["phone_number"]
             }
 
             put_change(changeset, :authentication_method_current, authentication_method_current)
@@ -110,7 +110,7 @@ defmodule EHealth.DeclarationRequest.API.Create do
 
             authentication_method_current = %{
               "type" => "OFFLINE",
-              "number" => authentication_method["number"]
+              "number" => authentication_method["phone_number"]
             }
 
             put_change(changeset, :authentication_method_current, authentication_method_current)

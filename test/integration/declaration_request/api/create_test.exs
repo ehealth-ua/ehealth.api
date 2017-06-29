@@ -242,7 +242,7 @@ declaration_request_SSN.jpeg"})
               "number" => "+380508887701"
             }],
             "authentication_methods" => [%{
-              "number" => "+380508887701"
+              "phone_number" => "+380508887701"
             }]
           }
         }

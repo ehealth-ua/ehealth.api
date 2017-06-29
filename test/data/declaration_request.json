@@ -43,7 +43,7 @@
       "authentication_methods": [
         {
           "type": "OTP",
-          "number": "+380508887700"
+          "phone_number": "+380508887700"
         }
       ],
       "emergency_contact": {
