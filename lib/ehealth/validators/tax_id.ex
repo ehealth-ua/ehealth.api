@@ -1,4 +1,4 @@
-defmodule EHealth.Utils.TaxIDValidator do
+defmodule EHealth.Validators.TaxID do
   @moduledoc """
   Tax ID validator
   """

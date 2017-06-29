@@ -8,11 +8,11 @@ defmodule EHealth.LegalEntity.Validator do
   import Ecto.Changeset
 
   alias EHealth.API.Signature
+  alias EHealth.Validators.KVEDs
   alias EHealth.LegalEntity.Request
-  alias EHealth.Utils.ValidationSchemaMapper
-  alias EHealth.LegalEntity.ValidatorKVEDs
-  alias EHealth.LegalEntity.ValidatorAddresses
-  alias EHealth.Utils.TaxIDValidator
+  alias EHealth.Validators.Addresses
+  alias EHealth.Validators.TaxID
+  alias EHealth.Validators.SchemaMapper
 
   use_schema :legal_entity, "specs/json_schemas/new_legal_entity_schema.json"
 
@@ -66,7 +66,7 @@ defmodule EHealth.LegalEntity.Validator do
     schema =
       @schemas
       |> Keyword.get(:legal_entity)
-      |> ValidationSchemaMapper.prepare_legal_entity_schema()
+      |> SchemaMapper.prepare_legal_entity_schema()
 
     case validate_schema(schema, content) do
       :ok -> {:ok, data}
@@ -79,7 +79,7 @@ defmodule EHealth.LegalEntity.Validator do
   def validate_kveds({:ok, %{"content" => content}} = result) do
     content
     |> Map.get("kveds")
-    |> ValidatorKVEDs.validate()
+    |> KVEDs.validate()
     |> case do
          %Ecto.Changeset{valid?: false} = err -> {:error, err}
          _ -> result
@@ -92,7 +92,7 @@ defmodule EHealth.LegalEntity.Validator do
   def validate_addresses({:ok, %{"content" => content}} = result) do
     content
     |> Map.get("addresses")
-    |> ValidatorAddresses.validate()
+    |> Addresses.validate()
     |> case do
          {:ok, _} -> result
          err -> err
@@ -106,7 +106,7 @@ defmodule EHealth.LegalEntity.Validator do
   def validate_tax_id({:ok, %{"content" => content}} = result) do
     content
     |> get_in(["owner", "tax_id"])
-    |> TaxIDValidator.validate()
+    |> TaxID.validate()
     |> case do
          true -> result
          _ ->

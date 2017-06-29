@@ -5,8 +5,8 @@ defmodule EHealth.Employee.Validator do
 
   use JValid
 
-  alias EHealth.Utils.ValidationSchemaMapper
-  alias EHealth.Utils.TaxIDValidator
+  alias EHealth.Validators.SchemaMapper
+  alias EHealth.Validators.TaxID
 
   use_schema :employee_request, "specs/json_schemas/new_employee_request_schema.json"
 
@@ -23,7 +23,7 @@ defmodule EHealth.Employee.Validator do
     schema =
       @schemas
       |> Keyword.get(:employee_request)
-      |> ValidationSchemaMapper.prepare_employee_request_schema()
+      |> SchemaMapper.prepare_employee_request_schema()
 
     case validate_schema(schema, content) do
       :ok -> {:ok, content}
@@ -46,7 +46,7 @@ defmodule EHealth.Employee.Validator do
   def validate_tax_id({:ok, content}) do
     content
     |> get_in(["employee_request", "party", "tax_id"])
-    |> TaxIDValidator.validate()
+    |> TaxID.validate()
     |> case do
          true -> :ok
          _ ->

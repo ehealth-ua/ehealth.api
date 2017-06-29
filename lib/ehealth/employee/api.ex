@@ -18,7 +18,7 @@ defmodule EHealth.Employee.API do
   alias EHealth.Bamboo.Emails.EmployeeRequestInvitation, as: EmployeeRequestInvitationEmail
   alias EHealth.Man.Templates.EmployeeCreatedNotification, as: EmployeeCreatedNotificationTemplate
   alias EHealth.Bamboo.Emails.EmployeeCreatedNotification, as: EmployeeCreatedNotificationEmail
-  alias EHealth.RemoteForeignKeyValidator
+  alias EHealth.Validators.RemoteForeignKey
   alias EHealth.API.Mithril
   alias EHealth.API.PRM
   alias EHealth.Employee.Validator
@@ -136,9 +136,9 @@ defmodule EHealth.Employee.API do
 
   defp validate_foreign_keys(changeset, attrs) do
     changeset
-    |> RemoteForeignKeyValidator.validate(:legal_entity_id, get_in(attrs, [:data, "legal_entity_id"]))
-    |> RemoteForeignKeyValidator.validate(:division_id, get_in(attrs, [:data, "division_id"]))
-    |> RemoteForeignKeyValidator.validate(:employee_id, get_in(attrs, [:data, "employee_id"]))
+    |> RemoteForeignKey.validate(:legal_entity_id, get_in(attrs, [:data, "legal_entity_id"]))
+    |> RemoteForeignKey.validate(:division_id, get_in(attrs, [:data, "division_id"]))
+    |> RemoteForeignKey.validate(:employee_id, get_in(attrs, [:data, "employee_id"]))
   end
 
   def changeset(%Request{} = schema, attrs) do

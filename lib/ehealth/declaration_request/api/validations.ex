@@ -4,8 +4,8 @@ defmodule EHealth.DeclarationRequest.API.Validations do
   use JValid
 
   alias EHealth.API.OTPVerification
-  alias EHealth.Utils.ValidationSchemaMapper
-  alias EHealth.LegalEntity.ValidatorAddresses
+  alias EHealth.Validators.SchemaMapper
+  alias EHealth.Validators.Addresses
 
   import Ecto.Changeset
 
@@ -56,7 +56,7 @@ defmodule EHealth.DeclarationRequest.API.Validations do
     schema =
       @schemas
       |> Keyword.get(:declaration_request)
-      |> ValidationSchemaMapper.prepare_declaration_request_schema()
+      |> SchemaMapper.prepare_declaration_request_schema()
 
     case validate_schema(schema, attrs) do
       :ok -> {:ok, attrs}
@@ -65,6 +65,6 @@ defmodule EHealth.DeclarationRequest.API.Validations do
   end
 
   def validate_addresses(addresses) do
-    ValidatorAddresses.validate(addresses)
+    Addresses.validate(addresses)
   end
 end

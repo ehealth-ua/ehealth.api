@@ -8,8 +8,8 @@ defmodule EHealth.Divisions.API do
 
   alias EHealth.API.PRM
   alias EHealth.API.UAddress
-  alias EHealth.Utils.ValidationSchemaMapper
-  alias EHealth.LegalEntity.ValidatorAddresses
+  alias EHealth.Validators.SchemaMapper
+  alias EHealth.Validators.Addresses
 
   use_schema :division, "specs/json_schemas/division_schema.json"
 
@@ -76,7 +76,7 @@ defmodule EHealth.Divisions.API do
     schema =
       @schemas
       |> Keyword.get(:division)
-      |> ValidationSchemaMapper.prepare_divisions_schema()
+      |> SchemaMapper.prepare_divisions_schema()
 
     case validate_schema(schema, data) do
       :ok -> {:ok, data}
@@ -87,7 +87,7 @@ defmodule EHealth.Divisions.API do
   def validate_addresses({:ok, data} = return) do
     data
     |> Map.get("addresses")
-    |> ValidatorAddresses.validate()
+    |> Addresses.validate()
     |> case do
          {:ok, _} -> return
          err -> err

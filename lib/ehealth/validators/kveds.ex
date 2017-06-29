@@ -1,4 +1,4 @@
-defmodule EHealth.LegalEntity.ValidatorKVEDs do
+defmodule EHealth.Validators.KVEDs do
   @moduledoc """
   KVED codes validator
   """

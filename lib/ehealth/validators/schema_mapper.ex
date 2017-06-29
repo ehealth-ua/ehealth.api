@@ -1,4 +1,4 @@
-defmodule EHealth.Utils.ValidationSchemaMapper do
+defmodule EHealth.Validators.SchemaMapper do
   @moduledoc """
   Load dictionaries from DB and put enum rules into json schema
   """

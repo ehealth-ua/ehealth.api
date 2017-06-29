@@ -4,7 +4,7 @@ defmodule EHealth.Unit.ValidatorTest do
   use EHealth.Web.ConnCase
 
   alias EHealth.LegalEntity.Validator
-  alias EHealth.LegalEntity.ValidatorKVEDs
+  alias EHealth.Validators.KVEDs
   alias EHealth.API.MediaStorage
   alias EHealth.Employee.API, as: EmployeeRequestAPI
 
@@ -205,26 +205,26 @@ defmodule EHealth.Unit.ValidatorTest do
     patch conn, dictionary_path(conn, :update, "KVEDS"), @kveds
     patch conn, dictionary_path(conn, :update, "KVEDS_ALLOWED"), @kveds_allowed
 
-    assert %Ecto.Changeset{valid?: true} = ValidatorKVEDs.validate(["21.20"])
-    assert %Ecto.Changeset{valid?: true} = ValidatorKVEDs.validate(["82.11", "21.20"])
+    assert %Ecto.Changeset{valid?: true} = KVEDs.validate(["21.20"])
+    assert %Ecto.Changeset{valid?: true} = KVEDs.validate(["82.11", "21.20"])
 
     # missed required
-    assert %Ecto.Changeset{valid?: false} = ValidatorKVEDs.validate(["82.11"])
+    assert %Ecto.Changeset{valid?: false} = KVEDs.validate(["82.11"])
     # not valid
-    assert %Ecto.Changeset{valid?: false} = ValidatorKVEDs.validate(["21.20", "99.11"])
+    assert %Ecto.Changeset{valid?: false} = KVEDs.validate(["21.20", "99.11"])
   end
 
   test "validate allowed kveds", %{conn: conn} do
     patch conn, dictionary_path(conn, :update, "KVEDS"), @kveds
-    assert %Ecto.Changeset{valid?: true} = ValidatorKVEDs.validate(["82.11"])
+    assert %Ecto.Changeset{valid?: true} = KVEDs.validate(["82.11"])
   end
 
   test "validate not allowed kveds", %{conn: conn} do
     patch conn, dictionary_path(conn, :update, "KVEDS"), @kveds
-    assert %Ecto.Changeset{valid?: false} = ValidatorKVEDs.validate(["12.11"])
+    assert %Ecto.Changeset{valid?: false} = KVEDs.validate(["12.11"])
   end
 
   test "validate kveds with empty dictionary" do
-    assert %Ecto.Changeset{valid?: true} = ValidatorKVEDs.validate(["12.11"])
+    assert %Ecto.Changeset{valid?: true} = KVEDs.validate(["12.11"])
   end
 end

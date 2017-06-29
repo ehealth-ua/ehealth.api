@@ -1,4 +1,4 @@
-defmodule EHealth.RemoteForeignKeyValidator do
+defmodule EHealth.Validators.RemoteForeignKey do
   @moduledoc false
 
   import Ecto.Changeset
