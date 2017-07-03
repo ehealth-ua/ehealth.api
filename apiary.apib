@@ -2568,8 +2568,6 @@ API for searching Ukrainian Addresses
 + updated_by: `userid` (string, required)
 
 ### `Declaration_Request_Public`
-+ start_date: `2017-03-02T10:45:16.000Z` (string, required) - Should be defined on the client side.
-+ end_date: `2017-03-02T10:45:16.000Z` (string, optional) - Will be defined on eHealth side if it's not set.
 + person(`Person_Request`, required) - Object that described a Patient. Confidant person should be set for disabled persons, underage persons, etc.
     + renewal_consent: true (boolean) - Согласие на закрытие предыдущей декларации.
     + patient_signed: true (boolean) - Факт подписания заявки на декларацию.
