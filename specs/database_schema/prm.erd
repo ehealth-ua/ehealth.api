@@ -137,11 +137,12 @@ capitation_contract_id | uuid
 created_via_mis_client_id | uuid | not null
 nhs_verified | boolean | not null
 
-[log_changes]
+[audit_log]
 id | uuid | not null
-user_id | uuid | not null
+actor_id | uuid | not null
 resource | varchar | not null
-what_changed | jsonb | not null
+resource_id | varchar | not null
+changeset | jsonb | not null
 inserted_at | timestamp | not null
 
 [global_parameters]
@@ -207,7 +208,7 @@ legal_entities
 capitation_contracts
 products
 employee_doctors
-log_changes
+audit_log
 ukr_med_registry
 global_parameters
 
