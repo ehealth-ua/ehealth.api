@@ -2539,10 +2539,10 @@ API for searching Ukrainian Addresses
 + start_date: `2017-03-02T10:45:16.000Z` (string, required) - Should be defined on the client side.
 + end_date: `2017-03-02T10:45:16.000Z` (string, optional) - Will be defined on eHealth side if it's not set.
 + person(`Person_Request`, required) - Object that described a Patient. Confidant person should be set for disabled persons, underage persons, etc.
-    + renewal_consent: true (boolean)
-    + patient_signed: true (boolean)
-    + disclosure_consent: true (boolean)
-    + process_data_consent: true (boolean)
+    + renewal_consent: true (boolean) - Согласие на закрытие предыдущей декларации.
+    + patient_signed: true (boolean) - Факт подписания заявки на декларацию.
+    + disclosure_consent: true (boolean) - Согласие на раскрытие персональных данных
+    + process_data_consent: true (boolean) - Согласие на обработку персональных данных.
     + service_location_consent: true (boolean, required)
 + `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Employee ID with `type=DOCTOR` selected from available Employees as a third contract party.
 + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Registered Medical Service Provider Division identifier.
