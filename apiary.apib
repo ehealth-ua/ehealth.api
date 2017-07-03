@@ -1369,12 +1369,6 @@ This method is used to create Declaration Request (as part of Declaration creati
                 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
             + division (`Division_Details`)
             + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
-            + `authentication_method` (`Authentication_Method`) - 
-                
-                Currently we support two authentifciation methods:
-                
-                * **OTP** - Preffered. One-time-password (usually sent via SMS). Masked phone number will be returned. By using this verification method you MUST approve Declaration Request by a OTP token that is sent to a patient mobile phone.
-                * **OFFLINE** - For patients that is not able to pass OTP verification method. By using this verification method you MUST upload required documents to links returned in response and approve Declaration Request after upload is completed.
             + urgent (object, required)
                 + documents (array[`media_content`], required)
 
