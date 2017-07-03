@@ -94,7 +94,7 @@
           "$ref": "#/definitions/date"
         },
         "certificate_number": {
-          "$ref": "#/definitions/date"
+          "type": "string"
         }
       },
       "required": [
