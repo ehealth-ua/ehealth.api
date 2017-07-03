@@ -1796,10 +1796,14 @@ Response structure differs depending on employee type:
             + division (Division_Short)
             + `legal_entity` (`Legal_Entity_Short`)
 
-### Deactivate Employee - TBD [PATCH /api/employees/{employee_id}/action/deactivate]
+### Deactivate Employee - TBD [PATCH /api/employees/{id}/action/deactivate]
 
 Use this method to deactivate employee.
-Update employee parameters:
+1. Revoke role from user
+
+2. Deactivate declarations
+
+3. Update employee parameters:
  - if employee_type = OWNER
 is_active = false
 status not update
@@ -1808,10 +1812,8 @@ is_active not update
 status = DISMISSED
  - end_date is now
 
-
-
 + Parameters
-    + employee_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 
 + Request (application/json)
 
@@ -1821,7 +1823,7 @@ status = DISMISSED
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
-        + data (Employee_Request)
+        + data (Employee_Response)
             + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 
 ## Employee Requests [/api/employee_requests]
@@ -2193,6 +2195,31 @@ Signed content MUST consists of JSON object with Legal Entity data:
     + Attributes (Response__Process_OK)
         + data (object)
             + include `Legal_Entity_Short`
+            
+
+
+### Deactivate Legal Entity [PATCH /api/legal_entities/{id}/action/deactivate]
+
+Use this method to deactivate msp.
+1. Deactivate emploees by legal entity
+
+2. Deactivate legal entity
+Update status on CLOSED
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (object)
+            + include `Legal_Entity_Short`
+
 
 ## Divisions [/api/divisions]
 
