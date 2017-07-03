@@ -1800,9 +1800,14 @@ Response structure differs depending on employee type:
 
 Use this method to deactivate employee.
 Update employee parameters:
- - is_active on false 
+ - if employee_type = OWNER
+is_active = false
+status not update
+ - if employee_type not OWNER
+is_active not update
+status = DISMISSED
  - end_date is now
- - status = DISMISSED, if employee_type not OWNER
+
 
 
 + Parameters
