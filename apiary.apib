@@ -1364,6 +1364,10 @@ This method is used to create Declaration Request (as part of Declaration creati
         + data (object)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
             + include `Declaration_Request_Public`
+            + employee (Employee_Minimal)
+            + `legal_entity` (`Medical_Service_Provider`)
+                + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + division (`Division_Details`)
             + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
             + `authentication_method` (`Authentication_Method`) - 
                 
