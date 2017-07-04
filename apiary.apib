@@ -2029,6 +2029,10 @@ List consists of legal entities with parameter `is_active = true`.
             + status: ACTIVE (enum, required)
                 - ACTIVE
                 - CLOSED
+            + mis_verified: NOT_VERIFIED (enum, required)
+                - NOT_VERIFIED
+                - VERIFIED
+            + nhs_verified: false (boolean, required)
             + security (object)
                 + `secret_key`: `secret_key` (string, required)
                 + `client_id`: `client_id` (string, required)
