@@ -4,6 +4,7 @@ defmodule EHealth.Web.LegalEntityController do
   """
   use EHealth.Web, :controller
 
+  alias EHealth.API.PRM
   alias EHealth.LegalEntity.API
 
   action_fallback EHealth.Web.FallbackController
@@ -31,6 +32,14 @@ defmodule EHealth.Web.LegalEntityController do
       conn
       |> assign_security(security)
       |> render("show.json", legal_entity: legal_entity)
+    end
+  end
+
+  def nhs_verify(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
+    update_data = %{nhs_verified: true}
+
+    with {:ok, %{"meta" => %{}} = response} <- PRM.update_legal_entity(update_data, id, req_headers) do
+      proxy(conn, response)
     end
   end
 
