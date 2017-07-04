@@ -2029,10 +2029,10 @@ List consists of legal entities with parameter `is_active = true`.
             + status: ACTIVE (enum, required)
                 - ACTIVE
                 - CLOSED
-            + mis_verified: NOT_VERIFIED (enum, required)
+            + `mis_verified`: NOT_VERIFIED (enum, required)
                 - NOT_VERIFIED
                 - VERIFIED
-            + nhs_verified: false (boolean, required)
+            + `nhs_verified`: false (boolean, required)
             + security (object)
                 + `secret_key`: `secret_key` (string, required)
                 + `client_id`: `client_id` (string, required)
@@ -2041,6 +2041,11 @@ List consists of legal entities with parameter `is_active = true`.
 ### Create/Update Legal Entity [PUT]
 
 Use this method to register a new Legal Entity.
+
+New Legal Entity is created with 
+status = ACTIVE
+mis_verified = NOT_VERIFIED (if legal entity IS NOT in ukr_med_registry) and VERIFIED (if legal entity IS in ukr_med_registry)
+nhs_verified = false
 
 Method receives signed message (pkcs7) including signed content, digital signature and signer public key. 
 All signature fields will be validated (including signer certificate authority).
@@ -2149,10 +2154,13 @@ Signed content MUST consists of JSON object with Legal Entity data:
         + data (object)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
             + include Legal_Entity_Request_Public
-            + status: VERIFIED (enum, required)
+            + status: ACTIVE (enum, required)
+                - ACTIVE
+                - CLOSED
+            + `mis_verified`: NOT_VERIFIED (enum, required)
+                - NOT_VERIFIED
                 - VERIFIED
-                - DECLINED
-                - VERIFICATION_EXP
+            + `nhs_verified`: false (boolean, required)
         + urgent (object, optional)
             + security (object)
                 + `secret_key`: `secret_key` (string, required)
@@ -2165,10 +2173,13 @@ Signed content MUST consists of JSON object with Legal Entity data:
         + data (object)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
             + include Legal_Entity_Request_Public
-            + status: VERIFIED (enum, required)
+            + status: ACTIVE (enum, required)
+                - ACTIVE
+                - CLOSED
+            + `mis_verified`: NOT_VERIFIED (enum, required)
+                - NOT_VERIFIED
                 - VERIFIED
-                - DECLINED
-                - VERIFICATION_EXP
+            + `nhs_verified`: false (boolean, required)
         + urgent (object, optional)
             + security (object)
                 + `secret_key`: `secret_key` (string, required)
