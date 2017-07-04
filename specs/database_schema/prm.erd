@@ -1,14 +1,3 @@
-[capitation_contracts]
-id | uuid | not null
-legal_entity_id | uuid | not null
-product_id | uuid | not null
-start_date | date | not null
-end_date | date
-status | enum('') | not null
-signed_at | timestamp
-services | jsonb[]
-inserted_at | timestamp | not null
-updated_at | timestamp | not null
 
 [declarations]
 id | uuid | not null
@@ -62,12 +51,13 @@ addresses | jsonb | not null
 external_id | varchar
 phones | jsonb[] | not null
 email | varchar
-mountain_group | enum('')
-type | enum('ambulant_clinic','clinic') | not null
-status | enum('active','inactive') | not null
+mountain_group | varchar
+type | varchar | not null
+status | varchar | not null
 is_active | boolean | not null
 inserted_at | timestamp | not null
 updated_at | timestamp | not null
+location | geometry
 
 [doctors]
 id | uuid | not null
@@ -95,14 +85,16 @@ updated_by | uuid | not null
 updated_at | timestamp | not null
 status | enum('') | not null
 employee_type | enum('doctor','hr','owner','accountant') | not null
+is_active | boolean | not null
 status_reason | string
 
 [employee_doctors]
 id | uuid | not null
 education | jsonb[] | not null
-qualification | jsonb[]
+qualifications | jsonb[]
 specialities | jsonb[] | not null
 science_degree | jsonb
+employee_id | uuid | not null
 inserted_at | timestamp | not null
 updated_at | timestamp | not null
 
@@ -119,8 +111,8 @@ id | uuid | not null
 name | varchar | not null
 short_name | varchar
 public_name | varchar
-type | enum('msp','mis','drug_store') | not null
-edrpou | varchar(8) | not null unique
+type | varchar | not null
+edrpou | varchar(255) | not null unique
 addresses | jsonb[] | not null
 phones | jsonb[]
 email | varchar
@@ -130,12 +122,12 @@ updated_at | timestamp
 updated_by | uuid | not null
 is_active | boolean | not null
 kveds | jsonb | not null
-status | enum('new','verified') | not null
-owner_property_type | enum('state','private') | not null
-legal_form | enum('тов','фоп') | not null
-capitation_contract_id | uuid
+status | enum('active','closed') | not null
+owner_property_type | varchar | not null
+legal_form | varchar | not null
 created_via_mis_client_id | uuid | not null
 nhs_verified | boolean | not null
+mis_verified | enum('verified','not_verified') | not null
 
 [audit_log]
 id | uuid | not null
@@ -160,6 +152,7 @@ accreditation | jsonb | not null
 licenses | jsonb[]
 inserted_at | timestamp | not null
 updated_at | timestamp | not null
+legal_entity_id | uuid | not null
 
 [parties]
 id | uuid | not null
@@ -167,7 +160,7 @@ last_name | varchar | not null
 first_name | varchar | not null
 second_name | varchar
 birth_date | date | not null
-gender | enum('gender') | not null
+gender | varchar | not null
 tax_id | varchar unique
 documents | jsonb[]
 phones | jsonb[]
@@ -180,15 +173,11 @@ updated_by | uuid | not null
 id       | uuid | not null
 party_id | uuid | not null
 user_id  | uuid | not null
-
-[products]
-id | uuid | not null
-name | varchar | not null
-parameters | jsonb[] | not null
 inserted_at | timestamp | not null
 updated_at | timestamp | not null
 
-[ukr_med_registry]
+
+[ukr_med_registries]
 id | uuid | not null
 edrpou | varchar(8) | not null
 name | varchar
@@ -205,8 +194,6 @@ divisions
 medical_service_providers
 employees
 legal_entities
-capitation_contracts
-products
 employee_doctors
 audit_log
 ukr_med_registry
@@ -223,8 +210,7 @@ employee_requests
 (mediastorage)
 declarations_signed
 
-capitation_contracts 1--1 legal_entities
-capitation_contracts *--1 products
+
 declarations 1--1 declarations_signed
 employees 1--* declarations
 divisions *--1 legal_entities
@@ -235,4 +221,3 @@ employees *--1 divisions
 employees 1--? employee_doctors
 medical_service_providers 1--1 legal_entities
 parties 1--? doctors
-products *--1 legal_entities
