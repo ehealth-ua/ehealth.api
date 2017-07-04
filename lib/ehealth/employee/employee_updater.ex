@@ -40,7 +40,7 @@ defmodule EHealth.Employee.EmployeeUpdater do
     do: {:ok, pipe_data}
 
   def check_transition(_pipe_data) do
-    {:error, {:conflict, "Invalid transition. An employee status must be APPROVED and is_active = true"}}
+    {:error, {:forbidden, "Invalid transition."}}
   end
 
   def get_active_employees(%{employee: %{"data" => employee}, headers: headers} = pipe_data) do
@@ -103,14 +103,15 @@ defmodule EHealth.Employee.EmployeeUpdater do
   defp get_update_employee_params(headers) do
     %{
       updated_by: get_consumer_id(headers),
-      is_active: false,
       end_date: Date.utc_today() |> Date.to_iso8601()
     }
   end
 
   defp put_employee_status(params, %{"employee_type" => @employee_type_owner}) do
+    Map.put(params, :is_active, false)
+  end
+
+  defp put_employee_status(params, _employee) do
     Map.put(params, :status, @employee_status_dismissed)
   end
-  defp put_employee_status(params, _employee), do: params
-
 end

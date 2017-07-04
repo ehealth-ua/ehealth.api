@@ -122,10 +122,10 @@ defmodule EHealth.Web.EmployeesControllerTest do
     conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
 
     conn_resp = patch conn, employees_path(conn, :deactivate, "b075f148-7f93-4fc2-b2ec-2d81b19a91a1")
-    assert json_response(conn_resp, 409)["error"]["message"] =~ "Invalid transition."
+    assert json_response(conn_resp, 403)["error"]["message"] == "Invalid transition."
 
     conn_resp = patch conn, employees_path(conn, :deactivate, "b075f148-7f93-4fc2-b2ec-2d81b19a9a8a")
-    assert json_response(conn_resp, 409)["error"]["message"] =~ "Invalid transition."
+    assert json_response(conn_resp, 403)["error"]["message"] == "Invalid transition."
   end
 
   test "deactivate employee", %{conn: conn} do
