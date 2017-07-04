@@ -1972,7 +1972,7 @@ It returns:
 
 ## Legal Entities [/api/legal_entities]
 
-### Get Legal Entities [GET /api/legal_entities{?edrpou,legal_entity_id,settlement_id,type,owner_property,status,mis_verified,starting_after,ending_before,limit}]
+### Get Legal Entities [GET /api/legal_entities{?edrpou,legal_entity_id,settlement_id,type,owner_property,status,mis_verified,nhs_verified,starting_after,ending_before,limit}]
 
 Use this method to get list of legal entities filtering by parameters.
 List consists of legal entities with parameter `is_active = true`.
@@ -1992,7 +1992,8 @@ List consists of legal entities with parameter `is_active = true`.
         - CLOSED
     + mis_verified: VERIFIED (enum, optional)
         - VERIFIED
-        - NOT_VERIFIED   
+        - NOT_VERIFIED 
+    + `nhs_verified`: false (boolean, optional)
     + limit: 20 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
         + Default: 50
     + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
