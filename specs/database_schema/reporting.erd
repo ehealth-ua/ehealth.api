@@ -30,6 +30,7 @@ status | varchar | not null
 is_active | boolean | not null
 inserted_at | timestamp | not null
 updated_at | timestamp | not null
+location | geometry
 
 [doctors]
 id | uuid | not null
@@ -145,6 +146,15 @@ id | UUID | NOT NULL
 street_id | UUID | NOT NULL
 name | VARCHAR(150) | NOT NULL
 
+[billing]
+id | UUID | NOT NULL
+billing_date | date | not null
+declaration_id| uuid | not null
+legal_entity_id | uuid | not null
+red_msp_id | uuid | not null
+mountain_group | enum('')
+age_group | enum('')
+
 
 
 employees 1--* declarations
@@ -166,3 +176,7 @@ settlements 1--+ streets
 regions 1--+ streets
 districts 1--+ streets
 streets 1--+ streets_aliases
+
+
+billing 1--1 declarations
+billing *--1 legal_entities
