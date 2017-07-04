@@ -1972,7 +1972,10 @@ It returns:
 
 ## Legal Entities [/api/legal_entities]
 
-### Get Legal Entities [GET /api/legal_entities{?edrpou,legal_entity_id,settlement_id,type,owner_property,status,starting_after,ending_before,limit}]
+### Get Legal Entities [GET /api/legal_entities{?edrpou,legal_entity_id,settlement_id,type,owner_property,status,mis_verified,starting_after,ending_before,limit}]
+
+Use this method to get list of legal entities filtering by parameters.
+List consists of legal entities with parameter `is_active = true`.
 
 + Parameters
     + `edrpou`: `341086` (string, optional)
@@ -1984,10 +1987,12 @@ It returns:
     + owner_property: state (enum, optional)
         - state
         - private
-    + status: VERIFIED (enum, required)
+    + status: ACTIVE (enum, optional)
+        - ACTIVE
+        - CLOSED
+    + mis_verified: VERIFIED (enum, optional)
         - VERIFIED
-        - DECLINED
-        - VERIFICATION_EXP
+        - NOT_VERIFIED   
     + limit: 20 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
         + Default: 50
     + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
@@ -2021,10 +2026,9 @@ It returns:
         + data (object)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
             + include `Legal_Entity_Request_Public_Short`
-            + status: VERIFIED (enum, required)
-                - VERIFIED
-                - DECLINED
-                - VERIFICATION_EXP
+            + status: ACTIVE (enum, required)
+                - ACTIVE
+                - CLOSED
             + security (object)
                 + `secret_key`: `secret_key` (string, required)
                 + `client_id`: `client_id` (string, required)
