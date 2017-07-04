@@ -40,6 +40,36 @@ defmodule EHealth.Web.EmployeesControllerTest do
     assert is_map(employee["legal_entity"])
   end
 
+  test "search employees by tax_id" do
+    tax_id = "123"
+    conn = put_client_id_header(build_conn(), "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+    conn = get conn, employees_path(conn, :index, [tax_id: tax_id])
+    resp = json_response(conn, 200)["data"]
+    assert 1 == length(resp)
+    assert tax_id == hd(resp)["party"]["tax_id"]
+  end
+
+  test "search employees by invalid tax_id" do
+    conn = put_client_id_header(build_conn(), "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+    conn = get conn, employees_path(conn, :index, [tax_id: ""])
+    resp = json_response(conn, 200)["data"]
+    assert 0 == length(resp)
+  end
+
+  test "search employees by edrpou" do
+    conn = put_client_id_header(build_conn(), "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+    conn = get conn, employees_path(conn, :index, [edrpou: "37367387"])
+    resp = json_response(conn, 200)["data"]
+    assert 1 == length(resp)
+  end
+
+  test "search employees by invalid edrpou" do
+    conn = put_client_id_header(build_conn(), "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+    conn = get conn, employees_path(conn, :index, [edrpou: ""])
+    resp = json_response(conn, 200)["data"]
+    assert 0 == length(resp)
+  end
+
   test "get employee by id", %{conn: conn} do
     conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
     conn = get conn, employees_path(conn, :show, "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b")

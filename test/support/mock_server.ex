@@ -100,9 +100,18 @@ defmodule EHealth.MockServer do
   get "/employees" do
     legal_entity_id = Map.get(conn.params, "legal_entity_id")
     expand = Map.has_key?(conn.params, "expand")
-    employee = get_employee(legal_entity_id, expand)
+    tax_id = Map.get(conn.params, "tax_id")
+    edrpou = Map.get(conn.params, "edrpou")
 
-    render_with_paging([employee, employee], conn)
+    employees = cond do
+      tax_id || edrpou ->
+        [get_employee(legal_entity_id, expand, tax_id, edrpou)] |> Enum.filter(&(!is_nil(&1)))
+      true ->
+        employee = get_employee(legal_entity_id, expand)
+        [employee, employee]
+    end
+
+    render_with_paging(employees, conn)
   end
 
   get "/employees/:id" do
@@ -121,7 +130,7 @@ defmodule EHealth.MockServer do
         |> render(conn, 200)
 
       %{"id" => "b075f148-7f93-4fc2-b2ec-2d81b19a911a"} ->
-        render(get_employee("7cc91a5d-c02f-41e9-b571-1ea4f2375552", nil), conn, 200)
+        render(get_employee("7cc91a5d-c02f-41e9-b571-1ea4f2375552", nil, nil, nil), conn, 200)
       _ -> render_404(conn)
     end
   end
@@ -461,9 +470,13 @@ defmodule EHealth.MockServer do
     }
   end
 
-  def get_employee, do: get_employee("7cc91a5d-c02f-41e9-b571-1ea4f2375552", "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b")
+  def get_employee do
+    get_employee("7cc91a5d-c02f-41e9-b571-1ea4f2375552", "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b", nil, "38782323")
+  end
 
-  def get_employee(legal_entity_id), do: get_employee(legal_entity_id, "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b")
+  def get_employee(legal_entity_id) do
+    get_employee(legal_entity_id, "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b", nil, "38782323")
+  end
 
   def get_employee(legal_entity_id, _expand = false), do: get_employee(legal_entity_id)
 
@@ -477,7 +490,11 @@ defmodule EHealth.MockServer do
        })
   end
 
-  def get_employee(legal_entity_id, division_id) do
+  def get_employee(_, _, _, ""), do: nil
+
+  def get_employee(_, _, "", _), do: nil
+
+  def get_employee(legal_entity_id, division_id, tax_id, edrpou) do
     %{
       "id" => "7488a646-e31f-11e4-aace-600308960662",
       "legal_entity_id" => legal_entity_id,
@@ -490,7 +507,8 @@ defmodule EHealth.MockServer do
         "second_name" => "Миколайович",
         "last_name" => "Іванов",
         "id" => "b63d802f-5225-4362-bc93-a8bba6eac167",
-        "first_name" => "Петро"
+        "first_name" => "Петро",
+        "tax_id": tax_id,
       },
       "legal_entity" => %{
         "type" => "MSP",
@@ -501,7 +519,7 @@ defmodule EHealth.MockServer do
         "name" => "Клініка Адоніс22",
         "legal_form" => "140",
         "id" => "9c81824b-bc13-4d07-bc76-b069e2a2876b",
-        "edrpou" => "38782323"
+        "edrpou" => edrpou
       },
       "is_active" => true,
       "inserted_by" => "e8119d87-2d48-48c2-915c-1d3a1b25b16b",
