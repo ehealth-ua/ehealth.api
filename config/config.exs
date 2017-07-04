@@ -42,6 +42,12 @@ config :ehealth, EHealth.API.PRM,
     timeout: {:system, :integer, "PRM_REQUEST_TIMEOUT", 30_000}
   ]
 
+# Configures Legal Entities token permission
+config :ehealth, EHealth.LegalEntity.API,
+  tokens_types_personal: {:system, :list, "TOKENS_TYPES_PERSONAL", ["MSP"]},
+  tokens_types_mis: {:system, :list, "TOKENS_TYPES_MIS", ["MIS"]},
+  tokens_types_admin: {:system, :list, "TOKENS_TYPES_ADMIN", ["NHS"]}
+
 # Configures OAuth API
 config :ehealth, EHealth.API.Mithril,
   endpoint: {:system, "OAUTH_ENDPOINT", "http://api-svc.mithril"},

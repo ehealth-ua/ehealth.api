@@ -21,9 +21,8 @@ defmodule EHealth.Web.LegalEntityController do
   end
 
   def index(%Plug.Conn{req_headers: req_headers} = conn, params) do
-    case API.get_legal_entities(params, req_headers) do
-      {:ok, %{"meta" => %{}} = response} -> proxy(conn, response)
-      {:ok, list} -> render(conn, "index.json", legal_entities: list)
+    with {:ok, %{"meta" => %{}} = response} <- API.get_legal_entities(params, req_headers) do
+      proxy(conn, response)
     end
   end
 

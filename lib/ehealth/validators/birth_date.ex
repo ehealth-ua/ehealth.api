@@ -19,7 +19,6 @@ defmodule EHealth.Validators.BirthDate do
          _  -> birth_date
        end
   end
-  def date_not_in_future(err), do: err
 
   def get_age(:error), do: :error
   def get_age(date) do

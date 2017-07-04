@@ -22,44 +22,38 @@ defmodule EHealth.OAuth.API do
     Mithril.put_client(client)
   end
 
-  def get_client({:ok, %{"data" => data} = entity}, headers) do
-    data
-    |> Map.fetch!("id")
-    |> Mithril.get_client(headers)
-    |> put_security(entity)
-  end
-  def get_client(err, _headers), do: err
-
   def create_user(%Ecto.Changeset{valid?: true, changes: %{password: password}}, email, headers) do
     Mithril.create_user(%{"password" => password, "email" => email}, headers)
   end
   def create_user(err, _email, _headers), do: err
 
-  @doc """
-  Fetch Mithril credentials from Mithril.put_client respone
-  """
-  def put_security({:ok, %{"data" => data}}, entity) when is_list(data) do
+  def get_client(id, headers) do
+    id
+    |> Mithril.get_client(headers)
+    |> fetch_client_credentials(id)
+  end
+
+  defp fetch_client_credentials({:ok, %{"data" => data}}, id) when is_list(data) do
     data =
       case length(data) > 0 do
         true -> List.first(data)
         false -> %{}
       end
 
-    put_security({:ok, %{"data" => data}}, entity)
+    fetch_client_credentials({:ok, %{"data" => data}}, id)
   end
 
-  def put_security({:ok, %{"data" => data}}, entity) do
-    {:ok, entity, %{
+  defp fetch_client_credentials({:ok, %{"data" => data}}, _id) do
+    %{
       "client_id" => Map.get(data, "id"),
       "client_secret" => Map.get(data, "secret"),
       "redirect_uri" => Map.get(data, "redirect_uri")
-    }}
+    }
   end
 
-  def put_security({:error, response}, %{"data" => %{"id" => id}} = entity) do
+  defp fetch_client_credentials({:error, response}, id) do
     Logger.error(fn -> "Cannot create or find Mithril client for Legal Entity #{id} Response: #{inspect response}" end)
-
-    {:ok, entity, nil}
+    nil
   end
 
 end

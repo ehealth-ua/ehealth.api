@@ -3,8 +3,10 @@ defmodule EHealth.MockServer do
   use Plug.Router
 
   alias EHealth.Utils.MapDeepMerge
+  import EHealth.Utils.Connection
 
   @inactive_legal_entity_id "356b4182-f9ce-4eda-b6af-43d2de8602aa"
+  @client_type_admin "356b4182-f9ce-4eda-b6af-43d2de8601a1"
 
   plug :match
   plug Plug.Parsers, parsers: [:json],
@@ -27,9 +29,14 @@ defmodule EHealth.MockServer do
   get "/legal_entities" do
     legal_entity =
       case conn.params do
+        %{"id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375552"} -> [get_legal_entity()]
         %{"edrpou" => "37367387", "type" => "MSP"} -> [get_legal_entity()]
         %{"edrpou" => "10002000", "type" => "MSP"} -> [get_legal_entity("356b4182-f9ce-4eda-b6af-43d2de8602aa", false)]
-        %{"edrpou" => "37367387", "is_active" => "true"} -> [get_legal_entity()]
+        %{"edrpou" => "37367387", "is_active" => "true"} ->
+          case get_client_id(conn.req_headers) do
+            @client_type_admin -> [get_legal_entity(), get_legal_entity(), get_legal_entity()]
+            _ ->                  [get_legal_entity()]
+          end
         _ -> []
       end
 
@@ -254,7 +261,8 @@ defmodule EHealth.MockServer do
     client_type_name =
       case id do
         "296da7d2-3c5a-4f6a-b8b2-631063737271" -> "MIS"
-        _ -> "some_client_type"
+        "356b4182-f9ce-4eda-b6af-43d2de8601a1" -> "NHS"
+        _ -> "MSP"
       end
     resp =
       id

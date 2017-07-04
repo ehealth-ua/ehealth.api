@@ -55,15 +55,6 @@ defmodule EHealth.API.Mithril do
     |> ResponseDecoder.check_response()
   end
 
-  def get_client_type_name(id) do
-    id
-    |> get_client_details()
-    |> fetch_client_type_name()
-  end
-
-  defp fetch_client_type_name({:error, _error}), do: ""
-  defp fetch_client_type_name({:ok, %{"meta" => _meta, "data" => data}}), do: Map.get(data, "client_type_name")
-
   # Client types
 
   def create_client_type(client_type, headers \\ []) do

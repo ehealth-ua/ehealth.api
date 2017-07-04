@@ -2,6 +2,8 @@ defmodule EHealth.LegalEntity.API do
   @moduledoc """
   The boundary for the LegalEntity system.
   """
+  use OkJose
+  use Confex, otp_app: :ehealth
 
   import EHealth.Utils.Connection, only: [get_consumer_id: 1, get_client_id: 1]
   import EHealth.Utils.Pipeline
@@ -20,43 +22,105 @@ defmodule EHealth.LegalEntity.API do
   @employee_request_status "NEW"
   @employee_request_type "OWNER"
 
+  # get legal entity by id
+
   def get_legal_entity_by_id(id, headers) do
-    client_id = get_client_id(headers)
-    client_type = Mithril.get_client_type_name(client_id)
-    case id == client_id or client_type == "MIS" do
-      true ->
-        id
-        |> PRM.get_legal_entity_by_id(headers)
-        |> legal_entity_is_active()
-        |> OAuth.get_client(headers)
-        |> fetch_data()
-      _ -> {:error, :forbidden}
+    {:ok, %{
+      params: put_is_active(%{"id" => id}),
+      headers: headers,
+      client_id: get_client_id(headers)
+    }}
+    |> get_client_type_name()
+    |> authorize_id
+    |> prepare_legal_entities_params()
+    |> load_legal_entity()
+    |> put_oauth_client()
+    |> ok()
+    |> normalize_legal_entities()
+  end
+
+  defp authorize_id(%{client_type: client_type, params: %{"id" => id}, client_id: client_id} = pipe_data) do
+    if client_type in config()[:tokens_types_personal] and id != client_id do
+      {:error, :forbidden}
+    else
+      {:ok, pipe_data}
     end
   end
+
+  defp load_legal_entity(%{params: params, headers: headers} = pipe_data) do
+    params
+    |> PRM.get_legal_entities(headers)
+    |> case do
+         {:ok, %{"data" => []}} -> {:error, :not_found}
+         {:ok, %{"data" => data}} -> data |> List.first() |> put_in_pipe(:legal_entity, pipe_data)
+         err -> err
+       end
+  end
+
+  def put_oauth_client(%{legal_entity: %{"id" => id}, headers: headers} = pipe_data) do
+    id
+    |> OAuth.get_client(headers)
+    |> put_in_pipe(:client, pipe_data)
+  end
+
+  # get list of legal entities
 
   def get_legal_entities(params, headers) do
-    client_id = get_client_id(headers)
-    params = Map.put(params, "is_active", true)
-    case Mithril.get_client_type_name(client_id) == "MIS" do
-      true -> PRM.get_legal_entities(params, headers)
-      _ -> {:ok, get_legal_entity_list_by_id(client_id, headers)}
-    end
+    {:ok, %{
+      params: params |> put_is_active() |> convert_legal_entity_id_param(),
+      headers: headers,
+      client_id: get_client_id(headers)
+    }}
+    |> get_client_type_name()
+    |> prepare_legal_entities_params()
+    |> load_legal_entities()
+    |> ok()
+    |> normalize_legal_entities()
   end
 
-  def get_legal_entity_list_by_id(nil, _headers), do: []
-  def get_legal_entity_list_by_id(id, headers) do
-    id
-    |> get_legal_entity_by_id(headers)
-    |> fetch_to_list()
+  defp put_is_active(params), do: Map.put(params, "is_active", true)
+
+  defp convert_legal_entity_id_param(%{"legal_entity_id" => id} = params), do: Map.put(params, "id", id)
+  defp convert_legal_entity_id_param(params), do: params
+
+  def get_client_type_name(%{client_id: client_id, headers: headers} = pipe_data) do
+    client_id
+    |> Mithril.get_client_details(headers)
+    |> case do
+        {:ok, %{"data" => %{"client_type_name" => client_type_name}}} ->
+          put_in_pipe(client_type_name, :client_type, pipe_data)
+
+        err -> err
+      end
   end
 
-  def legal_entity_is_active({:ok, %{"data" => data}} = resp) do
-    case Map.fetch!(data, "is_active") do
-      true -> resp
-      false -> {:error, :not_found}
-    end
+  defp prepare_legal_entities_params(%{client_type: client_type, params: params, client_id: client_id} = pipe_data) do
+    conf = config()
+    params =
+      cond do
+        client_type in conf[:tokens_types_personal] -> Map.put(params, "id", client_id)
+        client_type in conf[:tokens_types_mis] -> Map.put(params, "created_by_mis_client_id", client_id)
+        client_type in conf[:tokens_types_admin] -> params
+        true ->
+          Logger.error(fn -> "Undefined client type name #{client_type} for /legal_entities. " <>
+                "Cannot prepare params for request to PRM" end)
+          Map.put(params, "id", client_id)
+      end
+
+    put_in_pipe(params, :params, pipe_data)
   end
-  def legal_entity_is_active(err), do: err
+
+  defp load_legal_entities(%{params: params, headers: headers} = pipe_data) do
+    params
+    |> PRM.get_legal_entities(headers)
+    |> put_success_api_response_in_pipe(:legal_entities, pipe_data)
+  end
+
+  defp normalize_legal_entities({:ok, %{legal_entity: legal_entity, client: client}}), do: {:ok, legal_entity, client}
+  defp normalize_legal_entities({:ok, %{legal_entities: legal_entities}}), do: {:ok, legal_entities}
+  defp normalize_legal_entities(err), do: err
+
+  # Create legal entity
 
   def create_legal_entity(attrs, headers) do
     attrs
@@ -239,10 +303,4 @@ defmodule EHealth.LegalEntity.API do
       }
     %{"employee_request" => request}
   end
-
-  def fetch_data({:ok, %{"data" => data}, secret}), do: {:ok, data, secret}
-  def fetch_data(err), do: err
-
-  def fetch_to_list({:ok, data, _secret}), do: [data]
-  def fetch_to_list(_err), do: []
 end

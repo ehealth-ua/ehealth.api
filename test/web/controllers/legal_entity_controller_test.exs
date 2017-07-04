@@ -30,11 +30,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
   describe "get legal entities" do
     test "without x-consumer-metadata", %{conn: conn} do
       conn = get conn, legal_entity_path(conn, :index, [edrpou: "37367387"])
-      resp = json_response(conn, 200)
-
-      assert Map.has_key?(resp, "data")
-      assert is_list(resp["data"])
-      assert 0 == length(resp["data"])
+      assert 401 == json_response(conn, 401)["meta"]["code"]
     end
 
     test "with x-consumer-metadata that contains MIS client_id", %{conn: conn} do
@@ -48,15 +44,15 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       assert 1 == length(resp["data"])
     end
 
-    test "with x-consumer-metadata that contains not MIS client_id that doesn't match any legal entity id",
+    test "with x-consumer-metadata that contains NHS client_id",
       %{conn: conn} do
-      conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8602f2")
+      conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8601a1")
       conn = get conn, legal_entity_path(conn, :index, [edrpou: "37367387"])
       resp = json_response(conn, 200)
 
       assert Map.has_key?(resp, "data")
       assert is_list(resp["data"])
-      assert 0 == length(resp["data"])
+      assert 3 == length(resp["data"])
     end
 
     test "with x-consumer-metadata that contains not MIS client_id that matches one of legal entities id",
@@ -75,7 +71,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     test "without x-consumer-metadata", %{conn: conn} do
       id = "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
       conn = get conn, legal_entity_path(conn, :show, id)
-      json_response(conn, 403)
+      json_response(conn, 401)
     end
 
     test "with x-consumer-metadata that contains client_id that does not match legal entity id", %{conn: conn} do
