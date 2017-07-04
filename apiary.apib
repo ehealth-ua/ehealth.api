@@ -2168,7 +2168,11 @@ Signed content MUST consists of JSON object with Legal Entity data:
                 + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
             + employee_request_id: `d098aee7-5ab3-4a24-a6ba-811f9cf94c6d` - Employee request identifier
 
-### Update Legal Entity status [PATCH /api/legal_entities/{id}]
+### Verify Legal Entity by MIS [PATCH /api/legal_entities/{id}/action/mis_verify]
+
+Use this method to verify legal entity by MIS.
+Available transition:
+`mis_verified` NOt_VERIFIED --> VERIFIED
 
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -2179,11 +2183,28 @@ Signed content MUST consists of JSON object with Legal Entity data:
 
             Authorization: Bearer mF_9.B5f-4.1JqM
     
-    + Attributes (object)
-        + status: VERIFIED (enum, required)
-            - VERIFIED
-            - DECLINED
-            - VERIFICATION_EXP
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (object)
+            + include `Legal_Entity_Short`
+            
+
+### Verify Legal Entity by NHS [PATCH /api/legal_entities/{id}/action/nhs_verify]
+
+Use this method to verify legal entity by NHS.
+Available transition:
+`nhs_verified` false --> true
+
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+    
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
@@ -2847,10 +2868,13 @@ API for searching Ukrainian Addresses
 + public_name: Клініка Борис (string, required)
 + type: MSP (string, required)
 + edrpou: 5432345432 (string, required)
-+ status: VERIFIED (enum, required)
++ status: ACTIVE (enum, required)
+    - ACTIVE
+    - CLOSED
++ mis_verified: VERIFIED (enum, required)
     - VERIFIED
-    - DECLINED
-    - VERIFICATION_EXP
+    - NOT_VERIFIED
++ nhs_verified: false (boolean)
 + `owner_property_type`: STATE (string, required) - `Dictionary OWNER_PROPERTY_TYPE`
 + `legal_form`: 140 (string, required) - `Dictionary LEGAL_FORM`
 
