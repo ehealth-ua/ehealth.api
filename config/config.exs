@@ -46,7 +46,7 @@ config :ehealth, EHealth.API.PRM,
 config :ehealth, EHealth.LegalEntity.API,
   tokens_types_personal: {:system, :list, "TOKENS_TYPES_PERSONAL", ["MSP"]},
   tokens_types_mis: {:system, :list, "TOKENS_TYPES_MIS", ["MIS"]},
-  tokens_types_admin: {:system, :list, "TOKENS_TYPES_ADMIN", ["NHS"]}
+  tokens_types_admin: {:system, :list, "TOKENS_TYPES_ADMIN", ["NHS_Admin"]}
 
 # Configures OAuth API
 config :ehealth, EHealth.API.Mithril,
