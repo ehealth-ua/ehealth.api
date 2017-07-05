@@ -63,7 +63,8 @@
         "last_name": "Іванов",
         "second_name": "Миколайович",
         "birth_date": "1991-08-19T00:00:00.000Z",
-        "birth_place": "Вінниця, Україна",
+        "birth_country": "Україна",
+        "birth_settlement": "Вінниця",
         "gender": "MALE",
         "tax_id": "3126509816",
         "documents": [

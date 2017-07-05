@@ -10,6 +10,16 @@ defmodule EHealth.Integraiton.DeclarationRequestCreateTest do
       # PRM API
       Plug.Router.get "/employees/ce377dea-d8c4-4dd8-9328-de24b1ee3879" do
         employee = %{
+          "id" => "some_id",
+          "position" => "some_position",
+          "party" => %{
+            "id" => "some_id",
+            "second_name" => "some_second_name",
+            "first_name" => "some_first_name",
+            "last_name" => "some_last_name",
+            "email" => "some_email",
+            "phones" => [],
+          },
           "legal_entity_id" => "8799e3b6-34e7-4798-ba70-d897235d2b6d",
           "doctor" => %{
             "specialities" => [
@@ -37,7 +47,12 @@ defmodule EHealth.Integraiton.DeclarationRequestCreateTest do
         division = %{
           id: "51f56b0e-0223-49c1-9b5f-b07e09ba40f1",
           legal_entity_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d",
-          some_division_attr: "some_value"
+          addresses: [],
+          phones: [],
+          external_id: "7ae4bbd6-a9e7-4ce0-992b-6a1b18a262dc",
+          type: "some",
+          email: "some",
+          name: "some"
         }
 
         send_resp(conn, 200, Poison.encode!(%{data: division}))
@@ -46,7 +61,22 @@ defmodule EHealth.Integraiton.DeclarationRequestCreateTest do
       Plug.Router.get "/legal_entities/8799e3b6-34e7-4798-ba70-d897235d2b6d" do
         legal_entity = %{
           id: "8799e3b6-34e7-4798-ba70-d897235d2b6d",
-          some_legal_entity_attr: "some_value"
+          name: "nice",
+          short_name: "some",
+          accreditation: %{
+            category: "some",
+            order_date: "some",
+            expiry_date: "some",
+            issued_date: "some",
+            order_no: "some"
+          },
+          phones: [],
+          legal_form: "yoyo",
+          edrpou: "some_edrpou",
+          public_name: "some_name",
+          licenses: [],
+          email: "some",
+          addresses: []
         }
 
         send_resp(conn, 200, Poison.encode!(%{data: legal_entity}))
@@ -185,20 +215,24 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
 
       id = resp["data"]["id"]
 
-      assert to_string(Date.utc_today) == resp["data"]["data"]["start_date"]
-      assert {:ok, _} = Date.from_iso8601(resp["data"]["data"]["end_date"])
-      assert "NEW" = resp["data"]["status"]
-      assert resp["data"]["data"]["employee"]["doctor"]
-      assert resp["data"]["data"]["legal_entity"]["some_legal_entity_attr"]
-      assert resp["data"]["data"]["division"]["some_division_attr"]
-      refute resp["data"]["data"]["employee_id"]
-      refute resp["data"]["data"]["division_id"]
-      assert "ce377dea-d8c4-4dd8-9328-de24b1ee3879" = resp["data"]["updated_by"]
-      assert "ce377dea-d8c4-4dd8-9328-de24b1ee3879" = resp["data"]["inserted_by"]
-      assert %{"number" => "+380508887700", "type" => "OTP"} = resp["data"]["authentication_method_current"]
+      schema =
+        "test/data/declaration_request/create_api_response_schema.json"
+        |> File.read!()
+        |> Poison.decode!()
+
+      :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
+
+      assert to_string(Date.utc_today) == resp["data"]["start_date"]
+      assert {:ok, _} = Date.from_iso8601(resp["data"]["end_date"])
+      # TODO: turn this into DB checks
+      #
+      # assert "NEW" = resp["status"]
+      # assert "ce377dea-d8c4-4dd8-9328-de24b1ee3879" = resp["data"]["updated_by"]
+      # assert "ce377dea-d8c4-4dd8-9328-de24b1ee3879" = resp["data"]["inserted_by"]
+      # assert %{"number" => "+380508887700", "type" => "OTP"} = resp["authentication_method_current"]
       assert "<html><body>Printout form for declaration request ##{id}</body></hrml>" ==
-        resp["data"]["printout_content"]
-      assert is_nil(resp["data"]["documents"])
+        resp["data"]["content"]
+      assert is_nil(resp["data"]["urgent"])
     end
 
     test "declaration request is created with 'Offline' verification", %{conn: conn} do
@@ -218,19 +252,23 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
 
       id = resp["data"]["id"]
 
-      assert to_string(Date.utc_today) == resp["data"]["data"]["start_date"]
-      assert {:ok, _} = Date.from_iso8601(resp["data"]["data"]["end_date"])
-      assert "NEW" = resp["data"]["status"]
-      assert resp["data"]["data"]["employee"]["doctor"]
-      assert resp["data"]["data"]["legal_entity"]["some_legal_entity_attr"]
-      assert resp["data"]["data"]["division"]["some_division_attr"]
-      refute resp["data"]["data"]["employee_id"]
-      refute resp["data"]["data"]["division_id"]
-      assert "ce377dea-d8c4-4dd8-9328-de24b1ee3879" = resp["data"]["updated_by"]
-      assert "ce377dea-d8c4-4dd8-9328-de24b1ee3879" = resp["data"]["inserted_by"]
-      assert %{"number" => "+380508887700", "type" => "OFFLINE"} = resp["data"]["authentication_method_current"]
+      schema =
+        "test/data/declaration_request/create_api_response_schema.json"
+        |> File.read!()
+        |> Poison.decode!()
+
+      :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
+
+      assert to_string(Date.utc_today) == resp["data"]["start_date"]
+      assert {:ok, _} = Date.from_iso8601(resp["data"]["end_date"])
+      # TODO: turn this into DB checks
+      #
+      # assert "NEW" = resp["data"]["status"]
+      # assert "ce377dea-d8c4-4dd8-9328-de24b1ee3879" = resp["data"]["updated_by"]
+      # assert "ce377dea-d8c4-4dd8-9328-de24b1ee3879" = resp["data"]["inserted_by"]
+      # assert %{"number" => "+380508887700", "type" => "OFFLINE"} = resp["data"]["authentication_method_current"]
       assert "<html><body>Printout form for declaration request ##{id}</body></hrml>" ==
-        resp["data"]["printout_content"]
+        resp["data"]["content"]
       assert [
         %{
           "type" => "Passport",
@@ -240,7 +278,7 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
           "type" => "SSN",
           "url" => "http://some_resource.com/#{id}/declaration_request_SSN.jpeg"
         }
-      ] == resp["data"]["documents"]
+      ] == resp["data"]["urgent"]["documents"]
     end
   end
 
