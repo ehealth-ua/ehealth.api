@@ -1144,7 +1144,16 @@ Notes:
 
 ![oAuth Sequence](https://www.websequencediagrams.com/cgi-bin/cdraw?lz=dGl0bGUgb0F1dGggRmxvdwoKQ2xpZW50IC0-IExvZ2luIFVJOiByZWRpcmVjdCB0bwANCSB3aXRoIGBjACoFX2lkYCwgYAAgCF91cmlgIGFuZCBgcmVzcG9uc2VfdHlwZT1jb2RlYCBxdWVyeSBwYXJhbXMKAEcJAGUNY29tcGxldGUgU2Vzc2lvbiBhdXRoIGZsb3cAJA1Vc2VyOiByZW5kZXIgcGFnZQCBEAZBcHByb3ZhbCAod2hpY2ggbGlzdHMgcmVxdWVzdGVkIHNjb3BlcykKVXNlcgCBXA5hADUFZQAbBwCBEA0Agh8FU2VydmVyOiBzZW5kIGBQT1NUIC9hcHBzYABWCAoAHAsAgjcOSFRUUCAyMDEsAIEVCmFuZCBMb2NhdGlvbiBoZWFkZXIAggMNAIMGBgCCdQt1c2VyIHRvIHVybCByZXR1cm5lZCBpbiBgAD4IYAA_CACDPQoAgSYSAIExBnRva2Vucz9ncmFudACDGAZhdXRob3JpegCBCwVfY29kZSAtIGV4Y2hhbmdlIGAAgzcGZnJvbQCDNgxldGVycyB0byBhbiBgYWNjZXNzXwBWBWAAgXsQAIIzDnRvcmUgcmVmcmVzaCAAgQcFAIIrEACBdggAJQZgACUHAFYHIChpbiBiYWNrLWVuZCEpAIRoBQCDDwYAdw0gdG8Agj8HIFVJCm5vdGUgb3ZlcgBMEAAmDihpbiBsb2NhbACBIQVhZ2UsIGNvb2tpZSwgZXRjLgBnBm1ha2VzIGFsbCBmdXR1AIFHBQCEWgVzAIYSB0F1aHQAgkQJOiBCZWFyZXIgPACCFgw-AIMlCQo&s=modern-blue)
 
-### Show Login UI [GET /sign-in{?client_id,redirect_uri,scope}]
+### Show Login UI [GET /sign-in{?client_id,redirect_uri,scope,email}]
+
+**Attention!**
+Use following HOSTs for oAuth 2.0 Authentication
+
+Env     | Host
+--------|-----
+DEMO    | http://auth.demo.ehealth.world
+PREPROD | https://auth.ehealth.world
+PROD    | https://auth.ehealth-ukraine.org
 
 You MUST redirect your users to this URL to obtain oAuth Code Grant (which is later exchanged to Access Token).
 
@@ -1156,6 +1165,7 @@ For security purposes, we will set `X-Frame-Options: deny` header that will disa
     + client_id: `mis-001` (string, required) - Medical Information System ID issued upon integration request. Used to identify application developer.
     + redirect_uri: http://example.com/ (string, required) - URL where user will be redirected after authentification. This url will receive `code` and `state` parameters in query string.
     + scope: `capitation_contracts:view capitation_contracts:create patients:view patients:create` (string, required) - List of scopes that is required in application business logic, separated by space. Different login forms will be shown based on scopes that you requested.
+    + email: email@example.com
 
 + Response 200 (text/html; charset=UTF-8)
 
@@ -1790,7 +1800,7 @@ Response structure differs depending on employee type:
             + division (Division_Short)
             + `legal_entity` (`Legal_Entity_Short`)
 
-### Deactivate Employee - TBD [PATCH /api/employees/{id}/action/deactivate]
+### Deactivate Employee - TBD [PATCH /api/employees/{id}/actions/deactivate]
 
 Use this method to deactivate employee.
 1. Revoke role from user
@@ -2188,7 +2198,7 @@ Signed content MUST consists of JSON object with Legal Entity data:
                 + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
             + employee_request_id: `d098aee7-5ab3-4a24-a6ba-811f9cf94c6d` - Employee request identifier
 
-### Verify Legal Entity by MIS [PATCH /api/legal_entities/{id}/action/mis_verify]
+### Verify Legal Entity by MIS [PATCH /api/legal_entities/{id}/actions/mis_verify]
 
 Use this method to verify legal entity by MIS.
 Available transition:
@@ -2210,7 +2220,7 @@ Available transition:
             + include `Legal_Entity_Short`
             
 
-### Verify Legal Entity by NHS [PATCH /api/legal_entities/{id}/action/nhs_verify]
+### Verify Legal Entity by NHS [PATCH /api/legal_entities/{id}/actions/nhs_verify]
 
 Use this method to verify legal entity by NHS.
 Available transition:
@@ -2233,7 +2243,7 @@ Available transition:
             
 
 
-### Deactivate Legal Entity [PATCH /api/legal_entities/{id}/action/deactivate]
+### Deactivate Legal Entity [PATCH /api/legal_entities/{id}/actions/deactivate]
 
 Use this method to deactivate msp.
 1. Deactivate emploees by legal entity
