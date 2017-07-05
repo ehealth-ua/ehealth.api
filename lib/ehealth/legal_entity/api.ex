@@ -134,10 +134,10 @@ defmodule EHealth.LegalEntity.API do
     |> search_legal_entity_in_prm(headers)
     |> prepare_legal_entity_id()
     |> store_signed_content(attrs, headers)
+    |> check_msp_state(headers)
     |> put_legal_entity_to_prm(headers)
     |> get_oauth_credentials(headers)
     |> prepare_security_data()
-    |> update_legal_entity_status(headers)
     |> create_employee_request()
   end
   def process_request({:error, _} = err, _attrs, _headers), do: err
@@ -193,11 +193,12 @@ defmodule EHealth.LegalEntity.API do
 
     creation_data = %{
       "id" => Map.fetch!(pipe_data, :legal_entity_id),
-      "status" => "NEW",
+      "status" => "ACTIVE",
       "is_active" => true,
       "inserted_by" => consumer_id,
       "updated_by" => consumer_id,
-      "created_by_mis_client_id" => client_id
+      "created_by_mis_client_id" => client_id,
+      "nhs_verified" => false,
     }
 
     pipe_data
@@ -255,23 +256,27 @@ defmodule EHealth.LegalEntity.API do
   end
   def prepare_security_data(err), do: err
 
-  def update_legal_entity_status({:ok, pipe_data}, headers) do
+  def check_msp_state({:ok, pipe_data}, headers) do
     pipe_data
-    |> Map.fetch!(:legal_entity_prm)
-    |> Map.fetch!("data")
+    |> Map.fetch!(:legal_entity_request)
     |> Map.fetch!("edrpou")
     |> PRM.check_msp_state_property_status(headers)
-    |> set_legal_entity_status(Map.fetch!(pipe_data, :legal_entity_id), headers)
-    |> put_success_api_response_in_pipe(:legal_entity_prm, pipe_data)
+    |> set_legal_entity_mis_verified(pipe_data)
   end
-  def update_legal_entity_status(err, _headers), do: err
+  def check_msp_state(err, _headers), do: err
 
-  def set_legal_entity_status({:ok, %{"data" => []}}, id, headers) do
-    PRM.update_legal_entity(%{"status" => "NOT_VERIFIED"}, id, headers)
+  @doc """
+  Set mis_verified for legal_entity without edrpou in registry
+  """
+  def set_legal_entity_mis_verified({:ok, %{"data" => []}}, pipe_data) do
+    {:ok, put_in(pipe_data[:legal_entity_request]["mis_verified"], "NOT_VERIFIED")}
   end
 
-  def set_legal_entity_status({:ok, %{"data" => [_edrpou_in_registry]}}, id, headers) do
-    PRM.update_legal_entity(%{"status" => "VERIFIED"}, id, headers)
+  @doc """
+  Set mis_verified for legal_entity with edrpou in registry
+  """
+  def set_legal_entity_mis_verified({:ok, %{"data" => [_edrpou_in_registry]}}, pipe_data) do
+    {:ok, put_in(pipe_data[:legal_entity_request]["mis_verified"], "VERIFIED")}
   end
 
   @doc """

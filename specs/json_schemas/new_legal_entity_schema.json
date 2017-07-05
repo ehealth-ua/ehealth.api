@@ -280,9 +280,15 @@
     "status": {
       "type": "string",
       "enum": [
+        "ACTIVE",
+        "CLOSED"
+      ]
+    },
+    "mis_verified": {
+      "type": "string",
+      "enum": [
         "VERIFIED",
-        "DECLINED",
-        "VERIFICATION_EXP"
+        "NOT_VERIFIED"
       ]
     },
     "security": {

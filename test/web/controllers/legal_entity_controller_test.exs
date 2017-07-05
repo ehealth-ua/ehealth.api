@@ -15,7 +15,8 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     resp = json_response(conn, 200)
 
     assert Map.has_key?(resp["data"], "id")
-    assert "NOT_VERIFIED" == resp["data"]["status"]
+    assert "ACTIVE" == resp["data"]["status"]
+    assert "NOT_VERIFIED" == resp["data"]["mis_verified"]
     assert_security_in_urgent_response(resp)
     assert_urgent_field(resp, "employee_request_id")
   end

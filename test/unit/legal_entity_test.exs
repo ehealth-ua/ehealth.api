@@ -133,7 +133,7 @@ defmodule EHealth.Unit.LegalEntityTest do
     assert %Ecto.Changeset{valid?: false} = validate_edrpou(content, signer)
   end
 
-  test "new legal entity status NOT_VERIFIED" do
+  test "new legal entity mis_verified NOT_VERIFIED" do
     assert {:ok, %{legal_entity_prm: %{"data" => legal_entity}, security: security}} =
       API.create_legal_entity(%{
         "signed_legal_entity_request" => File.read!("test/data/signed_content.txt"),
@@ -141,7 +141,10 @@ defmodule EHealth.Unit.LegalEntityTest do
         get_headers()
       )
 
-    assert "NOT_VERIFIED" == legal_entity["status"]
+    assert "ACTIVE" == legal_entity["status"]
+    assert "NOT_VERIFIED" == legal_entity["mis_verified"]
+    refute is_nil(legal_entity["nhs_verified"])
+    refute legal_entity["nhs_verified"]
     assert_security(security, legal_entity["id"])
     assert 1 == Repo.one(from e in Request, select: count("*"))
   end
@@ -160,7 +163,10 @@ defmodule EHealth.Unit.LegalEntityTest do
       API.process_request({:ok, %{legal_entity_request: legal_entity}}, request, get_headers())
 
     assert "37367387" == legal_entity["edrpou"]
-    assert "VERIFIED" == legal_entity["status"]
+    assert "ACTIVE" == legal_entity["status"]
+    assert "VERIFIED" == legal_entity["mis_verified"]
+    refute is_nil(legal_entity["nhs_verified"])
+    refute legal_entity["nhs_verified"]
     assert_security(security, legal_entity["id"])
   end
 
@@ -183,7 +189,10 @@ defmodule EHealth.Unit.LegalEntityTest do
 
     assert "Nebo15" == legal_entity["short_name"]
     assert "37367387" == legal_entity["edrpou"]
-    assert "VERIFIED" == legal_entity["status"]
+    assert "ACTIVE" == legal_entity["status"]
+    assert "VERIFIED" == legal_entity["mis_verified"]
+    refute is_nil(legal_entity["nhs_verified"])
+    refute legal_entity["nhs_verified"]
     assert "changed@example.com" == legal_entity["email"]
     assert ["12.21", "86.01"] == legal_entity["kveds"]
   end

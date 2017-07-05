@@ -520,7 +520,9 @@ defmodule EHealth.MockServer do
       },
       "legal_entity" => %{
         "type" => "MSP",
-        "status" => "NOT_VERIFIED",
+        "status" => "ACTIVE",
+        "mis_verified" => "NOT_VERIFIED",
+        "nhs_verified" => false,
         "short_name" => "Адоніс22",
         "public_name" => "Адоніс22",
         "owner_property_type" => "STATE",
@@ -672,7 +674,9 @@ defmodule EHealth.MockServer do
       "public_name" => "Борис",
       "type" => "MSP",
       "edrpou" => "37367387",
-      "status" => "VERIFIED",
+      "status" => "ACTIVE",
+      "mis_verified" => "VERIFIED",
+      "nhs_verified" => false,
       "owner_property_type" => "state",
       "legal_form" => "ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА",
     }
@@ -714,7 +718,9 @@ defmodule EHealth.MockServer do
       "kveds" => [
         "86.01"
       ],
-      "status" => "VERIFIED",
+      "status" => "ACTIVE",
+      "mis_verified" => "VERIFIED",
+      "nhs_verified" => false,
       "owner_property_type" => "state",
       "legal_form" => "ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА",
       "medical_service_provider" => %{
