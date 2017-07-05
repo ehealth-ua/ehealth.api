@@ -88,6 +88,17 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       json_response(conn, 403)
     end
 
+    test "check required legal entity fields", %{conn: conn} do
+      conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+      id = "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
+      conn = get conn, legal_entity_path(conn, :show, id)
+      resp = json_response(conn, 200)
+
+      assert "VERIFIED" == resp["data"]["mis_verified"]
+      refute is_nil(resp["data"]["nhs_verified"])
+      refute resp["data"]["nhs_verified"]
+    end
+
     test "with x-consumer-metadata that contains client_id that matches legal entity id", %{conn: conn} do
       conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
       id = "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
