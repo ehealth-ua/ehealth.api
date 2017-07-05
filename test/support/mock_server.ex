@@ -256,21 +256,21 @@ defmodule EHealth.MockServer do
     Plug.Conn.send_resp(conn, 200, resp)
   end
 
+  get "/admin/clients/356b4182-f9ce-4eda-b6af-43d2de8603f3/details" do
+    render_404(conn)
+  end
+
   get "/admin/clients/:id/details" do
     id = conn.path_params["id"]
     client_type_name =
       case id do
         "296da7d2-3c5a-4f6a-b8b2-631063737271" -> "MIS"
-        "356b4182-f9ce-4eda-b6af-43d2de8601a1" -> "NHS"
+        "356b4182-f9ce-4eda-b6af-43d2de8601a1" -> "NHS_Admin"
         _ -> "MSP"
       end
-    resp =
-      id
-      |> get_oauth_client_details(client_type_name)
-      |> wrap_response()
-      |> Poison.encode!()
-
-    Plug.Conn.send_resp(conn, 200, resp)
+    id
+    |> get_oauth_client_details(client_type_name)
+    |> render(conn, 200)
   end
 
   get "/admin/roles" do

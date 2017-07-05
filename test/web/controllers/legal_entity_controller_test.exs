@@ -74,6 +74,25 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       assert is_list(resp["data"])
       assert 1 == length(resp["data"])
     end
+
+    test "with x-consumer-metadata that contains client_id that does not match legal entity id", %{conn: conn} do
+      conn = put_client_id_header(conn, Ecto.UUID.generate())
+      id = "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
+      conn = get conn, legal_entity_path(conn, :index, [legal_entity_id: id])
+      resp = json_response(conn, 200)
+      assert [] == resp["data"]
+      assert Map.has_key?(resp, "paging")
+      assert String.contains?(resp["meta"]["url"], "/legal_entities")
+    end
+
+    test "with client_id that does not exists", %{conn: conn} do
+      conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8603f3")
+      id = "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
+      conn = get conn, legal_entity_path(conn, :index, [legal_entity_id: id])
+      resp = json_response(conn, 404)
+      refute Map.has_key?(resp, "paging")
+      assert String.contains?(resp["meta"]["url"], "/legal_entities")
+    end
   end
 
   describe "get legal entity by id" do

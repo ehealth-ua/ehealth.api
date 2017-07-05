@@ -43,7 +43,7 @@ config :ehealth, EHealth.API.PRM,
   ]
 
 # Configures Legal Entities token permission
-config :ehealth, EHealth.LegalEntity.API,
+config :ehealth, EHealth.Plugs.ClientContext,
   tokens_types_personal: {:system, :list, "TOKENS_TYPES_PERSONAL", ["MSP"]},
   tokens_types_mis: {:system, :list, "TOKENS_TYPES_MIS", ["MIS"]},
   tokens_types_admin: {:system, :list, "TOKENS_TYPES_ADMIN", ["NHS_Admin"]}

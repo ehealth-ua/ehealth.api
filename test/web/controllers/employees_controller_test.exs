@@ -40,6 +40,16 @@ defmodule EHealth.Web.EmployeesControllerTest do
     assert is_map(employee["legal_entity"])
   end
 
+  test "get employees with client_id that does not match legal entity id", %{conn: conn} do
+    conn = put_client_id_header(conn, Ecto.UUID.generate())
+    id = "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
+    conn = get conn, employees_path(conn, :index, [legal_entity_id: id])
+    resp = json_response(conn, 200)
+    assert [] == resp["data"]
+    assert Map.has_key?(resp, "paging")
+    assert String.contains?(resp["meta"]["url"], "/employees")
+  end
+
   test "search employees by tax_id" do
     tax_id = "123"
     conn = put_client_id_header(build_conn(), "7cc91a5d-c02f-41e9-b571-1ea4f2375552")

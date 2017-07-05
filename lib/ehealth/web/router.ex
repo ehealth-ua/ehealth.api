@@ -28,6 +28,11 @@ defmodule Ehealth.Web.Router do
     plug :client_id_exists
   end
 
+  pipeline :client_context_list do
+    plug :process_client_context_for_list
+    plug :put_is_active_into_params
+  end
+
   scope "/api", EHealth.Web do
     pipe_through :api
 
@@ -41,16 +46,26 @@ defmodule Ehealth.Web.Router do
     post "/employee_requests/:id/user", EmployeeRequestController, :create_user
   end
 
+  # Client context for lists
+  scope "/api", EHealth.Web do
+    pipe_through [:api, :api_client_id, :client_context_list]
+
+    # Legal Entities
+    get "/legal_entities", LegalEntityController, :index
+    # Employees
+    get "/employees", EmployeesController, :index
+    # Employees
+    get "/divisions", DivisionController, :index
+  end
+
   scope "/api", EHealth.Web do
     pipe_through [:api, :api_client_id]
 
     # Legal Entities
-    get "/legal_entities", LegalEntityController, :index
     get "/legal_entities/:id", LegalEntityController, :show
     patch "/legal_entities/:id/actions/nhs_verify", LegalEntityController, :nhs_verify
 
     # Employees
-    get "/employees", EmployeesController, :index
     get "/employees/:id", EmployeesController, :show
     patch "/employees/:id/actions/deactivate", EmployeesController, :deactivate
 
@@ -61,7 +76,7 @@ defmodule Ehealth.Web.Router do
     post "/employee_requests/:id/reject", EmployeeRequestController, :reject
 
     # Divisions
-    resources "/divisions", DivisionController, except: [:new, :edit, :delete]
+    resources "/divisions", DivisionController, except: [:index, :new, :edit, :delete]
     patch "/divisions/:id/actions/activate", DivisionController, :activate
     patch "/divisions/:id/actions/deactivate", DivisionController, :deactivate
 

@@ -60,6 +60,16 @@ defmodule EHealth.Web.DivisionsControllerTest do
     assert id == resp["id"]
   end
 
+  test "get divisions with  client_id that does not match legal entity id", %{conn: conn} do
+    conn = put_client_id_header(conn, Ecto.UUID.generate())
+    id = "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
+    conn = get conn, division_path(conn, :index, [legal_entity_id: id])
+    resp = json_response(conn, 200)
+    assert [] == resp["data"]
+    assert Map.has_key?(resp, "paging")
+    assert String.contains?(resp["meta"]["url"], "/divisions")
+  end
+
   test "get division by id with wrong legal_entity_id", %{conn: conn} do
     conn = put_client_id_header(conn, UUID.generate())
     conn = get conn, division_path(conn, :show, "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b")
