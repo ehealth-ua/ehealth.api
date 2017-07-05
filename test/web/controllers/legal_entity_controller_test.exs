@@ -48,6 +48,8 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       assert Map.has_key?(resp, "data")
       assert Map.has_key?(resp, "paging")
       assert is_list(resp["data"])
+      assert Enum.all?(resp["data"], &(Map.has_key?(&1, "mis_verified")))
+      assert Enum.all?(resp["data"], &(Map.has_key?(&1, "nhs_verified")))
       assert 1 == length(resp["data"])
     end
 
