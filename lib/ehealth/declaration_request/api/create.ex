@@ -66,6 +66,7 @@ defmodule EHealth.DeclarationRequest.API.Create do
 
     [%{"number" => phone_number}|_] = data["person"]["phones"]
 
+    # TODO: remove phone number from here + add "second_name"  => data["person"]["second_name"]
     result = MPI.search(%{
       "first_name"   => data["person"]["first_name"],
       "last_name"    => data["person"]["last_name"],

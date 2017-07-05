@@ -33,16 +33,25 @@ defmodule EHealth.DeclarationRequest.API do
     updated_by
   )a
 
-  def create(attrs, user_id) do
+  def create(attrs, user_id, client_id) do
     with {:ok, attrs} <-  Validations.validate_schema(attrs),
          {:ok, _} <- Validations.validate_addresses(get_in(attrs, ["person", "addresses"])),
          {:ok, %{"data" => global_parameters}} <- PRM.get_global_parameters(),
-         {:ok, %{"data" => employee}} <- PRM.get_employee_by_id(attrs["employee_id"]) do
+         {:ok, %{"data" => employee}} <- PRM.get_employee_by_id(attrs["employee_id"]),
+         {:ok, %{"data" => division}} <- PRM.get_division_by_id(attrs["division_id"]),
+         {:ok, %{"data" => legal_entity}} <- PRM.get_legal_entity_by_id(client_id) do
       updates = [status: "CANCELLED", updated_at: DateTime.utc_now(), updated_by: user_id]
 
+      auxilary_entities = %{
+        employee: employee,
+        global_parameters: global_parameters,
+        division: division,
+        legal_entity: legal_entity
+      }
+
       Multi.new
-      |> Multi.update_all(:previous_requests, pending_declaration_requests(attrs), set: updates)
-      |> Multi.insert(:declaration_request, create_changeset(attrs, user_id, employee, global_parameters))
+      |> Multi.update_all(:previous_requests, pending_declaration_requests(attrs, client_id), set: updates)
+      |> Multi.insert(:declaration_request, create_changeset(attrs, user_id, auxilary_entities))
       |> Multi.run(:finalize, &finalize/1)
       |> Repo.transaction
     end
@@ -80,15 +89,29 @@ defmodule EHealth.DeclarationRequest.API do
     end
   end
 
-  def create_changeset(attrs, user_id, employee, global_parameters) do
+  def create_changeset(attrs, user_id, auxilary_entities) do
+    %{
+      employee: employee,
+      global_parameters: global_parameters,
+      division: division,
+      legal_entity: legal_entity
+    } = auxilary_entities
+
     specialities = employee["doctor"]["specialities"]
+
+    attrs = Map.drop(attrs, ["employee_id", "division_id"])
 
     %EHealth.DeclarationRequest{}
     |> cast(%{data: attrs}, [:data])
+    |> validate_legal_entity_employee(legal_entity, employee)
+    |> validate_legal_entity_division(legal_entity, division)
     |> validate_patient_birth_date()
     |> validate_patient_age(Enum.map(specialities, &(&1["speciality"])), global_parameters["adult_age"])
     |> validate_patient_phone_number()
     |> put_start_end_dates(global_parameters)
+    |> put_in_data(:employee, employee)
+    |> put_in_data(:division, division)
+    |> put_in_data(:legal_entity, legal_entity)
     |> put_change(:id, UUID.generate())
     |> put_change(:status, "NEW")
     |> put_change(:inserted_by, user_id)
@@ -97,6 +120,15 @@ defmodule EHealth.DeclarationRequest.API do
     |> Create.generate_printout_form()
     |> validate_required(@required_fields)
   end
+
+  def put_in_data(changeset, key, value) do
+     new_data =
+       changeset
+       |> get_field(:data)
+       |> put_in([key], value)
+
+     put_change(changeset, :data, new_data)
+   end
 
   def update_changeset(%EHealth.DeclarationRequest{} = declaration_request, attrs) do
     declaration_request
@@ -132,10 +164,9 @@ defmodule EHealth.DeclarationRequest.API do
     put_change(changeset, :data, new_data)
   end
 
-  def pending_declaration_requests(raw_declaration_request) do
+  def pending_declaration_requests(raw_declaration_request, legal_entity_id) do
     tax_id          = get_in(raw_declaration_request, ["person", "tax_id"])
     employee_id     = get_in(raw_declaration_request, ["employee_id"])
-    legal_entity_id = get_in(raw_declaration_request, ["legal_entity_id"])
 
     from p in EHealth.DeclarationRequest,
       where: p.status in ["NEW", "APPROVED"],

@@ -10,6 +10,9 @@ defmodule EHealth.Integraiton.DeclarationRequestCreateTest do
       # PRM API
       Plug.Router.get "/employees/ce377dea-d8c4-4dd8-9328-de24b1ee3879" do
         employee = %{
+          "legal_entity" => %{
+            "id" => "8799e3b6-34e7-4798-ba70-d897235d2b6d"
+          },
           "doctor" => %{
             "specialities" => [
               %{
@@ -22,7 +25,6 @@ defmodule EHealth.Integraiton.DeclarationRequestCreateTest do
         send_resp(conn, 200, Poison.encode!(%{data: employee}))
       end
 
-      # PRM API
       Plug.Router.get "/global_parameters" do
         parameters = %{
           adult_age: "18",
@@ -31,6 +33,25 @@ defmodule EHealth.Integraiton.DeclarationRequestCreateTest do
         }
 
         send_resp(conn, 200, Poison.encode!(%{data: parameters}))
+      end
+
+      Plug.Router.get "/divisions/51f56b0e-0223-49c1-9b5f-b07e09ba40f1" do
+        division = %{
+          id: "51f56b0e-0223-49c1-9b5f-b07e09ba40f1",
+          legal_entity_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d",
+          some_division_attr: "some_value"
+        }
+
+        send_resp(conn, 200, Poison.encode!(%{data: division}))
+      end
+
+      Plug.Router.get "/legal_entities/8799e3b6-34e7-4798-ba70-d897235d2b6d" do
+        legal_entity = %{
+          id: "8799e3b6-34e7-4798-ba70-d897235d2b6d",
+          some_legal_entity_attr: "some_value"
+        }
+
+        send_resp(conn, 200, Poison.encode!(%{data: legal_entity}))
       end
 
       # MPI API
@@ -159,7 +180,7 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
       conn =
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
-        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: ""}))
+        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
         |> post("/api/declaration_requests", declaration_request_params)
 
       resp = json_response(conn, 200)
@@ -169,6 +190,11 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
       assert to_string(Date.utc_today) == resp["data"]["data"]["start_date"]
       assert {:ok, _} = Date.from_iso8601(resp["data"]["data"]["end_date"])
       assert "NEW" = resp["data"]["status"]
+      assert resp["data"]["data"]["employee"]["doctor"]
+      assert resp["data"]["data"]["legal_entity"]["some_legal_entity_attr"]
+      assert resp["data"]["data"]["division"]["some_division_attr"]
+      refute resp["data"]["data"]["employee_id"]
+      refute resp["data"]["data"]["division_id"]
       assert "ce377dea-d8c4-4dd8-9328-de24b1ee3879" = resp["data"]["updated_by"]
       assert "ce377dea-d8c4-4dd8-9328-de24b1ee3879" = resp["data"]["inserted_by"]
       assert %{"number" => "+380508887700", "type" => "OTP"} = resp["data"]["authentication_method_current"]
@@ -187,7 +213,7 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
       conn =
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
-        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: ""}))
+        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
         |> post("/api/declaration_requests", declaration_request_params)
 
       resp = json_response(conn, 200)
@@ -197,6 +223,11 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
       assert to_string(Date.utc_today) == resp["data"]["data"]["start_date"]
       assert {:ok, _} = Date.from_iso8601(resp["data"]["data"]["end_date"])
       assert "NEW" = resp["data"]["status"]
+      assert resp["data"]["data"]["employee"]["doctor"]
+      assert resp["data"]["data"]["legal_entity"]["some_legal_entity_attr"]
+      assert resp["data"]["data"]["division"]["some_division_attr"]
+      refute resp["data"]["data"]["employee_id"]
+      refute resp["data"]["data"]["division_id"]
       assert "ce377dea-d8c4-4dd8-9328-de24b1ee3879" = resp["data"]["updated_by"]
       assert "ce377dea-d8c4-4dd8-9328-de24b1ee3879" = resp["data"]["inserted_by"]
       assert %{"number" => "+380508887700", "type" => "OFFLINE"} = resp["data"]["authentication_method_current"]

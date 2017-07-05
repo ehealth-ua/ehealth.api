@@ -2,10 +2,10 @@ defmodule EHealth.DeclarationRequest.APITest do
   @moduledoc false
 
   use EHealth.Web.ConnCase, async: true
-  import EHealth.DeclarationRequest.API, only: [pending_declaration_requests: 1]
+  import EHealth.DeclarationRequest.API, only: [pending_declaration_requests: 2]
   alias EHealth.DeclarationRequest
 
-  describe "pending_declaration_requests/1" do
+  describe "pending_declaration_requests/2" do
     test "returns pending requests" do
       raw_declaration_request = %{
         "person" => %{
@@ -18,7 +18,7 @@ defmodule EHealth.DeclarationRequest.APITest do
       {:ok, pending_declaration_req_1} = copy_declaration_request(raw_declaration_request, "NEW")
       {:ok, pending_declaration_req_2} = copy_declaration_request(raw_declaration_request, "APPROVED")
 
-      query = pending_declaration_requests(raw_declaration_request)
+      query = pending_declaration_requests(raw_declaration_request, "333")
 
       assert [pending_declaration_req_1, pending_declaration_req_2] == EHealth.Repo.all(query)
     end

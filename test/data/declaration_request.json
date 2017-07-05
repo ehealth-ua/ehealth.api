@@ -87,6 +87,7 @@
       "service_location_consent": true
     },
     "scope": "FAMILY DOCTOR",
-    "employee_id": "ce377dea-d8c4-4dd8-9328-de24b1ee3879"
+    "employee_id": "ce377dea-d8c4-4dd8-9328-de24b1ee3879",
+    "division_id": "51f56b0e-0223-49c1-9b5f-b07e09ba40f1"
   }
 }

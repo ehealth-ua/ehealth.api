@@ -322,10 +322,6 @@
           "type": "string",
           "description": "Registered Medical Service Provider Division identifier."
         },
-        "legal_entity_id": {
-          "type": "string",
-          "description": "Registered Medical Service Provider Division identifier."
-        },
         "scope": {
           "type": "string",
           "enum": [
