@@ -332,6 +332,7 @@
       "required": [
         "person",
         "employee_id",
+        "division_id",
         "scope"
       ]
     }
