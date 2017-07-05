@@ -99,7 +99,7 @@ defmodule EHealth.LegalEntity.API do
     params =
       cond do
         client_type in conf[:tokens_types_personal] -> Map.put(params, "id", client_id)
-        client_type in conf[:tokens_types_mis] -> Map.put(params, "created_by_mis_client_id", client_id)
+        client_type in conf[:tokens_types_mis] -> params
         client_type in conf[:tokens_types_admin] -> params
         true ->
           Logger.error(fn -> "Undefined client type name #{client_type} for /legal_entities. " <>
