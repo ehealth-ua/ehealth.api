@@ -43,6 +43,21 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       json_response(conn, 422)
     end
 
+    test "without doctor attribute for employee_type DOCTOR", %{conn: conn} do
+      employee_request_params =
+        "test/data/employee_request.json"
+        |> File.read!()
+        |> Poison.decode!()
+
+      employee_request_params = Map.put(employee_request_params, "employee_request",
+        Map.delete(employee_request_params["employee_request"], "doctor"))
+
+      conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
+      conn = post conn, employee_request_path(conn, :create), employee_request_params
+
+      json_response(conn, 422)
+    end
+
     test "with invalid params", %{conn: conn} do
       conn = post conn, employee_request_path(conn, :create), %{"employee_request" => %{"invalid" => "data"}}
       resp = json_response(conn, 422)

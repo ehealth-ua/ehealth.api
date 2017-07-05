@@ -41,6 +41,19 @@ defmodule EHealth.Employee.Validator do
       rule: :invalid
     }, "$.employee_request.doctor"}]}
   end
+
+  def validate_doctor_inclusion({:ok, %{"employee_request" => %{"employee_type" => "DOCTOR", "doctor" => _}}} = data) do
+    data
+  end
+
+  def validate_doctor_inclusion({:ok, %{"employee_request" => %{"employee_type" => "DOCTOR"}}}) do
+    {:error, [{%{
+      description: "required property doctor was not present",
+      params: [],
+      rule: :required
+    }, "$.employee_request.doctor"}]}
+  end
+
   def validate_doctor_inclusion(changeset), do: changeset
 
   # Tax ID validator
