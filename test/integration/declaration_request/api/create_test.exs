@@ -136,7 +136,7 @@ declaration_request_SSN.jpeg"})
         %{
           "first_name" => "Олена",
           "last_name" => "Пчілка",
-          "phone_number" => "+380508887700",
+          "second_name" => "XXX",
           "birth_date" => "2010-08-19 00:00:00",
           "tax_id" => "3126509816"
         } = confirm_params
@@ -176,12 +176,10 @@ declaration_request_SSN.jpeg"})
         data: %{
           "person" => %{
             "first_name" => "Олена",
+            "second_name" => "XXX",
             "last_name" => "Пчілка",
             "birth_date" => "2010-08-19",
             "tax_id" => "3126509816",
-            "phones" => [%{
-              "number" => "+380508887700"
-            }],
             "authentication_methods" => [%{
               "number" => "+380508887700"
             }]
@@ -238,9 +236,6 @@ declaration_request_SSN.jpeg"})
             "last_name" => "Олесь",
             "birth_date" => "1988-08-19 00:00:00",
             "tax_id" => "3126509817",
-            "phones" => [%{
-              "number" => "+380508887701"
-            }],
             "authentication_methods" => [%{
               "phone_number" => "+380508887701"
             }]

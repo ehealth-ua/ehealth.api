@@ -64,15 +64,12 @@ defmodule EHealth.DeclarationRequest.API.Create do
   def determine_auth_method_for_mpi(changeset) do
     data = get_field(changeset, :data)
 
-    [%{"number" => phone_number}|_] = data["person"]["phones"]
-
-    # TODO: remove phone number from here + add "second_name"  => data["person"]["second_name"]
     result = MPI.search(%{
       "first_name"   => data["person"]["first_name"],
+      "second_name"  => data["person"]["second_name"],
       "last_name"    => data["person"]["last_name"],
       "birth_date"   => "#{data["person"]["birth_date"]} 00:00:00",
-      "tax_id"       => data["person"]["tax_id"],
-      "phone_number" => phone_number
+      "tax_id"       => data["person"]["tax_id"]
     })
 
     case result do
