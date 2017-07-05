@@ -10,9 +10,7 @@ defmodule EHealth.Integraiton.DeclarationRequestCreateTest do
       # PRM API
       Plug.Router.get "/employees/ce377dea-d8c4-4dd8-9328-de24b1ee3879" do
         employee = %{
-          "legal_entity" => %{
-            "id" => "8799e3b6-34e7-4798-ba70-d897235d2b6d"
-          },
+          "legal_entity_id" => "8799e3b6-34e7-4798-ba70-d897235d2b6d",
           "doctor" => %{
             "specialities" => [
               %{
