@@ -40,12 +40,12 @@ defmodule EHealth.Employee.EmployeeUpdater do
     do: {:ok, pipe_data}
 
   def check_transition(_pipe_data) do
-    {:error, {:forbidden, "Invalid transition."}}
+    {:error, {:conflict, "Employee is DEACTIVATED and cannot be updated."}}
   end
 
   def get_active_employees(%{employee: %{"data" => employee}, headers: headers} = pipe_data) do
     %{
-      party_id: employee["party"]["id"],
+      party_id: employee["party_id"],
       employee_type: employee["employee_type"],
     }
     |> API.get_employees(headers)
