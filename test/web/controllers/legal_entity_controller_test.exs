@@ -28,6 +28,12 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     assert resp["error"]
   end
 
+  test "mis verify legal entity", %{conn: conn} do
+      conn = put_client_id_header(conn, "296da7d2-3c5a-4f6a-b8b2-631063737271")
+      conn = patch conn, legal_entity_path(conn, :mis_verify, "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+      assert json_response(conn, 200)["data"]["mis_verified"] == "VERIFIED"
+  end
+
   test "nhs verify legal entity", %{conn: conn} do
     conn = put_client_id_header(conn, "296da7d2-3c5a-4f6a-b8b2-631063737271")
     conn = patch conn, legal_entity_path(conn, :nhs_verify, "7cc91a5d-c02f-41e9-b571-1ea4f2375552")

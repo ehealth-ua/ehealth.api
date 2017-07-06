@@ -63,6 +63,7 @@ defmodule Ehealth.Web.Router do
 
     # Legal Entities
     get "/legal_entities/:id", LegalEntityController, :show
+    patch "/legal_entities/:id/actions/mis_verify", LegalEntityController, :mis_verify
     patch "/legal_entities/:id/actions/nhs_verify", LegalEntityController, :nhs_verify
 
     # Employees
