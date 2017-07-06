@@ -109,3 +109,10 @@ Also sample `.env` can be used as payload for `docker run` cli.
 | VAR_NAME                   | Default Value | Description |
 | -------------------------- | ------------- | ----------- |
 | EMPLOYEE_REQUESTS_PER_PAGE | `50`          | Number of items per page for Employee requests. |
+
+# Tokens
+| VAR_NAME                                     | Default Value | Description |
+| -------------------------------------------- | ------------- | ----------- |
+|TOKENS_TYPES_PERSONAL                         |`MSP`          | List of Client_types where only records that belong to client_id from the token will be returned
+| TOKENS_TYPES_MIS                             |`MIS`             | List of Client_types where only records that are created by client_id from the token will be returned
+| TOKENS_TYPES_ADMIN                           |`NHS_Admin`, `MIS`| Results are filtered by the request parameters if any, client_id from token is ignored
