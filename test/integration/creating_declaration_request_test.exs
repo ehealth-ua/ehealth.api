@@ -63,18 +63,20 @@ defmodule EHealth.Integraiton.DeclarationRequestCreateTest do
           id: "8799e3b6-34e7-4798-ba70-d897235d2b6d",
           name: "nice",
           short_name: "some",
-          accreditation: %{
-            category: "some",
-            order_date: "some",
-            expiry_date: "some",
-            issued_date: "some",
-            order_no: "some"
+          medical_service_provider: %{
+            accreditation: %{
+              category: "some",
+              order_date: "some",
+              expiry_date: "some",
+              issued_date: "some",
+              order_no: "some"
+            },
+            licenses: []
           },
           phones: [],
           legal_form: "yoyo",
           edrpou: "some_edrpou",
           public_name: "some_name",
-          licenses: [],
           email: "some",
           addresses: []
         }

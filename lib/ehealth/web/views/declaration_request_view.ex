@@ -14,19 +14,6 @@ defmodule EHealth.Web.DeclarationRequestView do
 
   def render("declaration_request.json", %{declaration_request: declaration_request}) do
     # TODO: move this to a module attr?
-    legal_entity_attrs = [
-      "id",
-      "name",
-      "short_name",
-      "accreditation",
-      "phones",
-      "legal_form",
-      "edrpou",
-      "public_name",
-      "licenses",
-      "email",
-      "addresses"
-    ]
 
     division_attrs = [
       "id",
@@ -40,7 +27,7 @@ defmodule EHealth.Web.DeclarationRequestView do
     ]
 
     employee = Map.take(declaration_request.data[:employee], ["id", "party", "position"])
-    legal_entity = Map.take(declaration_request.data[:legal_entity], legal_entity_attrs)
+    legal_entity = form_legal_entity(declaration_request.data[:legal_entity])
     division = Map.take(declaration_request.data[:division], division_attrs)
 
     data =
@@ -66,5 +53,36 @@ defmodule EHealth.Web.DeclarationRequestView do
 
   def render("unprocessable_entity.json", %{error: error}) do
     error
+  end
+
+  defp form_legal_entity(legal_entity) do
+    legal_entity_attrs = [
+      "id",
+      "name",
+      "short_name",
+      "phones",
+      "legal_form",
+      "edrpou",
+      "public_name",
+      "email",
+      "addresses"
+    ]
+
+    msp_attrs = [
+      "accreditation",
+      "licenses"
+    ]
+
+    IO.inspect legal_entity
+
+    additional_attrs =
+      legal_entity
+      |> Map.get("medical_service_provider", msp_attrs)
+      |> Map.take(msp_attrs)
+
+    legal_entity
+    |> Map.drop(["medical_service_provider"])
+    |> Map.take(legal_entity_attrs)
+    |> Map.merge(additional_attrs)
   end
 end
