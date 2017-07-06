@@ -28,9 +28,20 @@ defmodule EHealth.Web.DeclarationRequestView do
       "addresses"
     ]
 
+    division_attrs = [
+      "id",
+      "type",
+      "phones",
+      "name",
+      "legal_entity_id",
+      "external_id",
+      "email",
+      "addresses"
+    ]
+
     employee = Map.take(declaration_request.data[:employee], ["id", "party", "position"])
     legal_entity = Map.take(declaration_request.data[:legal_entity], legal_entity_attrs)
-    division = declaration_request.data[:division]
+    division = Map.take(declaration_request.data[:division], division_attrs)
 
     data =
       declaration_request.data
