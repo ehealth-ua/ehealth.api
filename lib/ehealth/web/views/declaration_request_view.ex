@@ -73,8 +73,6 @@ defmodule EHealth.Web.DeclarationRequestView do
       "licenses"
     ]
 
-    IO.inspect legal_entity
-
     additional_attrs =
       legal_entity
       |> Map.get("medical_service_provider", msp_attrs)

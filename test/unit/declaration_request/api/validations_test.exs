@@ -141,4 +141,8 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
       assert belongs_to(19, 18, "FAMILY_DOCTOR")
     end
   end
+
+  test "validate_schema/1" do
+    assert {:error, _} = validate_schema(%{})
+  end
 end

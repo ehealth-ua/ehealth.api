@@ -334,7 +334,8 @@
         "employee_id",
         "division_id",
         "scope"
-      ]
+      ],
+      "additionalProperties": false
     }
   }
 }

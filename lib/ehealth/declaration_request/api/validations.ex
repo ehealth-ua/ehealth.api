@@ -74,7 +74,7 @@ defmodule EHealth.DeclarationRequest.API.Validations do
       |> Keyword.get(:declaration_request)
       |> SchemaMapper.prepare_declaration_request_schema()
 
-    case validate_schema(schema, attrs) do
+    case validate_schema(schema, %{"declaration_request" => attrs}) do
       :ok -> {:ok, attrs}
       err -> err
     end
