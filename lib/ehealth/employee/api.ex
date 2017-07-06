@@ -274,11 +274,13 @@ defmodule EHealth.Employee.API do
   end
   defp put_success_api_response_in_employee(err, _key, _pipe_data), do: err
 
-  defp filter_employee_response(%{employee: employee_response} = pipe_data) do
+  # TODO: fucking crooked nail, use views instead. Asshole
+  defp filter_employee_response(%{employee: employee_response, expand: expand} = pipe_data) do
     employee =
       employee_response
       |> Map.get("data")
-      |> Map.drop(["updated_by", "inserted_by", "party_id", "legal_entity_id", "division_id"])
+      |> Map.drop(["updated_by", "inserted_by"])
+      |> drop_related_fields(expand)
       |> filter_party_response()
       |> filter_legal_entity_response()
 
@@ -286,6 +288,9 @@ defmodule EHealth.Employee.API do
     |> Map.put("data", employee)
     |> put_in_pipe(:employee, pipe_data)
   end
+
+  def drop_related_fields(map, true), do: Map.drop(map, ["party_id", "legal_entity_id", "division_id"])
+  def drop_related_fields(map, _), do: map
 
   def filter_party_response(%{"party" => party} = data) do
     party = Map.drop(party, ["updated_by", "inserted_by"])
