@@ -1646,10 +1646,7 @@ Signed content MUST consists of JSON object with Declaration Request data and pr
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
-        + data (`Declaration_Request_Public`)
-            + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, required)
-            + active: true (boolean, required) - Should be defined on the client side.
-            + status: active (string, required)
+        + data (`Declaration_short`)
 
 ### Upload document copies for a Declaration Request [POST /media_content_storage/msp/declaration_requests/{id}/{filename}]
 
@@ -2684,6 +2681,22 @@ API for searching Ukrainian Addresses
 + employee (Employee_Minimal)
 + `legal_entity` (`MSP_Short`)
 + division (`Division_Short`)
+
+### `Declaration_short`
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ start_date: `2017-03-02` (string, required)
++ end_date: `2017-03-02` (string, required)
++ signed_at: `2017-03-02T00:00:00.000Z` (string, required)
++ status (enum, required)
+    - active
+    - pending_verification
++ scope (enum, required)
+    - family doctor
++ person_id: `5fb57a5d-1457-430e-9678-c81cec72779f` (string, required)
++ `legal_entity_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ employee_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ division_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ inserted_at: `2017-07-06T16:54:05.161571Z` (string, required)
 
 ### `Declaration_Details`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
