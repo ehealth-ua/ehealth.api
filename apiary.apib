@@ -1800,7 +1800,7 @@ Response structure differs depending on employee type:
             + division (Division_Short)
             + `legal_entity` (`Legal_Entity_Short`)
 
-### Update Employee [PATCH /api/employees/{id}] - TBD
+### Update Employee - TBD hz [PATCH /api/employees/{id}]
 
 Use this method change employee status or to update:
 * Person info
@@ -1874,6 +1874,8 @@ Additionally to register/update Physician the `Doctor info` should be passed.
 
 When the `Employee_Request` will be posted the Invitation e-mail with a request
 secret token will be sent to the User specified in the request.
+
+It can be also used to update employee data. In this case `employee_id` should be passed in the payload.
 
 User may accept or decline Invitation.
 
