@@ -1800,7 +1800,7 @@ Response structure differs depending on employee type:
             + division (Division_Short)
             + `legal_entity` (`Legal_Entity_Short`)
 
-### Update Employee [PATCH /api/employees/{id}]
+### Update Employee [PATCH /api/employees/{id}] - TBD
 
 Use this method change employee status or to update:
 * Person info
@@ -2818,13 +2818,11 @@ API for searching Ukrainian Addresses
 + doctor (DoctorNew, optional)
 
 ### `Employee_Update`
-+ legal_entity_id: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
 + division_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
 + position: лікар (string, required)
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
 + status: NEW, APPROVED, DISMISSED (enum, required)
-+ is_active: false (boolean, required)
 + party (Party_Update)
 + doctor (DoctorNew, optional)
 
