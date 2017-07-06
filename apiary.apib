@@ -2626,8 +2626,8 @@ API for searching Ukrainian Addresses
 + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851`m (string, required)
 + scope (enum, required)
     - family_doctor
-+ start_date: `2017-03-02T10:45:16.000Z` (string, required)
-+ end_date: `2017-03-02T10:45:16.000Z` (string, required)
++ start_date: `2017-03-02` (string, required)
++ end_date: `2017-03-02` (string, required)
 + signed_at: `2017-03-02T10:45:16.000Z` (string, required)
 + status (enum, optional)
     - active
@@ -2655,8 +2655,8 @@ API for searching Ukrainian Addresses
     - family doctor
 
 ### `Declaration_Request_Public_Response`
-+ start_date: `2017-03-02T10:45:16.000Z` (string, required) - Should be defined on the client side.
-+ end_date: `2017-03-02T10:45:16.000Z` (string, optional) - Will be defined on eHealth side if it's not set.
++ start_date: `2017-03-02` (string, required) - Should be defined on the client side.
++ end_date: `2017-03-02` (string, optional) - Will be defined on eHealth side if it's not set.
 + person(`Person_Request`, required) - Object that described a Patient. Confidant person should be set for disabled persons, underage persons, etc.
     + patient_signed: true (boolean) - Факт подписания заявки на декларацию.
     + `process_disclosure_data_consent`: true (boolean) - Согласие на раскрытие персональных данных
@@ -2664,8 +2664,8 @@ API for searching Ukrainian Addresses
     - family doctor
 
 ### `Declaration_Request_Details_Public`
-+ start_date: `2017-03-02T10:45:16.000Z` (string, required)
-+ end_date: `2017-03-02T10:45:16.000Z` (string, required)
++ start_date: `2017-03-02` (string, required)
++ end_date: `2017-03-02` (string, required)
 + person(`Person_Request`, required)
     + patient_signed: true (boolean) - Факт подписания заявки на декларацию.
     + `process_disclosure_data_consent`: true (boolean) - Согласие на раскрытие персональных данных
@@ -2678,8 +2678,8 @@ API for searching Ukrainian Addresses
 
 ### `Declaration_Request_Short`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-+ start_date: `2017-03-02T10:45:16.000Z` (string, required)
-+ end_date: `2017-03-02T10:45:16.000Z` (string, required)
++ start_date: `2017-03-02` (string, required)
++ end_date: `2017-03-02` (string, required)
 + person (Person_Minimal)
 + employee (Employee_Minimal)
 + `legal_entity` (`MSP_Short`)
@@ -2687,8 +2687,8 @@ API for searching Ukrainian Addresses
 
 ### `Declaration_Details`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-+ start_date: `2017-03-02T10:45:16.000Z` (string, required)
-+ end_date: `2017-03-02T10:45:16.000Z` (string, required)
++ start_date: `2017-03-02` (string, required)
++ end_date: `2017-03-02` (string, required)
 + person(`Person_Short`)
 + employee (`Employee_Short`)
 + division (`Division_Short`)
@@ -2697,8 +2697,8 @@ API for searching Ukrainian Addresses
 + updated_at: `2017-03-02T10:45:16.000Z` (string, optional)
 
 ### `Declaration_Details_Public`
-+ start_date: `2017-03-02T10:45:16.000Z` (string, required)
-+ end_date: `2017-03-02T10:45:16.000Z` (string, required)
++ start_date: `2017-03-02` (string, required)
++ end_date: `2017-03-02` (string, required)
 + person(`Person_Request`, required)
     + id: `5fb57a5d-1457-430e-9678-c81cec72779f` (string)
     + patient_signed: true (boolean) - Факт подписания заявки на декларацию.
