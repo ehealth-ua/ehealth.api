@@ -426,11 +426,16 @@ Response will contain only records that you have access to.
     + Attributes (Response_Collection)
         + data (array[`crud_Declaration_get`])
 
-### Change declarations status to Inactive by employee_id [POST /declarations/terminate]
+### Terminate declarations by employee or person [POST /declarations/terminate]
+
+1. One parameter of `employee_id` and `person_id` must be set
+2. Search active declarations by `employee_id` or `person_id`
+3. Update declarations status to TERMINATED
 
 + Request (application/json)
     + Attributes (object)
-        + employee_id: `73ebee6e-b9d9-41b0-b2ad-ab7704d5306e` (string, required)
+        + employee_id: `73ebee6e-b9d9-41b0-b2ad-ab7704d5306e` (string, optional)
+        + person_id: `50320ee5-2bca-472c-a1a0-28e2e003ec2a` (string, optional)
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
