@@ -3,6 +3,21 @@ defmodule EHealth.SimpleFactory do
 
   alias EHealth.Repo
   alias EHealth.Employee.Request
+  alias EHealth.DeclarationRequest
+
+  def fixture(:declaration_request) do
+    uuid = Ecto.UUID.generate()
+    declaration_request = %DeclarationRequest{
+      data: %{},
+      status: "",
+      inserted_by: uuid,
+      updated_by: uuid,
+      authentication_method_current: %{},
+      printout_content: "",
+    }
+
+    Repo.insert!(declaration_request)
+  end
 
   def fixture(:employee_request, email \\ nil, status \\ nil, employee_type \\ nil) do
     employee_request(email, status, employee_type)

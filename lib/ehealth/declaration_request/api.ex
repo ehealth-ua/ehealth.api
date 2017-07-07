@@ -33,6 +33,10 @@ defmodule EHealth.DeclarationRequest.API do
     updated_by
   )a
 
+  def get_declaration_request_by_id!(id) do
+    Repo.get!(DeclarationRequest, id)
+  end
+
   def create(attrs, user_id, client_id) do
     with {:ok, attrs} <-  Validations.validate_schema(attrs),
          {:ok, _} <- Validations.validate_addresses(get_in(attrs, ["person", "addresses"])),

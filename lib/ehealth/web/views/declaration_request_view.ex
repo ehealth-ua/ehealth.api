@@ -2,10 +2,9 @@ defmodule EHealth.Web.DeclarationRequestView do
   @moduledoc false
 
   use EHealth.Web, :view
-  alias EHealth.Web.DeclarationRequestView
 
   def render("show.json", %{declaration_request: declaration_request}) do
-    render_one(declaration_request, DeclarationRequestView, "declaration_request.json")
+    declaration_request.data
   end
 
   def render("status.json", %{declaration_request: declaration_request}) do

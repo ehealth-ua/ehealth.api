@@ -6,13 +6,18 @@ defmodule EHealth.Web.DeclarationRequestController do
 
   action_fallback EHealth.Web.FallbackController
 
+  def show(conn, %{"id" => id}) do
+    declaration_request = DeclarationRequestAPI.get_declaration_request_by_id!(id)
+    render(conn, "show.json", declaration_request: declaration_request)
+  end
+
   def create(conn, %{"declaration_request" => declaration_request}) do
     user_id = get_consumer_id(conn.req_headers)
     client_id = get_client_id(conn.req_headers)
 
     case DeclarationRequestAPI.create(declaration_request, user_id, client_id) do
       {:ok, %{finalize: declaration_request}} ->
-        render(conn, "show.json", declaration_request: declaration_request)
+        render(conn, "declaration_request.json", declaration_request: declaration_request)
       {:error, _transaction_step, changeset, _} ->
         conn
         |> put_status(:unprocessable_entity)
