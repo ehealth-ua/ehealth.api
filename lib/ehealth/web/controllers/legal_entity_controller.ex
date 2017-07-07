@@ -5,6 +5,7 @@ defmodule EHealth.Web.LegalEntityController do
   use EHealth.Web, :controller
 
   alias EHealth.LegalEntity.API
+  alias EHealth.LegalEntity.LegalEntityUpdater
 
   action_fallback EHealth.Web.FallbackController
 
@@ -42,6 +43,13 @@ defmodule EHealth.Web.LegalEntityController do
 
   def nhs_verify(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
     with {:ok, %{"meta" => %{}} = response} <- API.nhs_verify(id, req_headers) do
+      proxy(conn, response)
+    end
+  end
+
+  def deactivate(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
+    with {:ok, %{
+      legal_entity_updated: %{"meta" => %{}} = response}} <- LegalEntityUpdater.deactivate(id, req_headers) do
       proxy(conn, response)
     end
   end

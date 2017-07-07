@@ -170,6 +170,28 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     end
   end
 
+  describe "deactivate legal entity" do
+    test "deactivate employee with invalid transitions condition", %{conn: conn} do
+      conn = put_client_id_header(conn, "8ea6d4d8-6240-11e7-907b-a6006ad3dba0")
+
+      conn_resp = patch conn, legal_entity_path(conn, :deactivate, "8ea6d4d8-6240-11e7-907b-a6006ad3dba0")
+      assert json_response(conn_resp, 409)["error"]["message"] == "Legal entity is not ACTIVE and cannot be updated"
+
+
+      conn = put_client_id_header(conn, "b075f148-7f93-4fc2-b2ec-2d81b19a9a8a")
+      conn_resp = patch conn, legal_entity_path(conn, :deactivate, "b075f148-7f93-4fc2-b2ec-2d81b19a9a8a")
+      assert json_response(conn_resp, 409)["error"]["message"] == "Legal entity is not ACTIVE and cannot be updated"
+    end
+
+    test "deactivate legal entity with valid transitions condition", %{conn: conn} do
+      conn = put_client_id_header(conn, "0d26d826-6241-11e7-907b-a6006ad3dba0")
+      conn = patch conn, legal_entity_path(conn, :deactivate, "0d26d826-6241-11e7-907b-a6006ad3dba0")
+
+      resp = json_response(conn, 200)
+      assert "CLOSED" == resp["data"]["status"]
+    end
+  end
+
   def assert_security_in_urgent_response(resp) do
     assert_urgent_field(resp, "security")
     assert Map.has_key?(resp["urgent"]["security"], "redirect_uri")

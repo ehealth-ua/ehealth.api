@@ -30,6 +30,7 @@ defmodule EHealth.MockServer do
     legal_entity =
       case conn.params do
         %{"id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375552"} -> [get_legal_entity()]
+        %{"id" => "0d26d826-6241-11e7-907b-a6006ad3dba0"} -> [get_legal_entity()]
         %{"edrpou" => "37367387", "type" => "MSP"} -> [get_legal_entity()]
         %{"edrpou" => "10002000", "type" => "MSP"} -> [get_legal_entity("356b4182-f9ce-4eda-b6af-43d2de8602aa", false)]
         %{"edrpou" => "37367387", "is_active" => "true"} ->
@@ -37,6 +38,11 @@ defmodule EHealth.MockServer do
             @client_type_admin -> [get_legal_entity(), get_legal_entity(), get_legal_entity()]
             _ ->                  [get_legal_entity()]
           end
+        %{"id" => "8ea6d4d8-6240-11e7-907b-a6006ad3dba0"} ->
+          [get_legal_entity("8ea6d4d8-6240-11e7-907b-a6006ad3dba0", false)]
+
+        %{"id" => "b075f148-7f93-4fc2-b2ec-2d81b19a9a8a"} ->
+          [get_legal_entity("b075f148-7f93-4fc2-b2ec-2d81b19a9a8a", false, "CLOSED")]
         _ -> []
       end
 
@@ -116,20 +122,28 @@ defmodule EHealth.MockServer do
     expand = Map.has_key?(conn.params, "expand")
     tax_id = Map.get(conn.params, "tax_id")
     edrpou = Map.get(conn.params, "edrpou")
+    status = Map.get(conn.params, "status")
+    is_active = Map.get(conn.params, "is_active")
+    starting_after = Map.get(conn.params, "starting_after")
 
     employees = cond do
       tax_id || edrpou ->
         [get_employee(legal_entity_id, expand, tax_id, edrpou)] |> Enum.filter(&(!is_nil(&1)))
+      status == "APPROVED" && is_active == "true" ->
+        [get_employee_by_id("0d26d826-6241-11e7-907b-a6006ad3dba0", legal_entity_id)]
       true ->
         employee = get_employee(legal_entity_id, expand)
         [employee, employee]
     end
 
-    render_with_paging(employees, conn)
+    render_with_paging(employees, conn, starting_after)
   end
 
   get "/employees/:id" do
     case conn.path_params do
+      %{"id" => "0d26d826-6241-11e7-907b-a6006ad3dba0"} ->
+        render(get_employee("0d26d826-6241-11e7-907b-a6006ad3dba0"), conn, 200)
+
       %{"id" => "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b"} ->
         render(get_employee(), conn, 200)
 
@@ -485,6 +499,12 @@ defmodule EHealth.MockServer do
     }
   end
 
+  def get_employee_by_id(id, legal_entity_id) do
+    legal_entity_id
+    |> get_employee()
+    |> Map.put("id", id)
+  end
+
   def get_employee do
     get_employee("7cc91a5d-c02f-41e9-b571-1ea4f2375552", "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b", nil, "38782323")
   end
@@ -535,7 +555,7 @@ defmodule EHealth.MockServer do
         "owner_property_type" => "STATE",
         "name" => "Клініка Адоніс22",
         "legal_form" => "140",
-        "id" => "9c81824b-bc13-4d07-bc76-b069e2a2876b",
+        "id" => legal_entity_id,
         "edrpou" => edrpou
       },
       "is_active" => true,
@@ -689,7 +709,7 @@ defmodule EHealth.MockServer do
     }
   end
 
-  def get_legal_entity(id \\ "7cc91a5d-c02f-41e9-b571-1ea4f2375552", is_active \\ true) do
+  def get_legal_entity(id \\ "7cc91a5d-c02f-41e9-b571-1ea4f2375552", is_active \\ true, status \\ "ACTIVE") do
     %{
       "id" => id,
       "name" => "Клініка Борис",
@@ -726,7 +746,9 @@ defmodule EHealth.MockServer do
       "kveds" => [
         "86.01"
       ],
-      "status" => "ACTIVE",
+      "status" => status,
+      "mis_verified" => "VERIFIED",
+      "nhs_verified" => false,
       "owner_property_type" => "state",
       "legal_form" => "ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА",
       "medical_service_provider" => %{
@@ -769,11 +791,15 @@ defmodule EHealth.MockServer do
     |> Plug.Conn.send_resp(status, get_resp_body(resource, conn))
   end
 
-  def render_with_paging(resource, conn) do
+  def render_with_paging(resource, conn, starting_after \\ nil) do
     conn = Plug.Conn.put_status(conn, 200)
     conn
     |> Plug.Conn.put_resp_content_type("application/json")
-    |> Plug.Conn.send_resp(200, resource |> wrap_response_with_paging() |> Poison.encode!())
+    |> Plug.Conn.send_resp(200,
+      resource
+      |> wrap_response_with_paging(starting_after)
+      |> Poison.encode!()
+    )
   end
 
   def render_404(conn) do
@@ -798,6 +824,30 @@ defmodule EHealth.MockServer do
     }
   end
 
+  def wrap_response_with_paging(data, nil), do: wrap_response_with_paging(data)
+
+  @doc """
+  Returns second page which is the last one
+  """
+  def wrap_response_with_paging(data, starting_after) do
+    paging = %{
+      "size" => nil,
+      "limit" => 2,
+      "has_more" => false,
+      "cursors" => %{
+        "starting_after" => nil,
+        "ending_before" => "e9a3a1bb-da15-4f93-b414-1240af62ca51"
+      }
+    }
+
+    data
+    |> wrap_response()
+    |> Map.put("paging", paging)
+  end
+
+  @doc """
+  Returns first page
+  """
   def wrap_response_with_paging(data) do
     paging = %{
       "size" => nil,
