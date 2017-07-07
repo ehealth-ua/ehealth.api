@@ -1349,8 +1349,8 @@ Method returns shortened details, to obtain full information - get Declaration R
     + `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - user_id of a doctor.
     + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MSP ID.
     + status: new (enum, optional)
-        - new
-        - pending
+        - active
+        - pending_verification
     + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
     + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
     + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
@@ -2726,7 +2726,7 @@ API for searching Ukrainian Addresses
 + person (Person_Minimal)
 + employee (Employee_Minimal)
 + `legal_entity` (`MSP_Short`)
-+ division (`Division_Short`)
++ division (`Division_Short_List`)
 
 ### `Declaration_short`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -3042,6 +3042,14 @@ API for searching Ukrainian Addresses
 ### `Division_Details`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + include Division
+
+### `Division_Short_List`
++ id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ name: Бориспільське відділення Клініки Борис (string, required)
++ type: clinic (enum, required)
+    - clinic
+    - ambulant_clinic
+    - fap
 
 ### `Division_Short`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
