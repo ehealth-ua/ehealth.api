@@ -4,7 +4,6 @@ defmodule EHealth.Web.LegalEntityController do
   """
   use EHealth.Web, :controller
 
-  alias EHealth.API.PRM
   alias EHealth.LegalEntity.API
 
   action_fallback EHealth.Web.FallbackController
@@ -36,17 +35,13 @@ defmodule EHealth.Web.LegalEntityController do
   end
 
   def mis_verify(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
-    update_data = %{mis_verified: "VERIFIED"}
-
-    with {:ok, %{"meta" => %{}} = response} <- PRM.update_legal_entity(update_data, id, req_headers) do
+    with {:ok, %{"meta" => %{}} = response} <- API.mis_verify(id, req_headers) do
       proxy(conn, response)
     end
   end
 
   def nhs_verify(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
-    update_data = %{nhs_verified: true}
-
-    with {:ok, %{"meta" => %{}} = response} <- PRM.update_legal_entity(update_data, id, req_headers) do
+    with {:ok, %{"meta" => %{}} = response} <- API.nhs_verify(id, req_headers) do
       proxy(conn, response)
     end
   end

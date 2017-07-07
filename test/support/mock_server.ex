@@ -63,6 +63,13 @@ defmodule EHealth.MockServer do
     case conn.path_params do
       %{"id" => "356b4182-f9ce-4eda-b6af-43d2de8602f2"} ->
         render_404(conn)
+      %{"id" => "9b452d44-62f8-11e7-907b-a6006ad3dba0"} ->
+        legal_entity = get_legal_entity()
+        |> Map.merge(%{
+          "mis_verified" => "NOT_VERIFIED",
+          "nhs_verified" => true
+        })
+        Plug.Conn.send_resp(conn, 200, legal_entity |> wrap_response() |> Poison.encode!())
       %{"id" => "356b4182-f9ce-4eda-b6af-43d2de8602aa" = id} ->
         Plug.Conn.send_resp(conn, 200, id |> get_legal_entity(false) |> wrap_response() |> Poison.encode!())
       _ ->
@@ -713,14 +720,13 @@ defmodule EHealth.MockServer do
       ],
       "email" => "email@example.com",
       "is_active" => is_active,
+      "mis_verified" => "VERIFIED",
       "nhs_verified" => false,
       "public_name" => "Клініка Борис",
       "kveds" => [
         "86.01"
       ],
       "status" => "ACTIVE",
-      "mis_verified" => "VERIFIED",
-      "nhs_verified" => false,
       "owner_property_type" => "state",
       "legal_form" => "ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА",
       "medical_service_provider" => %{

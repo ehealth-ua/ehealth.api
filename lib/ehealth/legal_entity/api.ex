@@ -49,6 +49,44 @@ defmodule EHealth.LegalEntity.API do
       end
   end
 
+  def mis_verify(id, headers) do
+    update_data = %{mis_verified: "VERIFIED"}
+
+    with {:ok, pipe_data} <- PRM.get_legal_entity_by_id(id, headers),
+         {:ok, _} <- check_mis_verify_transition(pipe_data),
+         {:ok, legal_entity} <- update_legal_entity(id, update_data, headers) do
+      {:ok , legal_entity}
+    end
+  end
+
+  def nhs_verify(id, headers) do
+    update_data = %{nhs_verified: true}
+
+    with {:ok, pipe_data} <- PRM.get_legal_entity_by_id(id, headers),
+         {:ok, _} <- check_nhs_verify_transition(pipe_data),
+         {:ok, legal_entity} <- update_legal_entity(id, update_data, headers) do
+      {:ok , legal_entity}
+    end
+  end
+
+  def check_mis_verify_transition(%{"data" => %{"mis_verified" => "NOT_VERIFIED"}} = pipe_data) do
+    {:ok, pipe_data}
+  end
+  def check_mis_verify_transition(_) do
+    {:error, {:conflict, "LegalEntity is VERIFIED and cannot be VERIFIED."}}
+  end
+
+  def check_nhs_verify_transition(%{"data" => %{"nhs_verified" => false}} = pipe_data) do
+    {:ok, pipe_data}
+  end
+  def check_nhs_verify_transition(_) do
+    {:error, {:conflict, "LegalEntity is VERIFIED and cannot be VERIFIED."}}
+  end
+
+  def update_legal_entity(id, updated_data, headers) do
+    PRM.update_legal_entity(updated_data, id, headers)
+  end
+
   defp authorize_id(%{client_type: client_type, params: %{"id" => id}, client_id: client_id} = pipe_data) do
     if client_type in Confex.get_map(:ehealth, ClientContext)[:tokens_types_personal] and id != client_id do
       {:error, :forbidden}
