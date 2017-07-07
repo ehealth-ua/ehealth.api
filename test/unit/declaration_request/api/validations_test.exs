@@ -145,4 +145,85 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
   test "validate_schema/1" do
     assert {:error, _} = validate_schema(%{})
   end
+
+  describe "validate_tax_id/1" do
+    test "when tax_id is valid" do
+      raw_declaration_request = %{
+        data: %{
+          "person" => %{
+            "tax_id" => "1111111118"
+          }
+        }
+      }
+
+      result =
+        %DeclarationRequest{}
+        |> Ecto.Changeset.change(raw_declaration_request)
+        |> validate_tax_id()
+
+      assert [] = result.errors
+    end
+
+    test "when tax_id is not valid" do
+      raw_declaration_request = %{
+        data: %{
+          "person" => %{
+            "tax_id" => "3126509816"
+          }
+        }
+      }
+
+      result =
+        %DeclarationRequest{}
+        |> Ecto.Changeset.change(raw_declaration_request)
+        |> validate_tax_id()
+
+      assert {"Person's tax ID in not valid.", []} = result.errors[:"data.person.tax_id"]
+    end
+  end
+
+  describe "validate_confidant_persons_tax_id/1" do
+    test "when tax_id is valid" do
+      raw_declaration_request = %{
+        data: %{
+          "person" => %{
+            "confidant_person" => [
+              %{"tax_id" => "1111111118"},
+              %{"tax_id" => "2222222225"}
+            ]
+          }
+        }
+      }
+
+      result =
+        %DeclarationRequest{}
+        |> Ecto.Changeset.change(raw_declaration_request)
+        |> validate_confidant_persons_tax_id()
+
+      assert [] = result.errors
+    end
+
+    test "when tax_id is not valid" do
+      raw_declaration_request = %{
+        data: %{
+          "person" => %{
+            "confidant_person" => [
+              %{"first_name" => "Alex", "last_name" => "X", "tax_id" => "1111111117"},
+              %{"first_name" => "Alex", "last_name" => "Y", "tax_id" => "1111111119"}
+            ]
+          }
+        }
+      }
+
+      result =
+        %DeclarationRequest{}
+        |> Ecto.Changeset.change(raw_declaration_request)
+        |> validate_confidant_persons_tax_id()
+
+      assert [
+        "data.person.confidant_person[1].tax_id": {"Person's tax ID in not valid.", []},
+        "data.person.confidant_person[0].tax_id": {"Person's tax ID in not valid.", []}
+      ] = result.errors
+    end
+  end
 end

@@ -7,6 +7,7 @@ defmodule EHealth.DeclarationRequest.API.Validations do
   alias EHealth.Validators.SchemaMapper
   alias EHealth.Validators.Addresses
   alias EHealth.Validators.BirthDate
+  alias EHealth.Validators.TaxID
 
   import Ecto.Changeset
 
@@ -100,5 +101,37 @@ defmodule EHealth.DeclarationRequest.API.Validations do
         false -> [data: "Division does not belong to legal entity."]
       end
     end
+  end
+
+  def validate_tax_id(changeset) do
+    tax_id =
+      changeset
+      |> get_field(:data)
+      |> get_in(["person", "tax_id"])
+
+    if TaxID.validate(tax_id) do
+      changeset
+    else
+      add_error(changeset, :"data.person.tax_id", "Person's tax ID in not valid.")
+    end
+  end
+
+  def validate_confidant_persons_tax_id(changeset) do
+    confidant_persons =
+      changeset
+      |> get_field(:data)
+      |> get_in(["person", "confidant_person"])
+
+    validation = fn {%{"tax_id" => tax_id}, index}, changeset ->
+      if TaxID.validate(tax_id) do
+        changeset
+      else
+        add_error(changeset, :"data.person.confidant_person[#{index}].tax_id", "Person's tax ID in not valid.")
+      end
+    end
+
+    confidant_persons
+    |> Enum.with_index
+    |> Enum.reduce(changeset, validation)
   end
 end
