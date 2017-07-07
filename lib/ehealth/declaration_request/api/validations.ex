@@ -134,4 +134,29 @@ defmodule EHealth.DeclarationRequest.API.Validations do
     |> Enum.with_index
     |> Enum.reduce(changeset, validation)
   end
+
+  def validate_person_addresses(changeset) do
+    addresses =
+      changeset
+      |> get_field(:data)
+      |> get_in(["person", "addresses"])
+
+    with :ok <- assert_address_count(addresses, "REGISTRATION", 1),
+         :ok <- assert_address_count(addresses, "RESIDENCE", 1) do
+      changeset
+    else
+      {:error, "REGISTRATION"} ->
+        add_error(changeset, :"data.person.addresses", "one and only one registration address is required")
+      {:error, "RESIDENCE"} ->
+        add_error(changeset, :"data.person.addresses", "one and only one residence address is required")
+    end
+  end
+
+  defp assert_address_count(enum, address_type, count) do
+    if count == Enum.count(enum, fn %{"type" => type} -> type == address_type end) do
+      :ok
+    else
+      {:error, address_type}
+    end
+  end
 end

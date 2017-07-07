@@ -226,4 +226,103 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
       ] = result.errors
     end
   end
+
+  describe "validate_addresses/1" do
+    test "when addresses are valid" do
+      raw_declaration_request = %{
+        data: %{
+          "person" => %{
+            "addresses" => [
+              %{"type" => "REGISTRATION"},
+              %{"type" => "RESIDENCE"}
+            ]
+          }
+        }
+      }
+
+      result =
+        %DeclarationRequest{}
+        |> Ecto.Changeset.change(raw_declaration_request)
+        |> validate_person_addresses()
+
+      assert [] = result.errors
+    end
+
+    test "when there are more than one REGISTRATION address" do
+      raw_declaration_request = %{
+        data: %{
+          "person" => %{
+            "addresses" => [
+              %{"type" => "REGISTRATION"},
+              %{"type" => "REGISTRATION"}
+            ]
+          }
+        }
+      }
+
+      result =
+        %DeclarationRequest{}
+        |> Ecto.Changeset.change(raw_declaration_request)
+        |> validate_person_addresses()
+
+      assert ["data.person.addresses": {"one and only one registration address is required", []}] = result.errors
+    end
+
+    test "when there no REGISTRATION address" do
+      raw_declaration_request = %{
+        data: %{
+          "person" => %{
+            "addresses" => []
+          }
+        }
+      }
+
+      result =
+        %DeclarationRequest{}
+        |> Ecto.Changeset.change(raw_declaration_request)
+        |> validate_person_addresses()
+
+      assert ["data.person.addresses": {"one and only one registration address is required", []}] = result.errors
+    end
+
+    test "when there are more than one RESIDENCE address" do
+      raw_declaration_request = %{
+        data: %{
+          "person" => %{
+            "addresses" => [
+              %{"type" => "REGISTRATION"},
+              %{"type" => "RESIDENCE"},
+              %{"type" => "RESIDENCE"}
+            ]
+          }
+        }
+      }
+
+      result =
+        %DeclarationRequest{}
+        |> Ecto.Changeset.change(raw_declaration_request)
+        |> validate_person_addresses()
+
+      assert ["data.person.addresses": {"one and only one residence address is required", []}] = result.errors
+    end
+
+    test "when there no RESIDENCE address" do
+      raw_declaration_request = %{
+        data: %{
+          "person" => %{
+            "addresses" => [
+              %{"type" => "REGISTRATION"}
+            ]
+          }
+        }
+      }
+
+      result =
+        %DeclarationRequest{}
+        |> Ecto.Changeset.change(raw_declaration_request)
+        |> validate_person_addresses()
+
+      assert ["data.person.addresses": {"one and only one residence address is required", []}] = result.errors
+    end
+  end
 end

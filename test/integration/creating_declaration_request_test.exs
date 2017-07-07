@@ -462,7 +462,7 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
 
       error_message = ~s(Error during microservice interaction. Response from microservice: \
 [{%{description: \"settlement with id = adaa4abf-f530-461c-bcbf-a0ac210d955b does not exist\", \
-params: [], rule: :not_found}, \"$.addresses.settlement_id\"}].)
+params: [], rule: :not_found}, \"$.addresses.settlement_id\"}, {%{description: \"settlement with id = adaa4abf-f530-461c-bcbf-a0ac210d955b does not exist\", params: [], rule: :not_found}, \"$.addresses.settlement_id\"}].)
       assert error_message == resp["error"]["message"]
     end
   end
