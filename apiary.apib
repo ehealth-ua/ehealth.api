@@ -297,6 +297,40 @@ Method returns only **requested** parameters, birth place and second name in add
             + type: `too_many_results`
             + message: `This API method returns only exact match results, please retry with more specific search result` (string)
 
+## Merge Candidates [/merge_candidates]
+
+### Get merge candidates [GET /merge_candidates{?id,person_id,master_person_id,status,starting_after,ending_before,limit}]
+
++ Parameters
+    + id: `8aa4d353-a58f-45f6-b5ce-a89a9cc39391` (string, optional) - Unique record identifier
+    + person_id: `50320ee5-2bca-472c-a1a0-28e2e003ec2a` (string, optional) - Merge candidate identifier
+    + `master_person_id`: `cb553981-4b7f-45ec-8f73-f77faf2dcb22` (string, optional) - Master person identifier
+    + status: NEW (enum, optional) - Record status. Default: NEW
+        - NEW
+        - MERGED
+    + limit: 20 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
+    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
+    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
+
++ Response 200 (application/json)
+    + Attributes (Response_Collection)
+        + data (array[`Merge_Candidate`])
+
+### Merge candidate [POST /merge_candidates/{id}/actions/merge]
+
+1. Check current candidate status (status == NEW). If status != NEW - respond with 409 (invalid status)
+2. Update mpi.person is_active to false
+3. Update mpi.merge_candidates record status to MERGED
+
++ Parameters
+    + id: `8aa4d353-a58f-45f6-b5ce-a89a9cc39391` (string, optional) - Unique record identifier
+
++ Request (application/json)
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (`Merge_Candidate`)
+
 # Group Internal. IL DB
 
 ### Get Declaration requests List [GET /declaration_requests{?tax_id,employee_id,legal_entity_id,status}]
@@ -2591,6 +2625,17 @@ API for searching Ukrainian Addresses
     - OTP
     - OFFLINE
 + phone_number: `+380508887700` (string, optional)
+
+## `Merge_Candidates`
+### `Merge_Candidate`
++ id: `8aa4d353-a58f-45f6-b5ce-a89a9cc39391` (string, optional) - Unique record identifier
++ person_id: `50320ee5-2bca-472c-a1a0-28e2e003ec2a` (string, optional) - Merge candidate identifier
++ `master_person_id`: `cb553981-4b7f-45ec-8f73-f77faf2dcb22` (string, optional) - Master person identifier
++ status: NEW (enum, optional) - Record status
+        - NEW
+        - MERGED
++ inserted_at: `1991-08-19T00:00:00.000Z` (string, required) - ISO Datetime.
++ updated_at: `1991-08-19T00:00:00.000Z` (string, required) - ISO Datetime.
 
 ## Doctors
 ### Doctor
