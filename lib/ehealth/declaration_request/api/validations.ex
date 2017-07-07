@@ -152,6 +152,20 @@ defmodule EHealth.DeclarationRequest.API.Validations do
     end
   end
 
+  def validate_confidant_person_rel_type(changeset) do
+    confidant_persons =
+      changeset
+      |> get_field(:data)
+      |> get_in(["person", "confidant_person"])
+
+    if 1 == Enum.count(confidant_persons, fn %{"relation_type" => type} -> type == "PRIMARY" end) do
+      changeset
+    else
+      message = "one and only one confidant person with type PRIMARY is required"
+      add_error(changeset, :"data.person.confidant_persons[].relation_type", message)
+    end
+  end
+
   defp assert_address_count(enum, address_type, count) do
     if count == Enum.count(enum, fn %{"type" => type} -> type == address_type end) do
       :ok

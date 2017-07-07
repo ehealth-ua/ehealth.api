@@ -325,4 +325,71 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
       assert ["data.person.addresses": {"one and only one residence address is required", []}] = result.errors
     end
   end
+
+  describe "validate_confidant_person_rel_type/1" do
+    test "when exactly one confidant person is PRIMARY" do
+      raw_declaration_request = %{
+        data: %{
+          "person" => %{
+            "confidant_person" => [
+              %{"relation_type" => "PRIMARY"}
+            ]
+          }
+        }
+      }
+
+      result =
+        %DeclarationRequest{}
+        |> Ecto.Changeset.change(raw_declaration_request)
+        |> validate_confidant_person_rel_type()
+
+      assert [] = result.errors
+    end
+
+    test "when no confidant person is PRIMARY" do
+      raw_declaration_request = %{
+        data: %{
+          "person" => %{
+            "confidant_person" => [
+            ]
+          }
+        }
+      }
+
+      result =
+        %DeclarationRequest{}
+        |> Ecto.Changeset.change(raw_declaration_request)
+        |> validate_confidant_person_rel_type()
+
+      assert [
+        "data.person.confidant_persons[].relation_type": {
+          "one and only one confidant person with type PRIMARY is required", []
+        }
+      ] = result.errors
+    end
+
+    test "when more than one confidant person is PRIMARY" do
+      raw_declaration_request = %{
+        data: %{
+          "person" => %{
+            "confidant_person" => [
+              %{"relation_type" => "PRIMARY"},
+              %{"relation_type" => "PRIMARY"}
+            ]
+          }
+        }
+      }
+
+      result =
+        %DeclarationRequest{}
+        |> Ecto.Changeset.change(raw_declaration_request)
+        |> validate_confidant_person_rel_type()
+
+      assert [
+        "data.person.confidant_persons[].relation_type": {
+          "one and only one confidant person with type PRIMARY is required", []
+        }
+      ] = result.errors
+    end
+  end
 end
