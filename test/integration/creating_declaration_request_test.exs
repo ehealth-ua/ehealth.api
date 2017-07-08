@@ -157,7 +157,9 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
         send_resp(conn, 200, Poison.encode!(%{data: ["response_we_don't_care_about"]}))
       end
 
-      Plug.Router.post "/verifications/+380508887700" do
+      Plug.Router.post "/verifications" do
+        "+380508887700" = conn.body_params["phone_number"]
+
         send_resp(conn, 200, Poison.encode!(%{data: ["response_we_don't_care_about"]}))
       end
 
@@ -342,11 +344,15 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
         |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: ""}))
         |> post("/api/declaration_requests", declaration_request_params)
 
-      resp = json_response(conn, 424)
+      resp = json_response(conn, 404)
 
-      error_message = "Error during microservice interaction. Response from microservice: \
-%{\"error\" => %{}, \"meta\" => %{\"code\" => \"404\", \"url\" => \"http://localhost:#{port}/global_parameters\"}}."
-      assert error_message == resp["error"]["message"]
+      assert resp["error"] == %{
+        "error" => %{},
+        "meta" => %{
+          "code" => "404",
+          "url" => "http://localhost:#{port}/global_parameters"
+        }
+      }
     end
   end
 
@@ -420,11 +426,15 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
         |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: ""}))
         |> post("/api/declaration_requests", declaration_request_params)
 
-      resp = json_response(conn, 424)
+      resp = json_response(conn, 404)
 
-      error_message = "Error during microservice interaction. Response from microservice: \
-%{\"error\" => %{}, \"meta\" => %{\"code\" => \"404\", \"url\" => \"http://localhost:#{port}/employees/#{wrong_id}\"}}."
-      assert error_message == resp["error"]["message"]
+      assert resp["error"] == %{
+        "error" => %{},
+        "meta" => %{
+          "code" => "404",
+          "url" => "http://localhost:#{port}/employees/2f650a5c-7a04-4615-a1e7-00fa41bf160d"
+        }
+      }
     end
   end
 
@@ -449,7 +459,7 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
       {:ok, %{conn: conn}}
     end
 
-    test "validation error is returned (should be proper microservice error!)", %{conn: conn} do
+    test "validation error is returned", %{conn: conn} do
       declaration_request_params = File.read!("test/data/declaration_request.json")
 
       conn =
@@ -458,13 +468,34 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
         |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: ""}))
         |> post("/api/declaration_requests", declaration_request_params)
 
-      resp = json_response(conn, 424)
-
-      error_message = ~s(Error during microservice interaction. Response from microservice: \
-[{%{description: \"settlement with id = adaa4abf-f530-461c-bcbf-a0ac210d955b does not exist\", \
-params: [], rule: :not_found}, \"$.addresses.settlement_id\"}, {%{description: \"settlement with id = \
-adaa4abf-f530-461c-bcbf-a0ac210d955b does not exist\", params: [], rule: :not_found}, \"$.addresses.settlement_id\"}].)
-      assert error_message == resp["error"]["message"]
+      assert %{
+        "invalid" => [
+          %{
+            "entry" => "$.addresses.settlement_id",
+            "entry_type" => "json_data_property",
+            "rules" => [
+              %{
+                "description" => "settlement with id = adaa4abf-f530-461c-bcbf-a0ac210d955b does not exist",
+                "params" => [],
+                "rule" => "not_found"
+              }
+            ]
+          },
+          %{
+            "entry" => "$.addresses.settlement_id",
+            "entry_type" => "json_data_property",
+            "rules" => [
+              %{
+                "description" => "settlement with id = adaa4abf-f530-461c-bcbf-a0ac210d955b does not exist",
+                "params" => [],
+                "rule" => "not_found"
+              }
+            ]
+          }
+        ],
+        "message" => _,
+        "type" => "validation_failed"
+      } = json_response(conn, 422)["error"]
     end
   end
 end

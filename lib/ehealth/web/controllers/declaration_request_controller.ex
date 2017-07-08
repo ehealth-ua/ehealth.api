@@ -15,17 +15,8 @@ defmodule EHealth.Web.DeclarationRequestController do
     user_id = get_consumer_id(conn.req_headers)
     client_id = get_client_id(conn.req_headers)
 
-    case DeclarationRequestAPI.create(declaration_request, user_id, client_id) do
-      {:ok, %{finalize: declaration_request}} ->
-        render(conn, "declaration_request.json", declaration_request: declaration_request)
-      {:error, _transaction_step, changeset, _} ->
-        conn
-        |> put_status(:unprocessable_entity)
-        |> render(EView.Views.ValidationError, :"422", changeset)
-      {:error, microservice_response} ->
-        conn
-        |> put_status(:failed_dependency)
-        |> render("microservice_error.json", %{microservice_response: microservice_response})
+    with {:ok, %{finalize: result}} <- DeclarationRequestAPI.create(declaration_request, user_id, client_id) do
+      render(conn, "declaration_request.json", declaration_request: result)
     end
   end
 
@@ -35,10 +26,10 @@ defmodule EHealth.Web.DeclarationRequestController do
     case DeclarationRequestAPI.approve(id, verification_code, user_id) do
       {:ok, %{declaration_request: declaration_request}} ->
         render(conn, "status.json", declaration_request: declaration_request)
-      {:error, _transaction_step, changeset, _} ->
+      {:error, :verification, error_struct, _} ->
         conn
-        |> put_status(:unprocessable_entity)
-        |> render(EView.Views.ValidationError, :"422", changeset)
+        |> put_status(:failed_dependency)
+        |> render("microservice_error.json", %{microservice_response: error_struct})
     end
   end
 end

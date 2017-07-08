@@ -350,12 +350,14 @@ declaration_request_SSN.jpeg"})
     defmodule SendingVerificationCode do
       use MicroservicesHelper
 
-      Plug.Router.post "/verifications/+380991234567" do
-        send_resp(conn, 200, Poison.encode!(%{data: ["response_we_don't_care_about"]}))
-      end
+      Plug.Router.post "/verifications" do
+        code =
+          case conn.body_params["phone_number"] do
+            "+380991234567" -> 200
+            "+380508887700" -> 404
+          end
 
-      Plug.Router.post "/verifications/+380508887700" do
-        send_resp(conn, 404, Poison.encode!(%{}))
+        send_resp(conn, code, Poison.encode!(%{data: ["response_we_don't_care_about"]}))
       end
     end
 

@@ -38,7 +38,7 @@ defmodule EHealth.DeclarationRequest.API do
   end
 
   def create(attrs, user_id, client_id) do
-    with {:ok, attrs} <-  Validations.validate_schema(attrs),
+    with {:ok, attrs} <- Validations.validate_schema(attrs),
          {:ok, _} <- Validations.validate_addresses(get_in(attrs, ["person", "addresses"])),
          {:ok, %{"data" => global_parameters}} <- PRM.get_global_parameters(),
          {:ok, %{"data" => employee}} <- PRM.get_employee_by_id(attrs["employee_id"]),
@@ -78,9 +78,12 @@ defmodule EHealth.DeclarationRequest.API do
 
     case authorization["type"] do
       "OTP" ->
-        Create.send_verification_code(authorization["number"])
-
-        {:ok, declaration_request}
+        case Create.send_verification_code(authorization["number"]) do
+          {:ok, _} ->
+            {:ok, declaration_request}
+          {:error, error} ->
+            {:error, error}
+        end
       "OFFLINE" ->
         case Create.generate_upload_urls(declaration_request.id) do
           {:ok, documents} ->

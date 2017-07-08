@@ -14,8 +14,8 @@ defmodule EHealth.API.OTPVerification do
   def timeouts, do: config()[:timeouts]
 
   def initialize(number, headers \\ []) do
-    "/verifications/#{number}"
-    |> post!("", headers)
+    "/verifications"
+    |> post!(Poison.encode!(%{phone_number: number}), headers)
     |> ResponseDecoder.check_response()
   end
 

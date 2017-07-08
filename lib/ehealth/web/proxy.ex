@@ -17,12 +17,12 @@ defmodule EHealth.Proxy do
       |> strings_to_keys()
 
     conn
-    |> resp(status, resp)
+    |> resp(string_to_integer(status), resp)
     |> assign(:paging, paging)
     |> put_resp_content_type("application/json")
   end
 
-  def get_proxy_resp_data(%{"error" => error}), do: error
+  def get_proxy_resp_data(%{"error" => _} = error), do: error
   def get_proxy_resp_data(%{"data" => data}), do: data
 
   def strings_to_keys(%{} = map) do
@@ -33,4 +33,7 @@ defmodule EHealth.Proxy do
 
   def string_to_atom(string) when is_binary(string), do: String.to_atom(string)
   def string_to_atom(atom), do: atom
+
+  def string_to_integer(string) when is_binary(string), do: String.to_integer(string)
+  def string_to_integer(string), do: string
 end

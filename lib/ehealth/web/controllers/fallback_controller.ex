@@ -12,12 +12,6 @@ defmodule EHealth.Web.FallbackController do
     |> render(EView.Views.ValidationError, "422.json", %{schema: json_schema_errors})
   end
 
-  def call(conn, {:error, _ecto_multi_key, %Ecto.Changeset{valid?: false} = changeset, _}) do
-    conn
-    |> put_status(:unprocessable_entity)
-    |> render(EView.Views.ValidationError, :"422", changeset)
-  end
-
   @doc """
   Proxy response from APIs
   """
