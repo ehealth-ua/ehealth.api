@@ -19,30 +19,34 @@ defmodule EHealth.DeclarationRequest.API.Create do
   end
 
   def generate_upload_urls(id) do
+    link_versions =
+      for verb <- ["HEAD", "PUT"],
+          document_type <- config()[:declaration_request_offline_documents], do: {verb, document_type}
+
     documents =
-      Enum.map config()[:declaration_request_offline_documents], fn document_type ->
+      Enum.reduce_while link_versions, [], fn {verb, document_type}, acc ->
         result =
-          MediaStorage.create_signed_url("PUT", @files_storage_bucket, "declaration_request_#{document_type}.jpeg", id)
+          MediaStorage.create_signed_url(verb, @files_storage_bucket, "declaration_request_#{document_type}.jpeg", id)
 
         case result do
           {:ok, %{"data" => %{"secret_url" => url}}} ->
-            %{"type" => document_type, "url" => url}
+            url_details = %{
+              "type" => document_type,
+              "verb" => verb,
+              "url" => url
+            }
+
+            {:cont, [url_details|acc]}
           {:error, error_response} ->
-            {:error, error_response}
+            {:halt, {:error, error_response}}
         end
       end
 
-    failed_calls = Enum.filter(documents, &is_tuple(&1))
-
-    if length(failed_calls) > 0 do
-      error_message =
-        failed_calls
-        |> Enum.map(fn {:error, error_response} -> format_error_response("MediaStorage", error_response) end)
-        |> Enum.join("; ")
-
-      {:error, error_message}
-    else
-      {:ok, documents}
+    case documents do
+      {:error, error_response} ->
+        {:error, format_error_response("MediaStorage", error_response)}
+      _ ->
+        {:ok, documents}
     end
   end
 

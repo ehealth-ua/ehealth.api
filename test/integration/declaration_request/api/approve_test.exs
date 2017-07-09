@@ -4,7 +4,64 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.ApproveTest do
   use EHealth.Web.ConnCase
   import EHealth.DeclarationRequest.API.Approve
 
-  describe "verify/2" do
+  describe "verify/2 - via offline docs" do
+    defmodule VerifyViaOfflineDocs do
+      use MicroservicesHelper
+
+      Plug.Router.get "/good_upload_1" do
+        Plug.Conn.send_resp(conn, 200, "")
+      end
+
+      Plug.Router.get "/good_upload_2" do
+        Plug.Conn.send_resp(conn, 200, "")
+      end
+
+      Plug.Router.get "/missing_upload" do
+        Plug.Conn.send_resp(conn, 404, "")
+      end
+    end
+
+    setup %{conn: _conn} do
+      {:ok, port, ref} = start_microservices(VerifyViaOfflineDocs)
+
+      on_exit fn ->
+        stop_microservices(ref)
+      end
+
+      {:ok, %{port: port}}
+    end
+
+    test "all documents were verified to be successfully uploaded", %{port: port} do
+      declaration_request = %{
+        authentication_method_current: %{
+          "type" => "OFFLINE"
+        },
+        documents: [
+          %{"verb" => "HEAD", "url" => "http://localhost:#{port}/good_upload_1"},
+          %{"verb" => "HEAD", "url" => "http://localhost:#{port}/good_upload_2"}
+        ]
+      }
+
+      assert {:ok, true} = verify(declaration_request, "doesn't matter")
+    end
+
+    test "there's a missing upload", %{port: port} do
+      declaration_request = %{
+        authentication_method_current: %{
+          "type" => "OFFLINE"
+        },
+        documents: [
+          %{"verb" => "HEAD", "url" => "http://localhost:#{port}/good_upload_1"},
+          %{"verb" => "HEAD", "url" => "http://localhost:#{port}/missing_upload"}
+        ]
+      }
+
+      assert {:error, Enum.at(declaration_request.documents, 1)} ==
+        verify(declaration_request, "doesn't matter")
+    end
+  end
+
+  describe "verify/2 - via code" do
     defmodule VerifyViaOTP do
       use MicroservicesHelper
 

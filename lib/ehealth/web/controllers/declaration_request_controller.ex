@@ -20,16 +20,12 @@ defmodule EHealth.Web.DeclarationRequestController do
     end
   end
 
-  def approve(conn, %{"id" => id, "verification_code" => verification_code}) do
+  def approve(conn, %{"id" => id} = params) do
     user_id = get_consumer_id(conn.req_headers)
 
-    case DeclarationRequestAPI.approve(id, verification_code, user_id) do
-      {:ok, %{declaration_request: declaration_request}} ->
-        render(conn, "status.json", declaration_request: declaration_request)
-      {:error, :verification, error_struct, _} ->
-        conn
-        |> put_status(:failed_dependency)
-        |> render("microservice_error.json", %{microservice_response: error_struct})
+    with {:ok, %{declaration_request: declaration_request}} =
+        DeclarationRequestAPI.approve(id, params["verification_code"], user_id) do
+      render(conn, "status.json", declaration_request: declaration_request)
     end
   end
 end

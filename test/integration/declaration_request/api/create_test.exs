@@ -44,12 +44,24 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
 
       expected_documents = [
         %{
+          "type" => "SSN",
+          "verb" => "PUT",
+          "url" => "http://a.link.for/98e0a42f-20fe-472c-a614-0ea99426a3fb/declaration_request_SSN.jpeg"
+        },
+        %{
           "type" => "Passport",
+          "verb" => "PUT",
           "url" => "http://a.link.for/98e0a42f-20fe-472c-a614-0ea99426a3fb/declaration_request_Passport.jpeg"
         },
         %{
           "type" => "SSN",
+          "verb" => "HEAD",
           "url" => "http://a.link.for/98e0a42f-20fe-472c-a614-0ea99426a3fb/declaration_request_SSN.jpeg"
+        },
+        %{
+          "type" => "Passport",
+          "verb" => "HEAD",
+          "url" => "http://a.link.for/98e0a42f-20fe-472c-a614-0ea99426a3fb/declaration_request_Passport.jpeg"
         }
       ]
 
@@ -60,9 +72,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       result = generate_upload_urls("98e0a42f-0000-9999-5555-0ea99426a3fb")
 
       error_message = ~s(Error during MediaStorage interaction. Result from MediaStorage: \
-%{"something" => "went wrong with declaration_request_Passport.jpeg"}; Error during \
-MediaStorage interaction. Result from MediaStorage: %{"something" => "went wrong with \
-declaration_request_SSN.jpeg"})
+%{"something" => "went wrong with declaration_request_Passport.jpeg"})
 
       assert {:error, error_message} == result
     end

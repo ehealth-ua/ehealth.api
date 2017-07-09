@@ -275,12 +275,12 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
         resp["data"]["content"]
       assert [
         %{
-          "type" => "Passport",
-          "url" => "http://some_resource.com/#{id}/declaration_request_Passport.jpeg"
-        },
-        %{
           "type" => "SSN",
           "url" => "http://some_resource.com/#{id}/declaration_request_SSN.jpeg"
+        },
+        %{
+          "type" => "Passport",
+          "url" => "http://some_resource.com/#{id}/declaration_request_Passport.jpeg"
         }
       ] == resp["data"]["urgent"]["documents"]
     end

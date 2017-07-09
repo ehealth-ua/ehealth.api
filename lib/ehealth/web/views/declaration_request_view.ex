@@ -38,7 +38,7 @@ defmodule EHealth.Web.DeclarationRequestView do
       |> Map.put("division", division)
 
     if declaration_request.documents do
-      Map.put(data, "urgent", %{"documents" =>declaration_request.documents})
+      Map.put(data, "urgent", %{"documents" => filter_document_links(declaration_request.documents)})
     else
       data
     end
@@ -81,5 +81,12 @@ defmodule EHealth.Web.DeclarationRequestView do
     |> Map.drop(["medical_service_provider"])
     |> Map.take(legal_entity_attrs)
     |> Map.merge(additional_attrs)
+  end
+
+  defp filter_document_links(documents) do
+    filter = fn document -> document["verb"] == "PUT" end
+    map = fn document -> Map.drop(document, ["verb"]) end
+
+    Enum.filter_map(documents, filter, map)
   end
 end
