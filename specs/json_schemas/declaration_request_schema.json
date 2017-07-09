@@ -26,6 +26,11 @@
       "type": "string",
       "pattern": "^(?!.*[ЫЪЭЁыъэё@%&$^#])[a-zA-ZА-ЯҐЇІЄа-яґїіє0-9№\\\"!\\^\\*)\\]\\[(._-].*$"
     },
+    "tax_id": {
+      "type": "string",
+      "pattern": "^[1-9]([0-9]{7}|[0-9]{9})$",
+      "minLength": 10
+    },
     "address": {
       "type": "object",
       "properties": {
@@ -89,7 +94,8 @@
             "PASSPORT",
             "NATIONAL_ID",
             "BIRTH_CERTIFICATE",
-            "TEMPORARY_CERTIFICATE"
+            "TEMPORARY_CERTIFICATE",
+            "COURT_DECISION"
           ]
         },
         "number": {
@@ -123,7 +129,7 @@
         },
         "phone_number": {
           "type": "string",
-          "pattern": "^\\+38[0-9]{10}$"
+          "pattern": "^\\+38[0-9]{10}$",
         }
       },
       "required": [
@@ -147,20 +153,40 @@
           "type": "object",
           "properties": {
             "first_name": {
-              "type": "string"
+              "type": "string",
+              "items": {
+                "$ref": "#/definitions/name"
+              },
+              "minLength": 1
             },
             "last_name": {
-              "type": "string"
+              "type": "string",
+              "items": {
+                "$ref": "#/definitions/name"
+              },
+              "minLength": 1
             },
             "second_name": {
-              "type": "string"
+              "type": "string",
+              "items": {
+                "$ref": "#/definitions/name"
+              },
+              "minLength": 1
             },
             "birth_date": {
               "type": "string",
               "format": "date"
             },
-            "birth_place": {
-              "type": "string"
+            "birth_country": {
+              "type": "string",
+              "minLength": 1
+            },
+            "birth_settlement": {
+              "type": "string",
+              "items": {
+                "$ref": "#/definitions/name"
+              },
+              "minLength": 1
             },
             "gender": {
               "type": "string",
@@ -171,17 +197,25 @@
             },
             "email": {
               "type": "string",
-              "format": "email"
+              "format": "email",
+              "minLength": 5
             },
             "tax_id": {
               "type": "string",
-              "pattern": "^[1-9]([0-9]{7}|[0-9]{9})$"
+              "items": {
+                "$ref": "#/definitions/tax_id"
+              }
             },
             "secret": {
-              "type": "string"
+              "type": "string",
+              "items": {
+                "$ref": "#/definitions/name"
+              },
+              "minLength": 6
             },
             "documents": {
               "type": "array",
+              "minItems": 1,
               "items": {
                 "$ref": "#/definitions/document"
               }
@@ -190,7 +224,8 @@
               "type": "array",
               "items": {
                 "$ref": "#/definitions/address"
-              }
+              },
+              "minItems": 2
             },
             "phones": {
               "type": "array",
@@ -208,13 +243,25 @@
               "type": "object",
               "properties": {
                 "first_name": {
-                  "type": "string"
+                  "type": "string",
+                  "items": {
+                    "$ref": "#/definitions/name"
+                  },
+                  "minLength": 1
                 },
                 "last_name": {
-                  "type": "string"
+                  "type": "string",
+                  "items": {
+                    "$ref": "#/definitions/name"
+                  },
+                  "minLength": 1
                 },
                 "second_name": {
-                  "type": "string"
+                  "type": "string",
+                  "items": {
+                    "$ref": "#/definitions/name"
+                  },
+                  "minLength": 1
                 },
                 "phones": {
                   "type": "array",
@@ -241,7 +288,11 @@
                   ]
                 },
                 "first_name": {
-                  "type": "string"
+                  "type": "string",
+                  "items": {
+                    "$ref": "#/definitions/name"
+                  },
+                  "minLength": 1
                 },
                 "last_name": {
                   "type": "string"
@@ -253,8 +304,16 @@
                   "type": "string",
                   "format": "date-time"
                 },
-                "birth_place": {
-                  "type": "string"
+                "birth_country": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "birth_settlement": {
+                  "type": "string",
+                  "items": {
+                    "$ref": "#/definitions/name"
+                  },
+                  "minLength": 1
                 },
                 "gender": {
                   "type": "string",
@@ -265,10 +324,20 @@
                 },
                 "tax_id": {
                   "type": "string",
-                  "pattern": "^[1-9]([0-9]{7}|[0-9]{9})$"
+                  "items": {
+                    "$ref": "#/definitions/tax_id"
+                  }
+                },
+                "secret": {
+                  "type": "string",
+                  "items": {
+                    "$ref": "#/definitions/name"
+                  },
+                  "minLength": 6
                 },
                 "documents": {
                   "type": "array",
+                  "minItems": 2,
                   "items": {
                     "$ref": "#/definitions/document"
                   }
@@ -282,25 +351,29 @@
               }
               },
               "required": [
+                "relation_type",
                 "first_name",
                 "last_name",
                 "birth_date",
-                "birth_place",
-                "gender"
+                "birth_country",
+                "birth_settlement",
+                "gender",
+                "secret",
+                "documents"
               ],
               "description": "Should be set if this Person is disabled, underage, etc."
             },
-            "renewal_consent": {
-              "type": "boolean"
-            },
             "patient_signed": {
-              "type": "boolean"
+              "type": "boolean",
+              "enum": [
+                 false
+              ]
             },
-            "disclosure_consent": {
-              "type": "boolean"
-            },
-            "process_data_consent": {
-              "type": "boolean"
+            "process_disclosure_data_consent": {
+              "type": "boolean",
+              "enum": [
+                 true
+              ]
             }
           },
           "required": [
@@ -310,7 +383,13 @@
             "birth_country",
             "birth_settlement",
             "gender",
-            "secret"
+            "secret",
+            "documents",
+            "addresses",
+            "authentication_methods",
+            "emergency_contact",
+            "patient_signed",
+            "process_disclosure_data_consent"
           ],
           "description": "Object that described a Patient. Confidant person should be set for disabled persons, underage persons, etc."
         },
@@ -325,7 +404,7 @@
         "scope": {
           "type": "string",
           "enum": [
-            "FAMILY DOCTOR"
+            "family_doctor"
           ]
         }
       },
@@ -334,8 +413,7 @@
         "employee_id",
         "division_id",
         "scope"
-      ],
-      "additionalProperties": false
+      ]
     }
   }
 }
