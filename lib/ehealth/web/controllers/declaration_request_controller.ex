@@ -23,7 +23,7 @@ defmodule EHealth.Web.DeclarationRequestController do
   def approve(conn, %{"id" => id} = params) do
     user_id = get_consumer_id(conn.req_headers)
 
-    with {:ok, %{declaration_request: declaration_request}} =
+    with {:ok, %{declaration_request: declaration_request}} <-
         DeclarationRequestAPI.approve(id, params["verification_code"], user_id) do
       render(conn, "status.json", declaration_request: declaration_request)
     end

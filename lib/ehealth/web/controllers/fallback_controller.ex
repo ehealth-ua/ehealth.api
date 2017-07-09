@@ -25,6 +25,10 @@ defmodule EHealth.Web.FallbackController do
     |> render(EView.Views.ValidationError, :"422", changeset)
   end
 
+  def call(conn, {:error, _ecto_multi_key, reason, _}) do
+    proxy(conn, reason)
+  end
+
   def call(conn, %Ecto.Changeset{valid?: false} = changeset) do
     call(conn, {:error, changeset})
   end
