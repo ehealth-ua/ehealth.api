@@ -1285,7 +1285,7 @@ Each dictionary is an object that contains *{key}*:*{value}* pairs where:
     + Attributes (Response_OK)
         + data (array[`Dictionary`])
 
-## OTP Verification - TDB [/api/otp_verifications]
+## OTP Verification - TDB [/api/verifications]
 
 Method is used to verify that provided in declarartion request phone number is valid and is in service
 
@@ -1304,7 +1304,7 @@ Method is used to verify that provided in declarartion request phone number is v
     + Attributes (Response__Process_OK)
         + data (OTP)
 
-### Complete OTP Verification [PATCH /api/otp_verifications/{phone_number}/actions/complete]
+### Complete OTP Verification [PATCH /api/verifications/{phone_number}/actions/complete]
 
 + Parameters
     + `phone_number`: `+380508887700` (string, required)
@@ -1316,13 +1316,13 @@ Method is used to verify that provided in declarartion request phone number is v
             Authorization: Bearer mF_9.B5f-4.1JqM
     
     + Attributes (object)
-        + code: 395105 (number)
+        + code: 3782 (number)
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + data (OTP)
 
-### Find Verifications by Phone Number [GET /api/otp_verifications/{phone_number}]
+### Find Verifications by Phone Number [GET /api/verifications/{phone_number}]
 
 + Parameters
     + `phone_number`: `+380508887700` (string, required)
@@ -1497,6 +1497,7 @@ Use this method to resend sms on previously created Declaration Request.
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
+        + data (OTP)
 
 ### Sign Declaration Request [PATCH /api/declaration_requests/{id}/actions/sign]
 
@@ -3263,12 +3264,17 @@ API for searching Ukrainian Addresses
 
 ## OTPs
 ### OTP
-+ id: 4 (string, required)
-+ `phone_number`: `+380508887700` (string, required)
-+ `check_digit`: 5 (number, required) - Check digit that will be first in sent OTP code. Can be validated as checksum by [Verhoeff algorithm](https://en.wikipedia.org/wiki/Verhoeff_algorithm).
++ id: `7d23bebb-1cf3-4221-bf21-18aada444756` (string, required)
++ status: `NEW` (enum, required)
+    - NEW
+    - CANCELED
+    - VERIFIED
+    - UNVERIFIED
++ `code_expired_at`: `2017-07-10T12:20:16.300597Z` (string, required)
++ active: true (boolean, required)
 
 ## Dashboards
-Ву
+
 ### HistogramStats
 + interval (Interval, required)
 + period (MainStats, required)
