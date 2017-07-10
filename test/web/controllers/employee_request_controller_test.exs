@@ -5,6 +5,8 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
   import EHealth.SimpleFactory
 
+  alias EHealth.Employee.Request
+
   @moduletag :with_client_id
 
   describe "create employee request" do
@@ -157,7 +159,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "with valid client_id in metadata", %{conn: conn} do
-      %{data: %{"legal_entity_id" => legal_entity_id}} = fixture(:employee_request)
+      %{data: %{"legal_entity_id" => legal_entity_id}} = fixture(Request)
       conn = put_client_id_header(conn, legal_entity_id)
       conn = get conn, employee_request_path(conn, :index)
       resp = json_response(conn, 200)
@@ -169,7 +171,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "with invalid client_id in metadata", %{conn: conn} do
-      fixture(:employee_request)
+      fixture(Request)
       conn = put_client_id_header(conn, Ecto.UUID.generate())
       conn = get conn, employee_request_path(conn, :index)
       resp = json_response(conn, 200)
@@ -182,7 +184,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   end
 
   test "get employee request with non-existing user", %{conn: conn} do
-    employee_request = %{id: id} = fixture(:employee_request)
+    employee_request = %{id: id} = fixture(Request)
 
     conn = get conn, employee_request_path(conn, :show, id)
     resp = json_response(conn, 200)
@@ -200,7 +202,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   end
 
   test "get employee request with existing user", %{conn: conn} do
-    employee_request = %{id: id} = fixture(:employee_request, "test@user.com")
+    employee_request = %{id: id} = fixture(Request, %{email: "test@user.com"})
 
     conn = get conn, employee_request_path(conn, :show, id)
     resp = json_response(conn, 200)
@@ -220,14 +222,14 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   end
 
   test "create user by employee request", %{conn: conn} do
-    %{id: id} = fixture(:employee_request, "test@user.com")
+    %{id: id} = fixture(Request, %{email: "test@user.com"})
     conn = post conn, employee_request_path(conn, :create_user, id), %{"password" => "123"}
     resp = json_response(conn, 201)
     assert Map.has_key?(resp["data"], "email")
   end
 
   test "create user by employee request invalid params", %{conn: conn} do
-    %{id: id} = fixture(:employee_request, "test@user.com")
+    %{id: id} = fixture(Request, %{email: "test@user.com"})
     conn = post conn, employee_request_path(conn, :create_user, id), %{"passwords" => "123"}
     assert json_response(conn, 422)["errors"] != %{}
   end
@@ -239,7 +241,10 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   end
 
   test "can approve employee request if email maches", %{conn: conn} do
-    %{id: id} = fixture(:employee_request, "mis_bot_1493831618@user.com", "NEW", "OWNER")
+    %{id: id} = fixture(Request, %{
+          email: "mis_bot_1493831618@user.com",
+          status: "NEW",
+          employee_type: "OWNER"})
 
     conn = post conn, employee_request_path(conn, :approve, id)
     resp = json_response(conn, 200)["data"]
@@ -247,7 +252,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   end
 
   test "cannot approve employee request if email doesnot match", %{conn: conn} do
-    %{id: id} = fixture(:employee_request)
+    %{id: id} = fixture(Request)
 
     conn = post conn, employee_request_path(conn, :approve, id)
     json_response(conn, 403)
@@ -262,7 +267,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   end
 
   test "cannot approve employee request if you didn't create it'", %{conn: conn} do
-    %{id: id} = fixture(:employee_request)
+    %{id: id} = fixture(Request)
 
     conn = put_client_id_header(conn, Ecto.UUID.generate())
     conn = post conn, employee_request_path(conn, :approve, id)
@@ -270,7 +275,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   end
 
   test "can approve employee request if you created it'", %{conn: conn} do
-    %{id: id, data: data} = fixture(:employee_request, "mis_bot_1493831618@user.com")
+    %{id: id, data: data} = fixture(Request, %{email: "mis_bot_1493831618@user.com"})
 
     conn = put_client_id_header(conn, Map.get(data, "legal_entity_id"))
     conn = post conn, employee_request_path(conn, :approve, id)
@@ -279,7 +284,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   end
 
   test "can reject employee request if email matches", %{conn: conn} do
-    %{id: id} = fixture(:employee_request, "mis_bot_1493831618@user.com")
+    %{id: id} = fixture(Request, %{email: "mis_bot_1493831618@user.com"})
 
     conn = post conn, employee_request_path(conn, :reject, id)
     resp = json_response(conn, 200)["data"]
@@ -287,7 +292,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   end
 
   test "cannot reject employee request if email doesnot match", %{conn: conn} do
-    %{id: id} = fixture(:employee_request)
+    %{id: id} = fixture(Request)
 
     conn = post conn, employee_request_path(conn, :reject, id)
     json_response(conn, 403)
@@ -302,7 +307,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   end
 
   test "cannot reject employee request if you didn't create it'", %{conn: conn} do
-    %{id: id} = fixture(:employee_request)
+    %{id: id} = fixture(Request)
 
     conn = put_client_id_header(conn, Ecto.UUID.generate())
     conn = post conn, employee_request_path(conn, :reject, id)
@@ -310,7 +315,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   end
 
   test "can reject employee request if you created it'", %{conn: conn} do
-    %{id: id, data: data} = fixture(:employee_request, "mis_bot_1493831618@user.com")
+    %{id: id, data: data} = fixture(Request, %{email: "mis_bot_1493831618@user.com"})
 
     conn = put_client_id_header(conn, Map.get(data, "legal_entity_id"))
     conn = post conn, employee_request_path(conn, :reject, id)

@@ -106,9 +106,10 @@ Also sample `.env` can be used as payload for `docker run` cli.
 | BAMBOO_EMPLOYEE_CREATED_NOTIFICATION_SUBJECT | ``            | The subject of the employee created notification email. |
 
 # Paging
-| VAR_NAME                   | Default Value | Description |
-| -------------------------- | ------------- | ----------- |
-| EMPLOYEE_REQUESTS_PER_PAGE | `50`          | Number of items per page for Employee requests. |
+| VAR_NAME                      | Default Value | Description                                        |
+| --------------------------    | ------------- | -----------                                        |
+| EMPLOYEE_REQUESTS_PER_PAGE    | `50`          | Number of items per page for Employee requests.    |
+| DECLARATION_REQUESTS_PER_PAGE | `50`          | Number of items per page for Declaration requests. |
 
 # Tokens
 | VAR_NAME                                     | Default Value | Description |

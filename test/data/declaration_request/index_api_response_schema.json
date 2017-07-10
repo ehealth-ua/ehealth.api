@@ -1,0 +1,137 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "array",
+  "items": {
+    "properties": {
+      "id": {
+        "type": "string"
+      },
+      "start_date": {
+        "type": "string"
+      },
+      "end_date": {
+        "type": "string"
+      },
+      "person": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "first_name": {
+            "type": "string"
+          },
+          "last_name": {
+            "type": "string"
+          },
+          "second_name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "first_name",
+          "last_name"
+        ]
+      },
+      "employee": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "position": {
+            "type": "string"
+          },
+          "party": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "first_name": {
+                "type": "string"
+              },
+              "last_name": {
+                "type": "string"
+              },
+              "second_name": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string"
+              },
+              "phones": {
+                "type": "array"
+              }
+            },
+            "required": [
+              "id",
+              "first_name",
+              "last_name"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "position"
+        ]
+      },
+      "legal_entity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "short_name": {
+            "type": "string"
+          },
+          "legal_form": {
+            "type": "string"
+          },
+          "edrpou": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "short_name",
+          "legal_form",
+          "edrpou"
+        ]
+      },
+      "division": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "clinic",
+              "ambulant_clinic",
+              "fap"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type"
+        ]
+      }
+    },
+    "required": [
+      "id",
+      "start_date",
+      "end_date"
+    ]
+  }
+}

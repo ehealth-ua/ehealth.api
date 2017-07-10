@@ -23,7 +23,7 @@ defmodule EHealth.Web.EmployeeRequestView do
     %{
       id: Map.get(employee_request, :id),
       status: Map.get(employee_request, :status),
-      insreted_at: Map.get(employee_request, :inserted_at)
+      inserted_at: Map.get(employee_request, :inserted_at)
     }
   end
 end

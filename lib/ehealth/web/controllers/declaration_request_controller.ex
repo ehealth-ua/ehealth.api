@@ -6,7 +6,14 @@ defmodule EHealth.Web.DeclarationRequestController do
 
   action_fallback EHealth.Web.FallbackController
 
-  def show(conn, %{"id" => id}) do
+  def index(conn, params) do
+    declaration_requests = DeclarationRequestAPI.list_declaration_requests(params)
+    with {declaration_requests, %Ecto.Paging{} = paging} <- declaration_requests do
+      render(conn, "index.json", declaration_requests: declaration_requests, paging: paging)
+    end
+  end
+
+  def show(conn, %{"declaration_request_id" => id}) do
     declaration_request = DeclarationRequestAPI.get_declaration_request_by_id!(id)
     render(conn, "show.json", declaration_request: declaration_request)
   end

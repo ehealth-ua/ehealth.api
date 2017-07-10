@@ -83,7 +83,13 @@ defmodule Ehealth.Web.Router do
     patch "/divisions/:id/actions/deactivate", DivisionController, :deactivate
 
     # Declaration requests
-    get "/declaration_requests/:id", DeclarationRequestController, :show
+    scope "/declaration_requests" do
+      pipe_through [:client_context_list]
+
+      get "/", DeclarationRequestController, :index
+      get "/:declaration_request_id", DeclarationRequestController, :show
+    end
+
     post "/declaration_requests", DeclarationRequestController, :create
     patch "/declaration_requests/:id/approve", DeclarationRequestController, :approve
   end

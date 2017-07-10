@@ -2,6 +2,7 @@ defmodule EHealth.DeclarationRequest.API do
   @moduledoc false
 
   import Ecto.{Query, Changeset}, warn: false
+  import EHealth.Paging
   import EHealth.DeclarationRequest.API.Validations
 
   alias Ecto.Multi
@@ -36,6 +37,32 @@ defmodule EHealth.DeclarationRequest.API do
   def get_declaration_request_by_id!(id) do
     Repo.get!(DeclarationRequest, id)
   end
+
+  def list_declaration_requests(params) do
+    query = from dr in DeclarationRequest,
+      order_by: [desc: :inserted_at]
+
+    query
+    |> filter_by_employee_id(params)
+    |> filter_by_legal_entity_id(params)
+    |> filter_by_status(params)
+    |> Repo.page(get_paging(params, Confex.get(:ehealth, :declaration_requests_per_page)))
+  end
+
+  defp filter_by_legal_entity_id(query, %{"legal_entity_id" => legal_entity_id}) do
+    where(query, [r], fragment("?->'legal_entity'->>'id' = ?", r.data, ^legal_entity_id))
+  end
+  defp filter_by_legal_entity_id(query, _), do: query
+
+  defp filter_by_employee_id(query, %{"employee_id" => employee_id}) do
+    where(query, [r], fragment("?->'employee'->>'id' = ?", r.data, ^employee_id))
+  end
+  defp filter_by_employee_id(query, _), do: query
+
+  defp filter_by_status(query, %{"status" => status}) when is_binary(status) do
+    where(query, [r], r.status == ^status)
+  end
+  defp filter_by_status(query, _), do: query
 
   def create(attrs, user_id, client_id) do
     with {:ok, attrs} <- Validations.validate_schema(attrs),

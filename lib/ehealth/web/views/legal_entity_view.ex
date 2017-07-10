@@ -16,4 +16,15 @@ defmodule EHealth.Web.LegalEntityView do
   def render("legal_entity.json", %{legal_entity: legal_entity}) do
     legal_entity
   end
+
+  def render("legal_entity_short.json", %{"legal_entity" => legal_entity}) do
+    %{
+      "id" => Map.get(legal_entity, "id"),
+      "name" => Map.get(legal_entity, "name"),
+      "short_name": Map.get(legal_entity, "short_name"),
+      "legal_form": Map.get(legal_entity, "legal_form"),
+      "edrpou": Map.get(legal_entity, "edrpou"),
+    }
+  end
+  def render("legal_entity_short.json", _), do: %{}
 end
