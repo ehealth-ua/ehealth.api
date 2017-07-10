@@ -34,8 +34,15 @@ defmodule EHealth.DeclarationRequest.API do
     updated_by
   )a
 
-  def get_declaration_request_by_id!(id) do
-    Repo.get!(DeclarationRequest, id)
+  def get_declaration_request_by_id!(id), do: get_declaration_request_by_id!(id, %{})
+  def get_declaration_request_by_id!(id, nil), do: get_declaration_request_by_id!(id, %{})
+  def get_declaration_request_by_id!(id, params) do
+    query = from dr in DeclarationRequest,
+      where: dr.id == ^id
+
+    query
+    |> filter_by_legal_entity_id(params)
+    |> Repo.one!
   end
 
   def list_declaration_requests(params) do

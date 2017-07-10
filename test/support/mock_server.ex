@@ -747,8 +747,6 @@ defmodule EHealth.MockServer do
         "86.01"
       ],
       "status" => status,
-      "mis_verified" => "VERIFIED",
-      "nhs_verified" => false,
       "owner_property_type" => "state",
       "legal_form" => "ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА",
       "medical_service_provider" => %{

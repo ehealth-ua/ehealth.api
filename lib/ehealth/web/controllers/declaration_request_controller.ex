@@ -13,8 +13,9 @@ defmodule EHealth.Web.DeclarationRequestController do
     end
   end
 
-  def show(conn, %{"declaration_request_id" => id}) do
-    declaration_request = DeclarationRequestAPI.get_declaration_request_by_id!(id)
+  def show(conn, %{"declaration_request_id" => id} = params) do
+    legal_entity_id = Map.get(params, "legal_entity_id")
+    declaration_request = DeclarationRequestAPI.get_declaration_request_by_id!(id, params)
     render(conn, "show.json", declaration_request: declaration_request)
   end
 

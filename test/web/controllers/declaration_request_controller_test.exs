@@ -127,20 +127,30 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
   end
 
-  test "get declaration request by invalid id", %{conn: conn} do
-    conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8602f2")
-    assert_raise Ecto.NoResultsError, fn ->
-      get conn, declaration_request_path(conn, :show, Ecto.UUID.generate())
+  describe "get declaration request by id" do
+    test "get declaration request by invalid id", %{conn: conn} do
+      conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8602f2")
+      assert_raise Ecto.NoResultsError, fn ->
+        get conn, declaration_request_path(conn, :show, Ecto.UUID.generate())
+      end
     end
-  end
 
-  test "get declaration request by id", %{conn: conn} do
-    %{id: id, data: data} = fixture(DeclarationRequest, fixture_params())
-    conn = put_client_id_header(conn, get_in(data, [:legal_entity, :id]))
-    conn = get conn, declaration_request_path(conn, :show, id)
-    resp = json_response(conn, 200)
+    test "get declaration request by invalid legal_entity_id", %{conn: conn} do
+      %{id: id} = fixture(DeclarationRequest, fixture_params())
+      conn = put_client_id_header(conn, Ecto.UUID.generate)
+      assert_raise Ecto.NoResultsError, fn ->
+        get conn, declaration_request_path(conn, :show, id)
+      end
+    end
 
-    assert Map.has_key?(resp, "data")
+    test "get declaration request by id", %{conn: conn} do
+      %{id: id, data: data} = fixture(DeclarationRequest, fixture_params())
+      conn = put_client_id_header(conn, get_in(data, [:legal_entity, :id]))
+      conn = get conn, declaration_request_path(conn, :show, id)
+      resp = json_response(conn, 200)
+
+      assert Map.has_key?(resp, "data")
+    end
   end
 
   defp fixture_params do
