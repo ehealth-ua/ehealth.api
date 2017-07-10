@@ -29,8 +29,7 @@ defmodule EHealth.Plugs.ClientContext do
         {:ok, %{"data" => %{"client_type_name" => client_type}}}
           -> assign(conn, :client_type, client_type)
 
-        {:error, err}
-          -> conn |> proxy(err) |> halt()
+        _ -> conn_anuthorized(conn)
       end
   end
 
@@ -80,10 +79,10 @@ defmodule EHealth.Plugs.ClientContext do
     |> halt()
   end
 
-  defp conn_forbidden(conn) do
+  defp conn_anuthorized(conn) do
     conn
-    |> put_status(:forbidden)
-    |> render(EView.Views.Error, :"403")
+    |> put_status(:unauthorized)
+    |> render(EView.Views.Error, :"401")
     |> halt()
   end
 

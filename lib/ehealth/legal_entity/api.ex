@@ -45,7 +45,7 @@ defmodule EHealth.LegalEntity.API do
         {:ok, %{"data" => %{"client_type_name" => client_type_name}}} ->
           put_in_pipe(client_type_name, :client_type, pipe_data)
 
-        err -> err
+        _ -> {:error, :access_denied}
       end
   end
 

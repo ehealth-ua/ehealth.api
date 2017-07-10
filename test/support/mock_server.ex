@@ -847,7 +847,7 @@ defmodule EHealth.MockServer do
   @doc """
   Returns second page which is the last one
   """
-  def wrap_response_with_paging(data, starting_after) do
+  def wrap_response_with_paging(data, _starting_after) do
     paging = %{
       "size" => nil,
       "limit" => 2,
