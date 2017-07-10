@@ -774,13 +774,14 @@ This method to update the division info by ID.
         + data (`crud_division_get`)
 
 
-### Search Divisions [GET /divisions/{?type,legal_entity_id}]
+### Search Divisions [GET /divisions/{?type,legal_entity_id,name}]
 
 Methods returns list of legal entity divisions.
 
 + Parameters
     + type: clinic (string, optional)
     + `legal_entity_id`: 314083428 (string, optional)
+    + name: Борисп (string, optional)
 
 + Request (application/json)
 
@@ -1447,7 +1448,7 @@ This method expects one of verification methods as it's parameters. Verification
             Authorization: Bearer mF_9.B5f-4.1JqM
 
     + Attributes (object)
-        + verification_code: 2836 (number, required)
+        + verification_code: 2836 (number, optional) - required if authentication_method is OFFLINE
 
 + Response 201 (application/json)
     + Attributes (Response__Process_OK)
@@ -1457,10 +1458,11 @@ This method expects one of verification methods as it's parameters. Verification
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
             + include `Declaration_Request_Public_Response`
             + status: `APPROVED` (string, required)
-            + employee (Employee_Minimal)
-            + `legal_entity` (`Medical_Service_Provider`)
+            + employee (Employee_Minimal, required)
+            + `legal_entity` (`Medical_Service_Provider`, required)
                 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + division (`Division_Details`)
+            + division (`Division_Details`, required)
+            + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
 
 ### Reject Declaration Request [PATCH /api/declaration_requests/{id}/actions/reject]
 
