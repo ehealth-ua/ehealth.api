@@ -14,7 +14,7 @@ defmodule EHealth.API.OPS do
   def timeouts, do: config()[:timeouts]
 
   def create_declaration_with_termination_logic(params, headers \\ []) do
-    "/declarations/create_with_termination_logic"
+    "/declarations/with_termination"
     |> post!(Poison.encode!(params), headers)
     |> ResponseDecoder.check_response()
   end

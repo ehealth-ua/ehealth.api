@@ -95,7 +95,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
     defmodule OPSMock do
       use MicroservicesHelper
 
-      Plug.Router.post "/declarations/create_with_termination_logic" do
+      Plug.Router.post "/declarations/with_termination" do
         send_resp(conn, 200, Poison.encode!(%{data: conn.body_params}))
       end
     end
