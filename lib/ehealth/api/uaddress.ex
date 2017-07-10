@@ -25,6 +25,12 @@ defmodule EHealth.API.UAddress do
     |> ResponseDecoder.check_response()
   end
 
+  def update_settlement(id, data, headers) do
+    "/settlements/#{id}"
+    |> patch!(Poison.encode!(data), headers, timeouts())
+    |> ResponseDecoder.check_response()
+  end
+
   def get_region_by_id(id, headers \\ []) do
     "/regions/#{id}"
     |> get!(headers)

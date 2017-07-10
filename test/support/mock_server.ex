@@ -214,7 +214,19 @@ defmodule EHealth.MockServer do
         "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b" ->
           {200, MapDeepMerge.merge(get_division(), conn.body_params)}
         _ ->
-          {401, %{"error" => %{"invalid_validation" => "legal_entity_id"}}}
+          {422, %{"error" => %{"invalid_validation" => "legal_entity_id"}}}
+      end
+
+    render(resp, conn, code)
+  end
+
+  patch "/divisions/actions/set_mountain_group" do
+    {code, resp} =
+      case conn.body_params["settlement_id"] do
+        "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b" ->
+          {200, []}
+        _ ->
+          {422, %{"error" => %{"invalid_validation" => "legal_entity_id"}}}
       end
 
     render(resp, conn, code)
@@ -354,6 +366,13 @@ defmodule EHealth.MockServer do
       |> Poison.encode!()
 
     Plug.Conn.send_resp(conn, 200, resp)
+  end
+
+  patch "/settlements/:id" do
+    conn.path_params["id"]
+    |> get_settlement()
+    |> MapDeepMerge.merge(conn.body_params)
+    |> render(conn, 200)
   end
 
   get "/regions/:id" do

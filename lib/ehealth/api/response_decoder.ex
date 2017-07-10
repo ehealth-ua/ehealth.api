@@ -4,9 +4,9 @@ defmodule EHealth.API.ResponseDecoder do
   HTTPPoison JSON to Elixir data decoder and formatter
   """
 
-  @sucess_codes [200, 201]
+  @success_codes [200, 201]
 
-  def check_response(%HTTPoison.Response{status_code: status_code, body: body}) when status_code in @sucess_codes do
+  def check_response(%HTTPoison.Response{status_code: status_code, body: body}) when status_code in @success_codes do
     decode_response(body)
   end
 

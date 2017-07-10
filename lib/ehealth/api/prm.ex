@@ -72,6 +72,12 @@ defmodule EHealth.API.PRM do
     |> ResponseDecoder.check_response()
   end
 
+  def update_divisions_mountain_group(data, headers) do
+    "/divisions/actions/set_mountain_group"
+    |> patch!(Poison.encode!(data), headers, timeouts())
+    |> ResponseDecoder.check_response()
+  end
+
   # Party
 
   def create_party(data, headers) do
