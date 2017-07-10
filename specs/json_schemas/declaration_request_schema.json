@@ -398,10 +398,12 @@
         },
         "employee_id": {
           "type": "string",
+          "minLength": 36,
           "description": "Employee ID with `type=DOCTOR` selected from available Employees as a third contract party."
         },
         "division_id": {
           "type": "string",
+          "minLength": 36,
           "description": "Registered Medical Service Provider Division identifier."
         },
         "scope": {
