@@ -86,6 +86,11 @@
             "type": "PASSPORT",
             "identifies": "PERSON",
             "number": "120518"
+          },
+          {
+            "type": "COURT_DECISION",
+            "identifies": "RELATIONSHIP",
+            "number": "120518"
           }
         ],
         "phones": [
@@ -95,13 +100,10 @@
           }
         ]
       }],
-      "renewal_consent": true,
-      "patient_signed": true,
-      "disclosure_consent": true,
-      "process_data_consent": true,
-      "service_location_consent": true
+      "patient_signed": false,
+      "process_disclosure_data_consent": true
     },
-    "scope": "FAMILY DOCTOR",
+    "scope": "family_doctor",
     "employee_id": "ce377dea-d8c4-4dd8-9328-de24b1ee3879",
     "division_id": "51f56b0e-0223-49c1-9b5f-b07e09ba40f1"
   }

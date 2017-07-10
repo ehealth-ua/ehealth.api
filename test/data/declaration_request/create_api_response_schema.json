@@ -552,9 +552,6 @@
           },
           "type": "array"
         },
-        "disclosure_consent": {
-          "type": "boolean"
-        },
         "documents": {
           "items": {
             "additionalProperties": false,
@@ -652,19 +649,13 @@
           },
           "type": "array"
         },
-        "process_data_consent": {
-          "type": "boolean"
-        },
-        "renewal_consent": {
-          "type": "boolean"
-        },
         "second_name": {
           "type": "string"
         },
         "secret": {
           "type": "string"
         },
-        "service_location_consent": {
+        "process_disclosure_data_consent": {
           "type": "boolean"
         },
         "tax_id": {
@@ -677,11 +668,9 @@
         "last_name",
         "patient_signed",
         "addresses",
-        "disclosure_consent",
+        "process_disclosure_data_consent",
         "emergency_contact",
         "gender",
-        "process_data_consent",
-        "service_location_consent",
         "email",
         "authentication_methods",
         "secret",
@@ -690,7 +679,6 @@
         "birth_country",
         "birth_settlement",
         "birth_date",
-        "renewal_consent",
         "second_name",
         "tax_id"
       ],
