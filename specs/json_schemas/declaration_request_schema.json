@@ -129,7 +129,7 @@
         },
         "phone_number": {
           "type": "string",
-          "pattern": "^\\+38[0-9]{10}$",
+          "pattern": "^\\+38[0-9]{10}$"
         }
       },
       "required": [
@@ -274,7 +274,8 @@
                 "first_name",
                 "last_name",
                 "phones"
-              ]
+              ],
+              "additionalProperties": false
             },
             "confidant_person": {
               "type": "array",
@@ -361,6 +362,7 @@
                 "secret",
                 "documents"
               ],
+              "additionalProperties": false,
               "description": "Should be set if this Person is disabled, underage, etc."
             },
             "patient_signed": {
@@ -391,6 +393,7 @@
             "patient_signed",
             "process_disclosure_data_consent"
           ],
+          "additionalProperties": false,
           "description": "Object that described a Patient. Confidant person should be set for disabled persons, underage persons, etc."
         },
         "employee_id": {
@@ -413,7 +416,8 @@
         "employee_id",
         "division_id",
         "scope"
-      ]
+      ],
+      "additionalProperties": false
     }
   }
 }
