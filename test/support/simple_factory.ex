@@ -3,12 +3,14 @@ defmodule EHealth.SimpleFactory do
 
   alias EHealth.Repo
   alias EHealth.Employee.Request
+  alias EHealth.DeclarationRequest
 
   defmacro fixture(module) do
     quote do
       module = unquote module
       case module do
         Request -> employee_request()
+        DeclarationRequest -> declaration_request()
       end
     end
   end
@@ -47,6 +49,19 @@ defmodule EHealth.SimpleFactory do
     {:ok, employee_request} = Repo.insert(request)
 
     employee_request
+  end
+
+  def declaration_request do
+    uuid = Ecto.UUID.generate
+    %DeclarationRequest{
+      data: %{},
+      status: "",
+      inserted_by: uuid,
+      updated_by: uuid,
+      authentication_method_current: %{},
+      printout_content: "",
+    }
+    |> Repo.insert!()
   end
 
   def set_status(data, nil), do: data

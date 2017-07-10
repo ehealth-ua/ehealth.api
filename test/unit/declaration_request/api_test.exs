@@ -2,8 +2,10 @@ defmodule EHealth.DeclarationRequest.APITest do
   @moduledoc false
 
   use EHealth.Web.ConnCase, async: true
-  import EHealth.DeclarationRequest.API, only: [pending_declaration_requests: 2]
+  import EHealth.DeclarationRequest.API
+  import EHealth.SimpleFactory
   alias EHealth.DeclarationRequest
+  alias EHealth.Repo
 
   describe "pending_declaration_requests/2" do
     test "returns pending requests" do
@@ -20,7 +22,7 @@ defmodule EHealth.DeclarationRequest.APITest do
 
       query = pending_declaration_requests(raw_declaration_request, "333")
 
-      assert [pending_declaration_req_1, pending_declaration_req_2] == EHealth.Repo.all(query)
+      assert [pending_declaration_req_1, pending_declaration_req_2] == Repo.all(query)
     end
   end
 
@@ -51,6 +53,12 @@ defmodule EHealth.DeclarationRequest.APITest do
 
     %DeclarationRequest{}
     |> Ecto.Changeset.cast(attrs, allowed)
-    |> EHealth.Repo.insert()
+    |> Repo.insert()
+  end
+
+  test "get_declaration_request_by_id!/1" do
+    %{id: id} = fixture(DeclarationRequest)
+    declaration_request = get_declaration_request_by_id!(id)
+    assert id == declaration_request.id
   end
 end
