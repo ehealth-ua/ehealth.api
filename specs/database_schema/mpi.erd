@@ -1,0 +1,39 @@
+[person]
+id | varchar | not null
+version | varchar | not null
+last_name | varchar | not null
+first_name | varchar | not null
+second_name | varchar
+birth_date | date | not null
+birth_place | varchar
+gender | varchar | not null
+email | varchar
+tax_id | varchar
+death_date | date
+is_active | boolean | not null
+documents | json
+addresses | json
+phones | json
+secret | varchar
+emergency_contact | json
+confidant_person | json
+status | varchar | not null
+inserted_at | timestamp | not null
+inserted_by | varchar | not null
+updated_at | timestamp | not null
+updated_by | varchar | not null
+authentication_methods | json
+
+[merge_candidates]
+id | varchar | not null
+person_id | varchar | not null
+master_person_id | varchar | not null
+status | varchar | not null
+inserted_at | timestamp | not null
+updated_at | timestamp | not null
+
+(mpi_db)
+person
+merge_candidates
+
+person 1--* merge_candidates
