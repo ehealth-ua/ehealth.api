@@ -128,6 +128,13 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       json_response(conn, 403)
     end
 
+    test "with x-consumer-metadata that contains invalid client_type_name", %{conn: conn} do
+      conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375111")
+      id = "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
+      conn = get conn, legal_entity_path(conn, :show, id)
+      json_response(conn, 403)
+    end
+
     test "check required legal entity fields", %{conn: conn} do
       conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
       id = "7cc91a5d-c02f-41e9-b571-1ea4f2375552"

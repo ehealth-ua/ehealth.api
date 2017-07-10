@@ -299,6 +299,7 @@ defmodule EHealth.MockServer do
       case id do
         "296da7d2-3c5a-4f6a-b8b2-631063737271" -> "MIS"
         "356b4182-f9ce-4eda-b6af-43d2de8601a1" -> "NHS_Admin"
+        "7cc91a5d-c02f-41e9-b571-1ea4f2375111" -> nil
         _ -> "MSP"
       end
     id

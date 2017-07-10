@@ -88,12 +88,19 @@ defmodule EHealth.LegalEntity.API do
   end
 
   defp authorize_id(%{client_type: client_type, params: %{"id" => id}, client_id: client_id} = pipe_data) do
-    if client_type in Confex.get_map(:ehealth, ClientContext)[:tokens_types_personal] and id != client_id do
-      {:error, :forbidden}
-    else
-      {:ok, pipe_data}
+    config = Confex.get_map(:ehealth, ClientContext)
+    cond do
+      client_type in config[:tokens_types_personal] and id != client_id -> {:error, :forbidden}
+      client_type in config[:tokens_types_personal] -> {:ok, pipe_data}
+      client_type in config[:tokens_types_mis] -> {:ok, pipe_data}
+      client_type in config[:tokens_types_admin] -> {:ok, pipe_data}
+      true ->
+        Logger.error(fn -> "Undefined client type name #{client_type} for /legal_entities/:id. " end)
+        {:error, :forbidden}
     end
   end
+  # cannot get client_type from Mithril, send forbidden
+  defp authorize_id(_), do: {:error, :forbidden}
 
   defp load_legal_entity(%{params: params, headers: headers} = pipe_data) do
     params
