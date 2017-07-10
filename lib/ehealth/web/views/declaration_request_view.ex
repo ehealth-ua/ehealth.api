@@ -8,7 +8,7 @@ defmodule EHealth.Web.DeclarationRequestView do
   end
 
   def render("status.json", %{declaration_request: declaration_request}) do
-    Map.take(declaration_request, [:id, :status])
+    Map.take(declaration_request, [:id, :data, :status])
   end
 
   def render("declaration_request.json", %{declaration_request: declaration_request}) do
