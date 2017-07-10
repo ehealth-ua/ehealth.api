@@ -1,0 +1,191 @@
+{
+  "id": "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
+  "start_date": "2017-03-02",
+  "end_date": "2017-03-02",
+  "person": {
+    "first_name": "Петро",
+    "last_name": "Іванов",
+    "second_name": "Миколайович",
+    "birth_date": "1991-08-19",
+    "birth_country": "Україна",
+    "birth_settlement": "Вінниця",
+    "gender": "MALE",
+    "email": "email@example.com",
+    "tax_id": "3126509816",
+    "secret": "secret",
+    "documents": [
+      {
+        "type": "PASSPORT",
+        "identifies": "PERSON",
+        "number": "120518"
+      }
+    ],
+    "addresses": [
+      {
+        "type": "RESIDENCE",
+        "country": "UA",
+        "area": "Житомирська",
+        "region": "Бердичівський",
+        "settlement": "Київ",
+        "settlement_type": "CITY",
+        "settlement_id": "43432432",
+        "street_type": "STREET",
+        "street": "вул. Ніжинська",
+        "building": "15",
+        "apartment": "23",
+        "zip": "02090"
+      }
+    ],
+    "phones": [
+      {
+        "type": "MOBILE",
+        "number": "+380503410870"
+      }
+    ],
+    "authentication_methods": [
+      {
+        "type": "OTP",
+        "phone_number": "+380508887700"
+      }
+    ],
+    "emergency_contact": {
+      "first_name": "Петро",
+      "last_name": "Іванов",
+      "second_name": "Миколайович",
+      "phones": [
+        {
+          "type": "MOBILE",
+          "number": "+380503410870"
+        }
+      ]
+    },
+    "confidant_person": [
+      {
+        "relation_type": "PRIMARY",
+        "first_name": "Петро",
+        "last_name": "Іванов",
+        "second_name": "Миколайович",
+        "birth_date": "1991-08-19",
+        "birth_country": "Україна",
+        "birth_settlement": "Вінниця",
+        "gender": "MALE",
+        "tax_id": "3126509816",
+        "documents": [
+          {
+            "type": "PASSPORT",
+            "identifies": "PERSON",
+            "number": "120518"
+          }
+        ],
+        "phones": [
+          {
+            "type": "MOBILE",
+            "number": "+380503410870"
+          }
+        ]
+      }
+    ],
+    "renewal_consent": true,
+    "patient_signed": true,
+    "disclosure_consent": true,
+    "process_data_consent": true,
+    "service_location_consent": true
+  },
+  "scope": "family_doctor",
+  "employee": {
+    "id": "d290f1ee-6c54-4b01-90e6-d701748f0851",
+    "position": "P6",
+    "party": {
+      "id": "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
+      "first_name": "Петро",
+      "last_name": "Іванов",
+      "second_name": "Миколайович",
+      "email": "email@example.com",
+      "phones": [
+        {
+          "type": "MOBILE",
+          "number": "+380503410870"
+        }
+      ]
+    }
+  },
+  "legal_entity": {
+    "name": "Клініка Борис",
+    "short_name": "Борис",
+    "legal_form": "140",
+    "public_name": "ЦПМСД №1",
+    "edrpou": "5432345432",
+    "licenses": [
+      {
+        "license_number": "fd123443",
+        "issued_by": "Кваліфікацйна комісія",
+        "issued_date": "2017-02-28",
+        "expiry_date": "2017-02-28",
+        "active_from_date": "2017-02-28",
+        "what_licensed": "реалізація наркотичних засобів"
+      }
+    ],
+    "accreditation": {
+      "category": "друга",
+      "issued_date": "2017-02-28",
+      "expiry_date": "2017-02-28",
+      "order_no": "fd123443",
+      "order_date": "2017-02-28"
+    },
+    "addresses": [
+      {
+        "type": "RESIDENCE",
+        "country": "UA",
+        "area": "Житомирська",
+        "region": "Бердичівський",
+        "settlement": "Київ",
+        "settlement_type": "CITY",
+        "settlement_id": "43432432",
+        "street_type": "STREET",
+        "street": "вул. Ніжинська",
+        "building": "15",
+        "apartment": "23",
+        "zip": "02090"
+      }
+    ],
+    "phones": [
+      {
+        "type": "MOBILE",
+        "number": "+380503410870"
+      }
+    ],
+    "email": "email@example.com",
+    "id": "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b"
+  },
+  "division": {
+    "id": "d290f1ee-6c54-4b01-90e6-d701748f0851",
+    "legal_entity_id": "d290f1ee-6c54-4b01-90e6-d701748f0851",
+    "name": "Бориспільське відділення Клініки Борис",
+    "addresses": [
+      {
+        "type": "RESIDENCE",
+        "country": "UA",
+        "area": "Житомирська",
+        "region": "Бердичівський",
+        "settlement": "Київ",
+        "settlement_type": "CITY",
+        "settlement_id": "43432432",
+        "street_type": "STREET",
+        "street": "вул. Ніжинська",
+        "building": "15",
+        "apartment": "23",
+        "zip": "02090"
+      }
+    ],
+    "phones": [
+      {
+        "type": "MOBILE",
+        "number": "+380503410870"
+      }
+    ],
+    "email": "email@example.com",
+    "type": "clinic",
+    "external_id": "3213213"
+  },
+  "content": "Declaration content"
+}

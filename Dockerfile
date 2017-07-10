@@ -42,6 +42,8 @@ RUN \
     chmod -R 777 /opt/$APP_NAME && \
     chmod -R 777 /var/log
 
+RUN apk del make
+
 # Change user to "default"
 USER default
 

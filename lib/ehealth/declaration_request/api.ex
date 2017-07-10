@@ -14,6 +14,7 @@ defmodule EHealth.DeclarationRequest.API do
   alias EHealth.DeclarationRequest.API.Approve
   alias EHealth.DeclarationRequest.API.Helpers
   alias EHealth.DeclarationRequest.API.Validations
+  alias EHealth.DeclarationRequest.API.Sign
 
   @required_fields ~w(
     data
@@ -130,6 +131,13 @@ defmodule EHealth.DeclarationRequest.API do
     end
   end
 
+  def update_status(id, status) do
+    id
+    |> get_declaration_request_by_id!()
+    |> update_changeset(%{status: status})
+    |> Repo.update()
+  end
+
   def create_changeset(attrs, user_id, auxilary_entities) do
     %{
       employee: employee,
@@ -217,5 +225,16 @@ defmodule EHealth.DeclarationRequest.API do
       where: fragment("? #>> ? = ?", p.data, "{person, tax_id}", ^tax_id),
       where: fragment("? #>> ? = ?", p.data, "{employee_id}", ^employee_id),
       where: fragment("? #>> ? = ?", p.data, "{legal_entity_id}", ^legal_entity_id)
+  end
+
+  def sign(params, headers) do
+    params
+    |> Validations.decode_and_validate_sign_request()
+    |> Sign.check_status(params)
+    |> Sign.compare_with_db()
+    |> Sign.store_signed_content(params, headers)
+    |> Sign.create_or_update_person(headers)
+    |> Sign.create_declaration_with_termination_logic(headers)
+    |> Sign.update_declaration_request_status(params)
   end
 end

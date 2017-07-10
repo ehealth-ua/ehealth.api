@@ -94,6 +94,15 @@ config :ehealth, EHealth.API.MPI,
     timeout: {:system, :integer, "MPI_REQUEST_TIMEOUT", 30_000}
   ]
 
+# Configures OPS API
+config :ehealth, EHealth.API.OPS,
+  endpoint: {:system, "OPS_ENDPOINT", "http://api-svc.ops"},
+  timeouts: [
+    connect_timeout: {:system, :integer, "OPS_REQUEST_TIMEOUT", 30_000},
+    recv_timeout: {:system, :integer, "OPS_REQUEST_TIMEOUT", 30_000},
+    timeout: {:system, :integer, "OPS_REQUEST_TIMEOUT", 30_000}
+  ]
+
 # Configures Gandalf API
 config :ehealth, EHealth.API.Gandalf,
   endpoint: {:system, "GNDF_ENDPOINT", "https://api.gndf.io"},

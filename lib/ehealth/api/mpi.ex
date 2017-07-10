@@ -31,4 +31,10 @@ defmodule EHealth.API.MPI do
     |> get!(headers)
     |> ResponseDecoder.check_response()
   end
+
+  def create_or_update_person(params, headers \\ []) do
+    "/persons"
+    |> post!(Poison.encode!(params), headers)
+    |> ResponseDecoder.check_response()
+  end
 end

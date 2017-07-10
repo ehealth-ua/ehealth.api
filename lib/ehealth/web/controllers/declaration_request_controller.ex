@@ -36,4 +36,10 @@ defmodule EHealth.Web.DeclarationRequestController do
       render(conn, "status.json", declaration_request: declaration_request)
     end
   end
+
+  def sign(conn, params) do
+    with {:ok, declaration} <- DeclarationRequestAPI.sign(params, conn.req_headers) do
+      render(conn, "declaration.json", declaration: declaration)
+    end
+  end
 end

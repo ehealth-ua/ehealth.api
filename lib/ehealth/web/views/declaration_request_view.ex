@@ -61,15 +61,15 @@ defmodule EHealth.Web.DeclarationRequestView do
     end
   end
 
+  def render("declaration.json", %{declaration: declaration}), do: declaration
+
   def render("microservice_error.json", %{microservice_response: microservice_response}) do
     %{
       message: "Error during microservice interaction. Response from microservice: #{inspect microservice_response}."
     }
   end
 
-  def render("unprocessable_entity.json", %{error: error}) do
-    error
-  end
+  def render("unprocessable_entity.json", %{error: error}), do: error
 
   def render("declaration_request_short.json", %{declaration_request: declaration_request}) do
     %{

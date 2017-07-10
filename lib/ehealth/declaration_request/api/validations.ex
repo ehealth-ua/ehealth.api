@@ -8,6 +8,8 @@ defmodule EHealth.DeclarationRequest.API.Validations do
   alias EHealth.Validators.Addresses
   alias EHealth.Validators.BirthDate
   alias EHealth.Validators.TaxID
+  alias EHealth.API.Signature
+  alias EHealth.DeclarationRequest.SignRequest
 
   import Ecto.Changeset
 
@@ -102,6 +104,39 @@ defmodule EHealth.DeclarationRequest.API.Validations do
       end
     end
   end
+
+  def decode_and_validate_sign_request(params) do
+    params
+    |> validate_sign_request()
+    |> validate_signature()
+    |> normalize_signature_error()
+  end
+
+  def validate_sign_request(params) do
+    fields = ~W(
+      signed_declaration_request
+      signed_content_encoding
+    )a
+
+    %SignRequest{}
+    |> cast(params, fields)
+    |> validate_required(fields)
+    |> validate_inclusion(:signed_content_encoding, ["base64"])
+  end
+
+  def validate_signature(%Ecto.Changeset{valid?: true, changes: changes}) do
+    changes
+    |> Map.get(:signed_declaration_request)
+    |> Signature.decode_and_validate(Map.get(changes, :signed_content_encoding))
+  end
+  def validate_signature(err), do: err
+
+  def normalize_signature_error({:error, %{"meta" => %{"description" => error}}}) do
+    %SignRequest{}
+    |> cast(%{}, [:signed_legal_entity_request])
+    |> add_error(:signed_legal_entity_request, error)
+  end
+  def normalize_signature_error(ok_resp), do: ok_resp
 
   def validate_tax_id(changeset) do
     tax_id =
