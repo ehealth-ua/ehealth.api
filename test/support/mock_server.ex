@@ -3,6 +3,7 @@ defmodule EHealth.MockServer do
   use Plug.Router
 
   alias EHealth.Utils.MapDeepMerge
+  alias Ecto.UUID
   import EHealth.Utils.Connection
 
   @inactive_legal_entity_id "356b4182-f9ce-4eda-b6af-43d2de8602aa"
@@ -409,6 +410,44 @@ defmodule EHealth.MockServer do
       |> Poison.encode!
 
     Plug.Conn.send_resp(conn, 200, response)
+  end
+
+  # OPS
+  get "/declarations" do
+    {code, resp} =
+      case conn.params do
+        # MSP
+        %{"legal_entity_id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375552"}
+          -> {200, [get_declarations()]}
+
+        # MIS
+        %{"legal_entity_id" => "296da7d2-3c5a-4f6a-b8b2-631063737271"} ->
+          {200, [get_declarations(), get_declarations()]}
+
+        # NHS_Admin
+        %{"legal_entity_id" => "356b4182-f9ce-4eda-b6af-43d2de8601a1"} ->
+          {200, [get_declarations(), get_declarations(), get_declarations()]}
+
+        _ -> {200, []}
+      end
+    render_with_paging(resp, conn, code)
+  end
+
+  def get_declarations(legal_entity_id \\ "7cc91a5d-c02f-41e9-b571-1ea4f2375552") do
+    %{
+        "employee_id" => UUID.generate(),
+        "person_id" => UUID.generate(),
+        "start_date" => "2010-08-19 00:00:00",
+        "end_date" => "2010-08-19 00:00:00",
+        "status" => "ACTIVE",
+        "signed_at" => "2010-08-19 00:00:00",
+        "created_by" => UUID.generate(),
+        "updated_by" => UUID.generate(),
+        "is_active" => false,
+        "scope" => "declarations:read",
+        "division_id" => UUID.generate(),
+        "legal_entity_id" => legal_entity_id,
+    }
   end
 
   def search_for_people(params) do

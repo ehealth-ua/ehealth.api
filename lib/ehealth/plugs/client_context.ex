@@ -65,7 +65,7 @@ defmodule EHealth.Plugs.ClientContext do
         true ->
           Logger.error(fn -> "Undefined client type name #{client_type} for /legal_entities. " <>
                 "Cannot prepare params for request to PRM" end)
-          %{"id" => client_id}
+          %{"id" => client_id, "legal_entity_id" => client_id}
       end
 
     %{conn | params: Map.merge(params, context_params)}

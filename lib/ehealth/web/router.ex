@@ -58,6 +58,8 @@ defmodule Ehealth.Web.Router do
     get "/employees", EmployeesController, :index
     # Employees
     get "/divisions", DivisionController, :index
+    # Declarations
+    get "/declarations", DeclarationsController, :index
   end
 
   scope "/api", EHealth.Web do

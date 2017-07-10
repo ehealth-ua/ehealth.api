@@ -21,6 +21,10 @@ config :ehealth, EHealth.API.PRM,
 config :ehealth, EHealth.API.Man,
   endpoint: {:system, "MAN_ENDPOINT", "http://localhost:4040"}
 
+# Configures OPS API
+config :ehealth, EHealth.API.OPS,
+  endpoint: {:system, "OPS_ENDPOINT", "http://localhost:4040"}
+
 # Configures UAdress API
 config :ehealth, EHealth.API.UAddress,
   endpoint: {:system, "UADDRESS_ENDPOINT", "http://localhost:4040"}
