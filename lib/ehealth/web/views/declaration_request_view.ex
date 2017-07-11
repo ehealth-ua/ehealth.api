@@ -117,7 +117,6 @@ defmodule EHealth.Web.DeclarationRequestView do
     |> Map.merge(additional_attrs)
   end
 
-
   defp filter_document_links(documents) do
     filter = fn document -> document["verb"] == "PUT" end
     map = fn document -> Map.drop(document, ["verb"]) end
