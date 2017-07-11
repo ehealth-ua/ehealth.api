@@ -474,22 +474,37 @@
               "birth_settlement": {
                 "type": "string"
               },
-              "documents": {
+              "documents_person": {
                 "items": {
                   "additionalProperties": false,
                   "properties": {
-                    "identifies": {
+                    "type": {
                       "type": "string"
                     },
                     "number": {
                       "type": "string"
-                    },
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "number"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "documents_relationship": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
                     "type": {
+                      "type": "string"
+                    },
+                    "number": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "identifies",
                     "type",
                     "number"
                   ],
@@ -541,7 +556,8 @@
               "last_name",
               "gender",
               "relation_type",
-              "documents",
+              "documents_person",
+              "documents_relationship",
               "birth_country",
               "birth_settlement",
               "birth_date",
@@ -556,18 +572,14 @@
           "items": {
             "additionalProperties": false,
             "properties": {
-              "identifies": {
+              "type": {
                 "type": "string"
               },
               "number": {
                 "type": "string"
-              },
-              "type": {
-                "type": "string"
               }
             },
             "required": [
-              "identifies",
               "type",
               "number"
             ],

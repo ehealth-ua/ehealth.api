@@ -1,4 +1,4 @@
-defmodule EHealth.Unit.DigitalSignatureTest do
+defmodule EHealth.Unit.Utils.PhoneTest do
   @moduledoc false
 
   use ExUnit.Case

@@ -14,7 +14,6 @@
       "documents": [
         {
           "type": "PASSPORT",
-          "identifies": "PERSON",
           "number": "120518"
         }
       ],
@@ -76,20 +75,20 @@
         "first_name": "Петро",
         "last_name": "Іванов",
         "second_name": "Миколайович",
-        "birth_date": "1991-08-19T00:00:00.000Z",
+        "birth_date": "1991-08-19",
         "birth_country": "Україна",
         "birth_settlement": "Вінниця",
         "gender": "MALE",
         "tax_id": "2222222225",
-        "documents": [
+        "documents_person": [
           {
             "type": "PASSPORT",
-            "identifies": "PERSON",
             "number": "120518"
-          },
+          }
+        ],
+        "documents_relationship": [
           {
             "type": "COURT_DECISION",
-            "identifies": "RELATIONSHIP",
             "number": "120518"
           }
         ],
