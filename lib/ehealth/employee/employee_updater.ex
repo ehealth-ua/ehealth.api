@@ -100,11 +100,14 @@ defmodule EHealth.Employee.EmployeeUpdater do
     |> put_success_api_response_in_pipe(:employee_updated, pipe_data)
   end
 
+  def put_updated_by(data, headers) do
+    data |> Map.put(:updated_by, get_consumer_id(headers))
+  end
+
   defp get_update_employee_params(headers) do
-    %{
-      updated_by: get_consumer_id(headers),
-      end_date: Date.utc_today() |> Date.to_iso8601()
-    }
+    %{}
+    |> put_updated_by(headers)
+    |> Map.put(:end_date, Date.utc_today() |> Date.to_iso8601())
   end
 
   defp put_employee_status(params, %{"employee_type" => @employee_type_owner}) do

@@ -7,6 +7,7 @@ defmodule EHealth.Employee.API do
   import EHealth.Paging
   import EHealth.Utils.Pipeline
   import EHealth.Utils.Connection
+  import EHealth.Employee.EmployeeUpdater, only: [put_updated_by: 2]
 
   alias EHealth.Repo
   alias EHealth.Employee.Request
@@ -107,11 +108,23 @@ defmodule EHealth.Employee.API do
 
     employee_request
     |> check_transition_status()
-    |> EmployeeCreator.create(req_headers)
-    |> UserRoleCreator.create(req_headers)
+    |> create_or_update_employee(req_headers)
     |> update_status(employee_request, @status_approved)
     |> send_email(EmployeeCreatedNotificationTemplate, EmployeeCreatedNotificationEmail)
   end
+
+  def create_or_update_employee(%Request{data: %{"employee_id" => employee_id}} = employee_request, req_headers) do
+    employee_request
+    |> Map.delete("employee_type")
+    |> put_updated_by(req_headers)
+    |> PRM.update_employee(employee_id, req_headers)
+  end
+  def create_or_update_employee(%Request{} = employee_request, req_headers) do
+    employee_request
+    |> EmployeeCreator.create(req_headers)
+    |> UserRoleCreator.create(req_headers)
+  end
+  def create_or_update_employee(error, _), do: error
 
   def check_transition_status(%Request{status: @status_new} = employee_request) do
     employee_request
