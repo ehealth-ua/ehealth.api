@@ -68,7 +68,7 @@ defmodule EHealth.Employee.EmployeeUpdater do
 
     case Mithril.get_user_roles(user_id, params, headers) do
 
-      {:ok, %{"data" => list}} -> Enum.each(list, fn(%{"id" => id}) ->
+      {:ok, %{"data" => list}} -> Enum.each(list, fn(%{"role_id" => id}) ->
           Mithril.delete_user_role(user_id, id, headers)
         end)
 
