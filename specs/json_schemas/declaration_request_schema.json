@@ -100,18 +100,10 @@
         },
         "number": {
           "type": "string"
-        },
-        "identifies": {
-          "type": "string",
-          "enum": [
-            "PERSON",
-            "RELATIONSHIP"
-          ]
         }
       },
       "required": [
         "type",
-        "identifies",
         "number"
       ],
       "additionalProperties": false
@@ -123,7 +115,6 @@
           "type": "string",
           "enum": [
             "OTP",
-            "OTP_TRUSTEE",
             "OFFLINE"
           ]
         },
@@ -295,7 +286,11 @@
                   "minLength": 1
                 },
                 "last_name": {
-                  "type": "string"
+                  "type": "string",
+                  "items": {
+                    "$ref": "#/definitions/name"
+                  },
+                  "minLength": 1
                 },
                 "second_name": {
                   "type": "string"
@@ -335,9 +330,16 @@
                   },
                   "minLength": 6
                 },
-                "documents": {
+                "documents_person": {
                   "type": "array",
-                  "minItems": 2,
+                  "minItems": 1,
+                  "items": {
+                    "$ref": "#/definitions/document"
+                  }
+                },
+                "documents_relationship": {
+                  "type": "array",
+                  "minItems": 1,
                   "items": {
                     "$ref": "#/definitions/document"
                   }
@@ -359,7 +361,8 @@
                 "birth_settlement",
                 "gender",
                 "secret",
-                "documents"
+                "documents_person",
+                "documents_relationship"
               ],
               "additionalProperties": false,
               "description": "Should be set if this Person is disabled, underage, etc."
