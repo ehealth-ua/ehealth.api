@@ -26,7 +26,7 @@ defmodule EHealth.Web.EmployeeRequestController do
   def create(%Plug.Conn{req_headers: req_headers} = conn, params) do
     client_id = get_client_id(req_headers)
     params = put_in(params, ["employee_request", "legal_entity_id"], client_id)
-    with {:ok, employee_request} <- API.create_employee_request(params) do
+    with {:ok, employee_request} <- API.create_employee_request(params, req_headers) do
       render(conn, "show.json", employee_request: employee_request)
     end
   end

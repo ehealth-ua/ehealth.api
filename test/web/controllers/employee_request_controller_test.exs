@@ -92,7 +92,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
         |> File.read!()
         |> Poison.decode!()
         |> put_in(["employee_request", "division_id"], "356b4182-f9ce-4eda-b6af-43d2de8602f2")
-        |> put_in(["employee_request", "employee_id"], "356b4182-f9ce-4eda-b6af-43d2de8602f2")
+        |> put_in(["employee_request", "employee_id"], "6bbdb29e-6627-11e7-907b-a6006ad3dba0")
         |> Poison.encode!()
 
       conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8602f2")
@@ -100,7 +100,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       resp = json_response(conn, 422)
       assert Map.has_key?(resp, "error")
       assert Map.has_key?(resp["error"], "invalid")
-      assert 3 == length(resp["error"]["invalid"])
+      assert 2 == length(resp["error"]["invalid"])
 
       invalid_legal_entity_id =
         Enum.find(resp["error"]["invalid"], fn(x) -> Map.get(x, "entry") == "$.legal_entity_id" end)
@@ -115,13 +115,6 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       assert Map.has_key?(invalid_division_id, "rules")
       assert 1 == length(invalid_division_id["rules"])
       rule = Enum.at(invalid_division_id["rules"], 0)
-      assert "does not exist" == Map.get(rule, "description")
-
-      invalid_employee_id = Enum.find(resp["error"]["invalid"], fn(x) -> Map.get(x, "entry") == "$.employee_id" end)
-      assert nil != invalid_employee_id
-      assert Map.has_key?(invalid_employee_id, "rules")
-      assert 1 == length(invalid_employee_id["rules"])
-      rule = Enum.at(invalid_employee_id["rules"], 0)
       assert "does not exist" == Map.get(rule, "description")
     end
 
@@ -145,6 +138,50 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       assert 1 == length(invalid_tax_id["rules"])
       rule = Enum.at(invalid_tax_id["rules"], 0)
       assert "invalid tax_id value" == Map.get(rule, "description")
+    end
+
+    test "with employee_id invalid tax_id", %{conn: conn} do
+      employee_request_params =
+        "test/data/employee_request.json"
+        |> File.read!()
+        |> Poison.decode!
+        |> put_in(["employee_request", "employee_id"], "0d26d826-6241-11e7-907b-a6006ad3dba0")
+      conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8602f2")
+      conn = post conn, employee_request_path(conn, :create), employee_request_params
+      json_response(conn, 409)
+    end
+
+    test "with employee_id invalid employee_type", %{conn: conn} do
+      employee_request_params =
+        "test/data/employee_request.json"
+        |> File.read!()
+        |> Poison.decode!
+        |> put_in(["employee_request", "employee_id"], "2497b2ac-662c-11e7-907b-a6006ad3dba0")
+      conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8602f2")
+      conn = post conn, employee_request_path(conn, :create), employee_request_params
+      json_response(conn, 409)
+    end
+
+    test "with employee_id and valid tax_id, employee_type", %{conn: conn} do
+      employee_request_params =
+        "test/data/employee_request.json"
+        |> File.read!()
+        |> Poison.decode!
+        |> put_in(["employee_request", "employee_id"], "6bbdb29e-6627-11e7-907b-a6006ad3dba0")
+      conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
+      conn = post conn, employee_request_path(conn, :create), employee_request_params
+      json_response(conn, 200)
+    end
+
+    test "with invalid employee_id", %{conn: conn} do
+      employee_request_params =
+        "test/data/employee_request.json"
+        |> File.read!()
+        |> Poison.decode!
+        |> put_in(["employee_request", "employee_id"], Ecto.UUID.generate)
+      conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
+      conn = post conn, employee_request_path(conn, :create), employee_request_params
+      json_response(conn, 404)
     end
   end
 

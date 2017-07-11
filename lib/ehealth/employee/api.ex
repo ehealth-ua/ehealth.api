@@ -55,14 +55,12 @@ defmodule EHealth.Employee.API do
     where(query, [r], r.status == @status_new)
   end
 
-  def create_employee_request(attrs \\ %{}) do
+  def create_employee_request(attrs), do: create_employee_request(attrs, nil)
+  def create_employee_request(attrs, headers) do
     with :ok <- Validator.validate(attrs) do
-      data = Map.fetch!(attrs, "employee_request")
-
-      %Request{}
-      |> changeset(%{data: Map.delete(data, "status"), status: Map.fetch!(data, "status")})
-      |> Repo.insert()
-      |> send_email(EmployeeRequestInvitationTemplate, EmployeeRequestInvitationEmail)
+      attrs
+      |> Map.fetch!("employee_request")
+      |> get_or_create_employee_request(headers)
     end
   end
 
@@ -319,4 +317,33 @@ defmodule EHealth.Employee.API do
     Map.put(data, "legal_entity", legal_entity)
   end
   def filter_legal_entity_response(data), do: data
+
+  def get_or_create_employee_request(%{"employee_id" => employee_id} = params, headers) do
+    with {:ok, employee} <- PRM.get_employee_by_id(employee_id, headers),
+         {:ok, employee} <- check_tax_id(params, employee),
+         {:ok, _employee} <- check_employee_type(params, employee) do
+         get_or_create_employee_request(Map.delete(params, "employee_id"))
+    end
+  end
+  def get_or_create_employee_request(data, _), do: get_or_create_employee_request(data)
+  def get_or_create_employee_request(data) do
+    %Request{}
+    |> changeset(%{data: Map.delete(data, "status"), status: Map.fetch!(data, "status")})
+    |> Repo.insert()
+    |> send_email(EmployeeRequestInvitationTemplate, EmployeeRequestInvitationEmail)
+  end
+
+  def check_tax_id(%{"party" => %{"tax_id" => tax_id}}, employee) do
+    case tax_id == get_in(employee, ["data", "party", "tax_id"]) do
+      true -> {:ok, employee}
+      false -> {:error, {:conflict, "tax_id doens't match"}}
+    end
+  end
+
+  def check_employee_type(%{"employee_type" => employee_type}, employee) do
+    case employee_type == get_in(employee, ["data", "employee_type"]) do
+      true -> {:ok, employee}
+      false -> {:error, {:conflict, "employee_type doens't match"}}
+    end
+  end
 end

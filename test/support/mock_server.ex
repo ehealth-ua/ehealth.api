@@ -148,6 +148,17 @@ defmodule EHealth.MockServer do
       %{"id" => "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b"} ->
         render(get_employee(), conn, 200)
 
+      %{"id" => "2497b2ac-662c-11e7-907b-a6006ad3dba0"} ->
+        "0d26d826-6241-11e7-907b-a6006ad3dba0"
+        |> get_employee("b075f148-7f93-4fc2-b2ec-2d81b19a9b7b", "3067305998", nil)
+        |> render(conn, 200)
+
+      %{"id" => "6bbdb29e-6627-11e7-907b-a6006ad3dba0"} ->
+        "0d26d826-6241-11e7-907b-a6006ad3dba0"
+        |> get_employee("b075f148-7f93-4fc2-b2ec-2d81b19a9b7b", "3067305998", nil)
+        |> Map.put("employee_type", "DOCTOR")
+        |> render(conn, 200)
+
       %{"id" => "b075f148-7f93-4fc2-b2ec-2d81b19a9a8a"} ->
         get_employee()
         |> Map.merge(%{"status" => "NEW", "is_active" => true})
