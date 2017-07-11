@@ -228,6 +228,9 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
 
       assert to_string(Date.utc_today) == resp["data"]["start_date"]
       assert {:ok, _} = Date.from_iso8601(resp["data"]["end_date"])
+
+      declaration_request = EHealth.DeclarationRequest.API.get_declaration_request_by_id!(id)
+      assert id == declaration_request.data["id"]
       # TODO: turn this into DB checks
       #
       # assert "NEW" = resp["status"]
