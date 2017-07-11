@@ -27,7 +27,7 @@ defmodule EHealth.API.UAddress do
 
   def update_settlement(id, data, headers) do
     "/settlements/#{id}"
-    |> patch!(Poison.encode!(data), headers, timeouts())
+    |> patch!(Poison.encode!(%{"settlement" => data}), headers, timeouts())
     |> ResponseDecoder.check_response()
   end
 

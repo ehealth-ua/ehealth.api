@@ -373,7 +373,7 @@ defmodule EHealth.MockServer do
   patch "/settlements/:id" do
     conn.path_params["id"]
     |> get_settlement()
-    |> MapDeepMerge.merge(conn.body_params)
+    |> MapDeepMerge.merge(conn.body_params["settlement"])
     |> render(conn, 200)
   end
 
