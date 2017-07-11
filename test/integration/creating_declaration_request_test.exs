@@ -206,7 +206,6 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
       {:ok, %{port: port, conn: conn}}
     end
 
-    @tag :pending
     test "declaration request is created with 'OTP' verification", %{conn: conn} do
       declaration_request_params = File.read!("test/data/declaration_request.json")
 
@@ -243,7 +242,6 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
       assert is_nil(resp["data"]["urgent"]["documents"])
     end
 
-    @tag :pending
     test "declaration request is created with 'Offline' verification", %{conn: conn} do
       declaration_request_params =
         "test/data/declaration_request.json"
@@ -341,7 +339,6 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
       {:ok, %{port: port, conn: conn}}
     end
 
-    @tag :pending
     test "returns error if global parameters do not exist", %{port: port, conn: conn} do
       declaration_request_params = File.read!("test/data/declaration_request.json")
 
@@ -418,7 +415,6 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
       {:ok, %{port: port, conn: conn}}
     end
 
-    @tag :pending
     test "returns error if employee doesn't exist", %{port: port, conn: conn} do
       wrong_id = "2f650a5c-7a04-4615-a1e7-00fa41bf160d"
 
@@ -467,7 +463,6 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
       {:ok, %{conn: conn}}
     end
 
-    @tag :pending
     test "validation error is returned", %{conn: conn} do
       declaration_request_params = File.read!("test/data/declaration_request.json")
 
