@@ -240,7 +240,7 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
       # assert %{"number" => "+380508887700", "type" => "OTP"} = resp["authentication_method_current"]
       assert "<html><body>Printout form for declaration request ##{id}</body></hrml>" ==
         resp["data"]["content"]
-      assert is_nil(resp["data"]["urgent"])
+      assert is_nil(resp["data"]["urgent"]["documents"])
     end
 
     @tag :pending
@@ -288,6 +288,7 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
           "url" => "http://some_resource.com/#{id}/declaration_request_Passport.jpeg"
         }
       ] == resp["data"]["urgent"]["documents"]
+      refute is_nil(resp["data"]["urgent"]["documents"])
     end
   end
 

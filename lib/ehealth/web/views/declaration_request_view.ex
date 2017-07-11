@@ -3,6 +3,7 @@ defmodule EHealth.Web.DeclarationRequestView do
 
   use EHealth.Web, :view
   alias EHealth.Web.{PersonView, EmployeeView, LegalEntityView, DivisionView}
+  alias EHealth.Utils.Phone
 
   def render("index.json", %{declaration_requests: declaration_requests}) do
     render_many(declaration_requests, __MODULE__, "declaration_request_short.json")
@@ -45,6 +46,12 @@ defmodule EHealth.Web.DeclarationRequestView do
     employee = Map.take(declaration_request.data[:employee], ["id", "party", "position"])
     legal_entity = form_legal_entity(declaration_request.data[:legal_entity])
     division = Map.take(declaration_request.data[:division], division_attrs)
+    urgent = %{
+      authentication_method_current: %{
+        type: declaration_request.authentication_method_current["type"],
+        number: Phone.hide_number(declaration_request.authentication_method_current["number"])
+      }
+    }
 
     data =
       declaration_request.data
@@ -53,9 +60,11 @@ defmodule EHealth.Web.DeclarationRequestView do
       |> Map.put("employee", employee)
       |> Map.put("legal_entity", legal_entity)
       |> Map.put("division", division)
+      |> Map.put("status", declaration_request.status)
+      |> Map.put("urgent", urgent)
 
     if declaration_request.documents do
-      Map.put(data, "urgent", %{"documents" => filter_document_links(declaration_request.documents)})
+      put_in(data, ["urgent", "documents"], filter_document_links(declaration_request.documents))
     else
       data
     end
@@ -107,6 +116,7 @@ defmodule EHealth.Web.DeclarationRequestView do
     |> Map.take(legal_entity_attrs)
     |> Map.merge(additional_attrs)
   end
+
 
   defp filter_document_links(documents) do
     filter = fn document -> document["verb"] == "PUT" end

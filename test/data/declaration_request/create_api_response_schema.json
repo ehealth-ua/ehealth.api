@@ -690,9 +690,28 @@
     "start_date": {
       "type": "string"
     },
+    "status": {
+      "type": "string"
+    },
     "urgent": {
       "additionalProperties": false,
       "properties": {
+        "authentication_method_current": {
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "type": "string"
+            },
+            "number": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "number"
+          ],
+          "type": "object"
+        },
         "documents": {
           "items": {
             "additionalProperties": false,
@@ -714,7 +733,7 @@
         }
       },
       "required": [
-        "documents"
+        "authentication_method_current"
       ],
       "type": "object"
     }
@@ -728,6 +747,8 @@
     "employee",
     "scope",
     "legal_entity",
+    "urgent",
+    "status",
     "id"
   ],
   "type": "object"
