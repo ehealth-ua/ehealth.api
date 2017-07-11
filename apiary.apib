@@ -1421,8 +1421,13 @@ This method is used to create Declaration Request (as part of Declaration creati
                 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
             + division (`Division_Details`, required)
             + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
-            + urgent (object, optional)
-                + documents (array[`media_content`], required)
+            + urgent (object, required)
+                + `authentication_method_current` (object, required)
+                    + type: `OTP` (enum, required)
+                        - OTP
+                        - OFFLINE
+                    + number: `+38093*****85` (string, required)
+                + documents (array[`media_content`], optional)
 
 + Response 422 (application/json)
     + Attributes (Response_Error)
@@ -2586,7 +2591,8 @@ API for searching Ukrainian Addresses
 + gender: MALE, FEMALE (enum[string], required)
 + tax_id: 3126509816 (string, optional)
 + secret: `secret` (string, required)
-+ documents (array[Document], required)
++ documents_person (array[Document], required)
++ documents_relationship (array[Document], required)
 + phones (array[Phone], optional)
 
 ### `Emergency_Contact`
@@ -3201,9 +3207,6 @@ API for searching Ukrainian Addresses
 
 ### Document
 + type: PASSPORT (string, required) - `Dictionary DOCUMENT_TYPE`
-+ identifies: PERSON (enum, required)
-    - PERSON
-    - RELATIONSHIP
 + number: 120518 (string, required)
 
 ### `Medical_Certificate`
