@@ -2633,7 +2633,8 @@ API for searching Ukrainian Addresses
 + birth_date: `1991-08-19T00:00:00.000Z` (string, required) - ISO Datetime.
 + tax_id: 3126509816 (string, optional)
 + phone_number: `+380508887700` (string, optional)
-+ birth_place: Вінниця (string, required)
++ birth_country: UA (string, required)
++ birth_settlement: Вінниця (string, required)
 + merged_ids (array)
     + (object)
         + id: `7bca069f-21e4-4546-90cf-b65e3f39d93d` (string, required)
@@ -3318,7 +3319,7 @@ API for searching Ukrainian Addresses
 ### DoctorNew
 + educations (array[Education], required)  - освіта
 + qualifications (array[Qualification], optional) - підвищення кваліфікації
-+ specialities (array[Speciality], required)
++ specialities (array[Speciality], required)  - блок інформації про отримання сертифікату спеціалісту та проходження атестацій
 + science_degree (ScienceDegree, optional)
 
 ### `DoctorNew_Short`
