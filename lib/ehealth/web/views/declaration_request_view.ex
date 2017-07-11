@@ -46,15 +46,21 @@ defmodule EHealth.Web.DeclarationRequestView do
     employee = Map.take(declaration_request.data[:employee], ["id", "party", "position"])
     legal_entity = form_legal_entity(declaration_request.data[:legal_entity])
     division = Map.take(declaration_request.data[:division], division_attrs)
-    urgent = %{
-      authentication_method_current: update_in(declaration_request.authentication_method_current, ["number"], &Phone.hide_number/1)
-    }
 
-    urgent = if declaration_request.documents do
-      put_in(urgent, ["documents"], filter_document_links(declaration_request.documents))
-    else
-      urgent
-    end
+    filtered_authentication_method_current =
+      update_in(declaration_request.authentication_method_current, ["number"], &Phone.hide_number/1)
+
+    urgent =
+      if declaration_request.documents do
+        %{
+          authentication_method_current: filtered_authentication_method_current,
+          documents: filter_document_links(declaration_request.documents)
+        }
+      else
+        %{
+          authentication_method_current: filtered_authentication_method_current
+        }
+      end
 
     declaration_request.data
     |> Map.put("id", declaration_request.id)
