@@ -278,12 +278,23 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
         resp["data"]["content"]
       assert [
         %{
-          "type" => "SSN",
-          "url" => "http://some_resource.com/#{id}/declaration_request_SSN.jpeg"
+          "type" => "person.PASSPORT",
+          "url" => "http://some_resource.com/#{id}/declaration_request_person.PASSPORT.jpeg"},
+        %{
+          "type" => "person.SSN",
+          "url" => "http://some_resource.com/#{id}/declaration_request_person.SSN.jpeg"
         },
         %{
-          "type" => "Passport",
-          "url" => "http://some_resource.com/#{id}/declaration_request_Passport.jpeg"
+          "type" => "confidant_person.0.PRIMARY.COURT_DECISION",
+          "url" => "http://some_resource.com/#{id}/declaration_request_confidant_person.0.PRIMARY.COURT_DECISION.jpeg"
+        },
+        %{
+          "type" => "confidant_person.0.PRIMARY.PASSPORT",
+          "url" => "http://some_resource.com/#{id}/declaration_request_confidant_person.0.PRIMARY.PASSPORT.jpeg"
+        },
+        %{
+          "type" => "confidant_person.0.PRIMARY.SSN",
+          "url" => "http://some_resource.com/#{id}/declaration_request_confidant_person.0.PRIMARY.SSN.jpeg"
         }
       ] == resp["data"]["urgent"]["documents"]
       refute is_nil(resp["data"]["urgent"]["documents"])

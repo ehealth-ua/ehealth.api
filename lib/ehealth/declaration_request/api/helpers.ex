@@ -22,7 +22,7 @@ defmodule EHealth.DeclarationRequest.API.Helpers do
     p_docs = if person["tax_id"], do: ["person.SSN"], else: []
     p_docs = p_docs ++ Enum.map(person["documents"], &"person.#{&1["type"]}")
 
-    person["confidant_persons"]
+    person["confidant_person"]
     |> Enum.with_index
     |> Enum.reduce(p_docs, fn {cp, idx}, acc ->
         cp_docs = if cp["tax_id"], do: ["confidant_person.#{idx}.#{cp["relation_type"]}.SSN"], else: []

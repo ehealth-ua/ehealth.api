@@ -56,7 +56,7 @@ defmodule EHealth.DeclarationRequest.API.HelpersTest do
           %{ "type" => "B" },
           %{ "type" => "C" }
         ],
-        "confidant_persons" => [
+        "confidant_person" => [
           %{
             "tax_id" => "some_id",
             "relation_type" => "XXX",
