@@ -364,7 +364,7 @@
                   "documents_person",
                   "documents_relationship"
                 ],
-                "additionalProperties": false,
+                "additionalProperties": false
               },
               "description": "Should be set if this Person is disabled, underage, etc."
             },
