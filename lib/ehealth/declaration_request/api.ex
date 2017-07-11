@@ -175,7 +175,6 @@ defmodule EHealth.DeclarationRequest.API do
     |> put_change(:updated_by, user_id)
     |> Create.determine_auth_method_for_mpi()
     |> Create.generate_printout_form()
-    |> validate_required(@required_fields)
   end
 
   def put_in_data(changeset, key, value) do
