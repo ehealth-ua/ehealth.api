@@ -280,6 +280,19 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
   end
 
+  test "can approve employee request with employee_id", %{conn: conn} do
+    employee_id = "6bbdb29e-6627-11e7-907b-a6006ad3dba0"
+    fixture_params =
+      employee_request()
+      |> Map.put(:email, "mis_bot_1493831618@user.com")
+      |> put_in([:data, "employee_id"], employee_id)
+    %{id: id} = fixture(Request, fixture_params)
+
+    conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
+    conn = post conn, employee_request_path(conn, :approve, id)
+    json_response(conn, 200)
+  end
+
   test "can approve employee request if email maches", %{conn: conn} do
     fixture_params = Map.merge(employee_request(), %{
       email: "mis_bot_1493831618@user.com",
@@ -327,7 +340,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   end
 
   test "can approve employee request with employee_id'", %{conn: conn} do
-    employee_id = Ecto.UUID.generate
+    employee_id = "6bbdb29e-6627-11e7-907b-a6006ad3dba0"
     fixture_params =
       employee_request()
       |> Map.put(:email, "mis_bot_1493831618@user.com")

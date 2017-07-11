@@ -112,10 +112,13 @@ defmodule EHealth.Employee.API do
   end
 
   def create_or_update_employee(%Request{data: %{"employee_id" => employee_id}} = employee_request, req_headers) do
-    employee_request
-    |> Map.delete("employee_type")
-    |> put_updated_by(req_headers)
-    |> PRM.update_employee(employee_id, req_headers)
+    with {:ok, %{"data" => employee}} <- PRM.get_employee_by_id(employee_id) do
+         employee_request
+         |> update_doctor(employee)
+         |> Map.delete("employee_type")
+         |> put_updated_by(req_headers)
+         |> PRM.update_employee(employee_id, req_headers)
+    end
   end
   def create_or_update_employee(%Request{} = employee_request, req_headers) do
     employee_request
@@ -123,6 +126,11 @@ defmodule EHealth.Employee.API do
     |> UserRoleCreator.create(req_headers)
   end
   def create_or_update_employee(error, _), do: error
+
+  def update_doctor(%{data: data} = employee_request, %{"doctor" => doctor}) do
+    employee_request
+    |> Map.put(:data, Map.put(data, "doctor", Map.merge(doctor, data["doctor"])))
+  end
 
   def check_transition_status(%Request{status: @status_new} = employee_request) do
     employee_request
