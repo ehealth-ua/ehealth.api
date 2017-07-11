@@ -49,7 +49,7 @@ defmodule EHealth.Divisions.UAddress do
     %{settlement_id: id, mountain_group: group}
     |> PRM.update_divisions_mountain_group(headers)
     |> case do
-         {:ok, _} -> pipe_data
+         {:ok, _} -> {:ok, pipe_data}
          {:error, reason} -> put_in_pipe(reason, :division_update_error, pipe_data)
        end
   end

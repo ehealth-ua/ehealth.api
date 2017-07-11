@@ -6,10 +6,10 @@ defmodule EHealth.Web.EUaddressesControllerTest do
   describe "update settlement mountain group" do
 
     test "success", %{conn: conn} do
-      data = %{"mountain_group" => "true"}
-      conn = patch conn, uaddresses_path(conn, :update_settlements, "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b"), data
+      data = %{"mountain_group" => "real"}
+      conn = patch conn, uaddresses_path(conn, :update_settlements, "b075f148-7f93-4fc2-b2ec-2d81b19a9b7a"), data
 
-      assert [] != json_response(conn, 200)["meta"]["data"]
+      assert "real" = json_response(conn, 200)["data"]["mountain_group"]
     end
 
     test "failed to update divisions", %{conn: conn} do
