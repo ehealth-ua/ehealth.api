@@ -224,7 +224,7 @@ defmodule EHealth.MockServer do
   patch "/divisions/actions/set_mountain_group" do
     {code, resp} =
       case conn.body_params["settlement_id"] do
-        "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b" ->
+        "b075f148-7f93-4fc2-b2ec-2d81b19a9b7a" ->
           {200, []}
         _ ->
           {422, %{"error" => %{"invalid_validation" => "legal_entity_id"}}}
