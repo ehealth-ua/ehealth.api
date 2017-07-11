@@ -70,7 +70,7 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
         |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: ""}))
-        |> patch("/api/declaration_requests/#{id}/approve", %{"verification_code" => "12345"})
+        |> patch("/api/declaration_requests/#{id}/actions/approve", %{"verification_code" => "12345"})
 
       resp = json_response(conn, 200)
 
@@ -135,7 +135,7 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
         |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: ""}))
-        |> patch("/api/declaration_requests/#{id}/approve")
+        |> patch("/api/declaration_requests/#{id}/actions/approve")
 
       resp = json_response(conn, 200)
 
