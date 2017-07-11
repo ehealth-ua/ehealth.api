@@ -40,7 +40,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
     end
 
     test "generates links & updates declaration request" do
-      result = generate_upload_urls("98e0a42f-20fe-472c-a614-0ea99426a3fb")
+      result = generate_upload_urls("98e0a42f-20fe-472c-a614-0ea99426a3fb", ["Passport", "SSN"])
 
       expected_documents = [
         %{
@@ -69,7 +69,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
     end
 
     test "returns error on documents field" do
-      result = generate_upload_urls("98e0a42f-0000-9999-5555-0ea99426a3fb")
+      result = generate_upload_urls("98e0a42f-0000-9999-5555-0ea99426a3fb", ["Passport"])
 
       error_message = ~s(Error during MediaStorage interaction. Result from MediaStorage: \
 %{"something" => "went wrong with declaration_request_Passport.jpeg"})

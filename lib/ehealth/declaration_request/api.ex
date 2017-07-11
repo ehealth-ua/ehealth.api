@@ -121,7 +121,9 @@ defmodule EHealth.DeclarationRequest.API do
             {:error, error}
         end
       "OFFLINE" ->
-        case Create.generate_upload_urls(declaration_request.id) do
+        documents_list = Helpers.gather_documents_list(declaration_request.data["person"])
+
+        case Create.generate_upload_urls(declaration_request.id, documents_list) do
           {:ok, documents} ->
             declaration_request
             |> update_changeset(%{documents: documents})

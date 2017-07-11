@@ -18,10 +18,10 @@ defmodule EHealth.DeclarationRequest.API.Create do
     OTPVerification.initialize(number)
   end
 
-  def generate_upload_urls(id) do
+  def generate_upload_urls(id, document_list) do
     link_versions =
       for verb <- ["HEAD", "PUT"],
-          document_type <- config()[:declaration_request_offline_documents], do: {verb, document_type}
+          document_type <- document_list, do: {verb, document_type}
 
     documents =
       Enum.reduce_while link_versions, [], fn {verb, document_type}, acc ->

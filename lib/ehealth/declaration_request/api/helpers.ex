@@ -17,4 +17,19 @@ defmodule EHealth.DeclarationRequest.API.Helpers do
       end
     end
   end
+
+  def gather_documents_list(person) do
+    p_docs = if person["tax_id"], do: ["person.SSN"], else: []
+    p_docs = p_docs ++ Enum.map(person["documents"], &"person.#{&1["type"]}")
+
+    person["confidant_persons"]
+    |> Enum.with_index
+    |> Enum.reduce(p_docs, fn {cp, idx}, acc ->
+        cp_docs = if cp["tax_id"], do: ["confidant_person.#{idx}.#{cp["relation_type"]}.SSN"], else: []
+
+        docs = cp["documents_person"] ++ cp["documents_relationship"]
+
+        cp_docs ++ Enum.map(docs, &"confidant_person.#{idx}.#{cp["relation_type"]}.#{&1["type"]}") ++ acc
+       end)
+  end
 end

@@ -46,4 +46,62 @@ defmodule EHealth.DeclarationRequest.API.HelpersTest do
       assert ~D[1995-10-10] == request_end_date(today, term, birth_date, 18)
     end
   end
+
+  describe "gather_documents_list/1" do
+    test "gathers all required docs" do
+      person = %{
+        "tax_id" => "some_id",
+        "documents" => [
+          %{ "type" => "A" },
+          %{ "type" => "B" },
+          %{ "type" => "C" }
+        ],
+        "confidant_persons" => [
+          %{
+            "tax_id" => "some_id",
+            "relation_type" => "XXX",
+            "documents_person" => [
+              %{ "type" => "A1" },
+              %{ "type" => "A2" },
+              %{ "type" => "A3" }
+            ],
+            "documents_relationship" => [
+              %{ "type" => "B1" },
+              %{ "type" => "B2" },
+            ]
+          },
+          %{
+            "relation_type" => "YYY",
+            "documents_person" => [
+              %{ "type" => "X1" },
+              %{ "type" => "X2" },
+              %{ "type" => "X3" }
+            ],
+            "documents_relationship" => [
+              %{ "type" => "Y1" },
+              %{ "type" => "Y2" },
+            ]
+          }
+        ]
+      }
+
+      [
+        "confidant_person.1.YYY.X1",
+        "confidant_person.1.YYY.X2",
+        "confidant_person.1.YYY.X3",
+        "confidant_person.1.YYY.Y1",
+        "confidant_person.1.YYY.Y2",
+        "confidant_person.0.XXX.SSN",
+        "confidant_person.0.XXX.A1",
+        "confidant_person.0.XXX.A2",
+        "confidant_person.0.XXX.A3",
+        "confidant_person.0.XXX.B1",
+        "confidant_person.0.XXX.B2",
+        "person.SSN",
+        "person.A",
+        "person.B",
+        "person.C"
+      ] = gather_documents_list(person)
+    end
+  end
 end
