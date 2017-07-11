@@ -47,27 +47,23 @@ defmodule EHealth.Web.DeclarationRequestView do
     legal_entity = form_legal_entity(declaration_request.data[:legal_entity])
     division = Map.take(declaration_request.data[:division], division_attrs)
     urgent = %{
-      authentication_method_current: %{
-        type: declaration_request.authentication_method_current["type"],
-        number: Phone.hide_number(declaration_request.authentication_method_current["number"])
-      }
+      authentication_method_current: update_in(declaration_request.authentication_method_current, ["number"], &Phone.hide_number/1)
     }
 
-    data =
-      declaration_request.data
-      |> Map.put("id", declaration_request.id)
-      |> Map.put("content", declaration_request.printout_content)
-      |> Map.put("employee", employee)
-      |> Map.put("legal_entity", legal_entity)
-      |> Map.put("division", division)
-      |> Map.put("status", declaration_request.status)
-      |> Map.put("urgent", urgent)
-
-    if declaration_request.documents do
-      put_in(data, ["urgent", "documents"], filter_document_links(declaration_request.documents))
+    urgent = if declaration_request.documents do
+      put_in(urgent, ["documents"], filter_document_links(declaration_request.documents))
     else
-      data
+      urgent
     end
+
+    declaration_request.data
+    |> Map.put("id", declaration_request.id)
+    |> Map.put("content", declaration_request.printout_content)
+    |> Map.put("employee", employee)
+    |> Map.put("legal_entity", legal_entity)
+    |> Map.put("division", division)
+    |> Map.put("status", declaration_request.status)
+    |> Map.put("urgent", urgent)
   end
 
   def render("declaration.json", %{declaration: declaration}), do: declaration
