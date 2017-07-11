@@ -24,11 +24,15 @@ defmodule EHealth.Divisions.UAddress do
     |> put_success_api_response_in_pipe(:settlement, pipedata)
   end
 
-  defp check_settlement_diff(%{update_data: data, settlement: %{"data" => settlement}} = pipe_data) do
-    settlement
-    |> Map.take(Map.keys(data))
+  def check_settlement_diff(%{update_data: data, settlement: %{"data" => settlement}} = pipe_data) do
+    settlement_set =
+      settlement
+      |> Map.take(Map.keys(data))
+      |> MapSet.new()
+
+    data
     |> MapSet.new()
-    |> MapSet.difference(MapSet.new(data))
+    |> MapSet.difference(settlement_set)
     |> MapSet.to_list()
     |> Enum.into(%{})
     |> put_in_pipe(:update_data, pipe_data)
