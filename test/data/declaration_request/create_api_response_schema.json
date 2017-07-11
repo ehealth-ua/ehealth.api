@@ -465,6 +465,9 @@
           "items": {
             "additionalProperties": false,
             "properties": {
+              "secret": {
+                "type": "string"
+              },
               "birth_country": {
                 "type": "string"
               },

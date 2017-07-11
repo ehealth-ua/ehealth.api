@@ -97,7 +97,8 @@
             "type": "MOBILE",
             "number": "+380503410870"
           }
-        ]
+        ],
+        "secret": "some_secret"
       }],
       "patient_signed": false,
       "process_disclosure_data_consent": true
