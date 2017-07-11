@@ -72,6 +72,8 @@ defmodule EHealth.Web.DeclarationRequestView do
 
   def render("declaration.json", %{declaration: declaration}), do: declaration
 
+  def render("otp.json", %{otp: otp}), do: otp
+
   def render("microservice_error.json", %{microservice_response: microservice_response}) do
     %{
       message: "Error during microservice interaction. Response from microservice: #{inspect microservice_response}."

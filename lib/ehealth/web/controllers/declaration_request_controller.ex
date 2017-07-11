@@ -41,4 +41,10 @@ defmodule EHealth.Web.DeclarationRequestController do
       render(conn, "declaration.json", declaration: declaration)
     end
   end
+
+  def resend_otp(conn, params) do
+    with {:ok, otp} <- DeclarationRequestAPI.resend_otp(params, conn.req_headers) do
+      render(conn, "otp.json", otp: otp)
+    end
+  end
 end

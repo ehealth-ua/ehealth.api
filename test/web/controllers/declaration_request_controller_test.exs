@@ -153,6 +153,72 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
   end
 
+  describe "resend otp" do
+    defmodule OTPVerificationMock do
+      use MicroservicesHelper
+
+      Plug.Router.post "/verifications" do
+        send_resp(conn, 200, Poison.encode!(%{status: "NEW"}))
+      end
+    end
+
+    setup do
+      {:ok, port, ref} = start_microservices(OTPVerificationMock)
+
+      System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:#{port}")
+      on_exit fn ->
+        System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:4040")
+        stop_microservices(ref)
+      end
+
+      :ok
+    end
+
+    test "when declaration id is invalid", %{conn: conn} do
+      conn = put_client_id_header(conn, Ecto.UUID.generate)
+      assert_raise Ecto.NoResultsError, fn ->
+        post conn, declaration_request_path(conn, :resend_otp, Ecto.UUID.generate())
+      end
+    end
+
+    test "when declaration auth method is not OTP", %{conn: conn} do
+      conn = put_client_id_header(conn, Ecto.UUID.generate)
+
+      params =
+        fixture_params()
+        |> Map.put(:authentication_method_current, %{type: "OFFLINE"})
+
+      %{id: id} = fixture(DeclarationRequest, params)
+
+      conn = post conn, declaration_request_path(conn, :resend_otp, id)
+      resp = json_response(conn, 422)
+      assert Map.has_key?(resp, "error")
+      error = resp["error"]
+      assert Map.has_key?(error, "invalid")
+      assert 1 == length(error["invalid"])
+      invalid = Enum.at(error["invalid"], 0)
+      assert "$.authentication_method_current" == invalid["entry"]
+      assert 1 == length(invalid["rules"])
+      rule = Enum.at(invalid["rules"], 0)
+      assert "Auth method is not OTP" == rule["description"]
+    end
+
+    test "when declaration auth method is OTP", %{conn: conn} do
+      conn = put_client_id_header(conn, Ecto.UUID.generate)
+
+      params =
+        fixture_params()
+        |> Map.put(:authentication_method_current, %{type: "OTP", number: 111})
+
+      %{id: id} = fixture(DeclarationRequest, params)
+
+      conn = post conn, declaration_request_path(conn, :resend_otp, id)
+      resp = json_response(conn, 200)
+      assert Map.has_key?(resp, "data")
+      assert %{"status" => "NEW"} == resp["data"]
+    end
+  end
+
   defp fixture_params do
     uuid = Ecto.UUID.generate()
     %{
