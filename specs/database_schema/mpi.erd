@@ -5,18 +5,23 @@ last_name | varchar | not null
 first_name | varchar | not null
 second_name | varchar
 birth_date | date | not null
-birth_place | varchar
+birth_country | varchar | not null
+birth_settlement | varchar | not null
 gender | varchar | not null
 email | varchar
 tax_id | varchar
 death_date | date
 is_active | boolean | not null
-documents | json
-addresses | json
+documents | json | not null
+addresses | json | not null
 phones | json
-secret | varchar
-emergency_contact | json
+secret | varchar | not null
+emergency_contact | json | not null
 confidant_person | json
+patient_signed | boolean | not null
+process_disclosure_data_consent | boolean | not null
+authentication_methods | json | not null
+merged_ids  | varchar | not null
 status | varchar | not null
 inserted_at | timestamp | not null
 inserted_by | varchar | not null
