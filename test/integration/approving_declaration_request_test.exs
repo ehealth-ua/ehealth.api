@@ -50,7 +50,13 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
 
       existing_declaration_request_params = %{
         id: id,
-        data: %{},
+        data: %{
+          employee: %{},
+          legal_entity: %{
+            medical_service_provider: %{}
+          },
+          division: %{}
+        },
         status: "NEW",
         authentication_method_current: %{
           "type" => "OTP",
@@ -112,7 +118,13 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
 
       existing_declaration_request_params = %{
         id: id,
-        data: %{},
+        data: %{
+          employee: %{},
+          legal_entity: %{
+            medical_service_provider: %{}
+          },
+          division: %{}
+        },
         status: "NEW",
         authentication_method_current: %{
           "type" => "OFFLINE"

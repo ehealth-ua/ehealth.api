@@ -23,7 +23,7 @@ defmodule EHealth.Web.DeclarationRequestController do
     client_id = get_client_id(conn.req_headers)
 
     with {:ok, %{finalize: result}} <- DeclarationRequestAPI.create(declaration_request, user_id, client_id) do
-      render(conn, "declaration_request.json", declaration_request: result)
+      render(conn, "declaration_request.json", declaration_request: result, urgent: true)
     end
   end
 
@@ -32,7 +32,7 @@ defmodule EHealth.Web.DeclarationRequestController do
 
     with {:ok, %{declaration_request: declaration_request}} <-
         DeclarationRequestAPI.approve(id, params["verification_code"], user_id) do
-      render(conn, "status.json", declaration_request: declaration_request)
+      render(conn, "declaration_request.json", declaration_request: declaration_request, urgent: false)
     end
   end
 
