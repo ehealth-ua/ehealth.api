@@ -209,7 +209,7 @@ defmodule EHealth.Employee.API do
 
   def get_employees(params, headers) do
     params
-    |> get_employees_search_params(get_client_id(headers))
+    |> get_employees_search_params()
     |> PRM.get_employees(headers)
     |> filter_employees_response()
   end
@@ -231,9 +231,8 @@ defmodule EHealth.Employee.API do
   end
   def filter_doctor_response(data), do: data
 
-  defp get_employees_search_params(params, client_id) do
+  defp get_employees_search_params(params) do
     Map.merge(params, %{
-      "legal_entity_id" => client_id,
       "is_active" => true,
       "expand" => true,
     })
