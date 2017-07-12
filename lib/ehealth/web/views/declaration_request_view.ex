@@ -29,9 +29,27 @@ defmodule EHealth.Web.DeclarationRequestView do
     Map.take(declaration_request, [:id, :data, :status])
   end
 
-  def render("declaration_request.json", %{declaration_request: declaration_request, urgent: urgent}) do
-    # TODO: move this to a module attr?
+  def render("declaration_request.json", %{declaration_request: declaration_request, with_urgent: true}) do
+    filtered_authentication_method_current =
+      update_in(declaration_request.authentication_method_current, ["number"], &Phone.hide_number/1)
 
+    additional_fields =
+      if declaration_request.documents do
+        %{
+          authentication_method_current: filtered_authentication_method_current,
+          documents: filter_document_links(declaration_request.documents)
+        }
+      else
+        %{
+          authentication_method_current: filtered_authentication_method_current
+        }
+      end
+
+    render("declaration_request.json", %{declaration_request: declaration_request})
+    |> Map.put("urgent", additional_fields)
+  end
+
+  def render("declaration_request.json", %{declaration_request: declaration_request}) do
     division_attrs = [
       "id",
       "type",
@@ -47,35 +65,13 @@ defmodule EHealth.Web.DeclarationRequestView do
     legal_entity = form_legal_entity(declaration_request.data["legal_entity"])
     division = Map.take(declaration_request.data["division"], division_attrs)
 
-    result =
-      declaration_request.data
-      |> Map.put("id", declaration_request.id)
-      |> Map.put("content", declaration_request.printout_content)
-      |> Map.put("employee", employee)
-      |> Map.put("legal_entity", legal_entity)
-      |> Map.put("division", division)
-      |> Map.put("status", declaration_request.status)
-
-    if urgent do
-      filtered_authentication_method_current =
-        update_in(declaration_request.authentication_method_current, ["number"], &Phone.hide_number/1)
-
-      additional_fields =
-        if declaration_request.documents do
-          %{
-            authentication_method_current: filtered_authentication_method_current,
-            documents: filter_document_links(declaration_request.documents)
-          }
-        else
-          %{
-            authentication_method_current: filtered_authentication_method_current
-          }
-        end
-
-      Map.put(result, "urgent", additional_fields)
-    else
-      result
-    end
+    declaration_request.data
+    |> Map.put("id", declaration_request.id)
+    |> Map.put("content", declaration_request.printout_content)
+    |> Map.put("employee", employee)
+    |> Map.put("legal_entity", legal_entity)
+    |> Map.put("division", division)
+    |> Map.put("status", declaration_request.status)
   end
 
   def render("declaration.json", %{declaration: declaration}), do: declaration
