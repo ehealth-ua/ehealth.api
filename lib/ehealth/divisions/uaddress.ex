@@ -2,20 +2,19 @@ defmodule EHealth.Divisions.UAddress do
   @moduledoc """
   Service layer for synchronous update of the UAddress settlement and divisions
   """
-  use OkJose
   alias EHealth.API.PRM
   alias EHealth.API.UAddress
   import EHealth.Utils.Pipeline
 
   def update_settlement(%{"id" => id} = data, headers) do
-    {:ok, %{id: id, update_data: data, headers: headers}}
-    |> api_get_settlement()
-    |> check_settlement_diff()
-    |> api_update_settlement()
-    |> api_update_divisions()
-    |> rollback_settlement()
-    |> ok()
-    |> end_pipe()
+    pipe_data = %{id: id, update_data: data, headers: headers}
+    with {:ok, pipe_data} <- api_get_settlement(pipe_data),
+         {:ok, pipe_data} <- check_settlement_diff(pipe_data),
+         {:ok, pipe_data} <- api_update_settlement(pipe_data),
+         {:ok, pipe_data} <- api_update_divisions(pipe_data),
+         {:ok, pipe_data} <- rollback_settlement(pipe_data) do
+         end_pipe({:ok, pipe_data})
+    end
   end
 
   defp api_get_settlement(%{id: id, headers: headers} = pipedata) do
@@ -43,7 +42,7 @@ defmodule EHealth.Divisions.UAddress do
     |> UAddress.update_settlement(data, headers)
     |> put_success_api_response_in_pipe(:settlement_updated, pipedata)
   end
-  defp api_update_settlement(pipe_data), do: pipe_data
+  defp api_update_settlement(pipe_data), do: {:ok, pipe_data}
 
   defp api_update_divisions(%{id: id, headers: headers, update_data: %{"mountain_group" => group}} = pipe_data) do
     %{settlement_id: id, mountain_group: group}
@@ -53,7 +52,7 @@ defmodule EHealth.Divisions.UAddress do
          {:error, reason} -> put_in_pipe(reason, :division_update_error, pipe_data)
        end
   end
-  defp api_update_divisions(pipe_data), do: pipe_data
+  defp api_update_divisions(pipe_data), do: {:ok, pipe_data}
 
   defp rollback_settlement(%{division_update_error: err, settlement: %{"data" => data}} = pipe_data) do
     UAddress.update_settlement(pipe_data.id, data, pipe_data.headers)
@@ -62,5 +61,5 @@ defmodule EHealth.Divisions.UAddress do
   defp rollback_settlement(%{settlement_updated: settlement_updated} = pipe_data) do
     put_in_pipe(settlement_updated, :settlement, pipe_data)
   end
-  defp rollback_settlement(pipe_data), do: pipe_data
+  defp rollback_settlement(pipe_data), do: {:ok, pipe_data}
 end

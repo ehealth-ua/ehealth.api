@@ -1,8 +1,6 @@
 defmodule EHealth.LegalEntity.LegalEntityUpdater do
   @moduledoc false
 
-  use OkJose
-
   import EHealth.Utils.Pipeline
   import EHealth.Utils.Connection, only: [get_consumer_id: 1]
 
@@ -16,13 +14,13 @@ defmodule EHealth.LegalEntity.LegalEntityUpdater do
   @legal_entity_status_active "ACTIVE"
 
   def deactivate(id, headers) do
-    {:ok, %{id: id, headers: headers}}
-    |> get_legal_entity()
-    |> check_transition()
-    |> deactivate_employees()
-    |> update_legal_entity_status()
-    |> ok()
-    |> end_pipe()
+    pipe_data = %{id: id, headers: headers}
+    with {:ok, pipe_data} <- get_legal_entity(pipe_data),
+         {:ok, pipe_data} <- check_transition(pipe_data),
+         {:ok, pipe_data} <- deactivate_employees(pipe_data),
+         {:ok, pipe_data} <- update_legal_entity_status(pipe_data) do
+         end_pipe({:ok, pipe_data})
+    end
   end
 
   def get_legal_entity(%{id: id, headers: headers} = pipe_data) do

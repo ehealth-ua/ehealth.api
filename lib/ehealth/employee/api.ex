@@ -1,8 +1,6 @@
 defmodule EHealth.Employee.API do
   @moduledoc false
 
-  use OkJose
-
   import Ecto.{Query, Changeset}, warn: false
   import EHealth.Paging
   import EHealth.Utils.Pipeline
@@ -242,20 +240,20 @@ defmodule EHealth.Employee.API do
   end
 
   def get_employee_by_id(id, headers, expand \\ true) do
-    {:ok, %{
+    pipe_data = %{
       employee_id: id,
       client_id: get_client_id(headers),
       headers: headers,
       expand: expand,
-    }}
-    |> get_employee()
-    |> check_employee_legal_entity_id()
-    |> get_employee_relation("party")
-    |> get_employee_relation("division")
-    |> get_employee_relation("legal_entity")
-    |> filter_employee_response()
-    |> ok()
-    |> end_pipe()
+    }
+    with {:ok, pipe_data} <- get_employee(pipe_data),
+         {:ok, pipe_data} <- check_employee_legal_entity_id(pipe_data),
+         {:ok, pipe_data} <- get_employee_relation(pipe_data, "party"),
+         {:ok, pipe_data} <- get_employee_relation(pipe_data, "division"),
+         {:ok, pipe_data} <- get_employee_relation(pipe_data, "legal_entity"),
+         {:ok, pipe_data} <- filter_employee_response(pipe_data) do
+         end_pipe({:ok, pipe_data})
+    end
   end
 
   def get_employee(pipe_data) do

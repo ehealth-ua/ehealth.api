@@ -2,7 +2,6 @@ defmodule EHealth.Employee.UserRoleCreator do
   @moduledoc """
   Creates or updates user roles in Mithril
   """
-  use OkJose
 
   import EHealth.Utils.Pipeline
 
@@ -12,18 +11,17 @@ defmodule EHealth.Employee.UserRoleCreator do
   require Logger
 
   def create({:ok, %{"data" => employee}}, headers) do
-    {:ok, %{
+    pipe_data = %{
       party_id: Map.fetch!(employee, "party_id"),
       client_id: Map.fetch!(employee, "legal_entity_id"),
       employee: employee,
       headers: headers
-    }}
-    |> get_prm_party_users_by_party_id()
-    |> get_oauth_roles()
-    |> find_role_id_by_employee_type()
-    |> add_oauth_users_role()
-    |> ok()
-    |> normalize_resp()
+    }
+    with {:ok, pipe_data} <- get_prm_party_users_by_party_id(pipe_data),
+         {:ok, pipe_data} <- get_oauth_roles(pipe_data),
+         {:ok, pipe_data} <- find_role_id_by_employee_type(pipe_data) do
+         add_oauth_users_role(pipe_data)
+    end
   end
   def create(err, _headers), do: err
 
@@ -99,7 +97,4 @@ defmodule EHealth.Employee.UserRoleCreator do
     end)
     create_user_role({:ok, %{"data" => []}}, user_id, role_id, client_id, headers)
   end
-
-  def normalize_resp({:error, _} = err), do: err
-  def normalize_resp(resp), do: {:ok, resp}
 end

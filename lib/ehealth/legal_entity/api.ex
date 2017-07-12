@@ -2,7 +2,6 @@ defmodule EHealth.LegalEntity.API do
   @moduledoc """
   The boundary for the LegalEntity system.
   """
-  use OkJose
 
   import EHealth.Utils.Connection, only: [get_consumer_id: 1, get_client_id: 1]
   import EHealth.Utils.Pipeline
@@ -25,17 +24,17 @@ defmodule EHealth.LegalEntity.API do
   # get legal entity by id
 
   def get_legal_entity_by_id(id, headers) do
-    {:ok, %{
+    pipe_data = %{
       params: %{"id" => id, "is_active" => true},
       headers: headers,
       client_id: get_client_id(headers)
-    }}
-    |> get_client_type_name()
-    |> authorize_id
-    |> load_legal_entity()
-    |> put_oauth_client()
-    |> ok()
-    |> normalize_legal_entities()
+    }
+    with {:ok, pipe_data} <- get_client_type_name(pipe_data),
+         {:ok, pipe_data} <- authorize_id(pipe_data),
+         {:ok, pipe_data} <- load_legal_entity(pipe_data),
+         {:ok, pipe_data} <- put_oauth_client(pipe_data) do
+         normalize_legal_entities({:ok, pipe_data})
+    end
   end
 
   def get_client_type_name(%{client_id: client_id, headers: headers} = pipe_data) do
@@ -121,14 +120,14 @@ defmodule EHealth.LegalEntity.API do
   # get list of legal entities
 
   def get_legal_entities(params, headers) do
-    {:ok, %{
+    pipe_data = %{
       params: params,
       headers: headers,
       client_id: get_client_id(headers)
-    }}
-    |> load_legal_entities()
-    |> ok()
-    |> normalize_legal_entities()
+    }
+    with {:ok, pipe_data} <- load_legal_entities(pipe_data) do
+         normalize_legal_entities({:ok, pipe_data})
+    end
   end
 
   defp load_legal_entities(%{params: params, headers: headers} = pipe_data) do

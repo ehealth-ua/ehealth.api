@@ -1,8 +1,6 @@
 defmodule EHealth.Employee.EmployeeUpdater do
   @moduledoc false
 
-  use OkJose
-
   import EHealth.Utils.Pipeline
   import EHealth.Utils.Connection, only: [get_consumer_id: 1, get_client_id: 1]
 
@@ -15,15 +13,15 @@ defmodule EHealth.Employee.EmployeeUpdater do
   @employee_status_dismissed "DISMISSED"
 
   def deactivate(id, headers) do
-    {:ok, %{id: id, headers: headers}}
-    |> get_employee()
-    |> check_transition()
-    |> get_active_employees()
-    |> revoke_user_roles()
-    |> deactivate_declarations()
-    |> update_employee_status()
-    |> ok()
-    |> end_pipe()
+    pipe_data = %{id: id, headers: headers}
+    with {:ok, pipe_data} <- get_employee(pipe_data),
+         {:ok, pipe_data} <- check_transition(pipe_data),
+         {:ok, pipe_data} <- get_active_employees(pipe_data),
+         {:ok, pipe_data} <- revoke_user_roles(pipe_data),
+         {:ok, pipe_data} <- deactivate_declarations(pipe_data),
+         {:ok, pipe_data} <- update_employee_status(pipe_data) do
+         end_pipe({:ok, pipe_data})
+    end
   end
 
   def get_employee(%{id: id, headers: headers} = pipe_data) do
