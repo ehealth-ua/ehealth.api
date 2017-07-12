@@ -257,7 +257,8 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/definitions/phone"
-                  }
+                  },
+                  "minItems": 1
                 }
               },
               "required": [
@@ -371,13 +372,13 @@
             "patient_signed": {
               "type": "boolean",
               "enum": [
-                 false
+                false
               ]
             },
             "process_disclosure_data_consent": {
               "type": "boolean",
               "enum": [
-                 true
+                true
               ]
             }
           },
