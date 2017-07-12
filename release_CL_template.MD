@@ -1,4 +1,6 @@
 # This is the default checklist that should be used for any ehealh deployment
+
+- [ ] define required versions of repo to the destination env.
 - [ ] apply the required versions of repo to the destination env.
   - [ ] ehealth.api
   - [ ] prm.api
