@@ -1,0 +1,28 @@
+# This is the default checklist that should be used for any ehealh deployment
+- [ ] apply the required versions of repo to the destination env.
+  - [ ] ehealth.api
+  - [ ] prm.api
+  - [ ] mpi.api
+  - [ ] annon
+  - [ ] ael_api
+  - [ ] digital_signature_api
+  - [ ] man_api
+  - [ ] mithril_api
+  - [ ] ops
+  - [ ] uaddresses
+  - [ ] otp_verification_api
+  - [ ] nhs.auth.web
+  - [ ] nhs.portal.web - TBD
+  - [ ] nhs.admin.web -TBD
+  - [ ] man.web
+  - [ ] uaddresses.web - TBD
+- [ ] IL.dictionaries - add/update if any. IDs should be the same.
+- [ ] PRM.global_parameters - add/update if any. IDs should be the same
+- [ ] uaddresses - add/update records if any. IDs should be the same
+- [ ] GW.apis - migrate config
+- [ ] GW.plugins
+- [ ] Mithril config
+  - [ ] client_types - add/update if any changes.
+  - [ ] roles, user_roles - add/update if any changes.
+  - [ ] tokens - generate new tokens with new scopes in case if new endpoints are released
+- [ ] man templates - add/update if any. IDs should be the same
