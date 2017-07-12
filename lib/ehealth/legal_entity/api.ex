@@ -153,6 +153,7 @@ defmodule EHealth.LegalEntity.API do
     pipe_data
     |> search_legal_entity_in_prm(headers)
     |> prepare_legal_entity_id()
+    |> check_status()
     |> store_signed_content(attrs, headers)
     |> check_msp_state(headers)
     |> put_legal_entity_to_prm(headers)
@@ -192,6 +193,11 @@ defmodule EHealth.LegalEntity.API do
   end
 
   def prepare_legal_entity_id(err), do: err
+
+  def check_status({:ok, %{legal_entity_prm: %{"data" => [%{"status" => "CLOSED"}]}}}) do
+    {:error, {:conflict, "LegalEntity can't be updated"}}
+  end
+  def check_status(pipe_data), do: pipe_data
 
   @doc """
   Creates signed url and store signed content in GCS
