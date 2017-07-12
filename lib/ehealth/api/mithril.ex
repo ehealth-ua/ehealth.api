@@ -121,6 +121,12 @@ defmodule EHealth.API.Mithril do
     |> ResponseDecoder.check_response()
   end
 
+  def delete_user_roles_by_user(user_id, headers) do
+    "/admin/users/#{user_id}/roles"
+    |> delete!(headers, options())
+    |> ResponseDecoder.check_response()
+  end
+
   # Apps
 
   def get_apps(params \\ [], headers \\ []) do
@@ -135,6 +141,12 @@ defmodule EHealth.API.Mithril do
     |> ResponseDecoder.check_response()
   end
 
+  def delete_apps_by_user(user_id, headers) do
+    "/admin/users/#{user_id}/apps"
+    |> delete!(headers, options())
+    |> ResponseDecoder.check_response()
+  end
+
   # Tokens
 
   def get_tokens(params \\ [], headers \\ []) do
@@ -145,6 +157,12 @@ defmodule EHealth.API.Mithril do
 
   def delete_token(token_id, headers) do
     "/admin/tokens/#{token_id}"
+    |> delete!(headers, options())
+    |> ResponseDecoder.check_response()
+  end
+
+  def delete_tokens_by_user(user_id, headers) do
+    "/admin/users/#{user_id}/tokens"
     |> delete!(headers, options())
     |> ResponseDecoder.check_response()
   end
