@@ -25,26 +25,28 @@ defmodule EHealth.DeclarationRequest.API.Sign do
   end
   def check_status(err, _input), do: err
 
-  def compare_with_db({:ok, %{"data" => %{"content" => content}}, db_data}) do
-    case content == Map.get(db_data, :data) do
-      true -> {:ok, db_data}
+  def compare_with_db({:ok, %{"data" => %{"content" => content}}, %DeclarationRequest{data: data} = db_data}) do
+    data = Map.update!(data, "person", fn(map) -> Map.delete(map, "patient_signed") end)
+    input = Map.update!(content, "person", fn(map) -> Map.delete(map, "patient_signed") end)
+    case input == data do
+      true -> {:ok, {content, db_data}}
       _ -> {:error, [{%{description: "Signed content does not match the previously created content",
         params: [], rule: :invalid}, "$.content"}]}
     end
   end
   def compare_with_db(err), do: err
 
-  def store_signed_content({:ok, db_data}, input, headers) do
+  def store_signed_content({:ok, data}, input, headers) do
     input
     |> Map.fetch!("signed_declaration_request")
     |> MediaStorage.store_signed_content(:declaration_request_bucket, Map.fetch!(input, "id"), headers)
-    |> validate_api_response(db_data, "Cannot store signed content")
+    |> validate_api_response(data, "Cannot store signed content")
   end
   def store_signed_content(err, _input, _headers), do: err
 
-  def create_or_update_person({:ok, %DeclarationRequest{data: data} = db_data}, headers) do
+  def create_or_update_person({:ok, {content, db_data}}, headers) do
     result =
-      data
+      content
       |> Map.fetch!("person")
       |> MPI.create_or_update_person(headers)
 

@@ -50,15 +50,19 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
 
   describe "compare_with_db/1" do
     test "returns error when data does not match" do
-      result = compare_with_db({:ok, %{"data" => %{"content" => "somedata"}}, %{data: "some_data"}})
+      db_data = %DeclarationRequest{data: %{"person" => %{"key" => "another_value"}}}
+      input_data = %{"data" => %{"content" => %{"person" => %{"key" => "value"}}}}
+      result = compare_with_db({:ok, input_data, db_data})
       expected_result = {:error, [{%{description: "Signed content does not match the previously created content",
         params: [], rule: :invalid}, "$.content"}]}
       assert expected_result == result
     end
 
-    test "returns expected result when data matches" do
-      result = compare_with_db({:ok, %{"data" => %{"content" => "somedata"}}, %{data: "somedata"}})
-      expected_result = {:ok, %{data: "somedata"}}
+    test "returns expected result when data matches except patient_signed field" do
+      db_data = %DeclarationRequest{data: %{"person" => %{"key" => "value", "patient_signed" => false}}}
+      input_data = %{"data" => %{"content" => %{"person" => %{"key" => "value", "patient_signed" => true}}}}
+      result = compare_with_db({:ok, input_data, db_data})
+      expected_result = {:ok, {%{"person" => %{"key" => "value", "patient_signed" => true}}, db_data}}
       assert expected_result == result
     end
   end
@@ -87,7 +91,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
     test "returns expected result" do
       declaration_request = fixture()
       expected_result = {:ok, %{"data" => "somedata"}, declaration_request}
-      assert ^expected_result = create_or_update_person({:ok, declaration_request}, [])
+      assert expected_result == create_or_update_person({:ok, {%{"person" => "somedata"}, declaration_request}}, [])
     end
   end
 
