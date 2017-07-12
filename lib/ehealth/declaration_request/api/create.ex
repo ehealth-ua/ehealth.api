@@ -72,7 +72,7 @@ defmodule EHealth.DeclarationRequest.API.Create do
       "first_name"   => data["person"]["first_name"],
       "second_name"  => data["person"]["second_name"],
       "last_name"    => data["person"]["last_name"],
-      "birth_date"   => "#{data["person"]["birth_date"]} 00:00:00",
+      "birth_date"   => data["person"]["birth_date"],
       "tax_id"       => data["person"]["tax_id"]
     })
 

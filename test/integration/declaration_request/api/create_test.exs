@@ -147,7 +147,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
           "first_name" => "Олена",
           "last_name" => "Пчілка",
           "second_name" => "XXX",
-          "birth_date" => "2010-08-19 00:00:00",
+          "birth_date" => "2010-08-19",
           "tax_id" => "3126509816"
         } = confirm_params
 
@@ -244,7 +244,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
           "person" => %{
             "first_name" => "Олександр",
             "last_name" => "Олесь",
-            "birth_date" => "1988-08-19 00:00:00",
+            "birth_date" => "1988-08-19",
             "tax_id" => "3126509817",
             "authentication_methods" => [%{
               "phone_number" => "+380508887701"
