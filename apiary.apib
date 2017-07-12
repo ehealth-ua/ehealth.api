@@ -1848,36 +1848,6 @@ Response structure differs depending on employee type:
             + division (Division_Short)
             + `legal_entity` (`Legal_Entity_Short`)
 
-### Update Employee - TBD hz [PATCH /api/employees/{id}]
-
-Use this method change employee status or to update:
-* Person info
-* Employee info
-* Doctor Info
-
-This method does not require changes confirmation by the employee and should be limit by scopes
-
-The following fields can't be changed:
-* employee_type
-* tax_id
-* email
-
-+ Parameters
-    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer mF_9.B5f-4.1JqM
-    
-    + Attributes (`Employee_Update`)
-    
-+ Response 200 (application/json)
-    + Attributes (Response_OK)
-        + data (Employee_Request)
-            + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-
 
 ### Deactivate Employee - TBD [PATCH /api/employees/{id}/actions/deactivate]
 
