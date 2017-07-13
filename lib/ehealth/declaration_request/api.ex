@@ -91,8 +91,10 @@ defmodule EHealth.DeclarationRequest.API do
 
       tax_id = get_in(attrs, ["person", "tax_id"])
 
+      pending_declaration_requests = pending_declaration_requests(tax_id, employee["id"], legal_entity["id"])
+
       Multi.new
-      |> Multi.update_all(:previous_requests, pending_declaration_requests(tax_id, employee["id"], legal_entity["id"]), set: updates)
+      |> Multi.update_all(:previous_requests, pending_declaration_requests, set: updates)
       |> Multi.insert(:declaration_request, create_changeset(attrs, user_id, auxilary_entities))
       |> Multi.run(:finalize, &finalize/1)
       |> Repo.transaction
