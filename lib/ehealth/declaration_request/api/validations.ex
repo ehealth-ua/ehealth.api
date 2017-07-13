@@ -157,17 +157,21 @@ defmodule EHealth.DeclarationRequest.API.Validations do
       |> get_field(:data)
       |> get_in(["person", "confidant_person"])
 
-    validation = fn {%{"tax_id" => tax_id}, index}, changeset ->
-      if TaxID.validate(tax_id) do
-        changeset
-      else
-        add_error(changeset, :"data.person.confidant_person[#{index}].tax_id", "Person's tax ID in not valid.")
+    if confidant_persons do
+      validation = fn {%{"tax_id" => tax_id}, index}, changeset ->
+        if TaxID.validate(tax_id) do
+          changeset
+        else
+          add_error(changeset, :"data.person.confidant_person[#{index}].tax_id", "Person's tax ID in not valid.")
+        end
       end
-    end
 
-    confidant_persons
-    |> Enum.with_index
-    |> Enum.reduce(changeset, validation)
+      confidant_persons
+      |> Enum.with_index
+      |> Enum.reduce(changeset, validation)
+    else
+      changeset
+    end
   end
 
   def validate_person_addresses(changeset) do
@@ -193,11 +197,15 @@ defmodule EHealth.DeclarationRequest.API.Validations do
       |> get_field(:data)
       |> get_in(["person", "confidant_person"])
 
-    if 1 == Enum.count(confidant_persons, fn %{"relation_type" => type} -> type == "PRIMARY" end) do
-      changeset
+    if confidant_persons do
+      if 1 == Enum.count(confidant_persons, fn %{"relation_type" => type} -> type == "PRIMARY" end) do
+        changeset
+      else
+        message = "one and only one confidant person with type PRIMARY is required"
+        add_error(changeset, :"data.person.confidant_persons[].relation_type", message)
+      end
     else
-      message = "one and only one confidant person with type PRIMARY is required"
-      add_error(changeset, :"data.person.confidant_persons[].relation_type", message)
+      changeset
     end
   end
 

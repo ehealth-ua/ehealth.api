@@ -183,6 +183,10 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
   end
 
   describe "validate_confidant_persons_tax_id/1" do
+    @tag pending: true
+    test "when no confidant person exist" do
+    end
+
     test "when tax_id is valid" do
       raw_declaration_request = %{
         data: %{
@@ -327,6 +331,10 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
   end
 
   describe "validate_confidant_person_rel_type/1" do
+    @tag pending: true
+    test "when no confidant person exist" do
+    end
+
     test "when exactly one confidant person is PRIMARY" do
       raw_declaration_request = %{
         data: %{
