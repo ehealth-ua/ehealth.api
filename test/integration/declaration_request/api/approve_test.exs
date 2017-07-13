@@ -8,6 +8,30 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.ApproveTest do
     defmodule VerifyViaOfflineDocs do
       use MicroservicesHelper
 
+      Plug.Router.post "/media_content_storage_secrets" do
+        params = conn.body_params["secret"]
+
+        [{"port", port}] = :ets.lookup(:uploaded_at_port, "port")
+
+        secret_url =
+          case params["resource_name"] do
+            "declaration_request_A.jpeg" ->
+              "http://localhost:#{port}/good_upload_1"
+            "declaration_request_B.jpeg" ->
+              "http://localhost:#{port}/good_upload_2"
+            "declaration_request_C.jpeg" ->
+              "http://localhost:#{port}/missing_upload"
+          end
+
+        resp = %{
+          data: %{
+            secret_url: secret_url
+          }
+        }
+
+        Plug.Conn.send_resp(conn, 200, Poison.encode!(resp))
+      end
+
       Plug.Router.get "/good_upload_1" do
         Plug.Conn.send_resp(conn, 200, "")
       end
@@ -24,35 +48,41 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.ApproveTest do
     setup %{conn: _conn} do
       {:ok, port, ref} = start_microservices(VerifyViaOfflineDocs)
 
+      :ets.new(:uploaded_at_port, [:named_table])
+      :ets.insert(:uploaded_at_port, {"port", port})
+      System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:#{port}")
       on_exit fn ->
+        System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
       end
 
       {:ok, %{port: port}}
     end
 
-    test "all documents were verified to be successfully uploaded", %{port: port} do
+    test "all documents were verified to be successfully uploaded" do
       declaration_request = %{
+        id: "2685788E-CE5E-4C0F-9857-BB070C5F2180",
         authentication_method_current: %{
           "type" => "OFFLINE"
         },
         documents: [
-          %{"verb" => "HEAD", "url" => "http://localhost:#{port}/good_upload_1"},
-          %{"verb" => "HEAD", "url" => "http://localhost:#{port}/good_upload_2"}
+          %{"verb" => "HEAD", "type" => "A"},
+          %{"verb" => "HEAD", "type" => "B"}
         ]
       }
 
       assert {:ok, true} = verify(declaration_request, "doesn't matter")
     end
 
-    test "there's a missing upload", %{port: port} do
+    test "there's a missing upload" do
       declaration_request = %{
+        id: "2685788E-CE5E-4C0F-9857-BB070C5F2180",
         authentication_method_current: %{
           "type" => "OFFLINE"
         },
         documents: [
-          %{"verb" => "HEAD", "url" => "http://localhost:#{port}/good_upload_1"},
-          %{"verb" => "HEAD", "url" => "http://localhost:#{port}/missing_upload"}
+          %{"verb" => "HEAD", "type" => "A"},
+          %{"verb" => "HEAD", "type" => "C"}
         ]
       }
 

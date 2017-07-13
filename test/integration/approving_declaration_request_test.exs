@@ -101,19 +101,45 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
       Plug.Router.get "/good_upload_2" do
         Plug.Conn.send_resp(conn, 200, "")
       end
+
+      Plug.Router.post "/media_content_storage_secrets" do
+        params = conn.body_params["secret"]
+
+        [{"port", port}] = :ets.lookup(:uploaded_at_port, "port")
+
+        secret_url =
+          case params["resource_name"] do
+            "declaration_request_A.jpeg" ->
+              "http://localhost:#{port}/good_upload_1"
+            "declaration_request_B.jpeg" ->
+              "http://localhost:#{port}/good_upload_2"
+          end
+
+        resp = %{
+          data: %{
+            secret_url: secret_url
+          }
+        }
+
+        Plug.Conn.send_resp(conn, 200, Poison.encode!(resp))
+      end
     end
 
     setup %{conn: conn} do
       {:ok, port, ref} = start_microservices(OfflineHappyPath)
 
+      :ets.new(:uploaded_at_port, [:named_table])
+      :ets.insert(:uploaded_at_port, {"port", port})
+      System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:#{port}")
       on_exit fn ->
+        System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
       end
 
       {:ok, %{port: port, conn: conn}}
     end
 
-    test "happy path: declaration is successfully approved via offline docs check", %{port: port, conn: conn} do
+    test "happy path: declaration is successfully approved via offline docs check", %{conn: conn} do
       id = Ecto.UUID.generate()
 
       existing_declaration_request_params = %{
@@ -130,8 +156,8 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
           "type" => "OFFLINE"
         },
         documents: [
-          %{"verb" => "HEAD", "url" => "http://localhost:#{port}/good_upload_1"},
-          %{"verb" => "HEAD", "url" => "http://localhost:#{port}/good_upload_2"}
+          %{"type" => "A", "verb" => "HEAD"},
+          %{"type" => "B", "verb" => "HEAD"}
         ],
         printout_content: "something",
         inserted_by: "f47f94fd-2d77-4b7e-b444-4955812c2a77",

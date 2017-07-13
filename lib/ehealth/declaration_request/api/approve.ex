@@ -1,7 +1,10 @@
 defmodule EHealth.DeclarationRequest.API.Approve do
   @moduledoc false
 
+  alias EHealth.API.MediaStorage
   alias EHealth.API.OTPVerification
+
+  @files_storage_bucket Confex.get_map(:ehealth, EHealth.API.MediaStorage)[:declaration_request_bucket]
 
   def verify(declaration_request, code) do
     case declaration_request.authentication_method_current do
@@ -10,16 +13,19 @@ defmodule EHealth.DeclarationRequest.API.Approve do
       %{"type" => "OFFLINE"} ->
         documents = declaration_request.documents
 
-        uploaded? = fn document, _acc -> uploaded?(document) end
+        uploaded? = fn document, _acc -> uploaded?(declaration_request.id, document) end
 
         documents
         |> Enum.filter(&(&1["verb"] == "HEAD"))
-        |> Enum.reduce_while(true, uploaded?)
+        |> Enum.reduce_while({:ok, true}, uploaded?)
     end
   end
 
-  def uploaded?(document) do
-    case HTTPoison.head(document["url"]) do
+  def uploaded?(id, document) do
+    {:ok, %{"data" => %{"secret_url" => url}}} =
+      MediaStorage.create_signed_url("HEAD", @files_storage_bucket, "declaration_request_#{document["type"]}.jpeg", id)
+
+    case HTTPoison.head(url) do
       {:ok, resp} ->
         case resp do
           %HTTPoison.Response{status_code: 200} ->
