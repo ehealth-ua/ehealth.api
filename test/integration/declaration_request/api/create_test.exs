@@ -161,7 +161,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       Plug.Router.get "/persons/b5350f79-f2ca-408f-b15d-1ae0a8cc861c" do
         person = %{
           "authentication_methods": [
-            %{"type": "OTP", "number": "+380508887700"}
+            %{"type": "OTP", "phone_number": "+380508887700"}
           ]
         }
 
@@ -191,7 +191,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
             "birth_date" => "2010-08-19",
             "tax_id" => "3126509816",
             "authentication_methods" => [%{
-              "number" => "+380508887700"
+              "phone_number" => "+380508887700"
             }]
           }
         }
@@ -340,7 +340,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
               "number" => "+380508887701"
             }],
             "authentication_methods" => [%{
-              "number" => "+380508887701"
+              "phone_number" => "+380508887701"
             }]
           }
         }

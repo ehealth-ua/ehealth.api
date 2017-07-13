@@ -106,7 +106,7 @@ defmodule EHealth.Integraiton.DeclarationRequestCreateTest do
       Plug.Router.get "/persons/b5350f79-f2ca-408f-b15d-1ae0a8cc861c" do
         person = %{
           "authentication_methods": [
-            %{"type": "OTP", "number": "+380508887700"}
+            %{"type": "OTP", "phone_number": "+380508887700"}
           ]
         }
 

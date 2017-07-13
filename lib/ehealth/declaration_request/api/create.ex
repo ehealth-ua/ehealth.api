@@ -84,7 +84,7 @@ defmodule EHealth.DeclarationRequest.API.Create do
 
         authentication_method_current = %{
           "type" => authentication_method["type"],
-          "number" => authentication_method["number"]
+          "number" => authentication_method["phone_number"]
         }
 
         put_change(changeset, :authentication_method_current, authentication_method_current)
