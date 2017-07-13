@@ -112,7 +112,7 @@ defmodule EHealth.Employee.API do
   def create_or_update_employee(%Request{data: %{"employee_id" => employee_id}} = employee_request, req_headers) do
     with {:ok, %{"data" => employee}} <- PRM.get_employee_by_id(employee_id),
          {:ok, party} <- PRM.get_party_by_id(get_in(employee, ["party", "id"]), req_headers),
-         {:ok, _} <- create_party_user(party, req_headers)
+         {:ok, _} <- EmployeeCreator.create_party_user(party, req_headers)
     do
       employee_request
       |> update_doctor(employee)
@@ -127,13 +127,6 @@ defmodule EHealth.Employee.API do
     |> UserRoleCreator.create(req_headers)
   end
   def create_or_update_employee(error, _), do: error
-
-  def create_party_user(%{"data" => %{"users" => users}} = party, headers) do
-    case Enum.member?(users, get_consumer_id(headers)) do
-      true -> {:ok, party}
-      false -> EmployeeCreator.create_party_user({:ok, %{"data" => party}}, headers)
-    end
-  end
 
   def update_doctor(%{data: data} = employee_request, %{"doctor" => doctor}) do
     employee_request

@@ -37,18 +37,29 @@ defmodule EHealth.Employee.EmployeeCreator do
   Updates party
   """
   def create_or_update_party({:ok, %{"data" => [%{"id" => id}]}}, data, req_headers) do
-    PRM.update_party(data, id, req_headers)
+    data
+    |> PRM.update_party(id, req_headers)
+    |> create_party_user(req_headers)
   end
 
   def create_or_update_party(err, _data, _req_headers), do: err
 
-  def create_party_user({:ok, %{"data" => %{"id" => id}}} = party, req_headers) do
-    case PRM.create_party_user(id, get_consumer_id(req_headers), req_headers) do
-      {:ok, _} -> party
-      {:error, _} = err -> err
+  def create_party_user({:ok, %{"data" => party}}, req_headers) do
+    create_party_user(party, req_headers)
+  end
+  def create_party_user(%{"id" => _, "users" => _} = party, headers) do
+    create_party_user(%{"data" => party}, headers)
+  end
+  def create_party_user(%{"data" => %{"id" => id, "users" => users}} = party, headers) do
+    case Enum.member?(users, get_consumer_id(headers)) do
+      true -> {:ok, party}
+      false ->
+          case PRM.create_party_user(id, get_consumer_id(headers), headers) do
+            {:ok, _} -> {:ok, party}
+            {:error, _} = err -> err
+          end
     end
   end
-
   def create_party_user(err, _req_headers), do: err
 
   def create_employee({:ok, %{"data" => %{"id" => id}}}, %Request{data: employee_request}, req_headers) do
