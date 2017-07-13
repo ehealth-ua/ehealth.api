@@ -89,8 +89,10 @@ defmodule EHealth.DeclarationRequest.API do
         legal_entity: legal_entity
       }
 
+      tax_id = get_in(attrs, ["person", "tax_id"])
+
       Multi.new
-      |> Multi.update_all(:previous_requests, pending_declaration_requests(attrs, client_id), set: updates)
+      |> Multi.update_all(:previous_requests, pending_declaration_requests(tax_id, employee["id"], legal_entity["id"]), set: updates)
       |> Multi.insert(:declaration_request, create_changeset(attrs, user_id, auxilary_entities))
       |> Multi.run(:finalize, &finalize/1)
       |> Repo.transaction
@@ -222,15 +224,12 @@ defmodule EHealth.DeclarationRequest.API do
     put_change(changeset, :data, new_data)
   end
 
-  def pending_declaration_requests(raw_declaration_request, legal_entity_id) do
-    tax_id          = get_in(raw_declaration_request, ["person", "tax_id"])
-    employee_id     = get_in(raw_declaration_request, ["employee_id"])
-
+  def pending_declaration_requests(tax_id, employee_id, legal_entity_id) do
     from p in EHealth.DeclarationRequest,
       where: p.status in ["NEW", "APPROVED"],
       where: fragment("? #>> ? = ?", p.data, "{person, tax_id}", ^tax_id),
-      where: fragment("? #>> ? = ?", p.data, "{employee_id}", ^employee_id),
-      where: fragment("? #>> ? = ?", p.data, "{legal_entity_id}", ^legal_entity_id)
+      where: fragment("? #>> ? = ?", p.data, "{employee, id}", ^employee_id),
+      where: fragment("? #>> ? = ?", p.data, "{legal_entity, id}", ^legal_entity_id)
   end
 
   def sign(params, headers) do

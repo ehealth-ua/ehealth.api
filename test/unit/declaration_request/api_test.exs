@@ -9,18 +9,22 @@ defmodule EHealth.DeclarationRequest.APITest do
 
   describe "pending_declaration_requests/2" do
     test "returns pending requests" do
-      raw_declaration_request = %{
+      existing_declaration_request_data = %{
         "person" => %{
           "tax_id" => "111"
         },
-        "employee_id" => "222",
-        "legal_entity_id" => "333"
+        "employee" => %{
+          "id" => "222"
+        },
+        "legal_entity" => %{
+          "id" => "333"
+        }
       }
 
-      {:ok, pending_declaration_req_1} = copy_declaration_request(raw_declaration_request, "NEW")
-      {:ok, pending_declaration_req_2} = copy_declaration_request(raw_declaration_request, "APPROVED")
+      {:ok, pending_declaration_req_1} = copy_declaration_request(existing_declaration_request_data, "NEW")
+      {:ok, pending_declaration_req_2} = copy_declaration_request(existing_declaration_request_data, "APPROVED")
 
-      query = pending_declaration_requests(raw_declaration_request, "333")
+      query = pending_declaration_requests("111", "222", "333")
 
       assert [pending_declaration_req_1, pending_declaration_req_2] == Repo.all(query)
     end
@@ -33,8 +37,12 @@ defmodule EHealth.DeclarationRequest.APITest do
         "person" => %{
           "tax_id" => get_in(template, ["person", "tax_id"])
         },
-        "employee_id" => get_in(template, ["employee_id"]),
-        "legal_entity_id" => get_in(template, ["legal_entity_id"])
+        "employee" => %{
+          "id" => get_in(template, ["employee", "id"]),
+        },
+        "legal_entity" => %{
+          "id" => get_in(template, ["legal_entity", "id"])
+        }
       },
       "authentication_method_current" => %{
         "number" => "+380508887700",

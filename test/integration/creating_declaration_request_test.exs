@@ -10,7 +10,7 @@ defmodule EHealth.Integraiton.DeclarationRequestCreateTest do
       # PRM API
       Plug.Router.get "/employees/ce377dea-d8c4-4dd8-9328-de24b1ee3879" do
         employee = %{
-          "id" => "some_id",
+          "id" => "ce377dea-d8c4-4dd8-9328-de24b1ee3879",
           "position" => "some_position",
           "party" => %{
             "id" => "some_id",
@@ -209,6 +209,10 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
     test "declaration request is created with 'OTP' verification", %{conn: conn} do
       declaration_request_params = File.read!("test/data/declaration_request.json")
 
+      decoded = Poison.decode!(declaration_request_params)["declaration_request"]
+      d1 = clone_declaration_request(decoded, "8799e3b6-34e7-4798-ba70-d897235d2b6d", "NEW")
+      d2 = clone_declaration_request(decoded, "8799e3b6-34e7-4798-ba70-d897235d2b6d", "APPROVED")
+
       conn =
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
@@ -240,6 +244,9 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
       assert "<html><body>Printout form for declaration request ##{id}</body></hrml>" ==
         resp["data"]["content"]
       assert is_nil(resp["data"]["urgent"]["documents"])
+
+      assert "CANCELLED" = EHealth.Repo.get(EHealth.DeclarationRequest, d1.id).status
+      assert "CANCELLED" = EHealth.Repo.get(EHealth.DeclarationRequest, d2.id).status
     end
 
     test "declaration request is created with 'Offline' verification", %{conn: conn} do
@@ -512,5 +519,31 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
         "type" => "validation_failed"
       } = json_response(conn, 422)["error"]
     end
+  end
+
+  def clone_declaration_request(params, legal_entity_id, status) do
+    declaration_request_params = %{
+      data: %{
+        person: %{
+          tax_id: get_in(params, ["person", "tax_id"])
+        },
+        employee: %{
+          id: params["employee_id"]
+        },
+        legal_entity: %{
+          id: legal_entity_id
+        }
+      },
+      status: status,
+      authentication_method_current: %{},
+      documents: [],
+      printout_content: "something",
+      inserted_by: "f47f94fd-2d77-4b7e-b444-4955812c2a77",
+      updated_by: "f47f94fd-2d77-4b7e-b444-4955812c2a77"
+    }
+
+    %EHealth.DeclarationRequest{}
+    |> Ecto.Changeset.change(declaration_request_params)
+    |> EHealth.Repo.insert!
   end
 end
