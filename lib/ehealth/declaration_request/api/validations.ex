@@ -144,7 +144,7 @@ defmodule EHealth.DeclarationRequest.API.Validations do
       |> get_field(:data)
       |> get_in(["person", "tax_id"])
 
-    if TaxID.validate(tax_id) do
+    if is_nil(tax_id) || TaxID.validate(tax_id) do
       changeset
     else
       add_error(changeset, :"data.person.tax_id", "Person's tax ID in not valid.")
@@ -157,9 +157,11 @@ defmodule EHealth.DeclarationRequest.API.Validations do
       |> get_field(:data)
       |> get_in(["person", "confidant_person"])
 
-    if confidant_persons do
-      validation = fn {%{"tax_id" => tax_id}, index}, changeset ->
-        if TaxID.validate(tax_id) do
+    if is_list(confidant_persons) && !Enum.empty?(confidant_persons) do
+      validation = fn {person, index}, changeset ->
+        tax_id = person["tax_id"]
+
+        if is_nil(tax_id) || TaxID.validate(tax_id) do
           changeset
         else
           add_error(changeset, :"data.person.confidant_person[#{index}].tax_id", "Person's tax ID in not valid.")
@@ -197,7 +199,7 @@ defmodule EHealth.DeclarationRequest.API.Validations do
       |> get_field(:data)
       |> get_in(["person", "confidant_person"])
 
-    if confidant_persons do
+    if is_list(confidant_persons) && !Enum.empty?(confidant_persons) do
       if 1 == Enum.count(confidant_persons, fn %{"relation_type" => type} -> type == "PRIMARY" end) do
         changeset
       else

@@ -147,6 +147,21 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
   end
 
   describe "validate_tax_id/1" do
+    test "when tax_id is absent" do
+      raw_declaration_request = %{
+        data: %{
+          "person" => %{}
+        }
+      }
+
+      result =
+        %DeclarationRequest{}
+        |> Ecto.Changeset.change(raw_declaration_request)
+        |> validate_tax_id()
+
+      assert [] = result.errors
+    end
+
     test "when tax_id is valid" do
       raw_declaration_request = %{
         data: %{
@@ -183,8 +198,51 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
   end
 
   describe "validate_confidant_persons_tax_id/1" do
-    @tag pending: true
     test "when no confidant person exist" do
+      raw_declaration_request = %{
+        data: %{
+          "person" => %{
+            "confidant_person" => []
+          }
+        }
+      }
+
+      result =
+        %DeclarationRequest{}
+        |> Ecto.Changeset.change(raw_declaration_request)
+        |> validate_confidant_persons_tax_id()
+
+      assert [] = result.errors
+
+      raw_declaration_request = %{
+        data: %{
+          "person" => %{}
+        }
+      }
+
+      result =
+        %DeclarationRequest{}
+        |> Ecto.Changeset.change(raw_declaration_request)
+        |> validate_confidant_persons_tax_id()
+
+      assert [] = result.errors
+    end
+
+    test "when confidant person does not have tax_id" do
+      raw_declaration_request = %{
+        data: %{
+          "person" => %{
+            "confidant_person" => [%{}]
+          }
+        }
+      }
+
+      result =
+        %DeclarationRequest{}
+        |> Ecto.Changeset.change(raw_declaration_request)
+        |> validate_confidant_persons_tax_id()
+
+      assert [] = result.errors
     end
 
     test "when tax_id is valid" do
@@ -331,8 +389,34 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
   end
 
   describe "validate_confidant_person_rel_type/1" do
-    @tag pending: true
     test "when no confidant person exist" do
+      raw_declaration_request = %{
+        data: %{
+          "person" => %{
+            "confidant_person" => []
+          }
+        }
+      }
+
+      result =
+        %DeclarationRequest{}
+        |> Ecto.Changeset.change(raw_declaration_request)
+        |> validate_confidant_person_rel_type()
+
+      assert [] = result.errors
+
+      raw_declaration_request = %{
+        data: %{
+          "person" => %{}
+        }
+      }
+
+      result =
+        %DeclarationRequest{}
+        |> Ecto.Changeset.change(raw_declaration_request)
+        |> validate_confidant_person_rel_type()
+
+      assert [] = result.errors
     end
 
     test "when exactly one confidant person is PRIMARY" do
