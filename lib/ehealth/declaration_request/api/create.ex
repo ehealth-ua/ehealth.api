@@ -20,7 +20,7 @@ defmodule EHealth.DeclarationRequest.API.Create do
 
   def generate_upload_urls(id, document_list) do
     link_versions =
-      for verb <- ["HEAD", "PUT"],
+      for verb <- ["PUT"],
           document_type <- document_list, do: {verb, document_type}
 
     documents =

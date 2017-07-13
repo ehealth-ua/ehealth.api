@@ -52,16 +52,6 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
           "type" => "Passport",
           "verb" => "PUT",
           "url" => "http://a.link.for/98e0a42f-20fe-472c-a614-0ea99426a3fb/declaration_request_Passport.jpeg"
-        },
-        %{
-          "type" => "SSN",
-          "verb" => "HEAD",
-          "url" => "http://a.link.for/98e0a42f-20fe-472c-a614-0ea99426a3fb/declaration_request_SSN.jpeg"
-        },
-        %{
-          "type" => "Passport",
-          "verb" => "HEAD",
-          "url" => "http://a.link.for/98e0a42f-20fe-472c-a614-0ea99426a3fb/declaration_request_Passport.jpeg"
         }
       ]
 
