@@ -24,20 +24,18 @@ defmodule EHealth.Plugs.ClientContext do
   defp put_client_type_name(%Plug.Conn{req_headers: req_headers} = conn) do
     req_headers
     |> get_client_id()
-    |> Mithril.get_client_details(req_headers)
+    |> Mithril.get_client_type_name(req_headers)
     |> case do
-        {:ok, %{"data" => %{"client_type_name" => client_type}}}
-          -> assign(conn, :client_type, client_type)
-
-        _ -> conn_anuthorized(conn)
-      end
+         nil -> conn_anuthorized(conn)
+         client_type -> assign(conn, :client_type, client_type)
+       end
   end
 
   defp validate_params_list(%Plug.Conn{halted: false, params: %{"legal_entity_id" => legal_entity_id}}
     = conn, personal_client_types) do
-
-    # check that client_type is personal and requested entities is not allowed for this client
-    if legal_entity_id_allowed?(conn, legal_entity_id, personal_client_types) do
+    # check that client_type is personal and requested entities is allowed for this client
+    if legal_entity_id_not_allowed?(conn, legal_entity_id, personal_client_types) do
+      # consumer tries to filter list with not allowed legal_entity_id. Render empty list in this case
       conn_empty_list(conn)
     else
       conn
@@ -45,8 +43,8 @@ defmodule EHealth.Plugs.ClientContext do
   end
   defp validate_params_list(conn, _config), do: conn
 
-  defp legal_entity_id_allowed?(%Plug.Conn{} = conn, legal_entity_id, personal_client_types) do
-    conn.assigns[:client_type] in personal_client_types and legal_entity_id != get_client_id(conn.req_headers)
+  defp legal_entity_id_not_allowed?(%Plug.Conn{} = conn, legal_entity_id, personal_client_types) do
+    conn.assigns.client_type in personal_client_types and legal_entity_id != get_client_id(conn.req_headers)
   end
 
   defp put_context_params(%Plug.Conn{
@@ -56,21 +54,24 @@ defmodule EHealth.Plugs.ClientContext do
     req_headers: req_headers,
   } = conn, config) do
 
-    client_id = get_client_id(req_headers)
-    context_params =
-      cond do
-        client_type in config[:tokens_types_personal] -> %{"id" => client_id, "legal_entity_id" => client_id}
-        client_type in config[:tokens_types_mis] -> %{}
-        client_type in config[:tokens_types_admin] -> %{}
-        true ->
-          Logger.error(fn -> "Undefined client type name #{client_type} for /legal_entities. " <>
-                "Cannot prepare params for request to PRM" end)
-          %{"id" => client_id, "legal_entity_id" => client_id}
-      end
+    context_params = req_headers |> get_client_id() |> get_context_params(client_type, config)
 
     %{conn | params: Map.merge(params, context_params)}
   end
   defp put_context_params(conn, _config), do: conn
+
+  def get_context_params(client_id, client_type, config \\ nil) do
+    config = config || config()
+    cond do
+      client_type in config[:tokens_types_personal] -> %{"legal_entity_id" => client_id}
+      client_type in config[:tokens_types_mis] -> %{}
+      client_type in config[:tokens_types_admin] -> %{}
+      true ->
+        Logger.error(fn -> "Undefined client type name #{client_type} for /legal_entities. " <>
+              "Cannot prepare params for request to PRM" end)
+        %{"legal_entity_id" => client_id}
+    end
+  end
 
   defp conn_empty_list(conn) do
     conn

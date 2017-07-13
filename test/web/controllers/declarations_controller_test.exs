@@ -4,8 +4,14 @@ defmodule EHealth.Web.DeclarationsControllerTest do
   use EHealth.Web.ConnCase
 
   describe "list declarations" do
-    test "with x-consumer-metadata that contains MSP client_id with empty declarations list", %{conn: conn} do
+    test "with x-consumer-metadata that contains MSP client_id with empty client_type_name", %{conn: conn} do
       conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375111")
+      conn = get conn, declarations_path(conn, :index, [edrpou: "37367387"])
+      json_response(conn, 401)
+    end
+
+    test "with x-consumer-metadata that contains MSP client_id with empty declarations list", %{conn: conn} do
+      conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375222")
       conn = get conn, declarations_path(conn, :index, [edrpou: "37367387"])
       resp = json_response(conn, 200)
 
@@ -15,7 +21,7 @@ defmodule EHealth.Web.DeclarationsControllerTest do
     end
 
     test "with x-consumer-metadata that contains MSP client_id and invalid legal_entity_id", %{conn: conn} do
-      conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375111")
+      conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375222")
       conn = get conn, declarations_path(conn, :index, [legal_entity_id: "296da7d2-3c5a-4f6a-b8b2-631063737271"])
       resp = json_response(conn, 200)
 

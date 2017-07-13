@@ -98,5 +98,8 @@ defmodule Ehealth.Web.Router do
     post "/declaration_requests/:id/actions/sign", DeclarationRequestController, :sign
     patch "/declaration_requests/:id/actions/approve", DeclarationRequestController, :approve
     post "/declaration_requests/:id/actions/resend_otp", DeclarationRequestController, :resend_otp
+
+    # Person declarations
+    get "/persons/:id/declarations", PersonsController, :person_declarations
   end
 end

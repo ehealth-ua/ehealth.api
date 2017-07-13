@@ -428,6 +428,14 @@ defmodule EHealth.MockServer do
   get "/declarations" do
     {code, resp} =
       case conn.params do
+        %{"person_id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375200"}
+          -> {200, [get_declarations()]}
+
+        %{"person_id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375400"}
+          -> {200, [get_declarations(), get_declarations()]}
+
+        %{"person_id" => _} -> {200, []}
+
         # MSP
         %{"legal_entity_id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375552"}
           -> {200, [get_declarations()]}
@@ -445,9 +453,16 @@ defmodule EHealth.MockServer do
     render_with_paging(resp, conn, code)
   end
 
+  # MPI
+  get "/persons/:id" do
+    render(get_person(), conn, 200)
+  end
+
   def get_declarations(legal_entity_id \\ "7cc91a5d-c02f-41e9-b571-1ea4f2375552") do
     %{
-        "employee_id" => UUID.generate(),
+        "legal_entity_id" => legal_entity_id,
+        "division_id" => "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
+        "employee_id" => "0d26d826-6241-11e7-907b-a6006ad3dba0",
         "person_id" => UUID.generate(),
         "start_date" => "2010-08-19 00:00:00",
         "end_date" => "2010-08-19 00:00:00",
@@ -457,24 +472,38 @@ defmodule EHealth.MockServer do
         "updated_by" => UUID.generate(),
         "is_active" => false,
         "scope" => "declarations:read",
-        "division_id" => UUID.generate(),
-        "legal_entity_id" => legal_entity_id,
     }
   end
 
-  def search_for_people(params) do
-    case params do
-      %{
-        "first_name" => "Олена",
-        "last_name" => "Пчілка",
-        "phone_number" => "+380508887700",
-        "birth_date" => "2010-08-19 00:00:00",
-        "tax_id" => "3126509816"
-      } ->
-        [%{id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c"}]
-      _ ->
-        []
-    end
+  def get_person do
+    %{
+      "version" => "default",
+      "first_name" => "string value",
+      "last_name" => "string value",
+      "second_name" => "string value",
+      "birth_date" => "1991-08-19T00.00.00.000Z",
+      "birth_country" => "string value",
+      "birth_settlement" => "string value",
+      "gender" => "string value",
+      "email" => "string value",
+      "tax_id" => "string value",
+      "national_id" => "string value",
+      "death_date" => "1991-08-19T00.00.00.000Z",
+      "is_active" => true,
+      "documents" => %{},
+      "addresses" => %{},
+      "phones" => %{},
+      "secret" => "string value",
+      "emergency_contact" => %{},
+      "confidant_person" => %{},
+      "patient_signed" => true,
+      "process_disclosure_data_consent" => true,
+      "status" => "active",
+      "inserted_by" => UUID.generate(),
+      "updated_by" => UUID.generate(),
+      "authentication_methods" => %{},
+      "merged_ids" => [UUID.generate(), UUID.generate()]
+    }
   end
 
   def search_for_number(params) do

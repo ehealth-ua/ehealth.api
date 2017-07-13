@@ -45,8 +45,9 @@ defmodule EHealth.Web.DeclarationRequestView do
         }
       end
 
-    resp = render("declaration_request.json", %{declaration_request: declaration_request})
-    Map.put(resp, "urgent", additional_fields)
+    "declaration_request.json"
+    |> render(%{declaration_request: declaration_request})
+    |> Map.put("urgent", additional_fields)
   end
 
   def render("declaration_request.json", %{declaration_request: declaration_request}) do

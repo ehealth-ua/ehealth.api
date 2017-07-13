@@ -132,9 +132,13 @@ defmodule EHealth.LegalEntity.API do
 
   defp load_legal_entities(%{params: params, headers: headers} = pipe_data) do
     params
+    |> map_legal_entity_id()
     |> PRM.get_legal_entities(headers)
     |> put_success_api_response_in_pipe(:legal_entities, pipe_data)
   end
+
+  defp map_legal_entity_id(%{"legal_entity_id" => id} = params), do: Map.put(params, "id", id)
+  defp map_legal_entity_id(params), do: params
 
   defp normalize_legal_entities({:ok, %{legal_entity: legal_entity, client: client}}), do: {:ok, legal_entity, client}
   defp normalize_legal_entities({:ok, %{legal_entities: legal_entities}}), do: {:ok, legal_entities}
