@@ -22,9 +22,11 @@
 - [ ] PRM.global_parameters - add/update if any. IDs should be the same
 - [ ] uaddresses - add/update records if any. IDs should be the same
 - [ ] GW.apis - migrate config
+  - [ ] GW.apis - Exclude temp dev routes
 - [ ] GW.plugins
 - [ ] Mithril config
   - [ ] client_types - add/update if any changes.
-  - [ ] roles, user_roles - add/update if any changes.
+  - [ ] roles - add/update if any changes.
   - [ ] tokens - generate new tokens with new scopes in case if new endpoints are released
+  - [ ] approvals - generate or copy MIS approvals
 - [ ] man templates - add/update if any. IDs should be the same
