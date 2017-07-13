@@ -235,6 +235,9 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
 
       declaration_request = EHealth.DeclarationRequest.API.get_declaration_request_by_id!(id)
       assert id == declaration_request.data["id"]
+      assert declaration_request.data["legal_entity"]["id"]
+      assert declaration_request.data["division"]["id"]
+      assert declaration_request.data["employee"]["id"]
       # TODO: turn this into DB checks
       #
       # assert "NEW" = resp["status"]
