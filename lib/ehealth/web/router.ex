@@ -100,6 +100,6 @@ defmodule Ehealth.Web.Router do
     post "/declaration_requests/:id/actions/resend_otp", DeclarationRequestController, :resend_otp
 
     # Person declarations
-    get "/persons/:id/declarations", PersonsController, :person_declarations
+    get "/persons/:id/declaration", PersonsController, :person_declarations
   end
 end
