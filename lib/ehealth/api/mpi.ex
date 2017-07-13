@@ -8,6 +8,7 @@ defmodule EHealth.API.MPI do
   use EHealth.API.HeadersProcessor
 
   alias EHealth.API.ResponseDecoder
+  alias EHealth.API.Helpers.MicroserviceCallLog, as: CallLog
 
   def process_url(url), do: config()[:endpoint] <> url
 
@@ -21,18 +22,24 @@ defmodule EHealth.API.MPI do
   #   - phone_number (ex.: %2B380508887700)
   #
   def search(params \\ %{}, headers \\ []) do
+    CallLog.log("GET", config()[:endpoint], "/persons", headers)
+
     "/persons"
     |> get!(headers, params: params)
     |> ResponseDecoder.check_response()
   end
 
   def person(id, headers \\ []) do
+    CallLog.log("GET", config()[:endpoint], "/persons/#{id}", headers)
+
     "/persons/#{id}"
     |> get!(headers)
     |> ResponseDecoder.check_response()
   end
 
   def create_or_update_person(params, headers \\ []) do
+    CallLog.log("POST", config()[:endpoint], "/persons", params, headers)
+
     "/persons"
     |> post!(Poison.encode!(params), headers)
     |> ResponseDecoder.check_response()
