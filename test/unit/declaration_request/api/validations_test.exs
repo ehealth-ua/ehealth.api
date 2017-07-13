@@ -438,28 +438,6 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
       assert [] = result.errors
     end
 
-    test "when no confidant person is PRIMARY" do
-      raw_declaration_request = %{
-        data: %{
-          "person" => %{
-            "confidant_person" => [
-            ]
-          }
-        }
-      }
-
-      result =
-        %DeclarationRequest{}
-        |> Ecto.Changeset.change(raw_declaration_request)
-        |> validate_confidant_person_rel_type()
-
-      assert [
-        "data.person.confidant_persons[].relation_type": {
-          "one and only one confidant person with type PRIMARY is required", []
-        }
-      ] = result.errors
-    end
-
     test "when more than one confidant person is PRIMARY" do
       raw_declaration_request = %{
         data: %{
