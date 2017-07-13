@@ -2600,14 +2600,13 @@ API for searching Ukrainian Addresses
 + first_name: Петро (string, required)
 + last_name: Іванов (string, required)
 + second_name: Миколайович (string, optional)
-+ birth_date: `1991-08-19T00:00:00.000Z` (string, required) - ISO Datetime.
++ birth_date: `1991-08-19` (string, required) - ISO Datetime.
 + tax_id: 3126509816 (string, optional)
-+ phone_number: `+380508887700` (string, optional)
++ phones (array[Phone], required)
 + birth_country: UA (string, required)
 + birth_settlement: Вінниця (string, required)
 + merged_ids (array)
-    + (object)
-        + id: `7bca069f-21e4-4546-90cf-b65e3f39d93d` (string, required)
+        + `7bca069f-21e4-4546-90cf-b65e3f39d93d`
 
 ### `Authentication_Method`
 + type (enum, required)
@@ -2738,7 +2737,7 @@ API for searching Ukrainian Addresses
 + start_date: `2017-03-02` (string, required)
 + end_date: `2017-03-02` (string, required)
 + person(`Person_Short`)
-+ employee (`Employee_Short`)
++ employee (`Employee_Declaration_Short`)
 + division (`Division_Short`)
 + `legal_entity` (MSP_Details)
 + inserted_at: `2017-03-02T10:45:16.000Z` (string, optional)
@@ -2910,6 +2909,20 @@ API for searching Ukrainian Addresses
 + `legal_entity` (`Legal_Entity_Short`)
 + doctor (DoctorNew_Short)
 
+### `Employee_Declaration_Short`
++ id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ position: P1 (string, required) - `Dictionary: POSITION`
++ `employee_type`: DOCTOR (string) - `Dictionary: EMPLOYEE_TYPE`
++ status: NEW, APPROVED, DISMISSED (enum, required) - Employee status
++ start_date: `2017-03-02T10:45:16.000Z` (string, required)
++ end_date: `2018-03-02T10:45:16.000Z` (string, optional)
++ party (object)
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+    + include `Party_Short`
++ division_id: `4cffa825-8b5b-4cba-9a38-fb57733e14b2` (string, optional) - division identifier
++ `legal_entity`: `be3a154c-3e07-496d-9680-f22c443f5d0c` (string, required) - legal entity identifier
++ doctor (DoctorNew_Short)
+
 ## `Legal_Entities`
 
 ### `crud_legal_entity`
@@ -3041,6 +3054,7 @@ API for searching Ukrainian Addresses
 
 ### `Division_Short`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ name: Бориспільське відділення Клініки Борис (string, required)
 + `legal_entity_id`: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
 + type: clinic (enum, required)
     - clinic
@@ -3114,6 +3128,11 @@ API for searching Ukrainian Addresses
 + `legal_form`: 140 (string, required) - `Dictionary LEGAL_FORM`
 + public_name: ЦПМСД №1 (string, optional)
 + edrpou: 5432345432 (string, required)
++ status: `ACTIVE` (enum, required)
+    + ACTIVE
+    + CLOSED
++ email: `email@example.com` (string, required)
++ phones (array[Phone], required)
 + addresses (array[Address], optional
 + created_at: `2017-02-28T15:12:54.000Z` (string, optional)
 + modified_at: `2017-02-28T15:12:54.000Z` (string, optional)
