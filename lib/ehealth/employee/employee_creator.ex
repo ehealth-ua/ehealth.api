@@ -51,7 +51,8 @@ defmodule EHealth.Employee.EmployeeCreator do
     create_party_user(%{"data" => party}, headers)
   end
   def create_party_user(%{"data" => %{"id" => id, "users" => users}} = party, headers) do
-    case Enum.member?(users, get_consumer_id(headers)) do
+    user_ids = Enum.map(users, &Map.get(&1, "user_id"))
+    case Enum.member?(user_ids, get_consumer_id(headers)) do
       true -> {:ok, party}
       false ->
           case PRM.create_party_user(id, get_consumer_id(headers), headers) do
