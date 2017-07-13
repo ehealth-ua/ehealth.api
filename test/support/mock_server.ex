@@ -102,6 +102,7 @@ defmodule EHealth.MockServer do
   get "/party/:id" do
     case conn.path_params["id"] do
       "01981ab9-904c-4c36-88ab-959a94087483" -> render(get_party(), conn, 200)
+      "b63d802f-5225-4362-bc93-a8bba6eac167" -> render(get_party(), conn, 200)
 
       _ -> render_404(conn)
     end
@@ -751,7 +752,8 @@ defmodule EHealth.MockServer do
       "second_name" => "Миколайович",
       "tax_id" => "3126509816",
       "inserted_by" => "12a1c9e6-9fb8-4b22-b21c-250ee2155607",
-      "updated_by" => "12a1c9e6-9fb8-4b22-b21c-250ee2155607"
+      "updated_by" => "12a1c9e6-9fb8-4b22-b21c-250ee2155607",
+      "users" => []
     }
   end
 
