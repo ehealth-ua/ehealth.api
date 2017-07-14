@@ -129,7 +129,7 @@ defmodule EHealth.LegalEntity.LegalEntityUpdater do
     Map.put(params, "starting_after", starting_after)
   end
 
-  defp log_deactivate_employee_error({:error, reason}, id) do
-    Logger.error("Failed to deactivate employee with id \"#{id}\". Reason: #{inspect reason}")
+  defp log_deactivate_employee_error(error, id) do
+    Logger.error("Failed to deactivate employee with id \"#{id}\". Reason: #{inspect error}")
   end
 end
