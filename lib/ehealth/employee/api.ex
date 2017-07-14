@@ -347,7 +347,7 @@ defmodule EHealth.Employee.API do
   def validate_status_type(%{"data" => %{"employee_type" => "OWNER", "status" => "APPROVED", "is_active" => false}}) do
     {:error, {:conflict, "employee is dismissed"}}
   end
-  def validate_status_type(%{"data" => %{"employee_type" => "OWNER", "status" => "DISMISSED", "is_active" => true}}) do
+  def validate_status_type(%{"data" => %{"employee_type" => _, "status" => "DISMISSED", "is_active" => true}}) do
     {:error, {:conflict, "employee is dismissed"}}
   end
   def validate_status_type(_), do: :ok
