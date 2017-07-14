@@ -1511,174 +1511,203 @@ All signature fields will be validated (including signer certificate authority).
 
 This service will store signed copy of Declaration Request in Media Content Storage, created or update MPI records and create declaration if signature is all checks is passed.
 
-Signed content MUST consists of JSON object with Declaration Request data and printout template returned on creation stage.
+Signed content MUST consists of JSON object with Declaration Request data and printout template returned on creation stage. Object `Data{}` that is returned by `Get Declaration request by ID`
 
 **Signed object example:**
 ```
-{
-   "id":"b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
-   "start_date":"2017-03-02T10:45:16.000Z",
-   "end_date":"2017-03-02T10:45:16.000Z",
-   "person":{
-      "first_name":"Петро",
-      "last_name":"Іванов",
-      "second_name":"Миколайович",
-      "birth_date":"1991-08-19T00:00:00.000Z",
-      "birth_place":"Вінниця, Україна",
-      "gender":"MALE",
-      "email":"email@example.com",
-      "tax_id":"3126509816",
-      "secret":"secret",
-      "documents":[
-         {
-            "type":"PASSPORT",
-            "number":"120518"
-         },
-         {
-            "type":"NATIONAL_ID",
-            "number":"D736810"
-         }
+ "data": {
+    "id": "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
+    "start_date": "2017-03-02",
+    "end_date": "2017-03-02",
+    "person": {
+      "first_name": "Петро",
+      "last_name": "Іванов",
+      "second_name": "Миколайович",
+      "birth_date": "1991-08-19",
+      "birth_country": "Україна",
+      "birth_settlement": "Вінниця",
+      "gender": "MALE",
+      "email": "email@example.com",
+      "tax_id": "3126509816",
+      "secret": "secret",
+      "documents": [
+        {
+          "type": "PASSPORT",
+          "number": "120518"
+        }
       ],
-      "addresses":[
-         {
-            "type":"RESIDENCE",
-            "country":"UA",
-            "area":"Житомирська",
-            "region":"Бердичівський",
-            "city":"Київ",
-            "city_type":"CITY",
-            "street":"вул. Ніжинська",
-            "building":"15",
-            "apartment":"23",
-            "zip":"02090"
-         }
+      "addresses": [
+        {
+          "type": "RESIDENCE",
+          "country": "UA",
+          "area": "Житомирська",
+          "region": "Бердичівський",
+          "settlement": "Київ",
+          "settlement_type": "CITY",
+          "settlement_id": "43432432",
+          "street_type": "STREET",
+          "street": "вул. Ніжинська",
+          "building": "15",
+          "apartment": "23",
+          "zip": "02090"
+        }
       ],
-      "phones":[
-         {
-            "type":"MOBILE",
-            "number":"+380503410870"
-         }
+      "phones": [
+        {
+          "type": "MOBILE",
+          "number": "+380503410870"
+        }
       ],
-      "authentication_methods":[
-         {
-            "type":"OTP",
-            "phone_number":"+380508887700"
-         }
+      "authentication_methods": [
+        {
+          "type": "OTP",
+          "phone_number": "+380508887700"
+        }
       ],
-      "emergency_contact":{
-         "first_name":"Петро",
-         "last_name":"Іванов",
-         "second_name":"Миколайович",
-         "phones":[
-            {
-               "type":"MOBILE",
-               "number":"+380503410870"
-            }
-         ]
+      "emergency_contact": {
+        "first_name": "Петро",
+        "last_name": "Іванов",
+        "second_name": "Миколайович",
+        "phones": [
+          {
+            "type": "MOBILE",
+            "number": "+380503410870"
+          }
+        ]
       },
-      "confidant_person":{
-         "relation_type":"trustee",
-         "first_name":"Петро",
-         "last_name":"Іванов",
-         "second_name":"Миколайович",
-         "birth_date":"1991-08-19T00:00:00.000Z",
-         "birth_place":"Вінниця, Україна",
-         "gender":"MALE",
-         "tax_id":"3126509816",
-         "documents":[
+      "confidant_person": [
+        {
+          "relation_type": "PRIMARY",
+          "first_name": "Петро",
+          "last_name": "Іванов",
+          "second_name": "Миколайович",
+          "birth_date": "1991-08-19",
+          "birth_country": "Україна",
+          "birth_settlement": "Вінниця",
+          "gender": "MALE",
+          "tax_id": "3126509816",
+          "secret": "secret",
+          "documents_person": [
             {
-                "type":"PASSPORT",
-                "number":"120518"
-            },
-            {
-                "type":"NATIONAL_ID",
-                "number":"D736810"
+              "type": "PASSPORT",
+              "number": "120518"
             }
-        ],
-         "phones":[
+          ],
+          "documents_relationship": [
             {
-               "type":"MOBILE",
-               "number":"+380503410870"
+              "type": "PASSPORT",
+              "number": "120518"
             }
-         ]
-      },
-      "renewal_consent":true,
-      "patient_signed":true,
-      "disclosure_consent":true,
-      "process_data_consent":true
-   },
-   "employee":{
-      "id":"d290f1ee-6c54-4b01-90e6-d701748f0851",
-      "title":"лікар",
-      "party":{
-         "id":"b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
-         "first_name":"Петро",
-         "last_name":"Іванов",
-         "second_name":"Миколайович",
-         "email":"email@example.com",
-         "phones":[
+          ],
+          "phones": [
             {
-               "type":"MOBILE",
-               "number":"+380503410870"
+              "type": "MOBILE",
+              "number": "+380503410870"
             }
-         ]
+          ]
+        }
+      ],
+      "patient_signed": false,
+      "process_disclosure_data_consent": true
+    },
+    "scope": "family doctor",
+    "employee": {
+      "id": "d290f1ee-6c54-4b01-90e6-d701748f0851",
+      "position": "P6",
+      "party": {
+        "id": "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
+        "first_name": "Петро",
+        "last_name": "Іванов",
+        "second_name": "Миколайович",
+        "email": "email@example.com",
+        "phones": [
+          {
+            "type": "MOBILE",
+            "number": "+380503410870"
+          }
+        ]
       }
-   },
-   "msp":{
-      "name":"Клініка Борис",
-      "short_Name":"Борис",
-      "type":"ФОП",
-      "edrpou":"5432345432",
-      "services":[
-         {
-            "id":"",
-            "name":""
-         }
+    },
+    "legal_entity": {
+      "name": "Клініка Борис",
+      "short_name": "Борис",
+      "legal_form": "140",
+      "public_name": "ЦПМСД №1",
+      "edrpou": "5432345432",
+      "licenses": [
+        {
+          "license_number": "fd123443",
+          "issued_by": "Кваліфікацйна комісія",
+          "issued_date": "2017-02-28",
+          "expiry_date": "2017-02-28",
+          "active_from_date": "2017-02-28",
+          "what_licensed": "реалізація наркотичних засобів"
+        }
       ],
-      "licenses":[
-         {
-            "license_number":"fd123443",
-            "kved":[
-
-            ],
-            "issued_by":"Кваліфікацйна комісія",
-            "issued_date":"2017",
-            "expiry_date":"2017"
-         }
+      "accreditation": {
+        "category": "друга",
+        "issued_date": "2017-02-28",
+        "expiry_date": "2017-02-28",
+        "order_no": "fd123443",
+        "order_date": "2017-02-28"
+      },
+      "addresses": [
+        {
+          "type": "RESIDENCE",
+          "country": "UA",
+          "area": "Житомирська",
+          "region": "Бердичівський",
+          "settlement": "Київ",
+          "settlement_type": "CITY",
+          "settlement_id": "43432432",
+          "street_type": "STREET",
+          "street": "вул. Ніжинська",
+          "building": "15",
+          "apartment": "23",
+          "zip": "02090"
+        }
       ],
-      "accreditation":[
-         {
-            "certificate_number":"fd123443",
-            "issued_by":"Кваліфікацйна комісія",
-            "issued_date":"2017",
-            "expiry_date":"2017"
-         }
+      "phones": [
+        {
+          "type": "MOBILE",
+          "number": "+380503410870"
+        }
       ],
-      "addresses":[
-         {
-            "type":"RESIDENCE",
-            "country":"UA",
-            "area":"Житомирська",
-            "region":"Бердичівський",
-            "city":"Київ",
-            "city_type":"CITY",
-            "street":"вул. Ніжинська",
-            "building":"15",
-            "apartment":"23",
-            "zip":"02090"
-         }
+      "email": "email@example.com",
+      "id": "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b"
+    },
+    "division": {
+      "id": "d290f1ee-6c54-4b01-90e6-d701748f0851",
+      "legal_entity_id": "d290f1ee-6c54-4b01-90e6-d701748f0851",
+      "name": "Бориспільське відділення Клініки Борис",
+      "addresses": [
+        {
+          "type": "RESIDENCE",
+          "country": "UA",
+          "area": "Житомирська",
+          "region": "Бердичівський",
+          "settlement": "Київ",
+          "settlement_type": "CITY",
+          "settlement_id": "43432432",
+          "street_type": "STREET",
+          "street": "вул. Ніжинська",
+          "building": "15",
+          "apartment": "23",
+          "zip": "02090"
+        }
       ],
-      "phones":[
-         {
-            "type":"MOBILE",
-            "number":"+380503410870"
-         }
+      "phones": [
+        {
+          "type": "MOBILE",
+          "number": "+380503410870"
+        }
       ],
-      "email":"email@example.com",
-      "id":"d290f1ee-6c54-4b01-90e6-d701748f0851"
-   },
-   "scope":"family doctor",
-   "content":"Declaration content"
+      "email": "email@example.com",
+      "type": "clinic",
+      "external_id": "3213213"
+    },
+    "content": "Declaration content"
+  }
 }
 ```
 
