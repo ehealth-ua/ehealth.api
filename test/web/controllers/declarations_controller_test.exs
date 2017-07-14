@@ -2,10 +2,13 @@ defmodule EHealth.Web.DeclarationsControllerTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase
+  import EHealth.MockServer, only: [get_client_admin: 0, get_client_mis: 0, get_client_nil: 0]
+
+  @declaration_id "156b4182-f9ce-4eda-b6af-43d2de8601z2"
 
   describe "list declarations" do
     test "with x-consumer-metadata that contains MSP client_id with empty client_type_name", %{conn: conn} do
-      conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375111")
+      conn = put_client_id_header(conn, get_client_nil())
       conn = get conn, declarations_path(conn, :index, [edrpou: "37367387"])
       json_response(conn, 401)
     end
@@ -55,7 +58,7 @@ defmodule EHealth.Web.DeclarationsControllerTest do
     end
 
     test "with x-consumer-metadata that contains NHS client_id", %{conn: conn} do
-      legal_id = "356b4182-f9ce-4eda-b6af-43d2de8601a1"
+      legal_id = get_client_admin()
       conn = put_client_id_header(conn, legal_id)
       conn = get conn, declarations_path(conn, :index, [edrpou: "37367387", legal_entity_id: legal_id])
       resp = json_response(conn, 200)
@@ -64,6 +67,53 @@ defmodule EHealth.Web.DeclarationsControllerTest do
       assert Map.has_key?(resp, "paging")
       assert is_list(resp["data"])
       assert 3 == length(resp["data"])
+    end
+  end
+
+  describe "declaration by id" do
+    test "with x-consumer-metadata that contains MSP client_id with empty client_type_name", %{conn: conn} do
+      conn = put_client_id_header(conn, get_client_nil())
+      conn = get conn, declarations_path(conn, :show, @declaration_id)
+      json_response(conn, 401)
+    end
+
+    test "with x-consumer-metadata that contains MSP client_id with undefined declaration id", %{conn: conn} do
+      conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375222")
+      conn = get conn, declarations_path(conn, :show, "226b4182-f9ce-4eda-b6af-43d2de8600a0")
+      json_response(conn, 404)
+    end
+
+    test "with x-consumer-metadata that contains MSP client_id with invalid legal_entity_id", %{conn: conn} do
+      conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375000")
+      conn = get conn, declarations_path(conn, :show, @declaration_id)
+      json_response(conn, 403)
+    end
+
+    test "with x-consumer-metadata that contains MSP client_id", %{conn: conn} do
+      conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+      conn = get conn, declarations_path(conn, :show, @declaration_id)
+      data = json_response(conn, 200)["data"]
+      assert is_map(data)
+      assert Map.has_key?(data, "person")
+      assert Map.has_key?(data, "employee")
+      assert Map.has_key?(data, "division")
+      assert Map.has_key?(data, "legal_entity")
+    end
+
+    test "with x-consumer-metadata that contains MIS client_id", %{conn: conn} do
+      conn = put_client_id_header(conn, get_client_mis())
+      conn = get conn, declarations_path(conn, :show, @declaration_id)
+      data = json_response(conn, 200)["data"]
+      assert is_map(data)
+      assert @declaration_id == data["id"]
+    end
+
+    test "with x-consumer-metadata that contains NHS client_id", %{conn: conn} do
+      conn = put_client_id_header(conn, get_client_admin())
+      conn = get conn, declarations_path(conn, :show, @declaration_id)
+      data = json_response(conn, 200)["data"]
+      assert is_map(data)
+      assert @declaration_id == data["id"]
     end
   end
 end

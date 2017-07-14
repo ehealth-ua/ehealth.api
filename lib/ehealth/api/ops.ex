@@ -13,6 +13,12 @@ defmodule EHealth.API.OPS do
 
   def timeouts, do: config()[:timeouts]
 
+  def get_declaration_by_id(id, headers) do
+    "/declarations/#{id}"
+    |> get!(headers)
+    |> ResponseDecoder.check_response()
+  end
+
   def get_declarations(params, headers) do
     "/declarations"
     |> get!(headers, params: params)
@@ -21,7 +27,7 @@ defmodule EHealth.API.OPS do
 
   def create_declaration_with_termination_logic(params, headers \\ []) do
     "/declarations/with_termination"
-    |> post!(Poison.encode!(params), headers)
+    |> post!(Poison.encode!(params), headers, timeouts())
     |> ResponseDecoder.check_response()
   end
 end

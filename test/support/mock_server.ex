@@ -8,12 +8,18 @@ defmodule EHealth.MockServer do
 
   @inactive_legal_entity_id "356b4182-f9ce-4eda-b6af-43d2de8602aa"
   @client_type_admin "356b4182-f9ce-4eda-b6af-43d2de8601a1"
+  @client_type_mis "296da7d2-3c5a-4f6a-b8b2-631063737271"
+  @client_type_nil "7cc91a5d-c02f-41e9-b571-1ea4f2375111"
 
   plug :match
   plug Plug.Parsers, parsers: [:json],
                      pass:  ["application/json"],
                      json_decoder: Poison
   plug :dispatch
+
+  def get_client_mis, do: @client_type_mis
+  def get_client_nil, do: @client_type_nil
+  def get_client_admin, do: @client_type_admin
 
   get "/ukr_med_registry" do
     ukr_med_registry =
@@ -310,9 +316,9 @@ defmodule EHealth.MockServer do
     id = conn.path_params["id"]
     client_type_name =
       case id do
-        "296da7d2-3c5a-4f6a-b8b2-631063737271" -> "MIS"
-        "356b4182-f9ce-4eda-b6af-43d2de8601a1" -> "NHS ADMIN"
-        "7cc91a5d-c02f-41e9-b571-1ea4f2375111" -> nil
+        @client_type_mis -> "MIS"
+        @client_type_admin -> "NHS ADMIN"
+        @client_type_nil -> nil
         _ -> "MSP"
       end
     id
@@ -425,28 +431,35 @@ defmodule EHealth.MockServer do
   end
 
   # OPS
+  get "/declarations/:id" do
+    case conn.path_params["id"] do
+      "156b4182-f9ce-4eda-b6af-43d2de8601z2" -> render(get_declaration(), conn, 200)
+      _ -> render_404(conn)
+    end
+  end
+
   get "/declarations" do
     {code, resp} =
       case conn.params do
         %{"person_id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375200"}
-          -> {200, [get_declarations()]}
+          -> {200, [get_declaration()]}
 
         %{"person_id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375400"}
-          -> {200, [get_declarations(), get_declarations()]}
+          -> {200, [get_declaration(), get_declaration()]}
 
         %{"person_id" => _} -> {200, []}
 
         # MSP
         %{"legal_entity_id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375552"}
-          -> {200, [get_declarations()]}
+          -> {200, [get_declaration()]}
 
         # MIS
         %{"legal_entity_id" => "296da7d2-3c5a-4f6a-b8b2-631063737271"} ->
-          {200, [get_declarations(), get_declarations()]}
+          {200, [get_declaration(), get_declaration()]}
 
         # NHS_Admin
         %{"legal_entity_id" => "356b4182-f9ce-4eda-b6af-43d2de8601a1"} ->
-          {200, [get_declarations(), get_declarations(), get_declarations()]}
+          {200, [get_declaration(), get_declaration(), get_declaration()]}
 
         _ -> {200, []}
       end
@@ -458,8 +471,9 @@ defmodule EHealth.MockServer do
     render(get_person(), conn, 200)
   end
 
-  def get_declarations(legal_entity_id \\ "7cc91a5d-c02f-41e9-b571-1ea4f2375552") do
+  def get_declaration(id \\ nil, legal_entity_id \\ "7cc91a5d-c02f-41e9-b571-1ea4f2375552") do
     %{
+        "id" => id || "156b4182-f9ce-4eda-b6af-43d2de8601z2",
         "legal_entity_id" => legal_entity_id,
         "division_id" => "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
         "employee_id" => "0d26d826-6241-11e7-907b-a6006ad3dba0",
