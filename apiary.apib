@@ -1441,7 +1441,13 @@ This method is used to create Declaration Request (as part of Declaration creati
 
 Use this method to approve previously created Declaration Request.
 
-This method expects one of verification methods as it's parameters. Verification method is determined on Declaration Request creation stage. (See `authentication_method` field description.)
+In case if authentication_method is OTP, request example:
+```
+{
+  "verification_code": 3748
+}
+```
+In case if authentication_method is OFFLINE, request body should be empty.
 
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -1453,7 +1459,7 @@ This method expects one of verification methods as it's parameters. Verification
             Authorization: Bearer mF_9.B5f-4.1JqM
 
     + Attributes (object)
-        + verification_code: 2836 (number, optional) - required if authentication_method is OFFLINE
+        + `verification_code`: 2836 (number, optional) - required if authentication_method is OFFLINE
 
 + Response 201 (application/json)
     + Attributes (Response__Process_OK)
@@ -1511,11 +1517,11 @@ All signature fields will be validated (including signer certificate authority).
 
 This service will store signed copy of Declaration Request in Media Content Storage, created or update MPI records and create declaration if signature is all checks is passed.
 
-Signed content MUST consists of JSON object with Declaration Request data and printout template returned on creation stage. Object `Data{}` that is returned by `Get Declaration request by ID`
+Signed content MUST consists of JSON object with Declaration Request data and printout template. Object that need to be signed is returned by `Get Declaration request by ID` response, JSON.Path: $.data
 
 **Signed object example:**
 ```
- "data": {
+{
     "id": "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
     "start_date": "2017-03-02",
     "end_date": "2017-03-02",
