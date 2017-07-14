@@ -116,7 +116,7 @@ defmodule EHealth.Employee.API do
     do
       employee_request
       |> update_doctor(employee)
-      |> Map.drop(["employee_type", "status"])
+      |> drop_permanent_keys()
       |> put_updated_by(req_headers)
       |> PRM.update_employee(employee_id, req_headers)
     end
@@ -131,6 +131,12 @@ defmodule EHealth.Employee.API do
   def update_doctor(%{data: data} = employee_request, %{"doctor" => doctor}) do
     employee_request
     |> Map.put(:data, Map.put(data, "doctor", Map.merge(doctor, data["doctor"])))
+  end
+
+  defp drop_permanent_keys(%{data: data} = employee_request) do
+    employee_request
+    |> Map.delete(:status)
+    |> Map.put(:data, Map.delete(data, "employee_type"))
   end
 
   def check_transition_status(%Request{status: @status_new} = employee_request) do
