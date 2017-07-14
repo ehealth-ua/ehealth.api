@@ -111,8 +111,10 @@ defmodule EHealth.Employee.API do
 
   def create_or_update_employee(%Request{data: %{"employee_id" => employee_id} = employee_request}, req_headers) do
     with {:ok, %{"data" => employee}} <- PRM.get_employee_by_id(employee_id),
-         {:ok, party} <- PRM.get_party_by_id(get_in(employee, ["party", "id"]), req_headers),
-         {:ok, _} <- EmployeeCreator.create_party_user(party, req_headers)
+         party_id <- get_in(employee, ["party", "id"]),
+         {:ok, party} <- PRM.get_party_by_id(party_id, req_headers),
+         {:ok, _} <- EmployeeCreator.create_party_user(party, req_headers),
+         {:ok, _} <- PRM.update_party(Map.fetch!(employee_request, "party"), party_id, req_headers)
     do
       employee_request
       |> update_doctor(employee)
