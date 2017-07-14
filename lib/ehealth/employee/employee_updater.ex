@@ -45,6 +45,7 @@ defmodule EHealth.Employee.EmployeeUpdater do
 
   def get_active_employees(%{employee: %{"data" => employee}, headers: headers} = pipe_data) do
     %{
+      status: @employee_status_approved,
       party_id: employee["party_id"],
       employee_type: employee["employee_type"],
     }
