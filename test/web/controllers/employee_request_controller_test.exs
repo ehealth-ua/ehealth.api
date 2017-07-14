@@ -183,6 +183,28 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       conn = post conn, employee_request_path(conn, :create), employee_request_params
       json_response(conn, 404)
     end
+
+    test "with dismissed OWNER", %{conn: conn} do
+      employee_request_params =
+        "test/data/employee_request.json"
+        |> File.read!()
+        |> Poison.decode!
+        |> put_in(["employee_request", "employee_id"], "b075f148-7f93-4fc2-b2ec-2d81b19a91a1")
+      conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
+      conn = post conn, employee_request_path(conn, :create), employee_request_params
+      json_response(conn, 409)
+    end
+
+    test "with dismissed employee", %{conn: conn} do
+      employee_request_params =
+        "test/data/employee_request.json"
+        |> File.read!()
+        |> Poison.decode!
+        |> put_in(["employee_request", "employee_id"], "d9a908d8-6895-11e7-907b-a6006ad3dba0")
+      conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
+      conn = post conn, employee_request_path(conn, :create), employee_request_params
+      json_response(conn, 409)
+    end
   end
 
   describe "list employee requests" do

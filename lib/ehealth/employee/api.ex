@@ -330,8 +330,10 @@ defmodule EHealth.Employee.API do
   def get_or_create_employee_request(%{"employee_id" => employee_id} = params, headers) do
     with {:ok, employee} <- PRM.get_employee_by_id(employee_id, headers),
          {:ok, employee} <- check_tax_id(params, employee),
-         {:ok, _employee} <- check_employee_type(params, employee) do
-         get_or_create_employee_request(params)
+         {:ok, _employee} <- check_employee_type(params, employee),
+         :ok <- validate_status_type(employee)
+    do
+      get_or_create_employee_request(params)
     end
   end
   def get_or_create_employee_request(data, _), do: get_or_create_employee_request(data)
@@ -341,6 +343,14 @@ defmodule EHealth.Employee.API do
     |> Repo.insert()
     |> send_email(EmployeeRequestInvitationTemplate, EmployeeRequestInvitationEmail)
   end
+
+  def validate_status_type(%{"data" => %{"employee_type" => "OWNER", "status" => "APPROVED", "is_active" => false}}) do
+    {:error, {:conflict, "employee is dismissed"}}
+  end
+  def validate_status_type(%{"data" => %{"employee_type" => "OWNER", "status" => "DISMISSED", "is_active" => true}}) do
+    {:error, {:conflict, "employee is dismissed"}}
+  end
+  def validate_status_type(_), do: :ok
 
   def check_tax_id(%{"party" => %{"tax_id" => tax_id}}, employee) do
     case tax_id == get_in(employee, ["data", "party", "tax_id"]) do
