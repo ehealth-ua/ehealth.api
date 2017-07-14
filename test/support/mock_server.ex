@@ -176,6 +176,11 @@ defmodule EHealth.MockServer do
         |> Map.merge(%{"status" => "APPROVED", "is_active" => false})
         |> render(conn, 200)
 
+      %{"id" => "d9a908d8-6895-11e7-907b-a6006ad3dba0"} ->
+        get_employee()
+        |> Map.merge(%{"employee_type" => "ADMIN", "status" => "DISMISSED", "is_active" => true})
+        |> render(conn, 200)
+
       %{"id" => "b075f148-7f93-4fc2-b2ec-2d81b19a911a"} ->
         render(get_employee("7cc91a5d-c02f-41e9-b571-1ea4f2375552", nil, nil, nil), conn, 200)
       _ -> render_404(conn)

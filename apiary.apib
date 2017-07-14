@@ -341,7 +341,7 @@ Methods returns list of declaration requests by combination of patient_id, docto
     + tax_id: `3381275610` (string, optional) - MPI ID of a patient.
     + employee_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MPI ID of a doctor.
     + `legal_entity_id`: `A7C1ABD7-4472-42CB-9C39-3F3AB1F1F4FD` (string, optional) - MSP ID.
-    + status: pending (string, optional) - Declaration request current status.
+    + status: active (string, optional) - Declaration request current status.
 
 + Request (application/json)
 
@@ -1355,8 +1355,10 @@ Method returns shortened details, to obtain full information - get Declaration R
     + `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - user_id of a doctor.
     + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MSP ID.
     + status: active (enum, optional)
-        - active
-        - pending_verification
+        - NEW
+        - APPROVED
+        - SIGNED
+        - CANCELLED
     + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
     + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
     + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
@@ -2888,6 +2890,7 @@ API for searching Ukrainian Addresses
     + include `Party_Short`
     + email: email@example.com (string, optional)
     + phones (array[Phone], optional)
+    + tax_id: `3372159546` (string, required)
 
 ### Employee_Response
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)

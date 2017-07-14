@@ -109,14 +109,16 @@ defmodule EHealth.Employee.API do
     |> send_email(EmployeeCreatedNotificationTemplate, EmployeeCreatedNotificationEmail)
   end
 
-  def create_or_update_employee(%Request{data: %{"employee_id" => employee_id}} = employee_request, req_headers) do
+  def create_or_update_employee(%Request{data: %{"employee_id" => employee_id} = employee_request}, req_headers) do
     with {:ok, %{"data" => employee}} <- PRM.get_employee_by_id(employee_id),
-         {:ok, party} <- PRM.get_party_by_id(get_in(employee, ["party", "id"]), req_headers),
-         {:ok, _} <- EmployeeCreator.create_party_user(party, req_headers)
+         party_id <- get_in(employee, ["party", "id"]),
+         {:ok, party} <- PRM.get_party_by_id(party_id, req_headers),
+         {:ok, _} <- EmployeeCreator.create_party_user(party, req_headers),
+         {:ok, _} <- PRM.update_party(Map.fetch!(employee_request, "party"), party_id, req_headers)
     do
       employee_request
       |> update_doctor(employee)
-      |> drop_permanent_keys(employee)
+      |> Map.put("employee_type", Map.get(employee, "employee_type"))
       |> put_updated_by(req_headers)
       |> PRM.update_employee(employee_id, req_headers)
     end
@@ -128,15 +130,8 @@ defmodule EHealth.Employee.API do
   end
   def create_or_update_employee(error, _), do: error
 
-  def update_doctor(%{data: data} = employee_request, %{"doctor" => doctor}) do
-    employee_request
-    |> Map.put(:data, Map.put(data, "doctor", Map.merge(doctor, data["doctor"])))
-  end
-
-  defp drop_permanent_keys(%{data: data} = employee_request, %{"employee_type" => employee_type}) do
-    employee_request
-    |> Map.put(:status, EmployeeCreator.employee_default_status())
-    |> Map.put(:data, Map.put(data, "employee_type", employee_type))
+  def update_doctor(employee_request, %{"doctor" => doctor}) do
+    Map.put(employee_request, "doctor", Map.merge(doctor, Map.get(employee_request, "doctor")))
   end
 
   def check_transition_status(%Request{status: @status_new} = employee_request) do
@@ -335,8 +330,10 @@ defmodule EHealth.Employee.API do
   def get_or_create_employee_request(%{"employee_id" => employee_id} = params, headers) do
     with {:ok, employee} <- PRM.get_employee_by_id(employee_id, headers),
          {:ok, employee} <- check_tax_id(params, employee),
-         {:ok, _employee} <- check_employee_type(params, employee) do
-         get_or_create_employee_request(params)
+         {:ok, _employee} <- check_employee_type(params, employee),
+         :ok <- validate_status_type(employee)
+    do
+      get_or_create_employee_request(params)
     end
   end
   def get_or_create_employee_request(data, _), do: get_or_create_employee_request(data)
@@ -346,6 +343,14 @@ defmodule EHealth.Employee.API do
     |> Repo.insert()
     |> send_email(EmployeeRequestInvitationTemplate, EmployeeRequestInvitationEmail)
   end
+
+  def validate_status_type(%{"data" => %{"employee_type" => "OWNER", "status" => "APPROVED", "is_active" => false}}) do
+    {:error, {:conflict, "employee is dismissed"}}
+  end
+  def validate_status_type(%{"data" => %{"employee_type" => "OWNER", "status" => "DISMISSED", "is_active" => true}}) do
+    {:error, {:conflict, "employee is dismissed"}}
+  end
+  def validate_status_type(_), do: :ok
 
   def check_tax_id(%{"party" => %{"tax_id" => tax_id}}, employee) do
     case tax_id == get_in(employee, ["data", "party", "tax_id"]) do
