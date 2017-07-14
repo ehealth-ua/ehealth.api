@@ -330,7 +330,7 @@ defmodule EHealth.Employee.API do
     with {:ok, employee} <- PRM.get_employee_by_id(employee_id, headers),
          {:ok, employee} <- check_tax_id(params, employee),
          {:ok, _employee} <- check_employee_type(params, employee) do
-         get_or_create_employee_request(Map.delete(params, "employee_id"))
+         get_or_create_employee_request(params)
     end
   end
   def get_or_create_employee_request(data, _), do: get_or_create_employee_request(data)
