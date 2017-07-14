@@ -13,6 +13,8 @@ defmodule EHealth.Employee.EmployeeCreator do
   @employee_default_status "APPROVED"
   @employee_type_owner "OWNER"
 
+  def employee_default_status, do: @employee_default_status
+
   def create(%Request{data: data} = employee_request, req_headers) do
     party = Map.fetch!(data, "party")
     party

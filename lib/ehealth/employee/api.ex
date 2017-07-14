@@ -135,7 +135,7 @@ defmodule EHealth.Employee.API do
 
   defp drop_permanent_keys(%{data: data} = employee_request) do
     employee_request
-    |> Map.delete(:status)
+    |> Map.put(:status, EmployeeCreator.employee_default_status())
     |> Map.put(:data, Map.delete(data, "employee_type"))
   end
 
