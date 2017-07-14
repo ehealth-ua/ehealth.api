@@ -116,7 +116,7 @@ defmodule EHealth.Employee.API do
     do
       employee_request
       |> update_doctor(employee)
-      |> Map.delete("employee_type")
+      |> Map.drop(["employee_type", "status"])
       |> put_updated_by(req_headers)
       |> PRM.update_employee(employee_id, req_headers)
     end
