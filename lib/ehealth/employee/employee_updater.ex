@@ -87,7 +87,7 @@ defmodule EHealth.Employee.EmployeeUpdater do
     |> Enum.reduce_while(nil, fn {id, resp}, acc ->
       case resp do
         {:error, err} ->
-          Logger.error("Failed to revoke user roles with user_id \"#{id}\". Reason: #{inspect elem(err, 1)}")
+          Logger.error("Failed to revoke user roles with user_id \"#{id}\". Reason: #{inspect err}")
           {:halt, err}
         _ -> {:cont, acc}
       end

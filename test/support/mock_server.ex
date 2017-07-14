@@ -272,6 +272,18 @@ defmodule EHealth.MockServer do
     Plug.Conn.send_resp(conn, 200, resp)
   end
 
+  delete "/admin/users/:id/roles" do
+    render([], conn, 204)
+  end
+
+  delete "/admin/users/:id/apps" do
+    render([], conn, 204)
+  end
+
+  delete "/admin/users/:id/tokens" do
+    render([], conn, 204)
+  end
+
   get "/admin/users/:id" do
     resp =
       id
