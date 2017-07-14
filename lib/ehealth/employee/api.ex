@@ -109,14 +109,14 @@ defmodule EHealth.Employee.API do
     |> send_email(EmployeeCreatedNotificationTemplate, EmployeeCreatedNotificationEmail)
   end
 
-  def create_or_update_employee(%Request{data: %{"employee_id" => employee_id}} = employee_request, req_headers) do
+  def create_or_update_employee(%Request{data: %{"employee_id" => employee_id} = employee_request}, req_headers) do
     with {:ok, %{"data" => employee}} <- PRM.get_employee_by_id(employee_id),
          {:ok, party} <- PRM.get_party_by_id(get_in(employee, ["party", "id"]), req_headers),
          {:ok, _} <- EmployeeCreator.create_party_user(party, req_headers)
     do
       employee_request
       |> update_doctor(employee)
-      |> drop_permanent_keys(employee)
+      |> Map.put("employee_type", Map.get(employee, "employee_type"))
       |> put_updated_by(req_headers)
       |> PRM.update_employee(employee_id, req_headers)
     end
@@ -128,15 +128,8 @@ defmodule EHealth.Employee.API do
   end
   def create_or_update_employee(error, _), do: error
 
-  def update_doctor(%{data: data} = employee_request, %{"doctor" => doctor}) do
-    employee_request
-    |> Map.put(:data, Map.put(data, "doctor", Map.merge(doctor, data["doctor"])))
-  end
-
-  defp drop_permanent_keys(%{data: data} = employee_request, %{"employee_type" => employee_type}) do
-    employee_request
-    |> Map.put(:status, EmployeeCreator.employee_default_status())
-    |> Map.put(:data, Map.put(data, "employee_type", employee_type))
+  def update_doctor(employee_request, %{"doctor" => doctor}) do
+    Map.put(employee_request, "doctor", Map.merge(doctor, Map.get(employee_request, "doctor")))
   end
 
   def check_transition_status(%Request{status: @status_new} = employee_request) do
