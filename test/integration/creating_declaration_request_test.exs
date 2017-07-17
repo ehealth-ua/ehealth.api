@@ -1,4 +1,4 @@
-defmodule EHealth.Integraiton.DeclarationRequestCreateTest do
+defmodule EHealth.Integration.DeclarationRequestCreateTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase, async: false
