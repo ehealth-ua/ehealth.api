@@ -21,7 +21,7 @@ defmodule EHealth.Web.EmployeesController do
   end
 
   def deactivate(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
-    with {:ok, %{employee_updated: %{"meta" => %{}} = response}} <- EmployeeUpdater.deactivate(id, req_headers) do
+    with {:ok, {:ok, %{"meta" => %{}} = response}} <- EmployeeUpdater.deactivate(id, req_headers) do
       proxy(conn, response)
     end
   end

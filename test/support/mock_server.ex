@@ -273,15 +273,25 @@ defmodule EHealth.MockServer do
   end
 
   delete "/admin/users/:id/roles" do
-    render([], conn, 204)
+    case conn.query_params do
+      %{"role_name" => _} -> render([], conn, 204)
+      _ -> render_404(conn)
+    end
   end
 
   delete "/admin/users/:id/apps" do
+    case conn.query_params do
+      %{"client_id" => _} -> render([], conn, 204)
+      _ -> render_404(conn)
+    end
     render([], conn, 204)
   end
 
   delete "/admin/users/:id/tokens" do
-    render([], conn, 204)
+    case conn.query_params do
+      %{"client_id" => _} -> render([], conn, 204)
+      _ -> render_404(conn)
+    end
   end
 
   get "/admin/users/:id" do
@@ -669,6 +679,7 @@ defmodule EHealth.MockServer do
       "status" => "APPROVED",
       "start_date" => "2017-03-02",
       "position" => "P1",
+      "party_id" => "b63d802f-5225-4362-bc93-a8bba6eac167",
       "party" => %{
         "second_name" => "Миколайович",
         "last_name" => "Іванов",

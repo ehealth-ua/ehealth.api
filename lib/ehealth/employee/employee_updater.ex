@@ -1,7 +1,6 @@
 defmodule EHealth.Employee.EmployeeUpdater do
   @moduledoc false
 
-  import EHealth.Utils.Pipeline
   import EHealth.Utils.Connection, only: [get_consumer_id: 1]
 
   alias EHealth.API.PRM
@@ -15,68 +14,55 @@ defmodule EHealth.Employee.EmployeeUpdater do
   @employee_status_dismissed "DISMISSED"
 
   def deactivate(id, headers) do
-    pipe_data = %{id: id, headers: headers}
-    with {:ok, pipe_data} <- get_employee(pipe_data),
-         {:ok, pipe_data} <- check_transition(pipe_data),
-         {:ok, pipe_data} <- get_active_employees(pipe_data),
-         {:ok, pipe_data} <- revoke_user_auth_data(pipe_data),
-         {:ok, pipe_data} <- deactivate_declarations(pipe_data),
-         {:ok, pipe_data} <- update_employee_status(pipe_data) do
-         end_pipe({:ok, pipe_data})
-    end
+    with {:ok, %{employee: %{"data" => employee}}} <- API.get_employee_by_id(id, headers, false),
+          :ok                    <- check_transition(employee),
+         {:ok, active_employees} <- get_active_employees(employee, headers),
+          :ok                    <- revoke_user_auth_data(employee, active_employees["data"], headers),
+          :ok                    <- deactivate_declarations(employee),
+         {:ok, updated_employee} <- update_employee_status(employee, headers),
+      do: {:ok, updated_employee}
   end
 
-  def get_employee(%{id: id, headers: headers} = pipe_data) do
-    id
-    |> API.get_employee_by_id(headers, false)
-    |> case do
-         {:ok, %{employee: employee}} -> put_in_pipe(employee, :employee, pipe_data)
-         err -> err
-       end
-  end
+  def check_transition(%{"is_active" => true, "status" => @employee_status_approved}), do: :ok
 
-  def check_transition(%{employee: %{"data" => %{"is_active" => true, "status" => @employee_status_approved}}} =
-    pipe_data),
-    do: {:ok, pipe_data}
-
-  def check_transition(_pipe_data) do
+  def check_transition(_employee) do
     {:error, {:conflict, "Employee is DEACTIVATED and cannot be updated."}}
   end
 
-  def get_active_employees(%{employee: %{"data" => employee}, headers: headers} = pipe_data) do
-    %{
+  def get_active_employees(%{"party_id" => party_id, "employee_type" => employee_type}, headers) do
+    API.get_employees(%{
       status: @employee_status_approved,
-      party_id: employee["party_id"],
-      employee_type: employee["employee_type"],
-    }
-    |> API.get_employees(headers)
-    |> put_success_api_response_in_pipe(:employees_active, pipe_data)
+      party_id: party_id,
+      employee_type: employee_type,
+    }, headers)
   end
 
-  def revoke_user_auth_data(%{employees_active: %{"data" => employees}} = pipe_data) when length(employees) <= 1 do
-    party_params = %{"party_id" => pipe_data.employee["party_id"]}
+  def revoke_user_auth_data(employee, active_employees, headers) when length(active_employees) <= 1 do
+    client_id = employee["legal_entity_id"]
+    role_name = employee["employee_type"]
+    party_params = %{"party_id" => employee["party_id"]}
 
-    with {:ok, %{"data" => party_users}} <- PRM.get_party_users(party_params, pipe_data.headers),
-         :ok <- revoke_user_auth_data_async(party_users, pipe_data.headers)
+    with {:ok, %{"data" => party_users}} <- PRM.get_party_users(party_params, headers),
+          :ok <- revoke_user_auth_data_async(party_users, client_id, role_name, headers)
     do
-      {:ok, pipe_data}
+      :ok
     end
   end
-  def revoke_user_auth_data(pipe_data), do: {:ok, pipe_data}
+  def revoke_user_auth_data(_employee, _active_employees, _headers), do: :ok
 
-  def revoke_user_auth_data_async(user_parties, headers) do
+  def revoke_user_auth_data_async(user_parties, client_id, role_name, headers) do
     user_parties
     |> Enum.map(&(Task.async(fn ->
-      {&1["user_id"], delete_mithril_entities(&1["user_id"], headers)}
+      {&1["user_id"], delete_mithril_entities(&1["user_id"], client_id, role_name, headers)}
     end)))
     |> Enum.map(&Task.await/1)
     |> check_async_error()
   end
 
-  def delete_mithril_entities(user_id, headers) do
-    with {:ok, _} <- Mithril.delete_user_roles_by_user(user_id, headers),
-         {:ok, _} <- Mithril.delete_apps_by_user(user_id, headers),
-         {:ok, _} <- Mithril.delete_tokens_by_user(user_id, headers)
+  def delete_mithril_entities(user_id, client_id, role_name, headers) do
+    with {:ok, _} <- Mithril.delete_user_roles_by_user_and_role_name(user_id, role_name, headers),
+         {:ok, _} <- Mithril.delete_apps_by_user_and_client(user_id, client_id, headers),
+         {:ok, _} <- Mithril.delete_tokens_by_user_and_client(user_id, client_id, headers)
     do
       :ok
     end
@@ -98,26 +84,25 @@ defmodule EHealth.Employee.EmployeeUpdater do
        end
   end
 
-  def deactivate_declarations(pipe_data) do
-    {:ok, pipe_data}
+  def deactivate_declarations(_) do
+    :ok
   end
 
-  def update_employee_status(%{id: id, headers: headers, employee: %{"data" => employee}} = pipe_data) do
+  def update_employee_status(%{"id" => id} = employee, headers) do
     headers
     |> get_update_employee_params()
     |> put_employee_status(employee)
     |> PRM.update_employee(id, headers)
-    |> put_success_api_response_in_pipe(:employee_updated, pipe_data)
-  end
-
-  def put_updated_by(data, headers) do
-    data |> Map.put(:updated_by, get_consumer_id(headers))
   end
 
   defp get_update_employee_params(headers) do
     %{}
     |> put_updated_by(headers)
     |> Map.put(:end_date, Date.utc_today() |> Date.to_iso8601())
+  end
+
+  def put_updated_by(data, headers) do
+    data |> Map.put(:updated_by, get_consumer_id(headers))
   end
 
   defp put_employee_status(params, %{"employee_type" => @employee_type_owner}) do
