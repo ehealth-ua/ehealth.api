@@ -231,7 +231,7 @@ This method will send password recovery email to a User. Token from this email s
 
 + Request (application/json)
     + Attributes
-        + password_recovery (object)
+        + `credentials_recovery_request` (object)
             + email (string)
 
 + Response 201 (application/json)
@@ -239,7 +239,7 @@ This method will send password recovery email to a User. Token from this email s
         + meta (`Response__Meta`)
             + code: 201 (number)
         + data (object)
-            + id: `password_recovery-1380df72-275a-11e7-93ae-92361f002671` (string)
+            + is_active: true (boolean)
             + expires_at: `2017-04-20T19:14:13Z` (string) - Expiration datetime in ISO 8601 format
 
 ### Reset User Password [PATCH /users/{id}/actions/reset_password]
@@ -2695,11 +2695,6 @@ API for searching Ukrainian Addresses
 + inserted_at: `1991-08-19T00:00:00.000Z` (string, required) - ISO Datetime.
 + updated_at: `1991-08-19T00:00:00.000Z` (string, required) - ISO Datetime.
 
-## Doctors
-### Doctor
-+ certificates (array[Medical_Certificate], optional)
-+ licenses (array[Medical_License], required)
-+ education (array[Medical_Education], required)
 
 ## DeclarationRequests
 ### `crud_Declaration_request_get`
