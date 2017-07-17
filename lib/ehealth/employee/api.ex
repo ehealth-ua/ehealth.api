@@ -5,6 +5,8 @@ defmodule EHealth.Employee.API do
   import EHealth.Paging
   import EHealth.Utils.Connection
   import EHealth.Employee.EmployeeUpdater, only: [put_updated_by: 2]
+  import EHealth.LegalEntity.API, only: [get_client_type_name: 2]
+  import EHealth.Plugs.ClientContext, only: [authorize_legal_entity_id: 3]
 
   alias EHealth.Repo
   alias EHealth.Employee.Request
@@ -243,26 +245,21 @@ defmodule EHealth.Employee.API do
 
   def get_employee_by_id(id, headers, expand \\ true) do
     client_id = get_client_id(headers)
-    with {:ok, employee} <- PRM.get_employee_by_id(id, headers),
-         :ok <- check_employee_legal_entity_id(client_id, employee),
-         {:ok, party} <- get_party(employee, headers),
-         {:ok, division} <- get_division(employee, headers),
+    with {:ok, employee}     <- PRM.get_employee_by_id(id, headers),
+         {:ok, client_type}  <- get_client_type_name(client_id, headers),
+          :ok                <- employee
+                                |> get_in(["data", "legal_entity_id"])
+                                |> authorize_legal_entity_id(client_id, client_type),
+         {:ok, party}        <- get_party(employee, headers),
+         {:ok, division}     <- get_division(employee, headers),
          {:ok, legal_entity} <- get_legal_entity(employee, headers),
-         employee <- filter_employee_response(employee, expand)
+         employee            <- filter_employee_response(employee, expand)
     do
       {:ok, employee
             |> put_in(~w(data division), division)
             |> put_in(~w(data party), party)
             |> put_in(~w(data legal_entity), legal_entity)
       }
-    end
-  end
-
-  defp check_employee_legal_entity_id(client_id, employee) do
-    legal_entity_id = get_in(employee, ["data", "legal_entity_id"])
-    case client_id == legal_entity_id do
-      true -> :ok
-      _ -> {:error, :forbidden}
     end
   end
 

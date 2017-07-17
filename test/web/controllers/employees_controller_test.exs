@@ -2,6 +2,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase
+  alias EHealth.MockServer
 
   test "gets only employees that have legal_entity_id == client_id", %{conn: conn} do
     client_id = Ecto.UUID.generate()
@@ -102,37 +103,51 @@ defmodule EHealth.Web.EmployeesControllerTest do
     assert is_map(resp["data"]["legal_entity"])
   end
 
-  test "get employee by id without division", %{conn: conn} do
-    conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
-    conn = get conn, employees_path(conn, :show, "b075f148-7f93-4fc2-b2ec-2d81b19a911a")
-    resp = json_response(conn, 200)
+  describe "get employee by id" do
+    test "without division", %{conn: conn} do
+      conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+      conn = get conn, employees_path(conn, :show, "b075f148-7f93-4fc2-b2ec-2d81b19a911a")
+      resp = json_response(conn, 200)
 
-    assert Map.has_key?(resp["data"], "party")
-    assert Map.has_key?(resp["data"], "legal_entity")
+      assert Map.has_key?(resp["data"], "party")
+      assert Map.has_key?(resp["data"], "legal_entity")
 
-    refute Map.has_key?(resp["data"]["party"], "updated_by")
-    refute Map.has_key?(resp["data"]["party"], "created_by")
+      refute Map.has_key?(resp["data"]["party"], "updated_by")
+      refute Map.has_key?(resp["data"]["party"], "created_by")
 
-    refute Map.has_key?(resp["data"]["legal_entity"], "updated_by")
-    refute Map.has_key?(resp["data"]["legal_entity"], "created_by")
+      refute Map.has_key?(resp["data"]["legal_entity"], "updated_by")
+      refute Map.has_key?(resp["data"]["legal_entity"], "created_by")
 
-    refute Map.has_key?(resp["data"], "division_id")
-    assert %{} == resp["data"]["division"]
-  end
+      refute Map.has_key?(resp["data"], "division_id")
+      assert %{} == resp["data"]["division"]
+    end
 
-  test "cannot get employee by id when legal_entity_id != client_id", %{conn: conn} do
-    conn = put_client_id_header(conn, Ecto.UUID.generate())
-    conn = get conn, employees_path(conn, :show, "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b")
-    json_response(conn, 403)
-  end
+    test "with MSP token when legal_entity_id != client_id", %{conn: conn} do
+      conn = put_client_id_header(conn, Ecto.UUID.generate())
+      conn = get conn, employees_path(conn, :show, "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b")
+      json_response(conn, 403)
+    end
 
-  test "can get employee by id when legal_entity_id == client_id", %{conn: conn} do
-    conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
-    conn = get conn, employees_path(conn, :show, "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b")
-    resp = json_response(conn, 200)
+    test "with MIS token when legal_entity_id != client_id", %{conn: conn} do
+      conn = put_client_id_header(conn, MockServer.get_client_mis())
+      conn = get conn, employees_path(conn, :show, "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b")
+      json_response(conn, 200)
+    end
 
-    assert Map.has_key?(resp, "data")
-    assert is_map(resp["data"])
+    test "with ADMIN token when legal_entity_id != client_id", %{conn: conn} do
+      conn = put_client_id_header(conn, MockServer.get_client_admin())
+      conn = get conn, employees_path(conn, :show, "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b")
+      json_response(conn, 200)
+    end
+
+    test "when legal_entity_id == client_id", %{conn: conn} do
+      conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+      conn = get conn, employees_path(conn, :show, "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b")
+      resp = json_response(conn, 200)
+
+      assert Map.has_key?(resp, "data")
+      assert is_map(resp["data"])
+    end
   end
 
   test "deactivate employee with invalid transitions condition", %{conn: conn} do

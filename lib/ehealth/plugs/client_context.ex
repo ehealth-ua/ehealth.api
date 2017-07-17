@@ -67,9 +67,21 @@ defmodule EHealth.Plugs.ClientContext do
       client_type in config[:tokens_types_mis] -> %{}
       client_type in config[:tokens_types_admin] -> %{}
       true ->
-        Logger.error(fn -> "Undefined client type name #{client_type} for /legal_entities. " <>
-              "Cannot prepare params for request to PRM" end)
+        Logger.error("Undefined client type name #{client_type} for context request.")
         %{"legal_entity_id" => client_id}
+    end
+  end
+
+  def authorize_legal_entity_id(legal_entity_id, client_id, client_type) do
+    config = config()
+    cond do
+      client_type in config[:tokens_types_personal] and legal_entity_id != client_id -> {:error, :forbidden}
+      client_type in config[:tokens_types_personal] -> :ok
+      client_type in config[:tokens_types_mis] -> :ok
+      client_type in config[:tokens_types_admin] -> :ok
+      true ->
+        Logger.error("Undefined client type name #{client_type} for context request.")
+        {:error, :forbidden}
     end
   end
 

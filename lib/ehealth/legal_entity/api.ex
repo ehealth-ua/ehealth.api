@@ -4,6 +4,7 @@ defmodule EHealth.LegalEntity.API do
   """
 
   import EHealth.Utils.Connection, only: [get_consumer_id: 1, get_client_id: 1]
+  import EHealth.Plugs.ClientContext, only: [authorize_legal_entity_id: 3]
 
   alias Ecto.Date
   alias Ecto.UUID
@@ -13,7 +14,6 @@ defmodule EHealth.LegalEntity.API do
   alias EHealth.LegalEntity.Validator
   alias EHealth.Employee.API
   alias EHealth.API.Mithril
-  alias EHealth.Plugs.ClientContext
 
   require Logger
 
@@ -24,10 +24,10 @@ defmodule EHealth.LegalEntity.API do
 
   def get_legal_entity_by_id(id, headers) do
     client_id = get_client_id(headers)
-    with {:ok, client_type} <- get_client_type_name(client_id, headers),
-         :ok <- authorize_id(id, client_id, client_type),
+    with {:ok, client_type}  <- get_client_type_name(client_id, headers),
+          :ok                <- authorize_legal_entity_id(id, client_id, client_type),
          {:ok, legal_entity} <- load_legal_entity(id, headers),
-         %{} = oauth_client <- OAuth.get_client(Map.fetch!(legal_entity, "id"), headers)
+         %{} = oauth_client  <- OAuth.get_client(Map.fetch!(legal_entity, "id"), headers)
     do
       {:ok, legal_entity, oauth_client}
     end
@@ -42,12 +42,22 @@ defmodule EHealth.LegalEntity.API do
       end
   end
 
+  defp load_legal_entity(id, headers) do
+    %{"id" => id, "is_active" => true}
+    |> PRM.get_legal_entities(headers)
+    |> case do
+         {:ok, %{"data" => []}} -> {:error, :not_found}
+         {:ok, %{"data" => data}} -> {:ok, List.first(data)}
+         err -> err
+       end
+  end
+
   def mis_verify(id, headers) do
     update_data = %{mis_verified: "VERIFIED"}
 
     with {:ok, pipe_data} <- PRM.get_legal_entity_by_id(id, headers),
          {:ok, _} <- check_mis_verify_transition(pipe_data),
-         {:ok, legal_entity} <- update_legal_entity(id, update_data, headers) do
+         {:ok, legal_entity} <- PRM.update_legal_entity(update_data, id, headers) do
       {:ok , legal_entity}
     end
   end
@@ -57,7 +67,7 @@ defmodule EHealth.LegalEntity.API do
 
     with {:ok, pipe_data} <- PRM.get_legal_entity_by_id(id, headers),
          {:ok, _} <- check_nhs_verify_transition(pipe_data),
-         {:ok, legal_entity} <- update_legal_entity(id, update_data, headers) do
+         {:ok, legal_entity} <- PRM.update_legal_entity(update_data, id, headers) do
       {:ok , legal_entity}
     end
   end
@@ -74,33 +84,6 @@ defmodule EHealth.LegalEntity.API do
   end
   def check_nhs_verify_transition(_) do
     {:error, {:conflict, "LegalEntity is VERIFIED and cannot be VERIFIED."}}
-  end
-
-  def update_legal_entity(id, updated_data, headers) do
-    PRM.update_legal_entity(updated_data, id, headers)
-  end
-
-  defp authorize_id(id, client_id, client_type) do
-    config = Confex.get_map(:ehealth, ClientContext)
-    cond do
-      client_type in config[:tokens_types_personal] and id != client_id -> {:error, :forbidden}
-      client_type in config[:tokens_types_personal] -> :ok
-      client_type in config[:tokens_types_mis] -> :ok
-      client_type in config[:tokens_types_admin] -> :ok
-      true ->
-        Logger.error("Undefined client type name #{client_type} for /legal_entities/:id. ")
-        {:error, :forbidden}
-    end
-  end
-
-  defp load_legal_entity(id, headers) do
-    %{"id" => id, "is_active" => true}
-    |> PRM.get_legal_entities(headers)
-    |> case do
-         {:ok, %{"data" => []}} -> {:error, :not_found}
-         {:ok, %{"data" => data}} -> {:ok, List.first(data)}
-         err -> err
-       end
   end
 
   # get list of legal entities
