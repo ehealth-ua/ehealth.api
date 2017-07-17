@@ -14,11 +14,11 @@ defmodule EHealth.Employee.EmployeeUpdater do
   @employee_status_dismissed "DISMISSED"
 
   def deactivate(id, headers) do
-    with {:ok, %{employee: %{"data" => employee}}} <- API.get_employee_by_id(id, headers, false),
+    with {:ok, %{"data" => employee}} <- API.get_employee_by_id(id, headers, false),
           :ok                    <- check_transition(employee),
          {:ok, active_employees} <- get_active_employees(employee, headers),
           :ok                    <- revoke_user_auth_data(employee, active_employees["data"], headers),
-          :ok                    <- deactivate_declarations(employee),
+          :ok                    <- deactivate_declarations(),
          {:ok, updated_employee} <- update_employee_status(employee, headers),
       do: {:ok, updated_employee}
   end
@@ -84,9 +84,10 @@ defmodule EHealth.Employee.EmployeeUpdater do
        end
   end
 
-  def deactivate_declarations(_) do
-    :ok
-  end
+  @doc """
+  Not implemented
+  """
+  def deactivate_declarations, do: :ok
 
   def update_employee_status(%{"id" => id} = employee, headers) do
     headers
@@ -95,14 +96,14 @@ defmodule EHealth.Employee.EmployeeUpdater do
     |> PRM.update_employee(id, headers)
   end
 
+  def put_updated_by(data, headers) do
+    Map.put(data, :updated_by, get_consumer_id(headers))
+  end
+
   defp get_update_employee_params(headers) do
     %{}
     |> put_updated_by(headers)
     |> Map.put(:end_date, Date.utc_today() |> Date.to_iso8601())
-  end
-
-  def put_updated_by(data, headers) do
-    data |> Map.put(:updated_by, get_consumer_id(headers))
   end
 
   defp put_employee_status(params, %{"employee_type" => @employee_type_owner}) do

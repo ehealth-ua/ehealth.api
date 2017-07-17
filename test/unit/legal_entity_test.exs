@@ -100,7 +100,7 @@ defmodule EHealth.Unit.LegalEntityTest do
 
     signer = %{"edrpou" => "37367387"}
 
-    assert {:ok, %{legal_entity_request: content}} == validate_edrpou(content, signer)
+    assert {:ok, content} == validate_edrpou(content, signer)
   end
 
   test "empty signer EDRPOU" do
@@ -108,15 +108,15 @@ defmodule EHealth.Unit.LegalEntityTest do
 
     signer = %{"empty" => "37367387"}
 
-    assert %Ecto.Changeset{valid?: false} = validate_edrpou(content, signer)
+    assert {:error, %Ecto.Changeset{valid?: false}} = validate_edrpou(content, signer)
   end
 
   test "invalid signer EDRPOU" do
     content = get_legal_entity_data()
 
-    signer = %{"edrpou" => "03736738a"}
+    signer = %{"edrpou" => "03736738"}
 
-    assert %Ecto.Changeset{valid?: false} = validate_edrpou(content, signer)
+    assert {:error, %Ecto.Changeset{valid?: false}} = validate_edrpou(content, signer)
   end
 
   test "employee request start_date format" do
@@ -130,16 +130,15 @@ defmodule EHealth.Unit.LegalEntityTest do
 
     signer = %{"edrpou" => "0373167387"}
 
-    assert %Ecto.Changeset{valid?: false} = validate_edrpou(content, signer)
+    assert {:error, %Ecto.Changeset{valid?: false}} = validate_edrpou(content, signer)
   end
 
   test "new legal entity mis_verified NOT_VERIFIED" do
-    assert {:ok, %{legal_entity_prm: %{"data" => legal_entity}, security: security}} =
+    assert {:ok, %{legal_entity: %{"data" => legal_entity}, security: security}} =
       API.create_legal_entity(%{
         "signed_legal_entity_request" => File.read!("test/data/signed_content.txt"),
-        "signed_content_encoding" => "base64"},
-        get_headers()
-      )
+        "signed_content_encoding" => "base64",
+      }, get_headers())
 
     assert "ACTIVE" == legal_entity["status"]
     assert "NOT_VERIFIED" == legal_entity["mis_verified"]
@@ -159,8 +158,8 @@ defmodule EHealth.Unit.LegalEntityTest do
       "signed_legal_entity_request" => "base64 encoded content"
     }
 
-    assert {:ok, %{legal_entity_prm: %{"data" => legal_entity}, security: security}} =
-      API.process_request({:ok, %{legal_entity_request: legal_entity}}, request, get_headers())
+    assert {:ok, %{legal_entity: %{"data" => legal_entity}, security: security}} =
+      API.process_request(legal_entity, request, get_headers())
 
     assert "37367387" == legal_entity["edrpou"]
     assert "ACTIVE" == legal_entity["status"]
@@ -178,14 +177,8 @@ defmodule EHealth.Unit.LegalEntityTest do
       "kveds" => ["12.21", "86.01"]
     })
 
-    data = %{
-      legal_entity_id: UUID.generate(),
-      legal_entity_flow: :update,
-      legal_entity_request: legal_entity
-    }
-
-    assert {:ok, %{legal_entity_prm: %{"data" => legal_entity}}} =
-      API.put_legal_entity_to_prm({:ok, data}, get_headers())
+    assert {:ok, %{"data" => legal_entity}} =
+      API.put_legal_entity_to_prm(UUID.generate(), :update, get_headers(), legal_entity)
 
     assert "Nebo15" == legal_entity["short_name"]
     assert "37367387" == legal_entity["edrpou"]
@@ -201,13 +194,8 @@ defmodule EHealth.Unit.LegalEntityTest do
     legal_entity = Map.merge(get_legal_entity_data(), %{
       "edrpou" => "10002000"
     })
-    data = %{
-      legal_entity_id: @inactive_legal_entity_id,
-      legal_entity_flow: :update,
-      legal_entity_request: legal_entity
-    }
-    assert {:ok, %{legal_entity_prm: %{"data" => updated_legal_entity}}} =
-      API.put_legal_entity_to_prm({:ok, data}, get_headers())
+    assert {:ok, %{"data" => updated_legal_entity}} =
+      API.put_legal_entity_to_prm(@inactive_legal_entity_id, :update, get_headers(), legal_entity)
     assert true = updated_legal_entity["is_active"]
   end
 

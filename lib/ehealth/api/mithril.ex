@@ -199,7 +199,7 @@ defmodule EHealth.API.Mithril do
            |> Map.fetch!("data")
            |> Map.fetch!("id")
       {:error, response}
-        -> Logger.error(fn -> "Cannot get Client Type from Mithril API. Response: #{inspect response}" end)
+        -> Logger.error("Cannot get Client Type from Mithril API. Response: #{inspect response}")
         nil
     end
   end

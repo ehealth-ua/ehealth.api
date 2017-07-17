@@ -154,8 +154,6 @@ defmodule EHealth.LegalEntity.Validator do
   end
   def validate_birth_date(err), do: err
 
-  def prepare_legal_entity(%Ecto.Changeset{valid?: true}, legal_entity) do
-    {:ok, %{legal_entity_request: legal_entity}}
-  end
-  def prepare_legal_entity(changeset, _legal_entity), do: changeset
+  def prepare_legal_entity(%Ecto.Changeset{valid?: true}, legal_entity), do: {:ok, legal_entity}
+  def prepare_legal_entity(changeset, _legal_entity), do: {:error, changeset}
 end

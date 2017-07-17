@@ -3,7 +3,6 @@ defmodule EHealth.Employee.API do
 
   import Ecto.{Query, Changeset}, warn: false
   import EHealth.Paging
-  import EHealth.Utils.Pipeline
   import EHealth.Utils.Connection
   import EHealth.Employee.EmployeeUpdater, only: [put_updated_by: 2]
 
@@ -243,59 +242,47 @@ defmodule EHealth.Employee.API do
   end
 
   def get_employee_by_id(id, headers, expand \\ true) do
-    pipe_data = %{
-      employee_id: id,
-      client_id: get_client_id(headers),
-      headers: headers,
-      expand: expand,
-    }
-    with {:ok, pipe_data} <- get_employee(pipe_data),
-         {:ok, pipe_data} <- check_employee_legal_entity_id(pipe_data),
-         {:ok, pipe_data} <- get_employee_relation(pipe_data, "party"),
-         {:ok, pipe_data} <- get_employee_relation(pipe_data, "division"),
-         {:ok, pipe_data} <- get_employee_relation(pipe_data, "legal_entity"),
-         {:ok, pipe_data} <- filter_employee_response(pipe_data) do
-         end_pipe({:ok, pipe_data})
+    client_id = get_client_id(headers)
+    with {:ok, employee} <- PRM.get_employee_by_id(id, headers),
+         :ok <- check_employee_legal_entity_id(client_id, employee),
+         {:ok, party} <- get_party(employee, headers),
+         {:ok, division} <- get_division(employee, headers),
+         {:ok, legal_entity} <- get_legal_entity(employee, headers),
+         employee <- filter_employee_response(employee, expand)
+    do
+      {:ok, employee
+            |> put_in(~w(data division), division)
+            |> put_in(~w(data party), party)
+            |> put_in(~w(data legal_entity), legal_entity)
+      }
     end
   end
 
-  def get_employee(pipe_data) do
-    pipe_data
-    |> Map.fetch!(:employee_id)
-    |> PRM.get_employee_by_id(Map.fetch!(pipe_data, :headers))
-    |> put_success_api_response_in_pipe(:employee, pipe_data)
-  end
-
-  defp check_employee_legal_entity_id(pipe_data) do
-    client_id = Map.fetch!(pipe_data, :client_id)
-    legal_entity_id = get_in(pipe_data, [:employee, "data", "legal_entity_id"])
-
+  defp check_employee_legal_entity_id(client_id, employee) do
+    legal_entity_id = get_in(employee, ["data", "legal_entity_id"])
     case client_id == legal_entity_id do
-      true -> {:ok, pipe_data}
+      true -> :ok
       _ -> {:error, :forbidden}
     end
   end
 
-  defp get_employee_relation(%{expand: true} = pipe_data, relation_key) do
-    pipe_data
-    |> get_in([:employee, "data", relation_key <> "_id"])
-    |> load_relation_from_prm(relation_key, Map.fetch!(pipe_data, :headers))
-    |> put_success_api_response_in_employee(relation_key, pipe_data)
+  def get_party(%{"data" => %{"party" => %{"id" => id}}}, headers) when not is_nil(id) do
+    PRM.get_party_by_id(id, headers)
   end
-  defp get_employee_relation(pipe_data, _relation_key), do: {:ok, pipe_data}
+  def get_party(_, _), do: {:ok, %{}}
 
-  defp load_relation_from_prm(nil, _key, _headers), do: {:ok, %{"data" => %{}}}
-  defp load_relation_from_prm(id, "party", headers), do: PRM.get_party_by_id(id, headers)
-  defp load_relation_from_prm(id, "division", headers), do: PRM.get_division_by_id(id, headers)
-  defp load_relation_from_prm(id, "legal_entity", headers), do: PRM.get_legal_entity_by_id(id, headers)
-
-  defp put_success_api_response_in_employee({:ok, %{"data" => resp}}, key, %{employee: employee} = pipe_data) do
-    {:ok, Map.put(pipe_data, :employee, put_in(employee, ["data", key], resp))}
+  def get_division(%{"data" => %{"division_id" => id}}, headers) when not is_nil(id) do
+    PRM.get_division_by_id(id, headers)
   end
-  defp put_success_api_response_in_employee(err, _key, _pipe_data), do: err
+  def get_division(_, _), do: {:ok, %{}}
+
+  def get_legal_entity(%{"data" => %{"legal_entity" => %{"id" => id}}}, headers) when not is_nil(id) do
+    PRM.get_legal_entity_by_id(id, headers)
+  end
+  def get_legal_entity(_, _), do: {:ok, %{}}
 
   # TODO: fucking crooked nail, use views instead. Asshole
-  defp filter_employee_response(%{employee: employee_response, expand: expand} = pipe_data) do
+  defp filter_employee_response(employee_response, expand) do
     employee =
       employee_response
       |> Map.get("data")
@@ -304,9 +291,7 @@ defmodule EHealth.Employee.API do
       |> filter_party_response()
       |> filter_legal_entity_response()
 
-    employee_response
-    |> Map.put("data", employee)
-    |> put_in_pipe(:employee, pipe_data)
+    Map.put(employee_response, "data", employee)
   end
 
   def drop_related_fields(map, true), do: Map.drop(map, ["party_id", "legal_entity_id", "division_id"])
@@ -319,8 +304,19 @@ defmodule EHealth.Employee.API do
   def filter_party_response(data), do: data
 
   def filter_legal_entity_response(%{"legal_entity" => legal_entity} = data) do
-    filter = ["updated_by", "inserted_by", "inserted_at", "updated_at", "phones", "medical_service_provider",
-              "kveds", "is_active",  "email", "created_by_mis_client_id", "addresses"]
+    filter = ~w(
+      updated_by
+      inserted_by
+      inserted_at
+      updated_at
+      phones
+      medical_service_provider
+      kveds
+      is_active
+      email
+      created_by_mis_client_id
+      addresses
+    )
 
     legal_entity = Map.drop(legal_entity, filter)
     Map.put(data, "legal_entity", legal_entity)

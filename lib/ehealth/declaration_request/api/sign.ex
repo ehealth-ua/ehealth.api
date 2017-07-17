@@ -1,7 +1,6 @@
 defmodule EHealth.DeclarationRequest.API.Sign do
   @moduledoc false
 
-  import EHealth.Utils.Pipeline
   import EHealth.Utils.Connection
 
   alias EHealth.API.MediaStorage
@@ -40,7 +39,7 @@ defmodule EHealth.DeclarationRequest.API.Sign do
     input
     |> Map.fetch!("signed_declaration_request")
     |> MediaStorage.store_signed_content(:declaration_request_bucket, Map.fetch!(input, "id"), headers)
-    |> validate_api_response(data, "Cannot store signed content")
+    |> validate_api_response(data)
   end
   def store_signed_content(err, _input, _headers), do: err
 
@@ -99,4 +98,7 @@ defmodule EHealth.DeclarationRequest.API.Sign do
     Logger.error(fn -> "Unknown authentication_method_current.type" end)
     ""
   end
+
+  defp validate_api_response({:ok, _}, db_data), do: {:ok, db_data}
+  defp validate_api_response(error, _db_data), do: error
 end

@@ -1,7 +1,6 @@
 defmodule EHealth.LegalEntity.LegalEntityUpdater do
   @moduledoc false
 
-  import EHealth.Utils.Pipeline
   import EHealth.Utils.Connection, only: [get_consumer_id: 1]
 
   alias EHealth.LegalEntity.API
@@ -14,44 +13,30 @@ defmodule EHealth.LegalEntity.LegalEntityUpdater do
   @legal_entity_status_active "ACTIVE"
 
   def deactivate(id, headers) do
-    pipe_data = %{id: id, headers: headers}
-    with {:ok, pipe_data} <- get_legal_entity(pipe_data),
-         {:ok, pipe_data} <- check_transition(pipe_data),
-         {:ok, pipe_data} <- deactivate_employees(pipe_data),
-         {:ok, pipe_data} <- update_legal_entity_status(pipe_data) do
-         end_pipe({:ok, pipe_data})
+    with {:ok, legal_entity} <- get_legal_entity(id, headers),
+         :ok <- check_transition(legal_entity),
+         :ok <- deactivate_employees(legal_entity, headers),
+         {:ok, legal_entity} <- update_legal_entity_status(legal_entity, headers)
+    do
+     {:ok, legal_entity}
     end
   end
 
-  def get_legal_entity(%{id: id, headers: headers} = pipe_data) do
+  def get_legal_entity(id, headers) do
     id
     |> API.get_legal_entity_by_id(headers)
     |> case do
-         {:ok, legal_entity, _} ->
-           put_in_pipe(legal_entity, :legal_entity, pipe_data)
+         {:ok, legal_entity, _} -> {:ok, legal_entity}
          err -> err
        end
   end
 
-  def check_transition(%{legal_entity: %{"is_active" => true, "status" => @legal_entity_status_active}} =
-    pipe_data),
-    do: {:ok, pipe_data}
-
-  def check_transition(_pipe_data) do
+  def check_transition(%{"is_active" => true, "status" => @legal_entity_status_active}), do: :ok
+  def check_transition(_legal_entity) do
     {:error, {:conflict, "Legal entity is not ACTIVE and cannot be updated"}}
   end
 
-  def get_active_employees(%{legal_entity: legal_entity, headers: headers} = pipe_data) do
-    %{
-      status: "APPROVED",
-      is_active: true,
-      legal_entity_id: legal_entity["id"],
-    }
-    |> EmployeeAPI.get_employees(headers)
-    |> put_success_api_response_in_pipe(:employees_active, pipe_data)
-  end
-
-  def deactivate_employees(%{legal_entity: legal_entity, headers: headers} = pipe_data, starting_after \\ nil) do
+  def deactivate_employees(legal_entity, headers, starting_after \\ nil) do
     employees_resp = %{
       status: "APPROVED",
       is_active: true,
@@ -67,7 +52,7 @@ defmodule EHealth.LegalEntity.LegalEntityUpdater do
           |> deactivate_employees_page(headers)
           |> check_deactivated_employees_error()
         case error do
-          nil -> deactivate_employees(pipe_data, cursors["starting_after"])
+          nil -> deactivate_employees(legal_entity, headers, cursors["starting_after"])
           error -> {:error, error}
         end
       {:ok, %{"paging" => %{"has_more" => false}}} ->
@@ -76,7 +61,7 @@ defmodule EHealth.LegalEntity.LegalEntityUpdater do
           |> deactivate_employees_page(headers)
           |> check_deactivated_employees_error()
         case error do
-          nil -> {:ok, pipe_data}
+          nil -> :ok
           error -> {:error, error}
         end
       {:error, err} -> {:error, err}
@@ -107,12 +92,11 @@ defmodule EHealth.LegalEntity.LegalEntityUpdater do
   end
   def deactivate_employees_page({:error, err}), do: err
 
-  def update_legal_entity_status(%{legal_entity: legal_entity, headers: headers} = pipe_data) do
+  def update_legal_entity_status(legal_entity, headers) do
     headers
     |> get_update_legal_entity_params()
     |> put_legal_entity_status()
     |> PRM.update_legal_entity(legal_entity["id"], headers)
-    |> put_success_api_response_in_pipe(:legal_entity_updated, pipe_data)
   end
 
   defp get_update_legal_entity_params(headers) do

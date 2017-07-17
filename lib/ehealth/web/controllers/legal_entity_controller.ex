@@ -11,12 +11,13 @@ defmodule EHealth.Web.LegalEntityController do
 
   def create_or_update(%Plug.Conn{req_headers: req_headers} = conn, legal_entity_params) do
     with {:ok, %{
-      legal_entity_prm: legal_entity,
-      security: security} = pipe_data} <- API.create_legal_entity(legal_entity_params, req_headers) do
+      legal_entity: legal_entity,
+      employee_request: employee_request,
+      security: security}} <- API.create_legal_entity(legal_entity_params, req_headers) do
 
       conn
       |> assign_security(security)
-      |> assign_employee_request_id(Map.get(pipe_data, :employee_request))
+      |> assign_employee_request_id(employee_request)
       |> render("show.json", legal_entity: Map.fetch!(legal_entity, "data"))
     end
   end

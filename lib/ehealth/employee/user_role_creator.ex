@@ -3,73 +3,44 @@ defmodule EHealth.Employee.UserRoleCreator do
   Creates or updates user roles in Mithril
   """
 
-  import EHealth.Utils.Pipeline
-
   alias EHealth.API.PRM
   alias EHealth.API.Mithril
 
   require Logger
 
-  def create({:ok, %{"data" => employee}}, headers) do
-    pipe_data = %{
-      party_id: Map.fetch!(employee, "party_id"),
-      client_id: Map.fetch!(employee, "legal_entity_id"),
-      employee: employee,
-      headers: headers
-    }
-    with {:ok, pipe_data} <- get_prm_party_users_by_party_id(pipe_data),
-         {:ok, pipe_data} <- get_oauth_roles(pipe_data),
-         {:ok, pipe_data} <- find_role_id_by_employee_type(pipe_data) do
-         add_oauth_users_role(pipe_data)
+  def create({:ok, %{"data" => employee}} = data, headers) do
+    party_id = Map.fetch!(employee, "party_id")
+    client_id = Map.fetch!(employee, "legal_entity_id")
+    employee_type = Map.fetch!(employee, "employee_type")
+    with {:ok, party_users} <- PRM.get_party_users_by_party_id(party_id, headers),
+         {:ok, roles} <- Mithril.get_roles_by_name(employee_type, headers),
+         role_id <- find_role_id_by_employee_type(roles),
+         :ok <- add_oauth_users_role(party_users, role_id, client_id, party_id, headers)
+    do
+      data
     end
   end
   def create(err, _headers), do: err
 
-  def get_prm_party_users_by_party_id(pipe_data) do
-    pipe_data
-    |> Map.fetch!(:party_id)
-    |> PRM.get_party_users_by_party_id(Map.fetch!(pipe_data, :headers))
-    |> put_success_api_response_in_pipe(:party_users, pipe_data)
-  end
-
-  def get_oauth_roles(pipe_data) do
-    pipe_data
-    |> Map.fetch!(:employee)
-    |> Map.fetch!("employee_type")
-    |> Mithril.get_roles_by_name(Map.fetch!(pipe_data, :headers))
-    |> put_success_api_response_in_pipe(:roles, pipe_data)
-  end
-
-  def find_role_id_by_employee_type(%{roles: %{"data" => []}}) do
+  def find_role_id_by_employee_type(%{"data" => []}) do
     {:error, :invalid_role}
   end
-
-  def find_role_id_by_employee_type(%{roles: %{"data" => roles}} = pipe_data) do
+  def find_role_id_by_employee_type(%{"data" => roles}) do
     roles
     |> List.first()
     |> Map.fetch!("id")
-    |> put_in_pipe(:role_id, pipe_data)
   end
 
-  def add_oauth_users_role(%{party_users: %{"data" => party_users}} = pipe_data) when length(party_users) > 0 do
-    role_id = Map.fetch!(pipe_data, :role_id)
-    client_id = Map.fetch!(pipe_data, :client_id)
-    headers = Map.fetch!(pipe_data, :headers)
-
+  def add_oauth_users_role(%{"data" => party_users}, role_id, client_id, _, headers) when length(party_users) > 0 do
     Enum.each(party_users, fn(%{"user_id" => user_id}) ->
       user_id
       |> Mithril.get_user_roles([role_id: role_id], headers)
       |> create_user_role(user_id, role_id, client_id, headers)
-      |> validate_api_response(pipe_data, "Failed to add role '#{role_id}' to user '#{user_id}'.")
     end)
-
-    {:ok, pipe_data}
   end
-  def add_oauth_users_role(%{party_users: %{"data" => _}, party_id: party_id} = pipe_data) do
-    Logger.error(fn ->
-      "Empty party users by party_id #{party_id}. Cannot create new roles"
-    end)
-    {:ok, pipe_data}
+  def add_oauth_users_role(%{"data" => _}, _, _, party_id, _) do
+    Logger.error("Empty party users by party_id #{party_id}. Cannot create new roles")
+    :ok
   end
 
   @doc """

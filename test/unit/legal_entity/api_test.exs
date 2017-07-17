@@ -9,11 +9,9 @@ defmodule EHealth.Unit.LegalEntity.APITest do
 
   test "check_status" do
     legal_entity = get_legal_entity(Ecto.UUID.generate, false, "CLOSED")
-    pipe_data = {:ok, %{legal_entity_prm: %{"data" => [legal_entity]}}}
-    assert {:error, {:conflict, _}} = API.check_status(pipe_data)
+    assert {:error, {:conflict, _}} = API.check_status(legal_entity)
 
     legal_entity = get_legal_entity()
-    pipe_data = {:ok, %{legal_entity_prm: %{"data" => [legal_entity]}}}
-    assert pipe_data == API.check_status(pipe_data)
+    assert :ok == API.check_status(legal_entity)
   end
 end

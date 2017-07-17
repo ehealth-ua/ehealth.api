@@ -4,26 +4,16 @@ defmodule EHealth.Divisions.UAddress do
   """
   alias EHealth.API.PRM
   alias EHealth.API.UAddress
-  import EHealth.Utils.Pipeline
 
   def update_settlement(%{"id" => id} = data, headers) do
-    pipe_data = %{id: id, update_data: data, headers: headers}
-    with {:ok, pipe_data} <- api_get_settlement(pipe_data),
-         {:ok, pipe_data} <- check_settlement_diff(pipe_data),
-         {:ok, pipe_data} <- api_update_settlement(pipe_data),
-         {:ok, pipe_data} <- api_update_divisions(pipe_data),
-         {:ok, pipe_data} <- rollback_settlement(pipe_data) do
-         end_pipe({:ok, pipe_data})
+    with {:ok, settlement} <- UAddress.get_settlement_by_id(id, headers),
+         {:ok, settlement} <- api_update_settlement(data, headers, settlement)
+    do
+      {:ok, settlement}
     end
   end
 
-  defp api_get_settlement(%{id: id, headers: headers} = pipedata) do
-    id
-    |> UAddress.get_settlement_by_id(headers)
-    |> put_success_api_response_in_pipe(:settlement, pipedata)
-  end
-
-  def check_settlement_diff(%{update_data: data, settlement: %{"data" => settlement}} = pipe_data) do
+  def update_required?(data, settlement) do
     settlement_set =
       settlement
       |> Map.take(Map.keys(data))
@@ -33,33 +23,34 @@ defmodule EHealth.Divisions.UAddress do
     |> MapSet.new()
     |> MapSet.difference(settlement_set)
     |> MapSet.to_list()
-    |> Enum.into(%{})
-    |> put_in_pipe(:update_data, pipe_data)
+    |> Enum.empty?()
+    |> Kernel.!()
   end
 
-  defp api_update_settlement(%{id: id, headers: headers, update_data: data} = pipedata) when map_size(data) > 0 do
-    id
-    |> UAddress.update_settlement(data, headers)
-    |> put_success_api_response_in_pipe(:settlement_updated, pipedata)
+  defp api_update_settlement(%{"id" => id} = data, headers, settlement) do
+    case update_required?(data, settlement) do
+      true ->
+        with {:ok, updated_settlement} <- UAddress.update_settlement(id, data, headers),
+             :ok <- api_update_divisions(data, headers, settlement)
+        do
+          {:ok, updated_settlement}
+        end
+      false -> {:ok, settlement}
+    end
   end
-  defp api_update_settlement(pipe_data), do: {:ok, pipe_data}
 
-  defp api_update_divisions(%{id: id, headers: headers, update_data: %{"mountain_group" => group}} = pipe_data) do
+  defp api_update_divisions(%{"id" => id, "mountain_group" => group} = data, headers, settlement) do
     %{settlement_id: id, mountain_group: group}
     |> PRM.update_divisions_mountain_group(headers)
     |> case do
-         {:ok, _} -> {:ok, pipe_data}
-         {:error, reason} -> put_in_pipe(reason, :division_update_error, pipe_data)
+         {:ok, _} -> :ok
+         {:error, reason} -> rollback_settlement(data, headers, settlement, reason)
        end
   end
-  defp api_update_divisions(pipe_data), do: {:ok, pipe_data}
+  defp api_update_divisions(_, _, _), do: :ok
 
-  defp rollback_settlement(%{division_update_error: err, settlement: %{"data" => data}} = pipe_data) do
-    UAddress.update_settlement(pipe_data.id, data, pipe_data.headers)
-    {:error, err}
+  defp rollback_settlement(%{"id" => id}, headers, settlement, reason) do
+    UAddress.update_settlement(id, settlement, headers)
+    {:error, reason}
   end
-  defp rollback_settlement(%{settlement_updated: settlement_updated} = pipe_data) do
-    put_in_pipe(settlement_updated, :settlement, pipe_data)
-  end
-  defp rollback_settlement(pipe_data), do: {:ok, pipe_data}
 end

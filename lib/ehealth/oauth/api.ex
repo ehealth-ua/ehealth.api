@@ -52,7 +52,7 @@ defmodule EHealth.OAuth.API do
   end
 
   defp fetch_client_credentials({:error, response}, id) do
-    Logger.error(fn -> "Cannot create or find Mithril client for Legal Entity #{id} Response: #{inspect response}" end)
+    Logger.error("Cannot create or find Mithril client for Legal Entity #{id} Response: #{inspect response}")
     nil
   end
 
