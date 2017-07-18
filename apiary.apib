@@ -1553,6 +1553,7 @@ All signature fields will be validated (including signer certificate authority).
 This service will store signed copy of Declaration Request in Media Content Storage, created or update MPI records and create declaration if signature is all checks is passed.
 
 Signed content MUST consists of JSON object with Declaration Request data and printout template. Object that need to be signed is returned by `Get Declaration request by ID` response, JSON.Path: $.data
+The only field that can and must be changed is JSON.Path: `$.data.patient_signed`. It should be changed to `true`.
 
 **Signed object example:**
 ```
