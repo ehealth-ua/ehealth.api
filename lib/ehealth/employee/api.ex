@@ -252,13 +252,13 @@ defmodule EHealth.Employee.API do
                                 |> authorize_legal_entity_id(client_id, client_type),
          {:ok, party}        <- get_party(employee, headers),
          {:ok, division}     <- get_division(employee, headers),
-         {:ok, legal_entity} <- get_legal_entity(employee, headers),
-         employee            <- filter_employee_response(employee, expand)
+         {:ok, legal_entity} <- get_legal_entity(employee, headers)
     do
       {:ok, employee
-            |> put_in(~w(data division), division)
-            |> put_in(~w(data party), party)
-            |> put_in(~w(data legal_entity), legal_entity)
+            |> put_in(~w(data division), division["data"])
+            |> put_in(~w(data party), party["data"])
+            |> put_in(~w(data legal_entity), legal_entity["data"])
+            |> filter_employee_response(expand)
       }
     end
   end
@@ -266,17 +266,17 @@ defmodule EHealth.Employee.API do
   def get_party(%{"data" => %{"party" => %{"id" => id}}}, headers) when not is_nil(id) do
     PRM.get_party_by_id(id, headers)
   end
-  def get_party(_, _), do: {:ok, %{}}
+  def get_party(_, _), do: {:ok, %{"data" => %{}}}
 
   def get_division(%{"data" => %{"division_id" => id}}, headers) when not is_nil(id) do
     PRM.get_division_by_id(id, headers)
   end
-  def get_division(_, _), do: {:ok, %{}}
+  def get_division(_, _), do: {:ok, %{"data" => %{}}}
 
   def get_legal_entity(%{"data" => %{"legal_entity" => %{"id" => id}}}, headers) when not is_nil(id) do
     PRM.get_legal_entity_by_id(id, headers)
   end
-  def get_legal_entity(_, _), do: {:ok, %{}}
+  def get_legal_entity(_, _), do: {:ok, %{"data" => %{}}}
 
   # TODO: fucking crooked nail, use views instead. Asshole
   defp filter_employee_response(employee_response, expand) do

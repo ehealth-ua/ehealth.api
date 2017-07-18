@@ -112,9 +112,11 @@ defmodule EHealth.Web.EmployeesControllerTest do
       assert Map.has_key?(resp["data"], "party")
       assert Map.has_key?(resp["data"], "legal_entity")
 
+      refute Map.has_key?(resp["data"]["party"], "data")
       refute Map.has_key?(resp["data"]["party"], "updated_by")
       refute Map.has_key?(resp["data"]["party"], "created_by")
 
+      refute Map.has_key?(resp["data"]["legal_entity"], "data")
       refute Map.has_key?(resp["data"]["legal_entity"], "updated_by")
       refute Map.has_key?(resp["data"]["legal_entity"], "created_by")
 
