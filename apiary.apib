@@ -1461,6 +1461,7 @@ Method returns shortened details, to obtain full information - get Declaration R
                 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
             + division (`Division_Details`)
             + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
+            + seed: hash (string) - Hash of previous block in declarations chain or other random component that should be signed with declaration.
 
 ### Create Declaration Request [POST]
 
@@ -1586,6 +1587,9 @@ This service will store signed copy of Declaration Request in Media Content Stor
 
 Signed content MUST consists of JSON object with Declaration Request data and printout template. Object that need to be signed is returned by `Get Declaration request by ID` response, JSON.Path: $.data
 The only field that can and must be changed is JSON.Path: `$.data.patient_signed`. It should be changed to `true`.
+
+**Important**
+Invoke Get Declaration Request by ID to obtain seed - Hash of previous block in declarations chain or other random component that should be signed with declaration
 
 **Signed object example:**
 ```
@@ -1780,7 +1784,8 @@ The only field that can and must be changed is JSON.Path: `$.data.patient_signed
       "type": "clinic",
       "external_id": "3213213"
     },
-    "content": "Declaration content"
+    "content": "Declaration content",
+    "seed": "ghTjh409dnhHUkdi4jdh6hded"
   }
 }
 ```
