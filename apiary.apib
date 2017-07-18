@@ -906,6 +906,28 @@ Methods returns agregated numbers of declarations, doctors and msp.
 Total statistis are calculated on the date that is transmitted in the parameter to_date
 The statistics for the period are calculated using from_date and to_date
 
+**Detailed spec:**
+
+```json
+{
+    "period": {
+      "declarations_total": 100, -- select count(*) from declarations where inserted_at <= to_date
+      "declarations_created": 10, -- select count(*) from declarations_status_hstr where inserted_at between from_date and to_date and status in ('active') group by declaration_id
+      "declarations_closed": 2, -- select count(*) from declarations_status_hstr where inserted_at between from_date and to_date and status in ('terminated', 'closed') group by declaration_id
+      "msps": 2, -- select count(*) from legal_entity where inserted_at between start_date and to_date and is_active = 'true'
+      "doctors": 15 -- select count(*) from employees where inserted_at between start_date and to_date and is_active = 'true' and employee_type = 'DOCTOR' and status = 'APPROVED'
+    },
+    "total": {
+      "declarations_total": 100, -- select count(*) from declarations where inserted_at <= to_date
+      "declarations_created": 10, -- select count(*) from declarations where inserted_at <= to_date and status in ('active')
+      "declarations_closed": 2, -- select count(*) from declarations where inserted_at <= to_date and status in ('terminated', 'closed')
+      "msps": 2, -- select count(*) from legal_entity where inserted_at <= to_date and is_active = 'true'
+      "doctors": 15 --select count(*) from employees where inserted_at <= to_date and is_active = 'true' and employee_type = 'DOCTOR' and status = 'APPROVED'
+}
+}
+```
+
+
 + Parameters
     + from_date: 2017-01-28 (string, required)
     + to_date: 2017-02-28 (string, required)
@@ -926,6 +948,16 @@ Methods returns agregated numbers of declarations, MSP and doctors grouped by re
 Total statistis are calculated on the date that is transmitted in the parameter to_date
 The statistics for the period are calculated using from_date and to_date
 If the region is not specified, the service returns statistics for all regions
+
+**Detailed spec**
+
+```
+  "declarations_total": 100, --> declarations.division.addreses['REGISTRATION'].region_ID
+  "declarations_created": 10, --> declarations.division.addreses['REGISTRATION'].region_ID
+  "declarations_closed": 2,
+  "msps": 2, --> legal_entities.addreses['REGISTRATION'].region_ID
+  "doctors": 15 --> employees-->legal_entity...
+```
 
 + Parameters
     + from_date: 2017-01-28 (string, required)
@@ -958,7 +990,7 @@ Methods returns agregated numbers of declarations and doctors by division
 + Response 200 (application/json)
     + Attributes (Response_OK)
         + data (object, optional)
-           + total (MainStats, required)
+           + total (MainStats_Division, required)
 
 
 
@@ -3355,6 +3387,12 @@ API for searching Ukrainian Addresses
 + declarations_closed: 2 (number, required)
 + msps: 2 (number, required)
 + doctors: 15 (number, required)   
+
+### MainStats_Division
++ declarations_total: 100 (number, required)
++ declarations_created: 10 (number, required)
++ declarations_closed: 2 (number, required)
++ doctors: 15 (number, required)  
 
 ### RegionReport
 + id: `asSbcy12sYs8c` (string, required)
