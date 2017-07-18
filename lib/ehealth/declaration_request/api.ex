@@ -17,15 +17,6 @@ defmodule EHealth.DeclarationRequest.API do
   alias EHealth.DeclarationRequest.API.Validations
   alias EHealth.DeclarationRequest.API.Sign
 
-  @required_fields ~w(
-    data
-    status
-    authentication_method_current
-    printout_content
-    inserted_by
-    updated_by
-  )a
-
   @fields ~w(
     data
     status
@@ -193,8 +184,7 @@ defmodule EHealth.DeclarationRequest.API do
    end
 
   def update_changeset(%EHealth.DeclarationRequest{} = declaration_request, attrs) do
-    declaration_request
-    |> cast(attrs, @fields)
+    cast(declaration_request, attrs, @fields)
   end
 
   def put_start_end_dates(changeset, global_parameters) do

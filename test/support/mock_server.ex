@@ -493,6 +493,10 @@ defmodule EHealth.MockServer do
     render_with_paging(resp, conn, code)
   end
 
+  patch "/employees/:id/declarations/actions/terminate" do
+    render([], conn, 200)
+  end
+
   # MPI
   get "/persons/:id" do
     render(get_person(), conn, 200)
