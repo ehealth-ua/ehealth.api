@@ -1798,7 +1798,7 @@ Service returns verification code in exchange for uploaded file.
 
 ## Declarations - TBD [/api/declarations]
 
-### Get Declarations List [GET /api/declarations{?employee_id,legal_entity_id,active,starting_after,ending_before,limit}]
+### Get Declarations List [GET /api/declarations{?employee_id,legal_entity_id,status,starting_after,ending_before,limit}]
 
 Use this method to obrain list of Declarations for an `empolee_id` and legal_entity_id. If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor is interested in current UI section.
 
@@ -1807,8 +1807,8 @@ Method returns shortened details, to obtain full information - get Declaration D
 + Parameters
     + `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - `user_id` of a Doctor.
     + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - MSP ID.
-    + active: true (boolean, optional)
-        + Default: true
+    + status: active (string, optional)
+        + Default: active
     + limit: 20 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
         + Default: 50
     + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
@@ -1822,7 +1822,7 @@ Method returns shortened details, to obtain full information - get Declaration D
 
 + Response 200 (application/json)
     + Attributes (Response_Collection)
-        + data (array[`Declaration_Request_Short`])
+        + data (array[`Declaration_short`])
 
 ### Get Declaration by ID [GET /api/declarations/{id}]
 
@@ -1838,11 +1838,9 @@ Method returns shortened details, to obtain full information - get Declaration D
 + Response 200 (application/json)
     + Attributes (Response_OK)
         + meta (Response__Meta)
-            + code: 201 (number)
+            + code: 200 (number)
         + data (object)
-            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + include `Declaration_Details_Public`
-            + active: true (boolean, required)
+            + include `Declaration_Details`
 
 ## Employees [/api/employees]
 
@@ -2789,6 +2787,7 @@ API for searching Ukrainian Addresses
 + status (enum, required)
     - active
     - pending_verification
+    - terminated
 + scope (enum, required)
     - family doctor
 + person_id: `5fb57a5d-1457-430e-9678-c81cec72779f` (string, required)
@@ -2796,15 +2795,23 @@ API for searching Ukrainian Addresses
 + employee_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + inserted_at: `2017-07-06T16:54:05.161571Z` (string, required)
++ updated_at: `2017-03-02T10:45:16.000Z` (string, optional)
 
 ### `Declaration_Details`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + start_date: `2017-03-02` (string, required)
 + end_date: `2017-03-02` (string, required)
++ signed_at: `2017-03-02T00:00:00.000Z` (string, required)
 + person(`Person_Short`)
 + employee (`Employee_Declaration_Short`)
 + division (`Division_Short`)
 + `legal_entity` (MSP_Details)
++ status (enum, required)
+    - active
+    - pending_verification
+    - terminated
++ scope (enum, required)
+    - family doctor
 + inserted_at: `2017-03-02T10:45:16.000Z` (string, optional)
 + updated_at: `2017-03-02T10:45:16.000Z` (string, optional)
 
