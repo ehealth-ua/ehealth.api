@@ -216,6 +216,13 @@ defmodule EHealth.DeclarationRequest.API do
     put_change(changeset, :data, new_data)
   end
 
+  def pending_declaration_requests(nil, employee_id, legal_entity_id) do
+    from p in EHealth.DeclarationRequest,
+      where: p.status in ["NEW", "APPROVED"],
+      where: fragment("? #>> ? = ?", p.data, "{employee, id}", ^employee_id),
+      where: fragment("? #>> ? = ?", p.data, "{legal_entity, id}", ^legal_entity_id)
+  end
+
   def pending_declaration_requests(tax_id, employee_id, legal_entity_id) do
     from p in EHealth.DeclarationRequest,
       where: p.status in ["NEW", "APPROVED"],
