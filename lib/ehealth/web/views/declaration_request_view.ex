@@ -21,14 +21,6 @@ defmodule EHealth.Web.DeclarationRequestView do
     }
   end
 
-  def render("show.json", %{declaration_request: declaration_request}) do
-    declaration_request.data
-  end
-
-  def render("status.json", %{declaration_request: declaration_request}) do
-    Map.take(declaration_request, [:id, :data, :status])
-  end
-
   def render("declaration_request.json", %{declaration_request: declaration_request, with_urgent: true}) do
     filtered_authentication_method_current =
       update_in(declaration_request.authentication_method_current, ["number"], &Phone.hide_number/1)
@@ -51,27 +43,9 @@ defmodule EHealth.Web.DeclarationRequestView do
   end
 
   def render("declaration_request.json", %{declaration_request: declaration_request}) do
-    division_attrs = [
-      "id",
-      "type",
-      "phones",
-      "name",
-      "legal_entity_id",
-      "external_id",
-      "email",
-      "addresses"
-    ]
-
-    employee = Map.take(declaration_request.data["employee"], ["id", "party", "position"])
-    legal_entity = form_legal_entity(declaration_request.data["legal_entity"])
-    division = Map.take(declaration_request.data["division"], division_attrs)
-
     declaration_request.data
     |> Map.put("id", declaration_request.id)
     |> Map.put("content", declaration_request.printout_content)
-    |> Map.put("employee", employee)
-    |> Map.put("legal_entity", legal_entity)
-    |> Map.put("division", division)
     |> Map.put("status", declaration_request.status)
   end
 
@@ -93,35 +67,6 @@ defmodule EHealth.Web.DeclarationRequestView do
       status: Map.get(declaration_request, :status),
       inserted_at: Map.get(declaration_request, :inserted_at)
     }
-  end
-
-  defp form_legal_entity(legal_entity) do
-    legal_entity_attrs = [
-      "id",
-      "name",
-      "short_name",
-      "phones",
-      "legal_form",
-      "edrpou",
-      "public_name",
-      "email",
-      "addresses"
-    ]
-
-    msp_attrs = [
-      "accreditation",
-      "licenses"
-    ]
-
-    additional_attrs =
-      legal_entity
-      |> Map.get("medical_service_provider", msp_attrs)
-      |> Map.take(msp_attrs)
-
-    legal_entity
-    |> Map.drop(["medical_service_provider"])
-    |> Map.take(legal_entity_attrs)
-    |> Map.merge(additional_attrs)
   end
 
   defp filter_document_links(documents) do

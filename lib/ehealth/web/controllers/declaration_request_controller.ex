@@ -15,7 +15,7 @@ defmodule EHealth.Web.DeclarationRequestController do
 
   def show(conn, %{"declaration_request_id" => id} = params) do
     declaration_request = DeclarationRequestAPI.get_declaration_request_by_id!(id, params)
-    render(conn, "show.json", declaration_request: declaration_request)
+    render(conn, "declaration_request.json", declaration_request: declaration_request)
   end
 
   def create(conn, %{"declaration_request" => declaration_request}) do
@@ -52,7 +52,7 @@ defmodule EHealth.Web.DeclarationRequestController do
     user_id = get_consumer_id(conn.req_headers)
 
     with {:ok, declaration_request} <- DeclarationRequestAPI.reject(id, user_id) do
-      render(conn, "show.json", declaration_request: declaration_request)
+      render(conn, "declaration_request.json", declaration_request: declaration_request)
     end
   end
 end

@@ -122,6 +122,60 @@ defmodule EHealth.DeclarationRequest.API.Create do
     end
   end
 
+  def prepare_legal_entity_struct(legal_entity) do
+    legal_entity_attrs = [
+      "id",
+      "name",
+      "short_name",
+      "phones",
+      "legal_form",
+      "edrpou",
+      "public_name",
+      "email",
+      "addresses"
+    ]
+
+    msp_attrs = [
+      "accreditation",
+      "licenses"
+    ]
+
+    additional_attrs =
+      legal_entity
+      |> Map.get("medical_service_provider", msp_attrs)
+      |> Map.take(msp_attrs)
+
+    legal_entity
+    |> Map.drop(["medical_service_provider"])
+    |> Map.take(legal_entity_attrs)
+    |> Map.merge(additional_attrs)
+  end
+
+  def prepare_employee_struct(employee) do
+    employee_attrs = [
+      "id",
+      "party",
+      "position"
+    ]
+
+    Map.take(employee, employee_attrs)
+  end
+
+  def prepare_division_struct(division) do
+    division_attrs = [
+      "id",
+      "type",
+      "phones",
+      "name",
+      "legal_entity_id",
+      "external_id",
+      "email",
+      "addresses"
+    ]
+
+    Map.take(division, division_attrs)
+  end
+
   defp format_error_response(microservice, result) do
     "Error during #{microservice} interaction. Result from #{microservice}: #{inspect result}"
   end
