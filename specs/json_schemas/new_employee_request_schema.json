@@ -120,7 +120,7 @@
         },
         "qualification_type": {
           "type": "string",
-          "description": "Dictionary: QUALIFICATION_TYPE"
+          "description": "Dictionary: SPEC_QUALIFICATION_TYPE"
         },
         "attestation_name": {
           "type": "string"
