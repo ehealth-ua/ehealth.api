@@ -84,6 +84,8 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
       use MicroservicesHelper
 
       Plug.Router.post "/declarations/with_termination" do
+        %{"declaration_request_id" => _} = conn.body_params
+
         send_resp(conn, 200, Poison.encode!(%{data: conn.body_params}))
       end
     end

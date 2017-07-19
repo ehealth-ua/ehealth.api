@@ -57,7 +57,7 @@ defmodule EHealth.DeclarationRequest.API.Sign do
   def create_or_update_person(err, _headers), do: err
 
   def create_declaration_with_termination_logic({:ok, %{"data" => %{"id" => person_id}},
-    %DeclarationRequest{data: data, authentication_method_current: authentication_method_current}}, headers) do
+    %DeclarationRequest{id: id, data: data, authentication_method_current: authentication_method_current}}, headers) do
     client_id = get_client_id(headers)
     data
     |> Map.take(["start_date", "end_date", "scope"])
@@ -70,6 +70,7 @@ defmodule EHealth.DeclarationRequest.API.Sign do
     |> Map.put("created_by", client_id)
     |> Map.put("updated_by", client_id)
     |> Map.put("signed_at", Timex.now())
+    |> Map.put("declaration_request_id", id)
     |> OPS.create_declaration_with_termination_logic(headers)
   end
   def create_declaration_with_termination_logic(err, _headers), do: err
