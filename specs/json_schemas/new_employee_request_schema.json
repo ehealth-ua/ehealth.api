@@ -215,13 +215,15 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/document"
-          }
+          },
+          "minItems": 1
         },
         "phones": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/phone"
-          }
+          },
+          "minItems": 1
         }
       },
       "required": [
@@ -289,19 +291,22 @@
               "type": "array",
               "items": {
                 "$ref": "#/definitions/education"
-              }
+              },
+              "minItems": 1
             },
             "qualifications": {
               "type": "array",
               "items": {
                 "$ref": "#/definitions/qualification"
-              }
+              },
+              "minItems": 1
             },
             "specialities": {
               "type": "array",
               "items": {
                 "$ref": "#/definitions/speciality"
-              }
+              },
+              "minItems": 1
             },
             "science_degree": {
               "$ref": "#/definitions/science_degree"
