@@ -19,7 +19,7 @@ defmodule EHealth.Employee.EmployeeUpdater do
           :ok                    <- check_transition(employee),
          {:ok, active_employees} <- get_active_employees(employee, headers),
           :ok                    <- revoke_user_auth_data(employee, active_employees["data"], headers),
-         {:ok, _}                <- OPS.terminate_declarations(id, headers),
+         {:ok, _}                <- OPS.terminate_declarations(id, get_consumer_id(headers), headers),
          {:ok, updated_employee} <- update_employee_status(employee, headers),
       do: {:ok, updated_employee}
   end

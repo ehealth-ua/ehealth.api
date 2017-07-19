@@ -25,9 +25,9 @@ defmodule EHealth.API.OPS do
     |> ResponseDecoder.check_response()
   end
 
-  def terminate_declarations(employee_id, headers) do
+  def terminate_declarations(employee_id, user_id, headers) do
     "/employees/#{employee_id}/declarations/actions/terminate"
-    |> patch!([], headers, timeouts())
+    |> patch!(Poison.encode!(%{user_id: user_id}), headers, timeouts())
     |> ResponseDecoder.check_response()
   end
 

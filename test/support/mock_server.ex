@@ -494,7 +494,10 @@ defmodule EHealth.MockServer do
   end
 
   patch "/employees/:id/declarations/actions/terminate" do
-    render([], conn, 200)
+    case conn.params do
+      %{"id" => _, "user_id" => _} -> render([], conn, 200)
+      _ -> render([], conn, 404)
+    end
   end
 
   # MPI
