@@ -226,7 +226,7 @@ This method is designed to be used only by eHealth API gateway.
 
 ### Request Password Recovery [POST /credentials_recovery_requests]
 
-This method will send password recovery email to a User. Token from this email should be used in
+This method will send password recovery email to a User. Request from this email should be used in
 [Reset User password]() method.
 
 + Request (application/json)
@@ -242,16 +242,15 @@ This method will send password recovery email to a User. Token from this email s
             + is_active: true (boolean)
             + expires_at: `2017-04-20T19:14:13Z` (string) - Expiration datetime in ISO 8601 format
 
-### Reset User Password [PATCH /users/{id}/actions/reset_password]
+### Reset User Password [PATCH /credentials_recovery_requests/{id}/actions/reset_password]
 
 + Parameters
-    + id: `user-1380df72-275a-11e7-93ae-92361f002671` (string, required)
+    + id: `request-1380df72-275a-11e7-93ae-92361f002671` (string, required)
 
 + Request (application/json)
     + Attributes
         + user (object)
             + password: `notASecret1` (string, required) - User password. At least 6 characters.
-        + `credentials_recovery_request_token` (string, required) - Token that was sent to email via [Request Password Recovery]().
 
 + Response 200 (application/json)
    + Attributes (`Response_OK`)
