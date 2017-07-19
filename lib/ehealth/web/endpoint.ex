@@ -18,7 +18,7 @@ defmodule EHealth.Web.Endpoint do
   plug Plug.MethodOverride
   plug Plug.Head
 
-  plug Ehealth.Web.Router
+  plug EHealth.Web.Router
 
   @doc """
   Dynamically loads configuration from the system environment

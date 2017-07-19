@@ -1,7 +1,5 @@
-defmodule Ehealth.Web.Router do
+defmodule EHealth.Web.Router do
   @moduledoc """
-  Attention! Ehealth namespace is not a typo! This name because of Plug module name transformation
-
   The router provides a set of macros for generating routes
   that dispatch to specific controllers and actions.
   Those macros are named after HTTP verbs.
