@@ -3,7 +3,7 @@ defmodule EHealth.Declarations.API do
 
   import EHealth.Utils.Connection, only: [get_client_id: 1]
   import EHealth.Plugs.ClientContext, only: [get_context_params: 2]
-  import EHealth.Declarations.View, only: [render_declaration: 5]
+  import EHealth.Declarations.View, only: [render_declarations: 1, render_declaration: 1]
 
   alias EHealth.API.OPS
   alias EHealth.API.MPI
@@ -19,7 +19,8 @@ defmodule EHealth.Declarations.API do
          {:ok, persons}   <- MPI.search(%{ids: list_to_param(related_ids["person_ids"])}, headers),
          relations        <- build_indexes(divisions, employees, legals, persons),
          prepared_data    <- merge_related_data(resp["data"], relations),
-         response         <- Map.put(resp, "data", prepared_data),
+         declarations     <- render_declarations(prepared_data),
+         response         <- Map.put(resp, "data", declarations),
       do: {:ok, response}
   end
 
@@ -62,13 +63,24 @@ defmodule EHealth.Declarations.API do
 
   def merge_related_data(data, relations) do
     Enum.map(data, fn (item) ->
-       item
-       |> Map.put("person", Map.get(relations.persons, item["person_id"], %{}))
-       |> Map.put("division", Map.get(relations.divisions, item["division_id"], %{}))
-       |> Map.put("employee", Map.get(relations.employees, item["employee_id"], %{}))
-       |> Map.put("legal_entity", Map.get(relations.legal_entities, item["legal_entity_id"], %{}))
-       |> Map.drop(~W(person_id division_id employee_id legal_entity_id))
-     end)
+      merge_related_data(item,
+        Map.get(relations.persons, item["person_id"], %{}),
+        Map.get(relations.legal_entities, item["legal_entity_id"], %{}),
+        Map.get(relations.divisions, item["division_id"], %{}),
+        Map.get(relations.employees, item["employee_id"], %{})
+      )
+    end)
+  end
+
+  def merge_related_data(declaration, person, legal_entity, division, employee) do
+    declaration
+    |> Map.merge(%{
+         "person" => person,
+         "division" => division,
+         "employee" => employee,
+         "legal_entity" => legal_entity,
+       })
+    |> Map.drop(~W(person_id division_id employee_id legal_entity_id))
   end
 
   def get_declaration_by_id(id, headers) do
@@ -84,7 +96,8 @@ defmodule EHealth.Declarations.API do
          {:ok, %{"data" => legal_entity}} <- PRM.get_legal_entity_by_id(legal_entity_id, headers),
          {:ok, %{"data" => division}}     <- PRM.get_division_by_id(declaration["division_id"], headers),
          {:ok, %{"data" => employee}}     <- PRM.get_employee_by_id(declaration["employee_id"], headers),
-         response                         <- render_declaration(declaration, person, legal_entity, division, employee),
+         declaration                      <- merge_related_data(declaration, person, legal_entity, division, employee),
+         response                         <- render_declaration(declaration),
       do: {:ok, response}
   end
 

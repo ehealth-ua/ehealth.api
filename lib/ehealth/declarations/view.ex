@@ -1,16 +1,24 @@
 defmodule EHealth.Declarations.View do
   @moduledoc false
 
-  def render_declaration(declaration, person, legal_entity, division, employee) do
-    declaration
-    |> Map.take(fields(:one, :declaration))
-    |> Map.put("person", Map.take(person, fields(:one, :division)))
-    |> Map.put("division", Map.take(division, fields(:one, :division)))
-    |> Map.put("employee", Map.take(employee, fields(:one, :employee)))
-    |> Map.put("legal_entity", Map.take(legal_entity, fields(:one, :legal_entity)))
+  def render_declarations(declarations) do
+    Enum.map(declarations, &render_declaration(&1, :list))
   end
 
-  def fields(:one, :employee) do
+  def render_declaration(declaration), do: render_declaration(declaration, :one)
+
+  def render_declaration(declaration, type) do
+    declaration
+    |> Map.take(fields(:declaration, type))
+    |> Map.merge(%{
+         "person" => Map.take(declaration["person"], fields(:person, type)),
+         "division" => Map.take(declaration["division"], fields(:division, type)),
+         "employee" => Map.take(declaration["employee"], fields(:employee, type)),
+         "legal_entity" => Map.take(declaration["legal_entity"], fields(:legal_entity, type)),
+       })
+  end
+
+  def fields(:employee, :one) do
     ~W(
       id
       position
@@ -25,7 +33,15 @@ defmodule EHealth.Declarations.View do
     )
   end
 
-  def fields(:one, :person) do
+  def fields(:employee, :list) do
+    ~W(
+      id
+      position
+      employee_type
+    )
+  end
+
+  def fields(:person, :one) do
     ~W(
       id
       first_name
@@ -39,7 +55,16 @@ defmodule EHealth.Declarations.View do
     )
   end
 
-  def fields(:one, :division) do
+  def fields(:person, :list) do
+    ~W(
+      id
+      first_name
+      last_name
+      second_name
+    )
+  end
+
+  def fields(:division, :one) do
     ~W(
       id
       name
@@ -49,11 +74,18 @@ defmodule EHealth.Declarations.View do
     )
   end
 
-  def fields(:one, :legal_entity) do
+  def fields(:division, :list) do
     ~W(
       id
       name
-      short_Name
+    )
+  end
+
+  def fields(:legal_entity, :one) do
+    ~W(
+      id
+      name
+      short_name
       legal_form
       public_name
       edrpou
@@ -66,7 +98,25 @@ defmodule EHealth.Declarations.View do
     )
   end
 
-  def fields(:one, :declaration) do
+  def fields(:legal_entity, :list) do
+    ~W(
+      id
+      name
+      short_name
+    )
+  end
+
+  def fields(:declaration, :one) do
+    ~W(
+      id
+      start_date
+      end_date
+      inserted_at
+      updated_at
+    )
+  end
+
+  def fields(:declaration, :list) do
     ~W(
       id
       start_date
