@@ -190,6 +190,9 @@
     "id": {
       "type": "string"
     },
+    "seed": {
+      "type": "string"
+    },
     "legal_entity": {
       "additionalProperties": false,
       "properties": {
@@ -761,6 +764,7 @@
     "person",
     "employee",
     "scope",
+    "seed",
     "legal_entity",
     "urgent",
     "status",
