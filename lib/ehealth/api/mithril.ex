@@ -102,6 +102,12 @@ defmodule EHealth.API.Mithril do
     |> ResponseDecoder.check_response()
   end
 
+  def change_user(id, attrs, headers \\ []) do
+    "/admin/users/#{id}"
+    |> put!(Poison.encode!(%{"user" => attrs}), headers, options())
+    |> ResponseDecoder.check_response()
+  end
+
   # Roles
 
   def get_roles_by_name(name, headers \\ []) do

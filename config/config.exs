@@ -145,6 +145,19 @@ config :ehealth, EHealth.Bamboo.Emails.EmployeeCreatedNotification,
   from: {:system, "BAMBOO_EMPLOYEE_CREATED_NOTIFICATION_FROM", ""},
   subject: {:system, "BAMBOO_EMPLOYEE_CREATED_NOTIFICATION_SUBJECT", ""}
 
+# Template and setting for credentials recovery requests
+config :ehealth, :credentials_recovery_request_ttl,
+  {:system, :integer, "CREDENTIALS_RECOVERY_REQUEST_TTL", 1_500}
+
+config :ehealth, EHealth.Bamboo.Emails.CredentialsRecoveryRequest,
+  from: {:system, "BAMBOO_CREDENTIALS_RECOVERY_REQUEST_INVITATION_FROM", ""},
+  subject: {:system, "BAMBOO_CREDENTIALS_RECOVERY_REQUEST_INVITATION_SUBJECT", ""}
+
+config :ehealth, EHealth.Man.Templates.CredentialsRecoveryRequest,
+  id: {:system, "CREDENTIALS_RECOVERY_REQUEST_INVITATION_TEMPLATE_ID", 5},
+  format: {:system, "CREDENTIALS_RECOVERY_REQUEST_INVITATION_TEMPLATE_FORMAT", "text/html"},
+  locale: {:system, "CREDENTIALS_RECOVERY_REQUEST_INVITATION_TEMPLATE_LOCALE", "uk_UA"}
+
 # Configures bamboo
 config :ehealth, EHealth.Bamboo.Mailer,
   adapter: EHealth.Bamboo.PostmarkAdapter,

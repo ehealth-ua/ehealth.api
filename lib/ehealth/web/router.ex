@@ -36,6 +36,9 @@ defmodule Ehealth.Web.Router do
   scope "/api", EHealth.Web do
     pipe_through :api
 
+    post "/credentials_recovery_requests", UserController, :create_credentials_recovery_request
+    patch "/credentials_recovery_requests/:id/actions/reset_password", UserController, :reset_password
+
     # Legal Entities
     put "/legal_entities", LegalEntityController, :create_or_update
 
