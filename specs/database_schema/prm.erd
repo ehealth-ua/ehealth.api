@@ -5,7 +5,7 @@ employee_id | uuid | not null
 person_id | uuid | not null
 start_date | date | not null
 end_date | date | not null
-status | enum('') | not null
+status | varchar | not null
 signed_at | timestamp | not null
 inserted_at | timestamp | not null
 inserted_by | uuid | not null
