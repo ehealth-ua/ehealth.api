@@ -4,6 +4,20 @@
 
 Index page for projects that related to Ukrainian Health Services government institution.
 
+## Objectives
+* Design and Develop patient's registry (Master Patient Index) as an independant service
+* Design and Develop registry for Medical Service Providers (MSP), MSP Divisions, 1st echelon Doctors (PRM)
+* Design and Develop registry for contracts (Declarations) between MSP, 1st echelon Doctors and Patients (OpsDB)
+* Automation of MSP, Doctors, Patients, Declarations registration processes accessible via API (REST)
+* Provision of data consistency, deduplication and security mechanisms incl. Implementation of Digital Signature
+* Design and Develop E-Health Billing process (Capitation report)
+* Design and Develop E-Health administration tools for National Health Service
+* Implementation of authentication and authorization including:
+  * Authorization of MSP by Patient using SMS OTP 
+  * Offline patient identification
+* OAuth 2.0 authorization for E-Health API
+* Personal data protection according to Ukraine and EU regulations
+
 ## Specification
 
 - [API docs](http://docs.ehealthapi1.apiary.io/#reference/public.-medical-service-provider-integration-layer)
