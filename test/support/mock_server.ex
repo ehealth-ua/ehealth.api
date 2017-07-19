@@ -36,6 +36,7 @@ defmodule EHealth.MockServer do
   get "/legal_entities" do
     legal_entity =
       case conn.params do
+        %{"ids" => _} -> [get_legal_entity()]
         %{"id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375552"} -> [get_legal_entity()]
         %{"id" => "0d26d826-6241-11e7-907b-a6006ad3dba0"} -> [get_legal_entity()]
         %{"edrpou" => "37367387", "type" => "MSP"} -> [get_legal_entity()]
@@ -151,6 +152,9 @@ defmodule EHealth.MockServer do
     case conn.path_params do
       %{"id" => "0d26d826-6241-11e7-907b-a6006ad3dba0"} ->
         render(get_employee("0d26d826-6241-11e7-907b-a6006ad3dba0"), conn, 200)
+
+      %{"id" => "7488a646-e31f-11e4-aace-600308960662"} ->
+        render(get_employee(), conn, 200)
 
       %{"id" => "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b"} ->
         render(get_employee(), conn, 200)
@@ -505,13 +509,17 @@ defmodule EHealth.MockServer do
     render(get_person(), conn, 200)
   end
 
-  def get_declaration(id \\ nil, legal_entity_id \\ "7cc91a5d-c02f-41e9-b571-1ea4f2375552") do
+  get "/persons" do
+    render([get_person(), get_person()], conn, 200)
+  end
+
+  def get_declaration(id \\ nil, legal_entity_id \\ nil, division_id \\ nil, employee_id \\ nil, person_id \\ nil) do
     %{
         "id" => id || "156b4182-f9ce-4eda-b6af-43d2de8601z2",
-        "legal_entity_id" => legal_entity_id,
-        "division_id" => "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
-        "employee_id" => "0d26d826-6241-11e7-907b-a6006ad3dba0",
-        "person_id" => UUID.generate(),
+        "legal_entity_id" => legal_entity_id || "7cc91a5d-c02f-41e9-b571-1ea4f2375552",
+        "division_id" => division_id || "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
+        "employee_id" => employee_id || "7488a646-e31f-11e4-aace-600308960662",
+        "person_id" => person_id || "156b4182-f9ce-4eda-b6af-43d2de8601z2",
         "start_date" => "2010-08-19 00:00:00",
         "end_date" => "2010-08-19 00:00:00",
         "status" => "ACTIVE",
@@ -523,8 +531,9 @@ defmodule EHealth.MockServer do
     }
   end
 
-  def get_person do
+  def get_person(id \\ nil) do
     %{
+      "id" => id || "156b4182-f9ce-4eda-b6af-43d2de8601z2",
       "version" => "default",
       "first_name" => "string value",
       "last_name" => "string value",

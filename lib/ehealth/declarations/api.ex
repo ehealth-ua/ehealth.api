@@ -10,6 +10,67 @@ defmodule EHealth.Declarations.API do
   alias EHealth.API.PRM
   alias EHealth.API.Mithril
 
+  def get_declarations(params, headers) do
+    with {:ok, resp}      <- OPS.get_declarations(params, headers),
+         related_ids      <- fetch_related_ids(Map.fetch!(resp, "data")),
+         {:ok, divisions} <- PRM.get_divisions(%{ids: list_to_param(related_ids["division_ids"])}, headers),
+         {:ok, employees} <- PRM.get_employees(%{ids: list_to_param(related_ids["employee_ids"])}, headers),
+         {:ok, legals}    <- PRM.get_legal_entities(%{ids: list_to_param(related_ids["legal_entity_ids"])}, headers),
+         {:ok, persons}   <- MPI.search(%{ids: list_to_param(related_ids["person_ids"])}, headers),
+         relations        <- build_indexes(divisions, employees, legals, persons),
+         prepared_data    <- merge_related_data(resp["data"], relations),
+         response         <- Map.put(resp, "data", prepared_data),
+      do: {:ok, response}
+  end
+
+  def fetch_related_ids(declarations) do
+    acc = %{"person_ids" => [], "division_ids" => [], "employee_ids" => [], "legal_entity_ids" => []}
+    declarations
+    |> Enum.map_reduce(acc, fn (declaration, acc) ->
+         acc = Enum.map(acc, fn({field_name, list}) ->
+           {field_name, put_related_id(list, declaration[String.trim_trailing(field_name, "s")])}
+         end)
+         {nil, acc}
+       end)
+    |> elem(1)
+    |> Enum.into(%{})
+  end
+
+  defp put_related_id(list, id) do
+    case Enum.member?(list, id) do
+      false -> List.insert_at(list, 0, id)
+      true -> list
+    end
+  end
+
+  def list_to_param(list), do: Enum.join(list, ",")
+
+  def build_indexes(divisions, employees, legal_entities, persons) do
+    %{}
+    |> Map.put(:persons, build_index(persons))
+    |> Map.put(:divisions, build_index(divisions))
+    |> Map.put(:employees, build_index(employees))
+    |> Map.put(:legal_entities, build_index(legal_entities))
+  end
+
+  def build_index(%{"data" => []}), do: %{}
+  def build_index(%{"data" => data}) do
+    data
+    |> Enum.map_reduce(%{}, fn (item, acc) -> {nil, Map.put(acc, item["id"], item)} end)
+    |> elem(1)
+  end
+
+  def merge_related_data(data, relations) do
+    Enum.map(data, fn (item) ->
+       item
+       |> Map.put("person", Map.get(relations.persons, item["person_id"], %{}))
+       |> Map.put("division", Map.get(relations.divisions, item["division_id"], %{}))
+       |> Map.put("employee", Map.get(relations.employees, item["employee_id"], %{}))
+       |> Map.put("legal_entity", Map.get(relations.legal_entities, item["legal_entity_id"], %{}))
+       |> Map.drop(~W(person_id division_id employee_id legal_entity_id))
+     end)
+  end
+
   def get_declaration_by_id(id, headers) do
     with {:ok, resp} <- OPS.get_declaration_by_id(id, headers),
          {:ok, data} <- expand_declaration_relations(Map.fetch!(resp, "data"), headers),
@@ -25,10 +86,6 @@ defmodule EHealth.Declarations.API do
          {:ok, %{"data" => employee}}     <- PRM.get_employee_by_id(declaration["employee_id"], headers),
          response                         <- render_declaration(declaration, person, legal_entity, division, employee),
       do: {:ok, response}
-  end
-
-  def get_declarations(_params, _headers) do
-    # ToDo: write a code
   end
 
   def check_declaration_access(legal_entity_id, headers) do
