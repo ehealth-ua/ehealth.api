@@ -6,22 +6,6 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
   import EHealth.DeclarationRequest.API.Sign
   alias EHealth.DeclarationRequest
 
-  defp fixture(status \\ "ACTIVE", authentication_method_current_type \\ "OTP") do
-    data =
-      "test/data/sign_declaration_request.json"
-      |> File.read!()
-      |> Poison.decode!
-
-    Repo.insert!(%DeclarationRequest{
-      data: data,
-      status: status,
-      inserted_by: Ecto.UUID.generate(),
-      updated_by: Ecto.UUID.generate(),
-      authentication_method_current: %{"type" => authentication_method_current_type},
-      printout_content: ""
-    })
-  end
-
   describe "check_status/2" do
     test "raises error when id is invalid" do
       assert_raise(Ecto.Query.CastError, fn ->
@@ -36,14 +20,14 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
     end
 
     test "returns error when status is not APPROVED" do
-      %DeclarationRequest{id: id} = fixture()
+      %DeclarationRequest{id: id} = simple_fixture(:declaration_request)
       result = check_status({:ok, "somedata"}, %{"id" => id})
       expected_result = {:error, [{%{description: "incorrect status", params: [], rule: :invalid}, "$.status"}]}
       assert expected_result == result
     end
 
     test "returns expected result when status is APPROVED" do
-      declaration_request = %DeclarationRequest{id: id} = fixture("APPROVED")
+      declaration_request = %DeclarationRequest{id: id} = simple_fixture(:declaration_request, "APPROVED")
       assert {:ok, "somedata", declaration_request} == check_status({:ok, "somedata"}, %{"id" => id})
     end
   end
@@ -89,7 +73,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
     end
 
     test "returns expected result" do
-      declaration_request = fixture()
+      declaration_request = simple_fixture(:declaration_request)
       expected_result = {:ok, %{"data" => "somedata"}, declaration_request}
       assert expected_result == create_or_update_person({:ok, {%{"person" => "somedata"}, declaration_request}}, [])
     end
@@ -117,7 +101,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
     end
 
     test "returns expected result" do
-      %DeclarationRequest{data: declaration_request_data} = declaration_request = fixture()
+      %DeclarationRequest{data: declaration_request_data} = declaration_request = simple_fixture(:declaration_request)
       person_id = Ecto.UUID.generate()
       person_data = %{"data" => %{"id" => person_id}}
       client_id = Ecto.UUID.generate()
@@ -138,14 +122,14 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
     end
 
     test "returns pending_validation status when authentication_method_current.type == OFFLINE" do
-      declaration_request = fixture("ACTIVE", "OFFLINE")
+      declaration_request = simple_fixture(:declaration_request, "ACTIVE", "OFFLINE")
       person_data = %{"data" => %{"id" => ""}}
       {:ok, %{"data" => data}} = create_declaration_with_termination_logic({:ok, person_data, declaration_request}, [])
       assert "pending_verification" == data["status"]
     end
 
     test "returns empty status when authentication_method_current.type is unknown" do
-      declaration_request = fixture("ACTIVE", "SOME_TYPE")
+      declaration_request = simple_fixture(:declaration_request, "ACTIVE", "SOME_TYPE")
       person_data = %{"data" => %{"id" => ""}}
       {:ok, %{"data" => data}} = create_declaration_with_termination_logic({:ok, person_data, declaration_request}, [])
       assert "" == data["status"]
@@ -154,7 +138,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
 
   describe "update_declaration_request_status/2" do
     test "updates declaration request status to SIGNED and drops unnecessary fields in response" do
-      %DeclarationRequest{id: id} = fixture()
+      %DeclarationRequest{id: id} = simple_fixture(:declaration_request)
       declaration_response_data = %{"updated_by" => "", "updated_at" => "", "created_by" => "", "another_key" => ""}
       declaration_response = %{"data" => declaration_response_data}
       {:ok, data} = update_declaration_request_status({:ok, declaration_response}, %{"id" => id})

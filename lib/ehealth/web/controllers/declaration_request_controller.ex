@@ -47,4 +47,12 @@ defmodule EHealth.Web.DeclarationRequestController do
       render(conn, "otp.json", otp: otp)
     end
   end
+
+  def reject(conn, %{"id" => id}) do
+    user_id = get_consumer_id(conn.req_headers)
+
+    with {:ok, declaration_request} <- DeclarationRequestAPI.reject(id, user_id) do
+      render(conn, "show.json", declaration_request: declaration_request)
+    end
+  end
 end

@@ -24,6 +24,7 @@ defmodule EHealth.Web.ConnCase do
       use Phoenix.ConnTest
       import Ehealth.Web.Router.Helpers
       import EHealth.Web.ConnCase
+      import EHealth.Test.Support.Fixtures
 
       # The default endpoint for testing
       @endpoint EHealth.Web.Endpoint
