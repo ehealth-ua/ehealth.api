@@ -16,6 +16,13 @@ scope | enum('') | not null
 division_id | uuid | not null
 legal_entity_id | uuid | not null
 
+[declarations_status_hstr]
+id | integer | not null
+declaration_id | uuid | not null
+status | enum('') | not null
+inserted_at | timestamp | not null
+
+
 [declaration_requests]
 id | uuid | not null
 inserted_by | uuid | not null
@@ -178,6 +185,14 @@ inserted_by | uuid | not null
 updated_at | timestamp | not null
 updated_by | uuid | not null
 
+[dictionaries]
+name | varchar | not null
+values | jsonb | not null
+labels | jsonb | not null
+is_active | boolean | not null
+
+
+
 (prm)
 parties
 party_users
@@ -194,10 +209,12 @@ global_parameters
 (ops_db)
 declarations
 declaration_log_changes
+declarations_status_hstr
 
 (il_db)
 declaration_requests
 employee_requests
+dictionaries
 
 
 declarations 1--1 declarations_signed
@@ -210,3 +227,4 @@ employees *--1 divisions
 employees 1--? employee_doctors
 medical_service_providers 1--1 legal_entities
 parties 1--? doctors
+declarations 1--* declarations_status_hstr
