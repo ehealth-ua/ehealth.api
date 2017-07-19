@@ -109,6 +109,8 @@ defmodule EHealth.Declarations.View do
   def fields(:declaration, :one) do
     ~W(
       id
+      status
+      scope
       start_date
       end_date
       inserted_at
