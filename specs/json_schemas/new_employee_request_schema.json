@@ -141,6 +141,7 @@
         "level",
         "qualification_type",
         "attestation_name",
+        "attestation_date",
         "certificate_number"
       ],
       "additionalProperties": false
