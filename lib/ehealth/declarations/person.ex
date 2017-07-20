@@ -5,10 +5,6 @@ defmodule EHealth.Declarations.Person do
   alias EHealth.API.MPI
   import EHealth.Declarations.API, only: [expand_declaration_relations: 2]
 
-  def search_persons(params, headers) do
-    MPI.search(params, headers)
-  end
-
   def get_person_declaration(person_id, headers) do
     with {:ok, resp}        <- OPS.get_declarations(%{"person_id" => person_id, "is_active" => true}, headers),
          {:ok, declaration} <- check_declarations_amount(Map.fetch!(resp, "data")),
