@@ -115,6 +115,10 @@ defmodule EHealth.Declarations.View do
       signed_at
       status
       scope
+      phones
+      email
+      addresses
+      party
       declaration_request_id
       inserted_at
       updated_at
