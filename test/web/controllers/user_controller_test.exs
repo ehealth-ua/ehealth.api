@@ -37,7 +37,7 @@ defmodule EHealth.Web.UserControllerTest do
         raise "Request ID is not set"
       end
 
-      resp = Map.merge(@user_attrs, conn.body_params)
+      resp = %{data: Map.merge(@user_attrs, conn.body_params)}
 
       Plug.Conn.send_resp(conn, 200, Poison.encode!(resp))
     end
@@ -99,6 +99,8 @@ defmodule EHealth.Web.UserControllerTest do
       conn = patch conn, user_path(conn, :reset_password, credentials_recovery_request_id), reset_attrs
       assert %{"email" => "bob@example.com", "id" => "1380df72-275a-11e7-93ae-92361f002671", "settings" => %{}}
         == json_response(conn, 200)["data"]
+
+      [%{is_active: false}] = Repo.all(CredentialsRecoveryRequest)
     end
 
     test "returns not found error when request id does not exist", %{conn: conn} do

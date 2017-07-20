@@ -60,7 +60,7 @@ defmodule EHealth.Users.API do
 
   defp deactivate_credentials_recovery_request(request) do
     request
-    |> change(%{"is_active" => false})
+    |> credentials_recovery_request_changeset(%{"is_active" => false})
     |> Repo.update()
   end
 
@@ -73,10 +73,11 @@ defmodule EHealth.Users.API do
     upstream_headers = Keyword.get(opts, :upstream_headers, [])
     with {:ok, %{user_id: user_id} = request} <- fetch_credentials_recovery_request(request_id),
          %Changeset{valid?: true} <- reset_password_changeset(attrs),
-         {:ok, user} <- Mithril.change_user(user_id, attrs, upstream_headers),
+         {:ok, %{"data" => user}} <- Mithril.change_user(user_id, attrs, upstream_headers),
          {:ok, _updated_request} <- deactivate_credentials_recovery_request(request) do
       {:ok, user}
     else
+      {:ok, %{"error" => error}} -> {:error, error}
       :error -> {:error, :not_found}
       {:error, reason} -> {:error, reason}
       %Changeset{} = changeset -> {:error, changeset}
