@@ -103,16 +103,18 @@ defmodule EHealth.Declarations.View do
       id
       name
       short_name
+      edrpou
     )
   end
 
   def fields(:declaration, :one) do
     ~W(
       id
-      status
-      scope
       start_date
       end_date
+      signed_at
+      status
+      scope
       declaration_request_id
       inserted_at
       updated_at

@@ -17,7 +17,7 @@ defmodule EHealth.Declarations.API do
          {:ok, employees} <- PRM.get_employees(%{ids: list_to_param(related_ids["employee_ids"])}, headers),
          {:ok, legals}    <- PRM.get_legal_entities(%{ids: list_to_param(related_ids["legal_entity_ids"])}, headers),
          {:ok, persons}   <- MPI.search(%{ids: list_to_param(related_ids["person_ids"])}, headers),
-         relations        <- build_indexes(divisions, employees, legals, persons),
+         relations        <- build_indexes(divisions["data"], employees["data"], legals["data"], persons["data"]),
          prepared_data    <- merge_related_data(resp["data"], relations),
          declarations     <- render_declarations(prepared_data),
          response         <- Map.put(resp, "data", declarations),
@@ -54,8 +54,8 @@ defmodule EHealth.Declarations.API do
     |> Map.put(:legal_entities, build_index(legal_entities))
   end
 
-  def build_index(%{"data" => []}), do: %{}
-  def build_index(%{"data" => data}) do
+  def build_index([]), do: %{}
+  def build_index(data) do
     data
     |> Enum.map_reduce(%{}, fn (item, acc) -> {nil, Map.put(acc, item["id"], item)} end)
     |> elem(1)
@@ -91,13 +91,13 @@ defmodule EHealth.Declarations.API do
   end
 
   def expand_declaration_relations(%{"legal_entity_id" => legal_entity_id} = declaration, headers) do
-    with :ok                              <- check_declaration_access(legal_entity_id, headers),
-         {:ok, %{"data" => person}}       <- MPI.person(declaration["person_id"], headers),
-         {:ok, %{"data" => legal_entity}} <- PRM.get_legal_entity_by_id(legal_entity_id, headers),
-         {:ok, %{"data" => division}}     <- PRM.get_division_by_id(declaration["division_id"], headers),
-         {:ok, %{"data" => employee}}     <- PRM.get_employee_by_id(declaration["employee_id"], headers),
-         declaration                      <- merge_related_data(declaration, person, legal_entity, division, employee),
-         response                         <- render_declaration(declaration),
+    with :ok          <- check_declaration_access(legal_entity_id, headers),
+         person       <- load_relation(MPI, :person, declaration["person_id"], headers),
+         legal_entity <- load_relation(PRM, :get_legal_entity_by_id, legal_entity_id, headers),
+         division     <- load_relation(PRM, :get_division_by_id, declaration["division_id"], headers),
+         employee     <- load_relation(PRM, :get_employee_by_id, declaration["employee_id"], headers),
+         declaration  <- merge_related_data(declaration, person, legal_entity, division, employee),
+         response     <- render_declaration(declaration),
       do: {:ok, response}
   end
 
@@ -111,6 +111,15 @@ defmodule EHealth.Declarations.API do
 
       err -> err
     end
+  end
+
+  def load_relation(module, func, id, headers) do
+    module
+    |> apply(func, [id, headers])
+    |> case do
+         {:ok, %{"data" => entity}} -> entity
+         _ -> %{}
+       end
   end
 
   def get_client_type_name(headers) do
