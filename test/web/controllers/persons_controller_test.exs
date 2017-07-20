@@ -43,4 +43,10 @@ defmodule EHealth.Web.PersonsControllerTest do
       assert 404 == json_response(conn, 404)["meta"]["code"]
     end
   end
+
+  test "search persons", %{conn: conn} do
+    conn = put_client_id_header(conn)
+    conn = get conn, persons_path(conn, :search_persons)
+    assert 200 == json_response(conn, 200)["meta"]["code"]
+  end
 end

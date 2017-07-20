@@ -105,6 +105,7 @@ defmodule EHealth.Web.Router do
     get "/declarations/:id", DeclarationsController, :show
 
     # Person declarations
+    get "/persons", PersonsController, :search_persons
     get "/persons/:id/declaration", PersonsController, :person_declarations
   end
 end
