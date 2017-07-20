@@ -96,15 +96,29 @@ defmodule EHealth.DeclarationRequest.API do
   end
 
   def reject(id, user_id) do
-    query =
-      from d in DeclarationRequest,
-        where: d.id == ^id,
-        where: d.status in ["NEW", "APPROVED"]
-
-    with %DeclarationRequest{} = declaration_request <- Repo.one(query) do
+    with %DeclarationRequest{} = declaration_request <- Repo.get(DeclarationRequest, id) do
       declaration_request
-      |> update_changeset(%{status: "CANCELLED", updated_by: user_id})
+      |> change
+      |> put_change(:status, "REJECTED")
+      |> put_change(:updated_by, user_id)
+      |> validate_status_transition
       |> Repo.update
+    end
+  end
+
+  def validate_status_transition(changeset) do
+    from = changeset.data.status
+    {_, to} = fetch_field(changeset, :status)
+
+    valid_transitions = [
+      {"NEW", "REJECTED"},
+      {"APPROVED", "REJECTED"}
+    ]
+
+    if {from, to} in valid_transitions do
+      changeset
+    else
+      add_error(changeset, :status, "Incorrect status transition.")
     end
   end
 
