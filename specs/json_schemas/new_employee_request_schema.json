@@ -167,8 +167,7 @@
           "type": "string"
         },
         "speciality": {
-          "type": "string",
-          "description": "Dictionary: SPECIALITY_TYPE"
+          "type": "string"
         },
         "issued_date": {
           "$ref": "#/definitions/date"

@@ -98,12 +98,7 @@ defmodule EHealth.Validators.SchemaMapper do
   end
 
   def put_dictionary_value(%Dictionary{name: "SPECIALITY_TYPE", values: values}, schema, :employee_request) do
-    values = Map.keys(values)
-    schema =
-      schema
-      |> put_in(["definitions", "speciality", "properties", "speciality", "enum"], values)
-      |> put_in(["definitions", "science_degree", "properties", "speciality", "enum"], values)
-    {nil, schema}
+    put_into_schema(["definitions", "speciality", "properties", "speciality", "enum"], schema, values)
   end
 
   def put_dictionary_value(%Dictionary{name: "SPECIALITY_LEVEL", values: values}, schema, :employee_request) do
