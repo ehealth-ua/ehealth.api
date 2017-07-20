@@ -92,8 +92,8 @@ defmodule EHealth.Web.UserControllerTest do
     test "changes user password with valid request id", %{conn: conn} do
       request_attrs = %{"credentials_recovery_request" => %{"email" => "bob@example.com"}}
       req_conn = post conn, user_path(conn, :create_credentials_recovery_request), request_attrs
-      %{"sandbox" => %{"credentials_recovery_request_id" => credentials_recovery_request_id}}
-        = json_response(req_conn, 201)
+      json_response(req_conn, 201)
+      [%{id: credentials_recovery_request_id}] = Repo.all(CredentialsRecoveryRequest)
 
       reset_attrs = %{"user" => %{"password" => "new_but_not_a_secret"}}
       conn = patch conn, user_path(conn, :reset_password, credentials_recovery_request_id), reset_attrs
@@ -110,8 +110,8 @@ defmodule EHealth.Web.UserControllerTest do
     test "returns validation error when new password is not set", %{conn: conn} do
       request_attrs = %{"credentials_recovery_request" => %{"email" => "bob@example.com"}}
       req_conn = post conn, user_path(conn, :create_credentials_recovery_request), request_attrs
-      %{"sandbox" => %{"credentials_recovery_request_id" => credentials_recovery_request_id}}
-        = json_response(req_conn, 201)
+      json_response(req_conn, 201)
+      [%{id: credentials_recovery_request_id}] = Repo.all(CredentialsRecoveryRequest)
 
       reset_attrs = %{"user" => %{}}
       conn = patch conn, user_path(conn, :reset_password, credentials_recovery_request_id), reset_attrs

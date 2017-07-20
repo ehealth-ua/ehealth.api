@@ -11,8 +11,7 @@ defmodule EHealth.Web.UserController do
       conn
       |> put_status(:created)
       |> render("credentials_recovery_request.json", [
-        credentials_recovery_request: credentials_recovery_request,
-        sandbox: %{credentials_recovery_request_id: credentials_recovery_request.id}
+        credentials_recovery_request: credentials_recovery_request
       ])
     end
   end
