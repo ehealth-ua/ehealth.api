@@ -1,7 +1,7 @@
 defmodule EHealth.Mixfile do
   use Mix.Project
 
-  @version "0.3.169"
+  @version "0.3.171"
 
   def project do
     [app: :ehealth,
@@ -52,12 +52,13 @@ defmodule EHealth.Mixfile do
     [{:distillery, "~> 1.2"},
      {:confex, "~> 1.4"},
      {:timex, ">= 3.1.15"},
-     {:logger_json, "~> 0.3.0"},
+     {:logger_json, "~> 0.5.0"},
      {:poison, "~> 3.1"},
      {:ecto, "~> 2.1"},
+     {:plug, "~> 1.3.5"},
      {:ecto_paging, ">= 0.0.0"},
      {:cowboy, "~> 1.1"},
-     {:httpoison, "~> 0.11.1"},
+     {:httpoison, "~> 0.12.0"},
      {:postgrex, ">= 0.0.0"},
      {:phoenix, "~> 1.3.0-rc"},
      {:phoenix_ecto, "~> 3.2"},

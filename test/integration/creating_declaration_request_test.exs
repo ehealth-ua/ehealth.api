@@ -263,7 +263,7 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
         |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
-        |> post("/api/declaration_requests", declaration_request_params)
+        |> post("/api/declaration_requests", Poison.encode!(declaration_request_params))
 
       resp = json_response(conn, 200)
 
@@ -448,7 +448,7 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
         |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: ""}))
-        |> post("/api/declaration_requests", declaration_request_params)
+        |> post("/api/declaration_requests", Poison.encode!(declaration_request_params))
 
       resp = json_response(conn, 404)
 
