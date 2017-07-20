@@ -81,7 +81,7 @@ defmodule EHealth.Unit.LegalEntityTest do
     })
     request = %{"data" => %{"content" => content}}
 
-    assert {:error, %Ecto.Changeset{valid?: false}} = API.create_legal_entity(%{
+    assert %Ecto.Changeset{valid?: false} = API.create_legal_entity(%{
       "signed_content_encoding" => "base64",
       "signed_legal_entity_request" => request
     }, [])

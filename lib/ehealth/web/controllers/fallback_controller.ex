@@ -12,12 +12,6 @@ defmodule EHealth.Web.FallbackController do
     |> render(EView.Views.ValidationError, "422.json", %{schema: json_schema_errors})
   end
 
-  def call(conn, {:error, {:error, json_schema_errors}}) when is_list(json_schema_errors) do
-    conn
-    |> put_status(422)
-    |> render(EView.Views.ValidationError, "422.json", %{schema: json_schema_errors})
-  end
-
   @doc """
   Proxy response from APIs
   """

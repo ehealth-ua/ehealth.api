@@ -100,11 +100,8 @@ defmodule EHealth.LegalEntity.API do
   # Create legal entity
 
   def create_legal_entity(attrs, headers) do
-    with {:ok, request_params} <- Validator.decode_and_validate(attrs)
-    do
+    with {:ok, request_params} <- Validator.decode_and_validate(attrs) do
       process_request(request_params, attrs, headers)
-    else
-      changeset -> {:error, changeset}
     end
   end
 
