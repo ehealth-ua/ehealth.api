@@ -25,7 +25,10 @@ defmodule EHealth.Web.PersonsControllerTest do
     test "NHS ADMIN can see any employees declarations", %{conn: conn} do
       conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8601a1")
       conn = get conn, persons_path(conn, :person_declarations, "7cc91a5d-c02f-41e9-b571-1ea4f2375200")
-      assert 200 == json_response(conn, 200)["meta"]["code"]
+
+      response = json_response(conn, 200)
+      assert 200 == response["meta"]["code"]
+      assert response["data"]["declaration_request_id"] # TODO: need more assertions on data
     end
 
     test "invalid declarations amount", %{conn: conn} do

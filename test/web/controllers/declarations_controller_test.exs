@@ -116,6 +116,7 @@ defmodule EHealth.Web.DeclarationsControllerTest do
   def assert_declaration_expanded_fields(declaration) do
     fields = ~W(person employee division legal_entity)
     assert is_map(declaration)
+    assert declaration["declaration_request_id"]
     Enum.each(fields, fn (field) ->
       assert Map.has_key?(declaration, field), "Expected field #{field} not present"
       assert is_map(declaration[field]), "Expected that field #{field} is map"

@@ -113,6 +113,7 @@ defmodule EHealth.Declarations.View do
       scope
       start_date
       end_date
+      declaration_request_id
       inserted_at
       updated_at
     )
@@ -123,6 +124,7 @@ defmodule EHealth.Declarations.View do
       id
       start_date
       end_date
+      declaration_request_id
       inserted_at
       updated_at
     )

@@ -528,6 +528,7 @@ defmodule EHealth.MockServer do
         "updated_by" => UUID.generate(),
         "is_active" => false,
         "scope" => "declarations:read",
+        "declaration_request_id" => UUID.generate()
     }
   end
 
