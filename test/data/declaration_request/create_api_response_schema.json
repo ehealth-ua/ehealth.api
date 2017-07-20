@@ -710,50 +710,6 @@
     },
     "status": {
       "type": "string"
-    },
-    "urgent": {
-      "additionalProperties": false,
-      "properties": {
-        "authentication_method_current": {
-          "additionalProperties": false,
-          "properties": {
-            "type": {
-              "type": "string"
-            },
-            "number": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "type",
-            "number"
-          ],
-          "type": "object"
-        },
-        "documents": {
-          "items": {
-            "additionalProperties": false,
-            "properties": {
-              "type": {
-                "type": "string"
-              },
-              "url": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "url",
-              "type"
-            ],
-            "type": "object"
-          },
-          "type": "array"
-        }
-      },
-      "required": [
-        "authentication_method_current"
-      ],
-      "type": "object"
     }
   },
   "required": [
@@ -766,7 +722,6 @@
     "scope",
     "seed",
     "legal_entity",
-    "urgent",
     "status",
     "id"
   ],

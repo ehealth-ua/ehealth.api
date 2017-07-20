@@ -22,8 +22,12 @@ defmodule EHealth.Web.DeclarationRequestController do
     user_id = get_consumer_id(conn.req_headers)
     client_id = get_client_id(conn.req_headers)
 
-    with {:ok, %{finalize: result}} <- DeclarationRequestAPI.create(declaration_request, user_id, client_id) do
-      render(conn, "declaration_request.json", declaration_request: result, with_urgent: true)
+    creation_result = DeclarationRequestAPI.create(declaration_request, user_id, client_id)
+
+    with {:ok, %{urgent_data: urgent_data, finalize: result}} <- creation_result do
+      conn
+      |> assign(:urgent, urgent_data)
+      |> render("declaration_request.json", declaration_request: result)
     end
   end
 

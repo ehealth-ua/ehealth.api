@@ -306,8 +306,7 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
           "type" => "confidant_person.0.PRIMARY.SSN",
           "url" => "http://some_resource.com/#{id}/declaration_request_confidant_person.0.PRIMARY.SSN.jpeg"
         }
-      ] == resp["data"]["urgent"]["documents"]
-      refute is_nil(resp["data"]["urgent"]["documents"])
+      ] == resp["urgent"]["documents"]
     end
   end
 

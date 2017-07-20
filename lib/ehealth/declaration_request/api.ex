@@ -16,6 +16,7 @@ defmodule EHealth.DeclarationRequest.API do
   alias EHealth.DeclarationRequest.API.Helpers
   alias EHealth.DeclarationRequest.API.Validations
   alias EHealth.DeclarationRequest.API.Sign
+  alias EHealth.Utils.Phone
 
   @fields ~w(
     data
@@ -89,6 +90,7 @@ defmodule EHealth.DeclarationRequest.API do
       |> Multi.update_all(:previous_requests, pending_declaration_requests, set: updates)
       |> Multi.insert(:declaration_request, create_changeset(attrs, user_id, auxilary_entities))
       |> Multi.run(:finalize, &finalize/1)
+      |> Multi.run(:urgent_data, &prepare_urgent_data/1)
       |> Repo.transaction
     end
   end
@@ -141,6 +143,36 @@ defmodule EHealth.DeclarationRequest.API do
             bad_result
         end
     end
+  end
+
+  def prepare_urgent_data(multi) do
+    declaration_request = multi.finalize
+
+    filtered_authentication_method_current =
+      update_in(declaration_request.authentication_method_current, ["number"], &Phone.hide_number/1)
+
+    filter_document_links = fn documents ->
+      filter_fun = fn document -> document["verb"] == "PUT" end
+      map_fun = fn document -> Map.drop(document, ["verb"]) end
+
+      documents
+      |> Enum.filter(filter_fun)
+      |> Enum.map(map_fun)
+    end
+
+    urgent_data =
+      if declaration_request.documents do
+        %{
+          authentication_method_current: filtered_authentication_method_current,
+          documents: filter_document_links.(declaration_request.documents)
+        }
+      else
+        %{
+          authentication_method_current: filtered_authentication_method_current
+        }
+      end
+
+    {:ok, urgent_data}
   end
 
   def update_status(id, status) do
