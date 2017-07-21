@@ -114,12 +114,10 @@ defmodule EHealth.Declarations.API do
   end
 
   def load_relation(module, func, id, headers) do
-    module
-    |> apply(func, [id, headers])
-    |> case do
-         {:ok, %{"data" => entity}} -> entity
-         _ -> %{}
-       end
+    case apply(module, func, [id, headers]) do
+      {:ok, %{"data" => entity}} -> entity
+      _ -> %{}
+    end
   end
 
   def get_client_type_name(headers) do
