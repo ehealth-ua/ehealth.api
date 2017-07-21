@@ -58,7 +58,7 @@ defmodule EHealth.Web.DeclarationRequestController do
     with {:ok, declaration_request} <- DeclarationRequestAPI.reject(id, user_id) do
       render(conn, "declaration_request.json", declaration_request: declaration_request)
     else
-      {:error, changeset} ->
+      {:error, _changeset} ->
         conn
         |> put_status(:conflict)
         |> render(EView.Views.Error, :"409")
