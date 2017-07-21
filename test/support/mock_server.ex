@@ -473,7 +473,7 @@ defmodule EHealth.MockServer do
     {code, resp} =
       case conn.params do
         %{"person_id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375200"}
-          -> {200, [get_declaration()]}
+          -> {200, [get_declaration(), get_declaration("terminated")]}
 
         %{"person_id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375400"}
           -> {200, [get_declaration(), get_declaration()]}
@@ -513,6 +513,10 @@ defmodule EHealth.MockServer do
     render([get_person(), get_person()], conn, 200)
   end
 
+  def get_declaration("terminated") do
+    nil |> get_declaration() |> Map.put("status", "terminated")
+  end
+
   def get_declaration(id \\ nil, legal_entity_id \\ nil, division_id \\ nil, employee_id \\ nil, person_id \\ nil) do
     %{
         "id" => id || "156b4182-f9ce-4eda-b6af-43d2de8601z2",
@@ -522,7 +526,7 @@ defmodule EHealth.MockServer do
         "person_id" => person_id || "156b4182-f9ce-4eda-b6af-43d2de8601z2",
         "start_date" => "2010-08-19 00:00:00",
         "end_date" => "2010-08-19 00:00:00",
-        "status" => "ACTIVE",
+        "status" => "active",
         "signed_at" => "2010-08-19 00:00:00",
         "created_by" => UUID.generate(),
         "updated_by" => UUID.generate(),
