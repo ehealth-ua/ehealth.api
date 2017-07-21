@@ -18,4 +18,27 @@ defmodule EHealth.Web.DeclarationsController do
       proxy(conn, response)
     end
   end
+
+  def reject(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
+    response = API.update_declaration(id, %{"status" => "rejected"}, req_headers)
+
+    wrap_response(conn, response)
+  end
+
+  def approve(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
+    response = API.update_declaration(id, %{"status" => "approved"}, req_headers)
+
+    wrap_response(conn, response)
+  end
+
+  def wrap_response(conn, response) do
+    case response do
+      {:ok, %{"meta" => %{"code" => 200}} = data} ->
+        proxy(conn, data)
+      {:error, %{"meta" => %{"code" => 422}, "error" => %{"message" => message}}} ->
+        {:error, {:conflict, message}}
+      _ ->
+        response
+    end
+  end
 end

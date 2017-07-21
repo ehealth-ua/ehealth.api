@@ -36,4 +36,10 @@ defmodule EHealth.API.OPS do
     |> post!(Poison.encode!(params), headers, timeouts())
     |> ResponseDecoder.check_response()
   end
+
+  def update_declaration(id, params, headers \\ []) do
+    "/declarations/#{id}"
+    |> patch!(Poison.encode!(params), headers, timeouts())
+    |> ResponseDecoder.check_response()
+  end
 end

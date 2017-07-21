@@ -124,4 +124,384 @@ defmodule EHealth.Web.DeclarationsControllerTest do
       refute Map.has_key?(declaration, field <> "_id"), "Field #{field}_id should be not present"
     end)
   end
+
+  describe "approve/2 - Happy case" do
+    defmodule ApproveOPSMicroservice do
+      use MicroservicesHelper
+
+      Plug.Router.get "/declarations/ce377dea-d8c4-4dd8-9328-de24b1ee3879" do
+        declaration = %{
+          "id" => "ce377dea-d8c4-4dd8-9328-de24b1ee3879",
+          "legal_entity_id" => "d8ea20e3-5949-46e6-88ef-62c708e57ad7",
+          "is_active" => true,
+          "status" => "pending_verification"
+        }
+
+        send_resp(conn, 200, Poison.encode!(%{data: declaration}))
+      end
+
+      Plug.Router.patch "/declarations/ce377dea-d8c4-4dd8-9328-de24b1ee3879" do
+        declaration = %{
+          "id" => "ce377dea-d8c4-4dd8-9328-de24b1ee3879",
+          "legal_entity_id" => "d8ea20e3-5949-46e6-88ef-62c708e57ad7",
+          "is_active" => true,
+          "status" => "approved"
+        }
+
+        send_resp(conn, 200, Poison.encode!(%{meta: %{code: 200}, data: declaration}))
+      end
+    end
+
+    setup %{conn: conn} do
+      {:ok, port, ref} = start_microservices(ApproveOPSMicroservice)
+
+      System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
+      on_exit fn ->
+        System.put_env("OPS_ENDPOINT", "http://localhost:4040")
+        stop_microservices(ref)
+      end
+
+      {:ok, %{port: port, conn: conn}}
+    end
+
+    test "it transitions declaration to approved status" do
+      client_id = "d8ea20e3-5949-46e6-88ef-62c708e57ad7"
+      declaration_id = "ce377dea-d8c4-4dd8-9328-de24b1ee3879"
+
+      response =
+        build_conn()
+        |> put_client_id_header(client_id)
+        |> patch("/api/declarations/#{declaration_id}/actions/approve")
+
+      response = json_response(response, 200)
+
+      assert "approved" = response["data"]["status"]
+    end
+  end
+
+  describe "approve/2 - not owner of declaration" do
+    defmodule ApproveNotOwnerOfDeclaration do
+      use MicroservicesHelper
+
+      Plug.Router.get "/declarations/ce377dea-d8c4-4dd8-9328-de24b1ee3879" do
+        declaration = %{
+          "id" => "ce377dea-d8c4-4dd8-9328-de24b1ee3879",
+          "legal_entity_id" => "d8ea20e3-5949-46e6-88ef-62c708e57ad7",
+          "is_active" => true,
+          "status" => "pending_verification"
+        }
+
+        send_resp(conn, 200, Poison.encode!(%{data: declaration}))
+      end
+    end
+
+    setup %{conn: conn} do
+      {:ok, port, ref} = start_microservices(ApproveNotOwnerOfDeclaration)
+
+      System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
+      on_exit fn ->
+        System.put_env("OPS_ENDPOINT", "http://localhost:4040")
+        stop_microservices(ref)
+      end
+
+      {:ok, %{port: port, conn: conn}}
+    end
+
+    test "a 403 error is returned" do
+      client_id = Ecto.UUID.generate()
+      declaration_id = "ce377dea-d8c4-4dd8-9328-de24b1ee3879"
+
+      response =
+        build_conn()
+        |> put_client_id_header(client_id)
+        |> patch("/api/declarations/#{declaration_id}/actions/approve")
+
+      assert json_response(response, 403)
+    end
+  end
+
+  describe "approve/2 - declaration was inactive" do
+    defmodule ApproveDeclarationIsInactive do
+      use MicroservicesHelper
+
+      Plug.Router.get "/declarations/ce377dea-d8c4-4dd8-9328-de24b1ee3879" do
+        declaration = %{
+          "id" => "ce377dea-d8c4-4dd8-9328-de24b1ee3879",
+          "legal_entity_id" => "d8ea20e3-5949-46e6-88ef-62c708e57ad7",
+          "is_active" => false,
+          "status" => "pending_verification"
+        }
+
+        send_resp(conn, 200, Poison.encode!(%{data: declaration}))
+      end
+    end
+
+    setup %{conn: conn} do
+      {:ok, port, ref} = start_microservices(ApproveDeclarationIsInactive)
+
+      System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
+      on_exit fn ->
+        System.put_env("OPS_ENDPOINT", "http://localhost:4040")
+        stop_microservices(ref)
+      end
+
+      {:ok, %{port: port, conn: conn}}
+    end
+
+    test "a 404 error is returned (as if declaration never existed)" do
+      client_id = "d8ea20e3-5949-46e6-88ef-62c708e57ad7"
+      declaration_id = "ce377dea-d8c4-4dd8-9328-de24b1ee3879"
+
+      response =
+        build_conn()
+        |> put_client_id_header(client_id)
+        |> patch("/api/declarations/#{declaration_id}/actions/approve")
+
+      assert json_response(response, 404)
+    end
+  end
+
+  describe "approve/2 - could not transition status" do
+    defmodule ApproveCannotTransitionStatus do
+      use MicroservicesHelper
+
+      Plug.Router.get "/declarations/ce377dea-d8c4-4dd8-9328-de24b1ee3879" do
+        declaration = %{
+          "id" => "ce377dea-d8c4-4dd8-9328-de24b1ee3879",
+          "legal_entity_id" => "d8ea20e3-5949-46e6-88ef-62c708e57ad7",
+          "is_active" => true,
+          "status" => "approved"
+        }
+
+        send_resp(conn, 200, Poison.encode!(%{data: declaration}))
+      end
+
+      Plug.Router.patch "/declarations/ce377dea-d8c4-4dd8-9328-de24b1ee3879" do
+        error_resp = %{
+          meta: %{
+            code: 422
+          },
+          error: %{
+            message: "some_eview_message"
+          }
+        }
+
+        send_resp(conn, 422, Poison.encode!(error_resp))
+      end
+    end
+
+    setup %{conn: conn} do
+      {:ok, port, ref} = start_microservices(ApproveCannotTransitionStatus)
+
+      System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
+      on_exit fn ->
+        System.put_env("OPS_ENDPOINT", "http://localhost:4040")
+        stop_microservices(ref)
+      end
+
+      {:ok, %{port: port, conn: conn}}
+    end
+
+    test "a 409 error is returned" do
+      client_id = "d8ea20e3-5949-46e6-88ef-62c708e57ad7"
+      declaration_id = "ce377dea-d8c4-4dd8-9328-de24b1ee3879"
+
+      response =
+        build_conn()
+        |> put_client_id_header(client_id)
+        |> patch("/api/declarations/#{declaration_id}/actions/approve")
+
+      assert json_response(response, 409)
+    end
+  end
+
+  describe "reject/2 - Happy case" do
+    defmodule OPSMicroservice do
+      use MicroservicesHelper
+
+      Plug.Router.get "/declarations/ce377dea-d8c4-4dd8-9328-de24b1ee3879" do
+        declaration = %{
+          "id" => "ce377dea-d8c4-4dd8-9328-de24b1ee3879",
+          "legal_entity_id" => "d8ea20e3-5949-46e6-88ef-62c708e57ad7",
+          "is_active" => true,
+          "status" => "pending_verification"
+        }
+
+        send_resp(conn, 200, Poison.encode!(%{data: declaration}))
+      end
+
+      Plug.Router.patch "/declarations/ce377dea-d8c4-4dd8-9328-de24b1ee3879" do
+        declaration = %{
+          "id" => "ce377dea-d8c4-4dd8-9328-de24b1ee3879",
+          "legal_entity_id" => "d8ea20e3-5949-46e6-88ef-62c708e57ad7",
+          "is_active" => true,
+          "status" => "rejected"
+        }
+
+        send_resp(conn, 200, Poison.encode!(%{meta: %{code: 200}, data: declaration}))
+      end
+    end
+
+    setup %{conn: conn} do
+      {:ok, port, ref} = start_microservices(OPSMicroservice)
+
+      System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
+      on_exit fn ->
+        System.put_env("OPS_ENDPOINT", "http://localhost:4040")
+        stop_microservices(ref)
+      end
+
+      {:ok, %{port: port, conn: conn}}
+    end
+
+    test "it transitions declaration to rejected status" do
+      client_id = "d8ea20e3-5949-46e6-88ef-62c708e57ad7"
+      declaration_id = "ce377dea-d8c4-4dd8-9328-de24b1ee3879"
+
+      response =
+        build_conn()
+        |> put_client_id_header(client_id)
+        |> patch("/api/declarations/#{declaration_id}/actions/reject")
+
+      response = json_response(response, 200)
+
+      assert "rejected" = response["data"]["status"]
+    end
+  end
+
+  describe "reject/2 - not owner of declaration" do
+    defmodule NotOwnerOfDeclaration do
+      use MicroservicesHelper
+
+      Plug.Router.get "/declarations/ce377dea-d8c4-4dd8-9328-de24b1ee3879" do
+        declaration = %{
+          "id" => "ce377dea-d8c4-4dd8-9328-de24b1ee3879",
+          "legal_entity_id" => "d8ea20e3-5949-46e6-88ef-62c708e57ad7",
+          "is_active" => true,
+          "status" => "pending_verification"
+        }
+
+        send_resp(conn, 200, Poison.encode!(%{data: declaration}))
+      end
+    end
+
+    setup %{conn: conn} do
+      {:ok, port, ref} = start_microservices(NotOwnerOfDeclaration)
+
+      System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
+      on_exit fn ->
+        System.put_env("OPS_ENDPOINT", "http://localhost:4040")
+        stop_microservices(ref)
+      end
+
+      {:ok, %{port: port, conn: conn}}
+    end
+
+    test "a 403 error is returned" do
+      client_id = Ecto.UUID.generate()
+      declaration_id = "ce377dea-d8c4-4dd8-9328-de24b1ee3879"
+
+      response =
+        build_conn()
+        |> put_client_id_header(client_id)
+        |> patch("/api/declarations/#{declaration_id}/actions/reject")
+
+      assert json_response(response, 403)
+    end
+  end
+
+  describe "reject/2 - declaration was inactive" do
+    defmodule DeclarationIsInactive do
+      use MicroservicesHelper
+
+      Plug.Router.get "/declarations/ce377dea-d8c4-4dd8-9328-de24b1ee3879" do
+        declaration = %{
+          "id" => "ce377dea-d8c4-4dd8-9328-de24b1ee3879",
+          "legal_entity_id" => "d8ea20e3-5949-46e6-88ef-62c708e57ad7",
+          "is_active" => false,
+          "status" => "pending_verification"
+        }
+
+        send_resp(conn, 200, Poison.encode!(%{data: declaration}))
+      end
+    end
+
+    setup %{conn: conn} do
+      {:ok, port, ref} = start_microservices(DeclarationIsInactive)
+
+      System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
+      on_exit fn ->
+        System.put_env("OPS_ENDPOINT", "http://localhost:4040")
+        stop_microservices(ref)
+      end
+
+      {:ok, %{port: port, conn: conn}}
+    end
+
+    test "a 404 error is returned (as if declaration never existed)" do
+      client_id = "d8ea20e3-5949-46e6-88ef-62c708e57ad7"
+      declaration_id = "ce377dea-d8c4-4dd8-9328-de24b1ee3879"
+
+      response =
+        build_conn()
+        |> put_client_id_header(client_id)
+        |> patch("/api/declarations/#{declaration_id}/actions/reject")
+
+      assert json_response(response, 404)
+    end
+  end
+
+  describe "reject/2 - could not transition status" do
+    defmodule CannotTransitionStatus do
+      use MicroservicesHelper
+
+      Plug.Router.get "/declarations/ce377dea-d8c4-4dd8-9328-de24b1ee3879" do
+        declaration = %{
+          "id" => "ce377dea-d8c4-4dd8-9328-de24b1ee3879",
+          "legal_entity_id" => "d8ea20e3-5949-46e6-88ef-62c708e57ad7",
+          "is_active" => true,
+          "status" => "reject"
+        }
+
+        send_resp(conn, 200, Poison.encode!(%{data: declaration}))
+      end
+
+      Plug.Router.patch "/declarations/ce377dea-d8c4-4dd8-9328-de24b1ee3879" do
+        error_resp = %{
+          meta: %{
+            code: 422
+          },
+          error: %{
+            message: "some_eview_message"
+          }
+        }
+
+        send_resp(conn, 422, Poison.encode!(error_resp))
+      end
+    end
+
+    setup %{conn: conn} do
+      {:ok, port, ref} = start_microservices(CannotTransitionStatus)
+
+      System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
+      on_exit fn ->
+        System.put_env("OPS_ENDPOINT", "http://localhost:4040")
+        stop_microservices(ref)
+      end
+
+      {:ok, %{port: port, conn: conn}}
+    end
+
+    test "a 409 error is returned" do
+      client_id = "d8ea20e3-5949-46e6-88ef-62c708e57ad7"
+      declaration_id = "ce377dea-d8c4-4dd8-9328-de24b1ee3879"
+
+      response =
+        build_conn()
+        |> put_client_id_header(client_id)
+        |> patch("/api/declarations/#{declaration_id}/actions/reject")
+
+      assert json_response(response, 409)
+    end
+  end
 end

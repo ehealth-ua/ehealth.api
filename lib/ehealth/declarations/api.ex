@@ -90,6 +90,14 @@ defmodule EHealth.Declarations.API do
       do: {:ok, response}
   end
 
+  def update_declaration(id, attrs, headers) do
+    with {:ok, %{"data" => declaration}} <- OPS.get_declaration_by_id(id, headers),
+          :ok <- check_declaration_access(declaration["legal_entity_id"], headers),
+          :ok <- active?(declaration) do
+      OPS.update_declaration(declaration["id"], attrs, headers)
+    end
+  end
+
   def expand_declaration_relations(%{"legal_entity_id" => legal_entity_id} = declaration, headers) do
     with :ok          <- check_declaration_access(legal_entity_id, headers),
          person       <- load_relation(MPI, :person, declaration["person_id"], headers),
@@ -134,4 +142,7 @@ defmodule EHealth.Declarations.API do
     {:error, :forbidden}
   end
   def legal_entity_allowed?(_, _), do: :ok
+
+  defp active?(%{"is_active" => true}), do: :ok
+  defp active?(%{"is_active" => false}), do: {:error, :not_found}
 end

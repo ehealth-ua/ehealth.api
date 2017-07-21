@@ -103,6 +103,8 @@ defmodule EHealth.Web.Router do
 
     # Declarations
     get "/declarations/:id", DeclarationsController, :show
+    patch "/declarations/:id/actions/approve", DeclarationsController, :approve
+    patch "/declarations/:id/actions/reject", DeclarationsController, :reject
 
     # Person declarations
     get "/persons", PersonsController, :search_persons
