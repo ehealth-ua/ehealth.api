@@ -14,7 +14,7 @@ defmodule EHealth.API.UAddress do
   def timeouts, do: config()[:timeouts]
 
   def search_settlements(params \\ %{}, headers \\ []) do
-    "/search/settlements"
+    "/settlements"
     |> get!(headers, params: params)
     |> ResponseDecoder.check_response()
   end
