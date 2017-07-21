@@ -5,6 +5,13 @@ defmodule EHealth.Web.UserControllerTest do
   alias EHealth.Users.CredentialsRecoveryRequest
   alias EHealth.Repo
 
+  @test_user_id "1380df72-275a-11e7-93ae-92361f002671"
+  @create_attrs %{
+    "user_id" => @test_user_id,
+    "email" => "bob@example.com",
+    "is_active" => true
+  }
+
   defmodule Microservices do
     use MicroservicesHelper
 
@@ -90,14 +97,10 @@ defmodule EHealth.Web.UserControllerTest do
 
   describe "reset password" do
     test "changes user password with valid request id", %{conn: conn} do
-      request_attrs = %{"credentials_recovery_request" => %{"email" => "bob@example.com"}}
-      req_conn = post conn, user_path(conn, :create_credentials_recovery_request), request_attrs
-      json_response(req_conn, 201)
-      [%{id: credentials_recovery_request_id}] = Repo.all(CredentialsRecoveryRequest)
-
+      %{id: credentials_recovery_request_id} = credentials_recovery_request_fixture(@create_attrs)
       reset_attrs = %{"user" => %{"password" => "new_but_not_a_secret"}}
       conn = patch conn, user_path(conn, :reset_password, credentials_recovery_request_id), reset_attrs
-      assert %{"email" => "bob@example.com", "id" => "1380df72-275a-11e7-93ae-92361f002671", "settings" => %{}}
+      assert %{"email" => "bob@example.com", "id" => @test_user_id, "settings" => %{}}
         == json_response(conn, 200)["data"]
 
       [%{is_active: false}] = Repo.all(CredentialsRecoveryRequest)
@@ -109,16 +112,27 @@ defmodule EHealth.Web.UserControllerTest do
       assert json_response(conn, 404)
     end
 
-    test "returns validation error when new password is not set", %{conn: conn} do
-      request_attrs = %{"credentials_recovery_request" => %{"email" => "bob@example.com"}}
-      req_conn = post conn, user_path(conn, :create_credentials_recovery_request), request_attrs
-      json_response(req_conn, 201)
-      [%{id: credentials_recovery_request_id}] = Repo.all(CredentialsRecoveryRequest)
+    test "returns not found error when request is not active", %{conn: conn} do
+      %{id: id} = credentials_recovery_request_fixture(Map.put(@create_attrs, "is_active", false))
+      reset_attrs = %{"user" => %{"password" => "new_but_not_a_secret"}}
+      conn = patch conn, user_path(conn, :reset_password, id), reset_attrs
+      assert json_response(conn, 404)
+    end
 
+    test "returns validation error when new password is not set", %{conn: conn} do
+      %{id: credentials_recovery_request_id} = credentials_recovery_request_fixture(@create_attrs)
       reset_attrs = %{"user" => %{}}
       conn = patch conn, user_path(conn, :reset_password, credentials_recovery_request_id), reset_attrs
       assert [%{"entry" => "$.password", "rules" => [%{"rule" => "required"}]}]
         = json_response(conn, 422)["error"]["invalid"]
     end
+  end
+
+  defp credentials_recovery_request_fixture(attrs) do
+    Repo.insert!(%CredentialsRecoveryRequest{
+      user_id: Map.get(attrs, "user_id"),
+      email: Map.get(attrs, "email"),
+      is_active: Map.get(attrs, "is_active", true)
+    })
   end
 end

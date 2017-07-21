@@ -49,12 +49,9 @@ defmodule EHealth.Users.API do
   end
 
   defp fetch_credentials_recovery_request(request_id) do
-    case Repo.get(CredentialsRecoveryRequest, request_id) do
-      nil ->
-        :error
-
-      %CredentialsRecoveryRequest{} = request ->
-        {:ok, request}
+    case Repo.get_by(CredentialsRecoveryRequest, [id: request_id, is_active: true]) do
+      nil -> {:error, :not_found}
+      %CredentialsRecoveryRequest{} = request -> {:ok, request}
     end
   end
 
@@ -78,7 +75,6 @@ defmodule EHealth.Users.API do
       {:ok, user}
     else
       {:ok, %{"error" => error}} -> {:error, error}
-      :error -> {:error, :not_found}
       {:error, reason} -> {:error, reason}
       %Changeset{} = changeset -> {:error, changeset}
     end
