@@ -312,7 +312,6 @@
             }
           },
           "required": [
-            "science_degree",
             "educations",
             "specialities"
           ]
