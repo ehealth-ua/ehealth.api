@@ -5,7 +5,8 @@ defmodule EHealth.Divisions.UAddress do
   alias EHealth.API.PRM
   alias EHealth.API.UAddress
 
-  def update_settlement(%{"id" => id} = data, headers) do
+  def update_settlement(%{"id" => id, "settlement" => settlement}, headers) do
+    data = Map.put(settlement, "id", id)
     with {:ok, settlement} <- UAddress.get_settlement_by_id(id, headers),
          {:ok, settlement} <- api_update_settlement(data, headers, settlement)
     do
