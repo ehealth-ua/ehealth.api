@@ -13,6 +13,7 @@ defmodule EHealth.Unit.Validators.TaxIDTest do
 
     test "returns true when tax_id is not correct" do
       refute validate("")
+      refute validate("0000000000")
       refute validate("111111119")
       refute validate("1111111119")
       refute validate("11111111199")

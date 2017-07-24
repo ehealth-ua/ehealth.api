@@ -270,6 +270,7 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
         data: %{
           "person" => %{
             "confidant_person" => [
+              %{"first_name" => "Alex", "last_name" => "X", "tax_id" => "0000000000"},
               %{"first_name" => "Alex", "last_name" => "X", "tax_id" => "1111111117"},
               %{"first_name" => "Alex", "last_name" => "Y", "tax_id" => "1111111119"}
             ]
@@ -283,6 +284,7 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
         |> validate_confidant_persons_tax_id()
 
       assert [
+        "data.person.confidant_person[2].tax_id": {"Person's tax ID in not valid.", []},
         "data.person.confidant_person[1].tax_id": {"Person's tax ID in not valid.", []},
         "data.person.confidant_person[0].tax_id": {"Person's tax ID in not valid.", []}
       ] = result.errors
