@@ -94,7 +94,7 @@ defmodule EHealth.Declarations.API do
     with {:ok, %{"data" => declaration}} <- OPS.get_declaration_by_id(id, headers),
           :ok <- check_declaration_access(declaration["legal_entity_id"], headers),
           :ok <- active?(declaration) do
-      OPS.update_declaration(declaration["id"], attrs, headers)
+      OPS.update_declaration(declaration["id"], %{"declaration" => attrs}, headers)
     end
   end
 

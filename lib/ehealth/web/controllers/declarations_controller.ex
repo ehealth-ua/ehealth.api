@@ -20,13 +20,15 @@ defmodule EHealth.Web.DeclarationsController do
   end
 
   def reject(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
-    response = API.update_declaration(id, %{"status" => "rejected"}, req_headers)
+    user_id = get_consumer_id(conn.req_headers)
+    response = API.update_declaration(id, %{"status" => "rejected", "updated_by" => user_id}, req_headers)
 
     wrap_response(conn, response)
   end
 
   def approve(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
-    response = API.update_declaration(id, %{"status" => "approved"}, req_headers)
+    user_id = get_consumer_id(conn.req_headers)
+    response = API.update_declaration(id, %{"status" => "active", "updated_by" => user_id}, req_headers)
 
     wrap_response(conn, response)
   end

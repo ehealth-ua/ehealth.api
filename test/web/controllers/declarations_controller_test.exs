@@ -141,6 +141,13 @@ defmodule EHealth.Web.DeclarationsControllerTest do
       end
 
       Plug.Router.patch "/declarations/ce377dea-d8c4-4dd8-9328-de24b1ee3879" do
+        %{
+          "declaration" => %{
+            "status" => "active",
+            "updated_by" => "80ff0b87-25a1-4819-bf33-37db90977437"
+          }
+        } = conn.params
+
         declaration = %{
           "id" => "ce377dea-d8c4-4dd8-9328-de24b1ee3879",
           "legal_entity_id" => "d8ea20e3-5949-46e6-88ef-62c708e57ad7",
@@ -165,11 +172,13 @@ defmodule EHealth.Web.DeclarationsControllerTest do
     end
 
     test "it transitions declaration to approved status" do
+      user_id = "80ff0b87-25a1-4819-bf33-37db90977437"
       client_id = "d8ea20e3-5949-46e6-88ef-62c708e57ad7"
       declaration_id = "ce377dea-d8c4-4dd8-9328-de24b1ee3879"
 
       response =
         build_conn()
+        |> put_req_header("x-consumer-id", user_id)
         |> put_client_id_header(client_id)
         |> patch("/api/declarations/#{declaration_id}/actions/approve")
 
@@ -277,6 +286,13 @@ defmodule EHealth.Web.DeclarationsControllerTest do
       end
 
       Plug.Router.patch "/declarations/ce377dea-d8c4-4dd8-9328-de24b1ee3879" do
+        %{
+          "declaration" => %{
+            "status" => "active",
+            "updated_by" => "80ff0b87-25a1-4819-bf33-37db90977437"
+          }
+        } = conn.params
+
         error_resp = %{
           meta: %{
             code: 422
@@ -303,11 +319,13 @@ defmodule EHealth.Web.DeclarationsControllerTest do
     end
 
     test "a 409 error is returned" do
+      user_id = "80ff0b87-25a1-4819-bf33-37db90977437"
       client_id = "d8ea20e3-5949-46e6-88ef-62c708e57ad7"
       declaration_id = "ce377dea-d8c4-4dd8-9328-de24b1ee3879"
 
       response =
         build_conn()
+        |> put_req_header("x-consumer-id", user_id)
         |> put_client_id_header(client_id)
         |> patch("/api/declarations/#{declaration_id}/actions/approve")
 
@@ -331,6 +349,13 @@ defmodule EHealth.Web.DeclarationsControllerTest do
       end
 
       Plug.Router.patch "/declarations/ce377dea-d8c4-4dd8-9328-de24b1ee3879" do
+        %{
+          "declaration" => %{
+            "status" => "rejected",
+            "updated_by" => "80ff0b87-25a1-4819-bf33-37db90977437"
+          }
+        } = conn.params
+
         declaration = %{
           "id" => "ce377dea-d8c4-4dd8-9328-de24b1ee3879",
           "legal_entity_id" => "d8ea20e3-5949-46e6-88ef-62c708e57ad7",
@@ -355,11 +380,13 @@ defmodule EHealth.Web.DeclarationsControllerTest do
     end
 
     test "it transitions declaration to rejected status" do
+      user_id = "80ff0b87-25a1-4819-bf33-37db90977437"
       client_id = "d8ea20e3-5949-46e6-88ef-62c708e57ad7"
       declaration_id = "ce377dea-d8c4-4dd8-9328-de24b1ee3879"
 
       response =
         build_conn()
+        |> put_req_header("x-consumer-id", user_id)
         |> put_client_id_header(client_id)
         |> patch("/api/declarations/#{declaration_id}/actions/reject")
 
@@ -460,13 +487,20 @@ defmodule EHealth.Web.DeclarationsControllerTest do
           "id" => "ce377dea-d8c4-4dd8-9328-de24b1ee3879",
           "legal_entity_id" => "d8ea20e3-5949-46e6-88ef-62c708e57ad7",
           "is_active" => true,
-          "status" => "reject"
+          "status" => "closed"
         }
 
         send_resp(conn, 200, Poison.encode!(%{data: declaration}))
       end
 
       Plug.Router.patch "/declarations/ce377dea-d8c4-4dd8-9328-de24b1ee3879" do
+        %{
+          "declaration" => %{
+            "status" => "rejected",
+            "updated_by" => "80ff0b87-25a1-4819-bf33-37db90977437"
+          }
+        } = conn.params
+
         error_resp = %{
           meta: %{
             code: 422
@@ -493,11 +527,13 @@ defmodule EHealth.Web.DeclarationsControllerTest do
     end
 
     test "a 409 error is returned" do
+      user_id = "80ff0b87-25a1-4819-bf33-37db90977437"
       client_id = "d8ea20e3-5949-46e6-88ef-62c708e57ad7"
       declaration_id = "ce377dea-d8c4-4dd8-9328-de24b1ee3879"
 
       response =
         build_conn()
+        |> put_req_header("x-consumer-id", user_id)
         |> put_client_id_header(client_id)
         |> patch("/api/declarations/#{declaration_id}/actions/reject")
 
