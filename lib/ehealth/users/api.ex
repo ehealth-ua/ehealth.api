@@ -66,17 +66,35 @@ defmodule EHealth.Users.API do
     NaiveDateTime.add(request.inserted_at, ttl)
   end
 
+  defp request_expired?(request) do
+    NaiveDateTime.compare(get_expiration_date(request), NaiveDateTime.utc_now()) == :lt
+  end
+
   def reset_password(request_id, attrs, opts \\ []) do
     upstream_headers = Keyword.get(opts, :upstream_headers, [])
     with {:ok, %{user_id: user_id} = request} <- fetch_credentials_recovery_request(request_id),
+         false <- request_expired?(request),
          %Changeset{valid?: true} <- reset_password_changeset(attrs),
          {:ok, %{"data" => user}} <- Mithril.change_user(user_id, attrs, upstream_headers),
          {:ok, _updated_request} <- deactivate_credentials_recovery_request(request) do
       {:ok, user}
     else
-      {:ok, %{"error" => error}} -> {:error, error}
-      {:error, reason} -> {:error, reason}
-      %Changeset{} = changeset -> {:error, changeset}
+      true ->
+        changeset =
+          %CredentialsRecoveryRequest{}
+          |> change(%{})
+          |> add_error(:expires_at, "is expired", validation: :expiration)
+
+        {:error, changeset}
+
+      {:ok, %{"error" => error}} ->
+        {:error, error}
+
+      {:error, reason} ->
+        {:error, reason}
+
+      %Changeset{} = changeset ->
+        {:error, changeset}
     end
   end
 

@@ -112,6 +112,21 @@ defmodule EHealth.Web.UserControllerTest do
       assert json_response(conn, 404)
     end
 
+    test "returns validation error when request is expired", %{conn: conn} do
+      %{id: id} = credentials_recovery_request_fixture(@create_attrs)
+
+      old_ttl = Application.get_env(:ehealth, :credentials_recovery_request_ttl)
+      on_exit(fn ->
+        Application.put_env(:ehealth, :credentials_recovery_request_ttl, old_ttl)
+      end)
+
+      Application.put_env(:ehealth, :credentials_recovery_request_ttl, 0)
+      reset_attrs = %{"user" => %{"password" => "new_but_not_a_secret"}}
+      conn = patch conn, user_path(conn, :reset_password, id), reset_attrs
+      assert [%{"entry" => "$.expires_at", "rules" => [%{"rule" => "expiration"}]}]
+        = json_response(conn, 422)["error"]["invalid"]
+    end
+
     test "returns not found error when request is not active", %{conn: conn} do
       %{id: id} = credentials_recovery_request_fixture(Map.put(@create_attrs, "is_active", false))
       reset_attrs = %{"user" => %{"password" => "new_but_not_a_secret"}}
