@@ -52,9 +52,7 @@ defmodule EHealth.DeclarationRequest.API.Create do
 
   def generate_printout_form(%Changeset{valid?: false} = changeset), do: changeset
   def generate_printout_form(changeset) do
-    form_data = %{
-      id: get_field(changeset, :id)
-    }
+    form_data = get_field(changeset, :data)
 
     case DeclarationRequestPrintoutForm.render(form_data) do
       {:ok, printout_content} ->

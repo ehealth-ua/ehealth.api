@@ -4,6 +4,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
   use EHealth.Web.ConnCase
   import EHealth.DeclarationRequest.API.Create
   alias EHealth.DeclarationRequest
+  alias EHealth.Dictionaries
 
   import Ecto.Changeset, only: [get_change: 2]
 
@@ -73,7 +74,10 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       use MicroservicesHelper
 
       Plug.Router.post "/templates/4/actions/render" do
-        printout_form = "Template id=#4 and declaration request ##{conn.body_params["declaration_request_id"]}"
+        printout_form =
+          conn.body_params
+          |> Map.drop(["locale", "format"])
+          |> Poison.encode!()
 
         Plug.Conn.send_resp(conn, 200, printout_form)
       end
@@ -92,27 +96,219 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         stop_microservices(ref)
       end
 
+      Dictionaries.create_dictionary(%{
+        name: "SETTLEMENT_TYPE",
+        labels: [],
+        values: %{"CITY": "місто"}
+      })
+
+      Dictionaries.create_dictionary(%{
+        name: "STREET_TYPE",
+        labels: [],
+        values: %{"STREET": "вулиця"}
+      })
+
       :ok
     end
 
-    test "updates declaration request with printout form" do
-      printout_form_id = Confex.get_map(:ehealth, EHealth.Man.Templates.DeclarationRequestPrintoutForm)[:id]
+    test "updates declaration request with expected printout form when data is valid" do
+      data =
+        "test/data/sign_declaration_request.json"
+        |> File.read!()
+        |> Poison.decode!
 
-      changeset =
-        %DeclarationRequest{id: 321}
+      printout_content =
+        %DeclarationRequest{id: 321, data: data}
         |> Ecto.Changeset.change()
         |> generate_printout_form()
+        |> get_change(:printout_content)
 
-      expected_content = "Template id=##{printout_form_id} and declaration request #321"
+      expected_content = %{
+        person: %{
+          full_name: "Петро Миколайович Іванов",
+          gender: "чоловічої статі",
+          birth_date: "1991-08-19",
+          document: %{
+            type: "PASSPORT",
+            number: "120518"
+          },
+          birth_settlement: "Вінниця",
+          birth_country: "Україна",
+          tax_id: "3126509816",
+          addresses: %{
+            registration: %{
+              full_address: "Житомирська область, Бердичівський район, місто Київ, вулиця Ніжинська 15, квартира 23, \
+02090"
+            },
+            residence: %{
+              full_address: "Житомирська область, Бердичівський район, місто Київ, вулиця Ніжинська 16, квартира 41, \
+02090"
+            }
+          },
+          phones: %{
+            number: "+380503410870"
+          },
+          email: "email@example.com",
+          emergency_contact: %{
+            full_name: "Петро Миколайович Іванов",
+            phones: %{
+              number: "+380503410870"
+            }
+          },
+          confidant_person: %{
+            primary: %{
+              full_name: "Петро Миколайович Іванов",
+              phones: %{
+                number: "+380503410870"
+              },
+              birth_date: "1991-08-19",
+              gender: "чоловічої статі",
+              birth_settlement: "Вінниця",
+              birth_country: "Україна",
+              documents_person: %{
+                type: "PASSPORT",
+                number: "120518"
+              },
+              tax_id: "3126509816",
+              documents_relationship: %{
+                type: "PASSPORT",
+                number: "120519"
+              }
+            },
+            secondary: %{
+              full_name: "Іван Миколайович Петров",
+              phones: %{
+                number: "+380503410871"
+              },
+              birth_date: "1991-08-20",
+              gender: "чоловічої статі",
+              birth_settlement: "Вінниця",
+              birth_country: "Україна",
+              documents_person: %{
+                type: "PASSPORT",
+                number: "120520"
+              },
+              tax_id: "3126509817",
+              documents_relationship: %{
+                type: "PASSPORT",
+                number: "120521"
+              }
+            }
+          }
+        },
+        employee: %{
+          full_name: "Петро Миколайович Іванов",
+          phones: %{
+            number: "+380503410870"
+          },
+          email: "email@example.com"
+        },
+        division: %{
+          addresses: %{
+            registration: %{
+              full_street: "вулиця Ніжинська 15",
+              settlement: "місто Київ"
+            }
+          }
+        },
+        legal_entity: %{
+          full_name: "ЦПМСД №1",
+          addresses: %{
+            registration: %{
+              full_address: "Житомирська область, Бердичівський район, місто Київ, вулиця Ніжинська 15, квартира 23, \
+02090"
+            }
+          },
+          edrpou: "5432345432",
+          full_license: "",
+          phones: %{
+            number: "+380503410870"
+          },
+          email: "email@example.com"
+        },
+        confidant_persons: %{
+          exist: true,
+          secondary: true
+        }
+      }
 
-      assert get_change(changeset, :printout_content) == expected_content
+      assert printout_content == Poison.encode!(expected_content)
+    end
+
+    test "updates declaration request with printout form that has empty fields when data is empty" do
+      printout_content =
+        %DeclarationRequest{id: 321, data: %{}}
+        |> Ecto.Changeset.change()
+        |> generate_printout_form()
+        |> get_change(:printout_content)
+
+      expected_content = %{
+        person: %{
+          full_name: "",
+          gender: nil,
+          birth_date: nil,
+          document: nil,
+          birth_settlement: nil,
+          birth_country: nil,
+          tax_id: nil,
+          addresses: %{
+            registration: %{
+              full_address: nil
+            },
+            residence: %{
+              full_address: nil
+            }
+          },
+          phones: nil,
+          email: nil,
+          emergency_contact: %{
+            full_name: "",
+            phones: nil
+          },
+          confidant_person: %{
+            primary: nil,
+            secondary: nil
+          }
+        },
+        employee: %{
+          full_name: "",
+          phones: nil,
+          email: nil
+        },
+        division: %{
+          addresses: %{
+            registration: %{
+              full_street: nil,
+              settlement: nil
+            }
+          }
+        },
+        legal_entity: %{
+          full_name: nil,
+          addresses: %{
+            registration: %{
+              full_address: nil
+            }
+          },
+          edrpou: nil,
+          full_license: "",
+          phones: nil,
+          email: nil
+        },
+        confidant_persons: %{
+          exist: false,
+          secondary: false
+        }
+      }
+
+      assert printout_content == Poison.encode!(expected_content)
     end
 
     test "returns error on printout_content field" do
       System.put_env("DECLARATION_REQUEST_PRINTOUT_FORM_TEMPLATE_ID", "999")
 
       changeset =
-        %DeclarationRequest{id: 321}
+        %DeclarationRequest{id: 321, data: %{}}
         |> Ecto.Changeset.change()
         |> generate_printout_form()
 

@@ -116,7 +116,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       # MAN Templates API
       Plug.Router.post "/templates/4/actions/render" do
         template = "<html><body>Printout form for declaration \
-request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
+request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
 
         Plug.Conn.send_resp(conn, 200, template)
       end
@@ -244,7 +244,8 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
       # assert "ce377dea-d8c4-4dd8-9328-de24b1ee3879" = resp["data"]["updated_by"]
       # assert "ce377dea-d8c4-4dd8-9328-de24b1ee3879" = resp["data"]["inserted_by"]
       # assert %{"number" => "+380508887700", "type" => "OTP"} = resp["authentication_method_current"]
-      assert "<html><body>Printout form for declaration request ##{id}</body></hrml>" ==
+      tax_id = resp["data"]["person"]["tax_id"]
+      assert "<html><body>Printout form for declaration request. tax_id = #{tax_id}</body></html>" ==
         resp["data"]["content"]
       assert is_nil(resp["data"]["urgent"]["documents"])
 
@@ -284,7 +285,8 @@ request ##{conn.body_params["declaration_request_id"]}</body></hrml>"
       # assert "ce377dea-d8c4-4dd8-9328-de24b1ee3879" = resp["data"]["updated_by"]
       # assert "ce377dea-d8c4-4dd8-9328-de24b1ee3879" = resp["data"]["inserted_by"]
       # assert %{"number" => "+380508887700", "type" => "OFFLINE"} = resp["data"]["authentication_method_current"]
-      assert "<html><body>Printout form for declaration request ##{id}</body></hrml>" ==
+      tax_id = resp["data"]["person"]["tax_id"]
+      assert "<html><body>Printout form for declaration request. tax_id = #{tax_id}</body></html>" ==
         resp["data"]["content"]
       assert [
         %{

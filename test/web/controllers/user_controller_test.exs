@@ -51,7 +51,7 @@ defmodule EHealth.Web.UserControllerTest do
 
     Plug.Router.post "/templates/5/actions/render" do
       template = "<html><body>Email for credentials recovery " <>
-                 "request ##{conn.body_params["credentials_recovery_request_id"]}</body></hrml>"
+                 "request ##{conn.body_params["credentials_recovery_request_id"]}</body></html>"
 
       Plug.Conn.send_resp(conn, 200, template)
     end

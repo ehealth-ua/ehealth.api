@@ -30,7 +30,21 @@
         "settlement_type": "CITY",
         "settlement_id": "43432432",
         "street_type": "STREET",
-        "street": "вул. Ніжинська",
+        "street": "Ніжинська",
+        "building": "16",
+        "apartment": "41",
+        "zip": "02090"
+      },
+      {
+        "type": "REGISTRATION",
+        "country": "UA",
+        "area": "Житомирська",
+        "region": "Бердичівський",
+        "settlement": "Київ",
+        "settlement_type": "CITY",
+        "settlement_id": "43432432",
+        "street_type": "STREET",
+        "street": "Ніжинська",
         "building": "15",
         "apartment": "23",
         "zip": "02090"
@@ -70,17 +84,55 @@
         "birth_settlement": "Вінниця",
         "gender": "MALE",
         "tax_id": "3126509816",
-        "documents": [
+        "documents_person": [
           {
             "type": "PASSPORT",
             "identifies": "PERSON",
             "number": "120518"
           }
         ],
+        "documents_relationship": [
+          {
+            "type": "PASSPORT",
+            "identifies": "PERSON",
+            "number": "120519"
+          }
+        ],
         "phones": [
           {
             "type": "MOBILE",
             "number": "+380503410870"
+          }
+        ]
+      },
+      {
+        "relation_type": "SECONDARY",
+        "first_name": "Іван",
+        "last_name": "Петров",
+        "second_name": "Миколайович",
+        "birth_date": "1991-08-20",
+        "birth_country": "Україна",
+        "birth_settlement": "Вінниця",
+        "gender": "MALE",
+        "tax_id": "3126509817",
+        "documents_person": [
+          {
+            "type": "PASSPORT",
+            "identifies": "PERSON",
+            "number": "120520"
+          }
+        ],
+        "documents_relationship": [
+          {
+            "type": "PASSPORT",
+            "identifies": "PERSON",
+            "number": "120521"
+          }
+        ],
+        "phones": [
+          {
+            "type": "MOBILE",
+            "number": "+380503410871"
           }
         ]
       }
@@ -134,7 +186,7 @@
     },
     "addresses": [
       {
-        "type": "RESIDENCE",
+        "type": "REGISTRATION",
         "country": "UA",
         "area": "Житомирська",
         "region": "Бердичівський",
@@ -142,7 +194,7 @@
         "settlement_type": "CITY",
         "settlement_id": "43432432",
         "street_type": "STREET",
-        "street": "вул. Ніжинська",
+        "street": "Ніжинська",
         "building": "15",
         "apartment": "23",
         "zip": "02090"
@@ -163,7 +215,7 @@
     "name": "Бориспільське відділення Клініки Борис",
     "addresses": [
       {
-        "type": "RESIDENCE",
+        "type": "REGISTRATION",
         "country": "UA",
         "area": "Житомирська",
         "region": "Бердичівський",
@@ -171,7 +223,7 @@
         "settlement_type": "CITY",
         "settlement_id": "43432432",
         "street_type": "STREET",
-        "street": "вул. Ніжинська",
+        "street": "Ніжинська",
         "building": "15",
         "apartment": "23",
         "zip": "02090"

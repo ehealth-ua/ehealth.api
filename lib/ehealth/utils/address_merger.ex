@@ -22,34 +22,9 @@ defmodule EHealth.Utils.AddressMerger do
       |> to_string()
       |> get_region()
 
-    street_type =
-      address
-      |> Map.get("street_type")
-      |> Dictionaries.get_dictionary_value("STREET_TYPE")
-      |> to_string()
+    street_part = merge_street_part(address)
 
-    building =
-      address
-      |> Map.get("building")
-      |> to_string()
-
-    street_part =
-      address
-      |> Map.get("street")
-      |> to_string()
-      |> get_street_part(street_type, building)
-
-    settlement_type =
-      address
-      |> Map.get("settlement_type")
-      |> Dictionaries.get_dictionary_value("SETTLEMENT_TYPE")
-      |> to_string()
-
-    settlement =
-      address
-      |> Map.get("settlement")
-      |> to_string()
-      |> get_settlement_part(settlement_type, street_part, building)
+    settlement_part = merge_settlement_part(address, street_part)
 
     apartment =
       address
@@ -66,11 +41,47 @@ defmodule EHealth.Utils.AddressMerger do
       []
       |> Kernel.++(area)
       |> Kernel.++(region)
-      |> Kernel.++(settlement)
+      |> Kernel.++(settlement_part)
       |> Kernel.++(street_part)
       |> Kernel.++(apartment)
       |> Kernel.++(zip)
       |> Enum.join(", ")
+  end
+
+  def merge_street_part(address) do
+    street_type =
+      address
+      |> Map.get("street_type")
+      |> Dictionaries.get_dictionary_value("STREET_TYPE")
+      |> to_string()
+
+    building =
+      address
+      |> Map.get("building")
+      |> to_string()
+
+    address
+    |> Map.get("street")
+    |> to_string()
+    |> get_street_part(street_type, building)
+  end
+
+  def merge_settlement_part(address, street_part) do
+    building =
+      address
+      |> Map.get("building")
+      |> to_string()
+
+    settlement_type =
+      address
+      |> Map.get("settlement_type")
+      |> Dictionaries.get_dictionary_value("SETTLEMENT_TYPE")
+      |> to_string()
+
+    address
+    |> Map.get("settlement")
+    |> to_string()
+    |> get_settlement_part(settlement_type, street_part, building)
   end
 
   defp check_area("", _no_suffix_areas), do: {"", false}

@@ -941,10 +941,10 @@ defmodule EHealth.MockServer do
   end
 
   def get_rendered_template("32", params) do
-    "<html><body>Printout form for declaration request ##{params["id"]}</body></hrml>"
+    "<html><body>Printout form for declaration request ##{params["id"]}</body></html>"
   end
 
-  def get_rendered_template(_, _), do: "<html><body>Some template text</body></hrml>"
+  def get_rendered_template(_, _), do: "<html><body>Some template text</body></html>"
 
   def render(resource, conn, status) do
     conn = Plug.Conn.put_status(conn, status)
