@@ -1295,12 +1295,13 @@ Exposed client credentials may be blocked for a security reasons, you will need 
             X-CSRF-Token: my-csrf-token
 
     + Attributes (object)
-        + client_id: `mis-001` (string, required) - Medical Information System ID issued upon integration request. Used to identify application developer.
-        + client_secret: `mis-001-secret-key` (string, required) - Medical Information System secret key issued upon integration request. Used to identify application developer.
-        + code: 299383828 (string, required) - oAuth code grant.
-        + `grant_type`: authorization_code (string, fixed, required) - oAuth Grant Type. Currently only `authorization_code` is supported.
-        + redirect_uri: http://example.com/ (string, required) - URL where user will be redirected after authentification. This url will receive `code` and `state` parameters in query string.
-        + scope: `capitation_contracts:view capitation_contracts:create patients:view patients:create` (string, required) - List of scopes that is required in application business logic, separated by space. Different login forms will be shown based on scopes that you requested.
+        + token (object)
+            + client_id: `mis-001` (string, required) - Medical Information System ID issued upon integration request. Used to identify application developer.
+            + client_secret: `mis-001-secret-key` (string, required) - Medical Information System secret key issued upon integration request. Used to identify application developer.
+            + code: 299383828 (string, required) - oAuth code grant.
+            + `grant_type`: authorization_code (string, fixed, required) - oAuth Grant Type. Currently only `authorization_code` is supported.
+            + redirect_uri: http://example.com/ (string, required) - URL where user will be redirected after authentification. This url will receive `code` and `state` parameters in query string.
+            + scope: `capitation_contracts:view capitation_contracts:create patients:view patients:create` (string, required) - List of scopes that is required in application business logic, separated by space. Different login forms will be shown based on scopes that you requested.
 
 + Response 201 (application/json)
     + Attributes (Response_OK)
@@ -1322,10 +1323,11 @@ In future, you will be able to refresh access tokens to extend `access_token` li
             Authorization: Bearer mF_9.B5f-4.1JqM
 
     + Attributes (object)
-        + client_id: `mis-001` (string, required) - Medical Information System ID issued upon integration request. Used to identify application developer.
-        + client_secret: `mis-001-secret-key` (string, required) - Medical Information System secret key issued upon integration request. Used to identify application developer.
-        + refresh_token: `my-oauth-refresh-token` (string, required) - oAuth refresh token.
-        + `grant_type`: refresh_token (string, fixed) - oAuth Grant Type. Currently only `authorization_code` is supported.
+        + token (object)
+            + client_id: `mis-001` (string, required) - Medical Information System ID issued upon integration request. Used to identify application developer.
+            + client_secret: `mis-001-secret-key` (string, required) - Medical Information System secret key issued upon integration request. Used to identify application developer.
+            + refresh_token: `my-oauth-refresh-token` (string, required) - oAuth refresh token.
+            + `grant_type`: refresh_token (string, fixed) - oAuth Grant Type. Currently only `authorization_code` is supported.
 
 + Response 201 (application/json)
     + Attributes (Response_OK)
