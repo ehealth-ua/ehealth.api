@@ -174,14 +174,36 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       :ok
     end
 
-    test "when declaration id is invalid", %{conn: conn} do
+    test "when declaration request id is invalid", %{conn: conn} do
       conn = put_client_id_header(conn, Ecto.UUID.generate)
       assert_raise Ecto.NoResultsError, fn ->
         post conn, declaration_request_path(conn, :resend_otp, Ecto.UUID.generate())
       end
     end
 
-    test "when declaration auth method is not OTP", %{conn: conn} do
+    test "when declaration request status is not NEW", %{conn: conn} do
+      conn = put_client_id_header(conn, Ecto.UUID.generate)
+
+      params =
+        fixture_params()
+        |> Map.put(:status, "APPROVED")
+
+      %{id: id} = fixture(DeclarationRequest, params)
+
+      conn = post conn, declaration_request_path(conn, :resend_otp, id)
+      resp = json_response(conn, 422)
+      assert Map.has_key?(resp, "error")
+      error = resp["error"]
+      assert Map.has_key?(error, "invalid")
+      assert 1 == length(error["invalid"])
+      invalid = Enum.at(error["invalid"], 0)
+      assert "$.status" == invalid["entry"]
+      assert 1 == length(invalid["rules"])
+      rule = Enum.at(invalid["rules"], 0)
+      assert "incorrect status" == rule["description"]
+    end
+
+    test "when declaration request auth method is not OTP", %{conn: conn} do
       conn = put_client_id_header(conn, Ecto.UUID.generate)
 
       params =
@@ -203,7 +225,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       assert "Auth method is not OTP" == rule["description"]
     end
 
-    test "when declaration auth method is OTP", %{conn: conn} do
+    test "when declaration request fields are correct", %{conn: conn} do
       conn = put_client_id_header(conn, Ecto.UUID.generate)
 
       params =

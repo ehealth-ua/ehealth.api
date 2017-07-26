@@ -9,13 +9,13 @@ defmodule EHealth.DeclarationRequest.API do
   alias Ecto.UUID
   alias EHealth.Repo
   alias EHealth.API.PRM
-  alias EHealth.API.OTPVerification
   alias EHealth.DeclarationRequest
   alias EHealth.DeclarationRequest.API.Create
   alias EHealth.DeclarationRequest.API.Approve
   alias EHealth.DeclarationRequest.API.Helpers
   alias EHealth.DeclarationRequest.API.Validations
   alias EHealth.DeclarationRequest.API.Sign
+  alias EHealth.DeclarationRequest.API.ResendOTP
   alias EHealth.Utils.Phone
 
   @fields ~w(
@@ -305,22 +305,12 @@ defmodule EHealth.DeclarationRequest.API do
     |> Sign.update_declaration_request_status(params)
   end
 
-  defp check_auth_method(%DeclarationRequest{authentication_method_current: %{"type" => "OTP", "number" => number}}) do
-    number
-  end
-  defp check_auth_method(_), do: {:error, [{%{description: "Auth method is not OTP", params: [], rule: :invalid},
-    "$.authentication_method_current"}]}
-
-  defp init_otp({:error, _} = err, _headers), do: err
-  defp init_otp(number, headers) do
-    with {:ok, %{"data" => data}} <- OTPVerification.initialize(number, headers), do: {:ok, data}
-  end
-
   def resend_otp(params, headers) do
     params
     |> Map.fetch!("id")
     |> get_declaration_request_by_id!()
-    |> check_auth_method()
-    |> init_otp(headers)
+    |> ResendOTP.check_status()
+    |> ResendOTP.check_auth_method()
+    |> ResendOTP.init_otp(headers)
   end
 end
