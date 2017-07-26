@@ -392,6 +392,18 @@ This method to update the declaration request status.
     + Attributes (Response_OK)
         + data (array[`crud_Declaration_request_get`])
 
+### Get Declaration Request images list [GET /declaration_requests/{id}/images]
+Service to get list of signed URLs with the read access for all the documents attached to the declaration request
+
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+
++ Request (application/json)
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (array[`media_content`])
+
 # Group Internal. OPS DB
 
 ## Declarations [/declarations]
@@ -471,6 +483,7 @@ Response will contain only records that you have access to.
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
+
 
 # Group Internal. Partner Relationship Management
 
