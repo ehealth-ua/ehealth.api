@@ -43,6 +43,7 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
       addresses: get_person_addresses(person),
       phones: get_phone(person),
       email: Map.get(person, "email"),
+      secret: Map.get(person, "secret"),
       emergency_contact: get_emergency_contact(person),
       confidant_person: get_confidant_persons(person)
     }

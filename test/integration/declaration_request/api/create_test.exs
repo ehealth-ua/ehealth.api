@@ -149,6 +149,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
             number: "+380503410870"
           },
           email: "email@example.com",
+          secret: "secret",
           emergency_contact: %{
             full_name: "Петро Миколайович Іванов",
             phones: %{
@@ -261,6 +262,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
           },
           phones: nil,
           email: nil,
+          secret: nil,
           emergency_contact: %{
             full_name: "",
             phones: nil
