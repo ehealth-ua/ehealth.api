@@ -26,6 +26,10 @@ defmodule EHealth.Web.Router do
     plug :client_id_exists
   end
 
+  pipeline :api_consumer_id do
+    plug :header_required, "x-consumer-id"
+  end
+
   pipeline :client_context_list do
     plug :process_client_context_for_list
     plug :put_is_active_into_params
@@ -95,8 +99,13 @@ defmodule EHealth.Web.Router do
       get "/:declaration_request_id", DeclarationRequestController, :show
     end
 
+    scope "/declaration_requests" do
+      pipe_through [:api_consumer_id]
+
+      post "/:id/actions/sign", DeclarationRequestController, :sign
+    end
+
     post "/declaration_requests", DeclarationRequestController, :create
-    post "/declaration_requests/:id/actions/sign", DeclarationRequestController, :sign
     patch "/declaration_requests/:id/actions/approve", DeclarationRequestController, :approve
     patch "/declaration_requests/:id/actions/reject", DeclarationRequestController, :reject
     post "/declaration_requests/:id/actions/resend_otp", DeclarationRequestController, :resend_otp

@@ -46,8 +46,90 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
       db_data = %DeclarationRequest{data: %{"person" => %{"key" => "value", "patient_signed" => false}}}
       input_data = %{"data" => %{"content" => %{"person" => %{"key" => "value", "patient_signed" => true}}}}
       result = compare_with_db({:ok, input_data, db_data})
-      expected_result = {:ok, {%{"person" => %{"key" => "value", "patient_signed" => true}}, db_data}}
+      content = %{"person" => %{"key" => "value", "patient_signed" => true}}
+      expected_result = {:ok, %{"data" => %{"content" => content}}, db_data}
       assert expected_result == result
+    end
+  end
+
+  describe "check_drfo/1" do
+    test "returns error when drfo does not match the tax_id" do
+      employee = %{"party" => %{"tax_id" => "111"}}
+      signer = %{"drfo" => "222"}
+      input_data = %{"data" => %{"content" => %{"employee" => employee}, "signer" => signer}}
+      result = check_drfo({:ok, input_data, %DeclarationRequest{}})
+      expected_result = {:error, [{%{description: "Does not match the signer drfo",
+        params: [], rule: :invalid}, "$.content.employee.party.tax_id"}]}
+      assert expected_result == result
+    end
+
+    test "returns expected result when drfo matches the tax_id" do
+      employee = %{"party" => %{"tax_id" => "111"}}
+      signer = %{"drfo" => "111"}
+      input_data = %{"data" => %{"content" => %{"employee" => employee}, "signer" => signer}}
+      result = check_drfo({:ok, input_data, %DeclarationRequest{}})
+      expected_result = {:ok, {%{"employee" => employee}, %DeclarationRequest{}}}
+      assert expected_result == result
+    end
+  end
+
+  describe "check_employee_id/2" do
+    defmodule PRMMock do
+      use MicroservicesHelper
+
+      Plug.Router.get "/party_users" do
+        user_id = Map.get(conn.params, "user_id")
+
+        party_users = [
+          %{
+            "user_id": user_id,
+            "party_id": "d79afe28-2716-4ba6-8e6e-275c0697a1b9"
+          },
+          %{
+            "user_id": user_id,
+            "party_id": Ecto.UUID.generate()
+          }
+        ]
+
+        send_resp(conn, 200, Poison.encode!(%{"data" => party_users}))
+      end
+
+      Plug.Router.get "/employees" do
+        employees = [
+          %{
+            "id": Ecto.UUID.generate()
+          },
+          %{
+            "id": "f1ee8ca3-b8ba-4fbe-b186-3c7d08f0f323"
+          }
+        ]
+
+        send_resp(conn, 200, Poison.encode!(%{"data" => employees}))
+      end
+    end
+
+    setup do
+      {:ok, port, ref} = start_microservices(PRMMock)
+
+      System.put_env("PRM_ENDPOINT", "http://localhost:#{port}")
+      on_exit fn ->
+        System.put_env("PRM_ENDPOINT", "http://localhost:4040")
+        stop_microservices(ref)
+      end
+
+      :ok
+    end
+
+    test "returns forbidden when you try to sign someone else's declaration" do
+      content = %{"employee" => %{"id" => Ecto.UUID.generate()}}
+      x_consumer_id_header = {"x-consumer-id", "88231792-f27f-4e5d-9f29-f246557ba42b"}
+      assert {:error, :forbidden} == check_employee_id({:ok, {content, "somedata"}}, [x_consumer_id_header])
+    end
+
+    test "returns expected result when you sign your declaration" do
+      content = %{"employee" => %{"id" => "f1ee8ca3-b8ba-4fbe-b186-3c7d08f0f323"}}
+      x_consumer_id_header = {"x-consumer-id", "88231792-f27f-4e5d-9f29-f246557ba42b"}
+      assert {:ok, {content, "somedata"}} == check_employee_id({:ok, {content, "somedata"}}, [x_consumer_id_header])
     end
   end
 

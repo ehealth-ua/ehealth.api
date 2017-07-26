@@ -297,6 +297,8 @@ defmodule EHealth.DeclarationRequest.API do
     |> Validations.decode_and_validate_sign_request()
     |> Sign.check_status(params)
     |> Sign.compare_with_db()
+    |> Sign.check_employee_id(headers)
+    |> Sign.check_drfo()
     |> Sign.store_signed_content(params, headers)
     |> Sign.create_or_update_person(headers)
     |> Sign.create_declaration_with_termination_logic(headers)

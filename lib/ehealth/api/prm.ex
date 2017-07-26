@@ -116,6 +116,10 @@ defmodule EHealth.API.PRM do
     |> ResponseDecoder.check_response()
   end
 
+  def get_party_users_by_user_id(user_id, headers \\ []) do
+    get_party_users([user_id: user_id], headers)
+  end
+
   def get_party_users_by_party_id(party_id, headers \\ []) do
     get_party_users([party_id: party_id], headers)
   end
@@ -138,6 +142,10 @@ defmodule EHealth.API.PRM do
     "/employees"
     |> get!(headers, params: params)
     |> ResponseDecoder.check_response()
+  end
+
+  def get_active_employees_by_party_id(party_id, headers \\ []) do
+    get_employees([party_id: party_id, is_active: true], headers)
   end
 
   def get_employee_by_id(id, headers \\ []) do

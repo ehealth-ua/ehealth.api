@@ -4,6 +4,7 @@ defmodule EHealth.DeclarationRequest.API.Sign do
   import EHealth.Utils.Connection
 
   alias EHealth.API.MediaStorage
+  alias EHealth.API.PRM
   alias EHealth.API.MPI
   alias EHealth.API.OPS
   alias EHealth.DeclarationRequest
@@ -24,16 +25,75 @@ defmodule EHealth.DeclarationRequest.API.Sign do
   end
   def check_status(err, _input), do: err
 
-  def compare_with_db({:ok, %{"data" => %{"content" => content}}, %DeclarationRequest{data: data} = db_data}) do
+  def compare_with_db({:ok, %{"data" => %{"content" => content}}, %DeclarationRequest{data: data}} = pipe_data) do
     data = Map.update!(data, "person", fn(map) -> Map.delete(map, "patient_signed") end)
     input = Map.update!(content, "person", fn(map) -> Map.delete(map, "patient_signed") end)
     case input == data do
-      true -> {:ok, {content, db_data}}
+      true -> pipe_data
       _ -> {:error, [{%{description: "Signed content does not match the previously created content",
         params: [], rule: :invalid}, "$.content"}]}
     end
   end
   def compare_with_db(err), do: err
+
+  def check_drfo({:ok, %{"data" => %{"content" => content, "signer" => signer}}, db_data}) do
+    tax_id = get_in(content, ["employee", "party", "tax_id"])
+    drfo = Map.get(signer, "drfo")
+
+    case tax_id == drfo do
+      true -> {:ok, {content, db_data}}
+      _ -> {:error, [{%{description: "Does not match the signer drfo",
+        params: [], rule: :invalid}, "$.content.employee.party.tax_id"}]}
+    end
+  end
+  def check_drfo(err), do: err
+
+  defp fetch_parties({:ok, result}) do
+    parties =
+      result
+      |> Map.fetch!("data")
+      |> Enum.map(fn(x) -> Map.get(x, "party_id") end)
+
+    {:ok, parties}
+  end
+  defp fetch_parties(err), do: err
+
+  defp find_employee(employees, employee_id) do
+    Enum.find(employees, fn(employee) -> employee_id == Map.get(employee, "id") end)
+  end
+
+  defp match_employees(results, employee_id) do
+    find_result = Enum.find(results, fn({:ok, %{"data" => data}}) -> find_employee(data, employee_id) != nil end)
+
+    case find_result do
+      nil -> {:error, :forbidden}
+      _ -> :ok
+    end
+  end
+
+  defp check_employees({:ok, parties}, employee_id) do
+    results = Enum.map(parties, fn(x) -> PRM.get_active_employees_by_party_id(x) end)
+    error = Enum.find(results, fn({k, _}) -> k == :error end)
+    case error do
+      nil -> match_employees(results, employee_id)
+      _ -> error
+    end
+  end
+  defp check_employees(err, _employee_id), do: err
+
+  def check_employee_id({:ok, {content, db_data}}, headers) do
+    employee_id = get_in(content, ["employee", "id"])
+
+    check_result =
+      headers
+      |> get_consumer_id()
+      |> PRM.get_party_users_by_user_id()
+      |> fetch_parties()
+      |> check_employees(employee_id)
+
+    with :ok <- check_result, do: {:ok, {content, db_data}}
+  end
+  def check_employee_id(err, _headers), do: err
 
   def store_signed_content({:ok, data}, input, headers) do
     input

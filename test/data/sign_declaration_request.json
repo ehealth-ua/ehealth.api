@@ -153,6 +153,7 @@
       "last_name": "Іванов",
       "second_name": "Миколайович",
       "email": "email@example.com",
+      "tax_id": "1111111111",
       "phones": [
         {
           "type": "MOBILE",
