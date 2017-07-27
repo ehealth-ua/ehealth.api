@@ -66,4 +66,10 @@ defmodule EHealth.Web.DeclarationRequestController do
         nil
     end
   end
+
+  def images(conn, %{"id" => id}) do
+    with {:ok, images} <- DeclarationRequestAPI.images(id) do
+      render(conn, "images.json", images: images)
+    end
+  end
 end

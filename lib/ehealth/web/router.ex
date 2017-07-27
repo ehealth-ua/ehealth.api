@@ -51,6 +51,8 @@ defmodule EHealth.Web.Router do
     post "/employee_requests/:id/user", EmployeeRequestController, :create_user
 
     patch "/uaddresses/settlements/:id", UaddressesController, :update_settlements
+
+    get "/declaration_requests/:id/images", DeclarationRequestController, :images
   end
 
   # Client context for lists

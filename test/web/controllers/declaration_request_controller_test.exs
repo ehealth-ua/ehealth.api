@@ -241,6 +241,68 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
   end
 
+  describe "get images" do
+    defmodule MediaContentStorageMock do
+      use MicroservicesHelper
+
+      Plug.Router.post "/media_content_storage_secrets" do
+        params = conn.body_params["secret"]
+
+        data = %{
+          data: %{
+            secret_url: "http://a.link.for/#{params["resource_id"]}/#{params["resource_name"]}"
+          }
+        }
+
+        Plug.Conn.send_resp(conn, 200, Poison.encode!(data))
+      end
+    end
+
+    setup do
+      {:ok, port, ref} = start_microservices(MediaContentStorageMock)
+
+      System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:#{port}")
+      on_exit fn ->
+        System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:4040")
+        stop_microservices(ref)
+      end
+
+      :ok
+    end
+
+    test "when declaration request id is invalid", %{conn: conn} do
+      assert_raise Ecto.NoResultsError, fn ->
+        get conn, declaration_request_path(conn, :images, Ecto.UUID.generate())
+      end
+    end
+
+    test "when declaration request id is valid", %{conn: conn} do
+      %{id: id} = fixture(DeclarationRequest, fixture_params())
+
+      conn = get conn, declaration_request_path(conn, :images, id)
+      result = json_response(conn, 200)["data"]
+      expected_result = [
+        %{
+          "type" => "person.PASSPORT",
+          "url" => "http://a.link.for/#{id}/declaration_request_person.PASSPORT.jpeg"
+        },
+        %{
+          "type" => "confidant_person.0.PRIMARY.COURT_DECISION",
+          "url" => "http://a.link.for/#{id}/declaration_request_confidant_person.0.PRIMARY.COURT_DECISION.jpeg"
+        },
+        %{
+          "type" => "confidant_person.0.PRIMARY.PASSPORT",
+          "url" => "http://a.link.for/#{id}/declaration_request_confidant_person.0.PRIMARY.PASSPORT.jpeg"
+        },
+        %{
+          "type" => "confidant_person.0.PRIMARY.SSN",
+          "url" => "http://a.link.for/#{id}/declaration_request_confidant_person.0.PRIMARY.SSN.jpeg"
+        }
+      ]
+      assert expected_result == result
+    end
+  end
+
   defp fixture_params do
     uuid = Ecto.UUID.generate()
     %{
@@ -253,6 +315,43 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
           first_name: "Петро",
           last_name: "Іванов",
           second_name: "Миколайович",
+          documents: [
+            %{
+              type: "PASSPORT",
+              number: "120518"
+            }
+          ],
+          confidant_person: [
+            %{
+              relation_type: "PRIMARY",
+              first_name: "Іван",
+              last_name: "Петров",
+              second_name: "Миколайович",
+              birth_date: "1991-08-20",
+              birth_country: "Україна",
+              birth_settlement: "Вінниця",
+              gender: "MALE",
+              tax_id: "2222222225",
+              documents_person: [
+                %{
+                  type: "PASSPORT",
+                  number: "120518"
+                }
+              ],
+              documents_relationship: [
+                %{
+                  type: "COURT_DECISION",
+                  number: "120518"
+                }
+              ],
+              phones: [
+                %{
+                  type: "MOBILE",
+                  number: "+380503410870"
+                }
+              ]
+            }
+          ]
         },
         employee: %{
           id: Ecto.UUID.generate(),

@@ -16,6 +16,7 @@ defmodule EHealth.DeclarationRequest.API do
   alias EHealth.DeclarationRequest.API.Validations
   alias EHealth.DeclarationRequest.API.Sign
   alias EHealth.DeclarationRequest.API.ResendOTP
+  alias EHealth.DeclarationRequest.API.Images
   alias EHealth.Utils.Phone
 
   @fields ~w(
@@ -312,5 +313,11 @@ defmodule EHealth.DeclarationRequest.API do
     |> ResendOTP.check_status()
     |> ResendOTP.check_auth_method()
     |> ResendOTP.init_otp(headers)
+  end
+
+  def images(id) do
+    id
+    |> get_declaration_request_by_id!()
+    |> Images.generate_links()
   end
 end

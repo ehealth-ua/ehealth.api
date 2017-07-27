@@ -46,4 +46,15 @@ defmodule EHealth.Web.DeclarationRequestView do
       inserted_at: Map.get(declaration_request, :inserted_at)
     }
   end
+
+  def render("images.json", %{images: images}) do
+    render_many(images, __MODULE__, "image.json")
+  end
+
+  def render("image.json", %{declaration_request: image}) do
+    %{
+      type: Map.get(image, "type"),
+      url: Map.get(image, "url")
+    }
+  end
 end
