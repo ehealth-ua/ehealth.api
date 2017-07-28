@@ -20,7 +20,7 @@ Index page for projects that related to Ukrainian Health Services government ins
 
 ## Specification
 
-- [API docs](http://docs.ehealthapi1.apiary.io/#reference/public.-medical-service-provider-integration-layer)
+- [API docs](http://docs.uaehealthapi.apiary.io/#reference/public.-medical-service-provider-integration-layer)
 
 ## Installation
 
