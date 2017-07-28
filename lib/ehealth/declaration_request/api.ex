@@ -227,7 +227,7 @@ defmodule EHealth.DeclarationRequest.API do
     |> put_in_data("division", Create.prepare_division_struct(division))
     |> put_in_data("legal_entity", Create.prepare_legal_entity_struct(legal_entity))
     |> put_in_data("id", id)
-    |> put_in_data("seed", Float.to_string(:rand.uniform()))
+    |> put_in_data("seed", "99bc78ba577a95a11f1a344d4d2ae55f2f857b98")
     |> put_change(:id, id)
     |> put_change(:status, "NEW")
     |> put_change(:inserted_by, user_id)
