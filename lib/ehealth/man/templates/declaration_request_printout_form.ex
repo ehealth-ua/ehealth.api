@@ -25,7 +25,8 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
       employee: get_employee(declaration_request),
       division: get_division(declaration_request),
       legal_entity: get_legal_entity(declaration_request),
-      confidant_persons: check_confidant_persons(declaration_request)
+      confidant_persons: check_confidant_persons(declaration_request),
+      authentication_method_current: get_authentication_method_current(declaration_request)
     }
   end
 
@@ -76,10 +77,15 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
   end
 
   defp get_gender(data) do
+    gender = %{
+      male: false,
+      female: false
+    }
+
     case Map.get(data, "gender") do
-      "MALE" -> "чоловічої статі"
-      "FEMALE" -> "жіночої статі"
-      _ -> nil
+      "MALE" -> Map.put(gender, :male, true)
+      "FEMALE" -> Map.put(gender, :female, true)
+      _ -> gender
     end
   end
 
@@ -274,6 +280,19 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
       exist: length(confidant_persons) > 0,
       secondary: secondary_confidant_person != nil
     }
+  end
+
+  defp get_authentication_method_current(declaration_request) do
+    authentication_method_current = %{
+      otp: false,
+      offline: false
+    }
+
+    case get_in(declaration_request, ["authentication_method_current", "type"]) do
+      "OTP" -> Map.put(authentication_method_current, :otp, true)
+      "OFFLINE" -> Map.put(authentication_method_current, :offline, true)
+      _ -> authentication_method_current
+    end
   end
 
   defp get_listed_value(""), do: []

@@ -240,5 +240,9 @@
     "type": "clinic",
     "external_id": "3213213"
   },
+  "authentication_method_current": {
+    "type": "OTP",
+    "phone_number": "+380508887700"
+  },
   "content": "Declaration content"
 }

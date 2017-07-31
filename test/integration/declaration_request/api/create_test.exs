@@ -126,7 +126,10 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       expected_content = %{
         person: %{
           full_name: "Петро Миколайович Іванов",
-          gender: "чоловічої статі",
+          gender: %{
+            male: true,
+            female: false
+          },
           birth_date: "1991-08-19",
           document: %{
             type: "PASSPORT",
@@ -163,7 +166,10 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
                 number: "+380503410870"
               },
               birth_date: "1991-08-19",
-              gender: "чоловічої статі",
+              gender: %{
+                male: true,
+                female: false
+              },
               birth_settlement: "Вінниця",
               birth_country: "Україна",
               documents_person: %{
@@ -182,7 +188,10 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
                 number: "+380503410871"
               },
               birth_date: "1991-08-20",
-              gender: "чоловічої статі",
+              gender: %{
+                male: true,
+                female: false
+              },
               birth_settlement: "Вінниця",
               birth_country: "Україна",
               documents_person: %{
@@ -230,6 +239,10 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         confidant_persons: %{
           exist: true,
           secondary: true
+        },
+        authentication_method_current: %{
+          otp: true,
+          offline: false
         }
       }
 
@@ -246,7 +259,10 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       expected_content = %{
         person: %{
           full_name: "",
-          gender: nil,
+          gender: %{
+            male: false,
+            female: false
+          },
           birth_date: nil,
           document: nil,
           birth_settlement: nil,
@@ -300,6 +316,10 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         confidant_persons: %{
           exist: false,
           secondary: false
+        },
+        authentication_method_current: %{
+          otp: false,
+          offline: false
         }
       }
 
