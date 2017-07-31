@@ -104,7 +104,7 @@ defmodule EHealth.Web.Router do
     scope "/declaration_requests" do
       pipe_through [:api_consumer_id]
 
-      post "/:id/actions/sign", DeclarationRequestController, :sign
+      patch "/:id/actions/sign", DeclarationRequestController, :sign
     end
 
     post "/declaration_requests", DeclarationRequestController, :create
