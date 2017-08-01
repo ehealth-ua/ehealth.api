@@ -63,3 +63,11 @@ config :ehealth, EHealth.Repo,
   database: "ehealth_test",
   hostname: "localhost",
   pool: Ecto.Adapters.SQL.Sandbox
+
+config :ehealth, EHealth.PRMRepo,
+  adapter: Ecto.Adapters.Postgres,
+  username: "postgres",
+  password: "postgres",
+  database: "prm_test",
+  hostname: "localhost",
+  pool: Ecto.Adapters.SQL.Sandbox

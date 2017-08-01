@@ -33,16 +33,6 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         send_resp(conn, 200, Poison.encode!(%{data: employee}))
       end
 
-      Plug.Router.get "/global_parameters" do
-        parameters = %{
-          adult_age: "18",
-          declaration_request_term: "40",
-          declaration_request_term_unit: "YEARS"
-        }
-
-        send_resp(conn, 200, Poison.encode!(%{data: parameters}))
-      end
-
       Plug.Router.get "/divisions/51f56b0e-0223-49c1-9b5f-b07e09ba40f1" do
         division = %{
           id: "51f56b0e-0223-49c1-9b5f-b07e09ba40f1",
@@ -183,6 +173,10 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
     end
 
     setup %{conn: conn} do
+      insert_global_parameter(%{parameter: "adult_age", value: "18"})
+      insert_global_parameter(%{parameter: "declaration_request_term", value: "40"})
+      insert_global_parameter(%{parameter: "declaration_request_term_unit", value: "YEARS"})
+
       {:ok, port, ref} = start_microservices(TwoHappyPaths)
 
       System.put_env("PRM_ENDPOINT", "http://localhost:#{port}")
@@ -316,18 +310,6 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
     defmodule NoParams do
       use MicroservicesHelper
 
-      Plug.Router.get "/global_parameters" do
-        response = %{
-          error: %{},
-          meta: %{
-            url: "http://#{conn.host}:#{conn.port}/global_parameters",
-            code: "404"
-          }
-        }
-
-        send_resp(conn, 404, Poison.encode!(response))
-      end
-
       Plug.Router.get "/settlements/adaa4abf-f530-461c-bcbf-a0ac210d955b" do
         settlement = %{
           id: "adaa4abf-f530-461c-bcbf-a0ac210d955b",
@@ -350,10 +332,8 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
     setup %{conn: conn} do
       {:ok, port, ref} = start_microservices(NoParams)
 
-      System.put_env("PRM_ENDPOINT", "http://localhost:#{port}")
       System.put_env("UADDRESS_ENDPOINT", "http://localhost:#{port}")
       on_exit fn ->
-        System.put_env("PRM_ENDPOINT", "http://localhost:4040")
         System.put_env("UADDRESS_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
       end
@@ -371,14 +351,7 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
         |> post("/api/declaration_requests", declaration_request_params)
 
       resp = json_response(conn, 404)
-
-      assert resp["error"] == %{
-        "error" => %{},
-        "meta" => %{
-          "code" => "404",
-          "url" => "http://localhost:#{port}/global_parameters"
-        }
-      }
+      assert %{"error" => %{"type" => "not_found"}} = resp["error"]
     end
   end
 
@@ -415,13 +388,13 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
 
         send_resp(conn, 404, Poison.encode!(response))
       end
-
-      Plug.Router.get "/global_parameters" do
-        send_resp(conn, 200, Poison.encode!(%{data: %{}}))
-      end
     end
 
     setup %{conn: conn} do
+      insert_global_parameter(%{parameter: "adult_age", value: "18"})
+      insert_global_parameter(%{parameter: "declaration_request_term", value: "40"})
+      insert_global_parameter(%{parameter: "declaration_request_term_unit", value: "YEARS"})
+
       {:ok, port, ref} = start_microservices(InvalidEmployeeID)
 
       System.put_env("UADDRESS_ENDPOINT", "http://localhost:#{port}")

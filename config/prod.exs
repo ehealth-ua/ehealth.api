@@ -94,3 +94,14 @@ config :ehealth, EHealth.Repo,
   pool_size: "${DB_POOL_SIZE}",
   timeout: 15_000,
   pool_timeout: 15_000
+
+config :ehealth, EHealth.PRMRepo,
+  adapter: Ecto.Adapters.Postgres,
+  database: "${PRM_DB_NAME}",
+  username: "${PRM_DB_USER}",
+  password: "${PRM_DB_PASSWORD}",
+  hostname: "${PRM_DB_HOST}",
+  port: "${PRM_DB_PORT}",
+  pool_size: "${PRM_DB_POOL_SIZE}",
+  timeout: 15_000,
+  pool_timeout: 15_000

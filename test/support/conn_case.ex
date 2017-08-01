@@ -25,6 +25,7 @@ defmodule EHealth.Web.ConnCase do
       import EHealth.Web.Router.Helpers
       import EHealth.Web.ConnCase
       import EHealth.Test.Support.Fixtures
+      import EHealth.Test.Support.PRMFixtures
 
       # The default endpoint for testing
       @endpoint EHealth.Web.Endpoint
@@ -35,9 +36,11 @@ defmodule EHealth.Web.ConnCase do
     _ = tags
 
     :ok = Ecto.Adapters.SQL.Sandbox.checkout(EHealth.Repo)
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(EHealth.PRMRepo)
 
     unless tags[:async] do
       Ecto.Adapters.SQL.Sandbox.mode(EHealth.Repo, {:shared, self()})
+      Ecto.Adapters.SQL.Sandbox.mode(EHealth.PRMRepo, {:shared, self()})
     end
 
     conn =

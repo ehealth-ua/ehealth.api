@@ -2,7 +2,7 @@ use Mix.Config
 
 # General application configuration
 config :ehealth,
-  ecto_repos: [EHealth.Repo],
+  ecto_repos: [EHealth.Repo, EHealth.PRMRepo],
   employee_requests_per_page: {:system, :integer, "EMPLOYEE_REQUESTS_PER_PAGE", 50},
   declaration_requests_per_page: {:system, :integer, "DECLARATION_REQUESTS_PER_PAGE", 50},
   namespace: EHealth

@@ -33,3 +33,11 @@ config :ehealth, EHealth.Repo,
   database: "ehealth",
   hostname: "localhost",
   pool_size: 10
+
+config :ehealth, EHealth.PRMRepo,
+  adapter: Ecto.Adapters.Postgres,
+  username: "postgres",
+  password: "postgres",
+  database: "prm_dev",
+  hostname: "localhost",
+  pool_size: 10

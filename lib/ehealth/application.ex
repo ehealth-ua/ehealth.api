@@ -19,6 +19,7 @@ defmodule EHealth do
     children = [
       # Start the Ecto repository
       supervisor(EHealth.Repo, []),
+      supervisor(EHealth.PRMRepo, []),
       # Start the endpoint when the application starts
       supervisor(EHealth.Web.Endpoint, []),
       # Starts a worker by calling: EHealth.Worker.start_link(arg1, arg2, arg3)
