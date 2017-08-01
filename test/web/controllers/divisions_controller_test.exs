@@ -93,11 +93,37 @@ defmodule EHealth.Web.DivisionsControllerTest do
     refute %{} == json_response(conn, 422)["error"]
   end
 
+  test "create division with empty required address field", %{conn: conn} do
+    division_data = get_division()
+    address =
+      division_data
+      |> Map.get("addresses")
+      |> Enum.at(0)
+      |> Map.delete("settlement")
+
+    division_data = Map.put(division_data, "addresses", [address])
+
+    conn = put_client_id_header(conn, UUID.generate())
+    conn = post conn, division_path(conn, :create), division_data
+    assert [err] = json_response(conn, 422)["error"]["invalid"]
+    assert "$.addresses.[0].settlement" == err["entry"]
+  end
+
   test "create division", %{conn: conn} do
     conn = put_client_id_header(conn, UUID.generate())
     conn = post conn, division_path(conn, :create), get_division()
 
     refute %{} == json_response(conn, 201)["data"]
+  end
+
+  test "create division without type and phone number", %{conn: conn} do
+    division = get_division() |> Map.delete("type") |> Map.put("phones", [%{"type": "MOBILE"}])
+    conn = put_client_id_header(conn, UUID.generate())
+    conn = post conn, division_path(conn, :create), division
+
+    assert [err1, err2] = json_response(conn, 422)["error"]["invalid"]
+    assert "$.phones.[0].number" == err1["entry"]
+    assert "$.type" == err2["entry"]
   end
 
   test "update division", %{conn: conn} do
