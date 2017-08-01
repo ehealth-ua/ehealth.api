@@ -2,7 +2,7 @@
   "email": "admin@example.com",
   "external_id": "some external_id",
   "name": "some name",
-  "type": "ambulant_clinic",
+  "type": "AMBULANT_CLINIC",
   "addresses": [
     {
       "type": "REGISTRATION",

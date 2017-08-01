@@ -237,7 +237,7 @@
       }
     ],
     "email": "email@example.com",
-    "type": "clinic",
+    "type": "CLINIC",
     "external_id": "3213213"
   },
   "authentication_method_current": {

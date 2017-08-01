@@ -812,7 +812,7 @@ defmodule EHealth.MockServer do
         "latitude" => 50.52333
       },
       "email" => "email@example.com",
-      "type" => "clinic",
+      "type" => "CLINIC",
       "external_id" => "3213213",
       "mountain_group" => "group1",
       "status" => "ACTIVE"

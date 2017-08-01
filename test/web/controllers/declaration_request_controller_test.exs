@@ -380,7 +380,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
         division: %{
           id: Ecto.UUID.generate(),
           name: "Бориспільське відділення Клініки Борис",
-          type: "clinic",
+          type: "CLINIC",
         }
       },
       status: "NEW",
