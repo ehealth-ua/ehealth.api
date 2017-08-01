@@ -95,6 +95,12 @@
         },
         "certificate_number": {
           "type": "string"
+        },
+        "valid_to": {
+          "$ref": "#/definitions/date"
+        },
+        "additional_info": {
+          "type": "string"
         }
       },
       "required": [

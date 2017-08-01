@@ -44,7 +44,9 @@
           "institution_name": "Академія Богомольця",
           "speciality": "Педіатр",
           "issued_date": "2017-08-02",
-          "certificate_number": "2017-08-03"
+          "certificate_number": "2017-08-03",
+          "valid_to": "2017-10-10",
+          "additional_info": "additional info"
         }
       ],
       "specialities": [
