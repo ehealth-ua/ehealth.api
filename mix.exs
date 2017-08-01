@@ -60,7 +60,7 @@ defmodule EHealth.Mixfile do
      {:cowboy, "~> 1.1"},
      {:httpoison, "~> 0.12.0"},
      {:postgrex, ">= 0.0.0"},
-     {:phoenix, "~> 1.3.0-rc"},
+     {:phoenix, "~> 1.3.0"},
      {:phoenix_ecto, "~> 3.2"},
      {:multiverse, "~> 0.4.3"},
      {:eview, "~> 0.12.0"},
