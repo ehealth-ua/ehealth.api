@@ -129,7 +129,7 @@ defmodule EHealth.DeclarationRequest.API.Sign do
     %DeclarationRequest{id: id, data: data, authentication_method_current: authentication_method_current}}, headers) do
     client_id = get_client_id(headers)
     data
-    |> Map.take(["start_date", "end_date", "scope"])
+    |> Map.take(["start_date", "end_date", "scope", "seed"])
     |> Map.put("employee_id", get_in(data, ["employee", "id"]))
     |> Map.put("division_id", get_in(data, ["division", "id"]))
     |> Map.put("legal_entity_id", get_in(data, ["legal_entity", "id"]))

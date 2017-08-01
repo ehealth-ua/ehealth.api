@@ -205,6 +205,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
       assert declaration_request_data["start_date"] == data["start_date"]
       assert declaration_request_data["end_date"] == data["end_date"]
       assert declaration_request_data["scope"] == data["scope"]
+      assert declaration_request_data["seed"] == data["seed"]
       assert "active" == data["status"]
       assert data["is_active"]
     end
