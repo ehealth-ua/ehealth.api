@@ -228,7 +228,6 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
       assert {:ok, _} = Date.from_iso8601(resp["data"]["end_date"])
 
       declaration_request = EHealth.DeclarationRequest.API.get_declaration_request_by_id!(id)
-      assert id == declaration_request.data["id"]
       assert declaration_request.data["legal_entity"]["id"]
       assert declaration_request.data["division"]["id"]
       assert declaration_request.data["employee"]["id"]

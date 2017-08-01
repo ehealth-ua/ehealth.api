@@ -43,10 +43,13 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
     end
 
     test "returns expected result when data matches except patient_signed field" do
-      db_data = %DeclarationRequest{data: %{"person" => %{"key" => "value", "patient_signed" => false}}}
-      input_data = %{"data" => %{"content" => %{"person" => %{"key" => "value", "patient_signed" => true}}}}
+      id = Ecto.UUID.generate()
+      db_data = %DeclarationRequest{id: id, data: %{"person" => %{"key" => "value", "patient_signed" => false}},
+        status: "APPROVED", printout_content: "<html></html>"}
+      content = %{"id" => id, "person" => %{"key" => "value", "patient_signed" => true}, "status" => "APPROVED",
+        "content" => "<html></html>"}
+      input_data = %{"data" => %{"content" => content}}
       result = compare_with_db({:ok, input_data, db_data})
-      content = %{"person" => %{"key" => "value", "patient_signed" => true}}
       expected_result = {:ok, %{"data" => %{"content" => content}}, db_data}
       assert expected_result == result
     end
@@ -138,7 +141,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
       use MicroservicesHelper
 
       Plug.Router.post "/persons" do
-        send_resp(conn, 200, Poison.encode!(%{data: "somedata"}))
+        send_resp(conn, 200, Poison.encode!(conn.body_params))
       end
     end
 
@@ -156,8 +159,9 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
 
     test "returns expected result" do
       declaration_request = simple_fixture(:declaration_request)
-      expected_result = {:ok, %{"data" => "somedata"}, declaration_request}
-      assert expected_result == create_or_update_person({:ok, {%{"person" => "somedata"}, declaration_request}}, [])
+      person = %{"data" => "somedata", "patient_signed" => false}
+      expected_result = {:ok, %{"data" => "somedata", "patient_signed" => true}, declaration_request}
+      assert expected_result == create_or_update_person({:ok, {%{"person" => person}, declaration_request}}, [])
     end
   end
 

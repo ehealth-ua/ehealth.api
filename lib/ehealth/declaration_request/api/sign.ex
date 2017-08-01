@@ -25,9 +25,17 @@ defmodule EHealth.DeclarationRequest.API.Sign do
   end
   def check_status(err, _input), do: err
 
-  def compare_with_db({:ok, %{"data" => %{"content" => content}}, %DeclarationRequest{data: data}} = pipe_data) do
-    data = Map.update!(data, "person", fn(map) -> Map.delete(map, "patient_signed") end)
+  def compare_with_db({:ok, %{"data" => %{"content" => content}}, declaration_request} = pipe_data) do
+    data =
+      declaration_request
+      |> Map.get(:data)
+      |> Map.update!("person", fn(map) -> Map.delete(map, "patient_signed") end)
+      |> Map.put("id", Map.get(declaration_request, :id))
+      |> Map.put("status", Map.get(declaration_request, :status))
+      |> Map.put("content", Map.get(declaration_request, :printout_content))
+
     input = Map.update!(content, "person", fn(map) -> Map.delete(map, "patient_signed") end)
+
     case input == data do
       true -> pipe_data
       _ -> {:error, [{%{description: "Signed content does not match the previously created content",
@@ -107,6 +115,7 @@ defmodule EHealth.DeclarationRequest.API.Sign do
     result =
       content
       |> Map.fetch!("person")
+      |> Map.put("patient_signed", true)
       |> MPI.create_or_update_person(headers)
 
     case result do
