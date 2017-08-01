@@ -59,6 +59,7 @@ defmodule EHealth.Mixfile do
      {:ecto_paging, ">= 0.0.0"},
      {:cowboy, "~> 1.1"},
      {:httpoison, "~> 0.12.0"},
+     {:hackney, "== 1.8.0", override: true}, # fix for https://github.com/edgurgel/httpoison/issues/264
      {:postgrex, ">= 0.0.0"},
      {:phoenix, "~> 1.3.0"},
      {:phoenix_ecto, "~> 3.2"},

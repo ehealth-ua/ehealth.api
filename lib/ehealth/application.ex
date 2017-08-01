@@ -55,10 +55,6 @@ defmodule EHealth do
   # Loads configuration in `:init` callbacks and replaces `{:system, ..}` tuples via Confex
   @doc false
   def init(_key, config) do
-    if config[:load_from_system_env] do
-      {:ok, Confex.process_env(config)}
-    else
-      {:ok, config}
-    end
+    {:ok, Confex.process_env(config)}
   end
 end
