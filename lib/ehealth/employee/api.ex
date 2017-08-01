@@ -94,20 +94,21 @@ defmodule EHealth.Employee.API do
   def send_email(error, _template, _sender), do: error
 
   def reject_employee_request(id) do
-    id
-    |> get_employee_request_by_id!()
-    |> check_transition_status()
-    |> update_status(@status_rejected)
+    employee_request = get_employee_request_by_id!(id)
+    with {:ok, employee_request} <- check_transition_status(employee_request) do
+      update_status(employee_request, @status_rejected)
+    end
   end
 
   def approve_employee_request(id, req_headers) do
     employee_request = get_employee_request_by_id!(id)
 
-    employee_request
-    |> check_transition_status()
-    |> create_or_update_employee(req_headers)
-    |> update_status(employee_request, @status_approved)
-    |> send_email(EmployeeCreatedNotificationTemplate, EmployeeCreatedNotificationEmail)
+    with {:ok, employee_request} <- check_transition_status(employee_request),
+         {:ok, employee} <- create_or_update_employee(employee_request, req_headers),
+         {:ok, employee_request} <- update_status(employee_request, employee, @status_approved)
+    do
+      send_email({:ok, employee_request}, EmployeeCreatedNotificationTemplate, EmployeeCreatedNotificationEmail)
+    end
   end
 
   def create_or_update_employee(%Request{data: %{"employee_id" => employee_id} = employee_request}, req_headers) do
@@ -136,7 +137,7 @@ defmodule EHealth.Employee.API do
   end
 
   def check_transition_status(%Request{status: @status_new} = employee_request) do
-    employee_request
+    {:ok, employee_request}
   end
 
   def check_transition_status(%Request{status: status}) do
@@ -144,11 +145,11 @@ defmodule EHealth.Employee.API do
   end
   def check_transition_status(err), do: err
 
-  def update_status({:ok, _}, %Request{} = employee_request, status) do
-    update_status(employee_request, status)
+  def update_status(%Request{} = employee_request, %{"data" => %{"id" => id}}, status) do
+    employee_request
+    |> changeset(%{status: status, employee_id: id})
+    |> Repo.update()
   end
-  def update_status(err, _employee_request, _status), do: err
-
   def update_status(%Request{} = employee_request, status) do
     employee_request
     |> changeset(%{status: status})

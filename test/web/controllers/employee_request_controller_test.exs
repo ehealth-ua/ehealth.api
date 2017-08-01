@@ -252,7 +252,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
     data = Map.drop(resp["data"], ["id", "inserted_at", "updated_at", "type", "status"])
 
-    assert Map.get(employee_request, :data) == data
+    assert Map.get(employee_request, :data) == Map.delete(data, "employee_id")
     assert Map.get(employee_request, :id) == resp["data"]["id"]
     assert Map.get(employee_request, :status) == resp["data"]["status"]
     assert NaiveDateTime.to_iso8601(Map.get(employee_request, :inserted_at)) == resp["data"]["inserted_at"]
@@ -271,7 +271,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
     data = Map.drop(resp["data"], ["id", "inserted_at", "updated_at", "type", "status"])
 
-    assert Map.get(fixture_request, :data) == data
+    assert Map.get(fixture_request, :data) == Map.delete(data, "employee_id")
     assert Map.get(fixture_request, :id) == resp["data"]["id"]
     assert Map.get(fixture_request, :status) == resp["data"]["status"]
     assert NaiveDateTime.to_iso8601(Map.get(fixture_request, :inserted_at)) == resp["data"]["inserted_at"]
@@ -312,7 +312,8 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
     conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
     conn = post conn, employee_request_path(conn, :approve, id)
-    json_response(conn, 200)
+    resp = json_response(conn, 200)
+    assert %{"data" => %{"employee_id" => ^employee_id}} = resp
   end
 
   test "can approve employee request if email maches", %{conn: conn} do
