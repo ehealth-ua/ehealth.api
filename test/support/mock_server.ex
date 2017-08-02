@@ -368,7 +368,7 @@ defmodule EHealth.MockServer do
 
   get "/admin/users/:id/roles" do
     resp =
-      [get_oauth_user_role(conn.path_params["id"])]
+      [get_oauth_user_role(conn.path_params["id"], conn.query_params["client_id"])]
       |> wrap_response()
       |> Poison.encode!()
 
@@ -627,12 +627,12 @@ defmodule EHealth.MockServer do
     }
   end
 
-  def get_oauth_user_role(user_id \\ "userid") do
+  def get_oauth_user_role(user_id \\ "userid", client_id \\ "f9bd4210-7c4b-40b6-957f-300829ad37dc") do
     %{
       "id" => "7488a646-e31f-11e4-aace-600308960611",
       "user_id" => user_id,
       "role_id" => "f9bd4210-7c4b-40b6-957f-300829ad37dc",
-      "client_id" => "f9bd4210-7c4b-40b6-957f-300829ad37dc",
+      "client_id" => client_id,
       "role_name" => "some role",
       "client_name" => "some client",
     }

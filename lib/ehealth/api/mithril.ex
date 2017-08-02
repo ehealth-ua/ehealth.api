@@ -118,7 +118,7 @@ defmodule EHealth.API.Mithril do
 
   # User roles
 
-  def get_user_roles(user_id, params \\ [], headers \\ []) when is_binary(user_id) do
+  def get_user_roles(user_id, params, headers \\ []) when is_binary(user_id) do
     "/admin/users/#{user_id}/roles"
     |> get!(headers, params: params)
     |> ResponseDecoder.check_response()
