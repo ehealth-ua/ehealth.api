@@ -369,6 +369,7 @@ defmodule EHealth.MockServer do
   get "/admin/users/:id/roles" do
     resp =
       [get_oauth_user_role(conn.path_params["id"])]
+      |> wrap_response()
       |> Poison.encode!()
 
     Plug.Conn.send_resp(conn, 200, resp)
