@@ -179,7 +179,7 @@ config :logger, :console,
 
 # Configure JSON Logger back-end
 config :logger_json, :backend,
-  load_from_system_env: true,
+  on_init: {EHealth, :load_from_system_env, []},
   json_encoder: Poison,
   metadata: :all
 
