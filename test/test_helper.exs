@@ -1,4 +1,4 @@
-{:ok, _} = Plug.Adapters.Cowboy.http EHealth.MockServer, [], port: Confex.get_map(:ehealth, :mock)[:port]
+{:ok, _} = Plug.Adapters.Cowboy.http EHealth.MockServer, [], port: Confex.fetch_env!(:ehealth, :mock)[:port]
 
 ExUnit.start()
 

@@ -5,7 +5,7 @@ defmodule EHealth.Utils.AddressMerger do
 
   alias EHealth.Dictionaries
 
-  @config Confex.get_map(:ehealth, EHealth.Utils.AddressMerger)
+  @config Confex.fetch_env!(:ehealth, EHealth.Utils.AddressMerger)
 
   def merge_address(nil), do: ""
   def merge_address(address) do

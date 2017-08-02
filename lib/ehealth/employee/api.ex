@@ -40,7 +40,7 @@ defmodule EHealth.Employee.API do
     query
     |> filter_by_legal_entity_id(client_id)
     |> filter_by_status(params)
-    |> Repo.page(get_paging(params, Confex.get(:ehealth, :employee_requests_per_page)))
+    |> Repo.page(get_paging(params, Confex.fetch_env!(:ehealth, :employee_requests_per_page)))
   end
 
   defp filter_by_legal_entity_id(query, client_id) do

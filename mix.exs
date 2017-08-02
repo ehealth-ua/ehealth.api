@@ -50,7 +50,7 @@ defmodule EHealth.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [{:distillery, "~> 1.2"},
-     {:confex, "~> 1.4"},
+     {:confex, "~> 3.2"},
      {:timex, ">= 3.1.15"},
      {:logger_json, "~> 0.5.0"},
      {:poison, "~> 3.1"},
@@ -61,7 +61,7 @@ defmodule EHealth.Mixfile do
      {:httpoison, "~> 0.12.0"},
      {:hackney, "== 1.8.0", override: true}, # fix for https://github.com/edgurgel/httpoison/issues/264
      {:postgrex, ">= 0.0.0"},
-     {:phoenix, "~> 1.3.0-rc"},
+     {:phoenix, "~> 1.3.0"},
      {:phoenix_ecto, "~> 3.2"},
      {:multiverse, "~> 0.4.3"},
      {:eview, "~> 0.12.0"},

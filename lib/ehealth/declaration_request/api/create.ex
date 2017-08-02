@@ -12,7 +12,7 @@ defmodule EHealth.DeclarationRequest.API.Create do
 
   use Confex, otp_app: :ehealth
 
-  @files_storage_bucket Confex.get_map(:ehealth, EHealth.API.MediaStorage)[:declaration_request_bucket]
+  @files_storage_bucket Confex.fetch_env!(:ehealth, EHealth.API.MediaStorage)[:declaration_request_bucket]
 
   def send_verification_code(number) do
     OTPVerification.initialize(number)

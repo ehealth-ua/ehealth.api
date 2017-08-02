@@ -62,7 +62,7 @@ defmodule EHealth.Users.API do
   end
 
   defp get_expiration_date(request) do
-    ttl = Confex.get(:ehealth, :credentials_recovery_request_ttl)
+    ttl = Confex.fetch_env!(:ehealth, :credentials_recovery_request_ttl)
     NaiveDateTime.add(request.inserted_at, ttl)
   end
 

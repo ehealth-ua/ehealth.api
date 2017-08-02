@@ -5,7 +5,7 @@ defmodule EHealth.DeclarationRequest.API.Images do
   alias EHealth.DeclarationRequest.API.Helpers
   alias EHealth.API.MediaStorage
 
-  @files_storage_bucket Confex.get_map(:ehealth, EHealth.API.MediaStorage)[:declaration_request_bucket]
+  @files_storage_bucket Confex.fetch_env!(:ehealth, EHealth.API.MediaStorage)[:declaration_request_bucket]
 
   def generate_links(%DeclarationRequest{id: id, data: %{"person" => person}}) do
     documents_list = Helpers.gather_documents_list(person)

@@ -1,7 +1,7 @@
 defmodule EHealth.Validators.BirthDate do
   @moduledoc false
 
-  @ages Confex.get_map(:ehealth, EHealth.Validators.BirthDate)
+  @ages Confex.fetch_env!(:ehealth, EHealth.Validators.BirthDate)
 
   def validate(birth_date) do
     birth_date

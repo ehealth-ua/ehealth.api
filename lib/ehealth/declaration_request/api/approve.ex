@@ -4,7 +4,7 @@ defmodule EHealth.DeclarationRequest.API.Approve do
   alias EHealth.API.MediaStorage
   alias EHealth.API.OTPVerification
 
-  @files_storage_bucket Confex.get_map(:ehealth, EHealth.API.MediaStorage)[:declaration_request_bucket]
+  @files_storage_bucket Confex.fetch_env!(:ehealth, EHealth.API.MediaStorage)[:declaration_request_bucket]
 
   def verify(declaration_request, code) do
     case declaration_request.authentication_method_current do

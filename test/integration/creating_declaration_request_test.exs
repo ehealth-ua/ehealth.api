@@ -340,7 +340,7 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
       {:ok, %{port: port, conn: conn}}
     end
 
-    test "returns error if global parameters do not exist", %{port: port, conn: conn} do
+    test "returns error if global parameters do not exist", %{port: _port, conn: conn} do
       declaration_request_params = File.read!("test/data/declaration_request.json")
 
       conn =

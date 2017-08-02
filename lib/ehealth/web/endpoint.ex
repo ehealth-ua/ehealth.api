@@ -3,6 +3,7 @@ defmodule EHealth.Web.Endpoint do
   Phoenix Endpoint for ehealth application.
   """
   use Phoenix.Endpoint, otp_app: :ehealth
+  alias Confex.Resolver
 
   plug Plug.RequestId
   plug EView.Plugs.Idempotency
@@ -27,8 +28,8 @@ defmodule EHealth.Web.Endpoint do
   It receives the endpoint configuration from the config files
   and must return the updated configuration.
   """
-  def load_from_system_env(config) do
-    config = Confex.process_env(config)
+  def init(_key, config) do
+    config = Resolver.resolve!(config)
 
     unless config[:secret_key_base] do
       raise "Set SECRET_KEY environment variable!"

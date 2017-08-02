@@ -49,7 +49,7 @@ defmodule EHealth.DeclarationRequest.API do
     |> filter_by_employee_id(params)
     |> filter_by_legal_entity_id(params)
     |> filter_by_status(params)
-    |> Repo.page(get_paging(params, Confex.get(:ehealth, :declaration_requests_per_page)))
+    |> Repo.page(get_paging(params, Confex.fetch_env!(:ehealth, :declaration_requests_per_page)))
   end
 
   defp filter_by_legal_entity_id(query, %{"legal_entity_id" => legal_entity_id}) do
