@@ -179,6 +179,7 @@ config :logger, :console,
 
 # Configure JSON Logger back-end
 config :logger_json, :backend,
+  load_from_system_env: true,
   json_encoder: Poison,
   metadata: :all
 
