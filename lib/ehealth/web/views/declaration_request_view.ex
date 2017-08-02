@@ -8,9 +8,9 @@ defmodule EHealth.Web.DeclarationRequestView do
     render_many(declaration_requests, __MODULE__, "declaration_request_short.json")
   end
 
-  def render("declaration_request_short.json", %{"declaration_request": %{data: data}}) do
+  def render("declaration_request_short.json", %{declaration_request: %{data: data, id: id}}) do
     %{
-      id: Map.get(data, "id"),
+      id: id,
       start_date: Map.get(data, "start_date"),
       end_date: Map.get(data, "end_date"),
       person: render(PersonView, "person_short.json", Map.take(data, ["person"])),
