@@ -120,5 +120,8 @@ defmodule EHealth.Web.Router do
     # Person declarations
     get "/persons", PersonsController, :search_persons
     get "/persons/:id/declaration", PersonsController, :person_declarations
+
+    # User roles
+    get "/user/roles", UserRoleController, :index
   end
 end
