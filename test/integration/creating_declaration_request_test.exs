@@ -74,6 +74,14 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         send_resp(conn, 200, Poison.encode!(%{data: legal_entity}))
       end
 
+      Plug.Router.get "/party_users" do
+        party_users = [%{
+          "user_id": Ecto.UUID.generate()
+        }]
+
+        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: party_users}))
+      end
+
       # MPI API
       Plug.Router.get "/persons" do
         confirm_params =
@@ -169,12 +177,30 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
         Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: decision}))
       end
 
-      Plug.Router.get "/party_users" do
-        party_users = [%{
-          "user_id": Ecto.UUID.generate()
+      # Mithril API
+      Plug.Router.get "/admin/roles" do
+        roles = [%{
+          "id" => "f9bd4210-7c4b-40b6-957f-300829ad37dc"
         }]
 
-        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: party_users}))
+        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: roles}))
+      end
+
+      Plug.Router.get "/admin/users/:id/roles" do
+        roles = [%{
+          "user_id" => id,
+          "role_id" => "f9bd4210-7c4b-40b6-957f-300829ad37dc"
+        }]
+
+        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: roles}))
+      end
+
+      Plug.Router.get "/admin/users/:id" do
+        user = %{
+          "email" => "user@email.com"
+        }
+
+        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: user}))
       end
 
       match _ do
@@ -202,6 +228,7 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
       System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:#{port}")
       System.put_env("UADDRESS_ENDPOINT", "http://localhost:#{port}")
       System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:#{port}")
+      System.put_env("OAUTH_ENDPOINT", "http://localhost:#{port}")
       on_exit fn ->
         System.put_env("PRM_ENDPOINT", "http://localhost:4040")
         System.put_env("MPI_ENDPOINT", "http://localhost:4040")
@@ -210,6 +237,7 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
         System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:4040")
         System.put_env("UADDRESS_ENDPOINT", "http://localhost:4040")
         System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:4040")
+        System.put_env("OAUTH_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
       end
 

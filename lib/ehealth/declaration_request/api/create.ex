@@ -10,7 +10,7 @@ defmodule EHealth.DeclarationRequest.API.Create do
   alias EHealth.API.OTPVerification
   alias Ecto.Changeset
 
-  import Ecto.Changeset, only: [get_field: 2, put_change: 3, add_error: 3]
+  import Ecto.Changeset, only: [get_field: 2, get_change: 2, put_change: 3, add_error: 3]
 
   use Confex, otp_app: :ehealth
 
@@ -55,8 +55,9 @@ defmodule EHealth.DeclarationRequest.API.Create do
   def generate_printout_form(%Changeset{valid?: false} = changeset), do: changeset
   def generate_printout_form(changeset) do
     form_data = get_field(changeset, :data)
+    authentication_method_current = get_change(changeset, :authentication_method_current)
 
-    case DeclarationRequestPrintoutForm.render(form_data) do
+    case DeclarationRequestPrintoutForm.render(form_data, authentication_method_current) do
       {:ok, printout_content} ->
         put_change(changeset, :printout_content, printout_content)
       {:error, error_response} ->

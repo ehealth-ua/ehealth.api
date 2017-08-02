@@ -6,7 +6,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
   alias EHealth.DeclarationRequest
   alias EHealth.Dictionaries
 
-  import Ecto.Changeset, only: [get_change: 2]
+  import Ecto.Changeset, only: [get_change: 2, put_change: 3]
 
   describe "generate_upload_urls/1" do
     defmodule UploadingFiles do
@@ -108,6 +108,12 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         values: %{"STREET": "вулиця"}
       })
 
+      Dictionaries.create_dictionary(%{
+        name: "DOCUMENT_TYPE",
+        labels: [],
+        values: %{"PASSPORT": "Паспорт"}
+      })
+
       :ok
     end
 
@@ -117,9 +123,14 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         |> File.read!()
         |> Poison.decode!
 
+      authentication_method_current = %{
+        "type" => "OTP"
+      }
+
       printout_content =
         %DeclarationRequest{id: 321, data: data}
         |> Ecto.Changeset.change()
+        |> put_change(:authentication_method_current, authentication_method_current)
         |> generate_printout_form()
         |> get_change(:printout_content)
 
@@ -132,7 +143,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
           },
           birth_date: "1991-08-19",
           document: %{
-            type: "PASSPORT",
+            type: "Паспорт",
             number: "120518"
           },
           birth_settlement: "Вінниця",
@@ -173,12 +184,12 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
               birth_settlement: "Вінниця",
               birth_country: "Україна",
               documents_person: %{
-                type: "PASSPORT",
+                type: "Паспорт",
                 number: "120518"
               },
               tax_id: "3126509816",
               documents_relationship: %{
-                type: "PASSPORT",
+                type: "Паспорт",
                 number: "120519"
               }
             },
@@ -195,12 +206,12 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
               birth_settlement: "Вінниця",
               birth_country: "Україна",
               documents_person: %{
-                type: "PASSPORT",
+                type: "Паспорт",
                 number: "120520"
               },
               tax_id: "3126509817",
               documents_relationship: %{
-                type: "PASSPORT",
+                type: "Паспорт",
                 number: "120521"
               }
             }
@@ -253,6 +264,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       printout_content =
         %DeclarationRequest{id: 321, data: %{}}
         |> Ecto.Changeset.change()
+        |> put_change(:authentication_method_current, %{})
         |> generate_printout_form()
         |> get_change(:printout_content)
 
@@ -332,6 +344,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       changeset =
         %DeclarationRequest{id: 321, data: %{}}
         |> Ecto.Changeset.change()
+        |> put_change(:authentication_method_current, %{})
         |> generate_printout_form()
 
       assert ~s(Error during MAN interaction. Result from MAN: "oops, I did it again") ==

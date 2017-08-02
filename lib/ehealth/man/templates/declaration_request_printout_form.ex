@@ -3,13 +3,14 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
 
   alias EHealth.API.Man
   alias EHealth.Utils.AddressMerger
+  alias EHealth.Dictionaries
 
   use Confex, otp_app: :ehealth
 
-  def render(declaration_request) do
+  def render(declaration_request, authentication_method_current) do
     template_data =
       declaration_request
-      |> map_declaration_data()
+      |> map_declaration_data(authentication_method_current)
       |> Map.put(:format, config()[:format])
       |> Map.put(:locale, config()[:locale])
 
@@ -18,15 +19,15 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
     Man.render_template(template_id, template_data)
   end
 
-  defp map_declaration_data(nil), do: %{}
-  defp map_declaration_data(declaration_request) do
+  defp map_declaration_data(nil, _), do: %{}
+  defp map_declaration_data(declaration_request, authentication_method_current) do
     %{
       person: get_person(declaration_request),
       employee: get_employee(declaration_request),
       division: get_division(declaration_request),
       legal_entity: get_legal_entity(declaration_request),
       confidant_persons: check_confidant_persons(declaration_request),
-      authentication_method_current: get_authentication_method_current(declaration_request)
+      authentication_method_current: get_authentication_method_current(authentication_method_current)
     }
   end
 
@@ -92,9 +93,13 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
   defp get_document(data, key) do
     documents = Map.get(data, key)
     case is_list(documents) do
-      true -> documents |> List.first() |> take_fields(["type", "number"])
+      true -> documents |> List.first() |> take_fields(["type", "number"]) |> update_document_type()
       _ -> nil
     end
+  end
+
+  defp update_document_type(document) do
+    Map.update!(document, "type", fn(type) -> Dictionaries.get_dictionary_value(type, "DOCUMENT_TYPE") end)
   end
 
   defp get_person_addresses(person) do
@@ -282,13 +287,13 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
     }
   end
 
-  defp get_authentication_method_current(declaration_request) do
+  defp get_authentication_method_current(data) do
     authentication_method_current = %{
       otp: false,
       offline: false
     }
 
-    case get_in(declaration_request, ["authentication_method_current", "type"]) do
+    case Map.get(data, "type") do
       "OTP" -> Map.put(authentication_method_current, :otp, true)
       "OFFLINE" -> Map.put(authentication_method_current, :offline, true)
       _ -> authentication_method_current
