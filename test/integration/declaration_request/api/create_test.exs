@@ -599,4 +599,96 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       assert {:error, _} = send_verification_code("+380508887700")
     end
   end
+
+  describe "put_party_email/1" do
+    defmodule PRMMithrilMock do
+      use MicroservicesHelper
+
+      @invalid_party_id "6b4127ea-99ad-4493-b5ce-6f0769fa9fab"
+      @invalid_user_id "79d70fe0-00dd-4dc3-b302-c8f3a6f6ad38"
+      @user_id Ecto.UUID.generate()
+      @role_id Ecto.UUID.generate()
+
+      # PRM API
+      Plug.Router.get "/party_users" do
+        party_id = Map.get(conn.query_params, "party_id")
+        user_id = case party_id do
+          @invalid_party_id -> @invalid_user_id
+          _ -> @user_id
+        end
+        party_users = [%{
+          "user_id": user_id
+        }]
+
+        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: party_users}))
+      end
+
+      # Mithril API
+      Plug.Router.get "/admin/roles" do
+        roles = [%{
+          "id" => @role_id
+        }]
+
+        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: roles}))
+      end
+
+      Plug.Router.get "/admin/users/#{@invalid_user_id}/roles" do
+        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: []}))
+      end
+
+      Plug.Router.get "/admin/users/#{@user_id}/roles" do
+        roles = [%{
+          "user_id" => @user_id,
+          "role_id" => @role_id
+        }]
+
+        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: roles}))
+      end
+
+      Plug.Router.get "/admin/users/#{@user_id}" do
+        user = %{
+          "email" => "user@email.com"
+        }
+
+        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: user}))
+      end
+    end
+
+    setup do
+      {:ok, port, ref} = start_microservices(PRMMithrilMock)
+
+      System.put_env("PRM_ENDPOINT", "http://localhost:#{port}")
+      System.put_env("OAUTH_ENDPOINT", "http://localhost:#{port}")
+      on_exit fn ->
+        System.put_env("PRM_ENDPOINT", "http://localhost:4040")
+        System.put_env("OAUTH_ENDPOINT", "http://localhost:4040")
+        stop_microservices(ref)
+      end
+
+      :ok
+    end
+
+    test "user is not doctor" do
+      types = %{"data" => :map}
+      data = %{"employee" => %{"party" => %{"id" => "6b4127ea-99ad-4493-b5ce-6f0769fa9fab"}}}
+      changes = %{data: data}
+      errors = [email: {"Current user is not a doctor", []}]
+      expected_result =
+        %Ecto.Changeset{action: nil, changes: changes, errors: errors, data: data, types: types, valid?: false}
+      result = put_party_email(%Ecto.Changeset{data: data, changes: changes, types: types, valid?: true})
+      assert expected_result == result
+    end
+
+    test "everything is ok" do
+      types = %{"data" => :map}
+      party_id = Ecto.UUID.generate()
+      data = %{"employee" => %{"party" => %{"id" => party_id}}}
+      expected_changes = %{data: put_in(data, ["employee", "party", "email"], "user@email.com")}
+      changes = %{data: data}
+      expected_result =
+        %Ecto.Changeset{action: nil, changes: expected_changes, errors: [], data: data, types: types, valid?: true}
+      result = put_party_email(%Ecto.Changeset{data: data, changes: changes, types: types, valid?: true})
+      assert expected_result == result
+    end
+  end
 end

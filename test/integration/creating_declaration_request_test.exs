@@ -161,6 +161,22 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
         Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: decision}))
       end
 
+      Plug.Router.post "/api/v1/tables/some_gndf_table_id/decisions" do
+        decision = %{
+          "final_decision": "OFFLINE"
+        }
+
+        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: decision}))
+      end
+
+      Plug.Router.get "/party_users" do
+        party_users = [%{
+          "user_id": Ecto.UUID.generate()
+        }]
+
+        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: party_users}))
+      end
+
       match _ do
         request_info = Enum.join([conn.request_path, conn.query_string], ",")
         message = "Requested #{request_info}, but there was no such route."

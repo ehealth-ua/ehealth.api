@@ -232,6 +232,7 @@ defmodule EHealth.DeclarationRequest.API do
     |> put_change(:status, "NEW")
     |> put_change(:inserted_by, user_id)
     |> put_change(:updated_by, user_id)
+    |> Create.put_party_email()
     |> Create.determine_auth_method_for_mpi()
     |> Create.generate_printout_form()
   end

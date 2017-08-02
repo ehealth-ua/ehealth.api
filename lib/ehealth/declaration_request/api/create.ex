@@ -3,6 +3,8 @@ defmodule EHealth.DeclarationRequest.API.Create do
 
   alias EHealth.API.MediaStorage
   alias EHealth.API.MPI
+  alias EHealth.API.PRM
+  alias EHealth.API.Mithril
   alias EHealth.API.Gandalf
   alias EHealth.Man.Templates.DeclarationRequestPrintoutForm
   alias EHealth.API.OTPVerification
@@ -173,6 +175,90 @@ defmodule EHealth.DeclarationRequest.API.Create do
 
     Map.take(division, division_attrs)
   end
+
+  defp fetch_users(result) do
+    users =
+      result
+      |> Map.fetch!("data")
+      |> Enum.map(fn(x) -> Map.get(x, "user_id") end)
+
+    {:ok, users}
+  end
+
+  defp get_role_id(name) do
+    with {:ok, results} <- Mithril.get_roles_by_name(name) do
+      roles = Map.get(results, "data")
+      case length(roles) do
+        1 -> {:ok, roles |> List.first() |> Map.get("id")}
+        _ -> {:error, "Role #{name} does not exist"}
+      end
+    end
+  end
+
+  defp filter_users_by_role(role_id, users) do
+    user_roles_results = Enum.map(users, fn(user_id) -> Mithril.get_user_roles(user_id, %{}) end)
+    error = Enum.find(user_roles_results, fn({k, _}) -> k == :error end)
+    case error do
+      nil -> {:ok, Enum.filter(user_roles_results, fn({:ok, result}) -> check_role(result, role_id) end)}
+      err -> err
+    end
+  end
+
+  defp get_user_id(user_roles) when length(user_roles) > 0 do
+    {:ok, user_role} = List.last(user_roles)
+
+    user_id =
+      user_role
+      |> Map.get("data")
+      |> List.first()
+      |> Map.get("user_id")
+
+    {:ok, user_id}
+  end
+  defp get_user_id(_), do: {:error, "Current user is not a doctor"}
+
+  defp check_role(user, role_id) do
+    Enum.any?(Map.get(user, "data"), fn(user_role) -> Map.get(user_role, "role_id") == role_id end)
+  end
+
+  defp get_user_email(user_id) do
+    with {:ok, user} <- Mithril.get_user_by_id(user_id), do: {:ok, get_in(user, ["data", "email"])}
+  end
+
+  defp get_party_email(party_id) do
+    with {:ok, result} <- PRM.get_party_users_by_party_id(party_id),
+      {:ok, users} <- fetch_users(result),
+      {:ok, role_id} <- get_role_id("DOCTOR"),
+      {:ok, user_roles} <- filter_users_by_role(role_id, users),
+      {:ok, user_id} <- get_user_id(user_roles),
+    do: get_user_email(user_id)
+  end
+
+  def put_party_email(%Changeset{valid?: false} = changeset), do: changeset
+  def put_party_email(changeset) do
+    party_id =
+      changeset
+      |> get_field(:data)
+      |> get_in(["employee", "party", "id"])
+
+    case get_party_email(party_id) do
+      {:ok, email} ->
+        put_in_data(changeset, ["employee", "party", "email"], email)
+      {:error, error} when is_binary(error) ->
+        add_error(changeset, :email, error)
+      {:error, error_response} ->
+        add_error(changeset, :email, format_error_response("microservice", error_response))
+    end
+  end
+
+  defp put_in_data(changeset, keys, value) do
+     new_data =
+       changeset
+       |> get_field(:data)
+       |> put_in(keys, value)
+
+     put_change(changeset, :data, new_data)
+   end
 
   defp format_error_response(microservice, result) do
     "Error during #{microservice} interaction. Result from #{microservice}: #{inspect result}"
