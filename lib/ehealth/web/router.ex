@@ -124,4 +124,12 @@ defmodule EHealth.Web.Router do
     # User roles
     get "/user/roles", UserRoleController, :index
   end
+
+  scope "/internal", EHealth.Web do
+    pipe_through [:api]
+
+    scope "/deduplication" do
+      post "/found_duplicates", DeduplicationsController, :found_duplicates
+    end
+  end
 end

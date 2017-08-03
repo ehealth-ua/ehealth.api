@@ -44,4 +44,22 @@ defmodule EHealth.API.MPI do
     |> post!(Poison.encode!(params), headers)
     |> ResponseDecoder.check_response()
   end
+
+  def get_merge_candidates(params \\ %{}, headers \\ []) do
+    full_path = "/merge_candidates?#{URI.encode_query(params)}"
+
+    CallLog.log("GET", config()[:endpoint], full_path, headers)
+
+    full_path
+    |> get!(headers)
+    |> ResponseDecoder.check_response()
+  end
+
+  def update_merge_candidate(merge_candidate_id, params, headers \\ []) do
+    CallLog.log("PATCH", config()[:endpoint], "/merge_candidates/#{merge_candidate_id}", %{}, headers)
+
+    "/merge_candidates/#{merge_candidate_id}"
+    |> patch!(Poison.encode!(params), headers)
+    |> ResponseDecoder.check_response()
+  end
 end

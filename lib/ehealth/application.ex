@@ -19,6 +19,7 @@ defmodule EHealth do
     # Define workers and child supervisors to be supervised
     children = [
       # Start the Ecto repository
+      supervisor(EHealth.DuplicatePersons, []),
       supervisor(EHealth.Repo, []),
       supervisor(EHealth.PRMRepo, []),
       # Start the endpoint when the application starts
