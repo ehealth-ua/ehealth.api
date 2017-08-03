@@ -32,6 +32,29 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
     end
   end
 
+  describe "check_patient_signed/1" do
+    test "returns error when patient_signed is false" do
+      db_data = %DeclarationRequest{data: %{"person" => %{"key" => "another_value"}}}
+      input_data = %{"data" => %{"content" => %{"person" => %{"key" => "value", "patient_signed" => false}}}}
+      result = check_patient_signed({:ok, input_data, db_data})
+      expected_result = {:error, [{%{description: "Patient must sign declaration form",
+        params: [], rule: :invalid}, "$.person.patient_signed"}]}
+      assert expected_result == result
+    end
+
+    test "returns expected result when patient_signed is true" do
+      id = Ecto.UUID.generate()
+      db_data = %DeclarationRequest{id: id, data: %{"person" => %{"key" => "value", "patient_signed" => false}},
+        status: "APPROVED", printout_content: "<html></html>"}
+      content = %{"id" => id, "person" => %{"key" => "value", "patient_signed" => true}, "status" => "APPROVED",
+        "content" => "<html></html>"}
+      input_data = %{"data" => %{"content" => content}}
+      result = check_patient_signed({:ok, input_data, db_data})
+      expected_result = {:ok, %{"data" => %{"content" => content}}, db_data}
+      assert expected_result == result
+    end
+  end
+
   describe "compare_with_db/1" do
     test "returns error when data does not match" do
       db_data = %DeclarationRequest{data: %{"person" => %{"key" => "another_value"}}}
@@ -42,7 +65,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
       assert expected_result == result
     end
 
-    test "returns expected result when data matches except patient_signed field" do
+    test "returns expected result when data matches" do
       id = Ecto.UUID.generate()
       db_data = %DeclarationRequest{id: id, data: %{"person" => %{"key" => "value", "patient_signed" => false}},
         status: "APPROVED", printout_content: "<html></html>"}

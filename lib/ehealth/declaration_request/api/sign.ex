@@ -25,18 +25,25 @@ defmodule EHealth.DeclarationRequest.API.Sign do
   end
   def check_status(err, _input), do: err
 
+  def check_patient_signed({:ok, %{"data" => %{"content" => content}}, _declaration_request} = pipe_data) do
+    case get_in(content, ["person", "patient_signed"]) do
+      true -> pipe_data
+      _ -> {:error, [{%{description: "Patient must sign declaration form", params: [], rule: :invalid},
+        "$.person.patient_signed"}]}
+    end
+  end
+  def check_patient_signed(err, _input), do: err
+
   def compare_with_db({:ok, %{"data" => %{"content" => content}}, declaration_request} = pipe_data) do
     data =
       declaration_request
       |> Map.get(:data)
-      |> Map.update!("person", fn(map) -> Map.delete(map, "patient_signed") end)
+      |> put_in(["person", "patient_signed"], true)
       |> Map.put("id", Map.get(declaration_request, :id))
       |> Map.put("status", Map.get(declaration_request, :status))
       |> Map.put("content", Map.get(declaration_request, :printout_content))
 
-    input = Map.update!(content, "person", fn(map) -> Map.delete(map, "patient_signed") end)
-
-    case input == data do
+    case content == data do
       true -> pipe_data
       _ -> {:error, [{%{description: "Signed content does not match the previously created content",
         params: [], rule: :invalid}, "$.content"}]}

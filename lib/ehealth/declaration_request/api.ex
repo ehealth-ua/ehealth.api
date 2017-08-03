@@ -298,6 +298,7 @@ defmodule EHealth.DeclarationRequest.API do
     params
     |> Validations.decode_and_validate_sign_request()
     |> Sign.check_status(params)
+    |> Sign.check_patient_signed()
     |> Sign.compare_with_db()
     |> Sign.check_employee_id(headers)
     |> Sign.check_drfo()
