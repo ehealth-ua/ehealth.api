@@ -5,11 +5,7 @@
       "type": "object",
       "properties": {
         "type": {
-          "type": "string",
-          "enum": [
-            "MOBILE",
-            "LANDLINE"
-          ]
+          "type": "string"
         },
         "number": {
           "type": "string",
@@ -89,14 +85,7 @@
       "type": "object",
       "properties": {
         "type": {
-          "type": "string",
-          "enum": [
-            "PASSPORT",
-            "NATIONAL_ID",
-            "BIRTH_CERTIFICATE",
-            "TEMPORARY_CERTIFICATE",
-            "COURT_DECISION"
-          ]
+          "type": "string"
         },
         "number": {
           "type": "string"
@@ -112,11 +101,7 @@
       "type": "object",
       "properties": {
         "type": {
-          "type": "string",
-          "enum": [
-            "OTP",
-            "OFFLINE"
-          ]
+          "type": "string"
         },
         "phone_number": {
           "type": "string",
@@ -180,11 +165,7 @@
               "minLength": 1
             },
             "gender": {
-              "type": "string",
-              "enum": [
-                "MALE",
-                "FEMALE"
-              ]
+              "type": "string"
             },
             "email": {
               "type": "string",
@@ -313,11 +294,7 @@
                     "minLength": 1
                   },
                   "gender": {
-                    "type": "string",
-                    "enum": [
-                      "MALE",
-                      "FEMALE"
-                    ]
+                    "type": "string"
                   },
                   "tax_id": {
                     "type": "string",
@@ -411,10 +388,7 @@
           "description": "Registered Medical Service Provider Division identifier."
         },
         "scope": {
-          "type": "string",
-          "enum": [
-            "family_doctor"
-          ]
+          "type": "string"
         }
       },
       "required": [
