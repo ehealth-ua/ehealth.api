@@ -10,7 +10,7 @@ use Mix.Config
 # watchers to your application. For example, we use it
 # with brunch.io to recompile .js and .css sources.
 config :ehealth, EHealth.Web.Endpoint,
-  http: [port: 4000],
+  http: [port: {:system, "PORT", 4000}],
   debug_errors: false,
   code_reloader: true,
   check_origin: false,
