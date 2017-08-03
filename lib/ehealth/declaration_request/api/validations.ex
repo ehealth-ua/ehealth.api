@@ -110,6 +110,7 @@ defmodule EHealth.DeclarationRequest.API.Validations do
     |> validate_sign_request()
     |> validate_signature()
     |> normalize_signature_error()
+    |> check_is_valid()
   end
 
   def validate_sign_request(params) do
@@ -137,6 +138,11 @@ defmodule EHealth.DeclarationRequest.API.Validations do
     |> add_error(:signed_legal_entity_request, error)
   end
   def normalize_signature_error(ok_resp), do: ok_resp
+
+  def check_is_valid({:ok, %{"data" => %{"is_valid" => false}}}) do
+    {:error, {:bad_request, "Signed request data is invalid"}}
+  end
+  def check_is_valid({:ok, %{"data" => %{"is_valid" => true}}} = data), do: data
 
   def validate_tax_id(changeset) do
     tax_id =

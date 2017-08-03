@@ -25,6 +25,10 @@ defmodule EHealth.DeclarationRequest.API.Sign do
   end
   def check_status(err, _input), do: err
 
+  def check_patient_signed({:ok, %{"data" => %{"content" => ""}}, _declaration_request}) do
+    {:error, [{%{description: "Can not be empty", params: [], rule: :invalid}, "$.declaration_request"}]}
+  end
+
   def check_patient_signed({:ok, %{"data" => %{"content" => content}}, _declaration_request} = pipe_data) do
     case get_in(content, ["person", "patient_signed"]) do
       true -> pipe_data
@@ -32,7 +36,8 @@ defmodule EHealth.DeclarationRequest.API.Sign do
         "$.person.patient_signed"}]}
     end
   end
-  def check_patient_signed(err, _input), do: err
+
+  def check_patient_signed(err), do: err
 
   def compare_with_db({:ok, %{"data" => %{"content" => content}}, declaration_request} = pipe_data) do
     data =

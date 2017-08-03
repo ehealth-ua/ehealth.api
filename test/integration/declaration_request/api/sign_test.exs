@@ -33,6 +33,15 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
   end
 
   describe "check_patient_signed/1" do
+    test "returns error when content is empty" do
+      db_data = %DeclarationRequest{data: %{"person" => %{"key" => "another_value"}}}
+      input_data = %{"data" => %{"content" => ""}}
+      result = check_patient_signed({:ok, input_data, db_data})
+      expected_result = {:error, [{%{description: "Can not be empty",
+        params: [], rule: :invalid}, "$.declaration_request"}]}
+      assert expected_result == result
+    end
+
     test "returns error when patient_signed is false" do
       db_data = %DeclarationRequest{data: %{"person" => %{"key" => "another_value"}}}
       input_data = %{"data" => %{"content" => %{"person" => %{"key" => "value", "patient_signed" => false}}}}
