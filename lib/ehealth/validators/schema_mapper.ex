@@ -55,8 +55,13 @@ defmodule EHealth.Validators.SchemaMapper do
   end
 
   def put_dictionary_value(%Dictionary{name: "ADDRESS_TYPE", values: values}, schema, type)
-    when type in [:legal_entity, :division] do
+    when type in [:legal_entity, :division, :declaration_request] do
     put_into_schema(["definitions", "address", "properties", "type", "enum"], schema, values)
+  end
+
+  def put_dictionary_value(%Dictionary{name: "GENDER", values: values}, schema, type)
+    when type in [:legal_entity, :declaration_request, :employee_request] do
+    put_into_schema(~W(definitions gender enum), schema, values)
   end
 
   def put_dictionary_value(%Dictionary{name: "OWNER_PROPERTY_TYPE", values: values}, schema, :legal_entity) do
@@ -123,6 +128,10 @@ defmodule EHealth.Validators.SchemaMapper do
 
   def put_dictionary_value(%Dictionary{name: "POSITION", values: values}, schema, :employee_request) do
     put_into_schema(["properties", "employee_request", "properties", "position", "enum"], schema, values)
+  end
+
+  def put_dictionary_value(%Dictionary{name: "AUTHENTICATION_METHOD", values: values}, schema, :declaration_request) do
+    put_into_schema(~W(definitions authentication_method properties type enum), schema, values)
   end
 
   def put_dictionary_value(%Dictionary{}, schema, _type) do

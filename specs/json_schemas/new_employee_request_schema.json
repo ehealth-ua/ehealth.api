@@ -23,6 +23,10 @@
       ],
       "additionalProperties": false
     },
+    "gender": {
+      "type": "string",
+      "description": "Dictionary: GENDER"
+    },
     "document": {
       "type": "object",
       "properties": {
@@ -205,8 +209,7 @@
           "$ref": "#/definitions/date"
         },
         "gender": {
-          "type": "string",
-          "description": "Dictionary: GENDER"
+          "$ref": "#/definitions/gender"
         },
         "tax_id": {
           "type": "string",

@@ -9,6 +9,10 @@
       "type": "string",
       "pattern": "^(?!.*[ЫЪЭЁыъэё@%&$^#])[a-zA-ZА-ЯҐЇІЄа-яґїіє0-9№\\\"!\\^\\*)\\]\\[(._-].*$"
     },
+    "gender": {
+      "type": "string",
+      "description": "Dictionary: GENDER"
+    },
     "phone": {
       "type": "object",
       "properties": {
@@ -178,8 +182,7 @@
           "$ref": "#/definitions/date"
         },
         "gender": {
-          "type": "string",
-          "description": "Dictionary: GENDER"
+          "$ref": "#/definitions/gender"
         },
         "email": {
           "type": "string",

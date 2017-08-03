@@ -7,6 +7,7 @@ defmodule EHealth.Unit.ValidatorTest do
   alias EHealth.Validators.KVEDs
   alias EHealth.API.MediaStorage
   alias EHealth.Employee.API, as: EmployeeRequestAPI
+  alias EHealth.DeclarationRequest.API.Validations, as: DeclarationRequestValidator
 
   @phone_type %{
     "name" => "PHONE_TYPE",
@@ -23,6 +24,26 @@ defmodule EHealth.Unit.ValidatorTest do
     "values" => %{
       "MSP" => "MSP",
       "MIS" => "MIS",
+    },
+    "labels" => ["SYSTEM"],
+    "is_active" => true,
+  }
+
+  @gender %{
+    "name" => "GENDER",
+    "values" => %{
+      "FEMALE" => "woman",
+      "MALE" => "man",
+    },
+    "labels" => ["SYSTEM"],
+    "is_active" => true,
+  }
+
+  @authentication_method %{
+    "name" => "AUTHENTICATION_METHOD",
+    "values" => %{
+      "2FA" => "two-factor",
+      "OTP" => "one-time pass",
     },
     "labels" => ["SYSTEM"],
     "is_active" => true,
@@ -255,5 +276,42 @@ defmodule EHealth.Unit.ValidatorTest do
 
   test "validate kveds with empty dictionary" do
     assert %Ecto.Changeset{valid?: true} = KVEDs.validate(["12.11"])
+  end
+
+  test "Declaration Request: authentication_methods invalid", %{conn: conn} do
+    patch conn, dictionary_path(conn, :update, "AUTHENTICATION_METHOD"), @authentication_method
+    content =
+      "test/data/declaration_request.json"
+      |> File.read!()
+      |> Poison.decode!()
+      |> Map.fetch!("declaration_request")
+      |> put_in(~W(person authentication_methods), [%{"phone_number" => "+380508887700", "type" => "IDGAF"}])
+
+    assert {:error, [{%{rule: :inclusion}, "$.declaration_request.person.authentication_methods.[0].type"}]} =
+      DeclarationRequestValidator.validate_schema(content)
+  end
+
+  test "Declaration Request: JSON schema gender invalid", %{conn: conn} do
+    patch conn, dictionary_path(conn, :update, "GENDER"), @gender
+    content =
+      "test/data/declaration_request.json"
+      |> File.read!()
+      |> Poison.decode!()
+      |> Map.fetch!("declaration_request")
+      |> put_in(~W(person gender), "ORC")
+
+    assert {:error, [{%{description: _, rule: :inclusion}, "$.declaration_request.person.gender"}]} =
+      DeclarationRequestValidator.validate_schema(content)
+  end
+
+  test "Declaration Request: JSON schema gender valid", %{conn: conn} do
+    patch conn, dictionary_path(conn, :update, "GENDER"), @gender
+    content =
+      "test/data/declaration_request.json"
+      |> File.read!()
+      |> Poison.decode!()
+      |> Map.fetch!("declaration_request")
+
+    assert {:ok, _} = DeclarationRequestValidator.validate_schema(content)
   end
 end
