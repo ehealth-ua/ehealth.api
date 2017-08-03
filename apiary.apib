@@ -824,7 +824,7 @@ This method to update the division info by ID.
 Methods returns list of legal entity divisions.
 
 + Parameters
-    + type: CLINIC (string, optional)
+    + type: clinic (string, optional)
     + `legal_entity_id`: 314083428 (string, optional)
     + name: Борисп (string, optional)
 
@@ -1805,7 +1805,7 @@ Invoke Get Declaration Request by ID to obtain seed - Hash of previous block in 
         }
       ],
       "email": "email@example.com",
-      "type": "CLINIC",
+      "type": "clinic",
       "external_id": "3213213"
     },
     "content": "Declaration content",
@@ -1832,7 +1832,7 @@ Invoke Get Declaration Request by ID to obtain seed - Hash of previous block in 
         + data (`Declaration_short`)
 
 
-## Declarations - TBD [/api/declarations]
+## Declarations [/api/declarations]
 
 ### Get Declarations List [GET /api/declarations{?employee_id,legal_entity_id,status,starting_after,ending_before,limit}]
 
@@ -2103,7 +2103,7 @@ This service should be used with `access_token` authetification method.
         + urgent (object, optional)
             + user_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 
-## Persons - TBD [/api/persons]
+## Persons [/api/persons]
 
 ### Search for a Person [GET /api/persons{?first_name,last_name,second_name,birth_date,tax_id,phone_number,birth_place,starting_after,ending_before,limit}]
 
@@ -2433,7 +2433,7 @@ Available transition:
             
 
 
-### Deactivate Legal Entity - TBD [PATCH /api/legal_entities/{id}/actions/deactivate]
+### Deactivate Legal Entity [PATCH /api/legal_entities/{id}/actions/deactivate]
 
 Use this method to deactivate msp.
 1. Deactivate emploees by legal entity
@@ -3182,10 +3182,10 @@ API for searching Ukrainian Addresses
 + addresses (array[Address], required)
 + phones (array[Phone], required)
 + email: email@example.com (string, required)
-+ type: CLINIC (enum, required)
-    - CLINIC
-    - AMBULANT_CLINIC
-    - FAP
++ type: clinic (enum, required)
+    - clinic
+    - ambulant_clinic
+    - fap
 + external_id: `3213213` (string, optional)
 + location (Location, optional)
 
@@ -3196,10 +3196,10 @@ API for searching Ukrainian Addresses
 ### `Division_Short_List`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + name: Бориспільське відділення Клініки Борис (string, required)
-+ type: CLINIC (enum, required)
-    - CLINIC
-    - AMBULANT_CLINIC
-    - FAP
++ type: clinic (enum, required)
+    - clinic
+    - ambulant_clinic
+    - fap
 + status: ACTIVE (enum, required)
     - ACTIVE
     - INACTIVE
@@ -3208,10 +3208,10 @@ API for searching Ukrainian Addresses
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + name: Бориспільське відділення Клініки Борис (string, required)
 + `legal_entity_id`: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
-+ type: CLINIC (enum, required)
-    - CLINIC
-    - AMBULANT_CLINIC
-    - FAP
++ type: clinic (enum, required)
+    - clinic
+    - ambulant_clinic
+    - fap
 + status: ACTIVE (enum, required)
     - ACTIVE
     - INACTIVE
