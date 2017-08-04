@@ -1,4 +1,4 @@
-# This is the default checklist that should be used for any ehealh deployment
+# This is the default checklist that should be used for any eHealth deployment
 
 - [ ] define required versions of repo to the destination env.
 - [ ] apply the required versions of repo to the destination env.
