@@ -25,6 +25,20 @@ defmodule EHealth.Integration.DeduplicatingPersonsTest do
         send_resp(conn, 200, Poison.encode!(%{data: merge_candidates}))
       end
 
+      Plug.Router.patch "/persons/#{@person1}" do
+        Logger.info("Candidate #{@person1} was deactivated.")
+        %{"merge_candidate" => %{"status" => "INACTIVE", "is_active" => false}} = conn.params
+        updated_candidate = %{}
+        send_resp(conn, 200, Poison.encode!(%{data: updated_candidate}))
+      end
+
+      Plug.Router.patch "/persons/#{@person2}" do
+        Logger.info("Candidate #{@person2} was deactivated.")
+        %{"merge_candidate" => %{"status" => "INACTIVE", "is_active" => false}} = conn.params
+        updated_candidate = %{}
+        send_resp(conn, 200, Poison.encode!(%{data: updated_candidate}))
+      end
+
       Plug.Router.patch "/merge_candidates/mc_1" do
         Logger.info("Candidate #{@person1} was merged.")
         %{"merge_candidate" => %{"status" => "MERGED"}} = conn.params
@@ -104,6 +118,8 @@ defmodule EHealth.Integration.DeduplicatingPersonsTest do
 
       assert result =~ "Candidate 8060385c-c663-4f8f-bf8f-d8121216084e was merged."
       assert result =~ "Candidate abcf619e-ee57-4637-9bc8-3a465eca047c was merged."
+      assert result =~ "Candidate 8060385c-c663-4f8f-bf8f-d8121216084e was deactivated."
+      assert result =~ "Candidate abcf619e-ee57-4637-9bc8-3a465eca047c was deactivated."
       assert result =~ "Candidate 8060385c-c663-4f8f-bf8f-d8121216084e got his declarations terminated."
       assert result =~ "Candidate abcf619e-ee57-4637-9bc8-3a465eca047c got his declarations terminated."
     end

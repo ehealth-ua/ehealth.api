@@ -37,6 +37,14 @@ defmodule EHealth.API.MPI do
     |> ResponseDecoder.check_response()
   end
 
+  def update_person(id, params, headers \\ []) do
+    CallLog.log("PATCH", config()[:endpoint], "/persons/#{id}", headers)
+
+    "/persons/#{id}"
+    |> patch!(Poison.encode!(params), headers)
+    |> ResponseDecoder.check_response()
+  end
+
   def create_or_update_person(params, headers \\ []) do
     CallLog.log("POST", config()[:endpoint], "/persons", params, headers)
 
