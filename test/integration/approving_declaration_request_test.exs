@@ -21,15 +21,17 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
       end
 
       Plug.Router.patch "/verifications/+380972805261/actions/complete" do
-        {code, status} =
+        {code, response} =
           case conn.body_params["code"] do
             "12345" ->
-              {200, %{status: "verified"}}
+              {200, %{data: %{status: "verified"}}}
+            "54321" ->
+              {404, %{meta: %{code: 404}, error: %{type: "not_found"}}}
             _ ->
-              {422, %{}}
+              {422, %{meta: %{code: 422}, error: %{type: "forbidden", message: "invalid verification code"}}}
           end
 
-        Plug.Conn.send_resp(conn, code, Poison.encode!(%{data: status}))
+        Plug.Conn.send_resp(conn, code, Poison.encode!(response))
       end
     end
 
@@ -87,6 +89,52 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
 
       assert "APPROVED" = declaration_request.status
       assert "ce377dea-d8c4-4dd8-9328-de24b1ee3879" == declaration_request.updated_by
+    end
+
+    test "declaration failed to approve", %{conn: conn} do
+      id = Ecto.UUID.generate()
+
+      existing_declaration_request_params = %{
+        id: id,
+        data: %{
+          employee: %{},
+          legal_entity: %{
+            medical_service_provider: %{}
+          },
+          division: %{}
+        },
+        status: "NEW",
+        authentication_method_current: %{
+          "type" => "OTP",
+          "number" => "+380972805261"
+        },
+        printout_content: "something",
+        inserted_by: "f47f94fd-2d77-4b7e-b444-4955812c2a77",
+        updated_by: "f47f94fd-2d77-4b7e-b444-4955812c2a77"
+      }
+
+      {:ok, _} =
+        %DeclarationRequest{}
+        |> change(existing_declaration_request_params)
+        |> Repo.insert
+
+      conn1 =
+        conn
+        |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
+        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: ""}))
+        |> patch("/api/declaration_requests/#{id}/actions/approve", Poison.encode!(%{"verification_code" => "invalid"}))
+
+      assert response = json_response(conn1, 422)
+      assert %{"error" => %{"type" => "forbidden", "message" => _}} = response
+
+      conn2 =
+        conn
+        |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
+        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: ""}))
+        |> patch("/api/declaration_requests/#{id}/actions/approve", Poison.encode!(%{"verification_code" => "54321"}))
+
+      assert response = json_response(conn2, 500)
+      assert %{"error" => %{"type" => "proxied error", "message" => _}} = response
     end
   end
 

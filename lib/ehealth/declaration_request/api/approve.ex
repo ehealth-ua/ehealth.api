@@ -15,9 +15,7 @@ defmodule EHealth.DeclarationRequest.API.Approve do
 
         uploaded? = fn document, _acc -> uploaded?(declaration_request.id, document) end
 
-        documents
-        |> Enum.filter(&(&1["verb"] == "HEAD"))
-        |> Enum.reduce_while({:ok, true}, uploaded?)
+        Enum.reduce_while(documents, {:ok, true}, uploaded?)
     end
   end
 

@@ -394,7 +394,7 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
         |> post("/api/declaration_requests", declaration_request_params)
 
       resp = json_response(conn, 404)
-      assert %{"error" => %{"type" => "not_found"}} = resp["error"]
+      assert %{"error" => %{"type" => "not_found"}} = resp
     end
   end
 
@@ -453,7 +453,7 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
       {:ok, %{port: port, conn: conn}}
     end
 
-    test "returns error if employee doesn't exist", %{port: port, conn: conn} do
+    test "returns error if employee doesn't exist", %{conn: conn} do
       wrong_id = "2f650a5c-7a04-4615-a1e7-00fa41bf160d"
 
       declaration_request_params =
@@ -470,13 +470,15 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
 
       resp = json_response(conn, 404)
 
-      assert resp["error"] == %{
+      assert %{
         "error" => %{},
         "meta" => %{
-          "code" => "404",
-          "url" => "http://localhost:#{port}/employees/2f650a5c-7a04-4615-a1e7-00fa41bf160d"
+          "code" => 404,
+          "url" => "http://www.example.com/api/declaration_requests",
+          "type" => "object",
+          "request_id" => _,
         }
-      }
+      } = resp
     end
   end
 

@@ -22,7 +22,7 @@ defmodule EHealth.Proxy do
     |> put_resp_content_type("application/json")
   end
 
-  def get_proxy_resp_data(%{"error" => _} = error), do: error
+  def get_proxy_resp_data(%{"error" => error}), do: error
   def get_proxy_resp_data(%{"data" => data}), do: data
 
   def strings_to_keys(%{} = map) do
