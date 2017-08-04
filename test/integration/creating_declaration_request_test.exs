@@ -162,19 +162,11 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
       end
 
       Plug.Router.post "/api/v1/tables/some_gndf_table_id/decisions" do
-        decision = %{
-          "final_decision": "OFFLINE"
-        }
-
-        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: decision}))
+        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: %{final_decision: "OFFLINE"}}))
       end
 
-      Plug.Router.post "/api/v1/tables/some_gndf_table_id/decisions" do
-        decision = %{
-          "final_decision": "OFFLINE"
-        }
-
-        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: decision}))
+      Plug.Router.post "/api/v1/tables/not_available/decisions" do
+        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: %{final_decision: "NA"}}))
       end
 
       # Mithril API
@@ -230,6 +222,7 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
       System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:#{port}")
       System.put_env("OAUTH_ENDPOINT", "http://localhost:#{port}")
       on_exit fn ->
+        System.put_env("GNDF_TABLE_ID", "some_gndf_table_id")
         System.put_env("PRM_ENDPOINT", "http://localhost:4040")
         System.put_env("MPI_ENDPOINT", "http://localhost:4040")
         System.put_env("GNDF_ENDPOINT", "http://localhost:4040")
@@ -346,6 +339,58 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
           "url" => "http://some_resource.com/#{id}/declaration_request_confidant_person.0.PRIMARY.SSN.jpeg"
         }
       ] == resp["urgent"]["documents"]
+    end
+
+    test "declaration request is created without verification", %{conn: conn} do
+      System.put_env("GNDF_TABLE_ID", "not_available")
+      declaration_request_params =
+        "test/data/declaration_request.json"
+        |> File.read!()
+        |> Poison.decode!()
+        |> put_in(["declaration_request", "person", "first_name"], "UnknownMIS")
+
+      decoded = declaration_request_params["declaration_request"]
+      d1 = clone_declaration_request(decoded, "8799e3b6-34e7-4798-ba70-d897235d2b6d", "NEW")
+      d2 = clone_declaration_request(decoded, "8799e3b6-34e7-4798-ba70-d897235d2b6d", "APPROVED")
+
+      conn =
+        conn
+        |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
+        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
+        |> post("/api/declaration_requests", Poison.encode!(declaration_request_params))
+
+      resp = json_response(conn, 200)
+
+      id = resp["data"]["id"]
+
+      schema =
+        "test/data/declaration_request/create_api_response_schema.json"
+        |> File.read!()
+        |> Poison.decode!()
+
+      :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
+
+      assert to_string(Date.utc_today) == resp["data"]["start_date"]
+      assert {:ok, _} = Date.from_iso8601(resp["data"]["end_date"])
+
+      declaration_request = EHealth.DeclarationRequest.API.get_declaration_request_by_id!(id)
+      assert declaration_request.data["legal_entity"]["id"]
+      assert declaration_request.data["division"]["id"]
+      assert declaration_request.data["employee"]["id"]
+      # TODO: turn this into DB checks
+      #
+      # assert "NEW" = resp["status"]
+      # assert "ce377dea-d8c4-4dd8-9328-de24b1ee3879" = resp["data"]["updated_by"]
+      # assert "ce377dea-d8c4-4dd8-9328-de24b1ee3879" = resp["data"]["inserted_by"]
+      # assert %{"number" => "+380508887700", "type" => "OTP"} = resp["authentication_method_current"]
+      tax_id = resp["data"]["person"]["tax_id"]
+      assert "<html><body>Printout form for declaration request. tax_id = #{tax_id}</body></html>" ==
+        resp["data"]["content"]
+      assert %{"type" => "NA"} = resp["urgent"]["authentication_method_current"]
+      assert is_nil(resp["data"]["urgent"]["documents"])
+
+      assert "CANCELLED" = EHealth.Repo.get(EHealth.DeclarationRequest, d1.id).status
+      assert "CANCELLED" = EHealth.Repo.get(EHealth.DeclarationRequest, d2.id).status
     end
   end
 

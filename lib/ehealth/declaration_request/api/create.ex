@@ -14,6 +14,7 @@ defmodule EHealth.DeclarationRequest.API.Create do
 
   use Confex, otp_app: :ehealth
 
+  @decision_not_available "NA"
   @files_storage_bucket Confex.fetch_env!(:ehealth, EHealth.API.MediaStorage)[:declaration_request_bucket]
 
   def send_verification_code(number) do
@@ -55,7 +56,11 @@ defmodule EHealth.DeclarationRequest.API.Create do
   def generate_printout_form(%Changeset{valid?: false} = changeset), do: changeset
   def generate_printout_form(changeset) do
     form_data = get_field(changeset, :data)
-    authentication_method_current = get_change(changeset, :authentication_method_current)
+    authentication_method_current =
+      case get_change(changeset, :authentication_method_default) do
+        %{"type" => @decision_not_available} = default -> default
+        _ -> get_change(changeset, :authentication_method_current)
+      end
 
     case DeclarationRequestPrintoutForm.render(form_data, authentication_method_current) do
       {:ok, printout_content} ->

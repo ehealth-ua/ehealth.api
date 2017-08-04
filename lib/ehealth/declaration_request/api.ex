@@ -142,6 +142,9 @@ defmodule EHealth.DeclarationRequest.API do
     authorization = declaration_request.authentication_method_current
 
     case authorization["type"] do
+      "NA" ->
+        {:ok, declaration_request}
+
       "OTP" ->
         case Create.send_verification_code(authorization["number"]) do
           {:ok, _} ->
@@ -149,6 +152,7 @@ defmodule EHealth.DeclarationRequest.API do
           {:error, error} ->
             {:error, error}
         end
+
       "OFFLINE" ->
         documents_list = Helpers.gather_documents_list(declaration_request.data["person"])
 
@@ -156,7 +160,7 @@ defmodule EHealth.DeclarationRequest.API do
           {:ok, documents} ->
             declaration_request
             |> update_changeset(%{documents: documents})
-            |> Repo.update
+            |> Repo.update()
           {:error, _} = bad_result ->
             bad_result
         end
@@ -164,7 +168,7 @@ defmodule EHealth.DeclarationRequest.API do
   end
 
   def prepare_urgent_data(multi) do
-    declaration_request = multi.finalize
+    declaration_request = multi.finalize()
 
     filtered_authentication_method_current =
       update_in(declaration_request.authentication_method_current, ["number"], &Phone.hide_number/1)

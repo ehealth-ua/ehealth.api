@@ -443,6 +443,10 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
 
         Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: decision}))
       end
+
+      Plug.Router.post "/api/v1/tables/not_available/decisions" do
+        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: %{final_decision: "NA"}}))
+      end
     end
 
     setup do
@@ -453,6 +457,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       on_exit fn ->
         System.put_env("MPI_ENDPOINT", "http://localhost:4040")
         System.put_env("GNDF_ENDPOINT", "http://localhost:4040")
+        System.put_env("GNDF_TABLE_ID", "some_gndf_table_id")
         stop_microservices(ref)
       end
 
@@ -481,6 +486,31 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
 
       assert get_change(changeset, :authentication_method_current) ==
         %{"number" => "+380508887701", "type" => "OFFLINE"}
+    end
+
+    test "Gandalf makes a NA decision" do
+      System.put_env("GNDF_TABLE_ID", "not_available")
+      declaration_request = %DeclarationRequest{
+        data: %{
+          "person" => %{
+            "first_name" => "Олександр",
+            "last_name" => "Олесь",
+            "birth_date" => "1988-08-19",
+            "tax_id" => "3126509817",
+            "authentication_methods" => [%{
+              "type" => "OTP",
+              "phone_number" => "+380508887702"
+            }]
+          }
+        }
+      }
+
+      changeset =
+        declaration_request
+        |> Ecto.Changeset.change()
+        |> determine_auth_method_for_mpi()
+
+      assert get_change(changeset, :authentication_method_current) == %{"number" => "+380508887702", "type" => "NA"}
     end
   end
 

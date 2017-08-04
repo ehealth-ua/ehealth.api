@@ -8,8 +8,12 @@ defmodule EHealth.DeclarationRequest.API.Approve do
 
   def verify(declaration_request, code) do
     case declaration_request.authentication_method_current do
+      %{"type" => "NA"} ->
+        {:ok, true}
+
       %{"type" => "OTP", "number" => phone} ->
         OTPVerification.complete(phone, %{code: code})
+
       %{"type" => "OFFLINE"} ->
         documents = declaration_request.documents
 

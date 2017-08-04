@@ -32,7 +32,6 @@ updated_by | uuid | not null
 data | jsonb | not null
 status | enum('NEW', 'APPROVED', 'CANCELLED') | not null
 authentication_method_current | jsonb | not null
-authentication_method_default | jsonb
 printout_content | varchar | not null
 documents | jsonb | not null
 inserted_at | timestamp | not null

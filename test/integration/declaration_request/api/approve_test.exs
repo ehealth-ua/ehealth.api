@@ -141,5 +141,16 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.ApproveTest do
 
       assert {:error, %{"data" => %{}}} == verify(declaration_request, "11999")
     end
+
+    test "auth method NA is not required verification" do
+      declaration_request = %{
+        authentication_method_current: %{
+          "type" => "NA",
+          "number" => "+380972805261"
+        }
+      }
+
+      assert {:ok, true} == verify(declaration_request, nil)
+    end
   end
 end
