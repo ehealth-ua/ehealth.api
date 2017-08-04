@@ -8,6 +8,7 @@ defmodule EHealth.API.OPS do
   use EHealth.API.HeadersProcessor
 
   alias EHealth.API.ResponseDecoder
+  alias EHealth.API.Helpers.MicroserviceCallLog, as: CallLog
 
   def process_url(url), do: config()[:endpoint] <> url
 
@@ -32,7 +33,11 @@ defmodule EHealth.API.OPS do
   end
 
   def terminate_person_declarations(person_id, headers \\ []) do
-    "/persons/#{person_id}/declarations/actions/terminate"
+    full_path = "/persons/#{person_id}/declarations/actions/terminate"
+
+    CallLog.log("PATCH", config()[:endpoint], full_path, %{}, headers)
+
+    full_path
     |> patch!("", headers, timeouts())
     |> ResponseDecoder.check_response()
   end
