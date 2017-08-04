@@ -26,8 +26,7 @@ defmodule EHealth.Mixfile do
   def application do
     [extra_applications: [:logger, :confex, :runtime_tools, :logger_json, :poison,
                           :cowboy, :httpoison, :ecto, :ecto_paging, :postgrex,
-                          :phoenix, :multiverse,
-                          :eview, :jvalid, :bamboo],
+                          :phoenix, :eview, :jvalid, :bamboo],
      mod: {EHealth, []}]
   end
 
@@ -63,7 +62,6 @@ defmodule EHealth.Mixfile do
      {:postgrex, ">= 0.0.0"},
      {:phoenix, "~> 1.3.0"},
      {:phoenix_ecto, "~> 3.2"},
-     {:multiverse, "~> 0.4.3"},
      {:eview, "~> 0.12.0"},
      {:jvalid, "~> 0.6.0"},
      {:bamboo, "~> 0.8"},
