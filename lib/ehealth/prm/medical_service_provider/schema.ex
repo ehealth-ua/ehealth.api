@@ -10,7 +10,7 @@ defmodule EHealth.PRM.MedicalServiceProviders.Schema do
     field :accreditation, :map
     field :licenses, {:array, :map}
 
-    belongs_to :legal_entity, EHealth.PRM.LegalEntities.Scema, type: Ecto.UUID
+    belongs_to :legal_entity, EHealth.PRM.LegalEntities.Schema, type: Ecto.UUID
 
     timestamps()
   end

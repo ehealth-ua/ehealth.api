@@ -25,7 +25,7 @@ defmodule EHealth.Web.ConnCase do
       import EHealth.Web.Router.Helpers
       import EHealth.Web.ConnCase
       import EHealth.Test.Support.Fixtures
-      import EHealth.Test.Support.PRMFixtures
+      import EHealth.PRMFactories
 
       # The default endpoint for testing
       @endpoint EHealth.Web.Endpoint
