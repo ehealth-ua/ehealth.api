@@ -66,6 +66,7 @@ defmodule EHealth.Mixfile do
      {:jvalid, "~> 0.6.0"},
      {:bamboo, "~> 0.8"},
      {:bamboo_postmark, "~> 0.2.0"},
+     {:geo, "~> 1.4"},
      {:benchfella, ">= 0.3.4", only: [:dev, :test]},
      {:ex_doc, ">= 0.15.0", only: [:dev, :test]},
      {:excoveralls, ">= 0.5.0", only: [:dev, :test]},

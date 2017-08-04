@@ -155,18 +155,16 @@ defmodule EHealth.DeclarationRequest.API.Create do
   end
 
   def prepare_division_struct(division) do
-    division_attrs = [
-      "id",
-      "type",
-      "phones",
-      "name",
-      "legal_entity_id",
-      "external_id",
-      "email",
-      "addresses"
-    ]
-
-    Map.take(division, division_attrs)
+    %{
+      "id"              => division.id,
+      "type"            => division.type,
+      "phones"          => division.phones,
+      "name"            => division.name,
+      "legal_entity_id" => division.legal_entity_id,
+      "external_id"     => division.external_id,
+      "email"           => division.email,
+      "addresses"       => division.addresses
+    }
   end
 
   defp fetch_users(result) do

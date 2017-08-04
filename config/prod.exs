@@ -104,4 +104,5 @@ config :ehealth, EHealth.PRMRepo,
   port: "${PRM_DB_PORT}",
   pool_size: "${PRM_DB_POOL_SIZE}",
   timeout: 15_000,
-  pool_timeout: 15_000
+  pool_timeout: 15_000,
+  types: EHealth.PRM.PostgresTypes

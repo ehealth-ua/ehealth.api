@@ -33,21 +33,6 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         send_resp(conn, 200, Poison.encode!(%{data: employee}))
       end
 
-      Plug.Router.get "/divisions/51f56b0e-0223-49c1-9b5f-b07e09ba40f1" do
-        division = %{
-          id: "51f56b0e-0223-49c1-9b5f-b07e09ba40f1",
-          legal_entity_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d",
-          addresses: [],
-          phones: [],
-          external_id: "7ae4bbd6-a9e7-4ce0-992b-6a1b18a262dc",
-          type: "some",
-          email: "some",
-          name: "some"
-        }
-
-        send_resp(conn, 200, Poison.encode!(%{data: division}))
-      end
-
       Plug.Router.get "/party_users" do
         party_users = [%{
           "user_id": Ecto.UUID.generate()
@@ -185,8 +170,9 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
       insert(:global_parameter, %{parameter: "declaration_request_term", value: "40"})
       insert(:global_parameter, %{parameter: "declaration_request_term_unit", value: "YEARS"})
 
-      legal_entity = insert(:legal_entity, %{id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"})
+      legal_entity = insert(:legal_entity, id: "8799e3b6-34e7-4798-ba70-d897235d2b6d")
       insert(:medical_service_provider, legal_entity: legal_entity)
+      insert(:division, id: "51f56b0e-0223-49c1-9b5f-b07e09ba40f1", legal_entity: legal_entity)
 
       {:ok, port, ref} = start_microservices(TwoHappyPaths)
 

@@ -11,6 +11,7 @@ defmodule EHealth.DeclarationRequest.API do
   alias EHealth.PRMRepo
   alias EHealth.PRM.GlobalParameters
   alias EHealth.PRM.LegalEntities
+  alias EHealth.PRM.Divisions
   alias EHealth.API.PRM # TODO: must be deprecated
   alias EHealth.DeclarationRequest
   alias EHealth.DeclarationRequest.API.Create
@@ -75,14 +76,14 @@ defmodule EHealth.DeclarationRequest.API do
     # TODO: double check user_id/client_id has access to create given employee/legal_entity
     with {:ok, attrs} <- Validations.validate_schema(attrs),
          {:ok, _} <- Validations.validate_addresses(get_in(attrs, ["person", "addresses"])),
-         {:ok, %{"data" => employee}} <- PRM.get_employee_by_id(attrs["employee_id"]),
-         {:ok, %{"data" => division}} <- PRM.get_division_by_id(attrs["division_id"]) do
+         {:ok, %{"data" => employee}} <- PRM.get_employee_by_id(attrs["employee_id"]) do
       updates = [status: "CANCELLED", updated_at: DateTime.utc_now(), updated_by: user_id]
       global_parameters = GlobalParameters.list_global_parameters()
       legal_entity =
         client_id
         |> LegalEntities.get_legal_entity_by_id()
         |> PRMRepo.preload(:medical_service_provider)
+      division = Divisions.get_division_by_id(attrs["division_id"])
 
       auxilary_entities = %{
         employee: employee,

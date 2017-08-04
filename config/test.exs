@@ -67,4 +67,5 @@ config :ehealth, EHealth.PRMRepo,
   password: "postgres",
   database: "prm_test",
   hostname: "localhost",
-  pool: Ecto.Adapters.SQL.Sandbox
+  pool: Ecto.Adapters.SQL.Sandbox,
+  types: EHealth.PRM.PostgresTypes

@@ -98,7 +98,7 @@ defmodule EHealth.DeclarationRequest.API.Validations do
 
   def validate_legal_entity_division(changeset, legal_entity, division) do
     validate_change changeset, :data, fn :data, _data ->
-      case division["legal_entity_id"] == legal_entity.id do
+      case division.legal_entity_id == legal_entity.id do
         true -> []
         false -> [data: "Division does not belong to legal entity."]
       end
