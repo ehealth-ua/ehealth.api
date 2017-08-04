@@ -134,18 +134,8 @@ defmodule EHealth.DeclarationRequest.API do
       |> Multi.run(:verification, fn(_) -> Approve.verify(declaration_request, verification_code) end)
       |> Multi.update(:declaration_request, updates)
       |> Repo.transaction
-      |> validate_approve_transaction(id)
     end
   end
-
-  defp validate_approve_transaction({:error, _, %{"meta" => %{"code" => 404}}, _}, id) do
-    Logger.error("Phone was not found for declaration request #{id}")
-    {:error, %{"type" => "internal_error"}}
-  end
-  defp validate_approve_transaction({:error, _, %{"meta" => _} = error, _}, _) do
-    {:error, error}
-  end
-  defp validate_approve_transaction(transaction_result, _), do: transaction_result
 
   def finalize(multi) do
     declaration_request = multi.declaration_request

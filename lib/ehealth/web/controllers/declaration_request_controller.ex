@@ -3,6 +3,7 @@ defmodule EHealth.Web.DeclarationRequestController do
 
   use EHealth.Web, :controller
   alias EHealth.DeclarationRequest.API, as: DeclarationRequestAPI
+  require Logger
 
   action_fallback EHealth.Web.FallbackController
 
@@ -37,6 +38,12 @@ defmodule EHealth.Web.DeclarationRequestController do
     with {:ok, %{declaration_request: declaration_request}} <-
         DeclarationRequestAPI.approve(id, params["verification_code"], user_id) do
       render(conn, "declaration_request.json", declaration_request: declaration_request)
+    else
+      {:error, _, %{"meta" => %{"code" => 404}}, _} ->
+        Logger.error("Phone was not found for declaration request #{id}")
+        {:error, %{"type" => "internal_error"}}
+      {:error, _, %{"meta" => _} = error, _} ->
+        {:error, error}
     end
   end
 
