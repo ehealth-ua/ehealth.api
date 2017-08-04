@@ -4,10 +4,10 @@ defmodule EHealth.DuplicatePersons.Cleanup do
   alias EHealth.API.OPS
   alias EHealth.API.MPI
 
-  def cleanup(merge_candidate_id) do
+  def cleanup(merge_candidate_id, merge_candidate_person_id) do
     {:ok, %{"data" => declarations}} =
       OPS.get_declarations(%{
-        person_id: merge_candidate_id,
+        person_id: merge_candidate_person_id,
         is_active: true
       })
 

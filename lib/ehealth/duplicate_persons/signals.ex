@@ -20,7 +20,7 @@ defmodule EHealth.DuplicatePersons.Signals do
 
     Enum.each merge_candidates, fn merge_candidate ->
       Task.Supervisor.start_child CleanupTasks, fn ->
-        Cleanup.cleanup(merge_candidate["person_id"])
+        Cleanup.cleanup(merge_candidate["id"], merge_candidate["person_id"])
       end
     end
 

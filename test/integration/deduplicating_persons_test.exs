@@ -18,21 +18,21 @@ defmodule EHealth.Integration.DeduplicatingPersonsTest do
         %{"status" => "NEW"} = conn.query_params
 
         merge_candidates = [
-          %{ "person_id" => @person1 },
-          %{ "person_id" => @person2 }
+          %{ "id" => "mc_1", "person_id" => @person1 },
+          %{ "id" => "mc_2", "person_id" => @person2 }
         ]
 
         send_resp(conn, 200, Poison.encode!(%{data: merge_candidates}))
       end
 
-      Plug.Router.patch "/merge_candidates/#{@person1}" do
+      Plug.Router.patch "/merge_candidates/mc_1" do
         Logger.info("Candidate #{@person1} was merged.")
         %{"merge_candidate" => %{"status" => "MERGED"}} = conn.params
         updated_candidate = %{}
         send_resp(conn, 200, Poison.encode!(%{data: updated_candidate}))
       end
 
-      Plug.Router.patch "/merge_candidates/#{@person2}" do
+      Plug.Router.patch "/merge_candidates/mc_2" do
         Logger.info("Candidate #{@person2} was merged.")
         %{"merge_candidate" => %{"status" => "MERGED"}} = conn.params
         updated_candidate = %{}
