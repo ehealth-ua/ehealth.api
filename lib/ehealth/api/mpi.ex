@@ -59,7 +59,7 @@ defmodule EHealth.API.MPI do
     CallLog.log("PATCH", config()[:endpoint], "/merge_candidates/#{merge_candidate_id}", %{}, headers)
 
     "/merge_candidates/#{merge_candidate_id}"
-    |> patch!(Poison.encode!(params), headers)
+    |> patch!(Poison.encode!(%{merge_candidate: params}), headers)
     |> ResponseDecoder.check_response()
   end
 end
