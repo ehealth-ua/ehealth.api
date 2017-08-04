@@ -225,7 +225,7 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
         |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
-        |> post("/api/declaration_requests", declaration_request_params)
+        |> post(declaration_request_path(conn, :create), declaration_request_params)
 
       resp = json_response(conn, 200)
 
@@ -240,6 +240,7 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
 
       assert to_string(Date.utc_today) == resp["data"]["start_date"]
       assert {:ok, _} = Date.from_iso8601(resp["data"]["end_date"])
+      assert "99bc78ba577a95a11f1a344d4d2ae55f2f857b98" == resp["data"]["seed"]
 
       declaration_request = EHealth.DeclarationRequest.API.get_declaration_request_by_id!(id)
       assert declaration_request.data["legal_entity"]["id"]
@@ -271,7 +272,7 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
         |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
-        |> post("/api/declaration_requests", Poison.encode!(declaration_request_params))
+        |> post(declaration_request_path(conn, :create), Poison.encode!(declaration_request_params))
 
       resp = json_response(conn, 200)
 
@@ -413,7 +414,7 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
         |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: ""}))
-        |> post("/api/declaration_requests", declaration_request_params)
+        |> post(declaration_request_path(conn, :create), declaration_request_params)
 
       resp = json_response(conn, 404)
       assert %{"error" => %{"type" => "not_found"}} = resp
@@ -488,7 +489,7 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
         |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: ""}))
-        |> post("/api/declaration_requests", Poison.encode!(declaration_request_params))
+        |> post(declaration_request_path(conn, :create), Poison.encode!(declaration_request_params))
 
       resp = json_response(conn, 404)
 
@@ -532,7 +533,7 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
         |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: ""}))
-        |> post("/api/declaration_requests", declaration_request_params)
+        |> post(declaration_request_path(conn, :create), declaration_request_params)
 
       assert %{
         "invalid" => [

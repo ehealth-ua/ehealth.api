@@ -393,6 +393,9 @@
         },
         "scope": {
           "type": "string"
+        },
+        "seed": {
+          "type": "string"
         }
       },
       "required": [

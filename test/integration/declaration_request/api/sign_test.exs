@@ -76,10 +76,16 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
 
     test "returns expected result when data matches" do
       id = Ecto.UUID.generate()
-      db_data = %DeclarationRequest{id: id, data: %{"person" => %{"key" => "value", "patient_signed" => false}},
-        status: "APPROVED", printout_content: "<html></html>"}
+      db_data = %DeclarationRequest{
+        id: id,
+        data: %{
+          "person" => %{"key" => "value", "patient_signed" => false},
+          "seed" => "99bc78ba577a95a11f1a344d4d2ae55f2f857b98"
+        },
+        status: "APPROVED", printout_content: "<html></html>"
+      }
       content = %{"id" => id, "person" => %{"key" => "value", "patient_signed" => true}, "status" => "APPROVED",
-        "content" => "<html></html>"}
+        "content" => "<html></html>", "seed" => "seed"}
       input_data = %{"data" => %{"content" => content}}
       result = compare_with_db({:ok, input_data, db_data})
       expected_result = {:ok, %{"data" => %{"content" => content}}, db_data}
