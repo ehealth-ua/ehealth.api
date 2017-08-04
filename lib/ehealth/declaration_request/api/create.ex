@@ -129,32 +129,19 @@ defmodule EHealth.DeclarationRequest.API.Create do
   end
 
   def prepare_legal_entity_struct(legal_entity) do
-    legal_entity_attrs = [
-      "id",
-      "name",
-      "short_name",
-      "phones",
-      "legal_form",
-      "edrpou",
-      "public_name",
-      "email",
-      "addresses"
-    ]
-
-    msp_attrs = [
-      "accreditation",
-      "licenses"
-    ]
-
-    additional_attrs =
-      legal_entity
-      |> Map.get("medical_service_provider", msp_attrs)
-      |> Map.take(msp_attrs)
-
-    legal_entity
-    |> Map.drop(["medical_service_provider"])
-    |> Map.take(legal_entity_attrs)
-    |> Map.merge(additional_attrs)
+    %{
+      "id"             => legal_entity.id,
+      "name"           => legal_entity.name,
+      "short_name"     => legal_entity.short_name,
+      "phones"         => legal_entity.phones,
+      "legal_form"     => legal_entity.legal_form,
+      "edrpou"         => legal_entity.edrpou,
+      "public_name"    => legal_entity.public_name,
+      "email"          => legal_entity.email,
+      "addresses"      => legal_entity.addresses,
+      "accreditation"  => legal_entity.medical_service_provider.accreditation,
+      "licenses"       => legal_entity.medical_service_provider.licenses
+    }
   end
 
   def prepare_employee_struct(employee) do

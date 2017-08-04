@@ -8,7 +8,9 @@ defmodule EHealth.DeclarationRequest.API do
   alias Ecto.Multi
   alias Ecto.UUID
   alias EHealth.Repo
+  alias EHealth.PRMRepo
   alias EHealth.PRM.GlobalParameters
+  alias EHealth.PRM.LegalEntities
   alias EHealth.API.PRM # TODO: must be deprecated
   alias EHealth.DeclarationRequest
   alias EHealth.DeclarationRequest.API.Create
@@ -74,10 +76,13 @@ defmodule EHealth.DeclarationRequest.API do
     with {:ok, attrs} <- Validations.validate_schema(attrs),
          {:ok, _} <- Validations.validate_addresses(get_in(attrs, ["person", "addresses"])),
          {:ok, %{"data" => employee}} <- PRM.get_employee_by_id(attrs["employee_id"]),
-         {:ok, %{"data" => division}} <- PRM.get_division_by_id(attrs["division_id"]),
-         {:ok, %{"data" => legal_entity}} <- PRM.get_legal_entity_by_id(client_id) do
+         {:ok, %{"data" => division}} <- PRM.get_division_by_id(attrs["division_id"]) do
       updates = [status: "CANCELLED", updated_at: DateTime.utc_now(), updated_by: user_id]
       global_parameters = GlobalParameters.list_global_parameters()
+      legal_entity =
+        client_id
+        |> LegalEntities.get_legal_entity_by_id()
+        |> PRMRepo.preload(:medical_service_provider)
 
       auxilary_entities = %{
         employee: employee,
@@ -88,7 +93,7 @@ defmodule EHealth.DeclarationRequest.API do
 
       tax_id = get_in(attrs, ["person", "tax_id"])
 
-      pending_declaration_requests = pending_declaration_requests(tax_id, employee["id"], legal_entity["id"])
+      pending_declaration_requests = pending_declaration_requests(tax_id, employee["id"], legal_entity.id)
 
       Multi.new
       |> Multi.update_all(:previous_requests, pending_declaration_requests, set: updates)
