@@ -149,6 +149,7 @@ defmodule EHealth.Unit.LegalEntityTest do
   end
 
   test "process legal entity that exists" do
+    insert(:registry)
     legal_entity = Map.merge(get_legal_entity_data(), %{
       "short_name" => "Nebo15",
       "email" => "changed@example.com",

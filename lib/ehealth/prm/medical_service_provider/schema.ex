@@ -1,8 +1,6 @@
 defmodule EHealth.PRM.MedicalServiceProviders.Schema do
   @moduledoc false
 
-  alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
-
   use Ecto.Schema
 
   @primary_key {:id, :binary_id, autogenerate: true}

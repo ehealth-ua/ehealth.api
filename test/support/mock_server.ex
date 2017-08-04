@@ -21,16 +21,6 @@ defmodule EHealth.MockServer do
   def get_client_nil, do: @client_type_nil
   def get_client_admin, do: @client_type_admin
 
-  get "/ukr_med_registry" do
-    ukr_med_registry =
-      case conn.params do
-        %{"edrpou" => "37367387"} -> [get_med_registry()]
-        _ -> []
-      end
-
-    Plug.Conn.send_resp(conn, 200, Poison.encode!(%{"data" => ukr_med_registry}))
-  end
-
   # Legal Entitity
 
   get "/legal_entities" do
@@ -608,7 +598,6 @@ defmodule EHealth.MockServer do
       "redirect_uri" => "http =>//example.com/redirect_uri",
       "settings" => %{},
       "priv_settings" => %{},
-      "redirect_uri" => "redirect_uri",
     }
   end
 
@@ -650,18 +639,6 @@ defmodule EHealth.MockServer do
   def get_oauth_users(%{"email" => "test@user.com"}), do: [get_oauth_user()]
   def get_oauth_users(%{"email" => _}), do: []
   def get_oauth_users(_), do: [get_oauth_user()]
-
-  def get_med_registry do
-    %{
-      "id" => "5432345432",
-      "name" => "Клініка Борис",
-      "edrpou" => "37367387",
-      "inserted_at" => "1991-08-19T00.00.00.000Z",
-      "inserted_by" => "userid",
-      "updated_at" => "1991-08-19T00.00.00.000Z",
-      "updated_by" => "userid"
-    }
-  end
 
   def get_employee_by_id(id, legal_entity_id) do
     legal_entity_id

@@ -162,14 +162,6 @@ defmodule EHealth.API.PRM do
     |> ResponseDecoder.check_response()
   end
 
-  # Registry
-
-  def check_msp_state_property_status(edrpou, headers \\ []) do
-    "/ukr_med_registry"
-    |> get!(headers, params: [edrpou: edrpou])
-    |> ResponseDecoder.check_response()
-  end
-
   # Global parameters
 
   def get_global_parameters(headers \\ []) do

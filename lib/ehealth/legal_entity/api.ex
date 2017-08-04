@@ -8,7 +8,8 @@ defmodule EHealth.LegalEntity.API do
 
   alias Ecto.Date
   alias Ecto.UUID
-  alias EHealth.API.PRM
+  alias EHealth.API.PRM # Deprecated
+  alias EHealth.PRM.Registries
   alias EHealth.API.MediaStorage
   alias EHealth.OAuth.API, as: OAuth
   alias EHealth.LegalEntity.Validator
@@ -113,7 +114,7 @@ defmodule EHealth.LegalEntity.API do
          {:ok, id, flow} <- get_legal_entity_id_flow(legal_entity),
          :ok <- check_status(legal_entity),
          {:ok, _} <- store_signed_content(id, attrs, headers),
-         {:ok, request_params} <- check_msp_state(request_params, headers),
+         request_params <- check_msp_state(request_params),
          {:ok, legal_entity} <- put_legal_entity_to_prm(id, flow, headers, request_params),
          {:ok, oauth_client} <- get_oauth_credentials(legal_entity, request_params, headers),
          {:ok, security} <- prepare_security_data(oauth_client),
@@ -212,24 +213,8 @@ defmodule EHealth.LegalEntity.API do
     {:ok, security}
   end
 
-  def check_msp_state(%{"edrpou" => edrpou} = request_params, headers) do
-    edrpou
-    |> PRM.check_msp_state_property_status(headers)
-    |> set_legal_entity_mis_verified(request_params)
-  end
-
-  @doc """
-  Set mis_verified for legal_entity without edrpou in registry
-  """
-  def set_legal_entity_mis_verified({:ok, %{"data" => []}}, content) do
-    {:ok, put_in(content["mis_verified"], "NOT_VERIFIED")}
-  end
-
-  @doc """
-  Set mis_verified for legal_entity with edrpou in registry
-  """
-  def set_legal_entity_mis_verified({:ok, %{"data" => [_edrpou_in_registry]}}, content) do
-    {:ok, put_in(content["mis_verified"], "VERIFIED")}
+  def check_msp_state(%{"edrpou" => edrpou} = request_params) do
+    Map.put(request_params, "mis_verified", Registries.get_edrpou_verified_status(edrpou))
   end
 
   @doc """
