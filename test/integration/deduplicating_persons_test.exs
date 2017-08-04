@@ -27,14 +27,14 @@ defmodule EHealth.Integration.DeduplicatingPersonsTest do
 
       Plug.Router.patch "/persons/#{@person1}" do
         Logger.info("Candidate #{@person1} was deactivated.")
-        %{"merge_candidate" => %{"status" => "INACTIVE", "is_active" => false}} = conn.params
+        %{"merge_candidate" => %{"status" => "INACTIVE"}} = conn.params
         updated_candidate = %{}
         send_resp(conn, 200, Poison.encode!(%{data: updated_candidate}))
       end
 
       Plug.Router.patch "/persons/#{@person2}" do
         Logger.info("Candidate #{@person2} was deactivated.")
-        %{"merge_candidate" => %{"status" => "INACTIVE", "is_active" => false}} = conn.params
+        %{"merge_candidate" => %{"status" => "INACTIVE"}} = conn.params
         updated_candidate = %{}
         send_resp(conn, 200, Poison.encode!(%{data: updated_candidate}))
       end

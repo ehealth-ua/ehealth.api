@@ -16,6 +16,6 @@ defmodule EHealth.DuplicatePersons.Cleanup do
     end
 
     {:ok, %{"data" => _}} = MPI.update_merge_candidate(merge_candidate_id, %{status: "MERGED"})
-    {:ok, %{"data" => _}} = MPI.update_person(merge_candidate_person_id, %{is_active: false, status: "INACTIVE"})
+    {:ok, %{"data" => _}} = MPI.update_person(merge_candidate_person_id, %{status: "INACTIVE"})
   end
 end
