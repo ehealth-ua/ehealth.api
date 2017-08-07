@@ -89,7 +89,7 @@ defmodule EHealth.DeclarationRequest.API.Validations do
 
   def validate_legal_entity_employee(changeset, legal_entity, employee) do
     validate_change changeset, :data, fn :data, _data ->
-      case employee["legal_entity_id"] == legal_entity.id do
+      case employee.legal_entity_id == legal_entity.id do
         true -> []
         false -> [data: "Employee does not belong to legal entity."]
       end

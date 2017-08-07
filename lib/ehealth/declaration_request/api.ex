@@ -12,7 +12,8 @@ defmodule EHealth.DeclarationRequest.API do
   alias EHealth.PRM.GlobalParameters
   alias EHealth.PRM.LegalEntities
   alias EHealth.PRM.Divisions
-  alias EHealth.API.PRM # TODO: must be deprecated
+  alias EHealth.PRM.Employees
+  alias EHealth.PRM.Employees.Schema, as: Employee
   alias EHealth.DeclarationRequest
   alias EHealth.DeclarationRequest.API.Create
   alias EHealth.DeclarationRequest.API.Approve
@@ -76,7 +77,7 @@ defmodule EHealth.DeclarationRequest.API do
     # TODO: double check user_id/client_id has access to create given employee/legal_entity
     with {:ok, attrs} <- Validations.validate_schema(attrs),
          {:ok, _} <- Validations.validate_addresses(get_in(attrs, ["person", "addresses"])),
-         {:ok, %{"data" => employee}} <- PRM.get_employee_by_id(attrs["employee_id"]) do
+         %Employee{} = employee <- Employees.get_employee_by_id(attrs["employee_id"]) do
       updates = [status: "CANCELLED", updated_at: DateTime.utc_now(), updated_by: user_id]
       global_parameters = GlobalParameters.list_global_parameters()
       legal_entity =
@@ -84,6 +85,7 @@ defmodule EHealth.DeclarationRequest.API do
         |> LegalEntities.get_legal_entity_by_id()
         |> PRMRepo.preload(:medical_service_provider)
       division = Divisions.get_division_by_id(attrs["division_id"])
+      employee = PRMRepo.preload(employee, [:party, :doctor])
 
       auxilary_entities = %{
         employee: employee,
@@ -94,7 +96,7 @@ defmodule EHealth.DeclarationRequest.API do
 
       tax_id = get_in(attrs, ["person", "tax_id"])
 
-      pending_declaration_requests = pending_declaration_requests(tax_id, employee["id"], legal_entity.id)
+      pending_declaration_requests = pending_declaration_requests(tax_id, employee.id, legal_entity.id)
 
       Multi.new
       |> Multi.update_all(:previous_requests, pending_declaration_requests, set: updates)
@@ -218,7 +220,7 @@ defmodule EHealth.DeclarationRequest.API do
       legal_entity: legal_entity
     } = auxilary_entities
 
-    specialities = employee["doctor"]["specialities"]
+    specialities = employee.doctor.specialities
 
     attrs = Map.drop(attrs, ["employee_id", "division_id"])
 

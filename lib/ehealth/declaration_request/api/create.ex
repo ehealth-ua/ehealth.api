@@ -145,13 +145,17 @@ defmodule EHealth.DeclarationRequest.API.Create do
   end
 
   def prepare_employee_struct(employee) do
-    employee_attrs = [
-      "id",
-      "party",
-      "position"
-    ]
-
-    Map.take(employee, employee_attrs)
+    %{
+      "id"       => employee.id,
+      "position" => employee.position,
+      "party"    => %{
+        "id"          => employee.party.id,
+        "first_name"  => employee.party.first_name,
+        "second_name" => employee.party.second_name,
+        "last_name"   => employee.party.last_name,
+        "phones"      => employee.party.phones
+      }
+    }
   end
 
   def prepare_division_struct(division) do

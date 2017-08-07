@@ -9,7 +9,7 @@ defmodule EHealth.PRMFactories.LegalEntityFactory do
         %EHealth.PRM.LegalEntities.Schema{
           is_active: true,
           addresses: [],
-          edrpou: "3378113538",
+          edrpou: to_string(3_300_000_000 + :rand.uniform(99_999_999)),
           email: "some email",
           kveds: [],
           legal_form: "240",

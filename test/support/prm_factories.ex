@@ -8,4 +8,7 @@ defmodule EHealth.PRMFactories do
   use EHealth.PRMFactories.GlobalParameterFactory
   use EHealth.PRMFactories.UkrMedRegistryFactory
   use EHealth.PRMFactories.DivisionFactory
+  use EHealth.PRMFactories.EmployeeFactory
+  use EHealth.PRMFactories.EmployeeDoctorFactory
+  use EHealth.PRMFactories.PartyFactory
 end

@@ -7,31 +7,6 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
     defmodule TwoHappyPaths do
       use MicroservicesHelper
 
-      # PRM API
-      Plug.Router.get "/employees/ce377dea-d8c4-4dd8-9328-de24b1ee3879" do
-        employee = %{
-          "id" => "ce377dea-d8c4-4dd8-9328-de24b1ee3879",
-          "position" => "some_position",
-          "party" => %{
-            "id" => "some_id",
-            "second_name" => "some_second_name",
-            "first_name" => "some_first_name",
-            "last_name" => "some_last_name",
-            "phones" => [],
-          },
-          "legal_entity_id" => "8799e3b6-34e7-4798-ba70-d897235d2b6d",
-          "doctor" => %{
-            "specialities" => [
-              %{
-                "speciality" => "PEDIATRICIAN"
-              }
-            ]
-          }
-        }
-
-        send_resp(conn, 200, Poison.encode!(%{data: employee}))
-      end
-
       Plug.Router.get "/party_users" do
         party_users = [%{
           "user_id": Ecto.UUID.generate()
@@ -171,11 +146,15 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
 
       legal_entity = insert(:legal_entity, id: "8799e3b6-34e7-4798-ba70-d897235d2b6d")
       insert(:medical_service_provider, legal_entity: legal_entity)
-      insert(:division, id: "51f56b0e-0223-49c1-9b5f-b07e09ba40f1", legal_entity: legal_entity)
+      division = insert(:division, id: "51f56b0e-0223-49c1-9b5f-b07e09ba40f1", legal_entity: legal_entity)
+      employee = insert(:employee,
+        id: "ce377dea-d8c4-4dd8-9328-de24b1ee3879",
+        division: division,
+        legal_entity: legal_entity)
+      insert(:employee_doctor, employee: employee, specialities: [%{speciality: "PEDIATRICIAN"}])
 
       {:ok, port, ref} = start_microservices(TwoHappyPaths)
 
-      System.put_env("PRM_ENDPOINT", "http://localhost:#{port}")
       System.put_env("MPI_ENDPOINT", "http://localhost:#{port}")
       System.put_env("GNDF_ENDPOINT", "http://localhost:#{port}")
       System.put_env("MAN_ENDPOINT", "http://localhost:#{port}")
@@ -185,7 +164,6 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
       System.put_env("OAUTH_ENDPOINT", "http://localhost:#{port}")
       on_exit fn ->
         System.put_env("GNDF_TABLE_ID", "some_gndf_table_id")
-        System.put_env("PRM_ENDPOINT", "http://localhost:4040")
         System.put_env("MPI_ENDPOINT", "http://localhost:4040")
         System.put_env("GNDF_ENDPOINT", "http://localhost:4040")
         System.put_env("MAN_ENDPOINT", "http://localhost:4040")
@@ -427,18 +405,6 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
 
         Plug.Conn.send_resp(conn, 200, Poison.encode!(%{meta: "", data: region}))
       end
-
-      Plug.Router.get "/employees/2f650a5c-7a04-4615-a1e7-00fa41bf160d" do
-        response = %{
-          error: %{},
-          meta: %{
-            url: "http://#{conn.host}:#{conn.port}/employees/2f650a5c-7a04-4615-a1e7-00fa41bf160d",
-            code: "404"
-          }
-        }
-
-        send_resp(conn, 404, Poison.encode!(response))
-      end
     end
 
     setup %{conn: conn} do
@@ -449,12 +415,8 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
       {:ok, port, ref} = start_microservices(InvalidEmployeeID)
 
       System.put_env("UADDRESS_ENDPOINT", "http://localhost:#{port}")
-      System.put_env("PRM_ENDPOINT", "http://localhost:#{port}")
       on_exit fn ->
-        # TODO: This and other instances:
-        # thisi is needed while mock_services.ex still exists. Remove after mock_services.ex is gone
         System.put_env("UADDRESS_ENDPOINT", "http://localhost:4040")
-        System.put_env("PRM_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
       end
 
