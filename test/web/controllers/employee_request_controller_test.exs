@@ -6,6 +6,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   import EHealth.SimpleFactory
 
   alias EHealth.Employee.Request
+  alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
 
   @moduletag :with_client_id
 
@@ -218,7 +219,8 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "with valid client_id in metadata", %{conn: conn} do
-      %{data: %{"legal_entity_id" => legal_entity_id}} = fixture(Request)
+      %{id: legal_entity_id} = legal_entity = fixture(LegalEntity)
+      fixture(Request, Map.put(employee_request(), :legal_entity_id, legal_entity_id))
       conn = put_client_id_header(conn, legal_entity_id)
       conn = get conn, employee_request_path(conn, :index)
       resp = json_response(conn, 200)
@@ -227,6 +229,15 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       assert Map.has_key?(resp, "paging")
       assert is_list(resp["data"])
       assert 1 == length(resp["data"])
+      edrpou = legal_entity.edrpou
+      legal_entity_name = legal_entity.name
+      assert [%{
+        "edrpou" => ^edrpou,
+        "legal_entity_name" => ^legal_entity_name,
+        "first_name" => "Петро",
+        "second_name" => "Миколайович",
+        "last_name" => "Іванов",
+      }] = resp["data"]
     end
 
     test "with invalid client_id in metadata", %{conn: conn} do

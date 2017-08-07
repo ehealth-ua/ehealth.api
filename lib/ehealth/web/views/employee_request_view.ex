@@ -23,7 +23,12 @@ defmodule EHealth.Web.EmployeeRequestView do
     %{
       id: Map.get(employee_request, :id),
       status: Map.get(employee_request, :status),
-      inserted_at: Map.get(employee_request, :inserted_at)
+      inserted_at: Map.get(employee_request, :inserted_at),
+      edrpou: employee_request |> Map.get(:legal_entity, %{}) |> Map.get(:edrpou),
+      legal_entity_name: employee_request |> Map.get(:legal_entity, %{}) |> Map.get(:name),
+      first_name: get_in(employee_request.data, ["party", "first_name"]),
+      second_name: get_in(employee_request.data, ["party", "second_name"]),
+      last_name: get_in(employee_request.data, ["party", "last_name"]),
     }
   end
 end

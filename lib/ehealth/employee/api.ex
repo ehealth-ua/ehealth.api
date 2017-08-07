@@ -22,6 +22,8 @@ defmodule EHealth.Employee.API do
   alias EHealth.API.Mithril
   alias EHealth.API.PRM
   alias EHealth.Employee.Validator
+  alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
+  alias EHealth.PRMRepo
 
   require Logger
 
@@ -37,10 +39,30 @@ defmodule EHealth.Employee.API do
     query = from er in Request,
       order_by: [desc: :inserted_at]
 
-    query
-    |> filter_by_legal_entity_id(client_id)
-    |> filter_by_status(params)
-    |> Repo.page(get_paging(params, Confex.fetch_env!(:ehealth, :employee_requests_per_page)))
+    {employee_requests, paging} =
+      query
+      |> filter_by_legal_entity_id(client_id)
+      |> filter_by_status(params)
+      |> Repo.page(get_paging(params, Confex.fetch_env!(:ehealth, :employee_requests_per_page)))
+    legal_entity_ids =
+      employee_requests
+      |> Enum.reduce([], fn %{data: data}, acc ->
+        id = Map.get(data, "legal_entity_id")
+        if id, do: [id | acc], else: acc
+      end)
+      |> Enum.uniq
+    legal_entities =
+      LegalEntity
+      |> where([le], le.id in ^legal_entity_ids)
+      |> PRMRepo.all
+      |> Enum.into(%{}, &({Map.get(&1, :id), &1}))
+
+    employee_requests =
+      Enum.map(employee_requests, fn request ->
+        legal_entity = Map.get(legal_entities, Map.get(request.data, "legal_entity_id"), %{})
+        Map.put(request, :legal_entity, legal_entity)
+      end)
+    {employee_requests, paging}
   end
 
   defp filter_by_legal_entity_id(query, client_id) do
