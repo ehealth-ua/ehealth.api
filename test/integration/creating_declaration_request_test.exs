@@ -17,7 +17,6 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
             "second_name" => "some_second_name",
             "first_name" => "some_first_name",
             "last_name" => "some_last_name",
-            "email" => "some_email",
             "phones" => [],
           },
           "legal_entity_id" => "8799e3b6-34e7-4798-ba70-d897235d2b6d",
