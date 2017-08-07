@@ -38,7 +38,7 @@ defmodule EHealth.API.MPI do
   end
 
   def update_person(id, params, headers \\ []) do
-    CallLog.log("PATCH", config()[:endpoint], "/persons/#{id}", headers)
+    CallLog.log("PATCH", config()[:endpoint], "/persons/#{id}", params, headers)
 
     "/persons/#{id}"
     |> patch!(Poison.encode!(params), headers)
@@ -64,7 +64,7 @@ defmodule EHealth.API.MPI do
   end
 
   def update_merge_candidate(merge_candidate_id, params, headers \\ []) do
-    CallLog.log("PATCH", config()[:endpoint], "/merge_candidates/#{merge_candidate_id}", %{}, headers)
+    CallLog.log("PATCH", config()[:endpoint], "/merge_candidates/#{merge_candidate_id}", params, headers)
 
     "/merge_candidates/#{merge_candidate_id}"
     |> patch!(Poison.encode!(%{merge_candidate: params}), headers)
