@@ -179,6 +179,7 @@ defmodule EHealth.DeclarationRequest.API.Sign do
 
   defp get_status(%{"type" => "OFFLINE"}), do: "pending_verification"
   defp get_status(%{"type" => "OTP"}), do: "active"
+  defp get_status(%{"type" => "NA"}), do: "active"
   defp get_status(_) do
     Logger.error(fn -> "Unknown authentication_method_current.type" end)
     ""

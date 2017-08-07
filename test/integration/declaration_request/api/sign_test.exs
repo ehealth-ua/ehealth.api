@@ -248,6 +248,13 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
       assert data["is_active"]
     end
 
+    test "returns active status when authentication_method_current.type == NA" do
+      declaration_request = simple_fixture(:declaration_request, "ACTIVE", "NA")
+      person_data = %{"data" => %{"id" => ""}}
+      {:ok, %{"data" => data}} = create_declaration_with_termination_logic({:ok, person_data, declaration_request}, [])
+      assert "active" == data["status"]
+    end
+
     test "returns pending_validation status when authentication_method_current.type == OFFLINE" do
       declaration_request = simple_fixture(:declaration_request, "ACTIVE", "OFFLINE")
       person_data = %{"data" => %{"id" => ""}}
