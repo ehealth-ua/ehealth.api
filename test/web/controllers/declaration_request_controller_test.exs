@@ -287,8 +287,8 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
           "url" => "http://a.link.for/#{id}/declaration_request_person.PASSPORT.jpeg"
         },
         %{
-          "type" => "confidant_person.0.PRIMARY.COURT_DECISION",
-          "url" => "http://a.link.for/#{id}/declaration_request_confidant_person.0.PRIMARY.COURT_DECISION.jpeg"
+          "type" => "confidant_person.0.PRIMARY.RELATIONSHIP.COURT_DECISION",
+          "url" => "http://a.link.for/#{id}/declaration_request_confidant_person.0.PRIMARY.RELATIONSHIP.COURT_DECISION.jpeg"
         },
         %{
           "type" => "confidant_person.0.PRIMARY.PASSPORT",
