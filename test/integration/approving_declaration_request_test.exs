@@ -150,6 +150,10 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
         Plug.Conn.send_resp(conn, 200, "")
       end
 
+      Plug.Router.get "/no_upload" do
+        Plug.Conn.send_resp(conn, 404, "")
+      end
+
       Plug.Router.post "/media_content_storage_secrets" do
         params = conn.body_params["secret"]
 
@@ -157,10 +161,10 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
 
         secret_url =
           case params["resource_name"] do
-            "declaration_request_A.jpeg" ->
-              "http://localhost:#{port}/good_upload_1"
-            "declaration_request_B.jpeg" ->
-              "http://localhost:#{port}/good_upload_2"
+            "declaration_request_A.jpeg" -> "http://localhost:#{port}/good_upload_1"
+            "declaration_request_B.jpeg" -> "http://localhost:#{port}/good_upload_2"
+            "declaration_request_404.jpeg" -> "http://localhost:#{port}/no_upload"
+            "declaration_request_error.jpeg" -> "http://invalid/route"
           end
 
         resp = %{
@@ -188,29 +192,8 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
     end
 
     test "happy path: declaration is successfully approved via offline docs check", %{conn: conn} do
-      id = Ecto.UUID.generate()
-
-      existing_declaration_request_params = %{
-        id: id,
-        data: %{
-          employee: %{},
-          legal_entity: %{
-            medical_service_provider: %{}
-          },
-          division: %{}
-        },
-        status: "NEW",
-        authentication_method_current: %{
-          "type" => "OFFLINE"
-        },
-        documents: [
-          %{"type" => "A", "verb" => "HEAD"},
-          %{"type" => "B", "verb" => "HEAD"}
-        ],
-        printout_content: "something",
-        inserted_by: "f47f94fd-2d77-4b7e-b444-4955812c2a77",
-        updated_by: "f47f94fd-2d77-4b7e-b444-4955812c2a77"
-      }
+      existing_declaration_request_params = get_declaration_changes()
+      id = existing_declaration_request_params.id
 
       {:ok, _} =
         %DeclarationRequest{}
@@ -231,6 +214,47 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
 
       assert "APPROVED" = declaration_request.status
       assert "ce377dea-d8c4-4dd8-9328-de24b1ee3879" == declaration_request.updated_by
+    end
+
+    test "offline documents was not uploaded. Declaration cannot be approved", %{conn: conn} do
+
+      docs = [%{"type" => "404", "verb" => "HEAD"}]
+      existing_declaration_request_params = Map.put(get_declaration_changes(), :documents, docs)
+      id = existing_declaration_request_params.id
+
+
+      {:ok, _} =
+        %DeclarationRequest{}
+        |> change(existing_declaration_request_params)
+        |> Repo.insert()
+
+      conn =
+        conn
+        |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
+        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: ""}))
+        |> patch("/api/declaration_requests/#{id}/actions/approve")
+
+      resp = json_response(conn, 409)
+      assert "Document 404 is not uploaded" == resp["error"]["message"]
+    end
+
+    test "Ael not responding. Declaration cannot be approved", %{conn: conn} do
+      docs = [%{"type" => "error", "verb" => "HEAD"}]
+      existing_declaration_request_params = Map.put(get_declaration_changes(), :documents, docs)
+      id = existing_declaration_request_params.id
+
+      {:ok, _} =
+        %DeclarationRequest{}
+        |> change(existing_declaration_request_params)
+        |> Repo.insert()
+
+      conn =
+        conn
+        |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
+        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: ""}))
+        |> patch("/api/declaration_requests/#{id}/actions/approve")
+
+      json_response(conn, 500)
     end
   end
 
@@ -276,5 +300,29 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
 
     assert "APPROVED" = declaration_request.status
     assert "ce377dea-d8c4-4dd8-9328-de24b1ee3879" == declaration_request.updated_by
+  end
+
+  defp get_declaration_changes do
+    %{
+      id: Ecto.UUID.generate(),
+      data: %{
+        employee: %{},
+        legal_entity: %{
+          medical_service_provider: %{}
+        },
+        division: %{}
+      },
+      status: "NEW",
+      authentication_method_current: %{
+        "type" => "OFFLINE"
+      },
+      documents: [
+        %{"type" => "A", "verb" => "HEAD"},
+        %{"type" => "B", "verb" => "HEAD"}
+      ],
+      printout_content: "something",
+      inserted_by: "f47f94fd-2d77-4b7e-b444-4955812c2a77",
+      updated_by: "f47f94fd-2d77-4b7e-b444-4955812c2a77"
+    }
   end
 end

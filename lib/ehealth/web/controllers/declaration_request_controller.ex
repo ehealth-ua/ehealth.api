@@ -42,6 +42,13 @@ defmodule EHealth.Web.DeclarationRequestController do
       {:error, _, %{"meta" => %{"code" => 404}}, _} ->
         Logger.error("Phone was not found for declaration request #{id}")
         {:error, %{"type" => "internal_error"}}
+
+      {:error, :verification, {:not_uploaded, reason}, _} ->
+        {:conflict, reason}
+
+      {:error, :verification, {:ael_bad_response, _}, _} ->
+        {:error, %{"type" => "internal_error"}}
+
       {:error, _, %{"meta" => _} = error, _} ->
         {:error, error}
     end

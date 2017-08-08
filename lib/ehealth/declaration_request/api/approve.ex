@@ -3,6 +3,7 @@ defmodule EHealth.DeclarationRequest.API.Approve do
 
   alias EHealth.API.MediaStorage
   alias EHealth.API.OTPVerification
+  require Logger
 
   @files_storage_bucket Confex.fetch_env!(:ehealth, EHealth.API.MediaStorage)[:declaration_request_bucket]
 
@@ -23,20 +24,20 @@ defmodule EHealth.DeclarationRequest.API.Approve do
     end
   end
 
-  def uploaded?(id, document) do
+  def uploaded?(id, %{"type" => type}) do
     {:ok, %{"data" => %{"secret_url" => url}}} =
-      MediaStorage.create_signed_url("HEAD", @files_storage_bucket, "declaration_request_#{document["type"]}.jpeg", id)
-
+      MediaStorage.create_signed_url("HEAD", @files_storage_bucket, "declaration_request_#{type}.jpeg", id)
     case HTTPoison.head(url) do
       {:ok, resp} ->
         case resp do
           %HTTPoison.Response{status_code: 200} ->
             {:cont, {:ok, true}}
           _ ->
-            {:halt, {:error, document}}
+            {:halt, {:error, {:not_uploaded, "Document #{type} is not uploaded"}}}
         end
-      {:error, _} = unexpected_error ->
-        {:halt, unexpected_error}
+      {:error, reason} ->
+        Logger.error("Cannot check uploaded document in Ael with error #{inspect reason}")
+        {:halt, {:error, {:ael_bad_response, reason}}}
     end
   end
 end
