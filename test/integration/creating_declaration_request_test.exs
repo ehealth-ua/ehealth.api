@@ -141,8 +141,8 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
 
     setup %{conn: conn} do
       insert(:global_parameter, %{parameter: "adult_age", value: "18"})
-      insert(:global_parameter, %{parameter: "declaration_request_term", value: "40"})
-      insert(:global_parameter, %{parameter: "declaration_request_term_unit", value: "YEARS"})
+      insert(:global_parameter, %{parameter: "declaration_term", value: "40"})
+      insert(:global_parameter, %{parameter: "declaration_term_unit", value: "YEARS"})
 
       legal_entity = insert(:legal_entity, id: "8799e3b6-34e7-4798-ba70-d897235d2b6d")
       insert(:medical_service_provider, legal_entity: legal_entity)
@@ -428,8 +428,8 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
 
     setup %{conn: conn} do
       insert(:global_parameter, %{parameter: "adult_age", value: "18"})
-      insert(:global_parameter, %{parameter: "declaration_request_term", value: "40"})
-      insert(:global_parameter, %{parameter: "declaration_request_term_unit", value: "YEARS"})
+      insert(:global_parameter, %{parameter: "declaration_term", value: "40"})
+      insert(:global_parameter, %{parameter: "declaration_term_unit", value: "YEARS"})
 
       {:ok, port, ref} = start_microservices(InvalidEmployeeID)
 

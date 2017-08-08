@@ -266,8 +266,8 @@ defmodule EHealth.DeclarationRequest.API do
 
   def put_start_end_dates(changeset, global_parameters) do
     %{
-      "declaration_request_term" => term,
-      "declaration_request_term_unit" => unit,
+      "declaration_term" => term,
+      "declaration_term_unit" => unit,
       "adult_age" => adult_age
     } = global_parameters
 
