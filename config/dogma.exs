@@ -5,6 +5,8 @@ config :dogma,
   rule_set: Dogma.RuleSet.All,
   exclude: [
     ~r(\Alib/tasks/tasks.ex), # TODO: https://github.com/lpil/dogma/issues/221
+    ~r(\Atest/web/controllers/declaration_request_controller_test.exs),
+    ~r(\Atest/integration/creating_declaration_request_test.exs),
     ~r(\Arel/),
     ~r(\Adeps/),
   ],
