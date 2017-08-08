@@ -67,6 +67,15 @@ defmodule EHealth.Web.Router do
     get "/divisions", DivisionController, :index
     # Declarations
     get "/declarations", DeclarationsController, :index
+
+    # Declaration requests
+    scope "/declaration_requests" do
+      get "/", DeclarationRequestController, :index
+      get "/:declaration_request_id", DeclarationRequestController, :show
+    end
+
+    # Employee requests
+    get "/employee_requests", EmployeeRequestController, :index
   end
 
   scope "/api", EHealth.Web do
@@ -83,7 +92,6 @@ defmodule EHealth.Web.Router do
     patch "/employees/:id/actions/deactivate", EmployeesController, :deactivate
 
     # Employee requests
-    get "/employee_requests", EmployeeRequestController, :index
     post "/employee_requests", EmployeeRequestController, :create
     post "/employee_requests/:id/approve", EmployeeRequestController, :approve
     post "/employee_requests/:id/reject", EmployeeRequestController, :reject
@@ -92,14 +100,6 @@ defmodule EHealth.Web.Router do
     resources "/divisions", DivisionController, except: [:index, :new, :edit, :delete]
     patch "/divisions/:id/actions/activate", DivisionController, :activate
     patch "/divisions/:id/actions/deactivate", DivisionController, :deactivate
-
-    # Declaration requests
-    scope "/declaration_requests" do
-      pipe_through [:client_context_list]
-
-      get "/", DeclarationRequestController, :index
-      get "/:declaration_request_id", DeclarationRequestController, :show
-    end
 
     scope "/declaration_requests" do
       pipe_through [:api_consumer_id]
