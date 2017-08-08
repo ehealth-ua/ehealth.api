@@ -49,7 +49,7 @@ defmodule EHealth.Validators.SchemaMapper do
   end
 
   def put_dictionary_value(%Dictionary{name: "DOCUMENT_TYPE", values: values}, schema, type)
-    when type in [:legal_entity, :employee_request] do
+    when type in [:legal_entity, :employee_request, :declaration_request] do
 
     put_into_schema(["definitions", "document", "properties", "type", "enum"], schema, values)
   end
