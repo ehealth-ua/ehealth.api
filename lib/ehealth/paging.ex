@@ -1,11 +1,13 @@
 defmodule EHealth.Paging do
   @moduledoc false
 
+  import EHealth.Utils.TypesConverter, only: [string_to_integer: 1]
+
   def get_paging(search_params, default_limit) do
     limit =
         search_params
         |> Map.get("limit", default_limit)
-        |> to_integer()
+        |> string_to_integer()
 
     cursors = %Ecto.Paging.Cursors{
         starting_after: Map.get(search_params, "starting_after"),
@@ -13,7 +15,4 @@ defmodule EHealth.Paging do
     }
     %Ecto.Paging{limit: limit, cursors: cursors}
   end
-
-  defp to_integer(value) when is_binary(value), do: String.to_integer(value)
-  defp to_integer(value), do: value
 end

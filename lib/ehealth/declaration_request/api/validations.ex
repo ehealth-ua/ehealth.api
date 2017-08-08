@@ -3,6 +3,9 @@ defmodule EHealth.DeclarationRequest.API.Validations do
 
   use JValid
 
+  import Ecto.Changeset
+  import EHealth.Utils.TypesConverter, only: [string_to_integer: 1]
+
   alias EHealth.API.OTPVerification
   alias EHealth.Validators.SchemaMapper
   alias EHealth.Validators.Addresses
@@ -10,8 +13,6 @@ defmodule EHealth.DeclarationRequest.API.Validations do
   alias EHealth.Validators.TaxID
   alias EHealth.API.Signature
   alias EHealth.DeclarationRequest.SignRequest
-
-  import Ecto.Changeset
 
   use_schema :declaration_request, "specs/json_schemas/declaration_request_schema.json"
 
@@ -67,8 +68,8 @@ defmodule EHealth.DeclarationRequest.API.Validations do
     end
   end
 
-  def belongs_to(age, adult_age, "THERAPIST"), do: age >= adult_age
-  def belongs_to(age, adult_age, "PEDIATRICIAN"), do: age < adult_age
+  def belongs_to(age, adult_age, "THERAPIST"), do: age >= string_to_integer(adult_age)
+  def belongs_to(age, adult_age, "PEDIATRICIAN"), do: age < string_to_integer(adult_age)
   def belongs_to(_age, _adult_age, "FAMILY_DOCTOR"), do: true
 
   def validate_schema(attrs) do
