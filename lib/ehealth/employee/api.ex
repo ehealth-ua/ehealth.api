@@ -190,11 +190,14 @@ defmodule EHealth.Employee.API do
     fields = ~W(
       data
       status
+      employee_id
     )a
+
+    required_fields = ~W(data status)a
 
     schema
     |> cast(attrs, fields)
-    |> validate_required(fields)
+    |> validate_required(required_fields)
     |> validate_foreign_keys(attrs)
   end
 
