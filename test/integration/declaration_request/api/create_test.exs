@@ -485,7 +485,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         |> determine_auth_method_for_mpi()
 
       assert get_change(changeset, :authentication_method_current) ==
-        %{"number" => "+380508887701", "type" => "OFFLINE"}
+        %{"type" => "OFFLINE"}
     end
 
     test "Gandalf makes a NA decision" do
@@ -510,7 +510,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         |> Ecto.Changeset.change()
         |> determine_auth_method_for_mpi()
 
-      assert get_change(changeset, :authentication_method_current) == %{"number" => "+380508887702", "type" => "NA"}
+      assert get_change(changeset, :authentication_method_current) == %{"type" => "NA"}
     end
   end
 

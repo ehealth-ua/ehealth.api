@@ -88,10 +88,10 @@ defmodule EHealth.DeclarationRequest.API.Create do
 
         [authentication_method|_] = person_details["authentication_methods"]
 
-        authentication_method_current = %{
-          "type" => authentication_method["type"],
-          "number" => authentication_method["phone_number"]
-        }
+        authentication_method_current = prepare_auth_method_current(
+          authentication_method["type"],
+          authentication_method
+        )
 
         put_change(changeset, :authentication_method_current, authentication_method_current)
       {:ok, %{"data" => []}} ->
@@ -104,28 +104,37 @@ defmodule EHealth.DeclarationRequest.API.Create do
 
         case gandalf_decision do
           {:ok, %{"data" => decision}} ->
-            authentication_method_current = %{
-              "type" => decision["final_decision"],
-              "number" => authentication_method["phone_number"]
-            }
+            authentication_method_current = prepare_auth_method_current(
+              decision["final_decision"],
+              authentication_method
+            )
 
             put_change(changeset, :authentication_method_current, authentication_method_current)
           {:error, error_response} ->
             add_error(changeset, :authentication_method_current, format_error_response("Gandalf", error_response))
+
           _other ->
             require Logger
             Logger.info("Gandalf is not responding. Falling back to default...")
 
-            authentication_method_current = %{
-              "type" => "OFFLINE",
-              "number" => authentication_method["phone_number"]
-            }
+            authentication_method_current = %{"type" => "OFFLINE"}
 
             put_change(changeset, :authentication_method_current, authentication_method_current)
         end
       {:error, error_response} ->
         add_error(changeset, :authentication_method_current, format_error_response("MPI", error_response))
     end
+  end
+
+  def prepare_auth_method_current("OTP", %{"phone_number" => phone_number}) do
+    %{
+      "type" => "OTP",
+      "number" => phone_number
+    }
+  end
+
+  def prepare_auth_method_current(type, _authentication_method) do
+    %{"type" => type}
   end
 
   def prepare_legal_entity_struct(legal_entity) do

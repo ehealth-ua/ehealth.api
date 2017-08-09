@@ -267,7 +267,8 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
         "test/data/declaration_request.json"
         |> File.read!
         |> Poison.decode!
-        |> put_in(["declaration_request", "person", "first_name"], "UnknownMIS")
+        |> put_in(~W(declaration_request person first_name), "UnknownMIS")
+        |> put_in(~W(declaration_request person authentication_methods), [%{"type" => "OFFLINE"}])
 
       conn =
         conn

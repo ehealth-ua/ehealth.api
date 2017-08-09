@@ -179,7 +179,7 @@ defmodule EHealth.DeclarationRequest.API do
     declaration_request = multi.finalize()
 
     filtered_authentication_method_current =
-      update_in(declaration_request.authentication_method_current, ["number"], &Phone.hide_number/1)
+      filter_authentication_method(declaration_request.authentication_method_current)
 
     filter_document_links = fn documents ->
       filter_fun = fn document -> document["verb"] == "PUT" end
@@ -203,6 +203,14 @@ defmodule EHealth.DeclarationRequest.API do
       end
 
     {:ok, urgent_data}
+  end
+
+  defp filter_authentication_method(%{"number" => number} = method) do
+    Map.put(method, "number", Phone.hide_number(number))
+  end
+
+  defp filter_authentication_method(method) do
+    method
   end
 
   def update_status(id, status) do

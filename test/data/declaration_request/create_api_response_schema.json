@@ -451,7 +451,6 @@
               }
             },
             "required": [
-              "phone_number",
               "type"
             ],
             "type": "object"
