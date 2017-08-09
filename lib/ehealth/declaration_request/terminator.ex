@@ -23,7 +23,7 @@ defmodule EHealth.DeclarationRequest.Terminator do
     {from, _to} = @config[:utc_interval]
     ms = if validate_time(now.hour, @config[:utc_interval]),
       do: @config[:frequency],
-      else: (from - now.hour) * 60 * 60 * 1000
+      else: abs(from - now.hour) * 60 * 60 * 1000
     {:ok, send(self(), terminate_msg(ms))}
   end
 
