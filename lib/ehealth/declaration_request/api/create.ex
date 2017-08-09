@@ -153,7 +153,8 @@ defmodule EHealth.DeclarationRequest.API.Create do
         "first_name"  => employee.party.first_name,
         "second_name" => employee.party.second_name,
         "last_name"   => employee.party.last_name,
-        "phones"      => employee.party.phones
+        "phones"      => employee.party.phones,
+        "tax_id"      => employee.party.tax_id
       }
     }
   end

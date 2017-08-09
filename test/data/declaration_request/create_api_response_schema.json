@@ -161,6 +161,9 @@
             },
             "second_name": {
               "type": "string"
+            },
+            "tax_id": {
+              "type": "string"
             }
           },
           "required": [
