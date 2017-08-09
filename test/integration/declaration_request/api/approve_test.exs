@@ -86,7 +86,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.ApproveTest do
         ]
       }
 
-      assert {:error, {:not_uploaded, "Document C is not uploaded"}} ==
+      assert {:error, {:documents_not_uploaded, ["C"]}} ==
         verify(declaration_request, "doesn't matter")
     end
   end

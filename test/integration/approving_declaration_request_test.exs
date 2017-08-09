@@ -164,6 +164,7 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
             "declaration_request_A.jpeg" -> "http://localhost:#{port}/good_upload_1"
             "declaration_request_B.jpeg" -> "http://localhost:#{port}/good_upload_2"
             "declaration_request_404.jpeg" -> "http://localhost:#{port}/no_upload"
+            "declaration_request_empty.jpeg" -> "http://localhost:#{port}/no_upload"
             "declaration_request_error.jpeg" -> "http://invalid/route"
           end
 
@@ -218,7 +219,7 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
 
     test "offline documents was not uploaded. Declaration cannot be approved", %{conn: conn} do
 
-      docs = [%{"type" => "404", "verb" => "HEAD"}]
+      docs = [%{"type" => "404", "verb" => "HEAD"}, %{"type" => "empty", "verb" => "HEAD"}]
       existing_declaration_request_params = Map.put(get_declaration_changes(), :documents, docs)
       id = existing_declaration_request_params.id
 
@@ -235,11 +236,15 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
         |> patch("/api/declaration_requests/#{id}/actions/approve")
 
       resp = json_response(conn, 409)
-      assert "Document 404 is not uploaded" == resp["error"]["message"]
+      assert "Documents 404, empty is not uploaded" == resp["error"]["message"]
     end
 
     test "Ael not responding. Declaration cannot be approved", %{conn: conn} do
-      docs = [%{"type" => "error", "verb" => "HEAD"}]
+      docs = [
+        %{"type" => "empty", "verb" => "HEAD"},
+        %{"type" => "error", "verb" => "HEAD"},
+        %{"type" => "404", "verb" => "HEAD"}
+      ]
       existing_declaration_request_params = Map.put(get_declaration_changes(), :documents, docs)
       id = existing_declaration_request_params.id
 

@@ -16,28 +16,53 @@ defmodule EHealth.DeclarationRequest.API.Approve do
         OTPVerification.complete(phone, %{code: code})
 
       %{"type" => "OFFLINE"} ->
-        documents = declaration_request.documents
-
-        uploaded? = fn document, _acc -> uploaded?(declaration_request.id, document) end
-
-        Enum.reduce_while(documents, {:ok, true}, uploaded?)
+        check_documents(declaration_request.documents, declaration_request.id, {:ok, true})
     end
+  end
+
+  def check_documents([document | tail], declaration_request_id, acc) do
+    case uploaded?(declaration_request_id, document) do
+      # document is succesfully uploaded
+      {:ok, true}
+        -> check_documents(tail, declaration_request_id, acc)
+
+      # document not found
+      {:error, {:not_uploaded, document_type}}
+        -> check_documents(tail, declaration_request_id, put_document_error(acc, document_type))
+
+      # ael bad response
+      {:error, {:ael_bad_response, _}} = err
+        -> err
+    end
+  end
+
+  def check_documents([], _declaration_request_id, acc) do
+    acc
   end
 
   def uploaded?(id, %{"type" => type}) do
     {:ok, %{"data" => %{"secret_url" => url}}} =
       MediaStorage.create_signed_url("HEAD", @files_storage_bucket, "declaration_request_#{type}.jpeg", id)
+
     case HTTPoison.head(url) do
       {:ok, resp} ->
         case resp do
           %HTTPoison.Response{status_code: 200} ->
-            {:cont, {:ok, true}}
+            {:ok, true}
           _ ->
-            {:halt, {:error, {:not_uploaded, "Document #{type} is not uploaded"}}}
+            {:error, {:not_uploaded, type}}
         end
       {:error, reason} ->
         Logger.error("Cannot check uploaded document in Ael with error #{inspect reason}")
-        {:halt, {:error, {:ael_bad_response, reason}}}
+        {:error, {:ael_bad_response, reason}}
     end
+  end
+
+  def put_document_error({:ok, true}, doc_type) do
+    {:error, {:documents_not_uploaded, [doc_type]}}
+  end
+
+  def put_document_error({:error, {:documents_not_uploaded, container}}, doc_type) do
+    {:error, {:documents_not_uploaded, container ++ [doc_type]}}
   end
 end

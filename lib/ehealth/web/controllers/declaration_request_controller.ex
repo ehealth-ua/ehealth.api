@@ -43,8 +43,8 @@ defmodule EHealth.Web.DeclarationRequestController do
         Logger.error("Phone was not found for declaration request #{id}")
         {:error, %{"type" => "internal_error"}}
 
-      {:error, :verification, {:not_uploaded, reason}, _} ->
-        {:conflict, reason}
+      {:error, :verification, {:documents_not_uploaded, reason}, _} ->
+        {:conflict, "Documents #{Enum.join(reason, ", ")} is not uploaded"}
 
       {:error, :verification, {:ael_bad_response, _}, _} ->
         {:error, %{"type" => "internal_error"}}
