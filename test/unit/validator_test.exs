@@ -23,6 +23,14 @@ defmodule EHealth.Unit.ValidatorTest do
     "name" => "DOCUMENT_TYPE",
     "values" => %{
       "PASSPORT" => "passport",
+    },
+    "labels" => ["SYSTEM"],
+    "is_active" => true,
+  }
+
+  @doc_relationship_type %{
+    "name" => "DOCUMENT_RELATIONSHIP_TYPE",
+    "values" => %{
       "COURT_DECISION" => "court decision",
     },
     "labels" => ["SYSTEM"],
@@ -304,6 +312,22 @@ defmodule EHealth.Unit.ValidatorTest do
     content = put_in(get_declaration_request(), ~W(person documents), invalid_documents())
 
     assert {:error, [{%{description: _, rule: :inclusion}, "$.declaration_request.person.documents.[0].type"}]} =
+      DeclarationRequestValidator.validate_schema(content)
+  end
+
+  test "Declaration Request: JSON schema documents_relationship.type invalid", %{conn: conn} do
+    patch conn, dictionary_path(conn, :update, "DOCUMENT_RELATIONSHIP_TYPE"), @doc_relationship_type
+    request = get_declaration_request()
+    confidant_person =
+      request
+      |> get_in(~W(person confidant_person))
+      |> List.first()
+      |> Map.put("documents_relationship", invalid_documents())
+
+    content = put_in(request, ~W(person confidant_person), [confidant_person])
+
+    assert {:error, [{%{description: _, rule: :inclusion},
+      "$.declaration_request.person.confidant_person.[0].documents_relationship.[0].type"}]} =
       DeclarationRequestValidator.validate_schema(content)
   end
 

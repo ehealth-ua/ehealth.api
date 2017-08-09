@@ -101,6 +101,22 @@
       ],
       "additionalProperties": false
     },
+    "document_relationship": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "number": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "number"
+      ],
+      "additionalProperties": false
+    },
     "authentication_method": {
       "type": "object",
       "properties": {
@@ -324,7 +340,7 @@
                     "type": "array",
                     "minItems": 1,
                     "items": {
-                      "$ref": "#/definitions/document"
+                      "$ref": "#/definitions/document_relationship"
                     }
                   },
                   "phones": {
