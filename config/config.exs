@@ -5,7 +5,8 @@ config :ehealth,
   ecto_repos: [EHealth.Repo, EHealth.PRMRepo],
   employee_requests_per_page: {:system, :integer, "EMPLOYEE_REQUESTS_PER_PAGE", 50},
   declaration_requests_per_page: {:system, :integer, "DECLARATION_REQUESTS_PER_PAGE", 50},
-  namespace: EHealth
+  namespace: EHealth,
+  run_declaration_request_terminator: true
 
 # Configures the endpoint
 config :ehealth, EHealth.Web.Endpoint,
@@ -182,5 +183,10 @@ config :logger_json, :backend,
   load_from_system_env: true,
   json_encoder: Poison,
   metadata: :all
+
+# Configures declaration request terminator
+config :ehealth, EHealth.DeclarationRequest.Terminator,
+  frequency: 24 * 60 * 60 * 1000,
+  utc_interval: {0, 4}
 
 import_config "#{Mix.env}.exs"

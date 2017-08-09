@@ -14,4 +14,8 @@ defmodule EHealth.PRM.GlobalParameters do
 
     PRMRepo.all(query)
   end
+
+  def get_values do
+    for p <- list_global_parameters(), into: %{}, do: {p.parameter, p.value}
+  end
 end

@@ -46,11 +46,19 @@ config :ehealth, mock: [
   host: {:system, "TEST_MOCK_HOST", "localhost"}
 ]
 
+# Configures declaration terminator
+config :ehealth, EHealth.DeclarationRequest.Terminator,
+  frequency: 100,
+  utc_interval: {0, 23}
+
 config :ehealth, EHealth.Bamboo.Mailer,
   adapter: Bamboo.TestAdapter
 
 # Run acceptance test in concurrent mode
 config :ehealth, sql_sandbox: true
+
+# Don't start terminator in test env
+config :ehealth, run_declaration_request_terminator: false
 
 # Configure your database
 config :ehealth, EHealth.Repo,

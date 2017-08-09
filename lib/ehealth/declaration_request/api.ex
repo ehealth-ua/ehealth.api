@@ -79,7 +79,7 @@ defmodule EHealth.DeclarationRequest.API do
          {:ok, _} <- Validations.validate_addresses(get_in(attrs, ["person", "addresses"])),
          %Employee{} = employee <- Employees.get_employee_by_id(attrs["employee_id"]) do
       updates = [status: "CANCELLED", updated_at: DateTime.utc_now(), updated_by: user_id]
-      global_parameters = GlobalParameters.list_global_parameters()
+      global_parameters = GlobalParameters.get_values()
       legal_entity =
         client_id
         |> LegalEntities.get_legal_entity_by_id()
@@ -89,7 +89,7 @@ defmodule EHealth.DeclarationRequest.API do
 
       auxilary_entities = %{
         employee: employee,
-        global_parameters: prepare(global_parameters),
+        global_parameters: global_parameters,
         division: division,
         legal_entity: legal_entity
       }
@@ -338,7 +338,23 @@ defmodule EHealth.DeclarationRequest.API do
     |> Images.generate_links()
   end
 
-  defp prepare(global_parameters) do
-    for p <- global_parameters, into: %{}, do: {p.parameter, p.value}
+  def terminate_declaration_requests do
+    %{
+      "declaration_request_expiration" => term,
+      "declaration_request_term_unit" => unit,
+    } = GlobalParameters.get_values()
+
+    normalized_unit =
+      unit
+      |> String.downcase
+      |> String.replace_trailing("s", "")
+
+    query = where(DeclarationRequest, [dr],
+      datetime_add(dr.inserted_at, ^term, ^normalized_unit) < ^NaiveDateTime.utc_now()
+    )
+
+    Multi.new()
+    |> Multi.delete_all(:declaration_requests, query)
+    |> Repo.transaction()
   end
 end

@@ -6,6 +6,7 @@ defmodule EHealth do
   use Application
   alias EHealth.Web.Endpoint
   alias Confex.Resolver
+  import Supervisor.Spec, warn: false
 
   # See http://elixir-lang.org/docs/stable/elixir/Application.html
   # for more information on OTP Applications
@@ -13,8 +14,6 @@ defmodule EHealth do
 
     # Configure Logger severity at runtime
     configure_log_level()
-
-    import Supervisor.Spec, warn: false
 
     # Define workers and child supervisors to be supervised
     children = [
@@ -27,6 +26,8 @@ defmodule EHealth do
       # Starts a worker by calling: EHealth.Worker.start_link(arg1, arg2, arg3)
       # worker(EHealth.Worker, [arg1, arg2, arg3]),
     ]
+
+    children = add_declaration_request_terminator(children)
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html
     # for other strategies and supported options
@@ -52,6 +53,12 @@ defmodule EHealth do
         raise ArgumentError, "LOG_LEVEL environment should have one of 'debug', 'info', 'warn', 'error' values," <>
                              "got: #{inspect level}"
     end
+  end
+
+  defp add_declaration_request_terminator(children) do
+    if Confex.get_env(:ehealth, :run_declaration_request_terminator, true),
+      do: children ++ [worker(EHealth.DeclarationRequest.Terminator, [])],
+      else: children
   end
 
   # Loads configuration in `:init` callbacks and replaces `{:system, ..}` tuples via Confex
