@@ -63,6 +63,11 @@ defmodule EHealth.DeclarationRequest.API.Sign do
     tax_id = get_in(content, ["employee", "party", "tax_id"])
     drfo = Map.get(signer, "drfo")
 
+    Logger.info(fn -> """
+      tax_id: #{tax_id}
+      drfo: #{drfo}
+      """ end)
+
     case tax_id == drfo do
       true -> {:ok, {content, db_data}}
       _ -> {:error, [{%{description: "Does not match the signer drfo",
