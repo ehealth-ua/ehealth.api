@@ -40,7 +40,7 @@ defmodule EHealth.DeclarationRequest.API.Sign do
   def check_patient_signed(err), do: err
 
   def compare_with_db({:ok, %{"data" => %{"content" => content}}, declaration_request} = pipe_data) do
-    data =
+    db_content =
       declaration_request
       |> Map.get(:data)
       |> put_in(["person", "patient_signed"], true)
@@ -49,7 +49,12 @@ defmodule EHealth.DeclarationRequest.API.Sign do
       |> Map.put("content", Map.get(declaration_request, :printout_content))
       |> Map.delete("seed")
 
-    db_content = Map.delete(content, "seed")
+    data = Map.delete(content, "seed")
+    Logger.info(fn -> """
+      db_content: #{inspect db_content}
+      data: #{inspect data}
+      """ end)
+
 
     case db_content == data do
       true -> pipe_data
