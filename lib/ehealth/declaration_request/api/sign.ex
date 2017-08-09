@@ -55,7 +55,6 @@ defmodule EHealth.DeclarationRequest.API.Sign do
       data: #{inspect data}
       """ end)
 
-
     case db_content == data do
       true -> pipe_data
       _ -> {:error, [{%{description: "Signed content does not match the previously created content",
