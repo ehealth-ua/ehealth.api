@@ -218,6 +218,35 @@ defmodule EHealth.DeclarationRequest.API.Validations do
     end
   end
 
+  def validate_authentication_methods(changeset) do
+    authentication_methods =
+      changeset
+      |> get_field(:data)
+      |> get_in(["person", "authentication_methods"])
+
+    if is_list(authentication_methods) && !Enum.empty?(authentication_methods) do
+      authentication_methods
+      |> Enum.reduce({0, changeset}, &validate_auth_method/2)
+      |> elem(1)
+    else
+      changeset
+    end
+  end
+
+  defp validate_auth_method(%{"type" => "OTP"} = method, {i, changeset}) do
+    case Map.has_key?(method, "phone_number") do
+      true ->
+        {i + 1, changeset}
+      false ->
+        message = "required property phone_number was not present"
+        {i + 1, add_error(changeset, :"data.person.authentication_methods.[#{i}].phone_number", message)}
+    end
+  end
+
+  defp validate_auth_method(_, {i, changeset}) do
+    {i + 1, changeset}
+  end
+
   defp assert_address_count(enum, address_type, count) do
     if count == Enum.count(enum, fn %{"type" => type} -> type == address_type end) do
       :ok

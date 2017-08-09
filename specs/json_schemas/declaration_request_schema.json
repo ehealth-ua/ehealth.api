@@ -129,8 +129,7 @@
         }
       },
       "required": [
-        "type",
-        "phone_number"
+        "type"
       ],
       "additionalProperties": false
     }

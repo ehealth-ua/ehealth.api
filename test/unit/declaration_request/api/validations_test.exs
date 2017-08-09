@@ -146,6 +146,43 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
     assert {:error, _} = validate_schema(%{})
   end
 
+  describe "validate authentication_method" do
+    test "phone_number is required for OTP type" do
+      raw_declaration_request = %{
+        data: %{
+          "person" => %{
+            "authentication_methods" => [
+              %{"type" => "OFFLINE"},
+              %{"type" => "OTP"},
+            ]
+          }
+        }
+      }
+
+      result =
+        %DeclarationRequest{}
+        |> Ecto.Changeset.change(raw_declaration_request)
+        |> validate_authentication_methods()
+
+      [
+        "data.person.authentication_methods.[1].phone_number": {
+          "required property phone_number was not present", []
+        }
+      ] = result.errors
+    end
+
+    test "phone_number is NOT required for OFFLINE type" do
+      data =
+        "test/data/declaration_request.json"
+        |> File.read!()
+        |> Poison.decode!()
+        |> Map.fetch!("declaration_request")
+        |> put_in(~W(person authentication_methods), [%{"type" => "OFFLINE"}])
+
+      assert {:ok, _} = validate_schema(data)
+    end
+  end
+
   describe "validate_tax_id/1" do
     test "when tax_id is absent" do
       raw_declaration_request = %{
