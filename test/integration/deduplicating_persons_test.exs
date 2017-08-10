@@ -26,28 +26,28 @@ defmodule EHealth.Integration.DeduplicatingPersonsTest do
       end
 
       Plug.Router.patch "/persons/#{@person1}" do
-        Logger.info("Candidate #{@person1} was deactivated.")
-        %{"merge_candidate" => %{"status" => "INACTIVE"}} = conn.params
+        Logger.info("Person #{@person1} was deactivated.")
+        %{"status" => "INACTIVE"} = conn.params
         updated_candidate = %{}
         send_resp(conn, 200, Poison.encode!(%{data: updated_candidate}))
       end
 
       Plug.Router.patch "/persons/#{@person2}" do
-        Logger.info("Candidate #{@person2} was deactivated.")
-        %{"merge_candidate" => %{"status" => "INACTIVE"}} = conn.params
+        Logger.info("Person #{@person2} was deactivated.")
+        %{"status" => "INACTIVE"} = conn.params
         updated_candidate = %{}
         send_resp(conn, 200, Poison.encode!(%{data: updated_candidate}))
       end
 
       Plug.Router.patch "/merge_candidates/mc_1" do
-        Logger.info("Candidate #{@person1} was merged.")
+        Logger.info("Candidate mc_1 was merged.")
         %{"merge_candidate" => %{"status" => "MERGED"}} = conn.params
         updated_candidate = %{}
         send_resp(conn, 200, Poison.encode!(%{data: updated_candidate}))
       end
 
       Plug.Router.patch "/merge_candidates/mc_2" do
-        Logger.info("Candidate #{@person2} was merged.")
+        Logger.info("Candidate mc_2 was merged.")
         %{"merge_candidate" => %{"status" => "MERGED"}} = conn.params
         updated_candidate = %{}
         send_resp(conn, 200, Poison.encode!(%{data: updated_candidate}))
@@ -84,7 +84,7 @@ defmodule EHealth.Integration.DeduplicatingPersonsTest do
       end
 
       Plug.Router.patch "/persons/:id/declarations/actions/terminate" do
-        Logger.info("Candidate #{id} got his declarations terminated.")
+        Logger.info("Person #{id} got his declarations terminated.")
         # TODO: how to test this was actually called TWO times?
         send_resp(conn, 200, "")
       end
@@ -116,12 +116,12 @@ defmodule EHealth.Integration.DeduplicatingPersonsTest do
         assert "OK" = text_response(response, 200)
       end
 
-      assert result =~ "Candidate 8060385c-c663-4f8f-bf8f-d8121216084e was merged."
-      assert result =~ "Candidate abcf619e-ee57-4637-9bc8-3a465eca047c was merged."
-      assert result =~ "Candidate 8060385c-c663-4f8f-bf8f-d8121216084e was deactivated."
-      assert result =~ "Candidate abcf619e-ee57-4637-9bc8-3a465eca047c was deactivated."
-      assert result =~ "Candidate 8060385c-c663-4f8f-bf8f-d8121216084e got his declarations terminated."
-      assert result =~ "Candidate abcf619e-ee57-4637-9bc8-3a465eca047c got his declarations terminated."
+      assert result =~ "Candidate mc_1 was merged."
+      assert result =~ "Candidate mc_2 was merged."
+      assert result =~ "Person 8060385c-c663-4f8f-bf8f-d8121216084e was deactivated."
+      assert result =~ "Person abcf619e-ee57-4637-9bc8-3a465eca047c was deactivated."
+      assert result =~ "Person 8060385c-c663-4f8f-bf8f-d8121216084e got his declarations terminated."
+      assert result =~ "Person abcf619e-ee57-4637-9bc8-3a465eca047c got his declarations terminated."
     end
   end
 end
