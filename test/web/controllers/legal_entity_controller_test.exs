@@ -5,6 +5,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
   @inactive_legal_entity_id "356b4182-f9ce-4eda-b6af-43d2de8602aa"
 
+  @tag :pending
   test "create legal entity", %{conn: conn} do
     legal_entity_params = %{
       "signed_content_encoding" => "base64",

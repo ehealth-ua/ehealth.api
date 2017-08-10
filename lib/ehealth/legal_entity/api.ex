@@ -236,7 +236,7 @@ defmodule EHealth.LegalEntity.API do
         "status" => @employee_request_status,
         "employee_type" => @employee_request_type,
         "start_date" => Date.to_iso8601(Date.utc()),
-        "party" => party
+        "party" => Map.delete(party, "position"),
       }
     %{"employee_request" => request}
   end

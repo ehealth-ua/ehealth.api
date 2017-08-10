@@ -285,12 +285,7 @@
           "description": "Dictionary: EMPLOYEE_TYPE"
         },
         "party": {
-          "type": "object",
-          "properties": {
-            "items": {
-              "$ref": "#/definitions/party"
-            }
-          }
+          "$ref": "#/definitions/party"
         },
         "doctor": {
           "type": "object",

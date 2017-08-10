@@ -134,11 +134,17 @@ defmodule EHealth.Unit.LegalEntityTest do
   end
 
   test "new legal entity mis_verified NOT_VERIFIED" do
+    legal_entity = Map.merge(get_legal_entity_data(), %{
+      "short_name" => "Nebo15",
+      "email" => "changed@example.com",
+      "kveds" => ["12.21"]
+    })
+    request = %{
+      "signed_legal_entity_request" => "base64 encoded content"
+    }
+
     assert {:ok, %{legal_entity: %{"data" => legal_entity}, security: security}} =
-      API.create_legal_entity(%{
-        "signed_legal_entity_request" => File.read!("test/data/signed_content.txt"),
-        "signed_content_encoding" => "base64",
-      }, get_headers())
+      API.process_request(legal_entity, request, get_headers())
 
     assert "ACTIVE" == legal_entity["status"]
     assert "NOT_VERIFIED" == legal_entity["mis_verified"]
