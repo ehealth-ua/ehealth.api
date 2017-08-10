@@ -29,6 +29,13 @@ defmodule EHealth.PRMFactories.PartyFactory do
           updated_by: UUID.generate()
         }
       end
+
+      def party_user_factory do
+        %EHealth.PRM.Parties.PartyUser{
+          user_id: UUID.generate(),
+          party: build(:party),
+        }
+      end
     end
   end
 end

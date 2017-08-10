@@ -3,9 +3,10 @@ defmodule EHealth.Web.EmployeesControllerTest do
 
   use EHealth.Web.ConnCase
   alias EHealth.MockServer
+  alias Ecto.UUID
 
   test "gets only employees that have legal_entity_id == client_id", %{conn: conn} do
-    client_id = Ecto.UUID.generate()
+    client_id = UUID.generate()
     conn = put_client_id_header(conn, client_id)
     conn = get conn, employees_path(conn, :index)
     resp = json_response(conn, 200)
@@ -49,7 +50,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
   end
 
   test "get employees with client_id that does not match legal entity id", %{conn: conn} do
-    conn = put_client_id_header(conn, Ecto.UUID.generate())
+    conn = put_client_id_header(conn, UUID.generate())
     id = "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
     conn = get conn, employees_path(conn, :index, [legal_entity_id: id])
     resp = json_response(conn, 200)
@@ -125,7 +126,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
     end
 
     test "with MSP token when legal_entity_id != client_id", %{conn: conn} do
-      conn = put_client_id_header(conn, Ecto.UUID.generate())
+      conn = put_client_id_header(conn, UUID.generate())
       conn = get conn, employees_path(conn, :show, "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b")
       json_response(conn, 403)
     end
@@ -152,21 +153,40 @@ defmodule EHealth.Web.EmployeesControllerTest do
     end
   end
 
-  test "deactivate employee with invalid transitions condition", %{conn: conn} do
-    conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+  describe "deactivate employee" do
+    setup %{conn: conn} do
+      party = insert(:party)
+      insert(:party_user, party: party)
+      insert(:party_user, party: party)
+      legal_entity = insert(:legal_entity)
+      employee = insert(:employee, legal_entity: legal_entity, party: party)
 
-    conn_resp = patch conn, employees_path(conn, :deactivate, "b075f148-7f93-4fc2-b2ec-2d81b19a91a1")
-    assert json_response(conn_resp, 409)["error"]["message"] == "Employee is DEACTIVATED and cannot be updated."
+      {:ok, %{conn: conn, legal_entity: legal_entity, employee: employee}}
+    end
 
-    conn_resp = patch conn, employees_path(conn, :deactivate, "b075f148-7f93-4fc2-b2ec-2d81b19a9a8a")
-    assert json_response(conn_resp, 409)["error"]["message"] == "Employee is DEACTIVATED and cannot be updated."
+    test "with invalid transitions condition", %{conn: conn, legal_entity: legal_entity} do
+      employee = insert(:employee, legal_entity: legal_entity, status: "DEACTIVATED")
+      conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+      conn_resp = patch conn, employees_path(conn, :deactivate, employee.id)
+
+      assert json_response(conn_resp, 409)["error"]["message"] == "Employee is DEACTIVATED and cannot be updated."
+    end
+
+    test "successful", %{conn: conn, employee: employee} do
+      conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+      conn = patch conn, employees_path(conn, :deactivate, employee.id)
+
+      resp = json_response(conn, 200)
+      refute resp["is_active"]
+    end
+
+    test "not found", %{conn: conn} do
+      conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+      conn = patch conn, employees_path(conn, :deactivate, UUID.generate())
+
+      resp = json_response(conn, 404)
+      refute resp["is_active"]
+    end
   end
 
-  test "deactivate employee", %{conn: conn} do
-    conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
-    conn = patch conn, employees_path(conn, :deactivate, "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b")
-
-    resp = json_response(conn, 200)
-    refute resp["is_active"]
-  end
 end

@@ -3,9 +3,12 @@ defmodule EHealth.Employee.EmployeeUpdater do
 
   import EHealth.Utils.Connection, only: [get_consumer_id: 1]
 
-  alias EHealth.API.PRM
+  alias EHealth.API.PRM # deprecated
   alias EHealth.API.OPS
   alias EHealth.API.Mithril
+  alias EHealth.PRM.Parties
+  alias EHealth.PRM.Employees
+  alias EHealth.PRM.Employees.Schema, as: Employee
   alias EHealth.Employee.API
 
   require Logger
@@ -15,7 +18,7 @@ defmodule EHealth.Employee.EmployeeUpdater do
   @employee_status_dismissed "DISMISSED"
 
   def deactivate(id, headers) do
-    with {:ok, %{"data" => employee}} <- API.get_employee_by_id(id, headers, false),
+    with %Employee{} = employee  <- Employees.get_employee_by_id(id),
           :ok                    <- check_transition(employee),
          {:ok, active_employees} <- get_active_employees(employee, headers),
           :ok                    <- revoke_user_auth_data(employee, active_employees["data"], headers),
@@ -24,13 +27,13 @@ defmodule EHealth.Employee.EmployeeUpdater do
       do: {:ok, updated_employee}
   end
 
-  def check_transition(%{"is_active" => true, "status" => @employee_status_approved}), do: :ok
+  def check_transition(%{is_active: true, status: @employee_status_approved}), do: :ok
 
   def check_transition(_employee) do
     {:error, {:conflict, "Employee is DEACTIVATED and cannot be updated."}}
   end
 
-  def get_active_employees(%{"party_id" => party_id, "employee_type" => employee_type}, headers) do
+  def get_active_employees(%{party_id: party_id, employee_type: employee_type}, headers) do
     API.get_employees(%{
       status: @employee_status_approved,
       party_id: party_id,
@@ -38,23 +41,20 @@ defmodule EHealth.Employee.EmployeeUpdater do
     }, headers)
   end
 
-  def revoke_user_auth_data(employee, active_employees, headers) when length(active_employees) <= 1 do
-    client_id = employee["legal_entity_id"]
-    role_name = employee["employee_type"]
-    party_params = %{"party_id" => employee["party_id"]}
+  def revoke_user_auth_data(%Employee{} = employee, active_employees, headers) when length(active_employees) <= 1 do
+    client_id = employee.legal_entity_id
+    role_name = employee.employee_type
 
-    with {:ok, %{"data" => party_users}} <- PRM.get_party_users(party_params, headers),
-          :ok <- revoke_user_auth_data_async(party_users, client_id, role_name, headers)
-    do
-      :ok
-    end
+    employee.party_id
+    |> Parties.get_party_users_by_party_id()
+    |> revoke_user_auth_data_async(client_id, role_name, headers)
   end
   def revoke_user_auth_data(_employee, _active_employees, _headers), do: :ok
 
   def revoke_user_auth_data_async(user_parties, client_id, role_name, headers) do
     user_parties
     |> Enum.map(&(Task.async(fn ->
-      {&1["user_id"], delete_mithril_entities(&1["user_id"], client_id, role_name, headers)}
+      {&1.user_id, delete_mithril_entities(&1.user_id, client_id, role_name, headers)}
     end)))
     |> Enum.map(&Task.await/1)
     |> check_async_error()
@@ -85,11 +85,11 @@ defmodule EHealth.Employee.EmployeeUpdater do
        end
   end
 
-  def update_employee_status(%{"id" => id} = employee, headers) do
+  def update_employee_status(%Employee{} = employee, headers) do
     headers
     |> get_update_employee_params()
     |> put_employee_status(employee)
-    |> PRM.update_employee(id, headers)
+    |> PRM.update_employee(employee.id, headers)
   end
 
   defp get_update_employee_params(headers) do
@@ -102,7 +102,7 @@ defmodule EHealth.Employee.EmployeeUpdater do
     Map.put(data, :updated_by, get_consumer_id(headers))
   end
 
-  defp put_employee_status(params, %{"employee_type" => @employee_type_owner}) do
+  defp put_employee_status(params, %{employee_type: @employee_type_owner}) do
     Map.put(params, :is_active, false)
   end
 

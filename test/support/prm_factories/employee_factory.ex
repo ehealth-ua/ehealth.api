@@ -11,8 +11,8 @@ defmodule EHealth.PRMFactories.EmployeeFactory do
         %EHealth.PRM.Employees.Schema{
           is_active: true,
           position: "some position",
-          status: "some status",
-          employee_type: "some type",
+          status: "APPROVED",
+          employee_type: "DOCTOR",
           end_date: ~D[2012-04-17],
           start_date: ~D[2017-03-22],
           party: build(:party),

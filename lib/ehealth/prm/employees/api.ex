@@ -36,6 +36,10 @@ defmodule EHealth.PRM.Employees do
     end_date
   )a
 
+  def get_employee_by_id!(id) do
+    PRMRepo.get!(Employee, id)
+  end
+
   def get_employee_by_id(id) do
     PRMRepo.get(Employee, id)
   end
