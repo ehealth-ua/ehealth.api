@@ -17,8 +17,7 @@ defmodule EHealth.Web.EmployeeRequestController do
   end
 
   def index(conn, params) do
-    client_id = get_client_id(conn.req_headers)
-    with {employee_requests, %Ecto.Paging{} = paging} <- API.list_employee_requests(params, client_id) do
+    with {employee_requests, %Ecto.Paging{} = paging} <- API.list_employee_requests(params) do
       render(conn, "index.json", employee_requests: employee_requests, paging: paging)
     end
   end

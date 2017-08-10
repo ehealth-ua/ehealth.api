@@ -236,9 +236,23 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       assert is_list(resp["data"])
     end
 
+    test "by NHS ADMIN", %{conn: conn} do
+      %{id: legal_entity_id_1} = fixture(LegalEntity)
+      %{id: legal_entity_id_2} = fixture(LegalEntity)
+      fixture(Request, Map.put(employee_request(), :legal_entity_id, legal_entity_id_1))
+      fixture(Request, Map.put(employee_request(), :legal_entity_id, legal_entity_id_2))
+      conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8601a1")
+      conn = get conn, employees_path(conn, :index)
+      resp = json_response(conn, 200)["data"]
+      assert 2 = length(resp)
+    end
+
     test "with valid client_id in metadata", %{conn: conn} do
       %{id: legal_entity_id} = legal_entity = fixture(LegalEntity)
+      %{id: legal_entity_id_2} = fixture(LegalEntity)
       fixture(Request, Map.put(employee_request(), :legal_entity_id, legal_entity_id))
+      fixture(Request, Map.put(employee_request(), :legal_entity_id, legal_entity_id_2))
+
       conn = put_client_id_header(conn, legal_entity_id)
       conn = get conn, employee_request_path(conn, :index)
       resp = json_response(conn, 200)

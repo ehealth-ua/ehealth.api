@@ -35,13 +35,13 @@ defmodule EHealth.Employee.API do
     Repo.get!(Request, id)
   end
 
-  def list_employee_requests(params, client_id) do
+  def list_employee_requests(params) do
     query = from er in Request,
       order_by: [desc: :inserted_at]
 
     {employee_requests, paging} =
       query
-      |> filter_by_legal_entity_id(client_id)
+      |> filter_by_legal_entity_id(params)
       |> filter_by_status(params)
       |> Repo.page(get_paging(params, Confex.fetch_env!(:ehealth, :employee_requests_per_page)))
     legal_entity_ids =
@@ -65,8 +65,12 @@ defmodule EHealth.Employee.API do
     {employee_requests, paging}
   end
 
-  defp filter_by_legal_entity_id(query, client_id) do
-    where(query, [r], fragment("?->>'legal_entity_id' = ?", r.data, ^client_id))
+  defp filter_by_legal_entity_id(query, %{"legal_entity_id" => legal_entity_id}) do
+    where(query, [r], fragment("?->>'legal_entity_id' = ?", r.data, ^legal_entity_id))
+  end
+
+  defp filter_by_legal_entity_id(query, _) do
+    query
   end
 
   defp filter_by_status(query, %{"status" => status}) when is_binary(status) do
