@@ -52,6 +52,13 @@ defmodule EHealth.PRM.LegalEntities do
     |> PRMRepo.one()
   end
 
+  def get_legal_entity_by_id_with(id, preload_schemas) do
+    id
+    |> get_legal_entity_by_id_query()
+    |> preload(^preload_schemas)
+    |> PRMRepo.one()
+  end
+
   def get_legal_entity_by_id!(id) do
     id
     |> get_legal_entity_by_id_query()

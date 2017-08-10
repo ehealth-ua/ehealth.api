@@ -13,7 +13,9 @@ defmodule EHealth.DeclarationRequest.API do
   alias EHealth.PRM.LegalEntities
   alias EHealth.PRM.Divisions
   alias EHealth.PRM.Employees
+  alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
   alias EHealth.PRM.Employees.Schema, as: Employee
+  alias EHealth.PRM.Divisions.Schema, as: Division
   alias EHealth.DeclarationRequest
   alias EHealth.DeclarationRequest.API.Create
   alias EHealth.DeclarationRequest.API.Approve
@@ -77,14 +79,13 @@ defmodule EHealth.DeclarationRequest.API do
     # TODO: double check user_id/client_id has access to create given employee/legal_entity
     with {:ok, attrs} <- Validations.validate_schema(attrs),
          {:ok, _} <- Validations.validate_addresses(get_in(attrs, ["person", "addresses"])),
-         %Employee{} = employee <- Employees.get_employee_by_id(attrs["employee_id"]) do
+         %Employee{} = employee <- Employees.get_employee_by_id(attrs["employee_id"]),
+         %LegalEntity{} = legal_entity <- LegalEntities.get_legal_entity_by_id_with(client_id,
+                                                                                    :medical_service_provider),
+         %Division{} = division <- Divisions.get_division_by_id(attrs["division_id"]) do
       updates = [status: "CANCELLED", updated_at: DateTime.utc_now(), updated_by: user_id]
       global_parameters = GlobalParameters.get_values()
-      legal_entity =
-        client_id
-        |> LegalEntities.get_legal_entity_by_id()
-        |> PRMRepo.preload(:medical_service_provider)
-      division = Divisions.get_division_by_id(attrs["division_id"])
+
       employee = PRMRepo.preload(employee, [:party, :doctor])
 
       auxilary_entities = %{
@@ -104,6 +105,10 @@ defmodule EHealth.DeclarationRequest.API do
       |> Multi.run(:finalize, &finalize/1)
       |> Multi.run(:urgent_data, &prepare_urgent_data/1)
       |> Repo.transaction
+    else
+      nil -> {:error, [{%{description: "some of required properties was invalid", params: [],
+                          rule: :required}, "$.declaration_request"}]}
+      err -> err
     end
   end
 

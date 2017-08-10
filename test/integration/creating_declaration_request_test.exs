@@ -418,8 +418,7 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
         |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: ""}))
         |> post(declaration_request_path(conn, :create), declaration_request_params)
 
-      resp = json_response(conn, 404)
-      assert %{"error" => %{"type" => "not_found"}} = resp
+      resp = json_response(conn, 422)
     end
   end
 
@@ -477,12 +476,11 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
         |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: ""}))
         |> post(declaration_request_path(conn, :create), Poison.encode!(declaration_request_params))
 
-      resp = json_response(conn, 404)
+      resp = json_response(conn, 422)
 
       assert %{
-        "error" => %{},
         "meta" => %{
-          "code" => 404,
+          "code" => 422,
           "url" => "http://www.example.com/api/declaration_requests",
           "type" => "object",
           "request_id" => _,
