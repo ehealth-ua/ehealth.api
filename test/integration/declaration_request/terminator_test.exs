@@ -10,7 +10,7 @@ defmodule EHealth.Integration.DeclarationRequest.TerminatorTest do
   test "start init genserver" do
     declaration_request = simple_fixture(:declaration_request)
     simple_fixture(:declaration_request)
-   inserted_at = NaiveDateTime.add(NaiveDateTime.utc_now(), -86_400 * 10, :seconds)
+    inserted_at = NaiveDateTime.add(NaiveDateTime.utc_now(), -86_400 * 10, :seconds)
 
     declaration_request
     |> Ecto.Changeset.change(inserted_at: inserted_at)
