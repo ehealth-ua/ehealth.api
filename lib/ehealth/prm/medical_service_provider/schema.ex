@@ -2,6 +2,12 @@ defmodule EHealth.PRM.MedicalServiceProviders.Schema do
   @moduledoc false
 
   use Ecto.Schema
+  import Ecto.Changeset
+
+  @optional_fields ~w(
+    accreditation
+    licenses
+  )a
 
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "medical_service_providers" do
@@ -11,5 +17,9 @@ defmodule EHealth.PRM.MedicalServiceProviders.Schema do
     belongs_to :legal_entity, EHealth.PRM.LegalEntities.Schema, type: Ecto.UUID
 
     timestamps()
+  end
+
+  def changeset(%__MODULE__{} = doc, attrs) do
+    cast(doc, attrs, @optional_fields)
   end
 end

@@ -3,17 +3,18 @@ defmodule EHealth.LegalEntity.LegalEntityUpdater do
 
   import EHealth.Utils.Connection, only: [get_consumer_id: 1]
 
-  alias EHealth.LegalEntity.API
-  alias EHealth.Employee.API, as: EmployeeAPI
+  alias EHealth.PRM.LegalEntities
   alias EHealth.Employee.EmployeeUpdater
   alias EHealth.API.PRM
+  alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
+  alias EHealth.PRM.Employees
 
   require Logger
 
   @legal_entity_status_active "ACTIVE"
 
   def deactivate(id, headers) do
-    with {:ok, legal_entity} <- get_legal_entity(id, headers),
+    with legal_entity <- LegalEntities.get_legal_entity_by_id!(id),
          :ok <- check_transition(legal_entity),
          :ok <- deactivate_employees(legal_entity, headers),
          {:ok, legal_entity} <- update_legal_entity_status(legal_entity, headers)
@@ -22,42 +23,33 @@ defmodule EHealth.LegalEntity.LegalEntityUpdater do
     end
   end
 
-  def get_legal_entity(id, headers) do
-    id
-    |> API.get_legal_entity_by_id(headers)
-    |> case do
-         {:ok, legal_entity, _} -> {:ok, legal_entity}
-         err -> err
-       end
-  end
-
-  def check_transition(%{"is_active" => true, "status" => @legal_entity_status_active}), do: :ok
+  def check_transition(%LegalEntity{is_active: true, status: @legal_entity_status_active}), do: :ok
   def check_transition(_legal_entity) do
     {:error, {:conflict, "Legal entity is not ACTIVE and cannot be updated"}}
   end
 
-  def deactivate_employees(legal_entity, headers, starting_after \\ nil) do
+  def deactivate_employees(%LegalEntity{} = legal_entity, headers, starting_after \\ nil) do
     employees_resp = %{
       status: "APPROVED",
       is_active: true,
-      legal_entity_id: legal_entity["id"],
+      legal_entity_id: legal_entity.id,
     }
     |> set_paging_after(starting_after)
-    |> EmployeeAPI.get_employees(headers)
+    |> Employees.get_employees
 
     case employees_resp do
-      {:ok, %{"paging" => %{"cursors" => cursors, "has_more" => true}}} ->
+      {employees, %Ecto.Paging{cursors: cursors, has_more: true}} ->
         error =
-          employees_resp
+          employees
           |> deactivate_employees_page(headers)
           |> check_deactivated_employees_error()
         case error do
           nil -> deactivate_employees(legal_entity, headers, cursors["starting_after"])
           error -> {:error, error}
         end
-      {:ok, %{"paging" => %{"has_more" => false}}} ->
+      {employees, %Ecto.Paging{has_more: false}} ->
         error =
-          employees_resp
+          employees
           |> deactivate_employees_page(headers)
           |> check_deactivated_employees_error()
         case error do
@@ -83,20 +75,19 @@ defmodule EHealth.LegalEntity.LegalEntityUpdater do
     end)
   end
 
-  def deactivate_employees_page({:ok, %{"data" => employees}}, headers) do
+  def deactivate_employees_page(employees, headers) do
     employees
     |> Enum.map(&(Task.async(fn ->
-      {&1["id"], EmployeeUpdater.deactivate(&1["id"], headers)}
+      {Map.get(&1, :id), EmployeeUpdater.deactivate(Map.get(&1, :id), headers)}
     end)))
     |> Enum.map(&Task.await/1)
   end
-  def deactivate_employees_page({:error, err}), do: err
 
-  def update_legal_entity_status(legal_entity, headers) do
+  def update_legal_entity_status(%LegalEntity{} = legal_entity, headers) do
     headers
     |> get_update_legal_entity_params()
     |> put_legal_entity_status()
-    |> PRM.update_legal_entity(legal_entity["id"], headers)
+    |> PRM.update_legal_entity(legal_entity.id, headers)
   end
 
   defp get_update_legal_entity_params(headers) do

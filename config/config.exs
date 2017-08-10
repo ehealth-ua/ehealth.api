@@ -6,7 +6,9 @@ config :ehealth,
   employee_requests_per_page: {:system, :integer, "EMPLOYEE_REQUESTS_PER_PAGE", 50},
   declaration_requests_per_page: {:system, :integer, "DECLARATION_REQUESTS_PER_PAGE", 50},
   namespace: EHealth,
-  run_declaration_request_terminator: true
+  run_declaration_request_terminator: true,
+  legal_entities_per_page: {:system, :integer, "LEGAL_ENTITIES_PER_PAGE", 50},
+  employees_per_page: {:system, :integer, "EMPLOYEES_PER_PAGE", 50}
 
 # Configures the endpoint
 config :ehealth, EHealth.Web.Endpoint,

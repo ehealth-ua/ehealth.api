@@ -15,6 +15,7 @@ defmodule EHealth.LegalEntity.API do
   alias EHealth.LegalEntity.Validator
   alias EHealth.Employee.API
   alias EHealth.API.Mithril
+  alias EHealth.PRM.LegalEntities
 
   require Logger
 
@@ -27,8 +28,8 @@ defmodule EHealth.LegalEntity.API do
     client_id = get_client_id(headers)
     with {:ok, client_type}  <- get_client_type_name(client_id, headers),
           :ok                <- authorize_legal_entity_id(id, client_id, client_type),
-         {:ok, legal_entity} <- load_legal_entity(id, headers),
-         %{} = oauth_client  <- OAuth.get_client(Map.fetch!(legal_entity, "id"), headers)
+         {:ok, legal_entity} <- load_legal_entity(id),
+         %{} = oauth_client  <- OAuth.get_client(legal_entity.id, headers)
     do
       {:ok, legal_entity, oauth_client}
     end
@@ -43,12 +44,12 @@ defmodule EHealth.LegalEntity.API do
       end
   end
 
-  defp load_legal_entity(id, headers) do
+  defp load_legal_entity(id) do
     %{"id" => id, "is_active" => true}
-    |> PRM.get_legal_entities(headers)
+    |> LegalEntities.get_legal_entities
     |> case do
-         {:ok, %{"data" => []}} -> {:error, :not_found}
-         {:ok, %{"data" => data}} -> {:ok, List.first(data)}
+         {[], _} -> {:error, :not_found}
+         {data, _} -> {:ok, List.first(data)}
          err -> err
        end
   end
@@ -89,10 +90,10 @@ defmodule EHealth.LegalEntity.API do
 
   # get list of legal entities
 
-  def get_legal_entities(params, headers) do
+  def get_legal_entities(params) do
     params
     |> map_legal_entity_id()
-    |> PRM.get_legal_entities(headers)
+    |> LegalEntities.get_legal_entities()
   end
 
   defp map_legal_entity_id(%{"legal_entity_id" => id} = params), do: Map.put(params, "id", id)
@@ -109,8 +110,8 @@ defmodule EHealth.LegalEntity.API do
   # for testing without signed content
   def process_request(request_params, attrs, headers) do
     edrpou = Map.fetch!(request_params, "edrpou")
-    with {:ok, %{"data" => legal_entity}} <- PRM.get_legal_entity_by_edrpou(edrpou, headers),
-         legal_entity <- List.first(legal_entity),
+    with {legal_entities, _} <- LegalEntities.get_legal_entity_by_edrpou(edrpou),
+         legal_entity <- List.first(legal_entities),
          {:ok, id, flow} <- get_legal_entity_id_flow(legal_entity),
          :ok <- check_status(legal_entity),
          {:ok, _} <- store_signed_content(id, attrs, headers),

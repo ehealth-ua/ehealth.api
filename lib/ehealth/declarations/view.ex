@@ -98,7 +98,7 @@ defmodule EHealth.Declarations.View do
       addresses
       created_at
       modified_at
-    )
+    )a
   end
 
   def fields(:legal_entity, :list) do
@@ -107,7 +107,7 @@ defmodule EHealth.Declarations.View do
       name
       short_name
       edrpou
-    )
+    )a
   end
 
   def fields(:declaration, :one) do

@@ -2,8 +2,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase
-
-  @inactive_legal_entity_id "356b4182-f9ce-4eda-b6af-43d2de8602aa"
+  alias EHealth.MockServer
 
   test "create legal entity", %{conn: conn} do
     legal_entity_params = %{
@@ -54,8 +53,9 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     end
 
     test "with x-consumer-metadata that contains MIS client_id", %{conn: conn} do
-      conn = put_client_id_header(conn, "296da7d2-3c5a-4f6a-b8b2-631063737271")
-      conn = get conn, legal_entity_path(conn, :index, [edrpou: "37367387"])
+      %{id: id, edrpou: edrpou} = insert(:legal_entity, id: MockServer.get_client_mis())
+      conn = put_client_id_header(conn, id)
+      conn = get conn, legal_entity_path(conn, :index, [edrpou: edrpou])
       resp = json_response(conn, 200)
 
       assert Map.has_key?(resp, "data")
@@ -66,21 +66,22 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       assert 1 == length(resp["data"])
     end
 
-    test "with x-consumer-metadata that contains NHS client_id",
-      %{conn: conn} do
-      conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8601a1")
-      conn = get conn, legal_entity_path(conn, :index, [edrpou: "37367387"])
+    test "with x-consumer-metadata that contains NHS client_id", %{conn: conn} do
+      %{id: id, edrpou: edrpou} = insert(:legal_entity, id: MockServer.get_client_admin())
+      conn = put_client_id_header(conn, id)
+      conn = get conn, legal_entity_path(conn, :index, [edrpou: edrpou])
       resp = json_response(conn, 200)
 
       assert Map.has_key?(resp, "data")
       assert is_list(resp["data"])
-      assert 3 == length(resp["data"])
+      assert 1 == length(resp["data"])
     end
 
     test "with x-consumer-metadata that contains not MIS client_id that matches one of legal entities id",
       %{conn: conn} do
-      conn = put_client_id_header(conn, "520e372b-8378-4722-a590-653274a6cb38")
-      conn = get conn, legal_entity_path(conn, :index, [edrpou: "37367387"])
+      %{id: id, edrpou: edrpou} = insert(:legal_entity)
+      conn = put_client_id_header(conn, id)
+      conn = get conn, legal_entity_path(conn, :index, [edrpou: edrpou])
       resp = json_response(conn, 200)
 
       assert Map.has_key?(resp, "data")
@@ -115,7 +116,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
     test "with x-consumer-metadata that contains client_id that does not match legal entity id", %{conn: conn} do
       conn = put_client_id_header(conn, Ecto.UUID.generate())
-      id = "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
+      %{id: id} = insert(:legal_entity)
       conn = get conn, legal_entity_path(conn, :show, id)
       json_response(conn, 403)
     end
@@ -128,8 +129,8 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     end
 
     test "check required legal entity fields", %{conn: conn} do
-      conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
-      id = "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
+      %{id: id} = insert(:legal_entity)
+      conn = put_client_id_header(conn, id)
       conn = get conn, legal_entity_path(conn, :show, id)
       resp = json_response(conn, 200)
 
@@ -139,8 +140,8 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     end
 
     test "with x-consumer-metadata that contains client_id that matches legal entity id", %{conn: conn} do
-      conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
-      id = "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
+      %{id: id} = insert(:legal_entity)
+      conn = put_client_id_header(conn, id)
       conn = get conn, legal_entity_path(conn, :show, id)
       resp = json_response(conn, 200)
 
@@ -151,8 +152,8 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     end
 
     test "with x-consumer-metadata that contains MIS client_id that does not match legal entity id", %{conn: conn} do
-      conn = put_client_id_header(conn, "296da7d2-3c5a-4f6a-b8b2-631063737271")
-      id = "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
+      %{id: id} = insert(:legal_entity)
+      conn = put_client_id_header(conn, MockServer.get_client_mis())
       conn = get conn, legal_entity_path(conn, :show, id)
       resp = json_response(conn, 200)
 
@@ -163,8 +164,9 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     end
 
     test "with x-consumer-metadata that contains client_id that matches inactive legal entity id", %{conn: conn} do
-      conn = put_client_id_header(conn, @inactive_legal_entity_id)
-      conn = get conn, legal_entity_path(conn, :show, @inactive_legal_entity_id)
+      %{id: id} = insert(:legal_entity, is_active: false)
+      conn = put_client_id_header(conn, id)
+      conn = get conn, legal_entity_path(conn, :show, id)
       assert 404 == json_response(conn, 404)["meta"]["code"]
     end
 
@@ -178,20 +180,21 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
   describe "deactivate legal entity" do
     test "deactivate employee with invalid transitions condition", %{conn: conn} do
-      conn = put_client_id_header(conn, "8ea6d4d8-6240-11e7-907b-a6006ad3dba0")
-
-      conn_resp = patch conn, legal_entity_path(conn, :deactivate, "8ea6d4d8-6240-11e7-907b-a6006ad3dba0")
+      %{id: id} = insert(:legal_entity, is_active: false)
+      conn = put_client_id_header(conn, id)
+      conn_resp = patch conn, legal_entity_path(conn, :deactivate, id)
       assert json_response(conn_resp, 409)["error"]["message"] == "Legal entity is not ACTIVE and cannot be updated"
 
-
-      conn = put_client_id_header(conn, "b075f148-7f93-4fc2-b2ec-2d81b19a9a8a")
-      conn_resp = patch conn, legal_entity_path(conn, :deactivate, "b075f148-7f93-4fc2-b2ec-2d81b19a9a8a")
+      %{id: id} = insert(:legal_entity, status: "CLOSED")
+      conn = put_client_id_header(conn, id)
+      conn_resp = patch conn, legal_entity_path(conn, :deactivate, id)
       assert json_response(conn_resp, 409)["error"]["message"] == "Legal entity is not ACTIVE and cannot be updated"
     end
 
     test "deactivate legal entity with valid transitions condition", %{conn: conn} do
-      conn = put_client_id_header(conn, "0d26d826-6241-11e7-907b-a6006ad3dba0")
-      conn = patch conn, legal_entity_path(conn, :deactivate, "0d26d826-6241-11e7-907b-a6006ad3dba0")
+      %{id: id} = insert(:legal_entity)
+      conn = put_client_id_header(conn, id)
+      conn = patch conn, legal_entity_path(conn, :deactivate, id)
 
       resp = json_response(conn, 200)
       assert "CLOSED" == resp["data"]["status"]

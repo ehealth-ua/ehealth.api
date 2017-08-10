@@ -24,7 +24,8 @@ defmodule EHealth.PRMFactories.LegalEntityFactory do
           nhs_verified: false,
           updated_by: UUID.generate(),
           inserted_by: UUID.generate(),
-          created_by_mis_client_id: UUID.generate()
+          created_by_mis_client_id: UUID.generate(),
+          medical_service_provider: build(:medical_service_provider)
         }
       end
     end

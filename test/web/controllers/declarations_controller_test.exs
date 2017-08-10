@@ -34,9 +34,9 @@ defmodule EHealth.Web.DeclarationsControllerTest do
     end
 
     test "with x-consumer-metadata that contains MSP client_id", %{conn: conn} do
-      legal_id = "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
-      conn = put_client_id_header(conn, legal_id)
-      conn = get conn, declarations_path(conn, :index, [legal_entity_id: legal_id])
+      %{id: legal_entity_id} = insert(:legal_entity, id: "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+      conn = put_client_id_header(conn, legal_entity_id)
+      conn = get conn, declarations_path(conn, :index, [legal_entity_id: legal_entity_id])
       resp = json_response(conn, 200)
 
       assert Map.has_key?(resp, "data")
@@ -57,9 +57,10 @@ defmodule EHealth.Web.DeclarationsControllerTest do
     end
 
     test "with x-consumer-metadata that contains NHS client_id", %{conn: conn} do
-      legal_id = get_client_admin()
-      conn = put_client_id_header(conn, legal_id)
-      conn = get conn, declarations_path(conn, :index, [legal_entity_id: legal_id])
+      %{id: legal_entity_id} = insert(:legal_entity, id: get_client_admin())
+      insert(:legal_entity, id: "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+      conn = put_client_id_header(conn, legal_entity_id)
+      conn = get conn, declarations_path(conn, :index, [legal_entity_id: legal_entity_id])
       resp = json_response(conn, 200)
 
       assert Map.has_key?(resp, "data")
@@ -90,7 +91,8 @@ defmodule EHealth.Web.DeclarationsControllerTest do
     end
 
     test "with x-consumer-metadata that contains MSP client_id", %{conn: conn} do
-      conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+      %{id: legal_entity_id} = insert(:legal_entity, id: "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+      conn = put_client_id_header(conn, legal_entity_id)
       conn = get conn, declarations_path(conn, :show, @declaration_id)
       data = json_response(conn, 200)["data"]
       assert_declaration_expanded_fields(data)
@@ -120,7 +122,7 @@ defmodule EHealth.Web.DeclarationsControllerTest do
     Enum.each(fields, fn (field) ->
       assert Map.has_key?(declaration, field), "Expected field #{field} not present"
       assert is_map(declaration[field]), "Expected that field #{field} is map"
-      assert Map.has_key?(declaration[field], "id"), "Expected field #{field}.id not present"
+      assert Enum.any?([:id, "id"], &(Map.has_key?(declaration[field], &1))), "Expected field #{field}.id not present"
       refute Map.has_key?(declaration, field <> "_id"), "Field #{field}_id should be not present"
     end)
   end

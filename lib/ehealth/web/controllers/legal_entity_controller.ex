@@ -5,6 +5,7 @@ defmodule EHealth.Web.LegalEntityController do
   use EHealth.Web, :controller
 
   alias EHealth.LegalEntity.API
+  alias EHealth.PRM.LegalEntities
   alias EHealth.LegalEntity.LegalEntityUpdater
 
   action_fallback EHealth.Web.FallbackController
@@ -22,9 +23,9 @@ defmodule EHealth.Web.LegalEntityController do
     end
   end
 
-  def index(%Plug.Conn{req_headers: req_headers} = conn, params) do
-    with {:ok, %{"meta" => %{}} = response} <- API.get_legal_entities(params, req_headers) do
-      proxy(conn, response)
+  def index(conn, params) do
+    with {entities, paging} <- LegalEntities.get_legal_entities(params) do
+      render(conn, "index.json", legal_entities: entities, paging: paging)
     end
   end
 

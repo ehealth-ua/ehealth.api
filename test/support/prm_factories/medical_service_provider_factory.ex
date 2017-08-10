@@ -7,7 +7,6 @@ defmodule EHealth.PRMFactories.MedicalServiceProviderFactory do
 
       def medical_service_provider_factory do
         %EHealth.PRM.MedicalServiceProviders.Schema{
-          legal_entity: build(:legal_entity),
           licenses: [],
           accreditation: %{
             category: "some",
