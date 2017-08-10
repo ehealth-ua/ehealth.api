@@ -155,17 +155,17 @@ defmodule EHealth.Web.EmployeesControllerTest do
 
   describe "deactivate employee" do
     setup %{conn: conn} do
-      party = insert(:party)
-      insert(:party_user, party: party)
-      insert(:party_user, party: party)
-      legal_entity = insert(:legal_entity)
-      employee = insert(:employee, legal_entity: legal_entity, party: party)
+      party = insert(:prm, :party)
+      insert(:prm, :party_user, party: party)
+      insert(:prm, :party_user, party: party)
+      legal_entity = insert(:prm, :legal_entity)
+      employee = insert(:prm, :employee, legal_entity: legal_entity, party: party)
 
       {:ok, %{conn: conn, legal_entity: legal_entity, employee: employee}}
     end
 
     test "with invalid transitions condition", %{conn: conn, legal_entity: legal_entity} do
-      employee = insert(:employee, legal_entity: legal_entity, status: "DEACTIVATED")
+      employee = insert(:prm, :employee, legal_entity: legal_entity, status: "DEACTIVATED")
       conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
       conn_resp = patch conn, employees_path(conn, :deactivate, employee.id)
 

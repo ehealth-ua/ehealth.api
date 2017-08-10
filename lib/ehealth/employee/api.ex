@@ -357,6 +357,10 @@ defmodule EHealth.Employee.API do
          :ok <- validate_status_type(employee)
     do
       get_or_create_employee_request(params)
+    else
+      {:error, %{"meta" => _}} -> {:error, [{%{description: "Employee not found", params: [],
+                                    rule: :required}, "$.employee_request.employee_id"}]}
+      err -> err
     end
   end
   def get_or_create_employee_request(data, _), do: get_or_create_employee_request(data)

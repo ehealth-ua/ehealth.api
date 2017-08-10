@@ -47,6 +47,15 @@ defmodule EHealth.Unit.ValidatorTest do
     "is_active" => true,
   }
 
+  @employee_type %{
+    "name" => "EMPLOYEE_TYPE",
+    "values" => %{
+      "DOCTOR" => "doctor",
+    },
+    "labels" => ["SYSTEM"],
+    "is_active" => true,
+  }
+
   @gender %{
     "name" => "GENDER",
     "values" => %{
@@ -196,36 +205,26 @@ defmodule EHealth.Unit.ValidatorTest do
       Validator.validate_legal_entity({:ok, %{"data" => %{"content" => content}}})
   end
 
-  test "JSON schema employee request issued_date date format" do
-    content =
-      "test/data/employee_request.json"
-      |> File.read!()
-      |> Poison.decode!()
-      |> put_in(["employee_request", "legal_entity_id"], "8b797c23-ba47-45f2-bc0f-521013e01074")
-      |> put_in(["employee_request", "doctor", "science_degree", "issued_date"], "20.12.2011")
+  test "Employee Request: issued_date date format" do
+    content = put_in(
+      get_employee_request(),
+      ["employee_request", "doctor", "science_degree", "issued_date"],
+      "20.12.2011"
+    )
 
     assert {:error, [{%{description: _, rule: :format}, "$.employee_request.doctor.science_degree.issued_date"}]} =
       EmployeeRequestAPI.create_employee_request(content)
   end
 
-  test "JSON schema employee request start_date date format" do
-    content =
-      "test/data/employee_request.json"
-      |> File.read!()
-      |> Poison.decode!()
-      |> put_in(["employee_request", "legal_entity_id"], "8b797c23-ba47-45f2-bc0f-521013e01074")
-      |> put_in(["employee_request", "start_date"], "2012-12")
+  test "Employee Request: start_date date format" do
+    content = put_in(get_employee_request(), ["employee_request", "start_date"], "2012-12")
 
     assert {:error, [{%{description: _, rule: :format}, "$.employee_request.start_date"}]} =
       EmployeeRequestAPI.create_employee_request(content)
   end
 
-  test "JSON schema employee request educations issued_date format" do
-    content =
-      "test/data/employee_request.json"
-      |> File.read!()
-      |> Poison.decode!()
-      |> put_in(["employee_request", "legal_entity_id"], "8b797c23-ba47-45f2-bc0f-521013e01074")
+  test "Employee Request: educations issued_date format" do
+    content = get_employee_request()
 
     education =
       content
@@ -237,6 +236,26 @@ defmodule EHealth.Unit.ValidatorTest do
       [Map.put(education, "issued_date", "2012")])
 
     assert {:error, [{%{description: _, rule: :format}, "$.employee_request.doctor.educations.[0].issued_date"}]} =
+      EmployeeRequestAPI.create_employee_request(content)
+  end
+
+  test "Employee Request: science_degree invalid", %{conn: conn} do
+    patch conn, dictionary_path(conn, :update, "SCIENCE_DEGREE"), @science_degree
+    patch conn, dictionary_path(conn, :update, "PHONE_TYPE"), @phone_type
+
+    content = put_in(get_employee_request(), ~W(employee_request doctor science_degree degree), "INVALID")
+
+    assert {:error, [{%{rule: :inclusion}, "$.employee_request.doctor.science_degree.degree"}]} =
+      EmployeeRequestAPI.create_employee_request(content)
+  end
+
+  test "Employee Request: employee_type invalid", %{conn: conn} do
+    patch conn, dictionary_path(conn, :update, "EMPLOYEE_TYPE"), @employee_type
+    patch conn, dictionary_path(conn, :update, "PHONE_TYPE"), @phone_type
+
+    content = put_in(get_employee_request(), ~W(employee_request employee_type), "INVALID")
+
+    assert {:error, [{%{rule: :inclusion}, "$.employee_request.employee_type"}]} =
       EmployeeRequestAPI.create_employee_request(content)
   end
 
@@ -318,19 +337,6 @@ defmodule EHealth.Unit.ValidatorTest do
       DeclarationRequestValidator.validate_schema(content)
   end
 
-  test "Employee Request: science_degree invalid", %{conn: conn} do
-    patch conn, dictionary_path(conn, :update, "SCIENCE_DEGREE"), @science_degree
-    patch conn, dictionary_path(conn, :update, "PHONE_TYPE"), @phone_type
-
-    content =
-      get_employee_request()
-      |> put_in(~W(employee_request doctor science_degree degree), "INVALID")
-      |> put_in(~W(employee_request legal_entity_id), "8b797c23-ba47-45f2-bc0f-521013e01074")
-
-    assert {:error, [{%{rule: :inclusion}, "$.employee_request.doctor.science_degree.degree"}]} =
-      EmployeeRequestAPI.create_employee_request(content)
-  end
-
   test "Declaration Request: JSON schema documents.type invalid", %{conn: conn} do
     patch conn, dictionary_path(conn, :update, "DOCUMENT_TYPE"), @doc_type
     content = put_in(get_declaration_request(), ~W(person documents), invalid_documents())
@@ -383,5 +389,6 @@ defmodule EHealth.Unit.ValidatorTest do
     "test/data/employee_request.json"
     |> File.read!()
     |> Poison.decode!()
+    |> put_in(~W(employee_request legal_entity_id), "8b797c23-ba47-45f2-bc0f-521013e01074")
   end
 end

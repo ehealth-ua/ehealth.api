@@ -22,10 +22,10 @@ defmodule EHealth.Web.ConnCase do
     quote do
       # Import conveniences for testing with connections
       use Phoenix.ConnTest
-      import EHealth.Web.Router.Helpers
       import EHealth.Web.ConnCase
+      import EHealth.Web.Router.Helpers
       import EHealth.Test.Support.Fixtures
-      import EHealth.PRMFactories
+      import EHealth.Factories
 
       # The default endpoint for testing
       @endpoint EHealth.Web.Endpoint

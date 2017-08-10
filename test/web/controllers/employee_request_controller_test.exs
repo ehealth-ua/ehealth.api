@@ -105,6 +105,27 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
         |> Map.get("entry")
     end
 
+    test "with invalid employee_type", %{conn: conn} do
+      insert(:il, :dictionary_phone_type)
+      insert(:il, :dictionary_employee_type)
+      employee_request_params =
+        "test/data/employee_request.json"
+        |> File.read!()
+        |> Poison.decode!()
+        |> put_in(["employee_request", "employee_type"], "INVALID")
+
+      conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
+      conn = post conn, employee_request_path(conn, :create), employee_request_params
+
+      resp = json_response(conn, 422)
+      assert Map.has_key?(resp, "error")
+      assert "$.employee_request.employee_type" ==
+        resp
+        |> get_in(["error", "invalid"])
+        |> List.first()
+        |> Map.get("entry")
+    end
+
     test "with non-existent foreign keys", %{conn: conn} do
       employee_request_params =
         "test/data/employee_request.json"
@@ -197,10 +218,16 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
         "test/data/employee_request.json"
         |> File.read!()
         |> Poison.decode!
-        |> put_in(["employee_request", "employee_id"], Ecto.UUID.generate)
+        |> put_in(["employee_request", "employee_id"], Ecto.UUID.generate())
+
       conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
       conn = post conn, employee_request_path(conn, :create), employee_request_params
-      json_response(conn, 404)
+      resp = json_response(conn, 422)
+      assert "$.employee_request.employee_id" ==
+        resp
+        |> get_in(["error", "invalid"])
+        |> List.first()
+        |> Map.get("entry")
     end
 
     test "with dismissed OWNER", %{conn: conn} do
@@ -287,7 +314,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
   test "get employee request with non-existing user", %{conn: conn} do
     employee_request = %{id: id} = fixture(Request)
-    insert(:legal_entity, id: employee_request.data["legal_entity_id"])
+    insert(:prm, :legal_entity, id: employee_request.data["legal_entity_id"])
 
     conn = get conn, employee_request_path(conn, :show, id)
     resp = json_response(conn, 200)

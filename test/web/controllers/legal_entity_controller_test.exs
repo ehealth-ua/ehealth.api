@@ -53,7 +53,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     end
 
     test "with x-consumer-metadata that contains MIS client_id", %{conn: conn} do
-      %{id: id, edrpou: edrpou} = insert(:legal_entity, id: MockServer.get_client_mis())
+      %{id: id, edrpou: edrpou} = insert(:prm, :legal_entity, id: MockServer.get_client_mis())
       conn = put_client_id_header(conn, id)
       conn = get conn, legal_entity_path(conn, :index, [edrpou: edrpou])
       resp = json_response(conn, 200)
@@ -67,7 +67,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     end
 
     test "with x-consumer-metadata that contains NHS client_id", %{conn: conn} do
-      %{id: id, edrpou: edrpou} = insert(:legal_entity, id: MockServer.get_client_admin())
+      %{id: id, edrpou: edrpou} = insert(:prm, :legal_entity, id: MockServer.get_client_admin())
       conn = put_client_id_header(conn, id)
       conn = get conn, legal_entity_path(conn, :index, [edrpou: edrpou])
       resp = json_response(conn, 200)
@@ -79,7 +79,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
     test "with x-consumer-metadata that contains not MIS client_id that matches one of legal entities id",
       %{conn: conn} do
-      %{id: id, edrpou: edrpou} = insert(:legal_entity)
+      %{id: id, edrpou: edrpou} = insert(:prm, :legal_entity)
       conn = put_client_id_header(conn, id)
       conn = get conn, legal_entity_path(conn, :index, [edrpou: edrpou])
       resp = json_response(conn, 200)
@@ -116,7 +116,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
     test "with x-consumer-metadata that contains client_id that does not match legal entity id", %{conn: conn} do
       conn = put_client_id_header(conn, Ecto.UUID.generate())
-      %{id: id} = insert(:legal_entity)
+      %{id: id} = insert(:prm, :legal_entity)
       conn = get conn, legal_entity_path(conn, :show, id)
       json_response(conn, 403)
     end
@@ -129,7 +129,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     end
 
     test "check required legal entity fields", %{conn: conn} do
-      %{id: id} = insert(:legal_entity)
+      %{id: id} = insert(:prm, :legal_entity)
       conn = put_client_id_header(conn, id)
       conn = get conn, legal_entity_path(conn, :show, id)
       resp = json_response(conn, 200)
@@ -140,7 +140,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     end
 
     test "with x-consumer-metadata that contains client_id that matches legal entity id", %{conn: conn} do
-      %{id: id} = insert(:legal_entity)
+      %{id: id} = insert(:prm, :legal_entity)
       conn = put_client_id_header(conn, id)
       conn = get conn, legal_entity_path(conn, :show, id)
       resp = json_response(conn, 200)
@@ -152,7 +152,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     end
 
     test "with x-consumer-metadata that contains MIS client_id that does not match legal entity id", %{conn: conn} do
-      %{id: id} = insert(:legal_entity)
+      %{id: id} = insert(:prm, :legal_entity)
       conn = put_client_id_header(conn, MockServer.get_client_mis())
       conn = get conn, legal_entity_path(conn, :show, id)
       resp = json_response(conn, 200)
@@ -164,7 +164,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     end
 
     test "with x-consumer-metadata that contains client_id that matches inactive legal entity id", %{conn: conn} do
-      %{id: id} = insert(:legal_entity, is_active: false)
+      %{id: id} = insert(:prm, :legal_entity, is_active: false)
       conn = put_client_id_header(conn, id)
       conn = get conn, legal_entity_path(conn, :show, id)
       assert 404 == json_response(conn, 404)["meta"]["code"]
@@ -180,19 +180,19 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
   describe "deactivate legal entity" do
     test "deactivate employee with invalid transitions condition", %{conn: conn} do
-      %{id: id} = insert(:legal_entity, is_active: false)
+      %{id: id} = insert(:prm, :legal_entity, is_active: false)
       conn = put_client_id_header(conn, id)
       conn_resp = patch conn, legal_entity_path(conn, :deactivate, id)
       assert json_response(conn_resp, 409)["error"]["message"] == "Legal entity is not ACTIVE and cannot be updated"
 
-      %{id: id} = insert(:legal_entity, status: "CLOSED")
+      %{id: id} = insert(:prm, :legal_entity, status: "CLOSED")
       conn = put_client_id_header(conn, id)
       conn_resp = patch conn, legal_entity_path(conn, :deactivate, id)
       assert json_response(conn_resp, 409)["error"]["message"] == "Legal entity is not ACTIVE and cannot be updated"
     end
 
     test "deactivate legal entity with valid transitions condition", %{conn: conn} do
-      %{id: id} = insert(:legal_entity)
+      %{id: id} = insert(:prm, :legal_entity)
       conn = put_client_id_header(conn, id)
       conn = patch conn, legal_entity_path(conn, :deactivate, id)
 

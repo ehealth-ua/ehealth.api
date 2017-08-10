@@ -140,18 +140,18 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
     end
 
     setup %{conn: conn} do
-      insert(:global_parameter, %{parameter: "adult_age", value: "18"})
-      insert(:global_parameter, %{parameter: "declaration_term", value: "40"})
-      insert(:global_parameter, %{parameter: "declaration_term_unit", value: "YEARS"})
+      insert(:prm, :global_parameter, %{parameter: "adult_age", value: "18"})
+      insert(:prm, :global_parameter, %{parameter: "declaration_term", value: "40"})
+      insert(:prm, :global_parameter, %{parameter: "declaration_term_unit", value: "YEARS"})
 
-      legal_entity = insert(:legal_entity, id: "8799e3b6-34e7-4798-ba70-d897235d2b6d")
-      insert(:medical_service_provider, legal_entity: legal_entity)
-      division = insert(:division, id: "51f56b0e-0223-49c1-9b5f-b07e09ba40f1", legal_entity: legal_entity)
-      employee = insert(:employee,
+      legal_entity = insert(:prm, :legal_entity, id: "8799e3b6-34e7-4798-ba70-d897235d2b6d")
+      insert(:prm, :medical_service_provider, legal_entity: legal_entity)
+      division = insert(:prm, :division, id: "51f56b0e-0223-49c1-9b5f-b07e09ba40f1", legal_entity: legal_entity)
+      employee = insert(:prm, :employee,
         id: "ce377dea-d8c4-4dd8-9328-de24b1ee3879",
         division: division,
         legal_entity: legal_entity)
-      insert(:employee_doctor, employee: employee, specialities: [%{speciality: "PEDIATRICIAN"}])
+      insert(:prm, :employee_doctor, employee: employee, specialities: [%{speciality: "PEDIATRICIAN"}])
 
       {:ok, port, ref} = start_microservices(TwoHappyPaths)
 
@@ -446,9 +446,9 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
     end
 
     setup %{conn: conn} do
-      insert(:global_parameter, %{parameter: "adult_age", value: "18"})
-      insert(:global_parameter, %{parameter: "declaration_term", value: "40"})
-      insert(:global_parameter, %{parameter: "declaration_term_unit", value: "YEARS"})
+      insert(:prm, :global_parameter, %{parameter: "adult_age", value: "18"})
+      insert(:prm, :global_parameter, %{parameter: "declaration_term", value: "40"})
+      insert(:prm, :global_parameter, %{parameter: "declaration_term_unit", value: "YEARS"})
 
       {:ok, port, ref} = start_microservices(InvalidEmployeeID)
 

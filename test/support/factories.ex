@@ -1,8 +1,9 @@
-defmodule EHealth.PRMFactories do
+defmodule EHealth.Factories do
   @moduledoc false
 
-  use ExMachina.Ecto, repo: EHealth.PRMRepo
+  use ExMachina
 
+  # PRM
   use EHealth.PRMFactories.LegalEntityFactory
   use EHealth.PRMFactories.MedicalServiceProviderFactory
   use EHealth.PRMFactories.GlobalParameterFactory
@@ -11,4 +12,19 @@ defmodule EHealth.PRMFactories do
   use EHealth.PRMFactories.EmployeeFactory
   use EHealth.PRMFactories.EmployeeDoctorFactory
   use EHealth.PRMFactories.PartyFactory
+
+  # IL
+  use EHealth.ILFactories.DictionaryFactory
+
+  alias EHealth.Repo
+  alias EHealth.PRMRepo
+
+  def insert(type, factory, attrs \\ []) do
+    factory
+    |> build(attrs)
+    |> repo_insert!(type)
+  end
+
+  defp repo_insert!(data, :il), do: Repo.insert!(data)
+  defp repo_insert!(data, :prm), do: PRMRepo.insert!(data)
 end
