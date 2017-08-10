@@ -5,27 +5,6 @@ defmodule EHealth.PRM.Parties.Schema do
 
   @primary_key {:id, :binary_id, autogenerate: true}
 
-  @fields ~W(
-    first_name
-    second_name
-    last_name
-    birth_date
-    gender
-    tax_id
-    inserted_by
-    updated_by
-  )
-
-  @fields_required ~W(
-    first_name
-    last_name
-    birth_date
-    gender
-    tax_id
-    inserted_by
-    updated_by
-  )a
-
   schema "parties" do
     field :first_name, :string
     field :last_name, :string
@@ -43,8 +22,4 @@ defmodule EHealth.PRM.Parties.Schema do
 
     timestamps()
   end
-
-  def fields, do: @fields
-
-  def required, do: @fields_required
 end
