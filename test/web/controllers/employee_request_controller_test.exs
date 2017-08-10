@@ -287,6 +287,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
   test "get employee request with non-existing user", %{conn: conn} do
     employee_request = %{id: id} = fixture(Request)
+    insert(:legal_entity, id: employee_request.data["legal_entity_id"])
 
     conn = get conn, employee_request_path(conn, :show, id)
     resp = json_response(conn, 200)
@@ -295,7 +296,16 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
     data = Map.drop(resp["data"], ["id", "inserted_at", "updated_at", "type", "status"])
 
-    assert Map.get(employee_request, :data) == Map.delete(data, "employee_id")
+    assert Map.get(employee_request, :data) ==
+      Map.drop(data, ~w(
+        employee_id
+        edrpou
+        legal_entity_name
+        first_name
+        last_name
+        second_name
+      ))
+    assert Map.has_key?(data, "legal_entity_name")
     assert Map.get(employee_request, :id) == resp["data"]["id"]
     assert Map.get(employee_request, :status) == resp["data"]["status"]
     assert NaiveDateTime.to_iso8601(Map.get(employee_request, :inserted_at)) == resp["data"]["inserted_at"]
@@ -314,7 +324,16 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
     data = Map.drop(resp["data"], ["id", "inserted_at", "updated_at", "type", "status"])
 
-    assert Map.get(fixture_request, :data) == Map.delete(data, "employee_id")
+    assert Map.get(fixture_request, :data) ==
+      Map.drop(data, ~w(
+        employee_id
+        edrpou
+        legal_entity_name
+        first_name
+        last_name
+        second_name
+      ))
+    assert Map.has_key?(data, "legal_entity_name")
     assert Map.get(fixture_request, :id) == resp["data"]["id"]
     assert Map.get(fixture_request, :status) == resp["data"]["status"]
     assert NaiveDateTime.to_iso8601(Map.get(fixture_request, :inserted_at)) == resp["data"]["inserted_at"]

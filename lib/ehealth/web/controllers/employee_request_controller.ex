@@ -5,11 +5,14 @@ defmodule EHealth.Web.EmployeeRequestController do
   alias EHealth.Employee.API
   alias EHealth.API.Mithril
   alias EHealth.Employee.Request
+  alias EHealth.PRM.LegalEntities
 
   action_fallback EHealth.Web.FallbackController
 
   def show(conn, %{"id" => id}) do
     employee_request = API.get_employee_request_by_id!(id)
+    legal_entity = LegalEntities.get_legal_entity_by_id(employee_request.data["legal_entity_id"]) || %{}
+    employee_request = Map.put(employee_request, :legal_entity, legal_entity)
 
     conn
     |> put_urgent_user_id(employee_request)

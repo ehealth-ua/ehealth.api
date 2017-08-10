@@ -13,10 +13,19 @@ defmodule EHealth.Web.EmployeeRequestView do
   end
 
   def render("employee_request_full.json", %{employee_request: employee_request}) do
-    employee_request
-    |> Map.get(:data)
-    |> Map.merge(employee_request)
-    |> Map.delete(:data)
+    data =
+      employee_request
+      |> Map.get(:data)
+      |> Map.merge(employee_request)
+      |> Map.delete(:data)
+
+    data
+    |> Map.put(:edrpou, data |> Map.get(:legal_entity, %{}) |> Map.get(:edrpou))
+    |> Map.put(:legal_entity_name, data |> Map.get(:legal_entity, %{}) |> Map.get(:name))
+    |> Map.put(:first_name, data |> Map.get("party", %{}) |> Map.get("first_name"))
+    |> Map.put(:second_name, data |> Map.get("party", %{}) |> Map.get("second_name"))
+    |> Map.put(:last_name, data |> Map.get("party", %{}) |> Map.get("last_name"))
+    |> Map.delete(:legal_entity)
   end
 
   def render("employee_request_short.json", %{employee_request: employee_request}) do
