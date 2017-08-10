@@ -67,6 +67,17 @@ defmodule EHealth.Unit.ValidatorTest do
     "is_active" => true,
   }
 
+  @science_degree %{
+    "name" => "SCIENCE_DEGREE",
+    "values" => %{
+      "Candidate_of_Science" => "Candidate of Science",
+      "Doctor_of_Science" => "Doctor of Science",
+      "PhD" => "PhD",
+    },
+    "labels" => ["SYSTEM"],
+    "is_active" => true,
+  }
+
   @kveds_allowed %{
     "name" => "KVEDS_ALLOWED",
     "values" => %{
@@ -307,6 +318,19 @@ defmodule EHealth.Unit.ValidatorTest do
       DeclarationRequestValidator.validate_schema(content)
   end
 
+  test "Employee Request: science_degree invalid", %{conn: conn} do
+    patch conn, dictionary_path(conn, :update, "SCIENCE_DEGREE"), @science_degree
+    patch conn, dictionary_path(conn, :update, "PHONE_TYPE"), @phone_type
+
+    content =
+      get_employee_request()
+      |> put_in(~W(employee_request doctor science_degree degree), "INVALID")
+      |> put_in(~W(employee_request legal_entity_id), "8b797c23-ba47-45f2-bc0f-521013e01074")
+
+    assert {:error, [{%{rule: :inclusion}, "$.employee_request.doctor.science_degree.degree"}]} =
+      EmployeeRequestAPI.create_employee_request(content)
+  end
+
   test "Declaration Request: JSON schema documents.type invalid", %{conn: conn} do
     patch conn, dictionary_path(conn, :update, "DOCUMENT_TYPE"), @doc_type
     content = put_in(get_declaration_request(), ~W(person documents), invalid_documents())
@@ -353,5 +377,11 @@ defmodule EHealth.Unit.ValidatorTest do
     |> File.read!()
     |> Poison.decode!()
     |> Map.fetch!("declaration_request")
+  end
+
+  defp get_employee_request do
+    "test/data/employee_request.json"
+    |> File.read!()
+    |> Poison.decode!()
   end
 end
