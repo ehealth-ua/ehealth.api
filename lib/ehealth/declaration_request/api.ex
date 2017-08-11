@@ -352,22 +352,31 @@ defmodule EHealth.DeclarationRequest.API do
   end
 
   def terminate_declaration_requests do
-    %{
-      "declaration_request_expiration" => term,
-      "declaration_request_term_unit" => unit,
-    } = GlobalParameters.get_values()
+    parameters = GlobalParameters.get_values()
 
-    normalized_unit =
-      unit
-      |> String.downcase
-      |> String.replace_trailing("s", "")
+    is_valid? =
+      Enum.all?(~w(declaration_request_expiration declaration_request_term_unit), fn param ->
+        Map.has_key? parameters, param
+      end)
 
-    query = where(DeclarationRequest, [dr],
-      datetime_add(dr.inserted_at, ^term, ^normalized_unit) < ^NaiveDateTime.utc_now()
-    )
+    if is_valid? do
+      %{
+        "declaration_request_expiration" => term,
+        "declaration_request_term_unit" => unit,
+      } = parameters
 
-    Multi.new()
-    |> Multi.delete_all(:declaration_requests, query)
-    |> Repo.transaction()
+      normalized_unit =
+        unit
+        |> String.downcase
+        |> String.replace_trailing("s", "")
+
+      query = where(DeclarationRequest, [dr],
+        datetime_add(dr.inserted_at, ^term, ^normalized_unit) < ^NaiveDateTime.utc_now()
+      )
+
+      Multi.new()
+      |> Multi.delete_all(:declaration_requests, query)
+      |> Repo.transaction()
+    end
   end
 end

@@ -7,6 +7,7 @@ defmodule EHealth.Integration.DeclarationRequest.TerminatorTest do
   alias EHealth.DeclarationRequest
   alias EHealth.Repo
 
+  @tag :pending
   test "start init genserver" do
     declaration_request = simple_fixture(:declaration_request)
     simple_fixture(:declaration_request)
@@ -20,9 +21,9 @@ defmodule EHealth.Integration.DeclarationRequest.TerminatorTest do
     insert(:prm, :global_parameter, parameter: "declaration_request_expiration", value: "5")
     assert 2 = DeclarationRequest |> Repo.all() |> Enum.count
 
-    {:ok, pid} = Terminator.start_link()
+    GenServer.cast(EHealth.DeclarationRequest.Terminator, {:terminate, 1})
     Process.sleep(100)
+
     assert 1 = DeclarationRequest |> Repo.all() |> Enum.count
-    Process.exit(pid, :kill)
   end
 end
