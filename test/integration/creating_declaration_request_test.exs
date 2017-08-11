@@ -418,7 +418,7 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
         |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: ""}))
         |> post(declaration_request_path(conn, :create), declaration_request_params)
 
-      resp = json_response(conn, 422)
+      json_response(conn, 422)
     end
   end
 

@@ -3,6 +3,7 @@ defmodule EHealth.Web.LegalEntityView do
   Sample view for LegalEntitys controller.
   """
   use EHealth.Web, :view
+  alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
 
   def render("index.json", %{legal_entities: legal_entities}) do
     render_many(legal_entities, __MODULE__, "legal_entity.json")
@@ -12,7 +13,7 @@ defmodule EHealth.Web.LegalEntityView do
     render_one(legal_entity, __MODULE__, "legal_entity.json")
   end
 
-  def render("legal_entity.json", %{legal_entity: legal_entity}) do
+  def render("legal_entity.json", %{legal_entity: %LegalEntity{} = legal_entity}) do
     %{medical_service_provider: msp} = legal_entity
     %{
       id: legal_entity.id,
@@ -38,6 +39,10 @@ defmodule EHealth.Web.LegalEntityView do
       mis_verified: legal_entity.mis_verified,
       medical_service_provider: render_one(msp, __MODULE__, "medical_service_provider.json")
     }
+  end
+
+  def render("legal_entity.json", %{legal_entity: legal_entity}) do
+    legal_entity
   end
 
   def render("medical_service_provider.json", %{legal_entity: msp}) do
