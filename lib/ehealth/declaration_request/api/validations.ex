@@ -17,26 +17,40 @@ defmodule EHealth.DeclarationRequest.API.Validations do
   use_schema :declaration_request, "specs/json_schemas/declaration_request_schema.json"
 
   def validate_patient_phone_number(changeset) do
-    verified? =
-      fn phone_number ->
-        case OTPVerification.search(phone_number) do
-          {:ok, _} -> true
-          {:error, _} -> false
-          result ->
-            raise "Error during OTP Verification interaction. Result from OTP Verification: #{inspect result}"
-        end
-      end
-
     validate_change changeset, :data, fn :data, data ->
-      phone_numbers =
-        data
-        |> get_in(["person", "phones"])
-        |> Enum.map(&(&1["number"]))
+      data
+      |> get_in(["person", "phones"])
+      |> Enum.map(&(&1["number"]))
+      |> verify_phone_numbers()
+    end
+  end
 
-      case Enum.any?(phone_numbers, verified?) do
-        true -> []
-        false -> [data: "The phone number is not verified."]
-      end
+  def validate_authentication_method_phone_number(changeset) do
+    validate_change changeset, :data, fn :data, data ->
+      data
+      |> get_in(["person", "authentication_methods"])
+      |> Enum.map(&(&1["phone_number"]))
+      |> Enum.filter(&!is_nil(&1))
+      |> verify_phone_numbers()
+    end
+  end
+
+  defp verify_phone_numbers([]) do
+    []
+  end
+  defp verify_phone_numbers(phone_numbers) do
+    case Enum.any?(phone_numbers, &phone_number_verified?/1) do
+      true -> []
+      false -> [data: "The phone number is not verified."]
+    end
+  end
+
+  defp phone_number_verified?(phone_number) do
+    case OTPVerification.search(phone_number) do
+      {:ok, _} -> true
+      {:error, _} -> false
+      result ->
+        raise "Error during OTP Verification interaction. Result from OTP Verification: #{inspect result}"
     end
   end
 
