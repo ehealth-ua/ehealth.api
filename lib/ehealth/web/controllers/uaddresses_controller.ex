@@ -5,8 +5,8 @@ defmodule EHealth.Web.UaddressesController do
 
   action_fallback EHealth.Web.FallbackController
 
-  def update_settlements(%Plug.Conn{req_headers: req_headers} = conn, attrs) do
-    with {:ok, %{settlement: %{"meta" => %{}} = response}} <- UAddress.update_settlement(attrs, req_headers) do
+  def update_settlements(conn, %{"id" => id, "settlement" => settlement} = attrs) do
+    with {:ok, %{settlement: %{"meta" => %{}} = response}} <- UAddress.update_settlement(attrs, conn.req_headers) do
       proxy(conn, response)
     end
   end
