@@ -157,7 +157,9 @@ defmodule EHealth.Unit.LegalEntityTest do
   test "process legal entity that exists" do
     insert(:prm, :registry)
     insert(:prm, :legal_entity, edrpou: "37367387")
+
     legal_entity = Map.merge(get_legal_entity_data(), %{
+      "edrpou" => "37367387",
       "short_name" => "Nebo15",
       "email" => "changed@example.com",
       "kveds" => ["12.21"]
@@ -175,27 +177,6 @@ defmodule EHealth.Unit.LegalEntityTest do
     refute is_nil(legal_entity["nhs_verified"])
     refute legal_entity["nhs_verified"]
     assert_security(security, legal_entity["id"])
-  end
-
-  test "update legal entity" do
-    legal_entity = Map.merge(get_legal_entity_data(), %{
-      "edrpou" => "12345678",
-      "short_name" => "Nebo15",
-      "email" => "changed@example.com",
-      "kveds" => ["12.21", "86.01"]
-    })
-
-    assert {:ok, %{"data" => legal_entity}} =
-      API.put_legal_entity_to_prm(UUID.generate(), :update, get_headers(), legal_entity)
-
-    assert "Nebo15" == legal_entity["short_name"]
-    assert "37367387" == legal_entity["edrpou"]
-    assert "ACTIVE" == legal_entity["status"]
-    assert "VERIFIED" == legal_entity["mis_verified"]
-    refute is_nil(legal_entity["nhs_verified"])
-    refute legal_entity["nhs_verified"]
-    assert "changed@example.com" == legal_entity["email"]
-    assert ["12.21", "86.01"] == legal_entity["kveds"]
   end
 
   test "update inactive legal entity" do

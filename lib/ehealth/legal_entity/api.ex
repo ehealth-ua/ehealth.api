@@ -16,6 +16,7 @@ defmodule EHealth.LegalEntity.API do
   alias EHealth.Employee.API
   alias EHealth.API.Mithril
   alias EHealth.PRM.LegalEntities
+  alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
 
   require Logger
 
@@ -132,7 +133,7 @@ defmodule EHealth.LegalEntity.API do
   @doc """
   Legal Entity found in PRM. Set flow as update
   """
-  def get_legal_entity_id_flow(%{"id" => id}) do
+  def get_legal_entity_id_flow(%LegalEntity{id: id}) do
     {:ok, id, :update}
   end
 
@@ -143,7 +144,7 @@ defmodule EHealth.LegalEntity.API do
     {:ok, UUID.generate(), :create}
   end
 
-  def check_status(%{"status" => "CLOSED"}) do
+  def check_status(%LegalEntity{status: "CLOSED"}) do
     {:error, {:conflict, "LegalEntity can't be updated"}}
   end
   def check_status(_), do: :ok
