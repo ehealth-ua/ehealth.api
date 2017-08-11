@@ -18,10 +18,15 @@ defmodule EHealth.DeclarationRequest.API.Validations do
 
   def validate_patient_phone_number(changeset) do
     validate_change changeset, :data, fn :data, data ->
-      data
-      |> get_in(["person", "phones"])
-      |> Enum.map(&(&1["number"]))
-      |> verify_phone_numbers()
+      case get_in(data, ["person", "phones"]) do
+        nil ->
+          []
+
+        phones ->
+          phones
+          |> Enum.map(&(&1["number"]))
+          |> verify_phone_numbers()
+      end
     end
   end
 
