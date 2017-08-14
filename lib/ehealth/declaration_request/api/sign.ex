@@ -130,7 +130,7 @@ defmodule EHealth.DeclarationRequest.API.Sign do
   def store_signed_content({:ok, data}, input, headers) do
     input
     |> Map.fetch!("signed_declaration_request")
-    |> MediaStorage.store_signed_content(:declaration_request_bucket, Map.fetch!(input, "id"), headers)
+    |> MediaStorage.store_signed_content(:declaration_bucket, Map.fetch!(input, "id"), headers)
     |> validate_api_response(data)
   end
   def store_signed_content(err, _input, _headers), do: err
