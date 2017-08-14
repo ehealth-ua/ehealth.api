@@ -19,9 +19,19 @@ defmodule EHealth.LegalEntity.Validator do
 
   def decode_and_validate(params) do
     params
+    |> validate_sign_content()
+    |> validate_json()
+  end
+
+  def validate_sign_content(content) do
+    content
     |> validate_request()
     |> validate_signature()
     |> normalize_signature_error()
+  end
+
+  def validate_json(json) do
+    json
     |> validate_legal_entity()
     |> validate_kveds()
     |> validate_addresses()

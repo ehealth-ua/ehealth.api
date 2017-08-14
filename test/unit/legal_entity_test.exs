@@ -17,7 +17,7 @@ defmodule EHealth.Unit.LegalEntityTest do
   test "successed signed content validation" do
     content = File.read!("test/data/signed_content.txt")
 
-    assert {:ok, _} = Validator.decode_and_validate(%{
+    assert {:ok, _} = Validator.validate_sign_content(%{
       "signed_content_encoding" => "base64",
       "signed_legal_entity_request" => content
     })
@@ -31,12 +31,9 @@ defmodule EHealth.Unit.LegalEntityTest do
   end
 
   test "invalid signed content - no security" do
-    content = File.read!("test/data/signed_content_no_security.txt")
+    content = get_legal_entity_data() |> Map.delete("security")
 
-    assert {:error, [{error, _}]} = Validator.decode_and_validate(%{
-      "signed_content_encoding" => "base64",
-      "signed_legal_entity_request" => content
-    })
+    assert {:error, [{error, _}]} = Validator.validate_json({:ok, %{"data" => %{"content" => content}}})
     assert :required == error[:rule]
     assert "required property security was not present" == error[:description]
   end
@@ -44,7 +41,7 @@ defmodule EHealth.Unit.LegalEntityTest do
   test "invalid signed content - birth date format" do
     content = File.read!("test/data/signed_content_invalid_owner_birth_date.txt")
 
-    assert {:error, [{error, entry}]} = Validator.decode_and_validate(%{
+    assert {:error, [_, {error, entry}]} = Validator.decode_and_validate(%{
       "signed_content_encoding" => "base64",
       "signed_legal_entity_request" => content
     })
@@ -52,13 +49,9 @@ defmodule EHealth.Unit.LegalEntityTest do
     assert :format == error[:rule]
   end
 
-  test "invalid signed content - tax id" do
-    content = File.read!("test/data/signed_content_invalid_tax_id.txt")
-
-    assert {:error, [{error, entry}]} = Validator.decode_and_validate(%{
-      "signed_content_encoding" => "base64",
-      "signed_legal_entity_request" => content
-    })
+  test "invalid tax id" do
+    content = %{"owner" => %{"tax_id" => "00000000"}}
+    assert {:error, [{error, entry}]} = Validator.validate_tax_id({:ok, %{"content" => content}})
     assert "$.owner.tax_id" == entry
     assert :invalid == error[:rule]
   end

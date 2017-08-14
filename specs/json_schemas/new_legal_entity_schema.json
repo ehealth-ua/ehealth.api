@@ -238,13 +238,17 @@
               },
               "what_licensed": {
                 "$ref": "#/definitions/name"
+              },
+              "order_no": {
+                "$ref": "#/definitions/name",
+                "description": "номер наказу"
               }
             },
             "required": [
-              "license_number",
               "issued_by",
               "issued_date",
-              "active_from_date"
+              "active_from_date",
+              "order_no"
             ]
           },
           "minItems": 1
