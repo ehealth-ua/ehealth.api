@@ -81,7 +81,7 @@ defmodule EHealth.DeclarationRequest.API.Sign do
   def check_drfo(err), do: err
 
   def put_declaration_id({:ok, {content, db_data}}) do
-    {:ok, {content, Map.put(db_data, "declaration_id", Ecto.UUID.generate())}}
+    {:ok, {content, Map.put(db_data, :declaration_id, Ecto.UUID.generate())}}
   end
   def put_declaration_id(err), do: err
 
@@ -135,7 +135,7 @@ defmodule EHealth.DeclarationRequest.API.Sign do
   def store_signed_content({:ok, {_, db_data} = data}, input, headers) do
     input
     |> Map.fetch!("signed_declaration_request")
-    |> MediaStorage.store_signed_content(:declaration_bucket, Map.fetch!(db_data, "declaration_id"), headers)
+    |> MediaStorage.store_signed_content(:declaration_bucket, Map.fetch!(db_data, :declaration_id), headers)
     |> validate_api_response(data)
   end
   def store_signed_content(err, _input, _headers), do: err
@@ -155,11 +155,14 @@ defmodule EHealth.DeclarationRequest.API.Sign do
   def create_or_update_person(err, _headers), do: err
 
   def create_declaration_with_termination_logic({:ok, %{"data" => %{"id" => person_id}},
-    %DeclarationRequest{id: id, data: data, authentication_method_current: authentication_method_current}}, headers) do
+    %DeclarationRequest{
+      id: id, data: data,
+      authentication_method_current: authentication_method_current,
+      declaration_id: declaration_id}}, headers) do
     client_id = get_client_id(headers)
     data
     |> Map.take(["start_date", "end_date", "scope", "seed"])
-    |> Map.put("id", Map.fetch(data, "declaration_id"))
+    |> Map.put("id", declaration_id)
     |> Map.put("employee_id", get_in(data, ["employee", "id"]))
     |> Map.put("division_id", get_in(data, ["division", "id"]))
     |> Map.put("legal_entity_id", get_in(data, ["legal_entity", "id"]))
