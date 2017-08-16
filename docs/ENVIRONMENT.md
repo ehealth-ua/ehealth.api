@@ -34,12 +34,14 @@ Also sample `.env` can be used as payload for `docker run` cli.
 
 ## Media Storage
 
-| VAR_NAME                          | Default Value        | Description |
-| --------------------------------- | -------------------- | ----------- |
-| MEDIA_STORAGE_ENDPOINT            | `http://api-svc.ael` | Endpoint for [Ael](http://docs.ael.apiary.io/#). |
-| MEDIA_STORAGE_LEGAL_ENTITY_BUCKET | `legal-entities-dev` | Google Cloud Storage bucket name for Legal Entities. |
-| MEDIA_STORAGE_ENABLED             | `false`              | Enable/disable data storing to Google Cloud Storage. |
-| MEDIA_STORAGE_REQUEST_TIMEOUT     | `30_000`             | HTTP timeout for hackney. |
+| VAR_NAME                                  | Default Value              | Description |
+| ----------------------------------------- | -------------------------- | ----------- |
+| MEDIA_STORAGE_ENDPOINT                    | `http://api-svc.ael`       | Endpoint for [Ael](http://docs.ael.apiary.io/#). |
+| MEDIA_STORAGE_LEGAL_ENTITY_BUCKET         | `legal-entities-dev`       | Google Cloud Storage bucket name for Legal Entities. |
+| MEDIA_STORAGE_DECLARATION_BUCKET          | `declaration-dev`          | Google Cloud Storage bucket name for Declaration requests. |
+| MEDIA_STORAGE_DECLARATION_REQUEST_BUCKET  | `declaration-requests-dev` | Google Cloud Storage bucket name for Declaration requests. |
+| MEDIA_STORAGE_ENABLED                     | `false`                    | Enable/disable data storing to Google Cloud Storage. |
+| MEDIA_STORAGE_REQUEST_TIMEOUT             | `30_000`                   | HTTP timeout for hackney. |
 
 ## Partner relationship management (PRM)
 
@@ -89,6 +91,10 @@ Also sample `.env` can be used as payload for `docker run` cli.
 | EMPLOYEE_CREATED_NOTIFICATION_TEMPLATE_ID     | `35`          | Template id from Man that we will use for success employee creation notification. |
 | EMPLOYEE_CREATED_NOTIFICATION_TEMPLATE_FORMAT | `text/html`   | Template format for Employee created notifications. Available: text/html, application/json and application/pdf. |
 | EMPLOYEE_CREATED_NOTIFICATION_TEMPLATE_LOCALE | `uk_UA`       | Template locale. It should be configured in template settings on Man. |
+| DECLARATION_REQUEST_PRINTOUT_FORM_TEMPLATE_LOCALE | `uk_UA`       | Template locale. It should be configured in template settings on Man. |
+| CREDENTIALS_RECOVERY_REQUEST_INVITATION_TEMPLATE_ID     | `35`          | Template id from Man that we will use for success employee creation notification. |
+| CREDENTIALS_RECOVERY_REQUEST_INVITATION_TEMPLATE_FORMAT | `text/html`   | Template format for Employee created notifications. Available: text/html, application/json and application/pdf. |
+| CREDENTIALS_RECOVERY_REQUEST_INVITATION_TEMPLATE_LOCALE | `uk_UA`       | Template locale. It should be configured in template settings on Man. |
 
 ## Postmark
 
@@ -104,6 +110,8 @@ Also sample `.env` can be used as payload for `docker run` cli.
 | BAMBOO_EMPLOYEE_REQUEST_INVITATION_SUBJECT   | ``            | The subject of the employee request invitation email. |
 | BAMBOO_EMPLOYEE_CREATED_NOTIFICATION_FROM    | ``            | Email address that will be used as a sender in employee created notification email. |
 | BAMBOO_EMPLOYEE_CREATED_NOTIFICATION_SUBJECT | ``            | The subject of the employee created notification email. |
+| BAMBOO_CREDENTIALS_RECOVERY_REQUEST_INVITATION_FROM | ``            | The subject of the employee created notification email. |
+| BAMBOO_CREDENTIALS_RECOVERY_REQUEST_INVITATION_SUBJECT | ``            | The subject of the employee created notification email. |
 
 # Paging
 | VAR_NAME                      | Default Value | Description                                        |
@@ -114,6 +122,6 @@ Also sample `.env` can be used as payload for `docker run` cli.
 # Tokens
 | VAR_NAME                                     | Default Value | Description |
 | -------------------------------------------- | ------------- | ----------- |
-|TOKENS_TYPES_PERSONAL                         |`MSP`          | List of Client_types where only records that belong to client_id from the token will be returned
+| TOKENS_TYPES_PERSONAL                        |`MSP`          | List of Client_types where only records that belong to client_id from the token will be returned
 | TOKENS_TYPES_MIS                             |`MIS`             | List of Client_types where only records that are created by client_id from the token will be returned
 | TOKENS_TYPES_ADMIN                           |`NHS_Admin`, `MIS`| Results are filtered by the request parameters if any, client_id from token is ignored
