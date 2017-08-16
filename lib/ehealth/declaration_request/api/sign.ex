@@ -80,6 +80,11 @@ defmodule EHealth.DeclarationRequest.API.Sign do
   end
   def check_drfo(err), do: err
 
+  def put_declaration_id({:ok, {content, db_data}}) do
+    {:ok, {content, Map.put(db_data, "declaration_id", Ecto.UUID.generate())}}
+  end
+  def put_declaration_id(err), do: err
+
   defp fetch_parties({:ok, result}) do
     parties =
       result
@@ -127,10 +132,10 @@ defmodule EHealth.DeclarationRequest.API.Sign do
   end
   def check_employee_id(err, _headers), do: err
 
-  def store_signed_content({:ok, data}, input, headers) do
+  def store_signed_content({:ok, {_, db_data} = data}, input, headers) do
     input
     |> Map.fetch!("signed_declaration_request")
-    |> MediaStorage.store_signed_content(:declaration_bucket, Map.fetch!(input, "id"), headers)
+    |> MediaStorage.store_signed_content(:declaration_bucket, Map.fetch!(db_data, "declaration_id"), headers)
     |> validate_api_response(data)
   end
   def store_signed_content(err, _input, _headers), do: err
@@ -154,6 +159,7 @@ defmodule EHealth.DeclarationRequest.API.Sign do
     client_id = get_client_id(headers)
     data
     |> Map.take(["start_date", "end_date", "scope", "seed"])
+    |> Map.put("id", Map.fetch(data, "declaration_id"))
     |> Map.put("employee_id", get_in(data, ["employee", "id"]))
     |> Map.put("division_id", get_in(data, ["division", "id"]))
     |> Map.put("legal_entity_id", get_in(data, ["legal_entity", "id"]))

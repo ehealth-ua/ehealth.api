@@ -331,6 +331,7 @@ defmodule EHealth.DeclarationRequest.API do
     |> Sign.compare_with_db()
     |> Sign.check_employee_id(headers)
     |> Sign.check_drfo()
+    |> Sign.put_declaration_id()
     |> Sign.store_signed_content(params, headers)
     |> Sign.create_or_update_person(headers)
     |> Sign.create_declaration_with_termination_logic(headers)
