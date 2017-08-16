@@ -193,4 +193,9 @@ config :ehealth, EHealth.DeclarationRequest.Terminator,
   frequency: 24 * 60 * 60 * 1000,
   utc_interval: {0, 4}
 
+# Configures employee request terminator
+config :ehealth, EHealth.EmployeeRequest.Terminator,
+  frequency: 24 * 60 * 60 * 1000,
+  utc_interval: {0, 4}
+
 import_config "#{Mix.env}.exs"

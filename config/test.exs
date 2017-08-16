@@ -46,8 +46,13 @@ config :ehealth, mock: [
   host: {:system, "TEST_MOCK_HOST", "localhost"}
 ]
 
-# Configures declaration terminator
+# Configures declaration request terminator
 config :ehealth, EHealth.DeclarationRequest.Terminator,
+  frequency: 100,
+  utc_interval: {0, 23}
+
+# Configures employee request terminator
+config :ehealth, EHealth.EmployeeRequest.Terminator,
   frequency: 100,
   utc_interval: {0, 23}
 

@@ -1,9 +1,11 @@
 defmodule EHealth.PRM.Employees do
   @moduledoc false
 
+  alias EHealth.Repo
   alias EHealth.PRMRepo
   alias EHealth.PRM.Employees.Schema, as: Employee
   alias EHealth.PRM.Employees.Search
+  alias Ecto.Multi
   use EHealth.PRM.Search
 
   @search_fields ~w(
@@ -49,6 +51,12 @@ defmodule EHealth.PRM.Employees do
     |> changeset(params)
     |> search(params, Employee, Confex.get_env(:ehealth, :employees_per_page))
     |> preload_relations(params)
+  end
+
+  def update_all(query, updates) do
+    Multi.new
+    |> Multi.update_all(:employee_requests, query, set: updates)
+    |> Repo.transaction
   end
 
   defp changeset(%Search{} = employee, attrs) do

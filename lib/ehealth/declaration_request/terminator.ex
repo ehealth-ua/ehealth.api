@@ -1,6 +1,6 @@
 defmodule EHealth.DeclarationRequest.Terminator do
   @moduledoc """
-    Process responsible for termination declaration requests which achieved their end_date
+    Process responsible for termination declaration requests
     Process runs once per day, in the night from 0 to 4 UTC
   """
 

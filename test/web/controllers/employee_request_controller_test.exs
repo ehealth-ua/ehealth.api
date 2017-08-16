@@ -465,6 +465,16 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     assert "APPROVED" == resp["status"]
   end
 
+  test "cannot approve expired employee request", %{conn: conn} do
+    %{id: id} = insert(:il, :employee_request,
+      status: Request.status(:expired),
+      data: %{"party" => %{"email" => "mis_bot_1493831618@user.com"}}
+    )
+    conn_resp = post conn, employee_request_path(conn, :approve, id)
+    resp = json_response(conn_resp, 403)
+    assert "Employee request is expired" == resp["error"]["message"]
+  end
+
   test "can reject employee request if email matches", %{conn: conn} do
     fixture_params = employee_request() |> Map.put(:email, "mis_bot_1493831618@user.com")
     %{id: id} = fixture(Request, fixture_params)

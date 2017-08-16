@@ -24,6 +24,7 @@ defmodule EHealth do
       # Start the endpoint when the application starts
       supervisor(EHealth.Web.Endpoint, []),
       worker(EHealth.DeclarationRequest.Terminator, []),
+      worker(EHealth.EmployeeRequest.Terminator, []),
       # Starts a worker by calling: EHealth.Worker.start_link(arg1, arg2, arg3)
       # worker(EHealth.Worker, [arg1, arg2, arg3]),
     ]

@@ -15,6 +15,7 @@ defmodule EHealth.Factories do
 
   # IL
   use EHealth.ILFactories.DictionaryFactory
+  use EHealth.ILFactories.EmployeeRequestFactory
 
   alias EHealth.Repo
   alias EHealth.PRMRepo

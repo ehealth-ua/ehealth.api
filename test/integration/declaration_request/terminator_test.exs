@@ -21,7 +21,7 @@ defmodule EHealth.Integration.DeclarationRequest.TerminatorTest do
     insert(:prm, :global_parameter, parameter: "declaration_request_expiration", value: "5")
     assert 2 = DeclarationRequest |> Repo.all() |> Enum.count
 
-    GenServer.cast(EHealth.DeclarationRequest.Terminator, {:terminate, 1})
+    GenServer.cast(Terminator, {:terminate, 1})
     Process.sleep(100)
 
     assert 1 = DeclarationRequest |> Repo.all() |> Enum.count

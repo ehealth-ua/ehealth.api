@@ -27,9 +27,10 @@ defmodule EHealth.Employee.API do
 
   require Logger
 
-  @status_new "NEW"
-  @status_approved "APPROVED"
-  @status_rejected "REJECTED"
+  @status_new Request.status(:new)
+  @status_approved Request.status(:approved)
+  @status_rejected Request.status(:rejected)
+  @status_expired Request.status(:expired)
 
   def get_employee_request_by_id!(id) do
     Repo.get!(Request, id)
@@ -165,7 +166,9 @@ defmodule EHealth.Employee.API do
   def check_transition_status(%Request{status: @status_new} = employee_request) do
     {:ok, employee_request}
   end
-
+  def check_transition_status(%Request{status: @status_expired}) do
+    {:error, {:forbidden, "Employee request is expired"}}
+  end
   def check_transition_status(%Request{status: status}) do
     {:conflict, "Employee request status is #{status} and cannot be updated"}
   end
@@ -371,10 +374,16 @@ defmodule EHealth.Employee.API do
     |> send_email(EmployeeRequestInvitationTemplate, EmployeeRequestInvitationEmail)
   end
 
-  def validate_status_type(%{"data" => %{"employee_type" => "OWNER", "status" => "APPROVED", "is_active" => false}}) do
+  def validate_status_type(%{"data" => %{
+                            "employee_type" => "OWNER",
+                            "status" => @status_approved,
+                            "is_active" => false}}) do
     {:error, {:conflict, "employee is dismissed"}}
   end
-  def validate_status_type(%{"data" => %{"employee_type" => _, "status" => "DISMISSED", "is_active" => true}}) do
+  def validate_status_type(%{"data" => %{
+                            "employee_type" => _,
+                            "status" => "DISMISSED",
+                            "is_active" => true}}) do
     {:error, {:conflict, "employee is dismissed"}}
   end
   def validate_status_type(_), do: :ok
