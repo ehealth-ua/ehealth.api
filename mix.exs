@@ -93,6 +93,6 @@ defmodule EHealth.Mixfile do
   defp aliases do
     ["ecto.setup": ["ecto.create", "ecto.load --repo EHealth.PRMRepo", "ecto.migrate", "run priv/repo/seeds.exs"],
      "ecto.reset": ["ecto.drop", "ecto.setup"],
-     "test": ["ecto.create --quiet", "ecto.migrate", "ecto.load --repo EHealth.PRMRepo", "test"]]
+     "test": ["ecto.create --quiet", "ecto.load --repo EHealth.PRMRepo", "ecto.migrate", "test"]]
   end
 end
