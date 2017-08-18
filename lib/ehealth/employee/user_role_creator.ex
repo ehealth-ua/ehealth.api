@@ -33,9 +33,17 @@ defmodule EHealth.Employee.UserRoleCreator do
   end
 
   def add_oauth_users_role(party_users, role_id, client_id, _, headers) when length(party_users) > 0 do
+    # credo:disable-for-this-file Credo.Check.Warning.IoInspect
+    IO.inspect inspect(party_users)
+    Logger.info(inspect(party_users))
     Enum.each(party_users, fn(%PartyUser{user_id: user_id}) ->
-      user_id
+      Logger.info(inspect({user_id, role_id, client_id}))
+      user_roles = user_id
       |> Mithril.get_user_roles([role_id: role_id, client_id: client_id], headers)
+
+      Logger.info(inspect(user_roles))
+
+      user_roles
       |> create_user_role(user_id, role_id, client_id, headers)
     end)
   end
