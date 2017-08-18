@@ -163,6 +163,9 @@ defmodule EHealth.DeclarationRequest.API.Validations do
     {:error, {:bad_request, "Signed request data is invalid"}}
   end
   def check_is_valid({:ok, %{"data" => %{"is_valid" => true}}} = data), do: data
+  def check_is_valid({:error, error}) do
+    {:error, {:bad_request, error}}
+  end
 
   def validate_tax_id(changeset) do
     tax_id =
