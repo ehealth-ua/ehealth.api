@@ -48,28 +48,35 @@ defmodule EHealth.PRM.LegalEntities do
 
   def get_legal_entity_by_id(id) do
     id
-    |> get_legal_entity_by_id_query()
+    |> get_by_id_query()
     |> PRMRepo.one()
   end
 
-  def get_legal_entity_by_id_with(id, preload_schemas) do
+  def get_by_id_preload(id, preload_schemas) do
     id
-    |> get_legal_entity_by_id_query()
+    |> get_by_id_query()
     |> preload(^preload_schemas)
     |> PRMRepo.one()
   end
 
   def get_legal_entity_by_id!(id) do
     id
-    |> get_legal_entity_by_id_query()
+    |> get_by_id_query()
     |> PRMRepo.one!()
   end
 
-  defp get_legal_entity_by_id_query(id) do
+  defp get_by_id_query(id) do
     LegalEntity
     |> where([le], le.id == ^id)
     |> join(:left, [le], msp in assoc(le, :medical_service_provider))
     |> preload([le, msp], [medical_service_provider: msp])
+  end
+
+  def get_legal_entity_by_edrpou(edrpou) do
+    LegalEntity
+    |> where(edrpou: ^edrpou)
+    |> PRMRepo.one()
+    |> preload_msp()
   end
 
   def get_legal_entities(params \\ %{}) do
@@ -77,10 +84,6 @@ defmodule EHealth.PRM.LegalEntities do
     |> changeset(params)
     |> search(params, LegalEntity, Confex.get_env(:ehealth, :legal_entities_per_page))
     |> preload_msp()
-  end
-
-  def get_legal_entity_by_edrpou(edrpou) do
-    get_legal_entities(%{edrpou: edrpou, type: "MSP"})
   end
 
   def get_search_query(LegalEntity = entity, %{ids: _ids} = changes) do
@@ -101,10 +104,24 @@ defmodule EHealth.PRM.LegalEntities do
   end
   def get_search_query(entity, changes), do: super(entity, changes)
 
-  defp changeset(%Search{} = legal_entity, attrs) do
+  def create_legal_entity(%LegalEntity{} = legal_entity, attrs, author_id) do
+    legal_entity
+    |> changeset(attrs)
+    |> PRMRepo.insert_and_log(author_id)
+    |> preload_msp()
+  end
+
+  def update_legal_entity(%LegalEntity{} = legal_entity, attrs, author_id) do
+    legal_entity
+    |> changeset(attrs)
+    |> PRMRepo.update_and_log(author_id)
+    |> preload_msp()
+  end
+
+  def changeset(%Search{} = legal_entity, attrs) do
     cast(legal_entity, attrs, @search_fields)
   end
-  defp changeset(%LegalEntity{} = legal_entity, attrs) do
+  def changeset(%LegalEntity{} = legal_entity, attrs) do
     legal_entity
     |> cast(attrs, @required_fields ++ @optional_fields)
     |> cast_assoc(:medical_service_provider)
@@ -121,10 +138,15 @@ defmodule EHealth.PRM.LegalEntities do
   defp preload_msp({legal_entities, %Ecto.Paging{} = paging}) when length(legal_entities) > 0 do
     {PRMRepo.preload(legal_entities, :medical_service_provider), paging}
   end
-  defp preload_msp({:ok, legal_entity}) do
-    {:ok, PRMRepo.preload(legal_entity, :medical_service_provider)}
+  defp preload_msp(%LegalEntity{} = legal_entity) do
+    PRMRepo.preload(legal_entity, :medical_service_provider)
   end
-  defp preload_msp(err), do: err
+  defp preload_msp({:ok, legal_entity}) do
+    {:ok, preload_msp(legal_entity)}
+  end
+  defp preload_msp(err) do
+    err
+  end
 
   defp convert_comma_params_to_where_in_clause(changes, param_name, db_field) do
     changes

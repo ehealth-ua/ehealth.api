@@ -2,8 +2,8 @@ defmodule EHealth.Divisions.UAddress do
   @moduledoc """
   Service layer for synchronous update of the UAddress settlement and divisions
   """
-  alias EHealth.API.PRM
   alias EHealth.API.UAddress
+  alias EHealth.PRM.Divisions
 
   def update_settlement(%{"id" => id, "settlement" => settlement}, headers) do
     data = Map.put(settlement, "id", id)
@@ -41,12 +41,13 @@ defmodule EHealth.Divisions.UAddress do
   end
 
   defp api_update_divisions(%{"id" => id, "mountain_group" => group} = data, headers, settlement) do
-    %{settlement_id: id, mountain_group: group}
-    |> PRM.update_divisions_mountain_group(headers)
-    |> case do
-         {:ok, _} -> :ok
-         {:error, reason} -> rollback_settlement(data, headers, settlement, reason)
-       end
+    result = Divisions.update_divisions_mountain_group(%{settlement_id: id, mountain_group: group})
+    case result do
+      %Ecto.Changeset{valid?: false} -> result
+      _ -> :ok
+    end
+  rescue
+    _ -> rollback_settlement(data, headers, settlement, "Failed to update divisions mountain group")
   end
   defp api_update_divisions(_, _, _), do: :ok
 

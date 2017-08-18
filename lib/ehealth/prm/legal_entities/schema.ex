@@ -27,7 +27,7 @@ defmodule EHealth.PRM.LegalEntities.Schema do
     field :capitation_contract_id, :id
     field :created_by_mis_client_id, Ecto.UUID
 
-    has_one :medical_service_provider, MedicalServiceProvider, foreign_key: :legal_entity_id
+    has_one :medical_service_provider, MedicalServiceProvider, [on_replace: :delete, foreign_key: :legal_entity_id]
 
     timestamps()
   end

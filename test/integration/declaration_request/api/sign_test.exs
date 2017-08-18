@@ -168,8 +168,14 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
     end
 
     test "returns expected result when you sign your declaration" do
-      content = %{"employee" => %{"id" => "f1ee8ca3-b8ba-4fbe-b186-3c7d08f0f323"}}
-      x_consumer_id_header = {"x-consumer-id", "88231792-f27f-4e5d-9f29-f246557ba42b"}
+      user_id = "88231792-f27f-4e5d-9f29-f246557ba42b"
+      id = "f1ee8ca3-b8ba-4fbe-b186-3c7d08f0f323"
+      party = insert(:prm, :party)
+      insert(:prm, :party_user, party: party, user_id: user_id)
+      legal_entity = insert(:prm, :legal_entity, id: "88231792-f27f-4e5d-9f29-f246557ba42b")
+      insert(:prm, :employee, id: id, legal_entity: legal_entity, party: party)
+      content = %{"employee" => %{"id" => id}}
+      x_consumer_id_header = {"x-consumer-id", user_id}
       assert {:ok, {content, "somedata"}} == check_employee_id({:ok, {content, "somedata"}}, [x_consumer_id_header])
     end
   end

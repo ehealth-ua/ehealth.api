@@ -7,6 +7,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
   alias EHealth.Employee.Request
   alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
+  alias EHealth.MockServer
 
   @moduletag :with_client_id
 
@@ -19,6 +20,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "with valid params and x-consumer-metadata that contains invalid client_id", %{conn: conn} do
+      insert(:prm, :employee)
       employee_request_params = File.read!("test/data/employee_request.json")
       conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8602f2")
       conn = post conn, employee_request_path(conn, :create), employee_request_params
@@ -26,8 +28,19 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "with valid params and x-consumer-metadata that contains valid client_id", %{conn: conn} do
-      employee_request_params = File.read!("test/data/employee_request.json")
-      conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
+      legal_entity = insert(:prm, :legal_entity)
+      party = insert(:prm, :party, tax_id: "3067305998")
+      %{id: id} = insert(:prm, :employee, party: party)
+      %{id: division_id} = insert(:prm, :division)
+
+      employee_request_params =
+        "test/data/employee_request.json"
+        |> File.read!()
+        |> Poison.decode!
+        |> put_in(["employee_request", "employee_id"], id)
+        |> put_in(["employee_request", "division_id"], division_id)
+
+      conn = put_client_id_header(conn, legal_entity.id)
       conn = post conn, employee_request_path(conn, :create), employee_request_params
       resp = json_response(conn, 200)["data"]
       refute Map.has_key?(resp, "type")
@@ -127,15 +140,17 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "with non-existent foreign keys", %{conn: conn} do
+      party = insert(:prm, :party, tax_id: "3067305998")
+      employee = insert(:prm, :employee, party: party)
       employee_request_params =
         "test/data/employee_request.json"
         |> File.read!()
         |> Poison.decode!()
         |> put_in(["employee_request", "division_id"], "356b4182-f9ce-4eda-b6af-43d2de8602f2")
-        |> put_in(["employee_request", "employee_id"], "6bbdb29e-6627-11e7-907b-a6006ad3dba0")
+        |> put_in(["employee_request", "employee_id"], employee.id)
         |> Poison.encode!()
 
-      conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8602f2")
+      conn = put_client_id_header(conn, Ecto.UUID.generate())
       conn = post conn, employee_request_path(conn, :create), employee_request_params
       resp = json_response(conn, 422)
       assert Map.has_key?(resp, "error")
@@ -181,34 +196,48 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "with employee_id invalid tax_id", %{conn: conn} do
+      %{id: legal_entity_id} = insert(:prm, :legal_entity)
+      employee = insert(:prm, :employee)
+
       employee_request_params =
         "test/data/employee_request.json"
         |> File.read!()
         |> Poison.decode!
-        |> put_in(["employee_request", "employee_id"], "0d26d826-6241-11e7-907b-a6006ad3dba0")
-      conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8602f2")
+        |> put_in(["employee_request", "employee_id"], employee.id)
+      conn = put_client_id_header(conn, legal_entity_id)
       conn = post conn, employee_request_path(conn, :create), employee_request_params
       json_response(conn, 409)
     end
 
     test "with employee_id invalid employee_type", %{conn: conn} do
+      %{id: legal_entity_id} = insert(:prm, :legal_entity)
+      division = insert(:prm, :division)
+      party = insert(:prm, :party, tax_id: "3067305998")
+      employee = insert(:prm, :employee, party: party, division: division, employee_type: "OWNER")
+
       employee_request_params =
         "test/data/employee_request.json"
         |> File.read!()
         |> Poison.decode!
-        |> put_in(["employee_request", "employee_id"], "2497b2ac-662c-11e7-907b-a6006ad3dba0")
-      conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8602f2")
+        |> put_in(["employee_request", "employee_id"], employee.id)
+      conn = put_client_id_header(conn, legal_entity_id)
       conn = post conn, employee_request_path(conn, :create), employee_request_params
       json_response(conn, 409)
     end
 
     test "with employee_id and valid tax_id, employee_type", %{conn: conn} do
+      %{id: legal_entity_id} = insert(:prm, :legal_entity)
+      division = insert(:prm, :division)
+      party = insert(:prm, :party, tax_id: "3067305998")
+      employee = insert(:prm, :employee, party: party, division: division)
+
       employee_request_params =
         "test/data/employee_request.json"
         |> File.read!()
         |> Poison.decode!
-        |> put_in(["employee_request", "employee_id"], "6bbdb29e-6627-11e7-907b-a6006ad3dba0")
-      conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
+        |> put_in(["employee_request", "employee_id"], employee.id)
+        |> put_in(["employee_request", "division_id"], division.id)
+      conn = put_client_id_header(conn, legal_entity_id)
       conn = post conn, employee_request_path(conn, :create), employee_request_params
       json_response(conn, 200)
     end
@@ -231,23 +260,29 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "with dismissed OWNER", %{conn: conn} do
+      legal_entity = insert(:prm, :legal_entity)
+      employee = insert(:prm, :employee, is_active: false, status: "APPROVED")
       employee_request_params =
         "test/data/employee_request.json"
         |> File.read!()
         |> Poison.decode!
-        |> put_in(["employee_request", "employee_id"], "b075f148-7f93-4fc2-b2ec-2d81b19a91a1")
-      conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
+        |> put_in(["employee_request", "employee_id"], employee.id)
+      conn = put_client_id_header(conn, legal_entity.id)
       conn = post conn, employee_request_path(conn, :create), employee_request_params
       json_response(conn, 409)
     end
 
     test "with dismissed employee", %{conn: conn} do
+      %{id: id, division: %{legal_entity_id: legal_entity_id}} =
+        :prm
+        |> insert(:employee, status: "DISMISSED")
+        |> EHealth.PRMRepo.preload(:legal_entity)
       employee_request_params =
         "test/data/employee_request.json"
         |> File.read!()
         |> Poison.decode!
-        |> put_in(["employee_request", "employee_id"], "d9a908d8-6895-11e7-907b-a6006ad3dba0")
-      conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
+        |> put_in(["employee_request", "employee_id"], id)
+      conn = put_client_id_header(conn, legal_entity_id)
       conn = post conn, employee_request_path(conn, :create), employee_request_params
       json_response(conn, 409)
     end
@@ -264,12 +299,10 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "by NHS ADMIN", %{conn: conn} do
-      %{id: legal_entity_id_1} = fixture(LegalEntity)
-      %{id: legal_entity_id_2} = fixture(LegalEntity)
-      fixture(Request, Map.put(employee_request(), :legal_entity_id, legal_entity_id_1))
-      fixture(Request, Map.put(employee_request(), :legal_entity_id, legal_entity_id_2))
-      conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8601a1")
-      conn = get conn, employees_path(conn, :index)
+      insert(:il, :employee_request)
+      insert(:il, :employee_request)
+      conn = put_client_id_header(conn, MockServer.get_client_admin())
+      conn = get conn, employee_request_path(conn, :index)
       resp = json_response(conn, 200)["data"]
       assert 2 = length(resp)
     end
@@ -392,28 +425,48 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   end
 
   test "can approve employee request with employee_id", %{conn: conn} do
-    employee_id = "6bbdb29e-6627-11e7-907b-a6006ad3dba0"
-    fixture_params =
-      employee_request()
-      |> Map.put(:email, "mis_bot_1493831618@user.com")
-      |> put_in([:data, "employee_id"], employee_id)
-    %{id: id} = fixture(Request, fixture_params)
+    %{id: legal_entity_id} = insert(:prm, :legal_entity)
+    %{id: division_id} = insert(:prm, :division)
 
-    conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
-    conn = post conn, employee_request_path(conn, :approve, id)
-    resp = json_response(conn, 200)
+    data =
+      employee_request_data()
+      |> put_in([:party, :email], "mis_bot_1493831618@user.com")
+      |> put_in([:division_id], division_id)
+      |> put_in([:legal_entity_id], legal_entity_id)
+    %{id: request_id} = insert(:il, :employee_request, employee_id: nil, data: data)
+
+    conn = put_client_id_header(conn, legal_entity_id)
+    conn1 = post conn, employee_request_path(conn, :approve, request_id)
+    resp = json_response(conn1, 200)
+    assert %{"data" => %{"employee_id" => employee_id}} = resp
+
+    data =
+      data
+      |> put_in([:party, :first_name], "Alex")
+      |> put_in([:employee_id], employee_id)
+    %{id: request_id} = insert(:il, :employee_request, employee_id: nil, data: data)
+    conn2 = post conn, employee_request_path(conn, :approve, request_id)
+    resp = json_response(conn2, 200)
     assert %{"data" => %{"employee_id" => ^employee_id}} = resp
   end
 
   test "can approve employee request if email maches", %{conn: conn} do
-    fixture_params = Map.merge(employee_request(), %{
-      email: "mis_bot_1493831618@user.com",
-      status: "NEW",
-      employee_type: "OWNER",
-    })
-    %{id: id} = fixture(Request, fixture_params)
+    legal_entity = insert(:prm, :legal_entity)
+    party = insert(:prm, :party, id: "01981ab9-904c-4c36-88ab-959a94087483")
+    %{legal_entity_id: legal_entity_id} = insert(:prm, :employee,
+      legal_entity: legal_entity,
+      party: party
+    )
+    %{id: division_id} = insert(:prm, :division)
 
-    conn = post conn, employee_request_path(conn, :approve, id)
+    data =
+      employee_request_data()
+      |> put_in([:party, :email], "mis_bot_1493831618@user.com")
+      |> put_in([:division_id], division_id)
+      |> put_in([:legal_entity_id], legal_entity_id)
+    %{id: request_id} = insert(:il, :employee_request, employee_id: nil, data: data)
+
+    conn = post conn, employee_request_path(conn, :approve, request_id)
     resp = json_response(conn, 200)["data"]
     assert "APPROVED" == resp["status"]
   end
@@ -442,24 +495,47 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   end
 
   test "can approve employee request if you created it'", %{conn: conn} do
-    fixture_params = employee_request() |> Map.put(:email, "mis_bot_1493831618@user.com")
-    %{id: id, data: data} = fixture(Request, fixture_params)
+    legal_entity = insert(:prm, :legal_entity)
+    division = insert(:prm, :division)
+    party = insert(:prm, :party, id: "01981ab9-904c-4c36-88ab-959a94087483")
+    employee = insert(:prm, :employee,
+      legal_entity: legal_entity,
+      division: division,
+      party: party
+    )
+    data =
+      employee_request_data()
+      |> put_in([:party, :email], "mis_bot_1493831618@user.com")
+      |> put_in([:legal_entity_id], legal_entity.id)
+      |> put_in([:division_id], division.id)
+      |> put_in([:party_id], party.id)
+    employee_request = insert(:il, :employee_request,
+      employee_id: employee.id,
+      data: data
+    )
 
-    conn = put_client_id_header(conn, Map.get(data, "legal_entity_id"))
-    conn = post conn, employee_request_path(conn, :approve, id)
+    conn = put_client_id_header(conn, legal_entity.id)
+    conn = post conn, employee_request_path(conn, :approve, employee_request.id)
     resp = json_response(conn, 200)["data"]
     assert "APPROVED" == resp["status"]
   end
 
   test "can approve employee request with employee_id'", %{conn: conn} do
-    employee_id = "6bbdb29e-6627-11e7-907b-a6006ad3dba0"
-    fixture_params =
-      employee_request()
-      |> Map.put(:email, "mis_bot_1493831618@user.com")
-      |> put_in([:data, "employee_id"], employee_id)
-    %{id: id, data: data} = fixture(Request, fixture_params)
+    employee = insert(:prm, :employee)
+    insert(:prm, :party, id: "01981ab9-904c-4c36-88ab-959a94087483")
+    %{id: division_id} = insert(:prm, :division)
+    data =
+      employee_request_data()
+      |> put_in([:party, :email], "mis_bot_1493831618@user.com")
+      |> put_in([:division_id], division_id)
+    %{id: id, data: data} = insert(:il, :employee_request,
+      employee_id: employee.id,
+      data: data
+    )
+    legal_entity_id = data.legal_entity_id
+    insert(:prm, :legal_entity, id: legal_entity_id)
 
-    conn = put_client_id_header(conn, Map.get(data, "legal_entity_id"))
+    conn = put_client_id_header(conn, legal_entity_id)
     conn = post conn, employee_request_path(conn, :approve, id)
     resp = json_response(conn, 200)["data"]
     assert "APPROVED" == resp["status"]

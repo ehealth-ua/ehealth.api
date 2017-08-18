@@ -19,11 +19,16 @@ defmodule EHealth.Web.LegalEntityController do
       conn
       |> assign_security(security)
       |> assign_employee_request_id(employee_request)
-      |> render("show.json", legal_entity: Map.fetch!(legal_entity, "data"))
+      |> render("show.json", legal_entity: legal_entity)
     end
   end
 
   def index(conn, params) do
+    # Respect MSP token
+    legal_entity_id = Map.get(conn.params, "legal_entity_id")
+    params = if is_nil(legal_entity_id),
+      do: params,
+      else: Map.put(params, "ids", legal_entity_id)
     with {entities, paging} <- LegalEntities.get_legal_entities(params) do
       render(conn, "index.json", legal_entities: entities, paging: paging)
     end
@@ -38,21 +43,20 @@ defmodule EHealth.Web.LegalEntityController do
   end
 
   def mis_verify(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
-    with {:ok, %{"meta" => %{}} = response} <- API.mis_verify(id, req_headers) do
-      proxy(conn, response)
+    with {:ok, legal_entity} <- API.mis_verify(id, get_consumer_id(req_headers)) do
+      render(conn, "show.json", legal_entity: legal_entity)
     end
   end
 
   def nhs_verify(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
-    with {:ok, %{"meta" => %{}} = response} <- API.nhs_verify(id, req_headers) do
-      proxy(conn, response)
+    with {:ok, legal_entity} <- API.nhs_verify(id, get_consumer_id(req_headers)) do
+      render(conn, "show.json", legal_entity: legal_entity)
     end
   end
 
   def deactivate(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
-    with {:ok, %{
-      legal_entity_updated: %{"meta" => %{}} = response}} <- LegalEntityUpdater.deactivate(id, req_headers) do
-      proxy(conn, response)
+    with {:ok, legal_entity} <- LegalEntityUpdater.deactivate(id, req_headers) do
+      render(conn, "show.json", legal_entity: legal_entity)
     end
   end
 

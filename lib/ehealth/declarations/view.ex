@@ -1,117 +1,44 @@
 defmodule EHealth.Declarations.View do
   @moduledoc false
 
+  use EHealth.Web, :view
+  alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
+  alias EHealth.PRM.Employees.Schema, as: Employee
+  alias EHealth.PRM.Parties.Schema, as: Party
+  alias EHealth.PRM.Divisions.Schema, as: Division
+
   def render_declarations(declarations) do
     Enum.map(declarations, &render_declaration(&1, :list))
   end
 
   def render_declaration(declaration), do: render_declaration(declaration, :one)
 
-  def render_declaration(declaration, type) do
-    declaration
-    |> Map.take(fields(:declaration, type))
-    |> Map.merge(%{
-         "person" => Map.take(declaration["person"], fields(:person, type)),
-         "division" => Map.take(declaration["division"], fields(:division, type)),
-         "employee" => Map.take(declaration["employee"], fields(:employee, type)),
-         "legal_entity" => Map.take(declaration["legal_entity"], fields(:legal_entity, type)),
-       })
-  end
+  def render_declaration(declaration, :list) do
+    legal_entity = render_one(declaration["legal_entity"], __MODULE__, "legal_entity_short.json", as: :legal_entity)
+    employee = render_one(declaration["employee"], __MODULE__, "employee_short.json", as: :employee)
+    division = render_one(declaration["division"], __MODULE__, "division_short.json", as: :division)
+    person = render_one(declaration["person"], __MODULE__, "person_short.json", as: :person)
 
-  def fields(:employee, :one) do
-    ~W(
+    declaration
+    |> Map.take(~w(
       id
-      position
-      employee_type
-      status
       start_date
       end_date
-      party
-      division_id
-      legal_entity
-      doctor
-    )
+      declaration_request_id
+      inserted_at
+      updated_at
+    ))
+    |> Map.merge(%{
+      "person" => person,
+      "division" => division,
+      "employee" => employee,
+      "legal_entity" => legal_entity
+    })
   end
 
-  def fields(:employee, :list) do
-    ~W(
-      id
-      position
-      employee_type
-    )
-  end
-
-  def fields(:person, :one) do
-    ~W(
-      id
-      first_name
-      last_name
-      second_name
-      birth_date
-      tax_id
-      phones
-      birth_country
-      birth_settlement
-    )
-  end
-
-  def fields(:person, :list) do
-    ~W(
-      id
-      first_name
-      last_name
-      second_name
-    )
-  end
-
-  def fields(:division, :one) do
-    ~W(
-      id
-      name
-      legal_entity_id
-      phones
-      email
-      addresses
-      type
-      mountain_group
-    )
-  end
-
-  def fields(:division, :list) do
-    ~W(
-      id
-      name
-    )
-  end
-
-  def fields(:legal_entity, :one) do
-    ~W(
-      id
-      name
-      short_name
-      legal_form
-      public_name
-      edrpou
-      status
-      email
-      phones
-      addresses
-      created_at
-      modified_at
-    )a
-  end
-
-  def fields(:legal_entity, :list) do
-    ~W(
-      id
-      name
-      short_name
-      edrpou
-    )a
-  end
-
-  def fields(:declaration, :one) do
-    ~W(
+  def render_declaration(declaration, :one) do
+    declaration
+    |> Map.take(~w(
       id
       start_date
       end_date
@@ -122,18 +49,133 @@ defmodule EHealth.Declarations.View do
       declaration_request_id
       inserted_at
       updated_at
-    )
+    ))
+    |> Map.merge(%{
+      "person" => render_one(declaration["person"], __MODULE__, "person.json", as: :person),
+      "division" => render_one(declaration["division"], __MODULE__, "division.json", as: :division),
+      "employee" => render_one(declaration["employee"], __MODULE__, "employee.json", as: :employee),
+      "legal_entity" => render_one(declaration["legal_entity"], __MODULE__, "legal_entity.json", as: :legal_entity),
+    })
   end
 
-  def fields(:declaration, :list) do
-    ~W(
+  def render("legal_entity.json", %{legal_entity: %LegalEntity{} = legal_entity}) do
+    Map.take(legal_entity, ~w(
       id
-      start_date
-      end_date
-      declaration_request_id
+      name
+      short_name
+      legal_form
+      public_name
+      edrpou
+      status
+      email
+      phones
+      addresses
       inserted_at
       updated_at
-    )
+    )a)
   end
 
+  def render("legal_entity_short.json", %{legal_entity: %LegalEntity{} = legal_entity}) do
+    Map.take(legal_entity, ~w(
+      id
+      name
+      short_name
+      edrpou
+    )a)
+  end
+
+  def render("legal_entity_employee.json", %{legal_entity: %LegalEntity{} = legal_entity}) do
+    Map.take(legal_entity, ~w(
+      type
+      status
+      short_name
+      public_name
+      owner_property_type
+      name
+      legal_form
+      id
+      edrpou
+    )a)
+  end
+
+  def render("employee.json", %{employee: %Employee{} = employee}) do
+    legal_entity = render_one(employee.legal_entity, __MODULE__, "legal_entity_employee.json", as: :legal_entity)
+    party = render_one(employee.party, __MODULE__, "party.json", as: :party)
+
+    employee
+    |> Map.take(~w(
+      id
+      position
+      employee_type
+      status
+      start_date
+      end_date
+      division_id
+      doctor
+    )a)
+    |> Map.put(:party, party)
+    |> Map.put(:legal_entity, legal_entity)
+  end
+
+  def render("employee_short.json", %{employee: %Employee{} = employee}) do
+    Map.take(employee, ~w(
+      id
+      position
+      employee_type
+    )a)
+  end
+
+  def render("person.json", %{person: person}) when is_map(person) do
+    Map.take(person, ~w(
+      id
+      first_name
+      last_name
+      second_name
+      birth_date
+      tax_id
+      phones
+      birth_date
+      birth_settlement
+    ))
+  end
+
+  def render("person_short.json", %{person: person}) do
+    Map.take(person, ~w(
+      id
+      first_name
+      last_name
+      second_name
+    ))
+  end
+
+  def render("division.json", %{division: %Division{} = division}) do
+    Map.take(division, ~w(
+      id
+      name
+      legal_entity_id
+      phones
+      email
+      addresses
+      type
+      mountain_group
+    )a)
+  end
+
+  def render("division_short.json", %{division: %Division{} = division}) do
+    Map.take(division, ~w(
+      id
+      name
+    )a)
+  end
+
+  def render("party.json", %{party: %Party{} = party}) do
+    Map.take(party, ~w(
+      tax_id
+      second_name
+      phones
+      last_name
+      id
+      first_name
+    )a)
+  end
 end

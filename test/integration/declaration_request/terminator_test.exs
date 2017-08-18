@@ -3,8 +3,8 @@ defmodule EHealth.Integration.DeclarationRequest.TerminatorTest do
 
   use EHealth.Web.ConnCase
 
-  alias EHealth.DeclarationRequest.Terminator
   alias EHealth.DeclarationRequest
+  alias EHealth.DeclarationRequest.Terminator
   alias EHealth.Repo
 
   @tag :pending

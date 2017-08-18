@@ -3,6 +3,8 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
   use EHealth.Web.ConnCase
   alias EHealth.MockServer
+  alias EHealth.PRM.Employees.Schema, as: Employee
+  alias EHealth.PRMRepo
 
   test "invalid legal entity", %{conn: conn} do
     conn = put conn, legal_entity_path(conn, :create_or_update), %{"invlid" => "data"}
@@ -12,27 +14,30 @@ defmodule EHealth.Web.LegalEntityControllerTest do
   end
 
   test "mis verify legal entity", %{conn: conn} do
-      conn = put_client_id_header(conn, "296da7d2-3c5a-4f6a-b8b2-631063737271")
-      conn = patch conn, legal_entity_path(conn, :mis_verify, "9b452d44-62f8-11e7-907b-a6006ad3dba0")
-      assert json_response(conn, 200)["data"]["mis_verified"] == "VERIFIED"
-
+    %{id: id} = insert(:prm, :legal_entity, mis_verified: "NOT_VERIFIED")
+    conn = put_client_id_header(conn, id)
+    conn = patch conn, legal_entity_path(conn, :mis_verify, id)
+    assert json_response(conn, 200)["data"]["mis_verified"] == "VERIFIED"
   end
 
   test "mis verify legal entity which was already verified", %{conn: conn} do
-    conn = put_client_id_header(conn, "296da7d2-3c5a-4f6a-b8b2-631063737271")
-    conn = patch conn, legal_entity_path(conn, :mis_verify, "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
-    json_response(conn, 409)
+    %{id: id} = insert(:prm, :legal_entity, mis_verified: "VERIFIED")
+    conn = put_client_id_header(conn, id)
+    conn = patch conn, legal_entity_path(conn, :mis_verify, id)
+    assert json_response(conn, 409)
   end
 
   test "nhs verify legal entity which was already verified", %{conn: conn} do
-    conn = put_client_id_header(conn, "296da7d2-3c5a-4f6a-b8b2-631063737271")
-    conn = patch conn, legal_entity_path(conn, :nhs_verify, "9b452d44-62f8-11e7-907b-a6006ad3dba0")
+    %{id: id} = insert(:prm, :legal_entity, nhs_verified: true)
+    conn = put_client_id_header(conn, id)
+    conn = patch conn, legal_entity_path(conn, :nhs_verify, id)
     refute json_response(conn, 409)["data"]["nhs_verified"]
   end
 
   test "nhs verify legal entity", %{conn: conn} do
-    conn = put_client_id_header(conn, "296da7d2-3c5a-4f6a-b8b2-631063737271")
-    conn = patch conn, legal_entity_path(conn, :nhs_verify, "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+    %{id: id} = insert(:prm, :legal_entity, nhs_verified: false)
+    conn = put_client_id_header(conn, id)
+    conn = patch conn, legal_entity_path(conn, :nhs_verify, id)
     assert json_response(conn, 200)["data"]["nhs_verified"]
   end
 
@@ -69,14 +74,16 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
     test "with x-consumer-metadata that contains not MIS client_id that matches one of legal entities id",
       %{conn: conn} do
-      %{id: id, edrpou: edrpou} = insert(:prm, :legal_entity)
+      insert(:prm, :legal_entity)
+      %{id: id} = insert(:prm, :legal_entity)
       conn = put_client_id_header(conn, id)
-      conn = get conn, legal_entity_path(conn, :index, [edrpou: edrpou])
+      conn = get conn, legal_entity_path(conn, :index)
       resp = json_response(conn, 200)
 
       assert Map.has_key?(resp, "data")
       assert is_list(resp["data"])
       assert 1 == length(resp["data"])
+      assert id == hd(resp["data"])["id"]
     end
 
     test "with x-consumer-metadata that contains client_id that does not match legal entity id", %{conn: conn} do
@@ -188,6 +195,22 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
       resp = json_response(conn, 200)
       assert "CLOSED" == resp["data"]["status"]
+    end
+
+    test "deactivate legal entity with OWNER employee", %{conn: conn} do
+      %{id: id} = insert(:prm, :legal_entity)
+      employee = insert(:prm, :employee,
+        employee_type: Employee.employee_type(:owner),
+        legal_entity_id: id
+      )
+      assert employee.is_active
+      conn = put_client_id_header(conn, id)
+      conn = patch conn, legal_entity_path(conn, :deactivate, id)
+
+      resp = json_response(conn, 200)
+      assert "CLOSED" == resp["data"]["status"]
+      employee = PRMRepo.one(Employee)
+      refute employee.is_active
     end
   end
 

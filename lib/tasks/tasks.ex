@@ -8,22 +8,23 @@ defmodule :ehealth_tasks do
   """
 
   def migrate! do
+    prm_migrations_dir = Path.join(["priv", "prm_repo", "migrations"])
     migrations_dir = Path.join(["priv", "repo", "migrations"])
 
-    repo = EHealth.Repo
+    load_app()
 
-    repo
-    |> start_repo
-    |> Ecto.Migrator.run(migrations_dir, :up, all: true)
+    prm_repo = EHealth.PRMRepo
+    prm_repo.start_link()
+
+    Ecto.Migrator.run(prm_repo, prm_migrations_dir, :up, all: true)
+
+    repo = EHealth.Repo
+    repo.start_link()
+
+    Ecto.Migrator.run(repo, migrations_dir, :up, all: true)
 
     System.halt(0)
     :init.stop()
-  end
-
-  defp start_repo(repo) do
-    load_app()
-    repo.start_link()
-    repo
   end
 
   defp load_app do

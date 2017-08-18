@@ -5,14 +5,14 @@ defmodule EHealth.Man.Templates.EmployeeCreatedNotification do
 
   alias EHealth.Man.Templates.EmployeeRequestInvitation
   alias EHealth.API.Man
-  alias EHealth.API.PRM
   alias EHealth.Employee.Request
+  alias EHealth.PRM.LegalEntities
 
   def render(%Request{id: id, data: data}) do
     clinic_info =
       data
       |> Map.get("legal_entity_id")
-      |> PRM.get_legal_entity_by_id()
+      |> LegalEntities.get_legal_entity_by_id()
       |> EmployeeRequestInvitation.get_clinic_info()
 
     template_data = %{

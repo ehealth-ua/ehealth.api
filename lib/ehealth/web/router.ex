@@ -62,7 +62,7 @@ defmodule EHealth.Web.Router do
     # Legal Entities
     get "/legal_entities", LegalEntityController, :index
     # Employees
-    get "/employees", EmployeesController, :index
+    get "/employees", EmployeeController, :index
     # Employees
     get "/divisions", DivisionController, :index
     # Declarations
@@ -88,8 +88,8 @@ defmodule EHealth.Web.Router do
     patch "/legal_entities/:id/actions/deactivate", LegalEntityController, :deactivate
 
     # Employees
-    get "/employees/:id", EmployeesController, :show
-    patch "/employees/:id/actions/deactivate", EmployeesController, :deactivate
+    get "/employees/:id", EmployeeController, :show
+    patch "/employees/:id/actions/deactivate", EmployeeController, :deactivate
 
     # Employee requests
     post "/employee_requests", EmployeeRequestController, :create

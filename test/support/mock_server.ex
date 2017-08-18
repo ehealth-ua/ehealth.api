@@ -4,9 +4,7 @@ defmodule EHealth.MockServer do
 
   alias EHealth.Utils.MapDeepMerge
   alias Ecto.UUID
-  import EHealth.Utils.Connection
 
-  @inactive_legal_entity_id "356b4182-f9ce-4eda-b6af-43d2de8602aa"
   @client_type_admin "356b4182-f9ce-4eda-b6af-43d2de8601a1"
   @client_type_mis "296da7d2-3c5a-4f6a-b8b2-631063737271"
   @client_type_nil "7cc91a5d-c02f-41e9-b571-1ea4f2375111"
@@ -20,235 +18,6 @@ defmodule EHealth.MockServer do
   def get_client_mis, do: @client_type_mis
   def get_client_nil, do: @client_type_nil
   def get_client_admin, do: @client_type_admin
-
-  # Legal Entitity
-
-  get "/legal_entities" do
-    legal_entity =
-      case conn.params do
-        %{"ids" => _} -> [get_legal_entity()]
-        %{"id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375552"} -> [get_legal_entity()]
-        %{"id" => "0d26d826-6241-11e7-907b-a6006ad3dba0"} -> [get_legal_entity()]
-        %{"edrpou" => "37367387", "type" => "MSP"} -> [get_legal_entity()]
-        %{"edrpou" => "10002000", "type" => "MSP"} -> [get_legal_entity("356b4182-f9ce-4eda-b6af-43d2de8602aa", false)]
-        %{"edrpou" => "37367387", "is_active" => "true"} ->
-          case get_client_id(conn.req_headers) do
-            @client_type_admin -> [get_legal_entity(), get_legal_entity(), get_legal_entity()]
-            _ ->                  [get_legal_entity()]
-          end
-        %{"id" => "8ea6d4d8-6240-11e7-907b-a6006ad3dba0"} ->
-          [get_legal_entity("8ea6d4d8-6240-11e7-907b-a6006ad3dba0", false)]
-
-        %{"id" => "b075f148-7f93-4fc2-b2ec-2d81b19a9a8a"} ->
-          [get_legal_entity("b075f148-7f93-4fc2-b2ec-2d81b19a9a8a", false, "CLOSED")]
-        _ -> []
-      end
-
-    Plug.Conn.send_resp(conn, 200, legal_entity |> wrap_response_with_paging() |> Poison.encode!())
-  end
-
-  post "/legal_entities" do
-    legal_entity = MapDeepMerge.merge(get_legal_entity(conn.path_params["id"]), conn.body_params)
-    Plug.Conn.send_resp(conn, 201, Poison.encode!(%{"data" => legal_entity}))
-  end
-
-  patch "/legal_entities/:id" do
-    id = conn.path_params["id"]
-    id
-    |> case do
-         @inactive_legal_entity_id -> get_legal_entity(id, false)
-         _ -> get_legal_entity(id)
-       end
-    |> MapDeepMerge.merge(conn.body_params)
-    |> render(conn, 200)
-  end
-
-  get "/legal_entities/:id" do
-    case conn.path_params do
-      %{"id" => "356b4182-f9ce-4eda-b6af-43d2de8602f2"} ->
-        render_404(conn)
-      %{"id" => "9b452d44-62f8-11e7-907b-a6006ad3dba0"} ->
-        legal_entity = get_legal_entity()
-        |> Map.merge(%{
-          "mis_verified" => "NOT_VERIFIED",
-          "nhs_verified" => true
-        })
-        Plug.Conn.send_resp(conn, 200, legal_entity |> wrap_response() |> Poison.encode!())
-      %{"id" => "356b4182-f9ce-4eda-b6af-43d2de8602aa" = id} ->
-        Plug.Conn.send_resp(conn, 200, id |> get_legal_entity(false) |> wrap_response() |> Poison.encode!())
-      _ ->
-        Plug.Conn.send_resp(conn, 200, get_legal_entity() |> wrap_response() |> Poison.encode!())
-    end
-  end
-
-  # Party
-
-  get "/party" do
-    Plug.Conn.send_resp(conn, 200, [get_party()] |> wrap_response_with_paging() |> Poison.encode!())
-  end
-
-  post "/party" do
-    party = MapDeepMerge.merge(get_party(), conn.body_params)
-    Plug.Conn.send_resp(conn, 201, Poison.encode!(%{"data" => party}))
-  end
-
-  patch "/party/:id" do
-    Plug.Conn.send_resp(conn, 200, Poison.encode!(%{"data" => get_party()}))
-  end
-
-  get "/party/:id" do
-    case conn.path_params["id"] do
-      "01981ab9-904c-4c36-88ab-959a94087483" -> render(get_party(), conn, 200)
-      "b63d802f-5225-4362-bc93-a8bba6eac167" -> render(get_party(), conn, 200)
-
-      _ -> render_404(conn)
-    end
-  end
-
-  get "/party_users" do
-    Plug.Conn.send_resp(conn, 200, [get_party_user()] |> wrap_response_with_paging() |> Poison.encode!())
-  end
-
-  post "/party_users" do
-    user_party = MapDeepMerge.merge(get_party_user(), conn.body_params)
-    Plug.Conn.send_resp(conn, 201, Poison.encode!(%{"data" => user_party}))
-  end
-
-  # Employee
-
-  get "/employees" do
-    legal_entity_id = Map.get(conn.params, "legal_entity_id")
-    expand = Map.has_key?(conn.params, "expand")
-    tax_id = Map.get(conn.params, "tax_id")
-    edrpou = Map.get(conn.params, "edrpou")
-    status = Map.get(conn.params, "status")
-    is_active = Map.get(conn.params, "is_active")
-    starting_after = Map.get(conn.params, "starting_after")
-
-    employees = cond do
-      tax_id || edrpou ->
-        [get_employee(legal_entity_id, expand, tax_id, edrpou)] |> Enum.filter(&(!is_nil(&1)))
-      status == "APPROVED" && is_active == "true" ->
-        [get_employee_by_id("0d26d826-6241-11e7-907b-a6006ad3dba0", legal_entity_id)]
-      true ->
-        employee = get_employee(legal_entity_id, expand)
-        [employee, employee]
-    end
-
-    render_with_paging(employees, conn, starting_after)
-  end
-
-  get "/employees/:id" do
-    case conn.path_params do
-      %{"id" => "0d26d826-6241-11e7-907b-a6006ad3dba0"} ->
-        render(get_employee("0d26d826-6241-11e7-907b-a6006ad3dba0"), conn, 200)
-
-      %{"id" => "7488a646-e31f-11e4-aace-600308960662"} ->
-        render(get_employee(), conn, 200)
-
-      %{"id" => "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b"} ->
-        render(get_employee(), conn, 200)
-
-      %{"id" => "2497b2ac-662c-11e7-907b-a6006ad3dba0"} ->
-        "0d26d826-6241-11e7-907b-a6006ad3dba0"
-        |> get_employee("b075f148-7f93-4fc2-b2ec-2d81b19a9b7b", "3067305998", nil)
-        |> render(conn, 200)
-
-      %{"id" => "6bbdb29e-6627-11e7-907b-a6006ad3dba0"} ->
-        "0d26d826-6241-11e7-907b-a6006ad3dba0"
-        |> get_employee("b075f148-7f93-4fc2-b2ec-2d81b19a9b7b", "3067305998", nil)
-        |> Map.put("employee_type", "DOCTOR")
-        |> render(conn, 200)
-
-      %{"id" => "b075f148-7f93-4fc2-b2ec-2d81b19a9a8a"} ->
-        get_employee()
-        |> Map.merge(%{"status" => "NEW", "is_active" => true})
-        |> render(conn, 200)
-
-      %{"id" => "b075f148-7f93-4fc2-b2ec-2d81b19a91a1"} ->
-        get_employee()
-        |> Map.merge(%{"status" => "APPROVED", "is_active" => false})
-        |> render(conn, 200)
-
-      %{"id" => "d9a908d8-6895-11e7-907b-a6006ad3dba0"} ->
-        get_employee()
-        |> Map.merge(%{"employee_type" => "ADMIN", "status" => "DISMISSED", "is_active" => true})
-        |> render(conn, 200)
-
-      %{"id" => "b075f148-7f93-4fc2-b2ec-2d81b19a911a"} ->
-        render(get_employee("7cc91a5d-c02f-41e9-b571-1ea4f2375552", nil, nil, nil), conn, 200)
-      _ -> render_404(conn)
-    end
-  end
-
-  patch "/employees/:id" do
-    get_employee()
-    |> MapDeepMerge.merge(conn.body_params)
-    |> render(conn, 200)
-  end
-
-  post "/employees" do
-    employee = MapDeepMerge.merge(get_employee(), conn.body_params)
-    case Map.get(employee, "updated_by") do
-      nil ->
-        resp =
-          %{"error" => %{"invalid_validation" => "updated_by"}}
-          |> wrap_response()
-          |> Poison.encode!()
-        Plug.Conn.send_resp(conn, 422, resp)
-
-      _ -> Plug.Conn.send_resp(conn, 201, Poison.encode!(%{"data" => employee}))
-    end
-  end
-
-  # Division
-
-  get "/divisions" do
-    render_with_paging([get_division(), get_division()], conn)
-  end
-
-  get "/divisions/:id" do
-    case conn.path_params["id"] do
-      "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b" -> render(get_division(), conn, 200)
-
-      _ -> render_404(conn)
-    end
-  end
-
-  post "/divisions" do
-    {code, resp} = case conn.body_params do
-      %{"legal_entity_id" => _id} ->
-        {201, MapDeepMerge.merge(get_division(), conn.body_params)}
-      _ ->
-        {422, %{"error" => %{"invalid_validation" => "legal_entity_id"}}}
-    end
-
-    render(resp, conn, code)
-  end
-
-  patch "/divisions/:id" do
-    {code, resp} =
-      case conn.path_params["id"] do
-        "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b" ->
-          {200, MapDeepMerge.merge(get_division(), conn.body_params)}
-        _ ->
-          {422, %{"error" => %{"invalid_validation" => "legal_entity_id"}}}
-      end
-
-    render(resp, conn, code)
-  end
-
-  patch "/divisions/actions/set_mountain_group" do
-    {code, resp} =
-      case conn.body_params["settlement_id"] do
-        "b075f148-7f93-4fc2-b2ec-2d81b19a9b7a" ->
-          {200, []}
-        _ ->
-          {422, %{"error" => %{"invalid_validation" => "legal_entity_id"}}}
-      end
-
-    render(resp, conn, code)
-  end
 
   # Mithril
 
@@ -357,8 +126,13 @@ defmodule EHealth.MockServer do
   end
 
   get "/admin/users/:id/roles" do
+    roles = case conn.path_params["id"] do
+      "d0bde310-8401-11e7-bb31-be2e44b06b34" -> []
+      _ -> [get_oauth_user_role(conn.path_params["id"], conn.query_params["client_id"])]
+    end
+
     resp =
-      [get_oauth_user_role(conn.path_params["id"], conn.query_params["client_id"])]
+      roles
       |> wrap_response()
       |> Poison.encode!()
 
@@ -449,6 +223,34 @@ defmodule EHealth.MockServer do
       |> Poison.encode!
 
     Plug.Conn.send_resp(conn, 200, response)
+  end
+
+  # Digital signature
+
+  post "/digital_signatures" do
+    data =
+      conn.body_params
+      |> Map.get("signed_content")
+      |> Base.decode64
+    case data do
+      :error ->
+        data =
+          %{"is_valid" => false}
+          |> wrap_response()
+          |> Poison.encode!
+        Plug.Conn.send_resp(conn, 422, data)
+      {:ok, data} ->
+        data = %{
+          "content" => Poison.decode!(data),
+          "is_valid" => true,
+          "signer" => %{
+            "edrpou" => "37367387"
+          }
+        }
+        |> wrap_response()
+        |> Poison.encode!
+        Plug.Conn.send_resp(conn, 200, data)
+    end
   end
 
   # OPS
@@ -639,285 +441,6 @@ defmodule EHealth.MockServer do
   def get_oauth_users(%{"email" => "test@user.com"}), do: [get_oauth_user()]
   def get_oauth_users(%{"email" => _}), do: []
   def get_oauth_users(_), do: [get_oauth_user()]
-
-  def get_employee_by_id(id, legal_entity_id) do
-    legal_entity_id
-    |> get_employee()
-    |> Map.put("id", id)
-  end
-
-  def get_employee do
-    get_employee("7cc91a5d-c02f-41e9-b571-1ea4f2375552", "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b", nil, "38782323")
-  end
-
-  def get_employee(legal_entity_id) do
-    get_employee(legal_entity_id, "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b", nil, "38782323")
-  end
-
-  def get_employee(legal_entity_id, _expand = false), do: get_employee(legal_entity_id)
-
-  def get_employee(legal_entity_id, _expand = true) do
-    legal_entity_id
-    |> get_employee()
-    |> Map.merge(%{
-         "party" => get_party_short(),
-         "division" => get_division_short(),
-         "legal_entity" => get_legal_entity_short(legal_entity_id),
-       })
-  end
-
-  def get_employee(_, _, _, ""), do: nil
-
-  def get_employee(_, _, "", _), do: nil
-
-  def get_employee(legal_entity_id, division_id, tax_id, edrpou) do
-    %{
-      "id" => "7488a646-e31f-11e4-aace-600308960662",
-      "legal_entity_id" => legal_entity_id,
-      "division_id" => division_id,
-      "updated_by" => "e8119d87-2d48-48c2-915c-1d3a1b25b16b",
-      "status" => "APPROVED",
-      "start_date" => "2017-03-02",
-      "position" => "P1",
-      "party_id" => "b63d802f-5225-4362-bc93-a8bba6eac167",
-      "party" => %{
-        "second_name" => "Миколайович",
-        "last_name" => "Іванов",
-        "id" => "b63d802f-5225-4362-bc93-a8bba6eac167",
-        "first_name" => "Петро",
-        "tax_id": tax_id,
-      },
-      "legal_entity" => %{
-        "type" => "MSP",
-        "status" => "ACTIVE",
-        "mis_verified" => "NOT_VERIFIED",
-        "nhs_verified" => false,
-        "short_name" => "Адоніс22",
-        "public_name" => "Адоніс22",
-        "owner_property_type" => "STATE",
-        "name" => "Клініка Адоніс22",
-        "legal_form" => "140",
-        "id" => legal_entity_id,
-        "edrpou" => edrpou
-      },
-      "is_active" => true,
-      "inserted_by" => "e8119d87-2d48-48c2-915c-1d3a1b25b16b",
-      "end_date" => nil,
-      "employee_type" => "OWNER",
-      "doctor" => %{
-        "id" => "e8119d87-2d48-48c2-915c-1d3a1b25b16b",
-        "specialities" => [
-          %{
-            "valid_to_date" => "2017-08-05",
-            "speciality_officio" => true,
-            "speciality" => "PEDIATRICIAN",
-            "qualification_type" => "AWARDING",
-            "level" => "FIRST",
-            "certificate_number" => "AB/21331",
-            "attestation_name" => "Академія Богомольця",
-            "attestation_date" => "2017-08-05"
-          }
-        ],
-        "science_degree" => %{
-          "speciality" => "THERAPIST",
-          "issued_date" => "2017-08-05",
-          "institution_name" => "Академія Богомольця",
-          "diploma_number" => "DD123543",
-          "degree" => "Доктор філософії",
-          "country" => "UA",
-          "city" => "Київ"
-        },
-        "qualifications" => [
-          %{
-            "type" => "AWARDING",
-            "speciality" => "Педіатр",
-            "issued_date" => "2017-08-05",
-            "institution_name" => "Академія Богомольця",
-            "certificate_number" => "2017-08-05"
-          }
-        ],
-        "educations" => [
-          %{
-            "speciality" => "Педіатр",
-            "issued_date" => "2017-08-05",
-            "institution_name" => "Академія Богомольця",
-            "diploma_number" => "DD123543",
-            "degree" => "MASTER",
-            "country" => "UA",
-            "city" => "Київ"
-          }
-        ]
-      },
-    }
-  end
-
-  def get_division_short do
-    %{
-      "id" => "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
-      "legal_entity_id" => "d290f1ee-6c54-4b01-90e6-d701748f0851",
-      "name" => "Бориспільське відділення Клініки Борис",
-      "mountain_group" => "yes"
-    }
-  end
-  def get_division do
-    %{
-      "id" => "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
-      "legal_entity_id" => "d290f1ee-6c54-4b01-90e6-d701748f0851",
-      "name" => "Бориспільське відділення Клініки Борис",
-      "addresses" => [
-        %{
-          "type" => "REGISTRATION",
-          "country" => "UA",
-          "area" => "Житомирська",
-          "region" => "Бердичівський",
-          "settlement" => "Київ",
-          "settlement_type" => "CITY",
-          "settlement_id" => "43432432",
-          "street_type" => "STREET",
-          "street" => "вул. Ніжинська",
-          "building" => "15",
-          "apartment" => "23",
-          "zip" => "02090"
-        }
-      ],
-      "phones" => [
-        %{
-          "type" => "MOBILE",
-          "number" => "+380503410870"
-        }
-      ],
-      "location" => %{
-        "longitude" => 30.45000,
-        "latitude" => 50.52333
-      },
-      "email" => "email@example.com",
-      "type" => "CLINIC",
-      "external_id" => "3213213",
-      "mountain_group" => "group1",
-      "status" => "ACTIVE"
-    }
-  end
-
-  def get_party_short do
-    %{
-      "id" => "01981ab9-904c-4c36-88ab-959a94087483",
-      "first_name" => "Петро",
-      "last_name" => "Іванов",
-      "second_name" => "Іванович",
-    }
-  end
-
-  def get_party do
-    %{
-      "id" => "01981ab9-904c-4c36-88ab-959a94087483",
-      "birth_date" => "1991-08-19",
-      "first_name" => "Петро",
-      "last_name" => "Іванов",
-      "gender" => "MALE",
-      "phones" => [
-        %{"number" => "+380503410870", "type" => "MOBILE"}
-       ],
-      "documents" => [
-        %{"number" => "120518", "type" => "PASSPORT"}
-      ],
-      "second_name" => "Миколайович",
-      "tax_id" => "3126509816",
-      "inserted_by" => "12a1c9e6-9fb8-4b22-b21c-250ee2155607",
-      "updated_by" => "12a1c9e6-9fb8-4b22-b21c-250ee2155607",
-      "users" => []
-    }
-  end
-
-  def get_party_user do
-    %{
-      "id" => "01981ab9-904c-4c36-88ab-959a94087483",
-      "user_id" => "1cc91a5d-c02f-41e9-b571-1ea4f2375551",
-      "party_id" => "01981ab9-904c-4c36-88ab-959a94087483",
-    }
-  end
-
-  def get_legal_entity_short(id \\ "7cc91a5d-c02f-41e9-b571-1ea4f2375552") do
-    %{
-      "id" => id,
-      "name" => "Клініка Борис",
-      "short_name" => "Борис",
-      "public_name" => "Борис",
-      "type" => "MSP",
-      "edrpou" => "37367387",
-      "status" => "ACTIVE",
-      "mis_verified" => "VERIFIED",
-      "nhs_verified" => false,
-      "owner_property_type" => "state",
-      "legal_form" => "ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА",
-    }
-  end
-
-  def get_legal_entity(id \\ "7cc91a5d-c02f-41e9-b571-1ea4f2375552", is_active \\ true, status \\ "ACTIVE") do
-    %{
-      "id" => id,
-      "name" => "Клініка Борис",
-      "short_name" => "Борис",
-      "type" => "MSP",
-      "edrpou" => "37367387",
-      "addresses" => [
-         %{
-          "type" => "REGISTRATION",
-          "country" => "UA",
-          "area" => "Житомирська",
-          "region" => "Бердичівський",
-          "settlement" => "Київ",
-          "settlement_type" => "CITY",
-          "settlement_id" => "43432432",
-          "street_type" => "STREET",
-          "street" => "вул. Ніжинська",
-          "building" => "15",
-          "apartment" => "23",
-          "zip" => "02090",
-        }
-      ],
-      "phones" => [
-         %{
-          "type" => "MOBILE",
-          "number" => "+380503410870"
-        }
-      ],
-      "email" => "email@example.com",
-      "is_active" => is_active,
-      "mis_verified" => "VERIFIED",
-      "nhs_verified" => false,
-      "public_name" => "Клініка Борис",
-      "kveds" => [
-        "86.01"
-      ],
-      "status" => status,
-      "owner_property_type" => "state",
-      "legal_form" => "ПІДПРИЄМЕЦЬ-ФІЗИЧНА ОСОБА",
-      "medical_service_provider" => %{
-        "licenses" => [
-           %{
-            "license_number" => "fd123443",
-            "issued_by" => "Кваліфікацйна комісія",
-            "issued_date" => "2017",
-            "expiry_date" => "2017",
-            "kved" => "86.01",
-            "what_licensed" => "реалізація наркотичних засобів"
-          }
-        ],
-        "accreditation" =>  %{
-          "category" => "друга",
-          "issued_date" => "2017",
-          "expiry_date" => "2017",
-          "order_no" => "fd123443",
-          "order_date" => "2017"
-        }
-      },
-      "inserted_at" => "1991-08-19T00.00.00.000Z",
-      "inserted_by" => "userid",
-      "updated_at" => "1991-08-19T00.00.00.000Z",
-      "updated_by" => "userid",
-      "created_by_mis_client_id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
-    }
-  end
 
   def get_rendered_template("32", params) do
     "<html><body>Printout form for declaration request ##{params["id"]}</body></html>"

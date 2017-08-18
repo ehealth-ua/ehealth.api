@@ -1,4 +1,4 @@
-defmodule EHealth.Web.EmployeesController do
+defmodule EHealth.Web.EmployeeController do
   @moduledoc false
 
   use EHealth.Web, :controller
@@ -8,21 +8,21 @@ defmodule EHealth.Web.EmployeesController do
 
   action_fallback EHealth.Web.FallbackController
 
-  def index(%Plug.Conn{req_headers: req_headers} = conn, params) do
-    with {:ok, %{"meta" => %{}} = response} <- API.get_employees(params, req_headers) do
-      proxy(conn, response)
+  def index(conn, params) do
+    with {employees, paging} <- API.get_employees(params) do
+      render(conn, "index.json", employees: employees, paging: paging)
     end
   end
 
   def show(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
-    with {:ok, %{employee: %{"meta" => %{}} = response}} <- API.get_employee_by_id(id, req_headers) do
-      proxy(conn, response)
+    with {:ok, employee} <- API.get_employee_by_id(id, req_headers) do
+      render(conn, "employee.json", employee: employee)
     end
   end
 
   def deactivate(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
-    with {:ok, {:ok, %{"meta" => %{}} = response}} <- EmployeeUpdater.deactivate(id, req_headers) do
-      proxy(conn, response)
+    with {:ok, employee} <- EmployeeUpdater.deactivate(id, req_headers) do
+      render(conn, "employee.json", employee: employee)
     end
   end
 end

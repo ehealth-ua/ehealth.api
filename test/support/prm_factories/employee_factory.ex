@@ -6,7 +6,8 @@ defmodule EHealth.PRMFactories.EmployeeFactory do
       alias Ecto.UUID
 
       def employee_factory do
-        legal_entity = build(:legal_entity)
+        division = build(:division)
+        party = build(:party)
 
         %EHealth.PRM.Employees.Schema{
           is_active: true,
@@ -15,9 +16,9 @@ defmodule EHealth.PRMFactories.EmployeeFactory do
           employee_type: "DOCTOR",
           end_date: ~D[2012-04-17],
           start_date: ~D[2017-03-22],
-          party: build(:party),
-          division: build(:division, legal_entity: legal_entity),
-          legal_entity: legal_entity,
+          party: party,
+          division: division,
+          legal_entity_id: division.legal_entity.id,
           inserted_by: UUID.generate(),
           updated_by: UUID.generate()
         }

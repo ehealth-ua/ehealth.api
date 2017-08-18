@@ -1,7 +1,7 @@
 defmodule EHealth.Mixfile do
   use Mix.Project
 
-  @version "0.4.117"
+  @version "0.0.9"
 
   def project do
     [app: :ehealth,
@@ -56,6 +56,7 @@ defmodule EHealth.Mixfile do
      {:ecto, "~> 2.1"},
      {:plug, "~> 1.3.5"},
      {:ecto_paging, ">= 0.0.0"},
+     {:ecto_trail, "~> 0.2.3"},
      {:cowboy, "~> 1.1"},
      {:httpoison, "~> 0.12.0"},
      {:hackney, "== 1.8.0", override: true}, # fix for https://github.com/edgurgel/httpoison/issues/264
@@ -91,8 +92,22 @@ defmodule EHealth.Mixfile do
   #
   # See the documentation for `Mix` for more info on aliases.
   defp aliases do
-    ["ecto.setup": ["ecto.create", "ecto.load --repo EHealth.PRMRepo", "ecto.migrate", "run priv/repo/seeds.exs"],
-     "ecto.reset": ["ecto.drop", "ecto.setup"],
-     "test": ["ecto.create --quiet", "ecto.load --repo EHealth.PRMRepo", "ecto.migrate", "test"]]
+    [
+      "ecto.setup": [
+        "ecto.create",
+        "ecto.create --repo EHealth.PRMRepo",
+        "ecto.load --repo EHealth.PRMRepo",
+        "ecto.migrate",
+        "run priv/repo/seeds.exs"
+      ],
+      "ecto.reset": ["ecto.drop", "ecto.setup"],
+      "test": [
+        "ecto.create --quiet",
+        "ecto.create --quiet --repo EHealth.PRMRepo",
+        "ecto.load --repo EHealth.PRMRepo",
+        "ecto.migrate",
+        "test"
+      ]
+    ]
   end
 end

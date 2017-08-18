@@ -8,7 +8,6 @@ defmodule EHealth.LegalEntity.API do
 
   alias Ecto.Date
   alias Ecto.UUID
-  alias EHealth.API.PRM # Deprecated
   alias EHealth.PRM.Registries
   alias EHealth.API.MediaStorage
   alias EHealth.OAuth.API, as: OAuth
@@ -17,11 +16,15 @@ defmodule EHealth.LegalEntity.API do
   alias EHealth.API.Mithril
   alias EHealth.PRM.LegalEntities
   alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
+  alias Ecto.Schema.Metadata
 
   require Logger
 
   @employee_request_status "NEW"
   @employee_request_type "OWNER"
+
+  @status_closed "CLOSED"
+  @status_active "ACTIVE"
 
   # get legal entity by id
 
@@ -37,12 +40,10 @@ defmodule EHealth.LegalEntity.API do
   end
 
   def get_client_type_name(client_id, headers) do
-    client_id
-    |> Mithril.get_client_details(headers)
-    |> case do
-        {:ok, %{"data" => %{"client_type_name" => client_type_name}}} -> {:ok, client_type_name}
-        _ -> {:error, :access_denied}
-      end
+    case Mithril.get_client_details(client_id, headers) do
+      {:ok, %{"data" => %{"client_type_name" => client_type_name}}} -> {:ok, client_type_name}
+      _ -> {:error, :access_denied}
+    end
   end
 
   defp load_legal_entity(id) do
@@ -55,36 +56,32 @@ defmodule EHealth.LegalEntity.API do
        end
   end
 
-  def mis_verify(id, headers) do
+  def mis_verify(id, consumer_id) do
     update_data = %{mis_verified: "VERIFIED"}
 
-    with {:ok, pipe_data} <- PRM.get_legal_entity_by_id(id, headers),
-         {:ok, _} <- check_mis_verify_transition(pipe_data),
-         {:ok, legal_entity} <- PRM.update_legal_entity(update_data, id, headers) do
-      {:ok , legal_entity}
+    with legal_entity <- LegalEntities.get_legal_entity_by_id!(id),
+         :ok <- check_mis_verify_transition(legal_entity)
+    do
+      LegalEntities.update_legal_entity(legal_entity, update_data, consumer_id)
     end
   end
 
-  def nhs_verify(id, headers) do
+  def nhs_verify(id, consumer_id) do
     update_data = %{nhs_verified: true}
 
-    with {:ok, pipe_data} <- PRM.get_legal_entity_by_id(id, headers),
-         {:ok, _} <- check_nhs_verify_transition(pipe_data),
-         {:ok, legal_entity} <- PRM.update_legal_entity(update_data, id, headers) do
-      {:ok , legal_entity}
+    with legal_entity <- LegalEntities.get_legal_entity_by_id!(id),
+         :ok <- check_nhs_verify_transition(legal_entity)
+    do
+      LegalEntities.update_legal_entity(legal_entity, update_data, consumer_id)
     end
   end
 
-  def check_mis_verify_transition(%{"data" => %{"mis_verified" => "NOT_VERIFIED"}} = pipe_data) do
-    {:ok, pipe_data}
-  end
+  def check_mis_verify_transition(%LegalEntity{mis_verified: "NOT_VERIFIED"}), do: :ok
   def check_mis_verify_transition(_) do
     {:error, {:conflict, "LegalEntity is VERIFIED and cannot be VERIFIED."}}
   end
 
-  def check_nhs_verify_transition(%{"data" => %{"nhs_verified" => false}} = pipe_data) do
-    {:ok, pipe_data}
-  end
+  def check_nhs_verify_transition(%LegalEntity{nhs_verified: false}), do: :ok
   def check_nhs_verify_transition(_) do
     {:error, {:conflict, "LegalEntity is VERIFIED and cannot be VERIFIED."}}
   end
@@ -103,48 +100,32 @@ defmodule EHealth.LegalEntity.API do
   # Create legal entity
 
   def create_legal_entity(attrs, headers) do
-    with {:ok, request_params} <- Validator.decode_and_validate(attrs) do
-      process_request(request_params, attrs, headers)
-    end
-  end
-
-  # for testing without signed content
-  def process_request(request_params, attrs, headers) do
-    edrpou = Map.fetch!(request_params, "edrpou")
-    with {legal_entities, _} <- LegalEntities.get_legal_entity_by_edrpou(edrpou),
-         legal_entity <- List.first(legal_entities),
-         {:ok, id, flow} <- get_legal_entity_id_flow(legal_entity),
-         :ok <- check_status(legal_entity),
-         {:ok, _} <- store_signed_content(id, attrs, headers),
-         request_params <- check_msp_state(request_params),
-         {:ok, legal_entity} <- put_legal_entity_to_prm(id, flow, headers, request_params),
-         {:ok, oauth_client} <- get_oauth_credentials(legal_entity, request_params, headers),
-         {:ok, security} <- prepare_security_data(oauth_client),
-         {:ok, employee_request} <- create_employee_request(id, request_params)
+    with {:ok, request_params}   <- Validator.decode_and_validate(attrs),
+         legal_entity            <- get_or_create_by_edrpou(Map.fetch!(request_params, "edrpou")),
+         :ok                     <- check_status(legal_entity),
+         {:ok, _}                <- store_signed_content(legal_entity.id, attrs, headers),
+         request_params          <- put_mis_verified_state(request_params),
+         {:ok, legal_entity}     <- put_legal_entity_to_prm(legal_entity, request_params, headers),
+         {:ok, oauth_client}     <- get_oauth_credentials(legal_entity, request_params, headers),
+         {:ok, security}         <- prepare_security_data(oauth_client),
+         {:ok, employee_request} <- create_employee_request(legal_entity.id, request_params)
     do
       {:ok, %{
-        legal_entity: legal_entity,
-        employee_request: employee_request,
-        security: security,
+          legal_entity: legal_entity,
+          employee_request: employee_request,
+          security: security,
       }}
     end
   end
 
-  @doc """
-  Legal Entity found in PRM. Set flow as update
-  """
-  def get_legal_entity_id_flow(%LegalEntity{id: id}) do
-    {:ok, id, :update}
+  defp get_or_create_by_edrpou(edrpou) do
+    case LegalEntities.get_legal_entity_by_edrpou(edrpou) do
+      %LegalEntity{} = legal_entity -> legal_entity
+      _ -> %LegalEntity{id: UUID.generate()}
+    end
   end
 
-  @doc """
-  Legal Entity not found in PRM. Generate ID for Legal Entity. Set flow as create
-  """
-  def get_legal_entity_id_flow(_) do
-    {:ok, UUID.generate(), :create}
-  end
-
-  def check_status(%LegalEntity{status: "CLOSED"}) do
+  def check_status(%LegalEntity{status: @status_closed}) do
     {:error, {:conflict, "LegalEntity can't be updated"}}
   end
   def check_status(_), do: :ok
@@ -161,42 +142,41 @@ defmodule EHealth.LegalEntity.API do
   @doc """
   Creates new Legal Entity in PRM
   """
-  def put_legal_entity_to_prm(id, :create, headers, request_params) do
+  def put_legal_entity_to_prm(%LegalEntity{__meta__: %Metadata{state: :built}} = legal_entity, attrs, headers) do
     consumer_id = get_consumer_id(headers)
     client_id = get_client_id(headers)
-
-    creation_data = %{
-      "id" => id,
-      "status" => "ACTIVE",
+    creation_data = Map.merge(attrs, %{
+      "status" => @status_active,
       "is_active" => true,
       "inserted_by" => consumer_id,
       "updated_by" => consumer_id,
       "created_by_mis_client_id" => client_id,
       "nhs_verified" => false,
-    }
+    })
 
-    request_params
-    |> Map.merge(creation_data)
-    |> PRM.create_legal_entity(headers)
+    LegalEntities.create_legal_entity(legal_entity, creation_data, consumer_id)
   end
 
   @doc """
-  Updates Legal Entity that exists and creates new Employee request in IL.
+  Updates Legal Entity
   """
-  def put_legal_entity_to_prm(id, :update, headers, request_params) do
-    request_params
-    |> Map.delete("edrpou") # filter immutable data
-    |> Map.merge(%{
-        "updated_by" => get_consumer_id(headers),
+  def put_legal_entity_to_prm(%LegalEntity{__meta__: %Metadata{state: :loaded}} = legal_entity, attrs, headers) do
+    consumer_id = get_consumer_id(headers)
+    update_data =
+      attrs
+      |> Map.delete("edrpou") # filter immutable data
+      |> Map.merge(%{
+        "updated_by" => consumer_id,
         "is_active" => true,
       })
-    |> PRM.update_legal_entity(id, headers)
+
+    LegalEntities.update_legal_entity(legal_entity, update_data, consumer_id)
   end
 
   @doc """
   Creates new OAuth client in Mithril API
   """
-  def get_oauth_credentials(%{"data" => legal_entity}, request_params, headers) do
+  def get_oauth_credentials(%LegalEntity{} = legal_entity, request_params, headers) do
     redirect_uri =
       request_params
       |> Map.fetch!("security")
@@ -215,7 +195,7 @@ defmodule EHealth.LegalEntity.API do
     {:ok, security}
   end
 
-  def check_msp_state(%{"edrpou" => edrpou} = request_params) do
+  def put_mis_verified_state(%{"edrpou" => edrpou} = request_params) do
     Map.put(request_params, "mis_verified", Registries.get_edrpou_verified_status(edrpou))
   end
 

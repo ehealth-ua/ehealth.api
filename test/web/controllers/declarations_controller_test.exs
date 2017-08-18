@@ -34,7 +34,14 @@ defmodule EHealth.Web.DeclarationsControllerTest do
     end
 
     test "with x-consumer-metadata that contains MSP client_id", %{conn: conn} do
-      %{id: legal_entity_id} = insert(:prm, :legal_entity, id: "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+      division = insert(:prm, :division, id: "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b")
+      legal_entity = insert(:prm, :legal_entity, id: "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+      insert(:prm, :employee,
+        id: "7488a646-e31f-11e4-aace-600308960662",
+        legal_entity: legal_entity,
+        division: division
+      )
+      %{id: legal_entity_id} = legal_entity
       conn = put_client_id_header(conn, legal_entity_id)
       conn = get conn, declarations_path(conn, :index, [legal_entity_id: legal_entity_id])
       resp = json_response(conn, 200)
@@ -57,8 +64,15 @@ defmodule EHealth.Web.DeclarationsControllerTest do
     end
 
     test "with x-consumer-metadata that contains NHS client_id", %{conn: conn} do
-      %{id: legal_entity_id} = insert(:prm, :legal_entity, id: get_client_admin())
+      legal_entity = insert(:prm, :legal_entity, id: get_client_admin())
+      division = insert(:prm, :division, id: "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b")
       insert(:prm, :legal_entity, id: "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+      insert(:prm, :employee,
+        id: "7488a646-e31f-11e4-aace-600308960662",
+        legal_entity: legal_entity,
+        division: division
+      )
+      %{id: legal_entity_id} = legal_entity
       conn = put_client_id_header(conn, legal_entity_id)
       conn = get conn, declarations_path(conn, :index, [legal_entity_id: legal_entity_id])
       resp = json_response(conn, 200)
@@ -91,8 +105,14 @@ defmodule EHealth.Web.DeclarationsControllerTest do
     end
 
     test "with x-consumer-metadata that contains MSP client_id", %{conn: conn} do
-      %{id: legal_entity_id} = insert(:prm, :legal_entity, id: "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
-      conn = put_client_id_header(conn, legal_entity_id)
+      legal_entity = insert(:prm, :legal_entity, id: "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+      division = insert(:prm, :division, id: "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b")
+      insert(:prm, :employee,
+        id: "7488a646-e31f-11e4-aace-600308960662",
+        legal_entity: legal_entity,
+        division: division
+      )
+      conn = put_client_id_header(conn, legal_entity.id)
       conn = get conn, declarations_path(conn, :show, @declaration_id)
       data = json_response(conn, 200)["data"]
       assert_declaration_expanded_fields(data)

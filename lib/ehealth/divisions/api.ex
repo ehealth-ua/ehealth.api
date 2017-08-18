@@ -5,43 +5,43 @@ defmodule EHealth.Divisions.API do
   use JValid
 
   import Ecto.Changeset, warn: false
+  import EHealth.Utils.Connection, only: [get_client_id: 1, get_consumer_id: 1]
 
-  alias EHealth.API.PRM
   alias EHealth.API.UAddress
   alias EHealth.Validators.SchemaMapper
   alias EHealth.Validators.Addresses
+  alias EHealth.PRM.Divisions
+  alias EHealth.PRM.Divisions.Schema, as: Division
 
   use_schema :division, "specs/json_schemas/division_schema.json"
 
   @status_active "ACTIVE"
   @default_mountain_group "0"
 
-  def search(legal_entity_id, params \\ %{}, headers \\ []) do
+  def search(legal_entity_id, params \\ %{}) do
     params
     |> Map.put("legal_entity_id", legal_entity_id)
-    |> PRM.get_divisions(headers)
+    |> Divisions.get_divisions()
   end
 
-  def get_by_id(legal_entity_id, id, headers) do
-    id
-    |> PRM.get_division_by_id(headers)
-    |> validate_legal_entity(legal_entity_id)
+  def get_by_id(legal_entity_id, id) do
+    with division <- Divisions.get_division_by_id!(id) do
+      validate_legal_entity(division, legal_entity_id)
+    end
   end
 
-  def create(legal_entity_id, params, headers) do
+  def create(params, headers) do
     params
-    |> prepare_division_data(legal_entity_id)
-    |> create_division(headers)
+    |> prepare_division_data(get_client_id(headers))
+    |> create_division(get_consumer_id(headers))
   end
 
-  def update(legal_entity_id, id, params, headers) do
-    case prepare_division_data(params, legal_entity_id) do
-      {:ok, data} ->
-        legal_entity_id
-        |> get_by_id(id, headers)
-        |> update_division(data, headers)
-
-      err -> err
+  def update(id, params, headers) do
+    legal_entity_id = get_client_id(headers)
+    with {:ok, data} <- prepare_division_data(params, legal_entity_id),
+         {:ok, division} <- get_by_id(legal_entity_id, id)
+    do
+      update_division(division, data, get_consumer_id(headers))
     end
   end
 
@@ -54,23 +54,24 @@ defmodule EHealth.Divisions.API do
     |> put_mountain_group()
   end
 
-  def update_status(legal_entity_id, id, status, headers) do
-    legal_entity_id
-    |> get_by_id(id, headers)
-    |> update_division(%{"status" => status, "is_active" => status == @status_active}, headers)
+  def update_status(id, status, headers) do
+    with {:ok, division} <- get_by_id(get_client_id(headers), id),
+         params <- %{"status" => status, "is_active" => status == @status_active}
+    do
+      update_division(division, params, get_consumer_id(headers))
+    end
   end
 
-  def create_division({:ok, data}, headers) do
+  def create_division({:ok, data}, author_id) do
     data
     |> Map.merge(%{"status" => "ACTIVE", "is_active" => true})
-    |> PRM.create_division(headers)
+    |> Divisions.create_division(author_id)
   end
-  def create_division(err, _headers), do: err
+  def create_division(err, _), do: err
 
-  def update_division({:ok, %{"data" => division}}, data, headers) do
-    PRM.update_division(data, Map.fetch!(division, "id"), headers)
+  def update_division(%Division{} = division, data, author_id) do
+    Divisions.update_division(division, data, author_id)
   end
-  def update_division(err, _data, _headers), do: err
 
   def validate_division(data) do
     schema =
@@ -115,9 +116,9 @@ defmodule EHealth.Divisions.API do
 
   def put_mountain_group(err, _division), do: err
 
-  def validate_legal_entity({:ok, %{"data" => division}} = resp, legal_entity_id) do
-    case legal_entity_id == Map.fetch!(division, "legal_entity_id") do
-      true -> resp
+  def validate_legal_entity(%Division{} = division, legal_entity_id) do
+    case legal_entity_id == division.legal_entity_id do
+      true -> {:ok, division}
       false -> {:error, :forbidden}
     end
   end

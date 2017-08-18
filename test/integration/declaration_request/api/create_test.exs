@@ -649,8 +649,10 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
 
       @invalid_party_id "6b4127ea-99ad-4493-b5ce-6f0769fa9fab"
       @invalid_user_id "79d70fe0-00dd-4dc3-b302-c8f3a6f6ad38"
-      @user_id Ecto.UUID.generate()
+      @user_id "53c63398-7033-47f6-9602-be250e35049e"
       @role_id Ecto.UUID.generate()
+
+      def user_id, do: @user_id
 
       # PRM API
       Plug.Router.get "/party_users" do
@@ -724,8 +726,8 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
 
     test "everything is ok" do
       types = %{"data" => :map}
-      party_id = Ecto.UUID.generate()
-      data = %{"employee" => %{"party" => %{"id" => party_id}}}
+      party_user = insert(:prm, :party_user, user_id: PRMMithrilMock.user_id())
+      data = %{"employee" => %{"party" => %{"id" => party_user.party_id}}}
       expected_changes = %{data: put_in(data, ["employee", "party", "email"], "user@email.com")}
       changes = %{data: data}
       expected_result =

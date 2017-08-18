@@ -3,16 +3,17 @@ defmodule EHealth.Man.Templates.EmployeeRequestInvitation do
 
   use Confex, otp_app: :ehealth
   alias EHealth.API.Man
-  alias EHealth.API.PRM
   alias EHealth.Employee.Request
   alias EHealth.Dictionaries
   alias EHealth.Utils.AddressMerger
+  alias EHealth.PRM.LegalEntities
+  alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
 
   def render(%Request{id: id, data: data}) do
     clinic_info =
       data
       |> Map.get("legal_entity_id")
-      |> PRM.get_legal_entity_by_id()
+      |> LegalEntities.get_legal_entity_by_id()
       |> get_clinic_info()
 
     Man.render_template(config()[:id], %{
@@ -32,13 +33,13 @@ defmodule EHealth.Man.Templates.EmployeeRequestInvitation do
     |> Dictionaries.get_dictionary_value("POSITION")
   end
 
-  def get_clinic_info({:error, _}), do: %{}
-  def get_clinic_info({:ok, data}) do
+  def get_clinic_info(%LegalEntity{} = legal_entity) do
     %{
-      name: get_in(data, ["data", "name"]),
-      address: get_clinic_address(get_in(data, ["data", "addresses"]))
+      name: legal_entity.name,
+      address: get_clinic_address(legal_entity.addresses)
     }
   end
+  def get_clinic_info(_), do: %{}
 
   def get_clinic_address(addresses) when is_list(addresses) and length(addresses) > 0 do
     addresses

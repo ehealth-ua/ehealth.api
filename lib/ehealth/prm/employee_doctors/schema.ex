@@ -6,6 +6,8 @@ defmodule EHealth.PRM.EmployeeDoctors.Schema do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @derive {Poison.Encoder, except: ~w(__meta__ employee employee_id inserted_at updated_at)a}
+
   @required_fields ~w(educations specialities)a
 
   @optional_fields ~w(science_degree qualifications)a

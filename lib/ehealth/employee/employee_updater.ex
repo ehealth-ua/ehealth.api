@@ -3,13 +3,13 @@ defmodule EHealth.Employee.EmployeeUpdater do
 
   import EHealth.Utils.Connection, only: [get_consumer_id: 1]
 
-  alias EHealth.API.PRM # deprecated
   alias EHealth.API.OPS
   alias EHealth.API.Mithril
-  alias EHealth.PRM.Parties
+  alias EHealth.PRM.PartyUsers
   alias EHealth.PRM.Employees
   alias EHealth.PRM.Employees.Schema, as: Employee
-  alias EHealth.Employee.API
+  alias EHealth.PRMRepo
+  import Ecto.Query
 
   require Logger
 
@@ -17,37 +17,44 @@ defmodule EHealth.Employee.EmployeeUpdater do
   @employee_status_approved "APPROVED"
   @employee_status_dismissed "DISMISSED"
 
-  def deactivate(id, headers) do
-    with %Employee{} = employee  <- Employees.get_employee_by_id(id),
-          :ok                    <- check_transition(employee),
-         {:ok, active_employees} <- get_active_employees(employee, headers),
-          :ok                    <- revoke_user_auth_data(employee, active_employees["data"], headers),
-         {:ok, _}                <- OPS.terminate_declarations(id, get_consumer_id(headers), headers),
-         {:ok, updated_employee} <- update_employee_status(employee, headers),
-      do: {:ok, updated_employee}
+  def deactivate(id, headers, with_owner \\ false) do
+    with employee <- Employees.get_employee_by_id!(id),
+         :ok <- check_transition(employee, with_owner),
+         active_employees <- get_active_employees(employee),
+         :ok <- revoke_user_auth_data(employee, active_employees, headers),
+         {:ok, _} <- OPS.terminate_declarations(id, get_consumer_id(headers), headers)
+    do
+      update_employee_status(employee, headers)
+    end
   end
 
-  def check_transition(%{is_active: true, status: @employee_status_approved}), do: :ok
-
-  def check_transition(_employee) do
+  def check_transition(%Employee{employee_type: @employee_type_owner}, false) do
+    {:error, {:conflict, "Owner can’t be deactivated"}}
+  end
+  def check_transition(%Employee{is_active: true, status: @employee_status_approved}, _), do: :ok
+  def check_transition(_employee, _) do
     {:error, {:conflict, "Employee is DEACTIVATED and cannot be updated."}}
   end
 
-  def get_active_employees(%{party_id: party_id, employee_type: employee_type}, headers) do
-    API.get_employees(%{
+  def get_active_employees(%{party_id: party_id, employee_type: employee_type}) do
+    params = [
       status: @employee_status_approved,
       party_id: party_id,
       employee_type: employee_type,
-    }, headers)
+    ]
+
+    Employee
+    |> where([e], ^params)
+    |> PRMRepo.all
   end
 
   def revoke_user_auth_data(%Employee{} = employee, active_employees, headers) when length(active_employees) <= 1 do
     client_id = employee.legal_entity_id
     role_name = employee.employee_type
 
-    employee.party_id
-    |> Parties.get_party_users_by_party_id()
-    |> revoke_user_auth_data_async(client_id, role_name, headers)
+    with {:ok, parties} <- PartyUsers.get_party_users_by_party_id(employee.party_id) do
+      revoke_user_auth_data_async(parties, client_id, role_name, headers)
+    end
   end
   def revoke_user_auth_data(_employee, _active_employees, _headers), do: :ok
 
@@ -86,20 +93,17 @@ defmodule EHealth.Employee.EmployeeUpdater do
   end
 
   def update_employee_status(%Employee{} = employee, headers) do
-    headers
-    |> get_update_employee_params()
-    |> put_employee_status(employee)
-    |> PRM.update_employee(employee.id, headers)
+    params =
+      headers
+      |> get_update_employee_params()
+      |> put_employee_status(employee)
+    Employees.update_employee(employee, params, get_consumer_id(headers))
   end
 
   defp get_update_employee_params(headers) do
     %{}
-    |> put_updated_by(headers)
+    |> Map.put(:updated_by, get_consumer_id(headers))
     |> Map.put(:end_date, Date.utc_today() |> Date.to_iso8601())
-  end
-
-  def put_updated_by(data, headers) do
-    Map.put(data, :updated_by, get_consumer_id(headers))
   end
 
   defp put_employee_status(params, %{employee_type: @employee_type_owner}) do

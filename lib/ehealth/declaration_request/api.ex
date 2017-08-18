@@ -8,7 +8,6 @@ defmodule EHealth.DeclarationRequest.API do
   alias Ecto.Multi
   alias Ecto.UUID
   alias EHealth.Repo
-  alias EHealth.PRMRepo
   alias EHealth.PRM.GlobalParameters
   alias EHealth.PRM.LegalEntities
   alias EHealth.PRM.Divisions
@@ -80,13 +79,14 @@ defmodule EHealth.DeclarationRequest.API do
     with {:ok, attrs} <- Validations.validate_schema(attrs),
          {:ok, _} <- Validations.validate_addresses(get_in(attrs, ["person", "addresses"])),
          %Employee{} = employee <- Employees.get_employee_by_id(attrs["employee_id"]),
-         %LegalEntity{} = legal_entity <- LegalEntities.get_legal_entity_by_id_with(client_id,
-                                                                                    :medical_service_provider),
-         %Division{} = division <- Divisions.get_division_by_id(attrs["division_id"]) do
+         %LegalEntity{} = legal_entity <- LegalEntities.get_by_id_preload(
+                                            client_id,
+                                            :medical_service_provider
+                                          ),
+         %Division{} = division <- Divisions.get_division_by_id(attrs["division_id"])
+    do
       updates = [status: "CANCELLED", updated_at: DateTime.utc_now(), updated_by: user_id]
       global_parameters = GlobalParameters.get_values()
-
-      employee = PRMRepo.preload(employee, [:party, :doctor])
 
       auxilary_entities = %{
         employee: employee,

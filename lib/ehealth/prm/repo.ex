@@ -3,4 +3,5 @@ defmodule EHealth.PRMRepo do
 
   use Ecto.Repo, otp_app: :ehealth
   use Ecto.Paging.Repo
+  use EctoTrail
 end

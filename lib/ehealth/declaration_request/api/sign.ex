@@ -4,11 +4,12 @@ defmodule EHealth.DeclarationRequest.API.Sign do
   import EHealth.Utils.Connection
 
   alias EHealth.API.MediaStorage
-  alias EHealth.API.PRM
   alias EHealth.API.MPI
   alias EHealth.API.OPS
   alias EHealth.DeclarationRequest
   alias EHealth.DeclarationRequest.API
+  alias EHealth.PRM.Employees
+  alias EHealth.PRM.PartyUsers
 
   require Logger
 
@@ -85,22 +86,12 @@ defmodule EHealth.DeclarationRequest.API.Sign do
   end
   def put_declaration_id(err), do: err
 
-  defp fetch_parties({:ok, result}) do
-    parties =
-      result
-      |> Map.fetch!("data")
-      |> Enum.map(fn(x) -> Map.get(x, "party_id") end)
-
-    {:ok, parties}
-  end
-  defp fetch_parties(err), do: err
-
   defp find_employee(employees, employee_id) do
-    Enum.find(employees, fn(employee) -> employee_id == Map.get(employee, "id") end)
+    Enum.find(employees, fn(employee) -> employee_id == employee.id end)
   end
 
   defp match_employees(results, employee_id) do
-    find_result = Enum.find(results, fn({:ok, %{"data" => data}}) -> find_employee(data, employee_id) != nil end)
+    find_result = Enum.find(results, fn(data) -> find_employee(data, employee_id) != nil end)
 
     case find_result do
       nil -> {:error, :forbidden}
@@ -108,27 +99,25 @@ defmodule EHealth.DeclarationRequest.API.Sign do
     end
   end
 
-  defp check_employees({:ok, parties}, employee_id) do
-    results = Enum.map(parties, fn(x) -> PRM.get_active_employees_by_party_id(x) end)
-    error = Enum.find(results, fn({k, _}) -> k == :error end)
-    case error do
-      nil -> match_employees(results, employee_id)
-      _ -> error
-    end
+  defp check_employees(party_users, employee_id) do
+    party_users
+    |> Enum.map(fn(party_user) ->
+      %{party_id: party_user.party_id, is_active: true}
+      |> Employees.get_employees()
+      |> Tuple.to_list
+      |> List.first
+    end)
+    |> match_employees(employee_id)
   end
-  defp check_employees(err, _employee_id), do: err
 
   def check_employee_id({:ok, {content, db_data}}, headers) do
     employee_id = get_in(content, ["employee", "id"])
-
-    check_result =
-      headers
-      |> get_consumer_id()
-      |> PRM.get_party_users_by_user_id()
-      |> fetch_parties()
-      |> check_employees(employee_id)
-
-    with :ok <- check_result, do: {:ok, {content, db_data}}
+    with consumer_id <- get_consumer_id(headers),
+         {:ok, party_users} <- PartyUsers.get_party_users_by_user_id(consumer_id),
+         :ok <- check_employees(party_users, employee_id)
+   do
+     {:ok, {content, db_data}}
+   end
   end
   def check_employee_id(err, _headers), do: err
 

@@ -11,38 +11,40 @@ defmodule EHealth.Web.DivisionController do
   @status_inactive "INACTIVE"
 
   def index(%Plug.Conn{req_headers: req_headers} = conn, params) do
-    with {:ok, %{"meta" => %{}} = response} <- API.search(get_client_id(req_headers), params, req_headers) do
-      proxy(conn, response)
+    with {divisions, paging} <- API.search(get_client_id(req_headers), params) do
+      render(conn, "index.json", divisions: divisions, paging: paging)
     end
   end
 
   def create(%Plug.Conn{req_headers: req_headers} = conn, params) do
-    with {:ok, %{"meta" => %{}} = response} <- API.create(get_client_id(req_headers), params, req_headers) do
-      proxy(conn, response)
+    with {:ok, division} <- API.create(params, req_headers) do
+      conn
+      |> put_status(:created)
+      |> render("show.json", division: division)
     end
   end
 
   def show(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
-    with {:ok, %{"meta" => %{}} = response} <- API.get_by_id(get_client_id(req_headers), id, req_headers) do
-      proxy(conn, response)
+    with {:ok, division} <- API.get_by_id(get_client_id(req_headers), id) do
+      render(conn, "show.json", division: division)
     end
   end
 
   def update(%Plug.Conn{req_headers: headers} = conn, %{"id" => id} = division_params) do
-    with {:ok, %{"meta" => %{}} = response} <- API.update(get_client_id(headers), id, division_params, headers) do
-      proxy(conn, response)
+    with {:ok, division} <- API.update(id, division_params, headers) do
+      render(conn, "show.json", division: division)
     end
   end
 
   def activate(%Plug.Conn{req_headers: headers} = conn, %{"id" => id}) do
-    with {:ok, %{"meta" => %{}} = response} <- API.update_status(get_client_id(headers), id, @status_active, headers) do
-      proxy(conn, response)
+    with {:ok, division} <- API.update_status(id, @status_active, headers) do
+      render(conn, "show.json", division: division)
     end
   end
 
   def deactivate(%Plug.Conn{req_headers: headers} = conn, %{"id" => id}) do
-    with {:ok, %{"meta" => %{}} = resp} <- API.update_status(get_client_id(headers), id, @status_inactive, headers) do
-      proxy(conn, resp)
+    with {:ok, division} <- API.update_status(id, @status_inactive, headers) do
+      render(conn, "show.json", division: division)
     end
   end
 end

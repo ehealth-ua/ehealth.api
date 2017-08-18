@@ -9,6 +9,12 @@ defmodule EHealth.PRM.Employees.Schema do
 
   use Ecto.Schema
 
+  @employee_type_owner "OWNER"
+  @employee_type_doctor "DOCTOR"
+
+  def employee_type(:owner), do: @employee_type_owner
+  def employee_type(:doctor), do: @employee_type_doctor
+
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "employees" do
     field :employee_type, :string

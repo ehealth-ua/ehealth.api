@@ -18,7 +18,7 @@ defmodule EHealth.PRM.Parties.Schema do
     embeds_many :phones, EHealth.PRM.Meta.Phone, on_replace: :delete
     embeds_many :documents, EHealth.PRM.Meta.Document, on_replace: :delete
 
-    has_many :users, EHealth.PRM.Parties.PartyUser
+    has_many :users, EHealth.PRM.PartyUsers.Schema, foreign_key: :party_id
 
     timestamps()
   end

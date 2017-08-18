@@ -3,10 +3,14 @@ defmodule EHealth.Web.PersonsControllerTest do
 
   use EHealth.Web.ConnCase
   alias Ecto.UUID
+  alias EHealth.MockServer
 
   describe "get person declaration" do
     test "MSP can see own declaration", %{conn: conn} do
-      conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+      legal_entity = insert(:prm, :legal_entity, id: "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+      insert(:prm, :employee, id: "7488a646-e31f-11e4-aace-600308960662", legal_entity: legal_entity)
+
+      conn = put_client_id_header(conn, legal_entity.id)
       conn = get conn, persons_path(conn, :person_declarations, "7cc91a5d-c02f-41e9-b571-1ea4f2375200")
       data = json_response(conn, 200)["data"]
       assert is_map(data)
@@ -23,7 +27,9 @@ defmodule EHealth.Web.PersonsControllerTest do
     end
 
     test "NHS ADMIN can see any employees declarations", %{conn: conn} do
-      conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8601a1")
+      legal_entity = insert(:prm, :legal_entity, id: MockServer.get_client_admin())
+      insert(:prm, :employee, id: "7488a646-e31f-11e4-aace-600308960662", legal_entity: legal_entity)
+      conn = put_client_id_header(conn, legal_entity.id)
       conn = get conn, persons_path(conn, :person_declarations, "7cc91a5d-c02f-41e9-b571-1ea4f2375200")
 
       response = json_response(conn, 200)

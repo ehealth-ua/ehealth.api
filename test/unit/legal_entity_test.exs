@@ -7,20 +7,21 @@ defmodule EHealth.Unit.LegalEntityTest do
 
   alias Ecto.UUID
   alias EHealth.Repo
-  alias EHealth.Employee.Request
-  alias EHealth.OAuth.API, as: OAuth
+  alias EHealth.PRMRepo
+  alias EHealth.Employee.Request, as: EmployeeRequest
   alias EHealth.LegalEntity.API
   alias EHealth.LegalEntity.Validator
-
-  @inactive_legal_entity_id "356b4182-f9ce-4eda-b6af-43d2de8602aa"
+  alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
 
   test "successed signed content validation" do
+    System.put_env("DIGITAL_SIGNATURE_ENDPOINT", "http://35.187.186.145")
     content = File.read!("test/data/signed_content.txt")
 
     assert {:ok, _} = Validator.validate_sign_content(%{
       "signed_content_encoding" => "base64",
       "signed_legal_entity_request" => content
     })
+    System.put_env("DIGITAL_SIGNATURE_ENDPOINT", "http://localhost:4040")
   end
 
   test "invalid signed content validation" do
@@ -39,6 +40,7 @@ defmodule EHealth.Unit.LegalEntityTest do
   end
 
   test "invalid signed content - birth date format" do
+    System.put_env("DIGITAL_SIGNATURE_ENDPOINT", "http://35.187.186.145")
     content = File.read!("test/data/signed_content_invalid_owner_birth_date.txt")
 
     assert {:error, [_, {error, entry}]} = Validator.decode_and_validate(%{
@@ -47,6 +49,7 @@ defmodule EHealth.Unit.LegalEntityTest do
     })
     assert "$.owner.birth_date" == entry
     assert :format == error[:rule]
+    System.put_env("DIGITAL_SIGNATURE_ENDPOINT", "http://localhost:4040")
   end
 
   test "invalid tax id" do
@@ -126,65 +129,79 @@ defmodule EHealth.Unit.LegalEntityTest do
     assert {:error, %Ecto.Changeset{valid?: false}} = validate_edrpou(content, signer)
   end
 
-  test "new legal entity mis_verified NOT_VERIFIED" do
-    legal_entity = Map.merge(get_legal_entity_data(), %{
-      "short_name" => "Nebo15",
-      "email" => "changed@example.com",
-      "kveds" => ["12.21"]
-    })
-    request = %{
-      "signed_legal_entity_request" => "base64 encoded content"
-    }
+  describe "create new Legal Entity" do
 
-    assert {:ok, %{legal_entity: %{"data" => legal_entity}, security: security}} =
-      API.process_request(legal_entity, request, get_headers())
+    test "mis_verified NOT_VERIFIED" do
+      data = Map.merge(get_legal_entity_data(), %{
+        "short_name" => "Nebo15",
+        "email" => "changed@example.com",
+        "kveds" => ["12.21"]
+      })
 
-    assert "ACTIVE" == legal_entity["status"]
-    assert "NOT_VERIFIED" == legal_entity["mis_verified"]
-    refute is_nil(legal_entity["nhs_verified"])
-    refute legal_entity["nhs_verified"]
-    assert_security(security, legal_entity["id"])
-    assert 1 == Repo.one(from e in Request, select: count("*"))
+      assert {:ok, %{legal_entity: legal_entity, security: security}} = create_legal_entity(data)
+
+      # test legal entity data
+      assert "Nebo15" == legal_entity.short_name
+      assert "ACTIVE" == legal_entity.status
+      assert "NOT_VERIFIED" == legal_entity.mis_verified
+      refute is_nil(legal_entity.nhs_verified)
+      refute legal_entity.nhs_verified
+      assert_security(security, legal_entity.id)
+
+      # test employee request
+      assert 1 == Repo.one(from e in EmployeeRequest, select: count("*"))
+      assert %EmployeeRequest{data: employee_request_data, status: "NEW"} = Repo.one(from e in EmployeeRequest)
+      assert legal_entity.id == employee_request_data["legal_entity_id"]
+      assert "лікар" == employee_request_data["position"]
+      assert "OWNER" == employee_request_data["employee_type"]
+
+      assert 1 == PRMRepo.one(from l in LegalEntity, select: count("*"))
+    end
   end
 
-  test "process legal entity that exists" do
-    insert(:prm, :registry)
-    insert(:prm, :legal_entity, edrpou: "37367387")
+  describe "update Legal Entity" do
 
-    legal_entity = Map.merge(get_legal_entity_data(), %{
-      "edrpou" => "37367387",
-      "short_name" => "Nebo15",
-      "email" => "changed@example.com",
-      "kveds" => ["12.21"]
-    })
-    request = %{
-      "signed_legal_entity_request" => "base64 encoded content"
-    }
+    test "happy path" do
+      insert(:prm, :registry)
+      insert(:prm, :legal_entity, edrpou: "10002000")
+      insert(:prm, :legal_entity, edrpou: "37367387")
 
-    assert {:ok, %{legal_entity: %{"data" => legal_entity}, security: security}} =
-      API.process_request(legal_entity, request, get_headers())
+      update_data = Map.merge(get_legal_entity_data(), %{
+        "edrpou" => "37367387",
+        "short_name" => "Nebo15",
+        "email" => "changed@example.com",
+        "kveds" => ["12.21"]
+      })
 
-    assert "37367387" == legal_entity["edrpou"]
-    assert "ACTIVE" == legal_entity["status"]
-    assert "VERIFIED" == legal_entity["mis_verified"]
-    refute is_nil(legal_entity["nhs_verified"])
-    refute legal_entity["nhs_verified"]
-    assert_security(security, legal_entity["id"])
-  end
+      assert {:ok, %{legal_entity: legal_entity, security: security}} = create_legal_entity(update_data)
 
-  test "update inactive legal entity" do
-    legal_entity = Map.merge(get_legal_entity_data(), %{
-      "edrpou" => "10002000"
-    })
-    assert {:ok, %{"data" => updated_legal_entity}} =
-      API.put_legal_entity_to_prm(@inactive_legal_entity_id, :update, get_headers(), legal_entity)
-    assert true = updated_legal_entity["is_active"]
-  end
+      assert "37367387" == legal_entity.edrpou
+      assert "ACTIVE" == legal_entity.status
+      assert "VERIFIED" == legal_entity.mis_verified
+      assert "changed@example.com" == legal_entity.email
+      assert "Nebo15" == legal_entity.short_name
 
-  test "create client with legal_entity id" do
-    id = UUID.generate()
-    legal_entity = %{"id" => id, "name" => "test"}
-    assert {:ok, %{"data" => %{"id" => ^id}}} = OAuth.put_client(legal_entity, "http://example.com", [])
+      refute is_nil(legal_entity.nhs_verified)
+      refute legal_entity.nhs_verified
+
+      assert_security(security, legal_entity.id)
+      assert %LegalEntity{} = PRMRepo.get(LegalEntity, legal_entity.id)
+      assert 2 == PRMRepo.one(from l in LegalEntity, select: count("*"))
+    end
+
+    test "update inactive Legal Entity" do
+      insert(:prm, :legal_entity, [edrpou: "37367387", is_active: false])
+
+      data = Map.merge(get_legal_entity_data(), %{"edrpou" => "37367387"})
+
+      assert {:ok, %{legal_entity: legal_entity}} = create_legal_entity(data)
+      assert true = legal_entity.is_active
+    end
+
+    test "invalid status" do
+      insert(:prm, :legal_entity, [edrpou: "37367387", status: "CLOSED"])
+      assert {:error, {:conflict, "LegalEntity can't be updated"}} == create_legal_entity(get_legal_entity_data())
+    end
   end
 
   test "settlement validation with invalid settlement" do
@@ -301,6 +318,14 @@ defmodule EHealth.Unit.LegalEntityTest do
       {"content-length", "7000"},
       {"x-consumer-id", Ecto.UUID.generate()}
     ]
+  end
+
+  defp create_legal_entity(request_params) do
+    request = %{
+      "signed_legal_entity_request" => Base.encode64(Poison.encode!(request_params)),
+      "signed_content_encoding" => "base64",
+    }
+    API.create_legal_entity(request, get_headers())
   end
 
   defp validate_edrpou(content, signer) do

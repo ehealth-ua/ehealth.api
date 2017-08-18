@@ -6,16 +6,17 @@ defmodule EHealth.OAuth.API do
   import EHealth.Utils.Connection, only: [get_consumer_id: 1]
 
   alias EHealth.API.Mithril
+  alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
 
   require Logger
 
   @doc """
   Creates a new Mithril client for MSP after successfully created a new Legal Entity
   """
-  def put_client(entity, redirect_uri, headers) do
+  def put_client(%LegalEntity{} = legal_entity, redirect_uri, headers) do
     client = %{
-      "id" => Map.fetch!(entity, "id"),
-      "name" => Map.fetch!(entity, "name"),
+      "id" => legal_entity.id,
+      "name" => legal_entity.name,
       "redirect_uri" => redirect_uri,
       "user_id" => get_consumer_id(headers)
     }

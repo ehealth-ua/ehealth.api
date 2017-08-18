@@ -4,7 +4,6 @@ defmodule EHealth.Employee.API do
   import Ecto.{Query, Changeset}, warn: false
   import EHealth.Paging
   import EHealth.Utils.Connection
-  import EHealth.Employee.EmployeeUpdater, only: [put_updated_by: 2]
   import EHealth.LegalEntity.API, only: [get_client_type_name: 2]
   import EHealth.Plugs.ClientContext, only: [authorize_legal_entity_id: 3]
 
@@ -18,12 +17,14 @@ defmodule EHealth.Employee.API do
   alias EHealth.Bamboo.Emails.EmployeeRequestInvitation, as: EmployeeRequestInvitationEmail
   alias EHealth.Man.Templates.EmployeeCreatedNotification, as: EmployeeCreatedNotificationTemplate
   alias EHealth.Bamboo.Emails.EmployeeCreatedNotification, as: EmployeeCreatedNotificationEmail
-  alias EHealth.Validators.RemoteForeignKey
   alias EHealth.API.Mithril
-  alias EHealth.API.PRM
   alias EHealth.Employee.Validator
   alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
+  alias EHealth.PRM.Employees.Schema, as: Employee
+  alias EHealth.PRM.Divisions.Schema, as: Division
   alias EHealth.PRMRepo
+  alias EHealth.PRM.Employees
+  alias EHealth.PRM.Parties
 
   require Logger
 
@@ -81,12 +82,9 @@ defmodule EHealth.Employee.API do
     where(query, [r], r.status == @status_new)
   end
 
-  def create_employee_request(attrs), do: create_employee_request(attrs, nil)
-  def create_employee_request(attrs, headers) do
+  def create_employee_request(attrs) do
     with :ok <- Validator.validate(attrs) do
-      attrs
-      |> Map.fetch!("employee_request")
-      |> get_or_create_employee_request(headers)
+      insert_employee_request(Map.fetch!(attrs, "employee_request"))
     end
   end
 
@@ -106,7 +104,7 @@ defmodule EHealth.Employee.API do
     |> OAuth.create_user(user_email, headers)
   end
 
-  def send_email({:ok, %Request{data: data} = employee_request} = result, template, sender) do
+  def send_email(%Request{data: data} = employee_request, template, sender) do
     with {:ok, body} <- template.render(employee_request) do
       try do
         data
@@ -115,41 +113,41 @@ defmodule EHealth.Employee.API do
       rescue
         e -> Logger.error(e.message)
       end
-      result
+      {:ok, employee_request}
     end
   end
-  def send_email(error, _template, _sender), do: error
 
   def reject_employee_request(id) do
-    employee_request = get_employee_request_by_id!(id)
-    with {:ok, employee_request} <- check_transition_status(employee_request) do
+    with employee_request <- get_employee_request_by_id!(id),
+         {:ok, employee_request} <- check_transition_status(employee_request)
+    do
       update_status(employee_request, @status_rejected)
     end
   end
 
-  def approve_employee_request(id, req_headers) do
+  def approve_employee_request(id, headers) do
     employee_request = get_employee_request_by_id!(id)
 
     with {:ok, employee_request} <- check_transition_status(employee_request),
-         {:ok, employee} <- create_or_update_employee(employee_request, req_headers),
+         {:ok, employee} <- create_or_update_employee(employee_request, headers),
          {:ok, employee_request} <- update_status(employee_request, employee, @status_approved)
     do
-      send_email({:ok, employee_request}, EmployeeCreatedNotificationTemplate, EmployeeCreatedNotificationEmail)
+      send_email(employee_request, EmployeeCreatedNotificationTemplate, EmployeeCreatedNotificationEmail)
     end
   end
 
   def create_or_update_employee(%Request{data: %{"employee_id" => employee_id} = employee_request}, req_headers) do
-    with {:ok, %{"data" => employee}} <- PRM.get_employee_by_id(employee_id),
-         party_id <- get_in(employee, ["party", "id"]),
-         {:ok, party} <- PRM.get_party_by_id(party_id, req_headers),
+    with employee <- Employees.get_employee_by_id!(employee_id),
+         party_id <- employee |> Map.get(:party, %{}) |> Map.get(:id),
+         party <- Parties.get_party_by_id!(party_id),
          {:ok, _} <- EmployeeCreator.create_party_user(party, req_headers),
-         {:ok, _} <- PRM.update_party(Map.fetch!(employee_request, "party"), party_id, req_headers)
+         {:ok, _} <- Parties.update_party(party, Map.fetch!(employee_request, "party")),
+         params <- employee_request
+           |> update_doctor(employee)
+           |> Map.put("employee_type", employee.employee_type)
+           |> Map.put("updated_by", get_consumer_id(req_headers))
     do
-      employee_request
-      |> update_doctor(employee)
-      |> Map.put("employee_type", Map.get(employee, "employee_type"))
-      |> put_updated_by(req_headers)
-      |> PRM.update_employee(employee_id, req_headers)
+      Employees.update_employee(employee, params, get_consumer_id(req_headers))
     end
   end
   def create_or_update_employee(%Request{} = employee_request, req_headers) do
@@ -159,7 +157,15 @@ defmodule EHealth.Employee.API do
   end
   def create_or_update_employee(error, _), do: error
 
-  def update_doctor(employee_request, %{"doctor" => doctor}) do
+  def update_doctor(employee_request, %Employee{doctor: doctor}) do
+    # Convert doctor struct to map and convert atom keys to string keys
+    doctor =
+      doctor
+      |> Map.from_struct
+      |> Map.delete(:__meta__)
+      |> Enum.into(%{}, fn {k, v} -> {to_string(k), v} end)
+    # Make sure we have a map
+    doctor = doctor || %{}
     Map.put(employee_request, "doctor", Map.merge(doctor, Map.get(employee_request, "doctor")))
   end
 
@@ -174,7 +180,7 @@ defmodule EHealth.Employee.API do
   end
   def check_transition_status(err), do: err
 
-  def update_status(%Request{} = employee_request, %{"data" => %{"id" => id}}, status) do
+  def update_status(%Request{} = employee_request, %Employee{id: id}, status) do
     employee_request
     |> changeset(%{status: status, employee_id: id})
     |> Repo.update()
@@ -185,13 +191,6 @@ defmodule EHealth.Employee.API do
     |> Repo.update()
   end
   def update_status(err, _status), do: err
-
-  defp validate_foreign_keys(changeset, attrs) do
-    changeset
-    |> RemoteForeignKey.validate(:legal_entity_id, get_in(attrs, [:data, "legal_entity_id"]))
-    |> RemoteForeignKey.validate(:division_id, get_in(attrs, [:data, "division_id"]))
-    |> RemoteForeignKey.validate(:employee_id, get_in(attrs, [:data, "employee_id"]))
-  end
 
   def changeset(%Request{} = schema, attrs) do
     fields = ~W(
@@ -205,7 +204,17 @@ defmodule EHealth.Employee.API do
     schema
     |> cast(attrs, fields)
     |> validate_required(required_fields)
-    |> validate_foreign_keys(attrs)
+    |> validate_data_field(LegalEntity, :legal_entity_id, get_in(attrs, [:data, "legal_entity_id"]))
+    |> validate_data_field(Division, :division_id, get_in(attrs, [:data, "division_id"]))
+    |> validate_data_field(Employee, :employee_id, get_in(attrs, [:data, "employee_id"]))
+  end
+
+  defp validate_data_field(changeset, _, _, nil), do: changeset
+  defp validate_data_field(changeset, entity, key, id) do
+    case PRMRepo.get(entity, id) do
+      nil -> add_error(changeset, key, "does not exist")
+      _ -> changeset
+    end
   end
 
   def user_employee_request_changeset(%UserCreateRequest{} = schema, attrs) do
@@ -245,27 +254,29 @@ defmodule EHealth.Employee.API do
     end
   end
 
-  def get_employees(params, headers) do
+  def get_employees(params) do
     params
     |> get_employees_search_params()
-    |> PRM.get_employees(headers)
+    |> Employees.get_employees()
     |> filter_employees_response()
   end
 
-  def filter_employees_response({:ok, %{"data" => data} = response}) do
-    data = Enum.map(data, fn(employee) ->
-      employee
-      |> Map.drop(["inserted_by", "updated_by", "is_active"])
-      |> filter_doctor_response()
-    end)
-
-    {:ok, Map.put(response, "data", data)}
+  def filter_employees_response({data, paging}) do
+    {
+      Enum.map(data, fn(employee) ->
+        employee
+        |> Map.drop(~w(inserted_by updated_by is_active)a)
+        |> filter_doctor_response()
+      end),
+      paging
+    }
   end
   def filter_employees_response(err), do: err
 
-  def filter_doctor_response(%{"doctor" => doctor} = data) do
-    doctor = Map.drop(doctor, ["science_degree", "qualifications", "educations"])
-    Map.put(data, "doctor", doctor)
+  def filter_doctor_response(%{doctor: nil} = data), do: data
+  def filter_doctor_response(%{doctor: doctor} = data) do
+    doctor = Map.drop(doctor, ~w(science_degree qualifications educations)a)
+    Map.put(data, :doctor, doctor)
   end
   def filter_doctor_response(data), do: data
 
@@ -276,102 +287,51 @@ defmodule EHealth.Employee.API do
     })
   end
 
-  def get_employee_by_id(id, headers, expand \\ true) do
+  def get_employee_by_id(id, headers) do
     client_id = get_client_id(headers)
-    with {:ok, employee}     <- PRM.get_employee_by_id(id, headers),
-         {:ok, client_type}  <- get_client_type_name(client_id, headers),
-          :ok                <- employee
-                                |> get_in(["data", "legal_entity_id"])
-                                |> authorize_legal_entity_id(client_id, client_type),
-         {:ok, party}        <- get_party(employee, headers),
-         {:ok, division}     <- get_division(employee, headers),
-         {:ok, legal_entity} <- get_legal_entity(employee, headers)
+    with employee <- Employees.get_employee_by_id!(id),
+         {:ok, client_type} <- get_client_type_name(client_id, headers),
+         :ok <- authorize_legal_entity_id(employee.legal_entity_id, client_id, client_type)
     do
       {:ok, employee
-            |> put_in(~w(data division), division["data"])
-            |> put_in(~w(data party), party["data"])
-            |> put_in(~w(data legal_entity), legal_entity["data"])
-            |> filter_employee_response(expand)
-      }
+            |> PRMRepo.preload(:party)
+            |> PRMRepo.preload(:division)
+            |> PRMRepo.preload(:legal_entity)}
     end
   end
 
-  def get_party(%{"data" => %{"party" => %{"id" => id}}}, headers) when not is_nil(id) do
-    PRM.get_party_by_id(id, headers)
-  end
-  def get_party(_, _), do: {:ok, %{"data" => %{}}}
-
-  def get_division(%{"data" => %{"division_id" => id}}, headers) when not is_nil(id) do
-    PRM.get_division_by_id(id, headers)
-  end
-  def get_division(_, _), do: {:ok, %{"data" => %{}}}
-
-  def get_legal_entity(%{"data" => %{"legal_entity" => %{"id" => id}}}, headers) when not is_nil(id) do
-    PRM.get_legal_entity_by_id(id, headers)
-  end
-  def get_legal_entity(_, _), do: {:ok, %{"data" => %{}}}
-
-  # TODO: fucking crooked nail, use views instead. Asshole
-  defp filter_employee_response(employee_response, expand) do
-    employee =
-      employee_response
-      |> Map.get("data")
-      |> Map.drop(["updated_by", "inserted_by"])
-      |> drop_related_fields(expand)
-      |> filter_party_response()
-      |> filter_legal_entity_response()
-
-    Map.put(employee_response, "data", employee)
-  end
-
-  def drop_related_fields(map, true), do: Map.drop(map, ["party_id", "legal_entity_id", "division_id"])
-  def drop_related_fields(map, _), do: map
-
-  def filter_party_response(%{"party" => party} = data) do
-    party = Map.drop(party, ["updated_by", "inserted_by"])
-    Map.put(data, "party", party)
-  end
-  def filter_party_response(data), do: data
-
-  def filter_legal_entity_response(%{"legal_entity" => legal_entity} = data) do
-    filter = ~w(
-      updated_by
-      inserted_by
-      inserted_at
-      updated_at
-      phones
-      medical_service_provider
-      kveds
-      is_active
-      email
-      created_by_mis_client_id
-      addresses
-    )
-
-    legal_entity = Map.drop(legal_entity, filter)
-    Map.put(data, "legal_entity", legal_entity)
-  end
-  def filter_legal_entity_response(data), do: data
-
-  def get_or_create_employee_request(%{"employee_id" => employee_id} = params, headers) do
-    with {:ok, employee} <- PRM.get_employee_by_id(employee_id, headers),
-         {:ok, employee} <- check_tax_id(params, employee),
-         {:ok, _employee} <- check_employee_type(params, employee),
-         :ok <- validate_status_type(employee)
-    do
-      get_or_create_employee_request(params)
+  defp insert_employee_request(%{"employee_id" => employee_id} = params) do
+    employee = Employees.get_employee_by_id(employee_id)
+    if is_nil(employee) do
+      {:error, [
+        {
+          %{
+            description: "Employee not found",
+            params: [],
+            rule: :required
+          },
+          "$.employee_request.employee_id"
+        }
+      ]}
     else
-      {:error, %{"meta" => _}} -> {:error, [{%{description: "Employee not found", params: [],
-                                    rule: :required}, "$.employee_request.employee_id"}]}
-      err -> err
+      with {:ok, employee} <- check_tax_id(params, employee),
+           {:ok, _employee} <- check_employee_type(params, employee),
+           :ok <- validate_status_type(employee)
+      do
+        do_insert_employee_request(params)
+      end
     end
   end
-  def get_or_create_employee_request(data, _), do: get_or_create_employee_request(data)
-  def get_or_create_employee_request(data) do
-    %Request{}
-    |> changeset(%{data: Map.delete(data, "status"), status: Map.fetch!(data, "status")})
-    |> Repo.insert()
-    |> send_email(EmployeeRequestInvitationTemplate, EmployeeRequestInvitationEmail)
+  defp insert_employee_request(data), do: do_insert_employee_request(data)
+
+  defp do_insert_employee_request(data) do
+    with {:ok, request} <-
+           %Request{}
+           |> changeset(%{data: Map.delete(data, "status"), status: Map.fetch!(data, "status")})
+           |> Repo.insert()
+    do
+      send_email(request, EmployeeRequestInvitationTemplate, EmployeeRequestInvitationEmail)
+    end
   end
 
   def validate_status_type(%{"data" => %{
@@ -380,23 +340,20 @@ defmodule EHealth.Employee.API do
                             "is_active" => false}}) do
     {:error, {:conflict, "employee is dismissed"}}
   end
-  def validate_status_type(%{"data" => %{
-                            "employee_type" => _,
-                            "status" => "DISMISSED",
-                            "is_active" => true}}) do
+  def validate_status_type(%{"data" => %{"status" => "DISMISSED", "is_active" => true}}) do
     {:error, {:conflict, "employee is dismissed"}}
   end
   def validate_status_type(_), do: :ok
 
   def check_tax_id(%{"party" => %{"tax_id" => tax_id}}, employee) do
-    case tax_id == get_in(employee, ["data", "party", "tax_id"]) do
+    case tax_id == employee |> Map.get(:party, %{}) |> Map.get(:tax_id) do
       true -> {:ok, employee}
       false -> {:error, {:conflict, "tax_id doens't match"}}
     end
   end
 
   def check_employee_type(%{"employee_type" => employee_type}, employee) do
-    case employee_type == get_in(employee, ["data", "employee_type"]) do
+    case employee_type == employee.employee_type do
       true -> {:ok, employee}
       false -> {:error, {:conflict, "employee_type doens't match"}}
     end

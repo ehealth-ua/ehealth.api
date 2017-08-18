@@ -3,12 +3,12 @@ defmodule EHealth.DeclarationRequest.API.Create do
 
   alias EHealth.API.MediaStorage
   alias EHealth.API.MPI
-  alias EHealth.API.PRM
   alias EHealth.API.Mithril
   alias EHealth.API.Gandalf
   alias EHealth.Man.Templates.DeclarationRequestPrintoutForm
   alias EHealth.API.OTPVerification
   alias Ecto.Changeset
+  alias EHealth.PRM.PartyUsers
 
   import Ecto.Changeset, only: [get_field: 2, get_change: 2, put_change: 3, add_error: 3]
 
@@ -182,12 +182,7 @@ defmodule EHealth.DeclarationRequest.API.Create do
   end
 
   defp fetch_users(result) do
-    users =
-      result
-      |> Map.fetch!("data")
-      |> Enum.map(fn(x) -> Map.get(x, "user_id") end)
-
-    {:ok, users}
+    {:ok, Enum.map(result, &(Map.get(&1, :user_id)))}
   end
 
   defp get_role_id(name) do
@@ -231,7 +226,7 @@ defmodule EHealth.DeclarationRequest.API.Create do
   end
 
   defp get_party_email(party_id) do
-    with {:ok, result} <- PRM.get_party_users_by_party_id(party_id),
+    with {:ok, result} <- PartyUsers.get_party_users_by_party_id(party_id),
       {:ok, users} <- fetch_users(result),
       {:ok, role_id} <- get_role_id("DOCTOR"),
       {:ok, user_roles} <- filter_users_by_role(role_id, users),

@@ -51,13 +51,14 @@ defmodule EHealth.Web.DivisionsControllerTest do
   end
 
   test "get division by id", %{conn: conn} do
-    conn = put_client_id_header(conn)
+    legal_entity = insert(:prm, :legal_entity)
+    division = insert(:prm, :division, legal_entity: legal_entity)
+    conn = put_client_id_header(conn, legal_entity.id)
 
-    id = "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b"
-    conn = get conn, division_path(conn, :show, id)
+    conn = get conn, division_path(conn, :show, division.id)
     resp = json_response(conn, 200)["data"]
 
-    assert id == resp["id"]
+    assert division.id == resp["id"]
   end
 
   test "get divisions with  client_id that does not match legal entity id", %{conn: conn} do
@@ -71,8 +72,9 @@ defmodule EHealth.Web.DivisionsControllerTest do
   end
 
   test "get division by id with wrong legal_entity_id", %{conn: conn} do
+    division = insert(:prm, :division)
     conn = put_client_id_header(conn, UUID.generate())
-    conn = get conn, division_path(conn, :show, "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b")
+    conn = get conn, division_path(conn, :show, division.id)
 
     assert 403 == json_response(conn, 403)["meta"]["code"]
   end
@@ -110,7 +112,8 @@ defmodule EHealth.Web.DivisionsControllerTest do
   end
 
   test "create division", %{conn: conn} do
-    conn = put_client_id_header(conn, UUID.generate())
+    legal_entity = insert(:prm, :legal_entity)
+    conn = put_client_id_header(conn, legal_entity.id)
     conn = post conn, division_path(conn, :create), get_division()
 
     refute %{} == json_response(conn, 201)["data"]
@@ -127,29 +130,36 @@ defmodule EHealth.Web.DivisionsControllerTest do
   end
 
   test "update division", %{conn: conn} do
-    conn = put_client_id_header(conn)
-    conn = put conn, division_path(conn, :update, "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b"), get_division()
+    legal_entity = insert(:prm, :legal_entity)
+    division = insert(:prm, :division, legal_entity: legal_entity)
+    conn = put_client_id_header(conn, legal_entity.id)
+    conn = put conn, division_path(conn, :update, division.id), get_division()
 
     assert 200 == json_response(conn, 200)["meta"]["code"]
   end
 
   test "update division with wrong legal_entity_id", %{conn: conn} do
+    division = insert(:prm, :division)
     conn = put_client_id_header(conn, UUID.generate())
-    conn = put conn, division_path(conn, :update, "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b"), get_division()
+    conn = put conn, division_path(conn, :update, division.id), get_division()
 
     assert 403 == json_response(conn, 403)["meta"]["code"]
   end
 
   test "activate division", %{conn: conn} do
-    conn = put_client_id_header(conn)
-    conn = patch conn, division_path(conn, :activate, "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b")
+    legal_entity = insert(:prm, :legal_entity)
+    division = insert(:prm, :division, legal_entity: legal_entity)
+    conn = put_client_id_header(conn, legal_entity.id)
+    conn = patch conn, division_path(conn, :activate, division.id)
 
     assert 200 == json_response(conn, 200)["meta"]["code"]
   end
 
   test "deactivate division", %{conn: conn} do
-    conn = put_client_id_header(conn)
-    conn = patch conn, division_path(conn, :deactivate, "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b")
+    legal_entity = insert(:prm, :legal_entity)
+    division = insert(:prm, :division, legal_entity: legal_entity)
+    conn = put_client_id_header(conn, legal_entity.id)
+    conn = patch conn, division_path(conn, :deactivate, division.id)
 
     data = json_response(conn, 200)["data"]
     assert "INACTIVE" == data["status"]
@@ -157,15 +167,18 @@ defmodule EHealth.Web.DivisionsControllerTest do
   end
 
   test "activate division with wrong legal_entity_id", %{conn: conn} do
+    legal_entity = insert(:prm, :legal_entity)
+    division = insert(:prm, :division, legal_entity: legal_entity)
     conn = put_client_id_header(conn, UUID.generate())
-    conn = patch conn, division_path(conn, :activate, "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b")
+    conn = patch conn, division_path(conn, :activate, division.id)
 
     assert 403 == json_response(conn, 403)["meta"]["code"]
   end
 
   test "deactivate division with wrong legal_entity_id", %{conn: conn} do
+    division = insert(:prm, :division)
     conn = put_client_id_header(conn, UUID.generate())
-    conn = patch conn, division_path(conn, :deactivate, "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b")
+    conn = patch conn, division_path(conn, :deactivate, division.id)
 
     assert 403 == json_response(conn, 403)["meta"]["code"]
   end

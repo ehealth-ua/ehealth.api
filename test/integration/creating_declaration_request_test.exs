@@ -7,14 +7,6 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
     defmodule TwoHappyPaths do
       use MicroservicesHelper
 
-      Plug.Router.get "/party_users" do
-        party_users = [%{
-          "user_id": Ecto.UUID.generate()
-        }]
-
-        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: party_users}))
-      end
-
       # MPI API
       Plug.Router.get "/persons" do
         confirm_params =
@@ -146,11 +138,15 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
 
       legal_entity = insert(:prm, :legal_entity, id: "8799e3b6-34e7-4798-ba70-d897235d2b6d")
       insert(:prm, :medical_service_provider, legal_entity: legal_entity)
-      division = insert(:prm, :division, id: "51f56b0e-0223-49c1-9b5f-b07e09ba40f1", legal_entity: legal_entity)
+      party = insert(:prm, :party, id: "ac6ca796-9cc8-4a8f-96f8-016dd52daac6")
+      insert(:prm, :party_user, party: party)
+      division = insert(:prm ,:division, id: "51f56b0e-0223-49c1-9b5f-b07e09ba40f1", legal_entity: legal_entity)
       employee = insert(:prm, :employee,
         id: "ce377dea-d8c4-4dd8-9328-de24b1ee3879",
         division: division,
-        legal_entity: legal_entity)
+        party: party,
+        legal_entity: legal_entity
+      )
       insert(:prm, :employee_doctor, employee: employee, specialities: [%{speciality: "PEDIATRICIAN"}])
 
       {:ok, port, ref} = start_microservices(TwoHappyPaths)
@@ -258,17 +254,49 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
     end
 
     test "declaration request is created with 'OTP' verification", %{conn: conn} do
-      declaration_request_params = File.read!("test/data/declaration_request.json")
+      params =
+        "test/data/declaration_request.json"
+        |> File.read!()
+        |> Poison.decode!()
 
-      decoded = Poison.decode!(declaration_request_params)["declaration_request"]
-      d1 = clone_declaration_request(decoded, "8799e3b6-34e7-4798-ba70-d897235d2b6d", "NEW")
-      d2 = clone_declaration_request(decoded, "8799e3b6-34e7-4798-ba70-d897235d2b6d", "APPROVED")
+      tax_id = get_in(params["declaration_request"], ["person", "tax_id"])
+      employee_id = "ce377dea-d8c4-4dd8-9328-de24b1ee3879"
+      legal_entity_id = "8799e3b6-34e7-4798-ba70-d897235d2b6d"
+
+      d1 = insert(:il, :declaration_request,
+        data: %{
+          person: %{
+            tax_id: tax_id
+          },
+          employee: %{
+            id: employee_id
+          },
+          legal_entity: %{
+            id: legal_entity_id
+          }
+        },
+        status: "NEW"
+      )
+      d2 = insert(:il, :declaration_request,
+        data: %{
+          person: %{
+            tax_id: tax_id
+          },
+          employee: %{
+            id: employee_id
+          },
+          legal_entity: %{
+            id: legal_entity_id
+          }
+        },
+        status: "APPROVED"
+      )
 
       conn =
         conn
-        |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
-        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
-        |> post(declaration_request_path(conn, :create), declaration_request_params)
+        |> put_req_header("x-consumer-id", employee_id)
+        |> EHealth.Web.ConnCase.put_client_id_header(legal_entity_id)
+        |> post(declaration_request_path(conn, :create), params)
 
       resp = json_response(conn, 200)
 
