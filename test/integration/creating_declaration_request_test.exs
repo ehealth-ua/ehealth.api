@@ -140,14 +140,15 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
       insert(:prm, :medical_service_provider, legal_entity: legal_entity)
       party = insert(:prm, :party, id: "ac6ca796-9cc8-4a8f-96f8-016dd52daac6")
       insert(:prm, :party_user, party: party)
-      division = insert(:prm ,:division, id: "51f56b0e-0223-49c1-9b5f-b07e09ba40f1", legal_entity: legal_entity)
-      employee = insert(:prm, :employee,
+      division = insert(:prm, :division, id: "51f56b0e-0223-49c1-9b5f-b07e09ba40f1", legal_entity: legal_entity)
+      doctor = Map.put(doctor(), "specialities", [%{speciality: "PEDIATRICIAN"}])
+      insert(:prm, :employee,
         id: "ce377dea-d8c4-4dd8-9328-de24b1ee3879",
         division: division,
         party: party,
-        legal_entity: legal_entity
+        legal_entity: legal_entity,
+        additional_info: doctor
       )
-      insert(:prm, :employee_doctor, employee: employee, specialities: [%{speciality: "PEDIATRICIAN"}])
 
       {:ok, port, ref} = start_microservices(TwoHappyPaths)
 

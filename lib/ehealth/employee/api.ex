@@ -33,6 +33,8 @@ defmodule EHealth.Employee.API do
   @status_rejected Request.status(:rejected)
   @status_expired Request.status(:expired)
 
+  @employee_type_doctor Employee.employee_type(:doctor)
+
   def get_employee_request_by_id!(id) do
     Repo.get!(Request, id)
   end
@@ -157,17 +159,10 @@ defmodule EHealth.Employee.API do
   end
   def create_or_update_employee(error, _), do: error
 
-  def update_doctor(employee_request, %Employee{doctor: doctor}) do
-    # Convert doctor struct to map and convert atom keys to string keys
-    doctor =
-      doctor
-      |> Map.from_struct
-      |> Map.delete(:__meta__)
-      |> Enum.into(%{}, fn {k, v} -> {to_string(k), v} end)
-    # Make sure we have a map
-    doctor = doctor || %{}
-    Map.put(employee_request, "doctor", Map.merge(doctor, Map.get(employee_request, "doctor")))
+  def update_doctor(employee_request, %Employee{employee_type: @employee_type_doctor, additional_info: info}) do
+    Map.put(employee_request, "doctor", Map.merge(info, Map.get(employee_request, "doctor")))
   end
+  def update_doctor(employee_request, _), do: employee_request
 
   def check_transition_status(%Request{status: @status_new} = employee_request) do
     {:ok, employee_request}
@@ -258,27 +253,7 @@ defmodule EHealth.Employee.API do
     params
     |> get_employees_search_params()
     |> Employees.get_employees()
-    |> filter_employees_response()
   end
-
-  def filter_employees_response({data, paging}) do
-    {
-      Enum.map(data, fn(employee) ->
-        employee
-        |> Map.drop(~w(inserted_by updated_by is_active)a)
-        |> filter_doctor_response()
-      end),
-      paging
-    }
-  end
-  def filter_employees_response(err), do: err
-
-  def filter_doctor_response(%{doctor: nil} = data), do: data
-  def filter_doctor_response(%{doctor: doctor} = data) do
-    doctor = Map.drop(doctor, ~w(science_degree qualifications educations)a)
-    Map.put(data, :doctor, doctor)
-  end
-  def filter_doctor_response(data), do: data
 
   defp get_employees_search_params(params) do
     Map.merge(params, %{

@@ -38,6 +38,8 @@ defmodule EHealth.PRM.Employees do
     end_date
   )a
 
+  @doctor Employee.employee_type(:doctor)
+
   def get_employee_by_id!(id) do
     Employee
     |> get_employee_by_id_query(id)
@@ -54,9 +56,8 @@ defmodule EHealth.PRM.Employees do
     query
     |> where([e], e.id == ^id)
     |> join(:left, [e], p in assoc(e, :party))
-    |> join(:left, [e, p], d in assoc(e, :doctor))
     |> join(:left, [e], le in assoc(e, :legal_entity))
-    |> preload([e, p, d, le], [party: p, doctor: d, legal_entity: le])
+    |> preload([e, p, le], [party: p, legal_entity: le])
   end
 
   @doc """
@@ -114,16 +115,21 @@ defmodule EHealth.PRM.Employees do
   defp changeset(%Employee{} = employee, attrs) do
     employee
     |> cast(attrs, @required_fields ++ @optional_fields)
-    |> cast_assoc(:doctor)
     |> validate_required(@required_fields)
+    |> put_additional_info(attrs)
     |> validate_employee_type()
     |> foreign_key_constraint(:legal_entity_id)
     |> foreign_key_constraint(:division_id)
     |> foreign_key_constraint(:party_id)
   end
 
-  defp validate_employee_type(%Ecto.Changeset{changes: %{employee_type: "DOCTOR"}} = changeset) do
-    validate_required(changeset, [:doctor])
+  defp put_additional_info(%Ecto.Changeset{valid?: true} = changeset, %{"doctor" => doctor}) do
+    put_change(changeset, :additional_info, doctor)
+  end
+  defp put_additional_info(changeset, _), do: changeset
+
+  defp validate_employee_type(%Ecto.Changeset{changes: %{employee_type: @doctor}} = changeset) do
+    validate_required(changeset, [:additional_info])
   end
   defp validate_employee_type(changeset), do: changeset
 
@@ -140,7 +146,6 @@ defmodule EHealth.PRM.Employees do
 
   defp do_preload(repo) do
     repo
-    |> PRMRepo.preload(:doctor)
     |> PRMRepo.preload(:party)
     |> PRMRepo.preload(:division)
     |> PRMRepo.preload(:legal_entity)

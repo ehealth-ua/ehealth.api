@@ -233,7 +233,7 @@ defmodule EHealth.DeclarationRequest.API do
       legal_entity: legal_entity
     } = auxilary_entities
 
-    specialities = employee.doctor.specialities
+    specialities = Map.get(employee.additional_info, "specialities")
 
     attrs = Map.drop(attrs, ["employee_id", "division_id"])
 

@@ -1,10 +1,8 @@
 defmodule EHealth.PRM.Employees.Schema do
   @moduledoc false
 
-  alias EHealth.PRM.EmployeeDoctors.Schema, as: EmployeeDoctor
   alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
   alias EHealth.PRM.Divisions.Schema, as: Division
-  alias EHealth.PRM.EmployeeDoctors.Schema, as: EmployeeDoctor
   alias EHealth.PRM.Parties.Schema, as: Party
 
   use Ecto.Schema
@@ -26,12 +24,11 @@ defmodule EHealth.PRM.Employees.Schema do
     field :status_reason, :string
     field :updated_by, Ecto.UUID
     field :inserted_by, Ecto.UUID
+    field :additional_info, :map
 
     belongs_to :party, Party, type: Ecto.UUID
     belongs_to :division, Division, type: Ecto.UUID
     belongs_to :legal_entity, LegalEntity, type: Ecto.UUID
-
-    has_one :doctor, EmployeeDoctor, foreign_key: :employee_id
 
     timestamps()
   end

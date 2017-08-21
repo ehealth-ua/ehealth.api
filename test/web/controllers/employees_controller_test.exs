@@ -29,15 +29,13 @@ defmodule EHealth.Web.EmployeesControllerTest do
     legal_entity = insert(:prm, :legal_entity, id: "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
     %{id: legal_entity_id} = legal_entity
     party = insert(:prm, :party)
-    employee = insert(:prm, :employee, legal_entity: legal_entity, party: party)
-    insert(:prm, :employee_doctor, employee: employee)
+    insert(:prm, :employee, legal_entity: legal_entity, party: party)
     conn = put_client_id_header(conn, legal_entity_id)
     conn = get conn, employee_path(conn, :index)
     resp = json_response(conn, 200)["data"]
     employee = List.first(resp)
 
     assert Map.has_key?(employee, "doctor")
-    assert Map.has_key?(employee["doctor"], "id")
     refute Map.has_key?(employee["doctor"], "science_degree")
     refute Map.has_key?(employee["doctor"], "qualifications")
     refute Map.has_key?(employee["doctor"], "educations")

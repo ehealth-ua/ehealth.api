@@ -7,6 +7,9 @@ defmodule EHealth.Web.EmployeeView do
   alias EHealth.PRM.Parties.Schema, as: Party
   alias EHealth.PRM.Divisions.Schema, as: Division
   alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
+  alias EHealth.PRM.Employees.Schema, as: Employee
+
+  @doctor Employee.employee_type(:doctor)
 
   def render("index.json", %{employees: employees}) do
     render_many(employees, __MODULE__, "employee.json")
@@ -21,10 +24,10 @@ defmodule EHealth.Web.EmployeeView do
   end
   def render("employee_short.json", _), do: %{}
 
-  def render("employee.json", %{employee: %{employee_type: "DOCTOR", doctor: doctor} = employee}) do
+  def render("employee.json", %{employee: %{employee_type: @doctor, additional_info: info} = employee}) do
     employee
     |> render_employee()
-    |> render_doctor(doctor)
+    |> render_doctor(info)
   end
   def render("employee.json", %{employee: employee}) do
     render_employee(employee)
@@ -89,6 +92,7 @@ defmodule EHealth.Web.EmployeeView do
   end
   def render_association(map, _assoc, key, default), do: Map.put(map, key, default)
 
-  def render_doctor(map, %Ecto.Association.NotLoaded{}), do: Map.put(map, :doctor, nil)
-  def render_doctor(map, doctor), do: Map.put(map, :doctor, doctor)
+  defp render_doctor(map, info) do
+    Map.put(map, :doctor, Map.drop(info, ~w(science_degree qualifications educations)))
+  end
 end
