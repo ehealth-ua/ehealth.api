@@ -61,12 +61,7 @@ defmodule EHealth.Employee.API do
       |> PRMRepo.all
       |> Enum.into(%{}, &({Map.get(&1, :id), &1}))
 
-    employee_requests =
-      Enum.map(employee_requests, fn request ->
-        legal_entity = Map.get(legal_entities, Map.get(request.data, "legal_entity_id"), %{})
-        Map.put(request, :legal_entity, legal_entity)
-      end)
-    {employee_requests, paging}
+    {employee_requests, legal_entities, paging}
   end
 
   defp filter_by_legal_entity_id(query, %{"legal_entity_id" => legal_entity_id}) do

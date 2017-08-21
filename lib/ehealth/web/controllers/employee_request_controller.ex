@@ -9,19 +9,13 @@ defmodule EHealth.Web.EmployeeRequestController do
 
   action_fallback EHealth.Web.FallbackController
 
-  def show(conn, %{"id" => id}) do
-    employee_request = API.get_employee_request_by_id!(id)
-    legal_entity = LegalEntities.get_legal_entity_by_id(employee_request.data["legal_entity_id"]) || %{}
-    employee_request = Map.put(employee_request, :legal_entity, legal_entity)
-
-    conn
-    |> put_urgent_user_id(employee_request)
-    |> render("show.json", employee_request: employee_request)
-  end
-
   def index(conn, params) do
-    with {employee_requests, %Ecto.Paging{} = paging} <- API.list_employee_requests(params) do
-      render(conn, "index.json", employee_requests: employee_requests, paging: paging)
+    with {employee_requests, legal_entities, %Ecto.Paging{} = paging} <- API.list_employee_requests(params) do
+      render(conn, "index.json",
+        employee_requests: employee_requests,
+        legal_entities: legal_entities,
+        paging: paging
+      )
     end
   end
 
@@ -29,8 +23,22 @@ defmodule EHealth.Web.EmployeeRequestController do
     client_id = get_client_id(req_headers)
     params = put_in(params, ["employee_request", "legal_entity_id"], client_id)
     with {:ok, employee_request} <- API.create_employee_request(params) do
-      render(conn, "show.json", employee_request: employee_request)
+      render(conn, "show.json",
+        employee_request: employee_request,
+        legal_entity: get_legal_entity(employee_request),
+      )
     end
+  end
+
+  def show(conn, %{"id" => id}) do
+    employee_request = API.get_employee_request_by_id!(id)
+
+    conn
+    |> put_urgent_user_id(employee_request)
+    |> render("show.json",
+      employee_request: employee_request,
+      legal_entity: get_legal_entity(employee_request)
+    )
   end
 
   def create_user(%Plug.Conn{req_headers: req_headers} = conn, params) do
@@ -42,7 +50,10 @@ defmodule EHealth.Web.EmployeeRequestController do
   def approve(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
     with :ok <- API.check_employee_request(req_headers, id) do
       with {:ok, employee_request} <- API.approve_employee_request(id, req_headers) do
-        render(conn, "show.json", employee_request: employee_request)
+        render(conn, "show.json",
+          employee_request: employee_request,
+          legal_entity: get_legal_entity(employee_request),
+        )
       end
     end
   end
@@ -50,9 +61,16 @@ defmodule EHealth.Web.EmployeeRequestController do
   def reject(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
     with :ok <- API.check_employee_request(req_headers, id) do
       with {:ok, employee_request} <- API.reject_employee_request(id) do
-        render(conn, "show.json", employee_request: employee_request)
+        render(conn, "show.json",
+          employee_request: employee_request,
+          legal_entity: get_legal_entity(employee_request),
+        )
       end
     end
+  end
+
+  defp get_legal_entity(%Request{} = request) do
+    LegalEntities.get_legal_entity_by_id(request.data["legal_entity_id"]) || %{}
   end
 
   defp put_urgent_user_id(conn, %Request{data: data}) do

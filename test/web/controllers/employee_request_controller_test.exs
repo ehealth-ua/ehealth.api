@@ -44,6 +44,13 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       conn = post conn, employee_request_path(conn, :create), employee_request_params
       resp = json_response(conn, 200)["data"]
       refute Map.has_key?(resp, "type")
+      assert Map.has_key?(resp, "legal_entity_name")
+      assert legal_entity.name == resp["legal_entity_name"]
+      assert legal_entity.edrpou == resp["edrpou"]
+      request_party = employee_request_params["employee_request"]["party"]
+      assert request_party["first_name"] == resp["first_name"]
+      assert request_party["second_name"] == resp["second_name"]
+      assert request_party["last_name"] == resp["last_name"]
     end
 
     test "without tax_id and x-consumer-metadata that contains valid client_id", %{conn: conn} do
@@ -299,12 +306,16 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "by NHS ADMIN", %{conn: conn} do
+      legal_entity = insert(:prm, :legal_entity, id: "8b797c23-ba47-45f2-bc0f-521013e01074")
       insert(:il, :employee_request)
       insert(:il, :employee_request)
       conn = put_client_id_header(conn, MockServer.get_client_admin())
       conn = get conn, employee_request_path(conn, :index)
       resp = json_response(conn, 200)["data"]
       assert 2 = length(resp)
+      employee_request = hd(resp)
+      assert legal_entity.edrpou == employee_request["edrpou"]
+      assert legal_entity.name == employee_request["legal_entity_name"]
     end
 
     test "with valid client_id in metadata", %{conn: conn} do
