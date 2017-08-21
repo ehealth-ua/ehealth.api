@@ -200,7 +200,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     test "deactivate legal entity with OWNER employee", %{conn: conn} do
       %{id: id} = insert(:prm, :legal_entity)
       employee = insert(:prm, :employee,
-        employee_type: Employee.employee_type(:owner),
+        employee_type: Employee.type(:owner),
         legal_entity_id: id
       )
       assert employee.is_active

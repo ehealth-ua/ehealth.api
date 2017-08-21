@@ -33,7 +33,7 @@ defmodule EHealth.Employee.API do
   @status_rejected Request.status(:rejected)
   @status_expired Request.status(:expired)
 
-  @employee_type_doctor Employee.employee_type(:doctor)
+  @doctor Employee.type(:doctor)
 
   def get_employee_request_by_id!(id) do
     Repo.get!(Request, id)
@@ -156,7 +156,7 @@ defmodule EHealth.Employee.API do
   end
   def create_or_update_employee(error, _), do: error
 
-  def update_doctor(employee_request, %Employee{employee_type: @employee_type_doctor, additional_info: info}) do
+  def update_doctor(employee_request, %Employee{employee_type: @doctor, additional_info: info}) do
     Map.put(employee_request, "doctor", Map.merge(info, Map.get(employee_request, "doctor")))
   end
   def update_doctor(employee_request, _), do: employee_request

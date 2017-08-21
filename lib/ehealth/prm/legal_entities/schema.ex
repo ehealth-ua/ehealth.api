@@ -5,6 +5,14 @@ defmodule EHealth.PRM.LegalEntities.Schema do
 
   use Ecto.Schema
 
+  @type_msp "MSP"
+  @type_mis "MIS"
+  @type_pharmacy "PHARMACY"
+
+  def type(:mis), do: @type_mis
+  def type(:msp), do: @type_msp
+  def type(:pharmacy), do: @type_pharmacy
+
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "legal_entities" do
     field :is_active, :boolean, default: false

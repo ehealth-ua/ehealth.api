@@ -38,7 +38,7 @@ defmodule EHealth.PRM.Employees do
     end_date
   )a
 
-  @doctor Employee.employee_type(:doctor)
+  @doctor Employee.type(:doctor)
 
   def get_employee_by_id!(id) do
     Employee

@@ -7,11 +7,13 @@ defmodule EHealth.PRM.Employees.Schema do
 
   use Ecto.Schema
 
-  @employee_type_owner "OWNER"
-  @employee_type_doctor "DOCTOR"
+  @type_owner "OWNER"
+  @type_doctor "DOCTOR"
+  @type_pharmacy_owner "PHARMACY_OWNER"
 
-  def employee_type(:owner), do: @employee_type_owner
-  def employee_type(:doctor), do: @employee_type_doctor
+  def type(:owner), do: @type_owner
+  def type(:doctor), do: @type_doctor
+  def type(:pharmacy_owner), do: @type_pharmacy_owner
 
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "employees" do

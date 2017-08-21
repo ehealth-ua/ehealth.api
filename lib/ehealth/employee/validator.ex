@@ -8,6 +8,9 @@ defmodule EHealth.Employee.Validator do
   alias EHealth.Validators.SchemaMapper
   alias EHealth.Validators.TaxID
   alias EHealth.Validators.BirthDate
+  alias EHealth.PRM.Employees.Schema, as: Employee
+
+  @doctor Employee.type(:doctor)
 
   use_schema :employee_request, "specs/json_schemas/new_employee_request_schema.json"
 
@@ -34,7 +37,7 @@ defmodule EHealth.Employee.Validator do
   end
 
   def validate_doctor_inclusion({:ok, %{"employee_request" => %{"employee_type" => employee_type, "doctor" => _}}})
-    when employee_type != "DOCTOR" do
+    when employee_type != @doctor do
     {:error, [{%{
       description: "field doctor is not allowed",
       params: [],
@@ -42,11 +45,11 @@ defmodule EHealth.Employee.Validator do
     }, "$.employee_request.doctor"}]}
   end
 
-  def validate_doctor_inclusion({:ok, %{"employee_request" => %{"employee_type" => "DOCTOR", "doctor" => _}}} = data) do
+  def validate_doctor_inclusion({:ok, %{"employee_request" => %{"employee_type" => @doctor, "doctor" => _}}} = data) do
     data
   end
 
-  def validate_doctor_inclusion({:ok, %{"employee_request" => %{"employee_type" => "DOCTOR"}}}) do
+  def validate_doctor_inclusion({:ok, %{"employee_request" => %{"employee_type" => @doctor}}}) do
     {:error, [{%{
       description: "required property doctor was not present",
       params: [],

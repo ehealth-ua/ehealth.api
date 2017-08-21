@@ -164,6 +164,10 @@ config :ehealth, EHealth.Man.Templates.CredentialsRecoveryRequest,
   format: {:system, "CREDENTIALS_RECOVERY_REQUEST_INVITATION_TEMPLATE_FORMAT", "text/html"},
   locale: {:system, "CREDENTIALS_RECOVERY_REQUEST_INVITATION_TEMPLATE_LOCALE", "uk_UA"}
 
+config :ehealth, :legal_entity_employee_types,
+  msp: {:system, "LEGAL_ENTITY_MSP_EMPLOYEE_TYPES", ["OWNER", "HR", "DOCTOR", "ADMIN", "ACCOUNTANT"]},
+  pharmacy: {:system, "LEGAL_ENTITY_PHARMACY_EMPLOYEE_TYPES", ["PHARMACY_OWNER", "PHARMACIST"]}
+
 # Configures bamboo
 config :ehealth, EHealth.Bamboo.Mailer,
   adapter: EHealth.Bamboo.PostmarkAdapter,

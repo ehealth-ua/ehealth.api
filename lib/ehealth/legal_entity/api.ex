@@ -16,12 +16,12 @@ defmodule EHealth.LegalEntity.API do
   alias EHealth.API.Mithril
   alias EHealth.PRM.LegalEntities
   alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
+  alias EHealth.PRM.Employees.Schema, as: Employee
   alias Ecto.Schema.Metadata
 
   require Logger
 
   @employee_request_status "NEW"
-  @employee_request_type "OWNER"
 
   @status_closed "CLOSED"
   @status_active "ACTIVE"
@@ -108,7 +108,7 @@ defmodule EHealth.LegalEntity.API do
          {:ok, legal_entity}     <- put_legal_entity_to_prm(legal_entity, request_params, headers),
          {:ok, oauth_client}     <- get_oauth_credentials(legal_entity, request_params, headers),
          {:ok, security}         <- prepare_security_data(oauth_client),
-         {:ok, employee_request} <- create_employee_request(legal_entity.id, request_params)
+         {:ok, employee_request} <- create_employee_request(legal_entity, request_params)
     do
       {:ok, %{
           legal_entity: legal_entity,
@@ -203,23 +203,26 @@ defmodule EHealth.LegalEntity.API do
   Create Employee request
   Specification: https://edenlab.atlassian.net/wiki/display/EH/IL.Create+employee+request
   """
-  def create_employee_request(id, request_params) do
+  def create_employee_request(%LegalEntity{id: id, type: type}, request_params) do
     party = Map.fetch!(request_params, "owner")
+    employee_type = if type == LegalEntity.type(:msp),
+      do: Employee.type(:owner),
+      else: Employee.type(:pharmacy_owner)
 
     id
     |> prepare_employee_request_data(party)
+    |> put_in(["employee_request", "employee_type"], employee_type)
     |> API.create_employee_request()
   end
 
   def prepare_employee_request_data(legal_entity_id, party) do
     request = %{
-        "legal_entity_id" => legal_entity_id,
-        "position" => Map.fetch!(party, "position"),
-        "status" => @employee_request_status,
-        "employee_type" => @employee_request_type,
-        "start_date" => Date.to_iso8601(Date.utc()),
-        "party" => Map.delete(party, "position"),
-      }
+      "legal_entity_id" => legal_entity_id,
+      "position" => Map.fetch!(party, "position"),
+      "status" => @employee_request_status,
+      "start_date" => Date.to_iso8601(Date.utc()),
+      "party" => Map.delete(party, "position"),
+    }
     %{"employee_request" => request}
   end
 end

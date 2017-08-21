@@ -9,7 +9,7 @@ defmodule EHealth.Web.EmployeeView do
   alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
   alias EHealth.PRM.Employees.Schema, as: Employee
 
-  @doctor Employee.employee_type(:doctor)
+  @doctor Employee.type(:doctor)
 
   def render("index.json", %{employees: employees}) do
     render_many(employees, __MODULE__, "employee.json")

@@ -12,15 +12,15 @@ defmodule EHealth.Unit.Employee.EmployeeCreatorTest do
     legal_entity2 = insert(:prm, :legal_entity)
     insert(:prm, :employee,
       legal_entity: legal_entity1,
-      employee_type: Employee.employee_type(:owner)
+      employee_type: Employee.type(:owner)
     )
     employee1 = insert(:prm, :employee,
       legal_entity: legal_entity2,
-      employee_type: Employee.employee_type(:owner)
+      employee_type: Employee.type(:owner)
     )
     employee2 = insert(:prm, :employee,
       legal_entity: legal_entity2,
-      employee_type: Employee.employee_type(:owner)
+      employee_type: Employee.type(:owner)
     )
 
     EmployeeCreator.deactivate_employee_owners(employee1, get_headers())

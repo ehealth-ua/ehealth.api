@@ -201,7 +201,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
     test "can't deactivate OWNER", %{conn: conn, legal_entity: legal_entity} do
       employee = insert(:prm, :employee,
         legal_entity: legal_entity,
-        employee_type: Employee.employee_type(:owner)
+        employee_type: Employee.type(:owner)
       )
       conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
       conn_resp = patch conn, employee_path(conn, :deactivate, employee.id)
