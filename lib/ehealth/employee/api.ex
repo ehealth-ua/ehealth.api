@@ -34,6 +34,8 @@ defmodule EHealth.Employee.API do
   @status_expired Request.status(:expired)
 
   @doctor Employee.type(:doctor)
+  @owner Employee.type(:owner)
+  @pharmacy_owner Employee.type(:pharmacy_owner)
 
   def get_employee_request_by_id!(id) do
     Repo.get!(Request, id)
@@ -79,9 +81,12 @@ defmodule EHealth.Employee.API do
     where(query, [r], r.status == @status_new)
   end
 
-  def create_employee_request(attrs) do
-    with :ok <- Validator.validate(attrs) do
-      insert_employee_request(Map.fetch!(attrs, "employee_request"))
+  def create_employee_request(attrs, allowed_owner \\ false) do
+    with :ok <- Validator.validate(attrs),
+         params <- Map.fetch!(attrs, "employee_request"),
+         :ok <- check_owner(params, allowed_owner)
+    do
+      insert_employee_request(params)
     end
   end
 
@@ -306,13 +311,16 @@ defmodule EHealth.Employee.API do
     end
   end
 
-  def validate_status_type(%{"data" => %{
-                            "employee_type" => "OWNER",
-                            "status" => @status_approved,
-                            "is_active" => false}}) do
+  def validate_status_type(%Employee{is_active: false}) do
+    {:error, :not_found}
+  end
+  def validate_status_type(%Employee{status: "DISMISSED"}) do
     {:error, {:conflict, "employee is dismissed"}}
   end
-  def validate_status_type(%{"data" => %{"status" => "DISMISSED", "is_active" => true}}) do
+  def validate_status_type(%Employee{employee_type: @owner}) do
+    {:error, {:conflict, "employee is dismissed"}}
+  end
+  def validate_status_type(%Employee{employee_type: @pharmacy_owner}) do
     {:error, {:conflict, "employee is dismissed"}}
   end
   def validate_status_type(_), do: :ok
@@ -329,5 +337,13 @@ defmodule EHealth.Employee.API do
       true -> {:ok, employee}
       false -> {:error, {:conflict, "employee_type doens't match"}}
     end
+  end
+
+  defp check_owner(%{"employee_type" => @owner}, false), do: owner_forbidden(@owner)
+  defp check_owner(%{"employee_type" => @pharmacy_owner}, false), do: owner_forbidden(@pharmacy_owner)
+  defp check_owner(_, _), do: :ok
+
+  defp owner_forbidden(type) do
+    {:error, {:conflict, "Forbidden to create #{type}"}}
   end
 end

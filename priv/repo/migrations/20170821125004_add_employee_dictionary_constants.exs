@@ -5,6 +5,11 @@ defmodule EHealth.Repo.Migrations.AddEmployeeDictionaryConstants do
     execute """
     UPDATE dictionaries SET
     values = values || '{
+      "HR": "відділ кадрів",
+      "ADMIN": "реєстратор",
+      "OWNER": "керівник",
+      "DOCTOR": "лікар",
+      "ACCOUNTANT": "бухгалтер",
       "PHARMACY_OWNER": "керівник",
       "PHARMACIST": "фармацевт"
     }'
@@ -27,6 +32,9 @@ defmodule EHealth.Repo.Migrations.AddEmployeeDictionaryConstants do
     execute """
     UPDATE dictionaries SET
     values = values || '{
+      "THERAPIST": "Терапевт",
+      "PEDIATRICIAN": "Педіатр",
+      "FAMILY_DOCTOR": "Сімейний лікар",
       "PHARMACIST": "Фармацевт",
       "PHARMACIST2": "Провізор"
     }'

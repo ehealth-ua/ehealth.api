@@ -212,7 +212,7 @@ defmodule EHealth.LegalEntity.API do
     id
     |> prepare_employee_request_data(party)
     |> put_in(["employee_request", "employee_type"], employee_type)
-    |> API.create_employee_request()
+    |> API.create_employee_request(true)
   end
 
   def prepare_employee_request_data(legal_entity_id, party) do

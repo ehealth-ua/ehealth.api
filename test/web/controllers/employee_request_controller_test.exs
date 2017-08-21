@@ -7,6 +7,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
   alias EHealth.Employee.Request
   alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
+  alias EHealth.PRM.Employees.Schema, as: Employee
   alias EHealth.MockServer
 
   @moduletag :with_client_id
@@ -126,6 +127,9 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "with invalid employee_type", %{conn: conn} do
+      %{legal_entity_id: legal_entity_id} = insert(:prm, :division,
+        id: "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b"
+      )
       insert(:il, :dictionary_phone_type)
       insert(:il, :dictionary_employee_type)
       employee_request_params =
@@ -134,7 +138,13 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
         |> Poison.decode!()
         |> put_in(["employee_request", "employee_type"], "INVALID")
 
-      conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
+      employee_request_params = Map.put(
+        employee_request_params,
+        "employee_request",
+        Map.delete(employee_request_params["employee_request"], "doctor")
+      )
+
+      conn = put_client_id_header(conn, legal_entity_id)
       conn = post conn, employee_request_path(conn, :create), employee_request_params
 
       resp = json_response(conn, 422)
@@ -144,6 +154,39 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
         |> get_in(["error", "invalid"])
         |> List.first()
         |> Map.get("entry")
+    end
+
+    test "with OWNER employee_type", %{conn: conn} do
+      insert(:il, :dictionary_phone_type)
+      employee_request_params =
+        "test/data/employee_request.json"
+        |> File.read!()
+        |> Poison.decode!()
+        |> put_in(["employee_request", "employee_type"], Employee.type(:owner))
+
+      employee_request_params = Map.put(
+        employee_request_params,
+        "employee_request",
+        Map.delete(employee_request_params["employee_request"], "doctor")
+      )
+
+      conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
+      conn1 = post conn, employee_request_path(conn, :create), employee_request_params
+
+      resp = json_response(conn1, 409)
+      assert Map.has_key?(resp, "error")
+      assert "Forbidden to create OWNER" == get_in(resp, ["error", "message"])
+
+      employee_request_params = put_in(
+        employee_request_params,
+        ["employee_request", "employee_type"],
+        Employee.type(:pharmacy_owner)
+      )
+
+      conn2 = post conn, employee_request_path(conn, :create), employee_request_params
+      resp = json_response(conn2, 409)
+      assert Map.has_key?(resp, "error")
+      assert "Forbidden to create PHARMACY_OWNER" == get_in(resp, ["error", "message"])
     end
 
     test "with non-existent foreign keys", %{conn: conn} do
@@ -266,23 +309,11 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
         |> Map.get("entry")
     end
 
-    test "with dismissed OWNER", %{conn: conn} do
-      legal_entity = insert(:prm, :legal_entity)
-      employee = insert(:prm, :employee, is_active: false, status: "APPROVED")
-      employee_request_params =
-        "test/data/employee_request.json"
-        |> File.read!()
-        |> Poison.decode!
-        |> put_in(["employee_request", "employee_id"], employee.id)
-      conn = put_client_id_header(conn, legal_entity.id)
-      conn = post conn, employee_request_path(conn, :create), employee_request_params
-      json_response(conn, 409)
-    end
-
-    test "with dismissed employee", %{conn: conn} do
+    test "with not active employee", %{conn: conn} do
+      party = insert(:prm, :party, tax_id: "3067305998")
       %{id: id, division: %{legal_entity_id: legal_entity_id}} =
         :prm
-        |> insert(:employee, status: "DISMISSED")
+        |> insert(:employee, status: "APPROVED", party: party, is_active: false)
         |> EHealth.PRMRepo.preload(:legal_entity)
       employee_request_params =
         "test/data/employee_request.json"
@@ -291,7 +322,24 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
         |> put_in(["employee_request", "employee_id"], id)
       conn = put_client_id_header(conn, legal_entity_id)
       conn = post conn, employee_request_path(conn, :create), employee_request_params
-      json_response(conn, 409)
+      assert json_response(conn, 404)
+    end
+
+    test "with dismissed employee", %{conn: conn} do
+      party = insert(:prm, :party, tax_id: "3067305998")
+      %{id: id, division: %{legal_entity_id: legal_entity_id}} =
+        :prm
+        |> insert(:employee, status: "DISMISSED", party: party)
+        |> EHealth.PRMRepo.preload(:legal_entity)
+      employee_request_params =
+        "test/data/employee_request.json"
+        |> File.read!()
+        |> Poison.decode!
+        |> put_in(["employee_request", "employee_id"], id)
+      conn = put_client_id_header(conn, legal_entity_id)
+      conn = post conn, employee_request_path(conn, :create), employee_request_params
+      resp = json_response(conn, 409)
+      assert "employee is dismissed" == get_in(resp, ["error", "message"])
     end
   end
 
