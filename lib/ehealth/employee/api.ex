@@ -153,9 +153,11 @@ defmodule EHealth.Employee.API do
     end
   end
   def create_or_update_employee(%Request{} = employee_request, req_headers) do
-    employee_request
-    |> EmployeeCreator.create(req_headers)
-    |> UserRoleCreator.create(req_headers)
+    with {:ok, employee} <- EmployeeCreator.create(employee_request, req_headers),
+         :ok <- UserRoleCreator.create(employee, req_headers)
+    do
+      {:ok, employee}
+    end
   end
   def create_or_update_employee(error, _), do: error
 

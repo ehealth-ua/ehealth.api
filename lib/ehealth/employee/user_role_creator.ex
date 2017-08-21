@@ -6,22 +6,22 @@ defmodule EHealth.Employee.UserRoleCreator do
   alias EHealth.API.Mithril
   alias EHealth.PRM.PartyUsers
   alias EHealth.PRM.PartyUsers.Schema, as: PartyUser
+  alias EHealth.PRM.Employees.Schema, as: Employee
 
   require Logger
 
-  def create({:ok, %{"data" => employee}} = data, headers) do
-    party_id = Map.fetch!(employee, "party_id")
-    client_id = Map.fetch!(employee, "legal_entity_id")
-    employee_type = Map.fetch!(employee, "employee_type")
+  def create(%Employee{} = employee, headers) do
+    party_id = employee.party_id
+    client_id = employee.legal_entity_id
+    employee_type = employee.employee_type
     with {:ok, party_users} <- PartyUsers.get_party_users_by_party_id(party_id),
          {:ok, roles} <- Mithril.get_roles_by_name(employee_type, headers),
          role_id <- find_role_id_by_employee_type(roles),
          :ok <- add_oauth_users_role(party_users, role_id, client_id, party_id, headers)
     do
-      data
+      :ok
     end
   end
-  def create(err, _headers), do: err
 
   def find_role_id_by_employee_type(%{"data" => []}) do
     {:error, :invalid_role}

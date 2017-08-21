@@ -90,7 +90,7 @@ defmodule EHealth.Employee.EmployeeCreator do
     |> deactivate_employees(employee.id, req_headers)
     {:ok, employee}
   end
-  def deactivate_employee_owners(err, _req_headers), do: {:ok, err}
+  def deactivate_employee_owners(%Employee{} = employee, _req_headers), do: {:ok, employee}
 
   def deactivate_employees({employees, _}, except_employee_id, headers) do
     Enum.each(employees, fn(%Employee{} = employee) ->
