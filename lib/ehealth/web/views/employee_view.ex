@@ -81,6 +81,8 @@ defmodule EHealth.Web.EmployeeView do
   defp render_association(map, %Division{} = division, key) do
     data = Map.take(division, ~w(
       id
+      name
+      status
       type
       legal_entity_id
       mountain_group
@@ -98,6 +100,7 @@ defmodule EHealth.Web.EmployeeView do
       status
       owner_property_type
       legal_form
+      mis_verified
     )a)
     Map.put(map, key, data)
   end

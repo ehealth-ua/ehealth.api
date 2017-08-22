@@ -7,7 +7,7 @@ defmodule EHealth.PRM.Divisions.Schema do
   schema "divisions" do
     field :email, :string
     field :external_id, :string
-    field :mountain_group, :boolean
+    field :mountain_group, :boolean, null: false
     field :name, :string
     field :addresses, {:array, :map}
     field :phones, {:array, :map}

@@ -1,0 +1,231 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "position": {
+      "type": "string"
+    },
+    "start_date": {
+      "type": "string"
+    },
+    "end_date": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "NEW",
+        "APPROVED",
+        "DISMISSED"
+      ]
+    },
+    "is_active": {
+      "type": "boolean"
+    },
+    "employee_type": {
+      "type": "string"
+    },
+    "party": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "first_name": {
+          "type": "string"
+        },
+        "last_name": {
+          "type": "string"
+        },
+        "second_name": {
+          "type": "string"
+        },
+        "birth_date": {
+          "type": "string"
+        },
+        "gender": {
+          "type": "string"
+        },
+        "tax_id": {
+          "type": "string"
+        },
+        "documents": {
+          "type": "array"
+        },
+        "phones": {
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "first_name",
+        "last_name",
+        "birth_date",
+        "gender"
+      ]
+    },
+    "doctor": {
+      "type": "object",
+      "properties": {
+        "educations": {
+          "type": "array",
+          "description": "освіта"
+        },
+        "qualifications": {
+          "type": "array"
+        },
+        "specialities": {
+          "type": "array"
+        },
+        "science_degree": {
+          "type": "object",
+          "properties": {
+            "country": {
+              "type": "string"
+            },
+            "city": {
+              "type": "string"
+            },
+            "degree": {
+              "type": "string"
+            },
+            "institution_name": {
+              "type": "string"
+            },
+            "diploma_number": {
+              "type": "string"
+            },
+            "speciality": {
+              "type": "string"
+            },
+            "issued_date": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "country",
+            "city",
+            "degree",
+            "institution_name",
+            "diploma_number",
+            "speciality"
+          ]
+        }
+      },
+      "required": [
+        "educations",
+        "specialities"
+      ]
+    },
+    "division": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "legal_entity_id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "clinic",
+            "ambulant_clinic",
+            "fap"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "ACTIVE",
+            "INACTIVE"
+          ]
+        },
+        "mountain_group": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "type",
+        "status"
+      ]
+    },
+    "legal_entity": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "short_name": {
+          "type": "string"
+        },
+        "public_name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "edrpou": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "ACTIVE",
+            "CLOSED"
+          ]
+        },
+        "mis_verified": {
+          "type": "string",
+          "enum": [
+            "VERIFIED",
+            "NOT_VERIFIED"
+          ]
+        },
+        "nhs_verified": {
+          "type": "boolean"
+        },
+        "owner_property_type": {
+          "type": "string"
+        },
+        "legal_form": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "short_name",
+        "public_name",
+        "type",
+        "edrpou",
+        "status",
+        "mis_verified",
+        "owner_property_type",
+        "legal_form"
+      ]
+    }
+  },
+  "required": [
+    "id",
+    "position",
+    "start_date",
+    "status",
+    "employee_type",
+    "party",
+    "division",
+    "legal_entity"
+  ],
+  "additionalProperties": false
+}

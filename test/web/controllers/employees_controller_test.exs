@@ -34,10 +34,16 @@ defmodule EHealth.Web.EmployeesControllerTest do
     insert(:prm, :employee, legal_entity: legal_entity, party: party)
     conn = put_client_id_header(conn, legal_entity_id)
     conn = get conn, employee_path(conn, :index)
-    resp = json_response(conn, 200)["data"]
-    employee = List.first(resp)
 
-    assert Map.has_key?(employee, "doctor")
+    schema =
+      "test/data/employee/list_response_schema.json"
+      |> File.read!()
+      |> Poison.decode!()
+
+    resp = json_response(conn, 200)["data"]
+    :ok = NExJsonSchema.Validator.validate(schema, resp)
+
+    employee = List.first(resp)
     refute Map.has_key?(employee["doctor"], "science_degree")
     refute Map.has_key?(employee["doctor"], "qualifications")
     refute Map.has_key?(employee["doctor"], "educations")
@@ -45,10 +51,6 @@ defmodule EHealth.Web.EmployeesControllerTest do
     refute Map.has_key?(employee, "inserted_by")
     refute Map.has_key?(employee, "updated_by")
     refute Map.has_key?(employee, "is_active")
-
-    assert is_map(employee["party"])
-    assert is_map(employee["division"])
-    assert is_map(employee["legal_entity"])
   end
 
   test "get employees by NHS ADMIN", %{conn: conn} do
@@ -115,21 +117,14 @@ defmodule EHealth.Web.EmployeesControllerTest do
 
       conn = put_client_id_header(conn, legal_entity.id)
       conn = get conn, employee_path(conn, :show, employee.id)
-      resp = json_response(conn, 200)
 
-      assert Map.has_key?(resp["data"], "party")
-      assert is_map(resp["data"]["party"])
+      schema =
+        "test/data/employee/show_response_schema.json"
+        |> File.read!()
+        |> Poison.decode!()
 
-      assert Map.has_key?(resp["data"], "division")
-      assert is_map(resp["data"]["division"])
-
-      assert Map.has_key?(resp["data"], "legal_entity")
-      assert is_map(resp["data"]["legal_entity"])
-
-      assert Map.has_key?(get_in(resp, ["data", "doctor"]), "educations")
-      assert Map.has_key?(get_in(resp, ["data", "doctor"]), "qualifications")
-      assert Map.has_key?(get_in(resp, ["data", "doctor"]), "specialities")
-      assert Map.has_key?(get_in(resp, ["data", "doctor"]), "science_degree")
+      resp = json_response(conn, 200)["data"]
+      :ok = NExJsonSchema.Validator.validate(schema, resp)
     end
 
     test "without division", %{conn: conn} do

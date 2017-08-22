@@ -1,0 +1,170 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string"
+      },
+      "position": {
+        "type": "string"
+      },
+      "employee_type": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "NEW",
+          "APPROVED",
+          "DISMISSED"
+        ]
+      },
+      "start_date": {
+        "type": "string"
+      },
+      "end_date": {
+        "type": "string"
+      },
+      "party": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "first_name": {
+            "type": "string"
+          },
+          "last_name": {
+            "type": "string"
+          },
+          "second_name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "first_name",
+          "last_name"
+        ]
+      },
+      "division": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "legal_entity_id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "clinic",
+              "ambulant_clinic",
+              "fap"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "INACTIVE"
+            ]
+          },
+          "mountain_group": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type",
+          "status"
+        ]
+      },
+      "legal_entity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "short_name": {
+            "type": "string"
+          },
+          "public_name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "edrpou": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "CLOSED"
+            ]
+          },
+          "mis_verified": {
+            "type": "string",
+            "enum": [
+              "VERIFIED",
+              "NOT_VERIFIED"
+            ]
+          },
+          "nhs_verified": {
+            "type": "boolean"
+          },
+          "owner_property_type": {
+            "type": "string"
+          },
+          "legal_form": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "short_name",
+          "public_name",
+          "type",
+          "edrpou",
+          "status",
+          "mis_verified",
+          "owner_property_type",
+          "legal_form"
+        ]
+      },
+      "doctor": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "specialities": {
+            "type": "array"
+          }
+        },
+        "required": [
+          "specialities"
+        ]
+      }
+    },
+    "required": [
+      "id",
+      "position",
+      "status",
+      "start_date"
+    ]
+  }
+}
