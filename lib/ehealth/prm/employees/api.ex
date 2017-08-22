@@ -73,7 +73,7 @@ defmodule EHealth.PRM.Employees do
     %Search{}
     |> changeset(params)
     |> search(params, Employee, Confex.get_env(:ehealth, :employees_per_page))
-    |> preload_relations(params)
+    |> preload_relations()
   end
 
   def update_all(query, updates) do
@@ -89,9 +89,12 @@ defmodule EHealth.PRM.Employees do
   end
 
   def update_employee(%Employee{} = employee, attrs, author_id) do
-    employee
-    |> changeset(attrs)
-    |> PRMRepo.update_and_log(author_id)
+    with {:ok, employee} <- employee
+                            |> changeset(attrs)
+                            |> PRMRepo.update_and_log(author_id)
+    do
+      {:ok, do_preload(employee)}
+    end
   end
 
   def get_search_query(Employee = entity, %{ids: _} = changes) do
@@ -133,16 +136,10 @@ defmodule EHealth.PRM.Employees do
   end
   defp validate_employee_type(changeset), do: changeset
 
-  def preload_relations({employees, %Ecto.Paging{} = paging}, params) when length(employees) > 0 do
-    {preload_relations(employees, params), paging}
+  defp preload_relations({employees, %Ecto.Paging{} = paging}) do
+    {do_preload(employees), paging}
   end
-  def preload_relations({:ok, employees}, params) do
-    {:ok, preload_relations(employees, params)}
-  end
-  def preload_relations(repo, %{"expand" => _}) when length(repo) > 0 do
-    do_preload(repo)
-  end
-  def preload_relations(err, _params), do: err
+  defp preload_relations(err), do: err
 
   defp do_preload(repo) do
     repo

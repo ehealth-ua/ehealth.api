@@ -260,7 +260,6 @@ defmodule EHealth.Employee.API do
   defp get_employees_search_params(params) do
     Map.merge(params, %{
       "is_active" => true,
-      "expand" => true,
     })
   end
 

@@ -4,7 +4,9 @@ defmodule EHealth.Web.EmployeesControllerTest do
   use EHealth.Web.ConnCase
   alias EHealth.MockServer
   alias EHealth.PRM.Employees.Schema, as: Employee
+  alias EHealth.PRM.Parties.Schema, as: Party
   alias Ecto.UUID
+  alias EHealth.PRMRepo
 
   test "gets only employees that have legal_entity_id == client_id", %{conn: conn} do
     legal_entity = insert(:prm, :legal_entity, id: UUID.generate())
@@ -78,7 +80,8 @@ defmodule EHealth.Web.EmployeesControllerTest do
     conn = get conn, employee_path(conn, :index, [tax_id: tax_id])
     resp = json_response(conn, 200)["data"]
     assert 1 == length(resp)
-    assert tax_id == hd(resp)["party"]["tax_id"]
+    party = PRMRepo.get(Party, resp |> hd() |> get_in(["party", "id"]))
+    assert tax_id == party.tax_id
   end
 
   test "search employees by invalid tax_id" do
