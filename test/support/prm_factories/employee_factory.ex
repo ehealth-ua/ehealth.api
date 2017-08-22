@@ -15,7 +15,7 @@ defmodule EHealth.PRMFactories.EmployeeFactory do
           status: "APPROVED",
           employee_type: "DOCTOR",
           end_date: ~D[2012-04-17],
-          start_date: ~D[2017-03-22],
+          start_date: ~D[2017-08-07],
           party: party,
           division: division,
           legal_entity_id: division.legal_entity.id,

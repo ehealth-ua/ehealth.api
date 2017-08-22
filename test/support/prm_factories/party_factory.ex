@@ -7,7 +7,7 @@ defmodule EHealth.PRMFactories.PartyFactory do
 
       def party_factory do
         %EHealth.PRM.Parties.Schema{
-          birth_date: ~D[1987-04-17],
+          birth_date: ~D[1991-08-19],
           documents: [
             %EHealth.PRM.Meta.Document{
               type: "NATIONAL_ID",

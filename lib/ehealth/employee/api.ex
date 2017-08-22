@@ -291,8 +291,10 @@ defmodule EHealth.Employee.API do
         }
       ]}
     else
-      with {:ok, employee} <- check_tax_id(params, employee),
-           {:ok, _employee} <- check_employee_type(params, employee),
+      with :ok <- check_tax_id(params, employee),
+           :ok <- check_employee_type(params, employee),
+           :ok <- check_birth_date(params, employee),
+           :ok <- check_start_date(params, employee),
            :ok <- validate_status_type(employee)
       do
         do_insert_employee_request(params)
@@ -325,17 +327,31 @@ defmodule EHealth.Employee.API do
   end
   def validate_status_type(_), do: :ok
 
-  def check_tax_id(%{"party" => %{"tax_id" => tax_id}}, employee) do
+  defp check_tax_id(%{"party" => %{"tax_id" => tax_id}}, employee) do
     case tax_id == employee |> Map.get(:party, %{}) |> Map.get(:tax_id) do
-      true -> {:ok, employee}
-      false -> {:error, {:conflict, "tax_id doens't match"}}
+      true -> :ok
+      false -> {:error, {:conflict, "tax_id doesn't match"}}
     end
   end
 
-  def check_employee_type(%{"employee_type" => employee_type}, employee) do
+  defp check_employee_type(%{"employee_type" => employee_type}, employee) do
     case employee_type == employee.employee_type do
-      true -> {:ok, employee}
-      false -> {:error, {:conflict, "employee_type doens't match"}}
+      true -> :ok
+      false -> {:error, {:conflict, "employee_type doesn't match"}}
+    end
+  end
+
+  defp check_birth_date(%{"party" => party}, employee) do
+    case Map.get(party, "birth_date") == to_string(employee.party.birth_date) do
+      true -> :ok
+      false -> {:error, {:conflict, "birth_date doesn't match"}}
+    end
+  end
+
+  defp check_start_date(%{"start_date" => start_date}, employee) do
+    case start_date == to_string(employee.start_date) do
+      true -> :ok
+      false -> {:error, {:conflict, "start_date doesn't match"}}
     end
   end
 
