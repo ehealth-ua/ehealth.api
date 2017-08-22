@@ -36,9 +36,9 @@ defmodule EHealth.Web.EmployeesControllerTest do
     employee = List.first(resp)
 
     assert Map.has_key?(employee, "doctor")
-    refute Map.has_key?(employee["doctor"], "science_degree")
-    refute Map.has_key?(employee["doctor"], "qualifications")
-    refute Map.has_key?(employee["doctor"], "educations")
+    assert Map.has_key?(employee["doctor"], "science_degree")
+    assert Map.has_key?(employee["doctor"], "qualifications")
+    assert Map.has_key?(employee["doctor"], "educations")
 
     refute Map.has_key?(employee, "inserted_by")
     refute Map.has_key?(employee, "updated_by")

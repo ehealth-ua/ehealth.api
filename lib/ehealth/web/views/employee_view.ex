@@ -62,7 +62,10 @@ defmodule EHealth.Web.EmployeeView do
       first_name: party.first_name,
       last_name: party.last_name,
       second_name: party.second_name,
+      birth_date: party.birth_date,
+      gender: party.gender,
       tax_id: party.tax_id,
+      documents: party.documents,
       phones: party.phones
     }
     Map.put(map, key, data)
@@ -93,6 +96,6 @@ defmodule EHealth.Web.EmployeeView do
   def render_association(map, _assoc, key, default), do: Map.put(map, key, default)
 
   defp render_doctor(map, info) do
-    Map.put(map, :doctor, Map.drop(info, ~w(science_degree qualifications educations)))
+    Map.put(map, :doctor, info)
   end
 end
