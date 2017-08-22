@@ -36,9 +36,9 @@ defmodule EHealth.Web.EmployeesControllerTest do
     employee = List.first(resp)
 
     assert Map.has_key?(employee, "doctor")
-    assert Map.has_key?(employee["doctor"], "science_degree")
-    assert Map.has_key?(employee["doctor"], "qualifications")
-    assert Map.has_key?(employee["doctor"], "educations")
+    refute Map.has_key?(employee["doctor"], "science_degree")
+    refute Map.has_key?(employee["doctor"], "qualifications")
+    refute Map.has_key?(employee["doctor"], "educations")
 
     refute Map.has_key?(employee, "inserted_by")
     refute Map.has_key?(employee, "updated_by")
@@ -122,6 +122,11 @@ defmodule EHealth.Web.EmployeesControllerTest do
 
       assert Map.has_key?(resp["data"], "legal_entity")
       assert is_map(resp["data"]["legal_entity"])
+
+      assert Map.has_key?(get_in(resp, ["data", "doctor"]), "educations")
+      assert Map.has_key?(get_in(resp, ["data", "doctor"]), "qualifications")
+      assert Map.has_key?(get_in(resp, ["data", "doctor"]), "specialities")
+      assert Map.has_key?(get_in(resp, ["data", "doctor"]), "science_degree")
     end
 
     test "without division", %{conn: conn} do

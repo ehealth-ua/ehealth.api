@@ -12,7 +12,22 @@ defmodule EHealth.Web.EmployeeView do
   @doctor Employee.type(:doctor)
 
   def render("index.json", %{employees: employees}) do
-    render_many(employees, __MODULE__, "employee.json")
+    render_many(employees, __MODULE__, "employee_list.json")
+  end
+
+  def render("employee_list.json", %{employee: employee}) do
+    %{
+      id: employee.id,
+      position: employee.position,
+      status: employee.status,
+      employee_type: employee.employee_type,
+      start_date: employee.start_date,
+      end_date: employee.end_date,
+    }
+    |> render_association(employee.party, :party, employee.party_id)
+    |> render_association(employee.division, :division, employee.division_id)
+    |> render_association(employee.legal_entity, :legal_entity, employee.legal_entity_id)
+    |> render_doctor_list(employee.additional_info)
   end
 
   def render("employee_short.json", %{"employee" => employee}) do
@@ -97,5 +112,9 @@ defmodule EHealth.Web.EmployeeView do
 
   defp render_doctor(map, info) do
     Map.put(map, :doctor, info)
+  end
+
+  defp render_doctor_list(map, info) do
+    Map.put(map, :doctor, %{"specialities" => Map.get(info, "specialities")})
   end
 end
