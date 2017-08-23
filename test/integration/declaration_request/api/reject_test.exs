@@ -34,18 +34,14 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.RejectTest do
       record  = simple_fixture(:declaration_request, "REJECTED")
       user_id = "fe98c21e-ba2f-4d60-8598-b0df6ec471bf"
 
-      {:error, %Ecto.Changeset{valid?: false} = changeset} = API.reject(record.id, user_id)
-
-      assert {"Incorrect status transition.", []} = changeset.errors[:status]
+      assert {:error, {:conflict, "Invalid transition"}} == API.reject(record.id, user_id)
     end
 
     test "rejecting record in SIGNED status" do
       record  = simple_fixture(:declaration_request, "SIGNED")
       user_id = "fe98c21e-ba2f-4d60-8598-b0df6ec471bf"
 
-      {:error, %Ecto.Changeset{valid?: false} = changeset} = API.reject(record.id, user_id)
-
-      assert {"Incorrect status transition.", []} = changeset.errors[:status]
+      assert {:error, {:conflict, "Invalid transition"}} == API.reject(record.id, user_id)
     end
   end
 end

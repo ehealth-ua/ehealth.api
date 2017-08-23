@@ -37,6 +37,10 @@ defmodule EHealth.DeclarationRequest.API do
     updated_by
   )a
 
+  @status_new DeclarationRequest.status(:new)
+  @status_rejected DeclarationRequest.status(:rejected)
+  @status_approved DeclarationRequest.status(:approved)
+
   def get_declaration_request_by_id!(id), do: get_declaration_request_by_id!(id, %{})
   def get_declaration_request_by_id!(id, nil), do: get_declaration_request_by_id!(id, %{})
   def get_declaration_request_by_id!(id, params) do
@@ -87,7 +91,11 @@ defmodule EHealth.DeclarationRequest.API do
          {:ok, %Division{} = division} <- Helpers.get_assoc_by_func("division_id",
                                             fn -> Divisions.get_division_by_id(attrs["division_id"]) end)
     do
-      updates = [status: "CANCELLED", updated_at: DateTime.utc_now(), updated_by: user_id]
+      updates = [
+        status: DeclarationRequest.status(:cancelled),
+        updated_at: DateTime.utc_now(),
+        updated_by: user_id
+      ]
       global_parameters = GlobalParameters.get_values()
 
       auxilary_entities = %{
@@ -116,13 +124,14 @@ defmodule EHealth.DeclarationRequest.API do
   end
 
   def reject(id, user_id) do
-    with %DeclarationRequest{} = declaration_request <- Repo.get(DeclarationRequest, id) do
-      declaration_request
-      |> change
-      |> put_change(:status, "REJECTED")
-      |> put_change(:updated_by, user_id)
-      |> validate_status_transition
-      |> Repo.update
+    with %DeclarationRequest{} = declaration_request <- Repo.get(DeclarationRequest, id),
+         updates <- declaration_request
+                    |> change
+                    |> put_change(:status, @status_rejected)
+                    |> put_change(:updated_by, user_id),
+         :ok <- validate_status_transition(updates)
+    do
+      Repo.update(updates)
     end
   end
 
@@ -131,21 +140,26 @@ defmodule EHealth.DeclarationRequest.API do
     {_, to} = fetch_field(changeset, :status)
 
     valid_transitions = [
-      {"NEW", "REJECTED"},
-      {"APPROVED", "REJECTED"}
+      {@status_new, @status_rejected},
+      {@status_approved, @status_rejected},
+      {@status_new, @status_approved},
     ]
 
     if {from, to} in valid_transitions do
-      changeset
+      :ok
     else
-      add_error(changeset, :status, "Incorrect status transition.")
+      {:error, {:conflict, "Invalid transition"}}
     end
   end
 
   def approve(id, verification_code, user_id) do
-    with declaration_request <- Repo.get!(DeclarationRequest, id) do
-      updates = update_changeset(declaration_request, %{status: "APPROVED", updated_by: user_id})
-
+    with declaration_request <- Repo.get!(DeclarationRequest, id),
+         updates <- update_changeset(declaration_request, %{
+           status: @status_approved,
+           updated_by: user_id
+         }),
+         :ok <- validate_status_transition(updates)
+    do
       Multi.new
       |> Multi.run(:verification, fn(_) -> Approve.verify(declaration_request, verification_code) end)
       |> Multi.update(:declaration_request, updates)
@@ -260,7 +274,7 @@ defmodule EHealth.DeclarationRequest.API do
     |> put_in_data("legal_entity", Create.prepare_legal_entity_struct(legal_entity))
     |> put_in_data("seed", "99bc78ba577a95a11f1a344d4d2ae55f2f857b98")
     |> put_change(:id, id)
-    |> put_change(:status, "NEW")
+    |> put_change(:status, @status_new)
     |> put_change(:inserted_by, user_id)
     |> put_change(:updated_by, user_id)
     |> Create.put_party_email()
@@ -312,14 +326,14 @@ defmodule EHealth.DeclarationRequest.API do
 
   def pending_declaration_requests(nil, employee_id, legal_entity_id) do
     from p in EHealth.DeclarationRequest,
-      where: p.status in ["NEW", "APPROVED"],
+      where: p.status in [@status_new, @status_approved],
       where: fragment("? #>> ? = ?", p.data, "{employee, id}", ^employee_id),
       where: fragment("? #>> ? = ?", p.data, "{legal_entity, id}", ^legal_entity_id)
   end
 
   def pending_declaration_requests(tax_id, employee_id, legal_entity_id) do
     from p in EHealth.DeclarationRequest,
-      where: p.status in ["NEW", "APPROVED"],
+      where: p.status in [@status_new, @status_approved],
       where: fragment("? #>> ? = ?", p.data, "{person, tax_id}", ^tax_id),
       where: fragment("? #>> ? = ?", p.data, "{employee, id}", ^employee_id),
       where: fragment("? #>> ? = ?", p.data, "{legal_entity, id}", ^legal_entity_id)

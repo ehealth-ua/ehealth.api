@@ -127,6 +127,29 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
   end
 
+  describe "approve declaration_request" do
+    test "approve NEW declaration_request", %{conn: conn} do
+      declaration_request = fixture(DeclarationRequest, fixture_params())
+
+      conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8602f2")
+      conn = patch conn, declaration_request_path(conn, :approve, declaration_request)
+
+      resp = json_response(conn, 200)
+      assert DeclarationRequest.status(:approved) == resp["data"]["status"]
+    end
+
+    test "approve APPROVED declaration_request", %{conn: conn} do
+      params = Map.put(fixture_params(), :status, DeclarationRequest.status(:approved))
+      declaration_request = fixture(DeclarationRequest, params)
+
+      conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8602f2")
+      conn = patch conn, declaration_request_path(conn, :approve, declaration_request)
+
+      resp = json_response(conn, 409)
+      assert "Invalid transition" == get_in(resp, ["error", "message"])
+    end
+  end
+
   describe "get declaration request by id" do
     test "get declaration request by invalid id", %{conn: conn} do
       conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8602f2")
@@ -386,7 +409,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       status: "NEW",
       inserted_by: uuid,
       updated_by: uuid,
-      authentication_method_current: %{},
+      authentication_method_current: %{"type" => "NA"},
       printout_content: "",
     }
   end
