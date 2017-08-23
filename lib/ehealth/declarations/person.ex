@@ -7,7 +7,8 @@ defmodule EHealth.Declarations.Person do
   @declaration_status_active "active"
 
   def get_person_declaration(person_id, headers) do
-    with {:ok, resp}        <- OPS.get_declarations(%{"person_id" => person_id, "is_active" => true}, headers),
+    query_params = %{"person_id" => person_id, "status" => "active", "is_active" => true}
+    with {:ok, resp}        <- OPS.get_declarations(query_params, headers),
          {:ok, declaration} <- check_declarations_amount(Map.fetch!(resp, "data")),
          {:ok, data}        <- expand_declaration_relations(declaration, headers),
          response           <- %{"meta" => Map.fetch!(resp, "meta"), "data" => data},
@@ -22,7 +23,6 @@ defmodule EHealth.Declarations.Person do
 
   # declarations more than one, return 400
   def check_declarations_amount(declarations) do
-
     decl_active = Enum.filter(declarations, fn (declaration) -> declaration["status"] == @declaration_status_active end)
     case length(decl_active) do
       1 -> {:ok, List.first(decl_active)}
