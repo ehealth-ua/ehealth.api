@@ -78,12 +78,14 @@ defmodule EHealth.DeclarationRequest.API do
     # TODO: double check user_id/client_id has access to create given employee/legal_entity
     with {:ok, attrs} <- Validations.validate_schema(attrs),
          {:ok, _} <- Validations.validate_addresses(get_in(attrs, ["person", "addresses"])),
-         %Employee{} = employee <- Employees.get_employee_by_id(attrs["employee_id"]),
+         {:ok, %Employee{} = employee} <- Helpers.get_assoc_by_func("employee_id",
+                                            fn -> Employees.get_employee_by_id(attrs["employee_id"]) end),
          %LegalEntity{} = legal_entity <- LegalEntities.get_by_id_preload(
-                                            client_id,
-                                            :medical_service_provider
-                                          ),
-         %Division{} = division <- Divisions.get_division_by_id(attrs["division_id"])
+           client_id,
+           :medical_service_provider
+           ),
+         {:ok, %Division{} = division} <- Helpers.get_assoc_by_func("division_id",
+                                            fn -> Divisions.get_division_by_id(attrs["division_id"]) end)
     do
       updates = [status: "CANCELLED", updated_at: DateTime.utc_now(), updated_by: user_id]
       global_parameters = GlobalParameters.get_values()
@@ -106,8 +108,9 @@ defmodule EHealth.DeclarationRequest.API do
       |> Multi.run(:urgent_data, &prepare_urgent_data/1)
       |> Repo.transaction
     else
-      nil -> {:error, [{%{description: "some of required properties was invalid", params: [],
-                          rule: :required}, "$.declaration_request"}]}
+      {:assoc_error, field} ->
+         {:error, [{%{description: "#{Helpers.from_filed_to_name(field)} not found", params: [],
+                          rule: :required}, "$.declaration_request.#{field}"}]}
       err -> err
     end
   end
