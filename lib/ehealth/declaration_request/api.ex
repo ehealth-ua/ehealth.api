@@ -248,7 +248,6 @@ defmodule EHealth.DeclarationRequest.API do
     |> validate_legal_entity_division(legal_entity, division)
     |> validate_patient_birth_date()
     |> validate_patient_age(Enum.map(specialities, &(&1["speciality"])), global_parameters["adult_age"])
-    |> validate_patient_phone_number()
     |> validate_authentication_method_phone_number()
     |> validate_tax_id()
     |> validate_person_addresses()

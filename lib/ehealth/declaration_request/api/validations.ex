@@ -16,20 +16,6 @@ defmodule EHealth.DeclarationRequest.API.Validations do
 
   use_schema :declaration_request, "specs/json_schemas/declaration_request_schema.json"
 
-  def validate_patient_phone_number(changeset) do
-    validate_change changeset, :data, fn :data, data ->
-      case get_in(data, ["person", "phones"]) do
-        nil ->
-          []
-
-        phones ->
-          phones
-          |> Enum.map(&(&1["number"]))
-          |> verify_phone_numbers()
-      end
-    end
-  end
-
   def validate_authentication_method_phone_number(changeset) do
     validate_change changeset, :data, fn :data, data ->
       data
