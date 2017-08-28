@@ -7,7 +7,7 @@ defmodule EHealth.Declarations.Person do
   @declaration_status_active "active"
 
   def get_person_declaration(person_id, headers) do
-    query_params = %{"person_id" => person_id, "status" => "active", "is_active" => true}
+    query_params = %{"person_id" => person_id, "status" => "active,pending_verification", "is_active" => true}
     with {:ok, resp}        <- OPS.get_declarations(query_params, headers),
          {:ok, declaration} <- check_declarations_amount(Map.fetch!(resp, "data")),
          {:ok, data}        <- expand_declaration_relations(declaration, headers),
