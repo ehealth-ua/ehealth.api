@@ -36,6 +36,7 @@ printout_content | varchar | not null
 documents | jsonb | not null
 inserted_at | timestamp | not null
 updated_at | timestamp | not null
+expired_at | timestamp | not null
 
 [declaration_log_changes]
 id | uuid | not null
@@ -106,6 +107,7 @@ status | enum('') | not null
 employee_id | uuid
 inserted_at | timestamp | not null
 updated_at | timestamp | not null
+expired_at | timestamp | not null
 
 [legal_entities]
 id | uuid | not null
