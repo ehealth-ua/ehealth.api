@@ -27,7 +27,8 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
       division: get_division(declaration_request),
       legal_entity: get_legal_entity(declaration_request),
       confidant_persons: check_confidant_persons(declaration_request),
-      authentication_method_current: get_authentication_method_current(authentication_method_current)
+      authentication_method_current: get_authentication_method_current(authentication_method_current),
+      declaration_id: Map.get(declaration_request, "declaration_id")
     }
   end
 

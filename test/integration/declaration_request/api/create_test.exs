@@ -193,7 +193,8 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         authentication_method_current: %{
           otp: true,
           offline: false
-        }
+        },
+        declaration_id: nil
       }
 
       assert printout_content == Poison.encode!(expected_content)
@@ -271,7 +272,8 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         authentication_method_current: %{
           otp: false,
           offline: false
-        }
+        },
+        declaration_id: nil
       }
 
       assert printout_content == Poison.encode!(expected_content)
