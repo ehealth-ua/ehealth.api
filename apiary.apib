@@ -1409,6 +1409,7 @@ Method returns shortened details, to obtain full information - get Declaration R
     + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
     + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
     + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
+    
 
 + Request (application/json)
 
@@ -1436,6 +1437,11 @@ Method returns shortened details, to obtain full information - get Declaration R
         + meta (Response__Meta)
             + code: 201 (number)
         + data (object)
+            + status: SIGNED (enum, optional)
+                - NEW
+                - APPROVED
+                - SIGNED
+                - CANCELLED
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
             + include `Declaration_Request_Public_Response`
             + employee (Employee_Minimal)
@@ -1472,6 +1478,7 @@ This method is used to create Declaration Request (as part of Declaration creati
             + code: 201 (number)
         + data (object)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + seed: hash (string, required)
             + include `Declaration_Request_Public_Response`
             + status: `NEW` (string, required)
             + employee (Employee_Minimal, required)
@@ -1529,8 +1536,9 @@ Clients can use signed URL's to directly access Google Cloud Storage via their A
             + code: 201 (number)
         + data (object)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + seed: hash (string, required)
             + include `Declaration_Request_Public_Response`
-            + status: `APPROVED` (string, required)
+            + status: `REJECTED` (string, required)
             + employee (Employee_Minimal, required)
             + `legal_entity` (`Medical_Service_Provider`, required)
                 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -1554,6 +1562,17 @@ Use this method to reject previously created Declaration Request.
     + Attributes (Response__Process_OK)
         + meta (Response__Meta)
             + code: 200 (number)
+        + data (object)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + seed: hash (string, required)
+            + include `Declaration_Request_Public_Response`
+            + status: `APPROVED` (string, required)
+            + employee (Employee_Minimal, required)
+            + `legal_entity` (`Medical_Service_Provider`, required)
+                + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + division (`Division_Details`, required)
+            + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
+
 
 ### Resend Authorization OTP on Declaration Request [POST /api/declaration_requests/{id}/actions/resend_otp]
 
@@ -1897,7 +1916,7 @@ Use this end-point to obtain all Employees of the legal entity specified by the 
 
 We suggest to use `status` filter to limit response size. Eg. you MAY want to list only active employees for everyones except HR's. Also it's a good idea to filter list by employee `type`.
 
-Method returns shortened details, to obtain full information - get Employee it by ID.
+Method returns shortened details (for DOCTOR and PHARMACIST - additional returns specialities information), to obtain full information - get Employee it by ID.
 
 + Parameters
     + tax_id: 3015492561 (string, optional)
@@ -2591,15 +2610,132 @@ Get list of cities by district
         + data (array[Drug])
         
 
+## Innms [/innms]        
+### Create Innm [POST]
+This method is used to update Innm. Fields descriptions are listed in request Example view.
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
+    + Attributes (object)
+       + `name`: `Аміодарон` (string, optional)
+       + `innm_identifier`: `Amiodarone` (string, optional)
+       
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `Innms_Short`
+
++ Response 409 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta)
+            + code: 409
+        + error
+            + type: unverified (string, required)
+            + message: `Dublicate innm!` (string, required)
+
+### Update Innm [PATCH /innm/{id}]
+This method is used to create Innm. Fields descriptions are listed in request Example view.
+
++ Parameters
+    + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
++ Request (application/json)
+
+    + Headers
+    
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
+    + Attributes (object)
+       + `name`: `Аміодарон` (string, optional)
+       + `innm_identifier`: `Amiodarone` (string, optional)
+        + `status`: `ACTIVE` (enum, optional). Default: ACTIVE
+            - ACTIVE
+            - INACTIVE
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `Innms_Short`
+
++ Response 409 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta)
+            + code: 409
+        + error
+            + type: unverified (string, required)
+            + message: `Dublicate innm!` (string, required)
+
+
 ## Requests for Medication Request [/api/requests_for_medication_request]
 
 [Request for Medication request]() is a life-cycle entity that is used to perform operations on [Medication requests]().
 
-After request for medication request is signed and/or verified (depends on verification logic) it will be automatically moved to [Medication requests]().
+After Request for Medication request is signed it will be automatically moved to [Medication requests]().
 
-### Qualify Request for Medication request [POST /api/requests_for_medication_request/actions/qualify]
+### Get Requests for Medication request List [GET /api/requests_for_medication_request{?employee_id,legal_entity_id,status,starting_after,ending_before,limit}]
 
-This method is used to qualify (possibility to use Innm for the program) Request for Medication request (as part of Medication request creation process). Fields descriptions are listed in request Example view.
+Use this method to obrain list of Requests for Medication request an `employee_id`. If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor is interested in current UI section.
+
+Also we suggest use `employee_id` and `legal_entity_id` to make sure that end-user understands context of actions that he or she will perform.
+
+Method returns shortened details, to obtain full information - get Request for Medication request it by it's ID.
+
++ Parameters
+    + `employee_id`: `7124259c-eeb1-4cbb-acac-ada2162675d1` (string, optional) - user_id of a doctor.
+    + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MSP ID.
+    + `status`: `NEW` (enum, optional). Default `NEW` 
+        - NEW
+        - SIGNED
+        - EXPIRED
+        - REJECTED
+    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
+    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
+    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (Response_Collection)
+        + data (array[`Request_for_Medication_request_Public_Response_short`]) 
+ 
+
+### Get Request for Medication request by ID [GET /api/requests_for_medication_request/{id}]
+
+Use this method to obrain full information of Request for Medication request an `id`.
+
++ Parameters
+    + id: `48416485-cc98-46c4-8bba-e321de9e1ecd` (string, required) - request id
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `Request_for_Medication_request_Public_Response`
+            + content: `Medication_request content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
+
+### Qualify Request for Medication request [POST /api/requests_for_medication_request/{id}/actions/qualify]
+
+This method is used to qualify data prescription (possibility to use Innm for the program) before creating Medication request. Fields descriptions are listed in request Example view.
 
 + Request (application/json)
 
@@ -2612,11 +2748,39 @@ This method is used to qualify (possibility to use Innm for the program) Request
             + include `Qualify_Request_for_Medication_request_post_data`
         + `programs` (array[`Qualify_Request_for_Medication_request_List_program_post_data`])
         
-+ Response 201 (application/json)
++ Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + meta (Response__Meta)
             + code: 201 (number)
         +  data (array[`Qualify_Request_for_Medication_request_Responce`]))
+
++ Response 422 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta)
+            + code: 422
+        + error
+            + type: unverified (string, required)
+            + message: `Only for active MPI record can create medication request!` (string, required)
+
+### Qualify Request for Medication request by ID [POST /api/requests_for_medication_request/qualify]
+
+This method is used to qualify (possibility to use Innm for the program) Request for Medication request by Id (as part of Medication request creation process). Fields descriptions are listed in request Example view.
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
+    + Attributes (object)
+        + `id` : `2848a935-5fd7-48ba-b235-a9b5d475c647` (string, required)
+        + `programs` (array[`Qualify_Request_for_Medication_request_List_program_post_data`])
+        
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        +  data (array[`Qualify_by_ID_Request_for_Medication_request_Responce`]))
 
 + Response 422 (application/json)
     + Attributes (Response_Error)
@@ -2644,15 +2808,7 @@ This method is used to create Request for Medication request (as part of Medicat
         + meta (Response__Meta)
             + code: 201 (number)
         + data (object)
-            + `request_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + `status`: `NEW` (string, required)
             + include `Request_for_Medication_request_Public_Response`
-            + `legal_entity` (`Legal_Entity_Short`, required)
-                + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + `division` (`Division_Details`, required)
-            + `employee` (Employee_Minimal, required)
-            + `person` (`Person_Short`)            
-            + `innm` (`Innm_for_Medication_request_Responce`, required)
             + content: `Medication_request content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
 
 + Response 422 (application/json)
@@ -2697,6 +2853,24 @@ Invoke Get Request for Medication request by ID to obtain seed - Hash of previou
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + data (`Medication_request_Public_Response_short`)
+
+### Reject Request for Medication Request [PATCH /api/requests_for_medication_request/{id}/actions/reject]
+
+Use this method to reject previously created Request for medication request.
+
++ Parameters
+    + `id`: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 200 (number)
 
 
 
@@ -2779,7 +2953,6 @@ Invoke Get Request for Medication request by ID to obtain seed - Hash of previou
     - object (string) - `data` attribute is a JSON object.
     - list (string) - `data` attribute is a list.
 + code: 200 (number) - HTTP response code.
-+ `idempotency_key`: `idemp-ssjssdjoa8308u0us0` (string, optional) - [Idempotency key](http://docs.apimanifest.apiary.io/#introduction/optional-features/idempotent-requests). Send it trough `X-Idempotency-Key` header.
 + `request_id`: `req-adasdoijasdojsda` (string) - [Request ID](http://docs.apimanifest.apiary.io/#introduction/interacting-with-api/request-id). Send it with `X-Request-ID` header.
 
 ### `Response__Error`
@@ -3147,7 +3320,6 @@ Invoke Get Request for Medication request by ID to obtain seed - Hash of previou
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
 + status: NEW, APPROVED, DISMISSED (enum, required)
-+ is_active: true (boolean, required)
 + `employee_type`: DOCTOR (string, required) - `Dictionary EMPLOYEE_TYPE`
 + party (Party_Response)
 + doctor (DoctorNew, optional)
@@ -3330,7 +3502,6 @@ Invoke Get Request for Medication request by ID to obtain seed - Hash of previou
     - ambulant_clinic
     - fap
 + external_id: `3213213` (string, optional)
-+ location (Location, optional)
 
 ### `Division_Details`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -3358,7 +3529,7 @@ Invoke Get Request for Medication request by ID to obtain seed - Hash of previou
 + status: ACTIVE (enum, required)
     - ACTIVE
     - INACTIVE
-+ mountain_group: `group1` (string, optional)
++ mountain_group: false (boolean, optional)
 
 ### `crud_division_post`
 + include `Division`
@@ -3369,7 +3540,7 @@ Invoke Get Request for Medication request by ID to obtain seed - Hash of previou
 + status: ACTIVE (enum, required)
     - ACTIVE
     - INACTIVE
-+ mountain_group: `group1` (string, optional)
++ mountain_group: false (boolean, optional)
 
 ## `Owners`
 ### `Owner`
@@ -3862,6 +4033,8 @@ Invoke Get Request for Medication request by ID to obtain seed - Hash of previou
 + `dosage_instruction`: `Інструкція: приймати 2 рази на день, за 1-ну годину до прийому їжі.` (string) - Instruction for use medication
 
 ### `Request_for_Medication_request_Public_Response`
++ `request_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ `status`: `NEW` (string, required)
 + `receipt_number_public_key` : `xxxxTBD` (string) - Public key of receipt number
 + `receipt_period_type`: 30DAYS (string, required) - `Dictionary RECEIPT_PERIOD_TYPE`
 + `receipt_age_type`: ADULT (string, required) - `Dictionary RECEIPT_AGE_TYPE`
@@ -3870,8 +4043,31 @@ Invoke Get Request for Medication request by ID to obtain seed - Hash of previou
 + `ended_at`: `2017-09-16` (string, required) - Medication request end date
 + `dispence_valid_from`: `2017-08-17` (string, required) - Medication dispence valid start date
 + `dispence_valid_to`: `2017-09-16` (string, required) - Medication dispence valid end date
++ `legal_entity` (`Legal_Entity_Short`, required)
+    + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ `division` (`Division_Details`, required)
++ `employee` (Employee_Minimal, required)
++ `person` (`Person_Short`)            
++ `innm` (`Innm_for_Medication_request_Responce`, required)
 + `note`: `За зверненням паціента. Симптоми слабковиражені` (string) - Note for receipt
 + `dosage_instruction`: `Інструкція: приймати 2 рази на день, за 1-ну годину до прийому їжі.` (string) - Instruction for use medication
+
+### `Request_for_Medication_request_Public_Response_short`
++ `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ `status`: `NEW` (string, required)
++ `receipt_number_public_key` : `xxxxTBD` (string) - Public key of receipt number
++ `receipt_period_type`: 30DAYS (string, required) - `Dictionary RECEIPT_PERIOD_TYPE`
++ `receipt_age_type`: ADULT (string, required) - `Dictionary RECEIPT_AGE_TYPE`
++ `created_at`: `2017-08-17` (string, required) - Medication request created date
++ `started_at`: `2017-08-17` (string, required) - Medication request start date
++ `ended_at`: `2017-09-16` (string, required) - Medication request end date
++ `dispence_valid_from`: `2017-08-17` (string, required) - Medication dispence valid start date
++ `dispence_valid_to`: `2017-09-16` (string, required) - Medication dispence valid end date
++ `person_id`: `5fb57a5d-1457-430e-9678-c81cec72779f` (string, required)
++ `legal_entity_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ `division_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ `employee_id`: `73769751-f84c-44b4-bdba-71b77efa204e` (string, required)
++ `innm` (`Innm_for_Medication_request_Responce`, required)
 
 ### `Medication_request_Public_Response_short`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -3894,6 +4090,8 @@ Invoke Get Request for Medication request by ID to obtain seed - Hash of previou
 + `program`: `DOSTUPNI LIKI` (string,required) - `Medical program code. Dictionary MEDICAL_PROGRAM`
 
 ### `Qualify_Request_for_Medication_request_post_data`
++ `started_at`: `2017-03-17` (string, required) - Medication request start date
++ `ended_at`: `2017-04-17` (string, required) - Medication request finish date
 + `person_id`: `585044f5-1272-4bca-8d41-8440eefe7d26` (string, required) - Person ID
 + `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Employee ID with `type=DOCTOR` selected from available Employees as a third contract party.
 + `innm` (`Innm_for_Medication_request`,required) 
@@ -3906,3 +4104,15 @@ Invoke Get Request for Medication request by ID to obtain seed - Hash of previou
 + `status` : `VALID` (enum, required) - Status for ability use program for this Medication request
     - VALID
     - INVALID
++ `invalid_reason` : ` Innm not on the list of approved innms for program 'DOSTUPNI LIKI' !` (string) - Reason to fetch invalid status
+
+### `Qualify_by_ID_Request_for_Medication_request_Responce`
++ `program`: `DOSTUPNI LIKI` (string, required) - `Medical program code. Dictionary MEDICAL_PROGRAM`
++ `program_name` : `Програма "Доступні ліки"`(string, required)
++ `valid_from`: `2017-01-17` (string, required) - Medication program valid start date
++ `valid_to`: `2099-12-31` (string, required) - Medication program valid finish date
++ `status` : `VALID` (enum, required) - Status for ability use program for this Medication request
+    - VALID
+    - INVALID
++ `invalid_reason` : ` Innm not on the list of approved innms for program 'DOSTUPNI LIKI' !` (string) - Reason to fetch invalid status
++ `reimbursement_amount` : `0` (number, required) - Amount of reimbursement
