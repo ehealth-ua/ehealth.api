@@ -253,6 +253,7 @@ defmodule EHealth.DeclarationRequest.API do
     attrs = Map.drop(attrs, ["employee_id", "division_id"])
 
     id = UUID.generate()
+    declaration_id = UUID.generate()
 
     %EHealth.DeclarationRequest{id: id}
     |> cast(%{data: attrs}, [:data])
@@ -271,7 +272,9 @@ defmodule EHealth.DeclarationRequest.API do
     |> put_in_data("division", Create.prepare_division_struct(division))
     |> put_in_data("legal_entity", Create.prepare_legal_entity_struct(legal_entity))
     |> put_in_data("seed", "99bc78ba577a95a11f1a344d4d2ae55f2f857b98")
+    |> put_in_data("declaration_id", declaration_id)
     |> put_change(:id, id)
+    |> put_change(:declaration_id, declaration_id)
     |> put_change(:status, @status_new)
     |> put_change(:inserted_by, user_id)
     |> put_change(:updated_by, user_id)

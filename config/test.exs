@@ -75,7 +75,8 @@ config :ehealth, EHealth.Repo,
   password: "postgres",
   database: "ehealth_test",
   hostname: "localhost",
-  pool: Ecto.Adapters.SQL.Sandbox
+  pool: Ecto.Adapters.SQL.Sandbox,
+  ownership_timeout: 120_000_000
 
 config :ehealth, EHealth.PRMRepo,
   adapter: Ecto.Adapters.Postgres,
@@ -84,4 +85,5 @@ config :ehealth, EHealth.PRMRepo,
   database: "prm_test",
   hostname: "localhost",
   pool: Ecto.Adapters.SQL.Sandbox,
-  types: EHealth.PRM.PostgresTypes
+  types: EHealth.PRM.PostgresTypes,
+  ownership_timeout: 120_000_000

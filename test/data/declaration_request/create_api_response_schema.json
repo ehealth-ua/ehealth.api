@@ -196,6 +196,9 @@
     "seed": {
       "type": "string"
     },
+    "declaration_id": {
+      "type": "string"
+    },
     "legal_entity": {
       "additionalProperties": false,
       "properties": {
@@ -723,6 +726,7 @@
     "employee",
     "scope",
     "seed",
+    "declaration_id",
     "legal_entity",
     "status",
     "id"
