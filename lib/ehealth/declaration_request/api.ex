@@ -184,9 +184,7 @@ defmodule EHealth.DeclarationRequest.API do
         end
 
       "OFFLINE" ->
-        documents_list = Helpers.gather_documents_list(declaration_request.data["person"])
-
-        case Create.generate_upload_urls(declaration_request.id, documents_list) do
+        case Images.generate_links(declaration_request, ["PUT"]) do
           {:ok, documents} ->
             declaration_request
             |> update_changeset(%{documents: documents})
@@ -365,7 +363,7 @@ defmodule EHealth.DeclarationRequest.API do
   def images(id) do
     id
     |> get_declaration_request_by_id!()
-    |> Images.generate_links()
+    |> Images.generate_links(["GET"])
   end
 
   def terminate_declaration_requests do

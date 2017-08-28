@@ -20,6 +20,7 @@ defmodule EHealth.API.MediaStorage do
       "bucket" => bucket,
       "resource_id" => resource_id,
       "resource_name" => resource_name,
+      "content_type" => MIME.from_path(resource_name)
     }}
     create_signed_url(data, headers)
   end
