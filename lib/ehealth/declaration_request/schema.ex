@@ -27,7 +27,7 @@ defmodule EHealth.DeclarationRequest do
     field :printout_content, :string
     field :inserted_by, Ecto.UUID
     field :updated_by, Ecto.UUID
-    field :declaration_id, Ecto.UUID, virtual: true
+    field :declaration_id, Ecto.UUID, default: Ecto.UUID.generate()
 
     timestamps()
   end

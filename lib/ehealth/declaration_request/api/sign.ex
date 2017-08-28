@@ -81,11 +81,6 @@ defmodule EHealth.DeclarationRequest.API.Sign do
   end
   def check_drfo(err), do: err
 
-  def put_declaration_id({:ok, {content, db_data}}) do
-    {:ok, {content, Map.put(db_data, :declaration_id, Ecto.UUID.generate())}}
-  end
-  def put_declaration_id(err), do: err
-
   defp find_employee(employees, employee_id) do
     Enum.find(employees, fn(employee) -> employee_id == employee.id end)
   end
