@@ -52,56 +52,52 @@ defmodule EHealth.DeclarationRequest.API.HelpersTest do
       person = %{
         "tax_id" => "some_id",
         "documents" => [
-          %{ "type" => "A" },
-          %{ "type" => "B" },
-          %{ "type" => "C" }
+          %{"type" => "A"},
+          %{"type" => "B"},
+          %{"type" => "C"},
+          %{"type" => "BIRTH_CERTIFICATE"},
         ],
         "confidant_person" => [
           %{
             "tax_id" => "some_id",
             "relation_type" => "XXX",
             "documents_person" => [
-              %{ "type" => "A1" },
-              %{ "type" => "A2" },
-              %{ "type" => "A3" }
+              %{"type" => "A1"},
+              %{"type" => "A2"},
+              %{"type" => "A3"}
             ],
             "documents_relationship" => [
-              %{ "type" => "B1" },
-              %{ "type" => "B2" },
+              %{"type" => "B1"},
+              %{"type" => "B2"},
+              %{"type" => "BIRTH_CERTIFICATE"},
             ]
           },
           %{
             "relation_type" => "YYY",
             "documents_person" => [
-              %{ "type" => "X1" },
-              %{ "type" => "X2" },
-              %{ "type" => "X3" }
+              %{"type" => "X1"},
+              %{"type" => "X2"},
+              %{"type" => "X3"}
             ],
             "documents_relationship" => [
-              %{ "type" => "Y1" },
-              %{ "type" => "Y2" },
+              %{"type" => "Y1"},
+              %{"type" => "Y2"},
             ]
           }
         ]
       }
 
-      [
-        "confidant_person.1.YYY.X1",
-        "confidant_person.1.YYY.X2",
-        "confidant_person.1.YYY.X3",
+      assert [
         "confidant_person.1.YYY.RELATIONSHIP.Y1",
         "confidant_person.1.YYY.RELATIONSHIP.Y2",
-        "confidant_person.0.XXX.SSN",
-        "confidant_person.0.XXX.A1",
-        "confidant_person.0.XXX.A2",
-        "confidant_person.0.XXX.A3",
         "confidant_person.0.XXX.RELATIONSHIP.B1",
         "confidant_person.0.XXX.RELATIONSHIP.B2",
         "person.SSN",
         "person.A",
         "person.B",
-        "person.C"
-      ] = gather_documents_list(person)
+        "person.C",
+        "person.BIRTH_CERTIFICATE"
+      ] == gather_documents_list(person)
     end
   end
 end

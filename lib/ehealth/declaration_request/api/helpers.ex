@@ -32,24 +32,32 @@ defmodule EHealth.DeclarationRequest.API.Helpers do
   end
 
   def gather_documents_list(person) do
-    p_docs = if person["tax_id"], do: ["person.SSN"], else: []
-    p_docs = p_docs ++ Enum.map(person["documents"], &"person.#{&1["type"]}")
+    person_documents = if person["tax_id"], do: ["person.SSN"], else: []
+    person_documents = person_documents ++ Enum.map(person["documents"], &"person.#{&1["type"]}")
+    has_birth_certificate = Enum.reduce_while(person["documents"], false, fn(document, acc) ->
+      if document["type"] == "BIRTH_CERTIFICATE", do: {:halt, true}, else: {:cont, acc}
+    end)
 
     person
     |> Map.get("confidant_person", [])
     |> Enum.with_index
-    |> Enum.reduce(p_docs, fn {cp, idx}, acc ->
-        tax_id = if cp["tax_id"], do: ["confidant_person.#{idx}.#{cp["relation_type"]}.SSN"], else: []
+    |> Enum.reduce({person_documents, has_birth_certificate}, &gather_confidant_documents/2)
+    |> elem(0)
+  end
 
-        person_docs = Enum.map cp["documents_person"], fn doc ->
-          "confidant_person.#{idx}.#{cp["relation_type"]}.#{doc["type"]}"
+  defp gather_confidant_documents({cp, idx}, {documents, has_birth_certificate}) do
+    confidant_documents =
+      cp["documents_relationship"]
+      |> Enum.reduce([], fn doc, acc ->
+        # skip BIRTH_CERTIFICATE if it was already added in person documents
+        if doc["type"] == "BIRTH_CERTIFICATE" && has_birth_certificate do
+          acc
+        else
+          ["confidant_person.#{idx}.#{cp["relation_type"]}.RELATIONSHIP.#{doc["type"]}" | acc]
         end
-
-        relationship_docs = Enum.map cp["documents_relationship"], fn doc ->
-          "confidant_person.#{idx}.#{cp["relation_type"]}.RELATIONSHIP.#{doc["type"]}"
-        end
-
-        tax_id ++ person_docs ++ relationship_docs ++ acc
-       end)
+      end)
+      |> Enum.reverse
+      |> Kernel.++(documents)
+    {confidant_documents, has_birth_certificate}
   end
 end

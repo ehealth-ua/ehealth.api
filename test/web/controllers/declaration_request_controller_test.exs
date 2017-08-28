@@ -313,14 +313,6 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
           "type" => "confidant_person.0.PRIMARY.RELATIONSHIP.COURT_DECISION",
           "url" => "http://a.link.for/#{id}/declaration_request_confidant_person.0.PRIMARY.RELATIONSHIP.COURT_DECISION.jpeg"
         },
-        %{
-          "type" => "confidant_person.0.PRIMARY.PASSPORT",
-          "url" => "http://a.link.for/#{id}/declaration_request_confidant_person.0.PRIMARY.PASSPORT.jpeg"
-        },
-        %{
-          "type" => "confidant_person.0.PRIMARY.SSN",
-          "url" => "http://a.link.for/#{id}/declaration_request_confidant_person.0.PRIMARY.SSN.jpeg"
-        }
       ]
       assert expected_result == result
     end

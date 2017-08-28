@@ -381,14 +381,6 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
           "type" => "confidant_person.0.PRIMARY.RELATIONSHIP.COURT_DECISION",
           "url" => "http://some_resource.com/#{id}/declaration_request_confidant_person.0.PRIMARY.RELATIONSHIP.COURT_DECISION.jpeg"
         },
-        %{
-          "type" => "confidant_person.0.PRIMARY.PASSPORT",
-          "url" => "http://some_resource.com/#{id}/declaration_request_confidant_person.0.PRIMARY.PASSPORT.jpeg"
-        },
-        %{
-          "type" => "confidant_person.0.PRIMARY.SSN",
-          "url" => "http://some_resource.com/#{id}/declaration_request_confidant_person.0.PRIMARY.SSN.jpeg"
-        }
       ] == resp["urgent"]["documents"]
     end
 
