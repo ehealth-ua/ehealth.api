@@ -392,7 +392,7 @@ This method to update the declaration request status.
     + Attributes (Response_OK)
         + data (array[`crud_Declaration_request_get`])
 
-### Get Declaration documents list [GET /declarations/{id}/documents]
+### Get Declaration images list [GET /declarations/{id}/images]
 Service to get list of signed URLs with the read access for all the documents attached to the declaration request using declaration identifier
 
 + Parameters
@@ -2238,6 +2238,13 @@ List consists of legal entities with parameter `is_active = true`.
                 - NOT_VERIFIED
                 - VERIFIED
             + `nhs_verified`: false (boolean, required)
+            + is_active: true (boolean, required)
+            + inserted_by: `A65C8369-CE3A-44D6-839B-8856E3DC4CA3` (string, required)
+            + inserted_at: `2005-10-30 10:45` (string, required) - timestamp
+            + created_by_mis_client_id:  `A65C8369-CE3A-44D6-839B-8856E3DC4CA3` (string, required)
+            + updated_at: `1991-08-19T00:00:00.000Z` (string, required)
+            + updated_by: `userid` (string, required)
+        + urgent (object, optional)
             + security (object)
                 + `secret_key`: `secret_key` (string, required)
                 + `client_id`: `client_id` (string, required)
@@ -2386,6 +2393,12 @@ Signed content MUST consists of JSON object with Legal Entity data:
                 - NOT_VERIFIED
                 - VERIFIED
             + `nhs_verified`: false (boolean, required)
+            + is_active: true (boolean, required)
+            + inserted_by: `A65C8369-CE3A-44D6-839B-8856E3DC4CA3` (string, required)
+            + inserted_at: `2005-10-30 10:45` (string, required) - timestamp
+            + created_by_mis_client_id:  `A65C8369-CE3A-44D6-839B-8856E3DC4CA3` (string, required)
+            + updated_at: `1991-08-19T00:00:00.000Z` (string, required)
+            + updated_by: `userid` (string, required)
         + urgent (object, optional)
             + security (object)
                 + `secret_key`: `secret_key` (string, required)
@@ -2412,7 +2425,13 @@ Available transition:
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + data (object)
-            + include `Legal_Entity_Short`
+            + include `Legal_Entity_Request_Public_Short`
+            + is_active: true (boolean, required)
+            + inserted_by: `A65C8369-CE3A-44D6-839B-8856E3DC4CA3` (string, required)
+            + inserted_at: `2005-10-30 10:45` (string, required) - timestamp
+            + created_by_mis_client_id:  `A65C8369-CE3A-44D6-839B-8856E3DC4CA3` (string, required)
+            + updated_at: `1991-08-19T00:00:00.000Z` (string, required)
+            + updated_by: `userid` (string, required)
             
 
 ### Verify Legal Entity by NHS [PATCH /api/legal_entities/{id}/actions/nhs_verify]
