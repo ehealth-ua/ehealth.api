@@ -2199,8 +2199,22 @@ List consists of legal entities with parameter `is_active = true`.
     + Attributes (Response_Collection)
         + data (array)
             + (object)
-                + include `Legal_Entity_Short`
-
+                + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+                + updated_at: `1991-08-19T00:00:00.000Z` (string, required)
+                + updated_by: `userid` (string, required)
+                + include `Legal_Entity_Request_Public_Short`
+                + status: ACTIVE (enum, required)
+                    - ACTIVE
+                    - CLOSED
+                + `mis_verified`: NOT_VERIFIED (enum, required)
+                    - NOT_VERIFIED
+                    - VERIFIED
+                + `nhs_verified`: false (boolean, required)
+                + is_active: true (boolean, required)
+                + inserted_by: `A65C8369-CE3A-44D6-839B-8856E3DC4CA3` (string, required)
+                + inserted_at: `2005-10-30 10:45` (string, required) - timestamp
+                + created_by_mis_client_id:  `A65C8369-CE3A-44D6-839B-8856E3DC4CA3` (string, required)
+                
 ### Get Legal Entity by ID [GET /api/legal_entities/{id}]
 
 + Parameters
@@ -2614,7 +2628,7 @@ Get list of cities by district
 
 ## Innms [/innms]        
 ### Create Innm [POST]
-This method is used to update Innm. Fields descriptions are listed in request Example view.
+This method is used to create Innm. Fields descriptions are listed in request Example view.
 
 + Request (application/json)
 
@@ -2643,7 +2657,7 @@ This method is used to update Innm. Fields descriptions are listed in request Ex
             + message: `Dublicate innm!` (string, required)
 
 ### Update Innm [PATCH /innm/{id}]
-This method is used to create Innm. Fields descriptions are listed in request Example view.
+This method is used to update Innm. Fields descriptions are listed in request Example view.
 
 + Parameters
     + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -2676,6 +2690,35 @@ This method is used to create Innm. Fields descriptions are listed in request Ex
             + type: unverified (string, required)
             + message: `Dublicate innm!` (string, required)
 
+## Medications [/medications] 
+### Create Medication [POST]
+This method is used to create Medications. Fields descriptions are listed in request Example view.
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
+    + Attributes (object)
+       + `name`: `Аміодарон` (string, optional)
+       + `innm_identifier`: `Amiodarone` (string, optional)
+       
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `Innms_Short`
+
++ Response 409 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta)
+            + code: 409
+        + error
+            + type: unverified (string, required)
+            + message: `Dublicate innm!` (string, required)
 
 ## Requests for Medication Request [/api/requests_for_medication_request]
 
