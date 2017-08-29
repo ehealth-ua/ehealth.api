@@ -15,8 +15,14 @@ elixir:
   - 1.4.2
 otp_release:
   - 19.2
+notifications:
+  slack: 
+    rooms:
+      - secure: secure: "MAZDwNhuRd9NtHMrbVjKwjMZdAACrdKIcJwzNdORnowmYja11WruAOdtjC6N/dlIAlL1vJRlA0BXswg3M44uqt3zHXY7e3JPMfVDpLUH8b/CwdRhNK7N/CnSse7kZ5P7v8AVXk567Jm84b7fhJzGZkobRhT/R2hdPMHA/M50cOObUzY62ZEucROyvuwuDhmJYaZoUGK6X2tOpmxBtf1RQm5rVNFZWXhhtyupn/m2Hy8meTFdEdEyGoCQYtI8BCuD9Pa5XKWwZ28b38ws9ZlKV/kiDpwq0Uz1k+SKlzpo7zVZkEbdCHJF/e6JnetRmpm6i05zQdzMqc3gCC09rbZMlCoSTtcRvGZmE94YaOKd24qJK504ZJzl8PnkaUA3JXVUo4PpZqiA71sBPBe15qpnoURPMqzYKeqTHrNlhYXNBVibncl09OSSSNxBOgH0n2uqeTLS2ZXVpHUEUw6OQ8yQ6tR63qnW27xxSesewxZWvoKDOt1HLkhYAaRR4p/UOI4ae0iyUwAIBvuSH0gviqethMQ+vUWNDlI7bL7CTkiBGCApkHJPL5bPoJIE00LyuA2K7KBJsuv4ojzQ23K4zYaHTNG+7Z/nriePcJFoox1JY74apPf0VQrrPs6nxv6g6mXn9riuaU9g3jUyFwTEKUgd9FfrIHgFHZpV1jF9isByUGY="
+    on_success: always
 env:
   global:
+    - Chart=il
     - MIX_ENV=test
     - DOCKER_HUB_ACCOUNT=edenlabllc
     - MAIN_BRANCHES="master" # Branches on which you want version to be incremented
@@ -28,6 +34,7 @@ branches:
     - /[0-9]*\.[0-9]*\.[0-9]*/
 before_install:
   # Expose DB to Docker container
+  - openssl aes-256-cbc -K $encrypted_74297677c3da_key -iv $encrypted_74297677c3da_iv -in eHealth-eef414faa06b.json.enc -out eHealth-eef414faa06b.json -d
   - sudo ./bin/ci/init-db.sh
 script:
   # Increment version in mix.exs
@@ -42,17 +49,13 @@ script:
   # Check code style
   - mix dogma
   # Build Docker container
-  - ./bin/build.sh
+  - ./bin/build.sh || travis_terminate 1
   # Initialize DB for Docker container
   - MIX_ENV=dev mix ecto.setup
   # Run Docker container
-  - ./bin/start.sh
-  - sleep 5
-  - docker ps
-  - RUNNING_CONTAINERS=`docker ps | wc -l`;
-  - if [ "${RUNNING_CONTAINERS//[[:space:]]/}" == "1" ]; then echo "[E] Container is not started\!"; docker logs ehealth --details --since 5h; exit 1; fi;
-after_failure:
-  - docker logs ehealth --details --since 5h
-after_success:
-  # Submit Docker container to Docker Hub and create GitHub Release by pushing tag with changelog
-  - ./bin/ci/push.sh
+  - sudo ./bin/start.sh || travis_terminate 1
+    # Submit Docker container to Docker Hub and create GitHub Release by pushing tag with changelog
+  - ./bin/ci/push.sh || travis_terminate 1
+  # CD to Dev
+  - sudo ./bin/deploy.sh || travis_terminate 1
+
