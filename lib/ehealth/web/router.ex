@@ -123,6 +123,10 @@ defmodule EHealth.Web.Router do
 
     # User roles
     get "/user/roles", UserRoleController, :index
+
+    # Global parameters
+    get "/global_parameters", GlobalParameterController, :index
+    put "/global_parameters", GlobalParameterController, :create_or_update
   end
 
   scope "/internal", EHealth.Web do
