@@ -117,6 +117,9 @@ defmodule EHealth.DeclarationRequest.API.Sign do
   def check_employee_id(err, _headers), do: err
 
   def store_signed_content({:ok, {_, db_data} = data}, input, headers) do
+    Logger.info(fn -> """
+    db_data: #{inspect db_data}
+    """ end)
     input
     |> Map.fetch!("signed_declaration_request")
     |> MediaStorage.store_signed_content(:declaration_bucket, Map.fetch!(db_data, :declaration_id), headers)
