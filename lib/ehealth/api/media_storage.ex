@@ -49,7 +49,7 @@ defmodule EHealth.API.MediaStorage do
   end
 
   def put_signed_content({:ok, %{"data" => data}}, signed_content) do
-    headers = [{"Content-Type", ""}]
+    headers = [{"Content-Type", "application/octet-stream"}]
     content = Base.decode64!(signed_content, [ignore: :whitespace, padding: false])
 
     data
