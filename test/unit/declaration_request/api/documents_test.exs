@@ -1,8 +1,8 @@
-defmodule EHealth.Unit.DeclarationRequest.API.ImagesTest do
+defmodule EHealth.Unit.DeclarationRequest.API.DocumentsTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase
-  import EHealth.DeclarationRequest.API.Images
+  import EHealth.DeclarationRequest.API.Documents
 
   describe "render_links/3" do
     defmodule UploadingFiles do

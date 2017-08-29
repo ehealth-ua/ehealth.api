@@ -1,4 +1,4 @@
-defmodule EHealth.DeclarationRequest.API.Images do
+defmodule EHealth.DeclarationRequest.API.Documents do
   @moduledoc false
 
   alias EHealth.DeclarationRequest
