@@ -270,6 +270,7 @@ defmodule EHealth.Unit.ValidatorTest do
     assert {:ok, _} = Validator.validate_legal_entity({:ok, %{"data" => %{"content" => content}}})
   end
 
+  @tag :pending
   test "base64 decode signed_content with white spaces" do
     signed_content = File.read!("test/data/signed_content_whitespace.txt")
     data = {:ok, %{"data" => %{"secret_url" => "http://localhost:4040/signed_url_test"}}}
