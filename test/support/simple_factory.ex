@@ -1,6 +1,7 @@
 defmodule EHealth.SimpleFactory do
   @moduledoc false
 
+  alias Ecto.UUID
   alias EHealth.Repo
   alias EHealth.PRMRepo
   alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
@@ -57,7 +58,7 @@ defmodule EHealth.SimpleFactory do
  end
 
   def declaration_request do
-    uuid = Ecto.UUID.generate
+    uuid = UUID.generate
     %DeclarationRequest{
       data: %{},
       status: "",
@@ -65,6 +66,7 @@ defmodule EHealth.SimpleFactory do
       updated_by: uuid,
       authentication_method_current: %{},
       printout_content: "",
+      declaration_id: UUID.generate,
     }
     |> Repo.insert!()
   end
@@ -84,7 +86,7 @@ defmodule EHealth.SimpleFactory do
     %LegalEntity{
       "is_active": true,
       "addresses": [%{
-        "settlement_id" => Ecto.UUID.generate()
+        "settlement_id" => UUID.generate()
       }],
       "inserted_by": "026a8ea0-2114-11e7-8fae-685b35cd61c2",
       "edrpou": rand_edrpou(),

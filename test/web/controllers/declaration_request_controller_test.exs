@@ -5,11 +5,12 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
 
   import EHealth.SimpleFactory
 
+  alias Ecto.UUID
   alias EHealth.DeclarationRequest
 
   describe "list declaration requests" do
     test "no legal_entity_id match", %{conn: conn} do
-      legal_entity_id = Ecto.UUID.generate()
+      legal_entity_id = UUID.generate()
       Enum.map(1..2, fn _ ->
         fixture(DeclarationRequest, fixture_params())
       end)
@@ -21,8 +22,8 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
 
     test "match by legal_entity_id", %{conn: conn} do
-      legal_entity_id = Ecto.UUID.generate()
-      employee_id = Ecto.UUID.generate()
+      legal_entity_id = UUID.generate()
+      employee_id = UUID.generate()
       params =
         fixture_params()
         |> put_in([:data, :employee, :id], employee_id)
@@ -39,8 +40,8 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
 
     test "no employee_id match", %{conn: conn} do
-      legal_entity_id = Ecto.UUID.generate()
-      employee_id = Ecto.UUID.generate()
+      legal_entity_id = UUID.generate()
+      employee_id = UUID.generate()
       params =
         fixture_params()
         |> put_in([:data, :legal_entity, :id], legal_entity_id)
@@ -55,8 +56,8 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
 
     test "match by employee_id", %{conn: conn} do
-      legal_entity_id = Ecto.UUID.generate()
-      employee_id = Ecto.UUID.generate()
+      legal_entity_id = UUID.generate()
+      employee_id = UUID.generate()
       params =
         fixture_params()
         |> put_in([:data, :legal_entity, :id], legal_entity_id)
@@ -72,7 +73,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
 
     test "no status match", %{conn: conn} do
-      legal_entity_id = Ecto.UUID.generate()
+      legal_entity_id = UUID.generate()
       params =
         fixture_params()
         |> put_in([:data, :legal_entity, :id], legal_entity_id)
@@ -87,7 +88,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
 
     test "match by status", %{conn: conn} do
-      legal_entity_id = Ecto.UUID.generate()
+      legal_entity_id = UUID.generate()
       status = "ACTIVE"
       params =
         fixture_params()
@@ -104,8 +105,8 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
 
     test "match by legal_entity_id, employee_id, status", %{conn: conn} do
-      legal_entity_id = Ecto.UUID.generate()
-      employee_id = Ecto.UUID.generate()
+      legal_entity_id = UUID.generate()
+      employee_id = UUID.generate()
       status = "ACTIVE"
       params =
         fixture_params()
@@ -154,13 +155,13 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     test "get declaration request by invalid id", %{conn: conn} do
       conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8602f2")
       assert_raise Ecto.NoResultsError, fn ->
-        get conn, declaration_request_path(conn, :show, Ecto.UUID.generate())
+        get conn, declaration_request_path(conn, :show, UUID.generate())
       end
     end
 
     test "get declaration request by invalid legal_entity_id", %{conn: conn} do
       %{id: id} = fixture(DeclarationRequest, fixture_params())
-      conn = put_client_id_header(conn, Ecto.UUID.generate)
+      conn = put_client_id_header(conn, UUID.generate)
       assert_raise Ecto.NoResultsError, fn ->
         get conn, declaration_request_path(conn, :show, id)
       end
@@ -198,14 +199,14 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
 
     test "when declaration request id is invalid", %{conn: conn} do
-      conn = put_client_id_header(conn, Ecto.UUID.generate)
+      conn = put_client_id_header(conn, UUID.generate)
       assert_raise Ecto.NoResultsError, fn ->
-        post conn, declaration_request_path(conn, :resend_otp, Ecto.UUID.generate())
+        post conn, declaration_request_path(conn, :resend_otp, UUID.generate())
       end
     end
 
     test "when declaration request status is not NEW", %{conn: conn} do
-      conn = put_client_id_header(conn, Ecto.UUID.generate)
+      conn = put_client_id_header(conn, UUID.generate)
 
       params =
         fixture_params()
@@ -227,7 +228,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
 
     test "when declaration request auth method is not OTP", %{conn: conn} do
-      conn = put_client_id_header(conn, Ecto.UUID.generate)
+      conn = put_client_id_header(conn, UUID.generate)
 
       params =
         fixture_params()
@@ -249,7 +250,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
 
     test "when declaration request fields are correct", %{conn: conn} do
-      conn = put_client_id_header(conn, Ecto.UUID.generate)
+      conn = put_client_id_header(conn, UUID.generate)
 
       params =
         fixture_params()
@@ -264,7 +265,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
   end
 
-  describe "get images" do
+  describe "get documents" do
     defmodule MediaContentStorageMock do
       use MicroservicesHelper
 
@@ -293,16 +294,16 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       :ok
     end
 
-    test "when declaration request id is invalid", %{conn: conn} do
+    test "when declaration id is invalid", %{conn: conn} do
       assert_raise Ecto.NoResultsError, fn ->
-        get conn, declaration_request_path(conn, :images, Ecto.UUID.generate())
+        get conn, declaration_request_path(conn, :documents, UUID.generate())
       end
     end
 
-    test "when declaration request id is valid", %{conn: conn} do
-      %{id: id} = fixture(DeclarationRequest, fixture_params())
+    test "when declaration id is valid", %{conn: conn} do
+      %{id: id, declaration_id: declaration_id} = fixture(DeclarationRequest, fixture_params())
 
-      conn = get conn, declaration_request_path(conn, :images, id)
+      conn = get conn, declaration_request_path(conn, :documents, declaration_id)
       result = json_response(conn, 200)["data"]
       expected_result = [
         %{
@@ -319,14 +320,14 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
   end
 
   defp fixture_params do
-    uuid = Ecto.UUID.generate()
+    uuid = UUID.generate()
     %{
       data: %{
-        id: Ecto.UUID.generate(),
+        id: UUID.generate(),
         start_date: "2017-03-02",
         end_date: "2017-03-02",
         person: %{
-          id: Ecto.UUID.generate(),
+          id: UUID.generate(),
           first_name: "Петро",
           last_name: "Іванов",
           second_name: "Миколайович",
@@ -369,10 +370,10 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
           ]
         },
         employee: %{
-          id: Ecto.UUID.generate(),
+          id: UUID.generate(),
           position: "P6",
           party: %{
-            id: Ecto.UUID.generate(),
+            id: UUID.generate(),
             first_name: "Петро",
             last_name: "Іванов",
             second_name: "Миколайович",
@@ -386,14 +387,14 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
           },
         },
         legal_entity: %{
-          id: Ecto.UUID.generate(),
+          id: UUID.generate(),
           name: "Клініка Борис",
           short_name: "Борис",
           legal_form: "140",
           edrpou: "5432345432",
         },
         division: %{
-          id: Ecto.UUID.generate(),
+          id: UUID.generate(),
           name: "Бориспільське відділення Клініки Борис",
           type: "CLINIC",
         }
@@ -403,6 +404,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       updated_by: uuid,
       authentication_method_current: %{"type" => "NA"},
       printout_content: "",
+      declaration_id: UUID.generate()
     }
   end
 

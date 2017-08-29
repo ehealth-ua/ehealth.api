@@ -22,7 +22,7 @@ defmodule EHealth.DeclarationRequest.API do
   alias EHealth.DeclarationRequest.API.Validations
   alias EHealth.DeclarationRequest.API.Sign
   alias EHealth.DeclarationRequest.API.ResendOTP
-  alias EHealth.DeclarationRequest.API.Images
+  alias EHealth.DeclarationRequest.API.Documents
   alias EHealth.Utils.Phone
 
   require Logger
@@ -40,6 +40,13 @@ defmodule EHealth.DeclarationRequest.API do
   @status_new DeclarationRequest.status(:new)
   @status_rejected DeclarationRequest.status(:rejected)
   @status_approved DeclarationRequest.status(:approved)
+
+  def get_declaration_request_by_declaration_id!(declaration_id) do
+    query = from dr in DeclarationRequest,
+      where: dr.declaration_id == ^declaration_id
+
+    Repo.one!(query)
+  end
 
   def get_declaration_request_by_id!(id), do: get_declaration_request_by_id!(id, %{})
   def get_declaration_request_by_id!(id, nil), do: get_declaration_request_by_id!(id, %{})
@@ -184,7 +191,7 @@ defmodule EHealth.DeclarationRequest.API do
         end
 
       "OFFLINE" ->
-        case Images.generate_links(declaration_request, ["PUT"]) do
+        case Documents.generate_links(declaration_request, ["PUT"]) do
           {:ok, documents} ->
             declaration_request
             |> update_changeset(%{documents: documents})
@@ -363,10 +370,10 @@ defmodule EHealth.DeclarationRequest.API do
     |> ResendOTP.init_otp(headers)
   end
 
-  def images(id) do
-    id
-    |> get_declaration_request_by_id!()
-    |> Images.generate_links(["GET"])
+  def documents(declaration_id) do
+    declaration_id
+    |> get_declaration_request_by_declaration_id!()
+    |> Documents.generate_links(["GET"])
   end
 
   def terminate_declaration_requests do

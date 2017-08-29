@@ -52,7 +52,7 @@ defmodule EHealth.Web.Router do
 
     patch "/uaddresses/settlements/:id", UaddressesController, :update_settlements
 
-    get "/declaration_requests/:id/images", DeclarationRequestController, :images
+    get "/declarations/:id/documents", DeclarationRequestController, :documents
   end
 
   # Client context for lists

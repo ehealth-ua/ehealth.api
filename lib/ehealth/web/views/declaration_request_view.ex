@@ -47,14 +47,14 @@ defmodule EHealth.Web.DeclarationRequestView do
     }
   end
 
-  def render("images.json", %{images: images}) do
-    render_many(images, __MODULE__, "image.json")
+  def render("documents.json", %{documents: documents}) do
+    render_many(documents, __MODULE__, "document.json")
   end
 
-  def render("image.json", %{declaration_request: image}) do
+  def render("document.json", %{declaration_request: document}) do
     %{
-      type: Map.get(image, "type"),
-      url: Map.get(image, "url")
+      type: Map.get(document, "type"),
+      url: Map.get(document, "url")
     }
   end
 end
