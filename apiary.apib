@@ -392,7 +392,7 @@ This method to update the declaration request status.
     + Attributes (Response_OK)
         + data (array[`crud_Declaration_request_get`])
 
-### Get Declaration documents list [GET /declarations/{id}/documents]
+### Get Declaration images list [GET /declarations/{id}/images]
 Service to get list of signed URLs with the read access for all the documents attached to the declaration request using declaration identifier
 
 + Parameters
@@ -2214,7 +2214,7 @@ List consists of legal entities with parameter `is_active = true`.
                 + inserted_by: `A65C8369-CE3A-44D6-839B-8856E3DC4CA3` (string, required)
                 + inserted_at: `2005-10-30 10:45` (string, required) - timestamp
                 + created_by_mis_client_id:  `A65C8369-CE3A-44D6-839B-8856E3DC4CA3` (string, required)
-                
+
 ### Get Legal Entity by ID [GET /api/legal_entities/{id}]
 
 + Parameters
@@ -2519,6 +2519,7 @@ This method to create the division info by ID.
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
+        + data (`crud_division_get`)
 
 ### Activate division [PATCH /api/divisions/{id}/actions/activate]
 + Parameters
@@ -2526,6 +2527,7 @@ This method to create the division info by ID.
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
+        + data (`crud_division_get`)
 
 ## UAdresses [/api/uaddresses]
 API for searching Ukrainian Addresses
@@ -2720,16 +2722,17 @@ This method is used to create Medications. Fields descriptions are listed in req
             Authorization: Bearer mF_9.B5f-4.1JqM
 
     + Attributes (object)
-       + `name`: `Аміодарон` (string, optional)
-       + `innm_identifier`: `Amiodarone` (string, optional)
-       
+       + include (`Medication_post`, required) 
+        + `ingridients` (array[`Ingridient_post`])
+
 
 + Response 201 (application/json)
     + Attributes (Response__Process_OK)
         + meta (Response__Meta)
             + code: 201 (number)
         + data (object)
-            + include `Innms_Short`
+            + include `Medication_Response`
+            + `ingridients` (array[`Ingridient_Response`])            
 
 + Response 409 (application/json)
     + Attributes (Response_Error)
@@ -3545,7 +3548,6 @@ Use this method to reject previously created Request for medication request.
 
 ## `Divisions`
 ### `Division`
-+ `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + name: Бориспільське відділення Клініки Борис (string, required)
 + addresses (array[Address], required)
 + phones (array[Phone], required)
@@ -3967,13 +3969,16 @@ Use this method to reject previously created Request for medication request.
 
 ### `Response_Settlement`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string) - Settlement ID
++ region_id: `99310bc4-ac7c-4f1f-bc29-b3ae25bd96bc` (string)
 + region: Київ (string) -  Region name
 + district: `Києво-Святошинський` (string) - District name
++ district_id: `99310bc4-ac7c-4f1f-bc29-b3ae25bd96bc` (string)
 + settlement_name: Новосілки (string) - City name
 + mountain_group: 0 (string) - Mountain group
 + type: `С` (string, optional) - Settlement type
 + koatuu: 3520380802 (string, optional) - KOATUU code
 + parent_settlement: Берегово (string, optional) - Parent settlement name
++ parent_settlement_id: `99310bc4-ac7c-4f1f-bc29-b3ae25bd96bc` (string)
 
 ### `Response_Region`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string) - Region ID
@@ -3987,6 +3992,7 @@ Use this method to reject previously created Request for medication request.
 ### `Response_District`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string) - District ID
 + region: Київ (string) -  Region name
++ region_id: `c4c0f907-8b60-483e-bbf6-dfb34ab91574` (string)
 + district: `Києво-Святошинський` (string) - District name
 + koatuu: 3520380802 (string, optional) - KOATUU code
 
@@ -4047,25 +4053,37 @@ Use this method to reject previously created Request for medication request.
 + `package_qty`: 30 (number, required)
 + `package_min_qty`: 10 (number, required)
 
+### `Dosage_drug_post`
++ `numerator_unit`: MG (string, required) - `Dictionary MEDICATION_UNIT`
++ `numerator_value`: 0.05 (number, required)
++ `denumerator_unit`: PILL (string, required) - `Dictionary MEDICATION_UNIT`
++ `denumerator_value`: 1 (number, required)
+
 ### `Dosage_drug`
 + `numerator_unit`: MG (string, required) - `Dictionary MEDICATION_UNIT`
 + `numerator_value`: 0.05 (number, required)
 + `denumerator_unit`: PILL (string, required) - `Dictionary MEDICATION_UNIT`
 + `denumerator_value`: 1 (number, required)
-+ `description`: `0.05MG/1PILL`
++ `description`: `0.05MG/1PILL` (string)
+
+### `Dosage_container_post`
++ `numerator_unit`: PILL (string, required) - `Dictionary MEDICATION_UNIT`
++ `numerator_value`: 1 (number, required)
++ `denumerator_unit`: PILL (string, required) - `Dictionary MEDICATION_UNIT`
++ `denumerator_value`: 1 (number, required)
 
 ### `Dosage_container`
 + `numerator_unit`: PILL (string, required) - `Dictionary MEDICATION_UNIT`
 + `numerator_value`: 1 (number, required)
 + `denumerator_unit`: PILL (string, required) - `Dictionary MEDICATION_UNIT`
 + `denumerator_value`: 1 (number, required)
-+ `description`: `1PILL*1PILL`
++ `description`: `1PILL*1PILL` (string)
 
 ### `Innm_for_Medication_request`
 + include `Innms_id`
 + `route`: PILL (string, required) - `Dictionary MEDICATION_ROUTE`
-+ `dosage` (`Dosage_drug`, required)
-+ `container_dosage` (`Dosage_container`, required)
++ `dosage` (`Dosage_drug_post`, required)
++ `container_dosage` (`Dosage_container_post`, required)
 + `request_qty`: 10 (number, required)
 
 ### `Innm_for_Medication_request_Responce`
@@ -4074,6 +4092,46 @@ Use this method to reject previously created Request for medication request.
 + `dosage` (`Dosage_drug`, required)
 + `container_dosage` (`Dosage_container`, required)
 + `request_qty`: 10 (number, required)
+
+### `Medication_manufacturer_info`
++ `name` : `ПАТ "Київський вітамінний завод"` (string, required) 
++ `country` : `UA` (string, required) - `Dictionary COUNTRY`
+
+### `Ingridient_post`
++ `innm_id` : `1349a693-4db1-4a3f-9ac6-8c2f9e541982` (string, required)
++ `dosage` (`Dosage_drug_post`, required)
++ `is_active_is_active_substance` : `true` (boolean, required) 
+
+### `Ingridient_Response`
++ `innm` (`Innms_Short`, required)
++ `dosage` (`Dosage_drug`, required)
++ `is_active_is_active_substance` : `true` (boolean, required) 
+
+### `Medication_post`
++ `name` : `Амідарон` (string, required) 
++ `start_at` : `2017-07-27` (string, required) - start date medication
++ `route` :  PILL (string, required) - `Dictionary MEDICATION_ROUTE`
++ `container_dosage` (`Dosage_container_post`, required)
++ `package_qty` : 30 (number, required)
++ `package_min_qty`: 10 (number, required)
++ `code_ATX` : `С01BD01` (string, required)
++ `manufacturer_name_country` (`Medication_manufacturer_info`)
++ `certificate` : `UA/4514/01/01` (string, required)
++ `expired_certificate_date` : `2021-02-09` (string, required)
+
+### `Medication_Response`
++ `id` : `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required) 
++ `name` : `Амідарон` (string, required) 
++ `start_at` : `2017-07-27` (string, required) - start date medication
++ `route` :  PILL (string, required) - `Dictionary MEDICATION_ROUTE`
++ `container_dosage` (`Dosage_container`, required)
++ `package_qty` : 30 (number, required)
++ `package_min_qty`: 10 (number, required)
++ `code_ATX` : `С01BD01` (string, required)
++ `manufacturer_name_country` (`Medication_manufacturer_info`)
++ `certificate` : `UA/4514/01/01` (string, required)
++ `expired_certificate_date` : `2021-02-09` (string, required)
+
 
 ## `Request for Medication request`
 ### `Request_for_Medication_request_post_data`
