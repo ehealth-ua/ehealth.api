@@ -149,12 +149,6 @@ defmodule EHealth.MockServer do
     Plug.Conn.send_resp(conn, 200, resp)
   end
 
-  # Ael
-
-  put "signed_url_test" do
-    Plug.Conn.send_resp(conn, 200, "http://example.com?signed_url=true")
-  end
-
   # Man
 
   post "/templates/:id/actions/render" do

@@ -117,6 +117,30 @@ defmodule EHealth.Unit.ValidatorTest do
     "is_active" => true,
   }
 
+  defmodule AelMockServer do
+    use Plug.Router
+
+    plug :match
+    plug Plug.Parsers, parsers: [:octetstream]
+    plug :dispatch
+
+    Plug.Router.put "/signed_url_test" do
+      Plug.Conn.send_resp(conn, 200, "http://example.com?signed_url=true")
+    end
+  end
+
+  setup %{conn: conn} do
+    {:ok, port, ref} = start_microservices(AelMockServer)
+
+    System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:#{port}")
+    on_exit fn ->
+      System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:4040")
+      stop_microservices(ref)
+    end
+
+    {:ok, %{conn: conn}}
+  end
+
   test "JSON schema dictionary enum validate LEGAL_ENTITY_TYPE", %{conn: conn} do
     patch conn, dictionary_path(conn, :update, "LEGAL_ENTITY_TYPE"), @legal_entity_type
 
@@ -270,12 +294,11 @@ defmodule EHealth.Unit.ValidatorTest do
     assert {:ok, _} = Validator.validate_legal_entity({:ok, %{"data" => %{"content" => content}}})
   end
 
-  @tag :pending
   test "base64 decode signed_content with white spaces" do
     signed_content = File.read!("test/data/signed_content_whitespace.txt")
-    data = {:ok, %{"data" => %{"secret_url" => "http://localhost:4040/signed_url_test"}}}
+    data = {:ok, %{"data" => %{"secret_url" => "#{System.get_env("MEDIA_STORAGE_ENDPOINT")}/signed_url_test"}}}
 
-    assert {:ok, "http://example.com?signed_url=true"} == MediaStorage.put_signed_content(data, signed_content)
+    assert {:ok, "http://example.com?signed_url=true"} == MediaStorage.put_signed_content(data, signed_content, true)
   end
 
   test "validate address building" do
