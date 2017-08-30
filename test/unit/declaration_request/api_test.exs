@@ -51,7 +51,8 @@ defmodule EHealth.DeclarationRequest.APITest do
       "documents" => [],
       "printout_content" => "Some fake content",
       "inserted_by" => Ecto.UUID.generate(),
-      "updated_by" => Ecto.UUID.generate()
+      "updated_by" => Ecto.UUID.generate(),
+      "declaration_id" => Ecto.UUID.generate()
     }
 
     allowed =

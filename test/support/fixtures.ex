@@ -15,6 +15,7 @@ defmodule EHealth.Test.Support.Fixtures do
       status: status,
       inserted_by: Ecto.UUID.generate(),
       updated_by: Ecto.UUID.generate(),
+      declaration_id: Ecto.UUID.generate(),
       authentication_method_current: %{"type" => authentication_method_current_type},
       printout_content: ""
     })
