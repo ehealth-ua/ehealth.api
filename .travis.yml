@@ -55,7 +55,7 @@ script:
   # Run Docker container
   - sudo ./bin/start.sh || travis_terminate 1
     # Submit Docker container to Docker Hub and create GitHub Release by pushing tag with changelog
-  - ./bin/ci/push.sh || travis_terminate 1
+  - ./bin/ci/push.sh
   # CD to Dev
   - sudo ./bin/deploy.sh || travis_terminate 1
 
