@@ -36,6 +36,7 @@ printout_content | varchar | not null
 documents | jsonb | not null
 inserted_at | timestamp | not null
 updated_at | timestamp | not null
+declaration_id | uuid | not null
 expired_at | timestamp | not null
 
 [declaration_log_changes]
