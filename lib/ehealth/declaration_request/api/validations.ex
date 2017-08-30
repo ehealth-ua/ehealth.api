@@ -150,7 +150,7 @@ defmodule EHealth.DeclarationRequest.API.Validations do
   end
   def check_is_valid({:ok, %{"data" => %{"is_valid" => true}}} = data), do: data
   def check_is_valid({:error, error}) do
-    {:error, {:bad_request, error}}
+    {:error, error}
   end
 
   def validate_tax_id(changeset) do
