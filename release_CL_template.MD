@@ -27,6 +27,8 @@
 - [ ] Mithril config
   - [ ] client_types - add/update if any changes.
   - [ ] roles - add/update if any changes.
+  - [ ] user_roles - for admin fronts
+  - [ ] clients for mithril.admin, nhs.admin, uaddresses.admin
   - [ ] tokens - generate new tokens with new scopes in case if new endpoints are released
   - [ ] approvals - generate or copy MIS approvals
 - [ ] man templates - add/update if any. IDs should be the same
