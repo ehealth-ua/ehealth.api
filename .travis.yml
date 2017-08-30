@@ -39,19 +39,8 @@ before_install:
 script:
   # Increment version in mix.exs
   - ./bin/ci/version-increment.sh || travis_terminate 1
-  # Run all tests except pending ones
-  - mix test --exclude pending --trace
-  # Submit code coverage report to Coveralls
-  # Add --pro if you using private repo.
-  - mix coveralls.travis --exclude pending || travis_terminate 1
-  # Run static code analysis
-  - mix credo --strict || travis_terminate 1
-  # Check code style
-  - mix dogma || travis_terminate 1
-  # Build Docker container
-  - ./bin/build.sh || travis_terminate 1
-  # Initialize DB for Docker container
-  - MIX_ENV=dev mix ecto.setup
+  - ./bin/mix_tests.sh || travis_terminate 1
+  - MIX_ENV=dev mix ecto.setup || travis_terminate 1
   # Run Docker container
   - sudo ./bin/start.sh || travis_terminate 1
     # Submit Docker container to Docker Hub and create GitHub Release by pushing tag with changelog
