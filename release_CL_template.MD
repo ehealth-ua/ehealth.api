@@ -30,3 +30,4 @@
   - [ ] tokens - generate new tokens with new scopes in case if new endpoints are released
   - [ ] approvals - generate or copy MIS approvals
 - [ ] man templates - add/update if any. IDs should be the same
+- [ ] DS - migrate certificates
