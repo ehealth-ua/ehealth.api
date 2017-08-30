@@ -22,6 +22,7 @@ defmodule EHealth.API.MediaStorage do
       "resource_name" => resource_name,
       "content_type" => MIME.from_path(resource_name)
     }}
+    Logger.info(fn -> inspect data end)
     create_signed_url(data, headers)
   end
 
