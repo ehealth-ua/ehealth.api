@@ -95,7 +95,7 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
     documents = Map.get(data, key)
     case is_list(documents) do
       true -> documents |> List.first() |> take_fields(["type", "number"]) |> update_document_type()
-      _ -> %{}
+      _ -> %{"type" => "", "number" => ""}
     end
   end
 
@@ -109,12 +109,12 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
     residence_address = Enum.find(addresses, fn(address) -> Map.get(address, "type") == "RESIDENCE" end)
 
     full_registration_address = case registration_address do
-      nil -> %{}
+      nil -> ""
       address -> AddressMerger.merge_address(address)
     end
 
     full_residence_address = case residence_address do
-      nil -> %{}
+      nil -> ""
       address -> AddressMerger.merge_address(address)
     end
 
@@ -132,7 +132,7 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
     phones = Map.get(data, "phones")
     case is_list(phones) do
       true -> phones |> List.first() |> take_fields(["number"])
-      _ -> %{}
+      _ -> %{"number" => ""}
     end
   end
 
@@ -207,12 +207,12 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
     registration_address = Enum.find(addresses, fn(address) -> Map.get(address, "type") == "REGISTRATION" end)
 
     full_street = case registration_address do
-      nil -> nil
+      nil -> ""
       address -> address |> AddressMerger.merge_street_part() |> List.first()
     end
 
     settlement = case registration_address do
-      nil -> nil
+      nil -> ""
       address -> address |> AddressMerger.merge_settlement_part(full_street) |> List.first()
     end
 
@@ -242,7 +242,7 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
     registration_address = Enum.find(addresses, fn(address) -> Map.get(address, "type") == "REGISTRATION" end)
 
     full_address = case registration_address do
-      nil -> %{}
+      nil -> ""
       address -> AddressMerger.merge_address(address)
     end
 
