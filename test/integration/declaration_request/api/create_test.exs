@@ -216,33 +216,33 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
             female: false
           },
           birth_date: nil,
-          document: nil,
+          document: %{},
           birth_settlement: nil,
           birth_country: nil,
           tax_id: nil,
           addresses: %{
             registration: %{
-              full_address: nil
+              full_address: %{}
             },
             residence: %{
-              full_address: nil
+              full_address: %{}
             }
           },
-          phones: nil,
+          phones: %{},
           email: nil,
           secret: nil,
           emergency_contact: %{
             full_name: "",
-            phones: nil
+            phones: %{}
           },
           confidant_person: %{
-            primary: nil,
-            secondary: nil
+            primary: %{},
+            secondary: %{}
           }
         },
         employee: %{
           full_name: "",
-          phones: nil,
+          phones: %{},
           email: nil
         },
         division: %{
@@ -257,12 +257,12 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
           full_name: nil,
           addresses: %{
             registration: %{
-              full_address: nil
+              full_address: %{}
             }
           },
           edrpou: nil,
           full_license: "",
-          phones: nil,
+          phones: %{},
           email: nil
         },
         confidant_persons: %{

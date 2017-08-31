@@ -95,7 +95,7 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
     documents = Map.get(data, key)
     case is_list(documents) do
       true -> documents |> List.first() |> take_fields(["type", "number"]) |> update_document_type()
-      _ -> nil
+      _ -> %{}
     end
   end
 
@@ -109,12 +109,12 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
     residence_address = Enum.find(addresses, fn(address) -> Map.get(address, "type") == "RESIDENCE" end)
 
     full_registration_address = case registration_address do
-      nil -> nil
+      nil -> %{}
       address -> AddressMerger.merge_address(address)
     end
 
     full_residence_address = case residence_address do
-      nil -> nil
+      nil -> %{}
       address -> AddressMerger.merge_address(address)
     end
 
@@ -132,12 +132,12 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
     phones = Map.get(data, "phones")
     case is_list(phones) do
       true -> phones |> List.first() |> take_fields(["number"])
-      _ -> nil
+      _ -> %{}
     end
   end
 
   defp take_fields(data, fields) when is_map(data), do: Map.take(data, fields)
-  defp take_fields(_, _), do: nil
+  defp take_fields(_, _), do: %{}
 
   defp get_emergency_contact(person) do
     emergency_contact = Map.get(person, "emergency_contact", %{})
@@ -154,12 +154,12 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
     secondary_confidant_person = Enum.find(confidant_persons, fn(x) -> Map.get(x, "relation_type") == "SECONDARY" end)
 
     primary = case primary_confidant_person do
-      nil -> nil
+      nil -> %{}
       confidant_person -> get_confidant_person(confidant_person)
     end
 
     secondary = case secondary_confidant_person do
-      nil -> nil
+      nil -> %{}
       confidant_person -> get_confidant_person(confidant_person)
     end
 
@@ -242,7 +242,7 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
     registration_address = Enum.find(addresses, fn(address) -> Map.get(address, "type") == "REGISTRATION" end)
 
     full_address = case registration_address do
-      nil -> nil
+      nil -> %{}
       address -> AddressMerger.merge_address(address)
     end
 
