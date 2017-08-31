@@ -11,6 +11,7 @@ defmodule EHealth.Employee.EmployeeCreator do
   alias EHealth.PRM.Employees.Schema, as: Employee
   alias EHealth.PRM.Parties
   alias EHealth.PRM.PartyUsers
+  alias EHealth.Employee.EmployeeUpdater
 
   require Logger
 
@@ -83,30 +84,33 @@ defmodule EHealth.Employee.EmployeeCreator do
   def deactivate_employee_owners(%Employee{employee_type: @employee_type_owner} = employee, req_headers) do
     %{
       legal_entity_id: employee.legal_entity_id,
-      is_active: "true",
+      is_active: true,
       employee_type: @employee_type_owner
     }
     |> Employees.get_employees()
-    |> deactivate_employees(employee.id, req_headers)
+    |> deactivate_employees(employee, req_headers)
     {:ok, employee}
   end
   def deactivate_employee_owners(%Employee{} = employee, _req_headers), do: {:ok, employee}
 
-  def deactivate_employees({employees, _}, except_employee_id, headers) do
+  def deactivate_employees({employees, _}, current_owner, headers) do
     Enum.each(employees, fn(%Employee{} = employee) ->
-      case except_employee_id != employee.id do
-        true -> deactivate_employee(employee, headers)
+      case current_owner.id != employee.id do
+        true -> deactivate_employee(employee, current_owner, headers)
         false -> :ok
       end
     end)
   end
 
-  def deactivate_employee(%Employee{} = employee, headers) do
+  def deactivate_employee(%Employee{} = employee, current_owner, headers) do
     params = %{
       "updated_by" => get_consumer_id(headers),
       "is_active" => false,
     }
-    Employees.update_employee(employee, params, get_consumer_id(headers))
+
+    with :ok <- EmployeeUpdater.revoke_user_auth_data(employee, [current_owner], headers) do
+      Employees.update_employee(employee, params, get_consumer_id(headers))
+    end
   end
 
   def put_inserted_by(data, req_headers) do
