@@ -99,9 +99,7 @@ defmodule EHealth.Declarations.View do
   end
 
   def render("employee.json", %{employee: %Employee{} = employee}) do
-    legal_entity = render_one(employee.legal_entity, __MODULE__, "legal_entity_employee.json", as: :legal_entity)
     party = render_one(employee.party, __MODULE__, "party.json", as: :party)
-
     employee
     |> Map.take(~w(
       id
@@ -111,10 +109,10 @@ defmodule EHealth.Declarations.View do
       start_date
       end_date
       division_id
-      doctor
+      legal_entity_id
     )a)
     |> Map.put(:party, party)
-    |> Map.put(:legal_entity, legal_entity)
+    |> Map.put(:doctor, employee.additional_info)
   end
 
   def render("employee_short.json", %{employee: %Employee{} = employee}) do
