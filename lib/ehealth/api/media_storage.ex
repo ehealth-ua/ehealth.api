@@ -15,15 +15,23 @@ defmodule EHealth.API.MediaStorage do
   def options, do: config()[:hackney_options]
 
   def create_signed_url(action, bucket, resource_name, resource_id, headers \\ []) do
-    data = %{"secret" => %{
+    data = %{"secret" => generate_sign_url_data(action, bucket, resource_name, resource_id)}
+    Logger.info(fn -> inspect data end)
+    create_signed_url(data, headers)
+  end
+
+  defp generate_sign_url_data(action, bucket, resource_name, resource_id) do
+    %{
       "action" => action,
       "bucket" => bucket,
       "resource_id" => resource_id,
-      "resource_name" => resource_name,
-      "content_type" =>  MIME.from_path(resource_name)
-    }}
-    Logger.info(fn -> inspect data end)
-    create_signed_url(data, headers)
+      "resource_name" => resource_name
+    }
+    |> add_content_type(action, resource_name)
+  end
+  defp add_content_type(data, "GET", _resource_name), do: data
+  defp add_content_type(data, _action, resource_name) do
+    Map.put(data, "content_type", MIME.from_path(resource_name))
   end
 
   def create_signed_url(data, headers) do
