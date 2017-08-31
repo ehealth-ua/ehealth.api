@@ -174,7 +174,7 @@ defmodule EHealth.DeclarationRequest.API.Validations do
     if scope in ["family_doctor"] do
       changeset
     else
-      add_error(changeset, :"data.scope", "Scope inclusion failed")
+      add_error(changeset, :"data.scope", "is invalid", validation: :inclustion, params: [scope])
     end
   end
 
