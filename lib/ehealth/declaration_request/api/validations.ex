@@ -166,6 +166,18 @@ defmodule EHealth.DeclarationRequest.API.Validations do
     end
   end
 
+  def validate_scope(changeset) do
+    scope =
+      changeset
+      |> get_field(:data)
+      |> Map.get("scope")
+    if scope in ["family_doctor"] do
+      changeset
+    else
+      add_error(changeset, :"data.scope", "Scope is not valid")
+    end
+  end
+
   def validate_confidant_persons_tax_id(changeset) do
     confidant_persons =
       changeset

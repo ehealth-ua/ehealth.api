@@ -274,6 +274,7 @@ defmodule EHealth.DeclarationRequest.API do
     |> validate_confidant_persons_tax_id()
     |> validate_confidant_person_rel_type()
     |> validate_authentication_methods()
+    |> validate_scope()
     |> put_start_end_dates(global_parameters)
     |> put_in_data("employee", Create.prepare_employee_struct(employee))
     |> put_in_data("division", Create.prepare_division_struct(division))
