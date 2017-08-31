@@ -41,10 +41,13 @@ defmodule EHealth.DeclarationRequest.API.Approve do
   end
 
   def uploaded?(id, %{"type" => type}) do
+    resource_name = "declaration_request_#{type}.jpeg"
+
     {:ok, %{"data" => %{"secret_url" => url}}} =
-      MediaStorage.create_signed_url("HEAD", @files_storage_bucket, "declaration_request_#{type}.jpeg", id)
+      MediaStorage.create_signed_url("HEAD", @files_storage_bucket, resource_name, id)
+
     Logger.info(fn -> inspect url end)
-    case HTTPoison.head(url) do
+    case HTTPoison.head(url, ["Content-Type":  MIME.from_path(resource_name)]) do
       {:ok, resp} ->
         case resp do
           %HTTPoison.Response{status_code: 200} ->
