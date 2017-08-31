@@ -298,7 +298,7 @@ defmodule EHealth.Unit.ValidatorTest do
     signed_content = File.read!("test/data/signed_content_whitespace.txt")
     data = {:ok, %{"data" => %{"secret_url" => "#{System.get_env("MEDIA_STORAGE_ENDPOINT")}/signed_url_test"}}}
 
-    assert {:ok, "http://example.com?signed_url=true"} == MediaStorage.put_signed_content(data, signed_content, true)
+    assert {:ok, "http://example.com?signed_url=true"} == MediaStorage.put_signed_content(data, signed_content)
   end
 
   test "validate address building" do

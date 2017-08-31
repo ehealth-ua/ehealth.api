@@ -42,15 +42,14 @@ defmodule EHealth.API.MediaStorage do
   def store_signed_content(true, bucket, signed_content, id, headers) do
     "PUT"
     |> create_signed_url(config()[bucket], "signed_content", id, headers)
-    |> put_signed_content(signed_content, config()[:store_signed_content])
+    |> put_signed_content(signed_content)
   end
 
   def store_signed_content(false, _bucket, _signed_content, _id, _headers) do
     {:ok, "Media Storage is disabled in config"}
   end
 
-  def put_signed_content({:ok, %{"data" => _data}}, _, false), do: {:ok, nil}
-  def put_signed_content({:ok, %{"data" => data}}, signed_content, true) do
+  def put_signed_content({:ok, %{"data" => data}}, signed_content) do
     headers = [{"Content-Type", "application/octet-stream"}]
     content = Base.decode64!(signed_content, [ignore: :whitespace, padding: false])
 
@@ -59,7 +58,7 @@ defmodule EHealth.API.MediaStorage do
     |> put!(content, headers, options())
     |> check_gcs_response()
   end
-  def put_signed_content(err, _signed_content, _) do
+  def put_signed_content(err, _signed_content) do
     Logger.error(fn -> "Cannot create signed url. Response: #{inspect err}" end)
     err
   end

@@ -34,7 +34,6 @@ config :ehealth, EHealth.API.MediaStorage,
   declaration_request_bucket: {:system, "MEDIA_STORAGE_DECLARATION_REQUEST_BUCKET", "declaration-requests-dev"},
   declaration_bucket: {:system, "MEDIA_STORAGE_DECLARATION_BUCKET", "declarations-dev"},
   enabled?: {:system, :boolean, "MEDIA_STORAGE_ENABLED", false},
-  store_signed_content: true,
   hackney_options: [
     connect_timeout: {:system, :integer, "MEDIA_STORAGE_REQUEST_TIMEOUT", 30_000},
     recv_timeout: {:system, :integer, "MEDIA_STORAGE_REQUEST_TIMEOUT", 30_000},

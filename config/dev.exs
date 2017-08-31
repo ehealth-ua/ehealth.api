@@ -25,10 +25,6 @@ config :logger, :console,
 # in production as building large stacktraces may be expensive.
 config :phoenix, :stacktrace_depth, 20
 
-# Configures MediaStorage API
-config :ehealth, EHealth.API.MediaStorage,
-  store_signed_content: false
-
 # Configure your database
 config :ehealth, EHealth.Repo,
   adapter: Ecto.Adapters.Postgres,
