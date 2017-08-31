@@ -392,7 +392,7 @@ This method to update the declaration request status.
     + Attributes (Response_OK)
         + data (array[`crud_Declaration_request_get`])
 
-### Get Declaration images list [GET /declarations/{id}/images]
+### Get Declaration documents list [GET /declarations/{id}/documents]
 Service to get list of signed URLs with the read access for all the documents attached to the declaration request using declaration identifier
 
 + Parameters
@@ -1363,7 +1363,7 @@ Method is used to verify that provided in declarartion request phone number is v
             Authorization: Bearer mF_9.B5f-4.1JqM
     
     + Attributes (object)
-        + code: 3782 (number)
+        + verification_code: 3782 (number)
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
@@ -2798,8 +2798,8 @@ Use this method to obrain full information of Request for Medication request an 
             + code: 201 (number)
         + data (object)
             + include `Request_for_Medication_request_Public_Response`
-            + content: `Medication_request content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
 
+    
 ### Qualify Request for Medication request [POST /api/requests_for_medication_request/{id}/actions/qualify]
 
 This method is used to qualify data prescription (possibility to use Innm for the program) before creating Medication request. Fields descriptions are listed in request Example view.
@@ -2939,6 +2939,44 @@ Use this method to reject previously created Request for medication request.
         + meta (Response__Meta)
             + code: 200 (number)
 
+## Medication Request [/api/medication_requests]
+### Get Medication request by ID [GET /api/medication_requests/{id}]
+
+Use this method to obrain full information of Medication request an `id`.
+
++ Parameters
+    + id: `48416485-cc98-46c4-8bba-e321de9e1ecd` (string, required) - request id
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `Medication_request_Public_Response`
+
+### Recall Medication Request [PATCH /api/medication_requests/{id}/actions/recall]
+
+Use this method to recall previously created and signed Medication request.
+
++ Parameters
+    + `id`: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 200 (number)
 
 
 # Group Dummy. Create legal entity
@@ -4100,12 +4138,12 @@ Use this method to reject previously created Request for medication request.
 ### `Ingridient_post`
 + `innm_id` : `1349a693-4db1-4a3f-9ac6-8c2f9e541982` (string, required)
 + `dosage` (`Dosage_drug_post`, required)
-+ `is_active_is_active_substance` : `true` (boolean, required) 
++ `is_active_substance` : `true` (boolean, required) 
 
 ### `Ingridient_Response`
 + `innm` (`Innms_Short`, required)
 + `dosage` (`Dosage_drug`, required)
-+ `is_active_is_active_substance` : `true` (boolean, required) 
++ `is_active_substance` : `true` (boolean, required) 
 
 ### `Medication_post`
 + `name` : `Амідарон` (string, required) 
@@ -4227,3 +4265,36 @@ Use this method to reject previously created Request for medication request.
     - INVALID
 + `invalid_reason` : ` Innm not on the list of approved innms for program 'DOSTUPNI LIKI' !` (string) - Reason to fetch invalid status
 + `reimbursement_amount` : `0` (number, required) - Amount of reimbursement
+
+## `Medication request`
+### `Medication_request_post_data`
++ `receipt_period_type`: 30DAYS (string, required) - `Dictionary RECEIPT_PERIOD_TYPE`
++ `receipt_age_type`: ADULT (string, required) - `Dictionary RECEIPT_AGE_TYPE`
++ `person_id`: `585044f5-1272-4bca-8d41-8440eefe7d26` (string, required) - Person ID
++ `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Employee ID with `type=DOCTOR` selected from available Employees as a third contract party.
++ `note`: `За зверненням паціента. Симптоми слабковиражені` (string) - Note for receipt
++ `innm` (`Innm_for_Medication_request`,required) 
++ `dosage_instruction`: `Інструкція: приймати 2 рази на день, за 1-ну годину до прийому їжі.` (string) - Instruction for use medication
+
+### `Medication_request_Public_Response`
++ `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ `status`: `ACTIVE` (string, required)
+    - ACTIVE
+    - COMPLETED
+    - STOPPED
++ `receipt_number_public_key` : `xxxxTBD` (string) - Public key of receipt number
++ `receipt_period_type`: 30DAYS (string, required) - `Dictionary RECEIPT_PERIOD_TYPE`
++ `receipt_age_type`: ADULT (string, required) - `Dictionary RECEIPT_AGE_TYPE`
++ `created_at`: `2017-08-17` (string, required) - Medication request created date
++ `started_at`: `2017-08-17` (string, required) - Medication request start date
++ `ended_at`: `2017-09-16` (string, required) - Medication request end date
++ `dispence_valid_from`: `2017-08-17` (string, required) - Medication dispence valid start date
++ `dispence_valid_to`: `2017-09-16` (string, required) - Medication dispence valid end date
++ `legal_entity` (`Legal_Entity_Short`, required)
+    + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ `division` (`Division_Details`, required)
++ `employee` (Employee_Minimal, required)
++ `person` (`Person_Short`)            
++ `innm` (`Innm_for_Medication_request_Responce`, required)
++ `note`: `За зверненням паціента. Симптоми слабковиражені` (string) - Note for receipt
++ `dosage_instruction`: `Інструкція: приймати 2 рази на день, за 1-ну годину до прийому їжі.` (string) - Instruction for use medication
