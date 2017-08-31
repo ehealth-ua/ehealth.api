@@ -39,6 +39,7 @@ defmodule EHealth.Employee.EmployeeUpdater do
   def get_active_employees(%{party_id: party_id, employee_type: employee_type}) do
     params = [
       status: @employee_status_approved,
+      is_active: true,
       party_id: party_id,
       employee_type: employee_type,
     ]
