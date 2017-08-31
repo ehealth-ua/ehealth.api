@@ -1,0 +1,93 @@
+[
+  {
+    "id": "6a7e3986-9115-40f0-8b86-1f5b9d316252",
+    "parameter": "billing_date",
+    "value": "2",
+    "inserted_by": "08461d94-791e-4429-9471-b6a306d246f0",
+    "updated_by": "8341b7d6-f9c7-472a-960c-7da953cc4ea4"
+  },
+  {
+    "id": "17e4c7e9-f6bd-414f-8fc8-682c9d98d655",
+    "parameter": "verification_request_term",
+    "value": "3",
+    "inserted_by": "08461d94-791e-4429-9471-b6a306d246f0",
+    "updated_by": "8341b7d6-f9c7-472a-960c-7da953cc4ea4"
+  },
+  {
+    "id": "914c7fcb-f0dd-4758-bd22-8df009455d4e",
+    "parameter": "verification_request_term_unit",
+    "value": "DAYS",
+    "inserted_by": "08461d94-791e-4429-9471-b6a306d246f0",
+    "updated_by": "8341b7d6-f9c7-472a-960c-7da953cc4ea4"
+  },
+  {
+    "id": "26c0e82d-a27d-4b45-b7d8-86d43b28ee61",
+    "parameter": "declaration_request_term",
+    "value": "1",
+    "inserted_by": "08461d94-791e-4429-9471-b6a306d246f0",
+    "updated_by": "8341b7d6-f9c7-472a-960c-7da953cc4ea4"
+  },
+  {
+    "id": "2cc61df5-c4d3-4afa-9be4-6e797dcb8940",
+    "parameter": "declaration_term_unit",
+    "value": "DAYS",
+    "inserted_by": "08461d94-791e-4429-9471-b6a306d246f0",
+    "updated_by": "8341b7d6-f9c7-472a-960c-7da953cc4ea4"
+  },
+  {
+    "id": "f795fde6-2475-475c-be10-35f6db9de24e",
+    "parameter": "declaration_request_term_unit",
+    "value": "DAYS",
+    "inserted_by": "08461d94-791e-4429-9471-b6a306d246f0",
+    "updated_by": "8341b7d6-f9c7-472a-960c-7da953cc4ea4"
+  },
+  {
+    "id": "78c10ee2-7a3f-409b-9162-84767690b46c",
+    "parameter": "verification_request_expiration",
+    "value": "1",
+    "inserted_by": "8341b7d6-f9c7-472a-960c-7da953cc4ea4",
+    "updated_by": "8341b7d6-f9c7-472a-960c-7da953cc4ea4"
+  },
+  {
+    "id": "463401dc-618b-4f20-966f-0c5de6aaf188",
+    "parameter": "declaration_term",
+    "value": "365",
+    "inserted_by": "08461d94-791e-4429-9471-b6a306d246f0",
+    "updated_by": "8341b7d6-f9c7-472a-960c-7da953cc4ea4"
+  },
+  {
+    "id": "73fd4ff5-62a5-46d1-8f26-91eeae9358b6",
+    "parameter": "adult_age",
+    "value": "18",
+    "inserted_by": "08461d94-791e-4429-9471-b6a306d246f0",
+    "updated_by": "8341b7d6-f9c7-472a-960c-7da953cc4ea4"
+  },
+  {
+    "id": "f4aad9bc-ba9c-428c-b21e-1c9402dd3eed",
+    "parameter": "declaration_request_expiration",
+    "value": "1",
+    "inserted_by": "8341b7d6-f9c7-472a-960c-7da953cc4ea4",
+    "updated_by": "8341b7d6-f9c7-472a-960c-7da953cc4ea4"
+  },
+  {
+    "id": "519b8a6c-2086-43e4-b18f-7ca4bd95c718",
+    "parameter": "employee_request_expiration",
+    "value": "29",
+    "inserted_by": "8341b7d6-f9c7-472a-960c-7da953cc4ea4",
+    "updated_by": "8341b7d6-f9c7-472a-960c-7da953cc4ea4"
+  },
+  {
+    "id": "15665bc4-1cda-4a8d-abb2-f313e902b1c4",
+    "parameter": "employee_request_term_unit",
+    "value": "DAYS",
+    "inserted_by": "08461d94-791e-4429-9471-b6a306d246f0",
+    "updated_by": "8341b7d6-f9c7-472a-960c-7da953cc4ea4"
+  },
+  {
+    "id": "997a08c7-43ca-45cc-8e8b-23c738f1db51",
+    "parameter": "employee_request_term",
+    "value": "30",
+    "inserted_by": "08461d94-791e-4429-9471-b6a306d246f0",
+    "updated_by": "8341b7d6-f9c7-472a-960c-7da953cc4ea4"
+  }
+]
