@@ -43,7 +43,7 @@ defmodule EHealth.DeclarationRequest.API.Approve do
   def uploaded?(id, %{"type" => type}) do
     {:ok, %{"data" => %{"secret_url" => url}}} =
       MediaStorage.create_signed_url("HEAD", @files_storage_bucket, "declaration_request_#{type}.jpeg", id)
-
+    Logger.info(fn -> inspect url end)
     case HTTPoison.head(url) do
       {:ok, resp} ->
         case resp do
