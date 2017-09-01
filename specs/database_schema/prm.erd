@@ -90,16 +90,7 @@ status | enum('') | not null
 employee_type | enum('doctor','hr','owner','accountant') | not null
 is_active | boolean | not null
 status_reason | string
-
-[employee_doctors]
-id | uuid | not null
-education | jsonb[] | not null
-qualifications | jsonb[]
-specialities | jsonb[] | not null
-science_degree | jsonb
-employee_id | uuid | not null
-inserted_at | timestamp | not null
-updated_at | timestamp | not null
+additional_info | jsonb | not null
 
 [employee_requests]
 id | uuid | not null
@@ -198,7 +189,6 @@ labels | jsonb | not null
 is_active | boolean | not null
 
 
-
 (prm)
 parties
 party_users
@@ -221,7 +211,6 @@ declarations_status_hstr
 declaration_requests
 employee_requests
 dictionaries
-
 
 declarations 1--1 declarations_signed
 employees 1--* declarations
