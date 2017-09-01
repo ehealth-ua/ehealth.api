@@ -5,13 +5,25 @@ defmodule EHealth.PRM.LegalEntities.Schema do
 
   use Ecto.Schema
 
+  @status_active "ACTIVE"
+  @status_closed "CLOSED"
+
   @type_msp "MSP"
   @type_mis "MIS"
   @type_pharmacy "PHARMACY"
 
+  @mis_verified_verified "VERIFIED"
+  @mis_verified_not_verified "NOT_VERIFIED"
+
   def type(:mis), do: @type_mis
   def type(:msp), do: @type_msp
   def type(:pharmacy), do: @type_pharmacy
+
+  def mis_verified(:verified), do: @mis_verified_verified
+  def mis_verified(:not_verified), do: @mis_verified_not_verified
+
+  def status(:active), do: @status_active
+  def status(:closed), do: @status_closed
 
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "legal_entities" do

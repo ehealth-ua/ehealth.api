@@ -96,7 +96,6 @@ defmodule EHealth.Mixfile do
       "ecto.setup": [
         "ecto.create",
         "ecto.create --repo EHealth.PRMRepo",
-        "ecto.load --repo EHealth.PRMRepo",
         "ecto.migrate",
         "run priv/repo/seeds.exs"
       ],
@@ -104,7 +103,6 @@ defmodule EHealth.Mixfile do
       "test": [
         "ecto.create --quiet",
         "ecto.create --quiet --repo EHealth.PRMRepo",
-        "ecto.load --repo EHealth.PRMRepo",
         "ecto.migrate",
         "test"
       ]
