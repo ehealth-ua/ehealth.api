@@ -1382,7 +1382,7 @@ Method is used to verify that provided in declarartion request phone number is v
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
-        + data (OTP)
+        + data (Response_verification_by_phone)
 
 ## Declaration Requests [/api/declaration_requests]
 
@@ -3089,6 +3089,9 @@ Use this method to recall previously created and signed Medication request.
 + meta (Response__Meta, fixed-type)
 + data (object, fixed-type)
     + affordances (array[Affordance], required) - List of available affordances and their URLs
+
+### `Response_verification_by_phone`
++ `phone_number`: `+380508887700` (string, required)
 
 ### `Response_Error`
 + meta (Response__Meta, fixed-type)
