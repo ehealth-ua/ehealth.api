@@ -2200,8 +2200,6 @@ List consists of legal entities with parameter `is_active = true`.
         + data (array)
             + (object)
                 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-                + updated_at: `1991-08-19T00:00:00.000Z` (string, required)
-                + updated_by: `userid` (string, required)
                 + include `Legal_Entity_Request_Public_Short`
                 + status: ACTIVE (enum, required)
                     - ACTIVE
@@ -2210,10 +2208,6 @@ List consists of legal entities with parameter `is_active = true`.
                     - NOT_VERIFIED
                     - VERIFIED
                 + `nhs_verified`: false (boolean, required)
-                + is_active: true (boolean, required)
-                + inserted_by: `A65C8369-CE3A-44D6-839B-8856E3DC4CA3` (string, required)
-                + inserted_at: `2005-10-30 10:45` (string, required) - timestamp
-                + created_by_mis_client_id:  `A65C8369-CE3A-44D6-839B-8856E3DC4CA3` (string, required)
 
 ### Get Legal Entity by ID [GET /api/legal_entities/{id}]
 
@@ -2238,12 +2232,6 @@ List consists of legal entities with parameter `is_active = true`.
                 - NOT_VERIFIED
                 - VERIFIED
             + `nhs_verified`: false (boolean, required)
-            + is_active: true (boolean, required)
-            + inserted_by: `A65C8369-CE3A-44D6-839B-8856E3DC4CA3` (string, required)
-            + inserted_at: `2005-10-30 10:45` (string, required) - timestamp
-            + created_by_mis_client_id:  `A65C8369-CE3A-44D6-839B-8856E3DC4CA3` (string, required)
-            + updated_at: `1991-08-19T00:00:00.000Z` (string, required)
-            + updated_by: `userid` (string, required)
         + urgent (object, optional)
             + security (object)
                 + `secret_key`: `secret_key` (string, required)
@@ -2426,12 +2414,6 @@ Available transition:
     + Attributes (Response__Process_OK)
         + data (object)
             + include `Legal_Entity_Request_Public_Short`
-            + is_active: true (boolean, required)
-            + inserted_by: `A65C8369-CE3A-44D6-839B-8856E3DC4CA3` (string, required)
-            + inserted_at: `2005-10-30 10:45` (string, required) - timestamp
-            + created_by_mis_client_id:  `A65C8369-CE3A-44D6-839B-8856E3DC4CA3` (string, required)
-            + updated_at: `1991-08-19T00:00:00.000Z` (string, required)
-            + updated_by: `userid` (string, required)
             
 
 ### Verify Legal Entity by NHS [PATCH /api/legal_entities/{id}/actions/nhs_verify]
@@ -2734,13 +2716,46 @@ This method is used to create Medications. Fields descriptions are listed in req
             + include `Medication_Response`
             + `ingridients` (array[`Ingridient_Response`])            
 
-+ Response 409 (application/json)
++ Response 422 (application/json)
     + Attributes (Response_Error)
         + meta (Response__Meta)
-            + code: 409
+            + code: 422
         + error
             + type: unverified (string, required)
-            + message: `Dublicate innm!` (string, required)
+            + message: `Denum unit from Dosage ingridients must be is equal Denum unit from Container dosage medication!` (string, required)
+
+### Update Medication [PATCH /medication/{id}]
+This method is used to update Medication. Fields descriptions are listed in request Example view.
+
++ Parameters
+    + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
+    + Attributes (object)
+       + include (`Medication_post`, required) 
+        + `ingridients` (array[`Ingridient_post`])
+
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `Medication_Response`
+            + `ingridients` (array[`Ingridient_Response`])            
+
++ Response 422 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta)
+            + code: 422
+        + error
+            + type: unverified (string, required)
+            + message: `Denum unit from Dosage ingridients must be is equal Denum unit from Container dosage medication!` (string, required)
 
 ## Requests for Medication Request [/api/requests_for_medication_request]
 
@@ -2959,6 +2974,35 @@ Use this method to obrain full information of Medication request an `id`.
             + code: 201 (number)
         + data (object)
             + include `Medication_request_Public_Response`
+
+### Get Medication requests List [GET /api/medication_requests{?employee_id,person_id,status,starting_after,ending_before,limit}]
+
+Use this method to obrain list of Medication request an `employee_id` or/and `person_id`. If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor is interested in current UI section.
+
+Also we suggest use `employee_id` to make sure that end-user understands context of actions that he or she will perform.
+
+Method returns shortened details, to obtain full information - get Medication request it by it's ID.
+
++ Parameters
+    + `employee_id`: `7124259c-eeb1-4cbb-acac-ada2162675d1` (string, optional) - user_id of a doctor.
+    + `person_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - person_id of a pacient. 
+    + `status`: `ACTIVE` (enum, optional). Default `ACTIVE` 
+        - ACTIVE
+        - COMPLETED
+        - STOPPED
+    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
+    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
+    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (Response_Collection)
+        + data (array[`Medication_request_Public_Response`]) 
 
 ### Recall Medication Request [PATCH /api/medication_requests/{id}/actions/recall]
 
@@ -3583,6 +3627,12 @@ Use this method to recall previously created and signed Medication request.
 + `medical_service_provider` (MSP)
 + security (object, fixed-type)
     + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
++ is_active: true (boolean, required)
++ inserted_by: `A65C8369-CE3A-44D6-839B-8856E3DC4CA3` (string, required)
++ inserted_at: `2005-10-30 10:45` (string, required) - timestamp
++ created_by_mis_client_id:  `A65C8369-CE3A-44D6-839B-8856E3DC4CA3` (string, required)
++ updated_at: `1991-08-19T00:00:00.000Z` (string, required)
++ updated_by: `userid` (string, required)
 
 ## `Divisions`
 ### `Division`
