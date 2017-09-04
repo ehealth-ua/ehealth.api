@@ -218,7 +218,7 @@ inserted_by | uuid | not null
 updated_at | timestamp | not null
 updated_by | uuid | not null
 
-[ingridients]
+[ingredients]
 id | uuid | not null
 medication_id | uuid | not null
 innm_id | uuid | not null
@@ -349,7 +349,7 @@ dictionaries
 innms
 innm_form_uses
 medications
-ingridients
+ingredients
 medication_program_info
 
 declarations 1--1 declarations_signed
@@ -365,8 +365,8 @@ parties 1--? doctors
 declarations 1--* declarations_status_hstr
 innms 1--* medications
 innms 1--* innm_form_uses
-innms 1--* ingridients
-medications 1--* ingridients
+innms 1--* ingredients
+medications 1--* ingredients
 medications 1--* medication_program_info
 medication_requests 1--* legal_entities
 medication_requests 1--* divisions
