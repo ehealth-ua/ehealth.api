@@ -16,7 +16,10 @@ defmodule EHealth.Web.DeclarationRequestController do
 
   def show(conn, %{"declaration_request_id" => id} = params) do
     declaration_request = DeclarationRequestAPI.get_declaration_request_by_id!(id, params)
-    render(conn, "declaration_request.json", declaration_request: declaration_request)
+    urgent_data = Map.take(declaration_request, [:authentication_method_current, :documents])
+    conn
+    |> assign(:urgent, urgent_data)
+    |> render("declaration_request.json", declaration_request: declaration_request)
   end
 
   def create(conn, %{"declaration_request" => declaration_request}) do

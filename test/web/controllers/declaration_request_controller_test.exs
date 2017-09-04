@@ -174,6 +174,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       resp = json_response(conn, 200)
 
       assert Map.has_key?(resp, "data")
+      assert Map.has_key?(resp, "urgent")
     end
   end
 
@@ -383,7 +384,8 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
                 type: "MOBILE",
                 number: "+380503410870"
               }
-            ]
+            ],
+            tax_id: "12345678"
           },
         },
         legal_entity: %{
@@ -397,6 +399,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
           id: UUID.generate(),
           name: "Бориспільське відділення Клініки Борис",
           type: "CLINIC",
+          status: "NEW"
         }
       },
       status: "NEW",

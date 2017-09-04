@@ -63,12 +63,18 @@
               },
               "phones": {
                 "type": "array"
+              },
+              "tax_id": {
+                "type": "string"
               }
             },
             "required": [
               "id",
               "first_name",
-              "last_name"
+              "last_name",
+              "email",
+              "phones",
+              "tax_id"
             ]
           }
         },
@@ -119,12 +125,16 @@
               "AMBULANT_CLINIC",
               "FAP"
             ]
+          },
+          "status": {
+            "type": "string"
           }
         },
         "required": [
           "id",
           "name",
-          "type"
+          "type",
+          "status"
         ]
       }
     },

@@ -11,6 +11,7 @@ defmodule EHealth.Web.PartyView do
       "second_name" => Map.get(party, "second_name"),
       "email" => Map.get(party, "email"),
       "phones" => Map.get(party, "phones"),
+      "tax_id" => Map.get(party, "tax_id")
     }
   end
   def render("party_short.json", _), do: %{}

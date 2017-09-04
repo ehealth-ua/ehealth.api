@@ -31,7 +31,8 @@ defmodule EHealth.Web.DivisionView do
     %{
       "id" => Map.get(division, "id"),
       "name" => Map.get(division, "name"),
-      "type": Map.get(division, "type"),
+      "type" => Map.get(division, "type"),
+      "status" => Map.get(division, "status")
     }
   end
   def render("division_short.json", _), do: %{}
