@@ -188,6 +188,138 @@ values | jsonb | not null
 labels | jsonb | not null
 is_active | boolean | not null
 
+[innms]
+id | uuid | not null 
+innm_identifier | varchar | not null | unique
+name | varchar | not null | unique
+status | varchar | not null
+is_active | boolean | not null
+inserted_at | timestamp | not null
+inserted_by | uuid | not null
+updated_at | timestamp | not null
+updated_by | uuid | not null
+
+[medications]
+id | uuid | not null
+name | varchar | not null 
+is_active | boolean | not null
+start_at | date | not null
+end_at | date | not null
+route | varchar | not null
+container_dosage | jsonb | not null
+package_qty | number | not null
+package_min_qty | number | not null
+code_ATX | varchar | not null				
+manufacturer_name_country | jsonb | not null
+certificate | varchar | not null
+expired_certificate_date | date| not null
+inserted_at | timestamp | not null
+inserted_by | uuid | not null
+updated_at | timestamp | not null
+updated_by | uuid | not null
+
+[ingridients]
+id | uuid | not null
+medication_id | uuid | not null
+innm_id | uuid | not null
+is_active_substance | boolean | not null
+dosage | jsonb | not null			 
+inserted_at | timestamp | not null
+inserted_by | uuid | not null
+updated_at | timestamp | not null
+updated_by | uuid | not null
+
+[medication_program_info]
+id | uuid | not null
+medication_id | uuid | not null
+medical_program | varchar | not null
+valid_from | date | not null
+valid_to | date | not null
+
+[innm_form_uses]
+id | uuid | not null
+innm_id | uuid | not null				 
+route | varchar | not null
+dosage | jsonb | not null			 
+container_dosage | jsonb | not null
+package_qty | number| not null
+package_min_qty | number| null
+inserted_at | timestamp | not null
+inserted_by | uuid | not null
+updated_at | timestamp | not null
+updated_by | uuid | not null
+
+[medication_requests]
+id | uuid | not null
+human_receipt_id | varchar | not null
+created_at | date | not null				
+started_at | date| not null
+ended_at | date| not null
+dispense_valid_from | date| not null
+dispense_valid_to | date| not null
+person_id | uuid | not null				
+employee_id | uuid | not null
+receipt_period_type | varchar | not null
+receipt_age_type | varchar | not null
+innm_id | uuid | not null
+innm_route | varchar | not null
+innm_dosage | jsonb | not null
+innm_container_dosage | jsonb | not null
+innm_qty | number | not null
+innm_dose_used_qty | number | not null
+note | jsonb
+dosage_instuction | jsonb
+status | varchar | not null
+is_active | boolean | not null
+recall_at | date
+recalled_by | uuid
+recall_reason | varchar
+request_for_medication_request_id | uuid | not null
+inserted_at | timestamp | not null
+inserted_by | uuid | not null
+updated_at | timestamp | not null
+updated_by | uuid | not null
+
+[medication_dispenses]
+id | uuid | not null
+medication_request_id | uuid | not null
+dispensed_at | date| not null				
+employee_id | uuid | not null				
+medical_program | varchar | not null
+status | varchar | not null
+is_active | boolean | not null
+inserted_at | timestamp | not null
+inserted_by | uuid | not null
+updated_at | timestamp | not null
+updated_by | uuid | not null
+
+[medication_dispense_details]
+id | uuid | not null
+medication_dispense_id | uuid | not null
+medication_id | uuid | not null
+medication_route | varchar | not null
+medication_dosage | jsonb | not null
+medication_container_dosage | jsonb | not null
+medication_qty | number| not null
+sell_price | number | not null
+reimbursement_amount | number | not null
+external_payment_id | varchar 	
+is_active | boolean | not null
+inserted_at | timestamp | not null
+inserted_by | uuid | not null
+updated_at | timestamp | not null
+updated_by | uuid | not null
+
+[requests_for_medication_request]
+id | uuid | not null
+expiry_to | date | not 
+data | jsonb | not null
+status | varchar | not null
+printout_content | varchar | not null
+inserted_at | timestamp | not null
+inserted_by | uuid | not null
+updated_at | timestamp | not null
+updated_by | uuid | not null
 
 (prm)
 parties
@@ -206,11 +338,19 @@ global_parameters
 declarations
 declaration_log_changes
 declarations_status_hstr
+medication_requests
+medication_dispenses
+medication_dispense_details
 
 (il_db)
 declaration_requests
 employee_requests
 dictionaries
+innms
+innm_form_uses
+medications
+ingridients
+medication_program_info
 
 declarations 1--1 declarations_signed
 employees 1--* declarations
@@ -223,3 +363,19 @@ employees 1--? employee_doctors
 medical_service_providers 1--1 legal_entities
 parties 1--? doctors
 declarations 1--* declarations_status_hstr
+innms 1--* medications
+innms 1--* innm_form_uses
+innms 1--* ingridients
+medications 1--* ingridients
+medications 1--* medication_program_info
+medication_requests 1--* legal_entities
+medication_requests 1--* divisions
+medication_requests 1--* employees 
+medication_requests 1--* innms 
+medication_requests ?--1 request_for_medication_request
+medication_requests 1--* medication_dispenses
+medication_dispenses 1--* legal_entities
+medication_dispenses 1--* divisions
+medication_dispenses 1--* employees 
+medication_dispenses 1--* medication_dispense_details
+medication_dispense_details 1--* medications
