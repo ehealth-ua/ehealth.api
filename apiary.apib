@@ -1925,7 +1925,6 @@ Method returns shortened details (for DOCTOR and PHARMACIST - additional return
     + `legal_enyity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0152` (string, optional)
     + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0152` (string, optional)
     + status: APPROVED (enum, optional)
-        - NEW
         - APPROVED
         - DISMISSED
     + employee_type: DOCTOR (string, optional) 
@@ -2705,7 +2704,7 @@ This method is used to create Medications. Fields descriptions are listed in req
 
     + Attributes (object)
        + include (`Medication_post`, required) 
-        + `ingridients` (array[`Ingridient_post`])
+        + `ingredients` (array[`Ingredient_post`])
 
 
 + Response 201 (application/json)
@@ -2714,7 +2713,7 @@ This method is used to create Medications. Fields descriptions are listed in req
             + code: 201 (number)
         + data (object)
             + include `Medication_Response`
-            + `ingridients` (array[`Ingridient_Response`])            
+            + `ingredients` (array[`Ingredient_Response`])            
 
 + Response 422 (application/json)
     + Attributes (Response_Error)
@@ -2722,7 +2721,7 @@ This method is used to create Medications. Fields descriptions are listed in req
             + code: 422
         + error
             + type: unverified (string, required)
-            + message: `Denum unit from Dosage ingridients must be is equal Denum unit from Container dosage medication!` (string, required)
+            + message: `Denum unit from Dosage ingredients must be is equal Denum unit from Container dosage medication!` (string, required)
 
 ### Update Medication [PATCH /medication/{id}]
 This method is used to update Medication. Fields descriptions are listed in request Example view.
@@ -2738,7 +2737,7 @@ This method is used to update Medication. Fields descriptions are listed in requ
 
     + Attributes (object)
        + include (`Medication_post`, required) 
-        + `ingridients` (array[`Ingridient_post`])
+        + `ingredients` (array[`Ingredient_post`])
 
 
 + Response 201 (application/json)
@@ -2747,7 +2746,7 @@ This method is used to update Medication. Fields descriptions are listed in requ
             + code: 201 (number)
         + data (object)
             + include `Medication_Response`
-            + `ingridients` (array[`Ingridient_Response`])            
+            + `ingredients` (array[`Ingredient_Response`])            
 
 + Response 422 (application/json)
     + Attributes (Response_Error)
@@ -2755,7 +2754,7 @@ This method is used to update Medication. Fields descriptions are listed in requ
             + code: 422
         + error
             + type: unverified (string, required)
-            + message: `Denum unit from Dosage ingridients must be is equal Denum unit from Container dosage medication!` (string, required)
+            + message: `Denum unit from Dosage ingredients must be is equal Denum unit from Container dosage medication!` (string, required)
 
 ## Requests for Medication Request [/api/requests_for_medication_request]
 
@@ -3468,7 +3467,7 @@ Use this method to recall previously created and signed Medication request.
 + position: P8 (string, required) - `Dictionary POSITION`
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
-+ status: NEW, APPROVED, DISMISSED (enum, required)
++ status: APPROVED, DISMISSED (enum, required)
 + `employee_type`: DOCTOR (string, required) - `Dictionary EMPLOYEE_TYPE`
 + party (Party_Response)
 + doctor (DoctorNew, optional)
@@ -3478,7 +3477,7 @@ Use this method to recall previously created and signed Medication request.
 + position: лікар (string, required)
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
-+ status: NEW, APPROVED, DISMISSED (enum, required)
++ status: APPROVED, DISMISSED (enum, required)
 + party (Party_Update)
 + doctor (DoctorNew, optional)
 
@@ -3509,7 +3508,7 @@ Use this method to recall previously created and signed Medication request.
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + position: P1 (string, required) - `Dictionary: POSITION`
 + `employee_type`: DOCTOR (string) - `Dictionary: EMPLOYEE_TYPE`
-+ status: NEW, APPROVED, DISMISSED (enum, required) - Employee status
++ status: APPROVED, DISMISSED (enum, required) - Employee status
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
 + party (object)
@@ -3523,7 +3522,7 @@ Use this method to recall previously created and signed Medication request.
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + position: P1 (string, required) - `Dictionary: POSITION`
 + `employee_type`: DOCTOR (string) - `Dictionary: EMPLOYEE_TYPE`
-+ status: NEW, APPROVED, DISMISSED (enum, required) - Employee status
++ status: APPROVED, DISMISSED (enum, required) - Employee status
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
 + party (object)
@@ -4188,12 +4187,12 @@ Use this method to recall previously created and signed Medication request.
 + `name` : `ПАТ "Київський вітамінний завод"` (string, required) 
 + `country` : `UA` (string, required) - `Dictionary COUNTRY`
 
-### `Ingridient_post`
+### `Ingredient_post`
 + `innm_id` : `1349a693-4db1-4a3f-9ac6-8c2f9e541982` (string, required)
 + `dosage` (`Dosage_drug_post`, required)
 + `is_active_substance` : `true` (boolean, required) 
 
-### `Ingridient_Response`
+### `Ingredient_Response`
 + `innm` (`Innms_Short`, required)
 + `dosage` (`Dosage_drug`, required)
 + `is_active_substance` : `true` (boolean, required) 
