@@ -1848,7 +1848,7 @@ Method returns shortened details, to obtain full information - get Declaration D
 
 + Response 200 (application/json)
     + Attributes (Response_Collection)
-        + data (array[`nhs_declaration_list`])
+        + data (array[`nhs_declaration_list_Public`])
 
 ### Get Declaration by ID [GET /api/declarations/{id}]
 
@@ -3462,6 +3462,11 @@ Use this method to recall previously created and signed Medication request.
     + phones (array[Phone], optional)
     + tax_id: `3372159546` (string, required)
 
+### `Employee_For_Declaration_Minimal`
++ id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ position: P6 (string, required) - `Dictionary POSITION`
++ `employee_type`: doctor (enum) - `Dictionary EMPLOYEE_TYPE`
+
 ### `Employee_Response`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + position: P8 (string, required) - `Dictionary POSITION`
@@ -4020,6 +4025,22 @@ Use this method to recall previously created and signed Medication request.
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - id of the signed document stored on the Media content storage
 + employee_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0851`m (string, required)
++ scope (enum, required)
+    - family_doctor
++ start_date: `2017-03-02` (string, required)
++ end_date: `2017-03-02` (string, required)
++ signed_at: `2017-03-02T10:45:16.000Z` (string, required)
++ status (enum, optional)
+    - active
+    - closed
++ person (`Person_Minimal`, required)
++ `legal_entity` (`Legal_Entity_Short`, required)
++ `declaration_request_id`: `74a6fae6-4207-4e03-a136-f2e70c6b0c02` (string, required)
+
+### `nhs_declaration_list_Public`
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - id of the signed document stored on the Media content storage
++ `employee` (`Employee_For_Declaration_Minimal`, required)
++ `division` (`DivisionName`, required)        
 + scope (enum, required)
     - family_doctor
 + start_date: `2017-03-02` (string, required)
