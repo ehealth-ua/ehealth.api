@@ -249,7 +249,15 @@ employee_id | uuid | not null
 receipt_period_type | varchar | not null
 receipt_age_type | varchar | not null
 medication_id | uuid | not null
+<<<<<<< HEAD
 medication_qty | number | not null
+=======
+medication_route | varchar | not null
+medication_dosage | jsonb | not null
+medication_container_dosage | jsonb | not null
+medication_qty | number | not null
+medication_dose_used_qty | number | not null
+>>>>>>> 886ee6499fc1d0dfea07b5a1a614d6d621ec772d
 note | jsonb
 dosage_instuction | jsonb
 status | varchar | not null
