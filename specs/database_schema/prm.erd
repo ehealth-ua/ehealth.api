@@ -249,11 +249,7 @@ employee_id | uuid | not null
 receipt_period_type | varchar | not null
 receipt_age_type | varchar | not null
 medication_id | uuid | not null
-medication_route | varchar | not null
-medication_dosage | jsonb | not null
-medication_container_dosage | jsonb | not null
 medication_qty | number | not null
-medication_dose_used_qty | number | not null
 note | jsonb
 dosage_instuction | jsonb
 status | varchar | not null
