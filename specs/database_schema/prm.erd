@@ -238,30 +238,31 @@ updated_by | uuid | not null
 
 [medication_requests]
 id | uuid | not null
-human_receipt_id | varchar | not null
-created_at | date | not null				
+request_number | varchar | not null
+created_at | date | not null
 started_at | date| not null
 ended_at | date| not null
 dispense_valid_from | date| not null
 dispense_valid_to | date| not null
-person_id | uuid | not null				
+person_id | uuid | not null
 employee_id | uuid | not null
 receipt_period_type | varchar | not null
 receipt_age_type | varchar | not null
-innm_id | uuid | not null
-innm_route | varchar | not null
-innm_dosage | jsonb | not null
-innm_container_dosage | jsonb | not null
-innm_qty | number | not null
-innm_dose_used_qty | number | not null
+medication_id | uuid | not null
+medication_route | varchar | not null
+medication_dosage | jsonb | not null
+medication_container_dosage | jsonb | not null
+medication_qty | number | not null
+medication_dose_used_qty | number | not null
 note | jsonb
 dosage_instuction | jsonb
 status | varchar | not null
 is_active | boolean | not null
-recall_at | date
+recalled_at | date
 recalled_by | uuid
 recall_reason | varchar
 request_for_medication_request_id | uuid | not null
+medical_program_id | uuid
 inserted_at | timestamp | not null
 inserted_by | uuid | not null
 updated_at | timestamp | not null
@@ -299,10 +300,10 @@ updated_by | uuid | not null
 
 [requests_for_medication_request]
 id | uuid | not null
-expiry_to | date | not 
+expired_at | date
 data | jsonb | not null
 status | varchar | not null
-printout_content | varchar | not null
+printout_content | varchar
 inserted_at | timestamp | not null
 inserted_by | uuid | not null
 updated_at | timestamp | not null
