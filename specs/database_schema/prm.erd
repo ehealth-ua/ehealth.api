@@ -172,7 +172,7 @@ inserted_at | timestamp | not null
 updated_at | timestamp | not null
 
 
-[ukr_med_registries]
+[ukr_med_registry]
 id | uuid | not null
 edrpou | varchar(8) | not null
 name | varchar
@@ -189,10 +189,9 @@ labels | jsonb | not null
 is_active | boolean | not null
 
 [innms]
-id | uuid | not null 
-innm_identifier | varchar | not null | unique
-name | varchar | not null | unique
-status | varchar | not null
+id | uuid | not null
+SCTID | varchar | not null | unique
+name | varchar | not null
 is_active | boolean | not null
 inserted_at | timestamp | not null
 inserted_by | uuid | not null
@@ -202,48 +201,36 @@ updated_by | uuid | not null
 [medications]
 id | uuid | not null
 name | varchar | not null 
+type | varchar | not null
+manufacturer | jsonb
+code_ATX | varchar
 is_active | boolean | not null
-start_at | date | not null
-end_at | date | not null
-route | varchar | not null
-container_dosage | jsonb | not null
-package_qty | number | not null
-package_min_qty | number | not null
-code_ATX | varchar | not null				
-manufacturer_name_country | jsonb | not null
-certificate | varchar | not null
-expired_certificate_date | date| not null
+form | varchar | not null
+container | jsonb
+package_qty | number
+package_min_qty | number
+certificate | varchar
+certificate_expired_at | date
+ingredients | jsonb
 inserted_at | timestamp | not null
 inserted_by | uuid | not null
 updated_at | timestamp | not null
 updated_by | uuid | not null
 
-[ingredients]
+[medical_programs]
 id | uuid | not null
-medication_id | uuid | not null
-innm_id | uuid | not null
-is_active_substance | boolean | not null
-dosage | jsonb | not null			 
+name | varchar | not null
+is_active | boolean | not null
 inserted_at | timestamp | not null
 inserted_by | uuid | not null
 updated_at | timestamp | not null
 updated_by | uuid | not null
 
-[medication_program_info]
+[program_medications]
 id | uuid | not null
 medication_id | uuid | not null
-medical_program | varchar | not null
-valid_from | date | not null
-valid_to | date | not null
-
-[innm_form_uses]
-id | uuid | not null
-innm_id | uuid | not null				 
-route | varchar | not null
-dosage | jsonb | not null			 
-container_dosage | jsonb | not null
-package_qty | number| not null
-package_min_qty | number| null
+medical_program_id | uuid | not null
+is_active | boolean | not null
 inserted_at | timestamp | not null
 inserted_by | uuid | not null
 updated_at | timestamp | not null
@@ -329,10 +316,13 @@ divisions
 medical_service_providers
 employees
 legal_entities
-employee_doctors
 audit_log
 ukr_med_registry
 global_parameters
+innms
+medications
+medical_programs
+program_medications
 
 (ops_db)
 declarations
@@ -346,36 +336,29 @@ medication_dispense_details
 declaration_requests
 employee_requests
 dictionaries
-innms
-innm_form_uses
-medications
-ingredients
-medication_program_info
+requests_for_medication_request
 
-declarations 1--1 declarations_signed
+
 employees 1--* declarations
 divisions *--1 legal_entities
 employees *--1 legal_entities
 parties 1--+ employees
 parties 1--* party_users
 employees *--1 divisions
-employees 1--? employee_doctors
 medical_service_providers 1--1 legal_entities
 parties 1--? doctors
 declarations 1--* declarations_status_hstr
 innms 1--* medications
-innms 1--* innm_form_uses
-innms 1--* ingredients
-medications 1--* ingredients
-medications 1--* medication_program_info
-medication_requests 1--* legal_entities
-medication_requests 1--* divisions
-medication_requests 1--* employees 
-medication_requests 1--* innms 
-medication_requests ?--1 request_for_medication_request
+medications 1--* program_medications
+medical_programs 1--* program_medications
+medication_requests *--1 legal_entities
+medication_requests *--1 divisions
+medication_requests *--1 employees 
+medication_requests *--1 medications
+medication_requests ?--1 requests_for_medication_request
 medication_requests 1--* medication_dispenses
-medication_dispenses 1--* legal_entities
-medication_dispenses 1--* divisions
-medication_dispenses 1--* employees 
+medication_dispenses *--1 legal_entities
+medication_dispenses *--1 divisions
+medication_dispenses *--1 employees 
 medication_dispenses 1--* medication_dispense_details
-medication_dispense_details 1--* medications
+medication_dispense_details 1--1 medications
