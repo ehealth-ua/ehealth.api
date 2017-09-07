@@ -203,7 +203,7 @@ id | uuid | not null
 name | varchar | not null 
 type | varchar | not null
 manufacturer | jsonb
-code_ATX | varchar
+code_ATC | varchar
 is_active | boolean | not null
 form | varchar | not null
 container | jsonb
