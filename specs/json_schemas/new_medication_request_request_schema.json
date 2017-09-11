@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "definitions": {
+    "date": {
+      "type": "string",
+      "pattern": "^(\\d{4}(?!\\d{2}\\b))((-)((0[1-9]|1[0-2])(\\3([12]\\d|0[1-9]|3[01]))|(00[1-9]|0[1-9]\\d|[12]\\d{2}|3([0-5]\\d|6[1-6]))))$"
+    }
+  },
+  "type": "object",
+  "properties": {
+    "person_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{12}$",
+      "description": "Person identifier"
+    },
+    "employee_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{12}$",
+      "description": "Employee ID with `type=DOCTOR` who issued Medication Request."
+    },
+    "created_at": {
+      "$ref": "#/definitions/date",
+      "description": "Medication request creation date, which is determined by the external system. Format DATE '2017-09-07'"
+    },
+    "started_at": {
+      "$ref": "#/definitions/date",
+      "description": "Start date of a treatment period, which is determined by the external system. Greater or equal to created_at. Format DATE '2017-09-07'"
+    },
+    "ended_at": {
+      "$ref": "#/definitions/date",
+      "description": "End date of a treatment period, which is determined by the external system. Greater or equal to started_at. Format DATE '2017-10-07'"
+    },
+    "dispense_valid_from": {
+      "$ref": "#/definitions/date",
+      "description": "Start date of dispense period, which is determined by the external system. Format DATE '2017-09-07'"
+    },
+    "dispense_valid_to": {
+      "$ref": "#/definitions/date",
+      "description": "End date of dispense period, which is determined by the external system. Greater or equal to dispense_valid_from. Format DATE '2017-10-07'"
+    },
+    "medication_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{12}$",
+      "description": "Medication identified"
+    },
+    "medication_qty": {
+      "type": "number",
+      "minimum": 0,
+      "exclusiveMinimum": true,
+      "description": "Medication quantity isuued by the doctor"
+    }
+  },
+  "required": [
+    "person_id",
+    "employee_id",
+    "created_at",
+    "started_at",
+    "ended_at",
+    "dispense_valid_from",
+    "dispense_valid_to",
+    "medication_id",
+    "medication_qty"
+  ]
+}
