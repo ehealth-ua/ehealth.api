@@ -2601,15 +2601,16 @@ Get list of cities by district
 
 ## Drugs [/drugs]
 
-### Get drugs list [GET /drugs{?innms_id,innms_name,route,status,limit,starting_after,ending_before}]
+### Get drugs list [GET /drugs{?substanse_id,substanse_name,substanse_sctid,form,medication_id,medication_name,medication_code_ATX,limit,starting_after,ending_before}]
 
 + Parameters
-    + `innms_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional)
-    + `innms_name`: `Аміодарон` (string, optional)
-    + `route`: `PILL` (string, optional)
-    + `status`: `ACTIVE` (enum, optional). Default: ACTIVE
-        - ACTIVE
-        - INACTIVE
+    + `substanse_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional)
+    + `substanse_name`: `Аміодарон` (string, optional)
+    + `substanse_sctid`: `52574003` (string, optional)
+    + `form`: `PILL` (string, optional)
+    + `medication_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional)
+    + `medication_name`: `Аміодарон 200мг таблетки` (string, optional)
+    + `medication_code_ATX`: `С01BD01` (string, optional)
     + `limit`: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
     + `starting_after`: `56c31536a60ad644060041af` (string, optional) - A cursor to fetch next page. Taken from collection response.
     + `ending_before`: `56c31536a60ad644060041aa` (string, optional) - A cursor to fetch previous page. Taken from collection response.
@@ -2625,7 +2626,7 @@ Get list of cities by district
     + Attributes (Response_Collection)
         + meta (Response__Meta)
             + code: 200 (number)
-        + data (array[Drug])
+        + data (array[Drug_Response])
         
 
 ## Innms [/innms]        
@@ -2756,13 +2757,18 @@ This method is used to update Medication. Fields descriptions are listed in requ
             + type: unverified (string, required)
             + message: `Denum unit from Dosage ingredients must be is equal Denum unit from Container dosage medication!` (string, required)
 
-## Requests for Medication Request [/api/requests_for_medication_request]
+## Medication Request Requests [/api/medication_request_requests]
 
-[Request for Medication request]() is a life-cycle entity that is used to perform operations on [Medication requests]().
+[Medication request Request]() is a life-cycle entity that is used to perform operations on [Medication requests]().
 
-After Request for Medication request is signed it will be automatically moved to [Medication requests]().
+After Medication request Request is signed it will be automatically moved to [Medication requests]().
 
-### Get Requests for Medication request List [GET /api/requests_for_medication_request{?employee_id,legal_entity_id,status,starting_after,ending_before,limit}]
+> **Important:** (Specific only for "Доступні ліки")
+> You can't create new Medication Request for medication in case there is another Medication Request with the same medication in this period (between started_at and ended_at)
+
+> **Important:** Dispense of Medications under this Medication Request is possible in period between dispense_valid_from and dispense_valid_to
+
+### Get Medication Request Requests List [GET /api/medication_request_requests{?employee_id,legal_entity_id,status,starting_after,ending_before,limit}]
 
 Use this method to obrain list of Requests for Medication request an `employee_id`. If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor is interested in current UI section.
 
@@ -2790,10 +2796,10 @@ Method returns shortened details, to obtain full information - get Request for M
 
 + Response 200 (application/json)
     + Attributes (Response_Collection)
-        + data (array[`Request_for_Medication_request_Public_Response_short`]) 
+        + data (array[`Medication_request_Request_Public_Response_short`]) 
  
 
-### Get Request for Medication request by ID [GET /api/requests_for_medication_request/{id}]
+### Get Medication Request Request by ID [GET /api/medication_request_requests/{id}]
 
 Use this method to obrain full information of Request for Medication request an `id`.
 
@@ -2811,12 +2817,12 @@ Use this method to obrain full information of Request for Medication request an 
         + meta (Response__Meta)
             + code: 201 (number)
         + data (object)
-            + include `Request_for_Medication_request_Public_Response`
+            + include `Medication_request_Request_Public_Response`
 
     
-### Qualify Request for Medication request [POST /api/requests_for_medication_request/{id}/actions/qualify]
+### Qualify Medication Request Request [POST /api/medication_request_requests/qualify]
 
-This method is used to qualify data prescription (possibility to use Innm for the program) before creating Medication request. Fields descriptions are listed in request Example view.
+This method is used to qualify data Medication request Request (possibility to give reimbursement for medication according the programs) before creating Medication request Request. Fields descriptions are listed in request Example view.
 
 + Request (application/json)
 
@@ -2825,15 +2831,15 @@ This method is used to qualify data prescription (possibility to use Innm for th
             Authorization: Bearer mF_9.B5f-4.1JqM
 
     + Attributes (object)
-        + `medication_request` (object)
-            + include `Qualify_Request_for_Medication_request_post_data`
-        + `programs` (array[`Qualify_Request_for_Medication_request_List_program_post_data`])
+        + `medication_request_request` (object)
+            + include `Medication_request_Request_post_data`
+        + `programs` (array[`Qualify_Medication_request_Request_List_program_post_data`]) - Medical programs list for qualify
         
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + meta (Response__Meta)
             + code: 201 (number)
-        +  data (array[`Qualify_Request_for_Medication_request_Responce`]))
+        +  data (array[`Qualify_Medication_request_Request_Responce`]))
 
 + Response 422 (application/json)
     + Attributes (Response_Error)
@@ -2841,9 +2847,9 @@ This method is used to qualify data prescription (possibility to use Innm for th
             + code: 422
         + error
             + type: unverified (string, required)
-            + message: `Only for active MPI record can create medication request!` (string, required)
+            + message: `Only for active MPI record can create Medication request Request!` (string, required)
 
-### Qualify Request for Medication request by ID [POST /api/requests_for_medication_request/qualify]
+### Qualify Medication Request Request by ID [POST /api/medication_request_requests/{id}/actions/qualify]
 
 This method is used to qualify (possibility to use Innm for the program) Request for Medication request by Id (as part of Medication request creation process). Fields descriptions are listed in request Example view.
 
@@ -2854,9 +2860,9 @@ This method is used to qualify (possibility to use Innm for the program) Request
             Authorization: Bearer mF_9.B5f-4.1JqM
 
     + Attributes (object)
-        + `id` : `2848a935-5fd7-48ba-b235-a9b5d475c647` (string, required)
-        + `programs` (array[`Qualify_Request_for_Medication_request_List_program_post_data`])
-        
+        + `id` : `2848a935-5fd7-48ba-b235-a9b5d475c647` (string, required) - Medication Request request identifier
+        + `programs` (array[`Qualify_Medication_request_Request_List_program_post_data`]) - Medical programs list for qualify
+    
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + meta (Response__Meta)
@@ -2871,9 +2877,10 @@ This method is used to qualify (possibility to use Innm for the program) Request
             + type: unverified (string, required)
             + message: `Only for active MPI record can create medication request!` (string, required)
 
-### Create Request for Medication request [POST]
+### Create Medication Request Request [POST /api/medication_request_requests]
 
-This method is used to create Request for Medication request (as part of Medication request creation process). Fields descriptions are listed in request Example view.
+This method is used to create Medication request Request (as a part of Medication request creation process). 
+Fields description are listed in request Example view.
 
 + Request (application/json)
 
@@ -2882,14 +2889,14 @@ This method is used to create Request for Medication request (as part of Medicat
             Authorization: Bearer mF_9.B5f-4.1JqM
 
     + Attributes (object)
-        + include `Request_for_Medication_request_post_data`
+        + include `Medication_request_Request_post_data`
 
 + Response 201 (application/json)
     + Attributes (Response__Process_OK)
         + meta (Response__Meta)
             + code: 201 (number)
         + data (object)
-            + include `Request_for_Medication_request_Public_Response`
+            + include `Medication_request_Request_Public_Response`
             + content: `Medication_request content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
 
 + Response 422 (application/json)
@@ -2900,18 +2907,18 @@ This method is used to create Request for Medication request (as part of Medicat
             + type: unverified (string, required)
             + message: `Only active employee with type DOCTOR can create medication request!` (string, required)
 
-### Sign Request for Medication request [PATCH /api/requests_for_medication_request/{id}/actions/sign]
+### Sign Medication Request Request [PATCH /api/medication_request_requests/{id}/actions/sign]
 
-This method is used to sign Request for Medication request. Method receives signed message (pkcs7) including signed content, digital signature and signer public key in `signed_content` property. 
+This method is used to sign Medication request Request. Method receives signed message (pkcs7) including signed content, digital signature and signer public key in `signed_content` property. 
 All signature fields will be validated (including signer certificate authority).
 
-This service will store signed copy of Request for Medication request in Media Content Storage and create Medication request if signature is all checks is passed.
+This service will store signed copy of Medication request Request in Media Content Storage and create Medication request if signature is all checks is passed.
 
-Signed content MUST consists of JSON object with Request for Medication request data. Object that need to be signed is returned by `Get Request for Medication request by ID` response, `JSON.Path: $.data`.
+Signed content MUST consists of JSON object with Medication request Request data. Object that need to be signed is returned by `Get Medication request Request by ID` response, `JSON.Path: $.data`.
 The only field that can and must be changed is JSON.Path: `$.data.employee_signed`. It should be changed to `true`.
 
 **Important**
-Invoke Get Request for Medication request by ID to obtain seed - Hash of previous block in Medication request chain or other random component that should be signed with Medication request.
+Invoke Get Medication request Request by ID to obtain seed - Hash of previous block in Medication request Request chain or other random component that should be signed with Medication request Request.
 
 **Signed object example:**
 ```
@@ -2928,14 +2935,14 @@ Invoke Get Request for Medication request by ID to obtain seed - Hash of previou
             Authorization: Bearer mF_9.B5f-4.1JqM
 
     + Attributes (object)
-        + `signed_request_for_medication_request`: `MIIWmAYJKoZIhvcNAQcCoIIWiTCCFoUCAQExCzAJBgUrDgMCGgUAMIISuwYJKoZIhvcNAQcBoIISrASCEqh7XHJ0ZjFcYW5zaVxhbnNpY3BnMTI1Mlxjb2NvYXJ0ZjE1MDRcY29jb2FzdWJydGY4MTANCntcZm9udHRibFxmMFxmc3dpc3NcZmNoYXJzZXQwIEhlbHZldGljYTt9DQp7XGNvbG9ydGJsO1xyZWQyNTVcZ3JlZW4yNTVcYmx1ZTI1NTtccmVkNzBcZ3JlZW41M1xibHVlOTY7XHJlZDI0OVxncmVlbjI0OVxibHVlMjUxO30NCntcKlxleHBhbmRlZGNvbG9ydGJsOztcY3NzcmdiXGMzNDUxMFxjMjc4NDNcYzQ1MDk4O1xjc3NyZ2JcYzk4MDM5XGM5ODAzOVxjOTg4MjQ7fQ0KXG1hcmdsMTQ0MFxtYXJncjE0NDBcdmlld3cxMDgwMFx2aWV3aDg0MDBcdmlld2tpbmQwDQpcZGVmdGFiNzIwDQpccGFyZFxwYXJkZWZ0YWI3MjBccGFydGlnaHRlbmZhY3RvcjANCg0KXGYwXGZzMjggXGNmMiBcY2IzIFxleHBuZDBcZXhwbmR0dzBca2VybmluZzANClx7XA0KICAgImlkIjoiYjA3NWYxNDgiLFwNCiAgICJzdGFydF9kYXRlIjoiMjAxNy0wMy0wMlQxMDo0NToxNi4wMDBaIixcDQogICAiZW5kX2RhdGUiOiIyMDE3LTAzLTAyVDEwOjQ1OjE2LjAwMFoiLFwNCiAgICJwZXJzb24iOlx7XA0KICAgICAgImZpcnN0X25hbWUiOiJcdWMwXHUxMDU1IFx1MTA3NyBcdTEwOTAgXHUxMDg4IFx1MTA4NiAiLFwNCiAgICAgICJsYXN0X25hbWUiOiJcdWMwXHUxMDMwIFx1MTA3NCBcdTEwNzIgXHUxMDg1IFx1MTA4NiBcdTEwNzQgIixcDQogICAgICAic2blic Vjb25kX25hbWUiOiJcdWMwXHUxMDUyIFx1MTA4MCBcdTEwODIgXHUxMDg2IFx1MTA4MyBcdTEwNzIgXHUxMDgxIFx1MTA4NiBcdTEwNzQgXHUxMDgwIFx1MTA5NSAiLFwNCiAgICAgICJiaXJ0aF9kYXRlIjoiMTk5MS0wOC0xOVQwMDowMDowMC4wMDBaIixcDQogICAgICAiYmlydGhfcGxhY2UiOiJcdWMwXHUxMDQyIFx1MTExMCBcdTEwODUgXHUxMDg1IFx1MTA4MCBcdTEwOTQgXHUxMTAzICwgXHUxMDU5IFx1MTA4MiBcdTEwODggXHUxMDcyIFx1MTExMSBcdTEwODUgXHUxMDcyICIsXA0KICAgICAgImdlbmRlciI6Ik1BTEUiLFwNCiAgICAgICJlbWFpbCI6ImVtYWlsQGV4YW1wbGUuY29tIixcDQogICAgICAidGF4X2lkIjoiMzEyNjUwOTgxNiIsXA0KICAgICAgIm5hdGlvbmFsX2lkIjoiQ0M3MTUwOTg1MjQzIixcDQogICAgICAic2VjcmV0Ijoic2VjcmV0IixcDQogICAgICAiZG9jdW1lbnRzIjpbXA0KICAgICAgICAgXHtcDQogICAgICAgICAgICAidHlwZSI6IlBBU1NQT1JUIixcDQogICAgICAgICAgICAibnVtYmVyIjoiMTIwNTE4IixcDQogICAgICAgICAgICAiaXNzdWVfZGF0ZSI6IjIwMTUtMDQtMDdUMDA6MDA6MDAuMDAwWiIsXA0KICAgICAgICAgICAgImV4cGlyeV9kYXRlIjoiMjAxNS0wNC0wN1QwMDowMDowMC4wMDBaIixcDQogICAgICAgICAgICAiaXNzdWVkX2J5IjoiRE1TVSJcDQogICAgICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImFkZHJlc3NlcyI6W1wNCiAgICAgICAgIFx7XA0KICAgICAgICAgICAgInR5cGUiOiJSRVNJREVOQ0UiLFwNCiAgICAgICAgICAgICJjb3VudHJ5IjoiVUEiLFwNCiAgICAgICAgICAgICJhcmVhIjoiXHVjMFx1MTA0NiBcdTEwODAgXHUxMDkwIFx1MTA4NiBcdTEwODQgXHUxMDgwIFx1MTA4OCBcdTEwODkgXHUxMTAwIFx1MTA4MiBcdTEwNzIgIixcDQogICAgICAgICAgICAicmVnaW9uIjoiXHVjMFx1MTA0MSBcdTEwNzcgXHUxMDg4IFx1MTA3NiBcdTEwODAgXHUxMDk1IFx1MTExMCBcdTEwNzQgXHUxMDg5IFx1MTEwMCBcdTEwODIgXHUxMDgwIFx1MTA4MSAiLFwNCiAgICAgICAgICAgICJjaXR5IjoiXHVjMFx1MTA1MCBcdTEwODAgXHUxMTExIFx1MTA3NCAiLFwNCiAgICAgICAgICAgICJjaXR5X3R5cGUiOiJDSVRZIixcDQogICAgICAgICAgICAic3RyZWV0IjoiXHVjMFx1MTA3NCBcdTEwOTEgXHUxMDgzIC4gXHUxMDUzIFx1MTExMCBcdTEwNzggXHUxMDgwIFx1MTA4NSBcdTEwODkgXHUxMTAwIFx1MTA4MiBcdTEwNzIgIixcDQogICAgICAgICAgICAiYnVpbGRpbmciOiIxNSIsXA0KICAgICAgICAgICAgImFwYXJ0bWVudCI6IjIzIixcDQogICAgICAgICAgICAiemlwIjoiMDIwOTAiXA0KICAgICAgICAgXH1cDQogICAgICBdLFwNCiAgICAgICJwaG9uZXMiOltcDQogICAgICAgICBce1wNCiAgICAgICAgICAgICJ0eXBlIjoiTU9CSUxFIixcDQogICAgICAgICAgICAibnVtYmVyIjoiKzM4MDUwMzQxMDg3MCJcDQogICAgICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImF1dGhlbnRpY2F0aW9uX21ldGhvZHMiOltcDQogICAgICAgICBce1wNCiAgICAgICAgICAgICJ0eXBlIjoiU01TIixcDQogICAgICAgICAgICAicGhvbmVfbnVtYmVyIjoiKzM4MDUwODg4NzcwMCJcDQogICAgICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImVtZXJnZW5jeV9jb250YWN0Ijpce1wNCiAgICAgICAgICJmaXJzdF9uYW1lIjoiXHVjMFx1MTA1NSBcdTEwNzcgXHUxMDkwIFx1MTA4OCBcdTEwODYgIixcDQogICAgICAgICAibGFzdF9uYW1lIjoiXHVjMFx1MTAzMCBcdTEwNzQgXHUxMDcyIFx1MTA4NSBcdTEwODYgXHUxMDc0ICIsXA0KICAgICAgICAgInNlY29uZF9uYW1lIjoiXHVjMFx1MTA1MiBcdTEwODAgXHUxMDgyIFx1MTA4NiBcdTEwODMgXHUxMDcyIFx1MTA4MSBcdTEwODYgXHUxMDc0IFx1MTA4MCBcdTEwOTUgIixcDQogICAgICAgICAicGhvbmVzIjpbXA0KICAgICAgICAgICAgXHtcDQogICAgICAgICAgICAgICAidHlwZSI6Ik1PQklMRSIsXA0KICAgICAgICAgICAgICAgIm51bWJlciI6IiszODA1MDM0MTA4NzAiXA0KICAgICAgICAgICAgXH1cDQogICAgICAgICBdXA0KICAgICAgXH0sXA0KICAgICAgImNvbmZpZGFudF9wZXJzb24iOlx7XA0KICAgICAgICAgInJlbGF0aW9uX3R5cGUiOiJ0cnVzdGVlIixcDQogICAgICAgICAiZmlyc3RfbmFtZSI6Ilx1YzBcdTEwNTUgXHUxMDc3IFx1MTA5MCBcdTEwODggXHUxMDg2ICIsXA0KICAgICAgICAgImxhc3RfbmFtZSI6Ilx1YzBcdTEwMzAgXHUxMDc0IFx1MTA3MiBcdTEwODUgXHUxMDg2IFx1MTA3NCAiLFwNCiAgICAgICAgICJzZWNvbmRfbmFtZSI6Ilx1YzBcdTEwNTIgXHUxMDgwIFx1MTA4MiBcdTEwODYgXHUxMDgzIFx1MTA3MiBcdTEwODEgXHUxMDg2IFx1MTA3NCBcdTEwODAgXHUxMDk1ICIsXA0KICAgICAgICAgImJpcnRoX2RhdGUiOiIxOTkxLTA4LTE5VDAwOjAwOjAwLjAwMFoiLFwNCiAgICAgICAgICJiaXJ0aF9wbGFjZSI6Ilx1YzBcdTEwNDIgXHUxMTEwIFx1MTA4NSBcdTEwODUgXHUxMDgwIFx1MTA5NCBcdTExMDMgLCBcdTEwNTkgXHUxMDgyIFx1MTA4OCBcdTEwNzIgXHUxMTExIFx1MTA4NSBcdTEwNzIgIixcDQogICAgICAgICAiZ2VuZGVyIjoiTUFMRSIsXA0KICAgICAgICAgInRheF9pZCI6IjMxMjY1MDk4MTYiLFwNCiAgICAgICAgICJkb2N1bWVudHMiOltcDQogICAgICAgICAgICBce1wNCiAgICAgICAgICAgICAgICJ0eXBlIjoiUEFTU1BPUlQiLFwNCiAgICAgICAgICAgICAgICJudW1iZXIiOiIxMjA1MTgiLFwNCiAgICAgICAgICAgICAgICJpc3N1ZV9kYXRlIjoiMjAxNS0wNC0wN1QwMDowMDowMC4wMDBaIixcDQogICAgICAgICAgICAgICAiZXhwaXJ5X2RhdGUiOiIyMDE1LTA0LTA3VDAwOjAwOjAwLjAwMFoiLFwNCiAgICAgICAgICAgICAgICJpc3N1ZWRfYnkiOiJETVNVIlwNCiAgICAgICAgICAgIFx9XA0KICAgICAgICAgXSxcDQogICAgICAgICAicGhvbmVzIjpbXA0KICAgICAgICAgICAgXHtcDQogICAgICAgICAgICAgICAidHlwZSI6Ik1PQklMRSIsXA0KICAgICAgICAgICAgICAgIm51bWJlciI6IiszODA1MDM0MTA4NzAiXA0KICAgICAgICAgICAgXH1cDQogICAgICAgICBdXA0KICAgICAgXH0sXA0KICAgICAgInJlbmV3YWxfY29uc2VudCI6dHJ1ZSxcDQogICAgICAicGF0aWVudF9zaWduZWQiOnRydWUsXA0KICAgICAgImRpc2Nsb3N1cmVfY29uc2VudCI6dHJ1ZSxcDQogICAgICAicHJvY2Vzc19kYXRhX2NvbnNlbnQiOnRydWVcDQogICBcfSxcDQogICAiZW1wbG95ZWUiOlx7XA0KICAgICAgImlkIjoiZDI5MGYxZWUtNmM1NC00YjAxLTkwZTYtZDcwMTc0OGYwODUxIixcDQogICAgICAidGl0bGUiOiJcdWMwXHUxMDgzIFx1MTExMCBcdTEwODIgXHUxMDcyIFx1MTA4OCAiLFwNCiAgICAgICJwYXJ0eSI6XHtcDQogICAgICAgICAiaWQiOiJiMDc1ZjE0OC03ZjkzLTRmYzItYjJlYy0yZDgxYjE5YTliN2IiLFwNCiAgICAgICAgICJmaXJzdF9uYW1lIjoiXHVjMFx1MTA1NSBcdTEwNzcgXHUxMDkwIFx1MTA4OCBcdTEwODYgIixcDQogICAgICAgICAibGFzdF9uYW1lIjoiXHVjMFx1MTAzMCBcdTEwNzQgXHUxMDcyIFx1MTA4NSBcdTEwODYgXHUxMDc0ICIsXA0KICAgICAgICAgInNlY29uZF9uYW1lIjoiXHVjMFx1MTA1MiBcdTEwODAgXHUxMDgyIFx1MTA4NiBcdTEwODMgXHUxMDcyIFx1MTA4MSBcdTEwODYgXHUxMDc0IFx1MTA4MCBcdTEwOTUgIlwNCiAgICAgIFx9XA0KICAgXH0sXA0KICAgIm1zcCI6XHtcDQogICAgICAiaWQiOiJkMjkwZjFlZSIsXA0KICAgICAgIm5hbWUiOiJcdWMwXHUxMDUwIFx1MTA4MyBcdTExMTAgXHUxMDg1IFx1MTExMCBcdTEwODIgXHUxMDcyICBcdTEwNDEgXHUxMDg2IFx1MTA4OCBcdTEwODAgXHUxMDg5ICIsXA0KICAgICAgInNob3J0X05hbWUiOiJcdWMwXHUxMDQxIFx1MTA4NiBcdTEwODggXHUxMDgwIFx1MTA4OSAiLFwNCiAgICAgICJ0eXBlIjoiXHVjMFx1MTA2MCBcdTEwNTQgXHUxMDU1ICIsXA0KICAgICAgImVkcnBvdSI6IjU0MzIzNDU0MzIiXA0KICAgXH0sXA0KICAgInNjb3BlIjoiZmFtaWx5IGRvY3RvciIsXA0KICAgInBsYWludGV4dF9jb250ZW50IjoiRGVjbGFyYXRpb24gY29udGVudCJcDQpcfX2gggIuMIICKjCCAZOgAwIBAgIJANj0sC/v0hWYMA0GCSqGSIb3DQEBBQUAMBkxFzAVBgNVBAMUDlBLQ1MjNyBleGFtcGxlMB4XDTE3MDMyNzE0NTczM1oXDTE3MDQyNjE0NTczM1owGTEXMBUGA1UEAxQOUEtDUyM3IGV4YW1wbGUwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMuqrxE/0txT+ZVRKU1O85a8eaaUAOkbcAIy1mMoxQ+UBwcBeXt07Oxu32+p51HSY93Pp5AlDLKE48sjSNvMbTk5vtZ6g8sqMpZxlBVqHLkXLXYBMf2rmtE4hfV6yTP5YUJEs+a9cotsPN0r5KlI9g8aSpIj9Ie8mML5Vh1taQHNAgMBAAGjejB4MB0GA1UdDgQWBBTET2SwL5UfUMKDyhuBGCA+CaflnzBJBgNVHSMEQjBAgBTET2SwL5UfUMKDyhuBGCA+Cafln6EdpBswGTEXMBUGA1UEAxQOUEtDUyM3IGV4YW1wbGWCCQDY9LAv79IVmDAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBBQUAA4GBAF1uOGjUb6IVS28UqZ2qLc/kd2oNU2hOEuAp1YeaKRL2OaG4bTubJO1ejoxCJNfVj0FFw5PXIgjnw87JzkAy5KLDTiotQl8eknkd1bR3nIWINemck3GeGYkR8giG3gkNxz6ky1+63ZcoJkEiS46aneDhmS6BdH0V2G/3delos8+ZMYIBgDCCAXwCAQEwJjAZMRcwFQYDVQQDFA5QS0NTIzcgZXhhbXBsZQIJANj0sC/v0hWYMAkGBSsOAwIaBQCggbEwGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMTcwMzI4MTE1NDEwWjAjBgkqhkiG9w0BCQQxFgQU5NSvVRVYHz5tG1GW8gXrjHSnLj8wUgYJKoZIhvcNAQkPMUUwQzAKBggqhkiG9w0DBzAOBggqhkiG9w0DAgICAIAwDQYIKoZIhvcNAwICAUAwBwYFKw4DAgcwDQYIKoZIhvcNAwICASgwDQYJKoZIhvcNAQEBBQAEgYCdqnN8gGXw9OUmtxOvQQgHK5Ni/4/2WQWj7rxERh5AI6rhXs/hh3DNS5Z5mN6wO8z47SQuedbsMQ5hf6+9BbKhXD7WKeU+DtGyfa1ner5/ubz6BeVvuT98D4PrzHlqNSpe/7AirrA70QVO9kPoFSmGtBG6JjaqaCZBYbvF9InPRw==` (string, required)
+        + `signed_medication_request_request`: `MIIWmAYJKoZIhvcNAQcCoIIWiTCCFoUCAQExCzAJBgUrDgMCGgUAMIISuwYJKoZIhvcNAQcBoIISrASCEqh7XHJ0ZjFcYW5zaVxhbnNpY3BnMTI1Mlxjb2NvYXJ0ZjE1MDRcY29jb2FzdWJydGY4MTANCntcZm9udHRibFxmMFxmc3dpc3NcZmNoYXJzZXQwIEhlbHZldGljYTt9DQp7XGNvbG9ydGJsO1xyZWQyNTVcZ3JlZW4yNTVcYmx1ZTI1NTtccmVkNzBcZ3JlZW41M1xibHVlOTY7XHJlZDI0OVxncmVlbjI0OVxibHVlMjUxO30NCntcKlxleHBhbmRlZGNvbG9ydGJsOztcY3NzcmdiXGMzNDUxMFxjMjc4NDNcYzQ1MDk4O1xjc3NyZ2JcYzk4MDM5XGM5ODAzOVxjOTg4MjQ7fQ0KXG1hcmdsMTQ0MFxtYXJncjE0NDBcdmlld3cxMDgwMFx2aWV3aDg0MDBcdmlld2tpbmQwDQpcZGVmdGFiNzIwDQpccGFyZFxwYXJkZWZ0YWI3MjBccGFydGlnaHRlbmZhY3RvcjANCg0KXGYwXGZzMjggXGNmMiBcY2IzIFxleHBuZDBcZXhwbmR0dzBca2VybmluZzANClx7XA0KICAgImlkIjoiYjA3NWYxNDgiLFwNCiAgICJzdGFydF9kYXRlIjoiMjAxNy0wMy0wMlQxMDo0NToxNi4wMDBaIixcDQogICAiZW5kX2RhdGUiOiIyMDE3LTAzLTAyVDEwOjQ1OjE2LjAwMFoiLFwNCiAgICJwZXJzb24iOlx7XA0KICAgICAgImZpcnN0X25hbWUiOiJcdWMwXHUxMDU1IFx1MTA3NyBcdTEwOTAgXHUxMDg4IFx1MTA4NiAiLFwNCiAgICAgICJsYXN0X25hbWUiOiJcdWMwXHUxMDMwIFx1MTA3NCBcdTEwNzIgXHUxMDg1IFx1MTA4NiBcdTEwNzQgIixcDQogICAgICAic2blic Vjb25kX25hbWUiOiJcdWMwXHUxMDUyIFx1MTA4MCBcdTEwODIgXHUxMDg2IFx1MTA4MyBcdTEwNzIgXHUxMDgxIFx1MTA4NiBcdTEwNzQgXHUxMDgwIFx1MTA5NSAiLFwNCiAgICAgICJiaXJ0aF9kYXRlIjoiMTk5MS0wOC0xOVQwMDowMDowMC4wMDBaIixcDQogICAgICAiYmlydGhfcGxhY2UiOiJcdWMwXHUxMDQyIFx1MTExMCBcdTEwODUgXHUxMDg1IFx1MTA4MCBcdTEwOTQgXHUxMTAzICwgXHUxMDU5IFx1MTA4MiBcdTEwODggXHUxMDcyIFx1MTExMSBcdTEwODUgXHUxMDcyICIsXA0KICAgICAgImdlbmRlciI6Ik1BTEUiLFwNCiAgICAgICJlbWFpbCI6ImVtYWlsQGV4YW1wbGUuY29tIixcDQogICAgICAidGF4X2lkIjoiMzEyNjUwOTgxNiIsXA0KICAgICAgIm5hdGlvbmFsX2lkIjoiQ0M3MTUwOTg1MjQzIixcDQogICAgICAic2VjcmV0Ijoic2VjcmV0IixcDQogICAgICAiZG9jdW1lbnRzIjpbXA0KICAgICAgICAgXHtcDQogICAgICAgICAgICAidHlwZSI6IlBBU1NQT1JUIixcDQogICAgICAgICAgICAibnVtYmVyIjoiMTIwNTE4IixcDQogICAgICAgICAgICAiaXNzdWVfZGF0ZSI6IjIwMTUtMDQtMDdUMDA6MDA6MDAuMDAwWiIsXA0KICAgICAgICAgICAgImV4cGlyeV9kYXRlIjoiMjAxNS0wNC0wN1QwMDowMDowMC4wMDBaIixcDQogICAgICAgICAgICAiaXNzdWVkX2J5IjoiRE1TVSJcDQogICAgICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImFkZHJlc3NlcyI6W1wNCiAgICAgICAgIFx7XA0KICAgICAgICAgICAgInR5cGUiOiJSRVNJREVOQ0UiLFwNCiAgICAgICAgICAgICJjb3VudHJ5IjoiVUEiLFwNCiAgICAgICAgICAgICJhcmVhIjoiXHVjMFx1MTA0NiBcdTEwODAgXHUxMDkwIFx1MTA4NiBcdTEwODQgXHUxMDgwIFx1MTA4OCBcdTEwODkgXHUxMTAwIFx1MTA4MiBcdTEwNzIgIixcDQogICAgICAgICAgICAicmVnaW9uIjoiXHVjMFx1MTA0MSBcdTEwNzcgXHUxMDg4IFx1MTA3NiBcdTEwODAgXHUxMDk1IFx1MTExMCBcdTEwNzQgXHUxMDg5IFx1MTEwMCBcdTEwODIgXHUxMDgwIFx1MTA4MSAiLFwNCiAgICAgICAgICAgICJjaXR5IjoiXHVjMFx1MTA1MCBcdTEwODAgXHUxMTExIFx1MTA3NCAiLFwNCiAgICAgICAgICAgICJjaXR5X3R5cGUiOiJDSVRZIixcDQogICAgICAgICAgICAic3RyZWV0IjoiXHVjMFx1MTA3NCBcdTEwOTEgXHUxMDgzIC4gXHUxMDUzIFx1MTExMCBcdTEwNzggXHUxMDgwIFx1MTA4NSBcdTEwODkgXHUxMTAwIFx1MTA4MiBcdTEwNzIgIixcDQogICAgICAgICAgICAiYnVpbGRpbmciOiIxNSIsXA0KICAgICAgICAgICAgImFwYXJ0bWVudCI6IjIzIixcDQogICAgICAgICAgICAiemlwIjoiMDIwOTAiXA0KICAgICAgICAgXH1cDQogICAgICBdLFwNCiAgICAgICJwaG9uZXMiOltcDQogICAgICAgICBce1wNCiAgICAgICAgICAgICJ0eXBlIjoiTU9CSUxFIixcDQogICAgICAgICAgICAibnVtYmVyIjoiKzM4MDUwMzQxMDg3MCJcDQogICAgICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImF1dGhlbnRpY2F0aW9uX21ldGhvZHMiOltcDQogICAgICAgICBce1wNCiAgICAgICAgICAgICJ0eXBlIjoiU01TIixcDQogICAgICAgICAgICAicGhvbmVfbnVtYmVyIjoiKzM4MDUwODg4NzcwMCJcDQogICAgICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImVtZXJnZW5jeV9jb250YWN0Ijpce1wNCiAgICAgICAgICJmaXJzdF9uYW1lIjoiXHVjMFx1MTA1NSBcdTEwNzcgXHUxMDkwIFx1MTA4OCBcdTEwODYgIixcDQogICAgICAgICAibGFzdF9uYW1lIjoiXHVjMFx1MTAzMCBcdTEwNzQgXHUxMDcyIFx1MTA4NSBcdTEwODYgXHUxMDc0ICIsXA0KICAgICAgICAgInNlY29uZF9uYW1lIjoiXHVjMFx1MTA1MiBcdTEwODAgXHUxMDgyIFx1MTA4NiBcdTEwODMgXHUxMDcyIFx1MTA4MSBcdTEwODYgXHUxMDc0IFx1MTA4MCBcdTEwOTUgIixcDQogICAgICAgICAicGhvbmVzIjpbXA0KICAgICAgICAgICAgXHtcDQogICAgICAgICAgICAgICAidHlwZSI6Ik1PQklMRSIsXA0KICAgICAgICAgICAgICAgIm51bWJlciI6IiszODA1MDM0MTA4NzAiXA0KICAgICAgICAgICAgXH1cDQogICAgICAgICBdXA0KICAgICAgXH0sXA0KICAgICAgImNvbmZpZGFudF9wZXJzb24iOlx7XA0KICAgICAgICAgInJlbGF0aW9uX3R5cGUiOiJ0cnVzdGVlIixcDQogICAgICAgICAiZmlyc3RfbmFtZSI6Ilx1YzBcdTEwNTUgXHUxMDc3IFx1MTA5MCBcdTEwODggXHUxMDg2ICIsXA0KICAgICAgICAgImxhc3RfbmFtZSI6Ilx1YzBcdTEwMzAgXHUxMDc0IFx1MTA3MiBcdTEwODUgXHUxMDg2IFx1MTA3NCAiLFwNCiAgICAgICAgICJzZWNvbmRfbmFtZSI6Ilx1YzBcdTEwNTIgXHUxMDgwIFx1MTA4MiBcdTEwODYgXHUxMDgzIFx1MTA3MiBcdTEwODEgXHUxMDg2IFx1MTA3NCBcdTEwODAgXHUxMDk1ICIsXA0KICAgICAgICAgImJpcnRoX2RhdGUiOiIxOTkxLTA4LTE5VDAwOjAwOjAwLjAwMFoiLFwNCiAgICAgICAgICJiaXJ0aF9wbGFjZSI6Ilx1YzBcdTEwNDIgXHUxMTEwIFx1MTA4NSBcdTEwODUgXHUxMDgwIFx1MTA5NCBcdTExMDMgLCBcdTEwNTkgXHUxMDgyIFx1MTA4OCBcdTEwNzIgXHUxMTExIFx1MTA4NSBcdTEwNzIgIixcDQogICAgICAgICAiZ2VuZGVyIjoiTUFMRSIsXA0KICAgICAgICAgInRheF9pZCI6IjMxMjY1MDk4MTYiLFwNCiAgICAgICAgICJkb2N1bWVudHMiOltcDQogICAgICAgICAgICBce1wNCiAgICAgICAgICAgICAgICJ0eXBlIjoiUEFTU1BPUlQiLFwNCiAgICAgICAgICAgICAgICJudW1iZXIiOiIxMjA1MTgiLFwNCiAgICAgICAgICAgICAgICJpc3N1ZV9kYXRlIjoiMjAxNS0wNC0wN1QwMDowMDowMC4wMDBaIixcDQogICAgICAgICAgICAgICAiZXhwaXJ5X2RhdGUiOiIyMDE1LTA0LTA3VDAwOjAwOjAwLjAwMFoiLFwNCiAgICAgICAgICAgICAgICJpc3N1ZWRfYnkiOiJETVNVIlwNCiAgICAgICAgICAgIFx9XA0KICAgICAgICAgXSxcDQogICAgICAgICAicGhvbmVzIjpbXA0KICAgICAgICAgICAgXHtcDQogICAgICAgICAgICAgICAidHlwZSI6Ik1PQklMRSIsXA0KICAgICAgICAgICAgICAgIm51bWJlciI6IiszODA1MDM0MTA4NzAiXA0KICAgICAgICAgICAgXH1cDQogICAgICAgICBdXA0KICAgICAgXH0sXA0KICAgICAgInJlbmV3YWxfY29uc2VudCI6dHJ1ZSxcDQogICAgICAicGF0aWVudF9zaWduZWQiOnRydWUsXA0KICAgICAgImRpc2Nsb3N1cmVfY29uc2VudCI6dHJ1ZSxcDQogICAgICAicHJvY2Vzc19kYXRhX2NvbnNlbnQiOnRydWVcDQogICBcfSxcDQogICAiZW1wbG95ZWUiOlx7XA0KICAgICAgImlkIjoiZDI5MGYxZWUtNmM1NC00YjAxLTkwZTYtZDcwMTc0OGYwODUxIixcDQogICAgICAidGl0bGUiOiJcdWMwXHUxMDgzIFx1MTExMCBcdTEwODIgXHUxMDcyIFx1MTA4OCAiLFwNCiAgICAgICJwYXJ0eSI6XHtcDQogICAgICAgICAiaWQiOiJiMDc1ZjE0OC03ZjkzLTRmYzItYjJlYy0yZDgxYjE5YTliN2IiLFwNCiAgICAgICAgICJmaXJzdF9uYW1lIjoiXHVjMFx1MTA1NSBcdTEwNzcgXHUxMDkwIFx1MTA4OCBcdTEwODYgIixcDQogICAgICAgICAibGFzdF9uYW1lIjoiXHVjMFx1MTAzMCBcdTEwNzQgXHUxMDcyIFx1MTA4NSBcdTEwODYgXHUxMDc0ICIsXA0KICAgICAgICAgInNlY29uZF9uYW1lIjoiXHVjMFx1MTA1MiBcdTEwODAgXHUxMDgyIFx1MTA4NiBcdTEwODMgXHUxMDcyIFx1MTA4MSBcdTEwODYgXHUxMDc0IFx1MTA4MCBcdTEwOTUgIlwNCiAgICAgIFx9XA0KICAgXH0sXA0KICAgIm1zcCI6XHtcDQogICAgICAiaWQiOiJkMjkwZjFlZSIsXA0KICAgICAgIm5hbWUiOiJcdWMwXHUxMDUwIFx1MTA4MyBcdTExMTAgXHUxMDg1IFx1MTExMCBcdTEwODIgXHUxMDcyICBcdTEwNDEgXHUxMDg2IFx1MTA4OCBcdTEwODAgXHUxMDg5ICIsXA0KICAgICAgInNob3J0X05hbWUiOiJcdWMwXHUxMDQxIFx1MTA4NiBcdTEwODggXHUxMDgwIFx1MTA4OSAiLFwNCiAgICAgICJ0eXBlIjoiXHVjMFx1MTA2MCBcdTEwNTQgXHUxMDU1ICIsXA0KICAgICAgImVkcnBvdSI6IjU0MzIzNDU0MzIiXA0KICAgXH0sXA0KICAgInNjb3BlIjoiZmFtaWx5IGRvY3RvciIsXA0KICAgInBsYWludGV4dF9jb250ZW50IjoiRGVjbGFyYXRpb24gY29udGVudCJcDQpcfX2gggIuMIICKjCCAZOgAwIBAgIJANj0sC/v0hWYMA0GCSqGSIb3DQEBBQUAMBkxFzAVBgNVBAMUDlBLQ1MjNyBleGFtcGxlMB4XDTE3MDMyNzE0NTczM1oXDTE3MDQyNjE0NTczM1owGTEXMBUGA1UEAxQOUEtDUyM3IGV4YW1wbGUwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMuqrxE/0txT+ZVRKU1O85a8eaaUAOkbcAIy1mMoxQ+UBwcBeXt07Oxu32+p51HSY93Pp5AlDLKE48sjSNvMbTk5vtZ6g8sqMpZxlBVqHLkXLXYBMf2rmtE4hfV6yTP5YUJEs+a9cotsPN0r5KlI9g8aSpIj9Ie8mML5Vh1taQHNAgMBAAGjejB4MB0GA1UdDgQWBBTET2SwL5UfUMKDyhuBGCA+CaflnzBJBgNVHSMEQjBAgBTET2SwL5UfUMKDyhuBGCA+Cafln6EdpBswGTEXMBUGA1UEAxQOUEtDUyM3IGV4YW1wbGWCCQDY9LAv79IVmDAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBBQUAA4GBAF1uOGjUb6IVS28UqZ2qLc/kd2oNU2hOEuAp1YeaKRL2OaG4bTubJO1ejoxCJNfVj0FFw5PXIgjnw87JzkAy5KLDTiotQl8eknkd1bR3nIWINemck3GeGYkR8giG3gkNxz6ky1+63ZcoJkEiS46aneDhmS6BdH0V2G/3delos8+ZMYIBgDCCAXwCAQEwJjAZMRcwFQYDVQQDFA5QS0NTIzcgZXhhbXBsZQIJANj0sC/v0hWYMAkGBSsOAwIaBQCggbEwGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMTcwMzI4MTE1NDEwWjAjBgkqhkiG9w0BCQQxFgQU5NSvVRVYHz5tG1GW8gXrjHSnLj8wUgYJKoZIhvcNAQkPMUUwQzAKBggqhkiG9w0DBzAOBggqhkiG9w0DAgICAIAwDQYIKoZIhvcNAwICAUAwBwYFKw4DAgcwDQYIKoZIhvcNAwICASgwDQYJKoZIhvcNAQEBBQAEgYCdqnN8gGXw9OUmtxOvQQgHK5Ni/4/2WQWj7rxERh5AI6rhXs/hh3DNS5Z5mN6wO8z47SQuedbsMQ5hf6+9BbKhXD7WKeU+DtGyfa1ner5/ubz6BeVvuT98D4PrzHlqNSpe/7AirrA70QVO9kPoFSmGtBG6JjaqaCZBYbvF9InPRw==` (string, required)
         + `signed_content_encoding`: base64 (string, required)
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + data (`Medication_request_Public_Response_short`)
 
-### Reject Request for Medication Request [PATCH /api/requests_for_medication_request/{id}/actions/reject]
+### Reject Medication Request Request [PATCH /api/medication_request_requests/{id}/actions/reject]
 
 Use this method to reject previously created Request for medication request.
 
@@ -4135,17 +4142,26 @@ Use this method to recall previously created and signed Medication request.
 + `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 
 ## Drugs
-### Drug
-+ include Innms
+### `Drug_Response`
++ `id`: `ae9bf68e-3c98-4027-9211-535f7dad7a87` (string, required)
++ `name`: `Аміодарон 200мг таблетки` (string, required)
++ `code_ATX`: `С01BD01` (string, required)
++ `form`: PILL (string, required) - `Dictionary MEDICATION_FORM`
++ `substanse` (`Innms_Short`, required) 
++ `dosage` (`Dosage_drug`, required)
++ `container_dosage` (`Dosage_container`, required)
++ `packages` (array, required)
+    + (`Medication_package`)
+
+### `Medication_package`
++ `package_qty`: 30 (number, required)
++ `package_min_qty`: 10 (number, required)
 
 ## Medications
 ### `Innms`
 + `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required)
 + `name`: `Аміодарон` (string, required)
-+ `innm_identifier`: `Amiodarone` (string, required)
-+ `status`: `ACTIVE` (enum, required)
-    - ACTIVE
-    - INACTIVE
++ `sctid`: `52574003` (string, required)
 + `form_uses`(array, required)
     + (`Form_use`)
 
@@ -4155,10 +4171,11 @@ Use this method to recall previously created and signed Medication request.
 ### `Innms_Short`
 + `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required)
 + `name`: `Аміодарон` (string, required)
-+ `innm_identifier`: `Amiodarone` (string, required)
++ `sctid`: `52574003` (string, required)
 
 ### `Form_use`
-+ route: PILL (string, required) - `Dictionary MEDICATION_ROUTE`
++ `medication_id`: `a7f69e47-c52e-4683-8b43-e0827265cdde` (string, required) 
++ `form`: PILL (string, required) - `Dictionary MEDICATION_FORM`
 + `dosage` (`Dosage_drug`, required)
 + `container_dosage` (`Dosage_container`, required)
 + `package_qty`: 30 (number, required)
@@ -4166,16 +4183,16 @@ Use this method to recall previously created and signed Medication request.
 
 ### `Dosage_drug_post`
 + `numerator_unit`: MG (string, required) - `Dictionary MEDICATION_UNIT`
-+ `numerator_value`: 0.05 (number, required)
++ `numerator_value`: 200 (number, required)
 + `denumerator_unit`: PILL (string, required) - `Dictionary MEDICATION_UNIT`
 + `denumerator_value`: 1 (number, required)
 
 ### `Dosage_drug`
 + `numerator_unit`: MG (string, required) - `Dictionary MEDICATION_UNIT`
-+ `numerator_value`: 0.05 (number, required)
++ `numerator_value`: 200 (number, required)
 + `denumerator_unit`: PILL (string, required) - `Dictionary MEDICATION_UNIT`
 + `denumerator_value`: 1 (number, required)
-+ `description`: `0.05MG/1PILL` (string)
++ `description`: `200MG/1PILL` (string)
 
 ### `Dosage_container_post`
 + `numerator_unit`: PILL (string, required) - `Dictionary MEDICATION_UNIT`
@@ -4192,16 +4209,17 @@ Use this method to recall previously created and signed Medication request.
 
 ### `Innm_for_Medication_request`
 + include `Innms_id`
-+ `route`: PILL (string, required) - `Dictionary MEDICATION_ROUTE`
++ `form`: PILL (string, required) - `Dictionary MEDICATION_FORM`
 + `dosage` (`Dosage_drug_post`, required)
-+ `container_dosage` (`Dosage_container_post`, required)
++ `container` (`Dosage_container_post`, required)
 + `request_qty`: 10 (number, required)
 
 ### `Innm_for_Medication_request_Responce`
 + `innm` (`Innms_Short`, required)
-+ `route`: PILL (string, required) - `Dictionary MEDICATION_ROUTE`
++ `medication_id` : `4a63b858-c138-4921-9341-ae9e384bcbd6` (string, required)
++ `form`: PILL (string, required) - `Dictionary MEDICATION_FORM`
 + `dosage` (`Dosage_drug`, required)
-+ `container_dosage` (`Dosage_container`, required)
++ `container` (`Dosage_container`, required)
 + `request_qty`: 10 (number, required)
 
 ### `Medication_manufacturer_info`
@@ -4244,47 +4262,43 @@ Use this method to recall previously created and signed Medication request.
 + `expired_certificate_date` : `2021-02-09` (string, required)
 
 
-## `Request for Medication request`
-### `Request_for_Medication_request_post_data`
-+ `receipt_period_type`: 30DAYS (string, required) - `Dictionary RECEIPT_PERIOD_TYPE`
-+ `receipt_age_type`: ADULT (string, required) - `Dictionary RECEIPT_AGE_TYPE`
-+ `person_id`: `585044f5-1272-4bca-8d41-8440eefe7d26` (string, required) - Person ID
-+ `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Employee ID with `type=DOCTOR` selected from available Employees as a third contract party.
-+ `innm` (`Innm_for_Medication_request`,required) 
-+ `note`: `За зверненням паціента. Симптоми слабковиражені` (string) - Note for receipt
-+ `dosage_instruction`: `Інструкція: приймати 2 рази на день, за 1-ну годину до прийому їжі.` (string) - Instruction for use medication
+## `Medication request Request`
+### `Medication_request_Request_post_data`
++ `person_id`: `585044f5-1272-4bca-8d41-8440eefe7d26` (string, required) - Person identifier
++ `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Employee ID with `type=DOCTOR` who issued Medication Request.
++ `created_at`: `2017-08-17` (string, required) - Medication request creation date, which is determined by the external system. Format *DATE '2017-09-07'*
++ `started_at`: `2017-08-17` (string, required) - Start date of a treatment period, which is determined by the external system. Greater or equal to **created_at**. Format *DATE '2017-09-07'*
++ `ended_at`: `2017-09-16` (string, required) - End date of a treatment period, which is determined by the external system. Greater or equal to **started_at**. Format *DATE '2017-10-07'*
++ `dispense_valid_from`: `2017-08-17` (string, required) - Start date of dispense period, which is determined by the external system. Format *DATE '2017-09-07'*
++ `dispense_valid_to`: `2017-09-16` (string, required) - End date of dispense period, which is determined by the external system. Greater or equal to **dispense_valid_from**. Format *DATE '2017-10-07'*
++ `medication_id` : `1349a693-4db1-4a3f-9ac6-8c2f9e541982` (string, required) - Medication identified
++ `medication_qty`: 10 (number, required) - Medication quantity isuued by the doctor
 
-### `Request_for_Medication_request_Public_Response`
-+ `request_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-+ `status`: `NEW` (string, required)
-+ `receipt_number_public_key` : `xxxxTBD` (string) - Public key of receipt number
-+ `receipt_period_type`: 30DAYS (string, required) - `Dictionary RECEIPT_PERIOD_TYPE`
-+ `receipt_age_type`: ADULT (string, required) - `Dictionary RECEIPT_AGE_TYPE`
-+ `created_at`: `2017-08-17` (string, required) - Medication request created date
-+ `started_at`: `2017-08-17` (string, required) - Medication request start date
-+ `ended_at`: `2017-09-16` (string, required) - Medication request end date
-+ `dispence_valid_from`: `2017-08-17` (string, required) - Medication dispence valid start date
-+ `dispence_valid_to`: `2017-09-16` (string, required) - Medication dispence valid end date
+### `Medication_request_Request_Public_Response`
++ `request_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Request request identifier
++ `status`: `NEW` (string, required) - Medication Request status. Find available **statuses** on State Charts wiki page
++ `request_number` : `xxxx` (string) - Public medication request human readable number
++ `created_at`: `2017-08-17` (string, required) - Medication request creation date, which is determined by the external system. Format *DATE '2017-09-07'*
++ `started_at`: `2017-08-17` (string, required) - Start date of a treatment period, which is determined by the external system. Greater or equal to **created_at**. Format *DATE '2017-09-07'*
++ `ended_at`: `2017-09-16` (string, required) - End date of a treatment period, which is determined by the external system. Greater or equal to **started_at**. Format *DATE '2017-10-07'*
++ `dispense_valid_from`: `2017-08-17` (string, required) - Start date of dispense period, which is determined by the external system. Format *DATE '2017-09-07'*
++ `dispense_valid_to`: `2017-09-16` (string, required) - End date of dispense period, which is determined by the external system. Greater or equal to **dispense_valid_from**. Format *DATE '2017-10-07'*
 + `legal_entity` (`Legal_Entity_Short`, required)
     + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + `division` (`Division_Details`, required)
 + `employee` (Employee_Minimal, required)
 + `person` (`Person_Short`)            
-+ `innm` (`Innm_for_Medication_request_Responce`, required)
-+ `note`: `За зверненням паціента. Симптоми слабковиражені` (string) - Note for receipt
-+ `dosage_instruction`: `Інструкція: приймати 2 рази на день, за 1-ну годину до прийому їжі.` (string) - Instruction for use medication
++ `medication` (`Innm_for_Medication_request_Responce`, required)
 
-### `Request_for_Medication_request_Public_Response_short`
-+ `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-+ `status`: `NEW` (string, required)
-+ `receipt_number_public_key` : `xxxxTBD` (string) - Public key of receipt number
-+ `receipt_period_type`: 30DAYS (string, required) - `Dictionary RECEIPT_PERIOD_TYPE`
-+ `receipt_age_type`: ADULT (string, required) - `Dictionary RECEIPT_AGE_TYPE`
-+ `created_at`: `2017-08-17` (string, required) - Medication request created date
-+ `started_at`: `2017-08-17` (string, required) - Medication request start date
-+ `ended_at`: `2017-09-16` (string, required) - Medication request end date
-+ `dispence_valid_from`: `2017-08-17` (string, required) - Medication dispence valid start date
-+ `dispence_valid_to`: `2017-09-16` (string, required) - Medication dispence valid end date
+### `Medication_request_Request_Public_Response_short`
++ `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Request request identifier
++ `status`: `NEW` (string, required) - Medication request Request status. Find available **statuses** on State Charts wiki page
++ `request_number` : `xxxx` (string) - Public medication request human readable number
++ `created_at`: `2017-08-17` (string, required) - Medication request creation date, which is determined by the external system. Format *DATE '2017-09-07'*
++ `started_at`: `2017-08-17` (string, required) - Start date of a treatment period, which is determined by the external system. Greater or equal to **created_at**. Format *DATE '2017-09-07'*
++ `ended_at`: `2017-09-16` (string, required) - End date of a treatment period, which is determined by the external system. Greater or equal to **started_at**. Format *DATE '2017-10-07'*
++ `dispense_valid_from`: `2017-08-17` (string, required) - Start date of dispense period, which is determined by the external system. Format *DATE '2017-09-07'*
++ `dispense_valid_to`: `2017-09-16` (string, required) - End date of dispense period, which is determined by the external system. Greater or equal to **dispense_valid_from**. Format *DATE '2017-10-07'*
 + `person_id`: `5fb57a5d-1457-430e-9678-c81cec72779f` (string, required)
 + `legal_entity_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + `division_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -4292,63 +4306,44 @@ Use this method to recall previously created and signed Medication request.
 + `innm` (`Innm_for_Medication_request_Responce`, required)
 
 ### `Medication_request_Public_Response_short`
-+ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-+ `created_at`: `2017-08-17T00:00:00.000Z` (string, required) - Medication request created date+time
-+ `started_at`: `2017-08-17` (string, required) - Medication request start date
-+ `ended_at`: `2017-09-16` (string, required) - Medication request end date
-+ `dispence_valid_from`: `2017-08-17` (string, required) - Medication dispence valid start date
-+ `dispence_valid_to`: `2017-09-16` (string, required) - Medication dispence valid end date
-+ `status` : active (string, required) - `Dictionary MEDICATION_REQUEST_STATUS`
++ `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Request identifier
++ `status`: `ACTIVE` (string, required) - Medication Request status. Find available **statuses** on State Charts wiki page
++ `request_number` : `xxxx` (string) - Public medication request human readable number
++ `created_at`: `2017-08-17` (string, required) - Medication request creation date, which is determined by the external system. Format *DATE '2017-09-07'*
++ `started_at`: `2017-08-17` (string, required) - Start date of a treatment period, which is determined by the external system. Greater or equal to **created_at**. Format *DATE '2017-09-07'*
++ `ended_at`: `2017-09-16` (string, required) - End date of a treatment period, which is determined by the external system. Greater or equal to **started_at**. Format *DATE '2017-10-07'*
++ `dispense_valid_from`: `2017-08-17` (string, required) - Start date of dispense period, which is determined by the external system. Format *DATE '2017-09-07'*
++ `dispense_valid_to`: `2017-09-16` (string, required) - End date of dispense period, which is determined by the external system. Greater or equal to **dispense_valid_from**. Format *DATE '2017-10-07'*
 + `person_id`: `5fb57a5d-1457-430e-9678-c81cec72779f` (string, required)
 + `legal_entity_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + `division_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + `employee_id`: `73769751-f84c-44b4-bdba-71b77efa204e` (string, required)
-+ `innms_id` : `59525560-0753-4c0b-8483-ac42fa352a7e` (string, required)
++ `innm` (`Innm_for_Medication_request_Responce`, required)
 + `request_for_medication_request_id`: `74a6fae6-4207-4e03-a136-f2e70c6b0c02` (string, required)
 + `inserted_at`: `2017-07-06T16:54:05.161571Z` (string, required)
-+ `updated_at`: `2017-03-02T10:45:16.000Z` (string, optional)
++ `updated_at`: `2017-07-12T10:45:16.000Z` (string, optional)
 
-### `Qualify_Request_for_Medication_request_List_program_post_data`
-+ `program`: `DOSTUPNI LIKI` (string,required) - `Medical program code. Dictionary MEDICAL_PROGRAM`
+### `Qualify_Medication_request_Request_List_program_post_data`
++ `program`: `59781de0-2e64-4359-b716-bcc05a32c10f` (string,required) - `Medical program Identifier`
 
-### `Qualify_Request_for_Medication_request_post_data`
-+ `started_at`: `2017-03-17` (string, required) - Medication request start date
-+ `ended_at`: `2017-04-17` (string, required) - Medication request finish date
-+ `person_id`: `585044f5-1272-4bca-8d41-8440eefe7d26` (string, required) - Person ID
-+ `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Employee ID with `type=DOCTOR` selected from available Employees as a third contract party.
-+ `innm` (`Innm_for_Medication_request`,required) 
-
-### `Qualify_Request_for_Medication_request_Responce`
-+ `program`: `DOSTUPNI LIKI` (string, required) - `Medical program code. Dictionary MEDICAL_PROGRAM`
+### `Qualify_Medication_request_Request_Responce`
++ `program_id`: `59781de0-2e64-4359-b716-bcc05a32c10f` (string, required) - `Medical program Identifier`
 + `program_name` : `Програма "Доступні ліки"`(string, required)
-+ `valid_from`: `2017-01-17` (string, required) - Medication program valid start date
-+ `valid_to`: `2099-12-31` (string, required) - Medication program valid finish date
-+ `status` : `VALID` (enum, required) - Status for ability use program for this Medication request
++ `status` : `INVALID` (enum, required) - Status for ability use program for this Medication request Request
     - VALID
     - INVALID
 + `invalid_reason` : ` Innm not on the list of approved innms for program 'DOSTUPNI LIKI' !` (string) - Reason to fetch invalid status
 
 ### `Qualify_by_ID_Request_for_Medication_request_Responce`
-+ `program`: `DOSTUPNI LIKI` (string, required) - `Medical program code. Dictionary MEDICAL_PROGRAM`
++ `program_id`: `59781de0-2e64-4359-b716-bcc05a32c10f` (string, required) - `Medical program Identifier`
 + `program_name` : `Програма "Доступні ліки"`(string, required)
-+ `valid_from`: `2017-01-17` (string, required) - Medication program valid start date
-+ `valid_to`: `2099-12-31` (string, required) - Medication program valid finish date
-+ `status` : `VALID` (enum, required) - Status for ability use program for this Medication request
++ `status` : `INVALID` (enum, required) - Status for ability use program for this Medication request Request
     - VALID
     - INVALID
 + `invalid_reason` : ` Innm not on the list of approved innms for program 'DOSTUPNI LIKI' !` (string) - Reason to fetch invalid status
 + `reimbursement_amount` : `0` (number, required) - Amount of reimbursement
 
 ## `Medication request`
-### `Medication_request_post_data`
-+ `receipt_period_type`: 30DAYS (string, required) - `Dictionary RECEIPT_PERIOD_TYPE`
-+ `receipt_age_type`: ADULT (string, required) - `Dictionary RECEIPT_AGE_TYPE`
-+ `person_id`: `585044f5-1272-4bca-8d41-8440eefe7d26` (string, required) - Person ID
-+ `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Employee ID with `type=DOCTOR` selected from available Employees as a third contract party.
-+ `note`: `За зверненням паціента. Симптоми слабковиражені` (string) - Note for receipt
-+ `innm` (`Innm_for_Medication_request`,required) 
-+ `dosage_instruction`: `Інструкція: приймати 2 рази на день, за 1-ну годину до прийому їжі.` (string) - Instruction for use medication
-
 ### `Medication_request_Public_Response`
 + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + `status`: `ACTIVE` (string, required)
