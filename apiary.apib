@@ -1164,6 +1164,134 @@ Response will contain only records that you have access to.
     + Attributes (Response_OK)
         + data (`nhs_declaration`)
 
+## Substances [/substances]
+### Add substance [POST]
+This method is used to add new substance. Fields descriptions are listed in request Example view.
+
+**Scopes required:** `substance:write`
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
+    + Attributes (object)
+       + include `Substance_Request`
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `Substance_Response`
+
++ Response 409 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta)
+            + code: 409
+        + error
+            + type: unverified (string, required)
+            + message: `Dublicate innm!` (string, required)
+
+### Update Innm [PATCH /innm/{id}]
+This method is used to update substance. Fields descriptions are listed in request Example view.
+
++ Parameters
+    + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
++ Request (application/json)
+
+    + Headers
+    
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
+    + Attributes (object)
+        + `name`: `Аміодарон` (string, optional)
+        + `innm_identifier`: `Amiodarone` (string, optional)
+        + `status`: `ACTIVE` (enum, optional). Default: ACTIVE
+            - ACTIVE
+            - INACTIVE
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 200 (number)
+        + data (object)
+            + include `Substance_Response`
+
++ Response 409 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta)
+            + code: 409
+        + error
+            + type: unverified (string, required)
+            + message: `Dublicate innm!` (string, required)
+
+## Medications [/medications] 
+### Create Medication [POST]
+This method is used to create Medications. Fields descriptions are listed in request Example view.
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
+    + Attributes (object)
+       + include (`Medication_post`, required) 
+        + `ingredients` (array[`Ingredient_post`])
+
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `Medication_Response`
+            + `ingredients` (array[`Ingredient_Response`])            
+
++ Response 422 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta)
+            + code: 422
+        + error
+            + type: unverified (string, required)
+            + message: `Denum unit from Dosage ingredients must be is equal Denum unit from Container dosage medication!` (string, required)
+
+### Update Medication [PATCH /medication/{id}]
+This method is used to update Medication. Fields descriptions are listed in request Example view.
+
++ Parameters
+    + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
+    + Attributes (object)
+       + include (`Medication_post`, required) 
+        + `ingredients` (array[`Ingredient_post`])
+
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `Medication_Response`
+            + `ingredients` (array[`Ingredient_Response`])            
+
++ Response 422 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta)
+            + code: 422
+        + error
+            + type: unverified (string, required)
+            + message: `Denum unit from Dosage ingredients must be is equal Denum unit from Container dosage medication!` (string, required)
+
 # Group Internal. Gandalf
 
 ## Gandalf [/api.gndf.io/api]
@@ -4158,20 +4286,18 @@ Use this method to recall previously created and signed Medication request.
 + `package_min_qty`: 10 (number, required)
 
 ## Medications
-### `Innms`
-+ `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required)
+### `Substance_Request`
 + `name`: `Аміодарон` (string, required)
-+ `sctid`: `52574003` (string, required)
-+ `form_uses`(array, required)
-    + (`Form_use`)
++ `name_original`: `Amiodarone` (string, required)
++ `sctid`: `69236009` (string, required)
 
 ### `Innms_id`
 + `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required)
 
-### `Innms_Short`
+### `Substance_Response`
 + `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required)
-+ `name`: `Аміодарон` (string, required)
-+ `sctid`: `52574003` (string, required)
++ include `Substance_Request`
++ `is_active`: true (boolean, required)
 
 ### `Form_use`
 + `medication_id`: `a7f69e47-c52e-4683-8b43-e0827265cdde` (string, required) 
