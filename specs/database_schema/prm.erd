@@ -188,10 +188,11 @@ values | jsonb | not null
 labels | jsonb | not null
 is_active | boolean | not null
 
-[innms]
+[substances]
 id | uuid | not null
 SCTID | varchar | not null | unique
 name | varchar | not null
+name_original | varchar | not null
 is_active | boolean | not null
 inserted_at | timestamp | not null
 inserted_by | uuid | not null
@@ -314,7 +315,7 @@ legal_entities
 audit_log
 ukr_med_registry
 global_parameters
-innms
+substances
 medications
 medical_programs
 program_medications
@@ -343,7 +344,7 @@ employees *--1 divisions
 medical_service_providers 1--1 legal_entities
 parties 1--? doctors
 declarations 1--* declarations_status_hstr
-innms 1--* medications
+substances 1--* medications
 medications 1--* program_medications
 medical_programs 1--* program_medications
 medication_requests *--1 legal_entities
