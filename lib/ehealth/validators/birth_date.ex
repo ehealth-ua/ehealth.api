@@ -15,9 +15,11 @@ defmodule EHealth.Validators.BirthDate do
     birth_date
     |> Timex.compare(Timex.now())
     |> case do
-         1 -> :error
-         _  -> birth_date
-       end
+        1 -> :error
+        _  -> birth_date
+      end
+  rescue
+    _ in ErlangError -> :error
   end
 
   def get_age(:error), do: :error

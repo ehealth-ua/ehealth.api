@@ -115,9 +115,25 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
         |> put_in(["employee_request", "party", "birth_date"], "1860-12-12")
 
       conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
-      conn = post conn, employee_request_path(conn, :create), employee_request_params
+      conn1 = post conn, employee_request_path(conn, :create), employee_request_params
 
-      resp = json_response(conn, 422)
+      resp = json_response(conn1, 422)
+      assert Map.has_key?(resp, "error")
+      assert "$.employee_request.party.birth_date" ==
+        resp
+        |> get_in(["error", "invalid"])
+        |> List.first()
+        |> Map.get("entry")
+
+      employee_request_params = put_in(
+        employee_request_params,
+        ["employee_request", "party", "birth_date"],
+        "2003-02-29"
+      )
+
+      conn2 = post conn, employee_request_path(conn, :create), employee_request_params
+
+      resp = json_response(conn2, 422)
       assert Map.has_key?(resp, "error")
       assert "$.employee_request.party.birth_date" ==
         resp
