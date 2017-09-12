@@ -299,6 +299,10 @@ defmodule EHealth.MockServer do
     render([get_person(), get_person()], conn, 200)
   end
 
+  get "/all-persons" do
+    render([get_person(), get_person()], conn, 200)
+  end
+
   def get_declaration("terminated") do
     nil |> get_declaration() |> Map.put("status", "terminated")
   end

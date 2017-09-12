@@ -29,6 +29,14 @@ defmodule EHealth.API.MPI do
     |> ResponseDecoder.check_response()
   end
 
+  def all_search(params \\ %{}, headers \\ []) do
+    CallLog.log("GET", config()[:endpoint], "/all-persons", headers)
+
+    "/all-persons"
+    |> get!(headers, params: params)
+    |> ResponseDecoder.check_response()
+  end
+
   def person(id, headers \\ []) do
     CallLog.log("GET", config()[:endpoint], "/persons/#{id}", headers)
 

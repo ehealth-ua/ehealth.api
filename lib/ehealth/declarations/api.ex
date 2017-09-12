@@ -21,7 +21,7 @@ defmodule EHealth.Declarations.API do
          {divisions, _} <- Divisions.get_divisions(%{ids: list_to_param(related_ids["division_ids"])}),
          {employees, _} <- Employees.get_employees(%{ids: list_to_param(related_ids["employee_ids"])}),
          {legals, _} <- LegalEntities.get_legal_entities(%{ids: list_to_param(related_ids["legal_entity_ids"])}),
-         {:ok, persons} <- MPI.search(%{ids: list_to_param(related_ids["person_ids"])}, headers),
+         {:ok, persons} <- MPI.all_search(%{ids: list_to_param(related_ids["person_ids"])}, headers),
          relations <- build_indexes(divisions, employees, legals, persons["data"]),
          prepared_data <- merge_related_data(resp["data"], relations),
          declarations <- render_declarations(prepared_data),
