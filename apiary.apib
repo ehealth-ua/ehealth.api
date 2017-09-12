@@ -1191,11 +1191,13 @@ This method is used to add new substance. Fields descriptions are listed in requ
         + meta (Response__Meta)
             + code: 409
         + error
-            + type: unverified (string, required)
-            + message: `Dublicate innm!` (string, required)
+            + type: duplicate (string, required)
+            + message: `substance duplicate` (string, required)
 
-### Update Innm [PATCH /innm/{id}]
-This method is used to update substance. Fields descriptions are listed in request Example view.
+### Update substance [PATCH /substances/{id}]
+This method is used to update Innm. Fields descriptions are listed in request Example view.
+
+**Scopes required:** `substance:write`
 
 + Parameters
     + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -1207,16 +1209,13 @@ This method is used to update substance. Fields descriptions are listed in reque
             Authorization: Bearer mF_9.B5f-4.1JqM
 
     + Attributes (object)
-        + `name`: `Аміодарон` (string, optional)
-        + `innm_identifier`: `Amiodarone` (string, optional)
-        + `status`: `ACTIVE` (enum, optional). Default: ACTIVE
-            - ACTIVE
-            - INACTIVE
+        + include `Substance_Request`
+        + `is_status`: true (boolean, required)
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + meta (Response__Meta)
-            + code: 200 (number)
+            + code: 201 (number)
         + data (object)
             + include `Substance_Response`
 
@@ -1225,8 +1224,8 @@ This method is used to update substance. Fields descriptions are listed in reque
         + meta (Response__Meta)
             + code: 409
         + error
-            + type: unverified (string, required)
-            + message: `Dublicate innm!` (string, required)
+            + type: duplicate (string, required)
+            + message: `substance duplicate` (string, required)
 
 ## Medications [/medications] 
 ### Create Medication [POST]
@@ -2005,8 +2004,11 @@ declaration status will be changed to `active`
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 
 + Request (application/json)
+
     + Headers
-           Authorization: Bearer mF_9.B5f-4.1JqM
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+    
     + Attributes (crud_Declaration_patch)
 
 + Response 200 (application/json)
@@ -2022,8 +2024,11 @@ declaration status will be changed to `closed`
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 
 + Request (application/json)
+
     + Headers
-           Authorization: Bearer mF_9.B5f-4.1JqM
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
     + Attributes (crud_Declaration_patch)
 
 + Response 200 (application/json)
@@ -2755,135 +2760,6 @@ Get list of cities by district
         + meta (Response__Meta)
             + code: 200 (number)
         + data (array[Drug_Response])
-        
-
-## Innms [/innms]        
-### Create Innm [POST]
-This method is used to create Innm. Fields descriptions are listed in request Example view.
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer mF_9.B5f-4.1JqM
-
-    + Attributes (object)
-       + `name`: `Аміодарон` (string, optional)
-       + `innm_identifier`: `Amiodarone` (string, optional)
-       
-
-+ Response 201 (application/json)
-    + Attributes (Response__Process_OK)
-        + meta (Response__Meta)
-            + code: 201 (number)
-        + data (object)
-            + include `Innms_Short`
-
-+ Response 409 (application/json)
-    + Attributes (Response_Error)
-        + meta (Response__Meta)
-            + code: 409
-        + error
-            + type: unverified (string, required)
-            + message: `Dublicate innm!` (string, required)
-
-### Update Innm [PATCH /innm/{id}]
-This method is used to update Innm. Fields descriptions are listed in request Example view.
-
-+ Parameters
-    + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-
-+ Request (application/json)
-
-    + Headers
-    
-            Authorization: Bearer mF_9.B5f-4.1JqM
-
-    + Attributes (object)
-       + `name`: `Аміодарон` (string, optional)
-       + `innm_identifier`: `Amiodarone` (string, optional)
-        + `status`: `ACTIVE` (enum, optional). Default: ACTIVE
-            - ACTIVE
-            - INACTIVE
-
-+ Response 200 (application/json)
-    + Attributes (Response__Process_OK)
-        + meta (Response__Meta)
-            + code: 201 (number)
-        + data (object)
-            + include `Innms_Short`
-
-+ Response 409 (application/json)
-    + Attributes (Response_Error)
-        + meta (Response__Meta)
-            + code: 409
-        + error
-            + type: unverified (string, required)
-            + message: `Dublicate innm!` (string, required)
-
-## Medications [/medications] 
-### Create Medication [POST]
-This method is used to create Medications. Fields descriptions are listed in request Example view.
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer mF_9.B5f-4.1JqM
-
-    + Attributes (object)
-       + include (`Medication_post`, required) 
-        + `ingredients` (array[`Ingredient_post`])
-
-
-+ Response 201 (application/json)
-    + Attributes (Response__Process_OK)
-        + meta (Response__Meta)
-            + code: 201 (number)
-        + data (object)
-            + include `Medication_Response`
-            + `ingredients` (array[`Ingredient_Response`])            
-
-+ Response 422 (application/json)
-    + Attributes (Response_Error)
-        + meta (Response__Meta)
-            + code: 422
-        + error
-            + type: unverified (string, required)
-            + message: `Denum unit from Dosage ingredients must be is equal Denum unit from Container dosage medication!` (string, required)
-
-### Update Medication [PATCH /medication/{id}]
-This method is used to update Medication. Fields descriptions are listed in request Example view.
-
-+ Parameters
-    + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer mF_9.B5f-4.1JqM
-
-    + Attributes (object)
-       + include (`Medication_post`, required) 
-        + `ingredients` (array[`Ingredient_post`])
-
-
-+ Response 201 (application/json)
-    + Attributes (Response__Process_OK)
-        + meta (Response__Meta)
-            + code: 201 (number)
-        + data (object)
-            + include `Medication_Response`
-            + `ingredients` (array[`Ingredient_Response`])            
-
-+ Response 422 (application/json)
-    + Attributes (Response_Error)
-        + meta (Response__Meta)
-            + code: 422
-        + error
-            + type: unverified (string, required)
-            + message: `Denum unit from Dosage ingredients must be is equal Denum unit from Container dosage medication!` (string, required)
 
 ## Medication Request Requests [/api/medication_request_requests]
 
@@ -3156,6 +3032,74 @@ Use this method to recall previously created and signed Medication request.
         + meta (Response__Meta)
             + code: 200 (number)
 
+## Medication Dispense [/api/medication_dispenses]
+
+Medication Dispense - Indicates that a medication product has been dispensed for a named person/patient
+
+1. Dispense of medication is possible only under Medication Request and during the period specified in Medication Request
+
+2. **Medical program** - mandatory attribute for the first phase. There is no options to dispense medication without program
+
+3. **Dispense details** - several medications of different manufacturers with the same substance can be dispensed at a time. Total of medication_qty should be less or equal to medication quantity specified in Medication Request
+
+**Sequence diagram**
+
+![Medication Dispense Sequence](https://www.websequencediagrams.com/cgi-bin/cdraw?lz=dGl0bGUgTWVkaWNhdGlvbiBEaXNwZW5zZQpwYXJ0aWNpcGFudCBQaGFybWFjeQAIDUdXABcNZUhlYWx0aAoKIyBDcmVhdGUgbQBMCmQATggAQggtPkdXOiA8PAAkBwBuEz4-CkdXACEGQXV0aG9yaXplAA0FKwBjBwAeIQCBCwctPgAoCVZlcmlmeQCBDQxyZXF1ZXN0ABIaAIEyCCBwZXJpb2QAOxoAQwdlZCBwcm9ncmFtAFwkcwCBEhNHZXQgcmVpbWJ1cnNlbWVudCByYXRlAIFECi0AgwYIOiA8PFJlc3BvAIIoBiAgICAKICAgIGFsdCBQcm9jZXNzAINFFSAgICAgICAAg00JAIMECAAZGwBYByAgICAAgwMSAA4MAIMRDAAqJgCDFBJDaGFuZwCFABUgc3RhdHVzACoSAIF4HGVsc2UgUmVqZWN0AIFiLQAZGgCBWTUAKiUAgStibmQK&s=modern-blue)
+
+### Create Medication Dispense [POST /api/medication_dispenses{?code}]
+
+This method is used to dispense medications to patient
+
++ Parameters
+    + `code`: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+    
+    + Attributes (object)
+        + include `Medication_Dispense_Request`
+
++ Response 201 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `Medication_Dispense_Response`
+
+### Process Medication Dispense [PATCH /api/medication_dispenses/{id}/actions/process]
+
+This method is used to process created dispense
+
++ Parameters
+    + `id`: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+    
+    + Attributes (object)
+        + payment_id: F324H456 (string, optional)
+
++ Response 201 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `Medication_Dispense_Response`
+
+### Reject Medication Dispense [PATCH /api/medication_dispenses/{id}/actions/reject]
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `Medication_Dispense_Response`
 
 # Group Dummy. Create legal entity
 
@@ -4275,7 +4219,7 @@ Use this method to recall previously created and signed Medication request.
 + `name`: `Аміодарон 200мг таблетки` (string, required)
 + `code_ATX`: `С01BD01` (string, required)
 + `form`: PILL (string, required) - `Dictionary MEDICATION_FORM`
-+ `substanse` (`Innms_Short`, required) 
++ `substanse` (`Substance_Response`, required) 
 + `dosage` (`Dosage_drug`, required)
 + `container_dosage` (`Dosage_container`, required)
 + `packages` (array, required)
@@ -4289,7 +4233,7 @@ Use this method to recall previously created and signed Medication request.
 ### `Substance_Request`
 + `name`: `Аміодарон` (string, required)
 + `name_original`: `Amiodarone` (string, required)
-+ `sctid`: `69236009` (string, required)
++ `sctid`: `52574003` (string, required)
 
 ### `Innms_id`
 + `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required)
@@ -4297,7 +4241,11 @@ Use this method to recall previously created and signed Medication request.
 ### `Substance_Response`
 + `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required)
 + include `Substance_Request`
-+ `is_active`: true (boolean, required)
++ is_active: true (boolean, required)
++ inserted_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ inserted_by: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
++ updated_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ updated_by: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
 
 ### `Form_use`
 + `medication_id`: `a7f69e47-c52e-4683-8b43-e0827265cdde` (string, required) 
@@ -4341,7 +4289,7 @@ Use this method to recall previously created and signed Medication request.
 + `request_qty`: 10 (number, required)
 
 ### `Innm_for_Medication_request_Responce`
-+ `innm` (`Innms_Short`, required)
++ `innm` (`Substance_Response`, required)
 + `medication_id` : `4a63b858-c138-4921-9341-ae9e384bcbd6` (string, required)
 + `form`: PILL (string, required) - `Dictionary MEDICATION_FORM`
 + `dosage` (`Dosage_drug`, required)
@@ -4358,7 +4306,7 @@ Use this method to recall previously created and signed Medication request.
 + `is_active_substance` : `true` (boolean, required) 
 
 ### `Ingredient_Response`
-+ `innm` (`Innms_Short`, required)
++ `innm` (`Substance_Response`, required)
 + `dosage` (`Dosage_drug`, required)
 + `is_active_substance` : `true` (boolean, required) 
 
@@ -4472,7 +4420,7 @@ Use this method to recall previously created and signed Medication request.
 ## `Medication request`
 ### `Medication_request_Public_Response`
 + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-+ `status`: `ACTIVE` (string, required)
++ `status`: `ACTIVE` (enum[string], required)
     - ACTIVE
     - COMPLETED
     - STOPPED
@@ -4492,3 +4440,37 @@ Use this method to recall previously created and signed Medication request.
 + `innm` (`Innm_for_Medication_request_Responce`, required)
 + `note`: `За зверненням паціента. Симптоми слабковиражені` (string) - Note for receipt
 + `dosage_instruction`: `Інструкція: приймати 2 рази на день, за 1-ну годину до прийому їжі.` (string) - Instruction for use medication
+
+## `Medication Dispense`
+### `Medication_Dispense_Request`
++ `medication_request_id`: `f08ba3a3-157a-4adc-b65d-737f24f3a1f4` (string, required)
++ `dispensed_at`: `2017-08-17` (string, required)
++ `medical_program_id`: `6ee844fd-9f4d-4457-9eda-22aa506be4c4` (string, required)
++ `dispense_details` (array)
+    + (object)
+        + include `Medication_Dispense_Detail_Request`
+
+### `Medication_Dispense_Response`
++ `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ `medication_request_id`: `f08ba3a3-157a-4adc-b65d-737f24f3a1f4` (string, required)
++ `dispensed_at`: `2017-08-17` (string, required)
++ `employee_id`: `57a75203-3153-4447-9a21-1227cc6e1f0c` (string, required)
++ `medical_program_id`: `6ee844fd-9f4d-4457-9eda-22aa506be4c4` (string, required)
++ `dispense_details` (array)
+    + (object)
+        + include `Medication_Dispense_Detail_Response`
++ `payment_id`: 1239804 (string, optional)
++ `status`: NEW (string, required)
++ `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
++ `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `updated_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
+
+### `Medication_Dispense_Detail_Request`
++ `medication_id`: `a808bc3e-738d-442e-a2f4-0e5477695602` (string, required)
++ `medication_qty`: 10 (number, required)
++ `sell_price`: 18.65 (number, required)
+
+### `Medication_Dispense_Detail_Response`
++ include `Medication_Dispense_Detail_Request`
++ `reimbursement_amount`: 15 (number, required)
