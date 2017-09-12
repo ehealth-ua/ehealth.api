@@ -4279,17 +4279,17 @@ This method is used to process created dispense
 + `country` : `UA` (string, required) - `Dictionary COUNTRY`
 
 ### `Ingredient`
-+ `medication_id` : `1349a693-4db1-4a3f-9ac6-8c2f9e541982` (string, required)
++ `id` : `1349a693-4db1-4a3f-9ac6-8c2f9e541982` (string, required)
 + `dosage` (`Dosage_drug`, required)
 + `is_active_substance` : true (boolean, required) 
 
 ### `Medication_Request`
 + `name` : `Амідарон` (string, required)
 + `type`: `MEDICATION` (string, required)
-+ `manufacturer_name_country` (`Manufacturer`, optional)
++ `manufacturer` (`Manufacturer`, optional)
 + `code_atc`: `С01BD01` (string, optional)
-+ `form` :  PILL (string, required) - `Dictionary MEDICATION_ROUTE`
-+ `cantainer` (`Dosage_container`, required)
++ `form` :  PILL (string, required) - `Dictionary MEDICATION_FORM`
++ `container` (`Dosage_container`, required)
 + `package_qty`: 30 (number, optional)
 + `package_min_qty`: 10 (number, optional)
 + `certificate` : `UA/4514/01/01` (string, optional)
