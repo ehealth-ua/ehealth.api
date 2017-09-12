@@ -27,6 +27,13 @@ defmodule EHealth.Web.EmployeesControllerTest do
     assert legal_entity_id == second["legal_entity"]["id"]
   end
 
+  test "filter employees by invalid party_id", %{conn: conn} do
+    %{id: legal_entity_id} = insert(:prm, :legal_entity, id: "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+    conn = put_client_id_header(conn, legal_entity_id)
+    conn = get conn, employee_path(conn, :index, party_id: "invalid")
+    assert json_response(conn, 422)
+  end
+
   test "get employees", %{conn: conn} do
     legal_entity = insert(:prm, :legal_entity, id: "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
     %{id: legal_entity_id} = legal_entity
