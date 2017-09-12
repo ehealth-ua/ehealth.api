@@ -1210,7 +1210,7 @@ This method is used to update Innm. Fields descriptions are listed in request Ex
 
     + Attributes (object)
         + include `Substance_Request`
-        + `is_status`: true (boolean, required)
+        + `is_active`: true (boolean, required)
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
@@ -1238,9 +1238,7 @@ This method is used to create Medications. Fields descriptions are listed in req
             Authorization: Bearer mF_9.B5f-4.1JqM
 
     + Attributes (object)
-       + include (`Medication_post`, required) 
-        + `ingredients` (array[`Ingredient_post`])
-
+       + include (`Medication_Request`, required) 
 
 + Response 201 (application/json)
     + Attributes (Response__Process_OK)
@@ -1248,7 +1246,6 @@ This method is used to create Medications. Fields descriptions are listed in req
             + code: 201 (number)
         + data (object)
             + include `Medication_Response`
-            + `ingredients` (array[`Ingredient_Response`])            
 
 + Response 422 (application/json)
     + Attributes (Response_Error)
@@ -1271,9 +1268,8 @@ This method is used to update Medication. Fields descriptions are listed in requ
             Authorization: Bearer mF_9.B5f-4.1JqM
 
     + Attributes (object)
-       + include (`Medication_post`, required) 
-        + `ingredients` (array[`Ingredient_post`])
-
+       + include (`Medication_Request`, required)
+       + `is_active`: true (boolean, required)
 
 + Response 201 (application/json)
     + Attributes (Response__Process_OK)
@@ -1281,7 +1277,6 @@ This method is used to update Medication. Fields descriptions are listed in requ
             + code: 201 (number)
         + data (object)
             + include `Medication_Response`
-            + `ingredients` (array[`Ingredient_Response`])            
 
 + Response 422 (application/json)
     + Attributes (Response_Error)
@@ -4235,9 +4230,6 @@ This method is used to process created dispense
 + `name_original`: `Amiodarone` (string, required)
 + `sctid`: `52574003` (string, required)
 
-### `Innms_id`
-+ `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required)
-
 ### `Substance_Response`
 + `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required)
 + include `Substance_Request`
@@ -4255,22 +4247,9 @@ This method is used to process created dispense
 + `package_qty`: 30 (number, required)
 + `package_min_qty`: 10 (number, required)
 
-### `Dosage_drug_post`
-+ `numerator_unit`: MG (string, required) - `Dictionary MEDICATION_UNIT`
-+ `numerator_value`: 200 (number, required)
-+ `denumerator_unit`: PILL (string, required) - `Dictionary MEDICATION_UNIT`
-+ `denumerator_value`: 1 (number, required)
-
 ### `Dosage_drug`
 + `numerator_unit`: MG (string, required) - `Dictionary MEDICATION_UNIT`
 + `numerator_value`: 200 (number, required)
-+ `denumerator_unit`: PILL (string, required) - `Dictionary MEDICATION_UNIT`
-+ `denumerator_value`: 1 (number, required)
-+ `description`: `200MG/1PILL` (string)
-
-### `Dosage_container_post`
-+ `numerator_unit`: PILL (string, required) - `Dictionary MEDICATION_UNIT`
-+ `numerator_value`: 1 (number, required)
 + `denumerator_unit`: PILL (string, required) - `Dictionary MEDICATION_UNIT`
 + `denumerator_value`: 1 (number, required)
 
@@ -4279,13 +4258,12 @@ This method is used to process created dispense
 + `numerator_value`: 1 (number, required)
 + `denumerator_unit`: PILL (string, required) - `Dictionary MEDICATION_UNIT`
 + `denumerator_value`: 1 (number, required)
-+ `description`: `1PILL*1PILL` (string)
 
 ### `Innm_for_Medication_request`
-+ include `Innms_id`
++ `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required)
 + `form`: PILL (string, required) - `Dictionary MEDICATION_FORM`
-+ `dosage` (`Dosage_drug_post`, required)
-+ `container` (`Dosage_container_post`, required)
++ `dosage` (`Dosage_drug`, required)
++ `container` (`Dosage_container`, required)
 + `request_qty`: 10 (number, required)
 
 ### `Innm_for_Medication_request_Responce`
@@ -4296,45 +4274,38 @@ This method is used to process created dispense
 + `container` (`Dosage_container`, required)
 + `request_qty`: 10 (number, required)
 
-### `Medication_manufacturer_info`
+### `Manufacturer`
 + `name` : `ПАТ "Київський вітамінний завод"` (string, required) 
 + `country` : `UA` (string, required) - `Dictionary COUNTRY`
 
-### `Ingredient_post`
-+ `innm_id` : `1349a693-4db1-4a3f-9ac6-8c2f9e541982` (string, required)
-+ `dosage` (`Dosage_drug_post`, required)
-+ `is_active_substance` : `true` (boolean, required) 
-
-### `Ingredient_Response`
-+ `innm` (`Substance_Response`, required)
+### `Ingredient`
++ `medication_id` : `1349a693-4db1-4a3f-9ac6-8c2f9e541982` (string, required)
 + `dosage` (`Dosage_drug`, required)
-+ `is_active_substance` : `true` (boolean, required) 
++ `is_active_substance` : true (boolean, required) 
 
-### `Medication_post`
-+ `name` : `Амідарон` (string, required) 
-+ `start_at` : `2017-07-27` (string, required) - start date medication
-+ `route` :  PILL (string, required) - `Dictionary MEDICATION_ROUTE`
-+ `container_dosage` (`Dosage_container_post`, required)
-+ `package_qty` : 30 (number, required)
-+ `package_min_qty`: 10 (number, required)
-+ `code_ATX` : `С01BD01` (string, required)
-+ `manufacturer_name_country` (`Medication_manufacturer_info`)
-+ `certificate` : `UA/4514/01/01` (string, required)
-+ `expired_certificate_date` : `2021-02-09` (string, required)
+### `Medication_Request`
++ `name` : `Амідарон` (string, required)
++ `type`: `MEDICATION` (string, required)
++ `manufacturer_name_country` (`Manufacturer`, optional)
++ `code_atc`: `С01BD01` (string, optional)
++ `form` :  PILL (string, required) - `Dictionary MEDICATION_ROUTE`
++ `cantainer` (`Dosage_container`, required)
++ `package_qty`: 30 (number, optional)
++ `package_min_qty`: 10 (number, optional)
++ `certificate` : `UA/4514/01/01` (string, optional)
++ `certificate_expired_at` : `2021-02-09` (string, optional)
++ `ingredients` (array, required)
+    + (object)
+        + include `Ingredient`
 
 ### `Medication_Response`
 + `id` : `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required) 
-+ `name` : `Амідарон` (string, required) 
-+ `start_at` : `2017-07-27` (string, required) - start date medication
-+ `route` :  PILL (string, required) - `Dictionary MEDICATION_ROUTE`
-+ `container_dosage` (`Dosage_container`, required)
-+ `package_qty` : 30 (number, required)
-+ `package_min_qty`: 10 (number, required)
-+ `code_ATX` : `С01BD01` (string, required)
-+ `manufacturer_name_country` (`Medication_manufacturer_info`)
-+ `certificate` : `UA/4514/01/01` (string, required)
-+ `expired_certificate_date` : `2021-02-09` (string, required)
-
++ include `Medication_Request`
++ `is_active` : true (boolean, required)
++ inserted_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ inserted_by: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
++ updated_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ updated_by: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
 
 ## `Medication request Request`
 ### `Medication_request_Request_post_data`
@@ -4445,6 +4416,8 @@ This method is used to process created dispense
 ### `Medication_Dispense_Request`
 + `medication_request_id`: `f08ba3a3-157a-4adc-b65d-737f24f3a1f4` (string, required)
 + `dispensed_at`: `2017-08-17` (string, required)
++ `employee_id`: `6d987b5d-6d72-40bc-9cf7-1304b32ed5bb` (string, required)
++ `division_id`: `2fc70f30-08dc-493c-8d08-925905d7b1e8` (string, required)
 + `medical_program_id`: `6ee844fd-9f4d-4457-9eda-22aa506be4c4` (string, required)
 + `dispense_details` (array)
     + (object)
@@ -4455,6 +4428,8 @@ This method is used to process created dispense
 + `medication_request_id`: `f08ba3a3-157a-4adc-b65d-737f24f3a1f4` (string, required)
 + `dispensed_at`: `2017-08-17` (string, required)
 + `employee_id`: `57a75203-3153-4447-9a21-1227cc6e1f0c` (string, required)
++ `legal_entity_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ `division_id`: `2fc70f30-08dc-493c-8d08-925905d7b1e8` (string, required)
 + `medical_program_id`: `6ee844fd-9f4d-4457-9eda-22aa506be4c4` (string, required)
 + `dispense_details` (array)
     + (object)
