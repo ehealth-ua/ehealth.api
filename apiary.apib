@@ -1195,7 +1195,7 @@ This method is used to create new substance. Fields descriptions are listed in r
             + message: `substance duplicate` (string, required)
 
 ### Update substance [PATCH /substances/{id}]
-This method is used to update Innm. Fields descriptions are listed in request Example view.
+This method is used to update substance. Fields descriptions are listed in request Example view.
 
 **Scopes required:** `substance:write`
 
@@ -1227,7 +1227,37 @@ This method is used to update Innm. Fields descriptions are listed in request Ex
             + type: duplicate (string, required)
             + message: `substance duplicate` (string, required)
 
+## INNMs [/innms] 
+
+### Create INNM [POST]
+This method is used to create INNMs. Fields descriptions are listed in request Example view.
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
+    + Attributes (object)
+       + include (`INNM_Request`, required) 
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `INNM_Response`
+
++ Response 422 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta)
+            + code: 422
+        + error
+            + type: unverified (string, required)
+            + message: `Property "is_active" has not been defined and the schema does not allow additional properties!` (string, required)
+
 ## Medications [/medications] 
+
 ### Create Medication [POST]
 This method is used to create Medications. Fields descriptions are listed in request Example view.
 
@@ -4265,14 +4295,6 @@ This method is used to process created dispense
 + updated_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + updated_by: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
 
-### `Form_use`
-+ `medication_id`: `a7f69e47-c52e-4683-8b43-e0827265cdde` (string, required) 
-+ `form`: PILL (string, required) - `Dictionary MEDICATION_FORM`
-+ `dosage` (`Dosage_drug`, required)
-+ `container_dosage` (`Dosage_container`, required)
-+ `package_qty`: 30 (number, required)
-+ `package_min_qty`: 10 (number, required)
-
 ### `Dosage_drug`
 + `numerator_unit`: MG (string, required) - `Dictionary MEDICATION_UNIT`
 + `numerator_value`: 200 (number, required)
@@ -4308,6 +4330,22 @@ This method is used to process created dispense
 + `id` : `1349a693-4db1-4a3f-9ac6-8c2f9e541982` (string, required)
 + `dosage` (`Dosage_drug`, required)
 + `is_active_substance` : true (boolean, required) 
+
+### `INNM_Request`
++ `name` : `Амідарон` (string, required)
++ `form` :  PILL (string, required) - `Dictionary MEDICATION_FORM`
++ `ingredients` (array, required)
+    + (object)
+        + include `Ingredient`
+
+### `INNM_Response`
++ `id` : `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required) 
++ include `INNM_Request`
++ `is_active` : true (boolean, required)
++ inserted_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ inserted_by: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
++ updated_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ updated_by: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
 
 ### `Medication_Request`
 + `name` : `Амідарон` (string, required)
