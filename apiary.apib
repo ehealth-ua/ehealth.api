@@ -1165,8 +1165,8 @@ Response will contain only records that you have access to.
         + data (`nhs_declaration`)
 
 ## Substances [/substances]
-### Add substance [POST]
-This method is used to add new substance. Fields descriptions are listed in request Example view.
+### Create substance [POST]
+This method is used to create new substance. Fields descriptions are listed in request Example view.
 
 **Scopes required:** `substance:write`
 
@@ -1253,7 +1253,7 @@ This method is used to create Medications. Fields descriptions are listed in req
             + code: 422
         + error
             + type: unverified (string, required)
-            + message: `Denum unit from Dosage ingredients must be is equal Denum unit from Container dosage medication!` (string, required)
+            + message: `Denumerator unit from Dosage ingredients must be is equal Numerator unit from Container medication!` (string, required)
 
 ### Update Medication [PATCH /medication/{id}]
 This method is used to update Medication. Fields descriptions are listed in request Example view.
@@ -1284,7 +1284,7 @@ This method is used to update Medication. Fields descriptions are listed in requ
             + code: 422
         + error
             + type: unverified (string, required)
-            + message: `Denum unit from Dosage ingredients must be is equal Denum unit from Container dosage medication!` (string, required)
+            + message: `Denumerator unit from Dosage ingredients must be is equal Numerator unit from Container medication!` (string, required)
 
 # Group Internal. Gandalf
 
@@ -3080,10 +3080,8 @@ This method is used to process created dispense
     + Attributes (object)
         + payment_id: F324H456 (string, optional)
 
-+ Response 201 (application/json)
++ Response 200 (application/json)
     + Attributes (Response_OK)
-        + meta (Response__Meta)
-            + code: 201 (number)
         + data (object)
             + include `Medication_Dispense_Response`
 
@@ -3091,8 +3089,36 @@ This method is used to process created dispense
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
-        + meta (Response__Meta)
-            + code: 201 (number)
+        + data (object)
+            + include `Medication_Dispense_Response`
+
+### Get Medication Dispenses List [GET /api/medication_dispenses]
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (Response_Collection)
+        + data (array)
+            + (object)
+                + include `Medication_Dispense_Response`
+
+### Get Medication Dispense by ID [PATCH /api/medication_dispenses/{id}]
+
++ Parameters
+    + `id`: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
         + data (object)
             + include `Medication_Dispense_Response`
 
@@ -3691,7 +3717,7 @@ This method is used to process created dispense
     + `redirect_uri`: `http://example.com` (string, required, fixed) - Redirect uri
 + public_offer (object)
     + `consent`: true (boolean, required)
-    + `consent_text`: `Зобов'язуюсь дотримуватись Регламенту функціонування системи eHealth. Підтверджую достовірність вказаних мною даних та добровільність надання цих даних. Усвідомлюю, що у випадку надання мною невірної інформації, мені може бути відмовлено у реєстрації в системі eHealth.` (string, required)
+    + `consent_text`: `Відповідно до Закону України “Про захист персональних даних” з метою ведення реєстрів електронної системи охорони здоров’я та забезпечення її функціонування у дослідній експлуатації надаю згоду обраному оператору та адміністратору електронної системи охорони здоров’я на обробку моїх персональних даних з первинних джерел, а також на здійснення дій пов’язаних зі збиранням, реєстрацією, накопиченням, зберіганням, адаптуванням, зміною, поновленням, використанням, поширенням, розповсюдженням, реалізацією, передачею, знеособленням, знищенням будь-яких відомостей. Додатково надаю згоду на доступ до моїх персональних даних уповноважених третіх осіб, що визначає дії оператора МІС та адміністратора у разі отримання запиту від уповноваженої третьої особи щодо надання доступу до персональних даних. Підтверджую достовірність вказаних мною даних та добровільність надання цих даних до електронної системи охорони здоров’я, що працює у дослідній експлуатації. Усвідомлюю, що у випадку надання мною невірної інформації, мені може бути відмовлено в реєстрації в електронній системі охорони здоров’я. Зобов’язуюсь дотримуватись Регламенту функціонуваня електронної системи охорони здоров’я.` (string, required)
 
 ### `Legal_Entity_Request_Public_Short` 
 + name: Клініка Борис (string, required)
