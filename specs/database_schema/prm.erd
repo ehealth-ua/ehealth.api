@@ -249,10 +249,9 @@ dispense_valid_from | date| not null
 dispense_valid_to | date| not null
 person_id | uuid | not null
 employee_id | uuid | not null
+division_id | uuid | not null
 medication_id | uuid | not null
 medication_qty | number | not null
-note | jsonb
-dosage_instuction | jsonb
 status | varchar | not null
 is_active | boolean | not null
 recalled_at | date
