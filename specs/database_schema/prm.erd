@@ -269,6 +269,8 @@ id | uuid | not null
 medication_request_id | uuid | not null
 dispensed_at | date | not null
 employee_id | uuid | not null
+legal_entity_id | uuid | not null
+division_id | uuid | not null
 medical_program_id | varchar
 payment_id | varchar
 status | varchar | not null
