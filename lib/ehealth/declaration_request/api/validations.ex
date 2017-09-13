@@ -6,6 +6,7 @@ defmodule EHealth.DeclarationRequest.API.Validations do
   import Ecto.Changeset
   import EHealth.Utils.TypesConverter, only: [string_to_integer: 1]
 
+  alias EHealth.DeclarationRequest
   alias EHealth.API.OTPVerification
   alias EHealth.Validators.SchemaMapper
   alias EHealth.Validators.Addresses
@@ -13,6 +14,8 @@ defmodule EHealth.DeclarationRequest.API.Validations do
   alias EHealth.Validators.TaxID
   alias EHealth.API.Signature
   alias EHealth.DeclarationRequest.SignRequest
+
+  @auth_otp DeclarationRequest.authentication_method(:otp)
 
   use_schema :declaration_request, "specs/json_schemas/declaration_request_schema.json"
 
@@ -253,7 +256,7 @@ defmodule EHealth.DeclarationRequest.API.Validations do
     end
   end
 
-  defp validate_auth_method(%{"type" => "OTP"} = method, {i, changeset}) do
+  defp validate_auth_method(%{"type" => @auth_otp} = method, {i, changeset}) do
     case Map.has_key?(method, "phone_number") do
       true ->
         {i + 1, changeset}
@@ -262,7 +265,6 @@ defmodule EHealth.DeclarationRequest.API.Validations do
         {i + 1, add_error(changeset, :"data.person.authentication_methods.[#{i}].phone_number", message)}
     end
   end
-
   defp validate_auth_method(_, {i, changeset}) do
     {i + 1, changeset}
   end

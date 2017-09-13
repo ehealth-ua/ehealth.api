@@ -3,6 +3,12 @@ defmodule EHealth.PRM.Divisions.Schema do
 
   use Ecto.Schema
 
+  @status_active "ACTIVE"
+  @status_inactive "INACTIVE"
+
+  def status(:active), do: @status_active
+  def status(:inactive), do: @status_inactive
+
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "divisions" do
     field :email, :string

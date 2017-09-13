@@ -11,9 +11,15 @@ defmodule EHealth.PRM.Employees.Schema do
   @type_doctor "DOCTOR"
   @type_pharmacy_owner "PHARMACY_OWNER"
 
+  @status_dismissed "DISMISSED"
+  @status_approved "APPROVED"
+
   def type(:owner), do: @type_owner
   def type(:doctor), do: @type_doctor
   def type(:pharmacy_owner), do: @type_pharmacy_owner
+
+  def status(:dismissed), do: @status_dismissed
+  def status(:approved), do: @status_approved
 
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "employees" do

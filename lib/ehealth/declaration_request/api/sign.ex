@@ -13,6 +13,12 @@ defmodule EHealth.DeclarationRequest.API.Sign do
 
   require Logger
 
+  @auth_na DeclarationRequest.authentication_method(:na)
+  @auth_otp DeclarationRequest.authentication_method(:otp)
+  @auth_offline DeclarationRequest.authentication_method(:offline)
+
+  @status_approved DeclarationRequest.status(:approved)
+
   def check_status({:ok, pipe_data}, input) do
     db_data =
       input
@@ -20,7 +26,7 @@ defmodule EHealth.DeclarationRequest.API.Sign do
       |> API.get_declaration_request_by_id!()
 
     case Map.get(db_data, :status) do
-      "APPROVED" -> {:ok, pipe_data, db_data}
+      @status_approved -> {:ok, pipe_data, db_data}
       _ -> {:error, [{%{description: "incorrect status", params: [], rule: :invalid}, "$.status"}]}
     end
   end
@@ -182,9 +188,9 @@ defmodule EHealth.DeclarationRequest.API.Sign do
   end
   def update_declaration_request_status(err, _input), do: err
 
-  defp get_status(%{"type" => "OFFLINE"}), do: "pending_verification"
-  defp get_status(%{"type" => "OTP"}), do: "active"
-  defp get_status(%{"type" => "NA"}), do: "active"
+  defp get_status(%{"type" => @auth_offline}), do: "pending_verification"
+  defp get_status(%{"type" => @auth_otp}), do: "active"
+  defp get_status(%{"type" => @auth_na}), do: "active"
   defp get_status(_) do
     Logger.error(fn -> "Unknown authentication_method_current.type" end)
     ""

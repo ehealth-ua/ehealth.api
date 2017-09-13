@@ -4,11 +4,9 @@ defmodule EHealth.Web.DivisionController do
   use EHealth.Web, :controller
 
   alias EHealth.Divisions.API
+  alias EHealth.PRM.Divisions.Schema, as: Division
 
   action_fallback EHealth.Web.FallbackController
-
-  @status_active "ACTIVE"
-  @status_inactive "INACTIVE"
 
   def index(%Plug.Conn{req_headers: req_headers} = conn, params) do
     with {divisions, paging} <- API.search(get_client_id(req_headers), params) do
@@ -37,13 +35,13 @@ defmodule EHealth.Web.DivisionController do
   end
 
   def activate(%Plug.Conn{req_headers: headers} = conn, %{"id" => id}) do
-    with {:ok, division} <- API.update_status(id, @status_active, headers) do
+    with {:ok, division} <- API.update_status(id, Division.status(:active), headers) do
       render(conn, "show.json", division: division)
     end
   end
 
   def deactivate(%Plug.Conn{req_headers: headers} = conn, %{"id" => id}) do
-    with {:ok, division} <- API.update_status(id, @status_inactive, headers) do
+    with {:ok, division} <- API.update_status(id, Division.status(:inactive), headers) do
       render(conn, "show.json", division: division)
     end
   end

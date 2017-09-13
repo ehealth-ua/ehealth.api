@@ -41,6 +41,10 @@ defmodule EHealth.DeclarationRequest.API do
   @status_rejected DeclarationRequest.status(:rejected)
   @status_approved DeclarationRequest.status(:approved)
 
+  @auth_na DeclarationRequest.authentication_method(:na)
+  @auth_otp DeclarationRequest.authentication_method(:otp)
+  @auth_offline DeclarationRequest.authentication_method(:offline)
+
   def get_declaration_request_by_declaration_id!(declaration_id) do
     query = from dr in DeclarationRequest,
       where: dr.declaration_id == ^declaration_id
@@ -179,10 +183,10 @@ defmodule EHealth.DeclarationRequest.API do
     authorization = declaration_request.authentication_method_current
 
     case authorization["type"] do
-      "NA" ->
+      @auth_na ->
         {:ok, declaration_request}
 
-      "OTP" ->
+      @auth_otp ->
         case Create.send_verification_code(authorization["number"]) do
           {:ok, _} ->
             {:ok, declaration_request}
@@ -190,7 +194,7 @@ defmodule EHealth.DeclarationRequest.API do
             {:error, error}
         end
 
-      "OFFLINE" ->
+      @auth_offline ->
         case Documents.generate_links(declaration_request, ["PUT"]) do
           {:ok, documents} ->
             declaration_request

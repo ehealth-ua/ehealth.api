@@ -4,8 +4,12 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
   alias EHealth.API.Man
   alias EHealth.Utils.AddressMerger
   alias EHealth.Dictionaries
+  alias EHealth.DeclarationRequest
 
   use Confex, otp_app: :ehealth
+
+  @auth_otp DeclarationRequest.authentication_method(:otp)
+  @auth_offline DeclarationRequest.authentication_method(:offline)
 
   def render(declaration_request, authentication_method_current) do
     template_data =
@@ -295,8 +299,8 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
     }
 
     case Map.get(data, "type") do
-      "OTP" -> Map.put(authentication_method_current, :otp, true)
-      "OFFLINE" -> Map.put(authentication_method_current, :offline, true)
+      @auth_otp -> Map.put(authentication_method_current, :otp, true)
+      @auth_offline -> Map.put(authentication_method_current, :offline, true)
       _ -> authentication_method_current
     end
   end

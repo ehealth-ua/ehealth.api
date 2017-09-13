@@ -3,6 +3,7 @@ defmodule EHealth.DuplicatePersons.Cleanup do
 
   alias EHealth.API.OPS
   alias EHealth.API.MPI
+  alias EHealth.Declarations.Person
 
   def cleanup(id, person_id) do
     {:ok, %{"data" => declarations}} =
@@ -15,8 +16,8 @@ defmodule EHealth.DuplicatePersons.Cleanup do
       OPS.terminate_person_declarations(declaration["person_id"])
     end
 
-    {:ok, %{"data" => _}} = MPI.update_merge_candidate(id, %{status: "MERGED"})
-    {:ok, %{"data" => _}} = MPI.update_person(person_id, %{status: "INACTIVE"})
+    {:ok, %{"data" => _}} = MPI.update_merge_candidate(id, %{status: Person.status(:merged)})
+    {:ok, %{"data" => _}} = MPI.update_person(person_id, %{status: Person.status(:inactive)})
   end
 
   def update_master_merged_ids(master_person_id, duplicate_person_ids) do

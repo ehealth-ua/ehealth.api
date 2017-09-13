@@ -33,6 +33,8 @@ defmodule EHealth.Employee.API do
   @status_rejected Request.status(:rejected)
   @status_expired Request.status(:expired)
 
+  @employee_status_dismissed Employee.status(:dismissed)
+
   @doctor Employee.type(:doctor)
   @owner Employee.type(:owner)
   @pharmacy_owner Employee.type(:pharmacy_owner)
@@ -315,7 +317,7 @@ defmodule EHealth.Employee.API do
   def validate_status_type(%Employee{is_active: false}) do
     {:error, :not_found}
   end
-  def validate_status_type(%Employee{status: "DISMISSED"}) do
+  def validate_status_type(%Employee{status: @employee_status_dismissed}) do
     {:error, {:conflict, "employee is dismissed"}}
   end
   def validate_status_type(%Employee{employee_type: @owner}) do

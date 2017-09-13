@@ -23,8 +23,11 @@ defmodule EHealth.LegalEntity.API do
 
   @employee_request_status "NEW"
 
-  @status_closed "CLOSED"
-  @status_active "ACTIVE"
+  @status_closed LegalEntity.status(:closed)
+  @status_active LegalEntity.status(:active)
+
+  @mis_verified_verified LegalEntity.mis_verified(:verified)
+  @mis_verified_not_verified LegalEntity.mis_verified(:not_verified)
 
   # get legal entity by id
 
@@ -57,7 +60,7 @@ defmodule EHealth.LegalEntity.API do
   end
 
   def mis_verify(id, consumer_id) do
-    update_data = %{mis_verified: "VERIFIED"}
+    update_data = %{mis_verified: @mis_verified_verified}
 
     with legal_entity <- LegalEntities.get_legal_entity_by_id!(id),
          :ok <- check_mis_verify_transition(legal_entity)
@@ -76,7 +79,7 @@ defmodule EHealth.LegalEntity.API do
     end
   end
 
-  def check_mis_verify_transition(%LegalEntity{mis_verified: "NOT_VERIFIED"}), do: :ok
+  def check_mis_verify_transition(%LegalEntity{mis_verified: @mis_verified_not_verified}), do: :ok
   def check_mis_verify_transition(_) do
     {:error, {:conflict, "LegalEntity is VERIFIED and cannot be VERIFIED."}}
   end

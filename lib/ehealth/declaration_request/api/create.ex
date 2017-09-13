@@ -8,12 +8,15 @@ defmodule EHealth.DeclarationRequest.API.Create do
   alias EHealth.API.OTPVerification
   alias Ecto.Changeset
   alias EHealth.PRM.PartyUsers
+  alias EHealth.DeclarationRequest
 
   import Ecto.Changeset, only: [get_field: 2, get_change: 2, put_change: 3, add_error: 3]
 
   use Confex, otp_app: :ehealth
 
-  @decision_not_available "NA"
+  @auth_na DeclarationRequest.authentication_method(:na)
+  @auth_otp DeclarationRequest.authentication_method(:otp)
+  @auth_offline DeclarationRequest.authentication_method(:offline)
 
   def send_verification_code(number) do
     OTPVerification.initialize(number)
@@ -24,7 +27,7 @@ defmodule EHealth.DeclarationRequest.API.Create do
     form_data = get_field(changeset, :data)
     authentication_method_current =
       case get_change(changeset, :authentication_method_default) do
-        %{"type" => @decision_not_available} = default -> default
+        %{"type" => @auth_na} = default -> default
         _ -> get_change(changeset, :authentication_method_current)
       end
 
@@ -83,7 +86,7 @@ defmodule EHealth.DeclarationRequest.API.Create do
             require Logger
             Logger.info("Gandalf is not responding. Falling back to default...")
 
-            authentication_method_current = %{"type" => "OFFLINE"}
+            authentication_method_current = %{"type" => @auth_offline}
 
             put_change(changeset, :authentication_method_current, authentication_method_current)
         end
@@ -92,13 +95,12 @@ defmodule EHealth.DeclarationRequest.API.Create do
     end
   end
 
-  def prepare_auth_method_current("OTP", %{"phone_number" => phone_number}) do
+  def prepare_auth_method_current(@auth_otp, %{"phone_number" => phone_number}) do
     %{
-      "type" => "OTP",
+      "type" => @auth_otp,
       "number" => phone_number
     }
   end
-
   def prepare_auth_method_current(type, _authentication_method) do
     %{"type" => type}
   end

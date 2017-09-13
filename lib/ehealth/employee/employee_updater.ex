@@ -13,9 +13,10 @@ defmodule EHealth.Employee.EmployeeUpdater do
 
   require Logger
 
-  @employee_type_owner "OWNER"
-  @employee_status_approved "APPROVED"
-  @employee_status_dismissed "DISMISSED"
+  @type_owner "OWNER"
+
+  @status_approved Employee.status(:approved)
+  @status_dismissed Employee.status(:dismissed)
 
   def deactivate(id, headers, with_owner \\ false) do
     with employee <- Employees.get_employee_by_id!(id),
@@ -28,17 +29,17 @@ defmodule EHealth.Employee.EmployeeUpdater do
     end
   end
 
-  def check_transition(%Employee{employee_type: @employee_type_owner}, false) do
+  def check_transition(%Employee{employee_type: @type_owner}, false) do
     {:error, {:conflict, "Owner can’t be deactivated"}}
   end
-  def check_transition(%Employee{is_active: true, status: @employee_status_approved}, _), do: :ok
+  def check_transition(%Employee{is_active: true, status: @status_approved}, _), do: :ok
   def check_transition(_employee, _) do
     {:error, {:conflict, "Employee is DEACTIVATED and cannot be updated."}}
   end
 
   def get_active_employees(%{party_id: party_id, employee_type: employee_type}) do
     params = [
-      status: @employee_status_approved,
+      status: @status_approved,
       is_active: true,
       party_id: party_id,
       employee_type: employee_type,
@@ -107,11 +108,11 @@ defmodule EHealth.Employee.EmployeeUpdater do
     |> Map.put(:end_date, Date.utc_today() |> Date.to_iso8601())
   end
 
-  defp put_employee_status(params, %{employee_type: @employee_type_owner}) do
+  defp put_employee_status(params, %{employee_type: @type_owner}) do
     Map.put(params, :is_active, false)
   end
 
   defp put_employee_status(params, _employee) do
-    Map.put(params, :status, @employee_status_dismissed)
+    Map.put(params, :status, @status_dismissed)
   end
 end

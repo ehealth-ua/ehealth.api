@@ -6,11 +6,15 @@ defmodule EHealth.LegalEntity.LegalEntityUpdater do
   alias EHealth.PRM.LegalEntities
   alias EHealth.Employee.EmployeeUpdater
   alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
+  alias EHealth.PRM.Employees.Schema, as: Employee
   alias EHealth.PRM.Employees
 
   require Logger
 
-  @legal_entity_status_active "ACTIVE"
+  @status_active LegalEntity.status(:active)
+  @status_closed LegalEntity.status(:closed)
+
+  @employee_status_approved Employee.status(:approved)
 
   def deactivate(id, headers) do
     with legal_entity <- LegalEntities.get_legal_entity_by_id!(id),
@@ -21,14 +25,14 @@ defmodule EHealth.LegalEntity.LegalEntityUpdater do
     end
   end
 
-  def check_transition(%LegalEntity{is_active: true, status: @legal_entity_status_active}), do: :ok
+  def check_transition(%LegalEntity{is_active: true, status: @status_active}), do: :ok
   def check_transition(_legal_entity) do
     {:error, {:conflict, "Legal entity is not ACTIVE and cannot be updated"}}
   end
 
   def deactivate_employees(%LegalEntity{} = legal_entity, headers) do
     [
-      status: "APPROVED",
+      status: @employee_status_approved,
       is_active: true,
       legal_entity_id: legal_entity.id,
     ]
@@ -63,7 +67,7 @@ defmodule EHealth.LegalEntity.LegalEntityUpdater do
     }
   end
 
-  def put_legal_entity_status(params), do: Map.put(params, :status, "CLOSED")
+  def put_legal_entity_status(params), do: Map.put(params, :status, @status_closed)
 
   defp log_deactivate_employee_error(error, id) do
     Logger.error("Failed to deactivate employee with id \"#{id}\". Reason: #{inspect error}")

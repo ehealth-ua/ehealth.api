@@ -15,7 +15,7 @@ defmodule EHealth.Divisions.API do
 
   use_schema :division, "specs/json_schemas/division_schema.json"
 
-  @status_active "ACTIVE"
+  @status_active Division.status(:active)
   @default_mountain_group "0"
 
   def search(legal_entity_id, params \\ %{}) do
@@ -64,7 +64,7 @@ defmodule EHealth.Divisions.API do
 
   def create_division({:ok, data}, author_id) do
     data
-    |> Map.merge(%{"status" => "ACTIVE", "is_active" => true})
+    |> Map.merge(%{"status" => @status_active, "is_active" => true})
     |> Divisions.create_division(author_id)
   end
   def create_division(err, _), do: err

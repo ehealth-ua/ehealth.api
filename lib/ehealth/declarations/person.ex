@@ -4,7 +4,15 @@ defmodule EHealth.Declarations.Person do
   alias EHealth.API.OPS
   import EHealth.Declarations.API, only: [expand_declaration_relations: 2]
 
+  @status_new "NEW"
+  @status_merged "MERGED"
+  @status_inactive "INACTIVE"
+
   @declaration_status_active "active"
+
+  def status(:new), do: @status_new
+  def status(:merged), do: @status_merged
+  def status(:inactive), do: @status_inactive
 
   def get_person_declaration(person_id, headers) do
     query_params = %{"person_id" => person_id, "status" => "active,pending_verification", "is_active" => true}

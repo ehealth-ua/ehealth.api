@@ -15,10 +15,8 @@ defmodule EHealth.Employee.EmployeeCreator do
 
   require Logger
 
-  @employee_default_status "APPROVED"
-  @employee_type_owner "OWNER"
-
-  def employee_default_status, do: @employee_default_status
+  @type_owner Employee.type(:owner)
+  @status_approved Employee.status(:approved)
 
   def create(%Request{data: data} = employee_request, req_headers) do
     party = Map.fetch!(data, "party")
@@ -68,7 +66,7 @@ defmodule EHealth.Employee.EmployeeCreator do
 
   def create_employee(%Party{id: id}, %Request{data: employee_request}, req_headers) do
     data = %{
-      "status" => @employee_default_status,
+      "status" => @status_approved,
       "is_active" => true,
       "party_id" => id,
       "legal_entity_id" => employee_request["legal_entity_id"],
@@ -81,11 +79,11 @@ defmodule EHealth.Employee.EmployeeCreator do
   end
   def create_employee(err, _, _), do: err
 
-  def deactivate_employee_owners(%Employee{employee_type: @employee_type_owner} = employee, req_headers) do
+  def deactivate_employee_owners(%Employee{employee_type: @type_owner} = employee, req_headers) do
     %{
       legal_entity_id: employee.legal_entity_id,
       is_active: true,
-      employee_type: @employee_type_owner
+      employee_type: @type_owner
     }
     |> Employees.get_employees()
     |> deactivate_employees(employee, req_headers)

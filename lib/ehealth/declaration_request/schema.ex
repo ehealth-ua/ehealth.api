@@ -13,11 +13,19 @@ defmodule EHealth.DeclarationRequest do
   @status_rejected "REJECTED"
   @status_approved "APPROVED"
 
+  @authentication_na "NA"
+  @authentication_otp "OTP"
+  @authentication_offline "OFFLINE"
+
   def status(:new), do: @status_new
   def status(:signed), do: @status_signed
   def status(:cancelled), do: @status_cancelled
   def status(:rejected), do: @status_rejected
   def status(:approved), do: @status_approved
+
+  def authentication_method(:na), do: @authentication_na
+  def authentication_method(:otp), do: @authentication_otp
+  def authentication_method(:offline), do: @authentication_offline
 
   schema "declaration_requests" do
     field :data, :map

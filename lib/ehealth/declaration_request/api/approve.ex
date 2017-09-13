@@ -3,19 +3,24 @@ defmodule EHealth.DeclarationRequest.API.Approve do
 
   alias EHealth.API.MediaStorage
   alias EHealth.API.OTPVerification
+  alias EHealth.DeclarationRequest
   require Logger
+
+  @auth_na DeclarationRequest.authentication_method(:na)
+  @auth_otp DeclarationRequest.authentication_method(:otp)
+  @auth_offline DeclarationRequest.authentication_method(:offline)
 
   @files_storage_bucket Confex.fetch_env!(:ehealth, EHealth.API.MediaStorage)[:declaration_request_bucket]
 
   def verify(declaration_request, code) do
     case declaration_request.authentication_method_current do
-      %{"type" => "NA"} ->
+      %{"type" => @auth_na} ->
         {:ok, true}
 
-      %{"type" => "OTP", "number" => phone} ->
+      %{"type" => @auth_otp, "number" => phone} ->
         OTPVerification.complete(phone, %{code: code})
 
-      %{"type" => "OFFLINE"} ->
+      %{"type" => @auth_offline} ->
         check_documents(declaration_request.documents, declaration_request.id, {:ok, true})
     end
   end

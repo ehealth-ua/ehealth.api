@@ -6,6 +6,7 @@ defmodule EHealth.DuplicatePersons.Signals do
   alias EHealth.API.MPI
   alias EHealth.DuplicatePersons.Cleanup
   alias EHealth.DuplicatePersons.CleanupTasks
+  alias EHealth.Declarations.Person
 
   def start_link do
     GenServer.start_link(__MODULE__, [], [name: __MODULE__])
@@ -16,7 +17,7 @@ defmodule EHealth.DuplicatePersons.Signals do
   end
 
   def handle_call(:deactivate, _from, state) do
-    {:ok, %{"data" => merge_candidates}} = MPI.get_merge_candidates(%{status: "NEW"})
+    {:ok, %{"data" => merge_candidates}} = MPI.get_merge_candidates(%{status: Person.status(:new)})
 
     groups =
       Enum.group_by merge_candidates, &(&1["master_person_id"]), &({&1["id"], &1["person_id"]})
