@@ -268,10 +268,10 @@ updated_by | uuid | not null
 id | uuid | not null
 medication_request_id | uuid | not null
 dispensed_at | date | not null
-employee_id | uuid | not null
+party_id | uuid | not null
 legal_entity_id | uuid | not null
 division_id | uuid | not null
-medical_program_id | varchar
+medical_program_id | uuid
 payment_id | varchar
 status | varchar | not null
 is_active | boolean | not null
@@ -288,10 +288,10 @@ medication_qty | number | not null
 sell_price | number | not null
 reimbursement_amount | number | not null
 
-[medication_dispenses_status_hstr]
+[medication_dispense_status_hstr]
 id | integer | not null
 medication_dispense_id | uuid | not null
-status | enum('') | not null
+status | varchar | not null
 inserted_at | timestamp | not null
 
 [medication_request_requests]
@@ -327,7 +327,7 @@ declarations_status_hstr
 medication_requests
 medication_dispenses
 medication_dispense_details
-medication_dispenses_status_hstr
+medication_dispense_status_hstr
 
 (il_db)
 declaration_requests
@@ -357,6 +357,6 @@ medication_requests 1--* medication_dispenses
 medication_dispenses *--1 legal_entities
 medication_dispenses *--1 divisions
 medication_dispenses *--1 employees
-medication_dispenses *--1 medication_dispenses_status_hstr
+medication_dispenses *--1 medication_dispense_status_hstr
 medication_dispenses 1--* medication_dispense_details
 medication_dispense_details 1--1 medications
