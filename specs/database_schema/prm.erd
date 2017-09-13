@@ -241,6 +241,7 @@ updated_by | uuid | not null
 [medication_requests]
 id | uuid | not null
 request_number | varchar | not null
+verification_code | varchar
 created_at | date | not null
 started_at | date| not null
 ended_at | date| not null
