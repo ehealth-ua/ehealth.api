@@ -190,7 +190,7 @@ is_active | boolean | not null
 
 [substances]
 id | uuid | not null
-SCTID | varchar | not null | unique
+sctid | varchar | not null | unique
 name | varchar | not null
 name_original | varchar | not null
 is_active | boolean | not null
@@ -204,7 +204,7 @@ id | uuid | not null
 name | varchar | not null 
 type | varchar | not null
 manufacturer | jsonb
-code_ATC | varchar
+code_atc | varchar
 is_active | boolean | not null
 form | varchar | not null
 container | jsonb
