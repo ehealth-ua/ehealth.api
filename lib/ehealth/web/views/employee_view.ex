@@ -10,6 +10,7 @@ defmodule EHealth.Web.EmployeeView do
   alias EHealth.PRM.Employees.Schema, as: Employee
 
   @doctor Employee.type(:doctor)
+  @pharmacist Employee.type(:pharmacist)
 
   def render("index.json", %{employees: employees}) do
     render_many(employees, __MODULE__, "employee_list.json")
@@ -28,7 +29,7 @@ defmodule EHealth.Web.EmployeeView do
     |> Map.put(:party, Map.take(employee.party, ~w(id first_name second_name last_name)a))
     |> render_association(employee.division, :division)
     |> render_association(employee.legal_entity, :legal_entity)
-    |> Map.put(:doctor, %{"specialities" => Map.get(employee.additional_info, "specialities")})
+    |> put_list_info(employee)
   end
 
   def render("employee_short.json", %{"employee" => employee}) do
@@ -44,6 +45,11 @@ defmodule EHealth.Web.EmployeeView do
     employee
     |> render_employee()
     |> render_doctor(info)
+  end
+  def render("employee.json", %{employee: %{employee_type: @pharmacist, additional_info: info} = employee}) do
+    employee
+    |> render_employee()
+    |> render_pharmacist(info)
   end
   def render("employee.json", %{employee: employee}) do
     render_employee(employee)
@@ -109,4 +115,16 @@ defmodule EHealth.Web.EmployeeView do
   defp render_doctor(map, info) do
     Map.put(map, :doctor, info)
   end
+
+  defp render_pharmacist(map, info) do
+    Map.put(map, :pharmacist, info)
+  end
+
+  defp put_list_info(map, %Employee{employee_type: @doctor} = employee) do
+    Map.put(map, :doctor, %{"specialities" => Map.get(employee.additional_info, "specialities")})
+  end
+  defp put_list_info(map, %Employee{employee_type: @pharmacist} = employee) do
+    Map.put(map, :pharmacist, %{"specialities" => Map.get(employee.additional_info, "specialities")})
+  end
+  defp put_list_info(map, _), do: map
 end

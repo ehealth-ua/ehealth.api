@@ -15,14 +15,14 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   describe "create employee request" do
     test "with valid params and empty x-consumer-metadata", %{conn: conn} do
       conn = delete_client_id_header(conn)
-      employee_request_params = File.read!("test/data/employee_request.json")
+      employee_request_params = File.read!("test/data/employee_doctor_request.json")
       conn = post conn, employee_request_path(conn, :create), employee_request_params
       json_response(conn, 401)
     end
 
     test "with valid params and x-consumer-metadata that contains invalid client_id", %{conn: conn} do
       insert(:prm, :employee)
-      employee_request_params = File.read!("test/data/employee_request.json")
+      employee_request_params = File.read!("test/data/employee_doctor_request.json")
       conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8602f2")
       conn = post conn, employee_request_path(conn, :create), employee_request_params
       json_response(conn, 422)
@@ -35,15 +35,33 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       %{id: division_id} = insert(:prm, :division)
 
       employee_request_params =
-        "test/data/employee_request.json"
-        |> File.read!()
-        |> Poison.decode!
+        doctor_request()
         |> put_in(["employee_request", "employee_id"], id)
         |> put_in(["employee_request", "division_id"], division_id)
 
       conn = put_client_id_header(conn, legal_entity.id)
-      conn = post conn, employee_request_path(conn, :create), employee_request_params
-      resp = json_response(conn, 200)["data"]
+      conn1 = post conn, employee_request_path(conn, :create), employee_request_params
+      resp = json_response(conn1, 200)["data"]
+      refute Map.has_key?(resp, "type")
+      assert Map.has_key?(resp, "legal_entity_name")
+      assert legal_entity.name == resp["legal_entity_name"]
+      assert legal_entity.edrpou == resp["edrpou"]
+      request_party = employee_request_params["employee_request"]["party"]
+      assert request_party["first_name"] == resp["first_name"]
+      assert request_party["second_name"] == resp["second_name"]
+      assert request_party["last_name"] == resp["last_name"]
+
+      %{id: id} = insert(:prm, :employee,
+        party: party,
+        employee_type: Employee.type(:pharmacist)
+      )
+      employee_request_params =
+        pharmacist_request()
+        |> put_in(["employee_request", "employee_id"], id)
+        |> put_in(["employee_request", "division_id"], division_id)
+
+      conn2 = post conn, employee_request_path(conn, :create), employee_request_params
+      resp = json_response(conn2, 200)["data"]
       refute Map.has_key?(resp, "type")
       assert Map.has_key?(resp, "legal_entity_name")
       assert legal_entity.name == resp["legal_entity_name"]
@@ -54,12 +72,40 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       assert request_party["last_name"] == resp["last_name"]
     end
 
-    test "without tax_id and x-consumer-metadata that contains valid client_id", %{conn: conn} do
-      employee_request_params =
-        "test/data/employee_request.json"
-        |> File.read!()
-        |> Poison.decode!()
+    test "with invalid info params", %{conn: conn} do
+      legal_entity = insert(:prm, :legal_entity)
+      party = insert(:prm, :party, tax_id: "3067305998")
+      %{id: id} = insert(:prm, :employee, party: party)
+      %{id: division_id} = insert(:prm, :division)
 
+      employee_request_params =
+        doctor_request()
+        |> put_in(["employee_request", "employee_id"], id)
+        |> put_in(["employee_request", "division_id"], division_id)
+        |> put_in(["employee_request", "doctor"], %{})
+
+      conn = put_client_id_header(conn, legal_entity.id)
+      conn1 = post conn, employee_request_path(conn, :create), employee_request_params
+      resp = json_response(conn1, 422)
+      assert Map.has_key?(resp, "error")
+      assert resp["error"]
+      assert 2 == Enum.count(get_in(resp, ["error", "invalid"]))
+
+      employee_request_params =
+        pharmacist_request()
+        |> put_in(["employee_request", "employee_id"], id)
+        |> put_in(["employee_request", "division_id"], division_id)
+        |> put_in(["employee_request", "pharmacist"], %{})
+
+      conn2 = post conn, employee_request_path(conn, :create), employee_request_params
+      resp = json_response(conn2, 422)
+      assert Map.has_key?(resp, "error")
+      assert resp["error"]
+      assert 2 == Enum.count(get_in(resp, ["error", "invalid"]))
+    end
+
+    test "without tax_id and x-consumer-metadata that contains valid client_id", %{conn: conn} do
+      employee_request_params = doctor_request()
       party_without_tax_id =
         employee_request_params
         |> get_in(~W(employee_request party))
@@ -73,12 +119,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "with doctor attribute for employee_type admin", %{conn: conn} do
-      employee_request_params =
-        "test/data/employee_request.json"
-        |> File.read!()
-        |> Poison.decode!()
-        |> put_in(["employee_request", "employee_type"], "ADMIN")
-
+      employee_request_params = put_in(doctor_request(), ["employee_request", "employee_type"], "ADMIN")
       conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
       conn = post conn, employee_request_path(conn, :create), employee_request_params
 
@@ -86,13 +127,20 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "without doctor attribute for employee_type DOCTOR", %{conn: conn} do
-      employee_request_params =
-        "test/data/employee_request.json"
-        |> File.read!()
-        |> Poison.decode!()
-
+      employee_request_params = doctor_request()
       employee_request_params = Map.put(employee_request_params, "employee_request",
         Map.delete(employee_request_params["employee_request"], "doctor"))
+
+      conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
+      conn = post conn, employee_request_path(conn, :create), employee_request_params
+
+      json_response(conn, 422)
+    end
+
+    test "without pharmacist attribute for employee_type PHARMACIST", %{conn: conn} do
+      employee_request_params = pharmacist_request()
+      employee_request_params = Map.put(employee_request_params, "employee_request",
+        Map.delete(employee_request_params["employee_request"], "pharmacist"))
 
       conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
       conn = post conn, employee_request_path(conn, :create), employee_request_params
@@ -108,11 +156,11 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "with invalid birth_date", %{conn: conn} do
-      employee_request_params =
-        "test/data/employee_request.json"
-        |> File.read!()
-        |> Poison.decode!()
-        |> put_in(["employee_request", "party", "birth_date"], "1860-12-12")
+      employee_request_params = put_in(
+        doctor_request(),
+        ["employee_request", "party", "birth_date"],
+        "1860-12-12"
+      )
 
       conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
       conn1 = post conn, employee_request_path(conn, :create), employee_request_params
@@ -148,11 +196,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       )
       insert(:il, :dictionary_phone_type)
       insert(:il, :dictionary_employee_type)
-      employee_request_params =
-        "test/data/employee_request.json"
-        |> File.read!()
-        |> Poison.decode!()
-        |> put_in(["employee_request", "employee_type"], "INVALID")
+      employee_request_params = put_in(doctor_request(), ["employee_request", "employee_type"], "INVALID")
 
       employee_request_params = Map.put(
         employee_request_params,
@@ -174,11 +218,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
     test "with OWNER employee_type", %{conn: conn} do
       insert(:il, :dictionary_phone_type)
-      employee_request_params =
-        "test/data/employee_request.json"
-        |> File.read!()
-        |> Poison.decode!()
-        |> put_in(["employee_request", "employee_type"], Employee.type(:owner))
+      employee_request_params =  put_in(doctor_request(), ["employee_request", "employee_type"], Employee.type(:owner))
 
       employee_request_params = Map.put(
         employee_request_params,
@@ -209,9 +249,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       party = insert(:prm, :party, tax_id: "3067305998")
       employee = insert(:prm, :employee, party: party)
       employee_request_params =
-        "test/data/employee_request.json"
-        |> File.read!()
-        |> Poison.decode!()
+        doctor_request()
         |> put_in(["employee_request", "division_id"], "356b4182-f9ce-4eda-b6af-43d2de8602f2")
         |> put_in(["employee_request", "employee_id"], employee.id)
         |> Poison.encode!()
@@ -240,12 +278,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "with invaid tax id", %{conn: conn} do
-      employee_request_params =
-        "test/data/employee_request.json"
-        |> File.read!()
-        |> Poison.decode!()
-        |> put_in(["employee_request", "party", "tax_id"], "1111111111")
-        |> Poison.encode!()
+      employee_request_params = put_in(doctor_request(), ["employee_request", "party", "tax_id"], "1111111111")
 
       conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8602f2")
       conn = post conn, employee_request_path(conn, :create), employee_request_params
@@ -264,12 +297,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     test "with employee_id invalid tax_id", %{conn: conn} do
       %{id: legal_entity_id} = insert(:prm, :legal_entity)
       employee = insert(:prm, :employee)
-
-      employee_request_params =
-        "test/data/employee_request.json"
-        |> File.read!()
-        |> Poison.decode!
-        |> put_in(["employee_request", "employee_id"], employee.id)
+      employee_request_params = put_in(doctor_request(), ["employee_request", "employee_id"], employee.id)
       conn = put_client_id_header(conn, legal_entity_id)
       conn = post conn, employee_request_path(conn, :create), employee_request_params
       json_response(conn, 409)
@@ -281,11 +309,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       party = insert(:prm, :party, tax_id: "3067305998")
       employee = insert(:prm, :employee, party: party, division: division, employee_type: "OWNER")
 
-      employee_request_params =
-        "test/data/employee_request.json"
-        |> File.read!()
-        |> Poison.decode!
-        |> put_in(["employee_request", "employee_id"], employee.id)
+      employee_request_params = put_in(doctor_request(), ["employee_request", "employee_id"], employee.id)
       conn = put_client_id_header(conn, legal_entity_id)
       conn = post conn, employee_request_path(conn, :create), employee_request_params
       json_response(conn, 409)
@@ -298,9 +322,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       employee = insert(:prm, :employee, party: party, division: division)
 
       employee_request_params =
-        "test/data/employee_request.json"
-        |> File.read!()
-        |> Poison.decode!
+        doctor_request()
         |> put_in(["employee_request", "employee_id"], employee.id)
         |> put_in(["employee_request", "division_id"], division.id)
       conn = put_client_id_header(conn, legal_entity_id)
@@ -309,11 +331,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "with invalid employee_id", %{conn: conn} do
-      employee_request_params =
-        "test/data/employee_request.json"
-        |> File.read!()
-        |> Poison.decode!
-        |> put_in(["employee_request", "employee_id"], Ecto.UUID.generate())
+      employee_request_params = put_in(doctor_request(), ["employee_request", "employee_id"], Ecto.UUID.generate())
 
       conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
       conn = post conn, employee_request_path(conn, :create), employee_request_params
@@ -331,11 +349,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
         :prm
         |> insert(:employee, status: "APPROVED", party: party, is_active: false)
         |> EHealth.PRMRepo.preload(:legal_entity)
-      employee_request_params =
-        "test/data/employee_request.json"
-        |> File.read!()
-        |> Poison.decode!
-        |> put_in(["employee_request", "employee_id"], id)
+      employee_request_params = put_in(doctor_request(), ["employee_request", "employee_id"], id)
       conn = put_client_id_header(conn, legal_entity_id)
       conn = post conn, employee_request_path(conn, :create), employee_request_params
       assert json_response(conn, 404)
@@ -347,11 +361,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
         :prm
         |> insert(:employee, status: "DISMISSED", party: party)
         |> EHealth.PRMRepo.preload(:legal_entity)
-      employee_request_params =
-        "test/data/employee_request.json"
-        |> File.read!()
-        |> Poison.decode!
-        |> put_in(["employee_request", "employee_id"], id)
+      employee_request_params = put_in(doctor_request(), ["employee_request", "employee_id"], id)
       conn = put_client_id_header(conn, legal_entity_id)
       conn = post conn, employee_request_path(conn, :create), employee_request_params
       resp = json_response(conn, 409)
@@ -682,5 +692,17 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
     conn = get conn, employee_request_path(conn, :show, id)
     assert init_status == json_response(conn, 200)["data"]["status"]
+  end
+
+  defp doctor_request do
+    "test/data/employee_doctor_request.json"
+    |> File.read!()
+    |> Poison.decode!
+  end
+
+  defp pharmacist_request do
+    "test/data/employee_pharmacist_request.json"
+    |> File.read!()
+    |> Poison.decode!
   end
 end

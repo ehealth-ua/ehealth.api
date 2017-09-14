@@ -25,6 +25,10 @@ defmodule EHealth.Validators.SchemaMapper do
     prepare_schema(nex_schema, :declaration_request)
   end
 
+  def prepare_employee_additional_info_schema(%Root{} = nex_schema) do
+    prepare_schema(nex_schema, :employee_additional_info)
+  end
+
   def prepare_schema(%Root{schema: schema} = nex_schema, type) do
     schema =
       %{"is_active" => true}
@@ -44,12 +48,14 @@ defmodule EHealth.Validators.SchemaMapper do
     schema
   end
 
-  def put_dictionary_value(%Dictionary{name: "PHONE_TYPE", values: values}, schema, _type) do
+  def put_dictionary_value(%Dictionary{name: "PHONE_TYPE", values: values}, schema, type)
+  when type in [:legal_entity, :employee_request, :declaration_request]  do
+
     put_into_schema(["definitions", "phone", "properties", "type", "enum"], schema, values)
   end
 
   def put_dictionary_value(%Dictionary{name: "DOCUMENT_TYPE", values: values}, schema, type)
-    when type in [:legal_entity, :employee_request, :declaration_request] do
+  when type in [:legal_entity, :employee_request, :declaration_request] do
 
     put_into_schema(["definitions", "document", "properties", "type", "enum"], schema, values)
   end

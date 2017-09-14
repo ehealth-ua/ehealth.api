@@ -117,7 +117,8 @@
     "type": {
       "type": "string",
       "enum": [
-        "MSP"
+        "MSP",
+        "PHARMACY"
       ]
     },
     "owner_property_type": {
@@ -136,7 +137,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "description": "Dictionary: KVEDS_ALLOWED"
+        "description": "Dictionary: KVEDS_ALLOWED_MSP or KVEDS_ALLOWED_PHARMACY"
       },
       "minItems": 1
     },

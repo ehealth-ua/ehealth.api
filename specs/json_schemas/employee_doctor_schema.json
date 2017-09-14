@@ -1,0 +1,189 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "definitions": {
+    "date": {
+      "type": "string",
+      "pattern": "^(\\d{4}(?!\\d{2}\\b))((-)((0[1-9]|1[0-2])(\\3([12]\\d|0[1-9]|3[01]))|(00[1-9]|0[1-9]\\d|[12]\\d{2}|3([0-5]\\d|6[1-6]))))$"
+    },
+    "education": {
+      "type": "object",
+      "properties": {
+        "country": {
+          "type": "string",
+          "description": "Dictionary: COUNTRY"
+        },
+        "city": {
+          "type": "string"
+        },
+        "institution_name": {
+          "type": "string"
+        },
+        "issued_date": {
+          "$ref": "#/definitions/date"
+        },
+        "diploma_number": {
+          "type": "string"
+        },
+        "degree": {
+          "type": "string",
+          "description": "Dictionary: EDUCATION_DEGREE"
+        },
+        "speciality": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "country",
+        "city",
+        "institution_name",
+        "diploma_number",
+        "degree",
+        "speciality"
+      ],
+      "additionalProperties": false
+    },
+    "qualification": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Dictionary: QUALIFICATION_TYPE"
+        },
+        "institution_name": {
+          "type": "string"
+        },
+        "speciality": {
+          "type": "string"
+        },
+        "issued_date": {
+          "$ref": "#/definitions/date"
+        },
+        "certificate_number": {
+          "type": "string"
+        },
+        "valid_to": {
+          "$ref": "#/definitions/date"
+        },
+        "additional_info": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "institution_name",
+        "speciality"
+      ],
+      "additionalProperties": false
+    },
+    "speciality": {
+      "type": "object",
+      "properties": {
+        "speciality": {
+          "type": "string",
+          "description": "Dictionary: SPECIALITY_TYPE"
+        },
+        "speciality_officio": {
+          "type": "boolean"
+        },
+        "level": {
+          "type": "string",
+          "description": "Dictionary: SPECIALITY_LEVEL"
+        },
+        "qualification_type": {
+          "type": "string",
+          "description": "Dictionary: SPEC_QUALIFICATION_TYPE"
+        },
+        "attestation_name": {
+          "type": "string"
+        },
+        "attestation_date": {
+          "$ref": "#/definitions/date"
+        },
+        "valid_to_date": {
+          "$ref": "#/definitions/date"
+        },
+        "certificate_number": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "speciality",
+        "speciality_officio",
+        "level",
+        "qualification_type",
+        "attestation_name",
+        "attestation_date",
+        "certificate_number"
+      ],
+      "additionalProperties": false
+    },
+    "science_degree": {
+      "type": "object",
+      "properties": {
+        "country": {
+          "type": "string",
+          "description": "Dictionary: COUNTRY"
+        },
+        "city": {
+          "type": "string"
+        },
+        "degree": {
+          "type": "string",
+          "description": "Dictionary: SCIENCE_DEGREE"
+        },
+        "institution_name": {
+          "type": "string"
+        },
+        "diploma_number": {
+          "type": "string"
+        },
+        "speciality": {
+          "type": "string"
+        },
+        "issued_date": {
+          "$ref": "#/definitions/date"
+        }
+      },
+      "required": [
+        "country",
+        "city",
+        "degree",
+        "institution_name",
+        "diploma_number",
+        "speciality"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "type": "object",
+  "properties": {
+    "educations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/education"
+      },
+      "minItems": 1
+    },
+    "qualifications": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/qualification"
+      },
+      "minItems": 1
+    },
+    "specialities": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/speciality"
+      },
+      "minItems": 1
+    },
+    "science_degree": {
+      "$ref": "#/definitions/science_degree"
+    }
+  },
+  "required": [
+    "educations",
+    "specialities"
+  ]
+}

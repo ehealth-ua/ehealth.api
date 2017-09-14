@@ -12,7 +12,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
     legal_entity = insert(:prm, :legal_entity, id: UUID.generate())
     %{id: legal_entity_id} = legal_entity
     insert(:prm, :employee, legal_entity: legal_entity)
-    insert(:prm, :employee, legal_entity: legal_entity)
+    insert(:prm, :employee, legal_entity: legal_entity, employee_type: Employee.type(:pharmacist))
     conn = put_client_id_header(conn, legal_entity_id)
     conn = get conn, employee_path(conn, :index)
     resp = json_response(conn, 200)
@@ -25,6 +25,8 @@ defmodule EHealth.Web.EmployeesControllerTest do
     assert legal_entity_id == first["legal_entity"]["id"]
     second = Enum.at(resp["data"], 1)
     assert legal_entity_id == second["legal_entity"]["id"]
+    assert Enum.any?(resp["data"], &(Map.has_key?(&1, "doctor")))
+    assert Enum.any?(resp["data"], &(Map.has_key?(&1, "pharmacist")))
   end
 
   test "filter employees by invalid party_id", %{conn: conn} do
@@ -123,14 +125,29 @@ defmodule EHealth.Web.EmployeesControllerTest do
       employee = insert(:prm, :employee, legal_entity: legal_entity)
 
       conn = put_client_id_header(conn, legal_entity.id)
-      conn = get conn, employee_path(conn, :show, employee.id)
+      conn1 = get conn, employee_path(conn, :show, employee.id)
 
       schema =
         "test/data/employee/show_response_schema.json"
         |> File.read!()
         |> Poison.decode!()
 
-      resp = json_response(conn, 200)["data"]
+      resp = json_response(conn1, 200)["data"]
+      :ok = NExJsonSchema.Validator.validate(schema, resp)
+
+      employee = insert(:prm, :employee,
+        legal_entity: legal_entity,
+        employee_type: Employee.type(:pharmacist)
+      )
+
+      conn2 = get conn, employee_path(conn, :show, employee.id)
+
+      schema =
+        "test/data/employee/show_response_schema.json"
+        |> File.read!()
+        |> Poison.decode!()
+
+      resp = json_response(conn2, 200)["data"]
       :ok = NExJsonSchema.Validator.validate(schema, resp)
     end
 
@@ -195,9 +212,14 @@ defmodule EHealth.Web.EmployeesControllerTest do
       insert(:prm, :party_user, party: party)
       insert(:prm, :party_user, party: party)
       legal_entity = insert(:prm, :legal_entity)
-      employee = insert(:prm, :employee, legal_entity: legal_entity, party: party)
+      doctor = insert(:prm, :employee, legal_entity: legal_entity, party: party)
+      pharmacist = insert(:prm, :employee,
+        legal_entity: legal_entity,
+        party: party,
+        employee_type: Employee.type(:pharmacist)
+      )
 
-      {:ok, %{conn: conn, legal_entity: legal_entity, employee: employee}}
+      {:ok, %{conn: conn, legal_entity: legal_entity, doctor: doctor, pharmacist: pharmacist}}
     end
 
     test "with invalid transitions condition", %{conn: conn, legal_entity: legal_entity} do
@@ -219,9 +241,28 @@ defmodule EHealth.Web.EmployeesControllerTest do
       assert json_response(conn_resp, 409)["error"]["message"] == "Owner can’t be deactivated"
     end
 
-    test "successful", %{conn: conn, employee: employee, legal_entity: legal_entity} do
+    test "can't deactivate PHARMACY OWNER", %{conn: conn, legal_entity: legal_entity} do
+      employee = insert(:prm, :employee,
+        legal_entity: legal_entity,
+        employee_type: Employee.type(:pharmacy_owner)
+      )
+      conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+      conn_resp = patch conn, employee_path(conn, :deactivate, employee.id)
+
+      assert json_response(conn_resp, 409)["error"]["message"] == "Pharmacy owner can’t be deactivated"
+    end
+
+    test "successful doctor", %{conn: conn, doctor: doctor, legal_entity: legal_entity} do
       conn = put_client_id_header(conn, legal_entity.id)
-      conn = patch conn, employee_path(conn, :deactivate, employee.id)
+      conn = patch conn, employee_path(conn, :deactivate, doctor.id)
+
+      resp = json_response(conn, 200)
+      refute resp["is_active"]
+    end
+
+    test "successful pharmacist", %{conn: conn, pharmacist: pharmacist, legal_entity: legal_entity} do
+      conn = put_client_id_header(conn, legal_entity.id)
+      conn = patch conn, employee_path(conn, :deactivate, pharmacist.id)
 
       resp = json_response(conn, 200)
       refute resp["is_active"]

@@ -16,6 +16,7 @@ defmodule EHealth.Employee.EmployeeCreator do
   require Logger
 
   @type_owner Employee.type(:owner)
+  @type_pharmacy_owner Employee.type(:pharmacy_owner)
   @status_approved Employee.status(:approved)
 
   def create(%Request{data: data} = employee_request, req_headers) do
@@ -29,7 +30,6 @@ defmodule EHealth.Employee.EmployeeCreator do
       deactivate_employee_owners(employee, req_headers)
     end
   end
-  def create(err, _), do: err
 
   @doc """
   Created new party
@@ -80,16 +80,23 @@ defmodule EHealth.Employee.EmployeeCreator do
   def create_employee(err, _, _), do: err
 
   def deactivate_employee_owners(%Employee{employee_type: @type_owner} = employee, req_headers) do
+    do_deactivate_employee_owners(employee, req_headers)
+  end
+  def deactivate_employee_owners(%Employee{employee_type: @type_pharmacy_owner} = employee, req_headers) do
+    do_deactivate_employee_owners(employee, req_headers)
+  end
+  def deactivate_employee_owners(%Employee{} = employee, _req_headers), do: {:ok, employee}
+
+  defp do_deactivate_employee_owners(%Employee{employee_type: type} = employee, req_headers) do
     %{
       legal_entity_id: employee.legal_entity_id,
       is_active: true,
-      employee_type: @type_owner
+      employee_type: type,
     }
     |> Employees.get_employees()
     |> deactivate_employees(employee, req_headers)
     {:ok, employee}
   end
-  def deactivate_employee_owners(%Employee{} = employee, _req_headers), do: {:ok, employee}
 
   def deactivate_employees({employees, _}, current_owner, headers) do
     Enum.each(employees, fn(%Employee{} = employee) ->

@@ -13,7 +13,8 @@ defmodule EHealth.Employee.EmployeeUpdater do
 
   require Logger
 
-  @type_owner "OWNER"
+  @type_owner Employee.type(:owner)
+  @type_pharmacy_owner Employee.type(:pharmacy_owner)
 
   @status_approved Employee.status(:approved)
   @status_dismissed Employee.status(:dismissed)
@@ -31,6 +32,9 @@ defmodule EHealth.Employee.EmployeeUpdater do
 
   def check_transition(%Employee{employee_type: @type_owner}, false) do
     {:error, {:conflict, "Owner can’t be deactivated"}}
+  end
+  def check_transition(%Employee{employee_type: @type_pharmacy_owner}, false) do
+    {:error, {:conflict, "Pharmacy owner can’t be deactivated"}}
   end
   def check_transition(%Employee{is_active: true, status: @status_approved}, _), do: :ok
   def check_transition(_employee, _) do
@@ -111,7 +115,9 @@ defmodule EHealth.Employee.EmployeeUpdater do
   defp put_employee_status(params, %{employee_type: @type_owner}) do
     Map.put(params, :is_active, false)
   end
-
+  defp put_employee_status(params, %{employee_type: @type_pharmacy_owner}) do
+    Map.put(params, :is_active, false)
+  end
   defp put_employee_status(params, _employee) do
     Map.put(params, :status, @status_dismissed)
   end

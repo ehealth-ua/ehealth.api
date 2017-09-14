@@ -37,6 +37,7 @@ defmodule EHealth.Employee.API do
 
   @doctor Employee.type(:doctor)
   @owner Employee.type(:owner)
+  @pharmacist Employee.type(:pharmacist)
   @pharmacy_owner Employee.type(:pharmacy_owner)
 
   def get_employee_request_by_id!(id) do
@@ -147,7 +148,7 @@ defmodule EHealth.Employee.API do
          {:ok, _} <- EmployeeCreator.create_party_user(party, req_headers),
          {:ok, _} <- Parties.update_party(party, Map.fetch!(employee_request, "party")),
          params <- employee_request
-           |> update_doctor(employee)
+           |> update_additional_info(employee)
            |> Map.put("employee_type", employee.employee_type)
            |> Map.put("updated_by", get_consumer_id(req_headers))
     do
@@ -161,12 +162,14 @@ defmodule EHealth.Employee.API do
       {:ok, employee}
     end
   end
-  def create_or_update_employee(error, _), do: error
 
-  def update_doctor(employee_request, %Employee{employee_type: @doctor, additional_info: info}) do
+  defp update_additional_info(employee_request, %Employee{employee_type: @doctor, additional_info: info}) do
     Map.put(employee_request, "doctor", Map.merge(info, Map.get(employee_request, "doctor")))
   end
-  def update_doctor(employee_request, _), do: employee_request
+  defp update_additional_info(employee_request, %Employee{employee_type: @pharmacist, additional_info: info}) do
+    Map.put(employee_request, "pharmacist", Map.merge(info, Map.get(employee_request, "pharmacist")))
+  end
+  defp update_additional_info(employee_request, _), do: employee_request
 
   def check_transition_status(%Request{status: @status_new} = employee_request) do
     {:ok, employee_request}
@@ -177,7 +180,6 @@ defmodule EHealth.Employee.API do
   def check_transition_status(%Request{status: status}) do
     {:conflict, "Employee request status is #{status} and cannot be updated"}
   end
-  def check_transition_status(err), do: err
 
   def update_status(%Request{} = employee_request, %Employee{id: id}, status) do
     employee_request
@@ -189,7 +191,6 @@ defmodule EHealth.Employee.API do
     |> changeset(%{status: status})
     |> Repo.update()
   end
-  def update_status(err, _status), do: err
 
   def changeset(%Request{} = schema, attrs) do
     fields = ~W(

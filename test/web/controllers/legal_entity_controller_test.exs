@@ -5,6 +5,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
   alias EHealth.MockServer
   alias EHealth.PRM.Employees.Schema, as: Employee
   alias EHealth.PRMRepo
+  alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
 
   test "invalid legal entity", %{conn: conn} do
     conn = put conn, legal_entity_path(conn, :create_or_update), %{"invlid" => "data"}
@@ -51,11 +52,17 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       %{id: id, edrpou: edrpou} = insert(:prm, :legal_entity, id: MockServer.get_client_mis())
       conn = put_client_id_header(conn, id)
       conn = get conn, legal_entity_path(conn, :index, [edrpou: edrpou])
+
+      schema =
+        "test/data/legal_entity/list_response_schema.json"
+        |> File.read!()
+        |> Poison.decode!()
+
       resp = json_response(conn, 200)
 
       assert Map.has_key?(resp, "data")
       assert Map.has_key?(resp, "paging")
-      assert is_list(resp["data"])
+      :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
       assert Enum.all?(resp["data"], &(Map.has_key?(&1, "mis_verified")))
       assert Enum.all?(resp["data"], &(Map.has_key?(&1, "nhs_verified")))
       assert 1 == length(resp["data"])
@@ -78,6 +85,31 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       %{id: id} = insert(:prm, :legal_entity)
       conn = put_client_id_header(conn, id)
       conn = get conn, legal_entity_path(conn, :index)
+      resp = json_response(conn, 200)
+
+      assert Map.has_key?(resp, "data")
+      assert is_list(resp["data"])
+      assert 1 == length(resp["data"])
+      assert id == hd(resp["data"])["id"]
+    end
+
+    test "search by type msp", %{conn: conn} do
+      insert(:prm, :legal_entity)
+      %{id: id} = insert(:prm, :legal_entity)
+      conn = put_client_id_header(conn, id)
+      conn = get conn, legal_entity_path(conn, :index, type: LegalEntity.type(:msp))
+      resp = json_response(conn, 200)
+
+      assert Map.has_key?(resp, "data")
+      assert is_list(resp["data"])
+      assert 1 == length(resp["data"])
+      assert id == hd(resp["data"])["id"]
+    end
+
+    test "search by type pharmacy", %{conn: conn} do
+      %{id: id} = insert(:prm, :legal_entity, type: LegalEntity.type(:pharmacy))
+      conn = put_client_id_header(conn, id)
+      conn = get conn, legal_entity_path(conn, :index, type: LegalEntity.type(:pharmacy))
       resp = json_response(conn, 200)
 
       assert Map.has_key?(resp, "data")

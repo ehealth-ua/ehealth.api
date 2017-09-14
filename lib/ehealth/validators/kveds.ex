@@ -7,17 +7,22 @@ defmodule EHealth.Validators.KVEDs do
 
   alias EHealth.Dictionaries
   alias EHealth.Dictionaries.Dictionary
+  alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
+
+  @msp LegalEntity.type(:msp)
+  @pharmacy LegalEntity.type(:pharmacy)
 
   @kveds_allowed "KVEDS"
-  @kveds_required "KVEDS_ALLOWED"
+  @kveds_msp_required "KVEDS_ALLOWED_MSP"
+  @kveds_pharmacy_required "KVEDS_ALLOWED_PHARMACY"
 
-  def validate(kveds) do
+  def validate(kveds, type \\ @msp) do
     data  = %{}
     types = %{kveds: {:array, :string}}
 
     {data, types}
     |> cast(%{"kveds" => kveds}, Map.keys(types))
-    |> validate_required_kveds(get_required_kveds())
+    |> validate_required_kveds(get_required_kveds(type))
     |> validate_allowed_kveds(get_allowed_kveds())
   end
 
@@ -46,8 +51,15 @@ defmodule EHealth.Validators.KVEDs do
     |> get_dictionary_kveds()
   end
 
-  def get_required_kveds do
-    @kveds_required
+  defp get_required_kveds(@msp) do
+    do_get_required_kveds(@kveds_msp_required)
+  end
+  defp get_required_kveds(@pharmacy) do
+    do_get_required_kveds(@kveds_pharmacy_required)
+  end
+
+  defp do_get_required_kveds(name) do
+    name
     |> Dictionaries.get_dictionary()
     |> get_dictionary_kveds()
   end
@@ -55,7 +67,5 @@ defmodule EHealth.Validators.KVEDs do
   def get_dictionary_kveds(%Dictionary{values: values}) do
     Map.keys(values)
   end
-
   def get_dictionary_kveds(_), do: []
-
 end

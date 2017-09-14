@@ -91,7 +91,7 @@ defmodule EHealth.LegalEntity.Validator do
   def validate_kveds({:ok, %{"content" => content}} = result) do
     content
     |> Map.get("kveds")
-    |> KVEDs.validate()
+    |> KVEDs.validate(content["type"])
     |> case do
          %Ecto.Changeset{valid?: false} = err -> {:error, err}
          _ -> result

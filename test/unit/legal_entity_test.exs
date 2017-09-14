@@ -157,6 +157,35 @@ defmodule EHealth.Unit.LegalEntityTest do
 
       assert 1 == PRMRepo.one(from l in LegalEntity, select: count("*"))
     end
+
+    test "mis_verified VERIFIED" do
+      data = Map.merge(get_legal_entity_data(), %{
+        "short_name" => "Nebo15",
+        "email" => "changed@example.com",
+        "kveds" => ["12.21"]
+      })
+
+      insert(:prm, :registry, edrpou: "37367387", type: LegalEntity.type(:msp))
+
+      assert {:ok, %{legal_entity: legal_entity, security: security}} = create_legal_entity(data)
+
+      # test legal entity data
+      assert "Nebo15" == legal_entity.short_name
+      assert "ACTIVE" == legal_entity.status
+      assert "VERIFIED" == legal_entity.mis_verified
+      refute is_nil(legal_entity.nhs_verified)
+      refute legal_entity.nhs_verified
+      assert_security(security, legal_entity.id)
+
+      # test employee request
+      assert 1 == Repo.one(from e in EmployeeRequest, select: count("*"))
+      assert %EmployeeRequest{data: employee_request_data, status: "NEW"} = Repo.one(from e in EmployeeRequest)
+      assert legal_entity.id == employee_request_data["legal_entity_id"]
+      assert "лікар" == employee_request_data["position"]
+      assert "OWNER" == employee_request_data["employee_type"]
+
+      assert 1 == PRMRepo.one(from l in LegalEntity, select: count("*"))
+    end
   end
 
   describe "update Legal Entity" do

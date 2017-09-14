@@ -48,7 +48,7 @@ defmodule EHealth.SimpleFactory do
 
   def employee_request do
     attrs =
-      "test/data/employee_request.json"
+      "test/data/employee_doctor_request.json"
       |> File.read!()
       |> Poison.decode!()
       |> put_in(["employee_request", "legal_entity_id"], "8b797c23-ba47-45f2-bc0f-521013e01074")

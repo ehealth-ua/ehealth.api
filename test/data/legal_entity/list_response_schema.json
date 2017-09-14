@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string"
+      },
+      "name": {
+        "type": "string"
+      },
+      "short_name": {
+        "type": "string"
+      },
+      "public_name": {
+        "type": "string"
+      },
+      "type": {
+        "type": "string"
+      },
+      "edrpou": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ACTIVE",
+          "CLOSED"
+        ]
+      },
+      "mis_verified": {
+        "type": "string",
+        "enum": [
+          "VERIFIED",
+          "NOT_VERIFIED"
+        ]
+      },
+      "nhs_verified": {
+        "type": "boolean"
+      },
+      "owner_property_type": {
+        "type": "string",
+        "description": "`Dictionary OWNER_PROPERTY_TYPE`"
+      },
+      "legal_form": {
+        "type": "string",
+        "description": "`Dictionary LEGAL_FORM`"
+      }
+    },
+    "required": [
+      "id",
+      "name",
+      "short_name",
+      "public_name",
+      "type",
+      "edrpou",
+      "status",
+      "mis_verified",
+      "owner_property_type",
+      "legal_form"
+    ]
+  }
+}

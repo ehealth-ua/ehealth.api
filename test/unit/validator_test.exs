@@ -327,6 +327,7 @@ defmodule EHealth.Unit.ValidatorTest do
     patch conn, dictionary_path(conn, :update, "KVEDS"), @kveds
     patch conn, dictionary_path(conn, :update, "KVEDS_ALLOWED"), @kveds_allowed
 
+    insert(:il, :dictionary, name: "KVEDS_ALLOWED_MSP", values: %{"21.20" => ""})
     assert %Ecto.Changeset{valid?: true} = KVEDs.validate(["21.20"])
     assert %Ecto.Changeset{valid?: true} = KVEDs.validate(["82.11", "21.20"])
 
@@ -410,7 +411,7 @@ defmodule EHealth.Unit.ValidatorTest do
   end
 
   defp get_employee_request do
-    "test/data/employee_request.json"
+    "test/data/employee_doctor_request.json"
     |> File.read!()
     |> Poison.decode!()
     |> put_in(~W(employee_request legal_entity_id), "8b797c23-ba47-45f2-bc0f-521013e01074")

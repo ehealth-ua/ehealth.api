@@ -104,7 +104,9 @@ defmodule EHealth.LegalEntity.API do
 
   def create_legal_entity(attrs, headers) do
     with {:ok, request_params}   <- Validator.decode_and_validate(attrs),
-         legal_entity            <- get_or_create_by_edrpou(Map.fetch!(request_params, "edrpou")),
+         edrpou                  <- Map.fetch!(request_params, "edrpou"),
+         type                    <- Map.fetch!(request_params, "type"),
+         legal_entity            <- get_or_create_by_edrpou_type(edrpou, type),
          :ok                     <- check_status(legal_entity),
          {:ok, _}                <- store_signed_content(legal_entity.id, attrs, headers),
          request_params          <- put_mis_verified_state(request_params),
@@ -121,8 +123,8 @@ defmodule EHealth.LegalEntity.API do
     end
   end
 
-  defp get_or_create_by_edrpou(edrpou) do
-    case LegalEntities.get_legal_entity_by_edrpou(edrpou) do
+  defp get_or_create_by_edrpou_type(edrpou, type) do
+    case LegalEntities.get_legal_entity_by_params(edrpou: edrpou, type: type) do
       %LegalEntity{} = legal_entity -> legal_entity
       _ -> %LegalEntity{id: UUID.generate()}
     end
@@ -198,8 +200,8 @@ defmodule EHealth.LegalEntity.API do
     {:ok, security}
   end
 
-  def put_mis_verified_state(%{"edrpou" => edrpou} = request_params) do
-    Map.put(request_params, "mis_verified", Registries.get_edrpou_verified_status(edrpou))
+  def put_mis_verified_state(%{"edrpou" => edrpou, "type" => type} = request_params) do
+    Map.put(request_params, "mis_verified", Registries.get_edrpou_verified_status(edrpou, type))
   end
 
   @doc """

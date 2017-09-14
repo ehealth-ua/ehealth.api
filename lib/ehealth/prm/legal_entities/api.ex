@@ -72,9 +72,9 @@ defmodule EHealth.PRM.LegalEntities do
     |> preload([le, msp], [medical_service_provider: msp])
   end
 
-  def get_legal_entity_by_edrpou(edrpou) do
+  def get_legal_entity_by_params(params) do
     LegalEntity
-    |> where(edrpou: ^edrpou)
+    |> where(^params)
     |> PRMRepo.one()
     |> preload_msp()
   end
