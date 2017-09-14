@@ -4371,6 +4371,10 @@ This method is used to process created dispense
 + updated_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + updated_by: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
 
+### `Medical_Program_Response`
++ `id`: `59781de0-2e64-4359-b716-bcc05a32c10f` (string, required) - `Medical program Identifier`
++ `name`: `program 'DOSTUPNI LIKI'` (string, required) - `Medical program name`
+
 ## `Medication request Request`
 ### `Medication_request_Request_post_data`
 + `person_id`: `585044f5-1272-4bca-8d41-8440eefe7d26` (string, required) - Person identifier
@@ -4383,6 +4387,8 @@ This method is used to process created dispense
 + `dispense_valid_to`: `2017-09-16` (string, required) - End date of dispense period, which is determined by the external system. Greater or equal to **dispense_valid_from**. Format *DATE '2017-10-07'*
 + `medication_id` : `1349a693-4db1-4a3f-9ac6-8c2f9e541982` (string, required) - Medication identified
 + `medication_qty`: 10 (number, required) - Medication quantity isuued by the doctor
++ `medical_program_id`: `59781de0-2e64-4359-b716-bcc05a32c10f` (string) - `Medical program Identifier`
+
 
 ### `Medication_request_Request_Public_Response`
 + `request_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Request request identifier
@@ -4399,6 +4405,7 @@ This method is used to process created dispense
 + `employee` (Employee_Minimal, required)
 + `person` (`Person_Short`)            
 + `medication` (`Innm_for_Medication_request_Responce`, required)
++ `medical_program` (`Medical_Program_Response`, required)
 
 ### `Medication_request_Request_Public_Response_short`
 + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Request request identifier
