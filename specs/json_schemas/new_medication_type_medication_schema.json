@@ -110,9 +110,9 @@
     "container": {
       "$ref": "#/definitions/dosage_object"
     },
-    "code_ATC": {
+    "code_atc": {
       "type": "string",
-      "pattern": "^[abcdghjlmnprsvABCDGHJLMNPRSV]{1}()[0-9]{2}()[a-zA-Z]{2}()[0-9]{2}$"
+      "pattern": "^[abcdghjlmnprsvABCDGHJLMNPRSV]{1}[0-9]{2}[a-zA-Z]{2}[0-9]{2}$"
     },
     "package_qty": {
       "type": "number",
@@ -141,7 +141,7 @@
     "form",
     "ingredients",
     "manufacturer",
-    "code_ATC",
+    "code_atc",
     "container",
     "package_qty",
     "package_min_qty",
