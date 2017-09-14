@@ -32,7 +32,7 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
       legal_entity: get_legal_entity(declaration_request),
       confidant_persons: check_confidant_persons(declaration_request),
       authentication_method_current: get_authentication_method_current(authentication_method_current),
-      declaration_id: Map.get(declaration_request, "declaration_id")
+      declaration_id: Map.get(declaration_request, "declaration_id", "")
     }
   end
 
@@ -42,15 +42,15 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
     %{
       full_name: get_full_name(person),
       gender: get_gender(person),
-      birth_date: Map.get(person, "birth_date"),
+      birth_date: Map.get(person, "birth_date", ""),
       document: get_document(person, "documents"),
-      birth_settlement: Map.get(person, "birth_settlement"),
-      birth_country: Map.get(person, "birth_country"),
-      tax_id: Map.get(person, "tax_id"),
+      birth_settlement: Map.get(person, "birth_settlement", ""),
+      birth_country: Map.get(person, "birth_country", ""),
+      tax_id: Map.get(person, "tax_id", ""),
       addresses: get_person_addresses(person),
       phones: get_phone(person),
-      email: Map.get(person, "email"),
-      secret: Map.get(person, "secret"),
+      email: Map.get(person, "email", ""),
+      secret: Map.get(person, "secret", ""),
       emergency_contact: get_emergency_contact(person),
       confidant_person: get_confidant_persons(person)
     }
@@ -59,19 +59,19 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
   defp get_full_name(data) do
     first_name =
       data
-      |> Map.get("first_name")
+      |> Map.get("first_name", "")
       |> to_string()
       |> get_listed_value()
 
     second_name =
       data
-      |> Map.get("second_name")
+      |> Map.get("second_name", "")
       |> to_string()
       |> get_listed_value()
 
     last_name =
       data
-      |> Map.get("last_name")
+      |> Map.get("last_name", "")
       |> to_string()
       |> get_listed_value()
 
@@ -177,12 +177,12 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
     %{
       full_name: get_full_name(confidant_person),
       phones: get_phone(confidant_person),
-      birth_date: Map.get(confidant_person, "birth_date"),
+      birth_date: Map.get(confidant_person, "birth_date", ""),
       gender: get_gender(confidant_person),
-      birth_settlement: Map.get(confidant_person, "birth_settlement"),
-      birth_country: Map.get(confidant_person, "birth_country"),
+      birth_settlement: Map.get(confidant_person, "birth_settlement", ""),
+      birth_country: Map.get(confidant_person, "birth_country", ""),
       documents_person: get_document(confidant_person, "documents_person"),
-      tax_id: Map.get(confidant_person, "tax_id"),
+      tax_id: Map.get(confidant_person, "tax_id", ""),
       documents_relationship: get_document(confidant_person, "documents_relationship")
     }
   end
@@ -194,7 +194,7 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
     %{
       full_name: get_full_name(party),
       phones: get_phone(party),
-      email: Map.get(party, "email")
+      email: Map.get(party, "email", "")
     }
   end
 
@@ -232,12 +232,12 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
     legal_entity = Map.get(declaration_request, "legal_entity", %{})
 
     %{
-      full_name: Map.get(legal_entity, "public_name"),
+      full_name: Map.get(legal_entity, "public_name", ""),
       addresses: get_legal_entity_addresses(legal_entity),
-      edrpou: Map.get(legal_entity, "edrpou"),
+      edrpou: Map.get(legal_entity, "edrpou", ""),
       full_license: get_full_license(legal_entity),
       phones: get_phone(legal_entity),
-      email: Map.get(legal_entity, "email")
+      email: Map.get(legal_entity, "email", "")
     }
   end
 
@@ -265,7 +265,7 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
 
     license_number =
       license
-      |> Map.get("license_number")
+      |> Map.get("license_number", "")
       |> to_string()
       |> get_listed_value()
 

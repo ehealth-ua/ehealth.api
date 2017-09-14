@@ -194,7 +194,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
           otp: true,
           offline: false
         },
-        declaration_id: nil
+        declaration_id: ""
       }
 
       assert printout_content == Poison.encode!(expected_content)
@@ -215,14 +215,14 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
             male: false,
             female: false
           },
-          birth_date: nil,
+          birth_date: "",
           document: %{
             type: "",
             number: ""
           },
-          birth_settlement: nil,
-          birth_country: nil,
-          tax_id: nil,
+          birth_settlement: "",
+          birth_country: "",
+          tax_id: "",
           addresses: %{
             registration: %{
               full_address: ""
@@ -234,8 +234,8 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
           phones: %{
             number: ""
           },
-          email: nil,
-          secret: nil,
+          email: "",
+          secret: "",
           emergency_contact: %{
             full_name: "",
             phones: %{
@@ -252,7 +252,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
           phones: %{
             number: ""
           },
-          email: nil
+          email: ""
         },
         division: %{
           addresses: %{
@@ -263,18 +263,18 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
           }
         },
         legal_entity: %{
-          full_name: nil,
+          full_name: "",
           addresses: %{
             registration: %{
               full_address: ""
             }
           },
-          edrpou: nil,
+          edrpou: "",
           full_license: "",
           phones: %{
             number: ""
           },
-          email: nil
+          email: ""
         },
         confidant_persons: %{
           exist: false,
@@ -284,7 +284,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
           otp: false,
           offline: false
         },
-        declaration_id: nil
+        declaration_id: ""
       }
 
       assert printout_content == Poison.encode!(expected_content)
