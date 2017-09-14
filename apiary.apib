@@ -4374,7 +4374,8 @@ This method is used to process created dispense
 ## `Medication request Request`
 ### `Medication_request_Request_post_data`
 + `person_id`: `585044f5-1272-4bca-8d41-8440eefe7d26` (string, required) - Person identifier
-+ `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Employee ID with `type=DOCTOR` who issued Medication Request.
++ `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Employee identifier with `type=DOCTOR` who issued Medication Request.
++ `division_id`: `881d6dee-dd3d-43f3-8983-922354c0e6ce` (string, required) - Division identifier where issued Medication Request.
 + `created_at`: `2017-08-17` (string, required) - Medication request creation date, which is determined by the external system. Format *DATE '2017-09-07'*
 + `started_at`: `2017-08-17` (string, required) - Start date of a treatment period, which is determined by the external system. Greater or equal to **created_at**. Format *DATE '2017-09-07'*
 + `ended_at`: `2017-09-16` (string, required) - End date of a treatment period, which is determined by the external system. Greater or equal to **started_at**. Format *DATE '2017-10-07'*
@@ -4478,38 +4479,38 @@ This method is used to process created dispense
 
 ## `Medication Dispense`
 ### `Medication_Dispense_Request`
-+ `medication_request_id`: `f08ba3a3-157a-4adc-b65d-737f24f3a1f4` (string, required)
-+ `dispensed_at`: `2017-08-17` (string, required)
-+ `employee_id`: `6d987b5d-6d72-40bc-9cf7-1304b32ed5bb` (string, required)
-+ `division_id`: `2fc70f30-08dc-493c-8d08-925905d7b1e8` (string, required)
-+ `medical_program_id`: `6ee844fd-9f4d-4457-9eda-22aa506be4c4` (string, required)
-+ `dispense_details` (array)
++ `medication_request_id`: `f08ba3a3-157a-4adc-b65d-737f24f3a1f4` (string, required) - Key for the Medication request 
++ `dispensed_at`: `2017-08-17` (string, required) - date of dispense 
++ `employee_id`: `6d987b5d-6d72-40bc-9cf7-1304b32ed5bb` (string, required) - Active Pharmacy employee who provides current dispense Identifier
++ `division_id`: `2fc70f30-08dc-493c-8d08-925905d7b1e8` (string, required) - Active legal entity (Pharmacy) division which provides dispense Identifier
++ `medical_program_id`: `6ee844fd-9f4d-4457-9eda-22aa506be4c4` (string, required) - Active medical program within which medications are going to be provided
++ `dispense_details` (array, fixed, required)
     + (object)
         + include `Medication_Dispense_Detail_Request`
 
 ### `Medication_Dispense_Response`
-+ `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-+ `medication_request_id`: `f08ba3a3-157a-4adc-b65d-737f24f3a1f4` (string, required)
-+ `dispensed_at`: `2017-08-17` (string, required)
-+ `employee_id`: `57a75203-3153-4447-9a21-1227cc6e1f0c` (string, required)
-+ `legal_entity_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-+ `division_id`: `2fc70f30-08dc-493c-8d08-925905d7b1e8` (string, required)
-+ `medical_program_id`: `6ee844fd-9f4d-4457-9eda-22aa506be4c4` (string, required)
-+ `dispense_details` (array)
++ `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Dispense Response Identifier
++ `medication_request_id`: `f08ba3a3-157a-4adc-b65d-737f24f3a1f4` (string, required) - Key for the Medication request 
++ `dispensed_at`: `2017-08-17` (string, required) - date of dispense 
++ `employee_id`: `57a75203-3153-4447-9a21-1227cc6e1f0c` (string, required) - Active Pharmacy employee who provides current dispense Identifier
++ `legal_entity_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Active legal entity (Pharmacy) the division belongs to Identifier
++ `division_id`: `2fc70f30-08dc-493c-8d08-925905d7b1e8` (string, required) - Active legal entity (Pharmacy) division which provides dispense Identifier
++ `medical_program_id`: `6ee844fd-9f4d-4457-9eda-22aa506be4c4` (string, required) - Active medical program within which medications are going to be provided
++ `dispense_details` (array, fixed, required)
     + (object)
         + include `Medication_Dispense_Detail_Response`
-+ `payment_id`: 1239804 (string, optional)
-+ `status`: NEW (string, required)
++ `payment_id`: 1239804 (string, optional) - receipt number for the paid medications
++ `status`: NEW (string, required) - Medication Dispense status (NEW, PROCESSED, REJECTED, EXPIRED)
 + `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
 + `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + `updated_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
 
 ### `Medication_Dispense_Detail_Request`
-+ `medication_id`: `a808bc3e-738d-442e-a2f4-0e5477695602` (string, required)
-+ `medication_qty`: 10 (number, required)
-+ `sell_price`: 18.65 (number, required)
++ `medication_id`: `a808bc3e-738d-442e-a2f4-0e5477695602` (string, required) - Identifier of brand medications 
++ `medication_qty`: 10 (number, required) - qnty of medication_unit (pill/ampoule/container/bottle/vial/aerosol) which provides to the patient
++ `sell_price`: 18.65 (number, required) - price for one nondivisible medication_unit (pill/ampoule/container/bottle/vial/aerosol)
 
 ### `Medication_Dispense_Detail_Response`
 + include `Medication_Dispense_Detail_Request`
-+ `reimbursement_amount`: 15 (number, required)
++ `reimbursement_amount`: 15 (number, required) - the difference between full price and the price after medical_program discount
