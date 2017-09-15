@@ -10,8 +10,6 @@ defmodule EHealth.DeclarationRequest.API.Approve do
   @auth_otp DeclarationRequest.authentication_method(:otp)
   @auth_offline DeclarationRequest.authentication_method(:offline)
 
-  @files_storage_bucket Confex.fetch_env!(:ehealth, EHealth.API.MediaStorage)[:declaration_request_bucket]
-
   def verify(declaration_request, code) do
     case declaration_request.authentication_method_current do
       %{"type" => @auth_na} ->
@@ -47,9 +45,10 @@ defmodule EHealth.DeclarationRequest.API.Approve do
 
   def uploaded?(id, %{"type" => type}) do
     resource_name = "declaration_request_#{type}.jpeg"
+    bucket = Confex.fetch_env!(:ehealth, EHealth.API.MediaStorage)[:declaration_request_bucket]
 
     {:ok, %{"data" => %{"secret_url" => url}}} =
-      MediaStorage.create_signed_url("HEAD", @files_storage_bucket, resource_name, id)
+      MediaStorage.create_signed_url("HEAD", bucket, resource_name, id)
 
     Logger.info(fn -> inspect url end)
     case HTTPoison.head(url, ["Content-Type":  MIME.from_path(resource_name)]) do

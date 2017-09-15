@@ -5,14 +5,14 @@ defmodule EHealth.DeclarationRequest.API.Documents do
   alias EHealth.DeclarationRequest.API.Helpers
   alias EHealth.API.MediaStorage
 
-  @files_storage_bucket Confex.fetch_env!(:ehealth, EHealth.API.MediaStorage)[:declaration_request_bucket]
-
   def generate_links(%DeclarationRequest{id: declaration_request_id, data: %{"person" => person}}, http_verbs) do
     documents_list = Helpers.gather_documents_list(person)
     render_links(declaration_request_id, http_verbs, documents_list)
   end
 
   def render_links(declaration_request_id, http_verbs, documents_list) do
+    bucket = Confex.fetch_env!(:ehealth, EHealth.API.MediaStorage)[:declaration_request_bucket]
+
     link_versions =
       for verb <- http_verbs,
           document_type <- documents_list, do: {verb, document_type}
@@ -21,7 +21,7 @@ defmodule EHealth.DeclarationRequest.API.Documents do
       Enum.reduce_while link_versions, [], fn {verb, document_type}, acc ->
         result =
           MediaStorage.create_signed_url(verb,
-            @files_storage_bucket, "declaration_request_#{document_type}.jpeg", declaration_request_id)
+            bucket, "declaration_request_#{document_type}.jpeg", declaration_request_id)
 
         case result do
           {:ok, %{"data" => %{"secret_url" => url}}} ->
