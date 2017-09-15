@@ -1194,39 +1194,6 @@ This method is used to create new substance. Fields descriptions are listed in r
             + type: duplicate (string, required)
             + message: `substance duplicate` (string, required)
 
-### Update substance [PATCH /substances/{id}]
-This method is used to update substance. Fields descriptions are listed in request Example view.
-
-**Scopes required:** `substance:write`
-
-+ Parameters
-    + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-
-+ Request (application/json)
-
-    + Headers
-    
-            Authorization: Bearer mF_9.B5f-4.1JqM
-
-    + Attributes (object)
-        + include `Substance_Request`
-        + `is_active`: true (boolean, required)
-
-+ Response 200 (application/json)
-    + Attributes (Response__Process_OK)
-        + meta (Response__Meta)
-            + code: 201 (number)
-        + data (object)
-            + include `Substance_Response`
-
-+ Response 409 (application/json)
-    + Attributes (Response_Error)
-        + meta (Response__Meta)
-            + code: 409
-        + error
-            + type: duplicate (string, required)
-            + message: `substance duplicate` (string, required)
-
 ## INNMs [/innms] 
 
 ### Create INNM [POST]
@@ -1255,6 +1222,34 @@ This method is used to create INNMs. Fields descriptions are listed in request E
         + error
             + type: unverified (string, required)
             + message: `Property "is_active" has not been defined and the schema does not allow additional properties!` (string, required)
+
+### Deactivate INNM [PATCH /innm/{id}/actions/deactivate]
+This method is used to deactivate INNM. Fields descriptions are listed in request Example view.
+
++ Parameters
+    + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `INNM_Response`
+
++ Response 422 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta)
+            + code: 409
+        + error
+            + type: unverified (string, required)
+            + message: `Can't deactivate innm. Exist active linked medications!` (string, required)
 
 ## Medications [/medications] 
 
@@ -1285,8 +1280,8 @@ This method is used to create Medications. Fields descriptions are listed in req
             + type: unverified (string, required)
             + message: `Denumerator unit from Dosage ingredients must be is equal Numerator unit from Container medication!` (string, required)
 
-### Update Medication [PATCH /medication/{id}]
-This method is used to update Medication. Fields descriptions are listed in request Example view.
+### Deactivate Medication [PATCH /medication/{id}/actions/deactivate]
+This method is used to deactivate Medication. Fields descriptions are listed in request Example view.
 
 + Parameters
     + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -1296,10 +1291,6 @@ This method is used to update Medication. Fields descriptions are listed in requ
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
-
-    + Attributes (object)
-       + include (`Medication_Request`, required)
-       + `is_active`: true (boolean, required)
 
 + Response 201 (application/json)
     + Attributes (Response__Process_OK)
@@ -1314,7 +1305,78 @@ This method is used to update Medication. Fields descriptions are listed in requ
             + code: 422
         + error
             + type: unverified (string, required)
-            + message: `Denumerator unit from Dosage ingredients must be is equal Numerator unit from Container medication!` (string, required)
+            + message: `Can't deactivate medication. Exist active linked participant (programs medications)!` (string, required)
+
+## Program_medications [/program_medications]
+
+### Create Program_medications [POST]
+This method is used to create new participant pf program - to link exsiting active medication to exsiting active program. Fields descriptions are listed in request Example view.
+**Scopes required:** `program_medications:write`
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
+    + Attributes (object)
+       + include (`Program_medications_Request`, required) 
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `Program_medications_Response`
+
++ Response 409 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta)
+            + code: 409
+        + error
+            + type: duplicate (string, required)
+            + message: `Current medication is already the participant of this program` (string, required)
+
++ Response 422 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta)
+            + code: 422
+        + error
+            + type: unverified (string, required)
+            + message: `This program is inactive` (string, required)
+
+### Update Program_medications [PATCH /program_medications/{id}]
+This method is used to update flags "is_active" and/or "medication_request_allowed" for Medication within Medical_program. Fields descriptions are listed in request Example view.
+**Scopes required:** `program_medications:write`
+
++ Parameters
+    + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
+    + Attributes (object)
+       + include (`Program_medications_Update_Request`, required)
+       + `is_active`: true (boolean, required)
+       + `medication_request_allowed`: true (boolean, required)
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `Program_medications_Response`
+
++ Response 409 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta)
+            + code: 409
+        + error
+            + type: unverified (string, required)
+            + message: `Medications are already inactive in this program` (string, required)
 
 # Group Internal. Gandalf
 
@@ -3802,10 +3864,10 @@ This method is used to process created dispense
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + name: Бориспільське відділення Клініки Борис (string, required)
 + `legal_entity_id`: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
-+ type: clinic (enum, required)
-    - clinic
-    - ambulant_clinic
-    - fap
++ type: CLINIC (enum, required)
+    - CLINIC
+    - AMBULANT_CLINIC
+    - FAP
 + status: ACTIVE (enum, required)
     - ACTIVE
     - INACTIVE
@@ -4371,9 +4433,41 @@ This method is used to process created dispense
 + updated_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + updated_by: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
 
+### `Medication_Short`
++ `name` : `Амідарон` (string, required)
++ `type`: `MEDICATION` (string, required)
++ `manufacturer` (`Manufacturer`, optional)
++ `form` :  PILL (string, required) - `Dictionary MEDICATION_FORM`
++ `container` (`Dosage_container`, required)
+
 ### `Medical_Program_Response`
 + `id`: `59781de0-2e64-4359-b716-bcc05a32c10f` (string, required) - `Medical program Identifier`
 + `name`: `program 'DOSTUPNI LIKI'` (string, required) - `Medical program name`
+
+### `Program_medications_Request`
++ `medication_id`: `59781de0-2e64-4359-b716-bcc05a32c10f`(string, required) -  Medication Identifier
++ `medical_program_id`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required) -  Medical program Identifier
++ `reimbursemnt` (array, required)
+    + (object)
+        + include `Reimbursment`
+        
+### `Program_medications_Update_Request`
++ `medication_id`: `59781de0-2e64-4359-b716-bcc05a32c10f`(string, required) - Medication Identifier
++ `medical_program_id`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required) - Medical program Identifier
+
+### `Reimbursment`
++ `type`: `fixed` (string, required) - fixed or external type of reimbursment
++ `reimbursment_amount`: 15 (number, optional) - Amount to reimburse for one medication_unit by medical_program
+
+### `Program_medications_Response`
++ `id` : `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required) 
++ include `Medical_Program_Response`
++ `is_active` : true (boolean, required) - flag for activation/deactiovation
++ `medication_request_allowed`: true (boolean, required) - flag whether medications are allowed to be dispensed by the programm 
++ inserted_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ inserted_by: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
++ updated_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ updated_by: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
 
 ## `Medication request Request`
 ### `Medication_request_Request_post_data`
@@ -4497,12 +4591,12 @@ This method is used to process created dispense
 
 ### `Medication_Dispense_Response`
 + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Dispense Response Identifier
-+ `medication_request_id`: `f08ba3a3-157a-4adc-b65d-737f24f3a1f4` (string, required) - Key for the Medication request 
++ `medication_request` (`Medication_request_Public_Response_short`, required) - Medication request 
 + `dispensed_at`: `2017-08-17` (string, required) - date of dispense 
-+ `employee_id`: `57a75203-3153-4447-9a21-1227cc6e1f0c` (string, required) - Active Pharmacy employee who provides current dispense Identifier
-+ `legal_entity_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Active legal entity (Pharmacy) the division belongs to Identifier
-+ `division_id`: `2fc70f30-08dc-493c-8d08-925905d7b1e8` (string, required) - Active legal entity (Pharmacy) division which provides dispense Identifier
-+ `medical_program_id`: `6ee844fd-9f4d-4457-9eda-22aa506be4c4` (string, required) - Active medical program within which medications are going to be provided
++ `employee` (`Employee_Short`, required) - Active Pharmacy employee who provides current dispense Identifier
++ `legal_entity` (`Legal_Entity_Short`, required) - Active legal entity (Pharmacy) the division belongs to Identifier
++ `division` (`Division_Short`, required) - Active legal entity (Pharmacy) division which provides dispense Identifier
++ `medical_program` (`Medical_Program_Response`, required) - Active medical program within which medications are going to be provided
 + `dispense_details` (array, fixed, required)
     + (object)
         + include `Medication_Dispense_Detail_Response`
@@ -4514,10 +4608,10 @@ This method is used to process created dispense
 + `updated_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
 
 ### `Medication_Dispense_Detail_Request`
-+ `medication_id`: `a808bc3e-738d-442e-a2f4-0e5477695602` (string, required) - Identifier of brand medications 
++ `medication` (`Medication_Short`, required) - Identifier of brand medications 
 + `medication_qty`: 10 (number, required) - qnty of medication_unit (pill/ampoule/container/bottle/vial/aerosol) which provides to the patient
-+ `sell_price`: 18.65 (number, required) - price for one nondivisible medication_unit (pill/ampoule/container/bottle/vial/aerosol)
++ `sell_price`: 18.65 (number, required) - pharmacy's price for one nondivisible medication_unit (pill/ampoule/container/bottle/vial/aerosol)
 
 ### `Medication_Dispense_Detail_Response`
 + include `Medication_Dispense_Detail_Request`
-+ `reimbursement_amount`: 15 (number, required) - the difference between full price and the price after medical_program discount
++ `reimbursement_amount`: 15 (number, required) - Amount to reimburse for one medication_unite by medical_program
