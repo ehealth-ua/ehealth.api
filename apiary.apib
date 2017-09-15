@@ -4608,10 +4608,12 @@ This method is used to process created dispense
 + `updated_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
 
 ### `Medication_Dispense_Detail_Request`
-+ `medication` (`Medication_Short`, required) - Identifier of brand medications 
++ `medication_id`: `787b6ef1-1d3a-4129-849c-87716c9a2130` (string, required) - Identifier of brand medications 
 + `medication_qty`: 10 (number, required) - qnty of medication_unit (pill/ampoule/container/bottle/vial/aerosol) which provides to the patient
 + `sell_price`: 18.65 (number, required) - pharmacy's price for one nondivisible medication_unit (pill/ampoule/container/bottle/vial/aerosol)
 
 ### `Medication_Dispense_Detail_Response`
-+ include `Medication_Dispense_Detail_Request`
++ `medication` (`Medication_Short`, required) - Identifier of brand medications 
++ `medication_qty`: 10 (number, required) - qnty of medication_unit (pill/ampoule/container/bottle/vial/aerosol) which provides to the patient
++ `sell_price`: 18.65 (number, required) - pharmacy's price for one nondivisible medication_unit (pill/ampoule/container/bottle/vial/aerosol)
 + `reimbursement_amount`: 15 (number, required) - Amount to reimburse for one medication_unite by medical_program
