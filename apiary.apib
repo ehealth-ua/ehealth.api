@@ -1194,10 +1194,59 @@ This method is used to create new substance. Fields descriptions are listed in r
             + type: duplicate (string, required)
             + message: `substance duplicate` (string, required)
 
+### Get substance by id [GET /substances/{id}]
+Method returns substance details by ID.
+
+**Scopes required:** `substance:read`
+
++ Parameters
+    + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `Substance_Response`
+
+### Get Substances List [GET /substances{?id,sctid,name,name_original,starting_after,ending_before,limit}]
+
+Use this method to obtain list of Substances. If you want to reduce amount of data that is going trough your application, use filter and show only substances is interested in current UI section.
+
+**Scopes required:** `substance:read`
+
++ Parameters
+    + `id`: `7124259c-eeb1-4cbb-acac-ada2162675d1` (string, optional) - Substance Identifier.
+    + `sctid`: `52574003` (string, optional) - Substance CNOMED code.
+    + `name`: `Аміодарон` (string, optional) - Substance local name.
+    + `name_original`: `Amiodarone` (string, optional) - Substance original name.
+    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
+    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
+    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (Response_Collection)
+        + data (array[`Substance_Response_Short`]) 
+
+
 ## INNMs [/innms] 
 
 ### Create INNM [POST]
 This method is used to create INNMs. Fields descriptions are listed in request Example view.
+
+**Scopes required:** `medication:write`
 
 + Request (application/json)
 
@@ -1223,8 +1272,10 @@ This method is used to create INNMs. Fields descriptions are listed in request E
             + type: unverified (string, required)
             + message: `Property "is_active" has not been defined and the schema does not allow additional properties!` (string, required)
 
-### Deactivate INNM [PATCH /innm/{id}/actions/deactivate]
+### Deactivate INNM [PATCH /innms/{id}/actions/deactivate]
 This method is used to deactivate INNM. Fields descriptions are listed in request Example view.
+
+**Scopes required:** `medication:write`
 
 + Parameters
     + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -1232,9 +1283,8 @@ This method is used to deactivate INNM. Fields descriptions are listed in reques
 + Request (application/json)
 
     + Headers
-
+    
             Authorization: Bearer mF_9.B5f-4.1JqM
-
 
 + Response 201 (application/json)
     + Attributes (Response__Process_OK)
@@ -1251,10 +1301,57 @@ This method is used to deactivate INNM. Fields descriptions are listed in reques
             + type: unverified (string, required)
             + message: `Can't deactivate innm. Exist active linked medications!` (string, required)
 
+### Get INNM by id [GET /innms/{id}]
+Method returns INNM details by ID.
+
+**Scopes required:** `medication:read`
+
++ Parameters
+    + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `INNM_Response`
+
+### Get INNMs List [GET /innms{?id,name,form,starting_after,ending_before,limit}]
+
+Use this method to obtain list of INNMs. If you want to reduce amount of data that is going trough your application, use filter and show only INNMs is interested in current UI section.
+
+**Scopes required:** `medication:read`
+
++ Parameters
+    + `id`: `7124259c-eeb1-4cbb-acac-ada2162675d1` (string, optional) - `INNM Identifier.`
+    + `name`: `Аміодарон` (string, optional) - `Substance local name.`
+    + `form`:  `PILL` (string, required) - `Dictionary MEDICATION_FORM`
+    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
+    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
+    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (Response_Collection)
+        + data (array[`INNM_Response_Short`]) 
+
 ## Medications [/medications] 
 
 ### Create Medication [POST]
 This method is used to create Medications. Fields descriptions are listed in request Example view.
+
+**Scopes required:** `medication:write`
 
 + Request (application/json)
 
@@ -1280,8 +1377,10 @@ This method is used to create Medications. Fields descriptions are listed in req
             + type: unverified (string, required)
             + message: `Denumerator unit from Dosage ingredients must be is equal Numerator unit from Container medication!` (string, required)
 
-### Deactivate Medication [PATCH /medication/{id}/actions/deactivate]
+### Deactivate Medication [PATCH /medications/{id}/actions/deactivate]
 This method is used to deactivate Medication. Fields descriptions are listed in request Example view.
+
+**Scopes required:** `medication:write`
 
 + Parameters
     + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -1307,10 +1406,155 @@ This method is used to deactivate Medication. Fields descriptions are listed in 
             + type: unverified (string, required)
             + message: `Can't deactivate medication. Exist active linked participant (programs medications)!` (string, required)
 
-## Program_medications [/program_medications]
+### Get Medication by id [GET /medications/{id}]
+Method returns Medication details by ID.
 
-### Create Program_medications [POST]
-This method is used to create new participant pf program - to link exsiting active medication to exsiting active program. Fields descriptions are listed in request Example view.
+**Scopes required:** `medication:read`
+
++ Parameters
+    + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `Medication_Response`
+
+### Get Medications List [GET /medications{?id,innm_id,name,innm_name,form,starting_after,ending_before,limit}]
+
+Use this method to obtain list of Medications. If you want to reduce amount of data that is going trough your application, use filter and show only Medications is interested in current UI section.
+
+**Scopes required:** `medication:read`
+
++ Parameters
+    + `id`: `7124259c-eeb1-4cbb-acac-ada2162675d1` (string, optional) - `Medication Identifier.`
+    + `innm_id`: `5052fcaf-58a0-461b-9e98-d60243a1773e` (string, optional) - `INNM Identifier.`
+    + `name`: `Аритміл` (string, optional) - `Medication name.`
+    + `innm_name`: `Аміодарон` (string, optional) - `INNM name.`
+    + `form`:  `PILL` (string, required) - `Dictionary MEDICATION_FORM`
+    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
+    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
+    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (Response_Collection)
+        + data (array[`Medication_Response_Short`])
+
+## Medical programs [/medical_programs]
+
+### Create medical program [POST]
+This method is used by NHS admin to create new medical program.
+
+**Scopes required:** `medical_programs:write`
+
++ Request (application/json)
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
+    + Attributes (object)
+       + include `medical_programs_request`
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `medical_programs_response`
+
++ Response 409 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta)
+            + code: 409
+        + error
+            + type: duplicate (string, required)
+            + message: `Medical program exists` (string, required)
+
+
+### Deactivate medical program [PATCH /medical_programs/{id}/deactivate]
+Thist method is used by NHS Admin to deactivate medical program.
+Medical program can't be deactivate if there is at leat one participant in the program.
+
+**Scopes required:** `medical_programs:write`
+
++ Parameters
+    + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `medical_programs_response`
+
++ Response 409 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta)
+            + code: 409
+        + error
+            + message: `Forbiden to deactivate medical program. Medical program has active participants` (string, required)
+
+### Get medical programs list [GET /medical_programs{?is_active,limit,starting_after,ending_before}]
+Method returns list of medical programs filtering by parameters. By default method returns only active medical programs `is_active=true` 
+
+**Scopes required:** `medical_programs:read`
+
++ Parameters
+    + `is_active`: `true` (boolean, optional) - Is medical program active or not. True - Active; False - Inactive
+    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 10
+    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
+    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
+
++ Request (application/json)
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (array[medical_programs_list])
+
+### Get medical program by id [GET /medical_programs/{id}]
+Method returns medical programs details by ID.
+
++ Parameters
+    + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `medical_programs_response`
+
+## Program medications [/program_medications]
+
+### Create Program medications [POST]
+This method is used to create new participant of a program - to link exsiting active medication to exsiting active program. Fields descriptions are listed in request Example view.
 **Scopes required:** `program_medications:write`
 
 + Request (application/json)
@@ -1345,12 +1589,10 @@ This method is used to create new participant pf program - to link exsiting acti
             + type: unverified (string, required)
             + message: `This program is inactive` (string, required)
 
-### Update Program_medications [PATCH /program_medications/{id}]
+### Update Program medications [PATCH /program_medications/]
 This method is used to update flags "is_active" and/or "medication_request_allowed" for Medication within Medical_program. Fields descriptions are listed in request Example view.
 **Scopes required:** `program_medications:write`
 
-+ Parameters
-    + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 
 + Request (application/json)
 
@@ -1378,6 +1620,53 @@ This method is used to update flags "is_active" and/or "medication_request_allow
             + type: unverified (string, required)
             + message: `Medications are already inactive in this program` (string, required)
 
+### Get Program medications list [GET /program_medications{?id,medical_program_id,medical_program_name,innm_id,innm_name,medication_id,medication_name,starting_after,ending_before,limit}]
+Method returns list of participants(medications) of medical programs filtering by parameters.  
+
+**Scopes required:** `program_medications:read`
+
++ Parameters
+    + `id`: `7124259c-eeb1-4cbb-acac-ada2162675d1` (string, optional) - Program_medications Identifier (medication within the program)
+    + `medical_program_id`: `042a3b20-bb08-4e50-83ee-ef23c3b1c0c8` (string, optional) - medical program identifier
+    + `medical_program_name`: `Доступні ліки` (string, optional) - medical program name
+    + `innm_id`: `5052fcaf-58a0-461b-9e98-d60243a1773e` (string, optional) - INNM Identifier
+    + `innm_name`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - INNM name
+    + `medication_id`:  `PILL` (string, optional) - Medication Identifier.
+    + `medication_name`: `Аритміл` (string, optional) - Medication name.
+    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
+    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
+    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
+
++ Request (application/json)
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (array[Program_medications_List])
+
+### Get Program medications by id [GET /program_medications/{id}]
+Method returns participants(medications) of medical programs details by ID.
+
+**Scopes required:** `program_medications:read`
+
++ Parameters
+    + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `Program_medications_Response`
+
+            
 # Group Internal. Gandalf
 
 ## Gandalf [/api.gndf.io/api]
@@ -2224,7 +2513,7 @@ status = DISMISSED
     + Attributes (Response_OK)
         + data (Employee_Response)
             + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-                + division (Division_Short)
+            + division (Division_Short)
                 + `legal_entity` (`Legal_Entity_Short`)
 
 ## Employee Requests [/api/employee_requests]
@@ -2906,7 +3195,7 @@ Use this method to obrain full information of Request for Medication request an 
 + Response 200 (application/json)
     + Attributes (Response_OK)
         + meta (Response__Meta)
-            + code: 201 (number)
+            + code: 200 (number)
         + data (object)
             + include `Medication_request_Request_Public_Response`
 
@@ -2923,13 +3212,13 @@ This method is used to qualify data Medication request Request (possibility to g
 
     + Attributes (object)
         + `medication_request_request` (object)
-            + include `Medication_request_Request_post_data`
+            + include `Medication_request_Request_Qualify_post_data`
         + `programs` (array[`Qualify_Medication_request_Request_List_program_post_data`]) - Medical programs list for qualify
         
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + meta (Response__Meta)
-            + code: 201 (number)
+            + code: 200 (number)
         +  data (array[`Qualify_Medication_request_Request_Responce`]))
 
 + Response 422 (application/json)
@@ -2944,6 +3233,9 @@ This method is used to qualify data Medication request Request (possibility to g
 
 This method is used to qualify (possibility to use Innm for the program) Request for Medication request by Id (as part of Medication request creation process). Fields descriptions are listed in request Example view.
 
++ Parameters
+    + id: `2848a935-5fd7-48ba-b235-a9b5d475c647` (string, required) - `Medication request Request identifier`
+
 + Request (application/json)
 
     + Headers
@@ -2951,13 +3243,12 @@ This method is used to qualify (possibility to use Innm for the program) Request
             Authorization: Bearer mF_9.B5f-4.1JqM
 
     + Attributes (object)
-        + `id` : `2848a935-5fd7-48ba-b235-a9b5d475c647` (string, required) - Medication Request request identifier
         + `programs` (array[`Qualify_Medication_request_Request_List_program_post_data`]) - Medical programs list for qualify
     
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + meta (Response__Meta)
-            + code: 201 (number)
+            + code: 200 (number)
         +  data (array[`Qualify_by_ID_Request_for_Medication_request_Responce`]))
 
 + Response 422 (application/json)
@@ -4332,7 +4623,7 @@ This method is used to process created dispense
 + `name`: `Аміодарон 200мг таблетки` (string, required)
 + `code_ATX`: `С01BD01` (string, required)
 + `form`: PILL (string, required) - `Dictionary MEDICATION_FORM`
-+ `substanse` (`Substance_Response`, required) 
++ `substanse` (`Substance_Response_Short`, required) 
 + `dosage` (`Dosage_drug`, required)
 + `container_dosage` (`Dosage_container`, required)
 + `packages` (array, required)
@@ -4344,9 +4635,14 @@ This method is used to process created dispense
 
 ## Medications
 ### `Substance_Request`
-+ `name`: `Аміодарон` (string, required)
-+ `name_original`: `Amiodarone` (string, required)
-+ `sctid`: `52574003` (string, required)
++ `sctid`: `52574003` (string, optional) - substance CNOMED code
++ `name`: `Аміодарон` (string, optional) - substance local name
++ `name_original`: `Amiodarone` (string, optional) - substance original name
+
+### `Substance_Response_Short`
++ `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required)
++ include `Substance_Request`
++ is_active: true (boolean, required)
 
 ### `Substance_Response`
 + `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required)
@@ -4377,7 +4673,7 @@ This method is used to process created dispense
 + `request_qty`: 10 (number, required)
 
 ### `Innm_for_Medication_request_Responce`
-+ `innm` (`Substance_Response`, required)
++ `innm` (`Substance_Response_Short`, required)
 + `medication_id` : `4a63b858-c138-4921-9341-ae9e384bcbd6` (string, required)
 + `form`: PILL (string, required) - `Dictionary MEDICATION_FORM`
 + `dosage` (`Dosage_drug`, required)
@@ -4399,6 +4695,11 @@ This method is used to process created dispense
 + `ingredients` (array, required)
     + (object)
         + include `Ingredient`
+
+### `INNM_Response_Short`
++ `id` : `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required) 
++ include `INNM_Request`
++ `is_active` : true (boolean, required)
 
 ### `INNM_Response`
 + `id` : `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required) 
@@ -4433,6 +4734,11 @@ This method is used to process created dispense
 + updated_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + updated_by: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
 
+### `Medication_Response_Short`
++ `id` : `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required) 
++ include `Medication_Request`
++ `is_active` : true (boolean, required)
+
 ### `Medication_Short`
 + `name` : `Амідарон` (string, required)
 + `type`: `MEDICATION` (string, required)
@@ -4444,30 +4750,44 @@ This method is used to process created dispense
 + `id`: `59781de0-2e64-4359-b716-bcc05a32c10f` (string, required) - `Medical program Identifier`
 + `name`: `program 'DOSTUPNI LIKI'` (string, required) - `Medical program name`
 
+
 ### `Program_medications_Request`
 + `medication_id`: `59781de0-2e64-4359-b716-bcc05a32c10f`(string, required) -  Medication Identifier
 + `medical_program_id`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required) -  Medical program Identifier
-+ `reimbursemnt` (array, required)
-    + (object)
-        + include `Reimbursment`
-        
++ `Reimbursement` (object, required)
+    + include `Reimbursement`
+
 ### `Program_medications_Update_Request`
 + `medication_id`: `59781de0-2e64-4359-b716-bcc05a32c10f`(string, required) - Medication Identifier
 + `medical_program_id`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required) - Medical program Identifier
 
-### `Reimbursment`
+### `Reimbursement`
 + `type`: `fixed` (string, required) - fixed or external type of reimbursment
 + `reimbursment_amount`: 15 (number, optional) - Amount to reimburse for one medication_unit by medical_program
 
 ### `Program_medications_Response`
-+ `id` : `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required) 
-+ include `Medical_Program_Response`
++ `id` : `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) 
++ include `Program_medications_Request`
 + `is_active` : true (boolean, required) - flag for activation/deactiovation
-+ `medication_request_allowed`: true (boolean, required) - flag whether medications are allowed to be dispensed by the programm 
++ `medication_request_allowed`: true (boolean, required) - flag whether medications are allowed to be dispensed by the program 
 + inserted_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + inserted_by: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
 + updated_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + updated_by: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
+
+### `Program_medications_List`
++ `id` : `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ `medical_program_id`: `042a3b20-bb08-4e50-83ee-ef23c3b1c0c8` (string, optional) - medical program identifier
++ `medical_program_name`: `Доступні ліки` (string, optional) - medical program name
++ `medication_id`: `59781de0-2e64-4359-b716-bcc05a32c10f`(string, required) -  Medication Identifier
++ `medication_name`: `Аритміл` (string, optional) - Medication name
++ `form` :  PILL (string, optional) - `Dictionary MEDICATION_FORM`
++ `manufacturer` (`Manufacturer`, optional)
++ `innm_id`: `5052fcaf-58a0-461b-9e98-d60243a1773e` (string, optional) - INNM Identifier
++ `innm_name`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - INNM name
++ `reimbursment_amount`: 15 (number, optional) - Amount to reimburse for one medication_unit by medical_program
++ `is_active` : true (boolean, required) - flag for activation/deactiovation
++ `medication_request_allowed`: true (boolean, required) - flag whether medications are allowed to be dispensed by the program
 
 ## `Medication request Request`
 ### `Medication_request_Request_post_data`
@@ -4482,6 +4802,18 @@ This method is used to process created dispense
 + `medication_id` : `1349a693-4db1-4a3f-9ac6-8c2f9e541982` (string, required) - Medication identified
 + `medication_qty`: 10 (number, required) - Medication quantity isuued by the doctor
 + `medical_program_id`: `59781de0-2e64-4359-b716-bcc05a32c10f` (string) - `Medical program Identifier`
+
+### `Medication_request_Request_Qualify_post_data`
++ `person_id`: `585044f5-1272-4bca-8d41-8440eefe7d26` (string, required) - Person identifier
++ `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Employee identifier with `type=DOCTOR` who issued Medication Request.
++ `division_id`: `881d6dee-dd3d-43f3-8983-922354c0e6ce` (string, required) - Division identifier where issued Medication Request.
++ `created_at`: `2017-08-17` (string, required) - Medication request creation date, which is determined by the external system. Format *DATE '2017-09-07'*
++ `started_at`: `2017-08-17` (string, required) - Start date of a treatment period, which is determined by the external system. Greater or equal to **created_at**. Format *DATE '2017-09-07'*
++ `ended_at`: `2017-09-16` (string, required) - End date of a treatment period, which is determined by the external system. Greater or equal to **started_at**. Format *DATE '2017-10-07'*
++ `dispense_valid_from`: `2017-08-17` (string, required) - Start date of dispense period, which is determined by the external system. Format *DATE '2017-09-07'*
++ `dispense_valid_to`: `2017-09-16` (string, required) - End date of dispense period, which is determined by the external system. Greater or equal to **dispense_valid_from**. Format *DATE '2017-10-07'*
++ `medication_id` : `1349a693-4db1-4a3f-9ac6-8c2f9e541982` (string, required) - Medication identified
++ `medication_qty`: 10 (number, required) - Medication quantity isuued by the doctor
 
 
 ### `Medication_request_Request_Public_Response`
@@ -4535,7 +4867,7 @@ This method is used to process created dispense
 + `updated_at`: `2017-07-12T10:45:16.000Z` (string, optional)
 
 ### `Qualify_Medication_request_Request_List_program_post_data`
-+ `program`: `59781de0-2e64-4359-b716-bcc05a32c10f` (string,required) - `Medical program Identifier`
++ `id`: `59781de0-2e64-4359-b716-bcc05a32c10f` (string,required) - `Medical program Identifier`
 
 ### `Qualify_Medication_request_Request_Responce`
 + `program_id`: `59781de0-2e64-4359-b716-bcc05a32c10f` (string, required) - `Medical program Identifier`
@@ -4546,13 +4878,26 @@ This method is used to process created dispense
 + `invalid_reason` : ` Innm not on the list of approved innms for program 'DOSTUPNI LIKI' !` (string) - Reason to fetch invalid status
 
 ### `Qualify_by_ID_Request_for_Medication_request_Responce`
-+ `program_id`: `59781de0-2e64-4359-b716-bcc05a32c10f` (string, required) - `Medical program Identifier`
-+ `program_name` : `Програма "Доступні ліки"`(string, required)
-+ `status` : `INVALID` (enum, required) - Status for ability use program for this Medication request Request
-    - VALID
-    - INVALID
-+ `invalid_reason` : ` Innm not on the list of approved innms for program 'DOSTUPNI LIKI' !` (string) - Reason to fetch invalid status
++ include `Qualify_Medication_request_Request_Responce`
 + `reimbursement_amount` : `0` (number, required) - Amount of reimbursement
+
+## `medical_programs`
+### `medical_programs_request`
++ `name`: `Доступні ліки` (string, required) - medical program name that is used on govermental level
+
+### `medical_programs_response`
++ `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required) - Internal medical program ID, a UUID string.
++ `name`: `Доступні ліки` (string, required) - medical program name that is used on govermental level
++ `is_active`: `true` (boolean, required) - Is medical program active or not. True - Active; False - Inactive
++ `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
++ `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `updated_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
+
+### `medical_programs_list`
++ `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required) - Internal medical program ID, a UUID string.
++ `name`: `Доступні ліки` (string, required) - medical program name that is used on govermental level
++ `is_active`: `true` (boolean, required) - Is medical program active or not. True - Active; False - Inactive
 
 ## `Medication request`
 ### `Medication_request_Public_Response`
