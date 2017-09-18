@@ -233,7 +233,7 @@ medication_id | uuid | not null
 medical_program_id | uuid | not null
 is_active | boolean | not null
 medication_request_allowed | boolean | not null
-reimbursement | jsonb
+reimbursement | jsonb | not null
 inserted_at | timestamp | not null
 inserted_by | uuid | not null
 updated_at | timestamp | not null
