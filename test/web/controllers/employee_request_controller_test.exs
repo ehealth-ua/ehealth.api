@@ -55,10 +55,14 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
         party: party,
         employee_type: Employee.type(:pharmacist)
       )
+
+      legal_entity = insert(:prm, :legal_entity, type: LegalEntity.type(:pharmacy))
+      conn = put_client_id_header(conn, legal_entity.id)
       employee_request_params =
         pharmacist_request()
         |> put_in(["employee_request", "employee_id"], id)
         |> put_in(["employee_request", "division_id"], division_id)
+        |> put_in(["employee_request", "legal_entity_id"], legal_entity.id)
 
       conn2 = post conn, employee_request_path(conn, :create), employee_request_params
       resp = json_response(conn2, 200)["data"]
@@ -205,10 +209,20 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       )
 
       conn = put_client_id_header(conn, legal_entity_id)
-      conn = post conn, employee_request_path(conn, :create), employee_request_params
+      conn1 = post conn, employee_request_path(conn, :create), employee_request_params
 
-      resp = json_response(conn, 422)
+      resp = json_response(conn1, 422)
       assert Map.has_key?(resp, "error")
+      assert "$.employee_request.employee_type" ==
+        resp
+        |> get_in(["error", "invalid"])
+        |> List.first()
+        |> Map.get("entry")
+
+      employee_request_params = put_in(employee_request_params, ["employee_request", "employee_type"], "PHARMACIST")
+
+      conn2 = post conn, employee_request_path(conn, :create), employee_request_params
+      resp = json_response(conn2, 422)
       assert "$.employee_request.employee_type" ==
         resp
         |> get_in(["error", "invalid"])
@@ -246,6 +260,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "with non-existent foreign keys", %{conn: conn} do
+      legal_entity = insert(:prm, :legal_entity)
       party = insert(:prm, :party, tax_id: "3067305998")
       employee = insert(:prm, :employee, party: party)
       employee_request_params =
@@ -254,20 +269,12 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
         |> put_in(["employee_request", "employee_id"], employee.id)
         |> Poison.encode!()
 
-      conn = put_client_id_header(conn, Ecto.UUID.generate())
+      conn = put_client_id_header(conn, legal_entity.id)
       conn = post conn, employee_request_path(conn, :create), employee_request_params
       resp = json_response(conn, 422)
       assert Map.has_key?(resp, "error")
       assert Map.has_key?(resp["error"], "invalid")
-      assert 2 == length(resp["error"]["invalid"])
-
-      invalid_legal_entity_id =
-        Enum.find(resp["error"]["invalid"], fn(x) -> Map.get(x, "entry") == "$.legal_entity_id" end)
-      assert nil != invalid_legal_entity_id
-      assert Map.has_key?(invalid_legal_entity_id, "rules")
-      assert 1 == length(invalid_legal_entity_id["rules"])
-      rule = Enum.at(invalid_legal_entity_id["rules"], 0)
-      assert "does not exist" == Map.get(rule, "description")
+      assert 1 == length(resp["error"]["invalid"])
 
       invalid_division_id = Enum.find(resp["error"]["invalid"], fn(x) -> Map.get(x, "entry") == "$.division_id" end)
       assert nil != invalid_division_id
@@ -275,6 +282,18 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       assert 1 == length(invalid_division_id["rules"])
       rule = Enum.at(invalid_division_id["rules"], 0)
       assert "does not exist" == Map.get(rule, "description")
+    end
+
+    test "with invalid legal_entity_id", %{conn: conn} do
+      conn = put_client_id_header(conn, Ecto.UUID.generate())
+      employee_request_params =
+        doctor_request()
+        |> Poison.encode!()
+      conn = post conn, employee_request_path(conn, :create), employee_request_params
+      resp = json_response(conn, 422)
+      assert Map.has_key?(resp, "error")
+      assert Map.has_key?(resp["error"], "invalid")
+      assert 1 == length(resp["error"]["invalid"])
     end
 
     test "with invaid tax id", %{conn: conn} do
@@ -331,9 +350,11 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "with invalid employee_id", %{conn: conn} do
+      legal_entity_id = "8b797c23-ba47-45f2-bc0f-521013e01074"
+      insert(:prm, :legal_entity, id: legal_entity_id)
       employee_request_params = put_in(doctor_request(), ["employee_request", "employee_id"], Ecto.UUID.generate())
 
-      conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
+      conn = put_client_id_header(conn, legal_entity_id)
       conn = post conn, employee_request_path(conn, :create), employee_request_params
       resp = json_response(conn, 422)
       assert "$.employee_request.employee_id" ==

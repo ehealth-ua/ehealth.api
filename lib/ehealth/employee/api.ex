@@ -25,6 +25,7 @@ defmodule EHealth.Employee.API do
   alias EHealth.PRMRepo
   alias EHealth.PRM.Employees
   alias EHealth.PRM.Parties
+  alias EHealth.PRM.LegalEntities
 
   require Logger
 
@@ -87,9 +88,20 @@ defmodule EHealth.Employee.API do
   def create_employee_request(attrs, allowed_owner \\ false) do
     with :ok <- Validator.validate(attrs),
          params <- Map.fetch!(attrs, "employee_request"),
-         :ok <- check_owner(params, allowed_owner)
+         :ok <- check_owner(params, allowed_owner),
+         legal_entity_id <- Map.fetch!(params, "legal_entity_id"),
+         %LegalEntity{} = legal_entity <- LegalEntities.get_legal_entity_by_id(legal_entity_id),
+         :ok <- validate_type(legal_entity, Map.fetch!(params, "employee_type"))
     do
       insert_employee_request(params)
+    else
+      nil ->
+        {:error, [{%{
+          "rule": :invalid,
+          "params": [],
+          "description": "invalid legal entity"
+        }, "$.legal_entity_id"}]}
+      err -> err
     end
   end
 
@@ -321,12 +333,6 @@ defmodule EHealth.Employee.API do
   def validate_status_type(%Employee{status: @employee_status_dismissed}) do
     {:error, {:conflict, "employee is dismissed"}}
   end
-  def validate_status_type(%Employee{employee_type: @owner}) do
-    {:error, {:conflict, "employee is dismissed"}}
-  end
-  def validate_status_type(%Employee{employee_type: @pharmacy_owner}) do
-    {:error, {:conflict, "employee is dismissed"}}
-  end
   def validate_status_type(_), do: :ok
 
   defp check_tax_id(%{"party" => %{"tax_id" => tax_id}}, employee) do
@@ -363,5 +369,23 @@ defmodule EHealth.Employee.API do
 
   defp owner_forbidden(type) do
     {:error, {:conflict, "Forbidden to create #{type}"}}
+  end
+
+  defp validate_type(%LegalEntity{type: legal_entity_type}, type) do
+    config = Confex.fetch_env!(:ehealth, :legal_entity_employee_types)
+    legal_entity_type =
+      legal_entity_type
+      |> String.downcase()
+      |> String.to_atom
+    allowed_types = Keyword.get(config, legal_entity_type)
+    if Enum.member?(allowed_types, type) do
+      :ok
+    else
+      {:error, [{%{
+        "rule": "inclusion",
+         "params": allowed_types,
+         "description": "value is not allowed in enum"
+      }, "$.employee_type"}]}
+    end
   end
 end
