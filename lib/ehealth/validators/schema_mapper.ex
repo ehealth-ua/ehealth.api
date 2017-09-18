@@ -29,6 +29,12 @@ defmodule EHealth.Validators.SchemaMapper do
     prepare_schema(nex_schema, :employee_additional_info)
   end
 
+  def prepare_medication_schema(%Root{} = nex_schema, type) do
+    # ToDo: implement dictionaries mapping
+
+    nex_schema
+  end
+
   def prepare_schema(%Root{schema: schema} = nex_schema, type) do
     schema =
       %{"is_active" => true}

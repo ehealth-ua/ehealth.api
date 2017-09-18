@@ -53,6 +53,15 @@ defmodule EHealth.Web.Router do
     patch "/uaddresses/settlements/:id", UaddressesController, :update_settlements
 
     get "/declarations/:id/documents", DeclarationRequestController, :documents
+
+    # Medications
+    resources "/substances", SubstanceController, except: [:new, :edit, :update, :delete]
+
+    resources "/medications", MedicationController, except: [:new, :edit, :update, :delete]
+    patch "/medications/:id/actions/deactivate", MedicationController, :deactivate
+
+    resources "/innms", INNMController, except: [:new, :edit, :update, :delete]
+    patch "/innms/:id/actions/deactivate", INNMController, :deactivate
   end
 
   # Client context for lists

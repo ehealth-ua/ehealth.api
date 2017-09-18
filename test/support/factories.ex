@@ -11,6 +11,7 @@ defmodule EHealth.Factories do
   use EHealth.PRMFactories.DivisionFactory
   use EHealth.PRMFactories.EmployeeFactory
   use EHealth.PRMFactories.PartyFactory
+  use EHealth.PRMFactories.MedicationFactory
 
   # IL
   use EHealth.ILFactories.DictionaryFactory

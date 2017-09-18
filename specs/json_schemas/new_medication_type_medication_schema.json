@@ -86,10 +86,6 @@
       "type": "string",
       "pattern": "^(?!.*[ЫЪЭЁыъэё@%&$^#])[a-zA-ZА-ЯҐЇІЄа-яґїіє0-9№\\\"!\\^\\*)\\]\\[(._-].*$"
     },
-    "type": {
-      "type": "string",
-      "description": "Dictionary: MEDICATION_TYPE"
-    },
     "form": {
       "type": "string",
       "description": "Dictionary: MEDICATION_FORM"
@@ -137,7 +133,6 @@
   },
   "required": [
     "name",
-    "type",
     "form",
     "ingredients",
     "manufacturer",

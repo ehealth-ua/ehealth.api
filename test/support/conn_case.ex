@@ -77,4 +77,21 @@ defmodule EHealth.Web.ConnCase do
   def stop_microservices(ref) do
     Plug.Adapters.Cowboy.shutdown(ref)
   end
+
+  def convert_atom_keys_to_strings(map) when is_map(map) do
+    Enum.reduce(
+      map,
+      Map.new,
+      fn({key, value}, acc) -> Map.put(acc, to_string(key), value) end
+    )
+  end
+  def convert_atom_keys_to_strings(map) do
+    map
+  end
+
+  def get_headers_with_consumer_id do
+    [
+      {"x-consumer-id", Ecto.UUID.generate()}
+    ]
+  end
 end
