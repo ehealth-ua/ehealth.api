@@ -12,6 +12,8 @@ defmodule EHealth.Divisions.API do
   alias EHealth.Validators.Addresses
   alias EHealth.PRM.Divisions
   alias EHealth.PRM.Divisions.Schema, as: Division
+  alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
+  alias EHealth.PRM.LegalEntities
 
   use_schema :division, "specs/json_schemas/division_schema.json"
 
@@ -46,12 +48,24 @@ defmodule EHealth.Divisions.API do
   end
 
   def prepare_division_data(params, legal_entity_id) do
-    params
-    |> Map.delete("id")
-    |> Map.put("legal_entity_id", legal_entity_id)
-    |> validate_division()
-    |> validate_addresses()
-    |> put_mountain_group()
+    with %LegalEntity{} = legal_entity <- LegalEntities.get_legal_entity_by_id(legal_entity_id),
+         :ok <- validate_division_type(legal_entity, params)
+    do
+      params
+      |> Map.delete("id")
+      |> Map.put("legal_entity_id", legal_entity_id)
+      |> validate_division()
+      |> validate_addresses()
+      |> put_mountain_group()
+    else
+      nil ->
+        {:error, [{%{
+                      "rule": :invalid,
+                      "params": [],
+                      "description": "invalid legal entity"
+                   }, "$.legal_entity_id"}]}
+      err -> err
+    end
   end
 
   def update_status(id, status, headers) do
@@ -95,6 +109,26 @@ defmodule EHealth.Divisions.API do
        end
   end
   def validate_addresses(err), do: err
+
+  defp validate_division_type(%LegalEntity{type: legal_entity_type}, params) do
+    config = Confex.fetch_env!(:ehealth, :legal_entity_division_types)
+    legal_entity_type =
+      legal_entity_type
+      |> String.downcase()
+      |> String.to_atom
+
+    allowed_types = Keyword.get(config, legal_entity_type)
+    type = Map.get(params, "type")
+    if !type || Enum.member?(allowed_types, type) do
+      :ok
+    else
+      {:error, [{%{
+        "rule": "inclusion",
+        "params": allowed_types,
+        "description": "value is not allowed in enum"
+      }, "$.type"}]}
+    end
+  end
 
   def put_mountain_group({:ok, %{"addresses" => addresses} = division}) do
     settlement_id =
