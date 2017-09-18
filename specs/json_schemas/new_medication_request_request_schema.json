@@ -18,6 +18,11 @@
       "pattern": "^[0-9a-f]{8}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{12}$",
       "description": "Employee ID with `type=DOCTOR` who issued Medication Request."
     },
+    "division_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{12}$",
+      "description": "Division identifier"
+    },
     "created_at": {
       "$ref": "#/definitions/date",
       "description": "Medication request creation date, which is determined by the external system. Format DATE '2017-09-07'"
@@ -48,11 +53,17 @@
       "minimum": 0,
       "exclusiveMinimum": true,
       "description": "Medication quantity isuued by the doctor"
+    },
+    "medical_program_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{12}$",
+      "description": "Medical program identifier"
     }
   },
   "required": [
     "person_id",
     "employee_id",
+    "division_id", 
     "created_at",
     "started_at",
     "ended_at",
@@ -60,5 +71,6 @@
     "dispense_valid_to",
     "medication_id",
     "medication_qty"
-  ]
+  ],
+  "additionalProperties": false
 }
