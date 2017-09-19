@@ -24,9 +24,7 @@ defmodule EHealth.Mixfile do
   #
   # Type "mix help compile.app" for more information
   def application do
-    [extra_applications: [:logger, :confex, :runtime_tools, :logger_json, :poison,
-                          :cowboy, :httpoison, :ecto, :postgrex,
-                          :phoenix, :eview, :jvalid, :bamboo],
+    [extra_applications: [:logger, :runtime_tools],
      mod: {EHealth, []}]
   end
 
@@ -48,18 +46,19 @@ defmodule EHealth.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [{:distillery, "~> 1.2"},
+    [{:distillery, "~> 1.4.1"},
      {:confex, "~> 3.2"},
      {:timex, ">= 3.1.15"},
      {:logger_json, "~> 0.5.0"},
      {:poison, "~> 3.1"},
-     {:ecto, "~> 2.1"},
      {:plug, "~> 1.3.5"},
-     {:ecto_trail, "~> 0.2.3"},
      {:cowboy, "~> 1.1"},
      {:httpoison, "~> 0.12.0"},
      {:hackney, "== 1.8.0", override: true}, # fix for https://github.com/edgurgel/httpoison/issues/264
      {:postgrex, ">= 0.0.0"},
+     {:ecto, "~> 2.1"},
+     {:scrivener_ecto, "~> 1.2"},
+     {:ecto_trail, "~> 0.2.3"},
      {:phoenix, "~> 1.3.0"},
      {:phoenix_ecto, "~> 3.2"},
      {:eview, "~> 0.12.0"},
@@ -67,7 +66,6 @@ defmodule EHealth.Mixfile do
      {:bamboo, "~> 0.8"},
      {:bamboo_postmark, "~> 0.2.0"},
      {:geo, "~> 1.4"},
-     {:scrivener_ecto, "~> 1.2"},
      {:benchfella, ">= 0.3.4", only: [:dev, :test]},
      {:ex_doc, ">= 0.15.0", only: [:dev, :test]},
      {:excoveralls, ">= 0.5.0", only: [:dev, :test]},

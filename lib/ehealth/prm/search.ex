@@ -22,10 +22,26 @@ defmodule EHealth.PRM.Search do
       end
 
       def get_search_query(entity, changes) when map_size(changes) > 0 do
+        build_query(entity, changes)
+      end
+      def get_search_query(entity, _changes), do: from e in entity
+
+      def build_search_query(%Ecto.Changeset{valid?: true, changes: changes}, entity) when map_size(changes) > 0 do
+        build_query(entity, changes)
+      end
+
+      def build_search_query(%Ecto.Changeset{valid?: true}, entity) do
+        select(entity, [e], e)
+      end
+
+      def build_search_query(changeset, _entity) do
+        changeset
+      end
+
+      defp build_query(entity, changes) do
         params = Enum.filter(changes, fn({key, value}) -> !is_tuple(value) end)
 
-        q = from e in entity,
-          where: ^params
+        q = where(entity, ^params)
 
         Enum.reduce(changes, q, fn({key, val}, query) ->
           case val do
@@ -35,7 +51,6 @@ defmodule EHealth.PRM.Search do
           end
         end)
       end
-      def get_search_query(entity, _changes), do: from e in entity
 
       def to_integer(value) when is_binary(value), do: String.to_integer(value)
       def to_integer(value), do: value

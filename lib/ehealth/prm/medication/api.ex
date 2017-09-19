@@ -4,6 +4,7 @@ defmodule EHealth.PRM.Medication.API do
   """
 
   use JValid
+  use EHealth.PRM.Search
 
   import Ecto.Changeset
   import Ecto.Query, warn: false
@@ -13,6 +14,7 @@ defmodule EHealth.PRM.Medication.API do
   alias EHealth.PRM.Medication
   alias EHealth.PRM.Medication.Substance
   alias EHealth.Validators.SchemaMapper
+  alias EHealth.Ecto.StringLike
 
   use_schema :substance, "specs/json_schemas/new_substance_schema.json"
   use_schema :medication, "specs/json_schemas/new_medication_type_medication_schema.json"
@@ -49,7 +51,7 @@ defmodule EHealth.PRM.Medication.API do
 
   @doc false
   def create_medication(attrs, type, headers) do
-    case validate_medication_schema(attrs, type) do
+    case validate_json_schema(attrs, type) do
       {:ok, _} ->
         consumer_id = get_consumer_id(headers)
         attrs = Map.merge(
@@ -82,7 +84,7 @@ defmodule EHealth.PRM.Medication.API do
   end
 
   @doc false
-  def validate_medication_schema(data, schema_name) do
+  def validate_json_schema(data, schema_name) do
     schema =
       @schemas
       |> Keyword.get(schema_name)
@@ -130,8 +132,15 @@ defmodule EHealth.PRM.Medication.API do
   # Substance
 
   @doc false
-  def list_substances do
+  def list_substances(params) do
     PRMRepo.all(Substance)
+    data  = %{}
+    types = %{id: Ecto.UUID, name: StringLike, name_original: StringLike, sctid: :string}
+
+    {data, types}
+    |> cast(params, Map.keys(types))
+    |> build_search_query(Substance)
+    |> PRMRepo.paginate(params)
   end
 
   @doc false
@@ -139,7 +148,7 @@ defmodule EHealth.PRM.Medication.API do
 
   @doc false
   def create_substance(attrs, headers) do
-    case validate_medication_schema(attrs, :substance) do
+    case validate_json_schema(attrs, :substance) do
       {:ok, _} ->
         consumer_id = get_consumer_id(headers)
         attrs = Map.merge(attrs, %{"inserted_by" => consumer_id, "updated_by" => consumer_id})
