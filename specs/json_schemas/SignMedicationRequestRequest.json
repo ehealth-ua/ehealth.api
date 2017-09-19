@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "signed_medication_request_request": {
+      "type": "string"
+    },
+    "signed_content_encoding": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "signed_medication_request_request",
+    "signed_content_encoding"
+  ],
+  "additionalProperties": false
+}
