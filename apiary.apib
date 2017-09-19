@@ -1000,7 +1000,7 @@ If the region is not specified, the service returns statistics for all regions
  
 ## Divisions [/report/divisions]
 
-### Search Divisions [GET /stats/divisions{?type,name,lefttop_latitude,lefttop_longitude,rightbottom_latitude,rightbottom_longitude}]
+### Search Divisions [GET /stats/divisions/map{?type,name,lefttop_latitude,lefttop_longitude,rightbottom_latitude,rightbottom_longitude}]
 Method searches divisions by parameters and returnes division details
 
 + Parameters
@@ -1017,8 +1017,8 @@ Method searches divisions by parameters and returnes division details
 + Request (application/json)
 
 + Response 200 (application/json)
-    + Attributes (Response_OK)
-        + data (DataEntriesDivisionMap, optional)
+    + Attributes (`Response_Collection_V2`)
+        + data (array[EntriesDivisionMap], optional)
 
 
 
@@ -1664,7 +1664,7 @@ Method returns participants(medications) of medical programs details by ID.
         + meta (Response__Meta)
             + code: 201 (number)
         + data (object)
-            + include `Program_medications_Response`
+            + include `Program_medications_ID`
 
             
 # Group Internal. Gandalf
@@ -3475,7 +3475,17 @@ This method is used to process created dispense
         + data (object)
             + include `Medication_Dispense_Response`
 
-### Get Medication Dispenses List [GET /api/medication_dispenses]
+### Get Medication Dispenses List [GET /api/medication_dispenses{?id,medication_request_id,legal_entity_id,division_id,status,page_number,page_size}]
+
++ Parameters
+    + id: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, optional) - Medication dispense ID
+    + medication_request_id: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, optional) - Medication request ID
+    + legal_entity_id: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, optional) - Legal entity ID
+    + division_id: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, optional) - Division ID
+    + status: PROCESSED (string, optional) - Status
+    + page_number: 2 (number, optional)
+    + page_size: 50 (number, optional)
+    
 
 + Request (application/json)
 
@@ -3484,7 +3494,7 @@ This method is used to process created dispense
             Authorization: Bearer mF_9.B5f-4.1JqM
 
 + Response 200 (application/json)
-    + Attributes (Response_Collection)
+    + Attributes (`Response_Collection_V2`)
         + data (array)
             + (object)
                 + include `Medication_Dispense_Response`
@@ -3559,6 +3569,11 @@ This method is used to process created dispense
 + data (array[], fixed-type)
 + paging (Response__Pagination, fixed-type)
 
+### `Response_Collection_V2`
++ meta (Response__Meta, fixed-type)
++ data (array[], fixed-type)
++ paging (`Response__Pagination__V2`, fixed-type)
+
 ### `Response_Collection_OK`
 + meta (Response__Meta, fixed-type)
 + data (array[], fixed-type)
@@ -3586,7 +3601,6 @@ This method is used to process created dispense
 + type (enum) - Type of data that is located in `data` attribute.
     - object (string) - `data` attribute is a JSON object.
     - list (string) - `data` attribute is a list.
-+ code: 200 (number) - HTTP response code.
 + `request_id`: `req-adasdoijasdojsda` (string) - [Request ID](http://docs.apimanifest.apiary.io/#introduction/interacting-with-api/request-id). Send it with `X-Request-ID` header.
 
 ### `Response__Error`
@@ -3614,6 +3628,12 @@ This method is used to process created dispense
     + `ending_before`: 56c31536a60ad644060041aa (string) - A cursor for use in pagination. An object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with `obj_bar`, your subsequent call can include `ending_before=obj_bar` in order to fetch the previous page of the list.
 + size: 1000 (number) - Total number of objects in collection.
 + has_more: false (boolean) - Is this collection have more data to load in the same style as last request loaded it.
+
+### `Response__Pagination__V2`
++ page_number: 2 (number) - Page number.
++ page_size: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
++ total_entries: 1000 (number) - Total number of objects in collection.
++ total_pages: 23 (number) - Total number of pages.
 
 ## Persons
 ### `Person`
@@ -4385,12 +4405,12 @@ This method is used to process created dispense
 + name: `Київ` (string, required)
 
 ### HistogramStats
-+ period_type (string, required)
-+ period_name (string, required)
-+ declarations_created (number, required)
-+ declarations_closed (number, required)
-+ declarations_active_start (number, required)
-+ declarations_active_end (number, required)
++ period_type: DAY (string, required)
++ period_name: `2017-09-01` (string, required)
++ declarations_created: 0 (number, required)
++ declarations_closed: 0 (number, required)
++ declarations_active_start: 1 (number, required)
++ declarations_active_end: 1 (number, required)
 
 ### Interval
 + from_date: `2017-02-01` (string, required)
@@ -4403,7 +4423,7 @@ This method is used to process created dispense
 
 ### `MainStats_Division`
 + stats (DivisionStats, required)
-+ region (DivisionName, required)
++ division (DivisionName, required)
 
 ### DivisionStats
 + declarations: 100 (number, required)
@@ -4672,6 +4692,7 @@ This method is used to process created dispense
 + `container` (`Dosage_container`, required)
 + `request_qty`: 10 (number, required)
 
+
 ### `Innm_for_Medication_request_Responce`
 + `innm` (`Substance_Response_Short`, required)
 + `medication_id` : `4a63b858-c138-4921-9341-ae9e384bcbd6` (string, required)
@@ -4762,8 +4783,8 @@ This method is used to process created dispense
 + `medical_program_id`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required) - Medical program Identifier
 
 ### `Reimbursement`
-+ `type`: `fixed` (string, required) - fixed or external type of reimbursment
-+ `reimbursment_amount`: 15 (number, optional) - Amount to reimburse for one medication_unit by medical_program
++ `type`: `fixed` (string, required) - fixed or external type of reimburesment
++ `reimbursement_amount`: 15 (number, optional) - Amount to reimburse for one medication_unit by medical_program
 
 ### `Program_medications_Response`
 + `id` : `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) 
@@ -4777,17 +4798,34 @@ This method is used to process created dispense
 
 ### `Program_medications_List`
 + `id` : `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-+ `medical_program_id`: `042a3b20-bb08-4e50-83ee-ef23c3b1c0c8` (string, optional) - medical program identifier
-+ `medical_program_name`: `Доступні ліки` (string, optional) - medical program name
++ `medical_program_id`: `042a3b20-bb08-4e50-83ee-ef23c3b1c0c8` (string, required) - medical program identifier
++ `medical_program_name`: `Доступні ліки` (string, required) - medical program name
 + `medication_id`: `59781de0-2e64-4359-b716-bcc05a32c10f`(string, required) -  Medication Identifier
-+ `medication_name`: `Аритміл` (string, optional) - Medication name
++ `medication_name`: `Аритміл` (string, required) - Medication name
 + `form` :  PILL (string, optional) - `Dictionary MEDICATION_FORM`
 + `manufacturer` (`Manufacturer`, optional)
-+ `innm_id`: `5052fcaf-58a0-461b-9e98-d60243a1773e` (string, optional) - INNM Identifier
-+ `innm_name`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - INNM name
-+ `reimbursment_amount`: 15 (number, optional) - Amount to reimburse for one medication_unit by medical_program
++ `innm_id`: `5052fcaf-58a0-461b-9e98-d60243a1773e` (string, required) - INNM Identifier
++ `innm_name`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - INNM name
++ `reimbursement_amount`: 15 (number, optional) - Amount to reimburse for one medication_unit by medical_program
+
+### `Program_medications_ID`
++ `id` : `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ `innm` (object, required)
+    + `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required)
+    + `name`: `Аміодарон` (string, required) - substance local name
+    + `name_original`: `Amiodarone` (string, optional) - substance original name
+    + `form`: PILL (string, required) - `Dictionary MEDICATION_FORM`
+    + `dosage` (`Dosage_drug`, required)
++ `medications` (object, required)
+    + `medication_id` : `4a63b858-c138-4921-9341-ae9e384bcbd6` (string, required)
+    + `form`: PILL (string, required) - `Dictionary MEDICATION_FORM`
+    + `dosage` (`Dosage_drug`, required)
+    + `manufacturer` (`Manufacturer`, optional)
++ `medical_program` (`Medical_Program_Response`, required)
++ `reimbursement` (`Reimbursement`, required)
 + `is_active` : true (boolean, required) - flag for activation/deactiovation
 + `medication_request_allowed`: true (boolean, required) - flag whether medications are allowed to be dispensed by the program
+
 
 ## `Medication request Request`
 ### `Medication_request_Request_post_data`
@@ -4927,7 +4965,6 @@ This method is used to process created dispense
 ### `Medication_Dispense_Request`
 + `medication_request_id`: `f08ba3a3-157a-4adc-b65d-737f24f3a1f4` (string, required) - Key for the Medication request 
 + `dispensed_at`: `2017-08-17` (string, required) - date of dispense 
-+ `employee_id`: `6d987b5d-6d72-40bc-9cf7-1304b32ed5bb` (string, required) - Active Pharmacy employee who provides current dispense Identifier
 + `division_id`: `2fc70f30-08dc-493c-8d08-925905d7b1e8` (string, required) - Active legal entity (Pharmacy) division which provides dispense Identifier
 + `medical_program_id`: `6ee844fd-9f4d-4457-9eda-22aa506be4c4` (string, required) - Active medical program within which medications are going to be provided
 + `dispense_details` (array, fixed, required)
@@ -4938,7 +4975,9 @@ This method is used to process created dispense
 + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Dispense Response Identifier
 + `medication_request` (`Medication_request_Public_Response_short`, required) - Medication request 
 + `dispensed_at`: `2017-08-17` (string, required) - date of dispense 
-+ `employee` (`Employee_Short`, required) - Active Pharmacy employee who provides current dispense Identifier
++ `party` (object)
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+    + include `Party_Short`
 + `legal_entity` (`Legal_Entity_Short`, required) - Active legal entity (Pharmacy) the division belongs to Identifier
 + `division` (`Division_Short`, required) - Active legal entity (Pharmacy) division which provides dispense Identifier
 + `medical_program` (`Medical_Program_Response`, required) - Active medical program within which medications are going to be provided
