@@ -4,6 +4,7 @@ defmodule EHealth.Web.LegalEntityController do
   """
   use EHealth.Web, :controller
 
+  alias Scrivener.Page
   alias EHealth.LegalEntity.API
   alias EHealth.PRM.LegalEntities
   alias EHealth.LegalEntity.LegalEntityUpdater
@@ -29,8 +30,8 @@ defmodule EHealth.Web.LegalEntityController do
     params = if is_nil(legal_entity_id),
       do: params,
       else: Map.put(params, "ids", legal_entity_id)
-    with {entities, paging} <- LegalEntities.get_legal_entities(params) do
-      render(conn, "index.json", legal_entities: entities, paging: paging)
+    with %Page{} = paging <- LegalEntities.get_legal_entities(params) do
+      render(conn, "index.json", legal_entities: paging.entries, paging: paging)
     end
   end
 

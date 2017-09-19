@@ -40,7 +40,6 @@ defmodule EHealth.PRM.Parties do
     %Search{}
     |> changeset(params)
     |> search(params, Party, 50)
-    |> preload_users()
   end
 
   def get_party_by_id!(id) do
@@ -52,17 +51,21 @@ defmodule EHealth.PRM.Parties do
   end
 
   def create_party(attrs) do
-    %Party{}
-    |> changeset(attrs)
-    |> PRMRepo.insert
-    |> preload_users()
+    with {:ok, party} <- %Party{}
+                         |> changeset(attrs)
+                         |> PRMRepo.insert()
+    do
+      {:ok, load_references(party)}
+    end
   end
 
   def update_party(%Party{} = party, attrs) do
-    party
-    |> changeset(attrs)
-    |> PRMRepo.update
-    |> preload_users()
+    with {:ok, party} <- party
+                         |> changeset(attrs)
+                         |> PRMRepo.update()
+    do
+      {:ok, load_references(party)}
+    end
   end
 
   defp changeset(%Search{} = search, attrs) do
@@ -85,14 +88,17 @@ defmodule EHealth.PRM.Parties do
 
     phone_number = [%{"number" => number}]
 
-    from e in entity,
-      where: ^params,
-      where: fragment("? @> ?", e.phones, ^phone_number)
+    entity
+    |> where(^params)
+    |> where([e], fragment("? @> ?", e.phones, ^phone_number))
+    |> load_references()
   end
-  def get_search_query(entity, changes), do: super(entity, changes)
+  def get_search_query(entity, changes) do
+    entity
+    |> super(changes)
+    |> load_references()
+  end
 
-  defp preload_users({:ok, party}), do: {:ok, PRMRepo.preload(party, :users)}
-  defp preload_users({:error, _} = error), do: error
-  defp preload_users({parties, paging}), do: {PRMRepo.preload(parties, :users), paging}
-  defp preload_users(err), do: err
+  defp load_references(%Ecto.Query{} = query), do: preload(query, :users)
+  defp load_references(%Party{} = party), do: PRMRepo.preload(party, :users)
 end

@@ -3,14 +3,15 @@ defmodule EHealth.Web.DivisionController do
 
   use EHealth.Web, :controller
 
+  alias Scrivener.Page
   alias EHealth.Divisions.API
   alias EHealth.PRM.Divisions.Schema, as: Division
 
   action_fallback EHealth.Web.FallbackController
 
   def index(%Plug.Conn{req_headers: req_headers} = conn, params) do
-    with {divisions, paging} <- API.search(get_client_id(req_headers), params) do
-      render(conn, "index.json", divisions: divisions, paging: paging)
+    with %Page{} = paging <- API.search(get_client_id(req_headers), params) do
+      render(conn, "index.json", divisions: paging.entries, paging: paging)
     end
   end
 

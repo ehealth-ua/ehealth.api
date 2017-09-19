@@ -3,14 +3,15 @@ defmodule EHealth.Web.EmployeeController do
 
   use EHealth.Web, :controller
 
+  alias Scrivener.Page
   alias EHealth.Employee.API
   alias EHealth.Employee.EmployeeUpdater
 
   action_fallback EHealth.Web.FallbackController
 
   def index(conn, params) do
-    with {employees, %Ecto.Paging{} = paging} <- API.get_employees(params) do
-      render(conn, "index.json", employees: employees, paging: paging)
+    with %Page{} = paging <- API.get_employees(params) do
+      render(conn, "index.json", employees: paging.entries, paging: paging)
     end
   end
 

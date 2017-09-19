@@ -73,7 +73,6 @@ defmodule EHealth.PRM.Employees do
     %Search{}
     |> changeset(params)
     |> search(params, Employee, Confex.get_env(:ehealth, :employees_per_page))
-    |> preload_relations()
   end
 
   def update_all(query, updates) do
@@ -93,12 +92,14 @@ defmodule EHealth.PRM.Employees do
                             |> changeset(attrs)
                             |> PRMRepo.update_and_log(author_id)
     do
-      {:ok, do_preload(employee)}
+      {:ok, load_references(employee)}
     end
   end
 
   def get_search_query(Employee = entity, %{ids: _} = changes) do
-    super(entity, convert_comma_params_to_where_in_clause(changes, :ids, :id))
+    entity
+    |> super(convert_comma_params_to_where_in_clause(changes, :ids, :id))
+    |> load_references()
   end
   def get_search_query(Employee = entity, changes) do
     params =
@@ -107,9 +108,11 @@ defmodule EHealth.PRM.Employees do
       |> Map.to_list()
 
     entity
+    |> select([e], e)
     |> query_tax_id(Map.get(changes, :tax_id))
     |> query_edrpou(Map.get(changes, :edrpou))
     |> where(^params)
+    |> load_references()
   end
 
   defp changeset(%Search{} = employee, attrs) do
@@ -136,13 +139,14 @@ defmodule EHealth.PRM.Employees do
   end
   defp validate_employee_type(changeset), do: changeset
 
-  defp preload_relations({employees, %Ecto.Paging{} = paging}) do
-    {do_preload(employees), paging}
+  defp load_references(%Ecto.Query{} = query) do
+    query
+    |> preload(:party)
+    |> preload(:division)
+    |> preload(:legal_entity)
   end
-  defp preload_relations(err), do: err
-
-  defp do_preload(repo) do
-    repo
+  defp load_references(%Employee{} = employee) do
+    employee
     |> PRMRepo.preload(:party)
     |> PRMRepo.preload(:division)
     |> PRMRepo.preload(:legal_entity)

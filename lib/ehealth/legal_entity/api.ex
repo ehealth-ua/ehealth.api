@@ -6,6 +6,7 @@ defmodule EHealth.LegalEntity.API do
   import EHealth.Utils.Connection, only: [get_consumer_id: 1, get_client_id: 1]
   import EHealth.Plugs.ClientContext, only: [authorize_legal_entity_id: 3]
 
+  alias Scrivener.Page
   alias Ecto.Date
   alias Ecto.UUID
   alias EHealth.PRM.Registries
@@ -53,8 +54,8 @@ defmodule EHealth.LegalEntity.API do
     %{"id" => id, "is_active" => true}
     |> LegalEntities.get_legal_entities
     |> case do
-         {[], _} -> {:error, :not_found}
-         {data, _} -> {:ok, List.first(data)}
+         %Page{entries: []} -> {:error, :not_found}
+         %Page{entries: data} -> {:ok, List.first(data)}
          err -> err
        end
   end

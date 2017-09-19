@@ -2,6 +2,7 @@ defmodule EHealth.Web.DeclarationRequestController do
   @moduledoc false
 
   use EHealth.Web, :controller
+  alias Scrivener.Page
   alias EHealth.DeclarationRequest.API, as: DeclarationRequestAPI
   require Logger
 
@@ -9,8 +10,8 @@ defmodule EHealth.Web.DeclarationRequestController do
 
   def index(conn, params) do
     declaration_requests = DeclarationRequestAPI.list_declaration_requests(params)
-    with {declaration_requests, %Ecto.Paging{} = paging} <- declaration_requests do
-      render(conn, "index.json", declaration_requests: declaration_requests, paging: paging)
+    with %Page{} = paging <- declaration_requests do
+      render(conn, "index.json", declaration_requests: paging.entries, paging: paging)
     end
   end
 

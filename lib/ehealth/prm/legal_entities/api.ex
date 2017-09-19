@@ -75,19 +75,20 @@ defmodule EHealth.PRM.LegalEntities do
   def get_legal_entity_by_params(params) do
     LegalEntity
     |> where(^params)
+    |> load_references()
     |> PRMRepo.one()
-    |> preload_msp()
   end
 
   def get_legal_entities(params \\ %{}) do
     %Search{}
     |> changeset(params)
     |> search(params, LegalEntity, Confex.get_env(:ehealth, :legal_entities_per_page))
-    |> preload_msp()
   end
 
   def get_search_query(LegalEntity = entity, %{ids: _ids} = changes) do
-    super(entity, convert_comma_params_to_where_in_clause(changes, :ids, :id))
+    entity
+    |> super(convert_comma_params_to_where_in_clause(changes, :ids, :id))
+    |> load_references()
   end
 
   def get_search_query(LegalEntity = entity, %{settlement_id: settlement_id} = changes) do
@@ -98,24 +99,27 @@ defmodule EHealth.PRM.LegalEntities do
 
     address_params = [%{settlement_id: settlement_id}]
 
-    from e in entity,
-      where: ^params,
-      where: fragment("? @> ?", e.addresses, ^address_params)
+    entity
+    |> where([e], ^params)
+    |> where([e], fragment("? @> ?", e.addresses, ^address_params))
+    |> load_references()
   end
-  def get_search_query(entity, changes), do: super(entity, changes)
+  def get_search_query(entity, changes) do
+    entity
+    |> super(changes)
+    |> load_references()
+  end
 
   def create_legal_entity(%LegalEntity{} = legal_entity, attrs, author_id) do
     legal_entity
     |> changeset(attrs)
     |> PRMRepo.insert_and_log(author_id)
-    |> preload_msp()
   end
 
   def update_legal_entity(%LegalEntity{} = legal_entity, attrs, author_id) do
     legal_entity
     |> changeset(attrs)
     |> PRMRepo.update_and_log(author_id)
-    |> preload_msp()
   end
 
   def changeset(%Search{} = legal_entity, attrs) do
@@ -135,22 +139,13 @@ defmodule EHealth.PRM.LegalEntities do
   end
   defp validate_msp_required(changeset), do: changeset
 
-  defp preload_msp({legal_entities, %Ecto.Paging{} = paging}) when length(legal_entities) > 0 do
-    {PRMRepo.preload(legal_entities, :medical_service_provider), paging}
-  end
-  defp preload_msp(%LegalEntity{} = legal_entity) do
-    PRMRepo.preload(legal_entity, :medical_service_provider)
-  end
-  defp preload_msp({:ok, legal_entity}) do
-    {:ok, preload_msp(legal_entity)}
-  end
-  defp preload_msp(err) do
-    err
-  end
-
   defp convert_comma_params_to_where_in_clause(changes, param_name, db_field) do
     changes
     |> Map.put(db_field, {String.split(changes[param_name], ","), :in})
     |> Map.delete(param_name)
+  end
+
+  defp load_references(%Ecto.Query{} = query) do
+    preload(query, :medical_service_provider)
   end
 end

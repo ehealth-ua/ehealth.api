@@ -2,6 +2,7 @@ defmodule EHealth.Web.EmployeeRequestController do
   @moduledoc false
 
   use EHealth.Web, :controller
+  alias Scrivener.Page
   alias EHealth.Employee.API
   alias EHealth.API.Mithril
   alias EHealth.Employee.Request
@@ -10,10 +11,10 @@ defmodule EHealth.Web.EmployeeRequestController do
   action_fallback EHealth.Web.FallbackController
 
   def index(conn, params) do
-    with {employee_requests, legal_entities, %Ecto.Paging{} = paging} <- API.list_employee_requests(params) do
+    with {%Page{} = paging, references} <- API.list_employee_requests(params) do
       render(conn, "index.json",
-        employee_requests: employee_requests,
-        legal_entities: legal_entities,
+        employee_requests: paging.entries,
+        references: references,
         paging: paging
       )
     end

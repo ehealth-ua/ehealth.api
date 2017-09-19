@@ -12,9 +12,6 @@ defmodule EHealth.PRM.Employees.Search do
     field :edrpou, :string
     field :employee_type, :string
     field :status, :string
-    field :starting_after, :string
-    field :ending_before, :string
     field :is_active, :boolean
-    field :limit, :integer
   end
 end

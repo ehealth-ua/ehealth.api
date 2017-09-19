@@ -5,6 +5,7 @@ defmodule EHealth.Employee.EmployeeCreator do
 
   import EHealth.Utils.Connection, only: [get_consumer_id: 1]
 
+  alias Scrivener.Page
   alias EHealth.Employee.Request
   alias EHealth.PRM.Employees
   alias EHealth.PRM.Parties.Schema, as: Party
@@ -23,8 +24,8 @@ defmodule EHealth.Employee.EmployeeCreator do
     party = Map.fetch!(data, "party")
     search_params = %{tax_id: party["tax_id"], birth_date: party["birth_date"]}
 
-    with {parties, _} <- Parties.list_parties(search_params),
-         {:ok, party} <- create_or_update_party(parties, party, req_headers),
+    with %Page{} = paging <- Parties.list_parties(search_params),
+         {:ok, party} <- create_or_update_party(paging.entries, party, req_headers),
          {:ok, employee} <- create_employee(party, employee_request, req_headers)
     do
       deactivate_employee_owners(employee, req_headers)
@@ -98,7 +99,7 @@ defmodule EHealth.Employee.EmployeeCreator do
     {:ok, employee}
   end
 
-  def deactivate_employees({employees, _}, current_owner, headers) do
+  def deactivate_employees(%Page{entries: employees}, current_owner, headers) do
     Enum.each(employees, fn(%Employee{} = employee) ->
       case current_owner.id != employee.id do
         true -> deactivate_employee(employee, current_owner, headers)

@@ -3,9 +3,12 @@ defmodule EHealth.Web.EmployeeRequestView do
 
   use EHealth.Web, :view
 
-  def render("index.json", %{employee_requests: employee_requests, legal_entities: legal_entities}) do
+  def render("index.json", %{employee_requests: employee_requests, references: references}) do
     Enum.map(employee_requests, fn request ->
-      legal_entity = Map.get(legal_entities, request.data["legal_entity_id"], %{})
+      legal_entity =
+        references
+        |> Map.get("legal_entities")
+        |> Map.get(request.data["legal_entity_id"], %{})
       %{
         id: request.id,
         status: request.status,

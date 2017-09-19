@@ -105,8 +105,7 @@ defmodule EHealth.DeclarationRequest.API.Sign do
     |> Enum.map(fn(party_user) ->
       %{party_id: party_user.party_id, is_active: true}
       |> Employees.get_employees()
-      |> Tuple.to_list
-      |> List.first
+      |> Map.get(:entries)
     end)
     |> match_employees(employee_id)
   end

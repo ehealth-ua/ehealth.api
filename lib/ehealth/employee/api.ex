@@ -2,7 +2,6 @@ defmodule EHealth.Employee.API do
   @moduledoc false
 
   import Ecto.{Query, Changeset}, warn: false
-  import EHealth.Paging
   import EHealth.Utils.Connection
   import EHealth.LegalEntity.API, only: [get_client_type_name: 2]
   import EHealth.Plugs.ClientContext, only: [authorize_legal_entity_id: 3]
@@ -49,13 +48,17 @@ defmodule EHealth.Employee.API do
     query = from er in Request,
       order_by: [desc: :inserted_at]
 
-    {employee_requests, paging} =
+    page_params = Map.merge(%{
+      page_size: Confex.fetch_env!(:ehealth, :employee_requests_per_page)
+    }, params)
+
+    paging =
       query
       |> filter_by_legal_entity_id(params)
       |> filter_by_status(params)
-      |> Repo.page(get_paging(params, Confex.fetch_env!(:ehealth, :employee_requests_per_page)))
+      |> Repo.paginate(page_params)
     legal_entity_ids =
-      employee_requests
+      paging.entries
       |> Enum.reduce([], fn %{data: data}, acc ->
         id = Map.get(data, "legal_entity_id")
         if id, do: [id | acc], else: acc
@@ -67,7 +70,7 @@ defmodule EHealth.Employee.API do
       |> PRMRepo.all
       |> Enum.into(%{}, &({Map.get(&1, :id), &1}))
 
-    {employee_requests, legal_entities, paging}
+    {paging, %{"legal_entities" => legal_entities}}
   end
 
   defp filter_by_legal_entity_id(query, %{"legal_entity_id" => legal_entity_id}) do
@@ -268,14 +271,8 @@ defmodule EHealth.Employee.API do
 
   def get_employees(params) do
     params
-    |> get_employees_search_params()
+    |> Map.put("is_active", true)
     |> Employees.get_employees()
-  end
-
-  defp get_employees_search_params(params) do
-    Map.merge(params, %{
-      "is_active" => true,
-    })
   end
 
   def get_employee_by_id(id, headers) do

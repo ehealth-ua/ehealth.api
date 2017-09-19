@@ -6,6 +6,7 @@ defmodule EHealth.Plugs.ClientContext do
   use Confex, otp_app: :ehealth
 
   alias EHealth.API.Mithril
+  alias Scrivener.Page
 
   require Logger
 
@@ -100,14 +101,12 @@ defmodule EHealth.Plugs.ClientContext do
   end
 
   defp assign_paging(conn) do
-    paging = %{
-      size: nil,
-      limit: 50,
-      has_more: false,
-      cursors: %{
-        starting_after: nil,
-        ending_before: nil
-      }
+    paging = %Page{
+      entries: [],
+      page_number: 1,
+      page_size: 50,
+      total_entries: 0,
+      total_pages: 1,
     }
     assign(conn, :paging, paging)
   end
