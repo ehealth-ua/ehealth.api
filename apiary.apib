@@ -4916,9 +4916,20 @@ This method is used to process created dispense
     - INVALID
 + `invalid_reason` : ` Innm not on the list of approved innms for program 'DOSTUPNI LIKI' !` (string) - Reason to fetch invalid status
 
+### `Program_medications_for_Qualify`
++ `medication_id`: `59781de0-2e64-4359-b716-bcc05a32c10f`(string, required) -  Medication Identifier
++ `medication_name`: `Аритміл` (string, required) - Medication name
++ `form` :  PILL (string, optional) - `Dictionary MEDICATION_FORM`
++ `manufacturer` (`Manufacturer`, optional)
++ `innm_id`: `5052fcaf-58a0-461b-9e98-d60243a1773e` (string, required) - INNM Identifier
++ `innm_name`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - INNM name
++ `reimbursement_amount`: 15 (number, optional) - Amount to reimburse for one medication_unit by medical_program
+
 ### `Qualify_by_ID_Request_for_Medication_request_Responce`
 + include `Qualify_Medication_request_Request_Responce`
-+ `reimbursement_amount` : `0` (number, required) - Amount of reimbursement
++ `Participants` (array, required)
+    + (object)
+        + include `Program_medications_for_Qualify`
 
 ## `medical_programs`
 ### `medical_programs_request`
