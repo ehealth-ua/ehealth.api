@@ -29,9 +29,10 @@ defmodule EHealth.Validators.SchemaMapper do
     prepare_schema(nex_schema, :employee_additional_info)
   end
 
-  def prepare_medication_schema(%Root{} = nex_schema, type) do
-    # ToDo: implement dictionaries mapping
-
+  def prepare_medication_schema(%Root{} = nex_schema, type) when type in [:medication, :innm] do
+    prepare_schema(nex_schema, type)
+  end
+  def prepare_medication_schema(%Root{} = nex_schema, _type) do
     nex_schema
   end
 
@@ -55,29 +56,32 @@ defmodule EHealth.Validators.SchemaMapper do
   end
 
   def put_dictionary_value(%Dictionary{name: "PHONE_TYPE", values: values}, schema, type)
-  when type in [:legal_entity, :employee_request, :declaration_request]  do
+      when type in [:legal_entity, :employee_request, :declaration_request]  do
 
     put_into_schema(["definitions", "phone", "properties", "type", "enum"], schema, values)
   end
 
   def put_dictionary_value(%Dictionary{name: "DOCUMENT_TYPE", values: values}, schema, type)
-  when type in [:legal_entity, :employee_request, :declaration_request] do
+      when type in [:legal_entity, :employee_request, :declaration_request] do
 
     put_into_schema(["definitions", "document", "properties", "type", "enum"], schema, values)
   end
 
-  def put_dictionary_value(%Dictionary{name: "DOCUMENT_RELATIONSHIP_TYPE", values: values}, schema,
-    :declaration_request) do
+  def put_dictionary_value(
+        %Dictionary{name: "DOCUMENT_RELATIONSHIP_TYPE", values: values},
+        schema,
+        :declaration_request
+      ) do
     put_into_schema(["definitions", "document_relationship", "properties", "type", "enum"], schema, values)
   end
 
   def put_dictionary_value(%Dictionary{name: "ADDRESS_TYPE", values: values}, schema, type)
-    when type in [:legal_entity, :division, :declaration_request] do
+      when type in [:legal_entity, :division, :declaration_request] do
     put_into_schema(["definitions", "address", "properties", "type", "enum"], schema, values)
   end
 
   def put_dictionary_value(%Dictionary{name: "GENDER", values: values}, schema, type)
-    when type in [:legal_entity, :declaration_request, :employee_request] do
+      when type in [:legal_entity, :declaration_request, :employee_request] do
     put_into_schema(~W(definitions gender enum), schema, values)
   end
 
@@ -96,6 +100,10 @@ defmodule EHealth.Validators.SchemaMapper do
   def put_dictionary_value(%Dictionary{name: "ACCREDITATION_CATEGORY", values: values}, schema, :legal_entity) do
     path = ["properties", "medical_service_provider", "properties", "accreditation", "properties", "category", "enum"]
     put_into_schema(path, schema, values)
+  end
+
+  def put_dictionary_value(%Dictionary{name: "COUNTRY", values: values}, schema, :medication) do
+    put_into_schema(~W(definitions manufacturer_object properties country enum), schema, values)
   end
 
   def put_dictionary_value(%Dictionary{name: "COUNTRY", values: values}, schema, :employee_request) do
@@ -149,6 +157,21 @@ defmodule EHealth.Validators.SchemaMapper do
 
   def put_dictionary_value(%Dictionary{name: "AUTHENTICATION_METHOD", values: values}, schema, :declaration_request) do
     put_into_schema(~W(definitions authentication_method properties type enum), schema, values)
+  end
+
+  def put_dictionary_value(%Dictionary{name: "MEDICATION_FORM", values: values}, schema, type)
+      when type in [:medication, :innm] do
+    put_into_schema(~W(properties form enum), schema, values)
+  end
+
+  def put_dictionary_value(%Dictionary{name: "MEDICATION_UNIT", values: values}, schema, type)
+      when type in [:medication, :innm] do
+    values = Map.keys(values)
+    schema =
+      schema
+      |> put_in(~W(definitions dosage_object properties numerator_unit enum), values)
+      |> put_in(~W(definitions dosage_object properties denumerator_unit enum), values)
+    {nil, schema}
   end
 
   def put_dictionary_value(%Dictionary{}, schema, _type) do
