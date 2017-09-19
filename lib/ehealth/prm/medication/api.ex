@@ -39,9 +39,15 @@ defmodule EHealth.PRM.Medication.API do
   ]
 
   @doc false
-  def list_medications(type) do
-    query = from(m in Medication, where: m.type == ^type)
-    PRMRepo.all(query)
+  def list_medications(params, type) do
+    params = Map.put(params, "type", type)
+    data = %{}
+    types = %{id: Ecto.UUID, name: StringLike, form: :string, type: :string}
+
+    {data, types}
+    |> cast(params, Map.keys(types))
+    |> build_search_query(Medication)
+    |> PRMRepo.paginate(params)
   end
 
   @doc false
@@ -133,8 +139,7 @@ defmodule EHealth.PRM.Medication.API do
 
   @doc false
   def list_substances(params) do
-    PRMRepo.all(Substance)
-    data  = %{}
+    data = %{}
     types = %{id: Ecto.UUID, name: StringLike, name_original: StringLike, sctid: :string}
 
     {data, types}

@@ -59,10 +59,44 @@ defmodule EHealth.Web.MedicationControllerTest do
   end
 
   describe "index" do
-    test "lists all medications", %{conn: conn} do
-      conn = get conn, medication_path(conn, :index)
-      assert json_response(conn, 200)["data"] == []
+    test "search by name", %{conn: conn} do
+      %{id: substance_id} = insert(:prm, :substance)
+      innm_data = [
+        name: "Диэтиламид",
+        ingredients: [build(:ingredient, id: substance_id)]
+      ]
+      %{id: innm_id} = insert(:prm, :innm, innm_data)
+
+      medication_data = [
+        name: "Диэтиламид",
+        ingredients: [build(:ingredient, id: innm_id)]
+      ]
+      %{id: medication_id} = insert(:prm, :medication, medication_data)
+
+      conn = get conn, medication_path(conn, :index), name: "этила"
+      assert [medication] = json_response(conn, 200)["data"]
+      assert medication_id == medication["id"]
+      assert "Диэтиламид" == medication["name"]
     end
+
+    test "paging", %{conn: conn} do
+      %{id: medication_id} = fixture(:innm)
+      ingredient = build(:ingredient, id: medication_id)
+      for _ <- 1..21, do: insert(:prm, :medication, ingredients: [ingredient])
+
+      conn = get conn, medication_path(conn, :index), page: 2
+      resp = json_response(conn, 200)
+      assert 10 == length(resp["data"])
+
+      page_meta = %{
+        "page_number" => 2,
+        "page_size" => 10,
+        "total_pages" => 3,
+        "total_entries" => 21
+      }
+      assert page_meta == resp["paging"]
+    end
+
   end
 
   describe "show" do

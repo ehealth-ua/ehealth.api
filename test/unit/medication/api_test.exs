@@ -44,13 +44,6 @@ defmodule EHealth.Medication.APITest do
     insert(:prm, :innm, ingredients: [ingredient])
   end
 
-  test "list_medications/0 returns all medications" do
-    medication_fixture()
-    medication = medication_innm_fixture()
-    [_, medication_from_list] = API.list_medications(Medication.type(:innm))
-    assert medication.name == medication_from_list.name
-  end
-
   test "get_medication!/1 returns the medication with given id" do
     medication = medication_fixture()
     assert API.get_medication!(medication.id).name == medication.name

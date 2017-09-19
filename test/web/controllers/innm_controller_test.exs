@@ -34,10 +34,36 @@ defmodule EHealth.Web.INNMControllerTest do
   end
 
   describe "index" do
-    test "lists all INNMs", %{conn: conn} do
-      conn = get conn, innm_path(conn, :index)
-      assert json_response(conn, 200)["data"] == []
+    test "search by name", %{conn: conn} do
+      %{id: substance_id} = insert(:prm, :substance)
+      ingredient = build(:ingredient, id: substance_id)
+
+      %{id: id} = insert(:prm, :innm, [name: "Сульфід натрію", ingredients: [ingredient]])
+
+      conn = get conn, innm_path(conn, :index), name: "фід на"
+      assert [innm] = json_response(conn, 200)["data"]
+      assert id == innm["id"]
+      assert "Сульфід натрію" == innm["name"]
     end
+
+    test "paging", %{conn: conn} do
+      %{id: substance_id} = insert(:prm, :substance)
+      ingredient = build(:ingredient, id: substance_id)
+      for _ <- 1..21, do: insert(:prm, :innm, ingredients: [ingredient])
+
+      conn = get conn, innm_path(conn, :index), page: 2
+      resp = json_response(conn, 200)
+      assert 10 == length(resp["data"])
+
+      page_meta = %{
+        "page_number" => 2,
+        "page_size" => 10,
+        "total_pages" => 3,
+        "total_entries" => 21
+      }
+      assert page_meta == resp["paging"]
+    end
+
   end
 
   describe "show" do

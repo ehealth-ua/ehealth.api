@@ -2,16 +2,18 @@ defmodule EHealth.Web.INNMController do
   @moduledoc false
   use EHealth.Web, :controller
 
-  alias EHealth.PRM.Medication.API
+  alias Scrivener.Page
   alias EHealth.PRM.Medication
+  alias EHealth.PRM.Medication.API
 
   action_fallback EHealth.Web.FallbackController
 
   @innm Medication.type(:innm)
 
-  def index(conn, _params) do
-    innms = API.list_medications(@innm)
-    render(conn, "index.json", innms: innms)
+  def index(conn, params) do
+    with %Page{} = paging <- API.list_medications(params, @innm) do
+      render(conn, "index.json", innms: paging.entries, paging: paging)
+    end
   end
 
   def create(conn, innm_params) do
