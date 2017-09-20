@@ -3306,7 +3306,7 @@ Invoke Get Medication request Request by ID to obtain seed - Hash of previous bl
 
 ### Reject Medication Request Request [PATCH /api/medication_request_requests/{id}/actions/reject]
 
-Use this method to reject previously created Request for medication request.
+Use this method to reject previously created Medication request Request.
 
 + Parameters
     + `id`: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, required)
@@ -3416,6 +3416,24 @@ Use this method to reject previously created and signed Medication request.
             Authorization: Bearer mF_9.B5f-4.1JqM
 
 + Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 200 (number)
+
+### Resend Medication Request [PATCH /api/medication_requests/{id}/actions/resend]
+
+Use this method to resend SMS for person with info medication request number & verification code.
+
++ Parameters
+    + `id`: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + meta (Response__Meta)
             + code: 200 (number)
