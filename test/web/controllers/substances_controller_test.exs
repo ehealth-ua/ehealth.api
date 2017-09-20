@@ -57,14 +57,22 @@ defmodule EHealth.Web.SubstanceControllerTest do
 
   describe "create substance" do
     test "renders substance when data is valid", %{conn: conn} do
-      conn_c = post conn, substance_path(conn, :create), @create_attrs
-      assert %{"id" => id} = json_response(conn_c, 201)["data"]
+      conn = post conn, substance_path(conn, :create), @create_attrs
+      assert %{"id" => id} = json_response(conn, 201)["data"]
 
       conn = get conn, substance_path(conn, :show, id)
       data = json_response(conn, 200)["data"]
       Enum.each(@create_attrs, fn {field, value} ->
         assert value == Map.get(data, to_string(field))
       end)
+    end
+
+    test "duplicate name", %{conn: conn} do
+      conn_c = post conn, substance_path(conn, :create), @create_attrs
+      json_response(conn_c, 201)["data"]
+
+      conn = post conn, substance_path(conn, :create), @create_attrs
+      json_response(conn, 422)
     end
 
     test "renders errors when data is invalid", %{conn: conn} do

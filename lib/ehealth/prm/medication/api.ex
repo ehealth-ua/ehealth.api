@@ -114,6 +114,7 @@ defmodule EHealth.PRM.Medication.API do
   def changeset(%Substance{} = substance, attrs) do
     substance
     |> cast(attrs, @fields_substance_required ++ @fields_substance_optional)
+    |> unique_constraint(:sctid)
     |> validate_required(@fields_substance_required)
   end
 
