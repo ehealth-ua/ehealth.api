@@ -17,14 +17,18 @@
           "description": "Dictionary: MEDICATION_UNIT"
         },
         "numerator_value": {
-          "type": "number"
+          "type": "number",
+          "minimum": 0,
+          "exclusiveMinimum": true
         },
         "denumerator_unit": {
           "type": "string",
           "description": "Dictionary: MEDICATION_UNIT"
         },
         "denumerator_value": {
-          "type": "number"
+          "type": "number",
+          "minimum": 0,
+          "exclusiveMinimum": true
         }
       },
       "required": [
