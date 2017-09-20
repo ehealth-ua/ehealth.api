@@ -1527,7 +1527,7 @@ Method returns list of medical programs filtering by parameters. By default meth
 + Request (application/json)
 
 + Response 201 (application/json)
-    + Attributes (Response__Process_OK)
+    + Attributes (`Response_Collection_V2`)
         + meta (Response__Meta)
             + code: 201 (number)
         + data (array[medical_programs_list])
@@ -1620,7 +1620,7 @@ This method is used to update flags "is_active" and/or "medication_request_allow
             + type: unverified (string, required)
             + message: `Medications are already inactive in this program` (string, required)
 
-### Get Program medications list [GET /program_medications{?id,medical_program_id,medical_program_name,innm_id,innm_name,medication_id,medication_name,starting_after,ending_before,limit}]
+### Get Program medications list [GET /program_medications{?id,medical_program_id,medical_program_name,innm_id,innm_name,medication_id,medication_name,page_number,page_size}]
 Method returns list of participants(medications) of medical programs filtering by parameters.  
 
 **Scopes required:** `program_medications:read`
@@ -1633,14 +1633,14 @@ Method returns list of participants(medications) of medical programs filtering b
     + `innm_name`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - INNM name
     + `medication_id`:  `PILL` (string, optional) - Medication Identifier.
     + `medication_name`: `Аритміл` (string, optional) - Medication name.
-    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
-    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
-    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
+    + `page_number`: 2 (number) - Page number.    
+    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+
 
 + Request (application/json)
 
 + Response 201 (application/json)
-    + Attributes (Response__Process_OK)
+    + Attributes (`Response_Collection_V2`)
         + meta (Response__Meta)
             + code: 201 (number)
         + data (array[Program_medications_List])
@@ -3402,9 +3402,9 @@ Method returns shortened details, to obtain full information - get Medication re
     + Attributes (Response_Collection)
         + data (array[`Medication_request_Public_Response`]) 
 
-### Recall Medication Request [PATCH /api/medication_requests/{id}/actions/recall]
+### Reject Medication Request [PATCH /api/medication_requests/{id}/actions/reject]
 
-Use this method to recall previously created and signed Medication request.
+Use this method to reject previously created and signed Medication request.
 
 + Parameters
     + `id`: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, required)
@@ -4819,18 +4819,26 @@ This method is used to process created dispense
 + `reimbursement_amount`: 15 (number, optional) - Amount to reimburse for one medication_unit by medical_program
 
 ### `Program_medications_ID`
-+ `id` : `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ `id` : `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - program_medications_id
 + `innm` (object, required)
-    + `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required)
-    + `name`: `Аміодарон` (string, required) - substance local name
-    + `name_original`: `Amiodarone` (string, optional) - substance original name
-    + `form`: PILL (string, required) - `Dictionary MEDICATION_FORM`
-    + `dosage` (`Dosage_drug`, required)
+    + `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required) - innm id
+    + `name`: `Аміодарон` (string, required) - innm name
+    + `form`: PILL (string, required) - `Dictionary MEDICATION_FORM` - innm form
+    + `ingredients` (array, required)
+        + (object)
+            + include (`Dosage_drug`, required) - substances dosage in innm
+            + `substance_name`: `Аміодарон` (string, optional) - substance name
+            + `is_active_substance` : true (boolean, required) 
 + `medications` (object, required)
     + `medication_id` : `4a63b858-c138-4921-9341-ae9e384bcbd6` (string, required)
-    + `form`: PILL (string, required) - `Dictionary MEDICATION_FORM`
-    + `dosage` (`Dosage_drug`, required)
-    + `manufacturer` (`Manufacturer`, optional)
+    + `name`: `Аміодарон 5мг` (string, required) - medication name 
+    + `form`: PILL (string, required) - `Dictionary MEDICATION_FORM` - medication form
+    + `manufacturer` (`Manufacturer`, optional) 
+    + `ingredients` (array, required)
+        + (object)
+            + include (`Dosage_drug`, required) - innm dosage in medication
+            + `innm_name`: `Аміодарон`(string, required) 
+            + `is_active_substance` : true (boolean, required) 
 + `medical_program` (`Medical_Program_Response`, required)
 + `reimbursement` (`Reimbursement`, required)
 + `is_active` : true (boolean, required) - flag for activation/deactiovation
