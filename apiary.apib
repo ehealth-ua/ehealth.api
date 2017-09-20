@@ -1215,7 +1215,7 @@ Method returns substance details by ID.
         + data (object)
             + include `Substance_Response`
 
-### Get Substances List [GET /substances{?id,sctid,name,name_original,starting_after,ending_before,limit}]
+### Get Substances List [GET /substances{?id,sctid,name,name_original,page_number,page_size}]
 
 Use this method to obtain list of Substances. If you want to reduce amount of data that is going trough your application, use filter and show only substances is interested in current UI section.
 
@@ -1226,9 +1226,8 @@ Use this method to obtain list of Substances. If you want to reduce amount of da
     + `sctid`: `52574003` (string, optional) - Substance CNOMED code.
     + `name`: `Аміодарон` (string, optional) - Substance local name.
     + `name_original`: `Amiodarone` (string, optional) - Substance original name.
-    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
-    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
-    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
+    + page_number: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 + Request (application/json)
 
@@ -1237,7 +1236,7 @@ Use this method to obtain list of Substances. If you want to reduce amount of da
             Authorization: Bearer mF_9.B5f-4.1JqM
 
 + Response 200 (application/json)
-    + Attributes (Response_Collection)
+    + Attributes (`Response_Collection_V2`)
         + data (array[`Substance_Response_Short`]) 
 
 
@@ -1322,7 +1321,7 @@ Method returns INNM details by ID.
         + data (object)
             + include `INNM_Response`
 
-### Get INNMs List [GET /innms{?id,name,form,starting_after,ending_before,limit}]
+### Get INNMs List [GET /innms{?id,name,form,page_number,page_size}]
 
 Use this method to obtain list of INNMs. If you want to reduce amount of data that is going trough your application, use filter and show only INNMs is interested in current UI section.
 
@@ -1332,9 +1331,8 @@ Use this method to obtain list of INNMs. If you want to reduce amount of data th
     + `id`: `7124259c-eeb1-4cbb-acac-ada2162675d1` (string, optional) - `INNM Identifier.`
     + `name`: `Аміодарон` (string, optional) - `Substance local name.`
     + `form`:  `PILL` (string, required) - `Dictionary MEDICATION_FORM`
-    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
-    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
-    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
+    + page_number: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 + Request (application/json)
 
@@ -1343,7 +1341,7 @@ Use this method to obtain list of INNMs. If you want to reduce amount of data th
             Authorization: Bearer mF_9.B5f-4.1JqM
 
 + Response 200 (application/json)
-    + Attributes (Response_Collection)
+    + Attributes (`Response_Collection_V2`)
         + data (array[`INNM_Response_Short`]) 
 
 ## Medications [/medications] 
@@ -1427,7 +1425,7 @@ Method returns Medication details by ID.
         + data (object)
             + include `Medication_Response`
 
-### Get Medications List [GET /medications{?id,innm_id,name,innm_name,form,starting_after,ending_before,limit}]
+### Get Medications List [GET /medications{?id,innm_id,name,innm_name,form,page_number,page_size}]
 
 Use this method to obtain list of Medications. If you want to reduce amount of data that is going trough your application, use filter and show only Medications is interested in current UI section.
 
@@ -1439,9 +1437,8 @@ Use this method to obtain list of Medications. If you want to reduce amount of d
     + `name`: `Аритміл` (string, optional) - `Medication name.`
     + `innm_name`: `Аміодарон` (string, optional) - `INNM name.`
     + `form`:  `PILL` (string, required) - `Dictionary MEDICATION_FORM`
-    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
-    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
-    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
+    + page_number: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 + Request (application/json)
 
@@ -1450,8 +1447,8 @@ Use this method to obtain list of Medications. If you want to reduce amount of d
             Authorization: Bearer mF_9.B5f-4.1JqM
 
 + Response 200 (application/json)
-    + Attributes (Response_Collection)
-        + data (array[`Medication_Response_Short`])
+     + Attributes (`Response_Collection_V2`)
+       + data (array[`Medication_Response_Short`])
 
 ## Medical programs [/medical_programs]
 
@@ -3119,7 +3116,7 @@ Get list of cities by district
 
 ## Drugs [/drugs]
 
-### Get drugs list [GET /drugs{?substanse_id,substanse_name,substanse_sctid,form,medication_id,medication_name,medication_code_ATX,limit,starting_after,ending_before}]
+### Get drugs list [GET /drugs{?substanse_id,substanse_name,substanse_sctid,form,medication_id,medication_name,medication_code_ATX,page_number,page_size}]
 
 + Parameters
     + `substanse_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional)
@@ -3129,9 +3126,8 @@ Get list of cities by district
     + `medication_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional)
     + `medication_name`: `Аміодарон 200мг таблетки` (string, optional)
     + `medication_code_ATX`: `С01BD01` (string, optional)
-    + `limit`: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
-    + `starting_after`: `56c31536a60ad644060041af` (string, optional) - A cursor to fetch next page. Taken from collection response.
-    + `ending_before`: `56c31536a60ad644060041aa` (string, optional) - A cursor to fetch previous page. Taken from collection response.
+    + page_number: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 
 + Request (application/json)
@@ -3141,7 +3137,7 @@ Get list of cities by district
             Authorization: Bearer mF_9.B5f-4.1JqM
 
 + Response 200 (application/json)
-    + Attributes (Response_Collection)
+    + Attributes (`Response_Collection_V2`)
         + meta (Response__Meta)
             + code: 200 (number)
         + data (array[Drug_Response])
@@ -3157,7 +3153,7 @@ After Medication request Request is signed it will be automatically moved to [Me
 
 > **Important:** Dispense of Medications under this Medication Request is possible in period between dispense_valid_from and dispense_valid_to
 
-### Get Medication Request Requests List [GET /api/medication_request_requests{?employee_id,legal_entity_id,status,starting_after,ending_before,limit}]
+### Get Medication Request Requests List [GET /api/medication_request_requests{?employee_id,legal_entity_id,status,page_number,page_size}]
 
 Use this method to obrain list of Requests for Medication request an `employee_id`. If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor is interested in current UI section.
 
@@ -3173,9 +3169,8 @@ Method returns shortened details, to obtain full information - get Request for M
         - SIGNED
         - EXPIRED
         - REJECTED
-    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
-    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
-    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
+    + page_number: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 + Request (application/json)
 
@@ -3184,7 +3179,7 @@ Method returns shortened details, to obtain full information - get Request for M
             Authorization: Bearer mF_9.B5f-4.1JqM
 
 + Response 200 (application/json)
-    + Attributes (Response_Collection)
+    + Attributes (`Response_Collection_V2`)
         + data (array[`Medication_request_Request_Public_Response_short`]) 
  
 
@@ -3373,7 +3368,7 @@ Use this method to obrain full information of Medication request an `id`.
         + data (object)
             + include `Medication_request_Public_Response`
 
-### Get Medication requests List [GET /api/medication_requests{?employee_id,person_id,status,starting_after,ending_before,limit}]
+### Get Medication requests List [GET /api/medication_requests{?employee_id,person_id,status,page_number,page_size}]
 
 Use this method to obrain list of Medication request an `employee_id` or/and `person_id`. If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor is interested in current UI section.
 
@@ -3388,9 +3383,8 @@ Method returns shortened details, to obtain full information - get Medication re
         - ACTIVE
         - COMPLETED
         - STOPPED
-    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
-    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
-    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
+    + page_number: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 + Request (application/json)
 
@@ -3399,7 +3393,7 @@ Method returns shortened details, to obtain full information - get Medication re
             Authorization: Bearer mF_9.B5f-4.1JqM
 
 + Response 200 (application/json)
-    + Attributes (Response_Collection)
+   + Attributes (`Response_Collection_V2`)
         + data (array[`Medication_request_Public_Response`]) 
 
 ### Reject Medication Request [PATCH /api/medication_requests/{id}/actions/reject]
@@ -3511,9 +3505,9 @@ This method is used to process created dispense
     + legal_entity_id: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, optional) - Legal entity ID
     + division_id: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, optional) - Division ID
     + status: PROCESSED (string, optional) - Status
-    + page_number: 2 (number, optional)
-    + page_size: 50 (number, optional)
-    
+    + page_number: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+
 
 + Request (application/json)
 
