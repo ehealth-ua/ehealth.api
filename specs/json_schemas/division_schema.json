@@ -89,11 +89,7 @@
     },
     "type": {
       "type": "string",
-      "enum": [
-        "CLINIC",
-        "AMBULANT_CLINIC",
-        "FAP"
-      ]
+      "description": "Dictionary DIVISION_TYPE"
     },
     "external_id": {
       "type": "string"
