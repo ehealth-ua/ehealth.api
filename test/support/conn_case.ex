@@ -52,6 +52,8 @@ defmodule EHealth.Web.ConnCase do
     {:ok, conn: conn}
   end
 
+  def consumer_id_header, do: @header_consumer_id
+
   defp put_client_id(conn, true), do: put_client_id_header(conn)
   defp put_client_id(conn, _), do: conn
 

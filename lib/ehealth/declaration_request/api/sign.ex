@@ -10,6 +10,7 @@ defmodule EHealth.DeclarationRequest.API.Sign do
   alias EHealth.DeclarationRequest.API
   alias EHealth.PRM.Employees
   alias EHealth.PRM.PartyUsers
+  alias EHealth.PRM.PartyUsers.Schema, as: PartyUser
 
   require Logger
 
@@ -91,32 +92,27 @@ defmodule EHealth.DeclarationRequest.API.Sign do
     Enum.find(employees, fn(employee) -> employee_id == employee.id end)
   end
 
-  defp match_employees(results, employee_id) do
-    find_result = Enum.find(results, fn(data) -> find_employee(data, employee_id) != nil end)
-
-    case find_result do
+  defp check_employees(%PartyUser{party_id: party_id}, employee_id) do
+    employee =
+      %{party_id: party_id, is_active: true}
+      |> Employees.get_employees()
+      |> Map.get(:entries)
+      |> find_employee(employee_id)
+    case employee do
       nil -> {:error, :forbidden}
       _ -> :ok
     end
   end
 
-  defp check_employees(party_users, employee_id) do
-    party_users
-    |> Enum.map(fn(party_user) ->
-      %{party_id: party_user.party_id, is_active: true}
-      |> Employees.get_employees()
-      |> Map.get(:entries)
-    end)
-    |> match_employees(employee_id)
-  end
-
   def check_employee_id({:ok, {content, db_data}}, headers) do
     employee_id = get_in(content, ["employee", "id"])
     with consumer_id <- get_consumer_id(headers),
-         {:ok, party_users} <- PartyUsers.get_party_users_by_user_id(consumer_id),
-         :ok <- check_employees(party_users, employee_id)
+         %PartyUser{} = party_user <- PartyUsers.get_party_users_by_user_id(consumer_id),
+         :ok <- check_employees(party_user, employee_id)
    do
      {:ok, {content, db_data}}
+   else
+     nil -> {:error, :forbidden}
    end
   end
   def check_employee_id(err, _headers), do: err

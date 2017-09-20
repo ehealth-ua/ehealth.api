@@ -11,8 +11,14 @@ defmodule EHealth.Web.EmployeesControllerTest do
   test "gets only employees that have legal_entity_id == client_id", %{conn: conn} do
     legal_entity = insert(:prm, :legal_entity, id: UUID.generate())
     %{id: legal_entity_id} = legal_entity
-    insert(:prm, :employee, legal_entity: legal_entity)
-    insert(:prm, :employee, legal_entity: legal_entity, employee_type: Employee.type(:pharmacist))
+    party1 = insert(:prm, :party, tax_id: "2222222225")
+    party2 = insert(:prm, :party, tax_id: "2222222224")
+    insert(:prm, :employee, legal_entity: legal_entity, party: party1)
+    insert(:prm, :employee,
+      legal_entity: legal_entity,
+      employee_type: Employee.type(:pharmacist),
+      party: party2
+    )
     conn = put_client_id_header(conn, legal_entity_id)
     conn = get conn, employee_path(conn, :index)
     resp = json_response(conn, 200)
@@ -63,9 +69,11 @@ defmodule EHealth.Web.EmployeesControllerTest do
   end
 
   test "get employees by NHS ADMIN", %{conn: conn} do
+    party1 = insert(:prm, :party, tax_id: "2222222225")
+    party2 = insert(:prm, :party, tax_id: "2222222224")
     legal_entity = insert(:prm, :legal_entity, id: MockServer.get_client_admin())
-    insert(:prm, :employee, legal_entity: legal_entity)
-    insert(:prm, :employee, legal_entity: legal_entity)
+    insert(:prm, :employee, legal_entity: legal_entity, party: party1)
+    insert(:prm, :employee, legal_entity: legal_entity, party: party2)
     conn = put_client_id_header(conn, legal_entity.id)
     conn = get conn, employee_path(conn, :index)
     resp = json_response(conn, 200)["data"]
@@ -122,7 +130,8 @@ defmodule EHealth.Web.EmployeesControllerTest do
   describe "get employee by id" do
     test "with party, division, legal_entity", %{conn: conn} do
       legal_entity = insert(:prm, :legal_entity, id: "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
-      employee = insert(:prm, :employee, legal_entity: legal_entity)
+      party1 = insert(:prm, :party, tax_id: "2222222225")
+      employee = insert(:prm, :employee, legal_entity: legal_entity, party: party1)
 
       conn = put_client_id_header(conn, legal_entity.id)
       conn1 = get conn, employee_path(conn, :show, employee.id)
@@ -135,9 +144,11 @@ defmodule EHealth.Web.EmployeesControllerTest do
       resp = json_response(conn1, 200)["data"]
       :ok = NExJsonSchema.Validator.validate(schema, resp)
 
+      party2 = insert(:prm, :party, tax_id: "2222222224")
       employee = insert(:prm, :employee,
         legal_entity: legal_entity,
-        employee_type: Employee.type(:pharmacist)
+        employee_type: Employee.type(:pharmacist),
+        party: party2
       )
 
       conn2 = get conn, employee_path(conn, :show, employee.id)
@@ -208,7 +219,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
 
   describe "deactivate employee" do
     setup %{conn: conn} do
-      party = insert(:prm, :party)
+      party = insert(:prm, :party, tax_id: "2222222225")
       insert(:prm, :party_user, party: party)
       insert(:prm, :party_user, party: party)
       legal_entity = insert(:prm, :legal_entity)

@@ -17,7 +17,7 @@ defmodule EHealth.PRM.PartyUsers do
 
   def get_party_user_by_id(id), do: PRMRepo.get(PartyUser, id)
 
-  def get_party_users_by_user_id(user_id), do: get_party_users(%{user_id: user_id})
+  def get_party_users_by_user_id(user_id), do: PRMRepo.get_by(PartyUser, user_id: user_id)
 
   def get_party_users_by_party_id(party_id), do: get_party_users(%{party_id: party_id})
 
@@ -27,6 +27,7 @@ defmodule EHealth.PRM.PartyUsers do
         party_users =
           PartyUser
           |> where([pu], ^Map.to_list(changeset.changes))
+          |> preload(:party)
           |> PRMRepo.all
         {:ok, party_users}
 

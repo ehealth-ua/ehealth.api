@@ -8,6 +8,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   alias EHealth.Employee.Request
   alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
   alias EHealth.PRM.Employees.Schema, as: Employee
+  alias EHealth.PRM.PartyUsers.Schema, as: PartyUser
   alias EHealth.MockServer
 
   @moduletag :with_client_id
@@ -628,7 +629,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
   test "can approve employee request with employee_id'", %{conn: conn} do
     employee = insert(:prm, :employee)
-    insert(:prm, :party, id: "01981ab9-904c-4c36-88ab-959a94087483")
+    insert(:prm, :party, id: "01981ab9-904c-4c36-88ab-959a94087483", tax_id: "2222222225")
     %{id: division_id} = insert(:prm, :division)
     data =
       employee_request_data()
@@ -655,6 +656,39 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     conn_resp = post conn, employee_request_path(conn, :approve, id)
     resp = json_response(conn_resp, 403)
     assert "Employee request is expired" == resp["error"]["message"]
+  end
+
+  test "cannot approve employee request with existing user_id", %{conn: conn} do
+    party = insert(:prm, :party, tax_id: "2222222225")
+    %PartyUser{user_id: user_id} = insert(:prm, :party_user, party: party)
+    request_data =
+      employee_request_data()
+      |> Map.delete("employee_id")
+      |> put_in(~w(party email)a, "mis_bot_1493831618@user.com")
+    %{id: id, data: data} = insert(:il, :employee_request, data: request_data)
+    conn = put_client_id_header(conn, data.legal_entity_id)
+    conn = Plug.Conn.put_req_header(conn, consumer_id_header(), user_id)
+    conn_resp = post conn, employee_request_path(conn, :approve, id)
+    resp = json_response(conn_resp, 409)
+    assert "Email is already used by another person" == resp["error"]["message"]
+  end
+
+  test "cannot approve employee request with existing user_id and party_id, but wrong party_user", %{conn: conn} do
+    tax_id = "2222222225"
+    party = insert(:prm, :party, tax_id: tax_id)
+    %PartyUser{user_id: user_id} = insert(:prm, :party_user, party: party)
+    request_data =
+      employee_request_data()
+      |> Map.delete("employee_id")
+      |> put_in(~w(party email)a, "mis_bot_1493831618@user.com")
+      |> put_in(~w(party tax_id)a, tax_id)
+      |> put_in(~w(party birth_date)a, party.birth_date)
+    %{id: id, data: data} = insert(:il, :employee_request, data: request_data)
+    conn = put_client_id_header(conn, data.legal_entity_id)
+    conn = Plug.Conn.put_req_header(conn, consumer_id_header(), user_id)
+    conn_resp = post conn, employee_request_path(conn, :approve, id)
+    resp = json_response(conn_resp, 409)
+    assert "Email is already used by another person" == resp["error"]["message"]
   end
 
   test "can reject employee request if email matches", %{conn: conn} do

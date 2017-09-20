@@ -10,6 +10,7 @@ defmodule EHealth.Employee.EmployeeCreator do
   alias EHealth.PRM.Employees
   alias EHealth.PRM.Parties.Schema, as: Party
   alias EHealth.PRM.Employees.Schema, as: Employee
+  alias EHealth.PRM.PartyUsers.Schema, as: PartyUser
   alias EHealth.PRM.Parties
   alias EHealth.PRM.PartyUsers
   alias EHealth.Employee.EmployeeUpdater
@@ -23,8 +24,10 @@ defmodule EHealth.Employee.EmployeeCreator do
   def create(%Request{data: data} = employee_request, req_headers) do
     party = Map.fetch!(data, "party")
     search_params = %{tax_id: party["tax_id"], birth_date: party["birth_date"]}
+    user_id = get_consumer_id(req_headers)
 
     with %Page{} = paging <- Parties.list_parties(search_params),
+         :ok <- check_party_user(user_id, paging.entries),
          {:ok, party} <- create_or_update_party(paging.entries, party, req_headers),
          {:ok, employee} <- create_employee(party, employee_request, req_headers)
     do
@@ -125,5 +128,21 @@ defmodule EHealth.Employee.EmployeeCreator do
       "updated_by" => get_consumer_id(req_headers),
     }
     Map.merge(data, map)
+  end
+
+  defp check_party_user(user_id, []) do
+    with nil <- PartyUsers.get_party_users_by_user_id(user_id) do
+      :ok
+    else
+      _ -> {:error, {:conflict, "Email is already used by another person"}}
+    end
+  end
+  defp check_party_user(user_id, [%Party{id: party_id}]) do
+    with nil <- PartyUsers.get_party_users_by_user_id(user_id) do
+      :ok
+    else
+      %PartyUser{party: %Party{id: id}} when id == party_id -> :ok
+      _ -> {:error, {:conflict, "Email is already used by another person"}}
+    end
   end
 end
