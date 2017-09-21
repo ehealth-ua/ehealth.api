@@ -1586,10 +1586,12 @@ This method is used to create new participant of a program - to link exsiting ac
             + type: unverified (string, required)
             + message: `This program is inactive` (string, required)
 
-### Update Program medications [PATCH /program_medications/]
+### Update Program medications [PUT /program_medications/{id}]
 This method is used to update flags "is_active" and/or "medication_request_allowed" for Medication within Medical_program. Fields descriptions are listed in request Example view.
 **Scopes required:** `program_medications:write`
 
++ Parameters
+    + id: `b3af52d9-e5c0-4876-b717-0dc954a69a28` (string, required) - Record id
 
 + Request (application/json)
 
@@ -1599,13 +1601,10 @@ This method is used to update flags "is_active" and/or "medication_request_allow
 
     + Attributes (object)
        + include (`Program_medications_Update_Request`, required)
-       + `is_active`: true (boolean, required)
-       + `medication_request_allowed`: true (boolean, required)
 
-+ Response 201 (application/json)
++ Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + meta (Response__Meta)
-            + code: 201 (number)
         + data (object)
             + include `Program_medications_Response`
 
@@ -1636,11 +1635,10 @@ Method returns list of participants(medications) of medical programs filtering b
 
 + Request (application/json)
 
-+ Response 201 (application/json)
++ Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
         + meta (Response__Meta)
-            + code: 201 (number)
-        + data (array[Program_medications_List])
+        + data (array[`Program_medications_Response`])
 
 ### Get Program medications by id [GET /program_medications/{id}]
 Method returns participants(medications) of medical programs details by ID.
@@ -1656,12 +1654,11 @@ Method returns participants(medications) of medical programs details by ID.
 
             Authorization: Bearer mF_9.B5f-4.1JqM
 
-+ Response 201 (application/json)
++ Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + meta (Response__Meta)
-            + code: 201 (number)
         + data (object)
-            + include `Program_medications_ID`
+            + include `Program_medications_Response`
 
             
 # Group Internal. Gandalf
@@ -3185,7 +3182,7 @@ Method returns shortened details, to obtain full information - get Request for M
 
 ### Get Medication Request Request by ID [GET /api/medication_request_requests/{id}]
 
-Use this method to obrain full information of Request for Medication request an `id`.
+Use this method to obrain full information of Medication request Request an `id`.
 
 + Parameters
     + id: `48416485-cc98-46c4-8bba-e321de9e1ecd` (string, required) - request id
@@ -4316,6 +4313,12 @@ This method is used to process created dispense
 
 ## Shared
 
+### `System_Logging`
++ inserted_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ inserted_by: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
++ updated_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ updated_by: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
+
 ### Address
 + type: RESIDENCE (string, required) - `Dictionary ADDRESS_TYPE`
 + country: UA (enum[string], required) - `Dictionary COUNTRY`
@@ -4721,7 +4724,7 @@ This method is used to process created dispense
 + `form`: PILL (string, required) - `Dictionary MEDICATION_FORM`
 + `dosage` (`Dosage_drug`, required)
 + `container` (`Dosage_container`, required)
-+ `request_qty`: 10 (number, required)
++ `medication_qty`: 10 (number, required) - Medication quantity isuued by the doctor
 
 ### `Manufacturer`
 + `name` : `ПАТ "Київський вітамінний завод"` (string, required) 
@@ -4729,6 +4732,7 @@ This method is used to process created dispense
 
 ### `Ingredient`
 + `id` : `1349a693-4db1-4a3f-9ac6-8c2f9e541982` (string, required)
++ `name` : `Амідарон` (string, required)
 + `dosage` (`Dosage_drug`, required)
 + `is_active_substance` : true (boolean, required) 
 
@@ -4797,26 +4801,29 @@ This method is used to process created dispense
 ### `Program_medications_Request`
 + `medication_id`: `59781de0-2e64-4359-b716-bcc05a32c10f`(string, required) -  Medication Identifier
 + `medical_program_id`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required) -  Medical program Identifier
-+ `Reimbursement` (object, required)
++ `medication_request_allowed`: true (boolean, required) - indicator whether medication is allowed to use in new medication request
++ `reimbursement` (object, required)
     + include `Reimbursement`
 
 ### `Program_medications_Update_Request`
-+ `medication_id`: `59781de0-2e64-4359-b716-bcc05a32c10f`(string, required) - Medication Identifier
-+ `medical_program_id`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required) - Medical program Identifier
++ `is_active`: true (boolean, required)
++ `medication_request_allowed`: true (boolean, required)
++ `reimbursement` (object, required)
+    + include `Reimbursement`
 
 ### `Reimbursement`
-+ `type`: `fixed` (string, required) - fixed or external type of reimburesment
++ `type`: `fixed` (string, required) - fixed or external type of reimburesment (Dictionary REIMBURSEMENT_TYPE)
 + `reimbursement_amount`: 15 (number, optional) - Amount to reimburse for one medication_unit by medical_program
 
 ### `Program_medications_Response`
 + `id` : `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) 
-+ include `Program_medications_Request`
++ `medication` (`Medication_Response_Short`, required)
++ `medical_program` (`Medical_Program_Response`, required)
++ `medication_request_allowed`: true (boolean, required) - indicator whether medication is allowed to use in new medication request
++ `reimbursement` (object, required)
+    + include `Reimbursement`
 + `is_active` : true (boolean, required) - flag for activation/deactiovation
-+ `medication_request_allowed`: true (boolean, required) - flag whether medications are allowed to be dispensed by the program 
-+ inserted_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
-+ inserted_by: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
-+ updated_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
-+ updated_by: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
++ include `System_Logging`
 
 ### `Program_medications_List`
 + `id` : `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
