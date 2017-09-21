@@ -3177,7 +3177,7 @@ Method returns shortened details, to obtain full information - Get Medication re
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
-        + data (array[`Medication_request_Request_Public_Response_short`]) 
+        + data (array[`Medication_request_Request_Public_Response`]) 
  
 
 ### Get Medication Request Request by ID [GET /api/medication_request_requests/{id}]
@@ -3294,7 +3294,7 @@ Invoke Get Medication request Request by ID to obtain seed - Hash of previous bl
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
-        + data (`Medication_request_Public_Response_short`)
+        + data (`Medication_request_Public_Response`)
 
 ### Reject Medication Request Request [PATCH /api/medication_request_requests/{id}/actions/reject]
 
@@ -3379,7 +3379,7 @@ Method returns shortened details, to obtain full information - get Medication re
     + `status`: `ACTIVE` (enum, optional). Default `ACTIVE` 
         - ACTIVE
         - COMPLETED
-        - STOPPED
+        - EXPIRED
     + page_number: 2 (number, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
@@ -4890,7 +4890,6 @@ This method is used to process created dispense
 + `medication_id` : `1349a693-4db1-4a3f-9ac6-8c2f9e541982` (string, required) - Medication identified
 + `medication_qty`: 10 (number, required) - Medication quantity isuued by the doctor
 
-
 ### `Medication_request_Request_Public_Response`
 + `request_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Request request identifier
 + `status`: `NEW` (string, required) - Medication Request status. Find available **statuses** on State Charts wiki page
@@ -4907,39 +4906,6 @@ This method is used to process created dispense
 + `person` (`Person_Short`)            
 + `medication` (`Innm_for_Medication_request_Responce`, required)
 + `medical_program` (`Medical_Program_Response`, required)
-
-### `Medication_request_Request_Public_Response_short`
-+ `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Request request identifier
-+ `status`: `NEW` (string, required) - Medication request Request status. Find available **statuses** on State Charts wiki page
-+ `request_number` : `xxxx` (string) - Public medication request human readable number
-+ `created_at`: `2017-08-17` (string, required) - Medication request creation date, which is determined by the external system. Format *DATE '2017-09-07'*
-+ `started_at`: `2017-08-17` (string, required) - Start date of a treatment period, which is determined by the external system. Greater or equal to **created_at**. Format *DATE '2017-09-07'*
-+ `ended_at`: `2017-09-16` (string, required) - End date of a treatment period, which is determined by the external system. Greater or equal to **started_at**. Format *DATE '2017-10-07'*
-+ `dispense_valid_from`: `2017-08-17` (string, required) - Start date of dispense period, which is determined by the external system. Format *DATE '2017-09-07'*
-+ `dispense_valid_to`: `2017-09-16` (string, required) - End date of dispense period, which is determined by the external system. Greater or equal to **dispense_valid_from**. Format *DATE '2017-10-07'*
-+ `person_id`: `5fb57a5d-1457-430e-9678-c81cec72779f` (string, required)
-+ `legal_entity_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-+ `division_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-+ `employee_id`: `73769751-f84c-44b4-bdba-71b77efa204e` (string, required)
-+ `innm` (`Innm_for_Medication_request_Responce`, required)
-
-### `Medication_request_Public_Response_short`
-+ `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Request identifier
-+ `status`: `ACTIVE` (string, required) - Medication Request status. Find available **statuses** on State Charts wiki page
-+ `request_number` : `xxxx` (string) - Public medication request human readable number
-+ `created_at`: `2017-08-17` (string, required) - Medication request creation date, which is determined by the external system. Format *DATE '2017-09-07'*
-+ `started_at`: `2017-08-17` (string, required) - Start date of a treatment period, which is determined by the external system. Greater or equal to **created_at**. Format *DATE '2017-09-07'*
-+ `ended_at`: `2017-09-16` (string, required) - End date of a treatment period, which is determined by the external system. Greater or equal to **started_at**. Format *DATE '2017-10-07'*
-+ `dispense_valid_from`: `2017-08-17` (string, required) - Start date of dispense period, which is determined by the external system. Format *DATE '2017-09-07'*
-+ `dispense_valid_to`: `2017-09-16` (string, required) - End date of dispense period, which is determined by the external system. Greater or equal to **dispense_valid_from**. Format *DATE '2017-10-07'*
-+ `person_id`: `5fb57a5d-1457-430e-9678-c81cec72779f` (string, required)
-+ `legal_entity_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-+ `division_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-+ `employee_id`: `73769751-f84c-44b4-bdba-71b77efa204e` (string, required)
-+ `innm` (`Innm_for_Medication_request_Responce`, required)
-+ `request_for_medication_request_id`: `74a6fae6-4207-4e03-a136-f2e70c6b0c02` (string, required)
-+ `inserted_at`: `2017-07-06T16:54:05.161571Z` (string, required)
-+ `updated_at`: `2017-07-12T10:45:16.000Z` (string, optional)
 
 ### `Qualify_Medication_request_Request_List_program_post_data`
 + `id`: `59781de0-2e64-4359-b716-bcc05a32c10f` (string,required) - `Medical program Identifier`
@@ -4987,27 +4953,24 @@ This method is used to process created dispense
 
 ## `Medication request`
 ### `Medication_request_Public_Response`
-+ `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-+ `status`: `ACTIVE` (enum[string], required)
++ `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Request identifier
++ `status`: `ACTIVE` (enum[string], required) - Medication Request status. Find available **statuses** on State Charts wiki page
     - ACTIVE
     - COMPLETED
     - STOPPED
-+ `receipt_number_public_key` : `xxxxTBD` (string) - Public key of receipt number
-+ `receipt_period_type`: 30DAYS (string, required) - `Dictionary RECEIPT_PERIOD_TYPE`
-+ `receipt_age_type`: ADULT (string, required) - `Dictionary RECEIPT_AGE_TYPE`
-+ `created_at`: `2017-08-17` (string, required) - Medication request created date
-+ `started_at`: `2017-08-17` (string, required) - Medication request start date
-+ `ended_at`: `2017-09-16` (string, required) - Medication request end date
-+ `dispence_valid_from`: `2017-08-17` (string, required) - Medication dispence valid start date
-+ `dispence_valid_to`: `2017-09-16` (string, required) - Medication dispence valid end date
++ `request_number` : `xxxx` (string) - Public medication request human readable number
++ `created_at`: `2017-08-17` (string, required) - Medication request creation date, which is determined by the external system. Format *DATE '2017-09-07'*
++ `started_at`: `2017-08-17` (string, required) - Start date of a treatment period, which is determined by the external system. Greater or equal to **created_at**. Format *DATE '2017-09-07'*
++ `ended_at`: `2017-09-16` (string, required) - End date of a treatment period, which is determined by the external system. Greater or equal to **started_at**. Format *DATE '2017-10-07'*
++ `dispense_valid_from`: `2017-08-17` (string, required) - Start date of dispense period, which is determined by the external system. Format *DATE '2017-09-07'*
++ `dispense_valid_to`: `2017-09-16` (string, required) - End date of dispense period, which is determined by the external system. Greater or equal to **dispense_valid_from**. Format *DATE '2017-10-07'*
 + `legal_entity` (`Legal_Entity_Short`, required)
     + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + `division` (`Division_Details`, required)
 + `employee` (Employee_Minimal, required)
 + `person` (`Person_Short`)            
-+ `innm` (`Innm_for_Medication_request_Responce`, required)
-+ `note`: `За зверненням паціента. Симптоми слабковиражені` (string) - Note for receipt
-+ `dosage_instruction`: `Інструкція: приймати 2 рази на день, за 1-ну годину до прийому їжі.` (string) - Instruction for use medication
++ `medication` (`Innm_for_Medication_request_Responce`, required)
++ `medical_program` (`Medical_Program_Response`, required)
 
 ## `Medication Dispense`
 ### `Medication_Dispense_Request`
@@ -5021,7 +4984,7 @@ This method is used to process created dispense
 
 ### `Medication_Dispense_Response`
 + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Dispense Response Identifier
-+ `medication_request` (`Medication_request_Public_Response_short`, required) - Medication request 
++ `medication_request` (`Medication_request_Public_Response`, required) - Medication request 
 + `dispensed_at`: `2017-08-17` (string, required) - date of dispense 
 + `party` (object)
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
