@@ -676,7 +676,8 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   test "cannot approve employee request with existing user_id and party_id, but wrong party_user", %{conn: conn} do
     tax_id = "2222222225"
     party = insert(:prm, :party, tax_id: tax_id)
-    %PartyUser{user_id: user_id} = insert(:prm, :party_user, party: party)
+    party2 = insert(:prm, :party, tax_id: "3222222225")
+    %PartyUser{user_id: user_id} = insert(:prm, :party_user, party: party2)
     request_data =
       employee_request_data()
       |> Map.delete("employee_id")

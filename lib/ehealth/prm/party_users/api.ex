@@ -17,7 +17,11 @@ defmodule EHealth.PRM.PartyUsers do
 
   def get_party_user_by_id(id), do: PRMRepo.get(PartyUser, id)
 
-  def get_party_users_by_user_id(user_id), do: PRMRepo.get_by(PartyUser, user_id: user_id)
+  def get_party_users_by_user_id(user_id) do
+    PartyUser
+    |> preload(:party)
+    |> PRMRepo.get_by(user_id: user_id)
+  end
 
   def get_party_users_by_party_id(party_id), do: get_party_users(%{party_id: party_id})
 
