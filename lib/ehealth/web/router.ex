@@ -125,6 +125,9 @@ defmodule EHealth.Web.Router do
     patch "/declaration_requests/:id/actions/reject", DeclarationRequestController, :reject
     post "/declaration_requests/:id/actions/resend_otp", DeclarationRequestController, :resend_otp
 
+    resources "/medication_request_requests", MedicationRequestRequestController,
+      except: [:new, :edit, :update, :delete]
+
     # Declarations
     get "/declarations/:id", DeclarationsController, :show
     patch "/declarations/:id/actions/approve", DeclarationsController, :approve

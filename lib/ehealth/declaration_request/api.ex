@@ -17,12 +17,13 @@ defmodule EHealth.DeclarationRequest.API do
   alias EHealth.DeclarationRequest
   alias EHealth.DeclarationRequest.API.Create
   alias EHealth.DeclarationRequest.API.Approve
-  alias EHealth.DeclarationRequest.API.Helpers
+  alias EHealth.DeclarationRequest.API.Helpers, as: DeclarationHelpers
   alias EHealth.DeclarationRequest.API.Validations
   alias EHealth.DeclarationRequest.API.Sign
   alias EHealth.DeclarationRequest.API.ResendOTP
   alias EHealth.DeclarationRequest.API.Documents
   alias EHealth.Utils.Phone
+  alias EHealth.Utils.Helpers
 
   require Logger
 
@@ -330,7 +331,7 @@ defmodule EHealth.DeclarationRequest.API do
     birth_date = get_in(data, ["person", "birth_date"])
 
     start_date = Date.utc_today()
-    end_date = Helpers.request_end_date(start_date, [{normalized_unit, term}], birth_date, adult_age)
+    end_date = DeclarationHelpers.request_end_date(start_date, [{normalized_unit, term}], birth_date, adult_age)
 
     new_data =
       data

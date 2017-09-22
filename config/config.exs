@@ -172,6 +172,8 @@ config :ehealth, :legal_entity_division_types,
   msp: {:system, "LEGAL_ENTITY_MSP_DIVISION_TYPES", ["CLINIC", "AMBULANT_CLINIC", "FAP"]},
   pharmacy: {:system, "LEGAL_ENTITY_PHARMACIST_DIVISION_TYPES", ["DRUGSTORE", "DRUGSTORE_POINT"]}
 
+config :ehealth, :medication_request_request,
+  expire_period: {:system, "MEDICATION_REQUEST_REQUEST_EXPIRATION_PERIOD", 30}
 # Configures bamboo
 config :ehealth, EHealth.Bamboo.Mailer,
   adapter: EHealth.Bamboo.PostmarkAdapter,

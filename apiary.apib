@@ -586,7 +586,7 @@ Methods returns list of parties.
                 + users(array)
                     + (object)
                         + user_id: `2de19358-0062-4f14-8a50-9dff015ed165` (string, required)
-                
+
 
 ### Get party details [GET /party/{id}]
 
@@ -646,7 +646,7 @@ Methods returns list of employees.
 + Parameters
     + `party_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - user_id of a doctor.
     + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MSP ID.
-    + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - division ID.    
+    + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - division ID.
     + `employee_type`: DOCTOR (string) - `Dictionary: EMPLOYEE_TYPE`
     + status: APPROVED (enum)
         - NEW
@@ -679,7 +679,7 @@ Methods returns employee details by ID.
 This service should be used for internal services/processes. Used without `access_token`
 
 + Parameters
-    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) 
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 
 
 + Response 200 (application/json)
@@ -694,16 +694,16 @@ This service should be used for internal services/processes. Used without `acces
 This service should be used for update employee request status on REJECTED or APPROVED.
 
 Available transitions:
-NEW --> REJECTED 
+NEW --> REJECTED
 NEW --> APPROVED
 
 + Parameters
-    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) 
-    
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
 + Request (application/json)
     + Attributes
-        + status: APPROVED, REJECTED (enum, required) 
-    
+        + status: APPROVED, REJECTED (enum, required)
+
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
@@ -713,11 +713,11 @@ NEW --> APPROVED
 This service should be used for internal services/processes. Used without `access_token`
 
 + Parameters
-    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) 
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 
 + Request (application/json)
     + Attributes
-        + password: `qwerty` (string, required) 
+        + password: `qwerty` (string, required)
 
 + Response 201 (application/json)
     + Headers
@@ -849,7 +849,7 @@ Methods returns Division details by ID.
 
 ## Ukrainian medical registry records [/ukr_med_registry]
 
-Registry of all the MSP's that has the `state` ownership type 
+Registry of all the MSP's that has the `state` ownership type
 ### Create new ukr_med_registry record [POST]
 
 Method to create new ukr_med_registry record.
@@ -887,7 +887,7 @@ Methods returns list of ukr_med_registry records.
 
 + Parameters
     + edrpou: 123456 (string, required)
- 
+
 + Request (application/json)
 
 + Response 200 (application/json)
@@ -937,7 +937,7 @@ Total statistis are calculated on the date that is transmitted in the current da
         + data (object, optional)
             + declarations: 100 (number, required)
             + msps: 2 (number, required)
-            + doctors: 15 (number, required)  
+            + doctors: 15 (number, required)
 
 ### Get Main Stats by Regions [GET /reports/stats/regions/]
 
@@ -958,7 +958,7 @@ The service returns statistics for all regions
 + Response 200 (application/json)
     + Attributes (Response_OK)
         + data (array[StatsByRegion], optional)
-               
+
 
 
 ### Get Main Stats by Division [GET /reports/stats/division/{division_id}]
@@ -997,7 +997,7 @@ If the region is not specified, the service returns statistics for all regions
     + Attributes (Response_OK)
         + data (array[HistogramStats], optional)
 
- 
+
 ## Divisions [/report/divisions]
 
 ### Search Divisions [GET /stats/divisions/map{?type,name,lefttop_latitude,lefttop_longitude,rightbottom_latitude,rightbottom_longitude}]
@@ -1026,10 +1026,10 @@ Method searches divisions by parameters and returnes division details
 
 ### Approve or Reject Employee Request [POST /employee_requests/{id}/actions/{action}]
 
-This service should be used for approve/reject employee request. 
+This service should be used for approve/reject employee request.
 
-Available employee status transitions: 
-NEW --> REJECTED (action=reject) 
+Available employee status transitions:
+NEW --> REJECTED (action=reject)
 NEW --> APPROVED (action=approve)
 
 Method logic described on [confluence page](https://edenlab.atlassian.net/wiki/pages/resumedraft.action?draftId=1316502&draftShareId=39ff8744-9673-48e0-ab0e-08fc80ed3190)
@@ -1049,7 +1049,7 @@ Method logic described on [confluence page](https://edenlab.atlassian.net/wiki/p
 
 # Group Internal. Media Content Storage
 
-Media Content Storage is using Google Cloud Storage as storage back-end and [Signed URL's](https://cloud.google.com/storage/docs/access-control/create-signed-urls-program) for access control policies. 
+Media Content Storage is using Google Cloud Storage as storage back-end and [Signed URL's](https://cloud.google.com/storage/docs/access-control/create-signed-urls-program) for access control policies.
 Before starting upload or reading a file, you need to access a short-lived Signed URL to access the resource.
 
 After obtaining token upload should be proceeded with [Google Cloud Storage API](https://cloud.google.com/storage/docs/xml-api/put-object-upload).
@@ -1237,10 +1237,10 @@ Use this method to obtain list of Substances. If you want to reduce amount of da
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
-        + data (array[`Substance_Response_Short`]) 
+        + data (array[`Substance_Response_Short`])
 
 
-## INNMs [/innms] 
+## INNMs [/innms]
 
 ### Create INNM [POST]
 This method is used to create INNMs. Fields descriptions are listed in request Example view.
@@ -1254,7 +1254,7 @@ This method is used to create INNMs. Fields descriptions are listed in request E
             Authorization: Bearer mF_9.B5f-4.1JqM
 
     + Attributes (object)
-       + include (`INNM_Request`, required) 
+       + include (`INNM_Request`, required)
 
 + Response 201 (application/json)
     + Attributes (Response__Process_OK)
@@ -1282,7 +1282,7 @@ This method is used to deactivate INNM. Fields descriptions are listed in reques
 + Request (application/json)
 
     + Headers
-    
+
             Authorization: Bearer mF_9.B5f-4.1JqM
 
 + Response 201 (application/json)
@@ -1342,9 +1342,9 @@ Use this method to obtain list of INNMs. If you want to reduce amount of data th
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
-        + data (array[`INNM_Response_Short`]) 
+        + data (array[`INNM_Response_Short`])
 
-## Medications [/medications] 
+## Medications [/medications]
 
 ### Create Medication [POST]
 This method is used to create Medications. Fields descriptions are listed in request Example view.
@@ -1358,7 +1358,7 @@ This method is used to create Medications. Fields descriptions are listed in req
             Authorization: Bearer mF_9.B5f-4.1JqM
 
     + Attributes (object)
-       + include (`Medication_Request`, required) 
+       + include (`Medication_Request`, required)
 
 + Response 201 (application/json)
     + Attributes (Response__Process_OK)
@@ -1511,7 +1511,7 @@ Medical program can't be deactivate if there is at leat one participant in the p
             + message: `Forbiden to deactivate medical program. Medical program has active participants` (string, required)
 
 ### Get medical programs list [GET /medical_programs{?is_active,limit,starting_after,ending_before}]
-Method returns list of medical programs filtering by parameters. By default method returns only active medical programs `is_active=true` 
+Method returns list of medical programs filtering by parameters. By default method returns only active medical programs `is_active=true`
 
 **Scopes required:** `medical_programs:read`
 
@@ -1561,7 +1561,7 @@ This method is used to create new participant of a program - to link exsiting ac
             Authorization: Bearer mF_9.B5f-4.1JqM
 
     + Attributes (object)
-       + include (`Program_medications_Request`, required) 
+       + include (`Program_medications_Request`, required)
 
 + Response 201 (application/json)
     + Attributes (Response__Process_OK)
@@ -1617,7 +1617,7 @@ This method is used to update flags "is_active" and/or "medication_request_allow
             + message: `Medications are already inactive in this program` (string, required)
 
 ### Get Program medications list [GET /program_medications{?id,medical_program_id,medical_program_name,innm_id,innm_name,medication_id,medication_name,page_number,page_size}]
-Method returns list of participants(medications) of medical programs filtering by parameters.  
+Method returns list of participants(medications) of medical programs filtering by parameters.
 
 **Scopes required:** `program_medications:read`
 
@@ -1629,7 +1629,7 @@ Method returns list of participants(medications) of medical programs filtering b
     + `innm_name`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - INNM name
     + `medication_id`:  `PILL` (string, optional) - Medication Identifier.
     + `medication_name`: `Аритміл` (string, optional) - Medication name.
-    + `page_number`: 2 (number) - Page number.    
+    + `page_number`: 2 (number) - Page number.
     + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 
@@ -1660,7 +1660,7 @@ Method returns participants(medications) of medical programs details by ID.
         + data (object)
             + include `Program_medications_Response`
 
-            
+
 # Group Internal. Gandalf
 
 ## Gandalf [/api.gndf.io/api]
@@ -1672,7 +1672,7 @@ Method checks request with rules in AuthMethod table, and returns decision based
 + Request (application/json)
 
     + Headers
-    
+
             X-Application: 58eca20fe79e8563e803dc18
             Authorization: Basic YmJlMGUxMGFkMTc4ZTBlMGY3MmM1Nzg4NjU0ZTQ1MDkwNTFhYjAzMzpmODQ4ZTIyNjFiYWM4M2EzZjhkMjM4ODc4NzUxOWMxZTQzZjViYjAx
 
@@ -1757,7 +1757,7 @@ For security purposes, we will set `X-Frame-Options: deny` header that will disa
 
 ### Exchange oAuth Code Grant to Access Token [POST /oauth/tokens]
 
-After obtaining oAuth Code Grant, it should be exchanged to an `access_token` **on your back-end**. 
+After obtaining oAuth Code Grant, it should be exchanged to an `access_token` **on your back-end**.
 
 General recommendations:
 
@@ -1789,7 +1789,7 @@ Exposed client credentials may be blocked for a security reasons, you will need 
 
 ### Use Refresh Token for Access Token extension [POST /api/oauth/tokens]
 
-Currently `access_token` and `refresh_token` are configured to have same lifetime, so we don't expect you to refresh it. 
+Currently `access_token` and `refresh_token` are configured to have same lifetime, so we don't expect you to refresh it.
 
 In future, you will be able to refresh access tokens to extend `access_token` lifetime.
 
@@ -1817,7 +1817,7 @@ In future, you will be able to refresh access tokens to extend `access_token` li
 
 Method is used to retreive eHealth dictionaries
 
-Response **$.data** object contains a list of all dictionaries. 
+Response **$.data** object contains a list of all dictionaries.
 
 Each dictionary is an object that contains *{key}*:*{value}* pairs where:
 * ***{key}*** is a dictionary record
@@ -1840,7 +1840,7 @@ Method is used to verify that provided in declarartion request phone number is v
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
-    
+
     + Attributes (object)
         + `phone_number`: `+380508887700` (string, required)
 
@@ -1858,7 +1858,7 @@ Method is used to verify that provided in declarartion request phone number is v
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
-    
+
     + Attributes (object)
         + code: 3782 (number)
 
@@ -1906,7 +1906,7 @@ Method returns shortened details, to obtain full information - get Declaration R
     + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
     + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
     + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
-    
+
 
 + Request (application/json)
 
@@ -2011,8 +2011,8 @@ In case if authentication_method is OTP, request example:
 }
 ```
 In case if authentication_method is OFFLINE, request body should be empty. But before approve patient's scanned documents should be uploaded to the ([Signed URL's](https://cloud.google.com/storage/docs/access-control/create-signed-urls-program))
-on demand. 
-Clients can use signed URL's to directly access Google Cloud Storage via their API 
+on demand.
+Clients can use signed URL's to directly access Google Cloud Storage via their API
 ([Google Cloud Storage API](https://cloud.google.com/storage/docs/xml-api/put-object-upload))
 
 + Parameters
@@ -2090,7 +2090,7 @@ Use this method to resend sms on previously created Declaration Request.
 
 ### Sign Declaration Request [PATCH /api/declaration_requests/{id}/actions/sign]
 
-This method is used to sign Declaration Request. Method receives signed message (pkcs7) including signed content, digital signature and signer public key in `signed_content` property. 
+This method is used to sign Declaration Request. Method receives signed message (pkcs7) including signed content, digital signature and signer public key in `signed_content` property.
 All signature fields will be validated (including signer certificate authority).
 
 This service will store signed copy of Declaration Request in Media Content Storage, created or update MPI records and create declaration if signature is all checks is passed.
@@ -2378,7 +2378,7 @@ declaration status will be changed to `active`
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
-    
+
     + Attributes (crud_Declaration_patch)
 
 + Response 200 (application/json)
@@ -2415,11 +2415,11 @@ all GET-endpoints returning Employee info are mounted through the
 
 ### Get Employees List [GET /api/employees{?tax_id,party_id,edrpou,legal_enyity_id,division_id,status,employee_type,limit,starting_after,ending_before}]
 
-Use this end-point to obtain all Employees of the legal entity specified by the `legal_entity_id`. 
+Use this end-point to obtain all Employees of the legal entity specified by the `legal_entity_id`.
 
 We suggest to use `status` filter to limit response size. Eg. you MAY want to list only active employees for everyones except HR's. Also it's a good idea to filter list by employee `type`.
 
-Method returns shortened details (for DOCTOR and PHARMACIST - additional returns specialities information), to obtain full information - get Employee it by ID.
+Method returns shortened details (for DOCTOR and PHARMACIST - additional returns specialities information), to obtain full information - get Employee it by ID.
 
 + Parameters
     + tax_id: 3015492561 (string, optional)
@@ -2430,7 +2430,7 @@ Method returns shortened details (for DOCTOR and PHARMACIST - additional return
     + status: APPROVED (enum, optional)
         - APPROVED
         - DISMISSED
-    + employee_type: DOCTOR (string, optional) 
+    + employee_type: DOCTOR (string, optional)
     + limit: 20 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
     + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
     + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
@@ -2577,7 +2577,7 @@ This service should be used with `access_token` authetification method.
 
 + Parameters
 
-    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) 
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 
 + Request
 
@@ -2684,7 +2684,7 @@ List consists of legal entities with parameter `is_active = true`.
         - CLOSED
     + mis_verified: VERIFIED (enum, optional)
         - VERIFIED
-        - NOT_VERIFIED 
+        - NOT_VERIFIED
     + `nhs_verified`: false (boolean, optional)
     + limit: 20 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
         + Default: 50
@@ -2744,12 +2744,12 @@ List consists of legal entities with parameter `is_active = true`.
 
 Use this method to register a new Legal Entity.
 
-New Legal Entity is created with 
+New Legal Entity is created with
 status = ACTIVE
 mis_verified = NOT_VERIFIED (if legal entity IS NOT in ukr_med_registry) and VERIFIED (if legal entity IS in ukr_med_registry)
 nhs_verified = false
 
-Method receives signed message (pkcs7) including signed content, digital signature and signer public key. 
+Method receives signed message (pkcs7) including signed content, digital signature and signer public key.
 All signature fields will be validated (including signer certificate authority).
 There is a [**dummy method**](##dummy-for-legal-entity) that describes the latest legal entity data model and can be used as documentation.
 Signed content MUST consists of JSON object with Legal Entity data:
@@ -2910,13 +2910,13 @@ Available transition:
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
-    
+
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + data (object)
             + include `Legal_Entity_Request_Public_Short`
-            
+
 
 ### Verify Legal Entity by NHS [PATCH /api/legal_entities/{id}/actions/nhs_verify]
 
@@ -2932,13 +2932,13 @@ Available transition:
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
-    
+
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + data (object)
             + include `Legal_Entity_Short`
-            
+
 
 
 ### Deactivate Legal Entity [PATCH /api/legal_entities/{id}/actions/deactivate]
@@ -3161,7 +3161,7 @@ Method returns shortened details, to obtain full information - Get Medication re
 + Parameters
     + `employee_id`: `7124259c-eeb1-4cbb-acac-ada2162675d1` (string, optional) - user_id of a doctor.
     + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MSP ID.
-    + `status`: `NEW` (enum, optional). Default `NEW` 
+    + `status`: `NEW` (enum, optional). Default `NEW`
         - NEW
         - SIGNED
         - EXPIRED
@@ -3177,8 +3177,8 @@ Method returns shortened details, to obtain full information - Get Medication re
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
-        + data (array[`Medication_request_Request_Public_Response`]) 
- 
+        + data (array[`Medication_request_Request_Public_Response`])
+
 
 ### Get Medication Request Request by ID [GET /api/medication_request_requests/{id}]
 
@@ -3200,7 +3200,7 @@ Use this method to obrain full information of Medication request Request an `id`
         + data (object)
             + include `Medication_request_Request_Public_Response`
 
-    
+
 ### PreQualify Medication Request Request [POST /api/medication_request_requests/prequalify]
 
 This method is used to pre-qualify data Medication request Request (possibility to give reimbursement for medication according the programs) before creating Medication request Request. Fields descriptions are listed in request Example view.
@@ -3215,7 +3215,7 @@ This method is used to pre-qualify data Medication request Request (possibility 
         + `medication_request_request` (object)
             + include `Medication_request_Request_Qualify_post_data`
         + `programs` (array[`Qualify_Medication_request_Request_List_program_post_data`]) - Medical programs list for qualify
-        
+
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + meta (Response__Meta)
@@ -3233,7 +3233,7 @@ This method is used to pre-qualify data Medication request Request (possibility 
 
 ### Create Medication Request Request [POST /api/medication_request_requests]
 
-This method is used to create Medication request Request (as a part of Medication request creation process). 
+This method is used to create Medication request Request (as a part of Medication request creation process).
 Fields description are listed in request Example view.
 
 + Request (application/json)
@@ -3263,7 +3263,7 @@ Fields description are listed in request Example view.
 
 ### Sign Medication Request Request [PATCH /api/medication_request_requests/{id}/actions/sign]
 
-This method is used to sign Medication request Request. Method receives signed message (pkcs7) including signed content, digital signature and signer public key in `signed_content` property. 
+This method is used to sign Medication request Request. Method receives signed message (pkcs7) including signed content, digital signature and signer public key in `signed_content` property.
 All signature fields will be validated (including signer certificate authority).
 
 This service will store signed copy of Medication request Request in Media Content Storage and create Medication request if signature is all checks is passed.
@@ -3330,7 +3330,7 @@ This method is used to qualify (possibility to use Innm for the program) Medicat
 
     + Attributes (object)
         + `programs` (array[`Qualify_Medication_request_Request_List_program_post_data`]) - Medical programs list for qualify
-    
+
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + meta (Response__Meta)
@@ -3375,8 +3375,8 @@ Method returns shortened details, to obtain full information - get Medication re
 
 + Parameters
     + `employee_id`: `7124259c-eeb1-4cbb-acac-ada2162675d1` (string, optional) - user_id of a doctor.
-    + `person_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - person_id of a pacient. 
-    + `status`: `ACTIVE` (enum, optional). Default `ACTIVE` 
+    + `person_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - person_id of a pacient.
+    + `status`: `ACTIVE` (enum, optional). Default `ACTIVE`
         - ACTIVE
         - COMPLETED
         - EXPIRED
@@ -3391,7 +3391,7 @@ Method returns shortened details, to obtain full information - get Medication re
 
 + Response 200 (application/json)
    + Attributes (`Response_Collection_V2`)
-        + data (array[`Medication_request_Public_Response`]) 
+        + data (array[`Medication_request_Public_Response`])
 
 ### Reject Medication Request [PATCH /api/medication_requests/{id}/actions/reject]
 
@@ -3455,7 +3455,7 @@ This method is used to dispense medications to patient
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
-    
+
     + Attributes (object)
         + include `Medication_Dispense_Request`
 
@@ -3478,7 +3478,7 @@ This method is used to process created dispense
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
-    
+
     + Attributes (object)
         + payment_id: F324H456 (string, optional)
 
@@ -4141,7 +4141,7 @@ This method is used to process created dispense
     + `consent`: true (boolean, required)
     + `consent_text`: `Відповідно до Закону України “Про захист персональних даних” з метою ведення реєстрів електронної системи охорони здоров’я та забезпечення її функціонування у дослідній експлуатації надаю згоду обраному оператору та адміністратору електронної системи охорони здоров’я на обробку моїх персональних даних з первинних джерел, а також на здійснення дій пов’язаних зі збиранням, реєстрацією, накопиченням, зберіганням, адаптуванням, зміною, поновленням, використанням, поширенням, розповсюдженням, реалізацією, передачею, знеособленням, знищенням будь-яких відомостей. Додатково надаю згоду на доступ до моїх персональних даних уповноважених третіх осіб, що визначає дії оператора МІС та адміністратора у разі отримання запиту від уповноваженої третьої особи щодо надання доступу до персональних даних. Підтверджую достовірність вказаних мною даних та добровільність надання цих даних до електронної системи охорони здоров’я, що працює у дослідній експлуатації. Усвідомлюю, що у випадку надання мною невірної інформації, мені може бути відмовлено в реєстрації в електронній системі охорони здоров’я. Зобов’язуюсь дотримуватись Регламенту функціонуваня електронної системи охорони здоров’я.` (string, required)
 
-### `Legal_Entity_Request_Public_Short` 
+### `Legal_Entity_Request_Public_Short`
 + name: Клініка Борис (string, required)
 + short_name: Борис (string, optional)
 + public_name: Борис (string, optional)
@@ -4308,7 +4308,7 @@ This method is used to process created dispense
     + scope: `capitation_contracts:view capitation_contracts:create patients:view patients:create` (string, required) - List of scopes that is required in application business logic, separated by space
     + refresh_token: `my-oauth-refresh-token` (string, required) - oAuth refresh token
     + redirect_uri: `http://example.com/` (string, required) - Redirect URI
-    + `grant_type`: `authorization_code` 
+    + `grant_type`: `authorization_code`
     + client_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Client ID of authorized user.
 
 ## Shared
@@ -4444,7 +4444,7 @@ This method is used to process created dispense
 ### MainStats
 + declarations: 100 (number, required)
 + msps: 2 (number, required)
-+ doctors: 15 (number, required)   
++ doctors: 15 (number, required)
 
 ### `MainStats_Division`
 + stats (DivisionStats, required)
@@ -4453,7 +4453,7 @@ This method is used to process created dispense
 ### DivisionStats
 + declarations: 100 (number, required)
 + msps: 2 (number, required)
-+ doctors: 15 (number, required)  
++ doctors: 15 (number, required)
 
 ### DivisionName
 + id: `asSbcy12sYs8c` (string, required)
@@ -4568,7 +4568,7 @@ This method is used to process created dispense
 ### `nhs_declaration_list_Public`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - id of the signed document stored on the Media content storage
 + `employee` (`Employee_For_Declaration_Minimal`, required)
-+ `division` (`DivisionName`, required)        
++ `division` (`DivisionName`, required)
 + scope (enum, required)
     - family_doctor
 + start_date: `2017-03-02` (string, required)
@@ -4668,7 +4668,7 @@ This method is used to process created dispense
 + `name`: `Аміодарон 200мг таблетки` (string, required)
 + `code_ATX`: `С01BD01` (string, required)
 + `form`: PILL (string, required) - `Dictionary MEDICATION_FORM`
-+ `substanse` (`Substance_Response_Short`, required) 
++ `substanse` (`Substance_Response_Short`, required)
 + `dosage` (`Dosage_drug`, required)
 + `container_dosage` (`Dosage_container`, required)
 + `packages` (array, required)
@@ -4727,14 +4727,14 @@ This method is used to process created dispense
 + `medication_qty`: 10 (number, required) - Medication quantity isuued by the doctor
 
 ### `Manufacturer`
-+ `name` : `ПАТ "Київський вітамінний завод"` (string, required) 
++ `name` : `ПАТ "Київський вітамінний завод"` (string, required)
 + `country` : `UA` (string, required) - `Dictionary COUNTRY`
 
 ### `Ingredient`
 + `id` : `1349a693-4db1-4a3f-9ac6-8c2f9e541982` (string, required)
 + `name` : `Амідарон` (string, required)
 + `dosage` (`Dosage_drug`, required)
-+ `is_active_substance` : true (boolean, required) 
++ `is_active_substance` : true (boolean, required)
 
 ### `INNM_Request`
 + `name` : `Амідарон` (string, required)
@@ -4744,12 +4744,12 @@ This method is used to process created dispense
         + include `Ingredient`
 
 ### `INNM_Response_Short`
-+ `id` : `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required) 
++ `id` : `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required)
 + include `INNM_Request`
 + `is_active` : true (boolean, required)
 
 ### `INNM_Response`
-+ `id` : `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required) 
++ `id` : `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required)
 + include `INNM_Request`
 + `is_active` : true (boolean, required)
 + inserted_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
@@ -4773,7 +4773,7 @@ This method is used to process created dispense
         + include `Ingredient`
 
 ### `Medication_Response`
-+ `id` : `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required) 
++ `id` : `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required)
 + include `Medication_Request`
 + `is_active` : true (boolean, required)
 + inserted_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
@@ -4782,7 +4782,7 @@ This method is used to process created dispense
 + updated_by: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
 
 ### `Medication_Response_Short`
-+ `id` : `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required) 
++ `id` : `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required)
 + include `Medication_Request`
 + `is_active` : true (boolean, required)
 
@@ -4816,7 +4816,7 @@ This method is used to process created dispense
 + `reimbursement_amount`: 15 (number, optional) - Amount to reimburse for one medication_unit by medical_program
 
 ### `Program_medications_Response`
-+ `id` : `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) 
++ `id` : `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + `medication` (`Medication_Response_Short`, required)
 + `medical_program` (`Medical_Program_Response`, required)
 + `medication_request_allowed`: true (boolean, required) - indicator whether medication is allowed to use in new medication request
@@ -4847,17 +4847,17 @@ This method is used to process created dispense
         + (object)
             + include (`Dosage_drug`, required) - substances dosage in innm
             + `substance_name`: `Аміодарон` (string, optional) - substance name
-            + `is_active_substance` : true (boolean, required) 
+            + `is_active_substance` : true (boolean, required)
 + `medications` (object, required)
     + `medication_id` : `4a63b858-c138-4921-9341-ae9e384bcbd6` (string, required)
-    + `name`: `Аміодарон 5мг` (string, required) - medication name 
+    + `name`: `Аміодарон 5мг` (string, required) - medication name
     + `form`: PILL (string, required) - `Dictionary MEDICATION_FORM` - medication form
-    + `manufacturer` (`Manufacturer`, optional) 
+    + `manufacturer` (`Manufacturer`, optional)
     + `ingredients` (array, required)
         + (object)
             + include (`Dosage_drug`, required) - innm dosage in medication
-            + `innm_name`: `Аміодарон`(string, required) 
-            + `is_active_substance` : true (boolean, required) 
+            + `innm_name`: `Аміодарон`(string, required)
+            + `is_active_substance` : true (boolean, required)
 + `medical_program` (`Medical_Program_Response`, required)
 + `reimbursement` (`Reimbursement`, required)
 + `is_active` : true (boolean, required) - flag for activation/deactiovation
@@ -4903,7 +4903,7 @@ This method is used to process created dispense
     + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + `division` (`Division_Details`, required)
 + `employee` (Employee_Minimal, required)
-+ `person` (`Person_Short`)            
++ `person` (`Person_Short`)
 + `medication` (`Innm_for_Medication_request_Responce`, required)
 + `medical_program` (`Medical_Program_Response`, required)
 
@@ -4968,14 +4968,14 @@ This method is used to process created dispense
     + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + `division` (`Division_Details`, required)
 + `employee` (Employee_Minimal, required)
-+ `person` (`Person_Short`)            
++ `person` (`Person_Short`)
 + `medication` (`Innm_for_Medication_request_Responce`, required)
 + `medical_program` (`Medical_Program_Response`, required)
 
 ## `Medication Dispense`
 ### `Medication_Dispense_Request`
-+ `medication_request_id`: `f08ba3a3-157a-4adc-b65d-737f24f3a1f4` (string, required) - Key for the Medication request 
-+ `dispensed_at`: `2017-08-17` (string, required) - date of dispense 
++ `medication_request_id`: `f08ba3a3-157a-4adc-b65d-737f24f3a1f4` (string, required) - Key for the Medication request
++ `dispensed_at`: `2017-08-17` (string, required) - date of dispense
 + `division_id`: `2fc70f30-08dc-493c-8d08-925905d7b1e8` (string, required) - Active legal entity (Pharmacy) division which provides dispense Identifier
 + `medical_program_id`: `6ee844fd-9f4d-4457-9eda-22aa506be4c4` (string, required) - Active medical program within which medications are going to be provided
 + `dispense_details` (array, fixed, required)
@@ -4984,8 +4984,8 @@ This method is used to process created dispense
 
 ### `Medication_Dispense_Response`
 + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Dispense Response Identifier
-+ `medication_request` (`Medication_request_Public_Response`, required) - Medication request 
-+ `dispensed_at`: `2017-08-17` (string, required) - date of dispense 
++ `medication_request` (`Medication_request_Public_Response`, required) - Medication request
++ `dispensed_at`: `2017-08-17` (string, required) - date of dispense
 + `party` (object)
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
     + include `Party_Short`
@@ -5003,12 +5003,12 @@ This method is used to process created dispense
 + `updated_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
 
 ### `Medication_Dispense_Detail_Request`
-+ `medication_id`: `787b6ef1-1d3a-4129-849c-87716c9a2130` (string, required) - Identifier of brand medications 
++ `medication_id`: `787b6ef1-1d3a-4129-849c-87716c9a2130` (string, required) - Identifier of brand medications
 + `medication_qty`: 10 (number, required) - qnty of medication_unit (pill/ampoule/container/bottle/vial/aerosol) which provides to the patient
 + `sell_price`: 18.65 (number, required) - pharmacy's price for one nondivisible medication_unit (pill/ampoule/container/bottle/vial/aerosol)
 
 ### `Medication_Dispense_Detail_Response`
-+ `medication` (`Medication_Short`, required) - Identifier of brand medications 
++ `medication` (`Medication_Short`, required) - Identifier of brand medications
 + `medication_qty`: 10 (number, required) - qnty of medication_unit (pill/ampoule/container/bottle/vial/aerosol) which provides to the patient
 + `sell_price`: 18.65 (number, required) - pharmacy's price for one nondivisible medication_unit (pill/ampoule/container/bottle/vial/aerosol)
 + `reimbursement_amount`: 15 (number, required) - Amount to reimburse for one medication_unite by medical_program

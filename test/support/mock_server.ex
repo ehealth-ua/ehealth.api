@@ -264,6 +264,9 @@ defmodule EHealth.MockServer do
         %{"person_id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375400"}
           -> {200, [get_declaration(), get_declaration()]}
 
+        %{"person_id" => "585044f5-1272-4bca-8d41-8440eefe7d26"}
+          -> {200, [get_declaration(nil, nil, nil, nil, "585044f5-1272-4bca-8d41-8440eefe7d26")]}
+
         %{"person_id" => _} -> {200, []}
 
         # MSP
@@ -292,7 +295,7 @@ defmodule EHealth.MockServer do
 
   # MPI
   get "/persons/:id" do
-    render(get_person(), conn, 200)
+    render(get_person(id), conn, 200)
   end
 
   get "/persons" do

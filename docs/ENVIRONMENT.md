@@ -30,6 +30,11 @@ Also sample `.env` can be used as payload for `docker run` cli.
 | DB_POOL_SIZE  | `nil`         | Number of connections to the database. |
 | DB_MIGRATE    | `false`       | Flag to run migration. |
 
+## Medication Request Request
+| VAR_NAME      | Default Value | Description |
+| ------------- | ------------- | ----------- |
+| MEDICATION_REQUEST_REQUEST_EXPIRATION_PERIOD       | 30         | Medication Request Request Expiration Period in days represented as integer |
+
 # Endpoints
 
 ## Media Storage
