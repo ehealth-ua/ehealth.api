@@ -132,6 +132,9 @@ defmodule EHealth.PRM.Employees do
   defp put_additional_info(%Ecto.Changeset{valid?: true} = changeset, %{"doctor" => doctor}) do
     put_change(changeset, :additional_info, doctor)
   end
+  defp put_additional_info(%Ecto.Changeset{valid?: true} = changeset, %{"pharmacist" => pharmacist}) do
+    put_change(changeset, :additional_info, pharmacist)
+  end
   defp put_additional_info(changeset, _), do: changeset
 
   defp validate_employee_type(%Ecto.Changeset{changes: %{employee_type: @doctor}} = changeset) do

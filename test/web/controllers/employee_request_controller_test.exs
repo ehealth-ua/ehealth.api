@@ -557,6 +557,27 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     assert %{"data" => %{"employee_id" => ^employee_id}} = resp
   end
 
+  test "can approve pharmacist", %{conn: conn} do
+    %{id: legal_entity_id} = insert(:prm, :legal_entity)
+    %{id: division_id} = insert(:prm, :division)
+
+    data =
+      employee_request_data()
+      |> put_in([:party, :email], "mis_bot_1493831618@user.com")
+      |> put_in([:division_id], division_id)
+      |> put_in([:legal_entity_id], legal_entity_id)
+    data =
+      data
+      |> Map.put(:pharmacist, Map.get(data, :doctor))
+      |> Map.delete(:doctor)
+    %{id: request_id} = insert(:il, :employee_request, employee_id: nil, data: data)
+
+    conn = put_client_id_header(conn, legal_entity_id)
+    conn = post conn, employee_request_path(conn, :approve, request_id)
+    resp = json_response(conn, 200)
+    assert %{"data" => %{"employee_id" => _employee_id, "pharmacist" => _}} = resp
+  end
+
   test "can approve employee request if email maches", %{conn: conn} do
     legal_entity = insert(:prm, :legal_entity)
     party = insert(:prm, :party, id: "01981ab9-904c-4c36-88ab-959a94087483")
