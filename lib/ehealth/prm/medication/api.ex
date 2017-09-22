@@ -108,6 +108,7 @@ defmodule EHealth.PRM.Medication.API do
     |> cast(attrs, @fields_medication_optional ++ @fields_medication_required)
     |> validate_required(@fields_medication_required)
     |> validate_ingredients_fk()
+    |> validate_ingredients_id_uniqueness()
     |> validate_ingedients_active_substance_uniqueness()
   end
 
@@ -126,6 +127,22 @@ defmodule EHealth.PRM.Medication.API do
       |> Enum.map(&(Map.get(&1, "id")))
       |> Enum.uniq()
       |> validate_fk(get_field(changeset, :type))
+    end
+  end
+
+  @doc false
+  def validate_ingredients_id_uniqueness(changeset) do
+    validate_change changeset, :ingredients, fn :ingredients, ingredients ->
+      ingredients
+      |> Enum.reduce_while({[], []}, &id_unique/2)
+      |> elem(1)
+    end
+  end
+
+  defp id_unique(%{"id" => id}, {collected_ids, _msg}) do
+    case Enum.member?(collected_ids, id) do
+      true -> {:halt, {false, [ingredients: "Ingredient id duplicated"]}}
+      false -> {:cont, {collected_ids ++ [id], []}}
     end
   end
 

@@ -4,15 +4,6 @@ defmodule EHealth.Web.MedicationControllerTest do
   alias EHealth.PRM.Medication
   alias Ecto.UUID
 
-  @ingredient %{
-    "is_active_substance" => true,
-    "dosage" => %{
-      "numerator_unit" => "mg",
-      "numerator_value" => 10,
-      "denumerator_unit" => "g",
-      "denumerator_value" => 1
-    }
-  }
   @create_attrs %{
     name: "some name",
     form: "some form",
@@ -118,9 +109,12 @@ defmodule EHealth.Web.MedicationControllerTest do
 
   describe "create medication" do
     test "renders medication when data is valid", %{conn: conn} do
-      new_medication = fixture(:medication)
-      ingredient = Map.put(@ingredient, "id", new_medication.id)
-      ingredient_inactive = Map.merge(@ingredient, %{"id" => new_medication.id, "is_active_substance" => false})
+      new_medication = fixture(:innm)
+      new_medication2 = fixture(:innm)
+
+      ingredient = build(:ingredient, id: new_medication.id)
+      ingredient_inactive = build(:ingredient, [id: new_medication2.id, is_active_substance: false])
+
       attrs = Map.put(@create_attrs, :ingredients, [ingredient, ingredient_inactive])
 
       conn = post conn, medication_path(conn, :create), attrs
@@ -140,18 +134,34 @@ defmodule EHealth.Web.MedicationControllerTest do
       )
     end
 
+    test "ingredients innm duplicated", %{conn: conn} do
+      new_medication = fixture(:innm)
+
+      ingredient = build(:ingredient, id: new_medication.id)
+      ingredient2 = build(:ingredient, [id: new_medication.id, is_active_substance: false])
+
+      attrs = Map.put(@create_attrs, :ingredients, [ingredient, ingredient2])
+
+      conn = post conn, medication_path(conn, :create), attrs
+      json_response(conn, 422)
+    end
+
     test "is_active_substance duplicated", %{conn: conn} do
-      new_medication = fixture(:medication)
-      ingredient = Map.put(@ingredient, "id", new_medication.id)
-      attrs = Map.put(@create_attrs, :ingredients, [ingredient, ingredient])
+      new_medication = fixture(:innm)
+      new_medication2 = fixture(:innm)
+
+      ingredient = build(:ingredient, id: new_medication.id)
+      ingredient2 = build(:ingredient, [id: new_medication2.id])
+
+      attrs = Map.put(@create_attrs, :ingredients, [ingredient, ingredient2])
 
       conn = post conn, medication_path(conn, :create), attrs
       json_response(conn, 422)
     end
 
     test "no active substances", %{conn: conn} do
-      new_medication = fixture(:medication)
-      ingredient_inactive = Map.merge(@ingredient, %{"id" => new_medication.id, "is_active_substance" => false})
+      new_medication = fixture(:innm)
+      ingredient_inactive = build(:ingredient, [id: new_medication.id, is_active_substance: false])
       attrs = Map.put(@create_attrs, :ingredients, [ingredient_inactive, ingredient_inactive])
 
       conn = post conn, medication_path(conn, :create), attrs

@@ -60,39 +60,39 @@ defmodule EHealth.PRMFactories.MedicationFactory do
 
       def ingredient_factory do
         %{
-          "id" => UUID.generate(),
-          "is_active_substance" => true,
-          "dosage" => %{
-            "numerator_unit" => "mg",
-            "numerator_value" => 5,
-            "denumerator_unit" => "g",
-            "denumerator_value" => 1
+          id: UUID.generate(),
+          is_active_substance: true,
+          dosage: %{
+            numerator_unit: "mg",
+            numerator_value: 5,
+            denumerator_unit: "g",
+            denumerator_value: 1
           }
         }
       end
 
       def manufacturer_factory do
         %{
-          "name" => "ПАТ `Київський вітамінний завод`",
-          "country" => "Україна"
+          name: "ПАТ `Київський вітамінний завод`",
+          country: "Україна"
         }
       end
 
       def container("Pill") do
         %{
-          "numerator_unit" => "pill",
-          "numerator_value" => 1,
-          "denumerator_unit" => "pill",
-          "denumerator_value" => 1
+          numerator_unit: "pill",
+          numerator_value: 1,
+          denumerator_unit: "pill",
+          denumerator_value: 1
         }
       end
 
       def container("Nebuliser suspension") do
         %{
-          "numerator_unit" => "ml",
-          "numerator_value" => 2,
-          "denumerator_unit" => "container",
-          "denumerator_value" => 1
+          numerator_unit: "ml",
+          numerator_value: 2,
+          denumerator_unit: "container",
+          denumerator_value: 1
         }
       end
     end
