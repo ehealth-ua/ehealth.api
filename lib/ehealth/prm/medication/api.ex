@@ -133,14 +133,17 @@ defmodule EHealth.PRM.Medication.API do
     validate_change changeset, :ingredients, fn :ingredients, ingredients ->
       ingredients
       |> Enum.reduce_while({false, []}, &active_substance_unique/2)
-      |> elem(1)
+      |> case do
+           {false, _} -> [ingredients: "One and only one ingredient must be active"]
+           {true, msg} -> msg
+         end
     end
   end
 
   defp active_substance_unique(%{"is_active_substance" => false}, acc), do: {:cont, acc}
   defp active_substance_unique(%{"is_active_substance" => true}, {false, _msg}), do: {:cont, {true, []}}
   defp active_substance_unique(%{"is_active_substance" => true}, {true, _msg}), do:
-    {:halt, {true, [ingredients: "More than one active substances"]}}
+    {:halt, {true, [ingredients: "One and only one ingredient must be active"]}}
 
   @doc false
   def validate_fk(ids, type) do

@@ -149,6 +149,15 @@ defmodule EHealth.Web.MedicationControllerTest do
       json_response(conn, 422)
     end
 
+    test "no active substances", %{conn: conn} do
+      new_medication = fixture(:medication)
+      ingredient_inactive = Map.merge(@ingredient, %{"id" => new_medication.id, "is_active_substance" => false})
+      attrs = Map.put(@create_attrs, :ingredients, [ingredient_inactive, ingredient_inactive])
+
+      conn = post conn, medication_path(conn, :create), attrs
+      json_response(conn, 422)
+    end
+
     test "renders errors when data is invalid", %{conn: conn} do
       conn = post conn, medication_path(conn, :create), @invalid_attrs
       assert json_response(conn, 422)["errors"] != %{}
