@@ -49,4 +49,4 @@ script:
     # Submit Docker container to Docker Hub and create GitHub Release by pushing tag with changelog
   - ./bin/ci/push.sh
   # CD to Dev
-  #- sudo ./bin/deploy.sh || travis_terminate 1
+  - sudo ./bin/deploy.sh || travis_terminate 1
