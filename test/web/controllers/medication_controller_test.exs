@@ -120,11 +120,12 @@ defmodule EHealth.Web.MedicationControllerTest do
     test "renders medication when data is valid", %{conn: conn} do
       new_medication = fixture(:medication)
       ingredient = Map.put(@ingredient, "id", new_medication.id)
-      attrs = Map.put(@create_attrs, :ingredients, [ingredient])
+      ingredient_inactive = Map.merge(@ingredient, %{"id" => new_medication.id, "is_active_substance" => false})
+      attrs = Map.put(@create_attrs, :ingredients, [ingredient, ingredient_inactive])
 
-      conn1 = post conn, medication_path(conn, :create), attrs
+      conn = post conn, medication_path(conn, :create), attrs
 
-      assert %{"id" => id} = json_response(conn1, 201)["data"]
+      assert %{"id" => id} = json_response(conn, 201)["data"]
       conn = get conn, medication_path(conn, :show, id)
       resp_data = json_response(conn, 200)["data"]
 
@@ -137,6 +138,15 @@ defmodule EHealth.Web.MedicationControllerTest do
             passed: #{inspect resp_value}"
         end
       )
+    end
+
+    test "is_active_substance duplicated", %{conn: conn} do
+      new_medication = fixture(:medication)
+      ingredient = Map.put(@ingredient, "id", new_medication.id)
+      attrs = Map.put(@create_attrs, :ingredients, [ingredient, ingredient])
+
+      conn = post conn, medication_path(conn, :create), attrs
+      json_response(conn, 422)
     end
 
     test "renders errors when data is invalid", %{conn: conn} do

@@ -108,6 +108,7 @@ defmodule EHealth.PRM.Medication.API do
     |> cast(attrs, @fields_medication_optional ++ @fields_medication_required)
     |> validate_required(@fields_medication_required)
     |> validate_ingredients_fk()
+    |> validate_ingedients_active_substance_uniqueness()
   end
 
   @doc false
@@ -127,6 +128,19 @@ defmodule EHealth.PRM.Medication.API do
       |> validate_fk(get_field(changeset, :type))
     end
   end
+
+  defp validate_ingedients_active_substance_uniqueness(changeset) do
+    validate_change changeset, :ingredients, fn :ingredients, ingredients ->
+      ingredients
+      |> Enum.reduce_while({false, []}, &active_substance_unique/2)
+      |> elem(1)
+    end
+  end
+
+  defp active_substance_unique(%{"is_active_substance" => false}, acc), do: {:cont, acc}
+  defp active_substance_unique(%{"is_active_substance" => true}, {false, _msg}), do: {:cont, {true, []}}
+  defp active_substance_unique(%{"is_active_substance" => true}, {true, _msg}), do:
+    {:halt, {true, [ingredients: "More than one active substances"]}}
 
   @doc false
   def validate_fk(ids, type) do
