@@ -205,11 +205,17 @@ defmodule EHealth.PRM.Medication.API do
   # counters
 
   def count_by_ids(ids, @type_medication) do
-    PRMRepo.one(from m in Medication, select: count("*"), where: m.id in ^ids)
+    Medication
+    |> where([m], m.id in ^ids)
+    |> where([m], m.type == @type_innm)
+    |> select(count("*"))
+    |> PRMRepo.one()
   end
 
   def count_by_ids(ids, @type_innm) do
-    PRMRepo.one(from s in Substance, select: count("*"), where: s.id in ^ids)
+    Substance
+    |> where([s], s.id in ^ids)
+    |> select(count("*"))
+    |> PRMRepo.one()
   end
-
 end

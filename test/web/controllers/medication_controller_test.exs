@@ -71,8 +71,8 @@ defmodule EHealth.Web.MedicationControllerTest do
     end
 
     test "paging", %{conn: conn} do
-      %{id: medication_id} = fixture(:innm)
-      ingredient = build(:ingredient, id: medication_id)
+      %{id: innm_id} = fixture(:innm)
+      ingredient = build(:ingredient, id: innm_id)
       for _ <- 1..21, do: insert(:prm, :medication, ingredients: [ingredient])
 
       conn = get conn, medication_path(conn, :index), page: 2
@@ -109,11 +109,11 @@ defmodule EHealth.Web.MedicationControllerTest do
 
   describe "create medication" do
     test "renders medication when data is valid", %{conn: conn} do
-      new_medication = fixture(:innm)
-      new_medication2 = fixture(:innm)
+      new_innm = fixture(:innm)
+      new_innm2 = fixture(:innm)
 
-      ingredient = build(:ingredient, id: new_medication.id)
-      ingredient_inactive = build(:ingredient, [id: new_medication2.id, is_active_substance: false])
+      ingredient = build(:ingredient, id: new_innm.id)
+      ingredient_inactive = build(:ingredient, [id: new_innm2.id, is_active_substance: false])
 
       attrs = Map.put(@create_attrs, :ingredients, [ingredient, ingredient_inactive])
 
@@ -135,10 +135,10 @@ defmodule EHealth.Web.MedicationControllerTest do
     end
 
     test "ingredients innm duplicated", %{conn: conn} do
-      new_medication = fixture(:innm)
+      new_innm = fixture(:innm)
 
-      ingredient = build(:ingredient, id: new_medication.id)
-      ingredient2 = build(:ingredient, [id: new_medication.id, is_active_substance: false])
+      ingredient = build(:ingredient, id: new_innm.id)
+      ingredient2 = build(:ingredient, [id: new_innm.id, is_active_substance: false])
 
       attrs = Map.put(@create_attrs, :ingredients, [ingredient, ingredient2])
 
@@ -146,12 +146,22 @@ defmodule EHealth.Web.MedicationControllerTest do
       json_response(conn, 422)
     end
 
-    test "is_active_substance duplicated", %{conn: conn} do
-      new_medication = fixture(:innm)
-      new_medication2 = fixture(:innm)
+    test "medication id in ingredients", %{conn: conn} do
+      medication = fixture(:medication)
+      ingredient = build(:ingredient, id: medication.id)
 
-      ingredient = build(:ingredient, id: new_medication.id)
-      ingredient2 = build(:ingredient, [id: new_medication2.id])
+      attrs = Map.put(@create_attrs, :ingredients, [ingredient])
+
+      conn = post conn, medication_path(conn, :create), attrs
+      json_response(conn, 422)
+    end
+
+    test "is_active_substance duplicated", %{conn: conn} do
+      new_innm = fixture(:innm)
+      new_innm2 = fixture(:innm)
+
+      ingredient = build(:ingredient, id: new_innm.id)
+      ingredient2 = build(:ingredient, [id: new_innm2.id])
 
       attrs = Map.put(@create_attrs, :ingredients, [ingredient, ingredient2])
 
@@ -160,8 +170,8 @@ defmodule EHealth.Web.MedicationControllerTest do
     end
 
     test "no active substances", %{conn: conn} do
-      new_medication = fixture(:innm)
-      ingredient_inactive = build(:ingredient, [id: new_medication.id, is_active_substance: false])
+      new_innm = fixture(:innm)
+      ingredient_inactive = build(:ingredient, [id: new_innm.id, is_active_substance: false])
       attrs = Map.put(@create_attrs, :ingredients, [ingredient_inactive, ingredient_inactive])
 
       conn = post conn, medication_path(conn, :create), attrs
