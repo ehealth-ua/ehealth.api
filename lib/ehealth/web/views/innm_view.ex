@@ -16,6 +16,7 @@ defmodule EHealth.Web.INNMView do
       name: innm.name,
       type: innm.type,
       form: innm.form,
+      is_active: innm.is_active,
       ingredients: innm.ingredients,
       inserted_by: innm.inserted_by,
       inserted_at: innm.inserted_at,

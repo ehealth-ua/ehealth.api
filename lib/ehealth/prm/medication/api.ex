@@ -40,7 +40,7 @@ defmodule EHealth.PRM.Medication.API do
 
   @doc false
   def list_medications(params, type) do
-    params = Map.merge(params, %{"type" => type, "is_active" => true})
+    params = Map.put(params, "type", type)
     data = %{}
     types = %{id: Ecto.UUID, name: StringLike, form: :string, type: :string, is_active: :boolean}
 
@@ -51,9 +51,13 @@ defmodule EHealth.PRM.Medication.API do
   end
 
   @doc false
-  def get_medication!(id), do: PRMRepo.get_by!(Medication, [id: id, is_active: true])
+  def get_medication!(id), do: PRMRepo.get!(Medication, id)
 
-  def get_medication_by_id_and_type!(id, type), do: PRMRepo.get_by!(Medication, [id: id, type: type, is_active: true])
+  def get_medication_by_id_and_type!(id, type), do: PRMRepo.get_by!(Medication, [id: id, type: type])
+
+  def get_active_medication_by_id_and_type!(id, type) do
+    PRMRepo.get_by!(Medication, [id: id, type: type, is_active: true])
+  end
 
   @doc false
   def create_medication(attrs, type, headers) do
@@ -174,7 +178,6 @@ defmodule EHealth.PRM.Medication.API do
 
   @doc false
   def list_substances(params) do
-    params = Map.put(params, "is_active", true)
     data = %{}
     types = %{id: Ecto.UUID, name: StringLike, name_original: StringLike, sctid: :string, is_active: :boolean}
 
@@ -185,7 +188,7 @@ defmodule EHealth.PRM.Medication.API do
   end
 
   @doc false
-  def get_substance!(id), do: PRMRepo.get_by!(Substance, [id: id, is_active: true])
+  def get_substance!(id), do: PRMRepo.get!(Substance, id)
 
   @doc false
   def create_substance(attrs, headers) do

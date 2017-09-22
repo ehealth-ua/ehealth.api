@@ -24,11 +24,11 @@ defmodule EHealth.Web.SubstanceControllerTest do
       assert "Диэтиламид" == substance["name"]
     end
 
-    test "not active substance not in list", %{conn: conn} do
+    test "not active substance in list", %{conn: conn} do
       insert(:prm, :substance, is_active: false)
 
       conn = get conn, substance_path(conn, :index)
-      assert [] == json_response(conn, 200)["data"]
+      assert 1 == length(json_response(conn, 200)["data"])
     end
 
     test "paging", %{conn: conn} do
@@ -89,13 +89,10 @@ defmodule EHealth.Web.SubstanceControllerTest do
   end
 
   describe "get substance by id" do
-    test "not active substance render 404", %{conn: conn} do
+    test "not active substance render 200", %{conn: conn} do
       %{id: id} = insert(:prm, :substance, is_active: false)
-
-      assert_raise Ecto.NoResultsError, ~r/expected at least one result but got none in query/, fn ->
-        conn = get conn, substance_path(conn, :show, id)
-        json_response(conn, 404)
-      end
+      conn = get conn, substance_path(conn, :show, id)
+      json_response(conn, 200)
     end
   end
 end

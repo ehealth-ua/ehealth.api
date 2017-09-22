@@ -71,7 +71,8 @@ defmodule EHealth.Web.INNMControllerTest do
 
     test "200 OK", %{conn: conn, innm: %Medication{id: id}} do
       conn = get conn, innm_path(conn, :show, id)
-      _data = json_response(conn, 200)["data"]
+      data = json_response(conn, 200)["data"]
+      assert Map.has_key?(data, "is_active")
       # ToDo: check response fields
     end
 
@@ -119,10 +120,8 @@ defmodule EHealth.Web.INNMControllerTest do
       conn = patch conn, innm_path(conn, :deactivate, innm)
       assert %{"id" => ^id} = json_response(conn, 200)["data"]
 
-      assert_raise Ecto.NoResultsError, ~r/expected at least one result but got none in query/, fn ->
-        conn = get conn, innm_path(conn, :show, id)
-        json_response(conn, 404)
-      end
+      conn = get conn, innm_path(conn, :show, id)
+      refute json_response(conn, 200)["data"]["is_active"]
     end
 
     test "INNM is inactive", %{conn: conn} do

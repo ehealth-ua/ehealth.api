@@ -95,7 +95,8 @@ defmodule EHealth.Web.MedicationControllerTest do
 
     test "200 OK", %{conn: conn, medication: %Medication{id: id}} do
       conn = get conn, medication_path(conn, :show, id)
-      _data = json_response(conn, 200)["data"]
+      data = json_response(conn, 200)["data"]
+      assert Map.has_key?(data, "is_active")
       # ToDo: check response fields
     end
 
@@ -203,10 +204,7 @@ defmodule EHealth.Web.MedicationControllerTest do
       conn = patch conn, medication_path(conn, :deactivate, medication)
       assert %{"id" => ^id} = json_response(conn, 200)["data"]
 
-      assert_raise Ecto.NoResultsError, ~r/expected at least one result but got none in query/, fn ->
-        conn = get conn, medication_path(conn, :show, id)
-        json_response(conn, 404)
-      end
+      refute json_response(conn, 200)["data"]["is_active"]
     end
 
     test "Medication is inactive", %{conn: conn} do
