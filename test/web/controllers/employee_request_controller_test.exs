@@ -10,6 +10,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   alias EHealth.PRM.Employees.Schema, as: Employee
   alias EHealth.PRM.PartyUsers.Schema, as: PartyUser
   alias EHealth.MockServer
+  alias EHealth.PRMRepo
 
   @moduletag :with_client_id
 
@@ -568,14 +569,16 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       |> put_in([:legal_entity_id], legal_entity_id)
     data =
       data
+      |> Map.put(:employee_type, Employee.type(:pharmacist))
       |> Map.put(:pharmacist, Map.get(data, :doctor))
       |> Map.delete(:doctor)
     %{id: request_id} = insert(:il, :employee_request, employee_id: nil, data: data)
 
     conn = put_client_id_header(conn, legal_entity_id)
     conn = post conn, employee_request_path(conn, :approve, request_id)
-    resp = json_response(conn, 200)
-    assert %{"data" => %{"employee_id" => _employee_id, "pharmacist" => _}} = resp
+    resp = json_response(conn, 200)["data"]
+    assert %{"employee_id" => _employee_id, "pharmacist" => _} = resp
+    assert %{additional_info: %{"educations" => _}} = PRMRepo.get(Employee, resp["employee_id"])
   end
 
   test "can approve employee request if email maches", %{conn: conn} do

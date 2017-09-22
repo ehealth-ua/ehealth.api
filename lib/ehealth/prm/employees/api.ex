@@ -39,6 +39,7 @@ defmodule EHealth.PRM.Employees do
   )a
 
   @doctor Employee.type(:doctor)
+  @pharmacist Employee.type(:pharmacist)
 
   def get_employee_by_id!(id) do
     Employee
@@ -138,6 +139,9 @@ defmodule EHealth.PRM.Employees do
   defp put_additional_info(changeset, _), do: changeset
 
   defp validate_employee_type(%Ecto.Changeset{changes: %{employee_type: @doctor}} = changeset) do
+    validate_required(changeset, [:additional_info])
+  end
+  defp validate_employee_type(%Ecto.Changeset{changes: %{employee_type: @pharmacist}} = changeset) do
     validate_required(changeset, [:additional_info])
   end
   defp validate_employee_type(changeset), do: changeset
