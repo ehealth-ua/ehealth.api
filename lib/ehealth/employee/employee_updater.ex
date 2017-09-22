@@ -19,8 +19,10 @@ defmodule EHealth.Employee.EmployeeUpdater do
   @status_approved Employee.status(:approved)
   @status_dismissed Employee.status(:dismissed)
 
-  def deactivate(id, headers, with_owner \\ false) do
+  def deactivate(%{"id" => id} = params, headers, with_owner \\ false) do
+    legal_entity_id = Map.get(params, "legal_entity_id")
     with employee <- Employees.get_employee_by_id!(id),
+         :ok <- check_legal_entity_id(legal_entity_id, employee),
          :ok <- check_transition(employee, with_owner),
          active_employees <- get_active_employees(employee),
          :ok <- revoke_user_auth_data(employee, active_employees, headers),
@@ -120,5 +122,9 @@ defmodule EHealth.Employee.EmployeeUpdater do
   end
   defp put_employee_status(params, _employee) do
     Map.put(params, :status, @status_dismissed)
+  end
+
+  defp check_legal_entity_id(client_id, %Employee{legal_entity_id: legal_entity_id}) do
+    if client_id == legal_entity_id, do: :ok, else: {:error, :forbidden}
   end
 end

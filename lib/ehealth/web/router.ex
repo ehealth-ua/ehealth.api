@@ -98,7 +98,11 @@ defmodule EHealth.Web.Router do
 
     # Employees
     get "/employees/:id", EmployeeController, :show
-    patch "/employees/:id/actions/deactivate", EmployeeController, :deactivate
+    scope "/employees" do
+      pipe_through [:client_context_list]
+
+      patch "/:id/actions/deactivate", EmployeeController, :deactivate
+    end
 
     # Employee requests
     post "/employee_requests", EmployeeRequestController, :create

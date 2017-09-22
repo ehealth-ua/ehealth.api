@@ -235,7 +235,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
 
     test "with invalid transitions condition", %{conn: conn, legal_entity: legal_entity} do
       employee = insert(:prm, :employee, legal_entity: legal_entity, status: "DEACTIVATED")
-      conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+      conn = put_client_id_header(conn, legal_entity.id)
       conn_resp = patch conn, employee_path(conn, :deactivate, employee.id)
 
       assert json_response(conn_resp, 409)["error"]["message"] == "Employee is DEACTIVATED and cannot be updated."
@@ -246,7 +246,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
         legal_entity: legal_entity,
         employee_type: Employee.type(:owner)
       )
-      conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+      conn = put_client_id_header(conn, legal_entity.id)
       conn_resp = patch conn, employee_path(conn, :deactivate, employee.id)
 
       assert json_response(conn_resp, 409)["error"]["message"] == "Owner can’t be deactivated"
@@ -257,7 +257,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
         legal_entity: legal_entity,
         employee_type: Employee.type(:pharmacy_owner)
       )
-      conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+      conn = put_client_id_header(conn, legal_entity.id)
       conn_resp = patch conn, employee_path(conn, :deactivate, employee.id)
 
       assert json_response(conn_resp, 409)["error"]["message"] == "Pharmacy owner can’t be deactivated"

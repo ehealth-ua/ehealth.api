@@ -39,7 +39,7 @@ defmodule EHealth.LegalEntity.LegalEntityUpdater do
     |> Employees.list
     |> Enum.map(&(Task.async(fn ->
       id = Map.get(&1, :id)
-      {id, EmployeeUpdater.deactivate(id, headers, true)}
+      {id, EmployeeUpdater.deactivate(%{"id" => id, "legal_entity_id" => legal_entity.id}, headers, true)}
     end)))
     |> Enum.map(&Task.await/1)
     |> Enum.reduce_while(:ok, fn {id, resp}, acc ->
