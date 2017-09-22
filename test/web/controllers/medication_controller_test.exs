@@ -169,10 +169,22 @@ defmodule EHealth.Web.MedicationControllerTest do
       json_response(conn, 422)
     end
 
-    test "no active substances", %{conn: conn} do
+    test "no active substances in ingredients", %{conn: conn} do
       new_innm = fixture(:innm)
       ingredient_inactive = build(:ingredient, [id: new_innm.id, is_active_substance: false])
       attrs = Map.put(@create_attrs, :ingredients, [ingredient_inactive, ingredient_inactive])
+
+      conn = post conn, medication_path(conn, :create), attrs
+      json_response(conn, 422)
+    end
+
+    test "medication with inactive INNM", %{conn: conn} do
+      %{id: substance_id} = insert(:prm, :substance)
+      ingredient = build(:ingredient, id: substance_id)
+      new_innm = insert(:prm, :innm, [ingredients: [ingredient], is_active: false])
+
+      ingredient = build(:ingredient, id: new_innm.id)
+      attrs = Map.put(@create_attrs, :ingredients, [ingredient])
 
       conn = post conn, medication_path(conn, :create), attrs
       json_response(conn, 422)
