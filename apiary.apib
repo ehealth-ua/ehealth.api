@@ -1,5 +1,5 @@
 FORMAT: 1A
-HOST: http://ehealth.nebo15.com/
+HOST: http://ehealth.edenlabllc.com/
 
 # eHealth API
 
@@ -11,11 +11,11 @@ This is a API documentation for Ukrainian Health Services government institution
 
 Project development is fully transparent, you can find it's source code on GitHub:
 
-* [eHealth API and issue tracker](https://github.com/Nebo15/ehealth.api)
-* [Master Patient Index](https://github.com/Nebo15/mpi.api)
-* [Partnership Relation Management](https://github.com/Nebo15/prm.api)
+* [eHealth API and issue tracker](https://github.com/edenlabllc/ehealth.api)
+* [Master Patient Index](https://github.com/edenlabllc/mpi.api)
+* [Partnership Relation Management](https://github.com/edenlabllc/prm.api)
 
-<!-- * [Reference Implementation of Hospital Information System UI](https://github.com/Nebo15/prm.web) -->
+<!-- * [Reference Implementation of Hospital Information System UI](https://github.com/edenlabllc/prm.web) -->
 
 This API design in based on [Nebo #15 API Design Manifest](http://docs.apimanifest.apiary.io/).
 
@@ -47,7 +47,7 @@ TODO.
 
 ## Submitting Issues
 
-To submit issues you should use [Issue Tracking Repo](https://github.com/Nebo15/ehealth.api), issues in all other repositories are used to plan backlog and non-related issued will be closed.
+To submit issues you should use [Issue Tracking Repo](https://github.com/edenlabllc/ehealth.api), issues in all other repositories are used to plan backlog and non-related issued will be closed.
 
 # Group Internal. Authorization Provider
 
@@ -1546,9 +1546,9 @@ Method returns medical programs details by ID.
 
 ## Program medications [/program_medications]
 
-### Create Program medications [POST]
+### Create Program medication [POST]
 This method is used to create new participant of a program - to link exsiting active medication to exsiting active program. Fields descriptions are listed in request Example view.
-**Scopes required:** `program_medications:write`
+**Scopes required:** `program_medication:write`
 
 + Request (application/json)
 
@@ -1582,9 +1582,9 @@ This method is used to create new participant of a program - to link exsiting ac
             + type: unverified (string, required)
             + message: `This program is inactive` (string, required)
 
-### Update Program medications [PUT /program_medications/{id}]
+### Update Program medication [PUT /program_medications/{id}]
 This method is used to update flags "is_active" and/or "medication_request_allowed" for Medication within Medical_program. Fields descriptions are listed in request Example view.
-**Scopes required:** `program_medications:write`
+**Scopes required:** `program_medication:write`
 
 + Parameters
     + id: `b3af52d9-e5c0-4876-b717-0dc954a69a28` (string, required) - Record id
@@ -1612,10 +1612,10 @@ This method is used to update flags "is_active" and/or "medication_request_allow
             + type: unverified (string, required)
             + message: `Medications are already inactive in this program` (string, required)
 
-### Get Program medications list [GET /program_medications{?id,medical_program_id,medical_program_name,innm_id,innm_name,medication_id,medication_name,page_number,page_size}]
+### Get Program medication list [GET /program_medications{?id,medical_program_id,medical_program_name,innm_id,innm_name,medication_id,medication_name,page_number,page_size}]
 Method returns list of participants(medications) of medical programs filtering by parameters.  
 
-**Scopes required:** `program_medications:read`
+**Scopes required:** `program_medication:read`
 
 + Parameters
     + `id`: `7124259c-eeb1-4cbb-acac-ada2162675d1` (string, optional) - Program_medications Identifier (medication within the program)
@@ -1636,10 +1636,10 @@ Method returns list of participants(medications) of medical programs filtering b
         + meta (Response__Meta)
         + data (array[`Program_medications_Response`])
 
-### Get Program medications by id [GET /program_medications/{id}]
+### Get Program medication by id [GET /program_medications/{id}]
 Method returns participants(medications) of medical programs details by ID.
 
-**Scopes required:** `program_medications:read`
+**Scopes required:** `program_medication:read`
 
 + Parameters
     + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
