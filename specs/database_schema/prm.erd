@@ -297,9 +297,10 @@ inserted_at | timestamp | not null
 
 [medication_request_requests]
 id | uuid | not null
-expired_at | date
 data | jsonb | not null
 status | varchar | not null
+request_number | varchar | not null
+verification_code | varchar
 inserted_at | timestamp | not null
 inserted_by | uuid | not null
 updated_at | timestamp | not null
