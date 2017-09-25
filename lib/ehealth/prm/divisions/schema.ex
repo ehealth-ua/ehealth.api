@@ -6,8 +6,16 @@ defmodule EHealth.PRM.Divisions.Schema do
   @status_active "ACTIVE"
   @status_inactive "INACTIVE"
 
+  @type_clinic "CLINIC"
+  @type_ambulant_clinic "AMBULANT_CLINIC"
+  @type_fap "FAP"
+
   def status(:active), do: @status_active
   def status(:inactive), do: @status_inactive
+
+  def type(:clinic), do: @type_clinic
+  def type(:ambulant_clinic), do: @type_ambulant_clinic
+  def type(:fap), do: @type_fap
 
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "divisions" do

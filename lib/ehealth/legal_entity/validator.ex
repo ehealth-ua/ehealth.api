@@ -3,8 +3,6 @@ defmodule EHealth.LegalEntity.Validator do
   Request, TaxID, Digital signature validators
   """
 
-  use JValid
-
   import Ecto.Changeset
 
   alias EHealth.API.Signature
@@ -13,9 +11,7 @@ defmodule EHealth.LegalEntity.Validator do
   alias EHealth.Validators.TaxID
   alias EHealth.Validators.Addresses
   alias EHealth.Validators.BirthDate
-  alias EHealth.Validators.SchemaMapper
-
-  use_schema :legal_entity, "specs/json_schemas/new_legal_entity_schema.json"
+  alias EHealth.Validators.JsonSchema
 
   def decode_and_validate(params) do
     params
@@ -30,15 +26,21 @@ defmodule EHealth.LegalEntity.Validator do
     |> normalize_signature_error()
   end
 
-  def validate_json(json) do
-    json
-    |> validate_legal_entity()
-    |> validate_kveds()
-    |> validate_addresses()
-    |> validate_tax_id()
-    |> validate_birth_date()
-    |> validate_edrpou()
+  def validate_json({:ok, %{"data" => %{"is_valid" => false}}}) do
+    {:error, {:bad_request, "Signed request data is invalid"}}
   end
+  def validate_json({:ok, %{"data" => %{"content" => content} = data}}) do
+    with :ok <- validate_schema(content),
+         :ok <- validate_kveds(content),
+         :ok <- validate_addresses(content),
+         :ok <- validate_tax_id(content),
+         :ok <- validate_birth_date(content),
+         :ok <- validate_edrpou(content, Map.get(data, "signer"))
+    do
+      :ok
+    end
+  end
+  def validate_json(err), do: err
 
   # Request validator
 
@@ -70,57 +72,40 @@ defmodule EHealth.LegalEntity.Validator do
 
   # Legal Entity content validator
 
-  def validate_legal_entity({:ok, %{"data" => %{"is_valid" => false}}}) do
-    {:error, {:bad_request, "Signed request data is invalid"}}
+  def validate_schema(content) do
+    JsonSchema.validate(:legal_entity, content)
   end
 
-  def validate_legal_entity({:ok, %{"data" => %{"content" => content} = data}}) do
-    schema =
-      @schemas
-      |> Keyword.get(:legal_entity)
-      |> SchemaMapper.prepare_legal_entity_schema()
-
-    case validate_schema(schema, content) do
-      :ok -> {:ok, data}
-      err -> err
-    end
-  end
-
-  def validate_legal_entity(err), do: err
-
-  def validate_kveds({:ok, %{"content" => content}} = result) do
+  def validate_kveds(content) do
     content
     |> Map.get("kveds")
     |> KVEDs.validate(content["type"])
     |> case do
          %Ecto.Changeset{valid?: false} = err -> {:error, err}
-         _ -> result
+         _ -> :ok
        end
   end
-  def validate_kveds(err), do: err
 
   # Addresses validator
 
-  def validate_addresses({:ok, %{"content" => content}} = result) do
+  def validate_addresses(content) do
     content
     |> Map.get("addresses")
     |> Addresses.validate()
     |> case do
-         {:ok, _} -> result
+         {:ok, _} -> :ok
          err -> err
        end
   end
 
-  def validate_addresses(err), do: err
-
   # Tax ID validator
 
-  def validate_tax_id({:ok, %{"content" => content}} = result) do
+  def validate_tax_id(content) do
     content
     |> get_in(["owner", "tax_id"])
     |> TaxID.validate()
     |> case do
-         true -> result
+         true -> :ok
          _ ->
           {:error, [{%{
             description: "invalid tax_id value",
@@ -130,11 +115,9 @@ defmodule EHealth.LegalEntity.Validator do
        end
   end
 
-  def validate_tax_id(err), do: err
-
   # EDRPOU validator
 
-  def validate_edrpou({:ok, %{"content" => content, "signer" => signer}}) do
+  def validate_edrpou(content, signer) do
     data  = %{}
     types = %{edrpou: :string}
 
@@ -146,14 +129,12 @@ defmodule EHealth.LegalEntity.Validator do
     |> prepare_legal_entity(content)
   end
 
-  def validate_edrpou(err), do: err
-
-  def validate_birth_date({:ok, %{"content" => content}} = result) do
+  def validate_birth_date(content) do
     content
     |> get_in(["owner", "birth_date"])
     |> BirthDate.validate()
     |> case do
-         true -> result
+         true -> :ok
          _ ->
           {:error, [{%{
             description: "invalid birth_date value",
@@ -162,8 +143,7 @@ defmodule EHealth.LegalEntity.Validator do
           }, "$.owner.birth_date"}]}
        end
   end
-  def validate_birth_date(err), do: err
 
-  def prepare_legal_entity(%Ecto.Changeset{valid?: true}, legal_entity), do: {:ok, legal_entity}
-  def prepare_legal_entity(changeset, _legal_entity), do: {:error, changeset}
+  defp prepare_legal_entity(%Ecto.Changeset{valid?: true}, legal_entity), do: {:ok, legal_entity}
+  defp prepare_legal_entity(changeset, _legal_entity), do: {:error, changeset}
 end

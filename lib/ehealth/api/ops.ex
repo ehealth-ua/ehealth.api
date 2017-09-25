@@ -53,4 +53,28 @@ defmodule EHealth.API.OPS do
     |> patch!(Poison.encode!(params), headers, timeouts())
     |> ResponseDecoder.check_response()
   end
+
+  def get_medication_dispenses(params, headers \\ []) do
+    "/medication_dispenses"
+    |> get!(headers, params: params)
+    |> ResponseDecoder.check_response()
+  end
+
+  def create_medication_dispense(params, headers \\ []) do
+    "/medication_dispenses"
+    |> post!(Poison.encode!(params), headers, timeouts())
+    |> ResponseDecoder.check_response()
+  end
+
+  def update_medication_dispense(id, params, headers \\ []) do
+    "/medication_dispenses/#{id}"
+    |> put!(Poison.encode!(params), headers, timeouts())
+    |> ResponseDecoder.check_response()
+  end
+
+  def get_medication_requests(params, headers \\ []) do
+    "/medication_requests"
+    |> get!(headers, params: params)
+    |> ResponseDecoder.check_response()
+  end
 end

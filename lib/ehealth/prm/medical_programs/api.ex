@@ -18,6 +18,12 @@ defmodule EHealth.PRM.MedicalPrograms do
     |> search(params, MedicalProgram, Confex.get_env(:ehealth, :medical_programs_per_page))
   end
 
+  def get_by_ids(ids) do
+    MedicalProgram
+    |> where([mp], mp.id in ^ids)
+    |> PRMRepo.all()
+  end
+
   def get_by_id(id) do
     PRMRepo.get(MedicalProgram, id)
   end

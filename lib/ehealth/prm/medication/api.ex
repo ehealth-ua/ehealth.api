@@ -3,7 +3,6 @@ defmodule EHealth.PRM.Medication.API do
   The Medication context.
   """
 
-  use JValid
   use EHealth.PRM.Search
 
   import Ecto.Changeset
@@ -13,12 +12,8 @@ defmodule EHealth.PRM.Medication.API do
   alias EHealth.PRMRepo
   alias EHealth.PRM.Medication
   alias EHealth.PRM.Medication.Substance
-  alias EHealth.Validators.SchemaMapper
   alias EHealth.Ecto.StringLike
-
-  use_schema :substance, "specs/json_schemas/new_substance_schema.json"
-  use_schema :medication, "specs/json_schemas/new_medication_type_medication_schema.json"
-  use_schema :innm, "specs/json_schemas/new_medication_type_innm_schema.json"
+  alias EHealth.Validators.JsonSchema
 
   @type_innm Medication.type(:innm)
   @type_medication Medication.type(:medication)
@@ -53,6 +48,8 @@ defmodule EHealth.PRM.Medication.API do
   @doc false
   def get_medication!(id), do: PRMRepo.get!(Medication, id)
 
+  def get_by_id(id), do: PRMRepo.get(Medication, id)
+
   def get_medication_by_id_and_type!(id, type), do: PRMRepo.get_by!(Medication, [id: id, type: type])
 
   def get_active_medication_by_id_and_type!(id, type) do
@@ -61,8 +58,8 @@ defmodule EHealth.PRM.Medication.API do
 
   @doc false
   def create_medication(attrs, type, headers) do
-    case validate_json_schema(attrs, type) do
-      {:ok, _} ->
+    case JsonSchema.validate(type, attrs) do
+      :ok ->
         consumer_id = get_consumer_id(headers)
         attrs = Map.merge(
           attrs,
@@ -91,19 +88,6 @@ defmodule EHealth.PRM.Medication.API do
     medication
     |> changeset(attrs)
     |> PRMRepo.update()
-  end
-
-  @doc false
-  def validate_json_schema(data, schema_name) do
-    schema =
-      @schemas
-      |> Keyword.get(schema_name)
-      |> SchemaMapper.prepare_medication_schema(schema_name)
-
-    case validate_schema(schema, data) do
-      :ok -> {:ok, data}
-      err -> err
-    end
   end
 
   @doc false
@@ -192,8 +176,8 @@ defmodule EHealth.PRM.Medication.API do
 
   @doc false
   def create_substance(attrs, headers) do
-    case validate_json_schema(attrs, :substance) do
-      {:ok, _} ->
+    case JsonSchema.validate(:substance, attrs) do
+      :ok ->
         consumer_id = get_consumer_id(headers)
         attrs = Map.merge(attrs, %{"inserted_by" => consumer_id, "updated_by" => consumer_id})
 

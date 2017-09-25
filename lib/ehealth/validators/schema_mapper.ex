@@ -29,11 +29,12 @@ defmodule EHealth.Validators.SchemaMapper do
     prepare_schema(nex_schema, :employee_additional_info)
   end
 
-  def prepare_medication_schema(%Root{} = nex_schema, type) when type in [:medication, :innm] do
-    prepare_schema(nex_schema, type)
+  def prepare_medication_schema(%Root{} = nex_schema) do
+    prepare_schema(nex_schema, :medication)
   end
-  def prepare_medication_schema(%Root{} = nex_schema, _type) do
-    nex_schema
+
+  def prepare_innm_schema(%Root{} = nex_schema) do
+    prepare_schema(nex_schema, :innm)
   end
 
   def prepare_schema(%Root{schema: schema} = nex_schema, type) do

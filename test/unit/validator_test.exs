@@ -151,7 +151,7 @@ defmodule EHealth.Unit.ValidatorTest do
       |> Map.put("type", "STRANGE")
 
     assert {:error, [{%{description: "value is not allowed in enum", rule: :inclusion}, "$.type"}]} =
-      Validator.validate_legal_entity({:ok, %{"data" => %{"content" => content}}})
+      Validator.validate_schema(content)
   end
 
   test "JSON schema dictionary enum validate PHONE_TYPE", %{conn: conn} do
@@ -164,7 +164,7 @@ defmodule EHealth.Unit.ValidatorTest do
       |> Map.put("phones", [%{"type" => "INVALID", "number" => "+380503410870"}])
 
     assert {:error, [{%{description: "value is not allowed in enum", rule: :inclusion}, "$.phones.[0].type"}]} =
-      Validator.validate_legal_entity({:ok, %{"data" => %{"content" => content}}})
+      Validator.validate_schema(content)
   end
 
   test "JSON schema birth_date date format with weeks" do
@@ -175,7 +175,7 @@ defmodule EHealth.Unit.ValidatorTest do
       |> put_in(["owner", "birth_date"], "1985-W12-6")
 
     assert {:error, [{%{description: _, rule: :format}, "$.owner.birth_date"}]} =
-      Validator.validate_legal_entity({:ok, %{"data" => %{"content" => content}}})
+      Validator.validate_schema(content)
   end
 
   test "JSON schema birth_date date format" do
@@ -186,7 +186,7 @@ defmodule EHealth.Unit.ValidatorTest do
       |> put_in(["owner", "birth_date"], "1988.12.11")
 
     assert {:error, [{%{description: _, rule: :format}, "$.owner.birth_date"}]} =
-      Validator.validate_legal_entity({:ok, %{"data" => %{"content" => content}}})
+      Validator.validate_schema(content)
   end
 
   test "JSON schema birth_date more than 150 years" do
@@ -197,7 +197,7 @@ defmodule EHealth.Unit.ValidatorTest do
       |> put_in(["owner", "birth_date"], "1815-12-06")
 
     assert {:error, [{%{description: _, rule: :invalid}, "$.owner.birth_date"}]} =
-      Validator.validate_birth_date({:ok, %{"content" => content}})
+      Validator.validate_birth_date(content)
   end
 
   test "JSON schema birth_date in future" do
@@ -215,7 +215,7 @@ defmodule EHealth.Unit.ValidatorTest do
       |> put_in(["owner", "birth_date"], date)
 
     assert {:error, [{%{description: _, rule: :invalid}, "$.owner.birth_date"}]} =
-      Validator.validate_birth_date({:ok, %{"content" => content}})
+      Validator.validate_birth_date(content)
   end
 
   test "JSON schema issued_date date format" do
@@ -226,7 +226,7 @@ defmodule EHealth.Unit.ValidatorTest do
       |> put_in(["medical_service_provider", "accreditation", "issued_date"], "20-12-2011")
 
     assert {:error, [{%{description: _, rule: :format}, "$.medical_service_provider.accreditation.issued_date"}]} =
-      Validator.validate_legal_entity({:ok, %{"data" => %{"content" => content}}})
+      Validator.validate_schema(content)
   end
 
   test "Employee Request: issued_date date format" do
@@ -291,7 +291,7 @@ defmodule EHealth.Unit.ValidatorTest do
       |> File.read!()
       |> Poison.decode!()
 
-    assert {:ok, _} = Validator.validate_legal_entity({:ok, %{"data" => %{"content" => content}}})
+    assert :ok = Validator.validate_schema(content)
   end
 
   test "base64 decode signed_content with white spaces" do
@@ -320,7 +320,7 @@ defmodule EHealth.Unit.ValidatorTest do
     ])
 
     assert {:error, [{%{description: _, rule: :format}, "$.addresses.[3].building"}]} =
-      Validator.validate_legal_entity({:ok, %{"data" => %{"content" => content}}})
+      Validator.validate_schema(content)
   end
 
   test "validate allowed and required kveds", %{conn: conn} do
@@ -396,7 +396,7 @@ defmodule EHealth.Unit.ValidatorTest do
 
   test "Declaration Request: JSON schema gender valid", %{conn: conn} do
     patch conn, dictionary_path(conn, :update, "GENDER"), @gender
-    assert {:ok, _} = DeclarationRequestValidator.validate_schema(get_declaration_request())
+    assert :ok = DeclarationRequestValidator.validate_schema(get_declaration_request())
   end
 
   defp invalid_documents do

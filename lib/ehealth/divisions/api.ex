@@ -2,20 +2,17 @@ defmodule EHealth.Divisions.API do
   @moduledoc """
   The boundary for the Divisions system.
   """
-  use JValid
 
   import Ecto.Changeset, warn: false
   import EHealth.Utils.Connection, only: [get_client_id: 1, get_consumer_id: 1]
 
   alias EHealth.API.UAddress
-  alias EHealth.Validators.SchemaMapper
   alias EHealth.Validators.Addresses
   alias EHealth.PRM.Divisions
   alias EHealth.PRM.Divisions.Schema, as: Division
   alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
   alias EHealth.PRM.LegalEntities
-
-  use_schema :division, "specs/json_schemas/division_schema.json"
+  alias EHealth.Validators.JsonSchema
 
   @status_active Division.status(:active)
   @default_mountain_group "0"
@@ -49,14 +46,14 @@ defmodule EHealth.Divisions.API do
 
   def prepare_division_data(params, legal_entity_id) do
     with %LegalEntity{} = legal_entity <- LegalEntities.get_legal_entity_by_id(legal_entity_id),
-         :ok <- validate_division_type(legal_entity, params)
+         :ok <- validate_division_type(legal_entity, params),
+         params <- params
+                   |> Map.delete("id")
+                   |> Map.put("legal_entity_id", legal_entity_id),
+         :ok <- JsonSchema.validate(:division, params),
+         :ok <- validate_addresses(params)
     do
-      params
-      |> Map.delete("id")
-      |> Map.put("legal_entity_id", legal_entity_id)
-      |> validate_division()
-      |> validate_addresses()
-      |> put_mountain_group()
+      put_mountain_group(params)
     else
       nil ->
         {:error, [{%{
@@ -87,28 +84,15 @@ defmodule EHealth.Divisions.API do
     Divisions.update_division(division, data, author_id)
   end
 
-  def validate_division(data) do
-    schema =
-      @schemas
-      |> Keyword.get(:division)
-      |> SchemaMapper.prepare_divisions_schema()
-
-    case validate_schema(schema, data) do
-      :ok -> {:ok, data}
-      err -> err
-    end
-  end
-
-  def validate_addresses({:ok, data} = return) do
+  def validate_addresses(data) do
     data
     |> Map.get("addresses")
     |> Addresses.validate()
     |> case do
-         {:ok, _} -> return
+         {:ok, _} -> :ok
          err -> err
        end
   end
-  def validate_addresses(err), do: err
 
   defp validate_division_type(%LegalEntity{type: legal_entity_type}, params) do
     config = Confex.fetch_env!(:ehealth, :legal_entity_division_types)
@@ -130,7 +114,7 @@ defmodule EHealth.Divisions.API do
     end
   end
 
-  def put_mountain_group({:ok, %{"addresses" => addresses} = division}) do
+  def put_mountain_group(%{"addresses" => addresses} = division) do
     settlement_id =
       addresses
       |> List.first()

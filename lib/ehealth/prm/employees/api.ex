@@ -76,6 +76,12 @@ defmodule EHealth.PRM.Employees do
     |> search(params, Employee, Confex.get_env(:ehealth, :employees_per_page))
   end
 
+  def get_by_ids(ids) do
+    Employee
+    |> where([e], e.id in ^ids)
+    |> PRMRepo.all()
+  end
+
   def update_all(query, updates) do
     Multi.new
     |> Multi.update_all(:employee_requests, query, set: updates)

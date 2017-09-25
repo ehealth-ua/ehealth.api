@@ -9,6 +9,13 @@ defmodule EHealth.MockServer do
   @client_type_mis "296da7d2-3c5a-4f6a-b8b2-631063737271"
   @client_type_nil "7cc91a5d-c02f-41e9-b571-1ea4f2375111"
 
+  @active_medication_dispense "97a579bc-9e00-11e7-abc4-cec278b6b50a"
+  @inactive_medication_dispense "16adf138-a1c8-11e7-abc4-cec278b6b50a"
+
+  @active_medication_request "f08ba3a3-157a-4adc-b65d-737f24f3a1f4"
+  @inactive_medication_request "04d64554-9a1c-11e7-abc4-cec278b6b50a"
+  @invalid_medication_dispense_period "5ccf33e6-9a22-11e7-abc4-cec278b6b50a"
+
   plug :match
   plug Plug.Parsers, parsers: [:json],
                      pass:  ["application/json"],
@@ -18,6 +25,12 @@ defmodule EHealth.MockServer do
   def get_client_mis, do: @client_type_mis
   def get_client_nil, do: @client_type_nil
   def get_client_admin, do: @client_type_admin
+
+  def get_active_medication_dispense, do: @active_medication_dispense
+  def get_inactive_medication_dispense, do: @inactive_medication_dispense
+  def get_active_medication_request, do: @active_medication_request
+  def get_inactive_medication_request, do: @inactive_medication_request
+  def get_invalid_medication_request_period, do: @invalid_medication_dispense_period
 
   # Mithril
 
@@ -293,6 +306,77 @@ defmodule EHealth.MockServer do
     end
   end
 
+  get "/medication_dispenses" do
+    id = conn.query_params["id"]
+    cond do
+      id == @active_medication_dispense -> render([get_medication_dispense(id)], conn, 200)
+      id == @inactive_medication_dispense ->
+        render([get_medication_dispense(id, %{"status" => "EXPIRED"})], conn, 200)
+      conn.query_params["medication_request_id"] -> render([], conn, 200)
+      true -> render([get_medication_dispense()], conn, 200)
+    end
+  end
+
+  get "/medication_requests" do
+    case conn.query_params["id"] do
+      id = @active_medication_request ->
+        render([get_medication_request(id)], conn, 200)
+      id = @inactive_medication_request ->
+        render([get_medication_request(id, %{"ended_at" => "2013-01-01"})], conn, 200)
+      id = @invalid_medication_dispense_period ->
+        render([get_medication_request(id, %{"dispense_valid_to" => "2013-01-01"})], conn, 200)
+      _ -> render_404(conn)
+    end
+  end
+
+  post "/medication_dispenses" do
+    details =
+      conn.params
+      |> Map.get("dispense_details")
+      |> Enum.map(fn item ->
+        item
+        |> Map.put("medication", %{
+            name: "Амідарон",
+            type: "MEDICATION",
+            form: "PILL",
+            container: %{
+              "numerator_unit": "PILL",
+              "numerator_value": 1,
+              "denumerator_unit": "PILL",
+              "denumerator_value": 1
+            }
+        })
+        |> Map.put("reimbursement_amount", 15)
+        |> Map.delete("medication_id")
+      end)
+    now = Date.utc_today()
+    resp =
+      conn.params
+      |> Map.put("id", Ecto.UUID.generate())
+      |> Map.put("inserted_at", now)
+      |> Map.put("inserted_by", Ecto.UUID.generate())
+      |> Map.put("updated_at", now)
+      |> Map.put("updated_by", Ecto.UUID.generate())
+      |> Map.put("status", "NEW")
+      |> Map.put("dispense_details", details)
+      |> wrap_response()
+      |> Poison.encode!()
+
+    Plug.Conn.send_resp(conn, 201, resp)
+  end
+
+  put "/medication_dispenses/:id" do
+    case conn.params["id"] do
+      id = @active_medication_dispense ->
+        medication_dispense = Map.merge(
+          get_medication_dispense(id),
+          Map.get(conn.body_params, "medication_dispense")
+        )
+        render(medication_dispense, conn, 200)
+      _ -> render_404(conn)
+    end
+  end
+
   # MPI
   get "/persons/:id" do
     render(get_person(id), conn, 200)
@@ -327,6 +411,50 @@ defmodule EHealth.MockServer do
         "scope" => "declarations:read",
         "declaration_request_id" => UUID.generate()
     }
+  end
+
+  defp get_medication_request(id, params \\ %{}) do
+    now = Date.utc_today()
+    Map.merge(%{
+      "id": id,
+      "is_active": true,
+      "status": "SIGNED",
+      "created_at": "2017-08-17",
+      "started_at": now,
+      "ended_at": now,
+      "medical_program_id": "6ee844fd-9f4d-4457-9eda-22aa506be4c4",
+      "dispense_valid_from": now,
+      "dispense_valid_to": now,
+      "person_id": Ecto.UUID.generate(),
+      "legal_entity_id": Ecto.UUID.generate(),
+      "division_id": Ecto.UUID.generate(),
+      "employee_id": Ecto.UUID.generate(),
+      "innm": %{
+        "innm": %{
+          "id": Ecto.UUID.generate(),
+          "is_active": true,
+        },
+        "medication_id": Ecto.UUID.generate(),
+        "form": "Pill",
+        "dosage": %{
+          "numerator_unit": "mg",
+          "numerator_value": 5,
+          "denumerator_unit": "g",
+          "denumerator_value": 1
+        },
+        "container": %{
+          "numerator_unit": "pill",
+          "numerator_value": 1,
+          "denumerator_unit": "pill",
+          "denumerator_value": 1
+        },
+        "request_qty": 5,
+      },
+      "request_for_medication_request_id": Ecto.UUID.generate(),
+      "inserted_at": "2017-08-17",
+      "verification_code": "1234",
+      "medication_id": "2cdb8396-a1e9-11e7-abc4-cec278b6b50a",
+    }, params)
   end
 
   def get_person(id \\ nil) do
@@ -448,6 +576,46 @@ defmodule EHealth.MockServer do
   end
 
   def get_rendered_template(_, _), do: "<html><body>Some template text</body></html>"
+
+  def get_medication_dispense(id \\ nil, params \\ %{}) do
+    Map.merge(%{
+      "id" => id || Ecto.UUID.generate(),
+      "employee_id" => "02852372-9e06-11e7-abc4-cec278b6b50a",
+      "legal_entity_id" => "5243c8e6-9e06-11e7-abc4-cec278b6b50a",
+      "medical_program_id" => "6ee844fd-9f4d-4457-9eda-22aa506be4c4",
+      "division_id" => "f2f76cf8-9e05-11e7-abc4-cec278b6b50a",
+      "dispensed_at" => "2017-05-01",
+      "dispense_details" => [
+        %{
+          "medication" => %{
+            "name" => "Амідарон",
+            "type" => "MEDICATION",
+            "manufacturer" => %{
+              "name" => ~S(ПАТ "Київський вітамінний завод"),
+              "country" => "UA"
+            },
+            "form" => "PILL",
+            "container" => %{
+              "numerator_unit" => "PILL",
+              "numerator_value" => 1,
+              "denumerator_unit" => "PILL",
+              "denumerator_value" => 1
+            }
+          },
+          "medication_qty" => 10,
+          "sell_price" => 18.65,
+          "reimbursement_amount" => 15
+        }
+      ],
+      "medication_request" => get_medication_request(Ecto.UUID.generate()),
+      "payment_id" => "1239804",
+      "status" => "NEW",
+      "inserted_at" => "2017-04-20T19:14:13Z",
+      "inserted_by" => "e1453f4c-1077-4e85-8c98-c13ffca0063e",
+      "updated_at" => "2017-04-20T19:14:13Z",
+      "updated_by" => "2922a240-63db-404e-b730-09222bfeb2dd"
+    }, params)
+  end
 
   def render(resource, conn, status) do
     conn = Plug.Conn.put_status(conn, status)

@@ -1,6 +1,8 @@
 defmodule EHealth.PRMFactories.MedicationFactory do
   @moduledoc false
 
+  alias EHealth.PRM.Medication
+
   defmacro __using__(_opts) do
     quote do
       alias Ecto.UUID
@@ -19,9 +21,9 @@ defmodule EHealth.PRMFactories.MedicationFactory do
       def innm_factory do
         form = Enum.random(["Pill", "Nebuliser suspension"])
 
-        %EHealth.PRM.Medication{
+        %Medication{
           name: sequence("Prednisolonum Forte"),
-          type: "INNM",
+          type: Medication.type(:innm),
           form: form,
           ingredients: [build(:ingredient)],
           container: %{},
@@ -40,9 +42,9 @@ defmodule EHealth.PRMFactories.MedicationFactory do
       def medication_factory do
         form = Enum.random(["Pill", "Nebuliser suspension"])
 
-        %EHealth.PRM.Medication{
+        %Medication{
           name: sequence("Prednisolonum Forte"),
-          type: "MEDICATION",
+          type: Medication.type(:medication),
           form: form,
           ingredients: [build(:ingredient)],
           container: container(form),

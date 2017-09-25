@@ -1,23 +1,19 @@
 defmodule EHealth.DeclarationRequest.API.Validations do
   @moduledoc false
 
-  use JValid
-
   import Ecto.Changeset
   import EHealth.Utils.TypesConverter, only: [string_to_integer: 1]
 
   alias EHealth.DeclarationRequest
   alias EHealth.API.OTPVerification
-  alias EHealth.Validators.SchemaMapper
   alias EHealth.Validators.Addresses
   alias EHealth.Validators.BirthDate
   alias EHealth.Validators.TaxID
   alias EHealth.API.Signature
   alias EHealth.DeclarationRequest.SignRequest
+  alias EHealth.Validators.JsonSchema
 
   @auth_otp DeclarationRequest.authentication_method(:otp)
-
-  use_schema :declaration_request, "specs/json_schemas/declaration_request_schema.json"
 
   def validate_authentication_method_phone_number(changeset) do
     validate_change changeset, :data, fn :data, data ->
@@ -81,15 +77,7 @@ defmodule EHealth.DeclarationRequest.API.Validations do
   def belongs_to(_age, _adult_age, "FAMILY_DOCTOR"), do: true
 
   def validate_schema(attrs) do
-    schema =
-      @schemas
-      |> Keyword.get(:declaration_request)
-      |> SchemaMapper.prepare_declaration_request_schema()
-
-    case validate_schema(schema, %{"declaration_request" => attrs}) do
-      :ok -> {:ok, attrs}
-      err -> err
-    end
+    JsonSchema.validate(:declaration_request, %{"declaration_request" => attrs})
   end
 
   def validate_addresses(addresses) do

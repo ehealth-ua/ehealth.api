@@ -133,6 +133,18 @@ defmodule EHealth.Web.Router do
     patch "/declarations/:id/actions/approve", DeclarationsController, :approve
     patch "/declarations/:id/actions/reject", DeclarationsController, :reject
 
+    # Medication dispenses
+    scope "/medication_dispenses" do
+      pipe_through [:client_context_list]
+
+      get "/", MedicationDispenseController, :index
+      get "/:id", MedicationDispenseController, :show
+      patch "/:id/actions/process", MedicationDispenseController, :process
+      patch "/:id/actions/reject", MedicationDispenseController, :reject
+    end
+
+    post "/medication_dispenses", MedicationDispenseController, :create
+
     # Person declarations
     get "/persons", PersonsController, :search_persons
     get "/persons/:id/declaration", PersonsController, :person_declarations

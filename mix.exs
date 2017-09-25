@@ -61,7 +61,7 @@ defmodule EHealth.Mixfile do
      {:ecto_trail, "~> 0.2.3"},
      {:phoenix, "~> 1.3.0"},
      {:phoenix_ecto, "~> 3.2"},
-     {:eview, "~> 0.12.0"},
+     {:eview, "~> 0.12.2"},
      {:jvalid, "~> 0.6.0"},
      {:bamboo, "~> 0.8"},
      {:bamboo_postmark, "~> 0.2.0"},

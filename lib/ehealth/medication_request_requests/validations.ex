@@ -1,13 +1,11 @@
 defmodule EHealth.MedicationRequestRequest.Validations do
   @moduledoc false
-  use JValid
 
   alias EHealth.Declarations.API, as: DeclarationsAPI
-
-  use_schema :medication_request_request, "specs/json_schemas/new_medication_request_request_schema.json"
+  alias EHealth.Validators.JsonSchema
 
   def validate_schema(params) do
-    validate_schema(:medication_request_request, params)
+    JsonSchema.validate(:medication_request_request, params)
   end
 
   def validate_doctor(doctor) do

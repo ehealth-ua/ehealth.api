@@ -11,7 +11,8 @@ config :ehealth,
   legal_entities_per_page: {:system, :integer, "LEGAL_ENTITIES_PER_PAGE", 50},
   employees_per_page: {:system, :integer, "EMPLOYEES_PER_PAGE", 50},
   divisions_per_page: {:system, :integer, "DIVISIONS_PER_PAGE", 15},
-  medical_programs_per_page: {:system, :integer, "MEDICAL_PROGRAMS_PER_PAGE", 50}
+  medical_programs_per_page: {:system, :integer, "MEDICAL_PROGRAMS_PER_PAGE", 50},
+  medication_dispenses_per_page: {:system, :integer, "MEDICATION_DISPENSES_PER_PAGE", 50}
 
 # Configures the endpoint
 config :ehealth, EHealth.Web.Endpoint,

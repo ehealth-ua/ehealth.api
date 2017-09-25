@@ -45,6 +45,12 @@ defmodule EHealth.PRM.Divisions do
     |> search(params, Division, Confex.get_env(:ehealth, :divisions_per_page))
   end
 
+  def get_by_ids(ids) when is_list(ids) do
+    Division
+    |> where([d], d.id in ^ids)
+    |> PRMRepo.all()
+  end
+
   def create_division(attrs, author_id) do
     %Division{}
     |> changeset(attrs)

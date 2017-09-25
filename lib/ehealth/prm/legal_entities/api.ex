@@ -65,6 +65,14 @@ defmodule EHealth.PRM.LegalEntities do
     |> PRMRepo.one!()
   end
 
+  def get_by_ids(ids) do
+    LegalEntity
+    |> where([le], le.id in ^ids)
+    |> join(:left, [le], msp in assoc(le, :medical_service_provider))
+    |> preload([le, msp], [medical_service_provider: msp])
+    |> PRMRepo.all
+  end
+
   defp get_by_id_query(id) do
     LegalEntity
     |> where([le], le.id == ^id)

@@ -1,0 +1,560 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "medication_request": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "request_number": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string"
+        },
+        "started_at": {
+          "type": "string"
+        },
+        "ended_at": {
+          "type": "string"
+        },
+        "dispense_valid_from": {
+          "type": "string"
+        },
+        "dispense_valid_to": {
+          "type": "string"
+        },
+        "person_id": {
+          "type": "string"
+        },
+        "legal_entity_id": {
+          "type": "string"
+        },
+        "division_id": {
+          "type": "string"
+        },
+        "employee_id": {
+          "type": "string"
+        },
+        "innm": {
+          "type": "object",
+          "properties": {
+            "innm": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "sctid": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "name_original": {
+                  "type": "string"
+                },
+                "is_active": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "id",
+                "is_active"
+              ]
+            },
+            "medication_id": {
+              "type": "string"
+            },
+            "form": {
+              "type": "string"
+            },
+            "dosage": {
+              "type": "object",
+              "properties": {
+                "numerator_unit": {
+                  "type": "string"
+                },
+                "numerator_value": {
+                  "type": "number"
+                },
+                "denumerator_unit": {
+                  "type": "string"
+                },
+                "denumerator_value": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "numerator_unit",
+                "numerator_value",
+                "denumerator_unit",
+                "denumerator_value"
+              ]
+            },
+            "container": {
+              "type": "object",
+              "properties": {
+                "numerator_unit": {
+                  "type": "string"
+                },
+                "numerator_value": {
+                  "type": "number"
+                },
+                "denumerator_unit": {
+                  "type": "string"
+                },
+                "denumerator_value": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "numerator_unit",
+                "numerator_value",
+                "denumerator_unit",
+                "denumerator_value"
+              ]
+            },
+            "request_qty": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "innm",
+            "medication_id",
+            "form",
+            "dosage",
+            "container",
+            "request_qty"
+          ]
+        },
+        "request_for_medication_request_id": {
+          "type": "string"
+        },
+        "inserted_at": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "status",
+        "created_at",
+        "started_at",
+        "ended_at",
+        "dispense_valid_from",
+        "dispense_valid_to",
+        "person_id",
+        "legal_entity_id",
+        "division_id",
+        "employee_id",
+        "innm",
+        "request_for_medication_request_id",
+        "inserted_at"
+      ]
+    },
+    "dispensed_at": {
+      "type": "string"
+    },
+    "employee": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "position": {
+          "type": "string"
+        },
+        "employee_type": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "APPROVED",
+            "DISMISSED"
+          ]
+        },
+        "start_date": {
+          "type": "string"
+        },
+        "end_date": {
+          "type": "string"
+        },
+        "party": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "first_name": {
+              "type": "string"
+            },
+            "last_name": {
+              "type": "string"
+            },
+            "second_name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "first_name",
+            "last_name"
+          ]
+        },
+        "division": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "legal_entity_id": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "CLINIC",
+                "AMBULANT_CLINIC",
+                "FAP"
+              ]
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "ACTIVE",
+                "INACTIVE"
+              ]
+            },
+            "mountain_group": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "id",
+            "name",
+            "type",
+            "status"
+          ]
+        },
+        "legal_entity": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "short_name": {
+              "type": "string"
+            },
+            "public_name": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string"
+            },
+            "edrpou": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "ACTIVE",
+                "CLOSED"
+              ]
+            }
+          },
+          "required": [
+            "id",
+            "name",
+            "short_name",
+            "public_name",
+            "type",
+            "edrpou",
+            "status"
+          ]
+        },
+        "doctor": {
+          "type": "object",
+          "properties": {
+            "specialities": {
+              "type": "array"
+            }
+          },
+          "required": [
+            "specialities"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "position",
+        "status",
+        "start_date"
+      ]
+    },
+    "legal_entity": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "short_name": {
+          "type": "string"
+        },
+        "public_name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "edrpou": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "ACTIVE",
+            "CLOSED"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "short_name",
+        "public_name",
+        "type",
+        "edrpou",
+        "status"
+      ]
+    },
+    "division": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "legal_entity_id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "CLINIC",
+            "AMBULANT_CLINIC",
+            "FAP"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "ACTIVE",
+            "INACTIVE"
+          ]
+        },
+        "mountain_group": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "type",
+        "status"
+      ]
+    },
+    "medical_program": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ]
+    },
+    "dispense_details": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "medication": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "enum": [
+                  "Амідарон"
+                ]
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "MEDICATION"
+                ]
+              },
+              "manufacturer": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "enum": [
+                      "ПАТ \"Київський вітамінний завод\""
+                    ]
+                  },
+                  "country": {
+                    "type": "string",
+                    "enum": [
+                      "UA"
+                    ]
+                  }
+                },
+                "required": [
+                  "name",
+                  "country"
+                ],
+                "additionalProperties": false
+              },
+              "form": {
+                "type": "string",
+                "enum": [
+                  "PILL"
+                ]
+              },
+              "container": {
+                "type": "object",
+                "properties": {
+                  "numerator_unit": {
+                    "type": "string",
+                    "enum": [
+                      "PILL"
+                    ]
+                  },
+                  "numerator_value": {
+                    "type": "number",
+                    "enum": [
+                      1
+                    ]
+                  },
+                  "denumerator_unit": {
+                    "type": "string",
+                    "enum": [
+                      "PILL"
+                    ]
+                  },
+                  "denumerator_value": {
+                    "type": "number",
+                    "enum": [
+                      1
+                    ]
+                  }
+                },
+                "required": [
+                  "numerator_unit",
+                  "numerator_value",
+                  "denumerator_unit",
+                  "denumerator_value"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "name",
+              "type",
+              "form",
+              "container"
+            ],
+            "additionalProperties": false
+          },
+          "medication_qty": {
+            "type": "number",
+            "enum": [
+              10
+            ]
+          },
+          "sell_price": {
+            "type": "number",
+            "enum": [
+              18.65
+            ]
+          },
+          "reimbursement_amount": {
+            "type": "number",
+            "enum": [
+              15
+            ]
+          }
+        },
+        "required": [
+          "medication",
+          "medication_qty",
+          "sell_price",
+          "reimbursement_amount"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "payment_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    },
+    "inserted_at": {
+      "type": "string"
+    },
+    "inserted_by": {
+      "type": "string"
+    },
+    "updated_at": {
+      "type": "string"
+    },
+    "updated_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "medication_request",
+    "dispensed_at",
+    "employee",
+    "legal_entity",
+    "division",
+    "medical_program",
+    "dispense_details",
+    "status",
+    "inserted_at",
+    "inserted_by",
+    "updated_at",
+    "updated_by"
+  ],
+  "additionalProperties": false
+}

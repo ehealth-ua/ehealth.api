@@ -64,9 +64,9 @@
           "type": {
             "type": "string",
             "enum": [
-              "clinic",
-              "ambulant_clinic",
-              "fap"
+              "CLINIC",
+              "AMBULANT_CLINIC",
+              "FAP"
             ]
           },
           "status": {

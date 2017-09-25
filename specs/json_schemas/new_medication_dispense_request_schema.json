@@ -50,7 +50,7 @@
             "description": "price for one nondivisible medication_unit (pill/ampoule/container/bottle/vial/aerosol)"
           }
         },
-        "description": "dispense details array with brand medication id, qnty and price",  
+        "description": "dispense details array with brand medication id, qnty and price",
         "required": [
           "medication_id",
           "medication_qty",

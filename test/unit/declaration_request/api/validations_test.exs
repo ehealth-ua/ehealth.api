@@ -114,7 +114,7 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
         |> Map.fetch!("declaration_request")
         |> put_in(~W(person authentication_methods), [%{"type" => "OFFLINE"}])
 
-      assert {:ok, _} = validate_schema(data)
+      assert :ok == validate_schema(data)
     end
   end
 

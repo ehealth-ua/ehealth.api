@@ -95,7 +95,7 @@ defmodule EHealth.DeclarationRequest.API do
 
   def create(attrs, user_id, client_id) do
     # TODO: double check user_id/client_id has access to create given employee/legal_entity
-    with {:ok, attrs} <- Validations.validate_schema(attrs),
+    with :ok <- Validations.validate_schema(attrs),
          {:ok, _} <- Validations.validate_addresses(get_in(attrs, ["person", "addresses"])),
          {:ok, %Employee{} = employee} <- Helpers.get_assoc_by_func("employee_id",
                                             fn -> Employees.get_employee_by_id(attrs["employee_id"]) end),

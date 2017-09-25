@@ -12,6 +12,12 @@ defmodule EHealth.Web.FallbackController do
     |> render(EView.Views.ValidationError, "422.json", %{schema: json_schema_errors})
   end
 
+  def call(conn, {:error, errors, :query_parameter}) when is_list(errors) do
+    conn
+    |> put_status(422)
+    |> render(EView.Views.ValidationError, "422.query.json", %{schema: errors})
+  end
+
   @doc """
   Proxy response from APIs
   """
@@ -49,6 +55,12 @@ defmodule EHealth.Web.FallbackController do
     conn
     |> put_status(:unauthorized)
     |> render(EView.Views.Error, :"401")
+  end
+
+  def call(conn, {:error, {:access_denied, reason}}) do
+    conn
+    |> put_status(:unauthorized)
+    |> render(EView.Views.Error, :"401", %{reason: reason})
   end
 
   def call(conn, {:error, :invalid_role}) do
