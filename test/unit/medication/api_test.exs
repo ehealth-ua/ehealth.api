@@ -1,8 +1,8 @@
 defmodule EHealth.Medication.APITest do
 
   use EHealth.Web.ConnCase, async: true
-  alias EHealth.PRM.Medication.API
-  alias EHealth.PRM.Medication
+  alias EHealth.PRM.Drugs.API
+  alias EHealth.PRM.Drugs.INNM.Schema, as: INNM
   alias Ecto.UUID
 
   @ingredient %{
@@ -15,7 +15,7 @@ defmodule EHealth.Medication.APITest do
       "denumerator_value" => 1
     }
   }
-  @create_attrs %{
+  @create_innm_attrs %{
     "name" => "some name",
     "form" => "some form",
     "ingredients" => [@ingredient],
@@ -46,34 +46,30 @@ defmodule EHealth.Medication.APITest do
 
   test "get_medication!/1 returns the medication with given id" do
     medication = medication_fixture()
-    assert API.get_medication!(medication.id).name == medication.name
+    assert API.get_medication_by_id!(medication.id).name == medication.name
   end
 
-  describe "create_medication/1" do
-    test "with type INNM and invalid foreign keys" do
-      assert {:error, error} = API.create_medication(@create_attrs, :innm, get_headers_with_consumer_id())
+  describe "create_innm/1" do
+    test "invalid foreign keys" do
+      assert {:error, error} = API.create_innm(@create_innm_attrs, get_headers_with_consumer_id())
       assert [ingredients: {"Invalid foreign keys", []}], error.errors
     end
 
-    test "with type Substance and valid data creates a medication" do
+    test "with type INNM and valid data creates a medication" do
       %{id: substance_id} = insert(:prm, :substance)
       ingredient = Map.put(@ingredient, "id", substance_id)
-      attrs = Map.put(@create_attrs, "ingredients", [ingredient])
+      attrs = Map.put(@create_innm_attrs, "ingredients", [ingredient])
 
-      assert {:ok, %Medication{} = medication} = API.create_medication(
-               attrs,
-               :innm,
-               get_headers_with_consumer_id()
-             )
+      assert {:ok, %INNM{} = innm} = API.create_innm(attrs, get_headers_with_consumer_id())
 
-      assert medication.name == "some name"
-      assert medication.form == "some form"
-      assert medication.ingredients == medication.ingredients
-      assert medication.type == "INNM"
+      assert innm.name == "some name"
+      assert innm.form == "some form"
+      assert innm.ingredients == innm.ingredients
+      assert innm.type == "INNM"
     end
 
     test "with invalid data returns error changeset" do
-      assert {:error, _} = API.create_medication(@invalid_attrs, :innm, get_headers_with_consumer_id())
+      assert {:error, _} = API.create_medication(@invalid_attrs, get_headers_with_consumer_id())
     end
   end
 end

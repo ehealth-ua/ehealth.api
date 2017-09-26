@@ -1,7 +1,7 @@
 defmodule EHealth.Web.MedicationControllerTest do
   use EHealth.Web.ConnCase
 
-  alias EHealth.PRM.Medication
+  alias EHealth.PRM.Drugs.Medication.Schema, as: Medication
   alias Ecto.UUID
 
   @create_attrs %{
@@ -33,36 +33,20 @@ defmodule EHealth.Web.MedicationControllerTest do
   Creates Medication with type MEDICATION
   """
   def fixture(:medication) do
-    %{id: medication_id} = fixture(:innm)
-    ingredient = build(:ingredient, id: medication_id)
-
-    insert(:prm, :medication, ingredients: [ingredient])
+    insert(:prm, :medication)
   end
 
   @doc """
-  Creates Medication with type Substance
+  Creates Medication with type INNM
   """
   def fixture(:innm) do
-    %{id: substance_id} = insert(:prm, :substance)
-    ingredient = build(:ingredient, id: substance_id)
-
-    insert(:prm, :innm, ingredients: [ingredient])
+    insert(:prm, :innm)
   end
 
   describe "index" do
     test "search by name", %{conn: conn} do
-      %{id: substance_id} = insert(:prm, :substance)
-      innm_data = [
-        name: "Диэтиламид",
-        ingredients: [build(:ingredient, id: substance_id)]
-      ]
-      %{id: innm_id} = insert(:prm, :innm, innm_data)
-
-      medication_data = [
-        name: "Диэтиламид",
-        ingredients: [build(:ingredient, id: innm_id)]
-      ]
-      %{id: medication_id} = insert(:prm, :medication, medication_data)
+      insert(:prm, :innm, name: "Диэтиламид",)
+      %{id: medication_id} = insert(:prm, :medication, name: "Диэтиламид",)
 
       conn = get conn, medication_path(conn, :index), name: "этила"
       assert [medication] = json_response(conn, 200)["data"]
@@ -71,9 +55,7 @@ defmodule EHealth.Web.MedicationControllerTest do
     end
 
     test "paging", %{conn: conn} do
-      %{id: innm_id} = fixture(:innm)
-      ingredient = build(:ingredient, id: innm_id)
-      for _ <- 1..21, do: insert(:prm, :medication, ingredients: [ingredient])
+      for _ <- 1..21, do: insert(:prm, :medication)
 
       conn = get conn, medication_path(conn, :index), page: 2
       resp = json_response(conn, 200)
@@ -110,11 +92,8 @@ defmodule EHealth.Web.MedicationControllerTest do
 
   describe "create medication" do
     test "renders medication when data is valid", %{conn: conn} do
-      new_innm = fixture(:innm)
-      new_innm2 = fixture(:innm)
-
-      ingredient = build(:ingredient, id: new_innm.id)
-      ingredient_inactive = build(:ingredient, [id: new_innm2.id, is_active_substance: false])
+      ingredient = build(:ingredient, id: fixture(:innm).id)
+      ingredient_inactive = build(:ingredient, [id: fixture(:innm).id, is_active_substance: false])
 
       attrs = Map.put(@create_attrs, :ingredients, [ingredient, ingredient_inactive])
 
@@ -136,10 +115,10 @@ defmodule EHealth.Web.MedicationControllerTest do
     end
 
     test "ingredients innm duplicated", %{conn: conn} do
-      new_innm = fixture(:innm)
+      %{id: innm_id} = fixture(:innm)
 
-      ingredient = build(:ingredient, id: new_innm.id)
-      ingredient2 = build(:ingredient, [id: new_innm.id, is_active_substance: false])
+      ingredient = build(:ingredient, id: innm_id)
+      ingredient2 = build(:ingredient, [id: innm_id, is_active_substance: false])
 
       attrs = Map.put(@create_attrs, :ingredients, [ingredient, ingredient2])
 
@@ -147,9 +126,17 @@ defmodule EHealth.Web.MedicationControllerTest do
       json_response(conn, 422)
     end
 
+    test "substance id in ingredients", %{conn: conn} do
+      ingredient = build(:ingredient, id: insert(:prm, :substance).id)
+
+      attrs = Map.put(@create_attrs, :ingredients, [ingredient])
+
+      conn = post conn, medication_path(conn, :create), attrs
+      json_response(conn, 422)
+    end
+
     test "medication id in ingredients", %{conn: conn} do
-      medication = fixture(:medication)
-      ingredient = build(:ingredient, id: medication.id)
+      ingredient = build(:ingredient, id: fixture(:medication).id)
 
       attrs = Map.put(@create_attrs, :ingredients, [ingredient])
 
@@ -158,11 +145,8 @@ defmodule EHealth.Web.MedicationControllerTest do
     end
 
     test "is_active_substance duplicated", %{conn: conn} do
-      new_innm = fixture(:innm)
-      new_innm2 = fixture(:innm)
-
-      ingredient = build(:ingredient, id: new_innm.id)
-      ingredient2 = build(:ingredient, [id: new_innm2.id])
+      ingredient = build(:ingredient, id: fixture(:innm).id)
+      ingredient2 = build(:ingredient, id: fixture(:innm).id)
 
       attrs = Map.put(@create_attrs, :ingredients, [ingredient, ingredient2])
 
@@ -171,19 +155,17 @@ defmodule EHealth.Web.MedicationControllerTest do
     end
 
     test "no active substances in ingredients", %{conn: conn} do
-      new_innm = fixture(:innm)
-      ingredient_inactive = build(:ingredient, [id: new_innm.id, is_active_substance: false])
-      attrs = Map.put(@create_attrs, :ingredients, [ingredient_inactive, ingredient_inactive])
+      ingredient_inactive = build(:ingredient, [id: fixture(:innm).id, is_active_substance: false])
+      ingredient_inactive2 = build(:ingredient, [id: fixture(:innm).id, is_active_substance: false])
+
+      attrs = Map.put(@create_attrs, :ingredients, [ingredient_inactive, ingredient_inactive2])
 
       conn = post conn, medication_path(conn, :create), attrs
       json_response(conn, 422)
     end
 
     test "medication with inactive INNM", %{conn: conn} do
-      %{id: substance_id} = insert(:prm, :substance)
-      ingredient = build(:ingredient, id: substance_id)
-      new_innm = insert(:prm, :innm, [ingredients: [ingredient], is_active: false])
-
+      new_innm = insert(:prm, :innm, is_active: false)
       ingredient = build(:ingredient, id: new_innm.id)
       attrs = Map.put(@create_attrs, :ingredients, [ingredient])
 
@@ -208,9 +190,7 @@ defmodule EHealth.Web.MedicationControllerTest do
     end
 
     test "Medication is inactive", %{conn: conn} do
-      %{id: medication_id} = fixture(:innm)
-      ingredient = build(:ingredient, id: medication_id)
-      medication = insert(:prm, :medication, ingredients: [ingredient], is_active: false)
+      medication = insert(:prm, :medication, is_active: false)
 
       assert_raise Ecto.NoResultsError, ~r/expected at least one result but got none in query/, fn ->
         conn = patch conn, medication_path(conn, :deactivate, medication)

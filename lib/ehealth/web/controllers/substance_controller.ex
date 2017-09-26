@@ -3,8 +3,8 @@ defmodule EHealth.Web.SubstanceController do
   use EHealth.Web, :controller
 
   alias Scrivener.Page
-  alias EHealth.PRM.Medication.API
-  alias EHealth.PRM.Medication.Substance
+  alias EHealth.PRM.Drugs.API
+  alias EHealth.PRM.Drugs.Substance
 
   action_fallback EHealth.Web.FallbackController
 

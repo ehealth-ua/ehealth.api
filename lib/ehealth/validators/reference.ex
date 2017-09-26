@@ -8,12 +8,12 @@ defmodule EHealth.Validators.Reference do
   alias EHealth.PRM.Employees
   alias EHealth.PRM.LegalEntities
   alias EHealth.PRM.MedicalPrograms
-  alias EHealth.PRM.Medication.API, as: Medications
+  alias EHealth.PRM.Drugs.API, as: DrugsAPI
   alias EHealth.PRM.Employees.Schema, as: Employee
   alias EHealth.PRM.Divisions.Schema, as: Division
   alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
   alias EHealth.PRM.MedicalPrograms.Schema, as: MedicalProgram
-  alias EHealth.PRM.Medication
+  alias EHealth.PRM.Drugs.Medication.Schema, as: Medication
 
   def validate(type, nil) do
     error(type)
@@ -54,7 +54,7 @@ defmodule EHealth.Validators.Reference do
     end
   end
   def validate(:medication = type, id, path \\ nil) do
-    with %Medication{} = medication <- Medications.get_by_id(id) do
+    with %Medication{} = medication <- DrugsAPI.get_medication_by_id(id) do
       {:ok, medication}
     else
       _ -> error(type, path)

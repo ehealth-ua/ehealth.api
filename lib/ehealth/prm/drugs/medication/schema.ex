@@ -1,11 +1,8 @@
-defmodule EHealth.PRM.Medication do
+defmodule EHealth.PRM.Drugs.Medication.Schema do
   @moduledoc false
   use Ecto.Schema
 
-  @derive {Poison.Encoder, except: [:__meta__]}
-
-  @type_innm "INNM"
-  @type_medication "MEDICATION"
+  @medication_type "MEDICATION"
 
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "medications" do
@@ -16,7 +13,6 @@ defmodule EHealth.PRM.Medication do
     field :certificate, :string
     field :certificate_expired_at, :date
     field :container, :map
-    field :ingredients, {:array, :map}
     field :manufacturer, :map
     field :package_qty, :integer
     field :package_min_qty, :integer
@@ -24,10 +20,10 @@ defmodule EHealth.PRM.Medication do
     field :inserted_by, Ecto.UUID
     field :updated_by, Ecto.UUID
 
+    has_many :ingredients, EHealth.PRM.Drugs.Medication.Ingredient, [on_replace: :delete, foreign_key: :medication_id]
+
     timestamps()
   end
 
-  def type(:innm), do: @type_innm
-  def type(:medication), do: @type_medication
-
+  def type, do: @medication_type
 end

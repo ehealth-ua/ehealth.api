@@ -17,11 +17,19 @@ defmodule EHealth.Web.INNMView do
       type: innm.type,
       form: innm.form,
       is_active: innm.is_active,
-      ingredients: innm.ingredients,
+      ingredients: render_many(innm.ingredients, __MODULE__, "ingredient.json", as: :ingredient),
       inserted_by: innm.inserted_by,
       inserted_at: innm.inserted_at,
       updated_at: innm.updated_at,
       updated_by: innm.updated_by,
+    }
+  end
+
+  def render("ingredient.json", %{ingredient: ingredient}) do
+    %{
+      id: ingredient.substance_id,
+      dosage: ingredient.dosage,
+      is_active_substance: ingredient.is_active_substance,
     }
   end
 end

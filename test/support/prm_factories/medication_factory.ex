@@ -1,14 +1,16 @@
 defmodule EHealth.PRMFactories.MedicationFactory do
   @moduledoc false
 
-  alias EHealth.PRM.Medication
+  alias EHealth.PRM.Drugs.Substance, as: Substance
+  alias EHealth.PRM.Drugs.INNM.Schema, as: INNM
+  alias EHealth.PRM.Drugs.Medication.Schema, as: Medication
 
   defmacro __using__(_opts) do
     quote do
       alias Ecto.UUID
 
       def substance_factory do
-        %EHealth.PRM.Medication.Substance{
+        %Substance{
           sctid: sequence("1234567"),
           name: "Преднизолон",
           name_original: "Prednisolonum",
@@ -21,18 +23,15 @@ defmodule EHealth.PRMFactories.MedicationFactory do
       def innm_factory do
         form = Enum.random(["Pill", "Nebuliser suspension"])
 
-        %Medication{
+        id = UUID.generate()
+        %{id: substance_id} = insert(:prm, :substance)
+
+        %INNM{
+          id: id,
           name: sequence("Prednisolonum Forte"),
-          type: Medication.type(:innm),
+          type: INNM.type(),
           form: form,
-          ingredients: [build(:ingredient)],
-          container: %{},
-          manufacturer: %{},
-          package_min_qty: nil,
-          package_qty: nil,
-          code_atc: nil,
-          certificate: nil,
-          certificate_expired_at: nil,
+          ingredients: [build(:ingredient_innm, [substance_id: substance_id, medication_id: id])],
           is_active: true,
           updated_by: UUID.generate(),
           inserted_by: UUID.generate(),
@@ -42,11 +41,15 @@ defmodule EHealth.PRMFactories.MedicationFactory do
       def medication_factory do
         form = Enum.random(["Pill", "Nebuliser suspension"])
 
-        %Medication{
+        id = UUID.generate()
+        %{id: innm_id} = insert(:prm, :innm)
+
+        %EHealth.PRM.Drugs.Medication.Schema{
+          id: id,
           name: sequence("Prednisolonum Forte"),
-          type: Medication.type(:medication),
+          type: Medication.type(),
           form: form,
-          ingredients: [build(:ingredient)],
+          ingredients: [build(:ingredient_medication, [innm_id: innm_id, medication_id: id])],
           container: container(form),
           manufacturer: build(:manufacturer),
           package_qty: 10,
@@ -73,10 +76,40 @@ defmodule EHealth.PRMFactories.MedicationFactory do
         }
       end
 
+      def ingredient_innm_factory do
+        %EHealth.PRM.Drugs.INNM.Ingredient{
+          id: UUID.generate(),
+          substance_id: UUID.generate(),
+          medication_id: UUID.generate(),
+          is_active_substance: true,
+          dosage: %{
+            numerator_unit: "mg",
+            numerator_value: 5,
+            denumerator_unit: "g",
+            denumerator_value: 1
+          }
+        }
+      end
+
+      def ingredient_medication_factory do
+        %EHealth.PRM.Drugs.Medication.Ingredient{
+          id: UUID.generate(),
+          innm_id: UUID.generate(),
+          medication_id: UUID.generate(),
+          is_active_substance: true,
+          dosage: %{
+            numerator_unit: "mg",
+            numerator_value: 5,
+            denumerator_unit: "g",
+            denumerator_value: 1
+          }
+        }
+      end
+
       def manufacturer_factory do
         %{
           name: "ПАТ `Київський вітамінний завод`",
-          country: "Україна"
+          country: "UA"
         }
       end
 

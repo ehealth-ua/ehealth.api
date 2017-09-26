@@ -1,18 +1,9 @@
 defmodule EHealth.Web.INNMControllerTest do
   use EHealth.Web.ConnCase
 
-  alias EHealth.PRM.Medication
+  alias EHealth.PRM.Drugs.INNM.Schema, as: INNM
   alias Ecto.UUID
 
-  @ingredient %{
-    "is_active_substance" => true,
-    "dosage" => %{
-      "numerator_unit" => "mg",
-      "numerator_value" => 10,
-      "denumerator_unit" => "g",
-      "denumerator_value" => 1
-    }
-  }
   @create_attrs %{
     name: "some name",
     form: "some form",
@@ -27,18 +18,12 @@ defmodule EHealth.Web.INNMControllerTest do
   Creates Medication with type Substance
   """
   def fixture(:innm) do
-    %{id: substance_id} = insert(:prm, :substance)
-    ingredient = build(:ingredient, id: substance_id)
-
-    insert(:prm, :innm, ingredients: [ingredient])
+    insert(:prm, :innm)
   end
 
   describe "index" do
     test "search by name", %{conn: conn} do
-      %{id: substance_id} = insert(:prm, :substance)
-      ingredient = build(:ingredient, id: substance_id)
-
-      %{id: id} = insert(:prm, :innm, [name: "Сульфід натрію", ingredients: [ingredient]])
+      %{id: id} = insert(:prm, :innm, [name: "Сульфід натрію"])
 
       conn = get conn, innm_path(conn, :index), name: "фід на"
       assert [innm] = json_response(conn, 200)["data"]
@@ -47,9 +32,7 @@ defmodule EHealth.Web.INNMControllerTest do
     end
 
     test "paging", %{conn: conn} do
-      %{id: substance_id} = insert(:prm, :substance)
-      ingredient = build(:ingredient, id: substance_id)
-      for _ <- 1..21, do: insert(:prm, :innm, ingredients: [ingredient])
+      for _ <- 1..21, do: insert(:prm, :innm)
 
       conn = get conn, innm_path(conn, :index), page: 2
       resp = json_response(conn, 200)
@@ -69,7 +52,7 @@ defmodule EHealth.Web.INNMControllerTest do
   describe "show" do
     setup [:create_innm]
 
-    test "200 OK", %{conn: conn, innm: %Medication{id: id}} do
+    test "200 OK", %{conn: conn, innm: %INNM{id: id}} do
       conn = get conn, innm_path(conn, :show, id)
       data = json_response(conn, 200)["data"]
       assert Map.has_key?(data, "is_active")
@@ -87,12 +70,12 @@ defmodule EHealth.Web.INNMControllerTest do
   describe "create INNM" do
     test "renders INNM when data is valid", %{conn: conn} do
       %{id: substance_id} = insert(:prm, :substance)
-      ingredient = Map.put(@ingredient, "id", substance_id)
+      ingredient = build(:ingredient, id: substance_id)
       attrs = Map.put(@create_attrs, :ingredients, [ingredient])
 
-      conn1 = post conn, innm_path(conn, :create), attrs
+      conn = post conn, innm_path(conn, :create), attrs
 
-      assert %{"id" => id} = json_response(conn1, 201)["data"]
+      assert %{"id" => id} = json_response(conn, 201)["data"]
       conn = get conn, innm_path(conn, :show, id)
       resp_data = json_response(conn, 200)["data"]
 
@@ -116,7 +99,7 @@ defmodule EHealth.Web.INNMControllerTest do
   describe "deactivate INNM" do
     setup [:create_innm]
 
-    test "success", %{conn: conn, innm: %Medication{id: id} = innm} do
+    test "success", %{conn: conn, innm: %INNM{id: id} = innm} do
       conn = patch conn, innm_path(conn, :deactivate, innm)
       assert %{"id" => ^id} = json_response(conn, 200)["data"]
 
