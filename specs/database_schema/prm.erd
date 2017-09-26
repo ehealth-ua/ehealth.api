@@ -255,9 +255,9 @@ medication_id | uuid | not null
 medication_qty | number | not null
 status | varchar | not null
 is_active | boolean | not null
-recalled_at | date
-recalled_by | uuid
-recall_reason | varchar
+rejected_at | date
+rejected_by | uuid
+reject_reason | varchar
 medication_request_requests_id | uuid | not null
 medical_program_id | uuid
 inserted_at | timestamp | not null
