@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Internal medical program ID, a UUID string."
+    },
+    "name": {
+      "type": "string",
+      "description": "medical program name that is used on govermental level"
+    },
+    "is_active": {
+      "type": "boolean",
+      "description": "Is medical program active or not. True - Active; False - Inactive"
+    },
+    "inserted_at": {
+      "type": "string",
+      "description": "ISO 8601 date and time in UTC timezone."
+    },
+    "inserted_by": {
+      "type": "string"
+    },
+    "updated_at": {
+      "type": "string",
+      "description": "ISO 8601 date and time in UTC timezone."
+    },
+    "updated_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "name",
+    "is_active",
+    "inserted_at",
+    "inserted_by",
+    "updated_at",
+    "updated_by"
+  ],
+  "additionalProperties": false
+}

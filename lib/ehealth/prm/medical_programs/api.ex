@@ -6,6 +6,8 @@ defmodule EHealth.PRM.MedicalPrograms do
   alias EHealth.PRM.MedicalPrograms.Search
   use EHealth.PRM.Search
 
+  @fields_required ~w(name)a
+
   @search_fields ~w(
     id
     name
@@ -28,7 +30,20 @@ defmodule EHealth.PRM.MedicalPrograms do
     PRMRepo.get(MedicalProgram, id)
   end
 
-  def changeset(%Search{} = medical_program, attrs) do
-    cast(medical_program, attrs, @search_fields)
+  def create(user_id, params) do
+    %MedicalProgram{}
+    |> changeset(params)
+    |> put_change(:inserted_by, user_id)
+    |> put_change(:updated_by, user_id)
+    |> PRMRepo.insert
+  end
+
+  def changeset(%Search{} = search, attrs) do
+    cast(search, attrs, @search_fields)
+  end
+  def changeset(%MedicalProgram{} = medical_program, attrs) do
+    medical_program
+    |> cast(attrs, @fields_required)
+    |> validate_required(@fields_required)
   end
 end

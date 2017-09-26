@@ -143,6 +143,8 @@ defmodule EHealth.Web.Router do
       patch "/:id/actions/reject", MedicationDispenseController, :reject
     end
 
+    resources "/medical_programs", MedicalProgramController, except: [:new, :edit, :update, :delete]
+
     post "/medication_dispenses", MedicationDispenseController, :create
 
     # Person declarations
