@@ -2,5 +2,5 @@ defmodule EHealth.Repo do
   @moduledoc false
 
   use Ecto.Repo, otp_app: :ehealth
-  use Scrivener
+  use Scrivener, max_page_size: 500
 end
