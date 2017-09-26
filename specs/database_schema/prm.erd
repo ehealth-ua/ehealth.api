@@ -188,11 +188,11 @@ values | jsonb | not null
 labels | jsonb | not null
 is_active | boolean | not null
 
-[substances]
+[innms]
 id | uuid | not null
-sctid | varchar | not null | unique
+sctid | varchar 
 name | varchar | not null
-name_original | varchar | not null
+name_original | varchar | not null | unique
 is_active | boolean | not null
 inserted_at | timestamp | not null
 inserted_by | uuid | not null
@@ -212,7 +212,18 @@ package_qty | number
 package_min_qty | number
 certificate | varchar
 certificate_expired_at | date
-ingredients | jsonb
+inserted_at | timestamp | not null
+inserted_by | uuid | not null
+updated_at | timestamp | not null
+updated_by | uuid | not null
+
+[ingredients]
+id | uuid | not null
+dosage | jsonb | not null
+is_primary | boolean | not null
+parent_id | uuid | not null 
+innm_id | uuid 
+medication_id | uuid
 inserted_at | timestamp | not null
 inserted_by | uuid | not null
 updated_at | timestamp | not null
@@ -227,9 +238,9 @@ inserted_by | uuid | not null
 updated_at | timestamp | not null
 updated_by | uuid | not null
 
-[program_medications]
+[program_brands]
 id | uuid | not null
-medication_id | uuid | not null
+brand_id | uuid | not null
 medical_program_id | uuid | not null
 is_active | boolean | not null
 medication_request_allowed | boolean | not null
@@ -317,8 +328,9 @@ legal_entities
 audit_log
 ukr_med_registry
 global_parameters
-substances
+innms
 medications
+ingredients
 medical_programs
 program_medications
 
@@ -347,9 +359,10 @@ employees *--1 divisions
 medical_service_providers 1--1 legal_entities
 parties 1--? doctors
 declarations 1--* declarations_status_hstr
-substances 1--* medications
-medications 1--* program_medications
-medical_programs 1--* program_medications
+innms 1--* ingredients
+medications 1--* ingredients
+medications 1--* program_brands
+medical_programs 1--* program_brands
 medication_requests *--1 legal_entities
 medication_requests *--1 divisions
 medication_requests *--1 employees 
