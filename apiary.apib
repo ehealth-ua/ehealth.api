@@ -3398,11 +3398,15 @@ Use this method to reject previously created and signed Medication request.
 
             Authorization: Bearer mF_9.B5f-4.1JqM
 
+    + Attributes (object)
+        + `Reason`: `Помилка призначення. Несумісні препарпти.` (string, optional) - Medication request reject reason
+
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + meta (Response__Meta)
         + data (`Medication_request_Public_Response`)
-
+            + include (`Medication_request_Reject_Public_Response`)
+            
 ### Resend Medication Request [PATCH /api/medication_requests/{id}/actions/resend]
 
 Use this method to resend SMS for person with info medication request number & verification code.
@@ -4964,6 +4968,12 @@ This method is used to process created dispense
 + `person` (`Person_Short`)            
 + `medication` (`Innm_for_Medication_request_Responce`, required)
 + `medical_program` (`Medical_Program_Response`, required)
+
+### `Medication_request_Reject_Public_Response`
++ `rejected_at`: `2017-04-20T19:14:13Z` (string, required) - Reject date - ISO 8601 date and time in UTC timezone.
++ `rejected_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required) - Rejected user identifier
++ `reject_reason` : `Помилка призначення. Несумісні препарати.` (string, required) - Medication request reject reason 
+
 
 ## `Medication Dispense`
 ### `Medication_Dispense_Request`
