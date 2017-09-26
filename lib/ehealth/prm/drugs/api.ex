@@ -59,8 +59,14 @@ defmodule EHealth.PRM.Drugs.API do
   end
 
   def get_search_query(Medication, changes) do
+    params = changes |> Map.take([:id, :form, :type, :is_active]) |> Enum.into([])
+
     Medication
-    |> super(changes)
+    |> where(^params)
+    |> join(:inner, [m], i in assoc(m, :ingredients))
+    |> where([_, i], i.is_active_substance)
+    |> where_name(changes)
+    |> join_innm(changes)
     |> preload(:ingredients)
   end
 
@@ -72,6 +78,37 @@ defmodule EHealth.PRM.Drugs.API do
 
   def get_search_query(entity, changes) do
     super(entity, changes)
+  end
+
+  defp where_name(query, %{name: {name, _}}) do
+    where(query, [m], ilike(m.name, ^("%" <> name <> "%")))
+  end
+
+  defp where_name(query, _changes) do
+    query
+  end
+
+  defp join_innm(query, %{innm_id: innm_id, innm_name: {innm_name, _}}) do
+    query
+    |> join(:inner, [..., i], inn in assoc(i, :innm))
+    |> where([..., inn], inn.id == ^innm_id)
+    |> where([..., inn], ilike(inn.name, ^("%" <> innm_name <> "%")))
+  end
+
+  defp join_innm(query, %{innm_name: {innm_name, _}}) do
+    query
+    |> join(:inner, [..., i], inn in assoc(i, :innm))
+    |> where([..., inn], ilike(inn.name, ^("%" <> innm_name <> "%")))
+  end
+
+  defp join_innm(query, %{innm_id: innm_id}) do
+    query
+    |> join(:inner, [..., i], inn in assoc(i, :innm))
+    |> where([..., inn], inn.id == ^innm_id)
+  end
+
+  defp join_innm(query, _) do
+    query
   end
 
   # Get by id

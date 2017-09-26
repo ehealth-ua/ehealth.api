@@ -54,6 +54,34 @@ defmodule EHealth.Web.MedicationControllerTest do
       assert "Диэтиламид" == medication["name"]
     end
 
+    test "search by name and innm_name", %{conn: conn} do
+      %{id: innm_id} = insert(:prm, :innm, name: "Диэтиламид")
+      %{id: innm_id2} = insert(:prm, :innm, name: "Диэтиламид форте")
+      %{id: innm_id3} = insert(:prm, :innm, name: "Диэтиламидон")
+
+      %{id: medication_id} = insert(:prm, :medication, [name: "Полізамін", ingredients: []])
+      %{id: medication_id2} = insert(:prm, :medication, name: "Эвказолин")
+
+      insert(:prm, :ingredient_medication, medication_id: medication_id, innm_id: innm_id)
+      insert(:prm, :ingredient_medication, medication_id: medication_id, innm_id: innm_id2, is_active_substance: false)
+
+      insert(:prm, :ingredient_medication, medication_id: medication_id2, innm_id: innm_id2)
+      insert(:prm, :ingredient_medication, medication_id: medication_id2, innm_id: innm_id3, is_active_substance: false)
+
+      conn = get conn, medication_path(conn, :index), [innm_name: "этила", name: "Полізамін"]
+
+      assert [medication] = json_response(conn, 200)["data"]
+
+      assert medication_id == medication["id"]
+      assert "Полізамін" == medication["name"]
+      assert 2 == length(medication["ingredients"])
+
+      # assert that id is valid innm_id reference
+      Enum.each(medication["ingredients"], fn %{"id" => id} ->
+        assert id in [innm_id, innm_id2]
+      end)
+    end
+
     test "paging", %{conn: conn} do
       for _ <- 1..21, do: insert(:prm, :medication)
 
