@@ -12,6 +12,7 @@ defmodule EHealth.PRM.Divisions do
     name
     legal_entity_id
     type
+    status
   )a
 
   @fields_optional ~w(

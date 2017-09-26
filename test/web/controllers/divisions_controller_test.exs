@@ -39,15 +39,32 @@ defmodule EHealth.Web.DivisionsControllerTest do
     assert 401 == json_response(conn, 401)["meta"]["code"]
   end
 
-  test "get divisions", %{conn: conn} do
-    conn = put_client_id_header(conn)
+  describe "Get divisions" do
+    test "get divisions", %{conn: conn} do
+      conn = put_client_id_header(conn)
 
-    conn = get conn, division_path(conn, :index)
-    resp = json_response(conn, 200)
+      conn = get conn, division_path(conn, :index)
+      resp = json_response(conn, 200)
 
-    assert Map.has_key?(resp, "data")
-    assert Map.has_key?(resp, "paging")
-    assert is_list(resp["data"])
+      assert Map.has_key?(resp, "data")
+      assert Map.has_key?(resp, "paging")
+      assert is_list(resp["data"])
+    end
+
+    test "get INACTIVE divisions", %{conn: conn} do
+      %{legal_entity_id: id} = insert(:prm, :division, status: "ACTIVE", is_active: true)
+      conn = put_client_id_header(conn, id)
+
+      conn1 = get conn, division_path(conn, :index, status: "INACTIVE")
+      resp = json_response(conn1, 200)
+
+      assert [] == resp["data"]
+
+      conn2 = get conn, division_path(conn, :index, status: "ACTIVE")
+      resp = json_response(conn2, 200)
+
+      assert 1 == length(resp["data"])
+    end
   end
 
   test "get division by id", %{conn: conn} do
