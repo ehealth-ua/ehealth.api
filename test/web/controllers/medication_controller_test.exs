@@ -57,7 +57,7 @@ defmodule EHealth.Web.MedicationControllerTest do
     test "paging", %{conn: conn} do
       for _ <- 1..21, do: insert(:prm, :medication)
 
-      conn = get conn, medication_path(conn, :index), page: 2
+      conn = get conn, medication_path(conn, :index), [page_size: 10, page: 2]
       resp = json_response(conn, 200)
       assert 10 == length(resp["data"])
 

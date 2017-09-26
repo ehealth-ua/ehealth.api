@@ -10,12 +10,16 @@ defmodule EHealth.PRM.Drugs.API do
   import EHealth.Utils.Connection, only: [get_consumer_id: 1]
 
   alias EHealth.PRMRepo
-  alias EHealth.PRM.Drugs.Substance
   alias EHealth.PRM.Drugs.INNM.Schema, as: INNM
+  alias EHealth.PRM.Drugs.Substance.Schema, as: Substance
   alias EHealth.PRM.Drugs.Medication.Schema, as: Medication
-  alias EHealth.Ecto.StringLike
+  alias EHealth.PRM.Drugs.INNM.Search, as: INNMSearch
+  alias EHealth.PRM.Drugs.Substance.Search, as: SubstanceSearch
+  alias EHealth.PRM.Drugs.Medication.Search, as: MedicationSearch
   alias EHealth.Validators.JsonSchema
   alias EHealth.PRM.Drugs.Validator
+
+  @page_size 50
 
   @type_innm INNM.type()
   @type_medication Medication.type()
@@ -36,30 +40,41 @@ defmodule EHealth.PRM.Drugs.API do
   ]
   @fields_innm_optional [:is_active]
 
-  @doc false
+  # List
+
   def list_medications(params) do
     params = Map.put(params, "type", @type_medication)
-    data = %{}
-    types = %{id: Ecto.UUID, name: StringLike, form: :string, type: :string, is_active: :boolean}
 
-    {data, types}
-    |> cast(params, Map.keys(types))
-    |> build_search_query(Medication)
-    |> preload(:ingredients)
-    |> PRMRepo.paginate(params)
+    %MedicationSearch{}
+    |> cast(params, MedicationSearch.__schema__(:fields))
+    |> search(params, Medication, @page_size)
   end
 
   def list_innms(params) do
     params = Map.put(params, "type", @type_innm)
-    data = %{}
-    types = %{id: Ecto.UUID, name: StringLike, form: :string, type: :string, is_active: :boolean}
 
-    {data, types}
-    |> cast(params, Map.keys(types))
-    |> build_search_query(INNM)
-    |> preload(:ingredients)
-    |> PRMRepo.paginate(params)
+    %INNMSearch{}
+    |> cast(params, INNMSearch.__schema__(:fields))
+    |> search(params, INNM, @page_size)
   end
+
+  def get_search_query(Medication, changes) do
+    Medication
+    |> super(changes)
+    |> preload(:ingredients)
+  end
+
+  def get_search_query(INNM, changes) do
+    INNM
+    |> super(changes)
+    |> preload(:ingredients)
+  end
+
+  def get_search_query(entity, changes) do
+    super(entity, changes)
+  end
+
+  # Get by id
 
   def get_innm_by_id(id), do: get_medication_entity_by_id(INNM, id)
 
@@ -90,6 +105,8 @@ defmodule EHealth.PRM.Drugs.API do
     |> PRMRepo.get_by!([id: id, type: entity.type(), is_active: true])
     |> PRMRepo.preload(:ingredients)
   end
+
+  # Create
 
   def create_innm(attrs, headers), do: create_medication_entity(INNM, attrs, headers)
 
@@ -123,6 +140,8 @@ defmodule EHealth.PRM.Drugs.API do
     end
   end
 
+  # Update
+
   @doc false
   def deactivate_medication(entity, headers) do
     attrs = %{
@@ -134,6 +153,8 @@ defmodule EHealth.PRM.Drugs.API do
     |> changeset(attrs)
     |> PRMRepo.update()
   end
+
+  # Changeset
 
   def changeset(%Medication{} = medication, attrs) do
     medication
@@ -159,15 +180,13 @@ defmodule EHealth.PRM.Drugs.API do
     |> validate_required(@fields_substance_required)
   end
 
+  # Substances
+
   @doc false
   def list_substances(params) do
-    data = %{}
-    types = %{id: Ecto.UUID, name: StringLike, name_original: StringLike, sctid: :string, is_active: :boolean}
-
-    {data, types}
-    |> cast(params, Map.keys(types))
-    |> build_search_query(Substance)
-    |> PRMRepo.paginate(params)
+    %SubstanceSearch{}
+    |> cast(params, SubstanceSearch.__schema__(:fields))
+    |> search(params, Substance, @page_size)
   end
 
   @doc false

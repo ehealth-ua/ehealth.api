@@ -7,8 +7,8 @@ defmodule EHealth.PRM.Drugs.Validator do
   import Ecto.Query, warn: false
 
   alias EHealth.PRMRepo
-  alias EHealth.PRM.Drugs.Substance
   alias EHealth.PRM.Drugs.INNM.Schema, as: INNM
+  alias EHealth.PRM.Drugs.Substance.Schema, as: Substance
   alias EHealth.PRM.Drugs.Medication.Schema, as: Medication
   alias EHealth.PRM.Drugs.INNM.Ingredient, as: INNMIngredient
   alias EHealth.PRM.Drugs.Medication.Ingredient, as: MedicationIngredient

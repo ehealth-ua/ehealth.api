@@ -1,8 +1,8 @@
 defmodule EHealth.PRMFactories.MedicationFactory do
   @moduledoc false
 
-  alias EHealth.PRM.Drugs.Substance, as: Substance
   alias EHealth.PRM.Drugs.INNM.Schema, as: INNM
+  alias EHealth.PRM.Drugs.Substance.Schema, as: Substance
   alias EHealth.PRM.Drugs.Medication.Schema, as: Medication
 
   defmacro __using__(_opts) do

@@ -62,11 +62,9 @@ config :ehealth, EHealth.EmployeeRequest.Terminator,
 config :ehealth, EHealth.Bamboo.Mailer,
   adapter: Bamboo.TestAdapter
 
-# Run acceptance test in concurrent mode
-config :ehealth, sql_sandbox: true
-
-# Don't start terminator in test env
-config :ehealth, run_declaration_request_terminator: false
+config :ehealth,
+  sql_sandbox: true, # Run acceptance test in concurrent mode
+  run_declaration_request_terminator: false # Don't start terminator in test env
 
 # Configure your database
 config :ehealth, EHealth.Repo,

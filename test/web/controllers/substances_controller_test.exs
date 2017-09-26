@@ -24,6 +24,11 @@ defmodule EHealth.Web.SubstanceControllerTest do
       assert "Диэтиламид" == substance["name"]
     end
 
+    test "search invalid id", %{conn: conn} do
+      conn = get conn, substance_path(conn, :index), id: 1000
+      json_response(conn, 422)
+    end
+
     test "not active substance in list", %{conn: conn} do
       insert(:prm, :substance, is_active: false)
 
@@ -34,10 +39,10 @@ defmodule EHealth.Web.SubstanceControllerTest do
     test "paging", %{conn: conn} do
       for _ <- 1..21, do: insert(:prm, :substance)
 
-      # default entities per page is 10
+      # default entities per page is 50
       conn = get conn, substance_path(conn, :index)
       first_page = json_response(conn, 200)["data"]
-      assert 10 == length(first_page)
+      assert 21 == length(first_page)
 
       # same order for first page
       conn = get conn, substance_path(conn, :index)

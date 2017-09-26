@@ -4,7 +4,7 @@ defmodule EHealth.Web.SubstanceController do
 
   alias Scrivener.Page
   alias EHealth.PRM.Drugs.API
-  alias EHealth.PRM.Drugs.Substance
+  alias EHealth.PRM.Drugs.Substance.Schema, as: Substance
 
   action_fallback EHealth.Web.FallbackController
 

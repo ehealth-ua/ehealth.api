@@ -16,7 +16,7 @@ defmodule EHealth.PRM.Drugs.INNM.Ingredient do
     field :dosage, :map
     field :is_active_substance, :boolean, default: false
 
-    belongs_to :substance, EHealth.PRM.Drugs.Substance, type: Ecto.UUID
+    belongs_to :substance, EHealth.PRM.Drugs.Substance.Schema, type: Ecto.UUID
     belongs_to :medication, EHealth.PRM.Drugs.Medication.Schema, type: Ecto.UUID
 
     timestamps()
