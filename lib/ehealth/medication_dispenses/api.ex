@@ -66,10 +66,11 @@ defmodule EHealth.MedicationDispense.API do
          {:ok, employee}           <- validate_employee(params["employee_id"], legal_entity_id),
          {:ok, division}           <- validate_division(params["division_id"], legal_entity_id),
          {:ok, medical_program}    <- validate_medical_program(params["medical_program_id"], medication_request),
-         {:ok, dispense_details}   <- validate_medications(params["dispense_details"], medication_request),
+         {:ok, dispense_details, medications} <- validate_medications(params["dispense_details"], medication_request),
          :ok                       <- validate_code(code, medication_request),
          :ok                       <- check_other_medication_dispenses(medication_request, headers),
          true                      <- check_medication_qty(params, medication_request),
+         :ok                       <- check_medication_multiplicity(dispense_details, medications),
          params                    <- Map.put(params, "dispense_details", dispense_details),
          {:ok, %{"data" => medication_dispense}} <- OPS.create_medication_dispense(params)
     do
@@ -167,16 +168,16 @@ defmodule EHealth.MedicationDispense.API do
   end
 
   # TODO: not fully implemented
-  defp validate_medications(medications, medication_request) do
+  defp validate_medications(dispense_details, medication_request) do
     result =
-      medications
+      dispense_details
       |> Enum.with_index
       |> Enum.map(fn {%{"medication_id" => id} = item, i} ->
         with {:ok, medication} <- Reference.validate(:medication, id, "$.dispense_details[#{i}].medication_id"),
             :ok <- validate_active_medication(medication, medication_request, i)
         # medication_request.medication_id exists in program_medications (is_active = true)
         do
-          {:ok, Map.put(item, "reimbursement_amount", 15)}
+          {:ok, Map.put(item, "reimbursement_amount", 15), medication}
         end
       end)
     errors = Enum.reduce(result, [], fn
@@ -184,10 +185,17 @@ defmodule EHealth.MedicationDispense.API do
       _, acc -> acc
     end)
     details = Enum.reduce(result, [], fn
-      {:ok, dispense_details}, acc -> [dispense_details | acc]
+      {:ok, dispense_details, _}, acc -> [dispense_details | acc]
       _, acc -> acc
     end)
-    if Enum.empty?(errors), do: {:ok, details}, else: {:error, errors}
+    medications =
+      result
+      |> Enum.map(fn
+        {:ok, _, medication} -> medication
+        _ -> nil
+      end)
+      |> Enum.filter(&(Kernel.!(is_nil(&1))))
+    if Enum.empty?(errors), do: {:ok, details, medications}, else: {:error, errors}
   end
 
   defp validate_active_medication(%Medication{} = medication, %{"medication_id" => medication_id}, i) do
@@ -339,6 +347,32 @@ defmodule EHealth.MedicationDispense.API do
       :ok
     else
       {:conflict, "Can't update medication dispense status from #{from_status} to #{to_status}"}
+    end
+  end
+
+  defp check_medication_multiplicity(dispense_details, medications) do
+    errors =
+      dispense_details
+      |> Enum.with_index
+      |> Enum.map(fn {request_medication, i} ->
+        medication = Enum.find(medications, &(Map.get(&1, :id) == request_medication["medication_id"]))
+        if rem(medication.package_min_qty, request_medication["medication_qty"]) do
+          :ok
+        else
+          {:error, [{
+            %{description: "Requested medication brand quantity must be a multiplier of package minimal quantity",
+            params: [],
+            rule: :required
+          }, "$.dispense_details[#{i}].medication_qty"}]}
+        end
+      end)
+      |> Enum.filter(&(&1 != :ok))
+    if Enum.empty?(errors) do
+      :ok
+    else
+      {:error, errors
+                |> Enum.map(&(elem(&1, 1)))
+                |> Enum.concat}
     end
   end
 end
