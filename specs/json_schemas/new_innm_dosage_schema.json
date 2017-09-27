@@ -1,0 +1,91 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "definitions": {
+    "name": {
+      "type": "string",
+      "pattern": "^(?!.*[ЫЪЭЁыъэё@%&$^#])[a-zA-ZА-ЯҐЇІЄа-яґїіє0-9№\\\"!\\^\\*)\\]\\[(._-].*$"
+    },
+    "uuid": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "dosage_object": {
+      "type": "object",
+      "properties": {
+        "numerator_unit": {
+          "type": "string",
+          "description": "Dictionary: MEDICATION_UNIT"
+        },
+        "numerator_value": {
+          "type": "number",
+          "minimum": 0,
+          "exclusiveMinimum": true
+        },
+        "denumerator_unit": {
+          "type": "string",
+          "description": "Dictionary: MEDICATION_UNIT"
+        },
+        "denumerator_value": {
+          "type": "number",
+          "minimum": 0,
+          "exclusiveMinimum": true
+        }
+      },
+      "required": [
+        "numerator_unit",
+        "numerator_value",
+        "denumerator_unit",
+        "denumerator_value"
+      ],
+      "additionalProperties": false
+    },
+    "ingredient_object": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/uuid",
+          "description": "innm or innm dosage Identifier"
+        },
+        "dosage": {
+          "$ref": "#/definitions/dosage_object"
+        },
+        "is_primary": {
+          "type": "boolean",
+          "description": "Is a primary ingredient"
+        }
+      },
+      "required": [
+        "id",
+        "is_primary",
+        "dosage"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^(?!.*[ЫЪЭЁыъэё@%&$^#])[a-zA-ZА-ЯҐЇІЄа-яґїіє0-9№\\\"!\\^\\*)\\]\\[(._-].*$"
+    },
+    "form": {
+      "type": "string",
+      "description": "Dictionary: MEDICATION_FORM"
+    },
+    "ingredients": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/ingredient_object",
+        "description": "ingredient object"
+      },
+      "minItems": 1,
+      "description": "ingredients array"
+    }
+  },
+  "required": [
+    "name",
+    "form",
+    "ingredients"
+  ],
+  "additionalProperties": false
+}
