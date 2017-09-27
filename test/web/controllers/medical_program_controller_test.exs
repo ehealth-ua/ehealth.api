@@ -77,4 +77,28 @@ defmodule EHealth.Web.MedicalProgramControllerTest do
       assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
     end
   end
+
+  describe "get by id" do
+    test "success", %{conn: conn} do
+      %{id: id} = insert(:prm, :medical_program)
+      conn = put_client_id_header(conn)
+      conn = get conn, medical_program_path(conn, :show, id)
+      resp = json_response(conn, 200)["data"]
+      assert id == resp["id"]
+
+      schema =
+        "test/data/medical_program/get_medical_program_response_schema.json"
+        |> File.read!()
+        |> Poison.decode!()
+
+      assert :ok = NExJsonSchema.Validator.validate(schema, resp)
+    end
+
+    test "fail", %{conn: conn} do
+      conn = put_client_id_header(conn)
+      assert_raise Ecto.NoResultsError, fn ->
+        get conn, medical_program_path(conn, :show, Ecto.UUID.generate())
+      end
+    end
+  end
 end

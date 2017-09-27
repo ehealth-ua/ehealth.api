@@ -30,6 +30,10 @@ defmodule EHealth.PRM.MedicalPrograms do
     PRMRepo.get(MedicalProgram, id)
   end
 
+  def get_by_id!(id) do
+    PRMRepo.get!(MedicalProgram, id)
+  end
+
   def create(user_id, params) do
     %MedicalProgram{}
     |> changeset(params)
