@@ -1163,11 +1163,11 @@ Response will contain only records that you have access to.
     + Attributes (Response_OK)
         + data (`nhs_declaration`)
 
-## Substances [/substances]
-### Create substance [POST]
-This method is used to create new substance. Fields descriptions are listed in request Example view.
+## Innms [/innms]
+### Create innm [POST]
+This method is used to create new innm. Fields descriptions are listed in request Example view.
 
-**Scopes required:** `substance:write`
+**Scopes required:** `innm:write`
 
 + Request (application/json)
 
@@ -1176,14 +1176,14 @@ This method is used to create new substance. Fields descriptions are listed in r
             Authorization: Bearer mF_9.B5f-4.1JqM
 
     + Attributes (object)
-       + include `Substance_Request`
+       + include `Innm_Request`
 
 + Response 201 (application/json)
     + Attributes (Response__Process_OK)
         + meta (Response__Meta)
             + code: 201 (number)
         + data (object)
-            + include `Substance_Response`
+            + include `Innm_Response`
 
 + Response 409 (application/json)
     + Attributes (Response_Error)
@@ -1191,12 +1191,12 @@ This method is used to create new substance. Fields descriptions are listed in r
             + code: 409
         + error
             + type: duplicate (string, required)
-            + message: `substance duplicate` (string, required)
+            + message: `innm duplicate` (string, required)
 
-### Get substance by id [GET /substances/{id}]
-Method returns substance details by ID.
+### Get innm by id [GET /innms/{id}]
+Method returns innms details by ID.
 
-**Scopes required:** `substance:read`
+**Scopes required:** `innm:read`
 
 + Parameters
     + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -1211,19 +1211,19 @@ Method returns substance details by ID.
     + Attributes (Response__Process_OK)
         + meta (Response__Meta)
         + data (object)
-            + include `Substance_Response`
+            + include `Innm_Response`
 
-### Get Substances List [GET /substances{?id,sctid,name,name_original,page_number,page_size}]
+### Get Innms List [GET /innms{?id,sctid,name,name_original,page_number,page_size}]
 
-Use this method to obtain list of Substances. If you want to reduce amount of data that is going trough your application, use filter and show only substances is interested in current UI section.
+Use this method to obtain list of Innms. If you want to reduce amount of data that is going trough your application, use filter and show only innms is interested in current UI section.
 
-**Scopes required:** `substance:read`
+**Scopes required:** `innm:read`
 
 + Parameters
-    + `id`: `7124259c-eeb1-4cbb-acac-ada2162675d1` (string, optional) - Substance Identifier.
-    + `sctid`: `52574003` (string, optional) - Substance CNOMED code.
-    + `name`: `Аміодарон` (string, optional) - Substance local name.
-    + `name_original`: `Amiodarone` (string, optional) - Substance original name.
+    + `id`: `7124259c-eeb1-4cbb-acac-ada2162675d1` (string, optional) - Innm Identifier.
+    + `sctid`: `52574003` (string, optional) - Innm CNOMED code.
+    + `name`: `Аміодарон` (string, optional) - Innm local name.
+    + `name_original`: `Amiodarone` (string, optional) - Innm original name.
     + page_number: 2 (number, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
@@ -1235,15 +1235,15 @@ Use this method to obtain list of Substances. If you want to reduce amount of da
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
-        + data (array[`Substance_Response_Short`]) 
+        + data (array[`Innm_Response_Short`]) 
 
 
-## INNMs [/innms] 
+## INNM Dosages [/innm_dosages] 
 
-### Create INNM [POST]
-This method is used to create INNMs. Fields descriptions are listed in request Example view.
+### Create INNM Dosage [POST]
+This method is used to create INNM Dosage. Fields descriptions are listed in request Example view.
 
-**Scopes required:** `innm:write`
+**Scopes required:** `innm_dosage:write`
 
 + Request (application/json)
 
@@ -1252,14 +1252,14 @@ This method is used to create INNMs. Fields descriptions are listed in request E
             Authorization: Bearer mF_9.B5f-4.1JqM
 
     + Attributes (object)
-       + include (`INNM_Request`, required) 
+       + include (`INNM_Dosage_Request`, required) 
 
 + Response 201 (application/json)
     + Attributes (Response__Process_OK)
         + meta (Response__Meta)
             + code: 201 (number)
         + data (object)
-            + include `INNM_Response`
+            + include `INNM_Dosage_Response`
 
 + Response 422 (application/json)
     + Attributes (Response_Error)
@@ -1269,10 +1269,10 @@ This method is used to create INNMs. Fields descriptions are listed in request E
             + type: unverified (string, required)
             + message: `Property "is_active" has not been defined and the schema does not allow additional properties!` (string, required)
 
-### Deactivate INNM [PATCH /innms/{id}/actions/deactivate]
-This method is used to deactivate INNM. Fields descriptions are listed in request Example view.
+### Deactivate INNM Dosage [PATCH /innm_dosages/{id}/actions/deactivate]
+This method is used to deactivate INNM Dosage. Fields descriptions are listed in request Example view.
 
-**Scopes required:** `innm:deactivate`
+**Scopes required:** `innm_dosage:deactivate`
 
 + Parameters
     + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -1287,7 +1287,7 @@ This method is used to deactivate INNM. Fields descriptions are listed in reques
     + Attributes (Response__Process_OK)
         + meta (Response__Meta)
         + data (object)
-            + include `INNM_Response`
+            + include `INNM_Dosage_Response`
 
 + Response 422 (application/json)
     + Attributes (Response_Error)
@@ -1295,12 +1295,12 @@ This method is used to deactivate INNM. Fields descriptions are listed in reques
             + code: 422
         + error
             + type: unverified (string, required)
-            + message: `Can't deactivate innm. Exist active linked medications!` (string, required)
+            + message: `Can't deactivate innm dosage. Exist active linked brand!` (string, required)
 
-### Get INNM by id [GET /innms/{id}]
-Method returns INNM details by ID.
+### Get INNM Dosage by id [GET /innm_dosages/{id}]
+Method returns INNM Dosage details by ID.
 
-**Scopes required:** `innm:read`
+**Scopes required:** `innm_dosage:read`
 
 + Parameters
     + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -1315,17 +1315,17 @@ Method returns INNM details by ID.
     + Attributes (Response__Process_OK)
         + meta (Response__Meta)
         + data (object)
-            + include `INNM_Response`
+            + include `INNM_Dosage_Response`
 
-### Get INNMs List [GET /innms{?id,name,form,page_number,page_size}]
+### Get INNM Dosage List [GET /innm_dosages{?id,name,form,page_number,page_size}]
 
-Use this method to obtain list of INNMs. If you want to reduce amount of data that is going trough your application, use filter and show only INNMs is interested in current UI section.
+Use this method to obtain list of INNM Dosage. If you want to reduce amount of data that is going trough your application, use filter and show only INNMs is interested in current UI section.
 
-**Scopes required:** `innm:read`
+**Scopes required:** `innm_dosage:read`
 
 + Parameters
-    + `id`: `7124259c-eeb1-4cbb-acac-ada2162675d1` (string, optional) - `INNM Identifier.`
-    + `name`: `Аміодарон` (string, optional) - `Substance local name.`
+    + `id`: `7124259c-eeb1-4cbb-acac-ada2162675d1` (string, optional) - `INNM Dosage Identifier.`
+    + `name`: `Аміодарон` (string, optional) - `Innm local name.`
     + `form`:  `PILL` (string, required) - `Dictionary MEDICATION_FORM`
     + page_number: 2 (number, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
@@ -1338,7 +1338,7 @@ Use this method to obtain list of INNMs. If you want to reduce amount of data th
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
-        + data (array[`INNM_Response_Short`]) 
+        + data (array[`INNM_Dosage_Response_Short`]) 
 
 ## Medications [/medications] 
 
@@ -3021,9 +3021,9 @@ This method to create the division info by ID.
 ## UAdresses [/api/uaddresses]
 API for searching Ukrainian Addresses
 
-## Search Streets [/streets]
+## Search Streets [/api/uaddresses/streets]
 
-### List of Streets by Search Params [GET /streets{?settlement_id,name,type}]
+### List of Streets by Search Params [GET /api/uaddresses/streets{?settlement_id,name,type}]
 
 + Parameters
     + settlement_id: `eea333b5-e26d-4e3e-92e2-2ab37b131502` (string, required) - Settlement identifier
@@ -3036,9 +3036,9 @@ API for searching Ukrainian Addresses
             + code: 200 (number)
         + data (array[`Response_Street`])
 
-## Search Settlements [/settlements]
+## Search Settlements [/api/settlements]
 
-### List Of Cities By Search Params [GET /settlements{?name,region,district,koatuu}]
+### List Of Cities By Search Params [GET /api/uaddresses/settlements{?name,region,district,koatuu}]
 
 + Parameters
     + name: Новосілки (string, optional) - Name of searching settlement
@@ -3052,9 +3052,9 @@ API for searching Ukrainian Addresses
             + code: 200 (number)
         + data (array[`Response_Settlement`])
 
-## Search Regions [/regions]
+## Search Regions [/api/uaddresses/regions]
 
-### List Of Regions By Search Params [GET /regions{?name,koatuu}]
+### List Of Regions By Search Params [GET /api/uaddresses/regions{?name,koatuu}]
 + Parameters
     + name: Київ (string, optional) - Province name
     + koatuu: `2625286301` (string, optional) - koatuu classifier id
@@ -3065,9 +3065,9 @@ API for searching Ukrainian Addresses
             + code: 200 (number)
         + data (array[`Response_Region`])
 
-## Search Districts [/districts]
+## Search Districts [/api/uaddresses/districts]
 
-### List Of Districts By Search Params [GET /districts{?region,name,koatuu}]
+### List Of Districts By Search Params [GET /api/uaddresses/districts{?region,name,koatuu}]
 + Parameters
     + region: Київ (string) - Province name
     + name: `Києво-Святошинський` (string, optional) - Administrative district of province
@@ -3079,7 +3079,7 @@ API for searching Ukrainian Addresses
             + code: 200 (number)
         + data (array[`Response_District`])
 
-### Districts by Region [GET /regions/290f1ee-6c54-4b01-90e6-d701748f0851/districts{?name,koatuu}]
+### Districts by Region [GET /api/uaddresses/regions/290f1ee-6c54-4b01-90e6-d701748f0851/districts{?name,koatuu}]
 
 + Parameters
     + name: `Києво-Святошинський` (string, optional) - Filter by district name
@@ -3091,7 +3091,7 @@ API for searching Ukrainian Addresses
             + code: 200 (number)
         + data (array[`Response_District_Short`])
 
-### Settlements by district [GET /districts/290f1ee-6c54-4b01-90e6-d701748f0851/settlements{?name,koatuu}]
+### Settlements by district [GET /api/uaddresses/districts/290f1ee-6c54-4b01-90e6-d701748f0851/settlements{?name,koatuu}]
 
 Get list of cities by district
 
@@ -3107,9 +3107,9 @@ Get list of cities by district
 
 # Group Public. Reimbursement
 
-## Drugs [/drugs]
+## Drugs [/apidrugs]
 
-### Get drugs list [GET /drugs{?substanse_id,substanse_name,substanse_sctid,form,medication_id,medication_name,medication_code_ATX,page_number,page_size}]
+### Get drugs list [GET /api/drugs{?substanse_id,substanse_name,substanse_sctid,form,medication_id,medication_name,medication_code_ATX,page_number,page_size}]
 
 + Parameters
     + `substanse_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional)
@@ -3433,7 +3433,7 @@ Medication Dispense - Indicates that a medication product has been dispensed for
 
 2. **Medical program** - mandatory attribute for the first phase. There is no options to dispense medication without program
 
-3. **Dispense details** - several medications of different manufacturers with the same substance can be dispensed at a time. Total of medication_qty should be less or equal to medication quantity specified in Medication Request
+3. **Dispense details** - several medications of different manufacturers with the same innm can be dispensed at a time. Total of medication_qty should be less or equal to medication quantity specified in Medication Request
 
 **Sequence diagram**
 
@@ -4665,7 +4665,7 @@ This method is used to process created dispense
 + `name`: `Аміодарон 200мг таблетки` (string, required)
 + `code_ATX`: `С01BD01` (string, required)
 + `form`: PILL (string, required) - `Dictionary MEDICATION_FORM`
-+ `substanse` (`Substance_Response_Short`, required) 
++ `innm` (`Innm_Response_Short`, required) 
 + `dosage` (`Dosage_drug`, required)
 + `container_dosage` (`Dosage_container`, required)
 + `packages` (array, required)
@@ -4676,19 +4676,19 @@ This method is used to process created dispense
 + `package_min_qty`: 10 (number, required)
 
 ## Medications
-### `Substance_Request`
-+ `sctid`: `52574003` (string, optional) - substance CNOMED code
-+ `name`: `Аміодарон` (string, optional) - substance local name
-+ `name_original`: `Amiodarone` (string, optional) - substance original name
+### `Innm_Request`
++ `sctid`: `52574003` (string, optional) - innm CNOMED code
++ `name`: `Аміодарон` (string, optional) - innm local name
++ `name_original`: `Amiodarone` (string, optional) - innm original name
 
-### `Substance_Response_Short`
+### `Innm_Response_Short`
 + `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required)
-+ include `Substance_Request`
++ include `Innm_Request`
 + is_active: true (boolean, required)
 
-### `Substance_Response`
+### `Innm_Response`
 + `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required)
-+ include `Substance_Request`
++ include `Innm_Request`
 + is_active: true (boolean, required)
 + inserted_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + inserted_by: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
@@ -4707,7 +4707,7 @@ This method is used to process created dispense
 + `denumerator_unit`: PILL (string, required) - `Dictionary MEDICATION_UNIT`
 + `denumerator_value`: 1 (number, required)
 
-### `Innm_for_Medication_request`
+### `Innm_Dosage_for_Medication_request`
 + `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required)
 + `form`: PILL (string, required) - `Dictionary MEDICATION_FORM`
 + `dosage` (`Dosage_drug`, required)
@@ -4715,8 +4715,8 @@ This method is used to process created dispense
 + `request_qty`: 10 (number, required)
 
 
-### `Innm_for_Medication_request_Responce`
-+ `innm` (`Substance_Response_Short`, required)
+### `Innm_Dosage_for_Medication_request_Responce`
++ `innm_dosage` (`Innm_Response_Short`, required)
 + `medication_id` : `4a63b858-c138-4921-9341-ae9e384bcbd6` (string, required)
 + `form`: PILL (string, required) - `Dictionary MEDICATION_FORM`
 + `dosage` (`Dosage_drug`, required)
@@ -4733,21 +4733,21 @@ This method is used to process created dispense
 + `dosage` (`Dosage_drug`, required)
 + `is_active_substance` : true (boolean, required) 
 
-### `INNM_Request`
+### `INNM_Dosage_Request`
 + `name` : `Амідарон` (string, required)
 + `form` :  PILL (string, required) - `Dictionary MEDICATION_FORM`
 + `ingredients` (array, required)
     + (object)
         + include `Ingredient`
 
-### `INNM_Response_Short`
+### `INNM_Dosage_Response_Short`
 + `id` : `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required) 
-+ include `INNM_Request`
++ include `INNM_Dosage_Request`
 + `is_active` : true (boolean, required)
 
-### `INNM_Response`
+### `INNM_Dosage_Response`
 + `id` : `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required) 
-+ include `INNM_Request`
++ include `INNM_Dosage_Request`
 + `is_active` : true (boolean, required)
 + inserted_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + inserted_by: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
@@ -4810,7 +4810,7 @@ This method is used to process created dispense
 
 ### `Reimbursement`
 + `type`: `fixed` (string, required) - fixed or external type of reimburesment (Dictionary REIMBURSEMENT_TYPE)
-+ `reimbursement_amount`: 15 (number, optional) - Amount to reimburse for one medication_unit by medical_program
++ `reimbursement_amount`: 450 (number, optional) - Amount to reimburse for medication package by medical_program
 
 ### `Program_medications_Response`
 + `id` : `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) 
@@ -4901,7 +4901,7 @@ This method is used to process created dispense
 + `division` (`Division_Details`, required)
 + `employee` (Employee_Minimal, required)
 + `person` (`Person_Short`)            
-+ `medication` (`Innm_for_Medication_request_Responce`, required)
++ `medication` (`Innm_Dosage_for_Medication_request_Responce`, required)
 + `medical_program` (`Medical_Program_Response`, required)
 
 ### `Qualify_Medication_request_Request_List_program_post_data`
@@ -4966,7 +4966,7 @@ This method is used to process created dispense
 + `division` (`Division_Details`, required)
 + `employee` (Employee_Minimal, required)
 + `person` (`Person_Short`)            
-+ `medication` (`Innm_for_Medication_request_Responce`, required)
++ `medication` (`Innm_Dosage_for_Medication_request_Responce`, required)
 + `medical_program` (`Medical_Program_Response`, required)
 
 ### `Medication_request_Reject_Public_Response`
@@ -5009,9 +5009,13 @@ This method is used to process created dispense
 + `medication_id`: `787b6ef1-1d3a-4129-849c-87716c9a2130` (string, required) - Identifier of brand medications 
 + `medication_qty`: 10 (number, required) - qnty of medication_unit (pill/ampoule/container/bottle/vial/aerosol) which provides to the patient
 + `sell_price`: 18.65 (number, required) - pharmacy's price for one nondivisible medication_unit (pill/ampoule/container/bottle/vial/aerosol)
++ `sell_amount`: 186.5 (number, required) - total pharmacy's price for the requested medication quantity
++ `discount_amount`: 150 (number, required) - pharmacy's expected price of dicsount for the requested medication quantity
 
 ### `Medication_Dispense_Detail_Response`
 + `medication` (`Medication_Short`, required) - Identifier of brand medications 
 + `medication_qty`: 10 (number, required) - qnty of medication_unit (pill/ampoule/container/bottle/vial/aerosol) which provides to the patient
 + `sell_price`: 18.65 (number, required) - pharmacy's price for one nondivisible medication_unit (pill/ampoule/container/bottle/vial/aerosol)
-+ `reimbursement_amount`: 15 (number, required) - Amount to reimburse for one medication_unite by medical_program
++ `sell_amount`: 186.5 (number, required) - total pharmacy's price for the requested medication quantity
++ `discount_amount`: 150 (number, required) - pharmacy's expected price of dicsount for the requested medication quantity
++ `reimbursement_amount`: 450 (number, required) - Amount to reimburse for medication package by medical_program
