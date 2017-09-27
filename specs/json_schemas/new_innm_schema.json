@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[А-Яа-яЁёЇїІіЄєҐґ\\- ]*$",
+      "description": "Innm UA name"
+    },
+    "name_original": {
+      "type": "string",
+      "pattern": "^[a-zA-Z\\- ]*$",
+      "description": "Innm original name"
+    },
+    "sctid": {
+      "type": "string",
+      "pattern": "^[0-9]{8}$",
+      "description": "CNOMED identifier"
+    }
+  },
+  "required": [
+    "name",
+    "name_original",
+  ],
+  "additionalProperties": false
+}
+
