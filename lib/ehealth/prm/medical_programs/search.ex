@@ -6,7 +6,7 @@ defmodule EHealth.PRM.MedicalPrograms.Search do
   @primary_key false
   schema "medical_programs_search" do
     field :id, Ecto.UUID
-    field :name, :string
+    field :name, EHealth.Ecto.StringLike
     field :is_active, :boolean
   end
 end

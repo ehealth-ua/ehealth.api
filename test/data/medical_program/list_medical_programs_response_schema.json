@@ -1,0 +1,77 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "data": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Internal medical program ID, a UUID string."
+          },
+          "name": {
+            "type": "string",
+            "description": "medical program name that is used on govermental level"
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Is medical program active or not. True - Active; False - Inactive"
+          },
+          "inserted_at": {
+            "type": "string",
+            "description": "ISO 8601 date and time in UTC timezone."
+          },
+          "inserted_by": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string",
+            "description": "ISO 8601 date and time in UTC timezone."
+          },
+          "updated_by": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "is_active",
+          "inserted_at",
+          "inserted_by",
+          "updated_at",
+          "updated_by"
+        ]
+      }
+    },
+    "paging": {
+      "type": "object",
+      "properties": {
+        "page_number": {
+          "type": "number",
+          "description": "Page number."
+        },
+        "page_size": {
+          "type": "number",
+          "description": "A limit on the number of objects to be returned, between 1 and 100. Default: 50"
+        },
+        "total_entries": {
+          "type": "number",
+          "description": "Total number of objects in collection."
+        },
+        "total_pages": {
+          "type": "number",
+          "description": "Total number of pages."
+        }
+      },
+      "required": [
+        "page_number",
+        "page_size",
+        "total_entries",
+        "total_pages"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
