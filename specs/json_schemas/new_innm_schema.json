@@ -20,7 +20,7 @@
   },
   "required": [
     "name",
-    "name_original",
+    "name_original"
   ],
   "additionalProperties": false
 }
