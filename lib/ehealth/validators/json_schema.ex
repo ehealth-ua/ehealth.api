@@ -14,12 +14,12 @@ defmodule EHealth.Validators.JsonSchema do
   use_schema :employee_doctor, "specs/json_schemas/employee_doctor_schema.json"
   use_schema :employee_pharmacist, "specs/json_schemas/employee_pharmacist_schema.json"
   use_schema :legal_entity, "specs/json_schemas/new_legal_entity_schema.json"
-  use_schema :substance, "specs/json_schemas/new_substance_schema.json"
-  use_schema :medication, "specs/json_schemas/new_medication_type_medication_schema.json"
-  use_schema :innm, "specs/json_schemas/new_medication_type_innm_schema.json"
+  use_schema :innm, "specs/json_schemas/new_innm_schema.json"
+  use_schema :medication, "specs/json_schemas/new_medication_schema.json"
+  use_schema :innm_dosage, "specs/json_schemas/new_innm_dosage_schema.json"
 
-  def validate(:innm = schema, attrs) do
-    do_validate(schema, :prepare_innm_schema, attrs)
+  def validate(:innm_dosage = schema, attrs) do
+    do_validate(schema, :prepare_innm_dosage_schema, attrs)
   end
   def validate(:medication = schema, attrs) do
     do_validate(schema, :prepare_medication_schema, attrs)

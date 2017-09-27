@@ -1,11 +1,11 @@
-defmodule EHealth.PRM.Drugs.Substance.Schema do
+defmodule EHealth.PRM.Medications.INNM.Schema do
   @moduledoc false
   use Ecto.Schema
 
   @derive {Poison.Encoder, except: [:__meta__]}
 
   @primary_key {:id, :binary_id, autogenerate: true}
-  schema "substances" do
+  schema "innms" do
     field :sctid, :string
     field :name, :string
     field :name_original, :string

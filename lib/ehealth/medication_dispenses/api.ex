@@ -10,7 +10,7 @@ defmodule EHealth.MedicationDispense.API do
   alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
   alias EHealth.PRM.Employees.Schema, as: Employee
   alias EHealth.PRM.Divisions.Schema, as: Division
-  alias EHealth.PRM.Drugs.Medication.Schema, as: Medication
+  alias EHealth.PRM.Medications.Medication.Schema, as: Medication
   alias EHealth.API.OPS
   alias EHealth.MedicationDispenses.Search
   alias EHealth.Validators.JsonSchema
@@ -191,7 +191,7 @@ defmodule EHealth.MedicationDispense.API do
   end
 
   defp validate_active_medication(%Medication{} = medication, %{"medication_id" => medication_id}, i) do
-    ingredient = Enum.find(medication.ingredients, &(Map.get(&1, :is_active_substance)))
+    ingredient = Enum.find(medication.ingredients, &(Map.get(&1, :is_primary)))
     is_valid_ingredient = Map.get(ingredient, :id) == medication_id
     if medication.is_active && is_valid_ingredient do
       :ok

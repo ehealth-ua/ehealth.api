@@ -1,4 +1,4 @@
-defmodule EHealth.Web.SubstanceControllerTest do
+defmodule EHealth.Web.INNMDosageControllerTest do
   use EHealth.Web.ConnCase
 
   @create_attrs %{
@@ -15,45 +15,45 @@ defmodule EHealth.Web.SubstanceControllerTest do
 
   describe "index" do
     test "search by name", %{conn: conn} do
-      insert(:prm, :substance, name: "Этивон")
-      %{id: id} = insert(:prm, :substance, name: "Диэтиламид")
+      insert(:prm, :innm, name: "Этивон")
+      %{id: id} = insert(:prm, :innm, name: "Диэтиламид")
 
-      conn = get conn, substance_path(conn, :index), name: "этила"
-      assert [substance] = json_response(conn, 200)["data"]
-      assert id == substance["id"]
-      assert "Диэтиламид" == substance["name"]
+      conn = get conn, innm_path(conn, :index), name: "этила"
+      assert [innm] = json_response(conn, 200)["data"]
+      assert id == innm["id"]
+      assert "Диэтиламид" == innm["name"]
     end
 
     test "search invalid id", %{conn: conn} do
-      conn = get conn, substance_path(conn, :index), id: 1000
+      conn = get conn, innm_path(conn, :index), id: 1000
       json_response(conn, 422)
     end
 
-    test "not active substance in list", %{conn: conn} do
-      insert(:prm, :substance, is_active: false)
+    test "not active innm in list", %{conn: conn} do
+      insert(:prm, :innm, is_active: false)
 
-      conn = get conn, substance_path(conn, :index)
+      conn = get conn, innm_path(conn, :index)
       assert 1 == length(json_response(conn, 200)["data"])
     end
 
     test "paging", %{conn: conn} do
-      for _ <- 1..21, do: insert(:prm, :substance)
+      for _ <- 1..21, do: insert(:prm, :innm)
 
       # default entities per page is 50
-      conn = get conn, substance_path(conn, :index)
+      conn = get conn, innm_path(conn, :index)
       first_page = json_response(conn, 200)["data"]
       assert 21 == length(first_page)
 
       # same order for first page
-      conn = get conn, substance_path(conn, :index)
+      conn = get conn, innm_path(conn, :index)
       assert first_page == json_response(conn, 200)["data"]
 
       # second page
-      conn = get conn, substance_path(conn, :index), page: 2
+      conn = get conn, innm_path(conn, :index), page: 2
       refute first_page == json_response(conn, 200)["data"]
 
       # page_size
-      conn = get conn, substance_path(conn, :index), [page_size: 5, page: 3]
+      conn = get conn, innm_path(conn, :index), [page_size: 5, page: 3]
       resp = json_response(conn, 200)
       assert 5 == length(resp["data"])
 
@@ -67,12 +67,12 @@ defmodule EHealth.Web.SubstanceControllerTest do
     end
   end
 
-  describe "create substance" do
-    test "renders substance when data is valid", %{conn: conn} do
-      conn = post conn, substance_path(conn, :create), @create_attrs
+  describe "create innm" do
+    test "renders innm when data is valid", %{conn: conn} do
+      conn = post conn, innm_path(conn, :create), @create_attrs
       assert %{"id" => id} = json_response(conn, 201)["data"]
 
-      conn = get conn, substance_path(conn, :show, id)
+      conn = get conn, innm_path(conn, :show, id)
       data = json_response(conn, 200)["data"]
       Enum.each(@create_attrs, fn {field, value} ->
         assert value == Map.get(data, to_string(field))
@@ -80,23 +80,23 @@ defmodule EHealth.Web.SubstanceControllerTest do
     end
 
     test "duplicate name", %{conn: conn} do
-      conn_c = post conn, substance_path(conn, :create), @create_attrs
+      conn_c = post conn, innm_path(conn, :create), @create_attrs
       json_response(conn_c, 201)["data"]
 
-      conn = post conn, substance_path(conn, :create), @create_attrs
+      conn = post conn, innm_path(conn, :create), @create_attrs
       json_response(conn, 422)
     end
 
     test "renders errors when data is invalid", %{conn: conn} do
-      conn = post conn, substance_path(conn, :create), @invalid_attrs
+      conn = post conn, innm_path(conn, :create), @invalid_attrs
       assert json_response(conn, 422)["errors"] != %{}
     end
   end
 
-  describe "get substance by id" do
-    test "not active substance render 200", %{conn: conn} do
-      %{id: id} = insert(:prm, :substance, is_active: false)
-      conn = get conn, substance_path(conn, :show, id)
+  describe "get innm by id" do
+    test "not active innm render 200", %{conn: conn} do
+      %{id: id} = insert(:prm, :innm, is_active: false)
+      conn = get conn, innm_path(conn, :show, id)
       json_response(conn, 200)
     end
   end

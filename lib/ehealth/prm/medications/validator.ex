@@ -1,26 +1,26 @@
-defmodule EHealth.PRM.Drugs.Validator do
+defmodule EHealth.PRM.Medications.Validator do
   @moduledoc """
-  Drugs validator.
+  Medications validator.
   """
 
   import Ecto.Changeset
   import Ecto.Query, warn: false
 
   alias EHealth.PRMRepo
-  alias EHealth.PRM.Drugs.INNM.Schema, as: INNM
-  alias EHealth.PRM.Drugs.Substance.Schema, as: Substance
-  alias EHealth.PRM.Drugs.Medication.Schema, as: Medication
-  alias EHealth.PRM.Drugs.INNM.Ingredient, as: INNMIngredient
-  alias EHealth.PRM.Drugs.Medication.Ingredient, as: MedicationIngredient
+  alias EHealth.PRM.Medications.INNMDosage.Schema, as: INNMDosage
+  alias EHealth.PRM.Medications.INNM.Schema, as: INNM
+  alias EHealth.PRM.Medications.Medication.Schema, as: Medication
+  alias EHealth.PRM.Medications.INNMDosage.Ingredient, as: INNMIngredient
+  alias EHealth.PRM.Medications.Medication.Ingredient, as: MedicationIngredient
 
-  @type_innm INNM.type()
+  @type_innm_dosage INNMDosage.type()
   @type_medication Medication.type()
 
   def validate_ingredients(changeset) do
     changeset
     |> validate_ingredients_fk()
     |> validate_ingredients_id_uniqueness()
-    |> validate_ingedients_active_substance_uniqueness()
+    |> validate_ingedients_active_innm_uniqueness()
   end
 
   defp validate_ingredients_fk(changeset) do
@@ -56,17 +56,17 @@ defmodule EHealth.PRM.Drugs.Validator do
   end
 
   defp get_ingredient_id(%{data: %INNMIngredient{}} = changeset) do
-    get_field(changeset, :substance_id)
+    get_field(changeset, :innm_child_id)
   end
 
   defp get_ingredient_id(%{data: % MedicationIngredient{}} = changeset) do
-    get_field(changeset, :innm_id)
+    get_field(changeset, :medication_child_id)
   end
 
-  defp validate_ingedients_active_substance_uniqueness(changeset) do
+  defp validate_ingedients_active_innm_uniqueness(changeset) do
     validate_change changeset, :ingredients, fn :ingredients, ingredients ->
       ingredients
-      |> Enum.reduce_while({false, []}, &(active_substance_unique(get_field(&1, :is_active_substance), &2)))
+      |> Enum.reduce_while({false, []}, &(active_innm_unique(get_field(&1, :is_primary), &2)))
       |> case do
            {false, _} -> [ingredients: "One and only one ingredient must be active"]
            {true, msg} -> msg
@@ -74,9 +74,9 @@ defmodule EHealth.PRM.Drugs.Validator do
     end
   end
 
-  defp active_substance_unique(false, acc), do: {:cont, acc}
-  defp active_substance_unique(true, {false, _msg}), do: {:cont, {true, []}}
-  defp active_substance_unique(true, {true, _msg}), do:
+  defp active_innm_unique(false, acc), do: {:cont, acc}
+  defp active_innm_unique(true, {false, _msg}), do: {:cont, {true, []}}
+  defp active_innm_unique(true, {true, _msg}), do:
     {:halt, {true, [ingredients: "One and only one ingredient must be active"]}}
 
   # counters
@@ -84,14 +84,14 @@ defmodule EHealth.PRM.Drugs.Validator do
   defp count_by_ids(ids, @type_medication) do
     Medication
     |> where([m], m.id in ^ids)
-    |> where([m], m.type == @type_innm)
+    |> where([m], m.type == @type_innm_dosage)
     |> where([m], m.is_active)
     |> select(count("*"))
     |> PRMRepo.one()
   end
 
-  defp count_by_ids(ids, @type_innm) do
-    Substance
+  defp count_by_ids(ids, @type_innm_dosage) do
+    INNM
     |> where([s], s.id in ^ids)
     |> where([s], s.is_active)
     |> select(count("*"))

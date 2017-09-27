@@ -1,16 +1,18 @@
 defmodule EHealth.PRMFactories.MedicationFactory do
   @moduledoc false
 
-  alias EHealth.PRM.Drugs.INNM.Schema, as: INNM
-  alias EHealth.PRM.Drugs.Substance.Schema, as: Substance
-  alias EHealth.PRM.Drugs.Medication.Schema, as: Medication
+  alias EHealth.PRM.Medications.INNM.Schema, as: INNM
+  alias EHealth.PRM.Medications.INNMDosage.Schema, as: INNMDosage
+  alias EHealth.PRM.Medications.INNMDosage.Ingredient, as: INNMDosageIngredient
+  alias EHealth.PRM.Medications.Medication.Schema, as: Medication
+  alias EHealth.PRM.Medications.Medication.Ingredient, as: MedicationIngredient
 
   defmacro __using__(_opts) do
     quote do
       alias Ecto.UUID
 
-      def substance_factory do
-        %Substance{
+      def innm_factory do
+        %INNM{
           sctid: sequence("1234567"),
           name: "Преднизолон",
           name_original: "Prednisolonum",
@@ -20,18 +22,18 @@ defmodule EHealth.PRMFactories.MedicationFactory do
         }
       end
 
-      def innm_factory do
+      def innm_dosage_factory do
         form = Enum.random(["Pill", "Nebuliser suspension"])
 
         id = UUID.generate()
-        %{id: substance_id} = insert(:prm, :substance)
+        %{id: innm_id} = insert(:prm, :innm)
 
-        %INNM{
+        %INNMDosage{
           id: id,
           name: sequence("Prednisolonum Forte"),
-          type: INNM.type(),
+          type: INNMDosage.type(),
           form: form,
-          ingredients: [build(:ingredient_innm, [substance_id: substance_id, medication_id: id])],
+          ingredients: [build(:ingredient_innm_dosage, [innm_child_id: innm_id, parent_id: id])],
           is_active: true,
           updated_by: UUID.generate(),
           inserted_by: UUID.generate(),
@@ -42,14 +44,14 @@ defmodule EHealth.PRMFactories.MedicationFactory do
         form = Enum.random(["Pill", "Nebuliser suspension"])
 
         id = UUID.generate()
-        %{id: innm_id} = insert(:prm, :innm)
+        %{id: innm_dosage_id} = insert(:prm, :innm_dosage)
 
-        %EHealth.PRM.Drugs.Medication.Schema{
+        %Medication{
           id: id,
           name: sequence("Prednisolonum Forte"),
           type: Medication.type(),
           form: form,
-          ingredients: [build(:ingredient_medication, [innm_id: innm_id, medication_id: id])],
+          ingredients: [build(:ingredient_medication, [medication_child_id: innm_dosage_id, parent_id: id])],
           container: container(form),
           manufacturer: build(:manufacturer),
           package_qty: 10,
@@ -66,7 +68,7 @@ defmodule EHealth.PRMFactories.MedicationFactory do
       def ingredient_factory do
         %{
           id: UUID.generate(),
-          is_active_substance: true,
+          is_primary: true,
           dosage: %{
             numerator_unit: "mg",
             numerator_value: 5,
@@ -76,12 +78,12 @@ defmodule EHealth.PRMFactories.MedicationFactory do
         }
       end
 
-      def ingredient_innm_factory do
-        %EHealth.PRM.Drugs.INNM.Ingredient{
+      def ingredient_innm_dosage_factory do
+        %INNMDosageIngredient{
           id: UUID.generate(),
-          substance_id: UUID.generate(),
-          medication_id: UUID.generate(),
-          is_active_substance: true,
+          innm_child_id: UUID.generate(),
+          parent_id: UUID.generate(),
+          is_primary: true,
           dosage: %{
             numerator_unit: "mg",
             numerator_value: 5,
@@ -92,11 +94,11 @@ defmodule EHealth.PRMFactories.MedicationFactory do
       end
 
       def ingredient_medication_factory do
-        %EHealth.PRM.Drugs.Medication.Ingredient{
+        %MedicationIngredient{
           id: UUID.generate(),
-          innm_id: UUID.generate(),
-          medication_id: UUID.generate(),
-          is_active_substance: true,
+          medication_child_id: UUID.generate(),
+          parent_id: UUID.generate(),
+          is_primary: true,
           dosage: %{
             numerator_unit: "mg",
             numerator_value: 5,

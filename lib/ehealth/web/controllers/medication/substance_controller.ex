@@ -3,8 +3,8 @@ defmodule EHealth.Web.INNMController do
   use EHealth.Web, :controller
 
   alias Scrivener.Page
-  alias EHealth.PRM.Drugs.INNM.Schema, as: INNM
-  alias EHealth.PRM.Drugs.API
+  alias EHealth.PRM.Medications.API
+  alias EHealth.PRM.Medications.INNM.Schema, as: INNM
 
   action_fallback EHealth.Web.FallbackController
 
@@ -24,15 +24,7 @@ defmodule EHealth.Web.INNMController do
   end
 
   def show(conn, %{"id" => id}) do
-    innm = API.get_innm_by_id!(id)
+    innm = API.get_innm!(id)
     render(conn, "show.json", innm: innm)
-  end
-
-  def deactivate(conn, %{"id" => id}) do
-    innm = API.get_active_innm_by_id!(id)
-
-    with {:ok, %INNM{} = innm} <- API.deactivate_medication(innm, conn.req_headers) do
-      render(conn, "show.json", innm: innm)
-    end
   end
 end

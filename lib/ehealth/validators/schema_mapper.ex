@@ -33,8 +33,8 @@ defmodule EHealth.Validators.SchemaMapper do
     prepare_schema(nex_schema, :medication)
   end
 
-  def prepare_innm_schema(%Root{} = nex_schema) do
-    prepare_schema(nex_schema, :innm)
+  def prepare_innm_dosage_schema(%Root{} = nex_schema) do
+    prepare_schema(nex_schema, :innm_dosage)
   end
 
   def prepare_schema(%Root{schema: schema} = nex_schema, type) do
@@ -161,12 +161,12 @@ defmodule EHealth.Validators.SchemaMapper do
   end
 
   def put_dictionary_value(%Dictionary{name: "MEDICATION_FORM", values: values}, schema, type)
-      when type in [:medication, :innm] do
+      when type in [:medication, :innm_dosage] do
     put_into_schema(~W(properties form enum), schema, values)
   end
 
   def put_dictionary_value(%Dictionary{name: "MEDICATION_UNIT", values: values}, schema, type)
-      when type in [:medication, :innm] do
+      when type in [:medication, :innm_dosage] do
     values = Map.keys(values)
     schema =
       schema

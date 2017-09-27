@@ -55,13 +55,13 @@ defmodule EHealth.Web.Router do
     get "/declarations/:id/documents", DeclarationRequestController, :documents
 
     # Medications
-    resources "/substances", SubstanceController, except: [:new, :edit, :update, :delete]
+    resources "/innms", INNMController, except: [:new, :edit, :update, :delete]
+
+    resources "/innm_dosages", INNMDosageController, except: [:new, :edit, :update, :delete]
+    patch "/innm_dosages/:id/actions/deactivate", INNMDosageController, :deactivate
 
     resources "/medications", MedicationController, except: [:new, :edit, :update, :delete]
     patch "/medications/:id/actions/deactivate", MedicationController, :deactivate
-
-    resources "/innms", INNMController, except: [:new, :edit, :update, :delete]
-    patch "/innms/:id/actions/deactivate", INNMController, :deactivate
   end
 
   # Client context for lists

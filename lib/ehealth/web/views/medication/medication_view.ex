@@ -32,9 +32,9 @@ defmodule EHealth.Web.MedicationView do
 
   def render("ingredient.json", %{ingredient: ingredient}) do
     %{
-      id: ingredient.innm_id,
+      id: ingredient.medication_child_id,
       dosage: ingredient.dosage,
-      is_active_substance: ingredient.is_active_substance,
+      is_primary: ingredient.is_primary,
     }
   end
 end

@@ -238,9 +238,9 @@ inserted_by | uuid | not null
 updated_at | timestamp | not null
 updated_by | uuid | not null
 
-[program_brands]
+[program_medications]
 id | uuid | not null
-brand_id | uuid | not null
+medication_id | uuid | not null
 medical_program_id | uuid | not null
 is_active | boolean | not null
 medication_request_allowed | boolean | not null
@@ -361,8 +361,8 @@ parties 1--? doctors
 declarations 1--* declarations_status_hstr
 innms 1--* ingredients
 medications 1--* ingredients
-medications 1--* program_brands
-medical_programs 1--* program_brands
+medications 1--* program_medications
+medical_programs 1--* program_medications
 medication_requests *--1 legal_entities
 medication_requests *--1 divisions
 medication_requests *--1 employees 

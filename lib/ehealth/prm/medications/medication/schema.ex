@@ -1,8 +1,8 @@
-defmodule EHealth.PRM.Drugs.Medication.Schema do
+defmodule EHealth.PRM.Medications.Medication.Schema do
   @moduledoc false
   use Ecto.Schema
 
-  @medication_type "MEDICATION"
+  @medication_type "BRAND"
 
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "medications" do
@@ -20,7 +20,7 @@ defmodule EHealth.PRM.Drugs.Medication.Schema do
     field :inserted_by, Ecto.UUID
     field :updated_by, Ecto.UUID
 
-    has_many :ingredients, EHealth.PRM.Drugs.Medication.Ingredient, [on_replace: :delete, foreign_key: :medication_id]
+    has_many :ingredients, EHealth.PRM.Medications.Medication.Ingredient, [on_replace: :delete, foreign_key: :parent_id]
 
     timestamps()
   end

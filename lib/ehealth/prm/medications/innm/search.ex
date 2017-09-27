@@ -1,4 +1,4 @@
-defmodule EHealth.PRM.Drugs.Substance.Search do
+defmodule EHealth.PRM.Medications.INNM.Search do
   @moduledoc false
 
   use Ecto.Schema
@@ -6,7 +6,7 @@ defmodule EHealth.PRM.Drugs.Substance.Search do
   alias EHealth.Ecto.StringLike
 
   @primary_key false
-  schema "substances_search" do
+  schema "innms_search" do
     field :id, Ecto.UUID
     field :name, StringLike
     field :name_original, StringLike
