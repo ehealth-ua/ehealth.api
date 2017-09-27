@@ -162,6 +162,16 @@ defmodule EHealth.MockServer do
     Plug.Conn.send_resp(conn, 200, resp)
   end
 
+  get "/admin/client_types" do
+    client_type = get_client_type(conn.body_params)
+    resp =
+      [client_type]
+      |> wrap_response()
+      |> Poison.encode!()
+
+    Plug.Conn.send_resp(conn, 200, resp)
+  end
+
   # Man
 
   post "/templates/:id/actions/render" do
@@ -695,5 +705,9 @@ defmodule EHealth.MockServer do
     data
     |> wrap_response()
     |> Map.put("paging", paging)
+  end
+
+  defp get_client_type(params) do
+    Map.merge(%{"name" => "MSP", "scope": ""}, params)
   end
 end

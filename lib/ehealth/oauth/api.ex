@@ -13,14 +13,14 @@ defmodule EHealth.OAuth.API do
   @doc """
   Creates a new Mithril client for MSP after successfully created a new Legal Entity
   """
-  def put_client(%LegalEntity{} = legal_entity, redirect_uri, headers) do
-    client = %{
+  def put_client(%LegalEntity{} = legal_entity, client_type_id, redirect_uri, headers) do
+    Mithril.put_client(%{
       "id" => legal_entity.id,
       "name" => legal_entity.name,
       "redirect_uri" => redirect_uri,
-      "user_id" => get_consumer_id(headers)
-    }
-    Mithril.put_client(client)
+      "user_id" => get_consumer_id(headers),
+      "client_type_id" => client_type_id,
+    })
   end
 
   def create_user(%Ecto.Changeset{valid?: true, changes: %{password: password}}, email, headers) do

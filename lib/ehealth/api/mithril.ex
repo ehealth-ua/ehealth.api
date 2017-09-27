@@ -12,23 +12,16 @@ defmodule EHealth.API.Mithril do
 
   require Logger
 
-  @client_type_name "MSP"
-  @client_type_scopes "legal_entities:read,update"
-  @client_type_data %{
-    "name" => @client_type_name,
-    "scope" => @client_type_scopes
-  }
-
   def process_url(url), do: config()[:endpoint] <> url
 
   def options, do: config()[:hackney_options]
 
   # Clients
 
-  def put_client(%{"id" => id} = client, headers \\ []) do
+  def put_client(%{"id" => id} = params, headers \\ []) do
     "/admin/clients/"
     |> Kernel.<>(id)
-    |> put!(prepare_client_data(client, headers), headers, options())
+    |> put!(Poison.encode!(%{"client" => params}), headers, options())
     |> ResponseDecoder.check_response()
   end
 
@@ -180,33 +173,5 @@ defmodule EHealth.API.Mithril do
     "/admin/users/#{user_id}/tokens?client_id=#{client_id}"
     |> delete!(headers, options())
     |> ResponseDecoder.check_response()
-  end
-
-  # Helpers
-
-  def prepare_client_data(client, headers \\ []) do
-    Poison.encode!(%{"client" => put_client_type_id(client, headers)})
-  end
-
-  def put_client_type_id(client, headers \\ []) do
-    Map.put(client, "client_type_id", get_client_type_id(headers))
-  end
-
-  def get_client_type_id(headers \\ []) do
-    case get_client_type_by_name(@client_type_name, headers) do
-      {:ok, %{"data" => [%{"id" => id}]}}
-        -> id
-      {:ok, %{"data" => [%{"id" => id} | _tail]}}
-        -> id
-      {:ok, _}
-        -> @client_type_data
-           |> create_client_type()
-           |> elem(1)
-           |> Map.fetch!("data")
-           |> Map.fetch!("id")
-      {:error, response}
-        -> Logger.error("Cannot get Client Type from Mithril API. Response: #{inspect response}")
-        nil
-    end
   end
 end

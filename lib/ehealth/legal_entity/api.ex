@@ -112,7 +112,8 @@ defmodule EHealth.LegalEntity.API do
          {:ok, _}                <- store_signed_content(legal_entity.id, attrs, headers),
          request_params          <- put_mis_verified_state(request_params),
          {:ok, legal_entity}     <- put_legal_entity_to_prm(legal_entity, request_params, headers),
-         {:ok, oauth_client}     <- get_oauth_credentials(legal_entity, request_params, headers),
+         {:ok, client_type_id}   <- get_client_type_id(type, headers),
+         {:ok, oauth_client}     <- get_oauth_credentials(legal_entity, client_type_id, request_params, headers),
          {:ok, security}         <- prepare_security_data(oauth_client),
          {:ok, employee_request} <- create_employee_request(legal_entity, request_params)
     do
@@ -179,16 +180,13 @@ defmodule EHealth.LegalEntity.API do
     LegalEntities.update_legal_entity(legal_entity, update_data, consumer_id)
   end
 
-  @doc """
-  Creates new OAuth client in Mithril API
-  """
-  def get_oauth_credentials(%LegalEntity{} = legal_entity, request_params, headers) do
+  defp get_oauth_credentials(%LegalEntity{} = legal_entity, client_type_id, request_params, headers) do
     redirect_uri =
       request_params
       |> Map.fetch!("security")
       |> Map.fetch!("redirect_uri")
 
-    OAuth.put_client(legal_entity, redirect_uri, headers)
+    OAuth.put_client(legal_entity, client_type_id, redirect_uri, headers)
   end
 
   def prepare_security_data(%{"data" => oauth_client}) do
@@ -230,5 +228,12 @@ defmodule EHealth.LegalEntity.API do
       "party" => Map.delete(party, "position"),
     }
     %{"employee_request" => request}
+  end
+
+  defp get_client_type_id(type, headers) do
+    case Mithril.get_client_type_by_name(type, headers) do
+      {:ok, %{"data" => [client_type]}} -> {:ok, Map.get(client_type, "id")}
+      _ -> {:error, {:bad_request, "No client type #{type}"}}
+    end
   end
 end
