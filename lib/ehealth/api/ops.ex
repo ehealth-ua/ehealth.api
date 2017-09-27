@@ -77,4 +77,10 @@ defmodule EHealth.API.OPS do
     |> get!(headers, params: params)
     |> ResponseDecoder.check_response()
   end
+
+  def get_latest_block(headers \\ []) do
+    "/latest_block"
+    |> get!(headers)
+    |> ResponseDecoder.check_response()
+  end
 end

@@ -7,6 +7,7 @@ defmodule EHealth.DeclarationRequest.API do
   alias Ecto.Multi
   alias Ecto.UUID
   alias EHealth.Repo
+  alias EHealth.API.OPS
   alias EHealth.PRM.GlobalParameters
   alias EHealth.PRM.LegalEntities
   alias EHealth.PRM.Divisions
@@ -112,12 +113,14 @@ defmodule EHealth.DeclarationRequest.API do
         updated_by: user_id
       ]
       global_parameters = GlobalParameters.get_values()
+      {:ok, %{"data" => %{"hash" => hash}}} = OPS.get_latest_block()
 
       auxilary_entities = %{
         employee: employee,
         global_parameters: global_parameters,
         division: division,
-        legal_entity: legal_entity
+        legal_entity: legal_entity,
+        hash: hash
       }
 
       tax_id = get_in(attrs, ["person", "tax_id"])
@@ -260,7 +263,8 @@ defmodule EHealth.DeclarationRequest.API do
       employee: employee,
       global_parameters: global_parameters,
       division: division,
-      legal_entity: legal_entity
+      legal_entity: legal_entity,
+      hash: hash
     } = auxilary_entities
 
     specialities = Map.get(employee.additional_info, "specialities")
@@ -287,7 +291,7 @@ defmodule EHealth.DeclarationRequest.API do
     |> put_in_data("employee", Create.prepare_employee_struct(employee))
     |> put_in_data("division", Create.prepare_division_struct(division))
     |> put_in_data("legal_entity", Create.prepare_legal_entity_struct(legal_entity))
-    |> put_in_data("seed", "99bc78ba577a95a11f1a344d4d2ae55f2f857b98")
+    |> put_in_data("seed", hash)
     |> put_in_data("declaration_id", declaration_id)
     |> put_change(:id, id)
     |> put_change(:declaration_id, declaration_id)

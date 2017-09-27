@@ -120,6 +120,18 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
         Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: user}))
       end
 
+      # OPS API
+      Plug.Router.get "/latest_block" do
+        block = %{
+          "block_start" => "some_time",
+          "block_end" => "some_time",
+          "hash" => "99bc78ba577a95a11f1a344d4d2ae55f2f857b98",
+          "inserted_at" => "some_time"
+        }
+
+        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: block}))
+      end
+
       match _ do
         request_info = Enum.join([conn.request_path, conn.query_string], ",")
         message = "Requested #{request_info}, but there was no such route."
@@ -159,6 +171,7 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
       System.put_env("UADDRESS_ENDPOINT", "http://localhost:#{port}")
       System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:#{port}")
       System.put_env("OAUTH_ENDPOINT", "http://localhost:#{port}")
+      System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
       on_exit fn ->
         System.put_env("GNDF_TABLE_ID", "some_gndf_table_id")
         System.put_env("MPI_ENDPOINT", "http://localhost:4040")
@@ -168,6 +181,7 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
         System.put_env("UADDRESS_ENDPOINT", "http://localhost:4040")
         System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:4040")
         System.put_env("OAUTH_ENDPOINT", "http://localhost:4040")
+        System.put_env("OPS_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
       end
 
