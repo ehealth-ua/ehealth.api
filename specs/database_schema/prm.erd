@@ -222,8 +222,8 @@ id | uuid | not null
 dosage | jsonb | not null
 is_primary | boolean | not null
 parent_id | uuid | not null 
-innm_id | uuid 
-medication_id | uuid
+innm_child_id | uuid 
+medication_child_id | uuid
 inserted_at | timestamp | not null
 inserted_by | uuid | not null
 updated_at | timestamp | not null
