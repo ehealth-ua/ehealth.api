@@ -1466,17 +1466,9 @@ This method is used by NHS admin to create new medical program.
         + data (object)
             + include `medical_programs_response`
 
-+ Response 409 (application/json)
-    + Attributes (Response_Error)
-        + meta (Response__Meta)
-            + code: 409
-        + error
-            + type: duplicate (string, required)
-            + message: `Medical program exists` (string, required)
 
-
-### Deactivate medical program [PATCH /medical_programs/{id}/deactivate]
-Thist method is used by NHS Admin to deactivate medical program.
+### Deactivate medical program [PATCH /api/medical_programs/{id}/deactivate]
+This method is used by NHS Admin to deactivate medical program.
 Medical program can't be deactivate if there is at least one participant in the program.
 
 **Scopes required:** `medical_program:deactivate`
@@ -1503,7 +1495,7 @@ Medical program can't be deactivate if there is at least one participant in the 
         + error
             + message: `Forbidden to deactivate medical program. Medical program has active participants` (string, required)
 
-### Get medical programs list [GET /medical_programs{?id,name,is_active,page_number,page_size}]
+### Get medical programs list [GET /api/medical_programs{?id,name,is_active,page_number,page_size}]
 Method returns list of medical programs filtering by parameters. By default method returns only active medical programs `is_active=true` 
 
 **Scopes required:** `medical_program:read`
@@ -1526,7 +1518,7 @@ Method returns list of medical programs filtering by parameters. By default meth
         + meta (Response__Meta)
         + data (array[`medical_programs_response`])
 
-### Get medical program by id [GET /medical_programs/{id}]
+### Get medical program by id [GET /api/medical_programs/{id}]
 Method returns medical programs details by ID.
 
 + Parameters
@@ -4678,8 +4670,8 @@ This method is used to process created dispense
 ## Medications
 ### `Innm_Request`
 + `sctid`: `52574003` (string, optional) - innm CNOMED code
-+ `name`: `Аміодарон` (string, optional) - innm local name
-+ `name_original`: `Amiodarone` (string, optional) - innm original name
++ `name`: `Аміодарон` (string, required) - innm local name
++ `name_original`: `Amiodarone` (string, required) - innm original name
 
 ### `Innm_Response_Short`
 + `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required)
@@ -4727,18 +4719,23 @@ This method is used to process created dispense
 + `name` : `ПАТ "Київський вітамінний завод"` (string, required) 
 + `country` : `UA` (string, required) - `Dictionary COUNTRY`
 
+### `Ingredient_request`
++ `id` : `1349a693-4db1-4a3f-9ac6-8c2f9e541982` (string, required)
++ `dosage` (`Dosage_drug`, required)
++ `is_primary` : true (boolean, required) 
+
 ### `Ingredient`
 + `id` : `1349a693-4db1-4a3f-9ac6-8c2f9e541982` (string, required)
 + `name` : `Амідарон` (string, required)
 + `dosage` (`Dosage_drug`, required)
-+ `is_active_substance` : true (boolean, required) 
++ `is_primary` : true (boolean, required) 
 
 ### `INNM_Dosage_Request`
 + `name` : `Амідарон` (string, required)
 + `form` :  PILL (string, required) - `Dictionary MEDICATION_FORM`
 + `ingredients` (array, required)
     + (object)
-        + include `Ingredient`
+        + include `Ingredient_request`
 
 ### `INNM_Dosage_Response_Short`
 + `id` : `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required) 
@@ -4756,9 +4753,8 @@ This method is used to process created dispense
 
 ### `Medication_Request`
 + `name` : `Амідарон` (string, required)
-+ `type`: `MEDICATION` (string, required)
 + `manufacturer` (`Manufacturer`, optional)
-+ `code_atc`: `С01BD01` (string, optional)
++ `code_atc`: `C01BD01` (string, optional)
 + `form` :  PILL (string, required) - `Dictionary MEDICATION_FORM`
 + `container` (`Dosage_container`, required)
 + `package_qty`: 30 (number, optional)
@@ -4767,7 +4763,7 @@ This method is used to process created dispense
 + `certificate_expired_at` : `2021-02-09` (string, optional)
 + `ingredients` (array, required)
     + (object)
-        + include `Ingredient`
+        + include `Ingredient_request`
 
 ### `Medication_Response`
 + `id` : `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required) 
@@ -4844,7 +4840,7 @@ This method is used to process created dispense
         + (object)
             + include (`Dosage_drug`, required) - substances dosage in innm
             + `substance_name`: `Аміодарон` (string, optional) - substance name
-            + `is_active_substance` : true (boolean, required) 
+            + `is_primary` : true (boolean, required) 
 + `medications` (object, required)
     + `medication_id` : `4a63b858-c138-4921-9341-ae9e384bcbd6` (string, required)
     + `name`: `Аміодарон 5мг` (string, required) - medication name 
@@ -4854,7 +4850,7 @@ This method is used to process created dispense
         + (object)
             + include (`Dosage_drug`, required) - innm dosage in medication
             + `innm_name`: `Аміодарон`(string, required) 
-            + `is_active_substance` : true (boolean, required) 
+            + `is_primary` : true (boolean, required) 
 + `medical_program` (`Medical_Program_Response`, required)
 + `reimbursement` (`Reimbursement`, required)
 + `is_active` : true (boolean, required) - flag for activation/deactiovation
