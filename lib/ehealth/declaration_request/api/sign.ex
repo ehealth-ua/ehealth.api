@@ -55,17 +55,14 @@ defmodule EHealth.DeclarationRequest.API.Sign do
       |> Map.put("id", Map.get(declaration_request, :id))
       |> Map.put("status", Map.get(declaration_request, :status))
       |> Map.put("content", Map.get(declaration_request, :printout_content))
-      |> Map.delete("seed")
 
-    data = Map.delete(content, "seed")
-
-    case db_content == data do
+    case db_content == content do
       true -> pipe_data
       _ ->
         mismatches =
           Enum.reduce Map.keys(db_content), [], fn key, acc ->
             v1 = Map.get(db_content, key)
-            v2 = Map.get(data, key)
+            v2 = Map.get(content, key)
 
             if v1 != v2 do
               [%{"db_content.#{key}" => v1, "data.#{key}" => v2}|acc]
