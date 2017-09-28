@@ -58,14 +58,25 @@ defmodule EHealth.DeclarationRequest.API.Sign do
       |> Map.delete("seed")
 
     data = Map.delete(content, "seed")
-    Logger.info(fn -> """
-      db_content: #{inspect db_content}
-      data: #{inspect data}
-      """ end)
 
     case db_content == data do
       true -> pipe_data
-      _ -> {:error, [{%{description: "Signed content does not match the previously created content",
+      _ ->
+        mismatches =
+          Enum.reduce Map.keys(db_content), [], fn key, acc ->
+            v1 = Map.get(db_content, key)
+            v2 = Map.get(data, key)
+
+            if v1 != v2 do
+              [%{"db_content.#{key}" => v1, "data.#{key}" => v2}|acc]
+            else
+              acc
+            end
+          end
+
+          Logger.info "Signed content comparison failed. The following fields were different: #{inspect mismatches}"
+
+        {:error, [{%{description: "Signed content does not match the previously created content",
         params: [], rule: :invalid}, "$.content"}]}
     end
   end
