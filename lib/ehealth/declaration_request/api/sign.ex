@@ -59,19 +59,8 @@ defmodule EHealth.DeclarationRequest.API.Sign do
     case db_content == content do
       true -> pipe_data
       _ ->
-        mismatches =
-          Enum.reduce Map.keys(db_content), [], fn key, acc ->
-            v1 = Map.get(db_content, key)
-            v2 = Map.get(content, key)
-
-            if v1 != v2 do
-              [%{"db_content.#{key}" => v1, "data.#{key}" => v2}|acc]
-            else
-              acc
-            end
-          end
-
-          Logger.info "Signed content comparison failed. The following fields were different: #{inspect mismatches}"
+        mismatches = do_compare_with_db(db_content, content)
+        Logger.info "Signed content comparison failed. The following fields were different: #{inspect mismatches}"
 
         {:error, [{%{description: "Signed content does not match the previously created content",
         params: [], rule: :invalid}, "$.content"}]}
@@ -201,4 +190,17 @@ defmodule EHealth.DeclarationRequest.API.Sign do
 
   defp validate_api_response({:ok, _}, db_data), do: {:ok, db_data}
   defp validate_api_response(error, _db_data), do: error
+
+  defp do_compare_with_db(db_content, content) do
+    Enum.reduce Map.keys(db_content), [], fn key, acc ->
+      v1 = Map.get(db_content, key)
+      v2 = Map.get(content, key)
+
+      if v1 != v2 do
+        [%{"db_content.#{key}" => v1, "data.#{key}" => v2}|acc]
+      else
+        acc
+      end
+    end
+  end
 end
