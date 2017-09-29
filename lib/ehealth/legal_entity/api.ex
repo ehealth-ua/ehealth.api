@@ -104,7 +104,7 @@ defmodule EHealth.LegalEntity.API do
   # Create legal entity
 
   def create_legal_entity(attrs, headers) do
-    with {:ok, request_params}   <- Validator.decode_and_validate(attrs),
+    with {:ok, request_params}   <- Validator.decode_and_validate(attrs, headers),
          edrpou                  <- Map.fetch!(request_params, "edrpou"),
          type                    <- Map.fetch!(request_params, "type"),
          legal_entity            <- get_or_create_by_edrpou_type(edrpou, type),

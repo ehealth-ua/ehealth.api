@@ -253,16 +253,15 @@ defmodule EHealth.MockServer do
       :error ->
         data =
           %{"is_valid" => false}
-          |> wrap_response()
+          |> wrap_response(422)
           |> Poison.encode!
         Plug.Conn.send_resp(conn, 422, data)
       {:ok, data} ->
+        content = Poison.decode!(data)
         data = %{
-          "content" => Poison.decode!(data),
+          "content" => Map.delete(content, "signer"),
           "is_valid" => true,
-          "signer" => %{
-            "edrpou" => "37367387"
-          }
+          "signer" => Map.get(content, "signer")
         }
         |> wrap_response()
         |> Poison.encode!

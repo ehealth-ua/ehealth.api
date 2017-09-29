@@ -13,16 +13,16 @@ defmodule EHealth.LegalEntity.Validator do
   alias EHealth.Validators.BirthDate
   alias EHealth.Validators.JsonSchema
 
-  def decode_and_validate(params) do
+  def decode_and_validate(params, headers) do
     params
-    |> validate_sign_content()
+    |> validate_sign_content(headers)
     |> validate_json()
   end
 
-  def validate_sign_content(content) do
+  def validate_sign_content(content, headers) do
     content
     |> validate_request()
-    |> validate_signature()
+    |> validate_signature(headers)
     |> normalize_signature_error()
   end
 
@@ -56,12 +56,12 @@ defmodule EHealth.LegalEntity.Validator do
     |> validate_inclusion(:signed_content_encoding, ["base64"])
   end
 
-  def validate_signature(%Ecto.Changeset{valid?: true, changes: changes}) do
+  def validate_signature(%Ecto.Changeset{valid?: true, changes: changes}, headers) do
     changes
     |> Map.get(:signed_legal_entity_request)
-    |> Signature.decode_and_validate(Map.get(changes, :signed_content_encoding))
+    |> Signature.decode_and_validate(Map.get(changes, :signed_content_encoding), headers)
   end
-  def validate_signature(err), do: err
+  def validate_signature(err, _), do: err
 
   def normalize_signature_error({:error, %{"meta" => %{"description" => error}}}) do
     %Request{}

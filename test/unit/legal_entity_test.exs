@@ -14,21 +14,22 @@ defmodule EHealth.Unit.LegalEntityTest do
   alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
 
   test "successed signed content validation" do
-    System.put_env("DIGITAL_SIGNATURE_ENDPOINT", "http://35.187.186.145")
-    content = File.read!("test/data/signed_content.txt")
+    content =
+      "test/data/signed_content.json"
+      |> File.read!()
+      |> Base.encode64
 
     assert {:ok, _} = Validator.validate_sign_content(%{
       "signed_content_encoding" => "base64",
       "signed_legal_entity_request" => content
-    })
-    System.put_env("DIGITAL_SIGNATURE_ENDPOINT", "http://localhost:4040")
+    }, [{"edrpou", "37367387"}])
   end
 
   test "invalid signed content validation" do
     assert %Ecto.Changeset{valid?: false} = Validator.decode_and_validate(%{
       "signed_content_encoding" => "base256",
       "signed_legal_entity_request" => "invalid"
-    })
+    }, [])
   end
 
   test "invalid signed content - no security" do
@@ -40,16 +41,17 @@ defmodule EHealth.Unit.LegalEntityTest do
   end
 
   test "invalid signed content - birth date format" do
-    System.put_env("DIGITAL_SIGNATURE_ENDPOINT", "http://35.187.186.145")
-    content = File.read!("test/data/signed_content_invalid_owner_birth_date.txt")
+    content =
+      "test/data/signed_content_invalid_owner_birth_date.json"
+      |> File.read!()
+      |> Base.encode64
 
     assert {:error, [_, {error, entry}]} = Validator.decode_and_validate(%{
       "signed_content_encoding" => "base64",
       "signed_legal_entity_request" => content
-    })
+    }, [])
     assert "$.owner.birth_date" == entry
     assert :format == error[:rule]
-    System.put_env("DIGITAL_SIGNATURE_ENDPOINT", "http://localhost:4040")
   end
 
   test "invalid tax id" do
@@ -343,7 +345,8 @@ defmodule EHealth.Unit.LegalEntityTest do
     [
       {"content-type", "application/json"},
       {"content-length", "7000"},
-      {"x-consumer-id", Ecto.UUID.generate()}
+      {"x-consumer-id", Ecto.UUID.generate()},
+      {"edrpou", "37367387"}
     ]
   end
 

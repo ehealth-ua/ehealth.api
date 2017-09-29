@@ -1,0 +1,50 @@
+{
+  "addresses":  [
+      {"apartment":  "23",
+        "area":  "Житомирська", "building":  "15",
+        "country":  "UA", "region":  "Бердичівський",
+        "settlement":  "Київ", "settlement_id":  "43432432",
+        "settlement_type":  "CITY", "street":  "вул. Ніжинська",
+        "street_type":  "STREET", "type":  "REGISTRATION",
+        "zip":  "02090"}],
+  "edrpou":  "38782323",
+  "email":  "m.miliaieva@gmail.com",
+  "kveds":  ["86.10"],
+  "legal_form":  "140",
+  "medical_service_provider":  {
+    "accreditation":  {
+      "category":  "FIRST",
+      "expiry_date":  "1991-08-19",
+      "issued_date":  "1991-08-19",
+      "order_date":  "1991-08-19",
+      "order_no":  "fd123443"
+    },
+    "licenses":  [
+        {"active_from_date":  "1991-08-19",
+          "expiry_date":  "1991-08-19",
+          "issued_by":  "Кваліфікацйна комісія",
+          "issued_date":  "1991-08-19", "license_number":  "fd123443",
+          "what_licensed":  "реалізація наркотичних засобів"}]
+  },
+  "name":  "Клініка Адоніс",
+  "owner":  {
+    "birth_date":  "1991-08-19",
+    "birth_place":  "Вінниця, Україна",
+    "documents":  [{"number":  "120518", "type":  "PASSPORT"}],
+    "email":  "m.miliaieva@gmail.com",
+    "first_name":  "Петро",
+    "gender":  "MALE",
+    "last_name":  "Іванов",
+    "phones":  [{"number":  "+380503410870", "type":  "MOBILE"}],
+    "position":  "Голова правління",
+    "second_name":  "Миколайович",
+    "tax_id":  "3067305998"
+  },
+  "owner_property_type":  "STATE",
+  "phones":  [{"number":  "+380503410870", "type":  "MOBILE"}],
+  "public_name":  "Адоніс",
+  "public_offer":  {"consent":  true, "consent_text":  "Consent text"},
+  "security":  {"redirect_uri":  "https://redirect_uri.com"},
+  "short_name":  "Адоніс",
+  "type":  "MSP"
+}

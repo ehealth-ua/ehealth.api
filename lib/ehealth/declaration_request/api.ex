@@ -362,7 +362,7 @@ defmodule EHealth.DeclarationRequest.API do
 
   def sign(params, headers) do
     params
-    |> Validations.decode_and_validate_sign_request()
+    |> Validations.decode_and_validate_sign_request(headers)
     |> Sign.check_status(params)
     |> Sign.check_patient_signed()
     |> Sign.compare_with_db()

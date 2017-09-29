@@ -42,7 +42,7 @@ config :ehealth, EHealth.API.Gandalf,
   endpoint: {:system, "GNDF_ENDPOINT", "http://localhost:4040"}
 
 config :ehealth, EHealth.API.Signature,
-  endpoint: {:system, "DIGITAL_SIGNATURE_ENDPOINT", "http://localhost:4040"}
+  enabled: {:system, :boolean, "DIGITAL_SIGNATURE_ENABLED", false}
 
 config :ehealth, mock: [
   port: {:system, :integer, "TEST_MOCK_PORT", 4040},
