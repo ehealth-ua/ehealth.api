@@ -2,6 +2,7 @@ defmodule EHealth.Web.DeclarationRequestView do
   @moduledoc false
 
   use EHealth.Web, :view
+  alias EHealth.API.OPS
   alias EHealth.Web.{PersonView, EmployeeView, LegalEntityView, DivisionView}
 
   def render("index.json", %{declaration_requests: declaration_requests}) do
@@ -20,11 +21,20 @@ defmodule EHealth.Web.DeclarationRequestView do
     }
   end
 
-  def render("declaration_request.json", %{declaration_request: declaration_request}) do
-    declaration_request.data
-    |> Map.put("id", declaration_request.id)
-    |> Map.put("content", declaration_request.printout_content)
-    |> Map.put("status", declaration_request.status)
+  def render("declaration_request.json", %{declaration_request: declaration_request} = conn) do
+    response =
+      declaration_request.data
+      |> Map.put("id", declaration_request.id)
+      |> Map.put("content", declaration_request.printout_content)
+      |> Map.put("status", declaration_request.status)
+
+    if Map.get(conn, :display_hash) do
+      {:ok, %{"data" => %{"hash" => hash}}} = OPS.get_latest_block()
+
+      Map.put(response, "seed", hash)
+    else
+      response
+    end
   end
 
   def render("declaration.json", %{declaration: declaration}), do: declaration

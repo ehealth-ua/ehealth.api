@@ -152,6 +152,30 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
   end
 
   describe "get declaration request by id" do
+    defmodule DynamicSeedValue do
+      use MicroservicesHelper
+
+      Plug.Router.get "/latest_block" do
+        block = %{
+          "block_start" => "some_time",
+          "block_end" => "some_time",
+          "hash" => "some_hash",
+          "inserted_at" => "some_time"
+        }
+
+        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: block}))
+      end
+    end
+
+    setup do
+      {:ok, port, ref} = start_microservices(DynamicSeedValue)
+      System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
+      on_exit fn ->
+        System.put_env("OPS_ENDPOINT", "http://localhost:4040")
+        stop_microservices(ref)
+      end
+    end
+
     test "get declaration request by invalid id", %{conn: conn} do
       conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8602f2")
       assert_raise Ecto.NoResultsError, fn ->
@@ -175,6 +199,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
 
       assert Map.has_key?(resp, "data")
       assert Map.has_key?(resp, "urgent")
+      assert "some_hash" == get_in resp, ["data", "seed"]
     end
   end
 

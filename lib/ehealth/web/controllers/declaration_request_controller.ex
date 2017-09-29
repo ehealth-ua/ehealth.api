@@ -20,7 +20,7 @@ defmodule EHealth.Web.DeclarationRequestController do
     urgent_data = Map.take(declaration_request, [:authentication_method_current, :documents])
     conn
     |> assign(:urgent, urgent_data)
-    |> render("declaration_request.json", declaration_request: declaration_request)
+    |> render("declaration_request.json", declaration_request: declaration_request, display_hash: true)
   end
 
   def create(conn, %{"declaration_request" => declaration_request}) do
@@ -28,11 +28,10 @@ defmodule EHealth.Web.DeclarationRequestController do
     client_id = get_client_id(conn.req_headers)
 
     creation_result = DeclarationRequestAPI.create(declaration_request, user_id, client_id)
-
     with {:ok, %{urgent_data: urgent_data, finalize: result}} <- creation_result do
       conn
       |> assign(:urgent, urgent_data)
-      |> render("declaration_request.json", declaration_request: result)
+      |> render("declaration_request.json", declaration_request: result, display_hash: true)
     end
   end
 
