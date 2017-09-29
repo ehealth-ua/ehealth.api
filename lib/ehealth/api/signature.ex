@@ -38,7 +38,10 @@ defmodule EHealth.API.Signature do
             %{
               "content" => Poison.decode!(data),
               "is_valid" => true,
-              "signer" => %{"edrpou" => get_header(headers, "edrpou")}
+              "signer" => %{
+                "edrpou" => get_header(headers, "edrpou"),
+                "drfo" => get_header(headers, "drfo")
+              }
             }
             |> wrap_response(200)
             |> Poison.encode!
