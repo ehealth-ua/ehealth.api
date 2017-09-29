@@ -50,6 +50,12 @@ defmodule EHealth.PRM.Parties do
     |> PRMRepo.one!
   end
 
+  def get_by_ids(ids) do
+    Party
+    |> where([e], e.id in ^ids)
+    |> PRMRepo.all()
+  end
+
   def create_party(attrs) do
     with {:ok, party} <- %Party{}
                          |> changeset(attrs)

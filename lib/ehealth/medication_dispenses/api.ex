@@ -10,11 +10,18 @@ defmodule EHealth.MedicationDispense.API do
   alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
   alias EHealth.PRM.Employees.Schema, as: Employee
   alias EHealth.PRM.Divisions.Schema, as: Division
+  alias EHealth.PRM.PartyUsers.Schema, as: PartyUser
+  alias EHealth.PRM.Parties.Schema, as: Party
+  alias EHealth.PRM.MedicalPrograms.Schema, as: MedicalProgram
   alias EHealth.PRM.Medications.Medication.Schema, as: Medication
   alias EHealth.API.OPS
   alias EHealth.MedicationDispenses.Search
   alias EHealth.Validators.JsonSchema
   alias EHealth.Validators.Reference
+  alias EHealth.PRM.PartyUsers
+  alias EHealth.PRM.Parties
+  alias EHealth.PRM.Medications.API, as: MedicationsAPI
+  alias EHealth.API.MPI
 
   @search_fields ~w(
     id
@@ -29,7 +36,8 @@ defmodule EHealth.MedicationDispense.API do
   def list(params, headers) do
     with %Ecto.Changeset{valid?: true, changes: changes} <- changeset(%Search{}, params),
          params <- Map.put(changes, "is_active", true),
-         {:ok, %{"data" => medication_dispenses}} <- OPS.get_medication_dispenses(params, headers)
+         {:ok, %{"data" => medication_dispenses}} <- OPS.get_medication_dispenses(params, headers),
+         {:ok, medication_dispenses} <- get_medication_request_references(medication_dispenses)
     do
       {:ok, medication_dispenses, get_references(medication_dispenses)}
     end
@@ -41,15 +49,14 @@ defmodule EHealth.MedicationDispense.API do
     with {:ok, %{"data" => [medication_dispense]}} <- OPS.get_medication_dispenses(search_params, headers),
          {:ok, legal_entity} <- Reference.validate(:legal_entity, medication_dispense["legal_entity_id"]),
          :ok <- validate_legal_entity_id(medication_dispense, legal_entity_id),
-         employee <- Employees.get_employee_by_id(medication_dispense["employee_id"]),
          division <- Divisions.get_division_by_id(medication_dispense["division_id"]),
-         medical_program <- MedicalPrograms.get_by_id(medication_dispense["medical_program_id"])
+         medical_program <- MedicalPrograms.get_by_id(medication_dispense["medical_program_id"]),
+         {:ok, medication_request} <- get_medication_request_references(medication_dispense["medication_request"])
     do
       {:ok, medication_dispense, %{
-        employee: employee,
         legal_entity: legal_entity,
         division: division,
-        medication_request: Map.get(medication_dispense, "medication_request"),
+        medication_request: medication_request,
         medical_program: medical_program,
       }}
     else
@@ -59,27 +66,29 @@ defmodule EHealth.MedicationDispense.API do
 
   def create(headers, code, params) do
     legal_entity_id = get_client_id(headers)
+    user_id = get_consumer_id(headers)
     with :ok                       <- JsonSchema.validate(:medication_dispense, params),
          {:ok, legal_entity}       <- Reference.validate(:legal_entity, legal_entity_id),
+         {:ok, party_user}         <- get_party(user_id),
          :ok                       <- validate_legal_entity(legal_entity),
          {:ok, medication_request} <- validate_medication_request(params["medication_request_id"]),
-         {:ok, employee}           <- validate_employee(params["employee_id"], legal_entity_id),
+         :ok                       <- validate_employee(party_user, legal_entity_id),
          {:ok, division}           <- validate_division(params["division_id"], legal_entity_id),
          {:ok, medical_program}    <- validate_medical_program(params["medical_program_id"], medication_request),
          {:ok, dispense_details, medications} <- validate_medications(params["dispense_details"], medication_request),
          :ok                       <- validate_code(code, medication_request),
          :ok                       <- check_other_medication_dispenses(medication_request, headers),
-         true                      <- check_medication_qty(params, medication_request),
+         :ok                       <- check_medication_qty(params, medication_request),
          :ok                       <- check_medication_multiplicity(dispense_details, medications),
          params                    <- Map.put(params, "dispense_details", dispense_details),
          {:ok, %{"data" => medication_dispense}} <- OPS.create_medication_dispense(params)
     do
       {:ok, medication_dispense, %{
-        employee: employee,
         legal_entity: legal_entity,
         division: division,
         medication_request: medication_request,
         medical_program: medical_program,
+        party: party_user.party,
       }}
     end
   end
@@ -125,21 +134,22 @@ defmodule EHealth.MedicationDispense.API do
   defp validate_medication_request(id) do
     with {:ok, medication_request} <- Reference.validate(:medication_request, id),
          :ok <- is_active_medication_request(medication_request),
-         :ok <- validate_medication_request_period(medication_request)
+         :ok <- validate_medication_request_period(medication_request),
+         {:ok, medication_request} <- get_medication_request_references(medication_request)
     do
       {:ok, medication_request}
     end
   end
 
-  defp validate_employee(id, legal_entity_id) do
-    with {:ok, employee} <- Reference.validate(:employee, id),
-         true <- is_active_employee(employee) && employee.legal_entity_id == legal_entity_id
-    do
-      {:ok, employee}
-    else
-      false -> {:conflict, "Employee is not active"}
-      err -> err
-    end
+  defp validate_employee(%PartyUser{party: %Party{id: party_id}}, legal_entity_id) do
+    employees = Employees.list(party_id: party_id)
+    Enum.reduce_while(employees, {:error, :forbidden}, fn employee, acc ->
+      if is_active_employee(employee) && employee.legal_entity_id == legal_entity_id do
+        {:halt, :ok}
+      else
+        {:cont, acc}
+      end
+    end)
   end
 
   defp validate_division(id, legal_entity_id) do
@@ -240,7 +250,18 @@ defmodule EHealth.MedicationDispense.API do
     request_qty = Enum.reduce(details, 0, fn item, acc ->
       acc + Map.get(item, "medication_qty")
     end)
-    request_qty <= Map.get(medication_request, "medication_qty")
+    if request_qty <= Map.get(medication_request, "medication_qty") do
+      :ok
+    else
+      {:error, [{
+        %{description: """
+            dispensed medication quantity must be less or equal
+            to medication quantity in Medication Request
+          """,
+          rule: :required,
+          params: []
+        }, "$.medication_request.medication_qty"}]}
+    end
   end
 
   defp is_active_medication_request(medication_request) do
@@ -251,7 +272,7 @@ defmodule EHealth.MedicationDispense.API do
     status = Map.get(medication_request, "status")
     is_valid_period = Date.compare(started_at, now) != :gt && Date.compare(ended_at, now) != :lt
 
-    if is_active and status == "SIGNED" && is_valid_period do
+    if is_active and status == "ACTIVE" && is_valid_period do
       :ok
     else
       {:conflict, "Medication request is not active"}
@@ -292,14 +313,14 @@ defmodule EHealth.MedicationDispense.API do
     reference_ids = %{
       division_ids: [],
       legal_entity_ids: [],
-      employee_ids: [],
+      party_ids: [],
       medical_program_ids: [],
     }
     reference_ids = Enum.reduce(medication_dispenses, reference_ids, fn medication_dispense, acc ->
       %{acc |
         division_ids: [medication_dispense["division_id"] | acc.division_ids],
         legal_entity_ids: [medication_dispense["legal_entity_id"] | acc.legal_entity_ids],
-        employee_ids: [medication_dispense["employee_id"] | acc.employee_ids],
+        party_ids: [medication_dispense["party_id"] | acc.party_ids],
         medical_program_ids: [medication_dispense["medical_program_id"] | acc.medical_program_ids],
       }
     end)
@@ -311,9 +332,9 @@ defmodule EHealth.MedicationDispense.API do
       reference_ids.legal_entity_ids
       |> LegalEntities.get_by_ids()
       |> Enum.into(%{}, &({Map.get(&1, :id), &1}))
-    employees =
-      reference_ids.employee_ids
-      |> Employees.get_by_ids()
+    parties =
+      reference_ids.party_ids
+      |> Parties.get_by_ids()
       |> Enum.into(%{}, &({Map.get(&1, :id), &1}))
     medical_programs =
       reference_ids.medical_program_ids
@@ -322,7 +343,7 @@ defmodule EHealth.MedicationDispense.API do
     %{
       divisions: divisions,
       legal_entities: legal_entities,
-      employees: employees,
+      parties: parties,
       medical_programs: medical_programs,
     }
   end
@@ -373,6 +394,53 @@ defmodule EHealth.MedicationDispense.API do
       {:error, errors
                 |> Enum.map(&(elem(&1, 1)))
                 |> Enum.concat}
+    end
+  end
+
+  defp get_party(user_id) do
+    case PartyUsers.get_party_users_by_user_id(user_id) do
+      nil -> {:error, {:bad_request, "Party not found"}}
+      party_user -> {:ok, party_user}
+    end
+  end
+
+  defp get_medication_request_references(medication_dispenses) when is_list(medication_dispenses) do
+    result =
+      Enum.reduce_while(medication_dispenses, [], fn dispense, acc ->
+        with {:ok, medication_request} <- get_medication_request_references(dispense["medication_request"]) do
+          {:cont, acc ++ [%{dispense | "medication_request" => medication_request}]}
+        else
+          error -> {:halt, error}
+        end
+      end)
+    if is_list(result), do: {:ok, result}, else: result
+  end
+
+  defp get_medication_request_references(medication_request) do
+    with %Division{} = division <- Divisions.get_division_by_id(medication_request["division_id"]),
+         %Employee{} = employee <- Employees.get_employee_by_id(medication_request["employee_id"]),
+         %LegalEntity{} = legal_entity <- LegalEntities.get_legal_entity_by_id(medication_request["legal_entity_id"]),
+         %MedicalProgram{} = medical_program <- MedicalPrograms.get_by_id(medication_request["medical_program_id"]),
+         %Medication{} = medication <- MedicationsAPI.get_medication_by_id(medication_request["medication_id"]),
+         {:ok, %{"data" => person}} <- MPI.person(medication_request["person_id"])
+    do
+      {
+        :ok,
+        medication_request
+        |> Map.put("division", division)
+        |> Map.put("employee", employee)
+        |> Map.put("legal_entity", legal_entity)
+        |> Map.put("medical_program", medical_program)
+        |> Map.put("medication", medication)
+        |> Map.put("person", person)
+      }
+    else
+      _ ->
+        {:error, [{
+          %{description: "Medication request is not valid",
+            params: [],
+            rule: :required
+          }, "$.medication_request_id"}]}
     end
   end
 end

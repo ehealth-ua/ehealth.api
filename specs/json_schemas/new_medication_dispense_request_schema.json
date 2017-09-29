@@ -48,13 +48,26 @@
             "type": "number",
             "minimum": 0,
             "description": "price for one nondivisible medication_unit (pill/ampoule/container/bottle/vial/aerosol)"
+          },
+          "sell_amount": {
+            "type": "number",
+            "minimum": 0,
+            "exclusiveMinimum":true,
+            "description": "total pharmacy's price for the requested medication quantity"
+          },
+          "discount_amount": {
+            "type": "number",
+            "minimum": 0,
+            "description": "pharmacy's expected price of dicsount for the requested medication quantity"
           }
         },
         "description": "dispense details array with brand medication id, qnty and price",
         "required": [
           "medication_id",
           "medication_qty",
-          "sell_price"
+          "sell_price",
+          "sell_amount",
+          "discount_amount"
         ],
         "additionalProperties": false
       }

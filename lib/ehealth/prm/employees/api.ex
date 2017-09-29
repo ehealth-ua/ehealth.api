@@ -68,6 +68,7 @@ defmodule EHealth.PRM.Employees do
     Employee
     |> where([e], ^params)
     |> PRMRepo.all
+    |> load_references()
   end
 
   def get_employees(params) do
@@ -163,6 +164,9 @@ defmodule EHealth.PRM.Employees do
     |> PRMRepo.preload(:party)
     |> PRMRepo.preload(:division)
     |> PRMRepo.preload(:legal_entity)
+  end
+  defp load_references(employees) when is_list(employees) do
+    Enum.map(employees, &load_references/1)
   end
 
   def query_tax_id(query, nil), do: query

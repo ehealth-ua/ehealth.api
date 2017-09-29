@@ -119,8 +119,12 @@ defmodule EHealth.PRM.Medications.API do
 
   defp get_medication_entity_by_id(entity, id) do
     entity
+    |> join(:left, [e], i in assoc(e, :ingredients))
+    |> join(:left, [e, i], id in assoc(i, :innm_dosage))
+    |> join(:left, [e, i, id], idi in assoc(id, :ingredients))
+    |> join(:left, [e, i, id, idi], innm in assoc(idi, :innm))
+    |> preload([e, i, id, idi, innm], [ingredients: {i, innm_dosage: {id, ingredients: {idi, innm: innm}}}])
     |> PRMRepo.get_by([id: id, type: entity.type()])
-    |> PRMRepo.preload(:ingredients)
   end
 
   def get_innm_dosage_by_id!(id), do: get_medication_entity_by_id!(INNMDosage, id)

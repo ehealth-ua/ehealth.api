@@ -428,17 +428,17 @@ defmodule EHealth.MockServer do
     Map.merge(%{
       "id": id,
       "is_active": true,
-      "status": "SIGNED",
+      "status": "ACTIVE",
       "created_at": "2017-08-17",
       "started_at": now,
       "ended_at": now,
       "medical_program_id": "6ee844fd-9f4d-4457-9eda-22aa506be4c4",
       "dispense_valid_from": now,
       "dispense_valid_to": now,
-      "person_id": Ecto.UUID.generate(),
-      "legal_entity_id": Ecto.UUID.generate(),
-      "division_id": Ecto.UUID.generate(),
-      "employee_id": Ecto.UUID.generate(),
+      "person_id": "cc8bf10c-c419-4bdd-b92c-e445b3ac9bf6",
+      "legal_entity_id": "dae597a8-c858-42f6-bc16-1a7bdd340466",
+      "division_id": "e00e20ba-d20f-4ebb-a1dc-4bf58231019c",
+      "employee_id": "46be2081-4bd2-4a7e-8999-2f6ce4b57dab",
       "innm": %{
         "innm": %{
           "id": Ecto.UUID.generate(),
@@ -464,6 +464,7 @@ defmodule EHealth.MockServer do
       "inserted_at": "2017-08-17",
       "verification_code": "1234",
       "medication_id": "2cdb8396-a1e9-11e7-abc4-cec278b6b50a",
+      "medication_qty": 30,
     }, params)
   end
 
@@ -485,7 +486,7 @@ defmodule EHealth.MockServer do
       "is_active" => true,
       "documents" => %{},
       "addresses" => %{},
-      "phones" => %{},
+      "phones" => [],
       "secret" => "string value",
       "emergency_contact" => %{},
       "confidant_person" => %{},
@@ -590,7 +591,7 @@ defmodule EHealth.MockServer do
   def get_medication_dispense(id \\ nil, params \\ %{}) do
     Map.merge(%{
       "id" => id || Ecto.UUID.generate(),
-      "employee_id" => "02852372-9e06-11e7-abc4-cec278b6b50a",
+      "party_id" => "02852372-9e06-11e7-abc4-cec278b6b50a",
       "legal_entity_id" => "5243c8e6-9e06-11e7-abc4-cec278b6b50a",
       "medical_program_id" => "6ee844fd-9f4d-4457-9eda-22aa506be4c4",
       "division_id" => "f2f76cf8-9e05-11e7-abc4-cec278b6b50a",
@@ -614,6 +615,8 @@ defmodule EHealth.MockServer do
           },
           "medication_qty" => 10,
           "sell_price" => 18.65,
+          "sell_amount" => 186.5,
+          "discount_amount" => 150,
           "reimbursement_amount" => 15
         }
       ],

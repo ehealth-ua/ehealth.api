@@ -18,6 +18,7 @@ defmodule EHealth.PRMFactories.DivisionFactory do
           name: "some",
           status: Division.status(:active),
           mountain_group: false,
+          location: %Geo.Point{coordinates: {50, 20}},
         }
       end
     end
