@@ -39,13 +39,9 @@ defmodule EHealth.DeclarationRequest.API.Documents do
 
     case documents do
       {:error, error_response} ->
-        {:error, format_error_response("MediaStorage", error_response)}
+        {:error, error_response}
       _ ->
         {:ok, documents}
     end
-  end
-
-  defp format_error_response(_microservice, result) do
-    result
   end
 end
