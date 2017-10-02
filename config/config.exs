@@ -137,6 +137,17 @@ config :ehealth, EHealth.Bamboo.Emails.EmployeeRequestInvitation,
   from: {:system, "BAMBOO_EMPLOYEE_REQUEST_INVITATION_FROM", ""},
   subject: {:system, "BAMBOO_EMPLOYEE_REQUEST_INVITATION_SUBJECT", ""}
 
+# Configures chain verification failure notification
+config :ehealth, EHealth.Bamboo.Emails.HashChainVeriricationNotification,
+  from: {:system, "CHAIN_VERIFICATION_FAILED_NOTIFICATION_FROM", ""},
+  to: {:system, "CHAIN_VERIFICATION_FAILED_NOTIFICATION_TO", ""},
+  subject: {:system, "CHAIN_VERIFICATION_FAILED_NOTIFICATION_SUBJECT", ""}
+
+config :ehealth, EHealth.Man.Templates.HashChainVerificationNotification,
+  id: {:system, "CHAIN_VERIFICATION_FAILED_NOTIFICATION_ID", ""},
+  format: {:system, "CHAIN_VERIFICATION_FAILED_NOTIFICATION_FORMAT", ""},
+  locale: {:system, "CHAIN_VERIFICATION_FAILED_NOTIFICATION_LOCALE", ""}
+
 # employee created notification
 # Configures employee created notification template
 config :ehealth, EHealth.Man.Templates.EmployeeCreatedNotification,

@@ -49,6 +49,16 @@ config :ehealth, mock: [
   host: {:system, "TEST_MOCK_HOST", "localhost"}
 ]
 
+config :ehealth, EHealth.Bamboo.Emails.HashChainVeriricationNotification,
+  from: "automatic@system.com",
+  to: "serious@authority.com",
+  subject: "Hash chain has been mangled!"
+
+config :ehealth, EHealth.Man.Templates.HashChainVerificationNotification,
+  id: 32167,
+  format: "text/html",
+  locale: "uk_UA"
+
 # Configures declaration request terminator
 config :ehealth, EHealth.DeclarationRequest.Terminator,
   frequency: 100,
