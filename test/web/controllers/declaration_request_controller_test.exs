@@ -345,6 +345,45 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
   end
 
+  describe "sign declaration request" do
+    test "success", %{conn: conn} do
+      %{id: legal_entity_id} = insert(:prm, :legal_entity)
+      data =
+        "test/data/declaration_request/sign_request.json"
+        |> File.read!()
+        |> Poison.decode!()
+      %{id: declaration_id} = insert(:il, :declaration_request,
+        id: data["id"],
+        status: DeclarationRequest.status(:approved),
+        data: %{
+          "person" => get_person(),
+          "declaration_id" => data["declaration_id"],
+          "division" => data["division"],
+          "employee" => data["employee"],
+          "end_date" => data["end_date"],
+          "scope" => data["scope"],
+          "start_date" => data["start_date"],
+          "legal_entity" => data["legal_entity"],
+        },
+        printout_content: data["content"],
+        authentication_method_current: %{"type" => DeclarationRequest.authentication_method(:na)}
+      )
+
+      signed_declaration_request =
+        data
+        |> Poison.encode!()
+        |> Base.encode64()
+
+      conn = Plug.Conn.put_req_header(conn, "drfo", get_in(data, ~w(employee party tax_id)))
+      conn = put_client_id_header(conn, legal_entity_id)
+      conn = patch conn, declaration_request_path(conn, :sign, declaration_id), %{
+        "signed_declaration_request" => signed_declaration_request,
+        "signed_content_encoding" => "base64",
+      }
+      assert json_response(conn, 200)["data"]
+    end
+  end
+
   defp fixture_params do
     uuid = UUID.generate()
     %{
@@ -447,5 +486,143 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     assert Map.has_key?(resp, "paging")
     assert is_list(resp["data"])
     assert count == length(resp["data"])
+  end
+
+  defp get_person do
+    %{
+      "tax_id": "3378115538",
+      "secret": "secret",
+      "second_name": "TestQOA",
+      "process_disclosure_data_consent": true,
+      "phones": [
+          %{
+              "type": "MOBILE",
+              "number": "+380955947998"
+          }
+      ],
+      "patient_signed": true,
+      "last_name": "TestQOA",
+      "gender": "MALE",
+      "first_name": "TestQOA",
+      "emergency_contact": %{
+          "second_name": "Миколайович",
+          "phones": [
+              %{
+                  "type": "MOBILE",
+                  "number": "+380503410870"
+              }
+          ],
+          "last_name": "Іванов",
+          "first_name": "Петро"
+      },
+      "email": "qq2234562qq@gmail.com",
+      "documents": [
+          %{
+              "type": "PASSPORT",
+              "number": "120518"
+          }
+      ],
+      "confidant_person": [
+          %{
+              "tax_id": "3378115538",
+              "secret": "secret",
+              "second_name": "Миколайович",
+              "relation_type": "PRIMARY",
+              "phones": [
+                  %{
+                      "type": "MOBILE",
+                      "number": "+380503410870"
+                  }
+              ],
+              "last_name": "Іванов",
+              "gender": "MALE",
+              "first_name": "Петро",
+              "documents_relationship": [
+                  %{
+                      "type": "DOCUMENT",
+                      "number": "120518"
+                  }
+              ],
+              "documents_person": [
+                  %{
+                      "type": "PASSPORT",
+                      "number": "120518"
+                  }
+              ],
+              "birth_settlement": "Вінниця",
+              "birth_date": "1991-08-19",
+              "birth_country": "Україна"
+          },
+          %{
+              "tax_id": "3378115538",
+              "secret": "secret",
+              "second_name": "Миколайович",
+              "relation_type": "SECONDARY",
+              "phones": [
+                  %{
+                      "type": "MOBILE",
+                      "number": "+380503410870"
+                  }
+              ],
+              "last_name": "Іванов",
+              "gender": "MALE",
+              "first_name": "Петро",
+              "documents_relationship": [
+                  %{
+                      "type": "DOCUMENT",
+                      "number": "120518"
+                  }
+              ],
+              "documents_person": [
+                  %{
+                      "type": "PASSPORT",
+                      "number": "120518"
+                  }
+              ],
+              "birth_settlement": "Вінниця",
+              "birth_date": "1991-08-19",
+              "birth_country": "Україна"
+          }
+      ],
+      "birth_settlement": "Вінниця",
+      "birth_date": "2001-08-19",
+      "birth_country": "Україна",
+      "authentication_methods": [
+          %{
+              "type": "OTP",
+              "phone_number": "+380955947998"
+          }
+      ],
+      "addresses": [
+          %{
+              "zip": "02090",
+              "type": "REGISTRATION",
+              "street_type": "STREET",
+              "street": "Ніжинська",
+              "settlement_type": "CITY",
+              "settlement_id": "707dbc55-cb6b-4aaa-97c1-2a1e03476100",
+              "settlement": "СОРОКИ-ЛЬВІВСЬКІ",
+              "region": "ПУСТОМИТІВСЬКИЙ",
+              "country": "UA",
+              "building": "15",
+              "area": "ЛЬВІВСЬКА",
+              "apartment": "23"
+          },
+          %{
+              "zip": "02090",
+              "type": "RESIDENCE",
+              "street_type": "STREET",
+              "street": "Ніжинська",
+              "settlement_type": "CITY",
+              "settlement_id": "707dbc55-cb6b-4aaa-97c1-2a1e03476100",
+              "settlement": "СОРОКИ-ЛЬВІВСЬКІ",
+              "region": "ПУСТОМИТІВСЬКИЙ",
+              "country": "UA",
+              "building": "15",
+              "area": "ЛЬВІВСЬКА",
+              "apartment": "23"
+          }
+      ]
+    }
   end
 end

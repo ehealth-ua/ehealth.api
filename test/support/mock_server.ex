@@ -308,6 +308,10 @@ defmodule EHealth.MockServer do
     render_with_paging(resp, conn, code)
   end
 
+  post "/declarations/with_termination" do
+    render(Map.merge(conn.body_params, %{data: %{}}), conn, 200)
+  end
+
   patch "/employees/:id/declarations/actions/terminate" do
     case conn.params do
       %{"id" => _, "user_id" => _} -> render([], conn, 200)
@@ -397,6 +401,10 @@ defmodule EHealth.MockServer do
 
   get "/all-persons" do
     render([get_person(), get_person()], conn, 200)
+  end
+
+  post "/persons" do
+    render(get_person(), conn, 200)
   end
 
   def get_declaration("terminated") do
