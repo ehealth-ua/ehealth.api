@@ -371,6 +371,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
 
       signed_declaration_request =
         data
+        |> Map.put("seed", "some_current_hash")
         |> Poison.encode!()
         |> Base.encode64()
 

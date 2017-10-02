@@ -55,6 +55,7 @@ defmodule EHealth.DeclarationRequest.API.Sign do
       |> Map.put("id", Map.get(declaration_request, :id))
       |> Map.put("status", Map.get(declaration_request, :status))
       |> Map.put("content", Map.get(declaration_request, :printout_content))
+      |> Map.put("seed", current_hash())
 
     case db_content == content do
       true -> pipe_data
@@ -202,5 +203,10 @@ defmodule EHealth.DeclarationRequest.API.Sign do
         acc
       end
     end
+  end
+
+  defp current_hash do
+    {:ok, %{"data" => %{"hash" => hash}}} = OPS.get_latest_block()
+    hash
   end
 end

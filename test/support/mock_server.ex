@@ -312,6 +312,10 @@ defmodule EHealth.MockServer do
     render(Map.merge(conn.body_params, %{data: %{}}), conn, 200)
   end
 
+  get "/latest_block" do
+    render(%{"hash" => "some_current_hash"}, conn, 200)
+  end
+
   patch "/employees/:id/declarations/actions/terminate" do
     case conn.params do
       %{"id" => _, "user_id" => _} -> render([], conn, 200)
