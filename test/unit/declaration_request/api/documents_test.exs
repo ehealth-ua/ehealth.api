@@ -66,8 +66,7 @@ defmodule EHealth.Unit.DeclarationRequest.API.DocumentsTest do
     test "returns error on documents field" do
       result = render_links("98e0a42f-0000-9999-5555-0ea99426a3fb", ["PUT"], ["Passport"])
 
-      error_message = ~s(Error during MediaStorage interaction. Result from MediaStorage: \
-%{"something" => "went wrong with declaration_request_Passport.jpeg"})
+      error_message = %{"something" => "went wrong with declaration_request_Passport.jpeg"}
 
       assert {:error, error_message} == result
     end

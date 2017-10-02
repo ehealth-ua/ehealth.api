@@ -46,6 +46,6 @@ defmodule EHealth.DeclarationRequest.API.Documents do
   end
 
   defp format_error_response(microservice, result) do
-    "Error during #{microservice} interaction. Result from #{microservice}: #{inspect result}"
+    result
   end
 end
