@@ -1,4 +1,4 @@
-defmodule EHealth.Web.Router do
+defmodule EHealthWeb.Router do
   @moduledoc """
   The router provides a set of macros for generating routes
   that dispatch to specific controllers and actions.

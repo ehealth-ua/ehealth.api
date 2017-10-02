@@ -23,7 +23,7 @@ defmodule EHealth.Web.ConnCase do
       # Import conveniences for testing with connections
       use Phoenix.ConnTest
       import EHealth.Web.ConnCase
-      import EHealth.Web.Router.Helpers
+      import EHealthWeb.Router.Helpers
       import EHealth.Test.Support.Fixtures
       import EHealth.Factories
 
