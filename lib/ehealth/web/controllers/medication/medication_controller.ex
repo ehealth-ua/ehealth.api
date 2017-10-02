@@ -14,6 +14,12 @@ defmodule EHealth.Web.MedicationController do
     end
   end
 
+  def drugs(conn, params) do
+    with %Page{} = paging <- API.get_drugs(params) do
+      render(conn, "drugs.json", drugs: paging.entries, paging: paging)
+    end
+  end
+
   def create(conn, medication_params) do
     with {:ok, %Medication{} = medication} <- API.create_medication(medication_params, conn.req_headers) do
       conn

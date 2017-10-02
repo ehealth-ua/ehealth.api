@@ -10,12 +10,13 @@ defmodule EHealth.PRM.Medications.API do
   import EHealth.Utils.Connection, only: [get_consumer_id: 1]
 
   alias EHealth.PRMRepo
-  alias EHealth.PRM.Medications.INNMDosage.Schema, as: INNMDosage
   alias EHealth.PRM.Medications.INNM.Schema, as: INNM
-  alias EHealth.PRM.Medications.Medication.Schema, as: Medication
-  alias EHealth.PRM.Medications.INNMDosage.Search, as: INNMSearch
   alias EHealth.PRM.Medications.INNM.Search, as: INNMSearch
+  alias EHealth.PRM.Medications.INNMDosage.Schema, as: INNMDosage
+  alias EHealth.PRM.Medications.INNMDosage.Search, as: INNMSearch
+  alias EHealth.PRM.Medications.Medication.Schema, as: Medication
   alias EHealth.PRM.Medications.Medication.Search, as: MedicationSearch
+  alias EHealth.PRM.Medications.DrugsSearch
   alias EHealth.Validators.JsonSchema
   alias EHealth.PRM.Medications.Validator
 
@@ -42,6 +43,91 @@ defmodule EHealth.PRM.Medications.API do
 
   # List
 
+  def get_drugs(params) do
+    %DrugsSearch{}
+    |> cast(params, DrugsSearch.__schema__(:fields))
+    |> search_drugs()
+  end
+
+  defp search_drugs(%{valid?: true, changes: params}) do
+    INNM
+    |> distinct(true)
+    |> where_innm(params)
+    # get primary INNMDosage ingredients related to INNM
+    |> join(:inner, [i], ii in assoc(i, :ingredients))
+    |> where([_, ii], ii.is_primary)
+    # get active INNMDosage
+    |> join(:inner, [_, ii], id in assoc(ii, :innm_dosage))
+    |> where([..., id], id.is_active)
+    |> where_innm_dosage(params)
+    # get primary Medication ingredients related to INNMDosage
+    |> join(:inner, [..., id], idi in assoc(id, :ingredients_medication))
+    |> where([..., idi], idi.is_primary)
+    # get active Medication
+    |> join(:inner, [..., idi], m in assoc(idi, :medication))
+    |> where_medication(params)
+    # group by primary keys
+    |> group_by([innm], innm.id)
+    |> group_by([_, innm_ingrdient], innm_ingrdient.id)
+    |> group_by([_, _, innm_dosage], innm_dosage.id)
+    |> select(
+         [innm, innm_ingrdient, innm_dosage, _, medication],
+         %{
+           innm_id: innm.id,
+           innm_name: innm.name,
+           innm_name_original: innm.name_original,
+           innm_sctid: innm.sctid,
+           innm_dosage_id: innm_dosage.id,
+           innm_dosage_name: innm_dosage.name,
+           innm_dosage_form: innm_dosage.form,
+           innm_dosage_dosage: innm_ingrdient.dosage,
+           packages:
+             fragment("array_agg((?, ?, ?))", medication.container, medication.package_qty, medication.package_min_qty),
+         }
+       )
+    |> PRMRepo.paginate()
+  end
+  defp search_drugs(changeset) do
+    changeset
+  end
+
+  defp where_innm(query, attrs) do
+    params =
+      attrs
+      |> Map.take(~W(innm_id innm_sctid)a)
+      |> Enum.into([])
+      |> Kernel.++([is_active: true])
+
+    query = where(query, ^params)
+
+    case Map.has_key?(attrs, :innm_name) do
+      true -> where(query, [i], ilike(i.name, ^("%" <> attrs.innm_name <> "%")))
+      false -> query
+    end
+  end
+
+  defp where_innm_dosage(query, attrs) do
+    params =
+      attrs
+      |> Map.take(~W(innm_dosage_id, innm_dosage_form)a)
+      |> Enum.into([])
+      |> Kernel.++([is_active: true])
+
+    query = where(query, ^params)
+    case Map.has_key?(attrs, :innm_dosage_name) do
+      true -> where(query, [..., id], ilike(id.name, ^("%" <> attrs.innm_dosage_name <> "%")))
+      false -> query
+    end
+  end
+
+  def where_medication(query, attrs) do
+    query = where(query, [..., m], m.is_active)
+    case Map.has_key?(attrs, :medication_code_atc) do
+      true -> where(query, [..., m], m.code_atc == ^attrs.medication_code_atc)
+      false -> query
+    end
+  end
+
   def list_medications(params) do
     params = Map.put(params, "type", @type_medication)
 
@@ -59,7 +145,10 @@ defmodule EHealth.PRM.Medications.API do
   end
 
   def get_search_query(Medication, changes) do
-    params = changes |> Map.take([:id, :form, :type, :is_active]) |> Enum.into([])
+    params =
+      changes
+      |> Map.take([:id, :form, :type, :is_active])
+      |> Enum.into([])
 
     Medication
     |> where(^params)

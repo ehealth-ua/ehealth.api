@@ -45,7 +45,7 @@ defmodule EHealth.DeclarationRequest.API.Documents do
     end
   end
 
-  defp format_error_response(microservice, result) do
+  defp format_error_response(_microservice, result) do
     result
   end
 end

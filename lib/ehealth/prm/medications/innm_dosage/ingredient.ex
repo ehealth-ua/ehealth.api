@@ -5,6 +5,9 @@ defmodule EHealth.PRM.Medications.INNMDosage.Ingredient do
 
   import Ecto.Changeset, warn: false
 
+  alias EHealth.PRM.Medications.INNM.Schema, as: INNM
+  alias EHealth.PRM.Medications.INNMDosage.Schema, as: INNMDosage
+
   @fields ~w(
     dosage
     innm_child_id
@@ -16,8 +19,8 @@ defmodule EHealth.PRM.Medications.INNMDosage.Ingredient do
     field :dosage, :map
     field :is_primary, :boolean, default: false
 
-    belongs_to :medication, EHealth.PRM.Medications.INNMDosage.Schema, [type: Ecto.UUID, foreign_key: :parent_id]
-    belongs_to :innm, EHealth.PRM.Medications.INNM.Schema, [type: Ecto.UUID, foreign_key: :innm_child_id]
+    belongs_to :innm_dosage, INNMDosage, [type: Ecto.UUID, foreign_key: :parent_id]
+    belongs_to :innm, INNM, [type: Ecto.UUID, foreign_key: :innm_child_id]
 
     timestamps()
   end

@@ -25,15 +25,10 @@ defmodule EHealth.PRMFactories.MedicationFactory do
       def innm_dosage_factory do
         form = Enum.random(["Pill", "Nebuliser suspension"])
 
-        id = UUID.generate()
-        %{id: innm_id} = insert(:prm, :innm)
-
         %INNMDosage{
-          id: id,
           name: sequence("Prednisolonum Forte"),
           type: INNMDosage.type(),
           form: form,
-          ingredients: [build(:ingredient_innm_dosage, [innm_child_id: innm_id, parent_id: id])],
           is_active: true,
           updated_by: UUID.generate(),
           inserted_by: UUID.generate(),
@@ -43,15 +38,10 @@ defmodule EHealth.PRMFactories.MedicationFactory do
       def medication_factory do
         form = Enum.random(["Pill", "Nebuliser suspension"])
 
-        id = UUID.generate()
-        %{id: innm_dosage_id} = insert(:prm, :innm_dosage)
-
         %Medication{
-          id: id,
           name: sequence("Prednisolonum Forte"),
           type: Medication.type(),
           form: form,
-          ingredients: [build(:ingredient_medication, [medication_child_id: innm_dosage_id, parent_id: id])],
           container: container(form),
           manufacturer: build(:manufacturer),
           package_qty: 10,

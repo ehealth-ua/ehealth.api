@@ -67,7 +67,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       legal_entity = insert(:prm, :legal_entity, id: "dae597a8-c858-42f6-bc16-1a7bdd340466")
       insert_employee(party)
       insert_division(legal_entity)
-      %{id: innm_dosage_id} = insert(:prm, :innm_dosage)
+      %{id: innm_dosage_id} = insert_innm_dosage()
       insert_medication(innm_dosage_id)
       insert_medical_program()
       conn = put_client_id_header(conn, legal_entity.id)
@@ -81,7 +81,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert_legal_entity()
       insert_division(legal_entity)
-      %{id: innm_dosage_id} = insert(:prm, :innm_dosage)
+      %{id: innm_dosage_id} = insert_innm_dosage()
       insert_employee(party, legal_entity)
       insert_medication(innm_dosage_id)
       insert_medical_program()
@@ -97,7 +97,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert_legal_entity()
       insert_division(legal_entity)
-      %{id: innm_dosage_id} = insert(:prm, :innm_dosage)
+      %{id: innm_dosage_id} = insert_innm_dosage()
       insert_employee(party, legal_entity)
       division = insert(:prm, :division)
       insert_medication(innm_dosage_id)
@@ -115,7 +115,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     test "invalid medical program", %{conn: conn} do
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert_legal_entity()
-      %{id: innm_dosage_id} = insert(:prm, :innm_dosage)
+      %{id: innm_dosage_id} = insert_innm_dosage()
       insert_employee(party, legal_entity)
       division = insert_division(legal_entity)
       insert_medication(innm_dosage_id)
@@ -134,7 +134,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     test "medical program is not active", %{conn: conn} do
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert_legal_entity()
-      %{id: innm_dosage_id} = insert(:prm, :innm_dosage)
+      %{id: innm_dosage_id} = insert_innm_dosage()
       insert_employee(party, legal_entity)
       division = insert_division(legal_entity)
       medication = insert_medication(innm_dosage_id)
@@ -162,7 +162,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     test "invalid medication", %{conn: conn} do
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert_legal_entity()
-      %{id: innm_dosage_id} = insert(:prm, :innm_dosage)
+      %{id: innm_dosage_id} = insert_innm_dosage()
       insert_employee(party, legal_entity)
       division = insert_division(legal_entity)
       insert_medication(innm_dosage_id)
@@ -180,7 +180,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     test "medication is not active", %{conn: conn} do
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert_legal_entity()
-      %{id: innm_dosage_id} = insert(:prm, :innm_dosage)
+      %{id: innm_dosage_id} = insert_innm_dosage()
       insert_employee(party, legal_entity)
       division = insert_division(legal_entity)
       insert_medication(innm_dosage_id)
@@ -199,7 +199,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     test "invalid code", %{conn: conn} do
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert_legal_entity()
-      %{id: innm_dosage_id} = insert(:prm, :innm_dosage)
+      %{id: innm_dosage_id} = insert_innm_dosage()
       insert_employee(party, legal_entity)
       division = insert_division(legal_entity)
       medication = insert_medication(innm_dosage_id)
@@ -236,7 +236,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         legal_entity: legal_entity,
         id: "e00e20ba-d20f-4ebb-a1dc-4bf58231019c"
       )
-      %{id: innm_dosage_id} = insert(:prm, :innm_dosage)
+      %{id: innm_dosage_id} = insert_innm_dosage()
       medication = insert(:prm, :medication,
         id: "2cdb8396-a1e9-11e7-abc4-cec278b6b50a",
         ingredients: [build(:ingredient_medication,
@@ -278,7 +278,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       %{party: party} = insert(:prm, :party_user)
       legal_entity = insert_legal_entity("5243c8e6-9e06-11e7-abc4-cec278b6b50a")
       insert_legal_entity()
-      %{id: innm_dosage_id} = insert(:prm, :innm_dosage)
+      %{id: innm_dosage_id} = insert_innm_dosage()
       insert_employee(party, legal_entity)
       insert_division(legal_entity)
       insert_medication(innm_dosage_id)
@@ -302,7 +302,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       insert(:prm, :party_user, party: party)
       legal_entity = insert_legal_entity("5243c8e6-9e06-11e7-abc4-cec278b6b50a")
       insert_legal_entity()
-      %{id: innm_dosage_id} = insert(:prm, :innm_dosage)
+      %{id: innm_dosage_id} = insert_innm_dosage()
       insert_employee(party, legal_entity)
       insert_division(legal_entity)
       insert_division(legal_entity, "f2f76cf8-9e05-11e7-abc4-cec278b6b50a")
@@ -325,7 +325,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       %{party: party} = insert(:prm, :party_user)
       legal_entity = insert_legal_entity("5243c8e6-9e06-11e7-abc4-cec278b6b50a")
       insert_legal_entity()
-      %{id: innm_dosage_id} = insert(:prm, :innm_dosage)
+      %{id: innm_dosage_id} = insert_innm_dosage()
       insert_employee(party, legal_entity)
       insert_division(legal_entity)
       insert_medication(innm_dosage_id)
@@ -360,7 +360,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       %{party: party} = insert(:prm, :party_user)
       legal_entity = insert_legal_entity("5243c8e6-9e06-11e7-abc4-cec278b6b50a")
       insert_legal_entity()
-      %{id: innm_dosage_id} = insert(:prm, :innm_dosage)
+      %{id: innm_dosage_id} = insert_innm_dosage()
       insert_employee(party, legal_entity)
       insert_division(legal_entity)
       insert_medication(innm_dosage_id)
@@ -377,7 +377,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       %{party: party} = insert(:prm, :party_user)
       legal_entity = insert_legal_entity("5243c8e6-9e06-11e7-abc4-cec278b6b50a")
       insert_legal_entity()
-      %{id: innm_dosage_id} = insert(:prm, :innm_dosage)
+      %{id: innm_dosage_id} = insert_innm_dosage()
       insert_employee(party, legal_entity)
       insert_division(legal_entity)
       insert_medication(innm_dosage_id)
@@ -412,7 +412,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       %{party: party} = insert(:prm, :party_user)
       legal_entity = insert_legal_entity("5243c8e6-9e06-11e7-abc4-cec278b6b50a")
       insert_legal_entity()
-      %{id: innm_dosage_id} = insert(:prm, :innm_dosage)
+      %{id: innm_dosage_id} = insert_innm_dosage()
       insert_employee(party, legal_entity)
       insert_division(legal_entity)
       insert_medication(innm_dosage_id)
@@ -476,5 +476,13 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
   defp insert_legal_entity(id \\ "dae597a8-c858-42f6-bc16-1a7bdd340466") do
     insert(:prm, :legal_entity, id: id)
+  end
+
+  def insert_innm_dosage do
+    %{id: innm_id} = insert(:prm, :innm)
+    innm_dosage = insert(:prm, :innm_dosage)
+    insert(:prm, :ingredient_innm_dosage, [innm_child_id: innm_id, parent_id: innm_dosage.id])
+
+    innm_dosage
   end
 end

@@ -1,8 +1,9 @@
 defmodule EHealth.PRM.Medications.INNM.Schema do
   @moduledoc false
   use Ecto.Schema
+  alias EHealth.PRM.Medications.INNMDosage.Ingredient
 
-  @derive {Poison.Encoder, except: [:__meta__]}
+  @derive {Poison.Encoder, except: [:__meta__, :ingredients]}
 
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "innms" do
@@ -12,6 +13,8 @@ defmodule EHealth.PRM.Medications.INNM.Schema do
     field :is_active, :boolean, default: true
     field :inserted_by, Ecto.UUID
     field :updated_by, Ecto.UUID
+
+    has_many :ingredients, Ingredient, foreign_key: :innm_child_id
 
     timestamps()
   end

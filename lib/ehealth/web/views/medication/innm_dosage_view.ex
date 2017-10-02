@@ -15,7 +15,10 @@ defmodule EHealth.Web.INNMDosageView do
   def render("innm_dosage.json", %{innm_dosage: innm_dosage}) do
     innm_dosage
     |> Map.take(@view_fields)
-    |> Map.put(:ingredients, render_many(innm_dosage.ingredients, __MODULE__, "ingredient.json", as: :ingredient))
+    |> Map.put(
+         :ingredients,
+         render_many(innm_dosage.ingredients, __MODULE__, "ingredient.json", as: :ingredient)
+       )
   end
 
   def render("ingredient.json", %{ingredient: ingredient}) do

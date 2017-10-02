@@ -55,6 +55,8 @@ defmodule EHealth.Web.Router do
     get "/declarations/:id/documents", DeclarationRequestController, :documents
 
     # Medications
+    get "/drugs", MedicationController, :drugs
+
     resources "/innms", INNMController, except: [:new, :edit, :update, :delete]
 
     resources "/innm_dosages", INNMDosageController, except: [:new, :edit, :update, :delete]

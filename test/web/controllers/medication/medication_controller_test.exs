@@ -29,38 +29,96 @@ defmodule EHealth.Web.MedicationControllerTest do
     type: nil,
   }
 
-  @doc """
-  Creates Medication with type MEDICATION
-  """
-  def fixture(:medication) do
-    insert(:prm, :medication)
-  end
+  describe "get drugs" do
+    test "valid response", %{conn: conn} do
+      fixture(:list)
+      conn = get conn, medication_path(conn, :drugs)
+      json_response(conn, 200)["data"]
+    end
 
-  @doc """
-  Creates Medication with type INNMDosage
-  """
-  def fixture(:innm_dosage) do
-    insert(:prm, :innm_dosage)
+    test "invalid search params", %{conn: conn} do
+      params = [
+        [innm_id: 123],
+        [innm_name: 123],
+        [innm_sctid: 123],
+        [innm_dosage_id: 123],
+        [innm_dosage_name: 123],
+        [innm_dosage_form: 123],
+        [medication_code_atc: 123],
+      ]
+      Enum.each(params, fn (param) ->
+        conn = get conn, medication_path(conn, :drugs), param
+        refute [] == json_response(conn, 422)["errors"]
+      end)
+    end
+
+    test "find by INNM name", %{conn: conn} do
+      fixture(:list)
+      conn = get conn, medication_path(conn, :drugs), innm_name: "пропі"
+      data = json_response(conn, 200)["data"]
+      assert 1 == length(data)
+
+      innm_dosage = List.first(data)
+      assert 2 == length(innm_dosage["packages"])
+      assert "Бупропіон" == innm_dosage["innm"]["name"]
+    end
+
+    test "find by Medication code_atc", %{conn: conn} do
+      fixture(:list)
+      conn = get conn, medication_path(conn, :drugs), medication_code_atc: "Z00CA01"
+      data = json_response(conn, 200)["data"]
+      assert 1 == length(data)
+
+      innm_dosage = List.first(data)
+
+      assert [package] = innm_dosage["packages"]
+      assert 10 == package["package_qty"]
+      assert 40 == package["package_min_qty"]
+
+      assert "Діетіламід" == innm_dosage["innm"]["name"]
+      assert "Діетіламід Форте" == innm_dosage["name"]
+    end
+
+    test "find by INNM Dosage name", %{conn: conn} do
+      fixture(:list)
+      conn = get conn, medication_path(conn, :drugs), innm_dosage_name: "он Фор"
+      data = json_response(conn, 200)["data"]
+      assert 1 == length(data), "Get Drugs should return list with on element"
+
+      innm_dosage = List.first(data)
+      assert 2 == length(innm_dosage["packages"])
+      assert "Бупропіон Форте" == innm_dosage["name"]
+
+      # not primary ingredient
+      conn = get conn, medication_path(conn, :drugs), innm_dosage_name: "он Ла"
+      data = json_response(conn, 200)["data"]
+      assert 0 == length(data), "Get Drugs should return an empty list"
+    end
   end
 
   describe "index" do
     test "search by name", %{conn: conn} do
-      insert(:prm, :innm_dosage, name: "Диэтиламид",)
-      %{id: medication_id} = insert(:prm, :medication, name: "Диэтиламид",)
+      %{id: innm_id} = insert(:prm, :innm, name: "Діетіламід")
 
-      conn = get conn, medication_path(conn, :index), name: "этила"
-      assert [medication] = json_response(conn, 200)["data"]
-      assert medication_id == medication["id"]
-      assert "Диэтиламид" == medication["name"]
+      innm_dosage = insert(:prm, :innm_dosage, name: "Діетіламід")
+      insert(:prm, :ingredient_innm_dosage, [innm_child_id: innm_id, parent_id: innm_dosage.id])
+
+      medication = insert(:prm, :medication, name: "Діетіламід")
+      insert(:prm, :ingredient_medication, [medication_child_id: innm_dosage.id, parent_id: medication.id])
+
+      conn = get conn, medication_path(conn, :index), name: "етіла"
+      assert [resp_medication] = json_response(conn, 200)["data"]
+      assert medication.id == resp_medication["id"]
+      assert "Діетіламід" == resp_medication["name"]
     end
 
     test "search by name and innm_dosage_name", %{conn: conn} do
-      %{id: dosage_id} = insert(:prm, :innm_dosage, name: "Диэтиламид")
-      %{id: dosage_id2} = insert(:prm, :innm_dosage, name: "Диэтиламид форте")
-      %{id: dosage_id3} = insert(:prm, :innm_dosage, name: "Диэтиламидон")
+      %{id: dosage_id} = insert(:prm, :innm_dosage, name: "Діетіламід")
+      %{id: dosage_id2} = insert(:prm, :innm_dosage, name: "Діетіламід форте")
+      %{id: dosage_id3} = insert(:prm, :innm_dosage, name: "Діетіламідон")
 
-      %{id: med_id} = insert(:prm, :medication, [name: "Полізамін", ingredients: []])
-      %{id: med_id2} = insert(:prm, :medication, name: "Эвказолин")
+      %{id: med_id} = insert(:prm, :medication, name: "Полізамін")
+      %{id: med_id2} = insert(:prm, :medication, name: "Бупропіон")
 
       insert(:prm, :ingredient_medication, parent_id: med_id, medication_child_id: dosage_id)
       insert(:prm, :ingredient_medication, parent_id: med_id, medication_child_id: dosage_id2, is_primary: false)
@@ -68,7 +126,7 @@ defmodule EHealth.Web.MedicationControllerTest do
       insert(:prm, :ingredient_medication, parent_id: med_id2, medication_child_id: dosage_id2)
       insert(:prm, :ingredient_medication, parent_id: med_id2, medication_child_id: dosage_id3, is_primary: false)
 
-      conn = get conn, medication_path(conn, :index), [innm_dosage_name: "этила", name: "Полізамін"]
+      conn = get conn, medication_path(conn, :index), [innm_dosage_name: "етіла", name: "Полізамін"]
 
       assert [medication] = json_response(conn, 200)["data"]
 
@@ -77,13 +135,16 @@ defmodule EHealth.Web.MedicationControllerTest do
       assert 2 == length(medication["ingredients"])
 
       # assert that id is valid innm_dosage_id reference
-      Enum.each(medication["ingredients"], fn %{"id" => id} ->
-        assert id in [dosage_id, dosage_id2]
-      end)
+      Enum.each(
+        medication["ingredients"],
+        fn %{"id" => id} ->
+          assert id in [dosage_id, dosage_id2]
+        end
+      )
     end
 
     test "paging", %{conn: conn} do
-      for _ <- 1..21, do: insert(:prm, :medication)
+      for _ <- 1..21, do: fixture(:medication)
 
       conn = get conn, medication_path(conn, :index), [page_size: 10, page: 2]
       resp = json_response(conn, 200)
@@ -103,7 +164,13 @@ defmodule EHealth.Web.MedicationControllerTest do
   describe "show" do
     setup [:create_medication]
 
-    test "200 OK", %{conn: conn, medication: %Medication{id: id}} do
+    test "200 OK",
+         %{
+           conn: conn,
+           medication: %Medication{
+             id: id
+           }
+         } do
       conn = get conn, medication_path(conn, :show, id)
       data = json_response(conn, 200)["data"]
       assert Map.has_key?(data, "is_active")
@@ -230,5 +297,93 @@ defmodule EHealth.Web.MedicationControllerTest do
   defp create_medication(_) do
     medication = fixture(:medication)
     {:ok, medication: medication}
+  end
+
+  @doc """
+  Creates Medication
+  """
+  def fixture(:medication) do
+    %{id: innm_dosage_id} = fixture(:innm_dosage)
+    medication = insert(:prm, :medication)
+    insert(:prm, :ingredient_medication, [medication_child_id: innm_dosage_id, parent_id: medication.id])
+    medication
+  end
+
+  @doc """
+  Creates INNMDosage
+  """
+  def fixture(:innm_dosage) do
+    %{id: innm_id} = insert(:prm, :innm)
+    innm_dosage = insert(:prm, :innm_dosage)
+    insert(:prm, :ingredient_innm_dosage, [innm_child_id: innm_id, parent_id: innm_dosage.id])
+
+    innm_dosage
+  end
+
+  @doc """
+  Creates related INNM, INNMDosage and Medications
+  """
+  def fixture(:list) do
+    %{id: innm_id1} = insert(:prm, :innm, name: "Бупропіон")
+    %{id: innm_id2} = insert(:prm, :innm, name: "Діетіламід")
+    %{id: innm_id3} = insert(:prm, :innm, name: "Фіз. розчин")
+    %{id: innm_id4} = insert(:prm, :innm, [name: "Неактивний"])
+
+    %{id: dosage_id1} = insert(:prm, :innm_dosage, name: "Бупропіон Форте")
+    %{id: dosage_id2} = insert(:prm, :innm_dosage, name: "Бупропіон Лайт")
+    %{id: dosage_id3} = insert(:prm, :innm_dosage, name: "Діетіламід Форте")
+    %{id: dosage_id4} = insert(:prm, :innm_dosage, name: "Діетіламід Лайт")
+    %{id: dosage_id5} = insert(:prm, :innm_dosage, name: "Неактивний Лайт")
+
+    insert(:prm, :ingredient_innm_dosage, [parent_id: dosage_id1, innm_child_id: innm_id1])
+    insert(:prm, :ingredient_innm_dosage, [parent_id: dosage_id1, innm_child_id: innm_id3, is_primary: false])
+
+    insert(:prm, :ingredient_innm_dosage, [parent_id: dosage_id2, innm_child_id: innm_id1])
+    insert(:prm, :ingredient_innm_dosage, [parent_id: dosage_id2, innm_child_id: innm_id3, is_primary: false])
+
+    insert(:prm, :ingredient_innm_dosage, parent_id: dosage_id3, innm_child_id: innm_id2)
+    insert(:prm, :ingredient_innm_dosage, parent_id: dosage_id3, innm_child_id: innm_id3, is_primary: false)
+
+    insert(:prm, :ingredient_innm_dosage, parent_id: dosage_id4, innm_child_id: innm_id2)
+    insert(:prm, :ingredient_innm_dosage, parent_id: dosage_id4, innm_child_id: innm_id3, is_primary: false)
+
+    insert(:prm, :ingredient_innm_dosage, parent_id: dosage_id5, innm_child_id: innm_id4)
+
+    %{id: med_id1} = insert(:prm, :medication, [
+      name: "Бупропіонол",
+      package_qty: 5,
+      package_min_qty: 20,
+    ])
+    %{id: med_id2} = insert(:prm, :medication, [
+      name: "Діетіламідон",
+      package_qty: 10,
+      package_min_qty: 20
+    ])
+    %{id: med_id3} = insert(:prm, :medication, [
+      name: "Бупропіон Діетіламід",
+      package_qty: 10,
+      package_min_qty: 30
+    ])
+    %{id: med_id4} = insert(:prm, :medication, [
+      name: "Діетіламід Бупропіон",
+      package_qty: 10,
+      package_min_qty: 40,
+      code_atc: "Z00CA01",
+    ])
+    %{id: med_id5} = insert(:prm, :medication, name: "Неактивний мед")
+
+    insert(:prm, :ingredient_medication, parent_id: med_id1, medication_child_id: dosage_id1)
+    insert(:prm, :ingredient_medication, parent_id: med_id1, medication_child_id: dosage_id2, is_primary: false)
+
+    insert(:prm, :ingredient_medication, parent_id: med_id2, medication_child_id: dosage_id3)
+    insert(:prm, :ingredient_medication, parent_id: med_id2, medication_child_id: dosage_id4, is_primary: false)
+
+    insert(:prm, :ingredient_medication, parent_id: med_id3, medication_child_id: dosage_id1)
+    insert(:prm, :ingredient_medication, parent_id: med_id3, medication_child_id: dosage_id4, is_primary: false)
+
+    insert(:prm, :ingredient_medication, parent_id: med_id4, medication_child_id: dosage_id3)
+    insert(:prm, :ingredient_medication, parent_id: med_id4, medication_child_id: dosage_id2, is_primary: false)
+
+    insert(:prm, :ingredient_medication, parent_id: med_id5, medication_child_id: dosage_id5)
   end
 end

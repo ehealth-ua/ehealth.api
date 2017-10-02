@@ -1,6 +1,8 @@
 defmodule EHealth.PRM.Medications.INNMDosage.Schema do
   @moduledoc false
   use Ecto.Schema
+  alias EHealth.PRM.Medications.Medication.Ingredient, as: MedicationIngredient
+  alias EHealth.PRM.Medications.INNMDosage.Ingredient, as: INNMDosageIngredient
 
   @medication_type "INNMDosage"
 
@@ -13,7 +15,8 @@ defmodule EHealth.PRM.Medications.INNMDosage.Schema do
     field :inserted_by, Ecto.UUID
     field :updated_by, Ecto.UUID
 
-    has_many :ingredients, EHealth.PRM.Medications.INNMDosage.Ingredient, [on_replace: :delete, foreign_key: :parent_id]
+    has_many :ingredients, INNMDosageIngredient, foreign_key: :parent_id
+    has_many :ingredients_medication, MedicationIngredient, foreign_key: :medication_child_id
 
     timestamps()
   end
