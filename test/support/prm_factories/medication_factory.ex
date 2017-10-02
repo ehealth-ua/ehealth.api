@@ -23,12 +23,10 @@ defmodule EHealth.PRMFactories.MedicationFactory do
       end
 
       def innm_dosage_factory do
-        form = Enum.random(["Pill", "Nebuliser suspension"])
-
         %INNMDosage{
           name: sequence("Prednisolonum Forte"),
           type: INNMDosage.type(),
-          form: form,
+          form: "Pill",
           is_active: true,
           updated_by: UUID.generate(),
           inserted_by: UUID.generate(),
@@ -36,7 +34,7 @@ defmodule EHealth.PRMFactories.MedicationFactory do
       end
 
       def medication_factory do
-        form = Enum.random(["Pill", "Nebuliser suspension"])
+        form = "Pill"
 
         %Medication{
           name: sequence("Prednisolonum Forte"),
@@ -44,8 +42,8 @@ defmodule EHealth.PRMFactories.MedicationFactory do
           form: form,
           container: container(form),
           manufacturer: build(:manufacturer),
-          package_qty: 10,
-          package_min_qty: 30,
+          package_qty: 30,
+          package_min_qty: 10,
           certificate: to_string(3_300_000_000 + :rand.uniform(99_999_999)),
           certificate_expired_at: ~D[2012-04-17],
           is_active: true,
@@ -62,7 +60,7 @@ defmodule EHealth.PRMFactories.MedicationFactory do
           dosage: %{
             numerator_unit: "mg",
             numerator_value: 5,
-            denumerator_unit: "g",
+            denumerator_unit: "pill",
             denumerator_value: 1
           }
         }
@@ -77,7 +75,7 @@ defmodule EHealth.PRMFactories.MedicationFactory do
           dosage: %{
             numerator_unit: "mg",
             numerator_value: 5,
-            denumerator_unit: "g",
+            denumerator_unit: "pill",
             denumerator_value: 1
           }
         }
@@ -92,7 +90,7 @@ defmodule EHealth.PRMFactories.MedicationFactory do
           dosage: %{
             numerator_unit: "mg",
             numerator_value: 5,
-            denumerator_unit: "g",
+            denumerator_unit: "pill",
             denumerator_value: 1
           }
         }

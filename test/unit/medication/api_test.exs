@@ -9,7 +9,7 @@ defmodule EHealth.Medication.APITest do
     "id" => UUID.generate(),
     "is_primary" => true,
     "dosage" => %{
-      "numerator_unit" => "mg",
+      "numerator_unit" => "pill",
       "numerator_value" => 10,
       "denumerator_unit" => "g",
       "denumerator_value" => 1

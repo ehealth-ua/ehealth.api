@@ -291,6 +291,7 @@ defmodule EHealth.PRM.Medications.API do
     |> cast(attrs, @fields_medication_required ++ @fields_medication_optional)
     |> cast_assoc(:ingredients)
     |> validate_required(@fields_medication_required)
+    |> Validator.validate_package_quantity()
     |> Validator.validate_ingredients()
   end
 

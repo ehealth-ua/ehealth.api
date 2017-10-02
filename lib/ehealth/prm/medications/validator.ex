@@ -21,6 +21,16 @@ defmodule EHealth.PRM.Medications.Validator do
     |> validate_ingredients_fk()
     |> validate_ingredients_id_uniqueness()
     |> validate_ingedients_active_innm_uniqueness()
+    |> validate_ingredients_dosage()
+  end
+
+  def validate_package_quantity(changeset) do
+    qty = get_field(changeset, :package_qty)
+    min_qty = get_field(changeset, :package_min_qty)
+    case rem(qty, min_qty) do
+      0 -> changeset
+      _ -> add_error(changeset, :package_qty, "Invalid package quantity")
+    end
   end
 
   defp validate_ingredients_fk(changeset) do
@@ -78,6 +88,26 @@ defmodule EHealth.PRM.Medications.Validator do
   defp active_innm_unique(true, {false, _msg}), do: {:cont, {true, []}}
   defp active_innm_unique(true, {true, _msg}), do:
     {:halt, {true, [ingredients: "One and only one ingredient must be active"]}}
+
+  defp validate_ingredients_dosage(%{data: %Medication{}} = changeset) do
+    numerator = get_field(changeset, :container)["numerator_unit"]
+
+    validate_change changeset, :ingredients, fn :ingredients, ingredients ->
+      Enum.reduce_while(ingredients, false, &(validate_ingredients_numerator(&1, numerator, &2)))
+    end
+  end
+  defp validate_ingredients_dosage(changeset) do
+    changeset
+  end
+
+  defp validate_ingredients_numerator(ingredient, numerator, _) do
+    err_msg = "Denumerator unit from Dosage ingredients must be equal Numerator unit from Container medication"
+
+    case get_field(ingredient, :dosage)["denumerator_unit"] == numerator do
+      false -> {:halt, [ingredients: err_msg]}
+      true -> {:cont, []}
+    end
+  end
 
   # counters
 

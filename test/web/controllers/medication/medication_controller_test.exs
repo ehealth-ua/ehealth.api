@@ -12,7 +12,7 @@ defmodule EHealth.Web.MedicationControllerTest do
     certificate_expired_at: "2010-04-17",
     container: container("Pill"),
     manufacturer: build(:manufacturer),
-    package_min_qty: 42,
+    package_min_qty: 21,
     package_qty: 42,
   }
   @invalid_attrs %{
@@ -191,7 +191,6 @@ defmodule EHealth.Web.MedicationControllerTest do
       ingredient_inactive = build(:ingredient, [id: fixture(:innm_dosage).id, is_primary: false])
 
       attrs = Map.put(@create_attrs, :ingredients, [ingredient, ingredient_inactive])
-
       conn = post conn, medication_path(conn, :create), attrs
 
       assert %{"id" => id} = json_response(conn, 201)["data"]
@@ -234,6 +233,22 @@ defmodule EHealth.Web.MedicationControllerTest do
       ingredient = build(:ingredient, id: fixture(:medication).id)
 
       attrs = Map.put(@create_attrs, :ingredients, [ingredient])
+
+      conn = post conn, medication_path(conn, :create), attrs
+      json_response(conn, 422)
+    end
+
+    test "invalid package quantity", %{conn: conn} do
+      ingredient = build(:ingredient, id: fixture(:innm_dosage).id)
+      attrs = Map.merge(@create_attrs, %{ingredients: [ingredient], package_min_qty: 13})
+
+      conn = post conn, medication_path(conn, :create), attrs
+      json_response(conn, 422)
+    end
+
+    test "invalid numrator type", %{conn: conn} do
+      ingredient = build(:ingredient, id: insert(:prm, :innm_dosage).id)
+      attrs = Map.merge(@create_attrs, %{ingredients: [ingredient], container: container("Nebuliser suspension")})
 
       conn = post conn, medication_path(conn, :create), attrs
       json_response(conn, 422)
