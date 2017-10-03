@@ -63,6 +63,30 @@ defmodule EHealth.Web.MedicationControllerTest do
       assert "Бупропіон" == innm_dosage["innm"]["name"]
     end
 
+    test "find by INNM id", %{conn: conn} do
+      %{innms: [id, _]} = fixture(:list)
+
+      conn = get conn, medication_path(conn, :drugs), innm_id: id
+      data = json_response(conn, 200)["data"]
+      assert 1 == length(data)
+
+      innm_dosage = List.first(data)
+      assert 2 == length(innm_dosage["packages"])
+      assert id == innm_dosage["innm"]["id"]
+    end
+
+    test "find by INNM Dosage id", %{conn: conn} do
+      %{innm_dosage: [id, _]} = fixture(:list)
+
+      conn = get conn, medication_path(conn, :drugs), innm_dosage_id: id
+      data = json_response(conn, 200)["data"]
+      assert 1 == length(data)
+
+      innm_dosage = List.first(data)
+      assert 2 == length(innm_dosage["packages"])
+      assert id == innm_dosage["id"]
+    end
+
     test "find by Medication code_atc", %{conn: conn} do
       fixture(:list)
       conn = get conn, medication_path(conn, :drugs), medication_code_atc: "Z00CA01"
@@ -400,5 +424,7 @@ defmodule EHealth.Web.MedicationControllerTest do
     insert(:prm, :ingredient_medication, parent_id: med_id4, medication_child_id: dosage_id2, is_primary: false)
 
     insert(:prm, :ingredient_medication, parent_id: med_id5, medication_child_id: dosage_id5)
+
+    %{innms: [innm_id1, innm_id2], innm_dosage: [dosage_id1, dosage_id2]}
   end
 end

@@ -25,8 +25,8 @@ defmodule EHealth.PRM.Medications.API do
   @type_innm_dosage INNMDosage.type()
   @type_medication Medication.type()
 
-  @fields_innm_required [:sctid, :name, :name_original, :inserted_by, :updated_by]
-  @fields_innm_optional [:is_active]
+  @fields_innm_required [:name, :name_original, :inserted_by, :updated_by]
+  @fields_innm_optional [:sctid, :is_active]
 
   @fields_medication_required [:name, :type, :form, :inserted_by, :updated_by]
   @fields_medication_optional [
@@ -52,20 +52,18 @@ defmodule EHealth.PRM.Medications.API do
   defp search_drugs(%{valid?: true, changes: params}) do
     INNM
     |> distinct(true)
-    |> where_innm(params)
     # get primary INNMDosage ingredients related to INNM
     |> join(:inner, [i], ii in assoc(i, :ingredients))
     |> where([_, ii], ii.is_primary)
     # get active INNMDosage
     |> join(:inner, [_, ii], id in assoc(ii, :innm_dosage))
     |> where([..., id], id.is_active)
-    |> where_innm_dosage(params)
     # get primary Medication ingredients related to INNMDosage
     |> join(:inner, [..., id], idi in assoc(id, :ingredients_medication))
     |> where([..., idi], idi.is_primary)
     # get active Medication
     |> join(:inner, [..., idi], m in assoc(idi, :medication))
-    |> where_medication(params)
+    |> where_attrs(params)
     # group by primary keys
     |> group_by([innm], innm.id)
     |> group_by([_, innm_ingrdient], innm_ingrdient.id)
@@ -91,41 +89,26 @@ defmodule EHealth.PRM.Medications.API do
     changeset
   end
 
-  defp where_innm(query, attrs) do
-    params =
-      attrs
-      |> Map.take(~W(innm_id innm_sctid)a)
-      |> Enum.into([])
-      |> Kernel.++([is_active: true])
-
-    query = where(query, ^params)
-
-    case Map.has_key?(attrs, :innm_name) do
-      true -> where(query, [i], ilike(i.name, ^("%" <> attrs.innm_name <> "%")))
-      false -> query
-    end
-  end
-
-  defp where_innm_dosage(query, attrs) do
-    params =
-      attrs
-      |> Map.take(~W(innm_dosage_id, innm_dosage_form)a)
-      |> Enum.into([])
-      |> Kernel.++([is_active: true])
-
-    query = where(query, ^params)
-    case Map.has_key?(attrs, :innm_dosage_name) do
-      true -> where(query, [..., id], ilike(id.name, ^("%" <> attrs.innm_dosage_name <> "%")))
-      false -> query
-    end
-  end
-
-  def where_medication(query, attrs) do
-    query = where(query, [..., m], m.is_active)
-    case Map.has_key?(attrs, :medication_code_atc) do
-      true -> where(query, [..., m], m.code_atc == ^attrs.medication_code_atc)
-      false -> query
-    end
+  defp where_attrs(query, attrs) do
+    attrs
+    |> Enum.reduce(
+         query,
+         fn {field, value}, query ->
+           case field do
+             :innm_id -> where(query, [innm], innm.id == ^value)
+             :innm_name -> where(query, [i], ilike(i.name, ^("%" <> value <> "%")))
+             :innm_sctid -> where(query, [innm], innm.sctid == ^value)
+             :innm_dosage_id -> where(query, [_, _, innm_dosage], innm_dosage.id == ^value)
+             :innm_dosage_name -> where(query, [_, _, innm_dosage], ilike(innm_dosage.name, ^("%" <> value <> "%")))
+             :innm_dosage_form -> where(query, [_, _, innm_dosage], innm_dosage.form == ^value)
+             :medication_code_atc -> where(query, [..., med], med.code_atc == ^value)
+             _ -> query
+           end
+         end
+       )
+    |> where([innm, ...], innm.is_active)
+    |> where([_, _, innm_dosage], innm_dosage.is_active)
+    |> where([..., med], med.is_active)
   end
 
   def list_medications(params) do
