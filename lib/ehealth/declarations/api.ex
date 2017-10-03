@@ -22,10 +22,11 @@ defmodule EHealth.Declarations.API do
          division_ids <- list_to_param(related_ids["division_ids"]),
          employee_ids <- list_to_param(related_ids["employee_ids"]),
          legal_entity_ids <- list_to_param(related_ids["legal_entity_ids"]),
+         person_ids <- list_to_param(related_ids["person_ids"]),
          %Page{} = divisions <- Divisions.get_divisions(%{ids: division_ids}),
          %Page{} = employees <- Employees.get_employees(%{ids: employee_ids}),
          %Page{} = legal_entities <- LegalEntities.get_legal_entities(%{ids: legal_entity_ids}),
-         {:ok, persons} <- MPI.all_search(%{ids: list_to_param(related_ids["person_ids"])}, headers),
+         {:ok, persons} <- preload_persons(person_ids, headers),
          relations <- build_indexes(divisions.entries, employees.entries, legal_entities.entries, persons["data"]),
          prepared_data <- merge_related_data(resp["data"], relations),
          declarations <- render_declarations(prepared_data),
@@ -45,6 +46,9 @@ defmodule EHealth.Declarations.API do
     |> elem(1)
     |> Enum.into(%{})
   end
+
+  defp preload_persons([], _), do: {:ok, []}
+  defp preload_persons(ids, headers), do: MPI.all_search(%{ids: ids}, headers)
 
   defp put_related_id(list, id) do
     case Enum.member?(list, id) do

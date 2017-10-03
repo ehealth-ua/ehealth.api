@@ -13,6 +13,19 @@ defmodule EHealth.Web.DeclarationsControllerTest do
       json_response(conn, 401)
     end
 
+    test "by person_id", %{conn: conn} do
+      conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375222")
+      conn = get conn, declarations_path(conn, :index, [person_id: "7cc91a5d-c02f-41e9-b571-1ea4f2375400"])
+      resp = json_response(conn, 200)
+      assert 2 == Enum.count(resp["data"])
+    end
+
+    test "empty by person_id", %{conn: conn} do
+      conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375222")
+      conn = get conn, declarations_path(conn, :index, [person_id: Ecto.UUID.generate()])
+      assert [] = json_response(conn, 200)["data"]
+    end
+
     test "with x-consumer-metadata that contains MSP client_id with empty declarations list", %{conn: conn} do
       conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375222")
       conn = get conn, declarations_path(conn, :index, [edrpou: "37367387"])
