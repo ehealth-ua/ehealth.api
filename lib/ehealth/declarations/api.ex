@@ -47,7 +47,7 @@ defmodule EHealth.Declarations.API do
     |> Enum.into(%{})
   end
 
-  defp preload_persons([], _), do: {:ok, []}
+  defp preload_persons("", _), do: {:ok, %{"data" => []}}
   defp preload_persons(ids, headers), do: MPI.all_search(%{ids: ids}, headers)
 
   defp put_related_id(list, id) do
