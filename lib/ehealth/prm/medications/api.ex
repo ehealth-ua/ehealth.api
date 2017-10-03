@@ -267,6 +267,22 @@ defmodule EHealth.PRM.Medications.API do
     |> PRMRepo.update()
   end
 
+  @doc "Deactivate INNM dosage when it has no active medication"
+  def deactivate_innm_dosage(%INNMDosage{} = entity, headers) do
+    INNMDosage
+    |> where([i], i.id == ^entity.id)
+    |> join(:inner, [id], i in assoc(id, :ingredients_medication))
+    |> where([..., i], i.is_primary)
+    |> join(:inner, [..., i], m in assoc(i, :medication))
+    |> where([..., m], m.is_active)
+    |> select([..., m], count(m.id))
+    |> PRMRepo.one()
+    |> case do
+         0 -> deactivate_medication(entity, headers)
+         _ -> {:error, {:conflict, "INNM Dosage has active Medications"}}
+       end
+  end
+
   # Changeset
 
   def changeset(%Medication{} = medication, attrs) do
