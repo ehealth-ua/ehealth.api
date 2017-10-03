@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "is_active": {
+      "type": "boolean"
+    },
+    "medication_request_allowed": {
+      "type": "boolean"
+    },
+    "reimbursement": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+	  "minLength":1,
+          "description": "fixed or external type of reimbursement (Dictionary REIMBURSEMENT_TYPE)"
+        },
+        "reimbursement_amount": {
+          "type": "number",
+          "minimum": 0,  
+          "description": "Amount to reimburse for one medication_unit by medical_program"
+        }
+      },
+      "required": [
+        "type"
+      ]
+    }
+  }
+}
