@@ -165,7 +165,7 @@ defmodule EHealth.MedicationRequestRequest.DataMapper do
         {:invalid_division, _} ->
           Operation.call_changeset(operation, &add_error/4, [:"division_id",
             "Only employee of active divisions can create medication request!", [validation: :required]])
-        {:invalid_state, message} -> Operation.call_changeset(operation, &add_error/4, [:"", message, []])
+        {:invalid_state, {field, message}} -> Operation.call_changeset(operation, &add_error/4, [field, message, []])
         {:invalid_declarations_count, _} ->
           Operation.call_changeset(operation, &add_error/4, [:"employee_id",
             "Only doctors with an active declaration with the patient can create medication request!", []])

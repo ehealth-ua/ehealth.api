@@ -55,9 +55,12 @@ defmodule EHealth.MedicationRequestRequest.Validations do
 
   def validate_dates(attrs) do
     cond do
-      attrs["ended_at"] < attrs["started_at"] -> {:invalid_state, "Ended date must be >= Started date!"}
-      attrs["started_at"] < attrs["created_at"] -> {:invalid_state, "Started date must be >= Created date!"}
-      attrs["started_at"] < Timex.today() -> {:invalid_state, "Started date must be >= Current date!"}
+      attrs["ended_at"] < attrs["started_at"] ->
+        {:invalid_state, {:"ended_at", "Ended date must be >= Started date!"}}
+      attrs["started_at"] < attrs["created_at"] ->
+        {:invalid_state, {:"started_at", "Started date must be >= Created date!"}}
+      attrs["started_at"] < to_string(Timex.today()) ->
+        {:invalid_state, {:"started_at", "Started date must be >= Current date!"}}
       true ->  {:ok, nil}
     end
   end

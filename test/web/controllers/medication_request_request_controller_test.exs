@@ -103,6 +103,35 @@ defmodule EHealthWeb.MedicationRequestRequestControllerTest do
         |> Map.get("description")
       assert error_msg == "Only doctors with an active declaration with the patient can create medication request!"
     end
+
+    test "render errors when ended_at < started_at", %{conn: conn} do
+      test_request =
+        test_request()
+        |> Map.put("ended_at", to_string(Timex.shift(Timex.today, days: 2)))
+        |> Map.put("started_at", to_string(Timex.shift(Timex.today, days: 3)))
+      conn = post conn, medication_request_request_path(conn, :create), medication_request_request: test_request
+      assert json_response(conn, 422)
+      assert List.first(json_response(conn, 422)["error"]["invalid"])["entry"] == "$.data.ended_at"
+    end
+
+    test "render errors when started_at < created_at", %{conn: conn} do
+      test_request =
+        test_request()
+        |> Map.put("started_at", to_string(Timex.shift(Timex.today, days: 2)))
+        |> Map.put("created_at", to_string(Timex.shift(Timex.today, days: 3)))
+      conn = post conn, medication_request_request_path(conn, :create), medication_request_request: test_request
+      assert json_response(conn, 422)
+      assert List.first(json_response(conn, 422)["error"]["invalid"])["entry"] == "$.data.started_at"
+    end
+
+    test "render errors when started_at < today", %{conn: conn} do
+      test_request =
+        test_request()
+        |> Map.put("started_at", to_string(Timex.shift(Timex.today, days: -2)))
+      conn = post conn, medication_request_request_path(conn, :create), medication_request_request: test_request
+      assert json_response(conn, 422)
+      assert List.first(json_response(conn, 422)["error"]["invalid"])["entry"] == "$.data.started_at"
+    end
   end
 
   defp test_request do
