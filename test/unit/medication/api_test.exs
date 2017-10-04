@@ -65,7 +65,7 @@ defmodule EHealth.Medication.APITest do
       assert innm_dosage.name == "some name"
       assert innm_dosage.form == "some form"
       assert innm_dosage.ingredients == innm_dosage.ingredients
-      assert innm_dosage.type == "INNMDosage"
+      assert innm_dosage.type == "INNM_DOSAGE"
     end
 
     test "with invalid data returns error changeset" do

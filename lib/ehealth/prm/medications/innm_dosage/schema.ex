@@ -4,7 +4,7 @@ defmodule EHealth.PRM.Medications.INNMDosage.Schema do
   alias EHealth.PRM.Medications.Medication.Ingredient, as: MedicationIngredient
   alias EHealth.PRM.Medications.INNMDosage.Ingredient, as: INNMDosageIngredient
 
-  @medication_type "INNMDosage"
+  @medication_type "INNM_DOSAGE"
 
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "medications" do
