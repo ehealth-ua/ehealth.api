@@ -52,6 +52,34 @@ defmodule EHealth.Web.MedicationControllerTest do
       end)
     end
 
+    test "paging", %{conn: conn} do
+      fixture(:list)
+      conn = get conn, medication_path(conn, :drugs), [page: 2, page_size: 1]
+      paging = json_response(conn, 200)["paging"]
+      assert 1 == paging["page_size"]
+      assert 2 == paging["total_entries"]
+      assert 2 == paging["total_pages"]
+      assert 2 == paging["page_number"]
+    end
+
+    test "paging with INNM name", %{conn: conn} do
+      fixture(:list)
+      %{id: innm_id} = insert(:prm, :innm, name: "Будафинол")
+      %{id: dosage_id} = insert(:prm, :innm_dosage, name: "Будафинолон Альтернативний")
+      %{id: dosage_id2} = insert(:prm, :innm_dosage, name: "Будафинолон Альтернативний 2")
+      %{id: med_id} = insert(:prm, :medication, package_qty: 20, package_min_qty: 40, name: "Будафинолодон")
+      %{id: med_id2} = insert(:prm, :medication, package_qty: 20, package_min_qty: 40, name: "Будафинолодон2")
+      insert(:prm, :ingredient_innm_dosage, [parent_id: dosage_id, innm_child_id: innm_id])
+      insert(:prm, :ingredient_innm_dosage, [parent_id: dosage_id2, innm_child_id: innm_id])
+      insert(:prm, :ingredient_medication, [parent_id: med_id, medication_child_id: dosage_id])
+      insert(:prm, :ingredient_medication, [parent_id: med_id2, medication_child_id: dosage_id2])
+
+      conn = get conn, medication_path(conn, :drugs), innm_name: "бу"
+      resp = json_response(conn, 200)
+      assert 3 == length(resp["data"])
+      assert 3 == resp["paging"]["total_entries"]
+    end
+
     test "find by INNM name", %{conn: conn} do
       fixture(:list)
       conn = get conn, medication_path(conn, :drugs), innm_name: "пропі"
@@ -388,21 +416,9 @@ defmodule EHealth.Web.MedicationControllerTest do
 
     insert(:prm, :ingredient_innm_dosage, parent_id: dosage_id5, innm_child_id: innm_id4)
 
-    %{id: med_id1} = insert(:prm, :medication, [
-      name: "Бупропіонол",
-      package_qty: 5,
-      package_min_qty: 20,
-    ])
-    %{id: med_id2} = insert(:prm, :medication, [
-      name: "Діетіламідон",
-      package_qty: 10,
-      package_min_qty: 20
-    ])
-    %{id: med_id3} = insert(:prm, :medication, [
-      name: "Бупропіон Діетіламід",
-      package_qty: 10,
-      package_min_qty: 30
-    ])
+    %{id: med_id1} = insert(:prm, :medication, [package_qty: 5, package_min_qty: 20, name: "Бупропіонол"])
+    %{id: med_id2} = insert(:prm, :medication, [package_qty: 10, package_min_qty: 20, name: "Діетіламідон"])
+    %{id: med_id3} = insert(:prm, :medication, [package_qty: 10, package_min_qty: 30, name: "Бупропіон Діетіламід"])
     %{id: med_id4} = insert(:prm, :medication, [
       name: "Діетіламід Бупропіон",
       package_qty: 10,
@@ -423,7 +439,7 @@ defmodule EHealth.Web.MedicationControllerTest do
     insert(:prm, :ingredient_medication, parent_id: med_id4, medication_child_id: dosage_id3)
     insert(:prm, :ingredient_medication, parent_id: med_id4, medication_child_id: dosage_id2, is_primary: false)
 
-    insert(:prm, :ingredient_medication, parent_id: med_id5, medication_child_id: dosage_id5)
+    insert(:prm, :ingredient_medication, parent_id: med_id5, medication_child_id: dosage_id5, is_primary: false)
 
     %{innms: [innm_id1, innm_id2], innm_dosage: [dosage_id1, dosage_id2]}
   end

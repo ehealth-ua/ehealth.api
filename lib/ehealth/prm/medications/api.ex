@@ -46,30 +46,29 @@ defmodule EHealth.PRM.Medications.API do
   def get_drugs(params) do
     %DrugsSearch{}
     |> cast(params, DrugsSearch.__schema__(:fields))
-    |> search_drugs()
+    |> search_drugs(params)
   end
 
-  defp search_drugs(%{valid?: true, changes: params}) do
-    INNM
+  defp search_drugs(%{valid?: true, changes: attrs}, params) do
+    INNMDosage
     |> distinct(true)
-    # get primary INNMDosage ingredients related to INNM
-    |> join(:inner, [i], ii in assoc(i, :ingredients))
+    # get primary INNMDosage ingredients
+    |> join(:inner, [id], ii in assoc(id, :ingredients))
     |> where([_, ii], ii.is_primary)
-    # get active INNMDosage
-    |> join(:inner, [_, ii], id in assoc(ii, :innm_dosage))
-    |> where([..., id], id.is_active)
+    # get active INNM
+    |> join(:inner, [_, ii], i in assoc(ii, :innm))
     # get primary Medication ingredients related to INNMDosage
-    |> join(:inner, [..., id], idi in assoc(id, :ingredients_medication))
+    |> join(:inner, [id], idi in assoc(id, :ingredients_medication))
     |> where([..., idi], idi.is_primary)
     # get active Medication
     |> join(:inner, [..., idi], m in assoc(idi, :medication))
-    |> where_attrs(params)
+    |> where_attrs(attrs)
     # group by primary keys
     |> group_by([innm], innm.id)
     |> group_by([_, innm_ingrdient], innm_ingrdient.id)
     |> group_by([_, _, innm_dosage], innm_dosage.id)
     |> select(
-         [innm, innm_ingrdient, innm_dosage, _, medication],
+         [innm_dosage, innm_ingredient, innm, _, medication],
          %{
            innm_id: innm.id,
            innm_name: innm.name,
@@ -78,14 +77,14 @@ defmodule EHealth.PRM.Medications.API do
            innm_dosage_id: innm_dosage.id,
            innm_dosage_name: innm_dosage.name,
            innm_dosage_form: innm_dosage.form,
-           innm_dosage_dosage: innm_ingrdient.dosage,
+           innm_dosage_dosage: innm_ingredient.dosage,
            packages:
              fragment("array_agg((?, ?, ?))", medication.container, medication.package_qty, medication.package_min_qty),
          }
        )
-    |> PRMRepo.paginate()
+    |> PRMRepo.paginate(params)
   end
-  defp search_drugs(changeset) do
+  defp search_drugs(changeset, _params) do
     changeset
   end
 
@@ -95,19 +94,19 @@ defmodule EHealth.PRM.Medications.API do
          query,
          fn {field, value}, query ->
            case field do
-             :innm_id -> where(query, [innm], innm.id == ^value)
-             :innm_name -> where(query, [i], ilike(i.name, ^("%" <> value <> "%")))
-             :innm_sctid -> where(query, [innm], innm.sctid == ^value)
-             :innm_dosage_id -> where(query, [_, _, innm_dosage], innm_dosage.id == ^value)
-             :innm_dosage_name -> where(query, [_, _, innm_dosage], ilike(innm_dosage.name, ^("%" <> value <> "%")))
-             :innm_dosage_form -> where(query, [_, _, innm_dosage], innm_dosage.form == ^value)
+             :innm_id -> where(query, [_, _, innm], innm.id == ^value)
+             :innm_name -> where(query, [_, _, innm], ilike(innm.name, ^("%" <> value <> "%")))
+             :innm_sctid -> where(query, [_, _, innm], innm.sctid == ^value)
+             :innm_dosage_id -> where(query, [innm_dosage], innm_dosage.id == ^value)
+             :innm_dosage_name -> where(query, [innm_dosage], ilike(innm_dosage.name, ^("%" <> value <> "%")))
+             :innm_dosage_form -> where(query, [innm_dosage], innm_dosage.form == ^value)
              :medication_code_atc -> where(query, [..., med], med.code_atc == ^value)
              _ -> query
            end
          end
        )
-    |> where([innm, ...], innm.is_active)
-    |> where([_, _, innm_dosage], innm_dosage.is_active)
+    |> where([innm_dosage, ...], innm_dosage.is_active)
+    |> where([_, _, innm], innm.is_active)
     |> where([..., med], med.is_active)
   end
 
