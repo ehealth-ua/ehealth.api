@@ -9,34 +9,6 @@ defmodule EHealth.Validators.SchemaMapper do
 
   require Logger
 
-  def prepare_legal_entity_schema(%Root{} = nex_schema) do
-    prepare_schema(nex_schema, :legal_entity)
-  end
-
-  def prepare_divisions_schema(%Root{} = nex_schema) do
-    prepare_schema(nex_schema, :divisions)
-  end
-
-  def prepare_employee_request_schema(%Root{} = nex_schema) do
-    prepare_schema(nex_schema, :employee_request)
-  end
-
-  def prepare_declaration_request_schema(%Root{} = nex_schema) do
-    prepare_schema(nex_schema, :declaration_request)
-  end
-
-  def prepare_employee_additional_info_schema(%Root{} = nex_schema) do
-    prepare_schema(nex_schema, :employee_additional_info)
-  end
-
-  def prepare_medication_schema(%Root{} = nex_schema) do
-    prepare_schema(nex_schema, :medication)
-  end
-
-  def prepare_innm_dosage_schema(%Root{} = nex_schema) do
-    prepare_schema(nex_schema, :innm_dosage)
-  end
-
   def prepare_schema(%Root{schema: schema} = nex_schema, type) do
     schema =
       %{"is_active" => true}

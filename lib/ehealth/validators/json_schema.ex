@@ -18,36 +18,33 @@ defmodule EHealth.Validators.JsonSchema do
   use_schema :medication, "specs/json_schemas/new_medication_schema.json"
   use_schema :innm_dosage, "specs/json_schemas/new_innm_dosage_schema.json"
 
-  def validate(:innm_dosage = schema, attrs) do
-    do_validate(schema, :prepare_innm_dosage_schema, attrs)
+  @schemas_with_dictionaries [
+    :legal_entity,
+    :innm_dosage,
+    :medication,
+    :declaration_request,
+    :division,
+    :employee_request
+  ]
+
+  def validate(schema, attrs) when schema in @schemas_with_dictionaries do
+    validate_with_dictionaries(schema, schema, attrs)
   end
-  def validate(:medication = schema, attrs) do
-    do_validate(schema, :prepare_medication_schema, attrs)
-  end
-  def validate(:legal_entity = schema, attrs) do
-    do_validate(schema, :prepare_legal_entity_schema, attrs)
-  end
-  def validate(:declaration_request = schema, attrs) do
-    do_validate(schema, :prepare_declaration_request_schema, attrs)
-  end
-  def validate(:division = schema, attrs) do
-    do_validate(schema, :prepare_divisions_schema, attrs)
-  end
-  def validate(:employee_request = schema, attrs) do
-    do_validate(schema, :prepare_employee_request_schema, attrs)
-  end
+
   def validate(schema, attrs) when schema in [:employee_doctor, :employee_pharmacist] do
-    do_validate(schema, :prepare_employee_additional_info_schema, attrs)
+    validate_with_dictionaries(schema, :employee_additional_info, attrs)
   end
+
   def validate(schema_name, attrs) do
     @schemas
     |> Keyword.get(schema_name)
     |> validate_schema(attrs)
   end
 
-  defp do_validate(schema_name, validator, attrs) do
-    SchemaMapper
-    |> apply(validator, [Keyword.get(@schemas, schema_name)])
+  defp validate_with_dictionaries(schema_name, type, attrs) do
+    @schemas
+    |> Keyword.get(schema_name)
+    |> SchemaMapper.prepare_schema(type)
     |> validate_schema(attrs)
   end
 end
