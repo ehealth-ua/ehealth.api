@@ -14,6 +14,7 @@ defmodule EHealth.PRM.Medications.API do
   alias EHealth.PRM.Medications.INNM.Search, as: INNMSearch
   alias EHealth.PRM.Medications.INNMDosage.Schema, as: INNMDosage
   alias EHealth.PRM.Medications.INNMDosage.Search, as: INNMSearch
+  alias EHealth.PRM.Medications.Medication.Ingredient, as: MedicationIngredient
   alias EHealth.PRM.Medications.Medication.Schema, as: Medication
   alias EHealth.PRM.Medications.Medication.Search, as: MedicationSearch
   alias EHealth.PRM.Medications.DrugsSearch
@@ -216,6 +217,28 @@ defmodule EHealth.PRM.Medications.API do
     entity
     |> PRMRepo.get_by!([id: id, type: entity.type(), is_active: true])
     |> PRMRepo.preload(:ingredients)
+  end
+
+  def get_medication_for_medication_request_request(innm_id, _program_id) do
+    innm_id
+    |> get_medication_for_medication_request_request_query()
+    |> PRMRepo.all()
+  end
+
+  # def maybe_validate_medication_program_for_medication_request_request(query, nil), do: query
+  # def maybe_validate_medication_program_for_medication_request_request(query, program_id) do
+  # end
+
+  def get_medication_for_medication_request_request_query(innm_id) do
+    from innm in INNMDosage,
+      inner_join: ing in MedicationIngredient, on: ing.medication_child_id == ^innm_id,
+      inner_join: med in Medication, on: ing.parent_id == med.id,
+      where: ing.is_primary,
+      where: innm.id == ^innm_id,
+      where: innm.type == ^INNMDosage.type(),
+      where: innm.is_active,
+      where: med.is_active,
+      select: %{id: innm.id, medication_id: med.id, package_qty: med.package_qty, package_min_qty: med.package_min_qty}
   end
 
   # Create

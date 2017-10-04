@@ -6,7 +6,11 @@ defmodule EHealthWeb.MedicationRequestRequestControllerTest do
   @legal_entity_id "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
 
   def fixture(:medication_request_request) do
-    {:ok, medication_request_request} = MedicationRequestRequests.create(test_request(),
+    medication_id = create_medications_structure()
+    test_request =
+      test_request()
+      |> Map.put("medication_id", medication_id)
+    {:ok, medication_request_request} = MedicationRequestRequests.create(test_request,
                                                                          "7488a646-e31f-11e4-aace-600308960662",
                                                                          @legal_entity_id)
     medication_request_request
@@ -31,6 +35,7 @@ defmodule EHealthWeb.MedicationRequestRequestControllerTest do
       conn = get conn, medication_request_request_path(conn, :index, %{"legal_entity_id" => @legal_entity_id})
       assert json_response(conn, 200)["data"] == []
     end
+
     test "lists all medication_request_requests with data", %{conn: conn} do
       mrr = fixture(:medication_request_request)
       conn = get conn, medication_request_request_path(conn, :index, %{"employee_id" => mrr.data.employee_id,
@@ -41,16 +46,21 @@ defmodule EHealthWeb.MedicationRequestRequestControllerTest do
 
   describe "create medication_request_request" do
     test "render medication_request_request when data is valid", %{conn: conn} do
-      conn1 = post conn, medication_request_request_path(conn, :create), medication_request_request: test_request()
+      medication_id = create_medications_structure()
+
+      test_request =
+        test_request()
+        |> Map.put("medication_id", medication_id)
+      conn1 = post conn, medication_request_request_path(conn, :create), medication_request_request: test_request
       assert %{"id" => id} = json_response(conn1, 201)["data"]
 
       conn = get conn, medication_request_request_path(conn, :show, id)
       assert json_response(conn, 200)["data"]["data"] ==  %{
-          "created_at" => "2020-09-22", "dispense_valid_from" => "2017-08-17",
-          "dispense_valid_to" => "2017-09-16", "division_id" => "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
+          "created_at" => "2020-09-22", "dispense_valid_from" => "2020-09-25",
+          "dispense_valid_to" => "2020-10-25", "division_id" => "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
           "employee_id" => "7488a646-e31f-11e4-aace-600308960662", "ended_at" => "2020-10-22",
           "legal_entity_id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375552",
-          "medication_id" => "1349a693-4db1-4a3f-9ac6-8c2f9e541982", "medication_qty" => 10,
+          "medication_id" =>  medication_id, "medication_qty" => 10,
           "person_id" => "585044f5-1272-4bca-8d41-8440eefe7d26", "started_at" => "2020-09-22"
         }
     end
@@ -132,6 +142,92 @@ defmodule EHealthWeb.MedicationRequestRequestControllerTest do
       assert json_response(conn, 422)
       assert List.first(json_response(conn, 422)["error"]["invalid"])["entry"] == "$.data.started_at"
     end
+    test "render errors when medication doesn't exists", %{conn: conn} do
+      test_request =
+        test_request()
+        |> Map.put("medication_id", "575041f5-1272-4bca-8d41-8440eefe7d26")
+      conn = post conn, medication_request_request_path(conn, :create), medication_request_request: test_request
+      assert json_response(conn, 422)
+      error_msg =
+        conn
+        |> json_response(422)
+        |> get_in(["error", "invalid"])
+        |> List.first
+        |> Map.get("rules")
+        |> List.first
+        |> Map.get("description")
+      assert error_msg == "Not found any medications allowed for create medication request for this medical program!"
+    end
+
+    test "render errors when medication_qty is invalid", %{conn: conn} do
+      medication_id = create_medications_structure()
+
+      test_request =
+        test_request()
+        |> Map.put("medication_id", medication_id)
+        |> Map.put("medication_qty", 7)
+
+      conn = post conn, medication_request_request_path(conn, :create), medication_request_request: test_request
+      assert json_response(conn, 422)
+      error_msg =
+        conn
+        |> json_response(422)
+        |> get_in(["error", "invalid"])
+        |> List.first
+        |> Map.get("rules")
+        |> List.first
+        |> Map.get("description")
+      assert error_msg ==
+        "The amount of medications in medication request must be divisible to package minimum quantity"
+    end
+  end
+
+
+  defp create_medications_structure do
+    %{id: dosage_id1} = insert(:prm, :innm_dosage, name: "Бупропіон Форте")
+    %{id: dosage_id2} = insert(:prm, :innm_dosage, name: "Бупропіон Лайт")
+    %{id: dosage_id3} = insert(:prm, :innm_dosage, name: "Діетіламід Форте")
+    %{id: dosage_id4} = insert(:prm, :innm_dosage, name: "Діетіламід Лайт")
+    %{id: dosage_id5} = insert(:prm, :innm_dosage, name: "Неактивний Лайт")
+
+    %{id: med_id1} = insert(:prm, :medication, [
+      name: "Бупропіонол",
+      package_qty: 20,
+      package_min_qty: 5,
+    ])
+    %{id: med_id2} = insert(:prm, :medication, [
+      name: "Діетіламідон",
+      package_qty: 10,
+      package_min_qty: 2
+    ])
+    %{id: med_id3} = insert(:prm, :medication, [
+      name: "Бупропіон Діетіламід",
+      package_qty: 4,
+      package_min_qty: 1
+    ])
+    %{id: med_id4} = insert(:prm, :medication, [
+      name: "Діетіламід Бупропіон",
+      package_qty: 40,
+      package_min_qty: 10,
+      code_atc: "Z00CA01",
+    ])
+    %{id: med_id5} = insert(:prm, :medication, name: "Неактивний мед")
+
+    insert(:prm, :ingredient_medication, parent_id: med_id1, medication_child_id: dosage_id1)
+    insert(:prm, :ingredient_medication, parent_id: med_id1, medication_child_id: dosage_id2, is_primary: false)
+
+    insert(:prm, :ingredient_medication, parent_id: med_id2, medication_child_id: dosage_id3)
+    insert(:prm, :ingredient_medication, parent_id: med_id2, medication_child_id: dosage_id4, is_primary: false)
+
+    insert(:prm, :ingredient_medication, parent_id: med_id3, medication_child_id: dosage_id1)
+    insert(:prm, :ingredient_medication, parent_id: med_id3, medication_child_id: dosage_id4, is_primary: false)
+
+    insert(:prm, :ingredient_medication, parent_id: med_id4, medication_child_id: dosage_id3)
+    insert(:prm, :ingredient_medication, parent_id: med_id4, medication_child_id: dosage_id2, is_primary: false)
+
+    insert(:prm, :ingredient_medication, parent_id: med_id5, medication_child_id: dosage_id5)
+
+    dosage_id1
   end
 
   defp test_request do

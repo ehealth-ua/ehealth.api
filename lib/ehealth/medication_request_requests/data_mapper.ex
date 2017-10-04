@@ -14,7 +14,7 @@ defmodule EHealth.MedicationRequestRequest.Operation do
     operation.changeset
   end
 
-  def add_proxy(%Operation{} = operation, key, map) when is_map(map) do
+  def add_proxy(%Operation{} = operation, key, map) when is_map(map) or is_list(map) do
     Map.put(operation, :proxy, Map.put(operation.proxy, key, map))
   end
 
@@ -58,9 +58,9 @@ defmodule EHealth.MedicationRequestRequest.DataMapper do
       |> validate_foreign_key(data, &get_employee/1, &validate_employee/2, key: :employee)
       |> validate_foreign_key(data, &get_person/1, &validate_person/2, key: :person)
       |> validate_foreign_key(data, &get_division/1, &validate_division/2, key: :division)
-      |> validate_data(data, &validate_declaration_existance/2)
-      |> validate_data(data, &validate_medical_program/2)
       |> validate_data(data, &validate_dates/2)
+      |> validate_data(data, &validate_declaration_existance/2)
+      |> validate_data(data, &validate_medication_id/2, key: :medication)
     put_embed(changeset, :data, operation.changeset)
   end
 
@@ -95,6 +95,10 @@ defmodule EHealth.MedicationRequestRequest.DataMapper do
     Validations.validate_declaration_existance(operation.proxy.employee, operation.proxy.person)
   end
 
+  defp validate_medication_id(_operation, data) do
+    Validations.validate_medication_id(data["medication_id"], data["medication_qty"])
+  end
+
   defp validate_person(_operation, person) do
     Validations.validate_person(person)
   end
@@ -105,10 +109,6 @@ defmodule EHealth.MedicationRequestRequest.DataMapper do
 
   def validate_division(operation, division) do
     Validations.validate_divison(division, operation.proxy.legal_entity.id, operation.proxy.employee)
-  end
-
-  defp validate_medical_program(_operation, data) do
-    Validations.validate_medical_program(data["medical_program_id"])
   end
 
   defp validate_dates(_operation, data) do
@@ -169,6 +169,12 @@ defmodule EHealth.MedicationRequestRequest.DataMapper do
         {:invalid_declarations_count, _} ->
           Operation.call_changeset(operation, &add_error/4, [:"employee_id",
             "Only doctors with an active declaration with the patient can create medication request!", []])
+        {:invalid_medication, _} ->
+          Operation.call_changeset(operation, &add_error/4, [:"medication_id",
+              "Not found any medications allowed for create medication request for this medical program!", []])
+        {:invalid_medication_qty, _} ->
+          Operation.call_changeset(operation, &add_error/4, [:"medication_qty",
+              "The amount of medications in medication request must be divisible to package minimum quantity", []])
       end
     %{operation| valid?: false}
   end

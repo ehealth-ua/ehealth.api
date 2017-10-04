@@ -3,6 +3,7 @@ defmodule EHealth.MedicationRequestRequest.Validations do
 
   alias EHealth.Declarations.API, as: DeclarationsAPI
   alias EHealth.Validators.JsonSchema
+  alias EHealth.PRM.Medications.API, as: MedicationsAPI
 
   def validate_schema(params) do
     JsonSchema.validate(:medication_request_request, params)
@@ -48,9 +49,26 @@ defmodule EHealth.MedicationRequestRequest.Validations do
     end
   end
 
-  def validate_medical_program(nil), do: {:ok, nil}
-  def validate_medical_program(_medical_program_id) do
-    {:ok, nil}
+  def validate_medication_id(medication_id, medication_qty) do
+    with medications <- MedicationsAPI.get_medication_for_medication_request_request(medication_id, nil),
+         {true, :medication} <- {length(medications) > 0, :medication},
+         {true, :medication_qty} <- validate_medication_qty(medications, medication_qty)
+     do
+      {:ok, medications}
+    else
+      {false, :medication} -> {:invalid_medication, nil}
+      {false, :medication_qty} -> {:invalid_medication_qty, nil}
+    end
+  end
+
+  defp validate_medication_qty(medications, medication_qty) do
+    Enum.reduce_while(medications, true, fn med, _ ->
+      if rem(medication_qty, med.package_min_qty) == 0 do
+        {:cont, {true, :medication_qty}}
+      else
+        {:halt, {false, :medication_qty}}
+      end
+    end)
   end
 
   def validate_dates(attrs) do
@@ -61,6 +79,10 @@ defmodule EHealth.MedicationRequestRequest.Validations do
         {:invalid_state, {:"started_at", "Started date must be >= Created date!"}}
       attrs["started_at"] < to_string(Timex.today()) ->
         {:invalid_state, {:"started_at", "Started date must be >= Current date!"}}
+      attrs["dispense_valid_from"] < attrs["started_at"] ->
+        {:invalid_state, {:"dispense_valid_from", "Dispense valid from date must be >= Started date!"}}
+      attrs["dispense_valid_to"] < attrs["dispense_valid_from"] ->
+        {:invalid_state, {:"dispense_valid_from", "Dispense valid to date must be >= Dispense valid from date!"}}
       true ->  {:ok, nil}
     end
   end
