@@ -298,6 +298,8 @@ medication_dispense_id | uuid | not null
 medication_id | uuid | not null
 medication_qty | number | not null
 sell_price | number | not null
+sell_amount | number | not null
+discount_amount | number | not null
 reimbursement_amount | number | not null
 
 [medication_dispense_status_hstr]
