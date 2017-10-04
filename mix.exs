@@ -53,7 +53,7 @@ defmodule EHealth.Mixfile do
      {:poison, "~> 3.1"},
      {:plug, "~> 1.3.5"},
      {:cowboy, "~> 1.1"},
-     {:httpoison, "~> 0.12.0"},
+     {:httpoison, "~> 0.12"},
      {:hackney, "== 1.8.0", override: true}, # fix for https://github.com/edgurgel/httpoison/issues/264
      {:postgrex, ">= 0.0.0"},
      {:ecto, "~> 2.1"},
