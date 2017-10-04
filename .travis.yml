@@ -12,9 +12,9 @@ addons:
     packages:
       - postgresql-9.5-postgis-2.3
 elixir:
-  - 1.4.2
+  - 1.5.1
 otp_release:
-  - 19.2
+  - 20.0.4
 notifications:
   slack:
     rooms:

@@ -5,6 +5,7 @@ defmodule EHealth.Utils.Helpers do
   def get_assoc_by_func(assoc_id, fun) do
     case fun.() do
       nil -> {:assoc_error, assoc_id}
+      {:error, _} -> {:assoc_error, assoc_id}
       assoc -> {:ok, assoc}
     end
   end

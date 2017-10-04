@@ -40,7 +40,7 @@ defmodule EHealthWeb.MedicationRequestRequestControllerTest do
   end
 
   describe "create medication_request_request" do
-    test "renders medication_request_request when data is valid", %{conn: conn} do
+    test "render medication_request_request when data is valid", %{conn: conn} do
       conn1 = post conn, medication_request_request_path(conn, :create), medication_request_request: test_request()
       assert %{"id" => id} = json_response(conn1, 201)["data"]
 
@@ -55,9 +55,53 @@ defmodule EHealthWeb.MedicationRequestRequestControllerTest do
         }
     end
 
-    test "renders errors when data is invalid", %{conn: conn} do
+    test "render errors when data is invalid", %{conn: conn} do
       conn = post conn, medication_request_request_path(conn, :create), medication_request_request: %{}
       assert json_response(conn, 422)["errors"] != %{}
+    end
+
+    test "render errors when person_id is invalid", %{conn: conn} do
+      test_request =
+        test_request()
+        |> Map.put("person_id", "585041f5-1272-4bca-8d41-8440eefe7d26")
+      conn = post conn, medication_request_request_path(conn, :create), medication_request_request: test_request
+      assert json_response(conn, 422)
+      assert List.first(json_response(conn, 422)["error"]["invalid"])["entry"] == "$.data.person_id"
+    end
+
+    test "render errors when employee_id is invalid", %{conn: conn} do
+      test_request =
+        test_request()
+        |> Map.put("employee_id", "585041f5-1272-4bca-8d41-8440eefe7d26")
+      conn = post conn, medication_request_request_path(conn, :create), medication_request_request: test_request
+      assert json_response(conn, 422)
+      assert List.first(json_response(conn, 422)["error"]["invalid"])["entry"] == "$.data.employee_id"
+    end
+
+    test "render errors when division_id is invalid", %{conn: conn} do
+      test_request =
+        test_request()
+        |> Map.put("division_id", "585041f5-1272-4bca-8d41-8440eefe7d26")
+      conn = post conn, medication_request_request_path(conn, :create), medication_request_request: test_request
+      assert json_response(conn, 422)
+      assert List.first(json_response(conn, 422)["error"]["invalid"])["entry"] == "$.data.division_id"
+    end
+
+    test "render errors when declaration doesn't exists", %{conn: conn} do
+      test_request =
+        test_request()
+        |> Map.put("person_id", "575041f5-1272-4bca-8d41-8440eefe7d26")
+      conn = post conn, medication_request_request_path(conn, :create), medication_request_request: test_request
+      assert json_response(conn, 422)
+      error_msg =
+        conn
+        |> json_response(422)
+        |> get_in(["error", "invalid"])
+        |> List.first
+        |> Map.get("rules")
+        |> List.first
+        |> Map.get("description")
+      assert error_msg == "Only doctors with an active declaration with the patient can create medication request!"
     end
   end
 

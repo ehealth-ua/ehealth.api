@@ -395,6 +395,9 @@ defmodule EHealth.MockServer do
   end
 
   # MPI
+  get "/persons/585041f5-1272-4bca-8d41-8440eefe7d26" do
+    render_404(conn)
+  end
   get "/persons/:id" do
     render(get_person(id), conn, 200)
   end

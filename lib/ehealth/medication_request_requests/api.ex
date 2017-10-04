@@ -112,5 +112,4 @@ defmodule EHealth.MedicationRequestRequests do
     |> cast(attrs, [:data, :number, :status, :inserted_by, :updated_by])
     |> validate_required([:data, :number, :status, :inserted_by, :updated_by])
   end
-
 end
