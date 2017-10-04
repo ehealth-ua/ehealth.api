@@ -51,7 +51,7 @@ defmodule EHealth.Mixfile do
      {:timex, ">= 3.1.15"},
      {:logger_json, "~> 0.5.0"},
      {:poison, "~> 3.1"},
-     {:plug, "~> 1.3.5"},
+     {:plug, "~> 1.4"},
      {:cowboy, "~> 1.1"},
      {:httpoison, "~> 0.12"},
      {:hackney, "== 1.8.0", override: true}, # fix for https://github.com/edgurgel/httpoison/issues/264
