@@ -4,12 +4,75 @@ defmodule EHealthWeb.ProgramMedicationControllerTest do
   use EHealth.Web.ConnCase, async: true
 
   alias Ecto.UUID
+  alias ExMachina.Sequence
   alias EHealth.PRM.Medications.Program.Schema, as: ProgramMedication
 
   describe "index" do
     test "empty program_medications list", %{conn: conn} do
       conn = get conn, program_medication_path(conn, :index)
       assert json_response(conn, 200)["data"] == []
+    end
+  end
+
+  describe "search" do
+    setup %{conn: conn} do
+      Sequence.reset
+
+      innm_dosage1 = insert(:prm, :innm_dosage, name: "Резерпін")
+      medication1 = insert(:prm, :medication, name: "Резерпін 20 мг")
+      medical_program1 = insert(:prm, :medical_program, name: "Доступні ліки")
+
+      insert(:prm, :ingredient_medication, [parent_id: medication1.id, medication_child_id: innm_dosage1.id])
+      insert(:prm, :program_medication, [medication_id: medication1.id, medical_program_id: medical_program1.id])
+
+      innm_dosage = insert(:prm, :innm_dosage, name: "Сульпірид")
+      medication = insert(:prm, :medication, name: "Сульпірид 10 мг")
+      medical_program = insert(:prm, :medical_program, name: "Щастя в кожен дім")
+
+      insert(:prm, :ingredient_medication, [parent_id: medication.id, medication_child_id: innm_dosage.id])
+      insert(:prm, :program_medication, [medication_id: medication.id, medical_program_id: medical_program.id])
+
+      {:ok, %{innm_dosage: innm_dosage, medication: medication, medical_program: medical_program, conn: conn}}
+    end
+
+    test "search by medical_program_id", %{conn: conn, medical_program: medical_program} do
+      conn = get conn, program_medication_path(conn, :index), medical_program_id: medical_program.id
+      data = json_response(conn, 200)["data"]
+
+      assert 1 == length(data)
+      assert medical_program.id == data |> List.first() |> get_in(~W(medical_program id))
+    end
+
+    test "search by medical_program_name", %{conn: conn, medical_program: medical_program} do
+      conn = get conn, program_medication_path(conn, :index), medical_program_name: medical_program.name
+      data = json_response(conn, 200)["data"]
+
+      assert 1 == length(data)
+      assert medical_program.id == data |> List.first() |> get_in(~W(medical_program id))
+    end
+
+    test "search by innm_dosage_id", %{conn: conn, medical_program: medical_program, innm_dosage: innm_dosage} do
+      conn = get conn, program_medication_path(conn, :index), innm_dosage_id: innm_dosage.id
+      data = json_response(conn, 200)["data"]
+
+      assert 1 == length(data)
+      assert medical_program.id == data |> List.first() |> get_in(~W(medical_program id))
+    end
+
+    test "search by innm_dosage_name", %{conn: conn, medical_program: medical_program, innm_dosage: innm_dosage} do
+      conn = get conn, program_medication_path(conn, :index), innm_dosage_name: innm_dosage.name
+      data = json_response(conn, 200)["data"]
+
+      assert 1 == length(data)
+      assert medical_program.id == data |> List.first() |> get_in(~W(medical_program id))
+    end
+
+    test "search by medication_name", %{conn: conn, medical_program: medical_program, medication: medication} do
+      conn = get conn, program_medication_path(conn, :index), medication_name: medication.name
+      data = json_response(conn, 200)["data"]
+
+      assert 1 == length(data)
+      assert medical_program.id == data |> List.first() |> get_in(~W(medical_program id))
     end
   end
 

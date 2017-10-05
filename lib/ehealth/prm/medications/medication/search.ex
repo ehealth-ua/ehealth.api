@@ -3,14 +3,12 @@ defmodule EHealth.PRM.Medications.Medication.Search do
 
   use Ecto.Schema
 
-  alias EHealth.Ecto.StringLike
-
   @primary_key false
   schema "medication_search" do
     field :innm_dosage_id, Ecto.UUID
-    field :innm_dosage_name, StringLike
+    field :innm_dosage_name, :string
     field :id, Ecto.UUID
-    field :name, StringLike
+    field :name, :string
     field :form, :string
     field :type, :string
     field :is_active, :boolean

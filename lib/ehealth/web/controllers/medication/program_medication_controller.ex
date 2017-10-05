@@ -3,14 +3,16 @@ defmodule EHealth.Web.ProgramMedicationController do
 
   use EHealth.Web, :controller
 
+  alias Scrivener.Page
   alias EHealth.PRM.Medications.API, as: MedicationsAPI
   alias EHealth.PRM.Medications.Program.Schema, as: ProgramMedication
 
   action_fallback EHealth.Web.FallbackController
 
   def index(conn, params) do
-    program_medications = MedicationsAPI.list_program_medications(params)
-    render(conn, "index.json", program_medications: program_medications)
+    with %Page{} = paging <- MedicationsAPI.list_program_medications(params) do
+      render(conn, "index.json", program_medications: paging.entries, paging: paging)
+    end
   end
 
   def create(conn, params) do
