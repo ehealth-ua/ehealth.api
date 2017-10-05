@@ -13,12 +13,12 @@
       "properties": {
         "type": {
           "type": "string",
-	  "minLength":1,
+          "minLength": 1,
           "description": "fixed or external type of reimbursement (Dictionary REIMBURSEMENT_TYPE)"
         },
         "reimbursement_amount": {
           "type": "number",
-          "minimum": 0,  
+          "minimum": 0,
           "description": "Amount to reimburse for one medication_unit by medical_program"
         }
       },

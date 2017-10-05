@@ -5,21 +5,21 @@
     "medication_id": {
       "type": "string",
       "pattern": "^[0-9a-f]{8}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{12}$",
-      "minLength":1,
+      "minLength": 1,
       "description": "Medication Identifier"
     },
     "medical_program_id": {
       "type": "string",
       "pattern": "^[0-9a-f]{8}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{12}$",
-      "minLength":1,
+      "minLength": 1,
       "description": "Medical program Identifier"
     },
-    “reimbursement": {
+    "reimbursement": {
       "type": "object",
       "properties": {
         "type": {
           "type": "string",
-	  "minLength":1,
+          "minLength": 1,
           "description": "fixed or external type of reimbursement"
         },
         "reimbursement_amount": {
@@ -31,12 +31,12 @@
       "required": [
         "type"
       ],
-        "additionalProperties": false
+      "additionalProperties": false
     }
   },
   "required": [
     "medication_id",
     "medical_program_id",
-    “reimbursement"
+    "reimbursement"
   ]
 }
