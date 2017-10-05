@@ -77,6 +77,11 @@ defmodule EHealthWeb.ProgramMedicationControllerTest do
   end
 
   describe "create program_medication" do
+    setup %{conn: conn} do
+      Sequence.reset
+      {:ok, %{conn: conn}}
+    end
+
     test "renders program_medication when data is valid", %{conn: conn} do
       med_id = insert(:prm, :medication).id
       insert(:prm, :ingredient_medication, [parent_id: med_id, medication_child_id: med_id])
