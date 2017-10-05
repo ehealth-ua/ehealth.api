@@ -1,0 +1,34 @@
+{
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string"
+      },
+      "sctid": {
+        "type": "string",
+        "description": "innm CNOMED code"
+      },
+      "name": {
+        "type": "string",
+        "description": "innm local name"
+      },
+      "name_original": {
+        "type": "string",
+        "description": "innm original name"
+      },
+      "is_active": {
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "id",
+      "sctid",
+      "name",
+      "name_original",
+      "is_active"
+    ],
+    "additionalProperties": false
+  }
+}
