@@ -67,15 +67,11 @@ defmodule EHealth.DeclarationRequest.API do
     query = from dr in DeclarationRequest,
       order_by: [desc: :inserted_at]
 
-    page_params = Map.merge(%{
-      page_size: Confex.fetch_env!(:ehealth, :declaration_requests_per_page)
-    }, params)
-
     query
     |> filter_by_employee_id(params)
     |> filter_by_legal_entity_id(params)
     |> filter_by_status(params)
-    |> Repo.paginate(page_params)
+    |> Repo.paginate(params)
   end
 
   defp filter_by_legal_entity_id(query, %{"legal_entity_id" => legal_entity_id}) do

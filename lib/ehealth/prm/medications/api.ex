@@ -21,8 +21,6 @@ defmodule EHealth.PRM.Medications.API do
   alias EHealth.Validators.JsonSchema
   alias EHealth.PRM.Medications.Validator
 
-  @page_size 50
-
   @type_innm_dosage INNMDosage.type()
   @type_medication Medication.type()
 
@@ -116,7 +114,7 @@ defmodule EHealth.PRM.Medications.API do
 
     %MedicationSearch{}
     |> cast(params, MedicationSearch.__schema__(:fields))
-    |> search(params, Medication, @page_size)
+    |> search(params, Medication)
   end
 
   def list_innm_dosages(params) do
@@ -124,7 +122,7 @@ defmodule EHealth.PRM.Medications.API do
 
     %INNMSearch{}
     |> cast(params, INNMSearch.__schema__(:fields))
-    |> search(params, INNMDosage, @page_size)
+    |> search(params, INNMDosage)
   end
 
   def get_search_query(Medication, changes) do
@@ -338,7 +336,7 @@ defmodule EHealth.PRM.Medications.API do
   def list_innms(params) do
     %INNMSearch{}
     |> cast(params, INNMSearch.__schema__(:fields))
-    |> search(params, INNM, @page_size)
+    |> search(params, INNM)
   end
 
   @doc false

@@ -9,15 +9,13 @@ defmodule EHealth.PRM.Search do
 
       alias EHealth.PRMRepo
 
-      def search(%Ecto.Changeset{valid?: true, changes: changes}, search_params, entity, default_limit) do
-        params = Map.merge(%{page_size: default_limit}, search_params)
-
+      def search(%Ecto.Changeset{valid?: true, changes: changes}, search_params, entity) do
         entity
         |> get_search_query(changes)
-        |> PRMRepo.paginate(params)
+        |> PRMRepo.paginate(search_params)
       end
 
-      def search(%Ecto.Changeset{valid?: false} = changeset, _search_params, _entity, _default_limit) do
+      def search(%Ecto.Changeset{valid?: false} = changeset, _search_params, _entity) do
         {:error, changeset}
       end
 

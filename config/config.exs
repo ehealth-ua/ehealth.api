@@ -5,14 +5,7 @@ config :ehealth,
   env: Mix.env(),
   namespace: EHealth,
   ecto_repos: [EHealth.Repo, EHealth.PRMRepo],
-  run_declaration_request_terminator: true,
-  employee_requests_per_page: {:system, :integer, "EMPLOYEE_REQUESTS_PER_PAGE", 50},
-  declaration_requests_per_page: {:system, :integer, "DECLARATION_REQUESTS_PER_PAGE", 50},
-  legal_entities_per_page: {:system, :integer, "LEGAL_ENTITIES_PER_PAGE", 50},
-  employees_per_page: {:system, :integer, "EMPLOYEES_PER_PAGE", 50},
-  divisions_per_page: {:system, :integer, "DIVISIONS_PER_PAGE", 15},
-  medical_programs_per_page: {:system, :integer, "MEDICAL_PROGRAMS_PER_PAGE", 50},
-  medication_dispenses_per_page: {:system, :integer, "MEDICATION_DISPENSES_PER_PAGE", 50}
+  run_declaration_request_terminator: true
 
 # Configures the endpoint
 config :ehealth, EHealth.Web.Endpoint,

@@ -90,7 +90,7 @@ defmodule EHealth.PRM.LegalEntities do
   def get_legal_entities(params \\ %{}) do
     %Search{}
     |> changeset(params)
-    |> search(params, LegalEntity, Confex.get_env(:ehealth, :legal_entities_per_page))
+    |> search(params, LegalEntity)
   end
 
   def get_search_query(LegalEntity = entity, %{ids: _ids} = changes) do

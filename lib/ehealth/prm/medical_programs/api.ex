@@ -17,7 +17,7 @@ defmodule EHealth.PRM.MedicalPrograms do
   def list(params) do
     %Search{}
     |> changeset(params)
-    |> search(params, MedicalProgram, Confex.get_env(:ehealth, :medical_programs_per_page))
+    |> search(params, MedicalProgram)
   end
 
   def get_by_ids(ids) do

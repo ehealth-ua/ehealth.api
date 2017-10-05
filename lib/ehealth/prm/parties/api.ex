@@ -39,7 +39,7 @@ defmodule EHealth.PRM.Parties do
   def list_parties(params) do
     %Search{}
     |> changeset(params)
-    |> search(params, Party, 50)
+    |> search(params, Party)
   end
 
   def get_party_by_id!(id) do

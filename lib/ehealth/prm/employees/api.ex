@@ -74,7 +74,7 @@ defmodule EHealth.PRM.Employees do
   def get_employees(params) do
     %Search{}
     |> changeset(params)
-    |> search(params, Employee, Confex.get_env(:ehealth, :employees_per_page))
+    |> search(params, Employee)
   end
 
   def get_by_ids(ids) do

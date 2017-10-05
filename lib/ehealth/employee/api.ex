@@ -48,15 +48,11 @@ defmodule EHealth.Employee.API do
     query = from er in Request,
       order_by: [desc: :inserted_at]
 
-    page_params = Map.merge(%{
-      page_size: Confex.fetch_env!(:ehealth, :employee_requests_per_page)
-    }, params)
-
     paging =
       query
       |> filter_by_legal_entity_id(params)
       |> filter_by_status(params)
-      |> Repo.paginate(page_params)
+      |> Repo.paginate(params)
     legal_entity_ids =
       paging.entries
       |> Enum.reduce([], fn %{data: data}, acc ->

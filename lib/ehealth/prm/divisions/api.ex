@@ -43,7 +43,7 @@ defmodule EHealth.PRM.Divisions do
   def get_divisions(params) do
     %Search{}
     |> changeset(params)
-    |> search(params, Division, Confex.get_env(:ehealth, :divisions_per_page))
+    |> search(params, Division)
   end
 
   def get_by_ids(ids) when is_list(ids) do
