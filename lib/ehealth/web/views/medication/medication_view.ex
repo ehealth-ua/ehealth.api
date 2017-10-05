@@ -17,6 +17,8 @@ defmodule EHealth.Web.MedicationView do
     :is_active,
     :inserted_by,
     :updated_by,
+    :inserted_at,
+    :updated_at,
   ]
 
   def render("index.json", %{medications: medications}) do

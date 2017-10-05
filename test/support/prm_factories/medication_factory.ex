@@ -2,6 +2,7 @@ defmodule EHealth.PRMFactories.MedicationFactory do
   @moduledoc false
 
   alias EHealth.PRM.Medications.INNM.Schema, as: INNM
+  alias EHealth.PRM.Medications.Program.Schema, as: ProgramMedication
   alias EHealth.PRM.Medications.INNMDosage.Schema, as: INNMDosage
   alias EHealth.PRM.Medications.INNMDosage.Ingredient, as: INNMDosageIngredient
   alias EHealth.PRM.Medications.Medication.Schema, as: Medication
@@ -11,11 +12,26 @@ defmodule EHealth.PRMFactories.MedicationFactory do
     quote do
       alias Ecto.UUID
 
+      def program_medication_factory do
+        med_id = insert(:prm, :medication).id
+        insert(:prm, :ingredient_medication, [parent_id: med_id, medication_child_id: med_id])
+
+        %ProgramMedication{
+          reimbursement: build(:reimbursement),
+          medication_request_allowed: true,
+          is_active: true,
+          updated_by: UUID.generate(),
+          inserted_by: UUID.generate(),
+          medication_id: med_id,
+          medical_program_id: insert(:prm, :medical_program).id,
+        }
+      end
+
       def innm_factory do
         %INNM{
           sctid: sequence("1234567"),
-          name: "Преднизолон",
-          name_original: "Prednisolonum",
+          name: sequence("Преднизолон"),
+          name_original: sequence("Prednisolonum"),
           is_active: true,
           updated_by: UUID.generate(),
           inserted_by: UUID.generate(),
@@ -100,6 +116,13 @@ defmodule EHealth.PRMFactories.MedicationFactory do
         %{
           name: "ПАТ `Київський вітамінний завод`",
           country: "UA"
+        }
+      end
+
+      def reimbursement_factory do
+        %{
+          type: "FIXED",
+          reimbursement_amount: 10
         }
       end
 

@@ -17,6 +17,8 @@ defmodule EHealth.PRM.Medications.API do
   alias EHealth.PRM.Medications.Medication.Ingredient, as: MedicationIngredient
   alias EHealth.PRM.Medications.Medication.Schema, as: Medication
   alias EHealth.PRM.Medications.Medication.Search, as: MedicationSearch
+  alias EHealth.PRM.Medications.Program.Schema, as: ProgramMedication
+  #  alias EHealth.PRM.Medications.Program.Search, as: ProgramMedicationSearch
   alias EHealth.PRM.Medications.DrugsSearch
   alias EHealth.Validators.JsonSchema
   alias EHealth.PRM.Medications.Validator
@@ -39,6 +41,9 @@ defmodule EHealth.PRM.Medications.API do
     :certificate_expired_at,
   ]
   @fields_innm_dosage_optional [:is_active]
+
+  @fields_program_medication_required [:reimbursement, :medication_id, :medical_program_id, :inserted_by, :updated_by]
+  @fields_program_medication_optional [:medication_request_allowed, :is_active]
 
   # List
 
@@ -207,11 +212,11 @@ defmodule EHealth.PRM.Medications.API do
     |> PRMRepo.preload(:ingredients)
   end
 
-  def get_active_innm_dosage_by_id!(id), do: get_active_medication_entity_by_id(INNMDosage, id)
+  def get_active_innm_dosage_by_id!(id), do: get_active_medication_entity_by_id!(INNMDosage, id)
 
-  def get_active_medication_by_id!(id), do: get_active_medication_entity_by_id(Medication, id)
+  def get_active_medication_by_id!(id), do: get_active_medication_entity_by_id!(Medication, id)
 
-  defp get_active_medication_entity_by_id(entity, id) do
+  defp get_active_medication_entity_by_id!(entity, id) do
     entity
     |> PRMRepo.get_by!([id: id, type: entity.type(), is_active: true])
     |> PRMRepo.preload(:ingredients)
@@ -330,6 +335,22 @@ defmodule EHealth.PRM.Medications.API do
     |> validate_required(@fields_innm_required)
   end
 
+  def changeset(%ProgramMedication{} = innm, attrs) do
+    opts = [
+      name: :program_medications_medication_id_medical_program_id_index,
+      message: "Medication brand is already a participant of the program"
+    ]
+
+    innm
+    |> cast(attrs, @fields_program_medication_required)
+    |> validate_required(@fields_program_medication_required ++ @fields_program_medication_optional)
+    |> foreign_key_constraint(:medication_id)
+    |> foreign_key_constraint(:medical_program_id)
+    |> unique_constraint(:medication_id, opts)
+    |> Validator.validate_medication_is_active()
+    |> Validator.validate_medical_program_is_active()
+  end
+
   # INNMs
 
   @doc false
@@ -346,14 +367,66 @@ defmodule EHealth.PRM.Medications.API do
   def create_innm(attrs, headers) do
     case JsonSchema.validate(:innm, attrs) do
       :ok ->
-        consumer_id = get_consumer_id(headers)
-        attrs = Map.merge(attrs, %{"inserted_by" => consumer_id, "updated_by" => consumer_id})
-
         %INNM{}
-        |> changeset(attrs)
+        |> changeset(put_consumer_id(attrs, headers))
         |> PRMRepo.insert()
 
       err -> err
     end
+  end
+
+  # Program Medication
+
+  def list_program_medications(attrs) do
+    []
+  end
+
+  def get_program_medication!(id), do: PRMRepo.get!(ProgramMedication, id)
+
+  def get_program_medication!(id, :preload) do
+    ProgramMedication
+    |> PRMRepo.get!(id)
+    |> preload_references()
+  end
+
+  def create_program_medication(attrs, headers) do
+    case JsonSchema.validate(:program_medication, attrs) do
+      :ok ->
+        %ProgramMedication{}
+        |> changeset(put_consumer_id(attrs, headers))
+        |> PRMRepo.insert()
+        |> preload_references()
+
+      err -> err
+    end
+  end
+
+  def update_program_medication(%ProgramMedication{} = program_medication, attrs, headers) do
+    case JsonSchema.validate(:program_medication_update, attrs) do
+      :ok ->
+        program_medication
+        |> changeset(put_consumer_id(attrs, headers))
+        |> PRMRepo.update()
+        |> preload_references()
+
+      err -> err
+    end
+  end
+
+  defp preload_references({:ok, entity}) do
+    {:ok, preload_references(entity)}
+  end
+  defp preload_references(%ProgramMedication{} = program) do
+    PRMRepo.preload(program, [medication: [:ingredients], medical_program: []])
+  end
+  defp preload_references(entity) do
+    entity
+  end
+
+  # helpers
+
+  defp put_consumer_id(attrs, headers) do
+    consumer_id = get_consumer_id(headers)
+    Map.merge(attrs, %{"inserted_by" => consumer_id, "updated_by" => consumer_id})
   end
 end

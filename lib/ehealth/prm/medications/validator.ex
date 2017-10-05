@@ -7,9 +7,10 @@ defmodule EHealth.PRM.Medications.Validator do
   import Ecto.Query, warn: false
 
   alias EHealth.PRMRepo
-  alias EHealth.PRM.Medications.INNMDosage.Schema, as: INNMDosage
   alias EHealth.PRM.Medications.INNM.Schema, as: INNM
+  alias EHealth.PRM.MedicalPrograms.Schema, as: MedicalProgram
   alias EHealth.PRM.Medications.Medication.Schema, as: Medication
+  alias EHealth.PRM.Medications.INNMDosage.Schema, as: INNMDosage
   alias EHealth.PRM.Medications.INNMDosage.Ingredient, as: INNMIngredient
   alias EHealth.PRM.Medications.Medication.Ingredient, as: MedicationIngredient
 
@@ -30,6 +31,24 @@ defmodule EHealth.PRM.Medications.Validator do
     case rem(qty, min_qty) do
       0 -> changeset
       _ -> add_error(changeset, :package_qty, "Invalid package quantity")
+    end
+  end
+
+  def validate_medication_is_active(changeset) do
+    validate_change changeset, :medication_id, fn :medication_id, medication_id ->
+      case PRMRepo.get_by(Medication, [id: medication_id, type: Medication.type(), is_active: true]) do
+        nil -> [medication_id: "Medication is not active"]
+        _ -> []
+      end
+    end
+  end
+
+  def validate_medical_program_is_active(changeset) do
+    validate_change changeset, :medical_program_id, fn :medical_program_id, medical_program_id ->
+      case PRMRepo.get_by(MedicalProgram, [id: medical_program_id, is_active: true]) do
+        nil -> [medical_program_id: "Medical program is not active"]
+        _ -> []
+      end
     end
   end
 

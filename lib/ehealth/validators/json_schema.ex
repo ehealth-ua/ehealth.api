@@ -17,6 +17,8 @@ defmodule EHealth.Validators.JsonSchema do
   use_schema :innm, "specs/json_schemas/new_innm_schema.json"
   use_schema :medication, "specs/json_schemas/new_medication_schema.json"
   use_schema :innm_dosage, "specs/json_schemas/new_innm_dosage_schema.json"
+  use_schema :program_medication, "specs/json_schemas/program_medications_create_request.json"
+  use_schema :program_medication_update, "specs/json_schemas/program_medications_update_request.json"
 
   @schemas_with_dictionaries [
     :legal_entity,
@@ -33,6 +35,10 @@ defmodule EHealth.Validators.JsonSchema do
 
   def validate(schema, attrs) when schema in [:employee_doctor, :employee_pharmacist] do
     validate_with_dictionaries(schema, :employee_additional_info, attrs)
+  end
+
+  def validate(schema, attrs) when schema in [:program_medication, :program_medication_update] do
+    validate_with_dictionaries(schema, :program_medication, attrs)
   end
 
   def validate(schema_name, attrs) do

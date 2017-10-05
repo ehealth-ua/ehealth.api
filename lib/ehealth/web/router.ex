@@ -64,6 +64,8 @@ defmodule EHealthWeb.Router do
 
     resources "/medications", MedicationController, except: [:new, :edit, :update, :delete]
     patch "/medications/:id/actions/deactivate", MedicationController, :deactivate
+
+    resources "/program_medications", ProgramMedicationController, except: [:new, :edit, :delete]
   end
 
   # Client context for lists
