@@ -196,7 +196,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       assert %{"error" => %{"invalid" => [%{"entry" => "$.dispense_details[0].medication_id"}]}} = resp
     end
 
-    test "invalid code", %{conn: conn} do
+    test "medication is not a participant of program", %{conn: conn} do
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert_legal_entity()
       %{id: innm_dosage_id} = insert_innm_dosage()
@@ -215,12 +215,92 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
               "medication_qty": 10,
               "sell_price": 18.65,
               "sell_amount": 186.5,
-              "discount_amount": 150,
+              "discount_amount": 50,
+            }
+          ],
+        })
+      resp = json_response(conn, 422)
+      assert %{"error" => %{"invalid" => [%{"entry" => "$.dispense_details[0].medication_id"}]}} = resp
+    end
+
+    test "invalid code", %{conn: conn} do
+      %{user_id: user_id, party: party} = insert(:prm, :party_user)
+      legal_entity = insert_legal_entity()
+      %{id: innm_dosage_id} = insert_innm_dosage()
+      insert_employee(party, legal_entity)
+      division = insert_division(legal_entity)
+      medication = insert_medication(innm_dosage_id)
+      %{id: medical_program_id} = insert_medical_program()
+      insert(:prm, :program_medication,
+        medication_id: medication.id,
+        medical_program_id: medical_program_id,
+        reimbursement: build(:reimbursement, reimbursement_amount: 150)
+      )
+      conn = put_client_id_header(conn, legal_entity.id)
+      conn = Plug.Conn.put_req_header(conn, consumer_id_header(), user_id)
+      conn = post conn, medication_dispense_path(conn, :create),
+        medication_dispense: new_dispense_params(%{
+          "division_id" => division.id,
+          "dispense_details" => [
+            %{
+              "medication_id": medication.id,
+              "medication_qty": 10,
+              "sell_price": 18.65,
+              "sell_amount": 186.5,
+              "discount_amount": 50,
             }
           ],
         })
       resp = json_response(conn, 422)
       assert %{"error" => %{"invalid" => [%{"entry" => "$.code"}]}} = resp
+    end
+
+    test "requested reimbursement is higher than allowed", %{conn: conn} do
+      %{user_id: user_id, party: party} = insert(:prm, :party_user)
+      legal_entity = insert(:prm, :legal_entity, id: "dae597a8-c858-42f6-bc16-1a7bdd340466")
+      insert(:prm, :employee,
+        legal_entity: legal_entity,
+        party: party,
+        id: "46be2081-4bd2-4a7e-8999-2f6ce4b57dab"
+      )
+      division = insert(:prm, :division,
+        is_active: true,
+        legal_entity: legal_entity,
+        id: "e00e20ba-d20f-4ebb-a1dc-4bf58231019c"
+      )
+      %{id: innm_dosage_id} = insert_innm_dosage()
+      medication = insert(:prm, :medication,
+        id: "2cdb8396-a1e9-11e7-abc4-cec278b6b50a",
+        ingredients: [build(:ingredient_medication,
+                       id: "2cdb8396-a1e9-11e7-abc4-cec278b6b50a",
+                       medication_child_id: innm_dosage_id,
+                       parent_id: "2cdb8396-a1e9-11e7-abc4-cec278b6b50a"
+                     )],
+      )
+      medical_program_id = "6ee844fd-9f4d-4457-9eda-22aa506be4c4"
+      insert(:prm, :medical_program, id: medical_program_id)
+      insert(:prm, :program_medication,
+        medication_id: medication.id,
+        medical_program_id: medical_program_id,
+      )
+      conn = put_client_id_header(conn, legal_entity.id)
+      conn = Plug.Conn.put_req_header(conn, consumer_id_header(), user_id)
+      conn = post conn, medication_dispense_path(conn, :create),
+        code: "1234",
+        medication_dispense: new_dispense_params(%{
+          "division_id" => division.id,
+          "dispense_details" => [
+            %{
+              "medication_id": medication.id,
+              "medication_qty": 10,
+              "sell_price": 18.65,
+              "sell_amount": 186.5,
+              "discount_amount": 150,
+            }
+          ],
+        })
+      resp = json_response(conn, 422)
+      assert %{"error" => %{"invalid" => [%{"entry" => "$.dispense_details[0].discount_amount"}]}} = resp
     end
 
     test "success create medication dispense", %{conn: conn} do
@@ -245,7 +325,13 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
                        parent_id: "2cdb8396-a1e9-11e7-abc4-cec278b6b50a"
                      )],
       )
-      insert(:prm, :medical_program, id: "6ee844fd-9f4d-4457-9eda-22aa506be4c4")
+      medical_program_id = "6ee844fd-9f4d-4457-9eda-22aa506be4c4"
+      insert(:prm, :medical_program, id: medical_program_id)
+      insert(:prm, :program_medication,
+        medication_id: medication.id,
+        medical_program_id: medical_program_id,
+        reimbursement: build(:reimbursement, reimbursement_amount: 150)
+      )
       conn = put_client_id_header(conn, legal_entity.id)
       conn = Plug.Conn.put_req_header(conn, consumer_id_header(), user_id)
       conn = post conn, medication_dispense_path(conn, :create),
@@ -258,7 +344,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
               "medication_qty": 10,
               "sell_price": 18.65,
               "sell_amount": 186.5,
-              "discount_amount": 150,
+              "discount_amount": 50,
             }
           ],
         })

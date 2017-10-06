@@ -3,6 +3,7 @@ defmodule EHealth.MedicationDispense.API do
 
   import EHealth.Utils.Connection, only: [get_client_id: 1, get_consumer_id: 1]
   import Ecto.Changeset, only: [cast: 3]
+  import Ecto.Query
   alias EHealth.PRM.Divisions
   alias EHealth.PRM.Employees
   alias EHealth.PRM.LegalEntities
@@ -14,6 +15,7 @@ defmodule EHealth.MedicationDispense.API do
   alias EHealth.PRM.Parties.Schema, as: Party
   alias EHealth.PRM.MedicalPrograms.Schema, as: MedicalProgram
   alias EHealth.PRM.Medications.Medication.Schema, as: Medication
+  alias EHealth.PRM.Medications.Program.Schema, as: ProgramMedication
   alias EHealth.API.OPS
   alias EHealth.MedicationDispenses.Search
   alias EHealth.Validators.JsonSchema
@@ -22,6 +24,7 @@ defmodule EHealth.MedicationDispense.API do
   alias EHealth.PRM.Parties
   alias EHealth.PRM.Medications.API, as: MedicationsAPI
   alias EHealth.API.MPI
+  alias EHealth.PRMRepo
 
   @search_fields ~w(
     id
@@ -75,7 +78,8 @@ defmodule EHealth.MedicationDispense.API do
          :ok                       <- validate_employee(party_user, legal_entity_id),
          {:ok, division}           <- validate_division(params["division_id"], legal_entity_id),
          {:ok, medical_program}    <- validate_medical_program(params["medical_program_id"], medication_request),
-         {:ok, dispense_details, medications} <- validate_medications(params["dispense_details"], medication_request),
+         details                   <- params["dispense_details"],
+         {:ok, dispense_details, medications} <- validate_medications(details, medication_request, medical_program),
          :ok                       <- validate_code(code, medication_request),
          :ok                       <- check_other_medication_dispenses(medication_request, headers),
          :ok                       <- check_medication_qty(params, medication_request),
@@ -177,17 +181,18 @@ defmodule EHealth.MedicationDispense.API do
     end
   end
 
-  # TODO: not fully implemented
-  defp validate_medications(dispense_details, medication_request) do
+  defp validate_medications(dispense_details, medication_request, %{id: medical_program_id}) do
     result =
       dispense_details
       |> Enum.with_index
       |> Enum.map(fn {%{"medication_id" => id} = item, i} ->
         with {:ok, medication} <- Reference.validate(:medication, id, "$.dispense_details[#{i}].medication_id"),
-            :ok <- validate_active_medication(medication, medication_request, i)
-        # medication_request.medication_id exists in program_medications (is_active = true)
+             :ok <- validate_active_medication(medication, medication_request, i),
+             {:ok, program_medication} <- get_active_program_medication(id, medical_program_id, i),
+             reimbursement_amount <- program_medication.reimbursement["reimbursement_amount"],
+             :ok <- validate_reimbursement_amount(reimbursement_amount, item, medication, i)
         do
-          {:ok, Map.put(item, "reimbursement_amount", 15), medication}
+        {:ok, Map.put(item, "reimbursement_amount", reimbursement_amount), medication}
         end
       end)
     errors = Enum.reduce(result, [], fn
@@ -206,6 +211,39 @@ defmodule EHealth.MedicationDispense.API do
       end)
       |> Enum.filter(&(Kernel.!(is_nil(&1))))
     if Enum.empty?(errors), do: {:ok, details, medications}, else: {:error, errors}
+  end
+
+  defp get_active_program_medication(medication_id, medical_program_id, i) do
+    program_medication =
+      ProgramMedication
+      |> where([pm], pm.is_active)
+      |> where([pm], pm.medication_id == ^medication_id)
+      |> where([pm], pm.medical_program_id == ^medical_program_id)
+      |> limit(1)
+      |> PRMRepo.one
+
+    if is_nil(program_medication) do
+      {:error, [{
+        %{description: "medication is not a participant of program",
+          params: [],
+          rule: :required
+        }, "$.dispense_details[#{i}].medication_id"}]}
+    else
+      {:ok, program_medication}
+    end
+  end
+
+  defp validate_reimbursement_amount(reimbursement_amount, details, medication, i) do
+    %{"medication_qty" => medication_qty, "discount_amount" => discount_amount} = details
+    if reimbursement_amount / medication.package_qty * medication_qty >= discount_amount do
+      :ok
+    else
+      {:error, [{
+        %{description: "Requested discount price is higher than allowed",
+          params: [],
+          rule: :required
+        }, "$.dispense_details[#{i}].discount_amount"}]}
+    end
   end
 
   defp validate_active_medication(%Medication{} = medication, %{"medication_id" => medication_id}, i) do
