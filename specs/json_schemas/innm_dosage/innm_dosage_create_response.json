@@ -1,0 +1,92 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "form": {
+      "type": "string",
+      "description": "`Dictionary MEDICATION_FORM`"
+    },
+    "ingredients": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "innm or innm dosage Identifier"
+          },
+          "dosage": {
+            "type": "object",
+            "properties": {
+              "numerator_unit": {
+                "type": "string",
+                "description": "Dictionary: MEDICATION_UNIT"
+              },
+              "numerator_value": {
+                "type": "number"
+              },
+              "denumerator_unit": {
+                "type": "string",
+                "description": "Dictionary: MEDICATION_UNIT"
+              },
+              "denumerator_value": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "numerator_unit",
+              "numerator_value",
+              "denumerator_unit",
+              "denumerator_value"
+            ],
+            "additionalProperties": false
+          },
+          "is_primary": {
+            "type": "boolean",
+            "description": "Is a primary ingredient"
+          }
+        },
+        "required": [
+          "id",
+          "is_primary",
+          "dosage"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "is_active": {
+      "type": "boolean"
+    },
+    "inserted_at": {
+      "type": "string",
+      "description": "ISO 8601 date and time in UTC timezone."
+    },
+    "inserted_by": {
+      "type": "string"
+    },
+    "updated_at": {
+      "type": "string",
+      "description": "ISO 8601 date and time in UTC timezone."
+    },
+    "updated_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "name",
+    "form",
+    "ingredients",
+    "is_active",
+    "inserted_at",
+    "inserted_by",
+    "updated_at",
+    "updated_by"
+  ],
+  "additionalProperties": false
+}
