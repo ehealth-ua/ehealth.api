@@ -1,0 +1,54 @@
+{
+"$schema": "http://json-schema.org/draft-04/schema#",
+  "definitions": {
+    "uuid": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      },
+    "date": {
+        "type": "string",
+        "pattern": "^(19|20)[0-9][0-9]-((0[1-9]|1[012])-(0[1-9]|[12][0-9])|(0[13-9]|1[012])-30|(0[13578]|1[02])-31)T([0-1][0-9]|2[0-3])(:[0-5][0-9]){2}Z$"
+        }
+  },
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "#/definitions/uuid",
+      "description": "Internal medical program ID, a UUID string."
+    },
+    "name": {
+      "type": "string",
+      "pattern":"^[А-Яа-яЁёЇїІіЄєҐґ'\\- ]*$",
+      "description": "medical program name that is used on govermental level"
+    },
+    "is_active": {
+      "type": "boolean",
+      "description": "Is medical program active or not. True - Active; False - Inactive"
+    },
+    "inserted_at": {
+      "$ref": "#/definitions/date",
+      "description": "ISO 8601 date and time in UTC timezone."
+    },
+    "inserted_by": {
+      "$ref": "#/definitions/uuid",
+      "description": "Referense to id of a person who created medical program"
+    },
+    "updated_at": {
+      "$ref": "#/definitions/date",
+      "description": "ISO 8601 date and time in UTC timezone."
+    },
+    "updated_by": {
+      "$ref": "#/definitions/uuid",
+      "description": "Referense to id of a person who updated medical program"    }
+  },
+  "required": [
+    "id",
+    "name",
+    "is_active",
+    "inserted_at",
+    "inserted_by",
+    "updated_at",
+    "updated_by"
+  ],
+  "additionalProperties": false
+}
