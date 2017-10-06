@@ -1,0 +1,117 @@
+{
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string"
+      },
+      "name": {
+        "type": "string"
+      },
+      "form": {
+        "type": "string",
+        "description": "`Dictionary MEDICATION_FORM`"
+      },
+      "innm": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "sctid": {
+            "type": "string",
+            "description": "innm CNOMED code"
+          },
+          "name": {
+            "type": "string",
+            "description": "innm local name"
+          },
+          "name_original": {
+            "type": "string",
+            "description": "innm original name"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "name_original"
+        ]
+      },
+      "dosage": {
+        "type": "object",
+        "properties": {
+          "numerator_unit": {
+            "type": "string",
+            "description": "`Dictionary MEDICATION_UNIT`"
+          },
+          "numerator_value": {
+            "type": "number"
+          },
+          "denumerator_unit": {
+            "type": "string",
+            "description": "`Dictionary MEDICATION_UNIT`"
+          },
+          "denumerator_value": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "numerator_unit",
+          "numerator_value",
+          "denumerator_unit",
+          "denumerator_value"
+        ]
+      },
+      "packages": {
+        "type": "array",
+        "items": {
+          "container_dosage": {
+            "type": "object",
+            "properties": {
+              "numerator_unit": {
+                "type": "string",
+                "description": "`Dictionary MEDICATION_UNIT`"
+              },
+              "numerator_value": {
+                "type": "number"
+              },
+              "denumerator_unit": {
+                "type": "string",
+                "description": "`Dictionary MEDICATION_UNIT`"
+              },
+              "denumerator_value": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "numerator_unit",
+              "numerator_value",
+              "denumerator_unit",
+              "denumerator_value"
+            ]
+          },
+          "package_qty": {
+            "type": "number"
+          },
+          "package_min_qty": {
+            "type": "number"
+          },
+          "required": [
+            "package_qty",
+            "package_min_qty",
+            "container_dosage"
+          ]
+        }
+      }
+    },
+    "required": [
+      "id",
+      "name",
+      "form",
+      "innm",
+      "dosage",
+      "packages"
+    ]
+  }
+}
