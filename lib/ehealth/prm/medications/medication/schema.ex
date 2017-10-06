@@ -2,7 +2,6 @@ defmodule EHealth.PRM.Medications.Medication.Schema do
   @moduledoc false
   use Ecto.Schema
   alias EHealth.PRM.Medications.Medication.Ingredient
-  alias EHealth.PRM.Medications.Program.Schema, as: ProgramMedication
 
   @medication_type "BRAND"
 
@@ -23,7 +22,6 @@ defmodule EHealth.PRM.Medications.Medication.Schema do
     field :updated_by, Ecto.UUID
 
     has_many :ingredients, Ingredient, foreign_key: :parent_id
-    has_one :program_medication, ProgramMedication
 
     timestamps()
   end

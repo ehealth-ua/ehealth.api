@@ -1,12 +1,15 @@
 defmodule EHealth.PRM.MedicalPrograms do
   @moduledoc false
 
-  alias EHealth.PRM.MedicalPrograms.Schema, as: MedicalProgram
-  alias EHealth.PRMRepo
-  alias EHealth.PRM.MedicalPrograms.Search
   use EHealth.PRM.Search
 
+  alias EHealth.PRMRepo
+  alias EHealth.PRM.Medications.API, as: MedicationsAPI
+  alias EHealth.PRM.MedicalPrograms.Search
+  alias EHealth.PRM.MedicalPrograms.Schema, as: MedicalProgram
+
   @fields_required ~w(name)a
+  @fields_optional ~w(is_active)a
 
   @search_fields ~w(
     id
@@ -34,6 +37,10 @@ defmodule EHealth.PRM.MedicalPrograms do
     PRMRepo.get!(MedicalProgram, id)
   end
 
+  def get_by!(params) do
+    PRMRepo.get_by!(MedicalProgram, params)
+  end
+
   def create(user_id, params) do
     %MedicalProgram{}
     |> changeset(params)
@@ -42,12 +49,25 @@ defmodule EHealth.PRM.MedicalPrograms do
     |> PRMRepo.insert
   end
 
+  def deactivate(updated_by, %MedicalProgram{id: id} = medical_program) do
+    err_msg = "This program has active participants. Only medical programs without participants can be deactivated"
+    case MedicationsAPI.count_active_program_medications_by(medical_program_id: id) do
+      0 ->
+        medical_program
+        |> changeset(%{is_active: false, updated_by: updated_by})
+        |> PRMRepo.update()
+
+      _ ->
+        {:error, {:conflict, err_msg}}
+    end
+  end
+
   def changeset(%Search{} = search, attrs) do
     cast(search, attrs, @search_fields)
   end
   def changeset(%MedicalProgram{} = medical_program, attrs) do
     medical_program
-    |> cast(attrs, @fields_required)
+    |> cast(attrs, @fields_required ++ @fields_optional)
     |> validate_required(@fields_required)
   end
 end

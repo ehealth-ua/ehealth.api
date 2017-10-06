@@ -296,7 +296,7 @@ defmodule EHealth.PRM.Medications.API do
   end
 
   def deactivate_medication(%Medication{id: id} = entity, headers) do
-    case count_active_program_medications_by_medication_id(id) do
+    case count_active_program_medications_by(medication_id: id) do
       0 -> deactivate_medication_entity(entity, headers)
       _ -> {:error, {:conflict, "Medication is participant of an active Medical Program"}}
     end
@@ -432,9 +432,11 @@ defmodule EHealth.PRM.Medications.API do
     |> preload_references()
   end
 
-  def count_active_program_medications_by_medication_id(id) do
+  def count_active_program_medications_by(params) when is_list(params) do
+    params = [is_active: true] ++ params
+
     ProgramMedication
-    |> where([is_active: true, medication_id: ^id])
+    |> where(^params)
     |> select([pm], count(pm.id))
     |> PRMRepo.one()
   end
