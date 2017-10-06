@@ -99,6 +99,7 @@ defmodule EHealthWeb.ProgramMedicationControllerTest do
 
       assert_medication_program_response(resp)
       assert id == resp["data"]["id"]
+      assert resp["data"]["medication_request_allowed"]
     end
 
     test "program medication duplicated", %{conn: conn} do

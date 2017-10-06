@@ -7,7 +7,7 @@ defmodule EHealth.PRM.Medications.Program.Schema do
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "program_medications" do
     field :reimbursement, :map
-    field :medication_request_allowed, :boolean, default: false
+    field :medication_request_allowed, :boolean, default: true
     field :is_active, :boolean, default: true
     field :inserted_by, Ecto.UUID
     field :updated_by, Ecto.UUID

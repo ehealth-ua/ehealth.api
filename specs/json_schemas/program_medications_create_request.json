@@ -38,5 +38,6 @@
     "medication_id",
     "medical_program_id",
     "reimbursement"
-  ]
+  ],
+  "additionalProperties": false
 }
