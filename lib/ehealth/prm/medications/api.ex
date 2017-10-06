@@ -279,18 +279,6 @@ defmodule EHealth.PRM.Medications.API do
 
   # Update
 
-  @doc false
-  def deactivate_medication(entity, headers) do
-    attrs = %{
-      is_active: false,
-      updated_by: get_consumer_id(headers)
-    }
-
-    entity
-    |> changeset(attrs)
-    |> PRMRepo.update()
-  end
-
   @doc "Deactivate INNM dosage when it has no active medication"
   def deactivate_innm_dosage(%INNMDosage{} = entity, headers) do
     INNMDosage
@@ -302,9 +290,28 @@ defmodule EHealth.PRM.Medications.API do
     |> select([..., m], count(m.id))
     |> PRMRepo.one()
     |> case do
-         0 -> deactivate_medication(entity, headers)
+         0 -> deactivate_medication_entity(entity, headers)
          _ -> {:error, {:conflict, "INNM Dosage has active Medications"}}
        end
+  end
+
+  def deactivate_medication(%Medication{id: id} = entity, headers) do
+    case count_active_program_medications_by_medication_id(id) do
+      0 -> deactivate_medication_entity(entity, headers)
+      _ -> {:error, {:conflict, "Medication is participant of an active Medical Program"}}
+    end
+  end
+
+  @doc false
+  defp deactivate_medication_entity(entity, headers) do
+    attrs = %{
+      is_active: false,
+      updated_by: get_consumer_id(headers)
+    }
+
+    entity
+    |> changeset(attrs)
+    |> PRMRepo.update()
   end
 
   # Changeset
@@ -423,6 +430,13 @@ defmodule EHealth.PRM.Medications.API do
     ProgramMedication
     |> PRMRepo.get!(id)
     |> preload_references()
+  end
+
+  def count_active_program_medications_by_medication_id(id) do
+    ProgramMedication
+    |> where([is_active: true, medication_id: ^id])
+    |> select([pm], count(pm.id))
+    |> PRMRepo.one()
   end
 
   def create_program_medication(attrs, headers) do

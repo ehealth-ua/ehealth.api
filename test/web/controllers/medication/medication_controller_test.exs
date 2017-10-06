@@ -359,6 +359,15 @@ defmodule EHealth.Web.MedicationControllerTest do
         json_response(conn, 404)
       end
     end
+
+    test "Medication is participant of active Program Medication", %{conn: conn} do
+      medication = insert(:prm, :medication)
+      insert(:prm, :program_medication, medication_id: medication.id)
+
+      conn = patch conn, medication_path(conn, :deactivate, medication)
+      err_msg = "Medication is participant of an active Medical Program"
+      assert err_msg == json_response(conn, 409)["error"]["message"]
+    end
   end
 
   defp create_medication(_) do
