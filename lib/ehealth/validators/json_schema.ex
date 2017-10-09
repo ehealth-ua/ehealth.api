@@ -18,8 +18,8 @@ defmodule EHealth.Validators.JsonSchema do
   use_schema :innm, "specs/json_schemas/innm/innm_create_request.json"
   use_schema :medication, "specs/json_schemas/medication/medication_create_request.json"
   use_schema :innm_dosage, "specs/json_schemas/innm_dosage/innm_dosage_create_request.json"
-  use_schema :program_medication, "specs/json_schemas/program_medications_create_request.json"
-  use_schema :program_medication_update, "specs/json_schemas/program_medications_update_request.json"
+  use_schema :program_medication, "specs/json_schemas/program_medication/program_medication_create_request.json"
+  use_schema :program_medication_update, "specs/json_schemas/program_medication/program_medication_update_request.json"
 
   @schemas_with_dictionaries [
     :legal_entity,

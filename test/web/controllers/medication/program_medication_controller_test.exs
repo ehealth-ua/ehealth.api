@@ -39,6 +39,7 @@ defmodule EHealthWeb.ProgramMedicationControllerTest do
       conn = get conn, program_medication_path(conn, :index), medical_program_id: medical_program.id
       data = json_response(conn, 200)["data"]
 
+
       assert 1 == length(data)
       assert medical_program.id == data |> List.first() |> get_in(~W(medical_program id))
     end
@@ -201,7 +202,7 @@ defmodule EHealthWeb.ProgramMedicationControllerTest do
 
   defp assert_medication_program_response(response) do
     schema =
-      "specs/json_schemas/program_medications_response.json"
+      "specs/json_schemas/program_medication/program_medication_response.json"
       |> File.read!()
       |> Poison.decode!()
 
