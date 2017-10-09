@@ -12,6 +12,7 @@ defmodule EHealth.MedicationRequestRequests do
   alias EHealth.MedicationRequestRequest
   alias EHealth.MedicationRequestRequest.Validations
   alias EHealth.MedicationRequestRequest.DataMapper
+  alias EHealth.MedicationRequestRequest.HumanReadableNumberGenerator, as: HRNGenerator
 
   @doc """
   Returns the list of medication_request_requests.
@@ -83,9 +84,13 @@ defmodule EHealth.MedicationRequestRequests do
   def create(attrs, user_id, client_id) do
     with :ok <- Validations.validate_schema(attrs)
     do
-      %MedicationRequestRequest{}
-      |> create_changeset(attrs, user_id, client_id)
-      |> Repo.insert()
+      case %MedicationRequestRequest{}
+           |> create_changeset(attrs, user_id, client_id)
+           |> Repo.insert() do
+        {:ok, inserted_entity} -> {:ok, inserted_entity}
+        {:error, %Ecto.Changeset{errors: [number: {"has already been taken", []}]}} -> create(attrs, user_id, client_id)
+        {:error, changeset} -> {:error, changeset}
+      end
     else
       err -> err
     end
@@ -97,10 +102,11 @@ defmodule EHealth.MedicationRequestRequests do
     |> cast(attrs, [:number, :status, :inserted_by, :updated_by])
     |> DataMapper.map_data(attrs, client_id)
     |> put_change(:status, "NEW")
-    |> put_change(:number, "TEST")
+    |> put_change(:number, HRNGenerator.generate(1))
     |> put_change(:inserted_by, user_id)
     |> put_change(:updated_by, user_id)
     |> validate_required([:data, :number, :status, :inserted_by, :updated_by])
+    |> unique_constraint(:number, name: :medication_request_requests_number_index)
   end
 
   def changeset(%MedicationRequestRequest{} = medication_request_request, attrs) do

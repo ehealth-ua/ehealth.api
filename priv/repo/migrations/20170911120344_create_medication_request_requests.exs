@@ -12,6 +12,5 @@ defmodule EHealth.Repo.Migrations.CreateMedicationRequestRequests do
 
       timestamps(type: :utc_datetime)
     end
-
   end
 end
