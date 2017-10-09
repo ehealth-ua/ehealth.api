@@ -66,7 +66,7 @@ defmodule EHealth.PRM.Medications.API do
     |> where([..., idi], idi.is_primary)
     # get active Medication
     |> join(:inner, [..., idi], m in assoc(idi, :medication))
-    |> drugs_where_attrs(attrs)
+    |> where_drugs_attrs(attrs)
     # group by primary keys
     |> group_by([innm], innm.id)
     |> group_by([_, innm_ingrdient], innm_ingrdient.id)
@@ -92,7 +92,7 @@ defmodule EHealth.PRM.Medications.API do
     changeset
   end
 
-  defp drugs_where_attrs(query, attrs) do
+  defp where_drugs_attrs(query, attrs) do
     attrs
     |> Enum.reduce(
          query,
@@ -139,16 +139,17 @@ defmodule EHealth.PRM.Medications.API do
     Medication
     |> where(^params)
     |> join(:inner, [m], i in assoc(m, :ingredients))
-    |> where([_, i], i.is_primary)
+    |> join(:inner, [..., i], id in assoc(i, :innm_dosage))
+    |> where_innm_dosage_attrs(changes)
     |> where_medication_name(changes)
-    |> join_innm_dosage(changes)
-    |> preload(:ingredients)
+    |> where([_, i, _], i.is_primary)
+    |> preload([ingredients: [innm_dosage: []]])
   end
 
   def get_search_query(INNMDosage, changes) do
     INNMDosage
     |> super(changes)
-    |> preload(:ingredients)
+    |> preload(ingredients: [innm: []])
   end
 
   def get_search_query(entity, changes) do
@@ -162,27 +163,14 @@ defmodule EHealth.PRM.Medications.API do
     query
   end
 
-  defp join_innm_dosage(query, %{innm_dosage_id: innm_dosage_id, innm_dosage_name: innm_dosage_name}) do
-    query
-    |> join(:inner, [..., i], inn in assoc(i, :innm_dosage))
-    |> where([..., inn], inn.id == ^innm_dosage_id)
-    |> where([..., inn], ilike(inn.name, ^("%" <> innm_dosage_name <> "%")))
-  end
-
-  defp join_innm_dosage(query, %{innm_dosage_name: innm_dosage_name}) do
-    query
-    |> join(:inner, [..., i], inn in assoc(i, :innm_dosage))
-    |> where([..., inn], ilike(inn.name, ^("%" <> innm_dosage_name <> "%")))
-  end
-
-  defp join_innm_dosage(query, %{innm_dosage_id: innm_dosage_id}) do
-    query
-    |> join(:inner, [..., i], inn in assoc(i, :innm_dosage))
-    |> where([..., inn], inn.id == ^innm_dosage_id)
-  end
-
-  defp join_innm_dosage(query, _) do
-    query
+  defp where_innm_dosage_attrs(query, attrs) do
+    Enum.reduce(attrs, query, fn {field, value}, query ->
+      case field do
+        :innm_dosage_id -> where(query, [..., id], id.id == ^value)
+        :innm_dosage_name -> where(query, [..., id], ilike(id.name, ^("%" <> value <> "%")))
+        _ -> query
+      end
+    end)
   end
 
   # Get by id
@@ -208,7 +196,7 @@ defmodule EHealth.PRM.Medications.API do
   defp get_medication_entity_by_id!(entity, id) do
     entity
     |> PRMRepo.get_by!([id: id, type: entity.type()])
-    |> PRMRepo.preload(:ingredients)
+    |> preload_references()
   end
 
   def get_active_innm_dosage_by_id!(id), do: get_active_medication_entity_by_id!(INNMDosage, id)
@@ -218,7 +206,7 @@ defmodule EHealth.PRM.Medications.API do
   defp get_active_medication_entity_by_id!(entity, id) do
     entity
     |> PRMRepo.get_by!([id: id, type: entity.type(), is_active: true])
-    |> PRMRepo.preload(:ingredients)
+    |> preload_references()
   end
 
   def get_medication_for_medication_request_request(innm_id, _program_id) do
@@ -272,6 +260,7 @@ defmodule EHealth.PRM.Medications.API do
         |> struct()
         |> changeset(attrs)
         |> PRMRepo.insert()
+        |> preload_references()
 
       err -> err
     end
@@ -312,6 +301,7 @@ defmodule EHealth.PRM.Medications.API do
     entity
     |> changeset(attrs)
     |> PRMRepo.update()
+    |> preload_references()
   end
 
   # Changeset
@@ -395,10 +385,11 @@ defmodule EHealth.PRM.Medications.API do
     |> join(:inner, [pm], m in assoc(pm, :medication))
     |> join(:inner, [pm], mp in assoc(pm, :medical_program))
     |> join(:inner, [_, m], i in assoc(m, :ingredients))
-    |> preload([_, m, mp, i], [medication: {m, ingredients: i}, medical_program: mp])
-    |> where([..., i], i.is_primary)
-    |> program_medications_where_attrs(attrs)
-    |> join_innm_dosage(attrs)
+    |> join(:inner, [..., i], id in assoc(i, :innm_dosage))
+    |> where_innm_dosage_attrs(attrs)
+    |> where_program_medications_attrs(attrs)
+    |> where([..., i, _id], i.is_primary)
+    |> preload([_, m, mp, i, id], [medication: {m, ingredients: {i, innm_dosage: id}}, medical_program: mp])
     |> select([program_medication], program_medication)
     |> PRMRepo.paginate(params)
   end
@@ -406,7 +397,7 @@ defmodule EHealth.PRM.Medications.API do
     changeset
   end
 
-  defp program_medications_where_attrs(query, attrs) do
+  defp where_program_medications_attrs(query, attrs) do
     attrs
     |> Enum.reduce(
          query,
@@ -470,7 +461,13 @@ defmodule EHealth.PRM.Medications.API do
     {:ok, preload_references(entity)}
   end
   defp preload_references(%ProgramMedication{} = program) do
-    PRMRepo.preload(program, [medication: [:ingredients], medical_program: []])
+    PRMRepo.preload(program, [medication: [ingredients: [innm_dosage: []]], medical_program: []])
+  end
+  defp preload_references(%Medication{} = medication) do
+    PRMRepo.preload(medication, ingredients: [innm_dosage: []])
+  end
+  defp preload_references(%INNMDosage{} = innm_dosage) do
+    PRMRepo.preload(innm_dosage, ingredients: [innm: []])
   end
   defp preload_references(entity) do
     entity

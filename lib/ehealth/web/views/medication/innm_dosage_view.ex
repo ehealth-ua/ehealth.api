@@ -24,6 +24,7 @@ defmodule EHealth.Web.INNMDosageView do
   def render("ingredient.json", %{ingredient: ingredient}) do
     %{
       id: ingredient.innm_child_id,
+      name: ingredient.innm.name,
       dosage: ingredient.dosage,
       is_primary: ingredient.is_primary,
     }
