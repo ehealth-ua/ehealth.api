@@ -3147,7 +3147,7 @@ After Medication request Request is signed it will be automatically moved to [Me
 
 > **Important:** Dispense of Medications under this Medication Request is possible in period between dispense_valid_from and dispense_valid_to
 
-### Get Medication Request Requests List [GET /api/medication_request_requests{?employee_id,legal_entity_id,status,page_number,page_size}]
+### Get Medication Request Requests List [GET /api/medication_request_requests{?employee_id,person_id,status,page_number,page_size}]
 
 Use this method to obtain list of Medication request Requests an `employee_id`. If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor is interested in current UI section.
 
@@ -3157,7 +3157,7 @@ Method returns shortened details, to obtain full information - Get Medication re
 
 + Parameters
     + `employee_id`: `7124259c-eeb1-4cbb-acac-ada2162675d1` (string, optional) - user_id of a doctor.
-    + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MSP ID.
+    + `person_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - person_id of a pacient. 
     + `status`: `NEW` (enum, optional). Default `NEW` 
         - NEW
         - SIGNED
@@ -4831,12 +4831,16 @@ Reimbursement Report combines information about Medication requests and correspo
 
 ### `INNM_Dosage_Response_Short`
 + `id` : `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required) 
-+ include `INNM_Dosage_Request`
++ include `INNM_Dosage_Response`
 + `is_active` : true (boolean, required)
 
 ### `INNM_Dosage_Response`
 + `id` : `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required) 
-+ include `INNM_Dosage_Request`
++ `name` : `Амідарон` (string, required)
++ `form` :  PILL (string, required) - `Dictionary MEDICATION_FORM`
++ `ingredients` (array, required)
+    + (object)
+        + include `Ingredient`
 + `is_active` : true (boolean, required)
 + inserted_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + inserted_by: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
