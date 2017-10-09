@@ -19,6 +19,7 @@ defmodule EHealth.PRM.Medications.API do
   alias EHealth.PRM.Medications.Medication.Search, as: MedicationSearch
   alias EHealth.PRM.Medications.Program.Schema, as: ProgramMedication
   alias EHealth.PRM.Medications.Program.Search, as: ProgramMedicationSearch
+  alias EHealth.PRM.MedicalPrograms.Schema, as: MedicalProgram
   alias EHealth.PRM.Medications.DrugsSearch
   alias EHealth.Validators.JsonSchema
   alias EHealth.PRM.Medications.Validator
@@ -209,26 +210,33 @@ defmodule EHealth.PRM.Medications.API do
     |> preload_references()
   end
 
-  def get_medication_for_medication_request_request(innm_id, _program_id) do
-    innm_id
+  def get_medication_for_medication_request_request(innm_dosage_id, program_id) do
+    innm_dosage_id
     |> get_medication_for_medication_request_request_query()
+    |> maybe_validate_medication_program_for_medication_request_request(program_id)
     |> PRMRepo.all()
   end
 
-  # def maybe_validate_medication_program_for_medication_request_request(query, nil), do: query
-  # def maybe_validate_medication_program_for_medication_request_request(query, program_id) do
-  # end
+  def maybe_validate_medication_program_for_medication_request_request(query, nil), do: query
+  def maybe_validate_medication_program_for_medication_request_request(query, program_id) do
+    from q in query,
+    inner_join: mp in MedicalProgram, on: mp.id == ^program_id,
+    inner_join: pm in ProgramMedication, on: mp.id == pm.medical_program_id,
+    where: pm.is_active,
+    where: pm.medication_request_allowed
+  end
 
-  def get_medication_for_medication_request_request_query(innm_id) do
-    from innm in INNMDosage,
-      inner_join: ing in MedicationIngredient, on: ing.medication_child_id == ^innm_id,
+  def get_medication_for_medication_request_request_query(innm_dosage_id) do
+    from innm_dosage in INNMDosage,
+      inner_join: ing in MedicationIngredient, on: ing.medication_child_id == ^innm_dosage_id,
       inner_join: med in Medication, on: ing.parent_id == med.id,
       where: ing.is_primary,
-      where: innm.id == ^innm_id,
-      where: innm.type == ^INNMDosage.type(),
-      where: innm.is_active,
+      where: innm_dosage.id == ^innm_dosage_id,
+      where: innm_dosage.type == ^INNMDosage.type(),
+      where: innm_dosage.is_active,
       where: med.is_active,
-      select: %{id: innm.id, medication_id: med.id, package_qty: med.package_qty, package_min_qty: med.package_min_qty}
+      select: %{id: innm_dosage.id, medication_id: med.id,
+                package_qty: med.package_qty, package_min_qty: med.package_min_qty}
   end
 
   # Create

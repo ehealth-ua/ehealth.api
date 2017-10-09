@@ -96,7 +96,7 @@ defmodule EHealth.MedicationRequestRequest.DataMapper do
   end
 
   defp validate_medication_id(_operation, data) do
-    Validations.validate_medication_id(data["medication_id"], data["medication_qty"])
+    Validations.validate_medication_id(data["medication_id"], data["medication_qty"], data["medical_program_id"])
   end
 
   defp validate_person(_operation, person) do
