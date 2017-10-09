@@ -37,11 +37,10 @@ defmodule EHealth.MedicationRequestRequest.Validations do
     end
   end
 
-  def validate_divison(division, legal_entity_id, employee) do
+  def validate_divison(division, legal_entity_id) do
     with true <- division.is_active &&
                  division.status == "ACTIVE" &&
-                 division.legal_entity_id == legal_entity_id &&
-                 division.id == employee.division_id
+                 division.legal_entity_id == legal_entity_id
     do
       {:ok, division}
     else

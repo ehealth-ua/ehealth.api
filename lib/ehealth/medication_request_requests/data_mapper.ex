@@ -108,7 +108,7 @@ defmodule EHealth.MedicationRequestRequest.DataMapper do
   end
 
   def validate_division(operation, division) do
-    Validations.validate_divison(division, operation.proxy.legal_entity.id, operation.proxy.employee)
+    Validations.validate_divison(division, operation.proxy.legal_entity.id)
   end
 
   defp validate_dates(_operation, data) do
