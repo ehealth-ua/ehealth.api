@@ -348,11 +348,12 @@ defmodule EHealth.PRM.Medications.API do
     ]
 
     innm
-    |> cast(attrs, @fields_program_medication_required)
-    |> validate_required(@fields_program_medication_required ++ @fields_program_medication_optional)
+    |> cast(attrs, @fields_program_medication_required ++ @fields_program_medication_optional)
+    |> validate_required(@fields_program_medication_required)
     |> foreign_key_constraint(:medication_id)
     |> foreign_key_constraint(:medical_program_id)
     |> unique_constraint(:medication_id, opts)
+    |> Validator.validate_program_medication_is_active()
     |> Validator.validate_medication_is_active()
     |> Validator.validate_medical_program_is_active()
   end

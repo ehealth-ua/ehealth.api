@@ -182,6 +182,12 @@ defmodule EHealthWeb.ProgramMedicationControllerTest do
       conn = put conn, program_medication_path(conn, :update, program_medication), reimbursement: true
       assert json_response(conn, 422)["errors"] != %{}
     end
+
+    test "cannot deactivate when medication_request_allowed is active", %{conn: conn, program_medication: pm} do
+      conn = put conn, program_medication_path(conn, :update, pm), is_active: false
+      [error] = json_response(conn, 422)["error"]["invalid"]
+      assert "$.is_active" == error["entry"]
+    end
   end
 
   defp create_program_medication(_) do

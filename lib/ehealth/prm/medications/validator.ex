@@ -52,6 +52,17 @@ defmodule EHealth.PRM.Medications.Validator do
     end
   end
 
+  def validate_program_medication_is_active(%{changes: %{is_active: false}} = changeset) do
+    err_msg = "To deactivate medication brand within the program firstly disable medical_request_allowed"
+    case get_field(changeset, :medication_request_allowed) do
+      true -> add_error(changeset, :is_active, err_msg)
+      _ -> changeset
+    end
+  end
+  def validate_program_medication_is_active(changeset) do
+    changeset
+  end
+
   defp validate_ingredients_fk(changeset) do
     validate_change changeset, :ingredients, fn :ingredients, ingredients ->
       ingredients
