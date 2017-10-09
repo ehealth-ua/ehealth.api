@@ -319,6 +319,12 @@ inserted_by | uuid | not null
 updated_at | timestamp | not null
 updated_by | uuid | not null
 
+[medication_requests_status_hstr]
+id | integer | not null
+medication_request_id | uuid | not null
+status | varchar | not null
+inserted_at | timestamp | not null
+
 (prm)
 parties
 party_users
@@ -341,6 +347,7 @@ declarations
 declaration_log_changes
 declarations_status_hstr
 medication_requests
+medication_requests_status_hstr
 medication_dispenses
 medication_dispense_details
 medication_dispense_status_hstr
@@ -371,6 +378,7 @@ medication_requests *--1 employees
 medication_requests *--1 medications
 medication_requests ?--1 medication_request_requests
 medication_requests 1--* medication_dispenses
+medication_requests *--1 medication_requests_status_hstr
 medication_dispenses *--1 legal_entities
 medication_dispenses *--1 divisions
 medication_dispenses *--1 employees
