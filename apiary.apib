@@ -921,9 +921,11 @@ Total statistis are calculated on the date that is transmitted in the current da
 ```json
 {
     "data": {
-      "declarations": 100, -- select count(*) from declarations where inserted_at <= to_date
-      "msps": 2, -- select count(*) from legal_entity where inserted_at between start_date and to_date and is_active = 'true'
+      "declarations": 100, -- select count(*) from declarations where inserted_at <= to_date and status in('active', 'pending_verification')
+      "msps": 2, -- select count(*) from legal_entities where type ='MSP' and inserted_at between start_date and to_date and is_active = 'true'
       "doctors": 15 -- select count(*) from employees where inserted_at between start_date and to_date and is_active = 'true' and employee_type = 'DOCTOR' and status = 'APPROVED'
+      "pharmacies": 2 -- select count(*) from legal_entities where type ='PHARMACY' inserted_at between start_date and to_date and is_active = 'true'    
+      "pharmacists": 6 -- select count(*) from employees where inserted_at between start_date and to_date and is_active = 'true' and employee_type = 'PHARMACIST' and status = 'APPROVED'
     },
 }
 ```
@@ -936,11 +938,13 @@ Total statistis are calculated on the date that is transmitted in the current da
         + data (object, optional)
             + declarations: 100 (number, required)
             + msps: 2 (number, required)
-            + doctors: 15 (number, required)  
+            + doctors: 15 (number, required)
+            + pharmacies: 2 (number, required)
+            + pharmacists: 6 (number, required)
 
 ### Get Main Stats by Regions [GET /reports/stats/regions/]
 
-Methods returns agregated numbers of declarations, MSP and doctors grouped by region.
+Methods returns agregated numbers of declarations, MSP, PHARMACIES, doctors and pharmacists grouped by region.
 Total statistis are calculated on the date that is transmitted in the current dste
 The service returns statistics for all regions
 
@@ -948,8 +952,11 @@ The service returns statistics for all regions
 
 ```
   "declarations": 100, --> declarations.division.addreses['REGISTRATION'].region_ID
-  "msps": 2, --> legal_entities.addreses['REGISTRATION'].region_ID
-  "doctors": 15 --> employees-->legal_entity...
+  "msps": 2, --> legal_entities.[type='MSP'].addreses['REGISTRATION'].region_ID
+  "doctors": 15 --> employees.[employee_type='DOCTOR' & is_active=true].division_id-->divisions.addreses['REGISTRATION'].region_ID
+  "pharmacies": 2, --> legal_entities.[type='PHARMACY'].addreses['REGISTRATION'].region_ID
+  "pharmacists": 15 --> employees.[employee_type='PHARMACIST' & is_active=true].division_id-->divisions.addreses['REGISTRATION'].region_ID
+  "medication_requests": 30 -->medication_requests.employee_id-->division_id-->divisions.addreses['REGISTRATION'].region_ID
 ```
 
 + Request (application/json)
@@ -974,9 +981,9 @@ Methods returns agregated numbers of declarations and doctors by division
 
 
 
-### Get Histogram Stats [GET /reports/stats/histogram?{from_date}&{to_date}&{interval}]
+### Get Histogram Stats Declarations [GET /reports/stats/histogram?{from_date}&{to_date}&{interval}]
 
-Methods returns agregated numbers of declarations, msps and doctors.
+Methods returns agregated numbers of declarations.
 Total statistis are calculated on the date that is transmitted in the parameter to_date
 The statistics for the period are calculated using from_date and to_date
 If the region is not specified, the service returns statistics for all regions
@@ -996,7 +1003,6 @@ If the region is not specified, the service returns statistics for all regions
     + Attributes (Response_OK)
         + data (array[HistogramStats], optional)
 
- 
 ## Divisions [/report/divisions]
 
 ### Search Divisions [GET /stats/divisions/map{?type,name,lefttop_latitude,lefttop_longitude,rightbottom_latitude,rightbottom_longitude}]
@@ -1604,7 +1610,7 @@ This method is used to update flags "is_active" and/or "medication_request_allow
             + type: unverified (string, required)
             + message: `Medications are already inactive in this program` (string, required)
 
-### Get Program medication list [GET /program_medications{?id,medical_program_id,medical_program_name,innm_id,innm_name,medication_id,medication_name,page_number,page_size}]
+### Get Program medication list [GET /program_medications{?id,medical_program_id,medical_program_name,innm_dosage_id,innm_dosage_name,medication_id,medication_name,page_number,page_size}]
 Method returns list of participants(medications) of medical programs filtering by parameters.  
 
 **Scopes required:** `program_medication:read`
@@ -1613,9 +1619,9 @@ Method returns list of participants(medications) of medical programs filtering b
     + `id`: `7124259c-eeb1-4cbb-acac-ada2162675d1` (string, optional) - Program_medications Identifier (medication within the program)
     + `medical_program_id`: `042a3b20-bb08-4e50-83ee-ef23c3b1c0c8` (string, optional) - medical program identifier
     + `medical_program_name`: `Доступні ліки` (string, optional) - medical program name
-    + `innm_id`: `5052fcaf-58a0-461b-9e98-d60243a1773e` (string, optional) - INNM Identifier
-    + `innm_name`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - INNM name
-    + `medication_id`:  `PILL` (string, optional) - Medication Identifier.
+    + `innm_dosage_id`: `5052fcaf-58a0-461b-9e98-d60243a1773e` (string, optional) - INNM dosage Identifier
+    + `innm_dosage_name`: `Артитміл 5 мг` (string, optional) - INNM dosage name
+    + `medication_id`:  `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - Medication Identifier.
     + `medication_name`: `Аритміл` (string, optional) - Medication name.
     + `page_number`: 2 (number) - Page number.    
     + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
@@ -3101,19 +3107,22 @@ Get list of cities by district
 
 ## Drugs [/apidrugs]
 
-### Get drugs list [GET /api/drugs{?substanse_id,substanse_name,substanse_sctid,form,medication_id,medication_name,medication_code_ATX,page_number,page_size}]
+### Get drugs list [GET /api/drugs{?innm_id,innm_name,innm_sctid,innm_dosage_form,innm_dosage_id,innm_dosage_name,medication_code_atc,page_number,page_size}]
+
+Get drugs list by filters.
+
+**Scopes required:** `drug:read`
 
 + Parameters
-    + `substanse_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional)
-    + `substanse_name`: `Аміодарон` (string, optional)
-    + `substanse_sctid`: `52574003` (string, optional)
-    + `form`: `PILL` (string, optional)
-    + `medication_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional)
-    + `medication_name`: `Аміодарон 200мг таблетки` (string, optional)
-    + `medication_code_ATX`: `С01BD01` (string, optional)
+    + `innm_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - Innm identifier. 
+    + `innm_name`: `Аміодарон` (string, optional) - Innm local name.
+    + `innm_sctid`: `52574003` (string, optional) - Innm CNOMED code.
+    + `innm_dosage_form`: `PILL` (string, optional) - Innm_dosage form.
+    + `innm_dosage_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - Innm_dosage identifier.
+    + `innm_dosage_name`: `Аміодарон 200мг таблетки` (string, optional) - Innm_dosage name.
+    + `medication_code_atc`: `С01BD01` (string, optional) - Medication code ATC..
     + page_number: 2 (number, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
-
 
 + Request (application/json)
 
@@ -3364,6 +3373,7 @@ Method returns shortened details, to obtain full information - get Medication re
         - ACTIVE
         - COMPLETED
         - EXPIRED
+        - REJECTED
     + page_number: 2 (number, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
@@ -3398,7 +3408,7 @@ Use this method to reject previously created and signed Medication request.
         + meta (Response__Meta)
         + data (`Medication_request_Public_Response`)
             + include (`Medication_request_Reject_Public_Response`)
-            
+
 ### Resend Medication Request [PATCH /api/medication_requests/{id}/actions/resend]
 
 Use this method to resend SMS for person with info medication request number & verification code.
@@ -3416,6 +3426,29 @@ Use this method to resend SMS for person with info medication request number & v
     + Attributes (Response__Process_OK)
         + meta (Response__Meta)
         + data (`Medication_request_Public_Response`)
+
+### Get Medication Dispenses list by Medication Request ID [GET /api/medication_requests/{id}/dispenses{?status}]
+
+Use this method to obtain list of Medication Dispenses by doctor with medication request ID. 
+
+Only Medication dispenses linked to medication request id will be shown. If you want to reduce amount of data that is going trough your application, use `status` filter and show only dispenses that Doctor is interested in.
+
++ Parameters
+    + `id`: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, required)
+    + status: PROCESSED (string, optional) - Status
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (`Response_Collection_V2`)
+        + data (array)
+            + (object)
+                + include `Medication_Dispense_Response`
+
 
 ## Medication Dispense [/api/medication_dispenses]
 
@@ -3482,7 +3515,7 @@ This method is used to process created dispense
         + data (object)
             + include `Medication_Dispense_Response`
 
-### Get Medication Dispenses List [GET /api/medication_dispenses{?id,medication_request_id,legal_entity_id,division_id,status,page_number,page_size}]
+### Get Medication Dispenses List [GET /api/medication_dispenses{?id,medication_request_id,legal_entity_id,division_id,status,dispensed_at,page_number,page_size}]
 
 + Parameters
     + id: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, optional) - Medication dispense ID
@@ -3490,6 +3523,7 @@ This method is used to process created dispense
     + legal_entity_id: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, optional) - Legal entity ID
     + division_id: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, optional) - Division ID
     + status: PROCESSED (string, optional) - Status
+    + dispensed_at: '2017-09-01' (string, optional) - date of dispense
     + page_number: 2 (number, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
@@ -3521,6 +3555,38 @@ This method is used to process created dispense
     + Attributes (Response_OK)
         + data (object)
             + include `Medication_Dispense_Response`
+
+## Reimbursement Report [/api/reimbursement_report]
+
+Reimbursement Report combines information about Medication requests and corresponding Medication Dispenses
+
+**Scopes required:** `reimbursement_report:read`
+
+1. **MIS (OWNER)** is allowed to see Medication Requests made by its' legal_entity and related to those Medication Requests Medication Dispenses
+
+2. **PHARMACY (PHARAMCY_OWNER)** - is allowed to see Medication Dispenses made by its' legal_entity and related to those Medication Dispenses Medication Requests.
+
+### Get Reimbursement Report [GET /api/reimbursement_report{?date_from_request,date_to_request,date_from_dispense,date_to_dispense,page_number,page_size}]
+
++ Parameters
+    + date_from_request: `2017-09-01` (date, optional) - Start date for Medication Requests created date
+    + date_to_request: `2017-10-01` (date, optional) - End date for Medication Requests created date
+    + date_from_dispense: `2017-09-01` (date, optional) - Start date for Medication Dispense disbursed_at date
+    + date_to_dispense: `2017-10-01` (date, optional) - End date for Medication Dispense disbursed_at date
+    + page_number: 2 (number, optional) - Page number.
+    + page_size: 1000 (number, optional) - A limit on the number of objects to be returned. Default: 1000
+
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (`Response_Collection_V2`)
+         + data (array[`Reimbursement_Report_Response`])
+
 
 # Group Dummy. Create legal entity
 
@@ -4158,9 +4224,9 @@ This method is used to process created dispense
 + phones (array[Phone], required)
 + email: email@example.com (string, required)
 + type: clinic (enum, required)
-    - clinic
-    - ambulant_clinic
-    - fap
+    - CLINIC
+    - AMBULANT_CLINIC
+    - FAP
 + external_id: `3213213` (string, optional)
 + location (Location, optional)
 
@@ -4172,9 +4238,9 @@ This method is used to process created dispense
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + name: Бориспільське відділення Клініки Борис (string, required)
 + type: clinic (enum, required)
-    - clinic
-    - ambulant_clinic
-    - fap
+    - CLINIC
+    - AMBULANT_CLINIC
+    - FAP
 + status: ACTIVE (enum, required)
     - ACTIVE
     - INACTIVE
@@ -4406,13 +4472,28 @@ This method is used to process created dispense
 ## Dashboards
 
 ### StatsByRegion
-+ stats (RegionStats, required)
-+ region (Region, required)
++ from_date: `2017-09-01` (string, optional)
++ to_date: `2017-09-02` (string, optional)
++ regions (array, required)
+    + (object)
+        + include (`StatsByRegionadd`)
+
+### StatsByRegionadd
++ `region` (object, required)
+    + include `Region`
++ `period` (object, required)
+    + include `RegionStats`    
++ `total` (object, required)
+    + include `RegionStats` 
 
 ### RegionStats
-+ declarations: 100 (number, required)
++ declarations_total: 100 (number, required)
++ declarations_created: 102 (number, required)
++ declarations_closed: 2 (number, required)
 + msps: 2 (number, required)
 + doctors: 15 (number, required)
++ pharmacies: 2 (number, required)
++ pharmacists: 6 (number, required)
 
 ### Region
 + id: `asSbcy12sYs8c` (string, required)
@@ -4425,6 +4506,10 @@ This method is used to process created dispense
 + declarations_closed: 0 (number, required)
 + declarations_active_start: 1 (number, required)
 + declarations_active_end: 1 (number, required)
++ medication_requests_created: 0 (number, required)
++ medication_requests_closed: 0 (number, required)
++ medication_requests_active_start: 1 (number, required)
++ medication_requests_active_end: 1 (number, required)
 
 ### Interval
 + from_date: `2017-02-01` (string, required)
@@ -4655,15 +4740,13 @@ This method is used to process created dispense
 ### `Drug_Response`
 + `id`: `ae9bf68e-3c98-4027-9211-535f7dad7a87` (string, required)
 + `name`: `Аміодарон 200мг таблетки` (string, required)
-+ `code_ATX`: `С01BD01` (string, required)
 + `form`: PILL (string, required) - `Dictionary MEDICATION_FORM`
-+ `innm` (`Innm_Response_Short`, required) 
++ `innm` (`Innm_Public_Response_Short`, required) 
 + `dosage` (`Dosage_drug`, required)
-+ `container_dosage` (`Dosage_container`, required)
-+ `packages` (array, required)
-    + (`Medication_package`)
++ `packages` (array [`Medication_package`], required)
 
 ### `Medication_package`
++ `container_dosage` (`Dosage_container`, required)
 + `package_qty`: 30 (number, required)
 + `package_min_qty`: 10 (number, required)
 
@@ -4673,14 +4756,23 @@ This method is used to process created dispense
 + `name`: `Аміодарон` (string, required) - innm local name
 + `name_original`: `Amiodarone` (string, required) - innm original name
 
+### `Innm`
++ `sctid`: `52574003` (string, required) - innm CNOMED code
++ `name`: `Аміодарон` (string, required) - innm local name
++ `name_original`: `Amiodarone` (string, required) - innm original name
+
+### `Innm_Public_Response_Short`
++ `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required)
++ include `Innm`
+
 ### `Innm_Response_Short`
 + `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required)
-+ include `Innm_Request`
++ include `Innm`
 + is_active: true (boolean, required)
 
 ### `Innm_Response`
 + `id`: `c7d52544-0bd4-4129-97b0-2d72633e0490` (string, required)
-+ include `Innm_Request`
++ include `Innm`
 + is_active: true (boolean, required)
 + inserted_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + inserted_by: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
@@ -4708,11 +4800,11 @@ This method is used to process created dispense
 
 
 ### `Innm_Dosage_for_Medication_request_Responce`
-+ `innm_dosage` (`Innm_Response_Short`, required)
-+ `medication_id` : `4a63b858-c138-4921-9341-ae9e384bcbd6` (string, required)
++ `innm_dosage` (`Innm_Response_Short`, required) - `Innm object`
++ `medication_id` : `4a63b858-c138-4921-9341-ae9e384bcbd6` (string, required) - `Identifier medication with type **INNM_DOSAGE**`
 + `form`: PILL (string, required) - `Dictionary MEDICATION_FORM`
-+ `dosage` (`Dosage_drug`, required)
-+ `container` (`Dosage_container`, required)
++ `dosage` (`Dosage_drug`, required) - Dosage of innm_dosage object
++ `container` (`Dosage_container`, required) Dosage of innm_dosage object
 + `medication_qty`: 10 (number, required) - Medication quantity isuued by the doctor
 
 ### `Manufacturer`
@@ -4767,7 +4859,18 @@ This method is used to process created dispense
 
 ### `Medication_Response`
 + `id` : `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required) 
-+ include `Medication_Request`
++ `name` : `Амідарон` (string, required)
++ `manufacturer` (`Manufacturer`, optional)
++ `code_atc`: `C01BD01` (string, optional)
++ `form` :  PILL (string, required) - `Dictionary MEDICATION_FORM`
++ `container` (`Dosage_container`, required)
++ `package_qty`: 30 (number, optional)
++ `package_min_qty`: 10 (number, optional)
++ `certificate` : `UA/4514/01/01` (string, optional)
++ `certificate_expired_at` : `2021-02-09` (string, optional)
++ `ingredients` (array, required)
+    + (object)
+        + include `Ingredient`
 + `is_active` : true (boolean, required)
 + inserted_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + inserted_by: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
@@ -4776,7 +4879,7 @@ This method is used to process created dispense
 
 ### `Medication_Response_Short`
 + `id` : `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required) 
-+ include `Medication_Request`
++ include `Medication_Response`
 + `is_active` : true (boolean, required)
 
 ### `Medication_Short`
@@ -4794,18 +4897,17 @@ This method is used to process created dispense
 ### `Program_medications_Request`
 + `medication_id`: `59781de0-2e64-4359-b716-bcc05a32c10f`(string, required) -  Medication Identifier
 + `medical_program_id`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required) -  Medical program Identifier
-+ `medication_request_allowed`: true (boolean, required) - indicator whether medication is allowed to use in new medication request
 + `reimbursement` (object, required)
     + include `Reimbursement`
 
 ### `Program_medications_Update_Request`
-+ `is_active`: true (boolean, required)
-+ `medication_request_allowed`: true (boolean, required)
-+ `reimbursement` (object, required)
++ `is_active`: true (boolean, optional)
++ `medication_request_allowed`: true (boolean, optional)
++ `reimbursement` (object, optional)
     + include `Reimbursement`
 
 ### `Reimbursement`
-+ `type`: `fixed` (string, required) - fixed or external type of reimburesment (Dictionary REIMBURSEMENT_TYPE)
++ `type`: `fixed` (string, required) - fixed or external type of reimbursement (Dictionary REIMBURSEMENT_TYPE)
 + `reimbursement_amount`: 450 (number, optional) - Amount to reimburse for medication package by medical_program
 
 ### `Program_medications_Response`
@@ -4897,7 +4999,7 @@ This method is used to process created dispense
 + `division` (`Division_Details`, required)
 + `employee` (Employee_Minimal, required)
 + `person` (`Person_Short`)            
-+ `medication` (`Innm_Dosage_for_Medication_request_Responce`, required)
++ `medication_info` (`Innm_Dosage_for_Medication_request_Responce`, required)
 + `medical_program` (`Medical_Program_Response`, required)
 
 ### `Qualify_Medication_request_Request_List_program_post_data`
@@ -4950,7 +5052,8 @@ This method is used to process created dispense
 + `status`: `ACTIVE` (enum[string], required) - Medication Request status. Find available **statuses** on State Charts wiki page
     - ACTIVE
     - COMPLETED
-    - STOPPED
+    - REJECTED
+    - EXPIRED
 + `request_number` : `xxxx` (string) - Public medication request human readable number
 + `created_at`: `2017-08-17` (string, required) - Medication request creation date, which is determined by the external system. Format *DATE '2017-09-07'*
 + `started_at`: `2017-08-17` (string, required) - Start date of a treatment period, which is determined by the external system. Greater or equal to **created_at**. Format *DATE '2017-09-07'*
@@ -4962,7 +5065,7 @@ This method is used to process created dispense
 + `division` (`Division_Details`, required)
 + `employee` (Employee_Minimal, required)
 + `person` (`Person_Short`)            
-+ `medication` (`Innm_Dosage_for_Medication_request_Responce`, required)
++ `medication_info` (`Innm_Dosage_for_Medication_request_Responce`, required)
 + `medical_program` (`Medical_Program_Response`, required)
 
 ### `Medication_request_Reject_Public_Response`
@@ -5015,3 +5118,71 @@ This method is used to process created dispense
 + `sell_amount`: 186.5 (number, required) - total pharmacy's price for the requested medication quantity
 + `discount_amount`: 150 (number, required) - pharmacy's expected price of dicsount for the requested medication quantity
 + `reimbursement_amount`: 450 (number, required) - Amount to reimburse for medication package by medical_program
+
+## `Reimbursement_Report`
+### `Reimbursement_Report_Response`
++ `medication_request` (object, required)
+    + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Request identifier
+    + `request_number`: `xxxx` (string) - Public medication request human readable number
+    + `created_at`: `2017-08-17` (string, required) - Medication request creation date, which is determined by the external system. Format *DATE '2017-09-07'*
+    + `started_at`: `2017-08-17` (string, required) - Start date of a treatment period, which is determined by the external system. Greater or equal to **created_at**. Format *DATE '2017-09-07'*
+    + `ended_at`: `2017-09-16` (string, required) - End date of a treatment period, which is determined by the external system. Greater or equal to **started_at**. Format *DATE '2017-10-07'*
+    + `dispense_valid_from`: `2017-08-17` (string, required) - Start date of dispense period, which is determined by the external system. Format *DATE '2017-09-07'*
+    + `dispense_valid_to`: `2017-09-16` (string, required) - End date of dispense period, which is determined by the external system. Greater or equal to **dispense_valid_from**. Format *DATE '2017-10-07'*
+    + `status`: `NEW` (string, required) - Medication Dispense status (NEW, PROCESSED, REJECTED, EXPIRED)
+    +  include (`Medication_request_Reject_Public_Response`, optional)
+    + `person_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Person identifier
+    + `legal_entity` (object, required)
+        + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Legal entity identifier
+        + `name`: `Клініка Борис` (string, required)
+        + `edrpou`: `5432345432` (string, required)
+    + `division` (object, required) 
+        + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+        + `name`: `Бориспільське відділення Клініки Борис` (string, required)
+        + `mountain_group`: `false` (boolean, optional)
+        + `address` (`Address`, required)
+    + `employee` (object, required) 
+        + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Employee identifier with `type=DOCTOR` who issued Medication Request.
+        + `party_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Employee Party id
+        + `last_name`: `Іванов` (string, required)
+        + `first_name`: `Петро` (string, required)
+        + `second_name`: `Миколайович` (string, optional)
+        + `position`: `P6` (string, required) - `Dictionary POSITION`
+        + `employee_type`: `DOCTOR` (string) - `Dictionary: EMPLOYEE_TYPE`
+    + `innm_dosage` (object, required)
+        + `id`: `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required)
+        + `name`: `Амідарон` (string, required)
+        + `form`:  PILL (string, required) - `Dictionary MEDICATION_FORM`
+        + `medication_qty`:10 (number, required) - qnty of INNM_DOSAGE
+    + `medical_program` (`Medical_Program_Response`, required)
++ `medication_dispense`(object, optional)
+    + `id`: `f08ba3a3-157a-4adc-b65d-737f24f3a1f4` (string, required) - Medication dispense Identifier
+    + `dispensed_at`: `2017-08-17` (string, required) - date of dispense
+    + `status`: NEW (string, required) - Medication Dispense status (NEW, PROCESSED, REJECTED, EXPIRED)
+    + `medications` (array, fixed, required)
+        + (object)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Identifier of brand medications
+            + `code_atc`: `С01BD01` (string, optional)
+            + include `Medication_Short`
+            + `package_qty`: 30 (number, required) - qnty medications in the package
+            + `dispense_details` (object, required)
+                + `medication_qty`: 10 (number, required) - qnty of medication_unit (pill/ampoule/container/bottle/vial/aerosol) which provides to the patient
+                + `sell_price`: 18.65 (number, required) - pharmacy's price for one nondivisible medication_unit (pill/ampoule/container/bottle/vial/aerosol)
+                + `sell_amount`: 186.5 (number, required) - total pharmacy's price for the requested medication quantity
+                + `discount_amount`: 150 (number, required) - pharmacy's expected price of dicsount for the requested medication quantity
+                + `reimbursement_amount`: 450 (number, required) - Amount to reimburse for medication package by medical_program
+    + `medical_program` (`Medical_Program_Response`, required)
+    + `legal_entity` (object, required)
+        + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Legal entity identifier
+        + `name`: `Аптека Доброго дня` (string, required) - Legal entity name
+        + `edrpou`: `5432345431` (string, required) - Legal entity edrpou
+    + `division` (object, required) 
+        + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+        + `name`: `Бориспільське відділення Аптеки Доброго Дня` (string, required)
+        + `mountain_group`: `false` (boolean, optional)
+        + `address` (`Address`, required)
+    + `party` (object, required) 
+        + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Employee Party id
+        + `last_name`: `Іванов` (string, required)
+        + `first_name`: `Петро` (string, required)
+        + `second_name`: `Миколайович` (string, optional)
