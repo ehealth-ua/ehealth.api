@@ -27,7 +27,7 @@ defmodule EHealth.Web.MedicationDispenseView do
     party = Map.get(references, :party)
     party = if party, do: render_one(party, PartyView, "show.json"), else: %{}
     legal_entity = Map.get(references, :legal_entity)
-    legal_entity = if legal_entity, do: render(LegalEntityView, "show.json", references), else: %{}
+    legal_entity = if legal_entity, do: render(LegalEntityView, "show_reimbursement.json", references), else: %{}
     division = Map.get(references, :division)
     division = if division, do: render(DivisionView, "show.json", references), else: %{}
     medical_program = Map.get(references, :medical_program)

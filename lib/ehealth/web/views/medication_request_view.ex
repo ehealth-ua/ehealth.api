@@ -13,6 +13,7 @@ defmodule EHealth.Web.MedicationRequestView do
   end
 
   def render("show.json", %{medication_request: medication_request}) do
+    legal_entity = medication_request["legal_entity"]
     medication_request
     |> Map.take(~w(
       id
@@ -24,7 +25,7 @@ defmodule EHealth.Web.MedicationRequestView do
       dispense_valid_from
       dispense_valid_to
     ))
-    |> Map.put("legal_entity", render_one(medication_request["legal_entity"], LegalEntityView, "show.json"))
+    |> Map.put("legal_entity", render_one(legal_entity, LegalEntityView, "show_reimbursement.json"))
     |> Map.put("employee", render_one(medication_request["employee"], EmployeeView, "employee.json"))
     |> Map.put("division", render_one(medication_request["division"], DivisionView, "show.json"))
     |> Map.put("medical_program", render_one(medication_request["medical_program"], MedicalProgramView, "show.json"))

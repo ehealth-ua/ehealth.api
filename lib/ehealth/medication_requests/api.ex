@@ -7,13 +7,11 @@ defmodule EHealth.MedicationRequests.API do
   alias EHealth.PRM.Divisions.Schema, as: Division
   alias EHealth.PRM.PartyUsers.Schema, as: PartyUser
   alias EHealth.PRM.Employees.Schema, as: Employee
-  alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
   alias EHealth.PRM.MedicalPrograms.Schema, as: MedicalProgram
   alias EHealth.PRM.Medications.Medication.Schema, as: Medication
   alias EHealth.PRM.Medications.API, as: MedicationsAPI
   alias EHealth.PRM.Divisions
   alias EHealth.PRM.Employees
-  alias EHealth.PRM.LegalEntities
   alias EHealth.PRM.MedicalPrograms
   alias EHealth.API.MPI
   alias EHealth.MedicationRequests.Search
@@ -89,7 +87,6 @@ defmodule EHealth.MedicationRequests.API do
   def get_references(medication_request) do
     with %Division{} = division <- Divisions.get_division_by_id(medication_request["division_id"]),
          %Employee{} = employee <- Employees.get_employee_by_id(medication_request["employee_id"]),
-         %LegalEntity{} = legal_entity <- LegalEntities.get_legal_entity_by_id(medication_request["legal_entity_id"]),
          %MedicalProgram{} = medical_program <- MedicalPrograms.get_by_id(medication_request["medical_program_id"]),
          %Medication{} = medication <- MedicationsAPI.get_medication_by_id(medication_request["medication_id"]),
          {:ok, %{"data" => person}} <- MPI.person(medication_request["person_id"])
@@ -99,7 +96,7 @@ defmodule EHealth.MedicationRequests.API do
         medication_request
         |> Map.put("division", division)
         |> Map.put("employee", employee)
-        |> Map.put("legal_entity", legal_entity)
+        |> Map.put("legal_entity", employee.legal_entity)
         |> Map.put("medical_program", medical_program)
         |> Map.put("medication", medication)
         |> Map.put("person", person)
