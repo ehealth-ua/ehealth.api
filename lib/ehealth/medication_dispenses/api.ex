@@ -13,7 +13,6 @@ defmodule EHealth.MedicationDispense.API do
   alias EHealth.PRM.Divisions.Schema, as: Division
   alias EHealth.PRM.PartyUsers.Schema, as: PartyUser
   alias EHealth.PRM.Parties.Schema, as: Party
-  alias EHealth.PRM.MedicalPrograms.Schema, as: MedicalProgram
   alias EHealth.PRM.Medications.Medication.Schema, as: Medication
   alias EHealth.PRM.Medications.Program.Schema, as: ProgramMedication
   alias EHealth.API.OPS
@@ -22,9 +21,8 @@ defmodule EHealth.MedicationDispense.API do
   alias EHealth.Validators.Reference
   alias EHealth.PRM.PartyUsers
   alias EHealth.PRM.Parties
-  alias EHealth.PRM.Medications.API, as: MedicationsAPI
-  alias EHealth.API.MPI
   alias EHealth.PRMRepo
+  alias EHealth.MedicationRequests.API, as: MedicationRequests
 
   @search_fields ~w(
     id
@@ -54,7 +52,8 @@ defmodule EHealth.MedicationDispense.API do
          :ok <- validate_legal_entity_id(medication_dispense, legal_entity_id),
          division <- Divisions.get_division_by_id(medication_dispense["division_id"]),
          medical_program <- MedicalPrograms.get_by_id(medication_dispense["medical_program_id"]),
-         {:ok, medication_request} <- get_medication_request_references(medication_dispense["medication_request"])
+         medication_request <- medication_dispense["medication_request"],
+         {:ok, medication_request} <- MedicationRequests.get_references(medication_request)
     do
       {:ok, medication_dispense, %{
         legal_entity: legal_entity,
@@ -139,7 +138,7 @@ defmodule EHealth.MedicationDispense.API do
     with {:ok, medication_request} <- Reference.validate(:medication_request, id),
          :ok <- is_active_medication_request(medication_request),
          :ok <- validate_medication_request_period(medication_request),
-         {:ok, medication_request} <- get_medication_request_references(medication_request)
+         {:ok, medication_request} <- MedicationRequests.get_references(medication_request)
     do
       {:ok, medication_request}
     end
@@ -442,43 +441,16 @@ defmodule EHealth.MedicationDispense.API do
     end
   end
 
-  defp get_medication_request_references(medication_dispenses) when is_list(medication_dispenses) do
+  defp get_medication_request_references(medication_dispenses) do
     result =
       Enum.reduce_while(medication_dispenses, [], fn dispense, acc ->
-        with {:ok, medication_request} <- get_medication_request_references(dispense["medication_request"]) do
+        medication_request = dispense["medication_request"]
+        with {:ok, medication_request} <- MedicationRequests.get_references(medication_request) do
           {:cont, acc ++ [%{dispense | "medication_request" => medication_request}]}
         else
           error -> {:halt, error}
         end
       end)
     if is_list(result), do: {:ok, result}, else: result
-  end
-
-  defp get_medication_request_references(medication_request) do
-    with %Division{} = division <- Divisions.get_division_by_id(medication_request["division_id"]),
-         %Employee{} = employee <- Employees.get_employee_by_id(medication_request["employee_id"]),
-         %LegalEntity{} = legal_entity <- LegalEntities.get_legal_entity_by_id(medication_request["legal_entity_id"]),
-         %MedicalProgram{} = medical_program <- MedicalPrograms.get_by_id(medication_request["medical_program_id"]),
-         %Medication{} = medication <- MedicationsAPI.get_medication_by_id(medication_request["medication_id"]),
-         {:ok, %{"data" => person}} <- MPI.person(medication_request["person_id"])
-    do
-      {
-        :ok,
-        medication_request
-        |> Map.put("division", division)
-        |> Map.put("employee", employee)
-        |> Map.put("legal_entity", legal_entity)
-        |> Map.put("medical_program", medical_program)
-        |> Map.put("medication", medication)
-        |> Map.put("person", person)
-      }
-    else
-      _ ->
-        {:error, [{
-          %{description: "Medication request is not valid",
-            params: [],
-            rule: :required
-          }, "$.medication_request_id"}]}
-    end
   end
 end

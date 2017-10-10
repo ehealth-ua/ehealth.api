@@ -152,6 +152,12 @@ defmodule EHealthWeb.Router do
 
     post "/medication_dispenses", MedicationDispenseController, :create
 
+    scope "/medication_requests" do
+      pipe_through [:client_context_list]
+
+      get "/", MedicationRequestController, :index
+    end
+
     # Person declarations
     get "/persons", PersonsController, :search_persons
     get "/persons/:id/declaration", PersonsController, :person_declarations

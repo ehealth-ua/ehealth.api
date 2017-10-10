@@ -78,6 +78,12 @@ defmodule EHealth.API.OPS do
     |> ResponseDecoder.check_response()
   end
 
+  def get_doctor_medication_requests(params, headers \\ []) do
+    "/doctor_medication_requests"
+    |> get!(headers, params: params)
+    |> ResponseDecoder.check_response()
+  end
+
   def get_latest_block(headers \\ []) do
     "/latest_block"
     |> get!(headers)

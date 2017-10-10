@@ -278,34 +278,34 @@ defmodule EHealth.MockServer do
   end
 
   get "/declarations" do
-    {code, resp} =
+    resp =
       case conn.params do
         %{"person_id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375200"}
-          -> {200, [get_declaration(), get_declaration("terminated")]}
+          -> [get_declaration(), get_declaration("terminated")]
 
         %{"person_id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375400"}
-          -> {200, [get_declaration(), get_declaration()]}
+          -> [get_declaration(), get_declaration()]
 
         %{"person_id" => "585044f5-1272-4bca-8d41-8440eefe7d26"}
-          -> {200, [get_declaration(nil, nil, nil, nil, "585044f5-1272-4bca-8d41-8440eefe7d26")]}
+          -> [get_declaration(nil, nil, nil, nil, "585044f5-1272-4bca-8d41-8440eefe7d26")]
 
-        %{"person_id" => _} -> {200, []}
+        %{"person_id" => _} -> []
 
         # MSP
         %{"legal_entity_id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375552"}
-          -> {200, [get_declaration()]}
+          -> [get_declaration()]
 
         # MIS
         %{"legal_entity_id" => "296da7d2-3c5a-4f6a-b8b2-631063737271"} ->
-          {200, [get_declaration(), get_declaration()]}
+          [get_declaration(), get_declaration()]
 
         # NHS_Admin
         %{"legal_entity_id" => "356b4182-f9ce-4eda-b6af-43d2de8601a1"} ->
-          {200, [get_declaration(), get_declaration(), get_declaration()]}
+          [get_declaration(), get_declaration(), get_declaration()]
 
-        _ -> {200, []}
+        _ -> []
       end
-    render_with_paging(resp, conn, code)
+    render_with_paging(resp, conn)
   end
 
   post "/declarations/with_termination" do
@@ -344,6 +344,20 @@ defmodule EHealth.MockServer do
         render([get_medication_request(id, %{"dispense_valid_to" => "2013-01-01"})], conn, 200)
       _ -> render_404(conn)
     end
+  end
+
+  get "/doctor_medication_requests" do
+    params = conn.query_params
+    employee_id =
+      params
+      |> Map.get("employee_id", "")
+      |> String.split(",")
+      |> List.first || UUID.generate()
+    person_id = Map.get(params, "person_id", "")
+    render_with_paging([get_medication_request(UUID.generate(), %{
+      "employee_id" => employee_id,
+      "person_id" => person_id
+    })], conn)
   end
 
   post "/medication_dispenses" do
@@ -651,14 +665,15 @@ defmodule EHealth.MockServer do
     |> Plug.Conn.send_resp(status, get_resp_body(resource, conn))
   end
 
-  def render_with_paging(resource, conn, starting_after \\ nil) do
+  def render_with_paging(resource, conn) do
     conn = Plug.Conn.put_status(conn, 200)
     conn
     |> Plug.Conn.put_resp_content_type("application/json")
     |> Plug.Conn.send_resp(200,
-      resource
-      |> wrap_response_with_paging(starting_after)
-      |> Poison.encode!()
+
+    resource
+    |> wrap_response_with_paging()
+    |> Poison.encode!()
     )
   end
 
@@ -684,39 +699,12 @@ defmodule EHealth.MockServer do
     }
   end
 
-  def wrap_response_with_paging(data, nil), do: wrap_response_with_paging(data)
-
-  @doc """
-  Returns second page which is the last one
-  """
-  def wrap_response_with_paging(data, _starting_after) do
-    paging = %{
-      "size" => nil,
-      "limit" => 2,
-      "has_more" => false,
-      "cursors" => %{
-        "starting_after" => nil,
-        "ending_before" => "e9a3a1bb-da15-4f93-b414-1240af62ca51"
-      }
-    }
-
-    data
-    |> wrap_response()
-    |> Map.put("paging", paging)
-  end
-
-  @doc """
-  Returns first page
-  """
   def wrap_response_with_paging(data) do
     paging = %{
-      "size" => nil,
-      "limit" => 2,
-      "has_more" => true,
-      "cursors" => %{
-        "starting_after" => "e9a3a1bb-da15-4f93-b414-1240af62ca51",
-        "ending_before" => nil
-      }
+      "page_number" => 1,
+      "total_pages" => 1,
+      "page_size" => 10,
+      "total_entries" => Enum.count(data)
     }
 
     data

@@ -8,6 +8,10 @@ defmodule EHealth.Web.MedicationRequestView do
   alias EHealth.Web.MedicalProgramView
   alias EHealth.Web.PersonView
 
+  def render("index.json", %{medication_requests: medication_requests}) do
+    render_many(medication_requests, __MODULE__, "show.json")
+  end
+
   def render("show.json", %{medication_request: medication_request}) do
     medication_request
     |> Map.take(~w(
