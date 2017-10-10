@@ -213,13 +213,15 @@ defmodule EHealth.PRM.Medications.API do
   def get_medication_for_medication_request_request(innm_dosage_id, program_id) do
     innm_dosage_id
     |> get_medication_for_medication_request_request_query()
-    |> maybe_validate_medication_program_for_medication_request_request(program_id)
+    |> maybe_validate_medication_program_for_medication_request_request(innm_dosage_id, program_id)
     |> PRMRepo.all()
   end
 
-  def maybe_validate_medication_program_for_medication_request_request(query, nil), do: query
-  def maybe_validate_medication_program_for_medication_request_request(query, program_id) do
+  def maybe_validate_medication_program_for_medication_request_request(query, _, nil), do: query
+  def maybe_validate_medication_program_for_medication_request_request(query, innm_dosage_id, program_id) do
     from q in query,
+    inner_join: ing in MedicationIngredient, on: ing.medication_child_id == ^innm_dosage_id,
+    inner_join: med in Medication, on: ing.parent_id == med.id,
     inner_join: mp in MedicalProgram, on: mp.id == ^program_id,
     inner_join: pm in ProgramMedication, on: mp.id == pm.medical_program_id,
     where: pm.is_active,

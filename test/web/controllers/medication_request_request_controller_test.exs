@@ -66,12 +66,20 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "render medication_request_request when data is valid with medical_program_id", %{conn: conn} do
-      medication_id = create_medications_structure()
       pm = insert(:prm, :program_medication)
-
+      innm_id =
+        pm
+        |> EHealth.PRMRepo.preload(:medication)
+        |> Map.get(:medication)
+        |> EHealth.PRMRepo.preload(:ingredients)
+        |> Map.get(:ingredients)
+        |> Enum.at(0)
+        |> EHealth.PRMRepo.preload(:innm_dosage)
+        |> Map.get(:innm_dosage)
+        |> Map.get(:id)
       test_request =
         test_request()
-        |> Map.put("medication_id", medication_id)
+        |> Map.put("medication_id", innm_id)
         |> Map.put("medical_program_id",  pm.medical_program_id)
       conn1 = post conn, medication_request_request_path(conn, :create), medication_request_request: test_request
       assert %{"id" => id} = json_response(conn1, 201)["data"]
@@ -82,7 +90,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
           "dispense_valid_to" => "2020-10-25", "division_id" => "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
           "employee_id" => "7488a646-e31f-11e4-aace-600308960662", "ended_at" => "2020-10-22",
           "legal_entity_id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375552",
-          "medication_id" =>  medication_id, "medication_qty" => 10,
+          "medication_id" =>  innm_id, "medication_qty" => 10,
           "person_id" => "585044f5-1272-4bca-8d41-8440eefe7d26", "started_at" => "2020-09-22"
         }
     end

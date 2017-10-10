@@ -13,7 +13,7 @@ defmodule EHealth.PRMFactories.MedicationFactory do
       alias Ecto.UUID
 
       def program_medication_factory do
-        med_id = insert(:prm, :medication).id
+        med_id = insert(:prm, :medication, type: "INNM_DOSAGE").id
         insert(:prm, :ingredient_medication, [parent_id: med_id, medication_child_id: med_id])
 
         %ProgramMedication{
