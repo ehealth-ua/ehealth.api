@@ -12,6 +12,7 @@ defmodule EHealth.MedicationRequestRequest do
   schema "medication_request_requests" do
     embeds_one :data, EmbeddedData
     field :number, :string, null: false
+    field :verification_code, :string, null: true
     field :inserted_by, Ecto.UUID, null: false
     field :status, :string, null: false
     field :updated_by, Ecto.UUID, null: false

@@ -10,8 +10,9 @@ defmodule EHealth.MedicationRequestRequests do
   use Confex, otp_app: :ehealth
 
   alias EHealth.MedicationRequestRequest
+  alias EHealth.MedicationRequestRequest.Operation
   alias EHealth.MedicationRequestRequest.Validations
-  alias EHealth.MedicationRequestRequest.DataMapper
+  alias EHealth.MedicationRequestRequest.CreateDataOperation
   alias EHealth.MedicationRequestRequest.HumanReadableNumberGenerator, as: HRNGenerator
 
   @doc """
@@ -98,16 +99,28 @@ defmodule EHealth.MedicationRequestRequests do
 
   @doc false
   def create_changeset(%MedicationRequestRequest{} = medication_request_request, attrs, user_id, client_id) do
+    create_operation = CreateDataOperation.create(attrs, client_id)
     medication_request_request
     |> cast(attrs, [:number, :status, :inserted_by, :updated_by])
-    |> DataMapper.map_data(attrs, client_id)
+    |> put_embed(:data, create_operation.changeset)
     |> put_change(:status, "NEW")
     |> put_change(:number, HRNGenerator.generate(1))
+    |> put_change(:verification_code, put_verification_code(create_operation))
     |> put_change(:inserted_by, user_id)
     |> put_change(:updated_by, user_id)
     |> validate_required([:data, :number, :status, :inserted_by, :updated_by])
     |> unique_constraint(:number, name: :medication_request_requests_number_index)
   end
+
+  defp put_verification_code(%Operation{valid?: true} = operation) do
+    is_otp = Enum.filter(operation.data.person["authentication_methods"], fn method -> method["type"] == "OTP" end)
+    if length(is_otp) > 0 do
+      HRNGenerator.generate_otp_verification_code()
+    else
+      nil
+    end
+  end
+  defp put_verification_code(_), do: nil
 
   def changeset(%MedicationRequestRequest{} = medication_request_request, attrs) do
     medication_request_request
