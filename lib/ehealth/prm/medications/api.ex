@@ -223,7 +223,7 @@ defmodule EHealth.PRM.Medications.API do
     inner_join: ing in MedicationIngredient, on: ing.medication_child_id == ^innm_dosage_id,
     inner_join: med in Medication, on: ing.parent_id == med.id,
     inner_join: mp in MedicalProgram, on: mp.id == ^program_id,
-    inner_join: pm in ProgramMedication, on: mp.id == pm.medical_program_id,
+    inner_join: pm in ProgramMedication, on: mp.id == pm.medical_program_id and pm.medication_id == med.id,
     where: pm.is_active,
     where: pm.medication_request_allowed
   end
