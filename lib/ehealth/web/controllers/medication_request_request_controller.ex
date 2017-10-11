@@ -27,6 +27,16 @@ defmodule EHealth.Web.MedicationRequestRequestController do
     end
   end
 
+  def prequalify(conn, params) do
+    user_id = get_consumer_id(conn.req_headers)
+    client_id = get_client_id(conn.req_headers)
+    with programs <- API.prequalify(params, user_id, client_id) do
+      conn
+      |> put_status(200)
+      |> render("show_prequalify_programs.json", %{programs: programs})
+    end
+  end
+
   def show(conn, %{"id" => id}) do
     medication_request_request = API.get_medication_request_request!(id)
     render(conn, "show.json", medication_request_request: medication_request_request)

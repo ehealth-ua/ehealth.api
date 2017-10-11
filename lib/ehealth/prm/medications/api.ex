@@ -225,7 +225,8 @@ defmodule EHealth.PRM.Medications.API do
     inner_join: mp in MedicalProgram, on: mp.id == ^program_id,
     inner_join: pm in ProgramMedication, on: mp.id == pm.medical_program_id and pm.medication_id == med.id,
     where: pm.is_active,
-    where: pm.medication_request_allowed
+    where: pm.medication_request_allowed,
+    select_merge: %{medical_program_id: mp.id, medical_program_name: mp.name}
   end
 
   def get_medication_for_medication_request_request_query(innm_dosage_id) do

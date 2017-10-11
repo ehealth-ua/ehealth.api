@@ -224,6 +224,32 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
   end
 
+  describe "prequalify medication request request" do
+    test "render medication_request_request when data is valid", %{conn: conn} do
+      pm = insert(:prm, :program_medication)
+      innm_id = EHealth.PRM.Medications.INNMDosage.Schema |> EHealth.PRMRepo.one |> Map.get(:id)
+      test_request =
+        test_request()
+        |> Map.put("medication_id", innm_id)
+      conn1 = post conn, medication_request_request_path(conn, :prequalify), %{medication_request_request: test_request,
+        programs: [%{id: pm.medical_program_id}]}
+      assert %{"status" => "VALID"} = json_response(conn1, 200)["data"] |> Enum.at(0)
+    end
+
+    test "render medication_request_request when program medication is invalid", %{conn: conn} do
+      insert(:prm, :program_medication)
+      innm_id = EHealth.PRM.Medications.INNMDosage.Schema |> EHealth.PRMRepo.one |> Map.get(:id)
+      pm1 = insert(:prm, :program_medication)
+      test_request =
+        test_request()
+        |> Map.put("medication_id", innm_id)
+      conn1 = post conn, medication_request_request_path(conn, :prequalify), %{medication_request_request: test_request,
+        programs: [%{id: pm1.medical_program_id}]}
+      assert %{"status" => "INVALID", "invalid_reason" => "Innm not on the list of approved innms for program test!"} =
+        json_response(conn1, 200)["data"] |> Enum.at(0)
+    end
+  end
+
 
   defp create_medications_structure do
     %{id: dosage_id1} = insert(:prm, :innm_dosage, name: "Бупропіон Форте")

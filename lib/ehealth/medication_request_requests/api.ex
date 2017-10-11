@@ -9,6 +9,7 @@ defmodule EHealth.MedicationRequestRequests do
 
   use Confex, otp_app: :ehealth
 
+  alias EHealth.PRM.MedicalPrograms
   alias EHealth.MedicationRequestRequest
   alias EHealth.MedicationRequestRequest.Operation
   alias EHealth.MedicationRequestRequest.Validations
@@ -83,7 +84,7 @@ defmodule EHealth.MedicationRequestRequests do
 
   """
   def create(attrs, user_id, client_id) do
-    with :ok <- Validations.validate_schema(attrs)
+    with :ok <- Validations.validate_create_schema(attrs)
     do
       case %MedicationRequestRequest{}
            |> create_changeset(attrs, user_id, client_id)
@@ -91,6 +92,20 @@ defmodule EHealth.MedicationRequestRequests do
         {:ok, inserted_entity} -> {:ok, inserted_entity}
         {:error, %Ecto.Changeset{errors: [number: {"has already been taken", []}]}} -> create(attrs, user_id, client_id)
         {:error, changeset} -> {:error, changeset}
+      end
+    else
+      err -> err
+    end
+  end
+
+  def prequalify(%{"medication_request_request" => mrr, "programs" => programs} = attrs, user_id, client_id) do
+    with :ok <- Validations.validate_prequalify_schema(attrs)
+    do
+      with %Ecto.Changeset{valid?: true} =
+        %MedicationRequestRequest{}
+        |> create_changeset(mrr, user_id, client_id)
+      do
+        prequalify_programs(mrr["medication_id"], mrr["medication_qty"], programs)
       end
     else
       err -> err
@@ -126,5 +141,23 @@ defmodule EHealth.MedicationRequestRequests do
     medication_request_request
     |> cast(attrs, [:data, :number, :status, :inserted_by, :updated_by])
     |> validate_required([:data, :number, :status, :inserted_by, :updated_by])
+  end
+
+  defp prequalify_programs(medication_id, medication_qty, programs) do
+    programs
+    |> Enum.map(fn %{"id" => program_id} ->
+      %{id: program_id, data: Validations.validate_medication_id(medication_id, medication_qty, program_id)}
+    end)
+    |> Enum.map(fn validated_result -> show_program_status(validated_result) end)
+  end
+
+  defp show_program_status(%{id: _id, data: {:ok, result}}) do
+    result
+    |> Enum.at(0)
+    |> Map.put(:status, "VALID")
+  end
+  defp show_program_status(%{id: id, data: _err}) do
+    mp = MedicalPrograms.get_by_id(id)
+    %{medical_program_id: mp.id, medical_program_name: mp.name, status: "INVALID"}
   end
 end

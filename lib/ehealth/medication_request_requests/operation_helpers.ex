@@ -5,7 +5,6 @@ defmodule EHealth.MedicationRequestRequest.OperationHelpers do
   alias EHealth.PRM.Employees
   alias EHealth.PRM.LegalEntities
   alias EHealth.PRM.Divisions
-  alias EHealth.MedicationRequestRequest.EmbeddedData
   alias EHealth.MedicationRequestRequest.Validations
   alias EHealth.Utils.Helpers
   alias EHealth.API.MPI

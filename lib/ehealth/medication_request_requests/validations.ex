@@ -5,8 +5,12 @@ defmodule EHealth.MedicationRequestRequest.Validations do
   alias EHealth.Validators.JsonSchema
   alias EHealth.PRM.Medications.API, as: MedicationsAPI
 
-  def validate_schema(params) do
-    JsonSchema.validate(:medication_request_request, params)
+  def validate_create_schema(params) do
+    JsonSchema.validate(:medication_request_request_create, params)
+  end
+
+  def validate_prequalify_schema(params) do
+    JsonSchema.validate(:medication_request_request_prequalify, params)
   end
 
   def validate_doctor(doctor) do
