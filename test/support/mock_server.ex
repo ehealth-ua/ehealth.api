@@ -347,17 +347,22 @@ defmodule EHealth.MockServer do
   end
 
   get "/doctor_medication_requests" do
-    params = conn.query_params
-    employee_id =
-      params
-      |> Map.get("employee_id", "")
-      |> String.split(",")
-      |> List.first || UUID.generate()
-    person_id = Map.get(params, "person_id", "")
-    render_with_paging([get_medication_request(UUID.generate(), %{
-      "employee_id" => employee_id,
-      "person_id" => person_id
-    })], conn)
+    case conn.query_params["id"] do
+      "e9baba39-da78-4950-b396-cc36e80572b1" ->
+        render_with_paging([], conn)
+      _ ->
+        params = conn.query_params
+        employee_id =
+          params
+          |> Map.get("employee_id", "")
+          |> String.split(",")
+          |> List.first || UUID.generate()
+        person_id = Map.get(params, "person_id", UUID.generate())
+        render_with_paging([get_medication_request(UUID.generate(), %{
+          "employee_id" => employee_id,
+          "person_id" => person_id
+        })], conn)
+    end
   end
 
   post "/medication_dispenses" do
@@ -493,6 +498,7 @@ defmodule EHealth.MockServer do
       "verification_code": "1234",
       "medication_id": "2cdb8396-a1e9-11e7-abc4-cec278b6b50a",
       "medication_qty": 30,
+      "request_number": "20",
     }, params)
   end
 

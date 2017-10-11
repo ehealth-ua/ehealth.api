@@ -48,6 +48,26 @@ defmodule EHealth.MedicationRequests.API do
     end
   end
 
+  def show(%{"id" => id} = params, headers) do
+    user_id = get_consumer_id(headers)
+    with %PartyUser{party: party} <- get_party_user(user_id),
+         employee_ids <- get_employees(party.id, Map.get(params, "legal_entity_id")),
+         search_params <- %{"employee_id" => Enum.join(employee_ids, ","), "id" => id},
+         {:ok, %{"data" => [medication_request]}} <- OPS.get_doctor_medication_requests(search_params, headers)
+    do
+      with {:ok, medication_request} <- get_references(medication_request) do
+        {:ok, medication_request}
+      else
+        _ ->
+          message = "Could not load remote reference for medication_request #{Map.get(medication_request, "id")}"
+          {:error, {:internal_error, message}}
+      end
+    else
+      {:ok, %{"data" => []}} -> nil
+      error -> error
+    end
+  end
+
   defp validate_employee_id(nil, _), do: :ok
   defp validate_employee_id(employee_id, employee_ids) do
     if Enum.member?(employee_ids, employee_id), do: :ok, else: {:error, :forbidden}

@@ -13,4 +13,10 @@ defmodule EHealth.Web.MedicationRequestController do
       render(conn, "index.json", medication_requests: data, paging: struct(Page, paging))
     end
   end
+
+  def show(%Plug.Conn{req_headers: headers} = conn, params) do
+    with {:ok, medication_request} <- API.show(params, headers) do
+      render(conn, "show.json", medication_request: medication_request)
+    end
+  end
 end
