@@ -84,6 +84,12 @@ defmodule EHealth.API.OPS do
     |> ResponseDecoder.check_response()
   end
 
+  def update_medication_request(id, params, headers \\ []) do
+    "/medication_requests/#{id}"
+    |> patch!(Poison.encode!(params), headers, timeouts())
+    |> ResponseDecoder.check_response()
+  end
+
   def get_latest_block(headers \\ []) do
     "/latest_block"
     |> get!(headers)

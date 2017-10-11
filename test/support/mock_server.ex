@@ -353,6 +353,10 @@ defmodule EHealth.MockServer do
     end
   end
 
+  patch "/medication_requests/:id" do
+    render(get_medication_request(conn.params["id"], conn.body_params["medication_request"]), conn, 200)
+  end
+
   get "/doctor_medication_requests" do
     case conn.query_params["id"] do
       "e9baba39-da78-4950-b396-cc36e80572b1" ->

@@ -122,10 +122,17 @@ defmodule EHealth.MedicationDispense.API do
       |> Map.take(~w(payment_id))
       |> Map.put("status", "PROCESSED")
       |> Map.put("updated_by", get_consumer_id(headers))
+    request_attrs = %{
+      "status" => "COMPLETED",
+      "updated_by" => get_consumer_id(headers)
+    }
     with {:ok, medication_dispense, references} <- get_by_id(params, headers),
          :ok <- validate_status_transition(medication_dispense, "PROCESSED"),
          {:ok, %{"data" => medication_dispense}} <- OPS.update_medication_dispense(id,
-           %{"medication_dispense" => attrs}, headers)
+           %{"medication_dispense" => attrs}, headers),
+         medication_request_id <- Map.get(references.medication_request, "id"),
+         {:ok, _} <- OPS.update_medication_request(medication_request_id,
+           %{"medication_request" => request_attrs}, headers)
     do
       {:ok, medication_dispense, references}
     end
