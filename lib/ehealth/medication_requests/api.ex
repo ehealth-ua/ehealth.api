@@ -56,7 +56,9 @@ defmodule EHealth.MedicationRequests.API do
   defp get_search_params(employee_ids, %{person_id: person_id}) do
     %{"employee_id" => Enum.join(employee_ids, ","), "person_id" => person_id}
   end
-  defp get_search_params(employee_ids, _), do: %{"employee_id" => Enum.join(employee_ids)}
+  defp get_search_params(employee_ids, _) do
+    %{"employee_id" => Enum.join(employee_ids, ",")}
+  end
 
   defp get_employees(party_id, nil) do
     do_get_employees([party_id: party_id])
