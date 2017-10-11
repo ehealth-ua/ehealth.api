@@ -79,11 +79,15 @@ defmodule EHealth.MedicationRequests.API do
     if Enum.member?(employee_ids, employee_id), do: :ok, else: {:error, :forbidden}
   end
 
-  defp get_search_params(employee_ids, %{person_id: person_id}) do
-    %{"employee_id" => Enum.join(employee_ids, ","), "person_id" => person_id}
+  defp get_search_params(employee_ids, %{person_id: person_id} = params) do
+    Map.put(do_get_search_params(employee_ids, params), "person_id", person_id)
   end
-  defp get_search_params(employee_ids, _) do
-    %{"employee_id" => Enum.join(employee_ids, ",")}
+  defp get_search_params(employee_ids, params), do: do_get_search_params(employee_ids, params)
+
+  defp do_get_search_params(employee_ids, params) do
+    params
+    |> Map.take(~w(page page_size))
+    |> Map.put("employee_id", Enum.join(employee_ids, ","))
   end
 
   defp get_employees(party_id, nil) do
