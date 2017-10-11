@@ -8,6 +8,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     get_active_medication_dispense: 0,
     get_inactive_medication_dispense: 0
   ]
+  import EHealth.Utils.Connection, only: [get_consumer_id: 1]
 
   describe "create medication dispense" do
     test "invalid legal_entity", %{conn: conn} do
@@ -507,6 +508,42 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       path = medication_dispense_path(conn, :process, get_inactive_medication_dispense())
       conn = patch conn, path, %{"payment_id" => "12345"}
       assert json_response(conn, 409)
+    end
+  end
+
+  describe "list by medication_request_id" do
+    test "success list", %{conn: conn} do
+      id = "4bbaf78e-d382-4a6d-93c6-e96b44a5107d"
+      user_id = get_consumer_id(conn.req_headers)
+      insert(:prm, :party_user, user_id: user_id)
+
+      party = insert(:prm, :party, id: "02852372-9e06-11e7-abc4-cec278b6b50a", tax_id: "test")
+      insert(:prm, :party_user, party: party)
+      legal_entity = insert_legal_entity("5243c8e6-9e06-11e7-abc4-cec278b6b50a")
+      insert_legal_entity()
+      %{id: innm_dosage_id} = insert_innm_dosage()
+      insert_employee(party, legal_entity)
+      insert_division(legal_entity)
+      insert_division(legal_entity, "f2f76cf8-9e05-11e7-abc4-cec278b6b50a")
+      insert_medication(innm_dosage_id)
+      insert_medical_program()
+      conn = put_client_id_header(conn, legal_entity.id)
+      conn = get conn, medication_dispense_path(conn, :by_medication_request, id)
+      resp = json_response(conn, 200)
+      assert 1 == length(resp["data"])
+      assert id == resp["data"] |> hd |> get_in(~w(medication_request id))
+
+      schema =
+        "test/data/medication_dispense/list_medication_dispenses_response_schema.json"
+        |> File.read!()
+        |> Poison.decode!()
+      :ok = NExJsonSchema.Validator.validate(schema, resp)
+    end
+
+    test "party_user not found", %{conn: conn} do
+      conn = put_client_id_header(conn, Ecto.UUID.generate())
+      conn = get conn, medication_dispense_path(conn, :by_medication_request, Ecto.UUID.generate())
+      assert json_response(conn, 500)
     end
   end
 

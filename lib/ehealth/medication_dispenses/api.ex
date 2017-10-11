@@ -17,6 +17,7 @@ defmodule EHealth.MedicationDispense.API do
   alias EHealth.PRM.Medications.Program.Schema, as: ProgramMedication
   alias EHealth.API.OPS
   alias EHealth.MedicationDispenses.Search
+  alias EHealth.MedicationDispenses.SearchByMedicationRequest
   alias EHealth.Validators.JsonSchema
   alias EHealth.Validators.Reference
   alias EHealth.PRM.PartyUsers
@@ -34,6 +35,14 @@ defmodule EHealth.MedicationDispense.API do
     page_size
   )a
 
+  @search_by_medication_request_fields ~w(
+    medication_request_id
+    legal_entity_id
+    status
+    page
+    page_size
+  )a
+
   def list(params, headers) do
     with %Ecto.Changeset{valid?: true, changes: changes} <- changeset(%Search{}, params),
          params <- Map.put(changes, "is_active", true),
@@ -41,6 +50,17 @@ defmodule EHealth.MedicationDispense.API do
          {:ok, medication_dispenses} <- get_medication_request_references(medication_dispenses)
     do
       {:ok, medication_dispenses, get_references(medication_dispenses)}
+    end
+  end
+
+  def list_by_medication_request(%{"id" => id} = params, headers) do
+    with params <- Map.put(params, "medication_request_id", id),
+         params <- Map.delete(params, "id"),
+         %Ecto.Changeset{valid?: true, changes: changes} <- changeset(%SearchByMedicationRequest{}, params),
+         {:ok, %{"data" => medication_dispenses}} <- OPS.get_medication_dispenses(changes, headers),
+         {:ok, medication_dispenses} <- get_medication_request_references(medication_dispenses)
+     do
+        {:ok, medication_dispenses, get_references(medication_dispenses)}
     end
   end
 
@@ -344,6 +364,9 @@ defmodule EHealth.MedicationDispense.API do
 
   defp changeset(%Search{} = search, attrs) do
     cast(search, attrs, @search_fields)
+  end
+  defp changeset(%SearchByMedicationRequest{} = search, attrs) do
+    cast(search, attrs, @search_by_medication_request_fields)
   end
 
   defp get_references(medication_dispenses) do

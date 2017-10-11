@@ -325,7 +325,14 @@ defmodule EHealth.MockServer do
 
   get "/medication_dispenses" do
     id = conn.query_params["id"]
+    medication_request_id = conn.query_params["medication_request_id"]
     cond do
+      medication_request_id == "4bbaf78e-d382-4a6d-93c6-e96b44a5107d" ->
+        medication_request = get_medication_request(medication_request_id)
+        medication_dispense = get_medication_dispense(UUID.generate(), %{
+          "medication_request" => medication_request
+        })
+        render([medication_dispense], conn, 200)
       id == @active_medication_dispense -> render([get_medication_dispense(id)], conn, 200)
       id == @inactive_medication_dispense ->
         render([get_medication_dispense(id, %{"status" => "EXPIRED"})], conn, 200)

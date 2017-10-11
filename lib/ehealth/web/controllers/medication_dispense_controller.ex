@@ -3,13 +3,22 @@ defmodule EHealth.Web.MedicationDispenseController do
 
   use EHealth.Web, :controller
   alias EHealth.MedicationDispense.API
+  alias EHealth.MedicationRequests.API, as: MedicationRequests
   require Logger
 
   action_fallback EHealth.Web.FallbackController
 
   def index(%Plug.Conn{req_headers: headers} = conn, params) do
-    with {:ok, medication_dispense, references} <- API.list(params, headers) do
-      render(conn, "index.json", medication_dispenses: medication_dispense, references: references)
+    with {:ok, medication_dispenses, references} <- API.list(params, headers) do
+      render(conn, "index.json", medication_dispenses: medication_dispenses, references: references)
+    end
+  end
+
+  def by_medication_request(%Plug.Conn{req_headers: headers} = conn, params) do
+    with {:ok, _} <- MedicationRequests.get_medication_request(params, headers),
+         {:ok, medication_dispenses, references} <- API.list_by_medication_request(params, headers)
+    do
+      render(conn, "index.json", medication_dispenses: medication_dispenses, references: references)
     end
   end
 
