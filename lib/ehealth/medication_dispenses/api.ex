@@ -104,7 +104,7 @@ defmodule EHealth.MedicationDispense.API do
          :ok                       <- check_medication_qty(params, medication_request),
          :ok                       <- check_medication_multiplicity(dispense_details, medications),
          params                    <- Map.put(params, "dispense_details", dispense_details),
-         {:ok, %{"data" => medication_dispense}} <- OPS.create_medication_dispense(params)
+         {:ok, %{"data" => medication_dispense}} <- OPS.create_medication_dispense(%{"medication_dispense" => params})
     do
       {:ok, medication_dispense, %{
         legal_entity: legal_entity,
@@ -148,7 +148,7 @@ defmodule EHealth.MedicationDispense.API do
          :ok <- validate_status_transition(medication_dispense, "REJECTED"),
          {:ok, %{"data" => medication_dispense}} <- OPS.update_medication_dispense(id,
            %{"medication_dispense" => attrs}, headers)
-      do
+    do
       {:ok, medication_dispense, references}
     end
   end
@@ -218,7 +218,7 @@ defmodule EHealth.MedicationDispense.API do
              reimbursement_amount <- program_medication.reimbursement["reimbursement_amount"],
              :ok <- validate_reimbursement_amount(reimbursement_amount, item, medication, i)
         do
-        {:ok, Map.put(item, "reimbursement_amount", reimbursement_amount), medication}
+          {:ok, Map.put(item, "reimbursement_amount", reimbursement_amount), medication}
         end
       end)
     errors = Enum.reduce(result, [], fn

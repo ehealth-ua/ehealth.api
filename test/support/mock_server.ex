@@ -386,8 +386,9 @@ defmodule EHealth.MockServer do
   end
 
   post "/medication_dispenses" do
+    params = conn.params["medication_dispense"]
     details =
-      conn.params
+      params
       |> Map.get("dispense_details")
       |> Enum.map(fn item ->
         item
@@ -407,7 +408,7 @@ defmodule EHealth.MockServer do
       end)
     now = Date.utc_today()
     resp =
-      conn.params
+      params
       |> Map.put("id", Ecto.UUID.generate())
       |> Map.put("inserted_at", now)
       |> Map.put("inserted_by", Ecto.UUID.generate())
