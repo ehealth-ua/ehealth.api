@@ -108,10 +108,8 @@ defmodule EHealth.Web.MedicalProgramControllerTest do
     test "medical program is inactive", %{conn: conn} do
       medical_program = insert(:prm, :medical_program, is_active: false)
 
-      assert_raise Ecto.NoResultsError, ~r/expected at least one result but got none in query/, fn ->
-        conn = patch conn, medical_program_path(conn, :deactivate, medical_program)
-        json_response(conn, 404)
-      end
+      conn = patch conn, medical_program_path(conn, :deactivate, medical_program)
+      refute json_response(conn, 200)["data"]["is_active"]
     end
 
     test "medical program has active program medications", %{conn: conn} do

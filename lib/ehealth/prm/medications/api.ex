@@ -355,6 +355,7 @@ defmodule EHealth.PRM.Medications.API do
     |> foreign_key_constraint(:medical_program_id)
     |> unique_constraint(:medication_id, opts)
     |> Validator.validate_program_medication_is_active()
+    |> Validator.validate_program_medication_requests_allowed()
     |> Validator.validate_medication_is_active()
     |> Validator.validate_medical_program_is_active()
   end

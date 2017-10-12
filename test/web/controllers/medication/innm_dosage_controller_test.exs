@@ -103,10 +103,8 @@ defmodule EHealth.Web.INNMDosageControllerTest do
     test "INNMDosage is inactive", %{conn: conn} do
       innm_dosage = insert(:prm, :innm_dosage, is_active: false)
 
-      assert_raise Ecto.NoResultsError, ~r/expected at least one result but got none in query/, fn ->
-        conn = patch conn, innm_dosage_path(conn, :deactivate, innm_dosage)
-        json_response(conn, 404)
-      end
+      conn = patch conn, innm_dosage_path(conn, :deactivate, innm_dosage)
+      refute json_response(conn, 200)["data"]["is_active"]
     end
 
     test "Medication is active", %{conn: conn} do

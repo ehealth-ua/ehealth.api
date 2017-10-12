@@ -189,6 +189,14 @@ defmodule EHealthWeb.ProgramMedicationControllerTest do
       [error] = json_response(conn, 422)["error"]["invalid"]
       assert "$.is_active" == error["entry"]
     end
+
+    test "cannot allow medication_request when program_medication inactive", %{conn: conn} do
+      pm = insert(:prm, :program_medication, is_active: false, medication_request_allowed: false)
+      conn = put conn, program_medication_path(conn, :update, pm), medication_request_allowed: true
+
+      [error] = json_response(conn, 422)["error"]["invalid"]
+      assert "$.medication_request_allowed" == error["entry"]
+    end
   end
 
   defp create_program_medication(_) do

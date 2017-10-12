@@ -31,7 +31,7 @@ defmodule EHealth.Web.MedicalProgramController do
 
   def deactivate(%Plug.Conn{req_headers: headers} = conn, %{"id" => id}) do
     user_id = get_consumer_id(headers)
-    medical_program = MedicalPrograms.get_by!([id: id, is_active: true])
+    medical_program = MedicalPrograms.get_by_id!(id)
 
     with {:ok, medical_program} <- MedicalPrograms.deactivate(user_id, medical_program) do
       render(conn, "show.json", medical_program: medical_program)
