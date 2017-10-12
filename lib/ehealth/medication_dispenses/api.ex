@@ -98,7 +98,7 @@ defmodule EHealth.MedicationDispense.API do
          {:ok, division}           <- validate_division(params["division_id"], legal_entity_id),
          {:ok, medical_program}    <- validate_medical_program(params["medical_program_id"], medication_request),
          details                   <- params["dispense_details"],
-         {:ok, dispense_details, medications} <- validate_medications(details, medication_request, medical_program),
+         {:ok, dispense_details, medications} <- validate_medications(details, medical_program),
          :ok                       <- validate_code(code, medication_request),
          :ok                       <- check_other_medication_dispenses(medication_request, headers),
          :ok                       <- check_medication_qty(params, medication_request),
@@ -207,13 +207,13 @@ defmodule EHealth.MedicationDispense.API do
     end
   end
 
-  defp validate_medications(dispense_details, medication_request, %{id: medical_program_id}) do
+  defp validate_medications(dispense_details, %{id: medical_program_id}) do
     result =
       dispense_details
       |> Enum.with_index
       |> Enum.map(fn {%{"medication_id" => id} = item, i} ->
         with {:ok, medication} <- Reference.validate(:medication, id, "$.dispense_details[#{i}].medication_id"),
-             :ok <- validate_active_medication(medication, medication_request, i),
+             :ok <- validate_active_medication(medication, i),
              {:ok, program_medication} <- get_active_program_medication(id, medical_program_id, i),
              reimbursement_amount <- program_medication.reimbursement["reimbursement_amount"],
              :ok <- validate_reimbursement_amount(reimbursement_amount, item, medication, i)
@@ -272,10 +272,9 @@ defmodule EHealth.MedicationDispense.API do
     end
   end
 
-  defp validate_active_medication(%Medication{} = medication, %{"medication_id" => medication_id}, i) do
+  defp validate_active_medication(%Medication{} = medication, i) do
     ingredient = Enum.find(medication.ingredients, &(Map.get(&1, :is_primary)))
-    is_valid_ingredient = Map.get(ingredient, :id) == medication_id
-    if medication.is_active && is_valid_ingredient do
+    if medication.is_active && ingredient do
       :ok
     else
       {:error, [{
