@@ -225,7 +225,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
   end
 
   describe "prequalify medication request request" do
-    test "render medication_request_request when data is valid", %{conn: conn} do
+    test "works when data is valid", %{conn: conn} do
       pm = insert(:prm, :program_medication)
       innm_id = EHealth.PRM.Medications.INNMDosage.Schema |> EHealth.PRMRepo.one |> Map.get(:id)
       test_request =
@@ -236,7 +236,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       assert %{"status" => "VALID"} = json_response(conn1, 200)["data"] |> Enum.at(0)
     end
 
-    test "render medication_request_request when program medication is invalid", %{conn: conn} do
+    test "show proper message when program medication is invalid", %{conn: conn} do
       insert(:prm, :program_medication)
       innm_id = EHealth.PRM.Medications.INNMDosage.Schema |> EHealth.PRMRepo.one |> Map.get(:id)
       pm1 = insert(:prm, :program_medication)
@@ -247,6 +247,15 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
         programs: [%{id: pm1.medical_program_id}]}
       assert %{"status" => "INVALID", "invalid_reason" => "Innm not on the list of approved innms for program test!"} =
         json_response(conn1, 200)["data"] |> Enum.at(0)
+    end
+
+    test "render error when data is invalid", %{conn: conn} do
+      test_request =
+        test_request()
+        |> Map.put("person_id", "")
+      conn1 = post conn, medication_request_request_path(conn, :prequalify), %{medication_request_request: test_request,
+        programs: []}
+      assert json_response(conn1, 422)
     end
   end
 

@@ -98,15 +98,12 @@ defmodule EHealth.MedicationRequestRequests do
     end
   end
 
-  def prequalify(%{"medication_request_request" => mrr, "programs" => programs} = attrs, user_id, client_id) do
-    with :ok <- Validations.validate_prequalify_schema(attrs)
+  def prequalify(attrs, user_id, client_id) do
+    with :ok <- Validations.validate_prequalify_schema(attrs),
+        %{"medication_request_request" => mrr, "programs" => programs} <- attrs,
+         %Ecto.Changeset{valid?: true} <- create_changeset(%MedicationRequestRequest{}, mrr, user_id, client_id)
     do
-      with %Ecto.Changeset{valid?: true} =
-        %MedicationRequestRequest{}
-        |> create_changeset(mrr, user_id, client_id)
-      do
-        prequalify_programs(mrr["medication_id"], mrr["medication_qty"], programs)
-      end
+      {:ok, prequalify_programs(mrr["medication_id"], mrr["medication_qty"], programs)}
     else
       err -> err
     end
