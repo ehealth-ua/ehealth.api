@@ -369,10 +369,19 @@ defmodule EHealth.MockServer do
           |> String.split(",")
           |> List.first || UUID.generate()
         person_id = Map.get(params, "person_id", UUID.generate())
-        render_with_paging([get_medication_request(UUID.generate(), %{
-          "employee_id" => employee_id,
-          "person_id" => person_id
-        })], conn)
+        paging = %{
+          "page_number" => 1,
+          "total_pages" => 2,
+          "page_size" => 1,
+          "total_entries" => 2
+        }
+
+        render_with_paging([
+          get_medication_request(UUID.generate(), %{
+            "employee_id" => employee_id,
+            "person_id" => person_id
+          }),
+        ], conn, paging)
     end
   end
 
@@ -685,14 +694,14 @@ defmodule EHealth.MockServer do
     |> Plug.Conn.send_resp(status, get_resp_body(resource, conn))
   end
 
-  def render_with_paging(resource, conn) do
+  def render_with_paging(resource, conn, paging \\ nil) do
     conn = Plug.Conn.put_status(conn, 200)
     conn
     |> Plug.Conn.put_resp_content_type("application/json")
     |> Plug.Conn.send_resp(200,
 
     resource
-    |> wrap_response_with_paging()
+    |> wrap_response_with_paging(paging)
     |> Poison.encode!()
     )
   end
@@ -719,14 +728,16 @@ defmodule EHealth.MockServer do
     }
   end
 
-  def wrap_response_with_paging(data) do
-    paging = %{
+  def wrap_response_with_paging(data), do: wrap_response_with_paging(data, nil)
+  def wrap_response_with_paging(data, nil) do
+    wrap_response_with_paging(data, %{
       "page_number" => 1,
       "total_pages" => 1,
       "page_size" => 10,
       "total_entries" => Enum.count(data)
-    }
-
+    })
+  end
+  def wrap_response_with_paging(data, paging) do
     data
     |> wrap_response()
     |> Map.put("paging", paging)

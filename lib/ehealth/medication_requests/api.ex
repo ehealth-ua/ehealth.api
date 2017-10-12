@@ -19,7 +19,7 @@ defmodule EHealth.MedicationRequests.API do
   import Ecto.Changeset
   require Logger
 
-  @fields_optional ~w(employee_id person_id status)a
+  @fields_optional ~w(employee_id person_id status page_size page)a
 
   def list(params, headers) do
     user_id = get_consumer_id(headers)
