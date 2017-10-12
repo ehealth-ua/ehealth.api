@@ -294,7 +294,7 @@ This method will send password recovery email to a User. Request from this email
         + data (`Person_Full`)
 
 
-### Search for a Person [GET /api/persons{?first_name,last_name,second_name,birth_date,tax_id,phone_number,birth_place,starting_after,ending_before,limit}]
+### Search for a Person [GET /api/persons{?first_name,last_name,second_name,birth_date,tax_id,phone_number,birth_place,page_number,page_size}]
 
 This method allows to search for a Person (MPI) without disclosing personal data.
 
@@ -307,9 +307,8 @@ Method returns only **requested** parameters, birth place and second name in add
     + birth_date: `1991-08-19T00:00:00.000Z` (string, required) - ISO Datetime.
     + tax_id: 3126509816 (string, optional)
     + phone_number: `+380508887700` (string, optional)
-    + limit: 20 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
-    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
-    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
+    + page_number: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 + Request (application/json)
 
@@ -318,7 +317,7 @@ Method returns only **requested** parameters, birth place and second name in add
             Authorization: Bearer mF_9.B5f-4.1JqM
 
 + Response 200 (application/json)
-    + Attributes (Response_Collection)
+    + Attributes (`Response_Collection_V2`)
         + data (array[`Person_Short`])
 
 + Response 403 (application/json)
@@ -331,7 +330,7 @@ Method returns only **requested** parameters, birth place and second name in add
 
 ## Merge Candidates [/merge_candidates]
 
-### Get merge candidates [GET /merge_candidates{?id,person_id,master_person_id,status,starting_after,ending_before,limit}]
+### Get merge candidates [GET /merge_candidates{?id,person_id,master_person_id,status,limit,starting_after,ending_before}]
 
 + Parameters
     + id: `8aa4d353-a58f-45f6-b5ce-a89a9cc39391` (string, optional) - Unique record identifier
@@ -365,7 +364,7 @@ Method returns only **requested** parameters, birth place and second name in add
 
 # Group Internal. IL DB
 
-### Get Declaration requests List [GET /declaration_requests{?tax_id,employee_id,legal_entity_id,status}]
+### Get Declaration requests List [GET /declaration_requests{?tax_id,employee_id,legal_entity_id,status,page_number,page_size}]
 
 Methods returns list of declaration requests by combination of patient_id, doctor_id, msp_id.
 
@@ -374,11 +373,13 @@ Methods returns list of declaration requests by combination of patient_id, docto
     + employee_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MPI ID of a doctor.
     + `legal_entity_id`: `A7C1ABD7-4472-42CB-9C39-3F3AB1F1F4FD` (string, optional) - MSP ID.
     + status: active (string, optional) - Declaration request current status.
+    + page_number: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 + Request (application/json)
 
 + Response 200 (application/json)
-    + Attributes (`Response_Collection_OK`)
+    + Attributes (`Response_Collection_V2`)
         + data (array[`crud_Declaration_request_get`])
 
 ### Update declaration requests [PATCH /declaration_requests/]
@@ -392,16 +393,18 @@ This method to update the declaration request status.
     + Attributes (Response_OK)
         + data (array[`crud_Declaration_request_get`])
 
-### Get Declaration documents list [GET /declarations/{id}/documents]
+### Get Declaration documents list [GET /declarations/{id}/documents{?page_number,page_size}]
 Service to get list of signed URLs with the read access for all the documents attached to the declaration request using declaration identifier
 
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+    + page_number: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 + Request (application/json)
 
 + Response 200 (application/json)
-    + Attributes (Response_OK)
+    + Attributes (`Response_Collection_V2`)
         + data (array[`media_content`])
 
 # Group Internal. OPS DB
@@ -448,7 +451,7 @@ This method to update the declaration status.
     + Attributes (Response_OK)
         + data (`crud_Declaration_get`)
 
-### Get Declarations List [GET /declarations{?person_id,employee_id,legal_entity_id,division_id,status,starting_after,ending_before,limit}]
+### Get Declarations List [GET /declarations{?person_id,employee_id,legal_entity_id,division_id,status,page_number,page_size}]
 
 Methods returns list of declarations by combination of patient_id, doctor_id, msp_id.
 
@@ -460,14 +463,13 @@ Response will contain only records that you have access to.
     + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MSP ID.
     + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MSP ID.
     + status: active (text, optional) - Search only for active or disabled declarations.
-    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
-    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
-    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
+    + page_number: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 + Request (application/json)
 
 + Response 200 (application/json)
-    + Attributes (Response_Collection)
+    + Attributes (Response_Collection_V2)
         + data (array[`crud_Declaration_get`])
 
 ### Terminate declarations by employee or person [POST /declarations/terminate]
@@ -561,7 +563,7 @@ This method to update the employee info by ID.
                     + user_id: `2de19358-0062-4f14-8a50-9dff015ed165` (string, required)
 
 
-### Search for party [GET /party{?first_name,last_name,second_name,birth_date,tax_id,phone_number,starting_after,ending_before,limit}]
+### Search for party [GET /party{?first_name,last_name,second_name,birth_date,tax_id,phone_number,page_number,page_size}]
 
 Methods returns list of parties.
 
@@ -572,14 +574,13 @@ Methods returns list of parties.
     + birth_date: `1991-08-19T00:00:00.000Z` (string, required) - ISO Datetime.
     + tax_id: 3126509816 (string, optional)
     + phone_number: `+380508887700` (string, optional)
-    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
-    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
-    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
+    + page_number: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 + Request (application/json)
 
 + Response 200 (application/json)
-    + Attributes (Response_Collection)
+    + Attributes (`Response_Collection_V2`)
         + data (array)
             + (object)
                 + party(`crud_party_get`)
@@ -639,7 +640,7 @@ This method to update the employee info by ID.
         + data (crud_employee_get)
 
 
-### Search for an Employee [GET /employees{?party_id,legal_entity_id,division_id,employee_type,status,starting_after,ending_before,limit}]
+### Search for an Employee [GET /employees{?party_id,legal_entity_id,division_id,employee_type,status,page_number,page_size}]
 
 Methods returns list of employees.
 
@@ -651,14 +652,13 @@ Methods returns list of employees.
     + status: APPROVED (enum)
         - NEW
         - APPROVED
-    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
-    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
-    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
+    + page_number: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 + Request (application/json)
 
 + Response 200 (application/json)
-    + Attributes (Response_Collection)
+    + Attributes (`Response_Collection_V2`)
         + data (array[crud_employee_get])
 
 ### Get Employee details [GET /employees/{id}]
@@ -731,7 +731,7 @@ This service should be used for internal services/processes. Used without `acces
 
 ## Legal Entities [/legal_entities]
 
-### Get Legal Entities List [GET /legal_entities{?edrpou,type,status,legal_form,owner_property_type}]
+### Get Legal Entities List [GET /legal_entities{?edrpou,type,status,legal_form,owner_property_type,page_number,page_size}]
 
 + Parameters
     + edrpou: 5432345432 (string, optional)
@@ -750,9 +750,11 @@ This service should be used for internal services/processes. Used without `acces
         - ЗАКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО
         - РЕЛІГІЙНА ОРГАНІЗАЦІЯ
         - ІНШІ ОРГАНІЗАЦІЙНО-ПРАВОВІ ФОРМИ
+    + page_number: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 + Response 200 (application/json)
-    + Attributes (Response_Collection)
+    + Attributes (`Response_Collection_V2`)
         + data (array[crud_legal_entity_get])
 
 ### Get Legal Entity Details by ID [GET /legal_entities/{id}]
@@ -818,7 +820,7 @@ This method to update the division info by ID.
         + data (`crud_division_get`)
 
 
-### Search Divisions [GET /divisions/{?type,legal_entity_id,name}]
+### Search Divisions [GET /divisions/{?type,legal_entity_id,name,page_number,page_size}]
 
 Methods returns list of legal entity divisions.
 
@@ -826,11 +828,13 @@ Methods returns list of legal entity divisions.
     + type: clinic (string, optional)
     + `legal_entity_id`: 314083428 (string, optional)
     + name: Борисп (string, optional)
+    + page_number: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 + Request (application/json)
 
 + Response 200 (application/json)
-    + Attributes (Response_Collection)
+    + Attributes (`Response_Collection_V2`)
         + data (array[`crud_division_get`])
 
 ### Get division details [GET /divisions/{id}]
@@ -1143,7 +1147,7 @@ Method checks digital signature and returns result.
 
 ## Verification [/nhs_admin]
 
-### Get Declarations List [GET /nhs_admin/declarations{?status,starting_after,ending_before,limit}]
+### Get Declarations List [GET /nhs_admin/declarations{?status,page_number,page_size}]
 
 Methods returns list of declarations by combination of patient_id, doctor_id, msp_id.
 
@@ -1151,12 +1155,11 @@ Response will contain only records that you have access to.
 
 + Parameters
     + status: active (text, optional) - Search only for active or disabled declarations.
-    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
-    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
-    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
+    + page_number: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 + Response 200 (application/json)
-    + Attributes (Response_Collection)
+    + Attributes (`Response_Collection_V2`)
         + data (array[`nhs_declaration_list`])
 
 
@@ -1881,7 +1884,7 @@ Method is used to verify that provided in declarartion request phone number is v
 
 After declaration request is signed and/or verified (depends on verification logic) it will be automatically moved to [Declarations]().
 
-### Get Declaration Requests List [GET /api/declaration_requests{?employee_id,legal_entity_id,status,starting_after,ending_before,limit}]
+### Get Declaration Requests List [GET /api/declaration_requests{?employee_id,legal_entity_id,status,page_number,page_size}]
 
 Use this method to obrain list of Declaration Requests for an `empolee_id`. If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor is interested in current UI section.
 
@@ -1897,9 +1900,8 @@ Method returns shortened details, to obtain full information - get Declaration R
         - APPROVED
         - SIGNED
         - CANCELLED
-    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
-    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
-    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
+    + page_number: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
     
 
 + Request (application/json)
@@ -1909,7 +1911,7 @@ Method returns shortened details, to obtain full information - get Declaration R
             Authorization: Bearer mF_9.B5f-4.1JqM
 
 + Response 200 (application/json)
-    + Attributes (Response_Collection)
+    + Attributes (`Response_Collection_V2`)
         + data (array[`Declaration_Request_Short`])
 
 ### Get Declaration Request by ID [GET /api/declaration_requests/{id}]
@@ -2315,7 +2317,7 @@ Invoke Get Declaration Request by ID to obtain seed - Hash of previous block in 
 
 ## Declarations [/api/declarations]
 
-### Get Declarations List [GET /api/declarations{?employee_id,legal_entity_id,status,starting_after,ending_before,limit}]
+### Get Declarations List [GET /api/declarations{?employee_id,legal_entity_id,status,page_number,page_size}]
 
 Use this method to obrain list of Declarations for an `empolee_id` and legal_entity_id. If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor is interested in current UI section.
 
@@ -2326,10 +2328,8 @@ Method returns shortened details, to obtain full information - get Declaration D
     + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - MSP ID.
     + status: active (string, optional)
         + Default: active
-    + limit: 20 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
-        + Default: 50
-    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
-    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
+    + page_number: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 + Request (application/json)
 
@@ -2338,7 +2338,7 @@ Method returns shortened details, to obtain full information - get Declaration D
             Authorization: Bearer mF_9.B5f-4.1JqM
 
 + Response 200 (application/json)
-    + Attributes (Response_Collection)
+    + Attributes (`Response_Collection_V2`)
         + data (array[`nhs_declaration_list_Public`])
 
 ### Get Declaration by ID [GET /api/declarations/{id}]
@@ -2407,7 +2407,7 @@ According to the strong binding of the Employees to the Employer (legal entity)
 all GET-endpoints returning Employee info are mounted through the
 `/legal_entities/{legal_entity_id}` path.
 
-### Get Employees List [GET /api/employees{?tax_id,party_id,edrpou,legal_enyity_id,division_id,status,employee_type,limit,starting_after,ending_before}]
+### Get Employees List [GET /api/employees{?tax_id,party_id,edrpou,legal_enyity_id,division_id,status,employee_type,page_number,page_size}]
 
 Use this end-point to obtain all Employees of the legal entity specified by the `legal_entity_id`. 
 
@@ -2425,9 +2425,8 @@ Method returns shortened details (for DOCTOR and PHARMACIST - additional return
         - APPROVED
         - DISMISSED
     + employee_type: DOCTOR (string, optional) 
-    + limit: 20 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
-    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
-    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
+    + page_number: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 + Request (application/json)
 
@@ -2436,7 +2435,7 @@ Method returns shortened details (for DOCTOR and PHARMACIST - additional return
             Authorization: Bearer mF_9.B5f-4.1JqM
 
 + Response 200 (application/json)
-    + Attributes (Response_Collection)
+    + Attributes (`Response_Collection_V2`)
         + data (array[`Employee_Short`])
 
 ### Get Employee Details [GET /api/employees/{employee_id}]
@@ -2543,7 +2542,7 @@ For changes to take effect employee must confirm the changes
             + inserted_at: `2017-05-05T14:09:59.232112` (string, required)
             + updated_at: `2017-05-05T14:09:59.232112` (string, required)
 
-### Get Employee Requests List [GET /api/employee_requests{?status,limit,starting_after,ending_before}]
+### Get Employee Requests List [GET /api/employee_requests{?status,page_number,page_size}]
 
 + Parameters
     + status: NEW (enum, optional)
@@ -2551,9 +2550,8 @@ For changes to take effect employee must confirm the changes
         - REJECTED
         - APPROVED
         + Default: NEW
-    + limit: 20 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
-    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
-    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
+    + page_number: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 + Request (application/json)
 
@@ -2562,7 +2560,7 @@ For changes to take effect employee must confirm the changes
             Authorization: Bearer mF_9.B5f-4.1JqM
 
 + Response 200 (application/json)
-    + Attributes (Response_Collection)
+    + Attributes (`Response_Collection_V2`)
         + data (array[`Employee_Request_Short`])
 
 ### Get Employee Request by ID [GET /api/employee_requests/{id}]
@@ -2591,7 +2589,7 @@ This service should be used with `access_token` authetification method.
 
 ## Persons [/api/persons]
 
-### Search for a Person [GET /api/persons{?first_name,last_name,second_name,birth_date,tax_id,phone_number,birth_place,starting_after,ending_before,limit}]
+### Search for a Person [GET /api/persons{?first_name,last_name,second_name,birth_date,tax_id,phone_number,birth_place,page_number,page_size}]
 
 This method allows to search for a Person (MPI) without disclosing personal data.
 
@@ -2604,10 +2602,8 @@ Method returns only **requested** parameters, birth place and second name in add
     + birth_date: `1991-08-19T00:00:00.000Z` (string, required) - ISO Datetime.
     + tax_id: 3126509816 (string, optional)
     + phone_number: `+380508887700` (string, optional)
-    + limit: 20 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
-    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
-    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
-
+    + page_number: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 + Request (application/json)
 
     + Headers
@@ -2656,9 +2652,35 @@ It returns:
             + type: `forbidden`
             + message: `Active declaration belongs to another msp` (string)
 
+### Reset authentication method [PATCH /api/persons/{id}/action/reset_authentication_method]
+
+This method allows to reset (set to **NA**) person authentication method.
+
+
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Person identifier
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (Response_Collection)
+        + data (`Person_Short`)
+
++ Response 403 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta, fixed-type)
+            + code: 403 (number)
+        + error (Response__Error, fixed-type)
+            + type: `forbidden`
+            + message: `Not found active declaration with person for this legal entity!` (string)
+
 ## Legal Entities [/api/legal_entities]
 
-### Get Legal Entities [GET /api/legal_entities{?edrpou,legal_entity_id,settlement_id,type,owner_property,status,mis_verified,nhs_verified,starting_after,ending_before,limit}]
+### Get Legal Entities [GET /api/legal_entities{?edrpou,legal_entity_id,settlement_id,type,owner_property,status,mis_verified,nhs_verified,page_number,page_size}]
 
 Use this method to get list of legal entities filtering by parameters.
 List consists of legal entities with parameter `is_active = true`.
@@ -2680,10 +2702,8 @@ List consists of legal entities with parameter `is_active = true`.
         - VERIFIED
         - NOT_VERIFIED 
     + `nhs_verified`: false (boolean, optional)
-    + limit: 20 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50.
-        + Default: 50
-    + starting_after: 56c31536a60ad644060041af (string, optional) - A cursor to fetch next page. Taken from collection response.
-    + ending_before: 56c31536a60ad644060041aa (string, optional) - A cursor to fetch previous page. Taken from collection response.
+    + page_number: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 + Request (application/json)
 
@@ -2692,7 +2712,7 @@ List consists of legal entities with parameter `is_active = true`.
             Authorization: Bearer mF_9.B5f-4.1JqM
 
 + Response 200 (application/json)
-    + Attributes (Response_Collection)
+    + Attributes (`Response_Collection_V2`)
         + data (array)
             + (object)
                 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -3912,6 +3932,8 @@ Reimbursement Report combines information about Medication requests and correspo
 + end_date: `2017-03-02` (string, required)
 + signed_at: `2017-03-02T00:00:00.000Z` (string, required)
 + person(`Person_Short`)
+    + `emergency_contact` (`Emergency_Contact`, required)
+    + `confidant_person` (array[`Confidant_Person`], optional) - Should be set if this Person is disabled, underage, etc.
 + employee (`Employee_Declaration_Short`)
 + division (`Division_Short`)
 + `legal_entity` (MSP_Details)
