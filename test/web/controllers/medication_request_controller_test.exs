@@ -30,7 +30,8 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       person_id = Ecto.UUID.generate()
       conn = get conn, medication_request_path(conn, :index), %{
         "employee_id" => employee_id,
-        "person_id" => person_id
+        "person_id" => person_id,
+        "page_size" => 1,
       }
       resp = json_response(conn, 200)
       assert 1 == length(resp["data"])
