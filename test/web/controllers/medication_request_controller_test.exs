@@ -28,9 +28,9 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       legal_entity = PRMRepo.get!(LegalEntity, legal_entity_id)
       %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
       person_id = Ecto.UUID.generate()
-      conn = get conn, medication_request_path(conn, :index), %{
+      conn = get conn, medication_request_path(conn, :index, %{"page_size" => 1}), %{
         "employee_id" => employee_id,
-        "person_id" => person_id
+        "person_id" => person_id,
       }
       resp = json_response(conn, 200)
       assert 1 == length(resp["data"])
