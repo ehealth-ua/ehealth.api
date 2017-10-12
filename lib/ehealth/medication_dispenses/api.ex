@@ -103,8 +103,10 @@ defmodule EHealth.MedicationDispense.API do
          :ok                       <- check_other_medication_dispenses(medication_request, headers),
          :ok                       <- check_medication_qty(params, medication_request),
          :ok                       <- check_medication_multiplicity(dispense_details, medications),
-         params                    <- Map.put(params, "dispense_details", dispense_details),
-         {:ok, %{"data" => medication_dispense}} <- OPS.create_medication_dispense(%{"medication_dispense" => params})
+         create_params             <- Map.put(params, "dispense_details", dispense_details),
+         create_params             <- Map.put(create_params, "legal_entity_id", legal_entity.id),
+         create_params             <- create_dispense_params(create_params, user_id, party_user.party),
+         {:ok, %{"data" => medication_dispense}} <- OPS.create_medication_dispense(create_params)
     do
       {:ok, medication_dispense, %{
         legal_entity: legal_entity,
@@ -481,5 +483,17 @@ defmodule EHealth.MedicationDispense.API do
         end
       end)
     if is_list(result), do: {:ok, result}, else: result
+  end
+
+  defp create_dispense_params(params, user_id, %Party{id: party_id}) do
+    medication_dispense =
+      params
+      |> Map.put("id", Ecto.UUID.generate())
+      |> Map.put("inserted_by", user_id)
+      |> Map.put("updated_by", user_id)
+      |> Map.put("status", "NEW")
+      |> Map.put("is_active", true)
+      |> Map.put("party_id", party_id)
+    %{"medication_dispense" => medication_dispense}
   end
 end
