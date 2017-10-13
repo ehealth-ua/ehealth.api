@@ -37,8 +37,17 @@ status | varchar | not null
 inserted_at | timestamp | not null
 updated_at | timestamp | not null
 
+[audit_log]
+id | uuid | not null
+actor_id | uuid | not null
+resource | varchar | not null
+resource_id | varchar | not null
+changeset | jsonb | not null
+inserted_at | timestamp | not null
+
 (mpi_db)
 person
 merge_candidates
+audit_log
 
 person 1--* merge_candidates
