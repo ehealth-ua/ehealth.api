@@ -40,7 +40,6 @@ defmodule EHealth.Web.MedicationRequestView do
 
     medication_request
     |> Map.take(~w(medication_qty))
-    |> Map.put("container", medication.container)
     |> Map.put("form", medication.form)
     |> Map.put("medication_id", medication.id)
     |> Map.put("innm_dosage", dosage_ingredient.innm)

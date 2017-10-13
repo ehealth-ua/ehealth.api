@@ -17,9 +17,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       insert(:prm, :division, id: "e00e20ba-d20f-4ebb-a1dc-4bf58231019c")
       insert(:prm, :legal_entity, id: "dae597a8-c858-42f6-bc16-1a7bdd340466")
       insert(:prm, :medical_program, id: "6ee844fd-9f4d-4457-9eda-22aa506be4c4")
-
-      %{id: innm_dosage_id} = insert_innm_dosage()
-      insert_medication(innm_dosage_id)
+      insert_innm_dosage()
 
       %{party: party} =
         :prm
@@ -82,9 +80,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       insert(:prm, :division, id: "e00e20ba-d20f-4ebb-a1dc-4bf58231019c")
       insert(:prm, :legal_entity, id: "dae597a8-c858-42f6-bc16-1a7bdd340466")
       insert(:prm, :medical_program, id: "6ee844fd-9f4d-4457-9eda-22aa506be4c4")
-
-      %{id: innm_dosage_id} = insert_innm_dosage()
-      insert_medication(innm_dosage_id)
+      insert_innm_dosage()
 
       %{party: party} =
         :prm
@@ -116,24 +112,17 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
     end
   end
 
-  defp insert_medication(innm_dosage_id) do
-    insert(:prm, :medication,
+  def insert_innm_dosage do
+    %{id: innm_id} = insert(:prm, :innm)
+
+    insert(:prm, :innm_dosage,
       id: "2cdb8396-a1e9-11e7-abc4-cec278b6b50a",
       ingredients: [
-        build(:ingredient_medication,
-          id: "2cdb8396-a1e9-11e7-abc4-cec278b6b50a",
-          medication_child_id: innm_dosage_id,
+        build(:ingredient_innm_dosage,
+          innm_child_id: innm_id,
           parent_id: "2cdb8396-a1e9-11e7-abc4-cec278b6b50a"
         )
       ]
     )
-  end
-
-  def insert_innm_dosage do
-    %{id: innm_id} = insert(:prm, :innm)
-    innm_dosage = insert(:prm, :innm_dosage)
-    insert(:prm, :ingredient_innm_dosage, [innm_child_id: innm_id, parent_id: innm_dosage.id])
-
-    innm_dosage
   end
 end

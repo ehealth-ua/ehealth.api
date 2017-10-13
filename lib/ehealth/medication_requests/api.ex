@@ -8,7 +8,7 @@ defmodule EHealth.MedicationRequests.API do
   alias EHealth.PRM.PartyUsers.Schema, as: PartyUser
   alias EHealth.PRM.Employees.Schema, as: Employee
   alias EHealth.PRM.MedicalPrograms.Schema, as: MedicalProgram
-  alias EHealth.PRM.Medications.Medication.Schema, as: Medication
+  alias EHealth.PRM.Medications.INNMDosage.Schema, as: INNMDosage
   alias EHealth.PRM.Medications.API, as: MedicationsAPI
   alias EHealth.PRM.Divisions
   alias EHealth.PRM.Employees
@@ -120,7 +120,7 @@ defmodule EHealth.MedicationRequests.API do
     with %Division{} = division <- Divisions.get_division_by_id(medication_request["division_id"]),
          %Employee{} = employee <- Employees.get_employee_by_id(medication_request["employee_id"]),
          %MedicalProgram{} = medical_program <- MedicalPrograms.get_by_id(medication_request["medical_program_id"]),
-         %Medication{} = medication <- MedicationsAPI.get_medication_by_id(medication_request["medication_id"]),
+         %INNMDosage{} = medication <- MedicationsAPI.get_innm_dosage_by_id(medication_request["medication_id"]),
          {:ok, %{"data" => person}} <- MPI.person(medication_request["person_id"])
     do
       {

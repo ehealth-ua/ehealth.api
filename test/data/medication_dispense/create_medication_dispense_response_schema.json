@@ -292,35 +292,6 @@
                 "denumerator_value"
               ],
               "description": "Dosage of innm_dosage object"
-            },
-            "container": {
-              "type": "object",
-              "properties": {
-                "numerator_unit": {
-                  "type": "string",
-                  "description": "`Dictionary MEDICATION_UNIT`"
-                },
-                "numerator_value": {
-                  "type": "number"
-                },
-                "denumerator_unit": {
-                  "type": "string",
-                  "description": "`Dictionary MEDICATION_UNIT`"
-                },
-                "denumerator_value": {
-                  "type": "number"
-                }
-              },
-              "required": [
-                "numerator_unit",
-                "numerator_value",
-                "denumerator_unit",
-                "denumerator_value"
-              ]
-            },
-            "medication_qty": {
-              "type": "number",
-              "description": "Medication quantity isuued by the doctor"
             }
           },
           "required": [
@@ -328,7 +299,6 @@
             "medication_id",
             "form",
             "dosage",
-            "container",
             "medication_qty"
           ]
         },
