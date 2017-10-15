@@ -180,8 +180,16 @@ config :ehealth, :legal_entity_division_types,
   pharmacy: {:system, "LEGAL_ENTITY_PHARMACIST_DIVISION_TYPES", ["DRUGSTORE", "DRUGSTORE_POINT"]}
 
 config :ehealth, :medication_request_request,
-  expire_period: {:system, "MEDICATION_REQUEST_REQUEST_EXPIRATION_PERIOD", 30},
+  expire_in_minutes: {:system, "MEDICATION_REQUEST_REQUEST_EXPIRATION", 30},
   otp_code_length: {:system, "MEDICATION_REQUEST_REQUEST_OTP_CODE_LENGTH", 4}
+
+config :ehealth, EHealth.Scheduler,
+  jobs: [
+    medication_request_request_autotermination: [
+      schedule: "* * * * *",
+      task: {EHealth.MedicationRequestRequests, :autoterminate, []},
+    ]
+  ]
 
 # Configures bamboo
 config :ehealth, EHealth.Bamboo.Mailer,

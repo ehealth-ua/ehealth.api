@@ -259,6 +259,48 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
   end
 
+  describe "reject medication request request" do
+    test "works when data is valid", %{conn: conn} do
+      medication_id = create_medications_structure()
+      test_request =
+        test_request()
+        |> Map.put("medication_id", medication_id)
+      conn1 = post conn, medication_request_request_path(conn, :create), medication_request_request: test_request
+      assert %{"id" => id} = json_response(conn1, 201)["data"]
+
+      conn2 = patch conn, medication_request_request_path(conn, :reject), id: id
+      assert %{"id" => id1} = json_response(conn2, 200)["data"]
+      assert id == id1
+
+      conn3 = patch conn, medication_request_request_path(conn, :reject), id: id
+      assert json_response(conn3, 403)
+    end
+
+    test "works when data is invalid", %{conn: conn} do
+      conn1 = patch conn, medication_request_request_path(conn, :reject), id: Ecto.UUID.generate()
+      assert json_response(conn1, 404)
+
+      conn2 = patch conn, medication_request_request_path(conn, :reject), test: 1
+      assert json_response(conn2, 400)
+    end
+  end
+
+  describe "autotermination works fine" do
+    test "with direct call", %{conn: conn} do
+      medication_id = create_medications_structure()
+      test_request =
+        test_request()
+        |> Map.put("medication_id", medication_id)
+      conn1 = post conn, medication_request_request_path(conn, :create), medication_request_request: test_request
+      assert %{"id" => id} = json_response(conn1, 201)["data"]
+
+      EHealth.Repo.update_all(EHealth.MedicationRequestRequest, set: [inserted_at: ~N[1970-01-01 13:26:08.003]])
+      MedicationRequestRequests.autoterminate()
+      mrr = MedicationRequestRequests.get_medication_request_request(id)
+      assert mrr.status == "EXPIRED"
+    end
+  end
+
 
   defp create_medications_structure do
     %{id: dosage_id1} = insert(:prm, :innm_dosage, name: "Бупропіон Форте")

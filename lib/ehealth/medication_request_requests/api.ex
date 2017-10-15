@@ -16,6 +16,10 @@ defmodule EHealth.MedicationRequestRequests do
   alias EHealth.MedicationRequestRequest.CreateDataOperation
   alias EHealth.MedicationRequestRequest.HumanReadableNumberGenerator, as: HRNGenerator
 
+  @status_new EHealth.MedicationRequestRequest.status(:new)
+  @status_expired EHealth.MedicationRequestRequest.status(:expired)
+  @status_rejected EHealth.MedicationRequestRequest.status(:rejected)
+
   @doc """
   Returns the list of medication_request_requests.
 
@@ -55,20 +59,7 @@ defmodule EHealth.MedicationRequestRequests do
   end
   defp filter_by_status(query, _), do: query
 
-  @doc """
-  Gets a single medication_request_request.
-
-  Raises `Ecto.NoResultsError` if the Medication request request does not exist.
-
-  ## Examples
-
-      iex> get_medication_request_request!(123)
-      %MedicationRequestRequest{}
-
-      iex> get_medication_request_request!(456)
-      ** (Ecto.NoResultsError)
-
-  """
+  def get_medication_request_request(id), do: Repo.get(MedicationRequestRequest, id)
   def get_medication_request_request!(id), do: Repo.get!(MedicationRequestRequest, id)
 
   @doc """
@@ -115,7 +106,7 @@ defmodule EHealth.MedicationRequestRequests do
     medication_request_request
     |> cast(attrs, [:number, :status, :inserted_by, :updated_by])
     |> put_embed(:data, create_operation.changeset)
-    |> put_change(:status, "NEW")
+    |> put_change(:status, @status_new)
     |> put_change(:number, HRNGenerator.generate(1))
     |> put_change(:verification_code, put_verification_code(create_operation))
     |> put_change(:inserted_by, user_id)
@@ -156,5 +147,40 @@ defmodule EHealth.MedicationRequestRequests do
   defp show_program_status(%{id: id, data: _err}) do
     mp = MedicalPrograms.get_by_id(id)
     %{medical_program_id: mp.id, medical_program_name: mp.name, status: "INVALID"}
+  end
+
+  def reject(params, user_id, _client_id) do
+    with {:ok, id} <- get_id_from_request(params),
+         %MedicationRequestRequest{} = mrr <- get_medication_request_request(id),
+         %Ecto.Changeset{} = changeset <- reject_changeset(mrr, user_id),
+         {:ok, mrr} <- Repo.update(changeset)
+    do
+      {:ok, mrr}
+    end
+  end
+
+  def get_id_from_request(%{"id" => id}), do: {:ok, id}
+  def get_id_from_request(_), do: {:error, {:bad_request, "Invalid request format"}}
+  def reject_changeset(%MedicationRequestRequest{status: @status_new} = record, user_id) do
+    record
+    |> change
+    |> put_change(:status, @status_rejected)
+    |> put_change(:updated_by, user_id)
+  end
+  def reject_changeset(%MedicationRequestRequest{}, _), do:
+    {:error, {:forbidden, "Invalid status Request for Medication request for reject transition!"}}
+  def reject_changeset(nil, _), do: {:error, :not_found}
+
+  def autoterminate do
+    Repo.update_all(termination_query(), set: [status: @status_expired, updated_at: Timex.now])
+  end
+
+  defp termination_query do
+    minutes = Confex.fetch_env!(:ehealth, :medication_request_request)[:expire_in_minutes]
+    termination_time = Timex.shift(Timex.now, minutes: -minutes)
+
+    MedicationRequestRequest
+    |> where([mrr], mrr.status == ^@status_new)
+    |> where([mrr], mrr.inserted_at < ^termination_time)
   end
 end

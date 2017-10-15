@@ -19,6 +19,13 @@ defmodule EHealth.MedicationRequestRequest do
 
     timestamps(type: :utc_datetime)
   end
+
+  @status_new "NEW"
+  @status_expired "EXPIRED"
+  @status_rejected "REJECTED"
+  def status(:new), do: @status_new
+  def status(:expired), do: @status_expired
+  def status(:rejected), do: @status_rejected
 end
 
 defmodule EHealth.MedicationRequestRequest.EmbeddedData do
@@ -39,5 +46,4 @@ defmodule EHealth.MedicationRequestRequest.EmbeddedData do
     field :legal_entity_id, Ecto.UUID, null: false
     field :medication_qty, :integer, null: false
   end
-
 end
