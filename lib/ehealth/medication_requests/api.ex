@@ -9,14 +9,20 @@ defmodule EHealth.MedicationRequests.API do
   alias EHealth.PRM.Employees.Schema, as: Employee
   alias EHealth.PRM.MedicalPrograms.Schema, as: MedicalProgram
   alias EHealth.PRM.Medications.INNMDosage.Schema, as: INNMDosage
+  alias EHealth.PRM.Medications.Program.Schema, as: ProgramMedication
   alias EHealth.PRM.Medications.API, as: MedicationsAPI
+  alias EHealth.PRM.Medications.Medication.Ingredient
+  alias EHealth.PRM.Medications.INNMDosage.Ingredient, as: INNMDosageIngredient
   alias EHealth.PRM.Divisions
   alias EHealth.PRM.Employees
   alias EHealth.PRM.MedicalPrograms
   alias EHealth.API.MPI
+  alias EHealth.Validators.JsonSchema
   alias EHealth.MedicationRequests.Search
+  alias EHealth.PRMRepo
   import EHealth.Utils.Connection, only: [get_consumer_id: 1]
   import Ecto.Changeset
+  import Ecto.Query
   require Logger
 
   @fields_optional ~w(employee_id person_id status page_size page)a
@@ -60,11 +66,24 @@ defmodule EHealth.MedicationRequests.API do
     end
   end
 
+  @doc """
+  Currently supports the only program "доступні ліки"
+  """
+  def qualify(id, params, headers) do
+    with {:ok, medication_request} <- get_medication_request(%{"id" => id}, headers),
+         :ok <- JsonSchema.validate(:medication_request_qualify, params),
+         {:ok, medical_programs} <- get_medical_programs(params),
+         validations <- validate_programs(medical_programs, medication_request)
+    do
+      {:ok, medical_programs, validations}
+    end
+  end
+
   def get_medication_request(%{"id" => id} = params, headers) do
     user_id = get_consumer_id(headers)
     with %PartyUser{party: party} <- get_party_user(user_id),
          employee_ids <- get_employees(party.id, Map.get(params, "legal_entity_id")),
-           search_params <- %{"employee_id" => Enum.join(employee_ids, ","), "id" => id},
+         search_params <- %{"employee_id" => Enum.join(employee_ids, ","), "id" => id},
          {:ok, %{"data" => [medication_request]}} <- OPS.get_doctor_medication_requests(search_params, headers)
     do
       {:ok, medication_request}
@@ -145,5 +164,100 @@ defmodule EHealth.MedicationRequests.API do
 
   defp changeset(params) do
     cast(%Search{}, params, @fields_optional)
+  end
+
+  defp validate_innm(program, medication_request) do
+    ids = Enum.reduce(program.program_medications, [], fn program_medication, acc ->
+      [program_medication.medication.id] ++ acc
+    end)
+    ingredients =
+      Ingredient
+      |> join(:left, [i], m in assoc(i, :medication))
+      |> where([i], i.parent_id in ^ids and i.is_primary)
+      |> where([i], i.medication_child_id == ^medication_request["medication_id"])
+      |> where([i, m], m.is_active)
+      |> select([i, m], count(m.id))
+      |> PRMRepo.one
+    if ingredients > 0 do
+      :ok
+    else
+      {:error, "Innm not on the list of approved innms for program 'DOSTUPNI LIKI' !"}
+    end
+  end
+
+  def get_check_innm_id(medication_request) do
+    medication_id = medication_request["medication_id"]
+    with %INNMDosage{} = medication <- MedicationsAPI.get_innm_dosage_by_id(medication_id),
+         ingredient <- Enum.find(medication.ingredients, &(Map.get(&1, :is_primary)))
+    do
+      {:ok, ingredient.id}
+    else
+      _ -> {:error, [{
+              %{description: "Medication request is not valid",
+                params: [],
+                rule: :required
+              }, "$.medication_request_id"}]}
+    end
+  end
+
+  defp validate_programs(medical_programs, medication_request) do
+    # Currently supports the only program "доступні ліки"
+    Enum.reduce(medical_programs, %{}, fn program, acc ->
+      with :ok <- validate_innm(program, medication_request),
+           {:ok, check_innm_id} <- get_check_innm_id(medication_request),
+           {:ok, %{"data" => medication_ids}} <- get_qualify_requests(medication_request),
+           :ok <- validate_ingredients(medication_ids, check_innm_id)
+      do
+        Map.put(acc, program.id, :ok)
+      else
+        error -> Map.put(acc, program.id, error)
+      end
+    end)
+  end
+
+  defp get_qualify_requests(%{"person_id" => person_id}) do
+    OPS.get_qualify_medication_requests(%{"person_id" => person_id})
+  end
+
+  defp validate_ingredients(medication_ids, check_innm_id) do
+    ingredients =
+      INNMDosageIngredient
+      |> where([idi], idi.parent_id in ^medication_ids)
+      |> where([idi], idi.is_primary and idi.innm_child_id == ^check_innm_id)
+      |> PRMRepo.all
+    if Enum.empty?(ingredients) do
+      :ok
+    else
+      {:error, "For the patient at the same term there can be only" <>
+        " 1 dispensed medication request per one and the same innm!"}
+    end
+  end
+
+  defp get_medical_programs(%{"programs" => programs}) do
+    medical_programs = Enum.map(programs, fn %{"id" => id} ->
+      MedicalProgram
+      |> where([mp], mp.is_active)
+      |> join(:left, [mp], pm in ProgramMedication, pm.medical_program_id == mp.id)
+      |> join(:left, [mp, pm], m in assoc(pm, :medication))
+      |> preload([mp, pm, m], [program_medications: {pm, medication: m}])
+      |> PRMRepo.get(id)
+    end)
+    errors =
+      medical_programs
+      |> Enum.with_index()
+      |> Enum.filter(fn
+      {medical_program, _} -> is_nil(medical_program)
+    end)
+
+    if Enum.empty?(errors) do
+      {:ok, medical_programs}
+    else
+      {:error, Enum.map(errors, fn {nil, i} ->
+          {%{description: "Medical program not found",
+             params: [],
+             rule: :required
+            }, "$.programs[#{i}].id"}
+        end)}
+    end
   end
 end

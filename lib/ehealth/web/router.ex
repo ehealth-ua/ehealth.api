@@ -164,6 +164,8 @@ defmodule EHealthWeb.Router do
       end
     end
 
+    post "/medication_requests/:id/actions/qualify", MedicationRequestController, :qualify
+
     # Person declarations
     get "/persons", PersonsController, :search_persons
     get "/persons/:id/declaration", PersonsController, :person_declarations

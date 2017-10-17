@@ -63,7 +63,10 @@ defmodule EHealth.Web.INNMDosageControllerTest do
   describe "create INNMDosage" do
     test "renders INNMDosage when data is valid", %{conn: conn} do
       %{id: innm_id} = insert(:prm, :innm)
-      ingredient = build(:ingredient, id: innm_id)
+      ingredient =
+        :ingredient_medication
+        |> build(id: innm_id)
+        |> Map.take(~w(id is_primary dosage)a)
       attrs = Map.put(@create_attrs, :ingredients, [ingredient])
 
       conn = post conn, innm_dosage_path(conn, :create), attrs

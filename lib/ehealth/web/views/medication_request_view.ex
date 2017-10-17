@@ -45,4 +45,34 @@ defmodule EHealth.Web.MedicationRequestView do
     |> Map.put("innm_dosage", dosage_ingredient.innm)
     |> Map.put("dosage", ingredient.dosage)
   end
+
+  def render("qualify.json", %{medical_programs: medical_programs, validations: validations}) do
+    Enum.map(medical_programs, fn program ->
+      {_, validation} = Enum.find(validations, fn {id, _} -> id == program.id end)
+      {status, reason, participants} = case validation do
+        :ok -> {"VALID", "", []}
+        {:error, reason} ->
+          {"INVALID", reason, render_many(
+            program.program_medications,
+            __MODULE__,
+            "program_medication.json",
+            as: :program_medication
+          )}
+      end
+
+      %{
+        "id" => program.id,
+        "name" => program.name,
+        "status" => status,
+        "invalid_reason" => reason,
+        "participants" => participants,
+      }
+    end)
+  end
+
+  def render("program_medication.json", %{program_medication: program_medication}) do
+    program_medication.medication
+    |> Map.take(~w(id name form manufacturer)a)
+    |> Map.put("reimbursement_amount", program_medication.reimbursement["reimbursement_amount"])
+  end
 end

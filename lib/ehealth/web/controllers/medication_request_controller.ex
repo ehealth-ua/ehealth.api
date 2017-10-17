@@ -19,4 +19,14 @@ defmodule EHealth.Web.MedicationRequestController do
       render(conn, "show.json", medication_request: medication_request)
     end
   end
+
+  def qualify(%Plug.Conn{req_headers: headers} = conn, %{"id" => id} = params) do
+    with {:ok, medical_programs, validations} <- API.qualify(id, Map.delete(params, "id"), headers)
+    do
+      render(conn, "qualify.json",
+        medical_programs: medical_programs,
+        validations: validations
+      )
+    end
+  end
 end

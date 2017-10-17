@@ -21,5 +21,9 @@
       "minItems": 1,
       "description": "programs array"
     }
-  }
+  },
+  "required": [
+    "programs"
+  ],
+  "additionalProperties": false
 }

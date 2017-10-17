@@ -30,7 +30,11 @@ defmodule EHealth.Medication.APITest do
   """
   def medication_fixture do
     %{id: medication_id} = medication_innm_dosage_fixture()
-    ingredient = build(:ingredient, id: medication_id)
+    %{id: innm_dosage_id} = insert(:prm, :innm_dosage)
+    ingredient = build(:ingredient_medication,
+      parent_id: medication_id,
+      medication_child_id: innm_dosage_id
+    )
     insert(:prm, :medication, ingredients: [ingredient])
   end
 
@@ -39,7 +43,7 @@ defmodule EHealth.Medication.APITest do
   """
   def medication_innm_dosage_fixture do
     %{id: innm_id} = insert(:prm, :innm)
-    ingredient = build(:ingredient, id: innm_id)
+    ingredient = build(:ingredient_innm_dosage, innm_child_id: innm_id)
 
     insert(:prm, :innm_dosage, ingredients: [ingredient])
   end

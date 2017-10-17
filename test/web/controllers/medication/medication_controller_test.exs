@@ -239,8 +239,8 @@ defmodule EHealth.Web.MedicationControllerTest do
 
   describe "create medication" do
     test "renders medication when data is valid", %{conn: conn} do
-      ingredient = build(:ingredient, id: fixture(:innm_dosage).id)
-      ingredient_inactive = build(:ingredient, [id: fixture(:innm_dosage).id, is_primary: false])
+      ingredient = get_ingredient(id: fixture(:innm_dosage).id)
+      ingredient_inactive = get_ingredient(id: fixture(:innm_dosage).id, is_primary: false)
 
       attrs = Map.put(@create_attrs, :ingredients, [ingredient, ingredient_inactive])
       conn = post conn, medication_path(conn, :create), attrs
@@ -263,8 +263,8 @@ defmodule EHealth.Web.MedicationControllerTest do
     test "ingredients innm_dosage duplicated", %{conn: conn} do
       %{id: innm_dosage_id} = fixture(:innm_dosage)
 
-      ingredient = build(:ingredient, id: innm_dosage_id)
-      ingredient2 = build(:ingredient, [id: innm_dosage_id, is_primary: false])
+      ingredient = get_ingredient(id: innm_dosage_id)
+      ingredient2 = get_ingredient(id: innm_dosage_id, is_primary: false)
 
       attrs = Map.put(@create_attrs, :ingredients, [ingredient, ingredient2])
 
@@ -273,7 +273,7 @@ defmodule EHealth.Web.MedicationControllerTest do
     end
 
     test "innm id in ingredients", %{conn: conn} do
-      ingredient = build(:ingredient, id: insert(:prm, :innm).id)
+      ingredient = get_ingredient(id: insert(:prm, :innm).id)
 
       attrs = Map.put(@create_attrs, :ingredients, [ingredient])
 
@@ -282,7 +282,7 @@ defmodule EHealth.Web.MedicationControllerTest do
     end
 
     test "medication id in ingredients", %{conn: conn} do
-      ingredient = build(:ingredient, id: fixture(:medication).id)
+      ingredient = get_ingredient(id: fixture(:medication).id)
 
       attrs = Map.put(@create_attrs, :ingredients, [ingredient])
 
@@ -291,7 +291,7 @@ defmodule EHealth.Web.MedicationControllerTest do
     end
 
     test "invalid package quantity", %{conn: conn} do
-      ingredient = build(:ingredient, id: fixture(:innm_dosage).id)
+      ingredient = get_ingredient(id: fixture(:innm_dosage).id)
       attrs = Map.merge(@create_attrs, %{ingredients: [ingredient], package_min_qty: 13})
 
       conn = post conn, medication_path(conn, :create), attrs
@@ -299,7 +299,7 @@ defmodule EHealth.Web.MedicationControllerTest do
     end
 
     test "invalid numrator type", %{conn: conn} do
-      ingredient = build(:ingredient, id: insert(:prm, :innm_dosage).id)
+      ingredient = get_ingredient(id: insert(:prm, :innm_dosage).id)
       attrs = Map.merge(@create_attrs, %{ingredients: [ingredient], container: container("Nebuliser suspension")})
 
       conn = post conn, medication_path(conn, :create), attrs
@@ -307,8 +307,8 @@ defmodule EHealth.Web.MedicationControllerTest do
     end
 
     test "is_primary duplicated", %{conn: conn} do
-      ingredient = build(:ingredient, id: fixture(:innm_dosage).id)
-      ingredient2 = build(:ingredient, id: fixture(:innm_dosage).id)
+      ingredient = get_ingredient(id: fixture(:innm_dosage).id)
+      ingredient2 = get_ingredient(id: fixture(:innm_dosage).id)
 
       attrs = Map.put(@create_attrs, :ingredients, [ingredient, ingredient2])
 
@@ -317,8 +317,8 @@ defmodule EHealth.Web.MedicationControllerTest do
     end
 
     test "no active innms in ingredients", %{conn: conn} do
-      ingredient_inactive = build(:ingredient, [id: fixture(:innm_dosage).id, is_primary: false])
-      ingredient_inactive2 = build(:ingredient, [id: fixture(:innm_dosage).id, is_primary: false])
+      ingredient_inactive = get_ingredient(id: fixture(:innm_dosage).id, is_primary: false)
+      ingredient_inactive2 = get_ingredient(id: fixture(:innm_dosage).id, is_primary: false)
 
       attrs = Map.put(@create_attrs, :ingredients, [ingredient_inactive, ingredient_inactive2])
 
@@ -328,7 +328,7 @@ defmodule EHealth.Web.MedicationControllerTest do
 
     test "medication with inactive INNMDosage", %{conn: conn} do
       new_innm_dosage = insert(:prm, :innm_dosage, is_active: false)
-      ingredient = build(:ingredient, id: new_innm_dosage.id)
+      ingredient = get_ingredient(id: new_innm_dosage.id)
       attrs = Map.put(@create_attrs, :ingredients, [ingredient])
 
       conn = post conn, medication_path(conn, :create), attrs
@@ -449,5 +449,11 @@ defmodule EHealth.Web.MedicationControllerTest do
     insert(:prm, :ingredient_medication, parent_id: med_id5, medication_child_id: dosage_id5, is_primary: false)
 
     %{innms: [innm_id1, innm_id2], innm_dosage: [dosage_id1, dosage_id2]}
+  end
+
+  defp get_ingredient(params) do
+    :ingredient_medication
+    |> build(params)
+    |> Map.take(~w(id is_primary dosage)a)
   end
 end

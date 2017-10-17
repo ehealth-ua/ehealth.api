@@ -22,6 +22,8 @@ defmodule EHealth.Validators.JsonSchema do
   use_schema :innm_dosage, "specs/json_schemas/innm_dosage/innm_dosage_create_request.json"
   use_schema :program_medication, "specs/json_schemas/program_medication/program_medication_create_request.json"
   use_schema :program_medication_update, "specs/json_schemas/program_medication/program_medication_update_request.json"
+  use_schema :medication_request_qualify,
+             "specs/json_schemas/medication_request/medication_request_qualify_request.json"
 
   @schemas_with_dictionaries [
     :legal_entity,

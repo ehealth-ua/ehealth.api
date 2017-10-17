@@ -69,19 +69,6 @@ defmodule EHealth.PRMFactories.MedicationFactory do
         }
       end
 
-      def ingredient_factory do
-        %{
-          id: UUID.generate(),
-          is_primary: true,
-          dosage: %{
-            numerator_unit: "mg",
-            numerator_value: 5,
-            denumerator_unit: "pill",
-            denumerator_value: 1
-          }
-        }
-      end
-
       def ingredient_innm_dosage_factory do
         %INNMDosageIngredient{
           id: UUID.generate(),

@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "`Medical program Identifier`"
+      },
+      "name": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "VALID",
+          "INVALID"
+        ],
+        "description": "Status for ability use program for this Medication request Request"
+      },
+      "invalid_reason": {
+        "type": "string",
+        "description": "Reason to fetch invalid status"
+      },
+      "participants": {
+        "type": "array"
+      }
+    },
+    "required": [
+      "id",
+      "name",
+      "status",
+      "participants"
+    ]
+  }
+}
