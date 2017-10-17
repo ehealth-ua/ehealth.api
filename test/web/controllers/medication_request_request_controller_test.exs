@@ -270,20 +270,17 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       conn1 = post conn, medication_request_request_path(conn, :create), medication_request_request: test_request
       assert %{"id" => id} = json_response(conn1, 201)["data"]
 
-      conn2 = patch conn, medication_request_request_path(conn, :reject), id: id
+      conn2 = patch conn, medication_request_request_path(conn, :reject, id)
       assert %{"id" => id1} = json_response(conn2, 200)["data"]
       assert id == id1
 
-      conn3 = patch conn, medication_request_request_path(conn, :reject), id: id
+      conn3 = patch conn, medication_request_request_path(conn, :reject, id)
       assert json_response(conn3, 403)
     end
 
     test "works when data is invalid", %{conn: conn} do
-      conn1 = patch conn, medication_request_request_path(conn, :reject), id: Ecto.UUID.generate()
+      conn1 = patch conn, medication_request_request_path(conn, :reject, Ecto.UUID.generate())
       assert json_response(conn1, 404)
-
-      conn2 = patch conn, medication_request_request_path(conn, :reject), test: 1
-      assert json_response(conn2, 400)
     end
   end
 
@@ -300,6 +297,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       MedicationRequestRequests.autoterminate()
       mrr = MedicationRequestRequests.get_medication_request_request(id)
       assert mrr.status == "EXPIRED"
+      assert mrr.updated_by == Confex.fetch_env!(:ehealth, :system_user)
     end
   end
 

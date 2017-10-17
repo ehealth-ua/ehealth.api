@@ -149,9 +149,8 @@ defmodule EHealth.MedicationRequestRequests do
     %{medical_program_id: mp.id, medical_program_name: mp.name, status: "INVALID"}
   end
 
-  def reject(params, user_id, _client_id) do
-    with {:ok, id} <- get_id_from_request(params),
-         %MedicationRequestRequest{} = mrr <- get_medication_request_request(id),
+  def reject(id, user_id, _client_id) do
+    with %MedicationRequestRequest{} = mrr <- get_medication_request_request(id),
          %Ecto.Changeset{} = changeset <- reject_changeset(mrr, user_id),
          {:ok, mrr} <- Repo.update(changeset)
     do
@@ -159,8 +158,6 @@ defmodule EHealth.MedicationRequestRequests do
     end
   end
 
-  def get_id_from_request(%{"id" => id}), do: {:ok, id}
-  def get_id_from_request(_), do: {:error, {:bad_request, "Invalid request format"}}
   def reject_changeset(%MedicationRequestRequest{status: @status_new} = record, user_id) do
     record
     |> change
@@ -172,7 +169,11 @@ defmodule EHealth.MedicationRequestRequests do
   def reject_changeset(nil, _), do: {:error, :not_found}
 
   def autoterminate do
-    Repo.update_all(termination_query(), set: [status: @status_expired, updated_at: Timex.now])
+    Repo.update_all(termination_query(), set: [
+        status: @status_expired,
+        updated_at: Timex.now,
+        updated_by: Confex.fetch_env!(:ehealth, :system_user)
+        ])
   end
 
   defp termination_query do

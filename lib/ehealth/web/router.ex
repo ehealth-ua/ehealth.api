@@ -135,7 +135,7 @@ defmodule EHealthWeb.Router do
     resources "/medication_request_requests", MedicationRequestRequestController,
       except: [:new, :edit, :update, :delete]
     post "/medication_request_requests/prequalify", MedicationRequestRequestController, :prequalify
-    patch "/medication_request_requests/reject", MedicationRequestRequestController, :reject
+    patch "/medication_request_requests/:id/actions/reject", MedicationRequestRequestController, :reject
 
     # Declarations
     get "/declarations/:id", DeclarationsController, :show

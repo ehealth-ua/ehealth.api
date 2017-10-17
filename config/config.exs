@@ -5,7 +5,8 @@ config :ehealth,
   env: Mix.env(),
   namespace: EHealth,
   ecto_repos: [EHealth.Repo, EHealth.PRMRepo],
-  run_declaration_request_terminator: true
+  run_declaration_request_terminator: true,
+  system_user: {:system, "EHEALTH_SYSTEM_USER", "4261eacf-8008-4e62-899f-de1e2f7065f0"}
 
 # Configures the endpoint
 config :ehealth, EHealth.Web.Endpoint,

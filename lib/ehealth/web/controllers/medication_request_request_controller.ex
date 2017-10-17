@@ -37,10 +37,10 @@ defmodule EHealth.Web.MedicationRequestRequestController do
     end
   end
 
-  def reject(conn, params) do
+  def reject(conn, %{"id" => id}) do
     user_id = get_consumer_id(conn.req_headers)
     client_id = get_client_id(conn.req_headers)
-    with {:ok, mrr} <- API.reject(params, user_id, client_id) do
+    with {:ok, mrr} <- API.reject(id, user_id, client_id) do
       conn
       |> put_status(200)
       |> render("show.json", medication_request_request: mrr)
