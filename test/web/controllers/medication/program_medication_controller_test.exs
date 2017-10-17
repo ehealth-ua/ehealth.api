@@ -98,7 +98,7 @@ defmodule EHealthWeb.ProgramMedicationControllerTest do
       conn = get conn, program_medication_path(conn, :show, id)
       resp = json_response(conn, 200)
 
-      assert_medication_program_response(resp)
+      assert_program_medication_response(resp)
       assert id == resp["data"]["id"]
       assert resp["data"]["medication_request_allowed"]
     end
@@ -174,7 +174,7 @@ defmodule EHealthWeb.ProgramMedicationControllerTest do
       conn = get conn, program_medication_path(conn, :show, id)
       resp = json_response(conn, 200)
 
-      assert_medication_program_response(resp)
+      assert_program_medication_response(resp)
       assert id == resp["data"]["id"]
       refute resp["medication_request_allowed"]
     end
@@ -208,7 +208,7 @@ defmodule EHealthWeb.ProgramMedicationControllerTest do
     insert(:prm, :program_medication)
   end
 
-  defp assert_medication_program_response(response) do
+  defp assert_program_medication_response(response) do
     schema =
       "specs/json_schemas/program_medication/program_medication_response.json"
       |> File.read!()

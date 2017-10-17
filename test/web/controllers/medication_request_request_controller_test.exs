@@ -245,8 +245,10 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
         |> Map.put("medication_id", innm_id)
       conn1 = post conn, medication_request_request_path(conn, :prequalify), %{medication_request_request: test_request,
         programs: [%{id: pm1.medical_program_id}]}
-      assert %{"status" => "INVALID", "invalid_reason" => "Innm not on the list of approved innms for program test!"} =
-        json_response(conn1, 200)["data"] |> Enum.at(0)
+      assert %{
+        "status" => "INVALID",
+        "invalid_reason" => ~s(Innm not on the list of approved innms for program "Доступні ліки")
+      } = json_response(conn1, 200)["data"] |> Enum.at(0)
     end
 
     test "render error when data is invalid", %{conn: conn} do

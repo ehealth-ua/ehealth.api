@@ -7,7 +7,7 @@ defmodule EHealth.PRMFactories.MedicalProgramFactory do
 
       def medical_program_factory do
         %EHealth.PRM.MedicalPrograms.Schema{
-          name: "test",
+          name: "Доступні ліки",
           is_active: true,
           inserted_by: UUID.generate(),
           updated_by: UUID.generate(),

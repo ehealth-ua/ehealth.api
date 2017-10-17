@@ -11,6 +11,8 @@ defmodule EHealth.Web.MedicalProgramControllerTest do
       resp = json_response(conn, 200)["data"]
       assert 1 == length(resp)
       assert id == Map.get(hd(resp), "id")
+
+      assert_medical_program_list(resp)
     end
 
     test "search by name", %{conn: conn} do
@@ -120,5 +122,14 @@ defmodule EHealth.Web.MedicalProgramControllerTest do
       err_msg = "This program has active participants. Only medical programs without participants can be deactivated"
       assert err_msg == json_response(conn, 409)["error"]["message"]
     end
+  end
+
+  defp assert_medical_program_list(response) do
+    schema =
+      "specs/json_schemas/medical_program/medical_program_get_list_response.json"
+      |> File.read!()
+      |> Poison.decode!()
+
+    assert :ok == NExJsonSchema.Validator.validate(schema, response)
   end
 end

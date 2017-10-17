@@ -33,8 +33,7 @@ defmodule EHealth.Web.MedicationRequestRequestView do
   end
 
   defp maybe_add_error_reason(%{status: "INVALID"} = program) do
-    program
-    |> Map.put(:invalid_reason, "Innm not on the list of approved innms for program #{program.program_name}!")
+    Map.put(program, :invalid_reason, "Innm not on the list of approved innms for program \"#{program.program_name}\"")
   end
   defp maybe_add_error_reason(program), do: program
 end
