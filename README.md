@@ -13,7 +13,7 @@ Index page for projects that related to Ukrainian Health Services government ins
 * Design and Develop E-Health Billing process (Capitation report)
 * Design and Develop E-Health administration tools for National Health Service
 * Implementation of authentication and authorization including:
-  * Authorization of MSP by Patient using SMS OTP 
+  * Authorization of MSP by Patient using SMS OTP
   * Offline patient identification
 * OAuth 2.0 authorization for E-Health API
 * Personal data protection according to Ukraine and EU regulations
@@ -29,8 +29,8 @@ You can use official Docker container to deploy this service, it can be found on
 ### Dependencies
 
 - PostgreSQL 9.6 is used as storage back-end.
-- Elixir 1.4
-- Erlang/OTP 19.2
+- Elixir 1.5
+- Erlang/OTP 20.0.4
 
 ## Configuration
 
@@ -39,4 +39,3 @@ See [ENVIRONMENT.md](docs/ENVIRONMENT.md).
 ## License
 
 See [LICENSE.md](LICENSE.md).
-
