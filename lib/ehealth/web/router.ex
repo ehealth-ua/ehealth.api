@@ -158,11 +158,10 @@ defmodule EHealthWeb.Router do
       pipe_through [:client_context_list]
 
       get "/", MedicationRequestController, :index
-      scope "/:id" do
-        get "/", MedicationRequestController, :show
-        get "/dispenses", MedicationDispenseController, :by_medication_request
-      end
+      get "/:id", MedicationRequestController, :show
     end
+
+    get "/medication_requests/:id/dispenses", MedicationDispenseController, :by_medication_request
 
     post "/medication_requests/:id/actions/qualify", MedicationRequestController, :qualify
 
