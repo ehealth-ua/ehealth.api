@@ -39,84 +39,102 @@ Also sample `.env` can be used as payload for `docker run` cli.
 
 ## Media Storage
 
-| VAR_NAME                                  | Default Value              | Description |
-| ----------------------------------------- | -------------------------- | ----------- |
-| MEDIA_STORAGE_ENDPOINT                    | `http://api-svc.ael`       | Endpoint for [Ael](http://docs.ael.apiary.io/#). |
-| MEDIA_STORAGE_LEGAL_ENTITY_BUCKET         | `legal-entities-dev`       | Google Cloud Storage bucket name for Legal Entities. |
-| MEDIA_STORAGE_DECLARATION_BUCKET          | `declaration-dev`          | Google Cloud Storage bucket name for Declaration requests. |
-| MEDIA_STORAGE_DECLARATION_REQUEST_BUCKET  | `declaration-requests-dev` | Google Cloud Storage bucket name for Declaration requests. |
-| MEDIA_STORAGE_ENABLED                     | `false`                    | Enable/disable data storing to Google Cloud Storage. |
-| MEDIA_STORAGE_REQUEST_TIMEOUT             | `30_000`                   | HTTP timeout for hackney. |
-
-## Partner relationship management (PRM)
-
-| VAR_NAME            | Default Value        | Description |
-| ------------------- | -------------------- | ----------- |
-| PRM_ENDPOINT        | `http://api-svc.prm` | Endpoint for [PRM](http://docs.ehealthapi1.apiary.io/#reference/internal.-partner-relationship-management). |
-| PRM_REQUEST_TIMEOUT | `30_000`             | HTTP timeout for hackney. |
+| VAR_NAME                                  | Default Value | Description |
+| ----------------------------------------- | ------------- | ----------- |
+| MEDIA_STORAGE_ENDPOINT                    | not set       | Endpoint for [Ael](http://docs.ael.apiary.io/#). |
+| MEDIA_STORAGE_LEGAL_ENTITY_BUCKET         | not set       | Google Cloud Storage bucket name for Legal Entities. |
+| MEDIA_STORAGE_DECLARATION_BUCKET          | not set       | Google Cloud Storage bucket name for Declaration requests. |
+| MEDIA_STORAGE_DECLARATION_REQUEST_BUCKET  | not set       | Google Cloud Storage bucket name for Declaration requests. |
+| MEDIA_STORAGE_ENABLED                     | `false`       | Enable/disable data storing to Google Cloud Storage. |
+| MEDIA_STORAGE_REQUEST_TIMEOUT             | `30_000`      | HTTP timeout for hackney. |
 
 ## OAuth
 
-| VAR_NAME              | Default Value            | Description |
-| --------------------- | ------------------------ | ----------- |
-| OAUTH_ENDPOINT        | `http://api-svc.mithril` | Endpoint for [Mithril](http://docs.mithril1.apiary.io/#). |
-| OAUTH_REQUEST_TIMEOUT | `30_000`                 | HTTP timeout for hackney. |
+| VAR_NAME              | Default Value   | Description |
+| --------------------- | --------------- | ----------- |
+| OAUTH_ENDPOINT        | not set         | Endpoint for [Mithril](http://docs.mithril1.apiary.io/#). |
+| OAUTH_REQUEST_TIMEOUT | `30_000`        | HTTP timeout for hackney. |
 
 ## Man
 
-| VAR_NAME            | Default Value        | Description |
-| ------------------- | -------------------- | ----------- |
-| MAN_ENDPOINT        | `http://api-svc.man` | Endpoint for [Man](http://docs.man2.apiary.io/#). |
-| MAN_REQUEST_TIMEOUT | `30_000`             | HTTP timeout for hackney. |
+| VAR_NAME            | Default Value | Description |
+| ------------------- | --------------| ----------- |
+| MAN_ENDPOINT        | not set       | Endpoint for [Man](http://docs.man2.apiary.io/#). |
+| MAN_REQUEST_TIMEOUT | `30_000`      | HTTP timeout for hackney. |
 
 ## UAddresses
 
-| VAR_NAME                  | Default Value               | Description |
-| ------------------------- | --------------------------- | ----------- |
-| UADDRESS_ENDPOINT         | `http://api-svc.uaddresses` | Endpoint for [UAdress](http://docs.uaddress.apiary.io/). |
-| UADDRESS_ENDPOINT_TIMEOUT | `30_000`                    | HTTP timeout for hackney. |
+| VAR_NAME                  | Default Value  | Description |
+| ------------------------- | -------------- | ----------- |
+| UADDRESS_ENDPOINT         | not set        | Endpoint for [UAdress](http://docs.uaddress.apiary.io/). |
+| UADDRESS_ENDPOINT_TIMEOUT | `30_000`       | HTTP timeout for hackney. |
+
+## OTP
+
+| VAR_NAME                         | Default Value  | Description |
+| -------------------------------- | -------------- | ----------- |
+| OTP_VERIFICATION_ENDPOINT        | not set        | Endpoint for [OTP](http://docs.ehealthapi1.apiary.io/#reference/public.-medical-service-provider-integration-layer/otp-verification). |
+| OTP_VERIFICATION_REQUEST_TIMEOUT | `30_000`       | HTTP timeout for hackney. |
+
+## OPS
+
+| VAR_NAME            | Default Value  | Description |
+| ------------------- | -------------- | ----------- |
+| OPS_ENDPOINT        | not set        | Endpoint for [OPS](http://docs.ehealthapi1.apiary.io/#reference/internal.-ops-db). |
+| OPS_REQUEST_TIMEOUT | `30_000`       | HTTP timeout for hackney. |
 
 ## Digital Signature service
 
-| VAR_NAME                          | Default Value       | Description |
-| --------------------------------- | ------------------- | ----------- |
-| DIGITAL_SIGNATURE_ENDPOINT        | `http://api-svc.ds` | Endpoint for [Digital Signature Service](http://docs.ehealthapi1.apiary.io/#reference/internal.-digital-signature/verification/digital-signature). |
-| DIGITAL_SIGNATURE_REQUEST_TIMEOUT | `30_000`            | HTTP timeout for hackney. |
+| VAR_NAME                          | Default Value | Description |
+| --------------------------------- | --------------| ----------- |
+| DIGITAL_SIGNATURE_ENDPOINT        | not set       | Endpoint for [Digital Signature Service](http://docs.ehealthapi1.apiary.io/#reference/internal.-digital-signature/verification/digital-signature). |
+| DIGITAL_SIGNATURE_REQUEST_TIMEOUT | `30_000`      | HTTP timeout for hackney. |
 
+## Gandalf
+| VAR_NAME              | Default Value | Description |
+| GNDF_ENDPOINT         | not_set       | Endpoint for [Gandalf](http://docs.gandalf4.apiary.io/#) |
+| GNDF_CLIENT_ID        | not_set       | Client ID for auth |
+| GNDF_CLIENT_SECRET    | not_set       | Client secret for auth |
+| GNDF_APPLICATION_ID   | not_set       | Application ID for EHealth |
+| GNDF_TABLE_ID         | not_set       | Decision table ID |
+| GNDF_REQUEST_TIMEOUT  | not_set       | HTTP timeout for hackney. |
 
 # Email
 
 ## Templates
 
-| VAR_NAME                                      | Default Value | Description |
-| --------------------------------------------- | ------------- | ----------- |
-| EMPLOYEE_REQUEST_INVITATION_TEMPLATE_ID       | `1`           | Template id from Man that we will use for employee request invitation. |
-| EMPLOYEE_REQUEST_INVITATION_TEMPLATE_FORMAT   | `text/html`   | Format in which we want to get the rendered template. Available values: text/html, application/json and application/pdf. |
-| EMPLOYEE_REQUEST_INVITATION_TEMPLATE_LOCALE   | `uk_UA`       | Locale that we want to use for rendering the template. It should be configured in template settings on Man. |
-| EMPLOYEE_CREATED_NOTIFICATION_TEMPLATE_ID     | `35`          | Template id from Man that we will use for success employee creation notification. |
-| EMPLOYEE_CREATED_NOTIFICATION_TEMPLATE_FORMAT | `text/html`   | Template format for Employee created notifications. Available: text/html, application/json and application/pdf. |
-| EMPLOYEE_CREATED_NOTIFICATION_TEMPLATE_LOCALE | `uk_UA`       | Template locale. It should be configured in template settings on Man. |
-| DECLARATION_REQUEST_PRINTOUT_FORM_TEMPLATE_LOCALE | `uk_UA`       | Template locale. It should be configured in template settings on Man. |
-| CREDENTIALS_RECOVERY_REQUEST_INVITATION_TEMPLATE_ID     | `35`          | Template id from Man that we will use for success employee creation notification. |
+| VAR_NAME                                                | Default Value | Description |
+| ------------------------------------------------------- | ------------- | ----------- |
+| EMPLOYEE_REQUEST_INVITATION_TEMPLATE_ID                 | not set       | Template id from Man that we will use for employee request invitation. |
+| EMPLOYEE_REQUEST_INVITATION_TEMPLATE_FORMAT             | `text/html`   | Format in which we want to get the rendered template. Available values: text/html, application/json and application/pdf. |
+| EMPLOYEE_REQUEST_INVITATION_TEMPLATE_LOCALE             | `uk_UA`       | Locale that we want to use for rendering the template. It should be configured in template settings on Man. |
+| EMPLOYEE_CREATED_NOTIFICATION_TEMPLATE_ID               | not set       | Template id from Man that we will use for success employee creation notification. |
+| EMPLOYEE_CREATED_NOTIFICATION_TEMPLATE_FORMAT           | `text/html`   | Template format for Employee created notifications. Available: text/html, application/json and application/pdf. |
+| EMPLOYEE_CREATED_NOTIFICATION_TEMPLATE_LOCALE           | `uk_UA`       | Template locale. It should be configured in template settings on Man. |
+| DECLARATION_REQUEST_PRINTOUT_FORM_TEMPLATE_LOCALE       | `uk_UA`       | Template locale. It should be configured in template settings on Man. |
+| CREDENTIALS_RECOVERY_REQUEST_INVITATION_TEMPLATE_ID     | not set       | Template id from Man that we will use for success employee creation notification. |
 | CREDENTIALS_RECOVERY_REQUEST_INVITATION_TEMPLATE_FORMAT | `text/html`   | Template format for Employee created notifications. Available: text/html, application/json and application/pdf. |
 | CREDENTIALS_RECOVERY_REQUEST_INVITATION_TEMPLATE_LOCALE | `uk_UA`       | Template locale. It should be configured in template settings on Man. |
+| DECLARATION_REQUEST_PRINTOUT_FORM_TEMPLATE_ID           | not set       | Template id from Man that we will use for declaration printout form. |
+| DECLARATION_REQUEST_PRINTOUT_FORM_TEMPLATE_FORMAT       | `text/html`   | Template format for declaration printout form. Available: text/html, application/json and application/pdf. |
+| DECLARATION_REQUEST_PRINTOUT_FORM_TEMPLATE_LOCALE       | `uk_UA`       | Template locale. It should be configured in template settings on Man. |
 
 ## Postmark
 
 | VAR_NAME         | Default Value | Description |
 | ---------------- | ------------- | ----------- |
-| POSTMARK_API_KEY | ``            | Postmark API key |
+| POSTMARK_API_KEY | not set       | Postmark API key |
 
 ## Bamboo
 
-| VAR_NAME                                     | Default Value | Description |
-| -------------------------------------------- | ------------- | ----------- |
-| BAMBOO_EMPLOYEE_REQUEST_INVITATION_FROM      | ``            | Email address that will be used as a sender in employee request invitation email. |
-| BAMBOO_EMPLOYEE_REQUEST_INVITATION_SUBJECT   | ``            | The subject of the employee request invitation email. |
-| BAMBOO_EMPLOYEE_CREATED_NOTIFICATION_FROM    | ``            | Email address that will be used as a sender in employee created notification email. |
-| BAMBOO_EMPLOYEE_CREATED_NOTIFICATION_SUBJECT | ``            | The subject of the employee created notification email. |
-| BAMBOO_CREDENTIALS_RECOVERY_REQUEST_INVITATION_FROM | ``            | The subject of the employee created notification email. |
-| BAMBOO_CREDENTIALS_RECOVERY_REQUEST_INVITATION_SUBJECT | ``            | The subject of the employee created notification email. |
+| VAR_NAME                                                | Default Value | Description |
+| ------------------------------------------------------- | ------------- | ----------- |
+| BAMBOO_EMPLOYEE_REQUEST_INVITATION_FROM                 | ``            | Email address that will be used as a sender in employee request invitation email. |
+| BAMBOO_EMPLOYEE_REQUEST_INVITATION_SUBJECT              | ``            | The subject of the employee request invitation email. |
+| BAMBOO_EMPLOYEE_CREATED_NOTIFICATION_FROM               | ``            | Email address that will be used as a sender in employee created notification email. |
+| BAMBOO_EMPLOYEE_CREATED_NOTIFICATION_SUBJECT            | ``            | The subject of the employee created notification email. |
+| BAMBOO_CREDENTIALS_RECOVERY_REQUEST_INVITATION_FROM     | ``            | The subject of the employee created notification email. |
+| BAMBOO_CREDENTIALS_RECOVERY_REQUEST_INVITATION_SUBJECT  | ``            | The subject of the employee created notification email. |
 
 # Paging
 | VAR_NAME                      | Default Value | Description                                        |
@@ -127,6 +145,12 @@ Also sample `.env` can be used as payload for `docker run` cli.
 # Tokens
 | VAR_NAME                                     | Default Value | Description |
 | -------------------------------------------- | ------------- | ----------- |
-| TOKENS_TYPES_PERSONAL                        |`MSP`          | List of Client_types where only records that belong to client_id from the token will be returned
-| TOKENS_TYPES_MIS                             |`MIS`             | List of Client_types where only records that are created by client_id from the token will be returned
-| TOKENS_TYPES_ADMIN                           |`NHS_Admin`, `MIS`| Results are filtered by the request parameters if any, client_id from token is ignored
+| TOKENS_TYPES_PERSONAL                        | not set       | List of Client_types where only records that belong to client_id from the token will be returned
+| TOKENS_TYPES_MIS                             | not set       | List of Client_types where only records that are created by client_id from the token will be returned
+| TOKENS_TYPES_ADMIN                           | not set       | Results are filtered by the request parameters if any, client_id from token is ignored
+
+# Legal Entity employee types
+| VAR_NAME                                     | Default Value | Description |
+| -------------------------------------------- | ------------- | ----------- |
+| LEGAL_ENTITY_MSP_EMPLOYEE_TYPES              | not set       | List of available Employee types in Legal Entity
+| LEGAL_ENTITY_PHARMACY_EMPLOYEE_TYPES         | not set       | List of available Pharmacy Employee types in Legal Entity

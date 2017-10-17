@@ -16,7 +16,7 @@ config :ehealth, EHealth.Web.Endpoint,
 # Configures Digital Signature API
 config :ehealth, EHealth.API.Signature,
   enabled: {:system, :boolean, "DIGITAL_SIGNATURE_ENABLED", true},
-  endpoint: {:system, "DIGITAL_SIGNATURE_ENDPOINT", "http://35.187.186.145"},
+  endpoint: {:system, "DIGITAL_SIGNATURE_ENDPOINT"},
   timeouts: [
     connect_timeout: {:system, :integer, "DIGITAL_SIGNATURE_REQUEST_TIMEOUT", 30_000},
     recv_timeout: {:system, :integer, "DIGITAL_SIGNATURE_REQUEST_TIMEOUT", 30_000},
@@ -25,10 +25,10 @@ config :ehealth, EHealth.API.Signature,
 
 # Configures MediaStorage API
 config :ehealth, EHealth.API.MediaStorage,
-  endpoint: {:system, "MEDIA_STORAGE_ENDPOINT", "http://api-svc.ael"},
-  legal_entity_bucket: {:system, "MEDIA_STORAGE_LEGAL_ENTITY_BUCKET", "legal-entities-dev"},
-  declaration_request_bucket: {:system, "MEDIA_STORAGE_DECLARATION_REQUEST_BUCKET", "declaration-requests-dev"},
-  declaration_bucket: {:system, "MEDIA_STORAGE_DECLARATION_BUCKET", "declarations-dev"},
+  endpoint: {:system, "MEDIA_STORAGE_ENDPOINT"},
+  legal_entity_bucket: {:system, "MEDIA_STORAGE_LEGAL_ENTITY_BUCKET"},
+  declaration_request_bucket: {:system, "MEDIA_STORAGE_DECLARATION_REQUEST_BUCKET"},
+  declaration_bucket: {:system, "MEDIA_STORAGE_DECLARATION_BUCKET"},
   enabled?: {:system, :boolean, "MEDIA_STORAGE_ENABLED", false},
   hackney_options: [
     connect_timeout: {:system, :integer, "MEDIA_STORAGE_REQUEST_TIMEOUT", 30_000},
@@ -53,7 +53,7 @@ config :ehealth, EHealth.Plugs.ClientContext,
 
 # Configures OAuth API
 config :ehealth, EHealth.API.Mithril,
-  endpoint: {:system, "OAUTH_ENDPOINT", "http://api-svc.mithril"},
+  endpoint: {:system, "OAUTH_ENDPOINT"},
   hackney_options: [
     connect_timeout: {:system, :integer, "OAUTH_REQUEST_TIMEOUT", 30_000},
     recv_timeout: {:system, :integer, "OAUTH_REQUEST_TIMEOUT", 30_000},
@@ -62,7 +62,7 @@ config :ehealth, EHealth.API.Mithril,
 
 # Configures Man API
 config :ehealth, EHealth.API.Man,
-  endpoint: {:system, "MAN_ENDPOINT", "http://api-svc.man"},
+  endpoint: {:system, "MAN_ENDPOINT"},
   timeouts: [
     connect_timeout: {:system, :integer, "MAN_REQUEST_TIMEOUT", 30_000},
     recv_timeout: {:system, :integer, "MAN_REQUEST_TIMEOUT", 30_000},
@@ -71,7 +71,7 @@ config :ehealth, EHealth.API.Man,
 
 # Configures UAddress API
 config :ehealth, EHealth.API.UAddress,
-  endpoint: {:system, "UADDRESS_ENDPOINT", "http://api-svc.uaddresses"},
+  endpoint: {:system, "UADDRESS_ENDPOINT"},
   timeouts: [
     connect_timeout: {:system, :integer, "UADDRESS_REQUEST_TIMEOUT", 30_000},
     recv_timeout: {:system, :integer, "UADDRESS_REQUEST_TIMEOUT", 30_000},
@@ -80,7 +80,7 @@ config :ehealth, EHealth.API.UAddress,
 
 # Configures OTP Verification API
 config :ehealth, EHealth.API.OTPVerification,
-  endpoint: {:system, "OTP_VERIFICATION_ENDPOINT", "http://api-svc.verification"},
+  endpoint: {:system, "OTP_VERIFICATION_ENDPOINT"},
   timeouts: [
     connect_timeout: {:system, :integer, "OTP_VERIFICATION_REQUEST_TIMEOUT", 30_000},
     recv_timeout: {:system, :integer, "OTP_VERIFICATION_REQUEST_TIMEOUT", 30_000},
@@ -89,7 +89,7 @@ config :ehealth, EHealth.API.OTPVerification,
 
 # Configures MPI API
 config :ehealth, EHealth.API.MPI,
-  endpoint: {:system, "MPI_ENDPOINT", "http://api-svc.mpi"},
+  endpoint: {:system, "MPI_ENDPOINT"},
   timeouts: [
     connect_timeout: {:system, :integer, "MPI_REQUEST_TIMEOUT", 30_000},
     recv_timeout: {:system, :integer, "MPI_REQUEST_TIMEOUT", 30_000},
@@ -98,7 +98,7 @@ config :ehealth, EHealth.API.MPI,
 
 # Configures OPS API
 config :ehealth, EHealth.API.OPS,
-  endpoint: {:system, "OPS_ENDPOINT", "http://api-svc.ops"},
+  endpoint: {:system, "OPS_ENDPOINT"},
   timeouts: [
     connect_timeout: {:system, :integer, "OPS_REQUEST_TIMEOUT", 30_000},
     recv_timeout: {:system, :integer, "OPS_REQUEST_TIMEOUT", 30_000},
@@ -107,11 +107,11 @@ config :ehealth, EHealth.API.OPS,
 
 # Configures Gandalf API
 config :ehealth, EHealth.API.Gandalf,
-  endpoint: {:system, "GNDF_ENDPOINT", "https://api.gndf.io"},
-  client_id: {:system, "GNDF_CLIENT_ID", "some_client_id"},
-  client_secret: {:system, "GNDF_CLIENT_SECRET", "some_client_secret"},
-  application_id: {:system, "GNDF_APPLICATION_ID", "some_gndf_application_id"},
-  table_id: {:system, "GNDF_TABLE_ID", "some_gndf_table_id"},
+  endpoint: {:system, "GNDF_ENDPOINT"},
+  client_id: {:system, "GNDF_CLIENT_ID"},
+  client_secret: {:system, "GNDF_CLIENT_SECRET"},
+  application_id: {:system, "GNDF_APPLICATION_ID"},
+  table_id: {:system, "GNDF_TABLE_ID"},
   timeouts: [
     connect_timeout: {:system, :integer, "GNDF_REQUEST_TIMEOUT", 30_000},
     recv_timeout: {:system, :integer, "GNDF_REQUEST_TIMEOUT", 30_000},
@@ -121,7 +121,7 @@ config :ehealth, EHealth.API.Gandalf,
 # employee request invitation
 # Configures employee request invitation template
 config :ehealth, EHealth.Man.Templates.EmployeeRequestInvitation,
-  id: {:system, "EMPLOYEE_REQUEST_INVITATION_TEMPLATE_ID", 1},
+  id: {:system, "EMPLOYEE_REQUEST_INVITATION_TEMPLATE_ID"},
   format: {:system, "EMPLOYEE_REQUEST_INVITATION_TEMPLATE_FORMAT", "text/html"},
   locale: {:system, "EMPLOYEE_REQUEST_INVITATION_TEMPLATE_LOCALE", "uk_UA"}
 
@@ -144,12 +144,12 @@ config :ehealth, EHealth.Man.Templates.HashChainVerificationNotification,
 # employee created notification
 # Configures employee created notification template
 config :ehealth, EHealth.Man.Templates.EmployeeCreatedNotification,
-  id: {:system, "EMPLOYEE_CREATED_NOTIFICATION_TEMPLATE_ID", 35},
+  id: {:system, "EMPLOYEE_CREATED_NOTIFICATION_TEMPLATE_ID"},
   format: {:system, "EMPLOYEE_CREATED_NOTIFICATION_TEMPLATE_FORMAT", "text/html"},
   locale: {:system, "EMPLOYEE_CREATED_NOTIFICATION_TEMPLATE_LOCALE", "uk_UA"}
 
 config :ehealth, EHealth.Man.Templates.DeclarationRequestPrintoutForm,
-  id: {:system, "DECLARATION_REQUEST_PRINTOUT_FORM_TEMPLATE_ID", 4},
+  id: {:system, "DECLARATION_REQUEST_PRINTOUT_FORM_TEMPLATE_ID"},
   format: {:system, "DECLARATION_REQUEST_PRINTOUT_FORM_TEMPLATE_FORMAT", "text/html"},
   locale: {:system, "DECLARATION_REQUEST_PRINTOUT_FORM_TEMPLATE_LOCALE", "uk_UA"}
 
@@ -167,7 +167,7 @@ config :ehealth, EHealth.Bamboo.Emails.CredentialsRecoveryRequest,
   subject: {:system, "BAMBOO_CREDENTIALS_RECOVERY_REQUEST_INVITATION_SUBJECT", ""}
 
 config :ehealth, EHealth.Man.Templates.CredentialsRecoveryRequest,
-  id: {:system, "CREDENTIALS_RECOVERY_REQUEST_INVITATION_TEMPLATE_ID", 5},
+  id: {:system, "CREDENTIALS_RECOVERY_REQUEST_INVITATION_TEMPLATE_ID"},
   format: {:system, "CREDENTIALS_RECOVERY_REQUEST_INVITATION_TEMPLATE_FORMAT", "text/html"},
   locale: {:system, "CREDENTIALS_RECOVERY_REQUEST_INVITATION_TEMPLATE_LOCALE", "uk_UA"}
 

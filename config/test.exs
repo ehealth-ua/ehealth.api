@@ -10,9 +10,6 @@ config :ehealth, EHealth.Web.Endpoint,
   http: [port: 4001],
   server: true
 
-config :ehealth, EHealth.API.MediaStorage,
-  endpoint: {:system, "MEDIA_STORAGE_ENDPOINT", "http://localhost:4040"}
-
 # Configures PRM API
 config :ehealth, EHealth.API.PRM,
   endpoint: {:system, "PRM_ENDPOINT", "http://localhost:4040"}
@@ -48,6 +45,47 @@ config :ehealth, mock: [
   port: {:system, :integer, "TEST_MOCK_PORT", 4040},
   host: {:system, "TEST_MOCK_HOST", "localhost"}
 ]
+
+# Configures Legal Entities token permission
+config :ehealth, EHealth.Plugs.ClientContext,
+  tokens_types_personal: {:system, :list, "TOKENS_TYPES_PERSONAL", ["MSP"]},
+  tokens_types_mis: {:system, :list, "TOKENS_TYPES_MIS", ["MIS"]},
+  tokens_types_admin: {:system, :list, "TOKENS_TYPES_ADMIN", ["NHS ADMIN"]}
+
+config :ehealth, :legal_entity_employee_types,
+  msp: {:system, "LEGAL_ENTITY_MSP_EMPLOYEE_TYPES", ["OWNER", "HR", "DOCTOR", "ADMIN", "ACCOUNTANT"]},
+  pharmacy: {:system, "LEGAL_ENTITY_PHARMACY_EMPLOYEE_TYPES", ["PHARMACY_OWNER", "PHARMACIST"]}
+
+config :ehealth, EHealth.API.MediaStorage,
+  endpoint: {:system, "MEDIA_STORAGE_ENDPOINT", "http://localhost:4040"},
+  legal_entity_bucket: {:system, "MEDIA_STORAGE_LEGAL_ENTITY_BUCKET", "legal-entities-dev"},
+  declaration_request_bucket: {:system, "MEDIA_STORAGE_DECLARATION_REQUEST_BUCKET", "declaration-requests-dev"},
+  declaration_bucket: {:system, "MEDIA_STORAGE_DECLARATION_BUCKET", "declarations-dev"},
+  enabled?: {:system, :boolean, "MEDIA_STORAGE_ENABLED", false}
+
+# Configures Gandalf API
+config :ehealth, EHealth.API.Gandalf,
+  endpoint: {:system, "GNDF_ENDPOINT", "https://api.gndf.io"},
+  client_id: {:system, "GNDF_CLIENT_ID", "some_client_id"},
+  client_secret: {:system, "GNDF_CLIENT_SECRET", "some_client_secret"},
+  application_id: {:system, "GNDF_APPLICATION_ID", "some_gndf_application_id"},
+  table_id: {:system, "GNDF_TABLE_ID", "some_gndf_table_id"}
+
+# employee request invitation
+# Configures employee request invitation template
+config :ehealth, EHealth.Man.Templates.EmployeeRequestInvitation,
+  id: {:system, "EMPLOYEE_REQUEST_INVITATION_TEMPLATE_ID", 1}
+
+# employee created notification
+# Configures employee created notification template
+config :ehealth, EHealth.Man.Templates.EmployeeCreatedNotification,
+  id: {:system, "EMPLOYEE_CREATED_NOTIFICATION_TEMPLATE_ID", 35}
+
+config :ehealth, EHealth.Man.Templates.DeclarationRequestPrintoutForm,
+  id: {:system, "DECLARATION_REQUEST_PRINTOUT_FORM_TEMPLATE_ID", 4}
+
+config :ehealth, EHealth.Man.Templates.CredentialsRecoveryRequest,
+  id: {:system, "CREDENTIALS_RECOVERY_REQUEST_INVITATION_TEMPLATE_ID", 5}
 
 config :ehealth, EHealth.Bamboo.Emails.HashChainVeriricationNotification,
   from: "automatic@system.com",
