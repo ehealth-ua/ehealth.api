@@ -5,7 +5,7 @@ defmodule EHealth.DuplicatePersons.Cleanup do
   alias EHealth.API.MPI
   alias EHealth.Declarations.Person
 
-  @technical_consumer_id "dadadada-baba-4359-94d6-a3f524b8d829"
+  @system_consumer_id Confex.fetch_env!(:ehealth, :system_user)
 
   def cleanup(id, person_id) do
     {:ok, %{"data" => declarations}} =
@@ -27,6 +27,6 @@ defmodule EHealth.DuplicatePersons.Cleanup do
   end
 
   defp headers do
-    [{"x-consumer-id", @technical_consumer_id}]
+    [{"x-consumer-id", @system_consumer_id}]
   end
 end
