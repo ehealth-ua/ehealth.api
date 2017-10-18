@@ -4,7 +4,6 @@ defmodule EHealth.MedicationRequestRequest.RejectOperation do
 
   alias EHealth.MedicationRequestRequest.Operation
 
-
   def reject(changeset, mrr, client_id) do
     changeset
     |> Operation.new()
