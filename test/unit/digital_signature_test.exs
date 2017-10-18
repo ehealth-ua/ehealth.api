@@ -25,6 +25,8 @@ defmodule EHealth.Unit.DigitalSignatureTest do
   end
 
   defp get_signed_content do
-    File.read!("test/data/signed_content.json")
+    "test/data/signed_content.json"
+    |> File.read!()
+    |> Base.encode64
   end
 end

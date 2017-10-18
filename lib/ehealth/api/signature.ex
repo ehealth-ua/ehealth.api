@@ -25,17 +25,18 @@ defmodule EHealth.API.Signature do
       |> post!(Poison.encode!(params), headers, @conn_timeouts)
       |> ResponseDecoder.check_response()
     else
-      case Poison.decode(signed_content) do
-        {:error, _} ->
+      data = Base.decode64(signed_content)
+      case data do
+        :error ->
           data =
             %{"is_valid" => false}
             |> wrap_response(422)
             |> Poison.encode!
-          ResponseDecoder.check_response(%HTTPoison.Response{body: data, status_code: 422})
-        {:ok, content} ->
+         ResponseDecoder.check_response(%HTTPoison.Response{body: data, status_code: 422})
+        {:ok, data} ->
           data =
             %{
-              "content" => content,
+              "content" => Poison.decode!(data),
               "is_valid" => true,
               "signer" => %{
                 "edrpou" => get_header(headers, "edrpou"),
