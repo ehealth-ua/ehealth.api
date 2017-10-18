@@ -65,13 +65,7 @@ defmodule EHealth.MedicationRequestRequest.Validations do
   end
 
   defp validate_medication_qty(medications, medication_qty) do
-    Enum.reduce_while(medications, true, fn med, _ ->
-      if rem(medication_qty, med.package_min_qty) == 0 do
-        {:cont, {true, :medication_qty}}
-      else
-        {:halt, {false, :medication_qty}}
-      end
-    end)
+    {0 in Enum.map(medications, fn med -> rem(medication_qty, med.package_min_qty) end), :medication_qty}
   end
 
   def validate_dates(attrs) do

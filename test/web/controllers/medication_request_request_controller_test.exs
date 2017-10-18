@@ -211,6 +211,25 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
         "The amount of medications in medication request must be divisible to package minimum quantity"
     end
 
+    test "render medication_request_request when medication created with different qty", %{conn: conn} do
+      medication_id = create_medications_structure()
+
+      %{id: med_id1} = insert(:prm, :medication, [
+        name: "Бупропіонол TEST",
+        package_qty: 20,
+        package_min_qty: 10,
+      ])
+
+      insert(:prm, :ingredient_medication, parent_id: med_id1, medication_child_id: medication_id)
+      test_request =
+        test_request()
+        |> Map.put("medication_id", medication_id)
+        |> Map.put("medication_qty", 5)
+
+      conn = post conn, medication_request_request_path(conn, :create), medication_request_request: test_request
+      assert json_response(conn, 201)
+    end
+
     test "render errors when medication_program is invalid", %{conn: conn} do
       medication_id = create_medications_structure()
       test_request =
