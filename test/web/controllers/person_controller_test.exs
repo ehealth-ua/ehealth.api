@@ -1,9 +1,12 @@
-defmodule EHealth.Web.PersonsControllerTest do
+defmodule EHealth.Web.PersonControllerTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase
+
   alias Ecto.UUID
   alias EHealth.MockServer
+
+  @moduletag :with_client_id
 
   describe "get person declaration" do
     test "MSP can see own declaration", %{conn: conn} do
@@ -11,7 +14,7 @@ defmodule EHealth.Web.PersonsControllerTest do
       insert(:prm, :employee, id: "7488a646-e31f-11e4-aace-600308960662", legal_entity: legal_entity)
 
       conn = put_client_id_header(conn, legal_entity.id)
-      conn = get conn, persons_path(conn, :person_declarations, "7cc91a5d-c02f-41e9-b571-1ea4f2375200")
+      conn = get conn, person_path(conn, :person_declarations, "7cc91a5d-c02f-41e9-b571-1ea4f2375200")
       data = json_response(conn, 200)["data"]
       assert is_map(data)
       assert Map.has_key?(data, "person")
@@ -21,8 +24,7 @@ defmodule EHealth.Web.PersonsControllerTest do
     end
 
     test "MSP can't see not own declaration", %{conn: conn} do
-      conn = put_client_id_header(conn, "520e372b-8378-4722-a590-653274a6cb38")
-      conn = get conn, persons_path(conn, :person_declarations, "7cc91a5d-c02f-41e9-b571-1ea4f2375200")
+      conn = get conn, person_path(conn, :person_declarations, "7cc91a5d-c02f-41e9-b571-1ea4f2375200")
       assert 403 == json_response(conn, 403)["meta"]["code"]
     end
 
@@ -30,7 +32,7 @@ defmodule EHealth.Web.PersonsControllerTest do
       legal_entity = insert(:prm, :legal_entity, id: MockServer.get_client_admin())
       insert(:prm, :employee, id: "7488a646-e31f-11e4-aace-600308960662", legal_entity: legal_entity)
       conn = put_client_id_header(conn, legal_entity.id)
-      conn = get conn, persons_path(conn, :person_declarations, "7cc91a5d-c02f-41e9-b571-1ea4f2375200")
+      conn = get conn, person_path(conn, :person_declarations, "7cc91a5d-c02f-41e9-b571-1ea4f2375200")
 
       response = json_response(conn, 200)
       assert 200 == response["meta"]["code"]
@@ -38,21 +40,31 @@ defmodule EHealth.Web.PersonsControllerTest do
     end
 
     test "invalid declarations amount", %{conn: conn} do
-      conn = put_client_id_header(conn)
-      conn = get conn, persons_path(conn, :person_declarations, "7cc91a5d-c02f-41e9-b571-1ea4f2375400")
+      conn = get conn, person_path(conn, :person_declarations, "7cc91a5d-c02f-41e9-b571-1ea4f2375400")
       assert 400 == json_response(conn, 400)["meta"]["code"]
     end
 
     test "declaration not found", %{conn: conn} do
-      conn = put_client_id_header(conn)
-      conn = get conn, persons_path(conn, :person_declarations, UUID.generate())
+      conn = get conn, person_path(conn, :person_declarations, UUID.generate())
+      assert 404 == json_response(conn, 404)["meta"]["code"]
+    end
+  end
+
+  describe "reset authentication method to NA" do
+
+    test "success", %{conn: conn} do
+      conn = patch conn, person_path(conn, :reset_authentication_method, MockServer.get_active_person())
+      assert [%{"type" => "NA"}] == json_response(conn, 200)["data"]["authentication_methods"]
+    end
+
+    test "person not found", %{conn: conn} do
+      conn = patch conn, person_path(conn, :reset_authentication_method, UUID.generate())
       assert 404 == json_response(conn, 404)["meta"]["code"]
     end
   end
 
   test "search persons", %{conn: conn} do
-    conn = put_client_id_header(conn)
-    conn = get conn, persons_path(conn, :search_persons)
+    conn = get conn, person_path(conn, :search_persons)
     assert 200 == json_response(conn, 200)["meta"]["code"]
   end
 end

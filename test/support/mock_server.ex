@@ -16,6 +16,8 @@ defmodule EHealth.MockServer do
   @inactive_medication_request "04d64554-9a1c-11e7-abc4-cec278b6b50a"
   @invalid_medication_dispense_period "5ccf33e6-9a22-11e7-abc4-cec278b6b50a"
 
+  @active_person "585041f5-1272-4bca-8d41-8440eefe7200"
+
   plug :match
   plug Plug.Parsers, parsers: [:json],
                      pass:  ["application/json"],
@@ -26,6 +28,7 @@ defmodule EHealth.MockServer do
   def get_client_nil, do: @client_type_nil
   def get_client_admin, do: @client_type_admin
 
+  def get_active_person, do: @active_person
   def get_active_medication_dispense, do: @active_medication_dispense
   def get_inactive_medication_dispense, do: @inactive_medication_dispense
   def get_active_medication_request, do: @active_medication_request
@@ -458,6 +461,19 @@ defmodule EHealth.MockServer do
     render(get_person(), conn, 200)
   end
 
+  patch "/persons/:id" do
+    case conn.params["id"] do
+      id = @active_person ->
+        medication_dispense = Map.merge(
+          get_person(id),
+          conn.body_params
+        )
+        render(medication_dispense, conn, 200)
+
+      _ -> render_404(conn)
+    end
+  end
+
   def get_declaration("terminated") do
     nil |> get_declaration() |> Map.put("status", "terminated")
   end
@@ -477,7 +493,10 @@ defmodule EHealth.MockServer do
         "updated_by" => UUID.generate(),
         "is_active" => false,
         "scope" => "declarations:read",
-        "declaration_request_id" => UUID.generate()
+        "declaration_request_id" => UUID.generate(),
+        "authentication_methods" => [
+          %{"type" => "OTP", "phone_number" => "+380670000000"}
+        ]
     }
   end
 

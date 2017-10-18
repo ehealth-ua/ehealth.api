@@ -166,8 +166,9 @@ defmodule EHealthWeb.Router do
     post "/medication_requests/:id/actions/qualify", MedicationRequestController, :qualify
 
     # Person declarations
-    get "/persons", PersonsController, :search_persons
-    get "/persons/:id/declaration", PersonsController, :person_declarations
+    get "/persons", PersonController, :search_persons
+    get "/persons/:id/declaration", PersonController, :person_declarations
+    patch "/persons/:id/actions/reset_authentication_method", PersonController, :reset_authentication_method
 
     # User roles
     get "/user/roles", UserRoleController, :index
