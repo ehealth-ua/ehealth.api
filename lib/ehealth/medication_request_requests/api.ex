@@ -14,6 +14,7 @@ defmodule EHealth.MedicationRequestRequests do
   alias EHealth.MedicationRequestRequest.Operation
   alias EHealth.MedicationRequestRequest.Validations
   alias EHealth.MedicationRequestRequest.CreateDataOperation
+  alias EHealth.MedicationRequestRequest.RejectOperation
   alias EHealth.MedicationRequestRequest.HumanReadableNumberGenerator, as: HRNGenerator
 
   @status_new EHealth.MedicationRequestRequest.status(:new)
@@ -77,10 +78,12 @@ defmodule EHealth.MedicationRequestRequests do
   def create(attrs, user_id, client_id) do
     with :ok <- Validations.validate_create_schema(attrs)
     do
-      case %MedicationRequestRequest{}
+      create_operation = CreateDataOperation.create(attrs, client_id)
+      case create_operation
            |> create_changeset(attrs, user_id, client_id)
            |> Repo.insert() do
-        {:ok, inserted_entity} -> {:ok, inserted_entity}
+        {:ok, inserted_entity} ->
+          {:ok, Map.merge(create_operation.data, %{medication_request_request: inserted_entity})}
         {:error, %Ecto.Changeset{errors: [number: {"has already been taken", []}]}} -> create(attrs, user_id, client_id)
         {:error, changeset} -> {:error, changeset}
       end
@@ -92,7 +95,8 @@ defmodule EHealth.MedicationRequestRequests do
   def prequalify(attrs, user_id, client_id) do
     with :ok <- Validations.validate_prequalify_schema(attrs),
         %{"medication_request_request" => mrr, "programs" => programs} <- attrs,
-         %Ecto.Changeset{valid?: true} <- create_changeset(%MedicationRequestRequest{}, mrr, user_id, client_id)
+        create_operation <- CreateDataOperation.create(mrr, client_id),
+        %Ecto.Changeset{valid?: true} <- create_changeset(create_operation, mrr, user_id, client_id)
     do
       {:ok, prequalify_programs(mrr["medication_id"], mrr["medication_qty"], programs)}
     else
@@ -101,9 +105,8 @@ defmodule EHealth.MedicationRequestRequests do
   end
 
   @doc false
-  def create_changeset(%MedicationRequestRequest{} = medication_request_request, attrs, user_id, client_id) do
-    create_operation = CreateDataOperation.create(attrs, client_id)
-    medication_request_request
+  def create_changeset(create_operation, attrs, user_id, _client_id) do
+    %MedicationRequestRequest{}
     |> cast(attrs, [:number, :status, :inserted_by, :updated_by])
     |> put_embed(:data, create_operation.changeset)
     |> put_change(:status, @status_new)
@@ -149,12 +152,13 @@ defmodule EHealth.MedicationRequestRequests do
     %{medical_program_id: mp.id, medical_program_name: mp.name, status: "INVALID"}
   end
 
-  def reject(id, user_id, _client_id) do
+  def reject(id, user_id, client_id) do
     with %MedicationRequestRequest{} = mrr <- get_medication_request_request(id),
          %Ecto.Changeset{} = changeset <- reject_changeset(mrr, user_id),
-         {:ok, mrr} <- Repo.update(changeset)
+         {:ok, mrr} <- Repo.update(changeset),
+         operation <- RejectOperation.reject(changeset, mrr, client_id)
     do
-      {:ok, mrr}
+      {:ok, Map.merge(operation.data, %{medication_request_request: mrr})}
     end
   end
 

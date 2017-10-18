@@ -3,7 +3,6 @@ defmodule EHealth.Web.MedicationRequestRequestController do
   use EHealth.Web, :controller
 
   alias EHealth.MedicationRequestRequests, as: API
-  alias EHealth.MedicationRequestRequest
   alias Scrivener.Page
 
   action_fallback EHealth.Web.FallbackController
@@ -18,12 +17,12 @@ defmodule EHealth.Web.MedicationRequestRequestController do
     user_id = get_consumer_id(conn.req_headers)
     client_id = get_client_id(conn.req_headers)
 
-    with {:ok, %MedicationRequestRequest{} = medication_request_request} <-
-          API.create(params, user_id, client_id) do
+    with {:ok, mrr} <- API.create(params, user_id, client_id) do
       conn
       |> put_status(:created)
-      |> put_resp_header("location", medication_request_request_path(conn, :show, medication_request_request))
-      |> render("show.json", medication_request_request: medication_request_request)
+      |> put_resp_header("location", medication_request_request_path(conn, :show,
+        mrr.medication_request_request))
+      |> render("medication_request_request_detail.json", %{data: mrr})
     end
   end
 
@@ -43,7 +42,7 @@ defmodule EHealth.Web.MedicationRequestRequestController do
     with {:ok, mrr} <- API.reject(id, user_id, client_id) do
       conn
       |> put_status(200)
-      |> render("show.json", medication_request_request: mrr)
+      |> render("medication_request_request_detail.json", %{data: mrr})
     end
   end
 

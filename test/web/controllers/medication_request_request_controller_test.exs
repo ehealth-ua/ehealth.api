@@ -38,8 +38,8 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
     test "lists all medication_request_requests with data", %{conn: conn} do
       mrr = fixture(:medication_request_request)
-      conn = get conn, medication_request_request_path(conn, :index, %{"employee_id" => mrr.data.employee_id,
-                                                                       "legal_entity_id" => @legal_entity_id})
+      conn = get conn, medication_request_request_path(conn, :index,
+        %{"employee_id" => mrr.medication_request_request.data.employee_id, "legal_entity_id" => @legal_entity_id})
       assert length(json_response(conn, 200)["data"]) == 1
     end
   end

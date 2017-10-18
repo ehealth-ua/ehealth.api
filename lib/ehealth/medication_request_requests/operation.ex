@@ -14,7 +14,7 @@ defmodule EHealth.MedicationRequestRequest.Operation do
     operation.changeset
   end
 
-  def add_data(%Operation{} = operation, key, map) when is_map(map) or is_list(map) do
+  def add_data(%Operation{} = operation, key, map) when is_map(map) or is_list(map) or is_nil(map) do
     Map.put(operation, :data, Map.put(operation.data, key, map))
   end
 
