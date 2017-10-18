@@ -7,12 +7,14 @@ defmodule EHealth.MedicationRequests.API do
   alias EHealth.PRM.Divisions.Schema, as: Division
   alias EHealth.PRM.PartyUsers.Schema, as: PartyUser
   alias EHealth.PRM.Employees.Schema, as: Employee
+  alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
   alias EHealth.PRM.MedicalPrograms.Schema, as: MedicalProgram
   alias EHealth.PRM.Medications.INNMDosage.Schema, as: INNMDosage
   alias EHealth.PRM.Medications.Program.Schema, as: ProgramMedication
   alias EHealth.PRM.Medications.API, as: MedicationsAPI
   alias EHealth.PRM.Medications.Medication.Ingredient
   alias EHealth.PRM.Medications.INNMDosage.Ingredient, as: INNMDosageIngredient
+  alias EHealth.PRM.LegalEntities
   alias EHealth.PRM.Divisions
   alias EHealth.PRM.Employees
   alias EHealth.PRM.MedicalPrograms
@@ -20,10 +22,13 @@ defmodule EHealth.MedicationRequests.API do
   alias EHealth.Validators.JsonSchema
   alias EHealth.MedicationRequests.Search
   alias EHealth.PRMRepo
-  import EHealth.Utils.Connection, only: [get_consumer_id: 1]
+  import EHealth.Utils.Connection, only: [get_consumer_id: 1, get_client_id: 1]
   import Ecto.Changeset
   import Ecto.Query
   require Logger
+
+  @legal_entity_msp LegalEntity.type(:msp)
+  @legal_entity_pharmacy LegalEntity.type(:pharmacy)
 
   @fields_optional ~w(employee_id person_id status page_size page)a
 
@@ -79,11 +84,12 @@ defmodule EHealth.MedicationRequests.API do
     end
   end
 
-  def get_medication_request(%{"id" => id} = params, headers) do
+  def get_medication_request(%{"id" => id}, headers) do
     user_id = get_consumer_id(headers)
+    legal_entity_id = get_client_id(headers)
     with %PartyUser{party: party} <- get_party_user(user_id),
-         employee_ids <- get_employees(party.id, Map.get(params, "legal_entity_id")),
-         search_params <- %{"employee_id" => Enum.join(employee_ids, ","), "id" => id},
+         %LegalEntity{} = legal_entity <- LegalEntities.get_legal_entity_by_id(legal_entity_id),
+         search_params <- get_show_search_params(party.id, legal_entity, id),
          {:ok, %{"data" => [medication_request]}} <- OPS.get_doctor_medication_requests(search_params, headers)
     do
       {:ok, medication_request}
@@ -96,6 +102,14 @@ defmodule EHealth.MedicationRequests.API do
   defp validate_employee_id(nil, _), do: :ok
   defp validate_employee_id(employee_id, employee_ids) do
     if Enum.member?(employee_ids, employee_id), do: :ok, else: {:error, :forbidden}
+  end
+
+  defp get_show_search_params(party_id, %LegalEntity{id: legal_entity_id, type: @legal_entity_msp}, id) do
+    employee_ids = get_employees(party_id, legal_entity_id)
+    %{"employee_id" => Enum.join(employee_ids, ","), "id" => id}
+  end
+  defp get_show_search_params(_, %LegalEntity{type: @legal_entity_pharmacy}, id) do
+    %{"id" => id}
   end
 
   defp get_search_params(employee_ids, %{person_id: person_id} = params) do
