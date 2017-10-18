@@ -287,15 +287,10 @@ defmodule EHealth.MedicationDispense.API do
     end
   end
 
-  defp validate_code(code, _) when is_nil(code) or code == "" do
-    {:error, [{%{
-                 rule: "required",
-                 params: [],
-                 description: "Missing or Invalid code"
-              }, "$.code"}], :query_parameter}
-  end
-  defp validate_code(code, medication_request) do
-    if code == Map.get(medication_request, "verification_code") do
+  defp validate_code(nil, %{"verification_code" => nil}), do: :ok
+  defp validate_code(_, %{"verification_code" => nil}), do: {:error, {:access_denied, "Incorrect code"}}
+  defp validate_code(code, %{"verification_code" => verification_code}) do
+    if code == verification_code do
       :ok
     else
       {:error, {:access_denied, "Incorrect code"}}

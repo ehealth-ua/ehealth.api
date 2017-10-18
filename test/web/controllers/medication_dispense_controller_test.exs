@@ -252,8 +252,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
             }
           ],
         })
-      resp = json_response(conn, 422)
-      assert %{"error" => %{"invalid" => [%{"entry" => "$.code"}]}} = resp
+      assert json_response(conn, 401)
     end
 
     test "requested reimbursement is higher than allowed", %{conn: conn} do
