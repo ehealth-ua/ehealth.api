@@ -12,11 +12,6 @@
       "description": "date of dispense",
       "pattern":"^(\\d{4}(?!\\d{2}\\b))((-)((0[1-9]|1[0-2])(\\3([12]\\d|0[1-9]|3[01]))|(00[1-9]|0[1-9]\\d|[12]\\d{2}|3([0-5]\\d|6[1-6]))))$"
     },
-    "employee_id": {
-      "type": "string",
-      "description": "Active Pharmacy employee who provides current dispense Identifier",
-      "pattern": "^[0-9a-f]{8}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{12}$"
-    },
     "division_id": {
       "type": "string",
       "description": "Active legal entity (Pharmacy) division which provides dispense Identifier",
@@ -76,7 +71,6 @@
   "required": [
     "medication_request_id",
     "dispensed_at",
-    "employee_id",
     "division_id",
     "medical_program_id",
     "dispense_details"
