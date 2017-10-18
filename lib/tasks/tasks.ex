@@ -6,6 +6,7 @@ defmodule :ehealth_tasks do
 
       ehealth/bin/ehealth command ehealth_tasks migrate!
   """
+  alias EHealth.Dictionaries.Dictionary
 
   def migrate! do
     prm_migrations_dir = Path.join(["priv", "prm_repo", "migrations"])
@@ -22,6 +23,23 @@ defmodule :ehealth_tasks do
     repo.start_link()
 
     Ecto.Migrator.run(repo, migrations_dir, :up, all: true)
+
+    System.halt(0)
+    :init.stop()
+  end
+
+  def seed! do
+    load_app()
+
+    repo = EHealth.Repo
+    repo.start_link()
+
+    repo.delete_all(Dictionary)
+
+    "priv/repo/fixtures/dictionaries.json"
+    |> File.read!
+    |> Poison.decode!(as: [%Dictionary{}])
+    |> Enum.each(&repo.insert!/1)
 
     System.halt(0)
     :init.stop()

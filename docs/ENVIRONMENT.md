@@ -29,6 +29,7 @@ Also sample `.env` can be used as payload for `docker run` cli.
 | DB_PORT       | `nil`         | Database port. |
 | DB_POOL_SIZE  | `nil`         | Number of connections to the database. |
 | DB_MIGRATE    | `false`       | Flag to run migration. |
+| DB_SEED       | `false`       | Flag to seed data to database. |
 
 ## Medication Request Request
 | VAR_NAME      | Default Value | Description |
@@ -145,7 +146,7 @@ Also sample `.env` can be used as payload for `docker run` cli.
 # Tokens
 | VAR_NAME                                     | Default Value | Description |
 | -------------------------------------------- | ------------- | ----------- |
-| TOKENS_TYPES_PERSONAL                        | not set       | List of Client_types where only records that belong to client_id from the token will be returned
+| TOKENS_TYPES_PERSONAL                        | not set       | List of Client_types where only records that belong to client_id from the token will be returned
 | TOKENS_TYPES_MIS                             | not set       | List of Client_types where only records that are created by client_id from the token will be returned
 | TOKENS_TYPES_ADMIN                           | not set       | Results are filtered by the request parameters if any, client_id from token is ignored
 

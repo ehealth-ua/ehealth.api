@@ -38,6 +38,6 @@ docker ps
 RUNNING_CONTAINERS=`docker ps | wc -l`;
     if [ "${RUNNING_CONTAINERS//[[:space:]]/}" == "1" ]; then
       echo "[E] Container is not started\!";
-      docker logs ops --details --since 5h;
+      docker logs ${PROJECT_NAME} --details --since 5h;
       exit 1;
     fi;

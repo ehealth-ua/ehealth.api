@@ -13,6 +13,9 @@
 alias EHealth.Dictionaries.Dictionary
 alias EHealth.Repo
 
+# truncate table
+Repo.delete_all(Dictionary)
+
 "priv/repo/fixtures/dictionaries.json"
 |> File.read!
 |> Poison.decode!(as: [%Dictionary{}])
