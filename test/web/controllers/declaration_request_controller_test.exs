@@ -373,7 +373,6 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
         data
         |> Map.put("seed", "some_current_hash")
         |> Poison.encode!()
-        |> Base.encode64()
 
       conn = Plug.Conn.put_req_header(conn, "drfo", get_in(data, ~w(employee party tax_id)))
       conn = put_client_id_header(conn, legal_entity_id)

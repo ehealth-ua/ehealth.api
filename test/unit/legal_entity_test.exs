@@ -14,10 +14,7 @@ defmodule EHealth.Unit.LegalEntityTest do
   alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
 
   test "successed signed content validation" do
-    content =
-      "test/data/signed_content.json"
-      |> File.read!()
-      |> Base.encode64
+    content = File.read!("test/data/signed_content.json")
 
     assert {:ok, _} = Validator.validate_sign_content(%{
       "signed_content_encoding" => "base64",
@@ -41,10 +38,7 @@ defmodule EHealth.Unit.LegalEntityTest do
   end
 
   test "invalid signed content - birth date format" do
-    content =
-      "test/data/signed_content_invalid_owner_birth_date.json"
-      |> File.read!()
-      |> Base.encode64
+    content = File.read!("test/data/signed_content_invalid_owner_birth_date.json")
 
     assert {:error, [_, {error, entry}]} = Validator.decode_and_validate(%{
       "signed_content_encoding" => "base64",
@@ -352,7 +346,7 @@ defmodule EHealth.Unit.LegalEntityTest do
 
   defp create_legal_entity(request_params) do
     request = %{
-      "signed_legal_entity_request" => Base.encode64(Poison.encode!(request_params)),
+      "signed_legal_entity_request" => Poison.encode!(request_params),
       "signed_content_encoding" => "base64",
     }
     API.create_legal_entity(request, get_headers())
