@@ -13,11 +13,13 @@ defmodule EHealth.MedicationRequestRequests do
   alias EHealth.MedicationRequestRequest
   alias EHealth.MedicationRequestRequest.Operation
   alias EHealth.MedicationRequestRequest.Validations
+  alias EHealth.MedicationRequestRequest.SignOperation
   alias EHealth.MedicationRequestRequest.CreateDataOperation
   alias EHealth.MedicationRequestRequest.RejectOperation
   alias EHealth.MedicationRequestRequest.HumanReadableNumberGenerator, as: HRNGenerator
 
   @status_new EHealth.MedicationRequestRequest.status(:new)
+  @status_signed EHealth.MedicationRequestRequest.status(:signed)
   @status_expired EHealth.MedicationRequestRequest.status(:expired)
   @status_rejected EHealth.MedicationRequestRequest.status(:rejected)
 
@@ -62,7 +64,7 @@ defmodule EHealth.MedicationRequestRequests do
 
   def get_medication_request_request(id), do: Repo.get(MedicationRequestRequest, id)
   def get_medication_request_request!(id), do: Repo.get!(MedicationRequestRequest, id)
-
+  def get_medication_request_request_by_query(clauses), do: Repo.get_by(MedicationRequestRequest, clauses)
   @doc """
   Creates a medication_request_request.
 
@@ -114,6 +116,7 @@ defmodule EHealth.MedicationRequestRequests do
     |> put_change(:verification_code, put_verification_code(create_operation))
     |> put_change(:inserted_by, user_id)
     |> put_change(:updated_by, user_id)
+    |> put_change(:medication_request_id, Ecto.UUID.generate())
     |> validate_required([:data, :number, :status, :inserted_by, :updated_by])
     |> unique_constraint(:number, name: :medication_request_requests_number_index)
   end
@@ -187,5 +190,25 @@ defmodule EHealth.MedicationRequestRequests do
     MedicationRequestRequest
     |> where([mrr], mrr.status == ^@status_new)
     |> where([mrr], mrr.inserted_at < ^termination_time)
+  end
+
+  def sign(params, headers) do
+    {id, params} = Map.pop(params, "id")
+    with :ok <- Validations.validate_sign_schema(params),
+         %MedicationRequestRequest{} = mrr <- get_medication_request_request_by_query([id: id, status: "NEW"]),
+         {:ok, mrr} <- SignOperation.sign(mrr, params, headers)
+    do
+      mrr
+      |> sign_changeset
+      |> Repo.update
+    else
+      err -> err
+    end
+  end
+
+  def sign_changeset(mrr) do
+    mrr
+    |> change
+    |> put_change(:status, @status_signed)
   end
 end

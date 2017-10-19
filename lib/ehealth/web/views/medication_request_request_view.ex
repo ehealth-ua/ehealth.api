@@ -2,7 +2,7 @@ defmodule EHealth.Web.MedicationRequestRequestView do
   @moduledoc false
   use EHealth.Web, :view
   alias EHealth.Web.MedicationRequestRequestView
-  alias EHealth.Web.{PersonView, EmployeeView, LegalEntityView, DivisionView, MedicalProgramView}
+  alias EHealth.Web.{PersonView, EmployeeView, LegalEntityView, DivisionView, MedicalProgramView, INNMDosageView}
 
   def render("index.json", %{medication_request_requests: medication_request_requests}) do
     render_many(medication_request_requests, MedicationRequestRequestView, "medication_request_request.json")
@@ -13,20 +13,17 @@ defmodule EHealth.Web.MedicationRequestRequestView do
   end
 
   def render("medication_request_request_detail.json", %{data: values}) do
-    %{
-      id: values.medication_request_request.id,
-      data: values.medication_request_request.data,
-      number: values.medication_request_request.number,
-      status: values.medication_request_request.status,
-      inserted_by: values.medication_request_request.inserted_by,
-      updated_by: values.medication_request_request.updated_by,
-      person: render(PersonView, "person_short.json", values.person),
-      employee: render(EmployeeView, "employee_short.json", values.employee),
-      legal_entity: render(LegalEntityView, "legal_entity_short.json", values.legal_entity),
-      division: render(DivisionView, "division_short.json", values.division),
-      # medication: render(INNMDosageView, "show.json", %{innm_dosage: values.medication}),
-      medical_program: maybe_render_medical_program(values[:medical_program])
-    }
+    values.medication_request_request.data
+    |> Map.put(:id, values.medication_request_request.id)
+    |> Map.put(:person, render(PersonView, "person_short.json", %{"person" => values.person}))
+    |> Map.put(:employee, render(EmployeeView, "employee_short.json", %{employee: values.employee}))
+    |> Map.put(:legal_entity, render(LegalEntityView, "legal_entity_short.json", %{legal_entity: values.legal_entity}))
+    |> Map.put(:division, render(DivisionView, "division_short.json", %{division: values.division}))
+    |> Map.put(:medication_info, render(INNMDosageView, "innm_dosage_short.json",
+      %{innm_dosage: values.medication, medication_qty: values.medication_request_request.data.medication_qty}))
+    |> Map.put(:medical_program, maybe_render_medical_program(values[:medical_program]))
+    |> Map.put(:request_number, values.medication_request_request.number)
+    |> Map.drop([:person_id, :employee_id, :legal_entity_id, :medication_qty, :medication_id])
   end
 
   def render("medication_request_request.json", %{medication_request_request: medication_request_request}) do

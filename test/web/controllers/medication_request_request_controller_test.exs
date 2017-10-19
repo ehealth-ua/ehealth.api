@@ -320,21 +320,72 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
   end
 
+  describe "sign medication request request" do
+    test "when data is valid", %{conn: conn} do
+      medication_id = create_medications_structure()
+      test_request =
+        test_request()
+        |> Map.put("medication_id", medication_id)
+      conn1 = post conn, medication_request_request_path(conn, :create), medication_request_request: test_request
+      assert mrr = json_response(conn1, 201)["data"]
+
+      signed_mrr =
+        mrr
+        |> Map.put("employee_signed", true)
+        |> Poison.encode!()
+        |> Base.encode64()
+
+      conn1 = patch conn, medication_request_request_path(conn, :sign, mrr["id"]),
+        %{signed_medication_request_request: signed_mrr, signed_content_encoding: "base64"}
+      assert json_response(conn1, 200)
+      assert json_response(conn1, 200)["data"]["status"] == "SIGNED"
+    end
+
+    test "return 404 if request not found", %{conn: conn} do
+      conn1 = patch conn, medication_request_request_path(conn, :sign, Ecto.UUID.generate()),
+      %{signed_medication_request_request: "", signed_content_encoding: "base64"}
+      assert json_response(conn1, 404)
+    end
+
+    test "return 422 if request is not valid", %{conn: conn} do
+      conn1 = patch conn, medication_request_request_path(conn, :sign, Ecto.UUID.generate()),
+      %{signed_medication_request_request: %{}, signed_content_encoding: "base64"}
+      assert json_response(conn1, 422)
+    end
+
+     test "when some data is invalid", %{conn: conn} do
+      medication_id = create_medications_structure()
+      test_request =
+        test_request()
+        |> Map.put("medication_id", medication_id)
+      conn1 = post conn, medication_request_request_path(conn, :create), medication_request_request: test_request
+      assert mrr = json_response(conn1, 201)["data"]
+
+      signed_mrr =
+        mrr
+        |> Map.put("employee_signed", true)
+        |> put_in(["employee", "id"], Ecto.UUID.generate)
+        |> Poison.encode!()
+        |> Base.encode64()
+
+      conn1 = patch conn, medication_request_request_path(conn, :sign, mrr["id"]),
+        %{signed_medication_request_request: signed_mrr, signed_content_encoding: "base64"}
+      assert json_response(conn1, 422)
+    end
+  end
 
   defp create_medications_structure do
-    %{id: dosage_id1} = insert(:prm, :innm_dosage, name: "Бупропіон Форте")
-    %{id: dosage_id2} = insert(:prm, :innm_dosage, name: "Бупропіон Лайт")
+      %{id: innm_id} = insert(:prm, :innm, name: "Будафинол")
+      %{id: dosage_id} = insert(:prm, :innm_dosage, name: "Будафинолон Альтернативний")
+      %{id: dosage_id2} = insert(:prm, :innm_dosage, name: "Будафинолон Альтернативний 2")
+      %{id: med_id} = insert(:prm, :medication, package_qty: 10, package_min_qty: 5, name: "Будафинолодон")
+      %{id: med_id2} = insert(:prm, :medication, package_qty: 10, package_min_qty: 5, name: "Будафинолодон2")
+      insert(:prm, :ingredient_innm_dosage, [parent_id: dosage_id, innm_child_id: innm_id])
+      insert(:prm, :ingredient_innm_dosage, [parent_id: dosage_id2, innm_child_id: innm_id])
+      insert(:prm, :ingredient_medication, [parent_id: med_id, medication_child_id: dosage_id])
+      insert(:prm, :ingredient_medication, [parent_id: med_id2, medication_child_id: dosage_id2])
 
-    %{id: med_id1} = insert(:prm, :medication, [
-      name: "Бупропіонол",
-      package_qty: 20,
-      package_min_qty: 5,
-    ])
-
-    insert(:prm, :ingredient_medication, parent_id: med_id1, medication_child_id: dosage_id1)
-    insert(:prm, :ingredient_medication, parent_id: med_id1, medication_child_id: dosage_id2, is_primary: false)
-
-    dosage_id1
+    dosage_id
   end
 
   defp test_request do

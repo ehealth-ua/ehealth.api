@@ -16,14 +16,18 @@ defmodule EHealth.MedicationRequestRequest do
     field :inserted_by, Ecto.UUID, null: false
     field :status, :string, null: false
     field :updated_by, Ecto.UUID, null: false
+    field :medication_request_id, Ecto.UUID, null: false
 
     timestamps(type: :utc_datetime)
   end
 
   @status_new "NEW"
+  @status_signed "SIGNED"
   @status_expired "EXPIRED"
   @status_rejected "REJECTED"
+
   def status(:new), do: @status_new
+  def status(:signed), do: @status_signed
   def status(:expired), do: @status_expired
   def status(:rejected), do: @status_rejected
 end

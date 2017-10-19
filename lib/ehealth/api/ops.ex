@@ -90,6 +90,12 @@ defmodule EHealth.API.OPS do
     |> ResponseDecoder.check_response()
   end
 
+  def create_medication_request(params, headers \\ []) do
+    "/medication_request"
+    |> post!(Poison.encode!(params), headers, timeouts())
+    |> ResponseDecoder.check_response()
+  end
+
   def update_medication_request(id, params, headers \\ []) do
     "/medication_requests/#{id}"
     |> patch!(Poison.encode!(params), headers, timeouts())
