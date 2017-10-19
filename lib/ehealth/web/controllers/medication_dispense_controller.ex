@@ -9,8 +9,12 @@ defmodule EHealth.Web.MedicationDispenseController do
   action_fallback EHealth.Web.FallbackController
 
   def index(%Plug.Conn{req_headers: headers} = conn, params) do
-    with {:ok, medication_dispenses, references} <- API.list(params, headers) do
-      render(conn, "index.json", medication_dispenses: medication_dispenses, references: references)
+    with {:ok, medication_dispenses, references, paging} <- API.list(params, headers) do
+      render(conn, "index.json",
+        medication_dispenses: medication_dispenses,
+        references: references,
+        paging: paging,
+      )
     end
   end
 

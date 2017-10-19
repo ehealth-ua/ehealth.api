@@ -46,10 +46,10 @@ defmodule EHealth.MedicationDispense.API do
   def list(params, headers) do
     with %Ecto.Changeset{valid?: true, changes: changes} <- changeset(%Search{}, params),
          params <- Map.put(changes, "is_active", true),
-         {:ok, %{"data" => medication_dispenses}} <- OPS.get_medication_dispenses(params, headers),
+         {:ok, %{"data" => medication_dispenses, "paging" => paging}} <- OPS.get_medication_dispenses(params, headers),
          {:ok, medication_dispenses} <- get_medication_request_references(medication_dispenses)
     do
-      {:ok, medication_dispenses, get_references(medication_dispenses)}
+      {:ok, medication_dispenses, get_references(medication_dispenses), paging}
     end
   end
 

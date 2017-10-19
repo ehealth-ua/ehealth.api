@@ -335,12 +335,12 @@ defmodule EHealth.MockServer do
         medication_dispense = get_medication_dispense(UUID.generate(), %{
           "medication_request" => medication_request
         })
-        render([medication_dispense], conn, 200)
-      id == @active_medication_dispense -> render([get_medication_dispense(id)], conn, 200)
+        render_with_paging([medication_dispense], conn)
+      id == @active_medication_dispense -> render_with_paging([get_medication_dispense(id)], conn)
       id == @inactive_medication_dispense ->
-        render([get_medication_dispense(id, %{"status" => "EXPIRED"})], conn, 200)
-      conn.query_params["medication_request_id"] -> render([], conn, 200)
-      true -> render([get_medication_dispense()], conn, 200)
+        render_with_paging([get_medication_dispense(id, %{"status" => "EXPIRED"})], conn)
+      conn.query_params["medication_request_id"] -> render_with_paging([], conn)
+      true -> render_with_paging([get_medication_dispense()], conn)
     end
   end
 
