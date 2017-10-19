@@ -360,7 +360,7 @@ defmodule EHealth.MockServer do
     render(get_medication_request(conn.params["id"], conn.body_params["medication_request"]), conn, 200)
   end
 
-  post "/medication_request" do
+  post "/medication_requests" do
     render(get_medication_request(conn.body_params["medication_request"]["id"],
                                   conn.body_params["medication_request"]), conn, 201)
   end
