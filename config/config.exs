@@ -30,6 +30,7 @@ config :ehealth, EHealth.API.MediaStorage,
   legal_entity_bucket: {:system, "MEDIA_STORAGE_LEGAL_ENTITY_BUCKET"},
   declaration_request_bucket: {:system, "MEDIA_STORAGE_DECLARATION_REQUEST_BUCKET"},
   declaration_bucket: {:system, "MEDIA_STORAGE_DECLARATION_BUCKET"},
+  medication_request_request_bucket: {:system, "MEDIA_STORAGE_MEDICATION_REQUEST_REQUEST_BUCKET"},
   enabled?: {:system, :boolean, "MEDIA_STORAGE_ENABLED", false},
   hackney_options: [
     connect_timeout: {:system, :integer, "MEDIA_STORAGE_REQUEST_TIMEOUT", 30_000},
@@ -183,14 +184,6 @@ config :ehealth, :legal_entity_division_types,
 config :ehealth, :medication_request_request,
   expire_in_minutes: {:system, "MEDICATION_REQUEST_REQUEST_EXPIRATION", 30},
   otp_code_length: {:system, "MEDICATION_REQUEST_REQUEST_OTP_CODE_LENGTH", 4}
-
-config :ehealth, EHealth.Scheduler,
-  jobs: [
-    medication_request_request_autotermination: [
-      schedule: "* * * * *",
-      task: {EHealth.MedicationRequestRequests, :autoterminate, []},
-    ]
-  ]
 
 # Configures bamboo
 config :ehealth, EHealth.Bamboo.Mailer,

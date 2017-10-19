@@ -21,6 +21,16 @@ defmodule EHealth.Web.INNMDosageView do
        )
   end
 
+  def render("innm_dosage_short.json", %{innm_dosage: innm_dosage, medication_qty: medication_qty}) do
+    dosage = innm_dosage.ingredients |> Enum.filter(fn i -> i.is_primary end) |> Enum.at(0) |> Map.get(:dosage)
+    %{
+      "medication_id": innm_dosage.id,
+      "medication_name":  innm_dosage.name,
+      "form": dosage,
+      "medication_qty": medication_qty
+    }
+  end
+
   def render("ingredient.json", %{ingredient: ingredient}) do
     %{
       id: ingredient.innm_child_id,

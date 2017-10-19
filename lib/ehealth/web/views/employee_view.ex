@@ -39,6 +39,13 @@ defmodule EHealth.Web.EmployeeView do
       "party" => render(PartyView, "party_short.json", Map.take(employee, ["party"])),
     }
   end
+  def render("employee_short.json", %{employee: employee}) do
+    %{
+      "id" => employee.id,
+      "position" => employee.position,
+      "party" => render(PartyView, "party_short.json", employee.party),
+    }
+  end
   def render("employee_short.json", _), do: %{}
 
   def render("employee.json", %{employee: %{employee_type: @doctor, additional_info: info} = employee}) do

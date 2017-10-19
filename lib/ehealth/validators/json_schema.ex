@@ -10,6 +10,8 @@ defmodule EHealth.Validators.JsonSchema do
              "specs/json_schemas/medication_request_request/medication_request_request_create_request.json"
   use_schema :medication_request_request_prequalify,
              "specs/json_schemas/medication_request_request/medication_request_request_prequalify_request.json"
+  use_schema :medication_request_request_sign,
+             "specs/json_schemas/medication_request_request/medication_request_request_sign_request.json"
   use_schema :medication_dispense, "specs/json_schemas/medication_dispense/medication_dispense_create_request.json"
   use_schema :declaration_request, "specs/json_schemas/declaration_request_schema.json"
   use_schema :division, "specs/json_schemas/division_schema.json"

@@ -35,6 +35,14 @@ defmodule EHealth.Web.DivisionView do
       "status" => Map.get(division, "status")
     }
   end
+  def render("division_short.json", %{division: division}) do
+    %{
+      "id" => division.id,
+      "name" => division.name,
+      "type" => division.type,
+      "status" => division.status
+    }
+  end
   def render("division_short.json", _), do: %{}
 
   def to_coordinates(%Geo.Point{coordinates: {lng, lat}}) do

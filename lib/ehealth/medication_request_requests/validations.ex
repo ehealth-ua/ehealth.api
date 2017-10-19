@@ -1,8 +1,9 @@
 defmodule EHealth.MedicationRequestRequest.Validations do
   @moduledoc false
 
-  alias EHealth.Declarations.API, as: DeclarationsAPI
+  alias EHealth.API.Signature
   alias EHealth.Validators.JsonSchema
+  alias EHealth.Declarations.API, as: DeclarationsAPI
   alias EHealth.PRM.Medications.API, as: MedicationsAPI
 
   def validate_create_schema(params) do
@@ -11,6 +12,10 @@ defmodule EHealth.MedicationRequestRequest.Validations do
 
   def validate_prequalify_schema(params) do
     JsonSchema.validate(:medication_request_request_prequalify, params)
+  end
+
+  def validate_sign_schema(params) do
+    JsonSchema.validate(:medication_request_request_sign, params)
   end
 
   def validate_doctor(doctor) do
@@ -66,6 +71,34 @@ defmodule EHealth.MedicationRequestRequest.Validations do
 
   defp validate_medication_qty(medications, medication_qty) do
     {0 in Enum.map(medications, fn med -> rem(medication_qty, med.package_min_qty) end), :medication_qty}
+  end
+
+  def decode_sign_content(content) do
+    content["signed_medication_request_request"]
+    |> Signature.decode_and_validate(content["signed_content_encoding"], [])
+    |> check_is_valid()
+  end
+  def check_is_valid({:ok, %{"data" => %{"is_valid" => false}}}) do
+    {:error, {:bad_request, "Signed request data is invalid"}}
+  end
+  def check_is_valid({:ok, %{"data" => %{"is_valid" => true}}} = data), do: data
+  def check_is_valid({:error, error}) do
+    {:error, error}
+  end
+
+  def validate_sign_content(mrr, content) do
+    with true <- content["employee_signed"] &&
+                 mrr.id == content["id"] &&
+                 mrr.data.division_id == get_in(content, ["division", "id"]) &&
+                 mrr.data.employee_id == get_in(content, ["employee", "id"]) &&
+                 mrr.data.legal_entity_id == get_in(content, ["legal_entity", "id"]) &&
+                 mrr.data.medication_id == get_in(content, ["medication_info", "medication_id"]) &&
+                 mrr.data.person_id == get_in(content, ["person", "id"])
+    do
+      {:ok, mrr}
+    else
+      _ -> {:error, {:"422", "Signed content does not match the previously created content!"}}
+    end
   end
 
   def validate_dates(attrs) do
