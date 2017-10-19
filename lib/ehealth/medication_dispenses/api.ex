@@ -24,6 +24,7 @@ defmodule EHealth.MedicationDispense.API do
   alias EHealth.PRM.Parties
   alias EHealth.PRMRepo
   alias EHealth.MedicationRequests.API, as: MedicationRequests
+  alias EHealth.PRM.Medications.API, as: MedicationsAPI
 
   @search_fields ~w(
     id
@@ -69,6 +70,8 @@ defmodule EHealth.MedicationDispense.API do
     search_params = Map.delete(params, "legal_entity_id")
     with {:ok, %{"data" => [medication_dispense]}} <- OPS.get_medication_dispenses(search_params, headers),
          {:ok, legal_entity} <- Reference.validate(:legal_entity, medication_dispense["legal_entity_id"]),
+         {:ok, details} <- load_dispense_medications(medication_dispense),
+         medication_dispense <- Map.put(medication_dispense, "details", details),
          {:ok, party} <- get_party_by_id(medication_dispense["party_id"]),
          :ok <- validate_legal_entity_id(medication_dispense, legal_entity_id),
          division <- Divisions.get_division_by_id(medication_dispense["division_id"]),
@@ -109,7 +112,9 @@ defmodule EHealth.MedicationDispense.API do
          create_params             <- Map.put(params, "dispense_details", dispense_details),
          create_params             <- Map.put(create_params, "legal_entity_id", legal_entity.id),
          create_params             <- create_dispense_params(create_params, user_id, party_user.party),
-         {:ok, %{"data" => medication_dispense}} <- OPS.create_medication_dispense(create_params)
+         {:ok, %{"data" => medication_dispense}} <- OPS.create_medication_dispense(create_params),
+         {:ok, details}            <- load_dispense_medications(medication_dispense),
+         medication_dispense       <- Map.put(medication_dispense, "details", details)
     do
       {:ok, medication_dispense, %{
         legal_entity: legal_entity,
@@ -501,5 +506,15 @@ defmodule EHealth.MedicationDispense.API do
       |> Map.put("is_active", true)
       |> Map.put("party_id", party_id)
     %{"medication_dispense" => medication_dispense}
+  end
+
+  defp load_dispense_medications(%{"details" => details}) do
+    Enum.reduce_while(details, {:ok, []}, fn item, {:ok, acc} ->
+      with %Medication{} = medication <- MedicationsAPI.get_medication_by_id(Map.get(item, "medication_id")) do
+        {:cont, {:ok, acc ++ [Map.put(item, "medication", medication)]}}
+      else
+        _ -> {:halt, {:error, {:internal_error, "Medication not found"}}}
+      end
+    end)
   end
 end

@@ -460,7 +460,7 @@
       ],
       "description": "Active medical program within which medications are going to be provided"
     },
-    "dispense_details": {
+    "details": {
       "type": "array",
       "items": {
         "type": "object",
@@ -469,31 +469,19 @@
             "type": "object",
             "properties": {
               "name": {
-                "type": "string",
-                "enum": [
-                  "Амідарон"
-                ]
+                "type": "string"
               },
               "type": {
-                "type": "string",
-                "enum": [
-                  "MEDICATION"
-                ]
+                "type": "string"
               },
               "manufacturer": {
                 "type": "object",
                 "properties": {
                   "name": {
-                    "type": "string",
-                    "enum": [
-                      "ПАТ \"Київський вітамінний завод\""
-                    ]
+                    "type": "string"
                   },
                   "country": {
                     "type": "string",
-                    "enum": [
-                      "UA"
-                    ],
                     "description": "`Dictionary COUNTRY`"
                   }
                 },
@@ -505,9 +493,6 @@
               },
               "form": {
                 "type": "string",
-                "enum": [
-                  "PILL"
-                ],
                 "description": "`Dictionary MEDICATION_FORM`"
               },
               "container": {
@@ -515,29 +500,17 @@
                 "properties": {
                   "numerator_unit": {
                     "type": "string",
-                    "enum": [
-                      "PILL"
-                    ],
                     "description": "`Dictionary MEDICATION_UNIT`"
                   },
                   "numerator_value": {
-                    "type": "number",
-                    "enum": [
-                      1
-                    ]
+                    "type": "number"
                   },
                   "denumerator_unit": {
                     "type": "string",
-                    "enum": [
-                      "PILL"
-                    ],
                     "description": "`Dictionary MEDICATION_UNIT`"
                   },
                   "denumerator_value": {
-                    "type": "number",
-                    "enum": [
-                      1
-                    ]
+                    "type": "number"
                   }
                 },
                 "required": [
@@ -621,7 +594,7 @@
     "legal_entity",
     "division",
     "medical_program",
-    "dispense_details",
+    "details",
     "status",
     "inserted_at",
     "inserted_by",

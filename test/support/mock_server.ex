@@ -403,20 +403,7 @@ defmodule EHealth.MockServer do
       params
       |> Map.get("dispense_details")
       |> Enum.map(fn item ->
-        item
-        |> Map.put("medication", %{
-            name: "Амідарон",
-            type: "MEDICATION",
-            form: "PILL",
-            container: %{
-              "numerator_unit": "PILL",
-              "numerator_value": 1,
-              "denumerator_unit": "PILL",
-              "denumerator_value": 1
-            }
-        })
-        |> Map.put("reimbursement_amount", 15)
-        |> Map.delete("medication_id")
+        Map.put(item, "reimbursement_amount", 15)
       end)
     now = Date.utc_today()
     resp =
@@ -427,7 +414,8 @@ defmodule EHealth.MockServer do
       |> Map.put("updated_at", now)
       |> Map.put("updated_by", Ecto.UUID.generate())
       |> Map.put("status", "NEW")
-      |> Map.put("dispense_details", details)
+      |> Map.put("details", details)
+      |> Map.delete("dispense_details")
       |> wrap_response()
       |> Poison.encode!()
 
@@ -683,21 +671,7 @@ defmodule EHealth.MockServer do
       "dispensed_at" => "2017-05-01",
       "details" => [
         %{
-          "medication" => %{
-            "name" => "Амідарон",
-            "type" => "MEDICATION",
-            "manufacturer" => %{
-              "name" => ~S(ПАТ "Київський вітамінний завод"),
-              "country" => "UA"
-            },
-            "form" => "PILL",
-            "container" => %{
-              "numerator_unit" => "PILL",
-              "numerator_value" => 1,
-              "denumerator_unit" => "PILL",
-              "denumerator_value" => 1
-            }
-          },
+          "medication_id" => "340ef14a-ab9b-4303-b01b-d40a2237e512",
           "medication_qty" => 10,
           "sell_price" => 18.65,
           "sell_amount" => 186.5,

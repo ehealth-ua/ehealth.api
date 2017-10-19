@@ -297,6 +297,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "success create medication dispense", %{conn: conn} do
+      insert(:prm, :medication, id: "340ef14a-ab9b-4303-b01b-d40a2237e512")
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity, id: "dae597a8-c858-42f6-bc16-1a7bdd340466")
       insert(:prm, :employee,
@@ -347,6 +348,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
   describe "show medication dispense" do
     test "success show by id", %{conn: conn} do
+      insert(:prm, :medication, id: "340ef14a-ab9b-4303-b01b-d40a2237e512")
       party = insert(:prm, :party, id: "02852372-9e06-11e7-abc4-cec278b6b50a")
       insert(:prm, :party_user, party: party)
       legal_entity = insert_legal_entity("5243c8e6-9e06-11e7-abc4-cec278b6b50a")
@@ -371,6 +373,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
   describe "list medication dispenses" do
     test "success list", %{conn: conn} do
+      insert(:prm, :medication, id: "340ef14a-ab9b-4303-b01b-d40a2237e512")
       party = insert(:prm, :party, id: "02852372-9e06-11e7-abc4-cec278b6b50a")
       insert(:prm, :party_user, party: party)
       legal_entity = insert_legal_entity("5243c8e6-9e06-11e7-abc4-cec278b6b50a")
@@ -395,6 +398,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
   describe "process medication dispense" do
     test "success process", %{conn: conn} do
+      insert(:prm, :medication, id: "340ef14a-ab9b-4303-b01b-d40a2237e512")
       party = insert(:prm, :party, id: "02852372-9e06-11e7-abc4-cec278b6b50a")
       insert(:prm, :party_user, party: party)
       legal_entity = insert_legal_entity("5243c8e6-9e06-11e7-abc4-cec278b6b50a")
@@ -431,6 +435,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "invalid transition", %{conn: conn} do
+      insert(:prm, :medication, id: "340ef14a-ab9b-4303-b01b-d40a2237e512")
       party = insert(:prm, :party, id: "02852372-9e06-11e7-abc4-cec278b6b50a")
       insert(:prm, :party_user, party: party)
       legal_entity = insert_legal_entity("5243c8e6-9e06-11e7-abc4-cec278b6b50a")
@@ -449,6 +454,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
   describe "reject medication dispense" do
     test "success reject", %{conn: conn} do
+      insert(:prm, :medication, id: "340ef14a-ab9b-4303-b01b-d40a2237e512")
       party = insert(:prm, :party, id: "02852372-9e06-11e7-abc4-cec278b6b50a")
       insert(:prm, :party_user, party: party)
       legal_entity = insert_legal_entity("5243c8e6-9e06-11e7-abc4-cec278b6b50a")
@@ -485,6 +491,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "invalid transition", %{conn: conn} do
+      insert(:prm, :medication, id: "340ef14a-ab9b-4303-b01b-d40a2237e512")
       party = insert(:prm, :party, id: "02852372-9e06-11e7-abc4-cec278b6b50a")
       insert(:prm, :party_user, party: party)
       legal_entity = insert_legal_entity("5243c8e6-9e06-11e7-abc4-cec278b6b50a")
@@ -505,6 +512,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     test "success list", %{conn: conn} do
       id = "4bbaf78e-d382-4a6d-93c6-e96b44a5107d"
       user_id = get_consumer_id(conn.req_headers)
+      insert(:prm, :medication, id: "340ef14a-ab9b-4303-b01b-d40a2237e512")
       insert(:prm, :party_user, user_id: user_id)
 
       party = insert(:prm, :party, id: "02852372-9e06-11e7-abc4-cec278b6b50a", tax_id: "test")

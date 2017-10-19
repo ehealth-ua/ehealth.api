@@ -32,6 +32,7 @@ defmodule EHealth.Web.MedicationDispenseView do
     division = if division, do: render(DivisionView, "show.json", references), else: %{}
     medical_program = Map.get(references, :medical_program)
     medical_program = if medical_program, do: render(MedicalProgramView, "show.json", references), else: %{}
+    details = Map.get(medication_dispense, "details", [])
     medication_dispense
     |> Map.take(~w(
       id
@@ -43,12 +44,28 @@ defmodule EHealth.Web.MedicationDispenseView do
       updated_by
       dispense_details
       payment_id
-      details
     ))
+    |> Map.put("details", render_many(details, __MODULE__, "details.json", as: :details))
     |> Map.put("medication_request", render_one(references.medication_request, MedicationRequestView, "show.json"))
     |> Map.put("party", party)
     |> Map.put("legal_entity", legal_entity)
     |> Map.put("division", division)
     |> Map.put("medical_program", medical_program)
+  end
+
+  def render("details.json", %{details: details}) do
+    details
+    |> Map.take(~w(
+      medication_qty
+      sell_price
+      sell_amount
+      discount_amount
+      reimbursement_amount
+    ))
+    |> Map.put("medication", render_one(details["medication"], __MODULE__, "medication.json", as: :medication))
+  end
+
+  def render("medication.json", %{medication: medication}) do
+    Map.take(medication, ~w(name type manufacturer form container)a)
   end
 end
