@@ -4,16 +4,18 @@ defmodule EHealth.Web.MedicationDispenseController do
   use EHealth.Web, :controller
   alias EHealth.MedicationDispense.API
   alias EHealth.MedicationRequests.API, as: MedicationRequests
+  alias Scrivener.Page
   require Logger
 
   action_fallback EHealth.Web.FallbackController
 
   def index(%Plug.Conn{req_headers: headers} = conn, params) do
     with {:ok, medication_dispenses, references, paging} <- API.list(params, headers) do
+      paging = Enum.map(paging, fn({key, value}) -> {String.to_atom(key), value} end)
       render(conn, "index.json",
         medication_dispenses: medication_dispenses,
         references: references,
-        paging: paging,
+        paging: struct(Page, paging),
       )
     end
   end
