@@ -10,8 +10,8 @@ defmodule EHealth.MedicationRequests.Search do
     field :status, :string
     field :request_number, :string
     field :created_at, :string
-    field :legal_entity_id, :string
-    field :edrpou, :string
+    field :medication_id, :string
+    field :division_id, :string
     field :page, :integer
     field :page_size, :integer
   end
