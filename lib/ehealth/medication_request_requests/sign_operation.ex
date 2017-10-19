@@ -2,24 +2,25 @@ defmodule EHealth.MedicationRequestRequest.SignOperation do
   @moduledoc false
   import EHealth.MedicationRequestRequest.OperationHelpers
 
+  alias EHealth.API.OPS
+  alias EHealth.Utils.Connection
   alias EHealth.API.MediaStorage
   alias EHealth.MedicationRequestRequest.Operation
   alias EHealth.MedicationRequestRequest.Validations
-  alias EHealth.API.OPS
 
   def sign(mrr, params, headers) do
     %Ecto.Changeset{}
     |> Operation.new
-    |> validate_data(params, &decode_sign_content/2, key: :decoded_content)
+    |> validate_data({params, headers}, &decode_sign_content/2, key: :decoded_content)
     |> validate_sign_content(mrr)
     |> upload_sign_content(params, mrr)
     |> create_medication_request(headers)
     |> validate_ops_resp(mrr)
   end
 
-  def decode_sign_content(_operation, params) do
-     {:ok, %{"data" => %{"content" => content}}} = Validations.decode_sign_content(params)
-     {:ok, content}
+  def decode_sign_content(_operation, {params, headers}) do
+     {:ok, %{"data" => data}} = Validations.decode_sign_content(params, headers)
+     {:ok, data}
   end
 
   def validate_sign_content(operation, mrr) do
@@ -45,6 +46,8 @@ defmodule EHealth.MedicationRequestRequest.SignOperation do
       |> Map.put(:medication_request_requests_id, mrr.id)
       |> Map.put(:request_number, mrr.number)
       |> Map.put(:verification_code, mrr.verification_code)
+      |> Map.put(:updated_by, Connection.get_client_id(headers))
+      |> Map.put(:created_by, Connection.get_client_id(headers))
     OPS.create_medication_request(%{medication_request: params}, headers)
   end
 

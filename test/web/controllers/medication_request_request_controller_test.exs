@@ -26,7 +26,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
         id: "7488a646-e31f-11e4-aace-600308960662",
         legal_entity: legal_entity,
         division: division
-      )
+    )
     {:ok, conn: put_client_id_header(conn, legal_entity.id)}
   end
 
@@ -331,9 +331,10 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
       signed_mrr =
         mrr
-        |> Map.put("employee_signed", true)
         |> Poison.encode!()
         |> Base.encode64()
+
+      conn = Plug.Conn.put_req_header(conn, "drfo", get_in(mrr, ["employee", "party", "tax_id"]))
 
       conn1 = patch conn, medication_request_request_path(conn, :sign, mrr["id"]),
         %{signed_medication_request_request: signed_mrr, signed_content_encoding: "base64"}
@@ -363,7 +364,6 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
       signed_mrr =
         mrr
-        |> Map.put("employee_signed", true)
         |> put_in(["employee", "id"], Ecto.UUID.generate)
         |> Poison.encode!()
         |> Base.encode64()

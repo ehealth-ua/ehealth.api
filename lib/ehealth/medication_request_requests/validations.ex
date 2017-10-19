@@ -73,9 +73,9 @@ defmodule EHealth.MedicationRequestRequest.Validations do
     {0 in Enum.map(medications, fn med -> rem(medication_qty, med.package_min_qty) end), :medication_qty}
   end
 
-  def decode_sign_content(content) do
+  def decode_sign_content(content, headers) do
     content["signed_medication_request_request"]
-    |> Signature.decode_and_validate(content["signed_content_encoding"], [])
+    |> Signature.decode_and_validate(content["signed_content_encoding"], headers)
     |> check_is_valid()
   end
   def check_is_valid({:ok, %{"data" => %{"is_valid" => false}}}) do
@@ -86,14 +86,14 @@ defmodule EHealth.MedicationRequestRequest.Validations do
     {:error, error}
   end
 
-  def validate_sign_content(mrr, content) do
-    with true <- content["employee_signed"] &&
-                 mrr.id == content["id"] &&
+  def validate_sign_content(mrr, %{"content" => content, "signer" => signer}) do
+    with true <- mrr.id == content["id"] &&
                  mrr.data.division_id == get_in(content, ["division", "id"]) &&
                  mrr.data.employee_id == get_in(content, ["employee", "id"]) &&
                  mrr.data.legal_entity_id == get_in(content, ["legal_entity", "id"]) &&
                  mrr.data.medication_id == get_in(content, ["medication_info", "medication_id"]) &&
-                 mrr.data.person_id == get_in(content, ["person", "id"])
+                 mrr.data.person_id == get_in(content, ["person", "id"]) &&
+                 get_in(content, ["employee", "party", "tax_id"]) == signer["drfo"]
     do
       {:ok, mrr}
     else
