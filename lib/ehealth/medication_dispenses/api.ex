@@ -440,7 +440,7 @@ defmodule EHealth.MedicationDispense.API do
       |> Enum.with_index
       |> Enum.map(fn {request_medication, i} ->
         medication = Enum.find(medications, &(Map.get(&1, :id) == request_medication["medication_id"]))
-        if rem(medication.package_min_qty, request_medication["medication_qty"]) do
+        if rem(request_medication["medication_qty"], medication.package_min_qty) do
           :ok
         else
           {:error, [{
