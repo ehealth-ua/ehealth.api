@@ -69,6 +69,9 @@ defmodule EHealthWeb.Router do
 
     resources "/medical_programs", MedicalProgramController, except: [:new, :edit, :update, :delete]
     patch "/medical_programs/:id/actions/deactivate", MedicalProgramController, :deactivate
+
+    # Global parameters
+    get "/global_parameters", GlobalParameterController, :index
   end
 
   # Client context for lists
@@ -174,7 +177,6 @@ defmodule EHealthWeb.Router do
     get "/user/roles", UserRoleController, :index
 
     # Global parameters
-    get "/global_parameters", GlobalParameterController, :index
     put "/global_parameters", GlobalParameterController, :create_or_update
   end
 
