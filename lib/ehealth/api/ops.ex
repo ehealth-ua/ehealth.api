@@ -91,7 +91,7 @@ defmodule EHealth.API.OPS do
   end
 
   def create_medication_request(params, headers \\ []) do
-    "/medication_request"
+    "/medication_requests"
     |> post!(Poison.encode!(params), headers, timeouts())
     |> ResponseDecoder.check_response()
   end
