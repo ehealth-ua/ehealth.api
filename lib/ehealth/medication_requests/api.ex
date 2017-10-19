@@ -118,9 +118,7 @@ defmodule EHealth.MedicationRequests.API do
   defp get_search_params(employee_ids, params), do: do_get_search_params(employee_ids, params)
 
   defp do_get_search_params(employee_ids, params) do
-    params
-    |> Map.take(~w(page page_size)a)
-    |> Map.put(:employee_id, Enum.join(employee_ids, ","))
+    Map.put(params, :employee_id, Enum.join(employee_ids, ","))
   end
 
   defp get_employees(party_id, nil) do
