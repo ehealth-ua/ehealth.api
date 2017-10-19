@@ -69,6 +69,7 @@ defmodule EHealth.MedicationDispense.API do
     search_params = Map.delete(params, "legal_entity_id")
     with {:ok, %{"data" => [medication_dispense]}} <- OPS.get_medication_dispenses(search_params, headers),
          {:ok, legal_entity} <- Reference.validate(:legal_entity, medication_dispense["legal_entity_id"]),
+         {:ok, party} <- get_party_by_id(medication_dispense["party_id"]),
          :ok <- validate_legal_entity_id(medication_dispense, legal_entity_id),
          division <- Divisions.get_division_by_id(medication_dispense["division_id"]),
          medical_program <- MedicalPrograms.get_by_id(medication_dispense["medical_program_id"]),
@@ -80,8 +81,10 @@ defmodule EHealth.MedicationDispense.API do
         division: division,
         medication_request: medication_request,
         medical_program: medical_program,
+        party: party,
       }}
     else
+      {:error, {:internal_error, reason}} -> {:error, {:internal_error, reason}}
       _ -> nil
     end
   end
@@ -464,6 +467,14 @@ defmodule EHealth.MedicationDispense.API do
     case PartyUsers.get_party_users_by_user_id(user_id) do
       nil -> {:error, {:bad_request, "Party not found"}}
       party_user -> {:ok, party_user}
+    end
+  end
+
+  defp get_party_by_id(id) do
+    with %Party{} = party <- PRMRepo.get(Party, id) do
+      {:ok, party}
+    else
+      nil -> {:error, {:internal_error, "No party by id #{id}"}}
     end
   end
 

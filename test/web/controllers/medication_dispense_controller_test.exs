@@ -347,7 +347,8 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
   describe "show medication dispense" do
     test "success show by id", %{conn: conn} do
-      %{party: party} = insert(:prm, :party_user)
+      party = insert(:prm, :party, id: "02852372-9e06-11e7-abc4-cec278b6b50a")
+      insert(:prm, :party_user, party: party)
       legal_entity = insert_legal_entity("5243c8e6-9e06-11e7-abc4-cec278b6b50a")
       insert_legal_entity()
       %{id: innm_dosage_id} = insert_innm_dosage()
@@ -394,7 +395,8 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
   describe "process medication dispense" do
     test "success process", %{conn: conn} do
-      %{party: party} = insert(:prm, :party_user)
+      party = insert(:prm, :party, id: "02852372-9e06-11e7-abc4-cec278b6b50a")
+      insert(:prm, :party_user, party: party)
       legal_entity = insert_legal_entity("5243c8e6-9e06-11e7-abc4-cec278b6b50a")
       insert_legal_entity()
       %{id: innm_dosage_id} = insert_innm_dosage()
@@ -429,7 +431,8 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "invalid transition", %{conn: conn} do
-      %{party: party} = insert(:prm, :party_user)
+      party = insert(:prm, :party, id: "02852372-9e06-11e7-abc4-cec278b6b50a")
+      insert(:prm, :party_user, party: party)
       legal_entity = insert_legal_entity("5243c8e6-9e06-11e7-abc4-cec278b6b50a")
       insert_legal_entity()
       %{id: innm_dosage_id} = insert_innm_dosage()
@@ -446,7 +449,8 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
   describe "reject medication dispense" do
     test "success reject", %{conn: conn} do
-      %{party: party} = insert(:prm, :party_user)
+      party = insert(:prm, :party, id: "02852372-9e06-11e7-abc4-cec278b6b50a")
+      insert(:prm, :party_user, party: party)
       legal_entity = insert_legal_entity("5243c8e6-9e06-11e7-abc4-cec278b6b50a")
       insert_legal_entity()
       %{id: innm_dosage_id} = insert_innm_dosage()
@@ -481,7 +485,8 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "invalid transition", %{conn: conn} do
-      %{party: party} = insert(:prm, :party_user)
+      party = insert(:prm, :party, id: "02852372-9e06-11e7-abc4-cec278b6b50a")
+      insert(:prm, :party_user, party: party)
       legal_entity = insert_legal_entity("5243c8e6-9e06-11e7-abc4-cec278b6b50a")
       insert_legal_entity()
       %{id: innm_dosage_id} = insert_innm_dosage()
