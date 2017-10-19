@@ -487,7 +487,7 @@
           ],
           "description": "Active medical program within which medications are going to be provided"
         },
-        "dispense_details": {
+        "details": {
           "type": "array",
           "items": {
             "type": "object",
@@ -647,7 +647,7 @@
         "legal_entity",
         "division",
         "medical_program",
-        "dispense_details",
+        "details",
         "status",
         "inserted_at",
         "inserted_by",

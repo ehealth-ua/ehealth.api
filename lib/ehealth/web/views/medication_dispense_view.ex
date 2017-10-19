@@ -43,6 +43,7 @@ defmodule EHealth.Web.MedicationDispenseView do
       updated_by
       dispense_details
       payment_id
+      details
     ))
     |> Map.put("medication_request", render_one(references.medication_request, MedicationRequestView, "show.json"))
     |> Map.put("party", party)

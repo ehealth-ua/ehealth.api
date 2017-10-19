@@ -681,7 +681,7 @@ defmodule EHealth.MockServer do
       "medical_program_id" => "6ee844fd-9f4d-4457-9eda-22aa506be4c4",
       "division_id" => "f2f76cf8-9e05-11e7-abc4-cec278b6b50a",
       "dispensed_at" => "2017-05-01",
-      "dispense_details" => [
+      "details" => [
         %{
           "medication" => %{
             "name" => "Амідарон",
