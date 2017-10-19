@@ -229,8 +229,10 @@ defmodule EHealth.MedicationRequests.API do
     end)
   end
 
-  defp get_qualify_requests(%{"person_id" => person_id}) do
-    OPS.get_qualify_medication_requests(%{"person_id" => person_id})
+  defp get_qualify_requests(%{} = medication_request) do
+    medication_request
+    |> Map.take(~w(person_id started_at ended_at))
+    |> OPS.get_qualify_medication_requests()
   end
 
   defp validate_ingredients(medication_ids, check_innm_id) do

@@ -10,7 +10,7 @@ defmodule EHealth.PRM.MedicalPrograms.Schema do
     field :inserted_by, Ecto.UUID
     field :updated_by, Ecto.UUID
 
-    has_many :program_medications, EHealth.PRM.Medications.Program.Schema
+    has_many :program_medications, EHealth.PRM.Medications.Program.Schema, foreign_key: :medical_program_id
 
     timestamps()
   end
