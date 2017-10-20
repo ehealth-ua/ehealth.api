@@ -203,7 +203,7 @@ defmodule EHealth.MedicationRequests.API do
     with %INNMDosage{} = medication <- MedicationsAPI.get_innm_dosage_by_id(medication_id),
          ingredient <- Enum.find(medication.ingredients, &(Map.get(&1, :is_primary)))
     do
-      {:ok, ingredient.id}
+      {:ok, ingredient.innm_child_id}
     else
       _ -> {:error, [{
               %{description: "Medication request is not valid",
