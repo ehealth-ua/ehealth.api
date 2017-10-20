@@ -3,7 +3,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
   alias EHealth.PRMRepo
   alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
   import EHealth.Utils.Connection, only: [get_consumer_id: 1, get_client_id: 1]
-  import EHealth.MockServer, only: [get_active_medication_request: 0]
+  import EHealth.MockServer, only: [get_active_medication_request: 0, get_client_admin: 0]
 
   setup %{conn: conn} do
     %{id: id} = insert(:prm, :legal_entity)
@@ -136,6 +136,33 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
         |> PRMRepo.preload(:party)
       legal_entity = PRMRepo.get!(LegalEntity, legal_entity_id)
       insert(:prm, :employee, party: party, legal_entity: legal_entity)
+      conn = post conn, medication_request_path(conn, :qualify, get_active_medication_request()), %{
+        "programs" => [%{"id" => medical_program_id}]
+      }
+      resp = json_response(conn, 200)
+      schema =
+        "specs/json_schemas/medication_request/medication_request_qualify_response.json"
+        |> File.read!()
+        |> Poison.decode!()
+
+      assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
+    end
+
+    test "success qualify as admin", %{conn: conn} do
+      insert(:prm, :division, id: "e00e20ba-d20f-4ebb-a1dc-4bf58231019c")
+      medical_program_id = "6ee844fd-9f4d-4457-9eda-22aa506be4c4"
+      insert(:prm, :medical_program, id: medical_program_id)
+      %{medication_id: medication_id} = insert(:prm, :program_medication,
+        medical_program_id: medical_program_id
+      )
+
+      %{id: innm_dosage_id} = insert_innm_dosage()
+      insert(:prm, :ingredient_medication,
+        parent_id: medication_id,
+        medication_child_id: innm_dosage_id
+      )
+
+      conn = put_client_id_header(conn, get_client_admin())
       conn = post conn, medication_request_path(conn, :qualify, get_active_medication_request()), %{
         "programs" => [%{"id" => medical_program_id}]
       }

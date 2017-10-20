@@ -59,8 +59,8 @@ defmodule EHealth.MedicationRequests.API do
     end
   end
 
-  def show(params, headers) do
-    with {:ok, medication_request} <- get_medication_request(params, headers) do
+  def show(params, client_type, headers) do
+    with {:ok, medication_request} <- get_medication_request(params, client_type, headers) do
       with {:ok, medication_request} <- get_references(medication_request) do
            {:ok, medication_request}
       else
@@ -74,8 +74,9 @@ defmodule EHealth.MedicationRequests.API do
   @doc """
   Currently supports the only program "доступні ліки"
   """
-  def qualify(id, params, headers) do
-    with {:ok, medication_request} <- get_medication_request(%{"id" => id}, headers),
+  def qualify(id, client_type, params, headers) do
+    with params <- Map.drop(params, ~w(legal_entity_id is_active)),
+         {:ok, medication_request} <- get_medication_request(%{"id" => id}, client_type, headers),
          :ok <- JsonSchema.validate(:medication_request_qualify, params),
          {:ok, medical_programs} <- get_medical_programs(params),
          validations <- validate_programs(medical_programs, medication_request)
@@ -84,9 +85,21 @@ defmodule EHealth.MedicationRequests.API do
     end
   end
 
-  def get_medication_request(%{"id" => id}, headers) do
-    user_id = get_consumer_id(headers)
-    legal_entity_id = get_client_id(headers)
+  def get_medication_request(%{"id" => id}, client_type, headers) do
+    do_get_medication_request(get_client_id(headers), get_consumer_id(headers), client_type, id, headers)
+  end
+
+  defp do_get_medication_request(_, _, "NHS ADMIN", id, headers) do
+    with search_params <- get_show_search_params(id),
+         {:ok, %{"data" => [medication_request]}} <- OPS.get_doctor_medication_requests(search_params, headers)
+    do
+      {:ok, medication_request}
+    else
+      {:ok, %{"data" => []}} -> nil
+      error -> error
+    end
+  end
+  defp do_get_medication_request(legal_entity_id, user_id, _, id, headers) do
     with %PartyUser{party: party} <- get_party_user(user_id),
          %LegalEntity{} = legal_entity <- LegalEntities.get_legal_entity_by_id(legal_entity_id),
          search_params <- get_show_search_params(party.id, legal_entity, id),
@@ -108,9 +121,8 @@ defmodule EHealth.MedicationRequests.API do
     employee_ids = get_employees(party_id, legal_entity_id)
     %{"employee_id" => Enum.join(employee_ids, ","), "id" => id}
   end
-  defp get_show_search_params(_, %LegalEntity{type: @legal_entity_pharmacy}, id) do
-    %{"id" => id}
-  end
+  defp get_show_search_params(_, %LegalEntity{type: @legal_entity_pharmacy}, id), do: get_show_search_params(id)
+  defp get_show_search_params(id), do: %{"id" => id}
 
   defp get_search_params(employee_ids, %{person_id: person_id} = params) do
     Map.put(do_get_search_params(employee_ids, params), :person_id, person_id)

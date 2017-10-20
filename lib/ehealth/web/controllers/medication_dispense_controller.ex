@@ -21,7 +21,8 @@ defmodule EHealth.Web.MedicationDispenseController do
   end
 
   def by_medication_request(%Plug.Conn{req_headers: headers} = conn, params) do
-    with {:ok, _} <- MedicationRequests.get_medication_request(params, headers),
+    client_type = conn.assigns.client_type
+    with {:ok, _} <- MedicationRequests.get_medication_request(params, client_type, headers),
          {:ok, medication_dispenses, references} <- API.list_by_medication_request(params, headers)
     do
       render(conn, "index.json", medication_dispenses: medication_dispenses, references: references)

@@ -50,14 +50,14 @@ defmodule EHealth.Web.MedicationRequestView do
     Enum.map(medical_programs, fn program ->
       {_, validation} = Enum.find(validations, fn {id, _} -> id == program.id end)
       {status, reason, participants} = case validation do
-        :ok -> {"VALID", "", []}
-        {:error, reason} ->
-          {"INVALID", reason, render_many(
+        :ok ->
+          {"VALID", "", render_many(
             program.program_medications,
             __MODULE__,
             "program_medication.json",
             as: :program_medication
           )}
+        {:error, reason} -> {"INVALID", reason, []}
       end
 
       %{

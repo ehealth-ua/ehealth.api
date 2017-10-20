@@ -27,7 +27,7 @@ defmodule EHealth.Plugs.ClientContext do
     |> get_client_id()
     |> Mithril.get_client_type_name(req_headers)
     |> case do
-         nil -> conn_anuthorized(conn)
+         nil -> conn_unauthorized(conn)
          client_type -> assign(conn, :client_type, client_type)
        end
   end
@@ -93,7 +93,7 @@ defmodule EHealth.Plugs.ClientContext do
     |> halt()
   end
 
-  defp conn_anuthorized(conn) do
+  defp conn_unauthorized(conn) do
     conn
     |> put_status(:unauthorized)
     |> render(EView.Views.Error, :"401")
