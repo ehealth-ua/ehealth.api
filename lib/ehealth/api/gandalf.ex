@@ -11,8 +11,6 @@ defmodule EHealth.API.Gandalf do
 
   def process_url(url), do: config()[:endpoint] <> url
 
-  def timeouts, do: config()[:timeouts]
-
   def client_id,      do: config()[:client_id]
   def client_secret,  do: config()[:client_secret]
   def table_id,       do: config()[:table_id]
@@ -23,9 +21,10 @@ defmodule EHealth.API.Gandalf do
       {"X-Application", application_id()}
     ]
 
-    basic_auth = [
-      hackney: [basic_auth: {client_id(), client_secret()}]
-    ]
+    basic_auth = Keyword.merge(
+      [hackney: [basic_auth: {client_id(), client_secret()}]],
+      config()[:hackney_options]
+    )
 
     request_body = Poison.encode!(%{
       phone_availability: phone_availability,

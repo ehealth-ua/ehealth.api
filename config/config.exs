@@ -18,7 +18,7 @@ config :ehealth, EHealth.Web.Endpoint,
 config :ehealth, EHealth.API.Signature,
   enabled: {:system, :boolean, "DIGITAL_SIGNATURE_ENABLED", true},
   endpoint: {:system, "DIGITAL_SIGNATURE_ENDPOINT"},
-  timeouts: [
+  hackney_options: [
     connect_timeout: {:system, :integer, "DIGITAL_SIGNATURE_REQUEST_TIMEOUT", 30_000},
     recv_timeout: {:system, :integer, "DIGITAL_SIGNATURE_REQUEST_TIMEOUT", 30_000},
     timeout: {:system, :integer, "DIGITAL_SIGNATURE_REQUEST_TIMEOUT", 30_000}
@@ -41,7 +41,7 @@ config :ehealth, EHealth.API.MediaStorage,
 # Configures PRM API
 config :ehealth, EHealth.API.PRM,
   endpoint: {:system, "PRM_ENDPOINT", "http://api-svc.prm/api"},
-  timeouts: [
+  hackney_options: [
     connect_timeout: {:system, :integer, "PRM_REQUEST_TIMEOUT", 30_000},
     recv_timeout: {:system, :integer, "PRM_REQUEST_TIMEOUT", 30_000},
     timeout: {:system, :integer, "PRM_REQUEST_TIMEOUT", 30_000}
@@ -65,7 +65,7 @@ config :ehealth, EHealth.API.Mithril,
 # Configures Man API
 config :ehealth, EHealth.API.Man,
   endpoint: {:system, "MAN_ENDPOINT"},
-  timeouts: [
+  hackney_options: [
     connect_timeout: {:system, :integer, "MAN_REQUEST_TIMEOUT", 30_000},
     recv_timeout: {:system, :integer, "MAN_REQUEST_TIMEOUT", 30_000},
     timeout: {:system, :integer, "MAN_REQUEST_TIMEOUT", 30_000}
@@ -74,7 +74,7 @@ config :ehealth, EHealth.API.Man,
 # Configures UAddress API
 config :ehealth, EHealth.API.UAddress,
   endpoint: {:system, "UADDRESS_ENDPOINT"},
-  timeouts: [
+  hackney_options: [
     connect_timeout: {:system, :integer, "UADDRESS_REQUEST_TIMEOUT", 30_000},
     recv_timeout: {:system, :integer, "UADDRESS_REQUEST_TIMEOUT", 30_000},
     timeout: {:system, :integer, "UADDRESS_REQUEST_TIMEOUT", 30_000}
@@ -83,7 +83,7 @@ config :ehealth, EHealth.API.UAddress,
 # Configures OTP Verification API
 config :ehealth, EHealth.API.OTPVerification,
   endpoint: {:system, "OTP_VERIFICATION_ENDPOINT"},
-  timeouts: [
+  hackney_options: [
     connect_timeout: {:system, :integer, "OTP_VERIFICATION_REQUEST_TIMEOUT", 30_000},
     recv_timeout: {:system, :integer, "OTP_VERIFICATION_REQUEST_TIMEOUT", 30_000},
     timeout: {:system, :integer, "OTP_VERIFICATION_REQUEST_TIMEOUT", 30_000}
@@ -92,7 +92,7 @@ config :ehealth, EHealth.API.OTPVerification,
 # Configures MPI API
 config :ehealth, EHealth.API.MPI,
   endpoint: {:system, "MPI_ENDPOINT"},
-  timeouts: [
+  hackney_options: [
     connect_timeout: {:system, :integer, "MPI_REQUEST_TIMEOUT", 30_000},
     recv_timeout: {:system, :integer, "MPI_REQUEST_TIMEOUT", 30_000},
     timeout: {:system, :integer, "MPI_REQUEST_TIMEOUT", 30_000}
@@ -101,7 +101,7 @@ config :ehealth, EHealth.API.MPI,
 # Configures OPS API
 config :ehealth, EHealth.API.OPS,
   endpoint: {:system, "OPS_ENDPOINT"},
-  timeouts: [
+  hackney_options: [
     connect_timeout: {:system, :integer, "OPS_REQUEST_TIMEOUT", 30_000},
     recv_timeout: {:system, :integer, "OPS_REQUEST_TIMEOUT", 30_000},
     timeout: {:system, :integer, "OPS_REQUEST_TIMEOUT", 30_000}
@@ -114,7 +114,7 @@ config :ehealth, EHealth.API.Gandalf,
   client_secret: {:system, "GNDF_CLIENT_SECRET"},
   application_id: {:system, "GNDF_APPLICATION_ID"},
   table_id: {:system, "GNDF_TABLE_ID"},
-  timeouts: [
+  hackney_options: [
     connect_timeout: {:system, :integer, "GNDF_REQUEST_TIMEOUT", 30_000},
     recv_timeout: {:system, :integer, "GNDF_REQUEST_TIMEOUT", 30_000},
     timeout: {:system, :integer, "GNDF_REQUEST_TIMEOUT", 30_000}

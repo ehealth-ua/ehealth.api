@@ -6,13 +6,9 @@ defmodule EHealth.API.MediaStorage do
   use HTTPoison.Base
   use Confex, otp_app: :ehealth
   use EHealth.API.HeadersProcessor
-
-  alias EHealth.API.ResponseDecoder
-  alias EHealth.API.Helpers.MicroserviceCallLog, as: CallLog
-
+  use EHealth.API.Helpers.MicroserviceBase
+  alias EHealth.API.Helpers.SignedContent
   require Logger
-
-  def options, do: config()[:hackney_options]
 
   def create_signed_url(action, bucket, resource_name, resource_id, headers \\ []) do
     data = %{"secret" => generate_sign_url_data(action, bucket, resource_name, resource_id)}
@@ -35,12 +31,7 @@ defmodule EHealth.API.MediaStorage do
   end
 
   def create_signed_url(data, headers) do
-    CallLog.log("POST", config()[:endpoint], "/media_content_storage_secrets", data, headers)
-
-    config()[:endpoint]
-    |> Kernel.<>("/media_content_storage_secrets")
-    |> post!(Poison.encode!(data), headers, options())
-    |> ResponseDecoder.check_response()
+    post!("/media_content_storage_secrets", Poison.encode!(data), headers)
   end
 
   def store_signed_content(signed_content, bucket, id, headers) do
@@ -63,7 +54,7 @@ defmodule EHealth.API.MediaStorage do
 
     data
     |> Map.fetch!("secret_url")
-    |> put!(content, headers, options())
+    |> SignedContent.save(content, headers, config()[:hackney_options])
     |> check_gcs_response()
   end
   def put_signed_content(err, _signed_content) do

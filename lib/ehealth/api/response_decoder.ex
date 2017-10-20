@@ -6,6 +6,7 @@ defmodule EHealth.API.ResponseDecoder do
 
   @success_codes [200, 201, 204]
 
+  def check_response({:ok, %HTTPoison.Response{} = response}), do: check_response(response)
   def check_response(%HTTPoison.Response{status_code: status_code, body: body}) when status_code in @success_codes do
     decode_response(body)
   end

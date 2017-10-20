@@ -4,7 +4,7 @@ defmodule EHealth.PRM.Search do
   """
 
   defmacro __using__(_) do
-    quote  do
+    quote do
       import Ecto.{Query, Changeset}, warn: false
 
       alias EHealth.PRMRepo

@@ -6,28 +6,17 @@ defmodule EHealth.API.OTPVerification do
   use HTTPoison.Base
   use Confex, otp_app: :ehealth
   use EHealth.API.HeadersProcessor
-
-  alias EHealth.API.ResponseDecoder
-
-  def process_url(url), do: config()[:endpoint] <> url
-
-  def timeouts, do: config()[:timeouts]
+  use EHealth.API.Helpers.MicroserviceBase
 
   def initialize(number, headers \\ []) do
-    "/verifications"
-    |> post!(Poison.encode!(%{phone_number: number}), headers)
-    |> ResponseDecoder.check_response()
+    post!("/verifications", Poison.encode!(%{phone_number: number}), headers)
   end
 
   def search(number, headers \\ []) do
-    "/verifications/#{number}"
-    |> get!(headers)
-    |> ResponseDecoder.check_response()
+    get!("/verifications/#{number}", headers)
   end
 
   def complete(number, params, headers \\ []) do
-    "/verifications/#{number}/actions/complete"
-    |> patch!(Poison.encode!(params), headers)
-    |> ResponseDecoder.check_response()
+    patch!("/verifications/#{number}/actions/complete", Poison.encode!(params), headers)
   end
 end

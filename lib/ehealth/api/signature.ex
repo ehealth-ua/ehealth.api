@@ -10,8 +10,6 @@ defmodule EHealth.API.Signature do
   alias EHealth.API.ResponseDecoder
   import EHealth.Utils.Connection, only: [get_header: 2]
 
-  @conn_timeouts [connect_timeout: 30_000, recv_timeout: 30_000, timeout: 30_000]
-
   def process_url(url), do: config()[:endpoint] <> url
 
   def decode_and_validate(signed_content, signed_content_encoding, headers) do
@@ -22,7 +20,7 @@ defmodule EHealth.API.Signature do
       }
 
       "/digital_signatures"
-      |> post!(Poison.encode!(params), headers, @conn_timeouts)
+      |> post!(Poison.encode!(params), headers, config()[:hackney_options])
       |> ResponseDecoder.check_response()
     else
       data = Base.decode64(signed_content)

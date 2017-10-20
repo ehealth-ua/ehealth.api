@@ -6,13 +6,7 @@ defmodule EHealth.API.MPI do
   use HTTPoison.Base
   use Confex, otp_app: :ehealth
   use EHealth.API.HeadersProcessor
-
-  alias EHealth.API.ResponseDecoder
-  alias EHealth.API.Helpers.MicroserviceCallLog, as: CallLog
-
-  def process_url(url), do: config()[:endpoint] <> url
-
-  def timeouts, do: config()[:timeouts]
+  use EHealth.API.Helpers.MicroserviceBase
 
   # Available params (required):
   #   - first_name (ex.: Олена)
@@ -22,60 +16,30 @@ defmodule EHealth.API.MPI do
   #   - phone_number (ex.: %2B380508887700)
   #
   def search(params \\ %{}, headers \\ []) do
-    CallLog.log("GET", config()[:endpoint], "/persons", headers)
-
-    "/persons"
-    |> get!(headers, params: params)
-    |> ResponseDecoder.check_response()
+    get!("/persons", headers, params: params)
   end
 
   def all_search(params \\ %{}, headers \\ []) do
-    CallLog.log("GET", config()[:endpoint], "/all-persons", headers)
-
-    "/all-persons"
-    |> get!(headers, params: params)
-    |> ResponseDecoder.check_response()
+    get!("/all-persons", headers, params: params)
   end
 
   def person(id, headers \\ []) do
-    CallLog.log("GET", config()[:endpoint], "/persons/#{id}", headers)
-
-    "/persons/#{id}"
-    |> get!(headers)
-    |> ResponseDecoder.check_response()
+    get!("/persons/#{id}", headers)
   end
 
   def update_person(id, params, headers) do
-    CallLog.log("PATCH", config()[:endpoint], "/persons/#{id}", params, headers)
-
-    "/persons/#{id}"
-    |> patch!(Poison.encode!(params), headers)
-    |> ResponseDecoder.check_response()
+    patch!("/persons/#{id}", Poison.encode!(params), headers)
   end
 
   def create_or_update_person(params, headers) do
-    CallLog.log("POST", config()[:endpoint], "/persons", params, headers)
-
-    "/persons"
-    |> post!(Poison.encode!(params), headers)
-    |> ResponseDecoder.check_response()
+    post!("/persons", Poison.encode!(params), headers)
   end
 
   def get_merge_candidates(params \\ %{}, headers \\ []) do
-    full_path = "/merge_candidates?#{URI.encode_query(params)}"
-
-    CallLog.log("GET", config()[:endpoint], full_path, headers)
-
-    full_path
-    |> get!(headers)
-    |> ResponseDecoder.check_response()
+    get!("/merge_candidates?#{URI.encode_query(params)}", headers)
   end
 
   def update_merge_candidate(merge_candidate_id, params, headers \\ []) do
-    CallLog.log("PATCH", config()[:endpoint], "/merge_candidates/#{merge_candidate_id}", params, headers)
-
-    "/merge_candidates/#{merge_candidate_id}"
-    |> patch!(Poison.encode!(%{merge_candidate: params}), headers)
-    |> ResponseDecoder.check_response()
+    patch!("/merge_candidates/#{merge_candidate_id}", Poison.encode!(%{merge_candidate: params}), headers)
   end
 end

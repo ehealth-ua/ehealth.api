@@ -6,20 +6,18 @@ defmodule EHealth.API.Man do
   use HTTPoison.Base
   use Confex, otp_app: :ehealth
   use EHealth.API.HeadersProcessor
-
-  alias EHealth.API.Helpers.MicroserviceCallLog, as: CallLog
-
   require Logger
 
   def process_url(url), do: config()[:endpoint] <> url
 
-  def timeouts, do: config()[:timeouts]
-
   def render_template(id, data, headers \\ []) do
-    CallLog.log("POST", config()[:endpoint], "/templates/#{id}/actions/render", data, headers)
+    path = "/templates/#{id}/actions/render"
+    Logger.info(fn ->
+      "Calling POST on #{config()[:endpoint]}#{path} with body=#{inspect data} and headers=#{inspect headers}."
+    end)
 
-    "/templates/#{id}/actions/render"
-    |> post!(Poison.encode!(data), headers, timeouts())
+    path
+    |> post!(Poison.encode!(data), headers, config()[:hackney_options])
     |> process_template()
   end
 
