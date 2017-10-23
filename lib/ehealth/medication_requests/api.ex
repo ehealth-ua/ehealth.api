@@ -72,6 +72,7 @@ defmodule EHealth.MedicationRequests.API do
   def qualify(id, client_type, params, headers) do
     with params <- Map.drop(params, ~w(legal_entity_id is_active)),
          {:ok, medication_request} <- get_medication_request(%{"id" => id}, client_type, headers),
+         :ok <- validate_medication_request_status(medication_request),
          :ok <- JsonSchema.validate(:medication_request_qualify, params),
          {:ok, medical_programs} <- get_medical_programs(params),
          validations <- validate_programs(medical_programs, medication_request)
@@ -301,5 +302,10 @@ defmodule EHealth.MedicationRequests.API do
             }, "$.programs[#{i}].id"}
         end)}
     end
+  end
+
+  defp validate_medication_request_status(%{"status" => "ACTIVE"}), do: :ok
+  defp validate_medication_request_status(_) do
+    {:conflict, "Invalid status Medication request for qualify action!"}
   end
 end
