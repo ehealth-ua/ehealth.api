@@ -3,7 +3,6 @@ defmodule EHealth.DeclarationRequest.API.Create do
 
   alias EHealth.API.MPI
   alias EHealth.API.Mithril
-  alias EHealth.API.Gandalf
   alias EHealth.Man.Templates.DeclarationRequestPrintoutForm
   alias EHealth.API.OTPVerification
   alias Ecto.Changeset
@@ -65,36 +64,19 @@ defmodule EHealth.DeclarationRequest.API.Create do
         put_change(changeset, :authentication_method_current, authentication_method_current)
       {:ok, %{"data" => []}} ->
         [authentication_method|_] = data["person"]["authentication_methods"]
+        put_change(changeset, :authentication_method_current, prepare_auth_method_current(authentication_method))
 
-        gandalf_decision = Gandalf.decide_auth_method(
-          not is_nil(authentication_method["phone_number"]),
-          authentication_method["type"]
-        )
-
-        case gandalf_decision do
-          {:ok, %{"data" => decision}} ->
-            authentication_method_current = prepare_auth_method_current(
-              decision["final_decision"],
-              authentication_method
-            )
-
-            put_change(changeset, :authentication_method_current, authentication_method_current)
-          {:error, error_response} ->
-            add_error(changeset, :authentication_method_current, format_error_response("Gandalf", error_response))
-
-          _other ->
-            require Logger
-            Logger.info("Gandalf is not responding. Falling back to default...")
-
-            authentication_method_current = %{"type" => @auth_offline}
-
-            put_change(changeset, :authentication_method_current, authentication_method_current)
-        end
       {:error, error_response} ->
         add_error(changeset, :authentication_method_current, format_error_response("MPI", error_response))
     end
   end
 
+  def prepare_auth_method_current(%{"type" => @auth_offline}) do
+    %{"type" => @auth_offline}
+  end
+  def prepare_auth_method_current(_) do
+    %{"type" => @auth_na}
+  end
   def prepare_auth_method_current(@auth_otp, %{"phone_number" => phone_number}) do
     %{
       "type" => @auth_otp,

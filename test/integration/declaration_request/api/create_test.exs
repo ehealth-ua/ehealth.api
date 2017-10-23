@@ -416,7 +416,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       :ok
     end
 
-    test "MPI record does not exist, e.g. Gandalf makes a decision" do
+    test "MPI record does not exist" do
       declaration_request = %DeclarationRequest{
         data: %{
           "person" => %{
@@ -436,8 +436,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         |> Ecto.Changeset.change()
         |> determine_auth_method_for_mpi()
 
-      assert get_change(changeset, :authentication_method_current) ==
-        %{"type" => "OFFLINE"}
+      assert get_change(changeset, :authentication_method_current) == %{"type" => "NA"}
     end
 
     test "Gandalf makes a NA decision" do
@@ -535,7 +534,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       :ok
     end
 
-    test "Gandalf returns an error" do
+    test "authentication_methods OTP converts to NA" do
       declaration_request = %DeclarationRequest{
         data: %{
           "person" => %{
@@ -543,6 +542,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
               "number" => "+380508887701"
             }],
             "authentication_methods" => [%{
+              "type" => "OTP",
               "phone_number" => "+380508887701"
             }]
           }
@@ -554,8 +554,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         |> Ecto.Changeset.change()
         |> determine_auth_method_for_mpi()
 
-      assert ~s(Error during Gandalf interaction. Result from Gandalf: %{"something" => "terrible"}) ==
-        elem(changeset.errors[:authentication_method_current], 0)
+      assert get_change(changeset, :authentication_method_current) == %{"type" => "NA"}
     end
   end
 
