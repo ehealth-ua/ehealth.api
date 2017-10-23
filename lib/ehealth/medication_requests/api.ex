@@ -264,7 +264,7 @@ defmodule EHealth.MedicationRequests.API do
     medical_programs = Enum.map(programs, fn %{"id" => id} ->
       MedicalProgram
       |> where([mp], mp.is_active)
-      |> join(:left, [mp], pm in ProgramMedication, pm.medical_program_id == mp.id)
+      |> join(:left, [mp], pm in ProgramMedication, pm.medical_program_id == mp.id and pm.is_active)
       |> join(:left, [mp, pm], m in assoc(pm, :medication))
       |> preload([mp, pm, m], [program_medications: {pm, medication: m}])
       |> PRMRepo.get(id)
