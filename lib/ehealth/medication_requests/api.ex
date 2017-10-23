@@ -32,14 +32,9 @@ defmodule EHealth.MedicationRequests.API do
 
   @fields_optional ~w(employee_id person_id status page_size page)a
 
-  def list(params, headers) do
-    user_id = get_consumer_id(headers)
-    with %Ecto.Changeset{valid?: true, changes: changes} = changeset <- changeset(params),
-         %PartyUser{party: party} <- get_party_user(user_id),
-         employee_ids <- get_employees(party.id, get_change(changeset, :legal_entity_id)),
-         :ok <- validate_employee_id(get_change(changeset, :employee_id), employee_ids),
-         search_params <- get_search_params(employee_ids, changes),
-         {:ok, %{"data" => data, "paging" => paging}} <- OPS.get_doctor_medication_requests(search_params, headers)
+  def list(params, client_type, headers) do
+    with %Ecto.Changeset{valid?: true, changes: changes} <- changeset(params),
+         {:ok, %{"data" => data, "paging" => paging}} <- get_medication_requests(changes, client_type, headers)
     do
       medication_requests = Enum.reduce_while(data, [], fn medication_request, acc ->
         with {:ok, medication_request} <- get_references(medication_request) do
@@ -82,6 +77,26 @@ defmodule EHealth.MedicationRequests.API do
          validations <- validate_programs(medical_programs, medication_request)
     do
       {:ok, medical_programs, validations}
+    end
+  end
+
+  def get_medication_requests(changes, client_type, headers) do
+    do_get_medication_requests(get_consumer_id(headers), client_type, changes, headers)
+  end
+
+  defp do_get_medication_requests(_, "NHS ADMIN", changes, headers) do
+    employee_id = Map.get(changes, :employee_id)
+    search_params = get_search_params([], changes)
+    search_params = if is_nil(employee_id), do: Map.delete(search_params, :employee_id), else: search_params
+    OPS.get_doctor_medication_requests(search_params, headers)
+  end
+  defp do_get_medication_requests(user_id, _, changes, headers) do
+    with %PartyUser{party: party} <- get_party_user(user_id),
+         employee_ids <- get_employees(party.id, Map.get(changes, :legal_entity_id)),
+         :ok <- validate_employee_id(Map.get(changes, :employee_id), employee_ids),
+         search_params <- get_search_params(employee_ids, changes)
+    do
+      OPS.get_doctor_medication_requests(search_params, headers)
     end
   end
 
