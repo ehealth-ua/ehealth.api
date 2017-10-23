@@ -30,8 +30,6 @@ defmodule EHealth.MedicationRequests.API do
   @legal_entity_msp LegalEntity.type(:msp)
   @legal_entity_pharmacy LegalEntity.type(:pharmacy)
 
-  @fields_optional ~w(employee_id person_id status page_size page)a
-
   def list(params, client_type, headers) do
     with %Ecto.Changeset{valid?: true, changes: changes} <- changeset(params),
          {:ok, %{"data" => data, "paging" => paging}} <- get_medication_requests(changes, client_type, headers)
@@ -204,7 +202,7 @@ defmodule EHealth.MedicationRequests.API do
   end
 
   defp changeset(params) do
-    cast(%Search{}, params, @fields_optional)
+    cast(%Search{}, params, Search.__schema__(:fields))
   end
 
   defp validate_innm(program, medication_request) do
