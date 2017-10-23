@@ -196,11 +196,20 @@ defmodule EHealth.MedicationRequestRequests do
     {id, params} = Map.pop(params, "id")
     with :ok <- Validations.validate_sign_schema(params),
          %MedicationRequestRequest{} = mrr <- get_medication_request_request_by_query([id: id, status: "NEW"]),
-         {:ok, mrr} <- SignOperation.sign(mrr, params, headers)
+         {operation, {:ok, mrr}} <- SignOperation.sign(mrr, params, headers)
     do
       mrr
       |> sign_changeset
       |> Repo.update
+      {:ok,
+        operation.data.medication_request
+        |> Map.put("legal_entity", operation.data.legal_entity)
+        |> Map.put("division", operation.data.division)
+        |> Map.put("person", operation.data.person)
+        |> Map.put("employee", operation.data.employee)
+        |> Map.put("medical_program", operation.data.medical_program)
+        |> Map.put("legal_entity", operation.data.legal_entity)
+        |> Map.put("medication", operation.data.medication)}
     else
       err -> err
     end

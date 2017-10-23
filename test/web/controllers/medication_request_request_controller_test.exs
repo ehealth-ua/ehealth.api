@@ -6,10 +6,11 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
   @legal_entity_id "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
 
   def fixture(:medication_request_request) do
-    medication_id = create_medications_structure()
+    {medication_id, pm} = create_medications_structure()
     test_request =
       test_request()
       |> Map.put("medication_id", medication_id)
+      |> Map.put("medical_program_id", pm.medical_program_id)
     {:ok, medication_request_request} = MedicationRequestRequests.create(test_request,
                                                                          "7488a646-e31f-11e4-aace-600308960662",
                                                                          @legal_entity_id)
@@ -46,11 +47,12 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
   describe "create medication_request_request" do
     test "render medication_request_request when data is valid", %{conn: conn} do
-      medication_id = create_medications_structure()
+      {medication_id, pm} = create_medications_structure()
 
       test_request =
         test_request()
         |> Map.put("medication_id", medication_id)
+        |> Map.put("medical_program_id", pm.medical_program_id)
       conn1 = post conn, medication_request_request_path(conn, :create), medication_request_request: test_request
       assert %{"id" => id} = json_response(conn1, 201)["data"]
 
@@ -60,37 +62,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
           "dispense_valid_to" => "2020-10-25", "division_id" => "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
           "employee_id" => "7488a646-e31f-11e4-aace-600308960662", "ended_at" => "2020-10-22",
           "legal_entity_id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375552",
-          "medication_id" =>  medication_id, "medication_qty" => 10,
-          "person_id" => "585044f5-1272-4bca-8d41-8440eefe7d26", "started_at" => "2020-09-22"
-        }
-    end
-
-    test "render medication_request_request when data is valid with medical_program_id", %{conn: conn} do
-      pm = insert(:prm, :program_medication)
-      innm_id =
-        pm
-        |> EHealth.PRMRepo.preload(:medication)
-        |> Map.get(:medication)
-        |> EHealth.PRMRepo.preload(:ingredients)
-        |> Map.get(:ingredients)
-        |> Enum.at(0)
-        |> EHealth.PRMRepo.preload(:innm_dosage)
-        |> Map.get(:innm_dosage)
-        |> Map.get(:id)
-      test_request =
-        test_request()
-        |> Map.put("medication_id", innm_id)
-        |> Map.put("medical_program_id",  pm.medical_program_id)
-      conn1 = post conn, medication_request_request_path(conn, :create), medication_request_request: test_request
-      assert %{"id" => id} = json_response(conn1, 201)["data"]
-
-      conn = get conn, medication_request_request_path(conn, :show, id)
-      assert json_response(conn, 200)["data"]["data"] ==  %{
-          "created_at" => "2020-09-22", "dispense_valid_from" => "2020-09-25",
-          "dispense_valid_to" => "2020-10-25", "division_id" => "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
-          "employee_id" => "7488a646-e31f-11e4-aace-600308960662", "ended_at" => "2020-10-22",
-          "legal_entity_id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375552",
-          "medication_id" =>  innm_id, "medication_qty" => 10,
+          "medication_id" =>  medication_id, "medical_program_id" => pm.medical_program_id, "medication_qty" => 10,
           "person_id" => "585044f5-1272-4bca-8d41-8440eefe7d26", "started_at" => "2020-09-22"
         }
     end
@@ -128,9 +100,12 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "render errors when declaration doesn't exists", %{conn: conn} do
+      {medication_id, pm} = create_medications_structure()
       test_request =
         test_request()
         |> Map.put("person_id", "575041f5-1272-4bca-8d41-8440eefe7d26")
+        |> Map.put("medication_id", medication_id)
+        |> Map.put("medical_program_id", pm.medical_program_id)
       conn = post conn, medication_request_request_path(conn, :create), medication_request_request: test_request
       assert json_response(conn, 422)
       error_msg =
@@ -145,8 +120,11 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "render errors when ended_at < started_at", %{conn: conn} do
+      {medication_id, pm} = create_medications_structure()
       test_request =
         test_request()
+        |> Map.put("medication_id", medication_id)
+        |> Map.put("medical_program_id", pm.medical_program_id)
         |> Map.put("ended_at", to_string(Timex.shift(Timex.today, days: 2)))
         |> Map.put("started_at", to_string(Timex.shift(Timex.today, days: 3)))
       conn = post conn, medication_request_request_path(conn, :create), medication_request_request: test_request
@@ -155,8 +133,11 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "render errors when started_at < created_at", %{conn: conn} do
+      {medication_id, pm} = create_medications_structure()
       test_request =
         test_request()
+        |> Map.put("medication_id", medication_id)
+        |> Map.put("medical_program_id", pm.medical_program_id)
         |> Map.put("started_at", to_string(Timex.shift(Timex.today, days: 2)))
         |> Map.put("created_at", to_string(Timex.shift(Timex.today, days: 3)))
       conn = post conn, medication_request_request_path(conn, :create), medication_request_request: test_request
@@ -165,17 +146,26 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "render errors when started_at < today", %{conn: conn} do
+      {medication_id, pm} = create_medications_structure()
       test_request =
         test_request()
+        |> Map.put("medication_id", medication_id)
+        |> Map.put("medical_program_id", pm.medical_program_id)
         |> Map.put("started_at", to_string(Timex.shift(Timex.today, days: -2)))
+
       conn = post conn, medication_request_request_path(conn, :create), medication_request_request: test_request
       assert json_response(conn, 422)
       assert List.first(json_response(conn, 422)["error"]["invalid"])["entry"] == "$.data.started_at"
     end
+
     test "render errors when medication doesn't exists", %{conn: conn} do
+      {_, pm} = create_medications_structure()
+      {medication_id1, _} = create_medications_structure()
       test_request =
         test_request()
-        |> Map.put("medication_id", "575041f5-1272-4bca-8d41-8440eefe7d26")
+        |> Map.put("medication_id", medication_id1)
+        |> Map.put("medical_program_id", pm.medical_program_id)
+
       conn = post conn, medication_request_request_path(conn, :create), medication_request_request: test_request
       assert json_response(conn, 422)
       error_msg =
@@ -190,12 +180,13 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "render errors when medication_qty is invalid", %{conn: conn} do
-      medication_id = create_medications_structure()
+      {medication_id, pm} = create_medications_structure()
 
       test_request =
         test_request()
         |> Map.put("medication_id", medication_id)
         |> Map.put("medication_qty", 7)
+        |> Map.put("medical_program_id", pm.medical_program_id)
 
       conn = post conn, medication_request_request_path(conn, :create), medication_request_request: test_request
       assert json_response(conn, 422)
@@ -212,7 +203,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "render medication_request_request when medication created with different qty", %{conn: conn} do
-      medication_id = create_medications_structure()
+      {medication_id, pm} = create_medications_structure()
 
       %{id: med_id1} = insert(:prm, :medication, [
         name: "Бупропіонол TEST",
@@ -225,43 +216,45 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
         test_request()
         |> Map.put("medication_id", medication_id)
         |> Map.put("medication_qty", 5)
+        |> Map.put("medical_program_id", pm.medical_program_id)
 
       conn = post conn, medication_request_request_path(conn, :create), medication_request_request: test_request
       assert json_response(conn, 201)
     end
 
     test "render errors when medication_program is invalid", %{conn: conn} do
-      medication_id = create_medications_structure()
+      {medication_id, _} = create_medications_structure()
       test_request =
         test_request()
         |> Map.put("medication_id", medication_id)
-        |> Map.put("medical_program_id", "585041f5-1272-4bca-8d41-8440eefe7d26")
+        |> Map.put("medical_program_id", Ecto.UUID.generate)
 
       conn = post conn, medication_request_request_path(conn, :create), medication_request_request: test_request
       assert json_response(conn, 422)
-      assert List.first(json_response(conn, 422)["error"]["invalid"])["entry"] == "$.data.medication_id"
+      assert List.first(json_response(conn, 422)["error"]["invalid"])["entry"] == "$.data.medical_program_id"
     end
   end
 
   describe "prequalify medication request request" do
     test "works when data is valid", %{conn: conn} do
-      pm = insert(:prm, :program_medication)
-      innm_id = EHealth.PRM.Medications.INNMDosage.Schema |> EHealth.PRMRepo.one |> Map.get(:id)
+      {medication_id, pm} = create_medications_structure()
+
       test_request =
         test_request()
-        |> Map.put("medication_id", innm_id)
+        |> Map.put("medication_id", medication_id)
+        |> Map.delete("medical_program_id")
       conn1 = post conn, medication_request_request_path(conn, :prequalify), %{medication_request_request: test_request,
         programs: [%{id: pm.medical_program_id}]}
       assert %{"status" => "VALID"} = json_response(conn1, 200)["data"] |> Enum.at(0)
     end
 
     test "show proper message when program medication is invalid", %{conn: conn} do
-      insert(:prm, :program_medication)
-      innm_id = EHealth.PRM.Medications.INNMDosage.Schema |> EHealth.PRMRepo.one |> Map.get(:id)
+      {medication_id, _} = create_medications_structure()
       pm1 = insert(:prm, :program_medication)
       test_request =
         test_request()
-        |> Map.put("medication_id", innm_id)
+        |> Map.put("medication_id", medication_id)
+        |> Map.delete("medical_program_id")
       conn1 = post conn, medication_request_request_path(conn, :prequalify), %{medication_request_request: test_request,
         programs: [%{id: pm1.medical_program_id}]}
       assert %{
@@ -282,10 +275,11 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
   describe "reject medication request request" do
     test "works when data is valid", %{conn: conn} do
-      medication_id = create_medications_structure()
+      {medication_id, pm} = create_medications_structure()
       test_request =
         test_request()
         |> Map.put("medication_id", medication_id)
+        |> Map.put("medical_program_id", pm.medical_program_id)
       conn1 = post conn, medication_request_request_path(conn, :create), medication_request_request: test_request
       assert %{"id" => id} = json_response(conn1, 201)["data"]
 
@@ -305,10 +299,11 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
   describe "autotermination works fine" do
     test "with direct call", %{conn: conn} do
-      medication_id = create_medications_structure()
+      {medication_id, pm} = create_medications_structure()
       test_request =
         test_request()
         |> Map.put("medication_id", medication_id)
+        |> Map.put("medical_program_id", pm.medical_program_id)
       conn1 = post conn, medication_request_request_path(conn, :create), medication_request_request: test_request
       assert %{"id" => id} = json_response(conn1, 201)["data"]
 
@@ -322,10 +317,11 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
   describe "sign medication request request" do
     test "when data is valid", %{conn: conn} do
-      medication_id = create_medications_structure()
+      {medication_id, pm} = create_medications_structure()
       test_request =
         test_request()
         |> Map.put("medication_id", medication_id)
+        |> Map.put("medical_program_id", pm.medical_program_id)
       conn1 = post conn, medication_request_request_path(conn, :create), medication_request_request: test_request
       assert mrr = json_response(conn1, 201)["data"]
 
@@ -339,7 +335,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       conn1 = patch conn, medication_request_request_path(conn, :sign, mrr["id"]),
         %{signed_medication_request_request: signed_mrr, signed_content_encoding: "base64"}
       assert json_response(conn1, 200)
-      assert json_response(conn1, 200)["data"]["status"] == "SIGNED"
+      assert json_response(conn1, 200)["data"]["status"] == "ACTIVE"
     end
 
     test "return 404 if request not found", %{conn: conn} do
@@ -355,10 +351,12 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
      test "when some data is invalid", %{conn: conn} do
-      medication_id = create_medications_structure()
+      {medication_id, pm} = create_medications_structure()
       test_request =
         test_request()
         |> Map.put("medication_id", medication_id)
+        |> Map.put("medical_program_id", pm.medical_program_id)
+
       conn1 = post conn, medication_request_request_path(conn, :create), medication_request_request: test_request
       assert mrr = json_response(conn1, 201)["data"]
 
@@ -375,17 +373,19 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
   end
 
   defp create_medications_structure do
-      %{id: innm_id} = insert(:prm, :innm, name: "Будафинол")
-      %{id: dosage_id} = insert(:prm, :innm_dosage, name: "Будафинолон Альтернативний")
-      %{id: dosage_id2} = insert(:prm, :innm_dosage, name: "Будафинолон Альтернативний 2")
-      %{id: med_id} = insert(:prm, :medication, package_qty: 10, package_min_qty: 5, name: "Будафинолодон")
-      %{id: med_id2} = insert(:prm, :medication, package_qty: 10, package_min_qty: 5, name: "Будафинолодон2")
-      insert(:prm, :ingredient_innm_dosage, [parent_id: dosage_id, innm_child_id: innm_id])
-      insert(:prm, :ingredient_innm_dosage, [parent_id: dosage_id2, innm_child_id: innm_id])
-      insert(:prm, :ingredient_medication, [parent_id: med_id, medication_child_id: dosage_id])
-      insert(:prm, :ingredient_medication, [parent_id: med_id2, medication_child_id: dosage_id2])
+    %{id: innm_id} = insert(:prm, :innm, name: "Будафинол")
+    %{id: dosage_id} = insert(:prm, :innm_dosage, name: "Будафинолон Альтернативний")
+    %{id: dosage_id2} = insert(:prm, :innm_dosage, name: "Будафинолон Альтернативний 2")
+    %{id: med_id} = insert(:prm, :medication, package_qty: 10, package_min_qty: 5, name: "Будафинолодон")
+    %{id: med_id2} = insert(:prm, :medication, package_qty: 10, package_min_qty: 5, name: "Будафинолодон2")
+    insert(:prm, :ingredient_innm_dosage, [parent_id: dosage_id, innm_child_id: innm_id])
+    insert(:prm, :ingredient_innm_dosage, [parent_id: dosage_id2, innm_child_id: innm_id])
+    insert(:prm, :ingredient_medication, [parent_id: med_id, medication_child_id: dosage_id])
+    insert(:prm, :ingredient_medication, [parent_id: med_id2, medication_child_id: dosage_id2])
 
-    dosage_id
+    pm = insert(:prm, :program_medication, [medication_id: med_id])
+
+    {dosage_id, pm}
   end
 
   defp test_request do

@@ -22,7 +22,7 @@ defmodule EHealth.MedicationRequestRequest.OperationHelpers do
 
   def get_medical_program(nil), do: {:ok, nil}
   def get_medical_program(id) do
-    {:ok, MedicalPrograms.get_by_id(id)}
+    Helpers.get_assoc_by_func("medical_program_id", fn -> MedicalPrograms.get_by_id(id) end)
   end
 
   def validate_employee(_operation, employee) do

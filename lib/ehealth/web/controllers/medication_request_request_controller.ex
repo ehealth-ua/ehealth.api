@@ -6,6 +6,7 @@ defmodule EHealth.Web.MedicationRequestRequestController do
   alias Scrivener.Page
 
   action_fallback EHealth.Web.FallbackController
+  alias EHealth.Web.MedicationRequestView
 
   def index(conn, params) do
     with %Page{} = paging <- API.list_medication_request_requests(params) do
@@ -47,10 +48,10 @@ defmodule EHealth.Web.MedicationRequestRequestController do
   end
 
   def sign(conn, params) do
-    with {:ok, mrr} <- API.sign(params, conn.req_headers) do
+    with {:ok, medication_request} <- API.sign(params, conn.req_headers) do
       conn
       |> put_status(200)
-      |> render("show.json", medication_request_request: mrr)
+      |> render(MedicationRequestView, "show.json", medication_request: medication_request)
     end
   end
 

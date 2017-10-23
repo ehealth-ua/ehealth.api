@@ -21,7 +21,7 @@ defmodule EHealth.Web.MedicationRequestRequestView do
     |> Map.put(:division, render(DivisionView, "division_short.json", %{division: values.division}))
     |> Map.put(:medication_info, render(INNMDosageView, "innm_dosage_short.json",
       %{innm_dosage: values.medication, medication_qty: values.medication_request_request.data.medication_qty}))
-    |> Map.put(:medical_program, maybe_render_medical_program(values[:medical_program]))
+    |> Map.put(:medical_program, render(MedicalProgramView, "show.json", %{medical_program: values.medical_program}))
     |> Map.put(:request_number, values.medication_request_request.number)
     |> Map.drop([:person_id, :employee_id, :legal_entity_id, :medication_qty, :medication_id])
   end
@@ -51,9 +51,4 @@ defmodule EHealth.Web.MedicationRequestRequestView do
     Map.put(program, :invalid_reason, "Innm not on the list of approved innms for program \"#{program.program_name}\"")
   end
   defp maybe_add_error_reason(program), do: program
-
-  defp maybe_render_medical_program(nil), do: nil
-  defp maybe_render_medical_program(medical_program) do
-    render(MedicalProgramView, "show.json", %{medical_program: medical_program})
-  end
 end
