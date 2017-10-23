@@ -36,13 +36,12 @@ defmodule EHealth.Web.MedicationRequestView do
   def render("medication_info.json", %{medication_request: medication_request}) do
     medication = medication_request["medication"]
     ingredient = Enum.find(medication.ingredients, &(Map.get(&1, :is_primary)))
-    dosage_ingredient = Enum.find(ingredient.innm_dosage.ingredients, &(Map.get(&1, :is_primary)))
 
     medication_request
     |> Map.take(~w(medication_qty))
     |> Map.put("form", medication.form)
     |> Map.put("medication_id", medication.id)
-    |> Map.put("innm_dosage", dosage_ingredient.innm)
+    |> Map.put("medication_name", medication.name)
     |> Map.put("dosage", ingredient.dosage)
   end
 

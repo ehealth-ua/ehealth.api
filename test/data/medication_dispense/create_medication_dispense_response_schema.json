@@ -229,36 +229,6 @@
         "medication_info": {
           "type": "object",
           "properties": {
-            "innm_dosage": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string"
-                },
-                "sctid": {
-                  "type": "string",
-                  "description": "innm CNOMED code"
-                },
-                "name": {
-                  "type": "string",
-                  "description": "innm local name"
-                },
-                "name_original": {
-                  "type": "string",
-                  "description": "innm original name"
-                },
-                "is_active": {
-                  "type": "boolean"
-                }
-              },
-              "required": [
-                "id",
-                "name",
-                "name_original",
-                "is_active"
-              ],
-              "description": "`Innm object`"
-            },
             "medication_id": {
               "type": "string",
               "description": "`Identifier medication with type **INNM_DOSAGE**`"
@@ -292,14 +262,17 @@
                 "denumerator_value"
               ],
               "description": "Dosage of innm_dosage object"
+            },
+            "medication_name": {
+              "type": "string"
             }
           },
           "required": [
-            "innm_dosage",
             "medication_id",
             "form",
             "dosage",
-            "medication_qty"
+            "medication_qty",
+            "medication_name"
           ]
         },
         "medical_program": {
