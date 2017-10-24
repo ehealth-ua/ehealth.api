@@ -5,17 +5,22 @@ defmodule EHealth.MedicationRequestRequests do
 
   import Ecto.Query, warn: false
   import Ecto.Changeset
-  alias EHealth.Repo
 
   use Confex, otp_app: :ehealth
 
+  alias EHealth.Repo
+  alias EHealth.PRMRepo
+  alias EHealth.API.OPS
   alias EHealth.PRM.MedicalPrograms
   alias EHealth.MedicationRequestRequest
   alias EHealth.MedicationRequestRequest.Operation
   alias EHealth.MedicationRequestRequest.Validations
   alias EHealth.MedicationRequestRequest.SignOperation
-  alias EHealth.MedicationRequestRequest.CreateDataOperation
+  alias EHealth.PRM.Medications.API, as: MedicationsAPI
   alias EHealth.MedicationRequestRequest.RejectOperation
+  alias EHealth.MedicationRequestRequest.CreateDataOperation
+  alias EHealth.PRM.Medications.INNMDosage.Schema, as: INNMDosage
+  alias EHealth.PRM.Medications.INNMDosage.Ingredient, as: INNMDosageIngredient
   alias EHealth.MedicationRequestRequest.HumanReadableNumberGenerator, as: HRNGenerator
 
   @status_new EHealth.MedicationRequestRequest.status(:new)
@@ -100,7 +105,7 @@ defmodule EHealth.MedicationRequestRequests do
         create_operation <- CreateDataOperation.create(mrr, client_id),
         %Ecto.Changeset{valid?: true} <- create_changeset(create_operation, mrr, user_id, client_id)
     do
-      {:ok, prequalify_programs(mrr["medication_id"], mrr["medication_qty"], programs)}
+      {:ok, prequalify_programs(mrr, programs)}
     else
       err -> err
     end
@@ -137,22 +142,61 @@ defmodule EHealth.MedicationRequestRequests do
     |> validate_required([:data, :number, :status, :inserted_by, :updated_by])
   end
 
-  defp prequalify_programs(medication_id, medication_qty, programs) do
+  defp prequalify_programs(mrr, programs) do
     programs
     |> Enum.map(fn %{"id" => program_id} ->
-      %{id: program_id, data: Validations.validate_medication_id(medication_id, medication_qty, program_id)}
+      %{id: program_id,
+        data: Validations.validate_medication_id(mrr["medication_id"], mrr["medication_qty"], program_id),
+        mrr: mrr}
     end)
     |> Enum.map(fn validated_result -> show_program_status(validated_result) end)
   end
 
-  defp show_program_status(%{id: _id, data: {:ok, result}}) do
-    result
-    |> Enum.at(0)
-    |> Map.put(:status, "VALID")
+  def get_check_innm_id(medication_id) do
+    with %INNMDosage{} = medication <- MedicationsAPI.get_innm_dosage_by_id(medication_id),
+         ingredient <- Enum.find(medication.ingredients, &(Map.get(&1, :is_primary)))
+    do
+      {:ok, ingredient.innm_child_id}
+    end
   end
-  defp show_program_status(%{id: id, data: _err}) do
+
+  defp get_prequalify_requests(%{} = medication_request) do
+    medication_request
+    |> Map.take(~w(person_id started_at ended_at))
+    |> OPS.get_prequalify_medication_requests()
+  end
+
+  defp validate_ingredients(medication_ids, check_innm_id) do
+    ingredients =
+      INNMDosageIngredient
+      |> where([idi], idi.parent_id in ^medication_ids)
+      |> where([idi], idi.is_primary and idi.innm_child_id == ^check_innm_id)
+      |> PRMRepo.all
+    if Enum.empty?(ingredients) do
+      :ok
+    else
+      :error
+    end
+  end
+
+  defp show_program_status(%{id: _id, data: {:ok, result}, mrr: mrr}) do
+    mp = Enum.at(result, 0)
+    with {:ok, check_innm_id} <- get_check_innm_id(mrr["medication_id"]),
+         {:ok, %{"data" => medication_ids}} <- get_prequalify_requests(mrr),
+         :ok <- validate_ingredients(medication_ids, check_innm_id)
+    do
+        %{id: mp.medical_program_id, name: mp.medical_program_name, status: "VALID"}
+    else
+        _ ->  %{id: mp.medical_program_id, name: mp.medical_program_name, status: "INVALID",
+                invalid_reason: "It can be only 1 active/ completed medication request request or " <>
+                "medication request per one innm for the same patient at the same period of time!"}
+    end
+  end
+  defp show_program_status(%{id: id, data: _err, mrr: _}) do
     mp = MedicalPrograms.get_by_id(id)
-    %{medical_program_id: mp.id, medical_program_name: mp.name, status: "INVALID"}
+    mp
+    |> Map.put(:status, "INVALID")
+    |> Map.put(:invalid_reason, "Innm not on the list of approved innms for program \"#{mp.name}\"")
   end
 
   def reject(id, user_id, client_id) do

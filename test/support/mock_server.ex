@@ -397,6 +397,10 @@ defmodule EHealth.MockServer do
     render([], conn, 200)
   end
 
+  get "/prequalify_medication_requests" do
+    render([], conn, 200)
+  end
+
   post "/medication_dispenses" do
     params = conn.params["medication_dispense"]
     details =

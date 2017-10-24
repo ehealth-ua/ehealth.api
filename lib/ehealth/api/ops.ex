@@ -57,6 +57,10 @@ defmodule EHealth.API.OPS do
     get!("/qualify_medication_requests", headers, params: params)
   end
 
+  def get_prequalify_medication_requests(params, headers \\ []) do
+    get!("/prequalify_medication_requests", headers, params: params)
+  end
+
   def create_medication_request(params, headers \\ []) do
     post!("/medication_requests", Poison.encode!(params), headers)
   end

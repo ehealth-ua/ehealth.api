@@ -38,17 +38,15 @@ defmodule EHealth.Web.MedicationRequestRequestView do
   def render("show_prequalify_programs.json", %{programs: programs}) do
     render_many(programs, MedicationRequestRequestView, "show_prequalify_program.json", as: :program)
   end
-  def render("show_prequalify_program.json", %{program: program}) do
-    maybe_add_error_reason(
-      %{program_id: program.medical_program_id,
-        program_name: program.medical_program_name,
-        status: program.status
-      }
-    )
+  def render("show_prequalify_program.json", %{program: %{status: "INVALID"} = program}) do
+    %{program_id: program.id,
+      program_name: program.name,
+      status: program.status,
+      invalid_reason: program.invalid_reason}
   end
-
-  defp maybe_add_error_reason(%{status: "INVALID"} = program) do
-    Map.put(program, :invalid_reason, "Innm not on the list of approved innms for program \"#{program.program_name}\"")
+  def render("show_prequalify_program.json", %{program: %{status: "VALID"} = program}) do
+    %{program_id: program.id,
+      program_name: program.name,
+      status: program.status}
   end
-  defp maybe_add_error_reason(program), do: program
 end
