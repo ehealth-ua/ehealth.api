@@ -114,3 +114,14 @@ config :ehealth, EHealth.PRMRepo,
   timeout: 15_000,
   pool_timeout: 15_000,
   types: EHealth.PRM.PostgresTypes
+
+config :ehealth, EHealth.FraudRepo,
+  adapter: Ecto.Adapters.Postgres,
+  database: "${FRAUD_DB_NAME}",
+  username: "${FRAUD_DB_USER}",
+  password: "${FRAUD_DB_PASSWORD}",
+  hostname: "${FRAUD_DB_HOST}",
+  port: "${FRAUD_DB_PORT}",
+  pool_size: "${FRAUD_DB_POOL_SIZE}",
+  timeout: 15_000,
+  pool_timeout: 15_000

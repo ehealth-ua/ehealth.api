@@ -135,3 +135,12 @@ config :ehealth, EHealth.PRMRepo,
   pool: Ecto.Adapters.SQL.Sandbox,
   types: EHealth.PRM.PostgresTypes,
   ownership_timeout: 120_000_000
+
+config :ehealth, EHealth.FraudRepo,
+  adapter: Ecto.Adapters.Postgres,
+  username: "postgres",
+  password: "postgres",
+  database: "fraud_test",
+  hostname: "localhost",
+  pool: Ecto.Adapters.SQL.Sandbox,
+  ownership_timeout: 120_000_000
