@@ -249,7 +249,7 @@ defmodule EHealth.DeclarationRequest.API.Validations do
     if Employee.type(:doctor) == employee.employee_type do
       changeset
     else
-      add_error(changeset, :"data.person.employee_id", "must belong to a doctor.")
+      add_error(changeset, :"data.person.employee_id", "Employee ID must reference a doctor.")
     end
   end
 

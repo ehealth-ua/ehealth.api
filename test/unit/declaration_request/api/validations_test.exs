@@ -459,7 +459,7 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
 
       assert [
         "data.person.employee_id": {
-          "must belong to a doctor.", []
+          "Employee ID must reference a doctor.", []
         }
       ] = result.errors
     end
