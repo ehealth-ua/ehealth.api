@@ -12,6 +12,7 @@ defmodule EHealth.DeclarationRequest.API.Validations do
   alias EHealth.API.Signature
   alias EHealth.DeclarationRequest.SignRequest
   alias EHealth.Validators.JsonSchema
+  alias EHealth.PRM.Employees.Schema, as: Employee
 
   @auth_otp DeclarationRequest.authentication_method(:otp)
 
@@ -241,6 +242,14 @@ defmodule EHealth.DeclarationRequest.API.Validations do
       |> elem(1)
     else
       changeset
+    end
+  end
+
+  def validate_employee_type(changeset, employee) do
+    if Employee.type(:doctor) == employee.employee_type do
+      changeset
+    else
+      add_error(changeset, :"data.person.employee_id", "must belong to a doctor.")
     end
   end
 

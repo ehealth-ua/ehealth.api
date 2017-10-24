@@ -270,6 +270,7 @@ defmodule EHealth.DeclarationRequest.API do
     |> cast(%{data: attrs}, [:data])
     |> validate_legal_entity_employee(legal_entity, employee)
     |> validate_legal_entity_division(legal_entity, division)
+    |> validate_employee_type(employee)
     |> validate_patient_birth_date()
     |> validate_patient_age(Enum.map(specialities, &(&1["speciality"])), global_parameters["adult_age"])
     |> validate_authentication_method_phone_number()

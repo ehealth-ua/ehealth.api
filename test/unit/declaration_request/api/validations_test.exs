@@ -436,4 +436,32 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
       ] = result.errors
     end
   end
+
+  describe "validate_employee_type/2" do
+    test "when employee is doctor" do
+      employee = %{employee_type: "DOCTOR"}
+
+      result =
+        %DeclarationRequest{}
+        |> Ecto.Changeset.change()
+        |> validate_employee_type(employee)
+
+      assert [] = result.errors
+    end
+
+    test "when employee is not doctor" do
+      employee = %{employee_type: "OWNER"}
+
+      result =
+        %DeclarationRequest{}
+        |> Ecto.Changeset.change()
+        |> validate_employee_type(employee)
+
+      assert [
+        "data.person.employee_id": {
+          "must belong to a doctor.", []
+        }
+      ] = result.errors
+    end
+  end
 end
