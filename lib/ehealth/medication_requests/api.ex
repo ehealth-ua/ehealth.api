@@ -67,7 +67,7 @@ defmodule EHealth.MedicationRequests.API do
 
   def reject(params, client_type, headers) do
     update_params = %{"medication_request": %{status: "REJECTED",
-                      updated_by: client_type,
+                      updated_by: get_client_id(headers),
                       updated_at: NaiveDateTime.utc_now(),
                       reject_reason: params["reject_reason"]}}
     with {:ok, %{"status" => "ACTIVE"} = medication_request} <- show(%{"id" => params["id"]}, client_type, headers),
