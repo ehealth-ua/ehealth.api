@@ -21,6 +21,7 @@ defmodule EHealth do
       supervisor(EHealth.DuplicatePersons, []),
       supervisor(EHealth.Repo, []),
       supervisor(EHealth.PRMRepo, []),
+      supervisor(EHealth.FraudRepo, []),
       # Start the endpoint when the application starts
       supervisor(EHealth.Web.Endpoint, []),
       worker(EHealth.DeclarationRequest.Terminator, []),

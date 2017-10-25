@@ -94,6 +94,7 @@ defmodule EHealth.Mixfile do
     [
       "ecto.setup": [
         "ecto.create",
+        "ecto.create --repo EHealth.FraudRepo",
         "ecto.create --repo EHealth.PRMRepo",
         "ecto.migrate",
         "run priv/repo/seeds.exs"

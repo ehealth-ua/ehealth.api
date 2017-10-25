@@ -9,6 +9,7 @@ defmodule :ehealth_tasks do
   alias EHealth.Dictionaries.Dictionary
 
   def migrate! do
+    fraud_migrations_dir = Path.join(["priv", "fraud_repo", "migrations"])
     prm_migrations_dir = Path.join(["priv", "prm_repo", "migrations"])
     migrations_dir = Path.join(["priv", "repo", "migrations"])
 
@@ -18,6 +19,11 @@ defmodule :ehealth_tasks do
     prm_repo.start_link()
 
     Ecto.Migrator.run(prm_repo, prm_migrations_dir, :up, all: true)
+
+    fraud_repo = EHealth.FraudRepo
+    fraud_repo.start_link()
+
+    Ecto.Migrator.run(fraud_repo, fraud_migrations_dir, :up, all: true)
 
     repo = EHealth.Repo
     repo.start_link()
