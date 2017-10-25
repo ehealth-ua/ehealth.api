@@ -1,7 +1,7 @@
 defmodule EHealth.Mixfile do
   use Mix.Project
 
-  @version "0.5.145"
+  @version "0.5.146"
 
   def project do
     [app: :ehealth,
