@@ -225,7 +225,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
       conn2 = post conn, employee_request_path(conn, :create), employee_request_params
       resp = json_response(conn2, 422)
-      assert "$.employee_request.employee_type" ==
+      assert "$.employee_request.pharmacist" ==
         resp
         |> get_in(["error", "invalid"])
         |> List.first()

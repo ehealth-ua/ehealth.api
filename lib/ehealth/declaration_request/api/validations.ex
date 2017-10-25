@@ -12,6 +12,7 @@ defmodule EHealth.DeclarationRequest.API.Validations do
   alias EHealth.API.Signature
   alias EHealth.DeclarationRequest.SignRequest
   alias EHealth.Validators.JsonSchema
+  alias EHealth.DeclarationRequest.API.ValidatePerson
   alias EHealth.PRM.Employees.Schema, as: Employee
 
   @auth_otp DeclarationRequest.authentication_method(:otp)
@@ -79,6 +80,10 @@ defmodule EHealth.DeclarationRequest.API.Validations do
 
   def validate_schema(attrs) do
     JsonSchema.validate(:declaration_request, %{"declaration_request" => attrs})
+  end
+
+  def validate_person(person) do
+    ValidatePerson.validate(person)
   end
 
   def validate_addresses(addresses) do

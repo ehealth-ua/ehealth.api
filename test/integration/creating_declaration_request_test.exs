@@ -148,6 +148,8 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
       insert(:prm, :global_parameter, %{parameter: "declaration_term", value: "40"})
       insert(:prm, :global_parameter, %{parameter: "declaration_term_unit", value: "YEARS"})
 
+      insert_dictionaries()
+
       legal_entity = insert(:prm, :legal_entity, id: "8799e3b6-34e7-4798-ba70-d897235d2b6d")
       insert(:prm, :medical_service_provider, legal_entity: legal_entity)
       party = insert(:prm, :party, id: "ac6ca796-9cc8-4a8f-96f8-016dd52daac6")
@@ -266,6 +268,26 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
       assert [error] = resp["error"]["invalid"]
       assert "required property phone_number was not present" ==
              error["rules"] |> List.first() |> Map.get("description")
+    end
+
+    test "declaration request with two similar phone numbers type results in validation error", %{conn: conn} do
+      phones = [%{"type" => "MOBILE", "number" => "+380508887700"}, %{"type" => "MOBILE", "number" => "+380508887700"}]
+
+      declaration_request_params =
+        "test/data/declaration_request.json"
+        |> File.read!()
+        |> Poison.decode!()
+        |> put_in(~W(declaration_request person phones), phones)
+
+      conn =
+        conn
+        |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
+        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
+        |> post(declaration_request_path(conn, :create), declaration_request_params)
+
+      resp = json_response(conn, 422)
+      assert [error] = resp["error"]["invalid"]
+      assert "Duplicate value 'MOBILE'" == error["rules"] |> List.first()
     end
 
     test "declaration request is created with 'OTP' verification", %{conn: conn} do
@@ -483,6 +505,8 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
         stop_microservices(ref)
       end
 
+      insert_dictionaries()
+
       {:ok, %{port: port, conn: conn}}
     end
 
@@ -527,6 +551,8 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
       insert(:prm, :global_parameter, %{parameter: "declaration_term", value: "40"})
       insert(:prm, :global_parameter, %{parameter: "declaration_term_unit", value: "YEARS"})
 
+      insert_dictionaries()
+
       {:ok, port, ref} = start_microservices(InvalidEmployeeID)
 
       System.put_env("UADDRESS_ENDPOINT", "http://localhost:#{port}")
@@ -569,14 +595,15 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
   describe "Settlement does not exist" do
     defmodule NoSettlement do
       use MicroservicesHelper
-
-      Plug.Router.get "/settlements/adaa4abf-f530-461c-bcbf-a0ac210d955b" do
+        Plug.Router.get "/settlements/adaa4abf-f530-461c-bcbf-a0ac210d955b" do
         Plug.Conn.send_resp(conn, 404, Poison.encode!(%{meta: "", data: %{}}))
       end
     end
 
     setup %{conn: conn} do
       {:ok, port, ref} = start_microservices(NoSettlement)
+
+      insert_dictionaries()
 
       System.put_env("UADDRESS_ENDPOINT", "http://localhost:#{port}")
       on_exit fn ->
@@ -651,5 +678,12 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
     %EHealth.DeclarationRequest{}
     |> Ecto.Changeset.change(declaration_request_params)
     |> EHealth.Repo.insert!
+  end
+
+  defp insert_dictionaries() do
+    insert(:il, :dictionary_phone_type)
+    insert(:il, :dictionary_document_type)
+    insert(:il, :dictionary_authentication_method)
+    insert(:il, :dictionary_document_relationship_type)
   end
 end

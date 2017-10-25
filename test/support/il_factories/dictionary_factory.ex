@@ -8,11 +8,8 @@ defmodule EHealth.ILFactories.DictionaryFactory do
       def dictionary_factory do
         %EHealth.Dictionaries.Dictionary{
           name: sequence("DICTIONARY-"),
-          labels: ["SYSTEM"],
-          values: %{
-            "MOBILE" => "mobile",
-            "LANDLINE" => "landline",
-          },
+          labels: ["SYSTEM", "EXTERNAL"],
+          values: %{"TEST" => "test"},
           is_active: true,
         }
       end
@@ -21,16 +18,52 @@ defmodule EHealth.ILFactories.DictionaryFactory do
         build(:dictionary, [
           name: "PHONE_TYPE",
           values: %{
-            "MOBILE" => "mobile",
-            "LANDLINE" => "landline",
-          }
+            "MOBILE" => "мобільний",
+            "LAND_LINE" => "стаціонарний"}
         ])
       end
 
       def dictionary_employee_type_factory do
         build(:dictionary, [
           name: "EMPLOYEE_TYPE",
-          values: %{"DOCTOR" => "doctor"}
+          values: %{
+            "HR" => "відділ кадрів",
+            "ADMIN" => "реєстратор",
+            "OWNER" => "керівник закладу ОЗ",
+            "DOCTOR" => "лікар",
+            "PHARMACIST" => "фармацевт",
+            "PHARMACY_OWNER" => "керівник аптеки"}
+        ])
+      end
+
+      def dictionary_document_type_factory do
+        build(:dictionary, [
+          name: "DOCUMENT_TYPE",
+          values: %{
+            "PASSPORT" => "Паспорт",
+            "NATIONAL_ID" => "Біометричний паспорт",
+            "BIRTH_CERTIFICATE" => "Свідоцтво про народження",
+            "TEMPORARY_CERTIFICATE" => "Посвідка на проживання"}
+        ])
+      end
+
+      def dictionary_authentication_method_factory do
+        build(:dictionary, [
+          name: "AUTHENTICATION_METHOD",
+          values: %{
+            "OTP" => "Авторизація через СМС",
+            "OFFLINE" => "Авторизація через верифікацію документів"}
+        ])
+      end
+
+      def dictionary_document_relationship_type_factory do
+        build(:dictionary, [
+          name: "DOCUMENT_RELATIONSHIP_TYPE",
+          values: %{
+            "DOCUMENT" => "Документ",
+            "COURT_DECISION" => "Рішення суду",
+            "BIRTH_CERTIFICATE" => "Свідоцтво про народження",
+            "CONFIDANT_CERTIFICATE" => "Посвідчення опікуна"}
         ])
       end
     end

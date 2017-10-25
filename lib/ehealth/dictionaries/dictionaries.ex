@@ -82,6 +82,7 @@ defmodule EHealth.Dictionaries do
 
   def get_dictionary_value(value, dictionary_name) do
     {:ok, dictionaries} = Dictionaries.list_dictionaries(%{"name": dictionary_name})
+
     dictionaries
     |> Enum.at(0)
     |> fetch_dictionary_value(value)
@@ -89,4 +90,18 @@ defmodule EHealth.Dictionaries do
 
   defp fetch_dictionary_value(%Dictionary{values: values}, value), do: Map.get(values, value)
   defp fetch_dictionary_value(_, _value), do: nil
+
+  def get_dictionaries(dictionary_list) do
+    query = from(d in Dictionary, where: d.name in ^dictionary_list and d.is_active, select: {d.name, d.values})
+
+    query
+    |> Repo.all()
+    |> Map.new()
+  end
+
+  def get_dictionaries_keys(dictionary_list) do
+    dictionary_list
+    |> get_dictionaries()
+    |> Enum.reduce(%{}, fn({d_name, d_values}, acc) -> Map.put(acc, d_name, Map.keys(d_values)) end)
+  end
 end
