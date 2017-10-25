@@ -85,7 +85,8 @@ defmodule EHealth.MedicationRequests.API do
   end
 
   def resend(params, client_type, headers) do
-    with {:ok, %{"status" => "ACTIVE"} = medication_request} <- show(%{"id" => params["id"]}, client_type, headers)
+    with {:ok, %{"status" => "ACTIVE"} = medication_request} <- show(%{"id" => params["id"]}, client_type, headers),
+         false <- is_nil(medication_request["verification_code"])
     do
       SMSSender.maybe_send_sms(%{number: medication_request["request_number"],
                                  verification_code: medication_request["verification_code"]},
@@ -94,6 +95,7 @@ defmodule EHealth.MedicationRequests.API do
       {:ok, Map.merge(medication_request, medication_request)}
     else
       {:ok, _} -> {:error, {:forbidden, "Invalid status Medication request for resend action!"}}
+      true -> {:error, {:forbidden, "Can't resend Medication request without verification code!"}}
       err -> err
     end
   end
