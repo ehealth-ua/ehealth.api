@@ -40,6 +40,7 @@ defmodule EHealth.FraudRepo.Migrations.CreateDivisions do
       add :legal_entity_id, :uuid
       add :status, :string, null: false
       add :is_active, :boolean, null: false
+      add :location, :geometry
 
       timestamps()
     end
@@ -112,6 +113,9 @@ defmodule EHealth.FraudRepo.Migrations.CreateDivisions do
     WHEN (OLD.addresses IS DISTINCT FROM NEW.addresses OR OLD.phones IS DISTINCT FROM NEW.phones)
     EXECUTE PROCEDURE set_division_addresses_phones();
     """
+
+    execute("ALTER table divisions ENABLE REPLICA TRIGGER on_division_insert;")
+    execute("ALTER table divisions ENABLE REPLICA TRIGGER on_division_update;")
   end
 
   def down do

@@ -85,6 +85,9 @@ defmodule EHealth.FraudRepo.Migrations.CreateEmployees do
     WHEN (OLD.additional_info IS DISTINCT FROM NEW.additional_info)
     EXECUTE PROCEDURE set_employee_additional_info();
     """
+
+    execute("ALTER table employees ENABLE REPLICA TRIGGER on_employee_insert;")
+    execute("ALTER table employees ENABLE REPLICA TRIGGER on_employee_update;")
   end
 
   def down do

@@ -121,6 +121,9 @@ defmodule EHealth.FraudRepo.Migrations.CreateLegalEntities do
     WHEN (OLD.addresses IS DISTINCT FROM NEW.addresses OR OLD.phones IS DISTINCT FROM NEW.phones)
     EXECUTE PROCEDURE set_legal_entity_addresses_phones();
     """
+
+    execute("ALTER table legal_entities ENABLE REPLICA TRIGGER on_legal_entity_insert;")
+    execute("ALTER table legal_entities ENABLE REPLICA TRIGGER on_legal_entity_update;")
   end
 
   def down do
