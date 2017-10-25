@@ -124,4 +124,5 @@ config :ehealth, EHealth.FraudRepo,
   port: "${FRAUD_DB_PORT}",
   pool_size: "${FRAUD_DB_POOL_SIZE}",
   timeout: 15_000,
-  pool_timeout: 15_000
+  pool_timeout: 15_000,
+  types: EHealth.Fraud.PostgresTypes

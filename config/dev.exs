@@ -121,4 +121,5 @@ config :ehealth, EHealth.FraudRepo,
   password: "postgres",
   database: "fraud_dev",
   hostname: "localhost",
-  pool_size: 10
+  pool_size: 10,
+  types: EHealth.Fraud.PostgresTypes

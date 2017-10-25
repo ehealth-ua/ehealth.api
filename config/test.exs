@@ -143,4 +143,5 @@ config :ehealth, EHealth.FraudRepo,
   database: "fraud_test",
   hostname: "localhost",
   pool: Ecto.Adapters.SQL.Sandbox,
+  types: EHealth.Fraud.PostgresTypes,
   ownership_timeout: 120_000_000
