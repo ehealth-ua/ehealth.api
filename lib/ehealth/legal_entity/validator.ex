@@ -12,6 +12,12 @@ defmodule EHealth.LegalEntity.Validator do
   alias EHealth.Validators.Addresses
   alias EHealth.Validators.BirthDate
   alias EHealth.Validators.JsonSchema
+  alias EHealth.Validators.JsonObjects
+  alias EHealth.Dictionaries
+
+  @validation_dictionaries [
+    "ADDRESS_TYPE",
+    "PHONE_TYPE"]
 
   def decode_and_validate(params, headers) do
     params
@@ -31,6 +37,7 @@ defmodule EHealth.LegalEntity.Validator do
   end
   def validate_json({:ok, %{"data" => %{"content" => content} = data}}) do
     with :ok <- validate_schema(content),
+         :ok <- validate_json_objects(content),
          :ok <- validate_kveds(content),
          :ok <- validate_addresses(content),
          :ok <- validate_tax_id(content),
@@ -74,6 +81,16 @@ defmodule EHealth.LegalEntity.Validator do
 
   def validate_schema(content) do
     JsonSchema.validate(:legal_entity, content)
+  end
+
+  def validate_json_objects(content) do
+    dict_keys = Dictionaries.get_dictionaries_keys(@validation_dictionaries)
+
+    with %{"ADDRESS_TYPE" => address_types} = dict_keys,
+         :ok <- JsonObjects.array_unique_by_key(content, ["addresses"], "type", address_types),
+         %{"PHONE_TYPE" => phone_types} = dict_keys,
+         :ok <- JsonObjects.array_unique_by_key(content, ["phones"], "type", phone_types),
+    do:  :ok
   end
 
   def validate_kveds(content) do

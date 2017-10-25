@@ -13,6 +13,13 @@ defmodule EHealth.Unit.LegalEntityTest do
   alias EHealth.LegalEntity.Validator
   alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
 
+  setup _ do
+    insert(:il, :dictionary_phone_type)
+    insert(:il, :address_type)
+
+    :ok
+  end
+
   test "successed signed content validation" do
     content =
       "test/data/signed_content.json"

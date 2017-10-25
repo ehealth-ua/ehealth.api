@@ -66,6 +66,15 @@ defmodule EHealth.ILFactories.DictionaryFactory do
             "CONFIDANT_CERTIFICATE" => "Посвідчення опікуна"}
         ])
       end
+
+      def address_type_factory do
+        build(:dictionary, [
+          name: "ADDRESS_TYPE",
+          values: %{
+            "RESIDENCE" => "проживання",
+            "REGISTRATION" => "реєстрації"}
+        ])
+      end
     end
   end
 end
