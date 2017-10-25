@@ -71,7 +71,7 @@ defmodule EHealth.FraudRepo.Migrations.CreateParties do
 
     execute """
     CREATE TRIGGER on_party_insert
-    AFTER INSERT
+    BEFORE INSERT
     ON parties
     FOR EACH ROW
     EXECUTE PROCEDURE set_party_documents_phones();
@@ -79,7 +79,7 @@ defmodule EHealth.FraudRepo.Migrations.CreateParties do
 
     execute """
     CREATE TRIGGER on_party_update
-    AFTER UPDATE
+    BEFORE UPDATE
     ON parties
     FOR EACH ROW
     WHEN (OLD.documents IS DISTINCT FROM NEW.documents OR OLD.phones IS DISTINCT FROM NEW.phones)

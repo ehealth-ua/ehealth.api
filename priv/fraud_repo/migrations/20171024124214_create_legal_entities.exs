@@ -90,11 +90,11 @@ defmodule EHealth.FraudRepo.Migrations.CreateLegalEntities do
       END LOOP;
 
       FOR phone IN SELECT * FROM jsonb_array_elements(NEW.phones) LOOP
-        IF address->>'type' = 'MOBILE' THEN
+        IF phone->>'type' = 'MOBILE' THEN
           NEW.mobile_phone = phone->>'number';
         END IF;
 
-        IF address->>'type' = 'LAND_LINE' THEN
+        IF phone->>'type' = 'LAND_LINE' THEN
           NEW.land_line_phone = phone->>'number';
         END IF;
       END LOOP;
@@ -107,7 +107,7 @@ defmodule EHealth.FraudRepo.Migrations.CreateLegalEntities do
 
     execute """
     CREATE TRIGGER on_legal_entity_insert
-    AFTER INSERT
+    BEFORE INSERT
     ON legal_entities
     FOR EACH ROW
     EXECUTE PROCEDURE set_legal_entity_addresses_phones();
@@ -115,7 +115,7 @@ defmodule EHealth.FraudRepo.Migrations.CreateLegalEntities do
 
     execute """
     CREATE TRIGGER on_legal_entity_update
-    AFTER UPDATE
+    BEFORE UPDATE
     ON legal_entities
     FOR EACH ROW
     WHEN (OLD.addresses IS DISTINCT FROM NEW.addresses OR OLD.phones IS DISTINCT FROM NEW.phones)

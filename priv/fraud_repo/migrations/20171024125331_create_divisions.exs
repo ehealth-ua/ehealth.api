@@ -82,11 +82,11 @@ defmodule EHealth.FraudRepo.Migrations.CreateDivisions do
       END LOOP;
 
       FOR phone IN SELECT * FROM jsonb_array_elements(NEW.phones) LOOP
-        IF address->>'type' = 'MOBILE' THEN
+        IF phone->>'type' = 'MOBILE' THEN
           NEW.mobile_phone = phone->>'number';
         END IF;
 
-        IF address->>'type' = 'LAND_LINE' THEN
+        IF phone->>'type' = 'LAND_LINE' THEN
           NEW.land_line_phone = phone->>'number';
         END IF;
       END LOOP;
@@ -99,7 +99,7 @@ defmodule EHealth.FraudRepo.Migrations.CreateDivisions do
 
     execute """
     CREATE TRIGGER on_division_insert
-    AFTER INSERT
+    BEFORE INSERT
     ON divisions
     FOR EACH ROW
     EXECUTE PROCEDURE set_division_addresses_phones();
@@ -107,7 +107,7 @@ defmodule EHealth.FraudRepo.Migrations.CreateDivisions do
 
     execute """
     CREATE TRIGGER on_division_update
-    AFTER UPDATE
+    BEFORE UPDATE
     ON divisions
     FOR EACH ROW
     WHEN (OLD.addresses IS DISTINCT FROM NEW.addresses OR OLD.phones IS DISTINCT FROM NEW.phones)

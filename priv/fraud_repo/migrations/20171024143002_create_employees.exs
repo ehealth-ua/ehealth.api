@@ -40,28 +40,28 @@ defmodule EHealth.FraudRepo.Migrations.CreateEmployees do
       specialty jsonb;
     BEGIN
       NEW.educations = info->>'educations';
-      IF info->>'educations' IS NOT NULL THEN
-        NEW.educations_qty = array_length(info->>'educations', 1);
+      IF info->'educations' IS NOT NULL THEN
+        NEW.educations_qty = jsonb_array_length(info->'educations');
       END IF;
 
       NEW.qualifications = info->>'qualifications';
-      IF info->>'qualifications' IS NOT NULL THEN
-        NEW.qualifications_qty = array_length(info->>'qualifications', 1);
+      IF info->'qualifications' IS NOT NULL THEN
+        NEW.qualifications_qty = jsonb_array_length(info->'qualifications');
       END IF;
 
       NEW.specialities = info->>'specialities';
-      IF info->>'specialities' IS NOT NULL THEN
-        NEW.specialities_qty = array_length(info->>'specialities', 1);
+      IF info->'specialities' IS NOT NULL THEN
+        NEW.specialities_qty = jsonb_array_length(info->'specialities');
 
-        FOR specialty IN SELECT * FROM jsonb_array_elements(info->>'specialities') LOOP
-          IF specialty->>'speciality_officio' = TRUE THEN
+        FOR specialty IN SELECT * FROM jsonb_array_elements(info->'specialities') LOOP
+          IF specialty->'speciality_officio' = 'true'::jsonb THEN
             NEW.speciality_officio = specialty;
-            NEW.speciality_officio_valid_to_date = specialty->>'valid_to_date'::date;
+            NEW.speciality_officio_valid_to_date = specialty->'valid_to_date';
           END IF;
         END LOOP;
       END IF;
 
-      NEW.science_degree = info->>'science_degree';
+      NEW.science_degree = info->'science_degree';
 
       RETURN NEW;
     END;
@@ -71,7 +71,7 @@ defmodule EHealth.FraudRepo.Migrations.CreateEmployees do
 
     execute """
     CREATE TRIGGER on_employee_insert
-    AFTER INSERT
+    BEFORE INSERT
     ON employees
     FOR EACH ROW
     EXECUTE PROCEDURE set_employee_additional_info();
@@ -79,7 +79,7 @@ defmodule EHealth.FraudRepo.Migrations.CreateEmployees do
 
     execute """
     CREATE TRIGGER on_employee_update
-    AFTER UPDATE
+    BEFORE UPDATE
     ON employees
     FOR EACH ROW
     WHEN (OLD.additional_info IS DISTINCT FROM NEW.additional_info)
