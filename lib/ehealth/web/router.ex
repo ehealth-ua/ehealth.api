@@ -165,6 +165,8 @@ defmodule EHealthWeb.Router do
       get "/:id", MedicationRequestController, :show
       get "/:id/dispenses", MedicationDispenseController, :by_medication_request
       post "/:id/actions/qualify", MedicationRequestController, :qualify
+      patch "/:id/actions/reject", MedicationRequestController, :reject
+      patch "/:id/actions/resend", MedicationRequestController, :resend
     end
 
     # Person declarations

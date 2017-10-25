@@ -185,6 +185,12 @@ config :ehealth, :medication_request_request,
   expire_in_minutes: {:system, "MEDICATION_REQUEST_REQUEST_EXPIRATION", 30},
   otp_code_length: {:system, "MEDICATION_REQUEST_REQUEST_OTP_CODE_LENGTH", 4}
 
+config :ehealth, :medication_request,
+  sign_template_sms: {:system, "TEMPLATE_SMS_FOR_SIGN_MEDICATION_REQUEST",
+    "Ваш рецепт: <number>. Код підтвредження: <verification_code>"},
+  reject_template_sms: {:system, "TEMPLATE_SMS_FOR_REJECT_MEDICATION_REQUEST",
+    "Відкликано рецепт: <number> від <created_at>"}
+
 # Configures bamboo
 config :ehealth, EHealth.Bamboo.Mailer,
   adapter: EHealth.Bamboo.PostmarkAdapter,

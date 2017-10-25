@@ -201,6 +201,85 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
     end
   end
 
+  describe "reject medication request" do
+    test "success", %{conn: conn} do
+      user_id = get_consumer_id(conn.req_headers)
+      legal_entity_id = get_client_id(conn.req_headers)
+      insert(:prm, :division, id: "e00e20ba-d20f-4ebb-a1dc-4bf58231019c")
+      insert(:prm, :legal_entity, id: "dae597a8-c858-42f6-bc16-1a7bdd340466")
+      medical_program_id = "6ee844fd-9f4d-4457-9eda-22aa506be4c4"
+      insert(:prm, :medical_program, id: medical_program_id)
+      %{medication_id: medication_id} = insert(:prm, :program_medication,
+        medical_program_id: medical_program_id
+      )
+
+      %{id: innm_dosage_id} = insert_innm_dosage()
+      insert(:prm, :ingredient_medication,
+        parent_id: medication_id,
+        medication_child_id: innm_dosage_id
+      )
+
+      %{party: party} =
+        :prm
+        |> insert(:party_user, user_id: user_id)
+        |> PRMRepo.preload(:party)
+      legal_entity = PRMRepo.get!(LegalEntity, legal_entity_id)
+      insert(:prm, :employee, party: party, legal_entity: legal_entity)
+      conn = patch conn, medication_request_path(conn, :reject, get_active_medication_request()),
+        %{reject_reason: "TEST"}
+      assert json_response(conn, 200)
+    end
+
+    test "404", %{conn: conn} do
+      user_id = get_consumer_id(conn.req_headers)
+
+      :prm
+      |> insert(:party_user, user_id: user_id)
+      |> PRMRepo.preload(:party)
+      conn = patch conn, medication_request_path(conn, :reject, "e9baba39-da78-4950-b396-cc36e80572b1"),
+        %{reject_reason: "TEST"}
+      assert json_response(conn, 404)
+    end
+  end
+
+  describe "resend medication request info" do
+    test "success", %{conn: conn} do
+      user_id = get_consumer_id(conn.req_headers)
+      legal_entity_id = get_client_id(conn.req_headers)
+      insert(:prm, :division, id: "e00e20ba-d20f-4ebb-a1dc-4bf58231019c")
+      insert(:prm, :legal_entity, id: "dae597a8-c858-42f6-bc16-1a7bdd340466")
+      medical_program_id = "6ee844fd-9f4d-4457-9eda-22aa506be4c4"
+      insert(:prm, :medical_program, id: medical_program_id)
+      %{medication_id: medication_id} = insert(:prm, :program_medication,
+        medical_program_id: medical_program_id
+      )
+
+      %{id: innm_dosage_id} = insert_innm_dosage()
+      insert(:prm, :ingredient_medication,
+        parent_id: medication_id,
+        medication_child_id: innm_dosage_id
+      )
+
+      %{party: party} =
+        :prm
+        |> insert(:party_user, user_id: user_id)
+        |> PRMRepo.preload(:party)
+      legal_entity = PRMRepo.get!(LegalEntity, legal_entity_id)
+      insert(:prm, :employee, party: party, legal_entity: legal_entity)
+      conn = patch conn, medication_request_path(conn, :resend, get_active_medication_request())
+      assert json_response(conn, 200)
+    end
+
+    test "404", %{conn: conn} do
+      user_id = get_consumer_id(conn.req_headers)
+
+      :prm
+      |> insert(:party_user, user_id: user_id)
+      |> PRMRepo.preload(:party)
+      conn = patch conn, medication_request_path(conn, :resend, "e9baba39-da78-4950-b396-cc36e80572b1")
+      assert json_response(conn, 404)
+    end
+  end
   def insert_innm_dosage do
     %{id: innm_id} = insert(:prm, :innm)
 

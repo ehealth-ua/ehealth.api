@@ -22,6 +22,20 @@ defmodule EHealth.Web.MedicationRequestController do
     end
   end
 
+  def reject(%Plug.Conn{req_headers: headers} = conn, params) do
+    client_type = conn.assigns.client_type
+    with {:ok, medication_request} <- API.reject(params, client_type, headers) do
+      render(conn, "show.json", medication_request: medication_request)
+    end
+  end
+
+  def resend(%Plug.Conn{req_headers: headers} = conn, params) do
+    client_type = conn.assigns.client_type
+    with {:ok, medication_request} <- API.resend(params, client_type, headers) do
+      render(conn, "show.json", medication_request: medication_request)
+    end
+  end
+
   def qualify(%Plug.Conn{req_headers: headers} = conn, %{"id" => id} = params) do
     client_type = conn.assigns.client_type
     with {:ok, medical_programs, validations} <- API.qualify(id, client_type, Map.delete(params, "id"), headers)

@@ -245,6 +245,14 @@ defmodule EHealth.MockServer do
     Plug.Conn.send_resp(conn, 200, response)
   end
 
+  post "/sms/send" do
+    resp =
+      conn.body_params
+      |> wrap_response
+      |> Poison.encode!
+    Plug.Conn.send_resp(conn, 200, resp)
+  end
+
   # Digital signature
 
   post "/digital_signatures" do
@@ -354,6 +362,11 @@ defmodule EHealth.MockServer do
         render([get_medication_request(id, %{"dispense_valid_to" => "2013-01-01"})], conn, 200)
       _ -> render_404(conn)
     end
+  end
+
+
+  patch "/medication_requests/0242d712-1c6d-4ada-bbc5-540c61551e37" do
+    render([], conn, 404)
   end
 
   patch "/medication_requests/:id" do

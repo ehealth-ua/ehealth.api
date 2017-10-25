@@ -22,6 +22,7 @@ defmodule EHealth.MedicationRequests.API do
   alias EHealth.Validators.JsonSchema
   alias EHealth.MedicationRequests.Search
   alias EHealth.PRMRepo
+  alias EHealth.MedicationRequests.SMSSender
   import EHealth.Utils.Connection, only: [get_consumer_id: 1, get_client_id: 1]
   import Ecto.Changeset
   import Ecto.Query
@@ -61,6 +62,39 @@ defmodule EHealth.MedicationRequests.API do
           message = "Could not load remote reference for medication_request #{Map.get(medication_request, "id")}"
           {:error, {:internal_error, message}}
       end
+    end
+  end
+
+  def reject(params, client_type, headers) do
+    update_params = %{"medication_request": %{status: "REJECTED",
+                      updated_by: client_type,
+                      updated_at: NaiveDateTime.utc_now(),
+                      reject_reason: params["reject_reason"]}}
+    with {:ok, %{"status" => "ACTIVE"} = medication_request} <- show(%{"id" => params["id"]}, client_type, headers),
+         {:ok, %{"data" => mr}} <- OPS.update_medication_request(medication_request["id"], update_params)
+    do
+      SMSSender.maybe_send_sms(%{number: medication_request["request_number"],
+                                 created_at: medication_request["created_at"]},
+                                medication_request["person"],
+                                &SMSSender.reject_template/1)
+      {:ok, Map.merge(medication_request, mr)}
+    else
+      {:ok, _} -> {:error, {:forbidden, "Invalid status Request for Medication request for reject transition!"}}
+      err -> err
+    end
+  end
+
+  def resend(params, client_type, headers) do
+    with {:ok, %{"status" => "ACTIVE"} = medication_request} <- show(%{"id" => params["id"]}, client_type, headers)
+    do
+      SMSSender.maybe_send_sms(%{number: medication_request["request_number"],
+                                 verification_code: medication_request["verification_code"]},
+                                medication_request["person"],
+                                &SMSSender.sign_template/1)
+      {:ok, Map.merge(medication_request, medication_request)}
+    else
+      {:ok, _} -> {:error, {:forbidden, "Invalid status Medication request for resend action!"}}
+      err -> err
     end
   end
 
