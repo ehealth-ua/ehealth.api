@@ -175,6 +175,26 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
     end
 
+    test "INVALID qualify as admin", %{conn: conn} do
+      insert(:prm, :division, id: "e00e20ba-d20f-4ebb-a1dc-4bf58231019c")
+      medical_program_id = "6ee844fd-9f4d-4457-9eda-22aa506be4c4"
+      insert(:prm, :medical_program, id: medical_program_id)
+      insert(:prm, :program_medication, medical_program_id: medical_program_id)
+      insert_innm_dosage()
+
+      conn = put_client_id_header(conn, get_client_admin())
+      conn = post conn, medication_request_path(conn, :qualify, get_active_medication_request()), %{
+        "programs" => [%{"id" => medical_program_id}]
+      }
+      resp = json_response(conn, 200)
+      schema =
+        "specs/json_schemas/medication_request/medication_request_qualify_response.json"
+        |> File.read!()
+        |> Poison.decode!()
+
+      assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
+    end
+
     test "failed validation", %{conn: conn} do
       user_id = get_consumer_id(conn.req_headers)
       insert(:prm, :party_user, user_id: user_id)

@@ -19,7 +19,7 @@
         ],
         "description": "Status for ability use program for this Medication request Request"
       },
-      "invalid_reason": {
+      "rejection_reason": {
         "type": "string",
         "description": "Reason to fetch invalid status"
       },
@@ -32,6 +32,7 @@
       "name",
       "status",
       "participants"
-    ]
+    ],
+    "additionalProperties": false
   }
 }
