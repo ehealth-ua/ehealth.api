@@ -259,7 +259,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
         programs: [%{id: pm1.medical_program_id}]}
       assert %{
         "status" => "INVALID",
-        "invalid_reason" => ~s(Innm not on the list of approved innms for program "Доступні ліки")
+        "rejection_reason" => ~s(Innm not on the list of approved innms for program "Доступні ліки")
       } = json_response(conn1, 200)["data"] |> Enum.at(0)
     end
 

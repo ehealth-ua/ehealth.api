@@ -189,7 +189,7 @@ defmodule EHealth.MedicationRequestRequests do
         %{id: mp.medical_program_id, name: mp.medical_program_name, status: "VALID"}
     else
         _ ->  %{id: mp.medical_program_id, name: mp.medical_program_name, status: "INVALID",
-                invalid_reason: "It can be only 1 active/ completed medication request request or " <>
+                rejection_reason: "It can be only 1 active/ completed medication request request or " <>
                 "medication request per one innm for the same patient at the same period of time!"}
     end
   end
@@ -197,7 +197,7 @@ defmodule EHealth.MedicationRequestRequests do
     mp = MedicalPrograms.get_by_id(id)
     mp
     |> Map.put(:status, "INVALID")
-    |> Map.put(:invalid_reason, "Innm not on the list of approved innms for program \"#{mp.name}\"")
+    |> Map.put(:rejection_reason, "Innm not on the list of approved innms for program \"#{mp.name}\"")
   end
 
   def reject(id, user_id, client_id) do

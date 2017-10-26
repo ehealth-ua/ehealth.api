@@ -42,7 +42,7 @@ defmodule EHealth.Web.MedicationRequestRequestView do
     %{program_id: program.id,
       program_name: program.name,
       status: program.status,
-      invalid_reason: program.invalid_reason}
+      rejection_reason: program.rejection_reason}
   end
   def render("show_prequalify_program.json", %{program: %{status: "VALID"} = program}) do
     %{program_id: program.id,
