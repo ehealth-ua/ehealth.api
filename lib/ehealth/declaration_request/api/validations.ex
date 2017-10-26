@@ -87,7 +87,7 @@ defmodule EHealth.DeclarationRequest.API.Validations do
   end
 
   def validate_addresses(addresses) do
-    Addresses.validate(addresses)
+    Addresses.validate(addresses, "REGISTRATION")
   end
 
   def validate_legal_entity_employee(changeset, legal_entity, employee) do

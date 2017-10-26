@@ -1,7 +1,7 @@
 defmodule EHealth.Web.EmployeeRequestControllerTest do
   @moduledoc false
 
-  use EHealth.Web.ConnCase
+  use EHealth.Web.ConnCase, async: false
 
   import EHealth.SimpleFactory
 
@@ -15,6 +15,14 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   @moduletag :with_client_id
 
   describe "create employee request" do
+    setup (%{conn: conn}) do
+      insert(:il, :dictionary_phone_type)
+      insert(:il, :dictionary_document_type)
+      insert(:il, :dictionary_employee_type)
+
+      {:ok, conn: conn}
+    end
+
     test "with valid params and empty x-consumer-metadata", %{conn: conn} do
       conn = delete_client_id_header(conn)
       employee_request_params = File.read!("test/data/employee_doctor_request.json")
@@ -200,8 +208,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       %{legal_entity_id: legal_entity_id} = insert(:prm, :division,
         id: "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b"
       )
-      insert(:il, :dictionary_phone_type)
-      insert(:il, :dictionary_employee_type)
+
       employee_request_params = put_in(doctor_request(), ["employee_request", "employee_type"], "INVALID")
 
       employee_request_params = Map.put(
@@ -221,11 +228,11 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
         |> List.first()
         |> Map.get("entry")
 
-      employee_request_params = put_in(employee_request_params, ["employee_request", "employee_type"], "PHARMACIST")
+      employee_request_params = put_in(employee_request_params, ["employee_request", "employee_type"], "DOCTORS")
 
       conn2 = post conn, employee_request_path(conn, :create), employee_request_params
       resp = json_response(conn2, 422)
-      assert "$.employee_request.pharmacist" ==
+      assert "$.employee_request.employee_type" ==
         resp
         |> get_in(["error", "invalid"])
         |> List.first()
@@ -233,7 +240,6 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "with OWNER employee_type", %{conn: conn} do
-      insert(:il, :dictionary_phone_type)
       employee_request_params =  put_in(doctor_request(), ["employee_request", "employee_type"], Employee.type(:owner))
 
       employee_request_params = Map.put(
@@ -390,6 +396,46 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       resp = json_response(conn, 409)
       assert "employee is dismissed" == get_in(resp, ["error", "message"])
     end
+
+    test "with invalid party documents", %{conn: conn} do
+      %{legal_entity_id: legal_entity_id} = insert(:prm, :division,
+        id: "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b"
+      )
+
+      doc = %{"type" => "PASSPORT", "number" => "120518"}
+      employee_request_params = put_in(doctor_request(), ["employee_request", "party", "documents"], [doc, doc])
+
+      conn = put_client_id_header(conn, legal_entity_id)
+      conn1 = post conn, employee_request_path(conn, :create), employee_request_params
+
+      resp = json_response(conn1, 422)
+      assert Map.has_key?(resp, "error")
+      assert "#/employee_request/party/documents/type" ==
+        resp
+        |> get_in(["error", "invalid"])
+        |> List.first()
+        |> Map.get("entry")
+    end
+
+    test "with invalid party phones", %{conn: conn} do
+      %{legal_entity_id: legal_entity_id} = insert(:prm, :division,
+        id: "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b"
+      )
+
+      ph = %{"type" => "MOBILE", "number" => "+380503410870"}
+      employee_request_params = put_in(doctor_request(), ["employee_request", "party", "phones"], [ph, ph])
+
+      conn = put_client_id_header(conn, legal_entity_id)
+      conn1 = post conn, employee_request_path(conn, :create), employee_request_params
+
+      resp = json_response(conn1, 422)
+      assert Map.has_key?(resp, "error")
+      assert "#/employee_request/party/phones/type" ==
+        resp
+        |> get_in(["error", "invalid"])
+        |> List.first()
+        |> Map.get("entry")
+      end
   end
 
   describe "list employee requests" do

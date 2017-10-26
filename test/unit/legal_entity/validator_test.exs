@@ -11,7 +11,7 @@ defmodule EHealth.Unit.LegalEntity.ValidatorTest do
   describe "Additional JSON objects validation: validate_json_objects/1" do
     setup _ do
       insert(:il, :dictionary_phone_type)
-      insert(:il, :address_type)
+      insert(:il, :dictionary_address_type)
 
       legal_entity =
         "test/data/legal_entity.json"

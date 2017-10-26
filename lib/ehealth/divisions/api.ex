@@ -93,7 +93,6 @@ defmodule EHealth.Divisions.API do
 
     with %{"ADDRESS_TYPE" => address_types} = dict_keys,
          :ok <- JsonObjects.array_unique_by_key(data, ["addresses"], "type", address_types),
-         :ok <- JsonObjects.array_contains_item(data, ["addresses"], "type", "RESIDENCE"),
          %{"PHONE_TYPE" => phone_types} = dict_keys,
          :ok <- JsonObjects.array_unique_by_key(data, ["phones"], "type", phone_types),
     do:  :ok
@@ -102,7 +101,7 @@ defmodule EHealth.Divisions.API do
   def validate_addresses(data) do
     data
     |> Map.get("addresses")
-    |> Addresses.validate()
+    |> Addresses.validate("RESIDENCE")
     |> case do
          {:ok, _} -> :ok
          err -> err

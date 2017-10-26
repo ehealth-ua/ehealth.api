@@ -4,21 +4,21 @@ defmodule EHealth.Validators.Addresses do
   """
   alias EHealth.API.UAddress
 
-  def validate(addresses) do
+  def validate(addresses, required_type) do
     addresses
-    |> validate_addresses_type()
+    |> validate_addresses_type(required_type)
     |> validate_addresses_values()
   end
 
-  defp validate_addresses_type(addresses) do
+  defp validate_addresses_type(addresses, required_type) do
     addresses_count =
       addresses
-      |> Enum.filter(fn(x) -> Map.get(x, "type") == "REGISTRATION" end)
+      |> Enum.filter(fn(x) -> Map.get(x, "type") == required_type end)
       |> length()
 
     case addresses_count do
       1 -> {:ok, addresses}
-      _ -> {:error, [{%{description: "one and only one registration address is required", params: [], rule: :invalid},
+      _ -> {:error, [{%{description: "Address of type '#{required_type}' is required", params: [], rule: :invalid},
         "$.addresses"}]}
     end
   end

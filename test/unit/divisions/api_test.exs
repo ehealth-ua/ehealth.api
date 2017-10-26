@@ -9,9 +9,9 @@ defmodule EHealth.Unit.Divisions.APITest do
   alias EHealth.Divisions.API
 
   describe "Additional JSON objects validation: validate_json_objects/1" do
-    setup _ do
+    setup _context do
       insert(:il, :dictionary_phone_type)
-      insert(:il, :address_type)
+      insert(:il, :dictionary_address_type)
 
       division =
         "test/data/division.json"
@@ -33,11 +33,12 @@ defmodule EHealth.Unit.Divisions.APITest do
     end
 
     test "returns :error for duplicate adress types", %{division: division} do
-      one = address("RESIDENCE")
-      two = address("REGISTRATION")
-      three = address("RESIDENCE")
-      bad_division = Map.put(division, "addresses", [one, two, three])
+      res = address("RESIDENCE")
+      bad_division = Map.put(division, "addresses", [res, res])
+      assert {:error, _} = API.validate_json_objects(bad_division)
 
+      reg = address("REGISTRATION")
+      bad_division = Map.put(division, "addresses", [reg, reg])
       assert {:error, _} = API.validate_json_objects(bad_division)
     end
 

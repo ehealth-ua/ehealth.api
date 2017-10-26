@@ -9,7 +9,7 @@ defmodule EHealth.ILFactories.DictionaryFactory do
         %EHealth.Dictionaries.Dictionary{
           name: sequence("DICTIONARY-"),
           labels: ["SYSTEM", "EXTERNAL"],
-          values: %{"TEST" => "test"},
+          values: %{},
           is_active: true,
         }
       end
@@ -67,7 +67,7 @@ defmodule EHealth.ILFactories.DictionaryFactory do
         ])
       end
 
-      def address_type_factory do
+      def dictionary_address_type_factory do
         build(:dictionary, [
           name: "ADDRESS_TYPE",
           values: %{

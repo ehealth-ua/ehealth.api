@@ -1,7 +1,7 @@
 defmodule EHealth.Unit.LegalEntityTest do
   @moduledoc false
 
-  use EHealth.Web.ConnCase
+  use EHealth.Web.ConnCase, async: false
 
   import Ecto.Query, warn: false
 
@@ -13,130 +13,135 @@ defmodule EHealth.Unit.LegalEntityTest do
   alias EHealth.LegalEntity.Validator
   alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
 
-  setup _ do
-    insert(:il, :dictionary_phone_type)
-    insert(:il, :address_type)
+  describe "validations" do
+    setup _context do
+      insert_dictionaries()
+      :ok
+    end
 
-    :ok
-  end
+    test "successed signed content validation" do
+      content =
+        "test/data/signed_content.json"
+        |> File.read!()
+        |> Base.encode64
 
-  test "successed signed content validation" do
-    content =
-      "test/data/signed_content.json"
-      |> File.read!()
-      |> Base.encode64
+      assert {:ok, _} = Validator.validate_sign_content(%{
+        "signed_content_encoding" => "base64",
+        "signed_legal_entity_request" => content
+      }, [{"edrpou", "37367387"}])
+    end
 
-    assert {:ok, _} = Validator.validate_sign_content(%{
-      "signed_content_encoding" => "base64",
-      "signed_legal_entity_request" => content
-    }, [{"edrpou", "37367387"}])
-  end
+    test "invalid signed content validation" do
+      assert %Ecto.Changeset{valid?: false} = Validator.decode_and_validate(%{
+        "signed_content_encoding" => "base256",
+        "signed_legal_entity_request" => "invalid"
+      }, [])
+    end
 
-  test "invalid signed content validation" do
-    assert %Ecto.Changeset{valid?: false} = Validator.decode_and_validate(%{
-      "signed_content_encoding" => "base256",
-      "signed_legal_entity_request" => "invalid"
-    }, [])
-  end
+    test "invalid signed content - no security" do
+      content = get_legal_entity_data() |> Map.delete("security")
 
-  test "invalid signed content - no security" do
-    content = get_legal_entity_data() |> Map.delete("security")
+      assert {:error, [{error, _}]} = Validator.validate_json({:ok, %{"data" => %{"content" => content}}})
+      assert :required == error[:rule]
+      assert "required property security was not present" == error[:description]
+    end
 
-    assert {:error, [{error, _}]} = Validator.validate_json({:ok, %{"data" => %{"content" => content}}})
-    assert :required == error[:rule]
-    assert "required property security was not present" == error[:description]
-  end
+    test "invalid signed content - birth date format" do
+      content =
+        "test/data/signed_content_invalid_owner_birth_date.json"
+        |> File.read!()
+        |> Base.encode64
 
-  test "invalid signed content - birth date format" do
-    content =
-      "test/data/signed_content_invalid_owner_birth_date.json"
-      |> File.read!()
-      |> Base.encode64
+      assert {:error, [_, {error, entry}]} = Validator.decode_and_validate(%{
+        "signed_content_encoding" => "base64",
+        "signed_legal_entity_request" => content
+      }, [])
+      assert "$.owner.birth_date" == entry
+      assert :format == error[:rule]
+    end
 
-    assert {:error, [_, {error, entry}]} = Validator.decode_and_validate(%{
-      "signed_content_encoding" => "base64",
-      "signed_legal_entity_request" => content
-    }, [])
-    assert "$.owner.birth_date" == entry
-    assert :format == error[:rule]
-  end
+    test "invalid tax id" do
+      content = %{"owner" => %{"tax_id" => "00000000"}}
+      assert {:error, [{error, entry}]} = Validator.validate_tax_id(content)
+      assert "$.owner.tax_id" == entry
+      assert :invalid == error[:rule]
+    end
 
-  test "invalid tax id" do
-    content = %{"owner" => %{"tax_id" => "00000000"}}
-    assert {:error, [{error, entry}]} = Validator.validate_tax_id(content)
-    assert "$.owner.tax_id" == entry
-    assert :invalid == error[:rule]
-  end
+    test "validate legal entity with not allowed kved", %{conn: conn} do
+      kveds = %{
+        "name" => "KVEDS",
+        "values" => %{
+          "21.20": "Виробництво фармацевтичних препаратів і матеріалів",
+        },
+        "labels" => ["SYSTEM", "EXTERNAL"],
+        "is_active" => true,
+      }
+      patch conn, dictionary_path(conn, :update, "KVEDS"), kveds
 
-  test "validate legal entity with not allowed kved", %{conn: conn} do
-    kveds = %{
-      "name" => "KVEDS",
-      "values" => %{
-        "21.20": "Виробництво фармацевтичних препаратів і матеріалів",
-      },
-      "labels" => ["SYSTEM", "EXTERNAL"],
-      "is_active" => true,
-    }
-    patch conn, dictionary_path(conn, :update, "KVEDS"), kveds
+      content = Map.merge(get_legal_entity_data(), %{
+        "short_name" => "Nebo15",
+        "email" => "changed@example.com",
+        "kveds" => ["12.21"]
+      })
+      request = %{"data" => %{"content" => content}}
 
-    content = Map.merge(get_legal_entity_data(), %{
-      "short_name" => "Nebo15",
-      "email" => "changed@example.com",
-      "kveds" => ["12.21"]
-    })
-    request = %{"data" => %{"content" => content}}
+      assert %Ecto.Changeset{valid?: false} = API.create_legal_entity(%{
+        "signed_content_encoding" => "base64",
+        "signed_legal_entity_request" => request
+      }, [])
+    end
 
-    assert %Ecto.Changeset{valid?: false} = API.create_legal_entity(%{
-      "signed_content_encoding" => "base64",
-      "signed_legal_entity_request" => request
-    }, [])
-  end
+    test "validate decoded legal entity" do
+      content = get_legal_entity_data()
 
-  test "validate decoded legal entity" do
-    content = get_legal_entity_data()
+      assert :ok == Validator.validate_schema(content)
+    end
 
-    assert :ok == Validator.validate_schema(content)
-  end
+    test "validate legal entity EDRPOU" do
+      content = get_legal_entity_data()
 
-  test "validate legal entity EDRPOU" do
-    content = get_legal_entity_data()
+      signer = %{"edrpou" => "37367387"}
 
-    signer = %{"edrpou" => "37367387"}
+      assert {:ok, _} = Validator.validate_edrpou(content, signer)
+    end
 
-    assert {:ok, _} = Validator.validate_edrpou(content, signer)
-  end
+    test "empty signer EDRPOU" do
+      content = get_legal_entity_data()
 
-  test "empty signer EDRPOU" do
-    content = get_legal_entity_data()
+      signer = %{"empty" => "37367387"}
 
-    signer = %{"empty" => "37367387"}
+      assert {:error, %Ecto.Changeset{valid?: false}} = Validator.validate_edrpou(content, signer)
+    end
 
-    assert {:error, %Ecto.Changeset{valid?: false}} = Validator.validate_edrpou(content, signer)
-  end
+    test "invalid signer EDRPOU" do
+      content = get_legal_entity_data()
 
-  test "invalid signer EDRPOU" do
-    content = get_legal_entity_data()
+      signer = %{"edrpou" => "03736738"}
 
-    signer = %{"edrpou" => "03736738"}
+      assert {:error, %Ecto.Changeset{valid?: false}} = Validator.validate_edrpou(content, signer)
+    end
 
-    assert {:error, %Ecto.Changeset{valid?: false}} = Validator.validate_edrpou(content, signer)
-  end
+    test "employee request start_date format" do
+      %{"employee_request" => data} = API.prepare_employee_request_data(UUID.generate(), %{"position" => "лікар"})
+      assert Map.has_key?(data, "start_date")
+      assert Regex.match?(~r/^\d{4}-\d{2}-\d{2}$/, data["start_date"])
+    end
 
-  test "employee request start_date format" do
-    %{"employee_request" => data} = API.prepare_employee_request_data(UUID.generate(), %{"position" => "лікар"})
-    assert Map.has_key?(data, "start_date")
-    assert Regex.match?(~r/^\d{4}-\d{2}-\d{2}$/, data["start_date"])
-  end
+    test "different signer EDRPOU" do
+      content = get_legal_entity_data()
 
-  test "different signer EDRPOU" do
-    content = get_legal_entity_data()
+      signer = %{"edrpou" => "0373167387"}
 
-    signer = %{"edrpou" => "0373167387"}
+      assert {:error, %Ecto.Changeset{valid?: false}} = Validator.validate_edrpou(content, signer)
+    end
 
-    assert {:error, %Ecto.Changeset{valid?: false}} = Validator.validate_edrpou(content, signer)
   end
 
   describe "create new Legal Entity" do
+    setup _context do
+      insert_dictionaries()
+      :ok
+    end
 
     test "mis_verified NOT_VERIFIED" do
       data = Map.merge(get_legal_entity_data(), %{
@@ -196,6 +201,10 @@ defmodule EHealth.Unit.LegalEntityTest do
   end
 
   describe "update Legal Entity" do
+    setup _context do
+      insert_dictionaries()
+      :ok
+    end
 
     test "happy path" do
       insert(:prm, :registry)
@@ -369,5 +378,11 @@ defmodule EHealth.Unit.LegalEntityTest do
     "test/data/legal_entity.json"
     |> File.read!()
     |> Poison.decode!()
+  end
+
+  defp insert_dictionaries do
+    insert(:il, :dictionary_phone_type)
+    insert(:il, :dictionary_address_type)
+    insert(:il, :dictionary_document_type)
   end
 end

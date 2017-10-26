@@ -108,7 +108,7 @@ defmodule EHealth.LegalEntity.Validator do
   def validate_addresses(content) do
     content
     |> Map.get("addresses")
-    |> Addresses.validate()
+    |> Addresses.validate("REGISTRATION")
     |> case do
          {:ok, _} -> :ok
          err -> err
