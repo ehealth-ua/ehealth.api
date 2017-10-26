@@ -79,7 +79,7 @@ defmodule EHealth.MedicationRequests.API do
                                 &SMSSender.reject_template/1)
       {:ok, Map.merge(medication_request, mr)}
     else
-      {:ok, _} -> {:error, {:forbidden, "Invalid status Request for Medication request for reject transition!"}}
+      {:ok, _} -> {:error, {:conflict, "Invalid status Request for Medication request for reject transition!"}}
       err -> err
     end
   end
@@ -94,7 +94,7 @@ defmodule EHealth.MedicationRequests.API do
                                 &SMSSender.sign_template/1)
       {:ok, Map.merge(medication_request, medication_request)}
     else
-      {:ok, _} -> {:error, {:forbidden, "Invalid status Medication request for resend action!"}}
+      {:ok, _} -> {:error, {:conflict, "Invalid status Medication request for resend action!"}}
       true -> {:error, {:forbidden, "Can't resend Medication request without verification code!"}}
       err -> err
     end

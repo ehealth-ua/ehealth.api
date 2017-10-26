@@ -217,7 +217,7 @@ defmodule EHealth.MedicationRequestRequests do
     |> put_change(:updated_by, user_id)
   end
   def reject_changeset(%MedicationRequestRequest{}, _), do:
-    {:error, {:forbidden, "Invalid status Request for Medication request for reject transition!"}}
+    {:error, {:conflict, "Invalid status Request for Medication request for reject transition!"}}
   def reject_changeset(nil, _), do: {:error, :not_found}
 
   def autoterminate do
@@ -240,7 +240,7 @@ defmodule EHealth.MedicationRequestRequests do
   def sign(params, headers) do
     {id, params} = Map.pop(params, "id")
     with :ok <- Validations.validate_sign_schema(params),
-         %MedicationRequestRequest{} = mrr <- get_medication_request_request_by_query([id: id, status: "NEW"]),
+         %MedicationRequestRequest{status: "NEW"} = mrr <- get_medication_request_request_by_query([id: id]),
          {operation, {:ok, mrr}} <- SignOperation.sign(mrr, params, headers)
     do
       mrr
@@ -259,6 +259,8 @@ defmodule EHealth.MedicationRequestRequests do
         |> Map.put("legal_entity", operation.data.legal_entity)
         |> Map.put("medication", operation.data.medication)}
     else
+       %MedicationRequestRequest{status: _} ->
+        {:error, {:conflict, "Invalid status Medication request Request for sign transition!"}}
       err -> err
     end
   end

@@ -288,7 +288,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       assert id == id1
 
       conn3 = patch conn, medication_request_request_path(conn, :reject, id)
-      assert json_response(conn3, 403)
+      assert json_response(conn3, 409)
     end
 
     test "works when data is invalid", %{conn: conn} do
@@ -342,6 +342,22 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       conn1 = patch conn, medication_request_request_path(conn, :sign, Ecto.UUID.generate()),
       %{signed_medication_request_request: "", signed_content_encoding: "base64"}
       assert json_response(conn1, 404)
+    end
+
+    test "return 409 if request status is not new", %{conn: conn} do
+      {medication_id, pm} = create_medications_structure()
+        test_request =
+          test_request()
+          |> Map.put("medication_id", medication_id)
+          |> Map.put("medical_program_id", pm.medical_program_id)
+      conn1 = post conn, medication_request_request_path(conn, :create), medication_request_request: test_request
+      assert mrr = json_response(conn1, 201)["data"]
+
+      EHealth.Repo.update_all(EHealth.MedicationRequestRequest, set: [status: "EXPIRED"])
+
+      conn1 = patch conn, medication_request_request_path(conn, :sign, mrr["id"]),
+      %{signed_medication_request_request: "", signed_content_encoding: "base64"}
+      assert json_response(conn1, 409)
     end
 
     test "return 422 if request is not valid", %{conn: conn} do
