@@ -113,4 +113,20 @@ defmodule EHealth.SimpleFactory do
     |> Kernel.+(10000000)
     |> to_string()
   end
+
+  def address(type) when type in ["RESIDENCE", "REGISTRATION", "NOT_IN_DICTIONARY"] do
+    %{
+      "type" => type,
+      "country" => "UA",
+      "area" => "Житомирська",
+      "region" => "Бердичівський",
+      "settlement" => "Київ",
+      "settlement_type" => "CITY",
+      "settlement_id" => "dsdafdf",
+      "street" => "вул. Ніжинська",
+      "building" => "15-В",
+      "apartment" => "23",
+      "zip" => "02090"
+    }
+  end
 end

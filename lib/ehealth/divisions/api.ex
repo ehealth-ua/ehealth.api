@@ -13,9 +13,12 @@ defmodule EHealth.Divisions.API do
   alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
   alias EHealth.PRM.LegalEntities
   alias EHealth.Validators.JsonSchema
+  alias EHealth.Validators.JsonObjects
+  alias EHealth.Dictionaries
 
   @status_active Division.status(:active)
   @default_mountain_group "0"
+  @validation_dictionaries ["ADDRESS_TYPE", "PHONE_TYPE"]
 
   def search(legal_entity_id, params \\ %{}) do
     params
@@ -51,6 +54,7 @@ defmodule EHealth.Divisions.API do
                    |> Map.delete("id")
                    |> Map.put("legal_entity_id", legal_entity_id),
          :ok <- JsonSchema.validate(:division, params),
+         :ok <- validate_json_objects(params),
          :ok <- validate_addresses(params)
     do
       put_mountain_group(params)
@@ -82,6 +86,17 @@ defmodule EHealth.Divisions.API do
 
   def update_division(%Division{} = division, data, author_id) do
     Divisions.update_division(division, data, author_id)
+  end
+
+  def validate_json_objects(data) do
+    dict_keys = Dictionaries.get_dictionaries_keys(@validation_dictionaries)
+
+    with %{"ADDRESS_TYPE" => address_types} = dict_keys,
+         :ok <- JsonObjects.array_unique_by_key(data, ["addresses"], "type", address_types),
+         :ok <- JsonObjects.array_contains_item(data, ["addresses"], "type", "RESIDENCE"),
+         %{"PHONE_TYPE" => phone_types} = dict_keys,
+         :ok <- JsonObjects.array_unique_by_key(data, ["phones"], "type", phone_types),
+    do:  :ok
   end
 
   def validate_addresses(data) do

@@ -2,10 +2,14 @@ defmodule EHealth.Web.DivisionsControllerTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase
+  import EHealth.SimpleFactory, only: [address: 1]
 
   alias Ecto.UUID
 
   setup %{conn: conn} do
+    insert(:il, :dictionary_phone_type)
+    insert(:il, :address_type)
+
     {:ok, conn: put_req_header(conn, "accept", "application/json")}
   end
 
@@ -136,6 +140,17 @@ defmodule EHealth.Web.DivisionsControllerTest do
     conn = post conn, division_path(conn, :create), get_division()
 
     refute %{} == json_response(conn, 201)["data"]
+  end
+
+  test "create division without RESIDENCE address", %{conn: conn} do
+    division = Map.put(get_division(), "addresses", [address("REGISTRATION")])
+
+    legal_entity = insert(:prm, :legal_entity)
+    conn = put_client_id_header(conn, legal_entity.id)
+    conn = post conn, division_path(conn, :create), division
+
+    assert error = json_response(conn, 422)["error"]["invalid"]
+    assert ["'RESIDENCE' is required"] == List.first(error)["rules"]
   end
 
   test "create division without type and phone number", %{conn: conn} do

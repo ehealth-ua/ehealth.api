@@ -6,6 +6,7 @@ defmodule EHealth.Unit.LegalEntity.ValidatorTest do
   use EHealth.Web.ConnCase, async: false
 
   alias EHealth.LegalEntity.Validator
+  import EHealth.SimpleFactory, only: [address: 1]
 
   describe "Additional JSON objects validation: validate_json_objects/1" do
     setup _ do
@@ -25,16 +26,16 @@ defmodule EHealth.Unit.LegalEntity.ValidatorTest do
     end
 
     test "returns :error for incorrect address type (not from Dictionary)", %{legal_entity: legal_entity} do
-      bad_addresses = [get_address("NOT_IN_DICTIONARY")]
+      bad_addresses = [address("NOT_IN_DICTIONARY")]
       bad_legal_entity = Map.put(legal_entity, "addresses", bad_addresses)
 
       assert {:error, _} = Validator.validate_json_objects(bad_legal_entity)
     end
 
     test "returns :error for duplicate adress types", %{legal_entity: legal_entity} do
-      one = get_address("RESIDENCE")
-      two = get_address("REGISTRATION")
-      three = get_address("RESIDENCE")
+      one = address("RESIDENCE")
+      two = address("REGISTRATION")
+      three = address("RESIDENCE")
       bad_legal_entity = Map.put(legal_entity, "addresses", [one, two, three])
 
       assert {:error, _} = Validator.validate_json_objects(bad_legal_entity)
@@ -48,14 +49,5 @@ defmodule EHealth.Unit.LegalEntity.ValidatorTest do
 
       assert {:error, _} = Validator.validate_json_objects(bad_legal_entity)
     end
-  end
-
-  defp get_address(type) when type in ["RESIDENCE", "REGISTRATION", "NOT_IN_DICTIONARY"] do
-    %{"apartment" => "23", "area" => "Житомирська",
-    "building" => "15-В", "country" => "UA",
-    "region" => "Бердичівський", "settlement" => "Київ",
-    "settlement_id" => "dsdafdf", "settlement_type" => "CITY",
-    "street" => "вул. Ніжинська", "type" => type,
-    "zip" => "02090"}
   end
 end
