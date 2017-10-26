@@ -47,6 +47,7 @@ defmodule EHealth.Web.MedicationRequestRequestView do
   def render("show_prequalify_program.json", %{program: %{status: "VALID"} = program}) do
     %{program_id: program.id,
       program_name: program.name,
-      status: program.status}
+      status: program.status,
+      participants: program.participants}
   end
 end

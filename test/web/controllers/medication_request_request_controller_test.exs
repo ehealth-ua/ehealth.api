@@ -246,6 +246,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       conn1 = post conn, medication_request_request_path(conn, :prequalify), %{medication_request_request: test_request,
         programs: [%{id: pm.medical_program_id}]}
       assert %{"status" => "VALID"} = json_response(conn1, 200)["data"] |> Enum.at(0)
+      assert is_list(json_response(conn1, 200)["data"] |> Enum.at(0) |> Map.get("participants"))
     end
 
     test "show proper message when program medication is invalid", %{conn: conn} do
@@ -400,6 +401,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     insert(:prm, :ingredient_medication, [parent_id: med_id2, medication_child_id: dosage_id2])
 
     pm = insert(:prm, :program_medication, [medication_id: med_id])
+    insert(:prm, :program_medication, [medication_id: med_id2, medical_program_id: pm.medical_program_id])
 
     {dosage_id, pm}
   end

@@ -20,7 +20,9 @@ defmodule EHealth.MedicationRequestRequests do
   alias EHealth.PRM.Medications.API, as: MedicationsAPI
   alias EHealth.MedicationRequestRequest.RejectOperation
   alias EHealth.MedicationRequestRequest.CreateDataOperation
+  alias EHealth.PRM.MedicalPrograms.Schema, as: MedicalProgram
   alias EHealth.PRM.Medications.INNMDosage.Schema, as: INNMDosage
+  alias EHealth.PRM.Medications.Program.Schema, as: ProgramMedication
   alias EHealth.PRM.Medications.INNMDosage.Ingredient, as: INNMDosageIngredient
   alias EHealth.MedicationRequestRequest.HumanReadableNumberGenerator, as: HRNGenerator
 
@@ -182,11 +184,13 @@ defmodule EHealth.MedicationRequestRequests do
 
   defp show_program_status(%{id: _id, data: {:ok, result}, mrr: mrr}) do
     mp = Enum.at(result, 0)
-    with {:ok, check_innm_id} <- get_check_innm_id(mrr["medication_id"]),
+    with medical_program <- get_medical_program_with_participants(mp.medical_program_id),
+         participants <- build_participants(medical_program.program_medications),
+         {:ok, check_innm_id} <- get_check_innm_id(mrr["medication_id"]),
          {:ok, %{"data" => medication_ids}} <- get_prequalify_requests(mrr),
          :ok <- validate_ingredients(medication_ids, check_innm_id)
     do
-        %{id: mp.medical_program_id, name: mp.medical_program_name, status: "VALID"}
+        %{id: mp.medical_program_id, name: mp.medical_program_name, status: "VALID", participants: participants}
     else
         _ ->  %{id: mp.medical_program_id, name: mp.medical_program_name, status: "INVALID",
                 rejection_reason: "It can be only 1 active/ completed medication request request or " <>
@@ -198,6 +202,23 @@ defmodule EHealth.MedicationRequestRequests do
     mp
     |> Map.put(:status, "INVALID")
     |> Map.put(:rejection_reason, "Innm not on the list of approved innms for program \"#{mp.name}\"")
+  end
+
+  defp build_participants(program_medications) do
+    Enum.map(program_medications, fn program_medication ->
+      program_medication.medication
+      |> Map.take(~w(id name form manufacturer)a)
+      |> Map.put("reimbursement_amount", program_medication.reimbursement["reimbursement_amount"])
+    end)
+  end
+
+  defp get_medical_program_with_participants(id) do
+    MedicalProgram
+    |> where([mp], mp.is_active)
+    |> join(:left, [mp], pm in ProgramMedication, pm.medical_program_id == mp.id and pm.is_active)
+    |> join(:left, [mp, pm], m in assoc(pm, :medication))
+    |> preload([mp, pm, m], [program_medications: {pm, medication: m}])
+    |> PRMRepo.get(id)
   end
 
   def reject(id, user_id, client_id) do
