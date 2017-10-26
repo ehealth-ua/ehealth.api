@@ -573,7 +573,7 @@ defmodule EHealth.MockServer do
       "death_date" => "1991-08-19T00.00.00.000Z",
       "is_active" => true,
       "documents" => %{},
-      "addresses" => %{},
+      "addresses" => [],
       "phones" => [],
       "secret" => "string value",
       "emergency_contact" => %{},

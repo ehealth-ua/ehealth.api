@@ -210,11 +210,8 @@
             "tax_id": {
               "type": "string"
             },
-            "phones": {
+            "addresses": {
               "type": "array"
-            },
-            "birth_settlement": {
-              "type": "string"
             }
           },
           "required": [
@@ -222,8 +219,7 @@
             "first_name",
             "last_name",
             "birth_date",
-            "phones",
-            "birth_settlement"
+            "addresses"
           ]
         },
         "medication_info": {

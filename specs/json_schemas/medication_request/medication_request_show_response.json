@@ -109,7 +109,10 @@
           "type": "string"
         },
         "location": {
-          "type": "object",
+          "type": [
+            "object",
+            "null"
+          ],
           "properties": {
             "latitude": {
               "type": "number"
@@ -200,14 +203,8 @@
           "type": "string",
           "description": "ISO Datetime."
         },
-        "tax_id": {
-          "type": "string"
-        },
-        "phones": {
+        "addresses": {
           "type": "array"
-        },
-        "birth_settlement": {
-          "type": "string"
         }
       },
       "required": [
@@ -215,8 +212,7 @@
         "first_name",
         "last_name",
         "birth_date",
-        "phones",
-        "birth_settlement"
+        "addresses"
       ]
     },
     "medication_info": {
@@ -266,10 +262,10 @@
       },
       "required": [
         "medication_id",
+        "medication_name",
         "form",
         "dosage",
-        "medication_qty",
-        "medication_name"
+        "medication_qty"
       ]
     },
     "medical_program": {

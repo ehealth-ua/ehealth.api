@@ -9,8 +9,7 @@ defmodule EHealth.Web.PersonView do
       first_name
       last_name
       birth_date
-      birth_settlement
-      phones
+      addresses
     ))
   end
 

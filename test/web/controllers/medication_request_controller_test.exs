@@ -74,7 +74,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
   end
 
   describe "show medication_request" do
-    test "success get medicatiob_request by id", %{conn: conn} do
+    test "success get medication_request by id", %{conn: conn} do
       user_id = get_consumer_id(conn.req_headers)
       legal_entity_id = get_client_id(conn.req_headers)
       insert(:prm, :division, id: "e00e20ba-d20f-4ebb-a1dc-4bf58231019c")
