@@ -215,6 +215,7 @@ defmodule EHealth.MedicationRequests.API do
          %Employee{} = employee <- Employees.get_employee_by_id(medication_request["employee_id"]),
          %MedicalProgram{} = medical_program <- MedicalPrograms.get_by_id(medication_request["medical_program_id"]),
          %INNMDosage{} = medication <- MedicationsAPI.get_innm_dosage_by_id(medication_request["medication_id"]),
+         %LegalEntity{} = legal_entity <- LegalEntities.get_legal_entity_by_id(medication_request["legal_entity_id"]),
          {:ok, %{"data" => person}} <- MPI.person(medication_request["person_id"])
     do
       {
@@ -222,7 +223,7 @@ defmodule EHealth.MedicationRequests.API do
         medication_request
         |> Map.put("division", division)
         |> Map.put("employee", employee)
-        |> Map.put("legal_entity", employee.legal_entity)
+        |> Map.put("legal_entity", legal_entity)
         |> Map.put("medical_program", medical_program)
         |> Map.put("medication", medication)
         |> Map.put("person", person)
