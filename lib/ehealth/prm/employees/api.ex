@@ -95,6 +95,14 @@ defmodule EHealth.PRM.Employees do
     |> PRMRepo.insert_and_log(author_id)
   end
 
+  def get_employee_by_user_id(id) do
+    Employee
+    |> join(:left, [e], p in assoc(e, :party))
+    |> join(:left, [e, p], pu in assoc(p, :users))
+    |> where([e, p, pu], pu.user_id == ^id)
+    |> PRMRepo.all()
+  end
+
   def update_employee(%Employee{} = employee, attrs, author_id) do
     with {:ok, employee} <- employee
                             |> changeset(attrs)

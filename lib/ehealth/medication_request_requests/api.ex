@@ -5,12 +5,14 @@ defmodule EHealth.MedicationRequestRequests do
 
   import Ecto.Query, warn: false
   import Ecto.Changeset
+  import EHealth.Utils.Connection
 
   use Confex, otp_app: :ehealth
 
   alias EHealth.Repo
   alias EHealth.PRMRepo
   alias EHealth.API.OPS
+  alias EHealth.PRM.Employees
   alias EHealth.PRM.MedicalPrograms
   alias EHealth.MedicationRequestRequest
   alias EHealth.MedicationRequests.SMSSender
@@ -44,26 +46,28 @@ defmodule EHealth.MedicationRequestRequests do
     Repo.all(MedicationRequestRequest)
   end
 
-  def list_medication_request_requests(params) do
+  def list_medication_request_requests(params, headers) do
     query = from dr in MedicationRequestRequest,
     order_by: [desc: :inserted_at]
 
     query
-    |> filter_by_employee_id(params)
-    |> filter_by_legal_entity_id(params)
+    |> filter_by_employee_id(params, headers)
     |> filter_by_status(params)
     |> Repo.paginate(params)
   end
 
-  defp filter_by_legal_entity_id(query, %{"legal_entity_id" => legal_entity_id}) do
-    where(query, [r], fragment("?->'legal_entity_id' = ?", r.data, ^legal_entity_id))
-  end
-  defp filter_by_legal_entity_id(query, _), do: query
-
-  defp filter_by_employee_id(query, %{"employee_id" => employee_id}) do
+  defp filter_by_employee_id(query, %{"employee_id" => employee_id}, _) do
     where(query, [r], fragment("?->'employee_id' = ?", r.data, ^employee_id))
   end
-  defp filter_by_employee_id(query, _), do: query
+  defp filter_by_employee_id(query, _, headers) do
+    employee_ids =
+      headers
+      |> get_consumer_id()
+      |> Employees.get_employee_by_user_id()
+      |> Enum.filter(fn e -> e.legal_entity_id == get_client_id(headers) end)
+      |> Enum.map(fn e -> e.id end)
+    where(query, [r], fragment("?->>'employee_id' IN ?", r.data, ^"(#{Enum.join(employee_ids, ", ")})"))
+  end
 
   defp filter_by_status(query, %{"status" => status}) when is_binary(status) do
     where(query, [r], r.status == ^status)

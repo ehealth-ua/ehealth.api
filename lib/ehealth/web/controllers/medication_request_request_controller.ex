@@ -9,7 +9,7 @@ defmodule EHealth.Web.MedicationRequestRequestController do
   alias EHealth.Web.MedicationRequestView
 
   def index(conn, params) do
-    with %Page{} = paging <- API.list_medication_request_requests(params) do
+    with %Page{} = paging <- API.list_medication_request_requests(params, conn.req_headers) do
       render(conn, "index.json", medication_request_requests: paging.entries, paging: paging)
     end
   end

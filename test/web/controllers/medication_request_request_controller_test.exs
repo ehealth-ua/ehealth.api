@@ -33,7 +33,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
   describe "index" do
     test "lists all medication_request_requests", %{conn: conn} do
-      conn = get conn, medication_request_request_path(conn, :index, %{"legal_entity_id" => @legal_entity_id})
+      conn = get conn, medication_request_request_path(conn, :index, %{"employee_id" => Ecto.UUID.generate()})
       assert json_response(conn, 200)["data"] == []
     end
 
