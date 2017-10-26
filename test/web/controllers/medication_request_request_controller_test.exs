@@ -1,5 +1,5 @@
 defmodule EHealth.Web.MedicationRequestRequestControllerTest do
-  use EHealth.Web.ConnCase, async: true
+  use EHealth.Web.ConnCase, async: false
 
   alias EHealth.MedicationRequestRequests
 
