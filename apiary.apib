@@ -1428,7 +1428,7 @@ Method returns Medication details by ID.
         + data (object)
             + include `Medication_Response`
 
-### Get Medications List [GET /medications{?id,innm_id,name,innm_name,form,page_number,page_size}]
+### Get Medications List [GET /medications{?id,innm_dosage_id,name,innm_dosage_name,form,page_number,page_size}]
 
 Use this method to obtain list of Medications. If you want to reduce amount of data that is going trough your application, use filter and show only Medications is interested in current UI section.
 
@@ -1436,9 +1436,9 @@ Use this method to obtain list of Medications. If you want to reduce amount of d
 
 + Parameters
     + `id`: `7124259c-eeb1-4cbb-acac-ada2162675d1` (string, optional) - `Medication Identifier.`
-    + `innm_id`: `5052fcaf-58a0-461b-9e98-d60243a1773e` (string, optional) - `INNM Identifier.`
+    + `innm_dosage_id`: `5052fcaf-58a0-461b-9e98-d60243a1773e` (string, optional) - `INNM Identifier.`
     + `name`: `Аритміл` (string, optional) - `Medication name.`
-    + `innm_name`: `Аміодарон` (string, optional) - `INNM name.`
+    + `innm_dosage_name`: `Аміодарон` (string, optional) - `INNM name.`
     + `form`:  `PILL` (string, required) - `Dictionary MEDICATION_FORM`
     + page_number: 2 (number, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
@@ -1679,7 +1679,7 @@ This method is used to add tax_id to black list. Fields descriptions are listed 
         + data (object)
             + include `Black_list_user_Response`
 
-### Deactivate Black list user [PATCH /api/black_list_users/{id}/deactivate]
+### Deactivate Black list user [PATCH /api/black_list_users/{id}/actions/deactivate]
 
 This method is used by NHS Admin to deactivate user in black list.
 
@@ -2564,19 +2564,16 @@ Response structure differs depending on employee type:
 
 ### Deactivate Employee [PATCH /api/employees/{id}/actions/deactivate]
 
-Use this method to deactivate employee.
+Use this method to deactivate employee. OWNER and PHARMACY_OWNER can't be deactivated using this method.
+(the 409 error with message 'Owner can't be deactivated').
+OWNER and PHARMACY_OWNER deactivates when corresponding legal_entity deactivates.
+Employee deactivation: 
 1. Revoke role from user
 
 2. Deactivate declarations
 
 3. Update employee parameters:
- - if employee_type = OWNER
-is_active = false
-status not update
- - if employee_type not OWNER
-is_active not update
-status = DISMISSED
- - end_date is now
+ - change status=DISMISSED and end_date=now
 
 + Parameters
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -2743,7 +2740,7 @@ It returns:
             + type: `forbidden`
             + message: `Active declaration belongs to another msp` (string)
 
-### Reset authentication method [PATCH /api/persons/{id}/action/reset_authentication_method]
+### Reset authentication method [PATCH /api/persons/{id}/actions/reset_authentication_method]
 
 This method allows to reset (set to **NA**) person authentication method.
 
@@ -3140,7 +3137,7 @@ API for searching Ukrainian Addresses
     + type: STREET (string, optional) - Street type (Dictionary STREET_TYPE)
 
 + Response 200 (application/json)
-    + Attributes (Response_Collection)
+    + Attributes (`Response_Collection_V2`)
         + meta (Response__Meta)
             + code: 200 (number)
         + data (array[`Response_Street`])
@@ -3149,14 +3146,16 @@ API for searching Ukrainian Addresses
 
 ### List Of Cities By Search Params [GET /api/uaddresses/settlements{?name,region,district,koatuu}]
 
+Use this method to obtain list of cities. If you want to reduce amount of data that is going trough your application, use `name`, `region`, `district` or `koatuu classifier` filters and show only cities you are interested in.
+
 + Parameters
     + name: Новосілки (string, optional) - Name of searching settlement
-    + region: Київ (string, required) - Province name
+    + region: Київ (string, optional) - Province name
     + district: `Києво-Святошинський` (string, optional) - Administrative district of province
     + koatuu: `2625286301` (string, optional) - koatuu classifier id
 
 + Response 200 (application/json)
-    + Attributes (Response_Collection)
+    + Attributes (`Response_Collection_V2`)
         + meta (Response__Meta)
             + code: 200 (number)
         + data (array[`Response_Settlement`])
@@ -3169,7 +3168,7 @@ API for searching Ukrainian Addresses
     + koatuu: `2625286301` (string, optional) - koatuu classifier id
 
 + Response 200 (application/json)
-    + Attributes (Response_Collection)
+    + Attributes (`Response_Collection_V2`)
         + meta (Response__Meta)
             + code: 200 (number)
         + data (array[`Response_Region`])
@@ -3183,7 +3182,7 @@ API for searching Ukrainian Addresses
     + koatuu: `2625286301` (string, optional) - koatuu classifier id
 
 + Response 200 (application/json)
-    + Attributes (Response_Collection)
+    + Attributes (`Response_Collection_V2`)
         + meta (Response__Meta)
             + code: 200 (number)
         + data (array[`Response_District`])
@@ -3195,7 +3194,7 @@ API for searching Ukrainian Addresses
     + koatuu: `2625286301` (string, optional) - koatuu classifier id
 
 + Response 200 (application/json)
-    + Attributes (Response_Collection)
+    + Attributes (`Response_Collection_V2`)
         + meta (Response__Meta)
             + code: 200 (number)
         + data (array[`Response_District_Short`])
@@ -3209,7 +3208,7 @@ Get list of cities by district
     + koatuu: `2625286301` (string, optional) - koatuu classifier id
 
 + Response 200 (application/json)
-    + Attributes (Response_Collection)
+    + Attributes (`Response_Collection_V2`)
         + meta (Response__Meta)
             + code: 200 (number)
         + data (array[`Response_Settlement_Short`])
@@ -3245,6 +3244,24 @@ Roles are set separately for each Client.
 + Response 200 (application/json)
     + Attributes (`Response_OK`)
         + data (`Role_Response`)
+
+## Client secret [/admin/clients]
+
+### Refresh client secret [PATCH /admin/clients/{id}/refresh_secret]
+
+This method is used to refresh client secret for existing client (legal entity)
+Only legal entity owner can request new client secret for his own legal entity
+
+**Scopes required:** `secret:refresh`
+
++ Parameters
+    + id: `role-1380df72-275a-11e7-93ae-92361f002671` (string, required)
+
++ Request (application/json)
+
++ Response 200 (application/json)
+    + Attributes (`Response_OK`)
+        + data (`Client`)
 
 # Group Public. Reimbursement
 
@@ -3389,7 +3406,6 @@ Fields description are listed in request Example view.
             + code: 201 (number)
         + data (object)
             + include `Medication_request_Request_Public_Response`
-            + content: `Medication_request content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
 
 + Response 422 (application/json)
     + Attributes (Response_Error)
@@ -3487,7 +3503,7 @@ This method is used to qualify (possibility to use Innm for the program) Medicat
 Use this method to obtain full information of Medication request an `id`.
 
 + Parameters
-    + id: `48416485-cc98-46c4-8bba-e321de9e1ecd` (string, required) - request id
+    + id: `48416485-cc98-46c4-8bba-e321de9e1ecd` (string, required) - `Medication Request identifier OR request_number`
 
 + Request (application/json)
 
@@ -3501,7 +3517,7 @@ Use this method to obtain full information of Medication request an `id`.
         + data (object)
             + include `Medication_request_Public_Response`
 
-### Get Medication requests List [GET /api/medication_requests{?employee_id,person_id,status,request_number,created_at,legal_entity_id,edrpou,legal_entity_name,innm_dosage_name,page_number,page_size}]
+### Get Medication requests List [GET /api/medication_requests{?employee_id,person_id,status,request_number,created_from,created_to,medication_id,page_number,page_size}]
 
 Use this method to obtain list of Medication request an `employee_id` or/and `person_id`. If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor is interested in current UI section.
 
@@ -3517,12 +3533,10 @@ Method returns shortened details, to obtain full information - get Medication re
         - COMPLETED
         - EXPIRED
         - REJECTED
-    + `request_number` : `xxxx` (string) - Public medication request human readable number
-    + `created_at`: `2017-08-17` (string, required) - Medication request creation date, which is determined by the external system. Format *DATE '2017-09-07'*
-    + `legal_entity_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-    + `edrpou`: 5432345432 (string, required)
-    + `legal_entity_name`: Клініка Борис (string, required)
-    + `innm_dosage_name`: `Аміодарон` (string, required) - innm dosage name
+    + `request_number` : `0000-243P-1X53-EH38` (string, optional) - Public medication request human readable number
+    + `created_from`: `2017-08-17` (string, optional) - Medication request creation date period start, which is determined by the external system. Format *DATE '2017-08-17'*
+    + `created_to`: `2017-08-30` (string, optional) - Medication request creation date period end, which is determined by the external system. Format *DATE '2017-08-30'*
+    + `medication_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b5b` (string, optional) - innm dosage id
     + page_number: 2 (number, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
@@ -3618,7 +3632,7 @@ Medication Dispense - Indicates that a medication product has been dispensed for
 This method is used to dispense medications to patient
 
 + Parameters
-    + `code`: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, required)
+    + `code`: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, optional)
 
 + Request (application/json)
 
@@ -3930,6 +3944,14 @@ Reimbursement Report combines information about Medication requests and correspo
 + tax_id: 3126509816 (string, optional)
 + phones (array[Phone], required)
 + birth_settlement: Вінниця (string, required)
+
+### `Person_Medication_Request`
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ first_name: Петро (string, required)
++ last_name: Іванов (string, required)
++ second_name: Миколайович (string, optional)
++ birth_date: `1991-08-19` (string, required) - ISO Datetime.
++ addresses (array[Address], required)
 
 ### `Authentication_Method`
 + type (enum, required)
@@ -4949,10 +4971,9 @@ Reimbursement Report combines information about Medication requests and correspo
 + `container` (`Dosage_container`, required)
 + `request_qty`: 10 (number, required)
 
-
 ### `Innm_Dosage_for_Medication_request_Responce`
-+ `innm_dosage` (`Innm_Response_Short`, required) - `Innm object`
 + `medication_id` : `4a63b858-c138-4921-9341-ae9e384bcbd6` (string, required) - `Identifier medication with type **INNM_DOSAGE**`
++ `medication_name`: `Аміодарон 200мг таблетки` (string, required) - `Name of medication with type **INNM_DOSAGE**`
 + `form`: PILL (string, required) - `Dictionary MEDICATION_FORM`
 + `dosage` (`Dosage_drug`, required) - Dosage of innm_dosage object
 + `medication_qty`: 10 (number, required) - Medication quantity isuued by the doctor
@@ -5169,7 +5190,7 @@ Reimbursement Report combines information about Medication requests and correspo
 ### `Medication_request_Request_Public_Response`
 + `request_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Request request identifier
 + `status`: `NEW` (string, required) - Medication Request status. Find available **statuses** on State Charts wiki page
-+ `request_number` : `xxxx` (string) - Public medication request human readable number
++ `request_number` : `0000-243P-1X53-EH38` (string) - Public medication request human readable number
 + `created_at`: `2017-08-17` (string, required) - Medication request creation date, which is determined by the external system. Format *DATE '2017-09-07'*
 + `started_at`: `2017-08-17` (string, required) - Start date of a treatment period, which is determined by the external system. Greater or equal to **created_at**. Format *DATE '2017-09-07'*
 + `ended_at`: `2017-09-16` (string, required) - End date of a treatment period, which is determined by the external system. Greater or equal to **started_at**. Format *DATE '2017-10-07'*
@@ -5179,7 +5200,7 @@ Reimbursement Report combines information about Medication requests and correspo
     + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + `division` (`Division_Details`, required)
 + `employee` (Employee_Minimal, required)
-+ `person` (`Person_Short`)            
++ `person` (`Person_Medication_Request`)            
 + `medication_info` (`Innm_Dosage_for_Medication_request_Responce`, required)
 + `medical_program` (`Medical_Program_Response`, required)
 
@@ -5192,7 +5213,7 @@ Reimbursement Report combines information about Medication requests and correspo
 + `status` : `INVALID` (enum, required) - Status for ability use program for this Medication request Request
     - VALID
     - INVALID
-+ `invalid_reason` : ` Innm not on the list of approved innms for program 'DOSTUPNI LIKI' !` (string) - Reason to fetch invalid status
++ `rejection_reason` : ` Innm not on the list of approved innms for program 'DOSTUPNI LIKI' !` (string) - Reason to fetch invalid status
 
 ### `Program_medications_for_Qualify`
 + `medication_id`: `59781de0-2e64-4359-b716-bcc05a32c10f`(string, required) -  Medication Identifier
@@ -5235,7 +5256,7 @@ Reimbursement Report combines information about Medication requests and correspo
     - COMPLETED
     - REJECTED
     - EXPIRED
-+ `request_number` : `xxxx` (string) - Public medication request human readable number
++ `request_number` : `0000-243P-1X53-EH38` (string) - Public medication request human readable number
 + `created_at`: `2017-08-17` (string, required) - Medication request creation date, which is determined by the external system. Format *DATE '2017-09-07'*
 + `started_at`: `2017-08-17` (string, required) - Start date of a treatment period, which is determined by the external system. Greater or equal to **created_at**. Format *DATE '2017-09-07'*
 + `ended_at`: `2017-09-16` (string, required) - End date of a treatment period, which is determined by the external system. Greater or equal to **started_at**. Format *DATE '2017-10-07'*
@@ -5245,7 +5266,7 @@ Reimbursement Report combines information about Medication requests and correspo
     + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + `division` (`Division_Details`, required)
 + `employee` (Employee_Minimal, required)
-+ `person` (`Person_Short`)            
++ `person` (`Person_Medication_Request`)            
 + `medication_info` (`Innm_Dosage_for_Medication_request_Responce`, required)
 + `medical_program` (`Medical_Program_Response`, required)
 
@@ -5261,7 +5282,7 @@ Reimbursement Report combines information about Medication requests and correspo
 + `dispensed_at`: `2017-08-17` (string, required) - date of dispense 
 + `division_id`: `2fc70f30-08dc-493c-8d08-925905d7b1e8` (string, required) - Active legal entity (Pharmacy) division which provides dispense Identifier
 + `medical_program_id`: `6ee844fd-9f4d-4457-9eda-22aa506be4c4` (string, required) - Active medical program within which medications are going to be provided
-+ `dispense_details` (array, fixed, required)
++ `details` (array, fixed, required)
     + (object)
         + include `Medication_Dispense_Detail_Request`
 
@@ -5275,7 +5296,7 @@ Reimbursement Report combines information about Medication requests and correspo
 + `legal_entity` (`Legal_Entity_Short`, required) - Active legal entity (Pharmacy) the division belongs to Identifier
 + `division` (`Division_Short`, required) - Active legal entity (Pharmacy) division which provides dispense Identifier
 + `medical_program` (`Medical_Program_Response`, required) - Active medical program within which medications are going to be provided
-+ `dispense_details` (array, fixed, required)
++ `details` (array, fixed, required)
     + (object)
         + include `Medication_Dispense_Detail_Response`
 + `payment_id`: 1239804 (string, optional) - receipt number for the paid medications
@@ -5304,7 +5325,7 @@ Reimbursement Report combines information about Medication requests and correspo
 ### `Reimbursement_Report_Response`
 + `medication_request` (object, required)
     + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Request identifier
-    + `request_number`: `xxxx` (string) - Public medication request human readable number
+    + `request_number`: `0000-243P-1X53-EH38` (string) - Public medication request human readable number
     + `created_at`: `2017-08-17` (string, required) - Medication request creation date, which is determined by the external system. Format *DATE '2017-09-07'*
     + `started_at`: `2017-08-17` (string, required) - Start date of a treatment period, which is determined by the external system. Greater or equal to **created_at**. Format *DATE '2017-09-07'*
     + `ended_at`: `2017-09-16` (string, required) - End date of a treatment period, which is determined by the external system. Greater or equal to **started_at**. Format *DATE '2017-10-07'*
@@ -5337,32 +5358,32 @@ Reimbursement Report combines information about Medication requests and correspo
         + `medication_qty`:10 (number, required) - qnty of INNM_DOSAGE
     + `medical_program` (`Medical_Program_Response`, required)
 + `medication_dispense`(object, optional)
-    + `id`: `f08ba3a3-157a-4adc-b65d-737f24f3a1f4` (string, required) - Medication dispense Identifier
-    + `dispensed_at`: `2017-08-17` (string, required) - date of dispense
-    + `status`: NEW (string, required) - Medication Dispense status (NEW, PROCESSED, REJECTED, EXPIRED)
-    + `medications` (array, fixed, required)
+    + `id`: `f08ba3a3-157a-4adc-b65d-737f24f3a1f4` (string, optional) - Medication dispense Identifier
+    + `dispensed_at`: `2017-08-17` (string, optional) - date of dispense
+    + `status`: NEW (string, optional) - Medication Dispense status (NEW, PROCESSED, REJECTED, EXPIRED)
+    + `medications` (array, fixed, optional)
         + (object)
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Identifier of brand medications
             + `code_atc`: `С01BD01` (string, optional)
             + include `Medication_Short`
             + `package_qty`: 30 (number, required) - qnty medications in the package
-            + `dispense_details` (object, required)
+            + `details` (object, required)
                 + `medication_qty`: 10 (number, required) - qnty of medication_unit (pill/ampoule/container/bottle/vial/aerosol) which provides to the patient
                 + `sell_price`: 18.65 (number, required) - pharmacy's price for one nondivisible medication_unit (pill/ampoule/container/bottle/vial/aerosol)
                 + `sell_amount`: 186.5 (number, required) - total pharmacy's price for the requested medication quantity
                 + `discount_amount`: 150 (number, required) - pharmacy's expected price of dicsount for the requested medication quantity
                 + `reimbursement_amount`: 450 (number, required) - Amount to reimburse for medication package by medical_program
-    + `medical_program` (`Medical_Program_Response`, required)
-    + `legal_entity` (object, required)
+    + `medical_program` (`Medical_Program_Response`, optional)
+    + `legal_entity` (object, optional)
         + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Legal entity identifier
         + `name`: `Аптека Доброго дня` (string, required) - Legal entity name
         + `edrpou`: `5432345431` (string, required) - Legal entity edrpou
-    + `division` (object, required) 
+    + `division` (object, optional) 
         + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
         + `name`: `Бориспільське відділення Аптеки Доброго Дня` (string, required)
         + `mountain_group`: `false` (boolean, optional)
         + `address` (`Address`, required)
-    + `party` (object, required) 
+    + `party` (object, optional) 
         + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Employee Party id
         + `last_name`: `Іванов` (string, required)
         + `first_name`: `Петро` (string, required)
@@ -5377,3 +5398,12 @@ Reimbursement Report combines information about Medication requests and correspo
 + id: `role-1380df72-275a-11e7-93ae-92361f002671` (string) - Internal role ID, a UUID string.
 + `created_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
+
+## Clients
+### Client (object)
++ id: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - Unique client id
++ name: `Аптека 199` (string, required) - Client name
++ secret: `ZlFOaHBTR0d3Q0hQcDEraHVYdXBVZz09` (string, required)
++ redirect_uri: `http://example2.com` (string, required)
++ settings (object)
++ priv_settings (object)
