@@ -10,6 +10,7 @@ defmodule EHealth.MedicationDispenses.Search do
     field :legal_entity_id, Ecto.UUID
     field :division_id, Ecto.UUID
     field :status, :string
+    field :dispensed_at, :date
     field :page, :integer
     field :page_size, :integer
   end
