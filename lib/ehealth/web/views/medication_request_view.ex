@@ -63,7 +63,7 @@ defmodule EHealth.Web.MedicationRequestView do
         "id" => program.id,
         "name" => program.name,
         "status" => status,
-        "invalid_reason" => reason,
+        "rejection_reason" => reason,
         "participants" => participants,
       }
     end)
