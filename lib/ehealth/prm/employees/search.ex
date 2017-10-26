@@ -3,6 +3,7 @@ defmodule EHealth.PRM.Employees.Search do
 
   use Ecto.Schema
 
+  @primary_key false
   schema "employee_search" do
     field :ids, EHealth.Ecto.CommaParamsUUID
     field :party_id, Ecto.UUID

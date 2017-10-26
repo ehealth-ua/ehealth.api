@@ -3,6 +3,7 @@ defmodule EHealth.PRM.Divisions.Search do
 
   use Ecto.Schema
 
+  @primary_key false
   schema "division_search" do
     field :ids, EHealth.Ecto.CommaParamsUUID
     field :name, :string
