@@ -8,6 +8,7 @@ defmodule EHealth.Web.PersonView do
       id
       first_name
       last_name
+      second_name
       birth_date
       addresses
     ))
