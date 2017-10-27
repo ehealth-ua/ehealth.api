@@ -41,9 +41,9 @@ defmodule EHealth.DeclarationRequest.API.ValidatePerson do
   defp validate_auth_method(person, auth_methods) do
     case JsonObjects.array_single_item(person, ["authentication_methods"], "type", auth_methods) do
       :ok                      -> :ok
-      {:error, [{[%{rule: rule}] = rules, path}]} ->
-        if rule =~ "not found" do
-          {:error, [{rules, path}]}
+      {:error, [{%{description: description} = descr, path}]} ->
+        if description =~ "not found" do
+          {:error, [{descr, path}]}
         else
           {:error, [{JsonObjects.get_error(@auth_method_error, auth_methods), path}]}
         end

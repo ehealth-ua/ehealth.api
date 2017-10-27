@@ -180,7 +180,7 @@ defmodule EHealth.DeclarationRequest.API.ValidatePersonTest do
       bad_person = Map.update!(person, "documents", &[%{"type" => "PASSPORT", "number" => 3} | &1])
       {:error, [{rules, path}]} = ValidatePerson.validate(bad_person)
 
-      assert [%{params: ["PASSPORT"], rule: "No duplicate values."}] == rules
+      assert %{description: "No duplicate values.", params: ["PASSPORT"], rule: :invalid} == rules
       assert "$.person.documents[1].type" == path
     end
 
@@ -189,8 +189,8 @@ defmodule EHealth.DeclarationRequest.API.ValidatePersonTest do
       bad_person = Map.update!(person, "phones", &[%{"type" => "NOT_FROM_DICTIONARY", "number" => 3} | &1])
       {:error, [{rules, path}]} = ValidatePerson.validate(bad_person)
 
-      assert [%{params: ["LAND_LINE", "MOBILE"], rule: "Value 'NOT_FROM_DICTIONARY' is not found in Dictionary."}]
-        == rules
+      assert %{description: "Value 'NOT_FROM_DICTIONARY' is not found in Dictionary.",
+        params: ["LAND_LINE", "MOBILE"], rule: :invalid} == rules
       assert "$.person.phones[0].type" == path
     end
 
@@ -199,14 +199,16 @@ defmodule EHealth.DeclarationRequest.API.ValidatePersonTest do
       bad_person = Map.update!(person, "authentication_methods", &[%{"type" => "OTP"} | &1])
       {:error, [{rules, path}]} = ValidatePerson.validate(bad_person)
 
-      assert [%{params: ["OFFLINE", "OTP"], rule: "Must be one and only one authentication method."}] == rules
+      assert %{description: "Must be one and only one authentication method.",
+        params: ["OFFLINE", "OTP"], rule: :invalid} == rules
       assert "$.person.authentication_methods[0].type" == path
 
       # auth method not from dictionary
       bad_person = Map.put(person, "authentication_methods", [%{"type" => "NOT_FROM_DICTIONARY"}])
       {:error, [{rules, path}]} = ValidatePerson.validate(bad_person)
 
-      assert [%{params: ["OFFLINE", "OTP"], rule: "Value 'NOT_FROM_DICTIONARY' is not found in Dictionary."}] == rules
+      assert %{description: "Value 'NOT_FROM_DICTIONARY' is not found in Dictionary.",
+        params: ["OFFLINE", "OTP"], rule: :invalid} == rules
       assert "$.person.authentication_methods[0].type" == path
     end
 
@@ -216,7 +218,7 @@ defmodule EHealth.DeclarationRequest.API.ValidatePersonTest do
       bad_person = Map.put(person, "confidant_person", [sconf_person])
       {:error, [{rules, path}]} = ValidatePerson.validate(bad_person)
 
-      assert [%{params: ["PRIMARY"], rule: "Must contain required item."}] == rules
+      assert %{description: "Must contain required item.", params: ["PRIMARY"], rule: :invalid} == rules
       assert "$.person.confidant_person[].relation_type" == path
     end
 
@@ -229,7 +231,7 @@ defmodule EHealth.DeclarationRequest.API.ValidatePersonTest do
       bad_person = Map.put(person, "confidant_person", [pconf_person, bad_sconf_person])
 
       {:error, [{rules, path}]} = ValidatePerson.validate(bad_person)
-      assert [%{params: ["CONFIDANT_CERTIFICATE"], rule: "No duplicate values."}] == rules
+      assert %{description: "No duplicate values.", params: ["CONFIDANT_CERTIFICATE"], rule: :invalid} == rules
       assert "$.person.confidant_person[1].documents_relationship[4].type" == path
     end
   end

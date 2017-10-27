@@ -87,7 +87,10 @@ defmodule EHealth.Validators.JsonObjects do
   def combine_path(prefix, path) when is_binary(prefix) and is_binary(path), do:
     String.replace(path, "$.", "$.#{prefix}.")
 
-  def get_error(rule), do: [%{rule: rule}]
-  def get_error(rule, params) when is_list(params), do: [%{rule: rule, params: params}]
-  def get_error(rule, param) when is_binary(param), do: [%{rule: rule, params: [param]}]
+  def get_error(description), do:
+    %{description: description, params: [], rule: :invalid}
+  def get_error(description, params) when is_list(params), do:
+    %{description: description, params: params, rule: :invalid}
+  def get_error(description, param) when is_binary(param), do:
+    %{description: description, params: [param], rule: :invalid}
 end

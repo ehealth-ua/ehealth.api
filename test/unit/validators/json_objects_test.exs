@@ -29,7 +29,7 @@ defmodule EHealth.Unit.Validators.JsonObjectsTest do
     end
 
     test "get_value_in/2 returns error for invalid path" do
-      assert {:error, [{[%{rule: "Key not found"}], "$.person.details.something"}]} ==
+      assert {:error, [{%{description: "Key not found", params: [], rule: :invalid}, "$.person.details.something"}]} ==
         JsonObjects.get_value_in(@object, @invalid_path)
     end
 
@@ -43,9 +43,12 @@ defmodule EHealth.Unit.Validators.JsonObjectsTest do
     end
 
     test "get_error return validation error message" do
-      assert [%{rule: "some rule"}] = JsonObjects.get_error("some rule")
-      assert [%{rule: "some rule", params: ["a", "b"]}] = JsonObjects.get_error("some rule", ["a", "b"])
-      assert [%{rule: "some rule", params: ["a"]}] = JsonObjects.get_error("some rule", "a")
+      assert %{description: "some rule", params: [], rule: :invalid} =
+        JsonObjects.get_error("some rule")
+      assert %{description: "some rule", params: ["a", "b"], rule: :invalid} =
+        JsonObjects.get_error("some rule", ["a", "b"])
+      assert %{description: "some rule", params: ["a"], rule: :invalid} =
+        JsonObjects.get_error("some rule", "a")
     end
 
     test "combine_path/2 can combine validation path inside object" do
@@ -68,7 +71,7 @@ defmodule EHealth.Unit.Validators.JsonObjectsTest do
       result = JsonObjects.array_unique_by_key(object, @valid_path, "type", @valid_types)
       {:error, [{rules, path}]} = result
 
-      assert [%{params: ["passport"], rule: "No duplicate values."}] == rules
+      assert %{description: "No duplicate values.", params: ["passport"], rule: :invalid} == rules
       assert path == "$.person.details.documents[1].type"
     end
 
@@ -82,8 +85,8 @@ defmodule EHealth.Unit.Validators.JsonObjectsTest do
       result = JsonObjects.array_unique_by_key(object, @valid_path, "type", @valid_types)
       {:error, [{rules, path}]} = result
 
-      assert [%{params: ["national_id", "passport"], rule: "Value 'not_in_dict' is not found in Dictionary."}] ==
-        rules
+      assert %{description: "Value 'not_in_dict' is not found in Dictionary.",
+        params: ["national_id", "passport"], rule: :invalid} == rules
       assert path == "$.person.details.documents[0].type"
     end
   end
@@ -111,7 +114,8 @@ defmodule EHealth.Unit.Validators.JsonObjectsTest do
       result = JsonObjects.array_single_item(@object, @valid_path, "type", @valid_types)
       {:error, [{rules, path}]} = result
 
-      assert [%{params: ["passport", "national_id"], rule: "Must contain only one valid item."}] == rules
+      assert %{description: "Must contain only one valid item.", params: ["passport", "national_id"], rule: :invalid} ==
+        rules
       assert path == "$.person.details.documents[0].type"
     end
 
@@ -124,8 +128,8 @@ defmodule EHealth.Unit.Validators.JsonObjectsTest do
       result = JsonObjects.array_single_item(object, @valid_path, "type", @valid_types)
       {:error, [{rules, path}]} = result
 
-      assert [%{params: ["passport", "national_id"], rule: "Value 'not_in_dict' is not found in Dictionary."}] ==
-        rules
+      assert %{description: "Value 'not_in_dict' is not found in Dictionary.",
+        params: ["passport", "national_id"], rule: :invalid} == rules
       assert path == "$.person.details.documents[0].type"
     end
   end
@@ -142,7 +146,7 @@ defmodule EHealth.Unit.Validators.JsonObjectsTest do
       result = JsonObjects.array_item_required(object, @valid_path, "type", "passport")
       {:error, [{rules, path}]} = result
 
-      assert [%{params: ["passport"], rule: "Must contain required item."}] == rules
+      assert %{description: "Must contain required item.", params: ["passport"], rule: :invalid} == rules
       assert path == "$.person.details.documents[].type"
     end
   end
