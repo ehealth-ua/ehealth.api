@@ -63,6 +63,10 @@ defmodule EHealth.Web.ConnCase do
     Plug.Conn.put_req_header(conn, @header_consumer_meta, data)
   end
 
+  def put_consumer_id_header(conn, id \\ Ecto.UUID.generate()) do
+    Plug.Conn.put_req_header(conn, @header_consumer_id, id)
+  end
+
   def delete_client_id_header(conn) do
     Plug.Conn.delete_req_header(conn, @header_consumer_meta)
   end

@@ -23,17 +23,24 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
         id: "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
         legal_entity: legal_entity,
         is_active: true)
-    insert(:prm, :employee,
+    employee = insert(:prm, :employee,
         id: "7488a646-e31f-11e4-aace-600308960662",
         legal_entity: legal_entity,
         division: division
     )
-    {:ok, conn: put_client_id_header(conn, legal_entity.id)}
+    party_id = employee.party |> Map.get(:id)
+    user_id = Ecto.UUID.generate()
+    EHealth.PRMRepo.insert!(%EHealth.PRM.PartyUsers.Schema{user_id: user_id, party_id: party_id})
+    conn =
+     conn
+     |> put_consumer_id_header(user_id)
+     |> put_client_id_header(legal_entity.id)
+    {:ok, conn: conn}
   end
 
   describe "index" do
     test "lists all medication_request_requests", %{conn: conn} do
-      conn = get conn, medication_request_request_path(conn, :index, %{"employee_id" => Ecto.UUID.generate()})
+      conn = get conn, medication_request_request_path(conn, :index, %{})
       assert json_response(conn, 200)["data"] == []
     end
 
@@ -56,8 +63,8 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       conn1 = post conn, medication_request_request_path(conn, :create), medication_request_request: test_request
       assert %{"id" => id} = json_response(conn1, 201)["data"]
 
-      conn = get conn, medication_request_request_path(conn, :show, id)
-      assert json_response(conn, 200)["data"]["data"] ==  %{
+      conn1 = get conn, medication_request_request_path(conn, :show, id)
+      assert json_response(conn1, 200)["data"]["data"] ==  %{
           "created_at" => "2020-09-22", "dispense_valid_from" => "2020-09-25",
           "dispense_valid_to" => "2020-10-25", "division_id" => "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
           "employee_id" => "7488a646-e31f-11e4-aace-600308960662", "ended_at" => "2020-10-22",
@@ -65,6 +72,8 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
           "medication_id" =>  medication_id, "medical_program_id" => pm.medical_program_id, "medication_qty" => 10,
           "person_id" => "585044f5-1272-4bca-8d41-8440eefe7d26", "started_at" => "2020-09-22"
         }
+      conn2 = get conn, medication_request_request_path(conn, :index, %{})
+      assert length(json_response(conn2, 200)["data"]) == 1
     end
 
     test "render errors when data is invalid", %{conn: conn} do
