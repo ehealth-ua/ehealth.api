@@ -25,27 +25,37 @@ defmodule EHealth.API.Signature do
     else
       data = Base.decode64(signed_content)
       case data do
-        :error ->
-          data =
-            %{"is_valid" => false}
-            |> wrap_response(422)
-            |> Poison.encode!
-         ResponseDecoder.check_response(%HTTPoison.Response{body: data, status_code: 422})
+        :error -> data_is_invalid_resp()
         {:ok, data} ->
-          data =
-            %{
-              "content" => Poison.decode!(data),
-              "is_valid" => true,
-              "signer" => %{
-                "edrpou" => get_header(headers, "edrpou"),
-                "drfo" => get_header(headers, "drfo")
-              }
-            }
-            |> wrap_response(200)
-            |> Poison.encode!
-          ResponseDecoder.check_response(%HTTPoison.Response{body: data, status_code: 200})
+          case Poison.decode(data) do
+            {:ok, data} -> data_is_valid_resp(data, headers)
+            {:error, _} -> data_is_invalid_resp()
+          end
       end
     end
+  end
+
+  defp data_is_valid_resp(data, headers) do
+    data =
+      %{
+        "content" => data,
+        "is_valid" => true,
+        "signer" => %{
+          "edrpou" => get_header(headers, "edrpou"),
+          "drfo" => get_header(headers, "drfo")
+        }
+      }
+      |> wrap_response(200)
+      |> Poison.encode!
+    ResponseDecoder.check_response(%HTTPoison.Response{body: data, status_code: 200})
+  end
+
+  defp data_is_invalid_resp do
+    data =
+      %{"is_valid" => false}
+      |> wrap_response(422)
+      |> Poison.encode!
+    ResponseDecoder.check_response(%HTTPoison.Response{body: data, status_code: 422})
   end
 
   def extract_edrpou({:ok, %{"data" => %{"signer" => %{"edrpou" => edrpou}}}}) do
