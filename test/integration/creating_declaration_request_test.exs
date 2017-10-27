@@ -287,7 +287,7 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
 
       resp = json_response(conn, 422)
       assert [error] = resp["error"]["invalid"]
-      assert "Duplicate value 'MOBILE'" == error["rules"] |> List.first()
+      assert [%{"params" => ["MOBILE"], "rule" => "No duplicate values."}] == error["rules"] |> List.first()
     end
 
     test "declaration request is created with 'OTP' verification", %{conn: conn} do

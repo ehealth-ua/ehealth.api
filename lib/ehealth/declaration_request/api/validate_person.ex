@@ -26,7 +26,7 @@ defmodule EHealth.DeclarationRequest.API.ValidatePerson do
     do
          :ok
     else
-         {:error, [{reason, path}]} -> {:error, [{reason, String.replace(path, "#/", "#/person/")}]}
+         {:error, [{rules, path}]} -> {:error, [{rules, JsonObjects.combine_path("person", path)}]}
     end
   end
 
@@ -39,13 +39,13 @@ defmodule EHealth.DeclarationRequest.API.ValidatePerson do
   end
 
   defp validate_auth_method(person, auth_methods) do
-    case JsonObjects.array_single_valid_item(person, ["authentication_methods"], "type", auth_methods) do
+    case JsonObjects.array_single_item(person, ["authentication_methods"], "type", auth_methods) do
       :ok                      -> :ok
-      {:error, [{reason, path}]} ->
-        if reason =~ "not found" do
-          {:error, [{reason, path}]}
+      {:error, [{[%{rule: rule}] = rules, path}]} ->
+        if rule =~ "not found" do
+          {:error, [{rules, path}]}
         else
-          {:error, [{@auth_method_error, path}]}
+          {:error, [{JsonObjects.get_error(@auth_method_error, auth_methods), path}]}
         end
     end
   end
@@ -57,13 +57,13 @@ defmodule EHealth.DeclarationRequest.API.ValidatePerson do
     confidant_persons = Map.get(person, "confidant_person")
 
     with :ok <- JsonObjects.array_unique_by_key(person, ["confidant_person"], "relation_type", valid_relations),
-         :ok <- JsonObjects.array_contains_item(person, ["confidant_person"], "relation_type", "PRIMARY"),
-         :ok <- validate_every_confidant_person(confidant_persons, dict_keys),
+         :ok <- JsonObjects.array_item_required(person, ["confidant_person"], "relation_type", "PRIMARY"),
+         :ok <- validate_every_confidant_person(confidant_persons, dict_keys, 0),
     do:  :ok
   end
 
-  defp validate_every_confidant_person([], _), do: :ok
-  defp validate_every_confidant_person([h | t], dict_keys) do
+  defp validate_every_confidant_person([], _, _), do: :ok
+  defp validate_every_confidant_person([h | t], dict_keys, i) do
     with  %{"DOCUMENT_TYPE" => doc_types} = dict_keys,
           :ok <- JsonObjects.array_unique_by_key(h, ["documents_person"], "type", doc_types),
           %{"PHONE_TYPE" => phone_types} = dict_keys,
@@ -71,9 +71,9 @@ defmodule EHealth.DeclarationRequest.API.ValidatePerson do
           %{"DOCUMENT_RELATIONSHIP_TYPE" => doc_relation_type} = dict_keys,
           :ok <- JsonObjects.array_unique_by_key(h, ["documents_relationship"], "type", doc_relation_type)
     do
-          validate_every_confidant_person(t, dict_keys)
+          validate_every_confidant_person(t, dict_keys, i + 1)
     else
-          {:error, [{reason, path}]} -> {:error, [{reason, String.replace(path, "#/", "#/confidant_person/")}]}
+          {:error, [{rules, path}]} -> {:error, [{rules, JsonObjects.combine_path("confidant_person[#{i}]", path)}]}
     end
   end
 end

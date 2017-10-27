@@ -178,45 +178,46 @@ defmodule EHealth.DeclarationRequest.API.ValidatePersonTest do
     test "Error message if person documents contains duplicate objects", %{person: person} do
       # two documents of the same type
       bad_person = Map.update!(person, "documents", &[%{"type" => "PASSPORT", "number" => 3} | &1])
-      {:error, [{reason, path}]} = ValidatePerson.validate(bad_person)
+      {:error, [{rules, path}]} = ValidatePerson.validate(bad_person)
 
-      assert "Duplicate value 'PASSPORT'" == reason
-      assert "#/person/documents/type" == path
+      assert [%{params: ["PASSPORT"], rule: "No duplicate values."}] == rules
+      assert "$.person.documents[1].type" == path
     end
 
     test "Error message if person phones contains incorrect objects", %{person: person} do
       # phone with type not from dictionary
       bad_person = Map.update!(person, "phones", &[%{"type" => "NOT_FROM_DICTIONARY", "number" => 3} | &1])
-      {:error, [{reason, path}]} = ValidatePerson.validate(bad_person)
+      {:error, [{rules, path}]} = ValidatePerson.validate(bad_person)
 
-      assert "Value 'NOT_FROM_DICTIONARY' is not found in Dictionary" == reason
-      assert "#/person/phones/type" == path
+      assert [%{params: ["LAND_LINE", "MOBILE"], rule: "Value 'NOT_FROM_DICTIONARY' is not found in Dictionary."}]
+        == rules
+      assert "$.person.phones[0].type" == path
     end
 
     test "Error message if person authentication_methods contains incorrect objects", %{person: person} do
       # two correct auth methods
       bad_person = Map.update!(person, "authentication_methods", &[%{"type" => "OTP"} | &1])
-      {:error, [{reason, path}]} = ValidatePerson.validate(bad_person)
+      {:error, [{rules, path}]} = ValidatePerson.validate(bad_person)
 
-      assert "Must be one and only one authentication method." == reason
-      assert "#/person/authentication_methods/type" == path
+      assert [%{params: ["OFFLINE", "OTP"], rule: "Must be one and only one authentication method."}] == rules
+      assert "$.person.authentication_methods[0].type" == path
 
       # auth method not from dictionary
       bad_person = Map.put(person, "authentication_methods", [%{"type" => "NOT_FROM_DICTIONARY"}])
-      {:error, [{reason, path}]} = ValidatePerson.validate(bad_person)
+      {:error, [{rules, path}]} = ValidatePerson.validate(bad_person)
 
-      assert "Value 'NOT_FROM_DICTIONARY' is not found in Dictionary" == reason
-      assert "#/person/authentication_methods/type" == path
+      assert [%{params: ["OFFLINE", "OTP"], rule: "Value 'NOT_FROM_DICTIONARY' is not found in Dictionary."}] == rules
+      assert "$.person.authentication_methods[0].type" == path
     end
 
     test "Error message if there is only SECONDARY confidant_person",
       %{person: person, sconf_person: sconf_person} do
 
       bad_person = Map.put(person, "confidant_person", [sconf_person])
-      {:error, [{reason, path}]} = ValidatePerson.validate(bad_person)
+      {:error, [{rules, path}]} = ValidatePerson.validate(bad_person)
 
-      assert "'PRIMARY' is required" == reason
-      assert "#/person/confidant_person/relation_type" == path
+      assert [%{params: ["PRIMARY"], rule: "Must contain required item."}] == rules
+      assert "$.person.confidant_person[].relation_type" == path
     end
 
     test "Error message if 1 of 2 confidant_person contains incorrect data",
@@ -227,10 +228,9 @@ defmodule EHealth.DeclarationRequest.API.ValidatePersonTest do
         Map.update!(sconf_person, "documents_relationship", &[%{"type" => "CONFIDANT_CERTIFICATE", "number" => 5} | &1])
       bad_person = Map.put(person, "confidant_person", [pconf_person, bad_sconf_person])
 
-      {:error, [{reason, path}]} = ValidatePerson.validate(bad_person)
-
-      assert "Duplicate value 'CONFIDANT_CERTIFICATE'" == reason
-      assert "#/person/confidant_person/documents_relationship/type" == path
+      {:error, [{rules, path}]} = ValidatePerson.validate(bad_person)
+      assert [%{params: ["CONFIDANT_CERTIFICATE"], rule: "No duplicate values."}] == rules
+      assert "$.person.confidant_person[1].documents_relationship[4].type" == path
     end
   end
 

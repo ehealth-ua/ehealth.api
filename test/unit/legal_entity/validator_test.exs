@@ -12,6 +12,7 @@ defmodule EHealth.Unit.LegalEntity.ValidatorTest do
     setup _ do
       insert(:il, :dictionary_phone_type)
       insert(:il, :dictionary_address_type)
+      insert(:il, :dictionary_document_type)
 
       legal_entity =
         "test/data/legal_entity.json"
@@ -42,10 +43,22 @@ defmodule EHealth.Unit.LegalEntity.ValidatorTest do
     end
 
     test "returns :error for multiple phones of the same type", %{legal_entity: legal_entity} do
-      incorrect_phones = [
-        %{"number" => "+380503410870", "type" => "MOBILE"},
-        %{"number" => "+380503410871", "type" => "MOBILE"}]
-      bad_legal_entity = Map.put(legal_entity, "phones", incorrect_phones)
+      mob = %{"number" => "+380503410870", "type" => "MOBILE"}
+      bad_legal_entity = Map.put(legal_entity, "phones", [mob, mob])
+
+      assert {:error, _} = Validator.validate_json_objects(bad_legal_entity)
+    end
+
+    test "return :error for incorrect owner phones", %{legal_entity: legal_entity} do
+      mob = %{"number" => "+380503410870", "type" => "MOBILE"}
+      bad_legal_entity = put_in(legal_entity, ["owner", "phones"], [mob, mob])
+
+      assert {:error, _} = Validator.validate_json_objects(bad_legal_entity)
+    end
+
+    test "return :error for incorrect owner documents", %{legal_entity: legal_entity} do
+      passp = %{"type" => "PASSPORT", "number" => "120518"}
+      bad_legal_entity = put_in(legal_entity, ["owner", "documents"], [passp, passp])
 
       assert {:error, _} = Validator.validate_json_objects(bad_legal_entity)
     end

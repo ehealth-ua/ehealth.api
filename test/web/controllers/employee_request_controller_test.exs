@@ -410,7 +410,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
       resp = json_response(conn1, 422)
       assert Map.has_key?(resp, "error")
-      assert "#/employee_request/party/documents/type" ==
+      assert "$.employee_request.party.documents[1].type" ==
         resp
         |> get_in(["error", "invalid"])
         |> List.first()
@@ -430,7 +430,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
       resp = json_response(conn1, 422)
       assert Map.has_key?(resp, "error")
-      assert "#/employee_request/party/phones/type" ==
+      assert "$.employee_request.party.phones[1].type" ==
         resp
         |> get_in(["error", "invalid"])
         |> List.first()

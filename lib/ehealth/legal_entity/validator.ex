@@ -17,7 +17,8 @@ defmodule EHealth.LegalEntity.Validator do
 
   @validation_dictionaries [
     "ADDRESS_TYPE",
-    "PHONE_TYPE"]
+    "PHONE_TYPE",
+    "DOCUMENT_TYPE"]
 
   def decode_and_validate(params, headers) do
     params
@@ -90,6 +91,9 @@ defmodule EHealth.LegalEntity.Validator do
          :ok <- JsonObjects.array_unique_by_key(content, ["addresses"], "type", address_types),
          %{"PHONE_TYPE" => phone_types} = dict_keys,
          :ok <- JsonObjects.array_unique_by_key(content, ["phones"], "type", phone_types),
+         :ok <- JsonObjects.array_unique_by_key(content, ["owner", "phones"], "type", phone_types),
+         %{"DOCUMENT_TYPE" => document_types} = dict_keys,
+         :ok <- JsonObjects.array_unique_by_key(content, ["owner", "documents"], "type", document_types),
     do:  :ok
   end
 
