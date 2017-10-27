@@ -67,7 +67,7 @@ defmodule EHealth.MedicationRequestRequests do
       |> Enum.filter(fn e -> e.legal_entity_id == get_client_id(headers) end)
       |> Enum.map(fn e -> e.id end)
     ids_sql_safe = employee_ids |> Enum.map(fn id -> "'#{id}'" end) |> Enum.join(", ")
-    where(query, [r], fragment("?->>'employee_id' IN ?", r.data, ^ids_sql_safe))
+    where(query, [r], fragment("?->>'employee_id' IN ?", r.data, ^"(#{ids_sql_safe})"))
   end
 
   defp filter_by_status(query, %{"status" => status}) when is_binary(status) do
