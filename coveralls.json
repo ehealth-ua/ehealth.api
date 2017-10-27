@@ -1,5 +1,6 @@
 {
   "skip_files": [
+    "specs/*",
     "test/*",
     "/lib/ehealth/tasks.ex"
   ],

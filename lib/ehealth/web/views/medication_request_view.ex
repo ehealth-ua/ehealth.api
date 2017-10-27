@@ -60,8 +60,8 @@ defmodule EHealth.Web.MedicationRequestView do
       end
 
       %{
-        "id" => program.id,
-        "name" => program.name,
+        "program_id" => program.id,
+        "program_name" => program.name,
         "status" => status,
         "rejection_reason" => reason,
         "participants" => participants,
@@ -70,8 +70,13 @@ defmodule EHealth.Web.MedicationRequestView do
   end
 
   def render("program_medication.json", %{program_medication: program_medication}) do
-    program_medication.medication
-    |> Map.take(~w(id name form manufacturer)a)
-    |> Map.put("reimbursement_amount", program_medication.reimbursement["reimbursement_amount"])
+    medication = program_medication.medication
+    %{
+      "medication_id" => medication.id,
+      "medication_name" => medication.name,
+      "form" => medication.form,
+      "manufacturer" => medication.manufacturer,
+      "reimbursement_amount" => program_medication.reimbursement["reimbursement_amount"]
+    }
   end
 end

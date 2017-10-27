@@ -4,11 +4,11 @@
   "items": {
     "type": "object",
     "properties": {
-      "id": {
+      "program_id": {
         "type": "string",
         "description": "`Medical program Identifier`"
       },
-      "name": {
+      "program_name": {
         "type": "string"
       },
       "status": {
@@ -24,15 +24,52 @@
         "description": "Reason to fetch invalid status"
       },
       "participants": {
-        "type": "array"
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "medication_id": {
+              "type": "string"
+            },
+            "medication_name": {
+              "type": "string"
+            },
+            "form": {
+              "type": "string"
+            },
+            "manufacturer": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "country": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name",
+                "country"
+              ]
+            },
+            "reimbursement_amount": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "medication_id",
+            "medication_name",
+            "form",
+            "manufacturer",
+            "reimbursement_amount"
+          ]
+        }
       }
     },
     "required": [
-      "id",
-      "name",
-      "status",
-      "participants"
-    ],
-    "additionalProperties": false
+      "program_id",
+      "program_name",
+      "status"
+    ]
   }
 }
