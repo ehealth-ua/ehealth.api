@@ -25,8 +25,8 @@ defmodule EHealth.MedicationRequestRequest.OperationHelpers do
     Helpers.get_assoc_by_func("medical_program_id", fn -> MedicalPrograms.get_by_id(id) end)
   end
 
-  def validate_employee(_operation, employee) do
-    Validations.validate_doctor(employee)
+  def validate_employee(operation, employee) do
+    Validations.validate_doctor(employee, operation.data.legal_entity)
   end
 
   def get_person(id) do

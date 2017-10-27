@@ -18,9 +18,10 @@ defmodule EHealth.MedicationRequestRequest.Validations do
     JsonSchema.validate(:medication_request_request_sign, params)
   end
 
-  def validate_doctor(doctor) do
+  def validate_doctor(doctor, legal_entity) do
     with true <- doctor.employee_type == "DOCTOR",
-         true <- doctor.status == "APPROVED" do
+         true <- doctor.status == "APPROVED",
+         true <- doctor.legal_entity.id == legal_entity.id do
       {:ok, doctor}
     else
       _ -> {:invalid_employee, doctor}
