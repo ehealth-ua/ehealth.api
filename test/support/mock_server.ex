@@ -16,6 +16,9 @@ defmodule EHealth.MockServer do
   @inactive_medication_request "04d64554-9a1c-11e7-abc4-cec278b6b50a"
   @invalid_medication_dispense_period "5ccf33e6-9a22-11e7-abc4-cec278b6b50a"
 
+  @user_for_role_1 "7cc91a5d-c02f-41e9-b571-1ea4f2375111"
+  @user_for_role_2 "7cc91a5d-c02f-41e9-b571-1ea4f2375222"
+
   @active_person "585041f5-1272-4bca-8d41-8440eefe7200"
 
   plug :match
@@ -34,6 +37,8 @@ defmodule EHealth.MockServer do
   def get_active_medication_request, do: @active_medication_request
   def get_inactive_medication_request, do: @inactive_medication_request
   def get_invalid_medication_request_period, do: @invalid_medication_dispense_period
+  def get_user_for_role_1, do: @user_for_role_1
+  def get_user_for_role_2, do: @user_for_role_2
 
   # Mithril
 
@@ -145,6 +150,20 @@ defmodule EHealth.MockServer do
     roles = case conn.path_params["id"] do
       "d0bde310-8401-11e7-bb31-be2e44b06b34" -> []
       _ -> [get_oauth_user_role(conn.path_params["id"], conn.query_params["client_id"])]
+    end
+
+    resp =
+      roles
+      |> wrap_response()
+      |> Poison.encode!()
+
+    Plug.Conn.send_resp(conn, 200, resp)
+  end
+
+  get "/admin/user_roles" do
+    roles = case conn.query_params["ids"] do
+      @user_for_role_1 <> "," <> @user_for_role_2 -> []
+      _ -> [get_oauth_user_role, get_oauth_user_role]
     end
 
     resp =

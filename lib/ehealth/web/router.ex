@@ -72,6 +72,10 @@ defmodule EHealthWeb.Router do
 
     # Global parameters
     get "/global_parameters", GlobalParameterController, :index
+
+    # Black-listed users
+    resources "/black_list_users", BlackListUserController, except: [:new, :edit, :show, :update, :delete]
+    patch "/black_list_users/:id/actions/deactivate", BlackListUserController, :deactivate
   end
 
   # Client context for lists

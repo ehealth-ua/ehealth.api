@@ -56,6 +56,14 @@ defmodule EHealth.PRM.Parties do
     |> PRMRepo.all()
   end
 
+  def get_user_ids_by_tax_id(tax_id) do
+    Party
+    |> where([e], e.tax_id == ^tax_id)
+    |> join(:left, [p], u in assoc(p, :users))
+    |> select([..., u], u.user_id)
+    |> PRMRepo.all()
+  end
+
   def create_party(attrs) do
     with {:ok, party} <- %Party{}
                          |> changeset(attrs)

@@ -80,6 +80,10 @@ defmodule EHealth.API.Mithril do
 
   # User roles
 
+  def search_user_roles(params, headers \\ []) do
+    get!("/admin/user_roles", headers, params: params)
+  end
+
   def get_user_roles(user_id, params, headers \\ []) when is_binary(user_id) do
     get!("/admin/users/#{user_id}/roles", headers, params: params)
   end
