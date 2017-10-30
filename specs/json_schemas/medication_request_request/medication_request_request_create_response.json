@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-04/schema#",
   "type": "object",
   "properties": {
-    "request_id": {
+    "id": {
       "type": "string",
       "description": "Medication Request request identifier"
     },
@@ -274,7 +274,7 @@
     }
   },
   "required": [
-    "request_id",
+    "id",
     "status",
     "request_number",
     "created_at",

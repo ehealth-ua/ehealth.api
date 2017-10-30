@@ -21,6 +21,7 @@ defmodule EHealth.MedicationRequestRequests do
   alias EHealth.MedicationRequestRequest.SignOperation
   alias EHealth.PRM.Medications.API, as: MedicationsAPI
   alias EHealth.MedicationRequestRequest.RejectOperation
+  alias EHealth.MedicationRequestRequest.PreloadFkOperation
   alias EHealth.MedicationRequestRequest.CreateDataOperation
   alias EHealth.PRM.MedicalPrograms.Schema, as: MedicalProgram
   alias EHealth.PRM.Medications.INNMDosage.Schema, as: INNMDosage
@@ -54,25 +55,44 @@ defmodule EHealth.MedicationRequestRequests do
     |> filter_by_employee_id(params, headers)
     |> filter_by_status(params)
     |> Repo.paginate(params)
+    |> preload_fk()
   end
 
   defp filter_by_employee_id(query, %{"employee_id" => employee_id}, _) do
     where(query, [r], fragment("?->'employee_id' = ?", r.data, ^employee_id))
   end
   defp filter_by_employee_id(query, _, headers) do
-    employee_ids =
-      headers
-      |> get_consumer_id()
-      |> Employees.get_employee_by_user_id()
-      |> Enum.filter(fn e -> e.legal_entity_id == get_client_id(headers) end)
-      |> Enum.map(fn e -> e.id end)
+    employee_ids = get_employee_ids_from_headers(headers)
     where(query, [r], fragment("?->>'employee_id' in (?)", r.data, ^Enum.join(employee_ids, ", ")))
+  end
+
+  defp preload_fk(page) do
+    Map.replace(page, :entries,
+      Enum.map(page.entries, fn e ->
+        operation = PreloadFkOperation.preload(e)
+        Map.merge(operation.data, %{medication_request_request: e})
+      end)
+    )
+  end
+
+  defp get_employee_ids_from_headers(headers) do
+    headers
+    |> get_consumer_id()
+    |> Employees.get_employee_by_user_id()
+    |> Enum.filter(fn e -> e.legal_entity_id == get_client_id(headers) end)
+    |> Enum.map(fn e -> e.id end)
   end
 
   defp filter_by_status(query, %{"status" => status}) when is_binary(status) do
     where(query, [r], r.status == ^status)
   end
   defp filter_by_status(query, _), do: query
+
+  def show(id) do
+    mrr = get_medication_request_request(id)
+    operation = PreloadFkOperation.preload(mrr)
+    Map.merge(operation.data, %{medication_request_request: mrr})
+  end
 
   def get_medication_request_request(id), do: Repo.get(MedicationRequestRequest, id)
   def get_medication_request_request!(id), do: Repo.get!(MedicationRequestRequest, id)
@@ -266,6 +286,8 @@ defmodule EHealth.MedicationRequestRequests do
     {id, params} = Map.pop(params, "id")
     with :ok <- Validations.validate_sign_schema(params),
          %MedicationRequestRequest{status: "NEW"} = mrr <- get_medication_request_request_by_query([id: id]),
+         employee_ids <- get_employee_ids_from_headers(headers),
+         :ok <- doctor_authorized_to_sign?(employee_ids, mrr),
          {operation, {:ok, mrr}} <- SignOperation.sign(mrr, params, headers)
     do
       mrr
@@ -287,6 +309,14 @@ defmodule EHealth.MedicationRequestRequests do
        %MedicationRequestRequest{status: _} ->
         {:error, {:conflict, "Invalid status Medication request Request for sign transition!"}}
       err -> err
+    end
+  end
+
+  defp doctor_authorized_to_sign?(employee_ids, mrr) do
+    if mrr.data.employee_id in employee_ids do
+      :ok
+    else
+      {:error, {:forbidden, "Only doctor that in Medication request Request can sign it"}}
     end
   end
 

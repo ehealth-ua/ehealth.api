@@ -49,6 +49,8 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       conn = get conn, medication_request_request_path(conn, :index,
         %{"employee_id" => mrr.medication_request_request.data.employee_id, "legal_entity_id" => @legal_entity_id})
       assert length(json_response(conn, 200)["data"]) == 1
+      assert :ok == validate_response_with_schema(json_response(conn, 200)["data"],
+        "specs/json_schemas/medication_request_request/medication_request_request_get_list_response.json")
     end
   end
 
@@ -62,16 +64,12 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
         |> Map.put("medical_program_id", pm.medical_program_id)
       conn1 = post conn, medication_request_request_path(conn, :create), medication_request_request: test_request
       assert %{"id" => id} = json_response(conn1, 201)["data"]
+      assert :ok == validate_response_with_schema(json_response(conn1, 201)["data"],
+        "specs/json_schemas/medication_request_request/medication_request_request_create_response.json")
 
       conn1 = get conn, medication_request_request_path(conn, :show, id)
-      assert json_response(conn1, 200)["data"]["data"] ==  %{
-          "created_at" => "2020-09-22", "dispense_valid_from" => "2020-09-25",
-          "dispense_valid_to" => "2020-10-25", "division_id" => "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
-          "employee_id" => "7488a646-e31f-11e4-aace-600308960662", "ended_at" => "2020-10-22",
-          "legal_entity_id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375552",
-          "medication_id" =>  medication_id, "medical_program_id" => pm.medical_program_id, "medication_qty" => 10,
-          "person_id" => "585044f5-1272-4bca-8d41-8440eefe7d26", "started_at" => "2020-09-22"
-        }
+      assert :ok == validate_response_with_schema(json_response(conn1, 200)["data"],
+        "specs/json_schemas/medication_request_request/medication_request_request_create_response.json")
       conn2 = get conn, medication_request_request_path(conn, :index, %{})
       assert length(json_response(conn2, 200)["data"]) == 1
     end
@@ -255,6 +253,9 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       conn1 = post conn, medication_request_request_path(conn, :prequalify), %{medication_request_request: test_request,
         programs: [%{id: pm.medical_program_id}]}
       assert %{"status" => "VALID"} = json_response(conn1, 200)["data"] |> Enum.at(0)
+       assert :ok == validate_response_with_schema(json_response(conn1, 200)["data"],
+        "specs/json_schemas/medication_request_request/medication_request_request_prequalify_response.json")
+
       assert is_list(json_response(conn1, 200)["data"] |> Enum.at(0) |> Map.get("participants"))
     end
 
@@ -419,5 +420,14 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     "test/data/medication_request_request/medication_request_request.json"
     |> File.read!()
     |> Poison.decode!
+  end
+
+  defp validate_response_with_schema(resp, schema_path) do
+    schema =
+      schema_path
+      |> File.read!()
+      |> Poison.decode!()
+
+    NExJsonSchema.Validator.validate(schema, resp)
   end
 end

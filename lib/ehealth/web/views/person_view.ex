@@ -3,6 +3,17 @@ defmodule EHealth.Web.PersonView do
 
   use EHealth.Web, :view
 
+  def render("show.json", %{"person" => person}) do
+    Map.take(person, ~w(
+      id
+      first_name
+      last_name
+      second_name
+      birth_date
+      addresses
+    ))
+  end
+
   def render("show.json", %{person: person}) do
     Map.take(person, ~w(
       id
