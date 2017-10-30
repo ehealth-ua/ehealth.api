@@ -29,7 +29,7 @@ defmodule EHealth.API.Signature do
         {:ok, data} ->
           case Poison.decode(data) do
             {:ok, data} -> data_is_valid_resp(data, headers)
-            {:error, _} -> data_is_invalid_resp()
+            {:error, _, _} -> data_is_invalid_resp()
           end
       end
     end
