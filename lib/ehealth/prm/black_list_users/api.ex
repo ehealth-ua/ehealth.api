@@ -56,7 +56,7 @@ defmodule EHealth.PRM.BlackListUsers do
         |> Parties.get_user_ids_by_tax_id()
         |> Enum.join(",")
 
-      case Mithril.search_user_roles(%{"ids" => ids}) do
+      case Mithril.search_user_roles(%{"user_ids" => ids}) do
         {:ok, %{"data" => []}} -> []
         {:ok, _} -> [user_roles: "Not all roles were deleted"]
         _ -> [user_roles: "Cannot fetch Mithril user roles"]

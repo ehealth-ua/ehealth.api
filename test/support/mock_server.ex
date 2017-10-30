@@ -161,7 +161,7 @@ defmodule EHealth.MockServer do
   end
 
   get "/admin/user_roles" do
-    roles = case conn.query_params["ids"] do
+    roles = case conn.query_params["user_ids"] do
       @user_for_role_1 <> "," <> @user_for_role_2 -> []
       _ -> [get_oauth_user_role(), get_oauth_user_role()]
     end
