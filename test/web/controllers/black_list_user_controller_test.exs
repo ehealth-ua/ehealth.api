@@ -61,7 +61,14 @@ defmodule EHealth.Web.BlackListUserControllerTest do
       insert(:prm, :party_user, party: party, user_id: MockServer.get_user_for_role_2())
 
       conn = post conn, black_list_user_path(conn, :create), tax_id: "022321"
-      json_response(conn, 201)
+      assert %{"id" => id} = json_response(conn, 201)["data"]
+
+      conn = get conn, black_list_user_path(conn, :index), %{"id" => id}
+      resp = json_response(conn, 200)["data"]
+
+      assert 1 == length(resp)
+      assert id == Map.get(hd(resp), "id")
+      assert Map.get(hd(resp), "is_active")
     end
 
     test "user roles doesn't deleted", %{conn: conn} do

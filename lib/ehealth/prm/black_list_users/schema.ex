@@ -6,7 +6,7 @@ defmodule EHealth.PRM.BlackListUsers.Schema do
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "black_list_users" do
     field :tax_id, :string
-    field :is_active, :boolean, default: false
+    field :is_active, :boolean, default: true
     field :updated_by, Ecto.UUID
     field :inserted_by, Ecto.UUID
 
