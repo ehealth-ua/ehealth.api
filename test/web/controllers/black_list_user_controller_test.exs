@@ -14,6 +14,7 @@ defmodule EHealth.Web.BlackListUserControllerTest do
 
       assert 1 == length(resp)
       assert id == Map.get(hd(resp), "id")
+      assert Map.get(hd(resp), "is_active")
     end
 
     test "search by tax_id", %{conn: conn} do
