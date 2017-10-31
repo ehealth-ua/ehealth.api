@@ -158,9 +158,8 @@ defmodule EHealthWeb.Router do
       get "/:id", MedicationDispenseController, :show
       patch "/:id/actions/process", MedicationDispenseController, :process
       patch "/:id/actions/reject", MedicationDispenseController, :reject
+      post "/", MedicationDispenseController, :create
     end
-
-    post "/medication_dispenses", MedicationDispenseController, :create
 
     scope "/medication_requests" do
       pipe_through [:client_context_list]

@@ -383,7 +383,6 @@ defmodule EHealth.MockServer do
     end
   end
 
-
   patch "/medication_requests/0242d712-1c6d-4ada-bbc5-540c61551e37" do
     render([], conn, 404)
   end
@@ -426,7 +425,11 @@ defmodule EHealth.MockServer do
   end
 
   get "/qualify_medication_requests" do
-    render([], conn, 200)
+    case conn.query_params["id"] do
+      "f08ba3a3-157a-4adc-b65d-737f24f3a1f4" ->
+        render([%{"f08ba3a3-157a-4adc-b65d-737f24f3a1f4" => Ecto.UUID.generate()}], conn, 200)
+      _ -> render([], conn, 200)
+    end
   end
 
   get "/prequalify_medication_requests" do

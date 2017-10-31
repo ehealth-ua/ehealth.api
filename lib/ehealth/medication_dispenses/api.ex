@@ -93,7 +93,7 @@ defmodule EHealth.MedicationDispense.API do
     end
   end
 
-  def create(headers, code, params) do
+  def create(headers, client_type, code, params) do
     legal_entity_id = get_client_id(headers)
     user_id = get_consumer_id(headers)
     with :ok                       <- JsonSchema.validate(:medication_dispense, params),
@@ -107,6 +107,7 @@ defmodule EHealth.MedicationDispense.API do
          details                   <- params["dispense_details"],
          {:ok, dispense_details, medications} <- validate_medications(details, medical_program),
          :ok                       <- validate_code(code, medication_request),
+         :ok                       <- qualify_request(medication_request, client_type, headers),
          :ok                       <- check_other_medication_dispenses(medication_request, headers),
          :ok                       <- check_medication_qty(params, medication_request),
          :ok                       <- check_medication_multiplicity(dispense_details, medications),
@@ -517,5 +518,16 @@ defmodule EHealth.MedicationDispense.API do
         _ -> {:halt, {:error, {:internal_error, "Medication not found"}}}
       end
     end)
+  end
+
+  defp qualify_request(medication_request, client_type, headers) do
+    program_id = medication_request["medical_program_id"]
+    params = %{"programs" => [%{"id" => program_id}]}
+    case MedicationRequests.qualify(medication_request["id"], client_type, params, headers) do
+      {:ok, _, %{^program_id => :ok}} -> :ok
+      _ ->
+        {:conflict, "Medication request can not be dispensed. " <>
+          "Invoke qualify medication request API to get detailed info"}
+    end
   end
 end
