@@ -63,7 +63,9 @@ defmodule EHealth.MedicationRequestRequests do
   end
   defp filter_by_employee_id(query, _, headers) do
     employee_ids = get_employee_ids_from_headers(headers)
-    where(query, [r], fragment("?->>'employee_id' in (?)", r.data, ^Enum.join(employee_ids, ", ")))
+    Enum.reduce(employee_ids, query, fn(id, query) ->
+      or_where(query, [r], fragment("?->'employee_id' = ?", r.data, ^id))
+    end)
   end
 
   defp preload_fk(page) do
