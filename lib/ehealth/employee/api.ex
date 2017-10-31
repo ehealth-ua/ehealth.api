@@ -25,6 +25,7 @@ defmodule EHealth.Employee.API do
   alias EHealth.PRM.Employees
   alias EHealth.PRM.Parties
   alias EHealth.PRM.LegalEntities
+  alias EHealth.PRM.BlackListUsers
 
   require Logger
 
@@ -90,7 +91,8 @@ defmodule EHealth.Employee.API do
          :ok <- check_owner(params, allowed_owner),
          legal_entity_id <- Map.fetch!(params, "legal_entity_id"),
          %LegalEntity{} = legal_entity <- LegalEntities.get_legal_entity_by_id(legal_entity_id),
-         :ok <- validate_type(legal_entity, Map.fetch!(params, "employee_type"))
+         :ok <- validate_type(legal_entity, Map.fetch!(params, "employee_type")),
+         :ok <- check_is_user_blacklisted(params)
     do
       insert_employee_request(params)
     else
@@ -353,6 +355,13 @@ defmodule EHealth.Employee.API do
     case start_date == to_string(employee.start_date) do
       true -> :ok
       false -> {:error, {:conflict, "start_date doesn't match"}}
+    end
+  end
+
+  defp check_is_user_blacklisted(%{"party" => %{"tax_id" => tax_id}}) do
+    case BlackListUsers.blacklisted?(tax_id) do
+      true -> {:error, {:conflict, "new employee with this tax_id can't be created"}}
+      false -> :ok
     end
   end
 

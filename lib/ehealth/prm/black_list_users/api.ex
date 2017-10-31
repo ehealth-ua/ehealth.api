@@ -30,6 +30,13 @@ defmodule EHealth.PRM.BlackListUsers do
 
   def get_by(params), do: PRMRepo.get_by(BlackListUser, params)
 
+  def blacklisted?(tax_id) do
+    case get_by(%{tax_id: tax_id, is_active: true}) do
+      nil -> false
+      _ -> true
+    end
+  end
+
   def create(user_id, %{"tax_id" => tax_id}) do
     case get_by(%{tax_id: tax_id, is_active: true}) do
       nil ->

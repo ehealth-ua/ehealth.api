@@ -38,6 +38,24 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       json_response(conn, 422)
     end
 
+    test "when user blacklisted", %{conn: conn} do
+      legal_entity = insert(:prm, :legal_entity)
+      insert(:prm, :black_list_user, tax_id: "3067305998")
+      party = insert(:prm, :party, tax_id: "3067305998")
+      %{id: id} = insert(:prm, :employee, party: party)
+      %{id: division_id} = insert(:prm, :division)
+
+      employee_request_params =
+        doctor_request()
+        |> put_in(["employee_request", "employee_id"], id)
+        |> put_in(["employee_request", "division_id"], division_id)
+
+      conn = put_client_id_header(conn, legal_entity.id)
+      conn = post conn, employee_request_path(conn, :create), employee_request_params
+      resp = json_response(conn, 409)
+      assert %{"error" => %{"message" => "new employee with this tax_id can't be created"}} = resp
+    end
+
     test "with valid params and x-consumer-metadata that contains valid client_id", %{conn: conn} do
       legal_entity = insert(:prm, :legal_entity)
       party = insert(:prm, :party, tax_id: "3067305998")
