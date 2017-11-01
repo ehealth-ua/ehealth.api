@@ -182,6 +182,8 @@ defmodule EHealthWeb.Router do
 
     # Global parameters
     put "/global_parameters", GlobalParameterController, :create_or_update
+
+    get "/party_users", PartyUserController, :index
   end
 
   scope "/internal", EHealth.Web do

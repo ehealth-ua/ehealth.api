@@ -8,12 +8,26 @@ defmodule EHealth.PRM.PartyUsers do
   import Ecto.{Query, Changeset}, warn: false
 
   alias EHealth.PRMRepo
+  alias EHealth.PRM.PartyUsers.Search
   alias EHealth.PRM.PartyUsers.Schema, as: PartyUser
 
   @fields_required ~w(
     user_id
     party_id
   )a
+
+  def list(params) do
+    %Search{}
+    |> changeset(params)
+    |> search(params, PartyUser)
+  end
+
+  def get_search_query(entity, changes) do
+    entity
+    |> where(^Map.to_list(changes))
+    |> join(:left, [pu], p in assoc(pu, :party))
+    |> preload([pu, p], [party: p])
+  end
 
   def get_party_user_by_id(id), do: PRMRepo.get(PartyUser, id)
 
@@ -61,5 +75,8 @@ defmodule EHealth.PRM.PartyUsers do
     |> validate_required(@fields_required)
     |> unique_constraint(:user_id)
     |> foreign_key_constraint(:party_id)
+  end
+  defp changeset(%Search{} = search, attrs) do
+    cast(search, attrs, Search.__schema__(:fields))
   end
 end

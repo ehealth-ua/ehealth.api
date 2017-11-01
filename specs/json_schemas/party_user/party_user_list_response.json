@@ -1,0 +1,114 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "meta": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "number",
+          "description": "HTTP response code."
+        },
+        "url": {
+          "type": "string",
+          "description": "URL to requested resource."
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "object",
+            "list"
+          ],
+          "description": "Type of data that is located in `data` attribute."
+        },
+        "request_id": {
+          "type": "string",
+          "description": "[Request ID](http://docs.apimanifest.apiary.io/#introduction/interacting-with-api/request-id). Send it with `X-Request-ID` header."
+        }
+      },
+      "required": [
+        "code",
+        "url",
+        "type",
+        "request_id"
+      ],
+      "additionalProperties": false
+    },
+    "data": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Person identifier"
+          },
+          "user_id": {
+            "type": "string",
+            "description": "user Identifier"
+          },
+          "party_id": {
+            "type": "string",
+            "description": "Party Identifier"
+          },
+          "first_name": {
+            "type": "string"
+          },
+          "last_name": {
+            "type": "string"
+          },
+          "second_name": {
+            "type": "string"
+          },
+          "birth_date": {
+            "type": "string"
+          },
+          "inserted_at": {
+            "type": "string",
+            "description": "ISO 8601 date and time in UTC timezone."
+          },
+          "updated_at": {
+            "type": "string",
+            "description": "ISO 8601 date and time in UTC timezone."
+          }
+        },
+        "required": [
+          "id",
+          "first_name",
+          "last_name",
+          "birth_date",
+          "inserted_at",
+          "updated_at"
+        ]
+      }
+    },
+    "paging": {
+      "type": "object",
+      "properties": {
+        "page_number": {
+          "type": "number",
+          "description": "Page number."
+        },
+        "page_size": {
+          "type": "number",
+          "description": "A limit on the number of objects to be returned, between 1 and 100. Default: 50"
+        },
+        "total_entries": {
+          "type": "number",
+          "description": "Total number of objects in collection."
+        },
+        "total_pages": {
+          "type": "number",
+          "description": "Total number of pages."
+        }
+      },
+      "required": [
+        "page_number",
+        "page_size",
+        "total_entries",
+        "total_pages"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
