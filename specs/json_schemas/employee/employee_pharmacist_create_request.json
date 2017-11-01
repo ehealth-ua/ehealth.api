@@ -5,6 +5,10 @@
       "type": "string",
       "pattern": "^(\\d{4}(?!\\d{2}\\b))((-)((0[1-9]|1[0-2])(\\3([12]\\d|0[1-9]|3[01]))|(00[1-9]|0[1-9]\\d|[12]\\d{2}|3([0-5]\\d|6[1-6]))))$"
     },
+    "name": {
+      "type": "string",
+      "pattern": "^(?!.*[ЫЪЭЁыъэё@%&$^#])[a-zA-ZА-ЯҐЇІЄа-яґїіє0-9№\\\"!\\^\\*)\\]\\[(._-].*$"
+    },
     "education": {
       "type": "object",
       "properties": {
@@ -13,23 +17,24 @@
           "description": "Dictionary: COUNTRY"
         },
         "city": {
-          "type": "string"
+          "$ref": "#/definitions/name"
         },
         "institution_name": {
-          "type": "string"
+          "$ref": "#/definitions/name"
         },
         "issued_date": {
           "$ref": "#/definitions/date"
         },
         "diploma_number": {
-          "type": "string"
+          "type": "string",
+          "minLength": 1
         },
         "degree": {
           "type": "string",
           "description": "Dictionary: EDUCATION_DEGREE"
         },
         "speciality": {
-          "type": "string"
+          "$ref": "#/definitions/name"
         }
       },
       "required": [
@@ -50,22 +55,23 @@
           "description": "Dictionary: QUALIFICATION_TYPE"
         },
         "institution_name": {
-          "type": "string"
+          "$ref": "#/definitions/name"
         },
         "speciality": {
-          "type": "string"
+          "$ref": "#/definitions/name"
         },
         "issued_date": {
           "$ref": "#/definitions/date"
         },
         "certificate_number": {
-          "type": "string"
+          "$ref": "#/definitions/name"
         },
         "valid_to": {
           "$ref": "#/definitions/date"
         },
         "additional_info": {
-          "type": "string"
+          "type": "string",
+          "minLength": 1
         }
       },
       "required": [
@@ -75,7 +81,7 @@
       ],
       "additionalProperties": false
     },
-    "speciality": {
+    "specialities": {
       "type": "object",
       "properties": {
         "speciality": {
@@ -94,7 +100,7 @@
           "description": "Dictionary: SPEC_QUALIFICATION_TYPE"
         },
         "attestation_name": {
-          "type": "string"
+          "$ref": "#/definitions/name"
         },
         "attestation_date": {
           "$ref": "#/definitions/date"
@@ -103,7 +109,7 @@
           "$ref": "#/definitions/date"
         },
         "certificate_number": {
-          "type": "string"
+          "$ref": "#/definitions/name"
         }
       },
       "required": [
@@ -125,20 +131,21 @@
           "description": "Dictionary: COUNTRY"
         },
         "city": {
-          "type": "string"
+          "$ref": "#/definitions/name"
         },
         "degree": {
           "type": "string",
           "description": "Dictionary: SCIENCE_DEGREE"
         },
         "institution_name": {
-          "type": "string"
+          "$ref": "#/definitions/name"
         },
         "diploma_number": {
-          "type": "string"
+          "type": "string",
+          "minLength": 1
         },
         "speciality": {
-          "type": "string"
+          "$ref": "#/definitions/name"
         },
         "issued_date": {
           "$ref": "#/definitions/date"
@@ -174,7 +181,7 @@
     "specialities":{
         "type":"array",
         "items":{
-          "$ref":"#/definitions/speciality"
+          "$ref":"#/definitions/specialities"
         },
         "minItems":1
     },

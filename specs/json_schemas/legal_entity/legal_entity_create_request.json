@@ -39,7 +39,8 @@
           "description": "Dictionary: DOCUMENT_TYPE"
         },
         "number": {
-          "type": "string"
+          "type": "string",
+          "minLength":1 
         }
       },
       "required": [

@@ -65,7 +65,7 @@
         },
         "building": {
           "type": "string",
-          "pattern": "^[1-9]([0-9]{1,2})?(([ \\-]{1})?(?![ЫЪЭЁыъэё])[А-ЯҐЇЄа-яґїє]{1})?((\\s)?(\\\\|\/)(\\s)?[1-9]([0-9]{1,2})?(([ \\-]{1})?(?![ЫЪЭЁыъэё])[А-ЯҐЇЄа-яґїє]{1})?)?$"
+          "pattern": "^[1-9]([0-9]{1,2})?(([ \\-]{1})?(?![ЫЪЭЁыъэё])[А-ЯҐЇЄа-яґїє]{1})?((\\s)?(\\\\|/)(\\s)?[1-9]([0-9]{1,2})?(([ \\-]{1})?(?![ЫЪЭЁыъэё])[А-ЯҐЇЄа-яґїє]{1})?)?$"
         },
         "apartment": {
           "type": "string"
@@ -90,10 +90,12 @@
       "type": "object",
       "properties": {
         "type": {
-          "type": "string"
+          "type": "string",
+          "minLength": 1
         },
         "number": {
-          "type": "string"
+          "type": "string",
+          "minLength": 1
         }
       },
       "required": [
@@ -106,10 +108,12 @@
       "type": "object",
       "properties": {
         "type": {
-          "type": "string"
+          "type": "string",
+          "minLength": 1
         },
         "number": {
-          "type": "string"
+          "type": "string",
+          "minLength": 1
         }
       },
       "required": [
@@ -408,7 +412,8 @@
           "description": "Registered Medical Service Provider Division identifier."
         },
         "scope": {
-          "type": "string"
+          "type": "string",
+          "minLength": 1
         },
         "seed": {
           "type": "string"
