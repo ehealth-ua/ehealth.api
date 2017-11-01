@@ -30,6 +30,7 @@ defmodule EHealth.DeclarationRequest.API.Helpers do
     |> Enum.with_index
     |> Enum.reduce({person_documents, has_birth_certificate}, &gather_confidant_documents/2)
     |> elem(0)
+    |> Enum.uniq
   end
 
   defp gather_confidant_documents({cp, idx}, {documents, has_birth_certificate}) do

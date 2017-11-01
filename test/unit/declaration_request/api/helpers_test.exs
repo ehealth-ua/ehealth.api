@@ -56,6 +56,8 @@ defmodule EHealth.DeclarationRequest.API.HelpersTest do
           %{"type" => "B"},
           %{"type" => "C"},
           %{"type" => "BIRTH_CERTIFICATE"},
+          %{"type" => "SSN"},
+          %{"type" => "PASSPORT"}
         ],
         "confidant_person" => [
           %{
@@ -96,7 +98,8 @@ defmodule EHealth.DeclarationRequest.API.HelpersTest do
         "person.A",
         "person.B",
         "person.C",
-        "person.BIRTH_CERTIFICATE"
+        "person.BIRTH_CERTIFICATE",
+        "person.PASSPORT"
       ] == gather_documents_list(person)
     end
   end
