@@ -127,4 +127,8 @@ defmodule EHealth.API.Mithril do
   def delete_tokens_by_user_and_client(user_id, client_id, headers) do
     delete!("/admin/users/#{user_id}/tokens?client_id=#{client_id}", headers)
   end
+
+  def delete_tokens_by_user_ids(user_ids, headers) do
+    delete!("/admin/tokens?user_ids=#{user_ids}", headers)
+  end
 end

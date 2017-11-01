@@ -4,6 +4,7 @@ defmodule EHealth.PRM.BlackListUsers do
   use EHealth.PRM.Search
 
   import Ecto.{Query, Changeset}, warn: false
+  import EHealth.Utils.Connection, only: [get_consumer_id: 1]
 
   alias EHealth.PRMRepo
   alias EHealth.PRM.Parties
@@ -37,12 +38,19 @@ defmodule EHealth.PRM.BlackListUsers do
     end
   end
 
-  def create(user_id, %{"tax_id" => tax_id}) do
+  def create(headers, %{"tax_id" => tax_id}) do
+    user_id = get_consumer_id(headers)
     case get_by(%{tax_id: tax_id, is_active: true}) do
       nil ->
+        user_ids =
+          tax_id
+          |> Parties.get_user_ids_by_tax_id()
+          |> Enum.join(",")
+
         %BlackListUser{}
         |> changeset(%{"tax_id" => tax_id})
-        |> validate_user_roles()
+        |> validate_user_roles(user_ids)
+        |> remove_tokens_by_user_ids(user_ids, headers)
         |> put_change(:inserted_by, user_id)
         |> put_change(:updated_by, user_id)
         |> PRMRepo.insert()
@@ -56,17 +64,21 @@ defmodule EHealth.PRM.BlackListUsers do
     changeset(%BlackListUser{}, params)
   end
 
-  defp validate_user_roles(changeset) do
-    validate_change changeset, :tax_id, fn :tax_id, tax_id ->
-      ids =
-        tax_id
-        |> Parties.get_user_ids_by_tax_id()
-        |> Enum.join(",")
-
-      case Mithril.search_user_roles(%{"user_ids" => ids}) do
+  defp validate_user_roles(changeset, user_ids) do
+    validate_change changeset, :tax_id, fn :tax_id, _tax_id ->
+      case Mithril.search_user_roles(%{"user_ids" => user_ids}) do
         {:ok, %{"data" => []}} -> []
         {:ok, _} -> [user_roles: "Not all roles were deleted"]
         _ -> [user_roles: "Cannot fetch Mithril user roles"]
+      end
+    end
+  end
+
+  def remove_tokens_by_user_ids(changeset, user_ids, headers) do
+    validate_change changeset, :tax_id, fn :tax_id, _tax_id ->
+      case Mithril.delete_tokens_by_user_ids(user_ids, headers) do
+        {:ok, _} -> []
+        _ -> [user_tokens: "Cannot delete user tokens"]
       end
     end
   end

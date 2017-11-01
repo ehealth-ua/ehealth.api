@@ -78,6 +78,13 @@ defmodule EHealth.MockServer do
     end
   end
 
+  delete "/admin/tokens" do
+    case conn.query_params do
+      %{"user_ids" => @user_for_role_1 <> "," <> @user_for_role_2} -> render([], conn, 204)
+      _ -> render_404(conn)
+    end
+  end
+
   get "/admin/users/:id" do
     resp =
       id

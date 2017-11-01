@@ -14,8 +14,7 @@ defmodule EHealth.Web.BlackListUserController do
   end
 
   def create(%Plug.Conn{req_headers: headers} = conn, params) do
-    user_id = get_consumer_id(headers)
-    with {:ok, black_list_user} <- BlackListUsers.create(user_id, params) do
+    with {:ok, black_list_user} <- BlackListUsers.create(headers, params) do
       conn
       |> put_status(:created)
       |> render("show.json", black_list_user: black_list_user)

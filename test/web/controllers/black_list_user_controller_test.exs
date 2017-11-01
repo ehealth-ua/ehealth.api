@@ -80,7 +80,10 @@ defmodule EHealth.Web.BlackListUserControllerTest do
       conn = post conn, black_list_user_path(conn, :create), tax_id: "022321"
       resp = json_response(conn, 422)
 
-      assert %{"error" => %{"invalid" => [%{"entry" => "$.user_roles"}]}} = resp
+      assert %{"error" => %{"invalid" => errors}} = resp
+      Enum.each(errors, fn %{"entry" => entry} ->
+        assert entry in ["$.user_roles", "$.user_tokens"]
+      end)
     end
 
     test "user already blacklisted", %{conn: conn} do
