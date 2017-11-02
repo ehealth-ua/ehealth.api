@@ -252,7 +252,7 @@ updated_by | uuid | not null
 
 [medication_requests]
 id | uuid | not null
-request_number | varchar | not null
+request_number | varchar | not null | unique
 verification_code | varchar
 created_at | date | not null
 started_at | date| not null
@@ -262,6 +262,7 @@ dispense_valid_to | date| not null
 person_id | uuid | not null
 employee_id | uuid | not null
 division_id | uuid | not null
+legal_entity_id | uuid | not null
 medication_id | uuid | not null
 medication_qty | number | not null
 status | varchar | not null
@@ -312,8 +313,9 @@ inserted_at | timestamp | not null
 id | uuid | not null
 data | jsonb | not null
 status | varchar | not null
-request_number | varchar | not null
+request_number | varchar | not null | unique
 verification_code | varchar
+medication_request_id | uuid | not null
 inserted_at | timestamp | not null
 inserted_by | uuid | not null
 updated_at | timestamp | not null
