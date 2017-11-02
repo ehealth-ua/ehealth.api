@@ -154,6 +154,12 @@
               },
               "phones": {
                 "type": "array"
+              },
+              "tax_id": {
+                "not": {}
+              },
+              "documents": {
+                "not": {}
               }
             },
             "required": [
