@@ -17,13 +17,13 @@ defmodule EHealth.Web.MedicationRequestRequestView do
     values.medication_request_request.data
     |> Map.put(:id, values.medication_request_request.id)
     |> Map.put(:person, render(PersonView, "show.json", %{"person" => values.person}))
-    |> Map.put(:employee, render(EmployeeView, "employee_short.json", %{employee: values.employee}))
+    |> Map.put(:employee, render(EmployeeView, "employee_private.json", %{employee: values.employee}))
     |> Map.put(:legal_entity, render(LegalEntityView, "show_reimbursement.json", %{legal_entity: values.legal_entity}))
     |> Map.put(:division, render(DivisionView, "division.json", %{division: values.division}))
     |> Map.put(:medication_info, render(INNMDosageView, "innm_dosage_short.json",
       %{innm_dosage: values.medication, medication_qty: values.medication_request_request.data.medication_qty}))
     |> Map.put(:medical_program, render(MedicalProgramView, "show.json", %{medical_program: values.medical_program}))
-    |> Map.put(:request_number, values.medication_request_request.number)
+    |> Map.put(:request_number, values.medication_request_request.request_number)
     |> Map.put(:status, values.medication_request_request.status)
     |> Map.drop([:person_id, :employee_id, :legal_entity_id,
                  :medication_qty, :medication_id, :division_id, :medical_program_id])
@@ -32,7 +32,7 @@ defmodule EHealth.Web.MedicationRequestRequestView do
   def render("medication_request_request.json", %{medication_request_request: medication_request_request}) do
     %{id: medication_request_request.id,
       data: medication_request_request.data,
-      number: medication_request_request.number,
+      number: medication_request_request.request_number,
       status: medication_request_request.status,
       inserted_by: medication_request_request.inserted_by,
       updated_by: medication_request_request.updated_by}

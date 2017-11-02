@@ -53,7 +53,7 @@ defmodule EHealth.MedicationRequestRequest.SignOperation do
       mrr.data
       |> Map.put(:id, mrr.medication_request_id)
       |> Map.put(:medication_request_requests_id, mrr.id)
-      |> Map.put(:request_number, mrr.number)
+      |> Map.put(:request_number, mrr.request_number)
       |> Map.put(:verification_code, mrr.verification_code)
       |> Map.put(:updated_by, Connection.get_client_id(headers))
       |> Map.put(:inserted_by, Connection.get_client_id(headers))

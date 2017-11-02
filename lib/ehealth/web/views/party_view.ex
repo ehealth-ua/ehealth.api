@@ -14,17 +14,17 @@ defmodule EHealth.Web.PartyView do
     )a)
   end
 
-  def render("party_short.json", %{party: party}) do
+  def render("party_private.json", %{party: party}) do
     Map.take(party, [
       :id,
       :first_name,
       :last_name,
       :second_name,
       :phones,
-      :email,
-      :tax_id
+      :email
     ])
   end
+
   def render("party_short.json", %{"party" => party}) do
     %{
       "id" => Map.get(party, "id"),

@@ -187,9 +187,9 @@ config :ehealth, :medication_request_request,
 
 config :ehealth, :medication_request,
   sign_template_sms: {:system, "TEMPLATE_SMS_FOR_SIGN_MEDICATION_REQUEST",
-    "Ваш рецепт: <number>. Код підтвердження: <verification_code>"},
+    "Ваш рецепт: <request_number>. Код підтвердження: <verification_code>"},
   reject_template_sms: {:system, "TEMPLATE_SMS_FOR_REJECT_MEDICATION_REQUEST",
-    "Відкликано рецепт: <number> від <created_at>"}
+    "Відкликано рецепт: <request_number> від <created_at>"}
 
 # Configures bamboo
 config :ehealth, EHealth.Bamboo.Mailer,

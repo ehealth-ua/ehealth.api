@@ -48,6 +48,15 @@ defmodule EHealth.Web.EmployeeView do
   end
   def render("employee_short.json", _), do: %{}
 
+  def render("employee_private.json", %{employee: employee}) do
+    %{
+      "id" => employee.id,
+      "position" => employee.position,
+      "party" => render(PartyView, "party_private.json", %{party: employee.party}),
+    }
+  end
+  def render("employee_private.json", _), do: %{}
+
   def render("employee.json", %{employee: %{employee_type: @doctor, additional_info: info} = employee}) do
     employee
     |> render_employee()

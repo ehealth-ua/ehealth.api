@@ -11,7 +11,7 @@ defmodule EHealth.MedicationRequestRequest do
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "medication_request_requests" do
     embeds_one :data, EmbeddedData
-    field :number, :string, null: false
+    field :request_number, :string, null: false
     field :verification_code, :string, null: true
     field :inserted_by, Ecto.UUID, null: false
     field :status, :string, null: false

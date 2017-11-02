@@ -47,7 +47,36 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     test "lists all medication_request_requests with data", %{conn: conn} do
       mrr = fixture(:medication_request_request)
       conn = get conn, medication_request_request_path(conn, :index,
-        %{"employee_id" => mrr.medication_request_request.data.employee_id, "legal_entity_id" => @legal_entity_id})
+        %{"employee_id" => mrr.medication_request_request.data.employee_id})
+      assert length(json_response(conn, 200)["data"]) == 1
+      assert :ok == validate_response_with_schema(json_response(conn, 200)["data"],
+        "specs/json_schemas/medication_request_request/medication_request_request_get_list_response.json")
+    end
+
+    test "lists all medication_request_requests with data search by status", %{conn: conn} do
+      fixture(:medication_request_request)
+      conn = get conn, medication_request_request_path(conn, :index,
+        %{"status" => "NEW"})
+      assert length(json_response(conn, 200)["data"]) == 1
+      assert :ok == validate_response_with_schema(json_response(conn, 200)["data"],
+        "specs/json_schemas/medication_request_request/medication_request_request_get_list_response.json")
+    end
+
+    test "lists all medication_request_requests with data search by person_id", %{conn: conn} do
+      mrr = fixture(:medication_request_request)
+      conn = get conn, medication_request_request_path(conn, :index,
+        %{"person_id" =>  mrr.medication_request_request.data.person_id})
+      assert length(json_response(conn, 200)["data"]) == 1
+      assert :ok == validate_response_with_schema(json_response(conn, 200)["data"],
+        "specs/json_schemas/medication_request_request/medication_request_request_get_list_response.json")
+    end
+
+    test "lists all medication_request_requests with data search by all posible filters", %{conn: conn} do
+      mrr = fixture(:medication_request_request)
+      conn = get conn, medication_request_request_path(conn, :index,
+        %{"person_id" =>  mrr.medication_request_request.data.person_id,
+          "employee_id" => mrr.medication_request_request.data.employee_id,
+          "status" => "NEW"})
       assert length(json_response(conn, 200)["data"]) == 1
       assert :ok == validate_response_with_schema(json_response(conn, 200)["data"],
         "specs/json_schemas/medication_request_request/medication_request_request_get_list_response.json")
@@ -341,7 +370,12 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
         |> Poison.encode!()
         |> Base.encode64()
 
-      conn = Plug.Conn.put_req_header(conn, "drfo", get_in(mrr, ["employee", "party", "tax_id"]))
+      drfo =
+        mrr
+        |> get_in(["employee", "party", "id"])
+        |> (fn x -> EHealth.PRMRepo.get!(EHealth.PRM.Parties.Schema, x) end).()
+        |> Map.get(:tax_id)
+      conn = Plug.Conn.put_req_header(conn, "drfo", drfo)
 
       conn1 = patch conn, medication_request_request_path(conn, :sign, mrr["id"]),
         %{signed_medication_request_request: signed_mrr, signed_content_encoding: "base64"}

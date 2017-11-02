@@ -53,6 +53,7 @@ defmodule EHealth.MedicationRequestRequests do
 
     query
     |> filter_by_employee_id(params, headers)
+    |> filter_by_person_id(params)
     |> filter_by_status(params)
     |> Repo.paginate(params)
     |> preload_fk()
@@ -90,6 +91,11 @@ defmodule EHealth.MedicationRequestRequests do
   end
   defp filter_by_status(query, _), do: query
 
+  defp filter_by_person_id(query, %{"person_id" => person_id}) when is_binary(person_id) do
+    where(query, [r], fragment("?->'person_id' = ?", r.data, ^person_id))
+  end
+  defp filter_by_person_id(query, _), do: query
+
   def show(id) do
     mrr = get_medication_request_request(id)
     operation = PreloadFkOperation.preload(mrr)
@@ -120,7 +126,8 @@ defmodule EHealth.MedicationRequestRequests do
            |> Repo.insert() do
         {:ok, inserted_entity} ->
           {:ok, Map.merge(create_operation.data, %{medication_request_request: inserted_entity})}
-        {:error, %Ecto.Changeset{errors: [number: {"has already been taken", []}]}} -> create(attrs, user_id, client_id)
+        {:error, %Ecto.Changeset{errors: [request_number: {"has already been taken", []}]}} ->
+          create(attrs, user_id, client_id)
         {:error, changeset} -> {:error, changeset}
       end
     else
@@ -143,16 +150,16 @@ defmodule EHealth.MedicationRequestRequests do
   @doc false
   def create_changeset(create_operation, attrs, user_id, _client_id) do
     %MedicationRequestRequest{}
-    |> cast(attrs, [:number, :status, :inserted_by, :updated_by])
+    |> cast(attrs, [:request_number, :status, :inserted_by, :updated_by])
     |> put_embed(:data, create_operation.changeset)
     |> put_change(:status, @status_new)
-    |> put_change(:number, HRNGenerator.generate(1))
+    |> put_change(:request_number, HRNGenerator.generate(1))
     |> put_change(:verification_code, put_verification_code(create_operation))
     |> put_change(:inserted_by, user_id)
     |> put_change(:updated_by, user_id)
     |> put_change(:medication_request_id, Ecto.UUID.generate())
-    |> validate_required([:data, :number, :status, :inserted_by, :updated_by])
-    |> unique_constraint(:number, name: :medication_request_requests_number_index)
+    |> validate_required([:data, :request_number, :status, :inserted_by, :updated_by])
+    |> unique_constraint(:request_number, name: :medication_request_requests_number_index)
   end
 
   defp put_verification_code(%Operation{valid?: true} = operation) do
@@ -167,8 +174,8 @@ defmodule EHealth.MedicationRequestRequests do
 
   def changeset(%MedicationRequestRequest{} = medication_request_request, attrs) do
     medication_request_request
-    |> cast(attrs, [:data, :number, :status, :inserted_by, :updated_by])
-    |> validate_required([:data, :number, :status, :inserted_by, :updated_by])
+    |> cast(attrs, [:data, :request_number, :status, :inserted_by, :updated_by])
+    |> validate_required([:data, :request_number, :status, :inserted_by, :updated_by])
   end
 
   defp prequalify_programs(mrr, programs) do

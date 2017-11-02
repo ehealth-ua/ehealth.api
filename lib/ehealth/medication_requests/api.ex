@@ -73,7 +73,7 @@ defmodule EHealth.MedicationRequests.API do
     with {:ok, %{"status" => "ACTIVE"} = medication_request} <- show(%{"id" => params["id"]}, client_type, headers),
          {:ok, %{"data" => mr}} <- OPS.update_medication_request(medication_request["id"], update_params)
     do
-      SMSSender.maybe_send_sms(%{number: medication_request["request_number"],
+      SMSSender.maybe_send_sms(%{request_number: medication_request["request_number"],
                                  created_at: medication_request["created_at"]},
                                 medication_request["person"],
                                 &SMSSender.reject_template/1)
@@ -88,7 +88,7 @@ defmodule EHealth.MedicationRequests.API do
     with {:ok, %{"status" => "ACTIVE"} = medication_request} <- show(%{"id" => params["id"]}, client_type, headers),
          false <- is_nil(medication_request["verification_code"])
     do
-      SMSSender.maybe_send_sms(%{number: medication_request["request_number"],
+      SMSSender.maybe_send_sms(%{request_number: medication_request["request_number"],
                                  verification_code: medication_request["verification_code"]},
                                 medication_request["person"],
                                 &SMSSender.sign_template/1)

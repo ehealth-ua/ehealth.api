@@ -2,7 +2,9 @@ defmodule EHealth.MedicationRequestRequest.Validations do
   @moduledoc false
 
   alias EHealth.API.Signature
+  alias EHealth.PRM.Employees
   alias EHealth.Validators.JsonSchema
+  alias EHealth.PRM.Employees.Schema, as: Employee
   alias EHealth.Declarations.API, as: DeclarationsAPI
   alias EHealth.PRM.Medications.API, as: MedicationsAPI
 
@@ -88,13 +90,15 @@ defmodule EHealth.MedicationRequestRequest.Validations do
   end
 
   def validate_sign_content(mrr, %{"content" => content, "signer" => signer}) do
-    with true <- mrr.id == content["id"] &&
-                 mrr.data.division_id == get_in(content, ["division", "id"]) &&
-                 mrr.data.employee_id == get_in(content, ["employee", "id"]) &&
-                 mrr.data.legal_entity_id == get_in(content, ["legal_entity", "id"]) &&
-                 mrr.data.medication_id == get_in(content, ["medication_info", "medication_id"]) &&
-                 mrr.data.person_id == get_in(content, ["person", "id"]) &&
-                 get_in(content, ["employee", "party", "tax_id"]) == signer["drfo"]
+    with %Employee{} = employee <- Employees.get_employee_by_id(mrr.data.employee_id),
+         doctor_tax_id          <- employee |> Map.get(:party) |> Map.get(:tax_id),
+         true                   <- mrr.id == content["id"] &&
+                                   mrr.data.division_id == get_in(content, ["division", "id"]) &&
+                                   mrr.data.employee_id == get_in(content, ["employee", "id"]) &&
+                                   mrr.data.legal_entity_id == get_in(content, ["legal_entity", "id"]) &&
+                                   mrr.data.medication_id == get_in(content, ["medication_info", "medication_id"]) &&
+                                   mrr.data.person_id == get_in(content, ["person", "id"]) &&
+                                   doctor_tax_id == signer["drfo"]
     do
       {:ok, mrr}
     else
