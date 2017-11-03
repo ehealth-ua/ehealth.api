@@ -31,6 +31,10 @@ defmodule EHealth.API.MPI do
     patch!("/persons/#{id}", Poison.encode!(params), headers)
   end
 
+  def reset_person_auth_method(id, headers) do
+    patch!("/persons/#{id}/actions/reset_auth_method", [], headers)
+  end
+
   def create_or_update_person(params, headers) do
     post!("/persons", Poison.encode!(params), headers)
   end

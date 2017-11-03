@@ -513,6 +513,16 @@ defmodule EHealth.MockServer do
     end
   end
 
+  patch "/persons/:id/actions/reset_auth_method" do
+    case conn.params["id"] do
+      id = @active_person ->
+        person = id |> get_person() |> Map.put("authentication_methods", [%{"type" => "NA"}])
+        render(person, conn, 200)
+
+      _ -> render_404(conn)
+    end
+  end
+
   def get_declaration("terminated") do
     nil |> get_declaration() |> Map.put("status", "terminated")
   end
