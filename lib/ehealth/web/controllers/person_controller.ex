@@ -3,7 +3,6 @@ defmodule EHealth.Web.PersonController do
   use EHealth.Web, :controller
 
   alias EHealth.API.MPI
-  alias EHealth.DeclarationRequest
   alias EHealth.Declarations.Person
 
   action_fallback EHealth.Web.FallbackController

@@ -150,7 +150,7 @@ defmodule EHealth.Web.DivisionsControllerTest do
     conn = post conn, division_path(conn, :create), division
 
     assert [%{"rules" => [%{"description" => decription}]}] = json_response(conn, 422)["error"]["invalid"]
-    assert "Address of type 'RESIDENCE' is required" == decription
+    assert "Single address of type 'RESIDENCE' is required" == decription
   end
 
   test "create division without type and phone number", %{conn: conn} do

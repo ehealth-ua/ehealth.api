@@ -18,8 +18,10 @@ defmodule EHealth.Validators.Addresses do
 
     case addresses_count do
       1 -> {:ok, addresses}
-      _ -> {:error, [{%{description: "Single address of type '#{required_type}' is required", params: [], rule: :invalid},
-        "$.addresses"}]}
+      _ -> {:error, [{
+            %{description: "Single address of type '#{required_type}' is required", params: [], rule: :invalid},
+            "$.addresses"}]
+           }
     end
   end
 
