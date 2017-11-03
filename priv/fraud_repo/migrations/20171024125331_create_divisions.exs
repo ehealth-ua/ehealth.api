@@ -7,7 +7,7 @@ defmodule EHealth.FraudRepo.Migrations.CreateDivisions do
       add :external_id, :string
       add :name, :string, null: false
       add :type, :string, null: false
-      add :mountain_group, :string
+      add :mountain_group, :boolean, null: false
 
       add :addresses, :map, null: false
       add :registration_country, :string
