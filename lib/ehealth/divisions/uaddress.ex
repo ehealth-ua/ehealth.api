@@ -5,13 +5,20 @@ defmodule EHealth.Divisions.UAddress do
   alias EHealth.API.UAddress
   alias EHealth.PRM.Divisions
 
-  def update_settlement(%{"id" => id, "settlement" => settlement}, headers) do
-    data = Map.put(settlement, "id", id)
-    with {:ok, settlement} <- UAddress.get_settlement_by_id(id, headers),
+  def update_settlement(%{"id" => id} = params, headers) do
+    with {:ok, data} <- prepare_settlement_data(params),
+         {:ok, settlement} <- UAddress.get_settlement_by_id(id, headers),
          {:ok, settlement} <- api_update_settlement(data, headers, settlement)
     do
       {:ok, settlement}
     end
+  end
+
+  defp prepare_settlement_data(%{"id" => id, "settlement" => settlement}) do
+    {:ok, Map.put(settlement, "id", id)}
+  end
+  defp prepare_settlement_data(_) do
+    {:error, {:"422", "required property settlement was not present"}}
   end
 
   def update_required?(data, settlement) do
