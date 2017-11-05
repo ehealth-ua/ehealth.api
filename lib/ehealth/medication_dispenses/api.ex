@@ -32,7 +32,8 @@ defmodule EHealth.MedicationDispense.API do
     legal_entity_id
     division_id
     status
-    dispensed_at
+    dispensed_from
+    dispensed_to
     page
     page_size
   )a
