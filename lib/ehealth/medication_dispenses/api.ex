@@ -49,7 +49,8 @@ defmodule EHealth.MedicationDispense.API do
     with %Ecto.Changeset{valid?: true, changes: changes} <- changeset(%Search{}, params),
          params <- Map.put(changes, "is_active", true),
          {:ok, %{"data" => medication_dispenses, "paging" => paging}} <- OPS.get_medication_dispenses(params, headers),
-         {:ok, medication_dispenses} <- get_medication_request_references(medication_dispenses)
+         {:ok, medication_dispenses} <- get_medication_request_references(medication_dispenses),
+         {:ok, medication_dispenses} <- load_dispenses_medications(medication_dispenses)
     do
       {:ok, medication_dispenses, get_references(medication_dispenses), paging}
     end
@@ -60,7 +61,8 @@ defmodule EHealth.MedicationDispense.API do
          params <- Map.delete(params, "id"),
          %Ecto.Changeset{valid?: true, changes: changes} <- changeset(%SearchByMedicationRequest{}, params),
          {:ok, %{"data" => medication_dispenses}} <- OPS.get_medication_dispenses(changes, headers),
-         {:ok, medication_dispenses} <- get_medication_request_references(medication_dispenses)
+         {:ok, medication_dispenses} <- get_medication_request_references(medication_dispenses),
+         {:ok, medication_dispenses} <- load_dispenses_medications(medication_dispenses)
      do
         {:ok, medication_dispenses, get_references(medication_dispenses)}
     end
@@ -389,13 +391,16 @@ defmodule EHealth.MedicationDispense.API do
       legal_entity_ids: [],
       party_ids: [],
       medical_program_ids: [],
+      medication_ids: [],
     }
     reference_ids = Enum.reduce(medication_dispenses, reference_ids, fn medication_dispense, acc ->
+      medication_ids = Enum.map(medication_dispense["details"], &(Map.get(&1, "medication_id")))
       %{acc |
         division_ids: [medication_dispense["division_id"] | acc.division_ids],
         legal_entity_ids: [medication_dispense["legal_entity_id"] | acc.legal_entity_ids],
         party_ids: [medication_dispense["party_id"] | acc.party_ids],
         medical_program_ids: [medication_dispense["medical_program_id"] | acc.medical_program_ids],
+        medication_ids: acc.medication_ids ++ medication_ids,
       }
     end)
     divisions =
@@ -414,11 +419,16 @@ defmodule EHealth.MedicationDispense.API do
       reference_ids.medical_program_ids
       |> MedicalPrograms.get_by_ids()
       |> Enum.into(%{}, &({Map.get(&1, :id), &1}))
+    medications =
+      reference_ids.medication_ids
+      |> MedicationsAPI.get_by_ids()
+      |> Enum.into(%{}, &({Map.get(&1, :id), &1}))
     %{
       divisions: divisions,
       legal_entities: legal_entities,
       parties: parties,
       medical_programs: medical_programs,
+      medications: medications,
     }
   end
 
@@ -509,6 +519,16 @@ defmodule EHealth.MedicationDispense.API do
       |> Map.put("is_active", true)
       |> Map.put("party_id", party_id)
     %{"medication_dispense" => medication_dispense}
+  end
+
+  defp load_dispenses_medications(medication_dispenses) do
+    Enum.reduce_while(medication_dispenses, {:ok, []}, fn medication_dispense, {:ok, acc} ->
+      with {:ok, details} <- load_dispense_medications(medication_dispense) do
+        {:cont, {:ok, acc ++ [Map.put(medication_dispense, "details", details)]}}
+      else
+        error -> {:halt, error}
+      end
+    end)
   end
 
   defp load_dispense_medications(%{"details" => details}) do

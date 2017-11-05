@@ -3,7 +3,6 @@ defmodule EHealth.Web.MedicationRequestView do
 
   use EHealth.Web, :view
   alias EHealth.Web.LegalEntityView
-  alias EHealth.Web.EmployeeView
   alias EHealth.Web.DivisionView
   alias EHealth.Web.MedicalProgramView
   alias EHealth.Web.PersonView
@@ -26,7 +25,7 @@ defmodule EHealth.Web.MedicationRequestView do
       dispense_valid_to
     ))
     |> Map.put("legal_entity", render_one(legal_entity, LegalEntityView, "show_reimbursement.json"))
-    |> Map.put("employee", render_one(medication_request["employee"], EmployeeView, "employee.json"))
+    |> Map.put("employee", render_one(medication_request["employee"], __MODULE__, "employee.json", as: :employee))
     |> Map.put("division", render_one(medication_request["division"], DivisionView, "show.json"))
     |> Map.put("medical_program", render_one(medication_request["medical_program"], MedicalProgramView, "show.json"))
     |> Map.put("medication_info", render_one(medication_request, __MODULE__, "medication_info.json"))
@@ -78,5 +77,50 @@ defmodule EHealth.Web.MedicationRequestView do
       "manufacturer" => medication.manufacturer,
       "reimbursement_amount" => program_medication.reimbursement["reimbursement_amount"]
     }
+  end
+
+  def render("employee.json", %{employee: employee}) do
+    party = Map.take(employee.party, ~w(
+      id
+      first_name
+      last_name
+      second_name
+      birth_date
+      gender
+      phones
+    )a)
+    division = Map.take(employee.division, ~w(
+      id
+      name
+      status
+      type
+      legal_entity_id
+      mountain_group
+    )a)
+    legal_entity = Map.take(employee.legal_entity, ~w(
+      id
+      name
+      short_name
+      public_name
+      type
+      edrpou
+      status
+      owner_property_type
+      legal_form
+      mis_verified
+    )a)
+
+    employee
+    |> Map.take(~w(
+      id
+      position
+      status
+      employee_type
+      start_date
+      end_date
+    )a)
+    |> Map.put(:party, party)
+    |> Map.put(:division, division)
+    |> Map.put(:legal_entity, legal_entity)
   end
 end

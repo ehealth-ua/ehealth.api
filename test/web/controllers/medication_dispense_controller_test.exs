@@ -338,7 +338,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       resp = json_response(conn, 201)
 
       schema =
-        "test/data/medication_dispense/create_medication_dispense_response_schema.json"
+        "specs/json_schemas/medication_dispense/medication_dispense_show_response.json"
         |> File.read!()
         |> Poison.decode!()
 
@@ -362,7 +362,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       conn = get conn, medication_dispense_path(conn, :show, get_active_medication_dispense())
 
       schema =
-        "test/data/medication_dispense/get_medication_dispense_response_schema.json"
+        "specs/json_schemas/medication_dispense/medication_dispense_show_response.json"
         |> File.read!()
         |> Poison.decode!()
 
@@ -389,7 +389,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       resp = json_response(conn, 200)
 
       schema =
-        "test/data/medication_dispense/list_medication_dispenses_response_schema.json"
+        "specs/json_schemas/medication_dispense/medication_dispense_list_response.json"
         |> File.read!()
         |> Poison.decode!()
       :ok = NExJsonSchema.Validator.validate(schema, resp)
@@ -414,7 +414,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       conn = patch conn, path, %{"payment_id" => payment_id}
       resp = json_response(conn, 200)["data"]
       schema =
-        "test/data/medication_dispense/get_medication_dispense_response_schema.json"
+        "specs/json_schemas/medication_dispense/medication_dispense_show_response.json"
         |> File.read!()
         |> Poison.decode!()
       :ok = NExJsonSchema.Validator.validate(schema, resp)
@@ -470,7 +470,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       conn = patch conn, path, %{"payment_id" => payment_id}
       resp = json_response(conn, 200)["data"]
       schema =
-        "test/data/medication_dispense/get_medication_dispense_response_schema.json"
+        "specs/json_schemas/medication_dispense/medication_dispense_show_response.json"
         |> File.read!()
         |> Poison.decode!()
       :ok = NExJsonSchema.Validator.validate(schema, resp)
@@ -532,7 +532,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       assert id == resp["data"] |> hd |> get_in(~w(medication_request id))
 
       schema =
-        "test/data/medication_dispense/list_medication_dispenses_response_schema.json"
+        "specs/json_schemas/medication_dispense/medication_dispense_list_response.json"
         |> File.read!()
         |> Poison.decode!()
       :ok = NExJsonSchema.Validator.validate(schema, resp)

@@ -48,6 +48,12 @@ defmodule EHealth.PRM.Medications.API do
 
   # List
 
+  def get_by_ids(ids) do
+    Medication
+    |> where([e], e.id in ^ids)
+    |> PRMRepo.all()
+  end
+
   def get_drugs(params) do
     %DrugsSearch{}
     |> cast(params, DrugsSearch.__schema__(:fields))

@@ -13,13 +13,7 @@
           },
           "status": {
             "type": "string",
-            "enum": [
-              "ACTIVE",
-              "COMPLETED",
-              "REJECTED",
-              "EXPIRED"
-            ],
-            "description": "Medication Request status. Find available **statuses** on State Charts wiki page"
+             "description": "Medication Request status. Find available **statuses** on State Charts wiki page"
           },
           "request_number": {
             "type": "string",
@@ -170,14 +164,16 @@
                     "type": "array"
                   },
                   "tax_id": {
-                    "type": "string"
+                    "not": {}
+                  },
+                  "documents": {
+                    "not": {}
                   }
                 },
                 "required": [
                   "id",
                   "first_name",
-                  "last_name",
-                  "tax_id"
+                  "last_name"
                 ]
               }
             },
