@@ -97,6 +97,7 @@ defmodule EHealth.MedicationDispense.API do
     legal_entity_id = get_client_id(headers)
     user_id = get_consumer_id(headers)
     with :ok                       <- JsonSchema.validate(:medication_dispense, params),
+         params                    <- params["medication_dispense"],
          {:ok, legal_entity}       <- Reference.validate(:legal_entity, legal_entity_id),
          {:ok, party_user}         <- get_party(user_id),
          :ok                       <- validate_legal_entity(legal_entity),

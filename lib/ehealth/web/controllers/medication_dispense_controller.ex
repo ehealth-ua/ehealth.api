@@ -38,8 +38,7 @@ defmodule EHealth.Web.MedicationDispenseController do
   def create(conn, params) do
     code = Map.get(params, "code")
     client_type = conn.assigns.client_type
-    request_params = Map.get(params, "medication_dispense")
-    with {:ok, medication_dispense, references} <- API.create(conn.req_headers, client_type, code, request_params) do
+    with {:ok, medication_dispense, references} <- API.create(conn.req_headers, client_type, code, params) do
       conn
       |> put_status(:created)
       |> render("show.json", medication_dispense: medication_dispense, references: references)

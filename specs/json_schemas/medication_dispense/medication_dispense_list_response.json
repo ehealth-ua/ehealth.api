@@ -142,18 +142,13 @@
                     "type": "string"
                   },
                   "type": {
-                    "type": "string",
-                    "enum": [
-                      "CLINIC",
-                      "AMBULANT_CLINIC",
-                      "FAP"
-                    ]
+                    "type": "string"
                   },
                   "external_id": {
                     "type": "string"
                   },
                   "location": {
-                    "type": "object",
+                    "type": ["object", "null"],
                     "properties": {
                       "latitude": {
                         "type": "number"
@@ -261,36 +256,23 @@
               "medication_info": {
                 "type": "object",
                 "properties": {
-                  "innm_dosage": {
-                    "type": "object",
-                    "properties": {
-                      "id": {
-                        "type": "string"
-                      },
-                      "sctid": {
-                        "type": "string",
-                        "description": "innm CNOMED code"
-                      },
-                      "name": {
-                        "type": "string",
-                        "description": "innm local name"
-                      },
-                      "name_original": {
-                        "type": "string",
-                        "description": "innm original name"
-                      },
-                      "is_active": {
-                        "type": "boolean"
-                      }
-                    },
-                    "required": [
-                      "id",
-                      "sctid",
-                      "name",
-                      "name_original",
-                      "is_active"
-                    ],
-                    "description": "`Innm object`"
+                  "id": {
+                    "type": "string"
+                  },
+                  "sctid": {
+                    "type": "string",
+                    "description": "innm CNOMED code"
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "innm local name"
+                  },
+                  "name_original": {
+                    "type": "string",
+                    "description": "innm original name"
+                  },
+                  "is_active": {
+                    "type": "boolean"
                   },
                   "medication_id": {
                     "type": "string",
@@ -332,7 +314,6 @@
                   }
                 },
                 "required": [
-                  "innm_dosage",
                   "medication_id",
                   "form",
                   "dosage",
@@ -453,12 +434,7 @@
                 "description": "6c54-4b01-90e6-d701748f0851 (string, required)"
               },
               "type": {
-                "type": "string",
-                "enum": [
-                  "CLINIC",
-                  "AMBULANT_CLINIC",
-                  "FAP"
-                ]
+                "type": "string"
               },
               "status": {
                 "type": "string",
@@ -497,7 +473,7 @@
             ],
             "description": "Active medical program within which medications are going to be provided"
           },
-          "dispense_details": {
+          "details": {
             "type": "array",
             "items": {
               "type": "object",
@@ -601,7 +577,7 @@
             }
           },
           "payment_id": {
-            "type": "string",
+            "type": ["string", "null"],
             "description": "receipt number for the paid medications"
           },
           "status": {
@@ -630,7 +606,7 @@
           "legal_entity",
           "division",
           "medical_program",
-          "dispense_details",
+          "details",
           "status",
           "inserted_at",
           "inserted_by",

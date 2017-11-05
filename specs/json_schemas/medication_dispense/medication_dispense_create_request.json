@@ -2,77 +2,85 @@
   "$schema": "http://json-schema.org/draft-04/schema#",
   "type": "object",
   "properties": {
-    "medication_request_id": {
-      "type": "string",
-      "description": "Key for the Medication request",
-      "pattern": "^[0-9a-f]{8}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{12}$"
-    },
-    "dispensed_at": {
-      "type": "string",
-      "description": "date of dispense",
-      "pattern":"^(\\d{4}(?!\\d{2}\\b))((-)((0[1-9]|1[0-2])(\\3([12]\\d|0[1-9]|3[01]))|(00[1-9]|0[1-9]\\d|[12]\\d{2}|3([0-5]\\d|6[1-6]))))$"
-    },
-    "division_id": {
-      "type": "string",
-      "description": "Active legal entity (Pharmacy) division which provides dispense Identifier",
-      "pattern": "^[0-9a-f]{8}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{12}$"
-    },
-    "medical_program_id": {
-      "type": "string",
-      "description": "Active medical program within which medications are going to be provided",
-      "pattern": "^[0-9a-f]{8}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{12}$"
-    },
-    "dispense_details": {
-      "type": "array",
-      "minItems": 1,
-      "items": {
-        "type": "object",
-        "properties": {
-          "medication_id": {
-            "type": "string",
-            "pattern": "^[0-9a-f]{8}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{12}$",
-            "description": "Identifier of brand medications"
-          },
-          "medication_qty": {
-            "type": "integer",
-            "minimum": 0,
-            "exclusiveMinimum":true,
-            "description": "qnty of medication_unit (pill/ampoule/container/bottle/vial/aerosol) which provides to the patient"
-          },
-          "sell_price": {
-            "type": "number",
-            "minimum": 0,
-            "description": "price for one nondivisible medication_unit (pill/ampoule/container/bottle/vial/aerosol)"
-          },
-          "sell_amount": {
-            "type": "number",
-            "minimum": 0,
-            "exclusiveMinimum":true,
-            "description": "total pharmacy's price for the requested medication quantity"
-          },
-          "discount_amount": {
-            "type": "number",
-            "minimum": 0,
-            "description": "pharmacy's expected price of dicsount for the requested medication quantity"
-          }
+    "medication_dispense": {
+      "type": "object",
+      "properties": {
+        "medication_request_id": {
+          "type": "string",
+          "description": "Key for the Medication request",
+          "pattern": "^[0-9a-f]{8}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{12}$"
         },
-        "description": "dispense details array with brand medication id, qnty and price",
-        "required": [
-          "medication_id",
-          "medication_qty",
-          "sell_price",
-          "sell_amount",
-          "discount_amount"
-        ],
-        "additionalProperties": false
-      }
+        "dispensed_at": {
+          "type": "string",
+          "description": "date of dispense",
+          "pattern": "^(\\d{4}(?!\\d{2}\\b))((-)((0[1-9]|1[0-2])(\\3([12]\\d|0[1-9]|3[01]))|(00[1-9]|0[1-9]\\d|[12]\\d{2}|3([0-5]\\d|6[1-6]))))$"
+        },
+        "division_id": {
+          "type": "string",
+          "description": "Active legal entity (Pharmacy) division which provides dispense Identifier",
+          "pattern": "^[0-9a-f]{8}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{12}$"
+        },
+        "medical_program_id": {
+          "type": "string",
+          "description": "Active medical program within which medications are going to be provided",
+          "pattern": "^[0-9a-f]{8}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{12}$"
+        },
+        "dispense_details": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "properties": {
+              "medication_id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{12}$",
+                "description": "Identifier of brand medications"
+              },
+              "medication_qty": {
+                "type": "integer",
+                "minimum": 0,
+                "exclusiveMinimum": true,
+                "description": "qnty of medication_unit (pill/ampoule/container/bottle/vial/aerosol) which provides to the patient"
+              },
+              "sell_price": {
+                "type": "number",
+                "minimum": 0,
+                "description": "price for one nondivisible medication_unit (pill/ampoule/container/bottle/vial/aerosol)"
+              },
+              "sell_amount": {
+                "type": "number",
+                "minimum": 0,
+                "exclusiveMinimum": true,
+                "description": "total pharmacy's price for the requested medication quantity"
+              },
+              "discount_amount": {
+                "type": "number",
+                "minimum": 0,
+                "description": "pharmacy's expected price of dicsount for the requested medication quantity"
+              }
+            },
+            "description": "dispense details array with brand medication id, qnty and price",
+            "required": [
+              "medication_id",
+              "medication_qty",
+              "sell_price",
+              "sell_amount",
+              "discount_amount"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "medication_request_id",
+        "dispensed_at",
+        "division_id",
+        "medical_program_id",
+        "dispense_details"
+      ]
     }
   },
   "required": [
-    "medication_request_id",
-    "dispensed_at",
-    "division_id",
-    "medical_program_id",
-    "dispense_details"
+    "medication_dispense"
   ]
 }
