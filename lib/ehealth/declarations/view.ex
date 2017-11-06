@@ -134,6 +134,8 @@ defmodule EHealth.Declarations.View do
       phones
       birth_date
       birth_settlement
+      emergency_contact
+      confidant_person
     ))
   end
 
