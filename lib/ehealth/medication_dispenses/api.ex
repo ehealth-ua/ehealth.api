@@ -61,7 +61,8 @@ defmodule EHealth.MedicationDispense.API do
     with params <- Map.put(params, "medication_request_id", id),
          params <- Map.delete(params, "id"),
          %Ecto.Changeset{valid?: true, changes: changes} <- changeset(%SearchByMedicationRequest{}, params),
-         {:ok, %{"data" => medication_dispenses}} <- OPS.get_medication_dispenses(changes, headers),
+         dispense_filters <- Map.delete(changes, :legal_entity_id),
+         {:ok, %{"data" => medication_dispenses}} <- OPS.get_medication_dispenses(dispense_filters, headers),
          {:ok, medication_dispenses} <- get_medication_request_references(medication_dispenses),
          {:ok, medication_dispenses} <- load_dispenses_medications(medication_dispenses)
      do
