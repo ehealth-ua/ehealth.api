@@ -1,9 +1,0 @@
-Change log for versions 1.0.0 - 1.0.1
-
-**Patches and bug fixes**:
-
- Fix version
-
-**Other**:
-
-Fix version
