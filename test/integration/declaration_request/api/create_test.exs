@@ -461,7 +461,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         |> Ecto.Changeset.change()
         |> determine_auth_method_for_mpi()
 
-      assert get_change(changeset, :authentication_method_current) == %{"type" => "NA"}
+      assert %{"type" => "NA"} == get_change(changeset, :authentication_method_current)
     end
   end
 
@@ -555,6 +555,57 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         |> determine_auth_method_for_mpi()
 
       assert get_change(changeset, :authentication_method_current) == %{"type" => "NA"}
+    end
+  end
+
+  describe "determine_auth_method_for_mpi/1, MPI record with type NA" do
+    defmodule MPIAuthNA do
+      use MicroservicesHelper
+
+      Plug.Router.get "/persons/32b96821-44c4-4acb-a726-a1b5b05cb2aa" do
+        send_resp(conn, 200, Poison.encode!(%{data: %{authentication_methods: [%{type: "NA"}]}}))
+      end
+
+      Plug.Router.get "/persons" do
+        person = %{id: "32b96821-44c4-4acb-a726-a1b5b05cb2aa"}
+        send_resp(conn, 200, Poison.encode!(%{data: [person]}))
+      end
+    end
+
+    setup do
+      {:ok, port, ref} = start_microservices(MPIAuthNA)
+
+      System.put_env("MPI_ENDPOINT", "http://localhost:#{port}")
+      on_exit fn ->
+        System.put_env("MPI_ENDPOINT", "http://localhost:4040")
+        stop_microservices(ref)
+      end
+
+      :ok
+    end
+
+    test "authentication_methods NA converts to OTP" do
+      declaration_request = %DeclarationRequest{
+        data: %{
+          "person" => %{
+            "phones" => [%{
+              "number" => "+380508887701"
+            }],
+            "authentication_methods" => [%{
+              "type" => "OTP",
+              "phone_number" => "+380508887701"
+            }]
+          }
+        }
+      }
+
+      changeset =
+        declaration_request
+        |> Ecto.Changeset.change()
+        |> determine_auth_method_for_mpi()
+
+      assert %{"type" => "OTP", "phone_number" => "+380508887701"} ==
+               get_change(changeset, :authentication_method_current)
     end
   end
 

@@ -54,16 +54,17 @@ defmodule EHealth.DeclarationRequest.API.Create do
       {:ok, %{"data" => [person|_]}} ->
         {:ok, %{"data" => person_details}} = MPI.person(person["id"])
 
-        [authentication_method|_] = person_details["authentication_methods"]
+        authentication_method = hd(person_details["authentication_methods"])
 
         authentication_method_current = prepare_auth_method_current(
           authentication_method["type"],
-          authentication_method
+          authentication_method,
+          hd(data["person"]["authentication_methods"])
         )
 
         put_change(changeset, :authentication_method_current, authentication_method_current)
       {:ok, %{"data" => []}} ->
-        [authentication_method|_] = data["person"]["authentication_methods"]
+        authentication_method = hd(data["person"]["authentication_methods"])
         put_change(changeset, :authentication_method_current, prepare_auth_method_current(authentication_method))
 
       {:error, error_response} ->
@@ -77,13 +78,16 @@ defmodule EHealth.DeclarationRequest.API.Create do
   def prepare_auth_method_current(_) do
     %{"type" => @auth_na}
   end
-  def prepare_auth_method_current(@auth_otp, %{"phone_number" => phone_number}) do
+  def prepare_auth_method_current(@auth_otp, %{"phone_number" => phone_number}, _) do
     %{
       "type" => @auth_otp,
       "number" => phone_number
     }
   end
-  def prepare_auth_method_current(type, _authentication_method) do
+  def prepare_auth_method_current(@auth_na, _, req_auth_method) do
+    req_auth_method
+  end
+  def prepare_auth_method_current(type, _authentication_method, _) do
     %{"type" => type}
   end
 
