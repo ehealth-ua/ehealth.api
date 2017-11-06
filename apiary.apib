@@ -1013,10 +1013,7 @@ If the region is not specified, the service returns statistics for all regions
 Method searches divisions by parameters and returnes division details
 
 + Parameters
-    + type: CLINIC (enum, optional)
-       - CLINIC
-       - AMBULANT_CLINIC
-       - FAP
+    + type: CLINIC (enum, optional) - `Dictionary DIVISION_TYPE`
     + name: Борисп (string, optional)
     + lefttop_latitude: 30.1233 (number, required)
     + lefttop_longitude: 50.32423 (number, required)
@@ -1476,7 +1473,7 @@ This method is used by NHS admin to create new medical program.
             + include `medical_programs_response`
 
 
-### Deactivate medical program [PATCH /api/medical_programs/{id}/deactivate]
+### Deactivate medical program [PATCH /api/medical_programs/{id}/actions/deactivate]
 This method is used by NHS Admin to deactivate medical program.
 Medical program can't be deactivate if there is at least one participant in the program.
 
@@ -1729,13 +1726,12 @@ Method returns list of participants(medications) of medical programs filtered by
 
 ## Party users [/party_users]
 
-### Get Party users list [GET /party_users{?id,user_id,party_id,page_number,page_size}]
+### Get Party users list [GET /party_users{?user_id,party_id,page_number,page_size}]
 Method returns list of user_id(s) by party_id(s) filtered by parameters.  
 
 **Scopes required:** `party_user:read`
 
 + Parameters
-    + `id`: `7124259c-eeb1-4cbb-acac-ada2162675d1` (string, optional) - party user Identifier 
     + `user_id`: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, optional) - user Identifier
     + `party_id`: `79a91507-d409-49fc-b373-934b59c4f694` (string, optional) - Party Identifier
     + `page_number`: 2 (number) - Page number.    
@@ -1806,9 +1802,22 @@ Method checks request with rules in AuthMethod table, and returns decision based
 7. Client Back-End: stores `refresh_token` (in back-end!) and sends `access_token` to Client UI;
 8. Client UI: stores `access_token` (in local storage, cookie, etc.) and makes all future requests with `Auhtorization: Bearer <access_token>` header.
 
-Notes:
+**Notes:**
 - If User already has approval with insufficient scopes, all steps are required, but Login UI MAY render page that shows only newly added scopes.
 - When `access_token` expires, Client repeats steps 6-8 but via `grant_type=refresh_token`.
+
+**API-key:**
+- For identifiers MIS clients (as a brocker) we use term API-key. MIS must be **mandatory** send API-key when called e-Health API. 
+- API-key its a `client_secret` - Medical Information System secret key issued upon integration request.
+- API-key dispatched in Request HEADER as a `API-key` attribute. Example: 
+```
+HEADERS
+Content-Type:application/json
+Authorization:Bearer mF_9.B5f-4.1JqM
+API-key:uXhEczJ56adsfh3Ri9SUkc4en
+```
+- If MIS don't send API-key in Request HEADER, API return 401 error wih message "API-KEY header required".
+
 
 **Sequence Diagram**
 
@@ -3289,6 +3298,7 @@ Get drugs list by filters.
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en 
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
@@ -3517,7 +3527,7 @@ Use this method to obtain full information of Medication request an `id`.
         + data (object)
             + include `Medication_request_Public_Response`
 
-### Get Medication requests List [GET /api/medication_requests{?employee_id,person_id,status,request_number,created_from,created_to,medication_id,page_number,page_size}]
+### Get Medication requests List [GET /api/medication_requests{?legal_entity_id,employee_id,person_id,status,request_number,created_from,created_to,medication_id,page_number,page_size}]
 
 Use this method to obtain list of Medication request an `employee_id` or/and `person_id`. If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor is interested in current UI section.
 
@@ -3526,6 +3536,7 @@ Also we suggest use `employee_id` to make sure that end-user understands context
 Method returns shortened details, to obtain full information - get Medication request it by it's ID.
 
 + Parameters
+    + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - legal entity identifier.
     + `employee_id`: `7124259c-eeb1-4cbb-acac-ada2162675d1` (string, optional) - user_id of a doctor.
     + `person_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - person_id of a pacient. 
     + `status`: `ACTIVE` (enum, optional). Default `ACTIVE` 
@@ -3678,7 +3689,7 @@ This method is used to process created dispense
         + data (object)
             + include `Medication_Dispense_Response`
 
-### Get Medication Dispenses List [GET /api/medication_dispenses{?id,medication_request_id,legal_entity_id,division_id,status,dispensed_at,page_number,page_size}]
+### Get Medication Dispenses List [GET /api/medication_dispenses{?id,medication_request_id,legal_entity_id,division_id,status,dispensed_from,dispensed_to,page_number,page_size}]
 
 + Parameters
     + id: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, optional) - Medication dispense ID
@@ -3686,7 +3697,8 @@ This method is used to process created dispense
     + legal_entity_id: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, optional) - Legal entity ID
     + division_id: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, optional) - Division ID
     + status: PROCESSED (string, optional) - Status
-    + dispensed_at: '2017-09-01' (string, optional) - date of dispense
+    + dispensed_from: '2017-09-01' (string, optional) - date of dispense
+    + dispensed_to: '2017-10-01' (string, optional) - date of dispense
     + page_number: 2 (number, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
@@ -4209,7 +4221,6 @@ Reimbursement Report combines information about Medication requests and correspo
     + include `Party_Short`
     + email: email@example.com (string, optional)
     + phones (array[Phone], optional)
-    + tax_id: `3372159546` (string, required)
 
 ### `Employee_For_Declaration_Minimal`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -5140,10 +5151,7 @@ Reimbursement Report combines information about Medication requests and correspo
 + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - black list user id
 + `tax_id`: `3126509816` (string, required) - tax_id by party_id
 + `is_active`: true (boolean, required) - flag for activation/deactiovation
-+ `first_name`: `Петро` (string, required)
-+ `last_name`: `Іванов` (string, required)
-+ `second_name`: `Миколайович` (string, optional)
-+ `birth_date`: `1991-08-19T00:00:00.000Z` (string, required)
++  `parties` (array[`Person_Short_BlackList`], required)
 + inserted_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + inserted_by: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
 + updated_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
@@ -5160,7 +5168,13 @@ Reimbursement Report combines information about Medication requests and correspo
 + inserted_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + updated_at: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 
-  
+### `Person_Short_BlackList`
++ `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ `first_name`: Петро (string, required)
++ `last_name`: Іванов (string, required)
++ `second_name`: Миколайович (string, optional)
++ `birth_date`: `1991-08-19` (string, required) - ISO Datetime.
+
 ## `Medication request Request`
 ### `Medication_request_Request_post_data`
 + `person_id`: `585044f5-1272-4bca-8d41-8440eefe7d26` (string, required) - Person identifier
@@ -5188,7 +5202,7 @@ Reimbursement Report combines information about Medication requests and correspo
 + `medication_qty`: 10 (number, required) - Medication quantity isuued by the doctor
 
 ### `Medication_request_Request_Public_Response`
-+ `request_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Request request identifier
++ `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Request request identifier
 + `status`: `NEW` (string, required) - Medication Request status. Find available **statuses** on State Charts wiki page
 + `request_number` : `0000-243P-1X53-EH38` (string) - Public medication request human readable number
 + `created_at`: `2017-08-17` (string, required) - Medication request creation date, which is determined by the external system. Format *DATE '2017-09-07'*
