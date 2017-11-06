@@ -1,6 +1,6 @@
 #!/bin/bash
 if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
-	  if [ "$TRAVIS_BRANCH" == "$RELEASE_BRANCH" ]; then
+	  if [ "$TRAVIS_BRANCH" == "$TRUNK_BRANCH" ]; then
 ## install kubectl
 			curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
 			chmod +x ./kubectl
@@ -22,16 +22,16 @@ if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
 			sed -i'' -e "1,10s/tag:.*/tag: \"$PROJECT_VERSION\"/g" "$Chart/values.yaml"
 			helm init --upgrade
 			sleep 15
-			helm upgrade  -f $Chart/values.yaml  $Chart $Chart 
+			helm upgrade  -f $Chart/values.yaml  $Chart $Chart
 			cd $TRAVIS_BUILD_DIR/bin
 			./wait-for-deployment.sh api $Chart 180
    				if [ "$?" -eq 0 ]; then
-     				kubectl get pod -n$Chart | grep api 
+     				kubectl get pod -n$Chart | grep api
      				cd $TRAVIS_BUILD_DIR/ehealth.charts && git add . && sudo  git commit -m "Bump $Chart api to $PROJECT_VERSION" && sudo git pull && sudo git push
      				exit 0;
-   				else 
-   	 				kubectl logs $(sudo kubectl get pod -n$Chart | awk '{ print $1 }' | grep api) -n$Chart 
-   	 				helm rollback $Chart  $(($(helm ls | grep $Chart | awk '{ print $2 }') -1)) 
+   				else
+   	 				kubectl logs $(sudo kubectl get pod -n$Chart | awk '{ print $1 }' | grep api) -n$Chart
+   	 				helm rollback $Chart  $(($(helm ls | grep $Chart | awk '{ print $2 }') -1))
    	 				exit 1;
    				fi;
  		fi;

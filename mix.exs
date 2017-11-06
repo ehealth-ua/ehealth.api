@@ -5,7 +5,7 @@ defmodule EHealth.Mixfile do
 
   def project do
     [app: :ehealth,
-     description: "Add description to your package.",
+     description: "Integration Layer for projects that related to Ukrainian Health Services government institution.",
      package: package(),
      version: @version,
      elixir: "~> 1.5.1",
