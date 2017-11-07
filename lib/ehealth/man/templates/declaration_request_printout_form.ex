@@ -258,10 +258,11 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
   end
 
   defp get_full_license(legal_entity) do
-    license = case get_in(legal_entity, ["medical_service_provider", "licenses"]) do
-      [] = licenses -> List.first(licenses)
-      _ -> %{}
-    end
+    license =
+      case Map.get(legal_entity, "licenses") do
+        [first | _other] -> first
+        _ -> %{}
+      end
 
     license_number =
       license
@@ -269,15 +270,15 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
       |> to_string()
       |> get_listed_value()
 
-    issued_data =
+    issued_date =
       license
-      |> Map.get("issued_data")
+      |> Map.get("issued_date", "")
       |> to_string()
       |> get_listed_value()
 
-    []
-    |> Kernel.++(license_number)
-    |> Kernel.++(issued_data)
+    license_number
+    |> Enum.zip(issued_date)
+    |> Enum.flat_map(fn {license, date} -> [license, date] end)
     |> Enum.join(", ")
   end
 

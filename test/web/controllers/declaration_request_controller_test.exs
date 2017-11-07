@@ -352,6 +352,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
         "test/data/declaration_request/sign_request.json"
         |> File.read!()
         |> Poison.decode!()
+
       %{id: declaration_id} = insert(:il, :declaration_request,
         id: data["id"],
         status: DeclarationRequest.status(:approved),

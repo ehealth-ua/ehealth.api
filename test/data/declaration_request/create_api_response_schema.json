@@ -322,6 +322,9 @@
               },
               "what_licensed": {
                 "type": "string"
+              },
+              "order_no": {
+                "type": "string"
               }
             },
             "required": [
@@ -330,7 +333,8 @@
               "active_from_date",
               "expiry_date",
               "what_licensed",
-              "issued_date"
+              "issued_date",
+              "order_no"
             ],
             "type": "object"
           },

@@ -180,7 +180,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
             }
           },
           edrpou: "5432345432",
-          full_license: "",
+          full_license: "fd123443, 2017-02-28",
           phones: %{
             number: "+380503410870"
           },

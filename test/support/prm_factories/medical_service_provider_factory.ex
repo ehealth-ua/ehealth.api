@@ -7,7 +7,15 @@ defmodule EHealth.PRMFactories.MedicalServiceProviderFactory do
 
       def medical_service_provider_factory do
         %EHealth.PRM.MedicalServiceProviders.Schema{
-          licenses: [],
+          licenses: [%{
+            license_number: "fd123443",
+            issued_by: "Кваліфікацйна комісія",
+            issued_date: "2017-02-28",
+            expiry_date: "2017-02-28",
+            active_from_date: "2017-02-28",
+            what_licensed: "реалізація наркотичних засобів",
+            order_no: "K-123"
+          }],
           accreditation: %{
             category: "some",
             order_date: "some",
