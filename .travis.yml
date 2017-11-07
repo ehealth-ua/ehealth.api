@@ -1,4 +1,6 @@
 language: elixir
+git:
+  depth: 1000
 cache:
   directories:
     - _build
