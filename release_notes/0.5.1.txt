@@ -1,0 +1,505 @@
+Change log for versions 0.5.1 - 0.5.216
+
+**Patches and bug fixes**:
+
+Updated Travis git clone depth to pickup release history correctly
+Update CI module to aquire correct release notes
+CI submodules updated
+updated CI modules
+deploy script updated
+mix.exs version updated
+Fix version
+CI updated: now every pull request must contain [minor], [major] or [patch] label. Release notes will be generated for each minor version automatically.
+EHealth-1426: determine auth method for NA (#1434)
+EHealth-843: validate request (#1424)
+Fix address validation error message
+EHealth-72 - changed MPI reset_auth url (#1420)
+EHealth-1246: delete user tokens (#1413)
+
+**Other**:
+
+CI scripts and submodule updated
+Fix version
+add missed fields to person declarations response (#1435)
+Ci release scripts submodule (#1433)
+fix dispenses by request query
+create mpi audit log schema for fraud db (#1431)
+add date filters to medication dispenses list (#1425)
+MR: del & restrict `tax_id`, `documents` for employee (#1415)
+del & restrict `tax_id`, `documents` for employee
+del & restrict `tax_id`, `documents` for employee
+remove personal info from medication dispense/requests responses
+Medication dispenses schema (#1422)
+Add schemas for medication dispenses
+Fix dispense schemas
+Fix create dispense schemas
+fix tests for new schemas
+Fix address validations test case for divisions controller
+fix fraud divisions schema
+Update prm.erd
+Add `legal_entity_id`
+rename `number` -> `request_number`
+MRR: del & restrict `tax_id`, `documents` for employee (#1416)
+del & restrict `tax_id`, `documents` for employee
+del & restrict `tax_id`, `documents` for employee
+Add medication dispenses schema (#1297)
+Add schemas for medication dispenses
+Fix dispense schemas
+del & restrict `tax_id`, `documents` for employee
+del & restrict `tax_id`, `documents` for employee
+Mrr filter person_id and request number migration (#1414)
+Mrr filter person_id and request number migration
+Check drfo on employee from mrr
+Fix for the contributors, maintainers and github repo link
+make documents a unique list on create declaration (#1411)
+Change_5_json_schemas
+Changes are made according to #1070
+Update employee_doctor_schema.json
+Update employee_pharmacist_schema.json
+Change_5_json_schemas
+Changes are made according to #1070
+Update employee_pharmacist_schema.json
+fix json schemas
+add party users list endpoint (#1410)
+qualify medication request on create dispense (#1399)
+use inner join for searching user_id (#1398)
+Fix MR list search changeset
+updated deps (#1392)
+check is user blacklisted on new employee_request creation (#1391)
+MRR list Enum.reduce
+add black_list_users to fraud db
+Signature fix
+Small changes to mrr (#1373)
+init deploy
+EHealth-1246: set is_active default as true (#1372)
+EHealth-1246: fix search param (#1371)
+Create medication_request_request_prequalify_response.json
+Create medication_request_request_create_response.json
+Update medication_request_request_create_response.json
+Create medication_request_request_get_list_response.json
+Declaration request migration (#1363)
+Migration for declaration_request
+fix for test warnings
+EHealth-1246: User black list managment  (#1355)
+EHealth-1246: Black list users - list
+EHealth-1246: Black list users - deactivate
+EHealth-1246: Black list users - create (without role existence validation)
+validates user roles
+Validation error message format updated (#1361)
+Fix MRR List
+Additional updated and fixes for verifications (#1359)
+Updated failed validation rules format for Json Objects validation and all related stuff
+Additional validations for Legal Entity Owner
+Fix sql raw string
+Fix for check doctor is working in legal_entity
+Fix for #861
+fix search filters for medication_requests (#1357)
+add second_name to person view (#1356)
+fix tests for medication request qualify request
+exclude specs from coverage
+Fix sql raw array for MRR list
+Fixes for #1218
+Ehealth 1251 parties verifications (#1353)
+Additional validations for Employee creation - Parties, fix for dictionary factory, fixes for all related tests
+Test for parties validation
+Fix for addresses validation for divisions
+Update dictionaries.json (#1354)
+Change prequalify view with medication program participants #1314 (#1352)
+Update medication_request_list_response.json
+Update medication_request_show_response.json
+Update medication_request_list_response.json
+Update medication_request_show_response.json
+fix person view for medication_request response
+Change invalid_reason to rejection_reason
+MR:show proper legal_entity_id
+fix schema and add tests for rejection_reason (#1351)
+1250 divisions verifications (#1347)
+Divisions create/update validations
+Address generation for test moved to SimpleFactory, tests for Devisions Api and Controller
+Show status 409 on confilict (#1349)
+rename invalid_reason to rejection_reason in medication request view (#1348)
+add dispensed_at filter to dispenses list (#1346)
+do not search by ids, when it's not required (#1345)
+Async fix for MedicationRequestRequestControllerTest
+Add Refresh secret API
+add persons table to replica (#1342)
+1249 Additional validation on create/update legal entity (#1339)
+Additional validations on create/update legal entity
+Legal entity validator tests
+Fix sign sms template typo
+Check if verification code is not nil
+Get client type
+add il schemas to fraud db (#1340)
+add ops schema migrations (#1338)
+fix fraud prm triggers (#1335)
+Ehealth 1233 Declaration Verification (#1301)
+Validator for mapped json objects
+get_dictionary_keys method added into Dictionaries
+Dictionary factory extended
+API validation flow enhanced to check json object structure
+Moved person JSON validation logic into separate module with tests
+cleanup fraud migrations (#1332)
+rename parties_party_users table (#1329)
+Sms send on sign reject resend (#1323)
+Add send sms on sign/reject/resend
+fix fraud schema (#1327)
+add fraud migrations to tasks (#1325)
+create prm migrations and triggers (#1324)
+Fixes related to #1322
+Validate employee type (#1322)
+Begin
+Introduce validation
+Add tests
+Add prequalify with ops integration (#1318)
+remove innm_dosage from medication_request view
+EHealth-1311 - removed Gandalf from auth_method defining (#1316)
+fix medication_request list filters
+allow to qualify only active medication requests
+allow NHS ADMIN to see all medication requests
+get only active participants for qualify medication request
+Fixes for mmr (#1308)
+support NHS ADMIN for medication_request (#1304)
+support NHS ADMIN for medication_request
+fix participants in qualify medication_request response
+fix qualify check_innm_id
+add logging to all microservices calls (#1298)
+Rename specs/json_schemas/division_schema.json to specs/json_schemas/division/division_create_request.json
+Rename specs/json_schemas/new_employee_request_schema.json to specs/json_schemas/employee_request/employee_request_create_request.json
+Rename specs/json_schemas/employee_doctor_schema.json to specs/json_schemas/employee/employee_doctor_create_request.json
+Rename specs/json_schemas/employee_pharmacist_schema.json to specs/json_schemas/employee/employee_pharmacist_create_request.json
+Rename specs/json_schemas/declaration_request_schema.json to specs/json_schemas/declaration_request/declaration_request_create_request.json
+Update json_schema.ex
+improve medication request list filters (#1293)
+render medications in details for medication dispenses (#1292)
+Update mock server for /medication_request
+Fix typo in url
+Fix proper bucket name
+Add drfo check to signed content
+render medication_dispense_details (#1290)
+fix medication_request employee_id filter
+Add Mrr sign (#1289)
+fix medication_request filters
+add pagination to medication_dispenses
+add pagination to medication_dispenses
+show party on medication_dispense process/reject
+fix medication_request qualify
+allow to get global parameters without header (#1287)
+fix dispense quantity multiplicity
+fix dispense quantity multiplicity
+Fix double line. Sorry
+Add detail for mrr
+EHealth-72 - reset person auth method (#1286)
+fix verification code for dispense logic (#1285)
+Remove employee_id from dispense (#1283)
+EHealth-1189 - dictionaries seeder (#1281)
+EHealth-1189 - dictionaries seeder
+EHealth-1189 - remove invalid chars
+EHealth-1189 - fix invalid alias
+Update method for division API
+change medication request view logic (#1279)
+Fix for 2 qty
+Revert "allow to use json as replace for signed content (#1272)"
+This reverts commit ec776ae3ee6f26120ea07cd374bde35e278ed04f.
+EHealth-1225 - get system user from config (#1274)
+Add role API
+allow to use json as replace for signed content (#1272)
+Small fix for reject (#1269)
+EHealth-1225 - pass headers to MPI for audit log (#1265)
+increment elixir version in mix.exs
+bump elixir to 1.5.1 in readme
+bump elixir to 1.5 in readme
+remove context from medication_dispenses by dispense endpoint
+create medication_request qualify endpoint (#1263)
+added json schema validation for for medical program list (#1261)
+medical_program_list_response.json (#1065)
+Get medical program list response.json
+Json schema for get_medical_program_list response
+Rename specs/json_schemas/get_medical_program_list_response.json to specs/json_schemas/medical_program/medical_program_get_list_response.json
+Update medical_program_get_list_response.json
+removed danger default values from config (#1007)
+Add reject and autoterminate (#1256)
+use innm_dosage instead of brand for medication_request reference (#1255)
+fix creating medication dispense
+Fix proper json_schema validation for mrr prequalify
+fix creating medication dispense
+fix validating medications on create medication dispense
+EHealth-1222: deactivate inactive Medication, INNMDosage and MedicalProgram (#1243)
+deactivate inactive Medication, INNMDosage and MedicalProgram
+do not allow medication_request for inactive program medication
+new pagination applied to all the endpoints with lists
+fix medication request list pagination
+fix pagination (#1239)
+fix pagination (#1238)
+update medication request on dispense process (#1237)
+Mrr prequalify (#1234)
+Add medication request request prequalify
+get dispenses by medication_request id endpoint (#1235)
+add show medication request endpoint (#1231)
+fix ops doctor_medication_request query (#1229)
+fix legal_entity render (#1226)
+Add otp verification code to mrr
+Fix program_medication fix for mrr
+Fix program_medication fix for mrr
+create medication requests list endpoint (#1220)
+MRR random human readable number generation (#1219)
+add random number generator
+Program medication validation (#1210)
+added name into ingredients view (#1217)
+added ingredients name field into view
+preload all ingredients (not only with is_primary: true)
+Remove division check in mrr
+create folder for program_medication schemas (#1215)
+create folder for program_medication schemas
+updated program_medication schema paths
+do not deactivate program medication, when medication_request_allowed is true (#1214)
+set medication_request_allowed default: true (#1211)
+Create medical program request.json (#1062)
+Create medical program request
+Json schema for Create medical program request
+Update create_medical_program_request.json
+Rename specs/json_schemas/create_medical_program_request.json to specs/json_schemas/medical_program/medical_program_create_request.json
+renamed schema
+create_medical_program_response.json (#1060)
+create_medical_program_request.json
+Rename specs/json_schemas/create_medical_program_request.json to specs/json_schemas/medical_program/medical_program_create_request.json
+Create get_drugs_schema_responce.json
+Rename specs/json_schemas/get_drugs_schema_responce.json to specs/json_schemas/drugs/drugs_get_list_responce.json
+validate reimbursement amount (#1209)
+Create innm_create_request.json
+Delete new_innm_schema_response.json
+Create innm_create_response.json
+Rename specs/json_schemas/new_innm_dosage_schema_response.json to specs/json_schemas/innm_dosage/innm_dosage_create_response.json
+Rename specs/json_schemas/new_innm_dosage_schema.json to specs/json_schemas/innm_dosage/innm_dosage_create_request.json
+Rename specs/json_schemas/new_medication_schema.json to specs/json_schemas/medication/medication_create_request.json
+Rename specs/json_schemas/new_medication_request_request_schema.json to specs/json_schemas/medication_request_request/medication_request_request_create_request.json
+Rename specs/json_schemas/SignMedicationRequestRequest.json to specs/json_schemas/medication_request_request/medication_request_request_sign_request.json
+Rename specs/json_schemas/PostPreQualifyMedicationRequestRequest.json to specs/json_schemas/medication_request_request/medication_request_request_prequalify_request.json
+Rename specs/json_schemas/new_medication_dispense_request_schema.json to specs/json_schemas/medication_dispense/medication_dispense_create_request.json
+Update json_schema.ex
+typo, codestyle
+EHealth-1096: deactivate medical program (#1207)
+deactivate medication - validates Program Medication FK (#1206)
+fix master build
+Create get_innms_list_schema_response.json
+Rename specs/json_schemas/get_innms_list_schema_response.json to specs/json_schemas/innm/innm_get_list_response.json
+EHeealth-1111: search program medications (#1204)
+added search for ProgramMedication
+removed unused LikeSearch structure
+EHealth-1108: Program Medication - Create, Update, Get by ID  (#1199)
+generates CRU for program medication
+create and update program_medication
+preload references for program_medication
+CRU tests, improved JSON schema
+added FK and is_active validation and tests
+codestyle
+codestyle
+make same default page size for all lists (#1198)
+Program medications schemas (#1195)
+Added schemas for program medications
+program medications schemas correct mistake
+Medication request request medication validations  (#1194)
+add validations to medication_id
+Add fields to medication dispense details (#1153)
+refactored schema mapper and json validator (#1193)
+add more tests to mrr
+fixed paging for Drugs (#1192)
+Bump plug
+Bump ex_doc
+Bump credo
+Bump Ecto
+Bump HTTPoison
+Declaration status to lowercase in validations of mrr
+renamed INNM dosage type (#1187)
+renamed INNM dosage type
+Reimbursement medication request request more tests (#1190)
+update travis.yml to elixir 1.5.1
+Add more tests to mrr
+fix get declarations in case of empty result (#1186)
+fix get declarations in case of empty result (#1183)
+Added schemas for program medications (#1180)
+Added schemas for program medications
+fixed upper case
+remove migration for printout_content to string
+EHealth-961: do not deactivate INNM Dosage with active Medications (#1182)
+restored INNM Dosage tests
+EHealth-961: do not deactivate INNM Dosage when it has active medications
+EHealth-964: fixed drugs search (#1181)
+INNM sctid could be NULL
+Ensure seed is first-class citizen (#1179)
+medication validation for ingredients and package quantity (#1175)
+Add migration to solve #1148
+Endpoint to trigger email notification (#1173)
+Fix mix phx.routes command not working
+Add chain verification notification
+Configure "from" and "subject"
+No need in logger?
+Draft out most of the implementation
+Begin test...
+Move on with test...
+Cleanup test
+Add test for email content
+Make credo happy
+Rename the test file
+Use consistent naming scheme
+Fix mix phx.routes command not working (#1172)
+[WIP] EHealth-964: get drugs (#1166)
+EHealth-964: get drugs
+EHealth-964: get drugs
+EHealth-964: search params validation
+EHealth-964: fixed test fixture creation
+EHealth-964: dogma fix
+add test for sign declaration request (#1170)
+Proper error formats for media storage error. Solution for #1169
+Display dynamic hash (#1164)
+Initial implementation
+Move hash fetching generation to view layer
+Make credo happy
+Make dogma happy
+Correct key
+support drfo for testing digital signatures (#1163)
+allow to test without real signed content (#1162)
+validate dispenses response by json schema (#1158)
+fix credo issues (#1155)
+Make sure seed hash participates in comparison
+Show specific mismatches during sign comparison
+validate medication qty multiplicity (#1131)
+search for client type by legal_entity type (#1134)
+EHealth-1125: tables and fields reneming (#1133)
+renamed some tables and fields:
+INNM -> INNMDosage
+Medication -> Brand
+Substance -> INNM
+renamed some tables and fields:
+Brand -> Medication
+obsolete
+Use real seed value during decl. req creation (#1130)
+create get medical program endpoint (#1128)
+uaddresses routes adjusted: /api added
+create medical program list endpoint (#1127)
+Get Medications List (#1126)
+New medications&innms model
+Update prm.erd
+Add divisions filtering by status (#1078)
+search refactoring (#1086)
+search refactoring
+added minimum to dosage numerator and denumerator (#1087)
+fix single profile user logic (#1090)
+don't allow to deactivate employees from other legal entities (#1093)
+Reimbursement medication request request (#1094)
+Create Medication Request Request
+EHealth-962#1 - validate is_active_substance uniqueness (#1099)
+EHealth-962#2 - One and only one ingredient must be active (#1100)
+EHealth-962#1 - validate is_active_substance uniqueness
+EHealth-962#2 - One and only one ingredient must be active
+EHealth-962#4 - validate ingredient id uniqueness, refactored factories (#1101)
+save additional_info for pharmacist (#1102)
+EHealth-962#5 - fixed ingredient id FK validation (#1103)
+EHealth-962#6 - check ingredients FK id only with is_active=true (#1104)
+refactored search
+removed legacy var
+typo
+Normalize ingredients model (#1119)
+refactored medications schemas, added ingredients
+INNM with ingredients, tests
+refactored INNMs and Medications tests
+improved and fixed bugs after merge with Master
+added module for Drugs Validation
+removed derive
+MR: rename `recalled..' -> `rejected..'
+add create medical program endpoint (#1118)
+set max_page_size for pagination to 500 items (#1113)
+Medication dispenses#1020 (#1092)
+create medication dispense endpoint
+create medication dispense endpoint
+add base list and show medication_dispense endpoints
+add base process/reject medication_dispense endpoints
+fix getting medication_request from ops
+make json schema validations consistent
+complete show and list medication dispense endpoints
+complete process/reject medication dispense endpoints
+complete create medical dispense logic
+nebo15 links replaced with the edenlabllc
+enable autodeploy
+fix saving pharmacist on approve employee_request (#1107)
+add medical_program schema, migration and search (#1106)
+return inactive medications and substances (#1105)
+EHealth-962#6 - check ingredients FK id only with is_active=true (#1104)
+EHealth-962#5 - fixed ingredient id FK validation (#1103)
+save additional_info for pharmacist (#1102)
+EHealth-962#4 - validate ingredient id uniqueness, refactored factories (#1101)
+Added new value to enum legal_entity_type (#1013)
+EHealth-962#2 - One and only one ingredient must be active (#1100)
+EHealth-962#1 - validate is_active_substance uniqueness
+EHealth-962#2 - One and only one ingredient must be active
+EHealth-962#1 - validate is_active_substance uniqueness (#1099)
+Reimbursement medication request request (#1094)
+Create Medication Request Request
+don't allow to deactivate employees from other legal entities (#1093)
+fix single profile user logic (#1090)
+added minimum to dosage numerator and denumerator (#1087)
+do not show not active substances (#1083)
+EHealth-980: added validate_constraint for sctid field (#1082)
+Single person profile#619 (#1081)
+add unique party index for tax_id, birth_date
+allow only single user profile in PRM
+Remove enum from division json schema (#1077)
+EHealth-1054, 1056: Medication & INNM lists (#1079)
+schema mapping for medication JSON (#1076)
+EHealth-1052: Substances list (#1072)
+EHealth-1052: search for Substances, Scrivener search
+add new division types (#1066)
+update create employee request logic (#1067)
+drop ecto_paging (#1069)
+EHealth-1052: search for Substances, Scrivener search
+EHealth-1052: reordered deps
+EHealth-1052: updated deps
+EHealth-1052: remove code duplication
+fix distillery version to 1.4. 1.5 is crashed
+drop ecto_paging (#1069)
+update create employee request logic (#1067)
+add new division types (#1066)
+Medication Managment (#1063)
+WIP: Pharmacy registration (#923) (#924)
+Pharmacy registration (#923)
+add type to ukr_med_registry
+add pharmacy kveds migration
+support pharmacy in kveds validator
+update creating legal entity logic to respect type
+filter legal_entities by type
+add pharmacy to personal type token
+WIP: Create employee request#742 (#906) (#907)
+Create employee request#742 (#906)
+validate doctor on employee request creating
+allow to create pharmacist
+deactivate pharmacy owners when create new pharmacy owner
+show pharmacist info at employee view
+update deactivate employee for pharmacist
+show pharmacist info at employee list
+remove unused code
+remove unused code, add tests
+configure reimbursement build
+Add logger to error
+Fix. Related to  #988
+Update .travis.yml
+Create medication data model
+Added INNM schema. It crashes, be careful. I'll fix.
+Sorry
+remove unused vars
+fixed tests for CRU INNM
+renamed code_ATX to code_ATC
+Credo fix, medication test
+medication factory, tech commit
+medication factory
+medication factory naming improve
+test improvements
+fixed fk tests
+renamed INNM -> Substance
+added endpoint for INNM medication, tests
+implemented 2 endpoints for Medication, JSON schema validation, updated tests
+changed endpoint for Medications with type INNM
+added field name_original for Substances
+removed updates for Medication, INNM, refactored
+removed type from schema
+revert .travis.yml
+improves
+Fix loading bucket from config
