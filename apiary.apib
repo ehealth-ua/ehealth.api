@@ -271,6 +271,7 @@ This method will send password recovery email to a User. Request from this email
     + Headers
 
             Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en 
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
@@ -284,6 +285,7 @@ This method will send password recovery email to a User. Request from this email
     + Headers
 
             Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en 
 
     + Attributes (Person_Request)
 
@@ -315,6 +317,7 @@ Method returns only **requested** parameters, birth place and second name in add
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en 
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
@@ -1049,6 +1052,7 @@ Method logic described on [confluence page](https://edenlab.atlassian.net/wiki/p
     + Headers
 
             Authorization: Bearer YW5WcFkyVnFkV2xqWldwMWFXTmxDZzpjY1hwWTR0cWRZbGVjNHAxYUdsMXVJ
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en 
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
@@ -1180,6 +1184,7 @@ This method is used to create new innm. Fields descriptions are listed in reques
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en 
 
     + Attributes (object)
        + include `Innm_Request`
@@ -1212,6 +1217,7 @@ Method returns innms details by ID.
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en 
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
@@ -1238,6 +1244,7 @@ Use this method to obtain list of Innms. If you want to reduce amount of data th
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en 
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
@@ -1256,6 +1263,7 @@ This method is used to create INNM Dosage. Fields descriptions are listed in req
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en 
 
     + Attributes (object)
        + include (`INNM_Dosage_Request`, required) 
@@ -1288,6 +1296,7 @@ This method is used to deactivate INNM Dosage. Fields descriptions are listed in
     + Headers
     
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en 
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
@@ -1316,6 +1325,7 @@ Method returns INNM Dosage details by ID.
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en 
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
@@ -1341,6 +1351,7 @@ Use this method to obtain list of INNM Dosage. If you want to reduce amount of d
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en 
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
@@ -1358,6 +1369,7 @@ This method is used to create Medications. Fields descriptions are listed in req
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en 
 
     + Attributes (object)
        + include (`Medication_Request`, required) 
@@ -1390,6 +1402,7 @@ This method is used to deactivate Medication. Fields descriptions are listed in 
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en 
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
@@ -1418,6 +1431,7 @@ Method returns Medication details by ID.
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en 
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
@@ -1445,6 +1459,7 @@ Use this method to obtain list of Medications. If you want to reduce amount of d
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en 
 
 + Response 200 (application/json)
      + Attributes (`Response_Collection_V2`)
@@ -1461,6 +1476,7 @@ This method is used by NHS admin to create new medical program.
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en 
 
     + Attributes (object)
        + include `medical_programs_request`
@@ -1487,6 +1503,7 @@ Medical program can't be deactivate if there is at least one participant in the 
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en 
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
@@ -1518,6 +1535,7 @@ Method returns list of medical programs filtering by parameters. By default meth
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en 
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
@@ -1535,6 +1553,7 @@ Method returns medical programs details by ID.
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en 
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
@@ -1553,6 +1572,7 @@ This method is used to create new participant of a program - to link exsiting ac
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en 
 
     + Attributes (object)
        + include (`Program_medications_Request`, required) 
@@ -1592,6 +1612,7 @@ This method is used to update flags "is_active" and/or "medication_request_allow
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en 
 
     + Attributes (object)
        + include (`Program_medications_Update_Request`, required)
@@ -1647,6 +1668,7 @@ Method returns participants(medications) of medical programs details by ID.
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en 
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
@@ -1665,6 +1687,7 @@ This method is used to add tax_id to black list. Fields descriptions are listed 
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en 
 
     + Attributes (object)
        + include (`Black_list_user_Request`, required) 
@@ -1690,6 +1713,7 @@ This method is used by NHS Admin to deactivate user in black list.
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en 
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
@@ -1937,7 +1961,8 @@ Method is used to verify that provided in declarartion request phone number is v
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
-    
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
+               
     + Attributes (object)
         + `phone_number`: `+380508887700` (string, required)
 
@@ -1955,6 +1980,7 @@ Method is used to verify that provided in declarartion request phone number is v
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
     
     + Attributes (object)
         + code: 3782 (number)
@@ -1973,6 +1999,7 @@ Method is used to verify that provided in declarartion request phone number is v
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
@@ -2009,6 +2036,7 @@ Method returns shortened details, to obtain full information - get Declaration R
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
@@ -2024,6 +2052,7 @@ Method returns shortened details, to obtain full information - get Declaration R
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
@@ -2061,6 +2090,7 @@ This method is used to create Declaration Request (as part of Declaration creati
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
 
     + Attributes (object)
         + `declaration_request` (Declaration_Request_Public)
@@ -2119,6 +2149,7 @@ Clients can use signed URL's to directly access Google Cloud Storage via their A
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
 
     + Attributes (object)
         + `verification_code`: 2836 (number, optional) - required if authentication_method is OTP
@@ -2150,6 +2181,7 @@ Use this method to reject previously created Declaration Request.
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
 
 + Response 201 (application/json)
     + Attributes (Response__Process_OK)
@@ -2179,6 +2211,7 @@ Use this method to resend sms on previously created Declaration Request.
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
@@ -2405,6 +2438,7 @@ Invoke Get Declaration Request by ID to obtain seed - Hash of previous block in 
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
 
     + Attributes (object)
         + `signed_declaration_request`: `MIIWmAYJKoZIhvcNAQcCoIIWiTCCFoUCAQExCzAJBgUrDgMCGgUAMIISuwYJKoZIhvcNAQcBoIISrASCEqh7XHJ0ZjFcYW5zaVxhbnNpY3BnMTI1Mlxjb2NvYXJ0ZjE1MDRcY29jb2FzdWJydGY4MTANCntcZm9udHRibFxmMFxmc3dpc3NcZmNoYXJzZXQwIEhlbHZldGljYTt9DQp7XGNvbG9ydGJsO1xyZWQyNTVcZ3JlZW4yNTVcYmx1ZTI1NTtccmVkNzBcZ3JlZW41M1xibHVlOTY7XHJlZDI0OVxncmVlbjI0OVxibHVlMjUxO30NCntcKlxleHBhbmRlZGNvbG9ydGJsOztcY3NzcmdiXGMzNDUxMFxjMjc4NDNcYzQ1MDk4O1xjc3NyZ2JcYzk4MDM5XGM5ODAzOVxjOTg4MjQ7fQ0KXG1hcmdsMTQ0MFxtYXJncjE0NDBcdmlld3cxMDgwMFx2aWV3aDg0MDBcdmlld2tpbmQwDQpcZGVmdGFiNzIwDQpccGFyZFxwYXJkZWZ0YWI3MjBccGFydGlnaHRlbmZhY3RvcjANCg0KXGYwXGZzMjggXGNmMiBcY2IzIFxleHBuZDBcZXhwbmR0dzBca2VybmluZzANClx7XA0KICAgImlkIjoiYjA3NWYxNDgiLFwNCiAgICJzdGFydF9kYXRlIjoiMjAxNy0wMy0wMlQxMDo0NToxNi4wMDBaIixcDQogICAiZW5kX2RhdGUiOiIyMDE3LTAzLTAyVDEwOjQ1OjE2LjAwMFoiLFwNCiAgICJwZXJzb24iOlx7XA0KICAgICAgImZpcnN0X25hbWUiOiJcdWMwXHUxMDU1IFx1MTA3NyBcdTEwOTAgXHUxMDg4IFx1MTA4NiAiLFwNCiAgICAgICJsYXN0X25hbWUiOiJcdWMwXHUxMDMwIFx1MTA3NCBcdTEwNzIgXHUxMDg1IFx1MTA4NiBcdTEwNzQgIixcDQogICAgICAic2blic Vjb25kX25hbWUiOiJcdWMwXHUxMDUyIFx1MTA4MCBcdTEwODIgXHUxMDg2IFx1MTA4MyBcdTEwNzIgXHUxMDgxIFx1MTA4NiBcdTEwNzQgXHUxMDgwIFx1MTA5NSAiLFwNCiAgICAgICJiaXJ0aF9kYXRlIjoiMTk5MS0wOC0xOVQwMDowMDowMC4wMDBaIixcDQogICAgICAiYmlydGhfcGxhY2UiOiJcdWMwXHUxMDQyIFx1MTExMCBcdTEwODUgXHUxMDg1IFx1MTA4MCBcdTEwOTQgXHUxMTAzICwgXHUxMDU5IFx1MTA4MiBcdTEwODggXHUxMDcyIFx1MTExMSBcdTEwODUgXHUxMDcyICIsXA0KICAgICAgImdlbmRlciI6Ik1BTEUiLFwNCiAgICAgICJlbWFpbCI6ImVtYWlsQGV4YW1wbGUuY29tIixcDQogICAgICAidGF4X2lkIjoiMzEyNjUwOTgxNiIsXA0KICAgICAgIm5hdGlvbmFsX2lkIjoiQ0M3MTUwOTg1MjQzIixcDQogICAgICAic2VjcmV0Ijoic2VjcmV0IixcDQogICAgICAiZG9jdW1lbnRzIjpbXA0KICAgICAgICAgXHtcDQogICAgICAgICAgICAidHlwZSI6IlBBU1NQT1JUIixcDQogICAgICAgICAgICAibnVtYmVyIjoiMTIwNTE4IixcDQogICAgICAgICAgICAiaXNzdWVfZGF0ZSI6IjIwMTUtMDQtMDdUMDA6MDA6MDAuMDAwWiIsXA0KICAgICAgICAgICAgImV4cGlyeV9kYXRlIjoiMjAxNS0wNC0wN1QwMDowMDowMC4wMDBaIixcDQogICAgICAgICAgICAiaXNzdWVkX2J5IjoiRE1TVSJcDQogICAgICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImFkZHJlc3NlcyI6W1wNCiAgICAgICAgIFx7XA0KICAgICAgICAgICAgInR5cGUiOiJSRVNJREVOQ0UiLFwNCiAgICAgICAgICAgICJjb3VudHJ5IjoiVUEiLFwNCiAgICAgICAgICAgICJhcmVhIjoiXHVjMFx1MTA0NiBcdTEwODAgXHUxMDkwIFx1MTA4NiBcdTEwODQgXHUxMDgwIFx1MTA4OCBcdTEwODkgXHUxMTAwIFx1MTA4MiBcdTEwNzIgIixcDQogICAgICAgICAgICAicmVnaW9uIjoiXHVjMFx1MTA0MSBcdTEwNzcgXHUxMDg4IFx1MTA3NiBcdTEwODAgXHUxMDk1IFx1MTExMCBcdTEwNzQgXHUxMDg5IFx1MTEwMCBcdTEwODIgXHUxMDgwIFx1MTA4MSAiLFwNCiAgICAgICAgICAgICJjaXR5IjoiXHVjMFx1MTA1MCBcdTEwODAgXHUxMTExIFx1MTA3NCAiLFwNCiAgICAgICAgICAgICJjaXR5X3R5cGUiOiJDSVRZIixcDQogICAgICAgICAgICAic3RyZWV0IjoiXHVjMFx1MTA3NCBcdTEwOTEgXHUxMDgzIC4gXHUxMDUzIFx1MTExMCBcdTEwNzggXHUxMDgwIFx1MTA4NSBcdTEwODkgXHUxMTAwIFx1MTA4MiBcdTEwNzIgIixcDQogICAgICAgICAgICAiYnVpbGRpbmciOiIxNSIsXA0KICAgICAgICAgICAgImFwYXJ0bWVudCI6IjIzIixcDQogICAgICAgICAgICAiemlwIjoiMDIwOTAiXA0KICAgICAgICAgXH1cDQogICAgICBdLFwNCiAgICAgICJwaG9uZXMiOltcDQogICAgICAgICBce1wNCiAgICAgICAgICAgICJ0eXBlIjoiTU9CSUxFIixcDQogICAgICAgICAgICAibnVtYmVyIjoiKzM4MDUwMzQxMDg3MCJcDQogICAgICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImF1dGhlbnRpY2F0aW9uX21ldGhvZHMiOltcDQogICAgICAgICBce1wNCiAgICAgICAgICAgICJ0eXBlIjoiU01TIixcDQogICAgICAgICAgICAicGhvbmVfbnVtYmVyIjoiKzM4MDUwODg4NzcwMCJcDQogICAgICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImVtZXJnZW5jeV9jb250YWN0Ijpce1wNCiAgICAgICAgICJmaXJzdF9uYW1lIjoiXHVjMFx1MTA1NSBcdTEwNzcgXHUxMDkwIFx1MTA4OCBcdTEwODYgIixcDQogICAgICAgICAibGFzdF9uYW1lIjoiXHVjMFx1MTAzMCBcdTEwNzQgXHUxMDcyIFx1MTA4NSBcdTEwODYgXHUxMDc0ICIsXA0KICAgICAgICAgInNlY29uZF9uYW1lIjoiXHVjMFx1MTA1MiBcdTEwODAgXHUxMDgyIFx1MTA4NiBcdTEwODMgXHUxMDcyIFx1MTA4MSBcdTEwODYgXHUxMDc0IFx1MTA4MCBcdTEwOTUgIixcDQogICAgICAgICAicGhvbmVzIjpbXA0KICAgICAgICAgICAgXHtcDQogICAgICAgICAgICAgICAidHlwZSI6Ik1PQklMRSIsXA0KICAgICAgICAgICAgICAgIm51bWJlciI6IiszODA1MDM0MTA4NzAiXA0KICAgICAgICAgICAgXH1cDQogICAgICAgICBdXA0KICAgICAgXH0sXA0KICAgICAgImNvbmZpZGFudF9wZXJzb24iOlx7XA0KICAgICAgICAgInJlbGF0aW9uX3R5cGUiOiJ0cnVzdGVlIixcDQogICAgICAgICAiZmlyc3RfbmFtZSI6Ilx1YzBcdTEwNTUgXHUxMDc3IFx1MTA5MCBcdTEwODggXHUxMDg2ICIsXA0KICAgICAgICAgImxhc3RfbmFtZSI6Ilx1YzBcdTEwMzAgXHUxMDc0IFx1MTA3MiBcdTEwODUgXHUxMDg2IFx1MTA3NCAiLFwNCiAgICAgICAgICJzZWNvbmRfbmFtZSI6Ilx1YzBcdTEwNTIgXHUxMDgwIFx1MTA4MiBcdTEwODYgXHUxMDgzIFx1MTA3MiBcdTEwODEgXHUxMDg2IFx1MTA3NCBcdTEwODAgXHUxMDk1ICIsXA0KICAgICAgICAgImJpcnRoX2RhdGUiOiIxOTkxLTA4LTE5VDAwOjAwOjAwLjAwMFoiLFwNCiAgICAgICAgICJiaXJ0aF9wbGFjZSI6Ilx1YzBcdTEwNDIgXHUxMTEwIFx1MTA4NSBcdTEwODUgXHUxMDgwIFx1MTA5NCBcdTExMDMgLCBcdTEwNTkgXHUxMDgyIFx1MTA4OCBcdTEwNzIgXHUxMTExIFx1MTA4NSBcdTEwNzIgIixcDQogICAgICAgICAiZ2VuZGVyIjoiTUFMRSIsXA0KICAgICAgICAgInRheF9pZCI6IjMxMjY1MDk4MTYiLFwNCiAgICAgICAgICJkb2N1bWVudHMiOltcDQogICAgICAgICAgICBce1wNCiAgICAgICAgICAgICAgICJ0eXBlIjoiUEFTU1BPUlQiLFwNCiAgICAgICAgICAgICAgICJudW1iZXIiOiIxMjA1MTgiLFwNCiAgICAgICAgICAgICAgICJpc3N1ZV9kYXRlIjoiMjAxNS0wNC0wN1QwMDowMDowMC4wMDBaIixcDQogICAgICAgICAgICAgICAiZXhwaXJ5X2RhdGUiOiIyMDE1LTA0LTA3VDAwOjAwOjAwLjAwMFoiLFwNCiAgICAgICAgICAgICAgICJpc3N1ZWRfYnkiOiJETVNVIlwNCiAgICAgICAgICAgIFx9XA0KICAgICAgICAgXSxcDQogICAgICAgICAicGhvbmVzIjpbXA0KICAgICAgICAgICAgXHtcDQogICAgICAgICAgICAgICAidHlwZSI6Ik1PQklMRSIsXA0KICAgICAgICAgICAgICAgIm51bWJlciI6IiszODA1MDM0MTA4NzAiXA0KICAgICAgICAgICAgXH1cDQogICAgICAgICBdXA0KICAgICAgXH0sXA0KICAgICAgInJlbmV3YWxfY29uc2VudCI6dHJ1ZSxcDQogICAgICAicGF0aWVudF9zaWduZWQiOnRydWUsXA0KICAgICAgImRpc2Nsb3N1cmVfY29uc2VudCI6dHJ1ZSxcDQogICAgICAicHJvY2Vzc19kYXRhX2NvbnNlbnQiOnRydWVcDQogICBcfSxcDQogICAiZW1wbG95ZWUiOlx7XA0KICAgICAgImlkIjoiZDI5MGYxZWUtNmM1NC00YjAxLTkwZTYtZDcwMTc0OGYwODUxIixcDQogICAgICAidGl0bGUiOiJcdWMwXHUxMDgzIFx1MTExMCBcdTEwODIgXHUxMDcyIFx1MTA4OCAiLFwNCiAgICAgICJwYXJ0eSI6XHtcDQogICAgICAgICAiaWQiOiJiMDc1ZjE0OC03ZjkzLTRmYzItYjJlYy0yZDgxYjE5YTliN2IiLFwNCiAgICAgICAgICJmaXJzdF9uYW1lIjoiXHVjMFx1MTA1NSBcdTEwNzcgXHUxMDkwIFx1MTA4OCBcdTEwODYgIixcDQogICAgICAgICAibGFzdF9uYW1lIjoiXHVjMFx1MTAzMCBcdTEwNzQgXHUxMDcyIFx1MTA4NSBcdTEwODYgXHUxMDc0ICIsXA0KICAgICAgICAgInNlY29uZF9uYW1lIjoiXHVjMFx1MTA1MiBcdTEwODAgXHUxMDgyIFx1MTA4NiBcdTEwODMgXHUxMDcyIFx1MTA4MSBcdTEwODYgXHUxMDc0IFx1MTA4MCBcdTEwOTUgIlwNCiAgICAgIFx9XA0KICAgXH0sXA0KICAgIm1zcCI6XHtcDQogICAgICAiaWQiOiJkMjkwZjFlZSIsXA0KICAgICAgIm5hbWUiOiJcdWMwXHUxMDUwIFx1MTA4MyBcdTExMTAgXHUxMDg1IFx1MTExMCBcdTEwODIgXHUxMDcyICBcdTEwNDEgXHUxMDg2IFx1MTA4OCBcdTEwODAgXHUxMDg5ICIsXA0KICAgICAgInNob3J0X05hbWUiOiJcdWMwXHUxMDQxIFx1MTA4NiBcdTEwODggXHUxMDgwIFx1MTA4OSAiLFwNCiAgICAgICJ0eXBlIjoiXHVjMFx1MTA2MCBcdTEwNTQgXHUxMDU1ICIsXA0KICAgICAgImVkcnBvdSI6IjU0MzIzNDU0MzIiXA0KICAgXH0sXA0KICAgInNjb3BlIjoiZmFtaWx5IGRvY3RvciIsXA0KICAgInBsYWludGV4dF9jb250ZW50IjoiRGVjbGFyYXRpb24gY29udGVudCJcDQpcfX2gggIuMIICKjCCAZOgAwIBAgIJANj0sC/v0hWYMA0GCSqGSIb3DQEBBQUAMBkxFzAVBgNVBAMUDlBLQ1MjNyBleGFtcGxlMB4XDTE3MDMyNzE0NTczM1oXDTE3MDQyNjE0NTczM1owGTEXMBUGA1UEAxQOUEtDUyM3IGV4YW1wbGUwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMuqrxE/0txT+ZVRKU1O85a8eaaUAOkbcAIy1mMoxQ+UBwcBeXt07Oxu32+p51HSY93Pp5AlDLKE48sjSNvMbTk5vtZ6g8sqMpZxlBVqHLkXLXYBMf2rmtE4hfV6yTP5YUJEs+a9cotsPN0r5KlI9g8aSpIj9Ie8mML5Vh1taQHNAgMBAAGjejB4MB0GA1UdDgQWBBTET2SwL5UfUMKDyhuBGCA+CaflnzBJBgNVHSMEQjBAgBTET2SwL5UfUMKDyhuBGCA+Cafln6EdpBswGTEXMBUGA1UEAxQOUEtDUyM3IGV4YW1wbGWCCQDY9LAv79IVmDAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBBQUAA4GBAF1uOGjUb6IVS28UqZ2qLc/kd2oNU2hOEuAp1YeaKRL2OaG4bTubJO1ejoxCJNfVj0FFw5PXIgjnw87JzkAy5KLDTiotQl8eknkd1bR3nIWINemck3GeGYkR8giG3gkNxz6ky1+63ZcoJkEiS46aneDhmS6BdH0V2G/3delos8+ZMYIBgDCCAXwCAQEwJjAZMRcwFQYDVQQDFA5QS0NTIzcgZXhhbXBsZQIJANj0sC/v0hWYMAkGBSsOAwIaBQCggbEwGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMTcwMzI4MTE1NDEwWjAjBgkqhkiG9w0BCQQxFgQU5NSvVRVYHz5tG1GW8gXrjHSnLj8wUgYJKoZIhvcNAQkPMUUwQzAKBggqhkiG9w0DBzAOBggqhkiG9w0DAgICAIAwDQYIKoZIhvcNAwICAUAwBwYFKw4DAgcwDQYIKoZIhvcNAwICASgwDQYJKoZIhvcNAQEBBQAEgYCdqnN8gGXw9OUmtxOvQQgHK5Ni/4/2WQWj7rxERh5AI6rhXs/hh3DNS5Z5mN6wO8z47SQuedbsMQ5hf6+9BbKhXD7WKeU+DtGyfa1ner5/ubz6BeVvuT98D4PrzHlqNSpe/7AirrA70QVO9kPoFSmGtBG6JjaqaCZBYbvF9InPRw==` (string, required)
@@ -2436,6 +2470,7 @@ Method returns shortened details, to obtain full information - get Declaration D
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
@@ -2451,6 +2486,7 @@ Method returns shortened details, to obtain full information - get Declaration D
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
@@ -2472,6 +2508,7 @@ declaration status will be changed to `active`
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
     
     + Attributes (crud_Declaration_patch)
 
@@ -2492,6 +2529,7 @@ declaration status will be changed to `closed`
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
 
     + Attributes (crud_Declaration_patch)
 
@@ -2533,6 +2571,7 @@ Method returns shortened details (for DOCTOR and PHARMACIST - additional return
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
@@ -2563,6 +2602,7 @@ Response structure differs depending on employee type:
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
@@ -2592,6 +2632,7 @@ Employee deactivation:
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
@@ -2625,6 +2666,7 @@ For changes to take effect employee must confirm the changes
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
 
     + Attributes (object)
         + `employee_request` (Employee_Request)
@@ -2655,6 +2697,7 @@ For changes to take effect employee must confirm the changes
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
@@ -2673,6 +2716,7 @@ This service should be used with `access_token` authetification method.
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM (string, optional) -- the Authorization is optional if `token` is passed
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
 
 
 + Response 200 (application/json)
@@ -2706,6 +2750,7 @@ Method returns only **requested** parameters, birth place and second name in add
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
 
 + Response 200 (application/json)
     + Attributes (Response_Collection)
@@ -2736,6 +2781,7 @@ It returns:
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
 
 + Response 200 (application/json)
     + Attributes (Response_Collection)
@@ -2762,6 +2808,7 @@ This method allows to reset (set to **NA**) person authentication method.
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
 
 + Response 200 (application/json)
     + Attributes (Response_Collection)
@@ -2807,6 +2854,7 @@ List consists of legal entities with parameter `is_active = true`.
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
@@ -2832,6 +2880,7 @@ List consists of legal entities with parameter `is_active = true`.
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
@@ -2958,6 +3007,7 @@ Signed content MUST consists of JSON object with Legal Entity data:
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
 
     + Attributes (object)
         + `signed_legal_entity_request`: `...` (string, required)
@@ -3021,6 +3071,7 @@ Available transition:
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
     
 
 + Response 200 (application/json)
@@ -3043,6 +3094,7 @@ Available transition:
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
     
 
 + Response 200 (application/json)
@@ -3068,6 +3120,7 @@ Update status on CLOSED
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
@@ -3341,6 +3394,7 @@ Method returns shortened details, to obtain full information - Get Medication re
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
@@ -3359,6 +3413,7 @@ Use this method to obrain full information of Medication request Request an `id`
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
@@ -3376,6 +3431,7 @@ This method is used to pre-qualify data Medication request Request (possibility 
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
 
     + Attributes (object)
         + `medication_request_request` (object)
@@ -3406,6 +3462,7 @@ Fields description are listed in request Example view.
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
 
     + Attributes (object)
         + `medication_request_request`(`Medication_request_Request_post_data`)
@@ -3451,6 +3508,7 @@ Invoke Get Medication request Request by ID to obtain seed - Hash of previous bl
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
 
     + Attributes (object)
         + `signed_medication_request_request`: `MIIWmAYJKoZIhvcNAQcCoIIWiTCCFoUCAQExCzAJBgUrDgMCGgUAMIISuwYJKoZIhvcNAQcBoIISrASCEqh7XHJ0ZjFcYW5zaVxhbnNpY3BnMTI1Mlxjb2NvYXJ0ZjE1MDRcY29jb2FzdWJydGY4MTANCntcZm9udHRibFxmMFxmc3dpc3NcZmNoYXJzZXQwIEhlbHZldGljYTt9DQp7XGNvbG9ydGJsO1xyZWQyNTVcZ3JlZW4yNTVcYmx1ZTI1NTtccmVkNzBcZ3JlZW41M1xibHVlOTY7XHJlZDI0OVxncmVlbjI0OVxibHVlMjUxO30NCntcKlxleHBhbmRlZGNvbG9ydGJsOztcY3NzcmdiXGMzNDUxMFxjMjc4NDNcYzQ1MDk4O1xjc3NyZ2JcYzk4MDM5XGM5ODAzOVxjOTg4MjQ7fQ0KXG1hcmdsMTQ0MFxtYXJncjE0NDBcdmlld3cxMDgwMFx2aWV3aDg0MDBcdmlld2tpbmQwDQpcZGVmdGFiNzIwDQpccGFyZFxwYXJkZWZ0YWI3MjBccGFydGlnaHRlbmZhY3RvcjANCg0KXGYwXGZzMjggXGNmMiBcY2IzIFxleHBuZDBcZXhwbmR0dzBca2VybmluZzANClx7XA0KICAgImlkIjoiYjA3NWYxNDgiLFwNCiAgICJzdGFydF9kYXRlIjoiMjAxNy0wMy0wMlQxMDo0NToxNi4wMDBaIixcDQogICAiZW5kX2RhdGUiOiIyMDE3LTAzLTAyVDEwOjQ1OjE2LjAwMFoiLFwNCiAgICJwZXJzb24iOlx7XA0KICAgICAgImZpcnN0X25hbWUiOiJcdWMwXHUxMDU1IFx1MTA3NyBcdTEwOTAgXHUxMDg4IFx1MTA4NiAiLFwNCiAgICAgICJsYXN0X25hbWUiOiJcdWMwXHUxMDMwIFx1MTA3NCBcdTEwNzIgXHUxMDg1IFx1MTA4NiBcdTEwNzQgIixcDQogICAgICAic2blic Vjb25kX25hbWUiOiJcdWMwXHUxMDUyIFx1MTA4MCBcdTEwODIgXHUxMDg2IFx1MTA4MyBcdTEwNzIgXHUxMDgxIFx1MTA4NiBcdTEwNzQgXHUxMDgwIFx1MTA5NSAiLFwNCiAgICAgICJiaXJ0aF9kYXRlIjoiMTk5MS0wOC0xOVQwMDowMDowMC4wMDBaIixcDQogICAgICAiYmlydGhfcGxhY2UiOiJcdWMwXHUxMDQyIFx1MTExMCBcdTEwODUgXHUxMDg1IFx1MTA4MCBcdTEwOTQgXHUxMTAzICwgXHUxMDU5IFx1MTA4MiBcdTEwODggXHUxMDcyIFx1MTExMSBcdTEwODUgXHUxMDcyICIsXA0KICAgICAgImdlbmRlciI6Ik1BTEUiLFwNCiAgICAgICJlbWFpbCI6ImVtYWlsQGV4YW1wbGUuY29tIixcDQogICAgICAidGF4X2lkIjoiMzEyNjUwOTgxNiIsXA0KICAgICAgIm5hdGlvbmFsX2lkIjoiQ0M3MTUwOTg1MjQzIixcDQogICAgICAic2VjcmV0Ijoic2VjcmV0IixcDQogICAgICAiZG9jdW1lbnRzIjpbXA0KICAgICAgICAgXHtcDQogICAgICAgICAgICAidHlwZSI6IlBBU1NQT1JUIixcDQogICAgICAgICAgICAibnVtYmVyIjoiMTIwNTE4IixcDQogICAgICAgICAgICAiaXNzdWVfZGF0ZSI6IjIwMTUtMDQtMDdUMDA6MDA6MDAuMDAwWiIsXA0KICAgICAgICAgICAgImV4cGlyeV9kYXRlIjoiMjAxNS0wNC0wN1QwMDowMDowMC4wMDBaIixcDQogICAgICAgICAgICAiaXNzdWVkX2J5IjoiRE1TVSJcDQogICAgICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImFkZHJlc3NlcyI6W1wNCiAgICAgICAgIFx7XA0KICAgICAgICAgICAgInR5cGUiOiJSRVNJREVOQ0UiLFwNCiAgICAgICAgICAgICJjb3VudHJ5IjoiVUEiLFwNCiAgICAgICAgICAgICJhcmVhIjoiXHVjMFx1MTA0NiBcdTEwODAgXHUxMDkwIFx1MTA4NiBcdTEwODQgXHUxMDgwIFx1MTA4OCBcdTEwODkgXHUxMTAwIFx1MTA4MiBcdTEwNzIgIixcDQogICAgICAgICAgICAicmVnaW9uIjoiXHVjMFx1MTA0MSBcdTEwNzcgXHUxMDg4IFx1MTA3NiBcdTEwODAgXHUxMDk1IFx1MTExMCBcdTEwNzQgXHUxMDg5IFx1MTEwMCBcdTEwODIgXHUxMDgwIFx1MTA4MSAiLFwNCiAgICAgICAgICAgICJjaXR5IjoiXHVjMFx1MTA1MCBcdTEwODAgXHUxMTExIFx1MTA3NCAiLFwNCiAgICAgICAgICAgICJjaXR5X3R5cGUiOiJDSVRZIixcDQogICAgICAgICAgICAic3RyZWV0IjoiXHVjMFx1MTA3NCBcdTEwOTEgXHUxMDgzIC4gXHUxMDUzIFx1MTExMCBcdTEwNzggXHUxMDgwIFx1MTA4NSBcdTEwODkgXHUxMTAwIFx1MTA4MiBcdTEwNzIgIixcDQogICAgICAgICAgICAiYnVpbGRpbmciOiIxNSIsXA0KICAgICAgICAgICAgImFwYXJ0bWVudCI6IjIzIixcDQogICAgICAgICAgICAiemlwIjoiMDIwOTAiXA0KICAgICAgICAgXH1cDQogICAgICBdLFwNCiAgICAgICJwaG9uZXMiOltcDQogICAgICAgICBce1wNCiAgICAgICAgICAgICJ0eXBlIjoiTU9CSUxFIixcDQogICAgICAgICAgICAibnVtYmVyIjoiKzM4MDUwMzQxMDg3MCJcDQogICAgICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImF1dGhlbnRpY2F0aW9uX21ldGhvZHMiOltcDQogICAgICAgICBce1wNCiAgICAgICAgICAgICJ0eXBlIjoiU01TIixcDQogICAgICAgICAgICAicGhvbmVfbnVtYmVyIjoiKzM4MDUwODg4NzcwMCJcDQogICAgICAgICBcfVwNCiAgICAgIF0sXA0KICAgICAgImVtZXJnZW5jeV9jb250YWN0Ijpce1wNCiAgICAgICAgICJmaXJzdF9uYW1lIjoiXHVjMFx1MTA1NSBcdTEwNzcgXHUxMDkwIFx1MTA4OCBcdTEwODYgIixcDQogICAgICAgICAibGFzdF9uYW1lIjoiXHVjMFx1MTAzMCBcdTEwNzQgXHUxMDcyIFx1MTA4NSBcdTEwODYgXHUxMDc0ICIsXA0KICAgICAgICAgInNlY29uZF9uYW1lIjoiXHVjMFx1MTA1MiBcdTEwODAgXHUxMDgyIFx1MTA4NiBcdTEwODMgXHUxMDcyIFx1MTA4MSBcdTEwODYgXHUxMDc0IFx1MTA4MCBcdTEwOTUgIixcDQogICAgICAgICAicGhvbmVzIjpbXA0KICAgICAgICAgICAgXHtcDQogICAgICAgICAgICAgICAidHlwZSI6Ik1PQklMRSIsXA0KICAgICAgICAgICAgICAgIm51bWJlciI6IiszODA1MDM0MTA4NzAiXA0KICAgICAgICAgICAgXH1cDQogICAgICAgICBdXA0KICAgICAgXH0sXA0KICAgICAgImNvbmZpZGFudF9wZXJzb24iOlx7XA0KICAgICAgICAgInJlbGF0aW9uX3R5cGUiOiJ0cnVzdGVlIixcDQogICAgICAgICAiZmlyc3RfbmFtZSI6Ilx1YzBcdTEwNTUgXHUxMDc3IFx1MTA5MCBcdTEwODggXHUxMDg2ICIsXA0KICAgICAgICAgImxhc3RfbmFtZSI6Ilx1YzBcdTEwMzAgXHUxMDc0IFx1MTA3MiBcdTEwODUgXHUxMDg2IFx1MTA3NCAiLFwNCiAgICAgICAgICJzZWNvbmRfbmFtZSI6Ilx1YzBcdTEwNTIgXHUxMDgwIFx1MTA4MiBcdTEwODYgXHUxMDgzIFx1MTA3MiBcdTEwODEgXHUxMDg2IFx1MTA3NCBcdTEwODAgXHUxMDk1ICIsXA0KICAgICAgICAgImJpcnRoX2RhdGUiOiIxOTkxLTA4LTE5VDAwOjAwOjAwLjAwMFoiLFwNCiAgICAgICAgICJiaXJ0aF9wbGFjZSI6Ilx1YzBcdTEwNDIgXHUxMTEwIFx1MTA4NSBcdTEwODUgXHUxMDgwIFx1MTA5NCBcdTExMDMgLCBcdTEwNTkgXHUxMDgyIFx1MTA4OCBcdTEwNzIgXHUxMTExIFx1MTA4NSBcdTEwNzIgIixcDQogICAgICAgICAiZ2VuZGVyIjoiTUFMRSIsXA0KICAgICAgICAgInRheF9pZCI6IjMxMjY1MDk4MTYiLFwNCiAgICAgICAgICJkb2N1bWVudHMiOltcDQogICAgICAgICAgICBce1wNCiAgICAgICAgICAgICAgICJ0eXBlIjoiUEFTU1BPUlQiLFwNCiAgICAgICAgICAgICAgICJudW1iZXIiOiIxMjA1MTgiLFwNCiAgICAgICAgICAgICAgICJpc3N1ZV9kYXRlIjoiMjAxNS0wNC0wN1QwMDowMDowMC4wMDBaIixcDQogICAgICAgICAgICAgICAiZXhwaXJ5X2RhdGUiOiIyMDE1LTA0LTA3VDAwOjAwOjAwLjAwMFoiLFwNCiAgICAgICAgICAgICAgICJpc3N1ZWRfYnkiOiJETVNVIlwNCiAgICAgICAgICAgIFx9XA0KICAgICAgICAgXSxcDQogICAgICAgICAicGhvbmVzIjpbXA0KICAgICAgICAgICAgXHtcDQogICAgICAgICAgICAgICAidHlwZSI6Ik1PQklMRSIsXA0KICAgICAgICAgICAgICAgIm51bWJlciI6IiszODA1MDM0MTA4NzAiXA0KICAgICAgICAgICAgXH1cDQogICAgICAgICBdXA0KICAgICAgXH0sXA0KICAgICAgInJlbmV3YWxfY29uc2VudCI6dHJ1ZSxcDQogICAgICAicGF0aWVudF9zaWduZWQiOnRydWUsXA0KICAgICAgImRpc2Nsb3N1cmVfY29uc2VudCI6dHJ1ZSxcDQogICAgICAicHJvY2Vzc19kYXRhX2NvbnNlbnQiOnRydWVcDQogICBcfSxcDQogICAiZW1wbG95ZWUiOlx7XA0KICAgICAgImlkIjoiZDI5MGYxZWUtNmM1NC00YjAxLTkwZTYtZDcwMTc0OGYwODUxIixcDQogICAgICAidGl0bGUiOiJcdWMwXHUxMDgzIFx1MTExMCBcdTEwODIgXHUxMDcyIFx1MTA4OCAiLFwNCiAgICAgICJwYXJ0eSI6XHtcDQogICAgICAgICAiaWQiOiJiMDc1ZjE0OC03ZjkzLTRmYzItYjJlYy0yZDgxYjE5YTliN2IiLFwNCiAgICAgICAgICJmaXJzdF9uYW1lIjoiXHVjMFx1MTA1NSBcdTEwNzcgXHUxMDkwIFx1MTA4OCBcdTEwODYgIixcDQogICAgICAgICAibGFzdF9uYW1lIjoiXHVjMFx1MTAzMCBcdTEwNzQgXHUxMDcyIFx1MTA4NSBcdTEwODYgXHUxMDc0ICIsXA0KICAgICAgICAgInNlY29uZF9uYW1lIjoiXHVjMFx1MTA1MiBcdTEwODAgXHUxMDgyIFx1MTA4NiBcdTEwODMgXHUxMDcyIFx1MTA4MSBcdTEwODYgXHUxMDc0IFx1MTA4MCBcdTEwOTUgIlwNCiAgICAgIFx9XA0KICAgXH0sXA0KICAgIm1zcCI6XHtcDQogICAgICAiaWQiOiJkMjkwZjFlZSIsXA0KICAgICAgIm5hbWUiOiJcdWMwXHUxMDUwIFx1MTA4MyBcdTExMTAgXHUxMDg1IFx1MTExMCBcdTEwODIgXHUxMDcyICBcdTEwNDEgXHUxMDg2IFx1MTA4OCBcdTEwODAgXHUxMDg5ICIsXA0KICAgICAgInNob3J0X05hbWUiOiJcdWMwXHUxMDQxIFx1MTA4NiBcdTEwODggXHUxMDgwIFx1MTA4OSAiLFwNCiAgICAgICJ0eXBlIjoiXHVjMFx1MTA2MCBcdTEwNTQgXHUxMDU1ICIsXA0KICAgICAgImVkcnBvdSI6IjU0MzIzNDU0MzIiXA0KICAgXH0sXA0KICAgInNjb3BlIjoiZmFtaWx5IGRvY3RvciIsXA0KICAgInBsYWludGV4dF9jb250ZW50IjoiRGVjbGFyYXRpb24gY29udGVudCJcDQpcfX2gggIuMIICKjCCAZOgAwIBAgIJANj0sC/v0hWYMA0GCSqGSIb3DQEBBQUAMBkxFzAVBgNVBAMUDlBLQ1MjNyBleGFtcGxlMB4XDTE3MDMyNzE0NTczM1oXDTE3MDQyNjE0NTczM1owGTEXMBUGA1UEAxQOUEtDUyM3IGV4YW1wbGUwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMuqrxE/0txT+ZVRKU1O85a8eaaUAOkbcAIy1mMoxQ+UBwcBeXt07Oxu32+p51HSY93Pp5AlDLKE48sjSNvMbTk5vtZ6g8sqMpZxlBVqHLkXLXYBMf2rmtE4hfV6yTP5YUJEs+a9cotsPN0r5KlI9g8aSpIj9Ie8mML5Vh1taQHNAgMBAAGjejB4MB0GA1UdDgQWBBTET2SwL5UfUMKDyhuBGCA+CaflnzBJBgNVHSMEQjBAgBTET2SwL5UfUMKDyhuBGCA+Cafln6EdpBswGTEXMBUGA1UEAxQOUEtDUyM3IGV4YW1wbGWCCQDY9LAv79IVmDAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBBQUAA4GBAF1uOGjUb6IVS28UqZ2qLc/kd2oNU2hOEuAp1YeaKRL2OaG4bTubJO1ejoxCJNfVj0FFw5PXIgjnw87JzkAy5KLDTiotQl8eknkd1bR3nIWINemck3GeGYkR8giG3gkNxz6ky1+63ZcoJkEiS46aneDhmS6BdH0V2G/3delos8+ZMYIBgDCCAXwCAQEwJjAZMRcwFQYDVQQDFA5QS0NTIzcgZXhhbXBsZQIJANj0sC/v0hWYMAkGBSsOAwIaBQCggbEwGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMTcwMzI4MTE1NDEwWjAjBgkqhkiG9w0BCQQxFgQU5NSvVRVYHz5tG1GW8gXrjHSnLj8wUgYJKoZIhvcNAQkPMUUwQzAKBggqhkiG9w0DBzAOBggqhkiG9w0DAgICAIAwDQYIKoZIhvcNAwICAUAwBwYFKw4DAgcwDQYIKoZIhvcNAwICASgwDQYJKoZIhvcNAQEBBQAEgYCdqnN8gGXw9OUmtxOvQQgHK5Ni/4/2WQWj7rxERh5AI6rhXs/hh3DNS5Z5mN6wO8z47SQuedbsMQ5hf6+9BbKhXD7WKeU+DtGyfa1ner5/ubz6BeVvuT98D4PrzHlqNSpe/7AirrA70QVO9kPoFSmGtBG6JjaqaCZBYbvF9InPRw==` (string, required)
@@ -3472,6 +3530,7 @@ Use this method to reject previously created Medication request Request.
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
@@ -3491,6 +3550,7 @@ This method is used to qualify (possibility to use Innm for the program) Medicat
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
 
     + Attributes (object)
         + `programs` (array[`Qualify_Medication_request_Request_List_program_post_data`], required) - Medical programs list for qualify
@@ -3520,6 +3580,7 @@ Use this method to obtain full information of Medication request an `id`.
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
@@ -3556,6 +3617,7 @@ Method returns shortened details, to obtain full information - get Medication re
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
 
 + Response 200 (application/json)
    + Attributes (`Response_Collection_V2`)
@@ -3573,6 +3635,7 @@ Use this method to reject previously created and signed Medication request.
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
 
     + Attributes (object)
         + `Reason`: `Помилка призначення. Несумісні препарпти.` (string, optional) - Medication request reject reason
@@ -3595,6 +3658,7 @@ Use this method to resend SMS for person with info medication request number & v
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
@@ -3616,6 +3680,7 @@ Only Medication dispenses linked to medication request id will be shown. If you 
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
@@ -3650,6 +3715,7 @@ This method is used to dispense medications to patient
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
     
     + Attributes (object)
         + include `Medication_Dispense_Request`
@@ -3673,6 +3739,7 @@ This method is used to process created dispense
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
     
     + Attributes (object)
         + payment_id: F324H456 (string, optional)
@@ -3708,6 +3775,7 @@ This method is used to process created dispense
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
@@ -3725,6 +3793,7 @@ This method is used to process created dispense
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
@@ -3757,6 +3826,7 @@ Reimbursement Report combines information about Medication requests and correspo
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
@@ -3774,6 +3844,7 @@ Reimbursement Report combines information about Medication requests and correspo
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
 
     + Attributes (object)
         + include Legal_Entity_Request_Public
