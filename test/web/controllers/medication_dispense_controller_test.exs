@@ -274,7 +274,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       insert(:prm, :medical_program, id: medical_program_id)
       insert(:prm, :program_medication,
         medication_id: medication.id,
-        medical_program_id: medical_program_id,
+        medical_program_id: medical_program_id
       )
       conn = put_client_id_header(conn, legal_entity.id)
       conn = Plug.Conn.put_req_header(conn, consumer_id_header(), user_id)

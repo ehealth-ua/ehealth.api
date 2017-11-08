@@ -8,6 +8,7 @@ defmodule EHealth.Users.API do
   alias EView.Changeset.Validators.Email, as: EmailValidator
   alias EHealth.API.Mithril
   alias EHealth.Repo
+  require Logger
 
   def create_credentials_recovery_request(attrs, opts \\ []) do
     upstream_headers = Keyword.get(opts, :upstream_headers, [])
@@ -116,8 +117,14 @@ defmodule EHealth.Users.API do
   defp send_email(email, %CredentialsRecoveryRequest{} = request) do
     case EHealth.Man.Templates.CredentialsRecoveryRequest.render(request) do
       {:ok, body} ->
-        EHealth.Bamboo.Emails.CredentialsRecoveryRequest.send(email, body)
-        :ok
+        try do
+          EHealth.Bamboo.Emails.CredentialsRecoveryRequest.send(email, body)
+          :ok
+        rescue
+          error in [Bamboo.PostmarkAdapter.ApiError] ->
+            Logger.warn(Exception.message(error))
+            :ok
+        end
       {:error, reason} -> {:error, reason}
     end
   end

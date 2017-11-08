@@ -8,7 +8,7 @@ defmodule EHealth.Mixfile do
      description: "Integration Layer for projects that related to Ukrainian Health Services government institution.",
      package: package(),
      version: @version,
-     elixir: "~> 1.5.1",
+     elixir: ">= 1.5.1",
      elixirc_paths: elixirc_paths(Mix.env),
      compilers: [:phoenix] ++ Mix.compilers,
      build_embedded: Mix.env == :prod,
