@@ -56,7 +56,7 @@ defmodule EHealth.Employee.EmployeeUpdater do
     |> PRMRepo.all
   end
 
-  def revoke_user_auth_data(%Employee{} = employee, active_employees, headers) when length(active_employees) <= 1 do
+  def revoke_user_auth_data(%Employee{} = employee, headers) do
     client_id = employee.legal_entity_id
     role_name = employee.employee_type
 
@@ -64,7 +64,11 @@ defmodule EHealth.Employee.EmployeeUpdater do
       revoke_user_auth_data_async(parties, client_id, role_name, headers)
     end
   end
-  def revoke_user_auth_data(_employee, _active_employees, _headers), do: :ok
+  def revoke_user_auth_data(_employee, _headers), do: :ok
+  defp revoke_user_auth_data(%Employee{} = employee, active_employees, headers) when length(active_employees) <= 1 do
+    revoke_user_auth_data(employee, headers)
+  end
+  defp revoke_user_auth_data(_, _, _), do: :ok
 
   def revoke_user_auth_data_async(user_parties, client_id, role_name, headers) do
     user_parties

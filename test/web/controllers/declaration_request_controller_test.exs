@@ -24,11 +24,11 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     test "match by legal_entity_id", %{conn: conn} do
       legal_entity_id = UUID.generate()
       employee_id = UUID.generate()
-      params =
-        fixture_params()
-        |> put_in([:data, :employee, :id], employee_id)
-        |> put_in([:data, :legal_entity, :id], legal_entity_id)
       Enum.map(1..2, fn _ ->
+        params =
+          fixture_params()
+          |> put_in([:data, :employee, :id], employee_id)
+          |> put_in([:data, :legal_entity, :id], legal_entity_id)
         fixture(DeclarationRequest, params)
       end)
 
@@ -42,10 +42,10 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     test "no employee_id match", %{conn: conn} do
       legal_entity_id = UUID.generate()
       employee_id = UUID.generate()
-      params =
-        fixture_params()
-        |> put_in([:data, :legal_entity, :id], legal_entity_id)
       Enum.map(1..2, fn _ ->
+        params =
+          fixture_params()
+          |> put_in([:data, :legal_entity, :id], legal_entity_id)
         fixture(DeclarationRequest, params)
       end)
       conn = put_client_id_header(conn, legal_entity_id)
@@ -58,11 +58,11 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     test "match by employee_id", %{conn: conn} do
       legal_entity_id = UUID.generate()
       employee_id = UUID.generate()
-      params =
-        fixture_params()
-        |> put_in([:data, :legal_entity, :id], legal_entity_id)
-        |> put_in([:data, :employee, :id], employee_id)
       Enum.map(1..2, fn _ ->
+        params =
+          fixture_params()
+          |> put_in([:data, :legal_entity, :id], legal_entity_id)
+          |> put_in([:data, :employee, :id], employee_id)
         fixture(DeclarationRequest, params)
       end)
       conn = put_client_id_header(conn, legal_entity_id)
@@ -74,10 +74,10 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
 
     test "no status match", %{conn: conn} do
       legal_entity_id = UUID.generate()
-      params =
-        fixture_params()
-        |> put_in([:data, :legal_entity, :id], legal_entity_id)
       Enum.map(1..2, fn _ ->
+        params =
+          fixture_params()
+          |> put_in([:data, :legal_entity, :id], legal_entity_id)
         fixture(DeclarationRequest, params)
       end)
       conn = put_client_id_header(conn, legal_entity_id)
@@ -90,11 +90,11 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     test "match by status", %{conn: conn} do
       legal_entity_id = UUID.generate()
       status = "ACTIVE"
-      params =
-        fixture_params()
-        |> put_in([:data, :legal_entity, :id], legal_entity_id)
-        |> put_in([:status], status)
       Enum.map(1..2, fn _ ->
+        params =
+          fixture_params()
+          |> put_in([:data, :legal_entity, :id], legal_entity_id)
+          |> put_in([:status], status)
         fixture(DeclarationRequest, params)
       end)
       conn = put_client_id_header(conn, legal_entity_id)
@@ -108,12 +108,12 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       legal_entity_id = UUID.generate()
       employee_id = UUID.generate()
       status = "ACTIVE"
-      params =
-        fixture_params()
-        |> put_in([:data, :legal_entity, :id], legal_entity_id)
-        |> put_in([:data, :employee, :id], employee_id)
-        |> put_in([:status], status)
       Enum.map(1..2, fn _ ->
+        params =
+          fixture_params()
+          |> put_in([:data, :legal_entity, :id], legal_entity_id)
+          |> put_in([:data, :employee, :id], employee_id)
+          |> put_in([:status], status)
         fixture(DeclarationRequest, params)
       end)
 

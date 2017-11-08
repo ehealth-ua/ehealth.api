@@ -4,6 +4,7 @@ defmodule EHealth.Employee.EmployeeCreator do
   """
 
   import EHealth.Utils.Connection, only: [get_consumer_id: 1]
+  import Ecto.Query
 
   alias Scrivener.Page
   alias EHealth.Employee.Request
@@ -14,6 +15,7 @@ defmodule EHealth.Employee.EmployeeCreator do
   alias EHealth.PRM.Parties
   alias EHealth.PRM.PartyUsers
   alias EHealth.Employee.EmployeeUpdater
+  alias EHealth.PRMRepo
 
   require Logger
 
@@ -28,10 +30,14 @@ defmodule EHealth.Employee.EmployeeCreator do
 
     with %Page{} = paging <- Parties.list_parties(search_params),
          :ok <- check_party_user(user_id, paging.entries),
-         {:ok, party} <- create_or_update_party(paging.entries, party, req_headers),
-         {:ok, employee} <- create_employee(party, employee_request, req_headers)
+         {:ok, party} <- create_or_update_party(paging.entries, party, req_headers)
     do
-      deactivate_employee_owners(employee, req_headers)
+      result = PRMRepo.transaction(fn ->
+        with {:ok, employee} <- create_employee(party, employee_request, req_headers) do
+          deactivate_employee_owners(employee, req_headers)
+        end
+      end)
+      elem(result, 1)
     end
   end
 
@@ -84,43 +90,34 @@ defmodule EHealth.Employee.EmployeeCreator do
   def create_employee(err, _, _), do: err
 
   def deactivate_employee_owners(%Employee{employee_type: @type_owner} = employee, req_headers) do
-    do_deactivate_employee_owners(employee, req_headers)
+    do_deactivate_employee_owner(employee, req_headers)
   end
   def deactivate_employee_owners(%Employee{employee_type: @type_pharmacy_owner} = employee, req_headers) do
-    do_deactivate_employee_owners(employee, req_headers)
+    do_deactivate_employee_owner(employee, req_headers)
   end
   def deactivate_employee_owners(%Employee{} = employee, _req_headers), do: {:ok, employee}
 
-  defp do_deactivate_employee_owners(%Employee{employee_type: type} = employee, req_headers) do
-    %{
-      legal_entity_id: employee.legal_entity_id,
-      is_active: true,
-      employee_type: type,
-    }
-    |> Employees.get_employees()
-    |> deactivate_employees(employee, req_headers)
-    {:ok, employee}
+  defp do_deactivate_employee_owner(%Employee{employee_type: type} = employee, req_headers) do
+    employee =
+      Employee
+      |> where([e], e.is_active)
+      |> where([e], e.employee_type == ^type)
+      |> where([e], e.legal_entity_id == ^employee.legal_entity_id)
+      |> PRMRepo.one
+    deactivate_employee(employee, req_headers)
   end
 
-  def deactivate_employees(%Page{entries: employees}, current_owner, headers) do
-    Enum.each(employees, fn(%Employee{} = employee) ->
-      case current_owner.id != employee.id do
-        true -> deactivate_employee(employee, current_owner, headers)
-        false -> :ok
-      end
-    end)
-  end
-
-  def deactivate_employee(%Employee{} = employee, current_owner, headers) do
+  def deactivate_employee(%Employee{} = employee, headers) do
     params = %{
       "updated_by" => get_consumer_id(headers),
       "is_active" => false,
     }
 
-    with :ok <- EmployeeUpdater.revoke_user_auth_data(employee, [current_owner], headers) do
+    with :ok <- EmployeeUpdater.revoke_user_auth_data(employee, headers) do
       Employees.update_employee(employee, params, get_consumer_id(headers))
     end
   end
+  def deactive_employee(employee, _), do: {:ok, employee}
 
   def put_inserted_by(data, req_headers) do
     map = %{
