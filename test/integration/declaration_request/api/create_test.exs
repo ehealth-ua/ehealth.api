@@ -4,7 +4,6 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
   use EHealth.Web.ConnCase
   import EHealth.DeclarationRequest.API.Create
   alias EHealth.DeclarationRequest
-  alias EHealth.Dictionaries
 
   import Ecto.Changeset, only: [get_change: 2, put_change: 3]
 
@@ -35,23 +34,10 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         stop_microservices(ref)
       end
 
-      Dictionaries.create_dictionary(%{
-        name: "SETTLEMENT_TYPE",
-        labels: [],
-        values: %{"CITY": "місто"}
-      })
-
-      Dictionaries.create_dictionary(%{
-        name: "STREET_TYPE",
-        labels: [],
-        values: %{"STREET": "вулиця"}
-      })
-
-      Dictionaries.create_dictionary(%{
-        name: "DOCUMENT_TYPE",
-        labels: [],
-        values: %{"PASSPORT": "Паспорт"}
-      })
+      insert(:il, :dictionary_settlement_type)
+      insert(:il, :dictionary_document_type)
+      insert(:il, :dictionary_street_type)
+      insert(:il, :dictionary_document_relationship_type)
 
       :ok
     end
@@ -128,7 +114,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
               },
               tax_id: "3126509816",
               documents_relationship: %{
-                type: "Паспорт",
+                type: "Документ",
                 number: "120519"
               }
             },
@@ -150,7 +136,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
               },
               tax_id: "3126509817",
               documents_relationship: %{
-                type: "Паспорт",
+                type: "Документ",
                 number: "120521"
               }
             }

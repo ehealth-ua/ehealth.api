@@ -11,6 +11,9 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
   @auth_otp DeclarationRequest.authentication_method(:otp)
   @auth_offline DeclarationRequest.authentication_method(:offline)
 
+  @documents_dict "DOCUMENT_TYPE"
+  @relationship_documents_dict "DOCUMENT_RELATIONSHIP_TYPE"
+
   def render(declaration_request, authentication_method_current) do
     template_data =
       declaration_request
@@ -43,7 +46,7 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
       full_name: get_full_name(person),
       gender: get_gender(person),
       birth_date: Map.get(person, "birth_date", ""),
-      document: get_document(person, "documents"),
+      document: get_document(person, "documents", @documents_dict),
       birth_settlement: Map.get(person, "birth_settlement", ""),
       birth_country: Map.get(person, "birth_country", ""),
       tax_id: Map.get(person, "tax_id", ""),
@@ -56,55 +59,38 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
     }
   end
 
-  defp get_full_name(data) do
-    first_name =
-      data
-      |> Map.get("first_name", "")
-      |> to_string()
-      |> get_listed_value()
+  defp get_full_name(person) do
+    first_name = Map.get(person, "first_name")
+    second_name = Map.get(person, "second_name")
+    last_name = Map.get(person, "last_name")
 
-    second_name =
-      data
-      |> Map.get("second_name", "")
-      |> to_string()
-      |> get_listed_value()
-
-    last_name =
-      data
-      |> Map.get("last_name", "")
-      |> to_string()
-      |> get_listed_value()
-
-    []
-    |> Kernel.++(first_name)
-    |> Kernel.++(second_name)
-    |> Kernel.++(last_name)
+    [first_name, second_name, last_name]
+    |> Enum.filter(&(&1 != nil))
     |> Enum.join(" ")
   end
 
-  defp get_gender(data) do
+  defp get_gender(person) do
     gender = %{
       male: false,
       female: false
     }
 
-    case Map.get(data, "gender") do
+    case Map.get(person, "gender") do
       "MALE" -> Map.put(gender, :male, true)
       "FEMALE" -> Map.put(gender, :female, true)
       _ -> gender
     end
   end
 
-  defp get_document(data, key) do
-    documents = Map.get(data, key)
-    case is_list(documents) do
-      true -> documents |> List.first() |> take_fields(["type", "number"]) |> update_document_type()
+  defp get_document(person, key, dictionary_name) do
+    case Map.get(person, key)do
+      [first | _other] -> first |> take_fields(["type", "number"]) |> update_document_type(dictionary_name)
       _ -> %{"type" => "", "number" => ""}
     end
   end
 
-  defp update_document_type(document) do
-    Map.update!(document, "type", fn(type) -> Dictionaries.get_dictionary_value(type, "DOCUMENT_TYPE") end)
+  defp update_document_type(document, dictionary_name) do
+    Map.update!(document, "type", fn(type) -> Dictionaries.get_dictionary_value(type, dictionary_name) end)
   end
 
   defp get_person_addresses(person) do
@@ -133,9 +119,8 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
   end
 
   defp get_phone(data) do
-    phones = Map.get(data, "phones")
-    case is_list(phones) do
-      true -> phones |> List.first() |> take_fields(["number"])
+    case Map.get(data, "phones") do
+      [first | _other] -> take_fields(first, ["number"])
       _ -> %{"number" => ""}
     end
   end
@@ -154,25 +139,24 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
 
   defp get_confidant_persons(person) do
     confidant_persons = Map.get(person, "confidant_person", [])
-    primary_confidant_person = Enum.find(confidant_persons, fn(x) -> Map.get(x, "relation_type") == "PRIMARY" end)
-    secondary_confidant_person = Enum.find(confidant_persons, fn(x) -> Map.get(x, "relation_type") == "SECONDARY" end)
 
-    primary = case primary_confidant_person do
-      nil -> %{}
-      confidant_person -> get_confidant_person(confidant_person)
-    end
+    primary_confidant_person =
+      confidant_persons
+      |> Enum.find(fn(x) -> Map.get(x, "relation_type") == "PRIMARY" end)
+      |> get_confidant_person()
 
-    secondary = case secondary_confidant_person do
-      nil -> %{}
-      confidant_person -> get_confidant_person(confidant_person)
-    end
+    secondary_confidant_person =
+      confidant_persons
+      |> Enum.find(fn(x) -> Map.get(x, "relation_type") == "SECONDARY" end)
+      |> get_confidant_person()
 
     %{
-      primary: primary,
-      secondary: secondary
+      primary: primary_confidant_person,
+      secondary: secondary_confidant_person
     }
   end
 
+  defp get_confidant_person(nil), do: %{}
   defp get_confidant_person(confidant_person) do
     %{
       full_name: get_full_name(confidant_person),
@@ -181,9 +165,9 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
       gender: get_gender(confidant_person),
       birth_settlement: Map.get(confidant_person, "birth_settlement", ""),
       birth_country: Map.get(confidant_person, "birth_country", ""),
-      documents_person: get_document(confidant_person, "documents_person"),
+      documents_person: get_document(confidant_person, "documents_person", @documents_dict),
       tax_id: Map.get(confidant_person, "tax_id", ""),
-      documents_relationship: get_document(confidant_person, "documents_relationship")
+      documents_relationship: get_document(confidant_person, "documents_relationship", @relationship_documents_dict)
     }
   end
 
@@ -264,21 +248,11 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
         _ -> %{}
       end
 
-    license_number =
-      license
-      |> Map.get("license_number", "")
-      |> to_string()
-      |> get_listed_value()
+    license_number = Map.get(license, "license_number")
+    issued_date = Map.get(license, "issued_date")
 
-    issued_date =
-      license
-      |> Map.get("issued_date", "")
-      |> to_string()
-      |> get_listed_value()
-
-    license_number
-    |> Enum.zip(issued_date)
-    |> Enum.flat_map(fn {license, date} -> [license, date] end)
+    [license_number, issued_date]
+    |> Enum.filter(&(&1 != nil))
     |> Enum.join(", ")
   end
 
@@ -305,7 +279,4 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
       _ -> authentication_method_current
     end
   end
-
-  defp get_listed_value(""), do: []
-  defp get_listed_value(license_number), do: [license_number]
 end

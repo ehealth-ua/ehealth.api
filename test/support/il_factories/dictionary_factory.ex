@@ -75,6 +75,35 @@ defmodule EHealth.ILFactories.DictionaryFactory do
             "REGISTRATION" => "реєстрації"}
         ])
       end
+
+      def dictionary_settlement_type_factory do
+        build(:dictionary, [
+          name: "SETTLEMENT_TYPE",
+          values: %{
+            "CITY" => "місто",
+            "TOWNSHIP" => "селище міського типу",
+            "SETTLEMENT" => "селище",
+            "VILLAGE" => "село"}
+        ])
+      end
+
+        def dictionary_street_type_factory do
+          build(:dictionary, [
+            name: "STREET_TYPE",
+            values: %{
+              "SQUARE" => "площа",
+              "RIVER_SIDE" => "набережна",
+              "ASCENT" => "узвіз",
+              "MICRODISTRICT" => "мікрорайон",
+              "BLIND_STREET" => "тупик",
+              "MAIDAN" => "майдан",
+              "STREET" => "вулиця",
+              "BOULEVARD" => "бульвар",
+              "PASS" => "провулок",
+              "AVENUE" => "проспект",
+              "HIGHWAY" => "шосе"}
+          ])
+      end
     end
   end
 end

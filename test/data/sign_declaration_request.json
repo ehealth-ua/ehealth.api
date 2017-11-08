@@ -94,7 +94,7 @@
         ],
         "documents_relationship": [
           {
-            "type": "PASSPORT",
+            "type": "DOCUMENT",
             "identifies": "PERSON",
             "number": "120519"
           }
@@ -125,7 +125,7 @@
         ],
         "documents_relationship": [
           {
-            "type": "PASSPORT",
+            "type": "DOCUMENT",
             "identifies": "PERSON",
             "number": "120521"
           }
