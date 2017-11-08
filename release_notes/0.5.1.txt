@@ -1,7 +1,8 @@
-Change log for versions 0.5.1 - 0.5.219
+Change log for versions 0.5.1 - 0.5.220
 
 **Patches and bug fixes**:
 
+handle exception on send email (#1446)
 Fix printout forms (confident_person documents_relationship) (#1442)
 add unique indexes to il and prm (#1440)
 Fix issue with getting license info from legal_entity (#1438)
