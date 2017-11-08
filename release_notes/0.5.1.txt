@@ -1,7 +1,8 @@
-Change log for versions 0.5.1 - 0.5.218
+Change log for versions 0.5.1 - 0.5.219
 
 **Patches and bug fixes**:
 
+Fix printout forms (confident_person documents_relationship) (#1442)
 add unique indexes to il and prm (#1440)
 Fix issue with getting license info from legal_entity (#1438)
 Updated Travis git clone depth to pickup release history correctly
@@ -20,6 +21,7 @@ EHealth-1246: delete user tokens (#1413)
 
 **Other**:
 
+Code optimisations
 CI scripts and submodule updated
 Fix version
 add missed fields to person declarations response (#1435)
