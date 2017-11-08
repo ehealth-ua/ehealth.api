@@ -1,7 +1,8 @@
-Change log for versions 0.5.1 - 0.5.217
+Change log for versions 0.5.1 - 0.5.218
 
 **Patches and bug fixes**:
 
+add unique indexes to il and prm (#1440)
 Fix issue with getting license info from legal_entity (#1438)
 Updated Travis git clone depth to pickup release history correctly
 Update CI module to aquire correct release notes
