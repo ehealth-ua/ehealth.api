@@ -1,7 +1,8 @@
-Change log for versions 0.5.1 - 0.5.220
+Change log for versions 0.5.1 - 0.5.221
 
 **Patches and bug fixes**:
 
+Show up to three licenses on printout form (#1447)
 handle exception on send email (#1446)
 Fix printout forms (confident_person documents_relationship) (#1442)
 add unique indexes to il and prm (#1440)
@@ -22,6 +23,7 @@ EHealth-1246: delete user tokens (#1413)
 
 **Other**:
 
+Update version verification
 Code optimisations
 CI scripts and submodule updated
 Fix version
