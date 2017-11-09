@@ -219,7 +219,7 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
       full_name: Map.get(legal_entity, "public_name", ""),
       addresses: get_legal_entity_addresses(legal_entity),
       edrpou: Map.get(legal_entity, "edrpou", ""),
-      full_license: get_full_license(legal_entity),
+      full_license: get_three_licenses(legal_entity),
       phones: get_phone(legal_entity),
       email: Map.get(legal_entity, "email", "")
     }
@@ -241,19 +241,23 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
     }
   end
 
-  defp get_full_license(legal_entity) do
-    license =
+  defp get_three_licenses(legal_entity) do
+    licenses =
       case Map.get(legal_entity, "licenses") do
-        [first | _other] -> first
-        _ -> %{}
+        licenses when is_list(licenses) -> Enum.take(licenses, 3)
+        _                               -> %{}
       end
 
+    licenses
+    |> Enum.map(&get_license_info(&1))
+    |> Enum.join(", ")
+  end
+
+  defp get_license_info(license) do
     license_number = Map.get(license, "license_number")
     issued_date = Map.get(license, "issued_date")
 
-    [license_number, issued_date]
-    |> Enum.filter(&(&1 != nil))
-    |> Enum.join(", ")
+    "#{license_number} (#{issued_date})"
   end
 
   defp check_confidant_persons(declaration_request) do

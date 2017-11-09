@@ -166,7 +166,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
             }
           },
           edrpou: "5432345432",
-          full_license: "fd123443, 2017-02-28",
+          full_license: "fd123443 (2017-02-28)",
           phones: %{
             number: "+380503410870"
           },
@@ -184,6 +184,31 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       }
 
       assert printout_content == Poison.encode!(expected_content)
+    end
+
+    test "updates declaration request with expected printout form when data contains more than three licenses " do
+      authentication_method_current = %{
+        "type" => "OTP"
+      }
+
+      licenses = [get_license("1a"), get_license("2b"), get_license("3c"), get_license("4d")]
+
+      data =
+        "test/data/sign_declaration_request.json"
+        |> File.read!()
+        |> Poison.decode!
+        |> put_in(["legal_entity", "licenses"], licenses)
+
+      printout_content =
+        %DeclarationRequest{id: 321, data: data}
+        |> Ecto.Changeset.change()
+        |> put_change(:authentication_method_current, authentication_method_current)
+        |> generate_printout_form()
+        |> get_change(:printout_content)
+        |> Poison.decode!
+        |> get_in(["legal_entity", "full_license"])
+
+        assert printout_content == "1a (2017-02-28), 2b (2017-02-28), 3c (2017-02-28)"
     end
 
     test "updates declaration request with printout form that has empty fields when data is empty" do
@@ -723,5 +748,16 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       result = put_party_email(%Ecto.Changeset{data: data, changes: changes, types: types, valid?: true})
       assert expected_result == result
     end
+  end
+
+  defp get_license(license_number) do
+    %{
+      "license_number" => license_number,
+      "issued_by" => "Кваліфікацйна комісія",
+      "issued_date" => "2017-02-28",
+      "expiry_date" => "2017-02-28",
+      "active_from_date" => "2017-02-28",
+      "what_licensed" => "реалізація наркотичних засобів"
+    }
   end
 end
