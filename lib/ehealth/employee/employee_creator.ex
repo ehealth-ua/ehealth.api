@@ -33,9 +33,12 @@ defmodule EHealth.Employee.EmployeeCreator do
          {:ok, party} <- create_or_update_party(paging.entries, party, req_headers)
     do
       result = PRMRepo.transaction(fn ->
-        with {:ok, employee} <- create_employee(party, employee_request, req_headers) do
-          deactivate_employee_owners(employee, req_headers)
-        end
+        deactivate_employee_owners(
+          employee_request.data["employee_type"],
+          employee_request.data["legal_entity_id"],
+          req_headers
+        )
+        create_employee(party, employee_request, req_headers)
       end)
       elem(result, 1)
     end
@@ -89,20 +92,20 @@ defmodule EHealth.Employee.EmployeeCreator do
   end
   def create_employee(err, _, _), do: err
 
-  def deactivate_employee_owners(%Employee{employee_type: @type_owner} = employee, req_headers) do
-    do_deactivate_employee_owner(employee, req_headers)
+  def deactivate_employee_owners(@type_owner = type, legal_entity_id, req_headers) do
+    do_deactivate_employee_owner(type, legal_entity_id, req_headers)
   end
-  def deactivate_employee_owners(%Employee{employee_type: @type_pharmacy_owner} = employee, req_headers) do
-    do_deactivate_employee_owner(employee, req_headers)
+  def deactivate_employee_owners(@type_pharmacy_owner = type, legal_entity_id, req_headers) do
+    do_deactivate_employee_owner(type, legal_entity_id, req_headers)
   end
-  def deactivate_employee_owners(%Employee{} = employee, _req_headers), do: {:ok, employee}
+  def deactivate_employee_owners(_, _, _req_headers), do: :ok
 
-  defp do_deactivate_employee_owner(%Employee{employee_type: type} = employee, req_headers) do
+  defp do_deactivate_employee_owner(type, legal_entity_id, req_headers) do
     employee =
       Employee
       |> where([e], e.is_active)
       |> where([e], e.employee_type == ^type)
-      |> where([e], e.legal_entity_id == ^employee.legal_entity_id)
+      |> where([e], e.legal_entity_id == ^legal_entity_id)
       |> PRMRepo.one
     deactivate_employee(employee, req_headers)
   end

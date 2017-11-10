@@ -35,10 +35,10 @@ defmodule EHealth.Unit.Employee.EmployeeCreatorTest do
       party: party4
     )
 
-    EmployeeCreator.deactivate_employee_owners(employee1, get_headers())
+    EmployeeCreator.deactivate_employee_owners(employee1.employee_type, employee1.legal_entity_id, get_headers())
     refute PRMRepo.get(Employee, employee1.id).is_active
 
-    EmployeeCreator.deactivate_employee_owners(employee2, get_headers())
+    EmployeeCreator.deactivate_employee_owners(employee2.employee_type, employee2.legal_entity_id, get_headers())
     refute PRMRepo.get(Employee, employee2.id).is_active
   end
 
