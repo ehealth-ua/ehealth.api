@@ -1,7 +1,8 @@
-Change log for versions 0.5.1 - 0.5.224
+Change log for versions 0.5.1 - 0.5.225
 
 **Patches and bug fixes**:
 
+EHealth-1426 - fix auth_method mapping (#1471)
 fix typo
 deactivate employee before create new one (#1465)
 Fix deploy key
