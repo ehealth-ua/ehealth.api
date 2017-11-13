@@ -35,7 +35,6 @@ defmodule EHealth.Web.LegalEntityView do
       inserted_at: legal_entity.inserted_at,
       updated_at: legal_entity.updated_at,
       nhs_verified: legal_entity.nhs_verified,
-      created_by_mis_client_id: legal_entity.created_by_mis_client_id,
       mis_verified: legal_entity.mis_verified,
       medical_service_provider: render_one(msp, __MODULE__, "medical_service_provider.json")
     }

@@ -26,7 +26,7 @@ defmodule EHealth.Web.EmployeeRequestController do
     with {:ok, employee_request} <- API.create_employee_request(params) do
       render(conn, "show.json",
         employee_request: employee_request,
-        legal_entity: get_legal_entity(employee_request),
+        legal_entity: get_legal_entity(employee_request)
       )
     end
   end
@@ -53,7 +53,7 @@ defmodule EHealth.Web.EmployeeRequestController do
       with {:ok, employee_request} <- API.approve_employee_request(id, req_headers) do
         render(conn, "show.json",
           employee_request: employee_request,
-          legal_entity: get_legal_entity(employee_request),
+          legal_entity: get_legal_entity(employee_request)
         )
       end
     end
@@ -64,7 +64,7 @@ defmodule EHealth.Web.EmployeeRequestController do
       with {:ok, employee_request} <- API.reject_employee_request(id) do
         render(conn, "show.json",
           employee_request: employee_request,
-          legal_entity: get_legal_entity(employee_request),
+          legal_entity: get_legal_entity(employee_request)
         )
       end
     end

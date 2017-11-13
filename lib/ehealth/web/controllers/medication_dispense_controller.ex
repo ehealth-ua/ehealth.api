@@ -15,7 +15,7 @@ defmodule EHealth.Web.MedicationDispenseController do
       render(conn, "index.json",
         medication_dispenses: medication_dispenses,
         references: references,
-        paging: struct(Page, paging),
+        paging: struct(Page, paging)
       )
     end
   end
