@@ -120,7 +120,7 @@ defmodule EHealth.Employee.EmployeeCreator do
       Employees.update_employee(employee, params, get_consumer_id(headers))
     end
   end
-  def deactive_employee(employee, _), do: {:ok, employee}
+  def deactivate_employee(employee, _), do: {:ok, employee}
 
   def put_inserted_by(data, req_headers) do
     map = %{
