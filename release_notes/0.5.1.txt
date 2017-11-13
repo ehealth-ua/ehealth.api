@@ -1,7 +1,8 @@
-Change log for versions 0.5.1 - 0.5.227
+Change log for versions 0.5.1 - 0.5.228
 
 **Patches and bug fixes**:
 
+remove created_by_mis_client_id from legal_entity_view (1464)
 +values 2 `scopes`2 dictionaries.json
 use POST for doctor_medication_requests (#1472)
 EHealth-1426 - fix auth_method mapping (#1471)
