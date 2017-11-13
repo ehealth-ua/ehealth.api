@@ -1,7 +1,8 @@
-Change log for versions 0.5.1 - 0.5.223
+Change log for versions 0.5.1 - 0.5.224
 
 **Patches and bug fixes**:
 
+fix typo
 deactivate employee before create new one (#1465)
 Fix deploy key
 Show up to three licenses on printout form (#1447)
