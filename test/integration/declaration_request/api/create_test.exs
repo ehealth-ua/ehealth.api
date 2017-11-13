@@ -615,8 +615,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         |> Ecto.Changeset.change()
         |> determine_auth_method_for_mpi()
 
-      assert %{"type" => "OTP", "phone_number" => "+380508887701"} ==
-               get_change(changeset, :authentication_method_current)
+      assert %{"type" => "OTP", "number" => "+380508887701"} == get_change(changeset, :authentication_method_current)
     end
   end
 

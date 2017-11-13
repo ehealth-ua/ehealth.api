@@ -85,7 +85,11 @@ defmodule EHealth.DeclarationRequest.API.Create do
     }
   end
   def prepare_auth_method_current(@auth_na, _, req_auth_method) do
-    req_auth_method
+    auth_method = Map.take(req_auth_method, ["type"])
+    case Map.has_key?(req_auth_method, "phone_number") do
+      true -> Map.put(auth_method, "number", req_auth_method["phone_number"])
+      _ -> auth_method
+    end
   end
   def prepare_auth_method_current(type, _authentication_method, _) do
     %{"type" => type}
