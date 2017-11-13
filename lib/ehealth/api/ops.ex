@@ -50,7 +50,7 @@ defmodule EHealth.API.OPS do
   end
 
   def get_doctor_medication_requests(params, headers \\ []) do
-    get!("/doctor_medication_requests", headers, params: params)
+    post!("/doctor_medication_requests", Poison.encode!(params), headers)
   end
 
   def get_qualify_medication_requests(params, headers \\ []) do

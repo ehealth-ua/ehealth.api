@@ -403,12 +403,12 @@ defmodule EHealth.MockServer do
                                   conn.body_params["medication_request"]), conn, 201)
   end
 
-  get "/doctor_medication_requests" do
-    case conn.query_params["id"] do
+  post "/doctor_medication_requests" do
+    case conn.params["id"] do
       "e9baba39-da78-4950-b396-cc36e80572b1" ->
         render_with_paging([], conn)
       _ ->
-        params = conn.query_params
+        params = conn.params
         employee_id =
           params
           |> Map.get("employee_id", "")
