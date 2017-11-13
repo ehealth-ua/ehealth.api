@@ -1,7 +1,8 @@
-Change log for versions 0.5.1 - 0.5.225
+Change log for versions 0.5.1 - 0.5.226
 
 **Patches and bug fixes**:
 
+use POST for doctor_medication_requests (#1472)
 EHealth-1426 - fix auth_method mapping (#1471)
 fix typo
 deactivate employee before create new one (#1465)
