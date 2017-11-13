@@ -1,7 +1,8 @@
-Change log for versions 0.5.1 - 0.5.226
+Change log for versions 0.5.1 - 0.5.227
 
 **Patches and bug fixes**:
 
++values 2 `scopes`2 dictionaries.json
 use POST for doctor_medication_requests (#1472)
 EHealth-1426 - fix auth_method mapping (#1471)
 fix typo
@@ -28,6 +29,9 @@ EHealth-1246: delete user tokens (#1413)
 
 **Other**:
 
++values 2 `scopes`2 dictionaries.json [patch] (#1473)
+add values 2 `scopes`2 dictionaries.json
++values 2 `scopes`2 dictionaries.json [patch]
 Update version verification
 Code optimisations
 CI scripts and submodule updated
