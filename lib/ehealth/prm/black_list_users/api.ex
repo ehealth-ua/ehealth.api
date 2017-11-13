@@ -6,8 +6,10 @@ defmodule EHealth.PRM.BlackListUsers do
   import Ecto.{Query, Changeset}, warn: false
   import EHealth.Utils.Connection, only: [get_consumer_id: 1]
 
+  alias Scrivener.Page
   alias EHealth.PRMRepo
   alias EHealth.PRM.Parties
+  alias EHealth.PRM.Parties.Schema, as: Party
   alias EHealth.API.Mithril
   alias EHealth.PRM.BlackListUsers.Search
   alias EHealth.PRM.BlackListUsers.Schema, as: BlackListUser
@@ -16,15 +18,23 @@ defmodule EHealth.PRM.BlackListUsers do
   @fields_optional [:is_active]
 
   def list(params) do
-    %Search{}
-    |> changeset(params)
-    |> search(params, BlackListUser)
-  end
+    paging =
+      %Search{}
+      |> changeset(params)
+      |> search(params, BlackListUser)
+    users = paging.entries
+    tax_ids = Enum.map(users, &(Map.get(&1, :tax_id)))
+    parties =
+      Party
+      |> where([p], p.tax_id in ^tax_ids)
+      |> PRMRepo.all
+      |> Enum.group_by(&Map.get(&1, :tax_id))
 
-  def get_search_query(entity, changes) do
-    entity
-    |> super(changes)
-    |> load_references()
+    users = Enum.map(users, fn user ->
+      Map.put(user, :parties, Map.get(parties, user.tax_id))
+    end)
+
+    %Page{paging | entries: users}
   end
 
   def get_by_id!(id), do: PRMRepo.get!(BlackListUser, id)
@@ -104,11 +114,6 @@ defmodule EHealth.PRM.BlackListUsers do
 
   defp load_references({:ok, entity}) do
     {:ok, load_references(entity)}
-  end
-  defp load_references(%Ecto.Query{} = query) do
-    query
-    |> join(:left, [b], p in assoc(b, :parties))
-    |> preload([..., p], [parties: p])
   end
   defp load_references(%BlackListUser{} = entity) do
     PRMRepo.preload(entity, :parties)
