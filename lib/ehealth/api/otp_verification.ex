@@ -20,7 +20,7 @@ defmodule EHealth.API.OTPVerification do
     patch!("/verifications/#{number}/actions/complete", Poison.encode!(params), headers)
   end
 
-  def send_sms(phone_number, body, headers \\ []) do
-    post!("/sms/send", Poison.encode!(%{phone_number: phone_number, body: body}), headers)
+  def send_sms(phone_number, body, type, headers \\ []) do
+    post!("/sms/send", Poison.encode!(%{phone_number: phone_number, body: body, type: type}), headers)
   end
 end
