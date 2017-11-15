@@ -1,0 +1,10 @@
+Change log for versions 0.6.0 - 0.6.1
+
+**Patches and bug fixes**:
+
+add context logic to referesh_secret endpoint (#1495)
+
+**Other**:
+
+Updated List of dictricts API
+pagination: page_number renamed to page
