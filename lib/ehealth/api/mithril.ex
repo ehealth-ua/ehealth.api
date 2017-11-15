@@ -131,4 +131,8 @@ defmodule EHealth.API.Mithril do
   def delete_tokens_by_user_ids(user_ids, headers) do
     delete!("/admin/tokens?user_ids=#{user_ids}", headers)
   end
+
+  def refresh_secret(client_id, headers) do
+    patch!("/clients/#{client_id}/refresh_secret", "", headers)
+  end
 end

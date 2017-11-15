@@ -186,6 +186,12 @@ defmodule EHealthWeb.Router do
     get "/party_users", PartyUserController, :index
   end
 
+  scope "/admin", EHealth.Web do
+    pipe_through [:api, :client_context_list]
+
+    patch "/clients/:id/refresh_secret", ClientController, :refresh_secret
+  end
+
   scope "/internal", EHealth.Web do
     pipe_through [:api]
 
