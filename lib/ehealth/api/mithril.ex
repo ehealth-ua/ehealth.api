@@ -133,6 +133,6 @@ defmodule EHealth.API.Mithril do
   end
 
   def refresh_secret(client_id, headers) do
-    patch!("/clients/#{client_id}/refresh_secret", "", headers)
+    patch!("/admin/clients/#{client_id}/refresh_secret", "", headers)
   end
 end

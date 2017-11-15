@@ -46,7 +46,7 @@ defmodule EHealth.MockServer do
     Plug.Conn.send_resp(conn, 200, [get_oauth_client()] |> wrap_response_with_paging() |> Poison.encode!())
   end
 
-  patch "/clients/:client_id/refresh_secret" do
+  patch "/admin/clients/:client_id/refresh_secret" do
     %{"client_id" => id} = conn.params
     response =
       id
