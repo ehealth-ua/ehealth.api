@@ -1,7 +1,8 @@
-Change log for versions 0.6.0 - 0.6.4
+Change log for versions 0.6.0 - 0.6.5
 
 **Patches and bug fixes**:
 
+fix list black list users in case of invalid uuid
 fix drop fraud fields
 drop fraud fields (#1498)
 fix refresh_secret mithril url
