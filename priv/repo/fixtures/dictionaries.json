@@ -1328,7 +1328,6 @@
       "innm_dosage:write": "Створорення/оновлення інформації про форму випуску",
       "innm_dosage:deactivate": "Деактиваці форми випуску",
       "medical_program:write": "Створення медичної програми",
-      "medical_program:read": "<to be deleted>",
       "medical_program:deactivate": "Деактивація медичної програми",
       "program_medication:write": "Створення учасника медичної програми",
       "program_medication:read": "Отримання інформації про учасників медичної програми",
