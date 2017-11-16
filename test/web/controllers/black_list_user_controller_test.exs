@@ -17,6 +17,11 @@ defmodule EHealth.Web.BlackListUserControllerTest do
       assert Map.get(hd(resp), "is_active")
     end
 
+    test "search by invalid id", %{conn: conn} do
+      conn = get conn, black_list_user_path(conn, :index), %{"id" => "invalid"}
+      assert json_response(conn, 422)
+    end
+
     test "search by tax_id", %{conn: conn} do
       insert(:prm, :black_list_user)
       %{tax_id: tax_id} = insert(:prm, :black_list_user)

@@ -18,23 +18,23 @@ defmodule EHealth.PRM.BlackListUsers do
   @fields_optional [:is_active]
 
   def list(params) do
-    paging =
-      %Search{}
-      |> changeset(params)
-      |> search(params, BlackListUser)
-    users = paging.entries
-    tax_ids = Enum.map(users, &(Map.get(&1, :tax_id)))
-    parties =
+    with %Ecto.Changeset{valid?: true} = changeset <- changeset(%Search{}, params),
+         paging <- search(changeset, params, BlackListUser),
+         users <- paging.entries,
+         tax_ids = Enum.map(users, &(Map.get(&1, :tax_id)))
+    do
+      parties =
       Party
       |> where([p], p.tax_id in ^tax_ids)
       |> PRMRepo.all
       |> Enum.group_by(&Map.get(&1, :tax_id))
 
-    users = Enum.map(users, fn user ->
-      Map.put(user, :parties, Map.get(parties, user.tax_id))
-    end)
+      users = Enum.map(users, fn user ->
+        Map.put(user, :parties, Map.get(parties, user.tax_id))
+      end)
 
-    %Page{paging | entries: users}
+      %Page{paging | entries: users}
+    end
   end
 
   def get_by_id!(id), do: PRMRepo.get!(BlackListUser, id)
