@@ -83,6 +83,7 @@ defmodule EHealth.FraudRepo.Migrations.DropPersonsFields do
       remove :residence_street
       remove :residence_building
       remove :residence_zip
+      remove :documents
     end
 
     execute """
@@ -100,16 +101,6 @@ defmodule EHealth.FraudRepo.Migrations.DropPersonsFields do
 
         IF phone->>'type' = 'LAND_LINE' THEN
           NEW.land_line_phone = phone->>'number';
-        END IF;
-      END LOOP;
-
-      FOR phone in SELECT * FROM jsonb_array_elements(NEW.emergency_contact->'phones') LOOP
-        IF phone->>'type' = 'MOBILE' THEN
-          NEW.ec_mobile_phone = phone->>'number';
-        END IF;
-
-        IF phone->>'type' = 'LAND_LINE' THEN
-          NEW.ec_land_line_phone = phone->>'number';
         END IF;
       END LOOP;
 
