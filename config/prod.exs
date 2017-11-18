@@ -6,11 +6,7 @@ use Mix.Config
 # Do not print debug messages in production
 # and handle all other reports by Elixir Logger with JSON back-end
 # SASL reports turned off because of their verbosity.
-config :logger,
-  backends: [LoggerJSON],
-  level: :info,
-  # handle_sasl_reports: true,
-  handle_otp_reports: true
+config :logger, level: :info, handle_otp_reports: true
 
 # Sometimes you might want to improve production performance by stripping logger debug calls during compilation
 # config :logger,
@@ -101,7 +97,8 @@ config :ehealth, EHealth.Repo,
   port: "${DB_PORT}",
   pool_size: "${DB_POOL_SIZE}",
   timeout: 15_000,
-  pool_timeout: 15_000
+  pool_timeout: 15_000,
+  loggers: [{Ecto.LoggerJSON, :log, [:info]}]
 
 config :ehealth, EHealth.PRMRepo,
   adapter: Ecto.Adapters.Postgres,
@@ -113,7 +110,8 @@ config :ehealth, EHealth.PRMRepo,
   pool_size: "${PRM_DB_POOL_SIZE}",
   timeout: 15_000,
   pool_timeout: 15_000,
-  types: EHealth.PRM.PostgresTypes
+  types: EHealth.PRM.PostgresTypes,
+  loggers: [{Ecto.LoggerJSON, :log, [:info]}]
 
 config :ehealth, EHealth.FraudRepo,
   adapter: Ecto.Adapters.Postgres,
@@ -125,4 +123,5 @@ config :ehealth, EHealth.FraudRepo,
   pool_size: "${FRAUD_DB_POOL_SIZE}",
   timeout: 15_000,
   pool_timeout: 15_000,
-  types: EHealth.Fraud.PostgresTypes
+  types: EHealth.Fraud.PostgresTypes,
+  loggers: [{Ecto.LoggerJSON, :log, [:info]}]

@@ -206,15 +206,7 @@ config :ehealth, EHealth.Validators.BirthDate,
   max_age: {:system, "MAX_AGE", 150}
 
 # Configures Elixir's Logger
-config :logger, :console,
-  format: "$time $metadata[$level] $message\n",
-  metadata: [:request_id]
-
-# Configure JSON Logger back-end
-config :logger_json, :backend,
-  load_from_system_env: true,
-  json_encoder: Poison,
-  metadata: :all
+config :logger, :console, format: "$message\n"
 
 # Configures declaration request terminator
 config :ehealth, EHealth.DeclarationRequest.Terminator,
