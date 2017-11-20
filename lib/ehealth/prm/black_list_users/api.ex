@@ -63,7 +63,7 @@ defmodule EHealth.PRM.BlackListUsers do
         |> remove_tokens_by_user_ids(user_ids, headers)
         |> put_change(:inserted_by, user_id)
         |> put_change(:updated_by, user_id)
-        |> PRMRepo.insert()
+        |> PRMRepo.insert_and_log(user_id)
         |> load_references()
 
       _ ->
@@ -99,7 +99,7 @@ defmodule EHealth.PRM.BlackListUsers do
   def deactivate(updated_by, %BlackListUser{} = black_list_user) do
     black_list_user
     |> changeset(%{is_active: false, updated_by: updated_by})
-    |> PRMRepo.update()
+    |> PRMRepo.update_and_log(updated_by)
     |> load_references()
   end
 

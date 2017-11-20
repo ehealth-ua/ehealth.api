@@ -46,7 +46,7 @@ defmodule EHealth.PRM.MedicalPrograms do
     |> changeset(params)
     |> put_change(:inserted_by, user_id)
     |> put_change(:updated_by, user_id)
-    |> PRMRepo.insert
+    |> PRMRepo.insert_and_log(user_id)
   end
 
   def deactivate(updated_by, %MedicalProgram{id: id} = medical_program) do
@@ -55,7 +55,7 @@ defmodule EHealth.PRM.MedicalPrograms do
       0 ->
         medical_program
         |> changeset(%{is_active: false, updated_by: updated_by})
-        |> PRMRepo.update()
+        |> PRMRepo.update_and_log(updated_by)
 
       _ ->
         {:error, {:conflict, err_msg}}

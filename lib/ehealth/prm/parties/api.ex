@@ -64,19 +64,21 @@ defmodule EHealth.PRM.Parties do
     |> PRMRepo.all()
   end
 
-  def create_party(attrs) do
-    with {:ok, party} <- %Party{}
-                         |> changeset(attrs)
-                         |> PRMRepo.insert()
+  def create_party(attrs, consumer_id) do
+    with {:ok, party} <-
+      %Party{}
+        |> changeset(attrs)
+        |> PRMRepo.insert_and_log(consumer_id)
     do
       {:ok, load_references(party)}
     end
   end
 
-  def update_party(%Party{} = party, attrs) do
-    with {:ok, party} <- party
-                         |> changeset(attrs)
-                         |> PRMRepo.update()
+  def update_party(%Party{} = party, attrs, consumer_id) do
+    with {:ok, party} <-
+      party
+        |> changeset(attrs)
+        |> PRMRepo.update_and_log(consumer_id)
     do
       {:ok, load_references(party)}
     end

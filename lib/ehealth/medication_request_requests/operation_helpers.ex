@@ -103,11 +103,11 @@ defmodule EHealth.MedicationRequestRequest.OperationHelpers do
   end
 
   def fk_error(operation, field) do
+    error = [String.to_atom(field), "#{Helpers.from_filed_to_name(field)} not found", [validation: :required]]
+
     operation
-    |> Operation.call_changeset(&add_error/4, [String.to_atom(field),
-                                               "#{Helpers.from_filed_to_name(field)} not found",
-                                               [validation: :required]])
-    |> Map.replace(:valid?, false)
+    |> Operation.call_changeset(&add_error/4, error)
+    |> Map.put(:valid?, false)
   end
 
   def custom_errors(error_tuple, operation) when is_tuple(error_tuple) do

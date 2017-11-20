@@ -276,7 +276,7 @@ defmodule EHealth.PRM.Medications.API do
         entity
         |> struct()
         |> changeset(attrs)
-        |> PRMRepo.insert()
+        |> PRMRepo.insert_and_log(consumer_id)
         |> preload_references()
 
       err -> err
@@ -310,14 +310,16 @@ defmodule EHealth.PRM.Medications.API do
 
   @doc false
   defp deactivate_medication_entity(entity, headers) do
+    consumer_id = get_consumer_id(headers)
+
     attrs = %{
       is_active: false,
-      updated_by: get_consumer_id(headers)
+      updated_by: consumer_id
     }
 
     entity
     |> changeset(attrs)
-    |> PRMRepo.update()
+    |> PRMRepo.update_and_log(consumer_id)
     |> preload_references()
   end
 
@@ -382,9 +384,11 @@ defmodule EHealth.PRM.Medications.API do
   def create_innm(attrs, headers) do
     case JsonSchema.validate(:innm, attrs) do
       :ok ->
+        consumer_id = get_consumer_id(headers)
+
         %INNM{}
         |> changeset(put_consumer_id(attrs, headers))
-        |> PRMRepo.insert()
+        |> PRMRepo.insert_and_log(consumer_id)
 
       err -> err
     end
@@ -454,9 +458,11 @@ defmodule EHealth.PRM.Medications.API do
   def create_program_medication(attrs, headers) do
     case JsonSchema.validate(:program_medication, attrs) do
       :ok ->
+        consumer_id = get_consumer_id(headers)
+
         %ProgramMedication{}
         |> changeset(put_consumer_id(attrs, headers))
-        |> PRMRepo.insert()
+        |> PRMRepo.insert_and_log(consumer_id)
         |> preload_references()
 
       err -> err
@@ -466,9 +472,11 @@ defmodule EHealth.PRM.Medications.API do
   def update_program_medication(%ProgramMedication{} = program_medication, attrs, headers) do
     case JsonSchema.validate(:program_medication_update, attrs) do
       :ok ->
+        consumer_id = get_consumer_id(headers)
+
         program_medication
         |> changeset(put_consumer_id(attrs, headers))
-        |> PRMRepo.update()
+        |> PRMRepo.update_and_log(consumer_id)
         |> preload_references()
 
       err -> err

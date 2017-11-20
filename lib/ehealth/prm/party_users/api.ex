@@ -57,7 +57,7 @@ defmodule EHealth.PRM.PartyUsers do
   def create_party_user(party_id, user_id) do
     %PartyUser{}
     |> changeset(%{user_id: user_id, party_id: party_id})
-    |> PRMRepo.insert
+    |> PRMRepo.insert_and_log(user_id)
   end
 
   defp party_users_changeset(attrs) do

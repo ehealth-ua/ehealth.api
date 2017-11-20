@@ -70,12 +70,13 @@ defmodule EHealth.MedicationRequestRequests do
   end
 
   defp preload_fk(page) do
-    Map.replace(page, :entries,
+    entries =
       Enum.map(page.entries, fn e ->
         operation = PreloadFkOperation.preload(e)
         Map.merge(operation.data, %{medication_request_request: e})
       end)
-    )
+
+    Map.put(page, :entries, entries)
   end
 
   defp get_employee_ids_from_headers(headers) do

@@ -49,7 +49,8 @@ defmodule EHealth.Employee.EmployeeCreator do
   """
   def create_or_update_party([], data, req_headers) do
     with data <- put_inserted_by(data, req_headers),
-         {:ok, party} <- Parties.create_party(data)
+         consumer_id = get_consumer_id(req_headers),
+         {:ok, party} <- Parties.create_party(data, consumer_id)
     do
       create_party_user(party, req_headers)
     end
@@ -59,18 +60,22 @@ defmodule EHealth.Employee.EmployeeCreator do
   Updates party
   """
   def create_or_update_party([%Party{} = party], data, req_headers) do
-    with {:ok, party} <- Parties.update_party(party, data) do
+    consumer_id = get_consumer_id(req_headers)
+
+    with {:ok, party} <- Parties.update_party(party, data, consumer_id) do
       create_party_user(party, req_headers)
     end
   end
 
   def create_party_user(%Party{id: id, users: users} = party, headers) do
     user_ids = Enum.map(users, &Map.get(&1, :user_id))
-    case Enum.member?(user_ids, get_consumer_id(headers)) do
+    consumer_id = get_consumer_id(headers)
+
+    case Enum.member?(user_ids, consumer_id) do
       true ->
         {:ok, party}
       false ->
-        case PartyUsers.create_party_user(id, get_consumer_id(headers)) do
+        case PartyUsers.create_party_user(id, consumer_id) do
           {:ok, _} -> {:ok, party}
           {:error, _} = err -> err
         end

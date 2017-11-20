@@ -159,7 +159,7 @@ defmodule EHealth.Employee.API do
          party_id <- employee |> Map.get(:party, %{}) |> Map.get(:id),
          party <- Parties.get_party_by_id!(party_id),
          {:ok, _} <- EmployeeCreator.create_party_user(party, req_headers),
-         {:ok, _} <- Parties.update_party(party, Map.fetch!(employee_request, "party")),
+         {:ok, _} <- Parties.update_party(party, Map.fetch!(employee_request, "party"), employee_id),
          params <- employee_request
            |> update_additional_info(employee)
            |> Map.put("employee_type", employee.employee_type)

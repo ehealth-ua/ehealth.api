@@ -8,6 +8,10 @@ defmodule EHealth.DuplicatePersons.Signals do
   alias EHealth.DuplicatePersons.CleanupTasks
   alias EHealth.Declarations.Person
 
+  def init(args) do
+    {:ok, args}
+  end
+
   def start_link do
     GenServer.start_link(__MODULE__, [], [name: __MODULE__])
   end

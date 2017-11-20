@@ -46,8 +46,10 @@ defmodule EHealth.Utils.Connection do
   defp process_decoded_data(_error), do: nil
 
   def get_header(headers, header) when is_list(headers) do
-    list = for {k, v} <- headers, k == header, do: v
-    List.first(list)
+    case List.keyfind(headers, header, 0) do
+      nil -> nil
+      {_key, val} -> val
+    end
   end
 
   def get_header_name(:header_consumer_metadata), do: @header_consumer_metadata
