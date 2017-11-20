@@ -1,7 +1,8 @@
-Change log for versions 0.6.0 - 0.6.6
+Change log for versions 0.6.0 - 0.6.7
 
 **Patches and bug fixes**:
 
+Additional audit logging for operations with PRM repo  (#1510)
 del bad item (#1506)
 fix list black list users in case of invalid uuid
 fix drop fraud fields
@@ -11,6 +12,7 @@ add context logic to referesh_secret endpoint (#1495)
 
 **Other**:
 
+fixed some compiler warnings
 New logger (#1513)
 Updated List of dictricts API
 pagination: page_number renamed to page
