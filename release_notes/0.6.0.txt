@@ -1,7 +1,8 @@
-Change log for versions 0.6.0 - 0.6.8
+Change log for versions 0.6.0 - 0.6.9
 
 **Patches and bug fixes**:
 
+drop phones from fraud parties table
 drop phones from fraud parties table
 Additional audit logging for operations with PRM repo  (#1510)
 del bad item (#1506)
