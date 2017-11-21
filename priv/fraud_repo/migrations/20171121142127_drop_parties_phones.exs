@@ -4,7 +4,7 @@ defmodule EHealth.FraudRepo.Migrations.DropPartiesPhones do
   def change do
     execute("DROP TRIGGER IF EXISTS on_party_insert ON parties;")
     execute("DROP TRIGGER IF EXISTS on_party_update ON parties;")
-    execute("DROP FUNCTION set_party_documents_phones()")
+    execute("DROP FUNCTION IF EXISTS set_party_documents_phones();")
 
     alter table(:parties) do
       remove :phones
