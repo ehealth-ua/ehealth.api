@@ -59,7 +59,7 @@ defmodule EHealth.PRM.BlackListUsers do
 
         %BlackListUser{}
         |> changeset(%{"tax_id" => tax_id})
-        |> validate_user_roles(user_ids)
+        |> validate_users_blocked(user_ids)
         |> remove_tokens_by_user_ids(user_ids, headers)
         |> put_change(:inserted_by, user_id)
         |> put_change(:updated_by, user_id)
@@ -74,14 +74,26 @@ defmodule EHealth.PRM.BlackListUsers do
     changeset(%BlackListUser{}, params)
   end
 
-  defp validate_user_roles(changeset, user_ids) do
+  defp validate_users_blocked(changeset, user_ids) do
     validate_change changeset, :tax_id, fn :tax_id, _tax_id ->
-      case Mithril.search_user_roles(%{"user_ids" => user_ids}) do
-        {:ok, %{"data" => []}} -> []
-        {:ok, _} -> [user_roles: "Not all roles were deleted"]
-        _ -> [user_roles: "Cannot fetch Mithril user roles"]
-      end
+      users_amount = user_ids |> String.split(",") |> length()
+      %{"ids" => user_ids, "is_blocked" => true}
+      |> Mithril.search_user()
+      |> check_blocked_users_amount(users_amount)
     end
+  end
+
+  defp check_blocked_users_amount({:ok, %{"data" => []}}, _users_amount) do
+    [users: "Not all users were blocked"]
+  end
+  defp check_blocked_users_amount({:ok, %{"data" => amount}}, users_amount) when length(amount) == users_amount do
+    []
+  end
+  defp check_blocked_users_amount({:ok, %{"data" => _}}, _users_amount) do
+    [users: "Not all users were blocked"]
+  end
+  defp check_blocked_users_amount(_, _users_amount) do
+    [users: "Cannot fetch Mithril users"]
   end
 
   def remove_tokens_by_user_ids(changeset, user_ids, headers) do

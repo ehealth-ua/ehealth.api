@@ -717,6 +717,9 @@ defmodule EHealth.MockServer do
     }
   end
 
+  def get_oauth_users(%{"ids" => @user_for_role_1 <> "," <> @user_for_role_2, "is_blocked" => "true"}) do
+    [get_oauth_user(@user_for_role_1), get_oauth_user(@user_for_role_1)]
+  end
   def get_oauth_users(%{"email" => "test@user.com"}), do: [get_oauth_user()]
   def get_oauth_users(%{"email" => _}), do: []
   def get_oauth_users(_), do: [get_oauth_user()]

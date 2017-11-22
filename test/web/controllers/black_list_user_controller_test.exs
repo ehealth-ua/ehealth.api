@@ -77,7 +77,7 @@ defmodule EHealth.Web.BlackListUserControllerTest do
       assert Map.get(hd(resp), "is_active")
     end
 
-    test "user roles doesn't deleted", %{conn: conn} do
+    test "users not blocked", %{conn: conn} do
       party = insert(:prm, :party, tax_id: "022321")
       insert(:prm, :party_user, party: party)
       insert(:prm, :party_user, party: party)
@@ -87,7 +87,7 @@ defmodule EHealth.Web.BlackListUserControllerTest do
 
       assert %{"error" => %{"invalid" => errors}} = resp
       Enum.each(errors, fn %{"entry" => entry} ->
-        assert entry in ["$.user_roles", "$.user_tokens"]
+        assert entry in ["$.users", "$.user_tokens"]
       end)
     end
 
