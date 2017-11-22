@@ -1,7 +1,8 @@
-Change log for versions 0.6.0 - 0.6.10
+Change log for versions 0.6.0 - 0.6.11
 
 **Patches and bug fixes**:
 
+Additional audit logging for PRM table (mountain regions update) (#1482)
 EHealth-1497: validate blocked users instead of deleted user roles (#1520)
 drop phones from fraud parties table
 drop phones from fraud parties table
