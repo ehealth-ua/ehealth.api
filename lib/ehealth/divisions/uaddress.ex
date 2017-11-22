@@ -5,6 +5,8 @@ defmodule EHealth.Divisions.UAddress do
   alias EHealth.API.UAddress
   alias EHealth.PRM.Divisions
 
+  import EHealth.Utils.Connection, only: [get_consumer_id: 1]
+
   def update_settlement(%{"id" => id} = params, headers) do
     with {:ok, data} <- prepare_settlement_data(params),
          {:ok, settlement} <- UAddress.get_settlement_by_id(id, headers),
@@ -48,9 +50,11 @@ defmodule EHealth.Divisions.UAddress do
   end
 
   defp api_update_divisions(%{"id" => id, "mountain_group" => group} = data, headers, settlement) do
-    result = Divisions.update_divisions_mountain_group(%{settlement_id: id, mountain_group: group})
+    consumer_id = get_consumer_id(headers)
+    result = Divisions.update_divisions_mountain_group(%{settlement_id: id, mountain_group: group}, consumer_id)
     case result do
       %Ecto.Changeset{valid?: false} -> result
+      {:error, _failed_operation, failed_value, _changes_so_far} -> failed_value
       _ -> :ok
     end
   rescue

@@ -4,11 +4,12 @@ defmodule EHealth.Web.EUaddressesControllerTest do
   use EHealth.Web.ConnCase
 
   describe "update settlement mountain group" do
-
     test "success", %{conn: conn} do
       division = insert(:prm, :division)
+      settlement_id = Map.get(List.first(division.addresses), "settlement_id")
+
       data = %{"settlement" => %{"mountain_group" => true}}
-      conn = patch conn, uaddresses_path(conn, :update_settlements, division.id), data
+      conn = patch conn, uaddresses_path(conn, :update_settlements, settlement_id), data
 
       assert json_response(conn, 200)["data"]["mountain_group"]
     end
@@ -33,7 +34,6 @@ defmodule EHealth.Web.EUaddressesControllerTest do
       conn = patch conn, uaddresses_path(conn, :update_settlements, "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b"), data
 
       assert [] != json_response(conn, 200)["meta"]["data"]
-
     end
   end
 end

@@ -6,6 +6,8 @@ defmodule EHealth.PRM.Divisions do
   alias EHealth.PRMRepo
   alias EHealth.PRM.Divisions.Search
   alias EHealth.PRM.Divisions.Schema, as: Division
+  alias Ecto.Multi
+  import EHealth.PRM.AuditLogs, only: [create_audit_logs: 1]
 
   @search_fields ~w(
     ids
@@ -31,6 +33,8 @@ defmodule EHealth.PRM.Divisions do
     status
     email
   )a
+
+  @mountain_group_required_types %{mountain_group: :boolean, settlement_id: Ecto.UUID}
 
   def get_division_by_id!(id) do
     PRMRepo.get!(Division, id)
@@ -64,10 +68,11 @@ defmodule EHealth.PRM.Divisions do
     |> PRMRepo.update_and_log(author_id)
   end
 
-  def update_divisions_mountain_group(attrs) do
-    attrs
-    |> mountain_group_changeset()
-    |> do_update_divisions_mountain_group()
+  def update_divisions_mountain_group(attrs, consumer_id) do
+    case validate_mountain_group_changeset(attrs) do
+      %Ecto.Changeset{valid?: true} -> do_update_divisions_mountain_group(attrs, consumer_id)
+      err_changeset                 -> err_changeset
+    end
   end
 
   def get_search_query(Division = entity, %{ids: _} = changes) do
@@ -110,26 +115,46 @@ defmodule EHealth.PRM.Divisions do
     cast(division, attrs, @search_fields)
   end
 
-  defp mountain_group_changeset(attrs) do
-    data  = %{}
-    types = %{mountain_group: :boolean, settlement_id: Ecto.UUID}
+  defp validate_mountain_group_changeset(attrs) do
+    required_params = Map.keys(@mountain_group_required_types)
 
-    {data, types}
-    |> cast(attrs, Map.keys(types))
-    |> validate_required(Map.keys(types))
+    {%{}, @mountain_group_required_types}
+    |> cast(attrs, required_params)
+    |> validate_required(required_params)
   end
 
-  defp do_update_divisions_mountain_group(%Ecto.Changeset{valid?: true} = changeset) do
-    settlement_id = get_change(changeset, :settlement_id)
-    mountain_group = get_change(changeset, :mountain_group)
+  defp do_update_divisions_mountain_group(%{settlement_id: settlement_id, mountain_group: mountain_group}, consumer_id)
+  do
     addresses = [%{settlement_id: settlement_id}]
 
     query =
       from d in Division,
-      where: d.mountain_group != ^mountain_group,
-      where: fragment("? @> ?", d.addresses, ^addresses)
+      where: d.mountain_group != ^mountain_group and
+             fragment("? @> ?::jsonb", d.addresses, ^addresses)
 
-    PRMRepo.update_all(query, set: [mountain_group: mountain_group])
+    Multi.new()
+    |> Multi.update_all(
+        :update_divisions_mountain_group,
+        query,
+        [set: [mountain_group: mountain_group, updated_at: NaiveDateTime.utc_now()]],
+        returning: [:id, :mountain_group])
+    |> Multi.run(:log_updates, &log_changes(&1, consumer_id))
+    |> PRMRepo.transaction()
   end
-  defp do_update_divisions_mountain_group(changeset), do: changeset
+
+  defp log_changes(%{update_divisions_mountain_group: {_, updated_divisions}}, consumer_id) do
+    {_, changelog} =
+      updated_divisions
+      |> Enum.map(fn ud ->
+          %{
+            actor_id: consumer_id,
+            resource: "divisions",
+            resource_id: ud.id,
+            changeset: %{mountain_group: ud.mountain_group},
+          }
+         end)
+      |> create_audit_logs()
+
+    {:ok, changelog}
+  end
 end
