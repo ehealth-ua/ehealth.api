@@ -1,7 +1,8 @@
-Change log for versions 0.6.0 - 0.6.12
+Change log for versions 0.6.0 - 0.6.13
 
 **Patches and bug fixes**:
 
+New base container
 Make sure 500s make it into logs
 Additional audit logging for PRM table (mountain regions update) (#1482)
 EHealth-1497: validate blocked users instead of deleted user roles (#1520)
@@ -17,6 +18,9 @@ add context logic to referesh_secret endpoint (#1495)
 
 **Other**:
 
+New base container (#1539)
+Manually bump version
+Refer to from based on app's location
 fixed some compiler warnings
 New logger (#1513)
 Updated List of dictricts API
