@@ -42,7 +42,8 @@ defmodule :ehealth_tasks do
 
     repo.delete_all(Dictionary)
 
-    "priv/repo/fixtures/dictionaries.json"
+    :ehealth
+    |> Application.app_dir("priv/repo/fixtures/dictionaries.json")
     |> File.read!
     |> Poison.decode!(as: [%Dictionary{}])
     |> Enum.each(&repo.insert!/1)

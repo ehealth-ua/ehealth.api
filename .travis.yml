@@ -13,6 +13,7 @@ addons:
   apt:
     packages:
       - postgresql-9.5-postgis-2.3
+      - docker-ce
 elixir:
   - 1.5.1
 otp_release:

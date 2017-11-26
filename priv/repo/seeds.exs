@@ -16,7 +16,8 @@ alias EHealth.Repo
 # truncate table
 Repo.delete_all(Dictionary)
 
-"priv/repo/fixtures/dictionaries.json"
+:ehealth
+|> Application.app_dir("priv/repo/fixtures/dictionaries.json")
 |> File.read!
 |> Poison.decode!(as: [%Dictionary{}])
 |> Enum.each(&Repo.insert!/1)
