@@ -1,7 +1,8 @@
-Change log for versions 0.6.0 - 0.6.32
+Change log for versions 0.6.0 - 0.6.33
 
 **Patches and bug fixes**:
 
+Fix log type
 Explicitly config otp reports handling
 Clean up logging (#1546)
 Update logging across app (#1545)
