@@ -1,7 +1,8 @@
-Change log for versions 0.6.0 - 0.6.29
+Change log for versions 0.6.0 - 0.6.30
 
 **Patches and bug fixes**:
 
+Update logging across app (#1545)
 Use Application.app_dir
 Specify default overall level
 Specify default level
