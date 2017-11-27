@@ -52,7 +52,7 @@ defmodule EHealth.DeclarationRequest.API.Approve do
 
     Logger.info(fn ->
       Poison.encode!(%{
-        "log_type"     => "microservice_result",
+        "log_type"     => "microservice_response",
         "microservice" => "ael",
         "result"       => result,
         "request_id"   => Logger.metadata[:request_id],
@@ -70,7 +70,7 @@ defmodule EHealth.DeclarationRequest.API.Approve do
       {:error, reason} ->
         Logger.info(fn ->
           Poison.encode!(%{
-            "log_type"     => "microservice_result",
+            "log_type"     => "microservice_response",
             "microservice" => "ael",
             "result"       => reason,
             "request_id"   => Logger.metadata[:request_id]
