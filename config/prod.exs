@@ -6,9 +6,9 @@ use Mix.Config
 # Do not print debug messages in production
 # and handle all other reports by Elixir Logger with JSON back-end
 # SASL reports turned off because of their verbosity.
-config :logger, :console,
+config :logger,
   format: "$message\n",
-  level: :error,
+  level: :info,
   handle_otp_reports: true
 
 # Sometimes you might want to improve production performance by stripping logger debug calls during compilation
