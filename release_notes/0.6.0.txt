@@ -1,7 +1,18 @@
-Change log for versions 0.6.0 - 0.6.13
+Change log for versions 0.6.0 - 0.6.24
 
 **Patches and bug fixes**:
 
+refactor divisions context
+refactor parties context
+refactor party_users context with search and repo
+refactor employees context
+refactor global_parameters context
+refactor legal_entities context
+refactor msp context
+refactor registries context
+refactor meta context
+refactor black_list_users context
+merge all prm contexts
 New base container
 Make sure 500s make it into logs
 Additional audit logging for PRM table (mountain regions update) (#1482)
@@ -18,6 +29,7 @@ add context logic to referesh_secret endpoint (#1495)
 
 **Other**:
 
+WIP: [patch] refactor divisions context (#1526)
 New base container (#1539)
 Manually bump version
 Refer to from based on app's location
