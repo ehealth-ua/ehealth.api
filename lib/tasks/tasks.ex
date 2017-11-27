@@ -9,9 +9,9 @@ defmodule :ehealth_tasks do
   alias EHealth.Dictionaries.Dictionary
 
   def migrate! do
-    fraud_migrations_dir = Path.join(["priv", "fraud_repo", "migrations"])
-    prm_migrations_dir = Path.join(["priv", "prm_repo", "migrations"])
-    migrations_dir = Path.join(["priv", "repo", "migrations"])
+    fraud_migrations_dir = Application.app_dir(:ehealth, "priv/fraud_repo/migrations")
+    prm_migrations_dir = Application.app_dir(:ehealth, "priv/prm_repo/migrations")
+    migrations_dir = Application.app_dir(:ehealth, "priv/repo/migrations")
 
     load_app()
 
