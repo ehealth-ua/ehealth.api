@@ -4,7 +4,7 @@ defmodule EHealth.PRMFactories.UkrMedRegistryFactory do
   defmacro __using__(_opts) do
     quote do
       alias Ecto.UUID
-      alias EHealth.PRM.Registries.Schema, as: Registry
+      alias EHealth.LegalEntities.Registry
 
       def registry_factory do
         %Registry{

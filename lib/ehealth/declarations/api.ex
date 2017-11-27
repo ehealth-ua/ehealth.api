@@ -5,29 +5,24 @@ defmodule EHealth.Declarations.API do
   import EHealth.Plugs.ClientContext, only: [get_context_params: 2]
   import EHealth.Declarations.View, only: [render_declarations: 1, render_declaration: 1]
 
-  alias Scrivener.Page
   alias EHealth.API.OPS
   alias EHealth.API.MPI
   alias EHealth.API.Mithril
-  alias EHealth.PRM.LegalEntities
-  alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
-  alias EHealth.PRM.Employees
-  alias EHealth.PRM.Employees.Schema, as: Employee
-  alias EHealth.PRM.Divisions
-  alias EHealth.PRM.Divisions.Schema, as: Division
+  alias EHealth.LegalEntities
+  alias EHealth.LegalEntities.LegalEntity
+  alias EHealth.Employees
+  alias EHealth.Employees.Employee
+  alias EHealth.Divisions
+  alias EHealth.Divisions.Division
 
   def get_declarations(params, headers) do
     with {:ok, resp} <- OPS.get_declarations(params, headers),
          related_ids <- fetch_related_ids(Map.fetch!(resp, "data")),
-         division_ids <- list_to_param(related_ids["division_ids"]),
-         employee_ids <- list_to_param(related_ids["employee_ids"]),
-         legal_entity_ids <- list_to_param(related_ids["legal_entity_ids"]),
-         person_ids <- list_to_param(related_ids["person_ids"]),
-         %Page{} = divisions <- Divisions.get_divisions(%{ids: division_ids}),
-         %Page{} = employees <- Employees.get_employees(%{ids: employee_ids}),
-         %Page{} = legal_entities <- LegalEntities.get_legal_entities(%{ids: legal_entity_ids}),
-         {:ok, persons} <- preload_persons(person_ids, headers),
-         relations <- build_indexes(divisions.entries, employees.entries, legal_entities.entries, persons["data"]),
+         divisions <- Divisions.get_by_ids(related_ids["division_ids"]),
+         employees <- Employees.get_by_ids(related_ids["employee_ids"]),
+         legal_entities <- LegalEntities.get_by_ids(related_ids["legal_entity_ids"]),
+         {:ok, persons} <- preload_persons(Enum.join(related_ids["person_ids"], ","), headers),
+         relations <- build_indexes(divisions, employees, legal_entities, persons["data"]),
          prepared_data <- merge_related_data(resp["data"], relations),
          declarations <- render_declarations(prepared_data),
          response <- Map.put(resp, "data", declarations),
@@ -56,8 +51,6 @@ defmodule EHealth.Declarations.API do
       true -> list
     end
   end
-
-  def list_to_param(list), do: Enum.join(list, ",")
 
   def build_indexes(divisions, employees, legal_entities, persons) do
     %{}
@@ -123,22 +116,22 @@ defmodule EHealth.Declarations.API do
   def expand_declaration_relations(%{"legal_entity_id" => legal_entity_id} = declaration, headers) do
     with :ok          <- check_declaration_access(legal_entity_id, headers),
          person       <- load_relation(MPI, :person, declaration["person_id"], headers),
-         legal_entity <- LegalEntities.get_legal_entity_by_id(legal_entity_id),
-         division     <- Divisions.get_division_by_id(declaration["division_id"]),
-         employee     <- Employees.get_employee_by_id(declaration["employee_id"]),
+         legal_entity <- LegalEntities.get_by_id(legal_entity_id),
+         division     <- Divisions.get_by_id(declaration["division_id"]),
+         employee     <- Employees.get_by_id(declaration["employee_id"]),
          declaration  <- merge_related_data(declaration, person, legal_entity, division, employee),
          response     <- render_declaration(declaration),
       do: {:ok, response}
   end
 
-  def check_declaration_access(legal_entity_id, headers) do
-    case get_client_type_name(headers) do
+  defp check_declaration_access(legal_entity_id, headers) do
+    case Mithril.get_client_type_name(get_client_id(headers), headers) do
+      {:ok, nil} -> {:error, :access_denied}
       {:ok, client_type} ->
         headers
         |> get_client_id()
         |> get_context_params(client_type)
         |> legal_entity_allowed?(legal_entity_id)
-
       err -> err
     end
   end
@@ -148,16 +141,6 @@ defmodule EHealth.Declarations.API do
       {:ok, %{"data" => entity}} -> entity
       _ -> %{}
     end
-  end
-
-  def get_client_type_name(headers) do
-    headers
-    |> get_client_id()
-    |> Mithril.get_client_type_name(headers)
-    |> case do
-         nil -> {:error, :access_denied}
-         client_type -> {:ok, client_type}
-       end
   end
 
   def legal_entity_allowed?(%{"legal_entity_id" => id}, legal_entity_id) when legal_entity_id != id do

@@ -4,16 +4,16 @@ defmodule EHealth.Validators.Reference do
   """
 
   alias EHealth.API.OPS
-  alias EHealth.PRM.Divisions
-  alias EHealth.PRM.Employees
-  alias EHealth.PRM.LegalEntities
-  alias EHealth.PRM.MedicalPrograms
-  alias EHealth.PRM.Medications.API, as: MedicationsAPI
-  alias EHealth.PRM.Employees.Schema, as: Employee
-  alias EHealth.PRM.Divisions.Schema, as: Division
-  alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
-  alias EHealth.PRM.MedicalPrograms.Schema, as: MedicalProgram
-  alias EHealth.PRM.Medications.Medication.Schema, as: Medication
+  alias EHealth.Divisions
+  alias EHealth.Divisions.Division
+  alias EHealth.Employees
+  alias EHealth.Employees.Employee
+  alias EHealth.LegalEntities
+  alias EHealth.LegalEntities.LegalEntity
+  alias EHealth.MedicalPrograms
+  alias EHealth.MedicalPrograms.MedicalProgram
+  alias EHealth.Medications
+  alias EHealth.Medications.Medication
 
   def validate(type, nil) do
     error(type)
@@ -26,14 +26,14 @@ defmodule EHealth.Validators.Reference do
     end
   end
   def validate(:employee = type, id) do
-    with %Employee{} = employee <- Employees.get_employee_by_id(id) do
+    with %Employee{} = employee <- Employees.get_by_id(id) do
       {:ok, employee}
     else
       _ -> error(type)
     end
   end
   def validate(:division = type, id) do
-    with %Division{} = division <- Divisions.get_division_by_id(id) do
+    with %Division{} = division <- Divisions.get_by_id(id) do
       {:ok, division}
     else
       _ -> error(type)
@@ -47,14 +47,14 @@ defmodule EHealth.Validators.Reference do
     end
   end
   def validate(:legal_entity = type, id) do
-    with %LegalEntity{} = legal_entity <- LegalEntities.get_legal_entity_by_id(id) do
+    with %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(id) do
       {:ok, legal_entity}
     else
       _ -> error(type)
     end
   end
   def validate(:medication = type, id, path \\ nil) do
-    with %Medication{} = medication <- MedicationsAPI.get_medication_by_id(id) do
+    with %Medication{} = medication <- Medications.get_medication_by_id(id) do
       {:ok, medication}
     else
       _ -> error(type, path)

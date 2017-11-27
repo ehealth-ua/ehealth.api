@@ -13,7 +13,7 @@ defmodule EHealth.DeclarationRequest.API.Validations do
   alias EHealth.DeclarationRequest.SignRequest
   alias EHealth.Validators.JsonSchema
   alias EHealth.DeclarationRequest.API.ValidatePerson
-  alias EHealth.PRM.Employees.Schema, as: Employee
+  alias EHealth.Employees.Employee
 
   @auth_otp DeclarationRequest.authentication_method(:otp)
 

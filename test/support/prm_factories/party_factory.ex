@@ -6,10 +6,10 @@ defmodule EHealth.PRMFactories.PartyFactory do
       alias Ecto.UUID
 
       def party_factory do
-        %EHealth.PRM.Parties.Schema{
+        %EHealth.Parties.Party{
           birth_date: ~D[1991-08-19],
           documents: [
-            %EHealth.PRM.Meta.Document{
+            %EHealth.Parties.Document{
               type: "NATIONAL_ID",
               number: "AA000000"
             }
@@ -18,7 +18,7 @@ defmodule EHealth.PRMFactories.PartyFactory do
           gender: "some gender",
           last_name: "some last_name",
           phones: [
-            %EHealth.PRM.Meta.Phone{
+            %EHealth.Parties.Phone{
               type: "MOBILE",
               number: "+380972526080"
             }
@@ -31,7 +31,7 @@ defmodule EHealth.PRMFactories.PartyFactory do
       end
 
       def party_user_factory do
-        %EHealth.PRM.PartyUsers.Schema{
+        %EHealth.PartyUsers.PartyUser{
           user_id: UUID.generate(),
           party: build(:party),
         }

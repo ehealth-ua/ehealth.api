@@ -6,7 +6,7 @@ defmodule EHealth.OAuth.API do
   import EHealth.Utils.Connection, only: [get_consumer_id: 1]
 
   alias EHealth.API.Mithril
-  alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
+  alias EHealth.LegalEntities.LegalEntity
 
   require Logger
 

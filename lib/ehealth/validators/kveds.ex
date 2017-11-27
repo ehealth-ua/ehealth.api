@@ -7,7 +7,7 @@ defmodule EHealth.Validators.KVEDs do
 
   alias EHealth.Dictionaries
   alias EHealth.Dictionaries.Dictionary
-  alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
+  alias EHealth.LegalEntities.LegalEntity
 
   @msp LegalEntity.type(:msp)
   @pharmacy LegalEntity.type(:pharmacy)

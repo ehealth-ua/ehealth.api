@@ -3,7 +3,7 @@ defmodule EHealth.Web.BlackListUserController do
 
   use EHealth.Web, :controller
   alias Scrivener.Page
-  alias EHealth.PRM.BlackListUsers
+  alias EHealth.BlackListUsers
 
   action_fallback EHealth.Web.FallbackController
 

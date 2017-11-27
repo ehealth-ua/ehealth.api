@@ -4,7 +4,7 @@ defmodule EHealth.Integration.EmployeeRequest.TerminatorTest do
   use EHealth.Web.ConnCase
 
   alias EHealth.EmployeeRequest.Terminator
-  alias EHealth.Employee.Request
+  alias EHealth.EmployeeRequests.EmployeeRequest, as: Request
   alias EHealth.Repo
 
   @tag :pending

@@ -3,7 +3,7 @@ defmodule EHealth.Unit.Employee.UserRoleCreatorTest do
 
   use EHealth.Web.ConnCase, async: true
 
-  alias EHealth.Employee.UserRoleCreator
+  alias EHealth.Employees.UserRoleCreator
 
   test "create/2" do
     legal_entity = insert(:prm, :legal_entity)

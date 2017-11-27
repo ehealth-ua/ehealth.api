@@ -1,7 +1,7 @@
 defmodule EHealth.PRMRepo.Migrations.AddMisVerifiedToLegalEntity do
   use Ecto.Migration
   import Ecto.Query
-  alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
+  alias EHealth.LegalEntities.LegalEntity
   alias EHealth.PRMRepo
 
   def change do

@@ -3,8 +3,8 @@ defmodule EHealth.Web.EmployeesControllerTest do
 
   use EHealth.Web.ConnCase
   alias EHealth.MockServer
-  alias EHealth.PRM.Employees.Schema, as: Employee
-  alias EHealth.PRM.Parties.Schema, as: Party
+  alias EHealth.Employees.Employee
+  alias EHealth.Parties.Party
   alias Ecto.UUID
   alias EHealth.PRMRepo
 

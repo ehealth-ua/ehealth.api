@@ -3,10 +3,10 @@ defmodule EHealth.Unit.ValidatorTest do
 
   use EHealth.Web.ConnCase
 
-  alias EHealth.LegalEntity.Validator
+  alias EHealth.LegalEntities.Validator
   alias EHealth.Validators.KVEDs
   alias EHealth.API.MediaStorage
-  alias EHealth.Employee.API, as: EmployeeRequestAPI
+  alias EHealth.EmployeeRequests
   alias EHealth.DeclarationRequest.API.Validations, as: DeclarationRequestValidator
 
   @phone_type %{
@@ -237,14 +237,14 @@ defmodule EHealth.Unit.ValidatorTest do
     )
 
     assert {:error, [{%{description: _, rule: :format}, "$.employee_request.doctor.science_degree.issued_date"}]} =
-      EmployeeRequestAPI.create_employee_request(content)
+      EmployeeRequests.create(content)
   end
 
   test "Employee Request: start_date date format" do
     content = put_in(get_employee_request(), ["employee_request", "start_date"], "2012-12")
 
     assert {:error, [{%{description: _, rule: :format}, "$.employee_request.start_date"}]} =
-      EmployeeRequestAPI.create_employee_request(content)
+      EmployeeRequests.create(content)
   end
 
   test "Employee Request: educations issued_date format" do
@@ -260,7 +260,7 @@ defmodule EHealth.Unit.ValidatorTest do
       [Map.put(education, "issued_date", "2012")])
 
     assert {:error, [{%{description: _, rule: :format}, "$.employee_request.doctor.educations.[0].issued_date"}]} =
-      EmployeeRequestAPI.create_employee_request(content)
+      EmployeeRequests.create(content)
   end
 
   test "Employee Request: science_degree invalid", %{conn: conn} do
@@ -270,7 +270,7 @@ defmodule EHealth.Unit.ValidatorTest do
     content = put_in(get_employee_request(), ~W(employee_request doctor science_degree degree), "INVALID")
 
     assert {:error, [{%{rule: :inclusion}, "$.employee_request.doctor.science_degree.degree"}]} =
-      EmployeeRequestAPI.create_employee_request(content)
+      EmployeeRequests.create(content)
   end
 
   test "Employee Request: employee_type invalid", %{conn: conn} do
@@ -280,7 +280,7 @@ defmodule EHealth.Unit.ValidatorTest do
     content = put_in(get_employee_request(), ~W(employee_request employee_type), "INVALID")
 
     assert {:error, [{%{rule: :inclusion}, "$.employee_request.employee_type"}]} =
-      EmployeeRequestAPI.create_employee_request(content)
+      EmployeeRequests.create(content)
   end
 
   test "unmapped dictionary name", %{conn: conn} do

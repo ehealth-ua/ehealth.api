@@ -6,7 +6,7 @@ defmodule EHealth.PRMFactories.MedicalProgramFactory do
       alias Ecto.UUID
 
       def medical_program_factory do
-        %EHealth.PRM.MedicalPrograms.Schema{
+        %EHealth.MedicalPrograms.MedicalProgram{
           name: "Доступні ліки",
           is_active: true,
           inserted_by: UUID.generate(),

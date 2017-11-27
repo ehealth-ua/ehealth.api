@@ -23,10 +23,6 @@ defmodule EHealth.API.Mithril do
     get!("/admin/clients", headers, params: params)
   end
 
-  def get_client_by_name(name, headers \\ []) do
-    get_clients([name: name], headers)
-  end
-
   def get_client_details(id, headers \\ []) do
     get!("/admin/clients/#{id}/details", headers)
   end
@@ -35,8 +31,8 @@ defmodule EHealth.API.Mithril do
     id
     |> get_client_details(headers)
     |> case do
-         {:ok, %{"data" => %{"client_type_name" => client_type}}} -> client_type
-         _ -> nil
+         {:ok, %{"data" => %{"client_type_name" => client_type}}} -> {:ok, client_type}
+         _ -> {:error, :access_denied}
        end
   end
 

@@ -1,6 +1,6 @@
 # PRM seed data
 
-alias EHealth.PRM.GlobalParameters.Schema, as: GlobalParameter
+alias EHealth.GlobalParameters.GlobalParameter
 alias EHealth.PRMRepo
 
 :ehealth

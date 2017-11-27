@@ -6,7 +6,7 @@ defmodule EHealth.DeclarationRequest.API.Create do
   alias EHealth.Man.Templates.DeclarationRequestPrintoutForm
   alias EHealth.API.OTPVerification
   alias Ecto.Changeset
-  alias EHealth.PRM.PartyUsers
+  alias EHealth.PartyUsers
   alias EHealth.DeclarationRequest
 
   import Ecto.Changeset, only: [get_field: 2, get_change: 2, put_change: 3, add_error: 3]
@@ -184,7 +184,7 @@ defmodule EHealth.DeclarationRequest.API.Create do
   end
 
   defp get_party_email(party_id) do
-    with {:ok, result} <- PartyUsers.get_party_users_by_party_id(party_id),
+    with result <- PartyUsers.list!(%{party_id: party_id}),
       {:ok, users} <- fetch_users(result),
       {:ok, role_id} <- get_role_id("DOCTOR"),
       {:ok, user_roles} <- filter_users_by_role(role_id, users),

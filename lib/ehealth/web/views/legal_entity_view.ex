@@ -3,7 +3,8 @@ defmodule EHealth.Web.LegalEntityView do
   Sample view for LegalEntitys controller.
   """
   use EHealth.Web, :view
-  alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
+
+  alias EHealth.LegalEntities.LegalEntity
 
   def render("index.json", %{legal_entities: legal_entities}) do
     render_many(legal_entities, __MODULE__, "legal_entity.json")

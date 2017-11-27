@@ -7,13 +7,13 @@ defmodule EHealth.DeclarationRequest.API do
   alias Ecto.Multi
   alias Ecto.UUID
   alias EHealth.Repo
-  alias EHealth.PRM.GlobalParameters
-  alias EHealth.PRM.LegalEntities
-  alias EHealth.PRM.Divisions
-  alias EHealth.PRM.Employees
-  alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
-  alias EHealth.PRM.Employees.Schema, as: Employee
-  alias EHealth.PRM.Divisions.Schema, as: Division
+  alias EHealth.GlobalParameters
+  alias EHealth.LegalEntities
+  alias EHealth.Divisions
+  alias EHealth.Employees
+  alias EHealth.LegalEntities.LegalEntity
+  alias EHealth.Employees.Employee
+  alias EHealth.Divisions.Division
   alias EHealth.DeclarationRequest
   alias EHealth.DeclarationRequest.API.Create
   alias EHealth.DeclarationRequest.API.Approve
@@ -95,13 +95,10 @@ defmodule EHealth.DeclarationRequest.API do
          :ok <- Validations.validate_person(Map.get(attrs, "person")),
          {:ok, _} <- Validations.validate_addresses(get_in(attrs, ["person", "addresses"])),
          {:ok, %Employee{} = employee} <- Helpers.get_assoc_by_func("employee_id",
-                                            fn -> Employees.get_employee_by_id(attrs["employee_id"]) end),
-         %LegalEntity{} = legal_entity <- LegalEntities.get_by_id_preload(
-           client_id,
-           :medical_service_provider
-           ),
+                                            fn -> Employees.get_by_id(attrs["employee_id"]) end),
+         %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(client_id),
          {:ok, %Division{} = division} <- Helpers.get_assoc_by_func("division_id",
-                                            fn -> Divisions.get_division_by_id(attrs["division_id"]) end)
+                                            fn -> Divisions.get_by_id(attrs["division_id"]) end)
     do
       updates = [
         status: DeclarationRequest.status(:cancelled),

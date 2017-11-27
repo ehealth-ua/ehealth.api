@@ -2,7 +2,7 @@ defmodule EHealth.Web.MedicalProgramController do
   @moduledoc false
 
   use EHealth.Web, :controller
-  alias EHealth.PRM.MedicalPrograms
+  alias EHealth.MedicalPrograms
   alias Scrivener.Page
   require Logger
 

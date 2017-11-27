@@ -1,7 +1,8 @@
 defmodule EHealth.Web.MedicationRequestControllerTest do
+
   use EHealth.Web.ConnCase, async: true
   alias EHealth.PRMRepo
-  alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
+  alias EHealth.LegalEntities.LegalEntity
   import EHealth.Utils.Connection, only: [get_consumer_id: 1, get_client_id: 1]
   import EHealth.MockServer, only: [get_active_medication_request: 0, get_client_admin: 0]
 

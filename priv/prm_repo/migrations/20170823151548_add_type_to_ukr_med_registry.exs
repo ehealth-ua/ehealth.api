@@ -1,7 +1,7 @@
 defmodule EHealth.PRMRepo.Migrations.AddTypeToUkrMedRegistry do
   use Ecto.Migration
 
-  alias EHealth.PRM.Registries.Schema, as: Registry
+  alias EHealth.LegalEntities.Registry
 
   def change do
     alter table(:ukr_med_registries) do

@@ -27,8 +27,9 @@ defmodule EHealth.Plugs.ClientContext do
     |> get_client_id()
     |> Mithril.get_client_type_name(req_headers)
     |> case do
-         nil -> conn_unauthorized(conn)
-         client_type -> assign(conn, :client_type, client_type)
+         {:ok, nil} -> conn_unauthorized(conn)
+         {:ok, client_type} -> assign(conn, :client_type, client_type)
+         _ -> conn_unauthorized(conn)
        end
   end
 

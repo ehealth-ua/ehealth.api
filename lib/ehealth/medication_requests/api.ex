@@ -2,22 +2,21 @@ defmodule EHealth.MedicationRequests.API do
   @moduledoc false
 
   alias EHealth.API.OPS
-  alias EHealth.PRM.PartyUsers
-  alias EHealth.PRM.Employees
-  alias EHealth.PRM.Divisions.Schema, as: Division
-  alias EHealth.PRM.PartyUsers.Schema, as: PartyUser
-  alias EHealth.PRM.Employees.Schema, as: Employee
-  alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
-  alias EHealth.PRM.MedicalPrograms.Schema, as: MedicalProgram
-  alias EHealth.PRM.Medications.INNMDosage.Schema, as: INNMDosage
-  alias EHealth.PRM.Medications.Program.Schema, as: ProgramMedication
-  alias EHealth.PRM.Medications.API, as: MedicationsAPI
-  alias EHealth.PRM.Medications.Medication.Ingredient
-  alias EHealth.PRM.Medications.INNMDosage.Ingredient, as: INNMDosageIngredient
-  alias EHealth.PRM.LegalEntities
-  alias EHealth.PRM.Divisions
-  alias EHealth.PRM.Employees
-  alias EHealth.PRM.MedicalPrograms
+  alias EHealth.PartyUsers
+  alias EHealth.Employees
+  alias EHealth.Divisions.Division
+  alias EHealth.PartyUsers.PartyUser
+  alias EHealth.Employees.Employee
+  alias EHealth.LegalEntities.LegalEntity
+  alias EHealth.MedicalPrograms.MedicalProgram
+  alias EHealth.Medications.INNMDosage
+  alias EHealth.Medications.Program, as: ProgramMedication
+  alias EHealth.Medications
+  alias EHealth.Medications.Medication.Ingredient
+  alias EHealth.Medications.INNMDosage.Ingredient, as: INNMDosageIngredient
+  alias EHealth.LegalEntities
+  alias EHealth.Divisions
+  alias EHealth.MedicalPrograms
   alias EHealth.API.MPI
   alias EHealth.Validators.JsonSchema
   alias EHealth.MedicationRequests.Search
@@ -151,7 +150,7 @@ defmodule EHealth.MedicationRequests.API do
   end
   defp do_get_medication_request(legal_entity_id, user_id, _, id, headers) do
     with %PartyUser{party: party} <- get_party_user(user_id),
-         %LegalEntity{} = legal_entity <- LegalEntities.get_legal_entity_by_id(legal_entity_id),
+         %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(legal_entity_id),
          search_params <- get_show_search_params(party.id, legal_entity, id),
          {:ok, %{"data" => [medication_request]}} <- OPS.get_doctor_medication_requests(search_params, headers)
     do
@@ -196,12 +195,12 @@ defmodule EHealth.MedicationRequests.API do
 
   defp do_get_employees(params) do
     params
-    |> Employees.list()
+    |> Employees.list!()
     |> Enum.map(&(Map.get(&1, :id)))
   end
 
   defp get_party_user(user_id) do
-    with %PartyUser{} = party_user <- PartyUsers.get_party_users_by_user_id(user_id) do
+    with [party_user] <- PartyUsers.list!(%{user_id: user_id}) do
       party_user
     else
       _ ->
@@ -211,11 +210,11 @@ defmodule EHealth.MedicationRequests.API do
   end
 
   def get_references(medication_request) do
-    with %Division{} = division <- Divisions.get_division_by_id(medication_request["division_id"]),
-         %Employee{} = employee <- Employees.get_employee_by_id(medication_request["employee_id"]),
+    with %Division{} = division <- Divisions.get_by_id(medication_request["division_id"]),
+         %Employee{} = employee <- Employees.get_by_id(medication_request["employee_id"]),
          %MedicalProgram{} = medical_program <- MedicalPrograms.get_by_id(medication_request["medical_program_id"]),
-         %INNMDosage{} = medication <- MedicationsAPI.get_innm_dosage_by_id(medication_request["medication_id"]),
-         %LegalEntity{} = legal_entity <- LegalEntities.get_legal_entity_by_id(medication_request["legal_entity_id"]),
+         %INNMDosage{} = medication <- Medications.get_innm_dosage_by_id(medication_request["medication_id"]),
+         %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(medication_request["legal_entity_id"]),
          {:ok, %{"data" => person}} <- MPI.person(medication_request["person_id"])
     do
       {
@@ -263,7 +262,7 @@ defmodule EHealth.MedicationRequests.API do
 
   def get_check_innm_id(medication_request) do
     medication_id = medication_request["medication_id"]
-    with %INNMDosage{} = medication <- MedicationsAPI.get_innm_dosage_by_id(medication_id),
+    with %INNMDosage{} = medication <- Medications.get_innm_dosage_by_id(medication_id),
          ingredient <- Enum.find(medication.ingredients, &(Map.get(&1, :is_primary)))
     do
       {:ok, ingredient.innm_child_id}

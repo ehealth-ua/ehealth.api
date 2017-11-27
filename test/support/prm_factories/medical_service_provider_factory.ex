@@ -3,10 +3,8 @@ defmodule EHealth.PRMFactories.MedicalServiceProviderFactory do
 
   defmacro __using__(_opts) do
     quote do
-      alias Ecto.UUID
-
       def medical_service_provider_factory do
-        %EHealth.PRM.MedicalServiceProviders.Schema{
+        %EHealth.LegalEntities.MedicalServiceProvider{
           licenses: [%{
             license_number: "fd123443",
             issued_by: "Кваліфікацйна комісія",

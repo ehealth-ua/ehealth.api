@@ -6,7 +6,7 @@ defmodule EHealth.PRMFactories.GlobalParameterFactory do
       alias Ecto.UUID
 
       def global_parameter_factory do
-        %EHealth.PRM.GlobalParameters.Schema{
+        %EHealth.GlobalParameters.GlobalParameter{
           parameter: Base.url_encode64(:crypto.strong_rand_bytes(10)),
           value: :rand.normal(),
           inserted_by: UUID.generate(),

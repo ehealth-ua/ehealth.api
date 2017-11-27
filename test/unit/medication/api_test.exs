@@ -1,8 +1,8 @@
 defmodule EHealth.Medication.APITest do
 
   use EHealth.Web.ConnCase, async: true
-  alias EHealth.PRM.Medications.API
-  alias EHealth.PRM.Medications.INNMDosage.Schema, as: INNMDosage
+  alias EHealth.Medications, as: API
+  alias EHealth.Medications.INNMDosage
   alias Ecto.UUID
 
   @ingredient %{

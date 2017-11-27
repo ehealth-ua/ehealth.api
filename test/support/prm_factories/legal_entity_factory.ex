@@ -6,7 +6,7 @@ defmodule EHealth.PRMFactories.LegalEntityFactory do
       alias Ecto.UUID
 
       def legal_entity_factory do
-        %EHealth.PRM.LegalEntities.Schema{
+        %EHealth.LegalEntities.LegalEntity{
           is_active: true,
           addresses: [],
           edrpou: to_string(3_300_000_000 + :rand.uniform(99_999_999)),

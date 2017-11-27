@@ -5,13 +5,12 @@ defmodule EHealth.Unit.LegalEntityTest do
 
   import Ecto.Query, warn: false
 
-  alias Ecto.UUID
   alias EHealth.Repo
   alias EHealth.PRMRepo
-  alias EHealth.Employee.Request, as: EmployeeRequest
-  alias EHealth.LegalEntity.API
-  alias EHealth.LegalEntity.Validator
-  alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
+  alias EHealth.EmployeeRequests.EmployeeRequest
+  alias EHealth.LegalEntities, as: API
+  alias EHealth.LegalEntities.Validator
+  alias EHealth.LegalEntities.LegalEntity
 
   describe "validations" do
     setup _context do
@@ -85,7 +84,7 @@ defmodule EHealth.Unit.LegalEntityTest do
       })
       request = %{"data" => %{"content" => content}}
 
-      assert %Ecto.Changeset{valid?: false} = API.create_legal_entity(%{
+      assert %Ecto.Changeset{valid?: false} = API.create(%{
         "signed_content_encoding" => "base64",
         "signed_legal_entity_request" => request
       }, [])
@@ -119,12 +118,6 @@ defmodule EHealth.Unit.LegalEntityTest do
       signer = %{"edrpou" => "03736738"}
 
       assert {:error, %Ecto.Changeset{valid?: false}} = Validator.validate_edrpou(content, signer)
-    end
-
-    test "employee request start_date format" do
-      %{"employee_request" => data} = API.prepare_employee_request_data(UUID.generate(), %{"position" => "лікар"})
-      assert Map.has_key?(data, "start_date")
-      assert Regex.match?(~r/^\d{4}-\d{2}-\d{2}$/, data["start_date"])
     end
 
     test "different signer EDRPOU" do
@@ -371,7 +364,7 @@ defmodule EHealth.Unit.LegalEntityTest do
       "signed_legal_entity_request" => Base.encode64(Poison.encode!(request_params)),
       "signed_content_encoding" => "base64",
     }
-    API.create_legal_entity(request, get_headers())
+    API.create(request, get_headers())
   end
 
   defp get_legal_entity_data do

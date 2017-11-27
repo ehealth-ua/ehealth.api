@@ -3,8 +3,8 @@ defmodule EHealth.Web.INNMController do
   use EHealth.Web, :controller
 
   alias Scrivener.Page
-  alias EHealth.PRM.Medications.API
-  alias EHealth.PRM.Medications.INNM.Schema, as: INNM
+  alias EHealth.Medications, as: API
+  alias EHealth.Medications.INNM
 
   action_fallback EHealth.Web.FallbackController
 

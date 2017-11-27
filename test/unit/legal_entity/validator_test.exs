@@ -5,7 +5,7 @@ defmodule EHealth.Unit.LegalEntity.ValidatorTest do
 
   use EHealth.Web.ConnCase, async: false
 
-  alias EHealth.LegalEntity.Validator
+  alias EHealth.LegalEntities.Validator
   import EHealth.SimpleFactory, only: [address: 1]
 
   describe "Additional JSON objects validation: validate_json_objects/1" do

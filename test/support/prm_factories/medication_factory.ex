@@ -1,12 +1,12 @@
 defmodule EHealth.PRMFactories.MedicationFactory do
   @moduledoc false
 
-  alias EHealth.PRM.Medications.INNM.Schema, as: INNM
-  alias EHealth.PRM.Medications.Program.Schema, as: ProgramMedication
-  alias EHealth.PRM.Medications.INNMDosage.Schema, as: INNMDosage
-  alias EHealth.PRM.Medications.INNMDosage.Ingredient, as: INNMDosageIngredient
-  alias EHealth.PRM.Medications.Medication.Schema, as: Medication
-  alias EHealth.PRM.Medications.Medication.Ingredient, as: MedicationIngredient
+  alias EHealth.Medications.INNM
+  alias EHealth.Medications.Program, as: ProgramMedication
+  alias EHealth.Medications.INNMDosage
+  alias EHealth.Medications.INNMDosage.Ingredient, as: INNMDosageIngredient
+  alias EHealth.Medications.Medication
+  alias EHealth.Medications.Medication.Ingredient, as: MedicationIngredient
 
   defmacro __using__(_opts) do
     quote do

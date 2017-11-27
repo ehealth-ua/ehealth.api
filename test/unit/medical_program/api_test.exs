@@ -2,7 +2,7 @@ defmodule EHealth.MedicalProgram.APITest do
   @moduledoc false
 
   use EHealth.Web.ConnCase, async: true
-  alias EHealth.PRM.MedicalPrograms
+  alias EHealth.MedicalPrograms
   alias Scrivener.Page
 
   test "list/1" do

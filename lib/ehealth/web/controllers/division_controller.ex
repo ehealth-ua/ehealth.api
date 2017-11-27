@@ -4,8 +4,8 @@ defmodule EHealth.Web.DivisionController do
   use EHealth.Web, :controller
 
   alias Scrivener.Page
-  alias EHealth.Divisions.API
-  alias EHealth.PRM.Divisions.Schema, as: Division
+  alias EHealth.Divisions, as: API
+  alias EHealth.Divisions.Division
 
   action_fallback EHealth.Web.FallbackController
 
@@ -24,7 +24,9 @@ defmodule EHealth.Web.DivisionController do
   end
 
   def show(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
-    with {:ok, division} <- API.get_by_id(get_client_id(req_headers), id) do
+    with %Division{} = division <- API.get_by_id!(id),
+         :ok <- API.validate_legal_entity(division, get_client_id(req_headers))
+    do
       render(conn, "show.json", division: division)
     end
   end

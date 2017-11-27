@@ -30,7 +30,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     )
     party_id = employee.party |> Map.get(:id)
     user_id = Ecto.UUID.generate()
-    EHealth.PRMRepo.insert!(%EHealth.PRM.PartyUsers.Schema{user_id: user_id, party_id: party_id})
+    EHealth.PRMRepo.insert!(%EHealth.PartyUsers.PartyUser{user_id: user_id, party_id: party_id})
     conn =
      conn
      |> put_consumer_id_header(user_id)
@@ -373,7 +373,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       drfo =
         mrr
         |> get_in(["employee", "party", "id"])
-        |> (fn x -> EHealth.PRMRepo.get!(EHealth.PRM.Parties.Schema, x) end).()
+        |> (fn x -> EHealth.PRMRepo.get!(EHealth.Parties.Party, x) end).()
         |> Map.get(:tax_id)
       conn = Plug.Conn.put_req_header(conn, "drfo", drfo)
 

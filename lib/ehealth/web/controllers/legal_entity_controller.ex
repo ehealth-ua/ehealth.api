@@ -5,9 +5,8 @@ defmodule EHealth.Web.LegalEntityController do
   use EHealth.Web, :controller
 
   alias Scrivener.Page
-  alias EHealth.LegalEntity.API
-  alias EHealth.PRM.LegalEntities
-  alias EHealth.LegalEntity.LegalEntityUpdater
+  alias EHealth.LegalEntities, as: API
+  alias EHealth.LegalEntities.LegalEntityUpdater
 
   action_fallback EHealth.Web.FallbackController
 
@@ -15,7 +14,7 @@ defmodule EHealth.Web.LegalEntityController do
     with {:ok, %{
       legal_entity: legal_entity,
       employee_request: employee_request,
-      security: security}} <- API.create_legal_entity(legal_entity_params, req_headers) do
+      security: security}} <- API.create(legal_entity_params, req_headers) do
 
       conn
       |> assign_security(security)
@@ -30,13 +29,13 @@ defmodule EHealth.Web.LegalEntityController do
     params = if is_nil(legal_entity_id),
       do: params,
       else: Map.put(params, "ids", legal_entity_id)
-    with %Page{} = paging <- LegalEntities.get_legal_entities(params) do
+    with %Page{} = paging <- API.list(params) do
       render(conn, "index.json", legal_entities: paging.entries, paging: paging)
     end
   end
 
   def show(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
-    with {:ok, legal_entity, security} <- API.get_legal_entity_by_id(id, req_headers) do
+    with {:ok, legal_entity, security} <- API.get_by_id(id, req_headers) do
       conn
       |> assign_security(security)
       |> render("show.json", legal_entity: legal_entity)
@@ -61,7 +60,7 @@ defmodule EHealth.Web.LegalEntityController do
     end
   end
 
-  defp assign_employee_request_id(conn, %EHealth.Employee.Request{id: id}) do
+  defp assign_employee_request_id(conn, %EHealth.EmployeeRequests.EmployeeRequest{id: id}) do
     assign_urgent(conn, "employee_request_id", id)
   end
   defp assign_employee_request_id(conn, _employee_request_id), do: conn

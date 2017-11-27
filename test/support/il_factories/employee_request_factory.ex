@@ -4,10 +4,10 @@ defmodule EHealth.ILFactories.EmployeeRequestFactory do
   defmacro __using__(_opts) do
     quote do
       alias Ecto.UUID
-      alias EHealth.Employee.Request
+      alias EHealth.EmployeeRequests.EmployeeRequest, as: Request
 
       def employee_request_factory do
-        %EHealth.Employee.Request{
+        %Request{
           "data": employee_request_data(),
           "employee_id": Ecto.UUID.generate(),
           "status": "NEW"

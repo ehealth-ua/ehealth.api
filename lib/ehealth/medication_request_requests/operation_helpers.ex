@@ -2,22 +2,22 @@ defmodule EHealth.MedicationRequestRequest.OperationHelpers do
   @moduledoc false
   import Ecto.Changeset
 
-  alias EHealth.PRM.Employees
-  alias EHealth.PRM.LegalEntities
-  alias EHealth.PRM.Divisions
+  alias EHealth.Employees
+  alias EHealth.LegalEntities
+  alias EHealth.Divisions
   alias EHealth.MedicationRequestRequest.Validations
   alias EHealth.Utils.Helpers
   alias EHealth.API.MPI
   alias EHealth.MedicationRequestRequest.Operation
-  alias EHealth.PRM.Medications.API, as: MedicationsAPI
-  alias EHealth.PRM.MedicalPrograms
+  alias EHealth.Medications
+  alias EHealth.MedicalPrograms
 
   def get_employee(id) do
-    Helpers.get_assoc_by_func("employee_id", fn -> Employees.get_employee_by_id(id) end)
+    Helpers.get_assoc_by_func("employee_id", fn -> Employees.get_by_id(id) end)
   end
 
   def get_medication(id) do
-    Helpers.get_assoc_by_func("medication_id", fn -> MedicationsAPI.get_innm_dosage_by_id(id) end)
+    Helpers.get_assoc_by_func("medication_id", fn -> Medications.get_innm_dosage_by_id(id) end)
   end
 
   def get_medical_program(nil), do: {:ok, nil}
@@ -34,7 +34,7 @@ defmodule EHealth.MedicationRequestRequest.OperationHelpers do
   end
 
   def get_legal_entity(client_id) do
-    case LegalEntities.get_by_id_preload(client_id, :medical_service_provider) do
+    case LegalEntities.get_by_id(client_id) do
       nil -> {:error, "client_id"}
       le -> {:ok, le}
     end
@@ -61,7 +61,7 @@ defmodule EHealth.MedicationRequestRequest.OperationHelpers do
   end
 
   def get_division(id) do
-    Helpers.get_assoc_by_func("division_id", fn -> Divisions.get_division_by_id(id) end)
+    Helpers.get_assoc_by_func("division_id", fn -> Divisions.get_by_id(id) end)
   end
 
   def validate_division(operation, division) do

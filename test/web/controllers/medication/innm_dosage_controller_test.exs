@@ -1,7 +1,7 @@
 defmodule EHealth.Web.INNMDosageControllerTest do
   use EHealth.Web.ConnCase
 
-  alias EHealth.PRM.Medications.INNMDosage.Schema, as: INNMDosage
+  alias EHealth.Medications.INNMDosage
   alias Ecto.UUID
 
   @create_attrs %{

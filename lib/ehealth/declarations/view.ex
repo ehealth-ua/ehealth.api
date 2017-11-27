@@ -2,10 +2,11 @@ defmodule EHealth.Declarations.View do
   @moduledoc false
 
   use EHealth.Web, :view
-  alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
-  alias EHealth.PRM.Employees.Schema, as: Employee
-  alias EHealth.PRM.Parties.Schema, as: Party
-  alias EHealth.PRM.Divisions.Schema, as: Division
+
+  alias EHealth.LegalEntities.LegalEntity
+  alias EHealth.Employees.Employee
+  alias EHealth.Parties.Party
+  alias EHealth.Divisions.Division
 
   def render_declarations(declarations) do
     Enum.map(declarations, &render_declaration(&1, :list))

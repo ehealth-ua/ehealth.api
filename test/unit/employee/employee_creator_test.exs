@@ -3,8 +3,8 @@ defmodule EHealth.Unit.Employee.EmployeeCreatorTest do
 
   use EHealth.Web.ConnCase, async: true
 
-  alias EHealth.Employee.EmployeeCreator
-  alias EHealth.PRM.Employees.Schema, as: Employee
+  alias EHealth.Employees.EmployeeCreator
+  alias EHealth.Employees.Employee
   alias EHealth.PRMRepo
 
   test "deactivate_employee_owners/2" do

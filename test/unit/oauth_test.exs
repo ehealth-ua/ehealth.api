@@ -5,7 +5,7 @@ defmodule EHealth.Unit.OAuthAPITest do
 
   alias Ecto.UUID
   alias EHealth.OAuth.API
-  alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
+  alias EHealth.LegalEntities.LegalEntity
 
   test "check client name for client creation" do
     name = "my name"

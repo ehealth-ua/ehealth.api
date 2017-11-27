@@ -3,9 +3,9 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
   use EHealth.Web.ConnCase
   alias EHealth.MockServer
-  alias EHealth.PRM.Employees.Schema, as: Employee
+  alias EHealth.Employees.Employee
   alias EHealth.PRMRepo
-  alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
+  alias EHealth.LegalEntities.LegalEntity
 
   test "invalid legal entity", %{conn: conn} do
     conn = put conn, legal_entity_path(conn, :create_or_update), %{"invlid" => "data"}

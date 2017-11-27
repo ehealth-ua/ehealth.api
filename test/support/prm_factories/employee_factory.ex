@@ -9,7 +9,7 @@ defmodule EHealth.PRMFactories.EmployeeFactory do
         division = build(:division)
         party = build(:party)
 
-        %EHealth.PRM.Employees.Schema{
+        %EHealth.Employees.Employee{
           is_active: true,
           position: "some position",
           status: "APPROVED",

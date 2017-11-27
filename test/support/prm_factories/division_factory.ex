@@ -1,14 +1,14 @@
 defmodule EHealth.PRMFactories.DivisionFactory do
   @moduledoc false
 
-  alias EHealth.PRM.Divisions.Schema, as: Division
+  alias EHealth.Divisions.Division
 
   defmacro __using__(_opts) do
     quote do
       alias Ecto.UUID
 
       def division_factory do
-        %EHealth.PRM.Divisions.Schema{
+        %Division{
           legal_entity: build(:legal_entity),
           addresses: [address()],
           phones: [],

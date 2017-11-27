@@ -4,27 +4,28 @@ defmodule EHealth.MedicationDispense.API do
   import EHealth.Utils.Connection, only: [get_client_id: 1, get_consumer_id: 1]
   import Ecto.Changeset, only: [cast: 3]
   import Ecto.Query
-  alias EHealth.PRM.Divisions
-  alias EHealth.PRM.Employees
-  alias EHealth.PRM.LegalEntities
-  alias EHealth.PRM.MedicalPrograms
-  alias EHealth.PRM.LegalEntities.Schema, as: LegalEntity
-  alias EHealth.PRM.Employees.Schema, as: Employee
-  alias EHealth.PRM.Divisions.Schema, as: Division
-  alias EHealth.PRM.PartyUsers.Schema, as: PartyUser
-  alias EHealth.PRM.Parties.Schema, as: Party
-  alias EHealth.PRM.Medications.Medication.Schema, as: Medication
-  alias EHealth.PRM.Medications.Program.Schema, as: ProgramMedication
+
+  alias EHealth.Divisions
+  alias EHealth.Employees
+  alias EHealth.LegalEntities
+  alias EHealth.MedicalPrograms
+  alias EHealth.LegalEntities.LegalEntity
+  alias EHealth.Employees.Employee
+  alias EHealth.Divisions.Division
+  alias EHealth.PartyUsers.PartyUser
+  alias EHealth.Parties.Party
+  alias EHealth.Medications.Medication
+  alias EHealth.Medications.Program, as: ProgramMedication
   alias EHealth.API.OPS
   alias EHealth.MedicationDispenses.Search
   alias EHealth.MedicationDispenses.SearchByMedicationRequest
   alias EHealth.Validators.JsonSchema
   alias EHealth.Validators.Reference
-  alias EHealth.PRM.PartyUsers
-  alias EHealth.PRM.Parties
+  alias EHealth.PartyUsers
+  alias EHealth.Parties
   alias EHealth.PRMRepo
   alias EHealth.MedicationRequests.API, as: MedicationRequests
-  alias EHealth.PRM.Medications.API, as: MedicationsAPI
+  alias EHealth.Medications
 
   @search_fields ~w(
     id
@@ -79,7 +80,7 @@ defmodule EHealth.MedicationDispense.API do
          medication_dispense <- Map.put(medication_dispense, "details", details),
          {:ok, party} <- get_party_by_id(medication_dispense["party_id"]),
          :ok <- validate_legal_entity_id(medication_dispense, legal_entity_id),
-         division <- Divisions.get_division_by_id(medication_dispense["division_id"]),
+         division <- Divisions.get_by_id(medication_dispense["division_id"]),
          medical_program <- MedicalPrograms.get_by_id(medication_dispense["medical_program_id"]),
          medication_request <- medication_dispense["medication_request"],
          {:ok, medication_request} <- MedicationRequests.get_references(medication_request)
@@ -103,7 +104,7 @@ defmodule EHealth.MedicationDispense.API do
     with :ok                       <- JsonSchema.validate(:medication_dispense, params),
          params                    <- params["medication_dispense"],
          {:ok, legal_entity}       <- Reference.validate(:legal_entity, legal_entity_id),
-         {:ok, party_user}         <- get_party(user_id),
+         {:ok, party_user}         <- get_party_user(user_id),
          :ok                       <- validate_legal_entity(legal_entity),
          {:ok, medication_request} <- validate_medication_request(params["medication_request_id"]),
          :ok                       <- validate_employee(party_user, legal_entity_id),
@@ -189,7 +190,7 @@ defmodule EHealth.MedicationDispense.API do
   end
 
   defp validate_employee(%PartyUser{party: %Party{id: party_id}}, legal_entity_id) do
-    employees = Employees.list(party_id: party_id)
+    employees = Employees.list(%{party_id: party_id})
     Enum.reduce_while(employees, {:error, :forbidden}, fn employee, acc ->
       if is_active_employee(employee) && employee.legal_entity_id == legal_entity_id do
         {:halt, :ok}
@@ -423,7 +424,7 @@ defmodule EHealth.MedicationDispense.API do
       |> Enum.into(%{}, &({Map.get(&1, :id), &1}))
     medications =
       reference_ids.medication_ids
-      |> MedicationsAPI.get_by_ids()
+      |> Medications.get_by_ids()
       |> Enum.into(%{}, &({Map.get(&1, :id), &1}))
     %{
       divisions: divisions,
@@ -483,15 +484,15 @@ defmodule EHealth.MedicationDispense.API do
     end
   end
 
-  defp get_party(user_id) do
-    case PartyUsers.get_party_users_by_user_id(user_id) do
-      nil -> {:error, {:bad_request, "Party not found"}}
-      party_user -> {:ok, party_user}
+  defp get_party_user(user_id) do
+    case PartyUsers.list!(%{user_id: user_id}) do
+      [] -> {:error, {:bad_request, "Party not found"}}
+      [party_user] -> {:ok, party_user}
     end
   end
 
   defp get_party_by_id(id) do
-    with %Party{} = party <- PRMRepo.get(Party, id) do
+    with %Party{} = party <- Parties.get_by_id(id) do
       {:ok, party}
     else
       nil -> {:error, {:internal_error, "No party by id #{id}"}}
@@ -535,7 +536,7 @@ defmodule EHealth.MedicationDispense.API do
 
   defp load_dispense_medications(%{"details" => details}) do
     Enum.reduce_while(details, {:ok, []}, fn item, {:ok, acc} ->
-      with %Medication{} = medication <- MedicationsAPI.get_medication_by_id(Map.get(item, "medication_id")) do
+      with %Medication{} = medication <- Medications.get_medication_by_id(Map.get(item, "medication_id")) do
         {:cont, {:ok, acc ++ [Map.put(item, "medication", medication)]}}
       else
         _ -> {:halt, {:error, {:internal_error, "Medication not found"}}}

@@ -2,11 +2,11 @@ defmodule EHealth.MedicationRequestRequest.Validations do
   @moduledoc false
 
   alias EHealth.API.Signature
-  alias EHealth.PRM.Employees
+  alias EHealth.Employees
   alias EHealth.Validators.JsonSchema
-  alias EHealth.PRM.Employees.Schema, as: Employee
+  alias EHealth.Employees.Employee
   alias EHealth.Declarations.API, as: DeclarationsAPI
-  alias EHealth.PRM.Medications.API, as: MedicationsAPI
+  alias EHealth.Medications
 
   def validate_create_schema(params) do
     JsonSchema.validate(:medication_request_request_create, params)
@@ -61,7 +61,7 @@ defmodule EHealth.MedicationRequestRequest.Validations do
   end
 
   def validate_medication_id(medication_id, medication_qty, medical_program_id) do
-    with medications <- MedicationsAPI.get_medication_for_medication_request_request(medication_id, medical_program_id),
+    with medications <- Medications.get_medication_for_medication_request_request(medication_id, medical_program_id),
          {true, :medication} <- {length(medications) > 0, :medication},
          {true, :medication_qty} <- validate_medication_qty(medications, medication_qty)
      do
@@ -90,7 +90,7 @@ defmodule EHealth.MedicationRequestRequest.Validations do
   end
 
   def validate_sign_content(mrr, %{"content" => content, "signer" => signer}) do
-    with %Employee{} = employee <- Employees.get_employee_by_id(mrr.data.employee_id),
+    with %Employee{} = employee <- Employees.get_by_id(mrr.data.employee_id),
          doctor_tax_id          <- employee |> Map.get(:party) |> Map.get(:tax_id),
          true                   <- mrr.id == content["id"] &&
                                    mrr.data.division_id == get_in(content, ["division", "id"]) &&
