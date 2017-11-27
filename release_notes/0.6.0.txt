@@ -1,7 +1,8 @@
-Change log for versions 0.6.0 - 0.6.24
+Change log for versions 0.6.0 - 0.6.25
 
 **Patches and bug fixes**:
 
+Fix logging on prod
 refactor divisions context
 refactor parties context
 refactor party_users context with search and repo
@@ -29,6 +30,8 @@ add context logic to referesh_secret endpoint (#1495)
 
 **Other**:
 
+Revert "[patch] Make sure 500s make it into logs"
+This reverts commit b7bb8dcd0ccbed1a1d78a94bc1f5c382f76628ed.
 WIP: [patch] refactor divisions context (#1526)
 New base container (#1539)
 Manually bump version
