@@ -12,7 +12,6 @@ defmodule EHealth.API.MediaStorage do
 
   def create_signed_url(action, bucket, resource_name, resource_id, headers \\ []) do
     data = %{"secret" => generate_sign_url_data(action, bucket, resource_name, resource_id)}
-    Logger.info(fn -> inspect data end)
     create_signed_url(data, headers)
   end
 
@@ -31,6 +30,18 @@ defmodule EHealth.API.MediaStorage do
   end
 
   def create_signed_url(data, headers) do
+    Logger.info(fn ->
+      Poison.encode!(%{
+        "log_type"     => "microservice_request",
+        "microservice" => config()[:endpoint],
+        "action"       => "POST",
+        "path"         => Enum.join([config()[:endpoint], "/media_content_storage_secrets"]),
+        "request_id"   => Logger.metadata[:request_id],
+        "body"         => data,
+        "headers"      => Enum.reduce(headers, %{}, fn {k, v}, map -> Map.put_new(map, k, v) end)
+      })
+    end)
+
     post!("/media_content_storage_secrets", Poison.encode!(data), headers)
   end
 
@@ -58,7 +69,15 @@ defmodule EHealth.API.MediaStorage do
     |> check_gcs_response()
   end
   def put_signed_content(err, _signed_content) do
-    Logger.error(fn -> "Cannot create signed url. Response: #{inspect err}" end)
+    Logger.error(fn ->
+      Poison.encode!(%{
+        "log_type"     => "microservice_response",
+        "microservice" => config()[:endpoint],
+        "response"     => err,
+        "request_id"   => Logger.metadata[:request_id]
+      })
+    end)
+
     err
   end
 

@@ -93,7 +93,7 @@ defmodule EHealth.Employees.EmployeeUpdater do
     |> Enum.reduce_while(nil, fn {id, resp}, acc ->
       case resp do
         {:error, err} ->
-          Logger.error("Failed to revoke user roles with user_id \"#{id}\". Reason: #{inspect err}")
+          log_error(id, err)
           {:halt, err}
         _ -> {:cont, acc}
       end
@@ -130,5 +130,15 @@ defmodule EHealth.Employees.EmployeeUpdater do
 
   defp check_legal_entity_id(client_id, %Employee{legal_entity_id: legal_entity_id}) do
     if client_id == legal_entity_id, do: :ok, else: {:error, :forbidden}
+  end
+
+  defp log_error(id, message) do
+    Logger.error(fn ->
+      Poison.encode!(%{
+        "log_type"   => "error",
+        "message"    => "Failed to revoke user roles with user_id \"#{id}\". Reason: #{inspect message}",
+        "request_id" => Logger.metadata[:request_id]
+      })
+    end)
   end
 end

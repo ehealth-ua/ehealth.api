@@ -13,7 +13,15 @@ defmodule EHealth.API.Man do
   def render_template(id, data, headers \\ []) do
     path = "/templates/#{id}/actions/render"
     Logger.info(fn ->
-      "Calling POST on #{config()[:endpoint]}#{path} with body=#{inspect data} and headers=#{inspect headers}."
+      Poison.encode!(%{
+        "log_type"     => "microservice_request",
+        "microservice" => config()[:endpoint],
+        "action"       => "POST",
+        "path"         => Enum.join([config()[:endpoint], path]),
+        "request_id"   => Logger.metadata[:request_id],
+        "body"         => data,
+        "headers"      => headers
+      })
     end)
 
     path
@@ -26,7 +34,14 @@ defmodule EHealth.API.Man do
   end
 
   defp process_template(%HTTPoison.Response{body: body}) do
-    Logger.error(fn -> "Error during Man interaction. Result from Man: #{inspect body}" end)
+    Logger.error(fn ->
+      Poison.encode!(%{
+        "log_type"     => "microservice_response",
+        "microservice" => config()[:endpoint],
+        "response"     => body,
+        "request_id"   => Logger.metadata[:request_id]
+      })
+    end)
 
     {:error, body}
   end

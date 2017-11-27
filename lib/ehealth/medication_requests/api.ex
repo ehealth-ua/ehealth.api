@@ -204,7 +204,13 @@ defmodule EHealth.MedicationRequests.API do
       party_user
     else
       _ ->
-        Logger.error("No party user for user_id: \"#{user_id}\"")
+        Logger.error(fn ->
+          Poison.encode!(%{
+            "log_type"   => "error",
+            "message"    => "No party user for user_id: \"#{user_id}\"",
+            "request_id" => Logger.metadata[:request_id]
+          })
+        end)
         {:error, %{"type" => "internal_error"}}
     end
   end

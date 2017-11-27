@@ -47,10 +47,18 @@ defmodule EHealth.DeclarationRequest.API.Approve do
     resource_name = "declaration_request_#{type}.jpeg"
     bucket = Confex.fetch_env!(:ehealth, EHealth.API.MediaStorage)[:declaration_request_bucket]
 
-    {:ok, %{"data" => %{"secret_url" => url}}} =
+    {:ok, %{"data" => %{"secret_url" => url}} = result} =
       MediaStorage.create_signed_url("HEAD", bucket, resource_name, id)
 
-    Logger.info(fn -> inspect url end)
+    Logger.info(fn ->
+      Poison.encode!(%{
+        "log_type"     => "microservice_result",
+        "microservice" => "ael",
+        "result"       => result,
+        "request_id"   => Logger.metadata[:request_id],
+      })
+    end)
+
     case HTTPoison.head(url, ["Content-Type":  MIME.from_path(resource_name)]) do
       {:ok, resp} ->
         case resp do
@@ -60,7 +68,15 @@ defmodule EHealth.DeclarationRequest.API.Approve do
             {:error, {:not_uploaded, type}}
         end
       {:error, reason} ->
-        Logger.error("Cannot check uploaded document in Ael with error #{inspect reason}")
+        Logger.info(fn ->
+          Poison.encode!(%{
+            "log_type"     => "microservice_result",
+            "microservice" => "ael",
+            "result"       => reason,
+            "request_id"   => Logger.metadata[:request_id]
+          })
+        end)
+
         {:error, {:ael_bad_response, reason}}
     end
   end

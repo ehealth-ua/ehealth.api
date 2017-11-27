@@ -126,14 +126,26 @@ defmodule EHealth.Web.FallbackController do
   end
 
   def call(conn, {:error, {:response_json_decoder, reason}}) do
-    Logger.error("Cannot decode HTTP JSON response: #{inspect reason}")
+    Logger.error(fn ->
+      Poison.encode!(%{
+        "log_type"   => "error",
+        "message"    => "Cannot decode HTTP JSON response: #{inspect reason}",
+        "request_id" => Logger.metadata[:request_id]
+      })
+    end)
     conn
     |> put_status(:failed_dependency)
     |> render(EView.Views.Error, :"424", %{message: "Cannot decode HTTP JSON response"})
   end
 
   def call(conn, params) do
-    Logger.error("No function clause matching in EHealth.Web.FallbackController.call/2: #{inspect params}")
+    Logger.error(fn ->
+      Poison.encode!(%{
+        "log_type"   => "error",
+        "message"    => "No function clause matching in EHealth.Web.FallbackController.call/2: #{inspect params}",
+        "request_id" => Logger.metadata[:request_id]
+      })
+    end)
     conn
     |> put_status(:not_implemented)
     |> render(EView.Views.Error, :"501")

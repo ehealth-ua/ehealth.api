@@ -24,10 +24,10 @@ defmodule EHealth.Unit.API.MediaStorageTest do
         MediaStorage.create_signed_url("PUT", "some_bucket", "my_resource", "my_id", [some_header: "x"])
       end
 
-      message = ~s(Calling post on http://localhost:4040/media_content_storage_secrets) <>
-        ~s(. Body: "{\\"secret\\":{\\"resource_name\\":\\"my_resource\\",\\"resource_id\\") <>
-        ~s(:\\"my_id\\",\\"content_type\\":\\"application/octet-stream\\",\\"bucket\\":\\") <>
-        ~s(some_bucket\\",\\"action\\":\\"PUT\\"}}". Headers: [some_header: "x"])
+      message =
+        ~s("log_type":"microservice_request","headers":{"some_header":"x"},"body":{"secret":{") <>
+        ~s(resource_name":"my_resource","resource_id":"my_id","content_type":"application/octe) <>
+        ~s(t-stream","bucket":"some_bucket","action":"PUT"}},"action":"POST")
       assert capture_log([level: :info], fun) =~ message
     end
   end

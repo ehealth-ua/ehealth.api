@@ -127,7 +127,14 @@ defmodule EHealth.EmployeeRequests do
         |> get_in(["party", "email"])
         |> sender.send(body) # ToDo: use postboy when it is ready
       rescue
-        e -> Logger.error(e.message)
+        e ->
+          Logger.error(fn ->
+            Poison.encode!(%{
+              "log_type"   => "error",
+              "message"    => e.message,
+              "request_id" => Logger.metadata[:request_id]
+            })
+          end)
       end
       {:ok, employee_request}
     end

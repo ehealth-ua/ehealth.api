@@ -69,7 +69,14 @@ defmodule EHealth.Plugs.ClientContext do
       client_type in config[:tokens_types_mis] -> %{}
       client_type in config[:tokens_types_admin] -> %{}
       true ->
-        Logger.error("Undefined client type name #{client_type} for context request.")
+        Logger.error(fn ->
+          Poison.encode!(%{
+            "log_type"   => "error",
+            "message"    => "Undefined client type name #{client_type} for context request.",
+            "request_id" => Logger.metadata[:request_id]
+          })
+        end)
+
         %{"legal_entity_id" => client_id}
     end
   end
@@ -82,7 +89,13 @@ defmodule EHealth.Plugs.ClientContext do
       client_type in config[:tokens_types_mis] -> :ok
       client_type in config[:tokens_types_admin] -> :ok
       true ->
-        Logger.error("Undefined client type name #{client_type} for context request.")
+        Logger.error(fn ->
+          Poison.encode!(%{
+            "log_type"   => "error",
+            "message"    => "Undefined client type name #{client_type} for context request.",
+            "request_id" => Logger.metadata[:request_id]
+          })
+        end)
         {:error, :forbidden}
     end
   end

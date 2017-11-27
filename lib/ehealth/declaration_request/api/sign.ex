@@ -61,7 +61,17 @@ defmodule EHealth.DeclarationRequest.API.Sign do
       true -> pipe_data
       _ ->
         mismatches = do_compare_with_db(db_content, content)
-        Logger.info "Signed content comparison failed. The following fields were different: #{inspect mismatches}"
+
+        Logger.info(fn ->
+          Poison.encode!(%{
+            "log_type"     => "debug",
+            "process"      => "declaration_request_sign",
+            "details"      => %{
+              "mismatches" => mismatches
+            },
+            "request_id"   => Logger.metadata[:request_id],
+          })
+        end)
 
         {:error, [{%{description: "Signed content does not match the previously created content",
         params: [], rule: :invalid}, "$.content"}]}
@@ -73,10 +83,17 @@ defmodule EHealth.DeclarationRequest.API.Sign do
     tax_id = get_in(content, ["employee", "party", "tax_id"])
     drfo = Map.get(signer, "drfo")
 
-    Logger.info(fn -> """
-      tax_id: #{tax_id}
-      drfo: #{drfo}
-      """ end)
+    Logger.info(fn ->
+      Poison.encode!(%{
+        "log_type"     => "debug",
+        "process"      => "declaration_request_sign",
+        "details"      => %{
+          "drfo" => drfo,
+          "tax_id" => tax_id
+        },
+        "request_id"   => Logger.metadata[:request_id]
+      })
+    end)
 
     case tax_id == drfo do
       true -> {:ok, {content, db_data}}
@@ -185,7 +202,13 @@ defmodule EHealth.DeclarationRequest.API.Sign do
   defp get_status(%{"type" => @auth_otp}), do: "active"
   defp get_status(%{"type" => @auth_na}), do: "active"
   defp get_status(_) do
-    Logger.error(fn -> "Unknown authentication_method_current.type" end)
+    Logger.error(fn ->
+      Poison.encode!(%{
+        "log_type"   => "error",
+        "message"    => "Unknown authentication_method_current.type",
+        "request_id" => Logger.metadata[:request_id]
+      })
+    end)
     ""
   end
 

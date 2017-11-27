@@ -17,8 +17,17 @@ defmodule EHealth.API.Helpers.MicroserviceBase do
       def request(method, url, body \\ "", headers \\ [], options \\ []) do
         params = Keyword.get(options, :params, [])
         query_string = if Enum.empty?(params), do: "", else: "?#{URI.encode_query(params)}"
+
         Logger.info(fn ->
-          "Calling #{method} on #{process_url(url)}#{query_string}. Body: #{inspect body}. Headers: #{inspect headers}"
+          Poison.encode!(%{
+            "log_type"     => "microservice_request",
+            "microservice" => config()[:endpoint],
+            "action"       => method,
+            "path"         => Enum.join([process_url(url), query_string]),
+            "request_id"   => Logger.metadata[:request_id],
+            "body"         => body,
+            "headers"      => Enum.reduce(headers, %{}, fn {k, v}, map -> Map.put_new(map, k, v) end)
+          })
         end)
 
         super(method, url, body, headers, options)

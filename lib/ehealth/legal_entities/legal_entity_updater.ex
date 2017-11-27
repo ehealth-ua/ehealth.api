@@ -70,6 +70,12 @@ defmodule EHealth.LegalEntities.LegalEntityUpdater do
   def put_legal_entity_status(params), do: Map.put(params, :status, @status_closed)
 
   defp log_deactivate_employee_error(error, id) do
-    Logger.error("Failed to deactivate employee with id \"#{id}\". Reason: #{inspect error}")
+    Logger.error(fn ->
+      Poison.encode!(%{
+        "log_type"   => "error",
+        "message"    => "Failed to deactivate employee with id \"#{id}\". Reason: #{inspect error}",
+        "request_id" => Logger.metadata[:request_id]
+      })
+    end)
   end
 end
