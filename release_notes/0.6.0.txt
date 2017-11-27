@@ -1,7 +1,8 @@
-Change log for versions 0.6.0 - 0.6.31
+Change log for versions 0.6.0 - 0.6.32
 
 **Patches and bug fixes**:
 
+Explicitly config otp reports handling
 Clean up logging (#1546)
 Update logging across app (#1545)
 Use Application.app_dir
