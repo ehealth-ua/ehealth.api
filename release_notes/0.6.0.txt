@@ -1,7 +1,8 @@
-Change log for versions 0.6.0 - 0.6.28
+Change log for versions 0.6.0 - 0.6.29
 
 **Patches and bug fixes**:
 
+Use Application.app_dir
 Specify default overall level
 Specify default level
 Fix logging on prod - 2
@@ -33,6 +34,7 @@ add context logic to referesh_secret endpoint (#1495)
 
 **Other**:
 
+Otherwise referred files will not be accessible in packed release.
 Revert "[patch] Make sure 500s make it into logs"
 This reverts commit b7bb8dcd0ccbed1a1d78a94bc1f5c382f76628ed.
 WIP: [patch] refactor divisions context (#1526)
