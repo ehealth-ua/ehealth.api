@@ -16,12 +16,6 @@ config :ehealth, EHealth.Web.Endpoint,
   check_origin: false,
   watchers: []
 
-# Do not include metadata nor timestamps in development logs
-config :logger,
-  format: "$message\n",
-  level: :info,
-  handle_otp_reports: true
-
 # Set a higher stacktrace during development. Avoid configuring such
 # in production as building large stacktraces may be expensive.
 config :phoenix, :stacktrace_depth, 20

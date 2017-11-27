@@ -206,8 +206,10 @@ config :ehealth, EHealth.Validators.BirthDate,
   max_age: {:system, "MAX_AGE", 150}
 
 # Configures Elixir's Logger
-config :logger, level: :info
-config :logger, :console, format: "$message\n", level: :info
+# config :logger, level: :info
+config :logger, :console,
+  format: "$message\n",
+  level: :info
 
 # Configures declaration request terminator
 config :ehealth, EHealth.DeclarationRequest.Terminator,
