@@ -1,7 +1,8 @@
-Change log for versions 0.6.0 - 0.6.35
+Change log for versions 0.6.0 - 0.6.36
 
 **Patches and bug fixes**:
 
+log query parameters (#1549)
 Added explict forbidden error msg
 Update mix & travis (#1548)
 Fix log type
