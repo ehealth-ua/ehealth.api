@@ -67,7 +67,6 @@ defmodule EHealth.Mixfile do
      {:geo, "~> 1.4"},
      {:quantum, ">= 2.1.0"},
      {:plug_logger_json, "~> 0.5"},
-     {:ecto_logger_json, "~> 0.1"},
      {:excoveralls, ">= 0.5.0", only: [:dev, :test]},
      {:ex_machina, "~> 2.0", only: [:dev, :test]},
      {:dogma, ">= 0.1.12", only: [:dev, :test]},
