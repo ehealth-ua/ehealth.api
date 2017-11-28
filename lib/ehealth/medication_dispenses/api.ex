@@ -191,7 +191,7 @@ defmodule EHealth.MedicationDispense.API do
 
   defp validate_employee(%PartyUser{party: %Party{id: party_id}}, legal_entity_id) do
     employees = Employees.list(%{party_id: party_id})
-    Enum.reduce_while(employees, {:error, :forbidden}, fn employee, acc ->
+    Enum.reduce_while(employees, {:error, {:forbidden, "Employee id doesn't match"}}, fn employee, acc ->
       if is_active_employee(employee) && employee.legal_entity_id == legal_entity_id do
         {:halt, :ok}
       else
@@ -437,7 +437,11 @@ defmodule EHealth.MedicationDispense.API do
 
   defp validate_legal_entity_id(_, nil), do: :ok
   defp validate_legal_entity_id(medication_dispense, legal_entity_id) do
-    if medication_dispense["legal_entity_id"] == legal_entity_id, do: :ok, else: {:error, :forbidden}
+    if medication_dispense["legal_entity_id"] == legal_entity_id do
+      :ok
+    else
+      {:error, {:forbidden, "Legal Entity id doesn't match"}}
+    end
   end
 
   defp validate_status_transition(%{"status" => from_status}, to_status) do
