@@ -1,7 +1,8 @@
-Change log for versions 0.6.0 - 0.6.33
+Change log for versions 0.6.0 - 0.6.34
 
 **Patches and bug fixes**:
 
+Update mix & travis (#1548)
 Fix log type
 Explicitly config otp reports handling
 Clean up logging (#1546)
