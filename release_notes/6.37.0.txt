@@ -1,0 +1,10 @@
+Change log for versions 6.37.0 - 6.37.4
+
+**Patches and bug fixes**:
+
+add invite employee_request endpoint (#1542)
+check token context for non NEW employee_requests
+add invite employee_request endpoint
+get cipher vars from environment variables
+
+
