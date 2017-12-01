@@ -32,9 +32,14 @@ defmodule EHealth.Web.EmployeeRequestController do
   end
 
   def invite(conn, %{"id" => id} = params) do
-    id = Cipher.decrypt(id)
-    if is_binary(id) do
+    with {:ok, cipher_str} <- Base.decode64(id),
+         id                <- Cipher.decrypt(cipher_str),
+         true              <- is_binary(id) do
       show(conn, Map.put(params, "id", id))
+    else
+      :error -> nil
+      false -> nil
+      error -> error
     end
   end
 

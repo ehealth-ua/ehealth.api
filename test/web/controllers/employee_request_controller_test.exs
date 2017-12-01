@@ -836,13 +836,19 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   describe "show invite" do
     test "success show invite", %{conn: conn} do
       %{id: id} = insert(:il, :employee_request)
-      conn = get conn, employee_request_path(conn, :invite, Cipher.encrypt(id))
+      conn = get conn, employee_request_path(conn, :invite, id |> Cipher.encrypt() |> Base.encode64())
       assert json_response(conn, 200)
     end
 
     test "fail show invite", %{conn: conn} do
       %{id: id} = insert(:il, :employee_request)
       conn = get conn, employee_request_path(conn, :invite, id)
+      assert json_response(conn, 404)
+    end
+
+    test "fail invalid id", %{conn: conn} do
+      # %{id: id} = insert(:il, :employee_request)
+      conn = get conn, employee_request_path(conn, :invite, Base.encode64("invalid"))
       assert json_response(conn, 404)
     end
   end
