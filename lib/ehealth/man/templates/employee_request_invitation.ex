@@ -23,7 +23,7 @@ defmodule EHealth.Man.Templates.EmployeeRequestInvitation do
       clinic_name: Map.get(clinic_info, :name),
       clinic_address: Map.get(clinic_info, :address),
       doctor_role: get_position(data),
-      request_id: id
+      request_id: Cipher.encrypt(id),
     })
   end
 

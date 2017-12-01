@@ -31,6 +31,13 @@ defmodule EHealth.Web.EmployeeRequestController do
     end
   end
 
+  def invite(conn, %{"id" => id} = params) do
+    id = Cipher.decrypt(id)
+    if is_binary(id) do
+      show(conn, Map.put(params, "id", id))
+    end
+  end
+
   def show(conn, %{"id" => id}) do
     employee_request = API.get_by_id!(id)
 

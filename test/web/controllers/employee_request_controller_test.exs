@@ -575,6 +575,13 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     assert "userid" == resp["urgent"]["user_id"]
   end
 
+  test "show employee_request with status NEW", %{conn: conn} do
+    %{id: id} = insert(:il, :employee_request)
+
+    conn = get conn, employee_request_path(conn, :show, id)
+    assert json_response(conn, 200)
+  end
+
   test "create user by employee request", %{conn: conn} do
     fixture_params = employee_request() |> Map.put(:email, "test@user.com")
     %{id: id} = fixture(Request, fixture_params)
@@ -674,10 +681,12 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   end
 
   test "cannot approve rejected employee request", %{conn: conn} do
+    conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
     test_invalid_status_transition(conn, "REJECTED", :approve)
   end
 
   test "cannot approve approved employee request", %{conn: conn} do
+    conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
     test_invalid_status_transition(conn, "APPROVED", :approve)
   end
 
@@ -797,10 +806,12 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   end
 
   test "cannot reject rejected employee request", %{conn: conn} do
+    conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
     test_invalid_status_transition(conn, "REJECTED", :reject)
   end
 
   test "cannot reject approved employee request", %{conn: conn} do
+    conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
     test_invalid_status_transition(conn, "APPROVED", :reject)
   end
 
@@ -820,6 +831,20 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     conn = post conn, employee_request_path(conn, :reject, id)
     resp = json_response(conn, 200)["data"]
     assert "REJECTED" == resp["status"]
+  end
+
+  describe "show invite" do
+    test "success show invite", %{conn: conn} do
+      %{id: id} = insert(:il, :employee_request)
+      conn = get conn, employee_request_path(conn, :invite, Cipher.encrypt(id))
+      assert json_response(conn, 200)
+    end
+
+    test "fail show invite", %{conn: conn} do
+      %{id: id} = insert(:il, :employee_request)
+      conn = get conn, employee_request_path(conn, :invite, id)
+      assert json_response(conn, 404)
+    end
   end
 
   def test_invalid_status_transition(conn, init_status, action) do

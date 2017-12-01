@@ -52,6 +52,7 @@ defmodule EHealthWeb.Router do
     get "/dictionaries", DictionaryController, :index
     patch "/dictionaries/:name", DictionaryController, :update
 
+    get "/invite/:id", EmployeeRequestController, :invite
     get "/employee_requests/:id", EmployeeRequestController, :show
     post "/employee_requests/:id/user", EmployeeRequestController, :create_user
 

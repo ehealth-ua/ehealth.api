@@ -221,4 +221,8 @@ config :ehealth, EHealth.EmployeeRequest.Terminator,
   frequency: 24 * 60 * 60 * 1000,
   utc_interval: {0, 4}
 
+config :cipher,
+  keyphrase: System.get_env("CIPHER_KEYPHRASE") || "8()VN#U#_CU#X)*BFG(Cadsvn$&",
+  ivphrase: System.get_env("CIPHER_IVPHRASE") || "B((%(^(%V(CWBY(**(by(*YCBDYB#(Y(C#"
+
 import_config "#{Mix.env}.exs"
