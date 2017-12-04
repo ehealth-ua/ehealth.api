@@ -4,7 +4,7 @@ use Mix.Config
 config :ehealth,
   env: Mix.env(),
   namespace: EHealth,
-  ecto_repos: [EHealth.Repo, EHealth.PRMRepo, EHealth.FraudRepo],
+  ecto_repos: [EHealth.Repo, EHealth.PRMRepo, EHealth.FraudRepo, EHealth.EventManagerRepo],
   run_declaration_request_terminator: true,
   system_user: {:system, "EHEALTH_SYSTEM_USER", "4261eacf-8008-4e62-899f-de1e2f7065f0"}
 

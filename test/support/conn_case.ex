@@ -37,10 +37,12 @@ defmodule EHealth.Web.ConnCase do
 
     :ok = Ecto.Adapters.SQL.Sandbox.checkout(EHealth.Repo)
     :ok = Ecto.Adapters.SQL.Sandbox.checkout(EHealth.PRMRepo)
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(EHealth.EventManagerRepo)
 
     unless tags[:async] do
       Ecto.Adapters.SQL.Sandbox.mode(EHealth.Repo, {:shared, self()})
       Ecto.Adapters.SQL.Sandbox.mode(EHealth.PRMRepo, {:shared, self()})
+      Ecto.Adapters.SQL.Sandbox.mode(EHealth.EventManagerRepo, {:shared, self()})
     end
 
     conn =

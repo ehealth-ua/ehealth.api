@@ -96,6 +96,7 @@ defmodule EHealth.Mixfile do
         "ecto.create",
         "ecto.create --repo EHealth.FraudRepo",
         "ecto.create --repo EHealth.PRMRepo",
+        "ecto.create --repo EHealth.EventManagerRepo",
         "ecto.migrate",
         "run priv/repo/seeds.exs"
       ],
@@ -103,6 +104,7 @@ defmodule EHealth.Mixfile do
       "test": [
         "ecto.create --quiet",
         "ecto.create --quiet --repo EHealth.PRMRepo",
+        "ecto.create --quiet --repo EHealth.EventManagerRepo",
         "ecto.migrate",
         "test"
       ]

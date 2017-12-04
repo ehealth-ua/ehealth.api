@@ -15,6 +15,7 @@ defmodule EHealth.Employees do
   alias EHealth.Employees.Search
   alias EHealth.PRMRepo
   alias EHealth.Parties
+  alias EHealth.EventManager
 
   @doctor Employee.type(:doctor)
   @pharmacist Employee.type(:pharmacist)
@@ -137,10 +138,11 @@ defmodule EHealth.Employees do
     |> PRMRepo.all()
   end
 
-  def update(%Employee{} = employee, attrs, author_id) do
+  def update(%Employee{status: old_status} = employee, attrs, author_id) do
     with {:ok, employee} <- employee
                             |> changeset(attrs)
-                            |> PRMRepo.update_and_log(author_id)
+                            |> PRMRepo.update_and_log(author_id),
+         _ <- EventManager.insert_change_status(employee, old_status, employee.status, author_id)
     do
       {:ok, load_references(employee)}
     end

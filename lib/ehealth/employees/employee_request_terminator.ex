@@ -6,7 +6,7 @@ defmodule EHealth.EmployeeRequest.Terminator do
 
   use GenServer
 
-  import EHealth.EmployeeRequests, only: [update_all: 2]
+  import EHealth.EmployeeRequests, only: [update_all: 3]
   import Ecto.Query
 
   alias EHealth.EmployeeRequests.EmployeeRequest, as: Request
@@ -56,7 +56,7 @@ defmodule EHealth.EmployeeRequest.Terminator do
         Request
         |> where([er], not er.status in ^statuses)
         |> where([er], fragment("?::date < now()::date", datetime_add(er.inserted_at, ^term, ^normalized_unit)))
-      update_all(query, [status: Request.status(:expired)])
+      update_all(query, [status: Request.status(:expired)], Confex.get_env(:ehealth, :system_user))
     end
 
     {:noreply, schedule_next_run(ms)}

@@ -11,6 +11,8 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   alias EHealth.PartyUsers.PartyUser
   alias EHealth.MockServer
   alias EHealth.PRMRepo
+  alias EHealth.EventManagerRepo
+  alias EHealth.EventManager.Event
 
   @moduletag :with_client_id
 
@@ -669,6 +671,13 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     %{id: request_id} = insert(:il, :employee_request, employee_id: nil, data: data)
 
     conn = post conn, employee_request_path(conn, :approve, request_id)
+    assert [event] = EventManagerRepo.all(Event)
+    assert %Event{
+      entity_type: "EmployeeRequest",
+      event_type: "StatusChangeEvent",
+      entity_id: ^request_id,
+      properties: %{"new_status" => "APPROVED"}
+    } = event
     resp = json_response(conn, 200)["data"]
     assert "APPROVED" == resp["status"]
   end
@@ -795,6 +804,13 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
     conn = post conn, employee_request_path(conn, :reject, id)
     resp = json_response(conn, 200)["data"]
+    assert [event] = EventManagerRepo.all(Event)
+    assert %Event{
+      entity_type: "EmployeeRequest",
+      event_type: "StatusChangeEvent",
+      entity_id: ^id,
+      properties: %{"new_status" => "REJECTED"}
+    } = event
     assert "REJECTED" == resp["status"]
   end
 

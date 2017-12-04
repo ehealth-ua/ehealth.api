@@ -23,6 +23,7 @@ defmodule EHealth.EmployeeRequests do
   alias EHealth.Employees
   alias EHealth.BlackListUsers
   alias Ecto.Multi
+  alias EHealth.EventManager
 
   require Logger
 
@@ -101,20 +102,22 @@ defmodule EHealth.EmployeeRequests do
     |> OAuth.create_user(user_email, headers)
   end
 
-  def reject(id) do
+  def reject(id, headers) do
+    user_id = get_consumer_id(headers)
     with employee_request <- get_by_id!(id),
          {:ok, employee_request} <- check_transition_status(employee_request)
     do
-      update_status(employee_request, @status_rejected)
+      update_status(employee_request, @status_rejected, user_id)
     end
   end
 
   def approve(id, headers) do
     employee_request = get_by_id!(id)
+    user_id = get_consumer_id(headers)
 
     with {:ok, employee_request} <- check_transition_status(employee_request),
          {:ok, employee} <- Employees.create_or_update_employee(employee_request, headers),
-         {:ok, employee_request} <- update_status(employee_request, employee, @status_approved)
+         {:ok, employee_request} <- update_status(employee_request, employee, @status_approved, user_id)
     do
       send_email(employee_request, EmployeeCreatedNotificationTemplate, EmployeeCreatedNotificationEmail)
     end
@@ -140,21 +143,48 @@ defmodule EHealth.EmployeeRequests do
     end
   end
 
-  def update_status(%Request{} = employee_request, %Employee{id: id}, status) do
-    employee_request
-    |> changeset(%{status: status, employee_id: id})
-    |> Repo.update()
+  def update_status(%Request{} = employee_request, %Employee{id: id}, status, user_id) do
+    employee_request =
+      employee_request
+      |> changeset(%{status: status, employee_id: id})
+      |> Repo.update()
+
+    with {:ok, employee_request} <- employee_request,
+         _ <- EventManager.insert_change_status(employee_request, status, user_id)
+    do
+      {:ok, employee_request}
+    end
   end
-  def update_status(%Request{} = employee_request, status) do
-    employee_request
-    |> changeset(%{status: status})
-    |> Repo.update()
+  def update_status(%Request{} = employee_request, status, user_id) do
+    employee_request =
+      employee_request
+      |> changeset(%{status: status})
+      |> Repo.update()
+
+    with {:ok, employee_request} <- employee_request,
+         _ <- EventManager.insert_change_status(employee_request, status, user_id)
+    do
+      {:ok, employee_request}
+    end
   end
 
-  def update_all(query, updates) do
+  def update_all(query, updates, author_id) do
     Multi.new
-    |> Multi.update_all(:employee_requests, query, set: updates)
+    |> Multi.update_all(:employee_requests, query, [set: updates], [returning: [:id]])
+    |> Multi.run(:insert_events, &(insert_events(&1, updates, author_id)))
     |> Repo.transaction()
+  end
+
+  defp insert_events(multi, [status: status], author_id) do
+    {_, employee_requests} = multi.employee_requests
+    Enum.each(employee_requests, fn employee_request ->
+      EventManager.insert_change_status(employee_request, status, author_id)
+    end)
+    {:ok, employee_requests}
+  end
+  defp insert_events(multi, _, _) do
+    {_, employee_requests} = multi.employee_requests
+    {:ok, employee_requests}
   end
 
   defp filter_by_legal_entity_id(query, %{"legal_entity_id" => legal_entity_id}) do

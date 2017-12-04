@@ -118,3 +118,11 @@ config :ehealth, EHealth.FraudRepo,
   hostname: "localhost",
   pool_size: 10,
   types: EHealth.Fraud.PostgresTypes
+
+config :ehealth, EHealth.EventManagerRepo,
+  adapter: Ecto.Adapters.Postgres,
+  username: "postgres",
+  password: "postgres",
+  database: "event_manager_dev",
+  hostname: "localhost",
+  pool_size: 10
