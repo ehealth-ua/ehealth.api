@@ -563,15 +563,16 @@ This method to update the employee info by ID.
                     + user_id: `2de19358-0062-4f14-8a50-9dff015ed165` (string, required)
 
 
-### Search for party [GET /party{?first_name,last_name,second_name,birth_date,tax_id,phone_number,page,page_size}]
+### Search for party [GET /party{?first_name,last_name,second_name,birth_date,no_tax_id,tax_id,phone_number,page,page_size}]
 
 Methods returns list of parties.
 
 + Parameters
-    + first_name: Петро (string, required)
-    + last_name: Іванов (string, required)
+    + first_name: Петро (string, optional)
+    + last_name: Іванов (string, optional)
     + second_name: Миколайович (string, optional)
-    + birth_date: `1991-08-19T00:00:00.000Z` (string, required) - ISO Datetime.
+    + birth_date: `1991-08-19T00:00:00.000Z` (string, optional) - ISO Datetime.
+    + no_tax_id: false (boolean, optional)
     + tax_id: 3126509816 (string, optional)
     + phone_number: `+380508887700` (string, optional)
     + page: 2 (number, optional) - Page number.
@@ -640,12 +641,13 @@ This method to update the employee info by ID.
         + data (crud_employee_get)
 
 
-### Search for an Employee [GET /employees{?party_id,legal_entity_id,division_id,employee_type,status,page,page_size}]
+### Search for an Employee [GET /employees{?party_id,no_tax_id,legal_entity_id,division_id,employee_type,status,page,page_size}]
 
 Methods returns list of employees.
 
 + Parameters
     + `party_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - user_id of a doctor.
+    + `no_tax_id`: true (boolean, optional)
     + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MSP ID.
     + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - division ID.    
     + `employee_type`: DOCTOR (string) - `Dictionary: EMPLOYEE_TYPE`
@@ -689,24 +691,35 @@ This service should be used for internal services/processes. Used without `acces
         + urgent (object, optional)
             + user_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 
+### Approve Employee Request [POST /employee_requests/{id}/approve]
 
-### Update Employee Request Status [PATCH /employee_requests/{id}]
-This service should be used for update employee request status on REJECTED or APPROVED.
-
-Available transitions:
-NEW --> REJECTED 
-NEW --> APPROVED
+This service should be used for approve employee request (set status on APPROVED).
 
 + Parameters
     + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) 
     
 + Request (application/json)
-    + Attributes
-        + status: APPROVED, REJECTED (enum, required) 
-    
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
+       + data (Employee_Request_Details)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+
+### Reject Employee Request [POST /employee_requests/{id}/reject]
+
+This service should be used for reject employee request (set status on REJECTED).
+
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) 
+    
++ Request (application/json)
+
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+       + data (Employee_Request_Details)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 
 ### Create User via Employee Request [POST /employee_requests/{id}/user{?password}]
 
@@ -2507,7 +2520,7 @@ According to the strong binding of the Employees to the Employer (legal entity)
 all GET-endpoints returning Employee info are mounted through the
 `/legal_entities/{legal_entity_id}` path.
 
-### Get Employees List [GET /api/employees{?tax_id,party_id,edrpou,legal_enyity_id,division_id,status,employee_type,page,page_size}]
+### Get Employees List [GET /api/employees{?no_tax_id,tax_id,party_id,edrpou,legal_enyity_id,division_id,status,employee_type,page,page_size}]
 
 Use this end-point to obtain all Employees of the legal entity specified by the `legal_entity_id`. 
 
@@ -2516,6 +2529,7 @@ We suggest to use `status` filter to limit response size. Eg. you MAY want to li
 Method returns shortened details (for DOCTOR and PHARMACIST - additional returns specialities information), to obtain full information - get Employee it by ID.
 
 + Parameters
+    + no_tax_id: true (boolean, optional)
     + tax_id: 3015492561 (string, optional)
     + party_id: 3015492561 (string, optional)
     + edrpou: 38782323 (string, optional)
@@ -2639,10 +2653,14 @@ For changes to take effect employee must confirm the changes
             + inserted_at: `2017-05-05T14:09:59.232112` (string, required)
             + updated_at: `2017-05-05T14:09:59.232112` (string, required)
 
-### Get Employee Requests List [GET /api/employee_requests{?status,page,page_size}]
+### Get Employee Requests List [GET /api/employee_requests{?id,edrpou,legal_entity_name,no_tax_id,status,page,page_size}]
 
 + Parameters
-    + status: NEW (enum, optional)
+    + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) 
+    + `edrpou`: `341086` (string, optional)
+    + `legal_entity_name`: `Лимич Медікал` (string, optional)
+    + `no_tax_id`: true (boolean, optional)
+    + `status`: NEW (enum, optional)
         - NEW
         - REJECTED
         - APPROVED
@@ -3077,7 +3095,7 @@ Update status on CLOSED
 
 ## Divisions [/api/divisions]
 
-### Get divisions [GET /api/divisions{?ids,name,legal_entity_id,type,status}]
+### Get divisions [GET /api/divisions{?ids,name,legal_entity_id,type,status,page,page_size}]
 
 + Parameters
     + ids: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional)
@@ -3087,9 +3105,12 @@ Update status on CLOSED
     + status: ACTIVE (string, optional)
         - ACTIVE
         - INACTIVE
+    + `page`: 2 (number) - Page number.    
+    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+
 
 + Response 200 (application/json)
-    + Attributes (Response_Collection)
+    + Attributes (Response_Collection_V2)
         + data (`crud_division_get`)
 
 ### Update division [PATCH /api/divisions/{id}]
@@ -3134,16 +3155,20 @@ This method to create the division info by ID.
         + data (`crud_division_get`)
 
 ## UAdresses [/api/uaddresses]
+
 API for searching Ukrainian Addresses
 
 ## Search Streets [/api/uaddresses/streets]
 
-### List of Streets by Search Params [GET /api/uaddresses/streets{?settlement_id,name,type}]
+### List of Streets by Search Params [GET /api/uaddresses/streets{?settlement_id,name,type,page,page_size}]
 
 + Parameters
     + settlement_id: `eea333b5-e26d-4e3e-92e2-2ab37b131502` (string, required) - Settlement identifier
     + name: `Незалежності` (string, optional) - Street name
     + type: STREET (string, optional) - Street type (Dictionary STREET_TYPE)
+    + `page`: 2 (number) - Page number.    
+    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
@@ -3153,7 +3178,7 @@ API for searching Ukrainian Addresses
 
 ## Search Settlements [/api/settlements]
 
-### List Of Cities By Search Params [GET /api/uaddresses/settlements{?name,region,district,koatuu}]
+### List Of Cities By Search Params [GET /api/uaddresses/settlements{?name,region,district,koatuu,page,page_size}]
 
 Use this method to obtain list of cities. If you want to reduce amount of data that is going trough your application, use `name`, `region`, `district` or `koatuu classifier` filters and show only cities you are interested in.
 
@@ -3162,6 +3187,9 @@ Use this method to obtain list of cities. If you want to reduce amount of data t
     + region: Київ (string, optional) - Province name
     + district: `Києво-Святошинський` (string, optional) - Administrative district of province
     + koatuu: `2625286301` (string, optional) - koatuu classifier id
+    + `page`: 2 (number) - Page number.    
+    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
@@ -3171,10 +3199,12 @@ Use this method to obtain list of cities. If you want to reduce amount of data t
 
 ## Search Regions [/api/uaddresses/regions]
 
-### List Of Regions By Search Params [GET /api/uaddresses/regions{?name,koatuu}]
+### List Of Regions By Search Params [GET /api/uaddresses/regions{?name,koatuu,page,page_size}]
 + Parameters
     + name: Київ (string, optional) - Province name
     + koatuu: `2625286301` (string, optional) - koatuu classifier id
+    + `page`: 2 (number) - Page number.    
+    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
@@ -3184,12 +3214,14 @@ Use this method to obtain list of cities. If you want to reduce amount of data t
 
 ## Search Districts [/api/uaddresses/districts]
 
-### List Of Districts By Search Params [GET /api/uaddresses/districts{?region,name,koatuu}]
+### List Of Districts By Search Params [GET /api/uaddresses/districts{?region_id,region,name,koatuu,page,page_size}]
 + Parameters
     + region_id: `09a33c98-9a5c-447a-8493-da8fcecb6873` (string, optional) - Province id
     + region: Київ (string, optional) - Province name
     + name: `Києво-Святошинський` (string, optional) - Administrative district of province
     + koatuu: `2625286301` (string, optional) - koatuu classifier id
+    + `page`: 2 (number) - Page number.    
+    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
@@ -3197,11 +3229,13 @@ Use this method to obtain list of cities. If you want to reduce amount of data t
             + code: 200 (number)
         + data (array[`Response_District`])
 
-### Districts by Region [GET /api/uaddresses/regions/290f1ee-6c54-4b01-90e6-d701748f0851/districts{?name,koatuu}]
+### Districts by Region [GET /api/uaddresses/regions/290f1ee-6c54-4b01-90e6-d701748f0851/districts{?name,koatuu,page,page_size}]
 
 + Parameters
     + name: `Києво-Святошинський` (string, optional) - Filter by district name
     + koatuu: `2625286301` (string, optional) - koatuu classifier id
+    + `page`: 2 (number) - Page number.    
+    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
@@ -3209,13 +3243,15 @@ Use this method to obtain list of cities. If you want to reduce amount of data t
             + code: 200 (number)
         + data (array[`Response_District_Short`])
 
-### Settlements by district [GET /api/uaddresses/districts/290f1ee-6c54-4b01-90e6-d701748f0851/settlements{?name,koatuu}]
+### Settlements by district [GET /api/uaddresses/districts/290f1ee-6c54-4b01-90e6-d701748f0851/settlements{?name,koatuu,page,page_size}]
 
 Get list of cities by district
 
 + Parameters
     + name: `Київ` (string, optional) - Filter by settlement name
     + koatuu: `2625286301` (string, optional) - koatuu classifier id
+    + `page`: 2 (number) - Page number.    
+    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
@@ -3763,6 +3799,67 @@ Reimbursement Report combines information about Medication requests and correspo
     + Attributes (`Response_Collection_V2`)
          + data (array[`Reimbursement_Report_Response`])
 
+## Reimbursement Report for NHS admin [/api/reimbursement_report_download]
+
+Reimbursement Report combines information about Medication Dispenses and corresponding Medication Requests
+
+**Scopes required:** `reimbursement_report:download`
+
+
+### Get Reimbursement Report [GET /api/reimbursement_report_download{?date_from_dispense,date_to_dispense}]
+
++ Parameters
+    + date_from_dispense: `2017-09-01` (date, optional) - Start date for Medication Dispense disbursed_at date
+    + date_to_dispense: `2017-10-01` (date, optional) - End date for Medication Dispense disbursed_at date
+
++ Request (application/json)
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (text/csv;charset=UTF-8)
+
+# Group Public. Event Manager
+
+## Get Events
+
+### Get events by ID [GET /api/events/{id}]
+
+This method is used to obtain events by id. 
+
++ Parameters
+    + `id`: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (`Response_OK`)
+         + data (array[`Get_events`])
+
+### Get events list [GET /api/events/{?date,previous_status,new_status,page,page_size}]
+
+This method is used to abtain list of events
+
++ Parameters
+    + date: `2017-09-01` (date, optional) - date of event happening.
+    + previous_status: `NEW` (string, optional) - previous status of entity.
+    + new_status: `OLD` (string, optional) - new status of entity.
+    + page: 2 (number, optional) - Page number.
+    + page_size: 1000 (number, optional) - A limit on the number of objects to be returned. Default: 1000
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (`Response_Collection_V2`)
+         + data (array[`Get_events`])
 
 # Group Dummy. Create legal entity
 
@@ -4002,6 +4099,7 @@ Reimbursement Report combines information about Medication requests and correspo
 + type: `PASSPORT` (string, required)
 + url: `https://google.com.ua` (string, required)
 
+
 ## Declarations
 ### Declaration
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - id of the signed document stored on the Media content storage
@@ -4135,6 +4233,7 @@ Reimbursement Report combines information about Medication requests and correspo
 + include `Party_Short`
 + birth_date: `1991-08-19T00:00:00.000Z` (string, required)
 + gender: MALE (string, required) - `Dictionary GENDER`
++ `no_tax_id`: false (boolean, optional)
 + tax_id: 3126509816 (string, optional)
 + email: email@example.com (string, optional)
 + documents (array[Document], optional)
@@ -4145,12 +4244,14 @@ Reimbursement Report combines information about Medication requests and correspo
 + include `Party_Short`
 + birth_date: `1991-08-19T00:00:00.000Z` (string, required)
 + gender: MALE (string, required) - `Dictionary GENDER`
++ `no_tax_id`: false (boolean, optional)
 + tax_id: 3126509816 (string, optional)
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
 
 ### `Party_Update`
 + include `Party_Short`
++ no_tax_id: false (boolean, required)
 + tax_id: 3126509816 (string, required)
 + birth_date: `1991-08-19T00:00:00.000Z` (string, required)
 + gender: MALE(string, required) - `Dictionary GENDER`
@@ -4163,6 +4264,7 @@ Reimbursement Report combines information about Medication requests and correspo
 + second_name: Миколайович (string, optional)
 + birth_date: `1991-08-19T00:00:00.000Z` (string, required)
 + gender: MALE(string, required) - `Dictionary GENDER`
++ no_tax_id: false (boolean, required)
 + tax_id: 3126509816 (string, required)
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
@@ -4182,6 +4284,7 @@ Reimbursement Report combines information about Medication requests and correspo
 ## Employees
 ### `crud_employee`
 + party_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ no_tax_id: true (boolean, required)
 + legal_entity_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional)
 + `employee_type`: DOCTOR (string) - `Dictionary EMPLOYEE_TYPE`
@@ -4264,6 +4367,7 @@ Reimbursement Report combines information about Medication requests and correspo
 + inserted_at: `2018-03-02T10:45:16.000Z` (string, required)
 + edrpou: 5432345432 (string, required)
 + `legal_entity_name`: Клініка Борис (string, required)
++ `no_tax_id`: true (boolean, required)
 + include `Party_Short`
 
 
@@ -4279,6 +4383,7 @@ Reimbursement Report combines information about Medication requests and correspo
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
 + party (object)
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+    + no_tax_id: true (boolean, required)
     + include `Party_Short`
 + division (`Division_Short`)
 + `legal_entity` (`Legal_Entity_Short`)
@@ -5422,3 +5527,18 @@ Reimbursement Report combines information about Medication requests and correspo
 + redirect_uri: `http://example2.com` (string, required)
 + settings (object)
 + priv_settings (object)
+
+## Events
+### `Get_events`
++ id: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - Event identifier
++ event_type: `StatusChangeEvent` (string, required) - the name of event
++ entity_type: `Medication request` (string, required) - the name of entity that was changed
++ entity_id: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - uuid of changed object
++ properties (object, required)
+    +  include (`Event_properties`, required)
++ event_time: `2017-04-20T19:14:13Z` (string, required) - time, when the entity was changed
++ changed_by: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - uuid of the person who changed the entity
+
+### `Event_properties`
++ previous_status: `NEW` (string, required) - previous status of entity
++ new_status: `COMPLETED` (string, required) - new status of entity
