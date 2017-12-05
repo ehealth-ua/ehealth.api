@@ -1,7 +1,8 @@
-Change log for versions 6.43.0 - 6.43.1
+Change log for versions 6.43.0 - 6.43.2
 
 **Patches and bug fixes**:
 
+EHealth-1585: validate owner position (#1590)
 EHealth-1576: do not merge but replace additional info for employee from employee_request (#1588)
 
 
