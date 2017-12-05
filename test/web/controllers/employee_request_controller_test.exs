@@ -68,10 +68,13 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
         doctor_request()
         |> put_in(["employee_request", "employee_id"], id)
         |> put_in(["employee_request", "division_id"], division_id)
+      doctor = Map.delete(employee_request_params["employee_request"]["doctor"], "science_degree")
+      employee_request_params = put_in(employee_request_params, ["employee_request", "doctor"], doctor)
 
       conn = put_client_id_header(conn, legal_entity.id)
       conn1 = post conn, employee_request_path(conn, :create), employee_request_params
       resp = json_response(conn1, 200)["data"]
+
       refute Map.has_key?(resp, "type")
       assert Map.has_key?(resp, "legal_entity_name")
       assert legal_entity.name == resp["legal_entity_name"]
@@ -80,6 +83,10 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       assert request_party["first_name"] == resp["first_name"]
       assert request_party["second_name"] == resp["second_name"]
       assert request_party["last_name"] == resp["last_name"]
+
+      conn1 = get conn, employee_request_path(conn, :show, resp["id"])
+      resp_by_id = json_response(conn1, 200)
+      refute Map.has_key?(resp_by_id["data"]["doctor"], "science_degree")
 
       %{id: id} = insert(:prm, :employee,
         party: party,
@@ -625,10 +632,18 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       data
       |> put_in([:party, :first_name], "Alex")
       |> put_in([:employee_id], employee_id)
+    doctor = Map.delete(data.doctor, :science_degree)
+    data = Map.put(data, :doctor, doctor)
+
     %{id: request_id} = insert(:il, :employee_request, employee_id: nil, data: data)
     conn2 = post conn, employee_request_path(conn, :approve, request_id)
-    resp = json_response(conn2, 200)
-    assert %{"data" => %{"employee_id" => ^employee_id}} = resp
+    resp = json_response(conn2, 200)["data"]
+    assert employee_id = resp["employee_id"]
+    refute Map.has_key?(resp["doctor"], "science_degree")
+
+    conn3 = get conn, employee_path(conn, :show, employee_id)
+    resp = json_response(conn3, 200)["data"]
+    refute Map.has_key?(resp["doctor"], "science_degree")
   end
 
   test "can approve pharmacist", %{conn: conn} do
@@ -654,7 +669,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     assert %{additional_info: %{"educations" => _}} = PRMRepo.get(Employee, resp["employee_id"])
   end
 
-  test "can approve employee request if email maches", %{conn: conn} do
+  test "can approve employee request if email matches", %{conn: conn} do
     legal_entity = insert(:prm, :legal_entity)
     party = insert(:prm, :party, id: "01981ab9-904c-4c36-88ab-959a94087483")
     %{legal_entity_id: legal_entity_id} = insert(:prm, :employee,
@@ -682,7 +697,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     assert "APPROVED" == resp["status"]
   end
 
-  test "cannot approve employee request if email doesnot match", %{conn: conn} do
+  test "cannot approve employee request if email does not match", %{conn: conn} do
     %{id: id} = fixture(Request)
 
     conn = post conn, employee_request_path(conn, :approve, id)

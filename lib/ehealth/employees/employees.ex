@@ -201,7 +201,6 @@ defmodule EHealth.Employees do
          {:ok, _} <- EmployeeCreator.create_party_user(party, req_headers),
          {:ok, _} <- Parties.update(party, Map.fetch!(employee_request, "party"), employee_id),
          params <- employee_request
-           |> update_additional_info(employee)
            |> Map.put("employee_type", employee.employee_type)
            |> Map.put("updated_by", get_consumer_id(req_headers))
     do
@@ -215,14 +214,6 @@ defmodule EHealth.Employees do
       {:ok, employee}
     end
   end
-
-  defp update_additional_info(employee_request, %Employee{employee_type: @doctor, additional_info: info}) do
-    Map.put(employee_request, "doctor", Map.merge(info, Map.get(employee_request, "doctor")))
-  end
-  defp update_additional_info(employee_request, %Employee{employee_type: @pharmacist, additional_info: info}) do
-    Map.put(employee_request, "pharmacist", Map.merge(info, Map.get(employee_request, "pharmacist")))
-  end
-  defp update_additional_info(employee_request, _), do: employee_request
 
   defp convert_comma_params_to_where_in_clause(changes, param_name, db_field) do
     changes
