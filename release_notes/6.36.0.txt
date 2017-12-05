@@ -1,10 +1,13 @@
-Change log for versions 6.36.0 - 6.36.2
+Change log for versions 6.36.0 - 6.36.3
 
 **Patches and bug fixes**:
 
+Log response from digital sign
 set trunk branch stable for building containers on Travis
 EHealth-1576: do not merge but replace additional info for employee from employee_request (#1588)
 
 **Other**:
 
+Log response from digital sign (#1592)
+Require logger
 (cherry picked from commit 56e44ea)
