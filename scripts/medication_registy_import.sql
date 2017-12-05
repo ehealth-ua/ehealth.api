@@ -254,28 +254,108 @@ FROM (
 ) AS sq
 
 
+
 -----------------------------
--- Move from _temp_tables 2 _real_tables
+--
+create table _temp_medical_programs
+(
+	id uuid not null
+		constraint _temp_medical_programs_pkey
+			primary key,
+	name varchar(255) not null,
+	is_active boolean not null,
+	inserted_by uuid not null,
+	updated_by uuid not null,
+	inserted_at timestamp not null,
+	updated_at timestamp not null
+)
+;
 
-DELETE FROM ingredients;
-delete FROM medications;
-delete FROM innms;
+-----------------------------
+-- insert One-st medical program
+INSERT INTO _temp_medical_programs (id, name, is_active, inserted_by, updated_by, inserted_at, updated_at)
+VALUES ('63c1f32f-c8f4-4f5b-81a9-79b8452d6545', 'Доступні ліки', true, '4261eacf-8008-4e62-899f-de1e2f7065f0', '4261eacf-8008-4e62-899f-de1e2f7065f0', now(), now());
 
 
-INSERT INTO innms(id, sctid, name, name_original, is_active, inserted_by, updated_by, inserted_at, updated_at)
+-----------------------------
+--
+create table _temp_program_medications
+(
+	id uuid not null
+		constraint _temp_program_medications_pkey
+			primary key,
+	reimbursement jsonb not null,
+	is_active boolean not null,
+	medication_request_allowed boolean not null,
+	inserted_by uuid not null,
+	updated_by uuid not null,
+	medication_id uuid not null
+		constraint _temp_program_medications_medication_id_fkey
+			references _temp_medications,
+	medical_program_id uuid not null
+		constraint _temp_program_medications_medical_program_id_fkey
+			references _temp_medical_programs,
+	inserted_at timestamp not null,
+	updated_at timestamp not null
+)
+;
+
+-----------------------------
+-- insert program medications  for medications = brands
+-- DELETE FROM _temp_program_medications
+INSERT INTO _temp_program_medications(id, reimbursement, is_active, medication_request_allowed, inserted_by, updated_by, medication_id, medical_program_id, inserted_at, updated_at)
+SELECT
+	uuid_generate_v4() AS id,
+  ('{"type": "fixed", "reimbursement_amount": ' || round(cast(REESTR.amount_reimbursement as NUMERIC),2) || '}')::jsonb
+ 		as reimbursement,
+  --REESTR.id, REESTR.amount_reimbursement,
+  TRUE as is_active,
+  TRUE as medication_request_allowed,
+ 	'4261eacf-8008-4e62-899f-de1e2f7065f0'::uuid AS inserted_by,
+	'4261eacf-8008-4e62-899f-de1e2f7065f0'::uuid AS updated_by,
+  MED.id AS medication_id,
+  '63c1f32f-c8f4-4f5b-81a9-79b8452d6545' AS medical_program_id,
+	now() AS inserted_at,
+	now() AS updated_at
+FROM _temp_medications AS MED
+  INNER JOIN _temp_reestr AS REESTR
+    ON MED.ext_id = REESTR.id
+WHERE MED.type = 'BRAND'
+
+
+-----------------------------
+-- MOVE from _temp_tables 2 _real_tables
+
+-- DELETE FROM ingredients;
+-- DELETE FROM medications;
+-- DELETE FROM innms;
+
+
+--INSERT INTO innms(id, sctid, name, name_original, is_active, inserted_by, updated_by, inserted_at, updated_at)
 	SELECT id, sctid, name, name_original, is_active, inserted_by, updated_by, inserted_at, updated_at
 	FROM _temp_innms;
 
-
-INSERT INTO medications(id, name, type, manufacturer, code_atc, is_active, form, container, package_qty, package_min_qty, certificate, certificate_expired_at, inserted_by, updated_by, inserted_at, updated_at)
+--INSERT INTO medications(id, name, type, manufacturer, code_atc, is_active, form, container, package_qty, package_min_qty, certificate, certificate_expired_at, inserted_by, updated_by, inserted_at, updated_at)
 	SELECT id, name, type, manufacturer, code_atc, is_active, form, container, package_qty, package_min_qty, certificate, certificate_expired_at, inserted_by, updated_by, inserted_at, updated_at
 	FROM _temp_medications;
 
-INSERT INTO ingredients(id, dosage, is_primary, medication_child_id, innm_child_id, parent_id, inserted_at, updated_at)
+--INSERT INTO ingredients(id, dosage, is_primary, medication_child_id, innm_child_id, parent_id, inserted_at, updated_at)
 	SELECT id, dosage, is_primary, medication_child_id, innm_child_id, parent_id, inserted_at, updated_at
 	FROM _temp_ingredients;
 
-------
+--INSERT INTO medical_programs(id, name, is_active, inserted_by, updated_by, inserted_at, updated_at)
+	SELECT id, name, is_active, inserted_by, updated_by, inserted_at, updated_at
+	FROM _temp_medical_programs;
+
+--INSERT INTO program_medications(id, reimbursement, is_active, medication_request_allowed, inserted_by, updated_by, medication_id, medical_program_id, inserted_at, updated_at)
+	SELECT id, reimbursement, is_active, medication_request_allowed, inserted_by, updated_by, medication_id, medical_program_id, inserted_at, updated_at
+	FROM _temp_program_medications;
+--*/
+
+
+-- THE END script ==========================================================================================
+-- test queries - NOT USE !!!
+/*
 SELECT t.* FROM public._temp_medications t WHERE name ILIKE '%будесон%' LIMIT 501
 
 SELECT * FROM _temp_ingredients WHERE parent_id IN ('219c3aaf-f60f-4a86-9043-70971d1a4d45', '3df4a8de-2b1f-446d-a5c4-60daea17e012')
@@ -301,3 +381,4 @@ INNER JOIN _temp_form AS tf
 		ON tr.form=tf.name
 WHERE tr.innm_name_original ILIKE '%будесон%'
 		 ) AS sq
+*/
