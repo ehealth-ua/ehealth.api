@@ -1,0 +1,10 @@
+Change log for versions 6.36.0 - 6.36.2
+
+**Patches and bug fixes**:
+
+set trunk branch stable for building containers on Travis
+EHealth-1576: do not merge but replace additional info for employee from employee_request (#1588)
+
+**Other**:
+
+(cherry picked from commit 56e44ea)
