@@ -25,11 +25,13 @@ defmodule EHealth.API.Signature do
         |> post!(Poison.encode!(params), headers, config()[:hackney_options])
         |> ResponseDecoder.check_response()
 
+      {_, response} = result
+
       Logger.info(fn ->
         Poison.encode!(%{
           "log_type"     => "microservice_response",
           "microservice" => "digital-signature",
-          "result"       => result,
+          "result"       => response,
           "request_id"   => Logger.metadata[:request_id],
         })
       end)
