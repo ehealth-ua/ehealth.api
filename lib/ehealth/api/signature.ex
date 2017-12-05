@@ -2,6 +2,7 @@ defmodule EHealth.API.Signature do
   @moduledoc """
   Signature validator and data mapper
   """
+  require Logger
 
   use HTTPoison.Base
   use Confex, otp_app: :ehealth
@@ -19,9 +20,21 @@ defmodule EHealth.API.Signature do
         "signed_content_encoding" => signed_content_encoding
       }
 
-      "/digital_signatures"
-      |> post!(Poison.encode!(params), headers, config()[:hackney_options])
-      |> ResponseDecoder.check_response()
+      result =
+        "/digital_signatures"
+        |> post!(Poison.encode!(params), headers, config()[:hackney_options])
+        |> ResponseDecoder.check_response()
+
+      Logger.info(fn ->
+        Poison.encode!(%{
+          "log_type"     => "microservice_response",
+          "microservice" => "digital-signature",
+          "result"       => result,
+          "request_id"   => Logger.metadata[:request_id],
+        })
+      end)
+
+      result
     else
       data = Base.decode64(signed_content)
       case data do
