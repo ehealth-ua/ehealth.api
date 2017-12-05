@@ -1,7 +1,8 @@
-Change log for versions 6.36.0 - 6.36.3
+Change log for versions 6.36.0 - 6.36.4
 
 **Patches and bug fixes**:
 
+Fix result parsing
 Log response from digital sign
 set trunk branch stable for building containers on Travis
 EHealth-1576: do not merge but replace additional info for employee from employee_request (#1588)
