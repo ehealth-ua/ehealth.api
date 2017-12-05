@@ -109,6 +109,10 @@ config :ehealth, EHealth.EmployeeRequest.Terminator,
   frequency: 100,
   utc_interval: {0, 23}
 
+# Configures genral validator
+config :ehealth, EHealth.LegalEntities.Validator,
+  owner_positions: {:system, :list, "OWNER_POSITIONS", ["P1"]}
+
 config :ehealth, EHealth.Bamboo.Mailer,
   adapter: Bamboo.TestAdapter
 

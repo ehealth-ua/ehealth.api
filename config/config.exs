@@ -200,6 +200,10 @@ config :ehealth, EHealth.Bamboo.Mailer,
 config :ehealth, EHealth.Utils.AddressMerger,
   no_suffix_areas: {:system, "NO_SUFFIX_AREAS", ["М.КИЇВ", "М.СЕВАСТОПОЛЬ"]}
 
+# Configures genral validator
+config :ehealth, EHealth.LegalEntities.Validator,
+  owner_positions: {:system, :list, "OWNER_POSITIONS", [""]}
+
 # Configures birth date validator
 config :ehealth, EHealth.Validators.BirthDate,
   min_age: {:system, "MIN_AGE", 0},

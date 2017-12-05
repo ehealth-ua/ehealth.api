@@ -18,7 +18,8 @@ defmodule EHealth.LegalEntities.Validator do
   @validation_dictionaries [
     "ADDRESS_TYPE",
     "PHONE_TYPE",
-    "DOCUMENT_TYPE"]
+    "DOCUMENT_TYPE"
+  ]
 
   def decode_and_validate(params, headers) do
     params
@@ -42,7 +43,8 @@ defmodule EHealth.LegalEntities.Validator do
          :ok <- validate_kveds(content),
          :ok <- validate_addresses(content),
          :ok <- validate_tax_id(content),
-         :ok <- validate_birth_date(content),
+         :ok <- validate_owner_birth_date(content),
+         :ok <- validate_owner_position(content),
          :ok <- validate_edrpou(content, Map.get(data, "signer"))
     do
       :ok
@@ -150,7 +152,7 @@ defmodule EHealth.LegalEntities.Validator do
     |> prepare_legal_entity(content)
   end
 
-  def validate_birth_date(content) do
+  def validate_owner_birth_date(content) do
     content
     |> get_in(["owner", "birth_date"])
     |> BirthDate.validate()
@@ -164,6 +166,24 @@ defmodule EHealth.LegalEntities.Validator do
           }, "$.owner.birth_date"}]}
        end
   end
+
+  def validate_owner_position(content) do
+    conf_positions = Confex.fetch_env!(:ehealth, __MODULE__)[:owner_positions]
+    content
+    |> get_in(["owner", "position"])
+    |> valid_owner_position?(conf_positions)
+    |> case do
+         true -> :ok
+         _ ->
+          {:error, [{%{
+            description: "invalid owner position value",
+            params: [],
+            rule: :invalid
+          }, "$.owner.position"}]}
+       end
+  end
+  defp valid_owner_position?(_position, nil), do: false
+  defp valid_owner_position?(position, positions), do: Enum.any?(positions, fn(x) -> x == position end)
 
   defp prepare_legal_entity(%Ecto.Changeset{valid?: true}, legal_entity), do: {:ok, legal_entity}
   defp prepare_legal_entity(changeset, _legal_entity), do: {:error, changeset}

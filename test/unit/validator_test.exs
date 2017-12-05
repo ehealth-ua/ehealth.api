@@ -167,6 +167,29 @@ defmodule EHealth.Unit.ValidatorTest do
       Validator.validate_schema(content)
   end
 
+  test "JSON schema owner position not allowed" do
+    content =
+      "test/data/legal_entity.json"
+      |> File.read!()
+      |> Poison.decode!()
+      |> put_in(["owner", "position"], "P99")
+
+    assert {:error, [{%{description: _, rule: :invalid}, "$.owner.position"}]} =
+             Validator.validate_owner_position(content)
+  end
+
+  test "JSON schema owner position fetched from system env" do
+    System.put_env("OWNER_POSITIONS", "P100, P99")
+    content =
+      "test/data/legal_entity.json"
+      |> File.read!()
+      |> Poison.decode!()
+      |> put_in(["owner", "position"], "P99")
+
+    assert :ok = Validator.validate_owner_position(content)
+    System.put_env("OWNER_POSITIONS", "P1")
+  end
+
   test "JSON schema birth_date date format with weeks" do
     content =
       "test/data/legal_entity.json"
@@ -197,7 +220,7 @@ defmodule EHealth.Unit.ValidatorTest do
       |> put_in(["owner", "birth_date"], "1815-12-06")
 
     assert {:error, [{%{description: _, rule: :invalid}, "$.owner.birth_date"}]} =
-      Validator.validate_birth_date(content)
+      Validator.validate_owner_birth_date(content)
   end
 
   test "JSON schema birth_date in future" do
@@ -215,7 +238,7 @@ defmodule EHealth.Unit.ValidatorTest do
       |> put_in(["owner", "birth_date"], date)
 
     assert {:error, [{%{description: _, rule: :invalid}, "$.owner.birth_date"}]} =
-      Validator.validate_birth_date(content)
+      Validator.validate_owner_birth_date(content)
   end
 
   test "JSON schema issued_date date format" do

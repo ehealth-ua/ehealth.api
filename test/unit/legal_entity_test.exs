@@ -157,7 +157,7 @@ defmodule EHealth.Unit.LegalEntityTest do
       assert 1 == Repo.one(from e in EmployeeRequest, select: count("*"))
       assert %EmployeeRequest{data: employee_request_data, status: "NEW"} = Repo.one(from e in EmployeeRequest)
       assert legal_entity.id == employee_request_data["legal_entity_id"]
-      assert "лікар" == employee_request_data["position"]
+      assert "P1" == employee_request_data["position"]
       assert "OWNER" == employee_request_data["employee_type"]
 
       assert 1 == PRMRepo.one(from l in LegalEntity, select: count("*"))
@@ -186,7 +186,7 @@ defmodule EHealth.Unit.LegalEntityTest do
       assert 1 == Repo.one(from e in EmployeeRequest, select: count("*"))
       assert %EmployeeRequest{data: employee_request_data, status: "NEW"} = Repo.one(from e in EmployeeRequest)
       assert legal_entity.id == employee_request_data["legal_entity_id"]
-      assert "лікар" == employee_request_data["position"]
+      assert "P1" == employee_request_data["position"]
       assert "OWNER" == employee_request_data["employee_type"]
 
       assert 1 == PRMRepo.one(from l in LegalEntity, select: count("*"))
@@ -336,6 +336,12 @@ defmodule EHealth.Unit.LegalEntityTest do
 
     assert {:error, [{%{description: "invalid area value", params: [], rule: :invalid},
       "$.addresses.area"}]} == Validator.validate_addresses(content)
+  end
+
+  test "position validation with invalid position" do
+    content = get_legal_entity_data() |> put_in(["owner", "position"], "P99")
+    assert {:error, [{%{description: "invalid owner position value", params: [], rule: :invalid},
+      "$.owner.position"}]} == Validator.validate_owner_position(content)
   end
 
   # helpers
