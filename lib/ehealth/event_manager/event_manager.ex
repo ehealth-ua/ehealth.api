@@ -21,7 +21,7 @@ defmodule EHealth.EventManager do
       event_type: @type_change_status,
       entity_type: entity_type,
       entity_id: entity.id,
-      properties: %{"new_status" => new_status},
+      properties: %{"status" => %{"new_value" => new_status}},
       event_time: NaiveDateTime.utc_now(),
       changed_by: user_id
     })

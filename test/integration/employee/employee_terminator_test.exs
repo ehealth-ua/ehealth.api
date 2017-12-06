@@ -38,7 +38,7 @@ defmodule EHealth.Integration.EmployeeRequest.TerminatorTest do
       entity_type: "EmployeeRequest",
       event_type: "StatusChangeEvent",
       entity_id: ^request_id,
-      properties: %{"new_status" => ^expired_status}
+      properties: %{"status" => %{"new_value" => ^expired_status}}
     } = event1
   end
 end

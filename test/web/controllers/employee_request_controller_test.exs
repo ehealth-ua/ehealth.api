@@ -691,7 +691,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       entity_type: "EmployeeRequest",
       event_type: "StatusChangeEvent",
       entity_id: ^request_id,
-      properties: %{"new_status" => "APPROVED"}
+      properties: %{"status" => %{"new_value" => "APPROVED"}}
     } = event
     resp = json_response(conn, 200)["data"]
     assert "APPROVED" == resp["status"]
@@ -824,7 +824,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       entity_type: "EmployeeRequest",
       event_type: "StatusChangeEvent",
       entity_id: ^id,
-      properties: %{"new_status" => "REJECTED"}
+      properties: %{"status" => %{"new_value" => "REJECTED"}}
     } = event
     assert "REJECTED" == resp["status"]
   end
