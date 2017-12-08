@@ -1,0 +1,7 @@
+Change log for versions 7.2.0 - 7.2.1
+
+**Patches and bug fixes**:
+
+Return :ok if confidant_person is comnpletely absent in json (#1616)
+
+
