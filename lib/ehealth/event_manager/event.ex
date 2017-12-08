@@ -3,6 +3,7 @@ defmodule EHealth.EventManager.Event do
 
   use Ecto.Schema
 
+  @primary_key {:id, :binary_id, autogenerate: true}
   schema "events" do
     field :event_type, :string
     field :entity_type, :string
