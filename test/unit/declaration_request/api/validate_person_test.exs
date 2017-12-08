@@ -159,6 +159,16 @@ defmodule EHealth.DeclarationRequest.API.ValidatePersonTest do
       bad_person = Map.put(person, "confidant_person", [bad_pconf_person])
       assert {:error, _} = ValidatePerson.validate(bad_person)
     end
+
+    test "returns :ok if confidant_person is empty list", %{person: person} do
+      person = Map.put(person, "confidant_person", [])
+      assert :ok = ValidatePerson.validate(person)
+    end
+
+    test "returns :ok if confidant_person is nil", %{person: person} do
+      person = Map.put(person, "confidant_person", nil)
+      assert :ok = ValidatePerson.validate(person)
+    end
   end
 
   describe "Test that ValidatePerson.validate/1 returns correct error statuses" do
@@ -255,8 +265,7 @@ defmodule EHealth.DeclarationRequest.API.ValidatePersonTest do
       "authentication_methods" => [
         # %{"type" => "OTP"},                  # only 1 of 2 at the same time
         %{"type" => "OFFLINE"}
-      ],
-      "confidant_person" => nil
+      ]
     }
   end
 
