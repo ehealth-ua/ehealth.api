@@ -1,0 +1,7 @@
+Change log for versions 7.5.0 - 7.5.1
+
+**Patches and bug fixes**:
+
+no_tax_id: set default no_tax_id as false
+
+
