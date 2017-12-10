@@ -41,12 +41,16 @@
           },
           "second_name": {
             "type": "string"
+          },
+          "no_tax_id": {
+            "type": "boolean"
           }
         },
         "required": [
           "id",
           "first_name",
-          "last_name"
+          "last_name",
+          "no_tax_id"
         ]
       },
       "division": {

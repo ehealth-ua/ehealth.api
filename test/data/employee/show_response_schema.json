@@ -52,6 +52,9 @@
         "tax_id": {
           "type": "string"
         },
+        "no_tax_id": {
+          "type": "boolean"
+        },
         "documents": {
           "type": "array"
         },

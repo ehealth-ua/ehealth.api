@@ -44,6 +44,7 @@ defmodule EHealth.EmployeeRequests do
       query
       |> filter_by_legal_entity_id(params)
       |> filter_by_status(params)
+      |> filter_by_no_tax_id(params)
       |> Repo.paginate(params)
     legal_entity_ids =
       paging.entries
@@ -59,6 +60,23 @@ defmodule EHealth.EmployeeRequests do
       |> Enum.into(%{}, &({Map.get(&1, :id), &1}))
 
     {paging, %{"legal_entities" => legal_entities}}
+  end
+
+  defp filter_by_legal_entity_id(query, %{"legal_entity_id" => legal_entity_id}) do
+    where(query, [r], fragment("?->>'legal_entity_id' = ?", r.data, ^legal_entity_id))
+  end
+  defp filter_by_legal_entity_id(query, _), do: query
+
+  defp filter_by_no_tax_id(query, %{"no_tax_id" => no_tax_id}) when is_boolean(no_tax_id) do
+    where(query, [r], fragment("?->'party'->'no_tax_id' = ?", r.data, ^no_tax_id))
+  end
+  defp filter_by_no_tax_id(query, _), do: query
+
+  defp filter_by_status(query, %{"status" => status}) when is_binary(status) do
+    where(query, [r], r.status == ^status)
+  end
+  defp filter_by_status(query, _) do
+    where(query, [r], r.status == @status_new)
   end
 
   def get_by_id!(id) do
@@ -185,18 +203,6 @@ defmodule EHealth.EmployeeRequests do
   defp insert_events(multi, _, _) do
     {_, employee_requests} = multi.employee_requests
     {:ok, employee_requests}
-  end
-
-  defp filter_by_legal_entity_id(query, %{"legal_entity_id" => legal_entity_id}) do
-    where(query, [r], fragment("?->>'legal_entity_id' = ?", r.data, ^legal_entity_id))
-  end
-  defp filter_by_legal_entity_id(query, _), do: query
-
-  defp filter_by_status(query, %{"status" => status}) when is_binary(status) do
-    where(query, [r], r.status == ^status)
-  end
-  defp filter_by_status(query, _) do
-    where(query, [r], r.status == @status_new)
   end
 
   def check_transition_status(%Request{status: @status_new} = employee_request) do
@@ -349,8 +355,7 @@ defmodule EHealth.EmployeeRequests do
     end
   end
 
-  defp check_owner(%{"employee_type" => @owner}, false), do: owner_forbidden(@owner)
-  defp check_owner(%{"employee_type" => @pharmacy_owner}, false), do: owner_forbidden(@pharmacy_owner)
+  defp check_owner(%{"employee_type" => type}, false) when type in [@owner, @pharmacy_owner], do: owner_forbidden(type)
   defp check_owner(_, _), do: :ok
 
   defp owner_forbidden(type) do

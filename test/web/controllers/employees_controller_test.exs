@@ -8,123 +8,142 @@ defmodule EHealth.Web.EmployeesControllerTest do
   alias Ecto.UUID
   alias EHealth.PRMRepo
 
-  test "gets only employees that have legal_entity_id == client_id", %{conn: conn} do
-    legal_entity = insert(:prm, :legal_entity, id: UUID.generate())
-    %{id: legal_entity_id} = legal_entity
-    party1 = insert(:prm, :party, tax_id: "2222222225")
-    party2 = insert(:prm, :party, tax_id: "2222222224")
-    insert(:prm, :employee, legal_entity: legal_entity, party: party1)
-    insert(:prm, :employee,
-      legal_entity: legal_entity,
-      employee_type: Employee.type(:pharmacist),
-      party: party2
-    )
-    conn = put_client_id_header(conn, legal_entity_id)
-    conn = get conn, employee_path(conn, :index)
-    resp = json_response(conn, 200)
+  describe "list employees" do
+    test "gets only employees that have legal_entity_id == client_id", %{conn: conn} do
+      legal_entity = insert(:prm, :legal_entity, id: UUID.generate())
+      %{id: legal_entity_id} = legal_entity
+      party1 = insert(:prm, :party, tax_id: "2222222225")
+      party2 = insert(:prm, :party, tax_id: "2222222224")
+      insert(:prm, :employee, legal_entity: legal_entity, party: party1)
+      insert(:prm, :employee,
+        legal_entity: legal_entity,
+        employee_type: Employee.type(:pharmacist),
+        party: party2
+      )
+      conn = put_client_id_header(conn, legal_entity_id)
+      conn = get conn, employee_path(conn, :index)
+      resp = json_response(conn, 200)
 
-    assert Map.has_key?(resp, "data")
-    assert Map.has_key?(resp, "paging")
-    assert is_list(resp["data"])
-    assert 2 == length(resp["data"])
-    first = Enum.at(resp["data"], 0)
-    assert legal_entity_id == first["legal_entity"]["id"]
-    second = Enum.at(resp["data"], 1)
-    assert legal_entity_id == second["legal_entity"]["id"]
-    assert Enum.any?(resp["data"], &(Map.has_key?(&1, "doctor")))
-    assert Enum.any?(resp["data"], &(Map.has_key?(&1, "pharmacist")))
-  end
+      assert Map.has_key?(resp, "data")
+      assert Map.has_key?(resp, "paging")
+      assert is_list(resp["data"])
+      assert 2 == length(resp["data"])
 
-  test "filter employees by invalid party_id", %{conn: conn} do
-    %{id: legal_entity_id} = insert(:prm, :legal_entity, id: "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
-    conn = put_client_id_header(conn, legal_entity_id)
-    conn = get conn, employee_path(conn, :index, party_id: "invalid")
-    assert json_response(conn, 422)
-  end
+      first = Enum.at(resp["data"], 0)
+      assert legal_entity_id == first["legal_entity"]["id"]
 
-  test "get employees", %{conn: conn} do
-    legal_entity = insert(:prm, :legal_entity, id: "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
-    %{id: legal_entity_id} = legal_entity
-    party = insert(:prm, :party)
-    insert(:prm, :employee, legal_entity: legal_entity, party: party)
-    conn = put_client_id_header(conn, legal_entity_id)
-    conn = get conn, employee_path(conn, :index)
+      second = Enum.at(resp["data"], 1)
+      assert legal_entity_id == second["legal_entity"]["id"]
+      assert Enum.any?(resp["data"], &(Map.has_key?(&1, "doctor")))
+      assert Enum.any?(resp["data"], &(Map.has_key?(&1, "pharmacist")))
+    end
 
-    schema =
-      "test/data/employee/list_response_schema.json"
-      |> File.read!()
-      |> Poison.decode!()
+    test "filter employees by invalid party_id", %{conn: conn} do
+      %{id: legal_entity_id} = insert(:prm, :legal_entity, id: "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+      conn = put_client_id_header(conn, legal_entity_id)
+      conn = get conn, employee_path(conn, :index, party_id: "invalid")
+      assert json_response(conn, 422)
+    end
 
-    resp = json_response(conn, 200)["data"]
-    :ok = NExJsonSchema.Validator.validate(schema, resp)
+    test "get employees", %{conn: conn} do
+      legal_entity = insert(:prm, :legal_entity, id: "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+      %{id: legal_entity_id} = legal_entity
+      party = insert(:prm, :party)
+      insert(:prm, :employee, legal_entity: legal_entity, party: party)
+      conn = put_client_id_header(conn, legal_entity_id)
+      conn = get conn, employee_path(conn, :index)
 
-    employee = List.first(resp)
-    refute Map.has_key?(employee["doctor"], "science_degree")
-    refute Map.has_key?(employee["doctor"], "qualifications")
-    refute Map.has_key?(employee["doctor"], "educations")
+      schema =
+        "test/data/employee/list_response_schema.json"
+        |> File.read!()
+        |> Poison.decode!()
 
-    refute Map.has_key?(employee, "inserted_by")
-    refute Map.has_key?(employee, "updated_by")
-    refute Map.has_key?(employee, "is_active")
-  end
+      resp = json_response(conn, 200)["data"]
+      :ok = NExJsonSchema.Validator.validate(schema, resp)
 
-  test "get employees by NHS ADMIN", %{conn: conn} do
-    party1 = insert(:prm, :party, tax_id: "2222222225")
-    party2 = insert(:prm, :party, tax_id: "2222222224")
-    legal_entity = insert(:prm, :legal_entity, id: MockServer.get_client_admin())
-    insert(:prm, :employee, legal_entity: legal_entity, party: party1)
-    insert(:prm, :employee, legal_entity: legal_entity, party: party2)
-    conn = put_client_id_header(conn, legal_entity.id)
-    conn = get conn, employee_path(conn, :index)
-    resp = json_response(conn, 200)["data"]
-    assert 2 = length(resp)
-  end
+      employee = List.first(resp)
+      refute Map.has_key?(employee["doctor"], "science_degree")
+      refute Map.has_key?(employee["doctor"], "qualifications")
+      refute Map.has_key?(employee["doctor"], "educations")
 
-  test "get employees with client_id that does not match legal entity id", %{conn: conn} do
-    conn = put_client_id_header(conn, UUID.generate())
-    id = "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
-    conn = get conn, employee_path(conn, :index, [legal_entity_id: id])
-    resp = json_response(conn, 200)
-    assert [] == resp["data"]
-    assert Map.has_key?(resp, "paging")
-    assert String.contains?(resp["meta"]["url"], "/employees")
-  end
+      refute Map.has_key?(employee, "inserted_by")
+      refute Map.has_key?(employee, "updated_by")
+      refute Map.has_key?(employee, "is_active")
+    end
 
-  test "search employees by tax_id" do
-    tax_id = "123"
-    party = insert(:prm, :party, tax_id: tax_id)
-    legal_entity = insert(:prm, :legal_entity)
-    insert(:prm, :employee, party: party, legal_entity: legal_entity)
-    conn = put_client_id_header(build_conn(), legal_entity.id)
-    conn = get conn, employee_path(conn, :index, [tax_id: tax_id])
-    resp = json_response(conn, 200)["data"]
-    assert 1 == length(resp)
-    party = PRMRepo.get(Party, resp |> hd() |> get_in(["party", "id"]))
-    assert tax_id == party.tax_id
-  end
+    test "get employees by NHS ADMIN", %{conn: conn} do
+      party1 = insert(:prm, :party, tax_id: "2222222225")
+      party2 = insert(:prm, :party, tax_id: "2222222224")
+      legal_entity = insert(:prm, :legal_entity, id: MockServer.get_client_admin())
+      insert(:prm, :employee, legal_entity: legal_entity, party: party1)
+      insert(:prm, :employee, legal_entity: legal_entity, party: party2)
+      conn = put_client_id_header(conn, legal_entity.id)
+      conn = get conn, employee_path(conn, :index)
+      resp = json_response(conn, 200)["data"]
+      assert 2 = length(resp)
+    end
 
-  test "search employees by invalid tax_id" do
-    conn = put_client_id_header(build_conn(), "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
-    conn = get conn, employee_path(conn, :index, [tax_id: ""])
-    resp = json_response(conn, 200)["data"]
-    assert 0 == length(resp)
-  end
+    test "get employees with client_id that does not match legal entity id", %{conn: conn} do
+      conn = put_client_id_header(conn, UUID.generate())
+      id = "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
+      conn = get conn, employee_path(conn, :index, [legal_entity_id: id])
+      resp = json_response(conn, 200)
+      assert [] == resp["data"]
+      assert Map.has_key?(resp, "paging")
+      assert String.contains?(resp["meta"]["url"], "/employees")
+    end
 
-  test "search employees by edrpou" do
-    edrpou = "37367387"
-    legal_entity = insert(:prm, :legal_entity, edrpou: edrpou)
-    insert(:prm, :employee, legal_entity: legal_entity)
-    conn = put_client_id_header(build_conn(), legal_entity.id)
-    conn = get conn, employee_path(conn, :index, [edrpou: edrpou])
-    resp = json_response(conn, 200)["data"]
-    assert 1 == length(resp)
-  end
+    test "search employees by tax_id" do
+      tax_id = "123"
+      party = insert(:prm, :party, tax_id: tax_id)
+      legal_entity = insert(:prm, :legal_entity)
+      insert(:prm, :employee, party: insert(:prm, :party))
+      insert(:prm, :employee, party: party, legal_entity: legal_entity)
+      conn = put_client_id_header(build_conn(), legal_entity.id)
+      conn = get conn, employee_path(conn, :index, [tax_id: tax_id])
+      resp = json_response(conn, 200)["data"]
+      assert 1 == length(resp)
+      party = PRMRepo.get(Party, resp |> hd() |> get_in(["party", "id"]))
+      assert tax_id == party.tax_id
+    end
 
-  test "search employees by invalid edrpou" do
-    conn = put_client_id_header(build_conn(), "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
-    conn = get conn, employee_path(conn, :index, [edrpou: ""])
-    resp = json_response(conn, 200)["data"]
-    assert 0 == length(resp)
+    test "search employees by no_tax_id", %{conn: conn} do
+      party = insert(:prm, :party, no_tax_id: true)
+      legal_entity = insert(:prm, :legal_entity)
+      conn = put_client_id_header(conn, legal_entity.id)
+      insert(:prm, :employee, party: insert(:prm, :party))
+      %{id: id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
+
+      conn = get conn, employee_path(conn, :index, [no_tax_id: true])
+      assert [data] = json_response(conn, 200)["data"]
+      assert id == data["id"]
+      assert data["party"]["no_tax_id"]
+    end
+
+    test "search employees by invalid tax_id" do
+      conn = put_client_id_header(build_conn(), "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+      conn = get conn, employee_path(conn, :index, [tax_id: ""])
+      resp = json_response(conn, 200)["data"]
+      assert 0 == length(resp)
+    end
+
+    test "search employees by edrpou" do
+      edrpou = "37367387"
+      legal_entity = insert(:prm, :legal_entity, edrpou: edrpou)
+      insert(:prm, :employee, legal_entity: legal_entity)
+      insert(:prm, :employee)
+      conn = put_client_id_header(build_conn(), legal_entity.id)
+      conn = get conn, employee_path(conn, :index, [edrpou: edrpou])
+      resp = json_response(conn, 200)["data"]
+      assert 1 == length(resp)
+    end
+
+    test "search employees by invalid edrpou" do
+      conn = put_client_id_header(build_conn(), "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+      conn = get conn, employee_path(conn, :index, [edrpou: ""])
+      resp = json_response(conn, 200)["data"]
+      assert 0 == length(resp)
+    end
   end
 
   describe "get employee by id" do
@@ -132,14 +151,13 @@ defmodule EHealth.Web.EmployeesControllerTest do
       legal_entity = insert(:prm, :legal_entity, id: "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
       party1 = insert(:prm, :party, tax_id: "2222222225")
       employee = insert(:prm, :employee, legal_entity: legal_entity, party: party1)
-
-      conn = put_client_id_header(conn, legal_entity.id)
-      conn1 = get conn, employee_path(conn, :show, employee.id)
-
       schema =
         "test/data/employee/show_response_schema.json"
         |> File.read!()
         |> Poison.decode!()
+
+      conn = put_client_id_header(conn, legal_entity.id)
+      conn1 = get conn, employee_path(conn, :show, employee.id)
 
       resp = json_response(conn1, 200)["data"]
       :ok = NExJsonSchema.Validator.validate(schema, resp)
@@ -152,12 +170,6 @@ defmodule EHealth.Web.EmployeesControllerTest do
       )
 
       conn2 = get conn, employee_path(conn, :show, employee.id)
-
-      schema =
-        "test/data/employee/show_response_schema.json"
-        |> File.read!()
-        |> Poison.decode!()
-
       resp = json_response(conn2, 200)["data"]
       :ok = NExJsonSchema.Validator.validate(schema, resp)
     end

@@ -62,11 +62,11 @@ defmodule EHealth.Web.BlackListUserControllerTest do
 
   describe "create black list user" do
     test "success", %{conn: conn} do
-      party = insert(:prm, :party, tax_id: "022321")
+      party = insert(:prm, :party, tax_id: "12345672")
       insert(:prm, :party_user, party: party, user_id: MockServer.get_user_for_role_1())
       insert(:prm, :party_user, party: party, user_id: MockServer.get_user_for_role_2())
 
-      conn = post conn, black_list_user_path(conn, :create), tax_id: "022321"
+      conn = post conn, black_list_user_path(conn, :create), tax_id: "12345672"
       assert %{"id" => id} = json_response(conn, 201)["data"]
 
       conn = get conn, black_list_user_path(conn, :index), %{"id" => id}
@@ -78,11 +78,11 @@ defmodule EHealth.Web.BlackListUserControllerTest do
     end
 
     test "users not blocked", %{conn: conn} do
-      party = insert(:prm, :party, tax_id: "022321")
+      party = insert(:prm, :party, tax_id: "1234567221")
       insert(:prm, :party_user, party: party)
       insert(:prm, :party_user, party: party)
 
-      conn = post conn, black_list_user_path(conn, :create), tax_id: "022321"
+      conn = post conn, black_list_user_path(conn, :create), tax_id: "1234567221"
       resp = json_response(conn, 422)
 
       assert %{"error" => %{"invalid" => errors}} = resp
@@ -98,7 +98,7 @@ defmodule EHealth.Web.BlackListUserControllerTest do
     end
 
     test "invalid tax_id", %{conn: conn} do
-      conn = post conn, black_list_user_path(conn, :create)
+      conn = post conn, black_list_user_path(conn, :create), tax_id: "ME100900"
       resp = json_response(conn, 422)
 
       assert %{"error" => %{"invalid" => [%{"entry" => "$.tax_id"}]}} = resp

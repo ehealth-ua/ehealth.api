@@ -26,9 +26,9 @@ defmodule EHealth.Web.EmployeeView do
       start_date
       end_date
     )a)
-    |> Map.put(:party, Map.take(employee.party, ~w(id first_name second_name last_name)a))
-    |> render_association(employee.division, :division)
-    |> render_association(employee.legal_entity, :legal_entity)
+    |> Map.put(:party, Map.take(employee.party, ~w(id first_name second_name last_name no_tax_id)a))
+    |> render_association(employee.division)
+    |> render_association(employee.legal_entity)
     |> put_list_info(employee)
   end
 
@@ -81,12 +81,12 @@ defmodule EHealth.Web.EmployeeView do
       start_date
       end_date
     )a)
-    |> render_association(employee.party, :party)
-    |> render_association(employee.division, :division)
-    |> render_association(employee.legal_entity, :legal_entity)
+    |> render_association(employee.party)
+    |> render_association(employee.division)
+    |> render_association(employee.legal_entity)
   end
 
-  defp render_association(map, %Party{} = party, key) do
+  defp render_association(map, %Party{} = party) do
     data = Map.take(party, ~w(
       id
       first_name
@@ -95,12 +95,13 @@ defmodule EHealth.Web.EmployeeView do
       birth_date
       gender
       tax_id
+      no_tax_id
       documents
       phones
     )a)
-    Map.put(map, key, data)
+    Map.put(map, :party, data)
   end
-  defp render_association(map, %Division{} = division, key) do
+  defp render_association(map, %Division{} = division) do
     data = Map.take(division, ~w(
       id
       name
@@ -109,9 +110,9 @@ defmodule EHealth.Web.EmployeeView do
       legal_entity_id
       mountain_group
     )a)
-    Map.put(map, key, data)
+    Map.put(map, :division, data)
   end
-  defp render_association(map, %LegalEntity{} = legal_entity, key) do
+  defp render_association(map, %LegalEntity{} = legal_entity) do
     data = Map.take(legal_entity, ~w(
       id
       name
@@ -124,9 +125,9 @@ defmodule EHealth.Web.EmployeeView do
       legal_form
       mis_verified
     )a)
-    Map.put(map, key, data)
+    Map.put(map, :legal_entity, data)
   end
-  defp render_association(map, _, _), do: map
+  defp render_association(map, _), do: map
 
   defp render_doctor(map, info) do
     Map.put(map, :doctor, info)

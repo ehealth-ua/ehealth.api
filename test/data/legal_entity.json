@@ -37,6 +37,7 @@
     "second_name": "Миколайович",
     "position": "P1",
     "tax_id": "3067305998",
+    "no_tax_id": false,
     "birth_date": "1991-08-19",
     "gender": "MALE",
     "email": "email@example.com",

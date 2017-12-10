@@ -15,6 +15,7 @@ defmodule EHealth.Parties do
 
   @search_fields ~w(
     tax_id
+    no_tax_id
     first_name
     second_name
     last_name
@@ -32,6 +33,7 @@ defmodule EHealth.Parties do
     birth_date
     gender
     tax_id
+    no_tax_id
     inserted_by
     updated_by
   )a

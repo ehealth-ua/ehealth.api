@@ -12,6 +12,7 @@ defmodule EHealth.Parties.Party do
     field :birth_date, :date
     field :gender, :string
     field :tax_id, :string
+    field :no_tax_id, :boolean
     field :inserted_by, Ecto.UUID
     field :updated_by, Ecto.UUID
 

@@ -24,7 +24,8 @@ defmodule EHealth.PRMFactories.PartyFactory do
             }
           ],
           second_name: "some second_name",
-          tax_id: "some tax_id",
+          tax_id: sequence("222222222"),
+          no_tax_id: false,
           inserted_by: UUID.generate(),
           updated_by: UUID.generate()
         }

@@ -11,6 +11,7 @@ defmodule EHealth.Parties.Search do
     field :second_name, :string
     field :birth_date, :date
     field :tax_id, :string
+    field :no_tax_id, :boolean
     field :phone_number, :string
   end
 end

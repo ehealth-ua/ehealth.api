@@ -20,18 +20,6 @@ defmodule EHealth.Employees do
   @doctor Employee.type(:doctor)
   @pharmacist Employee.type(:pharmacist)
 
-  @search_fields ~w(
-    ids
-    party_id
-    legal_entity_id
-    division_id
-    status
-    employee_type
-    is_active
-    tax_id
-    edrpou
-  )a
-
   @required_fields ~w(
     party_id
     legal_entity_id
@@ -74,12 +62,13 @@ defmodule EHealth.Employees do
   def get_search_query(Employee = entity, changes) do
     params =
       changes
-      |> Map.drop([:tax_id, :edrpou])
+      |> Map.drop([:tax_id, :no_tax_id, :edrpou])
       |> Map.to_list()
 
     entity
     |> select([e], e)
     |> query_tax_id(Map.get(changes, :tax_id))
+    |> query_no_tax_id(Map.get(changes, :no_tax_id))
     |> query_edrpou(Map.get(changes, :edrpou))
     |> where(^params)
     |> load_references()
@@ -149,7 +138,7 @@ defmodule EHealth.Employees do
   end
 
   defp changeset(%Search{} = employee, attrs) do
-    cast(employee, attrs, @search_fields)
+    cast(employee, attrs, Search.__schema__(:fields))
   end
   defp changeset(%Employee{} = employee, attrs) do
     employee
@@ -226,6 +215,13 @@ defmodule EHealth.Employees do
     query
     |> join(:left, [e], p in assoc(e, :party))
     |> where([..., p], p.tax_id == ^tax_id)
+  end
+
+  def query_no_tax_id(query, nil), do: query
+  def query_no_tax_id(query, no_tax_id) do
+    query
+    |> join(:left, [e], p in assoc(e, :party))
+    |> where([..., p], p.no_tax_id == ^no_tax_id)
   end
 
   def query_edrpou(query, nil), do: query

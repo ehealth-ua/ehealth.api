@@ -29,6 +29,7 @@ defmodule EHealth.ILFactories.EmployeeRequestFactory do
             "birth_date": "1991-08-19",
             "gender": "MALE",
             "tax_id": "3067305998",
+            "no_tax_id": false,
             "email": "sp.virny@gmail.com",
             "documents": [
               %{

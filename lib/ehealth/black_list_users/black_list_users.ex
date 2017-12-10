@@ -96,13 +96,16 @@ defmodule EHealth.BlackListUsers do
     [users: "Cannot fetch Mithril users"]
   end
 
-  def remove_tokens_by_user_ids(changeset, user_ids, headers) do
+  defp remove_tokens_by_user_ids(%Ecto.Changeset{valid?: true} = changeset, user_ids, headers) do
     validate_change changeset, :tax_id, fn :tax_id, _tax_id ->
       case Mithril.delete_tokens_by_user_ids(user_ids, headers) do
         {:ok, _} -> []
         _ -> [user_tokens: "Cannot delete user tokens"]
       end
     end
+  end
+  defp remove_tokens_by_user_ids(changeset, _user_ids, _headers) do
+    changeset
   end
 
   def deactivate(_updated_by, %BlackListUser{is_active: false}) do
@@ -122,6 +125,7 @@ defmodule EHealth.BlackListUsers do
     black_list_user
     |> cast(attrs, @fields_required ++ @fields_optional)
     |> validate_required(@fields_required)
+    |> validate_format(:tax_id, ~r/^[1-9]([0-9]{7}|[0-9]{9})$/)
   end
 
   defp load_references({:ok, entity}) do
