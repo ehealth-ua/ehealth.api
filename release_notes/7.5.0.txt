@@ -1,7 +1,9 @@
-Change log for versions 7.5.0 - 7.5.1
+Change log for versions 7.5.0 - 7.5.3
 
 **Patches and bug fixes**:
 
+add parties.no_tax_id into fraud DB (#1621)
+add parties.no_tax_id into fraud DB
 no_tax_id: set default no_tax_id as false
 
 
