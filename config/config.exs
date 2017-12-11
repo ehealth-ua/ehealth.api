@@ -215,15 +215,11 @@ config :logger, :console,
   handle_otp_reports: true,
   level: :info
 
-# Configures declaration request terminator
-config :ehealth, EHealth.DeclarationRequest.Terminator,
-  frequency: 24 * 60 * 60 * 1000,
-  utc_interval: {0, 4}
-
-# Configures employee request terminator
-config :ehealth, EHealth.EmployeeRequest.Terminator,
-  frequency: 24 * 60 * 60 * 1000,
-  utc_interval: {0, 4}
+config :ehealth, EHealth.Scheduler,
+  declaration_request_autotermination: {:system, :string,
+    "DECLARATION_REQUEST_AUTOTERMINATION_SCHEDULE", "* 0-4 * * *"},
+  employee_request_autotermination: {:system, :string,
+    "EMPLOYEE_REQUEST_AUTOTERMINATION_SCHEDULE", "0-4 * * *"}
 
 config :cipher,
   keyphrase: System.get_env("CIPHER_KEYPHRASE") || "8()VN#U#_CU#X)*BFG(Cadsvn$&",

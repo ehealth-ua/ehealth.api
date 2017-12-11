@@ -1,16 +1,15 @@
-defmodule EHealth.Integration.EmployeeRequest.TerminatorTest do
+defmodule EHealth.Unit.EmployeeRequestsTest do
   @moduledoc false
 
-  use EHealth.Web.ConnCase
+  use EHealth.Web.ConnCase, async: true
 
-  alias EHealth.EmployeeRequest.Terminator
+  alias EHealth.EmployeeRequests
   alias EHealth.EmployeeRequests.EmployeeRequest, as: Request
   alias EHealth.EventManagerRepo
   alias EHealth.EventManager.Event
   alias EHealth.Repo
 
-  @tag :pending
-  test "start init genserver" do
+  test "terminate outdated employee_requests" do
     employee_request1 = insert(:il, :employee_request)
     employee_request2 = insert(:il, :employee_request)
     insert(:il, :employee_request)
@@ -22,13 +21,12 @@ defmodule EHealth.Integration.EmployeeRequest.TerminatorTest do
     employee_request2
     |> Ecto.Changeset.change(inserted_at: inserted_at)
     |> Repo.update()
+    assert 3 = Request |> Repo.all() |> Enum.count
 
     insert(:prm, :global_parameter, parameter: "employee_request_term_unit", value: "DAYS")
     insert(:prm, :global_parameter, parameter: "employee_request_expiration", value: "5")
-    assert 3 = Request |> Repo.all() |> Enum.count
 
-    GenServer.cast(Terminator, {:terminate, 1})
-    Process.sleep(1000)
+    EmployeeRequests.terminate_employee_requests()
 
     request_id = employee_request1.id
     expired_status = Request.status(:expired)

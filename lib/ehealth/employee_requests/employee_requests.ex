@@ -5,6 +5,7 @@ defmodule EHealth.EmployeeRequests do
   import Ecto.Changeset
   import EHealth.Utils.Connection
 
+  alias EHealth.GlobalParameters
   alias EHealth.EmployeeRequests.EmployeeRequest, as: Request
   alias EHealth.Repo
   alias EHealth.PRMRepo
@@ -191,6 +192,33 @@ defmodule EHealth.EmployeeRequests do
     |> Multi.update_all(:employee_requests, query, [set: updates], [returning: [:id]])
     |> Multi.run(:insert_events, &(insert_events(&1, updates, author_id)))
     |> Repo.transaction()
+  end
+
+  def terminate_employee_requests do
+    parameters = GlobalParameters.get_values()
+    is_valid? =
+      Enum.all?(~w(employee_request_expiration employee_request_term_unit), fn param ->
+        Map.has_key? parameters, param
+      end)
+
+    if is_valid? do
+      %{
+        "employee_request_expiration" => term,
+        "employee_request_term_unit" => unit,
+      } = parameters
+
+      normalized_unit =
+        unit
+        |> String.downcase
+        |> String.replace_trailing("s", "")
+
+      statuses = Enum.map(~w(approved rejected expired)a, &Request.status/1)
+      query =
+        Request
+        |> where([er], not er.status in ^statuses)
+        |> where([er], fragment("?::date < now()::date", datetime_add(er.inserted_at, ^term, ^normalized_unit)))
+      update_all(query, [status: Request.status(:expired)], Confex.get_env(:ehealth, :system_user))
+    end
   end
 
   defp insert_events(multi, [status: status], author_id) do

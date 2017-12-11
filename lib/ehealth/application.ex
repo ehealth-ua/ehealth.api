@@ -6,6 +6,7 @@ defmodule EHealth do
   use Application
   alias EHealth.Web.Endpoint
   alias Confex.Resolver
+  alias EHealth.Scheduler
   import Supervisor.Spec, warn: false
 
   # See http://elixir-lang.org/docs/stable/elixir/Application.html
@@ -25,8 +26,6 @@ defmodule EHealth do
       supervisor(EHealth.EventManagerRepo, []),
       # Start the endpoint when the application starts
       supervisor(EHealth.Web.Endpoint, []),
-      worker(EHealth.DeclarationRequest.Terminator, []),
-      worker(EHealth.EmployeeRequest.Terminator, []),
       worker(EHealth.Scheduler, [])
       # Starts a worker by calling: EHealth.Worker.start_link(arg1, arg2, arg3)
       # worker(EHealth.Worker, [arg1, arg2, arg3]),
@@ -35,7 +34,9 @@ defmodule EHealth do
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: EHealth.Supervisor]
-    Supervisor.start_link(children, opts)
+    result = Supervisor.start_link(children, opts)
+    Scheduler.create_jobs()
+    result
   end
 
   # Tell Phoenix to update the endpoint configuration
