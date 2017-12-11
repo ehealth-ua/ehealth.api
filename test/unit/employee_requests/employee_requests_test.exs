@@ -3,6 +3,7 @@ defmodule EHealth.Unit.EmployeeRequestsTest do
 
   use EHealth.Web.ConnCase, async: true
 
+  import Ecto.Query
   alias EHealth.EmployeeRequests
   alias EHealth.EmployeeRequests.EmployeeRequest, as: Request
   alias EHealth.EventManagerRepo
@@ -31,7 +32,10 @@ defmodule EHealth.Unit.EmployeeRequestsTest do
     request_id = employee_request1.id
     expired_status = Request.status(:expired)
     assert %{status: ^expired_status} = Repo.get(Request, request_id)
-    assert [event1, _event2] = EventManagerRepo.all(Event)
+    assert [event1, _event2] =
+      Event
+      |> order_by([e], e.inserted_at)
+      |> EventManagerRepo.all()
     assert %Event{
       entity_type: "EmployeeRequest",
       event_type: "StatusChangeEvent",
