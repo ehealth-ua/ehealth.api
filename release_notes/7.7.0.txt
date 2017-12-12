@@ -1,0 +1,7 @@
+Change log for versions 7.7.0 - 7.7.1
+
+**Patches and bug fixes**:
+
+Add support of multiple Bamboo Adapters and Mailgun adapter setup. Related to #1512 (#1631)
+
+
