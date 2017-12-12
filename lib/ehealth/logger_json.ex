@@ -83,6 +83,7 @@ defmodule Ecto.LoggerJSON do
     Date.from_erl!(date)
   end
   defp param_to_string(%Geo.Point{} = value), do: Geo.JSON.encode(value)
+  defp param_to_string(%Decimal{} = value), do: Decimal.to_string(value)
   defp param_to_string(value) when is_list(value) or is_map(value) do
      Enum.map(value, &param_to_string/1)
   end
