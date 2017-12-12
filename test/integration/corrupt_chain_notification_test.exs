@@ -1,8 +1,6 @@
 defmodule EHealth.Integraiton.CorruptChainNotificationTest do
   @moduledoc false
 
-  alias EHealth.Bamboo.Emails.HashChainVeriricationNotification
-
   use EHealth.Web.ConnCase, async: false
   use Bamboo.Test
 
@@ -56,7 +54,7 @@ defmodule EHealth.Integraiton.CorruptChainNotificationTest do
       |> put_req_header("content-type", "application/json")
       |> post(hash_chain_path(conn, :verification_failed), details)
 
-      assert_delivered_email HashChainVeriricationNotification.new("<html><body>some_rendered_content</body></html>")
+      assert_delivered_with(html_body: "<html><body>some_rendered_content</body></html>")
     end
   end
 end

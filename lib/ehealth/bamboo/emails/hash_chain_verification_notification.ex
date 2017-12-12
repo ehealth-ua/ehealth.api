@@ -2,14 +2,9 @@ defmodule EHealth.Bamboo.Emails.HashChainVeriricationNotification do
   @moduledoc false
 
   use Confex, otp_app: :ehealth
-  import Bamboo.Email
+  alias EHealth.Bamboo.Emails.Sender
 
-  def new(body) do
-    new_email(
-      from: config()[:from],
-      to: config()[:to],
-      subject: config()[:subject],
-      html_body: body
-    )
+  def send(body) do
+    Sender.send_email(config()[:to], body, config()[:from], config()[:subject])
   end
 end

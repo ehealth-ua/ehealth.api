@@ -125,11 +125,18 @@ Also sample `.env` can be used as payload for `docker run` cli.
 | VAR_NAME         | Default Value | Description |
 | ---------------- | ------------- | ----------- |
 | POSTMARK_API_KEY | not set       | Postmark API key |
+## Mailgun
+
+| VAR_NAME         | Default Value | Description |
+| ---------------- | ------------- | ----------- |
+| MAILGUN_API_KEY | not set       | Mailgun API key |
+| MAILGUN_DOMAIN | not set       | Mailgun domain |
 
 ## Bamboo
 
 | VAR_NAME                                                | Default Value | Description |
 | ------------------------------------------------------- | ------------- | ----------- |
+| BAMBOO_MAILER                                           | ``            | Service that will be used to send emails. Posible variants: EHealth.Bamboo.PostmarkMailer, EHealth.Bamboo.MailgunMailter, EHealth.Bamboo.SMTPMailer. All services need to be configured by thier own modules configes
 | BAMBOO_EMPLOYEE_REQUEST_INVITATION_FROM                 | ``            | Email address that will be used as a sender in employee request invitation email. |
 | BAMBOO_EMPLOYEE_REQUEST_INVITATION_SUBJECT              | ``            | The subject of the employee request invitation email. |
 | BAMBOO_EMPLOYEE_CREATED_NOTIFICATION_FROM               | ``            | Email address that will be used as a sender in employee created notification email. |

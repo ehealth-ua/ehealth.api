@@ -7,6 +7,6 @@ defmodule EHealth.Unit.PostmarkAdapterTest do
 
   test "handle_config" do
     System.put_env("POSTMARK_API_KEY", "111")
-    assert %{adapter: Bamboo.TestAdapter, api_key: "111"} == PostmarkAdapter.handle_config(%{})
+    assert %{adapter: EHealth.Bamboo.PostmarkAdapter, api_key: "111"} == PostmarkAdapter.handle_config(%{})
   end
 end

@@ -1,8 +1,8 @@
 defmodule EHealth.Bamboo.Emails.Sender do
   @moduledoc false
 
+  use Confex, otp_app: :ehealth
   import Bamboo.Email
-  alias EHealth.Bamboo.Mailer
 
   def send_email(to, body, from, subject) do
     new_email()
@@ -10,6 +10,6 @@ defmodule EHealth.Bamboo.Emails.Sender do
     |> from(from)
     |> subject(subject)
     |> html_body(body)
-    |> Mailer.deliver_now()
+    |> config()[:mailer].deliver_now()
   end
 end

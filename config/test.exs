@@ -113,7 +113,10 @@ config :ehealth, EHealth.EmployeeRequest.Terminator,
 config :ehealth, EHealth.LegalEntities.Validator,
   owner_positions: {:system, :list, "OWNER_POSITIONS", ["P1"]}
 
-config :ehealth, EHealth.Bamboo.Mailer,
+config :ehealth, EHealth.Bamboo.Emails.Sender,
+  mailer: EHealth.Bamboo.TestMailer
+
+config :ehealth, EHealth.Bamboo.TestMailer,
   adapter: Bamboo.TestAdapter
 
 config :ehealth,

@@ -191,10 +191,18 @@ config :ehealth, :medication_request,
   reject_template_sms: {:system, "TEMPLATE_SMS_FOR_REJECT_MEDICATION_REQUEST",
     "Відкликано рецепт: <request_number> від <created_at>"}
 
+config :ehealth, EHealth.Bamboo.Emails.Sender,
+  mailer: {:system, :module, "BAMBOO_MAILER"}
+
 # Configures bamboo
-config :ehealth, EHealth.Bamboo.Mailer,
+config :ehealth, EHealth.Bamboo.PostmarkMailer,
   adapter: EHealth.Bamboo.PostmarkAdapter,
   api_key: {:system, "POSTMARK_API_KEY", ""}
+
+config :ehealth, EHealth.Bamboo.MailgunMailer,
+  adapter: EHealth.Bamboo.MailgunAdapter,
+  api_key: {:system, "MAILGUN_API_KEY", ""},
+  domain: {:system, "MAILGUN_DOMAIN", ""}
 
 # Configures address merger
 config :ehealth, EHealth.Utils.AddressMerger,
