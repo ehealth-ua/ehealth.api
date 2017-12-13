@@ -15,3 +15,9 @@ defmodule EHealth.Bamboo.TestMailer do
 
   use Bamboo.Mailer, otp_app: :ehealth
 end
+
+defmodule EHealth.Bamboo.SMTPMailer do
+  @moduledoc false
+
+  use Bamboo.Mailer, otp_app: :ehealth
+end

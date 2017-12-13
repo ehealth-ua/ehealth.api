@@ -204,6 +204,18 @@ config :ehealth, EHealth.Bamboo.MailgunMailer,
   api_key: {:system, "MAILGUN_API_KEY", ""},
   domain: {:system, "MAILGUN_DOMAIN", ""}
 
+config :ehealth, EHealth.Bamboo.SMTPMailer,
+  adapter: EHealth.Bamboo.SMTPAdapter,
+  server: {:system, "BAMBOO_SMTP_SERVER", ""},
+  hostname: {:system, "BAMBOO_SMTP_HOSTNAME", ""},
+  port: {:system, "BAMBOO_SMTP_PORT", ""},
+  username: {:system, "BAMBOO_SMTP_USERNAME", ""},
+  password: {:system, "BAMBOO_SMTP_PASSWORD", ""},
+  tls: :if_available,
+  allowed_tls_versions: [:"tlsv1", :"tlsv1.1", :"tlsv1.2"],
+  ssl: true,
+  retries: 1
+
 # Configures address merger
 config :ehealth, EHealth.Utils.AddressMerger,
   no_suffix_areas: {:system, "NO_SUFFIX_AREAS", ["М.КИЇВ", "М.СЕВАСТОПОЛЬ"]}
