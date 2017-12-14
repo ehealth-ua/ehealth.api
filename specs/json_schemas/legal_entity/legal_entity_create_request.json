@@ -40,7 +40,7 @@
         },
         "number": {
           "type": "string",
-          "minLength":1 
+          "minLength":1
         }
       },
       "required": [
@@ -178,7 +178,7 @@
         },
         "tax_id": {
           "type": "string",
-          "pattern": "^[0-9]{10}$"
+          "pattern": "^([0-9]{9,10}|[А-ЯЁЇIЄҐ]{2}\\d{6})$"
         },
         "birth_date": {
           "$ref": "#/definitions/date"
