@@ -122,6 +122,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       employee_request_params =
         doctor_request()
         |> put_in(["employee_request", "division_id"], division_id)
+        |> put_in(["employee_request", "party", "tax_id"], "123456789")
         |> put_in(["employee_request", "party", "no_tax_id"], true)
 
       conn = put_client_id_header(conn, legal_entity.id)
