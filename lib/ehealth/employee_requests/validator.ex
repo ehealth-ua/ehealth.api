@@ -80,9 +80,10 @@ defmodule EHealth.EmployeeRequests.Validator do
   end
 
   defp validate_tax_id(content) do
+    no_tax_id = get_in(content, ~w(employee_request party no_tax_id))
     content
     |> get_in(~w(employee_request party tax_id))
-    |> TaxID.validate()
+    |> TaxID.validate(no_tax_id)
     |> case do
          true -> :ok
          _ ->

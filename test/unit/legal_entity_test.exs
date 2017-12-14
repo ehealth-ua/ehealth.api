@@ -64,6 +64,18 @@ defmodule EHealth.Unit.LegalEntityTest do
       assert {:error, [{error, entry}]} = Validator.validate_tax_id(content)
       assert "$.owner.tax_id" == entry
       assert :invalid == error[:rule]
+
+      content = %{"owner" => %{"tax_id" => "00000000", "no_tax_id" => false}}
+      assert {:error, [{error, entry}]} = Validator.validate_tax_id(content)
+      assert "$.owner.tax_id" == entry
+      assert :invalid == error[:rule]
+    end
+
+    test "no_tax_id is true" do
+      content = %{"owner" => %{"tax_id" => "00000000", "no_tax_id" => true}}
+      assert {:error, [{error, entry}]} = Validator.validate_tax_id(content)
+      assert "$.owner.no_tax_id" == entry
+      assert :invalid == error[:rule]
     end
 
     test "validate legal entity with not allowed kved", %{conn: conn} do

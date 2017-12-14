@@ -254,7 +254,6 @@
         "birth_date",
         "gender",
         "tax_id",
-        "no_tax_id",
         "email",
         "documents",
         "phones"

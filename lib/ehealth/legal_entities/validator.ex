@@ -122,20 +122,29 @@ defmodule EHealth.LegalEntities.Validator do
   end
 
   # Tax ID validator
-
   def validate_tax_id(content) do
-    content
-    |> get_in(["owner", "tax_id"])
-    |> TaxID.validate()
-    |> case do
-         true -> :ok
-         _ ->
+    no_tax_id = get_in(content, ["owner", "no_tax_id"])
+    case no_tax_id do
+      true ->
+        {:error, [{%{
+          description: "'no_tax_id must be false",
+          params: [],
+          rule: :invalid
+        }, "$.owner.no_tax_id"}]}
+      _ ->
+        content
+        |> get_in(["owner", "tax_id"])
+        |> TaxID.validate()
+        |> case do
+          true -> :ok
+          _ ->
           {:error, [{%{
             description: "invalid tax_id value",
             params: [],
             rule: :invalid
           }, "$.owner.tax_id"}]}
-       end
+        end
+    end
   end
 
   # EDRPOU validator

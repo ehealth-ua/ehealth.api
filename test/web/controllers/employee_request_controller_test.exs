@@ -199,7 +199,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
       conn = post conn, employee_request_path(conn, :create), employee_request_params
       invalid = hd(json_response(conn, 422)["error"]["invalid"])
-      assert "$.employee_request.party.no_tax_id" == invalid["entry"]
+      assert "$.legal_entity_id" == invalid["entry"]
     end
 
     test "with doctor attribute for employee_type admin", %{conn: conn} do
