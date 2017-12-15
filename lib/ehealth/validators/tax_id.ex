@@ -10,19 +10,23 @@ defmodule EHealth.Validators.TaxID do
   def validate(tax_id) when byte_size(tax_id) != 10, do: false
   def validate("0000000000"), do: false
   def validate(tax_id) do
-    {check_sum, i} =
-      Enum.reduce(@ratios, {0, 0}, fn(x, {acc, i}) -> {acc + x * String.to_integer(String.at(tax_id, i)), i + 1} end)
+    if Regex.match?(~r/^[0-9]{10}$/, tax_id) do
+      {check_sum, i} =
+        Enum.reduce(@ratios, {0, 0}, fn(x, {acc, i}) -> {acc + x * String.to_integer(String.at(tax_id, i)), i + 1} end)
 
-    check_number =
-      check_sum
-      |> rem(11)
-      |> rem(10)
+      check_number =
+        check_sum
+        |> rem(11)
+        |> rem(10)
 
-    last_number =
-      tax_id
-      |> String.at(i)
-      |> String.to_integer()
+      last_number =
+        tax_id
+        |> String.at(i)
+        |> String.to_integer()
 
-    last_number == check_number
+      last_number == check_number
+    else
+      false
+    end
   end
 end
