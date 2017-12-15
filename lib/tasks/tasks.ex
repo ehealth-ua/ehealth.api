@@ -8,7 +8,7 @@ defmodule :ehealth_tasks do
   """
   alias EHealth.Dictionaries.Dictionary
 
-  def migrate! do
+  def migrate do
     fraud_migrations_dir = Application.app_dir(:ehealth, "priv/fraud_repo/migrations")
     prm_migrations_dir = Application.app_dir(:ehealth, "priv/prm_repo/migrations")
     migrations_dir = Application.app_dir(:ehealth, "priv/repo/migrations")
@@ -34,7 +34,7 @@ defmodule :ehealth_tasks do
     :init.stop()
   end
 
-  def seed! do
+  def seed do
     load_app()
 
     repo = EHealth.Repo
