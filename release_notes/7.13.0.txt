@@ -1,0 +1,7 @@
+Change log for versions 7.13.0 - 7.13.1
+
+**Patches and bug fixes**:
+
+update distillery to 1.5 (#1644)
+
+
