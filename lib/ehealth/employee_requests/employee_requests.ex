@@ -43,10 +43,13 @@ defmodule EHealth.EmployeeRequests do
 
     paging =
       query
+      |> filter_by_id(params)
       |> filter_by_legal_entity_id(params)
+      |> filter_by_legal_entities_params(params)
       |> filter_by_status(params)
       |> filter_by_no_tax_id(params)
       |> Repo.paginate(params)
+
     legal_entity_ids =
       paging.entries
       |> Enum.reduce([], fn %{data: data}, acc ->
@@ -61,6 +64,37 @@ defmodule EHealth.EmployeeRequests do
       |> Enum.into(%{}, &({Map.get(&1, :id), &1}))
 
     {paging, %{"legal_entities" => legal_entities}}
+  end
+
+  defp filter_by_id(query, %{"id" => id}) do
+    where(query, [r], r.id == ^id)
+  end
+  defp filter_by_id(query, _), do: query
+
+  defp filter_by_legal_entities_params(query, params) do
+    if Enum.any?(params, fn({key, _}) -> key in ["legal_entity_name", "edrpou"] end) do
+      legal_entity_ids =
+        LegalEntity
+        |> select([l], l.id)
+        |> filter_by_legal_entity_name(params["legal_entity_name"])
+        |> filter_by_legal_entity_edrpou(params["edrpou"])
+        |> PRMRepo.all()
+        |> Enum.join(",")
+
+      where(query, [r], fragment("?->>'legal_entity_id' in (?)", r.data, ^legal_entity_ids))
+    else
+      query
+    end
+  end
+
+  defp filter_by_legal_entity_name(query, nil), do: query
+  defp filter_by_legal_entity_name(query, name) do
+    where(query, [l], ilike(l.name, ^("%" <> name <> "%")))
+  end
+
+  defp filter_by_legal_entity_edrpou(query, nil), do: query
+  defp filter_by_legal_entity_edrpou(query, edrpou) do
+    where(query, [l], l.edrpou == ^edrpou)
   end
 
   defp filter_by_legal_entity_id(query, %{"legal_entity_id" => legal_entity_id}) do

@@ -546,6 +546,55 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       assert employee_request["no_tax_id"]
     end
 
+    test "filter by legal_entity_name", %{conn: conn} do
+      insert(:il, :employee_request)
+      %{id: legal_entity_id} = insert(:prm, :legal_entity, name: "АйБолит")
+      employee_data = Map.put(employee_request_data(), :legal_entity_id, legal_entity_id)
+      %{id: id} = insert(:il, :employee_request, [data: employee_data])
+
+      resp =
+        conn
+        |> put_client_id_header(MockServer.get_client_admin())
+        |> get(employee_request_path(conn, :index), [legal_entity_name: "Боли"])
+        |> json_response(200)
+        |> Map.get("data")
+
+      assert 1 = length(resp)
+      assert id == hd(resp)["id"]
+    end
+
+    test "filter by edrpou", %{conn: conn} do
+      insert(:il, :employee_request)
+      %{id: legal_entity_id} = insert(:prm, :legal_entity, edrpou: "10020030")
+      employee_data = Map.put(employee_request_data(), :legal_entity_id, legal_entity_id)
+      %{id: id} = insert(:il, :employee_request, [data: employee_data])
+
+      resp =
+        conn
+        |> put_client_id_header(MockServer.get_client_admin())
+        |> get(employee_request_path(conn, :index), [edrpou: "10020030"])
+        |> json_response(200)
+        |> Map.get("data")
+
+      assert 1 = length(resp)
+      assert id == hd(resp)["id"]
+    end
+
+    test "filter by employee_request_id", %{conn: conn} do
+      %{id: id} = insert(:il, :employee_request)
+      insert(:il, :employee_request)
+
+      resp =
+        conn
+        |> put_client_id_header(MockServer.get_client_admin())
+        |> get(employee_request_path(conn, :index), [id: id])
+        |> json_response(200)
+        |> Map.get("data")
+
+      assert 1 = length(resp)
+      assert id == hd(resp)["id"]
+    end
+
     test "with valid client_id in metadata", %{conn: conn} do
       %{id: legal_entity_id} = legal_entity = fixture(LegalEntity)
       %{id: legal_entity_id_2} = fixture(LegalEntity)
