@@ -81,7 +81,7 @@ defmodule EHealth.DeclarationRequest.API.Sign do
 
   def check_drfo({:ok, %{"data" => %{"content" => content, "signer" => signer}}, db_data}) do
     tax_id = get_in(content, ["employee", "party", "tax_id"])
-    drfo = Map.get(signer, "drfo")
+    drfo = signer |> Map.get("drfo") |> String.replace(" ", "")
 
     Logger.info(fn ->
       Poison.encode!(%{

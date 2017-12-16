@@ -105,8 +105,8 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
     end
 
     test "returns expected result when drfo matches the tax_id" do
-      employee = %{"party" => %{"tax_id" => "111"}}
-      signer = %{"drfo" => "111"}
+      employee = %{"party" => %{"tax_id" => "AA111"}}
+      signer = %{"drfo" => "AA 111"}
       input_data = %{"data" => %{"content" => %{"employee" => employee}, "signer" => signer}}
       result = check_drfo({:ok, input_data, %DeclarationRequest{}})
       expected_result = {:ok, {%{"employee" => employee}, %DeclarationRequest{}}}
