@@ -79,9 +79,8 @@ defmodule EHealth.EmployeeRequests do
         |> filter_by_legal_entity_name(params["legal_entity_name"])
         |> filter_by_legal_entity_edrpou(params["edrpou"])
         |> PRMRepo.all()
-        |> Enum.join(",")
 
-      where(query, [r], fragment("?->>'legal_entity_id' in (?)", r.data, ^legal_entity_ids))
+      where(query, [r], fragment("?->>'legal_entity_id'", r.data) in ^legal_entity_ids)
     else
       query
     end

@@ -546,21 +546,41 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       assert employee_request["no_tax_id"]
     end
 
-    test "filter by legal_entity_name", %{conn: conn} do
+    test "filter by legal_entity_name and edrpou", %{conn: conn} do
+      # 1
       insert(:il, :employee_request)
-      %{id: legal_entity_id} = insert(:prm, :legal_entity, name: "АйБолит")
+      # 2
+      %{id: legal_entity_id} = insert(:prm, :legal_entity, name: "АйБолит", edrpou: "10020030")
       employee_data = Map.put(employee_request_data(), :legal_entity_id, legal_entity_id)
-      %{id: id} = insert(:il, :employee_request, [data: employee_data])
+      employee_request1 = insert(:il, :employee_request, [data: employee_data])
+      # 3
+      %{id: legal_entity_id2} = insert(:prm, :legal_entity, name: "АйБолит 2", edrpou: "20030040")
+      employee_data2 = Map.put(employee_request_data(), :legal_entity_id, legal_entity_id2)
+      employee_request2 = insert(:il, :employee_request, [data: employee_data2])
 
+      # by legal_entity_name
       resp =
         conn
         |> put_client_id_header(MockServer.get_client_admin())
-        |> get(employee_request_path(conn, :index), [legal_entity_name: "Боли"])
+        |> get(employee_request_path(conn, :index), [legal_entity_name: "боли"])
+        |> json_response(200)
+        |> Map.get("data")
+
+      assert 2 = length(resp)
+      Enum.each(resp, fn(%{"id" => id}) ->
+        assert id in [employee_request1.id, employee_request2.id]
+      end)
+
+      # legal_entity_name and edrpou
+      resp =
+        conn
+        |> put_client_id_header(MockServer.get_client_admin())
+        |> get(employee_request_path(conn, :index), [legal_entity_name: "боли", edrpou: "20030040"])
         |> json_response(200)
         |> Map.get("data")
 
       assert 1 = length(resp)
-      assert id == hd(resp)["id"]
+      assert employee_request2.id == hd(resp)["id"]
     end
 
     test "filter by edrpou", %{conn: conn} do
