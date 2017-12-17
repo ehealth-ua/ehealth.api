@@ -1,7 +1,8 @@
-Change log for versions 7.14.0 - 7.14.2
+Change log for versions 7.14.0 - 7.14.3
 
 **Patches and bug fixes**:
 
+do not filter by status
 cast no_tax_id bool (#1651)
 fix where IN for filtering employee requests by id, legal_entity_id and edrpou (#1650)
 
