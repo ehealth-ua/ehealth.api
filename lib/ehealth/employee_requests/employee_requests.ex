@@ -101,10 +101,15 @@ defmodule EHealth.EmployeeRequests do
   end
   defp filter_by_legal_entity_id(query, _), do: query
 
-  defp filter_by_no_tax_id(query, %{"no_tax_id" => no_tax_id}) when is_boolean(no_tax_id) do
+  defp filter_by_no_tax_id(query, %{"no_tax_id" => no_tax_id}) do
+    no_tax_id = cast_boolean(no_tax_id)
     where(query, [r], fragment("?->'party'->'no_tax_id' = ?", r.data, ^no_tax_id))
   end
   defp filter_by_no_tax_id(query, _), do: query
+
+  # ToDo: shit, agreee. It should be Schema for request
+  defp cast_boolean(str) when is_boolean(str), do: str
+  defp cast_boolean(str) when is_binary(str), do: str |> String.downcase |> String.to_existing_atom
 
   defp filter_by_status(query, %{"status" => status}) when is_binary(status) do
     where(query, [r], r.status == ^status)

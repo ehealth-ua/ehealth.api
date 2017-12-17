@@ -546,7 +546,33 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       assert employee_request["no_tax_id"]
     end
 
-    test "filter by legal_entity_name and edrpou", %{conn: conn} do
+    test "invalid no_tax_id", %{conn: conn} do
+      conn = put_client_id_header(conn, MockServer.get_client_admin())
+
+      insert(:prm, :legal_entity, id: "8b797c23-ba47-45f2-bc0f-521013e01074")
+      insert(:il, :employee_request)
+      employee_data = put_in(employee_request_data(), ~w(party no_tax_id)a, true)
+      insert(:il, :employee_request, [data: employee_data])
+
+      resp =
+        conn
+        |> get(employee_request_path(conn, :index), [no_tax_id: "TrUe"])
+        |> json_response(200)
+        |> Map.get("data")
+
+      assert 1 = length(resp)
+      employee_request = hd(resp)
+      assert Map.has_key?(employee_request, "no_tax_id")
+      assert employee_request["no_tax_id"]
+
+      assert [] =
+        conn
+        |> get(employee_request_path(conn, :index), [no_tax_id: "invalid"])
+        |> json_response(200)
+        |> Map.get("data")
+    end
+
+    test "filter by legal_entity_name, edrpou and no_tax_id", %{conn: conn} do
       # 1
       insert(:il, :employee_request)
       # 2
@@ -555,7 +581,10 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       employee_request1 = insert(:il, :employee_request, [data: employee_data])
       # 3
       %{id: legal_entity_id2} = insert(:prm, :legal_entity, name: "АйБолит 2", edrpou: "20030040")
-      employee_data2 = Map.put(employee_request_data(), :legal_entity_id, legal_entity_id2)
+      employee_data2 =
+        employee_request_data()
+        |> Map.put(:legal_entity_id, legal_entity_id2)
+        |> put_in(~w(party no_tax_id)a, true)
       employee_request2 = insert(:il, :employee_request, [data: employee_data2])
 
       # by legal_entity_name
@@ -575,7 +604,18 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       resp =
         conn
         |> put_client_id_header(MockServer.get_client_admin())
-        |> get(employee_request_path(conn, :index), [legal_entity_name: "боли", edrpou: "20030040"])
+        |> get(employee_request_path(conn, :index), [legal_entity_name: "боли", edrpou: "10020030"])
+        |> json_response(200)
+        |> Map.get("data")
+
+      assert 1 = length(resp)
+      assert employee_request1.id == hd(resp)["id"]
+
+      # legal_entity_name and edrpou
+      resp =
+        conn
+        |> put_client_id_header(MockServer.get_client_admin())
+        |> get(employee_request_path(conn, :index), [legal_entity_name: "боли", no_tax_id: "true"])
         |> json_response(200)
         |> Map.get("data")
 
