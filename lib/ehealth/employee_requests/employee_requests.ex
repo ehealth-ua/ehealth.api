@@ -114,9 +114,7 @@ defmodule EHealth.EmployeeRequests do
   defp filter_by_status(query, %{"status" => status}) when is_binary(status) do
     where(query, [r], r.status == ^status)
   end
-  defp filter_by_status(query, _) do
-    where(query, [r], r.status == @status_new)
-  end
+  defp filter_by_status(query, _), do: query
 
   def get_by_id!(id) do
     Repo.get!(Request, id)
