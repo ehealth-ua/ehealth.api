@@ -1,0 +1,7 @@
+Change log for versions 7.14.0 - 7.14.1
+
+**Patches and bug fixes**:
+
+fix where IN for filtering employee requests by id, legal_entity_id and edrpou (#1650)
+
+
