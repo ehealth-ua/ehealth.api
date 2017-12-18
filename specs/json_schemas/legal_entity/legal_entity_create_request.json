@@ -117,10 +117,7 @@
     },
     "type": {
       "type": "string",
-      "enum": [
-        "MSP",
-        "PHARMACY"
-      ]
+      "description": "Dictionary: LEGAL_ENTITY_TYPE"
     },
     "owner_property_type": {
       "type": "string",
