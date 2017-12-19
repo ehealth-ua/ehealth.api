@@ -9,6 +9,10 @@
       "type": "string",
       "pattern": "^(?!.*[ЫЪЭЁыъэё@%&$^#])[a-zA-ZА-ЯҐЇІЄа-яґїіє0-9№\\\"!\\^\\*)\\]\\[(._-].*$"
     },
+    "person_name": {
+      "type": "string",
+      "pattern": "^[А-Яа-яёЁЇїІіЄєҐґ]+$"
+    },
     "phone": {
       "type": "object",
       "properties": {
@@ -206,15 +210,15 @@
       "properties": {
         "first_name": {
           "type": "string",
-          "$ref": "#/definitions/name"
+          "$ref": "#/definitions/person_name"
         },
         "last_name": {
           "type": "string",
-          "$ref": "#/definitions/name"
+          "$ref": "#/definitions/person_name"
         },
         "second_name": {
           "type": "string",
-          "$ref": "#/definitions/name"
+          "$ref": "#/definitions/person_name"
         },
         "birth_date": {
           "$ref": "#/definitions/date"
