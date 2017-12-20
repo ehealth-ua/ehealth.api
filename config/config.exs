@@ -120,23 +120,40 @@ config :ehealth, EHealth.API.Gandalf,
     timeout: {:system, :integer, "GNDF_REQUEST_TIMEOUT", 30_000}
   ]
 
-# employee request invitation
-# Configures employee request invitation template
+# configure emails
+config :ehealth, :emails,
+  employee_request_invitation: %{
+    from: {:system, "BAMBOO_EMPLOYEE_REQUEST_INVITATION_FROM", ""},
+    subject: {:system, "BAMBOO_EMPLOYEE_REQUEST_INVITATION_SUBJECT", ""}
+  },
+  employee_request_update_invitation: %{
+    from: {:system, "BAMBOO_EMPLOYEE_REQUEST_UPDATE_INVITATION_FROM", ""},
+    subject: {:system, "BAMBOO_EMPLOYEE_REQUEST_UPDATE_INVITATION_SUBJECT", ""}
+  },
+  hash_chain_verification_notification: %{
+    from: {:system, "CHAIN_VERIFICATION_FAILED_NOTIFICATION_FROM", ""},
+    to: {:system, "CHAIN_VERIFICATION_FAILED_NOTIFICATION_TO", ""},
+    subject: {:system, "CHAIN_VERIFICATION_FAILED_NOTIFICATION_SUBJECT", ""}
+  },
+  employee_created_notification: %{
+    from: {:system, "BAMBOO_EMPLOYEE_CREATED_NOTIFICATION_FROM", ""},
+    subject: {:system, "BAMBOO_EMPLOYEE_CREATED_NOTIFICATION_SUBJECT", ""}
+  },
+  credentials_recovery_request: %{
+    from: {:system, "BAMBOO_CREDENTIALS_RECOVERY_REQUEST_INVITATION_FROM", ""},
+    subject: {:system, "BAMBOO_CREDENTIALS_RECOVERY_REQUEST_INVITATION_SUBJECT", ""}
+  }
+
 config :ehealth, EHealth.Man.Templates.EmployeeRequestInvitation,
   id: {:system, "EMPLOYEE_REQUEST_INVITATION_TEMPLATE_ID"},
   format: {:system, "EMPLOYEE_REQUEST_INVITATION_TEMPLATE_FORMAT", "text/html"},
   locale: {:system, "EMPLOYEE_REQUEST_INVITATION_TEMPLATE_LOCALE", "uk_UA"}
 
-# Configures employee request invitation email
-config :ehealth, EHealth.Bamboo.Emails.EmployeeRequestInvitation,
-  from: {:system, "BAMBOO_EMPLOYEE_REQUEST_INVITATION_FROM", ""},
-  subject: {:system, "BAMBOO_EMPLOYEE_REQUEST_INVITATION_SUBJECT", ""}
-
-# Configures chain verification failure notification
-config :ehealth, EHealth.Bamboo.Emails.HashChainVeriricationNotification,
-  from: {:system, "CHAIN_VERIFICATION_FAILED_NOTIFICATION_FROM", ""},
-  to: {:system, "CHAIN_VERIFICATION_FAILED_NOTIFICATION_TO", ""},
-  subject: {:system, "CHAIN_VERIFICATION_FAILED_NOTIFICATION_SUBJECT", ""}
+# Configures employee request update invitation template
+config :ehealth, EHealth.Man.Templates.EmployeeRequestUpdateInvitation,
+  id: {:system, "EMPLOYEE_REQUEST_UPDATE_INVITATION_TEMPLATE_ID"},
+  format: {:system, "EMPLOYEE_REQUEST_UPDATE_INVITATION_TEMPLATE_FORMAT", "text/html"},
+  locale: {:system, "EMPLOYEE_REQUEST_UPDATE_INVITATION_TEMPLATE_LOCALE", "uk_UA"}
 
 config :ehealth, EHealth.Man.Templates.HashChainVerificationNotification,
   id: {:system, "CHAIN_VERIFICATION_FAILED_NOTIFICATION_ID", ""},
@@ -155,18 +172,9 @@ config :ehealth, EHealth.Man.Templates.DeclarationRequestPrintoutForm,
   format: {:system, "DECLARATION_REQUEST_PRINTOUT_FORM_TEMPLATE_FORMAT", "text/html"},
   locale: {:system, "DECLARATION_REQUEST_PRINTOUT_FORM_TEMPLATE_LOCALE", "uk_UA"}
 
-# Configures employee created notification email
-config :ehealth, EHealth.Bamboo.Emails.EmployeeCreatedNotification,
-  from: {:system, "BAMBOO_EMPLOYEE_CREATED_NOTIFICATION_FROM", ""},
-  subject: {:system, "BAMBOO_EMPLOYEE_CREATED_NOTIFICATION_SUBJECT", ""}
-
 # Template and setting for credentials recovery requests
 config :ehealth, :credentials_recovery_request_ttl,
   {:system, :integer, "CREDENTIALS_RECOVERY_REQUEST_TTL", 1_500}
-
-config :ehealth, EHealth.Bamboo.Emails.CredentialsRecoveryRequest,
-  from: {:system, "BAMBOO_CREDENTIALS_RECOVERY_REQUEST_INVITATION_FROM", ""},
-  subject: {:system, "BAMBOO_CREDENTIALS_RECOVERY_REQUEST_INVITATION_SUBJECT", ""}
 
 config :ehealth, EHealth.Man.Templates.CredentialsRecoveryRequest,
   id: {:system, "CREDENTIALS_RECOVERY_REQUEST_INVITATION_TEMPLATE_ID"},

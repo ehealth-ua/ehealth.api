@@ -1,4 +1,4 @@
-defmodule EHealth.Integraiton.CorruptChainNotificationTest do
+defmodule EHealth.Integration.CorruptChainNotificationTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase, async: false
@@ -43,8 +43,8 @@ defmodule EHealth.Integraiton.CorruptChainNotificationTest do
     test "it sends an email to specified recepient" do
       details = %{
         "data" => [
-          %{ "a" => 1 },
-          %{ "b" => 2 }
+          %{"a" => 1},
+          %{"b" => 2}
         ]
       }
 

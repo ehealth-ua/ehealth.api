@@ -8,6 +8,7 @@ defmodule EHealth.EmployeeRequests do
   alias EHealth.GlobalParameters
   alias EHealth.EmployeeRequests.EmployeeRequest, as: Request
   alias EHealth.Repo
+  alias EHealth.Bamboo.Emails.Sender
   alias EHealth.PRMRepo
   alias EHealth.Employees.Employee
   alias EHealth.Divisions.Division
@@ -17,9 +18,8 @@ defmodule EHealth.EmployeeRequests do
   alias EHealth.OAuth.API, as: OAuth
   alias EHealth.Employee.UserCreateRequest
   alias EHealth.Man.Templates.EmployeeRequestInvitation, as: EmployeeRequestInvitationTemplate
-  alias EHealth.Bamboo.Emails.EmployeeRequestInvitation, as: EmployeeRequestInvitationEmail
+  alias EHealth.Man.Templates.EmployeeRequestUpdateInvitation, as: EmployeeUpdateInvitationTemplate
   alias EHealth.Man.Templates.EmployeeCreatedNotification, as: EmployeeCreatedNotificationTemplate
-  alias EHealth.Bamboo.Emails.EmployeeCreatedNotification, as: EmployeeCreatedNotificationEmail
   alias EHealth.API.Mithril
   alias EHealth.Employees
   alias EHealth.BlackListUsers
@@ -174,16 +174,20 @@ defmodule EHealth.EmployeeRequests do
          {:ok, employee} <- Employees.create_or_update_employee(employee_request, headers),
          {:ok, employee_request} <- update_status(employee_request, employee, @status_approved, user_id)
     do
-      send_email(employee_request, EmployeeCreatedNotificationTemplate, EmployeeCreatedNotificationEmail)
+      send_email(
+        employee_request,
+        EmployeeCreatedNotificationTemplate,
+        get_email_config(:employee_created_notification)
+      )
     end
   end
 
-  def send_email(%Request{data: data} = employee_request, template, sender) do
+  def send_email(%Request{data: data} = employee_request, template, email_config) do
     with {:ok, body} <- template.render(employee_request) do
       try do
         data
         |> get_in(["party", "email"])
-        |> sender.send(body) # ToDo: use postboy when it is ready
+        |> Sender.send_email(body, email_config[:from], email_config[:subject])
       rescue
         e ->
           Logger.error(fn ->
@@ -360,24 +364,33 @@ defmodule EHealth.EmployeeRequests do
            :ok <- check_start_date(params, employee),
            :ok <- validate_status_type(employee)
       do
-        do_insert_employee_request(params)
+        data = %{
+          data: Map.delete(params, "status"),
+          status: Map.fetch!(params, "status"),
+          employee_id: Map.get(params, "employee_id")
+        }
+        with {:ok, request} <- %Request{}
+                               |> changeset(data)
+                               |> Repo.insert()
+        do
+          send_email(request, EmployeeUpdateInvitationTemplate, get_email_config(:employee_request_update_invitation))
+        end
       end
     end
   end
-  defp insert_employee_request(data), do: do_insert_employee_request(data)
-
-  defp do_insert_employee_request(data) do
+  defp insert_employee_request(data) do
     data = %{
       data: Map.delete(data, "status"),
       status: Map.fetch!(data, "status"),
       employee_id: Map.get(data, "employee_id")
     }
+
     with {:ok, request} <-
-           %Request{}
-           |> changeset(data)
-           |> Repo.insert()
+      %Request{}
+      |> changeset(data)
+      |> Repo.insert()
     do
-      send_email(request, EmployeeRequestInvitationTemplate, EmployeeRequestInvitationEmail)
+      send_email(request, EmployeeRequestInvitationTemplate, get_email_config(:employee_request_invitation))
     end
   end
 
@@ -447,5 +460,11 @@ defmodule EHealth.EmployeeRequests do
          "description": "value is not allowed in enum"
       }, "$.employee_type"}]}
     end
+  end
+
+  defp get_email_config(type) do
+    :ehealth
+    |> Confex.fetch_env!(:emails)
+    |> Keyword.get(type)
   end
 end

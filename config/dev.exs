@@ -81,6 +81,10 @@ config :ehealth, EHealth.API.Gandalf,
 config :ehealth, EHealth.Man.Templates.EmployeeRequestInvitation,
   id: {:system, "EMPLOYEE_REQUEST_INVITATION_TEMPLATE_ID", 1}
 
+# Configures employee request update invitation template
+config :ehealth, EHealth.Man.Templates.EmployeeRequestUpdateInvitation,
+  id: {:system, "EMPLOYEE_REQUEST_UPDATE_INVITATION_TEMPLATE_ID", 1}
+
 # employee created notification
 # Configures employee created notification template
 config :ehealth, EHealth.Man.Templates.EmployeeCreatedNotification,

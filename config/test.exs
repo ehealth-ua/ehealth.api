@@ -78,6 +78,10 @@ config :ehealth, EHealth.API.Gandalf,
 config :ehealth, EHealth.Man.Templates.EmployeeRequestInvitation,
   id: {:system, "EMPLOYEE_REQUEST_INVITATION_TEMPLATE_ID", 1}
 
+# Configures employee request update invitation template
+config :ehealth, EHealth.Man.Templates.EmployeeRequestUpdateInvitation,
+  id: {:system, "EMPLOYEE_REQUEST_UPDATE_INVITATION_TEMPLATE_ID", 1}
+
 # employee created notification
 # Configures employee created notification template
 config :ehealth, EHealth.Man.Templates.EmployeeCreatedNotification,
@@ -89,10 +93,13 @@ config :ehealth, EHealth.Man.Templates.DeclarationRequestPrintoutForm,
 config :ehealth, EHealth.Man.Templates.CredentialsRecoveryRequest,
   id: {:system, "CREDENTIALS_RECOVERY_REQUEST_INVITATION_TEMPLATE_ID", 5}
 
-config :ehealth, EHealth.Bamboo.Emails.HashChainVeriricationNotification,
-  from: "automatic@system.com",
-  to: "serious@authority.com",
-  subject: "Hash chain has been mangled!"
+# configure emails
+config :ehealth, :emails,
+  hash_chain_verification_notification: %{
+    from: "automatic@system.com",
+    to: "serious@authority.com",
+    subject: "Hash chain has been mangled!"
+  }
 
 config :ehealth, EHealth.Man.Templates.HashChainVerificationNotification,
   id: 32167,
