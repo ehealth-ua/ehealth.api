@@ -1,0 +1,7 @@
+Change log for versions 7.16.0 - 7.16.1
+
+**Patches and bug fixes**:
+
+put employee_id into employee_request (#1665)
+
+
