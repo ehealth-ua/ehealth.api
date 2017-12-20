@@ -79,6 +79,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       assert Map.has_key?(resp, "legal_entity_name")
       assert legal_entity.name == resp["legal_entity_name"]
       assert legal_entity.edrpou == resp["edrpou"]
+      assert id == resp["employee_id"]
       request_party = employee_request_params["employee_request"]["party"]
       assert request_party["first_name"] == resp["first_name"]
       assert request_party["second_name"] == resp["second_name"]
@@ -115,7 +116,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       assert request_party["last_name"] == resp["last_name"]
     end
 
-    test "without tax_id with valid params and x-consumer-metadata that contains valid client_id", %{conn: conn} do
+    test "without tax_id and employee_id with valid params and valid client_id", %{conn: conn} do
       legal_entity = insert(:prm, :legal_entity)
       %{id: division_id} = insert(:prm, :division)
 
@@ -133,6 +134,8 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       assert Map.has_key?(resp, "legal_entity_name")
       assert legal_entity.name == resp["legal_entity_name"]
       assert legal_entity.edrpou == resp["edrpou"]
+      assert Map.has_key?(resp, "employee_id")
+      refute resp["employee_id"]
       request_party = employee_request_params["employee_request"]["party"]
       assert request_party["no_tax_id"]
 
@@ -787,249 +790,252 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
   end
 
-  test "can approve employee request with employee_id", %{conn: conn} do
-    %{id: legal_entity_id} = insert(:prm, :legal_entity)
-    %{id: division_id} = insert(:prm, :division)
+  describe "approve employee request" do
+    test "can approve employee request with employee_id", %{conn: conn} do
+      %{id: legal_entity_id} = insert(:prm, :legal_entity)
+      %{id: division_id} = insert(:prm, :division)
 
-    data =
-      employee_request_data()
-      |> put_in([:party, :email], "mis_bot_1493831618@user.com")
-      |> put_in([:division_id], division_id)
-      |> put_in([:legal_entity_id], legal_entity_id)
-    %{id: request_id} = insert(:il, :employee_request, employee_id: nil, data: data)
+      data =
+        employee_request_data()
+        |> put_in([:party, :email], "mis_bot_1493831618@user.com")
+        |> put_in([:division_id], division_id)
+        |> put_in([:legal_entity_id], legal_entity_id)
+      %{id: request_id} = insert(:il, :employee_request, employee_id: nil, data: data)
 
-    conn = put_client_id_header(conn, legal_entity_id)
-    conn1 = post conn, employee_request_path(conn, :approve, request_id)
-    resp = json_response(conn1, 200)
-    assert %{"data" => %{"employee_id" => employee_id}} = resp
+      conn = put_client_id_header(conn, legal_entity_id)
+      conn1 = post conn, employee_request_path(conn, :approve, request_id)
+      resp = json_response(conn1, 200)
+      assert %{"data" => %{"employee_id" => employee_id}} = resp
 
-    data =
-      data
-      |> put_in([:party, :first_name], "Alex")
-      |> put_in([:employee_id], employee_id)
-    doctor = Map.delete(data.doctor, :science_degree)
-    data = Map.put(data, :doctor, doctor)
+      data =
+        data
+        |> put_in([:party, :first_name], "Alex")
+        |> put_in([:employee_id], employee_id)
+      doctor = Map.delete(data.doctor, :science_degree)
+      data = Map.put(data, :doctor, doctor)
 
-    %{id: request_id} = insert(:il, :employee_request, employee_id: nil, data: data)
-    conn2 = post conn, employee_request_path(conn, :approve, request_id)
-    resp = json_response(conn2, 200)["data"]
-    assert employee_id = resp["employee_id"]
-    refute Map.has_key?(resp["doctor"], "science_degree")
+      %{id: request_id} = insert(:il, :employee_request, employee_id: nil, data: data)
+      conn2 = post conn, employee_request_path(conn, :approve, request_id)
+      resp = json_response(conn2, 200)["data"]
+      assert employee_id = resp["employee_id"]
+      refute Map.has_key?(resp["doctor"], "science_degree")
 
-    conn3 = get conn, employee_path(conn, :show, employee_id)
-    resp = json_response(conn3, 200)["data"]
-    refute Map.has_key?(resp["doctor"], "science_degree")
+      conn3 = get conn, employee_path(conn, :show, employee_id)
+      resp = json_response(conn3, 200)["data"]
+      refute Map.has_key?(resp["doctor"], "science_degree")
+    end
+
+    test "can approve pharmacist", %{conn: conn} do
+      %{id: legal_entity_id} = insert(:prm, :legal_entity)
+      %{id: division_id} = insert(:prm, :division)
+
+      data =
+        employee_request_data()
+        |> put_in([:party, :email], "mis_bot_1493831618@user.com")
+        |> put_in([:division_id], division_id)
+        |> put_in([:legal_entity_id], legal_entity_id)
+      data =
+        data
+        |> Map.put(:employee_type, Employee.type(:pharmacist))
+        |> Map.put(:pharmacist, Map.get(data, :doctor))
+        |> Map.delete(:doctor)
+      %{id: request_id} = insert(:il, :employee_request, employee_id: nil, data: data)
+
+      conn = put_client_id_header(conn, legal_entity_id)
+      conn = post conn, employee_request_path(conn, :approve, request_id)
+      resp = json_response(conn, 200)["data"]
+      assert %{"employee_id" => _employee_id, "pharmacist" => _} = resp
+      assert %{additional_info: %{"educations" => _}} = PRMRepo.get(Employee, resp["employee_id"])
+    end
+
+    test "can approve employee request if email matches", %{conn: conn} do
+      legal_entity = insert(:prm, :legal_entity)
+      party = insert(:prm, :party, id: "01981ab9-904c-4c36-88ab-959a94087483")
+      %{legal_entity_id: legal_entity_id} = insert(:prm, :employee,
+        legal_entity: legal_entity,
+        party: party
+      )
+      %{id: division_id} = insert(:prm, :division)
+
+      data =
+        employee_request_data()
+        |> put_in([:party, :email], "mis_bot_1493831618@user.com")
+        |> put_in([:division_id], division_id)
+        |> put_in([:legal_entity_id], legal_entity_id)
+      %{id: request_id} = insert(:il, :employee_request, employee_id: nil, data: data)
+
+      conn = post conn, employee_request_path(conn, :approve, request_id)
+      assert [event] = EventManagerRepo.all(Event)
+      assert %Event{
+               entity_type: "EmployeeRequest",
+               event_type: "StatusChangeEvent",
+               entity_id: ^request_id,
+               properties: %{"status" => %{"new_value" => "APPROVED"}}
+             } = event
+      resp = json_response(conn, 200)["data"]
+      assert "APPROVED" == resp["status"]
+    end
+
+    test "cannot approve employee request if email does not match", %{conn: conn} do
+      %{id: id} = fixture(Request)
+
+      conn = post conn, employee_request_path(conn, :approve, id)
+      json_response(conn, 403)
+    end
+
+    test "cannot approve rejected employee request", %{conn: conn} do
+      conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
+      test_invalid_status_transition(conn, "REJECTED", :approve)
+    end
+
+    test "cannot approve approved employee request", %{conn: conn} do
+      conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
+      test_invalid_status_transition(conn, "APPROVED", :approve)
+    end
+
+    test "cannot approve employee request if you didn't create it'", %{conn: conn} do
+      %{id: id} = fixture(Request)
+
+      conn = put_client_id_header(conn, Ecto.UUID.generate())
+      conn = post conn, employee_request_path(conn, :approve, id)
+      json_response(conn, 403)
+    end
+
+    test "can approve employee request if you created it'", %{conn: conn} do
+      legal_entity = insert(:prm, :legal_entity)
+      division = insert(:prm, :division)
+      party = insert(:prm, :party, id: "01981ab9-904c-4c36-88ab-959a94087483")
+      employee = insert(:prm, :employee,
+        legal_entity: legal_entity,
+        division: division,
+        party: party
+      )
+      data =
+        employee_request_data()
+        |> put_in([:party, :email], "mis_bot_1493831618@user.com")
+        |> put_in([:legal_entity_id], legal_entity.id)
+        |> put_in([:division_id], division.id)
+        |> put_in([:party_id], party.id)
+      employee_request = insert(:il, :employee_request,
+        employee_id: employee.id,
+        data: data
+      )
+
+      conn = put_client_id_header(conn, legal_entity.id)
+      conn = post conn, employee_request_path(conn, :approve, employee_request.id)
+      resp = json_response(conn, 200)["data"]
+      assert "APPROVED" == resp["status"]
+    end
+
+    test "can approve employee request with employee_id'", %{conn: conn} do
+      employee = insert(:prm, :employee)
+      insert(:prm, :party, id: "01981ab9-904c-4c36-88ab-959a94087483", tax_id: "2222222225")
+      %{id: division_id} = insert(:prm, :division)
+      data =
+        employee_request_data()
+        |> put_in([:party, :email], "mis_bot_1493831618@user.com")
+        |> put_in([:division_id], division_id)
+      %{id: id, data: data} = insert(:il, :employee_request,
+        employee_id: employee.id,
+        data: data
+      )
+      legal_entity_id = data.legal_entity_id
+      insert(:prm, :legal_entity, id: legal_entity_id)
+
+      conn = put_client_id_header(conn, legal_entity_id)
+      conn = post conn, employee_request_path(conn, :approve, id)
+      resp = json_response(conn, 200)["data"]
+      assert "APPROVED" == resp["status"]
+    end
+
+    test "cannot approve expired employee request", %{conn: conn} do
+      %{id: id} = insert(:il, :employee_request,
+        status: Request.status(:expired),
+        data: %{"party" => %{"email" => "mis_bot_1493831618@user.com"}}
+      )
+      conn_resp = post conn, employee_request_path(conn, :approve, id)
+      resp = json_response(conn_resp, 403)
+      assert "Employee request is expired" == resp["error"]["message"]
+    end
+
+    test "cannot approve employee request with existing user_id", %{conn: conn} do
+      party = insert(:prm, :party, tax_id: "2222222225")
+      %PartyUser{user_id: user_id} = insert(:prm, :party_user, party: party)
+      request_data =
+        employee_request_data()
+        |> Map.delete("employee_id")
+        |> put_in(~w(party email)a, "mis_bot_1493831618@user.com")
+      %{id: id, data: data} = insert(:il, :employee_request, data: request_data)
+      conn = put_client_id_header(conn, data.legal_entity_id)
+      conn = Plug.Conn.put_req_header(conn, consumer_id_header(), user_id)
+      conn_resp = post conn, employee_request_path(conn, :approve, id)
+      resp = json_response(conn_resp, 409)
+      assert "Email is already used by another person" == resp["error"]["message"]
+    end
+
+    test "cannot approve employee request with existing user_id and party_id, but wrong party_user", %{conn: conn} do
+      tax_id = "2222222225"
+      party = insert(:prm, :party, tax_id: tax_id)
+      party2 = insert(:prm, :party, tax_id: "3222222225")
+      %PartyUser{user_id: user_id} = insert(:prm, :party_user, party: party2)
+      request_data =
+        employee_request_data()
+        |> Map.delete("employee_id")
+        |> put_in(~w(party email)a, "mis_bot_1493831618@user.com")
+        |> put_in(~w(party tax_id)a, tax_id)
+        |> put_in(~w(party birth_date)a, party.birth_date)
+      %{id: id, data: data} = insert(:il, :employee_request, data: request_data)
+      conn = put_client_id_header(conn, data.legal_entity_id)
+      conn = Plug.Conn.put_req_header(conn, consumer_id_header(), user_id)
+      conn_resp = post conn, employee_request_path(conn, :approve, id)
+      resp = json_response(conn_resp, 409)
+      assert "Email is already used by another person" == resp["error"]["message"]
+    end
   end
 
-  test "can approve pharmacist", %{conn: conn} do
-    %{id: legal_entity_id} = insert(:prm, :legal_entity)
-    %{id: division_id} = insert(:prm, :division)
+  describe "reject employee request" do
+    test "can reject employee request if email matches", %{conn: conn} do
+      fixture_params = employee_request() |> Map.put(:email, "mis_bot_1493831618@user.com")
+      %{id: id} = fixture(Request, fixture_params)
 
-    data =
-      employee_request_data()
-      |> put_in([:party, :email], "mis_bot_1493831618@user.com")
-      |> put_in([:division_id], division_id)
-      |> put_in([:legal_entity_id], legal_entity_id)
-    data =
-      data
-      |> Map.put(:employee_type, Employee.type(:pharmacist))
-      |> Map.put(:pharmacist, Map.get(data, :doctor))
-      |> Map.delete(:doctor)
-    %{id: request_id} = insert(:il, :employee_request, employee_id: nil, data: data)
+      conn = post conn, employee_request_path(conn, :reject, id)
+      resp = json_response(conn, 200)["data"]
+      assert [event] = EventManagerRepo.all(Event)
+      assert %Event{
+        entity_type: "EmployeeRequest",
+        event_type: "StatusChangeEvent",
+        entity_id: ^id,
+        properties: %{"status" => %{"new_value" => "REJECTED"}}
+      } = event
+      assert "REJECTED" == resp["status"]
+    end
 
-    conn = put_client_id_header(conn, legal_entity_id)
-    conn = post conn, employee_request_path(conn, :approve, request_id)
-    resp = json_response(conn, 200)["data"]
-    assert %{"employee_id" => _employee_id, "pharmacist" => _} = resp
-    assert %{additional_info: %{"educations" => _}} = PRMRepo.get(Employee, resp["employee_id"])
-  end
+    test "cannot reject employee request if email doesnot match", %{conn: conn} do
+      %{id: id} = fixture(Request)
 
-  test "can approve employee request if email matches", %{conn: conn} do
-    legal_entity = insert(:prm, :legal_entity)
-    party = insert(:prm, :party, id: "01981ab9-904c-4c36-88ab-959a94087483")
-    %{legal_entity_id: legal_entity_id} = insert(:prm, :employee,
-      legal_entity: legal_entity,
-      party: party
-    )
-    %{id: division_id} = insert(:prm, :division)
+      conn = post conn, employee_request_path(conn, :reject, id)
+      json_response(conn, 403)
+    end
 
-    data =
-      employee_request_data()
-      |> put_in([:party, :email], "mis_bot_1493831618@user.com")
-      |> put_in([:division_id], division_id)
-      |> put_in([:legal_entity_id], legal_entity_id)
-    %{id: request_id} = insert(:il, :employee_request, employee_id: nil, data: data)
+    test "cannot reject rejected employee request", %{conn: conn} do
+      conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
+      test_invalid_status_transition(conn, "REJECTED", :reject)
+    end
 
-    conn = post conn, employee_request_path(conn, :approve, request_id)
-    assert [event] = EventManagerRepo.all(Event)
-    assert %Event{
-      entity_type: "EmployeeRequest",
-      event_type: "StatusChangeEvent",
-      entity_id: ^request_id,
-      properties: %{"status" => %{"new_value" => "APPROVED"}}
-    } = event
-    resp = json_response(conn, 200)["data"]
-    assert "APPROVED" == resp["status"]
-  end
+    test "cannot reject approved employee request", %{conn: conn} do
+      conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
+      test_invalid_status_transition(conn, "APPROVED", :reject)
+    end
 
-  test "cannot approve employee request if email does not match", %{conn: conn} do
-    %{id: id} = fixture(Request)
+    test "cannot reject employee request if you didn't create it'", %{conn: conn} do
+      %{id: id} = fixture(Request)
 
-    conn = post conn, employee_request_path(conn, :approve, id)
-    json_response(conn, 403)
-  end
+      conn = put_client_id_header(conn, Ecto.UUID.generate())
+      conn = post conn, employee_request_path(conn, :reject, id)
+      json_response(conn, 403)
+    end
 
-  test "cannot approve rejected employee request", %{conn: conn} do
-    conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
-    test_invalid_status_transition(conn, "REJECTED", :approve)
-  end
-
-  test "cannot approve approved employee request", %{conn: conn} do
-    conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
-    test_invalid_status_transition(conn, "APPROVED", :approve)
-  end
-
-  test "cannot approve employee request if you didn't create it'", %{conn: conn} do
-    %{id: id} = fixture(Request)
-
-    conn = put_client_id_header(conn, Ecto.UUID.generate())
-    conn = post conn, employee_request_path(conn, :approve, id)
-    json_response(conn, 403)
-  end
-
-  test "can approve employee request if you created it'", %{conn: conn} do
-    legal_entity = insert(:prm, :legal_entity)
-    division = insert(:prm, :division)
-    party = insert(:prm, :party, id: "01981ab9-904c-4c36-88ab-959a94087483")
-    employee = insert(:prm, :employee,
-      legal_entity: legal_entity,
-      division: division,
-      party: party
-    )
-    data =
-      employee_request_data()
-      |> put_in([:party, :email], "mis_bot_1493831618@user.com")
-      |> put_in([:legal_entity_id], legal_entity.id)
-      |> put_in([:division_id], division.id)
-      |> put_in([:party_id], party.id)
-    employee_request = insert(:il, :employee_request,
-      employee_id: employee.id,
-      data: data
-    )
-
-    conn = put_client_id_header(conn, legal_entity.id)
-    conn = post conn, employee_request_path(conn, :approve, employee_request.id)
-    resp = json_response(conn, 200)["data"]
-    assert "APPROVED" == resp["status"]
-  end
-
-  test "can approve employee request with employee_id'", %{conn: conn} do
-    employee = insert(:prm, :employee)
-    insert(:prm, :party, id: "01981ab9-904c-4c36-88ab-959a94087483", tax_id: "2222222225")
-    %{id: division_id} = insert(:prm, :division)
-    data =
-      employee_request_data()
-      |> put_in([:party, :email], "mis_bot_1493831618@user.com")
-      |> put_in([:division_id], division_id)
-    %{id: id, data: data} = insert(:il, :employee_request,
-      employee_id: employee.id,
-      data: data
-    )
-    legal_entity_id = data.legal_entity_id
-    insert(:prm, :legal_entity, id: legal_entity_id)
-
-    conn = put_client_id_header(conn, legal_entity_id)
-    conn = post conn, employee_request_path(conn, :approve, id)
-    resp = json_response(conn, 200)["data"]
-    assert "APPROVED" == resp["status"]
-  end
-
-  test "cannot approve expired employee request", %{conn: conn} do
-    %{id: id} = insert(:il, :employee_request,
-      status: Request.status(:expired),
-      data: %{"party" => %{"email" => "mis_bot_1493831618@user.com"}}
-    )
-    conn_resp = post conn, employee_request_path(conn, :approve, id)
-    resp = json_response(conn_resp, 403)
-    assert "Employee request is expired" == resp["error"]["message"]
-  end
-
-  test "cannot approve employee request with existing user_id", %{conn: conn} do
-    party = insert(:prm, :party, tax_id: "2222222225")
-    %PartyUser{user_id: user_id} = insert(:prm, :party_user, party: party)
-    request_data =
-      employee_request_data()
-      |> Map.delete("employee_id")
-      |> put_in(~w(party email)a, "mis_bot_1493831618@user.com")
-    %{id: id, data: data} = insert(:il, :employee_request, data: request_data)
-    conn = put_client_id_header(conn, data.legal_entity_id)
-    conn = Plug.Conn.put_req_header(conn, consumer_id_header(), user_id)
-    conn_resp = post conn, employee_request_path(conn, :approve, id)
-    resp = json_response(conn_resp, 409)
-    assert "Email is already used by another person" == resp["error"]["message"]
-  end
-
-  test "cannot approve employee request with existing user_id and party_id, but wrong party_user", %{conn: conn} do
-    tax_id = "2222222225"
-    party = insert(:prm, :party, tax_id: tax_id)
-    party2 = insert(:prm, :party, tax_id: "3222222225")
-    %PartyUser{user_id: user_id} = insert(:prm, :party_user, party: party2)
-    request_data =
-      employee_request_data()
-      |> Map.delete("employee_id")
-      |> put_in(~w(party email)a, "mis_bot_1493831618@user.com")
-      |> put_in(~w(party tax_id)a, tax_id)
-      |> put_in(~w(party birth_date)a, party.birth_date)
-    %{id: id, data: data} = insert(:il, :employee_request, data: request_data)
-    conn = put_client_id_header(conn, data.legal_entity_id)
-    conn = Plug.Conn.put_req_header(conn, consumer_id_header(), user_id)
-    conn_resp = post conn, employee_request_path(conn, :approve, id)
-    resp = json_response(conn_resp, 409)
-    assert "Email is already used by another person" == resp["error"]["message"]
-  end
-
-  test "can reject employee request if email matches", %{conn: conn} do
-    fixture_params = employee_request() |> Map.put(:email, "mis_bot_1493831618@user.com")
-    %{id: id} = fixture(Request, fixture_params)
-
-    conn = post conn, employee_request_path(conn, :reject, id)
-    resp = json_response(conn, 200)["data"]
-    assert [event] = EventManagerRepo.all(Event)
-    assert %Event{
-      entity_type: "EmployeeRequest",
-      event_type: "StatusChangeEvent",
-      entity_id: ^id,
-      properties: %{"status" => %{"new_value" => "REJECTED"}}
-    } = event
-    assert "REJECTED" == resp["status"]
-  end
-
-  test "cannot reject employee request if email doesnot match", %{conn: conn} do
-    %{id: id} = fixture(Request)
-
-    conn = post conn, employee_request_path(conn, :reject, id)
-    json_response(conn, 403)
-  end
-
-  test "cannot reject rejected employee request", %{conn: conn} do
-    conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
-    test_invalid_status_transition(conn, "REJECTED", :reject)
-  end
-
-  test "cannot reject approved employee request", %{conn: conn} do
-    conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
-    test_invalid_status_transition(conn, "APPROVED", :reject)
-  end
-
-  test "cannot reject employee request if you didn't create it'", %{conn: conn} do
-    %{id: id} = fixture(Request)
-
-    conn = put_client_id_header(conn, Ecto.UUID.generate())
-    conn = post conn, employee_request_path(conn, :reject, id)
-    json_response(conn, 403)
-  end
-
-  test "can reject employee request if you created it'", %{conn: conn} do
+    test "can reject employee request if you created it'", %{conn: conn} do
     fixture_params = employee_request() |> Map.put(:email, "mis_bot_1493831618@user.com")
     %{id: id, data: data} = fixture(Request, fixture_params)
 
@@ -1038,7 +1044,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     resp = json_response(conn, 200)["data"]
     assert "REJECTED" == resp["status"]
   end
-
+  end
   describe "show invite" do
     test "success show invite", %{conn: conn} do
       %{id: id} = insert(:il, :employee_request)

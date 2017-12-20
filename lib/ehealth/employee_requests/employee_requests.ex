@@ -367,9 +367,14 @@ defmodule EHealth.EmployeeRequests do
   defp insert_employee_request(data), do: do_insert_employee_request(data)
 
   defp do_insert_employee_request(data) do
+    data = %{
+      data: Map.delete(data, "status"),
+      status: Map.fetch!(data, "status"),
+      employee_id: Map.get(data, "employee_id")
+    }
     with {:ok, request} <-
            %Request{}
-           |> changeset(%{data: Map.delete(data, "status"), status: Map.fetch!(data, "status")})
+           |> changeset(data)
            |> Repo.insert()
     do
       send_email(request, EmployeeRequestInvitationTemplate, EmployeeRequestInvitationEmail)
