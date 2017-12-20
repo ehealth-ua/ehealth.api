@@ -18,7 +18,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
           case confirm_params["first_name"] do
             "Олена" ->
               [%{id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c"}]
-            "UnknownMIS" ->
+            "Тест" ->
               []
           end
 
@@ -375,7 +375,7 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
         "test/data/declaration_request.json"
         |> File.read!
         |> Poison.decode!
-        |> put_in(~W(declaration_request person first_name), "UnknownMIS")
+        |> put_in(~W(declaration_request person first_name), "Тест")
         |> put_in(~W(declaration_request person authentication_methods), [%{"type" => "OFFLINE"}])
 
       conn =
@@ -427,7 +427,7 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
         "test/data/declaration_request.json"
         |> File.read!()
         |> Poison.decode!()
-        |> put_in(["declaration_request", "person", "first_name"], "UnknownMIS")
+        |> put_in(["declaration_request", "person", "first_name"], "Тест")
 
       decoded = declaration_request_params["declaration_request"]
       d1 = clone_declaration_request(decoded, "8799e3b6-34e7-4798-ba70-d897235d2b6d", "NEW")

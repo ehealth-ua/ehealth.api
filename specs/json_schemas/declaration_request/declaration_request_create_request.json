@@ -158,23 +158,17 @@
           "properties": {
             "first_name": {
               "type": "string",
-              "items": {
-                "$ref": "#/definitions/person_name"
-              },
+              "$ref": "#/definitions/person_name",
               "minLength": 1
             },
             "last_name": {
               "type": "string",
-              "items": {
-                "$ref": "#/definitions/person_name"
-              },
+              "$ref": "#/definitions/person_name",
               "minLength": 1
             },
             "second_name": {
               "type": "string",
-              "items": {
-                "$ref": "#/definitions/person_name"
-              },
+              "$ref": "#/definitions/person_name",
               "minLength": 1
             },
             "birth_date": {
@@ -187,9 +181,7 @@
             },
             "birth_settlement": {
               "type": "string",
-              "items": {
-                "$ref": "#/definitions/name"
-              },
+              "$ref": "#/definitions/name",
               "minLength": 1
             },
             "gender": {
@@ -201,15 +193,11 @@
             },
             "tax_id": {
               "type": "string",
-              "items": {
-                "$ref": "#/definitions/tax_id"
-              }
+              "$ref": "#/definitions/tax_id"
             },
             "secret": {
               "type": "string",
-              "items": {
-                "$ref": "#/definitions/name"
-              },
+              "$ref": "#/definitions/name",
               "minLength": 6
             },
             "documents": {
@@ -243,23 +231,17 @@
               "properties": {
                 "first_name": {
                   "type": "string",
-                  "items": {
-                    "$ref": "#/definitions/name"
-                  },
+                  "$ref": "#/definitions/person_name",
                   "minLength": 1
                 },
                 "last_name": {
                   "type": "string",
-                  "items": {
-                    "$ref": "#/definitions/name"
-                  },
+                  "$ref": "#/definitions/person_name",
                   "minLength": 1
                 },
                 "second_name": {
                   "type": "string",
-                  "items": {
-                    "$ref": "#/definitions/name"
-                  },
+                  "$ref": "#/definitions/person_name",
                   "minLength": 1
                 },
                 "phones": {
@@ -291,20 +273,17 @@
                   },
                   "first_name": {
                     "type": "string",
-                    "items": {
-                      "$ref": "#/definitions/name"
-                    },
+                    "$ref": "#/definitions/person_name",
                     "minLength": 1
                   },
                   "last_name": {
                     "type": "string",
-                    "items": {
-                      "$ref": "#/definitions/name"
-                    },
+                    "$ref": "#/definitions/person_name",
                     "minLength": 1
                   },
                   "second_name": {
-                    "type": "string"
+                    "type": "string",
+                    "$ref": "#/definitions/person_name"
                   },
                   "birth_date": {
                     "type": "string",
@@ -316,9 +295,7 @@
                   },
                   "birth_settlement": {
                     "type": "string",
-                    "items": {
-                      "$ref": "#/definitions/name"
-                    },
+                    "$ref": "#/definitions/name",
                     "minLength": 1
                   },
                   "gender": {
@@ -326,15 +303,11 @@
                   },
                   "tax_id": {
                     "type": "string",
-                    "items": {
-                      "$ref": "#/definitions/tax_id"
-                    }
+                    "$ref": "#/definitions/tax_id"
                   },
                   "secret": {
                     "type": "string",
-                    "items": {
-                      "$ref": "#/definitions/name"
-                    },
+                    "$ref": "#/definitions/name",
                     "minLength": 6
                   },
                   "documents_person": {
