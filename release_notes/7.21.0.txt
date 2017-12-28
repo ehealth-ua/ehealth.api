@@ -1,7 +1,8 @@
-Change log for versions 7.21.0 - 7.21.2
+Change log for versions 7.21.0 - 7.21.3
 
 **Patches and bug fixes**:
 
+Render proper EmployeeRequestUpdateTemaplte
 Add status to declartion request list
 Return validation error messages (#1696)
 
