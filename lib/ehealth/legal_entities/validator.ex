@@ -34,8 +34,8 @@ defmodule EHealth.LegalEntities.Validator do
     |> normalize_signature_error()
   end
 
-  def validate_json({:ok, %{"data" => %{"is_valid" => false}}}) do
-    {:error, {:bad_request, "Signed request data is invalid"}}
+  def validate_json({:ok, %{"data" => %{"is_valid" => false, "validation_error_message" => error}}}) do
+    {:error, {:bad_request, error}}
   end
   def validate_json({:ok, %{"data" => %{"content" => content} = data}}) do
     with :ok <- validate_schema(content),

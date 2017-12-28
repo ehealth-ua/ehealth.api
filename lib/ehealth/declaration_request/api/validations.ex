@@ -142,10 +142,13 @@ defmodule EHealth.DeclarationRequest.API.Validations do
   end
   def normalize_signature_error(ok_resp), do: ok_resp
 
-  def check_is_valid({:ok, %{"data" => %{"is_valid" => false}}}) do
-    {:error, {:bad_request, "Signed request data is invalid"}}
+  def check_is_valid({:ok, %{"data" => %{"is_valid" => false, "validation_error_message" => error}}}) do
+    {:error, {:bad_request, error}}
   end
-  def check_is_valid({:ok, %{"data" => %{"is_valid" => true}}} = data), do: data
+  def check_is_valid({:ok, %{"data" => %{"is_valid" => true}} = result}) do
+    {_empty_message, result} = pop_in(result, ["data", "validation_error_message"])
+    {:ok, result}
+  end
   def check_is_valid({:error, error}) do
     {:error, error}
   end
