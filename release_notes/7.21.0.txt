@@ -1,0 +1,7 @@
+Change log for versions 7.21.0 - 7.21.1
+
+**Patches and bug fixes**:
+
+Return validation error messages (#1696)
+
+
