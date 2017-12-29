@@ -1,9 +1,21 @@
-Change log for versions 7.21.0 - 7.21.3
+Change log for versions 7.21.0 - 7.21.13
 
 **Patches and bug fixes**:
 
+declaration request schemas
+medication json schemas
+removed legacy schema
+employee schemas
+legal entity schemas, refactored schema validation
+medical program schemas
+removed legacy medical program schemas
+medication dispense schemas
+medication request request schemas
+program medication, party users schemas, medical_program validation
 Render proper EmployeeRequestUpdateTemaplte
 Add status to declartion request list
 Return validation error messages (#1696)
 
+**Other**:
 
+EHealth-1663: use json schema for tests, refactoring (#1701)
