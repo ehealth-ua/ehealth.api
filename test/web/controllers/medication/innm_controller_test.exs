@@ -18,8 +18,14 @@ defmodule EHealth.Web.INNMControllerTest do
       insert(:prm, :innm, name: "Этивон")
       %{id: id} = insert(:prm, :innm, name: "Диэтиламид")
 
-      conn = get conn, innm_path(conn, :index), name: "этила"
-      assert [innm] = json_response(conn, 200)["data"]
+      resp =
+        conn
+        |> get(innm_path(conn, :index), name: "этила")
+        |> json_response(200)
+        |> Map.get("data")
+        |> assert_list_response_schema("innm")
+
+      assert [innm] = resp
       assert id == innm["id"]
       assert "Диэтиламид" == innm["name"]
     end
@@ -72,8 +78,13 @@ defmodule EHealth.Web.INNMControllerTest do
       conn = post conn, innm_path(conn, :create), @create_attrs
       assert %{"id" => id} = json_response(conn, 201)["data"]
 
-      conn = get conn, innm_path(conn, :show, id)
-      data = json_response(conn, 200)["data"]
+      data =
+        conn
+        |> get(innm_path(conn, :show, id))
+        |> json_response(200)
+        |> Map.get("data")
+        |> assert_show_response_schema("innm")
+
       Enum.each(@create_attrs, fn {field, value} ->
         assert value == Map.get(data, to_string(field))
       end)

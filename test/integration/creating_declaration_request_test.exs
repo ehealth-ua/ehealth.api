@@ -340,12 +340,7 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
 
       id = resp["data"]["id"]
 
-      schema =
-        "test/data/declaration_request/create_api_response_schema.json"
-        |> File.read!()
-        |> Poison.decode!()
-
-      :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
+      assert_declaration_request_show_response(resp)
 
       assert to_string(Date.utc_today) == resp["data"]["start_date"]
       assert {:ok, _} = Date.from_iso8601(resp["data"]["end_date"])
@@ -388,12 +383,7 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
 
       id = resp["data"]["id"]
 
-      schema =
-        "test/data/declaration_request/create_api_response_schema.json"
-        |> File.read!()
-        |> Poison.decode!()
-
-      :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
+      assert_declaration_request_show_response(resp)
 
       assert to_string(Date.utc_today) == resp["data"]["start_date"]
       assert {:ok, _} = Date.from_iso8601(resp["data"]["end_date"])
@@ -443,12 +433,7 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
 
       id = resp["data"]["id"]
 
-      schema =
-        "test/data/declaration_request/create_api_response_schema.json"
-        |> File.read!()
-        |> Poison.decode!()
-
-      :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
+      assert_declaration_request_show_response(resp)
 
       assert to_string(Date.utc_today) == resp["data"]["start_date"]
       assert {:ok, _} = Date.from_iso8601(resp["data"]["end_date"])
@@ -686,5 +671,14 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
     insert(:il, :dictionary_document_type)
     insert(:il, :dictionary_authentication_method)
     insert(:il, :dictionary_document_relationship_type)
+  end
+
+  defp assert_declaration_request_show_response(response) do
+    schema =
+      "specs/json_schemas/declaration_request/declaration_request_show_response.json"
+      |> File.read!()
+      |> Poison.decode!()
+
+    assert :ok == NExJsonSchema.Validator.validate(schema, response)
   end
 end

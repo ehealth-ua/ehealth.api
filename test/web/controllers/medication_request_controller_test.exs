@@ -33,13 +33,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       }
       resp = json_response(conn, 200)
       assert 1 == length(resp["data"])
-
-      schema =
-        "specs/json_schemas/medication_request/medication_request_list_response.json"
-        |> File.read!()
-        |> Poison.decode!()
-
-      assert :ok = NExJsonSchema.Validator.validate(schema, resp)
+      assert_list_response_schema(resp, "medication_request")
     end
 
     test "no party user", %{conn: conn} do
@@ -89,15 +83,11 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
         |> PRMRepo.preload(:party)
       legal_entity = PRMRepo.get!(LegalEntity, legal_entity_id)
       insert(:prm, :employee, party: party, legal_entity: legal_entity)
-      conn = get conn, medication_request_path(conn, :show, get_active_medication_request())
-      resp = json_response(conn, 200)
-
-      schema =
-        "specs/json_schemas/medication_request/medication_request_show_response.json"
-        |> File.read!()
-        |> Poison.decode!()
-
-      assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
+      conn
+      |> get(medication_request_path(conn, :show, get_active_medication_request()))
+      |> json_response(200)
+      |> Map.get("data")
+      |> assert_show_response_schema("medication_request")
     end
 
     test "no party user", %{conn: conn} do

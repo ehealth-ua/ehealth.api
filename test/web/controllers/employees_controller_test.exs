@@ -50,16 +50,13 @@ defmodule EHealth.Web.EmployeesControllerTest do
       %{id: legal_entity_id} = legal_entity
       party = insert(:prm, :party)
       insert(:prm, :employee, legal_entity: legal_entity, party: party)
-      conn = put_client_id_header(conn, legal_entity_id)
-      conn = get conn, employee_path(conn, :index)
-
-      schema =
-        "test/data/employee/list_response_schema.json"
-        |> File.read!()
-        |> Poison.decode!()
-
-      resp = json_response(conn, 200)["data"]
-      :ok = NExJsonSchema.Validator.validate(schema, resp)
+      resp =
+        conn
+        |> put_client_id_header(legal_entity_id)
+        |> get(employee_path(conn, :index))
+        |> json_response(200)
+        |> Map.get("data")
+        |> assert_list_response_schema("employee")
 
       employee = List.first(resp)
       refute Map.has_key?(employee["doctor"], "science_degree")
@@ -151,16 +148,13 @@ defmodule EHealth.Web.EmployeesControllerTest do
       legal_entity = insert(:prm, :legal_entity, id: "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
       party1 = insert(:prm, :party, tax_id: "2222222225")
       employee = insert(:prm, :employee, legal_entity: legal_entity, party: party1)
-      schema =
-        "test/data/employee/show_response_schema.json"
-        |> File.read!()
-        |> Poison.decode!()
 
       conn = put_client_id_header(conn, legal_entity.id)
-      conn1 = get conn, employee_path(conn, :show, employee.id)
-
-      resp = json_response(conn1, 200)["data"]
-      :ok = NExJsonSchema.Validator.validate(schema, resp)
+      conn
+      |> get(employee_path(conn, :show, employee.id))
+      |> json_response(200)
+      |> Map.get("data")
+      |> assert_show_response_schema("employee")
 
       party2 = insert(:prm, :party, tax_id: "2222222224")
       employee = insert(:prm, :employee,
@@ -168,10 +162,11 @@ defmodule EHealth.Web.EmployeesControllerTest do
         employee_type: Employee.type(:pharmacist),
         party: party2
       )
-
-      conn2 = get conn, employee_path(conn, :show, employee.id)
-      resp = json_response(conn2, 200)["data"]
-      :ok = NExJsonSchema.Validator.validate(schema, resp)
+      conn
+      |> get(employee_path(conn, :show, employee.id))
+      |> json_response(200)
+      |> Map.get("data")
+      |> assert_show_response_schema("employee")
     end
 
     test "without division", %{conn: conn} do

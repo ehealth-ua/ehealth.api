@@ -65,7 +65,10 @@ defmodule EHealth.Web.MedicationDispenseView do
     |> Map.put("medication", render_one(details["medication"], __MODULE__, "medication.json", as: :medication))
   end
 
-  def render("medication.json", %{medication: medication}) do
+  def render("medication.json", %{medication: %_{} = medication}) do
     Map.take(medication, ~w(name type manufacturer form container)a)
+  end
+  def render("medication.json", %{medication: %{} = medication}) do
+    Map.take(medication, ~w(name type manufacturer form container))
   end
 end

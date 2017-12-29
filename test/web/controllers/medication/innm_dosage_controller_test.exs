@@ -46,10 +46,11 @@ defmodule EHealth.Web.INNMDosageControllerTest do
     setup [:create_innm]
 
     test "200 OK", %{conn: conn, innm_dosage: %INNMDosage{id: id}} do
-      conn = get conn, innm_dosage_path(conn, :show, id)
-      data = json_response(conn, 200)["data"]
-      assert Map.has_key?(data, "is_active")
-      # ToDo: check response fields
+      conn
+      |> get(innm_dosage_path(conn, :show, id))
+      |> json_response(200)
+      |> Map.get("data")
+      |> assert_show_response_schema("innm_dosage")
     end
 
     test "404 Not Found", %{conn: conn} do

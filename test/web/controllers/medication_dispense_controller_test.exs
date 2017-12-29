@@ -319,30 +319,29 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         medical_program_id: medical_program_id,
         reimbursement: build(:reimbursement, reimbursement_amount: 150)
       )
-      conn = put_client_id_header(conn, legal_entity.id)
-      conn = Plug.Conn.put_req_header(conn, consumer_id_header(), user_id)
-      conn = post conn, medication_dispense_path(conn, :create),
+      create_data = %{
         code: "1234",
-        medication_dispense: new_dispense_params(%{
-          "division_id" => division.id,
-          "dispense_details" => [
-            %{
-              "medication_id": medication.id,
-              "medication_qty": 10,
-              "sell_price": 18.65,
-              "sell_amount": 186.5,
-              "discount_amount": 50,
-            }
-          ],
-        })
-      resp = json_response(conn, 201)
-
-      schema =
-        "specs/json_schemas/medication_dispense/medication_dispense_show_response.json"
-        |> File.read!()
-        |> Poison.decode!()
-
-      assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
+        medication_dispense: new_dispense_params(
+          %{
+            "division_id" => division.id,
+            "dispense_details" => [
+              %{
+                "medication_id": medication.id,
+                "medication_qty": 10,
+                "sell_price": 18.65,
+                "sell_amount": 186.5,
+                "discount_amount": 50,
+              }
+            ],
+          }
+        )
+      }
+      conn
+      |> put_client_id_header(legal_entity.id)
+      |> Plug.Conn.put_req_header(consumer_id_header(), user_id)
+      |> post(medication_dispense_path(conn, :create), create_data)
+      |> json_response(201)
+      |> assert_show_response_schema("medication_dispense")
     end
   end
 
@@ -358,16 +357,12 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       insert_division(legal_entity)
       insert_medication(innm_dosage_id)
       insert_medical_program()
-      conn = put_client_id_header(conn, legal_entity.id)
-      conn = get conn, medication_dispense_path(conn, :show, get_active_medication_dispense())
 
-      schema =
-        "specs/json_schemas/medication_dispense/medication_dispense_show_response.json"
-        |> File.read!()
-        |> Poison.decode!()
-
-      resp = json_response(conn, 200)["data"]
-      :ok = NExJsonSchema.Validator.validate(schema, resp)
+      conn
+      |> put_client_id_header(legal_entity.id)
+      |> get(medication_dispense_path(conn, :show, get_active_medication_dispense()))
+      |> json_response(200)
+      |> assert_show_response_schema("medication_dispense")
     end
   end
 
@@ -384,15 +379,12 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       insert_division(legal_entity, "f2f76cf8-9e05-11e7-abc4-cec278b6b50a")
       insert_medication(innm_dosage_id)
       insert_medical_program()
-      conn = put_client_id_header(conn, legal_entity.id)
-      conn = get conn, medication_dispense_path(conn, :index)
-      resp = json_response(conn, 200)
 
-      schema =
-        "specs/json_schemas/medication_dispense/medication_dispense_list_response.json"
-        |> File.read!()
-        |> Poison.decode!()
-      :ok = NExJsonSchema.Validator.validate(schema, resp)
+      conn
+      |> put_client_id_header(legal_entity.id)
+      |> get(medication_dispense_path(conn, :index))
+      |> json_response(200)
+      |> assert_list_response_schema("medication_dispense")
     end
   end
 
@@ -408,16 +400,17 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       insert_division(legal_entity)
       insert_medication(innm_dosage_id)
       insert_medical_program()
+
       payment_id = "12345"
-      conn = put_client_id_header(conn, legal_entity.id)
       path = medication_dispense_path(conn, :process, get_active_medication_dispense())
-      conn = patch conn, path, %{"payment_id" => payment_id}
-      resp = json_response(conn, 200)["data"]
-      schema =
-        "specs/json_schemas/medication_dispense/medication_dispense_show_response.json"
-        |> File.read!()
-        |> Poison.decode!()
-      :ok = NExJsonSchema.Validator.validate(schema, resp)
+      resp =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> patch(path, %{"payment_id" => payment_id})
+        |> json_response(200)
+        |> assert_show_response_schema("medication_dispense")
+        |> Map.get("data")
+
       assert "PROCESSED" == resp["status"]
       assert payment_id == resp["payment_id"]
     end
@@ -464,16 +457,17 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       insert_division(legal_entity)
       insert_medication(innm_dosage_id)
       insert_medical_program()
+
       payment_id = "12345"
-      conn = put_client_id_header(conn, legal_entity.id)
       path = medication_dispense_path(conn, :reject, get_active_medication_dispense())
-      conn = patch conn, path, %{"payment_id" => payment_id}
-      resp = json_response(conn, 200)["data"]
-      schema =
-        "specs/json_schemas/medication_dispense/medication_dispense_show_response.json"
-        |> File.read!()
-        |> Poison.decode!()
-      :ok = NExJsonSchema.Validator.validate(schema, resp)
+      resp =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> patch(path, %{"payment_id" => payment_id})
+        |> json_response(200)
+        |> assert_show_response_schema("medication_dispense")
+        |> Map.get("data")
+
       assert "REJECTED" == resp["status"]
       assert payment_id == resp["payment_id"]
     end
@@ -525,17 +519,16 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       insert_division(legal_entity, "f2f76cf8-9e05-11e7-abc4-cec278b6b50a")
       insert_medication(innm_dosage_id)
       insert_medical_program()
-      conn = put_client_id_header(conn, legal_entity.id)
-      conn = get conn, medication_dispense_path(conn, :by_medication_request, id)
-      resp = json_response(conn, 200)
-      assert 1 == length(resp["data"])
-      assert id == resp["data"] |> hd |> get_in(~w(medication_request id))
 
-      schema =
-        "specs/json_schemas/medication_dispense/medication_dispense_list_response.json"
-        |> File.read!()
-        |> Poison.decode!()
-      :ok = NExJsonSchema.Validator.validate(schema, resp)
+      resp =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> get(medication_dispense_path(conn, :by_medication_request, id))
+        |> json_response(200)
+        |> assert_list_response_schema("medication_dispense")
+        |> Map.get("data")
+      assert 1 == length(resp)
+      assert id == resp |> hd |> get_in(~w(medication_request id))
     end
 
     test "party_user not found", %{conn: conn} do

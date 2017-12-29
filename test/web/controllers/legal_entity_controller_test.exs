@@ -50,19 +50,15 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
     test "with x-consumer-metadata that contains MIS client_id", %{conn: conn} do
       %{id: id, edrpou: edrpou} = insert(:prm, :legal_entity, id: MockServer.get_client_mis())
-      conn = put_client_id_header(conn, id)
-      conn = get conn, legal_entity_path(conn, :index, [edrpou: edrpou])
-
-      schema =
-        "test/data/legal_entity/list_response_schema.json"
-        |> File.read!()
-        |> Poison.decode!()
-
-      resp = json_response(conn, 200)
+      resp =
+        conn
+        |> put_client_id_header(id)
+        |> get(legal_entity_path(conn, :index, [edrpou: edrpou]))
+        |> json_response(200)
 
       assert Map.has_key?(resp, "data")
       assert Map.has_key?(resp, "paging")
-      :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
+      assert_list_response_schema(resp["data"], "legal_entity")
       assert Enum.all?(resp["data"], &(Map.has_key?(&1, "mis_verified")))
       assert Enum.all?(resp["data"], &(Map.has_key?(&1, "nhs_verified")))
       assert 1 == length(resp["data"])

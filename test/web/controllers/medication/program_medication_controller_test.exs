@@ -95,12 +95,16 @@ defmodule EHealthWeb.ProgramMedicationControllerTest do
       conn = post conn, program_medication_path(conn, :create), params
       assert %{"id" => id} = json_response(conn, 201)["data"]
 
-      conn = get conn, program_medication_path(conn, :show, id)
-      resp = json_response(conn, 200)
+      resp =
+        conn
+        |> get(program_medication_path(conn, :show, id))
+        |> json_response(200)
+        |> assert_show_response_schema("program_medication")
+        |> Map.get("data")
 
-      assert_program_medication_response(resp)
-      assert id == resp["data"]["id"]
-      assert resp["data"]["medication_request_allowed"]
+      assert id == resp["id"]
+      assert Map.has_key?(resp, "medication_request_allowed")
+      assert resp["medication_request_allowed"]
     end
 
     test "program medication duplicated", %{conn: conn} do
@@ -171,11 +175,15 @@ defmodule EHealthWeb.ProgramMedicationControllerTest do
       conn = put conn, program_medication_path(conn, :update, program_medication), medication_request_allowed: false
       assert %{"id" => ^id} = json_response(conn, 200)["data"]
 
-      conn = get conn, program_medication_path(conn, :show, id)
-      resp = json_response(conn, 200)
+      resp =
+        conn
+        |> get(program_medication_path(conn, :show, id))
+        |> json_response(200)
+        |> assert_show_response_schema("program_medication")
+        |> Map.get("data")
 
-      assert_program_medication_response(resp)
-      assert id == resp["data"]["id"]
+      assert id == resp["id"]
+      assert Map.has_key?(resp, "medication_request_allowed")
       refute resp["medication_request_allowed"]
     end
 
@@ -206,14 +214,5 @@ defmodule EHealthWeb.ProgramMedicationControllerTest do
 
   def fixture(:program_medication) do
     insert(:prm, :program_medication)
-  end
-
-  defp assert_program_medication_response(response) do
-    schema =
-      "specs/json_schemas/program_medication/program_medication_response.json"
-      |> File.read!()
-      |> Poison.decode!()
-
-    assert :ok == NExJsonSchema.Validator.validate(schema, response)
   end
 end

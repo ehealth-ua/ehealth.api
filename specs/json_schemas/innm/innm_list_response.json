@@ -20,6 +20,18 @@
       },
       "is_active": {
         "type": "boolean"
+      },
+      "inserted_at": {
+        "type": "string"
+      },
+      "updated_at": {
+        "type": "string"
+      },
+      "inserted_by": {
+        "type": "string"
+      },
+      "updated_by": {
+        "type": "string"
       }
     },
     "required": [

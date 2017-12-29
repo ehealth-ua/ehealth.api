@@ -736,10 +736,37 @@ defmodule EHealth.MockServer do
       "party_id" => "02852372-9e06-11e7-abc4-cec278b6b50a",
       "legal_entity_id" => "5243c8e6-9e06-11e7-abc4-cec278b6b50a",
       "medical_program_id" => "6ee844fd-9f4d-4457-9eda-22aa506be4c4",
-      "division_id" => "f2f76cf8-9e05-11e7-abc4-cec278b6b50a",
+      "division_id" => "e00e20ba-d20f-4ebb-a1dc-4bf58231019c",
       "dispensed_at" => "2017-05-01",
       "details" => [
         %{
+          "medication" => %{
+            "certificate" => "3335065522",
+            "certificate_expired_at" => "2012-04-17",
+            "code_atc" => "C08CA00",
+            "container" => %{
+              "denumerator_unit" => "pill",
+              "denumerator_value" => 1,
+              "numerator_unit" => "pill",
+              "numerator_value" => 1
+            },
+            "form" => "Pill",
+            "id" => "340ef14a-ab9b-4303-b01b-d40a2237e512",
+            "ingredients" => [],
+            "inserted_at" => "2017-04-20T19 =>14 =>13Z",
+            "inserted_by" => "a3becded-a731-40c7-938d-466a9ea7631d",
+            "is_active" => true,
+            "manufacturer" => %{
+              "country" => "UA",
+              "name" => "ПАТ `Київський вітамінний завод`"
+            },
+            "name" => "Prednisolonum Forte0",
+            "package_min_qty" => 10,
+            "package_qty" => 30,
+            "type" => "BRAND",
+            "updated_at" => "2017-04-20T19 =>14 =>13Z",
+            "updated_by" => "e739f67f-8b3f-474d-b0aa-f76e7602e477"
+          },
           "medication_id" => "340ef14a-ab9b-4303-b01b-d40a2237e512",
           "medication_qty" => 10,
           "sell_price" => 18.65,

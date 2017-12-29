@@ -102,4 +102,19 @@ defmodule EHealth.Web.ConnCase do
       {"x-consumer-id", Ecto.UUID.generate()}
     ]
   end
+
+  def assert_show_response_schema(response, type) when is_binary(type) do
+    assert_json_schema(response, "specs/json_schemas/#{type}/#{type}_show_response.json")
+  end
+  def assert_list_response_schema(response, type) when is_binary(type) do
+    assert_json_schema(response, "specs/json_schemas/#{type}/#{type}_list_response.json")
+  end
+  def assert_json_schema(data, schema_path) do
+    assert :ok ==
+             schema_path
+            |> File.read!()
+            |> Poison.decode!()
+            |> NExJsonSchema.Validator.validate(data)
+    data
+  end
 end

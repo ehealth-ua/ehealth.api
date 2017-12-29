@@ -46,40 +46,53 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
     test "lists all medication_request_requests with data", %{conn: conn} do
       mrr = fixture(:medication_request_request)
-      conn = get conn, medication_request_request_path(conn, :index,
-        %{"employee_id" => mrr.medication_request_request.data.employee_id})
-      assert length(json_response(conn, 200)["data"]) == 1
-      assert :ok == validate_response_with_schema(json_response(conn, 200)["data"],
-        "specs/json_schemas/medication_request_request/medication_request_request_get_list_response.json")
+      data = %{"employee_id" => mrr.medication_request_request.data.employee_id}
+      assert 1 =
+               conn
+               |> get(medication_request_request_path(conn, :index, data))
+               |> json_response(200)
+               |> Map.get("data")
+               |> assert_list_response_schema("medication_request_request")
+               |> length
     end
 
     test "lists all medication_request_requests with data search by status", %{conn: conn} do
       fixture(:medication_request_request)
-      conn = get conn, medication_request_request_path(conn, :index,
-        %{"status" => "NEW"})
-      assert length(json_response(conn, 200)["data"]) == 1
-      assert :ok == validate_response_with_schema(json_response(conn, 200)["data"],
-        "specs/json_schemas/medication_request_request/medication_request_request_get_list_response.json")
+      assert 1 =
+               conn
+               |> get(medication_request_request_path(conn, :index, %{"status" => "NEW"}))
+               |> json_response(200)
+               |> Map.get("data")
+               |> assert_list_response_schema("medication_request_request")
+               |> length
     end
 
     test "lists all medication_request_requests with data search by person_id", %{conn: conn} do
       mrr = fixture(:medication_request_request)
-      conn = get conn, medication_request_request_path(conn, :index,
-        %{"person_id" =>  mrr.medication_request_request.data.person_id})
-      assert length(json_response(conn, 200)["data"]) == 1
-      assert :ok == validate_response_with_schema(json_response(conn, 200)["data"],
-        "specs/json_schemas/medication_request_request/medication_request_request_get_list_response.json")
+      data = %{"person_id" => mrr.medication_request_request.data.person_id}
+      assert 1 =
+               conn
+               |> get(medication_request_request_path(conn, :index, data))
+               |> json_response(200)
+               |> Map.get("data")
+               |> assert_list_response_schema("medication_request_request")
+               |> length
     end
 
     test "lists all medication_request_requests with data search by all posible filters", %{conn: conn} do
       mrr = fixture(:medication_request_request)
-      conn = get conn, medication_request_request_path(conn, :index,
-        %{"person_id" =>  mrr.medication_request_request.data.person_id,
-          "employee_id" => mrr.medication_request_request.data.employee_id,
-          "status" => "NEW"})
-      assert length(json_response(conn, 200)["data"]) == 1
-      assert :ok == validate_response_with_schema(json_response(conn, 200)["data"],
-        "specs/json_schemas/medication_request_request/medication_request_request_get_list_response.json")
+      data = %{
+        "person_id" => mrr.medication_request_request.data.person_id,
+        "employee_id" => mrr.medication_request_request.data.employee_id,
+        "status" => "NEW"
+      }
+      assert 1 =
+               conn
+               |> get(medication_request_request_path(conn, :index, data))
+               |> json_response(200)
+               |> Map.get("data")
+               |> assert_list_response_schema("medication_request_request")
+               |> length
     end
   end
 
@@ -91,16 +104,19 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
         test_request()
         |> Map.put("medication_id", medication_id)
         |> Map.put("medical_program_id", pm.medical_program_id)
-      conn1 = post conn, medication_request_request_path(conn, :create), medication_request_request: test_request
-      assert %{"id" => id} = json_response(conn1, 201)["data"]
-      assert :ok == validate_response_with_schema(json_response(conn1, 201)["data"],
-        "specs/json_schemas/medication_request_request/medication_request_request_create_response.json")
 
-      conn1 = get conn, medication_request_request_path(conn, :show, id)
-      assert :ok == validate_response_with_schema(json_response(conn1, 200)["data"],
-        "specs/json_schemas/medication_request_request/medication_request_request_create_response.json")
-      conn2 = get conn, medication_request_request_path(conn, :index, %{})
-      assert length(json_response(conn2, 200)["data"]) == 1
+      assert %{"id" => id} =
+               conn
+               |> post(medication_request_request_path(conn, :create), medication_request_request: test_request)
+               |> json_response(201)
+               |> Map.get("data")
+               |> assert_show_response_schema("medication_request_request")
+
+      conn
+      |> get(medication_request_request_path(conn, :show, id))
+      |> json_response(200)
+      |> Map.get("data")
+      |> assert_show_response_schema("medication_request_request")
     end
 
     test "render errors when data is invalid", %{conn: conn} do
@@ -279,13 +295,19 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
         test_request()
         |> Map.put("medication_id", medication_id)
         |> Map.delete("medical_program_id")
-      conn1 = post conn, medication_request_request_path(conn, :prequalify), %{medication_request_request: test_request,
-        programs: [%{id: pm.medical_program_id}]}
-      assert %{"status" => "VALID"} = json_response(conn1, 200)["data"] |> Enum.at(0)
-       assert :ok == validate_response_with_schema(json_response(conn1, 200)["data"],
-        "specs/json_schemas/medication_request_request/medication_request_request_prequalify_response.json")
 
-      assert is_list(json_response(conn1, 200)["data"] |> Enum.at(0) |> Map.get("participants"))
+      data = %{medication_request_request: test_request, programs: [%{id: pm.medical_program_id}]}
+      schema_path = "specs/json_schemas/medication_request_request/medication_request_request_prequalify_response.json"
+      resp =
+        conn
+        |> post(medication_request_request_path(conn, :prequalify), data)
+        |> json_response(200)
+        |> Map.get("data")
+        |> assert_json_schema(schema_path)
+        |> Enum.at(0)
+
+      assert %{"status" => "VALID"} = resp
+      assert is_list(Map.get(resp, "participants"))
     end
 
     test "show proper message when program medication is invalid", %{conn: conn} do
@@ -454,14 +476,5 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     "test/data/medication_request_request/medication_request_request.json"
     |> File.read!()
     |> Poison.decode!
-  end
-
-  defp validate_response_with_schema(resp, schema_path) do
-    schema =
-      schema_path
-      |> File.read!()
-      |> Poison.decode!()
-
-    NExJsonSchema.Validator.validate(schema, resp)
   end
 end

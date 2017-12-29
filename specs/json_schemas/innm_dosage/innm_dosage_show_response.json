@@ -7,6 +7,9 @@
     "name": {
       "type": "string"
     },
+    "type": {
+      "type": "string"
+    },
     "form": {
       "type": "string",
       "description": "`Dictionary MEDICATION_FORM`"
@@ -19,6 +22,10 @@
           "id": {
             "type": "string",
             "description": "innm or innm dosage Identifier"
+          },
+          "name": {
+            "type": "string",
+            "description": "ingredient name"
           },
           "dosage": {
             "type": "object",

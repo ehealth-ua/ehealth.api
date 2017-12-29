@@ -12,7 +12,7 @@ defmodule EHealth.Web.MedicalProgramControllerTest do
       assert 1 == length(resp)
       assert id == Map.get(hd(resp), "id")
 
-      assert_medical_program_list(resp)
+      assert_list_response_schema(resp, "medical_program")
     end
 
     test "search by name", %{conn: conn} do
@@ -35,22 +35,19 @@ defmodule EHealth.Web.MedicalProgramControllerTest do
     end
 
     test "search by all possible options", %{conn: conn} do
-      %{id: id} = insert(:prm, :medical_program, name: "some name", is_active: true)
+      %{id: id} = insert(:prm, :medical_program, name: "Программа для усіх", is_active: true)
       insert(:prm, :medical_program, is_active: false)
-      conn = get conn, medical_program_path(conn, :index), %{"is_active" => true, "name" => "some"}
-      resp = json_response(conn, 200)
-      data = resp["data"]
+      data =
+        conn
+        |> get(medical_program_path(conn, :index), %{"is_active" => true, "name" => "усіх"})
+        |> json_response(200)
+        |> Map.get("data")
+        |> assert_list_response_schema("medical_program")
+
       assert 1 == length(data)
       assert id == Map.get(hd(data), "id")
       assert Map.get(hd(data), "is_active")
-      assert "some name" == Map.get(hd(data), "name")
-
-      schema =
-        "test/data/medical_program/list_medical_programs_response_schema.json"
-        |> File.read!()
-        |> Poison.decode!()
-
-      assert :ok = NExJsonSchema.Validator.validate(schema, resp)
+      assert "Программа для усіх" == Map.get(hd(data), "name")
     end
   end
 
@@ -62,31 +59,22 @@ defmodule EHealth.Web.MedicalProgramControllerTest do
     end
 
     test "success create medical program", %{conn: conn} do
-      conn = post conn, medical_program_path(conn, :create), name: "test"
-      resp = json_response(conn, 201)
-
-      schema =
-        "test/data/medical_program/create_medical_program_response_schema.json"
-        |> File.read!()
-        |> Poison.decode!()
-
-      assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
+      conn
+      |> post(medical_program_path(conn, :create), name: "Тест")
+      |> json_response(201)
+      |> Map.get("data")
+      |> assert_show_response_schema("medical_program")
     end
   end
 
   describe "get by id" do
     test "success", %{conn: conn} do
       %{id: id} = insert(:prm, :medical_program)
-      conn = get conn, medical_program_path(conn, :show, id)
-      resp = json_response(conn, 200)["data"]
-      assert id == resp["id"]
-
-      schema =
-        "test/data/medical_program/get_medical_program_response_schema.json"
-        |> File.read!()
-        |> Poison.decode!()
-
-      assert :ok = NExJsonSchema.Validator.validate(schema, resp)
+      conn
+      |> get(medical_program_path(conn, :show, id))
+      |> json_response(200)
+      |> Map.get("data")
+      |> assert_show_response_schema("medical_program")
     end
 
     test "fail", %{conn: conn} do
@@ -122,14 +110,5 @@ defmodule EHealth.Web.MedicalProgramControllerTest do
       err_msg = "This program has active participants. Only medical programs without participants can be deactivated"
       assert err_msg == json_response(conn, 409)["error"]["message"]
     end
-  end
-
-  defp assert_medical_program_list(response) do
-    schema =
-      "specs/json_schemas/medical_program/medical_program_get_list_response.json"
-      |> File.read!()
-      |> Poison.decode!()
-
-    assert :ok == NExJsonSchema.Validator.validate(schema, response)
   end
 end

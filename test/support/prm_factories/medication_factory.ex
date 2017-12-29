@@ -30,7 +30,7 @@ defmodule EHealth.PRMFactories.MedicationFactory do
       def innm_factory do
         %INNM{
           sctid: sequence("1234567"),
-          name: sequence("Преднизолон"),
+          name: "Преднизолон",
           name_original: sequence("Prednisolonum"),
           is_active: true,
           updated_by: UUID.generate(),

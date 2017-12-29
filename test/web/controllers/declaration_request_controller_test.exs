@@ -478,11 +478,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
   end
 
   defp assert_count_declaration_request_list(resp, count \\ 0) do
-    schema =
-      "test/data/declaration_request/index_api_response_schema.json"
-      |> File.read!()
-      |> Poison.decode!()
-    :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
+    assert_list_response_schema(resp["data"], "declaration_request")
 
     assert Map.has_key?(resp, "data")
     assert Map.has_key?(resp, "paging")
