@@ -228,10 +228,12 @@ defmodule EHealth.EmployeeRequests do
   end
 
   def update_all(query, updates, author_id) do
-    Multi.new
-    |> Multi.update_all(:employee_requests, query, [set: updates], [returning: [:id]])
-    |> Multi.run(:insert_events, &(insert_events(&1, updates, author_id)))
-    |> Repo.transaction()
+    {_, request_ids} = Repo.update_all(query, [set: updates], [returning: [:id]])
+
+    max_concurrency = System.schedulers_online * 2
+    request_ids
+    |> Task.async_stream(__MODULE__, :insert_events, [updates, author_id], max_concurrency: max_concurrency)
+    |> Stream.run
   end
 
   def terminate_employee_requests do
@@ -261,16 +263,12 @@ defmodule EHealth.EmployeeRequests do
     end
   end
 
-  defp insert_events(multi, [status: status], author_id) do
-    {_, employee_requests} = multi.employee_requests
-    Enum.each(employee_requests, fn employee_request ->
-      EventManager.insert_change_status(employee_request, status, author_id)
-    end)
-    {:ok, employee_requests}
+  def insert_events(employee_request, [status: status], author_id) do
+    EventManager.insert_change_status(employee_request, status, author_id)
+    {:ok, employee_request}
   end
-  defp insert_events(multi, _, _) do
-    {_, employee_requests} = multi.employee_requests
-    {:ok, employee_requests}
+  def insert_events(employee_request, _, _) do
+    {:ok, employee_request}
   end
 
   def check_transition_status(%Request{status: @status_new} = employee_request) do

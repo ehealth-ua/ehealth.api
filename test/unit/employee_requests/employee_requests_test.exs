@@ -1,7 +1,7 @@
 defmodule EHealth.Unit.EmployeeRequestsTest do
   @moduledoc false
 
-  use EHealth.Web.ConnCase, async: true
+  use EHealth.Web.ConnCase, async: false
 
   import Ecto.Query
   alias EHealth.EmployeeRequests
