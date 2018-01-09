@@ -1,7 +1,8 @@
-Change log for versions 7.21.0 - 7.21.13
+Change log for versions 7.21.0 - 7.21.14
 
 **Patches and bug fixes**:
 
+Fix errors in emplyee_request event generation
 declaration request schemas
 medication json schemas
 removed legacy schema
