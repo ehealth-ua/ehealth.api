@@ -92,7 +92,9 @@ Also sample `.env` can be used as payload for `docker run` cli.
 | DIGITAL_SIGNATURE_REQUEST_TIMEOUT | `30_000`      | HTTP timeout for hackney. |
 
 ## Gandalf
+
 | VAR_NAME              | Default Value | Description |
+|-----------------------|---------------|-------------|
 | GNDF_ENDPOINT         | not_set       | Endpoint for [Gandalf](http://docs.gandalf4.apiary.io/#) |
 | GNDF_CLIENT_ID        | not_set       | Client ID for auth |
 | GNDF_CLIENT_SECRET    | not_set       | Client secret for auth |
