@@ -24,11 +24,8 @@ defmodule EHealth.MedicationRequestRequest.Operation do
 
   def call_changeset(%Operation{} = operation, function, args) do
     {_, operation} =
-      Map.get_and_update(
-        operation,
-        :changeset,
-        fn changeset -> {:ok, apply(function, [changeset] ++ args)} end
-      )
+      Map.get_and_update(operation, :changeset, fn changeset -> {:ok, apply(function, [changeset] ++ args)} end)
+
     operation
   end
 end

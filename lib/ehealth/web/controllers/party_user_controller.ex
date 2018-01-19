@@ -5,7 +5,7 @@ defmodule EHealth.Web.PartyUserController do
   alias EHealth.PartyUsers
   alias Scrivener.Page
 
-  action_fallback EHealth.Web.FallbackController
+  action_fallback(EHealth.Web.FallbackController)
 
   def index(conn, params) do
     with %Page{} = paging <- PartyUsers.list(params) do

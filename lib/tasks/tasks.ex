@@ -44,7 +44,7 @@ defmodule :ehealth_tasks do
 
     :ehealth
     |> Application.app_dir("priv/repo/fixtures/dictionaries.json")
-    |> File.read!
+    |> File.read!()
     |> Poison.decode!(as: [%Dictionary{}])
     |> Enum.each(&repo.insert!/1)
 
@@ -59,7 +59,7 @@ defmodule :ehealth_tasks do
 
   defp start_applications(apps) do
     Enum.each(apps, fn app ->
-      {_ , _message} = Application.ensure_all_started(app)
+      {_, _message} = Application.ensure_all_started(app)
     end)
   end
 end

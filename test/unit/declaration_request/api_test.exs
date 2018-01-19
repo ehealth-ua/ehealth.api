@@ -38,7 +38,7 @@ defmodule EHealth.DeclarationRequest.APITest do
           "tax_id" => get_in(template, ["person", "tax_id"])
         },
         "employee" => %{
-          "id" => get_in(template, ["employee", "id"]),
+          "id" => get_in(template, ["employee", "id"])
         },
         "legal_entity" => %{
           "id" => get_in(template, ["legal_entity", "id"])
@@ -57,7 +57,7 @@ defmodule EHealth.DeclarationRequest.APITest do
 
     allowed =
       attrs
-      |> Map.keys
+      |> Map.keys()
       |> Enum.map(&String.to_atom(&1))
 
     %DeclarationRequest{}
@@ -82,10 +82,10 @@ defmodule EHealth.DeclarationRequest.APITest do
 
     insert(:prm, :global_parameter, parameter: "declaration_request_term_unit", value: "DAYS")
     insert(:prm, :global_parameter, parameter: "declaration_request_expiration", value: "5")
-    assert 2 = DeclarationRequest |> Repo.all() |> Enum.count
+    assert 2 = DeclarationRequest |> Repo.all() |> Enum.count()
 
     terminate_declaration_requests()
 
-    assert 1 = DeclarationRequest |> Repo.all() |> Enum.count
+    assert 1 = DeclarationRequest |> Repo.all() |> Enum.count()
   end
 end

@@ -3,7 +3,7 @@ defmodule EHealth.PRMRepo.Migrations.AddedToDivisionIsActive do
 
   def change do
     alter table(:divisions) do
-      add :is_active, :boolean, default: false, null: false
+      add(:is_active, :boolean, default: false, null: false)
     end
   end
 end

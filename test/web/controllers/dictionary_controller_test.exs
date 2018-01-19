@@ -5,10 +5,10 @@ defmodule EHealth.Web.DictionaryControllerTest do
     "name" => "GENDER",
     "values" => %{
       "MALE" => "Чоловік",
-      "FEMALE" => "Жінка",
+      "FEMALE" => "Жінка"
     },
     "labels" => ["SYSTEM"],
-    "is_active" => false,
+    "is_active" => false
   }
 
   @document_type %{
@@ -20,7 +20,7 @@ defmodule EHealth.Web.DictionaryControllerTest do
       "TEMPORARY_CERTIFICATE" => "Тимчасовий паспорт"
     },
     "labels" => ["SYSTEM", "EXTERNAL"],
-    "is_active" => true,
+    "is_active" => true
   }
 
   @invalid_attrs %{
@@ -35,10 +35,10 @@ defmodule EHealth.Web.DictionaryControllerTest do
   end
 
   test "lists all entries on index", %{conn: conn} do
-    patch conn, dictionary_path(conn, :update, "GENDER"), Poison.encode!(@gender)
-    patch conn, dictionary_path(conn, :update, "DOCUMENT_TYPE"), Poison.encode!(@document_type)
+    patch(conn, dictionary_path(conn, :update, "GENDER"), Poison.encode!(@gender))
+    patch(conn, dictionary_path(conn, :update, "DOCUMENT_TYPE"), Poison.encode!(@document_type))
 
-    conn = get conn, dictionary_path(conn, :index)
+    conn = get(conn, dictionary_path(conn, :index))
     resp = json_response(conn, 200)["data"]
     assert Enum.member?(resp, @gender)
     assert Enum.member?(resp, @document_type)
@@ -50,22 +50,23 @@ defmodule EHealth.Web.DictionaryControllerTest do
     update = %{
       "name" => "invalid",
       "values" => %{
-       "MALE" => "MAN",
-       "FEMALE" => "WOMAN",
+        "MALE" => "MAN",
+        "FEMALE" => "WOMAN"
       },
       "labels" => ["SYSTEM", "EXTERNAL"],
-      "is_active" => false,
+      "is_active" => false
     }
-    conn = patch conn, dictionary_path(conn, :update, "GENDER"), update
+
+    conn = patch(conn, dictionary_path(conn, :update, "GENDER"), update)
     assert json_response(conn, 200)["data"] == Map.put(update, "name", "GENDER")
   end
 
   test "does not update chosen dictionary and renders errors when data is invalid", %{conn: conn} do
-    conn = patch conn, dictionary_path(conn, :update, "GENDER"), Poison.encode!(@invalid_attrs)
+    conn = patch(conn, dictionary_path(conn, :update, "GENDER"), Poison.encode!(@invalid_attrs))
     assert json_response(conn, 422)["errors"] != %{}
   end
 
   defp create_dictionary(conn, %{"name" => name} = data) do
-    patch conn, dictionary_path(conn, :update, name), data
+    patch(conn, dictionary_path(conn, :update, name), data)
   end
 end

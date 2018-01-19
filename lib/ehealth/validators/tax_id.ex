@@ -9,10 +9,11 @@ defmodule EHealth.Validators.TaxID do
   def validate(tax_id, _), do: validate(tax_id)
   def validate(tax_id) when byte_size(tax_id) != 10, do: false
   def validate("0000000000"), do: false
+
   def validate(tax_id) do
     if Regex.match?(~r/^[0-9]{10}$/, tax_id) do
       {check_sum, i} =
-        Enum.reduce(@ratios, {0, 0}, fn(x, {acc, i}) -> {acc + x * String.to_integer(String.at(tax_id, i)), i + 1} end)
+        Enum.reduce(@ratios, {0, 0}, fn x, {acc, i} -> {acc + x * String.to_integer(String.at(tax_id, i)), i + 1} end)
 
       check_number =
         check_sum

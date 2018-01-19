@@ -78,7 +78,8 @@ defmodule EHealth.Web.ConnCase do
     {:ok, port_string} = :inet.port(port)
     :erlang.port_close(port)
     ref = make_ref()
-    {:ok, _pid} = Plug.Adapters.Cowboy.http module, [], port: port_string, ref: ref # TODO: only 1 worker here
+    # TODO: only 1 worker here
+    {:ok, _pid} = Plug.Adapters.Cowboy.http(module, [], port: port_string, ref: ref)
     {:ok, port_string, ref}
   end
 
@@ -87,12 +88,9 @@ defmodule EHealth.Web.ConnCase do
   end
 
   def convert_atom_keys_to_strings(map) when is_map(map) do
-    Enum.reduce(
-      map,
-      Map.new,
-      fn({key, value}, acc) -> Map.put(acc, to_string(key), value) end
-    )
+    Enum.reduce(map, Map.new(), fn {key, value}, acc -> Map.put(acc, to_string(key), value) end)
   end
+
   def convert_atom_keys_to_strings(map) do
     map
   end
@@ -106,15 +104,18 @@ defmodule EHealth.Web.ConnCase do
   def assert_show_response_schema(response, type) when is_binary(type) do
     assert_json_schema(response, "specs/json_schemas/#{type}/#{type}_show_response.json")
   end
+
   def assert_list_response_schema(response, type) when is_binary(type) do
     assert_json_schema(response, "specs/json_schemas/#{type}/#{type}_list_response.json")
   end
+
   def assert_json_schema(data, schema_path) do
     assert :ok ==
              schema_path
-            |> File.read!()
-            |> Poison.decode!()
-            |> NExJsonSchema.Validator.validate(data)
+             |> File.read!()
+             |> Poison.decode!()
+             |> NExJsonSchema.Validator.validate(data)
+
     data
   end
 end

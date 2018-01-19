@@ -25,8 +25,10 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
           case conn.body_params["code"] do
             "12345" ->
               {200, %{data: %{status: "verified"}}}
+
             "54321" ->
               {404, %{meta: %{code: 404}, error: %{type: "not_found"}}}
+
             _ ->
               {422, %{meta: %{code: 422}, error: %{type: "forbidden", message: "invalid verification code"}}}
           end
@@ -39,10 +41,11 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
       {:ok, port, ref} = start_microservices(OtpHappyPath)
 
       System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:#{port}")
-      on_exit fn ->
+
+      on_exit(fn ->
         System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
-      end
+      end)
 
       {:ok, %{conn: conn}}
     end
@@ -72,7 +75,7 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
       {:ok, _} =
         %DeclarationRequest{}
         |> change(existing_declaration_request_params)
-        |> Repo.insert
+        |> Repo.insert()
 
       conn =
         conn
@@ -116,7 +119,7 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
       {:ok, _} =
         %DeclarationRequest{}
         |> change(existing_declaration_request_params)
-        |> Repo.insert
+        |> Repo.insert()
 
       conn1 =
         conn
@@ -184,10 +187,11 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
       :ets.new(:uploaded_at_port, [:named_table])
       :ets.insert(:uploaded_at_port, {"port", port})
       System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:#{port}")
-      on_exit fn ->
+
+      on_exit(fn ->
         System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
-      end
+      end)
 
       {:ok, %{port: port, conn: conn}}
     end
@@ -199,7 +203,7 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
       {:ok, _} =
         %DeclarationRequest{}
         |> change(existing_declaration_request_params)
-        |> Repo.insert
+        |> Repo.insert()
 
       conn =
         conn
@@ -218,11 +222,9 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
     end
 
     test "offline documents was not uploaded. Declaration cannot be approved", %{conn: conn} do
-
       docs = [%{"type" => "404", "verb" => "HEAD"}, %{"type" => "empty", "verb" => "HEAD"}]
       existing_declaration_request_params = Map.put(get_declaration_changes(), :documents, docs)
       id = existing_declaration_request_params.id
-
 
       {:ok, _} =
         %DeclarationRequest{}
@@ -245,6 +247,7 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
         %{"type" => "error", "verb" => "HEAD"},
         %{"type" => "404", "verb" => "HEAD"}
       ]
+
       existing_declaration_request_params = Map.put(get_declaration_changes(), :documents, docs)
       id = existing_declaration_request_params.id
 

@@ -20,13 +20,13 @@ defmodule EHealth.API.Helpers.MicroserviceBase do
 
         Logger.info(fn ->
           Poison.encode!(%{
-            "log_type"     => "microservice_request",
+            "log_type" => "microservice_request",
             "microservice" => config()[:endpoint],
-            "action"       => method,
-            "path"         => Enum.join([process_url(url), query_string]),
-            "request_id"   => Logger.metadata[:request_id],
-            "body"         => body,
-            "headers"      => Enum.reduce(headers, %{}, fn {k, v}, map -> Map.put_new(map, k, v) end)
+            "action" => method,
+            "path" => Enum.join([process_url(url), query_string]),
+            "request_id" => Logger.metadata()[:request_id],
+            "body" => body,
+            "headers" => Enum.reduce(headers, %{}, fn {k, v}, map -> Map.put_new(map, k, v) end)
           })
         end)
 

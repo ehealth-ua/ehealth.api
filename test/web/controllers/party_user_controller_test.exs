@@ -6,6 +6,7 @@ defmodule EHealth.Web.PartyUserControllerTest do
   describe "list party users" do
     test "success list", %{conn: conn} do
       insert(:prm, :party_user)
+
       assert 1 =
                conn
                |> put_client_id_header()

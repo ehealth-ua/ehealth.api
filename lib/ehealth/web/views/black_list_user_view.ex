@@ -27,6 +27,7 @@ defmodule EHealth.Web.BlackListUserView do
 
   def render("show.json", %{black_list_user: black_list_user}) do
     parties = black_list_user.parties || []
+
     black_list_user
     |> Map.take(@fields)
     |> Map.put(:parties, render_many(parties, __MODULE__, "party.json", as: :party))
@@ -35,5 +36,4 @@ defmodule EHealth.Web.BlackListUserView do
   def render("party.json", %{party: party}) do
     Map.take(party, @party_fields)
   end
-
 end

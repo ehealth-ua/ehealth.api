@@ -29,10 +29,11 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       {:ok, port, ref} = start_microservices(PrintoutForm)
 
       System.put_env("MAN_ENDPOINT", "http://localhost:#{port}")
-      on_exit fn ->
+
+      on_exit(fn ->
         System.put_env("MAN_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
-      end
+      end)
 
       insert(:il, :dictionary_settlement_type)
       insert(:il, :dictionary_document_type)
@@ -46,7 +47,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       data =
         "test/data/sign_declaration_request.json"
         |> File.read!()
-        |> Poison.decode!
+        |> Poison.decode!()
 
       authentication_method_current = %{
         "type" => "OTP"
@@ -196,7 +197,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       data =
         "test/data/sign_declaration_request.json"
         |> File.read!()
-        |> Poison.decode!
+        |> Poison.decode!()
         |> put_in(["legal_entity", "licenses"], licenses)
 
       printout_content =
@@ -205,10 +206,10 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         |> put_change(:authentication_method_current, authentication_method_current)
         |> generate_printout_form()
         |> get_change(:printout_content)
-        |> Poison.decode!
+        |> Poison.decode!()
         |> get_in(["legal_entity", "full_license"])
 
-        assert printout_content == "1a (2017-02-28), 2b (2017-02-28), 3c (2017-02-28)"
+      assert printout_content == "1a (2017-02-28), 2b (2017-02-28), 3c (2017-02-28)"
     end
 
     test "updates declaration request with printout form that has empty fields when data is empty" do
@@ -311,7 +312,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         |> generate_printout_form()
 
       assert ~s(Error during MAN interaction. Result from MAN: "oops, I did it again") ==
-        elem(changeset.errors[:printout_content], 0)
+               elem(changeset.errors[:printout_content], 0)
 
       System.put_env("DECLARATION_REQUEST_PRINTOUT_FORM_TEMPLATE_ID", "4")
     end
@@ -344,8 +345,8 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
 
       Plug.Router.get "/persons/b5350f79-f2ca-408f-b15d-1ae0a8cc861c" do
         person = %{
-          "authentication_methods": [
-            %{"type": "OTP", "phone_number": "+380508887700"}
+          authentication_methods: [
+            %{type: "OTP", phone_number: "+380508887700"}
           ]
         }
 
@@ -357,10 +358,11 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       {:ok, port, ref} = start_microservices(MpiExists)
 
       System.put_env("MPI_ENDPOINT", "http://localhost:#{port}")
-      on_exit fn ->
+
+      on_exit(fn ->
         System.put_env("MPI_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
-      end
+      end)
 
       :ok
     end
@@ -374,9 +376,11 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
             "last_name" => "Пчілка",
             "birth_date" => "2010-08-19",
             "tax_id" => "3126509816",
-            "authentication_methods" => [%{
-              "phone_number" => "+380508887700"
-            }]
+            "authentication_methods" => [
+              %{
+                "phone_number" => "+380508887700"
+              }
+            ]
           }
         }
       }
@@ -386,8 +390,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         |> Ecto.Changeset.change()
         |> determine_auth_method_for_mpi()
 
-      assert get_change(changeset, :authentication_method_current) ==
-        %{"number" => "+380508887700", "type" => "OTP"}
+      assert get_change(changeset, :authentication_method_current) == %{"number" => "+380508887700", "type" => "OTP"}
     end
   end
 
@@ -401,7 +404,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
 
       Plug.Router.post "/api/v1/tables/some_gndf_table_id/decisions" do
         decision = %{
-          "final_decision": "OFFLINE"
+          final_decision: "OFFLINE"
         }
 
         Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: decision}))
@@ -417,12 +420,13 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
 
       System.put_env("GNDF_ENDPOINT", "http://localhost:#{port}")
       System.put_env("MPI_ENDPOINT", "http://localhost:#{port}")
-      on_exit fn ->
+
+      on_exit(fn ->
         System.put_env("MPI_ENDPOINT", "http://localhost:4040")
         System.put_env("GNDF_ENDPOINT", "http://localhost:4040")
         System.put_env("GNDF_TABLE_ID", "some_gndf_table_id")
         stop_microservices(ref)
-      end
+      end)
 
       :ok
     end
@@ -435,9 +439,11 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
             "last_name" => "Олесь",
             "birth_date" => "1988-08-19",
             "tax_id" => "3126509817",
-            "authentication_methods" => [%{
-              "phone_number" => "+380508887701"
-            }]
+            "authentication_methods" => [
+              %{
+                "phone_number" => "+380508887701"
+              }
+            ]
           }
         }
       }
@@ -452,6 +458,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
 
     test "Gandalf makes a NA decision" do
       System.put_env("GNDF_TABLE_ID", "not_available")
+
       declaration_request = %DeclarationRequest{
         data: %{
           "person" => %{
@@ -459,10 +466,12 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
             "last_name" => "Олесь",
             "birth_date" => "1988-08-19",
             "tax_id" => "3126509817",
-            "authentication_methods" => [%{
-              "type" => "OTP",
-              "phone_number" => "+380508887702"
-            }]
+            "authentication_methods" => [
+              %{
+                "type" => "OTP",
+                "phone_number" => "+380508887702"
+              }
+            ]
           }
         }
       }
@@ -489,10 +498,11 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       {:ok, port, ref} = start_microservices(MpiError)
 
       System.put_env("MPI_ENDPOINT", "http://localhost:#{port}")
-      on_exit fn ->
+
+      on_exit(fn ->
         System.put_env("MPI_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
-      end
+      end)
 
       :ok
     end
@@ -501,9 +511,11 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       declaration_request = %DeclarationRequest{
         data: %{
           "person" => %{
-            "phones" => [%{
-              "number" => "+380508887701"
-            }]
+            "phones" => [
+              %{
+                "number" => "+380508887701"
+              }
+            ]
           }
         }
       }
@@ -514,7 +526,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         |> determine_auth_method_for_mpi()
 
       assert ~s(Error during MPI interaction. Result from MPI: %{"something" => "terrible"}) ==
-        elem(changeset.errors[:authentication_method_current], 0)
+               elem(changeset.errors[:authentication_method_current], 0)
     end
   end
 
@@ -536,11 +548,12 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
 
       System.put_env("MPI_ENDPOINT", "http://localhost:#{port}")
       System.put_env("GNDF_ENDPOINT", "http://localhost:#{port}")
-      on_exit fn ->
+
+      on_exit(fn ->
         System.put_env("MPI_ENDPOINT", "http://localhost:4040")
         System.put_env("GNDF_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
-      end
+      end)
 
       :ok
     end
@@ -549,13 +562,17 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       declaration_request = %DeclarationRequest{
         data: %{
           "person" => %{
-            "phones" => [%{
-              "number" => "+380508887701"
-            }],
-            "authentication_methods" => [%{
-              "type" => "OTP",
-              "phone_number" => "+380508887701"
-            }]
+            "phones" => [
+              %{
+                "number" => "+380508887701"
+              }
+            ],
+            "authentication_methods" => [
+              %{
+                "type" => "OTP",
+                "phone_number" => "+380508887701"
+              }
+            ]
           }
         }
       }
@@ -587,10 +604,11 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       {:ok, port, ref} = start_microservices(MPIAuthNA)
 
       System.put_env("MPI_ENDPOINT", "http://localhost:#{port}")
-      on_exit fn ->
+
+      on_exit(fn ->
         System.put_env("MPI_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
-      end
+      end)
 
       :ok
     end
@@ -599,13 +617,17 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       declaration_request = %DeclarationRequest{
         data: %{
           "person" => %{
-            "phones" => [%{
-              "number" => "+380508887701"
-            }],
-            "authentication_methods" => [%{
-              "type" => "OTP",
-              "phone_number" => "+380508887701"
-            }]
+            "phones" => [
+              %{
+                "number" => "+380508887701"
+              }
+            ],
+            "authentication_methods" => [
+              %{
+                "type" => "OTP",
+                "phone_number" => "+380508887701"
+              }
+            ]
           }
         }
       }
@@ -638,10 +660,11 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       {:ok, port, ref} = start_microservices(SendingVerificationCode)
 
       System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:#{port}")
-      on_exit fn ->
+
+      on_exit(fn ->
         System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
-      end
+      end)
 
       :ok
     end
@@ -669,22 +692,29 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       # PRM API
       Plug.Router.get "/party_users" do
         party_id = Map.get(conn.query_params, "party_id")
-        user_id = case party_id do
-          @invalid_party_id -> @invalid_user_id
-          _ -> @user_id
-        end
-        party_users = [%{
-          "user_id": user_id
-        }]
+
+        user_id =
+          case party_id do
+            @invalid_party_id -> @invalid_user_id
+            _ -> @user_id
+          end
+
+        party_users = [
+          %{
+            user_id: user_id
+          }
+        ]
 
         Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: party_users}))
       end
 
       # Mithril API
       Plug.Router.get "/admin/roles" do
-        roles = [%{
-          "id" => @role_id
-        }]
+        roles = [
+          %{
+            "id" => @role_id
+          }
+        ]
 
         Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: roles}))
       end
@@ -694,10 +724,12 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       end
 
       Plug.Router.get "/admin/users/#{@user_id}/roles" do
-        roles = [%{
-          "user_id" => @user_id,
-          "role_id" => @role_id
-        }]
+        roles = [
+          %{
+            "user_id" => @user_id,
+            "role_id" => @role_id
+          }
+        ]
 
         Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: roles}))
       end
@@ -716,11 +748,12 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
 
       System.put_env("PRM_ENDPOINT", "http://localhost:#{port}")
       System.put_env("OAUTH_ENDPOINT", "http://localhost:#{port}")
-      on_exit fn ->
+
+      on_exit(fn ->
         System.put_env("PRM_ENDPOINT", "http://localhost:4040")
         System.put_env("OAUTH_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
-      end
+      end)
 
       :ok
     end
@@ -730,8 +763,16 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       data = %{"employee" => %{"party" => %{"id" => "6b4127ea-99ad-4493-b5ce-6f0769fa9fab"}}}
       changes = %{data: data}
       errors = [email: {"Current user is not a doctor", []}]
-      expected_result =
-        %Ecto.Changeset{action: nil, changes: changes, errors: errors, data: data, types: types, valid?: false}
+
+      expected_result = %Ecto.Changeset{
+        action: nil,
+        changes: changes,
+        errors: errors,
+        data: data,
+        types: types,
+        valid?: false
+      }
+
       result = put_party_email(%Ecto.Changeset{data: data, changes: changes, types: types, valid?: true})
       assert expected_result == result
     end
@@ -742,8 +783,16 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       data = %{"employee" => %{"party" => %{"id" => party_user.party_id}}}
       expected_changes = %{data: put_in(data, ["employee", "party", "email"], "user@email.com")}
       changes = %{data: data}
-      expected_result =
-        %Ecto.Changeset{action: nil, changes: expected_changes, errors: [], data: data, types: types, valid?: true}
+
+      expected_result = %Ecto.Changeset{
+        action: nil,
+        changes: expected_changes,
+        errors: [],
+        data: data,
+        types: types,
+        valid?: true
+      }
+
       result = put_party_email(%Ecto.Changeset{data: data, changes: changes, types: types, valid?: true})
       assert expected_result == result
     end

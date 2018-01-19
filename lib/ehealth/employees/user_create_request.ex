@@ -4,6 +4,6 @@ defmodule EHealth.Employee.UserCreateRequest do
   use Ecto.Schema
 
   schema "user_create_request" do
-    field :password, :string
+    field(:password, :string)
   end
 end

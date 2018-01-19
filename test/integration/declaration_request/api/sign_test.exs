@@ -37,8 +37,10 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
       db_data = %DeclarationRequest{data: %{"person" => %{"key" => "another_value"}}}
       input_data = %{"data" => %{"content" => ""}}
       result = check_patient_signed({:ok, input_data, db_data})
-      expected_result = {:error, [{%{description: "Can not be empty",
-        params: [], rule: :invalid}, "$.declaration_request"}]}
+
+      expected_result =
+        {:error, [{%{description: "Can not be empty", params: [], rule: :invalid}, "$.declaration_request"}]}
+
       assert expected_result == result
     end
 
@@ -46,17 +48,31 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
       db_data = %DeclarationRequest{data: %{"person" => %{"key" => "another_value"}}}
       input_data = %{"data" => %{"content" => %{"person" => %{"key" => "value", "patient_signed" => false}}}}
       result = check_patient_signed({:ok, input_data, db_data})
-      expected_result = {:error, [{%{description: "Patient must sign declaration form",
-        params: [], rule: :invalid}, "$.person.patient_signed"}]}
+
+      expected_result =
+        {:error,
+         [{%{description: "Patient must sign declaration form", params: [], rule: :invalid}, "$.person.patient_signed"}]}
+
       assert expected_result == result
     end
 
     test "returns expected result when patient_signed is true" do
       id = Ecto.UUID.generate()
-      db_data = %DeclarationRequest{id: id, data: %{"person" => %{"key" => "value", "patient_signed" => false}},
-        status: "APPROVED", printout_content: "<html></html>"}
-      content = %{"id" => id, "person" => %{"key" => "value", "patient_signed" => true}, "status" => "APPROVED",
-        "content" => "<html></html>"}
+
+      db_data = %DeclarationRequest{
+        id: id,
+        data: %{"person" => %{"key" => "value", "patient_signed" => false}},
+        status: "APPROVED",
+        printout_content: "<html></html>"
+      }
+
+      content = %{
+        "id" => id,
+        "person" => %{"key" => "value", "patient_signed" => true},
+        "status" => "APPROVED",
+        "content" => "<html></html>"
+      }
+
       input_data = %{"data" => %{"content" => content}}
       result = check_patient_signed({:ok, input_data, db_data})
       expected_result = {:ok, %{"data" => %{"content" => content}}, db_data}
@@ -69,23 +85,38 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
       db_data = %DeclarationRequest{data: %{"person" => %{"key" => "another_value"}}}
       input_data = %{"data" => %{"content" => %{"person" => %{"key" => "value"}}}}
       result = compare_with_db({:ok, input_data, db_data})
-      expected_result = {:error, [{%{description: "Signed content does not match the previously created content",
-        params: [], rule: :invalid}, "$.content"}]}
+
+      expected_result =
+        {:error,
+         [
+           {%{description: "Signed content does not match the previously created content", params: [], rule: :invalid},
+            "$.content"}
+         ]}
+
       assert expected_result == result
     end
 
     test "returns expected result when data matches" do
       id = Ecto.UUID.generate()
+
       db_data = %DeclarationRequest{
         id: id,
         data: %{
           "person" => %{"key" => "value", "patient_signed" => false},
           "seed" => "99bc78ba577a95a11f1a344d4d2ae55f2f857b98"
         },
-        status: "APPROVED", printout_content: "<html></html>"
+        status: "APPROVED",
+        printout_content: "<html></html>"
       }
-      content = %{"id" => id, "person" => %{"key" => "value", "patient_signed" => true}, "status" => "APPROVED",
-        "content" => "<html></html>", "seed" => "some_current_hash"}
+
+      content = %{
+        "id" => id,
+        "person" => %{"key" => "value", "patient_signed" => true},
+        "status" => "APPROVED",
+        "content" => "<html></html>",
+        "seed" => "some_current_hash"
+      }
+
       input_data = %{"data" => %{"content" => content}}
       result = compare_with_db({:ok, input_data, db_data})
       expected_result = {:ok, %{"data" => %{"content" => content}}, db_data}
@@ -99,8 +130,14 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
       signer = %{"drfo" => "222"}
       input_data = %{"data" => %{"content" => %{"employee" => employee}, "signer" => signer}}
       result = check_drfo({:ok, input_data, %DeclarationRequest{}})
-      expected_result = {:error, [{%{description: "Does not match the signer drfo",
-        params: [], rule: :invalid}, "$.content.employee.party.tax_id"}]}
+
+      expected_result =
+        {:error,
+         [
+           {%{description: "Does not match the signer drfo", params: [], rule: :invalid},
+            "$.content.employee.party.tax_id"}
+         ]}
+
       assert expected_result == result
     end
 
@@ -123,12 +160,12 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
 
         party_users = [
           %{
-            "user_id": user_id,
-            "party_id": "d79afe28-2716-4ba6-8e6e-275c0697a1b9"
+            user_id: user_id,
+            party_id: "d79afe28-2716-4ba6-8e6e-275c0697a1b9"
           },
           %{
-            "user_id": user_id,
-            "party_id": Ecto.UUID.generate()
+            user_id: user_id,
+            party_id: Ecto.UUID.generate()
           }
         ]
 
@@ -138,10 +175,10 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
       Plug.Router.get "/employees" do
         employees = [
           %{
-            "id": Ecto.UUID.generate()
+            id: Ecto.UUID.generate()
           },
           %{
-            "id": "f1ee8ca3-b8ba-4fbe-b186-3c7d08f0f323"
+            id: "f1ee8ca3-b8ba-4fbe-b186-3c7d08f0f323"
           }
         ]
 
@@ -153,10 +190,11 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
       {:ok, port, ref} = start_microservices(PRMMock)
 
       System.put_env("PRM_ENDPOINT", "http://localhost:#{port}")
-      on_exit fn ->
+
+      on_exit(fn ->
         System.put_env("PRM_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
-      end
+      end)
 
       :ok
     end
@@ -193,10 +231,11 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
       {:ok, port, ref} = start_microservices(MPIMock)
 
       System.put_env("MPI_ENDPOINT", "http://localhost:#{port}")
-      on_exit fn ->
+
+      on_exit(fn ->
         System.put_env("MPI_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
-      end
+      end)
 
       :ok
     end
@@ -224,10 +263,11 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
       {:ok, port, ref} = start_microservices(OPSMock)
 
       System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
-      on_exit fn ->
+
+      on_exit(fn ->
         System.put_env("OPS_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
-      end
+      end)
 
       :ok
     end
@@ -238,8 +278,10 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
       person_data = %{"data" => %{"id" => person_id}}
       client_id = Ecto.UUID.generate()
       x_consumer_metadata_header = {"x-consumer-metadata", Poison.encode!(%{"client_id" => client_id})}
-      {:ok, %{"data" => data}} = create_declaration_with_termination_logic({:ok, person_data, declaration_request},
-        [x_consumer_metadata_header])
+
+      {:ok, %{"data" => data}} =
+        create_declaration_with_termination_logic({:ok, person_data, declaration_request}, [x_consumer_metadata_header])
+
       assert client_id == data["created_by"]
       assert client_id == data["updated_by"]
       assert person_id == data["person_id"]

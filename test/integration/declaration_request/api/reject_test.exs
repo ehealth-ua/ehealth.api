@@ -7,7 +7,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.RejectTest do
 
   describe "reject/2" do
     test "rejecting record in NEW status" do
-      record  = simple_fixture(:declaration_request, "NEW")
+      record = simple_fixture(:declaration_request, "NEW")
       user_id = "fe98c21e-ba2f-4d60-8598-b0df6ec471bf"
 
       assert "NEW" = record.status
@@ -19,7 +19,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.RejectTest do
     end
 
     test "rejecting record in APPROVED status" do
-      record  = simple_fixture(:declaration_request, "APPROVED")
+      record = simple_fixture(:declaration_request, "APPROVED")
       user_id = "fe98c21e-ba2f-4d60-8598-b0df6ec471bf"
 
       assert "APPROVED" = record.status
@@ -31,14 +31,14 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.RejectTest do
     end
 
     test "rejecting record in REJECTED status" do
-      record  = simple_fixture(:declaration_request, "REJECTED")
+      record = simple_fixture(:declaration_request, "REJECTED")
       user_id = "fe98c21e-ba2f-4d60-8598-b0df6ec471bf"
 
       assert {:error, {:conflict, "Invalid transition"}} == API.reject(record.id, user_id)
     end
 
     test "rejecting record in SIGNED status" do
-      record  = simple_fixture(:declaration_request, "SIGNED")
+      record = simple_fixture(:declaration_request, "SIGNED")
       user_id = "fe98c21e-ba2f-4d60-8598-b0df6ec471bf"
 
       assert {:error, {:conflict, "Invalid transition"}} == API.reject(record.id, user_id)

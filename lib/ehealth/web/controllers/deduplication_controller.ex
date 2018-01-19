@@ -5,11 +5,11 @@ defmodule EHealth.Web.DeduplicationsController do
 
   alias EHealth.DuplicatePersons.Signals
 
-  action_fallback EHealth.Web.FallbackController
+  action_fallback(EHealth.Web.FallbackController)
 
   def found_duplicates(conn, _params) do
     Signals.deactivate()
 
-    text conn, "OK"
+    text(conn, "OK")
   end
 end

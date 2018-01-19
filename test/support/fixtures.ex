@@ -8,7 +8,7 @@ defmodule EHealth.Test.Support.Fixtures do
     data =
       "test/data/sign_declaration_request.json"
       |> File.read!()
-      |> Poison.decode!
+      |> Poison.decode!()
 
     Repo.insert!(%DeclarationRequest{
       data: data,

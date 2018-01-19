@@ -39,5 +39,6 @@ defmodule EHealth.Web.PartyView do
       no_tax_id
     ))
   end
+
   def render("party_short.json", _), do: %{}
 end

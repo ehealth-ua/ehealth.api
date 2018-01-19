@@ -31,19 +31,19 @@ cd $TRAVIS_BUILD_DIR
 
        if [ "$?" -eq 0 ]; then
             echo "mix credo successfully completed"
-          else 
-            echo "mix credo finished with errors, exited with 1"
+         else
+           echo "mix credo finished with errors, exited with 1"
             mix_test=1;
        fi;
 
   # Check code style
-  echo "- mix dogma;"
-        mix dogma
+  echo "- mix format;"
+        mix format --check-formatted
       if [ "$?" -eq 0 ]; then
-     				echo "mix dogma successfully completed"
-   				else 
-   	 				echo "mix dogma finished with errors, exited with 1"
-   	 				mix_test=1;
+        echo "mix format successfully completed"
+          else
+            echo "mix format finished with errors, exited with 1"
+            mix_test=1;
       fi;
 
 

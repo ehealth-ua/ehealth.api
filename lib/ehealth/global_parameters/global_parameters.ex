@@ -17,8 +17,7 @@ defmodule EHealth.GlobalParameters do
   )a
 
   def list do
-    query = from gp in GlobalParameter,
-      order_by: [desc: :inserted_at]
+    query = from(gp in GlobalParameter, order_by: [desc: :inserted_at])
 
     PRMRepo.all(query)
   end
@@ -43,7 +42,7 @@ defmodule EHealth.GlobalParameters do
     result =
       params
       |> Map.keys()
-      |> Enum.reduce_while(nil, fn(x, _acc) -> process(x, params, client_id) end)
+      |> Enum.reduce_while(nil, fn x, _acc -> process(x, params, client_id) end)
 
     case result do
       nil -> {:ok, list()}
@@ -54,17 +53,25 @@ defmodule EHealth.GlobalParameters do
   defp create_or_update(key, value, client_id) do
     case PRMRepo.get_by(GlobalParameter, parameter: key) do
       %GlobalParameter{} = global_parameter ->
-        update(global_parameter, %{
-          value: value,
-          updated_by: client_id
-        }, client_id)
+        update(
+          global_parameter,
+          %{
+            value: value,
+            updated_by: client_id
+          },
+          client_id
+        )
+
       nil ->
-        create(%{
-          parameter: key,
-          value: value,
-          inserted_by: client_id,
-          updated_by: client_id
-        }, client_id)
+        create(
+          %{
+            parameter: key,
+            value: value,
+            inserted_by: client_id,
+            updated_by: client_id
+          },
+          client_id
+        )
     end
   end
 

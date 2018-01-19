@@ -18,9 +18,9 @@ defmodule EHealth.EmployeeRequests.EmployeeRequest do
   def status(:expired), do: @status_expired
 
   schema "employee_requests" do
-    field :data, :map
-    field :status, :string
-    field :employee_id, Ecto.UUID
+    field(:data, :map)
+    field(:status, :string)
+    field(:employee_id, Ecto.UUID)
 
     timestamps()
   end

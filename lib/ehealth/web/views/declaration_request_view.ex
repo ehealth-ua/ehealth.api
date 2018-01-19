@@ -44,7 +44,7 @@ defmodule EHealth.Web.DeclarationRequestView do
 
   def render("microservice_error.json", %{microservice_response: microservice_response}) do
     %{
-      message: "Error during microservice interaction. Response from microservice: #{inspect microservice_response}."
+      message: "Error during microservice interaction. Response from microservice: #{inspect(microservice_response)}."
     }
   end
 

@@ -8,6 +8,7 @@ defmodule EHealth.Utils.AddressMerger do
   @config Confex.fetch_env!(:ehealth, EHealth.Utils.AddressMerger)
 
   def merge_address(nil), do: ""
+
   def merge_address(address) do
     area =
       address
@@ -38,14 +39,14 @@ defmodule EHealth.Utils.AddressMerger do
       |> to_string()
       |> get_zip()
 
-      []
-      |> Kernel.++(area)
-      |> Kernel.++(region)
-      |> Kernel.++(settlement_part)
-      |> Kernel.++(street_part)
-      |> Kernel.++(apartment)
-      |> Kernel.++(zip)
-      |> Enum.join(", ")
+    []
+    |> Kernel.++(area)
+    |> Kernel.++(region)
+    |> Kernel.++(settlement_part)
+    |> Kernel.++(street_part)
+    |> Kernel.++(apartment)
+    |> Kernel.++(zip)
+    |> Enum.join(", ")
   end
 
   def merge_street_part(address) do
@@ -86,7 +87,7 @@ defmodule EHealth.Utils.AddressMerger do
 
   defp check_area("", _no_suffix_areas), do: {"", false}
   defp check_area(area, nil), do: {area, false}
-  defp check_area(area, no_suffix_areas), do: {area, Enum.any?(no_suffix_areas, fn(x) -> x == String.upcase(area) end)}
+  defp check_area(area, no_suffix_areas), do: {area, Enum.any?(no_suffix_areas, fn x -> x == String.upcase(area) end)}
 
   defp get_area({"", _no_suffix}), do: []
   defp get_area({area, false}), do: [area <> " область"]
@@ -105,6 +106,7 @@ defmodule EHealth.Utils.AddressMerger do
   defp get_building(street_list, building), do: street_list ++ [building]
 
   defp get_street_part("", _street_type, _building), do: []
+
   defp get_street_part(street, street_type, building) do
     []
     |> get_street_type(street_type)
@@ -113,6 +115,7 @@ defmodule EHealth.Utils.AddressMerger do
     |> Enum.join(" ")
     |> get_street_part()
   end
+
   defp get_street_part(""), do: []
   defp get_street_part(street_part), do: [street_part]
 
@@ -126,6 +129,7 @@ defmodule EHealth.Utils.AddressMerger do
   defp get_settlement_building(settlement_list, _street_part, _building), do: settlement_list ++ []
 
   defp get_settlement_part("", _settlement_type, _street_part, _building), do: []
+
   defp get_settlement_part(settlement, settlement_type, street_part, building) do
     []
     |> get_settlement_type(settlement_type)
@@ -134,6 +138,7 @@ defmodule EHealth.Utils.AddressMerger do
     |> Enum.join(" ")
     |> get_settlement_part()
   end
+
   defp get_settlement_part(""), do: []
   defp get_settlement_part(settlement_part), do: [settlement_part]
 

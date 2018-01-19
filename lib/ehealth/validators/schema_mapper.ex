@@ -23,20 +23,19 @@ defmodule EHealth.Validators.SchemaMapper do
     |> Enum.map_reduce(schema, &put_dictionary_value(&1, &2, type))
     |> elem(1)
   end
+
   def map_schema(_dictionaries, _type, schema) do
     Logger.warn(fn -> "Empty dictionaries db" end)
     schema
   end
 
   def put_dictionary_value(%Dictionary{name: "PHONE_TYPE", values: values}, schema, type)
-      when type in [:legal_entity, :employee_request, :declaration_request]  do
-
+      when type in [:legal_entity, :employee_request, :declaration_request] do
     put_into_schema(["definitions", "phone", "properties", "type", "enum"], schema, values)
   end
 
   def put_dictionary_value(%Dictionary{name: "DOCUMENT_TYPE", values: values}, schema, type)
       when type in [:legal_entity, :employee_request, :declaration_request] do
-
     put_into_schema(["definitions", "document", "properties", "type", "enum"], schema, values)
   end
 
@@ -85,10 +84,12 @@ defmodule EHealth.Validators.SchemaMapper do
 
   def put_dictionary_value(%Dictionary{name: "COUNTRY", values: values}, schema, :employee_request) do
     values = Map.keys(values)
+
     schema =
       schema
       |> put_in(["definitions", "education", "properties", "country", "enum"], values)
       |> put_in(["definitions", "science_degree", "properties", "country", "enum"], values)
+
     {nil, schema}
   end
 
@@ -148,10 +149,12 @@ defmodule EHealth.Validators.SchemaMapper do
   def put_dictionary_value(%Dictionary{name: "MEDICATION_UNIT", values: values}, schema, type)
       when type in [:medication, :innm_dosage] do
     values = Map.keys(values)
+
     schema =
       schema
       |> put_in(~W(definitions dosage_object properties numerator_unit enum), values)
       |> put_in(~W(definitions dosage_object properties denumerator_unit enum), values)
+
     {nil, schema}
   end
 
@@ -162,5 +165,4 @@ defmodule EHealth.Validators.SchemaMapper do
   def put_into_schema(path, schema, values) do
     {nil, put_in(schema, path, Map.keys(values))}
   end
-
 end

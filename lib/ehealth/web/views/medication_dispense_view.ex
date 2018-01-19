@@ -33,6 +33,7 @@ defmodule EHealth.Web.MedicationDispenseView do
     medical_program = Map.get(references, :medical_program)
     medical_program = if medical_program, do: render(MedicalProgramView, "show.json", references), else: %{}
     details = Map.get(medication_dispense, "details", [])
+
     medication_dispense
     |> Map.take(~w(
       id
@@ -68,6 +69,7 @@ defmodule EHealth.Web.MedicationDispenseView do
   def render("medication.json", %{medication: %_{} = medication}) do
     Map.take(medication, ~w(name type manufacturer form container)a)
   end
+
   def render("medication.json", %{medication: %{} = medication}) do
     Map.take(medication, ~w(name type manufacturer form container))
   end

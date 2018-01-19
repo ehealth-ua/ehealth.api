@@ -2,19 +2,22 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase
-  import EHealth.MockServer, only: [
-    get_inactive_medication_request: 0,
-    get_invalid_medication_request_period: 0,
-    get_active_medication_dispense: 0,
-    get_inactive_medication_dispense: 0
-  ]
+
+  import EHealth.MockServer,
+    only: [
+      get_inactive_medication_request: 0,
+      get_invalid_medication_request_period: 0,
+      get_active_medication_dispense: 0,
+      get_inactive_medication_dispense: 0
+    ]
+
   import EHealth.Utils.Connection, only: [get_consumer_id: 1]
 
   describe "create medication dispense" do
     test "invalid legal_entity", %{conn: conn} do
       legal_entity_id = Ecto.UUID.generate()
       conn = put_client_id_header(conn, legal_entity_id)
-      conn = post conn, medication_dispense_path(conn, :create), medication_dispense: new_dispense_params()
+      conn = post(conn, medication_dispense_path(conn, :create), medication_dispense: new_dispense_params())
       resp = json_response(conn, 422)
       assert %{"error" => %{"invalid" => [%{"entry" => "$.legal_entity_id"}]}} = resp
     end
@@ -24,8 +27,14 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       legal_entity = insert(:prm, :legal_entity)
       conn = put_client_id_header(conn, legal_entity.id)
       conn = Plug.Conn.put_req_header(conn, consumer_id_header(), user_id)
-      conn = post conn, medication_dispense_path(conn, :create),
-        medication_dispense: new_dispense_params(%{"medication_request_id" => Ecto.UUID.generate()})
+
+      conn =
+        post(
+          conn,
+          medication_dispense_path(conn, :create),
+          medication_dispense: new_dispense_params(%{"medication_request_id" => Ecto.UUID.generate()})
+        )
+
       resp = json_response(conn, 422)
       assert %{"error" => %{"invalid" => [%{"entry" => "$.medication_request_id"}]}} = resp
     end
@@ -35,9 +44,17 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       legal_entity = insert(:prm, :legal_entity)
       conn = put_client_id_header(conn, legal_entity.id)
       conn = Plug.Conn.put_req_header(conn, consumer_id_header(), user_id)
-      conn = post conn, medication_dispense_path(conn, :create), medication_dispense: new_dispense_params(%{
-        "medication_request_id" => get_inactive_medication_request()
-      })
+
+      conn =
+        post(
+          conn,
+          medication_dispense_path(conn, :create),
+          medication_dispense:
+            new_dispense_params(%{
+              "medication_request_id" => get_inactive_medication_request()
+            })
+        )
+
       resp = json_response(conn, 409)
       assert %{"error" => %{"type" => "request_conflict", "message" => "Medication request is not active"}} = resp
     end
@@ -47,9 +64,17 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       legal_entity = insert(:prm, :legal_entity)
       conn = put_client_id_header(conn, legal_entity.id)
       conn = Plug.Conn.put_req_header(conn, consumer_id_header(), user_id)
-      conn = post conn, medication_dispense_path(conn, :create), medication_dispense: new_dispense_params(%{
-            "medication_request_id" => get_invalid_medication_request_period()
-                                                                                                          })
+
+      conn =
+        post(
+          conn,
+          medication_dispense_path(conn, :create),
+          medication_dispense:
+            new_dispense_params(%{
+              "medication_request_id" => get_invalid_medication_request_period()
+            })
+        )
+
       resp = json_response(conn, 409)
       assert %{"error" => %{"type" => "request_conflict", "message" => "Invalid dispense period"}} = resp
     end
@@ -57,8 +82,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     test "invalid party", %{conn: conn} do
       legal_entity = insert(:prm, :legal_entity)
       conn = put_client_id_header(conn, legal_entity.id)
-      conn = post conn, medication_dispense_path(conn, :create),
-        medication_dispense: new_dispense_params()
+      conn = post(conn, medication_dispense_path(conn, :create), medication_dispense: new_dispense_params())
       assert resp = json_response(conn, 400)
       assert %{"error" => %{"message" => "Party not found"}} = resp
     end
@@ -73,8 +97,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       insert_medical_program()
       conn = put_client_id_header(conn, legal_entity.id)
       conn = Plug.Conn.put_req_header(conn, consumer_id_header(), user_id)
-      conn = post conn, medication_dispense_path(conn, :create),
-        medication_dispense: new_dispense_params()
+      conn = post(conn, medication_dispense_path(conn, :create), medication_dispense: new_dispense_params())
       assert json_response(conn, 403)
     end
 
@@ -88,8 +111,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       insert_medical_program()
       conn = put_client_id_header(conn, legal_entity.id)
       conn = Plug.Conn.put_req_header(conn, consumer_id_header(), user_id)
-      conn = post conn, medication_dispense_path(conn, :create),
-        medication_dispense: new_dispense_params()
+      conn = post(conn, medication_dispense_path(conn, :create), medication_dispense: new_dispense_params())
       resp = json_response(conn, 422)
       assert %{"error" => %{"invalid" => [%{"entry" => "$.division_id"}]}} = resp
     end
@@ -105,10 +127,17 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       insert_medical_program()
       conn = put_client_id_header(conn, legal_entity.id)
       conn = Plug.Conn.put_req_header(conn, consumer_id_header(), user_id)
-      conn = post conn, medication_dispense_path(conn, :create),
-        medication_dispense: new_dispense_params(%{
-          "division_id" => division.id
-        })
+
+      conn =
+        post(
+          conn,
+          medication_dispense_path(conn, :create),
+          medication_dispense:
+            new_dispense_params(%{
+              "division_id" => division.id
+            })
+        )
+
       resp = json_response(conn, 409)
       assert %{"error" => %{"type" => "request_conflict", "message" => "Division is not active"}} = resp
     end
@@ -123,11 +152,18 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       insert_medical_program()
       conn = put_client_id_header(conn, legal_entity.id)
       conn = Plug.Conn.put_req_header(conn, consumer_id_header(), user_id)
-      conn = post conn, medication_dispense_path(conn, :create),
-        medication_dispense: new_dispense_params(%{
-          "division_id" => division.id,
-          "medical_program_id" => Ecto.UUID.generate(),
-        })
+
+      conn =
+        post(
+          conn,
+          medication_dispense_path(conn, :create),
+          medication_dispense:
+            new_dispense_params(%{
+              "division_id" => division.id,
+              "medical_program_id" => Ecto.UUID.generate()
+            })
+        )
+
       resp = json_response(conn, 422)
       assert %{"error" => %{"invalid" => [%{"entry" => "$.medical_program_id"}]}} = resp
     end
@@ -142,20 +178,27 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       medical_program = insert_medical_program(false)
       conn = put_client_id_header(conn, legal_entity.id)
       conn = Plug.Conn.put_req_header(conn, consumer_id_header(), user_id)
-      conn = post conn, medication_dispense_path(conn, :create),
-        medication_dispense: new_dispense_params(%{
-          "division_id" => division.id,
-          "medical_program_id" => medical_program.id,
-          "dispense_details" => [
-            %{
-              "medication_id": medication.id,
-              "medication_qty": 10,
-              "sell_price": 18.65,
-              "sell_amount": 186.5,
-              "discount_amount": 150,
-            }
-          ],
-        })
+
+      conn =
+        post(
+          conn,
+          medication_dispense_path(conn, :create),
+          medication_dispense:
+            new_dispense_params(%{
+              "division_id" => division.id,
+              "medical_program_id" => medical_program.id,
+              "dispense_details" => [
+                %{
+                  medication_id: medication.id,
+                  medication_qty: 10,
+                  sell_price: 18.65,
+                  sell_amount: 186.5,
+                  discount_amount: 150
+                }
+              ]
+            })
+        )
+
       resp = json_response(conn, 409)
       assert %{"error" => %{"type" => "request_conflict", "message" => "Medical program is not active"}} = resp
     end
@@ -170,10 +213,17 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       insert_medical_program()
       conn = put_client_id_header(conn, legal_entity.id)
       conn = Plug.Conn.put_req_header(conn, consumer_id_header(), user_id)
-      conn = post conn, medication_dispense_path(conn, :create),
-        medication_dispense: new_dispense_params(%{
-          "division_id" => division.id,
-        })
+
+      conn =
+        post(
+          conn,
+          medication_dispense_path(conn, :create),
+          medication_dispense:
+            new_dispense_params(%{
+              "division_id" => division.id
+            })
+        )
+
       resp = json_response(conn, 422)
       assert %{"error" => %{"invalid" => [%{"entry" => "$.dispense_details[0].medication_id"}]}} = resp
     end
@@ -188,11 +238,18 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       insert_medical_program()
       conn = put_client_id_header(conn, legal_entity.id)
       conn = Plug.Conn.put_req_header(conn, consumer_id_header(), user_id)
-      conn = post conn, medication_dispense_path(conn, :create),
-        code: "anything",
-        medication_dispense: new_dispense_params(%{
-          "division_id" => division.id,
-        })
+
+      conn =
+        post(
+          conn,
+          medication_dispense_path(conn, :create),
+          code: "anything",
+          medication_dispense:
+            new_dispense_params(%{
+              "division_id" => division.id
+            })
+        )
+
       resp = json_response(conn, 422)
       assert %{"error" => %{"invalid" => [%{"entry" => "$.dispense_details[0].medication_id"}]}} = resp
     end
@@ -207,19 +264,26 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       insert_medical_program()
       conn = put_client_id_header(conn, legal_entity.id)
       conn = Plug.Conn.put_req_header(conn, consumer_id_header(), user_id)
-      conn = post conn, medication_dispense_path(conn, :create),
-        medication_dispense: new_dispense_params(%{
-          "division_id" => division.id,
-          "dispense_details" => [
-            %{
-              "medication_id": medication.id,
-              "medication_qty": 10,
-              "sell_price": 18.65,
-              "sell_amount": 186.5,
-              "discount_amount": 50,
-            }
-          ],
-        })
+
+      conn =
+        post(
+          conn,
+          medication_dispense_path(conn, :create),
+          medication_dispense:
+            new_dispense_params(%{
+              "division_id" => division.id,
+              "dispense_details" => [
+                %{
+                  medication_id: medication.id,
+                  medication_qty: 10,
+                  sell_price: 18.65,
+                  sell_amount: 186.5,
+                  discount_amount: 50
+                }
+              ]
+            })
+        )
+
       resp = json_response(conn, 422)
       assert %{"error" => %{"invalid" => [%{"entry" => "$.dispense_details[0].medication_id"}]}} = resp
     end
@@ -232,66 +296,96 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       division = insert_division(legal_entity)
       medication = insert_medication(innm_dosage_id)
       %{id: medical_program_id} = insert_medical_program()
-      insert(:prm, :program_medication,
+
+      insert(
+        :prm,
+        :program_medication,
         medication_id: medication.id,
         medical_program_id: medical_program_id,
         reimbursement: build(:reimbursement, reimbursement_amount: 150)
       )
+
       conn = put_client_id_header(conn, legal_entity.id)
       conn = Plug.Conn.put_req_header(conn, consumer_id_header(), user_id)
-      conn = post conn, medication_dispense_path(conn, :create),
-        medication_dispense: new_dispense_params(%{
-          "division_id" => division.id,
-          "dispense_details" => [
-            %{
-              "medication_id": medication.id,
-              "medication_qty": 10,
-              "sell_price": 18.65,
-              "sell_amount": 186.5,
-              "discount_amount": 50,
-            }
-          ],
-        })
+
+      conn =
+        post(
+          conn,
+          medication_dispense_path(conn, :create),
+          medication_dispense:
+            new_dispense_params(%{
+              "division_id" => division.id,
+              "dispense_details" => [
+                %{
+                  medication_id: medication.id,
+                  medication_qty: 10,
+                  sell_price: 18.65,
+                  sell_amount: 186.5,
+                  discount_amount: 50
+                }
+              ]
+            })
+        )
+
       assert json_response(conn, 401)
     end
 
     test "requested reimbursement is higher than allowed", %{conn: conn} do
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity, id: "dae597a8-c858-42f6-bc16-1a7bdd340466")
-      insert(:prm, :employee,
+
+      insert(
+        :prm,
+        :employee,
         legal_entity: legal_entity,
         party: party,
         id: "46be2081-4bd2-4a7e-8999-2f6ce4b57dab"
       )
-      division = insert(:prm, :division,
-        is_active: true,
-        legal_entity: legal_entity,
-        id: "e00e20ba-d20f-4ebb-a1dc-4bf58231019c"
-      )
+
+      division =
+        insert(
+          :prm,
+          :division,
+          is_active: true,
+          legal_entity: legal_entity,
+          id: "e00e20ba-d20f-4ebb-a1dc-4bf58231019c"
+        )
+
       %{id: innm_dosage_id} = insert_innm_dosage()
       medication = insert_medication(innm_dosage_id)
       medical_program_id = "6ee844fd-9f4d-4457-9eda-22aa506be4c4"
       insert(:prm, :medical_program, id: medical_program_id)
-      insert(:prm, :program_medication,
+
+      insert(
+        :prm,
+        :program_medication,
         medication_id: medication.id,
         medical_program_id: medical_program_id
       )
+
       conn = put_client_id_header(conn, legal_entity.id)
       conn = Plug.Conn.put_req_header(conn, consumer_id_header(), user_id)
-      conn = post conn, medication_dispense_path(conn, :create),
-        code: "1234",
-        medication_dispense: new_dispense_params(%{
-          "division_id" => division.id,
-          "dispense_details" => [
-            %{
-              "medication_id": medication.id,
-              "medication_qty": 10,
-              "sell_price": 18.65,
-              "sell_amount": 186.5,
-              "discount_amount": 150,
-            }
-          ],
-        })
+
+      conn =
+        post(
+          conn,
+          medication_dispense_path(conn, :create),
+          code: "1234",
+          medication_dispense:
+            new_dispense_params(%{
+              "division_id" => division.id,
+              "dispense_details" => [
+                %{
+                  medication_id: medication.id,
+                  medication_qty: 10,
+                  sell_price: 18.65,
+                  sell_amount: 186.5,
+                  discount_amount: 150
+                }
+              ]
+            })
+        )
+
       resp = json_response(conn, 422)
       assert %{"error" => %{"invalid" => [%{"entry" => "$.dispense_details[0].discount_amount"}]}} = resp
     end
@@ -300,42 +394,54 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       insert(:prm, :medication, id: "340ef14a-ab9b-4303-b01b-d40a2237e512")
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity, id: "dae597a8-c858-42f6-bc16-1a7bdd340466")
-      insert(:prm, :employee,
+
+      insert(
+        :prm,
+        :employee,
         legal_entity: legal_entity,
         party: party,
         id: "46be2081-4bd2-4a7e-8999-2f6ce4b57dab"
       )
-      division = insert(:prm, :division,
-        is_active: true,
-        legal_entity: legal_entity,
-        id: "e00e20ba-d20f-4ebb-a1dc-4bf58231019c"
-      )
+
+      division =
+        insert(
+          :prm,
+          :division,
+          is_active: true,
+          legal_entity: legal_entity,
+          id: "e00e20ba-d20f-4ebb-a1dc-4bf58231019c"
+        )
+
       %{id: innm_dosage_id} = insert_innm_dosage()
       medication = insert_medication(innm_dosage_id)
       medical_program_id = "6ee844fd-9f4d-4457-9eda-22aa506be4c4"
       insert(:prm, :medical_program, id: medical_program_id)
-      insert(:prm, :program_medication,
+
+      insert(
+        :prm,
+        :program_medication,
         medication_id: medication.id,
         medical_program_id: medical_program_id,
         reimbursement: build(:reimbursement, reimbursement_amount: 150)
       )
+
       create_data = %{
         code: "1234",
-        medication_dispense: new_dispense_params(
-          %{
+        medication_dispense:
+          new_dispense_params(%{
             "division_id" => division.id,
             "dispense_details" => [
               %{
-                "medication_id": medication.id,
-                "medication_qty": 10,
-                "sell_price": 18.65,
-                "sell_amount": 186.5,
-                "discount_amount": 50,
+                medication_id: medication.id,
+                medication_qty: 10,
+                sell_price: 18.65,
+                sell_amount: 186.5,
+                discount_amount: 50
               }
-            ],
-          }
-        )
+            ]
+          })
       }
+
       conn
       |> put_client_id_header(legal_entity.id)
       |> Plug.Conn.put_req_header(consumer_id_header(), user_id)
@@ -403,6 +509,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
       payment_id = "12345"
       path = medication_dispense_path(conn, :process, get_active_medication_dispense())
+
       resp =
         conn
         |> put_client_id_header(legal_entity.id)
@@ -417,13 +524,13 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
     test "fail to find medication dispense", %{conn: conn} do
       conn = put_client_id_header(conn, Ecto.UUID.generate())
-      conn = patch conn, medication_dispense_path(conn, :process, Ecto.UUID.generate())
+      conn = patch(conn, medication_dispense_path(conn, :process, Ecto.UUID.generate()))
       assert json_response(conn, 404)
     end
 
     test "invalid legal_entity_id", %{conn: conn} do
       conn = put_client_id_header(conn, Ecto.UUID.generate())
-      conn = patch conn, medication_dispense_path(conn, :process, get_active_medication_dispense())
+      conn = patch(conn, medication_dispense_path(conn, :process, get_active_medication_dispense()))
       assert json_response(conn, 404)
     end
 
@@ -440,7 +547,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       insert_medical_program()
       conn = put_client_id_header(conn, legal_entity.id)
       path = medication_dispense_path(conn, :process, get_inactive_medication_dispense())
-      conn = patch conn, path, %{"payment_id" => "12345"}
+      conn = patch(conn, path, %{"payment_id" => "12345"})
       assert json_response(conn, 409)
     end
   end
@@ -460,6 +567,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
       payment_id = "12345"
       path = medication_dispense_path(conn, :reject, get_active_medication_dispense())
+
       resp =
         conn
         |> put_client_id_header(legal_entity.id)
@@ -474,13 +582,13 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
     test "fail to find medication dispense", %{conn: conn} do
       conn = put_client_id_header(conn, Ecto.UUID.generate())
-      conn = patch conn, medication_dispense_path(conn, :reject, Ecto.UUID.generate())
+      conn = patch(conn, medication_dispense_path(conn, :reject, Ecto.UUID.generate()))
       assert json_response(conn, 404)
     end
 
     test "invalid legal_entity_id", %{conn: conn} do
       conn = put_client_id_header(conn, Ecto.UUID.generate())
-      conn = patch conn, medication_dispense_path(conn, :reject, get_active_medication_dispense())
+      conn = patch(conn, medication_dispense_path(conn, :reject, get_active_medication_dispense()))
       assert json_response(conn, 404)
     end
 
@@ -497,7 +605,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       insert_medical_program()
       conn = put_client_id_header(conn, legal_entity.id)
       path = medication_dispense_path(conn, :process, get_inactive_medication_dispense())
-      conn = patch conn, path, %{"payment_id" => "12345"}
+      conn = patch(conn, path, %{"payment_id" => "12345"})
       assert json_response(conn, 409)
     end
   end
@@ -527,38 +635,44 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         |> json_response(200)
         |> assert_list_response_schema("medication_dispense")
         |> Map.get("data")
+
       assert 1 == length(resp)
       assert id == resp |> hd |> get_in(~w(medication_request id))
     end
 
     test "party_user not found", %{conn: conn} do
       conn = put_client_id_header(conn, Ecto.UUID.generate())
-      conn = get conn, medication_dispense_path(conn, :by_medication_request, Ecto.UUID.generate())
+      conn = get(conn, medication_dispense_path(conn, :by_medication_request, Ecto.UUID.generate()))
       assert json_response(conn, 500)
     end
   end
 
   defp new_dispense_params(params \\ %{}) do
-    Map.merge(%{
-      "medication_request_id": "f08ba3a3-157a-4adc-b65d-737f24f3a1f4",
-      "dispensed_at": "2017-08-17",
-      "employee_id": "6d987b5d-6d72-40bc-9cf7-1304b32ed5bb",
-      "division_id": "2fc70f30-08dc-493c-8d08-925905d7b1e8",
-      "medical_program_id": "6ee844fd-9f4d-4457-9eda-22aa506be4c4",
-      "dispense_details": [
-        %{
-          "medication_id": "a808bc3e-738d-442e-a2f4-0e5477695602",
-          "medication_qty": 10,
-          "sell_price": 18.65,
-          "sell_amount": 186.5,
-          "discount_amount": 150,
-        }
-      ]
-    }, params)
+    Map.merge(
+      %{
+        medication_request_id: "f08ba3a3-157a-4adc-b65d-737f24f3a1f4",
+        dispensed_at: "2017-08-17",
+        employee_id: "6d987b5d-6d72-40bc-9cf7-1304b32ed5bb",
+        division_id: "2fc70f30-08dc-493c-8d08-925905d7b1e8",
+        medical_program_id: "6ee844fd-9f4d-4457-9eda-22aa506be4c4",
+        dispense_details: [
+          %{
+            medication_id: "a808bc3e-738d-442e-a2f4-0e5477695602",
+            medication_qty: 10,
+            sell_price: 18.65,
+            sell_amount: 186.5,
+            discount_amount: 150
+          }
+        ]
+      },
+      params
+    )
   end
 
   defp insert_division(legal_entity, id \\ "e00e20ba-d20f-4ebb-a1dc-4bf58231019c") do
-    insert(:prm, :division,
+    insert(
+      :prm,
+      :division,
       is_active: true,
       legal_entity: legal_entity,
       id: id
@@ -567,10 +681,14 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
   defp insert_medication(innm_dosage_id) do
     id = Ecto.UUID.generate()
-    insert(:prm, :medication,
+
+    insert(
+      :prm,
+      :medication,
       id: id,
       ingredients: [
-        build(:ingredient_medication,
+        build(
+          :ingredient_medication,
           medication_child_id: innm_dosage_id,
           parent_id: id
         )
@@ -595,10 +713,13 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
   def insert_innm_dosage do
     %{id: innm_id} = insert(:prm, :innm)
 
-    insert(:prm, :innm_dosage,
+    insert(
+      :prm,
+      :innm_dosage,
       id: "2cdb8396-a1e9-11e7-abc4-cec278b6b50a",
       ingredients: [
-        build(:ingredient_innm_dosage,
+        build(
+          :ingredient_innm_dosage,
           innm_child_id: innm_id,
           parent_id: "2cdb8396-a1e9-11e7-abc4-cec278b6b50a"
         )

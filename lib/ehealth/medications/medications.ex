@@ -39,7 +39,7 @@ defmodule EHealth.Medications do
     :package_qty,
     :package_min_qty,
     :certificate,
-    :certificate_expired_at,
+    :certificate_expired_at
   ]
   @fields_innm_dosage_optional [:is_active]
 
@@ -61,61 +61,56 @@ defmodule EHealth.Medications do
   end
 
   defp search_drugs(%{valid?: true, changes: attrs}, params) do
+    # get primary INNMDosage ingredients
+    # get active INNM
+    # get primary Medication ingredients related to INNMDosage
+    # get active Medication
+    # group by primary keys
     INNMDosage
     |> distinct(true)
-    # get primary INNMDosage ingredients
     |> join(:inner, [id], ii in assoc(id, :ingredients))
     |> where([_, ii], ii.is_primary)
-    # get active INNM
     |> join(:inner, [_, ii], i in assoc(ii, :innm))
-    # get primary Medication ingredients related to INNMDosage
     |> join(:inner, [id], idi in assoc(id, :ingredients_medication))
     |> where([..., idi], idi.is_primary)
-    # get active Medication
     |> join(:inner, [..., idi], m in assoc(idi, :medication))
     |> where_drugs_attrs(attrs)
-    # group by primary keys
     |> group_by([innm], innm.id)
     |> group_by([_, innm_ingrdient], innm_ingrdient.id)
     |> group_by([_, _, innm_dosage], innm_dosage.id)
-    |> select(
-         [innm_dosage, innm_ingredient, innm, _, medication],
-         %{
-           innm_id: innm.id,
-           innm_name: innm.name,
-           innm_name_original: innm.name_original,
-           innm_sctid: innm.sctid,
-           innm_dosage_id: innm_dosage.id,
-           innm_dosage_name: innm_dosage.name,
-           innm_dosage_form: innm_dosage.form,
-           innm_dosage_dosage: innm_ingredient.dosage,
-           packages:
-             fragment("array_agg((?, ?, ?))", medication.container, medication.package_qty, medication.package_min_qty),
-         }
-       )
+    |> select([innm_dosage, innm_ingredient, innm, _, medication], %{
+      innm_id: innm.id,
+      innm_name: innm.name,
+      innm_name_original: innm.name_original,
+      innm_sctid: innm.sctid,
+      innm_dosage_id: innm_dosage.id,
+      innm_dosage_name: innm_dosage.name,
+      innm_dosage_form: innm_dosage.form,
+      innm_dosage_dosage: innm_ingredient.dosage,
+      packages:
+        fragment("array_agg((?, ?, ?))", medication.container, medication.package_qty, medication.package_min_qty)
+    })
     |> PRMRepo.paginate(params)
   end
+
   defp search_drugs(changeset, _params) do
     changeset
   end
 
   defp where_drugs_attrs(query, attrs) do
     attrs
-    |> Enum.reduce(
-         query,
-         fn {field, value}, query ->
-           case field do
-             :innm_id -> where(query, [_, _, innm], innm.id == ^value)
-             :innm_name -> where(query, [_, _, innm], ilike(innm.name, ^("%" <> value <> "%")))
-             :innm_sctid -> where(query, [_, _, innm], innm.sctid == ^value)
-             :innm_dosage_id -> where(query, [innm_dosage], innm_dosage.id == ^value)
-             :innm_dosage_name -> where(query, [innm_dosage], ilike(innm_dosage.name, ^("%" <> value <> "%")))
-             :innm_dosage_form -> where(query, [innm_dosage], innm_dosage.form == ^value)
-             :medication_code_atc -> where(query, [..., med], med.code_atc == ^value)
-             _ -> query
-           end
-         end
-       )
+    |> Enum.reduce(query, fn {field, value}, query ->
+      case field do
+        :innm_id -> where(query, [_, _, innm], innm.id == ^value)
+        :innm_name -> where(query, [_, _, innm], ilike(innm.name, ^("%" <> value <> "%")))
+        :innm_sctid -> where(query, [_, _, innm], innm.sctid == ^value)
+        :innm_dosage_id -> where(query, [innm_dosage], innm_dosage.id == ^value)
+        :innm_dosage_name -> where(query, [innm_dosage], ilike(innm_dosage.name, ^("%" <> value <> "%")))
+        :innm_dosage_form -> where(query, [innm_dosage], innm_dosage.form == ^value)
+        :medication_code_atc -> where(query, [..., med], med.code_atc == ^value)
+        _ -> query
+      end
+    end)
     |> where([innm_dosage, ...], innm_dosage.is_active)
     |> where([_, _, innm], innm.is_active)
     |> where([..., med], med.is_active)
@@ -150,7 +145,7 @@ defmodule EHealth.Medications do
     |> where_innm_dosage_attrs(changes)
     |> where_medication_name(changes)
     |> where([_, i, _], i.is_primary)
-    |> preload([ingredients: [innm_dosage: []]])
+    |> preload(ingredients: [innm_dosage: []])
   end
 
   def get_search_query(INNMDosage, changes) do
@@ -166,6 +161,7 @@ defmodule EHealth.Medications do
   defp where_medication_name(query, %{name: name}) do
     where(query, [m], ilike(m.name, ^("%" <> name <> "%")))
   end
+
   defp where_medication_name(query, _changes) do
     query
   end
@@ -192,8 +188,8 @@ defmodule EHealth.Medications do
     |> join(:left, [e, i], id in assoc(i, :innm_dosage))
     |> join(:left, [e, i, id], idi in assoc(id, :ingredients))
     |> join(:left, [e, i, id, idi], innm in assoc(idi, :innm))
-    |> preload([e, i, id, idi, innm], [ingredients: {i, innm_dosage: {id, ingredients: {idi, innm: innm}}}])
-    |> PRMRepo.get_by([id: id, type: entity.type()])
+    |> preload([e, i, id, idi, innm], ingredients: {i, innm_dosage: {id, ingredients: {idi, innm: innm}}})
+    |> PRMRepo.get_by(id: id, type: entity.type())
   end
 
   def get_innm_dosage_by_id!(id), do: get_medication_entity_by_id!(INNMDosage, id)
@@ -202,7 +198,7 @@ defmodule EHealth.Medications do
 
   defp get_medication_entity_by_id!(entity, id) do
     entity
-    |> PRMRepo.get_by!([id: id, type: entity.type()])
+    |> PRMRepo.get_by!(id: id, type: entity.type())
     |> preload_references()
   end
 
@@ -212,7 +208,7 @@ defmodule EHealth.Medications do
 
   defp get_active_medication_entity_by_id!(entity, id) do
     entity
-    |> PRMRepo.get_by!([id: id, type: entity.type(), is_active: true])
+    |> PRMRepo.get_by!(id: id, type: entity.type(), is_active: true)
     |> preload_references()
   end
 
@@ -224,28 +220,43 @@ defmodule EHealth.Medications do
   end
 
   def maybe_validate_medication_program_for_medication_request_request(query, _, nil), do: query
+
   def maybe_validate_medication_program_for_medication_request_request(query, innm_dosage_id, program_id) do
-    from q in query,
-    inner_join: ing in MedicationIngredient, on: ing.medication_child_id == ^innm_dosage_id,
-    inner_join: med in Medication, on: ing.parent_id == med.id,
-    inner_join: mp in MedicalProgram, on: mp.id == ^program_id,
-    inner_join: pm in ProgramMedication, on: mp.id == pm.medical_program_id and pm.medication_id == med.id,
-    where: pm.is_active,
-    where: pm.medication_request_allowed,
-    select_merge: %{medical_program_id: mp.id, medical_program_name: mp.name}
+    from(
+      q in query,
+      inner_join: ing in MedicationIngredient,
+      on: ing.medication_child_id == ^innm_dosage_id,
+      inner_join: med in Medication,
+      on: ing.parent_id == med.id,
+      inner_join: mp in MedicalProgram,
+      on: mp.id == ^program_id,
+      inner_join: pm in ProgramMedication,
+      on: mp.id == pm.medical_program_id and pm.medication_id == med.id,
+      where: pm.is_active,
+      where: pm.medication_request_allowed,
+      select_merge: %{medical_program_id: mp.id, medical_program_name: mp.name}
+    )
   end
 
   def get_medication_for_medication_request_request_query(innm_dosage_id) do
-    from innm_dosage in INNMDosage,
-      inner_join: ing in MedicationIngredient, on: ing.medication_child_id == ^innm_dosage_id,
-      inner_join: med in Medication, on: ing.parent_id == med.id,
+    from(
+      innm_dosage in INNMDosage,
+      inner_join: ing in MedicationIngredient,
+      on: ing.medication_child_id == ^innm_dosage_id,
+      inner_join: med in Medication,
+      on: ing.parent_id == med.id,
       where: ing.is_primary,
       where: innm_dosage.id == ^innm_dosage_id,
       where: innm_dosage.type == ^INNMDosage.type(),
       where: innm_dosage.is_active,
       where: med.is_active,
-      select: %{id: innm_dosage.id, medication_id: med.id,
-                package_qty: med.package_qty, package_min_qty: med.package_min_qty}
+      select: %{
+        id: innm_dosage.id,
+        medication_id: med.id,
+        package_qty: med.package_qty,
+        package_min_qty: med.package_min_qty
+      }
+    )
   end
 
   # Create
@@ -264,14 +275,13 @@ defmodule EHealth.Medications do
     case JsonSchema.validate(schema_type, attrs) do
       :ok ->
         consumer_id = get_consumer_id(headers)
-        attrs = Map.merge(
-          attrs,
-          %{
+
+        attrs =
+          Map.merge(attrs, %{
             "type" => entity.type(),
             "inserted_by" => consumer_id,
             "updated_by" => consumer_id
-          }
-        )
+          })
 
         entity
         |> struct()
@@ -279,7 +289,8 @@ defmodule EHealth.Medications do
         |> PRMRepo.insert_and_log(consumer_id)
         |> preload_references()
 
-      err -> err
+      err ->
+        err
     end
   end
 
@@ -296,9 +307,9 @@ defmodule EHealth.Medications do
     |> select([..., m], count(m.id))
     |> PRMRepo.one()
     |> case do
-         0 -> deactivate_medication_entity(entity, headers)
-         _ -> {:error, {:conflict, "INNM Dosage has active Medications"}}
-       end
+      0 -> deactivate_medication_entity(entity, headers)
+      _ -> {:error, {:conflict, "INNM Dosage has active Medications"}}
+    end
   end
 
   def deactivate_medication(%Medication{id: id} = entity, headers) do
@@ -390,7 +401,8 @@ defmodule EHealth.Medications do
         |> changeset(put_consumer_id(attrs, headers))
         |> PRMRepo.insert_and_log(consumer_id)
 
-      err -> err
+      err ->
+        err
     end
   end
 
@@ -411,30 +423,28 @@ defmodule EHealth.Medications do
     |> where_innm_dosage_attrs(attrs)
     |> where_program_medications_attrs(attrs)
     |> where([..., i, _id], i.is_primary)
-    |> preload([_, m, mp, i, id], [medication: {m, ingredients: {i, innm_dosage: id}}, medical_program: mp])
+    |> preload([_, m, mp, i, id], medication: {m, ingredients: {i, innm_dosage: id}}, medical_program: mp)
     |> select([program_medication], program_medication)
     |> PRMRepo.paginate(params)
   end
+
   defp search_program_medications(changeset, _params) do
     changeset
   end
 
   defp where_program_medications_attrs(query, attrs) do
     attrs
-    |> Enum.reduce(
-         query,
-         fn {field, value}, query ->
-           case field do
-             :id -> where(query, [program_medication], program_medication.id == ^value)
-             :is_active -> where(query, [program_medication], program_medication.is_active)
-             :medication_id -> where(query, [_, med], med.id == ^value)
-             :medication_name -> where(query, [_, med], ilike(med.name, ^("%" <> value <> "%")))
-             :medical_program_id -> where(query, [_, _, mp], mp.id == ^value)
-             :medical_program_name -> where(query, [_, _, mp], ilike(mp.name, ^("%" <> value <> "%")))
-             _ -> query
-           end
-         end
-       )
+    |> Enum.reduce(query, fn {field, value}, query ->
+      case field do
+        :id -> where(query, [program_medication], program_medication.id == ^value)
+        :is_active -> where(query, [program_medication], program_medication.is_active)
+        :medication_id -> where(query, [_, med], med.id == ^value)
+        :medication_name -> where(query, [_, med], ilike(med.name, ^("%" <> value <> "%")))
+        :medical_program_id -> where(query, [_, _, mp], mp.id == ^value)
+        :medical_program_name -> where(query, [_, _, mp], ilike(mp.name, ^("%" <> value <> "%")))
+        _ -> query
+      end
+    end)
     |> where([_, medication], medication.is_active)
   end
 
@@ -465,7 +475,8 @@ defmodule EHealth.Medications do
         |> PRMRepo.insert_and_log(consumer_id)
         |> preload_references()
 
-      err -> err
+      err ->
+        err
     end
   end
 
@@ -479,22 +490,27 @@ defmodule EHealth.Medications do
         |> PRMRepo.update_and_log(consumer_id)
         |> preload_references()
 
-      err -> err
+      err ->
+        err
     end
   end
 
   defp preload_references({:ok, entity}) do
     {:ok, preload_references(entity)}
   end
+
   defp preload_references(%ProgramMedication{} = program) do
-    PRMRepo.preload(program, [medication: [ingredients: [innm_dosage: []]], medical_program: []])
+    PRMRepo.preload(program, medication: [ingredients: [innm_dosage: []]], medical_program: [])
   end
+
   defp preload_references(%Medication{} = medication) do
     PRMRepo.preload(medication, ingredients: [innm_dosage: []])
   end
+
   defp preload_references(%INNMDosage{} = innm_dosage) do
     PRMRepo.preload(innm_dosage, ingredients: [innm: []])
   end
+
   defp preload_references(entity) do
     entity
   end

@@ -19,9 +19,9 @@ use Mix.Config
 config :ehealth, EHealth.Web.Endpoint,
   load_from_system_env: true,
   http: [port: {:system, "PORT", "80"}],
-  url:  [
+  url: [
     host: {:system, "HOST", "localhost"},
-    port: {:system, "PORT", "80"},
+    port: {:system, "PORT", "80"}
   ],
   secret_key_base: {:system, "SECRET_KEY"},
   debug_errors: false,
@@ -34,7 +34,7 @@ config :ehealth, EHealth.Scheduler,
   jobs: [
     medication_request_request_autotermination: [
       schedule: "* * * * *",
-      task: {EHealth.MedicationRequestRequests, :autoterminate, []},
+      task: {EHealth.MedicationRequestRequests, :autoterminate, []}
     ]
   ]
 

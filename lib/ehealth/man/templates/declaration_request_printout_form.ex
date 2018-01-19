@@ -27,6 +27,7 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
   end
 
   defp map_declaration_data(nil, _), do: %{}
+
   defp map_declaration_data(declaration_request, authentication_method_current) do
     %{
       person: get_person(declaration_request),
@@ -83,30 +84,32 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
   end
 
   defp get_document(person, key, dictionary_name) do
-    case Map.get(person, key)do
+    case Map.get(person, key) do
       [first | _other] -> first |> take_fields(["type", "number"]) |> update_document_type(dictionary_name)
       _ -> %{"type" => "", "number" => ""}
     end
   end
 
   defp update_document_type(document, dictionary_name) do
-    Map.update!(document, "type", fn(type) -> Dictionaries.get_dictionary_value(type, dictionary_name) end)
+    Map.update!(document, "type", fn type -> Dictionaries.get_dictionary_value(type, dictionary_name) end)
   end
 
   defp get_person_addresses(person) do
     addresses = Map.get(person, "addresses", [])
-    registration_address = Enum.find(addresses, fn(address) -> Map.get(address, "type") == "REGISTRATION" end)
-    residence_address = Enum.find(addresses, fn(address) -> Map.get(address, "type") == "RESIDENCE" end)
+    registration_address = Enum.find(addresses, fn address -> Map.get(address, "type") == "REGISTRATION" end)
+    residence_address = Enum.find(addresses, fn address -> Map.get(address, "type") == "RESIDENCE" end)
 
-    full_registration_address = case registration_address do
-      nil -> ""
-      address -> AddressMerger.merge_address(address)
-    end
+    full_registration_address =
+      case registration_address do
+        nil -> ""
+        address -> AddressMerger.merge_address(address)
+      end
 
-    full_residence_address = case residence_address do
-      nil -> ""
-      address -> AddressMerger.merge_address(address)
-    end
+    full_residence_address =
+      case residence_address do
+        nil -> ""
+        address -> AddressMerger.merge_address(address)
+      end
 
     %{
       registration: %{
@@ -142,12 +145,12 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
 
     primary_confidant_person =
       confidant_persons
-      |> Enum.find(fn(x) -> Map.get(x, "relation_type") == "PRIMARY" end)
+      |> Enum.find(fn x -> Map.get(x, "relation_type") == "PRIMARY" end)
       |> get_confidant_person()
 
     secondary_confidant_person =
       confidant_persons
-      |> Enum.find(fn(x) -> Map.get(x, "relation_type") == "SECONDARY" end)
+      |> Enum.find(fn x -> Map.get(x, "relation_type") == "SECONDARY" end)
       |> get_confidant_person()
 
     %{
@@ -157,6 +160,7 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
   end
 
   defp get_confidant_person(nil), do: %{}
+
   defp get_confidant_person(confidant_person) do
     %{
       full_name: get_full_name(confidant_person),
@@ -192,17 +196,19 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
 
   defp get_division_addresses(division) do
     addresses = Map.get(division, "addresses", [])
-    registration_address = Enum.find(addresses, fn(address) -> Map.get(address, "type") == "REGISTRATION" end)
+    registration_address = Enum.find(addresses, fn address -> Map.get(address, "type") == "REGISTRATION" end)
 
-    full_street = case registration_address do
-      nil -> ""
-      address -> address |> AddressMerger.merge_street_part() |> List.first()
-    end
+    full_street =
+      case registration_address do
+        nil -> ""
+        address -> address |> AddressMerger.merge_street_part() |> List.first()
+      end
 
-    settlement = case registration_address do
-      nil -> ""
-      address -> address |> AddressMerger.merge_settlement_part(full_street) |> List.first()
-    end
+    settlement =
+      case registration_address do
+        nil -> ""
+        address -> address |> AddressMerger.merge_settlement_part(full_street) |> List.first()
+      end
 
     %{
       registration: %{
@@ -227,12 +233,13 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
 
   defp get_legal_entity_addresses(legal_entity) do
     addresses = Map.get(legal_entity, "addresses", [])
-    registration_address = Enum.find(addresses, fn(address) -> Map.get(address, "type") == "REGISTRATION" end)
+    registration_address = Enum.find(addresses, fn address -> Map.get(address, "type") == "REGISTRATION" end)
 
-    full_address = case registration_address do
-      nil -> ""
-      address -> AddressMerger.merge_address(address)
-    end
+    full_address =
+      case registration_address do
+        nil -> ""
+        address -> AddressMerger.merge_address(address)
+      end
 
     %{
       registration: %{
@@ -245,7 +252,7 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
     licenses =
       case Map.get(legal_entity, "licenses") do
         licenses when is_list(licenses) -> Enum.take(licenses, 3)
-        _                               -> %{}
+        _ -> %{}
       end
 
     licenses
@@ -263,7 +270,7 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
   defp check_confidant_persons(declaration_request) do
     person = Map.get(declaration_request, "person", %{})
     confidant_persons = Map.get(person, "confidant_person", [])
-    secondary_confidant_person = Enum.find(confidant_persons, fn(x) -> Map.get(x, "relation_type") == "SECONDARY" end)
+    secondary_confidant_person = Enum.find(confidant_persons, fn x -> Map.get(x, "relation_type") == "SECONDARY" end)
 
     %{
       exist: length(confidant_persons) > 0,

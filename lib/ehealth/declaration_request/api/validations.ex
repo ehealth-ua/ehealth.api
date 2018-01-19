@@ -18,18 +18,19 @@ defmodule EHealth.DeclarationRequest.API.Validations do
   @auth_otp DeclarationRequest.authentication_method(:otp)
 
   def validate_authentication_method_phone_number(changeset) do
-    validate_change changeset, :data, fn :data, data ->
+    validate_change(changeset, :data, fn :data, data ->
       data
       |> get_in(["person", "authentication_methods"])
-      |> Enum.map(&(&1["phone_number"]))
-      |> Enum.filter(&!is_nil(&1))
+      |> Enum.map(& &1["phone_number"])
+      |> Enum.filter(&(!is_nil(&1)))
       |> verify_phone_numbers()
-    end
+    end)
   end
 
   defp verify_phone_numbers([]) do
     []
   end
+
   defp verify_phone_numbers(phone_numbers) do
     case Enum.any?(phone_numbers, &phone_number_verified?/1) do
       true -> []
@@ -39,15 +40,19 @@ defmodule EHealth.DeclarationRequest.API.Validations do
 
   defp phone_number_verified?(phone_number) do
     case OTPVerification.search(phone_number) do
-      {:ok, _} -> true
-      {:error, _} -> false
+      {:ok, _} ->
+        true
+
+      {:error, _} ->
+        false
+
       result ->
-        raise "Error during OTP Verification interaction. Result from OTP Verification: #{inspect result}"
+        raise "Error during OTP Verification interaction. Result from OTP Verification: #{inspect(result)}"
     end
   end
 
   def validate_patient_birth_date(changeset) do
-    validate_change changeset, :data, fn :data, data ->
+    validate_change(changeset, :data, fn :data, data ->
       data
       |> get_in(["person", "birth_date"])
       |> BirthDate.validate()
@@ -55,11 +60,11 @@ defmodule EHealth.DeclarationRequest.API.Validations do
         true -> []
         false -> [data: "Invalid birth date."]
       end
-    end
+    end)
   end
 
   def validate_patient_age(changeset, specialities, adult_age) do
-    validate_change changeset, :data, fn :data, data ->
+    validate_change(changeset, :data, fn :data, data ->
       patient_birth_date =
         data
         |> get_in(["person", "birth_date"])
@@ -67,11 +72,11 @@ defmodule EHealth.DeclarationRequest.API.Validations do
 
       patient_age = Timex.diff(Timex.now(), patient_birth_date, :years)
 
-      case Enum.any? specialities, &belongs_to(patient_age, adult_age, &1) do
+      case Enum.any?(specialities, &belongs_to(patient_age, adult_age, &1)) do
         true -> []
         false -> [data: "Doctor speciality does not meet the patient's age requirement."]
       end
-    end
+    end)
   end
 
   def belongs_to(age, adult_age, "THERAPIST"), do: age >= string_to_integer(adult_age)
@@ -91,21 +96,21 @@ defmodule EHealth.DeclarationRequest.API.Validations do
   end
 
   def validate_legal_entity_employee(changeset, legal_entity, employee) do
-    validate_change changeset, :data, fn :data, _data ->
+    validate_change(changeset, :data, fn :data, _data ->
       case employee.legal_entity_id == legal_entity.id do
         true -> []
         false -> [data: "Employee does not belong to legal entity."]
       end
-    end
+    end)
   end
 
   def validate_legal_entity_division(changeset, legal_entity, division) do
-    validate_change changeset, :data, fn :data, _data ->
+    validate_change(changeset, :data, fn :data, _data ->
       case division.legal_entity_id == legal_entity.id do
         true -> []
         false -> [data: "Division does not belong to legal entity."]
       end
-    end
+    end)
   end
 
   def decode_and_validate_sign_request(params, headers) do
@@ -133,6 +138,7 @@ defmodule EHealth.DeclarationRequest.API.Validations do
     |> Map.get(:signed_declaration_request)
     |> Signature.decode_and_validate(Map.get(changes, :signed_content_encoding), headers)
   end
+
   def validate_signature(err), do: err
 
   def normalize_signature_error({:error, %{"meta" => %{"description" => error}}}) do
@@ -140,15 +146,18 @@ defmodule EHealth.DeclarationRequest.API.Validations do
     |> cast(%{}, [:signed_legal_entity_request])
     |> add_error(:signed_legal_entity_request, error)
   end
+
   def normalize_signature_error(ok_resp), do: ok_resp
 
   def check_is_valid({:ok, %{"data" => %{"is_valid" => false, "validation_error_message" => error}}}) do
     {:error, {:bad_request, error}}
   end
+
   def check_is_valid({:ok, %{"data" => %{"is_valid" => true}} = result}) do
     {_empty_message, result} = pop_in(result, ["data", "validation_error_message"])
     {:ok, result}
   end
+
   def check_is_valid({:error, error}) do
     {:error, error}
   end
@@ -171,6 +180,7 @@ defmodule EHealth.DeclarationRequest.API.Validations do
       changeset
       |> get_field(:data)
       |> Map.get("scope")
+
     if scope in ["family_doctor"] do
       changeset
     else
@@ -196,7 +206,7 @@ defmodule EHealth.DeclarationRequest.API.Validations do
       end
 
       confidant_persons
-      |> Enum.with_index
+      |> Enum.with_index()
       |> Enum.reduce(changeset, validation)
     else
       changeset
@@ -215,6 +225,7 @@ defmodule EHealth.DeclarationRequest.API.Validations do
     else
       {:error, "REGISTRATION"} ->
         add_error(changeset, :"data.person.addresses", "one and only one registration address is required")
+
       {:error, "RESIDENCE"} ->
         add_error(changeset, :"data.person.addresses", "one and only one residence address is required")
     end
@@ -265,11 +276,13 @@ defmodule EHealth.DeclarationRequest.API.Validations do
     case Map.has_key?(method, "phone_number") do
       true ->
         {i + 1, changeset}
+
       false ->
         message = "required property phone_number was not present"
         {i + 1, add_error(changeset, :"data.person.authentication_methods.[#{i}].phone_number", message)}
     end
   end
+
   defp validate_auth_method(_, {i, changeset}) do
     {i + 1, changeset}
   end

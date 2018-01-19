@@ -22,19 +22,27 @@ defmodule EHealth.Unit.LegalEntityTest do
       content =
         "test/data/signed_content.json"
         |> File.read!()
-        |> Base.encode64
+        |> Base.encode64()
 
-      assert {:ok, _} = Validator.validate_sign_content(%{
-        "signed_content_encoding" => "base64",
-        "signed_legal_entity_request" => content
-      }, [{"edrpou", "37367387"}])
+      assert {:ok, _} =
+               Validator.validate_sign_content(
+                 %{
+                   "signed_content_encoding" => "base64",
+                   "signed_legal_entity_request" => content
+                 },
+                 [{"edrpou", "37367387"}]
+               )
     end
 
     test "invalid signed content validation" do
-      assert %Ecto.Changeset{valid?: false} = Validator.decode_and_validate(%{
-        "signed_content_encoding" => "base256",
-        "signed_legal_entity_request" => "invalid"
-      }, [])
+      assert %Ecto.Changeset{valid?: false} =
+               Validator.decode_and_validate(
+                 %{
+                   "signed_content_encoding" => "base256",
+                   "signed_legal_entity_request" => "invalid"
+                 },
+                 []
+               )
     end
 
     test "invalid signed content - no security" do
@@ -49,12 +57,17 @@ defmodule EHealth.Unit.LegalEntityTest do
       content =
         "test/data/signed_content_invalid_owner_birth_date.json"
         |> File.read!()
-        |> Base.encode64
+        |> Base.encode64()
 
-      assert {:error, [_, {error, entry}]} = Validator.decode_and_validate(%{
-        "signed_content_encoding" => "base64",
-        "signed_legal_entity_request" => content
-      }, [])
+      assert {:error, [_, {error, entry}]} =
+               Validator.decode_and_validate(
+                 %{
+                   "signed_content_encoding" => "base64",
+                   "signed_legal_entity_request" => content
+                 },
+                 []
+               )
+
       assert "$.owner.birth_date" == entry
       assert :format == error[:rule]
     end
@@ -82,24 +95,31 @@ defmodule EHealth.Unit.LegalEntityTest do
       kveds = %{
         "name" => "KVEDS",
         "values" => %{
-          "21.20": "Виробництво фармацевтичних препаратів і матеріалів",
+          "21.20": "Виробництво фармацевтичних препаратів і матеріалів"
         },
         "labels" => ["SYSTEM", "EXTERNAL"],
-        "is_active" => true,
+        "is_active" => true
       }
-      patch conn, dictionary_path(conn, :update, "KVEDS"), kveds
 
-      content = Map.merge(get_legal_entity_data(), %{
-        "short_name" => "Nebo15",
-        "email" => "changed@example.com",
-        "kveds" => ["12.21"]
-      })
+      patch(conn, dictionary_path(conn, :update, "KVEDS"), kveds)
+
+      content =
+        Map.merge(get_legal_entity_data(), %{
+          "short_name" => "Nebo15",
+          "email" => "changed@example.com",
+          "kveds" => ["12.21"]
+        })
+
       request = %{"data" => %{"content" => content}}
 
-      assert %Ecto.Changeset{valid?: false} = API.create(%{
-        "signed_content_encoding" => "base64",
-        "signed_legal_entity_request" => request
-      }, [])
+      assert %Ecto.Changeset{valid?: false} =
+               API.create(
+                 %{
+                   "signed_content_encoding" => "base64",
+                   "signed_legal_entity_request" => request
+                 },
+                 []
+               )
     end
 
     test "validate decoded legal entity" do
@@ -139,7 +159,6 @@ defmodule EHealth.Unit.LegalEntityTest do
 
       assert {:error, %Ecto.Changeset{valid?: false}} = Validator.validate_edrpou(content, signer)
     end
-
   end
 
   describe "create new Legal Entity" do
@@ -149,11 +168,12 @@ defmodule EHealth.Unit.LegalEntityTest do
     end
 
     test "mis_verified NOT_VERIFIED" do
-      data = Map.merge(get_legal_entity_data(), %{
-        "short_name" => "Nebo15",
-        "email" => "changed@example.com",
-        "kveds" => ["12.21"]
-      })
+      data =
+        Map.merge(get_legal_entity_data(), %{
+          "short_name" => "Nebo15",
+          "email" => "changed@example.com",
+          "kveds" => ["12.21"]
+        })
 
       assert {:ok, %{legal_entity: legal_entity, security: security}} = create_legal_entity(data)
 
@@ -166,21 +186,22 @@ defmodule EHealth.Unit.LegalEntityTest do
       assert_security(security, legal_entity.id)
 
       # test employee request
-      assert 1 == Repo.one(from e in EmployeeRequest, select: count("*"))
-      assert %EmployeeRequest{data: employee_request_data, status: "NEW"} = Repo.one(from e in EmployeeRequest)
+      assert 1 == Repo.one(from(e in EmployeeRequest, select: count("*")))
+      assert %EmployeeRequest{data: employee_request_data, status: "NEW"} = Repo.one(from(e in EmployeeRequest))
       assert legal_entity.id == employee_request_data["legal_entity_id"]
       assert "P1" == employee_request_data["position"]
       assert "OWNER" == employee_request_data["employee_type"]
 
-      assert 1 == PRMRepo.one(from l in LegalEntity, select: count("*"))
+      assert 1 == PRMRepo.one(from(l in LegalEntity, select: count("*")))
     end
 
     test "mis_verified VERIFIED" do
-      data = Map.merge(get_legal_entity_data(), %{
-        "short_name" => "Nebo15",
-        "email" => "changed@example.com",
-        "kveds" => ["12.21"]
-      })
+      data =
+        Map.merge(get_legal_entity_data(), %{
+          "short_name" => "Nebo15",
+          "email" => "changed@example.com",
+          "kveds" => ["12.21"]
+        })
 
       insert(:prm, :registry, edrpou: "37367387", type: LegalEntity.type(:msp))
 
@@ -195,13 +216,13 @@ defmodule EHealth.Unit.LegalEntityTest do
       assert_security(security, legal_entity.id)
 
       # test employee request
-      assert 1 == Repo.one(from e in EmployeeRequest, select: count("*"))
-      assert %EmployeeRequest{data: employee_request_data, status: "NEW"} = Repo.one(from e in EmployeeRequest)
+      assert 1 == Repo.one(from(e in EmployeeRequest, select: count("*")))
+      assert %EmployeeRequest{data: employee_request_data, status: "NEW"} = Repo.one(from(e in EmployeeRequest))
       assert legal_entity.id == employee_request_data["legal_entity_id"]
       assert "P1" == employee_request_data["position"]
       assert "OWNER" == employee_request_data["employee_type"]
 
-      assert 1 == PRMRepo.one(from l in LegalEntity, select: count("*"))
+      assert 1 == PRMRepo.one(from(l in LegalEntity, select: count("*")))
     end
   end
 
@@ -216,12 +237,13 @@ defmodule EHealth.Unit.LegalEntityTest do
       insert(:prm, :legal_entity, edrpou: "10002000")
       insert(:prm, :legal_entity, edrpou: "37367387")
 
-      update_data = Map.merge(get_legal_entity_data(), %{
-        "edrpou" => "37367387",
-        "short_name" => "Nebo15",
-        "email" => "changed@example.com",
-        "kveds" => ["12.21"]
-      })
+      update_data =
+        Map.merge(get_legal_entity_data(), %{
+          "edrpou" => "37367387",
+          "short_name" => "Nebo15",
+          "email" => "changed@example.com",
+          "kveds" => ["12.21"]
+        })
 
       assert {:ok, %{legal_entity: legal_entity, security: security}} = create_legal_entity(update_data)
 
@@ -236,11 +258,11 @@ defmodule EHealth.Unit.LegalEntityTest do
 
       assert_security(security, legal_entity.id)
       assert %LegalEntity{} = PRMRepo.get(LegalEntity, legal_entity.id)
-      assert 2 == PRMRepo.one(from l in LegalEntity, select: count("*"))
+      assert 2 == PRMRepo.one(from(l in LegalEntity, select: count("*")))
     end
 
     test "update inactive Legal Entity" do
-      insert(:prm, :legal_entity, [edrpou: "37367387", is_active: false])
+      insert(:prm, :legal_entity, edrpou: "37367387", is_active: false)
 
       data = Map.merge(get_legal_entity_data(), %{"edrpou" => "37367387"})
 
@@ -249,13 +271,14 @@ defmodule EHealth.Unit.LegalEntityTest do
     end
 
     test "invalid status" do
-      insert(:prm, :legal_entity, [edrpou: "37367387", status: "CLOSED"])
+      insert(:prm, :legal_entity, edrpou: "37367387", status: "CLOSED")
       assert {:error, {:conflict, "LegalEntity can't be updated"}} == create_legal_entity(get_legal_entity_data())
     end
   end
 
   test "settlement validation with invalid settlement" do
     legal_entity_data = get_legal_entity_data()
+
     address =
       legal_entity_data
       |> Map.get("addresses")
@@ -266,12 +289,14 @@ defmodule EHealth.Unit.LegalEntityTest do
       legal_entity_data
       |> Map.put("addresses", [address])
 
-    assert {:error, [{%{description: "invalid settlement value", params: [], rule: :invalid},
-      "$.addresses.settlement"}]} == Validator.validate_addresses(content)
+    assert {:error,
+            [{%{description: "invalid settlement value", params: [], rule: :invalid}, "$.addresses.settlement"}]} ==
+             Validator.validate_addresses(content)
   end
 
   test "settlement validation with empty settlement" do
     legal_entity_data = get_legal_entity_data()
+
     address =
       legal_entity_data
       |> Map.get("addresses")
@@ -282,12 +307,14 @@ defmodule EHealth.Unit.LegalEntityTest do
       legal_entity_data
       |> Map.put("addresses", [address])
 
-    assert {:error, [{%{description: "invalid settlement value", params: [], rule: :invalid},
-      "$.addresses.settlement"}]} == Validator.validate_addresses(content)
+    assert {:error,
+            [{%{description: "invalid settlement value", params: [], rule: :invalid}, "$.addresses.settlement"}]} ==
+             Validator.validate_addresses(content)
   end
 
   test "region validation with invalid region" do
     legal_entity_data = get_legal_entity_data()
+
     address =
       legal_entity_data
       |> Map.get("addresses")
@@ -298,12 +325,13 @@ defmodule EHealth.Unit.LegalEntityTest do
       legal_entity_data
       |> Map.put("addresses", [address])
 
-    assert {:error, [{%{description: "invalid region value", params: [], rule: :invalid},
-      "$.addresses.region"}]} == Validator.validate_addresses(content)
+    assert {:error, [{%{description: "invalid region value", params: [], rule: :invalid}, "$.addresses.region"}]} ==
+             Validator.validate_addresses(content)
   end
 
   test "region validation with empty region" do
     legal_entity_data = get_legal_entity_data()
+
     address =
       legal_entity_data
       |> Map.get("addresses")
@@ -314,12 +342,13 @@ defmodule EHealth.Unit.LegalEntityTest do
       legal_entity_data
       |> Map.put("addresses", [address])
 
-    assert {:error, [{%{description: "invalid region value", params: [], rule: :invalid},
-      "$.addresses.region"}]} == Validator.validate_addresses(content)
+    assert {:error, [{%{description: "invalid region value", params: [], rule: :invalid}, "$.addresses.region"}]} ==
+             Validator.validate_addresses(content)
   end
 
   test "area validation with invalid area" do
     legal_entity_data = get_legal_entity_data()
+
     address =
       legal_entity_data
       |> Map.get("addresses")
@@ -330,12 +359,13 @@ defmodule EHealth.Unit.LegalEntityTest do
       legal_entity_data
       |> Map.put("addresses", [address])
 
-    assert {:error, [{%{description: "invalid area value", params: [], rule: :invalid},
-      "$.addresses.area"}]} == Validator.validate_addresses(content)
+    assert {:error, [{%{description: "invalid area value", params: [], rule: :invalid}, "$.addresses.area"}]} ==
+             Validator.validate_addresses(content)
   end
 
   test "area validation with empty area" do
     legal_entity_data = get_legal_entity_data()
+
     address =
       legal_entity_data
       |> Map.get("addresses")
@@ -346,14 +376,15 @@ defmodule EHealth.Unit.LegalEntityTest do
       legal_entity_data
       |> Map.put("addresses", [address])
 
-    assert {:error, [{%{description: "invalid area value", params: [], rule: :invalid},
-      "$.addresses.area"}]} == Validator.validate_addresses(content)
+    assert {:error, [{%{description: "invalid area value", params: [], rule: :invalid}, "$.addresses.area"}]} ==
+             Validator.validate_addresses(content)
   end
 
   test "position validation with invalid position" do
     content = get_legal_entity_data() |> put_in(["owner", "position"], "P99")
-    assert {:error, [{%{description: "invalid owner position value", params: [], rule: :invalid},
-      "$.owner.position"}]} == Validator.validate_owner_position(content)
+
+    assert {:error, [{%{description: "invalid owner position value", params: [], rule: :invalid}, "$.owner.position"}]} ==
+             Validator.validate_owner_position(content)
   end
 
   # helpers
@@ -380,8 +411,9 @@ defmodule EHealth.Unit.LegalEntityTest do
   defp create_legal_entity(request_params) do
     request = %{
       "signed_legal_entity_request" => Base.encode64(Poison.encode!(request_params)),
-      "signed_content_encoding" => "base64",
+      "signed_content_encoding" => "base64"
     }
+
     API.create(request, get_headers())
   end
 

@@ -51,7 +51,7 @@ defmodule EHealth.Users.API do
   end
 
   defp fetch_credentials_recovery_request(request_id) do
-    case Repo.get_by(CredentialsRecoveryRequest, [id: request_id, is_active: true]) do
+    case Repo.get_by(CredentialsRecoveryRequest, id: request_id, is_active: true) do
       nil -> {:error, :not_found}
       %CredentialsRecoveryRequest{} = request -> {:ok, request}
     end
@@ -74,6 +74,7 @@ defmodule EHealth.Users.API do
 
   def reset_password(request_id, attrs, opts \\ []) do
     upstream_headers = Keyword.get(opts, :upstream_headers, [])
+
     with {:ok, %{user_id: user_id} = request} <- fetch_credentials_recovery_request(request_id),
          false <- request_expired?(request),
          %Changeset{valid?: true} <- reset_password_changeset(attrs),
@@ -123,6 +124,7 @@ defmodule EHealth.Users.API do
             :ehealth
             |> Confex.fetch_env!(:emails)
             |> Keyword.get(:credentials_recovery_request)
+
           Sender.send_email(email, body, email_config[:from], email_config[:subject])
           :ok
         rescue
@@ -130,7 +132,9 @@ defmodule EHealth.Users.API do
             Logger.warn(Exception.message(error))
             :ok
         end
-      {:error, reason} -> {:error, reason}
+
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 end

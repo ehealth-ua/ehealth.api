@@ -12,11 +12,13 @@ defmodule EHealth.Utils.Connection do
   def assign_security(conn, security) when is_map(security) do
     assign_urgent(conn, "security", security)
   end
+
   def assign_security(conn, _), do: conn
 
   def assign_urgent(%Plug.Conn{assigns: %{urgent: urgent}} = conn, key, value) do
     assign(conn, :urgent, Map.put(urgent, key, value))
   end
+
   def assign_urgent(conn, key, value) do
     assign(conn, :urgent, %{key => value})
   end
@@ -36,6 +38,7 @@ defmodule EHealth.Utils.Connection do
   end
 
   defp decode_client_metadata(nil), do: nil
+
   defp decode_client_metadata(metadata) do
     metadata
     |> Poison.decode()

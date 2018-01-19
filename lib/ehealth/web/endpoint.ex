@@ -5,21 +5,23 @@ defmodule EHealth.Web.Endpoint do
   use Phoenix.Endpoint, otp_app: :ehealth
   alias Confex.Resolver
 
-  plug Plug.RequestId
-  plug EView.Plugs.Idempotency
-  plug Plug.LoggerJSON, level: Logger.level
+  plug(Plug.RequestId)
+  plug(EView.Plugs.Idempotency)
+  plug(Plug.LoggerJSON, level: Logger.level())
 
-  plug EView
+  plug(EView)
 
-  plug Plug.Parsers,
+  plug(
+    Plug.Parsers,
     parsers: [:json],
     pass: ["application/json"],
     json_decoder: Poison
+  )
 
-  plug Plug.MethodOverride
-  plug Plug.Head
+  plug(Plug.MethodOverride)
+  plug(Plug.Head)
 
-  plug EHealthWeb.Router
+  plug(EHealthWeb.Router)
 
   @doc """
   Dynamically loads configuration from the system environment

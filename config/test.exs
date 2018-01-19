@@ -3,7 +3,6 @@ use Mix.Config
 # Configuration for test environment
 config :ex_unit, capture_log: true
 
-
 # We don't run a server during test. If one is required,
 # you can enable the server option below.
 config :ehealth, EHealth.Web.Endpoint,
@@ -11,40 +10,32 @@ config :ehealth, EHealth.Web.Endpoint,
   server: true
 
 # Configures PRM API
-config :ehealth, EHealth.API.PRM,
-  endpoint: {:system, "PRM_ENDPOINT", "http://localhost:4040"}
+config :ehealth, EHealth.API.PRM, endpoint: {:system, "PRM_ENDPOINT", "http://localhost:4040"}
 
 # Configures Man API
-config :ehealth, EHealth.API.Man,
-  endpoint: {:system, "MAN_ENDPOINT", "http://localhost:4040"}
+config :ehealth, EHealth.API.Man, endpoint: {:system, "MAN_ENDPOINT", "http://localhost:4040"}
 
 # Configures OPS API
-config :ehealth, EHealth.API.OPS,
-  endpoint: {:system, "OPS_ENDPOINT", "http://localhost:4040"}
+config :ehealth, EHealth.API.OPS, endpoint: {:system, "OPS_ENDPOINT", "http://localhost:4040"}
 
 # Configures UAdress API
-config :ehealth, EHealth.API.UAddress,
-  endpoint: {:system, "UADDRESS_ENDPOINT", "http://localhost:4040"}
+config :ehealth, EHealth.API.UAddress, endpoint: {:system, "UADDRESS_ENDPOINT", "http://localhost:4040"}
 
-config :ehealth, EHealth.API.Mithril,
-  endpoint: {:system, "OAUTH_ENDPOINT", "http://localhost:4040"}
+config :ehealth, EHealth.API.Mithril, endpoint: {:system, "OAUTH_ENDPOINT", "http://localhost:4040"}
 
-config :ehealth, EHealth.API.OTPVerification,
-  endpoint: {:system, "OTP_VERIFICATION_ENDPOINT", "http://localhost:4040"}
+config :ehealth, EHealth.API.OTPVerification, endpoint: {:system, "OTP_VERIFICATION_ENDPOINT", "http://localhost:4040"}
 
-config :ehealth, EHealth.API.MPI,
-  endpoint: {:system, "MPI_ENDPOINT", "http://localhost:4040"}
+config :ehealth, EHealth.API.MPI, endpoint: {:system, "MPI_ENDPOINT", "http://localhost:4040"}
 
-config :ehealth, EHealth.API.Gandalf,
-  endpoint: {:system, "GNDF_ENDPOINT", "http://localhost:4040"}
+config :ehealth, EHealth.API.Gandalf, endpoint: {:system, "GNDF_ENDPOINT", "http://localhost:4040"}
 
-config :ehealth, EHealth.API.Signature,
-  enabled: {:system, :boolean, "DIGITAL_SIGNATURE_ENABLED", false}
+config :ehealth, EHealth.API.Signature, enabled: {:system, :boolean, "DIGITAL_SIGNATURE_ENABLED", false}
 
-config :ehealth, mock: [
-  port: {:system, :integer, "TEST_MOCK_PORT", 4040},
-  host: {:system, "TEST_MOCK_HOST", "localhost"}
-]
+config :ehealth,
+  mock: [
+    port: {:system, :integer, "TEST_MOCK_PORT", 4040},
+    host: {:system, "TEST_MOCK_HOST", "localhost"}
+  ]
 
 # Configures Legal Entities token permission
 config :ehealth, EHealth.Plugs.ClientContext,
@@ -117,18 +108,17 @@ config :ehealth, EHealth.EmployeeRequest.Terminator,
   utc_interval: {0, 23}
 
 # Configures genral validator
-config :ehealth, EHealth.LegalEntities.Validator,
-  owner_positions: {:system, :list, "OWNER_POSITIONS", ["P1"]}
+config :ehealth, EHealth.LegalEntities.Validator, owner_positions: {:system, :list, "OWNER_POSITIONS", ["P1"]}
 
-config :ehealth, EHealth.Bamboo.Emails.Sender,
-  mailer: EHealth.Bamboo.TestMailer
+config :ehealth, EHealth.Bamboo.Emails.Sender, mailer: EHealth.Bamboo.TestMailer
 
-config :ehealth, EHealth.Bamboo.TestMailer,
-  adapter: Bamboo.TestAdapter
+config :ehealth, EHealth.Bamboo.TestMailer, adapter: Bamboo.TestAdapter
 
 config :ehealth,
-  sql_sandbox: true, # Run acceptance test in concurrent mode
-  run_declaration_request_terminator: false # Don't start terminator in test env
+  # Run acceptance test in concurrent mode
+  sql_sandbox: true,
+  # Don't start terminator in test env
+  run_declaration_request_terminator: false
 
 # Configure your database
 config :ehealth, EHealth.Repo,

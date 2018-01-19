@@ -16,19 +16,20 @@ defmodule EHealth.Web.INNMDosageView do
     innm_dosage
     |> Map.take(@view_fields)
     |> Map.put(
-         :ingredients,
-         render_many(innm_dosage.ingredients, __MODULE__, "ingredient.json", as: :ingredient)
-       )
+      :ingredients,
+      render_many(innm_dosage.ingredients, __MODULE__, "ingredient.json", as: :ingredient)
+    )
   end
 
   def render("innm_dosage_short.json", %{innm_dosage: innm_dosage, medication_qty: medication_qty}) do
     dosage = innm_dosage.ingredients |> Enum.filter(fn i -> i.is_primary end) |> Enum.at(0) |> Map.get(:dosage)
+
     %{
-      "medication_id": innm_dosage.id,
-      "medication_name":  innm_dosage.name,
-      "dosage": dosage,
-      "form": innm_dosage.form,
-      "medication_qty": medication_qty
+      medication_id: innm_dosage.id,
+      medication_name: innm_dosage.name,
+      dosage: dosage,
+      form: innm_dosage.form,
+      medication_qty: medication_qty
     }
   end
 
@@ -37,7 +38,7 @@ defmodule EHealth.Web.INNMDosageView do
       id: ingredient.innm_child_id,
       name: ingredient.innm.name,
       dosage: ingredient.dosage,
-      is_primary: ingredient.is_primary,
+      is_primary: ingredient.is_primary
     }
   end
 end

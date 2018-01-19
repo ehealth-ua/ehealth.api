@@ -14,7 +14,7 @@ defmodule EHealth.PRMFactories.MedicationFactory do
 
       def program_medication_factory do
         med_id = insert(:prm, :medication, type: "INNM_DOSAGE").id
-        insert(:prm, :ingredient_medication, [parent_id: med_id, medication_child_id: med_id])
+        insert(:prm, :ingredient_medication, parent_id: med_id, medication_child_id: med_id)
 
         %ProgramMedication{
           reimbursement: build(:reimbursement),
@@ -23,7 +23,7 @@ defmodule EHealth.PRMFactories.MedicationFactory do
           updated_by: UUID.generate(),
           inserted_by: UUID.generate(),
           medication_id: med_id,
-          medical_program_id: insert(:prm, :medical_program).id,
+          medical_program_id: insert(:prm, :medical_program).id
         }
       end
 
@@ -34,7 +34,7 @@ defmodule EHealth.PRMFactories.MedicationFactory do
           name_original: sequence("Prednisolonum"),
           is_active: true,
           updated_by: UUID.generate(),
-          inserted_by: UUID.generate(),
+          inserted_by: UUID.generate()
         }
       end
 
@@ -45,7 +45,7 @@ defmodule EHealth.PRMFactories.MedicationFactory do
           form: "Pill",
           is_active: true,
           updated_by: UUID.generate(),
-          inserted_by: UUID.generate(),
+          inserted_by: UUID.generate()
         }
       end
 
@@ -65,7 +65,7 @@ defmodule EHealth.PRMFactories.MedicationFactory do
           is_active: true,
           code_atc: sequence("C08CA0"),
           updated_by: UUID.generate(),
-          inserted_by: UUID.generate(),
+          inserted_by: UUID.generate()
         }
       end
 

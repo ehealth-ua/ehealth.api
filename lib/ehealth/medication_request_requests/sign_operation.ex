@@ -10,15 +10,19 @@ defmodule EHealth.MedicationRequestRequest.SignOperation do
 
   def sign(mrr, params, headers) do
     mrr
-    |> Ecto.Changeset.change
-    |> Operation.new
+    |> Ecto.Changeset.change()
+    |> Operation.new()
     |> validate_foreign_key(Connection.get_client_id(headers), &get_legal_entity/1, &put_legal_entity/2)
     |> validate_foreign_key(mrr.data.employee_id, &get_employee/1, &validate_employee/2, key: :employee)
     |> validate_foreign_key(mrr.data.person_id, &get_person/1, &validate_person/2, key: :person)
     |> validate_foreign_key(mrr.data.division_id, &get_division/1, &validate_division/2, key: :division)
     |> validate_foreign_key(mrr.data.medication_id, &get_medication/1, fn _, e -> {:ok, e} end, key: :medication)
-    |> validate_foreign_key(mrr.data.medical_program_id, &get_medical_program/1,
-      fn _, e -> {:ok, e} end, key: :medical_program)
+    |> validate_foreign_key(
+      mrr.data.medical_program_id,
+      &get_medical_program/1,
+      fn _, e -> {:ok, e} end,
+      key: :medical_program
+    )
     |> validate_data({params, headers}, &decode_sign_content/2, key: :decoded_content)
     |> validate_sign_content(mrr)
     |> upload_sign_content(params, mrr)
@@ -27,8 +31,8 @@ defmodule EHealth.MedicationRequestRequest.SignOperation do
   end
 
   def decode_sign_content(_operation, {params, headers}) do
-     {:ok, %{"data" => data}} = Validations.decode_sign_content(params, headers)
-     {:ok, data}
+    {:ok, %{"data" => data}} = Validations.decode_sign_content(params, headers)
+    {:ok, data}
   end
 
   def validate_sign_content(operation, mrr) do
@@ -36,11 +40,15 @@ defmodule EHealth.MedicationRequestRequest.SignOperation do
   end
 
   def upload_sign_content({operation, {:error, error}}, _, _), do: {operation, {:error, error}}
+
   def upload_sign_content({operation, {:ok, _content}}, params, mrr) do
     params
     |> Map.fetch!("signed_medication_request_request")
-    |> MediaStorage.store_signed_content(:medication_request_request_bucket,
-                                         Map.fetch!(mrr, :medication_request_id), [])
+    |> MediaStorage.store_signed_content(
+      :medication_request_request_bucket,
+      Map.fetch!(mrr, :medication_request_id),
+      []
+    )
     |> validate_api_response(operation, mrr)
   end
 
@@ -48,6 +56,7 @@ defmodule EHealth.MedicationRequestRequest.SignOperation do
   defp validate_api_response(error, _operation, _db_data), do: error
 
   def create_medication_request({_operation, {:error, error}}, _), do: {:error, error}
+
   def create_medication_request({operation, {:ok, mrr}}, headers) do
     params =
       mrr.data
@@ -57,16 +66,19 @@ defmodule EHealth.MedicationRequestRequest.SignOperation do
       |> Map.put(:verification_code, mrr.verification_code)
       |> Map.put(:updated_by, Connection.get_client_id(headers))
       |> Map.put(:inserted_by, Connection.get_client_id(headers))
+
     {operation, OPS.create_medication_request(%{medication_request: params}, headers)}
   end
 
   def validate_ops_resp({:error, error}, _), do: {:error, error}
+
   def validate_ops_resp({operation, {:ok, %{"data" => ops_resp}}}, mrr) do
     if ops_resp["id"] == mrr.medication_request_id do
       {Operation.add_data(operation, :medication_request, ops_resp), {:ok, mrr}}
     else
-       {:error, %{"type" => "internal_error"}}
+      {:error, %{"type" => "internal_error"}}
     end
   end
+
   def validate_ops_resp(_), do: {:error, %{"type" => "internal_error"}}
 end

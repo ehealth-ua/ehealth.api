@@ -48,8 +48,7 @@ defmodule EHealth.MedicationRequestRequests do
   end
 
   def list_medication_request_requests(params, headers) do
-    query = from dr in MedicationRequestRequest,
-    order_by: [desc: :inserted_at]
+    query = from(dr in MedicationRequestRequest, order_by: [desc: :inserted_at])
 
     query
     |> filter_by_employee_id(params, headers)
@@ -62,9 +61,11 @@ defmodule EHealth.MedicationRequestRequests do
   defp filter_by_employee_id(query, %{"employee_id" => employee_id}, _) do
     where(query, [r], fragment("?->'employee_id' = ?", r.data, ^employee_id))
   end
+
   defp filter_by_employee_id(query, _, headers) do
     employee_ids = get_employee_ids_from_headers(headers)
-    Enum.reduce(employee_ids, query, fn(id, query) ->
+
+    Enum.reduce(employee_ids, query, fn id, query ->
       or_where(query, [r], fragment("?->'employee_id' = ?", r.data, ^id))
     end)
   end
@@ -90,11 +91,13 @@ defmodule EHealth.MedicationRequestRequests do
   defp filter_by_status(query, %{"status" => status}) when is_binary(status) do
     where(query, [r], r.status == ^status)
   end
+
   defp filter_by_status(query, _), do: query
 
   defp filter_by_person_id(query, %{"person_id" => person_id}) when is_binary(person_id) do
     where(query, [r], fragment("?->'person_id' = ?", r.data, ^person_id))
   end
+
   defp filter_by_person_id(query, _), do: query
 
   def show(id) do
@@ -106,6 +109,7 @@ defmodule EHealth.MedicationRequestRequests do
   def get_medication_request_request(id), do: Repo.get(MedicationRequestRequest, id)
   def get_medication_request_request!(id), do: Repo.get!(MedicationRequestRequest, id)
   def get_medication_request_request_by_query(clauses), do: Repo.get_by(MedicationRequestRequest, clauses)
+
   @doc """
   Creates a medication_request_request.
 
@@ -119,17 +123,20 @@ defmodule EHealth.MedicationRequestRequests do
 
   """
   def create(attrs, user_id, client_id) do
-    with :ok <- Validations.validate_create_schema(attrs)
-    do
+    with :ok <- Validations.validate_create_schema(attrs) do
       create_operation = CreateDataOperation.create(attrs, client_id)
+
       case create_operation
            |> create_changeset(attrs, user_id, client_id)
            |> Repo.insert() do
         {:ok, inserted_entity} ->
           {:ok, Map.merge(create_operation.data, %{medication_request_request: inserted_entity})}
+
         {:error, %Ecto.Changeset{errors: [request_number: {"has already been taken", []}]}} ->
           create(attrs, user_id, client_id)
-        {:error, changeset} -> {:error, changeset}
+
+        {:error, changeset} ->
+          {:error, changeset}
       end
     else
       err -> err
@@ -138,10 +145,9 @@ defmodule EHealth.MedicationRequestRequests do
 
   def prequalify(attrs, user_id, client_id) do
     with :ok <- Validations.validate_prequalify_schema(attrs),
-        %{"medication_request_request" => mrr, "programs" => programs} <- attrs,
-        create_operation <- CreateDataOperation.create(mrr, client_id),
-        %Ecto.Changeset{valid?: true} <- create_changeset(create_operation, mrr, user_id, client_id)
-    do
+         %{"medication_request_request" => mrr, "programs" => programs} <- attrs,
+         create_operation <- CreateDataOperation.create(mrr, client_id),
+         %Ecto.Changeset{valid?: true} <- create_changeset(create_operation, mrr, user_id, client_id) do
       {:ok, prequalify_programs(mrr, programs)}
     else
       err -> err
@@ -165,12 +171,14 @@ defmodule EHealth.MedicationRequestRequests do
 
   defp put_verification_code(%Operation{valid?: true} = operation) do
     otp = Enum.find(operation.data.person["authentication_methods"], nil, fn method -> method["type"] == "OTP" end)
+
     if otp do
       HRNGenerator.generate_otp_verification_code()
     else
       nil
     end
   end
+
   defp put_verification_code(_), do: nil
 
   def changeset(%MedicationRequestRequest{} = medication_request_request, attrs) do
@@ -182,17 +190,18 @@ defmodule EHealth.MedicationRequestRequests do
   defp prequalify_programs(mrr, programs) do
     programs
     |> Enum.map(fn %{"id" => program_id} ->
-      %{id: program_id,
+      %{
+        id: program_id,
         data: Validations.validate_medication_id(mrr["medication_id"], mrr["medication_qty"], program_id),
-        mrr: mrr}
+        mrr: mrr
+      }
     end)
     |> Enum.map(fn validated_result -> show_program_status(validated_result) end)
   end
 
   def get_check_innm_id(medication_id) do
     with %INNMDosage{} = medication <- Medications.get_innm_dosage_by_id(medication_id),
-         ingredient <- Enum.find(medication.ingredients, &(Map.get(&1, :is_primary)))
-    do
+         ingredient <- Enum.find(medication.ingredients, &Map.get(&1, :is_primary)) do
       {:ok, ingredient.innm_child_id}
     end
   end
@@ -208,7 +217,8 @@ defmodule EHealth.MedicationRequestRequests do
       INNMDosageIngredient
       |> where([idi], idi.parent_id in ^medication_ids)
       |> where([idi], idi.is_primary and idi.innm_child_id == ^check_innm_id)
-      |> PRMRepo.all
+      |> PRMRepo.all()
+
     if Enum.empty?(ingredients) do
       :ok
     else
@@ -218,21 +228,29 @@ defmodule EHealth.MedicationRequestRequests do
 
   defp show_program_status(%{id: _id, data: {:ok, result}, mrr: mrr}) do
     mp = Enum.at(result, 0)
+
     with medical_program <- get_medical_program_with_participants(mp.medical_program_id),
          participants <- build_participants(medical_program.program_medications),
          {:ok, check_innm_id} <- get_check_innm_id(mrr["medication_id"]),
          {:ok, %{"data" => medication_ids}} <- get_prequalify_requests(mrr),
-         :ok <- validate_ingredients(medication_ids, check_innm_id)
-    do
-        %{id: mp.medical_program_id, name: mp.medical_program_name, status: "VALID", participants: participants}
+         :ok <- validate_ingredients(medication_ids, check_innm_id) do
+      %{id: mp.medical_program_id, name: mp.medical_program_name, status: "VALID", participants: participants}
     else
-        _ ->  %{id: mp.medical_program_id, name: mp.medical_program_name, status: "INVALID",
-                rejection_reason: "It can be only 1 active/ completed medication request request or " <>
-                "medication request per one innm for the same patient at the same period of time!"}
+      _ ->
+        %{
+          id: mp.medical_program_id,
+          name: mp.medical_program_name,
+          status: "INVALID",
+          rejection_reason:
+            "It can be only 1 active/ completed medication request request or " <>
+              "medication request per one innm for the same patient at the same period of time!"
+        }
     end
   end
+
   defp show_program_status(%{id: id, data: _err, mrr: _}) do
     mp = MedicalPrograms.get_by_id(id)
+
     mp
     |> Map.put(:status, "INVALID")
     |> Map.put(:rejection_reason, "Innm not on the list of approved innms for program \"#{mp.name}\"")
@@ -251,7 +269,7 @@ defmodule EHealth.MedicationRequestRequests do
     |> where([mp], mp.is_active)
     |> join(:left, [mp], pm in ProgramMedication, pm.medical_program_id == mp.id and pm.is_active)
     |> join(:left, [mp, pm], m in assoc(pm, :medication))
-    |> preload([mp, pm, m], [program_medications: {pm, medication: m}])
+    |> preload([mp, pm, m], program_medications: {pm, medication: m})
     |> PRMRepo.get(id)
   end
 
@@ -259,8 +277,7 @@ defmodule EHealth.MedicationRequestRequests do
     with %MedicationRequestRequest{} = mrr <- get_medication_request_request(id),
          %Ecto.Changeset{} = changeset <- reject_changeset(mrr, user_id),
          {:ok, mrr} <- Repo.update(changeset),
-         operation <- RejectOperation.reject(changeset, mrr, client_id)
-    do
+         operation <- RejectOperation.reject(changeset, mrr, client_id) do
       {:ok, Map.merge(operation.data, %{medication_request_request: mrr})}
     end
   end
@@ -271,21 +288,26 @@ defmodule EHealth.MedicationRequestRequests do
     |> put_change(:status, @status_rejected)
     |> put_change(:updated_by, user_id)
   end
-  def reject_changeset(%MedicationRequestRequest{}, _), do:
-    {:error, {:conflict, "Invalid status Request for Medication request for reject transition!"}}
+
+  def reject_changeset(%MedicationRequestRequest{}, _),
+    do: {:error, {:conflict, "Invalid status Request for Medication request for reject transition!"}}
+
   def reject_changeset(nil, _), do: {:error, :not_found}
 
   def autoterminate do
-    Repo.update_all(termination_query(), set: [
+    Repo.update_all(
+      termination_query(),
+      set: [
         status: @status_expired,
-        updated_at: Timex.now,
+        updated_at: Timex.now(),
         updated_by: Confex.fetch_env!(:ehealth, :system_user)
-        ])
+      ]
+    )
   end
 
   defp termination_query do
     minutes = Confex.fetch_env!(:ehealth, :medication_request_request)[:expire_in_minutes]
-    termination_time = Timex.shift(Timex.now, minutes: -minutes)
+    termination_time = Timex.shift(Timex.now(), minutes: -minutes)
 
     MedicationRequestRequest
     |> where([mrr], mrr.status == ^@status_new)
@@ -294,31 +316,33 @@ defmodule EHealth.MedicationRequestRequests do
 
   def sign(params, headers) do
     {id, params} = Map.pop(params, "id")
+
     with :ok <- Validations.validate_sign_schema(params),
-         %MedicationRequestRequest{status: "NEW"} = mrr <- get_medication_request_request_by_query([id: id]),
+         %MedicationRequestRequest{status: "NEW"} = mrr <- get_medication_request_request_by_query(id: id),
          employee_ids <- get_employee_ids_from_headers(headers),
          :ok <- doctor_authorized_to_sign?(employee_ids, mrr),
-         {operation, {:ok, mrr}} <- SignOperation.sign(mrr, params, headers)
-    do
+         {operation, {:ok, mrr}} <- SignOperation.sign(mrr, params, headers) do
       mrr
       |> sign_changeset
-      |> Repo.update
+      |> Repo.update()
 
       SMSSender.maybe_send_sms(mrr, operation.data.person, &SMSSender.sign_template/1)
 
       {:ok,
-        operation.data.medication_request
-        |> Map.put("legal_entity", operation.data.legal_entity)
-        |> Map.put("division", operation.data.division)
-        |> Map.put("person", operation.data.person)
-        |> Map.put("employee", operation.data.employee)
-        |> Map.put("medical_program", operation.data.medical_program)
-        |> Map.put("legal_entity", operation.data.legal_entity)
-        |> Map.put("medication", operation.data.medication)}
+       operation.data.medication_request
+       |> Map.put("legal_entity", operation.data.legal_entity)
+       |> Map.put("division", operation.data.division)
+       |> Map.put("person", operation.data.person)
+       |> Map.put("employee", operation.data.employee)
+       |> Map.put("medical_program", operation.data.medical_program)
+       |> Map.put("legal_entity", operation.data.legal_entity)
+       |> Map.put("medication", operation.data.medication)}
     else
-       %MedicationRequestRequest{status: _} ->
+      %MedicationRequestRequest{status: _} ->
         {:error, {:conflict, "Invalid status Medication request Request for sign transition!"}}
-      err -> err
+
+      err ->
+        err
     end
   end
 

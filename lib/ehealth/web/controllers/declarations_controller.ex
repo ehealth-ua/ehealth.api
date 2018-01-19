@@ -5,7 +5,7 @@ defmodule EHealth.Web.DeclarationsController do
 
   alias EHealth.Declarations.API
 
-  action_fallback EHealth.Web.FallbackController
+  action_fallback(EHealth.Web.FallbackController)
 
   def index(%Plug.Conn{req_headers: req_headers} = conn, params) do
     with {:ok, %{"meta" => %{}} = response} <- API.get_declarations(params, req_headers) do
@@ -37,8 +37,10 @@ defmodule EHealth.Web.DeclarationsController do
     case response do
       {:ok, %{"meta" => %{"code" => 200}} = data} ->
         proxy(conn, data)
+
       {:error, %{"meta" => %{"code" => 422}, "error" => %{"message" => message}}} ->
         {:error, {:conflict, message}}
+
       _ ->
         response
     end

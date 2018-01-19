@@ -31,9 +31,9 @@ defmodule EHealth.API.Mithril do
     id
     |> get_client_details(headers)
     |> case do
-         {:ok, %{"data" => %{"client_type_name" => client_type}}} -> {:ok, client_type}
-         _ -> {:error, :access_denied}
-       end
+      {:ok, %{"data" => %{"client_type_name" => client_type}}} -> {:ok, client_type}
+      _ -> {:error, :access_denied}
+    end
   end
 
   # Client types

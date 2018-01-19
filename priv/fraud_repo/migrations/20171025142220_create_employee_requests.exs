@@ -3,9 +3,9 @@ defmodule EHealth.FraudRepo.Migrations.CreateEmployeeRequests do
 
   def change do
     create table(:employee_requests, primary_key: false) do
-      add :id, :uuid, primary_key: true
-      add :status, :string
-      add :employee_id, :uuid
+      add(:id, :uuid, primary_key: true)
+      add(:status, :string)
+      add(:employee_id, :uuid)
 
       timestamps()
     end

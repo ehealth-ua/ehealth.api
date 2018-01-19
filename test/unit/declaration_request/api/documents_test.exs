@@ -26,6 +26,7 @@ defmodule EHealth.Unit.DeclarationRequest.API.DocumentsTest do
             }
 
             Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: upload}))
+
           "98e0a42f-0000-9999-5555-0ea99426a3fb" ->
             Plug.Conn.send_resp(conn, 500, Poison.encode!(%{something: "went wrong with #{resource_name}"}))
         end
@@ -36,10 +37,11 @@ defmodule EHealth.Unit.DeclarationRequest.API.DocumentsTest do
       {:ok, port, ref} = start_microservices(UploadingFiles)
 
       System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:#{port}")
-      on_exit fn ->
+
+      on_exit(fn ->
         System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
-      end
+      end)
 
       :ok
     end

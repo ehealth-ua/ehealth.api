@@ -28,14 +28,14 @@ defmodule EHealth.DeclarationRequest do
   def authentication_method(:offline), do: @authentication_offline
 
   schema "declaration_requests" do
-    field :data, :map
-    field :status, :string
-    field :authentication_method_current, :map
-    field :documents, {:array, :map}
-    field :printout_content, :string
-    field :inserted_by, Ecto.UUID
-    field :updated_by, Ecto.UUID
-    field :declaration_id, Ecto.UUID
+    field(:data, :map)
+    field(:status, :string)
+    field(:authentication_method_current, :map)
+    field(:documents, {:array, :map})
+    field(:printout_content, :string)
+    field(:inserted_by, Ecto.UUID)
+    field(:updated_by, Ecto.UUID)
+    field(:declaration_id, Ecto.UUID)
 
     timestamps()
   end

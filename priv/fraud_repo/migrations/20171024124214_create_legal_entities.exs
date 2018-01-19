@@ -3,57 +3,57 @@ defmodule EHealth.FraudRepo.Migrations.CreateLegalEntities do
 
   def up do
     create table(:legal_entities, primary_key: false) do
-      add :id, :uuid, primary_key: true
-      add :name, :string, null: false
-      add :short_name, :string
-      add :public_name, :string
-      add :status, :string, null: false
-      add :type, :string, null: false
-      add :owner_property_type, :string, null: false
-      add :legal_form, :string, null: false
-      add :edrpou, :string, null: false
-      add :kveds, :map, null: false
+      add(:id, :uuid, primary_key: true)
+      add(:name, :string, null: false)
+      add(:short_name, :string)
+      add(:public_name, :string)
+      add(:status, :string, null: false)
+      add(:type, :string, null: false)
+      add(:owner_property_type, :string, null: false)
+      add(:legal_form, :string, null: false)
+      add(:edrpou, :string, null: false)
+      add(:kveds, :map, null: false)
 
-      add :addresses, :map, null: false
-      add :registration_country, :string
-      add :registration_area, :string
-      add :registration_region, :string
-      add :registration_settlement, :string
-      add :registration_settlement_type, :string
-      add :registration_settlement_id, :string
-      add :registration_street_type, :string
-      add :registration_street, :string
-      add :registration_building, :string
-      add :registration_zip, :string
+      add(:addresses, :map, null: false)
+      add(:registration_country, :string)
+      add(:registration_area, :string)
+      add(:registration_region, :string)
+      add(:registration_settlement, :string)
+      add(:registration_settlement_type, :string)
+      add(:registration_settlement_id, :string)
+      add(:registration_street_type, :string)
+      add(:registration_street, :string)
+      add(:registration_building, :string)
+      add(:registration_zip, :string)
 
-      add :residence_country, :string
-      add :residence_area, :string
-      add :residence_region, :string
-      add :residence_settlement, :string
-      add :residence_settlement_type, :string
-      add :residence_settlement_id, :string
-      add :residence_street_type, :string
-      add :residence_street, :string
-      add :residence_building, :string
-      add :residence_zip, :string
+      add(:residence_country, :string)
+      add(:residence_area, :string)
+      add(:residence_region, :string)
+      add(:residence_settlement, :string)
+      add(:residence_settlement_type, :string)
+      add(:residence_settlement_id, :string)
+      add(:residence_street_type, :string)
+      add(:residence_street, :string)
+      add(:residence_building, :string)
+      add(:residence_zip, :string)
 
-      add :phones, :map
-      add :mobile_phone, :string
-      add :land_line_phone, :string
+      add(:phones, :map)
+      add(:mobile_phone, :string)
+      add(:land_line_phone, :string)
 
-      add :email, :string
-      add :is_active, :boolean, default: false, null: false
-      add :inserted_by, :uuid, null: false
-      add :updated_by, :uuid, null: false
-      add :capitation_contract_id, :uuid
-      add :created_by_mis_client_id, :uuid
-      add :mis_verified, :string, null: false
-      add :nhs_verified, :boolean, null: false
+      add(:email, :string)
+      add(:is_active, :boolean, default: false, null: false)
+      add(:inserted_by, :uuid, null: false)
+      add(:updated_by, :uuid, null: false)
+      add(:capitation_contract_id, :uuid)
+      add(:created_by_mis_client_id, :uuid)
+      add(:mis_verified, :string, null: false)
+      add(:nhs_verified, :boolean, null: false)
 
       timestamps()
     end
 
-    execute """
+    execute("""
     CREATE OR REPLACE FUNCTION set_legal_entity_addresses_phones()
     RETURNS trigger AS
     $BODY$
@@ -103,24 +103,24 @@ defmodule EHealth.FraudRepo.Migrations.CreateLegalEntities do
     END;
     $BODY$
     LANGUAGE plpgsql;
-    """
+    """)
 
-    execute """
+    execute("""
     CREATE TRIGGER on_legal_entity_insert
     BEFORE INSERT
     ON legal_entities
     FOR EACH ROW
     EXECUTE PROCEDURE set_legal_entity_addresses_phones();
-    """
+    """)
 
-    execute """
+    execute("""
     CREATE TRIGGER on_legal_entity_update
     BEFORE UPDATE
     ON legal_entities
     FOR EACH ROW
     WHEN (OLD.addresses IS DISTINCT FROM NEW.addresses OR OLD.phones IS DISTINCT FROM NEW.phones)
     EXECUTE PROCEDURE set_legal_entity_addresses_phones();
-    """
+    """)
 
     execute("ALTER table legal_entities ENABLE REPLICA TRIGGER on_legal_entity_insert;")
     execute("ALTER table legal_entities ENABLE REPLICA TRIGGER on_legal_entity_update;")
@@ -131,6 +131,6 @@ defmodule EHealth.FraudRepo.Migrations.CreateLegalEntities do
     execute("DROP TRIGGER IF EXISTS on_legal_entity_update ON legal_entities;")
     execute("DROP FUNCTION IF EXISTS set_legal_entity_addresses_phones();")
 
-    drop table(:legal_entities)
+    drop(table(:legal_entities))
   end
 end

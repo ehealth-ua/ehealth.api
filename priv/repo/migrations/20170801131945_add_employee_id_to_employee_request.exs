@@ -3,7 +3,7 @@ defmodule EHealth.Repo.Migrations.AddEmployeeIdToEmployeeRequest do
 
   def change do
     alter table(:employee_requests) do
-      add :employee_id, :uuid
+      add(:employee_id, :uuid)
     end
   end
 end

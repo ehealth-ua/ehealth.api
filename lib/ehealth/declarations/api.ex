@@ -26,18 +26,21 @@ defmodule EHealth.Declarations.API do
          prepared_data <- merge_related_data(resp["data"], relations),
          declarations <- render_declarations(prepared_data),
          response <- Map.put(resp, "data", declarations),
-      do: {:ok, response}
+         do: {:ok, response}
   end
 
   def fetch_related_ids(declarations) do
     acc = %{"person_ids" => [], "division_ids" => [], "employee_ids" => [], "legal_entity_ids" => []}
+
     declarations
-    |> Enum.map_reduce(acc, fn (declaration, acc) ->
-         acc = Enum.map(acc, fn({field_name, list}) ->
-           {field_name, put_related_id(list, declaration[String.trim_trailing(field_name, "s")])}
-         end)
-         {nil, acc}
-       end)
+    |> Enum.map_reduce(acc, fn declaration, acc ->
+      acc =
+        Enum.map(acc, fn {field_name, list} ->
+          {field_name, put_related_id(list, declaration[String.trim_trailing(field_name, "s")])}
+        end)
+
+      {nil, acc}
+    end)
     |> elem(1)
     |> Enum.into(%{})
   end
@@ -61,24 +64,29 @@ defmodule EHealth.Declarations.API do
   end
 
   def build_index([]), do: %{}
+
   def build_index(data) do
     data
     |> Enum.map_reduce(%{}, fn
-      (%Division{} = item, acc) ->
+      %Division{} = item, acc ->
         {nil, Map.put(acc, item.id, item)}
-      (%LegalEntity{} = item, acc) ->
+
+      %LegalEntity{} = item, acc ->
         {nil, Map.put(acc, item.id, item)}
-      (%Employee{} = item, acc) ->
+
+      %Employee{} = item, acc ->
         {nil, Map.put(acc, item.id, item)}
-      (item, acc) ->
+
+      item, acc ->
         {nil, Map.put(acc, item["id"], item)}
     end)
     |> elem(1)
   end
 
   def merge_related_data(data, relations) do
-    Enum.map(data, fn (item) ->
-      merge_related_data(item,
+    Enum.map(data, fn item ->
+      merge_related_data(
+        item,
         Map.get(relations.persons, item["person_id"]),
         Map.get(relations.legal_entities, item["legal_entity_id"]),
         Map.get(relations.divisions, item["division_id"]),
@@ -93,7 +101,7 @@ defmodule EHealth.Declarations.API do
       "person" => person,
       "division" => division,
       "employee" => employee,
-      "legal_entity" => legal_entity,
+      "legal_entity" => legal_entity
     })
     |> Map.drop(~W(person_id division_id employee_id legal_entity_id))
   end
@@ -101,38 +109,42 @@ defmodule EHealth.Declarations.API do
   def get_declaration_by_id(id, headers) do
     with {:ok, resp} <- OPS.get_declaration_by_id(id, headers),
          {:ok, data} <- expand_declaration_relations(Map.fetch!(resp, "data"), headers),
-         response    <- %{"meta" => Map.fetch!(resp, "meta"), "data" => data},
-      do: {:ok, response}
+         response <- %{"meta" => Map.fetch!(resp, "meta"), "data" => data},
+         do: {:ok, response}
   end
 
   def update_declaration(id, attrs, headers) do
     with {:ok, %{"data" => declaration}} <- OPS.get_declaration_by_id(id, headers),
-          :ok <- check_declaration_access(declaration["legal_entity_id"], headers),
-          :ok <- active?(declaration) do
+         :ok <- check_declaration_access(declaration["legal_entity_id"], headers),
+         :ok <- active?(declaration) do
       OPS.update_declaration(declaration["id"], %{"declaration" => attrs}, headers)
     end
   end
 
   def expand_declaration_relations(%{"legal_entity_id" => legal_entity_id} = declaration, headers) do
-    with :ok          <- check_declaration_access(legal_entity_id, headers),
-         person       <- load_relation(MPI, :person, declaration["person_id"], headers),
+    with :ok <- check_declaration_access(legal_entity_id, headers),
+         person <- load_relation(MPI, :person, declaration["person_id"], headers),
          legal_entity <- LegalEntities.get_by_id(legal_entity_id),
-         division     <- Divisions.get_by_id(declaration["division_id"]),
-         employee     <- Employees.get_by_id(declaration["employee_id"]),
-         declaration  <- merge_related_data(declaration, person, legal_entity, division, employee),
-         response     <- render_declaration(declaration),
-      do: {:ok, response}
+         division <- Divisions.get_by_id(declaration["division_id"]),
+         employee <- Employees.get_by_id(declaration["employee_id"]),
+         declaration <- merge_related_data(declaration, person, legal_entity, division, employee),
+         response <- render_declaration(declaration),
+         do: {:ok, response}
   end
 
   defp check_declaration_access(legal_entity_id, headers) do
     case Mithril.get_client_type_name(get_client_id(headers), headers) do
-      {:ok, nil} -> {:error, :access_denied}
+      {:ok, nil} ->
+        {:error, :access_denied}
+
       {:ok, client_type} ->
         headers
         |> get_client_id()
         |> get_context_params(client_type)
         |> legal_entity_allowed?(legal_entity_id)
-      err -> err
+
+      err ->
+        err
     end
   end
 
@@ -146,6 +158,7 @@ defmodule EHealth.Declarations.API do
   def legal_entity_allowed?(%{"legal_entity_id" => id}, legal_entity_id) when legal_entity_id != id do
     {:error, :forbidden}
   end
+
   def legal_entity_allowed?(_, _), do: :ok
 
   defp active?(%{"is_active" => true}), do: :ok

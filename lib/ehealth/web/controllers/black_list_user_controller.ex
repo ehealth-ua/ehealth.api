@@ -5,7 +5,7 @@ defmodule EHealth.Web.BlackListUserController do
   alias Scrivener.Page
   alias EHealth.BlackListUsers
 
-  action_fallback EHealth.Web.FallbackController
+  action_fallback(EHealth.Web.FallbackController)
 
   def index(conn, params) do
     with %Page{} = paging <- BlackListUsers.list(params) do

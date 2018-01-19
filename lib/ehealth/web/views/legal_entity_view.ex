@@ -16,6 +16,7 @@ defmodule EHealth.Web.LegalEntityView do
 
   def render("legal_entity.json", %{legal_entity: %LegalEntity{} = legal_entity}) do
     %{medical_service_provider: msp} = legal_entity
+
     %{
       id: legal_entity.id,
       name: legal_entity.name,
@@ -48,7 +49,7 @@ defmodule EHealth.Web.LegalEntityView do
   def render("medical_service_provider.json", %{legal_entity: msp}) do
     %{
       licenses: msp.licenses,
-      accreditation: msp.accreditation,
+      accreditation: msp.accreditation
     }
   end
 
@@ -56,20 +57,22 @@ defmodule EHealth.Web.LegalEntityView do
     %{
       "id" => Map.get(legal_entity, "id"),
       "name" => Map.get(legal_entity, "name"),
-      "short_name": Map.get(legal_entity, "short_name"),
-      "legal_form": Map.get(legal_entity, "legal_form"),
-      "edrpou": Map.get(legal_entity, "edrpou"),
+      short_name: Map.get(legal_entity, "short_name"),
+      legal_form: Map.get(legal_entity, "legal_form"),
+      edrpou: Map.get(legal_entity, "edrpou")
     }
   end
+
   def render("legal_entity_short.json", %{legal_entity: legal_entity}) do
     %{
       "id" => legal_entity.id,
       "name" => legal_entity.name,
-      "short_name": legal_entity.short_name,
-      "legal_form": legal_entity.legal_form,
-      "edrpou": legal_entity.edrpou
+      short_name: legal_entity.short_name,
+      legal_form: legal_entity.legal_form,
+      edrpou: legal_entity.edrpou
     }
   end
+
   def render("legal_entity_short.json", _), do: %{}
 
   def render("show_reimbursement.json", %{legal_entity: legal_entity}) do

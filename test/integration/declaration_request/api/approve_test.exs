@@ -17,8 +17,10 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.ApproveTest do
           case params["resource_name"] do
             "declaration_request_A.jpeg" ->
               "http://localhost:#{port}/good_upload_1"
+
             "declaration_request_B.jpeg" ->
               "http://localhost:#{port}/good_upload_2"
+
             "declaration_request_C.jpeg" ->
               "http://localhost:#{port}/missing_upload"
           end
@@ -51,10 +53,11 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.ApproveTest do
       :ets.new(:uploaded_at_port, [:named_table])
       :ets.insert(:uploaded_at_port, {"port", port})
       System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:#{port}")
-      on_exit fn ->
+
+      on_exit(fn ->
         System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
-      end
+      end)
 
       {:ok, %{port: port}}
     end
@@ -86,8 +89,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.ApproveTest do
         ]
       }
 
-      assert {:error, {:documents_not_uploaded, ["C"]}} ==
-        verify(declaration_request, "doesn't matter")
+      assert {:error, {:documents_not_uploaded, ["C"]}} == verify(declaration_request, "doesn't matter")
     end
   end
 
@@ -100,6 +102,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.ApproveTest do
           case conn.body_params["code"] do
             "99911" ->
               {200, %{status: "verified"}}
+
             "11999" ->
               {422, %{}}
           end
@@ -112,10 +115,11 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.ApproveTest do
       {:ok, port, ref} = start_microservices(VerifyViaOTP)
 
       System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:#{port}")
-      on_exit fn ->
+
+      on_exit(fn ->
         System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
-      end
+      end)
 
       :ok
     end

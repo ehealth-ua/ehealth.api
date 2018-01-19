@@ -18,6 +18,7 @@ defmodule EHealth.Validators.Reference do
   def validate(type, nil) do
     error(type)
   end
+
   def validate(:medication_request = type, id) do
     with {:ok, %{"data" => [medication_request]}} <- OPS.get_medication_requests(%{"id" => id}) do
       {:ok, medication_request}
@@ -25,6 +26,7 @@ defmodule EHealth.Validators.Reference do
       _ -> error(type)
     end
   end
+
   def validate(:employee = type, id) do
     with %Employee{} = employee <- Employees.get_by_id(id) do
       {:ok, employee}
@@ -32,6 +34,7 @@ defmodule EHealth.Validators.Reference do
       _ -> error(type)
     end
   end
+
   def validate(:division = type, id) do
     with %Division{} = division <- Divisions.get_by_id(id) do
       {:ok, division}
@@ -39,6 +42,7 @@ defmodule EHealth.Validators.Reference do
       _ -> error(type)
     end
   end
+
   def validate(:medical_program = type, id) do
     with %MedicalProgram{} = medical_program <- MedicalPrograms.get_by_id(id) do
       {:ok, medical_program}
@@ -46,6 +50,7 @@ defmodule EHealth.Validators.Reference do
       _ -> error(type)
     end
   end
+
   def validate(:legal_entity = type, id) do
     with %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(id) do
       {:ok, legal_entity}
@@ -53,6 +58,7 @@ defmodule EHealth.Validators.Reference do
       _ -> error(type)
     end
   end
+
   def validate(:medication = type, id, path \\ nil) do
     with %Medication{} = medication <- Medications.get_medication_by_id(id) do
       {:ok, medication}
@@ -65,13 +71,18 @@ defmodule EHealth.Validators.Reference do
     description =
       type
       |> to_string()
-      |> String.capitalize
+      |> String.capitalize()
       |> String.replace("_", " ")
+
     path = path || "$.#{type}_id"
-    {:error, [{%{
-      description: "#{description} not found",
-      params: [],
-      rule: :invalid
-    }, path}]}
+
+    {:error,
+     [
+       {%{
+          description: "#{description} not found",
+          params: [],
+          rule: :invalid
+        }, path}
+     ]}
   end
 end

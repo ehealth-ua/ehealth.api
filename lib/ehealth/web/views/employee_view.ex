@@ -36,25 +36,28 @@ defmodule EHealth.Web.EmployeeView do
     %{
       "id" => Map.get(employee, "id"),
       "position" => Map.get(employee, "position"),
-      "party" => render(PartyView, "party_short.json", Map.take(employee, ["party"])),
+      "party" => render(PartyView, "party_short.json", Map.take(employee, ["party"]))
     }
   end
+
   def render("employee_short.json", %{employee: employee}) do
     %{
       "id" => employee.id,
       "position" => employee.position,
-      "party" => render(PartyView, "party_short.json", %{party: employee.party}),
+      "party" => render(PartyView, "party_short.json", %{party: employee.party})
     }
   end
+
   def render("employee_short.json", _), do: %{}
 
   def render("employee_private.json", %{employee: employee}) do
     %{
       "id" => employee.id,
       "position" => employee.position,
-      "party" => render(PartyView, "party_private.json", %{party: employee.party}),
+      "party" => render(PartyView, "party_private.json", %{party: employee.party})
     }
   end
+
   def render("employee_private.json", _), do: %{}
 
   def render("employee.json", %{employee: %{employee_type: @doctor, additional_info: info} = employee}) do
@@ -62,11 +65,13 @@ defmodule EHealth.Web.EmployeeView do
     |> render_employee()
     |> render_doctor(info)
   end
+
   def render("employee.json", %{employee: %{employee_type: @pharmacist, additional_info: info} = employee}) do
     employee
     |> render_employee()
     |> render_pharmacist(info)
   end
+
   def render("employee.json", %{employee: employee}) do
     render_employee(employee)
   end
@@ -101,6 +106,7 @@ defmodule EHealth.Web.EmployeeView do
     )a)
     Map.put(map, :party, data)
   end
+
   defp render_association(map, %Division{} = division) do
     data = Map.take(division, ~w(
       id
@@ -112,6 +118,7 @@ defmodule EHealth.Web.EmployeeView do
     )a)
     Map.put(map, :division, data)
   end
+
   defp render_association(map, %LegalEntity{} = legal_entity) do
     data = Map.take(legal_entity, ~w(
       id
@@ -127,6 +134,7 @@ defmodule EHealth.Web.EmployeeView do
     )a)
     Map.put(map, :legal_entity, data)
   end
+
   defp render_association(map, _), do: map
 
   defp render_doctor(map, info) do
@@ -140,8 +148,10 @@ defmodule EHealth.Web.EmployeeView do
   defp put_list_info(map, %Employee{employee_type: @doctor} = employee) do
     Map.put(map, :doctor, %{"specialities" => Map.get(employee.additional_info, "specialities")})
   end
+
   defp put_list_info(map, %Employee{employee_type: @pharmacist} = employee) do
     Map.put(map, :pharmacist, %{"specialities" => Map.get(employee.additional_info, "specialities")})
   end
+
   defp put_list_info(map, _), do: map
 end

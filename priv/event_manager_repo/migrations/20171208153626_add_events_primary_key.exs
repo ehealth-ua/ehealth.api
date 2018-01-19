@@ -3,7 +3,7 @@ defmodule EventManagerApi.Repo.Migrations.AddEventsPrimaryKey do
 
   def change do
     alter table(:events) do
-      modify :id, :uuid, primary_key: true
+      modify(:id, :uuid, primary_key: true)
     end
   end
 end

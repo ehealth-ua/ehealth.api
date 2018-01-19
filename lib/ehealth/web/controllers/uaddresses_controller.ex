@@ -3,7 +3,7 @@ defmodule EHealth.Web.UaddressesController do
   use EHealth.Web, :controller
   alias EHealth.Divisions.UAddress
 
-  action_fallback EHealth.Web.FallbackController
+  action_fallback(EHealth.Web.FallbackController)
 
   def update_settlements(conn, %{"id" => _id} = attrs) do
     with {:ok, %{settlement: %{"meta" => %{}} = response}} <- UAddress.update_settlement(attrs, conn.req_headers) do

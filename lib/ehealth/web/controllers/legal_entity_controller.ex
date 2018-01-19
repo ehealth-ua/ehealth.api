@@ -8,14 +8,11 @@ defmodule EHealth.Web.LegalEntityController do
   alias EHealth.LegalEntities, as: API
   alias EHealth.LegalEntities.LegalEntityUpdater
 
-  action_fallback EHealth.Web.FallbackController
+  action_fallback(EHealth.Web.FallbackController)
 
   def create_or_update(%Plug.Conn{req_headers: req_headers} = conn, legal_entity_params) do
-    with {:ok, %{
-      legal_entity: legal_entity,
-      employee_request: employee_request,
-      security: security}} <- API.create(legal_entity_params, req_headers) do
-
+    with {:ok, %{legal_entity: legal_entity, employee_request: employee_request, security: security}} <-
+           API.create(legal_entity_params, req_headers) do
       conn
       |> assign_security(security)
       |> assign_employee_request_id(employee_request)
@@ -26,9 +23,12 @@ defmodule EHealth.Web.LegalEntityController do
   def index(conn, params) do
     # Respect MSP token
     legal_entity_id = Map.get(conn.params, "legal_entity_id")
-    params = if is_nil(legal_entity_id),
-      do: params,
-      else: Map.put(params, "ids", legal_entity_id)
+
+    params =
+      if is_nil(legal_entity_id),
+        do: params,
+        else: Map.put(params, "ids", legal_entity_id)
+
     with %Page{} = paging <- API.list(params) do
       render(conn, "index.json", legal_entities: paging.entries, paging: paging)
     end
@@ -63,5 +63,6 @@ defmodule EHealth.Web.LegalEntityController do
   defp assign_employee_request_id(conn, %EHealth.EmployeeRequests.EmployeeRequest{id: id}) do
     assign_urgent(conn, "employee_request_id", id)
   end
+
   defp assign_employee_request_id(conn, _employee_request_id), do: conn
 end

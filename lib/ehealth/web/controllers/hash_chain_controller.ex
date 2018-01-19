@@ -5,7 +5,7 @@ defmodule EHealth.Web.HashChainController do
 
   use EHealth.Web, :controller
 
-  action_fallback EHealth.Web.FallbackController
+  action_fallback(EHealth.Web.FallbackController)
 
   def verification_failed(conn, params) do
     Verification.send_failure_notification(params)

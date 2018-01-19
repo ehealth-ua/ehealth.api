@@ -2,7 +2,7 @@ defmodule EHealth.Repo.Migrations.AddEmployeeDictionaryConstants do
   use Ecto.Migration
 
   def change do
-    execute """
+    execute("""
     UPDATE dictionaries SET
     values = values || '{
       "HR": "відділ кадрів",
@@ -14,9 +14,9 @@ defmodule EHealth.Repo.Migrations.AddEmployeeDictionaryConstants do
       "PHARMACIST": "фармацевт"
     }'
     WHERE name = 'EMPLOYEE_TYPE';
-    """
+    """)
 
-    execute """
+    execute("""
     UPDATE dictionaries SET
     values = values || '{
       "P14": "Старший провізор",
@@ -27,9 +27,9 @@ defmodule EHealth.Repo.Migrations.AddEmployeeDictionaryConstants do
       "P19": "Завідувач аптечного пункту"
     }'
     WHERE name = 'POSITION';
-    """
+    """)
 
-    execute """
+    execute("""
     UPDATE dictionaries SET
     values = values || '{
       "THERAPIST": "Терапевт",
@@ -39,6 +39,6 @@ defmodule EHealth.Repo.Migrations.AddEmployeeDictionaryConstants do
       "PHARMACIST2": "Провізор"
     }'
     WHERE name = 'SPECIALITY_TYPE';
-    """
+    """)
   end
 end

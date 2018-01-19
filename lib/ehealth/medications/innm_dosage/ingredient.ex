@@ -16,17 +16,18 @@ defmodule EHealth.Medications.INNMDosage.Ingredient do
 
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "ingredients" do
-    field :dosage, :map
-    field :is_primary, :boolean, default: false
+    field(:dosage, :map)
+    field(:is_primary, :boolean, default: false)
 
-    belongs_to :innm_dosage, INNMDosage, [type: Ecto.UUID, foreign_key: :parent_id]
-    belongs_to :innm, INNM, [type: Ecto.UUID, foreign_key: :innm_child_id]
+    belongs_to(:innm_dosage, INNMDosage, type: Ecto.UUID, foreign_key: :parent_id)
+    belongs_to(:innm, INNM, type: Ecto.UUID, foreign_key: :innm_child_id)
 
     timestamps()
   end
 
   def changeset(%EHealth.Medications.INNMDosage.Ingredient{} = ingredient, attrs) do
     attrs = Map.put(attrs, "innm_child_id", attrs["id"])
+
     ingredient
     |> cast(attrs, @fields)
     |> validate_required(@fields)

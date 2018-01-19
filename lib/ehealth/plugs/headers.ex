@@ -11,13 +11,17 @@ defmodule EHealth.Plugs.Headers do
         |> put_status(:unauthorized)
         |> render(EView.Views.Error, :"401", %{
           message: "Missing header #{header}",
-          invalid: [%{
-            entry_type: :header,
-            entry: header
-          }]
+          invalid: [
+            %{
+              entry_type: :header,
+              entry: header
+            }
+          ]
         })
         |> halt()
-      _ -> conn
+
+      _ ->
+        conn
     end
   end
 
@@ -32,12 +36,15 @@ defmodule EHealth.Plugs.Headers do
     |> put_status(:unauthorized)
     |> render(EView.Views.Error, :"401", %{
       message: "Misssing Client ID",
-      invalid: [%{
-        entry_type: :header,
-        entry: get_header_name(:header_consumer_metadata)
-      }]
+      invalid: [
+        %{
+          entry_type: :header,
+          entry: get_header_name(:header_consumer_metadata)
+        }
+      ]
     })
     |> halt()
   end
+
   defp validate_client_id_existence(_client_id, conn), do: conn
 end

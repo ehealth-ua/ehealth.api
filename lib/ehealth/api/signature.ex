@@ -29,18 +29,21 @@ defmodule EHealth.API.Signature do
 
       Logger.info(fn ->
         Poison.encode!(%{
-          "log_type"     => "microservice_response",
+          "log_type" => "microservice_response",
           "microservice" => "digital-signature",
-          "result"       => response,
-          "request_id"   => Logger.metadata[:request_id],
+          "result" => response,
+          "request_id" => Logger.metadata()[:request_id]
         })
       end)
 
       result
     else
       data = Base.decode64(signed_content)
+
       case data do
-        :error -> data_is_invalid_resp()
+        :error ->
+          data_is_invalid_resp()
+
         {:ok, data} ->
           case Poison.decode(data) do
             {:ok, data} -> data_is_valid_resp(data, headers)
@@ -61,7 +64,8 @@ defmodule EHealth.API.Signature do
         }
       }
       |> wrap_response(200)
-      |> Poison.encode!
+      |> Poison.encode!()
+
     ResponseDecoder.check_response(%HTTPoison.Response{body: data, status_code: 200})
   end
 
@@ -69,13 +73,15 @@ defmodule EHealth.API.Signature do
     data =
       %{"is_valid" => false}
       |> wrap_response(422)
-      |> Poison.encode!
+      |> Poison.encode!()
+
     ResponseDecoder.check_response(%HTTPoison.Response{body: data, status_code: 422})
   end
 
   def extract_edrpou({:ok, %{"data" => %{"signer" => %{"edrpou" => edrpou}}}}) do
     edrpou
   end
+
   def extract_edrpou({:ok, _}), do: {:error, "signer.edrpou is missed in decoded digital signature"}
   def extract_edrpou(err), do: err
 

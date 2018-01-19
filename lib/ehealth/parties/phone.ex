@@ -14,8 +14,8 @@ defmodule EHealth.Parties.Phone do
 
   @primary_key false
   schema "phones" do
-    field :type, :string
-    field :number, :string
+    field(:type, :string)
+    field(:number, :string)
   end
 
   def changeset(%__MODULE__{} = phone, attrs) do

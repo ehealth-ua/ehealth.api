@@ -18,6 +18,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
           case confirm_params["first_name"] do
             "Олена" ->
               [%{id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c"}]
+
             "Тест" ->
               []
           end
@@ -28,8 +29,8 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       # MPI API
       Plug.Router.get "/persons/b5350f79-f2ca-408f-b15d-1ae0a8cc861c" do
         person = %{
-          "authentication_methods": [
-            %{"type": "OTP", "phone_number": "+380508887700"}
+          authentication_methods: [
+            %{type: "OTP", phone_number: "+380508887700"}
           ]
         }
 
@@ -96,18 +97,22 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
 
       # Mithril API
       Plug.Router.get "/admin/roles" do
-        roles = [%{
-          "id" => "f9bd4210-7c4b-40b6-957f-300829ad37dc"
-        }]
+        roles = [
+          %{
+            "id" => "f9bd4210-7c4b-40b6-957f-300829ad37dc"
+          }
+        ]
 
         Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: roles}))
       end
 
       Plug.Router.get "/admin/users/:id/roles" do
-        roles = [%{
-          "user_id" => id,
-          "role_id" => "f9bd4210-7c4b-40b6-957f-300829ad37dc"
-        }]
+        roles = [
+          %{
+            "user_id" => id,
+            "role_id" => "f9bd4210-7c4b-40b6-957f-300829ad37dc"
+          }
+        ]
 
         Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: roles}))
       end
@@ -156,7 +161,10 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
       insert(:prm, :party_user, party: party)
       division = insert(:prm, :division, id: "51f56b0e-0223-49c1-9b5f-b07e09ba40f1", legal_entity: legal_entity)
       doctor = Map.put(doctor(), "specialities", [%{speciality: "PEDIATRICIAN"}])
-      insert(:prm, :employee,
+
+      insert(
+        :prm,
+        :employee,
         id: "ce377dea-d8c4-4dd8-9328-de24b1ee3879",
         division: division,
         party: party,
@@ -174,7 +182,8 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
       System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:#{port}")
       System.put_env("OAUTH_ENDPOINT", "http://localhost:#{port}")
       System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
-      on_exit fn ->
+
+      on_exit(fn ->
         System.put_env("GNDF_TABLE_ID", "some_gndf_table_id")
         System.put_env("MPI_ENDPOINT", "http://localhost:4040")
         System.put_env("GNDF_ENDPOINT", "http://localhost:4040")
@@ -185,7 +194,7 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
         System.put_env("OAUTH_ENDPOINT", "http://localhost:4040")
         System.put_env("OPS_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
-      end
+      end)
 
       {:ok, %{port: port, conn: conn}}
     end
@@ -205,8 +214,9 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
 
       resp = json_response(conn, 422)
       assert [error] = resp["error"]["invalid"]
+
       assert "Doctor speciality does not meet the patient's age requirement." ==
-             error["rules"] |> List.first() |> Map.get("description")
+               error["rules"] |> List.first() |> Map.get("description")
     end
 
     test "declaration request with non verified phone for OTP auth", %{conn: conn} do
@@ -266,8 +276,9 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
 
       resp = json_response(conn, 422)
       assert [error] = resp["error"]["invalid"]
+
       assert "required property phone_number was not present" ==
-             error["rules"] |> List.first() |> Map.get("description")
+               error["rules"] |> List.first() |> Map.get("description")
     end
 
     test "declaration request with two similar phone numbers type results in validation error", %{conn: conn} do
@@ -287,8 +298,9 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
 
       resp = json_response(conn, 422)
       assert [error] = resp["error"]["invalid"]
+
       assert %{"description" => "No duplicate values.", "params" => ["MOBILE"], "rule" => "invalid"} ==
-        error["rules"] |> List.first()
+               error["rules"] |> List.first()
     end
 
     test "declaration request is created with 'OTP' verification", %{conn: conn} do
@@ -301,34 +313,41 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
       employee_id = "ce377dea-d8c4-4dd8-9328-de24b1ee3879"
       legal_entity_id = "8799e3b6-34e7-4798-ba70-d897235d2b6d"
 
-      d1 = insert(:il, :declaration_request,
-        data: %{
-          person: %{
-            tax_id: tax_id
+      d1 =
+        insert(
+          :il,
+          :declaration_request,
+          data: %{
+            person: %{
+              tax_id: tax_id
+            },
+            employee: %{
+              id: employee_id
+            },
+            legal_entity: %{
+              id: legal_entity_id
+            }
           },
-          employee: %{
-            id: employee_id
+          status: "NEW"
+        )
+
+      d2 =
+        insert(
+          :il,
+          :declaration_request,
+          data: %{
+            person: %{
+              tax_id: tax_id
+            },
+            employee: %{
+              id: employee_id
+            },
+            legal_entity: %{
+              id: legal_entity_id
+            }
           },
-          legal_entity: %{
-            id: legal_entity_id
-          }
-        },
-        status: "NEW"
-      )
-      d2 = insert(:il, :declaration_request,
-        data: %{
-          person: %{
-            tax_id: tax_id
-          },
-          employee: %{
-            id: employee_id
-          },
-          legal_entity: %{
-            id: legal_entity_id
-          }
-        },
-        status: "APPROVED"
-      )
+          status: "APPROVED"
+        )
 
       conn =
         conn
@@ -342,7 +361,7 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
 
       assert_declaration_request_show_response(resp)
 
-      assert to_string(Date.utc_today) == resp["data"]["start_date"]
+      assert to_string(Date.utc_today()) == resp["data"]["start_date"]
       assert {:ok, _} = Date.from_iso8601(resp["data"]["end_date"])
       assert "99bc78ba577a95a11f1a344d4d2ae55f2f857b98" == resp["data"]["seed"]
 
@@ -357,8 +376,10 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
       # assert "ce377dea-d8c4-4dd8-9328-de24b1ee3879" = resp["data"]["inserted_by"]
       # assert %{"number" => "+380508887700", "type" => "OTP"} = resp["authentication_method_current"]
       tax_id = resp["data"]["person"]["tax_id"]
+
       assert "<html><body>Printout form for declaration request. tax_id = #{tax_id}</body></html>" ==
-        resp["data"]["content"]
+               resp["data"]["content"]
+
       assert is_nil(resp["data"]["urgent"]["documents"])
 
       assert "CANCELLED" = EHealth.Repo.get(EHealth.DeclarationRequest, d1.id).status
@@ -368,8 +389,8 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
     test "declaration request is created with 'Offline' verification", %{conn: conn} do
       declaration_request_params =
         "test/data/declaration_request.json"
-        |> File.read!
-        |> Poison.decode!
+        |> File.read!()
+        |> Poison.decode!()
         |> put_in(~W(declaration_request person first_name), "Тест")
         |> put_in(~W(declaration_request person authentication_methods), [%{"type" => "OFFLINE"}])
 
@@ -385,7 +406,7 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
 
       assert_declaration_request_show_response(resp)
 
-      assert to_string(Date.utc_today) == resp["data"]["start_date"]
+      assert to_string(Date.utc_today()) == resp["data"]["start_date"]
       assert {:ok, _} = Date.from_iso8601(resp["data"]["end_date"])
       # TODO: turn this into DB checks
       #
@@ -394,25 +415,30 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
       # assert "ce377dea-d8c4-4dd8-9328-de24b1ee3879" = resp["data"]["inserted_by"]
       # assert %{"number" => "+380508887700", "type" => "OFFLINE"} = resp["data"]["authentication_method_current"]
       tax_id = resp["data"]["person"]["tax_id"]
+
       assert "<html><body>Printout form for declaration request. tax_id = #{tax_id}</body></html>" ==
-        resp["data"]["content"]
+               resp["data"]["content"]
+
       assert [
-        %{
-          "type" => "person.PASSPORT",
-          "url" => "http://some_resource.com/#{id}/declaration_request_person.PASSPORT.jpeg"},
-        %{
-          "type" => "person.SSN",
-          "url" => "http://some_resource.com/#{id}/declaration_request_person.SSN.jpeg"
-        },
-        %{
-          "type" => "confidant_person.0.PRIMARY.RELATIONSHIP.COURT_DECISION",
-          "url" => "http://some_resource.com/#{id}/declaration_request_confidant_person.0.PRIMARY.RELATIONSHIP.COURT_DECISION.jpeg"
-        },
-      ] == resp["urgent"]["documents"]
+               %{
+                 "type" => "person.PASSPORT",
+                 "url" => "http://some_resource.com/#{id}/declaration_request_person.PASSPORT.jpeg"
+               },
+               %{
+                 "type" => "person.SSN",
+                 "url" => "http://some_resource.com/#{id}/declaration_request_person.SSN.jpeg"
+               },
+               %{
+                 "type" => "confidant_person.0.PRIMARY.RELATIONSHIP.COURT_DECISION",
+                 "url" =>
+                   "http://some_resource.com/#{id}/declaration_request_confidant_person.0.PRIMARY.RELATIONSHIP.COURT_DECISION.jpeg"
+               }
+             ] == resp["urgent"]["documents"]
     end
 
     test "declaration request is created without verification", %{conn: conn} do
       System.put_env("GNDF_TABLE_ID", "not_available")
+
       declaration_request_params =
         "test/data/declaration_request.json"
         |> File.read!()
@@ -435,7 +461,7 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
 
       assert_declaration_request_show_response(resp)
 
-      assert to_string(Date.utc_today) == resp["data"]["start_date"]
+      assert to_string(Date.utc_today()) == resp["data"]["start_date"]
       assert {:ok, _} = Date.from_iso8601(resp["data"]["end_date"])
 
       declaration_request = EHealth.DeclarationRequest.API.get_declaration_request_by_id!(id)
@@ -449,8 +475,10 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
       # assert "ce377dea-d8c4-4dd8-9328-de24b1ee3879" = resp["data"]["inserted_by"]
       # assert %{"number" => "+380508887700", "type" => "OTP"} = resp["authentication_method_current"]
       tax_id = resp["data"]["person"]["tax_id"]
+
       assert "<html><body>Printout form for declaration request. tax_id = #{tax_id}</body></html>" ==
-        resp["data"]["content"]
+               resp["data"]["content"]
+
       assert %{"type" => "NA"} = resp["urgent"]["authentication_method_current"]
       assert is_nil(resp["data"]["urgent"]["documents"])
 
@@ -486,10 +514,11 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
       {:ok, port, ref} = start_microservices(NoParams)
 
       System.put_env("UADDRESS_ENDPOINT", "http://localhost:#{port}")
-      on_exit fn ->
+
+      on_exit(fn ->
         System.put_env("UADDRESS_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
-      end
+      end)
 
       insert_dictionaries()
 
@@ -542,10 +571,11 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
       {:ok, port, ref} = start_microservices(InvalidEmployeeID)
 
       System.put_env("UADDRESS_ENDPOINT", "http://localhost:#{port}")
-      on_exit fn ->
+
+      on_exit(fn ->
         System.put_env("UADDRESS_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
-      end
+      end)
 
       {:ok, %{port: port, conn: conn}}
     end
@@ -556,7 +586,7 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
       declaration_request_params =
         "test/data/declaration_request.json"
         |> File.read!()
-        |> Poison.decode!
+        |> Poison.decode!()
         |> put_in(["declaration_request", "employee_id"], wrong_id)
 
       conn =
@@ -568,20 +598,21 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
       resp = json_response(conn, 422)
 
       assert %{
-        "meta" => %{
-          "code" => 422,
-          "url" => "http://www.example.com/api/declaration_requests",
-          "type" => "object",
-          "request_id" => _,
-        }
-      } = resp
+               "meta" => %{
+                 "code" => 422,
+                 "url" => "http://www.example.com/api/declaration_requests",
+                 "type" => "object",
+                 "request_id" => _
+               }
+             } = resp
     end
   end
 
   describe "Settlement does not exist" do
     defmodule NoSettlement do
       use MicroservicesHelper
-        Plug.Router.get "/settlements/adaa4abf-f530-461c-bcbf-a0ac210d955b" do
+
+      Plug.Router.get "/settlements/adaa4abf-f530-461c-bcbf-a0ac210d955b" do
         Plug.Conn.send_resp(conn, 404, Poison.encode!(%{meta: "", data: %{}}))
       end
     end
@@ -592,10 +623,11 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
       insert_dictionaries()
 
       System.put_env("UADDRESS_ENDPOINT", "http://localhost:#{port}")
-      on_exit fn ->
+
+      on_exit(fn ->
         System.put_env("UADDRESS_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
-      end
+      end)
 
       {:ok, %{conn: conn}}
     end
@@ -610,33 +642,33 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
         |> post(declaration_request_path(conn, :create), declaration_request_params)
 
       assert %{
-        "invalid" => [
-          %{
-            "entry" => "$.addresses.settlement_id",
-            "entry_type" => "json_data_property",
-            "rules" => [
-              %{
-                "description" => "settlement with id = adaa4abf-f530-461c-bcbf-a0ac210d955b does not exist",
-                "params" => [],
-                "rule" => "not_found"
-              }
-            ]
-          },
-          %{
-            "entry" => "$.addresses.settlement_id",
-            "entry_type" => "json_data_property",
-            "rules" => [
-              %{
-                "description" => "settlement with id = adaa4abf-f530-461c-bcbf-a0ac210d955b does not exist",
-                "params" => [],
-                "rule" => "not_found"
-              }
-            ]
-          }
-        ],
-        "message" => _,
-        "type" => "validation_failed"
-      } = json_response(conn, 422)["error"]
+               "invalid" => [
+                 %{
+                   "entry" => "$.addresses.settlement_id",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "settlement with id = adaa4abf-f530-461c-bcbf-a0ac210d955b does not exist",
+                       "params" => [],
+                       "rule" => "not_found"
+                     }
+                   ]
+                 },
+                 %{
+                   "entry" => "$.addresses.settlement_id",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "settlement with id = adaa4abf-f530-461c-bcbf-a0ac210d955b does not exist",
+                       "params" => [],
+                       "rule" => "not_found"
+                     }
+                   ]
+                 }
+               ],
+               "message" => _,
+               "type" => "validation_failed"
+             } = json_response(conn, 422)["error"]
     end
   end
 
@@ -663,7 +695,7 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
 
     %EHealth.DeclarationRequest{}
     |> Ecto.Changeset.change(declaration_request_params)
-    |> EHealth.Repo.insert!
+    |> EHealth.Repo.insert!()
   end
 
   defp insert_dictionaries() do

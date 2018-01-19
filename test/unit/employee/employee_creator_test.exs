@@ -14,26 +14,40 @@ defmodule EHealth.Unit.Employee.EmployeeCreatorTest do
     party2 = insert(:prm, :party, tax_id: "1222222225")
     party3 = insert(:prm, :party, tax_id: "1220222225")
     party4 = insert(:prm, :party, tax_id: "1220220235")
-    insert(:prm, :employee,
+
+    insert(
+      :prm,
+      :employee,
       legal_entity: legal_entity1,
       employee_type: Employee.type(:owner),
       party: party1
     )
-    insert(:prm, :employee,
+
+    insert(
+      :prm,
+      :employee,
       legal_entity: legal_entity1,
       employee_type: Employee.type(:pharmacy_owner),
       party: party2
     )
-    employee1 = insert(:prm, :employee,
-      legal_entity: legal_entity2,
-      employee_type: Employee.type(:owner),
-      party: party3
-    )
-    employee2 = insert(:prm, :employee,
-      legal_entity: legal_entity2,
-      employee_type: Employee.type(:pharmacy_owner),
-      party: party4
-    )
+
+    employee1 =
+      insert(
+        :prm,
+        :employee,
+        legal_entity: legal_entity2,
+        employee_type: Employee.type(:owner),
+        party: party3
+      )
+
+    employee2 =
+      insert(
+        :prm,
+        :employee,
+        legal_entity: legal_entity2,
+        employee_type: Employee.type(:pharmacy_owner),
+        party: party4
+      )
 
     EmployeeCreator.deactivate_employee_owners(employee1.employee_type, employee1.legal_entity_id, get_headers())
     refute PRMRepo.get(Employee, employee1.id).is_active

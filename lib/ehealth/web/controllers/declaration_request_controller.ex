@@ -6,10 +6,11 @@ defmodule EHealth.Web.DeclarationRequestController do
   alias EHealth.DeclarationRequest.API, as: DeclarationRequestAPI
   require Logger
 
-  action_fallback EHealth.Web.FallbackController
+  action_fallback(EHealth.Web.FallbackController)
 
   def index(conn, params) do
     declaration_requests = DeclarationRequestAPI.list_declaration_requests(params)
+
     with %Page{} = paging <- declaration_requests do
       render(conn, "index.json", declaration_requests: paging.entries, paging: paging)
     end
@@ -18,6 +19,7 @@ defmodule EHealth.Web.DeclarationRequestController do
   def show(conn, %{"declaration_request_id" => id} = params) do
     declaration_request = DeclarationRequestAPI.get_declaration_request_by_id!(id, params)
     urgent_data = Map.take(declaration_request, [:authentication_method_current, :documents])
+
     conn
     |> assign(:urgent, urgent_data)
     |> render("declaration_request.json", declaration_request: declaration_request, display_hash: true)
@@ -28,6 +30,7 @@ defmodule EHealth.Web.DeclarationRequestController do
     client_id = get_client_id(conn.req_headers)
 
     creation_result = DeclarationRequestAPI.create(declaration_request, user_id, client_id)
+
     with {:ok, %{urgent_data: urgent_data, finalize: result}} <- creation_result do
       conn
       |> assign(:urgent, urgent_data)
@@ -39,15 +42,15 @@ defmodule EHealth.Web.DeclarationRequestController do
     user_id = get_consumer_id(conn.req_headers)
 
     with {:ok, %{declaration_request: declaration_request}} <-
-        DeclarationRequestAPI.approve(id, params["verification_code"], user_id) do
+           DeclarationRequestAPI.approve(id, params["verification_code"], user_id) do
       render(conn, "declaration_request.json", declaration_request: declaration_request)
     else
       {:error, _, %{"meta" => %{"code" => 404}}, _} ->
         Logger.error(fn ->
           Poison.encode!(%{
-            "log_type"   => "error",
-            "message"    => "Phone was not found for declaration request #{id}",
-            "request_id" => Logger.metadata[:request_id]
+            "log_type" => "error",
+            "message" => "Phone was not found for declaration request #{id}",
+            "request_id" => Logger.metadata()[:request_id]
           })
         end)
 
@@ -62,7 +65,8 @@ defmodule EHealth.Web.DeclarationRequestController do
       {:error, _, %{"meta" => _} = error, _} ->
         {:error, error}
 
-      {:error, error} -> {:error, error}
+      {:error, error} ->
+        {:error, error}
     end
   end
 

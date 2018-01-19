@@ -4,7 +4,7 @@ defmodule EHealth.DeclarationRequest.SignRequest do
   use Ecto.Schema
 
   schema "declaration_sign_request" do
-    field :signed_declaration_request, :string
-    field :signed_content_encoding, :string
+    field(:signed_declaration_request, :string)
+    field(:signed_content_encoding, :string)
   end
 end

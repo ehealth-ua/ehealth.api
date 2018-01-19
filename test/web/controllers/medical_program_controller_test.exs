@@ -7,7 +7,7 @@ defmodule EHealth.Web.MedicalProgramControllerTest do
     test "search by id", %{conn: conn} do
       %{id: id} = insert(:prm, :medical_program)
       insert(:prm, :medical_program)
-      conn = get conn, medical_program_path(conn, :index), %{"id" => id}
+      conn = get(conn, medical_program_path(conn, :index), %{"id" => id})
       resp = json_response(conn, 200)["data"]
       assert 1 == length(resp)
       assert id == Map.get(hd(resp), "id")
@@ -18,7 +18,7 @@ defmodule EHealth.Web.MedicalProgramControllerTest do
     test "search by name", %{conn: conn} do
       insert(:prm, :medical_program, name: "test")
       insert(:prm, :medical_program, name: "other")
-      conn = get conn, medical_program_path(conn, :index), %{"name" => "te"}
+      conn = get(conn, medical_program_path(conn, :index), %{"name" => "te"})
       resp = json_response(conn, 200)["data"]
       assert 1 == length(resp)
       assert "test" == Map.get(hd(resp), "name")
@@ -27,7 +27,7 @@ defmodule EHealth.Web.MedicalProgramControllerTest do
     test "search by is_active", %{conn: conn} do
       %{id: id} = insert(:prm, :medical_program, is_active: true)
       insert(:prm, :medical_program, is_active: false)
-      conn = get conn, medical_program_path(conn, :index), %{"is_active" => true}
+      conn = get(conn, medical_program_path(conn, :index), %{"is_active" => true})
       resp = json_response(conn, 200)["data"]
       assert 1 == length(resp)
       assert id == Map.get(hd(resp), "id")
@@ -37,6 +37,7 @@ defmodule EHealth.Web.MedicalProgramControllerTest do
     test "search by all possible options", %{conn: conn} do
       %{id: id} = insert(:prm, :medical_program, name: "Программа для усіх", is_active: true)
       insert(:prm, :medical_program, is_active: false)
+
       data =
         conn
         |> get(medical_program_path(conn, :index), %{"is_active" => true, "name" => "усіх"})
@@ -53,7 +54,7 @@ defmodule EHealth.Web.MedicalProgramControllerTest do
 
   describe "create medical program" do
     test "invalid name", %{conn: conn} do
-      conn = post conn, medical_program_path(conn, :create)
+      conn = post(conn, medical_program_path(conn, :create))
       resp = json_response(conn, 422)
       assert %{"error" => %{"invalid" => [%{"entry" => "$.name"}]}} = resp
     end
@@ -70,6 +71,7 @@ defmodule EHealth.Web.MedicalProgramControllerTest do
   describe "get by id" do
     test "success", %{conn: conn} do
       %{id: id} = insert(:prm, :medical_program)
+
       conn
       |> get(medical_program_path(conn, :show, id))
       |> json_response(200)
@@ -79,8 +81,9 @@ defmodule EHealth.Web.MedicalProgramControllerTest do
 
     test "fail", %{conn: conn} do
       conn = put_client_id_header(conn)
+
       assert_raise Ecto.NoResultsError, fn ->
-        get conn, medical_program_path(conn, :show, Ecto.UUID.generate())
+        get(conn, medical_program_path(conn, :show, Ecto.UUID.generate()))
       end
     end
   end
@@ -88,7 +91,7 @@ defmodule EHealth.Web.MedicalProgramControllerTest do
   describe "deactivate" do
     test "success", %{conn: conn} do
       %{id: id} = medical_program = insert(:prm, :medical_program)
-      conn = patch conn, medical_program_path(conn, :deactivate, medical_program)
+      conn = patch(conn, medical_program_path(conn, :deactivate, medical_program))
 
       assert %{"id" => ^id} = json_response(conn, 200)["data"]
 
@@ -98,7 +101,7 @@ defmodule EHealth.Web.MedicalProgramControllerTest do
     test "medical program is inactive", %{conn: conn} do
       medical_program = insert(:prm, :medical_program, is_active: false)
 
-      conn = patch conn, medical_program_path(conn, :deactivate, medical_program)
+      conn = patch(conn, medical_program_path(conn, :deactivate, medical_program))
       refute json_response(conn, 200)["data"]["is_active"]
     end
 
@@ -106,7 +109,7 @@ defmodule EHealth.Web.MedicalProgramControllerTest do
       medical_program = insert(:prm, :medical_program)
       insert(:prm, :program_medication, medical_program_id: medical_program.id)
 
-      conn = patch conn, medical_program_path(conn, :deactivate, medical_program)
+      conn = patch(conn, medical_program_path(conn, :deactivate, medical_program))
       err_msg = "This program has active participants. Only medical programs without participants can be deactivated"
       assert err_msg == json_response(conn, 409)["error"]["message"]
     end

@@ -46,26 +46,24 @@ defmodule EHealth.DeclarationRequest.API do
   @auth_offline DeclarationRequest.authentication_method(:offline)
 
   def get_declaration_request_by_declaration_id!(declaration_id) do
-    query = from dr in DeclarationRequest,
-      where: dr.declaration_id == ^declaration_id
+    query = from(dr in DeclarationRequest, where: dr.declaration_id == ^declaration_id)
 
     Repo.one!(query)
   end
 
   def get_declaration_request_by_id!(id), do: get_declaration_request_by_id!(id, %{})
   def get_declaration_request_by_id!(id, nil), do: get_declaration_request_by_id!(id, %{})
+
   def get_declaration_request_by_id!(id, params) do
-    query = from dr in DeclarationRequest,
-      where: dr.id == ^id
+    query = from(dr in DeclarationRequest, where: dr.id == ^id)
 
     query
     |> filter_by_legal_entity_id(params)
-    |> Repo.one!
+    |> Repo.one!()
   end
 
   def list_declaration_requests(params) do
-    query = from dr in DeclarationRequest,
-      order_by: [desc: :inserted_at]
+    query = from(dr in DeclarationRequest, order_by: [desc: :inserted_at])
 
     query
     |> filter_by_employee_id(params)
@@ -77,16 +75,19 @@ defmodule EHealth.DeclarationRequest.API do
   defp filter_by_legal_entity_id(query, %{"legal_entity_id" => legal_entity_id}) do
     where(query, [r], fragment("?->'legal_entity'->>'id' = ?", r.data, ^legal_entity_id))
   end
+
   defp filter_by_legal_entity_id(query, _), do: query
 
   defp filter_by_employee_id(query, %{"employee_id" => employee_id}) do
     where(query, [r], fragment("?->'employee'->>'id' = ?", r.data, ^employee_id))
   end
+
   defp filter_by_employee_id(query, _), do: query
 
   defp filter_by_status(query, %{"status" => status}) when is_binary(status) do
     where(query, [r], r.status == ^status)
   end
+
   defp filter_by_status(query, _), do: query
 
   def create(attrs, user_id, client_id) do
@@ -94,17 +95,17 @@ defmodule EHealth.DeclarationRequest.API do
     with :ok <- Validations.validate_schema(attrs),
          :ok <- Validations.validate_person(Map.get(attrs, "person")),
          {:ok, _} <- Validations.validate_addresses(get_in(attrs, ["person", "addresses"])),
-         {:ok, %Employee{} = employee} <- Helpers.get_assoc_by_func("employee_id",
-                                            fn -> Employees.get_by_id(attrs["employee_id"]) end),
+         {:ok, %Employee{} = employee} <-
+           Helpers.get_assoc_by_func("employee_id", fn -> Employees.get_by_id(attrs["employee_id"]) end),
          %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(client_id),
-         {:ok, %Division{} = division} <- Helpers.get_assoc_by_func("division_id",
-                                            fn -> Divisions.get_by_id(attrs["division_id"]) end)
-    do
+         {:ok, %Division{} = division} <-
+           Helpers.get_assoc_by_func("division_id", fn -> Divisions.get_by_id(attrs["division_id"]) end) do
       updates = [
         status: DeclarationRequest.status(:cancelled),
         updated_at: DateTime.utc_now(),
         updated_by: user_id
       ]
+
       global_parameters = GlobalParameters.get_values()
 
       auxilary_entities = %{
@@ -118,28 +119,33 @@ defmodule EHealth.DeclarationRequest.API do
 
       pending_declaration_requests = pending_declaration_requests(tax_id, employee.id, legal_entity.id)
 
-      Multi.new
+      Multi.new()
       |> Multi.update_all(:previous_requests, pending_declaration_requests, set: updates)
       |> Multi.insert(:declaration_request, create_changeset(attrs, user_id, auxilary_entities))
       |> Multi.run(:finalize, &finalize/1)
       |> Multi.run(:urgent_data, &prepare_urgent_data/1)
-      |> Repo.transaction
+      |> Repo.transaction()
     else
       {:assoc_error, field} ->
-         {:error, [{%{description: "#{Helpers.from_filed_to_name(field)} not found", params: [],
-                          rule: :required}, "$.declaration_request.#{field}"}]}
-      err -> err
+        {:error,
+         [
+           {%{description: "#{Helpers.from_filed_to_name(field)} not found", params: [], rule: :required},
+            "$.declaration_request.#{field}"}
+         ]}
+
+      err ->
+        err
     end
   end
 
   def reject(id, user_id) do
     with %DeclarationRequest{} = declaration_request <- Repo.get(DeclarationRequest, id),
-         updates <- declaration_request
-                    |> change
-                    |> put_change(:status, @status_rejected)
-                    |> put_change(:updated_by, user_id),
-         :ok <- validate_status_transition(updates)
-    do
+         updates <-
+           declaration_request
+           |> change
+           |> put_change(:status, @status_rejected)
+           |> put_change(:updated_by, user_id),
+         :ok <- validate_status_transition(updates) do
       Repo.update(updates)
     end
   end
@@ -151,7 +157,7 @@ defmodule EHealth.DeclarationRequest.API do
     valid_transitions = [
       {@status_new, @status_rejected},
       {@status_approved, @status_rejected},
-      {@status_new, @status_approved},
+      {@status_new, @status_approved}
     ]
 
     if {from, to} in valid_transitions do
@@ -163,16 +169,16 @@ defmodule EHealth.DeclarationRequest.API do
 
   def approve(id, verification_code, user_id) do
     with declaration_request <- Repo.get!(DeclarationRequest, id),
-         updates <- update_changeset(declaration_request, %{
-           status: @status_approved,
-           updated_by: user_id
-         }),
-         :ok <- validate_status_transition(updates)
-    do
-      Multi.new
-      |> Multi.run(:verification, fn(_) -> Approve.verify(declaration_request, verification_code) end)
+         updates <-
+           update_changeset(declaration_request, %{
+             status: @status_approved,
+             updated_by: user_id
+           }),
+         :ok <- validate_status_transition(updates) do
+      Multi.new()
+      |> Multi.run(:verification, fn _ -> Approve.verify(declaration_request, verification_code) end)
       |> Multi.update(:declaration_request, updates)
-      |> Repo.transaction
+      |> Repo.transaction()
     end
   end
 
@@ -188,6 +194,7 @@ defmodule EHealth.DeclarationRequest.API do
         case Create.send_verification_code(authorization["number"]) do
           {:ok, _} ->
             {:ok, declaration_request}
+
           {:error, error} ->
             {:error, error}
         end
@@ -198,6 +205,7 @@ defmodule EHealth.DeclarationRequest.API do
             declaration_request
             |> update_changeset(%{documents: documents})
             |> Repo.update()
+
           {:error, _} = bad_result ->
             bad_result
         end
@@ -270,7 +278,7 @@ defmodule EHealth.DeclarationRequest.API do
     |> validate_legal_entity_division(legal_entity, division)
     |> validate_employee_type(employee)
     |> validate_patient_birth_date()
-    |> validate_patient_age(Enum.map(specialities, &(&1["speciality"])), global_parameters["adult_age"])
+    |> validate_patient_age(Enum.map(specialities, & &1["speciality"]), global_parameters["adult_age"])
     |> validate_authentication_method_phone_number()
     |> validate_tax_id()
     |> validate_person_addresses()
@@ -294,13 +302,13 @@ defmodule EHealth.DeclarationRequest.API do
   end
 
   def put_in_data(changeset, key, value) do
-     new_data =
-       changeset
-       |> get_field(:data)
-       |> put_in([key], value)
+    new_data =
+      changeset
+      |> get_field(:data)
+      |> put_in([key], value)
 
-     put_change(changeset, :data, new_data)
-   end
+    put_change(changeset, :data, new_data)
+  end
 
   def update_changeset(%EHealth.DeclarationRequest{} = declaration_request, attrs) do
     cast(declaration_request, attrs, @fields)
@@ -318,8 +326,8 @@ defmodule EHealth.DeclarationRequest.API do
 
     normalized_unit =
       unit
-      |> String.downcase
-      |> String.to_atom
+      |> String.downcase()
+      |> String.to_atom()
 
     data = get_field(changeset, :data)
     birth_date = get_in(data, ["person", "birth_date"])
@@ -336,18 +344,22 @@ defmodule EHealth.DeclarationRequest.API do
   end
 
   def pending_declaration_requests(nil, employee_id, legal_entity_id) do
-    from p in EHealth.DeclarationRequest,
+    from(
+      p in EHealth.DeclarationRequest,
       where: p.status in [@status_new, @status_approved],
       where: fragment("? #>> ? = ?", p.data, "{employee, id}", ^employee_id),
       where: fragment("? #>> ? = ?", p.data, "{legal_entity, id}", ^legal_entity_id)
+    )
   end
 
   def pending_declaration_requests(tax_id, employee_id, legal_entity_id) do
-    from p in EHealth.DeclarationRequest,
+    from(
+      p in EHealth.DeclarationRequest,
       where: p.status in [@status_new, @status_approved],
       where: fragment("? #>> ? = ?", p.data, "{person, tax_id}", ^tax_id),
       where: fragment("? #>> ? = ?", p.data, "{employee, id}", ^employee_id),
       where: fragment("? #>> ? = ?", p.data, "{legal_entity, id}", ^legal_entity_id)
+    )
   end
 
   def sign(params, headers) do
@@ -384,23 +396,26 @@ defmodule EHealth.DeclarationRequest.API do
 
     is_valid? =
       Enum.all?(~w(declaration_request_expiration declaration_request_term_unit), fn param ->
-        Map.has_key? parameters, param
+        Map.has_key?(parameters, param)
       end)
 
     if is_valid? do
       %{
         "declaration_request_expiration" => term,
-        "declaration_request_term_unit" => unit,
+        "declaration_request_term_unit" => unit
       } = parameters
 
       normalized_unit =
         unit
-        |> String.downcase
+        |> String.downcase()
         |> String.replace_trailing("s", "")
 
-      query = where(DeclarationRequest, [dr],
-        datetime_add(dr.inserted_at, ^term, ^normalized_unit) < ^NaiveDateTime.utc_now()
-      )
+      query =
+        where(
+          DeclarationRequest,
+          [dr],
+          datetime_add(dr.inserted_at, ^term, ^normalized_unit) < ^NaiveDateTime.utc_now()
+        )
 
       Multi.new()
       |> Multi.delete_all(:declaration_requests, query)

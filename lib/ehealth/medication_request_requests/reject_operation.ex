@@ -12,7 +12,11 @@ defmodule EHealth.MedicationRequestRequest.RejectOperation do
     |> validate_foreign_key(mrr.data.person_id, &get_person/1, &validate_person/2, key: :person)
     |> validate_foreign_key(mrr.data.division_id, &get_division/1, &validate_division/2, key: :division)
     |> validate_foreign_key(mrr.data.medication_id, &get_medication/1, fn _, e -> {:ok, e} end, key: :medication)
-    |> validate_foreign_key(mrr.data.medical_program_id, &get_medical_program/1,
-      fn _, e -> {:ok, e} end, key: :medical_program)
+    |> validate_foreign_key(
+      mrr.data.medical_program_id,
+      &get_medical_program/1,
+      fn _, e -> {:ok, e} end,
+      key: :medical_program
+    )
   end
 end

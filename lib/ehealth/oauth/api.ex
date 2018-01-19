@@ -19,13 +19,14 @@ defmodule EHealth.OAuth.API do
       "name" => legal_entity.name,
       "redirect_uri" => redirect_uri,
       "user_id" => get_consumer_id(headers),
-      "client_type_id" => client_type_id,
+      "client_type_id" => client_type_id
     })
   end
 
   def create_user(%Ecto.Changeset{valid?: true, changes: %{password: password}}, email, headers) do
     Mithril.create_user(%{"password" => password, "email" => email}, headers)
   end
+
   def create_user(err, _email, _headers), do: err
 
   def get_client(id, headers) do
@@ -55,12 +56,12 @@ defmodule EHealth.OAuth.API do
   defp fetch_client_credentials({:error, response}, id) do
     Logger.error(fn ->
       Poison.encode!(%{
-        "log_type"   => "error",
-        "message"    => "Cannot create or find Mithril client for Legal Entity #{id} Response: #{inspect response}",
-        "request_id" => Logger.metadata[:request_id]
+        "log_type" => "error",
+        "message" => "Cannot create or find Mithril client for Legal Entity #{id} Response: #{inspect(response)}",
+        "request_id" => Logger.metadata()[:request_id]
       })
     end)
+
     nil
   end
-
 end

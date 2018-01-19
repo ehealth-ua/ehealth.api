@@ -39,21 +39,20 @@ defmodule EHealth.MedicationRequestRequest.Validations do
   end
 
   def validate_declaration_existance(employee, person) do
-    with {:ok, %{"data" => declarations}} <- DeclarationsAPI.get_declarations(%{"employee_id" => employee.id,
-                                                            "person_id" => person["id"], "status" => "active"}, []),
-         true <- length(declarations) > 0
-    do
-         {:ok, declarations}
+    with {:ok, %{"data" => declarations}} <-
+           DeclarationsAPI.get_declarations(
+             %{"employee_id" => employee.id, "person_id" => person["id"], "status" => "active"},
+             []
+           ),
+         true <- length(declarations) > 0 do
+      {:ok, declarations}
     else
       _ -> {:invalid_declarations_count, nil}
     end
   end
 
   def validate_divison(division, legal_entity_id) do
-    with true <- division.is_active &&
-                 division.status == "ACTIVE" &&
-                 division.legal_entity_id == legal_entity_id
-    do
+    with true <- division.is_active && division.status == "ACTIVE" && division.legal_entity_id == legal_entity_id do
       {:ok, division}
     else
       _ -> {:invalid_division, division}
@@ -63,8 +62,7 @@ defmodule EHealth.MedicationRequestRequest.Validations do
   def validate_medication_id(medication_id, medication_qty, medical_program_id) do
     with medications <- Medications.get_medication_for_medication_request_request(medication_id, medical_program_id),
          {true, :medication} <- {length(medications) > 0, :medication},
-         {true, :medication_qty} <- validate_medication_qty(medications, medication_qty)
-     do
+         {true, :medication_qty} <- validate_medication_qty(medications, medication_qty) do
       {:ok, medications}
     else
       {false, :medication} -> {:invalid_medication, nil}
@@ -81,28 +79,29 @@ defmodule EHealth.MedicationRequestRequest.Validations do
     |> Signature.decode_and_validate(content["signed_content_encoding"], headers)
     |> check_is_valid()
   end
+
   def check_is_valid({:ok, %{"data" => %{"is_valid" => false, "validation_error_message" => error}}}) do
     {:error, {:bad_request, error}}
   end
+
   def check_is_valid({:ok, %{"data" => %{"is_valid" => true}} = result}) do
     {_empty_message, result} = pop_in(result, ["data", "validation_error_message"])
     {:ok, result}
   end
+
   def check_is_valid({:error, error}) do
     {:error, error}
   end
 
   def validate_sign_content(mrr, %{"content" => content, "signer" => signer}) do
     with %Employee{} = employee <- Employees.get_by_id(mrr.data.employee_id),
-         doctor_tax_id          <- employee |> Map.get(:party) |> Map.get(:tax_id),
-         true                   <- mrr.id == content["id"] &&
-                                   mrr.data.division_id == get_in(content, ["division", "id"]) &&
-                                   mrr.data.employee_id == get_in(content, ["employee", "id"]) &&
-                                   mrr.data.legal_entity_id == get_in(content, ["legal_entity", "id"]) &&
-                                   mrr.data.medication_id == get_in(content, ["medication_info", "medication_id"]) &&
-                                   mrr.data.person_id == get_in(content, ["person", "id"]) &&
-                                   doctor_tax_id == signer["drfo"]
-    do
+         doctor_tax_id <- employee |> Map.get(:party) |> Map.get(:tax_id),
+         true <-
+           mrr.id == content["id"] && mrr.data.division_id == get_in(content, ["division", "id"]) &&
+             mrr.data.employee_id == get_in(content, ["employee", "id"]) &&
+             mrr.data.legal_entity_id == get_in(content, ["legal_entity", "id"]) &&
+             mrr.data.medication_id == get_in(content, ["medication_info", "medication_id"]) &&
+             mrr.data.person_id == get_in(content, ["person", "id"]) && doctor_tax_id == signer["drfo"] do
       {:ok, mrr}
     else
       _ -> {:error, {:"422", "Signed content does not match the previously created content!"}}
@@ -112,16 +111,22 @@ defmodule EHealth.MedicationRequestRequest.Validations do
   def validate_dates(attrs) do
     cond do
       attrs["ended_at"] < attrs["started_at"] ->
-        {:invalid_state, {:"ended_at", "Ended date must be >= Started date!"}}
+        {:invalid_state, {:ended_at, "Ended date must be >= Started date!"}}
+
       attrs["started_at"] < attrs["created_at"] ->
-        {:invalid_state, {:"started_at", "Started date must be >= Created date!"}}
+        {:invalid_state, {:started_at, "Started date must be >= Created date!"}}
+
       attrs["started_at"] < to_string(Timex.today()) ->
-        {:invalid_state, {:"started_at", "Started date must be >= Current date!"}}
+        {:invalid_state, {:started_at, "Started date must be >= Current date!"}}
+
       attrs["dispense_valid_from"] < attrs["started_at"] ->
-        {:invalid_state, {:"dispense_valid_from", "Dispense valid from date must be >= Started date!"}}
+        {:invalid_state, {:dispense_valid_from, "Dispense valid from date must be >= Started date!"}}
+
       attrs["dispense_valid_to"] < attrs["dispense_valid_from"] ->
-        {:invalid_state, {:"dispense_valid_from", "Dispense valid to date must be >= Dispense valid from date!"}}
-      true ->  {:ok, nil}
+        {:invalid_state, {:dispense_valid_from, "Dispense valid to date must be >= Dispense valid from date!"}}
+
+      true ->
+        {:ok, nil}
     end
   end
 end

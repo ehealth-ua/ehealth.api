@@ -3,117 +3,117 @@ defmodule EHealth.FraudRepo.Migrations.CreatePersons do
 
   def up do
     create table(:persons, primary_key: false) do
-      add :id, :uuid, primary_key: true
-      add :first_name, :string, null: false
-      add :last_name, :string, null: false
-      add :second_name, :string
-      add :birth_date, :date, null: false
-      add :birth_country, :string
-      add :birth_settlement, :string, null: false
-      add :gender, :string, null: false
-      add :email, :string
-      add :tax_id, :string
-      add :national_id, :string
-      add :death_date, :date, null: true
-      add :is_active, :boolean, default: true
-      add :secret, :string, null: false
-      add :status, :string
-      add :patient_signed, :boolean, null: false
-      add :process_disclosure_data_consent, :boolean, null: false
+      add(:id, :uuid, primary_key: true)
+      add(:first_name, :string, null: false)
+      add(:last_name, :string, null: false)
+      add(:second_name, :string)
+      add(:birth_date, :date, null: false)
+      add(:birth_country, :string)
+      add(:birth_settlement, :string, null: false)
+      add(:gender, :string, null: false)
+      add(:email, :string)
+      add(:tax_id, :string)
+      add(:national_id, :string)
+      add(:death_date, :date, null: true)
+      add(:is_active, :boolean, default: true)
+      add(:secret, :string, null: false)
+      add(:status, :string)
+      add(:patient_signed, :boolean, null: false)
+      add(:process_disclosure_data_consent, :boolean, null: false)
 
-      add :documents, :map
-      add :passport_number, :string
-      add :national_id_number, :string
-      add :birth_certificate_number, :string
-      add :temporary_certificate_number, :string
+      add(:documents, :map)
+      add(:passport_number, :string)
+      add(:national_id_number, :string)
+      add(:birth_certificate_number, :string)
+      add(:temporary_certificate_number, :string)
 
-      add :addresses, :map
-      add :registration_country, :string
-      add :registration_area, :string
-      add :registration_region, :string
-      add :registration_settlement, :string
-      add :registration_settlement_type, :string
-      add :registration_settlement_id, :string
-      add :registration_street_type, :string
-      add :registration_street, :string
-      add :registration_building, :string
-      add :registration_zip, :string
+      add(:addresses, :map)
+      add(:registration_country, :string)
+      add(:registration_area, :string)
+      add(:registration_region, :string)
+      add(:registration_settlement, :string)
+      add(:registration_settlement_type, :string)
+      add(:registration_settlement_id, :string)
+      add(:registration_street_type, :string)
+      add(:registration_street, :string)
+      add(:registration_building, :string)
+      add(:registration_zip, :string)
 
-      add :residence_country, :string
-      add :residence_area, :string
-      add :residence_region, :string
-      add :residence_settlement, :string
-      add :residence_settlement_type, :string
-      add :residence_settlement_id, :string
-      add :residence_street_type, :string
-      add :residence_street, :string
-      add :residence_building, :string
-      add :residence_zip, :string
+      add(:residence_country, :string)
+      add(:residence_area, :string)
+      add(:residence_region, :string)
+      add(:residence_settlement, :string)
+      add(:residence_settlement_type, :string)
+      add(:residence_settlement_id, :string)
+      add(:residence_street_type, :string)
+      add(:residence_street, :string)
+      add(:residence_building, :string)
+      add(:residence_zip, :string)
 
-      add :phones, :map
-      add :mobile_phone, :string
-      add :land_line_phone, :string
+      add(:phones, :map)
+      add(:mobile_phone, :string)
+      add(:land_line_phone, :string)
 
-      add :emergency_contact, :map
-      add :ec_first_name, :string
-      add :ec_last_name, :string
-      add :ec_second_name, :string
-      add :ec_mobile_phone, :string
-      add :ec_land_line_phone, :string
+      add(:emergency_contact, :map)
+      add(:ec_first_name, :string)
+      add(:ec_last_name, :string)
+      add(:ec_second_name, :string)
+      add(:ec_mobile_phone, :string)
+      add(:ec_land_line_phone, :string)
 
-      add :confidant_person, :map
+      add(:confidant_person, :map)
 
-      add :cp1_first_name, :string
-      add :cp1_last_name, :string
-      add :cp1_second_name, :string
-      add :cp1_birth_date, :string
-      add :cp1_birth_country, :string
-      add :cp1_birth_settlement, :string
-      add :cp1_gender, :string
-      add :cp1_tax_id, :string
-      add :cp1_secret, :string
-      add :cp1_passport_number, :string
-      add :cp1_national_id_number, :string
-      add :cp1_birth_certificate_number, :string
-      add :cp1_temporary_certificate_number, :string
-      add :cp1_doc_relationship_document_number, :string
-      add :cp1_doc_relationship_court_decision_number, :string
-      add :cp1_doc_relationship_birth_cert_number, :string
-      add :cp1_doc_relationship_confidant_cert_number, :string
-      add :cp1_mobile_phone, :string
-      add :cp1_land_line_phone, :string
+      add(:cp1_first_name, :string)
+      add(:cp1_last_name, :string)
+      add(:cp1_second_name, :string)
+      add(:cp1_birth_date, :string)
+      add(:cp1_birth_country, :string)
+      add(:cp1_birth_settlement, :string)
+      add(:cp1_gender, :string)
+      add(:cp1_tax_id, :string)
+      add(:cp1_secret, :string)
+      add(:cp1_passport_number, :string)
+      add(:cp1_national_id_number, :string)
+      add(:cp1_birth_certificate_number, :string)
+      add(:cp1_temporary_certificate_number, :string)
+      add(:cp1_doc_relationship_document_number, :string)
+      add(:cp1_doc_relationship_court_decision_number, :string)
+      add(:cp1_doc_relationship_birth_cert_number, :string)
+      add(:cp1_doc_relationship_confidant_cert_number, :string)
+      add(:cp1_mobile_phone, :string)
+      add(:cp1_land_line_phone, :string)
 
-      add :cp2_first_name, :string
-      add :cp2_last_name, :string
-      add :cp2_second_name, :string
-      add :cp2_birth_date, :string
-      add :cp2_birth_country, :string
-      add :cp2_birth_settlement, :string
-      add :cp2_gender, :string
-      add :cp2_tax_id, :string
-      add :cp2_secret, :string
-      add :cp2_passport_number, :string
-      add :cp2_national_id_number, :string
-      add :cp2_birth_certificate_number, :string
-      add :cp2_temporary_certificate_number, :string
-      add :cp2_doc_relationship_document_number, :string
-      add :cp2_doc_relationship_court_decision_number, :string
-      add :cp2_doc_relationship_birth_cert_number, :string
-      add :cp2_doc_relationship_confidant_cert_number, :string
-      add :cp2_mobile_phone, :string
-      add :cp2_land_line_phone, :string
+      add(:cp2_first_name, :string)
+      add(:cp2_last_name, :string)
+      add(:cp2_second_name, :string)
+      add(:cp2_birth_date, :string)
+      add(:cp2_birth_country, :string)
+      add(:cp2_birth_settlement, :string)
+      add(:cp2_gender, :string)
+      add(:cp2_tax_id, :string)
+      add(:cp2_secret, :string)
+      add(:cp2_passport_number, :string)
+      add(:cp2_national_id_number, :string)
+      add(:cp2_birth_certificate_number, :string)
+      add(:cp2_temporary_certificate_number, :string)
+      add(:cp2_doc_relationship_document_number, :string)
+      add(:cp2_doc_relationship_court_decision_number, :string)
+      add(:cp2_doc_relationship_birth_cert_number, :string)
+      add(:cp2_doc_relationship_confidant_cert_number, :string)
+      add(:cp2_mobile_phone, :string)
+      add(:cp2_land_line_phone, :string)
 
-      add :authentication_methods, :map
-      add :auth_method, :string
-      add :auth_number, :string
+      add(:authentication_methods, :map)
+      add(:auth_method, :string)
+      add(:auth_number, :string)
 
-      add :inserted_by, :string, null: false
-      add :updated_by, :string, null: false
+      add(:inserted_by, :string, null: false)
+      add(:updated_by, :string, null: false)
 
       timestamps(type: :utc_datetime)
     end
 
-    execute """
+    execute("""
     CREATE OR REPLACE FUNCTION set_person_fields()
     RETURNS trigger AS
     $BODY$
@@ -322,17 +322,17 @@ defmodule EHealth.FraudRepo.Migrations.CreatePersons do
     END;
     $BODY$
     LANGUAGE plpgsql;
-    """
+    """)
 
-    execute """
+    execute("""
     CREATE TRIGGER on_person_insert
     BEFORE INSERT
     ON persons
     FOR EACH ROW
     EXECUTE PROCEDURE set_person_fields();
-    """
+    """)
 
-    execute """
+    execute("""
     CREATE TRIGGER on_person_update
     BEFORE UPDATE
     ON persons
@@ -346,7 +346,7 @@ defmodule EHealth.FraudRepo.Migrations.CreatePersons do
       OLD.authentication_methods IS DISTINCT FROM NEW.authentication_methods
     )
     EXECUTE PROCEDURE set_person_fields();
-    """
+    """)
 
     execute("ALTER table persons ENABLE REPLICA TRIGGER on_person_insert;")
     execute("ALTER table persons ENABLE REPLICA TRIGGER on_person_update;")
@@ -357,6 +357,6 @@ defmodule EHealth.FraudRepo.Migrations.CreatePersons do
     execute("DROP TRIGGER IF EXISTS on_person_update ON persons;")
     execute("DROP FUNCTION IF EXISTS set_person_fields();")
 
-    drop table(:persons)
+    drop(table(:persons))
   end
 end

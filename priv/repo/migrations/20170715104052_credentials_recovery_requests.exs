@@ -3,9 +3,9 @@ defmodule EHealth.Repo.Migrations.CredentialsRecoveryRequests do
 
   def change do
     create table(:credentials_recovery_requests, primary_key: false) do
-      add :id, :uuid, primary_key: true
-      add :user_id, :uuid
-      add :is_active, :boolean, default: true
+      add(:id, :uuid, primary_key: true)
+      add(:user_id, :uuid)
+      add(:is_active, :boolean, default: true)
 
       timestamps()
     end

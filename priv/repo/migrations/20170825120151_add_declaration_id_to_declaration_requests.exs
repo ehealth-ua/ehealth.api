@@ -3,7 +3,7 @@ defmodule EHealth.Repo.Migrations.AddDeclarationIdToDeclarationRequests do
 
   def change do
     alter table(:declaration_requests) do
-      add :declaration_id, :uuid
+      add(:declaration_id, :uuid)
     end
   end
 end

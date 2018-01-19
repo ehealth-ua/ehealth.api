@@ -50,7 +50,7 @@ defmodule EHealth.Employees do
   def list!(params) do
     Employee
     |> where([e], ^params)
-    |> PRMRepo.all
+    |> PRMRepo.all()
     |> load_references()
   end
 
@@ -59,6 +59,7 @@ defmodule EHealth.Employees do
     |> super(convert_comma_params_to_where_in_clause(changes, :ids, :id))
     |> load_references()
   end
+
   def get_search_query(Employee = entity, changes) do
     params =
       changes
@@ -77,25 +78,26 @@ defmodule EHealth.Employees do
   def get_by_id!(id) do
     Employee
     |> get_by_id_query(id)
-    |> PRMRepo.one!
+    |> PRMRepo.one!()
   end
 
   def get_by_id(id) do
     Employee
     |> get_by_id_query(id)
-    |> PRMRepo.one
+    |> PRMRepo.one()
   end
 
   def get_by_id(id, headers) do
     client_id = get_client_id(headers)
+
     with employee <- get_by_id!(id),
          {:ok, client_type} <- Mithril.get_client_type_name(client_id, headers),
-         :ok <- authorize_legal_entity_id(employee.legal_entity_id, client_id, client_type)
-    do
-      {:ok, employee
-            |> PRMRepo.preload(:party)
-            |> PRMRepo.preload(:division)
-            |> PRMRepo.preload(:legal_entity)}
+         :ok <- authorize_legal_entity_id(employee.legal_entity_id, client_id, client_type) do
+      {:ok,
+       employee
+       |> PRMRepo.preload(:party)
+       |> PRMRepo.preload(:division)
+       |> PRMRepo.preload(:legal_entity)}
     end
   end
 
@@ -104,7 +106,7 @@ defmodule EHealth.Employees do
     |> where([e], e.id == ^id)
     |> join(:left, [e], p in assoc(e, :party))
     |> join(:left, [e], le in assoc(e, :legal_entity))
-    |> preload([e, p, le], [party: p, legal_entity: le])
+    |> preload([e, p, le], party: p, legal_entity: le)
   end
 
   def get_by_ids(ids) when is_list(ids) do
@@ -128,11 +130,11 @@ defmodule EHealth.Employees do
   end
 
   def update(%Employee{status: old_status} = employee, attrs, author_id) do
-    with {:ok, employee} <- employee
-                            |> changeset(attrs)
-                            |> PRMRepo.update_and_log(author_id),
-         _ <- EventManager.insert_change_status(employee, old_status, employee.status, author_id)
-    do
+    with {:ok, employee} <-
+           employee
+           |> changeset(attrs)
+           |> PRMRepo.update_and_log(author_id),
+         _ <- EventManager.insert_change_status(employee, old_status, employee.status, author_id) do
       {:ok, load_references(employee)}
     end
   end
@@ -140,6 +142,7 @@ defmodule EHealth.Employees do
   defp changeset(%Search{} = employee, attrs) do
     cast(employee, attrs, Search.__schema__(:fields))
   end
+
   defp changeset(%Employee{} = employee, attrs) do
     employee
     |> cast(attrs, @required_fields ++ @optional_fields)
@@ -154,17 +157,21 @@ defmodule EHealth.Employees do
   defp put_additional_info(%Ecto.Changeset{valid?: true} = changeset, %{"doctor" => doctor}) do
     put_change(changeset, :additional_info, doctor)
   end
+
   defp put_additional_info(%Ecto.Changeset{valid?: true} = changeset, %{"pharmacist" => pharmacist}) do
     put_change(changeset, :additional_info, pharmacist)
   end
+
   defp put_additional_info(changeset, _), do: changeset
 
   defp validate_employee_type(%Ecto.Changeset{changes: %{employee_type: @doctor}} = changeset) do
     validate_required(changeset, [:additional_info])
   end
+
   defp validate_employee_type(%Ecto.Changeset{changes: %{employee_type: @pharmacist}} = changeset) do
     validate_required(changeset, [:additional_info])
   end
+
   defp validate_employee_type(changeset), do: changeset
 
   defp load_references(%Ecto.Query{} = query) do
@@ -173,12 +180,14 @@ defmodule EHealth.Employees do
     |> preload(:division)
     |> preload(:legal_entity)
   end
+
   defp load_references(%Employee{} = employee) do
     employee
     |> PRMRepo.preload(:party)
     |> PRMRepo.preload(:division)
     |> PRMRepo.preload(:legal_entity)
   end
+
   defp load_references(employees) when is_list(employees) do
     Enum.map(employees, &load_references/1)
   end
@@ -189,17 +198,17 @@ defmodule EHealth.Employees do
          party <- Parties.get_by_id!(party_id),
          {:ok, _} <- EmployeeCreator.create_party_user(party, req_headers),
          {:ok, _} <- Parties.update(party, Map.fetch!(employee_request, "party"), employee_id),
-         params <- employee_request
+         params <-
+           employee_request
            |> Map.put("employee_type", employee.employee_type)
-           |> Map.put("updated_by", get_consumer_id(req_headers))
-    do
+           |> Map.put("updated_by", get_consumer_id(req_headers)) do
       __MODULE__.update(employee, params, get_consumer_id(req_headers))
     end
   end
+
   def create_or_update_employee(%Request{} = employee_request, req_headers) do
     with {:ok, employee} <- EmployeeCreator.create(employee_request, req_headers),
-         :ok <- UserRoleCreator.create(employee, req_headers)
-    do
+         :ok <- UserRoleCreator.create(employee, req_headers) do
       {:ok, employee}
     end
   end
@@ -211,6 +220,7 @@ defmodule EHealth.Employees do
   end
 
   def query_tax_id(query, nil), do: query
+
   def query_tax_id(query, tax_id) do
     query
     |> join(:left, [e], p in assoc(e, :party))
@@ -218,6 +228,7 @@ defmodule EHealth.Employees do
   end
 
   def query_no_tax_id(query, nil), do: query
+
   def query_no_tax_id(query, no_tax_id) do
     query
     |> join(:left, [e], p in assoc(e, :party))
@@ -225,6 +236,7 @@ defmodule EHealth.Employees do
   end
 
   def query_edrpou(query, nil), do: query
+
   def query_edrpou(query, edrpou) do
     query
     |> join(:left, [e], le in assoc(e, :legal_entity))

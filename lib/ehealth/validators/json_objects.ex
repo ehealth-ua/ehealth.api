@@ -1,5 +1,5 @@
 defmodule EHealth.Validators.JsonObjects do
-@moduledoc """
+  @moduledoc """
   Additional validation for serialized JSON objects
   """
 
@@ -11,11 +11,10 @@ defmodule EHealth.Validators.JsonObjects do
   end
 
   def array_unique_by_key(object, object_path, key_name, valid_keys) do
-    with  {:ok, array} <- get_value_in(object, object_path),
-          keys = get_keys(array, key_name),
-          valid_keys = MapSet.new(valid_keys),
-          :ok <- check_for_duplicate_keys(keys, valid_keys, MapSet.new, 0)
-    do
+    with {:ok, array} <- get_value_in(object, object_path),
+         keys = get_keys(array, key_name),
+         valid_keys = MapSet.new(valid_keys),
+         :ok <- check_for_duplicate_keys(keys, valid_keys, MapSet.new(), 0) do
       :ok
     else
       {:error, rules, i} -> {:error, [{rules, get_path(object_path, i, key_name)}]}
@@ -23,22 +22,24 @@ defmodule EHealth.Validators.JsonObjects do
   end
 
   defp check_for_duplicate_keys([], _, _, _), do: :ok
+
   defp check_for_duplicate_keys([h | t], valid_keys, validated_keys, i) do
     cond do
       not MapSet.member?(valid_keys, h) ->
         {:error, get_error("Value '#{h}' is not found in Dictionary.", MapSet.to_list(valid_keys)), i}
+
       MapSet.member?(validated_keys, h) ->
         {:error, get_error("No duplicate values.", h), i}
+
       true ->
         check_for_duplicate_keys(t, valid_keys, MapSet.put(validated_keys, h), i + 1)
     end
   end
 
   def array_single_item(object, object_path, key_name, valid_keys) do
-   with  {:ok, array} <- get_value_in(object, object_path),
-          keys = get_keys(array, key_name),
-          :ok <- check_for_single_key(keys, valid_keys)
-    do
+    with {:ok, array} <- get_value_in(object, object_path),
+         keys = get_keys(array, key_name),
+         :ok <- check_for_single_key(keys, valid_keys) do
       :ok
     else
       {:error, rules} -> {:error, [{rules, get_path(object_path, 0, key_name)}]}
@@ -52,15 +53,15 @@ defmodule EHealth.Validators.JsonObjects do
       {:error, get_error("Value '#{key}' is not found in Dictionary.", valid_keys)}
     end
   end
+
   defp check_for_single_key(_, valid_keys) do
     {:error, get_error("Must contain only one valid item.", valid_keys)}
   end
 
   def array_item_required(object, object_path, key_name, required_item) do
-    with  {:ok, array} <- get_value_in(object, object_path),
-        keys = get_keys(array, key_name),
-        :ok <- check_required_item(keys, required_item)
-    do
+    with {:ok, array} <- get_value_in(object, object_path),
+         keys = get_keys(array, key_name),
+         :ok <- check_required_item(keys, required_item) do
       :ok
     else
       {:error, rules} -> {:error, [{rules, get_path(object_path, "[]", key_name)}]}
@@ -81,16 +82,18 @@ defmodule EHealth.Validators.JsonObjects do
 
   defp get_path(object_path), do: "$." <> Enum.join(object_path, ".")
   defp get_path(object_path, "[]", key_name), do: "$." <> Enum.join(object_path, ".") <> "[].#{key_name}"
-  defp get_path(object_path, i, key_name) when is_integer(i), do:
-    "$." <> Enum.join(object_path, ".") <> "[#{i}]" <> ".#{key_name}"
 
-  def combine_path(prefix, path) when is_binary(prefix) and is_binary(path), do:
-    String.replace(path, "$.", "$.#{prefix}.")
+  defp get_path(object_path, i, key_name) when is_integer(i),
+    do: "$." <> Enum.join(object_path, ".") <> "[#{i}]" <> ".#{key_name}"
 
-  def get_error(description), do:
-    %{description: description, params: [], rule: :invalid}
-  def get_error(description, params) when is_list(params), do:
-    %{description: description, params: params, rule: :invalid}
-  def get_error(description, param) when is_binary(param), do:
-    %{description: description, params: [param], rule: :invalid}
+  def combine_path(prefix, path) when is_binary(prefix) and is_binary(path),
+    do: String.replace(path, "$.", "$.#{prefix}.")
+
+  def get_error(description), do: %{description: description, params: [], rule: :invalid}
+
+  def get_error(description, params) when is_list(params),
+    do: %{description: description, params: params, rule: :invalid}
+
+  def get_error(description, param) when is_binary(param),
+    do: %{description: description, params: [param], rule: :invalid}
 end

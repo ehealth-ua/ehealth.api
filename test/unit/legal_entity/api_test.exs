@@ -17,5 +17,4 @@ defmodule EHealth.Unit.LegalEntity.APITest do
   #     assert :ok == API.check_status(legal_entity)
   #   end
   # end
-
 end

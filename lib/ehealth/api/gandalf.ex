@@ -11,9 +11,9 @@ defmodule EHealth.API.Gandalf do
 
   def process_url(url), do: config()[:endpoint] <> url
 
-  def client_id,      do: config()[:client_id]
-  def client_secret,  do: config()[:client_secret]
-  def table_id,       do: config()[:table_id]
+  def client_id, do: config()[:client_id]
+  def client_secret, do: config()[:client_secret]
+  def table_id, do: config()[:table_id]
   def application_id, do: config()[:application_id]
 
   def decide_auth_method(phone_availability, preferable_auth_method) do
@@ -21,15 +21,17 @@ defmodule EHealth.API.Gandalf do
       {"X-Application", application_id()}
     ]
 
-    basic_auth = Keyword.merge(
-      [hackney: [basic_auth: {client_id(), client_secret()}]],
-      config()[:hackney_options]
-    )
+    basic_auth =
+      Keyword.merge(
+        [hackney: [basic_auth: {client_id(), client_secret()}]],
+        config()[:hackney_options]
+      )
 
-    request_body = Poison.encode!(%{
-      phone_availability: phone_availability,
-      preferable_auth_method: preferable_auth_method
-    })
+    request_body =
+      Poison.encode!(%{
+        phone_availability: phone_availability,
+        preferable_auth_method: preferable_auth_method
+      })
 
     try do
       "/api/v1/tables/#{table_id()}/decisions"

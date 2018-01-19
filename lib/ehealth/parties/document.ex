@@ -14,8 +14,8 @@ defmodule EHealth.Parties.Document do
 
   @primary_key false
   schema "documents" do
-    field :type, :string
-    field :number, :string
+    field(:type, :string)
+    field(:number, :string)
   end
 
   def changeset(%__MODULE__{} = doc, attrs) do

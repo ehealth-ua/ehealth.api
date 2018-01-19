@@ -15,13 +15,17 @@ defmodule EHealth.Web.EmployeesControllerTest do
       party1 = insert(:prm, :party, tax_id: "2222222225")
       party2 = insert(:prm, :party, tax_id: "2222222224")
       insert(:prm, :employee, legal_entity: legal_entity, party: party1)
-      insert(:prm, :employee,
+
+      insert(
+        :prm,
+        :employee,
         legal_entity: legal_entity,
         employee_type: Employee.type(:pharmacist),
         party: party2
       )
+
       conn = put_client_id_header(conn, legal_entity_id)
-      conn = get conn, employee_path(conn, :index)
+      conn = get(conn, employee_path(conn, :index))
       resp = json_response(conn, 200)
 
       assert Map.has_key?(resp, "data")
@@ -34,14 +38,14 @@ defmodule EHealth.Web.EmployeesControllerTest do
 
       second = Enum.at(resp["data"], 1)
       assert legal_entity_id == second["legal_entity"]["id"]
-      assert Enum.any?(resp["data"], &(Map.has_key?(&1, "doctor")))
-      assert Enum.any?(resp["data"], &(Map.has_key?(&1, "pharmacist")))
+      assert Enum.any?(resp["data"], &Map.has_key?(&1, "doctor"))
+      assert Enum.any?(resp["data"], &Map.has_key?(&1, "pharmacist"))
     end
 
     test "filter employees by invalid party_id", %{conn: conn} do
       %{id: legal_entity_id} = insert(:prm, :legal_entity, id: "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
       conn = put_client_id_header(conn, legal_entity_id)
-      conn = get conn, employee_path(conn, :index, party_id: "invalid")
+      conn = get(conn, employee_path(conn, :index, party_id: "invalid"))
       assert json_response(conn, 422)
     end
 
@@ -50,6 +54,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
       %{id: legal_entity_id} = legal_entity
       party = insert(:prm, :party)
       insert(:prm, :employee, legal_entity: legal_entity, party: party)
+
       resp =
         conn
         |> put_client_id_header(legal_entity_id)
@@ -75,7 +80,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
       insert(:prm, :employee, legal_entity: legal_entity, party: party1)
       insert(:prm, :employee, legal_entity: legal_entity, party: party2)
       conn = put_client_id_header(conn, legal_entity.id)
-      conn = get conn, employee_path(conn, :index)
+      conn = get(conn, employee_path(conn, :index))
       resp = json_response(conn, 200)["data"]
       assert 2 = length(resp)
     end
@@ -83,7 +88,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
     test "get employees with client_id that does not match legal entity id", %{conn: conn} do
       conn = put_client_id_header(conn, UUID.generate())
       id = "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
-      conn = get conn, employee_path(conn, :index, [legal_entity_id: id])
+      conn = get(conn, employee_path(conn, :index, legal_entity_id: id))
       resp = json_response(conn, 200)
       assert [] == resp["data"]
       assert Map.has_key?(resp, "paging")
@@ -97,7 +102,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
       insert(:prm, :employee, party: insert(:prm, :party))
       insert(:prm, :employee, party: party, legal_entity: legal_entity)
       conn = put_client_id_header(build_conn(), legal_entity.id)
-      conn = get conn, employee_path(conn, :index, [tax_id: tax_id])
+      conn = get(conn, employee_path(conn, :index, tax_id: tax_id))
       resp = json_response(conn, 200)["data"]
       assert 1 == length(resp)
       party = PRMRepo.get(Party, resp |> hd() |> get_in(["party", "id"]))
@@ -111,7 +116,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
       insert(:prm, :employee, party: insert(:prm, :party))
       %{id: id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
 
-      conn = get conn, employee_path(conn, :index, [no_tax_id: true])
+      conn = get(conn, employee_path(conn, :index, no_tax_id: true))
       assert [data] = json_response(conn, 200)["data"]
       assert id == data["id"]
       assert data["party"]["no_tax_id"]
@@ -119,7 +124,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
 
     test "search employees by invalid tax_id" do
       conn = put_client_id_header(build_conn(), "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
-      conn = get conn, employee_path(conn, :index, [tax_id: ""])
+      conn = get(conn, employee_path(conn, :index, tax_id: ""))
       resp = json_response(conn, 200)["data"]
       assert 0 == length(resp)
     end
@@ -130,14 +135,14 @@ defmodule EHealth.Web.EmployeesControllerTest do
       insert(:prm, :employee, legal_entity: legal_entity)
       insert(:prm, :employee)
       conn = put_client_id_header(build_conn(), legal_entity.id)
-      conn = get conn, employee_path(conn, :index, [edrpou: edrpou])
+      conn = get(conn, employee_path(conn, :index, edrpou: edrpou))
       resp = json_response(conn, 200)["data"]
       assert 1 == length(resp)
     end
 
     test "search employees by invalid edrpou" do
       conn = put_client_id_header(build_conn(), "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
-      conn = get conn, employee_path(conn, :index, [edrpou: ""])
+      conn = get(conn, employee_path(conn, :index, edrpou: ""))
       resp = json_response(conn, 200)["data"]
       assert 0 == length(resp)
     end
@@ -150,6 +155,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
       employee = insert(:prm, :employee, legal_entity: legal_entity, party: party1)
 
       conn = put_client_id_header(conn, legal_entity.id)
+
       conn
       |> get(employee_path(conn, :show, employee.id))
       |> json_response(200)
@@ -157,11 +163,16 @@ defmodule EHealth.Web.EmployeesControllerTest do
       |> assert_show_response_schema("employee")
 
       party2 = insert(:prm, :party, tax_id: "2222222224")
-      employee = insert(:prm, :employee,
-        legal_entity: legal_entity,
-        employee_type: Employee.type(:pharmacist),
-        party: party2
-      )
+
+      employee =
+        insert(
+          :prm,
+          :employee,
+          legal_entity: legal_entity,
+          employee_type: Employee.type(:pharmacist),
+          party: party2
+        )
+
       conn
       |> get(employee_path(conn, :show, employee.id))
       |> json_response(200)
@@ -173,7 +184,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
       legal_entity = insert(:prm, :legal_entity, id: "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
       employee = insert(:prm, :employee, legal_entity: legal_entity, division: nil)
       conn = put_client_id_header(conn, legal_entity.id)
-      conn = get conn, employee_path(conn, :show, employee.id)
+      conn = get(conn, employee_path(conn, :show, employee.id))
       resp = json_response(conn, 200)
 
       assert Map.has_key?(resp["data"], "party")
@@ -194,21 +205,21 @@ defmodule EHealth.Web.EmployeesControllerTest do
     test "with MSP token when legal_entity_id != client_id", %{conn: conn} do
       employee = insert(:prm, :employee)
       conn = put_client_id_header(conn, UUID.generate())
-      conn = get conn, employee_path(conn, :show, employee.id)
+      conn = get(conn, employee_path(conn, :show, employee.id))
       json_response(conn, 403)
     end
 
     test "with MIS token when legal_entity_id != client_id", %{conn: conn} do
       employee = insert(:prm, :employee)
       conn = put_client_id_header(conn, MockServer.get_client_mis())
-      conn = get conn, employee_path(conn, :show, employee.id)
+      conn = get(conn, employee_path(conn, :show, employee.id))
       json_response(conn, 200)
     end
 
     test "with ADMIN token when legal_entity_id != client_id", %{conn: conn} do
       employee = insert(:prm, :employee)
       conn = put_client_id_header(conn, MockServer.get_client_admin())
-      conn = get conn, employee_path(conn, :show, employee.id)
+      conn = get(conn, employee_path(conn, :show, employee.id))
       json_response(conn, 200)
     end
 
@@ -216,7 +227,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
       legal_entity = insert(:prm, :legal_entity, id: "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
       employee = insert(:prm, :employee, legal_entity: legal_entity)
       conn = put_client_id_header(conn, legal_entity.id)
-      conn = get conn, employee_path(conn, :show, employee.id)
+      conn = get(conn, employee_path(conn, :show, employee.id))
       resp = json_response(conn, 200)
 
       assert Map.has_key?(resp, "data")
@@ -231,11 +242,15 @@ defmodule EHealth.Web.EmployeesControllerTest do
       insert(:prm, :party_user, party: party)
       legal_entity = insert(:prm, :legal_entity)
       doctor = insert(:prm, :employee, legal_entity: legal_entity, party: party)
-      pharmacist = insert(:prm, :employee,
-        legal_entity: legal_entity,
-        party: party,
-        employee_type: Employee.type(:pharmacist)
-      )
+
+      pharmacist =
+        insert(
+          :prm,
+          :employee,
+          legal_entity: legal_entity,
+          party: party,
+          employee_type: Employee.type(:pharmacist)
+        )
 
       {:ok, %{conn: conn, legal_entity: legal_entity, doctor: doctor, pharmacist: pharmacist}}
     end
@@ -243,36 +258,44 @@ defmodule EHealth.Web.EmployeesControllerTest do
     test "with invalid transitions condition", %{conn: conn, legal_entity: legal_entity} do
       employee = insert(:prm, :employee, legal_entity: legal_entity, status: "DEACTIVATED")
       conn = put_client_id_header(conn, legal_entity.id)
-      conn_resp = patch conn, employee_path(conn, :deactivate, employee.id)
+      conn_resp = patch(conn, employee_path(conn, :deactivate, employee.id))
 
       assert json_response(conn_resp, 409)["error"]["message"] == "Employee is DEACTIVATED and cannot be updated."
     end
 
     test "can't deactivate OWNER", %{conn: conn, legal_entity: legal_entity} do
-      employee = insert(:prm, :employee,
-        legal_entity: legal_entity,
-        employee_type: Employee.type(:owner)
-      )
+      employee =
+        insert(
+          :prm,
+          :employee,
+          legal_entity: legal_entity,
+          employee_type: Employee.type(:owner)
+        )
+
       conn = put_client_id_header(conn, legal_entity.id)
-      conn_resp = patch conn, employee_path(conn, :deactivate, employee.id)
+      conn_resp = patch(conn, employee_path(conn, :deactivate, employee.id))
 
       assert json_response(conn_resp, 409)["error"]["message"] == "Owner can’t be deactivated"
     end
 
     test "can't deactivate PHARMACY OWNER", %{conn: conn, legal_entity: legal_entity} do
-      employee = insert(:prm, :employee,
-        legal_entity: legal_entity,
-        employee_type: Employee.type(:pharmacy_owner)
-      )
+      employee =
+        insert(
+          :prm,
+          :employee,
+          legal_entity: legal_entity,
+          employee_type: Employee.type(:pharmacy_owner)
+        )
+
       conn = put_client_id_header(conn, legal_entity.id)
-      conn_resp = patch conn, employee_path(conn, :deactivate, employee.id)
+      conn_resp = patch(conn, employee_path(conn, :deactivate, employee.id))
 
       assert json_response(conn_resp, 409)["error"]["message"] == "Pharmacy owner can’t be deactivated"
     end
 
     test "successful doctor", %{conn: conn, doctor: doctor, legal_entity: legal_entity} do
       conn = put_client_id_header(conn, legal_entity.id)
-      conn = patch conn, employee_path(conn, :deactivate, doctor.id)
+      conn = patch(conn, employee_path(conn, :deactivate, doctor.id))
 
       resp = json_response(conn, 200)
       refute resp["is_active"]
@@ -280,7 +303,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
 
     test "successful pharmacist", %{conn: conn, pharmacist: pharmacist, legal_entity: legal_entity} do
       conn = put_client_id_header(conn, legal_entity.id)
-      conn = patch conn, employee_path(conn, :deactivate, pharmacist.id)
+      conn = patch(conn, employee_path(conn, :deactivate, pharmacist.id))
 
       resp = json_response(conn, 200)
       refute resp["is_active"]
@@ -290,7 +313,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
       conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
 
       assert_raise Ecto.NoResultsError, fn ->
-        patch conn, employee_path(conn, :deactivate, UUID.generate())
+        patch(conn, employee_path(conn, :deactivate, UUID.generate()))
       end
     end
   end

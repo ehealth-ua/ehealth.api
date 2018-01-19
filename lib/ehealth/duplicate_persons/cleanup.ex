@@ -14,9 +14,9 @@ defmodule EHealth.DuplicatePersons.Cleanup do
         is_active: true
       })
 
-    Enum.each declarations, fn declaration ->
+    Enum.each(declarations, fn declaration ->
       OPS.terminate_person_declarations(declaration["person_id"])
-    end
+    end)
 
     {:ok, %{"data" => _}} = MPI.update_merge_candidate(id, %{status: Person.status(:merged)})
     {:ok, %{"data" => _}} = MPI.update_person(person_id, %{status: Person.status(:inactive)}, headers())

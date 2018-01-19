@@ -3,8 +3,7 @@ defmodule EHealth.Bamboo.PostmarkAdapter do
   @behaviour Bamboo.Adapter
   alias Bamboo.PostmarkAdapter
 
-  def deliver(email, config),
-    do: PostmarkAdapter.deliver(email, config)
+  def deliver(email, config), do: PostmarkAdapter.deliver(email, config)
 
   def handle_config(_config) do
     :ehealth

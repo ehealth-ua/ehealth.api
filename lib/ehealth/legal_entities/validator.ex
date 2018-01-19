@@ -37,6 +37,7 @@ defmodule EHealth.LegalEntities.Validator do
   def validate_json({:ok, %{"data" => %{"is_valid" => false, "validation_error_message" => error}}}) do
     {:error, {:bad_request, error}}
   end
+
   def validate_json({:ok, %{"data" => %{"content" => content} = data}}) do
     with :ok <- validate_schema(content),
          :ok <- validate_json_objects(content),
@@ -45,11 +46,11 @@ defmodule EHealth.LegalEntities.Validator do
          :ok <- validate_tax_id(content),
          :ok <- validate_owner_birth_date(content),
          :ok <- validate_owner_position(content),
-         :ok <- validate_edrpou(content, Map.get(data, "signer"))
-    do
+         :ok <- validate_edrpou(content, Map.get(data, "signer")) do
       :ok
     end
   end
+
   def validate_json(err), do: err
 
   # Request validator
@@ -71,6 +72,7 @@ defmodule EHealth.LegalEntities.Validator do
     |> Map.get(:signed_legal_entity_request)
     |> Signature.decode_and_validate(Map.get(changes, :signed_content_encoding), headers)
   end
+
   def validate_signature(err, _), do: err
 
   def normalize_signature_error({:error, %{"meta" => %{"description" => error}}}) do
@@ -78,6 +80,7 @@ defmodule EHealth.LegalEntities.Validator do
     |> cast(%{}, [:signed_legal_entity_request])
     |> add_error(:signed_legal_entity_request, error)
   end
+
   def normalize_signature_error(ok_resp), do: ok_resp
 
   # Legal Entity content validator
@@ -96,7 +99,7 @@ defmodule EHealth.LegalEntities.Validator do
          :ok <- JsonObjects.array_unique_by_key(content, ["owner", "phones"], "type", phone_types),
          %{"DOCUMENT_TYPE" => document_types} = dict_keys,
          :ok <- JsonObjects.array_unique_by_key(content, ["owner", "documents"], "type", document_types),
-    do:  :ok
+         do: :ok
   end
 
   def validate_kveds(content) do
@@ -104,9 +107,9 @@ defmodule EHealth.LegalEntities.Validator do
     |> Map.get("kveds")
     |> KVEDs.validate(content["type"])
     |> case do
-         %Ecto.Changeset{valid?: false} = err -> {:error, err}
-         _ -> :ok
-       end
+      %Ecto.Changeset{valid?: false} = err -> {:error, err}
+      _ -> :ok
+    end
   end
 
   # Addresses validator
@@ -116,33 +119,43 @@ defmodule EHealth.LegalEntities.Validator do
     |> Map.get("addresses")
     |> Addresses.validate("REGISTRATION")
     |> case do
-         {:ok, _} -> :ok
-         err -> err
-       end
+      {:ok, _} -> :ok
+      err -> err
+    end
   end
 
   # Tax ID validator
   def validate_tax_id(content) do
     no_tax_id = get_in(content, ["owner", "no_tax_id"])
+
     case no_tax_id do
       true ->
-        {:error, [{%{
-          description: "'no_tax_id must be false",
-          params: [],
-          rule: :invalid
-        }, "$.owner.no_tax_id"}]}
+        {:error,
+         [
+           {%{
+              description: "'no_tax_id must be false",
+              params: [],
+              rule: :invalid
+            }, "$.owner.no_tax_id"}
+         ]}
+
       _ ->
         content
         |> get_in(["owner", "tax_id"])
         |> TaxID.validate()
         |> case do
-          true -> :ok
+          true ->
+            :ok
+
           _ ->
-          {:error, [{%{
-            description: "invalid tax_id value",
-            params: [],
-            rule: :invalid
-          }, "$.owner.tax_id"}]}
+            {:error,
+             [
+               {%{
+                  description: "invalid tax_id value",
+                  params: [],
+                  rule: :invalid
+                }, "$.owner.tax_id"}
+             ]}
         end
     end
   end
@@ -150,7 +163,7 @@ defmodule EHealth.LegalEntities.Validator do
   # EDRPOU validator
 
   def validate_edrpou(content, signer) do
-    data  = %{}
+    data = %{}
     types = %{edrpou: :string}
 
     {data, types}
@@ -166,33 +179,45 @@ defmodule EHealth.LegalEntities.Validator do
     |> get_in(["owner", "birth_date"])
     |> BirthDate.validate()
     |> case do
-         true -> :ok
-         _ ->
-          {:error, [{%{
-            description: "invalid birth_date value",
-            params: [],
-            rule: :invalid
-          }, "$.owner.birth_date"}]}
-       end
+      true ->
+        :ok
+
+      _ ->
+        {:error,
+         [
+           {%{
+              description: "invalid birth_date value",
+              params: [],
+              rule: :invalid
+            }, "$.owner.birth_date"}
+         ]}
+    end
   end
 
   def validate_owner_position(content) do
     conf_positions = Confex.fetch_env!(:ehealth, __MODULE__)[:owner_positions]
+
     content
     |> get_in(["owner", "position"])
     |> valid_owner_position?(conf_positions)
     |> case do
-         true -> :ok
-         _ ->
-          {:error, [{%{
-            description: "invalid owner position value",
-            params: [],
-            rule: :invalid
-          }, "$.owner.position"}]}
-       end
+      true ->
+        :ok
+
+      _ ->
+        {:error,
+         [
+           {%{
+              description: "invalid owner position value",
+              params: [],
+              rule: :invalid
+            }, "$.owner.position"}
+         ]}
+    end
   end
+
   defp valid_owner_position?(_position, nil), do: false
-  defp valid_owner_position?(position, positions), do: Enum.any?(positions, fn(x) -> x == position end)
+  defp valid_owner_position?(position, positions), do: Enum.any?(positions, fn x -> x == position end)
 
   defp prepare_legal_entity(%Ecto.Changeset{valid?: true}, legal_entity), do: {:ok, legal_entity}
   defp prepare_legal_entity(changeset, _legal_entity), do: {:error, changeset}

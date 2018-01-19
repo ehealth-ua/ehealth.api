@@ -24,7 +24,9 @@ defmodule EHealth.API.MediaStorage do
     }
     |> add_content_type(action, resource_name)
   end
+
   defp add_content_type(data, "GET", _resource_name), do: data
+
   defp add_content_type(data, _action, resource_name) do
     Map.put(data, "content_type", MIME.from_path(resource_name))
   end
@@ -32,13 +34,13 @@ defmodule EHealth.API.MediaStorage do
   def create_signed_url(data, headers) do
     Logger.info(fn ->
       Poison.encode!(%{
-        "log_type"     => "microservice_request",
+        "log_type" => "microservice_request",
         "microservice" => config()[:endpoint],
-        "action"       => "POST",
-        "path"         => Enum.join([config()[:endpoint], "/media_content_storage_secrets"]),
-        "request_id"   => Logger.metadata[:request_id],
-        "body"         => data,
-        "headers"      => Enum.reduce(headers, %{}, fn {k, v}, map -> Map.put_new(map, k, v) end)
+        "action" => "POST",
+        "path" => Enum.join([config()[:endpoint], "/media_content_storage_secrets"]),
+        "request_id" => Logger.metadata()[:request_id],
+        "body" => data,
+        "headers" => Enum.reduce(headers, %{}, fn {k, v}, map -> Map.put_new(map, k, v) end)
       })
     end)
 
@@ -61,20 +63,21 @@ defmodule EHealth.API.MediaStorage do
 
   def put_signed_content({:ok, %{"data" => data}}, signed_content) do
     headers = [{"Content-Type", "application/octet-stream"}]
-    content = Base.decode64!(signed_content, [ignore: :whitespace, padding: false])
+    content = Base.decode64!(signed_content, ignore: :whitespace, padding: false)
 
     data
     |> Map.fetch!("secret_url")
     |> SignedContent.save(content, headers, config()[:hackney_options])
     |> check_gcs_response()
   end
+
   def put_signed_content(err, _signed_content) do
     Logger.error(fn ->
       Poison.encode!(%{
-        "log_type"     => "microservice_response",
+        "log_type" => "microservice_response",
         "microservice" => config()[:endpoint],
-        "response"     => err,
-        "request_id"   => Logger.metadata[:request_id]
+        "response" => err,
+        "request_id" => Logger.metadata()[:request_id]
       })
     end)
 
@@ -84,6 +87,7 @@ defmodule EHealth.API.MediaStorage do
   def check_gcs_response(%HTTPoison.Response{status_code: code, body: body}) when code in [200, 201] do
     {:ok, body}
   end
+
   def check_gcs_response(%HTTPoison.Response{body: body}) do
     {:error, body}
   end

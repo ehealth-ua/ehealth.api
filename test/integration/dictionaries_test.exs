@@ -4,10 +4,11 @@ defmodule EHealth.Integration.DictionariesTest do
   alias EHealth.Dictionaries
 
   @document_type_dict %{
-      "PASSPORT" => "Паспорт",
-      "NATIONAL_ID" => "Біометричний паспорт",
-      "BIRTH_CERTIFICATE" => "Свідоцтво про народження",
-      "TEMPORARY_CERTIFICATE" => "Посвідка на проживання"}
+    "PASSPORT" => "Паспорт",
+    "NATIONAL_ID" => "Біометричний паспорт",
+    "BIRTH_CERTIFICATE" => "Свідоцтво про народження",
+    "TEMPORARY_CERTIFICATE" => "Посвідка на проживання"
+  }
 
   @phone_type_dict %{
     "MOBILE" => "мобільний",

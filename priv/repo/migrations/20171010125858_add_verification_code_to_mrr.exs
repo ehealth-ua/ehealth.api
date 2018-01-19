@@ -3,7 +3,7 @@ defmodule EHealth.Repo.Migrations.AddVerificationCodeToMrr do
 
   def change do
     alter table(:medication_request_requests) do
-      add :verification_code, :string, null: true
+      add(:verification_code, :string, null: true)
     end
   end
 end

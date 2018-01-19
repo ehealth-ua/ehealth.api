@@ -5,6 +5,6 @@ alias EHealth.PRMRepo
 
 :ehealth
 |> Application.app_dir("priv/prm_repo/fixtures/global_parameters.json")
-|> File.read!
+|> File.read!()
 |> Poison.decode!(as: [%GlobalParameter{}])
 |> Enum.map(&PRMRepo.insert/1)

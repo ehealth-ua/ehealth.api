@@ -79,8 +79,7 @@ defmodule EHealth.Divisions do
 
   def create(params, headers) do
     with {:ok, attrs} <- prepare_division_data(params, get_client_id(headers)),
-         attrs <- Map.merge(attrs, %{"status" => @status_active, "is_active" => true})
-    do
+         attrs <- Map.merge(attrs, %{"status" => @status_active, "is_active" => true}) do
       %Division{}
       |> changeset(attrs)
       |> PRMRepo.insert_and_log(get_consumer_id(headers))
@@ -89,10 +88,10 @@ defmodule EHealth.Divisions do
 
   def update(id, params, headers) do
     legal_entity_id = get_client_id(headers)
+
     with {:ok, attrs} <- prepare_division_data(params, legal_entity_id),
          %Division{} = division <- get_by_id(id),
-         :ok <- validate_legal_entity(division, legal_entity_id)
-    do
+         :ok <- validate_legal_entity(division, legal_entity_id) do
       division
       |> changeset(attrs)
       |> PRMRepo.update_and_log(get_consumer_id(headers))
@@ -102,30 +101,34 @@ defmodule EHealth.Divisions do
   def prepare_division_data(params, legal_entity_id) do
     with %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(legal_entity_id),
          :ok <- validate_division_type(legal_entity, params),
-         params <- params
-                   |> Map.delete("id")
-                   |> Map.put("legal_entity_id", legal_entity_id),
+         params <-
+           params
+           |> Map.delete("id")
+           |> Map.put("legal_entity_id", legal_entity_id),
          :ok <- JsonSchema.validate(:division, params),
          :ok <- validate_json_objects(params),
-         :ok <- validate_addresses(params)
-    do
+         :ok <- validate_addresses(params) do
       put_mountain_group(params)
     else
       nil ->
-        {:error, [{%{
-                      "rule": :invalid,
-                      "params": [],
-                      "description": "invalid legal entity"
-                   }, "$.legal_entity_id"}]}
-      err -> err
+        {:error,
+         [
+           {%{
+              rule: :invalid,
+              params: [],
+              description: "invalid legal entity"
+            }, "$.legal_entity_id"}
+         ]}
+
+      err ->
+        err
     end
   end
 
   def update_status(id, status, headers) do
     with %Division{} = division <- get_by_id(id),
          :ok <- validate_legal_entity(division, get_client_id(headers)),
-         attrs <- %{"status" => status, "is_active" => status == @status_active}
-    do
+         attrs <- %{"status" => status, "is_active" => status == @status_active} do
       division
       |> changeset(attrs)
       |> PRMRepo.update_and_log(get_consumer_id(headers))
@@ -135,7 +138,7 @@ defmodule EHealth.Divisions do
   def update_mountain_group(attrs, consumer_id) do
     case mountain_group_changeset(attrs) do
       %Ecto.Changeset{valid?: true} -> do_update_divisions_mountain_group(attrs, consumer_id)
-      err_changeset                 -> err_changeset
+      err_changeset -> err_changeset
     end
   end
 
@@ -146,7 +149,7 @@ defmodule EHealth.Divisions do
          :ok <- JsonObjects.array_unique_by_key(data, ["addresses"], "type", address_types),
          %{"PHONE_TYPE" => phone_types} = dict_keys,
          :ok <- JsonObjects.array_unique_by_key(data, ["phones"], "type", phone_types),
-    do:  :ok
+         do: :ok
   end
 
   def validate_addresses(data) do
@@ -154,28 +157,33 @@ defmodule EHealth.Divisions do
     |> Map.get("addresses")
     |> Addresses.validate("RESIDENCE")
     |> case do
-         {:ok, _} -> :ok
-         err -> err
-       end
+      {:ok, _} -> :ok
+      err -> err
+    end
   end
 
   defp validate_division_type(%LegalEntity{type: legal_entity_type}, params) do
     config = Confex.fetch_env!(:ehealth, :legal_entity_division_types)
+
     legal_entity_type =
       legal_entity_type
       |> String.downcase()
-      |> String.to_atom
+      |> String.to_atom()
 
     allowed_types = Keyword.get(config, legal_entity_type)
     type = Map.get(params, "type")
+
     if !type || Enum.member?(allowed_types, type) do
       :ok
     else
-      {:error, [{%{
-        "rule": "inclusion",
-        "params": allowed_types,
-        "description": "value is not allowed in enum"
-      }, "$.type"}]}
+      {:error,
+       [
+         {%{
+            rule: "inclusion",
+            params: allowed_types,
+            description: "value is not allowed in enum"
+          }, "$.type"}
+       ]}
     end
   end
 
@@ -189,12 +197,14 @@ defmodule EHealth.Divisions do
     |> UAddress.get_settlement_by_id()
     |> put_mountain_group(division)
   end
+
   def put_mountain_group(err), do: err
 
   def put_mountain_group({:ok, %{"data" => address}}, division) do
     mountain_group = Map.get(address, "mountain_group", @default_mountain_group)
     {:ok, Map.put(division, "mountain_group", mountain_group)}
   end
+
   def put_mountain_group(err, _division), do: err
 
   def validate_legal_entity(%Division{} = division, legal_entity_id) do
@@ -207,12 +217,14 @@ defmodule EHealth.Divisions do
   defp changeset(%Division{} = division, %{"location" => %{"longitude" => lng, "latitude" => lat}} = attrs) do
     changeset(division, Map.put(attrs, "location", %Geo.Point{coordinates: {lng, lat}}))
   end
+
   defp changeset(%Division{} = division, attrs) do
     division
     |> cast(attrs, @fields_optional ++ @fields_required)
     |> validate_required(@fields_required)
     |> foreign_key_constraint(:legal_entity_id)
   end
+
   defp changeset(%Search{} = division, attrs) do
     cast(division, attrs, @search_fields)
   end
@@ -228,6 +240,7 @@ defmodule EHealth.Divisions do
   def get_search_query(Division = entity, %{ids: _} = changes) do
     super(entity, convert_comma_params_to_where_in_clause(changes, :ids, :id))
   end
+
   def get_search_query(Division = division, changes) do
     params =
       changes
@@ -241,6 +254,7 @@ defmodule EHealth.Divisions do
   end
 
   def query_name(query, nil), do: query
+
   def query_name(query, name) do
     query |> where([d], ilike(d.name, ^"%#{name}%"))
   end
@@ -256,16 +270,18 @@ defmodule EHealth.Divisions do
     addresses = [%{settlement_id: settlement_id}]
 
     query =
-      from d in Division,
-      where: d.mountain_group != ^mountain_group and
-             fragment("? @> ?::jsonb", d.addresses, ^addresses)
+      from(
+        d in Division,
+        where: d.mountain_group != ^mountain_group and fragment("? @> ?::jsonb", d.addresses, ^addresses)
+      )
 
     Multi.new()
     |> Multi.update_all(
-        :update_divisions_mountain_group,
-        query,
-        [set: [mountain_group: mountain_group, updated_at: NaiveDateTime.utc_now()]],
-        returning: [:id, :mountain_group])
+      :update_divisions_mountain_group,
+      query,
+      [set: [mountain_group: mountain_group, updated_at: NaiveDateTime.utc_now()]],
+      returning: [:id, :mountain_group]
+    )
     |> Multi.run(:log_updates, &log_changes(&1, consumer_id))
     |> PRMRepo.transaction()
   end
@@ -278,10 +294,10 @@ defmodule EHealth.Divisions do
           actor_id: consumer_id,
           resource: "divisions",
           resource_id: ud.id,
-          changeset: %{mountain_group: ud.mountain_group},
+          changeset: %{mountain_group: ud.mountain_group}
         }
       end)
-      |> Enum.map(&Map.put(&1, :inserted_at, NaiveDateTime.utc_now))
+      |> Enum.map(&Map.put(&1, :inserted_at, NaiveDateTime.utc_now()))
 
     {_, changelog} = PRMRepo.insert_all(Changelog, changes, returning: true)
     {:ok, changelog}

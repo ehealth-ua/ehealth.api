@@ -10,7 +10,7 @@ defmodule EHealth.PRMFactories.MedicalProgramFactory do
           name: "Доступні ліки",
           is_active: true,
           inserted_by: UUID.generate(),
-          updated_by: UUID.generate(),
+          updated_by: UUID.generate()
         }
       end
     end

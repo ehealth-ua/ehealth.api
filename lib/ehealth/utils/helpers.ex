@@ -13,6 +13,6 @@ defmodule EHealth.Utils.Helpers do
   def from_filed_to_name(id_string) do
     id_string
     |> String.replace("_id", "")
-    |> String.capitalize
+    |> String.capitalize()
   end
 end

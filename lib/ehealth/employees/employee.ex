@@ -27,20 +27,20 @@ defmodule EHealth.Employees.Employee do
 
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "employees" do
-    field :employee_type, :string
-    field :is_active, :boolean, default: false
-    field :position, :string
-    field :start_date, :date
-    field :end_date, :date
-    field :status, :string
-    field :status_reason, :string
-    field :updated_by, Ecto.UUID
-    field :inserted_by, Ecto.UUID
-    field :additional_info, :map
+    field(:employee_type, :string)
+    field(:is_active, :boolean, default: false)
+    field(:position, :string)
+    field(:start_date, :date)
+    field(:end_date, :date)
+    field(:status, :string)
+    field(:status_reason, :string)
+    field(:updated_by, Ecto.UUID)
+    field(:inserted_by, Ecto.UUID)
+    field(:additional_info, :map)
 
-    belongs_to :party, Party, type: Ecto.UUID
-    belongs_to :division, Division, type: Ecto.UUID
-    belongs_to :legal_entity, LegalEntity, type: Ecto.UUID
+    belongs_to(:party, Party, type: Ecto.UUID)
+    belongs_to(:division, Division, type: Ecto.UUID)
+    belongs_to(:legal_entity, LegalEntity, type: Ecto.UUID)
 
     timestamps()
   end

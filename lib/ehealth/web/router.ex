@@ -14,8 +14,8 @@ defmodule EHealthWeb.Router do
   require Logger
 
   pipeline :api do
-    plug :accepts, ["json"]
-    plug :put_secure_browser_headers
+    plug(:accepts, ["json"])
+    plug(:put_secure_browser_headers)
 
     # Uncomment to enable versioning of your API
     # plug Multiverse, gates: [
@@ -27,186 +27,191 @@ defmodule EHealthWeb.Router do
   end
 
   pipeline :api_client_id do
-    plug :header_required, "x-consumer-metadata"
-    plug :client_id_exists
+    plug(:header_required, "x-consumer-metadata")
+    plug(:client_id_exists)
   end
 
   pipeline :api_consumer_id do
-    plug :header_required, "x-consumer-id"
+    plug(:header_required, "x-consumer-id")
   end
 
   pipeline :client_context_list do
-    plug :process_client_context_for_list
-    plug :put_is_active_into_params
+    plug(:process_client_context_for_list)
+    plug(:put_is_active_into_params)
   end
 
   scope "/api", EHealth.Web do
-    pipe_through :api
+    pipe_through(:api)
 
-    post "/credentials_recovery_requests", UserController, :create_credentials_recovery_request
-    patch "/credentials_recovery_requests/:id/actions/reset_password", UserController, :reset_password
+    post("/credentials_recovery_requests", UserController, :create_credentials_recovery_request)
+    patch("/credentials_recovery_requests/:id/actions/reset_password", UserController, :reset_password)
 
     # Legal Entities
-    put "/legal_entities", LegalEntityController, :create_or_update
+    put("/legal_entities", LegalEntityController, :create_or_update)
 
-    get "/dictionaries", DictionaryController, :index
-    patch "/dictionaries/:name", DictionaryController, :update
+    get("/dictionaries", DictionaryController, :index)
+    patch("/dictionaries/:name", DictionaryController, :update)
 
-    get "/invite/:id", EmployeeRequestController, :invite
-    get "/employee_requests/:id", EmployeeRequestController, :show
-    post "/employee_requests/:id/user", EmployeeRequestController, :create_user
+    get("/invite/:id", EmployeeRequestController, :invite)
+    get("/employee_requests/:id", EmployeeRequestController, :show)
+    post("/employee_requests/:id/user", EmployeeRequestController, :create_user)
 
-    patch "/uaddresses/settlements/:id", UaddressesController, :update_settlements
+    patch("/uaddresses/settlements/:id", UaddressesController, :update_settlements)
 
-    get "/declarations/:id/documents", DeclarationRequestController, :documents
+    get("/declarations/:id/documents", DeclarationRequestController, :documents)
 
     # Medications
-    get "/drugs", MedicationController, :drugs
+    get("/drugs", MedicationController, :drugs)
 
-    resources "/innms", INNMController, except: [:new, :edit, :update, :delete]
+    resources("/innms", INNMController, except: [:new, :edit, :update, :delete])
 
-    resources "/innm_dosages", INNMDosageController, except: [:new, :edit, :update, :delete]
-    patch "/innm_dosages/:id/actions/deactivate", INNMDosageController, :deactivate
+    resources("/innm_dosages", INNMDosageController, except: [:new, :edit, :update, :delete])
+    patch("/innm_dosages/:id/actions/deactivate", INNMDosageController, :deactivate)
 
-    resources "/medications", MedicationController, except: [:new, :edit, :update, :delete]
-    patch "/medications/:id/actions/deactivate", MedicationController, :deactivate
+    resources("/medications", MedicationController, except: [:new, :edit, :update, :delete])
+    patch("/medications/:id/actions/deactivate", MedicationController, :deactivate)
 
-    resources "/program_medications", ProgramMedicationController, except: [:new, :edit, :delete]
+    resources("/program_medications", ProgramMedicationController, except: [:new, :edit, :delete])
 
-    resources "/medical_programs", MedicalProgramController, except: [:new, :edit, :update, :delete]
-    patch "/medical_programs/:id/actions/deactivate", MedicalProgramController, :deactivate
+    resources("/medical_programs", MedicalProgramController, except: [:new, :edit, :update, :delete])
+    patch("/medical_programs/:id/actions/deactivate", MedicalProgramController, :deactivate)
 
     # Global parameters
-    get "/global_parameters", GlobalParameterController, :index
+    get("/global_parameters", GlobalParameterController, :index)
 
     # Black-listed users
-    resources "/black_list_users", BlackListUserController, except: [:new, :edit, :show, :update, :delete]
-    patch "/black_list_users/:id/actions/deactivate", BlackListUserController, :deactivate
+    resources("/black_list_users", BlackListUserController, except: [:new, :edit, :show, :update, :delete])
+    patch("/black_list_users/:id/actions/deactivate", BlackListUserController, :deactivate)
   end
 
   # Client context for lists
   scope "/api", EHealth.Web do
-    pipe_through [:api, :api_client_id, :client_context_list]
+    pipe_through([:api, :api_client_id, :client_context_list])
 
     # Legal Entities
-    get "/legal_entities", LegalEntityController, :index
+    get("/legal_entities", LegalEntityController, :index)
     # Employees
-    get "/employees", EmployeeController, :index
+    get("/employees", EmployeeController, :index)
     # Employees
-    get "/divisions", DivisionController, :index
+    get("/divisions", DivisionController, :index)
     # Declarations
-    get "/declarations", DeclarationsController, :index
+    get("/declarations", DeclarationsController, :index)
 
     # Declaration requests
     scope "/declaration_requests" do
-      get "/", DeclarationRequestController, :index
-      get "/:declaration_request_id", DeclarationRequestController, :show
+      get("/", DeclarationRequestController, :index)
+      get("/:declaration_request_id", DeclarationRequestController, :show)
     end
 
     # Employee requests
-    get "/employee_requests", EmployeeRequestController, :index
+    get("/employee_requests", EmployeeRequestController, :index)
   end
 
   scope "/api", EHealth.Web do
-    pipe_through [:api, :api_client_id]
+    pipe_through([:api, :api_client_id])
 
     # Legal Entities
-    get "/legal_entities/:id", LegalEntityController, :show
-    patch "/legal_entities/:id/actions/mis_verify", LegalEntityController, :mis_verify
-    patch "/legal_entities/:id/actions/nhs_verify", LegalEntityController, :nhs_verify
-    patch "/legal_entities/:id/actions/deactivate", LegalEntityController, :deactivate
+    get("/legal_entities/:id", LegalEntityController, :show)
+    patch("/legal_entities/:id/actions/mis_verify", LegalEntityController, :mis_verify)
+    patch("/legal_entities/:id/actions/nhs_verify", LegalEntityController, :nhs_verify)
+    patch("/legal_entities/:id/actions/deactivate", LegalEntityController, :deactivate)
 
     # Employees
-    get "/employees/:id", EmployeeController, :show
-    scope "/employees" do
-      pipe_through [:client_context_list]
+    get("/employees/:id", EmployeeController, :show)
 
-      patch "/:id/actions/deactivate", EmployeeController, :deactivate
+    scope "/employees" do
+      pipe_through([:client_context_list])
+
+      patch("/:id/actions/deactivate", EmployeeController, :deactivate)
     end
 
     # Employee requests
-    post "/employee_requests", EmployeeRequestController, :create
-    post "/employee_requests/:id/approve", EmployeeRequestController, :approve
-    post "/employee_requests/:id/reject", EmployeeRequestController, :reject
+    post("/employee_requests", EmployeeRequestController, :create)
+    post("/employee_requests/:id/approve", EmployeeRequestController, :approve)
+    post("/employee_requests/:id/reject", EmployeeRequestController, :reject)
 
     # Divisions
-    resources "/divisions", DivisionController, except: [:index, :new, :edit, :delete]
-    patch "/divisions/:id/actions/activate", DivisionController, :activate
-    patch "/divisions/:id/actions/deactivate", DivisionController, :deactivate
+    resources("/divisions", DivisionController, except: [:index, :new, :edit, :delete])
+    patch("/divisions/:id/actions/activate", DivisionController, :activate)
+    patch("/divisions/:id/actions/deactivate", DivisionController, :deactivate)
 
     scope "/declaration_requests" do
-      pipe_through [:api_consumer_id]
+      pipe_through([:api_consumer_id])
 
-      patch "/:id/actions/sign", DeclarationRequestController, :sign
+      patch("/:id/actions/sign", DeclarationRequestController, :sign)
     end
 
-    post "/declaration_requests", DeclarationRequestController, :create
-    patch "/declaration_requests/:id/actions/approve", DeclarationRequestController, :approve
-    patch "/declaration_requests/:id/actions/reject", DeclarationRequestController, :reject
-    post "/declaration_requests/:id/actions/resend_otp", DeclarationRequestController, :resend_otp
+    post("/declaration_requests", DeclarationRequestController, :create)
+    patch("/declaration_requests/:id/actions/approve", DeclarationRequestController, :approve)
+    patch("/declaration_requests/:id/actions/reject", DeclarationRequestController, :reject)
+    post("/declaration_requests/:id/actions/resend_otp", DeclarationRequestController, :resend_otp)
 
-    resources "/medication_request_requests", MedicationRequestRequestController,
+    resources(
+      "/medication_request_requests",
+      MedicationRequestRequestController,
       except: [:new, :edit, :update, :delete]
-    post "/medication_request_requests/prequalify", MedicationRequestRequestController, :prequalify
-    patch "/medication_request_requests/:id/actions/reject", MedicationRequestRequestController, :reject
-    patch "/medication_request_requests/:id/actions/sign", MedicationRequestRequestController, :sign
+    )
+
+    post("/medication_request_requests/prequalify", MedicationRequestRequestController, :prequalify)
+    patch("/medication_request_requests/:id/actions/reject", MedicationRequestRequestController, :reject)
+    patch("/medication_request_requests/:id/actions/sign", MedicationRequestRequestController, :sign)
 
     # Declarations
-    get "/declarations/:id", DeclarationsController, :show
-    patch "/declarations/:id/actions/approve", DeclarationsController, :approve
-    patch "/declarations/:id/actions/reject", DeclarationsController, :reject
+    get("/declarations/:id", DeclarationsController, :show)
+    patch("/declarations/:id/actions/approve", DeclarationsController, :approve)
+    patch("/declarations/:id/actions/reject", DeclarationsController, :reject)
 
     # Medication dispenses
     scope "/medication_dispenses" do
-      pipe_through [:client_context_list]
+      pipe_through([:client_context_list])
 
-      get "/", MedicationDispenseController, :index
-      get "/:id", MedicationDispenseController, :show
-      patch "/:id/actions/process", MedicationDispenseController, :process
-      patch "/:id/actions/reject", MedicationDispenseController, :reject
-      post "/", MedicationDispenseController, :create
+      get("/", MedicationDispenseController, :index)
+      get("/:id", MedicationDispenseController, :show)
+      patch("/:id/actions/process", MedicationDispenseController, :process)
+      patch("/:id/actions/reject", MedicationDispenseController, :reject)
+      post("/", MedicationDispenseController, :create)
     end
 
     scope "/medication_requests" do
-      pipe_through [:client_context_list]
+      pipe_through([:client_context_list])
 
-      get "/", MedicationRequestController, :index
-      get "/:id", MedicationRequestController, :show
-      get "/:id/dispenses", MedicationDispenseController, :by_medication_request
-      post "/:id/actions/qualify", MedicationRequestController, :qualify
-      patch "/:id/actions/reject", MedicationRequestController, :reject
-      patch "/:id/actions/resend", MedicationRequestController, :resend
+      get("/", MedicationRequestController, :index)
+      get("/:id", MedicationRequestController, :show)
+      get("/:id/dispenses", MedicationDispenseController, :by_medication_request)
+      post("/:id/actions/qualify", MedicationRequestController, :qualify)
+      patch("/:id/actions/reject", MedicationRequestController, :reject)
+      patch("/:id/actions/resend", MedicationRequestController, :resend)
     end
 
     # Person declarations
-    get "/persons", PersonController, :search_persons
-    get "/persons/:id/declaration", PersonController, :person_declarations
-    patch "/persons/:id/actions/reset_authentication_method", PersonController, :reset_authentication_method
+    get("/persons", PersonController, :search_persons)
+    get("/persons/:id/declaration", PersonController, :person_declarations)
+    patch("/persons/:id/actions/reset_authentication_method", PersonController, :reset_authentication_method)
 
     # User roles
-    get "/user/roles", UserRoleController, :index
+    get("/user/roles", UserRoleController, :index)
 
     # Global parameters
-    put "/global_parameters", GlobalParameterController, :create_or_update
+    put("/global_parameters", GlobalParameterController, :create_or_update)
 
-    get "/party_users", PartyUserController, :index
+    get("/party_users", PartyUserController, :index)
   end
 
   scope "/admin", EHealth.Web do
-    pipe_through [:api, :client_context_list]
+    pipe_through([:api, :client_context_list])
 
-    patch "/clients/:id/refresh_secret", ClientController, :refresh_secret
+    patch("/clients/:id/refresh_secret", ClientController, :refresh_secret)
   end
 
   scope "/internal", EHealth.Web do
-    pipe_through [:api]
+    pipe_through([:api])
 
     scope "/deduplication" do
-      post "/found_duplicates", DeduplicationsController, :found_duplicates
+      post("/found_duplicates", DeduplicationsController, :found_duplicates)
     end
 
     scope "/hash_chain" do
-      post "/verification_failed", HashChainController, :verification_failed
+      post("/verification_failed", HashChainController, :verification_failed)
     end
   end
 

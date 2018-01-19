@@ -9,7 +9,7 @@ defmodule EHealth.Web.BlackListUserControllerTest do
       %{id: id} = insert(:prm, :black_list_user)
       insert(:prm, :black_list_user)
 
-      conn = get conn, black_list_user_path(conn, :index), %{"id" => id}
+      conn = get(conn, black_list_user_path(conn, :index), %{"id" => id})
       resp = json_response(conn, 200)["data"]
 
       assert 1 == length(resp)
@@ -18,7 +18,7 @@ defmodule EHealth.Web.BlackListUserControllerTest do
     end
 
     test "search by invalid id", %{conn: conn} do
-      conn = get conn, black_list_user_path(conn, :index), %{"id" => "invalid"}
+      conn = get(conn, black_list_user_path(conn, :index), %{"id" => "invalid"})
       assert json_response(conn, 422)
     end
 
@@ -26,7 +26,7 @@ defmodule EHealth.Web.BlackListUserControllerTest do
       insert(:prm, :black_list_user)
       %{tax_id: tax_id} = insert(:prm, :black_list_user)
 
-      conn = get conn, black_list_user_path(conn, :index), %{"tax_id" => tax_id}
+      conn = get(conn, black_list_user_path(conn, :index), %{"tax_id" => tax_id})
       resp = json_response(conn, 200)["data"]
 
       assert 1 == length(resp)
@@ -37,7 +37,7 @@ defmodule EHealth.Web.BlackListUserControllerTest do
       %{id: id} = insert(:prm, :black_list_user, is_active: true)
       insert(:prm, :black_list_user, is_active: false)
 
-      conn = get conn, black_list_user_path(conn, :index), %{"is_active" => true}
+      conn = get(conn, black_list_user_path(conn, :index), %{"is_active" => true})
       resp = json_response(conn, 200)["data"]
 
       assert 1 == length(resp)
@@ -49,7 +49,7 @@ defmodule EHealth.Web.BlackListUserControllerTest do
       %{id: id, tax_id: tax_id} = insert(:prm, :black_list_user, is_active: true)
       insert(:prm, :black_list_user, is_active: false)
 
-      conn = get conn, black_list_user_path(conn, :index), %{"is_active" => true, "tax_id" => tax_id}
+      conn = get(conn, black_list_user_path(conn, :index), %{"is_active" => true, "tax_id" => tax_id})
       resp = json_response(conn, 200)
       data = resp["data"]
 
@@ -66,10 +66,10 @@ defmodule EHealth.Web.BlackListUserControllerTest do
       insert(:prm, :party_user, party: party, user_id: MockServer.get_user_for_role_1())
       insert(:prm, :party_user, party: party, user_id: MockServer.get_user_for_role_2())
 
-      conn = post conn, black_list_user_path(conn, :create), tax_id: "12345672"
+      conn = post(conn, black_list_user_path(conn, :create), tax_id: "12345672")
       assert %{"id" => id} = json_response(conn, 201)["data"]
 
-      conn = get conn, black_list_user_path(conn, :index), %{"id" => id}
+      conn = get(conn, black_list_user_path(conn, :index), %{"id" => id})
       resp = json_response(conn, 200)["data"]
 
       assert 1 == length(resp)
@@ -82,10 +82,11 @@ defmodule EHealth.Web.BlackListUserControllerTest do
       insert(:prm, :party_user, party: party)
       insert(:prm, :party_user, party: party)
 
-      conn = post conn, black_list_user_path(conn, :create), tax_id: "1234567221"
+      conn = post(conn, black_list_user_path(conn, :create), tax_id: "1234567221")
       resp = json_response(conn, 422)
 
       assert %{"error" => %{"invalid" => errors}} = resp
+
       Enum.each(errors, fn %{"entry" => entry} ->
         assert entry in ["$.users", "$.user_tokens"]
       end)
@@ -93,12 +94,12 @@ defmodule EHealth.Web.BlackListUserControllerTest do
 
     test "user already blacklisted", %{conn: conn} do
       %{tax_id: tax_id} = insert(:prm, :black_list_user)
-      conn = post conn, black_list_user_path(conn, :create), tax_id: tax_id
+      conn = post(conn, black_list_user_path(conn, :create), tax_id: tax_id)
       json_response(conn, 409)
     end
 
     test "invalid tax_id", %{conn: conn} do
-      conn = post conn, black_list_user_path(conn, :create), tax_id: "ME100900"
+      conn = post(conn, black_list_user_path(conn, :create), tax_id: "ME100900")
       resp = json_response(conn, 422)
 
       assert %{"error" => %{"invalid" => [%{"entry" => "$.tax_id"}]}} = resp
@@ -108,7 +109,7 @@ defmodule EHealth.Web.BlackListUserControllerTest do
   describe "deactivate" do
     test "success", %{conn: conn} do
       %{id: id} = black_list_user = insert(:prm, :black_list_user)
-      conn = patch conn, black_list_user_path(conn, :deactivate, black_list_user)
+      conn = patch(conn, black_list_user_path(conn, :deactivate, black_list_user))
 
       assert %{"id" => ^id, "is_active" => false} = json_response(conn, 200)["data"]
     end
@@ -116,7 +117,7 @@ defmodule EHealth.Web.BlackListUserControllerTest do
     test "black list user is inactive", %{conn: conn} do
       black_list_user = insert(:prm, :black_list_user, is_active: false)
 
-      conn = patch conn, black_list_user_path(conn, :deactivate, black_list_user)
+      conn = patch(conn, black_list_user_path(conn, :deactivate, black_list_user))
       json_response(conn, 409)
     end
   end

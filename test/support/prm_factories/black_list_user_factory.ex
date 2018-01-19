@@ -13,7 +13,7 @@ defmodule EHealth.PRMFactories.BlackListUserFactory do
           tax_id: tax_id,
           is_active: true,
           inserted_by: UUID.generate(),
-          updated_by: UUID.generate(),
+          updated_by: UUID.generate()
         }
       end
     end

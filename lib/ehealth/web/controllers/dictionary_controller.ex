@@ -6,7 +6,7 @@ defmodule EHealth.Web.DictionaryController do
   alias EHealth.Dictionaries
   alias EHealth.Dictionaries.Dictionary
 
-  action_fallback EHealth.Web.FallbackController
+  action_fallback(EHealth.Web.FallbackController)
 
   def index(conn, params) do
     with {:ok, dictionaries} <- Dictionaries.list_dictionaries(params) do

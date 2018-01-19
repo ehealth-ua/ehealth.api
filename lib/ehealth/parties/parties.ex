@@ -48,8 +48,8 @@ defmodule EHealth.Parties do
     Party
     |> where([p], p.id == ^id)
     |> join(:left, [p], u in assoc(p, :users))
-    |> preload([p, u], [users: u])
-    |> PRMRepo.one!
+    |> preload([p, u], users: u)
+    |> PRMRepo.one!()
   end
 
   def get_by_id(id) do
@@ -72,20 +72,18 @@ defmodule EHealth.Parties do
 
   def create(attrs, consumer_id) do
     with {:ok, party} <-
-      %Party{}
-        |> changeset(attrs)
-        |> PRMRepo.insert_and_log(consumer_id)
-    do
+           %Party{}
+           |> changeset(attrs)
+           |> PRMRepo.insert_and_log(consumer_id) do
       {:ok, load_references(party)}
     end
   end
 
   def update(%Party{} = party, attrs, consumer_id) do
     with {:ok, party} <-
-      party
-        |> changeset(attrs)
-        |> PRMRepo.update_and_log(consumer_id)
-    do
+           party
+           |> changeset(attrs)
+           |> PRMRepo.update_and_log(consumer_id) do
       {:ok, load_references(party)}
     end
   end
@@ -93,6 +91,7 @@ defmodule EHealth.Parties do
   defp changeset(%Search{} = search, attrs) do
     cast(search, attrs, @search_fields)
   end
+
   defp changeset(%Party{} = party, attrs) do
     party
     |> cast(attrs, @fields_optional ++ @fields_required)
@@ -114,6 +113,7 @@ defmodule EHealth.Parties do
     |> where([e], fragment("? @> ?", e.phones, ^phone_number))
     |> load_references()
   end
+
   def get_search_query(entity, changes) do
     entity
     |> super(changes)

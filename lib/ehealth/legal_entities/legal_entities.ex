@@ -85,6 +85,7 @@ defmodule EHealth.LegalEntities do
     |> super(convert_comma_params_to_where_in_clause(changes, :ids, :id))
     |> load_references()
   end
+
   def get_search_query(LegalEntity = entity, %{settlement_id: settlement_id} = changes) do
     params =
       changes
@@ -98,6 +99,7 @@ defmodule EHealth.LegalEntities do
     |> where([e], fragment("? @> ?", e.addresses, ^address_params))
     |> load_references()
   end
+
   def get_search_query(entity, changes) do
     entity
     |> super(changes)
@@ -120,16 +122,16 @@ defmodule EHealth.LegalEntities do
     LegalEntity
     |> where([le], le.id == ^id)
     |> join(:left, [le], msp in assoc(le, :medical_service_provider))
-    |> preload([le, msp], [medical_service_provider: msp])
+    |> preload([le, msp], medical_service_provider: msp)
   end
 
   def get_by_id(id, headers) do
     client_id = get_client_id(headers)
-    with {:ok, client_type}  <- Mithril.get_client_type_name(client_id, headers),
-          :ok                <- authorize_legal_entity_id(id, client_id, client_type),
+
+    with {:ok, client_type} <- Mithril.get_client_type_name(client_id, headers),
+         :ok <- authorize_legal_entity_id(id, client_id, client_type),
          {:ok, legal_entity} <- load_legal_entity(id),
-         %{} = oauth_client  <- OAuth.get_client(legal_entity.id, headers)
-    do
+         %{} = oauth_client <- OAuth.get_client(legal_entity.id, headers) do
       {:ok, legal_entity, oauth_client}
     end
   end
@@ -138,8 +140,8 @@ defmodule EHealth.LegalEntities do
     LegalEntity
     |> where([le], le.id in ^ids)
     |> join(:left, [le], msp in assoc(le, :medical_service_provider))
-    |> preload([le, msp], [medical_service_provider: msp])
-    |> PRMRepo.all
+    |> preload([le, msp], medical_service_provider: msp)
+    |> PRMRepo.all()
   end
 
   def create(%LegalEntity{} = legal_entity, attrs, author_id) do
@@ -158,18 +160,17 @@ defmodule EHealth.LegalEntities do
     %{"id" => id, "is_active" => true}
     |> list()
     |> case do
-         %Page{entries: []} -> {:error, :not_found}
-         %Page{entries: data} -> {:ok, List.first(data)}
-         err -> err
-       end
+      %Page{entries: []} -> {:error, :not_found}
+      %Page{entries: data} -> {:ok, List.first(data)}
+      err -> err
+    end
   end
 
   def mis_verify(id, consumer_id) do
     update_data = %{mis_verified: @mis_verified_verified}
 
     with legal_entity <- get_by_id!(id),
-         :ok <- check_mis_verify_transition(legal_entity)
-    do
+         :ok <- check_mis_verify_transition(legal_entity) do
       update(legal_entity, update_data, consumer_id)
     end
   end
@@ -178,18 +179,19 @@ defmodule EHealth.LegalEntities do
     update_data = %{nhs_verified: true}
 
     with legal_entity <- get_by_id!(id),
-         :ok <- check_nhs_verify_transition(legal_entity)
-    do
+         :ok <- check_nhs_verify_transition(legal_entity) do
       update(legal_entity, update_data, consumer_id)
     end
   end
 
   defp check_mis_verify_transition(%LegalEntity{mis_verified: @mis_verified_not_verified}), do: :ok
+
   defp check_mis_verify_transition(_) do
     {:error, {:conflict, "LegalEntity is VERIFIED and cannot be VERIFIED."}}
   end
 
   defp check_nhs_verify_transition(%LegalEntity{nhs_verified: false}), do: :ok
+
   defp check_nhs_verify_transition(_) do
     {:error, {:conflict, "LegalEntity is VERIFIED and cannot be VERIFIED."}}
   end
@@ -197,24 +199,24 @@ defmodule EHealth.LegalEntities do
   # Create legal entity
 
   def create(attrs, headers) do
-    with {:ok, request_params}   <- Validator.decode_and_validate(attrs, headers),
-         edrpou                  <- Map.fetch!(request_params, "edrpou"),
-         type                    <- Map.fetch!(request_params, "type"),
-         legal_entity            <- get_or_create_by_edrpou_type(edrpou, type),
-         :ok                     <- check_status(legal_entity),
-         {:ok, _}                <- store_signed_content(legal_entity.id, attrs, headers),
-         request_params          <- put_mis_verified_state(request_params),
-         {:ok, legal_entity}     <- put_legal_entity_to_prm(legal_entity, request_params, headers),
-         {:ok, client_type_id}   <- get_client_type_id(type, headers),
-         {:ok, oauth_client}     <- get_oauth_credentials(legal_entity, client_type_id, request_params, headers),
-         {:ok, security}         <- prepare_security_data(oauth_client),
-         {:ok, employee_request} <- create_employee_request(legal_entity, request_params)
-    do
-      {:ok, %{
-          legal_entity: legal_entity,
-          employee_request: employee_request,
-          security: security,
-      }}
+    with {:ok, request_params} <- Validator.decode_and_validate(attrs, headers),
+         edrpou <- Map.fetch!(request_params, "edrpou"),
+         type <- Map.fetch!(request_params, "type"),
+         legal_entity <- get_or_create_by_edrpou_type(edrpou, type),
+         :ok <- check_status(legal_entity),
+         {:ok, _} <- store_signed_content(legal_entity.id, attrs, headers),
+         request_params <- put_mis_verified_state(request_params),
+         {:ok, legal_entity} <- put_legal_entity_to_prm(legal_entity, request_params, headers),
+         {:ok, client_type_id} <- get_client_type_id(type, headers),
+         {:ok, oauth_client} <- get_oauth_credentials(legal_entity, client_type_id, request_params, headers),
+         {:ok, security} <- prepare_security_data(oauth_client),
+         {:ok, employee_request} <- create_employee_request(legal_entity, request_params) do
+      {:ok,
+       %{
+         legal_entity: legal_entity,
+         employee_request: employee_request,
+         security: security
+       }}
     end
   end
 
@@ -228,6 +230,7 @@ defmodule EHealth.LegalEntities do
   defp check_status(%LegalEntity{status: @status_closed}) do
     {:error, {:conflict, "LegalEntity can't be updated"}}
   end
+
   defp check_status(_), do: :ok
 
   defp store_signed_content(id, input, headers) do
@@ -240,26 +243,30 @@ defmodule EHealth.LegalEntities do
     # Creates new Legal Entity in PRM
     consumer_id = get_consumer_id(headers)
     client_id = get_client_id(headers)
-    creation_data = Map.merge(attrs, %{
-      "status" => @status_active,
-      "is_active" => true,
-      "inserted_by" => consumer_id,
-      "updated_by" => consumer_id,
-      "created_by_mis_client_id" => client_id,
-      "nhs_verified" => false,
-    })
+
+    creation_data =
+      Map.merge(attrs, %{
+        "status" => @status_active,
+        "is_active" => true,
+        "inserted_by" => consumer_id,
+        "updated_by" => consumer_id,
+        "created_by_mis_client_id" => client_id,
+        "nhs_verified" => false
+      })
 
     create(legal_entity, creation_data, consumer_id)
   end
+
   defp put_legal_entity_to_prm(%LegalEntity{__meta__: %Metadata{state: :loaded}} = legal_entity, attrs, headers) do
     # Updates Legal Entity
     consumer_id = get_consumer_id(headers)
+    # filter immutable data
     update_data =
       attrs
-      |> Map.delete("edrpou") # filter immutable data
+      |> Map.delete("edrpou")
       |> Map.merge(%{
         "updated_by" => consumer_id,
-        "is_active" => true,
+        "is_active" => true
       })
 
     update(legal_entity, update_data, consumer_id)
@@ -292,9 +299,11 @@ defmodule EHealth.LegalEntities do
     # Create Employee request
     # Specification: https://edenlab.atlassian.net/wiki/display/EH/IL.Create+employee+request
     party = Map.fetch!(request_params, "owner")
-    employee_type = if type == LegalEntity.type(:msp),
-      do: Employee.type(:owner),
-      else: Employee.type(:pharmacy_owner)
+
+    employee_type =
+      if type == LegalEntity.type(:msp),
+        do: Employee.type(:owner),
+        else: Employee.type(:pharmacy_owner)
 
     id
     |> prepare_employee_request_data(party)
@@ -308,8 +317,9 @@ defmodule EHealth.LegalEntities do
       "position" => Map.fetch!(party, "position"),
       "status" => @employee_request_status,
       "start_date" => Date.to_iso8601(Date.utc()),
-      "party" => Map.delete(party, "position"),
+      "party" => Map.delete(party, "position")
     }
+
     %{"employee_request" => request}
   end
 
@@ -333,6 +343,7 @@ defmodule EHealth.LegalEntities do
   defp changeset(%Search{} = legal_entity, attrs) do
     cast(legal_entity, attrs, @search_fields)
   end
+
   defp changeset(%LegalEntity{} = legal_entity, attrs) do
     legal_entity
     |> cast(attrs, @required_fields ++ @optional_fields)
@@ -345,5 +356,6 @@ defmodule EHealth.LegalEntities do
   defp validate_msp_required(%Ecto.Changeset{changes: %{type: "MSP"}} = changeset) do
     validate_required(changeset, [:medical_service_provider])
   end
+
   defp validate_msp_required(changeset), do: changeset
 end

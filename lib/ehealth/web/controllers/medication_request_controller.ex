@@ -5,18 +5,20 @@ defmodule EHealth.Web.MedicationRequestController do
   alias EHealth.MedicationRequests.API
   alias Scrivener.Page
 
-  action_fallback EHealth.Web.FallbackController
+  action_fallback(EHealth.Web.FallbackController)
 
   def index(%Plug.Conn{req_headers: headers} = conn, params) do
     client_type = conn.assigns.client_type
+
     with {:ok, data, paging} <- API.list(params, client_type, headers) do
-      paging = Enum.map(paging, fn({key, value}) -> {String.to_atom(key), value} end)
+      paging = Enum.map(paging, fn {key, value} -> {String.to_atom(key), value} end)
       render(conn, "index.json", medication_requests: data, paging: struct(Page, paging))
     end
   end
 
   def show(%Plug.Conn{req_headers: headers} = conn, params) do
     client_type = conn.assigns.client_type
+
     with {:ok, medication_request} <- API.show(params, client_type, headers) do
       render(conn, "show.json", medication_request: medication_request)
     end
@@ -24,6 +26,7 @@ defmodule EHealth.Web.MedicationRequestController do
 
   def reject(%Plug.Conn{req_headers: headers} = conn, params) do
     client_type = conn.assigns.client_type
+
     with {:ok, medication_request} <- API.reject(params, client_type, headers) do
       render(conn, "show.json", medication_request: medication_request)
     end
@@ -31,6 +34,7 @@ defmodule EHealth.Web.MedicationRequestController do
 
   def resend(%Plug.Conn{req_headers: headers} = conn, params) do
     client_type = conn.assigns.client_type
+
     with {:ok, medication_request} <- API.resend(params, client_type, headers) do
       render(conn, "show.json", medication_request: medication_request)
     end
@@ -38,9 +42,11 @@ defmodule EHealth.Web.MedicationRequestController do
 
   def qualify(%Plug.Conn{req_headers: headers} = conn, %{"id" => id} = params) do
     client_type = conn.assigns.client_type
-    with {:ok, medical_programs, validations} <- API.qualify(id, client_type, Map.delete(params, "id"), headers)
-    do
-      render(conn, "qualify.json",
+
+    with {:ok, medical_programs, validations} <- API.qualify(id, client_type, Map.delete(params, "id"), headers) do
+      render(
+        conn,
+        "qualify.json",
         medical_programs: medical_programs,
         validations: validations
       )

@@ -3,7 +3,7 @@ defmodule EHealth.Repo.Migrations.AddEmployeeRequestStatus do
 
   def change do
     alter table(:employee_requests) do
-      add :status, :string
+      add(:status, :string)
     end
   end
 end

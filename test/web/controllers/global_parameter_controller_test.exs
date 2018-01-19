@@ -11,7 +11,7 @@ defmodule EHealth.Web.GlobalParameterControllerTest do
     insert(:prm, :global_parameter, parameter: "param3", value: "value3")
 
     conn = put_client_id_header(conn, Ecto.UUID.generate())
-    conn = get conn, global_parameter_path(conn, :index)
+    conn = get(conn, global_parameter_path(conn, :index))
     resp = json_response(conn, 200)
 
     assert Map.has_key?(resp, "data")
@@ -30,7 +30,7 @@ defmodule EHealth.Web.GlobalParameterControllerTest do
       }
 
       conn = put_client_id_header(conn, "invalid")
-      conn = put conn, global_parameter_path(conn, :create_or_update, params)
+      conn = put(conn, global_parameter_path(conn, :create_or_update, params))
       resp = json_response(conn, 422)
 
       assert Map.has_key?(resp, "error")
@@ -62,7 +62,7 @@ defmodule EHealth.Web.GlobalParameterControllerTest do
       }
 
       conn = put_client_id_header(conn, Ecto.UUID.generate())
-      conn = put conn, global_parameter_path(conn, :create_or_update, params)
+      conn = put(conn, global_parameter_path(conn, :create_or_update, params))
       resp = json_response(conn, 200)
 
       assert Map.has_key?(resp, "data")

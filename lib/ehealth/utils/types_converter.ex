@@ -5,6 +5,7 @@ defmodule EHealth.Utils.TypesConverter do
   def strings_to_keys(%{} = map) do
     for {key, val} <- map, into: %{}, do: {string_to_atom(key), strings_to_keys(val)}
   end
+
   def strings_to_keys(val) when is_list(val), do: Enum.map(val, &strings_to_keys(&1))
   def strings_to_keys(val), do: val
 

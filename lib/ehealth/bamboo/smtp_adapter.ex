@@ -3,8 +3,7 @@ defmodule EHealth.Bamboo.SMTPAdapter do
   @behaviour Bamboo.Adapter
   alias Bamboo.SMTPAdapter
 
-  def deliver(email, config),
-    do: SMTPAdapter.deliver(email, config)
+  def deliver(email, config), do: SMTPAdapter.deliver(email, config)
 
   def handle_config(_config) do
     :ehealth

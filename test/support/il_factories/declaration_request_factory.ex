@@ -4,7 +4,7 @@ defmodule EHealth.ILFactories.DeclarationRequestFactory do
   defmacro __using__(_opts) do
     quote do
       def declaration_request_factory do
-        uuid = Ecto.UUID.generate
+        uuid = Ecto.UUID.generate()
 
         %EHealth.DeclarationRequest{
           data: %{},
@@ -13,7 +13,7 @@ defmodule EHealth.ILFactories.DeclarationRequestFactory do
           updated_by: uuid,
           authentication_method_current: %{},
           printout_content: "something",
-          documents: [],
+          documents: []
         }
       end
     end

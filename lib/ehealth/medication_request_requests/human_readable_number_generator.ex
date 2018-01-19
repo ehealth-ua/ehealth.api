@@ -17,18 +17,19 @@ defmodule EHealth.MedicationRequestRequest.HumanReadableNumberGenerator do
       1..3
       |> Enum.map(fn _ -> get_combination_of(4) end)
       |> Enum.join("-")
+
     @ver_1 <> sequence
   end
 
   defp get_combination_of(number_length) do
     1..number_length
     |> Enum.map(fn _ -> Enum.random(@human_readble_symbols) end)
-    |> Enum.join
+    |> Enum.join()
   end
 
   def generate_otp_verification_code do
     1..Confex.fetch_env!(:ehealth, :medication_request_request)[:otp_code_length]
     |> Enum.map(fn _ -> :rand.uniform(9) end)
-    |> Enum.join
+    |> Enum.join()
   end
 end

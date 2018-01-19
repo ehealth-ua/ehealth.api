@@ -30,16 +30,18 @@ defmodule EHealth.Employees.EmployeeCreator do
 
     with %Page{} = paging <- Parties.list(search_params),
          :ok <- check_party_user(user_id, paging.entries),
-         {:ok, party} <- create_or_update_party(paging.entries, party, req_headers)
-    do
-      result = PRMRepo.transaction(fn ->
-        deactivate_employee_owners(
-          employee_request.data["employee_type"],
-          employee_request.data["legal_entity_id"],
-          req_headers
-        )
-        create_employee(party, employee_request, req_headers)
-      end)
+         {:ok, party} <- create_or_update_party(paging.entries, party, req_headers) do
+      result =
+        PRMRepo.transaction(fn ->
+          deactivate_employee_owners(
+            employee_request.data["employee_type"],
+            employee_request.data["legal_entity_id"],
+            req_headers
+          )
+
+          create_employee(party, employee_request, req_headers)
+        end)
+
       elem(result, 1)
     end
   end
@@ -50,8 +52,7 @@ defmodule EHealth.Employees.EmployeeCreator do
   def create_or_update_party([], data, req_headers) do
     with data <- put_inserted_by(data, req_headers),
          consumer_id = get_consumer_id(req_headers),
-         {:ok, party} <- Parties.create(data, consumer_id)
-    do
+         {:ok, party} <- Parties.create(data, consumer_id) do
       create_party_user(party, req_headers)
     end
   end
@@ -74,6 +75,7 @@ defmodule EHealth.Employees.EmployeeCreator do
     case Enum.member?(user_ids, consumer_id) do
       true ->
         {:ok, party}
+
       false ->
         case PartyUsers.create(id, consumer_id) do
           {:ok, _} -> {:ok, party}
@@ -87,7 +89,7 @@ defmodule EHealth.Employees.EmployeeCreator do
       "status" => @status_approved,
       "is_active" => true,
       "party_id" => id,
-      "legal_entity_id" => employee_request["legal_entity_id"],
+      "legal_entity_id" => employee_request["legal_entity_id"]
     }
 
     data
@@ -95,14 +97,17 @@ defmodule EHealth.Employees.EmployeeCreator do
     |> put_inserted_by(req_headers)
     |> Employees.create(get_consumer_id(req_headers))
   end
+
   def create_employee(err, _, _), do: err
 
   def deactivate_employee_owners(@type_owner = type, legal_entity_id, req_headers) do
     do_deactivate_employee_owner(type, legal_entity_id, req_headers)
   end
+
   def deactivate_employee_owners(@type_pharmacy_owner = type, legal_entity_id, req_headers) do
     do_deactivate_employee_owner(type, legal_entity_id, req_headers)
   end
+
   def deactivate_employee_owners(_, _, _req_headers), do: :ok
 
   defp do_deactivate_employee_owner(type, legal_entity_id, req_headers) do
@@ -111,27 +116,30 @@ defmodule EHealth.Employees.EmployeeCreator do
       |> where([e], e.is_active)
       |> where([e], e.employee_type == ^type)
       |> where([e], e.legal_entity_id == ^legal_entity_id)
-      |> PRMRepo.one
+      |> PRMRepo.one()
+
     deactivate_employee(employee, req_headers)
   end
 
   def deactivate_employee(%Employee{} = employee, headers) do
     params = %{
       "updated_by" => get_consumer_id(headers),
-      "is_active" => false,
+      "is_active" => false
     }
 
     with :ok <- EmployeeUpdater.revoke_user_auth_data(employee, headers) do
       Employees.update(employee, params, get_consumer_id(headers))
     end
   end
+
   def deactivate_employee(employee, _), do: {:ok, employee}
 
   def put_inserted_by(data, req_headers) do
     map = %{
       "inserted_by" => get_consumer_id(req_headers),
-      "updated_by" => get_consumer_id(req_headers),
+      "updated_by" => get_consumer_id(req_headers)
     }
+
     Map.merge(data, map)
   end
 
@@ -142,6 +150,7 @@ defmodule EHealth.Employees.EmployeeCreator do
       _ -> {:error, {:conflict, "Email is already used by another person"}}
     end
   end
+
   defp check_party_user(user_id, [%Party{id: party_id}]) do
     with [] <- PartyUsers.list!(%{user_id: user_id}) do
       :ok

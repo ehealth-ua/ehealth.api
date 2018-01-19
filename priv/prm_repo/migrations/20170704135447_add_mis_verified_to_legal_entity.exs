@@ -7,8 +7,9 @@ defmodule EHealth.PRMRepo.Migrations.AddMisVerifiedToLegalEntity do
   def change do
     # Set default while we're migrating value from the status field
     alter table(:legal_entities) do
-      add :mis_verified, :string, null: false, default: LegalEntity.mis_verified(:not_verified)
+      add(:mis_verified, :string, null: false, default: LegalEntity.mis_verified(:not_verified))
     end
+
     flush()
 
     LegalEntity
@@ -16,6 +17,7 @@ defmodule EHealth.PRMRepo.Migrations.AddMisVerifiedToLegalEntity do
     |> PRMRepo.update_all([])
 
     active_status = LegalEntity.status(:active)
+
     LegalEntity
     |> update([le], set: [status: ^active_status])
     |> PRMRepo.update_all([])

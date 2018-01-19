@@ -5,7 +5,7 @@ defmodule EHealth.PRMRepo.Migrations.AddTypeToUkrMedRegistry do
 
   def change do
     alter table(:ukr_med_registries) do
-      add :type, :string, null: false, default: Registry.type(:msp)
+      add(:type, :string, null: false, default: Registry.type(:msp))
     end
   end
 end

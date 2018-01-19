@@ -7,10 +7,12 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
 
   describe "validate_patient_age/3" do
     test "patient's age matches doctor's speciality" do
+      year = DateTime.utc_now() |> Map.fetch!(:year) |> Kernel.-(17)
+
       raw_declaration_request = %{
         data: %{
           "person" => %{
-            "birth_date" => "2000-01-19"
+            "birth_date" => "#{year}-01-01"
           },
           "employee_id" => "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b"
         }
@@ -88,7 +90,7 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
           "person" => %{
             "authentication_methods" => [
               %{"type" => "OFFLINE"},
-              %{"type" => "OTP"},
+              %{"type" => "OTP"}
             ]
           }
         }
@@ -101,7 +103,8 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
 
       [
         "data.person.authentication_methods.[1].phone_number": {
-          "required property phone_number was not present", []
+          "required property phone_number was not present",
+          []
         }
       ] = result.errors
     end
@@ -256,10 +259,10 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
         |> validate_confidant_persons_tax_id()
 
       assert [
-        "data.person.confidant_person[2].tax_id": {"Person's tax ID in not valid.", []},
-        "data.person.confidant_person[1].tax_id": {"Person's tax ID in not valid.", []},
-        "data.person.confidant_person[0].tax_id": {"Person's tax ID in not valid.", []}
-      ] = result.errors
+               "data.person.confidant_person[2].tax_id": {"Person's tax ID in not valid.", []},
+               "data.person.confidant_person[1].tax_id": {"Person's tax ID in not valid.", []},
+               "data.person.confidant_person[0].tax_id": {"Person's tax ID in not valid.", []}
+             ] = result.errors
     end
   end
 
@@ -430,10 +433,11 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
         |> validate_confidant_person_rel_type()
 
       assert [
-        "data.person.confidant_persons[].relation_type": {
-          "one and only one confidant person with type PRIMARY is required", []
-        }
-      ] = result.errors
+               "data.person.confidant_persons[].relation_type": {
+                 "one and only one confidant person with type PRIMARY is required",
+                 []
+               }
+             ] = result.errors
     end
   end
 
@@ -458,10 +462,11 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
         |> validate_employee_type(employee)
 
       assert [
-        "data.person.employee_id": {
-          "Employee ID must reference a doctor.", []
-        }
-      ] = result.errors
+               "data.person.employee_id": {
+                 "Employee ID must reference a doctor.",
+                 []
+               }
+             ] = result.errors
     end
   end
 end

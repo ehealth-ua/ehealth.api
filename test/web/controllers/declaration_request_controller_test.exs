@@ -11,11 +11,13 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
   describe "list declaration requests" do
     test "no legal_entity_id match", %{conn: conn} do
       legal_entity_id = UUID.generate()
+
       Enum.map(1..2, fn _ ->
         fixture(DeclarationRequest, fixture_params())
       end)
+
       conn = put_client_id_header(conn, legal_entity_id)
-      conn = get conn, declaration_request_path(conn, :index)
+      conn = get(conn, declaration_request_path(conn, :index))
       resp = json_response(conn, 200)
 
       assert_count_declaration_request_list(resp)
@@ -24,16 +26,18 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     test "match by legal_entity_id", %{conn: conn} do
       legal_entity_id = UUID.generate()
       employee_id = UUID.generate()
+
       Enum.map(1..2, fn _ ->
         params =
           fixture_params()
           |> put_in([:data, :employee, :id], employee_id)
           |> put_in([:data, :legal_entity, :id], legal_entity_id)
+
         fixture(DeclarationRequest, params)
       end)
 
       conn = put_client_id_header(conn, legal_entity_id)
-      conn = get conn, declaration_request_path(conn, :index)
+      conn = get(conn, declaration_request_path(conn, :index))
       resp = json_response(conn, 200)
 
       assert_count_declaration_request_list(resp, 2)
@@ -42,14 +46,17 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     test "no employee_id match", %{conn: conn} do
       legal_entity_id = UUID.generate()
       employee_id = UUID.generate()
+
       Enum.map(1..2, fn _ ->
         params =
           fixture_params()
           |> put_in([:data, :legal_entity, :id], legal_entity_id)
+
         fixture(DeclarationRequest, params)
       end)
+
       conn = put_client_id_header(conn, legal_entity_id)
-      conn = get conn, declaration_request_path(conn, :index, %{employee_id: employee_id})
+      conn = get(conn, declaration_request_path(conn, :index, %{employee_id: employee_id}))
       resp = json_response(conn, 200)
 
       assert_count_declaration_request_list(resp)
@@ -58,15 +65,18 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     test "match by employee_id", %{conn: conn} do
       legal_entity_id = UUID.generate()
       employee_id = UUID.generate()
+
       Enum.map(1..2, fn _ ->
         params =
           fixture_params()
           |> put_in([:data, :legal_entity, :id], legal_entity_id)
           |> put_in([:data, :employee, :id], employee_id)
+
         fixture(DeclarationRequest, params)
       end)
+
       conn = put_client_id_header(conn, legal_entity_id)
-      conn = get conn, declaration_request_path(conn, :index, %{employee_id: employee_id})
+      conn = get(conn, declaration_request_path(conn, :index, %{employee_id: employee_id}))
       resp = json_response(conn, 200)
 
       assert_count_declaration_request_list(resp, 2)
@@ -74,14 +84,17 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
 
     test "no status match", %{conn: conn} do
       legal_entity_id = UUID.generate()
+
       Enum.map(1..2, fn _ ->
         params =
           fixture_params()
           |> put_in([:data, :legal_entity, :id], legal_entity_id)
+
         fixture(DeclarationRequest, params)
       end)
+
       conn = put_client_id_header(conn, legal_entity_id)
-      conn = get conn, declaration_request_path(conn, :index, %{status: "ACTIVE"})
+      conn = get(conn, declaration_request_path(conn, :index, %{status: "ACTIVE"}))
       resp = json_response(conn, 200)
 
       assert_count_declaration_request_list(resp)
@@ -90,15 +103,18 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     test "match by status", %{conn: conn} do
       legal_entity_id = UUID.generate()
       status = "ACTIVE"
+
       Enum.map(1..2, fn _ ->
         params =
           fixture_params()
           |> put_in([:data, :legal_entity, :id], legal_entity_id)
           |> put_in([:status], status)
+
         fixture(DeclarationRequest, params)
       end)
+
       conn = put_client_id_header(conn, legal_entity_id)
-      conn = get conn, declaration_request_path(conn, :index, %{status: status})
+      conn = get(conn, declaration_request_path(conn, :index, %{status: status}))
       resp = json_response(conn, 200)
 
       assert_count_declaration_request_list(resp, 2)
@@ -108,20 +124,28 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       legal_entity_id = UUID.generate()
       employee_id = UUID.generate()
       status = "ACTIVE"
+
       Enum.map(1..2, fn _ ->
         params =
           fixture_params()
           |> put_in([:data, :legal_entity, :id], legal_entity_id)
           |> put_in([:data, :employee, :id], employee_id)
           |> put_in([:status], status)
+
         fixture(DeclarationRequest, params)
       end)
 
       conn = put_client_id_header(conn, legal_entity_id)
-      conn = get conn, declaration_request_path(conn, :index, %{
-        status: status,
-        employee_id: employee_id
-      })
+
+      conn =
+        get(
+          conn,
+          declaration_request_path(conn, :index, %{
+            status: status,
+            employee_id: employee_id
+          })
+        )
+
       resp = json_response(conn, 200)
 
       assert_count_declaration_request_list(resp, 2)
@@ -133,7 +157,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       declaration_request = fixture(DeclarationRequest, fixture_params())
 
       conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8602f2")
-      conn = patch conn, declaration_request_path(conn, :approve, declaration_request)
+      conn = patch(conn, declaration_request_path(conn, :approve, declaration_request))
 
       resp = json_response(conn, 200)
       assert DeclarationRequest.status(:approved) == resp["data"]["status"]
@@ -144,7 +168,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       declaration_request = fixture(DeclarationRequest, params)
 
       conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8602f2")
-      conn = patch conn, declaration_request_path(conn, :approve, declaration_request)
+      conn = patch(conn, declaration_request_path(conn, :approve, declaration_request))
 
       resp = json_response(conn, 409)
       assert "Invalid transition" == get_in(resp, ["error", "message"])
@@ -170,36 +194,39 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     setup do
       {:ok, port, ref} = start_microservices(DynamicSeedValue)
       System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
-      on_exit fn ->
+
+      on_exit(fn ->
         System.put_env("OPS_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
-      end
+      end)
     end
 
     test "get declaration request by invalid id", %{conn: conn} do
       conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8602f2")
+
       assert_raise Ecto.NoResultsError, fn ->
-        get conn, declaration_request_path(conn, :show, UUID.generate())
+        get(conn, declaration_request_path(conn, :show, UUID.generate()))
       end
     end
 
     test "get declaration request by invalid legal_entity_id", %{conn: conn} do
       %{id: id} = fixture(DeclarationRequest, fixture_params())
-      conn = put_client_id_header(conn, UUID.generate)
+      conn = put_client_id_header(conn, UUID.generate())
+
       assert_raise Ecto.NoResultsError, fn ->
-        get conn, declaration_request_path(conn, :show, id)
+        get(conn, declaration_request_path(conn, :show, id))
       end
     end
 
     test "get declaration request by id", %{conn: conn} do
       %{id: id, data: data} = fixture(DeclarationRequest, fixture_params())
       conn = put_client_id_header(conn, get_in(data, [:legal_entity, :id]))
-      conn = get conn, declaration_request_path(conn, :show, id)
+      conn = get(conn, declaration_request_path(conn, :show, id))
       resp = json_response(conn, 200)
 
       assert Map.has_key?(resp, "data")
       assert Map.has_key?(resp, "urgent")
-      assert "some_hash" == get_in resp, ["data", "seed"]
+      assert "some_hash" == get_in(resp, ["data", "seed"])
     end
   end
 
@@ -216,23 +243,25 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       {:ok, port, ref} = start_microservices(OTPVerificationMock)
 
       System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:#{port}")
-      on_exit fn ->
+
+      on_exit(fn ->
         System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
-      end
+      end)
 
       :ok
     end
 
     test "when declaration request id is invalid", %{conn: conn} do
-      conn = put_client_id_header(conn, UUID.generate)
+      conn = put_client_id_header(conn, UUID.generate())
+
       assert_raise Ecto.NoResultsError, fn ->
-        post conn, declaration_request_path(conn, :resend_otp, UUID.generate())
+        post(conn, declaration_request_path(conn, :resend_otp, UUID.generate()))
       end
     end
 
     test "when declaration request status is not NEW", %{conn: conn} do
-      conn = put_client_id_header(conn, UUID.generate)
+      conn = put_client_id_header(conn, UUID.generate())
 
       params =
         fixture_params()
@@ -240,7 +269,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
 
       %{id: id} = fixture(DeclarationRequest, params)
 
-      conn = post conn, declaration_request_path(conn, :resend_otp, id)
+      conn = post(conn, declaration_request_path(conn, :resend_otp, id))
       resp = json_response(conn, 422)
       assert Map.has_key?(resp, "error")
       error = resp["error"]
@@ -254,7 +283,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
 
     test "when declaration request auth method is not OTP", %{conn: conn} do
-      conn = put_client_id_header(conn, UUID.generate)
+      conn = put_client_id_header(conn, UUID.generate())
 
       params =
         fixture_params()
@@ -262,7 +291,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
 
       %{id: id} = fixture(DeclarationRequest, params)
 
-      conn = post conn, declaration_request_path(conn, :resend_otp, id)
+      conn = post(conn, declaration_request_path(conn, :resend_otp, id))
       resp = json_response(conn, 422)
       assert Map.has_key?(resp, "error")
       error = resp["error"]
@@ -276,7 +305,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
 
     test "when declaration request fields are correct", %{conn: conn} do
-      conn = put_client_id_header(conn, UUID.generate)
+      conn = put_client_id_header(conn, UUID.generate())
 
       params =
         fixture_params()
@@ -284,7 +313,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
 
       %{id: id} = fixture(DeclarationRequest, params)
 
-      conn = post conn, declaration_request_path(conn, :resend_otp, id)
+      conn = post(conn, declaration_request_path(conn, :resend_otp, id))
       resp = json_response(conn, 200)
       assert Map.has_key?(resp, "data")
       assert %{"status" => "NEW"} == resp["data"]
@@ -312,25 +341,27 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       {:ok, port, ref} = start_microservices(MediaContentStorageMock)
 
       System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:#{port}")
-      on_exit fn ->
+
+      on_exit(fn ->
         System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
-      end
+      end)
 
       :ok
     end
 
     test "when declaration id is invalid", %{conn: conn} do
       assert_raise Ecto.NoResultsError, fn ->
-        get conn, declaration_request_path(conn, :documents, UUID.generate())
+        get(conn, declaration_request_path(conn, :documents, UUID.generate()))
       end
     end
 
     test "when declaration id is valid", %{conn: conn} do
       %{id: id, declaration_id: declaration_id} = fixture(DeclarationRequest, fixture_params())
 
-      conn = get conn, declaration_request_path(conn, :documents, declaration_id)
+      conn = get(conn, declaration_request_path(conn, :documents, declaration_id))
       result = json_response(conn, 200)["data"]
+
       expected_result = [
         %{
           "type" => "person.PASSPORT",
@@ -338,9 +369,11 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
         },
         %{
           "type" => "confidant_person.0.PRIMARY.RELATIONSHIP.COURT_DECISION",
-          "url" => "http://a.link.for/#{id}/declaration_request_confidant_person.0.PRIMARY.RELATIONSHIP.COURT_DECISION.jpeg"
-        },
+          "url" =>
+            "http://a.link.for/#{id}/declaration_request_confidant_person.0.PRIMARY.RELATIONSHIP.COURT_DECISION.jpeg"
+        }
       ]
+
       assert expected_result == result
     end
   end
@@ -348,27 +381,31 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
   describe "sign declaration request" do
     test "success", %{conn: conn} do
       %{id: legal_entity_id} = insert(:prm, :legal_entity)
+
       data =
         "test/data/declaration_request/sign_request.json"
         |> File.read!()
         |> Poison.decode!()
 
-      %{id: declaration_id} = insert(:il, :declaration_request,
-        id: data["id"],
-        status: DeclarationRequest.status(:approved),
-        data: %{
-          "person" => get_person(),
-          "declaration_id" => data["declaration_id"],
-          "division" => data["division"],
-          "employee" => data["employee"],
-          "end_date" => data["end_date"],
-          "scope" => data["scope"],
-          "start_date" => data["start_date"],
-          "legal_entity" => data["legal_entity"],
-        },
-        printout_content: data["content"],
-        authentication_method_current: %{"type" => DeclarationRequest.authentication_method(:na)}
-      )
+      %{id: declaration_id} =
+        insert(
+          :il,
+          :declaration_request,
+          id: data["id"],
+          status: DeclarationRequest.status(:approved),
+          data: %{
+            "person" => get_person(),
+            "declaration_id" => data["declaration_id"],
+            "division" => data["division"],
+            "employee" => data["employee"],
+            "end_date" => data["end_date"],
+            "scope" => data["scope"],
+            "start_date" => data["start_date"],
+            "legal_entity" => data["legal_entity"]
+          },
+          printout_content: data["content"],
+          authentication_method_current: %{"type" => DeclarationRequest.authentication_method(:na)}
+        )
 
       signed_declaration_request =
         data
@@ -378,16 +415,20 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
 
       conn = Plug.Conn.put_req_header(conn, "drfo", get_in(data, ~w(employee party tax_id)))
       conn = put_client_id_header(conn, legal_entity_id)
-      conn = patch conn, declaration_request_path(conn, :sign, declaration_id), %{
-        "signed_declaration_request" => signed_declaration_request,
-        "signed_content_encoding" => "base64",
-      }
+
+      conn =
+        patch(conn, declaration_request_path(conn, :sign, declaration_id), %{
+          "signed_declaration_request" => signed_declaration_request,
+          "signed_content_encoding" => "base64"
+        })
+
       assert json_response(conn, 200)["data"]
     end
   end
 
   defp fixture_params do
     uuid = UUID.generate()
+
     %{
       data: %{
         id: UUID.generate(),
@@ -452,14 +493,14 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
               }
             ],
             tax_id: "12345678"
-          },
+          }
         },
         legal_entity: %{
           id: UUID.generate(),
           name: "Клініка Борис",
           short_name: "Борис",
           legal_form: "140",
-          edrpou: "5432345432",
+          edrpou: "5432345432"
         },
         division: %{
           id: UUID.generate(),
@@ -488,138 +529,138 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
 
   defp get_person do
     %{
-      "tax_id": "3378115538",
-      "secret": "secret",
-      "second_name": "TestQOA",
-      "process_disclosure_data_consent": true,
-      "phones": [
-          %{
-              "type": "MOBILE",
-              "number": "+380955947998"
-          }
+      tax_id: "3378115538",
+      secret: "secret",
+      second_name: "TestQOA",
+      process_disclosure_data_consent: true,
+      phones: [
+        %{
+          type: "MOBILE",
+          number: "+380955947998"
+        }
       ],
-      "patient_signed": true,
-      "last_name": "TestQOA",
-      "gender": "MALE",
-      "first_name": "TestQOA",
-      "emergency_contact": %{
-          "second_name": "Миколайович",
-          "phones": [
-              %{
-                  "type": "MOBILE",
-                  "number": "+380503410870"
-              }
-          ],
-          "last_name": "Іванов",
-          "first_name": "Петро"
+      patient_signed: true,
+      last_name: "TestQOA",
+      gender: "MALE",
+      first_name: "TestQOA",
+      emergency_contact: %{
+        second_name: "Миколайович",
+        phones: [
+          %{
+            type: "MOBILE",
+            number: "+380503410870"
+          }
+        ],
+        last_name: "Іванов",
+        first_name: "Петро"
       },
-      "email": "qq2234562qq@gmail.com",
-      "documents": [
-          %{
-              "type": "PASSPORT",
-              "number": "120518"
-          }
+      email: "qq2234562qq@gmail.com",
+      documents: [
+        %{
+          type: "PASSPORT",
+          number: "120518"
+        }
       ],
-      "confidant_person": [
-          %{
-              "tax_id": "3378115538",
-              "secret": "secret",
-              "second_name": "Миколайович",
-              "relation_type": "PRIMARY",
-              "phones": [
-                  %{
-                      "type": "MOBILE",
-                      "number": "+380503410870"
-                  }
-              ],
-              "last_name": "Іванов",
-              "gender": "MALE",
-              "first_name": "Петро",
-              "documents_relationship": [
-                  %{
-                      "type": "DOCUMENT",
-                      "number": "120518"
-                  }
-              ],
-              "documents_person": [
-                  %{
-                      "type": "PASSPORT",
-                      "number": "120518"
-                  }
-              ],
-              "birth_settlement": "Вінниця",
-              "birth_date": "1991-08-19",
-              "birth_country": "Україна"
-          },
-          %{
-              "tax_id": "3378115538",
-              "secret": "secret",
-              "second_name": "Миколайович",
-              "relation_type": "SECONDARY",
-              "phones": [
-                  %{
-                      "type": "MOBILE",
-                      "number": "+380503410870"
-                  }
-              ],
-              "last_name": "Іванов",
-              "gender": "MALE",
-              "first_name": "Петро",
-              "documents_relationship": [
-                  %{
-                      "type": "DOCUMENT",
-                      "number": "120518"
-                  }
-              ],
-              "documents_person": [
-                  %{
-                      "type": "PASSPORT",
-                      "number": "120518"
-                  }
-              ],
-              "birth_settlement": "Вінниця",
-              "birth_date": "1991-08-19",
-              "birth_country": "Україна"
-          }
+      confidant_person: [
+        %{
+          tax_id: "3378115538",
+          secret: "secret",
+          second_name: "Миколайович",
+          relation_type: "PRIMARY",
+          phones: [
+            %{
+              type: "MOBILE",
+              number: "+380503410870"
+            }
+          ],
+          last_name: "Іванов",
+          gender: "MALE",
+          first_name: "Петро",
+          documents_relationship: [
+            %{
+              type: "DOCUMENT",
+              number: "120518"
+            }
+          ],
+          documents_person: [
+            %{
+              type: "PASSPORT",
+              number: "120518"
+            }
+          ],
+          birth_settlement: "Вінниця",
+          birth_date: "1991-08-19",
+          birth_country: "Україна"
+        },
+        %{
+          tax_id: "3378115538",
+          secret: "secret",
+          second_name: "Миколайович",
+          relation_type: "SECONDARY",
+          phones: [
+            %{
+              type: "MOBILE",
+              number: "+380503410870"
+            }
+          ],
+          last_name: "Іванов",
+          gender: "MALE",
+          first_name: "Петро",
+          documents_relationship: [
+            %{
+              type: "DOCUMENT",
+              number: "120518"
+            }
+          ],
+          documents_person: [
+            %{
+              type: "PASSPORT",
+              number: "120518"
+            }
+          ],
+          birth_settlement: "Вінниця",
+          birth_date: "1991-08-19",
+          birth_country: "Україна"
+        }
       ],
-      "birth_settlement": "Вінниця",
-      "birth_date": "2001-08-19",
-      "birth_country": "Україна",
-      "authentication_methods": [
-          %{
-              "type": "OTP",
-              "phone_number": "+380955947998"
-          }
+      birth_settlement: "Вінниця",
+      birth_date: "2001-08-19",
+      birth_country: "Україна",
+      authentication_methods: [
+        %{
+          type: "OTP",
+          phone_number: "+380955947998"
+        }
       ],
-      "addresses": [
-          %{
-              "zip": "02090",
-              "type": "REGISTRATION",
-              "street_type": "STREET",
-              "street": "Ніжинська",
-              "settlement_type": "CITY",
-              "settlement_id": "707dbc55-cb6b-4aaa-97c1-2a1e03476100",
-              "settlement": "СОРОКИ-ЛЬВІВСЬКІ",
-              "region": "ПУСТОМИТІВСЬКИЙ",
-              "country": "UA",
-              "building": "15",
-              "area": "ЛЬВІВСЬКА",
-              "apartment": "23"
-          },
-          %{
-              "zip": "02090",
-              "type": "RESIDENCE",
-              "street_type": "STREET",
-              "street": "Ніжинська",
-              "settlement_type": "CITY",
-              "settlement_id": "707dbc55-cb6b-4aaa-97c1-2a1e03476100",
-              "settlement": "СОРОКИ-ЛЬВІВСЬКІ",
-              "region": "ПУСТОМИТІВСЬКИЙ",
-              "country": "UA",
-              "building": "15",
-              "area": "ЛЬВІВСЬКА",
-              "apartment": "23"
-          }
+      addresses: [
+        %{
+          zip: "02090",
+          type: "REGISTRATION",
+          street_type: "STREET",
+          street: "Ніжинська",
+          settlement_type: "CITY",
+          settlement_id: "707dbc55-cb6b-4aaa-97c1-2a1e03476100",
+          settlement: "СОРОКИ-ЛЬВІВСЬКІ",
+          region: "ПУСТОМИТІВСЬКИЙ",
+          country: "UA",
+          building: "15",
+          area: "ЛЬВІВСЬКА",
+          apartment: "23"
+        },
+        %{
+          zip: "02090",
+          type: "RESIDENCE",
+          street_type: "STREET",
+          street: "Ніжинська",
+          settlement_type: "CITY",
+          settlement_id: "707dbc55-cb6b-4aaa-97c1-2a1e03476100",
+          settlement: "СОРОКИ-ЛЬВІВСЬКІ",
+          region: "ПУСТОМИТІВСЬКИЙ",
+          country: "UA",
+          building: "15",
+          area: "ЛЬВІВСЬКА",
+          apartment: "23"
+        }
       ]
     }
   end

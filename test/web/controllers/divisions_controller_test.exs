@@ -14,32 +14,32 @@ defmodule EHealth.Web.DivisionsControllerTest do
   end
 
   test "get divisions without x-client-id header", %{conn: conn} do
-    conn = get conn, division_path(conn, :index)
+    conn = get(conn, division_path(conn, :index))
     assert 401 == json_response(conn, 401)["meta"]["code"]
   end
 
   test "get division by id without x-client-id header", %{conn: conn} do
-    conn = get conn, division_path(conn, :show, UUID.generate())
+    conn = get(conn, division_path(conn, :show, UUID.generate()))
     assert 401 == json_response(conn, 401)["meta"]["code"]
   end
 
   test "create divisions without x-client-id header", %{conn: conn} do
-    conn = post conn, division_path(conn, :create)
+    conn = post(conn, division_path(conn, :create))
     assert 401 == json_response(conn, 401)["meta"]["code"]
   end
 
   test "update divisions without x-client-id header", %{conn: conn} do
-    conn = put conn, division_path(conn, :update, UUID.generate())
+    conn = put(conn, division_path(conn, :update, UUID.generate()))
     assert 401 == json_response(conn, 401)["meta"]["code"]
   end
 
   test "activate divisions without x-client-id header", %{conn: conn} do
-    conn = patch conn, division_path(conn, :activate, UUID.generate())
+    conn = patch(conn, division_path(conn, :activate, UUID.generate()))
     assert 401 == json_response(conn, 401)["meta"]["code"]
   end
 
   test "deactivate divisions without x-client-id header", %{conn: conn} do
-    conn = patch conn, division_path(conn, :deactivate, UUID.generate())
+    conn = patch(conn, division_path(conn, :deactivate, UUID.generate()))
     assert 401 == json_response(conn, 401)["meta"]["code"]
   end
 
@@ -47,7 +47,7 @@ defmodule EHealth.Web.DivisionsControllerTest do
     test "get divisions", %{conn: conn} do
       conn = put_client_id_header(conn)
 
-      conn = get conn, division_path(conn, :index)
+      conn = get(conn, division_path(conn, :index))
       resp = json_response(conn, 200)
 
       assert Map.has_key?(resp, "data")
@@ -59,12 +59,12 @@ defmodule EHealth.Web.DivisionsControllerTest do
       %{legal_entity_id: id} = insert(:prm, :division, status: "ACTIVE", is_active: true)
       conn = put_client_id_header(conn, id)
 
-      conn1 = get conn, division_path(conn, :index, status: "INACTIVE")
+      conn1 = get(conn, division_path(conn, :index, status: "INACTIVE"))
       resp = json_response(conn1, 200)
 
       assert [] == resp["data"]
 
-      conn2 = get conn, division_path(conn, :index, status: "ACTIVE")
+      conn2 = get(conn, division_path(conn, :index, status: "ACTIVE"))
       resp = json_response(conn2, 200)
 
       assert 1 == length(resp["data"])
@@ -76,7 +76,7 @@ defmodule EHealth.Web.DivisionsControllerTest do
     division = insert(:prm, :division, legal_entity: legal_entity)
     conn = put_client_id_header(conn, legal_entity.id)
 
-    conn = get conn, division_path(conn, :show, division.id)
+    conn = get(conn, division_path(conn, :show, division.id))
     resp = json_response(conn, 200)["data"]
 
     assert division.id == resp["id"]
@@ -85,7 +85,7 @@ defmodule EHealth.Web.DivisionsControllerTest do
   test "get divisions with  client_id that does not match legal entity id", %{conn: conn} do
     conn = put_client_id_header(conn, Ecto.UUID.generate())
     id = "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
-    conn = get conn, division_path(conn, :index, [legal_entity_id: id])
+    conn = get(conn, division_path(conn, :index, legal_entity_id: id))
     resp = json_response(conn, 200)
     assert [] == resp["data"]
     assert Map.has_key?(resp, "paging")
@@ -95,7 +95,7 @@ defmodule EHealth.Web.DivisionsControllerTest do
   test "get division by id with wrong legal_entity_id", %{conn: conn} do
     division = insert(:prm, :division)
     conn = put_client_id_header(conn, UUID.generate())
-    conn = get conn, division_path(conn, :show, division.id)
+    conn = get(conn, division_path(conn, :show, division.id))
 
     assert 403 == json_response(conn, 403)["meta"]["code"]
   end
@@ -103,6 +103,7 @@ defmodule EHealth.Web.DivisionsControllerTest do
   test "create division with invalid address", %{conn: conn} do
     %{id: id} = insert(:prm, :legal_entity)
     division_data = get_division()
+
     address =
       division_data
       |> Map.get("addresses")
@@ -112,7 +113,7 @@ defmodule EHealth.Web.DivisionsControllerTest do
     division_data = Map.put(division_data, "addresses", [address])
 
     conn = put_client_id_header(conn, id)
-    conn = post conn, division_path(conn, :create), division_data
+    conn = post(conn, division_path(conn, :create), division_data)
 
     refute %{} == json_response(conn, 422)["error"]
   end
@@ -120,6 +121,7 @@ defmodule EHealth.Web.DivisionsControllerTest do
   test "create division with empty required address field", %{conn: conn} do
     %{id: id} = insert(:prm, :legal_entity)
     division_data = get_division()
+
     address =
       division_data
       |> Map.get("addresses")
@@ -129,7 +131,7 @@ defmodule EHealth.Web.DivisionsControllerTest do
     division_data = Map.put(division_data, "addresses", [address])
 
     conn = put_client_id_header(conn, id)
-    conn = post conn, division_path(conn, :create), division_data
+    conn = post(conn, division_path(conn, :create), division_data)
     assert [err] = json_response(conn, 422)["error"]["invalid"]
     assert "$.addresses.[0].settlement" == err["entry"]
   end
@@ -137,7 +139,7 @@ defmodule EHealth.Web.DivisionsControllerTest do
   test "create division", %{conn: conn} do
     legal_entity = insert(:prm, :legal_entity)
     conn = put_client_id_header(conn, legal_entity.id)
-    conn = post conn, division_path(conn, :create), get_division()
+    conn = post(conn, division_path(conn, :create), get_division())
 
     refute %{} == json_response(conn, 201)["data"]
   end
@@ -147,7 +149,7 @@ defmodule EHealth.Web.DivisionsControllerTest do
 
     legal_entity = insert(:prm, :legal_entity)
     conn = put_client_id_header(conn, legal_entity.id)
-    conn = post conn, division_path(conn, :create), division
+    conn = post(conn, division_path(conn, :create), division)
 
     assert [%{"rules" => [%{"description" => decription}]}] = json_response(conn, 422)["error"]["invalid"]
     assert "Single address of type 'RESIDENCE' is required" == decription
@@ -155,9 +157,9 @@ defmodule EHealth.Web.DivisionsControllerTest do
 
   test "create division without type and phone number", %{conn: conn} do
     %{id: id} = insert(:prm, :legal_entity)
-    division = get_division() |> Map.delete("type") |> Map.put("phones", [%{"type": "MOBILE"}])
+    division = get_division() |> Map.delete("type") |> Map.put("phones", [%{type: "MOBILE"}])
     conn = put_client_id_header(conn, id)
-    conn = post conn, division_path(conn, :create), division
+    conn = post(conn, division_path(conn, :create), division)
 
     assert [err1, err2] = json_response(conn, 422)["error"]["invalid"]
     assert "$.phones.[0].number" == err1["entry"]
@@ -167,7 +169,7 @@ defmodule EHealth.Web.DivisionsControllerTest do
   test "create division with invalid legal_entity", %{conn: conn} do
     division = get_division()
     conn = put_client_id_header(conn, Ecto.UUID.generate())
-    conn = post conn, division_path(conn, :create), division
+    conn = post(conn, division_path(conn, :create), division)
 
     assert [err] = json_response(conn, 422)["error"]["invalid"]
     assert "$.legal_entity_id" == err["entry"]
@@ -177,14 +179,16 @@ defmodule EHealth.Web.DivisionsControllerTest do
     %{id: id} = insert(:prm, :legal_entity)
     division = Map.put(get_division(), "type", "DRUGSTORE")
     conn = put_client_id_header(conn, id)
-    conn = post conn, division_path(conn, :create), division
+    conn = post(conn, division_path(conn, :create), division)
 
     assert [err] = json_response(conn, 422)["error"]["invalid"]
     assert "$.type" == err["entry"]
+
     allowed_types =
       :ehealth
       |> Confex.fetch_env!(:legal_entity_division_types)
       |> Keyword.get(:msp)
+
     assert allowed_types == err["rules"] |> hd |> Map.get("params")
   end
 
@@ -192,7 +196,7 @@ defmodule EHealth.Web.DivisionsControllerTest do
     legal_entity = insert(:prm, :legal_entity)
     division = insert(:prm, :division, legal_entity: legal_entity)
     conn = put_client_id_header(conn, legal_entity.id)
-    conn = put conn, division_path(conn, :update, division.id), get_division()
+    conn = put(conn, division_path(conn, :update, division.id), get_division())
 
     assert 200 == json_response(conn, 200)["meta"]["code"]
   end
@@ -201,7 +205,7 @@ defmodule EHealth.Web.DivisionsControllerTest do
     %{id: id} = insert(:prm, :legal_entity)
     division = insert(:prm, :division)
     conn = put_client_id_header(conn, id)
-    conn = put conn, division_path(conn, :update, division.id), get_division()
+    conn = put(conn, division_path(conn, :update, division.id), get_division())
 
     assert 403 == json_response(conn, 403)["meta"]["code"]
   end
@@ -210,7 +214,7 @@ defmodule EHealth.Web.DivisionsControllerTest do
     legal_entity = insert(:prm, :legal_entity)
     division = insert(:prm, :division, legal_entity: legal_entity)
     conn = put_client_id_header(conn, legal_entity.id)
-    conn = patch conn, division_path(conn, :activate, division.id)
+    conn = patch(conn, division_path(conn, :activate, division.id))
 
     assert 200 == json_response(conn, 200)["meta"]["code"]
   end
@@ -219,7 +223,7 @@ defmodule EHealth.Web.DivisionsControllerTest do
     legal_entity = insert(:prm, :legal_entity)
     division = insert(:prm, :division, legal_entity: legal_entity)
     conn = put_client_id_header(conn, legal_entity.id)
-    conn = patch conn, division_path(conn, :deactivate, division.id)
+    conn = patch(conn, division_path(conn, :deactivate, division.id))
 
     data = json_response(conn, 200)["data"]
     assert "INACTIVE" == data["status"]
@@ -230,7 +234,7 @@ defmodule EHealth.Web.DivisionsControllerTest do
     legal_entity = insert(:prm, :legal_entity)
     division = insert(:prm, :division, legal_entity: legal_entity)
     conn = put_client_id_header(conn, UUID.generate())
-    conn = patch conn, division_path(conn, :activate, division.id)
+    conn = patch(conn, division_path(conn, :activate, division.id))
 
     assert 403 == json_response(conn, 403)["meta"]["code"]
   end
@@ -238,7 +242,7 @@ defmodule EHealth.Web.DivisionsControllerTest do
   test "deactivate division with wrong legal_entity_id", %{conn: conn} do
     division = insert(:prm, :division)
     conn = put_client_id_header(conn, UUID.generate())
-    conn = patch conn, division_path(conn, :deactivate, division.id)
+    conn = patch(conn, division_path(conn, :deactivate, division.id))
 
     assert 403 == json_response(conn, 403)["meta"]["code"]
   end

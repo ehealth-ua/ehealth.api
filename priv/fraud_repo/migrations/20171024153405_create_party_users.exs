@@ -3,9 +3,9 @@ defmodule EHealth.FraudRepo.Migrations.CreatePartyUsers do
 
   def change do
     create table(:party_users, primary_key: false) do
-      add :id, :uuid, primary_key: true
-      add :user_id, :uuid, null: false
-      add :party_id, :uuid
+      add(:id, :uuid, primary_key: true)
+      add(:user_id, :uuid, null: false)
+      add(:party_id, :uuid)
 
       timestamps()
     end

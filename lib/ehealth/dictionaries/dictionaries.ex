@@ -18,7 +18,7 @@ defmodule EHealth.Dictionaries do
 
   defp search_dictionaries(%Ecto.Changeset{valid?: true, changes: changes}) when map_size(changes) > 0 do
     params = Map.to_list(changes)
-    query = from d in Dictionary, where: ^params
+    query = from(d in Dictionary, where: ^params)
 
     {:ok, Repo.all(query)}
   end
@@ -81,7 +81,7 @@ defmodule EHealth.Dictionaries do
   end
 
   def get_dictionary_value(value, dictionary_name) do
-    {:ok, dictionaries} = Dictionaries.list_dictionaries(%{"name": dictionary_name})
+    {:ok, dictionaries} = Dictionaries.list_dictionaries(%{name: dictionary_name})
 
     dictionaries
     |> Enum.at(0)
@@ -102,6 +102,6 @@ defmodule EHealth.Dictionaries do
   def get_dictionaries_keys(dictionary_list) do
     dictionary_list
     |> get_dictionaries()
-    |> Enum.reduce(%{}, fn({d_name, d_values}, acc) -> Map.put(acc, d_name, Map.keys(d_values)) end)
+    |> Enum.reduce(%{}, fn {d_name, d_values}, acc -> Map.put(acc, d_name, Map.keys(d_values)) end)
   end
 end

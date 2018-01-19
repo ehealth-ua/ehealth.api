@@ -9,10 +9,12 @@ defmodule EHealth.Unit.OAuthAPITest do
 
   test "check client name for client creation" do
     name = "my name"
+
     client = %LegalEntity{
       id: UUID.generate(),
       name: name
     }
+
     assert {:ok, %{"data" => resp}} = API.put_client(client, "example.com", Ecto.UUID.generate(), [])
     assert name == resp["name"]
   end

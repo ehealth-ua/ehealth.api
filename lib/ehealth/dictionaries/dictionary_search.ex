@@ -4,7 +4,7 @@ defmodule EHealth.Dictionaries.DictionarySearch do
   use Ecto.Schema
 
   schema "dictionary_search" do
-    field :name, :string
-    field :is_active, :boolean
+    field(:name, :string)
+    field(:is_active, :boolean)
   end
 end

@@ -26,16 +26,16 @@ defmodule EHealth.DeclarationRequest.API.Approve do
   def check_documents([document | tail], declaration_request_id, acc) do
     case uploaded?(declaration_request_id, document) do
       # document is succesfully uploaded
-      {:ok, true}
-        -> check_documents(tail, declaration_request_id, acc)
+      {:ok, true} ->
+        check_documents(tail, declaration_request_id, acc)
 
       # document not found
-      {:error, {:not_uploaded, document_type}}
-        -> check_documents(tail, declaration_request_id, put_document_error(acc, document_type))
+      {:error, {:not_uploaded, document_type}} ->
+        check_documents(tail, declaration_request_id, put_document_error(acc, document_type))
 
       # ael bad response
-      {:error, {:ael_bad_response, _}} = err
-        -> err
+      {:error, {:ael_bad_response, _}} = err ->
+        err
     end
   end
 
@@ -52,28 +52,30 @@ defmodule EHealth.DeclarationRequest.API.Approve do
 
     Logger.info(fn ->
       Poison.encode!(%{
-        "log_type"     => "microservice_response",
+        "log_type" => "microservice_response",
         "microservice" => "ael",
-        "result"       => result,
-        "request_id"   => Logger.metadata[:request_id],
+        "result" => result,
+        "request_id" => Logger.metadata()[:request_id]
       })
     end)
 
-    case HTTPoison.head(url, ["Content-Type":  MIME.from_path(resource_name)]) do
+    case HTTPoison.head(url, "Content-Type": MIME.from_path(resource_name)) do
       {:ok, resp} ->
         case resp do
           %HTTPoison.Response{status_code: 200} ->
             {:ok, true}
+
           _ ->
             {:error, {:not_uploaded, type}}
         end
+
       {:error, reason} ->
         Logger.info(fn ->
           Poison.encode!(%{
-            "log_type"     => "microservice_response",
+            "log_type" => "microservice_response",
             "microservice" => "ael",
-            "result"       => reason,
-            "request_id"   => Logger.metadata[:request_id]
+            "result" => reason,
+            "request_id" => Logger.metadata()[:request_id]
           })
         end)
 

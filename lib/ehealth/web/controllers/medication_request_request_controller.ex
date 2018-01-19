@@ -5,7 +5,7 @@ defmodule EHealth.Web.MedicationRequestRequestController do
   alias EHealth.MedicationRequestRequests, as: API
   alias Scrivener.Page
 
-  action_fallback EHealth.Web.FallbackController
+  action_fallback(EHealth.Web.FallbackController)
   alias EHealth.Web.MedicationRequestView
 
   def index(conn, params) do
@@ -21,8 +21,7 @@ defmodule EHealth.Web.MedicationRequestRequestController do
     with {:ok, mrr} <- API.create(params, user_id, client_id) do
       conn
       |> put_status(:created)
-      |> put_resp_header("location", medication_request_request_path(conn, :show,
-        mrr.medication_request_request))
+      |> put_resp_header("location", medication_request_request_path(conn, :show, mrr.medication_request_request))
       |> render("medication_request_request_detail.json", %{data: mrr})
     end
   end
@@ -30,6 +29,7 @@ defmodule EHealth.Web.MedicationRequestRequestController do
   def prequalify(conn, params) do
     user_id = get_consumer_id(conn.req_headers)
     client_id = get_client_id(conn.req_headers)
+
     with {:ok, programs} <- API.prequalify(params, user_id, client_id) do
       conn
       |> put_status(200)
@@ -40,6 +40,7 @@ defmodule EHealth.Web.MedicationRequestRequestController do
   def reject(conn, %{"id" => id}) do
     user_id = get_consumer_id(conn.req_headers)
     client_id = get_client_id(conn.req_headers)
+
     with {:ok, mrr} <- API.reject(id, user_id, client_id) do
       conn
       |> put_status(200)

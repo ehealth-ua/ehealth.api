@@ -3,10 +3,10 @@ defmodule EHealth.Repo.Migrations.DropEmployeeDoctors do
 
   def change do
     alter table(:employees) do
-      add :additional_info, :jsonb, null: false, default: "{}"
+      add(:additional_info, :jsonb, null: false, default: "{}")
     end
 
-    execute """
+    execute("""
     UPDATE employees SET
     additional_info = doctor.json
     FROM (
@@ -19,8 +19,8 @@ defmodule EHealth.Repo.Migrations.DropEmployeeDoctors do
       employee_doctors ed
     ) AS doctor
     WHERE id = doctor.employee_id
-    """
+    """)
 
-    drop table(:employee_doctors)
+    drop(table(:employee_doctors))
   end
 end

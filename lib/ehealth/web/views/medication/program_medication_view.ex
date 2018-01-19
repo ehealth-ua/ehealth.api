@@ -14,7 +14,7 @@ defmodule EHealth.Web.ProgramMedicationView do
     :updated_by,
     :inserted_by,
     :inserted_at,
-    :updated_at,
+    :updated_at
   ]
 
   def render("index.json", %{program_medications: program_medications}) do
@@ -29,8 +29,8 @@ defmodule EHealth.Web.ProgramMedicationView do
     program_medication
     |> Map.take(@program_medication_view_fields)
     |> Map.merge(%{
-         medication: render_one(program_medication.medication, MedicationView, "medication.json"),
-         medical_program: render_one(program_medication.medical_program, MedicalProgramView, "show.json"),
-       })
+      medication: render_one(program_medication.medication, MedicationView, "medication.json"),
+      medical_program: render_one(program_medication.medical_program, MedicalProgramView, "show.json")
+    })
   end
 end

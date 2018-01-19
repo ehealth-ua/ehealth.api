@@ -3,15 +3,15 @@ defmodule EHealth.PRMRepo.Migrations.CreatePRM.Registries.UkrMedRegistry do
 
   def change do
     create table(:ukr_med_registries, primary_key: false) do
-      add :id, :uuid, primary_key: true
-      add :name, :string
-      add :edrpou, :string, null: false
-      add :inserted_by, :uuid, null: false
-      add :updated_by, :uuid
+      add(:id, :uuid, primary_key: true)
+      add(:name, :string)
+      add(:edrpou, :string, null: false)
+      add(:inserted_by, :uuid, null: false)
+      add(:updated_by, :uuid)
 
       timestamps()
     end
 
-    create unique_index(:ukr_med_registries, [:edrpou])
+    create(unique_index(:ukr_med_registries, [:edrpou]))
   end
 end

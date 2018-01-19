@@ -10,19 +10,21 @@ defmodule EHealth.SimpleFactory do
 
   defmacro fixture(module) do
     quote do
-      module = unquote module
+      module = unquote(module)
+
       case module do
-        Request -> Request |> struct(employee_request()) |> Repo.insert!
+        Request -> Request |> struct(employee_request()) |> Repo.insert!()
         DeclarationRequest -> declaration_request()
-        LegalEntity -> legal_entity() |> PRMRepo.insert!
+        LegalEntity -> legal_entity() |> PRMRepo.insert!()
       end
     end
   end
 
   defmacro fixture(module, params) do
     quote do
-      module = unquote module
-      params = unquote params
+      module = unquote(module)
+      params = unquote(params)
+
       case module do
         Request ->
           params =
@@ -31,17 +33,20 @@ defmodule EHealth.SimpleFactory do
             |> set_employee_type(Map.get(params, :employee_type))
             |> set_legal_entity_id(Map.get(params, :legal_entity_id))
             |> Map.drop(~w(email employee_type legal_entity_id)a)
+
           Request
           |> struct(params)
-          |> Repo.insert!
+          |> Repo.insert!()
+
         LegalEntity ->
           module
           |> struct(params)
-          |> PRMRepo.insert!
+          |> PRMRepo.insert!()
+
         _ ->
           module
           |> struct(params)
-          |> Repo.insert!
+          |> Repo.insert!()
       end
     end
   end
@@ -55,10 +60,11 @@ defmodule EHealth.SimpleFactory do
 
     data = Map.fetch!(attrs, "employee_request")
     %{data: Map.delete(data, "status"), status: Map.fetch!(data, "status")}
- end
+  end
 
   def declaration_request do
-    uuid = UUID.generate
+    uuid = UUID.generate()
+
     %DeclarationRequest{
       data: %{},
       status: "",
@@ -66,12 +72,13 @@ defmodule EHealth.SimpleFactory do
       updated_by: uuid,
       authentication_method_current: %{},
       printout_content: "",
-      declaration_id: UUID.generate,
+      declaration_id: UUID.generate()
     }
     |> Repo.insert!()
   end
 
   def set_employee_type(data, nil), do: data
+
   def set_employee_type(data, employee_type) do
     Map.put(data, "employee_type", employee_type)
   end
@@ -84,33 +91,35 @@ defmodule EHealth.SimpleFactory do
 
   def legal_entity do
     %LegalEntity{
-      "is_active": true,
-      "addresses": [%{
-        "settlement_id" => UUID.generate()
-      }],
-      "inserted_by": "026a8ea0-2114-11e7-8fae-685b35cd61c2",
-      "edrpou": rand_edrpou(),
-      "email": "some email",
-      "kveds": [],
-      "legal_form": "P14",
-      "name": "some name",
-      "owner_property_type": "STATE",
-      "phones": [%{}],
-      "public_name": "some public_name",
-      "short_name": "some short_name",
-      "status": "ACTIVE",
-      "mis_verified": "VERIFIED",
-      "type": "MSP",
-      "nhs_verified": false,
-      "updated_by": "1729f790-2114-11e7-97f0-685b35cd61c2",
-      "created_by_mis_client_id": "1729f790-2114-11e7-97f0-685b35cd61c2",
+      is_active: true,
+      addresses: [
+        %{
+          "settlement_id" => UUID.generate()
+        }
+      ],
+      inserted_by: "026a8ea0-2114-11e7-8fae-685b35cd61c2",
+      edrpou: rand_edrpou(),
+      email: "some email",
+      kveds: [],
+      legal_form: "P14",
+      name: "some name",
+      owner_property_type: "STATE",
+      phones: [%{}],
+      public_name: "some public_name",
+      short_name: "some short_name",
+      status: "ACTIVE",
+      mis_verified: "VERIFIED",
+      type: "MSP",
+      nhs_verified: false,
+      updated_by: "1729f790-2114-11e7-97f0-685b35cd61c2",
+      created_by_mis_client_id: "1729f790-2114-11e7-97f0-685b35cd61c2"
     }
   end
 
   def rand_edrpou do
-    9999999
+    9_999_999
     |> :rand.uniform()
-    |> Kernel.+(10000000)
+    |> Kernel.+(10_000_000)
     |> to_string()
   end
 

@@ -5,7 +5,7 @@ defmodule EHealth.Web.UserRoleController do
 
   alias EHealth.API.Mithril, as: MithrilAPI
 
-  action_fallback EHealth.Web.FallbackController
+  action_fallback(EHealth.Web.FallbackController)
 
   def index(%Plug.Conn{req_headers: headers} = conn, params) do
     with {:ok, %{"data" => roles}} = MithrilAPI.get_user_roles(get_consumer_id(headers), params) do

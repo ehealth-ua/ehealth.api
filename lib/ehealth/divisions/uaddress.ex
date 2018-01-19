@@ -10,8 +10,7 @@ defmodule EHealth.Divisions.UAddress do
   def update_settlement(%{"id" => id} = params, headers) do
     with {:ok, data} <- prepare_settlement_data(params),
          {:ok, settlement} <- UAddress.get_settlement_by_id(id, headers),
-         {:ok, settlement} <- api_update_settlement(data, headers, settlement)
-    do
+         {:ok, settlement} <- api_update_settlement(data, headers, settlement) do
       {:ok, settlement}
     end
   end
@@ -19,6 +18,7 @@ defmodule EHealth.Divisions.UAddress do
   defp prepare_settlement_data(%{"id" => id, "settlement" => settlement}) do
     {:ok, Map.put(settlement, "id", id)}
   end
+
   defp prepare_settlement_data(_) do
     {:error, {:"422", "required property settlement was not present"}}
   end
@@ -41,17 +41,19 @@ defmodule EHealth.Divisions.UAddress do
     case update_required?(data, settlement) do
       true ->
         with {:ok, updated_settlement} <- UAddress.update_settlement(id, data, headers),
-             :ok <- api_update_divisions(data, headers, settlement)
-        do
+             :ok <- api_update_divisions(data, headers, settlement) do
           {:ok, updated_settlement}
         end
-      false -> {:ok, settlement}
+
+      false ->
+        {:ok, settlement}
     end
   end
 
   defp api_update_divisions(%{"id" => id, "mountain_group" => group} = data, headers, settlement) do
     consumer_id = get_consumer_id(headers)
     result = Divisions.update_mountain_group(%{settlement_id: id, mountain_group: group}, consumer_id)
+
     case result do
       %Ecto.Changeset{valid?: false} -> result
       {:error, _failed_operation, failed_value, _changes_so_far} -> failed_value
@@ -60,6 +62,7 @@ defmodule EHealth.Divisions.UAddress do
   rescue
     _ -> rollback_settlement(data, headers, settlement, "Failed to update divisions mountain group")
   end
+
   defp api_update_divisions(_, _, _), do: :ok
 
   defp rollback_settlement(%{"id" => id}, headers, settlement, reason) do

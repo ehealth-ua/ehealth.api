@@ -11,12 +11,12 @@ defmodule EHealth.API.Helpers.SignedContent do
   def save(url, content, headers, options) do
     Logger.info(fn ->
       Poison.encode!(%{
-        "log_type"     => "http_request",
-        "action"       => "PUT",
-        "path"         => url,
-        "request_id"   => Logger.metadata[:request_id],
-        "body"         => "[REDACTED]",
-        "headers"      => Enum.reduce(headers, %{}, fn {k, v}, map -> Map.put_new(map, k, v) end)
+        "log_type" => "http_request",
+        "action" => "PUT",
+        "path" => url,
+        "request_id" => Logger.metadata()[:request_id],
+        "body" => "[REDACTED]",
+        "headers" => Enum.reduce(headers, %{}, fn {k, v}, map -> Map.put_new(map, k, v) end)
       })
     end)
 

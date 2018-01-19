@@ -5,15 +5,18 @@ defmodule MicroservicesHelper do
     quote do
       use Plug.Router
 
-      plug Plug.Head
+      plug(Plug.Head)
 
-      plug :match
+      plug(:match)
 
-      plug Plug.Parsers, parsers: [:json],
-                         pass:  ["application/json"],
-                         json_decoder: Poison
+      plug(
+        Plug.Parsers,
+        parsers: [:json],
+        pass: ["application/json"],
+        json_decoder: Poison
+      )
 
-      plug :dispatch
+      plug(:dispatch)
     end
   end
 end

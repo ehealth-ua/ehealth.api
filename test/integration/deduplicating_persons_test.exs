@@ -19,15 +19,15 @@ defmodule EHealth.Integration.DeduplicatingPersonsTest do
         %{"status" => "NEW"} = conn.query_params
 
         merge_candidates = [
-          %{ "id" => "mc_1", "person_id" => @person1, "master_person_id" => @master_person_id },
-          %{ "id" => "mc_2", "person_id" => @person2, "master_person_id" => @master_person_id }
+          %{"id" => "mc_1", "person_id" => @person1, "master_person_id" => @master_person_id},
+          %{"id" => "mc_2", "person_id" => @person2, "master_person_id" => @master_person_id}
         ]
 
         send_resp(conn, 200, Poison.encode!(%{data: merge_candidates}))
       end
 
       Plug.Router.patch "/persons/#{@master_person_id}" do
-        Logger.info("Master person #{@master_person_id} was updated with #{inspect conn.params}.")
+        Logger.info("Master person #{@master_person_id} was updated with #{inspect(conn.params)}.")
         %{"merged_ids" => [@person1, @person2]} = conn.params
         updated_candidate = %{}
         send_resp(conn, 200, Poison.encode!(%{data: updated_candidate}))
@@ -75,6 +75,7 @@ defmodule EHealth.Integration.DeduplicatingPersonsTest do
                   "person_id" => @person1
                 }
               ]
+
             %{"person_id" => @person2} ->
               [
                 %{
@@ -104,25 +105,26 @@ defmodule EHealth.Integration.DeduplicatingPersonsTest do
       System.put_env("MPI_ENDPOINT", "http://localhost:#{port}")
       System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
 
-      on_exit fn ->
+      on_exit(fn ->
         System.put_env("MPI_ENDPOINT", "http://localhost:4040")
         System.put_env("OPS_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
-      end
+      end)
 
       {:ok, %{port: port, conn: conn}}
     end
 
     test "duplicate persons are marked as MERGED, declarations are deactivated" do
-      result = capture_log fn ->
-        response =
-          build_conn()
-          |> post("/internal/deduplication/found_duplicates")
+      result =
+        capture_log(fn ->
+          response =
+            build_conn()
+            |> post("/internal/deduplication/found_duplicates")
 
-        Process.sleep(1000)
+          Process.sleep(1000)
 
-        assert "OK" = text_response(response, 200)
-      end
+          assert "OK" = text_response(response, 200)
+        end)
 
       assert result =~ "Master person c3c765eb-378a-4c23-a36e-ad12ae073960 was updated"
       assert result =~ "Candidate mc_1 was merged."

@@ -3,7 +3,7 @@ defmodule EHealth.PRMRepo.Migrations.AddEmployeeStatusReason do
 
   def change do
     alter table(:employees) do
-      add :status_reason, :string
+      add(:status_reason, :string)
     end
   end
 end

@@ -7,10 +7,10 @@ defmodule EHealth.Users.CredentialsRecoveryRequest do
   @primary_key {:id, :binary_id, autogenerate: true}
   @derive {Poison.Encoder, except: [:__meta__]}
   schema "credentials_recovery_requests" do
-    field :user_id, :binary_id
-    field :is_active, :boolean, default: true
-    field :expires_at, :utc_datetime, virtual: true
-    field :email, :string, virtual: true
+    field(:user_id, :binary_id)
+    field(:is_active, :boolean, default: true)
+    field(:expires_at, :utc_datetime, virtual: true)
+    field(:email, :string, virtual: true)
 
     timestamps()
   end

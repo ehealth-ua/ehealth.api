@@ -8,11 +8,13 @@ defmodule EHealth.Web.EmployeeRequestController do
   alias EHealth.EmployeeRequests.EmployeeRequest, as: Request
   alias EHealth.LegalEntities
 
-  action_fallback EHealth.Web.FallbackController
+  action_fallback(EHealth.Web.FallbackController)
 
   def index(conn, params) do
     with {%Page{} = paging, references} <- API.list(params) do
-      render(conn, "index.json",
+      render(
+        conn,
+        "index.json",
         employee_requests: paging.entries,
         references: references,
         paging: paging
@@ -23,8 +25,11 @@ defmodule EHealth.Web.EmployeeRequestController do
   def create(%Plug.Conn{req_headers: req_headers} = conn, params) do
     client_id = get_client_id(req_headers)
     params = put_in(params, ["employee_request", "legal_entity_id"], client_id)
+
     with {:ok, employee_request} <- API.create(params) do
-      render(conn, "show.json",
+      render(
+        conn,
+        "show.json",
         employee_request: employee_request,
         legal_entity: get_legal_entity(employee_request)
       )
@@ -33,8 +38,8 @@ defmodule EHealth.Web.EmployeeRequestController do
 
   def invite(conn, %{"id" => id} = params) do
     with {:ok, cipher_str} <- Base.decode64(id),
-         id                <- Cipher.decrypt(cipher_str),
-         true              <- is_binary(id) do
+         id <- Cipher.decrypt(cipher_str),
+         true <- is_binary(id) do
       show(conn, Map.put(params, "id", id))
     else
       :error -> nil
@@ -48,7 +53,8 @@ defmodule EHealth.Web.EmployeeRequestController do
 
     conn
     |> put_urgent_user_id(employee_request)
-    |> render("show.json",
+    |> render(
+      "show.json",
       employee_request: employee_request,
       legal_entity: get_legal_entity(employee_request)
     )
@@ -63,7 +69,9 @@ defmodule EHealth.Web.EmployeeRequestController do
   def approve(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
     with :ok <- API.check_employee_request(req_headers, id) do
       with {:ok, employee_request} <- API.approve(id, req_headers) do
-        render(conn, "show.json",
+        render(
+          conn,
+          "show.json",
           employee_request: employee_request,
           legal_entity: get_legal_entity(employee_request)
         )
@@ -74,7 +82,9 @@ defmodule EHealth.Web.EmployeeRequestController do
   def reject(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
     with :ok <- API.check_employee_request(req_headers, id) do
       with {:ok, employee_request} <- API.reject(id, req_headers) do
-        render(conn, "show.json",
+        render(
+          conn,
+          "show.json",
           employee_request: employee_request,
           legal_entity: get_legal_entity(employee_request)
         )
@@ -99,6 +109,7 @@ defmodule EHealth.Web.EmployeeRequestController do
     |> Map.get("data")
     |> set_user_id(conn)
   end
+
   defp process_user_id({:error, _reason}, conn), do: conn
 
   defp set_user_id([%{"id" => user_id}], conn), do: assign(conn, :urgent, %{"user_id" => user_id})

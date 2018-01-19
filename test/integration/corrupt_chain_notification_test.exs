@@ -32,10 +32,11 @@ defmodule EHealth.Integration.CorruptChainNotificationTest do
       {:ok, port, ref} = start_microservices(Man)
 
       System.put_env("MAN_ENDPOINT", "http://localhost:#{port}")
-      on_exit fn ->
+
+      on_exit(fn ->
         System.put_env("MAN_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
-      end
+      end)
 
       {:ok, %{conn: conn}}
     end

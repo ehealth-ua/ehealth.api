@@ -5,7 +5,7 @@ defmodule EHealth.Web.GlobalParameterController do
 
   alias EHealth.GlobalParameters
 
-  action_fallback EHealth.Web.FallbackController
+  action_fallback(EHealth.Web.FallbackController)
 
   def index(conn, _params) do
     with global_parameters <- GlobalParameters.list() do

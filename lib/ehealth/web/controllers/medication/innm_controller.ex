@@ -6,7 +6,7 @@ defmodule EHealth.Web.INNMController do
   alias EHealth.Medications, as: API
   alias EHealth.Medications.INNM
 
-  action_fallback EHealth.Web.FallbackController
+  action_fallback(EHealth.Web.FallbackController)
 
   def index(conn, params) do
     with %Page{} = paging <- API.list_innms(params) do

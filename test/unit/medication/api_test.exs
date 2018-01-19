@@ -1,5 +1,4 @@
 defmodule EHealth.Medication.APITest do
-
   use EHealth.Web.ConnCase, async: true
   alias EHealth.Medications, as: API
   alias EHealth.Medications.INNMDosage
@@ -18,11 +17,11 @@ defmodule EHealth.Medication.APITest do
   @create_innm_dosage_attrs %{
     "name" => "some name",
     "form" => "some form",
-    "ingredients" => [@ingredient],
+    "ingredients" => [@ingredient]
   }
   @invalid_attrs %{
     "name" => nil,
-    "form" => nil,
+    "form" => nil
   }
 
   @doc """
@@ -31,10 +30,14 @@ defmodule EHealth.Medication.APITest do
   def medication_fixture do
     %{id: medication_id} = medication_innm_dosage_fixture()
     %{id: innm_dosage_id} = insert(:prm, :innm_dosage)
-    ingredient = build(:ingredient_medication,
-      parent_id: medication_id,
-      medication_child_id: innm_dosage_id
-    )
+
+    ingredient =
+      build(
+        :ingredient_medication,
+        parent_id: medication_id,
+        medication_child_id: innm_dosage_id
+      )
+
     insert(:prm, :medication, ingredients: [ingredient])
   end
 

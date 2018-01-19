@@ -21,7 +21,7 @@ defmodule EHealth.PRMFactories.EmployeeFactory do
           legal_entity_id: division.legal_entity.id,
           inserted_by: UUID.generate(),
           updated_by: UUID.generate(),
-          additional_info: doctor(),
+          additional_info: doctor()
         }
       end
 
@@ -34,7 +34,7 @@ defmodule EHealth.PRMFactories.EmployeeFactory do
             "institution_name" => "random string",
             "diploma_number" => "random string",
             "speciality" => "random string",
-            "issued_date" => ~D[1987-04-17],
+            "issued_date" => ~D[1987-04-17]
           },
           "qualifications" => [
             %{
@@ -42,7 +42,7 @@ defmodule EHealth.PRMFactories.EmployeeFactory do
               "institution_name" => "random string",
               "speciality" => Enum.random(doctor_specialities()),
               "certificate_number" => "random string",
-              "issued_date" => ~D[1987-04-17],
+              "issued_date" => ~D[1987-04-17]
             }
           ],
           "educations" => [
@@ -53,7 +53,7 @@ defmodule EHealth.PRMFactories.EmployeeFactory do
               "institution_name" => "random string",
               "diploma_number" => "random string",
               "speciality" => "random string",
-              "issued_date" => ~D[1987-04-17],
+              "issued_date" => ~D[1987-04-17]
             }
           ],
           "specialities" => [
@@ -65,7 +65,7 @@ defmodule EHealth.PRMFactories.EmployeeFactory do
               "attestation_name" => "random string",
               "attestation_date" => ~D[1987-04-17],
               "valid_to_date" => ~D[1987-04-17],
-              "certificate_number" => "random string",
+              "certificate_number" => "random string"
             }
           ]
         }
@@ -92,7 +92,7 @@ defmodule EHealth.PRMFactories.EmployeeFactory do
         [
           "Терапевт",
           "Педіатр",
-          "Сімейний лікар",
+          "Сімейний лікар"
         ]
       end
 
@@ -118,7 +118,7 @@ defmodule EHealth.PRMFactories.EmployeeFactory do
           "Передатестаційний цикл",
           "Тематичне вдосконалення",
           "Курси інформації",
-          "Стажування",
+          "Стажування"
         ]
       end
     end

@@ -35,7 +35,7 @@ defmodule EHealth.PartyUsers do
     entity
     |> where(^Map.to_list(changes))
     |> join(:left, [pu], p in assoc(pu, :party))
-    |> preload([pu, p], [party: p])
+    |> preload([pu, p], party: p)
   end
 
   def create(party_id, user_id) do
@@ -51,6 +51,7 @@ defmodule EHealth.PartyUsers do
     |> unique_constraint(:user_id)
     |> foreign_key_constraint(:party_id)
   end
+
   defp changeset(%Search{} = search, attrs) do
     cast(search, attrs, Search.__schema__(:fields))
   end

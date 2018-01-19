@@ -23,7 +23,7 @@ defmodule EHealth.Man.Templates.EmployeeRequestInvitation do
       clinic_name: Map.get(clinic_info, :name),
       clinic_address: Map.get(clinic_info, :address),
       doctor_role: get_position(data),
-      request_id: id |> Cipher.encrypt() |> Base.encode64(),
+      request_id: id |> Cipher.encrypt() |> Base.encode64()
     })
   end
 
@@ -39,13 +39,15 @@ defmodule EHealth.Man.Templates.EmployeeRequestInvitation do
       address: get_clinic_address(legal_entity.addresses)
     }
   end
+
   def get_clinic_info(_), do: %{}
 
   def get_clinic_address(addresses) when is_list(addresses) and length(addresses) > 0 do
     addresses
-    |> Enum.find(fn(x) -> Map.get(x, "type") == "REGISTRATION" end)
+    |> Enum.find(fn x -> Map.get(x, "type") == "REGISTRATION" end)
     |> AddressMerger.merge_address()
   end
+
   def get_clinic_address(_), do: ""
 
   def current_date(region, format) do

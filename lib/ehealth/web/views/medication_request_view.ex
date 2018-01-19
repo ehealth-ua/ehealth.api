@@ -13,6 +13,7 @@ defmodule EHealth.Web.MedicationRequestView do
 
   def render("show.json", %{medication_request: medication_request}) do
     legal_entity = medication_request["legal_entity"]
+
     medication_request
     |> Map.take(~w(
       id
@@ -34,7 +35,7 @@ defmodule EHealth.Web.MedicationRequestView do
 
   def render("medication_info.json", %{medication_request: medication_request}) do
     medication = medication_request["medication"]
-    ingredient = Enum.find(medication.ingredients, &(Map.get(&1, :is_primary)))
+    ingredient = Enum.find(medication.ingredients, &Map.get(&1, :is_primary))
 
     medication_request
     |> Map.take(~w(medication_qty))
@@ -47,29 +48,35 @@ defmodule EHealth.Web.MedicationRequestView do
   def render("qualify.json", %{medical_programs: medical_programs, validations: validations}) do
     Enum.map(medical_programs, fn program ->
       {_, validation} = Enum.find(validations, fn {id, _} -> id == program.id end)
-      {status, reason, participants} = case validation do
-        :ok ->
-          {"VALID", "", render_many(
-            program.program_medications,
-            __MODULE__,
-            "program_medication.json",
-            as: :program_medication
-          )}
-        {:error, reason} -> {"INVALID", reason, []}
-      end
+
+      {status, reason, participants} =
+        case validation do
+          :ok ->
+            {"VALID", "",
+             render_many(
+               program.program_medications,
+               __MODULE__,
+               "program_medication.json",
+               as: :program_medication
+             )}
+
+          {:error, reason} ->
+            {"INVALID", reason, []}
+        end
 
       %{
         "program_id" => program.id,
         "program_name" => program.name,
         "status" => status,
         "rejection_reason" => reason,
-        "participants" => participants,
+        "participants" => participants
       }
     end)
   end
 
   def render("program_medication.json", %{program_medication: program_medication}) do
     medication = program_medication.medication
+
     %{
       "medication_id" => medication.id,
       "medication_name" => medication.name,

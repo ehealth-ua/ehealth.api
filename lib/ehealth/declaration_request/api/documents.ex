@@ -15,13 +15,18 @@ defmodule EHealth.DeclarationRequest.API.Documents do
 
     link_versions =
       for verb <- http_verbs,
-          document_type <- documents_list, do: {verb, document_type}
+          document_type <- documents_list,
+          do: {verb, document_type}
 
     documents =
-      Enum.reduce_while link_versions, [], fn {verb, document_type}, acc ->
+      Enum.reduce_while(link_versions, [], fn {verb, document_type}, acc ->
         result =
-          MediaStorage.create_signed_url(verb,
-            bucket, "declaration_request_#{document_type}.jpeg", declaration_request_id)
+          MediaStorage.create_signed_url(
+            verb,
+            bucket,
+            "declaration_request_#{document_type}.jpeg",
+            declaration_request_id
+          )
 
         case result do
           {:ok, %{"data" => %{"secret_url" => url}}} ->
@@ -31,15 +36,17 @@ defmodule EHealth.DeclarationRequest.API.Documents do
               "url" => url
             }
 
-            {:cont, [url_details|acc]}
+            {:cont, [url_details | acc]}
+
           {:error, error_response} ->
             {:halt, {:error, error_response}}
         end
-      end
+      end)
 
     case documents do
       {:error, error_response} ->
         {:error, error_response}
+
       _ ->
         {:ok, documents}
     end

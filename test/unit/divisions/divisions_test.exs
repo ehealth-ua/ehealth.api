@@ -45,7 +45,9 @@ defmodule EHealth.Unit.DivisionsTest do
     test "returns :error for multiple phones of the same type", %{division: division} do
       incorrect_phones = [
         %{"number" => "+380503410870", "type" => "MOBILE"},
-        %{"number" => "+380503410871", "type" => "MOBILE"}]
+        %{"number" => "+380503410871", "type" => "MOBILE"}
+      ]
+
       bad_division = Map.put(division, "phones", incorrect_phones)
 
       assert {:error, _} = API.validate_json_objects(bad_division)

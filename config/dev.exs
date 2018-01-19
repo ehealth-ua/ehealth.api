@@ -2,7 +2,6 @@ use Mix.Config
 
 # Configuration for test environment
 
-
 # For development, we disable any cache and enable
 # debugging and code reloading.
 #
@@ -31,32 +30,26 @@ config :ehealth, :legal_entity_employee_types,
   pharmacy: {:system, "LEGAL_ENTITY_PHARMACY_EMPLOYEE_TYPES", ["PHARMACY_OWNER", "PHARMACIST"]}
 
 # Configures Digital Signature API
-config :ehealth, EHealth.API.Signature,
-  endpoint: {:system, "DIGITAL_SIGNATURE_ENDPOINT", "http://35.187.186.145"}
+config :ehealth, EHealth.API.Signature, endpoint: {:system, "DIGITAL_SIGNATURE_ENDPOINT", "http://35.187.186.145"}
 
 # Configures OAuth API
-config :ehealth, EHealth.API.Mithril,
-  endpoint: {:system, "OAUTH_ENDPOINT", "http://api-svc.mithril"}
+config :ehealth, EHealth.API.Mithril, endpoint: {:system, "OAUTH_ENDPOINT", "http://api-svc.mithril"}
 
 # Configures Man API
-config :ehealth, EHealth.API.Man,
-  endpoint: {:system, "MAN_ENDPOINT", "http://api-svc.man"}
+config :ehealth, EHealth.API.Man, endpoint: {:system, "MAN_ENDPOINT", "http://api-svc.man"}
 
 # Configures UAddress API
-config :ehealth, EHealth.API.UAddress,
-  endpoint: {:system, "UADDRESS_ENDPOINT", "http://api-svc.uaddresses"}
+config :ehealth, EHealth.API.UAddress, endpoint: {:system, "UADDRESS_ENDPOINT", "http://api-svc.uaddresses"}
 
 # Configures OTP Verification API
 config :ehealth, EHealth.API.OTPVerification,
   endpoint: {:system, "OTP_VERIFICATION_ENDPOINT", "http://api-svc.verification"}
 
 # Configures MPI API
-config :ehealth, EHealth.API.MPI,
-  endpoint: {:system, "MPI_ENDPOINT", "http://api-svc.mpi"}
+config :ehealth, EHealth.API.MPI, endpoint: {:system, "MPI_ENDPOINT", "http://api-svc.mpi"}
 
 # Configures OPS API
-config :ehealth, EHealth.API.OPS,
-  endpoint: {:system, "OPS_ENDPOINT", "http://api-svc.ops"}
+config :ehealth, EHealth.API.OPS, endpoint: {:system, "OPS_ENDPOINT", "http://api-svc.ops"}
 
 # Configures MediaStorage API
 config :ehealth, EHealth.API.MediaStorage,

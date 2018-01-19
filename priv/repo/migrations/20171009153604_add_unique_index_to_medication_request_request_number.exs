@@ -2,6 +2,6 @@ defmodule EHealth.Repo.Migrations.AddUniqueIndexToMedicationRequestRequestNumber
   use Ecto.Migration
 
   def change do
-    create index("medication_request_requests", [:number], unique: true)
+    create(index("medication_request_requests", [:number], unique: true))
   end
 end

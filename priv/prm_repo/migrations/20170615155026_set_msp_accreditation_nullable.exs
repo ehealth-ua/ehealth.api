@@ -3,7 +3,7 @@ defmodule EHealth.PRMRepo.Migrations.SetMspAccreditationNullable do
 
   def change do
     alter table(:medical_service_providers) do
-      modify :accreditation, :map, null: true
+      modify(:accreditation, :map, null: true)
     end
   end
 end

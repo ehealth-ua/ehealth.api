@@ -3,7 +3,7 @@ defmodule EHealth.PRMRepo.Migrations.AddedToDivisionStatus do
 
   def change do
     alter table(:divisions) do
-      add :status, :string, null: false
+      add(:status, :string, null: false)
     end
   end
 end

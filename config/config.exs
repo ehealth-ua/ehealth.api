@@ -173,8 +173,7 @@ config :ehealth, EHealth.Man.Templates.DeclarationRequestPrintoutForm,
   locale: {:system, "DECLARATION_REQUEST_PRINTOUT_FORM_TEMPLATE_LOCALE", "uk_UA"}
 
 # Template and setting for credentials recovery requests
-config :ehealth, :credentials_recovery_request_ttl,
-  {:system, :integer, "CREDENTIALS_RECOVERY_REQUEST_TTL", 1_500}
+config :ehealth, :credentials_recovery_request_ttl, {:system, :integer, "CREDENTIALS_RECOVERY_REQUEST_TTL", 1_500}
 
 config :ehealth, EHealth.Man.Templates.CredentialsRecoveryRequest,
   id: {:system, "CREDENTIALS_RECOVERY_REQUEST_INVITATION_TEMPLATE_ID"},
@@ -194,13 +193,13 @@ config :ehealth, :medication_request_request,
   otp_code_length: {:system, "MEDICATION_REQUEST_REQUEST_OTP_CODE_LENGTH", 4}
 
 config :ehealth, :medication_request,
-  sign_template_sms: {:system, "TEMPLATE_SMS_FOR_SIGN_MEDICATION_REQUEST",
-    "Ваш рецепт: <request_number>. Код підтвердження: <verification_code>"},
-  reject_template_sms: {:system, "TEMPLATE_SMS_FOR_REJECT_MEDICATION_REQUEST",
-    "Відкликано рецепт: <request_number> від <created_at>"}
+  sign_template_sms:
+    {:system, "TEMPLATE_SMS_FOR_SIGN_MEDICATION_REQUEST",
+     "Ваш рецепт: <request_number>. Код підтвердження: <verification_code>"},
+  reject_template_sms:
+    {:system, "TEMPLATE_SMS_FOR_REJECT_MEDICATION_REQUEST", "Відкликано рецепт: <request_number> від <created_at>"}
 
-config :ehealth, EHealth.Bamboo.Emails.Sender,
-  mailer: {:system, :module, "BAMBOO_MAILER"}
+config :ehealth, EHealth.Bamboo.Emails.Sender, mailer: {:system, :module, "BAMBOO_MAILER"}
 
 # Configures bamboo
 config :ehealth, EHealth.Bamboo.PostmarkMailer,
@@ -220,17 +219,15 @@ config :ehealth, EHealth.Bamboo.SMTPMailer,
   username: {:system, "BAMBOO_SMTP_USERNAME", ""},
   password: {:system, "BAMBOO_SMTP_PASSWORD", ""},
   tls: :if_available,
-  allowed_tls_versions: [:"tlsv1", :"tlsv1.1", :"tlsv1.2"],
+  allowed_tls_versions: [:tlsv1, :"tlsv1.1", :"tlsv1.2"],
   ssl: true,
   retries: 1
 
 # Configures address merger
-config :ehealth, EHealth.Utils.AddressMerger,
-  no_suffix_areas: {:system, "NO_SUFFIX_AREAS", ["М.КИЇВ", "М.СЕВАСТОПОЛЬ"]}
+config :ehealth, EHealth.Utils.AddressMerger, no_suffix_areas: {:system, "NO_SUFFIX_AREAS", ["М.КИЇВ", "М.СЕВАСТОПОЛЬ"]}
 
 # Configures genral validator
-config :ehealth, EHealth.LegalEntities.Validator,
-  owner_positions: {:system, :list, "OWNER_POSITIONS", [""]}
+config :ehealth, EHealth.LegalEntities.Validator, owner_positions: {:system, :list, "OWNER_POSITIONS", [""]}
 
 # Configures birth date validator
 config :ehealth, EHealth.Validators.BirthDate,
@@ -244,13 +241,11 @@ config :logger, :console,
   level: :info
 
 config :ehealth, EHealth.Scheduler,
-  declaration_request_autotermination: {:system, :string,
-    "DECLARATION_REQUEST_AUTOTERMINATION_SCHEDULE", "* 0-4 * * *"},
-  employee_request_autotermination: {:system, :string,
-    "EMPLOYEE_REQUEST_AUTOTERMINATION_SCHEDULE", "0-4 * * *"}
+  declaration_request_autotermination: {:system, :string, "DECLARATION_REQUEST_AUTOTERMINATION_SCHEDULE", "* 0-4 * * *"},
+  employee_request_autotermination: {:system, :string, "EMPLOYEE_REQUEST_AUTOTERMINATION_SCHEDULE", "0-4 * * *"}
 
 config :cipher,
   keyphrase: System.get_env("CIPHER_KEYPHRASE") || "8()VN#U#_CU#X)*BFG(Cadsvn$&",
   ivphrase: System.get_env("CIPHER_IVPHRASE") || "B((%(^(%V(CWBY(**(by(*YCBDYB#(Y(C#"
 
-import_config "#{Mix.env}.exs"
+import_config "#{Mix.env()}.exs"

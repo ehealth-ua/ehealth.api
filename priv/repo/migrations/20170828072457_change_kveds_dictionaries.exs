@@ -2,13 +2,13 @@ defmodule EHealth.Repo.Migrations.ChangeKvedsDictionaries do
   use Ecto.Migration
 
   def change do
-    execute """
+    execute("""
     UPDATE dictionaries SET
     name = 'KVEDS_ALLOWED_MSP'
     WHERE name = 'KVEDS_ALLOWED';
-    """
+    """)
 
-    execute """
+    execute("""
     INSERT INTO dictionaries
       (name, values, labels, is_active)
       SELECT
@@ -20,6 +20,6 @@ defmodule EHealth.Repo.Migrations.ChangeKvedsDictionaries do
       NOT EXISTS (
         SELECT name FROM dictionaries WHERE name = 'KVEDS_ALLOWED_PHARMACY'
       );
-    """
+    """)
   end
 end

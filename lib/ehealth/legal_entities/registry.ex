@@ -14,11 +14,11 @@ defmodule EHealth.LegalEntities.Registry do
   def type(:pharmacy), do: @type_pharmacy
 
   schema "ukr_med_registries" do
-    field :name, :string
-    field :edrpou, :string
-    field :inserted_by, Ecto.UUID
-    field :updated_by, Ecto.UUID
-    field :type, :string
+    field(:name, :string)
+    field(:edrpou, :string)
+    field(:inserted_by, Ecto.UUID)
+    field(:updated_by, Ecto.UUID)
+    field(:type, :string)
 
     timestamps()
   end

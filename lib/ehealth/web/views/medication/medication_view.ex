@@ -18,7 +18,7 @@ defmodule EHealth.Web.MedicationView do
     :inserted_by,
     :updated_by,
     :inserted_at,
-    :updated_at,
+    :updated_at
   ]
 
   def render("index.json", %{medications: medications}) do
@@ -44,7 +44,7 @@ defmodule EHealth.Web.MedicationView do
       id: ingredient.medication_child_id,
       name: ingredient.innm_dosage.name,
       dosage: ingredient.dosage,
-      is_primary: ingredient.is_primary,
+      is_primary: ingredient.is_primary
     }
   end
 
@@ -58,13 +58,16 @@ defmodule EHealth.Web.MedicationView do
         id: drug.innm_id,
         name: drug.innm_name,
         name_original: drug.innm_name_original,
-        sctid: drug.innm_sctid,
+        sctid: drug.innm_sctid
       },
-      packages: Enum.map(drug.packages, fn {container, package_qty, package_min_qty} -> %{
-        container_dosage: container,
-        package_qty: package_qty,
-        package_min_qty: package_min_qty,
-      } end)
+      packages:
+        Enum.map(drug.packages, fn {container, package_qty, package_min_qty} ->
+          %{
+            container_dosage: container,
+            package_qty: package_qty,
+            package_min_qty: package_min_qty
+          }
+        end)
     }
   end
 end

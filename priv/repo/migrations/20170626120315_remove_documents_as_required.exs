@@ -3,7 +3,7 @@ defmodule EHealth.Repo.Migrations.RemoveDocumentsAsRequired do
 
   def change do
     alter table(:declaration_requests) do
-      modify :documents, :jsonb, null: true
+      modify(:documents, :jsonb, null: true)
     end
   end
 end

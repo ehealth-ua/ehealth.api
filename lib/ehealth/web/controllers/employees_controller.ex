@@ -7,7 +7,7 @@ defmodule EHealth.Web.EmployeeController do
   alias EHealth.Employees, as: API
   alias EHealth.Employees.EmployeeUpdater
 
-  action_fallback EHealth.Web.FallbackController
+  action_fallback(EHealth.Web.FallbackController)
 
   def index(conn, params) do
     with %Page{} = paging <- API.list(Map.put(params, "is_active", true)) do

@@ -3,35 +3,35 @@ defmodule EHealth.FraudRepo.Migrations.CreateEmployees do
 
   def up do
     create table(:employees, primary_key: false) do
-      add :id, :uuid, primary_key: true
-      add :position, :string, null: false
-      add :status, :string, null: false
-      add :employee_type, :string, null: false
-      add :is_active, :boolean, default: false, null: false
-      add :inserted_by, :uuid, null: false
-      add :updated_by, :uuid, null: false
-      add :start_date, :date, null: false
-      add :end_date, :date
-      add :legal_entity_id, :uuid
-      add :division_id, :uuid
-      add :party_id, :uuid
-      add :status_reason, :string
+      add(:id, :uuid, primary_key: true)
+      add(:position, :string, null: false)
+      add(:status, :string, null: false)
+      add(:employee_type, :string, null: false)
+      add(:is_active, :boolean, default: false, null: false)
+      add(:inserted_by, :uuid, null: false)
+      add(:updated_by, :uuid, null: false)
+      add(:start_date, :date, null: false)
+      add(:end_date, :date)
+      add(:legal_entity_id, :uuid)
+      add(:division_id, :uuid)
+      add(:party_id, :uuid)
+      add(:status_reason, :string)
 
-      add :additional_info, :jsonb, null: false
-      add :educations, :jsonb
-      add :educations_qty, :integer, default: 0
-      add :qualifications, :jsonb
-      add :qualifications_qty, :integer, default: 0
-      add :specialities, :jsonb
-      add :specialities_qty, :integer, default: 0
-      add :speciality_officio, :jsonb
-      add :speciality_officio_valid_to_date, :date
-      add :science_degree, :jsonb
+      add(:additional_info, :jsonb, null: false)
+      add(:educations, :jsonb)
+      add(:educations_qty, :integer, default: 0)
+      add(:qualifications, :jsonb)
+      add(:qualifications_qty, :integer, default: 0)
+      add(:specialities, :jsonb)
+      add(:specialities_qty, :integer, default: 0)
+      add(:speciality_officio, :jsonb)
+      add(:speciality_officio_valid_to_date, :date)
+      add(:science_degree, :jsonb)
 
       timestamps()
     end
 
-    execute """
+    execute("""
     CREATE OR REPLACE FUNCTION set_employee_additional_info()
     RETURNS trigger AS
     $BODY$
@@ -67,24 +67,24 @@ defmodule EHealth.FraudRepo.Migrations.CreateEmployees do
     END;
     $BODY$
     LANGUAGE plpgsql;
-    """
+    """)
 
-    execute """
+    execute("""
     CREATE TRIGGER on_employee_insert
     BEFORE INSERT
     ON employees
     FOR EACH ROW
     EXECUTE PROCEDURE set_employee_additional_info();
-    """
+    """)
 
-    execute """
+    execute("""
     CREATE TRIGGER on_employee_update
     BEFORE UPDATE
     ON employees
     FOR EACH ROW
     WHEN (OLD.additional_info IS DISTINCT FROM NEW.additional_info)
     EXECUTE PROCEDURE set_employee_additional_info();
-    """
+    """)
 
     execute("ALTER table employees ENABLE REPLICA TRIGGER on_employee_insert;")
     execute("ALTER table employees ENABLE REPLICA TRIGGER on_employee_update;")
@@ -95,6 +95,6 @@ defmodule EHealth.FraudRepo.Migrations.CreateEmployees do
     execute("DROP TRIGGER IF EXISTS on_employee_update ON employees;")
     execute("DROP FUNCTION IF EXISTS set_employee_additional_info();")
 
-    drop table(:employees)
+    drop(table(:employees))
   end
 end

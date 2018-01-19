@@ -7,7 +7,7 @@ defmodule EHealth.Web.ProgramMedicationController do
   alias EHealth.Medications
   alias EHealth.Medications.Program, as: ProgramMedication
 
-  action_fallback EHealth.Web.FallbackController
+  action_fallback(EHealth.Web.FallbackController)
 
   def index(conn, params) do
     with %Page{} = paging <- Medications.list_program_medications(params) do
@@ -32,11 +32,12 @@ defmodule EHealth.Web.ProgramMedicationController do
   def update(conn, %{"id" => id} = params) do
     program = Medications.get_program_medication!(id)
 
-    with {:ok, %ProgramMedication{} = program} <- Medications.update_program_medication(
-      program,
-      params,
-      conn.req_headers
-    ) do
+    with {:ok, %ProgramMedication{} = program} <-
+           Medications.update_program_medication(
+             program,
+             params,
+             conn.req_headers
+           ) do
       render(conn, "show.json", program_medication: program)
     end
   end

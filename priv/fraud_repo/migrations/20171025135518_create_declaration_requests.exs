@@ -3,21 +3,21 @@ defmodule EHealth.FraudRepo.Migrations.CreateDeclarationRequests do
 
   def up do
     create table(:declaration_requests, primary_key: false) do
-      add :id, :uuid, primary_key: true
-      add :declaration_id, :uuid
+      add(:id, :uuid, primary_key: true)
+      add(:declaration_id, :uuid)
 
-      add :authentication_method_current, :jsonb, null: false
-      add :auth_method, :string
-      add :auth_number, :string
+      add(:authentication_method_current, :jsonb, null: false)
+      add(:auth_method, :string)
+      add(:auth_number, :string)
 
-      add :status, :string, null: false
-      add :inserted_by, :uuid, null: false
-      add :updated_by, :uuid, null: false
+      add(:status, :string, null: false)
+      add(:inserted_by, :uuid, null: false)
+      add(:updated_by, :uuid, null: false)
 
       timestamps()
     end
 
-    execute """
+    execute("""
     CREATE OR REPLACE FUNCTION set_declaration_request_auth()
     RETURNS trigger AS
     $BODY$
@@ -33,24 +33,24 @@ defmodule EHealth.FraudRepo.Migrations.CreateDeclarationRequests do
     END;
     $BODY$
     LANGUAGE plpgsql;
-    """
+    """)
 
-    execute """
+    execute("""
     CREATE TRIGGER on_declaration_request_insert
     BEFORE INSERT
     ON declaration_requests
     FOR EACH ROW
     EXECUTE PROCEDURE set_declaration_request_auth();
-    """
+    """)
 
-    execute """
+    execute("""
     CREATE TRIGGER on_declaration_request_update
     BEFORE UPDATE
     ON declaration_requests
     FOR EACH ROW
     WHEN (OLD.authentication_method_current IS DISTINCT FROM NEW.authentication_method_current)
     EXECUTE PROCEDURE set_declaration_request_auth();
-    """
+    """)
 
     execute("ALTER table declaration_requests ENABLE REPLICA TRIGGER on_declaration_request_insert;")
     execute("ALTER table declaration_requests ENABLE REPLICA TRIGGER on_declaration_request_update;")
@@ -61,6 +61,6 @@ defmodule EHealth.FraudRepo.Migrations.CreateDeclarationRequests do
     execute("DROP TRIGGER IF EXISTS on_declaration_request_update ON declaration_requests;")
     execute("DROP FUNCTION IF EXISTS set_declaration_request_auth();")
 
-    drop table(:declaration_requests)
+    drop(table(:declaration_requests))
   end
 end

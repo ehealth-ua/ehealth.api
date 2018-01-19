@@ -26,25 +26,29 @@ defmodule Ecto.LoggerJSON do
   """
   @spec log(%{}) :: %{}
   def log(entry) do
-    _ = Logger.debug(fn ->
-      %{query_time: query_time, decode_time: decode_time, queue_time: queue_time, query: query, params: params} = entry
-      [query_time, decode_time, queue_time] =
-        [query_time, decode_time, queue_time]
-        |> Enum.map(&format_time/1)
+    _ =
+      Logger.debug(fn ->
+        %{query_time: query_time, decode_time: decode_time, queue_time: queue_time, query: query, params: params} =
+          entry
 
-      %{
-        "decode_time" => decode_time,
-        "duration"    => Float.round(query_time + decode_time + queue_time, 3),
-        "log_type"    => "persistence",
-        "request_id"  => Logger.metadata[:request_id],
-        "query"       => query,
-        "query_time"  => query_time,
-        "queue_time"  => queue_time,
-        "params"      => Enum.map(params, &param_to_string/1),
-      }
-      |> Poison.encode!
-    end)
-  entry
+        [query_time, decode_time, queue_time] =
+          [query_time, decode_time, queue_time]
+          |> Enum.map(&format_time/1)
+
+        %{
+          "decode_time" => decode_time,
+          "duration" => Float.round(query_time + decode_time + queue_time, 3),
+          "log_type" => "persistence",
+          "request_id" => Logger.metadata()[:request_id],
+          "query" => query,
+          "query_time" => query_time,
+          "queue_time" => queue_time,
+          "params" => Enum.map(params, &param_to_string/1)
+        }
+        |> Poison.encode!()
+      end)
+
+    entry
   end
 
   @doc """
@@ -55,38 +59,46 @@ defmodule Ecto.LoggerJSON do
   """
   @spec log(%{}, atom) :: %{}
   def log(entry, level) do
-    _ = Logger.log(level, fn ->
-      %{query_time: query_time, decode_time: decode_time, queue_time: queue_time, query: query, params: params} = entry
-      [query_time, decode_time, queue_time] =
-        [query_time, decode_time, queue_time]
-        |> Enum.map(&format_time/1)
+    _ =
+      Logger.log(level, fn ->
+        %{query_time: query_time, decode_time: decode_time, queue_time: queue_time, query: query, params: params} =
+          entry
 
-      %{
-        "decode_time" => decode_time,
-        "duration"    => Float.round(query_time + decode_time + queue_time, 3),
-        "log_type"    => "persistence",
-        "request_id"  => Logger.metadata[:request_id],
-        "query"       => query,
-        "query_time"  => query_time,
-        "queue_time"  => queue_time,
-        "params"      => Enum.map(params, &param_to_string/1),
-      }
-      |> Poison.encode!
-    end)
+        [query_time, decode_time, queue_time] =
+          [query_time, decode_time, queue_time]
+          |> Enum.map(&format_time/1)
+
+        %{
+          "decode_time" => decode_time,
+          "duration" => Float.round(query_time + decode_time + queue_time, 3),
+          "log_type" => "persistence",
+          "request_id" => Logger.metadata()[:request_id],
+          "query" => query,
+          "query_time" => query_time,
+          "queue_time" => queue_time,
+          "params" => Enum.map(params, &param_to_string/1)
+        }
+        |> Poison.encode!()
+      end)
+
     entry
   end
 
   defp param_to_string({{_, _, _} = date, {h, m, s, _}}) do
     Ecto.DateTime.from_erl({date, {h, m, s}})
   end
+
   defp param_to_string({_, _, _} = date) do
     Date.from_erl!(date)
   end
+
   defp param_to_string(%Geo.Point{} = value), do: Geo.JSON.encode(value)
   defp param_to_string(%Decimal{} = value), do: Decimal.to_string(value)
+
   defp param_to_string(value) when is_list(value) or is_map(value) do
-     Enum.map(value, &param_to_string/1)
+    Enum.map(value, &param_to_string/1)
   end
+
   defp param_to_string(value) do
     if String.valid?(value) do
       value
@@ -99,6 +111,7 @@ defmodule Ecto.LoggerJSON do
   end
 
   defp format_time(nil), do: 0.0
+
   defp format_time(time) do
     ms = System.convert_time_unit(time, :native, :micro_seconds) / 1000
     Float.round(ms, 3)

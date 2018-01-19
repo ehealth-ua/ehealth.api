@@ -2,7 +2,7 @@ defmodule EHealth.PRMRepo.Migrations.DropPartyUserDuplicates do
   use Ecto.Migration
 
   def change do
-    execute """
+    execute("""
     DELETE FROM party_users
     WHERE id IN (
       SELECT id FROM (
@@ -11,6 +11,6 @@ defmodule EHealth.PRMRepo.Migrations.DropPartyUserDuplicates do
       ) t
       WHERE t.rnum > 1
     );
-    """
+    """)
   end
 end

@@ -1,5 +1,5 @@
 defmodule EHealth.MedicalPrograms do
-@moduledoc false
+  @moduledoc false
 
   use EHealth.Search, EHealth.PRMRepo
 
@@ -51,6 +51,7 @@ defmodule EHealth.MedicalPrograms do
 
   def deactivate(updated_by, %MedicalProgram{id: id} = medical_program) do
     err_msg = "This program has active participants. Only medical programs without participants can be deactivated"
+
     case Medications.count_active_program_medications_by(medical_program_id: id) do
       0 ->
         medical_program
@@ -65,6 +66,7 @@ defmodule EHealth.MedicalPrograms do
   def changeset(%Search{} = search, attrs) do
     cast(search, attrs, @search_fields)
   end
+
   def changeset(%MedicalProgram{} = medical_program, attrs) do
     medical_program
     |> cast(attrs, @fields_required ++ @fields_optional)

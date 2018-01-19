@@ -12,15 +12,16 @@ defmodule EHealth.API.Man do
 
   def render_template(id, data, headers \\ []) do
     path = "/templates/#{id}/actions/render"
+
     Logger.info(fn ->
       Poison.encode!(%{
-        "log_type"     => "microservice_request",
+        "log_type" => "microservice_request",
         "microservice" => config()[:endpoint],
-        "action"       => "POST",
-        "path"         => Enum.join([config()[:endpoint], path]),
-        "request_id"   => Logger.metadata[:request_id],
-        "body"         => data,
-        "headers"      => headers
+        "action" => "POST",
+        "path" => Enum.join([config()[:endpoint], path]),
+        "request_id" => Logger.metadata()[:request_id],
+        "body" => data,
+        "headers" => headers
       })
     end)
 
@@ -36,10 +37,10 @@ defmodule EHealth.API.Man do
   defp process_template(%HTTPoison.Response{body: body}) do
     Logger.error(fn ->
       Poison.encode!(%{
-        "log_type"     => "microservice_response",
+        "log_type" => "microservice_response",
         "microservice" => config()[:endpoint],
-        "response"     => body,
-        "request_id"   => Logger.metadata[:request_id]
+        "response" => body,
+        "request_id" => Logger.metadata()[:request_id]
       })
     end)
 

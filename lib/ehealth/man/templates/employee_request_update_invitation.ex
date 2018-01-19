@@ -21,7 +21,7 @@ defmodule EHealth.Man.Templates.EmployeeRequestUpdateInvitation do
       clinic_name: Map.get(clinic_info, :name),
       clinic_address: Map.get(clinic_info, :address),
       doctor_role: EmployeeRequestInvitation.get_position(data),
-      request_id: id |> Cipher.encrypt() |> Base.encode64(),
+      request_id: id |> Cipher.encrypt() |> Base.encode64()
     })
   end
 end

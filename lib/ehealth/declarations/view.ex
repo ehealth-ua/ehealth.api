@@ -55,7 +55,7 @@ defmodule EHealth.Declarations.View do
       "person" => render_one(declaration["person"], __MODULE__, "person.json", as: :person),
       "division" => render_one(declaration["division"], __MODULE__, "division.json", as: :division),
       "employee" => render_one(declaration["employee"], __MODULE__, "employee.json", as: :employee),
-      "legal_entity" => render_one(declaration["legal_entity"], __MODULE__, "legal_entity.json", as: :legal_entity),
+      "legal_entity" => render_one(declaration["legal_entity"], __MODULE__, "legal_entity.json", as: :legal_entity)
     })
   end
 
@@ -101,6 +101,7 @@ defmodule EHealth.Declarations.View do
 
   def render("employee.json", %{employee: %Employee{} = employee}) do
     party = render_one(employee.party, __MODULE__, "party.json", as: :party)
+
     employee
     |> Map.take(~w(
       id

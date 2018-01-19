@@ -17,7 +17,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   @moduletag :with_client_id
 
   describe "create employee request" do
-    setup (%{conn: conn}) do
+    setup %{conn: conn} do
       insert(:il, :dictionary_phone_type)
       insert(:il, :dictionary_document_type)
       insert(:il, :dictionary_employee_type)
@@ -28,7 +28,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     test "with valid params and empty x-consumer-metadata", %{conn: conn} do
       conn = delete_client_id_header(conn)
       employee_request_params = File.read!("test/data/employee_doctor_request.json")
-      conn = post conn, employee_request_path(conn, :create), employee_request_params
+      conn = post(conn, employee_request_path(conn, :create), employee_request_params)
       json_response(conn, 401)
     end
 
@@ -36,7 +36,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       insert(:prm, :employee)
       employee_request_params = File.read!("test/data/employee_doctor_request.json")
       conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8602f2")
-      conn = post conn, employee_request_path(conn, :create), employee_request_params
+      conn = post(conn, employee_request_path(conn, :create), employee_request_params)
       json_response(conn, 422)
     end
 
@@ -53,7 +53,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
         |> put_in(["employee_request", "division_id"], division_id)
 
       conn = put_client_id_header(conn, legal_entity.id)
-      conn = post conn, employee_request_path(conn, :create), employee_request_params
+      conn = post(conn, employee_request_path(conn, :create), employee_request_params)
       resp = json_response(conn, 409)
       assert %{"error" => %{"message" => "new employee with this tax_id can't be created"}} = resp
     end
@@ -68,11 +68,12 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
         doctor_request()
         |> put_in(["employee_request", "employee_id"], id)
         |> put_in(["employee_request", "division_id"], division_id)
+
       doctor = Map.delete(employee_request_params["employee_request"]["doctor"], "science_degree")
       employee_request_params = put_in(employee_request_params, ["employee_request", "doctor"], doctor)
 
       conn = put_client_id_header(conn, legal_entity.id)
-      conn1 = post conn, employee_request_path(conn, :create), employee_request_params
+      conn1 = post(conn, employee_request_path(conn, :create), employee_request_params)
       resp = json_response(conn1, 200)["data"]
 
       refute Map.has_key?(resp, "type")
@@ -87,24 +88,28 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       assert Map.has_key?(resp, "no_tax_id")
       refute resp["no_tax_id"]
 
-      conn1 = get conn, employee_request_path(conn, :show, resp["id"])
+      conn1 = get(conn, employee_request_path(conn, :show, resp["id"]))
       resp_by_id = json_response(conn1, 200)
       refute Map.has_key?(resp_by_id["data"]["doctor"], "science_degree")
 
-      %{id: id} = insert(:prm, :employee,
-        party: party,
-        employee_type: Employee.type(:pharmacist)
-      )
+      %{id: id} =
+        insert(
+          :prm,
+          :employee,
+          party: party,
+          employee_type: Employee.type(:pharmacist)
+        )
 
       legal_entity = insert(:prm, :legal_entity, type: LegalEntity.type(:pharmacy))
       conn = put_client_id_header(conn, legal_entity.id)
+
       employee_request_params =
         pharmacist_request()
         |> put_in(["employee_request", "employee_id"], id)
         |> put_in(["employee_request", "division_id"], division_id)
         |> put_in(["employee_request", "legal_entity_id"], legal_entity.id)
 
-      conn2 = post conn, employee_request_path(conn, :create), employee_request_params
+      conn2 = post(conn, employee_request_path(conn, :create), employee_request_params)
       resp = json_response(conn2, 200)["data"]
       refute Map.has_key?(resp, "type")
       assert Map.has_key?(resp, "legal_entity_name")
@@ -127,7 +132,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
         |> put_in(["employee_request", "party", "no_tax_id"], true)
 
       conn = put_client_id_header(conn, legal_entity.id)
-      conn1 = post conn, employee_request_path(conn, :create), employee_request_params
+      conn1 = post(conn, employee_request_path(conn, :create), employee_request_params)
       resp = json_response(conn1, 200)["data"]
 
       refute Map.has_key?(resp, "type")
@@ -139,7 +144,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       request_party = employee_request_params["employee_request"]["party"]
       assert request_party["no_tax_id"]
 
-      conn = get conn, employee_request_path(conn, :show, resp["id"])
+      conn = get(conn, employee_request_path(conn, :show, resp["id"]))
       resp_by_id = json_response(conn, 200)["data"]
       assert resp_by_id["party"]["no_tax_id"]
     end
@@ -157,7 +162,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
         |> put_in(["employee_request", "doctor"], %{})
 
       conn = put_client_id_header(conn, legal_entity.id)
-      conn1 = post conn, employee_request_path(conn, :create), employee_request_params
+      conn1 = post(conn, employee_request_path(conn, :create), employee_request_params)
       resp = json_response(conn1, 422)
       assert Map.has_key?(resp, "error")
       assert resp["error"]
@@ -169,7 +174,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
         |> put_in(["employee_request", "division_id"], division_id)
         |> put_in(["employee_request", "pharmacist"], %{})
 
-      conn2 = post conn, employee_request_path(conn, :create), employee_request_params
+      conn2 = post(conn, employee_request_path(conn, :create), employee_request_params)
       resp = json_response(conn2, 422)
       assert Map.has_key?(resp, "error")
       assert resp["error"]
@@ -178,6 +183,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
     test "without tax_id and x-consumer-metadata that contains valid client_id", %{conn: conn} do
       employee_request_params = doctor_request()
+
       party_without_tax_id =
         employee_request_params
         |> get_in(~W(employee_request party))
@@ -186,13 +192,14 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       employee_request_params = put_in(employee_request_params, ~W(employee_request party), party_without_tax_id)
 
       conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
-      conn = post conn, employee_request_path(conn, :create), employee_request_params
+      conn = post(conn, employee_request_path(conn, :create), employee_request_params)
       invalid = hd(json_response(conn, 422)["error"]["invalid"])
       assert "$.employee_request.party.tax_id" == invalid["entry"]
     end
 
     test "without no_tax_id and x-consumer-metadata that contains valid client_id", %{conn: conn} do
       employee_request_params = doctor_request()
+
       party_without_no_tax_id =
         employee_request_params
         |> get_in(~W(employee_request party))
@@ -201,7 +208,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       employee_request_params = put_in(employee_request_params, ~W(employee_request party), party_without_no_tax_id)
 
       conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
-      conn = post conn, employee_request_path(conn, :create), employee_request_params
+      conn = post(conn, employee_request_path(conn, :create), employee_request_params)
       invalid = hd(json_response(conn, 422)["error"]["invalid"])
       assert "$.legal_entity_id" == invalid["entry"]
     end
@@ -209,133 +216,150 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     test "with doctor attribute for employee_type admin", %{conn: conn} do
       employee_request_params = put_in(doctor_request(), ["employee_request", "employee_type"], "ADMIN")
       conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
-      conn = post conn, employee_request_path(conn, :create), employee_request_params
+      conn = post(conn, employee_request_path(conn, :create), employee_request_params)
 
       json_response(conn, 422)
     end
 
     test "without doctor attribute for employee_type DOCTOR", %{conn: conn} do
       employee_request_params = doctor_request()
-      employee_request_params = Map.put(employee_request_params, "employee_request",
-        Map.delete(employee_request_params["employee_request"], "doctor"))
+
+      employee_request_params =
+        Map.put(
+          employee_request_params,
+          "employee_request",
+          Map.delete(employee_request_params["employee_request"], "doctor")
+        )
 
       conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
-      conn = post conn, employee_request_path(conn, :create), employee_request_params
+      conn = post(conn, employee_request_path(conn, :create), employee_request_params)
 
       json_response(conn, 422)
     end
 
     test "without pharmacist attribute for employee_type PHARMACIST", %{conn: conn} do
       employee_request_params = pharmacist_request()
-      employee_request_params = Map.put(employee_request_params, "employee_request",
-        Map.delete(employee_request_params["employee_request"], "pharmacist"))
+
+      employee_request_params =
+        Map.put(
+          employee_request_params,
+          "employee_request",
+          Map.delete(employee_request_params["employee_request"], "pharmacist")
+        )
 
       conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
-      conn = post conn, employee_request_path(conn, :create), employee_request_params
+      conn = post(conn, employee_request_path(conn, :create), employee_request_params)
 
       json_response(conn, 422)
     end
 
     test "with invalid params", %{conn: conn} do
-      conn = post conn, employee_request_path(conn, :create), %{"employee_request" => %{"invalid" => "data"}}
+      conn = post(conn, employee_request_path(conn, :create), %{"employee_request" => %{"invalid" => "data"}})
       resp = json_response(conn, 422)
       assert Map.has_key?(resp, "error")
       assert resp["error"]
     end
 
     test "with invalid birth_date", %{conn: conn} do
-      employee_request_params = put_in(
-        doctor_request(),
-        ["employee_request", "party", "birth_date"],
-        "1860-12-12"
-      )
+      employee_request_params =
+        put_in(
+          doctor_request(),
+          ["employee_request", "party", "birth_date"],
+          "1860-12-12"
+        )
 
       conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
-      conn1 = post conn, employee_request_path(conn, :create), employee_request_params
+      conn1 = post(conn, employee_request_path(conn, :create), employee_request_params)
 
       resp = json_response(conn1, 422)
       assert Map.has_key?(resp, "error")
+
       assert "$.employee_request.party.birth_date" ==
-        resp
-        |> get_in(["error", "invalid"])
-        |> List.first()
-        |> Map.get("entry")
+               resp
+               |> get_in(["error", "invalid"])
+               |> List.first()
+               |> Map.get("entry")
 
-      employee_request_params = put_in(
-        employee_request_params,
-        ["employee_request", "party", "birth_date"],
-        "2003-02-29"
-      )
+      employee_request_params =
+        put_in(
+          employee_request_params,
+          ["employee_request", "party", "birth_date"],
+          "2003-02-29"
+        )
 
-      conn2 = post conn, employee_request_path(conn, :create), employee_request_params
+      conn2 = post(conn, employee_request_path(conn, :create), employee_request_params)
 
       resp = json_response(conn2, 422)
       assert Map.has_key?(resp, "error")
+
       assert "$.employee_request.party.birth_date" ==
-        resp
-        |> get_in(["error", "invalid"])
-        |> List.first()
-        |> Map.get("entry")
+               resp
+               |> get_in(["error", "invalid"])
+               |> List.first()
+               |> Map.get("entry")
     end
 
     test "with invalid employee_type", %{conn: conn} do
-      %{legal_entity_id: legal_entity_id} = insert(:prm, :division,
-        id: "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b"
-      )
+      %{legal_entity_id: legal_entity_id} = insert(:prm, :division, id: "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b")
 
       employee_request_params = put_in(doctor_request(), ["employee_request", "employee_type"], "INVALID")
 
-      employee_request_params = Map.put(
-        employee_request_params,
-        "employee_request",
-        Map.delete(employee_request_params["employee_request"], "doctor")
-      )
+      employee_request_params =
+        Map.put(
+          employee_request_params,
+          "employee_request",
+          Map.delete(employee_request_params["employee_request"], "doctor")
+        )
 
       conn = put_client_id_header(conn, legal_entity_id)
-      conn1 = post conn, employee_request_path(conn, :create), employee_request_params
+      conn1 = post(conn, employee_request_path(conn, :create), employee_request_params)
 
       resp = json_response(conn1, 422)
       assert Map.has_key?(resp, "error")
+
       assert "$.employee_request.employee_type" ==
-        resp
-        |> get_in(["error", "invalid"])
-        |> List.first()
-        |> Map.get("entry")
+               resp
+               |> get_in(["error", "invalid"])
+               |> List.first()
+               |> Map.get("entry")
 
       employee_request_params = put_in(employee_request_params, ["employee_request", "employee_type"], "DOCTORS")
 
-      conn2 = post conn, employee_request_path(conn, :create), employee_request_params
+      conn2 = post(conn, employee_request_path(conn, :create), employee_request_params)
       resp = json_response(conn2, 422)
+
       assert "$.employee_request.employee_type" ==
-        resp
-        |> get_in(["error", "invalid"])
-        |> List.first()
-        |> Map.get("entry")
+               resp
+               |> get_in(["error", "invalid"])
+               |> List.first()
+               |> Map.get("entry")
     end
 
     test "with OWNER employee_type", %{conn: conn} do
-      employee_request_params =  put_in(doctor_request(), ["employee_request", "employee_type"], Employee.type(:owner))
+      employee_request_params = put_in(doctor_request(), ["employee_request", "employee_type"], Employee.type(:owner))
 
-      employee_request_params = Map.put(
-        employee_request_params,
-        "employee_request",
-        Map.delete(employee_request_params["employee_request"], "doctor")
-      )
+      employee_request_params =
+        Map.put(
+          employee_request_params,
+          "employee_request",
+          Map.delete(employee_request_params["employee_request"], "doctor")
+        )
 
       conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
-      conn1 = post conn, employee_request_path(conn, :create), employee_request_params
+      conn1 = post(conn, employee_request_path(conn, :create), employee_request_params)
 
       resp = json_response(conn1, 409)
       assert Map.has_key?(resp, "error")
       assert "Forbidden to create OWNER" == get_in(resp, ["error", "message"])
 
-      employee_request_params = put_in(
-        employee_request_params,
-        ["employee_request", "employee_type"],
-        Employee.type(:pharmacy_owner)
-      )
+      employee_request_params =
+        put_in(
+          employee_request_params,
+          ["employee_request", "employee_type"],
+          Employee.type(:pharmacy_owner)
+        )
 
-      conn2 = post conn, employee_request_path(conn, :create), employee_request_params
+      conn2 = post(conn, employee_request_path(conn, :create), employee_request_params)
       resp = json_response(conn2, 409)
       assert Map.has_key?(resp, "error")
       assert "Forbidden to create PHARMACY_OWNER" == get_in(resp, ["error", "message"])
@@ -345,6 +369,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       legal_entity = insert(:prm, :legal_entity)
       party = insert(:prm, :party, tax_id: "3067305998")
       employee = insert(:prm, :employee, party: party)
+
       employee_request_params =
         doctor_request()
         |> put_in(["employee_request", "division_id"], "356b4182-f9ce-4eda-b6af-43d2de8602f2")
@@ -352,13 +377,13 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
         |> Poison.encode!()
 
       conn = put_client_id_header(conn, legal_entity.id)
-      conn = post conn, employee_request_path(conn, :create), employee_request_params
+      conn = post(conn, employee_request_path(conn, :create), employee_request_params)
       resp = json_response(conn, 422)
       assert Map.has_key?(resp, "error")
       assert Map.has_key?(resp["error"], "invalid")
       assert 1 == length(resp["error"]["invalid"])
 
-      invalid_division_id = Enum.find(resp["error"]["invalid"], fn(x) -> Map.get(x, "entry") == "$.division_id" end)
+      invalid_division_id = Enum.find(resp["error"]["invalid"], fn x -> Map.get(x, "entry") == "$.division_id" end)
       assert nil != invalid_division_id
       assert Map.has_key?(invalid_division_id, "rules")
       assert 1 == length(invalid_division_id["rules"])
@@ -368,10 +393,12 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
     test "with invalid legal_entity_id", %{conn: conn} do
       conn = put_client_id_header(conn, Ecto.UUID.generate())
+
       employee_request_params =
         doctor_request()
         |> Poison.encode!()
-      conn = post conn, employee_request_path(conn, :create), employee_request_params
+
+      conn = post(conn, employee_request_path(conn, :create), employee_request_params)
       resp = json_response(conn, 422)
       assert Map.has_key?(resp, "error")
       assert Map.has_key?(resp["error"], "invalid")
@@ -382,7 +409,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       employee_request_params = put_in(doctor_request(), ["employee_request", "party", "tax_id"], "1111111111")
 
       conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8602f2")
-      conn = post conn, employee_request_path(conn, :create), employee_request_params
+      conn = post(conn, employee_request_path(conn, :create), employee_request_params)
       resp = json_response(conn, 422)
       assert Map.has_key?(resp, "error")
       assert Map.has_key?(resp["error"], "invalid")
@@ -400,7 +427,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       employee = insert(:prm, :employee)
       employee_request_params = put_in(doctor_request(), ["employee_request", "employee_id"], employee.id)
       conn = put_client_id_header(conn, legal_entity_id)
-      conn = post conn, employee_request_path(conn, :create), employee_request_params
+      conn = post(conn, employee_request_path(conn, :create), employee_request_params)
       json_response(conn, 409)
     end
 
@@ -412,7 +439,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
       employee_request_params = put_in(doctor_request(), ["employee_request", "employee_id"], employee.id)
       conn = put_client_id_header(conn, legal_entity_id)
-      conn = post conn, employee_request_path(conn, :create), employee_request_params
+      conn = post(conn, employee_request_path(conn, :create), employee_request_params)
       json_response(conn, 409)
     end
 
@@ -426,8 +453,9 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
         doctor_request()
         |> put_in(["employee_request", "employee_id"], employee.id)
         |> put_in(["employee_request", "division_id"], division.id)
+
       conn = put_client_id_header(conn, legal_entity_id)
-      conn = post conn, employee_request_path(conn, :create), employee_request_params
+      conn = post(conn, employee_request_path(conn, :create), employee_request_params)
       json_response(conn, 200)
     end
 
@@ -437,84 +465,87 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       employee_request_params = put_in(doctor_request(), ["employee_request", "employee_id"], Ecto.UUID.generate())
 
       conn = put_client_id_header(conn, legal_entity_id)
-      conn = post conn, employee_request_path(conn, :create), employee_request_params
+      conn = post(conn, employee_request_path(conn, :create), employee_request_params)
       resp = json_response(conn, 422)
+
       assert "$.employee_request.employee_id" ==
-        resp
-        |> get_in(["error", "invalid"])
-        |> List.first()
-        |> Map.get("entry")
+               resp
+               |> get_in(["error", "invalid"])
+               |> List.first()
+               |> Map.get("entry")
     end
 
     test "with not active employee", %{conn: conn} do
       party = insert(:prm, :party, tax_id: "3067305998")
+
       %{id: id, division: %{legal_entity_id: legal_entity_id}} =
         :prm
         |> insert(:employee, status: "APPROVED", party: party, is_active: false)
         |> EHealth.PRMRepo.preload(:legal_entity)
+
       employee_request_params = put_in(doctor_request(), ["employee_request", "employee_id"], id)
       conn = put_client_id_header(conn, legal_entity_id)
-      conn = post conn, employee_request_path(conn, :create), employee_request_params
+      conn = post(conn, employee_request_path(conn, :create), employee_request_params)
       assert json_response(conn, 404)
     end
 
     test "with dismissed employee", %{conn: conn} do
       party = insert(:prm, :party, tax_id: "3067305998")
+
       %{id: id, division: %{legal_entity_id: legal_entity_id}} =
         :prm
         |> insert(:employee, status: "DISMISSED", party: party)
         |> EHealth.PRMRepo.preload(:legal_entity)
+
       employee_request_params = put_in(doctor_request(), ["employee_request", "employee_id"], id)
       conn = put_client_id_header(conn, legal_entity_id)
-      conn = post conn, employee_request_path(conn, :create), employee_request_params
+      conn = post(conn, employee_request_path(conn, :create), employee_request_params)
       resp = json_response(conn, 409)
       assert "employee is dismissed" == get_in(resp, ["error", "message"])
     end
 
     test "with invalid party documents", %{conn: conn} do
-      %{legal_entity_id: legal_entity_id} = insert(:prm, :division,
-        id: "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b"
-      )
+      %{legal_entity_id: legal_entity_id} = insert(:prm, :division, id: "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b")
 
       doc = %{"type" => "PASSPORT", "number" => "120518"}
       employee_request_params = put_in(doctor_request(), ["employee_request", "party", "documents"], [doc, doc])
 
       conn = put_client_id_header(conn, legal_entity_id)
-      conn1 = post conn, employee_request_path(conn, :create), employee_request_params
+      conn1 = post(conn, employee_request_path(conn, :create), employee_request_params)
 
       resp = json_response(conn1, 422)
       assert Map.has_key?(resp, "error")
+
       assert "$.employee_request.party.documents[1].type" ==
-        resp
-        |> get_in(["error", "invalid"])
-        |> List.first()
-        |> Map.get("entry")
+               resp
+               |> get_in(["error", "invalid"])
+               |> List.first()
+               |> Map.get("entry")
     end
 
     test "with invalid party phones", %{conn: conn} do
-      %{legal_entity_id: legal_entity_id} = insert(:prm, :division,
-        id: "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b"
-      )
+      %{legal_entity_id: legal_entity_id} = insert(:prm, :division, id: "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b")
 
       ph = %{"type" => "MOBILE", "number" => "+380503410870"}
       employee_request_params = put_in(doctor_request(), ["employee_request", "party", "phones"], [ph, ph])
 
       conn = put_client_id_header(conn, legal_entity_id)
-      conn1 = post conn, employee_request_path(conn, :create), employee_request_params
+      conn1 = post(conn, employee_request_path(conn, :create), employee_request_params)
 
       resp = json_response(conn1, 422)
       assert Map.has_key?(resp, "error")
+
       assert "$.employee_request.party.phones[1].type" ==
-        resp
-        |> get_in(["error", "invalid"])
-        |> List.first()
-        |> Map.get("entry")
-      end
+               resp
+               |> get_in(["error", "invalid"])
+               |> List.first()
+               |> Map.get("entry")
+    end
   end
 
   describe "list employee requests" do
     test "without filters", %{conn: conn} do
-      conn = get conn, employee_request_path(conn, :index)
+      conn = get(conn, employee_request_path(conn, :index))
       resp = json_response(conn, 200)
 
       assert Map.has_key?(resp, "data")
@@ -527,7 +558,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       insert(:il, :employee_request)
       insert(:il, :employee_request)
       conn = put_client_id_header(conn, MockServer.get_client_admin())
-      conn = get conn, employee_request_path(conn, :index)
+      conn = get(conn, employee_request_path(conn, :index))
       resp = json_response(conn, 200)["data"]
       assert 2 = length(resp)
       employee_request = hd(resp)
@@ -539,9 +570,9 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       insert(:prm, :legal_entity, id: "8b797c23-ba47-45f2-bc0f-521013e01074")
       insert(:il, :employee_request)
       employee_data = put_in(employee_request_data(), ~w(party no_tax_id)a, true)
-      insert(:il, :employee_request, [data: employee_data])
+      insert(:il, :employee_request, data: employee_data)
       conn = put_client_id_header(conn, MockServer.get_client_admin())
-      conn = get conn, employee_request_path(conn, :index), [no_tax_id: true]
+      conn = get(conn, employee_request_path(conn, :index), no_tax_id: true)
       resp = json_response(conn, 200)["data"]
       assert 1 = length(resp)
       employee_request = hd(resp)
@@ -555,11 +586,11 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       insert(:prm, :legal_entity, id: "8b797c23-ba47-45f2-bc0f-521013e01074")
       insert(:il, :employee_request)
       employee_data = put_in(employee_request_data(), ~w(party no_tax_id)a, true)
-      insert(:il, :employee_request, [data: employee_data])
+      insert(:il, :employee_request, data: employee_data)
 
       resp =
         conn
-        |> get(employee_request_path(conn, :index), [no_tax_id: "TrUe"])
+        |> get(employee_request_path(conn, :index), no_tax_id: "TrUe")
         |> json_response(200)
         |> Map.get("data")
 
@@ -569,10 +600,10 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       assert employee_request["no_tax_id"]
 
       assert [] =
-        conn
-        |> get(employee_request_path(conn, :index), [no_tax_id: "invalid"])
-        |> json_response(200)
-        |> Map.get("data")
+               conn
+               |> get(employee_request_path(conn, :index), no_tax_id: "invalid")
+               |> json_response(200)
+               |> Map.get("data")
     end
 
     test "filter by legal_entity_name, edrpou and no_tax_id", %{conn: conn} do
@@ -581,25 +612,28 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       # 2
       %{id: legal_entity_id} = insert(:prm, :legal_entity, name: "АйБолит", edrpou: "10020030")
       employee_data = Map.put(employee_request_data(), :legal_entity_id, legal_entity_id)
-      employee_request1 = insert(:il, :employee_request, [data: employee_data])
+      employee_request1 = insert(:il, :employee_request, data: employee_data)
       # 3
       %{id: legal_entity_id2} = insert(:prm, :legal_entity, name: "АйБолит 2", edrpou: "20030040")
+
       employee_data2 =
         employee_request_data()
         |> Map.put(:legal_entity_id, legal_entity_id2)
         |> put_in(~w(party no_tax_id)a, true)
-      employee_request2 = insert(:il, :employee_request, [data: employee_data2])
+
+      employee_request2 = insert(:il, :employee_request, data: employee_data2)
 
       # by legal_entity_name
       resp =
         conn
         |> put_client_id_header(MockServer.get_client_admin())
-        |> get(employee_request_path(conn, :index), [legal_entity_name: "боли"])
+        |> get(employee_request_path(conn, :index), legal_entity_name: "боли")
         |> json_response(200)
         |> Map.get("data")
 
       assert 2 = length(resp)
-      Enum.each(resp, fn(%{"id" => id}) ->
+
+      Enum.each(resp, fn %{"id" => id} ->
         assert id in [employee_request1.id, employee_request2.id]
       end)
 
@@ -607,7 +641,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       resp =
         conn
         |> put_client_id_header(MockServer.get_client_admin())
-        |> get(employee_request_path(conn, :index), [legal_entity_name: "боли", edrpou: "10020030"])
+        |> get(employee_request_path(conn, :index), legal_entity_name: "боли", edrpou: "10020030")
         |> json_response(200)
         |> Map.get("data")
 
@@ -618,7 +652,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       resp =
         conn
         |> put_client_id_header(MockServer.get_client_admin())
-        |> get(employee_request_path(conn, :index), [legal_entity_name: "боли", no_tax_id: "true"])
+        |> get(employee_request_path(conn, :index), legal_entity_name: "боли", no_tax_id: "true")
         |> json_response(200)
         |> Map.get("data")
 
@@ -630,12 +664,12 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       insert(:il, :employee_request)
       %{id: legal_entity_id} = insert(:prm, :legal_entity, edrpou: "10020030")
       employee_data = Map.put(employee_request_data(), :legal_entity_id, legal_entity_id)
-      %{id: id} = insert(:il, :employee_request, [data: employee_data])
+      %{id: id} = insert(:il, :employee_request, data: employee_data)
 
       resp =
         conn
         |> put_client_id_header(MockServer.get_client_admin())
-        |> get(employee_request_path(conn, :index), [edrpou: "10020030"])
+        |> get(employee_request_path(conn, :index), edrpou: "10020030")
         |> json_response(200)
         |> Map.get("data")
 
@@ -650,7 +684,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       resp =
         conn
         |> put_client_id_header(MockServer.get_client_admin())
-        |> get(employee_request_path(conn, :index), [id: id])
+        |> get(employee_request_path(conn, :index), id: id)
         |> json_response(200)
         |> Map.get("data")
 
@@ -665,7 +699,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       fixture(Request, Map.put(employee_request(), :legal_entity_id, legal_entity_id_2))
 
       conn = put_client_id_header(conn, legal_entity_id)
-      conn = get conn, employee_request_path(conn, :index)
+      conn = get(conn, employee_request_path(conn, :index))
       resp = json_response(conn, 200)
 
       assert Map.has_key?(resp, "data")
@@ -674,19 +708,22 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       assert 1 == length(resp["data"])
       edrpou = legal_entity.edrpou
       legal_entity_name = legal_entity.name
-      assert [%{
-        "edrpou" => ^edrpou,
-        "legal_entity_name" => ^legal_entity_name,
-        "first_name" => "Петро",
-        "second_name" => "Миколайович",
-        "last_name" => "Іванов",
-      }] = resp["data"]
+
+      assert [
+               %{
+                 "edrpou" => ^edrpou,
+                 "legal_entity_name" => ^legal_entity_name,
+                 "first_name" => "Петро",
+                 "second_name" => "Миколайович",
+                 "last_name" => "Іванов"
+               }
+             ] = resp["data"]
     end
 
     test "with invalid client_id in metadata", %{conn: conn} do
       fixture(Request)
       conn = put_client_id_header(conn, Ecto.UUID.generate())
-      conn = get conn, employee_request_path(conn, :index)
+      conn = get(conn, employee_request_path(conn, :index))
       resp = json_response(conn, 200)
 
       assert Map.has_key?(resp, "data")
@@ -700,15 +737,14 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     employee_request = %{id: id} = fixture(Request)
     insert(:prm, :legal_entity, id: employee_request.data["legal_entity_id"])
 
-    conn = get conn, employee_request_path(conn, :show, id)
+    conn = get(conn, employee_request_path(conn, :show, id))
     resp = json_response(conn, 200)
 
     assert Map.has_key?(resp, "data")
 
     data = Map.drop(resp["data"], ["id", "inserted_at", "updated_at", "type", "status"])
 
-    assert Map.get(employee_request, :data) ==
-      Map.drop(data, ~w(
+    assert Map.get(employee_request, :data) == Map.drop(data, ~w(
         employee_id
         edrpou
         legal_entity_name
@@ -731,15 +767,14 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     fixture_params = employee_request() |> Map.put(:email, "test@user.com")
     fixture_request = %{id: id} = fixture(Request, fixture_params)
 
-    conn = get conn, employee_request_path(conn, :show, id)
+    conn = get(conn, employee_request_path(conn, :show, id))
     resp = json_response(conn, 200)
 
     assert Map.has_key?(resp, "data")
 
     data = Map.drop(resp["data"], ["id", "inserted_at", "updated_at", "type", "status"])
 
-    assert Map.get(fixture_request, :data) ==
-      Map.drop(data, ~w(
+    assert Map.get(fixture_request, :data) == Map.drop(data, ~w(
         employee_id
         edrpou
         legal_entity_name
@@ -763,7 +798,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   test "show employee_request with status NEW", %{conn: conn} do
     %{id: id} = insert(:il, :employee_request)
 
-    conn = get conn, employee_request_path(conn, :show, id)
+    conn = get(conn, employee_request_path(conn, :show, id))
     resp = json_response(conn, 200)["data"]
     assert Map.has_key?(resp, "no_tax_id")
     refute resp["no_tax_id"]
@@ -772,7 +807,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   test "create user by employee request", %{conn: conn} do
     fixture_params = employee_request() |> Map.put(:email, "test@user.com")
     %{id: id} = fixture(Request, fixture_params)
-    conn = post conn, employee_request_path(conn, :create_user, id), %{"password" => "123"}
+    conn = post(conn, employee_request_path(conn, :create_user, id), %{"password" => "123"})
     resp = json_response(conn, 201)
     assert Map.has_key?(resp["data"], "email")
   end
@@ -780,13 +815,13 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   test "create user by employee request invalid params", %{conn: conn} do
     fixture_params = employee_request() |> Map.put(:email, "test@user.com")
     %{id: id} = fixture(Request, fixture_params)
-    conn = post conn, employee_request_path(conn, :create_user, id), %{"passwords" => "123"}
+    conn = post(conn, employee_request_path(conn, :create_user, id), %{"passwords" => "123"})
     assert json_response(conn, 422)["errors"] != %{}
   end
 
   test "create user by employee request invalid id", %{conn: conn} do
     assert_raise Ecto.NoResultsError, ~r/expected at least one result but got none in query/, fn ->
-      post conn, employee_request_path(conn, :create_user, Ecto.UUID.generate()), %{"password" => "pw"}
+      post(conn, employee_request_path(conn, :create_user, Ecto.UUID.generate()), %{"password" => "pw"})
     end
   end
 
@@ -800,10 +835,11 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
         |> put_in([:party, :email], "mis_bot_1493831618@user.com")
         |> put_in([:division_id], division_id)
         |> put_in([:legal_entity_id], legal_entity_id)
+
       %{id: request_id} = insert(:il, :employee_request, employee_id: nil, data: data)
 
       conn = put_client_id_header(conn, legal_entity_id)
-      conn1 = post conn, employee_request_path(conn, :approve, request_id)
+      conn1 = post(conn, employee_request_path(conn, :approve, request_id))
       resp = json_response(conn1, 200)
       assert %{"data" => %{"employee_id" => employee_id}} = resp
 
@@ -811,16 +847,17 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
         data
         |> put_in([:party, :first_name], "Alex")
         |> put_in([:employee_id], employee_id)
+
       doctor = Map.delete(data.doctor, :science_degree)
       data = Map.put(data, :doctor, doctor)
 
       %{id: request_id} = insert(:il, :employee_request, employee_id: nil, data: data)
-      conn2 = post conn, employee_request_path(conn, :approve, request_id)
+      conn2 = post(conn, employee_request_path(conn, :approve, request_id))
       resp = json_response(conn2, 200)["data"]
       assert employee_id = resp["employee_id"]
       refute Map.has_key?(resp["doctor"], "science_degree")
 
-      conn3 = get conn, employee_path(conn, :show, employee_id)
+      conn3 = get(conn, employee_path(conn, :show, employee_id))
       resp = json_response(conn3, 200)["data"]
       refute Map.has_key?(resp["doctor"], "science_degree")
     end
@@ -834,15 +871,17 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
         |> put_in([:party, :email], "mis_bot_1493831618@user.com")
         |> put_in([:division_id], division_id)
         |> put_in([:legal_entity_id], legal_entity_id)
+
       data =
         data
         |> Map.put(:employee_type, Employee.type(:pharmacist))
         |> Map.put(:pharmacist, Map.get(data, :doctor))
         |> Map.delete(:doctor)
+
       %{id: request_id} = insert(:il, :employee_request, employee_id: nil, data: data)
 
       conn = put_client_id_header(conn, legal_entity_id)
-      conn = post conn, employee_request_path(conn, :approve, request_id)
+      conn = post(conn, employee_request_path(conn, :approve, request_id))
       resp = json_response(conn, 200)["data"]
       assert %{"employee_id" => _employee_id, "pharmacist" => _} = resp
       assert %{additional_info: %{"educations" => _}} = PRMRepo.get(Employee, resp["employee_id"])
@@ -851,10 +890,15 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     test "can approve employee request if email matches", %{conn: conn} do
       legal_entity = insert(:prm, :legal_entity)
       party = insert(:prm, :party, id: "01981ab9-904c-4c36-88ab-959a94087483")
-      %{legal_entity_id: legal_entity_id} = insert(:prm, :employee,
-        legal_entity: legal_entity,
-        party: party
-      )
+
+      %{legal_entity_id: legal_entity_id} =
+        insert(
+          :prm,
+          :employee,
+          legal_entity: legal_entity,
+          party: party
+        )
+
       %{id: division_id} = insert(:prm, :division)
 
       data =
@@ -862,16 +906,19 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
         |> put_in([:party, :email], "mis_bot_1493831618@user.com")
         |> put_in([:division_id], division_id)
         |> put_in([:legal_entity_id], legal_entity_id)
+
       %{id: request_id} = insert(:il, :employee_request, employee_id: nil, data: data)
 
-      conn = post conn, employee_request_path(conn, :approve, request_id)
+      conn = post(conn, employee_request_path(conn, :approve, request_id))
       assert [event] = EventManagerRepo.all(Event)
+
       assert %Event{
                entity_type: "EmployeeRequest",
                event_type: "StatusChangeEvent",
                entity_id: ^request_id,
                properties: %{"status" => %{"new_value" => "APPROVED"}}
              } = event
+
       resp = json_response(conn, 200)["data"]
       assert "APPROVED" == resp["status"]
     end
@@ -879,7 +926,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     test "cannot approve employee request if email does not match", %{conn: conn} do
       %{id: id} = fixture(Request)
 
-      conn = post conn, employee_request_path(conn, :approve, id)
+      conn = post(conn, employee_request_path(conn, :approve, id))
       json_response(conn, 403)
     end
 
@@ -897,7 +944,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       %{id: id} = fixture(Request)
 
       conn = put_client_id_header(conn, Ecto.UUID.generate())
-      conn = post conn, employee_request_path(conn, :approve, id)
+      conn = post(conn, employee_request_path(conn, :approve, id))
       json_response(conn, 403)
     end
 
@@ -905,24 +952,33 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division)
       party = insert(:prm, :party, id: "01981ab9-904c-4c36-88ab-959a94087483")
-      employee = insert(:prm, :employee,
-        legal_entity: legal_entity,
-        division: division,
-        party: party
-      )
+
+      employee =
+        insert(
+          :prm,
+          :employee,
+          legal_entity: legal_entity,
+          division: division,
+          party: party
+        )
+
       data =
         employee_request_data()
         |> put_in([:party, :email], "mis_bot_1493831618@user.com")
         |> put_in([:legal_entity_id], legal_entity.id)
         |> put_in([:division_id], division.id)
         |> put_in([:party_id], party.id)
-      employee_request = insert(:il, :employee_request,
-        employee_id: employee.id,
-        data: data
-      )
+
+      employee_request =
+        insert(
+          :il,
+          :employee_request,
+          employee_id: employee.id,
+          data: data
+        )
 
       conn = put_client_id_header(conn, legal_entity.id)
-      conn = post conn, employee_request_path(conn, :approve, employee_request.id)
+      conn = post(conn, employee_request_path(conn, :approve, employee_request.id))
       resp = json_response(conn, 200)["data"]
       assert "APPROVED" == resp["status"]
     end
@@ -931,29 +987,39 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       employee = insert(:prm, :employee)
       insert(:prm, :party, id: "01981ab9-904c-4c36-88ab-959a94087483", tax_id: "2222222225")
       %{id: division_id} = insert(:prm, :division)
+
       data =
         employee_request_data()
         |> put_in([:party, :email], "mis_bot_1493831618@user.com")
         |> put_in([:division_id], division_id)
-      %{id: id, data: data} = insert(:il, :employee_request,
-        employee_id: employee.id,
-        data: data
-      )
+
+      %{id: id, data: data} =
+        insert(
+          :il,
+          :employee_request,
+          employee_id: employee.id,
+          data: data
+        )
+
       legal_entity_id = data.legal_entity_id
       insert(:prm, :legal_entity, id: legal_entity_id)
 
       conn = put_client_id_header(conn, legal_entity_id)
-      conn = post conn, employee_request_path(conn, :approve, id)
+      conn = post(conn, employee_request_path(conn, :approve, id))
       resp = json_response(conn, 200)["data"]
       assert "APPROVED" == resp["status"]
     end
 
     test "cannot approve expired employee request", %{conn: conn} do
-      %{id: id} = insert(:il, :employee_request,
-        status: Request.status(:expired),
-        data: %{"party" => %{"email" => "mis_bot_1493831618@user.com"}}
-      )
-      conn_resp = post conn, employee_request_path(conn, :approve, id)
+      %{id: id} =
+        insert(
+          :il,
+          :employee_request,
+          status: Request.status(:expired),
+          data: %{"party" => %{"email" => "mis_bot_1493831618@user.com"}}
+        )
+
+      conn_resp = post(conn, employee_request_path(conn, :approve, id))
       resp = json_response(conn_resp, 403)
       assert "Employee request is expired" == resp["error"]["message"]
     end
@@ -961,14 +1027,16 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     test "cannot approve employee request with existing user_id", %{conn: conn} do
       party = insert(:prm, :party, tax_id: "2222222225")
       %PartyUser{user_id: user_id} = insert(:prm, :party_user, party: party)
+
       request_data =
         employee_request_data()
         |> Map.delete("employee_id")
         |> put_in(~w(party email)a, "mis_bot_1493831618@user.com")
+
       %{id: id, data: data} = insert(:il, :employee_request, data: request_data)
       conn = put_client_id_header(conn, data.legal_entity_id)
       conn = Plug.Conn.put_req_header(conn, consumer_id_header(), user_id)
-      conn_resp = post conn, employee_request_path(conn, :approve, id)
+      conn_resp = post(conn, employee_request_path(conn, :approve, id))
       resp = json_response(conn_resp, 409)
       assert "Email is already used by another person" == resp["error"]["message"]
     end
@@ -978,16 +1046,18 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       party = insert(:prm, :party, tax_id: tax_id)
       party2 = insert(:prm, :party, tax_id: "3222222225")
       %PartyUser{user_id: user_id} = insert(:prm, :party_user, party: party2)
+
       request_data =
         employee_request_data()
         |> Map.delete("employee_id")
         |> put_in(~w(party email)a, "mis_bot_1493831618@user.com")
         |> put_in(~w(party tax_id)a, tax_id)
         |> put_in(~w(party birth_date)a, party.birth_date)
+
       %{id: id, data: data} = insert(:il, :employee_request, data: request_data)
       conn = put_client_id_header(conn, data.legal_entity_id)
       conn = Plug.Conn.put_req_header(conn, consumer_id_header(), user_id)
-      conn_resp = post conn, employee_request_path(conn, :approve, id)
+      conn_resp = post(conn, employee_request_path(conn, :approve, id))
       resp = json_response(conn_resp, 409)
       assert "Email is already used by another person" == resp["error"]["message"]
     end
@@ -998,22 +1068,24 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       fixture_params = employee_request() |> Map.put(:email, "mis_bot_1493831618@user.com")
       %{id: id} = fixture(Request, fixture_params)
 
-      conn = post conn, employee_request_path(conn, :reject, id)
+      conn = post(conn, employee_request_path(conn, :reject, id))
       resp = json_response(conn, 200)["data"]
       assert [event] = EventManagerRepo.all(Event)
+
       assert %Event{
-        entity_type: "EmployeeRequest",
-        event_type: "StatusChangeEvent",
-        entity_id: ^id,
-        properties: %{"status" => %{"new_value" => "REJECTED"}}
-      } = event
+               entity_type: "EmployeeRequest",
+               event_type: "StatusChangeEvent",
+               entity_id: ^id,
+               properties: %{"status" => %{"new_value" => "REJECTED"}}
+             } = event
+
       assert "REJECTED" == resp["status"]
     end
 
     test "cannot reject employee request if email doesnot match", %{conn: conn} do
       %{id: id} = fixture(Request)
 
-      conn = post conn, employee_request_path(conn, :reject, id)
+      conn = post(conn, employee_request_path(conn, :reject, id))
       json_response(conn, 403)
     end
 
@@ -1031,65 +1103,69 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       %{id: id} = fixture(Request)
 
       conn = put_client_id_header(conn, Ecto.UUID.generate())
-      conn = post conn, employee_request_path(conn, :reject, id)
+      conn = post(conn, employee_request_path(conn, :reject, id))
       json_response(conn, 403)
     end
 
     test "can reject employee request if you created it'", %{conn: conn} do
-    fixture_params = employee_request() |> Map.put(:email, "mis_bot_1493831618@user.com")
-    %{id: id, data: data} = fixture(Request, fixture_params)
+      fixture_params = employee_request() |> Map.put(:email, "mis_bot_1493831618@user.com")
+      %{id: id, data: data} = fixture(Request, fixture_params)
 
-    conn = put_client_id_header(conn, Map.get(data, "legal_entity_id"))
-    conn = post conn, employee_request_path(conn, :reject, id)
-    resp = json_response(conn, 200)["data"]
-    assert "REJECTED" == resp["status"]
+      conn = put_client_id_header(conn, Map.get(data, "legal_entity_id"))
+      conn = post(conn, employee_request_path(conn, :reject, id))
+      resp = json_response(conn, 200)["data"]
+      assert "REJECTED" == resp["status"]
+    end
   end
-  end
+
   describe "show invite" do
     test "success show invite", %{conn: conn} do
       %{id: id} = insert(:il, :employee_request)
-      conn = get conn, employee_request_path(conn, :invite, id |> Cipher.encrypt() |> Base.encode64())
+      conn = get(conn, employee_request_path(conn, :invite, id |> Cipher.encrypt() |> Base.encode64()))
       assert json_response(conn, 200)
     end
 
     test "fail show invite", %{conn: conn} do
       %{id: id} = insert(:il, :employee_request)
-      conn = get conn, employee_request_path(conn, :invite, id)
+      conn = get(conn, employee_request_path(conn, :invite, id))
       assert json_response(conn, 404)
     end
 
     test "fail invalid id", %{conn: conn} do
       # %{id: id} = insert(:il, :employee_request)
-      conn = get conn, employee_request_path(conn, :invite, Base.encode64("invalid"))
+      conn = get(conn, employee_request_path(conn, :invite, Base.encode64("invalid")))
       assert json_response(conn, 404)
     end
   end
 
   def test_invalid_status_transition(conn, init_status, action) do
-    fixture_params = employee_request() |> Map.merge(%{
-      email: "mis_bot_1493831618@user.com",
-      status: init_status
-    })
+    fixture_params =
+      employee_request()
+      |> Map.merge(%{
+        email: "mis_bot_1493831618@user.com",
+        status: init_status
+      })
+
     %{id: id} = fixture(Request, fixture_params)
 
-    conn_resp = post conn, employee_request_path(conn, action, id)
+    conn_resp = post(conn, employee_request_path(conn, action, id))
     resp = json_response(conn_resp, 409)
     assert "Employee request status is #{init_status} and cannot be updated" == resp["error"]["message"]
     assert 409 = resp["meta"]["code"]
 
-    conn = get conn, employee_request_path(conn, :show, id)
+    conn = get(conn, employee_request_path(conn, :show, id))
     assert init_status == json_response(conn, 200)["data"]["status"]
   end
 
   defp doctor_request do
     "test/data/employee_doctor_request.json"
     |> File.read!()
-    |> Poison.decode!
+    |> Poison.decode!()
   end
 
   defp pharmacist_request do
     "test/data/employee_pharmacist_request.json"
     |> File.read!()
-    |> Poison.decode!
+    |> Poison.decode!()
   end
 end

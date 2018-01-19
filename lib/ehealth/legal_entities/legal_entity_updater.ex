@@ -19,13 +19,13 @@ defmodule EHealth.LegalEntities.LegalEntityUpdater do
   def deactivate(id, headers) do
     with legal_entity <- LegalEntities.get_by_id!(id),
          :ok <- check_transition(legal_entity),
-         :ok <- deactivate_employees(legal_entity, headers)
-    do
+         :ok <- deactivate_employees(legal_entity, headers) do
       update_legal_entity_status(legal_entity, headers)
     end
   end
 
   def check_transition(%LegalEntity{is_active: true, status: @status_active}), do: :ok
+
   def check_transition(_legal_entity) do
     {:error, {:conflict, "Legal entity is not ACTIVE and cannot be updated"}}
   end
@@ -34,28 +34,31 @@ defmodule EHealth.LegalEntities.LegalEntityUpdater do
     %{
       status: @employee_status_approved,
       is_active: true,
-      legal_entity_id: legal_entity.id,
+      legal_entity_id: legal_entity.id
     }
-    |> Employees.list
-    |> Enum.map(&(Task.async(fn ->
-      id = Map.get(&1, :id)
-      {id, EmployeeUpdater.deactivate(%{"id" => id, "legal_entity_id" => legal_entity.id}, headers, true)}
-    end)))
+    |> Employees.list()
+    |> Enum.map(
+      &Task.async(fn ->
+        id = Map.get(&1, :id)
+        {id, EmployeeUpdater.deactivate(%{"id" => id, "legal_entity_id" => legal_entity.id}, headers, true)}
+      end)
+    )
     |> Enum.map(&Task.await/1)
     |> Enum.reduce_while(:ok, fn {id, resp}, acc ->
       case resp do
         {:error, err} ->
           log_deactivate_employee_error(err, id)
           {:halt, err}
-        _ -> {:cont, acc}
+
+        _ ->
+          {:cont, acc}
       end
     end)
   end
 
   def update_legal_entity_status(%LegalEntity{} = legal_entity, headers) do
     with params <- get_update_legal_entity_params(headers),
-         params <- put_legal_entity_status(params)
-    do
+         params <- put_legal_entity_status(params) do
       LegalEntities.update(legal_entity, params, get_consumer_id(headers))
     end
   end
@@ -72,9 +75,9 @@ defmodule EHealth.LegalEntities.LegalEntityUpdater do
   defp log_deactivate_employee_error(error, id) do
     Logger.error(fn ->
       Poison.encode!(%{
-        "log_type"   => "error",
-        "message"    => "Failed to deactivate employee with id \"#{id}\". Reason: #{inspect error}",
-        "request_id" => Logger.metadata[:request_id]
+        "log_type" => "error",
+        "message" => "Failed to deactivate employee with id \"#{id}\". Reason: #{inspect(error)}",
+        "request_id" => Logger.metadata()[:request_id]
       })
     end)
   end

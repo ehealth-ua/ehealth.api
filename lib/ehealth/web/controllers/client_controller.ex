@@ -4,7 +4,7 @@ defmodule EHealth.Web.ClientController do
   use EHealth.Web, :controller
   alias EHealth.API.Mithril
 
-  action_fallback EHealth.Web.FallbackController
+  action_fallback(EHealth.Web.FallbackController)
 
   def refresh_secret(%Plug.Conn{req_headers: headers} = conn, %{"legal_entity_id" => client_id, "id" => id}) do
     if client_id == id do
@@ -15,5 +15,6 @@ defmodule EHealth.Web.ClientController do
       {:error, :forbidden}
     end
   end
+
   def refresh_secret(_, _), do: {:error, :forbidden}
 end
