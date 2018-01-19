@@ -44,7 +44,7 @@
         },
         "number": {
           "type": "string",
-          "minLength":1
+          "minLength": 1
         }
       },
       "required": [
@@ -106,6 +106,17 @@
         "building"
       ],
       "additionalProperties": false
+    },
+    "archive": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/date"
+        },
+        "place": {
+          "$ref": "#/definitions/name"
+        }
+      }
     }
   },
   "type": "object",
@@ -160,6 +171,17 @@
     "email": {
       "type": "string",
       "format": "email"
+    },
+    "website": {
+      "type": "string",
+      "pattern": "^(http:\/\/|https:\/\/)?([a-z0-9][a-z0-9\\-]*\\.)+[a-z0-9][a-z0-9\\-]*$"
+    },
+    "receiver_funds_code": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "beneficiary": {
+      "$ref": "#/definitions/person_name"
     },
     "owner": {
       "type": "object",
@@ -293,6 +315,12 @@
         "ACTIVE",
         "CLOSED"
       ]
+    },
+    "archive": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/archive"
+      }
     },
     "mis_verified": {
       "type": "string",
