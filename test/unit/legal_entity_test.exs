@@ -252,6 +252,14 @@ defmodule EHealth.Unit.LegalEntityTest do
       assert "VERIFIED" == legal_entity.mis_verified
       assert "changed@example.com" == legal_entity.email
       assert "Nebo15" == legal_entity.short_name
+      assert "Лев Томас" == legal_entity.beneficiary
+
+      assert [
+               %{
+                 "date" => "2012-12-29",
+                 "place" => "Житомир вул. Малярів, буд. 211, корп. 2, оф. 1"
+               }
+             ] == legal_entity.archive
 
       refute is_nil(legal_entity.nhs_verified)
       refute legal_entity.nhs_verified

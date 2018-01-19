@@ -110,7 +110,7 @@
     "archive": {
       "type": "object",
       "properties": {
-        "type": {
+        "date": {
           "$ref": "#/definitions/date"
         },
         "place": {
@@ -181,7 +181,8 @@
       "pattern": "^[0-9]+$"
     },
     "beneficiary": {
-      "$ref": "#/definitions/person_name"
+      "type": "string",
+      "pattern": "^[А-Яа-яёЁЇїІіЄєҐґ ]+$"
     },
     "owner": {
       "type": "object",

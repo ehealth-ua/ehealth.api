@@ -64,6 +64,10 @@ defmodule EHealth.LegalEntities do
     is_active
     nhs_verified
     created_by_mis_client_id
+    archive
+    receiver_funds_code
+    website
+    beneficiary
   )a
 
   @employee_request_status "NEW"
