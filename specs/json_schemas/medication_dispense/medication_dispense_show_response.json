@@ -146,7 +146,10 @@
                   "type": "string"
                 },
                 "location": {
-                  "type": ["object", "null"],
+                  "type": [
+                    "object",
+                    "null"
+                  ],
                   "properties": {
                     "latitude": {
                       "type": "number"
@@ -235,20 +238,16 @@
                 "second_name": {
                   "type": "string"
                 },
-                "birth_date": {
-                  "type": "string",
-                  "description": "ISO Datetime."
-                },
-                "addresses": {
-                  "type": "array"
+                "age": {
+                  "type": "integer",
+                  "description": "Full years between birth date and medication request date"
                 }
               },
               "required": [
                 "id",
                 "first_name",
                 "last_name",
-                "birth_date",
-                "addresses"
+                "age"
               ]
             },
             "medication_info": {
@@ -575,7 +574,10 @@
           }
         },
         "payment_id": {
-          "type": ["string", "null"],
+          "type": [
+            "string",
+            "null"
+          ],
           "description": "receipt number for the paid medications"
         },
         "status": {

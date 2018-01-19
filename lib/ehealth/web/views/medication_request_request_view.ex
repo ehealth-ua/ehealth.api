@@ -1,26 +1,25 @@
 defmodule EHealth.Web.MedicationRequestRequestView do
   @moduledoc false
   use EHealth.Web, :view
-  alias EHealth.Web.MedicationRequestRequestView
   alias EHealth.Web.{PersonView, EmployeeView, LegalEntityView, DivisionView, MedicalProgramView, INNMDosageView}
 
   def render("index.json", %{medication_request_requests: medication_request_requests}) do
     render_many(
       medication_request_requests,
-      MedicationRequestRequestView,
+      __MODULE__,
       "medication_request_request_detail.json",
       as: :data
     )
   end
 
   def render("show.json", %{medication_request_request: medication_request_request}) do
-    render_one(medication_request_request, MedicationRequestRequestView, "medication_request_request.json")
+    render_one(medication_request_request, __MODULE__, "medication_request_request.json")
   end
 
   def render("medication_request_request_detail.json", %{data: values}) do
     values.medication_request_request.data
     |> Map.put(:id, values.medication_request_request.id)
-    |> Map.put(:person, render(PersonView, "show.json", %{"person" => values.person}))
+    |> Map.put(:person, render_person(values.person, values.medication_request_request.data.created_at))
     |> Map.put(:employee, render(EmployeeView, "employee_private.json", %{employee: values.employee}))
     |> Map.put(:legal_entity, render(LegalEntityView, "show_reimbursement.json", %{legal_entity: values.legal_entity}))
     |> Map.put(:division, render(DivisionView, "division.json", %{division: values.division}))
@@ -57,7 +56,7 @@ defmodule EHealth.Web.MedicationRequestRequestView do
   end
 
   def render("show_prequalify_programs.json", %{programs: programs}) do
-    render_many(programs, MedicationRequestRequestView, "show_prequalify_program.json", as: :program)
+    render_many(programs, __MODULE__, "show_prequalify_program.json", as: :program)
   end
 
   def render("show_prequalify_program.json", %{program: %{status: "INVALID"} = program}) do
@@ -75,12 +74,12 @@ defmodule EHealth.Web.MedicationRequestRequestView do
       program_name: program.name,
       status: program.status,
       rejection_reason: "",
-      participants: render(MedicationRequestRequestView, "participants.json", %{participants: program.participants})
+      participants: render(__MODULE__, "participants.json", %{participants: program.participants})
     }
   end
 
   def render("participants.json", %{participants: participants}) do
-    render_many(participants, MedicationRequestRequestView, "participant.json", as: :participant)
+    render_many(participants, __MODULE__, "participant.json", as: :participant)
   end
 
   def render("participant.json", %{participant: participant}) do
@@ -91,5 +90,18 @@ defmodule EHealth.Web.MedicationRequestRequestView do
       manufacturer: participant.manufacturer,
       reimbursement_amount: participant["reimbursement_amount"]
     }
+  end
+
+  def render_person(%{"birth_date" => birth_date} = person, mrr_created_at) do
+    age = get_age(birth_date, mrr_created_at)
+
+    PersonView
+    |> render("show.json", %{"person" => person})
+    |> Map.put("age", age)
+    |> Map.delete("bitrh_date")
+  end
+
+  defp get_age(birth_date, current_date) do
+    Timex.diff(current_date, Timex.parse!(birth_date, "{YYYY}-{0M}-{D}"), :years)
   end
 end

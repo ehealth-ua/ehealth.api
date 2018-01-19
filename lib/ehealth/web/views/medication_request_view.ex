@@ -2,10 +2,7 @@ defmodule EHealth.Web.MedicationRequestView do
   @moduledoc false
 
   use EHealth.Web, :view
-  alias EHealth.Web.LegalEntityView
-  alias EHealth.Web.DivisionView
-  alias EHealth.Web.MedicalProgramView
-  alias EHealth.Web.PersonView
+  alias EHealth.Web.{LegalEntityView, DivisionView, MedicalProgramView, MedicationRequestRequestView}
 
   def render("index.json", %{medication_requests: medication_requests}) do
     render_many(medication_requests, __MODULE__, "show.json")
@@ -13,6 +10,8 @@ defmodule EHealth.Web.MedicationRequestView do
 
   def render("show.json", %{medication_request: medication_request}) do
     legal_entity = medication_request["legal_entity"]
+    created_at = Timex.parse!(medication_request["created_at"], "{YYYY}-{0M}-{D}")
+    person = MedicationRequestRequestView.render_person(medication_request["person"], created_at)
 
     medication_request
     |> Map.take(~w(
@@ -30,7 +29,7 @@ defmodule EHealth.Web.MedicationRequestView do
     |> Map.put("division", render_one(medication_request["division"], DivisionView, "show.json"))
     |> Map.put("medical_program", render_one(medication_request["medical_program"], MedicalProgramView, "show.json"))
     |> Map.put("medication_info", render_one(medication_request, __MODULE__, "medication_info.json"))
-    |> Map.put("person", render_one(medication_request["person"], PersonView, "show.json"))
+    |> Map.put("person", person)
   end
 
   def render("medication_info.json", %{medication_request: medication_request}) do

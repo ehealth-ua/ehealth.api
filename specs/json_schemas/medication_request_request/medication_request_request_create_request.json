@@ -4,23 +4,24 @@
     "date": {
       "type": "string",
       "pattern": "^(\\d{4}(?!\\d{2}\\b))((-)((0[1-9]|1[0-2])(\\3([12]\\d|0[1-9]|3[01]))|(00[1-9]|0[1-9]\\d|[12]\\d{2}|3([0-5]\\d|6[1-6]))))$"
+    },
+    "uuid": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{12}$"
     }
   },
   "type": "object",
   "properties": {
     "person_id": {
-      "type": "string",
-      "pattern": "^[0-9a-f]{8}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{12}$",
+      "$ref": "#/definitions/uuid",
       "description": "Person identifier"
     },
     "employee_id": {
-      "type": "string",
-      "pattern": "^[0-9a-f]{8}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{12}$",
+      "$ref": "#/definitions/uuid",
       "description": "Employee ID with `type=DOCTOR` who issued Medication Request."
     },
     "division_id": {
-      "type": "string",
-      "pattern": "^[0-9a-f]{8}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{12}$",
+      "$ref": "#/definitions/uuid",
       "description": "Division identifier"
     },
     "created_at": {
@@ -44,8 +45,7 @@
       "description": "End date of dispense period, which is determined by the external system. Greater or equal to dispense_valid_from. Format DATE '2017-10-07'"
     },
     "medication_id": {
-      "type": "string",
-      "pattern": "^[0-9a-f]{8}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{12}$",
+      "$ref": "#/definitions/uuid",
       "description": "Medication identified"
     },
     "medication_qty": {
@@ -55,8 +55,7 @@
       "description": "Medication quantity isuued by the doctor"
     },
     "medical_program_id": {
-      "type": "string",
-      "pattern": "^[0-9a-f]{8}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{12}$",
+      "$ref": "#/definitions/uuid",
       "description": "Medical program identifier"
     }
   },

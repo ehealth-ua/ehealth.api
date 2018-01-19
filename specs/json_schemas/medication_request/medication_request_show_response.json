@@ -138,7 +138,7 @@
         },
         "position": {
           "type": "string",
-          "description": "`Dictionary POSITION`"
+          "description": "Dictionary POSITION"
         },
         "party": {
           "type": "object",
@@ -195,20 +195,16 @@
         "second_name": {
           "type": "string"
         },
-        "birth_date": {
-          "type": "string",
-          "description": "ISO Datetime."
-        },
-        "addresses": {
-          "type": "array"
+        "age": {
+          "type": "integer",
+          "description": "Full years between birth date and medication request date"
         }
       },
       "required": [
         "id",
         "first_name",
         "last_name",
-        "birth_date",
-        "addresses"
+        "age"
       ]
     },
     "medication_info": {
@@ -216,25 +212,25 @@
       "properties": {
         "medication_id": {
           "type": "string",
-          "description": "`Identifier medication with type **INNM_DOSAGE**`"
+          "description": "Identifier medication with type **INNM_DOSAGE**"
         },
         "form": {
           "type": "string",
-          "description": "`Dictionary MEDICATION_FORM`"
+          "description": "Dictionary MEDICATION_FORM"
         },
         "dosage": {
           "type": "object",
           "properties": {
             "numerator_unit": {
               "type": "string",
-              "description": "`Dictionary MEDICATION_UNIT`"
+              "description": "Dictionary MEDICATION_UNIT"
             },
             "numerator_value": {
               "type": "number"
             },
             "denumerator_unit": {
               "type": "string",
-              "description": "`Dictionary MEDICATION_UNIT`"
+              "description": "Dictionary MEDICATION_UNIT"
             },
             "denumerator_value": {
               "type": "number"
@@ -269,11 +265,11 @@
       "properties": {
         "id": {
           "type": "string",
-          "description": "`Medical program Identifier`"
+          "description": "Medical program Identifier"
         },
         "name": {
           "type": "string",
-          "description": "`Medical program name`"
+          "description": "Medical program name"
         }
       },
       "required": [
