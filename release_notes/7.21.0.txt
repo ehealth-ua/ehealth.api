@@ -1,7 +1,11 @@
-Change log for versions 7.21.0 - 7.21.14
+Change log for versions 7.21.0 - 7.21.18
 
 **Patches and bug fixes**:
 
+added formatter config
+removed dogma
+use mix format in CI and pre-commit.sh
+bump Travis versions: Elixir: 1.6.0, OTP: 20.2.2
 Fix errors in emplyee_request event generation
 declaration request schemas
 medication json schemas
@@ -19,4 +23,7 @@ Return validation error messages (#1696)
 
 **Other**:
 
+format code with Elixir formatter (#1748)
+format code with Elixir formatter
+Update ENVIRONMENT.md (fix Gandalf table markdown) (#1740)
 EHealth-1663: use json schema for tests, refactoring (#1701)
