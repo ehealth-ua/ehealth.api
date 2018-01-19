@@ -1,0 +1,11 @@
+Change log for versions 7.23.0 - 7.23.1
+
+**Patches and bug fixes**:
+
+EHealth-1709: calculate age for Medication requests
+
+**Other**:
+
+personal_info_medication_request (#1750)
+personal_info_medication_request
+Delete personal info from medicaiton request and medication dispense responses
