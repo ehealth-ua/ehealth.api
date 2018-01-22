@@ -3,8 +3,34 @@ defmodule EHealth.Web.LegalEntityView do
   Sample view for LegalEntitys controller.
   """
   use EHealth.Web, :view
-
   alias EHealth.LegalEntities.LegalEntity
+
+  @fields ~w(
+    id
+    name
+    short_name
+    public_name
+    status
+    type
+    owner_property_type
+    legal_form
+    edrpou
+    kveds
+    addresses
+    phones
+    email
+    is_active
+    inserted_by
+    updated_by
+    inserted_at
+    updated_at
+    nhs_verified
+    mis_verified
+    archive
+    website
+    beneficiary
+    receiver_funds_code
+  )a
 
   def render("index.json", %{legal_entities: legal_entities}) do
     render_many(legal_entities, __MODULE__, "legal_entity.json")
@@ -17,29 +43,9 @@ defmodule EHealth.Web.LegalEntityView do
   def render("legal_entity.json", %{legal_entity: %LegalEntity{} = legal_entity}) do
     %{medical_service_provider: msp} = legal_entity
 
-    %{
-      id: legal_entity.id,
-      name: legal_entity.name,
-      short_name: legal_entity.short_name,
-      public_name: legal_entity.public_name,
-      status: legal_entity.status,
-      type: legal_entity.type,
-      owner_property_type: legal_entity.owner_property_type,
-      legal_form: legal_entity.legal_form,
-      edrpou: legal_entity.edrpou,
-      kveds: legal_entity.kveds,
-      addresses: legal_entity.addresses,
-      phones: legal_entity.phones,
-      email: legal_entity.email,
-      is_active: legal_entity.is_active,
-      inserted_by: legal_entity.inserted_by,
-      updated_by: legal_entity.updated_by,
-      inserted_at: legal_entity.inserted_at,
-      updated_at: legal_entity.updated_at,
-      nhs_verified: legal_entity.nhs_verified,
-      mis_verified: legal_entity.mis_verified,
-      medical_service_provider: render_one(msp, __MODULE__, "medical_service_provider.json")
-    }
+    legal_entity
+    |> Map.take(@fields)
+    |> Map.put(:medical_service_provider, render_one(msp, __MODULE__, "medical_service_provider.json"))
   end
 
   def render("legal_entity.json", %{legal_entity: legal_entity}) do

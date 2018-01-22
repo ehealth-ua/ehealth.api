@@ -172,6 +172,10 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
       assert id == resp["data"]["id"]
       assert Map.has_key?(resp["data"], "medical_service_provider")
+      assert Map.has_key?(resp["data"], "website")
+      assert Map.has_key?(resp["data"], "archive")
+      assert Map.has_key?(resp["data"], "beneficiary")
+      assert Map.has_key?(resp["data"], "receiver_funds_code")
       refute Map.has_key?(resp, "paging")
       assert_security_in_urgent_response(resp)
     end
@@ -223,6 +227,10 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
       resp = json_response(conn, 200)
       assert "CLOSED" == resp["data"]["status"]
+      assert Map.has_key?(resp["data"], "website")
+      assert Map.has_key?(resp["data"], "archive")
+      assert Map.has_key?(resp["data"], "beneficiary")
+      assert Map.has_key?(resp["data"], "receiver_funds_code")
     end
 
     test "deactivate legal entity with OWNER employee", %{conn: conn} do
