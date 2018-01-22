@@ -13,7 +13,7 @@
 
 # Find mix.exs inside project tree.
 # This allows to call bash scripts within any folder inside project.
-PROJECT_DIR=$(git rev-parse --show-toplevel)
+PROJECT_DIR="$(git rev-parse --show-toplevel)"
 if [ ! -f "${PROJECT_DIR}/mix.exs" ]; then
     echo "[E] Can't find '${PROJECT_DIR}/mix.exs'."
     echo "    Check that you run this script inside git repo or init a new one in project root."

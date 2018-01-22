@@ -1,9 +1,5 @@
 {
-  "skip_files": [
-    "specs/*",
-    "test/*",
-    "/lib/ehealth/tasks.ex"
-  ],
+  "skip_files": [],
   "custom_stop_words": [
     "field",
     "has_one",

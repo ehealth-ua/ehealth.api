@@ -1,8 +1,5 @@
+# Used by "mix format"
 [
-  inputs: [
-    "{config,lib,test,rel,priv}/**/*.{ex,exs}",
-    "mix.exs",
-    ".formatter.exs"
-  ],
+  inputs: ["mix.exs", "apps/*/mix.exs", "apps/*/{config,lib,test}/**/*.{ex,exs}"],
   line_length: 120
 ]

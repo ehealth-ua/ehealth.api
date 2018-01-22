@@ -40,7 +40,7 @@ before_install:
   - sudo ./bin/ci/init-db.sh
 before_script:
   # Extract project name and version from mix.exs
-  - source ./bin/ci/release/fetch-project-environment.sh
+  - source ./bin/ci/rel/fetch-project-environment.sh
   # Load information about new version
   - source ./bin/ci/release/fetch-source-version.sh
   # Load information about changelog
@@ -55,14 +55,14 @@ script:
   # Run all tests except pending ones
   - ./bin/mix_tests.sh || travis_terminate 1
   # Build Docker container
-  - ./bin/ci/release/build-container.sh || travis_terminate 1
+  - ./bin/ci/rel/build-container.sh || travis_terminate 1
   # Initialize DB for Docker container
-  - MIX_ENV=dev mix ecto.setup
+  - (cd apps/ehealth && MIX_ENV=dev mix ecto.setup)
   # Run Docker container
   - sudo ./bin/ci/release/start-container.sh
   - sudo ./bin/ci/release/check-container.sh || travis_terminate
   # Submit Docker container to Docker Hub and create GitHub Release by pushing tag with changelog
-  - ./bin/ci/release/push-changes.sh || travis_terminate 1
+  - ./bin/ci/rel/push-changes.sh || travis_terminate 1
   - echo "Decrypting deploy key..."
   - openssl aes-256-cbc -K $encrypted_c996ec964e08_key -iv $encrypted_c996ec964e08_iv -in eHealth-8110bd102a69.json.enc -out eHealth-8110bd102a69.json -d
   - sudo ./bin/deploy.sh || travis_terminate 1

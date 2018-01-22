@@ -1,4 +1,4 @@
-defmodule :ehealth_tasks do
+defmodule EHealth.ReleaseTasks do
   @moduledoc """
   Nice way to apply migrations inside a released application.
 

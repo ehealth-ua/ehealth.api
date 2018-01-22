@@ -26,8 +26,6 @@ defmodule EHealth do
       # Start the endpoint when the application starts
       supervisor(EHealth.Web.Endpoint, []),
       worker(EHealth.Scheduler, [])
-      # Starts a worker by calling: EHealth.Worker.start_link(arg1, arg2, arg3)
-      # worker(EHealth.Worker, [arg1, arg2, arg3]),
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html

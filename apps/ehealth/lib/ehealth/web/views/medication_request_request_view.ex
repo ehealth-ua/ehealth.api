@@ -98,7 +98,7 @@ defmodule EHealth.Web.MedicationRequestRequestView do
     PersonView
     |> render("show.json", %{"person" => person})
     |> Map.put("age", age)
-    |> Map.drop(["birth_date", "addresses"])
+    |> Map.delete("bitrh_date")
   end
 
   defp get_age(birth_date, current_date) do

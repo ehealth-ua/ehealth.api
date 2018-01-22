@@ -2,11 +2,11 @@
 cd $TRAVIS_BUILD_DIR
   # Run all tests except pending ones
   echo "- mix test --exclude pending --trace "
-        mix test --exclude pending --trace   
+        mix test --exclude pending --trace
 
       if [ "$?" -eq 0 ]; then
             echo "mix test successfully completed"
-          else 
+          else
             echo "mix test Finished with errors ,exited with 1"
             mix_test=1 ;
       fi;
@@ -14,20 +14,20 @@ cd $TRAVIS_BUILD_DIR
 
   # Submit code coverage report to Coveralls
   # Add --pro if you using private repo.
-  echo "- mix coveralls.travis --exclude pending ;"  
-        mix coveralls.travis --exclude pending 
+  echo "- mix coveralls.travis --exclude pending --umbrella;"
+        mix coveralls.travis --exclude pending --umbrella
 
       if [ "$?" -eq 0 ]; then
             echo "mix coveralls.travis successfully completed"
-          else 
+          else
             echo "mix coveralls.travis finished with errors , exited with 1"
             mix_test=1;
       fi;
 
 
-  # Run static code analysis 
+  # Run static code analysis
   echo "- mix credo --strict ; "
-        mix credo --strict 
+        mix credo --strict
 
        if [ "$?" -eq 0 ]; then
             echo "mix credo successfully completed"
