@@ -246,9 +246,9 @@
                   "id",
                   "first_name",
                   "last_name",
-                  "birth_date",
-                  "addresses"
-                ]
+                  "age"
+                ],
+                "additionalProperties": false
               },
               "medication_info": {
                 "type": "object",
