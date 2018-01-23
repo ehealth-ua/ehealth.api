@@ -1,0 +1,7 @@
+Change log for versions 7.24.0 - 7.24.1
+
+**Patches and bug fixes**:
+
+EHealth-1709 - merge lost pull request (#1757)
+
+
