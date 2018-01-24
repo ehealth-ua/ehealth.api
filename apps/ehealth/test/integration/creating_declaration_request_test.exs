@@ -349,13 +349,12 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
           status: "APPROVED"
         )
 
-      conn =
+      resp =
         conn
         |> put_req_header("x-consumer-id", employee_id)
         |> EHealth.Web.ConnCase.put_client_id_header(legal_entity_id)
         |> post(declaration_request_path(conn, :create), params)
-
-      resp = json_response(conn, 200)
+        |> json_response(200)
 
       id = resp["data"]["id"]
 
@@ -380,7 +379,12 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
       assert "<html><body>Printout form for declaration request. tax_id = #{tax_id}</body></html>" ==
                resp["data"]["content"]
 
-      assert is_nil(resp["data"]["urgent"]["documents"])
+      assert [
+               %{
+                 "type" => "person.DECLARATION_FORM",
+                 "url" => "http://some_resource.com/#{id}/declaration_request_person.DECLARATION_FORM.jpeg"
+               }
+             ] == resp["urgent"]["documents"]
 
       assert "CANCELLED" = EHealth.Repo.get(EHealth.DeclarationRequest, d1.id).status
       assert "CANCELLED" = EHealth.Repo.get(EHealth.DeclarationRequest, d2.id).status
@@ -394,13 +398,12 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
         |> put_in(~W(declaration_request person first_name), "Тест")
         |> put_in(~W(declaration_request person authentication_methods), [%{"type" => "OFFLINE"}])
 
-      conn =
+      resp =
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
         |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
         |> post(declaration_request_path(conn, :create), Poison.encode!(declaration_request_params))
-
-      resp = json_response(conn, 200)
+        |> json_response(200)
 
       id = resp["data"]["id"]
 
@@ -423,6 +426,10 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
                %{
                  "type" => "person.PASSPORT",
                  "url" => "http://some_resource.com/#{id}/declaration_request_person.PASSPORT.jpeg"
+               },
+               %{
+                 "type" => "person.DECLARATION_FORM",
+                 "url" => "http://some_resource.com/#{id}/declaration_request_person.DECLARATION_FORM.jpeg"
                },
                %{
                  "type" => "person.SSN",

@@ -15,14 +15,10 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.ApproveTest do
 
         secret_url =
           case params["resource_name"] do
-            "declaration_request_A.jpeg" ->
-              "http://localhost:#{port}/good_upload_1"
-
-            "declaration_request_B.jpeg" ->
-              "http://localhost:#{port}/good_upload_2"
-
-            "declaration_request_C.jpeg" ->
-              "http://localhost:#{port}/missing_upload"
+            "declaration_request_person.DECLARATION_FORM.jpeg" -> "http://localhost:#{port}/good_upload_1"
+            "declaration_request_A.jpeg" -> "http://localhost:#{port}/good_upload_1"
+            "declaration_request_B.jpeg" -> "http://localhost:#{port}/good_upload_2"
+            "declaration_request_C.jpeg" -> "http://localhost:#{port}/missing_upload"
           end
 
         resp = %{
@@ -132,7 +128,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.ApproveTest do
         }
       }
 
-      assert {:ok, %{"data" => %{"status" => "verified"}}} == verify(declaration_request, "99911")
+      assert {:ok, %{"data" => %{"status" => "verified"}}} == verify_auth(declaration_request, "99911")
     end
 
     test "phone is not verified verification" do
@@ -143,7 +139,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.ApproveTest do
         }
       }
 
-      assert {:error, %{"data" => %{}}} == verify(declaration_request, "11999")
+      assert {:error, %{"data" => %{}}} == verify_auth(declaration_request, "11999")
     end
 
     test "auth method NA is not required verification" do
@@ -154,7 +150,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.ApproveTest do
         }
       }
 
-      assert {:ok, true} == verify(declaration_request, nil)
+      assert {:ok, true} == verify_auth(declaration_request, nil)
     end
   end
 end

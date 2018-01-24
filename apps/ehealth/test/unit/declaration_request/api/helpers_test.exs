@@ -95,6 +95,7 @@ defmodule EHealth.DeclarationRequest.API.HelpersTest do
                "confidant_person.0.XXX.RELATIONSHIP.B1",
                "confidant_person.0.XXX.RELATIONSHIP.B2",
                "person.SSN",
+               "person.DECLARATION_FORM",
                "person.A",
                "person.B",
                "person.C",

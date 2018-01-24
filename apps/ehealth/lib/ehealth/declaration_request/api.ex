@@ -108,7 +108,7 @@ defmodule EHealth.DeclarationRequest.API do
 
       global_parameters = GlobalParameters.get_values()
 
-      auxilary_entities = %{
+      auxiliary_entities = %{
         employee: employee,
         global_parameters: global_parameters,
         division: division,
@@ -121,7 +121,7 @@ defmodule EHealth.DeclarationRequest.API do
 
       Multi.new()
       |> Multi.update_all(:previous_requests, pending_declaration_requests, set: updates)
-      |> Multi.insert(:declaration_request, create_changeset(attrs, user_id, auxilary_entities))
+      |> Multi.insert(:declaration_request, create_changeset(attrs, user_id, auxiliary_entities))
       |> Multi.run(:finalize, &finalize/1)
       |> Multi.run(:urgent_data, &prepare_urgent_data/1)
       |> Repo.transaction()
@@ -188,12 +188,12 @@ defmodule EHealth.DeclarationRequest.API do
 
     case authorization["type"] do
       @auth_na ->
-        {:ok, declaration_request}
+        render_declaration_form_link(declaration_request)
 
       @auth_otp ->
         case Create.send_verification_code(authorization["number"]) do
           {:ok, _} ->
-            {:ok, declaration_request}
+            render_declaration_form_link(declaration_request)
 
           {:error, error} ->
             {:error, error}
@@ -202,13 +202,18 @@ defmodule EHealth.DeclarationRequest.API do
       @auth_offline ->
         case Documents.generate_links(declaration_request, ["PUT"]) do
           {:ok, documents} ->
-            declaration_request
-            |> update_changeset(%{documents: documents})
-            |> Repo.update()
+            update_documents(declaration_request, documents)
 
           {:error, _} = bad_result ->
             bad_result
         end
+    end
+  end
+
+  defp render_declaration_form_link(%DeclarationRequest{id: id} = declaration_request) do
+    case Documents.render_links(id, ["PUT"], ["person.DECLARATION_FORM"]) do
+      {:ok, documents} -> update_documents(declaration_request, documents)
+      err -> err
     end
   end
 
@@ -257,13 +262,19 @@ defmodule EHealth.DeclarationRequest.API do
     |> Repo.update()
   end
 
-  def create_changeset(attrs, user_id, auxilary_entities) do
+  def update_documents(%DeclarationRequest{} = declaration_request, documents) do
+    declaration_request
+    |> update_changeset(%{documents: documents})
+    |> Repo.update()
+  end
+
+  def create_changeset(attrs, user_id, auxiliary_entities) do
     %{
       employee: employee,
       global_parameters: global_parameters,
       division: division,
       legal_entity: legal_entity
-    } = auxilary_entities
+    } = auxiliary_entities
 
     specialities = Map.get(employee.additional_info, "specialities") || []
 

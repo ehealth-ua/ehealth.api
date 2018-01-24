@@ -6,22 +6,29 @@ defmodule EHealth.DeclarationRequest.API.Approve do
   alias EHealth.DeclarationRequest
   require Logger
 
-  @auth_na DeclarationRequest.authentication_method(:na)
   @auth_otp DeclarationRequest.authentication_method(:otp)
   @auth_offline DeclarationRequest.authentication_method(:offline)
+  @declaration_doc [%{"type" => "person.DECLARATION_FORM"}]
 
   def verify(declaration_request, code) do
-    case declaration_request.authentication_method_current do
-      %{"type" => @auth_na} ->
-        {:ok, true}
-
-      %{"type" => @auth_otp, "number" => phone} ->
-        OTPVerification.complete(phone, %{code: code})
-
-      %{"type" => @auth_offline} ->
-        check_documents(declaration_request.documents, declaration_request.id, {:ok, true})
+    with {:ok, _} <- verify_auth(declaration_request, code),
+         docs <- prepare_documents_list(declaration_request),
+         {:ok, _} <- check_documents(docs, declaration_request.id, {:ok, true}) do
+      {:ok, true}
     end
   end
+
+  def verify_auth(%{authentication_method_current: %{"type" => @auth_otp, "number" => phone}}, code) do
+    OTPVerification.complete(phone, %{code: code})
+  end
+
+  def verify_auth(_, _), do: {:ok, true}
+
+  defp prepare_documents_list(%{authentication_method_current: %{"type" => @auth_offline}} = declaration_request) do
+    declaration_request.documents ++ @declaration_doc
+  end
+
+  defp prepare_documents_list(_), do: @declaration_doc
 
   def check_documents([document | tail], declaration_request_id, acc) do
     case uploaded?(declaration_request_id, document) do

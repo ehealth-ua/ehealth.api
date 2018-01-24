@@ -153,6 +153,40 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
   end
 
   describe "approve declaration_request" do
+    defmodule ApproveDeclarationRequest do
+      use MicroservicesHelper
+
+      Plug.Router.post "/media_content_storage_secrets" do
+        [{"port", port}] = :ets.lookup(:uploaded_at_port, "port")
+
+        resp = %{
+          data: %{
+            secret_url: "http://localhost:#{port}/good_upload"
+          }
+        }
+
+        Plug.Conn.send_resp(conn, 200, Poison.encode!(resp))
+      end
+
+      Plug.Router.get "/good_upload" do
+        Plug.Conn.send_resp(conn, 200, "")
+      end
+    end
+
+    setup %{conn: _conn} do
+      {:ok, port, ref} = start_microservices(ApproveDeclarationRequest)
+      :ets.new(:uploaded_at_port, [:named_table])
+      :ets.insert(:uploaded_at_port, {"port", port})
+      System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:#{port}")
+
+      on_exit(fn ->
+        System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:4040")
+        stop_microservices(ref)
+      end)
+
+      {:ok, %{port: port}}
+    end
+
     test "approve NEW declaration_request", %{conn: conn} do
       declaration_request = fixture(DeclarationRequest, fixture_params())
 
@@ -366,6 +400,10 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
         %{
           "type" => "person.PASSPORT",
           "url" => "http://a.link.for/#{id}/declaration_request_person.PASSPORT.jpeg"
+        },
+        %{
+          "type" => "person.DECLARATION_FORM",
+          "url" => "http://a.link.for/#{id}/declaration_request_person.DECLARATION_FORM.jpeg"
         },
         %{
           "type" => "confidant_person.0.PRIMARY.RELATIONSHIP.COURT_DECISION",

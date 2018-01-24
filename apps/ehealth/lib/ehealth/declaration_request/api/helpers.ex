@@ -11,15 +11,16 @@ defmodule EHealth.DeclarationRequest.API.Helpers do
       normal_expiration_date
     else
       case Timex.compare(normal_expiration_date, adjusted_expiration_date) do
-        -1 -> normal_expiration_date
-        0 -> normal_expiration_date
         1 -> adjusted_expiration_date
+        x when x < 1 -> normal_expiration_date
       end
     end
   end
 
   def gather_documents_list(person) do
-    person_documents = if person["tax_id"], do: ["person.SSN"], else: []
+    person_documents =
+      if person["tax_id"], do: ["person.SSN", "person.DECLARATION_FORM"], else: ["person.DECLARATION_FORM"]
+
     person_documents = person_documents ++ Enum.map(person["documents"], &"person.#{&1["type"]}")
 
     has_birth_certificate =

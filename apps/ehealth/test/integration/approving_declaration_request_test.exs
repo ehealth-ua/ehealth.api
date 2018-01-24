@@ -1,23 +1,36 @@
 defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
   @moduledoc false
 
-  import Ecto.Changeset
-
   use EHealth.Web.ConnCase, async: false
 
   alias EHealth.Repo
   alias EHealth.DeclarationRequest
 
-  describe "Online (OTP) verification" do
+  describe "Approve declaration with auth type OTP or NA" do
     defmodule OtpHappyPath do
       use MicroservicesHelper
 
-      Plug.Router.get "/good_upload_1" do
+      Plug.Router.get "/good_upload" do
         Plug.Conn.send_resp(conn, 200, "")
       end
 
-      Plug.Router.get "/good_upload_2" do
-        Plug.Conn.send_resp(conn, 200, "")
+      Plug.Router.post "/media_content_storage_secrets" do
+        params = conn.body_params["secret"]
+
+        [{"port", port}] = :ets.lookup(:uploaded_at_port, "port")
+
+        secret_url =
+          case params["resource_name"] do
+            "declaration_request_person.DECLARATION_FORM.jpeg" -> "http://localhost:#{port}/good_upload"
+          end
+
+        resp = %{
+          data: %{
+            secret_url: secret_url
+          }
+        }
+
+        Plug.Conn.send_resp(conn, 200, Poison.encode!(resp))
       end
 
       Plug.Router.patch "/verifications/+380972805261/actions/complete" do
@@ -40,9 +53,14 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
     setup %{conn: conn} do
       {:ok, port, ref} = start_microservices(OtpHappyPath)
 
+      :ets.new(:uploaded_at_port, [:named_table])
+      :ets.insert(:uploaded_at_port, {"port", port})
+
+      System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:#{port}")
       System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:#{port}")
 
       on_exit(fn ->
+        System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:4040")
         System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
       end)
@@ -51,39 +69,22 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
     end
 
     test "happy path: declaration is successfully approved via OTP code", %{conn: conn} do
-      id = Ecto.UUID.generate()
+      %{id: id} =
+        insert(
+          :il,
+          :declaration_request,
+          authentication_method_current: %{
+            "type" => "OTP",
+            "number" => "+380972805261"
+          }
+        )
 
-      existing_declaration_request_params = %{
-        id: id,
-        data: %{
-          employee: %{},
-          legal_entity: %{
-            medical_service_provider: %{}
-          },
-          division: %{}
-        },
-        status: "NEW",
-        authentication_method_current: %{
-          "type" => "OTP",
-          "number" => "+380972805261"
-        },
-        printout_content: "something",
-        inserted_by: "f47f94fd-2d77-4b7e-b444-4955812c2a77",
-        updated_by: "f47f94fd-2d77-4b7e-b444-4955812c2a77"
-      }
-
-      {:ok, _} =
-        %DeclarationRequest{}
-        |> change(existing_declaration_request_params)
-        |> Repo.insert()
-
-      conn =
+      resp =
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
         |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: ""}))
         |> patch("/api/declaration_requests/#{id}/actions/approve", Poison.encode!(%{"verification_code" => "12345"}))
-
-      resp = json_response(conn, 200)
+        |> json_response(200)
 
       assert id == resp["data"]["id"]
       assert "APPROVED" = resp["data"]["status"]
@@ -94,50 +95,133 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
       assert "ce377dea-d8c4-4dd8-9328-de24b1ee3879" == declaration_request.updated_by
     end
 
-    test "declaration failed to approve", %{conn: conn} do
-      id = Ecto.UUID.generate()
+    test "declaration is successfully approved without verification", %{conn: conn} do
+      %{id: id} =
+        insert(
+          :il,
+          :declaration_request,
+          authentication_method_current: %{
+            "type" => "NA",
+            "number" => "+380972805261"
+          }
+        )
 
-      existing_declaration_request_params = %{
-        id: id,
-        data: %{
-          employee: %{},
-          legal_entity: %{
-            medical_service_provider: %{}
-          },
-          division: %{}
-        },
-        status: "NEW",
-        authentication_method_current: %{
-          "type" => "OTP",
-          "number" => "+380972805261"
-        },
-        printout_content: "something",
-        inserted_by: "f47f94fd-2d77-4b7e-b444-4955812c2a77",
-        updated_by: "f47f94fd-2d77-4b7e-b444-4955812c2a77"
-      }
+      resp =
+        conn
+        |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
+        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: ""}))
+        |> patch("/api/declaration_requests/#{id}/actions/approve")
+        |> json_response(200)
 
-      {:ok, _} =
-        %DeclarationRequest{}
-        |> change(existing_declaration_request_params)
-        |> Repo.insert()
+      assert id == resp["data"]["id"]
+      assert "APPROVED" = resp["data"]["status"]
 
-      conn1 =
+      declaration_request = Repo.get(DeclarationRequest, id)
+
+      assert "APPROVED" = declaration_request.status
+      assert "ce377dea-d8c4-4dd8-9328-de24b1ee3879" == declaration_request.updated_by
+    end
+
+    test "declaration failed to approve: invalid OTP", %{conn: conn} do
+      %{id: id} =
+        insert(
+          :il,
+          :declaration_request,
+          authentication_method_current: %{
+            "type" => "OTP",
+            "number" => "+380972805261"
+          }
+        )
+
+      response =
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
         |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: ""}))
         |> patch("/api/declaration_requests/#{id}/actions/approve", Poison.encode!(%{"verification_code" => "invalid"}))
+        |> json_response(422)
 
-      assert response = json_response(conn1, 422)
       assert %{"error" => %{"type" => "forbidden", "message" => _}} = response
 
-      conn2 =
+      response =
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
         |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: ""}))
         |> patch("/api/declaration_requests/#{id}/actions/approve", Poison.encode!(%{"verification_code" => "54321"}))
+        |> json_response(500)
 
-      assert response = json_response(conn2, 500)
       assert %{"error" => %{"type" => "proxied error", "message" => _}} = response
+    end
+  end
+
+  describe "Online (OTP) verification when DECLARATION_FORM not uploaded" do
+    defmodule OtpNoUploads do
+      use MicroservicesHelper
+
+      Plug.Router.get "/no_upload" do
+        Plug.Conn.send_resp(conn, 404, "")
+      end
+
+      Plug.Router.post "/media_content_storage_secrets" do
+        params = conn.body_params["secret"]
+
+        [{"port", port}] = :ets.lookup(:uploaded_at_port, "port")
+
+        secret_url =
+          case params["resource_name"] do
+            "declaration_request_person.DECLARATION_FORM.jpeg" -> "http://localhost:#{port}/no_upload"
+          end
+
+        resp = %{
+          data: %{
+            secret_url: secret_url
+          }
+        }
+
+        Plug.Conn.send_resp(conn, 200, Poison.encode!(resp))
+      end
+
+      Plug.Router.patch "/verifications/+380972805261/actions/complete" do
+        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: %{status: "verified"}}))
+      end
+    end
+
+    setup %{conn: conn} do
+      {:ok, port, ref} = start_microservices(OtpNoUploads)
+
+      :ets.new(:uploaded_at_port, [:named_table])
+      :ets.insert(:uploaded_at_port, {"port", port})
+
+      System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:#{port}")
+      System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:#{port}")
+
+      on_exit(fn ->
+        System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:4040")
+        System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:4040")
+        stop_microservices(ref)
+      end)
+
+      {:ok, %{conn: conn}}
+    end
+
+    test "declaration failed to approve: person.DECLARATION_FORM not uploaded", %{conn: conn} do
+      %{id: id} =
+        insert(
+          :il,
+          :declaration_request,
+          authentication_method_current: %{
+            "type" => "OTP",
+            "number" => "+380972805261"
+          }
+        )
+
+      resp =
+        conn
+        |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
+        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: ""}))
+        |> patch("/api/declaration_requests/#{id}/actions/approve", Poison.encode!(%{"verification_code" => "12345"}))
+        |> json_response(409)
+
+      assert "Documents person.DECLARATION_FORM is not uploaded" == resp["error"]["message"]
     end
   end
 
@@ -164,6 +248,7 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
 
         secret_url =
           case params["resource_name"] do
+            "declaration_request_person.DECLARATION_FORM.jpeg" -> "http://localhost:#{port}/good_upload_1"
             "declaration_request_A.jpeg" -> "http://localhost:#{port}/good_upload_1"
             "declaration_request_B.jpeg" -> "http://localhost:#{port}/good_upload_2"
             "declaration_request_404.jpeg" -> "http://localhost:#{port}/no_upload"
@@ -197,21 +282,25 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
     end
 
     test "happy path: declaration is successfully approved via offline docs check", %{conn: conn} do
-      existing_declaration_request_params = get_declaration_changes()
-      id = existing_declaration_request_params.id
+      %{id: id} =
+        insert(
+          :il,
+          :declaration_request,
+          authentication_method_current: %{
+            "type" => "OFFLINE"
+          },
+          documents: [
+            %{"type" => "A", "verb" => "HEAD"},
+            %{"type" => "B", "verb" => "HEAD"}
+          ]
+        )
 
-      {:ok, _} =
-        %DeclarationRequest{}
-        |> change(existing_declaration_request_params)
-        |> Repo.insert()
-
-      conn =
+      resp =
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
         |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: ""}))
         |> patch("/api/declaration_requests/#{id}/actions/approve")
-
-      resp = json_response(conn, 200)
+        |> json_response(200)
 
       assert "APPROVED" = resp["data"]["status"]
 
@@ -222,14 +311,18 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
     end
 
     test "offline documents was not uploaded. Declaration cannot be approved", %{conn: conn} do
-      docs = [%{"type" => "404", "verb" => "HEAD"}, %{"type" => "empty", "verb" => "HEAD"}]
-      existing_declaration_request_params = Map.put(get_declaration_changes(), :documents, docs)
-      id = existing_declaration_request_params.id
-
-      {:ok, _} =
-        %DeclarationRequest{}
-        |> change(existing_declaration_request_params)
-        |> Repo.insert()
+      %{id: id} =
+        insert(
+          :il,
+          :declaration_request,
+          authentication_method_current: %{
+            "type" => "OFFLINE"
+          },
+          documents: [
+            %{"type" => "404", "verb" => "HEAD"},
+            %{"type" => "empty", "verb" => "HEAD"}
+          ]
+        )
 
       conn =
         conn
@@ -242,95 +335,25 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
     end
 
     test "Ael not responding. Declaration cannot be approved", %{conn: conn} do
-      docs = [
-        %{"type" => "empty", "verb" => "HEAD"},
-        %{"type" => "error", "verb" => "HEAD"},
-        %{"type" => "404", "verb" => "HEAD"}
-      ]
+      %{id: id} =
+        insert(
+          :il,
+          :declaration_request,
+          authentication_method_current: %{
+            "type" => "OFFLINE"
+          },
+          documents: [
+            %{"type" => "empty", "verb" => "HEAD"},
+            %{"type" => "error", "verb" => "HEAD"},
+            %{"type" => "404", "verb" => "HEAD"}
+          ]
+        )
 
-      existing_declaration_request_params = Map.put(get_declaration_changes(), :documents, docs)
-      id = existing_declaration_request_params.id
-
-      {:ok, _} =
-        %DeclarationRequest{}
-        |> change(existing_declaration_request_params)
-        |> Repo.insert()
-
-      conn =
-        conn
-        |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
-        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: ""}))
-        |> patch("/api/declaration_requests/#{id}/actions/approve")
-
-      json_response(conn, 500)
-    end
-  end
-
-  test "happy path: declaration is successfully approved without verification", %{conn: conn} do
-    id = Ecto.UUID.generate()
-
-    existing_declaration_request_params = %{
-      id: id,
-      data: %{
-        employee: %{},
-        legal_entity: %{
-          medical_service_provider: %{}
-        },
-        division: %{}
-      },
-      status: "NEW",
-      authentication_method_current: %{
-        "type" => "NA",
-        "number" => "+380972805261"
-      },
-      printout_content: "something",
-      inserted_by: "f47f94fd-2d77-4b7e-b444-4955812c2a77",
-      updated_by: "f47f94fd-2d77-4b7e-b444-4955812c2a77"
-    }
-
-    {:ok, _} =
-      %DeclarationRequest{}
-      |> change(existing_declaration_request_params)
-      |> Repo.insert()
-
-    conn =
       conn
       |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
       |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: ""}))
       |> patch("/api/declaration_requests/#{id}/actions/approve")
-
-    resp = json_response(conn, 200)
-
-    assert id == resp["data"]["id"]
-    assert "APPROVED" = resp["data"]["status"]
-
-    declaration_request = Repo.get(DeclarationRequest, id)
-
-    assert "APPROVED" = declaration_request.status
-    assert "ce377dea-d8c4-4dd8-9328-de24b1ee3879" == declaration_request.updated_by
-  end
-
-  defp get_declaration_changes do
-    %{
-      id: Ecto.UUID.generate(),
-      data: %{
-        employee: %{},
-        legal_entity: %{
-          medical_service_provider: %{}
-        },
-        division: %{}
-      },
-      status: "NEW",
-      authentication_method_current: %{
-        "type" => "OFFLINE"
-      },
-      documents: [
-        %{"type" => "A", "verb" => "HEAD"},
-        %{"type" => "B", "verb" => "HEAD"}
-      ],
-      printout_content: "something",
-      inserted_by: "f47f94fd-2d77-4b7e-b444-4955812c2a77",
-      updated_by: "f47f94fd-2d77-4b7e-b444-4955812c2a77"
-    }
+      |> json_response(500)
+    end
   end
 end
