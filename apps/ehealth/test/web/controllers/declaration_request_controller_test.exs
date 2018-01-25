@@ -418,12 +418,17 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
 
   describe "sign declaration request" do
     test "success", %{conn: conn} do
-      %{id: legal_entity_id} = insert(:prm, :legal_entity)
-
       data =
         "test/data/declaration_request/sign_request.json"
         |> File.read!()
         |> Poison.decode!()
+
+      tax_id = get_in(data, ~w(employee party tax_id))
+      employee_id = get_in(data, ~w(employee id))
+
+      %{id: legal_entity_id} = insert(:prm, :legal_entity)
+      insert(:prm, :employee, id: employee_id, legal_entity_id: legal_entity_id)
+      %{user_id: user_id} = insert(:prm, :party_user, party: build(:party, tax_id: tax_id))
 
       %{id: declaration_id} =
         insert(
@@ -451,16 +456,15 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
         |> Poison.encode!()
         |> Base.encode64()
 
-      conn = Plug.Conn.put_req_header(conn, "drfo", get_in(data, ~w(employee party tax_id)))
-      conn = put_client_id_header(conn, legal_entity_id)
-
-      conn =
-        patch(conn, declaration_request_path(conn, :sign, declaration_id), %{
-          "signed_declaration_request" => signed_declaration_request,
-          "signed_content_encoding" => "base64"
-        })
-
-      assert json_response(conn, 200)["data"]
+      conn
+      |> Plug.Conn.put_req_header("drfo", tax_id)
+      |> put_client_id_header(legal_entity_id)
+      |> put_consumer_id_header(user_id)
+      |> patch(declaration_request_path(conn, :sign, declaration_id), %{
+        "signed_declaration_request" => signed_declaration_request,
+        "signed_content_encoding" => "base64"
+      })
+      |> json_response(200)
     end
   end
 

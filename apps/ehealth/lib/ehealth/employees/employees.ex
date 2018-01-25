@@ -9,13 +9,8 @@ defmodule EHealth.Employees do
 
   alias EHealth.API.Mithril
   alias EHealth.EmployeeRequests.EmployeeRequest, as: Request
-  alias EHealth.Employees.EmployeeCreator
-  alias EHealth.Employees.UserRoleCreator
-  alias EHealth.Employees.Employee
-  alias EHealth.Employees.Search
-  alias EHealth.PRMRepo
-  alias EHealth.Parties
-  alias EHealth.EventManager
+  alias EHealth.Employees.{EmployeeCreator, UserRoleCreator, Employee, Search}
+  alias EHealth.{PRMRepo, Parties, EventManager}
 
   @doctor Employee.type(:doctor)
   @pharmacist Employee.type(:pharmacist)

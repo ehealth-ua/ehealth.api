@@ -6,10 +6,7 @@ defmodule EHealth.Parties do
   import Ecto.{Query, Changeset}, warn: false
 
   alias EHealth.PRMRepo
-  alias EHealth.Parties.Phone
-  alias EHealth.Parties.Document
-  alias EHealth.Parties.Party
-  alias EHealth.Parties.Search
+  alias EHealth.Parties.{Party, Search, Phone, Document}
 
   # Party users
 
@@ -68,6 +65,14 @@ defmodule EHealth.Parties do
     |> join(:inner, [p], u in assoc(p, :users))
     |> select([..., u], u.user_id)
     |> PRMRepo.all()
+  end
+
+  def get_tax_id_by_user_id(user_id) do
+    Party
+    |> join(:inner, [p], u in assoc(p, :users))
+    |> where([..., u], u.user_id == ^user_id)
+    |> select([p], p.tax_id)
+    |> PRMRepo.one()
   end
 
   def create(attrs, consumer_id) do

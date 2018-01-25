@@ -4,26 +4,14 @@ defmodule EHealth.DeclarationRequest.API do
   import Ecto.{Query, Changeset}, warn: false
   import EHealth.DeclarationRequest.API.Validations
 
-  alias Ecto.Multi
-  alias Ecto.UUID
-  alias EHealth.Repo
-  alias EHealth.GlobalParameters
-  alias EHealth.LegalEntities
-  alias EHealth.Divisions
-  alias EHealth.Employees
+  alias Ecto.{UUID, Multi}
+  alias EHealth.{Repo, GlobalParameters, LegalEntities, Divisions, Employees, DeclarationRequest}
   alias EHealth.LegalEntities.LegalEntity
   alias EHealth.Employees.Employee
   alias EHealth.Divisions.Division
-  alias EHealth.DeclarationRequest
-  alias EHealth.DeclarationRequest.API.Create
-  alias EHealth.DeclarationRequest.API.Approve
+  alias EHealth.DeclarationRequest.API.{Create, Approve, Validations, Sign, Documents, ResendOTP}
   alias EHealth.DeclarationRequest.API.Helpers, as: DeclarationHelpers
-  alias EHealth.DeclarationRequest.API.Validations
-  alias EHealth.DeclarationRequest.API.Sign
-  alias EHealth.DeclarationRequest.API.ResendOTP
-  alias EHealth.DeclarationRequest.API.Documents
-  alias EHealth.Utils.Phone
-  alias EHealth.Utils.Helpers
+  alias EHealth.Utils.{Phone, Helpers}
 
   require Logger
 
@@ -374,17 +362,19 @@ defmodule EHealth.DeclarationRequest.API do
   end
 
   def sign(params, headers) do
-    params
-    |> Validations.decode_and_validate_sign_request(headers)
-    |> Sign.check_status(params)
-    |> Sign.check_patient_signed()
-    |> Sign.compare_with_db()
-    |> Sign.check_employee_id(headers)
-    |> Sign.check_drfo()
-    |> Sign.store_signed_content(params, headers)
-    |> Sign.create_or_update_person(headers)
-    |> Sign.create_declaration_with_termination_logic(headers)
-    |> Sign.update_declaration_request_status(params)
+    with {:ok, %{"data" => %{"content" => content, "signer" => signer}}} <-
+           Validations.decode_and_validate_sign_request(params, headers),
+         {:ok, db_declaration_request} <- Sign.check_status(params),
+         :ok <- Sign.check_patient_signed(content),
+         :ok <- Sign.compare_with_db(content, db_declaration_request),
+         :ok <- Sign.check_employee_id(content, headers),
+         :ok <- Sign.check_drfo(signer, headers),
+         :ok <- Sign.store_signed_content(db_declaration_request, params, headers),
+         {:ok, person} <- Sign.create_or_update_person(content, headers),
+         {:ok, declaration} <- Sign.create_declaration_with_termination_logic(person, db_declaration_request, headers),
+         {:ok, signed_declaration} <- Sign.update_declaration_request_status(declaration, params) do
+      {:ok, signed_declaration}
+    end
   end
 
   def resend_otp(params, headers) do

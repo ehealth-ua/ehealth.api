@@ -6,14 +6,13 @@ defmodule EHealth.ILFactories.DeclarationRequestFactory do
       def declaration_request_factory do
         uuid = Ecto.UUID.generate()
 
+        data =
+          "test/data/sign_declaration_request.json"
+          |> File.read!()
+          |> Poison.decode!()
+
         %EHealth.DeclarationRequest{
-          data: %{
-            employee: %{},
-            legal_entity: %{
-              medical_service_provider: %{}
-            },
-            division: %{}
-          },
+          data: data,
           status: "NEW",
           inserted_by: uuid,
           updated_by: uuid,

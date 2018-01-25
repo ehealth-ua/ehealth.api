@@ -3,14 +3,11 @@ defmodule EHealth.DeclarationRequest.API.Sign do
 
   import EHealth.Utils.Connection
 
-  alias EHealth.API.MediaStorage
-  alias EHealth.API.MPI
-  alias EHealth.API.OPS
+  alias EHealth.API.{MPI, OPS, MediaStorage}
   alias EHealth.DeclarationRequest
   alias EHealth.DeclarationRequest.API
-  alias EHealth.Employees
-  alias EHealth.PartyUsers
-  alias EHealth.PartyUsers.PartyUser
+  alias EHealth.{Parties, Employees}
+  alias EHealth.Employees.Employee
 
   require Logger
 
@@ -20,28 +17,26 @@ defmodule EHealth.DeclarationRequest.API.Sign do
 
   @status_approved DeclarationRequest.status(:approved)
 
-  def check_status({:ok, pipe_data}, input) do
+  def check_status(input) do
     db_data =
       input
       |> Map.fetch!("id")
       |> API.get_declaration_request_by_id!()
 
     case Map.get(db_data, :status) do
-      @status_approved -> {:ok, pipe_data, db_data}
+      @status_approved -> {:ok, db_data}
       _ -> {:error, [{%{description: "incorrect status", params: [], rule: :invalid}, "$.status"}]}
     end
   end
 
-  def check_status(err, _input), do: err
-
-  def check_patient_signed({:ok, %{"data" => %{"content" => ""}}, _declaration_request}) do
+  def check_patient_signed("") do
     {:error, [{%{description: "Can not be empty", params: [], rule: :invalid}, "$.declaration_request"}]}
   end
 
-  def check_patient_signed({:ok, %{"data" => %{"content" => content}}, _declaration_request} = pipe_data) do
+  def check_patient_signed(content) do
     case get_in(content, ["person", "patient_signed"]) do
       true ->
-        pipe_data
+        :ok
 
       _ ->
         {:error,
@@ -49,9 +44,7 @@ defmodule EHealth.DeclarationRequest.API.Sign do
     end
   end
 
-  def check_patient_signed(err), do: err
-
-  def compare_with_db({:ok, %{"data" => %{"content" => content}}, declaration_request} = pipe_data) do
+  def compare_with_db(content, declaration_request) do
     db_content =
       declaration_request
       |> Map.get(:data)
@@ -63,7 +56,7 @@ defmodule EHealth.DeclarationRequest.API.Sign do
 
     case db_content == content do
       true ->
-        pipe_data
+        :ok
 
       _ ->
         mismatches = do_compare_with_db(db_content, content)
@@ -87,11 +80,9 @@ defmodule EHealth.DeclarationRequest.API.Sign do
     end
   end
 
-  def compare_with_db(err), do: err
-
-  def check_drfo({:ok, %{"data" => %{"content" => content, "signer" => signer}}, db_data}) do
-    tax_id = get_in(content, ["employee", "party", "tax_id"])
+  def check_drfo(signer, headers) do
     drfo = signer |> Map.get("drfo") |> String.replace(" ", "")
+    tax_id = headers |> get_consumer_id() |> Parties.get_tax_id_by_user_id()
 
     Logger.info(fn ->
       Poison.encode!(%{
@@ -107,51 +98,26 @@ defmodule EHealth.DeclarationRequest.API.Sign do
 
     case tax_id == drfo do
       true ->
-        {:ok, {content, db_data}}
+        :ok
 
       _ ->
         {:error,
          [
-           {%{description: "Does not match the signer drfo", params: [], rule: :invalid},
-            "$.content.employee.party.tax_id"}
+           {%{description: "Does not match the signer drfo", params: [], rule: :invalid}, "$.token.consumer_id"}
          ]}
     end
   end
 
-  def check_drfo(err), do: err
-
-  defp find_employee(employees, employee_id) do
-    Enum.find(employees, fn employee -> employee_id == employee.id end)
-  end
-
-  defp check_employees(%PartyUser{party_id: party_id}, employee_id) do
-    employee =
-      %{party_id: party_id, is_active: true}
-      |> Employees.list()
-      |> Map.get(:entries)
-      |> find_employee(employee_id)
-
-    case employee do
-      nil -> {:error, :forbidden}
-      _ -> :ok
-    end
-  end
-
-  def check_employee_id({:ok, {content, db_data}}, headers) do
-    employee_id = get_in(content, ["employee", "id"])
-
-    with consumer_id <- get_consumer_id(headers),
-         [party_user] <- PartyUsers.list!(%{user_id: consumer_id}),
-         :ok <- check_employees(party_user, employee_id) do
-      {:ok, {content, db_data}}
+  def check_employee_id(content, headers) do
+    with %Employee{legal_entity_id: legal_entity_id} <- content |> get_in(["employee", "id"]) |> Employees.get_by_id(),
+         true <- legal_entity_id == get_client_id(headers) do
+      :ok
     else
-      [] -> {:error, :forbidden}
+      _ -> {:error, :forbidden}
     end
   end
 
-  def check_employee_id(err, _headers), do: err
-
-  def store_signed_content({:ok, {_, db_data} = data}, input, headers) do
+  def store_signed_content(db_data, input, headers) do
     Logger.info(fn ->
       """
       db_data: #{inspect(db_data)}
@@ -161,64 +127,61 @@ defmodule EHealth.DeclarationRequest.API.Sign do
     input
     |> Map.fetch!("signed_declaration_request")
     |> MediaStorage.store_signed_content(:declaration_bucket, Map.fetch!(db_data, :declaration_id), headers)
-    |> validate_api_response(data)
-  end
-
-  def store_signed_content(err, _input, _headers), do: err
-
-  def create_or_update_person({:ok, {content, db_data}}, headers) do
-    result =
-      content
-      |> Map.fetch!("person")
-      |> Map.put("patient_signed", true)
-      |> MPI.create_or_update_person(headers)
-
-    case result do
-      {:ok, data} -> {:ok, data, db_data}
+    |> case do
+      {:ok, _} -> :ok
       err -> err
     end
   end
 
-  def create_or_update_person(err, _headers), do: err
+  def create_or_update_person(content, headers) do
+    content
+    |> Map.fetch!("person")
+    |> Map.put("patient_signed", true)
+    |> MPI.create_or_update_person(headers)
+    |> case do
+      {:ok, person} -> {:ok, person}
+      err -> err
+    end
+  end
 
   def create_declaration_with_termination_logic(
-        {:ok, %{"data" => %{"id" => person_id}},
-         %DeclarationRequest{
-           id: id,
-           data: data,
-           authentication_method_current: authentication_method_current,
-           declaration_id: declaration_id
-         }},
+        %{"data" => %{"id" => person_id}},
+        %DeclarationRequest{
+          id: id,
+          data: data,
+          authentication_method_current: authentication_method_current,
+          declaration_id: declaration_id
+        },
         headers
       ) do
     client_id = get_client_id(headers)
 
     data
     |> Map.take(["start_date", "end_date", "scope", "seed"])
-    |> Map.put("id", declaration_id)
-    |> Map.put("employee_id", get_in(data, ["employee", "id"]))
-    |> Map.put("division_id", get_in(data, ["division", "id"]))
-    |> Map.put("legal_entity_id", get_in(data, ["legal_entity", "id"]))
-    |> Map.put("person_id", person_id)
-    |> Map.put("status", get_status(authentication_method_current))
-    |> Map.put("is_active", true)
-    |> Map.put("created_by", client_id)
-    |> Map.put("updated_by", client_id)
-    |> Map.put("signed_at", Timex.now())
-    |> Map.put("declaration_request_id", id)
+    |> Map.merge(%{
+      "id" => declaration_id,
+      "employee_id" => get_in(data, ["employee", "id"]),
+      "division_id" => get_in(data, ["division", "id"]),
+      "legal_entity_id" => get_in(data, ["legal_entity", "id"]),
+      "person_id" => person_id,
+      "status" => get_status(authentication_method_current),
+      "is_active" => true,
+      "created_by" => client_id,
+      "updated_by" => client_id,
+      "signed_at" => Timex.now(),
+      "declaration_request_id" => id
+    })
     |> OPS.create_declaration_with_termination_logic(headers)
   end
 
-  def create_declaration_with_termination_logic(err, _headers), do: err
-
-  def update_declaration_request_status({:ok, declaration_response}, input) do
+  def update_declaration_request_status(ops_declaration_response, input) do
     update_result =
       input
       |> Map.fetch!("id")
       |> API.update_status("SIGNED")
 
     declaration_data =
-      declaration_response
+      ops_declaration_response
       |> Map.get("data")
       |> Map.drop(["updated_by", "updated_at", "created_by"])
 
@@ -227,8 +190,6 @@ defmodule EHealth.DeclarationRequest.API.Sign do
       err -> err
     end
   end
-
-  def update_declaration_request_status(err, _input), do: err
 
   defp get_status(%{"type" => @auth_offline}), do: "pending_verification"
   defp get_status(%{"type" => @auth_otp}), do: "active"
@@ -245,9 +206,6 @@ defmodule EHealth.DeclarationRequest.API.Sign do
 
     ""
   end
-
-  defp validate_api_response({:ok, _}, db_data), do: {:ok, db_data}
-  defp validate_api_response(error, _db_data), do: error
 
   defp do_compare_with_db(db_content, content) do
     Enum.reduce(Map.keys(db_content), [], fn key, acc ->
