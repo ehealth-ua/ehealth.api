@@ -1,0 +1,7 @@
+Change log for versions 7.26.0 - 7.26.1
+
+**Patches and bug fixes**:
+
+fix duplicated message for not uploaded docs (#1763)
+
+
