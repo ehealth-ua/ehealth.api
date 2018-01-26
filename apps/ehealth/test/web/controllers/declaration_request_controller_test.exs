@@ -156,6 +156,10 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     defmodule ApproveDeclarationRequest do
       use MicroservicesHelper
 
+      Plug.Router.get "/good_upload" do
+        Plug.Conn.send_resp(conn, 200, "")
+      end
+
       Plug.Router.post "/media_content_storage_secrets" do
         [{"port", port}] = :ets.lookup(:uploaded_at_port, "port")
 
@@ -166,10 +170,6 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
         }
 
         Plug.Conn.send_resp(conn, 200, Poison.encode!(resp))
-      end
-
-      Plug.Router.get "/good_upload" do
-        Plug.Conn.send_resp(conn, 200, "")
       end
     end
 
@@ -188,7 +188,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
 
     test "approve NEW declaration_request", %{conn: conn} do
-      declaration_request = fixture(DeclarationRequest, fixture_params())
+      declaration_request = insert(:il, :declaration_request, documents: [%{"type" => "ok", "verb" => "HEAD"}])
 
       conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8602f2")
       conn = patch(conn, declaration_request_path(conn, :approve, declaration_request))
@@ -206,6 +206,66 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
 
       resp = json_response(conn, 409)
       assert "Invalid transition" == get_in(resp, ["error", "message"])
+    end
+  end
+
+  describe "approve declaration request without documents" do
+    defmodule ApproveDeclarationRequestNoDocs do
+      use MicroservicesHelper
+
+      Plug.Router.get "/no_upload" do
+        Plug.Conn.send_resp(conn, 404, "")
+      end
+
+      Plug.Router.post "/media_content_storage_secrets" do
+        [{"port", port}] = :ets.lookup(:uploaded_at_port, "port")
+
+        resp = %{
+          data: %{
+            secret_url: "http://localhost:#{port}/no_upload"
+          }
+        }
+
+        Plug.Conn.send_resp(conn, 200, Poison.encode!(resp))
+      end
+    end
+
+    setup %{conn: _conn} do
+      {:ok, port, ref} = start_microservices(ApproveDeclarationRequestNoDocs)
+      :ets.new(:uploaded_at_port, [:named_table])
+      :ets.insert(:uploaded_at_port, {"port", port})
+      System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:#{port}")
+
+      on_exit(fn ->
+        System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:4040")
+        stop_microservices(ref)
+      end)
+
+      {:ok, %{port: port}}
+    end
+
+    test "approve NEW declaration_request with OFFLINE authentication method", %{conn: conn} do
+      declaration_request =
+        insert(
+          :il,
+          :declaration_request,
+          authentication_method_current: %{
+            "type" => "OFFLINE"
+          },
+          documents: [
+            %{"type" => "ok", "verb" => "HEAD"},
+            %{"type" => "empty", "verb" => "HEAD"},
+            %{"type" => "person.DECLARATION_FORM", "verb" => "HEAD"}
+          ]
+        )
+
+      resp =
+        conn
+        |> put_client_id_header("356b4182-f9ce-4eda-b6af-43d2de8602f2")
+        |> patch(declaration_request_path(conn, :approve, declaration_request))
+        |> json_response(409)
+
+      assert "Documents ok, empty, person.DECLARATION_FORM is not uploaded" == resp["error"]["message"]
     end
   end
 

@@ -25,7 +25,7 @@ defmodule EHealth.DeclarationRequest.API.Approve do
   def verify_auth(_, _), do: {:ok, true}
 
   defp prepare_documents_list(%{authentication_method_current: %{"type" => @auth_offline}} = declaration_request) do
-    declaration_request.documents ++ @declaration_doc
+    declaration_request.documents
   end
 
   defp prepare_documents_list(_), do: @declaration_doc
