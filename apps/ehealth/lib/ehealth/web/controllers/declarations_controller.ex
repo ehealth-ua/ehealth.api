@@ -33,6 +33,11 @@ defmodule EHealth.Web.DeclarationsController do
     wrap_response(conn, response)
   end
 
+  def terminate(%Plug.Conn{req_headers: req_headers} = conn, attrs) do
+    response = API.terminate_declarations(attrs, req_headers)
+    wrap_response(conn, response)
+  end
+
   def wrap_response(conn, response) do
     case response do
       {:ok, %{"meta" => %{"code" => 200}} = data} ->

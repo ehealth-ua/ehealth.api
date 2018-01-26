@@ -596,4 +596,121 @@ defmodule EHealth.Web.DeclarationsControllerTest do
       assert json_response(response, 409)
     end
   end
+
+  describe "terminate declarations" do
+    defmodule Terminate do
+      use MicroservicesHelper
+
+      Plug.Router.patch "/employees/9b6c7be2-278e-4be5-a297-2d009985c200/declarations/actions/terminate" do
+        data = %{
+          "terminated_declarations" => [
+            %{
+              "id" => "9b6c7be2-278e-4be5-a297-2d009985c720",
+              "is_active" => false,
+              "reason" => "Employee cheater",
+              "status" => "terminated",
+              "updated_at" => "2018-01-26T14:21:36.404375Z",
+              "updated_by" => "4261eacf-8008-4e62-899f-de1e2f7065f0"
+            }
+          ]
+        }
+
+        send_resp(conn, 200, Poison.encode!(%{meta: %{code: 200}, data: data}))
+      end
+
+      Plug.Router.patch "/persons/9b6c7be2-278e-4be5-a297-2d009985c200/declarations/actions/terminate" do
+        data = %{
+          "terminated_declarations" => [
+            %{
+              "id" => "9b6c7be2-278e-4be5-a297-2d009985c720",
+              "is_active" => false,
+              "reason" => "Person died",
+              "status" => "terminated",
+              "updated_at" => "2018-01-26T14:21:36.404375Z",
+              "updated_by" => "4261eacf-8008-4e62-899f-de1e2f7065f0"
+            }
+          ]
+        }
+
+        send_resp(conn, 200, Poison.encode!(%{meta: %{code: 200}, data: data}))
+      end
+
+      Plug.Router.patch "/employees/9b6c7be2-278e-4be5-a297-2d009985c404/declarations/actions/terminate" do
+        send_resp(conn, 200, Poison.encode!(%{meta: %{code: 200}, data: %{terminated_declarations: []}}))
+      end
+
+      Plug.Router.patch "/persons/9b6c7be2-278e-4be5-a297-2d009985c404/declarations/actions/terminate" do
+        send_resp(conn, 200, Poison.encode!(%{meta: %{code: 200}, data: %{terminated_declarations: []}}))
+      end
+    end
+
+    setup %{conn: conn} do
+      {:ok, port, ref} = start_microservices(Terminate)
+
+      System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
+
+      on_exit(fn ->
+        System.put_env("OPS_ENDPOINT", "http://localhost:4040")
+        stop_microservices(ref)
+      end)
+
+      user_id = "80ff0b87-25a1-4819-bf33-37db90977437"
+      client_id = "d8ea20e3-5949-46e6-88ef-62c708e57ad7"
+      route_id = "9b6c7be2-278e-4be5-a297-2d009985c200"
+
+      {:ok, %{port: port, conn: conn, user_id: user_id, client_id: client_id, route_id: route_id}}
+    end
+
+    test "both params person_id and employee_id passed", %{conn: conn, client_id: client_id, user_id: user_id} do
+      conn
+      |> put_req_header("x-consumer-id", user_id)
+      |> put_client_id_header(client_id)
+      |> patch("/api/declarations/terminate", %{person_id: Ecto.UUID.generate(), employee_id: Ecto.UUID.generate()})
+      |> json_response(422)
+    end
+
+    test "terminate by person_id", %{conn: conn, route_id: person_id, user_id: user_id, client_id: client_id} do
+      response =
+        conn
+        |> put_req_header("x-consumer-id", user_id)
+        |> put_client_id_header(client_id)
+        |> patch("/api/declarations/terminate", %{person_id: person_id})
+        |> json_response(200)
+
+      assert [_] = response["data"]["terminated_declarations"]
+    end
+
+    test "no declarations by person_id", %{conn: conn, user_id: user_id, client_id: client_id} do
+      response =
+        conn
+        |> put_req_header("x-consumer-id", user_id)
+        |> put_client_id_header(client_id)
+        |> patch("/api/declarations/terminate", %{person_id: "9b6c7be2-278e-4be5-a297-2d009985c404"})
+        |> json_response(422)
+
+      assert "Person does not have active declarations" == response["error"]["message"]
+    end
+
+    test "terminate by employee_id", %{conn: conn, route_id: employee_id, user_id: user_id, client_id: client_id} do
+      response =
+        conn
+        |> put_req_header("x-consumer-id", user_id)
+        |> put_client_id_header(client_id)
+        |> patch("/api/declarations/terminate", %{employee_id: employee_id})
+        |> json_response(200)
+
+      assert [_] = response["data"]["terminated_declarations"]
+    end
+
+    test "no declarations by employee_id", %{conn: conn, user_id: user_id, client_id: client_id} do
+      response =
+        conn
+        |> put_req_header("x-consumer-id", user_id)
+        |> put_client_id_header(client_id)
+        |> patch("/api/declarations/terminate", %{employee_id: "9b6c7be2-278e-4be5-a297-2d009985c404"})
+        |> json_response(422)
+
+      assert "Employee does not have active declarations" == response["error"]["message"]
+    end
+  end
 end

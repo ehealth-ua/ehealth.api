@@ -1,7 +1,8 @@
 defmodule EHealth.Declarations.API do
   @moduledoc false
 
-  import EHealth.Utils.Connection, only: [get_client_id: 1]
+  import Ecto.Changeset
+  import EHealth.Utils.Connection, only: [get_client_id: 1, get_consumer_id: 1]
   import EHealth.Plugs.ClientContext, only: [get_context_params: 2]
   import EHealth.Declarations.View, only: [render_declarations: 1, render_declaration: 1]
 
@@ -119,6 +120,58 @@ defmodule EHealth.Declarations.API do
          :ok <- active?(declaration) do
       OPS.update_declaration(declaration["id"], %{"declaration" => attrs}, headers)
     end
+  end
+
+  def terminate_declarations(attrs, headers) do
+    user_id = get_consumer_id(headers)
+    types = %{person_id: Ecto.UUID, employee_id: Ecto.UUID}
+
+    {%{}, types}
+    |> cast(attrs, Map.keys(types))
+    |> validate_required_one_inclusion([:person_id, :employee_id])
+    |> terminate_ops_declarations(user_id, headers)
+  end
+
+  defp terminate_ops_declarations(%Ecto.Changeset{valid?: false} = changeset, _user_id, _headers), do: changeset
+
+  defp terminate_ops_declarations(%Ecto.Changeset{changes: %{person_id: person_id}}, user_id, headers) do
+    person_id
+    |> OPS.terminate_person_declarations(user_id, headers)
+    |> maybe_render_error("Person does not have active declarations")
+  end
+
+  defp terminate_ops_declarations(%Ecto.Changeset{changes: %{employee_id: employee_id}}, user_id, headers) do
+    employee_id
+    |> OPS.terminate_declarations(user_id, headers)
+    |> maybe_render_error("Employee does not have active declarations")
+  end
+
+  defp maybe_render_error({:ok, %{"data" => %{"terminated_declarations" => []}}}, msg) do
+    {:error, {:"422", msg}}
+  end
+
+  defp maybe_render_error(resp, _msg), do: resp
+
+  defp validate_required_one_inclusion(%{changes: changes} = changeset, fields) when map_size(changes) == 1 do
+    case Enum.any?(fields, &get_field(changeset, &1)) do
+      true ->
+        changeset
+
+      false ->
+        add_error(
+          changeset,
+          hd(fields),
+          "One and only one of these fields must be present: " <> Enum.join(fields, ", ")
+        )
+    end
+  end
+
+  defp validate_required_one_inclusion(changeset, fields) do
+    add_error(
+      changeset,
+      hd(fields),
+      "One and only one of these fields must be present: " <> Enum.join(fields, ", ")
+    )
   end
 
   def expand_declaration_relations(%{"legal_entity_id" => legal_entity_id} = declaration, headers) do

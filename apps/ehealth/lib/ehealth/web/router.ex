@@ -160,6 +160,7 @@ defmodule EHealthWeb.Router do
     get("/declarations/:id", DeclarationsController, :show)
     patch("/declarations/:id/actions/approve", DeclarationsController, :approve)
     patch("/declarations/:id/actions/reject", DeclarationsController, :reject)
+    patch("/declarations/terminate", DeclarationsController, :terminate)
 
     # Medication dispenses
     scope "/medication_dispenses" do
