@@ -4617,7 +4617,7 @@ This method is used to abtain list of events with filters.
 + addresses (array[Address], required)
 + phones (array[Phone], required)
 + email: email@example.com (string, required)
-+ opening_hours (`Openinghours`)
++ working_hours (`workinghours`)
 + type: clinic (enum, required)
     - CLINIC
     - AMBULANT_CLINIC
@@ -4625,12 +4625,20 @@ This method is used to abtain list of events with filters.
 + external_id: `3213213` (string, optional)
 + location (Location, optional)
 
-### Openinghours
-+ Mon: `08-13`,`14-17` (array, required)
-+ Tue: `08-17` (array, required)
-+ Wed: `08-17` (array, required)
-+ Thu: `08-17` (array, required)
-+ Fri: `08-17` (array, required)
+### workinghours
++ mon (array)
+    - 08,12 (array[number])
+    - 14,18 (array[number])
++ tue (array)
+    - 08,12 (array[number])
++ wed (array)
+    - 08,12 (array[number])
++ thu (array)
+    - 08,12 (array[number])
++ fri (array)
+    - 08,12 (array[number])
++ sat (array)
++ sun (array)
 
 ### `Division_Details`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
