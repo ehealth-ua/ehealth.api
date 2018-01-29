@@ -861,7 +861,7 @@ Methods returns list of legal entity divisions.
 + Parameters
     + type: clinic (string, optional)
     + `legal_entity_id`: 314083428 (string, optional)
-    + name: Борисп (string, optional)
+    + name: Клініка (string, optional)
     + page: 2 (number, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
@@ -1049,7 +1049,7 @@ Method searches divisions by parameters and returnes division details
 + Parameters
     + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, optional) - division ID
     + type: CLINIC (enum, optional) - `Dictionary DIVISION_TYPE`
-    + name: Борисп (string, optional) - the mane of division
+    + name: Відділення1 (string, optional) - the mane of division
     + area:`Волинська` (string, optional) - the name of region where division is located
     + region: `Луцький` (string, optional) - the name of district where division is located
     + settlement: `Луцьк` (string, optional) - the name of settlement where division is located
@@ -2404,8 +2404,8 @@ Invoke Get Declaration Request by ID to obtain seed - Hash of previous block in 
       }
     },
     "legal_entity": {
-      "name": "Клініка Борис",
-      "short_name": "Борис",
+      "name": "Клініка НоуНейм",
+      "short_name": "Ноунейм",
       "legal_form": "140",
       "public_name": "ЦПМСД №1",
       "edrpou": "5432345432",
@@ -2455,7 +2455,7 @@ Invoke Get Declaration Request by ID to obtain seed - Hash of previous block in 
     "division": {
       "id": "d290f1ee-6c54-4b01-90e6-d701748f0851",
       "legal_entity_id": "d290f1ee-6c54-4b01-90e6-d701748f0851",
-      "name": "Бориспільське відділення Клініки Борис",
+      "name": "Бориспільське відділення Клініки Ноунейм",
       "addresses": [
         {
           "type": "RESIDENCE",
@@ -4465,7 +4465,7 @@ This method is used to abtain list of events with filters.
 + status: NEW, REJECTED, APPROVED (enum, required)
 + inserted_at: `2018-03-02T10:45:16.000Z` (string, required)
 + edrpou: 5432345432 (string, required)
-+ `legal_entity_name`: Клініка Борис (string, required)
++ `legal_entity_name`: Клініка Ноунейм (string, required)
 + `no_tax_id`: true (boolean, optional)
 + include `Party_Short`
 
@@ -4505,15 +4505,15 @@ This method is used to abtain list of events with filters.
 ## `Legal_Entities`
 
 ### `crud_legal_entity`
-+ name: Клініка Борис (string, required)
-+ short_name: Борис (string, required)
++ name: Клініка ноунейм (string, required)
++ short_name: Ноунейм (string, required)
 + type: MSP (string, required) - `Dictionary LEGAL_ENTITY_TYPE`
 + edrpou: 5432345432 (string, required)
 + addresses (array[Address], required)
 + phones (array[Phone], required)
 + email: email@example.com (array[Email], required)
 + is_active: true (boolean)
-+ public_name: Клініка Борис (string, required)
++ public_name: Клініка Ноунейм (string, required)
 + kveds: 86.1 (array, required)
 + status: VERIFIED (enum, required)
     - VERIFIED
@@ -4535,15 +4535,15 @@ This method is used to abtain list of events with filters.
 + include `crud_legal_entity`
 
 ### `crud_legal_entity_patch`
-+ name: Клініка Борис (string, optional)
-+ short_name: Борис (string, optional)
-+ public_name: Клініка Борис (string, required)
++ name: Клініка Ноунейм (string, optional)
++ short_name: Ноунейм (string, optional)
++ public_name: Клініка Ноунейм (string, required)
 + type: MSP (string, optional) - `Dictionary LEGAL_ENTITY_TYPE`
 + addresses (array[Address], optional)
 + phones (array[Phone], optional)
 + email: email@example.com (array[Email], optional)
 + is_active: true (boolean)
-+ public_name: Клініка Борис (string, optional)
++ public_name: Клініка Ноунейм (string, optional)
 + status: VERIFIED (enum, optional)
     - VERIFIED
     - NOT_VERIFIED
@@ -4553,9 +4553,9 @@ This method is used to abtain list of events with filters.
 
 ### `Legal_Entity_Short`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-+ name: Клініка Борис (string, required)
-+ short_name: Борис (string, required)
-+ public_name: Клініка Борис (string, required)
++ name: Клініка Ноунейм (string, required)
++ short_name: Ноунейм (string, required)
++ public_name: Клініка Ноунейм (string, required)
 + type: MSP (string, required)
 + edrpou: 5432345432 (string, required)
 + status: ACTIVE (enum, required)
@@ -4565,9 +4565,9 @@ This method is used to abtain list of events with filters.
 ## `Legal_Entity_Requests`
 
 ### `Legal_Entity_Request_Public`
-+ name: Клініка Борис (string, required)
-+ short_name: Борис (string, optional)
-+ public_name: Борис (string, optional)
++ name: Клініка Ноунейм (string, required)
++ short_name: Ноунейм (string, optional)
++ public_name: Ноунейм (string, optional)
 + type: MSP (string, required)
 + `owner_property_type`: STATE (string, required) - `Dictionary OWNER_PROPERTY_TYPE`
 + `legal_form`: 140 (string, required) - `Dictionary LEGAL_FORM`
@@ -4586,9 +4586,9 @@ This method is used to abtain list of events with filters.
     + `redirect_uri`: `http://example.com` (string, required, fixed) - Redirect uri
 
 ### `Legal_Entity_Request_Public_Short` 
-+ name: Клініка Борис (string, required)
-+ short_name: Борис (string, optional)
-+ public_name: Борис (string, optional)
++ name: Клініка Ноунейм (string, required)
++ short_name: Ноунейм (string, optional)
++ public_name: Ноунейм (string, optional)
 + type: MSP (string, required)
 + `owner_property_type`: STATE (string, required) - `Dictionary OWNER_PROPERTY_TYPE`
 + `legal_form`: 140 (string, required) - `Dictionary LEGAL_FORM`
@@ -4613,7 +4613,7 @@ This method is used to abtain list of events with filters.
 
 ## `Divisions`
 ### `Division`
-+ name: Бориспільське відділення Клініки Борис (string, required)
++ name: Бориспільське відділення Клініки Ноунейм (string, required)
 + addresses (array[Address], required)
 + phones (array[Phone], required)
 + email: email@example.com (string, required)
@@ -4646,7 +4646,7 @@ This method is used to abtain list of events with filters.
 
 ### `Division_Short_List`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-+ name: Бориспільське відділення Клініки Борис (string, required)
++ name: Бориспільське відділення Клініки Ноунейм (string, required)
 + type: clinic (enum, required)
     - CLINIC
     - AMBULANT_CLINIC
@@ -4657,7 +4657,7 @@ This method is used to abtain list of events with filters.
 
 ### `Division_Short`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-+ name: Бориспільське відділення Клініки Борис (string, required)
++ name: Бориспільське відділення Клініки Ноунейм (string, required)
 + `legal_entity_id`: d290f1ee-6c54-4b01-90e6-d701748f0851 (string, required)
 + type: CLINIC (enum, required)
     - CLINIC
@@ -4710,8 +4710,8 @@ This method is used to abtain list of events with filters.
 + licenses (array[MSP_License], required)
 
 ### `Medical_Service_Provider`
-+ name: Клініка Борис (string, required)
-+ short_name: Борис (string, required)
++ name: Клініка Ноунейм (string, required)
++ short_name: Ноунейм (string, required)
 + `legal_form`: 140 (string, required) - `Dictionary LEGAL_FORM`
 + public_name: ЦПМСД №1 (string, optional)
 + edrpou: 5432345432 (string, required)
@@ -4723,8 +4723,8 @@ This method is used to abtain list of events with filters.
 
 ### `MSP_Short`
 + id: d290f1ee-6c54-4b01-90e6-d701748f0851
-+ name: Клініка Борис (string, required)
-+ short_name: Борис (string, required)
++ name: Клініка Ноунейм (string, required)
++ short_name: Ноунейм (string, required)
 + `legal_form`: 140 (string, required) - `Dictionary LEGAL_FORM`
 + edrpou: 5432345432 (string, required)
 
@@ -4749,7 +4749,7 @@ This method is used to abtain list of events with filters.
 ## `Ukr_med_registries`
 ### `ukr_med_registry`
 + edrpou: 5432345432 (string, required)
-+ name: Клініка Борис (string, optional)
++ name: Клініка Ноунейм (string, optional)
 
 ### `crud_ukr_med_registry_post`
 + include `ukr_med_registry`
@@ -4988,9 +4988,9 @@ This method is used to abtain list of events with filters.
 + `legal_entity` (`LegalEntityMap`, required)
 
 ### LegalEntityMap
-+ name: Клініка Борис (string, required)
-+ short_name: Борис (string, optional)
-+ public_name: Борис (string, optional)
++ name: Клініка Ноунейм (string, required)
++ short_name: Ноунейм (string, optional)
++ public_name: Ноунейм (string, optional)
 + type: MSP (string, required)
 + `owner_property_type`: STATE (string, required) - `Dictionary OWNER_PROPERTY_TYPE`
 + `legal_form`: 140 (string, required) - `Dictionary LEGAL_FORM`
@@ -5638,11 +5638,11 @@ This method is used to abtain list of events with filters.
     + `person_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Person identifier
     + `legal_entity` (object, required)
         + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Legal entity identifier
-        + `name`: `Клініка Борис` (string, required)
+        + `name`: `Клініка Ноунейм` (string, required)
         + `edrpou`: `5432345432` (string, required)
     + `division` (object, required) 
         + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-        + `name`: `Бориспільське відділення Клініки Борис` (string, required)
+        + `name`: `Бориспільське відділення Клініки Ноунейм` (string, required)
         + `mountain_group`: `false` (boolean, optional)
         + `address` (`Address`, required)
     + `employee` (object, required) 
@@ -5678,11 +5678,11 @@ This method is used to abtain list of events with filters.
     + `medical_program` (`Medical_Program_Response`, optional)
     + `legal_entity` (object, optional)
         + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Legal entity identifier
-        + `name`: `Аптека Доброго дня` (string, required) - Legal entity name
+        + `name`: `Аптека 42` (string, required) - Legal entity name
         + `edrpou`: `5432345431` (string, required) - Legal entity edrpou
     + `division` (object, optional) 
         + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
-        + `name`: `Бориспільське відділення Аптеки Доброго Дня` (string, required)
+        + `name`: `Бориспільське відділення Аптеки 42` (string, required)
         + `mountain_group`: `false` (boolean, optional)
         + `address` (`Address`, required)
     + `party` (object, optional) 
