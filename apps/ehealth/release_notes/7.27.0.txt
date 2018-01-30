@@ -1,7 +1,8 @@
-Change log for versions 7.27.0 - 7.27.1
+Change log for versions 7.27.0 - 7.27.2
 
 **Patches and bug fixes**:
 
+add router logger (#1769)
 Fix person_name pattern (#1768)
 
 **Other**:
