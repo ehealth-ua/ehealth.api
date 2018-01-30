@@ -217,6 +217,15 @@ defmodule EHealthWeb.Router do
 
   defp handle_errors(%Plug.Conn{status: 500} = conn, %{kind: kind, reason: reason, stack: stacktrace}) do
     LoggerJSON.log_error(kind, reason, stacktrace)
+
+    Logger.log(:info, fn ->
+      Poison.encode!(%{
+        "log_type" => "debug",
+        "request_params" => conn.params,
+        "request_id" => Logger.metadata()[:request_id]
+      })
+    end)
+
     send_resp(conn, 500, Poison.encode!(%{errors: %{detail: "Internal server error"}}))
   end
 
