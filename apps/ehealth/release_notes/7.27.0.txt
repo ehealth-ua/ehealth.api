@@ -1,0 +1,11 @@
+Change log for versions 7.27.0 - 7.27.1
+
+**Patches and bug fixes**:
+
+Fix person_name pattern (#1768)
+
+**Other**:
+
+Rollback corrections
+brand names replaced
+oauth fine tuning
