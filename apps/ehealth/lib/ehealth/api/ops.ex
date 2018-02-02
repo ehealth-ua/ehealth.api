@@ -16,18 +16,14 @@ defmodule EHealth.API.OPS do
     get!("/declarations", headers, params: params)
   end
 
-  def terminate_declarations(employee_id, user_id, headers \\ []) do
-    body = Poison.encode!(%{user_id: user_id})
+  def terminate_employee_declarations(employee_id, user_id, reason, reason_description \\ "", headers \\ []) do
+    body = Poison.encode!(%{user_id: user_id, reason: reason, reason_description: reason_description})
     patch!("/employees/#{employee_id}/declarations/actions/terminate", body, headers)
   end
 
-  def terminate_person_declarations(person_id, user_id, headers \\ []) do
-    body = Poison.encode!(%{user_id: user_id})
+  def terminate_person_declarations(person_id, user_id, reason, reason_description \\ "", headers \\ []) do
+    body = Poison.encode!(%{user_id: user_id, reason: reason, reason_description: reason_description})
     patch!("/persons/#{person_id}/declarations/actions/terminate", body, headers)
-  end
-
-  def terminate_person_declarations(person_id) do
-    patch!("/persons/#{person_id}/declarations/actions/terminate", [])
   end
 
   def create_declaration_with_termination_logic(params, headers \\ []) do

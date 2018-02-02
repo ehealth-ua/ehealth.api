@@ -606,8 +606,8 @@ defmodule EHealth.Web.DeclarationsControllerTest do
           "terminated_declarations" => [
             %{
               "id" => "9b6c7be2-278e-4be5-a297-2d009985c720",
-              "is_active" => false,
-              "reason" => "Employee cheater",
+              "reason" => conn.body_params["reason"],
+              "reason_description" => conn.body_params["reason_description"],
               "status" => "terminated",
               "updated_at" => "2018-01-26T14:21:36.404375Z",
               "updated_by" => "4261eacf-8008-4e62-899f-de1e2f7065f0"
@@ -623,8 +623,8 @@ defmodule EHealth.Web.DeclarationsControllerTest do
           "terminated_declarations" => [
             %{
               "id" => "9b6c7be2-278e-4be5-a297-2d009985c720",
-              "is_active" => false,
-              "reason" => "Person died",
+              "reason" => conn.body_params["reason"],
+              "reason_description" => conn.body_params["reason_description"],
               "status" => "terminated",
               "updated_at" => "2018-01-26T14:21:36.404375Z",
               "updated_by" => "4261eacf-8008-4e62-899f-de1e2f7065f0"
@@ -662,10 +662,12 @@ defmodule EHealth.Web.DeclarationsControllerTest do
     end
 
     test "both params person_id and employee_id passed", %{conn: conn, client_id: client_id, user_id: user_id} do
+      payload = %{person_id: Ecto.UUID.generate(), employee_id: Ecto.UUID.generate(), reason_description: "lol"}
+
       conn
       |> put_req_header("x-consumer-id", user_id)
       |> put_client_id_header(client_id)
-      |> patch("/api/declarations/terminate", %{person_id: Ecto.UUID.generate(), employee_id: Ecto.UUID.generate()})
+      |> patch("/api/declarations/terminate", payload)
       |> json_response(422)
     end
 
@@ -674,10 +676,11 @@ defmodule EHealth.Web.DeclarationsControllerTest do
         conn
         |> put_req_header("x-consumer-id", user_id)
         |> put_client_id_header(client_id)
-        |> patch("/api/declarations/terminate", %{person_id: person_id})
+        |> patch("/api/declarations/terminate", %{person_id: person_id, reason_description: "Person cheater"})
         |> json_response(200)
 
-      assert [_] = response["data"]["terminated_declarations"]
+      assert [%{"reason" => "manual_person", "reason_description" => "Person cheater"}] =
+               response["data"]["terminated_declarations"]
     end
 
     test "no declarations by person_id", %{conn: conn, user_id: user_id, client_id: client_id} do
@@ -696,10 +699,11 @@ defmodule EHealth.Web.DeclarationsControllerTest do
         conn
         |> put_req_header("x-consumer-id", user_id)
         |> put_client_id_header(client_id)
-        |> patch("/api/declarations/terminate", %{employee_id: employee_id})
+        |> patch("/api/declarations/terminate", %{employee_id: employee_id, reason_description: "Employee died"})
         |> json_response(200)
 
-      assert [_] = response["data"]["terminated_declarations"]
+      assert [%{"reason" => "manual_employee", "reason_description" => "Employee died"}] =
+               response["data"]["terminated_declarations"]
     end
 
     test "no declarations by employee_id", %{conn: conn, user_id: user_id, client_id: client_id} do

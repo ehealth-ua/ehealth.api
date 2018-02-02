@@ -15,7 +15,8 @@ defmodule EHealth.DuplicatePersons.Cleanup do
       })
 
     Enum.each(declarations, fn declaration ->
-      OPS.terminate_person_declarations(declaration["person_id"])
+      user_id = Confex.fetch_env!(:ehealth, :system_user)
+      OPS.terminate_person_declarations(declaration["person_id"], user_id, "auto_merge")
     end)
 
     {:ok, %{"data" => _}} = MPI.update_merge_candidate(id, %{status: Person.status(:merged)})

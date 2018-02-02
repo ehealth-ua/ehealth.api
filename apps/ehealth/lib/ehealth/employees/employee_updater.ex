@@ -20,6 +20,7 @@ defmodule EHealth.Employees.EmployeeUpdater do
   @status_dismissed Employee.status(:dismissed)
 
   def deactivate(%{"id" => id} = params, headers, with_owner \\ false) do
+    user_id = get_consumer_id(headers)
     legal_entity_id = Map.get(params, "legal_entity_id")
 
     with employee <- Employees.get_by_id!(id),
@@ -27,7 +28,7 @@ defmodule EHealth.Employees.EmployeeUpdater do
          :ok <- check_transition(employee, with_owner),
          active_employees <- get_active_employees(employee),
          :ok <- revoke_user_auth_data(employee, active_employees, headers),
-         {:ok, _} <- OPS.terminate_declarations(id, get_consumer_id(headers), headers) do
+         {:ok, _} <- OPS.terminate_employee_declarations(id, user_id, "auto_employee_deactivate", "", headers) do
       update_employee_status(employee, headers)
     end
   end

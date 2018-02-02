@@ -124,25 +124,25 @@ defmodule EHealth.Declarations.API do
 
   def terminate_declarations(attrs, headers) do
     user_id = get_consumer_id(headers)
-    types = %{person_id: Ecto.UUID, employee_id: Ecto.UUID}
+    types = %{person_id: Ecto.UUID, employee_id: Ecto.UUID, reason_description: :string}
 
     {%{}, types}
     |> cast(attrs, Map.keys(types))
     |> validate_required_one_inclusion([:person_id, :employee_id])
-    |> terminate_ops_declarations(user_id, headers)
+    |> terminate_ops_declarations(user_id, attrs["reason_description"], headers)
   end
 
-  defp terminate_ops_declarations(%Ecto.Changeset{valid?: false} = changeset, _user_id, _headers), do: changeset
+  defp terminate_ops_declarations(%Ecto.Changeset{valid?: false} = changeset, _, _, _), do: changeset
 
-  defp terminate_ops_declarations(%Ecto.Changeset{changes: %{person_id: person_id}}, user_id, headers) do
+  defp terminate_ops_declarations(%Ecto.Changeset{changes: %{person_id: person_id}}, user_id, reason_desc, headers) do
     person_id
-    |> OPS.terminate_person_declarations(user_id, headers)
+    |> OPS.terminate_person_declarations(user_id, "manual_person", reason_desc, headers)
     |> maybe_render_error("Person does not have active declarations")
   end
 
-  defp terminate_ops_declarations(%Ecto.Changeset{changes: %{employee_id: employee_id}}, user_id, headers) do
+  defp terminate_ops_declarations(%Ecto.Changeset{changes: %{employee_id: employee_id}}, user_id, reason_desc, headers) do
     employee_id
-    |> OPS.terminate_declarations(user_id, headers)
+    |> OPS.terminate_employee_declarations(user_id, "manual_employee", reason_desc, headers)
     |> maybe_render_error("Employee does not have active declarations")
   end
 
@@ -152,26 +152,18 @@ defmodule EHealth.Declarations.API do
 
   defp maybe_render_error(resp, _msg), do: resp
 
-  defp validate_required_one_inclusion(%{changes: changes} = changeset, fields) when map_size(changes) == 1 do
-    case Enum.any?(fields, &get_field(changeset, &1)) do
-      true ->
+  defp validate_required_one_inclusion(%{changes: changes} = changeset, fields) do
+    case map_size(Map.take(changes, fields)) do
+      1 ->
         changeset
 
-      false ->
+      _ ->
         add_error(
           changeset,
           hd(fields),
           "One and only one of these fields must be present: " <> Enum.join(fields, ", ")
         )
     end
-  end
-
-  defp validate_required_one_inclusion(changeset, fields) do
-    add_error(
-      changeset,
-      hd(fields),
-      "One and only one of these fields must be present: " <> Enum.join(fields, ", ")
-    )
   end
 
   def expand_declaration_relations(%{"legal_entity_id" => legal_entity_id} = declaration, headers) do
