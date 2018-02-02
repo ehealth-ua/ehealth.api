@@ -57,7 +57,7 @@ After obtaining `access_token` all subsequent requests should be made with `Auth
 
 ## Login UI [/oauth]
 
-### Privat Show Login UI [GET /oauth/ui{?client_id,redirect_url,scope,response_type}]
+### Show Login UI [GET /oauth/ui{?client_id,redirect_url,scope,response_type}]
 
 This method renders response login page. It's structure can differ by required scopes and security measures enabled by project (they can change).
 
@@ -65,7 +65,7 @@ For security purposes, we will set `X-Frame-Options: deny` header that will disa
 
 + Parameters
     + `client_id`: `6498d88e-97fb-47e2-85a5-99e884f888aa` (string, required) - Medical Service provider ID issued after legal_entity registration. Used to identify the context of the MSP/Pharmacy.
-    + `redirect_url`: `http://example.com/` (string, required) - URL where user will be redirected after authentification. This url will receive `code` and `state` parameters in query string.
+    + `redirect_url`: http://example.com/ (string, required) - URL where user will be redirected after authentification. This url will receive `code` and `state` parameters in query string.
     + scope: `capitation_contracts:view capitation_contracts:create patients:view patients:create` (string, required) - List of scopes that is required in application business logic, separated by space. Different login forms will be shown based on scopes that you requested.
     + response_type: code (enum, required) - Response type, only `code` is supported.
 
@@ -1784,6 +1784,55 @@ Method returns list of user_id(s) by party_id(s) filtered by parameters.
         + meta (Response__Meta)
         + data (array[`Party_user_Response`])
 
+## Uploading and processing registers [/registers]
+
+### Get Registers list [GET /registers{?batch_id,file_name,type,status,date_from,date_to,tax_id,national_id,passport,birth_certificate,temporary_certificate,page,page_size}]
+Method returns list of records from each uploaded file with status.  
+
+
++ Parameters
+    + `batch_id`: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, optional) 
+    + `file_name`: `November 2018 Kyiv region` (string, optional)
+    + `type`: `death_registration` (string, optional)
+    + `status`: `not_found` (string, optional)
+    + `date_from`: 2017-10-01` (string, optional)
+    + `date_to`: `2017-10-30` (string, optional)
+    + `tax_id`: `3028106992` (string, optional)
+    + `national_id`: `123456789` (string, optional)
+    + `passport`: `СМ123456` (string, optional)
+    + `birth_certificate`: `СМ123456` (string, optional)
+    + `temporary_certificate`: `12345678` (string, optional)
+    + `page`: 2 (number) - Page number.    
+    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+
++ Request (application/json)
+
++ Response 200 (application/json)
+    + Attributes (`Response_Collection_V2`)
+        + meta (Response__Meta)
+        + data (array[`Registers_list_response`])
+
+### Get Registers Files list [GET /registers_stats{?id,file_name,type,date_from,date_to,qty_not_found,qty_total,page,page_size}]
+Method returns list of files which were uploaded with statistics.  
+
+
++ Parameters
+    + `id`: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, optional) 
+    + `file_name`: `November 2018 Kyiv region` (string, optional)
+    + `type`: `death_registration` (string, optional)
+    + `date_from`: 2017-10-01` (string, optional)
+    + `date_to`: `2017-10-30` (string, optional)
+    + `qty_not_found`: 100 (number)
+    + `qty_total`: 10000 (number)
+    + `page`: 2 (number) - Page number.    
+    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+
++ Request (application/json)
+
++ Response 200 (application/json)
+    + Attributes (`Response_Collection_V2`)
+        + meta (Response__Meta)
+        + data (array[`Registers_stats_list_response`])
 
 # Group Internal. Gandalf
 
@@ -2146,7 +2195,10 @@ In case if authentication_method is OTP, request example:
   "verification_code": 3748
 }
 ```
-In case if authentication_method is OFFLINE, request body should be empty. But before approve patient's scanned documents should be uploaded to the ([Signed URL's](https://cloud.google.com/storage/docs/access-control/create-signed-urls-program)) on demand. 
+In case if authentication_method is OFFLINE, request body should be empty. 
+Before approve patient's scanned documents should be uploaded to the ([Signed URL's](https://cloud.google.com/storage/docs/access-control/create-signed-urls-program))
+as well as scanned signed declaration (with type person.DECLARATION_FORM).
+If make declaration request via cabinet then nothing must be uploaded to URL.
 Clients can use signed URL's to directly access Google Cloud Storage via their API 
 ([Google Cloud Storage API](https://cloud.google.com/storage/docs/xml-api/put-object-upload))
 
@@ -2944,6 +2996,9 @@ Signed content MUST consists of JSON object with Legal Entity data:
     }
   ],
   "email": "sp.virny+100@gmail.com",
+  "website": "www.boris.com.ua",
+  "receiver_funds_code": "AB12345",
+  "beneficiary": "Борисов Борис Борисович",
   "owner": {
     "first_name": "Петро",
     "last_name": "Іванов",
@@ -2987,6 +3042,12 @@ Signed content MUST consists of JSON object with Legal Entity data:
       "order_date": "1991-08-19"
     }
   },
+  "archive": [
+      {
+        "date": "2017-02-28",
+        "place": "вул. Грушевського 15"
+      }
+    ],
   "security": {
     "redirect_uri": "http://example2.com"
   }
@@ -3852,6 +3913,13 @@ List of events that are stored to EventDB:
 - medication request status changed
 - medication dispense status changed
 
+Entity_type variants:
+- Declaration
+- MedicationDispense
+- EmployeeRequest
+- MedicationRequest
+- Employee
+
 In the EventDB events are kept during one month or till 10K. The duration and amount of events are parametrized.
 
 ## Get Events
@@ -4032,6 +4100,9 @@ This method is used to abtain list of events with filters.
 + addresses (array[Address], required)
 + phones (array[Phone], optional)
 + `authentication_methods` (array[Authentication_Method], required)
++ preferred_way_communication: email (enum, optional)
+    - email
+    - phone
 
 ### `Confidant_Person`
 + relation_type: PRIMARY (enum, required)
@@ -4095,8 +4166,8 @@ This method is used to abtain list of events with filters.
 + first_name: Петро (string, required)
 + last_name: Іванов (string, required)
 + second_name: Миколайович (string, optional)
-+ birth_date: `1991-08-19` (string, required) - ISO Datetime.
-+ addresses (array[Address], required)
++ age: 35 (number, required) - full years between medication request date and birth date.
+
 
 ### `Authentication_Method`
 + type (enum, required)
@@ -4512,8 +4583,12 @@ This method is used to abtain list of events with filters.
 + addresses (array[Address], required)
 + phones (array[Phone], required)
 + email: email@example.com (string, required)
++ website: `www.boris.com.ua` (string, optional)
++ receiver_funds_code: `AB12345` (string, optional)
++ beneficiary: `Борисов Борис Борисович` (string, optional)
 + owner (Owner)
 + `medical_service_provider` (MSP)
++ `archive`(array[Archive], optional)
 + security (object, fixed-type)
     + `redirect_uri`: `http://example.com` (string, required, fixed) - Redirect uri
 
@@ -4529,7 +4604,11 @@ This method is used to abtain list of events with filters.
 + addresses (array[Address], required)
 + phones (array[Phone], required)
 + email: email@example.com (string, required)
++ website: `www.boris.com.ua` (string, optional)
++ receiver_funds_code: `AB12345` (string, optional)
++ beneficiary: `Борисов Борис Борисович` (string, optional)
 + `medical_service_provider` (MSP)
++ `archive`(array[Archive], optional)
 + security (object, fixed-type)
     + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
 + is_active: true (boolean, required)
@@ -4545,12 +4624,28 @@ This method is used to abtain list of events with filters.
 + addresses (array[Address], required)
 + phones (array[Phone], required)
 + email: email@example.com (string, required)
++ working_hours (`workinghours`)
 + type: clinic (enum, required)
     - CLINIC
     - AMBULANT_CLINIC
     - FAP
 + external_id: `3213213` (string, optional)
 + location (Location, optional)
+
+### workinghours
++ mon (array)
+    - 08,12 (array[number])
+    - 14,18 (array[number])
++ tue (array)
+    - 08,12 (array[number])
++ wed (array)
+    - 08,12 (array[number])
++ thu (array)
+    - 08,12 (array[number])
++ fri (array)
+    - 08,12 (array[number])
++ sat (array)
++ sun (array)
 
 ### `Division_Details`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -4735,6 +4830,8 @@ This method is used to abtain list of events with filters.
 ### Document
 + type: PASSPORT (string, required) - `Dictionary DOCUMENT_TYPE`
 + number: 120518 (string, required)
++ issued_by: `Рокитнянським РВ ГУ МВС Київської області` (string, optional) 
++ issued_at: `2017-02-28` (string, optional)
 
 ### `Medical_Certificate`
 + name: Диплом доктора медицини (string, required)
@@ -4791,6 +4888,16 @@ This method is used to abtain list of events with filters.
 + `active_from_date`: `2017-02-28` (string, required)
 + what_licensed: реалізація наркотичних засобів (string, optional)
 + order_no: ВА43234 (string, required) - номер наказу
+
+### `Bank_Details`
++ MFO: `351005` (string, required) - bank code
++ name: `Публічне акціонерне товариство «УкрСиббанк»` (string, required) - bank name
++ account_number(array, required)
+    + `32009102701026` (string, required) - banks account number
+
+### `Archive`
++ date: `2017-02-28` (string, required) - bank code
++ place: `вул. Грушевського 15` (string, required) - bank name
 
 ## OTPs
 ### OTP
@@ -5590,6 +5697,33 @@ This method is used to abtain list of events with filters.
         + `last_name`: `Іванов` (string, required)
         + `first_name`: `Петро` (string, required)
         + `second_name`: `Миколайович` (string, optional)
+
+## Uploading and processing registers
+### `Registers_list_response`
++ `batch_id`: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) 
++ `file_name`: `November 2018 Kyiv region` (string, required)
++ `type`: `death_registration` (string, required)
++ `status`: `not_found` (string, required)
++ `tax_id`: `3028106992` (string, optional)
++ `national_id`: `123456789` (string, optional)
++ `passport`: `СМ123456` (string, optional)
++ `birth_certificate`: `СМ123456` (string, optional)
++ `temporary_certificate`: `12345678` (string, optional)
++ `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
++ `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `updated_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
+
+### `Registers_stats_list_response`
++ `id`: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) 
++ `file_name`: `November 2018 Kyiv region` (string, required)
++ `type`: `death_registration` (string, required)
++ `qty_not_found`: 100 (number, required)
++ `qty_total`: 10000 (number, required)
++ `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
++ `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `updated_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
 
 ## Roles
 ### Role (object)
