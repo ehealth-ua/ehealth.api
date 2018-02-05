@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "file": {
+      "type": "string"
+    },
+    "file_name": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "description": "Dictionary: REGISTER_TYPE"
+    },
+    "reason_description": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "file",
+    "file_name",
+    "type"
+  ],
+  "additionalProperties": false
+}
