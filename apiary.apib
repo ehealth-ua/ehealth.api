@@ -348,6 +348,25 @@ Method returns only **requested** parameters, birth place and second name in add
             + type: `too_many_results`
             + message: `This API method returns only exact match results, please retry with more specific search result` (string)
 
+### Search for a Person internal [GET /api/persons_internal{?type,number,page,page_size}]
+
+This method allows to search for a Person (MPI) knowing person's document number.
+
++ Parameters
+    + type: passport (string, required)
+    + number: `CM123456` (string, required)
+    + page: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (Response_Collection_V2)
+        + data (array[`Person_Short`])
+
 ## Merge Candidates [/merge_candidates]
 
 ### Get merge candidates [GET /merge_candidates{?id,person_id,master_person_id,status,limit,starting_after,ending_before}]
@@ -492,7 +511,7 @@ Response will contain only records that you have access to.
     + Attributes (Response_Collection_V2)
         + data (array[`crud_Declaration_get`])
 
-### Terminate declarations by employee or person [POST /declarations/terminate]
+### Terminate declarations by employee or person [PATCH /declarations/terminate]
 
 1. One parameter of `employee_id` and `person_id` must be set
 2. Search active declarations by `employee_id` or `person_id`
@@ -502,6 +521,7 @@ Response will contain only records that you have access to.
     + Attributes (object)
         + employee_id: `73ebee6e-b9d9-41b0-b2ad-ab7704d5306e` (string, optional)
         + person_id: `50320ee5-2bca-472c-a1a0-28e2e003ec2a` (string, optional)
+        + reason_description: `Згідно постанови 1 від 10.01.2017` (string, optional)
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
@@ -1786,14 +1806,56 @@ Method returns list of user_id(s) by party_id(s) filtered by parameters.
 
 ## Uploading and processing registers [/registers]
 
-### Get Registers list [GET /registers{?batch_id,file_name,type,status,date_from,date_to,tax_id,national_id,passport,birth_certificate,temporary_certificate,page,page_size}]
+### Post Registers [POST /api/registers]
+Method allows NHS admin to upload and save files with registers
+
+**Scopes required:** `register:write`
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+    
+    + Attributes (object)
+       + `file`: `Base64 encoded csv file` (string, required)
+       + `file_name`: `deaths.csv` (string, required)
+       + `type`: `death_registration` (string, required)
+       + `reason_description`: `Реєстр смертності за 01-31.01.2018` (string, optional)
+       
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+        + data (object)
+            + include `Registers_response`
+
+### Get Registers list [GET /registers{?id,status,file_name,type,date_from,date_to,page,page_size}]
+Method returns list of files which were uploaded with statistics.  
+
++ Parameters
+    + `id`: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, optional) 
+    + `status`: processing (string, optional)
+    + `file_name`: `November 2018 Kyiv region` (string, optional)
+    + `type`: `death_registration` (string, optional)
+    + `date_from`: 2017-10-01` (string, optional)
+    + `date_to`: `2017-10-30` (string, optional)
+    + `page`: 2 (number) - Page number.    
+    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+
++ Request (application/json)
+
++ Response 200 (application/json)
+    + Attributes (`Response_Collection_V2`)
+        + meta (Response__Meta)
+        + data (array[`Registers_list_response`])
+
+### Get Register entries  list [GET /register_entries{?id,register_id,status,date_from,date_to,tax_id,national_id,passport,birth_certificate,temporary_certificate,page,page_size}]
 Method returns list of records from each uploaded file with status.  
 
 
 + Parameters
-    + `batch_id`: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, optional) 
-    + `file_name`: `November 2018 Kyiv region` (string, optional)
-    + `type`: `death_registration` (string, optional)
+    + `id`: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, optional)
+    + `register_id`: `09106b70-18b0-4726-b0ed-6bda1369fd62` (string, optional)
     + `status`: `not_found` (string, optional)
     + `date_from`: 2017-10-01` (string, optional)
     + `date_to`: `2017-10-30` (string, optional)
@@ -1810,29 +1872,7 @@ Method returns list of records from each uploaded file with status.
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
         + meta (Response__Meta)
-        + data (array[`Registers_list_response`])
-
-### Get Registers Files list [GET /registers_stats{?id,file_name,type,date_from,date_to,qty_not_found,qty_total,page,page_size}]
-Method returns list of files which were uploaded with statistics.  
-
-
-+ Parameters
-    + `id`: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, optional) 
-    + `file_name`: `November 2018 Kyiv region` (string, optional)
-    + `type`: `death_registration` (string, optional)
-    + `date_from`: 2017-10-01` (string, optional)
-    + `date_to`: `2017-10-30` (string, optional)
-    + `qty_not_found`: 100 (number)
-    + `qty_total`: 10000 (number)
-    + `page`: 2 (number) - Page number.    
-    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
-
-+ Request (application/json)
-
-+ Response 200 (application/json)
-    + Attributes (`Response_Collection_V2`)
-        + meta (Response__Meta)
-        + data (array[`Registers_stats_list_response`])
+        + data (array[`Register_entries_list_response`])
 
 # Group Internal. Gandalf
 
@@ -3259,9 +3299,9 @@ API for searching Ukrainian Addresses
             + code: 200 (number)
         + data (array[`Response_Street`])
 
-## Search Settlements [/api/settlements]
+## Search Settlements [/api/uaddresses/search/settlements]
 
-### List Of Cities By Search Params [GET /api/uaddresses/settlements{?name,region,district,koatuu,page,page_size}]
+### List Of Cities By Search Params [GET /api/uaddresses/search/settlements{?name,region,district,koatuu,page,page_size}]
 
 Use this method to obtain list of cities. If you want to reduce amount of data that is going trough your application, use `name`, `region`, `district` or `koatuu classifier` filters and show only cities you are interested in.
 
@@ -3280,9 +3320,9 @@ Use this method to obtain list of cities. If you want to reduce amount of data t
             + code: 200 (number)
         + data (array[`Response_Settlement`])
 
-## Search Regions [/api/uaddresses/regions]
+## Search Regions [/api/uaddresses/search/regions]
 
-### List Of Regions By Search Params [GET /api/uaddresses/regions{?name,koatuu,page,page_size}]
+### List Of Regions By Search Params [GET /api/uaddresses/search/regions{?name,koatuu,page,page_size}]
 + Parameters
     + name: Київ (string, optional) - Province name
     + koatuu: `2625286301` (string, optional) - koatuu classifier id
@@ -3295,9 +3335,9 @@ Use this method to obtain list of cities. If you want to reduce amount of data t
             + code: 200 (number)
         + data (array[`Response_Region`])
 
-## Search Districts [/api/uaddresses/districts]
+## Search Districts [/api/uaddresses/search/districts]
 
-### List Of Districts By Search Params [GET /api/uaddresses/districts{?region_id,region,name,koatuu,page,page_size}]
+### List Of Districts By Search Params [GET /api/uaddresses/search/districts{?region_id,region,name,koatuu,page,page_size}]
 + Parameters
     + region_id: `09a33c98-9a5c-447a-8493-da8fcecb6873` (string, optional) - Province id
     + region: Київ (string, optional) - Province name
@@ -3312,7 +3352,7 @@ Use this method to obtain list of cities. If you want to reduce amount of data t
             + code: 200 (number)
         + data (array[`Response_District`])
 
-### Districts by Region [GET /api/uaddresses/regions/290f1ee-6c54-4b01-90e6-d701748f0851/districts{?name,koatuu,page,page_size}]
+### Districts by Region [GET /api/uaddresses/details/regions/290f1ee-6c54-4b01-90e6-d701748f0851/districts{?name,koatuu,page,page_size}]
 
 + Parameters
     + name: `Києво-Святошинський` (string, optional) - Filter by district name
@@ -3326,7 +3366,7 @@ Use this method to obtain list of cities. If you want to reduce amount of data t
             + code: 200 (number)
         + data (array[`Response_District_Short`])
 
-### Settlements by district [GET /api/uaddresses/districts/290f1ee-6c54-4b01-90e6-d701748f0851/settlements{?name,koatuu,page,page_size}]
+### Settlements by district [GET /api/uaddresses/details/districts/290f1ee-6c54-4b01-90e6-d701748f0851/settlements{?name,koatuu,page,page_size}]
 
 Get list of cities by district
 
@@ -5117,6 +5157,8 @@ This method is used to abtain list of events with filters.
 + person (`Person_Minimal`, required)
 + `legal_entity` (`Legal_Entity_Short`, required)
 + `declaration_request_id`: `74a6fae6-4207-4e03-a136-f2e70c6b0c02` (string, required)
++ reason: `manual_employee` (string, optional)
++ reason_description: `Згідно постанови 1 від 10.01.2017` (string, optional)
 
 ### `nhs_declaration_list_Public`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - id of the signed document stored on the Media content storage
@@ -5699,27 +5741,59 @@ This method is used to abtain list of events with filters.
         + `second_name`: `Миколайович` (string, optional)
 
 ## Uploading and processing registers
-### `Registers_list_response`
-+ `batch_id`: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) 
+
+### `Registers_response`
++ `id`: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) 
 + `file_name`: `November 2018 Kyiv region` (string, required)
++ `status`: processing (enum, required)
+        - new 
+        - processing 
+        - processed 
 + `type`: `death_registration` (string, required)
-+ `status`: `not_found` (string, required)
-+ `tax_id`: `3028106992` (string, optional)
-+ `national_id`: `123456789` (string, optional)
-+ `passport`: `СМ123456` (string, optional)
-+ `birth_certificate`: `СМ123456` (string, optional)
-+ `temporary_certificate`: `12345678` (string, optional)
++ `reason_description`: `Реєстр смертності за 01-31.01.2018` (string, optional)
++ `qty`(object, required) 
+  + `not_found`: 10 (number, required)- not matched records
+  + `processing`: 1 (number, required) - entries are still in the procces of matching
+  + `errors`: 2 (number, required) - entires which had errors and couln't be processed
+  + `total`: 100 (number, required) - total entries in the file
 + `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
 + `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + `updated_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
 
-### `Registers_stats_list_response`
+### `Registers_list_response`
 + `id`: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) 
 + `file_name`: `November 2018 Kyiv region` (string, required)
++ `status`: processing (enum, required)
+        - new 
+        - processing 
+        - processed 
 + `type`: `death_registration` (string, required)
-+ `qty_not_found`: 100 (number, required)
-+ `qty_total`: 10000 (number, required)
++ `qty`(object, required) 
+  + `not_found`: 10 (number, required)- not matched records
+  + `processing`: 1 (number, required) - entries are still in the procces of matching
+  + `errors`: 2 (number, required) - entires which had errors and couln't be processed
+  + `total`: 100 (number, required) - total entries in the file
++ `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
++ `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `updated_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
++ `errors`: `Row has length 4 - expected length 5 on line 5, Row has length 1 - expected length 5 on line 7` (array, optional)
+    
+### `Register_entries_list_response`
++ `id`: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - record id
++ `register_id`: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - file id
++ `file_name`: `November 2018 Kyiv region` (string, required)
++ `type`: `death_registration` (string, required)
++ `status`: processing (enum, required)
+        - processing
+        - matched
+        - not_found
++ `tax_id`: `3028106992` (string, optional)
++ `national_id`: `123456789` (string, optional)
++ `passport`: `СМ123456` (string, optional)
++ `birth_certificate`: `СМ123456` (string, optional)
++ `temporary_certificate`: `12345678` (string, optional)
 + `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
 + `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
