@@ -29,7 +29,7 @@ env:
     - MIX_ENV=test
     - REQUIRE_VERSION_TAGS="true"
     - DOCKER_HUB_ACCOUNT=edenlabllc
-    - TRUNK_BRANCH="master"
+    - TRUNK_BRANCH="stable_stable"
     - secure: "cm8F6poDy8DYOHjUDdJ4lqeFN9jAjwCeQlyvrM6mgPjthGEdjzUp7+4YkBPDrDkyj6KkBXyFIAizmp/YKWifQBs0C4J6wfXXdB5c1z39K4DY9omdzZ+r4o2EsmUBG2qHPhUhq9mT+BHGA+GmgzaaZzVzTLvo1XnF0voP+dAmkAcujhIQW7pa8Hi80EOHuHRpKRZ1Yo5VnmdktZU+AHSR5de8QP71nfmXTOaXWVM/I1OoyIaP/9X9vl5qsy0VdAWwI4+5mUzVgXcggYIBBbtNvwJ+CSZdOl5NzRu8mxcHu4YFNRejRf9rENlF4QmdmVfTvIiOGnyVjZudRsP6CahjEpXxICRub+PanXGjwOIzwsswnXZmyYI/ZZdViXRJ25nBAe2u8H+67v7PA9jdlKy4X4O7kCENSPaxFuTD7cRxgfDLxOfr+tlvagFPaXSPQ7ZZYxMY0xVKpsl4Ng1gFVywSeigTgTwTZDf4494nW0Kwg78rnnDVUdWNS4k4WT933GmSxl3EwootuvWbLPMAqJX/uPIj7LQ2iD2jXrZn2s3a3eXNh9PWmsxzurSSpr2CXbkmOOoqeOgCXafP/98X/kswBojaHh3wZj+3+D7dWr95fYluz2o7tISpOCSKxO9LhRE5JxSI6CfH5ddCJn1Eyf1MDcPRguCTOCZF1ttreVWVj8="
     - secure: "TdmFaQMePgUPDrvzhQzUW2YKL3sQdI0W8Nf2ToF6j9/ev5JIjUhC5PJzLVMBw+MQBEnRmsP/Xma1Ui7xa0iC48PR5+F8Q/uHnBlRpF+YsLSnRvc06UUqeC2mQQeCBy0DoL2OHrkgPrNmPDtXMowfY/miXjkwsxx/uRJsUO+d0uArx38bT6iSJKjeMhiZd+IjwgMlfpzB6eyixYss0koqKQgn7XINtXynfwpWeZldLAOXVL9oHPOJhGc4g/fST/BASQlO23wpnL0poTxRpFrfU6Xj0gK6++eQJ+pDBAwq8KCpQpZ83D7lmZPDw1seyhVJ7HJ3ncPMKhyENnGot6bE8oQrs1G5eyuVbK8WK8ByRT1PPxM0K6kZMEzXln2LiuYeVpGUI/bo2rJ75V4yOzb6jqdNdL2wmCp//jy9OzU7Kj4HQlaLd6wgr0snehjX3iCsqh5HhaIwqZnGGdS/JdZI8+qVmNRsjp5EedttKD5CqLhMnVt8oD8GjJB8gpwTB4cdWatO9TBGzImSbqInjvwk48LLNSFPFjokF9gFd9aQ+1ikc2QWa1bOyaXO7YpUmb5h1w0IprrfK9exVkEOaIHh3ovQXo4yNOwIAf0aI7amVdD6zFYIDZtdRJKfH4IN3HfeboN52D+++if6TzfPqguue7lg+0+Obm1HJupNzruOELk="
 branches:
@@ -65,4 +65,4 @@ script:
   - ./bin/ci/rel/push-changes.sh || travis_terminate 1
   - echo "Decrypting deploy key..."
   - openssl aes-256-cbc -K $encrypted_c996ec964e08_key -iv $encrypted_c996ec964e08_iv -in eHealth-8110bd102a69.json.enc -out eHealth-8110bd102a69.json -d
-  - sudo ./bin/deploy.sh || travis_terminate 1
+  #- sudo ./bin/deploy.sh || travis_terminate 1
