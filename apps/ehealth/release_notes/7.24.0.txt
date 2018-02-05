@@ -1,8 +1,12 @@
-Change log for versions 7.24.0 - 7.24.2
+Change log for versions 7.24.0 - 7.24.4
 
 **Patches and bug fixes**:
 
+Fix person_name pattern (#1768)
+add router logger
 added "additionalProperties: false" for person
 EHealth-1709 - merge lost pull request (#1757)
 
+**Other**:
 
+Make sure it builds container
