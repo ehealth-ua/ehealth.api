@@ -1,7 +1,8 @@
-Change log for versions 7.24.0 - 7.24.4
+Change log for versions 7.24.0 - 7.24.5
 
 **Patches and bug fixes**:
 
+increase delete declaration_requests timeout
 Fix person_name pattern (#1768)
 add router logger
 added "additionalProperties: false" for person
