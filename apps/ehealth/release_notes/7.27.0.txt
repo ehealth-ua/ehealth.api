@@ -1,7 +1,8 @@
-Change log for versions 7.27.0 - 7.27.6
+Change log for versions 7.27.0 - 7.27.7
 
 **Patches and bug fixes**:
 
+increase delete declaration_requests timeout
 Fix employee speciality validation when creating declaration request (1776)
 add working hours to division (#1770)
 EHealth-1739: put reason field
