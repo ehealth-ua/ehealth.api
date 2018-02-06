@@ -1,7 +1,9 @@
-Change log for versions 7.27.0 - 7.27.4
+Change log for versions 7.27.0 - 7.27.6
 
 **Patches and bug fixes**:
 
+Fix employee speciality validation when creating declaration request (1776)
+add working hours to division (#1770)
 EHealth-1739: put reason field
 EHealth-1739: added reason_description
 add router logger (#1769)
@@ -9,6 +11,10 @@ Fix person_name pattern (#1768)
 
 **Other**:
 
+Change Search Settlements, Search Regions and Search Districts
+registers_json_schema
+add json schema to create registers
+add missed additional properties to json schema for creating registers
 EHealth-1729: added reason_description (#1777)
 Transferring API Description file from Apiary.io
 Rollback corrections
