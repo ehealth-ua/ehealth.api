@@ -418,7 +418,7 @@ defmodule EHealth.DeclarationRequest.API do
         )
 
       Multi.new()
-      |> Multi.delete_all(:declaration_requests, query)
+      |> Multi.delete_all(:declaration_requests, query, timeout: 60_000)
       |> Repo.transaction()
     end
   end
