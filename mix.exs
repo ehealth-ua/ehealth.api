@@ -20,8 +20,8 @@ defmodule Ehealth.MixProject do
   defp deps do
     [
       {:distillery, "~> 1.5", runtime: false},
-      {:excoveralls, ">= 0.5.0", only: [:dev, :test]},
-      {:credo, ">= 0.5.1", only: [:dev, :test]}
+      {:excoveralls, "~> 0.8.1", only: [:dev, :test]},
+      {:credo, "~> 0.9.0-rc3", only: [:dev, :test]}
     ]
   end
 end

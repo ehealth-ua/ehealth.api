@@ -85,6 +85,7 @@ defmodule EHealth.DeclarationRequest.API do
          {:ok, _} <- Validations.validate_addresses(get_in(attrs, ["person", "addresses"])),
          {:ok, %Employee{} = employee} <-
            Helpers.get_assoc_by_func("employee_id", fn -> Employees.get_by_id(attrs["employee_id"]) end),
+         :ok <- Validations.validate_employee_speciality(employee),
          %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(client_id),
          {:ok, %Division{} = division} <-
            Helpers.get_assoc_by_func("division_id", fn -> Divisions.get_by_id(attrs["division_id"]) end) do

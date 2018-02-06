@@ -17,6 +17,8 @@ defmodule EHealth.DeclarationRequest.API.Validations do
 
   @auth_otp DeclarationRequest.authentication_method(:otp)
 
+  @allowed_employee_specialities ["THERAPIST", "PEDIATRICIAN", "FAMILY_DOCTOR"]
+
   def validate_authentication_method_phone_number(changeset) do
     validate_change(changeset, :data, fn :data, data ->
       data
@@ -269,6 +271,17 @@ defmodule EHealth.DeclarationRequest.API.Validations do
       changeset
     else
       add_error(changeset, :"data.person.employee_id", "Employee ID must reference a doctor.")
+    end
+  end
+
+  def validate_employee_speciality(%Employee{additional_info: additional_info}) do
+    specialities = Map.get(additional_info, "specialities", [])
+
+    if Enum.any?(specialities, fn s -> Map.get(s, "speciality") in @allowed_employee_specialities end) do
+      :ok
+    else
+      alllowed_types = Enum.join(@allowed_employee_specialities, ", ")
+      {:error, {:"422", "Employee's speciality does not belong to a doctor: #{alllowed_types}"}}
     end
   end
 
