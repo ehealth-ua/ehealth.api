@@ -29,6 +29,7 @@ defmodule EHealth.Divisions.Division do
     field(:status, :string, null: false)
     field(:is_active, :boolean, default: false)
     field(:location, Geo.Geometry)
+    field(:working_hours, :map)
 
     belongs_to(:legal_entity, EHealth.LegalEntities.LegalEntity, type: Ecto.UUID)
 

@@ -23,7 +23,8 @@ defmodule EHealth.Web.DivisionView do
       external_id: division.external_id,
       legal_entity_id: division.legal_entity_id,
       status: division.status,
-      location: to_coordinates(division.location)
+      location: to_coordinates(division.location),
+      working_hours: division.working_hours
     }
   end
 

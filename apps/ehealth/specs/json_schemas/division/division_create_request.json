@@ -5,6 +5,15 @@
       "type": "number",
       "pattern": "^([1-8]?[1-9]|[1-9]0)\\.{1}\\d{1,6}"
     },
+    "range": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^([0-9]|0[0-9]|1[0-9]|2[0-3])\\.[0-5][0-9]$"
+      },
+      "minItems": 2,
+      "maxItems": 2
+    },
     "name": {
       "type": "string",
       "pattern": "^(?!.*[ЫЪЭЁыъэё@%&$^#])[a-zA-ZА-ЯҐЇІЄа-яґїіє0-9№\\\"!\\^\\*)\\]\\[(._-].*$"
@@ -80,6 +89,61 @@
         "building"
       ],
       "additionalProperties": false
+    },
+    "working_hours": {
+      "type": "object",
+      "properties": {
+        "mon": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/range"
+          },
+          "minItems": 1
+        },
+        "tue": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/range"
+          },
+          "minItems": 1
+        },
+        "wed": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/range"
+          },
+          "minItems": 1
+        },
+        "thu": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/range"
+          },
+          "minItems": 1
+        },
+        "fri": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/range"
+          },
+          "minItems": 1
+        },
+        "sat": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/range"
+          },
+          "minItems": 1
+        },
+        "sun": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/range"
+          },
+          "minItems": 1
+        }
+      },
+      "additionalProperties": false
     }
   },
   "type": "object",
@@ -129,6 +193,9 @@
         "longitude",
         "latitude"
       ]
+    },
+    "working_hours": {
+      "$ref": "#/definitions/working_hours"
     }
   },
   "required": [

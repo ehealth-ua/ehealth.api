@@ -34,6 +34,7 @@ defmodule EHealth.Divisions do
     mountain_group
     is_active
     location
+    working_hours
   )a
 
   @fields_required ~w(

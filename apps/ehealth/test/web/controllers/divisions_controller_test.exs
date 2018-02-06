@@ -192,6 +192,27 @@ defmodule EHealth.Web.DivisionsControllerTest do
     assert allowed_types == err["rules"] |> hd |> Map.get("params")
   end
 
+  test "create division with invalid working hours", %{conn: conn} do
+    legal_entity = insert(:prm, :legal_entity)
+    conn = put_client_id_header(conn, legal_entity.id)
+
+    params = Map.put(get_division(), "working_hours", [])
+    conn1 = post(conn, division_path(conn, :create), params)
+    assert json_response(conn1, 422)
+
+    params = Map.put(get_division(), "working_hours", %{"invalid" => []})
+    conn2 = post(conn, division_path(conn, :create), params)
+    assert json_response(conn2, 422)
+
+    params = Map.put(get_division(), "working_hours", %{"mon" => %{}})
+    conn3 = post(conn, division_path(conn, :create), params)
+    assert json_response(conn3, 422)
+
+    params = Map.put(get_division(), "working_hours", %{"mon" => [["12", "25"]]})
+    conn4 = post(conn, division_path(conn, :create), params)
+    assert json_response(conn4, 422)
+  end
+
   test "update division", %{conn: conn} do
     legal_entity = insert(:prm, :legal_entity)
     division = insert(:prm, :division, legal_entity: legal_entity)
