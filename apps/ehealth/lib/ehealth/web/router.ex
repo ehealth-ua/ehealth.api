@@ -53,7 +53,6 @@ defmodule EHealthWeb.Router do
     patch("/dictionaries/:name", DictionaryController, :update)
 
     get("/invite/:id", EmployeeRequestController, :invite)
-    get("/employee_requests/:id", EmployeeRequestController, :show)
     post("/employee_requests/:id/user", EmployeeRequestController, :create_user)
 
     patch("/uaddresses/settlements/:id", UaddressesController, :update_settlements)
@@ -105,6 +104,7 @@ defmodule EHealthWeb.Router do
 
     # Employee requests
     get("/employee_requests", EmployeeRequestController, :index)
+    get("/employee_requests/:id", EmployeeRequestController, :show)
   end
 
   scope "/api", EHealth.Web do
