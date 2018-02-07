@@ -1,7 +1,10 @@
-Change log for versions 7.27.0 - 7.27.9
+Change log for versions 7.27.0 - 7.27.12
 
 **Patches and bug fixes**:
 
+EHealth-1780: fix error message (#1803)
+EHealth-1780: fix error message
+EHealth-1780: fix format
 Add context to employee_request details (#1801)
 EHealth-1781: fix search LE by settlement_id (#1802)
 increase delete declaration_requests timeout
