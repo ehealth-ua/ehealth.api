@@ -27,8 +27,9 @@ defmodule EHealth.Web.EmployeeRequestView do
   end
 
   def render("show.json", %{employee_request: employee_request, legal_entity: legal_entity}) do
+    employee_request = Map.from_struct(employee_request)
     data = for {key, val} <- employee_request.data, into: %{}, do: {String.to_atom(key), val}
-    party = data |> Map.get(:party, %{})
+    party = Map.get(data, :party, %{})
 
     data
     |> Map.merge(employee_request)
@@ -39,5 +40,6 @@ defmodule EHealth.Web.EmployeeRequestView do
     |> Map.put(:second_name, party["second_name"])
     |> Map.put(:last_name, party["last_name"])
     |> Map.put(:no_tax_id, party["no_tax_id"])
+    |> Map.drop([:__meta__, :__struct__])
   end
 end

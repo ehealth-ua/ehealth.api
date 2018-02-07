@@ -58,7 +58,7 @@ defmodule EHealth.Mixfile do
       {:postgrex, ">= 0.0.0"},
       {:ecto, "~> 2.1"},
       {:scrivener_ecto, "~> 1.2"},
-      {:ecto_trail, "~> 0.2.3"},
+      {:ecto_trail, "0.2.3"},
       {:phoenix, "~> 1.3.0"},
       {:phoenix_ecto, "~> 3.2"},
       {:eview, "~> 0.12.2"},
