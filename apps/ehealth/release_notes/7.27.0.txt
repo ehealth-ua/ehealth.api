@@ -1,7 +1,8 @@
-Change log for versions 7.27.0 - 7.27.7
+Change log for versions 7.27.0 - 7.27.8
 
 **Patches and bug fixes**:
 
+EHealth-1781: fix search LE by settlement_id (#1802)
 increase delete declaration_requests timeout
 Fix employee speciality validation when creating declaration request (1776)
 add working hours to division (#1770)
