@@ -1,7 +1,8 @@
-Change log for versions 7.27.0 - 7.27.12
+Change log for versions 7.27.0 - 7.27.13
 
 **Patches and bug fixes**:
 
+Fix show in employee_request_view (1779)
 EHealth-1780: fix error message (#1803)
 EHealth-1780: fix error message
 EHealth-1780: fix format
