@@ -526,6 +526,31 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       })
       |> json_response(200)
     end
+
+    test "invalid request", %{conn: conn} do
+      data =
+        "test/data/declaration_request/sign_request.json"
+        |> File.read!()
+        |> Poison.decode!()
+
+      %{id: legal_entity_id} = insert(:prm, :legal_entity)
+      %{id: declaration_id} = insert(:il, :declaration_request)
+
+      assert [err1, err2] =
+               conn
+               |> put_client_id_header(legal_entity_id)
+               |> patch(declaration_request_path(conn, :sign, declaration_id), %{
+                 "data" => %{
+                   "signed_declaration_request" => data,
+                   "signed_content_encoding" => "base64"
+                 }
+               })
+               |> json_response(422)
+               |> get_in(["error", "invalid"])
+
+      assert "$.signed_content_encoding" == err1["entry"]
+      assert "$.signed_declaration_request" == err2["entry"]
+    end
   end
 
   defp fixture_params do

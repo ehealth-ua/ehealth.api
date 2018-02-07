@@ -141,7 +141,7 @@ defmodule EHealth.DeclarationRequest.API.Validations do
     |> Signature.decode_and_validate(Map.get(changes, :signed_content_encoding), headers)
   end
 
-  def validate_signature(err), do: err
+  def validate_signature(err, _headers), do: err
 
   def normalize_signature_error({:error, %{"meta" => %{"description" => error}}}) do
     %SignRequest{}
@@ -160,9 +160,7 @@ defmodule EHealth.DeclarationRequest.API.Validations do
     {:ok, result}
   end
 
-  def check_is_valid({:error, error}) do
-    {:error, error}
-  end
+  def check_is_valid(err), do: err
 
   def validate_tax_id(changeset) do
     tax_id =
