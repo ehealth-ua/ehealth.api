@@ -1,7 +1,8 @@
-Change log for versions 7.27.0 - 7.27.8
+Change log for versions 7.27.0 - 7.27.9
 
 **Patches and bug fixes**:
 
+Add context to employee_request details (#1801)
 EHealth-1781: fix search LE by settlement_id (#1802)
 increase delete declaration_requests timeout
 Fix employee speciality validation when creating declaration request (1776)
