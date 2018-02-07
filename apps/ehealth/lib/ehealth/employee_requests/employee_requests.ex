@@ -236,7 +236,7 @@ defmodule EHealth.EmployeeRequests do
   end
 
   def update_all(query, updates, author_id) do
-    {_, request_ids} = Repo.update_all(query, [set: updates], returning: [:id])
+    {_, request_ids} = Repo.update_all(query, [set: updates], returning: [:id, :employee_id])
 
     max_concurrency = System.schedulers_online() * 2
 

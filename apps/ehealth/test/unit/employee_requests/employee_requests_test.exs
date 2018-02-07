@@ -9,9 +9,11 @@ defmodule EHealth.Unit.EmployeeRequestsTest do
   alias EHealth.EventManagerRepo
   alias EHealth.EventManager.Event
   alias EHealth.Repo
+  alias Ecto.UUID
 
   test "terminate outdated employee_requests" do
-    employee_request1 = insert(:il, :employee_request)
+    employee_id = UUID.generate()
+    employee_request1 = insert(:il, :employee_request, employee_id: employee_id)
     employee_request2 = insert(:il, :employee_request)
     insert(:il, :employee_request)
     inserted_at = NaiveDateTime.add(NaiveDateTime.utc_now(), -86_400 * 10, :seconds)
@@ -44,7 +46,10 @@ defmodule EHealth.Unit.EmployeeRequestsTest do
              entity_type: "EmployeeRequest",
              event_type: "StatusChangeEvent",
              entity_id: ^request_id,
-             properties: %{"status" => %{"new_value" => ^expired_status}}
+             properties: %{
+               "status" => %{"new_value" => ^expired_status},
+               "employee_id" => %{"new_value" => ^employee_id}
+             }
            } = event1
   end
 end
