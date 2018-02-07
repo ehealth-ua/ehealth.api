@@ -85,23 +85,12 @@ defmodule EHealth.LegalEntities do
   end
 
   def get_search_query(LegalEntity = entity, %{ids: _ids} = changes) do
-    entity
-    |> super(convert_comma_params_to_where_in_clause(changes, :ids, :id))
-    |> load_references()
+    get_search_query(entity, convert_comma_params_to_where_in_clause(changes, :ids, :id))
   end
 
-  def get_search_query(LegalEntity = entity, %{settlement_id: settlement_id} = changes) do
-    params =
-      changes
-      |> Map.delete(:settlement_id)
-      |> Map.to_list()
-
-    address_params = [%{settlement_id: settlement_id}]
-
-    entity
-    |> where([e], ^params)
-    |> where([e], fragment("? @> ?", e.addresses, ^address_params))
-    |> load_references()
+  def get_search_query(LegalEntity = entity, %{settlement_id: settlement_id} = changes) when is_binary(settlement_id) do
+    changes = Map.put(changes, :settlement_id, {:json_list, [%{settlement_id: settlement_id}]})
+    get_search_query(entity, changes)
   end
 
   def get_search_query(entity, changes) do

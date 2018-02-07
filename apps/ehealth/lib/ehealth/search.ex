@@ -20,7 +20,7 @@ defmodule EHealth.Search do
       end
 
       def get_search_query(entity, changes) when map_size(changes) > 0 do
-        params = Enum.filter(changes, fn {key, value} -> !is_tuple(value) end)
+        params = Enum.filter(changes, fn {_key, value} -> !is_tuple(value) end)
 
         q = where(entity, ^params)
 
@@ -28,6 +28,7 @@ defmodule EHealth.Search do
           case val do
             {value, :like} -> where(query, [r], ilike(field(r, ^key), ^("%" <> value <> "%")))
             {value, :in} -> where(query, [r], field(r, ^key) in ^value)
+            {value, :json_list} -> where(query, [r], fragment("? @> ?", field(r, ^key), ^value))
             _ -> query
           end
         end)

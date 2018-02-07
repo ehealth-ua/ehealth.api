@@ -43,6 +43,12 @@ defmodule EHealth.Web.LegalEntityControllerTest do
   end
 
   describe "get legal entities" do
+    setup %{conn: conn} do
+      insert(:prm, :legal_entity)
+      insert(:prm, :legal_entity)
+      %{conn: conn}
+    end
+
     test "without x-consumer-metadata", %{conn: conn} do
       conn = get(conn, legal_entity_path(conn, :index, edrpou: "37367387"))
       assert 401 == json_response(conn, 401)["meta"]["code"]
@@ -106,6 +112,29 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       %{id: id} = insert(:prm, :legal_entity, type: LegalEntity.type(:pharmacy))
       conn = put_client_id_header(conn, id)
       conn = get(conn, legal_entity_path(conn, :index, type: LegalEntity.type(:pharmacy)))
+      resp = json_response(conn, 200)
+
+      assert Map.has_key?(resp, "data")
+      assert is_list(resp["data"])
+      assert 1 == length(resp["data"])
+      assert id == hd(resp["data"])["id"]
+    end
+
+    test "search by type status and settlement_id", %{conn: conn} do
+      settlement_id = Ecto.UUID.generate()
+
+      %{id: id} =
+        insert(
+          :prm,
+          :legal_entity,
+          status: LegalEntity.status(:active),
+          addresses: [
+            %{settlement_id: settlement_id}
+          ]
+        )
+
+      conn = put_client_id_header(conn, id)
+      conn = get(conn, legal_entity_path(conn, :index, status: "ACTIVE", settlement_id: settlement_id))
       resp = json_response(conn, 200)
 
       assert Map.has_key?(resp, "data")
