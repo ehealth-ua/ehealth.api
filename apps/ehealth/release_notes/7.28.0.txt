@@ -1,0 +1,8 @@
+Change log for versions 7.28.0 - 7.28.2
+
+**Patches and bug fixes**:
+
+Add status for GetDeclarationsList (1808)
+add temporary endpoint to get employee_id by employee_request id (#1810)
+
+
