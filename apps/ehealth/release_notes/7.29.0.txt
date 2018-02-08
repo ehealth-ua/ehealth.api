@@ -1,0 +1,7 @@
+Change log for versions 7.29.0 - 7.29.1
+
+**Patches and bug fixes**:
+
+Fix tax_id pattern (#1813)
+
+
