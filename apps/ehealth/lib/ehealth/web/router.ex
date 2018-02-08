@@ -125,6 +125,9 @@ defmodule EHealthWeb.Router do
     patch("/legal_entities/:id/actions/nhs_verify", LegalEntityController, :nhs_verify)
     patch("/legal_entities/:id/actions/deactivate", LegalEntityController, :deactivate)
 
+    # Temporary mis endpoints
+    get("/mis/employee_requests/:id", MisController, :employee_request)
+
     # Employees
     get("/employees/:id", EmployeeController, :show)
 
