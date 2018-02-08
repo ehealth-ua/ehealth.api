@@ -62,11 +62,11 @@ defmodule EHealth.Web.BlackListUserControllerTest do
 
   describe "create black list user" do
     test "success", %{conn: conn} do
-      party = insert(:prm, :party, tax_id: "12345672")
+      party = insert(:prm, :party, tax_id: "0123456720")
       insert(:prm, :party_user, party: party, user_id: MockServer.get_user_for_role_1())
       insert(:prm, :party_user, party: party, user_id: MockServer.get_user_for_role_2())
 
-      conn = post(conn, black_list_user_path(conn, :create), tax_id: "12345672")
+      conn = post(conn, black_list_user_path(conn, :create), tax_id: "0123456720")
       assert %{"id" => id} = json_response(conn, 201)["data"]
 
       conn = get(conn, black_list_user_path(conn, :index), %{"id" => id})
