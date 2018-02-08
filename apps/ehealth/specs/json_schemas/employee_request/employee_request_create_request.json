@@ -43,7 +43,16 @@
           "description": "Dictionary: DOCUMENT_TYPE"
         },
         "number": {
-          "type": "string"
+          "type": "string",
+          "minLength": 1
+        },
+        "issued_by": {
+          "type": "string",
+          "minLength": 1
+        },
+        "issued_at": {
+          "type": "string",
+          "format": "date"
         }
       },
       "required": [

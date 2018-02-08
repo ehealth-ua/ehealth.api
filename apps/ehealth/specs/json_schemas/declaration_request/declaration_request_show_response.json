@@ -631,6 +631,13 @@
                   },
                   "number": {
                     "type": "string"
+                  },
+                  "issued_by": {
+                    "type": "string"
+                  },
+                  "issued_at": {
+                    "type": "string",
+                    "format": "date"
                   }
                 },
                 "required": [
@@ -726,6 +733,13 @@
             },
             "tax_id": {
               "type": "string"
+            },
+            "invalid_tax_id": {
+              "type": "boolean"
+            },
+            "preferred_way_communication": {
+              "type": "string",
+              "enum": ["email", "phone"]
             }
           },
           "required": [

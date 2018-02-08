@@ -11,10 +11,14 @@
       "email": "email@example.com",
       "tax_id": "1111111118",
       "secret": "secret",
+      "invalid_tax_id": false,
+      "preferred_way_communication": "email",
       "documents": [
         {
           "type": "PASSPORT",
-          "number": "120518"
+          "number": "120518",
+          "issued_at": "2014-02-12",
+          "issued_by": "Збухівський РО ГО МЖД"
         }
       ],
       "addresses": [

@@ -95,11 +95,19 @@
       "properties": {
         "type": {
           "type": "string",
-          "minLength": 1
+          "description": "Dictionary: DOCUMENT_TYPE"
         },
         "number": {
           "type": "string",
           "minLength": 1
+        },
+        "issued_by": {
+          "type": "string",
+          "minLength": 1
+        },
+        "issued_at": {
+          "type": "string",
+          "format": "date"
         }
       },
       "required": [
@@ -195,10 +203,17 @@
               "type": "string",
               "$ref": "#/definitions/tax_id"
             },
+            "invalid_tax_id": {
+              "type": "boolean"
+            },
             "secret": {
               "type": "string",
               "$ref": "#/definitions/name",
               "minLength": 6
+            },
+            "preferred_way_communication": {
+              "type": "string",
+              "enum": ["email", "phone"]
             },
             "documents": {
               "type": "array",
@@ -338,6 +353,7 @@
                   "birth_date",
                   "birth_country",
                   "birth_settlement",
+                  "tax_id",
                   "gender",
                   "secret",
                   "documents_person",
