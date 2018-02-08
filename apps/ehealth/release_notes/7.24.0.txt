@@ -1,7 +1,8 @@
-Change log for versions 7.24.0 - 7.24.6
+Change log for versions 7.24.0 - 7.24.7
 
 **Patches and bug fixes**:
 
+add employee_id to employee_request events (#1806)
 Add context to employee_request details (#1801)
 increase delete declaration_requests timeout
 Fix person_name pattern (#1768)
