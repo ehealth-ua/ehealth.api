@@ -60,7 +60,7 @@ script:
   - (cd apps/ehealth && MIX_ENV=dev mix ecto.setup)
   # Run Docker container
   - sudo ./bin/ci/release/start-container.sh
-  - sudo ./bin/ci/release/check-container.sh || travis_terminate
+  - sudo ./bin/ci/release/check-container.sh || travis_terminate 1
   # Submit Docker container to Docker Hub and create GitHub Release by pushing tag with changelog
   - ./bin/ci/rel/push-changes.sh || travis_terminate 1
   - echo "Decrypting deploy key..."
