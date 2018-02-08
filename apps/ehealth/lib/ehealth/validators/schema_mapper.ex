@@ -146,6 +146,10 @@ defmodule EHealth.Validators.SchemaMapper do
     put_into_schema(~W(properties reimbursement properties type enum), schema, values)
   end
 
+  def put_dictionary_value(%Dictionary{name: "REGISTER_TYPE", values: values}, schema, :registers) do
+    put_into_schema(~W(properties type enum), schema, values)
+  end
+
   def put_dictionary_value(%Dictionary{name: "MEDICATION_UNIT", values: values}, schema, type)
       when type in [:medication, :innm_dosage] do
     values = Map.keys(values)

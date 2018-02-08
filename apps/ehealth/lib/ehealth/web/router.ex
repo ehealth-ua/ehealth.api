@@ -83,6 +83,15 @@ defmodule EHealthWeb.Router do
     patch("/black_list_users/:id/actions/deactivate", BlackListUserController, :deactivate)
   end
 
+  # Registers
+  scope "/api", EHealth.Web do
+    pipe_through([:api, :api_consumer_id])
+
+    post("/registers", RegisterController, :create)
+    get("/registers", RegisterController, :index)
+    get("/registers_entries", RegisterEntryController, :index)
+  end
+
   # Client context for lists
   scope "/api", EHealth.Web do
     pipe_through([:api, :api_client_id, :client_context_list])

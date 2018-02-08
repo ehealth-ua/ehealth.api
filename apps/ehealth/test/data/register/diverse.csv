@@ -1,0 +1,6 @@
+tax_id,national_id,passport,birth_certificate,temporary_certificate
+tax_id_primary,,,,temporary_certificate_not_primary
+tax_id_not_found,national_id_not_primary,,,
+,,,,processing
+invalid row,,,
+,,passport_primary,birth_certificate_not_primary,temporary_certificate_not_primary

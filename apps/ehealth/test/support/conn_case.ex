@@ -48,7 +48,7 @@ defmodule EHealth.Web.ConnCase do
     conn =
       Phoenix.ConnTest.build_conn()
       |> Plug.Conn.put_req_header("content-type", "application/json")
-      |> Plug.Conn.put_req_header(@header_consumer_id, Ecto.UUID.generate())
+      |> put_consumer_id_header()
       |> put_client_id(tags[:with_client_id])
 
     {:ok, conn: conn}
@@ -67,6 +67,10 @@ defmodule EHealth.Web.ConnCase do
 
   def put_consumer_id_header(conn, id \\ Ecto.UUID.generate()) do
     Plug.Conn.put_req_header(conn, @header_consumer_id, id)
+  end
+
+  def delete_consumer_id_header(conn) do
+    Plug.Conn.delete_req_header(conn, @header_consumer_id)
   end
 
   def delete_client_id_header(conn) do

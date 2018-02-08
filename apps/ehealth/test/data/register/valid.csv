@@ -1,0 +1,4 @@
+passport,national_id,birth_certificate,temporary_certificate,tax_id
+,,,,tax_id_primary
+passport_not_primary,,,,tax_id_primary
+passport_primary,,,,

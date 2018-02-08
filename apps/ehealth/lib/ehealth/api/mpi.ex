@@ -23,6 +23,10 @@ defmodule EHealth.API.MPI do
     get!("/all-persons", headers, params: params)
   end
 
+  def admin_search(params \\ %{}, headers \\ []) do
+    get!("/persons_internal", headers, params: params)
+  end
+
   def person(id, headers \\ []) do
     get!("/persons/#{id}", headers)
   end

@@ -16,6 +16,7 @@ defmodule EHealth.Factories do
   use EHealth.PRMFactories.BlackListUserFactory
 
   # IL
+  use EHealth.ILFactories.RegisterFactory
   use EHealth.ILFactories.DictionaryFactory
   use EHealth.ILFactories.EmployeeRequestFactory
   use EHealth.ILFactories.DeclarationRequestFactory
