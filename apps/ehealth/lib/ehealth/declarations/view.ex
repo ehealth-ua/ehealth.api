@@ -28,6 +28,7 @@ defmodule EHealth.Declarations.View do
       declaration_request_id
       inserted_at
       updated_at
+      status
     ))
     |> Map.merge(%{
       "person" => person,
