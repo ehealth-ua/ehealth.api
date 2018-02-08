@@ -134,7 +134,7 @@ defmodule EHealth.BlackListUsers do
     black_list_user
     |> cast(attrs, @fields_required ++ @fields_optional)
     |> validate_required(@fields_required)
-    |> validate_format(:tax_id, ~r/^[1-9]([0-9]{7}|[0-9]{9})$/)
+    |> validate_format(:tax_id, ~r/^[0-9]{10}$/)
   end
 
   defp load_references({:ok, entity}) do
