@@ -1,8 +1,13 @@
-Change log for versions 7.29.0 - 7.29.2
+Change log for versions 7.29.0 - 7.29.3
 
 **Patches and bug fixes**:
 
+typo
 improve JSON schemas (#1815)
 Fix tax_id pattern (#1813)
 
+**Other**:
 
+Production specifications (#1772)
+Production specifications
+should be changed only after deployment to prod
