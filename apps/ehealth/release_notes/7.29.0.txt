@@ -1,7 +1,8 @@
-Change log for versions 7.29.0 - 7.29.1
+Change log for versions 7.29.0 - 7.29.2
 
 **Patches and bug fixes**:
 
+improve JSON schemas (#1815)
 Fix tax_id pattern (#1813)
 
 
