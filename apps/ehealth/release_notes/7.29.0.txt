@@ -1,7 +1,8 @@
-Change log for versions 7.29.0 - 7.29.4
+Change log for versions 7.29.0 - 7.29.5
 
 **Patches and bug fixes**:
 
+fix MPI search persons params (#1825)
 fix register_id empty field (#1824)
 typo
 improve JSON schemas (#1815)
