@@ -24,11 +24,11 @@ This API design in based on [Nebo #15 API Design Manifest](http://docs.apimanife
 This document contains both internal and public (usually `/api/..`) API specifications. If you plan to use it as outside API consumer - please refer only to sections that marked as `Public`.
 
 <!--
-## Pagination
+## Patination
 
 We apply cursor based pagination..
 
-## Authentication
+## Autentification
 
 We use three-legged oAuth authentication, RFC..
 -->
@@ -2820,6 +2820,30 @@ This service should be used with `access_token` authetification method.
         + urgent (object, optional)
             + user_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 
+### Get Employee ID by Employee Request ID [GET /api/mis/employee_requests/{id}]
+
+This service should be used with mis `access_token` authetification method and used to get employee id and employee request status by employee request id.
+**Scopes required:** `event:read`
+
++ Parameters
+
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) 
+
++ Request
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM (string, optional) -- the Authorization is optional if `token` is passed
+
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data 
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + employee_id: `836c4753-ece4-44ba-b63c-0f92900535bf` (string, optional)
+            + status: `APPROVED` (string, required)
+            + updated_at: `2017-05-05T14:09:59.232112` (string, optional)
+
 ## Persons [/api/persons]
 
 ### Search for a Person [GET /api/persons{?first_name,last_name,second_name,birth_date,tax_id,phone_number,birth_place,page,page_size}]
@@ -3039,29 +3063,6 @@ Signed content MUST consists of JSON object with Legal Entity data:
   "website": "www.boris.com.ua",
   "receiver_funds_code": "AB12345",
   "beneficiary": "Борисов Борис Борисович",
-  "owner": {
-    "first_name": "Петро",
-    "last_name": "Іванов",
-    "second_name": "Миколайович",
-    "tax_id": "3015492565",
-    "birth_date": "1985-06-16",
-    "birth_place": "Вінниця, Україна",
-    "gender": "FEMALE",
-    "email": "sp.virny+100@gmail.com",
-    "documents": [
-      {
-        "type": "PASSPORT",
-        "number": "120518"
-      }
-    ],
-    "phones": [
-      {
-        "type": "MOBILE",
-        "number": "+380503410870"
-      }
-    ],
-    "position": "P1"
-  },
   "medical_service_provider": {
     "licenses": [
       {
@@ -3299,9 +3300,9 @@ API for searching Ukrainian Addresses
             + code: 200 (number)
         + data (array[`Response_Street`])
 
-## Search Settlements [/api/uaddresses/search/settlements]
+## Search Settlements [/api/uaddresses/settlements]
 
-### List Of Cities By Search Params [GET /api/uaddresses/search/settlements{?name,region,district,koatuu,page,page_size}]
+### List Of Cities By Search Params [GET /api/uaddresses/settlements{?name,region,district,koatuu,page,page_size}]
 
 Use this method to obtain list of cities. If you want to reduce amount of data that is going trough your application, use `name`, `region`, `district` or `koatuu classifier` filters and show only cities you are interested in.
 
@@ -3320,9 +3321,9 @@ Use this method to obtain list of cities. If you want to reduce amount of data t
             + code: 200 (number)
         + data (array[`Response_Settlement`])
 
-## Search Regions [/api/uaddresses/search/regions]
+## Search Regions [/api/uaddresses/regions]
 
-### List Of Regions By Search Params [GET /api/uaddresses/search/regions{?name,koatuu,page,page_size}]
+### List Of Regions By Search Params [GET /api/uaddresses/regions{?name,koatuu,page,page_size}]
 + Parameters
     + name: Київ (string, optional) - Province name
     + koatuu: `2625286301` (string, optional) - koatuu classifier id
@@ -3335,9 +3336,9 @@ Use this method to obtain list of cities. If you want to reduce amount of data t
             + code: 200 (number)
         + data (array[`Response_Region`])
 
-## Search Districts [/api/uaddresses/search/districts]
+## Search Districts [/api/uaddresses/districts]
 
-### List Of Districts By Search Params [GET /api/uaddresses/search/districts{?region_id,region,name,koatuu,page,page_size}]
+### List Of Districts By Search Params [GET /api/uaddresses/districts{?region_id,region,name,koatuu,page,page_size}]
 + Parameters
     + region_id: `09a33c98-9a5c-447a-8493-da8fcecb6873` (string, optional) - Province id
     + region: Київ (string, optional) - Province name
@@ -3352,7 +3353,7 @@ Use this method to obtain list of cities. If you want to reduce amount of data t
             + code: 200 (number)
         + data (array[`Response_District`])
 
-### Districts by Region [GET /api/uaddresses/details/regions/290f1ee-6c54-4b01-90e6-d701748f0851/districts{?name,koatuu,page,page_size}]
+### Districts by Region [GET /api/uaddresses/regions/290f1ee-6c54-4b01-90e6-d701748f0851/districts{?name,koatuu,page,page_size}]
 
 + Parameters
     + name: `Києво-Святошинський` (string, optional) - Filter by district name
@@ -3366,7 +3367,7 @@ Use this method to obtain list of cities. If you want to reduce amount of data t
             + code: 200 (number)
         + data (array[`Response_District_Short`])
 
-### Settlements by district [GET /api/uaddresses/details/districts/290f1ee-6c54-4b01-90e6-d701748f0851/settlements{?name,koatuu,page,page_size}]
+### Settlements by district [GET /api/uaddresses/districts/290f1ee-6c54-4b01-90e6-d701748f0851/settlements{?name,koatuu,page,page_size}]
 
 Get list of cities by district
 
@@ -3986,7 +3987,7 @@ This method is used to obtain events by id.
 This method is used to abtain list of events with filters.
 
 + Parameters
-    + date: `2017-09-01` (date, optional) - date of event happening.
+    + date: `2017-12-06T15:00:00` (datetime, optional) - evets created between datetime and now.
     + event_type: `StatusChangeEvent` (enum, optional) - type of event.
     + entity_type: `MedicationDispense` (enum, optional) - type of entity.
     + attribute_name: `status` (string, optional) - name of event in properties.
@@ -4626,7 +4627,6 @@ This method is used to abtain list of events with filters.
 + website: `www.boris.com.ua` (string, optional)
 + receiver_funds_code: `AB12345` (string, optional)
 + beneficiary: `Борисов Борис Борисович` (string, optional)
-+ owner (Owner)
 + `medical_service_provider` (MSP)
 + `archive`(array[Archive], optional)
 + security (object, fixed-type)
