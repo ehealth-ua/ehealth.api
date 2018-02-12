@@ -172,7 +172,7 @@ defmodule EHealth.Registers.API do
     Enum.reduce_while(search_fields, %{}, fn search_key, acc ->
       case params[search_key] do
         "" -> {:cont, acc}
-        search_value when byte_size(search_value) > 0 -> {:halt, %{search_key => search_value}}
+        search_value when byte_size(search_value) > 0 -> {:halt, %{"type" => search_key, "number" => search_value}}
       end
     end)
   end

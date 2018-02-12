@@ -66,10 +66,10 @@ defmodule EHealth.Web.RegisterControllerTest do
       Plug.Router.get "/persons_internal" do
         {code, data} =
           case conn.query_params do
-            x when x in [%{"passport" => "passport_primary"}, %{"tax_id" => "tax_id_primary"}] ->
+            %{"number" => number} when number in ["passport_primary", "tax_id_primary"] ->
               {200, [%{id: Ecto.UUID.generate()}]}
 
-            %{"temporary_certificate" => "processing"} ->
+            %{"number" => "processing"} ->
               {500, %{error: "system unavailable"}}
 
             _ ->
@@ -177,7 +177,10 @@ defmodule EHealth.Web.RegisterControllerTest do
       use MicroservicesHelper
 
       Plug.Router.get "/persons_internal" do
-        send_resp(conn, 200, Poison.encode!(%{meta: %{code: 200}, data: [%{id: Ecto.UUID.generate()}]}))
+        case is_binary(conn.query_params["type"]) do
+          true -> send_resp(conn, 200, Poison.encode!(%{meta: %{code: 200}, data: [%{id: Ecto.UUID.generate()}]}))
+          _ -> send_resp(conn, 404, Poison.encode!(%{meta: %{code: 422}, data: %{}}))
+        end
       end
 
       Plug.Router.patch "/persons/:id/declarations/actions/terminate" do

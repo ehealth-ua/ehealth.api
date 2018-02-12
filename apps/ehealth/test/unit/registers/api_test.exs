@@ -15,10 +15,10 @@ defmodule EHealth.Registers.APITest do
       Plug.Router.get "/persons_internal" do
         {code, data} =
           case conn.query_params do
-            x when x in [%{"passport" => "passport_primary"}, %{"tax_id" => "tax_id_primary"}] ->
+            %{"number" => number} when number in ["passport_primary", "tax_id_primary"] ->
               {200, [%{id: Ecto.UUID.generate()}]}
 
-            %{"temporary_certificate" => "processing"} ->
+            %{"number" => "processing"} ->
               {500, %{error: "system unavailable"}}
 
             _ ->
