@@ -1,13 +1,15 @@
-Change log for versions 7.29.0 - 7.29.3
+Change log for versions 7.29.0 - 7.29.4
 
 **Patches and bug fixes**:
 
+fix register_id empty field (#1824)
 typo
 improve JSON schemas (#1815)
 Fix tax_id pattern (#1813)
 
 **Other**:
 
+Change uadresses url, LE response (remove owner information)
 Production specifications (#1772)
 Production specifications
 should be changed only after deployment to prod
