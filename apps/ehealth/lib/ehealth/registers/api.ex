@@ -21,10 +21,10 @@ defmodule EHealth.Registers.API do
     type
     status
     inserted_by
+    updated_by
   )a
   @optional_register_fields ~w(
     errors
-    updated_by
   )a
 
   @required_qty_fields ~w(
@@ -36,7 +36,9 @@ defmodule EHealth.Registers.API do
 
   @required_register_entry_fields ~w(
     status
+    register_id
     inserted_by
+    updated_by
   )a
   @optional_register_entry_fields ~w(
     tax_id
@@ -45,7 +47,6 @@ defmodule EHealth.Registers.API do
     birth_certificate
     temporary_certificate
     person_id
-    updated_by
   )a
 
   @csv_headers ~w(
@@ -106,7 +107,8 @@ defmodule EHealth.Registers.API do
   defp prepare_register_data(attrs, author_id) do
     Map.merge(attrs, %{
       "status" => Register.status(:new),
-      "inserted_by" => author_id
+      "inserted_by" => author_id,
+      "updated_by" => author_id
     })
   end
 
@@ -154,6 +156,7 @@ defmodule EHealth.Registers.API do
     entry_data
     |> Map.merge(%{
       "register_id" => register.id,
+      "updated_by" => register.inserted_by,
       "inserted_by" => register.inserted_by
     })
     |> set_entry_status(mpi_response)
@@ -275,5 +278,6 @@ defmodule EHealth.Registers.API do
     entity
     |> cast(attrs, @required_register_entry_fields ++ @optional_register_entry_fields)
     |> validate_required(@required_register_entry_fields)
+    |> foreign_key_constraint(:register_id)
   end
 end

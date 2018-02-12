@@ -31,7 +31,6 @@ defmodule EHealth.ILFactories.RegisterFactory do
           passport: sequence("passport"),
           birth_certificate: sequence("birth_certificate"),
           temporary_certificate: sequence("temporary_certificate"),
-          status: EHealth.Registers.RegisterEntry.status(:matched),
           inserted_by: uuid,
           updated_by: uuid,
           register: insert(:il, :register)

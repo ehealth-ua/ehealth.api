@@ -120,6 +120,20 @@ defmodule EHealth.Web.RegisterControllerTest do
              } == data["qty"]
 
       assert "PROCESSED" = data["status"]
+
+      # check register_entry
+      register_entries =
+        conn
+        |> get(register_entry_path(conn, :index), register_id: data["id"])
+        |> json_response(200)
+        |> Map.get("data")
+
+      assert 3 = length(register_entries)
+      entry = hd(register_entries)
+
+      assert data["id"] == entry["register_id"]
+      assert data["inserted_by"] == entry["updated_by"]
+      assert data["updated_by"] == entry["inserted_by"]
     end
 
     test "success with status PROCESSING", %{conn: conn} do
