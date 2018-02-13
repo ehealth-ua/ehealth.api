@@ -28,6 +28,8 @@ defmodule EHealth.Declarations.View do
       declaration_request_id
       inserted_at
       updated_at
+      reason
+      reason_description
       status
     ))
     |> Map.merge(%{
@@ -51,6 +53,8 @@ defmodule EHealth.Declarations.View do
       declaration_request_id
       inserted_at
       updated_at
+      reason
+      reason_description
     ))
     |> Map.merge(%{
       "person" => render_one(declaration["person"], __MODULE__, "person.json", as: :person),

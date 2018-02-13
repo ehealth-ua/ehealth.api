@@ -16,8 +16,18 @@ defmodule EHealth.Web.DeclarationsControllerTest do
     test "by person_id", %{conn: conn} do
       conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375222")
       conn = get(conn, declarations_path(conn, :index, person_id: "7cc91a5d-c02f-41e9-b571-1ea4f2375400"))
-      resp = json_response(conn, 200)
-      assert 2 == Enum.count(resp["data"])
+
+      resp =
+        conn
+        |> json_response(200)
+        |> Map.get("data")
+
+      assert 2 == Enum.count(resp)
+
+      Enum.each(resp, fn elem ->
+        assert Map.has_key?(elem, "reason")
+        assert Map.has_key?(elem, "reason_description")
+      end)
     end
 
     test "empty by person_id", %{conn: conn} do
@@ -140,6 +150,8 @@ defmodule EHealth.Web.DeclarationsControllerTest do
       conn = put_client_id_header(conn, legal_entity.id)
       conn = get(conn, declarations_path(conn, :show, @declaration_id))
       data = json_response(conn, 200)["data"]
+      assert Map.has_key?(data, "reason")
+      assert Map.has_key?(data, "reason_description")
       assert_declaration_expanded_fields(data)
     end
 

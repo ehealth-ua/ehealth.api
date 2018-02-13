@@ -614,6 +614,8 @@ defmodule EHealth.MockServer do
       "created_by" => UUID.generate(),
       "updated_by" => UUID.generate(),
       "is_active" => false,
+      "reason" => nil,
+      "reason_description" => nil,
       "scope" => "declarations:read",
       "declaration_request_id" => UUID.generate(),
       "authentication_methods" => [
