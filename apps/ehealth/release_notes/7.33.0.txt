@@ -1,7 +1,8 @@
-Change log for versions 7.33.0 - 7.33.1
+Change log for versions 7.33.0 - 7.33.2
 
 **Patches and bug fixes**:
 
+added person_type for batch termination declarations (#1837)
 EHealth-1751: search declaration for deduplication without tax_id by first_name, last_name and birth_date (#1836)
 
 **Other**:
