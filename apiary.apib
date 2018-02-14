@@ -1,4 +1,4 @@
-FORMAT: 1A
+fFORMAT: 1A
 HOST: http://ehealth.edenlabllc.com/
 
 # eHealth API
@@ -1820,7 +1820,7 @@ Method allows NHS admin to upload and save files with registers
     + Attributes (object)
        + `file`: `Base64 encoded csv file` (string, required)
        + `file_name`: `deaths.csv` (string, required)
-       + `type`: `death_registration` (string, required)
+       + `type`: `death_registration` (string, required) - Dictionary REGISTER_TYPE
        + `reason_description`: `Реєстр смертності за 01-31.01.2018` (string, optional)
        
 + Response 200 (application/json)
@@ -1849,7 +1849,7 @@ Method returns list of files which were uploaded with statistics.
         + meta (Response__Meta)
         + data (array[`Registers_list_response`])
 
-### Get Register entries  list [GET /register_entries{?id,register_id,status,date_from,date_to,tax_id,national_id,passport,birth_certificate,temporary_certificate,page,page_size}]
+### Get Register entries  list [GET /register_entries{?id,register_id,status,date_from,date_to,document_type,document_number,page,page_size}]
 Method returns list of records from each uploaded file with status.  
 
 
@@ -1859,11 +1859,8 @@ Method returns list of records from each uploaded file with status.
     + `status`: `not_found` (string, optional)
     + `date_from`: 2017-10-01` (string, optional)
     + `date_to`: `2017-10-30` (string, optional)
-    + `tax_id`: `3028106992` (string, optional)
-    + `national_id`: `123456789` (string, optional)
-    + `passport`: `СМ123456` (string, optional)
-    + `birth_certificate`: `СМ123456` (string, optional)
-    + `temporary_certificate`: `12345678` (string, optional)
+    + `document_type`: `3028106992` (string, optional)
+    + `document_number`: `123456789` (string, optional)
     + `page`: 2 (number) - Page number.    
     + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
@@ -4674,16 +4671,16 @@ This method is used to abtain list of events with filters.
 
 ### workinghours
 + mon (array)
-    - 08,12 (array[number])
-    - 14,18 (array[number])
+    - 08.00,12.00 (array[string])
+    - 14.00,18.00 (array[string])
 + tue (array)
-    - 08,12 (array[number])
+    - 08.00,12.00 (array[string])
 + wed (array)
-    - 08,12 (array[number])
+    - 08.00,12.00 (array[string])
 + thu (array)
-    - 08,12 (array[number])
+    - 08.00,12.00 (array[string])
 + fri (array)
-    - 08,12 (array[number])
+    - 08.00,12.00 (array[string])
 + sat (array)
 + sun (array)
 
@@ -5172,6 +5169,9 @@ This method is used to abtain list of events with filters.
 + status (enum, optional)
     - active
     - closed
+    - terminated
++ reason: `manual_employee` (string, optional)
++ reason_description: `Згідно постанови 1 від 10.01.2017` (string, optional)
 + person (`Person_Minimal`, required)
 + `legal_entity` (`Legal_Entity_Short`, required)
 + `declaration_request_id`: `74a6fae6-4207-4e03-a136-f2e70c6b0c02` (string, required)
@@ -5768,6 +5768,7 @@ This method is used to abtain list of events with filters.
         - new 
         - processing 
         - processed 
++ `reason_description`: `Реєстр смертності за 01-31.01.2018` (string, optional)
 + `type`: `death_registration` (string, required)
 + `qty`(object, required) 
   + `not_found`: 10 (number, required)- not matched records
@@ -5780,6 +5781,7 @@ This method is used to abtain list of events with filters.
 + `updated_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
 + `errors`: `Row has length 4 - expected length 5 on line 5, Row has length 1 - expected length 5 on line 7` (array, optional)
     
+
 ### `Register_entries_list_response`
 + `id`: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - record id
 + `register_id`: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - file id
@@ -5789,11 +5791,8 @@ This method is used to abtain list of events with filters.
         - processing
         - matched
         - not_found
-+ `tax_id`: `3028106992` (string, optional)
-+ `national_id`: `123456789` (string, optional)
-+ `passport`: `СМ123456` (string, optional)
-+ `birth_certificate`: `СМ123456` (string, optional)
-+ `temporary_certificate`: `12345678` (string, optional)
++ `document_type`: `3028106992` (string, required)
++ `document_number`: `123456789` (string, required)
 + `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
 + `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
