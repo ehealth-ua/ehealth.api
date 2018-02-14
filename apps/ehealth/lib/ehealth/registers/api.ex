@@ -21,6 +21,7 @@ defmodule EHealth.Registers.API do
     file_name
     type
     status
+    person_type
     inserted_by
     updated_by
   )a

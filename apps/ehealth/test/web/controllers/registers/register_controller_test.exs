@@ -105,7 +105,8 @@ defmodule EHealth.Web.RegisterControllerTest do
       attrs = %{
         file: get_csv_file("valid"),
         file_name: "persons",
-        type: "death"
+        type: "death",
+        person_type: "patient"
       }
 
       data =
@@ -145,7 +146,8 @@ defmodule EHealth.Web.RegisterControllerTest do
       attrs = %{
         file: get_csv_file("diverse"),
         file_name: "persons",
-        type: "death"
+        type: "death",
+        person_type: "patient"
       }
 
       data =
@@ -172,11 +174,45 @@ defmodule EHealth.Web.RegisterControllerTest do
              ] == data["errors"]
     end
 
+    test "person_type not passed", %{conn: conn} do
+      attrs = %{
+        file: get_csv_file("valid"),
+        file_name: "death",
+        type: "death"
+      }
+
+      assert [invalid] =
+               conn
+               |> post(register_path(conn, :create), attrs)
+               |> json_response(422)
+               |> get_in(~w(error invalid))
+
+      assert "$.person_type" == invalid["entry"]
+    end
+
+    test "invalid person_type", %{conn: conn} do
+      attrs = %{
+        file: get_csv_file("valid"),
+        file_name: "death",
+        type: "death",
+        person_type: "invalid"
+      }
+
+      assert [invalid] =
+               conn
+               |> post(register_path(conn, :create), attrs)
+               |> json_response(422)
+               |> get_in(~w(error invalid))
+
+      assert "$.person_type" == invalid["entry"]
+    end
+
     test "invalid CSV file format", %{conn: conn} do
       attrs = %{
-        "file" => "invalid base64 string",
-        "file_name" => "death",
-        "type" => "death"
+        file: "invalid base64 string",
+        file_name: "death",
+        type: "death",
+        person_type: "patient"
       }
 
       assert [invalid] =
@@ -189,15 +225,11 @@ defmodule EHealth.Web.RegisterControllerTest do
     end
 
     test "invalid CSV headers", %{conn: conn} do
-      csv =
-        "test/data/register/invalid_headers.csv"
-        |> File.read!()
-        |> Base.encode64()
-
       attrs = %{
-        "file" => csv,
-        "file_name" => "death",
-        "type" => "death"
+        file: get_csv_file("invalid_headers"),
+        file_name: "death",
+        type: "death",
+        person_type: "patient"
       }
 
       assert "Invalid CSV headers" =
@@ -211,15 +243,11 @@ defmodule EHealth.Web.RegisterControllerTest do
       %{values: values} = insert(:il, :dictionary_document_type)
       dict_values = Map.keys(values) |> Enum.join(", ")
 
-      csv =
-        "test/data/register/invalid_body.csv"
-        |> File.read!()
-        |> Base.encode64()
-
       attrs = %{
-        "file" => csv,
-        "file_name" => "death",
-        "type" => "death"
+        file: get_csv_file("invalid_body"),
+        file_name: "death",
+        type: "death",
+        person_type: "patient"
       }
 
       data =
@@ -244,15 +272,11 @@ defmodule EHealth.Web.RegisterControllerTest do
     end
 
     test "invalid CSV type field because of empty dictionary values by DOCUMENT_TYPE", %{conn: conn} do
-      csv =
-        "test/data/register/valid.csv"
-        |> File.read!()
-        |> Base.encode64()
-
       attrs = %{
-        "file" => csv,
-        "file_name" => "death",
-        "type" => "death"
+        file: get_csv_file("valid"),
+        file_name: "death",
+        type: "death",
+        person_type: "patient"
       }
 
       assert "Type not allowed" =
@@ -303,6 +327,7 @@ defmodule EHealth.Web.RegisterControllerTest do
         file: get_csv_file("valid"),
         file_name: "persons",
         type: "death",
+        person_type: "patient",
         reason_description: "Згідно реєстру померлих"
       }
 
@@ -326,7 +351,8 @@ defmodule EHealth.Web.RegisterControllerTest do
       attrs = %{
         file: get_csv_file("valid"),
         file_name: "persons",
-        type: "death"
+        type: "death",
+        person_type: "patient"
       }
 
       data =
@@ -352,6 +378,7 @@ defmodule EHealth.Web.RegisterControllerTest do
         file: get_csv_file("valid"),
         file_name: "persons",
         type: "death",
+        person_type: "patient",
         reason_description: "Згідно реєстру померлих"
       }
 

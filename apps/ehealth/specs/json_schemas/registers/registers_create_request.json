@@ -8,6 +8,13 @@
     "file_name": {
       "type": "string"
     },
+    "person_type": {
+      "type": "string",
+      "enum": [
+        "patient"
+      ],
+      "description":  "patient or employee"
+    },
     "type": {
       "type": "string",
       "description": "Dictionary: REGISTER_TYPE"
