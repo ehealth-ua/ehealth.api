@@ -739,8 +739,7 @@
             "birth_country",
             "birth_settlement",
             "birth_date",
-            "second_name",
-            "tax_id"
+            "second_name"
           ],
           "type": "object"
         },

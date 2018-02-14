@@ -443,6 +443,44 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
              ] == resp["urgent"]["documents"]
     end
 
+    test "declaration request is created for person without tax_id", %{conn: conn} do
+      declaration_request_params =
+        "test/data/declaration_request.json"
+        |> File.read!()
+        |> Poison.decode!()
+
+      person =
+        declaration_request_params
+        |> get_in(~W(declaration_request person))
+        |> Map.put("authentication_methods", [%{"type" => "OFFLINE"}])
+        |> Map.delete("tax_id")
+
+      declaration_request_params = put_in(declaration_request_params, ~W(declaration_request person), person)
+
+      new_declaration =
+        declaration_request_params
+        |> Map.get("declaration_request")
+        |> put_in(~W(person first_name), "Василь")
+        |> put_in(~W(person last_name), "Шевченко")
+        |> put_in(~W(person second_name), "Макарович")
+
+      le_id = "8799e3b6-34e7-4798-ba70-d897235d2b6d"
+      d1 = clone_declaration_request(new_declaration, le_id, "NEW")
+      d2 = clone_declaration_request(declaration_request_params["declaration_request"], le_id, "NEW")
+
+      resp =
+        conn
+        |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
+        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
+        |> post(declaration_request_path(conn, :create), Poison.encode!(declaration_request_params))
+        |> json_response(200)
+
+      assert_show_response_schema(resp, "declaration_request")
+      assert "NEW" = resp["data"]["status"]
+      assert "NEW" = EHealth.Repo.get(EHealth.DeclarationRequest, d1.id).status
+      assert "CANCELLED" = EHealth.Repo.get(EHealth.DeclarationRequest, d2.id).status
+    end
+
     test "declaration request is created without verification", %{conn: conn} do
       System.put_env("GNDF_TABLE_ID", "not_available")
 
@@ -454,7 +492,7 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
 
       decoded = declaration_request_params["declaration_request"]
       d1 = clone_declaration_request(decoded, "8799e3b6-34e7-4798-ba70-d897235d2b6d", "NEW")
-      d2 = clone_declaration_request(decoded, "8799e3b6-34e7-4798-ba70-d897235d2b6d", "APPROVED")
+      d2 = clone_declaration_request(decoded, "8799e3b6-34e7-4798-ba70-d897235d2b6d", "NEW")
 
       conn =
         conn
@@ -719,9 +757,7 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
   def clone_declaration_request(params, legal_entity_id, status) do
     declaration_request_params = %{
       data: %{
-        person: %{
-          tax_id: get_in(params, ["person", "tax_id"])
-        },
+        person: params["person"],
         employee: %{
           id: params["employee_id"]
         },

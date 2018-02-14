@@ -104,9 +104,7 @@ defmodule EHealth.DeclarationRequest.API do
         legal_entity: legal_entity
       }
 
-      tax_id = get_in(attrs, ["person", "tax_id"])
-
-      pending_declaration_requests = pending_declaration_requests(tax_id, employee.id, legal_entity.id)
+      pending_declaration_requests = pending_declaration_requests(attrs["person"], employee.id, legal_entity.id)
 
       Multi.new()
       |> Multi.update_all(:previous_requests, pending_declaration_requests, set: updates)
@@ -343,20 +341,23 @@ defmodule EHealth.DeclarationRequest.API do
     put_change(changeset, :data, new_data)
   end
 
-  def pending_declaration_requests(nil, employee_id, legal_entity_id) do
+  def pending_declaration_requests(%{"tax_id" => tax_id}, employee_id, legal_entity_id) do
     from(
       p in EHealth.DeclarationRequest,
       where: p.status in [@status_new, @status_approved],
+      where: fragment("? #>> ? = ?", p.data, "{person, tax_id}", ^tax_id),
       where: fragment("? #>> ? = ?", p.data, "{employee, id}", ^employee_id),
       where: fragment("? #>> ? = ?", p.data, "{legal_entity, id}", ^legal_entity_id)
     )
   end
 
-  def pending_declaration_requests(tax_id, employee_id, legal_entity_id) do
+  def pending_declaration_requests(person, employee_id, legal_entity_id) do
+    person_where = %{"person" => Map.take(person, ~W(first_name last_name birth_date))}
+
     from(
       p in EHealth.DeclarationRequest,
       where: p.status in [@status_new, @status_approved],
-      where: fragment("? #>> ? = ?", p.data, "{person, tax_id}", ^tax_id),
+      where: fragment("? @> ?", p.data, ^person_where),
       where: fragment("? #>> ? = ?", p.data, "{employee, id}", ^employee_id),
       where: fragment("? #>> ? = ?", p.data, "{legal_entity, id}", ^legal_entity_id)
     )

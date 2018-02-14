@@ -24,7 +24,30 @@ defmodule EHealth.DeclarationRequest.APITest do
       {:ok, pending_declaration_req_1} = copy_declaration_request(existing_declaration_request_data, "NEW")
       {:ok, pending_declaration_req_2} = copy_declaration_request(existing_declaration_request_data, "APPROVED")
 
-      query = pending_declaration_requests("111", "222", "333")
+      query = pending_declaration_requests(%{"tax_id" => "111"}, "222", "333")
+
+      assert [pending_declaration_req_1, pending_declaration_req_2] == Repo.all(query)
+    end
+
+    test "returns pending requests without tax_id" do
+      existing_declaration_request_data = %{
+        "person" => %{
+          "first_name" => "Василь",
+          "last_name" => "Шамрило",
+          "birth_data" => "2000-12-14"
+        },
+        "employee" => %{
+          "id" => "222"
+        },
+        "legal_entity" => %{
+          "id" => "333"
+        }
+      }
+
+      {:ok, pending_declaration_req_1} = copy_declaration_request(existing_declaration_request_data, "NEW")
+      {:ok, pending_declaration_req_2} = copy_declaration_request(existing_declaration_request_data, "APPROVED")
+
+      query = pending_declaration_requests(%{}, "222", "333")
 
       assert [pending_declaration_req_1, pending_declaration_req_2] == Repo.all(query)
     end
