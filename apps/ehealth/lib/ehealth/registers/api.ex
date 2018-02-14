@@ -5,7 +5,8 @@ defmodule EHealth.Registers.API do
 
   import Ecto.Changeset
 
-  alias EHealth.Repo
+  alias EHealth.{Repo, Dictionaries}
+  alias EHealth.Dictionaries.Dictionary
   alias EHealth.API.{MPI, OPS}
   alias EHealth.Ecto.Base64
   alias EHealth.Validators.JsonSchema
@@ -48,14 +49,6 @@ defmodule EHealth.Registers.API do
     temporary_certificate
     person_id
   )a
-
-  @csv_headers ~w(
-    tax_id
-    passport
-    national_id
-    birth_certificate
-    temporary_certificate
-  )
 
   def list_registers(params \\ %{}) do
     %SearchRegisters{}
@@ -115,10 +108,11 @@ defmodule EHealth.Registers.API do
   def batch_create_register_entries(register, %{"file" => base64file}, reason_desc) do
     with parsed_csv <- parse_csv(base64file),
          {:ok, headers} <- fetch_headers(parsed_csv),
-         true <- valid_csv_headers?(headers) do
+         true <- valid_csv_headers?(headers),
+         {:ok, allowed_types} <- get_allowed_types() do
       entries =
         parsed_csv
-        |> Enum.map(&Task.async(fn -> process_register_entry(&1, register, reason_desc) end))
+        |> Enum.map(&Task.async(fn -> process_register_entry(&1, register, allowed_types, reason_desc) end))
         |> Enum.map(&Task.await/1)
 
       {:ok, entries}
@@ -132,6 +126,13 @@ defmodule EHealth.Registers.API do
     |> CSV.decode(headers: true)
   end
 
+  defp get_allowed_types do
+    case Dictionaries.get_dictionary("DOCUMENT_TYPE") do
+      %Dictionary{values: values} -> {:ok, Map.keys(values)}
+      _ -> {:error, {:"422", "Type not allowed"}}
+    end
+  end
+
   defp fetch_headers(csv) do
     case Enum.take(csv, 1) do
       [ok: headers] -> {:ok, headers}
@@ -139,43 +140,42 @@ defmodule EHealth.Registers.API do
     end
   end
 
-  defp valid_csv_headers?(headers) when map_size(headers) == 5 do
-    case Enum.all?(headers, fn {key, _} -> key in @csv_headers end) do
-      true -> true
-      _ -> {:error, {:"422", "Invalid CSV headers"}}
-    end
+  defp valid_csv_headers?(%{"type" => _, "number" => _}) do
+    true
   end
 
   defp valid_csv_headers?(_) do
     {:error, {:"422", "Invalid CSV headers"}}
   end
 
-  defp process_register_entry({:ok, entry_data}, register, reason_desc) do
-    mpi_response = entry_data |> prepare_person_search_params() |> MPI.admin_search()
+  defp process_register_entry({:ok, entry_data}, register, allowed_types, reason_desc) do
+    with :ok <- validate_csv_type(entry_data, allowed_types),
+         :ok <- validate_csv_number(entry_data) do
+      mpi_response = MPI.admin_search(entry_data)
 
-    entry_data
-    |> Map.merge(%{
-      "register_id" => register.id,
-      "updated_by" => register.inserted_by,
-      "inserted_by" => register.inserted_by
-    })
-    |> set_entry_status(mpi_response)
-    |> maybe_terminate_person_declaration(register.type, reason_desc)
-    |> create_register_entry()
+      entry_data
+      |> Map.merge(%{
+        "register_id" => register.id,
+        "updated_by" => register.inserted_by,
+        "inserted_by" => register.inserted_by
+      })
+      |> set_entry_status(mpi_response)
+      |> maybe_terminate_person_declaration(register.type, reason_desc)
+      |> create_register_entry()
+    end
   end
 
-  defp process_register_entry(err, _, _), do: err
+  defp process_register_entry(err, _, _, _), do: err
 
-  def prepare_person_search_params(params) do
-    search_fields = ~w(tax_id national_id passport birth_certificate temporary_certificate)
-
-    Enum.reduce_while(search_fields, %{}, fn search_key, acc ->
-      case params[search_key] do
-        "" -> {:cont, acc}
-        search_value when byte_size(search_value) > 0 -> {:halt, %{"type" => search_key, "number" => search_value}}
-      end
-    end)
+  defp validate_csv_type(%{"type" => type}, allowed_types) do
+    case type in allowed_types do
+      true -> :ok
+      false -> {:error, "Invalid type - expected one of #{Enum.join(allowed_types, ", ")} on line "}
+    end
   end
+
+  defp validate_csv_number(%{"number" => number}) when is_binary(number) and byte_size(number) > 0, do: :ok
+  defp validate_csv_number(_), do: {:error, "Invalid number - expected non empty string on line "}
 
   defp set_entry_status(entry_data, {:ok, %{"data" => persons}}) when is_list(persons) and length(persons) > 0 do
     Map.merge(entry_data, %{
@@ -210,10 +210,14 @@ defmodule EHealth.Registers.API do
     acc = %{
       status: @status_processed,
       qty: %{total: 0, not_found: 0, processing: 0, errors: 0},
-      errors: []
+      errors: [],
+      # starts with first because of CSV headers
+      tmp_line: 1
     }
 
     Enum.reduce(processed_entries, acc, fn entry, acc ->
+      acc = Map.update!(acc, :tmp_line, &(&1 + 1))
+
       case entry do
         {:ok, %RegisterEntry{status: @status_matched}} ->
           Map.put(acc, :qty, Map.update!(acc.qty, :total, &(&1 + 1)))
@@ -229,9 +233,16 @@ defmodule EHealth.Registers.API do
         {:error, msg} ->
           acc
           |> increment_qty(:errors)
-          |> Map.update!(:errors, &(&1 ++ [msg]))
+          |> Map.update!(:errors, &(&1 ++ [put_line(msg, acc.tmp_line)]))
       end
     end)
+  end
+
+  defp put_line(msg, line) do
+    case String.last(msg) do
+      " " -> msg <> "#{line}"
+      _ -> msg
+    end
   end
 
   defp increment_qty(%{qty: qty} = data, field) do

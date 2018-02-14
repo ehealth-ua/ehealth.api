@@ -9,6 +9,7 @@ defmodule EHealth.Web.RegisterView do
     qty
     type
     status
+    errors
     inserted_at
     inserted_by
     updated_at
