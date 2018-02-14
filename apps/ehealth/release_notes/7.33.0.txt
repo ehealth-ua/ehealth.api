@@ -1,0 +1,9 @@
+Change log for versions 7.33.0 - 7.33.1
+
+**Patches and bug fixes**:
+
+EHealth-1751: search declaration for deduplication without tax_id by first_name, last_name and birth_date (#1836)
+
+**Other**:
+
+Transferring API Description file from Apiary.io
