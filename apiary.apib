@@ -1,4 +1,4 @@
-fFORMAT: 1A
+FORMAT: 1A
 HOST: http://ehealth.edenlabllc.com/
 
 # eHealth API
@@ -1820,6 +1820,9 @@ Method allows NHS admin to upload and save files with registers
     + Attributes (object)
        + `file`: `Base64 encoded csv file` (string, required)
        + `file_name`: `deaths.csv` (string, required)
+       + `person_type`: patient (enum, required)
+                    - patient
+                    - employee
        + `type`: `death_registration` (string, required) - Dictionary REGISTER_TYPE
        + `reason_description`: `Реєстр смертності за 01-31.01.2018` (string, optional)
        
@@ -2114,6 +2117,7 @@ After declaration request is signed and/or verified (depends on verification log
 
 Use this method to obrain list of Declaration Requests for an `empolee_id`. If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor is interested in current UI section.
 
+
 Also we suggest use `employee_id` and `legal_entity_id` to make sure that end-user understands context of actions that he or she will perform.
 
 Method returns shortened details, to obtain full information - get Declaration Request it by it's ID.
@@ -2235,6 +2239,7 @@ In case if authentication_method is OTP, request example:
 In case if authentication_method is OFFLINE, request body should be empty. 
 Before approve patient's scanned documents should be uploaded to the ([Signed URL's](https://cloud.google.com/storage/docs/access-control/create-signed-urls-program))
 as well as scanned signed declaration (with type person.DECLARATION_FORM).
+All links are generated for one one-page document in jpeg format. Document should be no more than 10MB.
 If make declaration request via cabinet then nothing must be uploaded to URL.
 Clients can use signed URL's to directly access Google Cloud Storage via their API 
 ([Google Cloud Storage API](https://cloud.google.com/storage/docs/xml-api/put-object-upload))
@@ -2320,7 +2325,6 @@ All signature fields will be validated (including signer certificate authority).
 This service will store signed copy of Declaration Request in Media Content Storage, created or update MPI records and create declaration if signature is all checks is passed.
 
 Signed content MUST consists of JSON object with Declaration Request data and printout template. Object that need to be signed is returned by `Get Declaration request by ID` response, `JSON.Path: $.data`.
-The only field that can and must be changed is JSON.Path: `$.data.patient_signed`. It should be changed to `true`.
 
 **Important**
 Invoke Get Declaration Request by ID to obtain seed - Hash of previous block in declarations chain or other random component that should be signed with declaration
@@ -2587,7 +2591,7 @@ Method returns shortened details, to obtain full information - get Declaration D
         + data (object)
             + include `Declaration_Details`
 
-### Verify declaration  [PATCH /declarations/{id}/verify]
+### Verify declaration  [PATCH /api/declarations/{id}/actions/approve]
 
 This method is used by NHS_admin to verify declarations that has been created with the offline authorization.
 declaration status will be changed to `active`
@@ -4280,6 +4284,7 @@ This method is used to abtain list of events with filters.
 + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Registered Medical Service Provider Division identifier.
 + scope (enum, required)
     - family_doctor
++ overlimit: false (boolean, optional)
 
 ### `Declaration_Request_Public_Response`
 + start_date: `2017-03-02` (string, required) - Should be defined on the client side.
@@ -4289,6 +4294,7 @@ This method is used to abtain list of events with filters.
     + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
 + scope (enum, required)
     - family doctor
++ overlimit: false (boolean, optional)
 
 ### `Declaration_Request_Details_Public`
 + start_date: `2017-03-02` (string, required)
@@ -4302,6 +4308,7 @@ This method is used to abtain list of events with filters.
 + division (`Division_Details`)
 + scope (enum, required)
     - family doctor
++ overlimit: false (boolean, optional)
 + `declaration_request_id`: `74a6fae6-4207-4e03-a136-f2e70c6b0c02` (string, required)
 
 ### `Declaration_Request_Short`
@@ -4382,6 +4389,20 @@ This method is used to abtain list of events with filters.
 + email: email@example.com (string, optional)
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
++ educations (array[Education], optional)  - освіта
++ qualifications (array[Qualification], optional) - підвищення кваліфікації
++ specialities (array[Speciality_party], optional)  - блок інформації про отримання сертифікату спеціалісту та проходження атестацій
++ science_degree (ScienceDegree, optional)
+
+### `Party_Request_old`
++ include `Party_Short`
++ birth_date: `1991-08-19T00:00:00.000Z` (string, required)
++ gender: MALE (string, required) - `Dictionary GENDER`
++ `no_tax_id`: false (boolean, optional)
++ tax_id: 3126509816 (string, required)
++ email: email@example.com (string, optional)
++ documents (array[Document], optional)
++ phones (array[Phone], optional)
 
 ### `Party_Response`
 + id:`b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -4392,6 +4413,10 @@ This method is used to abtain list of events with filters.
 + tax_id: 3126509816 (string, required)
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
++ educations (array[Education], optional)  - освіта
++ qualifications (array[Qualification], optional) - підвищення кваліфікації
++ specialities (array[Speciality_party], optional)  - блок інформації про отримання сертифікату спеціалісту та проходження атестацій
++ science_degree (ScienceDegree, optional)
 
 ### `Party_Update`
 + include `Party_Short`
@@ -4401,6 +4426,10 @@ This method is used to abtain list of events with filters.
 + gender: MALE(string, required) - `Dictionary GENDER`
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
++ educations (array[Education], optional)  - освіта
++ qualifications (array[Qualification], optional) - підвищення кваліфікації
++ specialities (array[Speciality_party], optional)  - блок інформації про отримання сертифікату спеціалісту та проходження атестацій
++ science_degree (ScienceDegree, optional)
 
 ### `crud_party`
 + first_name: Петро (string, required)
@@ -4412,7 +4441,10 @@ This method is used to abtain list of events with filters.
 + tax_id: 3126509816 (string, required)
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
-
++ educations (array[Education], optional)  - освіта
++ qualifications (array[Qualification], optional) - підвищення кваліфікації
++ specialities (array[Speciality_party], optional)  - блок інформації про отримання сертифікату спеціалісту та проходження атестацій
++ science_degree (ScienceDegree, optional)
 
 ### `crud_party_post`
 + include `crud_party`
@@ -4436,7 +4468,7 @@ This method is used to abtain list of events with filters.
 + start_date: 2017-02-28 (string, required)
 + end_date: 2017-02-28 (string, optional)
 + status: NEW, APPROVED (enum, required)
-+ `Doctor` (DoctorNew, optional)
++ speciality (`Speciality`, optional)  - блок інформації про отримання сертифікату спеціалісту та проходження атестацій
 + `status_reason`: `new_employee` (string, optional)
 
 ### `crud_employee_get`
@@ -4484,6 +4516,7 @@ This method is used to abtain list of events with filters.
 + `employee_type`: DOCTOR (string, required) - `Dictionary EMPLOYEE_TYPE`
 + party (Party_Response)
 + doctor (DoctorNew, optional)
++ properties (employee_properties) (object, required)
 
 ### `Employee_Update`
 + division_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
@@ -4493,6 +4526,7 @@ This method is used to abtain list of events with filters.
 + status: APPROVED, DISMISSED (enum, required)
 + party (Party_Update)
 + doctor (DoctorNew, optional)
++ properties (employee_properties) (object, required)
 
 ### `Employee_Request`
 + division_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
@@ -4502,8 +4536,9 @@ This method is used to abtain list of events with filters.
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
 + status: NEW, REJECTED, APPROVED (enum, required)
 + `employee_type`: DOCTOR (string, required) - `Dictionary EMPLOYEE_TYPE`
-+ party (Party_Request)
++ party (Party_Request_old)
 + doctor (DoctorNew, optional)
++ properties (employee_properties) (object, required)
 
 ### `Employee_Request_Short`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -4514,6 +4549,9 @@ This method is used to abtain list of events with filters.
 + `no_tax_id`: true (boolean, optional)
 + include `Party_Short`
 
+### `employee_properties`
++ declaration_amount: 1567 (number, required)
++ declaration_limit: 2000 (number, required)
 
 ### `Employee_Request_Details`
 + include `Employee_Request`
@@ -5117,6 +5155,15 @@ This method is used to abtain list of events with filters.
 ### Speciality
 + speciality: THERAPIST (string, required) - `Dictionary SPECIALITY_TYPE`
 + speciality_officio: true (boolean, required) - спеціальність за посадою
++ level: FIRST (string, required) - `Dictionary SPECIALITY_LEVEL`
++ `qualification_type`: AWARDING (string, required) - `Dictionary SPEC_QUALIFICATION_TYPE`
++ attestation_name: Академія Богомольця (string, required) - орган що видав
++ attestation_date: 2017-02-28 (string, required) - дата отримання
++ valid_to_date: 2020-02-28 (string, required) - дата дії до
++ certificate_number: AB/21331 (string, required)
+
+### `Speciality_party`
++ speciality: THERAPIST (string, required) - `Dictionary SPECIALITY_TYPE`
 + level: FIRST (string, required) - `Dictionary SPECIALITY_LEVEL`
 + `qualification_type`: AWARDING (string, required) - `Dictionary SPEC_QUALIFICATION_TYPE`
 + attestation_name: Академія Богомольця (string, required) - орган що видав
@@ -5749,6 +5796,9 @@ This method is used to abtain list of events with filters.
         - new 
         - processing 
         - processed 
++ `person_type`: patient (enum, required)
+        - patient 
+        - employee 
 + `type`: `death_registration` (string, required)
 + `reason_description`: `Реєстр смертності за 01-31.01.2018` (string, optional)
 + `qty`(object, required) 
