@@ -1186,7 +1186,11 @@
       "PASSPORT": "Паспорт",
       "NATIONAL_ID": "Біометричний паспорт",
       "BIRTH_CERTIFICATE": "Свідоцтво про народження",
-      "TEMPORARY_CERTIFICATE": "Посвідка на проживання"
+      "TEMPORARY_CERTIFICATE": "Посвідка на проживання",
+      "PERMANENT_RESIDENCE_PERMIT": "Посвідка про постійне проживання",
+      "TEMPORARY_RESIDENCE_PERMIT": "Посвідка про тимчасове проживання",
+      "REFUGEE_CERTIFICATE": "Посвідка біженця",
+      "COMPLEMENTARY_PROTECTION_CERTIFICATE": "Посвідчення особи, яка потребує додаткового захисту"
     },
     "labels": [
       "SYSTEM",
@@ -1201,6 +1205,17 @@
       "EXPIRED": "Прострочено",
       "APPROVED": "Схвалено",
       "REJECTED": "Відхилено"
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
+  },
+  {
+    "name": "REGISTER_TYPE",
+    "values": {
+      "DEATH_REGISTRATION": "Реєстрація смерті"
     },
     "labels": [
       "SYSTEM",
