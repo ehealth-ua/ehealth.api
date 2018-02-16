@@ -21,6 +21,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       insert(:il, :dictionary_phone_type)
       insert(:il, :dictionary_document_type)
       insert(:il, :dictionary_employee_type)
+      insert(:il, :dictionary_speciality_type)
 
       {:ok, conn: conn}
     end
@@ -161,9 +162,12 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
         |> put_in(["employee_request", "division_id"], division_id)
         |> put_in(["employee_request", "doctor"], %{})
 
-      conn = put_client_id_header(conn, legal_entity.id)
-      conn1 = post(conn, employee_request_path(conn, :create), employee_request_params)
-      resp = json_response(conn1, 422)
+      resp =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> post(employee_request_path(conn, :create), employee_request_params)
+        |> json_response(422)
+
       assert Map.has_key?(resp, "error")
       assert resp["error"]
       assert 2 == Enum.count(get_in(resp, ["error", "invalid"]))
@@ -174,8 +178,12 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
         |> put_in(["employee_request", "division_id"], division_id)
         |> put_in(["employee_request", "pharmacist"], %{})
 
-      conn2 = post(conn, employee_request_path(conn, :create), employee_request_params)
-      resp = json_response(conn2, 422)
+      resp =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> post(employee_request_path(conn, :create), employee_request_params)
+        |> json_response(422)
+
       assert Map.has_key?(resp, "error")
       assert resp["error"]
       assert 2 == Enum.count(get_in(resp, ["error", "invalid"]))
@@ -540,6 +548,132 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
                |> get_in(["error", "invalid"])
                |> List.first()
                |> Map.get("entry")
+    end
+  end
+
+  describe "create employee request with invalid specialities" do
+    setup %{conn: conn} do
+      insert(:il, :dictionary_phone_type)
+      insert(:il, :dictionary_document_type)
+      insert(:il, :dictionary_employee_type)
+      insert(:il, :dictionary_speciality_type)
+
+      %{id: legal_entity_id} = insert(:prm, :legal_entity)
+      %{id: employee_id} = insert(:prm, :employee, party: insert(:prm, :party, tax_id: "3067305998"))
+      %{id: division_id} = insert(:prm, :division)
+
+      {:ok, conn: put_client_id_header(conn, legal_entity_id), division_id: division_id, employee_id: employee_id}
+    end
+
+    test "with invalid DOCTOR speciality", %{conn: conn, division_id: division_id, employee_id: employee_id} do
+      request_params = doctor_request()
+
+      speciality =
+        request_params
+        |> get_in(~w(employee_request doctor specialities))
+        |> hd()
+        |> Map.put("speciality", "PHARMACIST")
+
+      employee_request_params =
+        request_params
+        |> put_in(~w(employee_request employee_id), employee_id)
+        |> put_in(~w(employee_request division_id), division_id)
+        |> put_in(~w(employee_request doctor specialities), [speciality])
+
+      error =
+        conn
+        |> post(employee_request_path(conn, :create), employee_request_params)
+        |> json_response(422)
+        |> get_in(~w(error invalid))
+        |> hd()
+
+      assert "$.employee_request.doctor.specialities" = error["entry"]
+
+      assert [%{"description" => "speciality with active speciality_officio is not allowed for doctor"}] =
+               error["rules"]
+    end
+
+    test "with invalid PHARMACIST speciality", %{conn: conn, division_id: division_id, employee_id: employee_id} do
+      request_params = pharmacist_request()
+
+      speciality =
+        request_params
+        |> get_in(~w(employee_request pharmacist specialities))
+        |> hd()
+        |> Map.put("speciality", "THERAPIST")
+
+      employee_request_params =
+        request_params
+        |> put_in(~w(employee_request employee_id), employee_id)
+        |> put_in(~w(employee_request division_id), division_id)
+        |> put_in(~w(employee_request pharmacist specialities), [speciality])
+
+      error =
+        conn
+        |> post(employee_request_path(conn, :create), employee_request_params)
+        |> json_response(422)
+        |> get_in(~w(error invalid))
+        |> hd()
+
+      assert "$.employee_request.pharmacist.specialities" = error["entry"]
+
+      assert [%{"description" => "speciality with active speciality_officio is not allowed for pharmacist"}] =
+               error["rules"]
+    end
+
+    test "more than one speciality with active speciality_officio", %{
+      conn: conn,
+      division_id: division_id,
+      employee_id: employee_id
+    } do
+      request_params = pharmacist_request()
+
+      speciality =
+        request_params
+        |> get_in(~w(employee_request pharmacist specialities))
+        |> hd()
+
+      employee_request_params =
+        request_params
+        |> put_in(~w(employee_request employee_id), employee_id)
+        |> put_in(~w(employee_request division_id), division_id)
+        |> put_in(~w(employee_request pharmacist specialities), [speciality, speciality])
+
+      assert [%{"description" => "employee have more than one speciality with active speciality_officio"}] =
+               conn
+               |> post(employee_request_path(conn, :create), employee_request_params)
+               |> json_response(422)
+               |> get_in(~w(error invalid))
+               |> hd()
+               |> Map.get("rules")
+    end
+
+    test "no one speciality has active speciality_officio", %{
+      conn: conn,
+      division_id: division_id,
+      employee_id: employee_id
+    } do
+      request_params = pharmacist_request()
+
+      speciality =
+        request_params
+        |> get_in(~w(employee_request pharmacist specialities))
+        |> hd()
+        |> Map.put("speciality_officio", false)
+
+      employee_request_params =
+        request_params
+        |> put_in(~w(employee_request employee_id), employee_id)
+        |> put_in(~w(employee_request division_id), division_id)
+        |> put_in(~w(employee_request pharmacist specialities), [speciality, speciality])
+
+      assert [%{"description" => "employee doesn't have speciality with active speciality_officio"}] =
+               conn
+               |> post(employee_request_path(conn, :create), employee_request_params)
+               |> json_response(422)
+               |> get_in(~w(error invalid))
+               |> hd()
+               |> Map.get("rules")
     end
   end
 

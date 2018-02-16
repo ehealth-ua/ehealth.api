@@ -52,8 +52,18 @@
       ],
       "specialities": [
         {
-          "speciality": "Педіатр",
+          "speciality": "PHARMACIST",
           "speciality_officio": true,
+          "level": "Перша категорія",
+          "qualification_type": "Присвоєння",
+          "attestation_name": "Академія Богомольця",
+          "attestation_date": "2017-08-04",
+          "valid_to_date": "2017-08-05",
+          "certificate_number": "AB/21331"
+        },
+        {
+          "speciality": "PEDIATRICIAN",
+          "speciality_officio": false,
           "level": "Перша категорія",
           "qualification_type": "Присвоєння",
           "attestation_name": "Академія Богомольця",

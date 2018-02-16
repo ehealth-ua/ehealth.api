@@ -37,6 +37,20 @@ defmodule EHealth.ILFactories.DictionaryFactory do
         )
       end
 
+      def dictionary_speciality_type_factory do
+        build(
+          :dictionary,
+          name: "SPECIALITY_TYPE",
+          values: %{
+            "FAMILY_DOCTOR" => "сімейний лікар",
+            "PEDIATRICIAN" => "педіатр",
+            "PHARMACIST" => "фармацевт",
+            "PHARMACIST2" => "молодший фармацевт",
+            "THERAPIST" => "терапевт"
+          }
+        )
+      end
+
       def dictionary_document_type_factory do
         build(
           :dictionary,
