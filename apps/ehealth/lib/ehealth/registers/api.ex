@@ -149,7 +149,7 @@ defmodule EHealth.Registers.API do
   defp process_register_entry({:ok, entry_data}, register, allowed_types, reason_desc) do
     with :ok <- validate_csv_type(entry_data, allowed_types),
          :ok <- validate_csv_number(entry_data) do
-      mpi_response = MPI.admin_search(entry_data)
+      mpi_response = search_person(entry_data)
 
       entry_data
       |> Map.merge(%{
@@ -176,6 +176,12 @@ defmodule EHealth.Registers.API do
 
   defp validate_csv_number(%{"number" => number}) when is_binary(number) and byte_size(number) > 0, do: :ok
   defp validate_csv_number(_), do: {:error, "Invalid number - expected non empty string on line "}
+
+  defp search_person(%{"type" => type} = entry_data) do
+    entry_data
+    |> Map.put("type", String.downcase(type))
+    |> MPI.admin_search()
+  end
 
   defp set_entry_status(entry_data, {:ok, %{"data" => persons}}) when is_list(persons) and length(persons) > 0 do
     Map.merge(entry_data, %{
