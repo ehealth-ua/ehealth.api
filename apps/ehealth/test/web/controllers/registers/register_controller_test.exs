@@ -80,7 +80,11 @@ defmodule EHealth.Web.RegisterControllerTest do
       end
 
       Plug.Router.patch "/persons/:id/declarations/actions/terminate" do
-        send_resp(conn, 200, Poison.encode!(%{meta: %{code: 200}, data: %{}}))
+        # check that declaration termination reason started with `auto_`
+        case conn.body_params["reason"] do
+          "auto_" <> _type -> send_resp(conn, 200, Poison.encode!(%{meta: %{code: 200}, data: %{}}))
+          _ -> send_resp(conn, 404, Poison.encode!(%{meta: %{code: 404}, data: %{}}))
+        end
       end
     end
 
