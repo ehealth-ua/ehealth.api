@@ -244,6 +244,8 @@ defmodule EHealth.Web.RegisterControllerTest do
                |> post(register_path(conn, :create), attrs)
                |> json_response(422)
                |> get_in(~w(error message))
+
+      assert [] == conn |> get(register_path(conn, :index)) |> json_response(200) |> Map.get("data")
     end
 
     test "invalid CSV body", %{conn: conn} do

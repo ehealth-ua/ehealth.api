@@ -114,6 +114,10 @@ defmodule EHealth.Registers.API do
         |> Enum.map(&Task.await/1)
 
       {:ok, entries}
+    else
+      err ->
+        Repo.delete(register)
+        err
     end
   end
 
