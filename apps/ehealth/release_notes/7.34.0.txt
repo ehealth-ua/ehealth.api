@@ -1,9 +1,12 @@
-Change log for versions 7.34.0 - 7.34.3
+Change log for versions 7.34.0 - 7.34.4
 
 **Patches and bug fixes**:
 
+EHealth-1730: hardcode TAX_ID for doc_type validation (#1853)
 EHealth-1730: downcase document_type for MPI search (#1851)
 EHealth-1730: improve test for termination declaration (#1850)
 EHealth-1730: change register_entry model structure (#1849)
 
+**Other**:
 
+Added new ERD version (for prm, mithril, ops, il, mpi)
