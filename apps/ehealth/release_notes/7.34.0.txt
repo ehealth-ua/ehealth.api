@@ -1,7 +1,8 @@
-Change log for versions 7.34.0 - 7.34.1
+Change log for versions 7.34.0 - 7.34.2
 
 **Patches and bug fixes**:
 
+EHealth-1730: improve test for termination declaration (#1850)
 EHealth-1730: change register_entry model structure (#1849)
 
 
