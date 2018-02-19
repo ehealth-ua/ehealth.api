@@ -132,11 +132,14 @@ defmodule EHealth.Web.RegisterControllerTest do
         |> Map.get("data")
 
       assert 3 = length(register_entries)
-      entry = hd(register_entries)
 
-      assert data["id"] == entry["register_id"]
-      assert data["inserted_by"] == entry["updated_by"]
-      assert data["updated_by"] == entry["inserted_by"]
+      Enum.each(register_entries, fn entry ->
+        assert data["id"] == entry["register_id"]
+        assert data["inserted_by"] == entry["updated_by"]
+        assert data["updated_by"] == entry["inserted_by"]
+        assert Map.has_key?(entry, "document_type")
+        assert Map.has_key?(entry, "document_number")
+      end)
     end
 
     test "success with status PROCESSING", %{conn: conn} do

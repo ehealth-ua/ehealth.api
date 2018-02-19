@@ -9,11 +9,8 @@ defmodule EHealth.Registers.RegisterEntry do
 
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "register_entries" do
-    field(:tax_id, :string)
-    field(:national_id, :string)
-    field(:passport, :string)
-    field(:birth_certificate, :string)
-    field(:temporary_certificate, :string)
+    field(:document_type, :string)
+    field(:document_number, :string)
     field(:status, :string)
     field(:inserted_by, Ecto.UUID, null: false)
     field(:updated_by, Ecto.UUID)

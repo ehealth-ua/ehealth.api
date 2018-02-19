@@ -26,14 +26,12 @@ defmodule EHealth.ILFactories.RegisterFactory do
 
         %EHealth.Registers.RegisterEntry{
           status: EHealth.Registers.Register.status(:new),
-          tax_id: sequence("222222222"),
-          national_id: sequence("national_id"),
-          passport: sequence("passport"),
-          birth_certificate: sequence("birth_certificate"),
-          temporary_certificate: sequence("temporary_certificate"),
+          document_type: "TAX_ID",
+          document_number: sequence("222222222"),
           inserted_by: uuid,
           updated_by: uuid,
-          register: insert(:il, :register)
+          register: insert(:il, :register),
+          person_id: Ecto.UUID.generate()
         }
       end
     end

@@ -5,11 +5,8 @@ defmodule EHealth.Web.RegisterEntryView do
 
   @fields ~w(
     id
-    tax_id
-    national_id
-    passport
-    birth_certificate
-    temporary_certificate
+    document_type
+    document_number
     register_id
     status
     inserted_at

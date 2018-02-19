@@ -27,29 +27,38 @@ defmodule EHealth.Web.RegisterEntryControllerTest do
     end
 
     test "search by tax_id", %{conn: conn} do
-      %{id: id} = insert(:il, :register_entry, tax_id: "234")
+      %{id: id} = insert(:il, :register_entry, document_number: "234")
 
       assert [data] =
                conn
-               |> get(register_entry_path(conn, :index), tax_id: "234")
+               |> get(register_entry_path(conn, :index), document_number: "234")
                |> json_response(200)
                |> Map.get("data")
 
       assert id == data["id"]
-      assert "234" == data["tax_id"]
+      assert "TAX_ID" == data["document_type"]
+      assert "234" == data["document_number"]
     end
 
-    test "search by register_id and birth_certificate", %{conn: conn} do
-      %{id: id, register: register} = insert(:il, :register_entry, birth_certificate: "DOO123/123")
+    test "search by register_id, document_type and document_number", %{conn: conn} do
+      %{id: id, register: register} =
+        insert(:il, :register_entry, document_type: "birth_certificate", document_number: "DOO123/123")
+
+      search_attrs = %{
+        document_type: "birth_certificate",
+        document_number: "DOO123/123",
+        register_id: register.id
+      }
 
       assert [data] =
                conn
-               |> get(register_entry_path(conn, :index), birth_certificate: "DOO123/123", register_id: register.id)
+               |> get(register_entry_path(conn, :index), search_attrs)
                |> json_response(200)
                |> Map.get("data")
 
       assert id == data["id"]
-      assert "DOO123/123" == data["birth_certificate"]
+      assert "DOO123/123" == data["document_number"]
+      assert "birth_certificate" == data["document_type"]
       assert register.id == data["register_id"]
     end
 

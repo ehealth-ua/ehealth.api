@@ -38,16 +38,13 @@ defmodule EHealth.Registers.API do
 
   @required_register_entry_fields ~w(
     status
+    document_type
+    document_number
     register_id
     inserted_by
     updated_by
   )a
   @optional_register_entry_fields ~w(
-    tax_id
-    national_id
-    passport
-    birth_certificate
-    temporary_certificate
     person_id
   )a
 
@@ -156,6 +153,8 @@ defmodule EHealth.Registers.API do
 
       entry_data
       |> Map.merge(%{
+        "document_type" => entry_data["type"],
+        "document_number" => entry_data["number"],
         "register_id" => register.id,
         "updated_by" => register.inserted_by,
         "inserted_by" => register.inserted_by
