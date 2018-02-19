@@ -148,7 +148,7 @@ defmodule EHealth.Web.RegisterControllerTest do
 
     test "success with status PROCESSING", %{conn: conn} do
       %{values: values} = insert(:il, :dictionary_document_type)
-      dict_values = Map.keys(values) |> Enum.join(", ")
+      dict_values = values |> Map.keys() |> Kernel.++(["TAX_ID"]) |> Enum.join(", ")
 
       attrs = %{
         file: get_csv_file("diverse"),
@@ -248,7 +248,7 @@ defmodule EHealth.Web.RegisterControllerTest do
 
     test "invalid CSV body", %{conn: conn} do
       %{values: values} = insert(:il, :dictionary_document_type)
-      dict_values = Map.keys(values) |> Enum.join(", ")
+      dict_values = values |> Map.keys() |> Kernel.++(["TAX_ID"]) |> Enum.join(", ")
 
       attrs = %{
         file: get_csv_file("invalid_body"),

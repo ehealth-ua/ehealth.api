@@ -126,8 +126,15 @@ defmodule EHealth.Registers.API do
 
   defp get_allowed_types do
     case Dictionaries.get_dictionary("DOCUMENT_TYPE") do
-      %Dictionary{values: values} -> {:ok, Map.keys(values)}
+      %Dictionary{values: values} -> {:ok, values |> Map.keys() |> put_tax_id()}
       _ -> {:error, {:"422", "Type not allowed"}}
+    end
+  end
+
+  defp put_tax_id(list) do
+    case Enum.member?(list, "TAX_ID") do
+      true -> list
+      false -> list ++ ["TAX_ID"]
     end
   end
 

@@ -4,7 +4,6 @@ defmodule EHealth.Integration.DictionariesTest do
   alias EHealth.Dictionaries
 
   @document_type_dict %{
-    "TAX_ID" => "ІНН",
     "PASSPORT" => "Паспорт",
     "NATIONAL_ID" => "Біометричний паспорт",
     "BIRTH_CERTIFICATE" => "Свідоцтво про народження",
