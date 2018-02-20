@@ -4,7 +4,9 @@ defmodule EHealth.DeclarationRequest.API do
   import Ecto.{Query, Changeset}, warn: false
   import EHealth.DeclarationRequest.API.Validations
 
+  use Confex, otp_app: :ehealth
   alias Ecto.{UUID, Multi}
+  alias Ecto.Adapters.SQL
   alias EHealth.{Repo, GlobalParameters, LegalEntities, Divisions, Employees, DeclarationRequest}
   alias EHealth.LegalEntities.LegalEntity
   alias EHealth.Employees.Employee
@@ -413,16 +415,31 @@ defmodule EHealth.DeclarationRequest.API do
         |> String.downcase()
         |> String.replace_trailing("s", "")
 
-      query =
-        where(
-          DeclarationRequest,
-          [dr],
-          datetime_add(dr.inserted_at, ^term, ^normalized_unit) < ^NaiveDateTime.utc_now()
-        )
+      do_terminate_declaration_requests(term, normalized_unit)
+    end
+  end
 
-      Multi.new()
-      |> Multi.delete_all(:declaration_requests, query, timeout: 60_000)
-      |> Repo.transaction()
+  defp do_terminate_declaration_requests(term, unit) do
+    query = """
+    DELETE FROM declaration_requests
+    WHERE id IN (
+      SELECT id
+      FROM declaration_requests
+      WHERE ((inserted_at::timestamp + ($1::numeric * interval '1 #{unit}'))::timestamp < $2)
+      LIMIT $3
+    );
+    """
+
+    case SQL.query(Repo, query, [
+           String.to_integer(term),
+           NaiveDateTime.utc_now(),
+           config()[:termination_batch_size]
+         ]) do
+      {:ok, %{num_rows: delete_count}} ->
+        if delete_count >= config()[:termination_batch_size], do: do_terminate_declaration_requests(term, unit)
+
+      {:error, reason} ->
+        Logger.error("Error deleting declaration_requests, #{reason}")
     end
   end
 end
