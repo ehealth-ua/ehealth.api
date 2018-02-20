@@ -63,13 +63,13 @@ defmodule EHealth.Web.EmployeeView do
   def render("employee.json", %{employee: %{employee_type: @doctor, additional_info: info} = employee}) do
     employee
     |> render_employee()
-    |> render_doctor(info)
+    |> render_doctor(Map.put(info, "specialities", get_employee_specialities(employee)))
   end
 
   def render("employee.json", %{employee: %{employee_type: @pharmacist, additional_info: info} = employee}) do
     employee
     |> render_employee()
-    |> render_pharmacist(info)
+    |> render_pharmacist(Map.put(info, "specialities", get_employee_specialities(employee)))
   end
 
   def render("employee.json", %{employee: employee}) do
@@ -103,6 +103,9 @@ defmodule EHealth.Web.EmployeeView do
       no_tax_id
       documents
       phones
+      educations
+      qualifications
+      science_degree
     )a)
     Map.put(map, :party, data)
   end
@@ -154,4 +157,19 @@ defmodule EHealth.Web.EmployeeView do
   end
 
   defp put_list_info(map, _), do: map
+
+  defp get_employee_specialities(employee) do
+    speciality = employee.speciality
+    party_specialities = employee.party.specialities || []
+
+    party_specialities =
+      party_specialities
+      |> Enum.filter(&(Map.get(&1, "speciality") != speciality["speciality"]))
+      |> Enum.map(&Map.put(&1, "speciality_officio", false))
+
+    case speciality do
+      nil -> party_specialities
+      speciality -> [speciality | party_specialities]
+    end
+  end
 end

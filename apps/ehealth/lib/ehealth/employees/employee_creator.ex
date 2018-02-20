@@ -8,6 +8,7 @@ defmodule EHealth.Employees.EmployeeCreator do
 
   alias Scrivener.Page
   alias EHealth.EmployeeRequests.EmployeeRequest, as: Request
+  alias EHealth.EmployeeRequests
   alias EHealth.Employees
   alias EHealth.Parties.Party
   alias EHealth.Employees.Employee
@@ -24,7 +25,7 @@ defmodule EHealth.Employees.EmployeeCreator do
   @status_approved Employee.status(:approved)
 
   def create(%Request{data: data} = employee_request, req_headers) do
-    party = Map.fetch!(data, "party")
+    party = EmployeeRequests.create_party_params(data)
     search_params = %{tax_id: party["tax_id"], birth_date: party["birth_date"]}
     user_id = get_consumer_id(req_headers)
 
@@ -89,7 +90,8 @@ defmodule EHealth.Employees.EmployeeCreator do
       "status" => @status_approved,
       "is_active" => true,
       "party_id" => id,
-      "legal_entity_id" => employee_request["legal_entity_id"]
+      "legal_entity_id" => employee_request["legal_entity_id"],
+      "speciality" => EmployeeRequests.get_employee_speciality(employee_request)
     }
 
     data

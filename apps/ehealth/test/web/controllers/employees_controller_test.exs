@@ -151,16 +151,52 @@ defmodule EHealth.Web.EmployeesControllerTest do
   describe "get employee by id" do
     test "with party, division, legal_entity", %{conn: conn} do
       legal_entity = insert(:prm, :legal_entity, id: "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
-      party1 = insert(:prm, :party, tax_id: "2222222225")
-      employee = insert(:prm, :employee, legal_entity: legal_entity, party: party1)
+
+      speciality_officio = %{
+        "speciality" => "PEDIATRICIAN",
+        "level" => "Перша категорія",
+        "qualification_type" => "Присвоєння",
+        "attestation_name" => "Академія Богомольця",
+        "attestation_date" => "2017-08-04",
+        "valid_to_date" => "2017-08-05",
+        "certificate_number" => "AB/21331",
+        "speciality_officio" => true
+      }
+
+      specialities = [
+        speciality_officio,
+        %{
+          "speciality" => "PHARMACIST",
+          "level" => "Перша категорія",
+          "qualification_type" => "Присвоєння",
+          "attestation_name" => "Академія Богомольця",
+          "attestation_date" => "2017-08-04",
+          "valid_to_date" => "2017-08-05",
+          "certificate_number" => "AB/21331",
+          "speciality_officio" => false
+        }
+      ]
+
+      party1 =
+        insert(
+          :prm,
+          :party,
+          tax_id: "2222222225",
+          specialities: specialities
+        )
+
+      employee = insert(:prm, :employee, legal_entity: legal_entity, party: party1, speciality: speciality_officio)
 
       conn = put_client_id_header(conn, legal_entity.id)
 
-      conn
-      |> get(employee_path(conn, :show, employee.id))
-      |> json_response(200)
-      |> Map.get("data")
-      |> assert_show_response_schema("employee")
+      data =
+        conn
+        |> get(employee_path(conn, :show, employee.id))
+        |> json_response(200)
+        |> Map.get("data")
+
+      assert_show_response_schema(data, "employee")
+      assert specialities == data["doctor"]["specialities"]
 
       party2 = insert(:prm, :party, tax_id: "2222222224")
 

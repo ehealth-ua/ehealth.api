@@ -37,6 +37,7 @@ defmodule EHealth.Employees.Employee do
     field(:updated_by, Ecto.UUID)
     field(:inserted_by, Ecto.UUID)
     field(:additional_info, :map)
+    field(:speciality, :map)
 
     belongs_to(:party, Party, type: Ecto.UUID)
     belongs_to(:division, Division, type: Ecto.UUID)

@@ -22,6 +22,10 @@ defmodule EHealth.Parties do
 
   @fields_optional ~w(
     second_name
+    educations
+    qualifications
+    science_degree
+    specialities
   )a
 
   @fields_required ~w(

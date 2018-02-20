@@ -245,6 +245,38 @@ defmodule EHealth.EmployeeRequests do
     |> Stream.run()
   end
 
+  def create_party_params(%{"doctor" => doctor} = data) do
+    data
+    |> Map.fetch!("party")
+    |> do_create_party_params(doctor)
+  end
+
+  def create_party_params(%{"pharmacist" => pharmacist} = data) do
+    data
+    |> Map.fetch!("party")
+    |> do_create_party_params(pharmacist)
+  end
+
+  defp do_create_party_params(params, data) do
+    params
+    |> Map.put("educations", Map.get(data, "educations"))
+    |> Map.put("qualifications", Map.get(data, "qualifications"))
+    |> Map.put(
+      "specialities",
+      data |> Map.get("specialities") |> Enum.map(&Map.delete(&1, "speciality_officio"))
+    )
+    |> Map.put("science_degree", Map.get(data, "science_degree"))
+  end
+
+  def get_employee_speciality(%{"doctor" => doctor}), do: do_get_employee_speciality(doctor)
+  def get_employee_speciality(%{"pharmacist" => pharmacist}), do: do_get_employee_speciality(pharmacist)
+
+  defp do_get_employee_speciality(data) do
+    data
+    |> Map.get("specialities")
+    |> Enum.find(&Map.get(&1, "speciality_officio"))
+  end
+
   def terminate_employee_requests do
     parameters = GlobalParameters.get_values()
 

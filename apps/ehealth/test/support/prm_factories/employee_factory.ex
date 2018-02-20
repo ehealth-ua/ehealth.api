@@ -21,7 +21,8 @@ defmodule EHealth.PRMFactories.EmployeeFactory do
           legal_entity_id: division.legal_entity.id,
           inserted_by: UUID.generate(),
           updated_by: UUID.generate(),
-          additional_info: doctor()
+          additional_info: doctor(),
+          speciality: speciality()
         }
       end
 
@@ -56,18 +57,20 @@ defmodule EHealth.PRMFactories.EmployeeFactory do
               "issued_date" => ~D[1987-04-17]
             }
           ],
-          "specialities" => [
-            %{
-              "speciality" => Enum.random(doctor_specialities()),
-              "speciality_officio" => true,
-              "level" => Enum.random(doctor_levels()),
-              "qualification_type" => Enum.random(doctor_qualification_types()),
-              "attestation_name" => "random string",
-              "attestation_date" => ~D[1987-04-17],
-              "valid_to_date" => ~D[1987-04-17],
-              "certificate_number" => "random string"
-            }
-          ]
+          "specialities" => [speciality()]
+        }
+      end
+
+      defp speciality do
+        %{
+          "speciality" => Enum.random(doctor_specialities()),
+          "speciality_officio" => true,
+          "level" => Enum.random(doctor_levels()),
+          "qualification_type" => Enum.random(doctor_qualification_types()),
+          "attestation_name" => "random string",
+          "attestation_date" => ~D[1987-04-17],
+          "valid_to_date" => ~D[1987-04-17],
+          "certificate_number" => "random string"
         }
       end
 

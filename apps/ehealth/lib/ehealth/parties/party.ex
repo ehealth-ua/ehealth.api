@@ -13,6 +13,10 @@ defmodule EHealth.Parties.Party do
     field(:gender, :string)
     field(:tax_id, :string)
     field(:no_tax_id, :boolean, default: false)
+    field(:educations, {:array, :map})
+    field(:qualifications, {:array, :map})
+    field(:specialities, {:array, :map})
+    field(:science_degree, :map)
     field(:inserted_by, Ecto.UUID)
     field(:updated_by, Ecto.UUID)
 

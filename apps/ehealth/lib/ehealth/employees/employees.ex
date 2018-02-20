@@ -9,6 +9,7 @@ defmodule EHealth.Employees do
 
   alias EHealth.API.Mithril
   alias EHealth.EmployeeRequests.EmployeeRequest, as: Request
+  alias EHealth.EmployeeRequests
   alias EHealth.Employees.{EmployeeCreator, UserRoleCreator, Employee, Search}
   alias EHealth.{PRMRepo, Parties, EventManager}
 
@@ -25,6 +26,7 @@ defmodule EHealth.Employees do
     inserted_by
     updated_by
     start_date
+    speciality
   )a
 
   @optional_fields ~w(
@@ -192,11 +194,12 @@ defmodule EHealth.Employees do
          party_id <- employee |> Map.get(:party, %{}) |> Map.get(:id),
          party <- Parties.get_by_id!(party_id),
          {:ok, _} <- EmployeeCreator.create_party_user(party, req_headers),
-         {:ok, _} <- Parties.update(party, Map.fetch!(employee_request, "party"), employee_id),
+         {:ok, _} <- Parties.update(party, EmployeeRequests.create_party_params(employee_request), employee_id),
          params <-
            employee_request
            |> Map.put("employee_type", employee.employee_type)
-           |> Map.put("updated_by", get_consumer_id(req_headers)) do
+           |> Map.put("updated_by", get_consumer_id(req_headers))
+           |> Map.put("speciality", EmployeeRequests.get_employee_speciality(employee_request)) do
       __MODULE__.update(employee, params, get_consumer_id(req_headers))
     end
   end
