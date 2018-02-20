@@ -172,6 +172,7 @@ defmodule EHealth.Registers.API do
       })
       |> set_entry_status(mpi_response)
       |> maybe_terminate_person_declaration(register.type, reason_desc)
+      |> maybe_deactivate_person()
       |> create_register_entry()
     end
   end
@@ -222,6 +223,14 @@ defmodule EHealth.Registers.API do
   end
 
   defp maybe_terminate_person_declaration(entry_data, _type, _reason_desc), do: entry_data
+
+  defp maybe_deactivate_person(%{"status" => @status_matched, "person_id" => person_id} = entry_data) do
+    MPI.update_person(person_id, %{status: "INACTIVE"}, [])
+    # don't care about MPI response
+    entry_data
+  end
+
+  defp maybe_deactivate_person(entry_data), do: entry_data
 
   defp prepare_register_update_data(processed_entries) do
     acc = %{

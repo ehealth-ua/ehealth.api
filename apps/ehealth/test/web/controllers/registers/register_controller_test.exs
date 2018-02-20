@@ -86,6 +86,10 @@ defmodule EHealth.Web.RegisterControllerTest do
           _ -> send_resp(conn, 404, Poison.encode!(%{meta: %{code: 404}, data: %{}}))
         end
       end
+
+      Plug.Router.patch "/persons/:id" do
+        send_resp(conn, 200, Poison.encode!(%{meta: %{code: 200}, data: %{}}))
+      end
     end
 
     setup %{conn: conn} do
