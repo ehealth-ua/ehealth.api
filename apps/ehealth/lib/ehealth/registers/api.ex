@@ -63,7 +63,7 @@ defmodule EHealth.Registers.API do
   def get_search_query(entity, changes) when map_size(changes) > 0 do
     params = Enum.filter(changes, fn {k, v} -> !is_tuple(v) && k not in ~W(inserted_at_from inserted_at_to)a end)
 
-    q = where(entity, ^params)
+    q = entity |> where(^params) |> preload_register(entity)
 
     Enum.reduce(changes, q, fn {key, val}, query ->
       case key do
@@ -74,7 +74,15 @@ defmodule EHealth.Registers.API do
     end)
   end
 
-  def get_search_query(entity, changes), do: super(entity, changes)
+  def get_search_query(entity, changes), do: entity |> super(changes) |> preload_register(entity)
+
+  defp preload_register(query, RegisterEntry) do
+    query
+    |> join(:left, [re], r in assoc(re, :register))
+    |> preload([..., r], register: r)
+  end
+
+  defp preload_register(query, _), do: query
 
   defp date_to_datetime(date) do
     date

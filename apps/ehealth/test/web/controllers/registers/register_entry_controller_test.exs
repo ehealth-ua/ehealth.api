@@ -27,7 +27,8 @@ defmodule EHealth.Web.RegisterEntryControllerTest do
     end
 
     test "search by tax_id", %{conn: conn} do
-      %{id: id} = insert(:il, :register_entry, document_number: "234")
+      register = insert(:il, :register, type: "reg_type", file_name: "valid.test.csv")
+      %{id: id} = insert(:il, :register_entry, document_number: "234", register: register)
 
       assert [data] =
                conn
@@ -38,6 +39,8 @@ defmodule EHealth.Web.RegisterEntryControllerTest do
       assert id == data["id"]
       assert "TAX_ID" == data["document_type"]
       assert "234" == data["document_number"]
+      assert register.type == data["type"]
+      assert register.file_name == data["file_name"]
     end
 
     test "search by register_id, document_type and document_number", %{conn: conn} do

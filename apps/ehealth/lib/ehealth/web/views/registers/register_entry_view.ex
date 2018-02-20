@@ -20,6 +20,15 @@ defmodule EHealth.Web.RegisterEntryView do
   end
 
   def render("show.json", %{register_entry: register_entry}) do
-    Map.take(register_entry, @fields)
+    register_entry
+    |> Map.take(@fields)
+    |> render_register(register_entry)
+  end
+
+  def render_register(view, register_entry) do
+    Map.merge(view, %{
+      type: register_entry.register.type,
+      file_name: register_entry.register.file_name
+    })
   end
 end
