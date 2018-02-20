@@ -1,7 +1,8 @@
-Change log for versions 7.34.0 - 7.34.6
+Change log for versions 7.34.0 - 7.34.7
 
 **Patches and bug fixes**:
 
+improve doctor additional info (#1857)
 deactivate person on batch declarations termination (#1858)
 remove register when CSV headers is invalid (#1856)
 EHealth-1730: hardcode TAX_ID for doc_type validation (#1853)
