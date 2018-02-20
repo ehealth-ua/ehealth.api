@@ -1,7 +1,8 @@
-Change log for versions 7.34.0 - 7.34.5
+Change log for versions 7.34.0 - 7.34.6
 
 **Patches and bug fixes**:
 
+deactivate person on batch declarations termination (#1858)
 remove register when CSV headers is invalid (#1856)
 EHealth-1730: hardcode TAX_ID for doc_type validation (#1853)
 EHealth-1730: downcase document_type for MPI search (#1851)
