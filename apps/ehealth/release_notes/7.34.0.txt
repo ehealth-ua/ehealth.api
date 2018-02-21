@@ -1,7 +1,8 @@
-Change log for versions 7.34.0 - 7.34.12
+Change log for versions 7.34.0 - 7.34.13
 
 **Patches and bug fixes**:
 
+fix creating employee_request (#1869)
 fix creating employee_request (#1868)
 add employee info migrations (#1865)
 put consumer id header for person deactivation (#1866)
