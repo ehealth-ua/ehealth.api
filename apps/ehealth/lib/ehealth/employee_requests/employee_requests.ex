@@ -272,6 +272,7 @@ defmodule EHealth.EmployeeRequests do
 
   def get_employee_speciality(%{"doctor" => doctor}), do: do_get_employee_speciality(doctor)
   def get_employee_speciality(%{"pharmacist" => pharmacist}), do: do_get_employee_speciality(pharmacist)
+  def get_employee_speciality(_), do: nil
 
   defp do_get_employee_speciality(data) do
     data
