@@ -96,7 +96,7 @@ defmodule EHealth.Registers.API do
          register_data <- prepare_register_data(attrs, author_id),
          {:ok, %Register{} = register} <- create_register(register_data),
          reason_desc <- attrs["reason_description"],
-         {:ok, processed_entries} <- batch_create_register_entries(register, attrs, reason_desc),
+         {:ok, processed_entries} <- batch_create_register_entries(register, attrs, reason_desc, author_id),
          register_update_data <- prepare_register_update_data(processed_entries),
          {:ok, register} <- update_register(register, register_update_data) do
       {:ok, register}
@@ -111,14 +111,14 @@ defmodule EHealth.Registers.API do
     })
   end
 
-  def batch_create_register_entries(register, %{"file" => base64file}, reason_desc) do
+  def batch_create_register_entries(register, %{"file" => base64file}, reason_desc, author_id) do
     with parsed_csv <- parse_csv(base64file),
          {:ok, headers} <- fetch_headers(parsed_csv),
          true <- valid_csv_headers?(headers),
          {:ok, allowed_types} <- get_allowed_types() do
       entries =
         parsed_csv
-        |> Enum.map(&Task.async(fn -> process_register_entry(&1, register, allowed_types, reason_desc) end))
+        |> Enum.map(&Task.async(fn -> process_register_entry(&1, register, allowed_types, reason_desc, author_id) end))
         |> Enum.map(&Task.await/1)
 
       {:ok, entries}
@@ -165,7 +165,7 @@ defmodule EHealth.Registers.API do
     {:error, {:"422", "Invalid CSV headers"}}
   end
 
-  defp process_register_entry({:ok, entry_data}, register, allowed_types, reason_desc) do
+  defp process_register_entry({:ok, entry_data}, register, allowed_types, reason_desc, author_id) do
     with :ok <- validate_csv_type(entry_data, allowed_types),
          :ok <- validate_csv_number(entry_data) do
       mpi_response = search_person(entry_data)
@@ -180,12 +180,12 @@ defmodule EHealth.Registers.API do
       })
       |> set_entry_status(mpi_response)
       |> maybe_terminate_person_declaration(register.type, reason_desc)
-      |> maybe_deactivate_person()
+      |> maybe_deactivate_person(author_id)
       |> create_register_entry()
     end
   end
 
-  defp process_register_entry(err, _, _, _), do: err
+  defp process_register_entry(err, _, _, _, _), do: err
 
   defp validate_csv_type(%{"type" => type}, allowed_types) do
     case type in allowed_types do
@@ -232,13 +232,13 @@ defmodule EHealth.Registers.API do
 
   defp maybe_terminate_person_declaration(entry_data, _type, _reason_desc), do: entry_data
 
-  defp maybe_deactivate_person(%{"status" => @status_matched, "person_id" => person_id} = entry_data) do
-    MPI.update_person(person_id, %{status: "INACTIVE"}, [])
+  defp maybe_deactivate_person(%{"status" => @status_matched, "person_id" => person_id} = entry_data, author_id) do
+    MPI.update_person(person_id, %{status: "INACTIVE"}, "x-consumer-id": author_id)
     # don't care about MPI response
     entry_data
   end
 
-  defp maybe_deactivate_person(entry_data), do: entry_data
+  defp maybe_deactivate_person(entry_data, _author_id), do: entry_data
 
   defp prepare_register_update_data(processed_entries) do
     acc = %{
