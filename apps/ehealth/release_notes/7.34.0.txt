@@ -1,7 +1,8 @@
-Change log for versions 7.34.0 - 7.34.9
+Change log for versions 7.34.0 - 7.34.10
 
 **Patches and bug fixes**:
 
+put consumer id header for person deactivation (#1866)
 preload reegister for reg_entry view (#1860)
 terminate declaration_requests by batches (#1859)
 improve doctor additional info (#1857)
