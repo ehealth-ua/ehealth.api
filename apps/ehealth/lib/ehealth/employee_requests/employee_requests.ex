@@ -257,6 +257,8 @@ defmodule EHealth.EmployeeRequests do
     |> do_create_party_params(pharmacist)
   end
 
+  def create_party_params(data), do: Map.fetch!(data, "party")
+
   defp do_create_party_params(params, data) do
     params
     |> Map.put("educations", Map.get(data, "educations"))
