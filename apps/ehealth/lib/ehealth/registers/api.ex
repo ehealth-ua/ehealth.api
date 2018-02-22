@@ -68,7 +68,7 @@ defmodule EHealth.Registers.API do
     Enum.reduce(changes, q, fn {key, val}, query ->
       case key do
         :inserted_at_from -> where(query, [r], r.inserted_at >= ^date_to_datetime(val))
-        :inserted_at_to -> where(query, [r], r.inserted_at <= ^date_to_datetime(val))
+        :inserted_at_to -> where(query, [r], r.inserted_at <= ^date_to_end_datetime(val))
         _ -> query
       end
     end)
@@ -88,6 +88,12 @@ defmodule EHealth.Registers.API do
     date
     |> Date.to_string()
     |> Timex.parse!("{YYYY}-{0M}-{0D}")
+  end
+
+  defp date_to_end_datetime(date) do
+    date
+    |> date_to_datetime()
+    |> Timex.end_of_day()
   end
 
   def process_register_file(attrs, author_id) do

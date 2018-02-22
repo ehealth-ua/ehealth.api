@@ -45,7 +45,7 @@ defmodule EHealth.Web.RegisterControllerTest do
       params = %{
         status: @status_processing,
         inserted_at_from: "2017-12-13",
-        inserted_at_to: "2017-12-14"
+        inserted_at_to: "2017-12-13"
       }
 
       assert [register] =
