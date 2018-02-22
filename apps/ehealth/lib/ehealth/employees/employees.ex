@@ -26,13 +26,13 @@ defmodule EHealth.Employees do
     inserted_by
     updated_by
     start_date
-    speciality
   )a
 
   @optional_fields ~w(
     division_id
     status_reason
     end_date
+    speciality
   )a
 
   def list(params) do
@@ -143,12 +143,24 @@ defmodule EHealth.Employees do
   defp changeset(%Employee{} = employee, attrs) do
     employee
     |> cast(attrs, @required_fields ++ @optional_fields)
-    |> validate_required(@required_fields)
+    |> required_fields(employee)
     |> put_additional_info(attrs)
     |> validate_employee_type()
     |> foreign_key_constraint(:legal_entity_id)
     |> foreign_key_constraint(:division_id)
     |> foreign_key_constraint(:party_id)
+  end
+
+  defp required_fields(changeset, %Employee{employee_type: "DOCTOR"}) do
+    validate_required(changeset, @required_fields ++ [:speciality])
+  end
+
+  defp required_fields(changeset, %Employee{employee_type: "PHARMACIST"}) do
+    validate_required(changeset, @required_fields ++ [:speciality])
+  end
+
+  defp required_fields(changeset, _) do
+    validate_required(changeset, @required_fields)
   end
 
   defp put_additional_info(%Ecto.Changeset{valid?: true} = changeset, %{"doctor" => doctor}) do
