@@ -1,7 +1,8 @@
-Change log for versions 7.34.0 - 7.34.13
+Change log for versions 7.34.0 - 7.34.14
 
 **Patches and bug fixes**:
 
+use different changeset for different employee types (#1870)
 fix creating employee_request (#1869)
 fix creating employee_request (#1868)
 add employee info migrations (#1865)
