@@ -1,7 +1,8 @@
-Change log for versions 7.34.0 - 7.34.17
+Change log for versions 7.34.0 - 7.34.18
 
 **Patches and bug fixes**:
 
+clean personal fields at declaration_requests on termination (#1876)
 drop additional_info column from fraud db (#1874)
 render document links for uploaded documents only (#1873)
 search by date range with end_date (23:59:59) (#1871)
