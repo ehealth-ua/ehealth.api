@@ -1,7 +1,8 @@
-Change log for versions 7.34.0 - 7.34.16
+Change log for versions 7.34.0 - 7.34.17
 
 **Patches and bug fixes**:
 
+drop additional_info column from fraud db (#1874)
 render document links for uploaded documents only (#1873)
 search by date range with end_date (23:59:59) (#1871)
 use different changeset for different employee types (#1870)
