@@ -416,6 +416,8 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
 
   describe "get documents" do
     defmodule MediaContentStorageMock do
+      @moduledoc false
+
       use MicroservicesHelper
 
       Plug.Router.post "/media_content_storage_secrets" do
@@ -451,24 +453,31 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
 
     test "when declaration id is valid", %{conn: conn} do
-      %{id: id, declaration_id: declaration_id} = fixture(DeclarationRequest, fixture_params())
+      params =
+        fixture_params()
+        |> Map.put(:documents, [
+          %{"type" => "person.PASSPORT"},
+          %{"type" => "person.DECLARATION_FORM"},
+          %{"type" => "confidant_person.0.PRIMARY.RELATIONSHIP.COURT_DECISION"}
+        ])
 
+      %{id: id, declaration_id: declaration_id} = insert(:il, :declaration_request, params)
       conn = get(conn, declaration_request_path(conn, :documents, declaration_id))
       result = json_response(conn, 200)["data"]
 
       expected_result = [
         %{
-          "type" => "person.PASSPORT",
-          "url" => "http://a.link.for/#{id}/declaration_request_person.PASSPORT.jpeg"
+          "type" => "confidant_person.0.PRIMARY.RELATIONSHIP.COURT_DECISION",
+          "url" =>
+            "http://a.link.for/#{id}/declaration_request_confidant_person.0.PRIMARY.RELATIONSHIP.COURT_DECISION.jpeg"
         },
         %{
           "type" => "person.DECLARATION_FORM",
           "url" => "http://a.link.for/#{id}/declaration_request_person.DECLARATION_FORM.jpeg"
         },
         %{
-          "type" => "confidant_person.0.PRIMARY.RELATIONSHIP.COURT_DECISION",
-          "url" =>
-            "http://a.link.for/#{id}/declaration_request_confidant_person.0.PRIMARY.RELATIONSHIP.COURT_DECISION.jpeg"
+          "type" => "person.PASSPORT",
+          "url" => "http://a.link.for/#{id}/declaration_request_person.PASSPORT.jpeg"
         }
       ]
 

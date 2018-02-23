@@ -393,7 +393,7 @@ defmodule EHealth.DeclarationRequest.API do
   def documents(declaration_id) do
     declaration_id
     |> get_declaration_request_by_declaration_id!()
-    |> Documents.generate_links(["GET"])
+    |> Documents.generate_links()
   end
 
   def terminate_declaration_requests do

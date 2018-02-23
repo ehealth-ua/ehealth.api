@@ -5,6 +5,14 @@ defmodule EHealth.DeclarationRequest.API.Documents do
   alias EHealth.DeclarationRequest.API.Helpers
   alias EHealth.API.MediaStorage
 
+  def generate_links(%DeclarationRequest{id: id, documents: nil}) do
+    render_links(id, ["GET"], [])
+  end
+
+  def generate_links(%DeclarationRequest{id: id, documents: documents}) do
+    render_links(id, ["GET"], Enum.map(documents, &Map.get(&1, "type")))
+  end
+
   def generate_links(%DeclarationRequest{id: declaration_request_id, data: %{"person" => person}}, http_verbs) do
     documents_list = Helpers.gather_documents_list(person)
     render_links(declaration_request_id, http_verbs, documents_list)
