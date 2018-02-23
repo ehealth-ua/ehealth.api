@@ -107,6 +107,9 @@ config :ehealth, EHealth.EmployeeRequest.Terminator,
   frequency: 100,
   utc_interval: {0, 23}
 
+config :ehealth, EHealth.DeclarationRequest.API,
+  termination_batch_size: {:system, :integer, "DECLARATION_REQUEST_AUTOTERMINATION_BATCH", 1}
+
 # Configures genral validator
 config :ehealth, EHealth.LegalEntities.Validator, owner_positions: {:system, :list, "OWNER_POSITIONS", ["P1"]}
 

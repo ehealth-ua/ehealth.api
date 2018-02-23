@@ -12,6 +12,7 @@ defmodule EHealth.DeclarationRequest do
   @status_cancelled "CANCELLED"
   @status_rejected "REJECTED"
   @status_approved "APPROVED"
+  @status_expired "EXPIRED"
 
   @authentication_na "NA"
   @authentication_otp "OTP"
@@ -22,6 +23,7 @@ defmodule EHealth.DeclarationRequest do
   def status(:cancelled), do: @status_cancelled
   def status(:rejected), do: @status_rejected
   def status(:approved), do: @status_approved
+  def status(:expired), do: @status_expired
 
   def authentication_method(:na), do: @authentication_na
   def authentication_method(:otp), do: @authentication_otp
