@@ -1,7 +1,8 @@
-Change log for versions 7.34.0 - 7.34.15
+Change log for versions 7.34.0 - 7.34.16
 
 **Patches and bug fixes**:
 
+render document links for uploaded documents only (#1873)
 search by date range with end_date (23:59:59) (#1871)
 use different changeset for different employee types (#1870)
 fix creating employee_request (#1869)
