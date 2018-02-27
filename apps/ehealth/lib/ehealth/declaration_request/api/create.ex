@@ -256,8 +256,11 @@ defmodule EHealth.DeclarationRequest.API.Create do
   defp get_birth_certificate(nil), do: nil
 
   defp get_birth_certificate(documents) do
-    documents
-    |> Enum.find(&(Map.get(&1, "type") == "BIRTH_CERTIFICATE"))
-    |> Map.get("number")
+    document = Enum.find(documents, &(Map.get(&1, "type") == "BIRTH_CERTIFICATE"))
+
+    case document do
+      %{"number" => number} -> number
+      _ -> nil
+    end
   end
 end
