@@ -321,6 +321,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
   describe "determine_auth_method_for_mpi/1, MPI record exists" do
     defmodule MpiExists do
       use MicroservicesHelper
+      import EHealth.MockServer, only: [render_with_paging: 2]
 
       Plug.Router.get "/persons" do
         confirm_params =
@@ -340,7 +341,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
           %{id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c"}
         ]
 
-        send_resp(conn, 200, Poison.encode!(%{data: search_result}))
+        render_with_paging(search_result, conn)
       end
 
       Plug.Router.get "/persons/b5350f79-f2ca-408f-b15d-1ae0a8cc861c" do
@@ -397,9 +398,10 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
   describe "determine_auth_method_for_mpi/1, MPI record does not exist" do
     defmodule NoMpi do
       use MicroservicesHelper
+      import EHealth.MockServer, only: [render_with_paging: 2]
 
       Plug.Router.get "/persons" do
-        send_resp(conn, 200, Poison.encode!(%{data: []}))
+        render_with_paging([], conn)
       end
 
       Plug.Router.post "/api/v1/tables/some_gndf_table_id/decisions" do
@@ -536,9 +538,10 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
   describe "determine_auth_method_for_mpi/1, MPI record does not exist (2)" do
     defmodule GandalfError do
       use MicroservicesHelper
+      import EHealth.MockServer, only: [render_with_paging: 2]
 
       Plug.Router.get "/persons" do
-        send_resp(conn, 200, Poison.encode!(%{data: []}))
+        render_with_paging([], conn)
       end
 
       Plug.Router.post "/api/v1/tables/some_gndf_table_id/decisions" do
@@ -595,6 +598,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
   describe "determine_auth_method_for_mpi/1, MPI record with type NA" do
     defmodule MPIAuthNA do
       use MicroservicesHelper
+      import EHealth.MockServer, only: [render_with_paging: 2]
 
       Plug.Router.get "/persons/32b96821-44c4-4acb-a726-a1b5b05cb2aa" do
         send_resp(conn, 200, Poison.encode!(%{data: %{authentication_methods: [%{type: "NA"}]}}))
@@ -602,7 +606,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
 
       Plug.Router.get "/persons" do
         person = %{id: "32b96821-44c4-4acb-a726-a1b5b05cb2aa"}
-        send_resp(conn, 200, Poison.encode!(%{data: [person]}))
+        render_with_paging([person], conn)
       end
     end
 

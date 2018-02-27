@@ -59,20 +59,12 @@ defmodule EHealth.DeclarationRequest.API.Create do
 
     case result do
       {:ok, %{"data" => [person | _]}} ->
-        {:ok, %{"data" => person_details}} = MPI.person(person["id"])
+        do_determine_auth_method_for_mpi(person, changeset)
 
-        authentication_method = hd(person_details["authentication_methods"])
+      {:ok, [person | _], _} ->
+        do_determine_auth_method_for_mpi(person, changeset)
 
-        authentication_method_current =
-          prepare_auth_method_current(
-            authentication_method["type"],
-            authentication_method,
-            hd(data["person"]["authentication_methods"])
-          )
-
-        put_change(changeset, :authentication_method_current, authentication_method_current)
-
-      {:ok, %{"data" => []}} ->
+      {:ok, [], _} ->
         authentication_method = hd(data["person"]["authentication_methods"])
         put_change(changeset, :authentication_method_current, prepare_auth_method_current(authentication_method))
 
@@ -82,6 +74,22 @@ defmodule EHealth.DeclarationRequest.API.Create do
       %Ecto.Changeset{valid?: false} ->
         add_error(changeset, :authentication_method_current, "invalid parameters")
     end
+  end
+
+  defp do_determine_auth_method_for_mpi(person, changeset) do
+    {:ok, %{"data" => person_details}} = MPI.person(person["id"])
+
+    authentication_method = hd(person_details["authentication_methods"])
+    authenticated_methods = changeset |> get_field(:data) |> get_in(~w(person authentication_methods)) |> hd
+
+    authentication_method_current =
+      prepare_auth_method_current(
+        authentication_method["type"],
+        authentication_method,
+        authenticated_methods
+      )
+
+    put_change(changeset, :authentication_method_current, authentication_method_current)
   end
 
   def prepare_auth_method_current(%{"type" => @auth_offline}) do

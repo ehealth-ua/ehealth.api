@@ -6,6 +6,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
   describe "Happy paths" do
     defmodule TwoHappyPaths do
       use MicroservicesHelper
+      import EHealth.MockServer, only: [render_with_paging: 2]
 
       # MPI API
       Plug.Router.get "/persons" do
@@ -23,7 +24,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
               []
           end
 
-        send_resp(conn, 200, Poison.encode!(%{data: search_result}))
+        render_with_paging(search_result, conn)
       end
 
       # MPI API
