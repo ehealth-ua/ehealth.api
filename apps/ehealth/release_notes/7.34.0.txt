@@ -1,7 +1,10 @@
-Change log for versions 7.34.0 - 7.34.18
+Change log for versions 7.34.0 - 7.34.21
 
 **Patches and bug fixes**:
 
+reimplement persons search (#1879)
+reimplement persons search
+complete persons search
 clean personal fields at declaration_requests on termination (#1876)
 drop additional_info column from fraud db (#1874)
 render document links for uploaded documents only (#1873)
