@@ -8,6 +8,27 @@ defmodule EHealth.Web.PersonControllerTest do
 
   @moduletag :with_client_id
 
+  defmodule MPIServer do
+    @moduledoc false
+
+    use MicroservicesHelper
+
+    Plug.Router.get "/persons" do
+      Plug.Conn.send_resp(conn, 200, Poison.encode!(%{"data" => [], "paging" => %{"total_pages" => 2}}))
+    end
+  end
+
+  setup do
+    System.put_env("MPI_ENDPOINT", "http://localhost:4040/")
+    {:ok, port, ref} = start_microservices(MPIServer)
+
+    on_exit(fn ->
+      stop_microservices(ref)
+    end)
+
+    {:ok, %{port: port}}
+  end
+
   describe "get person declaration" do
     test "MSP can see own declaration", %{conn: conn} do
       legal_entity = insert(:prm, :legal_entity, id: "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
@@ -63,8 +84,132 @@ defmodule EHealth.Web.PersonControllerTest do
     end
   end
 
-  test "search persons", %{conn: conn} do
-    conn = get(conn, person_path(conn, :search_persons))
-    assert 200 == json_response(conn, 200)["meta"]["code"]
+  describe "search persons" do
+    test "no birth_date", %{conn: conn} do
+      conn = get(conn, person_path(conn, :search_persons))
+      assert response = json_response(conn, 422)
+      assert %{"error" => %{"invalid" => [%{"entry" => "$.birth_date"}]}} = response
+    end
+
+    test "no first_name and last_name", %{conn: conn} do
+      conn = get(conn, person_path(conn, :search_persons), %{birth_date: "1990-01-01"})
+      assert response = json_response(conn, 422)
+      assert %{"error" => %{"invalid" => [%{"entry" => "$.first_name"}, %{"entry" => "$.last_name"}]}} = response
+    end
+
+    test "success search age > 16", %{conn: conn} do
+      conn =
+        get(conn, person_path(conn, :search_persons), %{
+          birth_date: "1990-01-01",
+          first_name: "string",
+          last_name: "string"
+        })
+
+      assert response = json_response(conn, 200)
+      assert 2 == Enum.count(response["data"])
+      expected_keys = ~w(
+        birth_country
+        birth_date
+        birth_settlement
+        first_name
+        id
+        last_name
+        merged_ids
+        second_name)
+      assert expected_keys == Map.keys(hd(response["data"]))
+    end
+
+    test "no birth_certificate", %{conn: conn} do
+      birth_date = Date.utc_today()
+
+      conn =
+        get(conn, person_path(conn, :search_persons), %{
+          birth_date: to_string(birth_date)
+        })
+
+      assert response = json_response(conn, 422)
+      assert %{"error" => %{"invalid" => [%{"entry" => "$.birth_certificate"}]}} = response
+    end
+
+    test "success search age < 16", %{conn: conn} do
+      birth_date = Date.utc_today()
+
+      conn =
+        get(conn, person_path(conn, :search_persons), %{
+          birth_date: birth_date,
+          birth_certificate: "123456"
+        })
+
+      assert response = json_response(conn, 200)
+      assert 2 == Enum.count(response["data"])
+      expected_keys = ~w(
+        birth_certificate
+        birth_country
+        birth_date
+        birth_settlement
+        first_name
+        id
+        last_name
+        merged_ids
+        second_name)
+      assert expected_keys == Map.keys(hd(response["data"]))
+    end
+
+    test "invalid phone number", %{conn: conn} do
+      conn =
+        get(conn, person_path(conn, :search_persons), %{
+          birth_date: "1990-01-01",
+          first_name: "string",
+          last_name: "string",
+          phone_number: "invalid"
+        })
+
+      assert response = json_response(conn, 422)
+      assert %{"error" => %{"invalid" => [%{"entry" => "$.phone_number"}]}} = response
+    end
+
+    test "too many persons matched", %{conn: conn, port: port} do
+      System.put_env("MPI_ENDPOINT", "http://localhost:#{port}/")
+
+      conn =
+        get(conn, person_path(conn, :search_persons), %{
+          birth_date: "1990-01-01",
+          first_name: "string",
+          last_name: "string"
+        })
+
+      assert response = json_response(conn, 403)
+
+      assert %{
+               "error" => %{
+                 "message" =>
+                   "This API method returns only exact match results, please retry with more specific search parameters"
+               }
+             } = response
+    end
+
+    test "success search age > 16 with phone_number", %{conn: conn} do
+      conn =
+        get(conn, person_path(conn, :search_persons), %{
+          birth_date: "1990-01-01",
+          first_name: "string",
+          last_name: "string",
+          phone_number: "+380631111111"
+        })
+
+      assert response = json_response(conn, 200)
+      assert 2 == Enum.count(response["data"])
+      expected_keys = ~w(
+        birth_country
+        birth_date
+        birth_settlement
+        first_name
+        id
+        last_name
+        merged_ids
+        phone_number
+        second_name)
+      assert expected_keys == Map.keys(hd(response["data"]))
+    end
   end
 end

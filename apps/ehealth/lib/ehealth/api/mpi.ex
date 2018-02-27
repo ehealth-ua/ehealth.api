@@ -8,23 +8,8 @@ defmodule EHealth.API.MPI do
   use EHealth.API.HeadersProcessor
   use EHealth.API.Helpers.MicroserviceBase
 
-  # Available params (required):
-  #   - first_name (ex.: Олена)
-  #   - last_name (ex.: Пчілка)
-  #   - birth_date (ex.: 1991-08-19%2000:00:00)
-  #   - tax_id (ex.: 3126509816)
-  #   - phone_number (ex.: %2B380508887700)
-  #
   def search(params \\ %{}, headers \\ []) do
     get!("/persons", headers, params: params)
-  end
-
-  def all_search(params \\ %{}, headers \\ []) do
-    get!("/all-persons", headers, params: params)
-  end
-
-  def admin_search(params \\ %{}, headers \\ []) do
-    get!("/persons_internal", headers, params: params)
   end
 
   def person(id, headers \\ []) do

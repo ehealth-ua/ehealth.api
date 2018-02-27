@@ -14,6 +14,7 @@ defmodule EHealth.DeclarationRequest.API.Validations do
   alias EHealth.Validators.JsonSchema
   alias EHealth.DeclarationRequest.API.ValidatePerson
   alias EHealth.Employees.Employee
+  alias EHealth.Validators.JsonObjects
 
   @auth_otp DeclarationRequest.authentication_method(:otp)
 
@@ -90,7 +91,18 @@ defmodule EHealth.DeclarationRequest.API.Validations do
   end
 
   def validate_person(person) do
-    ValidatePerson.validate(person)
+    age = Timex.diff(Timex.now(), Date.from_iso8601!(Map.get(person, "birth_date")), :years)
+
+    birth_certificate =
+      person
+      |> Map.get("documents")
+      |> Enum.find(&(Map.get(&1, "type") == "BIRTH_CERTIFICATE"))
+
+    if age < 16 && !birth_certificate do
+      {:error, [{JsonObjects.get_error("Must contain required item.", "BIRTH_CERTIFICATE"), "$.person.documents"}]}
+    else
+      ValidatePerson.validate(person)
+    end
   end
 
   def validate_addresses(addresses) do

@@ -3,6 +3,7 @@ defmodule EHealth.Web.PersonController do
   use EHealth.Web, :controller
 
   alias EHealth.API.MPI
+  alias EHealth.Persons
   alias EHealth.Declarations.Person
 
   action_fallback(EHealth.Web.FallbackController)
@@ -14,8 +15,8 @@ defmodule EHealth.Web.PersonController do
   end
 
   def search_persons(conn, params) do
-    with {:ok, %{"meta" => %{}} = response} <- MPI.search(params, conn.req_headers) do
-      proxy(conn, response)
+    with {:ok, persons, changes} <- Persons.search(params, conn.req_headers) do
+      render(conn, "persons.json", %{persons: persons, fields: Map.keys(changes)})
     end
   end
 

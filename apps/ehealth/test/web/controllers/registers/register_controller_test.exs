@@ -63,7 +63,7 @@ defmodule EHealth.Web.RegisterControllerTest do
     defmodule Termination do
       use MicroservicesHelper
 
-      Plug.Router.get "/persons_internal" do
+      Plug.Router.get "/persons" do
         {code, data} =
           case conn.query_params do
             %{"number" => "primary"} ->
@@ -304,7 +304,7 @@ defmodule EHealth.Web.RegisterControllerTest do
     defmodule TerminationWithRequiredParams do
       use MicroservicesHelper
 
-      Plug.Router.get "/persons_internal" do
+      Plug.Router.get "/persons" do
         case is_binary(conn.query_params["type"]) do
           true -> send_resp(conn, 200, Poison.encode!(%{meta: %{code: 200}, data: [%{id: Ecto.UUID.generate()}]}))
           _ -> send_resp(conn, 404, Poison.encode!(%{meta: %{code: 422}, data: %{}}))

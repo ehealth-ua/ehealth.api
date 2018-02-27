@@ -558,11 +558,21 @@ defmodule EHealth.MockServer do
   end
 
   get "/persons" do
-    render([get_person(), get_person()], conn, 200)
-  end
+    paging = %{
+      "page_number" => 1,
+      "total_pages" => 1,
+      "page_size" => 10,
+      "total_entries" => 2
+    }
 
-  get "/all-persons" do
-    render([get_person(), get_person()], conn, 200)
+    render_with_paging(
+      [
+        get_person(),
+        get_person()
+      ],
+      conn,
+      paging
+    )
   end
 
   post "/persons" do

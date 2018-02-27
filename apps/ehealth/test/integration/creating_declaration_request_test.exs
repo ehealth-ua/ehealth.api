@@ -424,6 +424,10 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
 
       assert [
                %{
+                 "type" => "person.BIRTH_CERTIFICATE",
+                 "url" => "http://some_resource.com/#{id}/declaration_request_person.BIRTH_CERTIFICATE.jpeg"
+               },
+               %{
                  "type" => "person.PASSPORT",
                  "url" => "http://some_resource.com/#{id}/declaration_request_person.PASSPORT.jpeg"
                },

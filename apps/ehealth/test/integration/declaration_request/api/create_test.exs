@@ -332,7 +332,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
           "first_name" => "Олена",
           "last_name" => "Пчілка",
           "second_name" => "XXX",
-          "birth_date" => "2010-08-19",
+          "birth_date" => "1980-08-19",
           "tax_id" => "3126509816"
         } = confirm_params
 
@@ -374,7 +374,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
             "first_name" => "Олена",
             "second_name" => "XXX",
             "last_name" => "Пчілка",
-            "birth_date" => "2010-08-19",
+            "birth_date" => "1980-08-19",
             "tax_id" => "3126509816",
             "authentication_methods" => [
               %{
@@ -511,6 +511,9 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       declaration_request = %DeclarationRequest{
         data: %{
           "person" => %{
+            "first_name" => "test",
+            "last_name" => "test",
+            "birth_date" => "1990-01-01",
             "phones" => [
               %{
                 "number" => "+380508887701"
@@ -562,6 +565,9 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       declaration_request = %DeclarationRequest{
         data: %{
           "person" => %{
+            "first_name" => "test",
+            "last_name" => "test",
+            "birth_date" => "1990-01-01",
             "phones" => [
               %{
                 "number" => "+380508887701"
@@ -617,6 +623,9 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       declaration_request = %DeclarationRequest{
         data: %{
           "person" => %{
+            "first_name" => "test",
+            "last_name" => "test",
+            "birth_date" => "1990-01-01",
             "phones" => [
               %{
                 "number" => "+380508887701"
@@ -638,6 +647,33 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         |> determine_auth_method_for_mpi()
 
       assert %{"type" => "OTP", "number" => "+380508887701"} == get_change(changeset, :authentication_method_current)
+    end
+
+    test "invalid changeset" do
+      declaration_request = %DeclarationRequest{
+        data: %{
+          "person" => %{
+            "phones" => [
+              %{
+                "number" => "+380508887701"
+              }
+            ],
+            "authentication_methods" => [
+              %{
+                "type" => "OTP",
+                "phone_number" => "+380508887701"
+              }
+            ]
+          }
+        }
+      }
+
+      changeset =
+        declaration_request
+        |> Ecto.Changeset.change()
+        |> determine_auth_method_for_mpi()
+
+      assert [authentication_method_current: {"invalid parameters", []}] == changeset.errors
     end
   end
 

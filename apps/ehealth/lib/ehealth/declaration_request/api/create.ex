@@ -8,6 +8,7 @@ defmodule EHealth.DeclarationRequest.API.Create do
   alias Ecto.Changeset
   alias EHealth.PartyUsers
   alias EHealth.DeclarationRequest
+  alias EHealth.Persons
 
   import Ecto.Changeset, only: [get_field: 2, get_change: 2, put_change: 3, add_error: 3]
 
@@ -47,12 +48,13 @@ defmodule EHealth.DeclarationRequest.API.Create do
     data = get_field(changeset, :data)
 
     result =
-      MPI.search(%{
+      Persons.search(%{
         "first_name" => data["person"]["first_name"],
         "second_name" => data["person"]["second_name"],
         "last_name" => data["person"]["last_name"],
         "birth_date" => data["person"]["birth_date"],
-        "tax_id" => data["person"]["tax_id"]
+        "tax_id" => data["person"]["tax_id"],
+        "birth_certificate" => get_birth_certificate(data["person"]["documents"])
       })
 
     case result do
@@ -76,6 +78,9 @@ defmodule EHealth.DeclarationRequest.API.Create do
 
       {:error, error_response} ->
         add_error(changeset, :authentication_method_current, format_error_response("MPI", error_response))
+
+      %Ecto.Changeset{valid?: false} ->
+        add_error(changeset, :authentication_method_current, "invalid parameters")
     end
   end
 
@@ -238,5 +243,13 @@ defmodule EHealth.DeclarationRequest.API.Create do
 
   defp format_error_response(microservice, result) do
     "Error during #{microservice} interaction. Result from #{microservice}: #{inspect(result)}"
+  end
+
+  defp get_birth_certificate(nil), do: nil
+
+  defp get_birth_certificate(documents) do
+    documents
+    |> Enum.find(&(Map.get(&1, "type") == "BIRTH_CERTIFICATE"))
+    |> Map.get("number")
   end
 end

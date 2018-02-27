@@ -206,7 +206,8 @@ defmodule EHealth.Registers.API do
   defp search_person(%{"type" => type} = entry_data) do
     entry_data
     |> Map.put("type", String.downcase(type))
-    |> MPI.admin_search()
+    |> Map.take(~w(type number))
+    |> MPI.search()
   end
 
   defp set_entry_status(entry_data, {:ok, %{"data" => persons}}) when is_list(persons) and length(persons) > 0 do
