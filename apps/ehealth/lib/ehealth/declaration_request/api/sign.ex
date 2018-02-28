@@ -8,6 +8,7 @@ defmodule EHealth.DeclarationRequest.API.Sign do
   alias EHealth.DeclarationRequest.API
   alias EHealth.{Parties, Employees}
   alias EHealth.Employees.Employee
+  alias HTTPoison.Response
 
   require Logger
 
@@ -133,13 +134,17 @@ defmodule EHealth.DeclarationRequest.API.Sign do
     end
   end
 
-  def create_or_update_person(content, headers) do
+  def create_or_update_person(declaration_request, content, headers) do
     content
     |> Map.fetch!("person")
     |> Map.put("patient_signed", true)
+    |> Map.put("id", declaration_request.id)
     |> MPI.create_or_update_person(headers)
     |> case do
-      {:ok, person} -> {:ok, person}
+      {:ok, %Response{status_code: 409}} -> {:conflict, "person is not active"}
+      {:ok, %Response{status_code: 404}} -> {:conflict, "person is not found"}
+      {:ok, %Response{body: person, status_code: 200}} -> Poison.decode(person)
+      {:ok, %Response{body: person, status_code: 201}} -> Poison.decode(person)
       err -> err
     end
   end

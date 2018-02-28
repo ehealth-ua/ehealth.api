@@ -1,7 +1,6 @@
 defmodule EHealth.DeclarationRequest.API.Create do
   @moduledoc false
 
-  alias EHealth.API.MPI
   alias EHealth.API.Mithril
   alias EHealth.Man.Templates.DeclarationRequestPrintoutForm
   alias EHealth.API.OTPVerification
@@ -77,9 +76,7 @@ defmodule EHealth.DeclarationRequest.API.Create do
   end
 
   defp do_determine_auth_method_for_mpi(person, changeset) do
-    {:ok, %{"data" => person_details}} = MPI.person(person["id"])
-
-    authentication_method = hd(person_details["authentication_methods"])
+    authentication_method = List.first(person["authentication_methods"] || [])
     authenticated_methods = changeset |> get_field(:data) |> get_in(~w(person authentication_methods)) |> hd
 
     authentication_method_current =
@@ -89,7 +86,9 @@ defmodule EHealth.DeclarationRequest.API.Create do
         authenticated_methods
       )
 
-    put_change(changeset, :authentication_method_current, authentication_method_current)
+    changeset
+    |> put_change(:authentication_method_current, authentication_method_current)
+    |> put_change(:mpi_id, person["id"])
   end
 
   def prepare_auth_method_current(%{"type" => @auth_offline}) do

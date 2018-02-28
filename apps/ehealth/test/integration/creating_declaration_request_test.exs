@@ -18,7 +18,14 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         search_result =
           case confirm_params["first_name"] do
             "Олена" ->
-              [%{id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c"}]
+              [
+                %{
+                  id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c",
+                  authentication_methods: [
+                    %{type: "OTP", phone_number: "+380508887700"}
+                  ]
+                }
+              ]
 
             "Тест" ->
               []

@@ -338,20 +338,15 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         } = confirm_params
 
         search_result = [
-          %{id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c"}
+          %{
+            id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c",
+            authentication_methods: [
+              %{type: "OTP", phone_number: "+380508887700"}
+            ]
+          }
         ]
 
         render_with_paging(search_result, conn)
-      end
-
-      Plug.Router.get "/persons/b5350f79-f2ca-408f-b15d-1ae0a8cc861c" do
-        person = %{
-          authentication_methods: [
-            %{type: "OTP", phone_number: "+380508887700"}
-          ]
-        }
-
-        send_resp(conn, 200, Poison.encode!(%{data: person}))
       end
     end
 
@@ -391,7 +386,8 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         |> Ecto.Changeset.change()
         |> determine_auth_method_for_mpi()
 
-      assert get_change(changeset, :authentication_method_current) == %{"number" => "+380508887700", "type" => "OTP"}
+      assert %{"number" => "+380508887700", "type" => "OTP"} == get_change(changeset, :authentication_method_current)
+      assert "b5350f79-f2ca-408f-b15d-1ae0a8cc861c" == get_change(changeset, :mpi_id)
     end
   end
 
@@ -597,15 +593,13 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
 
   describe "determine_auth_method_for_mpi/1, MPI record with type NA" do
     defmodule MPIAuthNA do
+      @moduledoc false
+
       use MicroservicesHelper
       import EHealth.MockServer, only: [render_with_paging: 2]
 
-      Plug.Router.get "/persons/32b96821-44c4-4acb-a726-a1b5b05cb2aa" do
-        send_resp(conn, 200, Poison.encode!(%{data: %{authentication_methods: [%{type: "NA"}]}}))
-      end
-
       Plug.Router.get "/persons" do
-        person = %{id: "32b96821-44c4-4acb-a726-a1b5b05cb2aa"}
+        person = %{id: "32b96821-44c4-4acb-a726-a1b5b05cb2aa", authentication_methods: [%{type: "NA"}]}
         render_with_paging([person], conn)
       end
     end

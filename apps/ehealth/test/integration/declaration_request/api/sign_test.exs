@@ -153,10 +153,21 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
 
   describe "create_or_update_person/2" do
     defmodule MPIMock do
+      @moduledoc false
+
       use MicroservicesHelper
 
       Plug.Router.post "/persons" do
-        send_resp(conn, 200, Poison.encode!(conn.body_params))
+        case conn.body_params do
+          %{"id" => "d2bb5bef-5984-4c25-9538-16ed61dc810e"} ->
+            send_resp(conn, 409, "")
+
+          %{"id" => "6e8d4595-e83c-4f97-be76-c6e2b96b05f1"} ->
+            send_resp(conn, 200, Poison.encode!(conn.body_params))
+
+          _ ->
+            send_resp(conn, 404, "")
+        end
       end
     end
 
@@ -175,8 +186,25 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
 
     test "returns expected result" do
       person = %{"data" => "somedata", "patient_signed" => false}
-      expected_result = {:ok, %{"data" => "somedata", "patient_signed" => true}}
-      assert expected_result == create_or_update_person(%{"person" => person}, [])
+      uuid = "6e8d4595-e83c-4f97-be76-c6e2b96b05f1"
+      expected_result = {:ok, %{"data" => "somedata", "id" => uuid, "patient_signed" => true}}
+      assert expected_result == create_or_update_person(%DeclarationRequest{id: uuid}, %{"person" => person}, [])
+    end
+
+    test "person is not active" do
+      person = %{"data" => "somedata", "patient_signed" => false}
+      uuid = "d2bb5bef-5984-4c25-9538-16ed61dc810e"
+
+      assert {:conflict, "person is not active"} ==
+               create_or_update_person(%DeclarationRequest{id: uuid}, %{"person" => person}, [])
+    end
+
+    test "person not found" do
+      person = %{"data" => "somedata", "patient_signed" => false}
+      uuid = Ecto.UUID.generate()
+
+      assert {:conflict, "person is not found"} ==
+               create_or_update_person(%DeclarationRequest{id: uuid}, %{"person" => person}, [])
     end
   end
 

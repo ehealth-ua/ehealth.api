@@ -26,6 +26,7 @@ defmodule EHealth.DeclarationRequest.API do
     printout_content
     inserted_by
     updated_by
+    mpi_id
   )a
 
   @status_new DeclarationRequest.status(:new)
@@ -375,7 +376,7 @@ defmodule EHealth.DeclarationRequest.API do
          :ok <- Sign.check_employee_id(content, headers),
          :ok <- Sign.check_drfo(signer, headers),
          :ok <- Sign.store_signed_content(db_declaration_request, params, headers),
-         {:ok, person} <- Sign.create_or_update_person(content, headers),
+         {:ok, person} <- Sign.create_or_update_person(db_declaration_request, content, headers),
          {:ok, declaration} <- Sign.create_declaration_with_termination_logic(person, db_declaration_request, headers),
          {:ok, signed_declaration} <- Sign.update_declaration_request_status(declaration, params) do
       {:ok, signed_declaration}
