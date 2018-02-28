@@ -1,7 +1,10 @@
-Change log for versions 7.34.0 - 7.34.23
+Change log for versions 7.34.0 - 7.34.26
 
 **Patches and bug fixes**:
 
+set mpi_id at declaration_request create (#1882)
+set mpi_id at declaration_request create
+handle person not found case
 fix person search by birth_certificate (#1881)
 fix persons search for declarations create (#1880)
 reimplement persons search (#1879)
