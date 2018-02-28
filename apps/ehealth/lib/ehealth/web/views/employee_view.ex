@@ -103,9 +103,6 @@ defmodule EHealth.Web.EmployeeView do
       no_tax_id
       documents
       phones
-      educations
-      qualifications
-      science_degree
     )a)
     Map.put(map, :party, data)
   end
