@@ -1,7 +1,8 @@
-Change log for versions 7.34.0 - 7.34.26
+Change log for versions 7.34.0 - 7.34.27
 
 **Patches and bug fixes**:
 
+fix employee party view (#1884)
 set mpi_id at declaration_request create (#1882)
 set mpi_id at declaration_request create
 handle person not found case
