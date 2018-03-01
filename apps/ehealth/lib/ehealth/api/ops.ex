@@ -17,7 +17,7 @@ defmodule EHealth.API.OPS do
   end
 
   def get_declarations_count(employee_ids, headers \\ []) do
-    get!("/declarations_count", headers, ids: employee_ids)
+    get!("/declarations_count?ids=#{Enum.join(employee_ids, ",")}", headers)
   end
 
   def terminate_employee_declarations(employee_id, user_id, reason, reason_description \\ "", headers \\ []) do
