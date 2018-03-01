@@ -26,6 +26,7 @@ defmodule EHealth.Parties do
     qualifications
     science_degree
     specialities
+    declaration_limit
   )a
 
   @fields_required ~w(
@@ -97,11 +98,11 @@ defmodule EHealth.Parties do
     end
   end
 
-  defp changeset(%Search{} = search, attrs) do
+  def changeset(%Search{} = search, attrs) do
     cast(search, attrs, @search_fields)
   end
 
-  defp changeset(%Party{} = party, attrs) do
+  def changeset(%Party{} = party, attrs) do
     party
     |> cast(attrs, @fields_optional ++ @fields_required)
     |> cast_embed(:phones, with: &Phone.changeset/2)

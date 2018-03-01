@@ -6,7 +6,8 @@ defmodule EHealth.DeclarationRequest.API.Sign do
   alias EHealth.API.{MPI, OPS, MediaStorage}
   alias EHealth.DeclarationRequest
   alias EHealth.DeclarationRequest.API
-  alias EHealth.{Parties, Employees}
+  alias EHealth.Parties
+  alias EHealth.Employees
   alias EHealth.Employees.Employee
   alias HTTPoison.Response
 
@@ -110,7 +111,9 @@ defmodule EHealth.DeclarationRequest.API.Sign do
   end
 
   def check_employee_id(content, headers) do
-    with %Employee{legal_entity_id: legal_entity_id} <- content |> get_in(["employee", "id"]) |> Employees.get_by_id(),
+    employee_id = get_in(content, ["employee", "id"])
+
+    with %Employee{legal_entity_id: legal_entity_id} <- Employees.get_by_id(employee_id),
          true <- legal_entity_id == get_client_id(headers) do
       :ok
     else

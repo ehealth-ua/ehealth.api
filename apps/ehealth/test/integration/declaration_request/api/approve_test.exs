@@ -6,7 +6,14 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.ApproveTest do
 
   describe "verify/2 - via offline docs" do
     defmodule VerifyViaOfflineDocs do
+      @moduledoc false
+
       use MicroservicesHelper
+      alias EHealth.MockServer
+
+      Plug.Router.get "/declarations_count" do
+        MockServer.render(%{"count" => 2}, conn, 200)
+      end
 
       Plug.Router.post "/media_content_storage_secrets" do
         params = conn.body_params["secret"]
@@ -49,9 +56,11 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.ApproveTest do
       :ets.new(:uploaded_at_port, [:named_table])
       :ets.insert(:uploaded_at_port, {"port", port})
       System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:#{port}")
+      System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
 
       on_exit(fn ->
         System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:4040")
+        System.put_env("OPS_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
       end)
 
@@ -59,16 +68,22 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.ApproveTest do
     end
 
     test "all documents were verified to be successfully uploaded" do
-      declaration_request = %{
-        id: "2685788E-CE5E-4C0F-9857-BB070C5F2180",
-        authentication_method_current: %{
-          "type" => "OFFLINE"
-        },
-        documents: [
-          %{"verb" => "HEAD", "type" => "A"},
-          %{"verb" => "HEAD", "type" => "B"}
-        ]
-      }
+      party = insert(:prm, :party)
+      %{id: employee_id} = insert(:prm, :employee, party: party)
+
+      declaration_request =
+        build(
+          :declaration_request,
+          id: "2685788E-CE5E-4C0F-9857-BB070C5F2180",
+          authentication_method_current: %{
+            "type" => "OFFLINE"
+          },
+          data: %{"employee" => %{"id" => employee_id}},
+          documents: [
+            %{"verb" => "HEAD", "type" => "A"},
+            %{"verb" => "HEAD", "type" => "B"}
+          ]
+        )
 
       assert {:ok, true} = verify(declaration_request, "doesn't matter")
     end

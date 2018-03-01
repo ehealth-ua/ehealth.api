@@ -154,7 +154,14 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
 
   describe "approve declaration_request" do
     defmodule ApproveDeclarationRequest do
+      @moduledoc false
+
       use MicroservicesHelper
+      alias EHealth.MockServer
+
+      Plug.Router.get "/declarations_count" do
+        MockServer.render(%{"count" => 2}, conn, 200)
+      end
 
       Plug.Router.get "/good_upload" do
         Plug.Conn.send_resp(conn, 200, "")
@@ -178,9 +185,11 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       :ets.new(:uploaded_at_port, [:named_table])
       :ets.insert(:uploaded_at_port, {"port", port})
       System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:#{port}")
+      System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
 
       on_exit(fn ->
         System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:4040")
+        System.put_env("OPS_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
       end)
 
@@ -188,7 +197,16 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
 
     test "approve NEW declaration_request", %{conn: conn} do
-      declaration_request = insert(:il, :declaration_request, documents: [%{"type" => "ok", "verb" => "HEAD"}])
+      party = insert(:prm, :party)
+      %{id: employee_id} = insert(:prm, :employee, party: party)
+
+      declaration_request =
+        insert(
+          :il,
+          :declaration_request,
+          documents: [%{"type" => "ok", "verb" => "HEAD"}],
+          data: %{"employee" => %{"id" => employee_id}}
+        )
 
       conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8602f2")
       conn = patch(conn, declaration_request_path(conn, :approve, declaration_request))

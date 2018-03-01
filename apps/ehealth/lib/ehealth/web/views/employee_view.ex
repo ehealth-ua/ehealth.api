@@ -26,7 +26,10 @@ defmodule EHealth.Web.EmployeeView do
       start_date
       end_date
     )a)
-    |> Map.put(:party, Map.take(employee.party, ~w(id first_name second_name last_name no_tax_id)a))
+    |> Map.put(
+      :party,
+      Map.take(employee.party, ~w(id first_name second_name last_name no_tax_id declaration_limit)a)
+    )
     |> render_association(employee.division)
     |> render_association(employee.legal_entity)
     |> put_list_info(employee)
@@ -85,6 +88,7 @@ defmodule EHealth.Web.EmployeeView do
       employee_type
       start_date
       end_date
+      declaration_limit
     )a)
     |> render_association(employee.party)
     |> render_association(employee.division)

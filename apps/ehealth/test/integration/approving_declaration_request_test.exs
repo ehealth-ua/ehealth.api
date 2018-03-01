@@ -8,10 +8,17 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
 
   describe "Approve declaration with auth type OTP or NA" do
     defmodule OtpHappyPath do
+      @moduledoc false
+
       use MicroservicesHelper
+      alias EHealth.MockServer
 
       Plug.Router.get "/good_upload" do
         Plug.Conn.send_resp(conn, 200, "")
+      end
+
+      Plug.Router.get "/declarations_count" do
+        MockServer.render(%{"count" => 2}, conn, 200)
       end
 
       Plug.Router.post "/media_content_storage_secrets" do
@@ -58,10 +65,12 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
 
       System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:#{port}")
       System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:#{port}")
+      System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
 
       on_exit(fn ->
         System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:4040")
         System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:4040")
+        System.put_env("OPS_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
       end)
 
@@ -69,6 +78,9 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
     end
 
     test "happy path: declaration is successfully approved via OTP code", %{conn: conn} do
+      party = insert(:prm, :party)
+      %{id: employee_id} = insert(:prm, :employee, party: party)
+
       %{id: id} =
         insert(
           :il,
@@ -76,7 +88,8 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
           authentication_method_current: %{
             "type" => "OTP",
             "number" => "+380972805261"
-          }
+          },
+          data: %{"employee" => %{"id" => employee_id}}
         )
 
       resp =
@@ -96,6 +109,9 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
     end
 
     test "declaration is successfully approved without verification", %{conn: conn} do
+      party = insert(:prm, :party)
+      %{id: employee_id} = insert(:prm, :employee, party: party)
+
       %{id: id} =
         insert(
           :il,
@@ -103,7 +119,8 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
           authentication_method_current: %{
             "type" => "NA",
             "number" => "+380972805261"
-          }
+          },
+          data: %{"employee" => %{"id" => employee_id}}
         )
 
       resp =
@@ -227,7 +244,14 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
 
   describe "Offline verification" do
     defmodule OfflineHappyPath do
+      @moduledoc false
+
       use MicroservicesHelper
+      alias EHealth.MockServer
+
+      Plug.Router.get "/declarations_count" do
+        MockServer.render(%{"count" => 2}, conn, 200)
+      end
 
       Plug.Router.get "/good_upload_1" do
         Plug.Conn.send_resp(conn, 200, "")
@@ -272,9 +296,11 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
       :ets.new(:uploaded_at_port, [:named_table])
       :ets.insert(:uploaded_at_port, {"port", port})
       System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:#{port}")
+      System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
 
       on_exit(fn ->
         System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:4040")
+        System.put_env("OPS_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
       end)
 
@@ -282,6 +308,9 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
     end
 
     test "happy path: declaration is successfully approved via offline docs check", %{conn: conn} do
+      party = insert(:prm, :party)
+      %{id: employee_id} = insert(:prm, :employee, party: party)
+
       %{id: id} =
         insert(
           :il,
@@ -289,6 +318,7 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
           authentication_method_current: %{
             "type" => "OFFLINE"
           },
+          data: %{"employee" => %{"id" => employee_id}},
           documents: [
             %{"type" => "A", "verb" => "HEAD"},
             %{"type" => "B", "verb" => "HEAD"}

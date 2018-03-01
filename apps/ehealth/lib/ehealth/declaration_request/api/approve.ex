@@ -1,9 +1,13 @@
 defmodule EHealth.DeclarationRequest.API.Approve do
   @moduledoc false
 
+  alias EHealth.Employees
+  alias EHealth.Employees.Employee
   alias EHealth.API.MediaStorage
+  alias EHealth.API.OPS
   alias EHealth.API.OTPVerification
   alias EHealth.DeclarationRequest
+  alias EHealth.Parties.Party
   require Logger
 
   @auth_otp DeclarationRequest.authentication_method(:otp)
@@ -13,7 +17,8 @@ defmodule EHealth.DeclarationRequest.API.Approve do
   def verify(declaration_request, code) do
     with {:ok, _} <- verify_auth(declaration_request, code),
          docs <- prepare_documents_list(declaration_request),
-         {:ok, _} <- check_documents(docs, declaration_request.id, {:ok, true}) do
+         {:ok, _} <- check_documents(docs, declaration_request.id, {:ok, true}),
+         :ok <- validate_declaration_limit(declaration_request) do
       {:ok, true}
     end
   end
@@ -96,5 +101,20 @@ defmodule EHealth.DeclarationRequest.API.Approve do
 
   def put_document_error({:error, {:documents_not_uploaded, container}}, doc_type) do
     {:error, {:documents_not_uploaded, container ++ [doc_type]}}
+  end
+
+  defp validate_declaration_limit(%DeclarationRequest{overlimit: true}), do: :ok
+
+  defp validate_declaration_limit(%DeclarationRequest{data: %{"employee" => %{"id" => employee_id}}}) do
+    with %Employee{party: %Party{} = party} <- Employees.get_by_id(employee_id),
+         employees <- Employees.get_by_party_id(party.id),
+         {:ok, %{"data" => %{"count" => declarations_count}}} <-
+           OPS.get_declarations_count(Enum.map(employees, &Map.get(&1, :id))),
+         {:limit, true} <- {:limit, !party.declaration_limit || declarations_count >= party.declaration_limit} do
+      :ok
+    else
+      {:limit, false} -> {:error, {:"422", "This doctor reaches his limit and could not sign more declarations"}}
+      _ -> {:error, {:conflict, "employee or party not found"}}
+    end
   end
 end

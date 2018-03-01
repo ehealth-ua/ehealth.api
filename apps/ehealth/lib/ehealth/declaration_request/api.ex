@@ -269,13 +269,14 @@ defmodule EHealth.DeclarationRequest.API do
 
     specialities = Map.get(employee.additional_info, "specialities") || []
 
-    attrs = Map.drop(attrs, ["employee_id", "division_id"])
+    overlimit = Map.get(attrs, "overlimit", false)
+    attrs = Map.drop(attrs, ~w(employee_id division_id overlimit))
 
     id = UUID.generate()
     declaration_id = UUID.generate()
 
     %EHealth.DeclarationRequest{id: id}
-    |> cast(%{data: attrs}, [:data])
+    |> cast(%{data: attrs, overlimit: overlimit}, ~w(data overlimit)a)
     |> validate_legal_entity_employee(legal_entity, employee)
     |> validate_legal_entity_division(legal_entity, division)
     |> validate_employee_type(employee)

@@ -16,6 +16,10 @@ defmodule EHealth.API.OPS do
     get!("/declarations", headers, params: params)
   end
 
+  def get_declarations_count(employee_ids, headers \\ []) do
+    get!("/declarations_count", headers, ids: employee_ids)
+  end
+
   def terminate_employee_declarations(employee_id, user_id, reason, reason_description \\ "", headers \\ []) do
     body = Poison.encode!(%{user_id: user_id, reason: reason, reason_description: reason_description})
     patch!("/employees/#{employee_id}/declarations/actions/terminate", body, headers)

@@ -51,6 +51,12 @@ defmodule EHealth.Employees do
     |> load_references()
   end
 
+  def get_by_party_id(party_id) do
+    Employee
+    |> where([e], e.party_id == ^party_id)
+    |> PRMRepo.all()
+  end
+
   def get_search_query(Employee = entity, %{ids: _} = changes) do
     entity
     |> super(convert_comma_params_to_where_in_clause(changes, :ids, :id))

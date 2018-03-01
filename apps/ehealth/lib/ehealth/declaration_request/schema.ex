@@ -39,6 +39,7 @@ defmodule EHealth.DeclarationRequest do
     field(:updated_by, Ecto.UUID)
     field(:declaration_id, Ecto.UUID)
     field(:mpi_id, Ecto.UUID)
+    field(:overlimit, :boolean)
 
     timestamps()
   end

@@ -2,9 +2,9 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase
-  import EHealth.DeclarationRequest.API.Sign
-  alias EHealth.Repo
   alias EHealth.DeclarationRequest
+  alias EHealth.Repo
+  import EHealth.DeclarationRequest.API.Sign
 
   describe "check_status/2" do
     test "raises error when id is invalid" do
@@ -143,7 +143,8 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
 
     test "returns expected result when you sign declaration from your legal entity" do
       %{id: legal_entity_id} = insert(:prm, :legal_entity)
-      %{id: employee_id} = insert(:prm, :employee, legal_entity_id: legal_entity_id)
+      party = insert(:prm, :party, declaration_limit: 100)
+      %{id: employee_id} = insert(:prm, :employee, legal_entity_id: legal_entity_id, party: party)
 
       content = %{"employee" => %{"id" => employee_id}}
       headers = [{"x-consumer-metadata", Poison.encode!(%{client_id: legal_entity_id})}]

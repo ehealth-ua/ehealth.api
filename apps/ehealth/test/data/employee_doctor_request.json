@@ -81,6 +81,7 @@
         "speciality": "Педіатр",
         "issued_date": "2017-08-05"
       }
-    }
+    },
+    "declaration_limit": 2000
   }
 }

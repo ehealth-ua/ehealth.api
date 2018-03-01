@@ -62,6 +62,9 @@ defmodule EHealth.Web.DeclarationRequestController do
       {:error, :verification, {:ael_bad_response, _}, _} ->
         {:error, %{"type" => "internal_error"}}
 
+      {:error, :verification, {:conflict, message}, _} ->
+        {:error, {:conflict, message}}
+
       {:error, _, %{"meta" => _} = error, _} ->
         {:error, error}
 

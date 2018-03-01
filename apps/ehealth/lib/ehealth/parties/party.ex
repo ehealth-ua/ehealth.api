@@ -19,6 +19,7 @@ defmodule EHealth.Parties.Party do
     field(:science_degree, :map)
     field(:inserted_by, Ecto.UUID)
     field(:updated_by, Ecto.UUID)
+    field(:declaration_limit, :integer)
 
     embeds_many(:phones, EHealth.Parties.Phone, on_replace: :delete)
     embeds_many(:documents, EHealth.Parties.Document, on_replace: :delete)

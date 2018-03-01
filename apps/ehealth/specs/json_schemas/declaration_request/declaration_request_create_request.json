@@ -221,7 +221,10 @@
             },
             "preferred_way_communication": {
               "type": "string",
-              "enum": ["email", "phone"]
+              "enum": [
+                "email",
+                "phone"
+              ]
             },
             "documents": {
               "type": "array",
@@ -418,6 +421,9 @@
         },
         "seed": {
           "type": "string"
+        },
+        "overlimit": {
+          "type": "boolean"
         }
       },
       "required": [

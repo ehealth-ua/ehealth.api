@@ -249,6 +249,7 @@ defmodule EHealth.EmployeeRequests do
     data
     |> Map.fetch!("party")
     |> do_create_party_params(doctor)
+    |> Map.put("declaration_limit", Map.get(data, "declaration_limit"))
   end
 
   def create_party_params(%{"pharmacist" => pharmacist} = data) do
