@@ -159,7 +159,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       use MicroservicesHelper
       alias EHealth.MockServer
 
-      Plug.Router.get "/declarations_count" do
+      Plug.Router.post "/declarations_count" do
         MockServer.render(%{"count" => 2}, conn, 200)
       end
 

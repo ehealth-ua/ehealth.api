@@ -17,7 +17,7 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
         Plug.Conn.send_resp(conn, 200, "")
       end
 
-      Plug.Router.get "/declarations_count" do
+      Plug.Router.post "/declarations_count" do
         MockServer.render(%{"count" => 2}, conn, 200)
       end
 
@@ -249,7 +249,7 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
       use MicroservicesHelper
       alias EHealth.MockServer
 
-      Plug.Router.get "/declarations_count" do
+      Plug.Router.post "/declarations_count" do
         MockServer.render(%{"count" => 2}, conn, 200)
       end
 

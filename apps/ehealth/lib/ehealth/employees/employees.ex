@@ -51,8 +51,10 @@ defmodule EHealth.Employees do
     |> load_references()
   end
 
-  def get_by_party_id(party_id) do
+  def get_active_by_party_id(party_id) do
     Employee
+    |> where([e], e.is_active)
+    |> where([e], e.status == ^Employee.status(:approved))
     |> where([e], e.party_id == ^party_id)
     |> PRMRepo.all()
   end

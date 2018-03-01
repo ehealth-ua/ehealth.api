@@ -107,7 +107,7 @@ defmodule EHealth.DeclarationRequest.API.Approve do
 
   defp validate_declaration_limit(%DeclarationRequest{data: %{"employee" => %{"id" => employee_id}}}) do
     with %Employee{party: %Party{} = party} <- Employees.get_by_id(employee_id),
-         employees <- Employees.get_by_party_id(party.id),
+         employees <- Employees.get_active_by_party_id(party.id),
          {:ok, %{"data" => %{"count" => declarations_count}}} <-
            OPS.get_declarations_count(Enum.map(employees, &Map.get(&1, :id))),
          {:limit, true} <- {:limit, !party.declaration_limit || declarations_count >= party.declaration_limit} do
