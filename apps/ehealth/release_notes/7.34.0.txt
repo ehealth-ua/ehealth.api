@@ -1,7 +1,9 @@
-Change log for versions 7.34.0 - 7.34.28
+Change log for versions 7.34.0 - 7.34.30
 
 **Patches and bug fixes**:
 
+add doctor limits logic
+get declarations count from OPS
 fix creating declarations (#1885)
 fix employee party view (#1884)
 set mpi_id at declaration_request create (#1882)
@@ -33,4 +35,5 @@ EHealth-1730: change register_entry model structure (#1849)
 
 **Other**:
 
+Doctor limits#1838 (#1886)
 Added new ERD version (for prm, mithril, ops, il, mpi)
