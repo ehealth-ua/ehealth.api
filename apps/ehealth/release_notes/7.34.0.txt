@@ -1,7 +1,8 @@
-Change log for versions 7.34.0 - 7.34.30
+Change log for versions 7.34.0 - 7.34.31
 
 **Patches and bug fixes**:
 
+send employee_ids as comma separated list (#1887)
 add doctor limits logic
 get declarations count from OPS
 fix creating declarations (#1885)
