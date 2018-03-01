@@ -188,7 +188,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
       person = %{"data" => "somedata", "patient_signed" => false}
       uuid = "6e8d4595-e83c-4f97-be76-c6e2b96b05f1"
       expected_result = {:ok, %{"data" => "somedata", "id" => uuid, "patient_signed" => true}}
-      assert expected_result == create_or_update_person(%DeclarationRequest{id: uuid}, %{"person" => person}, [])
+      assert expected_result == create_or_update_person(%DeclarationRequest{mpi_id: uuid}, %{"person" => person}, [])
     end
 
     test "person is not active" do
@@ -196,7 +196,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
       uuid = "d2bb5bef-5984-4c25-9538-16ed61dc810e"
 
       assert {:conflict, "person is not active"} ==
-               create_or_update_person(%DeclarationRequest{id: uuid}, %{"person" => person}, [])
+               create_or_update_person(%DeclarationRequest{mpi_id: uuid}, %{"person" => person}, [])
     end
 
     test "person not found" do

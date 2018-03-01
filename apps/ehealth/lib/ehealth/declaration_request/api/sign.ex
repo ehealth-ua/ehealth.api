@@ -138,7 +138,7 @@ defmodule EHealth.DeclarationRequest.API.Sign do
     content
     |> Map.fetch!("person")
     |> Map.put("patient_signed", true)
-    |> Map.put("id", declaration_request.id)
+    |> Map.put("id", declaration_request.mpi_id)
     |> MPI.create_or_update_person(headers)
     |> case do
       {:ok, %Response{status_code: 409}} -> {:conflict, "person is not active"}
