@@ -65,6 +65,9 @@ defmodule EHealth.Web.DeclarationRequestController do
       {:error, :verification, {:conflict, message}, _} ->
         {:error, {:conflict, message}}
 
+      {:error, :verification, {:"422", message}, _} ->
+        {:error, {:"422", message}}
+
       {:error, _, %{"meta" => _} = error, _} ->
         {:error, error}
 

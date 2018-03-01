@@ -110,7 +110,7 @@ defmodule EHealth.DeclarationRequest.API.Approve do
          employees <- Employees.get_active_by_party_id(party.id),
          {:ok, %{"data" => %{"count" => declarations_count}}} <-
            OPS.get_declarations_count(Enum.map(employees, &Map.get(&1, :id))),
-         {:limit, true} <- {:limit, !party.declaration_limit || declarations_count >= party.declaration_limit} do
+         {:limit, true} <- {:limit, !party.declaration_limit || declarations_count < party.declaration_limit} do
       :ok
     else
       {:limit, false} -> {:error, {:"422", "This doctor reaches his limit and could not sign more declarations"}}
