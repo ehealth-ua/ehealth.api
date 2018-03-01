@@ -1,7 +1,8 @@
-Change log for versions 7.34.0 - 7.34.27
+Change log for versions 7.34.0 - 7.34.28
 
 **Patches and bug fixes**:
 
+fix creating declarations (#1885)
 fix employee party view (#1884)
 set mpi_id at declaration_request create (#1882)
 set mpi_id at declaration_request create
