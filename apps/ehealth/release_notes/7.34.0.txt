@@ -1,7 +1,8 @@
-Change log for versions 7.34.0 - 7.34.33
+Change log for versions 7.34.0 - 7.34.34
 
 **Patches and bug fixes**:
 
+set default declaration_limit (#1891)
 fix handling declarations limit (#1889)
 use post for getting party declarations count (#1888)
 send employee_ids as comma separated list (#1887)
