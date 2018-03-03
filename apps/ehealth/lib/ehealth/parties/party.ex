@@ -20,6 +20,8 @@ defmodule EHealth.Parties.Party do
     field(:inserted_by, Ecto.UUID)
     field(:updated_by, Ecto.UUID)
     field(:declaration_limit, :integer)
+    field(:about_myself, :string)
+    field(:working_experience, :integer)
 
     embeds_many(:phones, EHealth.Parties.Phone, on_replace: :delete)
     embeds_many(:documents, EHealth.Parties.Document, on_replace: :delete)

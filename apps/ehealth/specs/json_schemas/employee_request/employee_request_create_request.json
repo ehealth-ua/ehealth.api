@@ -261,14 +261,14 @@
           "minItems": 1
         },
         "about_myself": {
-          "type":"string"
+          "type": "string"
         },
         "working_experience": {
           "type": "integer",
           "minimum": 0,
           "exclusiveMinimum": true,
           "description": "qnty of full years"
-        },
+        }
       },
       "required": [
         "first_name",

@@ -27,6 +27,8 @@ defmodule EHealth.Parties do
     science_degree
     specialities
     declaration_limit
+    about_myself
+    working_experience
   )a
 
   @fields_required ~w(

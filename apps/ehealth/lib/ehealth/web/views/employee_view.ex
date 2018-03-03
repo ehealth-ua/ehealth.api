@@ -107,6 +107,8 @@ defmodule EHealth.Web.EmployeeView do
       no_tax_id
       documents
       phones
+      about_myself
+      working_experience
     )a)
     Map.put(map, :party, data)
   end

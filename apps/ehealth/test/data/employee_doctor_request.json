@@ -25,7 +25,9 @@
           "type": "MOBILE",
           "number": "+380503410870"
         }
-      ]
+      ],
+      "about_myself": "biography",
+      "working_experience": 5
     },
     "doctor": {
       "educations": [
