@@ -16,7 +16,12 @@ defmodule EHealth.Web.PersonController do
 
   def search_persons(conn, params) do
     with {:ok, persons, changes} <- Persons.search(params, conn.req_headers) do
-      render(conn, "persons.json", %{persons: persons, fields: Map.keys(changes)})
+      fields =
+        changes
+        |> Map.keys()
+        |> Enum.map(&to_string/1)
+
+      render(conn, "persons.json", %{persons: persons, fields: fields})
     end
   end
 

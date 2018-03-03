@@ -143,10 +143,10 @@ defmodule EHealth.Web.PersonControllerTest do
       assert response = json_response(conn, 200)
       assert 2 == Enum.count(response["data"])
       expected_keys = ~w(
-        birth_certificate
         birth_country
         birth_date
         birth_settlement
+        documents
         first_name
         id
         last_name
@@ -207,7 +207,7 @@ defmodule EHealth.Web.PersonControllerTest do
         id
         last_name
         merged_ids
-        phone_number
+        phones
         second_name)
       assert expected_keys == Map.keys(hd(response["data"]))
     end
