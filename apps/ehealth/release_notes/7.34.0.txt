@@ -1,7 +1,8 @@
-Change log for versions 7.34.0 - 7.34.37
+Change log for versions 7.34.0 - 7.34.38
 
 **Patches and bug fixes**:
 
+persons search fixes (#1895)
 add doctor fields to parties (#1894)
 add doctor fields to parties
 fix employee show response schema
