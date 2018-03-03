@@ -60,6 +60,12 @@
         },
         "phones": {
           "type": "array"
+        },
+        "about_myself": {
+          "type": "string"
+        },
+        "working_experience": {
+          "type": "integer"
         }
       },
       "required": [
