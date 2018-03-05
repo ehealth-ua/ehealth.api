@@ -1,7 +1,8 @@
-Change log for versions 7.34.0 - 7.34.39
+Change log for versions 7.34.0 - 7.34.40
 
 **Patches and bug fixes**:
 
+EHealth-1832: changed err messages (#1897)
 set residence address for all divisions which miss it (#1896)
 persons search fixes (#1895)
 add doctor fields to parties (#1894)
@@ -44,6 +45,7 @@ EHealth-1730: change register_entry model structure (#1849)
 
 **Other**:
 
+get declaration list and details via cabinet
 Adding fields to employee request (#1893)
 added new fileds "about_myself" and "working_experience"
 Doctor limits#1838 (#1886)
