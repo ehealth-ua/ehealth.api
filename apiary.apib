@@ -516,6 +516,7 @@ Response will contain only records that you have access to.
 1. One parameter of `employee_id` and `person_id` must be set
 2. Search active declarations by `employee_id` or `person_id`
 3. Update declarations status to TERMINATED
+**Scopes required:** `declaration:terminate`
 
 + Request (application/json)
     + Attributes (object)
@@ -1063,11 +1064,12 @@ If the region is not specified, the service returns statistics for all regions
 
 ## Divisions [/report/divisions]
 
-### Search Divisions [GET /stats/divisions{?id,type,name,area,region,settlement,legal_entity_edrpou,legal_entity_id,legal_entity_name,north,east,south,west}]
+### Search Divisions [GET /stats/divisions{?id,employee_id,type,name,area,region,settlement,legal_entity_edrpou,legal_entity_id,legal_entity_name,north,east,south,west}]
 Method searches divisions by parameters and returnes division details
 
 + Parameters
     + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, optional) - division ID
+    + employee_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - employee ID
     + type: CLINIC (enum, optional) - `Dictionary DIVISION_TYPE`
     + name: Відділення1 (string, optional) - the mane of division
     + area:`Волинська` (string, optional) - the name of region where division is located
@@ -1086,6 +1088,30 @@ Method searches divisions by parameters and returnes division details
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
         + data (array[EntriesDivisionMap], optional)
+
+### Search Employees [GET /stats/employees{?id,employee_type,first_name,last_name,second_name,speciality,division_id,division_name,area,region,settlement,page,page_size}]
+Method searches doctor by parameters and returnes division details
+
++ Parameters
+    + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, optional) - Employee ID
+    + employee_type: 'DOCTOR' (string, optional)
+    + first_name: Іван (enum, optional) - doctor first name
+    + last_name: Іванов (string, optional) - doctor last name
+    + second_name: Іванович (string, optional) - doctor second name 
+    + speciality: `FAMILY_DOCTOR` (string, optional) - doctor officio speciality
+    + division_id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, optional) - division ID
+    + division_name: Відділення1 (string, optional) - the name of division
+    + area:`Волинська` (string, optional) - the name of region where division is located
+    + region: `Луцький` (string, optional) -  the name of district where division is located
+    + settlement: `Луцьк` (string, optional) - the name of settlement where division is located
+    + page: 2 (number, optional)
+    + page_size: 50 (number, optional)
+    
++ Request (application/json)
+
++ Response 200 (application/json)
+    + Attributes (`Response_Collection_V2`)
+        + data (array[EntriesEmployeesMap], optional)
 
 ## Employee Requests [/employee_requests]
 
@@ -1832,16 +1858,18 @@ Method allows NHS admin to upload and save files with registers
         + data (object)
             + include `Registers_response`
 
-### Get Registers list [GET /registers{?id,status,file_name,type,date_from,date_to,page,page_size}]
+### Get Registers list [GET /registers{?id,status,file_name,type,inserted_at_from,inserted_at_to,page,page_size}]
 Method returns list of files which were uploaded with statistics.  
+
+**Scopes required:** `register:read`
 
 + Parameters
     + `id`: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, optional) 
     + `status`: processing (string, optional)
     + `file_name`: `November 2018 Kyiv region` (string, optional)
     + `type`: `death_registration` (string, optional)
-    + `date_from`: 2017-10-01` (string, optional)
-    + `date_to`: `2017-10-30` (string, optional)
+    + `inserted_at_from`: 2017-10-01` (string, optional)
+    + `inserted_at_to`: `2017-10-30` (string, optional)
     + `page`: 2 (number) - Page number.    
     + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
@@ -1852,16 +1880,17 @@ Method returns list of files which were uploaded with statistics.
         + meta (Response__Meta)
         + data (array[`Registers_list_response`])
 
-### Get Register entries  list [GET /register_entries{?id,register_id,status,date_from,date_to,document_type,document_number,page,page_size}]
+### Get Register entries  list [GET /registers_entries{?id,register_id,status,inserted_at_from,inserted_at_to,document_type,document_number,page,page_size}]
 Method returns list of records from each uploaded file with status.  
 
+**Scopes required:** `register_entry:read`
 
 + Parameters
     + `id`: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, optional)
     + `register_id`: `09106b70-18b0-4726-b0ed-6bda1369fd62` (string, optional)
     + `status`: `not_found` (string, optional)
-    + `date_from`: 2017-10-01` (string, optional)
-    + `date_to`: `2017-10-30` (string, optional)
+    + `inserted_at_from`: 2017-10-01` (string, optional)
+    + `inserted_at_to`: `2017-10-30` (string, optional)
     + `document_type`: `3028106992` (string, optional)
     + `document_number`: `123456789` (string, optional)
     + `page`: 2 (number) - Page number.    
@@ -1917,6 +1946,204 @@ Method checks request with rules in AuthMethod table, and returns decision based
                 + preferable_auth_method: `OTP_TRUSTEE` (string, required)
             + created_at: `2017-04-19T07:12:53+0000` (string, required) - date created at
             + updated_at: `2017-04-19T07:12:53+0000` (string, required) - date updated at
+
+# Group Internal. Cabinet
+
+## Cabinet [/api]
+
+### Email verification [POST /api/email_verification]
+
+Method check email and send a link via email.
+
++ Request (application/json)
+
+    + Attributes (object)
+        + email: example@gmail.com (string, required) - Patient's email
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 200 (number)
+        + data (object, required)
+
++ Response 409 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta, fixed-type)
+            + code: 409 (number)
+        + error (Response__Error, fixed-type)
+            + type: `conflict`
+            + message: `User with this email already exists` (string)
+
++ Response 422 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta)
+            + code: 422
+        + error
+            + type: unverified (string, required)
+            + message: `Invalid email` (string, required)
+
+### Email Validation [POST /api/email_validation]
+
+Method allows to verify Email and check whether the link we sent is the same as we received
+```
+{
+  "email": "example@gmail.com",
+  "timestamp": "2018-02-28 10:38:00"
+}
+```
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
+    + Attributes (object)
+        + `JWT_token`: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InNwLnZpcm55QGdtYWlsLmNvbSIsInRpbWVzdGFtcCI6IjIwMTgtMDItMjggMTA6Mzg6MDAifQ.LJRLTqK-zf9gxDNMONcI8cMCSYosDtmAIZqhzZUdhz4` (string, required)
+        
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + meta (Response__Meta)
+            + code: 200 (number)
+        + data (object, required)
+            + `JWT_token`: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InNwLnZpcm55QGdtYWlsLmNvbSIsInRpbWVzdGFtcCI6IjIwMTgtMDItMjggMTA6Mzg6MDAifQ.LJRLTqK-zf9gxDNMONcI8cMCSYosDtmAIZqhzZUdhz4` (string, required)
+
++ Response 409 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta, fixed-type)
+            + code: 409 (number)
+        + error (Response__Error, fixed-type)
+            + type: `conflict`
+            + message: `User with this email already exists` (string)
+    
+
+### Create User via Cabinet [POST /persons/{id}/user{?password}]
+
+This service should be used for internal services/processes. Used without `access_token`
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) 
+
++ Request (application/json)
+    + Attributes
+        + email: example.com (string, required)
+        + tax_id: 3000080053 (string, required) 
+        + password: `qwerty` (string, required) 
+
++ Response 201 (application/json)
+    + Headers
+
+            Location: /users/10
+
+    + Attributes (`Response_OK`)
+        + meta (`Response__Meta`)
+            + code: 201 (number)
+        + data (`User_Response`)
+            + `person_id`: 6b21f075-7daf-4cf0-8101-a69c29da4654 (string, required)
+            + tax_id: 3000080053 (string, required) 
+            + is_blocked: false (boolean, optional)
+            + block_reason: `` (string, optional)
+            + `password_set_at`: `2018-03-01 10:00:00` (string, required)
+
+### Update User via Cabinet [POST /users/{email}{?password}]
+
+This service should be used for internal services/processes. Used without `access_token`
+
++ Parameters
+    + email: example.com (string, required) 
+
++ Request (application/json)
+    + Attributes
+        + `person_id`: 6b21f075-7daf-4cf0-8101-a69c29da4654
+        + tax_id: 3000080053 (string, required) 
+        + password: `qwerty` (string, required) 
+
++ Response 201 (application/json)
+    + Headers
+
+            Location: /users/10
+
+    + Attributes (`Response_OK`)
+        + meta (`Response__Meta`)
+            + code: 201 (number)
+        + data (`User_Response`)
+            + person_id: 6b21f075-7daf-4cf0-8101-a69c29da4654
+            + tax_id: 3000080053 (string, required) 
+            + is_blocked: false (boolean, optional)
+            + block_reason: `` (string, optional)
+            + `password_set_at`: `2018-03-01 10:00:00` (string, required)
+            
+
+### Get User [GET /api/users{?tax_id}]
+
+Thie WS designed to check existence of user with input tax_id
+
++ Parameters
+    + tax_id: 2950445646 (string, required)
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (object)
+
++ Response 409 (application/json)
+    + Attributes (Response_Error)
+        + meta (Response__Meta, fixed-type)
+            + code: 409 (number)
+        + error (Response__Error, fixed-type)
+            + type: `conflict`
+            + message: `User with this tax_id already exists` (string)
+
+### Update MPI [PATCH /api/persons/{id}]
+
+This WS is designed to change some personal information in cabinet by patient
+
++ Parameters
+    + id: 7e9cffd9-c75f-45fb-badf-6e8d20b6a8a8 (uuid)
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (`cabinet_person_response`)
+
+### Get declaration details via Cabinet [GET /api/cabinet/declarations/{id}]
+
++ Parameters
+    + id: 7e9cffd9-c75f-45fb-badf-6e8d20b6a8a8 (uuid)
+    
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (`Declaration_Details`)    
+
+### Get declaration list via Cabinet [GET /api/cabinet/declarations{?status,division_name,legal_entity_name,start_year,end_year,page,page_size}]
+
++ Parameters
+    + status: active (string, optional)
+    + division_name: `Бориспільське відділення Клініки Борис` (string, optional)
+    + `legal_entity_name`: `Аптека 199` (string, optional)
+    + start_year: 2018 (string, optional)
+    + end_year: 2018 (string, optional)
+    + page: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+
++ Response 200 (application/json)
+    + Attributes (Response_Collection_V2)
+        + data (`Declaration_Request_Short`)
+
+### Terminate declarations via Cabinet [PATCH /declarations/terminate/{id}]
+
+**Scopes required:** `declaration:terminate`
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
+    + Attributes (object)
+        + id: `50320ee5-2bca-472c-a1a0-28e2e003ec2a` (string, optional) - declaration ID
+        + reason_description: `Неякісне обслуговування` (string, optional)
+
++ Response 200 (application/json)
+    + Attributes (`Response_Collection_V2`)
+        + data (Declaration_Details)
 
 # Group Public. Medical Service Provider Integration Layer
 
@@ -4175,7 +4402,6 @@ This method is used to abtain list of events with filters.
     + include `Emergency_Contact`
 + `confidant_person` (array[`Confidant_Person`], optional) - Should be set if this Person is disabled, underage, etc.
 
-
 ### `Person_Full`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + Include Person_Request
@@ -4217,6 +4443,11 @@ This method is used to abtain list of events with filters.
     - OFFLINE
     - NA
 + phone_number: `+380508887700` (string, optional)
+
+### `cabinet_person_response`
++ include `Person`
++ `emergency_contact`(`Emergency_Contact`)
++ `process_disclosure_data_consent`: true (boolean, required)
 
 ## `Merge_Candidates`
 ### `Merge_Candidate`
@@ -4403,8 +4634,11 @@ This method is used to abtain list of events with filters.
 + email: email@example.com (string, optional)
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
++ working_experience: 10 (number, optional)
++ about_myself: `Закінчив всі можливі курси` (string, optional)
++ declaration_limit: `2000` (number)
 
-### `Party_Response`
+### `Party_Response_old`
 + id:`b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + include `Party_Short`
 + birth_date: `1991-08-19T00:00:00.000Z` (string, required)
@@ -4413,10 +4647,10 @@ This method is used to abtain list of events with filters.
 + tax_id: 3126509816 (string, required)
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
-+ educations (array[Education], optional)  - освіта
-+ qualifications (array[Qualification], optional) - підвищення кваліфікації
-+ specialities (array[Speciality_party], optional)  - блок інформації про отримання сертифікату спеціалісту та проходження атестацій
-+ science_degree (ScienceDegree, optional)
++ working_experience: 10 (number, optional)
++ about_myself: `Закінчив всі можливі курси` (string, optional)
++ declaration_limit: `2000` (number)
++ declaration_count: `1578` (number) 
 
 ### `Party_Update`
 + include `Party_Short`
@@ -4426,6 +4660,8 @@ This method is used to abtain list of events with filters.
 + gender: MALE(string, required) - `Dictionary GENDER`
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
++ working_experience: 10 (number, optional)
++ about_myself: `Закінчив всі можливі курси` (string, optional)
 + educations (array[Education], optional)  - освіта
 + qualifications (array[Qualification], optional) - підвищення кваліфікації
 + specialities (array[Speciality_party], optional)  - блок інформації про отримання сертифікату спеціалісту та проходження атестацій
@@ -4441,6 +4677,8 @@ This method is used to abtain list of events with filters.
 + tax_id: 3126509816 (string, required)
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
++ working_experience: 10 (number, optional)
++ about_myself: `Закінчив всі можливі курси` (string, optional)
 + educations (array[Education], optional)  - освіта
 + qualifications (array[Qualification], optional) - підвищення кваліфікації
 + specialities (array[Speciality_party], optional)  - блок інформації про отримання сертифікату спеціалісту та проходження атестацій
@@ -4514,9 +4752,8 @@ This method is used to abtain list of events with filters.
 + end_date: `2018-03-02T10:45:16.000Z` (string, optional)
 + status: APPROVED, DISMISSED (enum, required)
 + `employee_type`: DOCTOR (string, required) - `Dictionary EMPLOYEE_TYPE`
-+ party (Party_Response)
++ party (`Party_Response_old`)
 + doctor (DoctorNew, optional)
-+ properties (employee_properties) (object, required)
 
 ### `Employee_Update`
 + division_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
@@ -4526,7 +4763,6 @@ This method is used to abtain list of events with filters.
 + status: APPROVED, DISMISSED (enum, required)
 + party (Party_Update)
 + doctor (DoctorNew, optional)
-+ properties (employee_properties) (object, required)
 
 ### `Employee_Request`
 + division_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
@@ -4538,7 +4774,6 @@ This method is used to abtain list of events with filters.
 + `employee_type`: DOCTOR (string, required) - `Dictionary EMPLOYEE_TYPE`
 + party (Party_Request_old)
 + doctor (DoctorNew, optional)
-+ properties (employee_properties) (object, required)
 
 ### `Employee_Request_Short`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -4548,10 +4783,6 @@ This method is used to abtain list of events with filters.
 + `legal_entity_name`: Клініка Ноунейм (string, required)
 + `no_tax_id`: true (boolean, optional)
 + include `Party_Short`
-
-### `employee_properties`
-+ declaration_amount: 1567 (number, required)
-+ declaration_limit: 2000 (number, required)
 
 ### `Employee_Request_Details`
 + include `Employee_Request`
@@ -4567,6 +4798,8 @@ This method is used to abtain list of events with filters.
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
     + no_tax_id: true (boolean, optional)
     + include `Party_Short`
+    + declaration_limit: `2000` (number)
+    + declaration_count: `1578` (number) 
 + division (`Division_Short`)
 + `legal_entity` (`Legal_Entity_Short`)
 + doctor (DoctorNew_Short)
@@ -4644,6 +4877,10 @@ This method is used to abtain list of events with filters.
 + status: ACTIVE (enum, required)
     - ACTIVE
     - CLOSED
+
+### `Legal_Entity_Short_Cabinet`
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ name: Клініка Ноунейм (string, required)
 
 ## `Legal_Entity_Requests`
 
@@ -5060,14 +5297,35 @@ This method is used to abtain list of events with filters.
 + page (number, required)
 + entries (array[EntriesDivisionMap], optional)
 
+### DataEntriesEmployeesMap
++ total_pages (number, required)
++ total_entries (number, required)
++ page_size (number, required)
++ page (number, required)
++ entries (array[EntriesEmployeesMap], optional)
+
 ### EntriesDivisionMap
 + id: `asSbcy12sYs8c` (string, required)
-+ name: `Aдоніс` (string, required)
++ status: `Aдоніс` (string, required)
 + type: CLINIC, AMBULANT_CLINIC, FAP (enum, required)
 + addresses (Address, optional)
 + contacts (ContactInfo, optional)
 + coordinates (Location, optional)
 + `legal_entity` (`LegalEntityMap`, required)
+
+### EntriesEmployeesMap
++ id: `7d23bebb-1cf3-4221-bf21-18aada444756` (string, required) - employee id
++ position: P1 (string, required) - employee position
++ employee_type: DOCTOR (string, required)
++ party (PartyDoctorMap)
++ division(object, required)
+    + id: `asSbcy12sYs8c` (string, required)
+    + status: `Aдоніс` (string, required)
+    + type: CLINIC, AMBULANT_CLINIC, FAP (enum, required)
+    + addresses (Address, optional)
+    + `legal_entity` (object, required)
+        + name: Клініка Ноунейм (string, required)
+
 
 ### LegalEntityMap
 + name: Клініка Ноунейм (string, required)
@@ -5097,6 +5355,20 @@ This method is used to abtain list of events with filters.
 + second_name: Миколайович (string, required)
 + last_name: Іванов (string, required)
 
+### PartyDoctorMap
++ id: `7d23bebb-1cf3-4221-bf21-18aada444756` (string, required)
++ first_name: Петро (string, required)
++ second_name: Миколайович (string, required)
++ last_name: Іванов (string, required)
++ educations (array[Education], required)  - освіта
++ qualifications (array[Qualification], optional) - підвищення кваліфікації
++ specialities (array[Speciality], required)  - блок інформації про отримання сертифікату спеціалісту та проходження атестацій
++ science_degree (ScienceDegree, optional)
++ working_experience: 10 (number, optional)
++ about_myself: `Закінчив всі можливі курси` (string, optional)
++ `declaration_count`: 1500 (number)
++ `declaration_limit`: 2000 (number)
+
 
 ### EmployeeMap
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Employee identifier with `type=DOCTOR` who issued Medication Request.
@@ -5104,7 +5376,7 @@ This method is used to abtain list of events with filters.
 + first_name: `Петро` (string, required)
 + second_name: `Миколайович` (string, optional)
 + position: `P6` (string, required) - `Dictionary POSITION`
-+ employee_type: `DOCTOR` (string) - `Dictionary: EMPLOYEE_TYPE`
++ employee_type: `DOCTOR` (string, required) - `Dictionary: EMPLOYEE_TYPE`
 
 ### ContactInfo
 + email: email@example.com (string, optional)
