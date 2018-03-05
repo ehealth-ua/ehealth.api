@@ -2094,10 +2094,79 @@ Thie WS designed to check existence of user with input tax_id
 
 ### Update MPI [PATCH /api/persons/{id}]
 
-This WS is designed to change some personal information in cabinet by patient
+This WS is designed to change some personal information in cabinet by patient. 
+Method receives signed message (pkcs7) including signed content, digital signature and signer public key. All signature fields will be validated (including signer certificate authority). 
+
+Entity data:
+{
+    "first_name": "Петро",
+    "last_name": "Іванов",
+    "second_name": "Миколайович",
+    "birth_date": "1991-08-19",
+    "birth_country": "Україна",
+    "birth_settlement": "Вінниця",
+    "gender": "MALE",
+    "email": "email@example.com",
+    "tax_id": "3126509816",
+    "secret": "secret",
+    "documents": [
+      {
+        "type": "PASSPORT",
+        "number": "120518",
+        "issued_by": "Рокитнянським РВ ГУ МВС Київської області",
+        "issued_at": "2017-02-28"
+      }
+    ],
+    "addresses": [
+      {
+        "type": "RESIDENCE",
+        "country": "UA",
+        "area": "Житомирська",
+        "region": "Бердичівський",
+        "settlement": "Київ",
+        "settlement_type": "CITY",
+        "settlement_id": "43432432",
+        "street_type": "STREET",
+        "street": "вул. Ніжинська",
+        "building": "15",
+        "apartment": "23",
+        "zip": "02090"
+      }
+    ],
+    "phones": [
+      {
+        "type": "MOBILE",
+        "number": "+380503410870"
+      }
+    ],
+    "authentication_methods": [
+      {
+        "type": "OTP",
+        "phone_number": "+380508887700"
+      }
+    ],
+    "preferred_way_communication": "email",
+    "emergency_contact": {
+      "first_name": "Петро",
+      "last_name": "Іванов",
+      "second_name": "Миколайович",
+      "phones": [
+        {
+          "type": "MOBILE",
+          "number": "+380503410870"
+        }
+      ]
+    },
+    "process_disclosure_data_consent": true
+  }
+}
 
 + Parameters
     + id: 7e9cffd9-c75f-45fb-badf-6e8d20b6a8a8 (uuid)
+    
++ Request (application/json)
+    + Attributes (object)
+        + `signed_request`: `...` (string, required)
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
