@@ -74,12 +74,12 @@ defmodule EHealth.EmployeeRequests.Validator do
     end
   end
 
-  defp validate_speciality(speciality, employee_type) do
+  defp validate_speciality(%{"speciality" => speciality}, employee_type) do
     allowed_specialities = Confex.fetch_env!(:ehealth, :employee_specialities_types)[String.to_atom(employee_type)]
 
-    case speciality["speciality"] in allowed_specialities do
+    case speciality in allowed_specialities do
       true -> :ok
-      _ -> {:error, "speciality with active speciality_officio is not allowed for #{employee_type}"}
+      _ -> {:error, "speciality #{speciality} with active speciality_officio is not allowed for #{employee_type}"}
     end
   end
 

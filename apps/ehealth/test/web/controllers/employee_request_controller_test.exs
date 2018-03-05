@@ -612,7 +612,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
       assert "$.employee_request.doctor.specialities" = error["entry"]
 
-      assert [%{"description" => "speciality with active speciality_officio is not allowed for doctor"}] =
+      assert [%{"description" => "speciality PHARMACIST with active speciality_officio is not allowed for doctor"}] =
                error["rules"]
     end
 
@@ -640,7 +640,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
       assert "$.employee_request.pharmacist.specialities" = error["entry"]
 
-      assert [%{"description" => "speciality with active speciality_officio is not allowed for pharmacist"}] =
+      assert [%{"description" => "speciality THERAPIST with active speciality_officio is not allowed for pharmacist"}] =
                error["rules"]
     end
 
