@@ -2,6 +2,7 @@ defmodule EHealth.Web.UserControllerTest do
   @moduledoc false
   use EHealth.Web.ConnCase
   use Bamboo.Test
+  import Mox
   alias EHealth.Users.CredentialsRecoveryRequest
   alias EHealth.Repo
 
@@ -48,26 +49,24 @@ defmodule EHealth.Web.UserControllerTest do
 
       Plug.Conn.send_resp(conn, 200, Poison.encode!(resp))
     end
-
-    Plug.Router.post "/templates/5/actions/render" do
-      template =
-        "<html><body>Email for credentials recovery " <>
-          "request ##{conn.body_params["credentials_recovery_request_id"]}</body></html>"
-
-      Plug.Conn.send_resp(conn, 200, template)
-    end
   end
 
   setup do
     {:ok, port, ref} = start_microservices(Microservices)
 
-    System.put_env("MAN_ENDPOINT", "http://localhost:#{port}")
     System.put_env("OAUTH_ENDPOINT", "http://localhost:#{port}")
 
     on_exit(fn ->
-      System.delete_env("MAN_ENDPOINT")
       System.delete_env("OAUTH_ENDPOINT")
       stop_microservices(ref)
+    end)
+
+    expect(ManMock, :render_template, fn 5, data ->
+      printout_form =
+        "<html><body>Email for credentials recovery " <>
+          "request ##{data.credentials_recovery_request_id}</body></html>"
+
+      {:ok, printout_form}
     end)
 
     :ok

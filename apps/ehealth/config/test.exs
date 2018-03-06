@@ -35,6 +35,9 @@ config :ehealth,
   mock: [
     port: {:system, :integer, "TEST_MOCK_PORT", 4040},
     host: {:system, "TEST_MOCK_HOST", "localhost"}
+  ],
+  api_resolvers: [
+    man: ManMock
   ]
 
 # Configures Legal Entities token permission

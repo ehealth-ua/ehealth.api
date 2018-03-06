@@ -4,9 +4,10 @@ defmodule EHealth.Man.Templates.EmployeeCreatedNotification do
   use Confex, otp_app: :ehealth
 
   alias EHealth.Man.Templates.EmployeeRequestInvitation
-  alias EHealth.API.Man
   alias EHealth.EmployeeRequests.EmployeeRequest, as: Request
   alias EHealth.LegalEntities
+
+  @man_api Application.get_env(:ehealth, :api_resolvers)[:man]
 
   def render(%Request{id: id, data: data}) do
     clinic_info =
@@ -27,6 +28,6 @@ defmodule EHealth.Man.Templates.EmployeeCreatedNotification do
 
     template_id = config()[:id]
 
-    Man.render_template(template_id, template_data)
+    @man_api.render_template(template_id, template_data)
   end
 end

@@ -2,12 +2,14 @@ defmodule EHealth.Man.Templates.EmployeeRequestInvitation do
   @moduledoc false
 
   use Confex, otp_app: :ehealth
-  alias EHealth.API.Man
+
   alias EHealth.EmployeeRequests.EmployeeRequest, as: Request
   alias EHealth.Dictionaries
   alias EHealth.Utils.AddressMerger
   alias EHealth.LegalEntities
   alias EHealth.LegalEntities.LegalEntity
+
+  @man_api Application.get_env(:ehealth, :api_resolvers)[:man]
 
   def render(%Request{id: id, data: data}) do
     clinic_info =
@@ -16,7 +18,7 @@ defmodule EHealth.Man.Templates.EmployeeRequestInvitation do
       |> LegalEntities.get_by_id()
       |> get_clinic_info()
 
-    Man.render_template(config()[:id], %{
+    @man_api.render_template(config()[:id], %{
       format: config()[:format],
       locale: config()[:locale],
       date: current_date("Europe/Kiev", "%d.%m.%y"),

@@ -3,6 +3,7 @@ defmodule EHealth.Unit.LegalEntityTest do
 
   use EHealth.Web.ConnCase, async: false
 
+  import Mox
   import Ecto.Query, warn: false
 
   alias EHealth.Repo
@@ -164,6 +165,11 @@ defmodule EHealth.Unit.LegalEntityTest do
   describe "create new Legal Entity" do
     setup _context do
       insert_dictionaries()
+
+      expect(ManMock, :render_template, fn _id, _data ->
+        {:ok, "<html><body>Printout form for declaration request.</body></html>"}
+      end)
+
       :ok
     end
 
@@ -229,6 +235,11 @@ defmodule EHealth.Unit.LegalEntityTest do
   describe "update Legal Entity" do
     setup _context do
       insert_dictionaries()
+
+      expect(ManMock, :render_template, fn _id, _data ->
+        {:ok, "<html><body>Printout form for declaration request.</body></html>"}
+      end)
+
       :ok
     end
 

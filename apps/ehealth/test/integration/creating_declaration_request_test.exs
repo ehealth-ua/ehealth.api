@@ -3,6 +3,8 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
 
   use EHealth.Web.ConnCase, async: false
 
+  import Mox
+
   describe "Happy paths" do
     defmodule TwoHappyPaths do
       use MicroservicesHelper
@@ -43,14 +45,6 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         }
 
         send_resp(conn, 200, Poison.encode!(%{data: person}))
-      end
-
-      # MAN Templates API
-      Plug.Router.post "/templates/4/actions/render" do
-        template = "<html><body>Printout form for declaration \
-request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
-
-        Plug.Conn.send_resp(conn, 200, template)
       end
 
       # AEL, Media Storage API
@@ -184,7 +178,6 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
 
       System.put_env("MPI_ENDPOINT", "http://localhost:#{port}")
       System.put_env("GNDF_ENDPOINT", "http://localhost:#{port}")
-      System.put_env("MAN_ENDPOINT", "http://localhost:#{port}")
       System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:#{port}")
       System.put_env("UADDRESS_ENDPOINT", "http://localhost:#{port}")
       System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:#{port}")
@@ -195,13 +188,17 @@ request. tax_id = #{conn.body_params["person"]["tax_id"]}</body></html>"
         System.put_env("GNDF_TABLE_ID", "some_gndf_table_id")
         System.put_env("MPI_ENDPOINT", "http://localhost:4040")
         System.put_env("GNDF_ENDPOINT", "http://localhost:4040")
-        System.put_env("MAN_ENDPOINT", "http://localhost:4040")
         System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:4040")
         System.put_env("UADDRESS_ENDPOINT", "http://localhost:4040")
         System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:4040")
         System.put_env("OAUTH_ENDPOINT", "http://localhost:4040")
         System.put_env("OPS_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
+      end)
+
+      expect(ManMock, :render_template, fn _id, data ->
+        tax_id = get_in(data, ~w(person tax_id)a)
+        {:ok, "<html><body>Printout form for declaration request. tax_id = #{tax_id}</body></html>"}
       end)
 
       {:ok, %{port: port, conn: conn}}

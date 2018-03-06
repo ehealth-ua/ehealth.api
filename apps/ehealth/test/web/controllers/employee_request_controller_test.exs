@@ -4,6 +4,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   use EHealth.Web.ConnCase, async: false
 
   import EHealth.SimpleFactory
+  import Mox
 
   alias EHealth.EmployeeRequests.EmployeeRequest, as: Request
   alias EHealth.LegalEntities.LegalEntity
@@ -60,6 +61,10 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "with valid params and x-consumer-metadata that contains valid client_id", %{conn: conn} do
+      expect(ManMock, :render_template, 2, fn _id, _data ->
+        {:ok, "<html><body>some_rendered_content</body></html>"}
+      end)
+
       legal_entity = insert(:prm, :legal_entity)
       party = insert(:prm, :party, tax_id: "3067305998")
       %{id: id} = insert(:prm, :employee, party: party)
@@ -123,6 +128,10 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "without tax_id and employee_id with valid params and valid client_id", %{conn: conn} do
+      expect(ManMock, :render_template, fn _id, _data ->
+        {:ok, "<html><body>some_rendered_content</body></html>"}
+      end)
+
       legal_entity = insert(:prm, :legal_entity)
       %{id: division_id} = insert(:prm, :division)
 
@@ -452,6 +461,10 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "with employee_id and valid tax_id, employee_type", %{conn: conn} do
+      expect(ManMock, :render_template, fn _id, _data ->
+        {:ok, "<html><body>some_rendered_content</body></html>"}
+      end)
+
       %{id: legal_entity_id} = insert(:prm, :legal_entity)
       division = insert(:prm, :division)
       party = insert(:prm, :party, tax_id: "3067305998")
@@ -983,6 +996,14 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   end
 
   describe "approve employee request" do
+    setup %{conn: conn} do
+      expect(ManMock, :render_template, 2, fn _id, _data ->
+        {:ok, "<html><body>some_rendered_content</body></html>"}
+      end)
+
+      %{conn: conn}
+    end
+
     test "can approve employee request with employee_id", %{conn: conn} do
       %{id: legal_entity_id} = insert(:prm, :legal_entity)
       %{id: division_id} = insert(:prm, :division)

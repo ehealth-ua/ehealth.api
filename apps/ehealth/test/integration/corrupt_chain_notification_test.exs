@@ -4,44 +4,25 @@ defmodule EHealth.Integration.CorruptChainNotificationTest do
   use EHealth.Web.ConnCase, async: false
   use Bamboo.Test
 
+  import Mox
+
   describe "Sending mangled chain notification" do
-    defmodule Man do
-      @moduledoc false
+    test "it sends an email to specified recepient" do
+      expect(ManMock, :render_template, fn _id, data ->
+        assert %{
+                 failure_details: %{
+                   "data" => [
+                     %{"a" => 1},
+                     %{"b" => 2}
+                   ]
+                 },
+                 format: "text/html",
+                 locale: "uk_UA"
+               } = data
 
-      use MicroservicesHelper
-
-      Plug.Router.post "/templates/32167/actions/render" do
-        %{
-          "failure_details" => %{
-            "data" => [
-              %{"a" => 1},
-              %{"b" => 2}
-            ]
-          },
-          "format" => "text/html",
-          "locale" => "uk_UA"
-        } = conn.params
-
-        template = "<html><body>some_rendered_content</body></html>"
-
-        Plug.Conn.send_resp(conn, 200, template)
-      end
-    end
-
-    setup %{conn: conn} do
-      {:ok, port, ref} = start_microservices(Man)
-
-      System.put_env("MAN_ENDPOINT", "http://localhost:#{port}")
-
-      on_exit(fn ->
-        System.put_env("MAN_ENDPOINT", "http://localhost:4040")
-        stop_microservices(ref)
+        {:ok, "<html><body>some_rendered_content</body></html>"}
       end)
 
-      {:ok, %{conn: conn}}
-    end
-
-    test "it sends an email to specified recepient" do
       details = %{
         "data" => [
           %{"a" => 1},

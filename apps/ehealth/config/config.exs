@@ -6,7 +6,10 @@ config :ehealth,
   namespace: EHealth,
   ecto_repos: [EHealth.Repo, EHealth.PRMRepo, EHealth.FraudRepo, EHealth.EventManagerRepo],
   run_declaration_request_terminator: true,
-  system_user: {:system, "EHEALTH_SYSTEM_USER", "4261eacf-8008-4e62-899f-de1e2f7065f0"}
+  system_user: {:system, "EHEALTH_SYSTEM_USER", "4261eacf-8008-4e62-899f-de1e2f7065f0"},
+  api_resolvers: [
+    man: EHealth.API.Man
+  ]
 
 # Configures the endpoint
 config :ehealth, EHealth.Web.Endpoint,
@@ -122,6 +125,10 @@ config :ehealth, EHealth.API.Gandalf,
 
 # configure emails
 config :ehealth, :emails,
+  default: %{
+    format: {:system, "TEMPLATE_FORMAT", "text/html"},
+    locale: {:system, "TEMPLATE_LOCALE", "uk_UA"}
+  },
   employee_request_invitation: %{
     from: {:system, "BAMBOO_EMPLOYEE_REQUEST_INVITATION_FROM", ""},
     subject: {:system, "BAMBOO_EMPLOYEE_REQUEST_INVITATION_SUBJECT", ""}

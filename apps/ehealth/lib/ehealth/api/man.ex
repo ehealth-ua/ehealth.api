@@ -8,6 +8,8 @@ defmodule EHealth.API.Man do
   use EHealth.API.HeadersProcessor
   require Logger
 
+  @behaviour EHealth.API.ManBehaviour
+
   def process_url(url), do: config()[:endpoint] <> url
 
   def render_template(id, data, headers \\ []) do

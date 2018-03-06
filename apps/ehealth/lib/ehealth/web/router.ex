@@ -226,6 +226,8 @@ defmodule EHealthWeb.Router do
     scope "/hash_chain" do
       post("/verification_failed", HashChainController, :verification_failed)
     end
+
+    post("/email/:id", EmailController, :send)
   end
 
   defp handle_errors(%Plug.Conn{status: 500} = conn, %{kind: kind, reason: reason, stack: stacktrace}) do

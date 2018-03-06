@@ -1,12 +1,13 @@
 defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
   @moduledoc false
 
-  alias EHealth.API.Man
+  use Confex, otp_app: :ehealth
+
   alias EHealth.Utils.AddressMerger
   alias EHealth.Dictionaries
   alias EHealth.DeclarationRequest
 
-  use Confex, otp_app: :ehealth
+  @man_api Application.get_env(:ehealth, :api_resolvers)[:man]
 
   @auth_otp DeclarationRequest.authentication_method(:otp)
   @auth_offline DeclarationRequest.authentication_method(:offline)
@@ -23,7 +24,7 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
 
     template_id = config()[:id]
 
-    Man.render_template(template_id, template_data)
+    @man_api.render_template(template_id, template_data)
   end
 
   defp map_declaration_data(nil, _), do: %{}

@@ -2,37 +2,28 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase
-  import EHealth.DeclarationRequest.API.Create
-  alias EHealth.DeclarationRequest
 
+  import Mox
+  import EHealth.DeclarationRequest.API.Create
   import Ecto.Changeset, only: [get_change: 2, put_change: 3]
 
+  alias EHealth.DeclarationRequest
+
   describe "generate_printout_form/1" do
-    defmodule PrintoutForm do
-      use MicroservicesHelper
-
-      Plug.Router.post "/templates/4/actions/render" do
-        printout_form =
-          conn.body_params
-          |> Map.drop(["locale", "format"])
-          |> Poison.encode!()
-
-        Plug.Conn.send_resp(conn, 200, printout_form)
-      end
-
-      Plug.Router.post "/templates/999/actions/render" do
-        Plug.Conn.send_resp(conn, 404, "oops, I did it again")
-      end
-    end
-
     setup %{conn: _conn} do
-      {:ok, port, ref} = start_microservices(PrintoutForm)
+      expect(ManMock, :render_template, fn id, data ->
+        case id do
+          "999" ->
+            {:error, "oops, I did it again"}
 
-      System.put_env("MAN_ENDPOINT", "http://localhost:#{port}")
+          id when id in [4, "4"] ->
+            printout_form =
+              data
+              |> Map.drop(~w(locale format)a)
+              |> Poison.encode!()
 
-      on_exit(fn ->
-        System.put_env("MAN_ENDPOINT", "http://localhost:4040")
-        stop_microservices(ref)
+            {:ok, printout_form}
+        end
       end)
 
       insert(:il, :dictionary_settlement_type)
