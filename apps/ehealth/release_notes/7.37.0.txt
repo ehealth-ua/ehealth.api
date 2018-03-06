@@ -1,0 +1,10 @@
+Change log for versions 7.37.0 - 7.37.4
+
+**Patches and bug fixes**:
+
+added mithril behaviour (#1914)
+added mithril behaviour
+format
+moved HeadersProcessor to helpers (#1913)
+
+
