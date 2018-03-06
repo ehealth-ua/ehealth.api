@@ -1,7 +1,8 @@
-Change log for versions 7.37.0 - 7.37.4
+Change log for versions 7.37.0 - 7.37.5
 
 **Patches and bug fixes**:
 
+moved email verification from Mithril (#1916)
 added mithril behaviour (#1914)
 added mithril behaviour
 format
