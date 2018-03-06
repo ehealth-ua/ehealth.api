@@ -8,7 +8,8 @@ config :ehealth,
   run_declaration_request_terminator: true,
   system_user: {:system, "EHEALTH_SYSTEM_USER", "4261eacf-8008-4e62-899f-de1e2f7065f0"},
   api_resolvers: [
-    man: EHealth.API.Man
+    man: EHealth.API.Man,
+    mithril: EHealth.API.Mithril
   ]
 
 # Configures the endpoint
@@ -179,6 +180,13 @@ config :ehealth, EHealth.Man.Templates.DeclarationRequestPrintoutForm,
   format: {:system, "DECLARATION_REQUEST_PRINTOUT_FORM_TEMPLATE_FORMAT", "text/html"},
   locale: {:system, "DECLARATION_REQUEST_PRINTOUT_FORM_TEMPLATE_LOCALE", "uk_UA"}
 
+config :ehealth, EHealth.Man.Templates.EmailVerification,
+  id: {:system, "EMAIL_VERIFICATION_TEMPLATE_ID"},
+  from: {:system, "EMAIL_VERIFICATION_FROM"},
+  subject: {:system, "EMAIL_VERIFICATION_SUBJECT"},
+  format: {:system, "EMAIL_VERIFICATION_TEMPLATE_FORMAT", "text/html"},
+  locale: {:system, "EMAIL_VERIFICATION_TEMPLATE_LOCALE", "uk_UA"}
+
 # Template and setting for credentials recovery requests
 config :ehealth, :credentials_recovery_request_ttl, {:system, :integer, "CREDENTIALS_RECOVERY_REQUEST_TTL", 1_500}
 
@@ -257,6 +265,9 @@ config :ehealth, EHealth.Scheduler,
 
 config :ehealth, EHealth.DeclarationRequest.API,
   termination_batch_size: {:system, :integer, "DECLARATION_REQUEST_AUTOTERMINATION_BATCH", 1000}
+
+# Configures Cabinet
+config :ehealth, EHealth.Cabinet.API, jwt_secret: {:system, "JWT_SECRET"}
 
 config :cipher,
   keyphrase: System.get_env("CIPHER_KEYPHRASE") || "8()VN#U#_CU#X)*BFG(Cadsvn$&",

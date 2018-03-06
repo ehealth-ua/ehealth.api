@@ -37,7 +37,8 @@ config :ehealth,
     host: {:system, "TEST_MOCK_HOST", "localhost"}
   ],
   api_resolvers: [
-    man: ManMock
+    man: ManMock,
+    mithril: MithrilMock
   ]
 
 # Configures Legal Entities token permission
@@ -119,6 +120,13 @@ config :ehealth, EHealth.LegalEntities.Validator, owner_positions: {:system, :li
 config :ehealth, EHealth.Bamboo.Emails.Sender, mailer: EHealth.Bamboo.TestMailer
 
 config :ehealth, EHealth.Bamboo.TestMailer, adapter: Bamboo.TestAdapter
+
+config :ehealth, EHealth.Cabinet.API, jwt_secret: "some_super-sEcret"
+
+config :ehealth, EHealth.Man.Templates.EmailVerification,
+  id: "1",
+  from: "info@ehealth.world",
+  subject: "verification"
 
 config :ehealth,
   # Run acceptance test in concurrent mode

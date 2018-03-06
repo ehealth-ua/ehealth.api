@@ -90,6 +90,11 @@ defmodule EHealthWeb.Router do
     post("/registers", RegisterController, :create)
     get("/registers", RegisterController, :index)
     get("/registers_entries", RegisterEntryController, :index)
+
+    # Cabinet
+    scope "/cabinet" do
+      post("/email_verification", CabinetController, :email_verification)
+    end
   end
 
   # Client context for lists
