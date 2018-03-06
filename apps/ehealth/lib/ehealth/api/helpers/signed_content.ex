@@ -6,7 +6,7 @@ defmodule EHealth.API.Helpers.SignedContent do
   require Logger
 
   use HTTPoison.Base
-  use EHealth.API.HeadersProcessor
+  use EHealth.API.Helpers.HeadersProcessor
 
   def save(url, content, headers, options) do
     Logger.info(fn ->

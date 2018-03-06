@@ -1,4 +1,4 @@
-defmodule EHealth.API.HeadersProcessor do
+defmodule EHealth.API.Helpers.HeadersProcessor do
   @moduledoc """
   Proxy headers preprocessor
   """

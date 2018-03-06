@@ -5,7 +5,7 @@ defmodule EHealth.API.Man do
 
   use HTTPoison.Base
   use Confex, otp_app: :ehealth
-  use EHealth.API.HeadersProcessor
+  use EHealth.API.Helpers.HeadersProcessor
   require Logger
 
   @behaviour EHealth.API.ManBehaviour

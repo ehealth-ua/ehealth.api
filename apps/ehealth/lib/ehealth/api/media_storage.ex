@@ -5,7 +5,7 @@ defmodule EHealth.API.MediaStorage do
 
   use HTTPoison.Base
   use Confex, otp_app: :ehealth
-  use EHealth.API.HeadersProcessor
+  use EHealth.API.Helpers.HeadersProcessor
   use EHealth.API.Helpers.MicroserviceBase
   alias EHealth.API.Helpers.SignedContent
   require Logger

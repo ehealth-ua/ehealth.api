@@ -5,7 +5,7 @@ defmodule EHealth.API.Gandalf do
 
   use HTTPoison.Base
   use Confex, otp_app: :ehealth
-  use EHealth.API.HeadersProcessor
+  use EHealth.API.Helpers.HeadersProcessor
 
   alias EHealth.API.ResponseDecoder
 

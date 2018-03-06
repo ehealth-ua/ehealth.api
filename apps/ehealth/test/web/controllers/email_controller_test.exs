@@ -49,7 +49,7 @@ defmodule EHealth.Web.EmailsControllerTest do
     test "invalid email format", %{conn: conn} do
       assert [err] =
                conn
-               |> post(email_path(conn, :send, @man_id), Map.put(@valid_params, :from, "shitty_email.com"))
+               |> post(email_path(conn, :send, @man_id), Map.put(@valid_params, :from, "not-so-good.com"))
                |> json_response(422)
                |> get_in(~w(error invalid))
 
@@ -57,7 +57,7 @@ defmodule EHealth.Web.EmailsControllerTest do
 
       assert [err] =
                conn
-               |> post(email_path(conn, :send, @man_id), Map.put(@valid_params, :to, "shitty_email.com"))
+               |> post(email_path(conn, :send, @man_id), Map.put(@valid_params, :to, "not-so-good.com"))
                |> json_response(422)
                |> get_in(~w(error invalid))
 
