@@ -1,7 +1,10 @@
-Change log for versions 7.37.0 - 7.37.5
+Change log for versions 7.37.0 - 7.37.8
 
 **Patches and bug fixes**:
 
+adding update person in cabinet - WIP (#1912)
+adding update person in cabinet - WIP
+add update person cabinet endpoint
 moved email verification from Mithril (#1916)
 added mithril behaviour (#1914)
 added mithril behaviour
