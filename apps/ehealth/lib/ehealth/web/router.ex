@@ -201,6 +201,13 @@ defmodule EHealthWeb.Router do
       patch("/:id/actions/resend", MedicationRequestController, :resend)
     end
 
+    # Cabinet
+    scope "/cabinet" do
+      pipe_through([:api_consumer_id])
+
+      patch("/persons/:id", CabinetController, :update_person)
+    end
+
     # Person declarations
     get("/persons", PersonController, :search_persons)
     get("/persons/:id/declaration", PersonController, :person_declarations)

@@ -12,7 +12,7 @@ defmodule EHealth.DeclarationRequest.API.Validations do
   alias EHealth.API.Signature
   alias EHealth.DeclarationRequest.SignRequest
   alias EHealth.Validators.JsonSchema
-  alias EHealth.DeclarationRequest.API.ValidatePerson
+  alias EHealth.Persons.Validator, as: ValidatePerson
   alias EHealth.Employees.Employee
   alias EHealth.Validators.JsonObjects
 

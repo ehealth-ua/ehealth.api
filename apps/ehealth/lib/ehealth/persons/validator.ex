@@ -1,11 +1,10 @@
-defmodule EHealth.DeclarationRequest.API.ValidatePerson do
+defmodule EHealth.Persons.Validator do
   @moduledoc "Additional validation of Person request structure that cannot be covered by JSON Schema"
 
   alias EHealth.Validators.JsonObjects
   alias EHealth.Dictionaries
 
   @validation_dictionaries ["DOCUMENT_TYPE", "PHONE_TYPE", "AUTHENTICATION_METHOD", "DOCUMENT_RELATIONSHIP_TYPE"]
-
   @auth_method_error "Must be one and only one authentication method."
 
   def validate(person) do

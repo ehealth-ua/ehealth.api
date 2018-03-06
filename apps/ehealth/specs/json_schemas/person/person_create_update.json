@@ -1,0 +1,263 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "definitions": {
+        "name": {
+            "type": "string",
+            "pattern": "^(?!.*[ЫЪЭЁыъэё@%&$^#])[a-zA-ZА-ЯҐЇІЄа-яґїіє0-9№\\\"!\\^\\*)\\]\\[(._-].*$"
+        },
+        "person_name": {
+            "type": "string",
+            "pattern": "^(?!.*[ЫЪЭЁыъэё@%&$^#])[А-ЯҐЇІЄа-яґїіє\\'\\- ]+$"
+        },
+        "gender": {
+            "type": "string",
+            "description": "Dictionary: GENDER"
+        },
+        "tax_id": {
+            "type": "string",
+            "pattern": "^[0-9]{10}$",
+            "minLength": 10
+        },
+        "document": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "description": "Dictionary: DOCUMENT_TYPE"
+                },
+                "number": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "issued_by": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "issued_at": {
+                    "type": "string",
+                    "format": "date"
+                }
+            },
+            "required": [
+                "type",
+                "number"
+            ],
+            "additionalProperties": false
+        },
+        "address": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "description": "Dictionary: ADDRESS_TYPE"
+                },
+                "country": {
+                    "type": "string"
+                },
+                "area": {
+                    "$ref": "#/definitions/name"
+                },
+                "region": {
+                    "$ref": "#/definitions/name"
+                },
+                "settlement": {
+                    "$ref": "#/definitions/name"
+                },
+                "settlement_type": {
+                    "type": "string"
+                },
+                "settlement_id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                },
+                "street_type": {
+                    "type": "string"
+                },
+                "street": {
+                    "$ref": "#/definitions/name"
+                },
+                "building": {
+                    "type": "string",
+                    "pattern": "^[1-9]([0-9]{1,3})?(([ \\-]{1})?(?![ЫЪЭЁыъэё])[А-ЯҐЇЄа-яґїє]{1})?((\\s)?(\\\\|/)(\\s)?[1-9]([0-9]{1,3})?(([ \\-]{1})?(?![ЫЪЭЁыъэё])[А-ЯҐЇЄа-яґїє]{1})?)?$"
+                },
+                "apartment": {
+                    "type": "string"
+                },
+                "zip": {
+                    "type": "string",
+                    "pattern": "^[0-9]{5}$"
+                }
+            },
+            "required": [
+                "type",
+                "country",
+                "area",
+                "settlement",
+                "settlement_type",
+                "settlement_id",
+                "building"
+            ],
+            "additionalProperties": false
+        },
+        "phone": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string"
+                },
+                "number": {
+                    "type": "string",
+                    "pattern": "^\\+38[0-9]{10}$"
+                }
+            },
+            "required": [
+                "type",
+                "number"
+            ],
+            "additionalProperties": false
+        },
+        "authentication_method": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string"
+                },
+                "phone_number": {
+                    "type": "string",
+                    "pattern": "^\\+38[0-9]{10}$"
+                }
+            },
+            "required": [
+                "type"
+            ],
+            "additionalProperties": false
+        }
+    },
+    "type": "object",
+    "properties": {
+        "first_name": {
+            "type": "string",
+            "$ref": "#/definitions/person_name",
+            "minLength": 1
+        },
+        "last_name": {
+            "type": "string",
+            "$ref": "#/definitions/person_name",
+            "minLength": 1
+        },
+        "second_name": {
+            "type": "string",
+            "$ref": "#/definitions/person_name",
+            "minLength": 1
+        },
+        "birth_date": {
+            "type": "string",
+            "format": "date"
+        },
+        "birth_country": {
+            "type": "string",
+            "minLength": 1
+        },
+        "birth_settlement": {
+            "type": "string",
+            "$ref": "#/definitions/name",
+            "minLength": 1
+        },
+        "gender": {
+            "$ref": "#/definitions/gender"
+        },
+        "email": {
+            "type": "string",
+            "format": "email"
+        },
+        "tax_id": {
+            "type": "string",
+            "$ref": "#/definitions/tax_id"
+        },
+        "secret": {
+            "type": "string",
+            "$ref": "#/definitions/name",
+            "minLength": 6
+        },
+        "documents": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "$ref": "#/definitions/document"
+            }
+        },
+        "addresses": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/address"
+            },
+            "minItems": 1
+        },
+        "phones": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/phone"
+            }
+        },
+        "authentication_methods": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/authentication_method"
+            }
+        },
+        "preferred_way_communication": {
+            "type": "string",
+            "enum": [
+                "email",
+                "phone"
+            ]
+        },
+        "emergency_contact": {
+            "type": "object",
+            "properties": {
+                "first_name": {
+                    "type": "string",
+                    "$ref": "#/definitions/person_name",
+                    "minLength": 1
+                },
+                "last_name": {
+                    "type": "string",
+                    "$ref": "#/definitions/person_name",
+                    "minLength": 1
+                },
+                "second_name": {
+                    "type": "string",
+                    "$ref": "#/definitions/person_name",
+                    "minLength": 1
+                },
+                "phones": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/phone"
+                    },
+                    "minItems": 1
+                }
+            }
+        },
+        "process_disclosure_data_consent": {
+            "type": "boolean",
+            "enum": [
+                true
+            ]
+        }
+    },
+    "required": [
+        "first_name",
+        "last_name",
+        "birth_date",
+        "birth_country",
+        "birth_settlement",
+        "gender",
+        "documents",
+        "addresses",
+        "authentication_methods",
+        "emergency_contact",
+        "process_disclosure_data_consent"
+    ],
+    "additionalProperties": false
+}
