@@ -1,7 +1,8 @@
-Change log for versions 7.37.0 - 7.37.10
+Change log for versions 7.37.0 - 7.37.11
 
 **Patches and bug fixes**:
 
+Add personal details route for Cabinet (#1918)
 add cabinet client type check (#1922)
 add health check (#1900)
 adding update person in cabinet - WIP (#1912)
@@ -13,4 +14,6 @@ added mithril behaviour
 format
 moved HeadersProcessor to helpers (#1913)
 
+**Other**:
 
+Declaration request online request changed
