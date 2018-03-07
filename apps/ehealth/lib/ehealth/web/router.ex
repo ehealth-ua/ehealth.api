@@ -242,6 +242,10 @@ defmodule EHealthWeb.Router do
     post("/email/:id", EmailController, :send)
   end
 
+  scope "/", EHealth.Web do
+    get("/health", HealthController, :show)
+  end
+
   defp handle_errors(%Plug.Conn{status: 500} = conn, %{kind: kind, reason: reason, stack: stacktrace}) do
     LoggerJSON.log_error(kind, reason, stacktrace)
 
