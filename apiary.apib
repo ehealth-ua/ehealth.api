@@ -1064,7 +1064,7 @@ If the region is not specified, the service returns statistics for all regions
 
 ## Divisions [/report/divisions]
 
-### Search Divisions [GET /stats/divisions{?id,employee_id,type,name,area,region,settlement,legal_entity_edrpou,legal_entity_id,legal_entity_name,north,east,south,west}]
+### Search Divisions [GET /reports/stats/divisions{?id,employee_id,type,name,area,region,settlement,legal_entity_edrpou,legal_entity_id,legal_entity_name,north,east,south,west}]
 Method searches divisions by parameters and returnes division details
 
 + Parameters
@@ -1089,7 +1089,7 @@ Method searches divisions by parameters and returnes division details
     + Attributes (`Response_Collection_V2`)
         + data (array[EntriesDivisionMap], optional)
 
-### Search Employees [GET /stats/employees{?id,employee_type,first_name,last_name,second_name,speciality,division_id,division_name,area,region,settlement,page,page_size}]
+### Search Employees [GET /reports/stats/employees{?id,employee_type,first_name,last_name,second_name,speciality,division_id,division_name,area,region,settlement,page,page_size}]
 Method searches doctor by parameters and returnes division details
 
 + Parameters
@@ -2099,6 +2099,13 @@ This WS designed to get personal information od patient by token
             + include `Party_Short`
             + mpi_id: `7e9cffd9-c75f-45fb-badf-6e8d20b6a8a8` (string, required)
 
+### Get Person details [GET /api/cabinet/persons/details]
+
+This WS is designed to get person details in cabinet.
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (`cabinet_person_response`)
 
 ### Update MPI [PATCH /api/cabinet/persons/{id}]
 
