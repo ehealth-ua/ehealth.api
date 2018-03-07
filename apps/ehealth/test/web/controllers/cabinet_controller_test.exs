@@ -39,6 +39,24 @@ defmodule EHealth.Web.CabinetControllerTest do
       Plug.Conn.send_resp(conn, 200, response)
     end
 
+    Plug.Router.get "/admin/clients/c3cc1def-48b6-4451-be9d-3b777ef06ff9/details" do
+      response =
+        %{"client_type_name" => "CABINET"}
+        |> MockServer.wrap_response()
+        |> Poison.encode!()
+
+      Plug.Conn.send_resp(conn, 200, response)
+    end
+
+    Plug.Router.get "/admin/clients/75dfd749-c162-48ce-8a92-428c106d5dc3/details" do
+      response =
+        %{"client_type_name" => "MSP"}
+        |> MockServer.wrap_response()
+        |> Poison.encode!()
+
+      Plug.Conn.send_resp(conn, 200, response)
+    end
+
     Plug.Router.get "/admin/users/668d1541-e4cf-4a95-a25a-60d83864ceaf" do
       user = %{
         "id" => "668d1541-e4cf-4a95-a25a-60d83864ceaf",
@@ -85,7 +103,7 @@ defmodule EHealth.Web.CabinetControllerTest do
     end
 
     test "invalid params", %{conn: conn} do
-      legal_entity = insert(:prm, :legal_entity)
+      legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
 
       conn =
         conn
@@ -107,7 +125,7 @@ defmodule EHealth.Web.CabinetControllerTest do
     end
 
     test "invalid signed content", %{conn: conn} do
-      legal_entity = insert(:prm, :legal_entity)
+      legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
 
       conn =
         conn
@@ -124,7 +142,7 @@ defmodule EHealth.Web.CabinetControllerTest do
     end
 
     test "tax_id doesn't match with signed content", %{conn: conn} do
-      legal_entity = insert(:prm, :legal_entity)
+      legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
       party = insert(:prm, :party)
       insert(:prm, :party_user, party: party, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c")
 
@@ -149,7 +167,7 @@ defmodule EHealth.Web.CabinetControllerTest do
     end
 
     test "tax_id doesn't match with signer", %{conn: conn} do
-      legal_entity = insert(:prm, :legal_entity)
+      legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
       party = insert(:prm, :party)
       insert(:prm, :party_user, party: party, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c")
 
@@ -174,7 +192,7 @@ defmodule EHealth.Web.CabinetControllerTest do
     end
 
     test "invalid signed content changeset", %{conn: conn} do
-      legal_entity = insert(:prm, :legal_entity)
+      legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
       party = insert(:prm, :party, tax_id: "2222222220")
       insert(:prm, :party_user, party: party, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c")
 
@@ -193,7 +211,7 @@ defmodule EHealth.Web.CabinetControllerTest do
     end
 
     test "user person_id doesn't match query param id", %{conn: conn} do
-      legal_entity = insert(:prm, :legal_entity)
+      legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
 
       conn =
         conn
@@ -208,8 +226,20 @@ defmodule EHealth.Web.CabinetControllerTest do
       assert json_response(conn, 403)
     end
 
+    test "invalid client_type", %{conn: conn} do
+      legal_entity = insert(:prm, :legal_entity, id: "75dfd749-c162-48ce-8a92-428c106d5dc3")
+
+      conn =
+        conn
+        |> put_req_header("x-consumer-id", "668d1541-e4cf-4a95-a25a-60d83864ceaf")
+        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: legal_entity.id}))
+
+      conn = patch(conn, cabinet_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{})
+      assert json_response(conn, 403)
+    end
+
     test "success update person", %{conn: conn} do
-      legal_entity = insert(:prm, :legal_entity)
+      legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
       party = insert(:prm, :party, tax_id: "2222222220")
       insert(:prm, :party_user, party: party, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c")
 

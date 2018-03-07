@@ -41,12 +41,6 @@ config :ehealth,
     mithril: MithrilMock
   ]
 
-# Configures Legal Entities token permission
-config :ehealth, EHealth.Plugs.ClientContext,
-  tokens_types_personal: {:system, :list, "TOKENS_TYPES_PERSONAL", ["MSP"]},
-  tokens_types_mis: {:system, :list, "TOKENS_TYPES_MIS", ["MIS"]},
-  tokens_types_admin: {:system, :list, "TOKENS_TYPES_ADMIN", ["NHS ADMIN"]}
-
 config :ehealth, :legal_entity_employee_types,
   msp: {:system, "LEGAL_ENTITY_MSP_EMPLOYEE_TYPES", ["OWNER", "HR", "DOCTOR", "ADMIN", "ACCOUNTANT"]},
   pharmacy: {:system, "LEGAL_ENTITY_PHARMACY_EMPLOYEE_TYPES", ["PHARMACY_OWNER", "PHARMACIST"]}

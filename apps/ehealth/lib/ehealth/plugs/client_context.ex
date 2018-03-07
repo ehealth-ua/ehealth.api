@@ -7,23 +7,38 @@ defmodule EHealth.Plugs.ClientContext do
 
   alias EHealth.API.Mithril
   alias Scrivener.Page
+  alias Plug.Conn
 
   require Logger
 
-  def put_is_active_into_params(%Plug.Conn{params: params} = conn, _) do
+  def put_is_active_into_params(%Conn{params: params} = conn, _) do
     %{conn | params: Map.merge(params, %{"is_active" => true})}
   end
 
-  def process_client_context_for_list(%Plug.Conn{} = conn, _) do
+  def process_client_context_for_list(%Conn{} = conn, params) do
     config = config()
 
     conn
     |> put_client_type_name()
+    |> check_client_type(params)
     |> validate_params_list(config[:tokens_types_personal])
     |> put_context_params(config)
   end
 
-  defp put_client_type_name(%Plug.Conn{req_headers: req_headers} = conn) do
+  defp check_client_type(%Conn{halted: false} = conn, required_types: required_types) when is_list(required_types) do
+    if Enum.member?(required_types, Map.get(conn.assigns, :client_type)) do
+      conn
+    else
+      conn
+      |> put_status(:forbidden)
+      |> render(EView.Views.Error, :"403")
+      |> halt()
+    end
+  end
+
+  defp check_client_type(conn, _), do: conn
+
+  defp put_client_type_name(%Conn{req_headers: req_headers} = conn) do
     req_headers
     |> get_client_id()
     |> Mithril.get_client_type_name(req_headers)
@@ -54,7 +69,7 @@ defmodule EHealth.Plugs.ClientContext do
   end
 
   defp put_context_params(
-         %Plug.Conn{
+         %Conn{
            halted: false,
            params: params,
            assigns: %{client_type: client_type},

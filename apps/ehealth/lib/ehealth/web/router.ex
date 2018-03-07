@@ -40,6 +40,10 @@ defmodule EHealthWeb.Router do
     plug(:put_is_active_into_params)
   end
 
+  pipeline :cabinet do
+    plug(:process_client_context_for_list, required_types: ["CABINET"])
+  end
+
   scope "/api", EHealth.Web do
     pipe_through(:api)
 
@@ -203,7 +207,7 @@ defmodule EHealthWeb.Router do
 
     # Cabinet
     scope "/cabinet" do
-      pipe_through([:api_consumer_id])
+      pipe_through([:api_consumer_id, :cabinet])
 
       patch("/persons/:id", CabinetController, :update_person)
     end
