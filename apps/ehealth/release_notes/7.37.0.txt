@@ -1,7 +1,8 @@
-Change log for versions 7.37.0 - 7.37.8
+Change log for versions 7.37.0 - 7.37.9
 
 **Patches and bug fixes**:
 
+add health check (#1900)
 adding update person in cabinet - WIP (#1912)
 adding update person in cabinet - WIP
 add update person cabinet endpoint
