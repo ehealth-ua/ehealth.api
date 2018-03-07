@@ -39,6 +39,12 @@ defmodule EHealth.Persons do
     end
   end
 
+  def get_person(headers) do
+    user_id = get_consumer_id(headers)
+
+    with {:ok, %{"data" => person}} <- MPI.person(user_id, headers), do: {:ok, person}
+  end
+
   defp check_user_mpi_id(user, id) do
     if user["person_id"] == id do
       :ok

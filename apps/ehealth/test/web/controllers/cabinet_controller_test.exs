@@ -16,6 +16,22 @@ defmodule EHealth.Web.CabinetControllerTest do
 
       Plug.Conn.send_resp(conn, 200, response)
     end
+
+    Plug.Router.get "/persons/c8912855-21c3-4771-ba18-bcd8e524f14c" do
+      person = %{
+        id: "c8912855-21c3-4771-ba18-bcd8e524f14c",
+        first_name: "FirstName",
+        last_name: "LastName",
+        second_name: "SecondName"
+      }
+
+      response =
+        person
+        |> MockServer.wrap_response()
+        |> Poison.encode!()
+
+      Plug.Conn.send_resp(conn, 200, response)
+    end
   end
 
   defmodule MithrilServer do
@@ -287,6 +303,32 @@ defmodule EHealth.Web.CabinetControllerTest do
         })
 
       assert json_response(conn, 200)
+    end
+  end
+
+  describe "get person details" do
+    test "no required header", %{conn: conn} do
+      conn = get(conn, cabinet_path(conn, :show_details))
+      assert resp = json_response(conn, 401)
+      assert %{"error" => %{"type" => "access_denied", "message" => "Missing header x-consumer-metadata"}} = resp
+    end
+
+    test "returns person detail for logged user", %{conn: conn} do
+      legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
+
+      conn =
+        conn
+        |> put_req_header("x-consumer-id", "c8912855-21c3-4771-ba18-bcd8e524f14c")
+        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: legal_entity.id}))
+
+      conn = get(conn, cabinet_path(conn, :show_details))
+
+      response_data = json_response(conn, 200)["data"]
+
+      assert "c8912855-21c3-4771-ba18-bcd8e524f14c" == response_data["mpi_id"]
+      assert "FirstName" == response_data["first_name"]
+      assert "LastName" == response_data["last_name"]
+      assert "SecondName" == response_data["second_name"]
     end
   end
 end

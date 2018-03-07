@@ -19,4 +19,8 @@ defmodule EHealth.Web.CabinetController do
       render(conn, "show.json", person: person)
     end
   end
+
+  def show_details(conn, _params) do
+    with {:ok, person} <- Persons.get_person(conn.req_headers), do: render(conn, "show_details.json", person: person)
+  end
 end

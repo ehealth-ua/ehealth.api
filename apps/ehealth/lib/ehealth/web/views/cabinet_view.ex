@@ -31,4 +31,13 @@ defmodule EHealth.Web.CabinetView do
       )
     )
   end
+
+  def render("show_details.json", %{person: person}) do
+    %{
+      mpi_id: person["id"],
+      first_name: person["first_name"],
+      last_name: person["last_name"],
+      second_name: person["second_name"]
+    }
+  end
 end
