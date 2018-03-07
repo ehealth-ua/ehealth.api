@@ -1089,7 +1089,9 @@ Method searches divisions by parameters and returnes division details
     + Attributes (`Response_Collection_V2`)
         + data (array[EntriesDivisionMap], optional)
 
-### Search Employees [GET /reports/stats/employees{?id,employee_type,first_name,last_name,second_name,speciality,division_id,division_name,area,region,settlement,page,page_size}]
+## Employees [/report/employees]
+
+### Search Employees [GET /reports/stats/employees{?id,employee_type,first_name,last_name,second_name,speciality,division_id,division_name,area,region,settlement,is_avaliable,page,page_size}]
 Method searches doctor by parameters and returnes division details
 
 + Parameters
@@ -1104,6 +1106,7 @@ Method searches doctor by parameters and returnes division details
     + area:`Волинська` (string, optional) - the name of region where division is located
     + region: `Луцький` (string, optional) -  the name of district where division is located
     + settlement: `Луцьк` (string, optional) - the name of settlement where division is located
+    + is_avaliable: true (boolen, optional) - doctor is avaliable to make declaration with
     + page: 2 (number, optional)
     + page_size: 50 (number, optional)
     
@@ -2223,7 +2226,7 @@ This method is used to create Declaration Request online (as part of Declaration
             Authorization: Bearer mF_9.B5f-4.1JqM
 
     + Attributes (object)
-        + `declaration_request` (Declaration_Request_Online)
+        + include `Declaration_Request_Online`
 
 + Response 201 (application/json)
     + Attributes (Response__Process_OK)
@@ -5504,6 +5507,7 @@ This method is used to abtain list of events with filters.
 + educations (array[Education], required)  - освіта
 + qualifications (array[Qualification], optional) - підвищення кваліфікації
 + specialities (array[Speciality], required)  - блок інформації про отримання сертифікату спеціалісту та проходження атестацій
++ is_avaliable: true (boolean, required)
 + science_degree (ScienceDegree, optional)
 + working_experience: 10 (number, optional)
 + about_myself: `Закінчив всі можливі курси` (string, optional)
