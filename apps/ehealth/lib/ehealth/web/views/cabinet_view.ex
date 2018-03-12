@@ -7,6 +7,10 @@ defmodule EHealth.Web.CabinetView do
     %{}
   end
 
+  def render("email_validation.json", %{token: token}) do
+    %{token: token}
+  end
+
   def render("show.json", %{person: person}) do
     Map.take(
       person,

@@ -268,7 +268,10 @@ config :ehealth, EHealth.DeclarationRequest.API,
   termination_batch_size: {:system, :integer, "DECLARATION_REQUEST_AUTOTERMINATION_BATCH", 1000}
 
 # Configures Cabinet
-config :ehealth, EHealth.Cabinet.API, jwt_ttl: {:system, :integer, "JWT_EMAIL_TTL"}
+config :ehealth, EHealth.Cabinet.API,
+  # hours
+  jwt_ttl_email: {:system, :integer, "JWT_TTL_EMAIL"},
+  jwt_ttl_registration: {:system, :integer, "JWT_TTL_REGISTRATION"}
 
 # Configures Guardian
 config :ehealth, EHealth.Guardian,

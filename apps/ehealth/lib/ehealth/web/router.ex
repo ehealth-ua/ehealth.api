@@ -44,6 +44,12 @@ defmodule EHealthWeb.Router do
     plug(:process_client_context_for_list, required_types: ["CABINET"])
   end
 
+  pipeline :jwt_email do
+    plug(Guardian.Plug.Pipeline, module: EHealth.Guardian, error_handler: EHealth.Web.FallbackController)
+    plug(Guardian.Plug.VerifyHeader, claims: %{typ: "access"})
+    plug(Guardian.Plug.EnsureAuthenticated)
+  end
+
   scope "/api", EHealth.Web do
     pipe_through(:api)
 
@@ -87,10 +93,10 @@ defmodule EHealthWeb.Router do
     patch("/black_list_users/:id/actions/deactivate", BlackListUserController, :deactivate)
   end
 
-  # Registers
   scope "/api", EHealth.Web do
     pipe_through([:api, :api_consumer_id])
 
+    # Registers
     post("/registers", RegisterController, :create)
     get("/registers", RegisterController, :index)
     get("/registers_entries", RegisterEntryController, :index)
@@ -98,6 +104,11 @@ defmodule EHealthWeb.Router do
     # Cabinet
     scope "/cabinet" do
       post("/email_verification", CabinetController, :email_verification)
+    end
+
+    scope "/cabinet" do
+      pipe_through([:jwt_email])
+      post("/email_validation", CabinetController, :email_validation)
     end
   end
 

@@ -116,8 +116,10 @@ config :ehealth, EHealth.Bamboo.Emails.Sender, mailer: EHealth.Bamboo.TestMailer
 config :ehealth, EHealth.Bamboo.TestMailer, adapter: Bamboo.TestAdapter
 
 # Configures Cabinet
-# hours
-config :ehealth, EHealth.Cabinet.API, jwt_ttl: 1
+config :ehealth, EHealth.Cabinet.API,
+  # hours
+  jwt_ttl_email: 1,
+  jwt_ttl_registration: 1
 
 config :ehealth, EHealth.Guardian,
   issuer: "EHealth",

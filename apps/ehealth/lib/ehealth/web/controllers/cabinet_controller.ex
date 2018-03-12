@@ -5,12 +5,20 @@ defmodule EHealth.Web.CabinetController do
 
   alias EHealth.Cabinet.API
   alias EHealth.Persons
+  alias EHealth.Guardian.Plug
 
   action_fallback(EHealth.Web.FallbackController)
 
   def email_verification(conn, params) do
     with :ok <- API.send_email_verification(params) do
       render(conn, "email_verification.json", %{})
+    end
+  end
+
+  def email_validation(conn, _params) do
+    with jwt <- Plug.current_token(conn),
+         {:ok, new_jwt} <- API.validate_email_jwt(jwt) do
+      render(conn, "email_validation.json", %{token: new_jwt})
     end
   end
 
