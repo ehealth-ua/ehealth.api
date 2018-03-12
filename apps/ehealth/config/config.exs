@@ -268,7 +268,12 @@ config :ehealth, EHealth.DeclarationRequest.API,
   termination_batch_size: {:system, :integer, "DECLARATION_REQUEST_AUTOTERMINATION_BATCH", 1000}
 
 # Configures Cabinet
-config :ehealth, EHealth.Cabinet.API, jwt_secret: {:system, "JWT_SECRET"}
+config :ehealth, EHealth.Cabinet.API, jwt_ttl: {:system, :integer, "JWT_EMAIL_TTL"}
+
+# Configures Guardian
+config :ehealth, EHealth.Guardian,
+  issuer: "EHealth",
+  secret_key: {:system, "JWT_SECRET"}
 
 config :cipher,
   keyphrase: System.get_env("CIPHER_KEYPHRASE") || "8()VN#U#_CU#X)*BFG(Cadsvn$&",

@@ -1,6 +1,5 @@
 defmodule EHealth.Cabinet.API do
   @moduledoc false
-  import Joken
   import Ecto.{Query, Changeset}, warn: false
 
   alias EHealth.Bamboo.Emails.Sender
@@ -14,7 +13,7 @@ defmodule EHealth.Cabinet.API do
     with %Ecto.Changeset{valid?: true, changes: %{email: email}} <- validate_params(params),
          true <- email_available_for_registration?(email),
          false <- email_sent?(email),
-         {:ok, jwt} <- generate_jwt(email),
+         {:ok, jwt, _claims} <- generate_jwt(email),
          {:ok, template} <- EmailVerification.render(jwt) do
       email_config = Confex.fetch_env!(:ehealth, EmailVerification)
       send_email(email, template, email_config)
@@ -46,14 +45,8 @@ defmodule EHealth.Cabinet.API do
   end
 
   defp generate_jwt(email) do
-    secret = Confex.fetch_env!(:ehealth, __MODULE__)[:jwt_secret]
-
-    {:ok,
-     %{email: email}
-     |> token()
-     |> with_signer(hs256(secret))
-     |> sign()
-     |> get_compact()}
+    ttl = Confex.fetch_env!(:ehealth, __MODULE__)[:jwt_ttl]
+    EHealth.Guardian.encode_and_sign(:email, %{email: email}, token_type: "access", ttl: {ttl, :hours})
   end
 
   def send_email(email, body, email_config) do

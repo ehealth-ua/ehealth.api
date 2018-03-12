@@ -115,7 +115,13 @@ config :ehealth, EHealth.Bamboo.Emails.Sender, mailer: EHealth.Bamboo.TestMailer
 
 config :ehealth, EHealth.Bamboo.TestMailer, adapter: Bamboo.TestAdapter
 
-config :ehealth, EHealth.Cabinet.API, jwt_secret: "some_super-sEcret"
+# Configures Cabinet
+# hours
+config :ehealth, EHealth.Cabinet.API, jwt_ttl: 1
+
+config :ehealth, EHealth.Guardian,
+  issuer: "EHealth",
+  secret_key: "some_super-sEcret"
 
 config :ehealth, EHealth.Man.Templates.EmailVerification,
   id: "1",

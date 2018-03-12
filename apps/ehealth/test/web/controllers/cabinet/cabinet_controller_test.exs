@@ -2,12 +2,9 @@ defmodule Mithril.Web.RegistrationControllerTest do
   use EHealth.Web.ConnCase
 
   import Mox
-  import Joken
 
-  #   For Mox lib. Make sure mocks are verified when the test exits
+  # For Mox lib. Make sure mocks are verified when the test exits
   setup :verify_on_exit!
-
-  @jwt_secret Confex.fetch_env!(:ehealth, EHealth.Cabinet.API)[:jwt_secret]
 
   describe "send verification email" do
     test "invalid email", %{conn: conn} do
@@ -58,15 +55,10 @@ defmodule Mithril.Web.RegistrationControllerTest do
       end)
 
       expect(ManMock, :render_template, fn _id, %{verification_code: jwt} ->
-        %{claims: claims, error: err} =
-          jwt
-          |> token()
-          |> with_signer(hs256(@jwt_secret))
-          |> verify()
-
-        refute err
+        {:ok, claims} = EHealth.Guardian.decode_and_verify(jwt)
         assert Map.has_key?(claims, "email")
         assert "success-new-user@example.com" == claims["email"]
+        assert 3600 == claims["exp"] - claims["iat"]
 
         {:ok, "<html></html>"}
       end)
