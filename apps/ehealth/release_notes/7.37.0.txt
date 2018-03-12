@@ -1,7 +1,8 @@
-Change log for versions 7.37.0 - 7.37.13
+Change log for versions 7.37.0 - 7.37.14
 
 **Patches and bug fixes**:
 
+JWT email validation (#1927)
 change Joken to Guardian
 change Joken to Guardian #2
 Add personal details route for Cabinet (#1918)
