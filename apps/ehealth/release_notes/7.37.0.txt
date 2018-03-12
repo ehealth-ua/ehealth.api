@@ -1,7 +1,9 @@
-Change log for versions 7.37.0 - 7.37.11
+Change log for versions 7.37.0 - 7.37.13
 
 **Patches and bug fixes**:
 
+change Joken to Guardian
+change Joken to Guardian #2
 Add personal details route for Cabinet (#1918)
 add cabinet client type check (#1922)
 add health check (#1900)
@@ -16,4 +18,5 @@ moved HeadersProcessor to helpers (#1913)
 
 **Other**:
 
+joken to guardian (#1924)
 Declaration request online request changed
