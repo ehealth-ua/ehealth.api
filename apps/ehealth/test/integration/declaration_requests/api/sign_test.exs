@@ -204,7 +204,6 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
 
       Plug.Router.post "/declarations/with_termination" do
         %{"declaration_request_id" => _} = conn.body_params
-
         send_resp(conn, 200, Poison.encode!(%{data: conn.body_params}))
       end
     end
@@ -225,7 +224,13 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
     test "returns expected result" do
       %{data: declaration_request_data} =
         declaration_request =
-        insert(:il, :declaration_request, status: "ACTIVE", authentication_method_current: %{"type" => "OTP"})
+        insert(
+          :il,
+          :declaration_request,
+          status: "ACTIVE",
+          authentication_method_current: %{"type" => "OTP"},
+          overlimit: false
+        )
 
       person_id = UUID.generate()
       person_data = %{"data" => %{"id" => person_id}}
@@ -235,6 +240,7 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
       {:ok, %{"data" => data}} =
         create_declaration_with_termination_logic(person_data, declaration_request, [x_consumer_metadata_header])
 
+      assert false === data["overlimit"]
       assert client_id == data["created_by"]
       assert client_id == data["updated_by"]
       assert person_id == data["person_id"]

@@ -220,7 +220,8 @@ defmodule EHealth.DeclarationRequests.API.Sign do
           id: id,
           data: data,
           authentication_method_current: authentication_method_current,
-          declaration_id: declaration_id
+          declaration_id: declaration_id,
+          overlimit: overlimit
         },
         headers
       ) do
@@ -239,7 +240,8 @@ defmodule EHealth.DeclarationRequests.API.Sign do
       "created_by" => client_id,
       "updated_by" => client_id,
       "signed_at" => Timex.now(),
-      "declaration_request_id" => id
+      "declaration_request_id" => id,
+      "overlimit" => overlimit
     })
     |> OPS.create_declaration_with_termination_logic(headers)
   end
