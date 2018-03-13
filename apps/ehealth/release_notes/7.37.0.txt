@@ -1,7 +1,8 @@
-Change log for versions 7.37.0 - 7.37.17
+Change log for versions 7.37.0 - 7.37.18
 
 **Patches and bug fixes**:
 
+set declaration request channel (#1933)
 fix specialities migration (#1932)
 allow to create declaration request online - WIP
 create declaration request online
