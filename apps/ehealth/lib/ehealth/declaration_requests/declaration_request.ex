@@ -2,6 +2,7 @@ defmodule EHealth.DeclarationRequests.DeclarationRequest do
   @moduledoc false
 
   use Ecto.Schema
+  alias Ecto.UUID
 
   @primary_key {:id, :binary_id, autogenerate: true}
 
@@ -18,6 +19,9 @@ defmodule EHealth.DeclarationRequests.DeclarationRequest do
   @authentication_otp "OTP"
   @authentication_offline "OFFLINE"
 
+  @channel_cabinet "CABINET"
+  @channel_mis "MIS"
+
   def status(:new), do: @status_new
   def status(:signed), do: @status_signed
   def status(:cancelled), do: @status_cancelled
@@ -29,17 +33,21 @@ defmodule EHealth.DeclarationRequests.DeclarationRequest do
   def authentication_method(:otp), do: @authentication_otp
   def authentication_method(:offline), do: @authentication_offline
 
+  def channel(:cabinet), do: @channel_cabinet
+  def channel(:mis), do: @channel_mis
+
   schema "declaration_requests" do
     field(:data, :map)
     field(:status, :string)
     field(:authentication_method_current, :map)
     field(:documents, {:array, :map})
     field(:printout_content, :string)
-    field(:inserted_by, Ecto.UUID)
-    field(:updated_by, Ecto.UUID)
-    field(:declaration_id, Ecto.UUID)
-    field(:mpi_id, Ecto.UUID)
+    field(:inserted_by, UUID)
+    field(:updated_by, UUID)
+    field(:declaration_id, UUID)
+    field(:mpi_id, UUID)
     field(:overlimit, :boolean)
+    field(:channel, :string)
 
     timestamps()
   end

@@ -143,7 +143,8 @@ defmodule EHealth.DeclarationRequests do
          %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(client_id),
          {:ok, %Division{} = division} <-
            Reference.validate(:division, params["division_id"], "$.declaration_request.division_id") do
-      Creator.create(params, user_id, params["person"], employee, division, legal_entity)
+      data = Map.put(params, "channel", DeclarationRequest.channel(:mis))
+      Creator.create(data, user_id, params["person"], employee, division, legal_entity)
     end
   end
 
@@ -158,8 +159,13 @@ defmodule EHealth.DeclarationRequests do
          {:ok, person} <- Reference.validate(:person, params["person_id"]),
          {:ok, %LegalEntity{} = legal_entity} <- Reference.validate(:legal_entity, client_id),
          {:ok, %Employee{} = employee} <- Reference.validate(:employee, params["employee_id"]),
-         {:ok, %Division{} = division} <- Reference.validate(:division, params["division_id"]),
-         data <- params |> Map.put("person", person) |> Map.put("employee", employee) do
+         {:ok, %Division{} = division} <- Reference.validate(:division, params["division_id"]) do
+      data =
+        params
+        |> Map.put("person", person)
+        |> Map.put("employee", employee)
+        |> Map.put("channel", DeclarationRequest.channel(:cabinet))
+
       Creator.create(data, user_id, person, employee, division, legal_entity)
     end
   end

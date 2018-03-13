@@ -672,7 +672,8 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       updated_by: uuid,
       authentication_method_current: %{"type" => "NA"},
       printout_content: "",
-      declaration_id: UUID.generate()
+      declaration_id: UUID.generate(),
+      channel: DeclarationRequest.channel(:mis)
     }
   end
 

@@ -569,7 +569,8 @@ defmodule EHealth.DeclarationRequests.API.CreatorTest do
       "printout_content" => "Some fake content",
       "inserted_by" => UUID.generate(),
       "updated_by" => UUID.generate(),
-      "declaration_id" => UUID.generate()
+      "declaration_id" => UUID.generate(),
+      "channel" => DeclarationRequest.channel(:mis)
     }
 
     allowed =

@@ -30,6 +30,8 @@ defmodule EHealth.DeclarationRequests.API.Creator do
   @auth_otp DeclarationRequest.authentication_method(:otp)
   @auth_offline DeclarationRequest.authentication_method(:offline)
 
+  @channel_cabinet DeclarationRequest.channel(:cabinet)
+
   @status_new DeclarationRequest.status(:new)
   @status_approved DeclarationRequest.status(:approved)
 
@@ -298,13 +300,14 @@ defmodule EHealth.DeclarationRequests.API.Creator do
     specialities = Map.get(employee.additional_info, "specialities") || []
 
     overlimit = Map.get(attrs, "overlimit", false)
+    channel = attrs["channel"]
     attrs = Map.drop(attrs, ~w(employee_id division_id overlimit))
 
     id = UUID.generate()
     declaration_id = UUID.generate()
 
     %DeclarationRequest{id: id}
-    |> cast(%{data: attrs, overlimit: overlimit}, ~w(data overlimit)a)
+    |> cast(%{data: attrs, overlimit: overlimit, channel: channel}, ~w(data overlimit channel)a)
     |> validate_legal_entity_employee(legal_entity, employee)
     |> validate_legal_entity_division(legal_entity, division)
     |> validate_employee_type(employee)
@@ -327,7 +330,7 @@ defmodule EHealth.DeclarationRequests.API.Creator do
     |> put_change(:inserted_by, user_id)
     |> put_change(:updated_by, user_id)
     |> put_party_email()
-    |> determine_auth_method_for_mpi()
+    |> determine_auth_method_for_mpi(channel)
     |> generate_printout_form()
   end
 
@@ -626,9 +629,13 @@ defmodule EHealth.DeclarationRequests.API.Creator do
     end
   end
 
-  def determine_auth_method_for_mpi(%Changeset{valid?: false} = changeset), do: changeset
+  def determine_auth_method_for_mpi(%Changeset{valid?: false} = changeset, _), do: changeset
 
-  def determine_auth_method_for_mpi(changeset) do
+  def determine_auth_method_for_mpi(changeset, @channel_cabinet) do
+    put_change(changeset, :authentication_method_current, %{"type" => @auth_na})
+  end
+
+  def determine_auth_method_for_mpi(changeset, _) do
     data = get_field(changeset, :data)
 
     result =

@@ -1,6 +1,8 @@
 defmodule EHealth.ILFactories.DeclarationRequestFactory do
   @moduledoc false
 
+  alias EHealth.DeclarationRequests.DeclarationRequest
+
   defmacro __using__(_opts) do
     quote do
       def declaration_request_factory do
@@ -11,14 +13,15 @@ defmodule EHealth.ILFactories.DeclarationRequestFactory do
           |> File.read!()
           |> Poison.decode!()
 
-        %EHealth.DeclarationRequests.DeclarationRequest{
+        %DeclarationRequest{
           data: data,
           status: "NEW",
           inserted_by: uuid,
           updated_by: uuid,
           authentication_method_current: %{},
           printout_content: "something",
-          documents: []
+          documents: [],
+          channel: DeclarationRequest.channel(:mis)
         }
       end
     end

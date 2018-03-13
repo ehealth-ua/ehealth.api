@@ -949,7 +949,8 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       documents: [],
       printout_content: "something",
       inserted_by: "f47f94fd-2d77-4b7e-b444-4955812c2a77",
-      updated_by: "f47f94fd-2d77-4b7e-b444-4955812c2a77"
+      updated_by: "f47f94fd-2d77-4b7e-b444-4955812c2a77",
+      channel: DeclarationRequest.channel(:mis)
     }
 
     %DeclarationRequest{}

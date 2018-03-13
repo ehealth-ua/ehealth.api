@@ -376,7 +376,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       changeset =
         declaration_request
         |> Ecto.Changeset.change()
-        |> Creator.determine_auth_method_for_mpi()
+        |> Creator.determine_auth_method_for_mpi(DeclarationRequest.channel(:mis))
 
       assert %{"number" => "+380508887700", "type" => "OTP"} == get_change(changeset, :authentication_method_current)
       assert "b5350f79-f2ca-408f-b15d-1ae0a8cc861c" == get_change(changeset, :mpi_id)
@@ -441,7 +441,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       changeset =
         declaration_request
         |> Ecto.Changeset.change()
-        |> Creator.determine_auth_method_for_mpi()
+        |> Creator.determine_auth_method_for_mpi(DeclarationRequest.channel(:mis))
 
       assert get_change(changeset, :authentication_method_current) == %{"type" => "NA"}
     end
@@ -469,7 +469,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       changeset =
         declaration_request
         |> Ecto.Changeset.change()
-        |> Creator.determine_auth_method_for_mpi()
+        |> Creator.determine_auth_method_for_mpi(DeclarationRequest.channel(:mis))
 
       assert %{"type" => "NA"} == get_change(changeset, :authentication_method_current)
     end
@@ -516,7 +516,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       changeset =
         declaration_request
         |> Ecto.Changeset.change()
-        |> Creator.determine_auth_method_for_mpi()
+        |> Creator.determine_auth_method_for_mpi(DeclarationRequest.channel(:mis))
 
       assert ~s(Error during MPI interaction. Result from MPI: %{"something" => "terrible"}) ==
                elem(changeset.errors[:authentication_method_current], 0)
@@ -577,7 +577,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       changeset =
         declaration_request
         |> Ecto.Changeset.change()
-        |> Creator.determine_auth_method_for_mpi()
+        |> Creator.determine_auth_method_for_mpi(DeclarationRequest.channel(:mis))
 
       assert get_change(changeset, :authentication_method_current) == %{"type" => "NA"}
     end
@@ -634,7 +634,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       changeset =
         declaration_request
         |> Ecto.Changeset.change()
-        |> Creator.determine_auth_method_for_mpi()
+        |> Creator.determine_auth_method_for_mpi(DeclarationRequest.channel(:mis))
 
       assert %{"type" => "OTP", "number" => "+380508887701"} == get_change(changeset, :authentication_method_current)
     end
@@ -661,7 +661,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       changeset =
         declaration_request
         |> Ecto.Changeset.change()
-        |> Creator.determine_auth_method_for_mpi()
+        |> Creator.determine_auth_method_for_mpi(DeclarationRequest.channel(:mis))
 
       assert [authentication_method_current: {"invalid parameters", []}] == changeset.errors
     end
