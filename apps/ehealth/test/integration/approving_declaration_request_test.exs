@@ -4,7 +4,7 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
   use EHealth.Web.ConnCase, async: false
 
   alias EHealth.Repo
-  alias EHealth.DeclarationRequest
+  alias EHealth.DeclarationRequests.DeclarationRequest
 
   describe "Approve declaration with auth type OTP or NA" do
     defmodule OtpHappyPath do

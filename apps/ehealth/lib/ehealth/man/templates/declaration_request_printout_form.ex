@@ -5,7 +5,7 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
 
   alias EHealth.Utils.AddressMerger
   alias EHealth.Dictionaries
-  alias EHealth.DeclarationRequest
+  alias EHealth.DeclarationRequests.DeclarationRequest
 
   @man_api Application.get_env(:ehealth, :api_resolvers)[:man]
 

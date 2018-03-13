@@ -7,31 +7,12 @@ defmodule EHealth.Unit.ValidatorTest do
   alias EHealth.Validators.KVEDs
   alias EHealth.API.MediaStorage
   alias EHealth.EmployeeRequests
-  alias EHealth.DeclarationRequest.API.Validations, as: DeclarationRequestValidator
 
   @phone_type %{
     "name" => "PHONE_TYPE",
     "values" => %{
       "MOBILE" => "mobile",
       "LANDLINE" => "landline"
-    },
-    "labels" => ["SYSTEM"],
-    "is_active" => true
-  }
-
-  @doc_type %{
-    "name" => "DOCUMENT_TYPE",
-    "values" => %{
-      "PASSPORT" => "passport"
-    },
-    "labels" => ["SYSTEM"],
-    "is_active" => true
-  }
-
-  @doc_relationship_type %{
-    "name" => "DOCUMENT_RELATIONSHIP_TYPE",
-    "values" => %{
-      "COURT_DECISION" => "court decision"
     },
     "labels" => ["SYSTEM"],
     "is_active" => true
@@ -51,26 +32,6 @@ defmodule EHealth.Unit.ValidatorTest do
     "name" => "EMPLOYEE_TYPE",
     "values" => %{
       "DOCTOR" => "doctor"
-    },
-    "labels" => ["SYSTEM"],
-    "is_active" => true
-  }
-
-  @gender %{
-    "name" => "GENDER",
-    "values" => %{
-      "FEMALE" => "woman",
-      "MALE" => "man"
-    },
-    "labels" => ["SYSTEM"],
-    "is_active" => true
-  }
-
-  @authentication_method %{
-    "name" => "AUTHENTICATION_METHOD",
-    "values" => %{
-      "2FA" => "two-factor",
-      "OTP" => "one-time pass"
     },
     "labels" => ["SYSTEM"],
     "is_active" => true
@@ -371,69 +332,6 @@ defmodule EHealth.Unit.ValidatorTest do
 
   test "validate kveds with empty dictionary" do
     assert %Ecto.Changeset{valid?: true} = KVEDs.validate(["12.11"])
-  end
-
-  test "Declaration Request: authentication_methods invalid", %{conn: conn} do
-    patch(conn, dictionary_path(conn, :update, "AUTHENTICATION_METHOD"), @authentication_method)
-
-    content =
-      put_in(get_declaration_request(), ~W(person authentication_methods), [
-        %{"phone_number" => "+380508887700", "type" => "IDGAF"}
-      ])
-
-    assert {:error, [{%{rule: :inclusion}, "$.declaration_request.person.authentication_methods.[0].type"}]} =
-             DeclarationRequestValidator.validate_schema(content)
-  end
-
-  test "Declaration Request: JSON schema documents.type invalid", %{conn: conn} do
-    patch(conn, dictionary_path(conn, :update, "DOCUMENT_TYPE"), @doc_type)
-    content = put_in(get_declaration_request(), ~W(person documents), invalid_documents())
-
-    assert {:error, [{%{description: _, rule: :inclusion}, "$.declaration_request.person.documents.[0].type"}]} =
-             DeclarationRequestValidator.validate_schema(content)
-  end
-
-  test "Declaration Request: JSON schema documents_relationship.type invalid", %{conn: conn} do
-    patch(conn, dictionary_path(conn, :update, "DOCUMENT_RELATIONSHIP_TYPE"), @doc_relationship_type)
-    request = get_declaration_request()
-
-    confidant_person =
-      request
-      |> get_in(~W(person confidant_person))
-      |> List.first()
-      |> Map.put("documents_relationship", invalid_documents())
-
-    content = put_in(request, ~W(person confidant_person), [confidant_person])
-
-    assert {:error,
-            [
-              {%{description: _, rule: :inclusion},
-               "$.declaration_request.person.confidant_person.[0].documents_relationship.[0].type"}
-            ]} = DeclarationRequestValidator.validate_schema(content)
-  end
-
-  test "Declaration Request: JSON schema gender invalid", %{conn: conn} do
-    patch(conn, dictionary_path(conn, :update, "GENDER"), @gender)
-    content = put_in(get_declaration_request(), ~W(person gender), "ORC")
-
-    assert {:error, [{%{description: _, rule: :inclusion}, "$.declaration_request.person.gender"}]} =
-             DeclarationRequestValidator.validate_schema(content)
-  end
-
-  test "Declaration Request: JSON schema gender valid", %{conn: conn} do
-    patch(conn, dictionary_path(conn, :update, "GENDER"), @gender)
-    assert :ok = DeclarationRequestValidator.validate_schema(get_declaration_request())
-  end
-
-  defp invalid_documents do
-    [%{"type" => "lol_kek_cheburek", "number" => "120519"}]
-  end
-
-  defp get_declaration_request do
-    "test/data/declaration_request.json"
-    |> File.read!()
-    |> Poison.decode!()
-    |> Map.fetch!("declaration_request")
   end
 
   defp get_employee_request do

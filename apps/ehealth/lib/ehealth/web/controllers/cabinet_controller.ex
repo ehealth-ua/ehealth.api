@@ -4,8 +4,10 @@ defmodule EHealth.Web.CabinetController do
   use EHealth.Web, :controller
 
   alias EHealth.Cabinet.API
+  alias EHealth.DeclarationRequests
   alias EHealth.Persons
   alias EHealth.Guardian.Plug
+  alias EHealth.Web.DeclarationRequestView
 
   action_fallback(EHealth.Web.FallbackController)
 
@@ -19,6 +21,16 @@ defmodule EHealth.Web.CabinetController do
     with jwt <- Plug.current_token(conn),
          {:ok, new_jwt} <- API.validate_email_jwt(jwt) do
       render(conn, "email_validation.json", %{token: new_jwt})
+    end
+  end
+
+  def create_declaration_request(conn, params) do
+    with {:ok, %{urgent_data: urgent_data, finalize: result}} <-
+           DeclarationRequests.create_online(params, conn.req_headers) do
+      conn
+      |> assign(:urgent, urgent_data)
+      |> put_view(DeclarationRequestView)
+      |> render("declaration_request.json", declaration_request: result, display_hash: true)
     end
   end
 

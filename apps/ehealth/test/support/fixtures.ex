@@ -1,8 +1,9 @@
 defmodule EHealth.Test.Support.Fixtures do
   @moduledoc false
 
+  alias Ecto.UUID
+  alias EHealth.DeclarationRequests.DeclarationRequest
   alias EHealth.Repo
-  alias EHealth.DeclarationRequest
 
   def simple_fixture(:declaration_request, status \\ "ACTIVE", authentication_method_current_type \\ "OTP") do
     data =
@@ -13,9 +14,9 @@ defmodule EHealth.Test.Support.Fixtures do
     Repo.insert!(%DeclarationRequest{
       data: data,
       status: status,
-      inserted_by: Ecto.UUID.generate(),
-      updated_by: Ecto.UUID.generate(),
-      declaration_id: Ecto.UUID.generate(),
+      inserted_by: UUID.generate(),
+      updated_by: UUID.generate(),
+      declaration_id: UUID.generate(),
       authentication_method_current: %{"type" => authentication_method_current_type},
       printout_content: ""
     })

@@ -21,6 +21,11 @@ defmodule EHealth.Validators.JsonSchema do
     "specs/json_schemas/medication_request_request/medication_request_request_sign_request.json"
   )
 
+  use_schema(
+    :cabinet_declaration_request,
+    "specs/json_schemas/declaration_request/declaration_request_create_online.json"
+  )
+
   use_schema(:person, "specs/json_schemas/person/person_create_update.json")
   use_schema(:medication_dispense, "specs/json_schemas/medication_dispense/medication_dispense_create_request.json")
   use_schema(:medical_program, "specs/json_schemas/medical_program/medical_program_create_request.json")

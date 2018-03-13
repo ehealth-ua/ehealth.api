@@ -1,8 +1,8 @@
-defmodule EHealth.Integraiton.DeclarationRequest.API.ApproveTest do
+defmodule EHealth.Integraiton.DeclarationRequests.API.ApproveTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase
-  import EHealth.DeclarationRequest.API.Approve
+  import EHealth.DeclarationRequests.API.Approve
 
   describe "verify/2 - via offline docs" do
     defmodule VerifyViaOfflineDocs do
@@ -106,6 +106,8 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.ApproveTest do
 
   describe "verify/2 - via code" do
     defmodule VerifyViaOTP do
+      @moduledoc false
+
       use MicroservicesHelper
 
       Plug.Router.patch "/verifications/+380972805261/actions/complete" do

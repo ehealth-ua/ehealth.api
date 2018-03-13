@@ -1,11 +1,13 @@
-defmodule EHealth.Unit.DeclarationRequest.API.DocumentsTest do
+defmodule EHealth.Unit.DeclarationRequests.API.DocumentsTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase
-  import EHealth.DeclarationRequest.API.Documents
+  import EHealth.DeclarationRequests.API.Documents
 
   describe "render_links/3" do
     defmodule UploadingFiles do
+      @moduledoc false
+
       use MicroservicesHelper
 
       Plug.Router.post "/media_content_storage_secrets" do
@@ -71,6 +73,64 @@ defmodule EHealth.Unit.DeclarationRequest.API.DocumentsTest do
       error_message = %{"something" => "went wrong with declaration_request_Passport.jpeg"}
 
       assert {:error, error_message} == result
+    end
+  end
+
+  describe "gather_documents_list/1" do
+    test "gathers all required docs" do
+      person = %{
+        "tax_id" => "some_id",
+        "documents" => [
+          %{"type" => "A"},
+          %{"type" => "B"},
+          %{"type" => "C"},
+          %{"type" => "BIRTH_CERTIFICATE"},
+          %{"type" => "SSN"},
+          %{"type" => "PASSPORT"}
+        ],
+        "confidant_person" => [
+          %{
+            "tax_id" => "some_id",
+            "relation_type" => "XXX",
+            "documents_person" => [
+              %{"type" => "A1"},
+              %{"type" => "A2"},
+              %{"type" => "A3"}
+            ],
+            "documents_relationship" => [
+              %{"type" => "B1"},
+              %{"type" => "B2"},
+              %{"type" => "BIRTH_CERTIFICATE"}
+            ]
+          },
+          %{
+            "relation_type" => "YYY",
+            "documents_person" => [
+              %{"type" => "X1"},
+              %{"type" => "X2"},
+              %{"type" => "X3"}
+            ],
+            "documents_relationship" => [
+              %{"type" => "Y1"},
+              %{"type" => "Y2"}
+            ]
+          }
+        ]
+      }
+
+      assert [
+               "confidant_person.1.YYY.RELATIONSHIP.Y1",
+               "confidant_person.1.YYY.RELATIONSHIP.Y2",
+               "confidant_person.0.XXX.RELATIONSHIP.B1",
+               "confidant_person.0.XXX.RELATIONSHIP.B2",
+               "person.SSN",
+               "person.DECLARATION_FORM",
+               "person.A",
+               "person.B",
+               "person.C",
+               "person.BIRTH_CERTIFICATE",
+               "person.PASSPORT"
+             ] == gather_documents_list(person)
     end
   end
 end

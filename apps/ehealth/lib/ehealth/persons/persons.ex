@@ -26,7 +26,7 @@ defmodule EHealth.Persons do
     user_id = get_consumer_id(headers)
 
     with {:ok, %{"data" => user}} <- Mithril.get_user_by_id(user_id, headers),
-         :ok <- check_user_mpi_id(user, id),
+         :ok <- check_user_person_id(user, id),
          %Ecto.Changeset{valid?: true, changes: changes} <- Signed.changeset(params),
          {:ok, %{"data" => %{"content" => content, "signer" => signer}}} <-
            Signature.decode_and_validate(changes.signed_content, "base64", headers),
@@ -45,7 +45,7 @@ defmodule EHealth.Persons do
     with {:ok, %{"data" => person}} <- MPI.person(user_id, headers), do: {:ok, person}
   end
 
-  defp check_user_mpi_id(user, id) do
+  defp check_user_person_id(user, id) do
     if user["person_id"] == id do
       :ok
     else

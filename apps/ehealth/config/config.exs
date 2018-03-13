@@ -264,7 +264,7 @@ config :ehealth, EHealth.Scheduler,
   declaration_request_autotermination: {:system, :string, "DECLARATION_REQUEST_AUTOTERMINATION_SCHEDULE", "* 0-4 * * *"},
   employee_request_autotermination: {:system, :string, "EMPLOYEE_REQUEST_AUTOTERMINATION_SCHEDULE", "0-4 * * *"}
 
-config :ehealth, EHealth.DeclarationRequest.API,
+config :ehealth, EHealth.DeclarationRequests.Terminator,
   termination_batch_size: {:system, :integer, "DECLARATION_REQUEST_AUTOTERMINATION_BATCH", 1000}
 
 # Configures Cabinet

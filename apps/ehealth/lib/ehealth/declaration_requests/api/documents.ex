@@ -1,8 +1,7 @@
-defmodule EHealth.DeclarationRequest.API.Documents do
+defmodule EHealth.DeclarationRequests.API.Documents do
   @moduledoc false
 
-  alias EHealth.DeclarationRequest
-  alias EHealth.DeclarationRequest.API.Helpers
+  alias EHealth.DeclarationRequests.DeclarationRequest
   alias EHealth.API.MediaStorage
 
   def generate_links(%DeclarationRequest{id: id, documents: nil}) do
@@ -14,7 +13,7 @@ defmodule EHealth.DeclarationRequest.API.Documents do
   end
 
   def generate_links(%DeclarationRequest{id: declaration_request_id, data: %{"person" => person}}, http_verbs) do
-    documents_list = Helpers.gather_documents_list(person)
+    documents_list = gather_documents_list(person)
     render_links(declaration_request_id, http_verbs, documents_list)
   end
 
@@ -58,5 +57,41 @@ defmodule EHealth.DeclarationRequest.API.Documents do
       _ ->
         {:ok, documents}
     end
+  end
+
+  def gather_documents_list(person) do
+    person_documents =
+      if person["tax_id"], do: ["person.SSN", "person.DECLARATION_FORM"], else: ["person.DECLARATION_FORM"]
+
+    person_documents = person_documents ++ Enum.map(person["documents"], &"person.#{&1["type"]}")
+
+    has_birth_certificate =
+      Enum.reduce_while(person["documents"], false, fn document, acc ->
+        if document["type"] == "BIRTH_CERTIFICATE", do: {:halt, true}, else: {:cont, acc}
+      end)
+
+    person
+    |> Map.get("confidant_person", [])
+    |> Enum.with_index()
+    |> Enum.reduce({person_documents, has_birth_certificate}, &gather_confidant_documents/2)
+    |> elem(0)
+    |> Enum.uniq()
+  end
+
+  defp gather_confidant_documents({cp, idx}, {documents, has_birth_certificate}) do
+    confidant_documents =
+      cp["documents_relationship"]
+      |> Enum.reduce([], fn doc, acc ->
+        # skip BIRTH_CERTIFICATE if it was already added in person documents
+        if doc["type"] == "BIRTH_CERTIFICATE" && has_birth_certificate do
+          acc
+        else
+          ["confidant_person.#{idx}.#{cp["relation_type"]}.RELATIONSHIP.#{doc["type"]}" | acc]
+        end
+      end)
+      |> Enum.reverse()
+      |> Kernel.++(documents)
+
+    {confidant_documents, has_birth_certificate}
   end
 end

@@ -1,16 +1,20 @@
-defmodule EHealth.DeclarationRequest.API.Sign do
+defmodule EHealth.DeclarationRequests.API.Sign do
   @moduledoc false
 
+  import Ecto.Changeset
   import EHealth.Utils.Connection
-
-  alias EHealth.API.{MPI, OPS, MediaStorage}
-  alias EHealth.DeclarationRequest
-  alias EHealth.DeclarationRequest.API
+  alias EHealth.API.MPI
+  alias EHealth.API.MediaStorage
+  alias EHealth.API.OPS
+  alias EHealth.API.Signature
+  alias EHealth.DeclarationRequests
+  alias EHealth.DeclarationRequests.DeclarationRequest
+  alias EHealth.DeclarationRequests.SignRequest
   alias EHealth.Parties
   alias EHealth.Employees
   alias EHealth.Employees.Employee
   alias HTTPoison.Response
-
+  alias EHealth.Repo
   require Logger
 
   @auth_na DeclarationRequest.authentication_method(:na)
@@ -19,14 +23,72 @@ defmodule EHealth.DeclarationRequest.API.Sign do
 
   @status_approved DeclarationRequest.status(:approved)
 
-  def check_status(input) do
-    db_data =
-      input
-      |> Map.fetch!("id")
-      |> API.get_declaration_request_by_id!()
+  def sign(params, headers) do
+    with {:ok, %{"data" => %{"content" => content, "signer" => signer}}} <- decode_and_validate(params, headers),
+         %DeclarationRequest{} = declaration_request <- params |> Map.fetch!("id") |> DeclarationRequests.get_by_id!(),
+         :ok <- check_status(declaration_request),
+         :ok <- check_patient_signed(content),
+         :ok <- compare_with_db(content, declaration_request),
+         :ok <- check_employee_id(content, headers),
+         :ok <- check_drfo(signer, headers),
+         :ok <- store_signed_content(declaration_request, params, headers),
+         {:ok, person} <- create_or_update_person(declaration_request, content, headers),
+         {:ok, declaration} <- create_declaration_with_termination_logic(person, declaration_request, headers),
+         {:ok, signed_declaration} <- update_declaration_request_status(declaration_request, declaration) do
+      {:ok, signed_declaration}
+    end
+  end
 
-    case Map.get(db_data, :status) do
-      @status_approved -> {:ok, db_data}
+  def decode_and_validate(params, headers) do
+    params
+    |> validate_sign_request()
+    |> validate_signature(headers)
+    |> normalize_signature_error()
+    |> check_is_valid()
+  end
+
+  def validate_sign_request(params) do
+    fields = ~W(
+      signed_declaration_request
+      signed_content_encoding
+    )a
+
+    %SignRequest{}
+    |> cast(params, fields)
+    |> validate_required(fields)
+    |> validate_inclusion(:signed_content_encoding, ["base64"])
+  end
+
+  def validate_signature(%Ecto.Changeset{valid?: true, changes: changes}, headers) do
+    changes
+    |> Map.get(:signed_declaration_request)
+    |> Signature.decode_and_validate(Map.get(changes, :signed_content_encoding), headers)
+  end
+
+  def validate_signature(err, _headers), do: err
+
+  def normalize_signature_error({:error, %{"meta" => %{"description" => error}}}) do
+    %SignRequest{}
+    |> cast(%{}, [:signed_legal_entity_request])
+    |> add_error(:signed_legal_entity_request, error)
+  end
+
+  def normalize_signature_error(ok_resp), do: ok_resp
+
+  def check_is_valid({:ok, %{"data" => %{"is_valid" => false, "validation_error_message" => error}}}) do
+    {:error, {:bad_request, error}}
+  end
+
+  def check_is_valid({:ok, %{"data" => %{"is_valid" => true}} = result}) do
+    {_empty_message, result} = pop_in(result, ["data", "validation_error_message"])
+    {:ok, result}
+  end
+
+  def check_is_valid(err), do: err
+
+  def check_status(%DeclarationRequest{status: status}) do
+    case status do
+      @status_approved -> :ok
       _ -> {:error, [{%{description: "incorrect status", params: [], rule: :invalid}, "$.status"}]}
     end
   end
@@ -46,7 +108,7 @@ defmodule EHealth.DeclarationRequest.API.Sign do
     end
   end
 
-  def compare_with_db(content, declaration_request) do
+  def compare_with_db(content, %DeclarationRequest{} = declaration_request) do
     db_content =
       declaration_request
       |> Map.get(:data)
@@ -121,23 +183,23 @@ defmodule EHealth.DeclarationRequest.API.Sign do
     end
   end
 
-  def store_signed_content(db_data, input, headers) do
+  def store_signed_content(%DeclarationRequest{} = declaration_request, input, headers) do
     Logger.info(fn ->
       """
-      db_data: #{inspect(db_data)}
+      db_data: #{inspect(declaration_request)}
       """
     end)
 
     input
     |> Map.fetch!("signed_declaration_request")
-    |> MediaStorage.store_signed_content(:declaration_bucket, Map.fetch!(db_data, :declaration_id), headers)
+    |> MediaStorage.store_signed_content(:declaration_bucket, Map.fetch!(declaration_request, :declaration_id), headers)
     |> case do
       {:ok, _} -> :ok
       err -> err
     end
   end
 
-  def create_or_update_person(declaration_request, content, headers) do
+  def create_or_update_person(%DeclarationRequest{} = declaration_request, content, headers) do
     content
     |> Map.fetch!("person")
     |> Map.put("patient_signed", true)
@@ -182,18 +244,18 @@ defmodule EHealth.DeclarationRequest.API.Sign do
     |> OPS.create_declaration_with_termination_logic(headers)
   end
 
-  def update_declaration_request_status(ops_declaration_response, input) do
-    update_result =
-      input
-      |> Map.fetch!("id")
-      |> API.update_status("SIGNED")
+  def update_declaration_request_status(%DeclarationRequest{} = declaration_request, declaration) do
+    declaration_request =
+      declaration_request
+      |> DeclarationRequests.changeset(%{status: "SIGNED"})
+      |> Repo.update()
 
     declaration_data =
-      ops_declaration_response
+      declaration
       |> Map.get("data")
       |> Map.drop(["updated_by", "updated_at", "created_by"])
 
-    case update_result do
+    case declaration_request do
       {:ok, _data} -> {:ok, declaration_data}
       err -> err
     end

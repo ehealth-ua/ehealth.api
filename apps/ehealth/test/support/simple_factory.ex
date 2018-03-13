@@ -6,7 +6,7 @@ defmodule EHealth.SimpleFactory do
   alias EHealth.PRMRepo
   alias EHealth.LegalEntities.LegalEntity
   alias EHealth.EmployeeRequests.EmployeeRequest, as: Request
-  alias EHealth.DeclarationRequest
+  alias EHealth.DeclarationRequests.DeclarationRequest
 
   defmacro fixture(module) do
     quote do

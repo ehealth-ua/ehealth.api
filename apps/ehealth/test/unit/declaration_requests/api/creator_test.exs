@@ -1,9 +1,53 @@
-defmodule EHealth.DeclarationRequest.API.ValidationTest do
+defmodule EHealth.DeclarationRequests.API.CreatorTest do
   @moduledoc false
 
-  use EHealth.Web.ConnCase
-  import EHealth.DeclarationRequest.API.Validations
-  alias EHealth.DeclarationRequest
+  use EHealth.Web.ConnCase, async: true
+  alias Ecto.UUID
+  alias EHealth.DeclarationRequests.DeclarationRequest
+  alias EHealth.DeclarationRequests.API.Creator
+  alias EHealth.Repo
+
+  describe "request_end_date/5" do
+    test "patient is less than 18 years old" do
+      term = [years: 40]
+      birth_date = "2014-10-10"
+      today = Date.from_iso8601!("2017-10-16")
+
+      assert ~D[2032-10-09] == Creator.request_end_date(today, term, birth_date, 18)
+    end
+
+    test "patient turns 18 years old tomorrow" do
+      term = [years: 40]
+      birth_date = "2000-10-17"
+      today = Date.from_iso8601!("2018-10-16")
+
+      assert ~D[2018-10-16] == Creator.request_end_date(today, term, birth_date, 18)
+    end
+
+    test "patient turns 18 years today" do
+      term = [years: 40]
+      birth_date = "2000-10-17"
+      today = Date.from_iso8601!("2018-10-17")
+
+      assert ~D[2058-10-17] == Creator.request_end_date(today, term, birth_date, 18)
+    end
+
+    test "patient is older than 18 years" do
+      term = [years: 40]
+      birth_date = "1988-10-10"
+      today = Date.from_iso8601!("2017-10-16")
+
+      assert ~D[2057-10-16] == Creator.request_end_date(today, term, birth_date, 18)
+    end
+
+    test "take min between 18 years and declaration term date" do
+      term = [years: 5]
+      birth_date = "1988-10-10"
+      today = Date.from_iso8601!("1990-10-10")
+
+      assert ~D[1995-10-10] == Creator.request_end_date(today, term, birth_date, 18)
+    end
+  end
 
   describe "validate_patient_age/3" do
     test "patient's age matches doctor's speciality" do
@@ -21,7 +65,7 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
       result =
         %DeclarationRequest{}
         |> Ecto.Changeset.change(raw_declaration_request)
-        |> validate_patient_age(["PEDIATRICIAN"], 18)
+        |> Creator.validate_patient_age(["PEDIATRICIAN"], 18)
 
       assert is_nil(result.errors[:data])
     end
@@ -39,11 +83,13 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
       result =
         %DeclarationRequest{}
         |> Ecto.Changeset.change(raw_declaration_request)
-        |> validate_patient_age(["PEDIATRICIAN"], 18)
+        |> Creator.validate_patient_age(["PEDIATRICIAN"], 18)
 
       assert result.errors[:data] == {"Doctor speciality does not meet the patient's age requirement.", []}
     end
+  end
 
+  describe "validate_patient_birth_date/1" do
     test "patient's age invalid" do
       raw_declaration_request = %{
         data: %{
@@ -57,7 +103,7 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
       result =
         %DeclarationRequest{}
         |> Ecto.Changeset.change(raw_declaration_request)
-        |> validate_patient_birth_date()
+        |> Creator.validate_patient_birth_date()
 
       assert result.errors[:data] == {"Invalid birth date.", []}
     end
@@ -65,22 +111,18 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
 
   describe "belongs_to/3" do
     test "checks if doctor falls into given adult age" do
-      assert belongs_to(17, 18, "PEDIATRICIAN")
-      refute belongs_to(18, 18, "PEDIATRICIAN")
-      refute belongs_to(19, 18, "PEDIATRICIAN")
+      assert Creator.belongs_to(17, 18, "PEDIATRICIAN")
+      refute Creator.belongs_to(18, 18, "PEDIATRICIAN")
+      refute Creator.belongs_to(19, 18, "PEDIATRICIAN")
 
-      refute belongs_to(17, 18, "THERAPIST")
-      assert belongs_to(18, 18, "THERAPIST")
-      assert belongs_to(19, 18, "THERAPIST")
+      refute Creator.belongs_to(17, 18, "THERAPIST")
+      assert Creator.belongs_to(18, 18, "THERAPIST")
+      assert Creator.belongs_to(19, 18, "THERAPIST")
 
-      assert belongs_to(17, 18, "FAMILY_DOCTOR")
-      assert belongs_to(18, 18, "FAMILY_DOCTOR")
-      assert belongs_to(19, 18, "FAMILY_DOCTOR")
+      assert Creator.belongs_to(17, 18, "FAMILY_DOCTOR")
+      assert Creator.belongs_to(18, 18, "FAMILY_DOCTOR")
+      assert Creator.belongs_to(19, 18, "FAMILY_DOCTOR")
     end
-  end
-
-  test "validate_schema/1" do
-    assert {:error, _} = validate_schema(%{})
   end
 
   describe "validate authentication_method" do
@@ -99,7 +141,7 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
       result =
         %DeclarationRequest{}
         |> Ecto.Changeset.change(raw_declaration_request)
-        |> validate_authentication_methods()
+        |> Creator.validate_authentication_methods()
 
       [
         "data.person.authentication_methods.[1].phone_number": {
@@ -107,17 +149,6 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
           []
         }
       ] = result.errors
-    end
-
-    test "phone_number is NOT required for OFFLINE type" do
-      data =
-        "test/data/declaration_request.json"
-        |> File.read!()
-        |> Poison.decode!()
-        |> Map.fetch!("declaration_request")
-        |> put_in(~W(person authentication_methods), [%{"type" => "OFFLINE"}])
-
-      assert :ok == validate_schema(data)
     end
   end
 
@@ -132,7 +163,7 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
       result =
         %DeclarationRequest{}
         |> Ecto.Changeset.change(raw_declaration_request)
-        |> validate_tax_id()
+        |> Creator.validate_tax_id()
 
       assert [] = result.errors
     end
@@ -149,7 +180,7 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
       result =
         %DeclarationRequest{}
         |> Ecto.Changeset.change(raw_declaration_request)
-        |> validate_tax_id()
+        |> Creator.validate_tax_id()
 
       assert [] = result.errors
     end
@@ -166,7 +197,7 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
       result =
         %DeclarationRequest{}
         |> Ecto.Changeset.change(raw_declaration_request)
-        |> validate_tax_id()
+        |> Creator.validate_tax_id()
 
       assert {"Person's tax ID in not valid.", []} = result.errors[:"data.person.tax_id"]
     end
@@ -185,7 +216,7 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
       result =
         %DeclarationRequest{}
         |> Ecto.Changeset.change(raw_declaration_request)
-        |> validate_confidant_persons_tax_id()
+        |> Creator.validate_confidant_persons_tax_id()
 
       assert [] = result.errors
 
@@ -198,7 +229,7 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
       result =
         %DeclarationRequest{}
         |> Ecto.Changeset.change(raw_declaration_request)
-        |> validate_confidant_persons_tax_id()
+        |> Creator.validate_confidant_persons_tax_id()
 
       assert [] = result.errors
     end
@@ -215,7 +246,7 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
       result =
         %DeclarationRequest{}
         |> Ecto.Changeset.change(raw_declaration_request)
-        |> validate_confidant_persons_tax_id()
+        |> Creator.validate_confidant_persons_tax_id()
 
       assert [] = result.errors
     end
@@ -235,7 +266,7 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
       result =
         %DeclarationRequest{}
         |> Ecto.Changeset.change(raw_declaration_request)
-        |> validate_confidant_persons_tax_id()
+        |> Creator.validate_confidant_persons_tax_id()
 
       assert [] = result.errors
     end
@@ -256,7 +287,7 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
       result =
         %DeclarationRequest{}
         |> Ecto.Changeset.change(raw_declaration_request)
-        |> validate_confidant_persons_tax_id()
+        |> Creator.validate_confidant_persons_tax_id()
 
       assert [
                "data.person.confidant_person[2].tax_id": {"Person's tax ID in not valid.", []},
@@ -282,7 +313,7 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
       result =
         %DeclarationRequest{}
         |> Ecto.Changeset.change(raw_declaration_request)
-        |> validate_person_addresses()
+        |> Creator.validate_person_addresses()
 
       assert [] = result.errors
     end
@@ -302,7 +333,7 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
       result =
         %DeclarationRequest{}
         |> Ecto.Changeset.change(raw_declaration_request)
-        |> validate_person_addresses()
+        |> Creator.validate_person_addresses()
 
       assert ["data.person.addresses": {"one and only one registration address is required", []}] = result.errors
     end
@@ -319,7 +350,7 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
       result =
         %DeclarationRequest{}
         |> Ecto.Changeset.change(raw_declaration_request)
-        |> validate_person_addresses()
+        |> Creator.validate_person_addresses()
 
       assert ["data.person.addresses": {"one and only one registration address is required", []}] = result.errors
     end
@@ -340,7 +371,7 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
       result =
         %DeclarationRequest{}
         |> Ecto.Changeset.change(raw_declaration_request)
-        |> validate_person_addresses()
+        |> Creator.validate_person_addresses()
 
       assert ["data.person.addresses": {"one and only one residence address is required", []}] = result.errors
     end
@@ -359,7 +390,7 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
       result =
         %DeclarationRequest{}
         |> Ecto.Changeset.change(raw_declaration_request)
-        |> validate_person_addresses()
+        |> Creator.validate_person_addresses()
 
       assert ["data.person.addresses": {"one and only one residence address is required", []}] = result.errors
     end
@@ -378,7 +409,7 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
       result =
         %DeclarationRequest{}
         |> Ecto.Changeset.change(raw_declaration_request)
-        |> validate_confidant_person_rel_type()
+        |> Creator.validate_confidant_person_rel_type()
 
       assert [] = result.errors
 
@@ -391,7 +422,7 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
       result =
         %DeclarationRequest{}
         |> Ecto.Changeset.change(raw_declaration_request)
-        |> validate_confidant_person_rel_type()
+        |> Creator.validate_confidant_person_rel_type()
 
       assert [] = result.errors
     end
@@ -410,7 +441,7 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
       result =
         %DeclarationRequest{}
         |> Ecto.Changeset.change(raw_declaration_request)
-        |> validate_confidant_person_rel_type()
+        |> Creator.validate_confidant_person_rel_type()
 
       assert [] = result.errors
     end
@@ -430,7 +461,7 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
       result =
         %DeclarationRequest{}
         |> Ecto.Changeset.change(raw_declaration_request)
-        |> validate_confidant_person_rel_type()
+        |> Creator.validate_confidant_person_rel_type()
 
       assert [
                "data.person.confidant_persons[].relation_type": {
@@ -448,7 +479,7 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
       result =
         %DeclarationRequest{}
         |> Ecto.Changeset.change()
-        |> validate_employee_type(employee)
+        |> Creator.validate_employee_type(employee)
 
       assert [] = result.errors
     end
@@ -459,7 +490,7 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
       result =
         %DeclarationRequest{}
         |> Ecto.Changeset.change()
-        |> validate_employee_type(employee)
+        |> Creator.validate_employee_type(employee)
 
       assert [
                "data.person.employee_id": {
@@ -468,5 +499,86 @@ defmodule EHealth.DeclarationRequest.API.ValidationTest do
                }
              ] = result.errors
     end
+  end
+
+  describe "pending_declaration_requests/2" do
+    test "returns pending requests" do
+      existing_declaration_request_data = %{
+        "person" => %{
+          "tax_id" => "111"
+        },
+        "employee" => %{
+          "id" => "222"
+        },
+        "legal_entity" => %{
+          "id" => "333"
+        }
+      }
+
+      {:ok, pending_declaration_req_1} = copy_declaration_request(existing_declaration_request_data, "NEW")
+      {:ok, pending_declaration_req_2} = copy_declaration_request(existing_declaration_request_data, "APPROVED")
+
+      query = Creator.pending_declaration_requests(%{"tax_id" => "111"}, "222", "333")
+
+      assert [pending_declaration_req_1, pending_declaration_req_2] == Repo.all(query)
+    end
+
+    test "returns pending requests without tax_id" do
+      existing_declaration_request_data = %{
+        "person" => %{
+          "first_name" => "Василь",
+          "last_name" => "Шамрило",
+          "birth_data" => "2000-12-14"
+        },
+        "employee" => %{
+          "id" => "222"
+        },
+        "legal_entity" => %{
+          "id" => "333"
+        }
+      }
+
+      {:ok, pending_declaration_req_1} = copy_declaration_request(existing_declaration_request_data, "NEW")
+      {:ok, pending_declaration_req_2} = copy_declaration_request(existing_declaration_request_data, "APPROVED")
+
+      query = Creator.pending_declaration_requests(%{}, "222", "333")
+
+      assert [pending_declaration_req_1, pending_declaration_req_2] == Repo.all(query)
+    end
+  end
+
+  defp copy_declaration_request(template, status) do
+    attrs = %{
+      "status" => status,
+      "data" => %{
+        "person" => %{
+          "tax_id" => get_in(template, ["person", "tax_id"])
+        },
+        "employee" => %{
+          "id" => get_in(template, ["employee", "id"])
+        },
+        "legal_entity" => %{
+          "id" => get_in(template, ["legal_entity", "id"])
+        }
+      },
+      "authentication_method_current" => %{
+        "number" => "+380508887700",
+        "type" => "OTP"
+      },
+      "documents" => [],
+      "printout_content" => "Some fake content",
+      "inserted_by" => UUID.generate(),
+      "updated_by" => UUID.generate(),
+      "declaration_id" => UUID.generate()
+    }
+
+    allowed =
+      attrs
+      |> Map.keys()
+      |> Enum.map(&String.to_atom(&1))
+
+    %DeclarationRequest{}
+    |> Ecto.Changeset.cast(attrs, allowed)
+    |> Repo.insert()
   end
 end

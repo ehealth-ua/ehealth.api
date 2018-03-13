@@ -705,7 +705,7 @@ defmodule EHealth.MockServer do
       "phones" => [%{type: "MOBILE", number: "+380972526080"}],
       "secret" => "string value",
       "emergency_contact" => %{},
-      "confidant_person" => %{},
+      "confidant_person" => [],
       "patient_signed" => true,
       "process_disclosure_data_consent" => true,
       "status" => "active",

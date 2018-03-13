@@ -1,0 +1,27 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "person_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{12}$",
+            "description": "Person ID"
+        },
+        "employee_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{12}$",
+            "description": "Employee ID with `type=DOCTOR` selected from available Employees as a third contract party."
+        },
+        "division_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{12}$",
+            "description": "Registered Medical Service Provider Division identifier."
+        }
+    },
+    "required": [
+        "person_id",
+        "employee_id",
+        "division_id"
+    ],
+    "additionalProperties": false
+}

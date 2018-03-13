@@ -222,6 +222,7 @@ defmodule EHealthWeb.Router do
 
       patch("/persons/:id", CabinetController, :update_person)
       get("/persons", CabinetController, :show_details)
+      post("/declaration_requests", CabinetController, :create_declaration_request)
     end
 
     # Person declarations

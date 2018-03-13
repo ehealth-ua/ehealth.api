@@ -2,11 +2,9 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase
-
-  import EHealth.SimpleFactory
-
   alias Ecto.UUID
-  alias EHealth.DeclarationRequest
+  alias EHealth.DeclarationRequests.DeclarationRequest
+  import EHealth.SimpleFactory
 
   describe "list declaration requests" do
     test "no legal_entity_id match", %{conn: conn} do
@@ -229,6 +227,8 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
 
   describe "approve declaration request without documents" do
     defmodule ApproveDeclarationRequestNoDocs do
+      @moduledoc false
+
       use MicroservicesHelper
 
       Plug.Router.get "/no_upload" do
@@ -289,6 +289,8 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
 
   describe "get declaration request by id" do
     defmodule DynamicSeedValue do
+      @moduledoc false
+
       use MicroservicesHelper
 
       Plug.Router.get "/latest_block" do
@@ -344,6 +346,8 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
 
   describe "resend otp" do
     defmodule OTPVerificationMock do
+      @moduledoc false
+
       use MicroservicesHelper
 
       Plug.Router.post "/verifications" do

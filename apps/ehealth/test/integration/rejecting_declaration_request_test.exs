@@ -38,13 +38,12 @@ defmodule EHealth.Integraiton.DeclarationRequestRejectTest do
       client_id = "8799e3b6-34e7-4798-ba70-d897235d2b6d"
       user_id = "ce377dea-d8c4-4dd8-9328-de24b1ee3879"
 
-      conn =
+      assert_raise Ecto.NoResultsError, fn ->
         build_conn()
         |> put_req_header("x-consumer-id", user_id)
         |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: client_id}))
         |> patch("/api/declaration_requests/#{Ecto.UUID.generate()}/actions/reject")
-
-      assert json_response(conn, 404)
+      end
     end
   end
 end

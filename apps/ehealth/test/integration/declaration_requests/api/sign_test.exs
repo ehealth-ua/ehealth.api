@@ -1,34 +1,23 @@
-defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
+defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase
-  alias EHealth.DeclarationRequest
+  alias Ecto.UUID
+  alias EHealth.DeclarationRequests.DeclarationRequest
   alias EHealth.Repo
-  import EHealth.DeclarationRequest.API.Sign
+  import EHealth.DeclarationRequests.API.Sign
 
   describe "check_status/2" do
-    test "raises error when id is invalid" do
-      assert_raise(Ecto.Query.CastError, fn ->
-        check_status(%{"id" => "111"})
-      end)
-    end
-
-    test "raises error when id does not exist" do
-      assert_raise(Ecto.NoResultsError, fn ->
-        check_status(%{"id" => Ecto.UUID.generate()})
-      end)
-    end
-
     test "returns error when status is not APPROVED" do
-      %{id: id} = insert(:il, :declaration_request, status: "ACTIVE")
-      result = check_status(%{"id" => id})
+      declaration_request = insert(:il, :declaration_request, status: "ACTIVE")
+      result = check_status(declaration_request)
       expected_result = {:error, [{%{description: "incorrect status", params: [], rule: :invalid}, "$.status"}]}
       assert expected_result == result
     end
 
     test "returns expected result when status is APPROVED" do
-      declaration_request = %{id: id} = insert(:il, :declaration_request, status: "APPROVED")
-      assert {:ok, declaration_request} == check_status(%{"id" => id})
+      declaration_request = insert(:il, :declaration_request, status: "APPROVED")
+      assert :ok == check_status(declaration_request)
     end
   end
 
@@ -54,7 +43,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
     end
 
     test "returns expected result when patient_signed is true" do
-      id = Ecto.UUID.generate()
+      id = UUID.generate()
 
       content = %{
         "id" => id,
@@ -84,7 +73,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
     end
 
     test "returns expected result when data matches" do
-      id = Ecto.UUID.generate()
+      id = UUID.generate()
 
       db_data = %DeclarationRequest{
         id: id,
@@ -136,7 +125,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
 
   describe "check_employee_id/2" do
     test "returns forbidden when you try to sign someone else's declaration" do
-      content = %{"employee" => %{"id" => Ecto.UUID.generate()}}
+      content = %{"employee" => %{"id" => UUID.generate()}}
       x_consumer_id_header = {"x-consumer-id", "88231792-f27f-4e5d-9f29-f246557ba42b"}
       assert {:error, :forbidden} == check_employee_id(content, [x_consumer_id_header])
     end
@@ -202,7 +191,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
 
     test "person not found" do
       person = %{"data" => "somedata", "patient_signed" => false}
-      uuid = Ecto.UUID.generate()
+      uuid = UUID.generate()
 
       assert {:conflict, "person is not found"} ==
                create_or_update_person(%DeclarationRequest{id: uuid}, %{"person" => person}, [])
@@ -238,9 +227,9 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
         declaration_request =
         insert(:il, :declaration_request, status: "ACTIVE", authentication_method_current: %{"type" => "OTP"})
 
-      person_id = Ecto.UUID.generate()
+      person_id = UUID.generate()
       person_data = %{"data" => %{"id" => person_id}}
-      client_id = Ecto.UUID.generate()
+      client_id = UUID.generate()
       x_consumer_metadata_header = {"x-consumer-metadata", Poison.encode!(%{"client_id" => client_id})}
 
       {:ok, %{"data" => data}} =
@@ -290,15 +279,15 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.SignTest do
 
   describe "update_declaration_request_status/2" do
     test "updates declaration request status to SIGNED and drops unnecessary fields in response" do
-      %{id: id} = insert(:il, :declaration_request, status: "ACTIVE")
+      declaration_request = insert(:il, :declaration_request, status: "ACTIVE")
       declaration_response_data = %{"updated_by" => "", "updated_at" => "", "created_by" => "", "another_key" => ""}
       declaration_response = %{"data" => declaration_response_data}
-      {:ok, data} = update_declaration_request_status(declaration_response, %{"id" => id})
+      {:ok, data} = update_declaration_request_status(declaration_request, declaration_response)
       refute Map.has_key?(data, "updated_by")
       refute Map.has_key?(data, "updated_at")
       refute Map.has_key?(data, "created_by")
       assert Map.has_key?(data, "another_key")
-      %DeclarationRequest{status: status} = Repo.get!(DeclarationRequest, id)
+      %DeclarationRequest{status: status} = Repo.get!(DeclarationRequest, declaration_request.id)
       assert "SIGNED" == status
     end
   end

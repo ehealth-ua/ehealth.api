@@ -1,4 +1,4 @@
-defmodule EHealth.DeclarationRequest do
+defmodule EHealth.DeclarationRequests.DeclarationRequest do
   @moduledoc false
 
   use Ecto.Schema

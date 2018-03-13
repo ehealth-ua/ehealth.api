@@ -4,10 +4,9 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
   use EHealth.Web.ConnCase
 
   import Mox
-  import EHealth.DeclarationRequest.API.Create
   import Ecto.Changeset, only: [get_change: 2, put_change: 3]
-
-  alias EHealth.DeclarationRequest
+  alias EHealth.DeclarationRequests.API.Creator
+  alias EHealth.DeclarationRequests.DeclarationRequest
 
   describe "generate_printout_form/1" do
     setup %{conn: _conn} do
@@ -48,7 +47,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         %DeclarationRequest{id: 321, data: data}
         |> Ecto.Changeset.change()
         |> put_change(:authentication_method_current, authentication_method_current)
-        |> generate_printout_form()
+        |> Creator.generate_printout_form()
         |> get_change(:printout_content)
 
       expected_content = %{
@@ -195,7 +194,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         %DeclarationRequest{id: 321, data: data}
         |> Ecto.Changeset.change()
         |> put_change(:authentication_method_current, authentication_method_current)
-        |> generate_printout_form()
+        |> Creator.generate_printout_form()
         |> get_change(:printout_content)
         |> Poison.decode!()
         |> get_in(["legal_entity", "full_license"])
@@ -208,7 +207,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         %DeclarationRequest{id: 321, data: %{}}
         |> Ecto.Changeset.change()
         |> put_change(:authentication_method_current, %{})
-        |> generate_printout_form()
+        |> Creator.generate_printout_form()
         |> get_change(:printout_content)
 
       expected_content = %{
@@ -300,7 +299,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         %DeclarationRequest{id: 321, data: %{}}
         |> Ecto.Changeset.change()
         |> put_change(:authentication_method_current, %{})
-        |> generate_printout_form()
+        |> Creator.generate_printout_form()
 
       assert ~s(Error during MAN interaction. Result from MAN: "oops, I did it again") ==
                elem(changeset.errors[:printout_content], 0)
@@ -311,6 +310,8 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
 
   describe "determine_auth_method_for_mpi/1, MPI record exists" do
     defmodule MpiExists do
+      @moduledoc false
+
       use MicroservicesHelper
       import EHealth.MockServer, only: [render_with_paging: 2]
 
@@ -375,7 +376,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       changeset =
         declaration_request
         |> Ecto.Changeset.change()
-        |> determine_auth_method_for_mpi()
+        |> Creator.determine_auth_method_for_mpi()
 
       assert %{"number" => "+380508887700", "type" => "OTP"} == get_change(changeset, :authentication_method_current)
       assert "b5350f79-f2ca-408f-b15d-1ae0a8cc861c" == get_change(changeset, :mpi_id)
@@ -440,7 +441,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       changeset =
         declaration_request
         |> Ecto.Changeset.change()
-        |> determine_auth_method_for_mpi()
+        |> Creator.determine_auth_method_for_mpi()
 
       assert get_change(changeset, :authentication_method_current) == %{"type" => "NA"}
     end
@@ -468,7 +469,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       changeset =
         declaration_request
         |> Ecto.Changeset.change()
-        |> determine_auth_method_for_mpi()
+        |> Creator.determine_auth_method_for_mpi()
 
       assert %{"type" => "NA"} == get_change(changeset, :authentication_method_current)
     end
@@ -515,7 +516,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       changeset =
         declaration_request
         |> Ecto.Changeset.change()
-        |> determine_auth_method_for_mpi()
+        |> Creator.determine_auth_method_for_mpi()
 
       assert ~s(Error during MPI interaction. Result from MPI: %{"something" => "terrible"}) ==
                elem(changeset.errors[:authentication_method_current], 0)
@@ -576,7 +577,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       changeset =
         declaration_request
         |> Ecto.Changeset.change()
-        |> determine_auth_method_for_mpi()
+        |> Creator.determine_auth_method_for_mpi()
 
       assert get_change(changeset, :authentication_method_current) == %{"type" => "NA"}
     end
@@ -633,7 +634,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       changeset =
         declaration_request
         |> Ecto.Changeset.change()
-        |> determine_auth_method_for_mpi()
+        |> Creator.determine_auth_method_for_mpi()
 
       assert %{"type" => "OTP", "number" => "+380508887701"} == get_change(changeset, :authentication_method_current)
     end
@@ -660,7 +661,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       changeset =
         declaration_request
         |> Ecto.Changeset.change()
-        |> determine_auth_method_for_mpi()
+        |> Creator.determine_auth_method_for_mpi()
 
       assert [authentication_method_current: {"invalid parameters", []}] == changeset.errors
     end
@@ -692,14 +693,6 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       end)
 
       :ok
-    end
-
-    test "code was successfully sent" do
-      assert {:ok, _} = send_verification_code("+380991234567")
-    end
-
-    test "code was not sent" do
-      assert {:error, _} = send_verification_code("+380508887700")
     end
   end
 
@@ -798,7 +791,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         valid?: false
       }
 
-      result = put_party_email(%Ecto.Changeset{data: data, changes: changes, types: types, valid?: true})
+      result = Creator.put_party_email(%Ecto.Changeset{data: data, changes: changes, types: types, valid?: true})
       assert expected_result == result
     end
 
@@ -818,7 +811,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         valid?: true
       }
 
-      result = put_party_email(%Ecto.Changeset{data: data, changes: changes, types: types, valid?: true})
+      result = Creator.put_party_email(%Ecto.Changeset{data: data, changes: changes, types: types, valid?: true})
       assert expected_result == result
     end
   end

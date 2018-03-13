@@ -1,4 +1,4 @@
-defmodule EHealth.DeclarationRequest.API.Approve do
+defmodule EHealth.DeclarationRequests.API.Approve do
   @moduledoc false
 
   alias EHealth.Employees
@@ -6,7 +6,7 @@ defmodule EHealth.DeclarationRequest.API.Approve do
   alias EHealth.API.MediaStorage
   alias EHealth.API.OPS
   alias EHealth.API.OTPVerification
-  alias EHealth.DeclarationRequest
+  alias EHealth.DeclarationRequests.DeclarationRequest
   alias EHealth.Parties.Party
   require Logger
 

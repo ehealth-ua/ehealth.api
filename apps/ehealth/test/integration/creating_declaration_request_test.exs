@@ -2,7 +2,9 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase, async: false
-
+  alias EHealth.DeclarationRequests
+  alias EHealth.DeclarationRequests.DeclarationRequest
+  alias EHealth.Repo
   import Mox
 
   describe "Happy paths" do
@@ -357,7 +359,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       resp =
         conn
         |> put_req_header("x-consumer-id", employee_id)
-        |> EHealth.Web.ConnCase.put_client_id_header(legal_entity_id)
+        |> put_client_id_header(legal_entity_id)
         |> post(declaration_request_path(conn, :create), params)
         |> json_response(200)
 
@@ -369,7 +371,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       assert {:ok, _} = Date.from_iso8601(resp["data"]["end_date"])
       assert "99bc78ba577a95a11f1a344d4d2ae55f2f857b98" == resp["data"]["seed"]
 
-      declaration_request = EHealth.DeclarationRequest.API.get_declaration_request_by_id!(id)
+      declaration_request = DeclarationRequests.get_by_id!(id)
       assert declaration_request.data["legal_entity"]["id"]
       assert declaration_request.data["division"]["id"]
       assert declaration_request.data["employee"]["id"]
@@ -391,8 +393,8 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
                }
              ] == resp["urgent"]["documents"]
 
-      assert "CANCELLED" = EHealth.Repo.get(EHealth.DeclarationRequest, d1.id).status
-      assert "CANCELLED" = EHealth.Repo.get(EHealth.DeclarationRequest, d2.id).status
+      assert "CANCELLED" = Repo.get(DeclarationRequest, d1.id).status
+      assert "CANCELLED" = Repo.get(DeclarationRequest, d2.id).status
     end
 
     test "declaration request is created with 'Offline' verification", %{conn: conn} do
@@ -486,8 +488,8 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
 
       assert_show_response_schema(resp, "declaration_request")
       assert "NEW" = resp["data"]["status"]
-      assert "NEW" = EHealth.Repo.get(EHealth.DeclarationRequest, d1.id).status
-      assert "CANCELLED" = EHealth.Repo.get(EHealth.DeclarationRequest, d2.id).status
+      assert "NEW" = Repo.get(DeclarationRequest, d1.id).status
+      assert "CANCELLED" = Repo.get(DeclarationRequest, d2.id).status
     end
 
     test "declaration request is created without verification", %{conn: conn} do
@@ -518,7 +520,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       assert to_string(Date.utc_today()) == resp["data"]["start_date"]
       assert {:ok, _} = Date.from_iso8601(resp["data"]["end_date"])
 
-      declaration_request = EHealth.DeclarationRequest.API.get_declaration_request_by_id!(id)
+      declaration_request = DeclarationRequests.get_by_id!(id)
       assert declaration_request.data["legal_entity"]["id"]
       assert declaration_request.data["division"]["id"]
       assert declaration_request.data["employee"]["id"]
@@ -536,8 +538,8 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       assert %{"type" => "NA"} = resp["urgent"]["authentication_method_current"]
       assert is_nil(resp["data"]["urgent"]["documents"])
 
-      assert "CANCELLED" = EHealth.Repo.get(EHealth.DeclarationRequest, d1.id).status
-      assert "CANCELLED" = EHealth.Repo.get(EHealth.DeclarationRequest, d2.id).status
+      assert "CANCELLED" = Repo.get(DeclarationRequest, d1.id).status
+      assert "CANCELLED" = Repo.get(DeclarationRequest, d2.id).status
     end
 
     test "Declaration request creating with employee that has wron speciality", %{conn: conn} do
@@ -763,6 +765,174 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
     end
   end
 
+  describe "invalid schema" do
+    test "Declaration Request: authentication_methods invalid", %{conn: conn} do
+      params = %{
+        "name" => "AUTHENTICATION_METHOD",
+        "values" => %{
+          "2FA" => "two-factor",
+          "OTP" => "one-time pass"
+        },
+        "labels" => ["SYSTEM"],
+        "is_active" => true
+      }
+
+      patch(conn, dictionary_path(conn, :update, "AUTHENTICATION_METHOD"), params)
+
+      content =
+        put_in(get_declaration_request(), ~W(person authentication_methods), [
+          %{"phone_number" => "+380508887700", "type" => "IDGAF"}
+        ])
+
+      conn =
+        conn
+        |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
+        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
+        |> post(declaration_request_path(conn, :create), %{"declaration_request" => content})
+
+      assert %{
+               "error" => %{
+                 "invalid" => [
+                   %{
+                     "entry" => "$.declaration_request.person.authentication_methods.[0].type",
+                     "entry_type" => "json_data_property",
+                     "rules" => [
+                       %{
+                         "description" => "value is not allowed in enum",
+                         "params" => ["2FA", "OTP"],
+                         "rule" => "inclusion"
+                       }
+                     ]
+                   }
+                 ]
+               }
+             } = json_response(conn, 422)
+    end
+
+    test "Declaration Request: JSON schema documents.type invalid", %{conn: conn} do
+      params = %{
+        "name" => "DOCUMENT_TYPE",
+        "values" => %{
+          "PASSPORT" => "passport"
+        },
+        "labels" => ["SYSTEM"],
+        "is_active" => true
+      }
+
+      patch(conn, dictionary_path(conn, :update, "DOCUMENT_TYPE"), params)
+      content = put_in(get_declaration_request(), ~W(person documents), invalid_documents())
+
+      conn =
+        conn
+        |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
+        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
+        |> post(declaration_request_path(conn, :create), %{"declaration_request" => content})
+
+      assert %{
+               "error" => %{
+                 "invalid" => [
+                   %{
+                     "entry" => "$.declaration_request.person.documents.[0].type",
+                     "entry_type" => "json_data_property",
+                     "rules" => [
+                       %{
+                         "description" => "value is not allowed in enum",
+                         "params" => ["PASSPORT"],
+                         "rule" => "inclusion"
+                       }
+                     ]
+                   }
+                 ]
+               }
+             } = json_response(conn, 422)
+    end
+
+    test "Declaration Request: JSON schema documents_relationship.type invalid", %{conn: conn} do
+      params = %{
+        "name" => "DOCUMENT_RELATIONSHIP_TYPE",
+        "values" => %{
+          "COURT_DECISION" => "court decision"
+        },
+        "labels" => ["SYSTEM"],
+        "is_active" => true
+      }
+
+      patch(conn, dictionary_path(conn, :update, "DOCUMENT_RELATIONSHIP_TYPE"), params)
+      request = get_declaration_request()
+
+      confidant_person =
+        request
+        |> get_in(~W(person confidant_person))
+        |> List.first()
+        |> Map.put("documents_relationship", invalid_documents())
+
+      content = put_in(request, ~W(person confidant_person), [confidant_person])
+
+      conn =
+        conn
+        |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
+        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
+        |> post(declaration_request_path(conn, :create), %{"declaration_request" => content})
+
+      assert %{
+               "error" => %{
+                 "invalid" => [
+                   %{
+                     "entry" => "$.declaration_request.person.confidant_person.[0].documents_relationship.[0].type",
+                     "entry_type" => "json_data_property",
+                     "rules" => [
+                       %{
+                         "description" => "value is not allowed in enum",
+                         "params" => ["COURT_DECISION"],
+                         "rule" => "inclusion"
+                       }
+                     ]
+                   }
+                 ]
+               }
+             } = json_response(conn, 422)
+    end
+
+    test "Declaration Request: JSON schema gender invalid", %{conn: conn} do
+      params = %{
+        "name" => "GENDER",
+        "values" => %{
+          "FEMALE" => "woman",
+          "MALE" => "man"
+        },
+        "labels" => ["SYSTEM"],
+        "is_active" => true
+      }
+
+      patch(conn, dictionary_path(conn, :update, "GENDER"), params)
+      content = put_in(get_declaration_request(), ~W(person gender), "ORC")
+
+      conn =
+        conn
+        |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
+        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
+        |> post(declaration_request_path(conn, :create), %{"declaration_request" => content})
+
+      assert %{
+               "error" => %{
+                 "invalid" => [
+                   %{
+                     "entry" => "$.declaration_request.person.gender",
+                     "entry_type" => "json_data_property",
+                     "rules" => [
+                       %{
+                         "description" => "value is not allowed in enum",
+                         "params" => ["FEMALE", "MALE"],
+                         "rule" => "inclusion"
+                       }
+                     ]
+                   }
+                 ]
+               }
+             } = json_response(conn, 422)
+    end
+  end
+
   def clone_declaration_request(params, legal_entity_id, status) do
     declaration_request_params = %{
       data: %{
@@ -782,15 +952,26 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       updated_by: "f47f94fd-2d77-4b7e-b444-4955812c2a77"
     }
 
-    %EHealth.DeclarationRequest{}
+    %DeclarationRequest{}
     |> Ecto.Changeset.change(declaration_request_params)
-    |> EHealth.Repo.insert!()
+    |> Repo.insert!()
   end
 
-  defp insert_dictionaries() do
+  defp insert_dictionaries do
     insert(:il, :dictionary_phone_type)
     insert(:il, :dictionary_document_type)
     insert(:il, :dictionary_authentication_method)
     insert(:il, :dictionary_document_relationship_type)
+  end
+
+  defp invalid_documents do
+    [%{"type" => "lol_kek_cheburek", "number" => "120519"}]
+  end
+
+  defp get_declaration_request do
+    "test/data/declaration_request.json"
+    |> File.read!()
+    |> Poison.decode!()
+    |> Map.fetch!("declaration_request")
   end
 end

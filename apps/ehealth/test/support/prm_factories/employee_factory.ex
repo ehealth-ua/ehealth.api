@@ -61,7 +61,7 @@ defmodule EHealth.PRMFactories.EmployeeFactory do
         }
       end
 
-      defp speciality do
+      def speciality do
         %{
           "speciality" => Enum.random(doctor_specialities()),
           "speciality_officio" => true,
@@ -93,9 +93,9 @@ defmodule EHealth.PRMFactories.EmployeeFactory do
 
       defp doctor_specialities do
         [
-          "Терапевт",
-          "Педіатр",
-          "Сімейний лікар"
+          "THERAPIST",
+          "PEDIATRICIAN",
+          "FAMILY_DOCTOR"
         ]
       end
 

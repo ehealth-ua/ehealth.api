@@ -11,7 +11,7 @@ defmodule EHealth.ILFactories.DeclarationRequestFactory do
           |> File.read!()
           |> Poison.decode!()
 
-        %EHealth.DeclarationRequest{
+        %EHealth.DeclarationRequests.DeclarationRequest{
           data: data,
           status: "NEW",
           inserted_by: uuid,

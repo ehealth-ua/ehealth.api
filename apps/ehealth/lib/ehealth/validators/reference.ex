@@ -3,6 +3,7 @@ defmodule EHealth.Validators.Reference do
   Validates reference existance
   """
 
+  alias EHealth.API.MPI
   alias EHealth.API.OPS
   alias EHealth.Divisions
   alias EHealth.Divisions.Division
@@ -19,47 +20,57 @@ defmodule EHealth.Validators.Reference do
     error(type)
   end
 
-  def validate(:medication_request = type, id) do
+  def validate(type, id), do: validate(type, id, nil)
+
+  def validate(:medication_request = type, id, path) do
     with {:ok, %{"data" => [medication_request]}} <- OPS.get_medication_requests(%{"id" => id}) do
       {:ok, medication_request}
     else
-      _ -> error(type)
+      _ -> error(type, path)
     end
   end
 
-  def validate(:employee = type, id) do
+  def validate(:employee = type, id, path) do
     with %Employee{} = employee <- Employees.get_by_id(id) do
       {:ok, employee}
     else
-      _ -> error(type)
+      _ -> error(type, path)
     end
   end
 
-  def validate(:division = type, id) do
+  def validate(:division = type, id, path) do
     with %Division{} = division <- Divisions.get_by_id(id) do
       {:ok, division}
     else
-      _ -> error(type)
+      _ -> error(type, path)
     end
   end
 
-  def validate(:medical_program = type, id) do
+  def validate(:medical_program = type, id, path) do
     with %MedicalProgram{} = medical_program <- MedicalPrograms.get_by_id(id) do
       {:ok, medical_program}
     else
-      _ -> error(type)
+      _ -> error(type, path)
     end
   end
 
-  def validate(:legal_entity = type, id) do
+  def validate(:legal_entity = type, id, path) do
     with %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(id) do
       {:ok, legal_entity}
     else
-      _ -> error(type)
+      _ -> error(type, path)
     end
   end
 
-  def validate(:medication = type, id, path \\ nil) do
+  def validate(:person = type, id, path) do
+    with {:ok, %{"data" => person}} <- MPI.person(id) do
+      {:ok, person}
+    else
+      _ -> error(type, path)
+    end
+  end
+
+  def validate(:medication = type, id, path) do
     with %Medication{} = medication <- Medications.get_medication_by_id(id) do
       {:ok, medication}
     else
