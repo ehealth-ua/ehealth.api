@@ -1,7 +1,8 @@
-Change log for versions 7.37.0 - 7.37.18
+Change log for versions 7.37.0 - 7.37.19
 
 **Patches and bug fixes**:
 
+save declaration overlimit field (#1934)
 set declaration request channel (#1933)
 fix specialities migration (#1932)
 allow to create declaration request online - WIP
