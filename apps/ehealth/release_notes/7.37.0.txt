@@ -1,7 +1,9 @@
-Change log for versions 7.37.0 - 7.37.14
+Change log for versions 7.37.0 - 7.37.16
 
 **Patches and bug fixes**:
 
+allow to create declaration request online - WIP
+create declaration request online
 JWT email validation (#1927)
 change Joken to Guardian
 change Joken to Guardian #2
@@ -19,5 +21,6 @@ moved HeadersProcessor to helpers (#1913)
 
 **Other**:
 
+Cabinet declarations#1909 (#1930)
 joken to guardian (#1924)
 Declaration request online request changed
