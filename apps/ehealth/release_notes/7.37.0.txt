@@ -1,7 +1,8 @@
-Change log for versions 7.37.0 - 7.37.16
+Change log for versions 7.37.0 - 7.37.17
 
 **Patches and bug fixes**:
 
+fix specialities migration (#1932)
 allow to create declaration request online - WIP
 create declaration request online
 JWT email validation (#1927)
