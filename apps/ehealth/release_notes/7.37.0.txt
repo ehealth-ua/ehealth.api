@@ -1,7 +1,8 @@
-Change log for versions 7.37.0 - 7.37.26
+Change log for versions 7.37.0 - 7.37.27
 
 **Patches and bug fixes**:
 
+fix party info migration (#1942)
 person registration
 happy path for patient registration
 additional tests
