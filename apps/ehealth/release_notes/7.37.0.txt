@@ -1,7 +1,12 @@
-Change log for versions 7.37.0 - 7.37.21
+Change log for versions 7.37.0 - 7.37.26
 
 **Patches and bug fixes**:
 
+person registration
+happy path for patient registration
+additional tests
+format
+use 1.6.3 Elixir
 allow to terminate declaration from cabinet (#1940)
 fix legal_entity search by settlement_id (#1937)
 save declaration overlimit field (#1934)
@@ -26,6 +31,7 @@ moved HeadersProcessor to helpers (#1913)
 
 **Other**:
 
+patient registration (#1936)
 Review
 Cabinet declarations#1909 (#1930)
 joken to guardian (#1924)
