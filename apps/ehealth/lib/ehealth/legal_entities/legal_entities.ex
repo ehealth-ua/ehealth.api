@@ -89,7 +89,11 @@ defmodule EHealth.LegalEntities do
   end
 
   def get_search_query(LegalEntity = entity, %{settlement_id: settlement_id} = changes) when is_binary(settlement_id) do
-    changes = Map.put(changes, :settlement_id, {:json_list, [%{settlement_id: settlement_id}]})
+    changes =
+      changes
+      |> Map.put(:addresses, {[%{settlement_id: settlement_id}], :json_list})
+      |> Map.delete(:settlement_id)
+
     get_search_query(entity, changes)
   end
 
