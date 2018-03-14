@@ -1,7 +1,8 @@
-Change log for versions 7.37.0 - 7.37.19
+Change log for versions 7.37.0 - 7.37.20
 
 **Patches and bug fixes**:
 
+fix legal_entity search by settlement_id (#1937)
 save declaration overlimit field (#1934)
 set declaration request channel (#1933)
 fix specialities migration (#1932)
