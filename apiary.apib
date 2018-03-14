@@ -1998,17 +1998,14 @@ Method allows to verify Email and check whether the link we sent is the same as 
 
     + Headers
 
-            Authorization: Bearer mF_9.B5f-4.1JqM
+            Authorization: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InNwLnZpcm55QGdtYWlsLmNvbSIsInRpbWVzdGFtcCI6IjIwMTgtMDItMjggMTA6Mzg6MDAifQ.LJRLTqK-zf9gxDNMONcI8cMCSYosDtmAIZqhzZUdhz4`
 
-    + Attributes (object)
-        + `JWT_token`: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InNwLnZpcm55QGdtYWlsLmNvbSIsInRpbWVzdGFtcCI6IjIwMTgtMDItMjggMTA6Mzg6MDAifQ.LJRLTqK-zf9gxDNMONcI8cMCSYosDtmAIZqhzZUdhz4` (string, required)
-        
 + Response 200 (application/json)
     + Attributes (Response_OK)
         + meta (Response__Meta)
             + code: 200 (number)
         + data (object, required)
-            + `JWT_token`: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InNwLnZpcm55QGdtYWlsLmNvbSIsInRpbWVzdGFtcCI6IjIwMTgtMDItMjggMTA6Mzg6MDAifQ.LJRLTqK-zf9gxDNMONcI8cMCSYosDtmAIZqhzZUdhz4` (string, required)
+            + `token`: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InNwLnZpcm55QGdtYWlsLmNvbSIsInRpbWVzdGFtcCI6IjIwMTgtMDItMjggMTA6Mzg6MDAifQ.LJRLTqK-zf9gxDNMONcI8cMCSYosDtmAIZqhzZUdhz4` (string, required)
 
 + Response 409 (application/json)
     + Attributes (Response_Error)
@@ -2037,7 +2034,7 @@ JWT_token:
 + Request (application/json)
 
     + Attributes (object)
-        + `JWT_token`: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InNwLnZpcm55QGdtYWlsLmNvbSIsInRpbWVzdGFtcCI6IjIwMTgtMDItMjggMTA6Mzg6MDAifQ.LJRLTqK-zf9gxDNMONcI8cMCSYosDtmAIZqhzZUdhz4` (string, required)
+        + `token`: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InNwLnZpcm55QGdtYWlsLmNvbSIsInRpbWVzdGFtcCI6IjIwMTgtMDItMjggMTA6Mzg6MDAifQ.LJRLTqK-zf9gxDNMONcI8cMCSYosDtmAIZqhzZUdhz4` (string, required)
         + `signed_person_data`: `ewogICAgImZpcnN0X25hbWUiOiAi0J/QtdGC0YDQviIsCiAgICAibGFzdF9uYW1lIjogItCG0LLQsNC90L7QsiIsCiAgICAic2Vjb25kX25hbWUiOiAi0JzQuNC60L7Qu9Cw0LnQvtCy0LjRhyIsCiAgICAiYmlydGhfZGF0ZSI6ICIxOTkxLTA4LTE5IiwKICAgICJiaXJ0aF9jb3VudHJ5IjogItCj0LrRgNCw0ZfQvdCwIiwKICAgICJiaXJ0aF9zZXR0bGVtZW50IjogItCS0ZbQvdC90LjRhtGPIiwKICAgICJnZW5kZXIiOiAiTUFMRSIsCiAgICAiZW1haWwiOiAiZW1haWxAZXhhbXBsZS5jb20iLAogICAgInRheF9pZCI6ICIzMTI2NTA5ODE2IiwKICAgICJzZWNyZXQiOiAic2VjcmV0IiwKICAgICJkb2N1bWVudHMiOiBbCiAgICAgIHsKICAgICAgICAidHlwZSI6ICJQQVNTUE9SVCIsCiAgICAgICAgIm51bWJlciI6ICIxMjA1MTgiLAogICAgICAgICJpc3N1ZWRfYnkiOiAi0KDQvtC60LjRgtC90Y/QvdGB0YzQutC40Lwg0KDQkiDQk9CjINCc0JLQoSDQmtC40ZfQstGB0YzQutC+0Zcg0L7QsdC70LDRgdGC0ZYiLAogICAgICAgICJpc3N1ZWRfYXQiOiAiMjAxNy0wMi0yOCIKICAgICAgfQogICAgXSwKICAgICJhZGRyZXNzZXMiOiBbCiAgICAgIHsKICAgICAgICAidHlwZSI6ICJSRVNJREVOQ0UiLAogICAgICAgICJjb3VudHJ5IjogIlVBIiwKICAgICAgICAiYXJlYSI6ICLQltC40YLQvtC80LjRgNGB0YzQutCwIiwKICAgICAgICAicmVnaW9uIjogItCR0LXRgNC00LjRh9GW0LLRgdGM0LrQuNC5IiwKICAgICAgICAic2V0dGxlbWVudCI6ICLQmtC40ZfQsiIsCiAgICAgICAgInNldHRsZW1lbnRfdHlwZSI6ICJDSVRZIiwKICAgICAgICAic2V0dGxlbWVudF9pZCI6ICI0MzQzMjQzMiIsCiAgICAgICAgInN0cmVldF90eXBlIjogIlNUUkVFVCIsCiAgICAgICAgInN0cmVldCI6ICLQstGD0LsuINCd0ZbQttC40L3RgdGM0LrQsCIsCiAgICAgICAgImJ1aWxkaW5nIjogIjE1IiwKICAgICAgICAiYXBhcnRtZW50IjogIjIzIiwKICAgICAgICAiemlwIjogIjAyMDkwIgogICAgICB9CiAgICBdLAogICAgInBob25lcyI6IFsKICAgICAgewogICAgICAgICJ0eXBlIjogIk1PQklMRSIsCiAgICAgICAgIm51bWJlciI6ICIrMzgwNTAzNDEwODcwIgogICAgICB9CiAgICBdLAogICAgImF1dGhlbnRpY2F0aW9uX21ldGhvZHMiOiBbCiAgICAgIHsKICAgICAgICAidHlwZSI6ICJPVFAiLAogICAgICAgICJwaG9uZV9udW1iZXIiOiAiKzM4MDUwODg4NzcwMCIKICAgICAgfQogICAgXSwKICAgICJwcmVmZXJyZWRfd2F5X2NvbW11bmljYXRpb24iOiAiZW1haWwiLAogICAgImVtZXJnZW5jeV9jb250YWN0IjogewogICAgICAiZmlyc3RfbmFtZSI6ICLQn9C10YLRgNC+IiwKICAgICAgImxhc3RfbmFtZSI6ICLQhtCy0LDQvdC+0LIiLAogICAgICAic2Vjb25kX25hbWUiOiAi0JzQuNC60L7Qu9Cw0LnQvtCy0LjRhyIsCiAgICAgICJwaG9uZXMiOiBbCiAgICAgICAgewogICAgICAgICAgInR5cGUiOiAiTU9CSUxFIiwKICAgICAgICAgICJudW1iZXIiOiAiKzM4MDUwMzQxMDg3MCIKICAgICAgICB9CiAgICAgIF0KICAgIH0sCiAgICAicHJvY2Vzc19kaXNjbG9zdXJlX2RhdGFfY29uc2VudCI6IHRydWUKICB9Cn0=` (string, required)
         + `signed_content_encoding`: base64 (string, required)
         + password: `passWoRd1` (string, required)
@@ -2065,6 +2062,7 @@ JWT_token:
                 + `password_set_at`: `2018-03-01 10:00:00` (string, required)
                 + `created_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
                 + `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
+            + acess_token: `my-oauth-token` (string, required) - access token 
                 
 
 ### Get User [GET /api/cabinet/users{?tax_id}]
@@ -2270,7 +2268,6 @@ This method is used to create Declaration Request online (as part of Declaration
             Authorization: Bearer mF_9.B5f-4.1JqM
 
     + Attributes (object)
-        + id: `50320ee5-2bca-472c-a1a0-28e2e003ec2a` (string, optional) - declaration ID
         + reason_description: `Неякісне обслуговування` (string, optional)
 
 + Response 200 (application/json)
@@ -2474,7 +2471,7 @@ After declaration request is signed and/or verified (depends on verification log
 
 ### Get Declaration Requests List [GET /api/declaration_requests{?employee_id,legal_entity_id,status,page,page_size}]
 
-Use this method to obrain list of Declaration Requests for an `empolee_id`. If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor is interested in current UI section.
+Use this method to obrain list of Declaration Requests for an `empolee_id`. If you want to reduce amount of data that is going trough your application, use `status` filter and show only requests that Doctor or Admin is interested in current UI section.
 
 
 Also we suggest use `employee_id` and `legal_entity_id` to make sure that end-user understands context of actions that he or she will perform.
