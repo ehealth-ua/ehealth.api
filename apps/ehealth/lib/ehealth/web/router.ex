@@ -44,7 +44,7 @@ defmodule EHealthWeb.Router do
     plug(:process_client_context_for_list, required_types: ["CABINET"])
   end
 
-  pipeline :jwt_email do
+  pipeline :jwt do
     plug(Guardian.Plug.Pipeline, module: EHealth.Guardian, error_handler: EHealth.Web.FallbackController)
     plug(Guardian.Plug.VerifyHeader, claims: %{typ: "access"})
     plug(Guardian.Plug.EnsureAuthenticated)
@@ -107,8 +107,9 @@ defmodule EHealthWeb.Router do
     end
 
     scope "/cabinet" do
-      pipe_through([:jwt_email])
+      pipe_through([:jwt])
       post("/email_validation", CabinetController, :email_validation)
+      post("/registration", CabinetController, :registration)
     end
   end
 

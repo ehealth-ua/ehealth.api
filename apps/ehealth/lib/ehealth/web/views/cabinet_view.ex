@@ -11,6 +11,10 @@ defmodule EHealth.Web.CabinetView do
     %{token: token}
   end
 
+  def render("patient.json", %{patient: patient}) do
+    patient
+  end
+
   def render("show.json", %{person: person}) do
     Map.take(
       person,

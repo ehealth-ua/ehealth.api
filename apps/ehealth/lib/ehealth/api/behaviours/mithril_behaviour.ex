@@ -11,4 +11,8 @@ defmodule EHealth.API.MithrilBehaviour do
 
   # users
   @callback search_user(params :: map) :: {:ok, result :: term} | {:error, reason :: term}
+  @callback search_user(params :: map, headers :: list) :: {:ok, result :: term} | {:error, reason :: term}
+  @callback create_user(params :: map, headers :: list) :: {:ok, result :: term} | {:error, reason :: term}
+  @callback change_user(id :: binary, params :: map, headers :: list) ::
+              {:ok, result :: term} | {:error, reason :: term}
 end

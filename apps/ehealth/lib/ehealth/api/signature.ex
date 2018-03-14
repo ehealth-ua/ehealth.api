@@ -11,6 +11,8 @@ defmodule EHealth.API.Signature do
   alias EHealth.API.ResponseDecoder
   import EHealth.Utils.Connection, only: [get_header: 2]
 
+  @behaviour EHealth.API.SignatureBehaviour
+
   def process_url(url), do: config()[:endpoint] <> url
 
   def decode_and_validate(signed_content, signed_content_encoding, headers) do

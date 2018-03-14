@@ -9,14 +9,21 @@ config :ehealth,
   system_user: {:system, "EHEALTH_SYSTEM_USER", "4261eacf-8008-4e62-899f-de1e2f7065f0"},
   api_resolvers: [
     man: EHealth.API.Man,
-    mithril: EHealth.API.Mithril
+    mpi: EHealth.API.MPI,
+    mithril: EHealth.API.Mithril,
+    digital_signature: EHealth.API.Signature
   ]
 
 # Configures the endpoint
 config :ehealth, EHealth.Web.Endpoint,
-  url: [host: "localhost"],
+  url: [
+    host: "localhost"
+  ],
   secret_key_base: "AcugHtFljaEFhBY1d6opAasbdFYsvV8oydwW98qS0oZOv+N/a5TE5G7DPfTZcXm9",
-  render_errors: [view: EView.Views.PhoenixError, accepts: ~w(json)]
+  render_errors: [
+    view: EView.Views.PhoenixError,
+    accepts: ~w(json)
+  ]
 
 # Configures Digital Signature API
 config :ehealth, EHealth.API.Signature,
@@ -261,7 +268,8 @@ config :logger, :console,
   level: :info
 
 config :ehealth, EHealth.Scheduler,
-  declaration_request_autotermination: {:system, :string, "DECLARATION_REQUEST_AUTOTERMINATION_SCHEDULE", "* 0-4 * * *"},
+  declaration_request_autotermination:
+    {:system, :string, "DECLARATION_REQUEST_AUTOTERMINATION_SCHEDULE", "* 0-4 * * *"},
   employee_request_autotermination: {:system, :string, "EMPLOYEE_REQUEST_AUTOTERMINATION_SCHEDULE", "0-4 * * *"}
 
 config :ehealth, EHealth.DeclarationRequests.Terminator,

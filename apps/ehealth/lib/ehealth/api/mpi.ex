@@ -8,6 +8,8 @@ defmodule EHealth.API.MPI do
   use EHealth.API.Helpers.HeadersProcessor
   use EHealth.API.Helpers.MicroserviceBase
 
+  @behaviour EHealth.API.MPIBehaviour
+
   def search(params \\ %{}, headers \\ []) do
     get!("/persons", headers, params: params)
   end

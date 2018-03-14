@@ -38,7 +38,9 @@ config :ehealth,
   ],
   api_resolvers: [
     man: ManMock,
-    mithril: MithrilMock
+    mpi: MPIMock,
+    mithril: MithrilMock,
+    digital_signature: SignatureMock
   ]
 
 config :ehealth, :legal_entity_employee_types,

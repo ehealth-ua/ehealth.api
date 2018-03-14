@@ -4,8 +4,32 @@ defmodule Mithril.Web.RegistrationControllerTest do
   import Mox
   import EHealth.Guardian
 
+  alias Ecto.UUID
+
   # For Mox lib. Make sure mocks are verified when the test exits
   setup :verify_on_exit!
+
+  defmodule SignatureExpect do
+    defmacro __using__(_) do
+      quote do
+        expect(SignatureMock, :decode_and_validate, fn signed_content, "base64", _headers ->
+          content = signed_content |> Base.decode64!() |> Poison.decode!()
+          assert Map.has_key?(content, "tax_id")
+
+          data = %{
+            "signer" => %{
+              "edrpou" => content["tax_id"]
+            },
+            "signed_content" => signed_content,
+            "is_valid" => true,
+            "content" => content
+          }
+
+          {:ok, %{"data" => data}}
+        end)
+      end
+    end
+  end
 
   describe "send verification email" do
     test "invalid email", %{conn: conn} do
@@ -131,6 +155,261 @@ defmodule Mithril.Web.RegistrationControllerTest do
       |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
       |> post(cabinet_path(conn, :email_validation))
       |> json_response(401)
+    end
+  end
+
+  describe "success patient registration" do
+    setup %{conn: conn} do
+      use SignatureExpect
+
+      params = %{
+        otp: "1234",
+        password: "pAs$w0rd",
+        signed_person_data: "test/data/cabinet/patient.json" |> File.read!() |> Base.encode64(),
+        signed_content_encoding: "base64"
+      }
+
+      {:ok, jwt, _} = encode_and_sign(:email, %{email: "email@example.com"})
+      %{conn: Plug.Conn.put_req_header(conn, "authorization", "Bearer " <> jwt), params: params}
+    end
+
+    test "create new person and user", %{conn: conn, params: params} do
+      expect(MPIMock, :search, fn %{"tax_id" => "3126509816", "birth_date" => _}, _headers ->
+        {:ok, %{"data" => []}}
+      end)
+
+      expect(MPIMock, :create_or_update_person, fn params, _headers ->
+        refute Map.has_key?(params, "id")
+        {:ok, %{"data" => Map.put(params, "id", UUID.generate())}}
+      end)
+
+      expect(MithrilMock, :search_user, fn %{"email" => "email@example.com"}, _headers ->
+        {:ok, %{"data" => []}}
+      end)
+
+      expect(MithrilMock, :create_user, fn params, _headers ->
+        assert Map.has_key?(params, "tax_id")
+        assert Map.has_key?(params, "email")
+        assert Map.has_key?(params, "password")
+
+        data =
+          params
+          |> Map.put("id", UUID.generate())
+          |> Map.delete("password")
+
+        {:ok, %{"data" => data}}
+      end)
+
+      conn
+      |> post(cabinet_path(conn, :registration, params))
+      |> json_response(201)
+
+      # |> assert_show_response_schema("cabinet")
+    end
+
+    test "create new user and update MPI person", %{conn: conn, params: params} do
+      person_id = UUID.generate()
+
+      expect(MPIMock, :search, fn %{"tax_id" => "3126509816", "birth_date" => _}, _headers ->
+        {:ok, %{"data" => [%{"id" => person_id}]}}
+      end)
+
+      expect(MPIMock, :update_person, fn ^person_id, params, _headers ->
+        {:ok, %{"data" => Map.put(params, "id", person_id)}}
+      end)
+
+      expect(MithrilMock, :search_user, fn %{"email" => "email@example.com"}, _headers ->
+        {:ok, %{"data" => []}}
+      end)
+
+      expect(MithrilMock, :create_user, fn params, _headers ->
+        assert Map.has_key?(params, "tax_id")
+        assert Map.has_key?(params, "email")
+        assert Map.has_key?(params, "password")
+
+        data =
+          params
+          |> Map.put("id", UUID.generate())
+          |> Map.delete("password")
+
+        {:ok, %{"data" => data}}
+      end)
+
+      conn
+      |> post(cabinet_path(conn, :registration, params))
+      |> json_response(201)
+
+      # |> assert_show_response_schema("cabinet")
+    end
+
+    test "update user and create new MPI person", %{conn: conn, params: params} do
+      expect(MPIMock, :search, fn %{"tax_id" => "3126509816", "birth_date" => _}, _headers ->
+        {:ok, %{"data" => []}}
+      end)
+
+      expect(MPIMock, :create_or_update_person, fn params, _headers ->
+        refute Map.has_key?(params, "id")
+        {:ok, %{"data" => Map.put(params, "id", UUID.generate())}}
+      end)
+
+      user_id = UUID.generate()
+
+      expect(MithrilMock, :search_user, fn %{"email" => "email@example.com"}, _headers ->
+        {:ok, %{"data" => [%{"id" => user_id, "tax_id" => ""}]}}
+      end)
+
+      expect(MithrilMock, :change_user, fn ^user_id, params, _headers ->
+        assert Map.has_key?(params, "tax_id")
+        assert Map.has_key?(params, "email")
+        assert Map.has_key?(params, "password")
+
+        data =
+          params
+          |> Map.put("id", user_id)
+          |> Map.delete("password")
+
+        {:ok, %{"data" => data}}
+      end)
+
+      conn
+      |> post(cabinet_path(conn, :registration, params))
+      |> json_response(201)
+
+      # |> assert_show_response_schema("cabinet")
+    end
+
+    test "update user and update MPI person", %{conn: conn, params: params} do
+      person_id = UUID.generate()
+
+      expect(MPIMock, :search, fn %{"tax_id" => "3126509816", "birth_date" => _}, _headers ->
+        {:ok, %{"data" => [%{"id" => person_id}]}}
+      end)
+
+      expect(MPIMock, :update_person, fn ^person_id, params, _headers ->
+        {:ok, %{"data" => Map.put(params, "id", person_id)}}
+      end)
+
+      user_id = UUID.generate()
+
+      expect(MithrilMock, :search_user, fn %{"email" => "email@example.com"}, _headers ->
+        {:ok, %{"data" => [%{"id" => user_id, "tax_id" => ""}]}}
+      end)
+
+      expect(MithrilMock, :change_user, fn ^user_id, params, _headers ->
+        assert Map.has_key?(params, "tax_id")
+        assert Map.has_key?(params, "email")
+        assert Map.has_key?(params, "password")
+
+        data =
+          params
+          |> Map.put("id", user_id)
+          |> Map.delete("password")
+
+        {:ok, %{"data" => data}}
+      end)
+
+      conn
+      |> post(cabinet_path(conn, :registration, params))
+      |> json_response(201)
+
+      # |> assert_show_response_schema("cabinet")
+    end
+  end
+
+  describe "invalid patient registration" do
+    setup %{conn: conn} do
+      params = %{
+        otp: "1234",
+        password: "pAs$w0rd",
+        signed_person_data: "test/data/cabinet/patient.json" |> File.read!() |> Base.encode64(),
+        signed_content_encoding: "base64"
+      }
+
+      {:ok, jwt, _} = encode_and_sign(:email, %{email: "email@example.com"})
+
+      %{conn: conn, params: params, jwt: jwt}
+    end
+
+    test "user exists with tax_id", %{conn: conn, params: params, jwt: jwt} do
+      use SignatureExpect
+
+      expect(MPIMock, :search, fn %{"tax_id" => "3126509816", "birth_date" => _}, _headers ->
+        {:ok, %{"data" => []}}
+      end)
+
+      expect(MPIMock, :create_or_update_person, fn params, _headers ->
+        refute Map.has_key?(params, "id")
+        {:ok, %{"data" => Map.put(params, "id", UUID.generate())}}
+      end)
+
+      expect(MithrilMock, :search_user, fn %{"email" => "email@example.com"}, _headers ->
+        {:ok, %{"data" => [%{"tax_id" => "1234567890"}]}}
+      end)
+
+      assert "User with this tax_id already exists" ==
+               conn
+               |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
+               |> post(cabinet_path(conn, :registration), params)
+               |> json_response(409)
+               |> get_in(~w(error message))
+    end
+
+    test "different tax_id in signed content and digital signature", %{conn: conn, params: params, jwt: jwt} do
+      expect(SignatureMock, :decode_and_validate, fn signed_content, "base64", _headers ->
+        content = signed_content |> Base.decode64!() |> Poison.decode!()
+        assert Map.has_key?(content, "tax_id")
+
+        data = %{
+          "signer" => %{
+            "edrpou" => "002233445566"
+          },
+          "signed_content" => signed_content,
+          "is_valid" => true,
+          "content" => content
+        }
+
+        {:ok, %{"data" => data}}
+      end)
+
+      assert "Registration person and person that sign should be the same" ==
+               conn
+               |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
+               |> post(cabinet_path(conn, :registration), params)
+               |> json_response(409)
+               |> get_in(~w(error message))
+    end
+
+    test "invalid signed_person_data format", %{conn: conn, params: params, jwt: jwt} do
+      params = Map.put(params, :signed_person_data, "some string")
+
+      assert [err] =
+               conn
+               |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
+               |> post(cabinet_path(conn, :registration, params))
+               |> json_response(422)
+               |> get_in(~w(error invalid))
+
+      assert "$.signed_person_data" == err["entry"]
+    end
+
+    test "jwt not set", %{conn: conn, params: params} do
+      conn
+      |> post(cabinet_path(conn, :registration, params))
+      |> json_response(401)
+    end
+
+    test "invalid person data", %{conn: conn, params: params, jwt: jwt} do
+      use SignatureExpect
+      signed_person_data = Base.encode64(~s({"birth_date": "today", "tax_id": "1112223344"}))
+
+      err =
+        conn
+        |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
+        |> post(cabinet_path(conn, :registration, Map.put(params, :signed_person_data, signed_person_data)))
+        |> json_response(422)
+        |> get_in(~w(error invalid))
+
+      assert "$.birth_date" == hd(err)["entry"]
     end
   end
 end
