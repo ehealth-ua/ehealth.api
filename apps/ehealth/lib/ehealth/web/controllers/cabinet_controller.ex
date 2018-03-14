@@ -5,9 +5,11 @@ defmodule EHealth.Web.CabinetController do
 
   alias EHealth.Cabinet.API
   alias EHealth.DeclarationRequests
+  alias EHealth.Declarations.API, as: Declarations
   alias EHealth.Persons
   alias EHealth.Guardian.Plug
   alias EHealth.Web.DeclarationRequestView
+  import EHealth.Declarations.View, only: [render_declaration: 1]
 
   action_fallback(EHealth.Web.FallbackController)
 
@@ -42,5 +44,20 @@ defmodule EHealth.Web.CabinetController do
 
   def show_details(conn, _params) do
     with {:ok, person} <- Persons.get_person(conn.req_headers), do: render(conn, "show_details.json", person: person)
+  end
+
+  def terminate_declaration(conn, %{"id" => id} = params) do
+    user_id = get_consumer_id(conn.req_headers)
+
+    with {:ok, declaration} <- Declarations.terminate(id, user_id, params, conn.req_headers) do
+      response =
+        declaration
+        |> render_declaration()
+        |> Poison.encode!()
+
+      conn
+      |> put_resp_content_type("application/json")
+      |> send_resp(200, response)
+    end
   end
 end

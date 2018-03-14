@@ -122,6 +122,25 @@ defmodule EHealth.Declarations.API do
     end
   end
 
+  def terminate(id, user_id, params, headers) do
+    with {:ok, %{"data" => user}} <- Mithril.get_user_by_id(user_id, headers),
+         {:ok, %{"data" => declaration}} <- get_declaration_by_id(id, headers),
+         {:status, true} <- {:status, declaration["status"] == "active"},
+         {:person_id, true} <- {:person_id, user["person_id"] == get_in(declaration, ~w(person id))},
+         params <-
+           params
+           |> Map.take(["reason_description"])
+           |> Map.put("updated_by", user_id)
+           |> Map.put("reason", "manual_person"),
+         {:ok, %{"data" => declaration}} <- OPS.terminate_declaration(id, params, headers) do
+      expand_declaration_relations(declaration, headers)
+    else
+      {:status, false} -> {:conflict, "Declaration is not active"}
+      {:person_id, false} -> {:error, :forbidden}
+      error -> error
+    end
+  end
+
   def terminate_declarations(attrs, headers) do
     user_id = get_consumer_id(headers)
     types = %{person_id: Ecto.UUID, employee_id: Ecto.UUID, reason_description: :string}

@@ -5,6 +5,50 @@ defmodule EHealth.Web.CabinetControllerTest do
   alias Ecto.UUID
   import Mox
 
+  defmodule OpsServer do
+    @moduledoc false
+
+    use MicroservicesHelper
+    alias EHealth.MockServer
+
+    Plug.Router.get "/declarations/0cd6a6f0-9a71-4aa7-819d-6c158201a282" do
+      response =
+        build(
+          :declaration,
+          id: "0cd6a6f0-9a71-4aa7-819d-6c158201a282",
+          person_id: "c8912855-21c3-4771-ba18-bcd8e524f14c"
+        )
+        |> MockServer.wrap_response()
+        |> Poison.encode!()
+
+      Plug.Conn.send_resp(conn, 200, response)
+    end
+
+    Plug.Router.patch "/declarations/0cd6a6f0-9a71-4aa7-819d-6c158201a282/actions/terminate" do
+      response =
+        build(
+          :declaration,
+          person_id: "c8912855-21c3-4771-ba18-bcd8e524f14c",
+          id: "0cd6a6f0-9a71-4aa7-819d-6c158201a282",
+          status: "terminated"
+        )
+        |> Map.put("reason", "manual_person")
+        |> MockServer.wrap_response()
+        |> Poison.encode!()
+
+      Plug.Conn.send_resp(conn, 200, response)
+    end
+
+    Plug.Router.get "/latest_block" do
+      response =
+        %{"hash" => "some_current_hash"}
+        |> MockServer.wrap_response()
+        |> Poison.encode!()
+
+      Plug.Conn.send_resp(conn, 200, response)
+    end
+  end
+
   defmodule MpiServer do
     @moduledoc false
 
@@ -227,15 +271,20 @@ defmodule EHealth.Web.CabinetControllerTest do
     {:ok, port, ref4} = start_microservices(MediaStorageServer)
     System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:#{port}")
 
+    {:ok, port, ref5} = start_microservices(OpsServer)
+    System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
+
     on_exit(fn ->
       System.put_env("MPI_ENDPOINT", "http://localhost:4040")
       System.put_env("OAUTH_ENDPOINT", "http://localhost:4040")
       System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:4040")
       System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:4040")
+      System.put_env("OPS_ENDPOINT", "http://localhost:4040")
       stop_microservices(ref1)
       stop_microservices(ref2)
       stop_microservices(ref3)
       stop_microservices(ref4)
+      stop_microservices(ref5)
     end)
 
     :ok
@@ -498,6 +547,21 @@ defmodule EHealth.Web.CabinetControllerTest do
         })
 
       assert json_response(conn, 200)
+    end
+  end
+
+  describe "terminate declaration" do
+    test "success terminate declaration", %{conn: conn} do
+      legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
+
+      conn =
+        conn
+        |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
+        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: legal_entity.id}))
+        |> patch(cabinet_path(conn, :terminate_declaration, "0cd6a6f0-9a71-4aa7-819d-6c158201a282"))
+
+      assert %{"data" => %{"id" => "0cd6a6f0-9a71-4aa7-819d-6c158201a282", "status" => "terminated"}} =
+               json_response(conn, 200)
     end
   end
 end

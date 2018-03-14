@@ -21,6 +21,9 @@ defmodule EHealth.Factories do
   use EHealth.ILFactories.EmployeeRequestFactory
   use EHealth.ILFactories.DeclarationRequestFactory
 
+  # OPS
+  use EHealth.OPSFactories.DeclarationFactory
+
   alias EHealth.Repo
   alias EHealth.PRMRepo
 

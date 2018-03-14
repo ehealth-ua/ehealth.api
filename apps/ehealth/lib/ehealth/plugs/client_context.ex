@@ -97,6 +97,9 @@ defmodule EHealth.Plugs.ClientContext do
       client_type in config[:tokens_types_admin] ->
         %{}
 
+      client_type in config[:tokens_types_cabinet] ->
+        %{}
+
       true ->
         Logger.error(fn ->
           Poison.encode!(%{
