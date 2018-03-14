@@ -1,7 +1,8 @@
-Change log for versions 7.37.0 - 7.37.20
+Change log for versions 7.37.0 - 7.37.21
 
 **Patches and bug fixes**:
 
+allow to terminate declaration from cabinet (#1940)
 fix legal_entity search by settlement_id (#1937)
 save declaration overlimit field (#1934)
 set declaration request channel (#1933)
@@ -25,6 +26,7 @@ moved HeadersProcessor to helpers (#1913)
 
 **Other**:
 
+Review
 Cabinet declarations#1909 (#1930)
 joken to guardian (#1924)
 Declaration request online request changed
