@@ -1091,22 +1091,20 @@ Method searches divisions by parameters and returnes division details
 
 ## Employees [/report/employees]
 
-### Search Employees [GET /reports/stats/employees{?id,employee_type,first_name,last_name,second_name,speciality,division_id,division_name,area,region,settlement,is_avaliable,page,page_size}]
+### Search Employees [GET /reports/stats/employees{?id,employee_type,full_name,speciality,division_id,division_name,area,region,settlement,is_avaliable,page,page_size}]
 Method searches doctor by parameters and returnes division details
 
 + Parameters
     + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, optional) - Employee ID
     + employee_type: 'DOCTOR' (string, optional)
-    + first_name: Іван (enum, optional) - doctor first name
-    + last_name: Іванов (string, optional) - doctor last name
-    + second_name: Іванович (string, optional) - doctor second name 
+    + full_name: `Іванов Іван Іванович` (enum, optional) - doctor's full name 
     + speciality: `FAMILY_DOCTOR` (string, optional) - doctor officio speciality
     + division_id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, optional) - division ID
     + division_name: Відділення1 (string, optional) - the name of division
     + area:`Волинська` (string, optional) - the name of region where division is located
     + region: `Луцький` (string, optional) -  the name of district where division is located
     + settlement: `Луцьк` (string, optional) - the name of settlement where division is located
-    + is_avaliable: true (boolen, optional) - doctor is avaliable to make declaration with
+    + is_avaliable: true (boolen, optional) - whether doctor is avaliable to make declaration with
     + page: 2 (number, optional)
     + page_size: 50 (number, optional)
     
@@ -2063,7 +2061,19 @@ JWT_token:
                 + `created_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
                 + `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
             + acess_token: `my-oauth-token` (string, required) - access token 
-                
+
+### Get Nonce [GET /api/cabinet/nonce]
+
++ Request (application/json)
+
+    + Attributes (object)
+        + client_id: '7e9cffd9-c75f-45fb-badf-6e8d20b6a8a8' (string, required)
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (object)
+            + client_id: '7e9cffd9-c75f-45fb-badf-6e8d20b6a8a8' (string, required)
+            + nonce: 'sha256-076c8f1ca6979ef156b510a121b69b6265011597557ca2971db5ad5a2743545f' (string, required)
 
 ### Get User [GET /api/cabinet/users{?tax_id}]
 
@@ -2597,8 +2607,8 @@ Before approve patient's scanned documents should be uploaded to the ([Signed UR
 as well as scanned signed declaration (with type person.DECLARATION_FORM).
 All links are generated for one one-page document in jpeg format. Document should be no more than 10MB.
 If make declaration request via cabinet then nothing must be uploaded to URL.
-Clients can use signed URL's to directly access Google Cloud Storage via their API 
-([Google Cloud Storage API](https://cloud.google.com/storage/docs/xml-api/put-object-upload))
+Clients can use signed URL's to directly access Minio storage and upload files via API 
+([Minio](https://docs.minio.io/docs/upload-files-from-browser-using-pre-signed-urls))
 
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -5508,8 +5518,6 @@ This method is used to abtain list of events with filters.
 + science_degree (ScienceDegree, optional)
 + working_experience: 10 (number, optional)
 + about_myself: `Закінчив всі можливі курси` (string, optional)
-+ `declaration_count`: 1500 (number)
-+ `declaration_limit`: 2000 (number)
 
 
 ### EmployeeMap
