@@ -2226,7 +2226,6 @@ Entity data:
 ### Create Declaration Request online [POST /api/cabinet/declaration_requests]
 
 This method is used to create Declaration Request online (as part of Declaration creation process). Fields descriptions are listed in request Example view.
-Each doctor has its own limit of declarations. In case there is a necessity to create more declarations `overlimit` should be TRUE. By default `overlimit`= FALSE
 
 + Request (application/json)
 
@@ -2552,6 +2551,8 @@ Method returns shortened details, to obtain full information - get Declaration R
 ### Create Declaration Request [POST]
 
 This method is used to create Declaration Request (as part of Declaration creation process). Fields descriptions are listed in request Example view.
+
+Each doctor has its own limit of declarations. In case there is a necessity to create more declarations `overlimit` should be TRUE. By default `overlimit`= FALSE
 
 + Request (application/json)
 
