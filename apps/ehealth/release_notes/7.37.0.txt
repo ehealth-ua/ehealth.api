@@ -1,7 +1,9 @@
-Change log for versions 7.37.0 - 7.37.27
+Change log for versions 7.37.0 - 7.37.29
 
 **Patches and bug fixes**:
 
+verify otp on user creation in cabinet (#1964)
+fix employee phones number in declaration request template (#1963)
 fix party info migration (#1942)
 person registration
 happy path for patient registration
@@ -32,6 +34,8 @@ moved HeadersProcessor to helpers (#1913)
 
 **Other**:
 
+added description to new fields and methods
+Create person off-line v2 [ci-skip]
 patient registration (#1936)
 Review
 Cabinet declarations#1909 (#1930)
