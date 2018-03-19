@@ -3121,6 +3121,8 @@ Additionally to register/update Physician the `Doctor info` should be passed.
 When the `Employee_Request` will be posted the Invitation e-mail with a request
 secret token will be sent to the User specified in the request.
 
+In case the employee doesn't have tax_id no_tax_id must be true and in fields tax_id input passport number (serial number in cyrillic without spaces) 
+
 It can be also used to update employee data. In this case `employee_id` should be passed in the payload.
 
 User may accept or decline Invitation.
@@ -4872,8 +4874,8 @@ This method is used to abtain list of events with filters.
 + include `Party_Short`
 + birth_date: `1991-08-19T00:00:00.000Z` (string, required)
 + gender: MALE (string, required) - `Dictionary GENDER`
-+ `no_tax_id`: false (boolean, optional)
-+ tax_id: 3126509816 (string, required)
++ `no_tax_id`: false (boolean, optional) - true if employee doesn't have tax_id and false otherwise 
++ tax_id: 3126509816 (string, required) - if no_tax_id=true then passport number, otherwise tax_id
 + email: email@example.com (string, optional)
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
