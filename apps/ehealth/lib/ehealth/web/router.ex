@@ -110,6 +110,7 @@ defmodule EHealthWeb.Router do
       pipe_through([:jwt])
       post("/email_validation", CabinetController, :email_validation)
       post("/registration", CabinetController, :registration)
+      post("/users", CabinetController, :search_user)
     end
   end
 

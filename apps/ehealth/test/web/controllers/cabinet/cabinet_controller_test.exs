@@ -507,4 +507,46 @@ defmodule Mithril.Web.RegistrationControllerTest do
       assert "$.otp" == err["entry"]
     end
   end
+
+  describe "search user" do
+    setup %{conn: conn} do
+      {:ok, jwt, _} = encode_and_sign(:email, %{email: "email@example.com"})
+      %{conn: conn, jwt: jwt}
+    end
+
+    test "jwt not set", %{conn: conn} do
+      conn
+      |> post(cabinet_path(conn, :search_user), %{tax_id: "1234567890"})
+      |> json_response(401)
+    end
+
+    test "by tax_id found", %{conn: conn, jwt: jwt} do
+      expect(MithrilMock, :search_user, fn %{tax_id: "1234567890"}, _headers ->
+        {:ok, %{"data" => []}}
+      end)
+
+      conn
+      |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
+      |> post(cabinet_path(conn, :search_user, %{tax_id: "1234567890"}))
+      |> json_response(200)
+    end
+
+    test "by tax_id not found", %{conn: conn, jwt: jwt} do
+      expect(MithrilMock, :search_user, fn %{tax_id: "1234567890"}, _headers ->
+        {:ok, %{"data" => [%{"id" => 1}]}}
+      end)
+
+      conn
+      |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
+      |> post(cabinet_path(conn, :search_user), %{tax_id: "1234567890"})
+      |> json_response(409)
+    end
+
+    test "tax_id not set", %{conn: conn, jwt: jwt} do
+      conn
+      |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
+      |> post(cabinet_path(conn, :search_user), %{tax_id_invalid: "1234567890"})
+      |> json_response(422)
+    end
+  end
 end

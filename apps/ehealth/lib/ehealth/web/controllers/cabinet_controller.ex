@@ -16,7 +16,7 @@ defmodule EHealth.Web.CabinetController do
 
   def email_verification(conn, params) do
     with :ok <- API.send_email_verification(params) do
-      render(conn, "email_verification.json", %{})
+      render(conn, "raw.json", %{json: %{}})
     end
   end
 
@@ -33,6 +33,12 @@ defmodule EHealth.Web.CabinetController do
       conn
       |> put_status(:created)
       |> render("patient.json", patient: patient)
+    end
+  end
+
+  def search_user(conn, params) do
+    with :ok <- API.check_user_absence(params, conn.req_headers) do
+      render(conn, "raw.json", %{json: %{}})
     end
   end
 

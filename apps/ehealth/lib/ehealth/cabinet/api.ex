@@ -5,7 +5,7 @@ defmodule EHealth.Cabinet.API do
   alias EHealth.Guardian
   alias EHealth.Bamboo.Emails.Sender
   alias EHealth.Validators.JsonSchema
-  alias EHealth.Cabinet.RegistrationRequest
+  alias EHealth.Cabinet.{RegistrationRequest, UserSearchRequest}
   alias EHealth.Man.Templates.EmailVerification
 
   require Logger
@@ -92,6 +92,14 @@ defmodule EHealth.Cabinet.API do
     |> validate_inclusion(:signed_content_encoding, ["base64"])
   end
 
+  defp validate_params(:user_search, params) do
+    fields = UserSearchRequest.__schema__(:fields)
+
+    %UserSearchRequest{}
+    |> cast(params, fields)
+    |> validate_required(fields)
+  end
+
   def email_available_for_registration?(email) do
     case @mithril_api.search_user(%{email: email}) do
       {:ok, %{"data" => [%{"tax_id" => tax_id}]}} when is_binary(tax_id) and byte_size(tax_id) > 0 ->
@@ -101,7 +109,7 @@ defmodule EHealth.Cabinet.API do
         true
 
       _ ->
-        {:error, {:service_unavailable, "Cannot fetch user"}}
+        {:error, {:internal_error, "Cannot fetch user"}}
     end
   end
 
@@ -127,6 +135,21 @@ defmodule EHealth.Cabinet.API do
         })
       end)
 
-      {:error, {:service_unavailable, "Cannot send email. Try later"}}
+      {:error, {:internal_error, "Cannot send email. Try later"}}
+  end
+
+  def check_user_absence(params, headers) do
+    with %Ecto.Changeset{valid?: true} <- validate_params(:user_search, params) do
+      case @mithril_api.search_user(%{tax_id: params["tax_id"]}, headers) do
+        {:ok, %{"data" => data}} when length(data) > 0 ->
+          {:error, {:conflict, "User with this tax_id already exists"}}
+
+        {:ok, _} ->
+          :ok
+
+        _ ->
+          {:error, {:internal_error, "Cannot fetch user"}}
+      end
+    end
   end
 end
