@@ -18,6 +18,8 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
   def render(declaration_request, authentication_method_current) do
     template_data =
       declaration_request
+      |> Poison.encode!()
+      |> Poison.decode!()
       |> map_declaration_data(authentication_method_current)
       |> Map.put(:format, config()[:format])
       |> Map.put(:locale, config()[:locale])
