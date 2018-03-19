@@ -2554,6 +2554,10 @@ This method is used to create Declaration Request (as part of Declaration creati
 
 Each doctor has its own limit of declarations. In case there is a necessity to create more declarations `overlimit` should be TRUE. By default `overlimit`= FALSE
 
+Methods-independence (Online/Offline) the attacment with scan of declaration must be added. The scan should be single page JPEG document.
+
+After sign new declaration all previously created pending (status one of the following: NEW, APPROVED) declaration request will be cancelled automatically.
+
 + Request (application/json)
 
     + Headers
@@ -2693,6 +2697,8 @@ All signature fields will be validated (including signer certificate authority).
 This service will store signed copy of Declaration Request in Media Content Storage, created or update MPI records and create declaration if signature is all checks is passed.
 
 Signed content MUST consists of JSON object with Declaration Request data and printout template. Object that need to be signed is returned by `Get Declaration request by ID` response, `JSON.Path: $.data`.
+
+Declaration request can be signed either by doctor or admin (user with scope `declaration_request:sign`) from legal entity as in declaration request.
 
 **Important**
 Invoke Get Declaration Request by ID to obtain seed - Hash of previous block in declarations chain or other random component that should be signed with declaration
@@ -3475,7 +3481,7 @@ nhs_verified = false
 
 Method receives signed message (pkcs7) including signed content, digital signature and signer public key. 
 All signature fields will be validated (including signer certificate authority).
-There is a [**dummy method**](##dummy-for-legal-entity) that describes the latest legal entity data model and can be used as documentation.
+There is a [**dummy method**](https://uaehealthapi.docs.apiary.io/reference/dummy.-create-legal-entity/dummy-for-legal-entity/create/update-legal-entity) that describes the latest legal entity data model and can be used as documentation.
 Signed content MUST consists of JSON object with Legal Entity data:
 
 ```
@@ -4594,7 +4600,7 @@ This method is used to abtain list of events with filters.
 + addresses (array[Address], required)
 + phones (array[Phone], optional)
 + `authentication_methods` (array[Authentication_Method], required)
-+ preferred_way_communication: email (enum, optional)
++ preferred_way_communication: email (enum, optional) - the way how a patient wants to be reached
     - email
     - phone
 
@@ -4871,9 +4877,9 @@ This method is used to abtain list of events with filters.
 + email: email@example.com (string, optional)
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
-+ working_experience: 10 (number, optional)
-+ about_myself: `Закінчив всі можливі курси` (string, optional)
-+ declaration_limit: `2000` (number)
++ working_experience: 10 (number, optional) - full years of working experience
++ about_myself: `Закінчив всі можливі курси` (string, optional) - field for medical employee to describe the most important statements.
++ declaration_limit: `2000` (number) - maximum number of declaration with a doctor.
 
 ### `Party_Response_old`
 + id:`b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -4884,10 +4890,10 @@ This method is used to abtain list of events with filters.
 + tax_id: 3126509816 (string, required)
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
-+ working_experience: 10 (number, optional)
-+ about_myself: `Закінчив всі можливі курси` (string, optional)
-+ declaration_limit: `2000` (number)
-+ declaration_count: `1578` (number) 
++ working_experience: 10 (number, optional) - full years of working experience
++ about_myself: `Закінчив всі можливі курси` (string, optional) - field for medical employee to describe the most important statements.
++ declaration_limit: `2000` (number) - maximum number of declaration with a doctor.
++ declaration_count: `1578` (number) - current number  of declaration with a doctor.
 
 ### `Party_Update`
 + include `Party_Short`
@@ -4897,8 +4903,8 @@ This method is used to abtain list of events with filters.
 + gender: MALE(string, required) - `Dictionary GENDER`
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
-+ working_experience: 10 (number, optional)
-+ about_myself: `Закінчив всі можливі курси` (string, optional)
++ working_experience: 10 (number, optional) - full years of working experience
++ about_myself: `Закінчив всі можливі курси` (string, optional) - field for medical employee to describe the most important statements.
 + educations (array[Education], optional)  - освіта
 + qualifications (array[Qualification], optional) - підвищення кваліфікації
 + specialities (array[Speciality_party], optional)  - блок інформації про отримання сертифікату спеціалісту та проходження атестацій
@@ -4914,8 +4920,8 @@ This method is used to abtain list of events with filters.
 + tax_id: 3126509816 (string, required)
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
-+ working_experience: 10 (number, optional)
-+ about_myself: `Закінчив всі можливі курси` (string, optional)
++ working_experience: 10 (number, optional) - full years of working experience
++ about_myself: `Закінчив всі можливі курси` (string, optional) - field for medical employee to describe the most important statements.
 + educations (array[Education], optional)  - освіта
 + qualifications (array[Qualification], optional) - підвищення кваліфікації
 + specialities (array[Speciality_party], optional)  - блок інформації про отримання сертифікату спеціалісту та проходження атестацій
@@ -5122,44 +5128,44 @@ This method is used to abtain list of events with filters.
 ## `Legal_Entity_Requests`
 
 ### `Legal_Entity_Request_Public`
-+ name: Клініка Ноунейм (string, required)
-+ short_name: Ноунейм (string, optional)
-+ public_name: Ноунейм (string, optional)
-+ type: MSP (string, required)
-+ `owner_property_type`: STATE (string, required) - `Dictionary OWNER_PROPERTY_TYPE`
-+ `legal_form`: 140 (string, required) - `Dictionary LEGAL_FORM`
-+ edrpou: 32323454 (string, required)
-+ kveds: 86.10 (array, required)
-+ addresses (array[Address], required)
++ name: Клініка Ноунейм (string, required) - full official name of legal entity also the name to show on public sources [as map, portal etc]
++ short_name: Ноунейм (string, optional) - short name of legal entity
++ public_name: Ноунейм (string, optional) 
++ type: MSP (string, required) - type of legal entity [MSP/PHARMACY]. MIS can't be created using this WS.
++ `owner_property_type`: STATE (string, required) - `Dictionary OWNER_PROPERTY_TYPE` State or private type of legal entity
++ `legal_form`: 140 (string, required) - `Dictionary LEGAL_FORM`  - business form [as ТОВ/ФОП/ДП/КП]
++ edrpou: 32323454 (string, required) - Unified Register of Businesses and Organizations
++ kveds: 86.10 (array, required) - Ukrainian Industry Classification System, there is a check that at least one of next kveds is input: 86.10, 86.21, 47.73.
++ addresses (array[Address], required) - The max items of array is 2: REGISTRATION - required, RESIDENCE - optional. DIVISION is exception: REGISTRATION - optional, RESIDENCE - required
 + phones (array[Phone], required)
-+ email: email@example.com (string, required)
-+ website: `www.boris.com.ua` (string, optional)
-+ receiver_funds_code: `AB12345` (string, optional)
-+ beneficiary: `Борисов Борис Борисович` (string, optional)
++ email: email@example.com (string, required) - email to contact person in charge from legal entity
++ website: `www.boris.com.ua` (string, optional) - legal entity website
++ receiver_funds_code: `AB12345` (string, optional) - treasury registration code [Код одержувача/розпорядника бюджетних коштів для Казначейства. Вказується за наявності.]
++ beneficiary: `Борисов Борис Борисович` (string, optional) - legal owner of legal entity [нформація про власника ЗОЗ, для ФОП не заповнюється]
 + `medical_service_provider` (MSP)
-+ `archive`(array[Archive], optional)
++ `archive`(array[Archive], optional) 
 + security (object, fixed-type)
-    + `redirect_uri`: `http://example.com` (string, required, fixed) - Redirect uri
+    + `redirect_uri`: `http://example.com` (string, required, fixed) - Redirect uri is used in oauth2.0 flow
 
 ### `Legal_Entity_Request_Public_Short` 
-+ name: Клініка Ноунейм (string, required)
-+ short_name: Ноунейм (string, optional)
-+ public_name: Ноунейм (string, optional)
-+ type: MSP (string, required)
++ name: Клініка Ноунейм (string, required) - full official name of legal entity
++ short_name: Ноунейм (string, optional) - short name of legal entity
++ public_name: Ноунейм (string, optional) - the name to show on public sources
++ type: MSP (string, required) - type of legal entity [MSP/PHARMACY]. MIS can't be created using this WS.
 + `owner_property_type`: STATE (string, required) - `Dictionary OWNER_PROPERTY_TYPE`
 + `legal_form`: 140 (string, required) - `Dictionary LEGAL_FORM`
-+ edrpou: 5432345432 (string, required)
-+ kveds: 86.1 (array, required)
++ edrpou: 5432345432 (string, required) -  Unified Register of Businesses and Organizations
++ kveds: 86.1 (array, required) - Ukrainian Industry Classification System, there is a check for required kved: 86.10, 86.21, 47.73
 + addresses (array[Address], required)
 + phones (array[Phone], required)
-+ email: email@example.com (string, required)
-+ website: `www.boris.com.ua` (string, optional)
-+ receiver_funds_code: `AB12345` (string, optional)
-+ beneficiary: `Борисов Борис Борисович` (string, optional)
++ email: email@example.com (string, required) - email to contact person in charge from legal entity
++ website: `www.boris.com.ua` (string, optional) - legal entity website
++ receiver_funds_code: `AB12345` (string, optional) - treasure code [Код одержувача/розпорядника бюджетних коштів для Казначейства. Вказується за наявності.]
++ beneficiary: `Борисов Борис Борисович` (string, optional) - legal owner of legal entity [нформація про власника ЗОЗ, для ФОП не заповнюється]
 + `medical_service_provider` (MSP)
 + `archive`(array[Archive], optional)
 + security (object, fixed-type)
-    + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
+    + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri is used in oauth2.0 flow
 + is_active: true (boolean, required)
 + inserted_by: `A65C8369-CE3A-44D6-839B-8856E3DC4CA3` (string, required)
 + inserted_at: `2005-10-30 10:45` (string, required) - timestamp
@@ -5169,17 +5175,17 @@ This method is used to abtain list of events with filters.
 
 ## `Divisions`
 ### `Division`
-+ name: Бориспільське відділення Клініки Ноунейм (string, required)
++ name: Бориспільське відділення Клініки Ноунейм (string, required) - the full name of division
 + addresses (array[Address], required)
 + phones (array[Phone], required)
-+ email: email@example.com (string, required)
-+ working_hours (`workinghours`)
-+ type: clinic (enum, required)
++ email: email@example.com (string, required) - division's email
++ working_hours (`workinghours`) - optional field, business hours by each day weekly, doesn't make any influence on business process and will be shown on portal and map.
++ type: clinic (enum, required) - division type
     - CLINIC
     - AMBULANT_CLINIC
     - FAP
 + external_id: `3213213` (string, optional)
-+ location (Location, optional)
++ location (Location, optional) - optional field. geographical location, if it's empty, division won't be shown on a map.
 
 ### workinghours
 + mon (array)
@@ -5354,23 +5360,23 @@ This method is used to abtain list of events with filters.
 + updated_by: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
 
 ### Address
-+ type: RESIDENCE (string, required) - `Dictionary ADDRESS_TYPE`
++ type: RESIDENCE (string, required) - `Dictionary ADDRESS_TYPE`. As for now Regisrtration and Residence types
 + country: UA (enum[string], required) - `Dictionary COUNTRY`
-+ area: Житомирська (string)
-+ region: Бердичівський (string, optional)
-+ settlement: Київ (string)
-+ `settlement_type`: CITY (string) - `Dictionary SETTLEMENT_TYPE`
-+ settlement_id: 43432432 (string, required)
-+ `street_type`: STREET (string, optional) - `Dictionary STREET_TYPE`
-+ street: `вул. Ніжинська` (string, optional)
-+ building: 15 (string, required)
-+ apartment: 23 (string, optional)
-+ zip: 02090 (string, optional)
++ area: Житомирська (string) - one of Ukraianian area 
++ region: Бердичівський (string, optional) - district of area
++ settlement: Київ (string) - city name
++ `settlement_type`: CITY (string) - `Dictionary SETTLEMENT_TYPE` - type of settlement as city/town/village etc
++ settlement_id: 43432432 (string, required) - settlement identificator from uaadresses 
++ `street_type`: STREET (string, optional) - `Dictionary STREET_TYPE` - type of street as street/road/line etc
++ street: `вул. Ніжинська` (string, optional) - street name
++ building: 15 (string, required) - number of building
++ apartment: 23 (string, optional) - number of appartment
++ zip: 02090 (string, optional) - system of postal codes 
 
 
 ### Phone
-+ type: MOBILE (string, required) - `Dictionary PHONE_TYPE`
-+ number: `+380503410870` (string, required)
++ type: MOBILE (string, required) - `Dictionary PHONE_TYPE` type of phone Land Line or Mobile. At least one of type must be present. Each type can be represented only once.
++ number: `+380503410870` (string, required) - phone number in format '+38/'
 
 ### Email
 + type: PERSONAL, PUBLIC (enum[string], required)
@@ -5378,9 +5384,9 @@ This method is used to abtain list of events with filters.
 
 ### Document
 + type: PASSPORT (string, required) - `Dictionary DOCUMENT_TYPE`
-+ number: 120518 (string, required)
-+ issued_by: `Рокитнянським РВ ГУ МВС Київської області` (string, optional) 
-+ issued_at: `2017-02-28` (string, optional)
++ number: 120518 (string, required) - document issue number
++ issued_by: `Рокитнянським РВ ГУ МВС Київської області` (string, optional) - authority which issued the document
++ issued_at: `2017-02-28` (string, optional) - the date when document was issued
 
 ### `Medical_Certificate`
 + name: Диплом доктора медицини (string, required)
@@ -5445,8 +5451,8 @@ This method is used to abtain list of events with filters.
     + `32009102701026` (string, required) - banks account number
 
 ### `Archive`
-+ date: `2017-02-28` (string, required) - bank code
-+ place: `вул. Грушевського 15` (string, required) - bank name
++ date: `2017-02-28` (string, required) - the date when paper documents were transferred to archive [optional]
++ place: `вул. Грушевського 15` (string, required) - the address of building where paper documents are [optional]
 
 ## OTPs
 ### OTP
