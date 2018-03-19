@@ -42,14 +42,14 @@ defmodule EHealth.Unit.EmployeeRequestsTest do
              |> order_by([e], e.inserted_at)
              |> EventManagerRepo.all()
 
-    assert %Event{
-             entity_type: "EmployeeRequest",
-             event_type: "StatusChangeEvent",
-             entity_id: ^request_id,
-             properties: %{
-               "status" => %{"new_value" => ^expired_status},
-               "employee_id" => %{"new_value" => ^employee_id}
-             }
-           } = event1
+    assert %Event{} = event1
+    assert "EmployeeRequest" == event1.entity_type
+    assert "StatusChangeEvent" == event1.event_type
+    assert request_id == event1.entity_id
+
+    assert %{
+             "status" => %{"new_value" => expired_status},
+             "employee_id" => %{"new_value" => employee_id}
+           } == event1.properties
   end
 end

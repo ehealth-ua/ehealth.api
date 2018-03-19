@@ -411,5 +411,100 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
       assert "$.birth_date" == hd(err)["entry"]
     end
+
+    test "422 response code on MPI", %{conn: conn, params: params, jwt: jwt} do
+      use SignatureExpect
+
+      expect(MPIMock, :search, fn %{"tax_id" => "3126509816", "birth_date" => _}, _headers ->
+        {:ok, %{"data" => []}}
+      end)
+
+      expect(MPIMock, :create_or_update_person, fn _params, _headers ->
+        {:error,
+         %{
+           "error" => %{
+             "invalid" => [
+               %{
+                 "entry" => "$.email",
+                 "entry_type" => "json_data_property",
+                 "rules" => [
+                   %{
+                     "description" => "invalid email format",
+                     "params" => [],
+                     "rule" => "format"
+                   }
+                 ]
+               }
+             ],
+             "message" => "Validation failed.",
+             "type" => "validation_failed"
+           },
+           "meta" => %{
+             "code" => 422
+           }
+         }}
+      end)
+
+      assert [err] =
+               conn
+               |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
+               |> post(cabinet_path(conn, :registration, params))
+               |> json_response(422)
+               |> get_in(~w(error invalid))
+
+      assert "$.email" == err["entry"]
+    end
+
+    test "invalid OTP for user factor", %{conn: conn, params: params, jwt: jwt} do
+      use SignatureExpect
+
+      expect(MPIMock, :search, fn %{"tax_id" => "3126509816", "birth_date" => _}, _headers ->
+        {:ok, %{"data" => []}}
+      end)
+
+      expect(MPIMock, :create_or_update_person, fn params, _headers ->
+        refute Map.has_key?(params, "id")
+        {:ok, %{"data" => Map.put(params, "id", UUID.generate())}}
+      end)
+
+      expect(MithrilMock, :search_user, fn %{"email" => "email@example.com"}, _headers ->
+        {:ok, %{"data" => []}}
+      end)
+
+      expect(MithrilMock, :create_user, fn _params, _headers ->
+        {:error,
+         %{
+           "error" => %{
+             "invalid" => [
+               %{
+                 "entry" => "$.otp",
+                 "entry_type" => "json_data_property",
+                 "rules" => [
+                   %{
+                     "description" => "invalid code",
+                     "params" => [],
+                     "rule" => "invalid"
+                   }
+                 ]
+               }
+             ],
+             "message" => "Validation failed.",
+             "type" => "validation_failed"
+           },
+           "meta" => %{
+             "code" => 422
+           }
+         }}
+      end)
+
+      assert [err] =
+               conn
+               |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
+               |> post(cabinet_path(conn, :registration, params))
+               |> json_response(422)
+               |> get_in(~w(error invalid))
+
+      assert "$.otp" == err["entry"]
+    end
   end
 end

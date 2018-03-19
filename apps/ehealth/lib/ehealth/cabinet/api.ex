@@ -21,7 +21,6 @@ defmodule EHealth.Cabinet.API do
            @signature_api.decode_and_validate(params["signed_person_data"], params["signed_content_encoding"], headers),
          {:ok, tax_id} <- validate_tax_id(content, signer),
          :ok <- JsonSchema.validate(:person, content),
-         :ok <- verify_otp(params["otp"]),
          {:ok, %{"data" => mpi_person}} <-
            @mpi_api.search(%{"tax_id" => tax_id, "birth_date" => content["birth_date"]}, headers),
          {:ok, %{"data" => person}} <- create_or_update_person(mpi_person, content, headers),
@@ -35,11 +34,6 @@ defmodule EHealth.Cabinet.API do
 
   defp validate_tax_id(%{"tax_id" => tax_id}, %{"edrpou" => edrpou}) when edrpou == tax_id, do: {:ok, tax_id}
   defp validate_tax_id(_, _), do: {:error, {:conflict, "Registration person and person that sign should be the same"}}
-
-  defp verify_otp(otp) do
-    # ToDo: write code
-    :ok
-  end
 
   defp create_or_update_person([], params, headers), do: @mpi_api.create_or_update_person(params, headers)
   defp create_or_update_person(persons, params, headers), do: @mpi_api.update_person(hd(persons)["id"], params, headers)
