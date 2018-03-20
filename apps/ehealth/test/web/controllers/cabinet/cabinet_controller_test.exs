@@ -516,7 +516,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
     test "jwt not set", %{conn: conn} do
       conn
-      |> post(cabinet_path(conn, :search_user), %{tax_id: "1234567890"})
+      |> get(cabinet_path(conn, :search_user), %{tax_id: "1234567890"})
       |> json_response(401)
     end
 
@@ -527,7 +527,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
       conn
       |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
-      |> post(cabinet_path(conn, :search_user, %{tax_id: "1234567890"}))
+      |> get(cabinet_path(conn, :search_user, %{tax_id: "1234567890"}))
       |> json_response(200)
     end
 
@@ -538,14 +538,14 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
       conn
       |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
-      |> post(cabinet_path(conn, :search_user), %{tax_id: "1234567890"})
+      |> get(cabinet_path(conn, :search_user), %{tax_id: "1234567890"})
       |> json_response(409)
     end
 
     test "tax_id not set", %{conn: conn, jwt: jwt} do
       conn
       |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
-      |> post(cabinet_path(conn, :search_user), %{tax_id_invalid: "1234567890"})
+      |> get(cabinet_path(conn, :search_user), %{tax_id_invalid: "1234567890"})
       |> json_response(422)
     end
   end
