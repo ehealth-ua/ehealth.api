@@ -131,14 +131,17 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
                 number: "120521"
               }
             }
-          }
+          },
+          national_id: "",
+          preferred_way_communication: ""
         },
         employee: %{
           full_name: "Петро Миколайович Іванов",
           phones: %{
             number: "+380503410870"
           },
-          email: "email@example.com"
+          email: "email@example.com",
+          specialities: []
         },
         division: %{
           addresses: %{
@@ -171,7 +174,8 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
           otp: true,
           offline: false
         },
-        declaration_id: ""
+        declaration_id: "",
+        declaration_number: ""
       }
 
       assert printout_content == Poison.encode!(expected_content)
@@ -220,7 +224,9 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
           birth_date: "",
           document: %{
             type: "",
-            number: ""
+            number: "",
+            issued_by: "",
+            issued_at: ""
           },
           birth_settlement: "",
           birth_country: "",
@@ -247,14 +253,17 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
           confidant_person: %{
             primary: %{},
             secondary: %{}
-          }
+          },
+          preferred_way_communication: "",
+          national_id: ""
         },
         employee: %{
           full_name: "",
           phones: %{
             number: ""
           },
-          email: ""
+          email: "",
+          specialities: []
         },
         division: %{
           addresses: %{
@@ -286,7 +295,8 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
           otp: false,
           offline: false
         },
-        declaration_id: ""
+        declaration_id: "",
+        declaration_number: ""
       }
 
       assert printout_content == Poison.encode!(expected_content)

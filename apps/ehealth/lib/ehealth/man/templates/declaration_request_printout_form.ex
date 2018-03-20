@@ -39,7 +39,8 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
       legal_entity: get_legal_entity(declaration_request),
       confidant_persons: check_confidant_persons(declaration_request),
       authentication_method_current: get_authentication_method_current(authentication_method_current),
-      declaration_id: Map.get(declaration_request, "declaration_id", "")
+      declaration_id: Map.get(declaration_request, "declaration_id", ""),
+      declaration_number: Map.get(declaration_request, "declaration_number", "")
     }
   end
 
@@ -59,7 +60,9 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
       email: Map.get(person, "email", ""),
       secret: Map.get(person, "secret", ""),
       emergency_contact: get_emergency_contact(person),
-      confidant_person: get_confidant_persons(person)
+      confidant_person: get_confidant_persons(person),
+      preferred_way_communication: Map.get(person, "preferred_way_communication", ""),
+      national_id: Map.get(person, "national_id", "")
     }
   end
 
@@ -88,8 +91,13 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
 
   defp get_document(person, key, dictionary_name) do
     case Map.get(person, key) do
-      [first | _other] -> first |> take_fields(["type", "number"]) |> update_document_type(dictionary_name)
-      _ -> %{"type" => "", "number" => ""}
+      [first | _other] ->
+        first
+        |> take_fields(~w(type number issued_by issued_at))
+        |> update_document_type(dictionary_name)
+
+      _ ->
+        %{"type" => "", "number" => "", "issued_by" => "", "issued_at" => ""}
     end
   end
 
@@ -181,11 +189,13 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
   defp get_employee(declaration_request) do
     employee = Map.get(declaration_request, "employee", %{})
     party = Map.get(employee, "party", %{})
+    specialities = Map.get(employee, "specialities", [])
 
     %{
       full_name: get_full_name(party),
       phones: get_phone(party),
-      email: Map.get(party, "email", "")
+      email: Map.get(party, "email", ""),
+      specialities: Enum.map(specialities, &Map.get(&1, "specialitiy"))
     }
   end
 
