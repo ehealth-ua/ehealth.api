@@ -1,0 +1,7 @@
+Change log for versions 7.39.0 - 7.39.1
+
+**Patches and bug fixes**:
+
+generate declaration number at declaration request (#1971)
+
+
