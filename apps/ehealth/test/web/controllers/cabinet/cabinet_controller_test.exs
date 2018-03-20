@@ -31,6 +31,43 @@ defmodule Mithril.Web.RegistrationControllerTest do
     end
   end
 
+  defmodule MithrilUserRoleExpect do
+    defmacro __using__(_) do
+      quote do
+        expect(MithrilMock, :create_user_role, fn _user_id, params, _headers ->
+          Enum.each(~w(role_id client_id)a, fn key ->
+            assert Map.has_key?(params, key),
+                   "Mithril.create_user_role requires param `#{key}` in `#{inspect(params)}` "
+          end)
+
+          data = %{
+            "id" => UUID.generate(),
+            "scope" => "cabinet:read"
+          }
+
+          {:ok, %{"data" => data}}
+        end)
+
+        expect(MithrilMock, :create_access_token, fn params, _headers ->
+          Enum.each(~w(grant_type email password client_id scope)a, fn key ->
+            assert Map.has_key?(params, key),
+                   "Mithril.create_access_token requires param `#{key}` in `#{inspect(params)}`"
+          end)
+
+          assert "password" == params.grant_type
+          assert "pAs$w0rd" == params.password
+
+          data = %{
+            "id" => UUID.generate(),
+            "value" => "some_token_value"
+          }
+
+          {:ok, %{"data" => data}}
+        end)
+      end
+    end
+  end
+
   describe "send verification email" do
     test "invalid email", %{conn: conn} do
       assert "$.email" ==
@@ -161,6 +198,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
   describe "success patient registration" do
     setup %{conn: conn} do
       use SignatureExpect
+      use MithrilUserRoleExpect
 
       params = %{
         otp: "1234",

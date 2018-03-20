@@ -279,7 +279,9 @@ config :ehealth, EHealth.DeclarationRequests.Terminator,
 config :ehealth, EHealth.Cabinet.API,
   # hours
   jwt_ttl_email: {:system, :integer, "JWT_TTL_EMAIL"},
-  jwt_ttl_registration: {:system, :integer, "JWT_TTL_REGISTRATION"}
+  jwt_ttl_registration: {:system, :integer, "JWT_TTL_REGISTRATION"},
+  role_id: {:system, "CABINET_ROLE_ID"},
+  client_id: {:system, "CABINET_CLIENT_ID"}
 
 # Configures Guardian
 config :ehealth, EHealth.Guardian,

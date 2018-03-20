@@ -27,8 +27,12 @@ defmodule EHealth.Cabinet.API do
          {:ok, %{"data" => mithril_user}} <- @mithril_api.search_user(%{email: email}, headers),
          :ok <- check_user_by_tax_id(mithril_user),
          user_params <- prepare_user_params(tax_id, email, params),
-         {:ok, %{"data" => user}} <- create_or_update_user(mithril_user, user_params, headers) do
-      {:ok, %{user: user, patient: person}}
+         {:ok, %{"data" => user}} <- create_or_update_user(mithril_user, user_params, headers),
+         conf <- Confex.fetch_env!(:ehealth, __MODULE__),
+         role_params <- %{role_id: conf[:role_id], client_id: conf[:client_id]},
+         {:ok, %{"data" => role}} <- @mithril_api.create_user_role(user["id"], role_params, headers),
+         {:ok, %{"data" => token}} <- create_access_token(params["password"], email, role, conf[:client_id], headers) do
+      {:ok, %{user: user, patient: person, access_token: token["value"]}}
     end
   end
 
@@ -47,14 +51,26 @@ defmodule EHealth.Cabinet.API do
     }
   end
 
-  defp create_or_update_user([%{"id" => id}], params, headers), do: @mithril_api.change_user(id, params, headers)
-  defp create_or_update_user([], params, headers), do: @mithril_api.create_user(params, headers)
-
   defp check_user_by_tax_id([%{"tax_id" => tax_id}]) when is_binary(tax_id) and byte_size(tax_id) > 0 do
     {:error, {:conflict, "User with this tax_id already exists"}}
   end
 
   defp check_user_by_tax_id(_), do: :ok
+
+  defp create_or_update_user([%{"id" => id}], params, headers), do: @mithril_api.change_user(id, params, headers)
+  defp create_or_update_user([], params, headers), do: @mithril_api.create_user(params, headers)
+
+  defp create_access_token(password, email, %{"scope" => scope}, client_id, headers) do
+    token = %{
+      grant_type: "password",
+      email: email,
+      password: password,
+      client_id: client_id,
+      scope: scope
+    }
+
+    @mithril_api.create_access_token(token, headers)
+  end
 
   def validate_email_jwt(jwt) do
     with {:ok, %{"email" => email}} <- Guardian.decode_and_verify(jwt),

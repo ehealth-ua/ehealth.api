@@ -15,4 +15,11 @@ defmodule EHealth.API.MithrilBehaviour do
   @callback create_user(params :: map, headers :: list) :: {:ok, result :: term} | {:error, reason :: term}
   @callback change_user(id :: binary, params :: map, headers :: list) ::
               {:ok, result :: term} | {:error, reason :: term}
+
+  # user_roles
+  @callback create_user_role(user_id :: binary, params :: map, headers :: list) ::
+              {:ok, result :: term} | {:error, reason :: term}
+
+  # tokens
+  @callback create_access_token(token :: map, headers :: list) :: {:ok, result :: term} | {:error, reason :: term}
 end

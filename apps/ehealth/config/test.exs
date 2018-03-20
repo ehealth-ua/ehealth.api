@@ -121,7 +121,9 @@ config :ehealth, EHealth.Bamboo.TestMailer, adapter: Bamboo.TestAdapter
 config :ehealth, EHealth.Cabinet.API,
   # hours
   jwt_ttl_email: 1,
-  jwt_ttl_registration: 1
+  jwt_ttl_registration: 1,
+  role_id: "068c3ba7-2b6f-47b6-acf1-e219f0e84eed",
+  client_id: "50918162-4d48-4d84-9d17-518bb80e65d8"
 
 config :ehealth, EHealth.Guardian,
   issuer: "EHealth",

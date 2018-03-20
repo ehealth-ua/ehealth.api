@@ -91,15 +91,6 @@ defmodule EHealthWeb.Router do
     # Black-listed users
     resources("/black_list_users", BlackListUserController, except: [:new, :edit, :show, :update, :delete])
     patch("/black_list_users/:id/actions/deactivate", BlackListUserController, :deactivate)
-  end
-
-  scope "/api", EHealth.Web do
-    pipe_through([:api, :api_consumer_id])
-
-    # Registers
-    post("/registers", RegisterController, :create)
-    get("/registers", RegisterController, :index)
-    get("/registers_entries", RegisterEntryController, :index)
 
     # Cabinet
     scope "/cabinet" do
@@ -112,6 +103,15 @@ defmodule EHealthWeb.Router do
       post("/registration", CabinetController, :registration)
       get("/users", CabinetController, :search_user)
     end
+  end
+
+  scope "/api", EHealth.Web do
+    pipe_through([:api, :api_consumer_id])
+
+    # Registers
+    post("/registers", RegisterController, :create)
+    get("/registers", RegisterController, :index)
+    get("/registers_entries", RegisterEntryController, :index)
   end
 
   # Client context for lists

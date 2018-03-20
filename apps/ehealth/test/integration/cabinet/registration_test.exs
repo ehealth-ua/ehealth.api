@@ -77,6 +77,37 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
         {:ok, %{"data" => data}}
       end)
 
+      expect(MithrilMock, :create_user_role, fn _user_id, params, _headers ->
+        Enum.each(~w(role_id client_id)a, fn key ->
+          assert Map.has_key?(params, key), "Mithril.create_user_role requires param `#{key}` in `#{inspect(params)}` "
+        end)
+
+        data = %{
+          "id" => UUID.generate(),
+          "scope" => "cabinet:read"
+        }
+
+        {:ok, %{"data" => data}}
+      end)
+
+      expect(MithrilMock, :create_access_token, fn params, _headers ->
+        Enum.each(~w(grant_type email password client_id scope)a, fn key ->
+          assert Map.has_key?(params, key),
+                 "Mithril.create_access_token requires param `#{key}` in `#{inspect(params)}`"
+        end)
+
+        assert "password" == params.grant_type
+        assert email == params.email
+        assert "pAs$w0rd" == params.password
+
+        data = %{
+          "id" => UUID.generate(),
+          "value" => "some_token_value"
+        }
+
+        {:ok, %{"data" => data}}
+      end)
+
       %{conn: conn, email: email, tax_id: tax_id}
     end
 
@@ -120,10 +151,15 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
         signed_content_encoding: "base64"
       }
 
-      conn
-      |> Plug.Conn.put_req_header("authorization", "Bearer " <> auth_token)
-      |> post(cabinet_path(conn, :registration, params))
-      |> json_response(201)
+      patient =
+        conn
+        |> Plug.Conn.put_req_header("authorization", "Bearer " <> auth_token)
+        |> post(cabinet_path(conn, :registration, params))
+        |> json_response(201)
+        |> Map.get("data")
+
+      assert Map.has_key?(patient, "access_token")
+      assert "some_token_value" == patient["access_token"]
     end
   end
 end
