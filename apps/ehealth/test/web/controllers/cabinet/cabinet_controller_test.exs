@@ -45,7 +45,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
     test "user with passed email already exists", %{conn: conn} do
       email = "test@example.com"
 
-      expect(MithrilMock, :search_user, fn %{email: "test@example.com"} ->
+      expect(MithrilMock, :search_user, fn %{email: "test@example.com"}, _headers ->
         {:ok, %{"data" => [%{"tax_id" => "23451234"}]}}
       end)
 
@@ -59,11 +59,11 @@ defmodule Mithril.Web.RegistrationControllerTest do
     test "user with passed email already exists but tax_id is empty", %{conn: conn} do
       email = "success-new-user@example.com"
 
-      expect(MithrilMock, :search_user, fn %{email: ^email} ->
+      expect(MithrilMock, :search_user, fn %{email: ^email}, _headers ->
         {:ok, %{"data" => [%{"tax_id" => ""}]}}
       end)
 
-      expect(ManMock, :render_template, fn _id, _tamplate_data ->
+      expect(ManMock, :render_template, fn _id, _template_data ->
         {:ok, "<html></html>"}
       end)
 
@@ -75,7 +75,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
     test "success", %{conn: conn} do
       email = "success-new-user@example.com"
 
-      expect(MithrilMock, :search_user, fn %{email: ^email} ->
+      expect(MithrilMock, :search_user, fn %{email: ^email}, _headers ->
         {:ok, %{"data" => []}}
       end)
 
@@ -183,14 +183,14 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => Map.put(params, "id", UUID.generate())}}
       end)
 
-      expect(MithrilMock, :search_user, fn %{"email" => "email@example.com"}, _headers ->
+      expect(MithrilMock, :search_user, fn %{email: "email@example.com"}, _headers ->
         {:ok, %{"data" => []}}
       end)
 
       expect(MithrilMock, :create_user, fn params, _headers ->
-        assert Map.has_key?(params, "tax_id")
-        assert Map.has_key?(params, "email")
-        assert Map.has_key?(params, "password")
+        Enum.each(~w(otp tax_id email password), fn key ->
+          assert Map.has_key?(params, key)
+        end)
 
         data =
           params
@@ -218,7 +218,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => Map.put(params, "id", person_id)}}
       end)
 
-      expect(MithrilMock, :search_user, fn %{"email" => "email@example.com"}, _headers ->
+      expect(MithrilMock, :search_user, fn %{email: "email@example.com"}, _headers ->
         {:ok, %{"data" => []}}
       end)
 
@@ -254,7 +254,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
       user_id = UUID.generate()
 
-      expect(MithrilMock, :search_user, fn %{"email" => "email@example.com"}, _headers ->
+      expect(MithrilMock, :search_user, fn %{email: "email@example.com"}, _headers ->
         {:ok, %{"data" => [%{"id" => user_id, "tax_id" => ""}]}}
       end)
 
@@ -291,7 +291,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
       user_id = UUID.generate()
 
-      expect(MithrilMock, :search_user, fn %{"email" => "email@example.com"}, _headers ->
+      expect(MithrilMock, :search_user, fn %{email: "email@example.com"}, _headers ->
         {:ok, %{"data" => [%{"id" => user_id, "tax_id" => ""}]}}
       end)
 
@@ -342,7 +342,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => Map.put(params, "id", UUID.generate())}}
       end)
 
-      expect(MithrilMock, :search_user, fn %{"email" => "email@example.com"}, _headers ->
+      expect(MithrilMock, :search_user, fn %{email: "email@example.com"}, _headers ->
         {:ok, %{"data" => [%{"tax_id" => "1234567890"}]}}
       end)
 
@@ -467,7 +467,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => Map.put(params, "id", UUID.generate())}}
       end)
 
-      expect(MithrilMock, :search_user, fn %{"email" => "email@example.com"}, _headers ->
+      expect(MithrilMock, :search_user, fn %{email: "email@example.com"}, _headers ->
         {:ok, %{"data" => []}}
       end)
 

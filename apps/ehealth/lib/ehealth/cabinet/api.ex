@@ -24,7 +24,7 @@ defmodule EHealth.Cabinet.API do
          {:ok, %{"data" => mpi_person}} <-
            @mpi_api.search(%{"tax_id" => tax_id, "birth_date" => content["birth_date"]}, headers),
          {:ok, %{"data" => person}} <- create_or_update_person(mpi_person, content, headers),
-         {:ok, %{"data" => mithril_user}} <- @mithril_api.search_user(%{"email" => email}, headers),
+         {:ok, %{"data" => mithril_user}} <- @mithril_api.search_user(%{email: email}, headers),
          :ok <- check_user_by_tax_id(mithril_user),
          user_params <- prepare_user_params(tax_id, email, params),
          {:ok, %{"data" => user}} <- create_or_update_user(mithril_user, user_params, headers) do
@@ -40,6 +40,7 @@ defmodule EHealth.Cabinet.API do
 
   defp prepare_user_params(tax_id, email, params) do
     %{
+      "otp" => params["otp"],
       "email" => email,
       "tax_id" => tax_id,
       "password" => params["password"]
@@ -65,9 +66,9 @@ defmodule EHealth.Cabinet.API do
     end
   end
 
-  def send_email_verification(params) do
+  def send_email_verification(params, headers) do
     with %Ecto.Changeset{valid?: true, changes: %{email: email}} <- validate_params(:email, params),
-         true <- email_available_for_registration?(email),
+         true <- email_available_for_registration?(email, headers),
          false <- email_sent?(email),
          ttl <- Confex.fetch_env!(:ehealth, __MODULE__)[:jwt_ttl_email],
          {:ok, jwt, _claims} <- generate_jwt(email, {ttl, :hours}),
@@ -100,8 +101,8 @@ defmodule EHealth.Cabinet.API do
     |> validate_required(fields)
   end
 
-  def email_available_for_registration?(email) do
-    case @mithril_api.search_user(%{email: email}) do
+  def email_available_for_registration?(email, headers) do
+    case @mithril_api.search_user(%{email: email}, headers) do
       {:ok, %{"data" => [%{"tax_id" => tax_id}]}} when is_binary(tax_id) and byte_size(tax_id) > 0 ->
         {:error, {:conflict, "User with this email already exists"}}
 

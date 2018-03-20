@@ -7,7 +7,7 @@ defmodule EHealth.Cabinet.RegistrationRequest do
 
   @primary_key false
   schema "registration_request" do
-    field(:otp, :string)
+    field(:otp, :integer)
     field(:password, :string)
     field(:signed_person_data, Base64)
     field(:signed_content_encoding, :string)

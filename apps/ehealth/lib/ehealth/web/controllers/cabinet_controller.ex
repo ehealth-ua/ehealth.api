@@ -15,7 +15,7 @@ defmodule EHealth.Web.CabinetController do
   action_fallback(EHealth.Web.FallbackController)
 
   def email_verification(conn, params) do
-    with :ok <- API.send_email_verification(params) do
+    with :ok <- API.send_email_verification(params, conn.req_headers) do
       render(conn, "raw.json", %{json: %{}})
     end
   end
