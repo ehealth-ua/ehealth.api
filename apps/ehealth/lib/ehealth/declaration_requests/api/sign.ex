@@ -15,6 +15,7 @@ defmodule EHealth.DeclarationRequests.API.Sign do
   alias EHealth.Employees.Employee
   alias HTTPoison.Response
   alias EHealth.Repo
+  alias EHealth.Utils.NumberGenerator
   require Logger
 
   @auth_na DeclarationRequest.authentication_method(:na)
@@ -241,7 +242,8 @@ defmodule EHealth.DeclarationRequests.API.Sign do
       "updated_by" => client_id,
       "signed_at" => Timex.now(),
       "declaration_request_id" => id,
-      "overlimit" => overlimit
+      "overlimit" => overlimit,
+      "declaration_number" => NumberGenerator.generate(1, 2)
     })
     |> OPS.create_declaration_with_termination_logic(headers)
   end

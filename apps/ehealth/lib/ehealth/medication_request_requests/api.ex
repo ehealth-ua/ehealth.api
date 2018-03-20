@@ -27,7 +27,7 @@ defmodule EHealth.MedicationRequestRequests do
   alias EHealth.Medications.INNMDosage
   alias EHealth.Medications.Program, as: ProgramMedication
   alias EHealth.Medications.INNMDosage.Ingredient, as: INNMDosageIngredient
-  alias EHealth.MedicationRequestRequest.HumanReadableNumberGenerator, as: HRNGenerator
+  alias EHealth.Utils.NumberGenerator
 
   @status_new EHealth.MedicationRequestRequest.status(:new)
   @status_signed EHealth.MedicationRequestRequest.status(:signed)
@@ -160,7 +160,7 @@ defmodule EHealth.MedicationRequestRequests do
     |> cast(attrs, [:request_number, :status, :inserted_by, :updated_by])
     |> put_embed(:data, create_operation.changeset)
     |> put_change(:status, @status_new)
-    |> put_change(:request_number, HRNGenerator.generate(1))
+    |> put_change(:request_number, NumberGenerator.generate(1))
     |> put_change(:verification_code, put_verification_code(create_operation))
     |> put_change(:inserted_by, user_id)
     |> put_change(:updated_by, user_id)
@@ -173,7 +173,7 @@ defmodule EHealth.MedicationRequestRequests do
     otp = Enum.find(operation.data.person["authentication_methods"], nil, fn method -> method["type"] == "OTP" end)
 
     if otp do
-      HRNGenerator.generate_otp_verification_code()
+      NumberGenerator.generate_otp_verification_code()
     else
       nil
     end

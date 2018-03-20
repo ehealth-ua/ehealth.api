@@ -1,20 +1,20 @@
-defmodule EHealth.MedicationRequestRequest.HumanReadableNumberGenerator do
+defmodule EHealth.Utils.NumberGenerator do
   @moduledoc """
     Module that generates human readable number with pattern
-    XXXX-12E4-52A8-P01 randomly generated numbers and letters A, E, H, K, M, P, T, X.
+    XXXX-12E4-52A8-7TAA randomly generated numbers and letters A, E, H, K, M, P, T, X.
   """
   use Confex, otp_app: :ehealth
 
   @human_readble_symbols ~w(0 1 2 3 4 5 6 7 8 9 A E H K M P T X)
   @ver_1 "0000-"
 
-  def generate(version) do
-    do_generate(version)
+  def generate(version, blocks \\ 3) do
+    do_generate(version, blocks)
   end
 
-  defp do_generate(1) do
+  defp do_generate(1, blocks) do
     sequence =
-      1..3
+      1..blocks
       |> Enum.map(fn _ -> get_combination_of(4) end)
       |> Enum.join("-")
 
