@@ -55,12 +55,26 @@ defmodule EHealth.DeclarationRequests.API.Creator do
 
     pending_declaration_requests = pending_declaration_requests(person, employee.id, legal_entity.id)
 
-    Multi.new()
-    |> Multi.update_all(:previous_requests, pending_declaration_requests, set: updates)
-    |> Multi.insert(:declaration_request, changeset(params, user_id, auxiliary_entities))
-    |> Multi.run(:finalize, &finalize/1)
-    |> Multi.run(:urgent_data, &prepare_urgent_data/1)
-    |> Repo.transaction()
+    Repo.transaction(fn ->
+      previous_request_ids =
+        pending_declaration_requests
+        |> Repo.all()
+        |> Enum.map(&Map.get(&1, :id))
+
+      query = where(DeclarationRequest, [dr], dr.id in ^previous_request_ids)
+      Repo.update_all(query, set: updates)
+
+      with {:ok, declaration_request} <-
+             params
+             |> changeset(user_id, auxiliary_entities)
+             |> Repo.insert(),
+           {:ok, declaration_request} <- finalize(declaration_request),
+           {:ok, urgent_data} <- prepare_urgent_data(declaration_request) do
+        %{urgent_data: urgent_data, finalize: declaration_request}
+      else
+        {:error, reason} -> Repo.rollback(reason)
+      end
+    end)
   end
 
   def validate_person(person) do
@@ -190,8 +204,7 @@ defmodule EHealth.DeclarationRequests.API.Creator do
     end
   end
 
-  def finalize(multi) do
-    declaration_request = multi.declaration_request
+  def finalize(declaration_request) do
     authorization = declaration_request.authentication_method_current
 
     case authorization["type"] do
@@ -231,9 +244,7 @@ defmodule EHealth.DeclarationRequests.API.Creator do
     |> Repo.update()
   end
 
-  def prepare_urgent_data(multi) do
-    declaration_request = multi.finalize()
-
+  def prepare_urgent_data(declaration_request) do
     filtered_authentication_method_current =
       filter_authentication_method(declaration_request.authentication_method_current)
 
