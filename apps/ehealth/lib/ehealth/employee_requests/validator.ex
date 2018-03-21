@@ -20,7 +20,6 @@ defmodule EHealth.EmployeeRequests.Validator do
          :ok <- validate_json_objects(params),
          :ok <- validate_tax_id(params),
          :ok <- validate_birth_date(params),
-         :ok <- validate_declaration_limit(Map.get(params, "employee_request")),
          do: :ok
   end
 
@@ -126,15 +125,6 @@ defmodule EHealth.EmployeeRequests.Validator do
       _ -> cast_error("invalid birth_date value", "$.employee_request.party.birth_date", :invalid)
     end
   end
-
-  defp validate_declaration_limit(%{"employee_type" => @doctor, "declaration_limit" => limit}) when is_integer(limit),
-    do: :ok
-
-  defp validate_declaration_limit(%{"employee_type" => @doctor}) do
-    cast_error("invalid declaration_limit value", "$.employee_request.declaration_limit", :invalid)
-  end
-
-  defp validate_declaration_limit(_), do: :ok
 
   defp cast_error(message, path, rule) do
     {:error,

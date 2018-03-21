@@ -24,6 +24,7 @@ defmodule EHealth.EmployeeRequests do
   alias EHealth.Employees
   alias EHealth.BlackListUsers
   alias EHealth.EventManager
+  alias EHealth.GlobalParameters
 
   require Logger
 
@@ -246,10 +247,12 @@ defmodule EHealth.EmployeeRequests do
   end
 
   def create_party_params(%{"doctor" => doctor} = data) do
+    %{"declaration_limit" => declaration_limit} = GlobalParameters.get_values()
+
     data
     |> Map.fetch!("party")
     |> do_create_party_params(doctor)
-    |> Map.put("declaration_limit", Map.get(data, "declaration_limit"))
+    |> Map.put("declaration_limit", declaration_limit)
   end
 
   def create_party_params(%{"pharmacist" => pharmacist} = data) do

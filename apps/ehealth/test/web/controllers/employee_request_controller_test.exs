@@ -480,29 +480,6 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       json_response(conn, 200)
     end
 
-    test "with missed declaration_limit", %{conn: conn} do
-      %{id: legal_entity_id} = insert(:prm, :legal_entity)
-      division = insert(:prm, :division)
-      party = insert(:prm, :party, tax_id: "3067305998")
-      employee = insert(:prm, :employee, party: party, division: division)
-
-      employee_request_params =
-        doctor_request()
-        |> put_in(["employee_request", "declaration_limit"], nil)
-        |> put_in(["employee_request", "employee_id"], employee.id)
-        |> put_in(["employee_request", "division_id"], division.id)
-
-      conn = put_client_id_header(conn, legal_entity_id)
-      conn = post(conn, employee_request_path(conn, :create), employee_request_params)
-      assert resp = json_response(conn, 422)
-
-      assert "$.employee_request.declaration_limit" ==
-               resp
-               |> get_in(["error", "invalid"])
-               |> List.first()
-               |> Map.get("entry")
-    end
-
     test "with invalid employee_id", %{conn: conn} do
       legal_entity_id = "8b797c23-ba47-45f2-bc0f-521013e01074"
       insert(:prm, :legal_entity, id: legal_entity_id)
@@ -1005,6 +982,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "can approve employee request with employee_id", %{conn: conn} do
+      insert(:prm, :global_parameter, parameter: "declaration_limit", value: "2000")
       %{id: legal_entity_id} = insert(:prm, :legal_entity)
       %{id: division_id} = insert(:prm, :division)
 
@@ -1066,6 +1044,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "can approve employee request if email matches", %{conn: conn} do
+      insert(:prm, :global_parameter, parameter: "declaration_limit", value: "2000")
       legal_entity = insert(:prm, :legal_entity)
       party = insert(:prm, :party, id: "01981ab9-904c-4c36-88ab-959a94087483")
 
@@ -1127,6 +1106,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "can approve employee request if you created it'", %{conn: conn} do
+      insert(:prm, :global_parameter, parameter: "declaration_limit", value: "2000")
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division)
       party = insert(:prm, :party, id: "01981ab9-904c-4c36-88ab-959a94087483")
@@ -1162,6 +1142,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "can approve employee request with employee_id'", %{conn: conn} do
+      insert(:prm, :global_parameter, parameter: "declaration_limit", value: "2000")
       employee = insert(:prm, :employee)
       insert(:prm, :party, id: "01981ab9-904c-4c36-88ab-959a94087483", tax_id: "2222222225")
       %{id: division_id} = insert(:prm, :division)
@@ -1203,6 +1184,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "cannot approve employee request with existing user_id", %{conn: conn} do
+      insert(:prm, :global_parameter, parameter: "declaration_limit", value: "2000")
       party = insert(:prm, :party, tax_id: "2222222225")
       %PartyUser{user_id: user_id} = insert(:prm, :party_user, party: party)
 
@@ -1220,6 +1202,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "cannot approve employee request with existing user_id and party_id, but wrong party_user", %{conn: conn} do
+      insert(:prm, :global_parameter, parameter: "declaration_limit", value: "2000")
       tax_id = "2222222225"
       party = insert(:prm, :party, tax_id: tax_id)
       party2 = insert(:prm, :party, tax_id: "3222222225")

@@ -355,9 +355,6 @@
             "educations",
             "specialities"
           ]
-        },
-        "declaration_limit": {
-          "type": "integer"
         }
       },
       "required": [
