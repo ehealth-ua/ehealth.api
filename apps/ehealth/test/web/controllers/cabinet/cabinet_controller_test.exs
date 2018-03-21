@@ -79,6 +79,16 @@ defmodule Mithril.Web.RegistrationControllerTest do
                |> Map.get("entry")
     end
 
+    test "no params", %{conn: conn} do
+      assert "$.email" ==
+               conn
+               |> post(cabinet_path(conn, :email_verification))
+               |> json_response(422)
+               |> get_in(~w(error invalid))
+               |> hd()
+               |> Map.get("entry")
+    end
+
     test "user with passed email already exists", %{conn: conn} do
       email = "test@example.com"
 

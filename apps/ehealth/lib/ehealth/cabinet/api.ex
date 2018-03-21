@@ -97,6 +97,7 @@ defmodule EHealth.Cabinet.API do
   defp validate_params(:email, params) do
     {%{}, %{email: :string}}
     |> cast(params, [:email])
+    |> validate_required([:email])
     |> validate_format(:email, ~r/^[a-zA-Z0-9.!#$%&’*+\/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/)
   end
 
