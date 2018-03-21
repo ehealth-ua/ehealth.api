@@ -7,6 +7,7 @@ defmodule EHealth.SimpleFactory do
   alias EHealth.LegalEntities.LegalEntity
   alias EHealth.EmployeeRequests.EmployeeRequest, as: Request
   alias EHealth.DeclarationRequests.DeclarationRequest
+  alias EHealth.Utils.NumberGenerator
 
   defmacro fixture(module) do
     quote do
@@ -72,7 +73,8 @@ defmodule EHealth.SimpleFactory do
       updated_by: uuid,
       authentication_method_current: %{},
       printout_content: "",
-      declaration_id: UUID.generate()
+      declaration_id: UUID.generate(),
+      declaration_number: NumberGenerator.generate(1, 2)
     }
     |> Repo.insert!()
   end

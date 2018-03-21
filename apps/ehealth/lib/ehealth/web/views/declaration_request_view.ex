@@ -28,6 +28,7 @@ defmodule EHealth.Web.DeclarationRequestView do
       |> Map.put("id", declaration_request.id)
       |> Map.put("content", declaration_request.printout_content)
       |> Map.put("status", declaration_request.status)
+      |> Map.put("declaration_number", declaration_request.declaration_number)
 
     if Map.get(conn, :display_hash) do
       {:ok, %{"data" => %{"hash" => hash}}} = OPS.get_latest_block()

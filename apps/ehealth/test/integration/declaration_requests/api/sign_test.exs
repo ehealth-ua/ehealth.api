@@ -90,7 +90,8 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
         "person" => %{"key" => "value", "patient_signed" => true},
         "status" => "APPROVED",
         "content" => "<html></html>",
-        "seed" => "some_current_hash"
+        "seed" => "some_current_hash",
+        "declaration_number" => nil
       }
 
       assert :ok == compare_with_db(content, db_data)

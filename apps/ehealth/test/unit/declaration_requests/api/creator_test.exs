@@ -6,6 +6,7 @@ defmodule EHealth.DeclarationRequests.API.CreatorTest do
   alias EHealth.DeclarationRequests.DeclarationRequest
   alias EHealth.DeclarationRequests.API.Creator
   alias EHealth.Repo
+  alias EHealth.Utils.NumberGenerator
 
   describe "request_end_date/5" do
     test "patient is less than 18 years old" do
@@ -570,7 +571,8 @@ defmodule EHealth.DeclarationRequests.API.CreatorTest do
       "inserted_by" => UUID.generate(),
       "updated_by" => UUID.generate(),
       "declaration_id" => UUID.generate(),
-      "channel" => DeclarationRequest.channel(:mis)
+      "channel" => DeclarationRequest.channel(:mis),
+      "declaration_number" => NumberGenerator.generate(1, 2)
     }
 
     allowed =

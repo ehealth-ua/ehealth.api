@@ -21,7 +21,8 @@ defmodule EHealth.ILFactories.DeclarationRequestFactory do
           authentication_method_current: %{},
           printout_content: "something",
           documents: [],
-          channel: DeclarationRequest.channel(:mis)
+          channel: DeclarationRequest.channel(:mis),
+          declaration_number: to_string(Enum.random(1..1000))
         }
       end
     end

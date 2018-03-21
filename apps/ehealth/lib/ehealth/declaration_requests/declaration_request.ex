@@ -48,6 +48,7 @@ defmodule EHealth.DeclarationRequests.DeclarationRequest do
     field(:mpi_id, UUID)
     field(:overlimit, :boolean)
     field(:channel, :string)
+    field(:declaration_number, :string)
 
     timestamps()
   end

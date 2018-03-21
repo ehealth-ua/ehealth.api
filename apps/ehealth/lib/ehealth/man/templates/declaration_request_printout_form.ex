@@ -15,12 +15,12 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
   @documents_dict "DOCUMENT_TYPE"
   @relationship_documents_dict "DOCUMENT_RELATIONSHIP_TYPE"
 
-  def render(declaration_request, authentication_method_current) do
+  def render(declaration_request, declaration_number, authentication_method_current) do
     template_data =
       declaration_request
       |> Poison.encode!()
       |> Poison.decode!()
-      |> map_declaration_data(authentication_method_current)
+      |> map_declaration_data(declaration_number, authentication_method_current)
       |> Map.put(:format, config()[:format])
       |> Map.put(:locale, config()[:locale])
 
@@ -29,9 +29,9 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
     @man_api.render_template(template_id, template_data)
   end
 
-  defp map_declaration_data(nil, _), do: %{}
+  defp map_declaration_data(nil, declaration_number, _), do: %{declaration_number: declaration_number}
 
-  defp map_declaration_data(declaration_request, authentication_method_current) do
+  defp map_declaration_data(declaration_request, declaration_number, authentication_method_current) do
     %{
       person: get_person(declaration_request),
       employee: get_employee(declaration_request),
@@ -40,7 +40,7 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
       confidant_persons: check_confidant_persons(declaration_request),
       authentication_method_current: get_authentication_method_current(authentication_method_current),
       declaration_id: Map.get(declaration_request, "declaration_id", ""),
-      declaration_number: Map.get(declaration_request, "declaration_number", "")
+      declaration_number: declaration_number
     }
   end
 

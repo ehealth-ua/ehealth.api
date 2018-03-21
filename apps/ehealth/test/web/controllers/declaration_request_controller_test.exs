@@ -4,6 +4,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
   use EHealth.Web.ConnCase
   alias Ecto.UUID
   alias EHealth.DeclarationRequests.DeclarationRequest
+  alias EHealth.Utils.NumberGenerator
   import EHealth.SimpleFactory
 
   describe "list declaration requests" do
@@ -521,7 +522,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       insert(:prm, :employee, id: employee_id, legal_entity_id: legal_entity_id)
       %{user_id: user_id} = insert(:prm, :party_user, party: build(:party, tax_id: tax_id))
 
-      %{id: declaration_id} =
+      %{id: declaration_id, declaration_number: declaration_number} =
         insert(
           :il,
           :declaration_request,
@@ -544,6 +545,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       signed_declaration_request =
         data
         |> Map.put("seed", "some_current_hash")
+        |> Map.put("declaration_number", declaration_number)
         |> Poison.encode!()
         |> Base.encode64()
 
@@ -673,7 +675,8 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       authentication_method_current: %{"type" => "NA"},
       printout_content: "",
       declaration_id: UUID.generate(),
-      channel: DeclarationRequest.channel(:mis)
+      channel: DeclarationRequest.channel(:mis),
+      declaration_number: NumberGenerator.generate(1, 2)
     }
   end
 

@@ -22,6 +22,7 @@ defmodule EHealth.DeclarationRequests.API.Creator do
   alias EHealth.Validators.BirthDate
   alias EHealth.Validators.JsonObjects
   alias EHealth.Validators.TaxID
+  alias EHealth.Utils.NumberGenerator
   import EHealth.Utils.TypesConverter, only: [string_to_integer: 1]
   import Ecto.Query
   import Ecto.Changeset
@@ -333,6 +334,7 @@ defmodule EHealth.DeclarationRequests.API.Creator do
     |> put_change(:status, @status_new)
     |> put_change(:inserted_by, user_id)
     |> put_change(:updated_by, user_id)
+    |> put_change(:declaration_number, NumberGenerator.generate(1, 2))
     |> put_party_email()
     |> determine_auth_method_for_mpi(channel)
     |> generate_printout_form()
@@ -691,6 +693,7 @@ defmodule EHealth.DeclarationRequests.API.Creator do
 
   def generate_printout_form(changeset) do
     form_data = get_field(changeset, :data)
+    declaration_number = get_field(changeset, :declaration_number)
 
     authentication_method_current =
       case get_change(changeset, :authentication_method_default) do
@@ -698,7 +701,7 @@ defmodule EHealth.DeclarationRequests.API.Creator do
         _ -> get_change(changeset, :authentication_method_current)
       end
 
-    case DeclarationRequestPrintoutForm.render(form_data, authentication_method_current) do
+    case DeclarationRequestPrintoutForm.render(form_data, declaration_number, authentication_method_current) do
       {:ok, printout_content} ->
         put_change(changeset, :printout_content, printout_content)
 

@@ -15,7 +15,6 @@ defmodule EHealth.DeclarationRequests.API.Sign do
   alias EHealth.Employees.Employee
   alias HTTPoison.Response
   alias EHealth.Repo
-  alias EHealth.Utils.NumberGenerator
   require Logger
 
   @auth_na DeclarationRequest.authentication_method(:na)
@@ -117,6 +116,7 @@ defmodule EHealth.DeclarationRequests.API.Sign do
       |> Map.put("id", Map.get(declaration_request, :id))
       |> Map.put("status", Map.get(declaration_request, :status))
       |> Map.put("content", Map.get(declaration_request, :printout_content))
+      |> Map.put("declaration_number", Map.get(declaration_request, :declaration_number))
       |> Map.put("seed", current_hash())
 
     case db_content == content do
@@ -222,6 +222,7 @@ defmodule EHealth.DeclarationRequests.API.Sign do
           data: data,
           authentication_method_current: authentication_method_current,
           declaration_id: declaration_id,
+          declaration_number: declaration_number,
           overlimit: overlimit
         },
         headers
@@ -243,7 +244,7 @@ defmodule EHealth.DeclarationRequests.API.Sign do
       "signed_at" => Timex.now(),
       "declaration_request_id" => id,
       "overlimit" => overlimit,
-      "declaration_number" => NumberGenerator.generate(1, 2)
+      "declaration_number" => declaration_number
     })
     |> OPS.create_declaration_with_termination_logic(headers)
   end

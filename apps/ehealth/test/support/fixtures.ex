@@ -19,7 +19,8 @@ defmodule EHealth.Test.Support.Fixtures do
       declaration_id: UUID.generate(),
       authentication_method_current: %{"type" => authentication_method_current_type},
       printout_content: "",
-      channel: DeclarationRequest.channel(:mis)
+      channel: DeclarationRequest.channel(:mis),
+      declaration_number: to_string(Enum.random(1..1000))
     })
   end
 end

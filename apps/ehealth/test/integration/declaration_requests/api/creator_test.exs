@@ -7,6 +7,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
   import Ecto.Changeset, only: [get_change: 2, put_change: 3]
   alias EHealth.DeclarationRequests.API.Creator
   alias EHealth.DeclarationRequests.DeclarationRequest
+  alias EHealth.Utils.NumberGenerator
 
   describe "generate_printout_form/1" do
     setup %{conn: _conn} do
@@ -34,6 +35,8 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
     end
 
     test "updates declaration request with expected printout form when data is valid" do
+      number = NumberGenerator.generate(1, 2)
+
       data =
         "test/data/sign_declaration_request.json"
         |> File.read!()
@@ -47,6 +50,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         %DeclarationRequest{id: 321, data: data}
         |> Ecto.Changeset.change()
         |> put_change(:authentication_method_current, authentication_method_current)
+        |> put_change(:declaration_number, number)
         |> Creator.generate_printout_form()
         |> get_change(:printout_content)
 
@@ -175,7 +179,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
           offline: false
         },
         declaration_id: "",
-        declaration_number: ""
+        declaration_number: number
       }
 
       assert printout_content == Poison.encode!(expected_content)
@@ -207,10 +211,13 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
     end
 
     test "updates declaration request with printout form that has empty fields when data is empty" do
+      number = NumberGenerator.generate(1, 2)
+
       printout_content =
         %DeclarationRequest{id: 321, data: %{}}
         |> Ecto.Changeset.change()
         |> put_change(:authentication_method_current, %{})
+        |> put_change(:declaration_number, number)
         |> Creator.generate_printout_form()
         |> get_change(:printout_content)
 
@@ -296,7 +303,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
           offline: false
         },
         declaration_id: "",
-        declaration_number: ""
+        declaration_number: number
       }
 
       assert printout_content == Poison.encode!(expected_content)

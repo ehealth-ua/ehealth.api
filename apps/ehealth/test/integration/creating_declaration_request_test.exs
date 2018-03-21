@@ -5,6 +5,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
   alias EHealth.DeclarationRequests
   alias EHealth.DeclarationRequests.DeclarationRequest
   alias EHealth.Repo
+  alias EHealth.Utils.NumberGenerator
   import Mox
 
   describe "Happy paths" do
@@ -940,7 +941,8 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       printout_content: "something",
       inserted_by: "f47f94fd-2d77-4b7e-b444-4955812c2a77",
       updated_by: "f47f94fd-2d77-4b7e-b444-4955812c2a77",
-      channel: DeclarationRequest.channel(:mis)
+      channel: DeclarationRequest.channel(:mis),
+      declaration_number: NumberGenerator.generate(1, 2)
     }
 
     %DeclarationRequest{}
