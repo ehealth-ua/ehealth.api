@@ -1,7 +1,9 @@
-Change log for versions 7.41.0 - 7.41.3
+Change log for versions 7.41.0 - 7.41.5
 
 **Patches and bug fixes**:
 
+- fix jwt error mapper (#1986)
+Update Quantum and Timex deps
 dynamic config for Guardian (#1985)
 Drop Gandalf (#1976)
 validate required param email for email_verification call (#1983)
