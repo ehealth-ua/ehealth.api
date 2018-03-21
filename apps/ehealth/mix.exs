@@ -48,7 +48,7 @@ defmodule EHealth.Mixfile do
   defp deps do
     [
       {:confex, "~> 3.2"},
-      {:timex, ">= 3.1.15"},
+      {:timex, "~> 3.2"},
       {:poison, "~> 3.1"},
       {:plug, "~> 1.4"},
       {:cowboy, "~> 1.1"},
@@ -69,7 +69,7 @@ defmodule EHealth.Mixfile do
       {:bamboo_postmark, "~> 0.2.0"},
       {:bamboo_smtp, "~> 1.4.0"},
       {:geo, "~> 1.4"},
-      {:quantum, ">= 2.1.0"},
+      {:quantum, "~> 2.2"},
       {:plug_logger_json, "~> 0.5"},
       {:cipher, "~> 1.3"},
       {:mox, "~> 0.3", only: :test},
