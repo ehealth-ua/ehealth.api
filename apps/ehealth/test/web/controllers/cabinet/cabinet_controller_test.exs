@@ -164,6 +164,13 @@ defmodule Mithril.Web.RegistrationControllerTest do
       |> json_response(401)
     end
 
+    test "invalid JWT", %{conn: conn} do
+      conn
+      |> Plug.Conn.put_req_header("authorization", "Bearer some_stadsf")
+      |> post(cabinet_path(conn, :email_validation))
+      |> json_response(401)
+    end
+
     test "invalid JWT type", %{conn: conn} do
       {:ok, jwt, _} = encode_and_sign(:email, %{email: "email@example.com"}, token_type: "refresh")
 

@@ -162,7 +162,7 @@ defmodule EHealth.Web.FallbackController do
     |> render(EView.Views.Error, :"501")
   end
 
-  def auth_error(conn, {_type, reason}, _opts) do
-    call(conn, {:error, {:access_denied, to_string(reason)}})
+  def auth_error(conn, _, _opts) do
+    call(conn, {:error, :access_denied})
   end
 end
