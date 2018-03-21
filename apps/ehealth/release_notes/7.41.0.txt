@@ -1,0 +1,9 @@
+Change log for versions 7.41.0 - 7.41.3
+
+**Patches and bug fixes**:
+
+dynamic config for Guardian (#1985)
+Drop Gandalf (#1976)
+validate required param email for email_verification call (#1983)
+
+
