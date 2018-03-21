@@ -1,7 +1,8 @@
-Change log for versions 7.41.0 - 7.41.5
+Change log for versions 7.41.0 - 7.41.6
 
 **Patches and bug fixes**:
 
+drop declaration_limit from employee_request (#1982)
 - fix jwt error mapper (#1986)
 Update Quantum and Timex deps
 dynamic config for Guardian (#1985)
