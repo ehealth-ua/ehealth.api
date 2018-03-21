@@ -1,7 +1,8 @@
-Change log for versions 7.41.0 - 7.41.9
+Change log for versions 7.41.0 - 7.41.10
 
 **Patches and bug fixes**:
 
+Fix deduplication job (#1988)
 fix approving declaration_request without documents
 fix declaration_limit migration
 remove declaration form from generated links (#1984)
