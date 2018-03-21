@@ -12,12 +12,10 @@ defmodule EHealth.DeclarationRequests.API.Approve do
 
   @auth_otp DeclarationRequest.authentication_method(:otp)
   @auth_offline DeclarationRequest.authentication_method(:offline)
-  @declaration_doc [%{"type" => "person.DECLARATION_FORM"}]
 
   def verify(declaration_request, code) do
     with {:ok, _} <- verify_auth(declaration_request, code),
-         docs <- prepare_documents_list(declaration_request),
-         {:ok, _} <- check_documents(docs, declaration_request.id, {:ok, true}),
+         {:ok, _} <- check_documents(declaration_request.documents, declaration_request.id, {:ok, true}),
          :ok <- validate_declaration_limit(declaration_request) do
       {:ok, true}
     end
@@ -28,12 +26,6 @@ defmodule EHealth.DeclarationRequests.API.Approve do
   end
 
   def verify_auth(_, _), do: {:ok, true}
-
-  defp prepare_documents_list(%{authentication_method_current: %{"type" => @auth_offline}} = declaration_request) do
-    declaration_request.documents
-  end
-
-  defp prepare_documents_list(_), do: @declaration_doc
 
   def check_documents([document | tail], declaration_request_id, acc) do
     case uploaded?(declaration_request_id, document) do
@@ -51,9 +43,7 @@ defmodule EHealth.DeclarationRequests.API.Approve do
     end
   end
 
-  def check_documents([], _declaration_request_id, acc) do
-    acc
-  end
+  def check_documents([], _declaration_request_id, acc), do: acc
 
   def uploaded?(id, %{"type" => type}) do
     resource_name = "declaration_request_#{type}.jpeg"

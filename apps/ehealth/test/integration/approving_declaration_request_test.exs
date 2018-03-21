@@ -219,27 +219,6 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
 
       {:ok, %{conn: conn}}
     end
-
-    test "declaration failed to approve: person.DECLARATION_FORM not uploaded", %{conn: conn} do
-      %{id: id} =
-        insert(
-          :il,
-          :declaration_request,
-          authentication_method_current: %{
-            "type" => "OTP",
-            "number" => "+380972805261"
-          }
-        )
-
-      resp =
-        conn
-        |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
-        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: ""}))
-        |> patch("/api/declaration_requests/#{id}/actions/approve", Poison.encode!(%{"verification_code" => "12345"}))
-        |> json_response(409)
-
-      assert "Documents person.DECLARATION_FORM is not uploaded" == resp["error"]["message"]
-    end
   end
 
   describe "Offline verification" do

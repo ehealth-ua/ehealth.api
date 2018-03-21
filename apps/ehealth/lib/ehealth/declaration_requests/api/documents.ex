@@ -60,8 +60,8 @@ defmodule EHealth.DeclarationRequests.API.Documents do
   end
 
   def gather_documents_list(person) do
-    person_documents =
-      if person["tax_id"], do: ["person.SSN", "person.DECLARATION_FORM"], else: ["person.DECLARATION_FORM"]
+    # Removed person.DECLARATION_FORM
+    person_documents = if person["tax_id"], do: ["person.SSN"], else: []
 
     person_documents = person_documents ++ Enum.map(person["documents"], &"person.#{&1["type"]}")
 

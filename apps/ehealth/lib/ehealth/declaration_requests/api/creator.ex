@@ -209,12 +209,12 @@ defmodule EHealth.DeclarationRequests.API.Creator do
 
     case authorization["type"] do
       @auth_na ->
-        render_declaration_form_link(declaration_request)
+        {:ok, declaration_request}
 
       @auth_otp ->
         case OTPVerification.initialize(authorization["number"]) do
           {:ok, _} ->
-            render_declaration_form_link(declaration_request)
+            {:ok, declaration_request}
 
           {:error, error} ->
             {:error, error}
@@ -228,13 +228,6 @@ defmodule EHealth.DeclarationRequests.API.Creator do
           {:error, _} = bad_result ->
             bad_result
         end
-    end
-  end
-
-  defp render_declaration_form_link(%DeclarationRequest{id: id} = declaration_request) do
-    case Documents.render_links(id, ["PUT"], ["person.DECLARATION_FORM"]) do
-      {:ok, documents} -> update_documents(declaration_request, documents)
-      err -> err
     end
   end
 

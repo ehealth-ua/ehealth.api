@@ -386,13 +386,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       assert "<html><body>Printout form for declaration request. tax_id = #{tax_id}</body></html>" ==
                resp["data"]["content"]
 
-      assert [
-               %{
-                 "type" => "person.DECLARATION_FORM",
-                 "url" => "http://some_resource.com/#{id}/declaration_request_person.DECLARATION_FORM.jpeg"
-               }
-             ] == resp["urgent"]["documents"]
-
+      refute Map.has_key?(resp["urgent"], "documents")
       assert "CANCELLED" = Repo.get(DeclarationRequest, d1.id).status
       assert "CANCELLED" = Repo.get(DeclarationRequest, d2.id).status
     end
@@ -437,10 +431,6 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
                %{
                  "type" => "person.PASSPORT",
                  "url" => "http://some_resource.com/#{id}/declaration_request_person.PASSPORT.jpeg"
-               },
-               %{
-                 "type" => "person.DECLARATION_FORM",
-                 "url" => "http://some_resource.com/#{id}/declaration_request_person.DECLARATION_FORM.jpeg"
                },
                %{
                  "type" => "person.SSN",
