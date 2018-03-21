@@ -1,7 +1,8 @@
-Change log for versions 7.41.0 - 7.41.7
+Change log for versions 7.41.0 - 7.41.8
 
 **Patches and bug fixes**:
 
+fix declaration_limit migration
 remove declaration form from generated links (#1984)
 drop declaration_limit from employee_request (#1982)
 - fix jwt error mapper (#1986)
