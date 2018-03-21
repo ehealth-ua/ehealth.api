@@ -1,7 +1,8 @@
-Change log for versions 7.41.0 - 7.41.10
+Change log for versions 7.41.0 - 7.41.11
 
 **Patches and bug fixes**:
 
+add declaration_number to declaration_request (#1990)
 Fix deduplication job (#1988)
 fix approving declaration_request without documents
 fix declaration_limit migration
