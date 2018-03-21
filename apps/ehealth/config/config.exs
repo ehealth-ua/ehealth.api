@@ -119,19 +119,6 @@ config :ehealth, EHealth.API.OPS,
     timeout: {:system, :integer, "OPS_REQUEST_TIMEOUT", 30_000}
   ]
 
-# Configures Gandalf API
-config :ehealth, EHealth.API.Gandalf,
-  endpoint: {:system, "GNDF_ENDPOINT"},
-  client_id: {:system, "GNDF_CLIENT_ID"},
-  client_secret: {:system, "GNDF_CLIENT_SECRET"},
-  application_id: {:system, "GNDF_APPLICATION_ID"},
-  table_id: {:system, "GNDF_TABLE_ID"},
-  hackney_options: [
-    connect_timeout: {:system, :integer, "GNDF_REQUEST_TIMEOUT", 30_000},
-    recv_timeout: {:system, :integer, "GNDF_REQUEST_TIMEOUT", 30_000},
-    timeout: {:system, :integer, "GNDF_REQUEST_TIMEOUT", 30_000}
-  ]
-
 # configure emails
 config :ehealth, :emails,
   default: %{

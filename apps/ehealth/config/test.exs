@@ -27,8 +27,6 @@ config :ehealth, EHealth.API.OTPVerification, endpoint: {:system, "OTP_VERIFICAT
 
 config :ehealth, EHealth.API.MPI, endpoint: {:system, "MPI_ENDPOINT", "http://localhost:4040"}
 
-config :ehealth, EHealth.API.Gandalf, endpoint: {:system, "GNDF_ENDPOINT", "http://localhost:4040"}
-
 config :ehealth, EHealth.API.Signature, enabled: {:system, :boolean, "DIGITAL_SIGNATURE_ENABLED", false}
 
 config :ehealth,
@@ -55,14 +53,6 @@ config :ehealth, EHealth.API.MediaStorage,
   medication_request_request_bucket:
     {:system, "MEDIA_STORAGE_MEDICATION_REQUEST_REQUEST_BUCKET", "medication-request-requests-dev"},
   enabled?: {:system, :boolean, "MEDIA_STORAGE_ENABLED", false}
-
-# Configures Gandalf API
-config :ehealth, EHealth.API.Gandalf,
-  endpoint: {:system, "GNDF_ENDPOINT", "https://api.gndf.io"},
-  client_id: {:system, "GNDF_CLIENT_ID", "some_client_id"},
-  client_secret: {:system, "GNDF_CLIENT_SECRET", "some_client_secret"},
-  application_id: {:system, "GNDF_APPLICATION_ID", "some_gndf_application_id"},
-  table_id: {:system, "GNDF_TABLE_ID", "some_gndf_table_id"}
 
 # employee request invitation
 # Configures employee request invitation template
