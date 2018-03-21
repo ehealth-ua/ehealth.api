@@ -43,7 +43,7 @@ defmodule EHealth.DeclarationRequests.API.Approve do
     end
   end
 
-  def check_documents([], _declaration_request_id, acc), do: acc
+  def check_documents(_, _declaration_request_id, acc), do: acc
 
   def uploaded?(id, %{"type" => type}) do
     resource_name = "declaration_request_#{type}.jpeg"
