@@ -109,11 +109,12 @@ defmodule EHealth.Web.RegisterControllerTest do
 
     test "success with status PROCESSED", %{conn: conn} do
       insert(:il, :dictionary_document_type)
+      insert(:il, :dictionary_register_type)
 
       attrs = %{
         file: get_csv_file("valid"),
         file_name: "persons",
-        type: "death",
+        type: "DEATH_REGISTRATION",
         person_type: "patient"
       }
 
@@ -199,6 +200,25 @@ defmodule EHealth.Web.RegisterControllerTest do
                |> get_in(~w(error invalid))
 
       assert "$.person_type" == invalid["entry"]
+    end
+
+    test "invalid dictionary type", %{conn: conn} do
+      insert(:il, :dictionary_register_type)
+
+      attrs = %{
+        file: get_csv_file("valid"),
+        file_name: "persons",
+        type: "death",
+        person_type: "patient"
+      }
+
+      assert [invalid] =
+               conn
+               |> post(register_path(conn, :create), attrs)
+               |> json_response(422)
+               |> get_in(~w(error invalid))
+
+      assert "$.type" == invalid["entry"]
     end
 
     test "invalid person_type", %{conn: conn} do

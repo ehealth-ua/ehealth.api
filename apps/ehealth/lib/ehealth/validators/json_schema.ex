@@ -53,7 +53,8 @@ defmodule EHealth.Validators.JsonSchema do
     :medication,
     :declaration_request,
     :division,
-    :employee_request
+    :employee_request,
+    :registers
   ]
 
   def validate(schema, attrs) when schema in @schemas_with_dictionaries do

@@ -85,6 +85,14 @@ defmodule EHealth.ILFactories.DictionaryFactory do
         )
       end
 
+      def dictionary_register_type_factory do
+        build(
+          :dictionary,
+          name: "REGISTER_TYPE",
+          values: %{DEATH_REGISTRATION: "Реєстрація смерті"}
+        )
+      end
+
       def dictionary_address_type_factory do
         build(
           :dictionary,
