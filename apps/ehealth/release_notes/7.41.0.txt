@@ -1,7 +1,8 @@
-Change log for versions 7.41.0 - 7.41.11
+Change log for versions 7.41.0 - 7.41.12
 
 **Patches and bug fixes**:
 
+improve creating declaration request (#1994)
 add declaration_number to declaration_request (#1990)
 Fix deduplication job (#1988)
 fix approving declaration_request without documents
@@ -14,4 +15,6 @@ dynamic config for Guardian (#1985)
 Drop Gandalf (#1976)
 validate required param email for email_verification call (#1983)
 
+**Other**:
 
+declaration_number added
