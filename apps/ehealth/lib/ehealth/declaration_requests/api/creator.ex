@@ -276,9 +276,9 @@ defmodule EHealth.DeclarationRequests.API.Creator do
     from(
       p in DeclarationRequest,
       where: p.status in [@status_new, @status_approved],
-      where: fragment("? #>> ? = ?", p.data, "{person, tax_id}", ^tax_id),
-      where: fragment("? #>> ? = ?", p.data, "{employee, id}", ^employee_id),
-      where: fragment("? #>> ? = ?", p.data, "{legal_entity, id}", ^legal_entity_id)
+      where: fragment("?->'person'->>'tax_id' = ?", p.data, ^tax_id),
+      where: fragment("?->'employee'->>'id' = ?", p.data, ^employee_id),
+      where: fragment("?->'legal_entity'->>'id' = ?", p.data, ^legal_entity_id)
     )
   end
 
@@ -289,8 +289,8 @@ defmodule EHealth.DeclarationRequests.API.Creator do
       p in DeclarationRequest,
       where: p.status in [@status_new, @status_approved],
       where: fragment("? @> ?", p.data, ^person_where),
-      where: fragment("? #>> ? = ?", p.data, "{employee, id}", ^employee_id),
-      where: fragment("? #>> ? = ?", p.data, "{legal_entity, id}", ^legal_entity_id)
+      where: fragment("?->'employee'->>'id' = ?", p.data, ^employee_id),
+      where: fragment("?->'legal_entity'->>'id' = ?", p.data, ^legal_entity_id)
     )
   end
 

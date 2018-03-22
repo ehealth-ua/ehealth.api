@@ -520,8 +520,9 @@ defmodule EHealth.DeclarationRequests.API.CreatorTest do
       {:ok, pending_declaration_req_2} = copy_declaration_request(existing_declaration_request_data, "APPROVED")
 
       query = Creator.pending_declaration_requests(%{"tax_id" => "111"}, "222", "333")
-
-      assert [pending_declaration_req_1, pending_declaration_req_2] == Repo.all(query)
+      requests = Repo.all(query)
+      assert pending_declaration_req_1 in requests
+      assert pending_declaration_req_2 in requests
     end
 
     test "returns pending requests without tax_id" do
