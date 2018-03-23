@@ -33,8 +33,6 @@ defmodule EHealth.Web.ConnCase do
   end
 
   setup tags do
-    _ = tags
-
     :ok = Ecto.Adapters.SQL.Sandbox.checkout(EHealth.Repo)
     :ok = Ecto.Adapters.SQL.Sandbox.checkout(EHealth.PRMRepo)
     :ok = Ecto.Adapters.SQL.Sandbox.checkout(EHealth.EventManagerRepo)

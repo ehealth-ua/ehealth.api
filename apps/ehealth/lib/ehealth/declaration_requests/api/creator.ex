@@ -4,7 +4,6 @@ defmodule EHealth.DeclarationRequests.API.Creator do
   use Confex, otp_app: :ehealth
   use Timex
   alias Ecto.Changeset
-  alias Ecto.Multi
   alias Ecto.UUID
   alias EHealth.API.Mithril
   alias EHealth.API.OTPVerification

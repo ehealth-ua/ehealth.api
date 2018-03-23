@@ -9,7 +9,7 @@ defmodule EHealth.ILFactories.EmployeeRequestFactory do
       def employee_request_factory do
         %Request{
           data: employee_request_data(),
-          employee_id: Ecto.UUID.generate(),
+          employee_id: UUID.generate(),
           status: "NEW"
         }
       end

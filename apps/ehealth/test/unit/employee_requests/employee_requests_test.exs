@@ -3,7 +3,6 @@ defmodule EHealth.Unit.EmployeeRequestsTest do
 
   use EHealth.Web.ConnCase, async: false
 
-  import Ecto.Query
   alias EHealth.EmployeeRequests
   alias EHealth.EmployeeRequests.EmployeeRequest, as: Request
   alias EHealth.EventManagerRepo
@@ -11,45 +10,37 @@ defmodule EHealth.Unit.EmployeeRequestsTest do
   alias EHealth.Repo
   alias Ecto.UUID
 
+  @expired_status Request.status(:expired)
+
   test "terminate outdated employee_requests" do
     employee_id = UUID.generate()
-    employee_request1 = insert(:il, :employee_request, employee_id: employee_id)
-    employee_request2 = insert(:il, :employee_request)
-    insert(:il, :employee_request)
-    inserted_at = NaiveDateTime.add(NaiveDateTime.utc_now(), -86_400 * 10, :seconds)
+    inserted_at = Timex.shift(NaiveDateTime.utc_now(), days: -10)
 
-    employee_request1
-    |> Ecto.Changeset.change(inserted_at: inserted_at)
-    |> Repo.update()
-
-    employee_request2
-    |> Ecto.Changeset.change(inserted_at: NaiveDateTime.add(inserted_at, 10, :seconds))
-    |> Repo.update()
-
-    assert 3 = Request |> Repo.all() |> Enum.count()
+    employee_request_expired = insert(:il, :employee_request, employee_id: employee_id, inserted_at: inserted_at)
+    _employee_request_expired2 = insert(:il, :employee_request, inserted_at: inserted_at)
+    employee_request_active = insert(:il, :employee_request)
 
     insert(:prm, :global_parameter, parameter: "employee_request_term_unit", value: "DAYS")
     insert(:prm, :global_parameter, parameter: "employee_request_expiration", value: "5")
 
     EmployeeRequests.terminate_employee_requests()
 
-    request_id = employee_request1.id
-    expired_status = Request.status(:expired)
-    assert %{status: ^expired_status} = Repo.get(Request, request_id)
+    assert %{status: @expired_status} = Repo.get(Request, employee_request_expired.id)
 
-    assert [event1, _event2] =
-             Event
-             |> order_by([e], e.inserted_at)
-             |> EventManagerRepo.all()
+    [event1 | _] = events = EventManagerRepo.all(Event)
+    events_expired_entities_ids = Enum.map(events, &Map.get(&1, :entity_id))
+    events_expired_properties = Enum.map(events, &Map.get(&1, :properties))
 
+    assert 2 = Enum.count(events)
     assert %Event{} = event1
     assert "EmployeeRequest" == event1.entity_type
     assert "StatusChangeEvent" == event1.event_type
-    assert request_id == event1.entity_id
+    assert employee_request_expired.id in events_expired_entities_ids
+    refute employee_request_active.id in events_expired_entities_ids
 
     assert %{
-             "status" => %{"new_value" => expired_status},
+             "status" => %{"new_value" => @expired_status},
              "employee_id" => %{"new_value" => employee_id}
-           } == event1.properties
+           } in events_expired_properties
   end
 end
