@@ -177,14 +177,13 @@ defmodule EHealth.Web.RegisterControllerTest do
 
       assert "PROCESSING" = data["status"]
 
-      # ToDO - fix error line
-      #      assert [
-      #               "Row has length 4 - expected length 2 on line 4",
-      #               "Invalid type - expected one of #{dict_values} on line 6",
-      #               "Row has length 1 - expected length 2 on line 7",
-      #               "Invalid number - expected non empty string on line 8",
-      #               "Row has length 1 - expected length 2 on line 10"
-      #             ] == data["errors"]
+      assert [
+               "Row has length 4 - expected length 2 on line 4",
+               "Invalid type - expected one of #{dict_values} on line 6",
+               "Row has length 1 - expected length 2 on line 7",
+               "Invalid number - expected non empty string on line 8",
+               "Row has length 1 - expected length 2 on line 10"
+             ] == data["errors"]
     end
 
     test "person_type not passed", %{conn: conn} do

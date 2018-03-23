@@ -126,7 +126,6 @@ defmodule EHealth.Registers.API do
         parsed_csv
         |> Enum.map(&Task.async(fn -> process_register_entry(&1, register, allowed_types, reason_desc, author_id) end))
         |> Enum.map(&Task.await/1)
-        |> List.flatten()
 
       {:ok, entries}
     else
@@ -280,27 +279,34 @@ defmodule EHealth.Registers.API do
       tmp_line: 1
     }
 
-    Enum.reduce(processed_entries, acc, fn entry, acc ->
+    Enum.reduce(processed_entries, acc, fn entries, acc ->
       acc = Map.update!(acc, :tmp_line, &(&1 + 1))
-
-      case entry do
-        {:ok, %RegisterEntry{status: @status_matched}} ->
-          Map.put(acc, :qty, Map.update!(acc.qty, :total, &(&1 + 1)))
-
-        {:ok, %RegisterEntry{status: @status_not_found}} ->
-          increment_qty(acc, :not_found)
-
-        {:ok, %RegisterEntry{status: @status_processing}} ->
-          acc
-          |> increment_qty(:processing)
-          |> Map.put(:status, @status_processing)
-
-        {:error, msg} ->
-          acc
-          |> increment_qty(:errors)
-          |> Map.update!(:errors, &(&1 ++ [put_line(msg, acc.tmp_line)]))
-      end
+      count_register_qty(entries, acc)
     end)
+  end
+
+  defp count_register_qty({:ok, %RegisterEntry{status: @status_matched}}, acc) do
+    Map.put(acc, :qty, Map.update!(acc.qty, :total, &(&1 + 1)))
+  end
+
+  defp count_register_qty({:ok, %RegisterEntry{status: @status_not_found}}, acc) do
+    increment_qty(acc, :not_found)
+  end
+
+  defp count_register_qty({:ok, %RegisterEntry{status: @status_processing}}, acc) do
+    acc
+    |> increment_qty(:processing)
+    |> Map.put(:status, @status_processing)
+  end
+
+  defp count_register_qty({:error, msg}, acc) do
+    acc
+    |> increment_qty(:errors)
+    |> Map.update!(:errors, &(&1 ++ [put_line(msg, acc.tmp_line)]))
+  end
+
+  defp count_register_qty(entries, acc) when is_list(entries) do
+    Enum.reduce(entries, acc, &count_register_qty/2)
   end
 
   defp put_line(msg, line) do
