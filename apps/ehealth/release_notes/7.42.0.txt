@@ -1,7 +1,10 @@
-Change log for versions 7.42.0 - 7.42.1
+Change log for versions 7.42.0 - 7.42.2
 
 **Patches and bug fixes**:
 
+Fix terminate outdated employee requests test (#2004)
 - fixed error with lines counter (#2003)
 
+**Other**:
 
+Fix terminate outdated employee requests test
