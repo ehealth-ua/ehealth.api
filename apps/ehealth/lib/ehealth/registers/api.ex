@@ -126,6 +126,7 @@ defmodule EHealth.Registers.API do
         parsed_csv
         |> Enum.map(&Task.async(fn -> process_register_entry(&1, register, allowed_types, reason_desc, author_id) end))
         |> Enum.map(&Task.await/1)
+        |> List.flatten()
 
       {:ok, entries}
     else
@@ -185,9 +186,7 @@ defmodule EHealth.Registers.API do
         "inserted_by" => register.inserted_by
       })
       |> set_entry_status(mpi_response)
-      |> maybe_terminate_person_declaration(register.type, reason_desc)
-      |> maybe_deactivate_person(author_id)
-      |> create_register_entry()
+      |> terminate_person_declaration_and_create_entry(register.type, reason_desc, author_id)
     end
   end
 
@@ -211,18 +210,43 @@ defmodule EHealth.Registers.API do
   end
 
   defp set_entry_status(entry_data, {:ok, %{"data" => persons}}) when is_list(persons) and length(persons) > 0 do
-    Map.merge(entry_data, %{
-      "person_id" => hd(persons)["id"],
-      "status" => @status_matched
-    })
+    entry_data =
+      Enum.map(
+        persons,
+        &Map.merge(entry_data, %{
+          "person_id" => &1["id"],
+          "status" => @status_matched
+        })
+      )
+
+    {@status_matched, entry_data}
   end
 
   defp set_entry_status(entry_data, {:ok, %{"data" => []}}) do
-    Map.put(entry_data, "status", @status_not_found)
+    {@status_not_found, [Map.put(entry_data, "status", @status_not_found)]}
   end
 
   defp set_entry_status(entry_data, _) do
-    Map.put(entry_data, "status", @status_processing)
+    {@status_matched, [Map.put(entry_data, "status", @status_processing)]}
+  end
+
+  defp terminate_person_declaration_and_create_entry({@status_matched, entries}, type, reason_desc, author_id) do
+    entries
+    |> Enum.map(
+      &Task.async(fn ->
+        &1
+        |> maybe_terminate_person_declaration(type, reason_desc)
+        |> maybe_deactivate_person(author_id)
+        |> create_register_entry()
+      end)
+    )
+    |> Enum.map(&Task.await/1)
+  end
+
+  defp terminate_person_declaration_and_create_entry({_, entries}, _type, _reason_desc, _author_id) do
+    entries
+    |> Enum.map(&Task.async(fn -> create_register_entry(&1) end))
+    |> Enum.map(&Task.await/1)
   end
 
   defp maybe_terminate_person_declaration(%{"status" => @status_matched} = entry_data, type, reason_desc) do
