@@ -1,0 +1,7 @@
+Change log for versions 7.42.0 - 7.42.1
+
+**Patches and bug fixes**:
+
+- fixed error with lines counter (#2003)
+
+
