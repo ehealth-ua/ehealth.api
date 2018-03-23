@@ -1,7 +1,9 @@
-Change log for versions 7.41.0 - 7.41.13
+Change log for versions 7.41.0 - 7.41.15
 
 **Patches and bug fixes**:
 
+add cabinet person details
+add cabinet person details
 register JSON dictionaries mapper (#1996)
 improve creating declaration request (#1994)
 add declaration_number to declaration_request (#1990)
@@ -18,4 +20,5 @@ validate required param email for email_verification call (#1983)
 
 **Other**:
 
+Person details#1917 (#1999)
 declaration_number added
