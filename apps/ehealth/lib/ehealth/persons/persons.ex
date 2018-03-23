@@ -42,7 +42,20 @@ defmodule EHealth.Persons do
   def get_person(headers) do
     user_id = get_consumer_id(headers)
 
-    with {:ok, %{"data" => person}} <- MPI.person(user_id, headers), do: {:ok, person}
+    with {:ok, %{"data" => user}} <- Mithril.get_user_by_id(user_id, headers),
+         {:ok, %{"data" => person}} <- MPI.person(user["person_id"], headers) do
+      {:ok, person}
+    end
+  end
+
+  def get_details(headers) do
+    user_id = get_consumer_id(headers)
+
+    with {:ok, %{"data" => user}} <- Mithril.get_user_by_id(user_id, headers),
+         {:ok, %{"data" => person}} <- MPI.person(user["person_id"], headers),
+         :ok <- check_user_person_id(user, person["id"]) do
+      {:ok, person}
+    end
   end
 
   defp check_user_person_id(user, id) do

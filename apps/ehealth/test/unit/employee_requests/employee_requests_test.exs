@@ -23,7 +23,7 @@ defmodule EHealth.Unit.EmployeeRequestsTest do
     |> Repo.update()
 
     employee_request2
-    |> Ecto.Changeset.change(inserted_at: inserted_at)
+    |> Ecto.Changeset.change(inserted_at: NaiveDateTime.add(inserted_at, 10, :seconds))
     |> Repo.update()
 
     assert 3 = Request |> Repo.all() |> Enum.count()

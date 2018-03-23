@@ -40,12 +40,34 @@ defmodule EHealth.Web.CabinetView do
     )
   end
 
-  def render("show_details.json", %{person: person}) do
+  def render("personal_info.json", %{person: person}) do
     %{
       mpi_id: person["id"],
       first_name: person["first_name"],
       last_name: person["last_name"],
       second_name: person["second_name"]
     }
+  end
+
+  def render("person_details.json", %{person: person}) do
+    Map.take(person, ~w(
+      last_name
+      first_name
+      second_name
+      birth_date
+      birth_country
+      birth_settlement
+      gender
+      email
+      tax_id
+      documents
+      addresses
+      phones
+      secret
+      emergency_contact
+      process_disclosure_data_consent
+      authentication_methods
+      preferred_way_communication
+    ))
   end
 end

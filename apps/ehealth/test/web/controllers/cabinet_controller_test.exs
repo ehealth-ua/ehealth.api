@@ -73,12 +73,38 @@ defmodule EHealth.Web.CabinetControllerTest do
       response =
         "c8912855-21c3-4771-ba18-bcd8e524f14c"
         |> MockServer.get_person()
-        |> Map.put("first_name", "FirstName")
-        |> Map.put("last_name", "LastName")
-        |> Map.put("second_name", "SecondName")
+        |> Map.put("first_name", "Алекс")
+        |> Map.put("last_name", "Джонс")
+        |> Map.put("second_name", "Петрович")
         |> Map.put("addresses", [
-          %{"type" => "REGISTRATION"},
-          %{"type" => "RESIDENCE"}
+          %{
+            "zip" => "02090",
+            "type" => "REGISTRATION",
+            "street_type" => "STREET",
+            "street" => "Ніжинська",
+            "settlement_type" => "CITY",
+            "settlement_id" => "707dbc55-cb6b-4aaa-97c1-2a1e03476100",
+            "settlement" => "СОРОКИ-ЛЬВІВСЬКІ",
+            "region" => "ПУСТОМИТІВСЬКИЙ",
+            "country" => "UA",
+            "building" => "15",
+            "area" => "ЛЬВІВСЬКА",
+            "apartment" => "23"
+          },
+          %{
+            "zip" => "02090",
+            "type" => "RESIDENCE",
+            "street_type" => "STREET",
+            "street" => "Ніжинська",
+            "settlement_type" => "CITY",
+            "settlement_id" => "707dbc55-cb6b-4aaa-97c1-2a1e03476100",
+            "settlement" => "СОРОКИ-ЛЬВІВСЬКІ",
+            "region" => "ПУСТОМИТІВСЬКИЙ",
+            "country" => "UA",
+            "building" => "15",
+            "area" => "ЛЬВІВСЬКА",
+            "apartment" => "23"
+          }
         ])
         |> Map.put("tax_id", "2222222225")
         |> Map.put("birth_date", birth_date)
@@ -487,7 +513,7 @@ defmodule EHealth.Web.CabinetControllerTest do
 
   describe "get person details" do
     test "no required header", %{conn: conn} do
-      conn = get(conn, cabinet_path(conn, :show_details))
+      conn = get(conn, cabinet_path(conn, :personal_info))
       assert resp = json_response(conn, 401)
       assert %{"error" => %{"type" => "access_denied", "message" => "Missing header x-consumer-metadata"}} = resp
     end
@@ -497,17 +523,16 @@ defmodule EHealth.Web.CabinetControllerTest do
 
       conn =
         conn
-        |> put_req_header("x-consumer-id", "c8912855-21c3-4771-ba18-bcd8e524f14c")
+        |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
         |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: legal_entity.id}))
 
-      conn = get(conn, cabinet_path(conn, :show_details))
-
+      conn = get(conn, cabinet_path(conn, :personal_info))
       response_data = json_response(conn, 200)["data"]
 
       assert "c8912855-21c3-4771-ba18-bcd8e524f14c" == response_data["mpi_id"]
-      assert "FirstName" == response_data["first_name"]
-      assert "LastName" == response_data["last_name"]
-      assert "SecondName" == response_data["second_name"]
+      assert "Алекс" == response_data["first_name"]
+      assert "Джонс" == response_data["last_name"]
+      assert "Петрович" == response_data["second_name"]
     end
   end
 
@@ -562,6 +587,34 @@ defmodule EHealth.Web.CabinetControllerTest do
 
       assert %{"data" => %{"id" => "0cd6a6f0-9a71-4aa7-819d-6c158201a282", "status" => "terminated"}} =
                json_response(conn, 200)
+    end
+  end
+
+  describe "person details" do
+    test "no required header", %{conn: conn} do
+      conn = get(conn, cabinet_path(conn, :person_details))
+      assert resp = json_response(conn, 401)
+      assert %{"error" => %{"type" => "access_denied", "message" => "Missing header x-consumer-metadata"}} = resp
+    end
+
+    test "success get person details", %{conn: conn} do
+      legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
+      insert(:prm, :party_user, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c")
+
+      conn =
+        conn
+        |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
+        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: legal_entity.id}))
+
+      conn = get(conn, cabinet_path(conn, :person_details))
+      assert response = json_response(conn, 200)
+
+      schema =
+        "specs/json_schemas/person/person_create_update.json"
+        |> File.read!()
+        |> Poison.decode!()
+
+      assert :ok = NExJsonSchema.Validator.validate(schema, response["data"])
     end
   end
 end

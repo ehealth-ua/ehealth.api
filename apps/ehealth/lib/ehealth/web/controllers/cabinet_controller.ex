@@ -58,8 +58,14 @@ defmodule EHealth.Web.CabinetController do
     end
   end
 
-  def show_details(conn, _params) do
-    with {:ok, person} <- Persons.get_person(conn.req_headers), do: render(conn, "show_details.json", person: person)
+  def personal_info(conn, _params) do
+    with {:ok, person} <- Persons.get_person(conn.req_headers), do: render(conn, "personal_info.json", person: person)
+  end
+
+  def person_details(conn, _) do
+    with {:ok, person} <- Persons.get_details(conn.req_headers) do
+      render(conn, "person_details.json", person: person)
+    end
   end
 
   def terminate_declaration(conn, %{"id" => id} = params) do

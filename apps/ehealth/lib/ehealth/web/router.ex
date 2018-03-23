@@ -223,7 +223,8 @@ defmodule EHealthWeb.Router do
       pipe_through([:api_consumer_id, :cabinet])
 
       patch("/persons/:id", CabinetController, :update_person)
-      get("/persons", CabinetController, :show_details)
+      get("/persons", CabinetController, :personal_info)
+      get("/persons/details", CabinetController, :person_details)
       post("/declaration_requests", CabinetController, :create_declaration_request)
       patch("/declarations/:id/actions/terminate", CabinetController, :terminate_declaration)
     end

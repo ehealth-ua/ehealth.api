@@ -695,7 +695,7 @@ defmodule EHealth.MockServer do
       "birth_country" => "string value",
       "birth_settlement" => "string value",
       "gender" => "string value",
-      "email" => "string value",
+      "email" => "test@example.com",
       "tax_id" => "string value",
       "national_id" => "string value",
       "death_date" => "2091-08-19",
