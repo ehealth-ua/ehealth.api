@@ -364,7 +364,6 @@
                   "birth_date",
                   "birth_country",
                   "birth_settlement",
-                  "tax_id",
                   "gender",
                   "secret",
                   "documents_person",
