@@ -1,7 +1,8 @@
-Change log for versions 7.42.0 - 7.42.5
+Change log for versions 7.42.0 - 7.42.6
 
 **Patches and bug fixes**:
 
+add declaration_request data legal_entity id index
 Confidant person tax_id is optional (#2008)
 Confidant person tax_id is optional
 Added new line to the EOF
