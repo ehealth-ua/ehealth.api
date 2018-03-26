@@ -544,8 +544,9 @@ defmodule EHealth.DeclarationRequests.API.CreatorTest do
       {:ok, pending_declaration_req_2} = copy_declaration_request(existing_declaration_request_data, "APPROVED")
 
       query = Creator.pending_declaration_requests(%{}, "222", "333")
-
-      assert [pending_declaration_req_1, pending_declaration_req_2] == Repo.all(query)
+      declarations = Repo.all(query)
+      assert pending_declaration_req_1 in declarations
+      assert pending_declaration_req_2 in declarations
     end
   end
 
