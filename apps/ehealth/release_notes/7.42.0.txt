@@ -1,7 +1,10 @@
-Change log for versions 7.42.0 - 7.42.2
+Change log for versions 7.42.0 - 7.42.5
 
 **Patches and bug fixes**:
 
+Confidant person tax_id is optional (#2008)
+Confidant person tax_id is optional
+Added new line to the EOF
 Fix terminate outdated employee requests test (#2004)
 - fixed error with lines counter (#2003)
 
