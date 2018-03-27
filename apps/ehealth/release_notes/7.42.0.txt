@@ -1,7 +1,10 @@
-Change log for versions 7.42.0 - 7.42.6
+Change log for versions 7.42.0 - 7.42.9
 
 **Patches and bug fixes**:
 
+Split cabinet controller to auth, persons and declaration.. (#2010)
+Split cabinet controller to auth, persons and declaration controllers
+Complete structure refactoring
 add declaration_request data legal_entity id index
 Confidant person tax_id is optional (#2008)
 Confidant person tax_id is optional
@@ -11,4 +14,6 @@ Fix terminate outdated employee requests test (#2004)
 
 **Other**:
 
+- Fix tests
+- Add views
 Fix terminate outdated employee requests test
