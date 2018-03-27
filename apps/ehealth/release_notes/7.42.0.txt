@@ -1,7 +1,8 @@
-Change log for versions 7.42.0 - 7.42.9
+Change log for versions 7.42.0 - 7.42.10
 
 **Patches and bug fixes**:
 
+set dictionaries new STREET_TYPE (#2015)
 Split cabinet controller to auth, persons and declaration.. (#2010)
 Split cabinet controller to auth, persons and declaration controllers
 Complete structure refactoring
