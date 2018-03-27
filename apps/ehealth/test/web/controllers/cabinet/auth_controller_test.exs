@@ -72,7 +72,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
     test "invalid email", %{conn: conn} do
       assert "$.email" ==
                conn
-               |> post(cabinet_path(conn, :email_verification), %{email: "invalid"})
+               |> post(cabinet_auth_path(conn, :email_verification), %{email: "invalid"})
                |> json_response(422)
                |> get_in(~w(error invalid))
                |> hd()
@@ -82,7 +82,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
     test "no params", %{conn: conn} do
       assert "$.email" ==
                conn
-               |> post(cabinet_path(conn, :email_verification))
+               |> post(cabinet_auth_path(conn, :email_verification))
                |> json_response(422)
                |> get_in(~w(error invalid))
                |> hd()
@@ -98,7 +98,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
       assert "User with this email already exists" ==
                conn
-               |> post(cabinet_path(conn, :email_verification), %{email: email})
+               |> post(cabinet_auth_path(conn, :email_verification), %{email: email})
                |> json_response(409)
                |> get_in(~w(error message))
     end
@@ -115,7 +115,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
       end)
 
       conn
-      |> post(cabinet_path(conn, :email_verification), %{email: email})
+      |> post(cabinet_auth_path(conn, :email_verification), %{email: email})
       |> json_response(200)
     end
 
@@ -136,7 +136,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
       end)
 
       conn
-      |> post(cabinet_path(conn, :email_verification), %{email: email})
+      |> post(cabinet_auth_path(conn, :email_verification), %{email: email})
       |> json_response(200)
     end
   end
@@ -149,7 +149,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
       assert token =
                conn
                |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
-               |> post(cabinet_path(conn, :email_validation))
+               |> post(cabinet_auth_path(conn, :email_validation))
                |> json_response(200)
                |> get_in(~w(data token))
 
@@ -160,14 +160,14 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
     test "authorization header not send", %{conn: conn} do
       conn
-      |> post(cabinet_path(conn, :email_validation))
+      |> post(cabinet_auth_path(conn, :email_validation))
       |> json_response(401)
     end
 
     test "invalid JWT", %{conn: conn} do
       conn
       |> Plug.Conn.put_req_header("authorization", "Bearer some_stadsf")
-      |> post(cabinet_path(conn, :email_validation))
+      |> post(cabinet_auth_path(conn, :email_validation))
       |> json_response(401)
     end
 
@@ -176,7 +176,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
       conn
       |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
-      |> post(cabinet_path(conn, :email_validation))
+      |> post(cabinet_auth_path(conn, :email_validation))
       |> json_response(401)
     end
 
@@ -192,7 +192,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
       conn
       |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
-      |> post(cabinet_path(conn, :email_validation))
+      |> post(cabinet_auth_path(conn, :email_validation))
       |> json_response(401)
     end
 
@@ -207,7 +207,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
       conn
       |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
-      |> post(cabinet_path(conn, :email_validation))
+      |> post(cabinet_auth_path(conn, :email_validation))
       |> json_response(401)
     end
   end
@@ -256,7 +256,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
       end)
 
       conn
-      |> post(cabinet_path(conn, :registration, params))
+      |> post(cabinet_auth_path(conn, :registration, params))
       |> json_response(201)
 
       # |> assert_show_response_schema("cabinet")
@@ -291,7 +291,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
       end)
 
       conn
-      |> post(cabinet_path(conn, :registration, params))
+      |> post(cabinet_auth_path(conn, :registration, params))
       |> json_response(201)
 
       # |> assert_show_response_schema("cabinet")
@@ -327,7 +327,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
       end)
 
       conn
-      |> post(cabinet_path(conn, :registration, params))
+      |> post(cabinet_auth_path(conn, :registration, params))
       |> json_response(201)
 
       # |> assert_show_response_schema("cabinet")
@@ -364,7 +364,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
       end)
 
       conn
-      |> post(cabinet_path(conn, :registration, params))
+      |> post(cabinet_auth_path(conn, :registration, params))
       |> json_response(201)
 
       # |> assert_show_response_schema("cabinet")
@@ -404,7 +404,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
       assert "User with this tax_id already exists" ==
                conn
                |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
-               |> post(cabinet_path(conn, :registration), params)
+               |> post(cabinet_auth_path(conn, :registration), params)
                |> json_response(409)
                |> get_in(~w(error message))
     end
@@ -429,7 +429,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
       assert "Registration person and person that sign should be the same" ==
                conn
                |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
-               |> post(cabinet_path(conn, :registration), params)
+               |> post(cabinet_auth_path(conn, :registration), params)
                |> json_response(409)
                |> get_in(~w(error message))
     end
@@ -440,7 +440,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
       assert [err] =
                conn
                |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
-               |> post(cabinet_path(conn, :registration, params))
+               |> post(cabinet_auth_path(conn, :registration, params))
                |> json_response(422)
                |> get_in(~w(error invalid))
 
@@ -449,7 +449,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
     test "jwt not set", %{conn: conn, params: params} do
       conn
-      |> post(cabinet_path(conn, :registration, params))
+      |> post(cabinet_auth_path(conn, :registration, params))
       |> json_response(401)
     end
 
@@ -460,7 +460,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
       err =
         conn
         |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
-        |> post(cabinet_path(conn, :registration, Map.put(params, :signed_person_data, signed_person_data)))
+        |> post(cabinet_auth_path(conn, :registration, Map.put(params, :signed_person_data, signed_person_data)))
         |> json_response(422)
         |> get_in(~w(error invalid))
 
@@ -503,7 +503,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
       assert [err] =
                conn
                |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
-               |> post(cabinet_path(conn, :registration, params))
+               |> post(cabinet_auth_path(conn, :registration, params))
                |> json_response(422)
                |> get_in(~w(error invalid))
 
@@ -555,7 +555,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
       assert [err] =
                conn
                |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
-               |> post(cabinet_path(conn, :registration, params))
+               |> post(cabinet_auth_path(conn, :registration, params))
                |> json_response(422)
                |> get_in(~w(error invalid))
 
@@ -571,7 +571,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
     test "jwt not set", %{conn: conn} do
       conn
-      |> get(cabinet_path(conn, :search_user), %{tax_id: "1234567890"})
+      |> get(cabinet_persons_path(conn, :search_user), %{tax_id: "1234567890"})
       |> json_response(401)
     end
 
@@ -582,7 +582,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
       conn
       |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
-      |> get(cabinet_path(conn, :search_user, %{tax_id: "1234567890"}))
+      |> get(cabinet_persons_path(conn, :search_user, %{tax_id: "1234567890"}))
       |> json_response(200)
     end
 
@@ -593,14 +593,14 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
       conn
       |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
-      |> get(cabinet_path(conn, :search_user), %{tax_id: "1234567890"})
+      |> get(cabinet_persons_path(conn, :search_user), %{tax_id: "1234567890"})
       |> json_response(409)
     end
 
     test "tax_id not set", %{conn: conn, jwt: jwt} do
       conn
       |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
-      |> get(cabinet_path(conn, :search_user), %{tax_id_invalid: "1234567890"})
+      |> get(cabinet_persons_path(conn, :search_user), %{tax_id_invalid: "1234567890"})
       |> json_response(422)
     end
   end

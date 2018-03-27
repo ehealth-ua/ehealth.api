@@ -318,7 +318,7 @@ defmodule EHealth.Web.CabinetControllerTest do
 
   describe "update person" do
     test "no required header", %{conn: conn} do
-      conn = patch(conn, cabinet_path(conn, :update_person, UUID.generate()))
+      conn = patch(conn, cabinet_persons_path(conn, :update_person, UUID.generate()))
       assert resp = json_response(conn, 401)
       assert %{"error" => %{"type" => "access_denied", "message" => "Missing header x-consumer-metadata"}} = resp
     end
@@ -331,7 +331,7 @@ defmodule EHealth.Web.CabinetControllerTest do
         |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
         |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: legal_entity.id}))
 
-      conn = patch(conn, cabinet_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"))
+      conn = patch(conn, cabinet_persons_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"))
       assert resp = json_response(conn, 422)
 
       assert %{
@@ -354,7 +354,7 @@ defmodule EHealth.Web.CabinetControllerTest do
         |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: legal_entity.id}))
 
       conn =
-        patch(conn, cabinet_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{
+        patch(conn, cabinet_persons_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{
           "signed_content" => Base.encode64("invalid")
         })
 
@@ -373,7 +373,7 @@ defmodule EHealth.Web.CabinetControllerTest do
         |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: legal_entity.id}))
 
       conn =
-        patch(conn, cabinet_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{
+        patch(conn, cabinet_persons_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{
           "signed_content" => Base.encode64(Poison.encode!(%{}))
         })
 
@@ -398,7 +398,7 @@ defmodule EHealth.Web.CabinetControllerTest do
         |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: legal_entity.id}))
 
       conn =
-        patch(conn, cabinet_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{
+        patch(conn, cabinet_persons_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{
           "signed_content" => Base.encode64(Poison.encode!(%{"tax_id" => "2222222220"}))
         })
 
@@ -424,7 +424,7 @@ defmodule EHealth.Web.CabinetControllerTest do
         |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: legal_entity.id}))
 
       conn =
-        patch(conn, cabinet_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{
+        patch(conn, cabinet_persons_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{
           "signed_content" => Base.encode64(Poison.encode!(%{"tax_id" => "2222222220"}))
         })
 
@@ -440,7 +440,7 @@ defmodule EHealth.Web.CabinetControllerTest do
         |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: legal_entity.id}))
 
       conn =
-        patch(conn, cabinet_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{
+        patch(conn, cabinet_persons_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{
           "signed_content" => Base.encode64(Poison.encode!(%{}))
         })
 
@@ -455,7 +455,7 @@ defmodule EHealth.Web.CabinetControllerTest do
         |> put_req_header("x-consumer-id", "668d1541-e4cf-4a95-a25a-60d83864ceaf")
         |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: legal_entity.id}))
 
-      conn = patch(conn, cabinet_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{})
+      conn = patch(conn, cabinet_persons_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{})
       assert json_response(conn, 403)
     end
 
@@ -471,7 +471,7 @@ defmodule EHealth.Web.CabinetControllerTest do
         |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: legal_entity.id}))
 
       conn =
-        patch(conn, cabinet_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{
+        patch(conn, cabinet_persons_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{
           "signed_content" =>
             Base.encode64(
               Poison.encode!(%{
@@ -513,7 +513,7 @@ defmodule EHealth.Web.CabinetControllerTest do
 
   describe "get person details" do
     test "no required header", %{conn: conn} do
-      conn = get(conn, cabinet_path(conn, :personal_info))
+      conn = get(conn, cabinet_persons_path(conn, :personal_info))
       assert resp = json_response(conn, 401)
       assert %{"error" => %{"type" => "access_denied", "message" => "Missing header x-consumer-metadata"}} = resp
     end
@@ -526,7 +526,7 @@ defmodule EHealth.Web.CabinetControllerTest do
         |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
         |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: legal_entity.id}))
 
-      conn = get(conn, cabinet_path(conn, :personal_info))
+      conn = get(conn, cabinet_persons_path(conn, :personal_info))
       response_data = json_response(conn, 200)["data"]
 
       assert "c8912855-21c3-4771-ba18-bcd8e524f14c" == response_data["mpi_id"]
@@ -565,7 +565,7 @@ defmodule EHealth.Web.CabinetControllerTest do
         |> put_req_header("edrpou", "2222222220")
         |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
         |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: legal_entity.id}))
-        |> post(cabinet_path(conn, :create_declaration_request), %{
+        |> post(cabinet_declarations_path(conn, :create_declaration_request), %{
           person_id: person_id,
           employee_id: employee.id,
           division_id: employee.division.id
@@ -583,7 +583,7 @@ defmodule EHealth.Web.CabinetControllerTest do
         conn
         |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
         |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: legal_entity.id}))
-        |> patch(cabinet_path(conn, :terminate_declaration, "0cd6a6f0-9a71-4aa7-819d-6c158201a282"))
+        |> patch(cabinet_declarations_path(conn, :terminate_declaration, "0cd6a6f0-9a71-4aa7-819d-6c158201a282"))
 
       assert %{"data" => %{"id" => "0cd6a6f0-9a71-4aa7-819d-6c158201a282", "status" => "terminated"}} =
                json_response(conn, 200)
@@ -592,7 +592,7 @@ defmodule EHealth.Web.CabinetControllerTest do
 
   describe "person details" do
     test "no required header", %{conn: conn} do
-      conn = get(conn, cabinet_path(conn, :person_details))
+      conn = get(conn, cabinet_persons_path(conn, :person_details))
       assert resp = json_response(conn, 401)
       assert %{"error" => %{"type" => "access_denied", "message" => "Missing header x-consumer-metadata"}} = resp
     end
@@ -606,7 +606,7 @@ defmodule EHealth.Web.CabinetControllerTest do
         |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
         |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: legal_entity.id}))
 
-      conn = get(conn, cabinet_path(conn, :person_details))
+      conn = get(conn, cabinet_persons_path(conn, :person_details))
       assert response = json_response(conn, 200)
 
       schema =

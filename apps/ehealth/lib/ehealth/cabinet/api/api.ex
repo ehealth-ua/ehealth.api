@@ -10,6 +10,8 @@ defmodule EHealth.Cabinet.API do
 
   require Logger
 
+  # todo: split functionality of this module for responsibilities
+
   @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
   @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
   @signature_api Application.get_env(:ehealth, :api_resolvers)[:digital_signature]

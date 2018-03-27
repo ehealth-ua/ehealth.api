@@ -94,14 +94,16 @@ defmodule EHealthWeb.Router do
 
     # Cabinet
     scope "/cabinet" do
-      post("/email_verification", CabinetController, :email_verification)
+      post("/email_verification", Cabinet.AuthController, :email_verification, as: :cabinet_auth)
     end
 
     scope "/cabinet" do
       pipe_through([:jwt])
-      post("/email_validation", CabinetController, :email_validation)
-      post("/registration", CabinetController, :registration)
-      get("/users", CabinetController, :search_user)
+
+      post("/email_validation", Cabinet.AuthController, :email_validation, as: :cabinet_auth)
+      post("/registration", Cabinet.AuthController, :registration, as: :cabinet_auth)
+
+      get("/users", Cabinet.PersonsController, :search_user, as: :cabinet_persons)
     end
   end
 
@@ -222,11 +224,23 @@ defmodule EHealthWeb.Router do
     scope "/cabinet" do
       pipe_through([:api_consumer_id, :cabinet])
 
-      patch("/persons/:id", CabinetController, :update_person)
-      get("/persons", CabinetController, :personal_info)
-      get("/persons/details", CabinetController, :person_details)
-      post("/declaration_requests", CabinetController, :create_declaration_request)
-      patch("/declarations/:id/actions/terminate", CabinetController, :terminate_declaration)
+      patch("/persons/:id", Cabinet.PersonsController, :update_person, as: :cabinet_persons)
+      get("/persons", Cabinet.PersonsController, :personal_info, as: :cabinet_persons)
+      get("/persons/details", Cabinet.PersonsController, :person_details, as: :cabinet_persons)
+
+      post(
+        "/declaration_requests",
+        Cabinet.DeclarationsController,
+        :create_declaration_request,
+        as: :cabinet_declarations
+      )
+
+      patch(
+        "/declarations/:id/actions/terminate",
+        Cabinet.DeclarationsController,
+        :terminate_declaration,
+        as: :cabinet_declarations
+      )
     end
 
     # Person declarations

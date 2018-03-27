@@ -114,7 +114,7 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
     test "happy path", %{conn: conn, email: email, tax_id: tax_id} do
       # 1. Send JWT to email for verification
       conn
-      |> post(cabinet_path(conn, :email_verification), %{email: email})
+      |> post(cabinet_auth_path(conn, :email_verification), %{email: email})
       |> json_response(200)
 
       # 2. Validate JWT from email and generate new JWT
@@ -124,7 +124,7 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
       auth_token =
         conn
         |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
-        |> post(cabinet_path(conn, :email_validation))
+        |> post(cabinet_auth_path(conn, :email_validation))
         |> json_response(200)
         |> get_in(~w(data token))
 
@@ -136,7 +136,7 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
 
       conn
       |> Plug.Conn.put_req_header("authorization", "Bearer " <> auth_token)
-      |> get(cabinet_path(conn, :search_user, %{tax_id: tax_id}))
+      |> get(cabinet_persons_path(conn, :search_user, %{tax_id: tax_id}))
       |> json_response(200)
 
       # 4. Send OTP for phone verification
@@ -154,7 +154,7 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
       patient =
         conn
         |> Plug.Conn.put_req_header("authorization", "Bearer " <> auth_token)
-        |> post(cabinet_path(conn, :registration, params))
+        |> post(cabinet_auth_path(conn, :registration, params))
         |> json_response(201)
         |> Map.get("data")
 
