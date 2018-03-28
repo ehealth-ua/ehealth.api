@@ -9,6 +9,7 @@ defmodule EHealth.EmployeeRequests.Validator do
   alias EHealth.Validators.JsonSchema
   alias EHealth.Validators.JsonObjects
   alias EHealth.Dictionaries
+  alias EHealth.Email.Sanitizer
 
   @doctor Employee.type(:doctor)
   @pharmacist Employee.type(:pharmacist)
@@ -16,11 +17,12 @@ defmodule EHealth.EmployeeRequests.Validator do
 
   def validate(params) do
     with :ok <- JsonSchema.validate(:employee_request, params),
+         params <- lowercase_email(params),
          :ok <- validate_additional_info(Map.get(params, "employee_request")),
          :ok <- validate_json_objects(params),
          :ok <- validate_tax_id(params),
          :ok <- validate_birth_date(params),
-         do: :ok
+         do: {:ok, params}
   end
 
   defp validate_additional_info(%{"employee_type" => @doctor, "doctor" => data}) do
@@ -135,5 +137,11 @@ defmodule EHealth.EmployeeRequests.Validator do
           rule: rule
         }, path}
      ]}
+  end
+
+  defp lowercase_email(params) do
+    path = ~w(employee_request party email)
+    email = get_in(params, path)
+    put_in(params, path, Sanitizer.sanitize(email))
   end
 end

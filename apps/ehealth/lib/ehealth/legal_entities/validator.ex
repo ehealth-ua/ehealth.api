@@ -14,6 +14,7 @@ defmodule EHealth.LegalEntities.Validator do
   alias EHealth.Validators.JsonSchema
   alias EHealth.Validators.JsonObjects
   alias EHealth.Dictionaries
+  alias EHealth.Email.Sanitizer
 
   @validation_dictionaries [
     "ADDRESS_TYPE",
@@ -40,6 +41,7 @@ defmodule EHealth.LegalEntities.Validator do
 
   def validate_json({:ok, %{"data" => %{"content" => content} = data}}) do
     with :ok <- validate_schema(content),
+         content <- lowercase_emails(content),
          :ok <- validate_json_objects(content),
          :ok <- validate_kveds(content),
          :ok <- validate_addresses(content),
@@ -221,4 +223,14 @@ defmodule EHealth.LegalEntities.Validator do
 
   defp prepare_legal_entity(%Ecto.Changeset{valid?: true}, legal_entity), do: {:ok, legal_entity}
   defp prepare_legal_entity(changeset, _legal_entity), do: {:error, changeset}
+
+  defp lowercase_emails(content) do
+    email = Map.get(content, "email")
+    path = ~w(owner email)
+    owner_email = get_in(content, path)
+
+    content
+    |> Map.put("email", Sanitizer.sanitize(email))
+    |> put_in(path, Sanitizer.sanitize(owner_email))
+  end
 end

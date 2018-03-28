@@ -127,7 +127,7 @@ defmodule EHealth.EmployeeRequests do
   end
 
   def create(attrs, allowed_owner \\ false) do
-    with :ok <- Validator.validate(attrs),
+    with {:ok, attrs} <- Validator.validate(attrs),
          params <- Map.fetch!(attrs, "employee_request"),
          :ok <- check_owner(params, allowed_owner),
          legal_entity_id <- Map.fetch!(params, "legal_entity_id"),

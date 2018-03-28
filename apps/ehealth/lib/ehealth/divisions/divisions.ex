@@ -20,6 +20,7 @@ defmodule EHealth.Divisions do
   alias EHealth.Dictionaries
   alias Ecto.Multi
   alias EctoTrail.Changelog
+  alias EHealth.Email.Sanitizer
 
   @search_fields ~w(
     ids
@@ -107,6 +108,7 @@ defmodule EHealth.Divisions do
            |> Map.delete("id")
            |> Map.put("legal_entity_id", legal_entity_id),
          :ok <- JsonSchema.validate(:division, params),
+         params <- lowercase_email(params),
          :ok <- validate_json_objects(params),
          :ok <- validate_addresses(params) do
       put_mountain_group(params)
@@ -302,5 +304,10 @@ defmodule EHealth.Divisions do
 
     {_, changelog} = PRMRepo.insert_all(Changelog, changes, returning: true)
     {:ok, changelog}
+  end
+
+  defp lowercase_email(params) do
+    email = Map.get(params, "email")
+    Map.put(params, email, Sanitizer.sanitize(email))
   end
 end

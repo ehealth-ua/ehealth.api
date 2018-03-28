@@ -17,6 +17,7 @@ defmodule EHealth.DeclarationRequests do
   alias EHealth.Validators.JsonSchema
   alias EHealth.Validators.Reference
   alias Ecto.Multi
+  alias EHealth.Email.Sanitizer
   import Ecto.Changeset
   import Ecto.Query
   import EHealth.Utils.Connection, only: [get_consumer_id: 1, get_client_id: 1]
@@ -135,6 +136,7 @@ defmodule EHealth.DeclarationRequests do
 
     # TODO: double check user_id/client_id has access to create given employee/legal_entity
     with :ok <- JsonSchema.validate(:declaration_request, %{"declaration_request" => params}),
+         params <- lowercase_email(params),
          :ok <- Creator.validate_person(params["person"]),
          {:ok, _} <- Addresses.validate(get_in(params, ["person", "addresses"]), "REGISTRATION"),
          {:ok, %Employee{} = employee} <-
@@ -180,5 +182,11 @@ defmodule EHealth.DeclarationRequests do
 
   def changeset(%DeclarationRequest{} = declaration_request, params) do
     cast(declaration_request, params, @fields_optional)
+  end
+
+  defp lowercase_email(params) do
+    path = ~w(person email)
+    email = get_in(params, path)
+    put_in(params, path, Sanitizer.sanitize(email))
   end
 end
