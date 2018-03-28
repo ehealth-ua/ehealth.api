@@ -1,7 +1,9 @@
-Change log for versions 7.42.0 - 7.42.14
+Change log for versions 7.42.0 - 7.42.16
 
 **Patches and bug fixes**:
 
+change persons search logic (#2022)
+- fix person creation (#2020)
 fix beneficiary name in LE create (#2014)
 - change validation DS from edrpou to drfo (#2019)
 lowercase emails (#2017)
@@ -19,6 +21,7 @@ Fix terminate outdated employee requests test (#2004)
 
 **Other**:
 
+Search declarations and declaration by id
 modified:   apps/ehealth/specs/json_schemas/legal_entity/legal_entity_create_request.json
 Revert "[patch] set dictionaries new STREET_TYPE (#2015)"
 This reverts commit d1f54a16e38d557886ff5ee65d6c3850b8dd7e62.
