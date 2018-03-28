@@ -1,7 +1,8 @@
-Change log for versions 7.42.0 - 7.42.10
+Change log for versions 7.42.0 - 7.42.11
 
 **Patches and bug fixes**:
 
+set new street_type dictionary
 set dictionaries new STREET_TYPE (#2015)
 Split cabinet controller to auth, persons and declaration.. (#2010)
 Split cabinet controller to auth, persons and declaration controllers
@@ -15,6 +16,8 @@ Fix terminate outdated employee requests test (#2004)
 
 **Other**:
 
+Revert "[patch] set dictionaries new STREET_TYPE (#2015)"
+This reverts commit d1f54a16e38d557886ff5ee65d6c3850b8dd7e62.
 - Fix tests
 - Add views
 Fix terminate outdated employee requests test
