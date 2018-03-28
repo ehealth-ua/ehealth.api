@@ -46,7 +46,7 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
         {:ok, %{"data" => []}}
       end)
 
-      expect(MPIMock, :create_or_update_person, fn params, _headers ->
+      expect(MPIMock, :create_or_update_person!, fn params, _headers ->
         refute Map.has_key?(params, "id")
         {:ok, %{"data" => Map.put(params, "id", UUID.generate())}}
       end)

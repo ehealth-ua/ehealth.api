@@ -30,6 +30,10 @@ defmodule EHealth.API.MPI do
     post("/persons", Poison.encode!(params), headers)
   end
 
+  def create_or_update_person!(params, headers) do
+    post!("/persons", Poison.encode!(params), headers)
+  end
+
   def get_merge_candidates(params \\ %{}, headers \\ []) do
     get!("/merge_candidates?#{URI.encode_query(params)}", headers)
   end

@@ -25,7 +25,8 @@ defmodule EHealth.Cabinet.API do
          :ok <- JsonSchema.validate(:person, content),
          {:ok, %{"data" => mpi_person}} <-
            @mpi_api.search(%{"tax_id" => tax_id, "birth_date" => content["birth_date"]}, headers),
-         {:ok, %{"data" => person}} <- create_or_update_person(mpi_person, content, headers),
+         person_params <- prepare_person_params(content),
+         {:ok, %{"data" => person}} <- create_or_update_person(mpi_person, person_params, headers),
          {:ok, %{"data" => mithril_user}} <- @mithril_api.search_user(%{email: email}, headers),
          :ok <- check_user_by_tax_id(mithril_user),
          user_params <- prepare_user_params(tax_id, email, params),
@@ -41,7 +42,9 @@ defmodule EHealth.Cabinet.API do
   defp validate_tax_id(%{"tax_id" => tax_id}, %{"drfo" => drfo}) when drfo == tax_id, do: {:ok, tax_id}
   defp validate_tax_id(_, _), do: {:error, {:conflict, "Registration person and person that sign should be the same"}}
 
-  defp create_or_update_person([], params, headers), do: @mpi_api.create_or_update_person(params, headers)
+  defp prepare_person_params(content), do: Map.put(content, "patient_signed", true)
+
+  defp create_or_update_person([], params, headers), do: @mpi_api.create_or_update_person!(params, headers)
   defp create_or_update_person(persons, params, headers), do: @mpi_api.update_person(hd(persons)["id"], params, headers)
 
   defp prepare_user_params(tax_id, email, params) do

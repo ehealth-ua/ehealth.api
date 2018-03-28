@@ -20,7 +20,10 @@ defmodule EHealth.Web.Cabinet.AuthController do
   end
 
   def registration(conn, params) do
+    system_user = Confex.fetch_env!(:ehealth, :system_user)
+
     with jwt <- Plug.current_token(conn),
+         conn <- put_req_header(conn, "x-consumer-id", system_user),
          {:ok, patient} <- CabinetAPI.create_patient(jwt, params, conn.req_headers) do
       conn
       |> put_status(:created)

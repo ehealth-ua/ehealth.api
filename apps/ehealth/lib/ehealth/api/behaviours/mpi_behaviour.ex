@@ -21,6 +21,10 @@ defmodule EHealth.API.MPIBehaviour do
               {:ok, result :: term}
               | {:error, reason :: term}
 
+  @callback create_or_update_person!(params :: map, headers :: list) ::
+              {:ok, result :: term}
+              | {:error, reason :: term}
+
   @callback get_merge_candidates(params :: map, headers :: list) ::
               {:ok, result :: term}
               | {:error, reason :: term}

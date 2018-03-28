@@ -234,8 +234,10 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => []}}
       end)
 
-      expect(MPIMock, :create_or_update_person, fn params, _headers ->
+      expect(MPIMock, :create_or_update_person!, fn params, headers ->
         refute Map.has_key?(params, "id")
+        assert Map.has_key?(params, "patient_signed")
+        assert Enum.member?(headers, {"x-consumer-id", "4261eacf-8008-4e62-899f-de1e2f7065f0"})
         {:ok, %{"data" => Map.put(params, "id", UUID.generate())}}
       end)
 
@@ -271,6 +273,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
       end)
 
       expect(MPIMock, :update_person, fn ^person_id, params, _headers ->
+        assert Map.has_key?(params, "patient_signed")
         {:ok, %{"data" => Map.put(params, "id", person_id)}}
       end)
 
@@ -303,8 +306,9 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => []}}
       end)
 
-      expect(MPIMock, :create_or_update_person, fn params, _headers ->
+      expect(MPIMock, :create_or_update_person!, fn params, _headers ->
         refute Map.has_key?(params, "id")
+        assert Map.has_key?(params, "patient_signed")
         {:ok, %{"data" => Map.put(params, "id", UUID.generate())}}
       end)
 
@@ -341,7 +345,9 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => [%{"id" => person_id}]}}
       end)
 
-      expect(MPIMock, :update_person, fn ^person_id, params, _headers ->
+      expect(MPIMock, :update_person, fn ^person_id, params, headers ->
+        assert Map.has_key?(params, "patient_signed")
+        assert Enum.member?(headers, {"x-consumer-id", "4261eacf-8008-4e62-899f-de1e2f7065f0"})
         {:ok, %{"data" => Map.put(params, "id", person_id)}}
       end)
 
@@ -393,8 +399,10 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => []}}
       end)
 
-      expect(MPIMock, :create_or_update_person, fn params, _headers ->
+      expect(MPIMock, :create_or_update_person!, fn params, headers ->
         refute Map.has_key?(params, "id")
+        assert Map.has_key?(params, "patient_signed")
+        assert Enum.member?(headers, {"x-consumer-id", "4261eacf-8008-4e62-899f-de1e2f7065f0"})
         {:ok, %{"data" => Map.put(params, "id", UUID.generate())}}
       end)
 
@@ -475,7 +483,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => []}}
       end)
 
-      expect(MPIMock, :create_or_update_person, fn _params, _headers ->
+      expect(MPIMock, :create_or_update_person!, fn _params, _headers ->
         {:error,
          %{
            "error" => %{
@@ -518,8 +526,9 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => []}}
       end)
 
-      expect(MPIMock, :create_or_update_person, fn params, _headers ->
+      expect(MPIMock, :create_or_update_person!, fn params, _headers ->
         refute Map.has_key?(params, "id")
+        assert Map.has_key?(params, "patient_signed")
         {:ok, %{"data" => Map.put(params, "id", UUID.generate())}}
       end)
 
