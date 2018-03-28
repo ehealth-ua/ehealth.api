@@ -1,7 +1,8 @@
-Change log for versions 7.42.0 - 7.42.12
+Change log for versions 7.42.0 - 7.42.13
 
 **Patches and bug fixes**:
 
+- change validation DS from edrpou to drfo (#2019)
 lowercase emails (#2017)
 set new street_type dictionary
 set dictionaries new STREET_TYPE (#2015)
