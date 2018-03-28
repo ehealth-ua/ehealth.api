@@ -88,7 +88,12 @@ defmodule EHealth.Web.PersonControllerTest do
     test "no birth_date", %{conn: conn} do
       conn = get(conn, person_path(conn, :search_persons))
       assert response = json_response(conn, 422)
-      assert %{"error" => %{"invalid" => [%{"entry" => "$.birth_date"}]}} = response
+
+      assert %{
+               "error" => %{
+                 "invalid" => [%{"entry" => "$.birth_date"}, %{"entry" => "$.first_name"}, %{"entry" => "$.last_name"}]
+               }
+             } = response
     end
 
     test "no first_name and last_name", %{conn: conn} do
@@ -111,42 +116,6 @@ defmodule EHealth.Web.PersonControllerTest do
         birth_country
         birth_date
         birth_settlement
-        first_name
-        id
-        last_name
-        merged_ids
-        second_name)
-      assert expected_keys == Map.keys(hd(response["data"]))
-    end
-
-    test "no birth_certificate", %{conn: conn} do
-      birth_date = Date.utc_today()
-
-      conn =
-        get(conn, person_path(conn, :search_persons), %{
-          birth_date: to_string(birth_date)
-        })
-
-      assert response = json_response(conn, 422)
-      assert %{"error" => %{"invalid" => [%{"entry" => "$.birth_certificate"}]}} = response
-    end
-
-    test "success search age < 16", %{conn: conn} do
-      birth_date = Date.utc_today()
-
-      conn =
-        get(conn, person_path(conn, :search_persons), %{
-          birth_date: birth_date,
-          birth_certificate: "123456"
-        })
-
-      assert response = json_response(conn, 200)
-      assert 2 == Enum.count(response["data"])
-      expected_keys = ~w(
-        birth_country
-        birth_date
-        birth_settlement
-        documents
         first_name
         id
         last_name
