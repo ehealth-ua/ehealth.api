@@ -1,7 +1,8 @@
-Change log for versions 7.42.0 - 7.42.17
+Change log for versions 7.42.0 - 7.42.18
 
 **Patches and bug fixes**:
 
+disable ddl transaction for employee speciality migration
 disable ddl transaction for additional_info migration
 change persons search logic (#2022)
 - fix person creation (#2020)
