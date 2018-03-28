@@ -18,7 +18,8 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
           data = %{
             "signer" => %{
-              "edrpou" => content["tax_id"]
+              "edrpou" => content["tax_id"],
+              "drfo" => content["tax_id"]
             },
             "signed_content" => signed_content,
             "is_valid" => true,
@@ -416,7 +417,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
         data = %{
           "signer" => %{
-            "edrpou" => "002233445566"
+            "drfo" => "002233445566"
           },
           "signed_content" => signed_content,
           "is_valid" => true,

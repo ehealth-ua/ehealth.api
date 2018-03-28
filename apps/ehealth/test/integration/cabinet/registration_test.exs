@@ -27,7 +27,8 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
 
         data = %{
           "signer" => %{
-            "edrpou" => content["tax_id"]
+            "edrpou" => content["tax_id"],
+            "drfo" => content["tax_id"]
           },
           "signed_content" => signed_content,
           "is_valid" => true,

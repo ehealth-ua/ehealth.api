@@ -38,7 +38,7 @@ defmodule EHealth.Cabinet.API do
     end
   end
 
-  defp validate_tax_id(%{"tax_id" => tax_id}, %{"edrpou" => edrpou}) when edrpou == tax_id, do: {:ok, tax_id}
+  defp validate_tax_id(%{"tax_id" => tax_id}, %{"drfo" => drfo}) when drfo == tax_id, do: {:ok, tax_id}
   defp validate_tax_id(_, _), do: {:error, {:conflict, "Registration person and person that sign should be the same"}}
 
   defp create_or_update_person([], params, headers), do: @mpi_api.create_or_update_person(params, headers)
