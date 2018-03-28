@@ -9,6 +9,8 @@ defmodule EHealth.PRMRepo.Migrations.FixEmployeeSpecialty do
   alias EHealth.PRMRepo
   alias Ecto.UUID
 
+  @disable_ddl_transaction true
+
   def change do
     set_party_speciality()
     set_employee_speciality()
