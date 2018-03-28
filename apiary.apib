@@ -314,11 +314,11 @@ This method will send password recovery email to a User. Request from this email
         + data (`Person_Full`)
 
 
-### Search for a Person [GET /api/persons{?first_name,last_name,second_name,birth_date,tax_id,phone_number,birth_place,page,page_size}]
+### Search for a Person [GET /api/persons{?first_name,last_name,second_name,birth_date,tax_id,phone_number,birth_certificate,birth_place,page,page_size}]
 
 This method allows to search for a Person (MPI) without disclosing personal data.
 
-Method returns only **requested** parameters, birth place and second name in addition for manual identification on MSP side.
+Method returns only **requested** parameters and those from the search, birth place and second name in addition for manual identification on MSP side.
 
 + Parameters
     + first_name: Петро (string, required)
@@ -327,6 +327,7 @@ Method returns only **requested** parameters, birth place and second name in add
     + birth_date: `1991-08-19T00:00:00.000Z` (string, required) - ISO Datetime.
     + tax_id: 3126509816 (string, optional)
     + phone_number: `+380508887700` (string, optional)
+    + `birth_certificate`: 123456 (string, optional) - birth_certificate is obligatory for children only
     + page: 2 (number, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
@@ -1112,8 +1113,17 @@ Method searches doctor by parameters and returnes division details
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
-        + data (array[EntriesEmployeesMap], optional)
+        + data (array[EntriesEmployeesListMap], optional)
 
+### Search Employee Details [GET /reports/stats/employees/{id}]
+This method returns employee details by id
+
++ Request (application/json)
+
++ Response 200 (application/json)
+    + Attributes (`Response_OK`)
+        + data (array[EntriesEmployeeMap], optional)
+        
 ## Employee Requests [/employee_requests]
 
 ### Approve or Reject Employee Request [POST /employee_requests/{id}/actions/{action}]
@@ -1996,7 +2006,7 @@ Method allows to verify Email and check whether the link we sent is the same as 
 
     + Headers
 
-            Authorization: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InNwLnZpcm55QGdtYWlsLmNvbSIsInRpbWVzdGFtcCI6IjIwMTgtMDItMjggMTA6Mzg6MDAifQ.LJRLTqK-zf9gxDNMONcI8cMCSYosDtmAIZqhzZUdhz4`
+            Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InNwLnZpcm55QGdtYWlsLmNvbSIsInRpbWVzdGFtcCI6IjIwMTgtMDItMjggMTA6Mzg6MDAifQ.LJRLTqK-zf9gxDNMONcI8cMCSYosDtmAIZqhzZUdhz4
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
@@ -2030,9 +2040,12 @@ JWT_token:
 ```
 
 + Request (application/json)
+    
+    + Headers
+
+            Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InNwLnZpcm55QGdtYWlsLmNvbSIsInRpbWVzdGFtcCI6IjIwMTgtMDItMjggMTA6Mzg6MDAifQ.LJRLTqK-zf9gxDNMONcI8cMCSYosDtmAIZqhzZUdhz4
 
     + Attributes (object)
-        + `token`: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InNwLnZpcm55QGdtYWlsLmNvbSIsInRpbWVzdGFtcCI6IjIwMTgtMDItMjggMTA6Mzg6MDAifQ.LJRLTqK-zf9gxDNMONcI8cMCSYosDtmAIZqhzZUdhz4` (string, required)
         + `signed_person_data`: `ewogICAgImZpcnN0X25hbWUiOiAi0J/QtdGC0YDQviIsCiAgICAibGFzdF9uYW1lIjogItCG0LLQsNC90L7QsiIsCiAgICAic2Vjb25kX25hbWUiOiAi0JzQuNC60L7Qu9Cw0LnQvtCy0LjRhyIsCiAgICAiYmlydGhfZGF0ZSI6ICIxOTkxLTA4LTE5IiwKICAgICJiaXJ0aF9jb3VudHJ5IjogItCj0LrRgNCw0ZfQvdCwIiwKICAgICJiaXJ0aF9zZXR0bGVtZW50IjogItCS0ZbQvdC90LjRhtGPIiwKICAgICJnZW5kZXIiOiAiTUFMRSIsCiAgICAiZW1haWwiOiAiZW1haWxAZXhhbXBsZS5jb20iLAogICAgInRheF9pZCI6ICIzMTI2NTA5ODE2IiwKICAgICJzZWNyZXQiOiAic2VjcmV0IiwKICAgICJkb2N1bWVudHMiOiBbCiAgICAgIHsKICAgICAgICAidHlwZSI6ICJQQVNTUE9SVCIsCiAgICAgICAgIm51bWJlciI6ICIxMjA1MTgiLAogICAgICAgICJpc3N1ZWRfYnkiOiAi0KDQvtC60LjRgtC90Y/QvdGB0YzQutC40Lwg0KDQkiDQk9CjINCc0JLQoSDQmtC40ZfQstGB0YzQutC+0Zcg0L7QsdC70LDRgdGC0ZYiLAogICAgICAgICJpc3N1ZWRfYXQiOiAiMjAxNy0wMi0yOCIKICAgICAgfQogICAgXSwKICAgICJhZGRyZXNzZXMiOiBbCiAgICAgIHsKICAgICAgICAidHlwZSI6ICJSRVNJREVOQ0UiLAogICAgICAgICJjb3VudHJ5IjogIlVBIiwKICAgICAgICAiYXJlYSI6ICLQltC40YLQvtC80LjRgNGB0YzQutCwIiwKICAgICAgICAicmVnaW9uIjogItCR0LXRgNC00LjRh9GW0LLRgdGM0LrQuNC5IiwKICAgICAgICAic2V0dGxlbWVudCI6ICLQmtC40ZfQsiIsCiAgICAgICAgInNldHRsZW1lbnRfdHlwZSI6ICJDSVRZIiwKICAgICAgICAic2V0dGxlbWVudF9pZCI6ICI0MzQzMjQzMiIsCiAgICAgICAgInN0cmVldF90eXBlIjogIlNUUkVFVCIsCiAgICAgICAgInN0cmVldCI6ICLQstGD0LsuINCd0ZbQttC40L3RgdGM0LrQsCIsCiAgICAgICAgImJ1aWxkaW5nIjogIjE1IiwKICAgICAgICAiYXBhcnRtZW50IjogIjIzIiwKICAgICAgICAiemlwIjogIjAyMDkwIgogICAgICB9CiAgICBdLAogICAgInBob25lcyI6IFsKICAgICAgewogICAgICAgICJ0eXBlIjogIk1PQklMRSIsCiAgICAgICAgIm51bWJlciI6ICIrMzgwNTAzNDEwODcwIgogICAgICB9CiAgICBdLAogICAgImF1dGhlbnRpY2F0aW9uX21ldGhvZHMiOiBbCiAgICAgIHsKICAgICAgICAidHlwZSI6ICJPVFAiLAogICAgICAgICJwaG9uZV9udW1iZXIiOiAiKzM4MDUwODg4NzcwMCIKICAgICAgfQogICAgXSwKICAgICJwcmVmZXJyZWRfd2F5X2NvbW11bmljYXRpb24iOiAiZW1haWwiLAogICAgImVtZXJnZW5jeV9jb250YWN0IjogewogICAgICAiZmlyc3RfbmFtZSI6ICLQn9C10YLRgNC+IiwKICAgICAgImxhc3RfbmFtZSI6ICLQhtCy0LDQvdC+0LIiLAogICAgICAic2Vjb25kX25hbWUiOiAi0JzQuNC60L7Qu9Cw0LnQvtCy0LjRhyIsCiAgICAgICJwaG9uZXMiOiBbCiAgICAgICAgewogICAgICAgICAgInR5cGUiOiAiTU9CSUxFIiwKICAgICAgICAgICJudW1iZXIiOiAiKzM4MDUwMzQxMDg3MCIKICAgICAgICB9CiAgICAgIF0KICAgIH0sCiAgICAicHJvY2Vzc19kaXNjbG9zdXJlX2RhdGFfY29uc2VudCI6IHRydWUKICB9Cn0=` (string, required)
         + `signed_content_encoding`: base64 (string, required)
         + password: `passWoRd1` (string, required)
@@ -2117,6 +2130,7 @@ This WS is designed to get person details in cabinet.
 + Response 200 (application/json)
     + Attributes (Response_OK)
         + data (`cabinet_person_response`)
+        + id: `7e9cffd9-c75f-45fb-badf-6e8d20b6a8a8` (string, required) - person id
 
 ### Update MPI [PATCH /api/cabinet/persons/{id}]
 
@@ -2208,14 +2222,11 @@ Entity data:
     + Attributes (Response_OK)
         + data (`Declaration_Details`)    
 
-### Get declaration list via Cabinet [GET /api/cabinet/declarations{?status,division_name,legal_entity_name,start_year,end_year,page,page_size}]
+### Get declaration list via Cabinet [GET /api/cabinet/declarations{?status,start_year,page,page_size}]
 
 + Parameters
     + status: active (string, optional)
-    + division_name: `Бориспільське відділення Клініки Борис` (string, optional)
-    + `legal_entity_name`: `Аптека 199` (string, optional)
     + start_year: 2018 (string, optional)
-    + end_year: 2018 (string, optional)
     + page: 2 (number, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
@@ -2282,7 +2293,7 @@ This method is used to create Declaration Request online (as part of Declaration
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
-        + data (Declaration_Details)
+        + data (Declaration_Details_Cabinet)
 
 # Group Public. Medical Service Provider Integration Layer
 
@@ -4663,6 +4674,7 @@ This method is used to abtain list of events with filters.
 + tax_id: 3126509816 (string, optional)
 + phones (array[Phone], required)
 + birth_settlement: Вінниця (string, required)
++ documents (array[Document],optional) 
 
 ### `Person_Medication_Request`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -4794,7 +4806,10 @@ This method is used to abtain list of events with filters.
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - unique id of declaration
 + declaration_number: `0000-12H4-245D` (string, required) - unique number of declaration.
 + start_date: `2017-03-02` (string, required)
-+ end_date: `2017-03-02` (string, required)
++ status (enum, required)
+    - active
+    - pending_verification
+    - terminated
 + person (Person_Minimal)
 + employee (Employee_Minimal)
 + `legal_entity` (`MSP_Short`)
@@ -4830,6 +4845,28 @@ This method is used to abtain list of events with filters.
     + `confidant_person` (array[`Confidant_Person`], optional) - Should be set if this Person is disabled, underage, etc.
 + employee (`Employee_Declaration_Short`)
 + division (`Division_Short`)
++ `legal_entity` (MSP_Details)
++ status (enum, required)
+    - active
+    - pending_verification
+    - terminated
++ scope (enum, required)
+    - family doctor
++ `declaration_request_id`: `74a6fae6-4207-4e03-a136-f2e70c6b0c02` (string, required)
++ inserted_at: `2017-03-02T10:45:16.000Z` (string, optional)
++ updated_at: `2017-03-02T10:45:16.000Z` (string, optional)
+
+### `Declaration_Details_Cabinet`
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ declaration_number: `0000-12H4-245D` (string, required) - unique number of declaration.
++ start_date: `2017-03-02` (string, required)
++ end_date: `2017-03-02` (string, required)
++ signed_at: `2017-03-02T00:00:00.000Z` (string, required)
++ person(`Person_Short`)
+    + `emergency_contact` (`Emergency_Contact`, required)
+    + `confidant_person` (array[`Confidant_Person`], optional) - Should be set if this Person is disabled, underage, etc.
++ employee (`Employee_Declaration_Short`)
++ division (`Division_Details_Cabinet`)
 + `legal_entity` (MSP_Details)
 + status (enum, required)
     - active
@@ -5212,6 +5249,14 @@ This method is used to abtain list of events with filters.
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + include Division
 
+### `Division_Details_Cabinet`
++ id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ name: Бориспільське відділення Клініки Ноунейм (string, required) - the full name of division
++ addresses (array[Address], required)
++ phones (array[Phone], required)
++ email: email@example.com (string, required) - division's email
+
+
 ### `Division_Short_List`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + name: Бориспільське відділення Клініки Ноунейм (string, required)
@@ -5299,7 +5344,7 @@ This method is used to abtain list of events with filters.
 ### `MSP_Details`
 + id: d290f1ee-6c54-4b01-90e6-d701748f0851
 + name: Клініка ЦПМСД №1 (string, required)
-+ short_Name: ЦПМСД №1 (string, required)
++ short_name: ЦПМСД №1 (string, required)
 + `legal_form`: 140 (string, required) - `Dictionary LEGAL_FORM`
 + public_name: ЦПМСД №1 (string, optional)
 + edrpou: 5432345432 (string, required)
@@ -5546,12 +5591,12 @@ This method is used to abtain list of events with filters.
 + page (number, required)
 + entries (array[EntriesDivisionMap], optional)
 
-### DataEntriesEmployeesMap
+### DataEntriesEmployeesListMap
 + total_pages (number, required)
 + total_entries (number, required)
 + page_size (number, required)
 + page (number, required)
-+ entries (array[EntriesEmployeesMap], optional)
++ entries (array[EntriesEmployeesListMap], optional)
 
 ### EntriesDivisionMap
 + id: `asSbcy12sYs8c` (string, required)
@@ -5562,7 +5607,21 @@ This method is used to abtain list of events with filters.
 + coordinates (Location, optional)
 + `legal_entity` (`LegalEntityMap`, required)
 
-### EntriesEmployeesMap
+### EntriesEmployeesListMap
++ id: `7d23bebb-1cf3-4221-bf21-18aada444756` (string, required) - employee id
++ party (PartyMap)
+    + specialities (array[Speciality], required)  - блок інформації про отримання сертифікату спеціалісту та проходження атестацій
+    + is_avaliable: true (boolean, required) 
++ division(object, required)
+    + id: `7d23bebb-1cf3-4221-bf21-18aada444756` (string, required)
+    + name: `Aдоніс` (string, required)
+    + addresses (Address, optional)
++ `legal_entity` (object, required)
+    + id: `7d23bebb-1cf3-4221-bf21-18aada444756` (string, required)
+    + name: Клініка Ноунейм (string, required)    
+    
+
+### EntriesEmployeeMap
 + id: `7d23bebb-1cf3-4221-bf21-18aada444756` (string, required) - employee id
 + position: P1 (string, required) - employee position
 + employee_type: DOCTOR (string, required)
@@ -5573,6 +5632,7 @@ This method is used to abtain list of events with filters.
     + type: CLINIC, AMBULANT_CLINIC, FAP (enum, required)
     + addresses (Address, optional)
     + `legal_entity` (object, required)
+        + id: `7d23bebb-1cf3-4221-bf21-18aada444756` (string, required)
         + name: Клініка Ноунейм (string, required)
 
 
