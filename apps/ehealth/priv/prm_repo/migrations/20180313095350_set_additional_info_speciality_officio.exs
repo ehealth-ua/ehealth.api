@@ -6,6 +6,7 @@ defmodule EHealth.PRMRepo.Migrations.SetAdditionalInfoSpecialityOfficio do
   alias Ecto.Adapters.SQL
   alias EHealth.Employees.Employee
   alias EHealth.PRMRepo
+  alias EHealth.UUID
 
   def change do
     query = """
