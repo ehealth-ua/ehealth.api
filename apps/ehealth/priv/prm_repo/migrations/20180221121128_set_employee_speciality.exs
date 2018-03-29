@@ -20,7 +20,12 @@ defmodule EHealth.PRMRepo.Migrations.SetEmployeeSpeciality do
     SELECT DISTINCT ON (party_id) e.id, e.party_id, e.inserted_at, e.additional_info
     FROM employees e
     LEFT JOIN parties p on p.id = e.party_id
-    WHERE e.additional_info != '{}'
+    WHERE e.additional_info != '{}' AND (
+      p.educations IS NULL AND
+      p.qualifications IS NULL AND
+      p.specialities IS NULL AND
+      p.science_degree IS NULL
+    )
     ORDER  BY party_id, inserted_at DESC
     LIMIT 1000;
     """
