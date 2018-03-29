@@ -129,10 +129,14 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
 
     %{
       registration:
-        registration_address |> Map.put("full_address", full_registration_address) |> update_street_type
+        registration_address
+        |> Map.put("full_address", full_registration_address)
+        |> update_street_type
         |> update_settlement_type,
       residence:
-        residence_address |> Map.put("full_address", full_residence_address) |> update_street_type
+        residence_address
+        |> Map.put("full_address", full_residence_address)
+        |> update_street_type
         |> update_settlement_type
     }
   end
