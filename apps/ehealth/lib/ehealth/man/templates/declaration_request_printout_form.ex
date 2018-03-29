@@ -67,10 +67,14 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
       secret: Map.get(person, "secret", ""),
       emergency_contact: get_emergency_contact(person),
       confidant_person: get_confidant_persons(person),
-      preferred_way_communication: Map.get(person, "preferred_way_communication", ""),
+      preferred_way_communication: get_preferred_way_communication(Map.get(person, "preferred_way_communication", "")),
       national_id: Map.get(person, "national_id", "")
     }
   end
+
+  defp get_preferred_way_communication("email"), do: "електронна адреса"
+  defp get_preferred_way_communication("phone"), do: "телефон"
+  defp get_preferred_way_communication(value), do: value
 
   defp get_full_name(person) do
     first_name = Map.get(person, "first_name")
@@ -205,7 +209,7 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
       full_name: get_full_name(party),
       phones: get_phone(party),
       email: Map.get(party, "email", ""),
-      specialities: Enum.map(specialities, &Map.get(&1, "specialitiy"))
+      specialities: Enum.map(specialities, &Map.get(&1, "speciality"))
     }
   end
 
