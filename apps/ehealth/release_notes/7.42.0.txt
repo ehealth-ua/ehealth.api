@@ -1,7 +1,8 @@
-Change log for versions 7.42.0 - 7.42.18
+Change log for versions 7.42.0 - 7.42.19
 
 **Patches and bug fixes**:
 
+- fix token creation (#2027)
 disable ddl transaction for employee speciality migration
 disable ddl transaction for additional_info migration
 change persons search logic (#2022)
