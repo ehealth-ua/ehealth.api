@@ -1,7 +1,8 @@
-Change log for versions 7.42.0 - 7.42.19
+Change log for versions 7.42.0 - 7.42.20
 
 **Patches and bug fixes**:
 
+fix set employee speciality
 - fix token creation (#2027)
 disable ddl transaction for employee speciality migration
 disable ddl transaction for additional_info migration
