@@ -21,7 +21,12 @@ defmodule EHealth.PRMRepo.Migrations.FixEmployeeSpecialty do
     SELECT DISTINCT ON (party_id) e.id, e.party_id, e.updated_at, e.additional_info
     FROM employees e
     LEFT JOIN parties p on p.id = e.party_id
-    WHERE e.additional_info != '{}'
+    WHERE e.additional_info != '{}' AND (
+      p.educations IS NULL AND
+      p.qualifications IS NULL AND
+      p.specialities IS NULL AND
+      p.science_degree IS NULL
+    )
     ORDER BY party_id, updated_at DESC
     LIMIT 1000;
     """
@@ -58,7 +63,7 @@ defmodule EHealth.PRMRepo.Migrations.FixEmployeeSpecialty do
     query = """
     SELECT e.id, e.additional_info
     FROM employees e
-    WHERE e.additional_info != '{}'
+    WHERE e.additional_info != '{}' AND e.speciality IS NULL
     ORDER BY inserted_at ASC
     LIMIT 1000;
     """
