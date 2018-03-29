@@ -4,9 +4,9 @@ defmodule EHealth.PRMRepo.Migrations.SetAdditionalInfoSpecialityOfficio do
   use Ecto.Migration
   import Ecto.Query
   alias Ecto.Adapters.SQL
+  alias Ecto.UUID
   alias EHealth.Employees.Employee
   alias EHealth.PRMRepo
-  alias EHealth.UUID
 
   def change do
     query = """

@@ -13,6 +13,8 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
   @auth_offline DeclarationRequest.authentication_method(:offline)
 
   @documents_dict "DOCUMENT_TYPE"
+  @street_type "STREET_TYPE"
+  @settlement_type "SETTLEMENT_TYPE"
   @relationship_documents_dict "DOCUMENT_RELATIONSHIP_TYPE"
 
   def render(declaration_request, declaration_number, authentication_method_current) do
@@ -126,8 +128,12 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
       end
 
     %{
-      registration: Map.put(registration_address, "full_address", full_registration_address),
-      residence: Map.put(residence_address, "full_address", full_residence_address)
+      registration:
+        registration_address |> Map.put("full_address", full_registration_address) |> update_street_type
+        |> update_settlement_type,
+      residence:
+        residence_address |> Map.put("full_address", full_residence_address) |> update_street_type
+        |> update_settlement_type
     }
   end
 
@@ -223,8 +229,29 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
       end
 
     %{
-      residence: Map.put(residence_address, "full_street", full_street)
+      residence:
+        residence_address |> Map.put("full_street", full_street) |> update_street_type() |> update_settlement_type()
     }
+  end
+
+  defp update_settlement_type(document) do
+    case document["settlement_type"] do
+      nil ->
+        document
+
+      settlement_type ->
+        Map.put(document, "settlement_type", Dictionaries.get_dictionary_value(settlement_type, @settlement_type))
+    end
+  end
+
+  defp update_street_type(document) do
+    case document["street_type"] do
+      nil ->
+        document
+
+      street_type ->
+        Map.put(document, "street_type", Dictionaries.get_dictionary_value(street_type, @street_type))
+    end
   end
 
   defp get_legal_entity(declaration_request) do
