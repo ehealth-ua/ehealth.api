@@ -84,7 +84,7 @@ defmodule EHealth.Cabinet.API do
   def validate_email_jwt(jwt) do
     with {:ok, %{"email" => email}} <- Guardian.decode_and_verify(jwt),
          ttl <- Confex.fetch_env!(:ehealth, __MODULE__)[:jwt_ttl_registration],
-         {:ok, jwt, _claims} <- generate_jwt(email, {ttl, :hours}) do
+         {:ok, jwt, _claims} <- generate_jwt(Guardian.get_aud(:registration), email, {ttl, :hours}) do
       {:ok, jwt}
     else
       _ -> {:error, {:access_denied, "invalid JWT"}}
@@ -96,7 +96,7 @@ defmodule EHealth.Cabinet.API do
          true <- email_available_for_registration?(email, headers),
          false <- email_sent?(email),
          ttl <- Confex.fetch_env!(:ehealth, __MODULE__)[:jwt_ttl_email],
-         {:ok, jwt, _claims} <- generate_jwt(email, {ttl, :hours}),
+         {:ok, jwt, _claims} <- generate_jwt(Guardian.get_aud(:email_verification), email, {ttl, :hours}),
          {:ok, template} <- EmailVerification.render(jwt) do
       email_config = Confex.fetch_env!(:ehealth, EmailVerification)
       send_email(email, template, email_config)
@@ -145,8 +145,8 @@ defmodule EHealth.Cabinet.API do
     false
   end
 
-  defp generate_jwt(email, ttl) do
-    Guardian.encode_and_sign(:email, %{email: email}, token_type: "access", ttl: ttl)
+  defp generate_jwt(type, email, ttl) do
+    Guardian.encode_and_sign(type, %{email: email}, token_type: "access", ttl: ttl)
   end
 
   def send_email(email, body, email_config) do

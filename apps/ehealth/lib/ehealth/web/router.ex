@@ -46,7 +46,15 @@ defmodule EHealthWeb.Router do
 
   pipeline :jwt do
     plug(Guardian.Plug.Pipeline, module: EHealth.Guardian, error_handler: EHealth.Web.FallbackController)
-    plug(Guardian.Plug.VerifyHeader, claims: %{typ: "access"})
+  end
+
+  pipeline :jwt_registration do
+    plug(Guardian.Plug.VerifyHeader, claims: %{typ: "access", aud: EHealth.Guardian.get_aud(:registration)})
+    plug(Guardian.Plug.EnsureAuthenticated)
+  end
+
+  pipeline :jwt_email_verification do
+    plug(Guardian.Plug.VerifyHeader, claims: %{typ: "access", aud: EHealth.Guardian.get_aud(:email_verification)})
     plug(Guardian.Plug.EnsureAuthenticated)
   end
 
@@ -98,12 +106,18 @@ defmodule EHealthWeb.Router do
     end
 
     scope "/cabinet" do
-      pipe_through([:jwt])
+      pipe_through(:jwt)
 
-      post("/email_validation", Cabinet.AuthController, :email_validation, as: :cabinet_auth)
-      post("/registration", Cabinet.AuthController, :registration, as: :cabinet_auth)
+      scope "/email_validation" do
+        pipe_through(:jwt_email_verification)
+        post("/", Cabinet.AuthController, :email_validation, as: :cabinet_auth)
+      end
 
-      get("/users", Cabinet.PersonsController, :search_user, as: :cabinet_persons)
+      scope "/registration" do
+        pipe_through(:jwt_registration)
+        post("/", Cabinet.AuthController, :registration, as: :cabinet_auth)
+        get("/users", Cabinet.PersonsController, :search_user, as: :cabinet_persons)
+      end
     end
   end
 

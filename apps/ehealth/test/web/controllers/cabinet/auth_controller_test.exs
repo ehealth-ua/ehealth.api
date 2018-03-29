@@ -145,7 +145,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
   describe "validate email jwt" do
     test "success", %{conn: conn} do
       email = "info@example.com"
-      {:ok, jwt, _} = encode_and_sign(:email, %{email: email}, token_type: "access")
+      {:ok, jwt, _} = encode_and_sign(get_aud(:email_verification), %{email: email}, token_type: "access")
 
       assert token =
                conn
@@ -173,7 +173,17 @@ defmodule Mithril.Web.RegistrationControllerTest do
     end
 
     test "invalid JWT type", %{conn: conn} do
-      {:ok, jwt, _} = encode_and_sign(:email, %{email: "email@example.com"}, token_type: "refresh")
+      {:ok, jwt, _} =
+        encode_and_sign(get_aud(:email_verification), %{email: "email@example.com"}, token_type: "refresh")
+
+      conn
+      |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
+      |> post(cabinet_auth_path(conn, :email_validation))
+      |> json_response(401)
+    end
+
+    test "invalid JWT aud", %{conn: conn} do
+      {:ok, jwt, _} = encode_and_sign(get_aud(:registration), %{email: "email@example.com"}, token_type: "access")
 
       conn
       |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
@@ -225,7 +235,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
         signed_content_encoding: "base64"
       }
 
-      {:ok, jwt, _} = encode_and_sign(:email, %{email: "email@example.com"})
+      {:ok, jwt, _} = encode_and_sign(get_aud(:registration), %{email: "email@example.com"})
       %{conn: Plug.Conn.put_req_header(conn, "authorization", "Bearer " <> jwt), params: params}
     end
 
@@ -387,7 +397,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
         signed_content_encoding: "base64"
       }
 
-      {:ok, jwt, _} = encode_and_sign(:email, %{email: "email@example.com"})
+      {:ok, jwt, _} = encode_and_sign(get_aud(:registration), %{email: "email@example.com"})
 
       %{conn: conn, params: params, jwt: jwt}
     end
@@ -456,9 +466,18 @@ defmodule Mithril.Web.RegistrationControllerTest do
       assert "$.signed_person_data" == err["entry"]
     end
 
-    test "jwt not set", %{conn: conn, params: params} do
+    test "JWT not set", %{conn: conn, params: params} do
       conn
       |> post(cabinet_auth_path(conn, :registration, params))
+      |> json_response(401)
+    end
+
+    test "invalid JWT aud", %{conn: conn} do
+      {:ok, jwt, _} = encode_and_sign(get_aud(:email_verification), %{email: "email@example.com"}, token_type: "access")
+
+      conn
+      |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
+      |> post(cabinet_auth_path(conn, :registration))
       |> json_response(401)
     end
 
@@ -575,7 +594,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
   describe "search user" do
     setup %{conn: conn} do
-      {:ok, jwt, _} = encode_and_sign(:email, %{email: "email@example.com"})
+      {:ok, jwt, _} = encode_and_sign(get_aud(:registration), %{email: "email@example.com"})
       %{conn: conn, jwt: jwt}
     end
 
