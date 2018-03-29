@@ -1,7 +1,8 @@
-Change log for versions 7.44.0 - 7.44.1
+Change log for versions 7.44.0 - 7.44.2
 
 **Patches and bug fixes**:
 
+fix additional info data migration
 fix additional info data
 
 
