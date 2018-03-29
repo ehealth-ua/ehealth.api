@@ -1,7 +1,11 @@
-Change log for versions 7.42.0 - 7.42.21
+Change log for versions 7.42.0 - 7.42.25
 
 **Patches and bug fixes**:
 
+enabled 2fa for Mithril user (#2030)
+- enable 2fa factor creation for Mithril user
+- set factor for Mithril user
+- format
 fix set employee speciality migration
 fix set employee speciality
 - fix token creation (#2027)
