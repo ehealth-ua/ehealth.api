@@ -60,7 +60,7 @@ defmodule EHealth.PRMRepo.Migrations.SetAdditionalInfoSpecialityOfficio do
     Enum.each(employees, fn [id, info, speciality_officio_name] ->
       {:ok, id} = UUID.load(id)
       specialities = Map.get(info, "specialities") || []
-      specialities = specialities |> Enum.with_index() |> Enum.map(fn {v, i} -> {i, v} end)
+      specialities = specialities |> Enum.with_index() |> Enum.map(fn {v, i} -> {i, v} end) |> Enum.into(%{})
 
       {speciality_officio, index} =
         Enum.find(specialities, fn {i, speciality} ->

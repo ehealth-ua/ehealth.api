@@ -205,7 +205,8 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
           offline: false
         },
         declaration_id: "",
-        declaration_number: number
+        declaration_number: number,
+        start_date: "2017-03-02"
       }
 
       assert printout_content == Poison.encode!(expected_content)
@@ -331,7 +332,8 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
           offline: false
         },
         declaration_id: "",
-        declaration_number: number
+        declaration_number: number,
+        start_date: ""
       }
 
       assert printout_content == Poison.encode!(expected_content)

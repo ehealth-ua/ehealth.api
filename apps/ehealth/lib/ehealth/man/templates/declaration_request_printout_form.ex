@@ -42,7 +42,8 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
       confidant_persons: check_confidant_persons(declaration_request),
       authentication_method_current: get_authentication_method_current(authentication_method_current),
       declaration_id: Map.get(declaration_request, "declaration_id", ""),
-      declaration_number: declaration_number
+      declaration_number: declaration_number,
+      start_date: Map.get(declaration_request, "start_date", "")
     }
   end
 
