@@ -57,6 +57,9 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       expected_content = %{
         person: %{
           full_name: "Петро Миколайович Іванов",
+          first_name: "Петро",
+          second_name: "Миколайович",
+          last_name: "Іванов",
           gender: %{
             male: true,
             female: false
@@ -71,12 +74,36 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
           tax_id: "3126509816",
           addresses: %{
             registration: %{
-              full_address: "Житомирська область, Бердичівський район, місто Київ, вулиця Ніжинська 15, квартира 23, \
-02090"
+              full_address:
+                "Житомирська область, Бердичівський район, місто Київ, вулиця Ніжинська 15, квартира 23, 02090",
+              zip: "02090",
+              type: "REGISTRATION",
+              street_type: "STREET",
+              street: "Ніжинська",
+              settlement_type: "CITY",
+              settlement_id: "43432432",
+              settlement: "Київ",
+              region: "Бердичівський",
+              country: "UA",
+              building: "15",
+              area: "Житомирська",
+              apartment: "23"
             },
             residence: %{
               full_address: "Житомирська область, Бердичівський район, місто Київ, вулиця Ніжинська 16, квартира 41, \
-02090"
+02090",
+              zip: "02090",
+              type: "RESIDENCE",
+              street_type: "STREET",
+              street: "Ніжинська",
+              settlement_type: "CITY",
+              settlement_id: "43432432",
+              settlement: "Київ",
+              region: "Бердичівський",
+              country: "UA",
+              building: "16",
+              area: "Житомирська",
+              apartment: "41"
             }
           },
           phones: %{
@@ -149,9 +176,8 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         },
         division: %{
           addresses: %{
-            registration: %{
-              full_street: "вулиця Ніжинська 15",
-              settlement: "місто Київ"
+            residence: %{
+              full_street: nil
             }
           }
         },
@@ -224,6 +250,9 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       expected_content = %{
         person: %{
           full_name: "",
+          first_name: nil,
+          last_name: nil,
+          second_name: nil,
           gender: %{
             male: false,
             female: false
@@ -274,9 +303,8 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         },
         division: %{
           addresses: %{
-            registration: %{
-              full_street: "",
-              settlement: ""
+            residence: %{
+              full_street: nil
             }
           }
         },

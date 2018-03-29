@@ -49,6 +49,9 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
 
     %{
       full_name: get_full_name(person),
+      first_name: Map.get(person, "first_name"),
+      second_name: Map.get(person, "second_name"),
+      last_name: Map.get(person, "last_name"),
       gender: get_gender(person),
       birth_date: Map.get(person, "birth_date", ""),
       document: get_document(person, "documents", @documents_dict),
@@ -107,8 +110,8 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
 
   defp get_person_addresses(person) do
     addresses = Map.get(person, "addresses", [])
-    registration_address = Enum.find(addresses, fn address -> Map.get(address, "type") == "REGISTRATION" end)
-    residence_address = Enum.find(addresses, fn address -> Map.get(address, "type") == "RESIDENCE" end)
+    registration_address = Enum.find(addresses, %{}, fn address -> Map.get(address, "type") == "REGISTRATION" end)
+    residence_address = Enum.find(addresses, %{}, fn address -> Map.get(address, "type") == "RESIDENCE" end)
 
     full_registration_address =
       case registration_address do
@@ -123,12 +126,8 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
       end
 
     %{
-      registration: %{
-        full_address: full_registration_address
-      },
-      residence: %{
-        full_address: full_residence_address
-      }
+      registration: Map.put(registration_address, "full_address", full_registration_address),
+      residence: Map.put(residence_address, "full_address", full_residence_address)
     }
   end
 
@@ -209,25 +208,22 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
 
   defp get_division_addresses(division) do
     addresses = Map.get(division, "addresses", [])
-    registration_address = Enum.find(addresses, fn address -> Map.get(address, "type") == "REGISTRATION" end)
+    residence_address = Enum.find(addresses, %{}, fn address -> Map.get(address, "type") == "RESIDENCE" end)
 
     full_street =
-      case registration_address do
+      case residence_address do
         nil -> ""
         address -> address |> AddressMerger.merge_street_part() |> List.first()
       end
 
     settlement =
-      case registration_address do
+      case residence_address do
         nil -> ""
         address -> address |> AddressMerger.merge_settlement_part(full_street) |> List.first()
       end
 
     %{
-      registration: %{
-        full_street: full_street,
-        settlement: settlement
-      }
+      residence: Map.put(residence_address, "full_street", full_street)
     }
   end
 
