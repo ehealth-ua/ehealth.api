@@ -119,7 +119,7 @@ defmodule EHealth.API.Mithril do
   end
 
   def create_access_token(token, headers) do
-    post!("/oauth/tokens", headers, params: Poison.encode!(%{token: token}))
+    post!("/oauth/tokens", Poison.encode!(%{token: token}), headers)
   end
 
   def delete_token(token_id, headers) do
