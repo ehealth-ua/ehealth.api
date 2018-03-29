@@ -1,7 +1,10 @@
-Change log for versions 7.44.0 - 7.44.4
+Change log for versions 7.44.0 - 7.44.7
 
 **Patches and bug fixes**:
 
+fix tuple order
+add missed Map.values
+add start_date do printout content form
 fix format
 convert dictionary values for printout form
 fix additional info data migration
