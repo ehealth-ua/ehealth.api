@@ -29,7 +29,7 @@ defmodule EHealth.Cabinet.API do
          {:ok, %{"data" => person}} <- create_or_update_person(mpi_person, person_params, headers),
          {:ok, %{"data" => mithril_user}} <- @mithril_api.search_user(%{email: email}, headers),
          :ok <- check_user_by_tax_id(mithril_user),
-         user_params <- prepare_user_params(tax_id, email, params),
+         user_params <- prepare_user_params(tax_id, email, params, content),
          {:ok, %{"data" => user}} <- create_or_update_user(mithril_user, user_params, headers),
          conf <- Confex.fetch_env!(:ehealth, __MODULE__),
          role_params <- %{role_id: conf[:role_id], client_id: conf[:client_id]},
@@ -47,8 +47,12 @@ defmodule EHealth.Cabinet.API do
   defp create_or_update_person([], params, headers), do: @mpi_api.create_or_update_person!(params, headers)
   defp create_or_update_person(persons, params, headers), do: @mpi_api.update_person(hd(persons)["id"], params, headers)
 
-  defp prepare_user_params(tax_id, email, params) do
+  defp prepare_user_params(tax_id, email, params, content) do
+    [%{"phone_number" => phone_number}] = content["authentication_methods"]
+
     %{
+      "2fa_enable" => true,
+      "factor" => phone_number,
       "otp" => params["otp"],
       "email" => email,
       "tax_id" => tax_id,

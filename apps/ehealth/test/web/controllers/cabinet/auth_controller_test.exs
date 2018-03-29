@@ -246,7 +246,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
       end)
 
       expect(MithrilMock, :create_user, fn params, _headers ->
-        Enum.each(~w(otp tax_id email password), fn key ->
+        Enum.each(~w(otp tax_id email password 2fa_enable factor), fn key ->
           assert Map.has_key?(params, key)
         end)
 
