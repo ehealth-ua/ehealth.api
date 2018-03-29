@@ -1,7 +1,9 @@
-Change log for versions 7.44.0 - 7.44.2
+Change log for versions 7.44.0 - 7.44.4
 
 **Patches and bug fixes**:
 
+fix format
+convert dictionary values for printout form
 fix additional info data migration
 fix additional info data
 
