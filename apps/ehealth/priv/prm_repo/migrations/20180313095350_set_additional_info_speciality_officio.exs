@@ -68,7 +68,7 @@ defmodule EHealth.PRMRepo.Migrations.SetAdditionalInfoSpecialityOfficio do
         end)
 
       specialities = Map.put(specialities, index, Map.put(speciality_officio, "speciality_officio", true))
-      additional_info = Map.put(info, "specialities", specialities)
+      additional_info = Map.put(info, "specialities", Map.values(specialities))
 
       Employee
       |> where([e], e.id == ^id)
