@@ -22,6 +22,7 @@ defmodule EHealth.PRMRepo.Migrations.SetAdditionalInfoSpecialityOfficio do
       select id,
              inserted_at,
              max(case when speciality_officio='true' then 1 else 0 end) as s_true,
+             sum(case when speciality_officio='true' then 1 else 0 end) as sum_s_true,
              max(case when speciality_officio='false' then 1 else 0 end) as s_false,
              count(*) qty
       from t1 a
@@ -30,7 +31,7 @@ defmodule EHealth.PRMRepo.Migrations.SetAdditionalInfoSpecialityOfficio do
         t3 as(
       select b.*, qty
       from t2 a join t1 b on a.id=b.id
-      where s_false=1 and s_true=0
+      where (s_false=1 and s_true=0) or sum_s_true > 1
         ),
         t4 as(
       select  a.id,
@@ -60,7 +61,13 @@ defmodule EHealth.PRMRepo.Migrations.SetAdditionalInfoSpecialityOfficio do
     Enum.each(employees, fn [id, info, speciality_officio_name] ->
       {:ok, id} = UUID.load(id)
       specialities = Map.get(info, "specialities") || []
-      specialities = specialities |> Enum.with_index() |> Enum.map(fn {v, i} -> {i, v} end) |> Enum.into(%{})
+
+      specialities =
+        specialities
+        |> Enum.map(&Map.put(&1, "speciality_officio", false))
+        |> Enum.with_index()
+        |> Enum.map(fn {v, i} -> {i, v} end)
+        |> Enum.into(%{})
 
       {index, speciality_officio} =
         Enum.find(specialities, fn {_i, speciality} ->
