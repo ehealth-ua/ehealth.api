@@ -1,7 +1,8 @@
-Change log for versions 7.44.0 - 7.44.10
+Change log for versions 7.44.0 - 7.44.11
 
 **Patches and bug fixes**:
 
+add employee speciality to printout form
 fix employee speciality in printout form
 convert printout form dates (#2037)
 improve printout form variables
