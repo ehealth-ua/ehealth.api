@@ -1,7 +1,8 @@
-Change log for versions 7.44.0 - 7.44.8
+Change log for versions 7.44.0 - 7.44.9
 
 **Patches and bug fixes**:
 
+convert printout form dates (#2037)
 improve printout form variables
 fix tuple order
 add missed Map.values
