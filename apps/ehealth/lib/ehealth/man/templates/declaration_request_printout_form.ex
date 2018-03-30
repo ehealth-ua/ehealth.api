@@ -348,7 +348,7 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
 
   defp convert_date(value) do
     with {:ok, date} <- Timex.parse(value, "%Y-%m-%d", :strftime) do
-      Timex.format!(date, "%d-%m-%Y", :strftime)
+      Timex.format!(date, "%d.%m.%Y", :strftime)
     else
       _ -> value
     end

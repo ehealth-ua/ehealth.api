@@ -73,7 +73,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
             male: true,
             female: false
           },
-          birth_date: "19-08-1991",
+          birth_date: "19.08.1991",
           document: %{
             type: "Паспорт",
             number: "120518",
@@ -133,7 +133,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
               phones: %{
                 number: "+380503410870"
               },
-              birth_date: "19-08-1991",
+              birth_date: "19.08.1991",
               gender: %{
                 male: true,
                 female: false
@@ -157,7 +157,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
               phones: %{
                 number: "+380503410871"
               },
-              birth_date: "20-08-1991",
+              birth_date: "20.08.1991",
               gender: %{
                 male: true,
                 female: false
@@ -229,7 +229,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         },
         declaration_id: "",
         declaration_number: number,
-        start_date: "02-03-2017"
+        start_date: "02.03.2017"
       }
 
       assert printout_content == Poison.encode!(expected_content)
