@@ -1,7 +1,9 @@
-Change log for versions 7.45.0 - 7.45.3
+Change log for versions 7.45.0 - 7.45.5
 
 **Patches and bug fixes**:
 
+fix printout form fields
+fix printout form fields
 drop obsolete migration
 fix speciality migration (#2041)
 - test for 422 response from DS (#2040)
