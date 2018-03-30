@@ -43,7 +43,7 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
       legal_entity: get_legal_entity(declaration_request),
       confidant_persons: check_confidant_persons(declaration_request),
       authentication_method_current: get_authentication_method_current(authentication_method_current),
-      declaration_id: Map.get(declaration_request, "declaration_id", ""),
+      declaration_id: Map.get(declaration_request, "declaration_id"),
       declaration_number: declaration_number,
       start_date: declaration_request |> Map.get("start_date") |> convert_date()
     }
@@ -55,7 +55,7 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
     %{
       full_name: get_full_name(person),
       first_name: Map.get(person, "first_name"),
-      second_name: Map.get(person, "second_name") || "",
+      second_name: Map.get(person, "second_name"),
       last_name: Map.get(person, "last_name"),
       gender: get_gender(person),
       birth_date: person |> Map.get("birth_date") |> convert_date(),
@@ -65,12 +65,12 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
       tax_id: Map.get(person, "tax_id") || "",
       addresses: get_person_addresses(person),
       phones: get_phone(person),
-      email: Map.get(person, "email") || "",
+      email: Map.get(person, "email"),
       secret: Map.get(person, "secret", ""),
       emergency_contact: get_emergency_contact(person),
       confidant_person: get_confidant_persons(person),
-      preferred_way_communication: get_preferred_way_communication(Map.get(person, "preferred_way_communication", "")),
-      national_id: Map.get(person, "national_id", "")
+      preferred_way_communication: get_preferred_way_communication(Map.get(person, "preferred_way_communication")),
+      national_id: Map.get(person, "national_id")
     }
   end
 
