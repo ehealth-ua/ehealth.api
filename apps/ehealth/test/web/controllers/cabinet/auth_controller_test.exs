@@ -539,6 +539,17 @@ defmodule Mithril.Web.RegistrationControllerTest do
                |> get_in(~w(error message))
     end
 
+    test "DS cannot decode signed content", %{conn: conn, params: params, jwt: jwt} do
+      expect(SignatureMock, :decode_and_validate, fn _signed_content, "base64", _headers ->
+        {:error, %{"data" => %{"is_valid" => false}, "meta" => %{"code" => 422, "type" => "list"}}}
+      end)
+
+      conn
+      |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
+      |> post(cabinet_auth_path(conn, :registration), params)
+      |> json_response(422)
+    end
+
     test "different tax_id in signed content and digital signature", %{conn: conn, params: params, jwt: jwt} do
       expect(SignatureMock, :decode_and_validate, fn signed_content, "base64", _headers ->
         content = signed_content |> Base.decode64!() |> Poison.decode!()
