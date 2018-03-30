@@ -1,7 +1,8 @@
-Change log for versions 7.44.0 - 7.44.9
+Change log for versions 7.44.0 - 7.44.10
 
 **Patches and bug fixes**:
 
+fix employee speciality in printout form
 convert printout form dates (#2037)
 improve printout form variables
 fix tuple order
