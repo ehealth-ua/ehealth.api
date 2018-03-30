@@ -315,7 +315,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
             number: ""
           },
           email: "",
-          specialities: nil
+          specialities: %{}
         },
         division: %{
           addresses: %{
