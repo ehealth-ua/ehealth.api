@@ -14,12 +14,13 @@ defmodule Mithril.Web.RegistrationControllerTest do
       quote do
         expect(SignatureMock, :decode_and_validate, fn signed_content, "base64", _headers ->
           content = signed_content |> Base.decode64!() |> Poison.decode!()
-          assert Map.has_key?(content, "tax_id")
 
           data = %{
             "signer" => %{
               "edrpou" => content["tax_id"],
-              "drfo" => content["tax_id"]
+              "drfo" => content["tax_id"],
+              "surname" => content["last_name"],
+              "given_name" => "#{content["first_name"]} #{content["second_name"]}"
             },
             "signed_content" => signed_content,
             "is_valid" => true,
@@ -428,6 +429,116 @@ defmodule Mithril.Web.RegistrationControllerTest do
                |> get_in(~w(error message))
     end
 
+    test "different last_name in signed content and DS", %{conn: conn, params: params, jwt: jwt} do
+      expect(SignatureMock, :decode_and_validate, fn signed_content, "base64", _headers ->
+        content = signed_content |> Base.decode64!() |> Poison.decode!()
+
+        data = %{
+          "signer" => %{
+            "drfo" => content["tax_id"],
+            "surname" => "Шевченко",
+            "given_name" => content["first_name"] <> " " <> content["second_name"]
+          },
+          "is_valid" => true,
+          "content" => content
+        }
+
+        {:ok, %{"data" => data}}
+      end)
+
+      assert "Input last_name doesn't match name from DS" ==
+               conn
+               |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
+               |> post(cabinet_auth_path(conn, :registration), params)
+               |> json_response(409)
+               |> get_in(~w(error message))
+    end
+
+    test "no surname in Signer from DS", %{conn: conn, params: params, jwt: jwt} do
+      expect(SignatureMock, :decode_and_validate, fn signed_content, "base64", _headers ->
+        content = signed_content |> Base.decode64!() |> Poison.decode!()
+
+        data = %{
+          "signer" => %{
+            "drfo" => content["tax_id"],
+            "given_name" => content["first_name"] <> " " <> content["second_name"]
+          },
+          "is_valid" => true,
+          "content" => content
+        }
+
+        {:ok, %{"data" => data}}
+      end)
+
+      assert "Input last_name doesn't match name from DS" ==
+               conn
+               |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
+               |> post(cabinet_auth_path(conn, :registration), params)
+               |> json_response(409)
+               |> get_in(~w(error message))
+    end
+
+    test "different first_name in signed content and DS", %{conn: conn, params: params, jwt: jwt} do
+      expect(SignatureMock, :decode_and_validate, fn signed_content, "base64", _headers ->
+        content = signed_content |> Base.decode64!() |> Poison.decode!()
+
+        data = %{
+          "signer" => %{
+            "drfo" => content["tax_id"],
+            "surname" => content["last_name"],
+            "given_name" => "Сара Коннор"
+          },
+          "is_valid" => true,
+          "content" => content
+        }
+
+        {:ok, %{"data" => data}}
+      end)
+
+      assert "Input first_name doesn't match name from DS" ==
+               conn
+               |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
+               |> post(cabinet_auth_path(conn, :registration), params)
+               |> json_response(409)
+               |> get_in(~w(error message))
+    end
+
+    test "no given_name in Signer from DS", %{conn: conn, params: params, jwt: jwt} do
+      expect(SignatureMock, :decode_and_validate, fn signed_content, "base64", _headers ->
+        content = signed_content |> Base.decode64!() |> Poison.decode!()
+
+        data = %{
+          "signer" => %{
+            "drfo" => content["tax_id"],
+            "surname" => content["last_name"]
+          },
+          "is_valid" => true,
+          "content" => content
+        }
+
+        {:ok, %{"data" => data}}
+      end)
+
+      assert "Input first_name doesn't match name from DS" ==
+               conn
+               |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
+               |> post(cabinet_auth_path(conn, :registration), params)
+               |> json_response(409)
+               |> get_in(~w(error message))
+    end
+
+    test "different email in signed content and JWT", %{conn: conn, params: params} do
+      use SignatureExpect
+      {:ok, jwt, _} = encode_and_sign(get_aud(:registration), %{email: "not-matched@example.com"})
+
+      assert "Email in signed content is incorrect" ==
+               conn
+               |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
+               |> post(cabinet_auth_path(conn, :registration), params)
+               |> json_response(409)
+               |> get_in(~w(error message))
+    end
+
     test "different tax_id in signed content and digital signature", %{conn: conn, params: params, jwt: jwt} do
       expect(SignatureMock, :decode_and_validate, fn signed_content, "base64", _headers ->
         content = signed_content |> Base.decode64!() |> Poison.decode!()
@@ -483,7 +594,15 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
     test "invalid person data", %{conn: conn, params: params, jwt: jwt} do
       use SignatureExpect
-      signed_person_data = Base.encode64(~s({"birth_date": "today", "tax_id": "1112223344"}))
+
+      signed_person_data =
+        %{
+          "birth_date" => "today",
+          "tax_id" => "1112223344",
+          "email" => "email@example.com"
+        }
+        |> Poison.encode!()
+        |> Base.encode64()
 
       err =
         conn

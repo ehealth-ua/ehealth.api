@@ -63,7 +63,7 @@ defmodule EHealth.PRMRepo.Migrations.SetAdditionalInfoSpecialityOfficio do
       specialities = specialities |> Enum.with_index() |> Enum.map(fn {v, i} -> {i, v} end) |> Enum.into(%{})
 
       {index, speciality_officio} =
-        Enum.find(specialities, fn {i, speciality} ->
+        Enum.find(specialities, fn {_i, speciality} ->
           Map.get(speciality, "speciality") == speciality_officio_name
         end)
 

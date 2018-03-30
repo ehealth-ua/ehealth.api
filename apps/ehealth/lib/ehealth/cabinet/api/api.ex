@@ -21,8 +21,11 @@ defmodule EHealth.Cabinet.API do
          %Ecto.Changeset{valid?: true} <- validate_params(:patient, params),
          {:ok, %{"data" => %{"content" => content, "signer" => signer}}} <-
            @signature_api.decode_and_validate(params["signed_person_data"], params["signed_content_encoding"], headers),
-         {:ok, tax_id} <- validate_tax_id(content, signer),
          :ok <- JsonSchema.validate(:person, content),
+         {:ok, tax_id} <- validate_tax_id(content, signer),
+         :ok <- validate_first_name(content, signer),
+         :ok <- validate_last_name(content, signer),
+         :ok <- validate_email(content, email),
          {:ok, %{"data" => mpi_person}} <-
            @mpi_api.search(%{"tax_id" => tax_id, "birth_date" => content["birth_date"]}, headers),
          person_params <- prepare_person_params(content),
@@ -41,6 +44,19 @@ defmodule EHealth.Cabinet.API do
 
   defp validate_tax_id(%{"tax_id" => tax_id}, %{"drfo" => drfo}) when drfo == tax_id, do: {:ok, tax_id}
   defp validate_tax_id(_, _), do: {:error, {:conflict, "Registration person and person that sign should be the same"}}
+
+  defp validate_first_name(content, signer) do
+    case Map.get(signer, "given_name", "") =~ content["first_name"] do
+      true -> :ok
+      _ -> {:error, {:conflict, "Input first_name doesn't match name from DS"}}
+    end
+  end
+
+  defp validate_last_name(%{"last_name" => last_name}, %{"surname" => surname}) when last_name == surname, do: :ok
+  defp validate_last_name(_, _), do: {:error, {:conflict, "Input last_name doesn't match name from DS"}}
+
+  def validate_email(%{"email" => signed_content_email}, jwt_email) when signed_content_email == jwt_email, do: :ok
+  def validate_email(_, _), do: {:error, {:conflict, "Email in signed content is incorrect"}}
 
   defp prepare_person_params(content), do: Map.put(content, "patient_signed", true)
 

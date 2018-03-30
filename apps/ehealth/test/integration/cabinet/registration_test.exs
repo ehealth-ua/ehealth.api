@@ -12,7 +12,7 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
     setup %{conn: conn} do
       :ets.new(:jwt, [:named_table])
 
-      email = "cabinet@example.com"
+      email = "email@example.com"
       tax_id = "3126509816"
 
       expect(ManMock, :render_template, fn _id, template_data ->
@@ -28,7 +28,9 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
         data = %{
           "signer" => %{
             "edrpou" => content["tax_id"],
-            "drfo" => content["tax_id"]
+            "drfo" => content["tax_id"],
+            "surname" => content["last_name"],
+            "given_name" => "#{content["first_name"]} #{content["second_name"]}"
           },
           "signed_content" => signed_content,
           "is_valid" => true,
