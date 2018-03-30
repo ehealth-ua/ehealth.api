@@ -336,7 +336,7 @@ defmodule EHealth.DeclarationRequests.API.Creator do
     |> put_change(:declaration_number, NumberGenerator.generate(1, 2))
     |> put_party_email()
     |> determine_auth_method_for_mpi(channel)
-    |> generate_printout_form()
+    |> generate_printout_form(employee)
   end
 
   defp validate_legal_entity_employee(changeset, legal_entity, employee) do
@@ -688,10 +688,12 @@ defmodule EHealth.DeclarationRequests.API.Creator do
     |> put_change(:mpi_id, person["id"])
   end
 
-  def generate_printout_form(%Changeset{valid?: false} = changeset), do: changeset
+  def generate_printout_form(%Changeset{valid?: false} = changeset, _), do: changeset
 
-  def generate_printout_form(changeset) do
+  def generate_printout_form(changeset, employee) do
     form_data = get_field(changeset, :data)
+    employee = Map.put(Map.get(form_data, "employee") || %{}, "speciality", Map.get(employee, :speciality))
+    form_data = Map.put(form_data, "employee", employee)
     declaration_number = get_field(changeset, :declaration_number)
 
     authentication_method_current =

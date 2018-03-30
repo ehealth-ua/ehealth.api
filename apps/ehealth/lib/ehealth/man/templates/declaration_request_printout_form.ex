@@ -213,7 +213,7 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
       full_name: get_full_name(party),
       phones: get_phone(party),
       email: Map.get(party, "email", ""),
-      specialities: update_speciality_type(Map.get(employee, "speciality") || %{})
+      speciality: update_speciality_type(Map.get(employee, "speciality") || %{})
     }
   end
 

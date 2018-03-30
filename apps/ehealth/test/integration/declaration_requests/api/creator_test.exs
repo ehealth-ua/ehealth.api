@@ -38,6 +38,14 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
     test "updates declaration request with expected printout form when data is valid" do
       number = NumberGenerator.generate(1, 2)
 
+      employee_speciality =
+        speciality()
+        |> Map.put("speciality", "PEDIATRICIAN")
+        |> Map.put("qualification_type", "Присвоєння")
+        |> Map.put("level", "Перша категорія")
+
+      employee = insert(:prm, :employee, speciality: employee_speciality)
+
       data =
         "test/data/sign_declaration_request.json"
         |> File.read!()
@@ -52,7 +60,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         |> Ecto.Changeset.change()
         |> put_change(:authentication_method_current, authentication_method_current)
         |> put_change(:declaration_number, number)
-        |> Creator.generate_printout_form()
+        |> Creator.generate_printout_form(employee)
         |> get_change(:printout_content)
 
       expected_content = %{
@@ -178,15 +186,15 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
             number: "+380503410870"
           },
           email: "email@example.com",
-          specialities: %{
-            valid_to_date: "2017-08-05",
+          speciality: %{
+            valid_to_date: "1987-04-17",
             speciality_officio: true,
             speciality: "педіатр",
             qualification_type: "Присвоєння",
             level: "Перша категорія",
-            certificate_number: "AB/21331",
-            attestation_name: "Академія Богомольця",
-            attestation_date: "2017-08-04"
+            certificate_number: "random string",
+            attestation_name: "random string",
+            attestation_date: "1987-04-17"
           }
         },
         division: %{
@@ -233,6 +241,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       }
 
       licenses = [get_license("1a"), get_license("2b"), get_license("3c"), get_license("4d")]
+      employee = insert(:prm, :employee, id: "d290f1ee-6c54-4b01-90e6-d701748f0851")
 
       data =
         "test/data/sign_declaration_request.json"
@@ -244,7 +253,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         %DeclarationRequest{id: 321, data: data}
         |> Ecto.Changeset.change()
         |> put_change(:authentication_method_current, authentication_method_current)
-        |> Creator.generate_printout_form()
+        |> Creator.generate_printout_form(employee)
         |> get_change(:printout_content)
         |> Poison.decode!()
         |> get_in(["legal_entity", "full_license"])
@@ -255,12 +264,20 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
     test "updates declaration request with printout form that has empty fields when data is empty" do
       number = NumberGenerator.generate(1, 2)
 
+      employee_speciality =
+        speciality()
+        |> Map.put("speciality", "PEDIATRICIAN")
+        |> Map.put("qualification_type", "Присвоєння")
+        |> Map.put("level", "Перша категорія")
+
+      employee = insert(:prm, :employee, id: "d290f1ee-6c54-4b01-90e6-d701748f0851", speciality: employee_speciality)
+
       printout_content =
         %DeclarationRequest{id: 321, data: %{}}
         |> Ecto.Changeset.change()
         |> put_change(:authentication_method_current, %{})
         |> put_change(:declaration_number, number)
-        |> Creator.generate_printout_form()
+        |> Creator.generate_printout_form(employee)
         |> get_change(:printout_content)
 
       expected_content = %{
@@ -315,7 +332,16 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
             number: ""
           },
           email: "",
-          specialities: %{}
+          speciality: %{
+            valid_to_date: "1987-04-17",
+            speciality_officio: true,
+            speciality: "педіатр",
+            qualification_type: "Присвоєння",
+            level: "Перша категорія",
+            certificate_number: "random string",
+            attestation_name: "random string",
+            attestation_date: "1987-04-17"
+          }
         },
         division: %{
           addresses: %{
@@ -356,12 +382,13 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
 
     test "returns error on printout_content field" do
       System.put_env("DECLARATION_REQUEST_PRINTOUT_FORM_TEMPLATE_ID", "999")
+      employee = insert(:prm, :employee)
 
       changeset =
         %DeclarationRequest{id: 321, data: %{}}
         |> Ecto.Changeset.change()
         |> put_change(:authentication_method_current, %{})
-        |> Creator.generate_printout_form()
+        |> Creator.generate_printout_form(employee)
 
       assert ~s(Error during MAN interaction. Result from MAN: "oops, I did it again") ==
                elem(changeset.errors[:printout_content], 0)
