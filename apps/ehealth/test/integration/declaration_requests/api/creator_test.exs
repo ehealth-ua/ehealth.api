@@ -30,6 +30,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       insert(:il, :dictionary_document_type)
       insert(:il, :dictionary_street_type)
       insert(:il, :dictionary_document_relationship_type)
+      insert(:il, :dictionary_speciality_type)
 
       :ok
     end
@@ -64,10 +65,11 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
             male: true,
             female: false
           },
-          birth_date: "1991-08-19",
+          birth_date: "19-08-1991",
           document: %{
             type: "Паспорт",
-            number: "120518"
+            number: "120518",
+            issued_at: ""
           },
           birth_settlement: "Вінниця",
           birth_country: "Україна",
@@ -123,7 +125,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
               phones: %{
                 number: "+380503410870"
               },
-              birth_date: "1991-08-19",
+              birth_date: "19-08-1991",
               gender: %{
                 male: true,
                 female: false
@@ -132,12 +134,14 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
               birth_country: "Україна",
               documents_person: %{
                 type: "Паспорт",
-                number: "120518"
+                number: "120518",
+                issued_at: ""
               },
               tax_id: "3126509816",
               documents_relationship: %{
                 type: "Документ",
-                number: "120519"
+                number: "120519",
+                issued_at: ""
               }
             },
             secondary: %{
@@ -145,7 +149,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
               phones: %{
                 number: "+380503410871"
               },
-              birth_date: "1991-08-20",
+              birth_date: "20-08-1991",
               gender: %{
                 male: true,
                 female: false
@@ -154,12 +158,14 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
               birth_country: "Україна",
               documents_person: %{
                 type: "Паспорт",
-                number: "120520"
+                number: "120520",
+                issued_at: ""
               },
               tax_id: "3126509817",
               documents_relationship: %{
                 type: "Документ",
-                number: "120521"
+                number: "120521",
+                issued_at: ""
               }
             }
           },
@@ -172,7 +178,16 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
             number: "+380503410870"
           },
           email: "email@example.com",
-          specialities: []
+          specialities: %{
+            valid_to_date: "2017-08-05",
+            speciality_officio: true,
+            speciality: "педіатр",
+            qualification_type: "Присвоєння",
+            level: "Перша категорія",
+            certificate_number: "AB/21331",
+            attestation_name: "Академія Богомольця",
+            attestation_date: "2017-08-04"
+          }
         },
         division: %{
           addresses: %{
@@ -206,7 +221,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         },
         declaration_id: "",
         declaration_number: number,
-        start_date: "2017-03-02"
+        start_date: "02-03-2017"
       }
 
       assert printout_content == Poison.encode!(expected_content)
@@ -253,7 +268,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
           full_name: "",
           first_name: nil,
           last_name: nil,
-          second_name: nil,
+          second_name: "",
           gender: %{
             male: false,
             female: false
@@ -300,7 +315,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
             number: ""
           },
           email: "",
-          specialities: []
+          specialities: nil
         },
         division: %{
           addresses: %{

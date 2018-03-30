@@ -6,6 +6,7 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
   alias EHealth.Utils.AddressMerger
   alias EHealth.Dictionaries
   alias EHealth.DeclarationRequests.DeclarationRequest
+  use Timex
 
   @man_api Application.get_env(:ehealth, :api_resolvers)[:man]
 
@@ -16,6 +17,7 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
   @street_type "STREET_TYPE"
   @settlement_type "SETTLEMENT_TYPE"
   @relationship_documents_dict "DOCUMENT_RELATIONSHIP_TYPE"
+  @speciality_type "SPECIALITY_TYPE"
 
   def render(declaration_request, declaration_number, authentication_method_current) do
     template_data =
@@ -43,7 +45,7 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
       authentication_method_current: get_authentication_method_current(authentication_method_current),
       declaration_id: Map.get(declaration_request, "declaration_id", ""),
       declaration_number: declaration_number,
-      start_date: Map.get(declaration_request, "start_date", "")
+      start_date: declaration_request |> Map.get("start_date") |> convert_date()
     }
   end
 
@@ -53,17 +55,17 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
     %{
       full_name: get_full_name(person),
       first_name: Map.get(person, "first_name"),
-      second_name: Map.get(person, "second_name"),
+      second_name: Map.get(person, "second_name") || "",
       last_name: Map.get(person, "last_name"),
       gender: get_gender(person),
-      birth_date: Map.get(person, "birth_date", ""),
+      birth_date: person |> Map.get("birth_date") |> convert_date(),
       document: get_document(person, "documents", @documents_dict),
       birth_settlement: Map.get(person, "birth_settlement", ""),
       birth_country: Map.get(person, "birth_country", ""),
-      tax_id: Map.get(person, "tax_id", ""),
+      tax_id: Map.get(person, "tax_id") || "",
       addresses: get_person_addresses(person),
       phones: get_phone(person),
-      email: Map.get(person, "email", ""),
+      email: Map.get(person, "email") || "",
       secret: Map.get(person, "secret", ""),
       emergency_contact: get_emergency_contact(person),
       confidant_person: get_confidant_persons(person),
@@ -102,9 +104,12 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
   defp get_document(person, key, dictionary_name) do
     case Map.get(person, key) do
       [first | _other] ->
-        first
-        |> take_fields(~w(type number issued_by issued_at))
-        |> update_document_type(dictionary_name)
+        document =
+          first
+          |> take_fields(~w(type number issued_by issued_at))
+          |> update_document_type(dictionary_name)
+
+        Map.put(document, "issued_at", convert_date(document["issued_at"]))
 
       _ ->
         %{"type" => "", "number" => "", "issued_by" => "", "issued_at" => ""}
@@ -190,7 +195,7 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
     %{
       full_name: get_full_name(confidant_person),
       phones: get_phone(confidant_person),
-      birth_date: Map.get(confidant_person, "birth_date", ""),
+      birth_date: confidant_person |> Map.get("birth_date") |> convert_date(),
       gender: get_gender(confidant_person),
       birth_settlement: Map.get(confidant_person, "birth_settlement", ""),
       birth_country: Map.get(confidant_person, "birth_country", ""),
@@ -203,13 +208,12 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
   defp get_employee(declaration_request) do
     employee = Map.get(declaration_request, "employee", %{})
     party = Map.get(employee, "party", %{})
-    specialities = Map.get(employee, "specialities", [])
 
     %{
       full_name: get_full_name(party),
       phones: get_phone(party),
       email: Map.get(party, "email", ""),
-      specialities: Enum.map(specialities, &Map.get(&1, "speciality"))
+      specialities: update_speciality_type(employee["speciality"])
     }
   end
 
@@ -229,12 +233,6 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
       case residence_address do
         nil -> ""
         address -> address |> AddressMerger.merge_street_part() |> List.first()
-      end
-
-    settlement =
-      case residence_address do
-        nil -> ""
-        address -> address |> AddressMerger.merge_settlement_part(full_street) |> List.first()
       end
 
     %{
@@ -260,6 +258,16 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
 
       street_type ->
         Map.put(document, "street_type", Dictionaries.get_dictionary_value(street_type, @street_type))
+    end
+  end
+
+  defp update_speciality_type(document) do
+    case document["speciality"] do
+      nil ->
+        document
+
+      speciality_type ->
+        Map.put(document, "speciality", Dictionaries.get_dictionary_value(speciality_type, @speciality_type))
     end
   end
 
@@ -333,6 +341,16 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
       @auth_otp -> Map.put(authentication_method_current, :otp, true)
       @auth_offline -> Map.put(authentication_method_current, :offline, true)
       _ -> authentication_method_current
+    end
+  end
+
+  defp convert_date(nil), do: ""
+
+  defp convert_date(value) do
+    with {:ok, date} <- Timex.parse(value, "%Y-%m-%d", :strftime) do
+      Timex.format!(date, "%d-%m-%Y", :strftime)
+    else
+      _ -> value
     end
   end
 end
