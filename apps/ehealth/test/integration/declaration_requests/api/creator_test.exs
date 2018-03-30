@@ -205,7 +205,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
           }
         },
         legal_entity: %{
-          full_name: "ЦПМСД №1",
+          full_name: "Клініка Борис",
           addresses: %{
             registration: %{
               full_address: "Житомирська область, Бердичівський район, місто Київ, вулиця Ніжинська 15, квартира 23, \

@@ -275,7 +275,7 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
     legal_entity = Map.get(declaration_request, "legal_entity", %{})
 
     %{
-      full_name: Map.get(legal_entity, "public_name", ""),
+      full_name: Map.get(legal_entity, "name", ""),
       addresses: get_legal_entity_addresses(legal_entity),
       edrpou: Map.get(legal_entity, "edrpou", ""),
       full_license: get_three_licenses(legal_entity),
