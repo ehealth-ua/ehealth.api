@@ -177,8 +177,8 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
               }
             }
           },
-          national_id: nil,
-          preferred_way_communication: nil
+          national_id: "--",
+          preferred_way_communication: "--"
         },
         employee: %{
           full_name: "Петро Миколайович Іванов",
@@ -285,7 +285,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
           full_name: "",
           first_name: nil,
           last_name: nil,
-          second_name: nil,
+          second_name: "--",
           gender: %{
             male: false,
             female: false
@@ -299,7 +299,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
           },
           birth_settlement: "",
           birth_country: "",
-          tax_id: "",
+          tax_id: "--",
           addresses: %{
             registration: %{
               full_address: ""
@@ -309,27 +309,27 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
             }
           },
           phones: %{
-            number: ""
+            number: "--"
           },
-          email: nil,
+          email: "--",
           secret: "",
           emergency_contact: %{
             full_name: "",
             phones: %{
-              number: ""
+              number: "--"
             }
           },
           confidant_person: %{
             primary: %{},
             secondary: %{}
           },
-          preferred_way_communication: nil,
-          national_id: nil
+          preferred_way_communication: "--",
+          national_id: "--"
         },
         employee: %{
           full_name: "",
           phones: %{
-            number: ""
+            number: "--"
           },
           email: "",
           speciality: %{
@@ -360,7 +360,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
           edrpou: "",
           full_license: "",
           phones: %{
-            number: ""
+            number: "--"
           },
           email: ""
         },

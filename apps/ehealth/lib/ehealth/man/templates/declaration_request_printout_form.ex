@@ -55,22 +55,23 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
     %{
       full_name: get_full_name(person),
       first_name: Map.get(person, "first_name"),
-      second_name: Map.get(person, "second_name"),
+      second_name: Map.get(person, "second_name") || "--",
       last_name: Map.get(person, "last_name"),
       gender: get_gender(person),
       birth_date: person |> Map.get("birth_date") |> convert_date(),
       document: get_document(person, "documents", @documents_dict),
       birth_settlement: Map.get(person, "birth_settlement", ""),
       birth_country: Map.get(person, "birth_country", ""),
-      tax_id: Map.get(person, "tax_id") || "",
+      tax_id: Map.get(person, "tax_id") || "--",
       addresses: get_person_addresses(person),
       phones: get_phone(person),
-      email: Map.get(person, "email"),
+      email: Map.get(person, "email") || "--",
       secret: Map.get(person, "secret", ""),
       emergency_contact: get_emergency_contact(person),
       confidant_person: get_confidant_persons(person),
-      preferred_way_communication: get_preferred_way_communication(Map.get(person, "preferred_way_communication")),
-      national_id: Map.get(person, "national_id")
+      preferred_way_communication:
+        get_preferred_way_communication(Map.get(person, "preferred_way_communication") || "--"),
+      national_id: Map.get(person, "national_id") || "--"
     }
   end
 
@@ -154,7 +155,7 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
   defp get_phone(data) do
     case Map.get(data, "phones") do
       [first | _other] -> take_fields(first, ["number"])
-      _ -> %{"number" => ""}
+      _ -> %{"number" => "--"}
     end
   end
 
