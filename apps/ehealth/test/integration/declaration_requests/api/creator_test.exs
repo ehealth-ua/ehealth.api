@@ -177,8 +177,8 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
               }
             }
           },
-          national_id: "",
-          preferred_way_communication: ""
+          national_id: nil,
+          preferred_way_communication: nil
         },
         employee: %{
           full_name: "Петро Миколайович Іванов",
@@ -227,7 +227,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
           otp: true,
           offline: false
         },
-        declaration_id: "",
+        declaration_id: nil,
         declaration_number: number,
         start_date: "02.03.2017"
       }
@@ -285,7 +285,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
           full_name: "",
           first_name: nil,
           last_name: nil,
-          second_name: "",
+          second_name: nil,
           gender: %{
             male: false,
             female: false
@@ -311,7 +311,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
           phones: %{
             number: ""
           },
-          email: "",
+          email: nil,
           secret: "",
           emergency_contact: %{
             full_name: "",
@@ -323,8 +323,8 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
             primary: %{},
             secondary: %{}
           },
-          preferred_way_communication: "",
-          national_id: ""
+          preferred_way_communication: nil,
+          national_id: nil
         },
         employee: %{
           full_name: "",
@@ -372,7 +372,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
           otp: false,
           offline: false
         },
-        declaration_id: "",
+        declaration_id: nil,
         declaration_number: number,
         start_date: ""
       }
