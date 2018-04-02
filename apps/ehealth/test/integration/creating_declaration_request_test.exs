@@ -165,7 +165,12 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       party = insert(:prm, :party, id: "ac6ca796-9cc8-4a8f-96f8-016dd52daac6")
       insert(:prm, :party_user, party: party)
       division = insert(:prm, :division, id: "51f56b0e-0223-49c1-9b5f-b07e09ba40f1", legal_entity: legal_entity)
-      doctor = Map.put(doctor(), "specialities", [%{speciality: "PEDIATRICIAN"}])
+
+      doctor =
+        Map.put(doctor(), "specialities", [
+          %{"speciality" => "THERAPIST", "speciality_officio" => false},
+          %{"speciality" => "PEDIATRICIAN", "speciality_officio" => true}
+        ])
 
       insert(
         :prm,

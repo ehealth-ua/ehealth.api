@@ -316,7 +316,7 @@ defmodule EHealth.DeclarationRequests.API.Creator do
     |> validate_legal_entity_division(legal_entity, division)
     |> validate_employee_type(employee)
     |> validate_patient_birth_date()
-    |> validate_patient_age(Enum.map(specialities, & &1["speciality"]), global_parameters["adult_age"])
+    |> validate_patient_age(Enum.find(specialities, & &1["speciality_officio"]), global_parameters["adult_age"])
     |> validate_authentication_method_phone_number()
     |> validate_tax_id()
     |> validate_person_addresses()
@@ -377,7 +377,7 @@ defmodule EHealth.DeclarationRequests.API.Creator do
     end)
   end
 
-  def validate_patient_age(changeset, specialities, adult_age) do
+  def validate_patient_age(changeset, speciality, adult_age) do
     validate_change(changeset, :data, fn :data, data ->
       patient_birth_date =
         data
@@ -386,7 +386,7 @@ defmodule EHealth.DeclarationRequests.API.Creator do
 
       patient_age = Timex.diff(Timex.now(), patient_birth_date, :years)
 
-      case Enum.any?(specialities, &belongs_to(patient_age, adult_age, &1)) do
+      case belongs_to(patient_age, adult_age, speciality["speciality"]) do
         true -> []
         false -> [data: "Doctor speciality does not meet the patient's age requirement."]
       end
