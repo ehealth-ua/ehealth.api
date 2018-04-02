@@ -23,6 +23,21 @@ defmodule EHealth.DeclarationRequests.API.Sign do
 
   @status_approved DeclarationRequest.status(:approved)
 
+  @latin_to_cyrillic %{
+    "A" => "А",
+    "B" => "В",
+    "C" => "С",
+    "E" => "Е",
+    "H" => "Н",
+    "I" => "І",
+    "K" => "К",
+    "M" => "М",
+    "O" => "О",
+    "P" => "Р",
+    "T" => "Т",
+    "X" => "Х"
+  }
+
   def sign(params, headers) do
     with {:ok, %{"data" => %{"content" => content, "signer" => signer}}} <- decode_and_validate(params, headers),
          %DeclarationRequest{} = declaration_request <- params |> Map.fetch!("id") |> DeclarationRequests.get_by_id!(),
@@ -161,15 +176,15 @@ defmodule EHealth.DeclarationRequests.API.Sign do
       })
     end)
 
-    case tax_id == drfo do
-      true ->
-        :ok
-
-      _ ->
-        {:error,
-         [
-           {%{description: "Does not match the signer drfo", params: [], rule: :invalid}, "$.token.consumer_id"}
-         ]}
+    with false <- tax_id == drfo,
+         {:ok, drfo} <- prepare_drfo(drfo),
+         false <- tax_id == drfo do
+      {:error,
+       [
+         {%{description: "Does not match the signer drfo", params: [], rule: :invalid}, "$.token.consumer_id"}
+       ]}
+    else
+      true -> :ok
     end
   end
 
@@ -298,5 +313,26 @@ defmodule EHealth.DeclarationRequests.API.Sign do
   defp current_hash do
     {:ok, %{"data" => %{"hash" => hash}}} = OPS.get_latest_block()
     hash
+  end
+
+  defp prepare_drfo(drfo) do
+    {:ok,
+     drfo
+     |> String.upcase()
+     |> String.split("", trim: true)
+     |> Enum.reduce([], fn letter, acc ->
+       acc ++ [get_replacement_symbol(letter)]
+     end)
+     |> Enum.join("")}
+  end
+
+  defp get_replacement_symbol(letter) do
+    case Enum.find(@latin_to_cyrillic, fn {k, _} -> k == letter end) do
+      nil ->
+        letter
+
+      {_, replacement} ->
+        String.replace(letter, letter, replacement)
+    end
   end
 end
