@@ -1,7 +1,8 @@
-Change log for versions 7.45.0 - 7.45.7
+Change log for versions 7.45.0 - 7.45.8
 
 **Patches and bug fixes**:
 
+compare drfo as cyrillic (#2052)
 new dashes
 improve printout form
 fix printout form fields
