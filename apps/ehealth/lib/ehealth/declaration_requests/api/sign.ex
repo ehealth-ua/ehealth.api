@@ -161,7 +161,7 @@ defmodule EHealth.DeclarationRequests.API.Sign do
   end
 
   def check_drfo(signer, headers) do
-    drfo = signer |> Map.get("drfo") |> String.replace(" ", "")
+    drfo = signer |> Map.get("drfo", "") |> String.replace(" ", "")
     tax_id = headers |> get_consumer_id() |> Parties.get_tax_id_by_user_id()
 
     Logger.info(fn ->

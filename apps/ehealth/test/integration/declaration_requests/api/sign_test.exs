@@ -133,6 +133,22 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
       signer = %{"drfo" => drfo}
       assert :ok == check_drfo(signer, [{"x-consumer-id", user_id}])
     end
+
+    test "returns expected result when drfo is null" do
+      tax_id = "AA111"
+      %{user_id: user_id} = insert(:prm, :party_user, party: build(:party, tax_id: tax_id))
+
+      signer = %{}
+      result = check_drfo(signer, [{"x-consumer-id", user_id}])
+
+      expected_result =
+        {:error,
+         [
+           {%{description: "Does not match the signer drfo", params: [], rule: :invalid}, "$.token.consumer_id"}
+         ]}
+
+      assert expected_result == result
+    end
   end
 
   describe "check_employee_id/2" do
