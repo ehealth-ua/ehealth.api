@@ -1,7 +1,11 @@
-Change log for versions 7.45.0 - 7.45.12
+Change log for versions 7.45.0 - 7.45.16
 
 **Patches and bug fixes**:
 
+birth_certificate is required for person with age < 14
+fix check drfo on sign declaration request
+declaration cabinet list response (#2056)
+declaration cabinet list response
 search person before sign
 Default value for drfo (#2057)
 add ecto_logger_json dep (#2051)
@@ -15,4 +19,6 @@ drop obsolete migration
 fix speciality migration (#2041)
 - test for 422 response from DS (#2040)
 
+**Other**:
 
+Rename apps/ehealth/specs/json_schemas/declaration_cabinet/declaration_cabinet_list_response.json to apps/ehealth/specs/json_schemas/cabinet/declarations/list_declarations_response.json
