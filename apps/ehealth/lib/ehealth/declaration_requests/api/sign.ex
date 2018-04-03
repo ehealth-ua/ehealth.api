@@ -3,7 +3,6 @@ defmodule EHealth.DeclarationRequests.API.Sign do
 
   import Ecto.Changeset
   import EHealth.Utils.Connection
-  alias EHealth.API.MPI
   alias EHealth.API.MediaStorage
   alias EHealth.API.OPS
   alias EHealth.API.Signature
@@ -16,6 +15,8 @@ defmodule EHealth.DeclarationRequests.API.Sign do
   alias HTTPoison.Response
   alias EHealth.Repo
   require Logger
+
+  @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
 
   @auth_na DeclarationRequest.authentication_method(:na)
   @auth_otp DeclarationRequest.authentication_method(:otp)
@@ -216,17 +217,38 @@ defmodule EHealth.DeclarationRequests.API.Sign do
   end
 
   def create_or_update_person(%DeclarationRequest{} = declaration_request, content, headers) do
-    content
-    |> Map.fetch!("person")
-    |> Map.put("patient_signed", true)
-    |> Map.put("id", declaration_request.mpi_id)
-    |> MPI.create_or_update_person(headers)
-    |> case do
-      {:ok, %Response{status_code: 409}} -> {:conflict, "person is not active"}
-      {:ok, %Response{status_code: 404}} -> {:conflict, "person is not found"}
-      {:ok, %Response{body: person, status_code: 200}} -> Poison.decode(person)
-      {:ok, %Response{body: person, status_code: 201}} -> Poison.decode(person)
-      err -> err
+    person_params = Map.fetch!(content, "person")
+
+    response =
+      case @mpi_api.search(Map.take(person_params, ~w(first_name last_name second_name tax_id birth_date)), headers) do
+        {:ok, %{"data" => []}} ->
+          person_params
+          |> Map.put("patient_signed", true)
+          |> Map.put("id", declaration_request.mpi_id)
+          |> @mpi_api.create_or_update_person(headers)
+
+        {:ok, %{"data" => [person]}} ->
+          @mpi_api.update_person(person["id"], Map.put(person_params, "patient_signed", true), headers)
+
+        err ->
+          err
+      end
+
+    case response do
+      {:ok, %Response{status_code: 409}} ->
+        {:conflict, "person is not active"}
+
+      {:ok, %Response{status_code: 404}} ->
+        {:conflict, "person is not found"}
+
+      {:ok, %Response{body: person, status_code: 200}} ->
+        Poison.decode(person)
+
+      {:ok, %Response{body: person, status_code: 201}} ->
+        Poison.decode(person)
+
+      err ->
+        err
     end
   end
 

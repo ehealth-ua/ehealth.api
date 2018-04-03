@@ -5,7 +5,10 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
   alias Ecto.UUID
   alias EHealth.DeclarationRequests.DeclarationRequest
   alias EHealth.Repo
+  alias HTTPoison.Response
+  alias EHealth.MockServer
   import EHealth.DeclarationRequests.API.Sign
+  import Mox
 
   describe "check_status/2" do
     test "returns error when status is not APPROVED" do
@@ -170,47 +173,39 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
   end
 
   describe "create_or_update_person/2" do
-    defmodule MPIMock do
-      @moduledoc false
-
-      use MicroservicesHelper
-
-      Plug.Router.post "/persons" do
-        case conn.body_params do
-          %{"id" => "d2bb5bef-5984-4c25-9538-16ed61dc810e"} ->
-            send_resp(conn, 409, "")
-
-          %{"id" => "6e8d4595-e83c-4f97-be76-c6e2b96b05f1"} ->
-            send_resp(conn, 200, Poison.encode!(conn.body_params))
-
-          _ ->
-            send_resp(conn, 404, "")
-        end
-      end
-    end
-
-    setup do
-      {:ok, port, ref} = start_microservices(MPIMock)
-
-      System.put_env("MPI_ENDPOINT", "http://localhost:#{port}")
-
-      on_exit(fn ->
-        System.put_env("MPI_ENDPOINT", "http://localhost:4040")
-        stop_microservices(ref)
+    test "returns expected result" do
+      expect(MPIMock, :search, fn _params, _headers ->
+        {:ok, %{"data" => []}}
       end)
 
-      :ok
-    end
+      expect(MPIMock, :create_or_update_person, fn params, _headers ->
+        {:ok, %{"data" => params}}
+      end)
 
-    test "returns expected result" do
-      person = %{"data" => "somedata", "patient_signed" => false}
+      person = %{"first_name" => "test", "last_name" => "test", "patient_signed" => false}
       uuid = "6e8d4595-e83c-4f97-be76-c6e2b96b05f1"
-      expected_result = {:ok, %{"data" => "somedata", "id" => uuid, "patient_signed" => true}}
-      assert expected_result == create_or_update_person(%DeclarationRequest{mpi_id: uuid}, %{"person" => person}, [])
+
+      assert {:ok,
+              %{"data" => %{"first_name" => "test", "last_name" => "test", "patient_signed" => true, "id" => uuid}}} ==
+               create_or_update_person(%DeclarationRequest{mpi_id: uuid}, %{"person" => person}, [])
     end
 
     test "person is not active" do
-      person = %{"data" => "somedata", "patient_signed" => false}
+      expect(MPIMock, :search, fn _params, _headers ->
+        {:ok, %{"data" => []}}
+      end)
+
+      expect(MPIMock, :create_or_update_person, fn _params, _headers ->
+        {:ok, %Response{status_code: 409}}
+      end)
+
+      person = %{
+        "first_name" => "test",
+        "last_name" => "test",
+        "birth_date" => "1990-01-01",
+        "patient_signed" => false
+      }
+
       uuid = "d2bb5bef-5984-4c25-9538-16ed61dc810e"
 
       assert {:conflict, "person is not active"} ==
@@ -218,10 +213,37 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
     end
 
     test "person not found" do
+      expect(MPIMock, :search, fn _params, _headers ->
+        {:ok, %{"data" => []}}
+      end)
+
+      expect(MPIMock, :create_or_update_person, fn _params, _headers ->
+        {:ok, %Response{status_code: 404}}
+      end)
+
       person = %{"data" => "somedata", "patient_signed" => false}
       uuid = UUID.generate()
 
       assert {:conflict, "person is not found"} ==
+               create_or_update_person(%DeclarationRequest{id: uuid}, %{"person" => person}, [])
+    end
+
+    test "person already exists on MPI" do
+      person_id = UUID.generate()
+
+      expect(MPIMock, :search, fn _params, _headers ->
+        {:ok, %{"data" => [MockServer.get_person(person_id)]}}
+      end)
+
+      expect(MPIMock, :update_person, fn id, params, _headers ->
+        {:ok, %{"data" => Map.put(params, "id", id)}}
+      end)
+
+      person = %{"first_name" => "test", "last_name" => "test", "patient_signed" => false}
+      uuid = UUID.generate()
+
+      assert {:ok,
+              %{"data" => %{"first_name" => "test", "id" => person_id, "last_name" => "test", "patient_signed" => true}}} ==
                create_or_update_person(%DeclarationRequest{id: uuid}, %{"person" => person}, [])
     end
   end
