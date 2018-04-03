@@ -141,7 +141,7 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
       tax_id = "AA111"
       %{user_id: user_id} = insert(:prm, :party_user, party: build(:party, tax_id: tax_id))
 
-      signer = %{}
+      signer = %{"drfo" => nil}
       result = check_drfo(signer, [{"x-consumer-id", user_id}])
 
       expected_result =
