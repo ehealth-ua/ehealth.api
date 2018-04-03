@@ -5,7 +5,10 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
   alias Ecto.UUID
   alias EHealth.DeclarationRequests.DeclarationRequest
   alias EHealth.Utils.NumberGenerator
+  alias EHealth.MockServer
+  alias HTTPoison.Response
   import EHealth.SimpleFactory
+  import Mox
 
   describe "list declaration requests" do
     test "no legal_entity_id match", %{conn: conn} do
@@ -510,6 +513,14 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
 
   describe "sign declaration request" do
     test "success", %{conn: conn} do
+      expect(MPIMock, :search, fn _params, _headers ->
+        {:ok, %{"data" => []}}
+      end)
+
+      expect(MPIMock, :create_or_update_person, fn _params, _headers ->
+        {:ok, %Response{body: Poison.encode!(%{"data" => MockServer.get_person()}), status_code: 200}}
+      end)
+
       data =
         "test/data/declaration_request/sign_request.json"
         |> File.read!()
