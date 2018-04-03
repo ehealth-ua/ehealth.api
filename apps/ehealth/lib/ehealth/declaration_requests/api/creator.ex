@@ -85,7 +85,7 @@ defmodule EHealth.DeclarationRequests.API.Creator do
       |> Map.get("documents")
       |> Enum.find(&(Map.get(&1, "type") == "BIRTH_CERTIFICATE"))
 
-    if age < 16 && !birth_certificate do
+    if age < 14 && !birth_certificate do
       {:error, [{JsonObjects.get_error("Must contain required item.", "BIRTH_CERTIFICATE"), "$.person.documents"}]}
     else
       ValidatePerson.validate(person)
