@@ -1,7 +1,8 @@
-Change log for versions 7.45.0 - 7.45.11
+Change log for versions 7.45.0 - 7.45.12
 
 **Patches and bug fixes**:
 
+search person before sign
 Default value for drfo (#2057)
 add ecto_logger_json dep (#2051)
 get speciality officio on declaration request create (#2053)
