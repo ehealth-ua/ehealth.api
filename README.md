@@ -1,4 +1,4 @@
-# ehealth
+# eHealth
 
 [![Build Status](https://travis-ci.org/edenlabllc/ehealth.api.svg?branch=master)](https://travis-ci.org/edenlabllc/ehealth.api) [![Coverage Status](https://coveralls.io/repos/github/edenlabllc/ehealth.api/badge.svg?branch=master)](https://coveralls.io/github/edenlabllc/ehealth.api?branch=master)
 
