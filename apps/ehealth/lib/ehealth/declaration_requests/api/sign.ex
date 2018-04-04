@@ -220,8 +220,9 @@ defmodule EHealth.DeclarationRequests.API.Sign do
   def create_or_update_person(%DeclarationRequest{} = declaration_request, content, headers) do
     person_params = Map.fetch!(content, "person")
 
+    # @todo complex logic to search person before sign. Should be removed in a week
     response =
-      case @mpi_api.search(Map.take(person_params, ~w(first_name last_name second_name tax_id birth_date)), headers) do
+      case @mpi_api.search(get_person_search_params(person_params), headers) do
         {:ok, %{"data" => [person]}} ->
           @mpi_api.update_person(person["id"], Map.put(person_params, "patient_signed", true), headers)
 
@@ -250,6 +251,23 @@ defmodule EHealth.DeclarationRequests.API.Sign do
 
       err ->
         err
+    end
+  end
+
+  defp get_person_search_params(%{"birth_date" => birth_date} = params) do
+    age = Timex.diff(Timex.now(), Date.from_iso8601!(birth_date), :years)
+
+    if age < 14 do
+      birth_certificate =
+        params
+        |> Map.get("documents")
+        |> Enum.find(&(Map.get(&1, "type") == "BIRTH_CERTIFICATE"))
+
+      params
+      |> Map.take(~w(birth_date))
+      |> Map.put("birth_certificate", birth_certificate)
+    else
+      Map.take(params, ~w(first_name last_name second_name tax_id birth_date))
     end
   end
 
