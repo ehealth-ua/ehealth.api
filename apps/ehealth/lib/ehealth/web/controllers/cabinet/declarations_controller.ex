@@ -33,4 +33,17 @@ defmodule EHealth.Web.Cabinet.DeclarationsController do
       |> send_resp(200, response)
     end
   end
+
+  def show_declaration(conn, %{"id" => id}) do
+    with {:ok, declaration} <- Declarations.get_declaration(id, conn.req_headers) do
+      response =
+        declaration
+        |> render_declaration()
+        |> Poison.encode!()
+
+      conn
+      |> put_resp_content_type("application/json")
+      |> send_resp(200, response)
+    end
+  end
 end
