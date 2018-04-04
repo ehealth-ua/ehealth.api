@@ -61,8 +61,10 @@ defmodule EHealth.API.Signature do
         "content" => data,
         "is_valid" => true,
         "signer" => %{
+          "drfo" => get_header(headers, "drfo"),
           "edrpou" => get_header(headers, "edrpou"),
-          "drfo" => get_header(headers, "drfo")
+          "surname" => get_header(headers, "surname"),
+          "given_name" => get_header(headers, "given_name")
         }
       }
       |> wrap_response(200)
