@@ -265,7 +265,7 @@ defmodule EHealth.DeclarationRequests.API.Sign do
 
       params
       |> Map.take(~w(birth_date))
-      |> Map.put("birth_certificate", birth_certificate)
+      |> Map.put("birth_certificate", birth_certificate["number"])
     else
       Map.take(params, ~w(first_name last_name second_name tax_id birth_date))
     end
