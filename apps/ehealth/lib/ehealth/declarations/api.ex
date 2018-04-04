@@ -165,11 +165,11 @@ defmodule EHealth.Declarations.API do
     |> maybe_render_error("Employee does not have active declarations")
   end
 
-  defp maybe_render_error({:ok, %{"data" => %{"terminated_declarations" => []}}}, msg) do
-    {:error, {:"422", msg}}
+  defp maybe_render_error({:ok, %{"data" => %{"terminated_declarations" => []}}}, message) do
+    {:error, {:"422", message}}
   end
 
-  defp maybe_render_error(resp, _msg), do: resp
+  defp maybe_render_error(response, _message), do: response
 
   defp validate_required_one_inclusion(%{changes: changes} = changeset, fields) do
     case map_size(Map.take(changes, fields)) do

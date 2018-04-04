@@ -4,12 +4,11 @@ defmodule EHealth.Plugs.ClientContext do
   """
   use EHealth.Web, :plugs
   use Confex, otp_app: :ehealth
+  require Logger
 
   alias EHealth.API.Mithril
   alias Scrivener.Page
   alias Plug.Conn
-
-  require Logger
 
   def put_is_active_into_params(%Conn{params: params} = conn, _) do
     %{conn | params: Map.merge(params, %{"is_active" => true})}
