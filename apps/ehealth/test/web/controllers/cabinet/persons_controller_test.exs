@@ -1,9 +1,10 @@
-defmodule EHealth.Web.CabinetControllerTest do
+defmodule EHealth.Web.Cabinet.PersonsControllerTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase, async: false
-  alias Ecto.UUID
   import Mox
+
+  alias Ecto.UUID
 
   defmodule OpsServer do
     @moduledoc false
@@ -285,33 +286,13 @@ defmodule EHealth.Web.CabinetControllerTest do
     insert(:prm, :global_parameter, %{parameter: "declaration_term", value: "40"})
     insert(:prm, :global_parameter, %{parameter: "declaration_term_unit", value: "YEARS"})
 
-    {:ok, port, ref1} = start_microservices(MpiServer)
-    System.put_env("MPI_ENDPOINT", "http://localhost:#{port}")
-
-    {:ok, port, ref2} = start_microservices(MithrilServer)
-    System.put_env("OAUTH_ENDPOINT", "http://localhost:#{port}")
-
-    {:ok, port, ref3} = start_microservices(OTPVerificationServer)
-    System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:#{port}")
-
-    {:ok, port, ref4} = start_microservices(MediaStorageServer)
-    System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:#{port}")
-
-    {:ok, port, ref5} = start_microservices(OpsServer)
-    System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
-
-    on_exit(fn ->
-      System.put_env("MPI_ENDPOINT", "http://localhost:4040")
-      System.put_env("OAUTH_ENDPOINT", "http://localhost:4040")
-      System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:4040")
-      System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:4040")
-      System.put_env("OPS_ENDPOINT", "http://localhost:4040")
-      stop_microservices(ref1)
-      stop_microservices(ref2)
-      stop_microservices(ref3)
-      stop_microservices(ref4)
-      stop_microservices(ref5)
-    end)
+    register_mircoservices_for_tests([
+      {MpiServer, "MPI_ENDPOINT"},
+      {MithrilServer, "OAUTH_ENDPOINT"},
+      {OTPVerificationServer, "OTP_VERIFICATION_ENDPOINT"},
+      {MediaStorageServer, "MEDIA_STORAGE_ENDPOINT"},
+      {OpsServer, "OPS_ENDPOINT"}
+    ])
 
     :ok
   end

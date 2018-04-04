@@ -24,6 +24,9 @@ defmodule EHealth.Factories do
   # OPS
   use EHealth.OPSFactories.DeclarationFactory
 
+  # MPI
+  use EHealth.MPIFactories.PersonFactory
+
   alias EHealth.Repo
   alias EHealth.PRMRepo
 

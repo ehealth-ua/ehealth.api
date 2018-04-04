@@ -25,7 +25,8 @@ defmodule EHealth.OPSFactories.DeclarationFactory do
           legal_entity_id: UUID.generate(),
           is_active: true,
           scope: "",
-          seed: "some seed"
+          seed: "some seed",
+          declaration_number: sequence(:declaration_number, &"test-declaration-number-#{&1}")
         }
       end
     end
