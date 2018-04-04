@@ -120,6 +120,13 @@ defmodule EHealth.Employees do
     |> PRMRepo.all()
   end
 
+  def get_preloaded_by_ids(ids) when is_list(ids) do
+    Employee
+    |> where([d], d.id in ^ids)
+    |> load_references()
+    |> PRMRepo.all()
+  end
+
   def create(attrs, author_id) do
     %Employee{}
     |> changeset(attrs)

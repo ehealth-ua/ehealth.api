@@ -242,6 +242,8 @@ defmodule EHealthWeb.Router do
       get("/persons", Cabinet.PersonsController, :personal_info, as: :cabinet_persons)
       get("/persons/details", Cabinet.PersonsController, :person_details, as: :cabinet_persons)
 
+      get("/declarations", Cabinet.DeclarationsController, :list_declarations, as: :cabinet_declarations)
+
       post(
         "/declaration_requests",
         Cabinet.DeclarationsController,
