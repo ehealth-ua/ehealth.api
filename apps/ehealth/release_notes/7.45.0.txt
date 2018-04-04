@@ -1,7 +1,8 @@
-Change log for versions 7.45.0 - 7.45.18
+Change log for versions 7.45.0 - 7.45.19
 
 **Patches and bug fixes**:
 
+fix search persons under 14 on declaration sign (#2077)
 fix search persons on declaration request sign (#2076)
 fix getting user roles (#2075)
 birth_certificate is required for person with age < 14
