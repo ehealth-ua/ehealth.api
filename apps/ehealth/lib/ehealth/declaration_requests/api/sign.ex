@@ -222,14 +222,14 @@ defmodule EHealth.DeclarationRequests.API.Sign do
 
     response =
       case @mpi_api.search(Map.take(person_params, ~w(first_name last_name second_name tax_id birth_date)), headers) do
-        {:ok, %{"data" => []}} ->
+        {:ok, %{"data" => [person]}} ->
+          @mpi_api.update_person(person["id"], Map.put(person_params, "patient_signed", true), headers)
+
+        {:ok, %{"data" => _}} ->
           person_params
           |> Map.put("patient_signed", true)
           |> Map.put("id", declaration_request.mpi_id)
           |> @mpi_api.create_or_update_person(headers)
-
-        {:ok, %{"data" => [person]}} ->
-          @mpi_api.update_person(person["id"], Map.put(person_params, "patient_signed", true), headers)
 
         err ->
           err
