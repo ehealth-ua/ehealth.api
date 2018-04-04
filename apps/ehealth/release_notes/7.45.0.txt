@@ -1,7 +1,8 @@
-Change log for versions 7.45.0 - 7.45.16
+Change log for versions 7.45.0 - 7.45.17
 
 **Patches and bug fixes**:
 
+fix getting user roles (#2075)
 birth_certificate is required for person with age < 14
 fix check drfo on sign declaration request
 declaration cabinet list response (#2056)
