@@ -11,44 +11,6 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
   describe "Happy paths" do
     defmodule TwoHappyPaths do
       use MicroservicesHelper
-      import EHealth.MockServer, only: [render_with_paging: 2]
-
-      # MPI API
-      Plug.Router.get "/persons" do
-        confirm_params =
-          conn
-          |> Plug.Conn.fetch_query_params(conn)
-          |> Map.get(:params)
-
-        search_result =
-          case confirm_params["first_name"] do
-            "Олена" ->
-              [
-                %{
-                  id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c",
-                  authentication_methods: [
-                    %{type: "OTP", phone_number: "+380508887700"}
-                  ]
-                }
-              ]
-
-            "Тест" ->
-              []
-          end
-
-        render_with_paging(search_result, conn)
-      end
-
-      # MPI API
-      Plug.Router.get "/persons/b5350f79-f2ca-408f-b15d-1ae0a8cc861c" do
-        person = %{
-          authentication_methods: [
-            %{type: "OTP", phone_number: "+380508887700"}
-          ]
-        }
-
-        send_resp(conn, 200, Poison.encode!(%{data: person}))
-      end
 
       # AEL, Media Storage API
       Plug.Router.post "/media_content_storage_secrets" do
@@ -184,7 +146,6 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
 
       {:ok, port, ref} = start_microservices(TwoHappyPaths)
 
-      System.put_env("MPI_ENDPOINT", "http://localhost:#{port}")
       System.put_env("GNDF_ENDPOINT", "http://localhost:#{port}")
       System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:#{port}")
       System.put_env("UADDRESS_ENDPOINT", "http://localhost:#{port}")
@@ -194,7 +155,6 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
 
       on_exit(fn ->
         System.put_env("GNDF_TABLE_ID", "some_gndf_table_id")
-        System.put_env("MPI_ENDPOINT", "http://localhost:4040")
         System.put_env("GNDF_ENDPOINT", "http://localhost:4040")
         System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:4040")
         System.put_env("UADDRESS_ENDPOINT", "http://localhost:4040")
@@ -253,6 +213,19 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
     end
 
     test "declaration request without person.phone", %{conn: conn} do
+      expect(MPIMock, :search, fn params, _ ->
+        {:ok,
+         %{
+           "data" => [
+             params
+             |> Map.put("id", "b5350f79-f2ca-408f-b15d-1ae0a8cc861c")
+             |> Map.put("authentication_methods", [
+               %{"type" => "OTP", "phone_number" => "+380508887700"}
+             ])
+           ]
+         }}
+      end)
+
       declaration_request_params =
         "test/data/declaration_request.json"
         |> File.read!()
@@ -317,6 +290,19 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
     end
 
     test "declaration request is created with 'OTP' verification", %{conn: conn} do
+      expect(MPIMock, :search, fn params, _ ->
+        {:ok,
+         %{
+           "data" => [
+             params
+             |> Map.put("id", "b5350f79-f2ca-408f-b15d-1ae0a8cc861c")
+             |> Map.put("authentication_methods", [
+               %{"type" => "OTP", "phone_number" => "+380508887700"}
+             ])
+           ]
+         }}
+      end)
+
       params =
         "test/data/declaration_request.json"
         |> File.read!()
@@ -398,6 +384,19 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
     end
 
     test "declaration request is created with 'Offline' verification", %{conn: conn} do
+      expect(MPIMock, :search, fn params, _ ->
+        {:ok,
+         %{
+           "data" => [
+             params
+             |> Map.put("id", "b5350f79-f2ca-408f-b15d-1ae0a8cc861c")
+             |> Map.put("authentication_methods", [
+               %{"type" => "OTP", "phone_number" => "+380508887700"}
+             ])
+           ]
+         }}
+      end)
+
       declaration_request_params =
         "test/data/declaration_request.json"
         |> File.read!()
@@ -412,10 +411,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         |> post(declaration_request_path(conn, :create), Poison.encode!(declaration_request_params))
         |> json_response(200)
 
-      id = resp["data"]["id"]
-
       assert_show_response_schema(resp, "declaration_request")
-
       assert to_string(Date.utc_today()) == resp["data"]["start_date"]
       assert {:ok, _} = Date.from_iso8601(resp["data"]["end_date"])
       # TODO: turn this into DB checks
@@ -429,28 +425,23 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       assert "<html><body>Printout form for declaration request. tax_id = #{tax_id}</body></html>" ==
                resp["data"]["content"]
 
-      assert [
-               %{
-                 "type" => "person.BIRTH_CERTIFICATE",
-                 "url" => "http://some_resource.com/#{id}/declaration_request_person.BIRTH_CERTIFICATE.jpeg"
-               },
-               %{
-                 "type" => "person.PASSPORT",
-                 "url" => "http://some_resource.com/#{id}/declaration_request_person.PASSPORT.jpeg"
-               },
-               %{
-                 "type" => "person.SSN",
-                 "url" => "http://some_resource.com/#{id}/declaration_request_person.SSN.jpeg"
-               },
-               %{
-                 "type" => "confidant_person.0.PRIMARY.RELATIONSHIP.COURT_DECISION",
-                 "url" =>
-                   "http://some_resource.com/#{id}/declaration_request_confidant_person.0.PRIMARY.RELATIONSHIP.COURT_DECISION.jpeg"
-               }
-             ] == resp["urgent"]["documents"]
+      refute resp["urgent"]["documents"]
     end
 
     test "declaration request is created for person without tax_id", %{conn: conn} do
+      expect(MPIMock, :search, fn params, _ ->
+        {:ok,
+         %{
+           "data" => [
+             params
+             |> Map.put("id", "b5350f79-f2ca-408f-b15d-1ae0a8cc861c")
+             |> Map.put("authentication_methods", [
+               %{"type" => "OTP", "phone_number" => "+380508887700"}
+             ])
+           ]
+         }}
+      end)
+
       declaration_request_params =
         "test/data/declaration_request.json"
         |> File.read!()
@@ -489,6 +480,10 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
     end
 
     test "declaration request is created without verification", %{conn: conn} do
+      expect(MPIMock, :search, fn _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
       System.put_env("GNDF_TABLE_ID", "not_available")
 
       declaration_request_params =
@@ -532,7 +527,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
                resp["data"]["content"]
 
       assert %{"type" => "NA"} = resp["urgent"]["authentication_method_current"]
-      assert is_nil(resp["data"]["urgent"]["documents"])
+      refute resp["data"]["urgent"]["documents"]
 
       assert "CANCELLED" = Repo.get(DeclarationRequest, d1.id).status
       assert "CANCELLED" = Repo.get(DeclarationRequest, d2.id).status
