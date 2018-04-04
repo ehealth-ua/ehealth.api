@@ -11,7 +11,8 @@ config :ehealth,
     man: EHealth.API.Man,
     mpi: EHealth.API.MPI,
     mithril: EHealth.API.Mithril,
-    digital_signature: EHealth.API.Signature
+    digital_signature: EHealth.API.Signature,
+    ops: EHealth.API.OPS
   ]
 
 # Configures the endpoint

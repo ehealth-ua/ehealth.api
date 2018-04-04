@@ -38,7 +38,8 @@ config :ehealth,
     man: ManMock,
     mpi: MPIMock,
     mithril: MithrilMock,
-    digital_signature: SignatureMock
+    digital_signature: SignatureMock,
+    ops: OPSMock
   ]
 
 config :ehealth, :legal_entity_employee_types,
