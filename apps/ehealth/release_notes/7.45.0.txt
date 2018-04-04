@@ -1,7 +1,8 @@
-Change log for versions 7.45.0 - 7.45.17
+Change log for versions 7.45.0 - 7.45.18
 
 **Patches and bug fixes**:
 
+fix search persons on declaration request sign (#2076)
 fix getting user roles (#2075)
 birth_certificate is required for person with age < 14
 fix check drfo on sign declaration request
