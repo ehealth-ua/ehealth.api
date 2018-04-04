@@ -182,12 +182,19 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
         {:ok, %{"data" => params}}
       end)
 
-      person = %{"first_name" => "test", "last_name" => "test", "patient_signed" => false}
+      person = %{"first_name" => "test", "birth_date" => "1990-01-01", "last_name" => "test", "patient_signed" => false}
       uuid = "6e8d4595-e83c-4f97-be76-c6e2b96b05f1"
 
       assert {:ok,
-              %{"data" => %{"first_name" => "test", "last_name" => "test", "patient_signed" => true, "id" => uuid}}} ==
-               create_or_update_person(%DeclarationRequest{mpi_id: uuid}, %{"person" => person}, [])
+              %{
+                "data" => %{
+                  "first_name" => "test",
+                  "birth_date" => "1990-01-01",
+                  "last_name" => "test",
+                  "patient_signed" => true,
+                  "id" => uuid
+                }
+              }} == create_or_update_person(%DeclarationRequest{mpi_id: uuid}, %{"person" => person}, [])
     end
 
     test "person is not active" do
@@ -221,7 +228,7 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
         {:ok, %Response{status_code: 404}}
       end)
 
-      person = %{"data" => "somedata", "patient_signed" => false}
+      person = %{"data" => "somedata", "birth_date" => "1990-01-01", "patient_signed" => false}
       uuid = UUID.generate()
 
       assert {:conflict, "person is not found"} ==
@@ -239,12 +246,19 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
         {:ok, %{"data" => Map.put(params, "id", id)}}
       end)
 
-      person = %{"first_name" => "test", "last_name" => "test", "patient_signed" => false}
+      person = %{"first_name" => "test", "birth_date" => "1990-01-01", "last_name" => "test", "patient_signed" => false}
       uuid = UUID.generate()
 
       assert {:ok,
-              %{"data" => %{"first_name" => "test", "id" => person_id, "last_name" => "test", "patient_signed" => true}}} ==
-               create_or_update_person(%DeclarationRequest{id: uuid}, %{"person" => person}, [])
+              %{
+                "data" => %{
+                  "first_name" => "test",
+                  "birth_date" => "1990-01-01",
+                  "id" => person_id,
+                  "last_name" => "test",
+                  "patient_signed" => true
+                }
+              }} == create_or_update_person(%DeclarationRequest{id: uuid}, %{"person" => person}, [])
     end
   end
 
