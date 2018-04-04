@@ -673,7 +673,7 @@ defmodule EHealth.DeclarationRequests.API.Creator do
       {:ok, %{"data" => [person]}} ->
         do_determine_auth_method_for_mpi(person, changeset)
 
-      {:ok, %{"data" => []}} ->
+      {:ok, %{"data" => _}} ->
         authentication_method = hd(data["person"]["authentication_methods"])
         put_change(changeset, :authentication_method_current, prepare_auth_method_current(authentication_method))
 
