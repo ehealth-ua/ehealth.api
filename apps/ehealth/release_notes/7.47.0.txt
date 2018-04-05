@@ -1,0 +1,7 @@
+Change log for versions 7.47.0 - 7.47.1
+
+**Patches and bug fixes**:
+
+Cabinet declaration details (#1929)
+
+

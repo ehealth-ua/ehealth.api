@@ -1,0 +1,11 @@
+Change log for versions 7.46.0 - 7.46.5
+
+**Patches and bug fixes**:
+
+- try to fix version builds (#2081)
+- put surname and given_name for DS signer (#2078)
+- put surname and given_name for DS signer
+- bump version to 7.45.21
+- bump version to 7.45.19
+
+

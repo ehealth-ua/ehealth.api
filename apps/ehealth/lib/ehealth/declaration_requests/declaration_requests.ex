@@ -69,7 +69,7 @@ defmodule EHealth.DeclarationRequests do
            }),
          :ok <- validate_status_transition(updates) do
       Multi.new()
-      |> Multi.run(:verification, fn _ -> Approve.verify(declaration_request, verification_code) end)
+      |> Multi.run(:verification, fn _ -> Approve.verify(declaration_request, verification_code, headers) end)
       |> Multi.update(:declaration_request, updates)
       |> Repo.transaction()
     end

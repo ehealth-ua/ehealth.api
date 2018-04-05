@@ -3,7 +3,7 @@ defmodule EHealth.Mixfile do
 
   use Mix.Project
 
-  @version "7.46.0"
+  @version "7.51.0"
 
   def project do
     [
@@ -42,8 +42,6 @@ defmodule EHealth.Mixfile do
   defp elixirc_paths(:test), do: ["lib", "web", "test/support"]
   defp elixirc_paths(_), do: ["lib", "web"]
 
-  # Specifies your project dependencies.
-  #
   # Type `mix help deps` for examples and options.
   defp deps do
     [

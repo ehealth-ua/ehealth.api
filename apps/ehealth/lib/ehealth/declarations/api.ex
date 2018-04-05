@@ -30,6 +30,16 @@ defmodule EHealth.Declarations.API do
          do: {:ok, response}
   end
 
+  def get_declaration(id, headers) do
+    with {:ok, %{"data" => decl_data}} <- OPS.get_declaration_by_id(id, headers),
+         division = Divisions.get_by_id(decl_data["division_id"]),
+         employee = Employees.get_by_id(decl_data["employee_id"]),
+         legal_entity = LegalEntities.get_by_id(decl_data["legal_entity_id"]),
+         {:ok, %{"data" => person_data}} <- MPI.person(decl_data["person_id"], headers),
+         merged_decl_data = merge_related_data(decl_data, person_data, legal_entity, division, employee),
+         do: {:ok, merged_decl_data}
+  end
+
   def fetch_related_ids(declarations) do
     acc = %{"person_ids" => [], "division_ids" => [], "employee_ids" => [], "legal_entity_ids" => []}
 

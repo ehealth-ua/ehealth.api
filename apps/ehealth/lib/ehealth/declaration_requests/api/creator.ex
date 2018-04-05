@@ -10,11 +10,11 @@ defmodule EHealth.DeclarationRequests.API.Creator do
   alias EHealth.DeclarationRequests
   alias EHealth.DeclarationRequests.DeclarationRequest
   alias EHealth.DeclarationRequests.API.Documents
+  alias EHealth.DeclarationRequests.API.Persons
   alias EHealth.Employees.Employee
   alias EHealth.GlobalParameters
   alias EHealth.Man.Templates.DeclarationRequestPrintoutForm
   alias EHealth.PartyUsers
-  alias EHealth.Persons
   alias EHealth.Persons.Validator, as: ValidatePerson
   alias EHealth.Repo
   alias EHealth.Utils.Phone
@@ -26,6 +26,7 @@ defmodule EHealth.DeclarationRequests.API.Creator do
   import Ecto.Query
   import Ecto.Changeset
 
+  @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
   @auth_na DeclarationRequest.authentication_method(:na)
   @auth_otp DeclarationRequest.authentication_method(:otp)
   @auth_offline DeclarationRequest.authentication_method(:offline)
@@ -191,17 +192,6 @@ defmodule EHealth.DeclarationRequests.API.Creator do
 
   defp format_error_response(microservice, result) do
     "Error during #{microservice} interaction. Result from #{microservice}: #{inspect(result)}"
-  end
-
-  defp get_birth_certificate(nil), do: nil
-
-  defp get_birth_certificate(documents) do
-    document = Enum.find(documents, &(Map.get(&1, "type") == "BIRTH_CERTIFICATE"))
-
-    case document do
-      %{"number" => number} -> number
-      _ -> nil
-    end
   end
 
   def finalize(declaration_request) do
@@ -642,33 +632,21 @@ defmodule EHealth.DeclarationRequests.API.Creator do
 
   def determine_auth_method_for_mpi(changeset, _) do
     data = get_field(changeset, :data)
+    search_params = Persons.get_search_params(data["person"])
 
-    result =
-      Persons.search(%{
-        "first_name" => data["person"]["first_name"],
-        "second_name" => data["person"]["second_name"],
-        "last_name" => data["person"]["last_name"],
-        "birth_date" => data["person"]["birth_date"],
-        "tax_id" => data["person"]["tax_id"],
-        "birth_certificate" => get_birth_certificate(data["person"]["documents"])
-      })
-
-    case result do
-      {:ok, %{"data" => [person | _]}} ->
+    case @mpi_api.search(search_params, []) do
+      {:ok, %{"data" => [person]}} ->
         do_determine_auth_method_for_mpi(person, changeset)
 
-      {:ok, [person | _], _} ->
-        do_determine_auth_method_for_mpi(person, changeset)
-
-      {:ok, [], _} ->
+      {:ok, %{"data" => _}} ->
         authentication_method = hd(data["person"]["authentication_methods"])
         put_change(changeset, :authentication_method_current, prepare_auth_method_current(authentication_method))
 
+      {:error, %HTTPoison.Error{reason: reason}} ->
+        add_error(changeset, :authentication_method_current, format_error_response("MPI", reason))
+
       {:error, error_response} ->
         add_error(changeset, :authentication_method_current, format_error_response("MPI", error_response))
-
-      %Ecto.Changeset{valid?: false} ->
-        add_error(changeset, :authentication_method_current, "invalid parameters")
     end
   end
 

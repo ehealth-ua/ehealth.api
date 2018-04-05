@@ -7,6 +7,7 @@ defmodule EHealth.DeclarationRequests.API.Sign do
   alias EHealth.API.OPS
   alias EHealth.API.Signature
   alias EHealth.DeclarationRequests
+  alias EHealth.DeclarationRequests.API.Persons
   alias EHealth.DeclarationRequests.DeclarationRequest
   alias EHealth.DeclarationRequests.SignRequest
   alias EHealth.Parties
@@ -44,7 +45,7 @@ defmodule EHealth.DeclarationRequests.API.Sign do
          %DeclarationRequest{} = declaration_request <- params |> Map.fetch!("id") |> DeclarationRequests.get_by_id!(),
          :ok <- check_status(declaration_request),
          :ok <- check_patient_signed(content),
-         :ok <- compare_with_db(content, declaration_request),
+         :ok <- compare_with_db(content, declaration_request, headers),
          :ok <- check_employee_id(content, headers),
          :ok <- check_drfo(signer, headers),
          :ok <- store_signed_content(declaration_request, params, headers),
@@ -124,7 +125,7 @@ defmodule EHealth.DeclarationRequests.API.Sign do
     end
   end
 
-  def compare_with_db(content, %DeclarationRequest{} = declaration_request) do
+  def compare_with_db(content, %DeclarationRequest{} = declaration_request, headers \\ []) do
     db_content =
       declaration_request
       |> Map.get(:data)
@@ -133,7 +134,7 @@ defmodule EHealth.DeclarationRequests.API.Sign do
       |> Map.put("status", Map.get(declaration_request, :status))
       |> Map.put("content", Map.get(declaration_request, :printout_content))
       |> Map.put("declaration_number", Map.get(declaration_request, :declaration_number))
-      |> Map.put("seed", current_hash())
+      |> Map.put("seed", current_hash(headers))
 
     case db_content == content do
       true ->
@@ -222,7 +223,7 @@ defmodule EHealth.DeclarationRequests.API.Sign do
 
     # @todo complex logic to search person before sign. Should be removed in a week
     response =
-      case @mpi_api.search(get_person_search_params(person_params), headers) do
+      case @mpi_api.search(Persons.get_search_params(person_params), headers) do
         {:ok, %{"data" => [person]}} ->
           @mpi_api.update_person(person["id"], Map.put(person_params, "patient_signed", true), headers)
 
@@ -251,23 +252,6 @@ defmodule EHealth.DeclarationRequests.API.Sign do
 
       err ->
         err
-    end
-  end
-
-  defp get_person_search_params(%{"birth_date" => birth_date} = params) do
-    age = Timex.diff(Timex.now(), Date.from_iso8601!(birth_date), :years)
-
-    if age < 14 do
-      birth_certificate =
-        params
-        |> Map.get("documents")
-        |> Enum.find(&(Map.get(&1, "type") == "BIRTH_CERTIFICATE"))
-
-      params
-      |> Map.take(~w(birth_date))
-      |> Map.put("birth_certificate", birth_certificate["number"])
-    else
-      Map.take(params, ~w(first_name last_name second_name tax_id birth_date))
     end
   end
 
@@ -351,8 +335,8 @@ defmodule EHealth.DeclarationRequests.API.Sign do
     end)
   end
 
-  defp current_hash do
-    {:ok, %{"data" => %{"hash" => hash}}} = OPS.get_latest_block()
+  defp current_hash(headers) do
+    {:ok, %{"data" => %{"hash" => hash}}} = OPS.get_latest_block(headers)
     hash
   end
 
