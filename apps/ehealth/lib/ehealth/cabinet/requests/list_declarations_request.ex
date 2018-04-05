@@ -1,9 +1,7 @@
-defmodule EHealth.Cabinet.Requests.ListDeclarationsRequest do
+defmodule EHealth.Cabinet.Requests.DeclarationsSearch do
   @moduledoc false
   use Ecto.Schema
   import Ecto.Changeset
-
-  alias __MODULE__
 
   @primary_key false
   embedded_schema do
@@ -14,8 +12,8 @@ defmodule EHealth.Cabinet.Requests.ListDeclarationsRequest do
   @year_regexp ~r/2\d{3}$/
 
   def changeset(params) do
-    %ListDeclarationsRequest{}
-    |> cast(params, ListDeclarationsRequest.__schema__(:fields))
+    %__MODULE__{}
+    |> cast(params, __MODULE__.__schema__(:fields))
     |> validate_format(:start_year, @year_regexp)
   end
 end
