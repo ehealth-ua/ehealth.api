@@ -1,4 +1,4 @@
-defmodule EHealth.Web.Cabinet.DeclarationsController do
+defmodule EHealth.Web.Cabinet.DeclarationController do
   use EHealth.Web, :controller
 
   import EHealth.Declarations.View, only: [render_declaration: 1]
@@ -7,12 +7,12 @@ defmodule EHealth.Web.Cabinet.DeclarationsController do
   alias EHealth.Declarations.API, as: Declarations
   alias EHealth.Cabinet.API.DeclarationsAPI
   alias EHealth.Web.DeclarationRequestView
-  alias EHealth.Cabinet.Requests.ListDeclarationsRequest
+  alias EHealth.Cabinet.Requests.DeclarationsSearch
 
   action_fallback(EHealth.Web.FallbackController)
 
   def list_declarations(%Plug.Conn{req_headers: headers} = conn, params) do
-    with %Ecto.Changeset{valid?: true} <- ListDeclarationsRequest.changeset(params),
+    with %Ecto.Changeset{valid?: true} <- DeclarationsSearch.changeset(params),
          {:ok, %{declarations: _, employees: _, person: _, paging: _} = response_data} <-
            DeclarationsAPI.get_declarations(params, headers) do
       render(conn, "list_declarations.json", response_data)
