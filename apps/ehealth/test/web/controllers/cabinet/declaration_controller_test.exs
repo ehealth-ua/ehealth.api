@@ -1,4 +1,4 @@
-defmodule EHealth.Web.Cabinet.DeclarationsControllerTest do
+defmodule EHealth.Web.Cabinet.DeclarationControllerTest do
   @moduledoc false
   use EHealth.Web.ConnCase, async: false
   import Mox
@@ -64,8 +64,6 @@ defmodule EHealth.Web.Cabinet.DeclarationsControllerTest do
   @declaration_id2 "1bb33d3d-ce51-456d-97ac-26d51d9e0dd2"
 
   setup do
-    insert(:prm, :global_parameter, %{parameter: "declaration_term", value: "40"})
-    insert(:prm, :global_parameter, %{parameter: "declaration_term_unit", value: "YEARS"})
     legal_entity = insert(:prm, :legal_entity, %{id: @legal_entity_id})
     insert(:prm, :employee, %{id: @employee_id, legal_entity: legal_entity})
     insert(:prm, :division, %{id: @division_id})
@@ -101,9 +99,12 @@ defmodule EHealth.Web.Cabinet.DeclarationsControllerTest do
 
   test "searches person declarations in cabinet", %{conn: conn} do
     response = conn |> send_list_declaration_request() |> json_response(200)
+    verify!()
 
     assert %{"data" => response_data, "paging" => %{"total_entries" => 2}, "meta" => _} = response
     assert [@declaration_id, @declaration_id2] = Enum.map(response_data, & &1["id"])
+
+    assert_json_schema(response_data, "specs/json_schemas/cabinet/declarations/list_declarations_response.json")
   end
 
   test "rejects to search person declaration due to request validation", %{conn: conn} do
@@ -112,8 +113,8 @@ defmodule EHealth.Web.Cabinet.DeclarationsControllerTest do
 
   defp send_list_declaration_request(conn, params \\ []) do
     conn
-    |> put_req_header("x-consumer-id", @user_id)
-    |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: @user_id}))
+    |> put_consumer_id_header(@user_id)
+    |> put_client_id_header(@user_id)
     |> get(cabinet_declarations_path(conn, :list_declarations), params)
   end
 end
