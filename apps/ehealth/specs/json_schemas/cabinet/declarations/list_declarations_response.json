@@ -1,48 +1,18 @@
 {
-   "$schema": "http://json-schema.org/draft-04/schema#",
-   "definitions": {
-      "uuid": {
-        "type": "string",
-        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string"
       },
-      "name": {
-      "type": "string",
-      "pattern": "^(?!.*[ЫЪЭЁыъэё@%&$^#])[a-zA-ZА-ЯҐЇІЄа-яґїіє0-9№\\\"!\\^\\*)\\]\\[(._-].*$"
+      "declaration_number": {
+        "type": "string"
       },
-      "phone": {
-        "type": "object",
-        "properties": {
-            "type": {
-              "type": "string"
-            },
-            "number": {
-              "type": "string",
-              "pattern": "^\\+38[0-9]{10}$"
-            }
-        },
-        "required": [
-          "type",
-          "number"
-        ],
-        "additionalProperties": false
+      "start_date": {
+        "type": "string"
       },
-   },
-   "type": "object",
-   "properties": {
-      "id":{
-        "$ref": "#/definitions/uuid",
-        "description":"Declaration ID, a UUID string."
-      },
-      "declaration_number":{
-       "type": "string",
-        "description": "Public medication request human readable number"
-      },
-      "start_date":{
-        "type": "string",
-        "format": "date-time",
-        "description": "Should be defined on the client side."
-      },
-      "status":{
+      "status": {
         "type": "string",
         "enum": [
           "active",
@@ -50,137 +20,86 @@
           "terminated"
         ]
       },
-      "person":{
+      "person": {
         "type": "object",
         "properties": {
-          "id":{
-            "$ref": "#/definitions/uuid",
-            "description":"Declaration ID, a UUID string."
+          "id": {
+            "type": "string"
           },
           "first_name": {
-            "type": "string",
-            "items": {
-              "$ref": "#/definitions/name"
-            },
-            "minLength": 1
+            "type": "string"
           },
           "last_name": {
-            "type": "string",
-            "items": {
-              "$ref": "#/definitions/name"
-            },
-            "minLength": 1
+            "type": "string"
           },
           "second_name": {
-            "type": "string",
-            "items": {
-              "$ref": "#/definitions/name"
-            },
-            "minLength": 1
-          },
+            "type": "string"
+          }
         },
-      "required": [
-        "first_name",
-        "last_name",
-        "second_name",
-        "id"
-      ],
-      "additionalProperties": false,
-      "description": "Object that described a Patient" 
+        "required": [
+          "first_name",
+          "last_name",
+          "second_name",
+          "id"
+        ]
       },
-      "employee":{
+      "employee": {
         "type": "object",
         "properties": {
-          "id":{
-            "$ref": "#/definitions/uuid",
-            "description":"Declaration ID, a UUID string."
+          "id": {
+            "type": "string"
           },
-          "position":{
-            "type": "string",
-            "minLength": 2,
-            "maxLength": 2
+          "position": {
+            "type": "string"
           },
-            "party":{
-              "type": "object",
-              "properties": {
-                "id":{
-                  "$ref": "#/definitions/uuid",
-                  "description":"Declaration ID, a UUID string."
-                },
-                "first_name": {
-                  "type": "string",
-                  "items": {
-                    "$ref": "#/definitions/name"
-                  },
-                  "minLength": 1
-                },
-                "last_name": {
-                  "type": "string",
-                  "items": {
-                    "$ref": "#/definitions/name"
-                  },
-                  "minLength": 1
-                },
-                "second_name": {
-                  "type": "string",
-                  "items": {
-                    "$ref": "#/definitions/name"
-                  },
-                  "minLength": 1
-                },
-                "email": {
-                  "type": "string",
-                  "format": "email"
-                },
-                "phones": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/definitions/phone"
-                  }
-                }
+          "party": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
               },
-              "required": [
+              "first_name": {
+                "type": "string"
+              },
+              "last_name": {
+                "type": "string"
+              },
+              "second_name": {
+                "type": "string"
+              }
+            },
+            "required": [
               "first_name",
               "last_name",
               "second_name",
-              "id",
-              "phones",
-              "email"
-              ],
-              "additionalProperties": false,
-              "description": "Object that described a party" 
-            }
-          },
-          "required": [
-            "id",
-            "position",
-            "party"
-          ],
-        "additionalProperties": false,
-        "description": "Object that described a employee" 
+              "id"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "position",
+          "party"
+        ]
       },
-      "legal_entity":{
+      "legal_entity": {
         "type": "object",
         "properties": {
-          "id":{
-            "$ref": "#/definitions/uuid",
-            "description":"Declaration ID, a UUID string."
+          "id": {
+            "type": "string"
           },
-          "name":{
-            "type": "string",
-            "pattern":"^[А-Яа-яЁёЇїІіЄєҐґ'\\- ]*$",
+          "name": {
+            "type": "string"
           },
-          "short_name":{
-            "$ref": "#/definitions/name"
+          "short_name": {
+            "type": "string"
           },
           "legal_form": {
-            "type": "string",
-            "description": "Dictionary: LEGAL_FORM"
+            "type": "string"
           },
           "edrpou": {
-            "type": "string",
-            "pattern": "^[0-9]{8,10}$"
-          },
+            "type": "string"
+          }
         },
         "required": [
           "id",
@@ -188,19 +107,16 @@
           "short_name",
           "legal_form",
           "edrpou"
-        ],
-        "additionalProperties": false,
+        ]
       },
-      "division":{
+      "division": {
         "type": "object",
         "properties": {
-          "id":{
-            "$ref": "#/definitions/uuid",
-            "description":"Declaration ID, a UUID string."         
+          "id": {
+            "type": "string"
           },
-          "name":{
-            "type": "string",
-            "pattern":"^[А-Яа-яЁёЇїІіЄєҐґ'\\- ]*$",
+          "name": {
+            "type": "string"
           },
           "type": {
             "type": "string",
@@ -212,7 +128,7 @@
               "DRUGSTORE"
             ]
           },
-          "status":{
+          "status": {
             "type": "string",
             "enum": [
               "ACTIVE",
@@ -225,18 +141,18 @@
           "name",
           "type",
           "status"
-        ],
-        "additionalProperties": false,
+        ]
       }
-  },
-  "required": [
-     "id",
-     "declaration_number",
-     "start_date",
-     "status",
-     "person",
-     "employee",
-     "legal_entity",
-     "division"
-  ]
- }
+    },
+    "required": [
+      "id",
+      "declaration_number",
+      "start_date",
+      "status",
+      "person",
+      "employee",
+      "legal_entity",
+      "division"
+    ]
+  }
+}
