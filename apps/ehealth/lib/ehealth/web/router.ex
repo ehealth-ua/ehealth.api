@@ -258,7 +258,7 @@ defmodule EHealthWeb.Router do
         as: :cabinet_declarations
       )
 
-      get("/declarations/:id", Cabinet.DeclarationsController, :show_declaration, as: :cabinet_declarations)
+      get("/declarations/:id", Cabinet.DeclarationController, :show_declaration, as: :cabinet_declarations)
     end
 
     # Person declarations

@@ -284,6 +284,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
     end
   end
 
+  # todo: move declarations tests to declaration_controller_test.exs
   setup do
     insert(:prm, :global_parameter, %{parameter: "adult_age", value: "18"})
     insert(:prm, :global_parameter, %{parameter: "declaration_term", value: "40"})
