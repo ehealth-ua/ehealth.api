@@ -22,7 +22,7 @@ defmodule EHealth.Web.DeclarationRequestView do
     }
   end
 
-  def render("declaration_request.json", %{declaration_request: declaration_request} = conn) do
+  def render("declaration_request.json", %{declaration_request: declaration_request} = assigns) do
     response =
       declaration_request.data
       |> Map.put("id", declaration_request.id)
@@ -30,10 +30,8 @@ defmodule EHealth.Web.DeclarationRequestView do
       |> Map.put("status", declaration_request.status)
       |> Map.put("declaration_number", declaration_request.declaration_number)
 
-    if Map.get(conn, :display_hash) do
-      {:ok, %{"data" => %{"hash" => hash}}} = OPS.get_latest_block()
-
-      Map.put(response, "seed", hash)
+    if Map.get(assigns, :hash) do
+      Map.put(response, "seed", assigns.hash)
     else
       response
     end

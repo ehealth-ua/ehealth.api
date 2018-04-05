@@ -3,6 +3,7 @@ defmodule EHealth.Web.Cabinet.DeclarationsController do
 
   import EHealth.Declarations.View, only: [render_declaration: 1]
 
+  alias EHealth.API.OPS
   alias EHealth.DeclarationRequests
   alias EHealth.Declarations.API, as: Declarations
   alias EHealth.Web.DeclarationRequestView
@@ -11,11 +12,12 @@ defmodule EHealth.Web.Cabinet.DeclarationsController do
 
   def create_declaration_request(conn, params) do
     with {:ok, %{urgent_data: urgent_data, finalize: result}} <-
-           DeclarationRequests.create_online(params, conn.req_headers) do
+           DeclarationRequests.create_online(params, conn.req_headers),
+         {:ok, %{"data" => %{"hash" => hash}}} = OPS.get_latest_block() do
       conn
       |> assign(:urgent, urgent_data)
       |> put_view(DeclarationRequestView)
-      |> render("declaration_request.json", declaration_request: result, display_hash: true)
+      |> render("declaration_request.json", declaration_request: result, hash: hash)
     end
   end
 

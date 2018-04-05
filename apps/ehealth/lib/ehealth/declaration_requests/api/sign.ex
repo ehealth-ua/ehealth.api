@@ -45,7 +45,7 @@ defmodule EHealth.DeclarationRequests.API.Sign do
          %DeclarationRequest{} = declaration_request <- params |> Map.fetch!("id") |> DeclarationRequests.get_by_id!(),
          :ok <- check_status(declaration_request),
          :ok <- check_patient_signed(content),
-         :ok <- compare_with_db(content, declaration_request),
+         :ok <- compare_with_db(content, declaration_request, headers),
          :ok <- check_employee_id(content, headers),
          :ok <- check_drfo(signer, headers),
          :ok <- store_signed_content(declaration_request, params, headers),
@@ -125,7 +125,7 @@ defmodule EHealth.DeclarationRequests.API.Sign do
     end
   end
 
-  def compare_with_db(content, %DeclarationRequest{} = declaration_request) do
+  def compare_with_db(content, %DeclarationRequest{} = declaration_request, headers \\ []) do
     db_content =
       declaration_request
       |> Map.get(:data)
@@ -134,7 +134,7 @@ defmodule EHealth.DeclarationRequests.API.Sign do
       |> Map.put("status", Map.get(declaration_request, :status))
       |> Map.put("content", Map.get(declaration_request, :printout_content))
       |> Map.put("declaration_number", Map.get(declaration_request, :declaration_number))
-      |> Map.put("seed", current_hash())
+      |> Map.put("seed", current_hash(headers))
 
     case db_content == content do
       true ->
@@ -335,8 +335,8 @@ defmodule EHealth.DeclarationRequests.API.Sign do
     end)
   end
 
-  defp current_hash do
-    {:ok, %{"data" => %{"hash" => hash}}} = OPS.get_latest_block()
+  defp current_hash(headers) do
+    {:ok, %{"data" => %{"hash" => hash}}} = OPS.get_latest_block(headers)
     hash
   end
 

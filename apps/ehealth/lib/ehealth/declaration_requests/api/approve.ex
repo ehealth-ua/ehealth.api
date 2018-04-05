@@ -13,10 +13,10 @@ defmodule EHealth.DeclarationRequests.API.Approve do
   @auth_otp DeclarationRequest.authentication_method(:otp)
   @auth_offline DeclarationRequest.authentication_method(:offline)
 
-  def verify(declaration_request, code) do
+  def verify(declaration_request, code, headers \\ []) do
     with {:ok, _} <- verify_auth(declaration_request, code),
          {:ok, _} <- check_documents(declaration_request.documents, declaration_request.id, {:ok, true}),
-         :ok <- validate_declaration_limit(declaration_request) do
+         :ok <- validate_declaration_limit(declaration_request, headers) do
       {:ok, true}
     end
   end
@@ -93,13 +93,13 @@ defmodule EHealth.DeclarationRequests.API.Approve do
     {:error, {:documents_not_uploaded, container ++ [doc_type]}}
   end
 
-  defp validate_declaration_limit(%DeclarationRequest{overlimit: true}), do: :ok
+  defp validate_declaration_limit(%DeclarationRequest{overlimit: true}, _), do: :ok
 
-  defp validate_declaration_limit(%DeclarationRequest{data: %{"employee" => %{"id" => employee_id}}}) do
+  defp validate_declaration_limit(%DeclarationRequest{data: %{"employee" => %{"id" => employee_id}}}, headers) do
     with %Employee{party: %Party{} = party} <- Employees.get_by_id(employee_id),
          employees <- Employees.get_active_by_party_id(party.id),
          {:ok, %{"data" => %{"count" => declarations_count}}} <-
-           OPS.get_declarations_count(Enum.map(employees, &Map.get(&1, :id))),
+           OPS.get_declarations_count(Enum.map(employees, &Map.get(&1, :id)), headers),
          {:limit, true} <- {:limit, !party.declaration_limit || declarations_count < party.declaration_limit} do
       :ok
     else

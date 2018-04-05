@@ -574,7 +574,7 @@ defmodule EHealth.Web.CabinetControllerTest do
           division_id: employee.division.id
         })
 
-      assert json_response(conn, 200)
+      assert %{"data" => %{"seed" => "some_current_hash"}} = json_response(conn, 200)
     end
   end
 
