@@ -514,7 +514,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       conn = get(conn, cabinet_persons_path(conn, :personal_info))
       response_data = json_response(conn, 200)["data"]
 
-      assert "c8912855-21c3-4771-ba18-bcd8e524f14c" == response_data["mpi_id"]
+      assert "c8912855-21c3-4771-ba18-bcd8e524f14c" == response_data["id"]
       assert "Алекс" == response_data["first_name"]
       assert "Джонс" == response_data["last_name"]
       assert "Петрович" == response_data["second_name"]
@@ -616,15 +616,36 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
         |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
         |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: legal_entity.id}))
 
-      conn = get(conn, cabinet_persons_path(conn, :person_details))
-      assert response = json_response(conn, 200)
+      response =
+        conn
+        |> get(cabinet_persons_path(conn, :person_details))
+        |> json_response(200)
 
-      schema =
-        "specs/json_schemas/person/person_create_update.json"
-        |> File.read!()
-        |> Poison.decode!()
+      data = response["data"]
 
-      assert :ok = NExJsonSchema.Validator.validate(schema, response["data"])
+      assert data["id"] == "c8912855-21c3-4771-ba18-bcd8e524f14c"
+      assert data["first_name"] == "Алекс"
+      assert data["second_name"] == "Петрович"
+      assert Regex.match?(~r/^\d{4}-\d{2}-\d{2}$/, data["birth_date"])
+      assert data["birth_country"] == "string value"
+      assert data["birth_settlement"] == "string value"
+      assert data["gender"] == "string value"
+      assert data["email"] == "test@example.com"
+      assert data["tax_id"] == "2222222225"
+      assert data["documents"] == [%{"type" => "BIRTH_CERTIFICATE", "number" => "1234567890"}]
+
+      assert Enum.count(data["addresses"]) == 2
+
+      assert Enum.all?(data["addresses"], fn address ->
+               address["settlement_id"] == "707dbc55-cb6b-4aaa-97c1-2a1e03476100"
+             end)
+
+      assert data["phones"] == [%{"type" => "MOBILE", "number" => "+380972526080"}]
+      assert data["secret"] == "string value"
+      assert data["emergency_contact"] == %{}
+      assert data["process_disclosure_data_consent"] == true
+      assert data["authentication_methods"] == [%{"type" => "NA"}]
+      assert data["preferred_way_communication"] == "––"
     end
   end
 end

@@ -34,7 +34,7 @@ defmodule EHealth.Web.Cabinet.PersonsView do
 
   def render("personal_info.json", %{person: person}) do
     %{
-      mpi_id: person["id"],
+      id: person["id"],
       first_name: person["first_name"],
       last_name: person["last_name"],
       second_name: person["second_name"]
@@ -43,6 +43,7 @@ defmodule EHealth.Web.Cabinet.PersonsView do
 
   def render("person_details.json", %{person: person}) do
     Map.take(person, ~w(
+      id
       last_name
       first_name
       second_name

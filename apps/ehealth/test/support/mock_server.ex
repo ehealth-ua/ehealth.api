@@ -712,7 +712,8 @@ defmodule EHealth.MockServer do
       "inserted_by" => UUID.generate(),
       "updated_by" => UUID.generate(),
       "merged_ids" => [UUID.generate(), UUID.generate()],
-      "authentication_methods" => [%{"type" => "OTP", "phone_number" => "+380955947998"}]
+      "authentication_methods" => [%{"type" => "OTP", "phone_number" => "+380955947998"}],
+      "preferred_way_communication" => "––"
     }
   end
 
