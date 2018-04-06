@@ -3,10 +3,9 @@ defmodule EHealth.Web.PersonView do
 
   use EHealth.Web, :view
 
-  def render("show.json", %{"person" => person}), do: render_show_json(person)
-  def render("show.json", %{person: person}), do: render_show_json(person)
+  def render("show.json", %{"person" => person}), do: render(__MODULE__, "show.json", person: person)
 
-  defp render_show_json(person) when is_map(person) do
+  def render("show.json", %{person: person}) do
     Map.take(person, ~w(
       id
       first_name

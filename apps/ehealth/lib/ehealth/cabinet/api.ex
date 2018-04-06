@@ -5,12 +5,10 @@ defmodule EHealth.Cabinet.API do
   alias EHealth.Guardian
   alias EHealth.Bamboo.Emails.Sender
   alias EHealth.Validators.JsonSchema
-  alias EHealth.Cabinet.{RegistrationRequest, UserSearchRequest}
+  alias EHealth.Cabinet.Requests.{Registration, UserSearch}
   alias EHealth.Man.Templates.EmailVerification
 
   require Logger
-
-  # todo: split functionality of this module for responsibilities
 
   @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
   @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
@@ -126,18 +124,18 @@ defmodule EHealth.Cabinet.API do
   end
 
   defp validate_params(:patient, params) do
-    fields = RegistrationRequest.__schema__(:fields)
+    fields = Registration.__schema__(:fields)
 
-    %RegistrationRequest{}
+    %Registration{}
     |> cast(params, fields)
     |> validate_required(fields)
     |> validate_inclusion(:signed_content_encoding, ["base64"])
   end
 
   defp validate_params(:user_search, params) do
-    fields = UserSearchRequest.__schema__(:fields)
+    fields = UserSearch.__schema__(:fields)
 
-    %UserSearchRequest{}
+    %UserSearch{}
     |> cast(params, fields)
     |> validate_required(fields)
   end

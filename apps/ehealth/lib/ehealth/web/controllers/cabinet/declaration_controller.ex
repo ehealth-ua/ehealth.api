@@ -6,7 +6,6 @@ defmodule EHealth.Web.Cabinet.DeclarationController do
   alias EHealth.API.OPS
   alias EHealth.DeclarationRequests
   alias EHealth.Declarations.API, as: Declarations
-  alias EHealth.Cabinet.API.DeclarationsAPI
   alias EHealth.Web.DeclarationRequestView
   alias EHealth.Cabinet.Requests.DeclarationsSearch
 
@@ -15,7 +14,7 @@ defmodule EHealth.Web.Cabinet.DeclarationController do
   def list_declarations(%Plug.Conn{req_headers: headers} = conn, params) do
     with %Ecto.Changeset{valid?: true} <- DeclarationsSearch.changeset(params),
          {:ok, %{declarations: _, employees: _, person: _, paging: _} = response_data} <-
-           DeclarationsAPI.get_declarations(params, headers) do
+           Declarations.get_person_declarations(params, headers) do
       render(conn, "list_declarations.json", response_data)
     end
   end

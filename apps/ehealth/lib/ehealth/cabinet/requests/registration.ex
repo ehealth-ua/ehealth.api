@@ -1,4 +1,4 @@
-defmodule EHealth.Cabinet.RegistrationRequest do
+defmodule EHealth.Cabinet.Requests.Registration do
   @moduledoc false
 
   use Ecto.Schema
@@ -6,7 +6,7 @@ defmodule EHealth.Cabinet.RegistrationRequest do
   alias EHealth.Ecto.Base64
 
   @primary_key false
-  schema "registration_request" do
+  embedded_schema do
     field(:otp, :integer)
     field(:password, :string)
     field(:signed_person_data, Base64)
