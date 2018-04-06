@@ -571,6 +571,101 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       |> json_response(200)
     end
 
+    test "can't insert person", %{conn: conn} do
+      expect(MPIMock, :search, fn _params, _headers ->
+        {:ok, %{"data" => []}}
+      end)
+
+      expect(MPIMock, :create_or_update_person, fn _params, _headers ->
+        error = %{
+          "invalid" => [
+            %{
+              "entry" => "$.last_name",
+              "entry_type" => "json_data_property",
+              "rules" => [
+                %{
+                  "description" => "has already been taken",
+                  "params" => [],
+                  "rule" => nil
+                }
+              ]
+            }
+          ],
+          "message" =>
+            "Validation failed. You can find validators description at our API Manifest: http://docs.apimanifest.apiary.io/#introduction/interacting-with-api/errors.",
+          "type" => "validation_failed"
+        }
+
+        {:error, %{"error" => error}}
+      end)
+
+      data =
+        "test/data/declaration_request/sign_request.json"
+        |> File.read!()
+        |> Poison.decode!()
+
+      tax_id = get_in(data, ~w(employee party tax_id))
+      employee_id = get_in(data, ~w(employee id))
+
+      %{id: legal_entity_id} = insert(:prm, :legal_entity)
+      insert(:prm, :employee, id: employee_id, legal_entity_id: legal_entity_id)
+      %{user_id: user_id} = insert(:prm, :party_user, party: build(:party, tax_id: tax_id))
+
+      %{id: declaration_id, declaration_number: declaration_number} =
+        insert(
+          :il,
+          :declaration_request,
+          id: data["id"],
+          status: DeclarationRequest.status(:approved),
+          data: %{
+            "person" => get_person(),
+            "declaration_id" => data["declaration_id"],
+            "division" => data["division"],
+            "employee" => data["employee"],
+            "end_date" => data["end_date"],
+            "scope" => data["scope"],
+            "start_date" => data["start_date"],
+            "legal_entity" => data["legal_entity"]
+          },
+          printout_content: data["content"],
+          authentication_method_current: %{"type" => DeclarationRequest.authentication_method(:na)}
+        )
+
+      signed_declaration_request =
+        data
+        |> Map.put("seed", "some_current_hash")
+        |> Map.put("declaration_number", declaration_number)
+        |> Poison.encode!()
+        |> Base.encode64()
+
+      assert response =
+               conn
+               |> Plug.Conn.put_req_header("drfo", tax_id)
+               |> put_client_id_header(legal_entity_id)
+               |> put_consumer_id_header(user_id)
+               |> patch(declaration_request_path(conn, :sign, declaration_id), %{
+                 "signed_declaration_request" => signed_declaration_request,
+                 "signed_content_encoding" => "base64"
+               })
+               |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.last_name",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "has already been taken",
+                       "params" => [],
+                       "rule" => nil
+                     }
+                   ]
+                 }
+               ]
+             } = response["error"]
+    end
+
     test "invalid request", %{conn: conn} do
       data =
         "test/data/declaration_request/sign_request.json"

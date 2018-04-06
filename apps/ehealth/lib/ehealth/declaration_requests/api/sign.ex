@@ -237,23 +237,18 @@ defmodule EHealth.DeclarationRequests.API.Sign do
           err
       end
 
-    case response do
-      {:ok, %Response{status_code: 409}} ->
-        {:conflict, "person is not active"}
-
-      {:ok, %Response{status_code: 404}} ->
-        {:conflict, "person is not found"}
-
-      {:ok, %Response{body: person, status_code: 200}} ->
-        Poison.decode(person)
-
-      {:ok, %Response{body: person, status_code: 201}} ->
-        Poison.decode(person)
-
-      err ->
-        err
-    end
+    create_or_update_person_response(response)
   end
+
+  defp create_or_update_person_response({:ok, %Response{status_code: 409}}), do: {:conflict, "person is not active"}
+  defp create_or_update_person_response({:ok, %Response{status_code: 404}}), do: {:conflict, "person is not found"}
+
+  defp create_or_update_person_response({:ok, %Response{body: person, status_code: code}}) when code in [200, 201] do
+    Poison.decode(person)
+  end
+
+  defp create_or_update_person_response({:error, %{"error" => errors}}), do: {:error, :person_changeset, errors}
+  defp create_or_update_person_response(error), do: error
 
   def create_declaration_with_termination_logic(
         %{"data" => %{"id" => person_id}},
