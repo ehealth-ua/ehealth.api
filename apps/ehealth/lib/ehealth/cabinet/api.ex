@@ -97,13 +97,12 @@ defmodule EHealth.Cabinet.API do
     @mithril_api.create_access_token(token, headers)
   end
 
-  def validate_email_jwt(jwt) do
+  def validate_email_jwt(jwt, headers) do
     with {:ok, %{"email" => email}} <- Guardian.decode_and_verify(jwt),
+         true <- email_available_for_registration?(email, headers),
          ttl <- Confex.fetch_env!(:ehealth, __MODULE__)[:jwt_ttl_registration],
          {:ok, jwt, _claims} <- generate_jwt(Guardian.get_aud(:registration), email, {ttl, :hours}) do
       {:ok, jwt}
-    else
-      _ -> {:error, {:access_denied, "invalid JWT"}}
     end
   end
 

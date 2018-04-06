@@ -14,7 +14,7 @@ defmodule EHealth.Web.Cabinet.AuthController do
 
   def email_validation(conn, _params) do
     with jwt <- Plug.current_token(conn),
-         {:ok, new_jwt} <- CabinetAPI.validate_email_jwt(jwt) do
+         {:ok, new_jwt} <- CabinetAPI.validate_email_jwt(jwt, conn.req_headers) do
       render(conn, "email_validation.json", %{token: new_jwt})
     end
   end

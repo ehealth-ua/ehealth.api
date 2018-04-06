@@ -144,7 +144,12 @@ defmodule Mithril.Web.RegistrationControllerTest do
   end
 
   describe "validate email jwt" do
-    test "success", %{conn: conn} do
+    test "user with email do not exist", %{conn: conn} do
+      expect(MithrilMock, :search_user, fn %{email: email}, _headers ->
+        assert "info@example.com" == email
+        {:ok, %{"data" => []}}
+      end)
+
       email = "info@example.com"
       {:ok, jwt, _} = encode_and_sign(get_aud(:email_verification), %{email: email}, token_type: "access")
 
@@ -158,6 +163,45 @@ defmodule Mithril.Web.RegistrationControllerTest do
       assert {:ok, claims} = decode_and_verify(token)
       assert Map.has_key?(claims, "email")
       assert email == claims["email"]
+    end
+
+    test "user with email exist but tax_id is empty", %{conn: conn} do
+      expect(MithrilMock, :search_user, fn %{email: email}, _headers ->
+        assert "info@example.com" == email
+        {:ok, %{"data" => [%{"tax_id" => ""}]}}
+      end)
+
+      email = "info@example.com"
+      {:ok, jwt, _} = encode_and_sign(get_aud(:email_verification), %{email: email}, token_type: "access")
+
+      assert token =
+               conn
+               |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
+               |> post(cabinet_auth_path(conn, :email_validation))
+               |> json_response(200)
+               |> get_in(~w(data token))
+
+      assert {:ok, claims} = decode_and_verify(token)
+      assert Map.has_key?(claims, "email")
+      assert email == claims["email"]
+    end
+
+    test "user with email and not empty tax_id exists", %{conn: conn} do
+      expect(MithrilMock, :search_user, fn %{email: email}, _headers ->
+        assert "info@example.com" == email
+        {:ok, %{"data" => [%{"tax_id" => "12345678"}]}}
+      end)
+
+      {:ok, jwt, _} = encode_and_sign(get_aud(:email_verification), %{email: "info@example.com"}, token_type: "access")
+
+      message =
+        conn
+        |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
+        |> post(cabinet_auth_path(conn, :email_validation))
+        |> json_response(409)
+        |> get_in(~w(error message))
+
+      assert "User with this email already exists" == message
     end
 
     test "authorization header not send", %{conn: conn} do

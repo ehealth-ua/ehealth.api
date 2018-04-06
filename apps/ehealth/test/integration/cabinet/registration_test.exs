@@ -53,7 +53,7 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
         {:ok, %{"data" => Map.put(params, "id", UUID.generate())}}
       end)
 
-      expect(MithrilMock, :search_user, fn %{email: ^email}, _headers ->
+      expect(MithrilMock, :search_user, 2, fn %{email: ^email}, _headers ->
         {:ok, %{"data" => []}}
       end)
 
