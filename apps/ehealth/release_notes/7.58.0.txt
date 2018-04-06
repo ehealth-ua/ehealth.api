@@ -1,0 +1,7 @@
+Change log for versions 7.58.0 - 7.58.1
+
+**Patches and bug fixes**:
+
+send 422 on person create validation error during sign declaration request (#2112)
+
+
