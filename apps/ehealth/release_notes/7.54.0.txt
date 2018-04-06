@@ -1,0 +1,9 @@
+Change log for versions 7.54.0 - 7.54.1
+
+**Patches and bug fixes**:
+
+Revert "[patch] get speciality officio on declaration request create (#2053)" (#2097)
+
+**Other**:
+
+This reverts commit 50fc89dfc4b4347e919cb22c5aab85518a964f9c.
