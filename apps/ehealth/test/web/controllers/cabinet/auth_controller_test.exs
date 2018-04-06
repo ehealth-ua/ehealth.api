@@ -301,7 +301,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
       end)
 
       expect(MithrilMock, :create_user, fn params, _headers ->
-        Enum.each(~w(otp tax_id email password 2fa_enable factor), fn key ->
+        Enum.each(~w(otp tax_id person_id email password 2fa_enable factor), fn key ->
           assert Map.has_key?(params, key)
         end)
 
@@ -337,9 +337,9 @@ defmodule Mithril.Web.RegistrationControllerTest do
       end)
 
       expect(MithrilMock, :create_user, fn params, _headers ->
-        assert Map.has_key?(params, "tax_id")
-        assert Map.has_key?(params, "email")
-        assert Map.has_key?(params, "password")
+        Enum.each(~w(otp tax_id person_id email password 2fa_enable factor), fn key ->
+          assert Map.has_key?(params, key)
+        end)
 
         data =
           params
@@ -390,7 +390,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
       |> post(cabinet_auth_path(conn, :registration, params))
       |> json_response(201)
 
-      # |> assert_show_response_schema("cabinet")
+      #      |> assert_json_schema("specs/json_schemas/cabinet/cabinet_registration_show_response.json")
     end
 
     test "update user and update MPI person", %{conn: conn, params: params} do
@@ -466,6 +466,21 @@ defmodule Mithril.Web.RegistrationControllerTest do
       end)
 
       assert "User with this tax_id already exists" ==
+               conn
+               |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
+               |> post(cabinet_auth_path(conn, :registration), params)
+               |> json_response(409)
+               |> get_in(~w(error message))
+    end
+
+    test "MPI persons duplicated", %{conn: conn, params: params, jwt: jwt} do
+      use SignatureExpect
+
+      expect(MPIMock, :search, fn %{"tax_id" => "3126509816", "birth_date" => _}, _headers ->
+        {:ok, %{"data" => [%{"id" => UUID.generate()}, %{"id" => UUID.generate()}]}}
+      end)
+
+      assert "Person duplicated" ==
                conn
                |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
                |> post(cabinet_auth_path(conn, :registration), params)

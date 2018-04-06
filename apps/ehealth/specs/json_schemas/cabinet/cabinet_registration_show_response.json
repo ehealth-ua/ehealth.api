@@ -1,0 +1,408 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "definitions": {
+    "uuid": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "date": {
+      "type": "string",
+      "pattern": "^(\\d{4})-(\\d{2})-(\\d{2})T(\\d{2})\\:(\\d{2})\\:(\\d{2})\\.(\\d{1,6})$",
+      "description": "ISO 8601 date and time in UTC timezone."
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^(?!.*[ЫЪЭЁыъэё@%&$^#])[a-zA-ZА-ЯҐЇІЄа-яґїіє0-9№\\\"!\\^\\*)\\]\\[(._-].*$"
+    },
+    "person_name": {
+      "type": "string",
+      "pattern": "^(?!.*[ЫЪЭЁыъэё@%&$^#])[А-ЯҐЇІЄа-яґїіє\\'\\- ]+$"
+    },
+    "gender": {
+      "type": "string",
+      "description": "Dictionary: GENDER"
+    },
+    "tax_id": {
+      "type": "string",
+      "pattern": "^[0-9]{10}$",
+      "minLength": 10
+    },
+    "document": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Dictionary: DOCUMENT_TYPE"
+        },
+        "number": {
+          "type": "string",
+          "minLength": 1
+        },
+        "issued_by": {
+          "type": "string",
+          "minLength": 1
+        },
+        "issued_at": {
+          "type": "string",
+          "format": "date"
+        }
+      },
+      "required": [
+        "type",
+        "number"
+      ],
+      "additionalProperties": false
+    },
+    "address": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Dictionary: ADDRESS_TYPE"
+        },
+        "country": {
+          "type": "string"
+        },
+        "area": {
+          "$ref": "#/definitions/name"
+        },
+        "region": {
+          "$ref": "#/definitions/name"
+        },
+        "settlement": {
+          "$ref": "#/definitions/name"
+        },
+        "settlement_type": {
+          "type": "string"
+        },
+        "settlement_id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "street_type": {
+          "type": "string"
+        },
+        "street": {
+          "$ref": "#/definitions/name"
+        },
+        "building": {
+          "type": "string",
+          "pattern": "^[1-9]([0-9]{1,3})?(([ \\-]{1})?(?![ЫЪЭЁыъэё])[А-ЯҐЇЄа-яґїє]{1})?((\\s)?(\\\\|/)(\\s)?[1-9]([0-9]{1,3})?(([ \\-]{1})?(?![ЫЪЭЁыъэё])[А-ЯҐЇЄа-яґїє]{1})?)?$"
+        },
+        "apartment": {
+          "type": "string"
+        },
+        "zip": {
+          "type": "string",
+          "pattern": "^[0-9]{5}$"
+        }
+      },
+      "required": [
+        "type",
+        "country",
+        "area",
+        "settlement",
+        "settlement_type",
+        "settlement_id",
+        "building"
+      ],
+      "additionalProperties": false
+    },
+    "phone": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "number": {
+          "type": "string",
+          "pattern": "^\\+38[0-9]{10}$"
+        }
+      },
+      "required": [
+        "type",
+        "number"
+      ],
+      "additionalProperties": false
+    },
+    "authentication_method": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "phone_number": {
+          "type": "string",
+          "pattern": "^\\+38[0-9]{10}$"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "type": "object",
+  "properties": {
+    "meta": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "number",
+          "description": "HTTP response code."
+        },
+        "url": {
+          "type": "string",
+          "description": "URL to requested resource."
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "object",
+            "list"
+          ],
+          "description": "Type of data that is located in `data` attribute."
+        },
+        "request_id": {
+          "type": "string",
+          "description": "[Request ID](http://docs.apimanifest.apiary.io/#introduction/interacting-with-api/request-id). Send it with `X-Request-ID` header."
+        }
+      },
+      "required": [
+        "code",
+        "url",
+        "type",
+        "request_id"
+      ],
+      "additionalProperties": false
+    },
+    "data": {
+      "type": "object",
+      "properties": {
+        "patient": {
+          "type": "object",
+          "properties": {
+            "first_name": {
+              "type": "string",
+              "$ref": "#/definitions/person_name",
+              "minLength": 1
+            },
+            "last_name": {
+              "type": "string",
+              "$ref": "#/definitions/person_name",
+              "minLength": 1
+            },
+            "second_name": {
+              "type": "string",
+              "$ref": "#/definitions/person_name",
+              "minLength": 1
+            },
+            "birth_date": {
+              "type": "string",
+              "format": "date"
+            },
+            "birth_country": {
+              "type": "string",
+              "minLength": 1
+            },
+            "birth_settlement": {
+              "type": "string",
+              "$ref": "#/definitions/name",
+              "minLength": 1
+            },
+            "gender": {
+              "type": "string",
+              "$ref": "#/definitions/gender"
+            },
+            "email": {
+              "type": "string",
+              "format": "email"
+            },
+            "tax_id": {
+              "type": "string",
+              "$ref": "#/definitions/tax_id"
+            },
+            "secret": {
+              "type": "string",
+              "$ref": "#/definitions/name",
+              "minLength": 6
+            },
+            "documents": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/definitions/document"
+              }
+            },
+            "addresses": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/address"
+              },
+              "minItems": 1
+            },
+            "phones": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/phone"
+              }
+            },
+            "authentication_methods": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/authentication_method"
+              }
+            },
+            "preferred_way_communication": {
+              "type": "string",
+              "enum": [
+                "email",
+                "phone"
+              ],
+              "description": "the way how a patient wants to be reached"
+            },
+            "emergency_contact": {
+              "type": "object",
+              "properties": {
+                "first_name": {
+                  "type": "string",
+                  "$ref": "#/definitions/person_name",
+                  "minLength": 1
+                },
+                "last_name": {
+                  "type": "string",
+                  "$ref": "#/definitions/person_name",
+                  "minLength": 1
+                },
+                "second_name": {
+                  "type": "string",
+                  "$ref": "#/definitions/person_name",
+                  "minLength": 1
+                },
+                "phones": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/phone"
+                  },
+                  "minItems": 1
+                }
+              },
+              "required": [
+                "first_name",
+                "last_name",
+                "phones"
+              ]
+            },
+            "factor": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string"
+                },
+                "factor": {
+                  "type": "string"
+                },
+                "is_active": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "type",
+                "factor",
+                "is_active"
+              ]
+            }
+          },
+          "required": [
+            "first_name",
+            "last_name",
+            "birth_date",
+            "birth_country",
+            "birth_settlement",
+            "gender",
+            "secret",
+            "documents",
+            "addresses",
+            "authentication_methods",
+            "emergency_contact",
+            "factor"
+          ],
+          "additionalProperties": false
+        },
+        "user": {
+          "type": "object",
+          "properties": {
+            "email": {
+              "type": "string",
+              "format": "email",
+              "description": "User email."
+            },
+            "settings": {
+              "type": "object",
+              "properties": {},
+              "description": "User settings."
+            },
+            "priv_settings": {
+              "type": "object",
+              "properties": {},
+              "description": "User private settings."
+            },
+            "id": {
+              "type": "string",
+              "$ref": "#/definitions/uuid",
+              "description": "Internal user ID, a UUID string."
+            },
+            "created_at": {
+              "type": "string",
+              "$ref": "#/definitions/date",
+              "description": "ISO 8601 date and time in UTC timezone."
+            },
+            "updated_at": {
+              "type": "string",
+              "$ref": "#/definitions/date",
+              "description": "ISO 8601 date and time in UTC timezone."
+            },
+            "tax_id": {
+              "type": "string"
+            },
+            "person_id": {
+              "type": "string",
+              "$ref": "#/definitions/uuid"
+            },
+            "is_blocked": {
+              "type": "boolean"
+            },
+            "block_reason": {
+              "type": "string"
+            },
+            "password_set_at": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "email",
+            "created_at",
+            "updated_at",
+            "tax_id",
+            "person_id",
+            "password_set_at"
+          ]
+        },
+        "access_token": {
+          "type": "string",
+          "description": "access token"
+        }
+      },
+      "required": [
+        "patient",
+        "user",
+        "access_token"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "data"
+  ],
+  "additionalProperties": false
+}
