@@ -12,7 +12,8 @@ config :ehealth,
     mpi: EHealth.API.MPI,
     mithril: EHealth.API.Mithril,
     digital_signature: EHealth.API.Signature,
-    ops: EHealth.API.OPS
+    ops: EHealth.API.OPS,
+    media_storage: EHealth.API.MediaStorage
   ]
 
 # Configures the endpoint

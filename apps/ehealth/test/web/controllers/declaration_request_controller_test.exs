@@ -164,33 +164,13 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       Plug.Router.post "/declarations_count" do
         MockServer.render(%{"count" => 2}, conn, 200)
       end
-
-      Plug.Router.get "/good_upload" do
-        Plug.Conn.send_resp(conn, 200, "")
-      end
-
-      Plug.Router.post "/media_content_storage_secrets" do
-        [{"port", port}] = :ets.lookup(:uploaded_at_port, "port")
-
-        resp = %{
-          data: %{
-            secret_url: "http://localhost:#{port}/good_upload"
-          }
-        }
-
-        Plug.Conn.send_resp(conn, 200, Poison.encode!(resp))
-      end
     end
 
     setup %{conn: _conn} do
       {:ok, port, ref} = start_microservices(ApproveDeclarationRequest)
-      :ets.new(:uploaded_at_port, [:named_table])
-      :ets.insert(:uploaded_at_port, {"port", port})
-      System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:#{port}")
       System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
 
       on_exit(fn ->
-        System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:4040")
         System.put_env("OPS_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
       end)
@@ -199,6 +179,12 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
 
     test "approve NEW declaration_request", %{conn: conn} do
+      expect(MediaStorageMock, :create_signed_url, fn _, _, _, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://localhost/good_upload_1"}}}
+      end)
+
+      expect(MediaStorageMock, :verify_uploaded_file, fn _, _ -> {:ok, %HTTPoison.Response{status_code: 200}} end)
+
       party = insert(:prm, :party)
       %{id: employee_id} = insert(:prm, :employee, party: party)
 
@@ -230,43 +216,19 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
   end
 
   describe "approve declaration request without documents" do
-    defmodule ApproveDeclarationRequestNoDocs do
-      @moduledoc false
-
-      use MicroservicesHelper
-
-      Plug.Router.get "/no_upload" do
-        Plug.Conn.send_resp(conn, 404, "")
-      end
-
-      Plug.Router.post "/media_content_storage_secrets" do
-        [{"port", port}] = :ets.lookup(:uploaded_at_port, "port")
-
-        resp = %{
-          data: %{
-            secret_url: "http://localhost:#{port}/no_upload"
-          }
-        }
-
-        Plug.Conn.send_resp(conn, 200, Poison.encode!(resp))
-      end
-    end
-
-    setup %{conn: _conn} do
-      {:ok, port, ref} = start_microservices(ApproveDeclarationRequestNoDocs)
-      :ets.new(:uploaded_at_port, [:named_table])
-      :ets.insert(:uploaded_at_port, {"port", port})
-      System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:#{port}")
-
-      on_exit(fn ->
-        System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:4040")
-        stop_microservices(ref)
+    test "approve NEW declaration_request with OFFLINE authentication method", %{conn: conn} do
+      expect(MediaStorageMock, :create_signed_url, 3, fn _, _, _, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://localhost/good_upload_1"}}}
       end)
 
-      {:ok, %{port: port}}
-    end
+      expect(MediaStorageMock, :verify_uploaded_file, 3, fn
+        _, "declaration_request_person.DECLARATION_FORM.jpeg" ->
+          {:error, %HTTPoison.Error{id: nil, reason: :timeout}}
 
-    test "approve NEW declaration_request with OFFLINE authentication method", %{conn: conn} do
+        _, _ ->
+          {:ok, %HTTPoison.Response{status_code: 404}}
+      end)
+
       declaration_request =
         insert(
           :il,
@@ -281,13 +243,10 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
           ]
         )
 
-      resp =
-        conn
-        |> put_client_id_header("356b4182-f9ce-4eda-b6af-43d2de8602f2")
-        |> patch(declaration_request_path(conn, :approve, declaration_request))
-        |> json_response(409)
-
-      assert "Documents ok, empty, person.DECLARATION_FORM is not uploaded" == resp["error"]["message"]
+      assert conn
+             |> put_client_id_header("356b4182-f9ce-4eda-b6af-43d2de8602f2")
+             |> patch(declaration_request_path(conn, :approve, declaration_request))
+             |> json_response(500)
     end
   end
 

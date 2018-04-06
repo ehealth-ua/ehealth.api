@@ -3,6 +3,7 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.ApproveTest do
 
   use EHealth.Web.ConnCase
   import EHealth.DeclarationRequests.API.Approve
+  import Mox
 
   describe "verify/2 - via offline docs" do
     defmodule VerifyViaOfflineDocs do
@@ -15,51 +16,51 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.ApproveTest do
         MockServer.render(%{"count" => 2}, conn, 200)
       end
 
-      Plug.Router.post "/media_content_storage_secrets" do
-        params = conn.body_params["secret"]
+      # Plug.Router.post "/media_content_storage_secrets" do
+      #   params = conn.body_params["secret"]
 
-        [{"port", port}] = :ets.lookup(:uploaded_at_port, "port")
+      #   [{"port", port}] = :ets.lookup(:uploaded_at_port, "port")
 
-        secret_url =
-          case params["resource_name"] do
-            "declaration_request_person.DECLARATION_FORM.jpeg" -> "http://localhost:#{port}/good_upload_1"
-            "declaration_request_A.jpeg" -> "http://localhost:#{port}/good_upload_1"
-            "declaration_request_B.jpeg" -> "http://localhost:#{port}/good_upload_2"
-            "declaration_request_C.jpeg" -> "http://localhost:#{port}/missing_upload"
-          end
+      #   secret_url =
+      #     case params["resource_name"] do
+      #       "declaration_request_person.DECLARATION_FORM.jpeg" -> "http://localhost:#{port}/good_upload_1"
+      #       "declaration_request_A.jpeg" -> "http://localhost:#{port}/good_upload_1"
+      #       "declaration_request_B.jpeg" -> "http://localhost:#{port}/good_upload_2"
+      #       "declaration_request_C.jpeg" -> "http://localhost:#{port}/missing_upload"
+      #     end
 
-        resp = %{
-          data: %{
-            secret_url: secret_url
-          }
-        }
+      #   resp = %{
+      #     data: %{
+      #       secret_url: secret_url
+      #     }
+      #   }
 
-        Plug.Conn.send_resp(conn, 200, Poison.encode!(resp))
-      end
+      #   Plug.Conn.send_resp(conn, 200, Poison.encode!(resp))
+      # end
 
-      Plug.Router.get "/good_upload_1" do
-        Plug.Conn.send_resp(conn, 200, "")
-      end
+      # Plug.Router.get "/good_upload_1" do
+      #   Plug.Conn.send_resp(conn, 200, "")
+      # end
 
-      Plug.Router.get "/good_upload_2" do
-        Plug.Conn.send_resp(conn, 200, "")
-      end
+      # Plug.Router.get "/good_upload_2" do
+      #   Plug.Conn.send_resp(conn, 200, "")
+      # end
 
-      Plug.Router.get "/missing_upload" do
-        Plug.Conn.send_resp(conn, 404, "")
-      end
+      # Plug.Router.get "/missing_upload" do
+      #   Plug.Conn.send_resp(conn, 404, "")
+      # end
     end
 
     setup %{conn: _conn} do
       {:ok, port, ref} = start_microservices(VerifyViaOfflineDocs)
 
-      :ets.new(:uploaded_at_port, [:named_table])
-      :ets.insert(:uploaded_at_port, {"port", port})
-      System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:#{port}")
+      # :ets.new(:uploaded_at_port, [:named_table])
+      # :ets.insert(:uploaded_at_port, {"port", port})
+      # System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:#{port}")
       System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
 
       on_exit(fn ->
-        System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:4040")
+        # System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:4040")
         System.put_env("OPS_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
       end)
@@ -68,6 +69,14 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.ApproveTest do
     end
 
     test "all documents were verified to be successfully uploaded" do
+      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, _, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://localhost/good_upload_1"}}}
+      end)
+
+      expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, _ ->
+        {:ok, %HTTPoison.Response{status_code: 200}}
+      end)
+
       party = insert(:prm, :party)
       %{id: employee_id} = insert(:prm, :employee, party: party)
 
@@ -89,6 +98,15 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.ApproveTest do
     end
 
     test "there's a missing upload" do
+      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, _, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://localhost/good_upload_1"}}}
+      end)
+
+      expect(MediaStorageMock, :verify_uploaded_file, 2, fn
+        _, "declaration_request_A.jpeg" -> {:ok, %HTTPoison.Response{status_code: 200}}
+        _, "declaration_request_C.jpeg" -> {:ok, %HTTPoison.Response{status_code: 404}}
+      end)
+
       declaration_request = %{
         id: "2685788E-CE5E-4C0F-9857-BB070C5F2180",
         authentication_method_current: %{
@@ -101,6 +119,28 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.ApproveTest do
       }
 
       assert {:error, {:documents_not_uploaded, ["C"]}} == verify(declaration_request, "doesn't matter")
+    end
+
+    test "response error" do
+      expect(MediaStorageMock, :create_signed_url, 1, fn _, _, _, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://localhost/good_upload_1"}}}
+      end)
+
+      expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, _ ->
+        {:error, "reason"}
+      end)
+
+      declaration_request = %{
+        id: "2685788E-CE5E-4C0F-9857-BB070C5F2180",
+        authentication_method_current: %{
+          "type" => "OFFLINE"
+        },
+        documents: [
+          %{"verb" => "HEAD", "type" => "A"}
+        ]
+      }
+
+      assert {:error, {:ael_bad_response, "reason"}} == verify(declaration_request, "doesn't matter")
     end
   end
 

@@ -5,6 +5,7 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
 
   alias EHealth.Repo
   alias EHealth.DeclarationRequests.DeclarationRequest
+  import Mox
 
   describe "Approve declaration with auth type OTP or NA" do
     defmodule OtpHappyPath do
@@ -13,31 +14,8 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
       use MicroservicesHelper
       alias EHealth.MockServer
 
-      Plug.Router.get "/good_upload" do
-        Plug.Conn.send_resp(conn, 200, "")
-      end
-
       Plug.Router.post "/declarations_count" do
         MockServer.render(%{"count" => 2}, conn, 200)
-      end
-
-      Plug.Router.post "/media_content_storage_secrets" do
-        params = conn.body_params["secret"]
-
-        [{"port", port}] = :ets.lookup(:uploaded_at_port, "port")
-
-        secret_url =
-          case params["resource_name"] do
-            "declaration_request_person.DECLARATION_FORM.jpeg" -> "http://localhost:#{port}/good_upload"
-          end
-
-        resp = %{
-          data: %{
-            secret_url: secret_url
-          }
-        }
-
-        Plug.Conn.send_resp(conn, 200, Poison.encode!(resp))
       end
 
       Plug.Router.patch "/verifications/+380972805261/actions/complete" do
@@ -60,15 +38,10 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
     setup %{conn: conn} do
       {:ok, port, ref} = start_microservices(OtpHappyPath)
 
-      :ets.new(:uploaded_at_port, [:named_table])
-      :ets.insert(:uploaded_at_port, {"port", port})
-
-      System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:#{port}")
       System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:#{port}")
       System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
 
       on_exit(fn ->
-        System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:4040")
         System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:4040")
         System.put_env("OPS_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
@@ -174,29 +147,6 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
     defmodule OtpNoUploads do
       use MicroservicesHelper
 
-      Plug.Router.get "/no_upload" do
-        Plug.Conn.send_resp(conn, 404, "")
-      end
-
-      Plug.Router.post "/media_content_storage_secrets" do
-        params = conn.body_params["secret"]
-
-        [{"port", port}] = :ets.lookup(:uploaded_at_port, "port")
-
-        secret_url =
-          case params["resource_name"] do
-            "declaration_request_person.DECLARATION_FORM.jpeg" -> "http://localhost:#{port}/no_upload"
-          end
-
-        resp = %{
-          data: %{
-            secret_url: secret_url
-          }
-        }
-
-        Plug.Conn.send_resp(conn, 200, Poison.encode!(resp))
-      end
-
       Plug.Router.patch "/verifications/+380972805261/actions/complete" do
         Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: %{status: "verified"}}))
       end
@@ -204,15 +154,9 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
 
     setup %{conn: conn} do
       {:ok, port, ref} = start_microservices(OtpNoUploads)
-
-      :ets.new(:uploaded_at_port, [:named_table])
-      :ets.insert(:uploaded_at_port, {"port", port})
-
-      System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:#{port}")
       System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:#{port}")
 
       on_exit(fn ->
-        System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:4040")
         System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
       end)
@@ -231,54 +175,13 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
       Plug.Router.post "/declarations_count" do
         MockServer.render(%{"count" => 2}, conn, 200)
       end
-
-      Plug.Router.get "/good_upload_1" do
-        Plug.Conn.send_resp(conn, 200, "")
-      end
-
-      Plug.Router.get "/good_upload_2" do
-        Plug.Conn.send_resp(conn, 200, "")
-      end
-
-      Plug.Router.get "/no_upload" do
-        Plug.Conn.send_resp(conn, 404, "")
-      end
-
-      Plug.Router.post "/media_content_storage_secrets" do
-        params = conn.body_params["secret"]
-
-        [{"port", port}] = :ets.lookup(:uploaded_at_port, "port")
-
-        secret_url =
-          case params["resource_name"] do
-            "declaration_request_person.DECLARATION_FORM.jpeg" -> "http://localhost:#{port}/good_upload_1"
-            "declaration_request_A.jpeg" -> "http://localhost:#{port}/good_upload_1"
-            "declaration_request_B.jpeg" -> "http://localhost:#{port}/good_upload_2"
-            "declaration_request_404.jpeg" -> "http://localhost:#{port}/no_upload"
-            "declaration_request_empty.jpeg" -> "http://localhost:#{port}/no_upload"
-            "declaration_request_error.jpeg" -> "http://invalid/route"
-          end
-
-        resp = %{
-          data: %{
-            secret_url: secret_url
-          }
-        }
-
-        Plug.Conn.send_resp(conn, 200, Poison.encode!(resp))
-      end
     end
 
     setup %{conn: conn} do
       {:ok, port, ref} = start_microservices(OfflineHappyPath)
-
-      :ets.new(:uploaded_at_port, [:named_table])
-      :ets.insert(:uploaded_at_port, {"port", port})
-      System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:#{port}")
       System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
 
       on_exit(fn ->
-        System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:4040")
         System.put_env("OPS_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
       end)
@@ -287,6 +190,14 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
     end
 
     test "happy path: declaration is successfully approved via offline docs check", %{conn: conn} do
+      expect(MediaStorageMock, :create_signed_url, 3, fn _, _, _, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://localhost/good_upload_1"}}}
+      end)
+
+      expect(MediaStorageMock, :verify_uploaded_file, 3, fn _, _ ->
+        {:ok, %HTTPoison.Response{status_code: 200}}
+      end)
+
       party = insert(:prm, :party)
       %{id: employee_id} = insert(:prm, :employee, party: party)
 
@@ -320,6 +231,14 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
     end
 
     test "offline documents was not uploaded. Declaration cannot be approved", %{conn: conn} do
+      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, _, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://localhost/good_upload_1"}}}
+      end)
+
+      expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, _ ->
+        {:ok, %HTTPoison.Response{status_code: 404}}
+      end)
+
       %{id: id} =
         insert(
           :il,
@@ -344,6 +263,14 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
     end
 
     test "Ael not responding. Declaration cannot be approved", %{conn: conn} do
+      expect(MediaStorageMock, :create_signed_url, 3, fn _, _, _, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://localhost/good_upload_1"}}}
+      end)
+
+      expect(MediaStorageMock, :verify_uploaded_file, 3, fn _, _ ->
+        {:error, %HTTPoison.Error{id: nil, reason: :timeout}}
+      end)
+
       %{id: id} =
         insert(
           :il,

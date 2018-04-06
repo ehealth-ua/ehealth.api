@@ -3,13 +3,13 @@ defmodule EHealth.DeclarationRequests.API.Approve do
 
   alias EHealth.Employees
   alias EHealth.Employees.Employee
-  alias EHealth.API.MediaStorage
   alias EHealth.API.OPS
   alias EHealth.API.OTPVerification
   alias EHealth.DeclarationRequests.DeclarationRequest
   alias EHealth.Parties.Party
   require Logger
 
+  @media_storage_api Application.get_env(:ehealth, :api_resolvers)[:media_storage]
   @auth_otp DeclarationRequest.authentication_method(:otp)
   @auth_offline DeclarationRequest.authentication_method(:offline)
 
@@ -50,7 +50,7 @@ defmodule EHealth.DeclarationRequests.API.Approve do
     bucket = Confex.fetch_env!(:ehealth, EHealth.API.MediaStorage)[:declaration_request_bucket]
 
     {:ok, %{"data" => %{"secret_url" => url}} = result} =
-      MediaStorage.create_signed_url("HEAD", bucket, resource_name, id)
+      @media_storage_api.create_signed_url("HEAD", bucket, resource_name, id, [])
 
     Logger.info(fn ->
       Poison.encode!(%{
@@ -61,7 +61,7 @@ defmodule EHealth.DeclarationRequests.API.Approve do
       })
     end)
 
-    case HTTPoison.head(url, "Content-Type": MIME.from_path(resource_name)) do
+    case @media_storage_api.verify_uploaded_file(url, resource_name) do
       {:ok, resp} ->
         case resp do
           %HTTPoison.Response{status_code: 200} ->

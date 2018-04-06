@@ -10,6 +10,12 @@ defmodule EHealth.API.MediaStorage do
   alias EHealth.API.Helpers.SignedContent
   require Logger
 
+  @behaviour EHealth.API.MediaStorageBehaviour
+
+  def verify_uploaded_file(url, resource_name) do
+    HTTPoison.head(url, "Content-Type": MIME.from_path(resource_name))
+  end
+
   def create_signed_url(action, bucket, resource_name, resource_id, headers \\ []) do
     data = %{"secret" => generate_sign_url_data(action, bucket, resource_name, resource_id)}
     create_signed_url(data, headers)

@@ -12,17 +12,6 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
     defmodule TwoHappyPaths do
       use MicroservicesHelper
 
-      # AEL, Media Storage API
-      Plug.Router.post "/media_content_storage_secrets" do
-        params = conn.body_params["secret"]
-
-        upload = %{
-          secret_url: "http://some_resource.com/#{params["resource_id"]}/#{params["resource_name"]}"
-        }
-
-        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: upload}))
-      end
-
       # UAddresses API
       Plug.Router.get "/settlements/adaa4abf-f530-461c-bcbf-a0ac210d955b" do
         settlement = %{
@@ -142,7 +131,6 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       {:ok, port, ref} = start_microservices(TwoHappyPaths)
 
       System.put_env("GNDF_ENDPOINT", "http://localhost:#{port}")
-      System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:#{port}")
       System.put_env("UADDRESS_ENDPOINT", "http://localhost:#{port}")
       System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:#{port}")
       System.put_env("OAUTH_ENDPOINT", "http://localhost:#{port}")
@@ -151,7 +139,6 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       on_exit(fn ->
         System.put_env("GNDF_TABLE_ID", "some_gndf_table_id")
         System.put_env("GNDF_ENDPOINT", "http://localhost:4040")
-        System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:4040")
         System.put_env("UADDRESS_ENDPOINT", "http://localhost:4040")
         System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:4040")
         System.put_env("OAUTH_ENDPOINT", "http://localhost:4040")
