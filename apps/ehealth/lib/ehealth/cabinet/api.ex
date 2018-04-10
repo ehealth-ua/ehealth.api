@@ -15,6 +15,8 @@ defmodule EHealth.Cabinet.API do
   @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
   @signature_api Application.get_env(:ehealth, :api_resolvers)[:digital_signature]
 
+  @person_active "active"
+
   def create_patient(jwt, params, headers) do
     with {:ok, email} <- fetch_email_from_jwt(jwt),
          %Ecto.Changeset{valid?: true} <- validate_params(:patient, params),
@@ -27,7 +29,10 @@ defmodule EHealth.Cabinet.API do
          :ok <- validate_last_name(content, signer),
          :ok <- validate_email(content, email),
          {:ok, %{"data" => mpi_person}} <-
-           @mpi_api.search(%{"tax_id" => tax_id, "birth_date" => content["birth_date"]}, headers),
+           @mpi_api.search(
+             %{"tax_id" => tax_id, "birth_date" => content["birth_date"], "status" => @person_active},
+             headers
+           ),
          person_params <- prepare_person_params(content),
          {:ok, %{"data" => person}} <- create_or_update_person(mpi_person, person_params, headers),
          {:ok, %{"data" => mithril_user}} <- @mithril_api.search_user(%{email: email}, headers),

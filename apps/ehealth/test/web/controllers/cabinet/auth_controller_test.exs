@@ -323,7 +323,14 @@ defmodule Mithril.Web.RegistrationControllerTest do
     test "create new user and update MPI person", %{conn: conn, params: params} do
       person_id = UUID.generate()
 
-      expect(MPIMock, :search, fn %{"tax_id" => "3126509816", "birth_date" => _}, _headers ->
+      expect(MPIMock, :search, fn params, _headers ->
+        Enum.each(~w(tax_id birth_date status), fn key ->
+          assert Map.has_key?(params, key)
+        end)
+
+        assert "3126509816" == params["tax_id"]
+        assert "active" == params["status"]
+
         {:ok, %{"data" => [%{"id" => person_id}]}}
       end)
 
