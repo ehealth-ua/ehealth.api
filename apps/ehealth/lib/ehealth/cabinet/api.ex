@@ -15,7 +15,7 @@ defmodule EHealth.Cabinet.API do
   @signature_api Application.get_env(:ehealth, :api_resolvers)[:digital_signature]
 
   def create_patient(jwt, params, headers) do
-    with {:ok, %{"email" => email}} <- Guardian.decode_and_verify(jwt),
+    with {:ok, email} <- fetch_email_from_jwt(jwt),
          %Ecto.Changeset{valid?: true} <- validate_params(:patient, params),
          {:ok, %{"data" => %{"content" => content, "signer" => signer}}} <-
            @signature_api.decode_and_validate(params["signed_content"], params["signed_content_encoding"], headers),
@@ -37,6 +37,13 @@ defmodule EHealth.Cabinet.API do
          {:ok, %{"data" => role}} <- @mithril_api.create_user_role(user["id"], role_params, headers),
          {:ok, %{"data" => token}} <- create_access_token(params["password"], email, role, conf[:client_id], headers) do
       {:ok, %{user: user, patient: person, access_token: token["value"]}}
+    end
+  end
+
+  defp fetch_email_from_jwt(jwt) do
+    case Guardian.decode_and_verify(jwt) do
+      {:ok, %{"email" => email}} -> {:ok, email}
+      _ -> {:error, {:access_denied, "invalid JWT claim"}}
     end
   end
 
@@ -98,7 +105,7 @@ defmodule EHealth.Cabinet.API do
   end
 
   def validate_email_jwt(jwt, headers) do
-    with {:ok, %{"email" => email}} <- Guardian.decode_and_verify(jwt),
+    with {:ok, email} <- fetch_email_from_jwt(jwt),
          true <- email_available_for_registration?(email, headers),
          ttl <- Confex.fetch_env!(:ehealth, __MODULE__)[:jwt_ttl_registration],
          {:ok, jwt, _claims} <- generate_jwt(Guardian.get_aud(:registration), email, {ttl, :hours}) do

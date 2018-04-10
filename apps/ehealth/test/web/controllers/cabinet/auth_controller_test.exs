@@ -238,10 +238,10 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
     test "invalid JWT claim", %{conn: conn} do
       jwt =
-        "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJFSGVhbHRoIiwiZXhwIjoxNTIzMjgwNTYwLCJpYXQiOjE1MjA4" <>
-          "NjEzNjAsImlzcyI6IkVIZWFsdGgiLCJqdGkiOiI5ZmZkNTQ2ZC1jOWUzLTRiMjgtYjJiMi00ZTRkYzI0YThkMTIiLCJuYmYiO" <>
-          "jE1MjA4NjEzNTksIm5vIjoiZW1haWwiLCJzdWIiOiJ0ZXN0IiwidHlwIjoiYWNjZXNzIn0.PeEiFaq2KzzzhU5CN-QzjYZHYW" <>
-          "BYrQmFA03H1nR-2K7_JzaHRBRZsMuwEc79Kp2EKul-JBrKYivmRsHLLuHdOA"
+        "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJlbWFpbC12ZXJpZmljYXRpb24iLCJleHAiOjE4Mzc4NDEwNDIs" <>
+          "ImlhdCI6MTUyMzM0NTA0MiwiaXNzIjoiRUhlYWx0aCIsImp0aSI6ImM4MDgzNmEzLTk0OWUtNGZjYi1hMjBiLTQ5MjM4OWN" <>
+          "mYTdkZCIsIm5iZiI6MTUyMzM0NTA0MSwic3ViIjoidGVzdCIsInRlc3QiOiJ0ZXN0QGV4YW1wbGUuY29tIiwidHlwIjoiYW" <>
+          "NjZXNzIn0.G-oRfD52cs42yQXfc2gyB-pnQdx9WZczBirhBhxeFGegiJtdYBTAj7ViXaHLRfJdJ9-9ESgJa_d7WruGbCC2HA"
 
       assert {:ok, claims} = decode_and_verify(jwt)
       refute Map.has_key?(claims, "email")
