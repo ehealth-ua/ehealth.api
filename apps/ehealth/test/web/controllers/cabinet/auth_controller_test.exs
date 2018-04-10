@@ -461,13 +461,6 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => []}}
       end)
 
-      expect(MPIMock, :create_or_update_person!, fn params, headers ->
-        refute Map.has_key?(params, "id")
-        assert Map.has_key?(params, "patient_signed")
-        assert Enum.member?(headers, {"x-consumer-id", "4261eacf-8008-4e62-899f-de1e2f7065f0"})
-        {:ok, %{"data" => Map.put(params, "id", UUID.generate())}}
-      end)
-
       expect(MithrilMock, :search_user, fn %{email: "email@example.com"}, _headers ->
         {:ok, %{"data" => [%{"tax_id" => "1234567890"}]}}
       end)
@@ -480,11 +473,34 @@ defmodule Mithril.Web.RegistrationControllerTest do
                |> get_in(~w(error message))
     end
 
+    test "user blocked", %{conn: conn, params: params, jwt: jwt} do
+      use SignatureExpect
+
+      expect(MPIMock, :search, fn %{"tax_id" => "3126509816", "birth_date" => _}, _headers ->
+        {:ok, %{"data" => []}}
+      end)
+
+      expect(MithrilMock, :search_user, fn %{email: "email@example.com"}, _headers ->
+        {:ok, %{"data" => [%{"tax_id" => "1234567890", "is_blocked" => true}]}}
+      end)
+
+      assert "User blocked" ==
+               conn
+               |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
+               |> post(cabinet_auth_path(conn, :registration), params)
+               |> json_response(401)
+               |> get_in(~w(error message))
+    end
+
     test "MPI persons duplicated", %{conn: conn, params: params, jwt: jwt} do
       use SignatureExpect
 
       expect(MPIMock, :search, fn %{"tax_id" => "3126509816", "birth_date" => _}, _headers ->
         {:ok, %{"data" => [%{"id" => UUID.generate()}, %{"id" => UUID.generate()}]}}
+      end)
+
+      expect(MithrilMock, :search_user, fn %{email: "email@example.com"}, _headers ->
+        {:ok, %{"data" => []}}
       end)
 
       assert "Person duplicated" ==
@@ -695,6 +711,10 @@ defmodule Mithril.Web.RegistrationControllerTest do
       use SignatureExpect
 
       expect(MPIMock, :search, fn %{"tax_id" => "3126509816", "birth_date" => _}, _headers ->
+        {:ok, %{"data" => []}}
+      end)
+
+      expect(MithrilMock, :search_user, fn %{email: "email@example.com"}, _headers ->
         {:ok, %{"data" => []}}
       end)
 

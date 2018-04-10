@@ -33,10 +33,12 @@ defmodule EHealth.Cabinet.API do
              %{"tax_id" => tax_id, "birth_date" => content["birth_date"], "status" => @person_active},
              headers
            ),
+         {:ok, %{"data" => user_data}} <- @mithril_api.search_user(%{email: email}, headers),
+         mithril_user <- fetch_mithril_user(user_data),
+         :ok <- check_user_blocked(mithril_user),
+         :ok <- check_user_by_tax_id(mithril_user),
          person_params <- prepare_person_params(content),
          {:ok, %{"data" => person}} <- create_or_update_person(mpi_person, person_params, headers),
-         {:ok, %{"data" => mithril_user}} <- @mithril_api.search_user(%{email: email}, headers),
-         :ok <- check_user_by_tax_id(mithril_user),
          user_params <- prepare_user_params(tax_id, person["id"], email, params, content),
          {:ok, %{"data" => user}} <- create_or_update_user(mithril_user, user_params, headers),
          conf <- Confex.fetch_env!(:ehealth, __MODULE__),
@@ -90,14 +92,21 @@ defmodule EHealth.Cabinet.API do
     }
   end
 
-  defp check_user_by_tax_id([%{"tax_id" => tax_id}]) when is_binary(tax_id) and byte_size(tax_id) > 0 do
+  defp fetch_mithril_user([user | ...]), do: user
+  defp fetch_mithril_user(_), do: nil
+
+  defp check_user_blocked(%{"is_blocked" => false}), do: :ok
+  defp check_user_blocked(%{"is_blocked" => _}), do: {:error, {:access_denied, "User blocked"}}
+  defp check_user_blocked(_), do: :ok
+
+  defp check_user_by_tax_id(%{"tax_id" => tax_id}) when is_binary(tax_id) and byte_size(tax_id) > 0 do
     {:error, {:conflict, "User with this tax_id already exists"}}
   end
 
   defp check_user_by_tax_id(_), do: :ok
 
-  defp create_or_update_user([%{"id" => id}], params, headers), do: @mithril_api.change_user(id, params, headers)
-  defp create_or_update_user([], params, headers), do: @mithril_api.create_user(params, headers)
+  defp create_or_update_user(%{"id" => id}, params, headers), do: @mithril_api.change_user(id, params, headers)
+  defp create_or_update_user(nil, params, headers), do: @mithril_api.create_user(params, headers)
 
   defp create_access_token(password, email, %{"scope" => scope}, client_id, headers) do
     token = %{

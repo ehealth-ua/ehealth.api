@@ -75,7 +75,7 @@ defmodule EHealth.Web.FallbackController do
   def call(conn, {:error, {:access_denied, reason}}) do
     conn
     |> put_status(:unauthorized)
-    |> render(EView.Views.Error, :"401", %{reason: reason})
+    |> render(EView.Views.Error, :"401", %{message: reason})
   end
 
   def call(conn, {:error, :invalid_role}) do
