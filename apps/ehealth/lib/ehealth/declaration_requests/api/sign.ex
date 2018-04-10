@@ -247,7 +247,10 @@ defmodule EHealth.DeclarationRequests.API.Sign do
     Poison.decode(person)
   end
 
-  defp create_or_update_person_response({:error, %{"error" => errors}}), do: {:error, :person_changeset, errors}
+  defp create_or_update_person_response({:ok, %Response{status_code: 422, body: errors}}) do
+    {:error, :person_changeset, errors}
+  end
+
   defp create_or_update_person_response(error), do: error
 
   def create_declaration_with_termination_logic(
