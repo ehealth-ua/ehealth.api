@@ -22,5 +22,6 @@ defmodule EHealth.API.MithrilBehaviour do
               {:ok, result :: term} | {:error, reason :: term}
 
   # tokens
-  @callback create_access_token(token :: map, headers :: list) :: {:ok, result :: term} | {:error, reason :: term}
+  @callback create_access_token(user_id :: binary, token :: map, headers :: list) ::
+              {:ok, result :: term} | {:error, reason :: term}
 end

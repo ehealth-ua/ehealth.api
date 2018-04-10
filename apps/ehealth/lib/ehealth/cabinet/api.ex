@@ -44,7 +44,7 @@ defmodule EHealth.Cabinet.API do
          conf <- Confex.fetch_env!(:ehealth, __MODULE__),
          role_params <- %{role_id: conf[:role_id], client_id: conf[:client_id]},
          {:ok, %{"data" => role}} <- @mithril_api.create_user_role(user["id"], role_params, headers),
-         {:ok, %{"data" => token}} <- create_access_token(params["password"], email, role, conf[:client_id], headers) do
+         {:ok, %{"data" => token}} <- create_access_token(user, role, conf[:client_id], headers) do
       {:ok, %{user: user, patient: person, access_token: token["value"]}}
     end
   end
@@ -108,16 +108,13 @@ defmodule EHealth.Cabinet.API do
   defp create_or_update_user(%{"id" => id}, params, headers), do: @mithril_api.change_user(id, params, headers)
   defp create_or_update_user(nil, params, headers), do: @mithril_api.create_user(params, headers)
 
-  defp create_access_token(password, email, %{"scope" => scope}, client_id, headers) do
-    token = %{
-      grant_type: "password",
-      email: email,
-      password: password,
+  defp create_access_token(%{"id" => user_id}, %{"scope" => scope}, client_id, headers) do
+    params = %{
       client_id: client_id,
       scope: scope
     }
 
-    @mithril_api.create_access_token(token, headers)
+    @mithril_api.create_access_token(user_id, params, headers)
   end
 
   def validate_email_jwt(jwt, headers) do

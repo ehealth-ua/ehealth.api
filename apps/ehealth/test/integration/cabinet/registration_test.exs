@@ -93,15 +93,11 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
         {:ok, %{"data" => data}}
       end)
 
-      expect(MithrilMock, :create_access_token, fn params, _headers ->
-        Enum.each(~w(grant_type email password client_id scope)a, fn key ->
+      expect(MithrilMock, :create_access_token, fn _user_id, params, _headers ->
+        Enum.each(~w(client_id scope)a, fn key ->
           assert Map.has_key?(params, key),
                  "Mithril.create_access_token requires param `#{key}` in `#{inspect(params)}`"
         end)
-
-        assert "password" == params.grant_type
-        assert email == params.email
-        assert "pAs$w0rd" == params.password
 
         data = %{
           "id" => UUID.generate(),
