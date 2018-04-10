@@ -78,7 +78,7 @@ defmodule EHealth.Web.DeclarationRequestController do
         conn
         |> put_status(:unprocessable_entity)
         |> put_resp_content_type("application/json")
-        |> send_resp(422, Poison.encode!(errors))
+        |> send_resp(422, errors)
 
       error ->
         error

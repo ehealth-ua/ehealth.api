@@ -577,7 +577,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       end)
 
       expect(MPIMock, :create_or_update_person, fn _params, _headers ->
-        error = %{
+        errors = %{
           "invalid" => [
             %{
               "entry" => "$.last_name",
@@ -596,7 +596,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
           "type" => "validation_failed"
         }
 
-        {:error, %{"error" => error}}
+        {:ok, %Response{status_code: 422, body: Poison.encode!(errors)}}
       end)
 
       data =
