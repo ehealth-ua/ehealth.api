@@ -522,7 +522,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
   end
 
   describe "create declaration request online" do
-    test "succes create declaration request online", %{conn: conn} do
+    test "success create declaration request online", %{conn: conn} do
       legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
       person_id = "c8912855-21c3-4771-ba18-bcd8e524f14c"
       division = insert(:prm, :division, legal_entity: legal_entity)
