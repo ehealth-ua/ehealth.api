@@ -4,6 +4,7 @@ defmodule EHealth.Cabinet.API do
 
   alias EHealth.Guardian
   alias EHealth.Bamboo.Emails.Sender
+  alias EHealth.Validators.Addresses
   alias EHealth.Validators.JsonSchema
   alias EHealth.Cabinet.Requests.{Registration, UserSearch}
   alias EHealth.Man.Templates.EmailVerification
@@ -20,6 +21,7 @@ defmodule EHealth.Cabinet.API do
          {:ok, %{"data" => %{"content" => content, "signer" => signer}}} <-
            @signature_api.decode_and_validate(params["signed_content"], params["signed_content_encoding"], headers),
          :ok <- JsonSchema.validate(:person, content),
+         {:ok, _} <- Addresses.validate(content["addresses"]),
          {:ok, tax_id} <- validate_tax_id(content, signer),
          :ok <- validate_first_name(content, signer),
          :ok <- validate_last_name(content, signer),

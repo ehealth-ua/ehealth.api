@@ -4,6 +4,10 @@ defmodule EHealth.Validators.Addresses do
   """
   alias EHealth.API.UAddress
 
+  def validate(addresses) do
+    validate_addresses_values({:ok, addresses})
+  end
+
   def validate(addresses, required_type) do
     addresses
     |> validate_addresses_type(required_type)

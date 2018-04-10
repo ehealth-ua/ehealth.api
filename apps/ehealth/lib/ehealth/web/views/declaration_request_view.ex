@@ -2,7 +2,6 @@ defmodule EHealth.Web.DeclarationRequestView do
   @moduledoc false
 
   use EHealth.Web, :view
-  alias EHealth.API.OPS
   alias EHealth.Web.{PersonView, EmployeeView, LegalEntityView, DivisionView}
 
   def render("index.json", %{declaration_requests: declaration_requests}) do
