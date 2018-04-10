@@ -19,6 +19,13 @@ defmodule EHealth.Web.Cabinet.AuthController do
     end
   end
 
+  def search_user(conn, params) do
+    with jwt <- Plug.current_token(conn),
+         :ok <- CabinetAPI.check_user_absence(jwt, params, conn.req_headers) do
+      render(conn, "raw.json", %{json: %{}})
+    end
+  end
+
   def registration(conn, params) do
     system_user = Confex.fetch_env!(:ehealth, :system_user)
 

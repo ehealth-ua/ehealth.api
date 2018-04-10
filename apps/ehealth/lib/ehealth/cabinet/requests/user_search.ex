@@ -3,8 +3,11 @@ defmodule EHealth.Cabinet.Requests.UserSearch do
 
   use Ecto.Schema
 
+  alias EHealth.Ecto.Base64
+
   @primary_key false
   embedded_schema do
-    field(:tax_id, :string)
+    field(:signed_content, Base64)
+    field(:signed_content_encoding, :string)
   end
 end

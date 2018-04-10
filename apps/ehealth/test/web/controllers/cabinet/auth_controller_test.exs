@@ -276,7 +276,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
       params = %{
         otp: "1234",
         password: "pAs$w0rd",
-        signed_person_data: "test/data/cabinet/patient.json" |> File.read!() |> Base.encode64(),
+        signed_content: "test/data/cabinet/patient.json" |> File.read!() |> Base.encode64(),
         signed_content_encoding: "base64"
       }
 
@@ -438,7 +438,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
       params = %{
         otp: "1234",
         password: "pAs$w0rd",
-        signed_person_data: "test/data/cabinet/patient.json" |> File.read!() |> Base.encode64(),
+        signed_content: "test/data/cabinet/patient.json" |> File.read!() |> Base.encode64(),
         signed_content_encoding: "base64"
       }
 
@@ -634,8 +634,8 @@ defmodule Mithril.Web.RegistrationControllerTest do
                |> get_in(~w(error message))
     end
 
-    test "invalid signed_person_data format", %{conn: conn, params: params, jwt: jwt} do
-      params = Map.put(params, :signed_person_data, "some string")
+    test "invalid signed_content format", %{conn: conn, params: params, jwt: jwt} do
+      params = Map.put(params, :signed_content, "some string")
 
       assert [err] =
                conn
@@ -644,7 +644,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
                |> json_response(422)
                |> get_in(~w(error invalid))
 
-      assert "$.signed_person_data" == err["entry"]
+      assert "$.signed_content" == err["entry"]
     end
 
     test "JWT not set", %{conn: conn, params: params} do
@@ -665,7 +665,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
     test "invalid person data", %{conn: conn, params: params, jwt: jwt} do
       use SignatureExpect
 
-      signed_person_data =
+      signed_content =
         %{
           "birth_date" => "today",
           "tax_id" => "1112223344",
@@ -677,7 +677,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
       err =
         conn
         |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
-        |> post(cabinet_auth_path(conn, :registration, Map.put(params, :signed_person_data, signed_person_data)))
+        |> post(cabinet_auth_path(conn, :registration, Map.put(params, :signed_content, signed_content)))
         |> json_response(422)
         |> get_in(~w(error invalid))
 
@@ -784,42 +784,86 @@ defmodule Mithril.Web.RegistrationControllerTest do
   describe "search user" do
     setup %{conn: conn} do
       {:ok, jwt, _} = encode_and_sign(get_aud(:registration), %{email: "email@example.com"})
-      %{conn: conn, jwt: jwt}
+
+      params = %{
+        signed_content: sign_content(%{tax_id: "1234567890"}),
+        signed_content_encoding: "base64"
+      }
+
+      %{conn: conn, jwt: jwt, params: params}
     end
 
-    test "jwt not set", %{conn: conn} do
+    test "jwt not set", %{conn: conn, params: params} do
       conn
-      |> get(cabinet_persons_path(conn, :search_user), %{tax_id: "1234567890"})
+      |> get(cabinet_auth_path(conn, :search_user), params)
       |> json_response(401)
     end
 
-    test "by tax_id found", %{conn: conn, jwt: jwt} do
-      expect(MithrilMock, :search_user, fn %{tax_id: "1234567890"}, _headers ->
+    test "by tax_id not found", %{conn: conn, jwt: jwt, params: params} do
+      use SignatureExpect
+
+      expect(MithrilMock, :search_user, fn params, _headers ->
+        assert Map.has_key?(params, :email)
+        {:ok, %{"data" => []}}
+      end)
+
+      expect(MithrilMock, :search_user, fn params, _headers ->
+        assert Map.has_key?(params, :tax_id)
+        assert "1234567890" == params.tax_id
         {:ok, %{"data" => []}}
       end)
 
       conn
       |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
-      |> get(cabinet_persons_path(conn, :search_user, %{tax_id: "1234567890"}))
+      |> get(cabinet_auth_path(conn, :search_user, params))
       |> json_response(200)
     end
 
-    test "by tax_id not found", %{conn: conn, jwt: jwt} do
+    test "by tax_id found", %{conn: conn, jwt: jwt, params: params} do
+      use SignatureExpect
+
+      expect(MithrilMock, :search_user, fn params, _headers ->
+        assert Map.has_key?(params, :email)
+        {:ok, %{"data" => []}}
+      end)
+
       expect(MithrilMock, :search_user, fn %{tax_id: "1234567890"}, _headers ->
         {:ok, %{"data" => [%{"id" => 1}]}}
       end)
 
-      conn
-      |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
-      |> get(cabinet_persons_path(conn, :search_user), %{tax_id: "1234567890"})
-      |> json_response(409)
+      assert "User with this tax_id already exists" =
+               conn
+               |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
+               |> get(cabinet_auth_path(conn, :search_user), params)
+               |> json_response(409)
+               |> get_in(~w(error message))
     end
 
-    test "tax_id not set", %{conn: conn, jwt: jwt} do
+    test "user with email already exists", %{conn: conn, jwt: jwt, params: params} do
+      expect(MithrilMock, :search_user, fn params, _headers ->
+        assert Map.has_key?(params, :email)
+        {:ok, %{"data" => [%{"id" => UUID.generate(), "tax_id" => "12342345"}]}}
+      end)
+
+      assert "User with this email already exists" =
+               conn
+               |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
+               |> get(cabinet_auth_path(conn, :search_user), params)
+               |> json_response(409)
+               |> get_in(~w(error message))
+    end
+
+    test "invalid params", %{conn: conn, jwt: jwt} do
       conn
       |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
-      |> get(cabinet_persons_path(conn, :search_user), %{tax_id_invalid: "1234567890"})
+      |> get(cabinet_auth_path(conn, :search_user), %{tax_id: "1234567890"})
       |> json_response(422)
     end
+  end
+
+  defp sign_content(content) do
+    content
+    |> Poison.encode!()
+    |> Base.encode64()
   end
 end

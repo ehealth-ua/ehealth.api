@@ -18,7 +18,7 @@ defmodule EHealth.Cabinet.API do
     with {:ok, %{"email" => email}} <- Guardian.decode_and_verify(jwt),
          %Ecto.Changeset{valid?: true} <- validate_params(:patient, params),
          {:ok, %{"data" => %{"content" => content, "signer" => signer}}} <-
-           @signature_api.decode_and_validate(params["signed_person_data"], params["signed_content_encoding"], headers),
+           @signature_api.decode_and_validate(params["signed_content"], params["signed_content_encoding"], headers),
          :ok <- JsonSchema.validate(:person, content),
          {:ok, tax_id} <- validate_tax_id(content, signer),
          :ok <- validate_first_name(content, signer),
@@ -140,6 +140,7 @@ defmodule EHealth.Cabinet.API do
     %UserSearch{}
     |> cast(params, fields)
     |> validate_required(fields)
+    |> validate_inclusion(:signed_content_encoding, ["base64"])
   end
 
   def email_available_for_registration?(email, headers) do
@@ -180,18 +181,26 @@ defmodule EHealth.Cabinet.API do
       {:error, {:internal_error, "Cannot send email. Try later"}}
   end
 
-  def check_user_absence(params, headers) do
-    with %Ecto.Changeset{valid?: true} <- validate_params(:user_search, params) do
-      case @mithril_api.search_user(%{tax_id: params["tax_id"]}, headers) do
-        {:ok, %{"data" => data}} when length(data) > 0 ->
-          {:error, {:conflict, "User with this tax_id already exists"}}
-
-        {:ok, _} ->
-          :ok
-
-        _ ->
-          {:error, {:internal_error, "Cannot fetch user"}}
-      end
+  def check_user_absence(jwt, params, headers) do
+    with %Ecto.Changeset{valid?: true} <- validate_params(:user_search, params),
+         {:ok, %{"email" => email}} <- Guardian.decode_and_verify(jwt),
+         true <- email_available_for_registration?(email, headers),
+         {:ok, %{"data" => %{"signer" => signer}}} <-
+           @signature_api.decode_and_validate(params["signed_content"], params["signed_content_encoding"], headers),
+         {:ok, tax_id} <- fetch_drfo(signer) do
+      %{tax_id: tax_id}
+      |> @mithril_api.search_user(headers)
+      |> check_mithril_user_absence()
     end
   end
+
+  defp fetch_drfo(%{"drfo" => drfo}), do: {:ok, drfo}
+  defp fetch_drfo(_signer), do: {:error, {:conflict, "DRFO in DS not present"}}
+
+  defp check_mithril_user_absence({:ok, %{"data" => data}}) when length(data) > 0 do
+    {:error, {:conflict, "User with this tax_id already exists"}}
+  end
+
+  defp check_mithril_user_absence({:ok, _}), do: :ok
+  defp check_mithril_user_absence(_), do: {:error, {:internal_error, "Cannot fetch user"}}
 end

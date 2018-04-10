@@ -116,7 +116,7 @@ defmodule EHealthWeb.Router do
       scope "/" do
         pipe_through(:jwt_registration)
         post("/registration", Cabinet.AuthController, :registration, as: :cabinet_auth)
-        get("/users", Cabinet.PersonsController, :search_user, as: :cabinet_persons)
+        get("/users", Cabinet.AuthController, :search_user, as: :cabinet_auth)
       end
     end
   end

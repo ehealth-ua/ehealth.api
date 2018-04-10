@@ -9,7 +9,7 @@ defmodule EHealth.Cabinet.Requests.Registration do
   embedded_schema do
     field(:otp, :integer)
     field(:password, :string)
-    field(:signed_person_data, Base64)
+    field(:signed_content, Base64)
     field(:signed_content_encoding, :string)
   end
 end

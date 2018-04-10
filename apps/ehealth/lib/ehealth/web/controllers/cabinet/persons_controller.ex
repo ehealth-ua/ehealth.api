@@ -1,16 +1,9 @@
 defmodule EHealth.Web.Cabinet.PersonsController do
   use EHealth.Web, :controller
 
-  alias EHealth.Cabinet.API, as: CabinetAPI
   alias EHealth.Persons
 
   action_fallback(EHealth.Web.FallbackController)
-
-  def search_user(conn, params) do
-    with :ok <- CabinetAPI.check_user_absence(params, conn.req_headers) do
-      render(conn, "raw.json", %{json: %{}})
-    end
-  end
 
   def update_person(conn, %{"id" => id} = params) do
     with {:ok, person} <- Persons.update(id, Map.delete(params, "id"), conn.req_headers) do

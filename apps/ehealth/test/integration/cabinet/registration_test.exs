@@ -21,7 +21,7 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
         {:ok, "<html></html>"}
       end)
 
-      expect(SignatureMock, :decode_and_validate, fn signed_content, "base64", _headers ->
+      expect(SignatureMock, :decode_and_validate, 2, fn signed_content, "base64", _headers ->
         content = signed_content |> Base.decode64!() |> Poison.decode!()
         assert Map.has_key?(content, "tax_id")
 
@@ -53,7 +53,7 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
         {:ok, %{"data" => Map.put(params, "id", UUID.generate())}}
       end)
 
-      expect(MithrilMock, :search_user, 2, fn %{email: ^email}, _headers ->
+      expect(MithrilMock, :search_user, 3, fn %{email: ^email}, _headers ->
         {:ok, %{"data" => []}}
       end)
 
@@ -111,10 +111,10 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
         {:ok, %{"data" => data}}
       end)
 
-      %{conn: conn, email: email, tax_id: tax_id}
+      %{conn: conn, email: email}
     end
 
-    test "happy path", %{conn: conn, email: email, tax_id: tax_id} do
+    test "happy path", %{conn: conn, email: email} do
       # 1. Send JWT to email for verification
       conn
       |> post(cabinet_auth_path(conn, :email_verification), %{email: email})
@@ -137,9 +137,14 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
 
       # 3. Check that user with tax_id from signet content not exist
 
+      params = %{
+        signed_content: "test/data/cabinet/patient.json" |> File.read!() |> Base.encode64(),
+        signed_content_encoding: "base64"
+      }
+
       conn
       |> Plug.Conn.put_req_header("authorization", "Bearer " <> auth_token)
-      |> get(cabinet_persons_path(conn, :search_user, %{tax_id: tax_id}))
+      |> get(cabinet_auth_path(conn, :search_user, params))
       |> json_response(200)
 
       # 4. Send OTP for phone verification
@@ -150,7 +155,7 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
       params = %{
         otp: "1234",
         password: "pAs$w0rd",
-        signed_person_data: "test/data/cabinet/patient.json" |> File.read!() |> Base.encode64(),
+        signed_content: "test/data/cabinet/patient.json" |> File.read!() |> Base.encode64(),
         signed_content_encoding: "base64"
       }
 
