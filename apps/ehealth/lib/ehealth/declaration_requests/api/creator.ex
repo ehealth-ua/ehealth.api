@@ -324,6 +324,7 @@ defmodule EHealth.DeclarationRequests.API.Creator do
     |> put_change(:inserted_by, user_id)
     |> put_change(:updated_by, user_id)
     |> put_change(:declaration_number, NumberGenerator.generate(1, 2))
+    |> unique_constraint(:declaration_number, name: :declaration_requests_declaration_number_index)
     |> put_party_email()
     |> determine_auth_method_for_mpi(channel)
     |> generate_printout_form(employee)

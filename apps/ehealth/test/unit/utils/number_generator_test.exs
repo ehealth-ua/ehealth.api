@@ -14,4 +14,10 @@ defmodule EHealth.Utils.NumberGeneratorTest do
     assert "0000-" <> _ = number
     assert 14 == String.length(number)
   end
+
+  test "collision" do
+    numbers_amount = 1000
+    numbers = Enum.map(1..numbers_amount, fn _ -> Generator.generate(1, 2) end)
+    assert numbers_amount == length(numbers)
+  end
 end
