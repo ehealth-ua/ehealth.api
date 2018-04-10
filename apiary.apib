@@ -2232,7 +2232,7 @@ Entity data:
 
 + Response 200 (application/json)
     + Attributes (Response_Collection_V2)
-        + data (array[`Declaration_Request_Short`])
+        + data (array[`Declaration_list_cabinet`])
 
 ### Create Declaration Request online [POST /api/cabinet/declaration_requests]
 
@@ -4908,6 +4908,19 @@ This method is used to abtain list of events with filters.
 + inserted_at: `2017-03-02T10:45:16.000Z` (string, optional)
 + updated_at: `2017-03-02T10:45:16.000Z` (string, optional)
 
+### `Declaration_list_cabinet`
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - unique id of declaration
++ declaration_number: `0000-12H4-245D` (string, required) - unique number of declaration.
++ start_date: `2017-03-02` (string, required)
++ status (enum, required)
+    - active
+    - pending_verification
+    - terminated
++ person (Person_Minimal)
++ employee (`Employee_Minimal_cabinet`)
++ `legal_entity` (`MSP_Short`)
++ division (`Division_Short_List`)
+
 ### `Declaration_Details_Public`
 + start_date: `2017-03-02` (string, required)
 + end_date: `2017-03-02` (string, required)
@@ -5055,6 +5068,13 @@ This method is used to abtain list of events with filters.
     + include `Party_Short`
     + email: email@example.com (string, optional)
     + phones (array[Phone], optional)
+
+### `Employee_Minimal_cabinet`
++ id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ position: P6 (string, required) - `Dictionary POSITION`
++ party (object)
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+    + include `Party_Short`
 
 ### `Employee_For_Declaration_Minimal`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
@@ -6297,6 +6317,7 @@ This method is used to abtain list of events with filters.
 ### `Medication_Dispense_Request`
 + `medication_request_id`: `f08ba3a3-157a-4adc-b65d-737f24f3a1f4` (string, required) - Key for the Medication request 
 + `dispensed_at`: `2017-08-17` (string, required) - date of dispense 
++ dispensed_by: `Іванов Іван Іванович` (string, optional) - in case pharmacist uses owner's token this field should be filled with pharmacist's name
 + `division_id`: `2fc70f30-08dc-493c-8d08-925905d7b1e8` (string, required) - Active legal entity (Pharmacy) division which provides dispense Identifier
 + `medical_program_id`: `6ee844fd-9f4d-4457-9eda-22aa506be4c4` (string, required) - Active medical program within which medications are going to be provided
 + `details` (array, fixed, required)
@@ -6307,6 +6328,7 @@ This method is used to abtain list of events with filters.
 + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Dispense Response Identifier
 + `medication_request` (`Medication_request_Public_Response`, required) - Medication request 
 + `dispensed_at`: `2017-08-17` (string, required) - date of dispense 
++ dispensed_by: `Іванов Іван Іванович` (string, optional) - in case pharmacist uses owner's token this field should be filled with pharmacist's name
 + `party` (object)
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
     + include `Party_Short`
