@@ -2232,7 +2232,7 @@ Entity data:
 
 + Response 200 (application/json)
     + Attributes (Response_Collection_V2)
-        + data (`Declaration_Request_Short`)
+        + data (array[`Declaration_Request_Short`])
 
 ### Create Declaration Request online [POST /api/cabinet/declaration_requests]
 
@@ -3502,21 +3502,21 @@ Signed content MUST consists of JSON object with Legal Entity data:
 
 ```
 {
-  "name": "Клініка Адоніс21",
-  "short_name": "Адоніс21",
-  "public_name": "Адоніс21",
+  "name": "Клініка Ноунейм",
+  "short_name": "Ноунейм",
+  "public_name": "Ноунейм",
   "type": "MSP",
   "owner_property_type": "STATE",
   "legal_form": "140",
-  "edrpou": "38782323",
+  "edrpou": "32323454",
   "kveds": [
     "86.10"
   ],
   "addresses": [
     {
-      "type": "REGISTRATION",
+      "type": "RESIDENCE",
       "country": "UA",
-      "area": "Волинська область",
+      "area": "Житомирська",
       "region": "Бердичівський",
       "settlement": "Київ",
       "settlement_type": "CITY",
@@ -3534,38 +3534,66 @@ Signed content MUST consists of JSON object with Legal Entity data:
       "number": "+380503410870"
     }
   ],
-  "email": "sp.virny+100@gmail.com",
+  "email": "email@example.com",
   "website": "www.msp.com.ua",
   "receiver_funds_code": "AB12345",
   "beneficiary": "Борисов Борис Борисович",
+  "owner": {
+    "first_name": "Петро",
+    "last_name": "Іванов",
+    "second_name": "Миколайович",
+    "tax_id": "3015492563",
+    "birth_date": "1991-08-19",
+    "gender": "MALE",
+    "email": "email@example.com",
+    "documents": [
+      {
+        "type": "PASSPORT",
+        "number": "120518",
+        "issued_by": "Рокитнянським РВ ГУ МВС Київської області",
+        "issued_at": "2017-02-28"
+      }
+    ],
+    "phones": [
+      {
+        "type": "MOBILE",
+        "number": "+380503410870"
+      }
+    ],
+    "position": "P6"
+  },
   "medical_service_provider": {
     "licenses": [
       {
         "license_number": "fd123443",
         "issued_by": "Кваліфікацйна комісія",
-        "issued_date": "1991-08-19",
-        "expiry_date": "1991-08-19",
-        "active_from_date": "1991-08-19",
+        "issued_date": "2017-02-28",
+        "expiry_date": "2017-02-28",
+        "active_from_date": "2017-02-28",
         "what_licensed": "реалізація наркотичних засобів",
-        "order_no": "K-123"
+        "order_no": "ВА43234"
       }
     ],
     "accreditation": {
-      "category": "FIRST",
-      "issued_date": "1991-08-19",
-      "expiry_date": "1991-08-19",
+      "category": "друга",
+      "issued_date": "2017-02-28",
+      "expiry_date": "2017-02-28",
       "order_no": "fd123443",
-      "order_date": "1991-08-19"
+      "order_date": "2017-02-28"
     }
   },
   "archive": [
-      {
-        "date": "2017-02-28",
-        "place": "вул. Грушевського 15"
-      }
-    ],
+    {
+      "date": "2017-02-28",
+      "place": "вул. Грушевського 15"
+    }
+  ],
   "security": {
-    "redirect_uri": "http://example2.com"
+    "redirect_uri": "http://example.com"
+  },
+  "public_offer": {
+    "consent_text": "Consent text",
+    "consent": true
   }
 }
 ```
@@ -5190,10 +5218,14 @@ This method is used to abtain list of events with filters.
 + website: `www.msp.com.ua` (string, optional) - legal entity website
 + receiver_funds_code: `AB12345` (string, optional) - treasury registration code [Код одержувача/розпорядника бюджетних коштів для Казначейства. Вказується за наявності.]
 + beneficiary: `Борисов Борис Борисович` (string, optional) - legal owner of legal entity [нформація про власника ЗОЗ, для ФОП не заповнюється]
++ owner(`Owner`,required)
 + `medical_service_provider` (MSP)
 + `archive`(array[Archive], optional) 
 + security (object, fixed-type)
     + `redirect_uri`: `http://example.com` (string, required, fixed) - Redirect uri is used in oauth2.0 flow
++ public_offer(object, fixed-type)
+    + `consent_text`: `Consent text` (string, required)
+    + `consent`: `true` (boolean, required)
 
 ### `Legal_Entity_Request_Public_Short` 
 + name: Клініка Ноунейм (string, required) - full official name of legal entity
@@ -5308,7 +5340,7 @@ This method is used to abtain list of events with filters.
 + email: `email@example.com` (string, required)
 + documents (array[Document], optional)
 + phones (array[Phone], optional)
-+ position (string, required) - `Dictionary POSITION`
++ position (string, required): `P6`- `Dictionary POSITION`
 
 ## `Medical_Service_Providers`
 
