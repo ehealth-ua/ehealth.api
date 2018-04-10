@@ -24,9 +24,9 @@ defmodule EHealth.EmployeeRequests do
   alias EHealth.Employees
   alias EHealth.BlackListUsers
   alias EHealth.EventManager
-  alias EHealth.GlobalParameters
+  alias EHealth.Utils.Log
 
-  require Logger
+  @postmark_client Application.get_env(:ehealth, :api_resolvers)[:postmark_client]
 
   @status_new Request.status(:new)
   @status_approved Request.status(:approved)
@@ -36,6 +36,8 @@ defmodule EHealth.EmployeeRequests do
   @employee_status_dismissed Employee.status(:dismissed)
   @owner Employee.type(:owner)
   @pharmacy_owner Employee.type(:pharmacy_owner)
+
+  @inactive_email_exception_message "You tried to send to a recipient that has been marked as inactive"
 
   def list(params) do
     query = from(er in Request, order_by: [desc: :inserted_at])
@@ -133,8 +135,9 @@ defmodule EHealth.EmployeeRequests do
          legal_entity_id <- Map.fetch!(params, "legal_entity_id"),
          %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(legal_entity_id),
          :ok <- validate_type(legal_entity, Map.fetch!(params, "employee_type")),
-         :ok <- check_is_user_blacklisted(params) do
-      insert_employee_request(params)
+         :ok <- check_is_user_blacklisted(params),
+         {:ok, _} = employee_request <- insert_employee_request(params) do
+      employee_request
     else
       nil ->
         {:error,
@@ -146,8 +149,8 @@ defmodule EHealth.EmployeeRequests do
             }, "$.legal_entity_id"}
          ]}
 
-      err ->
-        err
+      error ->
+        error
     end
   end
 
@@ -188,27 +191,6 @@ defmodule EHealth.EmployeeRequests do
         EmployeeCreatedNotificationTemplate,
         get_email_config(:employee_created_notification)
       )
-    end
-  end
-
-  def send_email(%Request{data: data} = employee_request, template, email_config) do
-    with {:ok, body} <- template.render(employee_request) do
-      try do
-        data
-        |> get_in(["party", "email"])
-        |> Sender.send_email(body, email_config[:from], email_config[:subject])
-      rescue
-        e ->
-          Logger.error(fn ->
-            Poison.encode!(%{
-              "log_type" => "error",
-              "message" => e.message,
-              "request_id" => Logger.metadata()[:request_id]
-            })
-          end)
-      end
-
-      {:ok, employee_request}
     end
   end
 
@@ -431,7 +413,11 @@ defmodule EHealth.EmployeeRequests do
                %Request{}
                |> changeset(data)
                |> Repo.insert() do
-          send_email(request, EmployeeUpdateInvitationTemplate, get_email_config(:employee_request_update_invitation))
+          send_email_with_activation(
+            request,
+            EmployeeUpdateInvitationTemplate,
+            get_email_config(:employee_request_update_invitation)
+          )
         end
       end
     end
@@ -448,9 +434,61 @@ defmodule EHealth.EmployeeRequests do
            %Request{}
            |> changeset(data)
            |> Repo.insert() do
-      send_email(request, EmployeeRequestInvitationTemplate, get_email_config(:employee_request_invitation))
+      send_email_with_activation(
+        request,
+        EmployeeRequestInvitationTemplate,
+        get_email_config(:employee_request_invitation)
+      )
     end
   end
+
+  defp send_email(%Request{data: data} = employee_request, template, email_config) do
+    with {:ok, body} <- template.render(employee_request) do
+      try do
+        data
+        |> get_in(["party", "email"])
+        |> Sender.send_email(body, email_config[:from], email_config[:subject])
+      rescue
+        error -> Log.error(%{"message" => error.message})
+      end
+
+      {:ok, employee_request}
+    end
+  end
+
+  defp send_email_with_activation(%Request{data: data} = employee_request, template, email_config) do
+    email = get_in(data, ["party", "email"])
+
+    with {:ok, body} <- template.render(employee_request),
+         {:ok, _} <- send_email_with_retry_on_inactive(email, body, email_config) do
+      {:ok, employee_request}
+    end
+  end
+
+  defp send_email_with_retry_on_inactive(email, body, email_config, attempts \\ 2) do
+    attempts = attempts - 1
+
+    try do
+      mail_entity = Sender.send_email(email, body, email_config[:from], email_config[:subject])
+      {:ok, mail_entity}
+    rescue
+      error ->
+        Log.error(%{"message" => error.message})
+
+        with true <- should_activate_email?(error, attempts),
+             {:ok, _} <- @postmark_client.activate_email(email) do
+          send_email_with_retry_on_inactive(email, body, email_config, attempts)
+        else
+          _ -> {:error, "can not sent message"}
+        end
+    end
+  end
+
+  defp should_activate_email?(%Bamboo.PostmarkAdapter.ApiError{} = error, attempts) when attempts > 0 do
+    String.contains?(error.message, @inactive_email_exception_message)
+  end
+
+  defp should_activate_email?(_, _), do: false
 
   def validate_status_type(%Employee{is_active: false}) do
     {:error, :not_found}

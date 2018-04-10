@@ -13,7 +13,8 @@ config :ehealth,
     mithril: EHealth.API.Mithril,
     digital_signature: EHealth.API.Signature,
     ops: EHealth.API.OPS,
-    media_storage: EHealth.API.MediaStorage
+    media_storage: EHealth.API.MediaStorage,
+    postmark_client: EHealth.API.PostmarkClient
   ]
 
 # Configures the endpoint

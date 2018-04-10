@@ -40,7 +40,8 @@ config :ehealth,
     mithril: MithrilMock,
     digital_signature: SignatureMock,
     ops: OPSMock,
-    media_storage: MediaStorageMock
+    media_storage: MediaStorageMock,
+    postmark_client: PostmarkClientMock
   ]
 
 config :ehealth, :legal_entity_employee_types,
