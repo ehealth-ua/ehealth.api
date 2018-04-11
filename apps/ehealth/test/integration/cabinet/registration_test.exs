@@ -140,7 +140,7 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
 
       conn
       |> Plug.Conn.put_req_header("authorization", "Bearer " <> auth_token)
-      |> get(cabinet_auth_path(conn, :search_user, params))
+      |> post(cabinet_auth_path(conn, :search_user, params))
       |> json_response(200)
 
       # 4. Send OTP for phone verification

@@ -819,7 +819,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
     test "jwt not set", %{conn: conn, params: params} do
       conn
-      |> get(cabinet_auth_path(conn, :search_user), params)
+      |> post(cabinet_auth_path(conn, :search_user), params)
       |> json_response(401)
     end
 
@@ -839,7 +839,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
       conn
       |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
-      |> get(cabinet_auth_path(conn, :search_user, params))
+      |> post(cabinet_auth_path(conn, :search_user, params))
       |> json_response(200)
     end
 
@@ -858,7 +858,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
       assert "User with this tax_id already exists" =
                conn
                |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
-               |> get(cabinet_auth_path(conn, :search_user), params)
+               |> post(cabinet_auth_path(conn, :search_user), params)
                |> json_response(409)
                |> get_in(~w(error message))
     end
@@ -872,7 +872,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
       assert "User with this email already exists" =
                conn
                |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
-               |> get(cabinet_auth_path(conn, :search_user), params)
+               |> post(cabinet_auth_path(conn, :search_user), params)
                |> json_response(409)
                |> get_in(~w(error message))
     end
@@ -880,7 +880,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
     test "invalid params", %{conn: conn, jwt: jwt} do
       conn
       |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
-      |> get(cabinet_auth_path(conn, :search_user), %{tax_id: "1234567890"})
+      |> post(cabinet_auth_path(conn, :search_user), %{tax_id: "1234567890"})
       |> json_response(422)
     end
   end

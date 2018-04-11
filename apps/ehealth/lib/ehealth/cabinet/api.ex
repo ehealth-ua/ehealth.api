@@ -92,7 +92,7 @@ defmodule EHealth.Cabinet.API do
     }
   end
 
-  defp fetch_mithril_user([user | ...]), do: user
+  defp fetch_mithril_user([user | _]), do: user
   defp fetch_mithril_user(_), do: nil
 
   defp check_user_blocked(%{"is_blocked" => false}), do: :ok
