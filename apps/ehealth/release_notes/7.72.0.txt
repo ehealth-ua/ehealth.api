@@ -1,0 +1,9 @@
+Change log for versions 7.72.0 - 7.72.3
+
+**Patches and bug fixes**:
+
+- search user as post (#2141)
+- search user as post
+- fix travis build
+
+
