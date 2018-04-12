@@ -1,0 +1,7 @@
+Change log for versions 7.80.0 - 7.80.1
+
+**Patches and bug fixes**:
+
+- remove unused aliases (#2155)
+
+
