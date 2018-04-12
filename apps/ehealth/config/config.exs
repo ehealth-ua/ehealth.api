@@ -11,7 +11,11 @@ config :ehealth,
     man: EHealth.API.Man,
     mpi: EHealth.API.MPI,
     mithril: EHealth.API.Mithril,
-    digital_signature: EHealth.API.Signature
+    digital_signature: EHealth.API.Signature,
+    ops: EHealth.API.OPS,
+    report: EHealth.API.Report,
+    media_storage: EHealth.API.MediaStorage,
+    postmark_client: EHealth.API.PostmarkClient
   ]
 
 # Configures the endpoint
@@ -117,6 +121,15 @@ config :ehealth, EHealth.API.OPS,
     connect_timeout: {:system, :integer, "OPS_REQUEST_TIMEOUT", 30_000},
     recv_timeout: {:system, :integer, "OPS_REQUEST_TIMEOUT", 30_000},
     timeout: {:system, :integer, "OPS_REQUEST_TIMEOUT", 30_000}
+  ]
+
+# Configures Report API
+config :ehealth, EHealth.API.Report,
+  endpoint: {:system, "REPORT_ENDPOINT"},
+  hackney_options: [
+    connect_timeout: {:system, :integer, "REPORT_REQUEST_TIMEOUT", 30_000},
+    recv_timeout: {:system, :integer, "REPORT_REQUEST_TIMEOUT", 30_000},
+    timeout: {:system, :integer, "REPORT_REQUEST_TIMEOUT", 30_000}
   ]
 
 # configure emails
