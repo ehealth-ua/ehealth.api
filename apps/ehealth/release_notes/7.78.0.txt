@@ -1,0 +1,7 @@
+Change log for versions 7.78.0 - 7.78.1
+
+**Patches and bug fixes**:
+
+- typo
+
+
