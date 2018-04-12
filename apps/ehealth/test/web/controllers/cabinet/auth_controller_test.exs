@@ -140,7 +140,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
              |> json_response(200)
              |> get_in(~w(urgent token))
 
-      # response DO NOT contain urgent data with jwt token for disabled config
+      # response DOES NOT contain urgent data with jwt token for disabled config
       System.put_env("SENSITIVE_DATA_IN_RESPONSE_ENABLED", "false")
 
       refute conn
