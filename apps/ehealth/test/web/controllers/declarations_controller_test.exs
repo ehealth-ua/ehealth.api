@@ -27,6 +27,7 @@ defmodule EHealth.Web.DeclarationsControllerTest do
       Enum.each(resp, fn elem ->
         assert Map.has_key?(elem, "reason")
         assert Map.has_key?(elem, "reason_description")
+        assert Map.has_key?(elem, "declaration_number")
       end)
     end
 
@@ -152,6 +153,7 @@ defmodule EHealth.Web.DeclarationsControllerTest do
       data = json_response(conn, 200)["data"]
       assert Map.has_key?(data, "reason")
       assert Map.has_key?(data, "reason_description")
+      assert Map.has_key?(data, "declaration_number")
       assert_declaration_expanded_fields(data)
     end
 

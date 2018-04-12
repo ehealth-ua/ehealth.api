@@ -7,6 +7,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
   alias EHealth.Parties.Party
   alias Ecto.UUID
   alias EHealth.PRMRepo
+  import Mox
 
   describe "list employees" do
     test "gets only employees that have legal_entity_id == client_id", %{conn: conn} do
@@ -14,6 +15,11 @@ defmodule EHealth.Web.EmployeesControllerTest do
       %{id: legal_entity_id} = legal_entity
       party1 = insert(:prm, :party, tax_id: "2222222225")
       party2 = insert(:prm, :party, tax_id: "2222222224")
+
+      expect(ReportMock, :get_declaration_count, fn _, _ ->
+        {:ok, %{"data" => [%{"id" => party1.id, "declaration_count" => 10}]}}
+      end)
+
       insert(:prm, :employee, legal_entity: legal_entity, party: party1)
 
       insert(
@@ -53,6 +59,11 @@ defmodule EHealth.Web.EmployeesControllerTest do
       legal_entity = insert(:prm, :legal_entity, id: "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
       %{id: legal_entity_id} = legal_entity
       party = insert(:prm, :party)
+
+      expect(ReportMock, :get_declaration_count, fn _, _ ->
+        {:ok, %{"data" => [%{"id" => "#{party.id}", "declaration_count" => 10}]}}
+      end)
+
       insert(:prm, :employee, legal_entity: legal_entity, party: party)
 
       resp =
@@ -76,6 +87,11 @@ defmodule EHealth.Web.EmployeesControllerTest do
     test "get employees by NHS ADMIN", %{conn: conn} do
       party1 = insert(:prm, :party, tax_id: "2222222225")
       party2 = insert(:prm, :party, tax_id: "2222222224")
+
+      expect(ReportMock, :get_declaration_count, fn _, _ ->
+        {:ok, %{"data" => [%{"id" => party1.id, "declaration_count" => 10}]}}
+      end)
+
       legal_entity = insert(:prm, :legal_entity, id: MockServer.get_client_admin())
       insert(:prm, :employee, legal_entity: legal_entity, party: party1)
       insert(:prm, :employee, legal_entity: legal_entity, party: party2)
@@ -98,6 +114,11 @@ defmodule EHealth.Web.EmployeesControllerTest do
     test "search employees by tax_id" do
       tax_id = "123"
       party = insert(:prm, :party, tax_id: tax_id)
+
+      expect(ReportMock, :get_declaration_count, fn _, _ ->
+        {:ok, %{"data" => [%{"id" => "#{party.id}", "declaration_count" => 10}]}}
+      end)
+
       legal_entity = insert(:prm, :legal_entity)
       insert(:prm, :employee, party: insert(:prm, :party))
       insert(:prm, :employee, party: party, legal_entity: legal_entity)
@@ -111,6 +132,11 @@ defmodule EHealth.Web.EmployeesControllerTest do
 
     test "search employees by no_tax_id", %{conn: conn} do
       party = insert(:prm, :party, no_tax_id: true)
+
+      expect(ReportMock, :get_declaration_count, fn _, _ ->
+        {:ok, %{"data" => [%{"id" => "#{party.id}", "declaration_count" => 10}]}}
+      end)
+
       legal_entity = insert(:prm, :legal_entity)
       conn = put_client_id_header(conn, legal_entity.id)
       insert(:prm, :employee, party: insert(:prm, :party))
@@ -123,17 +149,26 @@ defmodule EHealth.Web.EmployeesControllerTest do
     end
 
     test "search employees by invalid tax_id" do
+      expect(ReportMock, :get_declaration_count, fn _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
       conn = put_client_id_header(build_conn(), "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
       conn = get(conn, employee_path(conn, :index, tax_id: ""))
       resp = json_response(conn, 200)["data"]
-      assert 0 == length(resp)
+      assert Enum.empty?(resp)
     end
 
     test "search employees by edrpou" do
       edrpou = "37367387"
       legal_entity = insert(:prm, :legal_entity, edrpou: edrpou)
-      insert(:prm, :employee, legal_entity: legal_entity)
+      employee = insert(:prm, :employee, legal_entity: legal_entity)
       insert(:prm, :employee)
+
+      expect(ReportMock, :get_declaration_count, fn _, _ ->
+        {:ok, %{"data" => [%{"id" => "#{employee.party_id}", "declaration_count" => 10}]}}
+      end)
+
       conn = put_client_id_header(build_conn(), legal_entity.id)
       conn = get(conn, employee_path(conn, :index, edrpou: edrpou))
       resp = json_response(conn, 200)["data"]
@@ -142,9 +177,14 @@ defmodule EHealth.Web.EmployeesControllerTest do
 
     test "search employees by invalid edrpou" do
       conn = put_client_id_header(build_conn(), "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+
+      expect(ReportMock, :get_declaration_count, fn _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
       conn = get(conn, employee_path(conn, :index, edrpou: ""))
       resp = json_response(conn, 200)["data"]
-      assert 0 == length(resp)
+      assert Enum.empty?(resp)
     end
   end
 
@@ -187,6 +227,10 @@ defmodule EHealth.Web.EmployeesControllerTest do
 
       employee = insert(:prm, :employee, legal_entity: legal_entity, party: party1, speciality: speciality_officio)
 
+      expect(ReportMock, :get_declaration_count, 2, fn _, _ ->
+        {:ok, %{"data" => [%{"id" => "#{employee.party_id}", "declaration_count" => 10}]}}
+      end)
+
       conn = put_client_id_header(conn, legal_entity.id)
 
       data =
@@ -197,6 +241,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
 
       assert_show_response_schema(data, "employee")
       assert specialities == data["doctor"]["specialities"]
+      assert 10 == data["party"]["declaration_count"]
 
       party2 = insert(:prm, :party, tax_id: "2222222224")
 
@@ -217,6 +262,10 @@ defmodule EHealth.Web.EmployeesControllerTest do
     end
 
     test "without division", %{conn: conn} do
+      expect(ReportMock, :get_declaration_count, fn _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
       legal_entity = insert(:prm, :legal_entity, id: "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
       employee = insert(:prm, :employee, legal_entity: legal_entity, division: nil)
       conn = put_client_id_header(conn, legal_entity.id)
@@ -246,6 +295,10 @@ defmodule EHealth.Web.EmployeesControllerTest do
     end
 
     test "with MIS token when legal_entity_id != client_id", %{conn: conn} do
+      expect(ReportMock, :get_declaration_count, fn _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
       employee = insert(:prm, :employee)
       conn = put_client_id_header(conn, MockServer.get_client_mis())
       conn = get(conn, employee_path(conn, :show, employee.id))
@@ -253,6 +306,10 @@ defmodule EHealth.Web.EmployeesControllerTest do
     end
 
     test "with ADMIN token when legal_entity_id != client_id", %{conn: conn} do
+      expect(ReportMock, :get_declaration_count, fn _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
       employee = insert(:prm, :employee)
       conn = put_client_id_header(conn, MockServer.get_client_admin())
       conn = get(conn, employee_path(conn, :show, employee.id))
@@ -260,6 +317,10 @@ defmodule EHealth.Web.EmployeesControllerTest do
     end
 
     test "when legal_entity_id == client_id", %{conn: conn} do
+      expect(ReportMock, :get_declaration_count, fn _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
       legal_entity = insert(:prm, :legal_entity, id: "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
       employee = insert(:prm, :employee, legal_entity: legal_entity)
       conn = put_client_id_header(conn, legal_entity.id)
@@ -330,19 +391,29 @@ defmodule EHealth.Web.EmployeesControllerTest do
     end
 
     test "successful doctor", %{conn: conn, doctor: doctor, legal_entity: legal_entity} do
+      expect(ReportMock, :get_declaration_count, fn _, _ ->
+        {:ok, %{"data" => [%{"id" => doctor.party_id, "declaration_count" => 10}]}}
+      end)
+
       conn = put_client_id_header(conn, legal_entity.id)
       conn = patch(conn, employee_path(conn, :deactivate, doctor.id))
 
       resp = json_response(conn, 200)
       refute resp["is_active"]
+      assert 10 == resp["data"]["party"]["declaration_count"]
     end
 
     test "successful pharmacist", %{conn: conn, pharmacist: pharmacist, legal_entity: legal_entity} do
+      expect(ReportMock, :get_declaration_count, fn _, _ ->
+        {:ok, %{"data" => [%{"id" => pharmacist.party_id, "declaration_count" => 10}]}}
+      end)
+
       conn = put_client_id_header(conn, legal_entity.id)
       conn = patch(conn, employee_path(conn, :deactivate, pharmacist.id))
 
       resp = json_response(conn, 200)
       refute resp["is_active"]
+      assert 10 == resp["data"]["party"]["declaration_count"]
     end
 
     test "not found", %{conn: conn} do

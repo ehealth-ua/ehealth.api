@@ -63,23 +63,23 @@ defmodule EHealth.Web.EmployeeView do
 
   def render("employee_private.json", _), do: %{}
 
-  def render("employee.json", %{employee: %{employee_type: @doctor, additional_info: info} = employee}) do
+  def render("employee.json", %{employee: %{employee_type: @doctor, additional_info: info} = employee} = assigns) do
     employee
-    |> render_employee()
+    |> render_employee(Map.get(assigns, :declaration_count_data))
     |> render_doctor(Map.put(info, "specialities", get_employee_specialities(employee)))
   end
 
-  def render("employee.json", %{employee: %{employee_type: @pharmacist, additional_info: info} = employee}) do
+  def render("employee.json", %{employee: %{employee_type: @pharmacist, additional_info: info} = employee} = assigns) do
     employee
-    |> render_employee()
+    |> render_employee(Map.get(assigns, :declaration_count_data))
     |> render_pharmacist(Map.put(info, "specialities", get_employee_specialities(employee)))
   end
 
-  def render("employee.json", %{employee: employee}) do
-    render_employee(employee)
+  def render("employee.json", %{employee: employee} = assigns) do
+    render_employee(employee, Map.get(assigns, :declaration_count_data))
   end
 
-  def render_employee(employee) do
+  def render_employee(employee, declaration_count_data) do
     employee
     |> Map.take(~w(
       id
@@ -90,12 +90,12 @@ defmodule EHealth.Web.EmployeeView do
       end_date
       declaration_limit
     )a)
-    |> render_association(employee.party)
+    |> render_association(employee.party, declaration_count_data)
     |> render_association(employee.division)
     |> render_association(employee.legal_entity)
   end
 
-  defp render_association(map, %Party{} = party) do
+  defp render_association(map, %Party{} = party, declaration_count_data) when is_list(declaration_count_data) do
     data = Map.take(party, ~w(
       id
       first_name
@@ -109,9 +109,15 @@ defmodule EHealth.Web.EmployeeView do
       phones
       about_myself
       working_experience
+      declaration_limit
     )a)
+
+    declaration_count = Enum.find(declaration_count_data, &(Map.get(&1, "id") == party.id))
+    data = Map.put(data, :declaration_count, declaration_count["declaration_count"])
     Map.put(map, :party, data)
   end
+
+  defp render_association(map, %Party{} = party, _), do: render_association(map, party, [])
 
   defp render_association(map, %Division{} = division) do
     data = Map.take(division, ~w(

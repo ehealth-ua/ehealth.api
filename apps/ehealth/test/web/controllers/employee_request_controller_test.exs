@@ -1012,6 +1012,10 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       assert employee_id = resp["employee_id"]
       refute Map.has_key?(resp["doctor"], "science_degree")
 
+      expect(ReportMock, :get_declaration_count, fn _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
       conn3 = get(conn, employee_path(conn, :show, employee_id))
       resp = json_response(conn3, 200)["data"]
       refute Map.has_key?(resp["doctor"], "science_degree")
