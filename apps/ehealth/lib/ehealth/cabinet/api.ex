@@ -132,9 +132,10 @@ defmodule EHealth.Cabinet.API do
          false <- email_sent?(email),
          ttl <- Confex.fetch_env!(:ehealth, __MODULE__)[:jwt_ttl_email],
          {:ok, jwt, _claims} <- generate_jwt(Guardian.get_aud(:email_verification), email, {ttl, :hours}),
-         {:ok, template} <- EmailVerification.render(jwt) do
-      email_config = Confex.fetch_env!(:ehealth, EmailVerification)
-      send_email(email, template, email_config)
+         {:ok, template} <- EmailVerification.render(jwt),
+         email_config <- Confex.fetch_env!(:ehealth, EmailVerification),
+         :ok <- send_email(email, template, email_config) do
+      {:ok, jwt}
     end
   end
 
@@ -185,7 +186,7 @@ defmodule EHealth.Cabinet.API do
     Guardian.encode_and_sign(type, %{email: email}, token_type: "access", ttl: ttl)
   end
 
-  def send_email(email, body, email_config) do
+  defp send_email(email, body, email_config) do
     Sender.send_email(email, body, email_config[:from], email_config[:subject])
     :ok
   rescue

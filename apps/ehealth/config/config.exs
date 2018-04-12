@@ -7,6 +7,7 @@ config :ehealth,
   ecto_repos: [EHealth.Repo, EHealth.PRMRepo, EHealth.FraudRepo, EHealth.EventManagerRepo],
   run_declaration_request_terminator: true,
   system_user: {:system, "EHEALTH_SYSTEM_USER", "4261eacf-8008-4e62-899f-de1e2f7065f0"},
+  sensitive_data_in_response: {:system, "SENSITIVE_DATA_IN_RESPONSE_ENABLED", false},
   api_resolvers: [
     man: EHealth.API.Man,
     mpi: EHealth.API.MPI,

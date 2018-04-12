@@ -34,6 +34,7 @@ config :ehealth,
     port: {:system, :integer, "TEST_MOCK_PORT", 4040},
     host: {:system, "TEST_MOCK_HOST", "localhost"}
   ],
+  sensitive_data_in_response: {:system, :boolean, "SENSITIVE_DATA_IN_RESPONSE_ENABLED", true},
   api_resolvers: [
     man: ManMock,
     mpi: MPIMock,

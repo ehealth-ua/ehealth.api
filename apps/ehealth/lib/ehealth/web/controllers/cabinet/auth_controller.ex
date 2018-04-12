@@ -7,8 +7,17 @@ defmodule EHealth.Web.Cabinet.AuthController do
   action_fallback(EHealth.Web.FallbackController)
 
   def email_verification(conn, params) do
-    with :ok <- CabinetAPI.send_email_verification(params, conn.req_headers) do
-      render(conn, "raw.json", %{json: %{}})
+    with {:ok, jwt} <- CabinetAPI.send_email_verification(params, conn.req_headers) do
+      conn
+      |> assign_token(jwt)
+      |> render("raw.json", %{json: %{}})
+    end
+  end
+
+  defp assign_token(conn, jwt) do
+    case Confex.fetch_env!(:ehealth, :sensitive_data_in_response) do
+      true -> assign_urgent(conn, :token, jwt)
+      false -> conn
     end
   end
 

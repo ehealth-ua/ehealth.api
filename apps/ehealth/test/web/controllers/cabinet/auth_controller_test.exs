@@ -121,11 +121,11 @@ defmodule Mithril.Web.RegistrationControllerTest do
     test "success", %{conn: conn} do
       email = "success-new-user@example.com"
 
-      expect(MithrilMock, :search_user, fn %{email: ^email}, _headers ->
+      expect(MithrilMock, :search_user, 2, fn %{email: ^email}, _headers ->
         {:ok, %{"data" => []}}
       end)
 
-      expect(ManMock, :render_template, fn _id, %{verification_code: jwt} ->
+      expect(ManMock, :render_template, 2, fn _id, %{verification_code: jwt} ->
         {:ok, claims} = decode_and_verify(jwt)
         assert Map.has_key?(claims, "email")
         assert "success-new-user@example.com" == claims["email"]
@@ -134,9 +134,23 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, "<html></html>"}
       end)
 
-      conn
-      |> post(cabinet_auth_path(conn, :email_verification), %{email: email})
-      |> json_response(200)
+      # response contain urgent data with jwt token
+      assert conn
+             |> post(cabinet_auth_path(conn, :email_verification), %{email: email})
+             |> json_response(200)
+             |> get_in(~w(urgent token))
+
+      # response DO NOT contain urgent data with jwt token for disabled config
+      System.put_env("SENSITIVE_DATA_IN_RESPONSE_ENABLED", "false")
+
+      refute conn
+             |> post(cabinet_auth_path(conn, :email_verification), %{email: email})
+             |> json_response(200)
+             |> get_in(~w(urgent token))
+
+      on_exit(fn ->
+        System.put_env("SENSITIVE_DATA_IN_RESPONSE_ENABLED", "true")
+      end)
     end
   end
 
