@@ -503,6 +503,20 @@ defmodule Mithril.Web.RegistrationControllerTest do
                |> get_in(~w(error message))
     end
 
+    test "invalid adresses types", %{conn: conn, params: params, jwt: jwt} do
+      use SignatureExpect
+
+      signed_content = "test/data/cabinet/patient-invalid-addresses-types.json" |> File.read!() |> Base.encode64()
+      params = Map.put(params, :signed_content, signed_content)
+
+      assert "Addresses with types REGISTRATION, RESIDENCE should be present" ==
+               conn
+               |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
+               |> post(cabinet_auth_path(conn, :registration), params)
+               |> json_response(422)
+               |> get_in(~w(error message))
+    end
+
     test "MPI persons duplicated", %{conn: conn, params: params, jwt: jwt} do
       use SignatureExpect
 

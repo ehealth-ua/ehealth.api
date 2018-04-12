@@ -191,7 +191,7 @@
             "items": {
                 "$ref": "#/definitions/address"
             },
-            "minItems": 1
+            "minItems": 2
         },
         "phones": {
             "type": "array",

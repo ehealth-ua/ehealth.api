@@ -477,6 +477,16 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
                     "area" => "KYIV",
                     "settlement_id" => UUID.generate(),
                     "building" => "15"
+                  },
+                  %{
+                    "type" => "REGISTRATION",
+                    "zip" => "02090",
+                    "settlement_type" => "CITY",
+                    "country" => "UA",
+                    "settlement" => "KYIV",
+                    "area" => "KYIV",
+                    "settlement_id" => UUID.generate(),
+                    "building" => "15"
                   }
                 ],
                 "authentication_methods" => [%{"type" => "OFFLINE"}],
