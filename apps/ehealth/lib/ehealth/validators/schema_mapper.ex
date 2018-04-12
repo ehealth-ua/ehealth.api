@@ -30,13 +30,13 @@ defmodule EHealth.Validators.SchemaMapper do
   end
 
   def put_dictionary_value(%Dictionary{name: "PHONE_TYPE", values: values}, schema, type)
-      when type in [:legal_entity, :employee_request, :declaration_request] do
-    put_into_schema(["definitions", "phone", "properties", "type", "enum"], schema, values)
+      when type in [:legal_entity, :employee_request, :declaration_request, :person] do
+    put_into_schema(~W(definitions phone properties type enum), schema, values)
   end
 
   def put_dictionary_value(%Dictionary{name: "DOCUMENT_TYPE", values: values}, schema, type)
-      when type in [:legal_entity, :employee_request, :declaration_request] do
-    put_into_schema(["definitions", "document", "properties", "type", "enum"], schema, values)
+      when type in [:legal_entity, :employee_request, :declaration_request, :person] do
+    put_into_schema(~W(definitions document properties type enum), schema, values)
   end
 
   def put_dictionary_value(
@@ -44,16 +44,26 @@ defmodule EHealth.Validators.SchemaMapper do
         schema,
         :declaration_request
       ) do
-    put_into_schema(["definitions", "document_relationship", "properties", "type", "enum"], schema, values)
+    put_into_schema(~W(definitions document_relationship properties type enum), schema, values)
   end
 
   def put_dictionary_value(%Dictionary{name: "ADDRESS_TYPE", values: values}, schema, type)
-      when type in [:legal_entity, :division, :declaration_request] do
-    put_into_schema(["definitions", "address", "properties", "type", "enum"], schema, values)
+      when type in [:legal_entity, :division, :declaration_request, :person] do
+    put_into_schema(~W(definitions address properties type enum), schema, values)
+  end
+
+  def put_dictionary_value(%Dictionary{name: "SETTLEMENT_TYPE", values: values}, schema, type)
+      when type in [:legal_entity, :division, :declaration_request, :person] do
+    put_into_schema(~W(definitions address properties settlement_type enum), schema, values)
+  end
+
+  def put_dictionary_value(%Dictionary{name: "STREET_TYPE", values: values}, schema, type)
+      when type in [:legal_entity, :division, :declaration_request, :person] do
+    put_into_schema(~W(properties address properties street_type enum), schema, values)
   end
 
   def put_dictionary_value(%Dictionary{name: "GENDER", values: values}, schema, type)
-      when type in [:legal_entity, :declaration_request, :employee_request] do
+      when type in [:legal_entity, :declaration_request, :employee_request, :person] do
     put_into_schema(~W(definitions gender enum), schema, values)
   end
 
