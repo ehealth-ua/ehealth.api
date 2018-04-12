@@ -44,6 +44,18 @@
           },
           "no_tax_id": {
             "type": "boolean"
+          },
+          "declaration_count": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "declaration_limit": {
+            "type": [
+              "null",
+              "integer"
+            ]
           }
         },
         "required": [

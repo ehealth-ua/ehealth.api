@@ -4,6 +4,7 @@ defmodule EHealth.MockServer do
 
   alias EHealth.Utils.MapDeepMerge
   alias Ecto.UUID
+  alias EHealth.Utils.NumberGenerator
 
   @client_type_admin "356b4182-f9ce-4eda-b6af-43d2de8601a1"
   @client_type_mis "296da7d2-3c5a-4f6a-b8b2-631063737271"
@@ -630,7 +631,8 @@ defmodule EHealth.MockServer do
       "declaration_request_id" => UUID.generate(),
       "authentication_methods" => [
         %{"type" => "OTP", "phone_number" => "+380670000000"}
-      ]
+      ],
+      "declaration_number" => NumberGenerator.generate(1, 2)
     }
   end
 

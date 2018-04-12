@@ -42,6 +42,7 @@ defmodule EHealth.Web.PersonControllerTest do
       assert Map.has_key?(data, "employee")
       assert Map.has_key?(data, "division")
       assert Map.has_key?(data, "legal_entity")
+      assert Map.has_key?(data, "declaration_number")
     end
 
     test "MSP can't see not own declaration", %{conn: conn} do

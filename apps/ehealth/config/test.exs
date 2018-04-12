@@ -38,7 +38,11 @@ config :ehealth,
     man: ManMock,
     mpi: MPIMock,
     mithril: MithrilMock,
-    digital_signature: SignatureMock
+    digital_signature: SignatureMock,
+    ops: OPSMock,
+    report: ReportMock,
+    media_storage: MediaStorageMock,
+    postmark_client: PostmarkClientMock
   ]
 
 config :ehealth, :legal_entity_employee_types,
