@@ -34,6 +34,8 @@ defmodule EHealth.MedicationRequestRequests do
   @status_expired EHealth.MedicationRequestRequest.status(:expired)
   @status_rejected EHealth.MedicationRequestRequest.status(:rejected)
 
+  @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]
+
   @doc """
   Returns the list of medication_request_requests.
 
@@ -209,7 +211,7 @@ defmodule EHealth.MedicationRequestRequests do
   defp get_prequalify_requests(%{} = medication_request) do
     medication_request
     |> Map.take(~w(person_id started_at ended_at))
-    |> OPS.get_prequalify_medication_requests()
+    |> @ops_api.get_prequalify_medication_requests([])
   end
 
   defp validate_ingredients(medication_ids, check_innm_id) do

@@ -10,13 +10,6 @@ defmodule EHealth.MockServer do
   @client_type_mis "296da7d2-3c5a-4f6a-b8b2-631063737271"
   @client_type_nil "7cc91a5d-c02f-41e9-b571-1ea4f2375111"
 
-  @active_medication_dispense "97a579bc-9e00-11e7-abc4-cec278b6b50a"
-  @inactive_medication_dispense "16adf138-a1c8-11e7-abc4-cec278b6b50a"
-
-  @active_medication_request "f08ba3a3-157a-4adc-b65d-737f24f3a1f4"
-  @inactive_medication_request "04d64554-9a1c-11e7-abc4-cec278b6b50a"
-  @invalid_medication_dispense_period "5ccf33e6-9a22-11e7-abc4-cec278b6b50a"
-
   @user_for_role_1 "7cc91a5d-c02f-41e9-b571-1ea4f2375111"
   @user_for_role_2 "7cc91a5d-c02f-41e9-b571-1ea4f2375222"
 
@@ -38,11 +31,6 @@ defmodule EHealth.MockServer do
   def get_client_admin, do: @client_type_admin
 
   def get_active_person, do: @active_person
-  def get_active_medication_dispense, do: @active_medication_dispense
-  def get_inactive_medication_dispense, do: @inactive_medication_dispense
-  def get_active_medication_request, do: @active_medication_request
-  def get_inactive_medication_request, do: @inactive_medication_request
-  def get_invalid_medication_request_period, do: @invalid_medication_dispense_period
   def get_user_for_role_1, do: @user_for_role_1
   def get_user_for_role_2, do: @user_for_role_2
 
@@ -391,161 +379,6 @@ defmodule EHealth.MockServer do
     case conn.params do
       %{"id" => _, "user_id" => _} -> render([], conn, 200)
       _ -> render([], conn, 404)
-    end
-  end
-
-  get "/medication_dispenses" do
-    id = conn.query_params["id"]
-    medication_request_id = conn.query_params["medication_request_id"]
-
-    cond do
-      medication_request_id == "4bbaf78e-d382-4a6d-93c6-e96b44a5107d" ->
-        medication_request = get_medication_request(medication_request_id)
-
-        medication_dispense =
-          get_medication_dispense(UUID.generate(), %{
-            "medication_request" => medication_request
-          })
-
-        render_with_paging([medication_dispense], conn)
-
-      id == @active_medication_dispense ->
-        render_with_paging([get_medication_dispense(id)], conn)
-
-      id == @inactive_medication_dispense ->
-        render_with_paging([get_medication_dispense(id, %{"status" => "EXPIRED"})], conn)
-
-      conn.query_params["medication_request_id"] ->
-        render_with_paging([], conn)
-
-      true ->
-        render_with_paging([get_medication_dispense()], conn)
-    end
-  end
-
-  get "/medication_requests" do
-    case conn.query_params["id"] do
-      id = @active_medication_request ->
-        render([get_medication_request(id)], conn, 200)
-
-      id = @inactive_medication_request ->
-        render([get_medication_request(id, %{"ended_at" => "2013-01-01"})], conn, 200)
-
-      id = @invalid_medication_dispense_period ->
-        render([get_medication_request(id, %{"dispense_valid_to" => "2013-01-01"})], conn, 200)
-
-      _ ->
-        render_404(conn)
-    end
-  end
-
-  patch "/medication_requests/0242d712-1c6d-4ada-bbc5-540c61551e37" do
-    render([], conn, 404)
-  end
-
-  patch "/medication_requests/:id" do
-    render(get_medication_request(conn.params["id"], conn.body_params["medication_request"]), conn, 200)
-  end
-
-  post "/medication_requests" do
-    render(
-      get_medication_request(conn.body_params["medication_request"]["id"], conn.body_params["medication_request"]),
-      conn,
-      201
-    )
-  end
-
-  post "/doctor_medication_requests" do
-    case conn.params["id"] do
-      "e9baba39-da78-4950-b396-cc36e80572b1" ->
-        render_with_paging([], conn)
-
-      _ ->
-        params = conn.params
-
-        employee_id =
-          params
-          |> Map.get("employee_id", "")
-          |> String.split(",")
-          |> List.first() || UUID.generate()
-
-        person_id = Map.get(params, "person_id", UUID.generate())
-
-        paging = %{
-          "page_number" => 1,
-          "total_pages" => 2,
-          "page_size" => 1,
-          "total_entries" => 2
-        }
-
-        render_with_paging(
-          [
-            get_medication_request(UUID.generate(), %{
-              "employee_id" => employee_id,
-              "person_id" => person_id
-            })
-          ],
-          conn,
-          paging
-        )
-    end
-  end
-
-  get "/qualify_medication_requests" do
-    case conn.query_params["id"] do
-      "f08ba3a3-157a-4adc-b65d-737f24f3a1f4" ->
-        render([%{"f08ba3a3-157a-4adc-b65d-737f24f3a1f4" => Ecto.UUID.generate()}], conn, 200)
-
-      _ ->
-        render([], conn, 200)
-    end
-  end
-
-  get "/prequalify_medication_requests" do
-    render([], conn, 200)
-  end
-
-  post "/medication_dispenses" do
-    params = conn.params["medication_dispense"]
-
-    details =
-      params
-      |> Map.get("dispense_details")
-      |> Enum.map(fn item ->
-        Map.put(item, "reimbursement_amount", 15)
-      end)
-
-    now = Date.utc_today()
-
-    resp =
-      params
-      |> Map.put("id", Ecto.UUID.generate())
-      |> Map.put("inserted_at", now)
-      |> Map.put("inserted_by", Ecto.UUID.generate())
-      |> Map.put("updated_at", now)
-      |> Map.put("updated_by", Ecto.UUID.generate())
-      |> Map.put("status", "NEW")
-      |> Map.put("details", details)
-      |> Map.delete("dispense_details")
-      |> wrap_response()
-      |> Poison.encode!()
-
-    Plug.Conn.send_resp(conn, 201, resp)
-  end
-
-  put "/medication_dispenses/:id" do
-    case conn.params["id"] do
-      id = @active_medication_dispense ->
-        medication_dispense =
-          Map.merge(
-            get_medication_dispense(id),
-            Map.get(conn.body_params, "medication_dispense")
-          )
-
-        render(medication_dispense, conn, 200)
-
-      _ ->
-        render_404(conn)
     end
   end
 

@@ -23,6 +23,9 @@ defmodule EHealth.Factories do
 
   # OPS
   use EHealth.OPSFactories.DeclarationFactory
+  use EHealth.OPSFactories.MedicationRequestFactory
+  use EHealth.OPSFactories.MedicationDispenseFactory
+  use EHealth.OPSFactories.MedicationDispenseDetailsFactory
 
   # MPI
   use EHealth.MPIFactories.PersonFactory

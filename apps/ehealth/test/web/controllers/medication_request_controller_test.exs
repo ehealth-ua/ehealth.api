@@ -2,8 +2,11 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
   use EHealth.Web.ConnCase, async: true
   alias EHealth.PRMRepo
   alias EHealth.LegalEntities.LegalEntity
+  alias Ecto.UUID
   import EHealth.Utils.Connection, only: [get_consumer_id: 1, get_client_id: 1]
-  import EHealth.MockServer, only: [get_active_medication_request: 0, get_client_admin: 0]
+  import Mox
+
+  setup :verify_on_exit!
 
   setup %{conn: conn} do
     %{id: id} = insert(:prm, :legal_entity)
@@ -14,10 +17,10 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
     test "success list medication requests", %{conn: conn} do
       user_id = get_consumer_id(conn.req_headers)
       legal_entity_id = get_client_id(conn.req_headers)
-      insert(:prm, :division, id: "e00e20ba-d20f-4ebb-a1dc-4bf58231019c")
-      insert(:prm, :legal_entity, id: "dae597a8-c858-42f6-bc16-1a7bdd340466")
-      insert(:prm, :medical_program, id: "6ee844fd-9f4d-4457-9eda-22aa506be4c4")
-      insert_innm_dosage()
+      division = insert(:prm, :division)
+      %{id: innm_dosage_id} = insert_innm_dosage()
+      insert_medication(innm_dosage_id)
+      %{id: medical_program_id} = insert(:prm, :medical_program)
 
       %{party: party} =
         :prm
@@ -27,6 +30,30 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       legal_entity = PRMRepo.get!(LegalEntity, legal_entity_id)
       %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
       person_id = Ecto.UUID.generate()
+
+      medication_request =
+        build_resp(%{
+          legal_entity_id: legal_entity_id,
+          division_id: division.id,
+          employee_id: employee_id,
+          medical_program_id: medical_program_id,
+          medication_id: innm_dosage_id,
+          person_id: person_id,
+          status: "COMPLETED"
+        })
+
+      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
+        {:ok,
+         %{
+           "data" => [medication_request],
+           "paging" => %{
+             "page_number" => 1,
+             "page_size" => 50,
+             "total_entries" => 1,
+             "total_pages" => 1
+           }
+         }}
+      end)
 
       conn =
         get(conn, medication_request_path(conn, :index, %{"page_size" => 1}), %{
@@ -70,6 +97,22 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
 
       legal_entity = PRMRepo.get!(LegalEntity, legal_entity_id)
       insert(:prm, :employee, party: party, legal_entity: legal_entity)
+
+      medication_request = build_resp(%{legal_entity_id: legal_entity_id})
+
+      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
+        {:ok,
+         %{
+           "data" => [medication_request],
+           "paging" => %{
+             "page_number" => 1,
+             "page_size" => 50,
+             "total_entries" => 1,
+             "total_pages" => 1
+           }
+         }}
+      end)
+
       conn = get(conn, medication_request_path(conn, :index))
       assert json_response(conn, 500)
     end
@@ -79,10 +122,10 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
     test "success get medication_request by id", %{conn: conn} do
       user_id = get_consumer_id(conn.req_headers)
       legal_entity_id = get_client_id(conn.req_headers)
-      insert(:prm, :division, id: "e00e20ba-d20f-4ebb-a1dc-4bf58231019c")
-      insert(:prm, :legal_entity, id: "dae597a8-c858-42f6-bc16-1a7bdd340466")
-      insert(:prm, :medical_program, id: "6ee844fd-9f4d-4457-9eda-22aa506be4c4")
-      insert_innm_dosage()
+      division = insert(:prm, :division)
+      %{id: innm_dosage_id} = insert_innm_dosage()
+      insert_medication(innm_dosage_id)
+      %{id: medical_program_id} = insert(:prm, :medical_program)
 
       %{party: party} =
         :prm
@@ -90,10 +133,32 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
         |> PRMRepo.preload(:party)
 
       legal_entity = PRMRepo.get!(LegalEntity, legal_entity_id)
-      insert(:prm, :employee, party: party, legal_entity: legal_entity)
+      %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
+
+      medication_request =
+        build_resp(%{
+          legal_entity_id: legal_entity_id,
+          division_id: division.id,
+          employee_id: employee_id,
+          medical_program_id: medical_program_id,
+          medication_id: innm_dosage_id
+        })
+
+      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
+        {:ok,
+         %{
+           "data" => [medication_request],
+           "paging" => %{
+             "page_number" => 1,
+             "page_size" => 50,
+             "total_entries" => 1,
+             "total_pages" => 1
+           }
+         }}
+      end)
 
       conn
-      |> get(medication_request_path(conn, :show, get_active_medication_request()))
+      |> get(medication_request_path(conn, :show, medication_request["id"]))
       |> json_response(200)
       |> Map.get("data")
       |> assert_show_response_schema("medication_request")
@@ -107,7 +172,21 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
     test "not found", %{conn: conn} do
       user_id = get_consumer_id(conn.req_headers)
       insert(:prm, :party_user, user_id: user_id)
-      conn = get(conn, medication_request_path(conn, :show, "e9baba39-da78-4950-b396-cc36e80572b1"))
+
+      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
+        {:ok,
+         %{
+           "data" => [],
+           "paging" => %{
+             "page_number" => 1,
+             "page_size" => 50,
+             "total_entries" => 0,
+             "total_pages" => 1
+           }
+         }}
+      end)
+
+      conn = get(conn, medication_request_path(conn, :show, UUID.generate()))
       assert json_response(conn, 404)
     end
   end
@@ -116,20 +195,10 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
     test "success qualify", %{conn: conn} do
       user_id = get_consumer_id(conn.req_headers)
       legal_entity_id = get_client_id(conn.req_headers)
-      insert(:prm, :division, id: "e00e20ba-d20f-4ebb-a1dc-4bf58231019c")
-      insert(:prm, :legal_entity, id: "dae597a8-c858-42f6-bc16-1a7bdd340466")
-      medical_program_id = "6ee844fd-9f4d-4457-9eda-22aa506be4c4"
-      insert(:prm, :medical_program, id: medical_program_id)
-      %{medication_id: medication_id} = insert(:prm, :program_medication, medical_program_id: medical_program_id)
-
+      division = insert(:prm, :division)
       %{id: innm_dosage_id} = insert_innm_dosage()
-
-      insert(
-        :prm,
-        :ingredient_medication,
-        parent_id: medication_id,
-        medication_child_id: innm_dosage_id
-      )
+      insert_medication(innm_dosage_id)
+      %{id: medical_program_id} = insert(:prm, :medical_program)
 
       %{party: party} =
         :prm
@@ -137,10 +206,32 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
         |> PRMRepo.preload(:party)
 
       legal_entity = PRMRepo.get!(LegalEntity, legal_entity_id)
-      insert(:prm, :employee, party: party, legal_entity: legal_entity)
+      %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
+
+      medication_request =
+        build_resp(%{
+          legal_entity_id: legal_entity_id,
+          division_id: division.id,
+          employee_id: employee_id,
+          medical_program_id: medical_program_id,
+          medication_id: innm_dosage_id
+        })
+
+      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
+        {:ok,
+         %{
+           "data" => [medication_request],
+           "paging" => %{
+             "page_number" => 1,
+             "page_size" => 50,
+             "total_entries" => 1,
+             "total_pages" => 1
+           }
+         }}
+      end)
 
       conn =
-        post(conn, medication_request_path(conn, :qualify, get_active_medication_request()), %{
+        post(conn, medication_request_path(conn, :qualify, medication_request["id"]), %{
           "programs" => [%{"id" => medical_program_id}]
         })
 
@@ -155,12 +246,20 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
     end
 
     test "success qualify as admin", %{conn: conn} do
-      insert(:prm, :division, id: "e00e20ba-d20f-4ebb-a1dc-4bf58231019c")
-      medical_program_id = "6ee844fd-9f4d-4457-9eda-22aa506be4c4"
-      insert(:prm, :medical_program, id: medical_program_id)
+      user_id = get_consumer_id(conn.req_headers)
+      legal_entity_id = get_client_id(conn.req_headers)
+      division = insert(:prm, :division)
+      %{id: medical_program_id} = insert(:prm, :medical_program)
+      %{id: innm_dosage_id} = insert_innm_dosage()
       %{medication_id: medication_id} = insert(:prm, :program_medication, medical_program_id: medical_program_id)
 
-      %{id: innm_dosage_id} = insert_innm_dosage()
+      %{party: party} =
+        :prm
+        |> insert(:party_user, user_id: user_id)
+        |> PRMRepo.preload(:party)
+
+      legal_entity = PRMRepo.get!(LegalEntity, legal_entity_id)
+      %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
 
       insert(
         :prm,
@@ -169,10 +268,38 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
         medication_child_id: innm_dosage_id
       )
 
-      conn = put_client_id_header(conn, get_client_admin())
+      medication_request =
+        build_resp(%{
+          legal_entity_id: legal_entity_id,
+          division_id: division.id,
+          employee_id: employee_id,
+          medical_program_id: medical_program_id,
+          medication_id: innm_dosage_id
+        })
+
+      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
+        {:ok,
+         %{
+           "data" => [medication_request],
+           "paging" => %{
+             "page_number" => 1,
+             "page_size" => 50,
+             "total_entries" => 1,
+             "total_pages" => 1
+           }
+         }}
+      end)
+
+      expect(OPSMock, :get_qualify_medication_requests, fn _params, _headers ->
+        {:ok, %{"data" => [medication_id]}}
+      end)
+
+      conn
+      |> put_client_id_header(legal_entity_id)
+      |> assign(:client_type, "NHS ADMIN")
 
       conn =
-        post(conn, medication_request_path(conn, :qualify, get_active_medication_request()), %{
+        post(conn, medication_request_path(conn, :qualify, medication_request["id"]), %{
           "programs" => [%{"id" => medical_program_id}]
         })
 
@@ -187,16 +314,49 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
     end
 
     test "INVALID qualify as admin", %{conn: conn} do
-      insert(:prm, :division, id: "e00e20ba-d20f-4ebb-a1dc-4bf58231019c")
-      medical_program_id = "6ee844fd-9f4d-4457-9eda-22aa506be4c4"
-      insert(:prm, :medical_program, id: medical_program_id)
-      insert(:prm, :program_medication, medical_program_id: medical_program_id)
-      insert_innm_dosage()
+      user_id = get_consumer_id(conn.req_headers)
+      legal_entity_id = get_client_id(conn.req_headers)
+      division = insert(:prm, :division)
+      %{id: innm_dosage_id} = insert_innm_dosage()
+      insert_medication(innm_dosage_id)
+      %{id: medical_program_id} = insert(:prm, :medical_program)
 
-      conn = put_client_id_header(conn, get_client_admin())
+      %{party: party} =
+        :prm
+        |> insert(:party_user, user_id: user_id)
+        |> PRMRepo.preload(:party)
+
+      legal_entity = PRMRepo.get!(LegalEntity, legal_entity_id)
+      %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
+
+      medication_request =
+        build_resp(%{
+          legal_entity_id: legal_entity_id,
+          division_id: division.id,
+          employee_id: employee_id,
+          medical_program_id: medical_program_id,
+          medication_id: innm_dosage_id
+        })
+
+      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
+        {:ok,
+         %{
+           "data" => [medication_request],
+           "paging" => %{
+             "page_number" => 1,
+             "page_size" => 50,
+             "total_entries" => 1,
+             "total_pages" => 1
+           }
+         }}
+      end)
+
+      conn
+      |> put_client_id_header(legal_entity_id)
+      |> assign(:client_type, "NHS ADMIN")
 
       conn =
-        post(conn, medication_request_path(conn, :qualify, get_active_medication_request()), %{
+        post(conn, medication_request_path(conn, :qualify, medication_request["id"]), %{
           "programs" => [%{"id" => medical_program_id}]
         })
 
@@ -212,25 +372,109 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
 
     test "failed validation", %{conn: conn} do
       user_id = get_consumer_id(conn.req_headers)
-      insert(:prm, :party_user, user_id: user_id)
-      conn = post(conn, medication_request_path(conn, :qualify, get_active_medication_request()))
+      legal_entity_id = get_client_id(conn.req_headers)
+      division = insert(:prm, :division)
+      %{id: innm_dosage_id} = insert_innm_dosage()
+      insert_medication(innm_dosage_id)
+      %{id: medical_program_id} = insert(:prm, :medical_program)
+
+      %{party: party} =
+        :prm
+        |> insert(:party_user, user_id: user_id)
+        |> PRMRepo.preload(:party)
+
+      legal_entity = PRMRepo.get!(LegalEntity, legal_entity_id)
+      %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
+
+      medication_request =
+        build_resp(%{
+          legal_entity_id: legal_entity_id,
+          division_id: division.id,
+          employee_id: employee_id,
+          medical_program_id: medical_program_id,
+          medication_id: innm_dosage_id
+        })
+
+      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
+        {:ok,
+         %{
+           "data" => [medication_request],
+           "paging" => %{
+             "page_number" => 1,
+             "page_size" => 50,
+             "total_entries" => 1,
+             "total_pages" => 1
+           }
+         }}
+      end)
+
+      conn = post(conn, medication_request_path(conn, :qualify, UUID.generate()))
       resp = json_response(conn, 422)
+
       assert %{"error" => %{"invalid" => [%{"entry" => "$.programs"}]}} = resp
     end
 
     test "medication_request not found", %{conn: conn} do
       user_id = get_consumer_id(conn.req_headers)
       insert(:prm, :party_user, user_id: user_id)
-      conn = post(conn, medication_request_path(conn, :qualify, "e9baba39-da78-4950-b396-cc36e80572b1"))
+
+      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
+        {:ok,
+         %{
+           "data" => [],
+           "paging" => %{
+             "page_number" => 1,
+             "page_size" => 50,
+             "total_entries" => 0,
+             "total_pages" => 1
+           }
+         }}
+      end)
+
+      conn = post(conn, medication_request_path(conn, :qualify, UUID.generate()))
       assert json_response(conn, 404)
     end
 
     test "program medication not found", %{conn: conn} do
       user_id = get_consumer_id(conn.req_headers)
-      insert(:prm, :party_user, user_id: user_id)
+      legal_entity_id = get_client_id(conn.req_headers)
+      division = insert(:prm, :division)
+      %{id: innm_dosage_id} = insert_innm_dosage()
+      insert_medication(innm_dosage_id)
+      %{id: medical_program_id} = insert(:prm, :medical_program)
+
+      %{party: party} =
+        :prm
+        |> insert(:party_user, user_id: user_id)
+        |> PRMRepo.preload(:party)
+
+      legal_entity = PRMRepo.get!(LegalEntity, legal_entity_id)
+      %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
+
+      medication_request =
+        build_resp(%{
+          legal_entity_id: legal_entity_id,
+          division_id: division.id,
+          employee_id: employee_id,
+          medical_program_id: medical_program_id,
+          medication_id: innm_dosage_id
+        })
+
+      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
+        {:ok,
+         %{
+           "data" => [medication_request],
+           "paging" => %{
+             "page_number" => 1,
+             "page_size" => 50,
+             "total_entries" => 1,
+             "total_pages" => 1
+           }
+         }}
+      end)
 
       conn =
-        post(conn, medication_request_path(conn, :qualify, get_active_medication_request()), %{
+        post(conn, medication_request_path(conn, :qualify, medication_request["id"]), %{
           "programs" => [%{"id" => Ecto.UUID.generate()}, %{"id" => Ecto.UUID.generate()}]
         })
 
@@ -243,20 +487,10 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
     test "success", %{conn: conn} do
       user_id = get_consumer_id(conn.req_headers)
       legal_entity_id = get_client_id(conn.req_headers)
-      insert(:prm, :division, id: "e00e20ba-d20f-4ebb-a1dc-4bf58231019c")
-      insert(:prm, :legal_entity, id: "dae597a8-c858-42f6-bc16-1a7bdd340466")
-      medical_program_id = "6ee844fd-9f4d-4457-9eda-22aa506be4c4"
-      insert(:prm, :medical_program, id: medical_program_id)
-      %{medication_id: medication_id} = insert(:prm, :program_medication, medical_program_id: medical_program_id)
-
+      division = insert(:prm, :division)
       %{id: innm_dosage_id} = insert_innm_dosage()
-
-      insert(
-        :prm,
-        :ingredient_medication,
-        parent_id: medication_id,
-        medication_child_id: innm_dosage_id
-      )
+      insert_medication(innm_dosage_id)
+      %{id: medical_program_id} = insert(:prm, :medical_program)
 
       %{party: party} =
         :prm
@@ -264,10 +498,35 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
         |> PRMRepo.preload(:party)
 
       legal_entity = PRMRepo.get!(LegalEntity, legal_entity_id)
-      insert(:prm, :employee, party: party, legal_entity: legal_entity)
+      %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
 
-      conn =
-        patch(conn, medication_request_path(conn, :reject, get_active_medication_request()), %{reject_reason: "TEST"})
+      medication_request =
+        build_resp(%{
+          legal_entity_id: legal_entity_id,
+          division_id: division.id,
+          employee_id: employee_id,
+          medical_program_id: medical_program_id,
+          medication_id: innm_dosage_id
+        })
+
+      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
+        {:ok,
+         %{
+           "data" => [medication_request],
+           "paging" => %{
+             "page_number" => 1,
+             "page_size" => 50,
+             "total_entries" => 1,
+             "total_pages" => 1
+           }
+         }}
+      end)
+
+      expect(OPSMock, :update_medication_request, fn _id, _params, _headers ->
+        {:ok, %{"data" => medication_request}}
+      end)
+
+      conn = patch(conn, medication_request_path(conn, :reject, medication_request["id"]), %{reject_reason: "TEST"})
 
       assert json_response(conn, 200)
     end
@@ -279,10 +538,20 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       |> insert(:party_user, user_id: user_id)
       |> PRMRepo.preload(:party)
 
-      conn =
-        patch(conn, medication_request_path(conn, :reject, "e9baba39-da78-4950-b396-cc36e80572b1"), %{
-          reject_reason: "TEST"
-        })
+      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
+        {:ok,
+         %{
+           "data" => [],
+           "paging" => %{
+             "page_number" => 1,
+             "page_size" => 50,
+             "total_entries" => 0,
+             "total_pages" => 1
+           }
+         }}
+      end)
+
+      conn = patch(conn, medication_request_path(conn, :reject, UUID.generate()), %{reject_reason: "TEST"})
 
       assert json_response(conn, 404)
     end
@@ -292,20 +561,10 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
     test "success", %{conn: conn} do
       user_id = get_consumer_id(conn.req_headers)
       legal_entity_id = get_client_id(conn.req_headers)
-      insert(:prm, :division, id: "e00e20ba-d20f-4ebb-a1dc-4bf58231019c")
-      insert(:prm, :legal_entity, id: "dae597a8-c858-42f6-bc16-1a7bdd340466")
-      medical_program_id = "6ee844fd-9f4d-4457-9eda-22aa506be4c4"
-      insert(:prm, :medical_program, id: medical_program_id)
-      %{medication_id: medication_id} = insert(:prm, :program_medication, medical_program_id: medical_program_id)
-
+      division = insert(:prm, :division)
       %{id: innm_dosage_id} = insert_innm_dosage()
-
-      insert(
-        :prm,
-        :ingredient_medication,
-        parent_id: medication_id,
-        medication_child_id: innm_dosage_id
-      )
+      insert_medication(innm_dosage_id)
+      %{id: medical_program_id} = insert(:prm, :medical_program)
 
       %{party: party} =
         :prm
@@ -313,8 +572,31 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
         |> PRMRepo.preload(:party)
 
       legal_entity = PRMRepo.get!(LegalEntity, legal_entity_id)
-      insert(:prm, :employee, party: party, legal_entity: legal_entity)
-      conn = patch(conn, medication_request_path(conn, :resend, get_active_medication_request()))
+      %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
+
+      medication_request =
+        build_resp(%{
+          legal_entity_id: legal_entity_id,
+          division_id: division.id,
+          employee_id: employee_id,
+          medical_program_id: medical_program_id,
+          medication_id: innm_dosage_id
+        })
+
+      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
+        {:ok,
+         %{
+           "data" => [medication_request],
+           "paging" => %{
+             "page_number" => 1,
+             "page_size" => 50,
+             "total_entries" => 1,
+             "total_pages" => 1
+           }
+         }}
+      end)
+
+      conn = patch(conn, medication_request_path(conn, :resend, medication_request["id"]))
       assert json_response(conn, 200)
     end
 
@@ -325,25 +607,65 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       |> insert(:party_user, user_id: user_id)
       |> PRMRepo.preload(:party)
 
-      conn = patch(conn, medication_request_path(conn, :resend, "e9baba39-da78-4950-b396-cc36e80572b1"))
+      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
+        {:ok,
+         %{
+           "data" => [],
+           "paging" => %{
+             "page_number" => 1,
+             "page_size" => 50,
+             "total_entries" => 0,
+             "total_pages" => 1
+           }
+         }}
+      end)
+
+      conn = patch(conn, medication_request_path(conn, :resend, UUID.generate()))
       assert json_response(conn, 404)
     end
+  end
+
+  defp insert_medication(innm_dosage_id) do
+    id = UUID.generate()
+
+    insert(
+      :prm,
+      :medication,
+      id: id,
+      ingredients: [
+        build(
+          :ingredient_medication,
+          medication_child_id: innm_dosage_id,
+          parent_id: id
+        )
+      ]
+    )
   end
 
   def insert_innm_dosage do
     %{id: innm_id} = insert(:prm, :innm)
 
+    innm_dosage =
+      insert(
+        :prm,
+        :innm_dosage
+      )
+
     insert(
       :prm,
-      :innm_dosage,
-      id: "2cdb8396-a1e9-11e7-abc4-cec278b6b50a",
-      ingredients: [
-        build(
-          :ingredient_innm_dosage,
-          innm_child_id: innm_id,
-          parent_id: "2cdb8396-a1e9-11e7-abc4-cec278b6b50a"
-        )
-      ]
+      :ingredient_innm_dosage,
+      innm_child_id: innm_id,
+      parent_id: innm_dosage.id
     )
+
+    innm_dosage
+  end
+
+  defp build_resp(params) do
+    medication_request = build(:medication_request, params)
+
+    medication_request
+    |> Poison.encode!()
+    |> Poison.decode!()
   end
 end

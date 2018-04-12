@@ -5,6 +5,8 @@ defmodule EHealth.Medications.Medication do
 
   @medication_type "BRAND"
 
+  @derive {Poison.Encoder, except: [:__meta__, :ingredients]}
+
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "medications" do
     field(:name, :string)

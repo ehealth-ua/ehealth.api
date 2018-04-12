@@ -29,6 +29,7 @@ defmodule EHealth.MedicationRequests.API do
 
   @legal_entity_msp LegalEntity.type(:msp)
   @legal_entity_pharmacy LegalEntity.type(:pharmacy)
+  @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]
 
   def list(params, client_type, headers) do
     with %Ecto.Changeset{valid?: true, changes: changes} <- changeset(params),
@@ -75,7 +76,7 @@ defmodule EHealth.MedicationRequests.API do
     }
 
     with {:ok, %{"status" => "ACTIVE"} = medication_request} <- show(%{"id" => params["id"]}, client_type, headers),
-         {:ok, %{"data" => mr}} <- OPS.update_medication_request(medication_request["id"], update_params) do
+         {:ok, %{"data" => mr}} <- @ops_api.update_medication_request(medication_request["id"], update_params, []) do
       SMSSender.maybe_send_sms(
         %{request_number: medication_request["request_number"], created_at: medication_request["created_at"]},
         medication_request["person"],
@@ -131,7 +132,7 @@ defmodule EHealth.MedicationRequests.API do
     employee_id = Map.get(changes, :employee_id)
     search_params = get_search_params([], changes)
     search_params = if is_nil(employee_id), do: Map.delete(search_params, :employee_id), else: search_params
-    OPS.get_doctor_medication_requests(search_params, headers)
+    @ops_api.get_doctor_medication_requests(search_params, headers)
   end
 
   defp do_get_medication_requests(user_id, _, changes, headers) do
@@ -139,7 +140,7 @@ defmodule EHealth.MedicationRequests.API do
          employee_ids <- get_employees(party.id, Map.get(changes, :legal_entity_id)),
          :ok <- validate_employee_id(Map.get(changes, :employee_id), employee_ids),
          search_params <- get_search_params(employee_ids, changes) do
-      OPS.get_doctor_medication_requests(search_params, headers)
+      @ops_api.get_doctor_medication_requests(search_params, headers)
     end
   end
 
@@ -149,7 +150,7 @@ defmodule EHealth.MedicationRequests.API do
 
   defp do_get_medication_request(_, _, "NHS ADMIN", id, headers) do
     with search_params <- get_show_search_params(id),
-         {:ok, %{"data" => [medication_request]}} <- OPS.get_doctor_medication_requests(search_params, headers) do
+         {:ok, %{"data" => [medication_request]}} <- @ops_api.get_doctor_medication_requests(search_params, headers) do
       {:ok, medication_request}
     else
       {:ok, %{"data" => []}} -> nil
@@ -161,7 +162,7 @@ defmodule EHealth.MedicationRequests.API do
     with %PartyUser{party: party} <- get_party_user(user_id),
          %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(legal_entity_id),
          search_params <- get_show_search_params(party.id, legal_entity, id),
-         {:ok, %{"data" => [medication_request]}} <- OPS.get_doctor_medication_requests(search_params, headers) do
+         {:ok, %{"data" => [medication_request]}} <- @ops_api.get_doctor_medication_requests(search_params, headers) do
       {:ok, medication_request}
     else
       {:ok, %{"data" => []}} -> nil
@@ -309,7 +310,7 @@ defmodule EHealth.MedicationRequests.API do
   defp get_qualify_requests(%{} = medication_request) do
     medication_request
     |> Map.take(~w(person_id started_at ended_at))
-    |> OPS.get_qualify_medication_requests()
+    |> @ops_api.get_qualify_medication_requests([])
   end
 
   defp validate_ingredients(medication_ids, check_innm_id) do

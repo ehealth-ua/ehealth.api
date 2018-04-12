@@ -27,6 +27,8 @@ defmodule EHealth.MedicationDispense.API do
   alias EHealth.MedicationRequests.API, as: MedicationRequests
   alias EHealth.Medications
 
+  @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]
+
   @search_fields ~w(
     id
     medication_request_id
@@ -50,7 +52,8 @@ defmodule EHealth.MedicationDispense.API do
   def list(params, headers) do
     with %Ecto.Changeset{valid?: true, changes: changes} <- changeset(%Search{}, params),
          params <- Map.put(changes, "is_active", true),
-         {:ok, %{"data" => medication_dispenses, "paging" => paging}} <- OPS.get_medication_dispenses(params, headers),
+         {:ok, %{"data" => medication_dispenses, "paging" => paging}} <-
+           @ops_api.get_medication_dispenses(params, headers),
          {:ok, medication_dispenses} <- get_medication_request_references(medication_dispenses),
          {:ok, medication_dispenses} <- load_dispenses_medications(medication_dispenses) do
       {:ok, medication_dispenses, get_references(medication_dispenses), paging}
@@ -62,7 +65,7 @@ defmodule EHealth.MedicationDispense.API do
          params <- Map.delete(params, "id"),
          %Ecto.Changeset{valid?: true, changes: changes} <- changeset(%SearchByMedicationRequest{}, params),
          dispense_filters <- Map.delete(changes, :legal_entity_id),
-         {:ok, %{"data" => medication_dispenses}} <- OPS.get_medication_dispenses(dispense_filters, headers),
+         {:ok, %{"data" => medication_dispenses}} <- @ops_api.get_medication_dispenses(dispense_filters, headers),
          {:ok, medication_dispenses} <- get_medication_request_references(medication_dispenses),
          {:ok, medication_dispenses} <- load_dispenses_medications(medication_dispenses) do
       {:ok, medication_dispenses, get_references(medication_dispenses)}
@@ -73,7 +76,7 @@ defmodule EHealth.MedicationDispense.API do
     legal_entity_id = Map.get(params, "legal_entity_id")
     search_params = Map.delete(params, "legal_entity_id")
 
-    with {:ok, %{"data" => [medication_dispense]}} <- OPS.get_medication_dispenses(search_params, headers),
+    with {:ok, %{"data" => [medication_dispense]}} <- @ops_api.get_medication_dispenses(search_params, headers),
          {:ok, legal_entity} <- Reference.validate(:legal_entity, medication_dispense["legal_entity_id"]),
          {:ok, details} <- load_dispense_medications(medication_dispense),
          medication_dispense <- Map.put(medication_dispense, "details", details),
@@ -120,7 +123,7 @@ defmodule EHealth.MedicationDispense.API do
          create_params <- Map.put(params, "dispense_details", dispense_details),
          create_params <- Map.put(create_params, "legal_entity_id", legal_entity.id),
          create_params <- create_dispense_params(create_params, user_id, party_user.party),
-         {:ok, %{"data" => medication_dispense}} <- OPS.create_medication_dispense(create_params),
+         {:ok, %{"data" => medication_dispense}} <- @ops_api.create_medication_dispense(create_params, []),
          {:ok, details} <- load_dispense_medications(medication_dispense),
          medication_dispense <- Map.put(medication_dispense, "details", details) do
       {:ok, medication_dispense,
@@ -149,10 +152,10 @@ defmodule EHealth.MedicationDispense.API do
     with {:ok, medication_dispense, references} <- get_by_id(params, headers),
          :ok <- validate_status_transition(medication_dispense, "PROCESSED"),
          {:ok, %{"data" => medication_dispense}} <-
-           OPS.update_medication_dispense(id, %{"medication_dispense" => attrs}, headers),
+           @ops_api.update_medication_dispense(id, %{"medication_dispense" => attrs}, headers),
          medication_request_id <- Map.get(references.medication_request, "id"),
          {:ok, _} <-
-           OPS.update_medication_request(medication_request_id, %{"medication_request" => request_attrs}, headers) do
+           @ops_api.update_medication_request(medication_request_id, %{"medication_request" => request_attrs}, headers) do
       {:ok, medication_dispense, references}
     end
   end
@@ -167,7 +170,7 @@ defmodule EHealth.MedicationDispense.API do
     with {:ok, medication_dispense, references} <- get_by_id(params, headers),
          :ok <- validate_status_transition(medication_dispense, "REJECTED"),
          {:ok, %{"data" => medication_dispense}} <-
-           OPS.update_medication_dispense(id, %{"medication_dispense" => attrs}, headers) do
+           @ops_api.update_medication_dispense(id, %{"medication_dispense" => attrs}, headers) do
       {:ok, medication_dispense, references}
     end
   end
@@ -324,7 +327,7 @@ defmodule EHealth.MedicationDispense.API do
   defp check_other_medication_dispenses(%{"id" => medication_request_id}, headers) do
     params = %{"status" => "NEW,PROCESSED", "medication_request_id" => medication_request_id}
 
-    with {:ok, %{"data" => []}} <- OPS.get_medication_dispenses(params, headers) do
+    with {:ok, %{"data" => []}} <- @ops_api.get_medication_dispenses(params, headers) do
       :ok
     else
       _ -> {:error, {:forbidden, "Active medication dispense already exists"}}

@@ -1,7 +1,9 @@
 defmodule EHealth.Web.MedicationRequestRequestControllerTest do
   use EHealth.Web.ConnCase, async: false
-
+  import Mox
   alias EHealth.MedicationRequestRequests
+
+  setup :verify_on_exit!
 
   @legal_entity_id "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
 
@@ -340,6 +342,10 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       data = %{medication_request_request: test_request, programs: [%{id: pm.medical_program_id}]}
       schema_path = "specs/json_schemas/medication_request_request/medication_request_request_prequalify_response.json"
 
+      expect(OPSMock, :get_prequalify_medication_requests, fn _params, _headers ->
+        {:ok, %{"data" => []}}
+      end)
+
       resp =
         conn
         |> post(medication_request_request_path(conn, :prequalify), data)
@@ -445,6 +451,17 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
       conn1 = post(conn, medication_request_request_path(conn, :create), medication_request_request: test_request)
       assert mrr = json_response(conn1, 201)["data"]
+
+      expect(OPSMock, :create_medication_request, fn params, _headers ->
+        medication_request = build(:medication_request, id: params.medication_request.id)
+
+        medication_request =
+          medication_request
+          |> Poison.encode!()
+          |> Poison.decode!()
+
+        {:ok, %{"data" => medication_request}}
+      end)
 
       signed_mrr =
         mrr

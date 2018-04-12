@@ -8,6 +8,8 @@ defmodule EHealth.API.OPS do
   use EHealth.API.Helpers.HeadersProcessor
   use EHealth.API.Helpers.MicroserviceBase
 
+  @behaviour EHealth.API.OPSBehaviour
+
   def get_declaration_by_id(id, headers) do
     get!("/declarations/#{id}", headers)
   end

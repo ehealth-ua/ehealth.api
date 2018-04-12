@@ -8,6 +8,8 @@ defmodule EHealth.MedicationRequestRequest.SignOperation do
   alias EHealth.MedicationRequestRequest.Operation
   alias EHealth.MedicationRequestRequest.Validations
 
+  @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]
+
   def sign(mrr, params, headers) do
     mrr
     |> Ecto.Changeset.change()
@@ -67,7 +69,7 @@ defmodule EHealth.MedicationRequestRequest.SignOperation do
       |> Map.put(:updated_by, Connection.get_client_id(headers))
       |> Map.put(:inserted_by, Connection.get_client_id(headers))
 
-    {operation, OPS.create_medication_request(%{medication_request: params}, headers)}
+    {operation, @ops_api.create_medication_request(%{medication_request: params}, headers)}
   end
 
   def validate_ops_resp({:error, error}, _), do: {:error, error}

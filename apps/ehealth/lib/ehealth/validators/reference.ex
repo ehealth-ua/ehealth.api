@@ -16,6 +16,8 @@ defmodule EHealth.Validators.Reference do
   alias EHealth.Medications
   alias EHealth.Medications.Medication
 
+  @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]
+
   def validate(type, nil) do
     error(type)
   end
@@ -23,7 +25,7 @@ defmodule EHealth.Validators.Reference do
   def validate(type, id), do: validate(type, id, nil)
 
   def validate(:medication_request = type, id, path) do
-    with {:ok, %{"data" => [medication_request]}} <- OPS.get_medication_requests(%{"id" => id}) do
+    with {:ok, %{"data" => [medication_request]}} <- @ops_api.get_medication_requests(%{"id" => id}, []) do
       {:ok, medication_request}
     else
       _ -> error(type, path)
