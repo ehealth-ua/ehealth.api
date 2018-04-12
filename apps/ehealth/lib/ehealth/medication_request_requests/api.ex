@@ -9,30 +9,20 @@ defmodule EHealth.MedicationRequestRequests do
 
   use Confex, otp_app: :ehealth
 
-  alias EHealth.Repo
-  alias EHealth.PRMRepo
-  alias EHealth.API.OPS
-  alias EHealth.Employees
-  alias EHealth.MedicalPrograms
-  alias EHealth.MedicationRequestRequest
+  alias EHealth.{Repo, PRMRepo, Employees, Medications, MedicalPrograms, MedicationRequestRequest}
   alias EHealth.MedicationRequests.SMSSender
-  alias EHealth.MedicationRequestRequest.Operation
-  alias EHealth.MedicationRequestRequest.Validations
-  alias EHealth.MedicationRequestRequest.SignOperation
-  alias EHealth.Medications
-  alias EHealth.MedicationRequestRequest.RejectOperation
-  alias EHealth.MedicationRequestRequest.PreloadFkOperation
-  alias EHealth.MedicationRequestRequest.CreateDataOperation
+  alias EHealth.MedicationRequestRequest.{Operation, Validations, SignOperation}
+  alias EHealth.MedicationRequestRequest.{RejectOperation, PreloadFkOperation, CreateDataOperation}
   alias EHealth.MedicalPrograms.MedicalProgram
   alias EHealth.Medications.INNMDosage
   alias EHealth.Medications.Program, as: ProgramMedication
   alias EHealth.Medications.INNMDosage.Ingredient, as: INNMDosageIngredient
   alias EHealth.Utils.NumberGenerator
 
-  @status_new EHealth.MedicationRequestRequest.status(:new)
-  @status_signed EHealth.MedicationRequestRequest.status(:signed)
-  @status_expired EHealth.MedicationRequestRequest.status(:expired)
-  @status_rejected EHealth.MedicationRequestRequest.status(:rejected)
+  @status_new MedicationRequestRequest.status(:new)
+  @status_signed MedicationRequestRequest.status(:signed)
+  @status_expired MedicationRequestRequest.status(:expired)
+  @status_rejected MedicationRequestRequest.status(:rejected)
 
   @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]
 

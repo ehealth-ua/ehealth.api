@@ -16,7 +16,6 @@ defmodule EHealth.MedicationDispense.API do
   alias EHealth.Parties.Party
   alias EHealth.Medications.Medication
   alias EHealth.Medications.Program, as: ProgramMedication
-  alias EHealth.API.OPS
   alias EHealth.MedicationDispenses.Search
   alias EHealth.MedicationDispenses.SearchByMedicationRequest
   alias EHealth.Validators.JsonSchema

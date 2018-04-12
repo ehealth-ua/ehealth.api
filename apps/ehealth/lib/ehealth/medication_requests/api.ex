@@ -1,7 +1,6 @@
 defmodule EHealth.MedicationRequests.API do
   @moduledoc false
 
-  alias EHealth.API.OPS
   alias EHealth.PartyUsers
   alias EHealth.Employees
   alias EHealth.Divisions.Division

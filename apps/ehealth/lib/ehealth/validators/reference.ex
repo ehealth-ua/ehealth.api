@@ -4,17 +4,12 @@ defmodule EHealth.Validators.Reference do
   """
 
   alias EHealth.API.MPI
-  alias EHealth.API.OPS
-  alias EHealth.Divisions
+  alias EHealth.{Divisions, Employees, LegalEntities, Medications, MedicalPrograms}
   alias EHealth.Divisions.Division
-  alias EHealth.Employees
   alias EHealth.Employees.Employee
-  alias EHealth.LegalEntities
   alias EHealth.LegalEntities.LegalEntity
-  alias EHealth.MedicalPrograms
-  alias EHealth.MedicalPrograms.MedicalProgram
-  alias EHealth.Medications
   alias EHealth.Medications.Medication
+  alias EHealth.MedicalPrograms.MedicalProgram
 
   @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]
 
