@@ -220,13 +220,11 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
           Map.delete(declaration_request_params["declaration_request"]["person"], "phones")
         )
 
-      conn =
-        conn
-        |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
-        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
-        |> post(declaration_request_path(conn, :create), declaration_request_params)
-
-      json_response(conn, 200)
+      conn
+      |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
+      |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
+      |> post(declaration_request_path(conn, :create), declaration_request_params)
+      |> json_response(200)
     end
 
     test "declaration request without required phone number", %{conn: conn} do

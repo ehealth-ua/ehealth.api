@@ -3,14 +3,16 @@ defmodule EHealth.DeclarationRequests.API.Creator do
 
   use Confex, otp_app: :ehealth
   use Timex
-  alias Ecto.Changeset
-  alias Ecto.UUID
-  alias EHealth.API.Mithril
-  alias EHealth.API.OTPVerification
+
+  import Ecto.Query
+  import Ecto.Changeset
+  import EHealth.Utils.TypesConverter, only: [string_to_integer: 1]
+
+  alias Ecto.{Changeset, UUID}
+  alias EHealth.API.{Mithril, OTPVerification}
   alias EHealth.DeclarationRequests
   alias EHealth.DeclarationRequests.DeclarationRequest
-  alias EHealth.DeclarationRequests.API.Documents
-  alias EHealth.DeclarationRequests.API.Persons
+  alias EHealth.DeclarationRequests.API.{Documents, Persons}
   alias EHealth.Employees.Employee
   alias EHealth.GlobalParameters
   alias EHealth.Man.Templates.DeclarationRequestPrintoutForm
@@ -18,13 +20,8 @@ defmodule EHealth.DeclarationRequests.API.Creator do
   alias EHealth.Persons.Validator, as: ValidatePerson
   alias EHealth.Repo
   alias EHealth.Utils.Phone
-  alias EHealth.Validators.BirthDate
-  alias EHealth.Validators.JsonObjects
-  alias EHealth.Validators.TaxID
   alias EHealth.Utils.NumberGenerator
-  import EHealth.Utils.TypesConverter, only: [string_to_integer: 1]
-  import Ecto.Query
-  import Ecto.Changeset
+  alias EHealth.Validators.{TaxID, BirthDate, JsonObjects}
 
   @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
   @auth_na DeclarationRequest.authentication_method(:na)
@@ -65,15 +62,37 @@ defmodule EHealth.DeclarationRequests.API.Creator do
       query = where(DeclarationRequest, [dr], dr.id in ^previous_request_ids)
       Repo.update_all(query, set: updates)
 
-      with {:ok, declaration_request} <-
-             params
-             |> changeset(user_id, auxiliary_entities)
-             |> Repo.insert(),
+      with {:ok, declaration_request} <- insert_declaration_request(params, user_id, auxiliary_entities),
            {:ok, declaration_request} <- finalize(declaration_request),
            {:ok, urgent_data} <- prepare_urgent_data(declaration_request) do
         %{urgent_data: urgent_data, finalize: declaration_request}
       else
         {:error, reason} -> Repo.rollback(reason)
+      end
+    end)
+  end
+
+  defp insert_declaration_request(params, user_id, auxiliary_entities) do
+    params
+    |> changeset(user_id, auxiliary_entities)
+    |> do_insert_declaration_request(auxiliary_entities.employee)
+  end
+
+  defp do_insert_declaration_request(changeset, employee) do
+    Repo.transaction(fn ->
+      case Repo.insert(changeset) do
+        {:ok, declaration_request} ->
+          declaration_request
+
+        {:error, %Changeset{errors: [declaration_number: {"has already been taken", []}]}} ->
+          # declaration_number collision, let's regenerate it
+          changeset
+          |> put_declaration_number(NumberGenerator.generate(1, 2))
+          |> generate_printout_form(employee)
+          |> do_insert_declaration_request(employee)
+
+        {:error, reason} ->
+          Repo.rollback(reason)
       end
     end)
   end
@@ -323,7 +342,7 @@ defmodule EHealth.DeclarationRequests.API.Creator do
     |> put_change(:status, @status_new)
     |> put_change(:inserted_by, user_id)
     |> put_change(:updated_by, user_id)
-    |> put_change(:declaration_number, NumberGenerator.generate(1, 2))
+    |> put_declaration_number(NumberGenerator.generate(1, 2))
     |> unique_constraint(:declaration_number, name: :declaration_requests_declaration_number_index)
     |> put_party_email()
     |> determine_auth_method_for_mpi(channel)
@@ -603,6 +622,10 @@ defmodule EHealth.DeclarationRequests.API.Creator do
       "accreditation" => legal_entity.medical_service_provider.accreditation,
       "licenses" => legal_entity.medical_service_provider.licenses
     }
+  end
+
+  defp put_declaration_number(changeset, num) do
+    put_change(changeset, :declaration_number, num)
   end
 
   def put_party_email(%Changeset{valid?: false} = changeset), do: changeset
