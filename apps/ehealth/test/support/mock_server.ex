@@ -213,12 +213,6 @@ defmodule EHealth.MockServer do
     Plug.Conn.send_resp(conn, 200, resp)
   end
 
-  # Man
-
-  post "/templates/:id/actions/render" do
-    Plug.Conn.send_resp(conn, 200, get_rendered_template(id, conn.body_params))
-  end
-
   # UAddress
 
   get "/settlements" do
@@ -637,12 +631,6 @@ defmodule EHealth.MockServer do
   def get_oauth_users(%{"email" => "test@user.com"}), do: [get_oauth_user()]
   def get_oauth_users(%{"email" => _}), do: []
   def get_oauth_users(_), do: [get_oauth_user()]
-
-  def get_rendered_template("32", params) do
-    "<html><body>Printout form for declaration request ##{params["id"]}</body></html>"
-  end
-
-  def get_rendered_template(_, _), do: "<html><body>Some template text</body></html>"
 
   def get_medication_dispense(id \\ nil, params \\ %{}) do
     Map.merge(
