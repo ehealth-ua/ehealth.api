@@ -260,32 +260,6 @@ defmodule EHealth.MockServer do
     Plug.Conn.send_resp(conn, 200, resp)
   end
 
-  # OTP Verification
-
-  get "/verifications" do
-    params =
-      conn
-      |> Plug.Conn.fetch_query_params(conn)
-      |> Map.get(:params)
-
-    response =
-      params
-      |> search_for_number
-      |> wrap_response
-      |> Poison.encode!()
-
-    Plug.Conn.send_resp(conn, 200, response)
-  end
-
-  post "/sms/send" do
-    resp =
-      conn.body_params
-      |> wrap_response
-      |> Poison.encode!()
-
-    Plug.Conn.send_resp(conn, 200, resp)
-  end
-
   # Digital signature
 
   post "/digital_signatures" do
@@ -544,13 +518,6 @@ defmodule EHealth.MockServer do
       "authentication_methods" => [%{"type" => "OTP", "phone_number" => "+380955947998"}],
       "preferred_way_communication" => "––"
     }
-  end
-
-  def search_for_number(params) do
-    case params do
-      %{"number" => "+380508887700", "statuses" => "completed"} -> [1]
-      _ -> []
-    end
   end
 
   def get_settlement(mountain_group \\ "0") do

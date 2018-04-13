@@ -43,6 +43,7 @@ config :ehealth,
     ops: OPSMock,
     report: ReportMock,
     media_storage: MediaStorageMock,
+    opt_verification: OTPVerificationMock,
     postmark: PostmarkMock
   ]
 

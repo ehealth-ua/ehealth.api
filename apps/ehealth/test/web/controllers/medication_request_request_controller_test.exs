@@ -442,15 +442,9 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
   describe "sign medication request request" do
     test "when data is valid", %{conn: conn} do
-      {medication_id, pm} = create_medications_structure()
-
-      test_request =
-        test_request()
-        |> Map.put("medication_id", medication_id)
-        |> Map.put("medical_program_id", pm.medical_program_id)
-
-      conn1 = post(conn, medication_request_request_path(conn, :create), medication_request_request: test_request)
-      assert mrr = json_response(conn1, 201)["data"]
+      expect(OTPVerificationMock, :send_sms, fn phone_number, body, type, _ ->
+        {:ok, %{"data" => %{"body" => body, "phone_number" => phone_number, "type" => type}}}
+      end)
 
       expect(OPSMock, :create_medication_request, fn params, _headers ->
         medication_request = build(:medication_request, id: params.medication_request.id)
@@ -462,6 +456,16 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
         {:ok, %{"data" => medication_request}}
       end)
+
+      {medication_id, pm} = create_medications_structure()
+
+      test_request =
+        test_request()
+        |> Map.put("medication_id", medication_id)
+        |> Map.put("medical_program_id", pm.medical_program_id)
+
+      conn1 = post(conn, medication_request_request_path(conn, :create), medication_request_request: test_request)
+      assert mrr = json_response(conn1, 201)["data"]
 
       signed_mrr =
         mrr

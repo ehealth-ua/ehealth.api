@@ -3,6 +3,8 @@ defmodule EHealth.API.OTPVerification do
   OTP Verification API client
   """
 
+  @behaviour EHealth.API.OTPVerificationBehaviour
+
   use HTTPoison.Base
   use Confex, otp_app: :ehealth
   use EHealth.API.Helpers.HeadersProcessor

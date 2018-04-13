@@ -1,10 +1,11 @@
 defmodule EHealth.Web.MedicationRequestControllerTest do
   use EHealth.Web.ConnCase, async: true
+  import EHealth.Utils.Connection, only: [get_consumer_id: 1, get_client_id: 1]
+  import Mox
+
   alias EHealth.PRMRepo
   alias EHealth.LegalEntities.LegalEntity
   alias Ecto.UUID
-  import EHealth.Utils.Connection, only: [get_consumer_id: 1, get_client_id: 1]
-  import Mox
 
   setup :verify_on_exit!
 
@@ -526,6 +527,10 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
         {:ok, %{"data" => medication_request}}
       end)
 
+      expect(OTPVerificationMock, :send_sms, fn phone_number, body, type, _ ->
+        {:ok, %{"data" => %{"body" => body, "phone_number" => phone_number, "type" => type}}}
+      end)
+
       conn = patch(conn, medication_request_path(conn, :reject, medication_request["id"]), %{reject_reason: "TEST"})
 
       assert json_response(conn, 200)
@@ -582,6 +587,10 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
           medical_program_id: medical_program_id,
           medication_id: innm_dosage_id
         })
+
+      expect(OTPVerificationMock, :send_sms, fn phone_number, body, type, _ ->
+        {:ok, %{"data" => %{"body" => body, "phone_number" => phone_number, "type" => type}}}
+      end)
 
       expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
         {:ok,
