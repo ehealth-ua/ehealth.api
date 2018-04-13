@@ -162,6 +162,10 @@ defmodule EHealth.Web.FallbackController do
     |> render(EView.Views.Error, :"501")
   end
 
+  def auth_error(conn, {:invalid_token, :token_expired}, _opts) do
+    call(conn, {:error, {:access_denied, "JWT expired"}})
+  end
+
   def auth_error(conn, _, _opts) do
     call(conn, {:error, :access_denied})
   end

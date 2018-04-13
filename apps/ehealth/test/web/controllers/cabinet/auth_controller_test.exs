@@ -265,17 +265,19 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
     test "JWT expired", %{conn: conn} do
       jwt =
-        "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJFSGVhbHRoIiwiZW1haWwiOiJlbWFpbEBleGFtcGxlLmNvbSIsImV4" <>
-          "cCI6MTUyMDg2MzE3NCwiaWF0IjoxNTIwODYzMTE0LCJpc3MiOiJFSGVhbHRoIiwianRpIjoiZTM3MTAxYTAtYjc4Yy00YWE0LWI" <>
-          "xMGUtYzhhMzBjMTAxM2E4IiwibmJmIjoxNTIwODYzMTEzLCJzdWIiOiJlbWFpbEBleGFtcGxlLmNvbSIsInR5cCI6ImFjY2Vzcy" <>
-          "J9.CjvgesAPspb1I9jzAPNm48x_KSmbgLHvh8lvocPzFpRPbiUC7N6OWivfcsV4pEOo8vR19qD9Hy6gxiZ-Cx5kRg"
+        "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJlbWFpbC12ZXJpZmljYXRpb24iLCJlbWFpbCI6ImVtYWlsQGV4YW1w" <>
+          "bGUuY29tIiwiZXhwIjoxNTIzNTY0NzUyLCJpYXQiOjE1MjM1NjQ2OTIsImlzcyI6IkVIZWFsdGgiLCJqdGkiOiJlMWU1NWIxZS0" <>
+          "1Y2I1LTRjYzAtODU4NC1mZDNjMjlhNGZhOTAiLCJuYmYiOjE1MjM1NjQ2OTEsInN1YiI6ImVtYWlsQGV4YW1wbGUuY29tIiwidH" <>
+          "lwIjoiYWNjZXNzIn0.YplIwmio_NTSDPlDQAmlUDIFsjBRYGxvdebPT1JLadINv5m3KoaR6tYium4lBvuM0XO0vTdlsUP2MgxKv5iagQ"
 
       assert {:error, :token_expired} = decode_and_verify(jwt)
 
-      conn
-      |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
-      |> post(cabinet_auth_path(conn, :email_validation))
-      |> json_response(401)
+      assert "JWT expired" ==
+               conn
+               |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
+               |> post(cabinet_auth_path(conn, :email_validation))
+               |> json_response(401)
+               |> get_in(~w(error message))
     end
   end
 

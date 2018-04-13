@@ -137,7 +137,7 @@ defmodule EHealth.Cabinet.API do
     with {:ok, email} <- fetch_email_from_jwt(jwt),
          true <- email_available_for_registration?(email, headers),
          ttl <- Confex.fetch_env!(:ehealth, __MODULE__)[:jwt_ttl_registration],
-         {:ok, jwt, _claims} <- generate_jwt(Guardian.get_aud(:registration), email, {ttl, :hours}) do
+         {:ok, jwt, _claims} <- generate_jwt(Guardian.get_aud(:registration), email, {ttl, :minutes}) do
       {:ok, jwt}
     end
   end
