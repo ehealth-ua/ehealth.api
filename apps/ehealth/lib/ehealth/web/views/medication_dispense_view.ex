@@ -38,6 +38,7 @@ defmodule EHealth.Web.MedicationDispenseView do
     |> Map.take(~w(
       id
       dispensed_at
+      dispensed_by
       status
       inserted_at
       inserted_by

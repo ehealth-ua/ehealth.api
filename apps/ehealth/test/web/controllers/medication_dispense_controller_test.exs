@@ -1275,7 +1275,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         |> Map.get("data")
 
       assert 1 == length(resp)
-      assert medication_request["id"] == resp |> hd |> get_in(~w(medication_request id))
+      assert medication_request["id"] == resp |> hd() |> get_in(~w(medication_request id))
     end
 
     test "party_user not found", %{conn: conn} do
@@ -1290,7 +1290,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       %{
         medication_request_id: UUID.generate(),
         dispensed_at: Date.utc_today() |> Date.to_string(),
-        employee_id: UUID.generate(),
+        dispensed_by: "John Doe #{:rand.uniform(100)}",
         division_id: UUID.generate(),
         medical_program_id: UUID.generate(),
         dispense_details: [

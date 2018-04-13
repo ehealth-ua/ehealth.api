@@ -356,6 +356,10 @@
           "type": "string",
           "description": "date of dispense"
         },
+        "dispensed_by": {
+          "type": "string",
+          "description": "pharmacist who created dispense"
+        },
         "party": {
           "type": "object",
           "properties": {

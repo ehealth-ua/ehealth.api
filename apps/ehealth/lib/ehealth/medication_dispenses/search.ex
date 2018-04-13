@@ -4,7 +4,7 @@ defmodule EHealth.MedicationDispenses.Search do
   use Ecto.Schema
 
   @primary_key false
-  schema "medication_dispenses_search" do
+  embedded_schema do
     field(:id, Ecto.UUID)
     field(:medication_request_id, Ecto.UUID)
     field(:legal_entity_id, Ecto.UUID)
@@ -14,5 +14,6 @@ defmodule EHealth.MedicationDispenses.Search do
     field(:dispensed_to, :date)
     field(:page, :integer)
     field(:page_size, :integer)
+    field(:dispensed_by, :string)
   end
 end
