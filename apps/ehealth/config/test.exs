@@ -42,7 +42,7 @@ config :ehealth,
     ops: OPSMock,
     report: ReportMock,
     media_storage: MediaStorageMock,
-    postmark_client: PostmarkClientMock
+    postmark: PostmarkMock
   ]
 
 config :ehealth, :legal_entity_employee_types,

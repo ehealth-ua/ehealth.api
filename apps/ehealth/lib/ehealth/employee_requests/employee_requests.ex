@@ -24,7 +24,8 @@ defmodule EHealth.EmployeeRequests do
   alias EHealth.Employees
   alias EHealth.BlackListUsers
   alias EHealth.EventManager
-  alias EHealth.GlobalParameters
+  alias EHealth.Email.Postmark
+  alias EHealth.Utils.Log
 
   require Logger
 
