@@ -16,7 +16,7 @@ config :ehealth,
     ops: EHealth.API.OPS,
     report: EHealth.API.Report,
     media_storage: EHealth.API.MediaStorage,
-    postmark_client: EHealth.API.PostmarkClient
+    postmark: EHealth.API.Postmark
   ]
 
 # Configures the endpoint
@@ -230,6 +230,8 @@ config :ehealth, :medication_request,
 config :ehealth, EHealth.Bamboo.Emails.Sender, mailer: {:system, :module, "BAMBOO_MAILER"}
 
 # Configures bamboo
+config :ehealth, EHealth.API.Postmark, endpoint: {:system, "POSTMARK_ENDPOINT"}
+
 config :ehealth, EHealth.Bamboo.PostmarkMailer,
   adapter: EHealth.Bamboo.PostmarkAdapter,
   api_key: {:system, "POSTMARK_API_KEY", ""}

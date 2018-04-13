@@ -25,8 +25,7 @@ defmodule EHealth.EmployeeRequests do
   alias EHealth.BlackListUsers
   alias EHealth.EventManager
   alias EHealth.Utils.Log
-
-  @postmark_client Application.get_env(:ehealth, :api_resolvers)[:postmark_client]
+  alias EHealth.Email.Postmark
 
   @status_new Request.status(:new)
   @status_approved Request.status(:approved)
@@ -476,7 +475,7 @@ defmodule EHealth.EmployeeRequests do
         Log.error(%{"message" => error.message})
 
         with true <- should_activate_email?(error, attempts),
-             {:ok, _} <- @postmark_client.activate_email(email) do
+             {:ok, _} <- Postmark.activate_email(email) do
           send_email_with_retry_on_inactive(email, body, email_config, attempts)
         else
           _ -> {:error, "can not sent message"}
