@@ -489,7 +489,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
                     "building" => "15"
                   }
                 ],
-                "authentication_methods" => [%{"type" => "OFFLINE"}],
+                "authentication_methods" => [%{"type" => "OTP", "phone_number" => "+380991112233"}],
                 "emergency_contact" => %{
                   "first_name" => "Петро",
                   "last_name" => "Іванов",

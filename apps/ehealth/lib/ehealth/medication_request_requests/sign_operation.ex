@@ -2,11 +2,9 @@ defmodule EHealth.MedicationRequestRequest.SignOperation do
   @moduledoc false
   import EHealth.MedicationRequestRequest.OperationHelpers
 
-  alias EHealth.API.OPS
   alias EHealth.Utils.Connection
   alias EHealth.API.MediaStorage
-  alias EHealth.MedicationRequestRequest.Operation
-  alias EHealth.MedicationRequestRequest.Validations
+  alias EHealth.MedicationRequestRequest.{Operation, Validations}
 
   @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]
 
