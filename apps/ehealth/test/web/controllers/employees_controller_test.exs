@@ -14,6 +14,12 @@ defmodule EHealth.Web.EmployeesControllerTest do
       %{id: legal_entity_id} = legal_entity
       party1 = insert(:prm, :party, tax_id: "2222222225")
       party2 = insert(:prm, :party, tax_id: "2222222224")
+
+      expect(ReportMock, :get_declaration_count, fn _, _ ->
+        {:ok,
+         %{"data" => [%{"id" => party1.id, "declaration_count" => 10}, %{"id" => party2.id, "declaration_count" => 10}]}}
+      end)
+
       insert(:prm, :employee, legal_entity: legal_entity, party: party1)
 
       insert(
@@ -40,6 +46,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
       assert legal_entity_id == second["legal_entity"]["id"]
       assert Enum.any?(resp["data"], &Map.has_key?(&1, "doctor"))
       assert Enum.any?(resp["data"], &Map.has_key?(&1, "pharmacist"))
+      assert 10 == hd(resp["data"])["party"]["declaration_count"]
     end
 
     test "filter employees by invalid party_id", %{conn: conn} do
