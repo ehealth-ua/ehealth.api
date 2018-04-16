@@ -1,0 +1,7 @@
+Change log for versions 7.101.0 - 7.101.1
+
+**Patches and bug fixes**:
+
+- improved ResponseDecoder for mapping failed response with empty body (#2172)
+
+
