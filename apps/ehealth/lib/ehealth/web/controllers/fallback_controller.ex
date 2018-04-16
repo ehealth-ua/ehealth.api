@@ -146,6 +146,20 @@ defmodule EHealth.Web.FallbackController do
     |> render(Error, :"409", reason)
   end
 
+  def call(conn, {:error, {:empty_body, code}}) do
+    Logger.error(fn ->
+      Poison.encode!(%{
+        "log_type" => "error",
+        "message" => "Proxied response with empty body. Status code: #{code}",
+        "request_id" => Logger.metadata()[:request_id]
+      })
+    end)
+
+    conn
+    |> put_status(code)
+    |> render(Error, :"400", %{message: "Proxied response with empty body"})
+  end
+
   def call(conn, {:error, {:response_json_decoder, reason}}) do
     Logger.error(fn ->
       Poison.encode!(%{

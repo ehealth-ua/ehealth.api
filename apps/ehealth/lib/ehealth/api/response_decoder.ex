@@ -11,15 +11,14 @@ defmodule EHealth.API.ResponseDecoder do
     decode_response(body)
   end
 
-  def check_response(%HTTPoison.Response{body: body}) do
-    # TODO: add response logging here
-    body
-    |> decode_response()
-    |> map_response(:error)
-  end
+  def check_response(%HTTPoison.Response{status_code: code, body: ""}), do: {:error, {:empty_body, code}}
 
-  def map_response({:ok, body}, type), do: {type, body}
-  def map_response({:error, body}, type), do: {type, body}
+  def check_response(%HTTPoison.Response{body: body}) do
+    case decode_response(body) do
+      {:ok, body} -> {:error, body}
+      err -> err
+    end
+  end
 
   # no body in response
   def decode_response(""), do: {:ok, ""}
