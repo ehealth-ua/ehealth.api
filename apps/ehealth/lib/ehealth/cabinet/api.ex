@@ -116,7 +116,7 @@ defmodule EHealth.Cabinet.API do
   defp check_user_blocked(_), do: :ok
 
   defp check_user_by_tax_id(%{"tax_id" => tax_id}) when is_binary(tax_id) and byte_size(tax_id) > 0 do
-    {:error, {:conflict, "User with this tax_id already exists"}}
+    {:error, {:conflict, %{message: "User with this tax_id already exists", type: :tax_id_exists}}}
   end
 
   defp check_user_by_tax_id(_), do: :ok
@@ -183,7 +183,7 @@ defmodule EHealth.Cabinet.API do
   def email_available_for_registration?(email, headers) do
     case @mithril_api.search_user(%{email: email}, headers) do
       {:ok, %{"data" => [%{"tax_id" => tax_id}]}} when is_binary(tax_id) and byte_size(tax_id) > 0 ->
-        {:error, {:conflict, "User with this email already exists"}}
+        {:error, {:conflict, %{message: "User with this email already exists", type: "email_exists"}}}
 
       {:ok, _} ->
         true
@@ -232,10 +232,10 @@ defmodule EHealth.Cabinet.API do
   end
 
   defp fetch_drfo(%{"drfo" => drfo}), do: {:ok, drfo}
-  defp fetch_drfo(_signer), do: {:error, {:conflict, "DRFO in DS not present"}}
+  defp fetch_drfo(_signer), do: {:error, {:conflict, %{message: "DRFO in DS not present", type: :drfo_not_present}}}
 
   defp check_mithril_user_absence({:ok, %{"data" => data}}) when length(data) > 0 do
-    {:error, {:conflict, "User with this tax_id already exists"}}
+    {:error, {:conflict, %{message: "User with this tax_id already exists", type: :tax_id_exists}}}
   end
 
   defp check_mithril_user_absence({:ok, _}), do: :ok

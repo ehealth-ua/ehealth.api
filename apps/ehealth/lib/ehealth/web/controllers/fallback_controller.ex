@@ -4,6 +4,8 @@ defmodule EHealth.Web.FallbackController do
   """
   use EHealth.Web, :controller
 
+  alias EView.Views.{Error, PhoenixError, ValidationError}
+
   require Logger
 
   def call(conn, {:error, %{"paging" => %{"total_pages" => pages}}}) when pages > 1 do
@@ -12,25 +14,25 @@ defmodule EHealth.Web.FallbackController do
 
     conn
     |> put_status(:forbidden)
-    |> render(EView.Views.PhoenixError, :"403", %{message: forbidden_message})
+    |> render(PhoenixError, :"403", %{message: forbidden_message})
   end
 
   def call(conn, {:error, json_schema_errors}) when is_list(json_schema_errors) do
     conn
     |> put_status(422)
-    |> render(EView.Views.ValidationError, "422.json", %{schema: json_schema_errors})
+    |> render(ValidationError, "422.json", %{schema: json_schema_errors})
   end
 
   def call(conn, {:error, errors, :query_parameter}) when is_list(errors) do
     conn
     |> put_status(422)
-    |> render(EView.Views.ValidationError, "422.query.json", %{schema: errors})
+    |> render(ValidationError, "422.query.json", %{schema: errors})
   end
 
   def call(conn, {:error, {:"422", error}}) do
     conn
     |> put_status(422)
-    |> render(EView.Views.Error, :"400", %{message: error})
+    |> render(Error, :"400", %{message: error})
   end
 
   @doc """
@@ -43,7 +45,7 @@ defmodule EHealth.Web.FallbackController do
   def call(conn, {:error, _ecto_multi_key, %Ecto.Changeset{valid?: false} = changeset, _}) do
     conn
     |> put_status(:unprocessable_entity)
-    |> render(EView.Views.ValidationError, :"422", changeset)
+    |> render(ValidationError, :"422", changeset)
   end
 
   def call(conn, {:error, _ecto_multi_key, reason, _}) do
@@ -57,31 +59,37 @@ defmodule EHealth.Web.FallbackController do
   def call(conn, {:error, %Ecto.Changeset{valid?: false} = changeset}) do
     conn
     |> put_status(:unprocessable_entity)
-    |> render(EView.Views.ValidationError, :"422", changeset)
+    |> render(ValidationError, :"422", changeset)
   end
 
   def call(conn, {:error, {:bad_request, reason}}) when is_binary(reason) do
     conn
     |> put_status(:bad_request)
-    |> render(EView.Views.Error, :"400", %{message: reason})
+    |> render(Error, :"400", %{message: reason})
   end
 
   def call(conn, {:error, :access_denied}) do
     conn
     |> put_status(:unauthorized)
-    |> render(EView.Views.Error, :"401")
+    |> render(Error, :"401")
+  end
+
+  def call(conn, {:error, {:access_denied, reason}}) when is_map(reason) do
+    conn
+    |> put_status(:unauthorized)
+    |> render(Error, :"401", reason)
   end
 
   def call(conn, {:error, {:access_denied, reason}}) do
     conn
     |> put_status(:unauthorized)
-    |> render(EView.Views.Error, :"401", %{message: reason})
+    |> render(Error, :"401", %{message: reason})
   end
 
   def call(conn, {:error, :invalid_role}) do
     conn
     |> put_status(:bad_request)
-    |> render(EView.Views.Error, :"400", %{message: "User OAuth role does not exists"})
+    |> render(Error, :"400", %{message: "User OAuth role does not exists"})
   end
 
   def call(conn, {:error, %{"type" => "not_found"}}) do
@@ -91,47 +99,51 @@ defmodule EHealth.Web.FallbackController do
   def call(conn, {:error, :not_found}) do
     conn
     |> put_status(:not_found)
-    |> render(EView.Views.Error, :"404")
+    |> render(Error, :"404")
   end
 
   def call(conn, {:error, :forbidden}) do
     conn
     |> put_status(:forbidden)
-    |> render(EView.Views.Error, :"403")
+    |> render(Error, :"403")
   end
 
   def call(conn, {:error, {:forbidden, reason}}) do
     conn
     |> put_status(:forbidden)
-    |> render(EView.Views.Error, :"403", %{message: reason})
+    |> render(Error, :"403", %{message: reason})
   end
 
   def call(conn, {:error, %{"type" => "internal_error"}}) do
     conn
     |> put_status(:internal_server_error)
-    |> render(EView.Views.Error, :"500", %{type: "proxied error", message: "remote server internal error"})
+    |> render(Error, :"500", %{type: "proxied error", message: "remote server internal error"})
   end
 
   def call(conn, {:error, {:internal_error, message}}) do
     conn
     |> put_status(:internal_server_error)
-    |> render(EView.Views.Error, :"500", %{message: message})
+    |> render(Error, :"500", %{message: message})
   end
 
   def call(conn, nil) do
     conn
     |> put_status(:not_found)
-    |> render(EView.Views.Error, :"404")
+    |> render(Error, :"404")
   end
 
   def call(conn, {:error, {:conflict, reason}}) do
     call(conn, {:conflict, reason})
   end
 
-  def call(conn, {:conflict, reason}) do
+  def call(conn, {:conflict, reason}) when is_binary(reason) do
+    call(conn, {:conflict, %{message: reason}})
+  end
+
+  def call(conn, {:conflict, reason}) when is_map(reason) do
     conn
     |> put_status(:conflict)
-    |> render(EView.Views.Error, :"409", %{message: reason})
+    |> render(Error, :"409", reason)
   end
 
   def call(conn, {:error, {:response_json_decoder, reason}}) do
@@ -145,7 +157,7 @@ defmodule EHealth.Web.FallbackController do
 
     conn
     |> put_status(:failed_dependency)
-    |> render(EView.Views.Error, :"424", %{message: "Cannot decode HTTP JSON response"})
+    |> render(Error, :"424", %{message: "Cannot decode HTTP JSON response"})
   end
 
   def call(conn, params) do
@@ -159,11 +171,11 @@ defmodule EHealth.Web.FallbackController do
 
     conn
     |> put_status(:not_implemented)
-    |> render(EView.Views.Error, :"501")
+    |> render(Error, :"501")
   end
 
   def auth_error(conn, {:invalid_token, :token_expired}, _opts) do
-    call(conn, {:error, {:access_denied, "JWT expired"}})
+    call(conn, {:error, {:access_denied, %{message: "JWT expired", type: :jwt_expired}}})
   end
 
   def auth_error(conn, _, _opts) do
