@@ -81,6 +81,14 @@ defmodule EHealth.Web.DeclarationRequestController do
         |> send_resp(422, errors)
 
       error ->
+        Logger.error(fn ->
+          Poison.encode!(%{
+            "log_type" => "error",
+            "message" => "Failed to sign Declaration Request \"#{params["id"]}\". Reason: #{inspect(error)}",
+            "request_id" => Logger.metadata()[:request_id]
+          })
+        end)
+
         error
     end
   end
