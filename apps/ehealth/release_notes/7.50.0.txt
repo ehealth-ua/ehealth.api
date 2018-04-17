@@ -1,0 +1,32 @@
+Change log for versions 7.50.0 - 7.50.5
+
+**Minor changes**:
+
+Additional logging for Declaration Request Sign errors (#2179)
+add employee request speciality migration (#2116)
+add employee request speciality migration
+fix employee_requests speciality migration
+fix employee specialities migration
+fix handle 422 persons search on declaration request sign (#2117)
+
+**Patches and bug fixes**:
+
+Build container for preprod
+- improved ResponseDecoder for mapping failed response with empty body (#2172)
+- fix unique constraint error on Declaration Creation (#2125)
+- fix unique constraint error
+- godfix
+send 422 on person create validation error during sign declaration request (#2112)
+Revert "[patch] get speciality officio on declaration request create (#2053)" (#2097)
+
+**Other**:
+
+fixed Docker pwd conf
+skip test with expired JWT for Cabinet
+Hotfix to 7.50.4
+(cherry picked from commit e90a4e6)
+(cherry picked from commit aa49303)
+Hotfix to 7.50.3
+prod hotfix
+Preprod hotfix
+This reverts commit 50fc89dfc4b4347e919cb22c5aab85518a964f9c.
