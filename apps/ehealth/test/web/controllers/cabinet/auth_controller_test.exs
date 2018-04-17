@@ -192,6 +192,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
       |> json_response(401)
     end
 
+    @tag :pending
     test "invalid JWT claim", %{conn: conn} do
       jwt =
         "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJFSGVhbHRoIiwiZXhwIjoxNTIzMjgwNTYwLCJpYXQiOjE1MjA4" <>
