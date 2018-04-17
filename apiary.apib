@@ -1149,6 +1149,29 @@ Method logic described on [confluence page](https://edenlab.atlassian.net/wiki/p
 + Response 200 (application/json)
     + Attributes (Response_OK)
 
+## Parties [/parties]
+
+### Get declaration count internal [POST /api/parties/declaration_count/{ids}]
+
+This service returns parties.declaration_count from report DB for get employees services.
+
++ Parameters
+    + ids: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - id of a party
+
++ Request (application/json)
+
+    + Headers
+
++ Response 200 (application/json)
+    + Attributes (`Response_Collection_V2`)
+
+        + data (array)
+
+            + (object)
+
+                + `declaration_count`: 1234 (number, required) - declaration_count for a certain party id in report DB
+                + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - id of a party
+
 # Group Internal. Media Content Storage
 
 Media Content Storage is using Google Cloud Storage as storage back-end and [Signed URL's](https://cloud.google.com/storage/docs/access-control/create-signed-urls-program) for access control policies. 
@@ -2046,7 +2069,7 @@ JWT_token:
             Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InNwLnZpcm55QGdtYWlsLmNvbSIsInRpbWVzdGFtcCI6IjIwMTgtMDItMjggMTA6Mzg6MDAifQ.LJRLTqK-zf9gxDNMONcI8cMCSYosDtmAIZqhzZUdhz4
 
     + Attributes (object)
-        + `signed_person_data`: `ewogICAgImZpcnN0X25hbWUiOiAi0J/QtdGC0YDQviIsCiAgICAibGFzdF9uYW1lIjogItCG0LLQsNC90L7QsiIsCiAgICAic2Vjb25kX25hbWUiOiAi0JzQuNC60L7Qu9Cw0LnQvtCy0LjRhyIsCiAgICAiYmlydGhfZGF0ZSI6ICIxOTkxLTA4LTE5IiwKICAgICJiaXJ0aF9jb3VudHJ5IjogItCj0LrRgNCw0ZfQvdCwIiwKICAgICJiaXJ0aF9zZXR0bGVtZW50IjogItCS0ZbQvdC90LjRhtGPIiwKICAgICJnZW5kZXIiOiAiTUFMRSIsCiAgICAiZW1haWwiOiAiZW1haWxAZXhhbXBsZS5jb20iLAogICAgInRheF9pZCI6ICIzMTI2NTA5ODE2IiwKICAgICJzZWNyZXQiOiAic2VjcmV0IiwKICAgICJkb2N1bWVudHMiOiBbCiAgICAgIHsKICAgICAgICAidHlwZSI6ICJQQVNTUE9SVCIsCiAgICAgICAgIm51bWJlciI6ICIxMjA1MTgiLAogICAgICAgICJpc3N1ZWRfYnkiOiAi0KDQvtC60LjRgtC90Y/QvdGB0YzQutC40Lwg0KDQkiDQk9CjINCc0JLQoSDQmtC40ZfQstGB0YzQutC+0Zcg0L7QsdC70LDRgdGC0ZYiLAogICAgICAgICJpc3N1ZWRfYXQiOiAiMjAxNy0wMi0yOCIKICAgICAgfQogICAgXSwKICAgICJhZGRyZXNzZXMiOiBbCiAgICAgIHsKICAgICAgICAidHlwZSI6ICJSRVNJREVOQ0UiLAogICAgICAgICJjb3VudHJ5IjogIlVBIiwKICAgICAgICAiYXJlYSI6ICLQltC40YLQvtC80LjRgNGB0YzQutCwIiwKICAgICAgICAicmVnaW9uIjogItCR0LXRgNC00LjRh9GW0LLRgdGM0LrQuNC5IiwKICAgICAgICAic2V0dGxlbWVudCI6ICLQmtC40ZfQsiIsCiAgICAgICAgInNldHRsZW1lbnRfdHlwZSI6ICJDSVRZIiwKICAgICAgICAic2V0dGxlbWVudF9pZCI6ICI0MzQzMjQzMiIsCiAgICAgICAgInN0cmVldF90eXBlIjogIlNUUkVFVCIsCiAgICAgICAgInN0cmVldCI6ICLQstGD0LsuINCd0ZbQttC40L3RgdGM0LrQsCIsCiAgICAgICAgImJ1aWxkaW5nIjogIjE1IiwKICAgICAgICAiYXBhcnRtZW50IjogIjIzIiwKICAgICAgICAiemlwIjogIjAyMDkwIgogICAgICB9CiAgICBdLAogICAgInBob25lcyI6IFsKICAgICAgewogICAgICAgICJ0eXBlIjogIk1PQklMRSIsCiAgICAgICAgIm51bWJlciI6ICIrMzgwNTAzNDEwODcwIgogICAgICB9CiAgICBdLAogICAgImF1dGhlbnRpY2F0aW9uX21ldGhvZHMiOiBbCiAgICAgIHsKICAgICAgICAidHlwZSI6ICJPVFAiLAogICAgICAgICJwaG9uZV9udW1iZXIiOiAiKzM4MDUwODg4NzcwMCIKICAgICAgfQogICAgXSwKICAgICJwcmVmZXJyZWRfd2F5X2NvbW11bmljYXRpb24iOiAiZW1haWwiLAogICAgImVtZXJnZW5jeV9jb250YWN0IjogewogICAgICAiZmlyc3RfbmFtZSI6ICLQn9C10YLRgNC+IiwKICAgICAgImxhc3RfbmFtZSI6ICLQhtCy0LDQvdC+0LIiLAogICAgICAic2Vjb25kX25hbWUiOiAi0JzQuNC60L7Qu9Cw0LnQvtCy0LjRhyIsCiAgICAgICJwaG9uZXMiOiBbCiAgICAgICAgewogICAgICAgICAgInR5cGUiOiAiTU9CSUxFIiwKICAgICAgICAgICJudW1iZXIiOiAiKzM4MDUwMzQxMDg3MCIKICAgICAgICB9CiAgICAgIF0KICAgIH0sCiAgICAicHJvY2Vzc19kaXNjbG9zdXJlX2RhdGFfY29uc2VudCI6IHRydWUKICB9Cn0=` (string, required)
+        + `signed_content`: `ewogICAgImZpcnN0X25hbWUiOiAi0J/QtdGC0YDQviIsCiAgICAibGFzdF9uYW1lIjogItCG0LLQsNC90L7QsiIsCiAgICAic2Vjb25kX25hbWUiOiAi0JzQuNC60L7Qu9Cw0LnQvtCy0LjRhyIsCiAgICAiYmlydGhfZGF0ZSI6ICIxOTkxLTA4LTE5IiwKICAgICJiaXJ0aF9jb3VudHJ5IjogItCj0LrRgNCw0ZfQvdCwIiwKICAgICJiaXJ0aF9zZXR0bGVtZW50IjogItCS0ZbQvdC90LjRhtGPIiwKICAgICJnZW5kZXIiOiAiTUFMRSIsCiAgICAiZW1haWwiOiAiZW1haWxAZXhhbXBsZS5jb20iLAogICAgInRheF9pZCI6ICIzMTI2NTA5ODE2IiwKICAgICJzZWNyZXQiOiAic2VjcmV0IiwKICAgICJkb2N1bWVudHMiOiBbCiAgICAgIHsKICAgICAgICAidHlwZSI6ICJQQVNTUE9SVCIsCiAgICAgICAgIm51bWJlciI6ICIxMjA1MTgiLAogICAgICAgICJpc3N1ZWRfYnkiOiAi0KDQvtC60LjRgtC90Y/QvdGB0YzQutC40Lwg0KDQkiDQk9CjINCc0JLQoSDQmtC40ZfQstGB0YzQutC+0Zcg0L7QsdC70LDRgdGC0ZYiLAogICAgICAgICJpc3N1ZWRfYXQiOiAiMjAxNy0wMi0yOCIKICAgICAgfQogICAgXSwKICAgICJhZGRyZXNzZXMiOiBbCiAgICAgIHsKICAgICAgICAidHlwZSI6ICJSRVNJREVOQ0UiLAogICAgICAgICJjb3VudHJ5IjogIlVBIiwKICAgICAgICAiYXJlYSI6ICLQltC40YLQvtC80LjRgNGB0YzQutCwIiwKICAgICAgICAicmVnaW9uIjogItCR0LXRgNC00LjRh9GW0LLRgdGM0LrQuNC5IiwKICAgICAgICAic2V0dGxlbWVudCI6ICLQmtC40ZfQsiIsCiAgICAgICAgInNldHRsZW1lbnRfdHlwZSI6ICJDSVRZIiwKICAgICAgICAic2V0dGxlbWVudF9pZCI6ICI0MzQzMjQzMiIsCiAgICAgICAgInN0cmVldF90eXBlIjogIlNUUkVFVCIsCiAgICAgICAgInN0cmVldCI6ICLQstGD0LsuINCd0ZbQttC40L3RgdGM0LrQsCIsCiAgICAgICAgImJ1aWxkaW5nIjogIjE1IiwKICAgICAgICAiYXBhcnRtZW50IjogIjIzIiwKICAgICAgICAiemlwIjogIjAyMDkwIgogICAgICB9CiAgICBdLAogICAgInBob25lcyI6IFsKICAgICAgewogICAgICAgICJ0eXBlIjogIk1PQklMRSIsCiAgICAgICAgIm51bWJlciI6ICIrMzgwNTAzNDEwODcwIgogICAgICB9CiAgICBdLAogICAgImF1dGhlbnRpY2F0aW9uX21ldGhvZHMiOiBbCiAgICAgIHsKICAgICAgICAidHlwZSI6ICJPVFAiLAogICAgICAgICJwaG9uZV9udW1iZXIiOiAiKzM4MDUwODg4NzcwMCIKICAgICAgfQogICAgXSwKICAgICJwcmVmZXJyZWRfd2F5X2NvbW11bmljYXRpb24iOiAiZW1haWwiLAogICAgImVtZXJnZW5jeV9jb250YWN0IjogewogICAgICAiZmlyc3RfbmFtZSI6ICLQn9C10YLRgNC+IiwKICAgICAgImxhc3RfbmFtZSI6ICLQhtCy0LDQvdC+0LIiLAogICAgICAic2Vjb25kX25hbWUiOiAi0JzQuNC60L7Qu9Cw0LnQvtCy0LjRhyIsCiAgICAgICJwaG9uZXMiOiBbCiAgICAgICAgewogICAgICAgICAgInR5cGUiOiAiTU9CSUxFIiwKICAgICAgICAgICJudW1iZXIiOiAiKzM4MDUwMzQxMDg3MCIKICAgICAgICB9CiAgICAgIF0KICAgIH0sCiAgICAicHJvY2Vzc19kaXNjbG9zdXJlX2RhdGFfY29uc2VudCI6IHRydWUKICB9Cn0=` (string, required)
         + `signed_content_encoding`: base64 (string, required)
         + password: `passWoRd1` (string, required)
         + otp: `1234` (string, required)
@@ -2075,26 +2098,45 @@ JWT_token:
                 + `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
             + acess_token: `my-oauth-token` (string, required) - access token 
 
-### Get Nonce [GET /api/cabinet/nonce]
-
+### Get Nonce [GET /oauth/nonce]
+```
+{
+  "aud": "mithril-login",
+  "exp": 1523439201,
+  "iat": 1523438301,
+  "iss": "EHealth",
+  "jti": "efe1f08e-d4b4-4cef-a02c-78ea4a1dda25",
+  "nbf": 1523438300,
+  "nonce": 123,
+  "sub": 123,
+  "typ": "access"
+}
+```
 + Request (application/json)
-
+    
     + Attributes (object)
-        + client_id: '7e9cffd9-c75f-45fb-badf-6e8d20b6a8a8' (string, required)
+        + `client_id`: `30074b6e-fbab-4dc1-9d37-88c21dab1847` (string, required)
+        
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
         + data (object)
-            + client_id: '7e9cffd9-c75f-45fb-badf-6e8d20b6a8a8' (string, required)
-            + nonce: 'sha256-076c8f1ca6979ef156b510a121b69b6265011597557ca2971db5ad5a2743545f' (string, required)
+           + token: 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJtaXRocmlsLWxvZ2luIiwiZXhwIjoxNTIzNDM5MjAxLCJpYXQiOjE1MjM0MzgzMDEsImlzcyI6IkVIZWFsdGgiLCJqdGkiOiJlZmUxZjA4ZS1kNGI0LTRjZWYtYTAyYy03OGVhNGExZGRhMjUiLCJuYmYiOjE1MjM0MzgzMDAsIm5vbmNlIjoxMjMsInN1YiI6MTIzLCJ0eXAiOiJhY2Nlc3MifQ.UZ6S92h3nAG-GKY_XUE1Rc6uR_BuqR8ufUJfMhhKtNmt7DkkQlU49qPXjL0LFddVz1E2DXi2a-BQ0FG-DHsTHA' (string, required)
 
-### Get User [GET /api/cabinet/users{?tax_id}]
+### Get User [POST /api/cabinet/users{?tax_id}]
 
 Thie WS designed to check existence of user with input tax_id
 
-+ Parameters
-    + tax_id: 2950445646 (string, required)
++ Request (application/json)
 
+    + Headers
+
+            Authorization: Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJlbWFpbC12ZXJpZmljYXRpb24iLCJlbWFpbCI6ImJvZ2RhbmEua29ub3ZhbGVua28rOEBnbWFpbC5jb20iLCJleHAiOjE1MjM2MzMwMTksImlhdCI6MTUyMzM3MzgxOSwiaXNzIjoiRUhlYWx0aCIsImp0aSI6ImY0NWYyYzI1LWY1N2ItNGM5Yy04Y2UxLTY4OWZjYzVmYWE2MiIsIm5iZiI6MTUyMzM3MzgxOCwic3ViIjoiYm9nZGFuYS5rb25vdmFsZW5rbys4QGdtYWlsLmNvbSIsInR5cCI6ImFjY2VzcyJ9.dng-m1uZO0CQa_TnQZhO2ZnR8kUcZiNl6Y-RW7oGYIUOyYLBW9ng51_Hiw0_JpUkDR4R9Yq_KS4UvdEUFz3i7A (string, required)
+ 
+    + Attributes (object)
+        + `signed_content`: `eyJqd3QiOiAiZXlKaGJHY2lPaUpJVXpVeE1pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SmhkV1FpT2lKallXSnBibVYwTFhKbFoybHpkSEpoZEdsdmJpSXNJbVZ0WVdsc0lqb2lZbTluWkdGdVlTNXJiMjV2ZG1Gc1pXNXJieXMwTmtCbmJXRnBiQzVqYjIwaUxDSmxlSEFpT2pFMU1qTTJNekl6TWpnc0ltbGhkQ0k2TVRVeU16WXpNakkyT0N3aWFYTnpJam9pUlVobFlXeDBhQ0lzSW1wMGFTSTZJalUxTVRnek1XVTFMVFV3TUdZdE5HSTBaQzFpWmpoaExUQmpaREpoTm1RMlpEWmhPU0lzSW01aVppSTZNVFV5TXpZek1qSTJOeXdpYzNWaUlqb2lZbTluWkdGdVlTNXJiMjV2ZG1Gc1pXNXJieXMwTmtCbmJXRnBiQzVqYjIwaUxDSjBlWEFpT2lKaFkyTmxjM01pZlEuV2h0MU5teEVYRXA1cHI0ekN5YzIwNFJGYkx6V0ZxX2pPZ2d0U00wdGFpa2hhQW1jVHYwampRMEVrbURyQ2M3eDQ5T0pkOG9SWEFmQjhlblNCSC1qVlEifQ==` (string, required)
+        + `signed_content_encoding`: `base64` (string, required)
+        
 + Response 200 (application/json)
     + Attributes (Response_OK)
         + data (object)
@@ -2507,7 +2549,7 @@ Method returns shortened details, to obtain full information - get Declaration R
         - NEW
         - APPROVED
         - SIGNED
-        - CANCELLED
+        - REJECTED
     + page: 2 (number, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
     
@@ -2552,6 +2594,9 @@ Method returns shortened details, to obtain full information - get Declaration R
             + division (`Division_Details`)
             + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
             + seed: hash (string, required) - Hash of previous block in declarations chain or other random component that should be signed with declaration.
+            + channel: `MIS` (enum, required) - channel that invoke declaration create service
+                - MIS
+                - CABINET
         + urgent (object, required)
             + `authentication_method_current` (object, required)
                 + type: `OTP` (enum, required)
@@ -2594,6 +2639,7 @@ After sign new declaration all previously created pending (status one of the fol
                 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
             + division (`Division_Details`, required)
             + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
+            + channel: `MIS` (enum, required) - channel that invoke declaration create service
         + urgent (object, required)
             + `authentication_method_current` (object, required)
                 + type: `OTP` (enum, required)
@@ -2655,6 +2701,7 @@ Clients can use signed URL's to directly access Minio storage and upload files v
                 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
             + division (`Division_Details`, required)
             + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
+            + channel: `MIS` (enum, required) - channel that invoke declaration create service
 
 ### Reject Declaration Request [PATCH /api/declaration_requests/{id}/actions/reject]
 
@@ -2683,7 +2730,7 @@ Use this method to reject previously created Declaration Request.
                 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
             + division (`Division_Details`, required)
             + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
-
+            + channel: `MIS` (enum, required) - channel that invoke declaration create service
 
 ### Resend Authorization OTP on Declaration Request [POST /api/declaration_requests/{id}/actions/resend_otp]
 
@@ -4752,7 +4799,7 @@ This method is used to abtain list of events with filters.
 
 ### `media_content`
 + type: `PASSPORT` (string, required)
-+ url: `https://google.com.ua` (string, required)
++ url: `https://storage.ehealth.world` (string, required)
 
 
 ## Declarations
@@ -4801,7 +4848,6 @@ This method is used to abtain list of events with filters.
     + `process_disclosure_data_consent`: true (boolean, required) - Согласие на раскрытие персональных данных
 + scope (enum, required)
     - family doctor
-+ overlimit: false (boolean, optional) - when doctor needs more declaration then in declaration_limit is, overlimit should be true
 + declaration_number: `0000-12H4-245D` (string, required) - unique number of declaration.
 + declaration_id: `8311ab82-e341-4da0-8a95-235ec9885e23` (string, required) - presetted id for future declaration 
 
@@ -4834,8 +4880,8 @@ This method is used to abtain list of events with filters.
 
 ### `Declaration_Request_Short`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - unique id of declaration
-+ declaration_number: `0000-12H4-245D` (string, required) - unique number of declaration.
 + start_date: `2017-03-02` (string, required)
++ end_date: `2025-03-02` (string, required)
 + status (enum, required)
     - active
     - pending_verification
@@ -4862,7 +4908,9 @@ This method is used to abtain list of events with filters.
 + employee_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + inserted_at: `2017-07-06T16:54:05.161571Z` (string, required)
-+ updated_at: `2017-03-02T10:45:16.000Z` (string, optional)
++ is_active: true (boolean, required)
++ reason: `manual_employee` (string, optional)
++ reason_description: `Згідно постанови 1 від 10.01.2017` (string, optional)
 
 ### `Declaration_Details`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -5065,6 +5113,7 @@ This method is used to abtain list of events with filters.
 + position: P6 (string, required) - `Dictionary POSITION`
 + party (object)
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+    + tax_id: `3015492563` (string, required)
     + include `Party_Short`
     + email: email@example.com (string, optional)
     + phones (array[Phone], optional)
@@ -5217,6 +5266,12 @@ This method is used to abtain list of events with filters.
 + `legal_form`: 140 (enum, required) - `Dictionary LEGAL_FORM`
 + mis_verified: true (string, optional)
 
+### `Legal_Entity_For_Declaration_Short`
++ short_name: Ноунейм (string, required)
++ name: Клініка Ноунейм (string, required)
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ edrpou: 5432345432 (string, required)
+
 ### `Legal_Entity_Short_Cabinet`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + name: Клініка Ноунейм (string, required)
@@ -5304,6 +5359,7 @@ This method is used to abtain list of events with filters.
 
 ### `Division_Details`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ `legal_entity_id`: `c8aadb87-ecb9-41ca-9ad4-ffdfe1dd89c9` (string, required)
 + include Division
 
 ### `Division_Details_Cabinet`
@@ -5845,12 +5901,9 @@ This method is used to abtain list of events with filters.
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - id of the signed document stored on the Media content storage
 + declaration_number: `0000-12H4-245D` (string, required) - unique number of declaration.
 + `employee` (`Employee_For_Declaration_Minimal`, required)
-+ `division` (`DivisionName`, required)        
-+ scope (enum, required)
-    - family_doctor
++ `division` (`DivisionName`, required)
 + start_date: `2017-03-02` (string, required)
 + end_date: `2017-03-02` (string, required)
-+ signed_at: `2017-03-02T10:45:16.000Z` (string, required)
 + status (enum, optional)
     - active
     - closed
@@ -5858,8 +5911,10 @@ This method is used to abtain list of events with filters.
 + reason: `manual_employee` (string, optional)
 + reason_description: `Згідно постанови 1 від 10.01.2017` (string, optional)
 + person (`Person_Minimal`, required)
-+ `legal_entity` (`Legal_Entity_Short`, required)
++ `legal_entity` (`Legal_Entity_For_Declaration_Short`, required)
 + `declaration_request_id`: `74a6fae6-4207-4e03-a136-f2e70c6b0c02` (string, required)
++ `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 
 ### `nhs_declaration`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
