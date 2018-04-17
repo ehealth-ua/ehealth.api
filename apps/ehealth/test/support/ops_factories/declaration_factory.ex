@@ -26,7 +26,9 @@ defmodule EHealth.OPSFactories.DeclarationFactory do
           is_active: true,
           scope: "",
           seed: "some seed",
-          declaration_number: sequence(:declaration_number, &"test-declaration-number-#{&1}")
+          declaration_number: sequence(:declaration_number, &"test-declaration-number-#{&1}"),
+          reason: "",
+          reason_description: ""
         }
       end
     end

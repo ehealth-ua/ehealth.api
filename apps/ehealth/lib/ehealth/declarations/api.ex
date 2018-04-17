@@ -13,6 +13,7 @@ defmodule EHealth.Declarations.API do
   alias EHealth.Divisions.Division
   alias EHealth.LegalEntities.LegalEntity
 
+  @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
   @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]
 
   def get_person_declarations(%{} = params, headers) do
@@ -33,7 +34,7 @@ defmodule EHealth.Declarations.API do
   end
 
   def get_declarations(params, headers) do
-    with {:ok, resp} <- OPS.get_declarations(params, headers),
+    with {:ok, resp} <- @ops_api.get_declarations(params, headers),
          related_ids <- fetch_related_ids(Map.fetch!(resp, "data")),
          divisions <- Divisions.get_by_ids(related_ids["division_ids"]),
          employees <- Employees.get_by_ids(related_ids["employee_ids"]),
@@ -73,7 +74,7 @@ defmodule EHealth.Declarations.API do
   end
 
   defp preload_persons("", _), do: {:ok, %{"data" => []}}
-  defp preload_persons(ids, headers), do: MPI.search(%{ids: ids}, headers)
+  defp preload_persons(ids, headers), do: @mpi_api.search(%{ids: ids}, headers)
 
   defp put_related_id(list, id) do
     case Enum.member?(list, id) do
@@ -134,7 +135,7 @@ defmodule EHealth.Declarations.API do
   end
 
   def get_declaration_by_id(id, headers) do
-    with {:ok, resp} <- OPS.get_declaration_by_id(id, headers),
+    with {:ok, resp} <- @ops_api.get_declaration_by_id(id, headers),
          {:ok, data} <- expand_declaration_relations(Map.fetch!(resp, "data"), headers),
          response <- %{"meta" => Map.fetch!(resp, "meta"), "data" => data},
          do: {:ok, response}
@@ -213,7 +214,7 @@ defmodule EHealth.Declarations.API do
 
   def expand_declaration_relations(%{"legal_entity_id" => legal_entity_id} = declaration, headers) do
     with :ok <- check_declaration_access(legal_entity_id, headers),
-         person <- load_relation(MPI, :person, declaration["person_id"], headers),
+         person <- load_relation(@mpi_api, :person, declaration["person_id"], headers),
          legal_entity <- LegalEntities.get_by_id(legal_entity_id),
          division <- Divisions.get_by_id(declaration["division_id"]),
          employee <- Employees.get_by_id(declaration["employee_id"]),

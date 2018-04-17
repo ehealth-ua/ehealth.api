@@ -2,13 +2,15 @@ defmodule EHealth.Web.LegalEntityControllerTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase
-  alias EHealth.MockServer
+  import Mox
   alias EHealth.Employees.Employee
   alias EHealth.PRMRepo
   alias EHealth.LegalEntities.LegalEntity
 
+  setup :verify_on_exit!
+
   test "invalid legal entity", %{conn: conn} do
-    conn = put(conn, legal_entity_path(conn, :create_or_update), %{"invlid" => "data"})
+    conn = put(conn, legal_entity_path(conn, :create_or_update), %{"invalid" => "data"})
     resp = json_response(conn, 422)
     assert Map.has_key?(resp, "error")
     assert resp["error"]
@@ -55,7 +57,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     end
 
     test "with x-consumer-metadata that contains MIS client_id", %{conn: conn} do
-      %{id: id, edrpou: edrpou} = insert(:prm, :legal_entity, id: MockServer.get_client_mis())
+      %{id: id, edrpou: edrpou} = insert(:prm, :legal_entity)
 
       resp =
         conn
@@ -72,7 +74,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     end
 
     test "with x-consumer-metadata that contains NHS client_id", %{conn: conn} do
-      %{id: id, edrpou: edrpou} = insert(:prm, :legal_entity, id: MockServer.get_client_admin())
+      %{id: id, edrpou: edrpou} = insert(:prm, :legal_entity)
       conn = put_client_id_header(conn, id)
       conn = get(conn, legal_entity_path(conn, :index, edrpou: edrpou))
       resp = json_response(conn, 200)
@@ -211,7 +213,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
     test "with x-consumer-metadata that contains MIS client_id that does not match legal entity id", %{conn: conn} do
       %{id: id} = insert(:prm, :legal_entity)
-      conn = put_client_id_header(conn, MockServer.get_client_mis())
+      conn = put_client_id_header(conn, id)
       conn = get(conn, legal_entity_path(conn, :show, id))
       resp = json_response(conn, 200)
 

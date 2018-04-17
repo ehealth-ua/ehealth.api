@@ -301,40 +301,6 @@ defmodule EHealth.MockServer do
     end
   end
 
-  get "/declarations" do
-    resp =
-      case conn.params do
-        %{"person_id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375200"} ->
-          [get_declaration(), get_declaration("terminated")]
-
-        %{"person_id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375400"} ->
-          [get_declaration(), get_declaration()]
-
-        %{"person_id" => "585044f5-1272-4bca-8d41-8440eefe7d26"} ->
-          [get_declaration(nil, nil, nil, nil, "585044f5-1272-4bca-8d41-8440eefe7d26")]
-
-        %{"person_id" => _} ->
-          []
-
-        # MSP
-        %{"legal_entity_id" => "7cc91a5d-c02f-41e9-b571-1ea4f2375552"} ->
-          [get_declaration()]
-
-        # MIS
-        %{"legal_entity_id" => "296da7d2-3c5a-4f6a-b8b2-631063737271"} ->
-          [get_declaration(), get_declaration()]
-
-        # NHS_Admin
-        %{"legal_entity_id" => "356b4182-f9ce-4eda-b6af-43d2de8601a1"} ->
-          [get_declaration(), get_declaration(), get_declaration()]
-
-        _ ->
-          []
-      end
-
-    render_with_paging(resp, conn)
-  end
-
   post "/declarations/with_termination" do
     render(Map.merge(conn.body_params, %{data: %{}}), conn, 200)
   end

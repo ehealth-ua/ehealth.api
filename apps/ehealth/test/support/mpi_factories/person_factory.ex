@@ -8,6 +8,7 @@ defmodule EHealth.MPIFactories.PersonFactory do
       def person_factory do
         %{
           version: "0.1",
+          id: UUID.generate(),
           first_name: sequence(:first_name, &"first_name-#{&1}"),
           last_name: sequence(:last_name, &"last_name-#{&1}"),
           second_name: sequence(:second_name, &"second_name-#{&1}"),

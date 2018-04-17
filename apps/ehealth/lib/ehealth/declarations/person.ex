@@ -4,6 +4,8 @@ defmodule EHealth.Declarations.Person do
   alias EHealth.API.OPS
   import EHealth.Declarations.API, only: [expand_declaration_relations: 2]
 
+  @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]
+
   @status_new "NEW"
   @status_merged "MERGED"
   @status_inactive "INACTIVE"
@@ -17,7 +19,7 @@ defmodule EHealth.Declarations.Person do
   def get_person_declaration(person_id, headers) do
     query_params = %{"person_id" => person_id, "status" => "active,pending_verification", "is_active" => true}
 
-    with {:ok, resp} <- OPS.get_declarations(query_params, headers),
+    with {:ok, resp} <- @ops_api.get_declarations(query_params, headers),
          {:ok, declaration} <- check_declarations_amount(Map.fetch!(resp, "data")),
          {:ok, data} <- expand_declaration_relations(declaration, headers),
          response <- %{"meta" => Map.fetch!(resp, "meta"), "data" => data},

@@ -2,24 +2,49 @@ defmodule EHealth.Web.DeclarationsControllerTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase
-  import EHealth.MockServer, only: [get_client_admin: 0, get_client_mis: 0, get_client_nil: 0]
+  import Mox
+  alias Ecto.UUID
 
-  @declaration_id "156b4182-f9ce-4eda-b6af-43d2de8601z2"
+  setup :verify_on_exit!
 
   describe "list declarations" do
     test "with x-consumer-metadata that contains MSP client_id with empty client_type_name", %{conn: conn} do
-      conn = put_client_id_header(conn, get_client_nil())
+      put_client_id_header(conn, UUID.generate())
       conn = get(conn, declarations_path(conn, :index, edrpou: "37367387"))
       json_response(conn, 401)
     end
 
     test "by person_id", %{conn: conn} do
-      conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375222")
-      conn = get(conn, declarations_path(conn, :index, person_id: "7cc91a5d-c02f-41e9-b571-1ea4f2375400"))
+      status = 200
+
+      %{party: party} = insert(:prm, :party_user)
+      legal_entity = insert(:prm, :legal_entity)
+      %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
+      %{id: division_id} = insert(:prm, :division, legal_entity: legal_entity)
+
+      expect(OPSMock, :get_declarations, fn %{"person_id" => person_id}, _headers ->
+        get_declarations(
+          %{
+            legal_entity_id: legal_entity.id,
+            division_id: division_id,
+            employee_id: employee_id,
+            person_id: person_id
+          },
+          2,
+          status
+        )
+      end)
+
+      expect(MPIMock, :search, fn %{ids: ids}, _headers ->
+        get_persons(ids)
+      end)
+
+      conn = put_client_id_header(conn, legal_entity.id)
+      conn = get(conn, declarations_path(conn, :index, person_id: UUID.generate()))
 
       resp =
         conn
-        |> json_response(200)
+        |> json_response(status)
         |> Map.get("data")
 
       assert 2 == Enum.count(resp)
@@ -32,15 +57,37 @@ defmodule EHealth.Web.DeclarationsControllerTest do
     end
 
     test "empty by person_id", %{conn: conn} do
-      conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375222")
-      conn = get(conn, declarations_path(conn, :index, person_id: Ecto.UUID.generate()))
-      assert [] = json_response(conn, 200)["data"]
+      status = 200
+
+      expect(OPSMock, :get_declarations, fn _params, _headers ->
+        {:ok, %{"data" => [], "meta" => %{"code" => status}}}
+      end)
+
+      conn = put_client_id_header(conn, UUID.generate())
+      conn = get(conn, declarations_path(conn, :index, person_id: UUID.generate()))
+      assert [] = json_response(conn, status)["data"]
     end
 
     test "with x-consumer-metadata that contains MSP client_id with empty declarations list", %{conn: conn} do
-      conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375222")
+      status = 200
+
+      expect(OPSMock, :get_declarations, fn _params, _headers ->
+        {:ok,
+         %{
+           "data" => [],
+           "meta" => %{"code" => status},
+           "paging" => %{
+             "page_number" => 1,
+             "page_size" => 50,
+             "total_entries" => 0,
+             "total_pages" => 1
+           }
+         }}
+      end)
+
+      conn = put_client_id_header(conn, UUID.generate())
       conn = get(conn, declarations_path(conn, :index, edrpou: "37367387"))
-      resp = json_response(conn, 200)
+      resp = json_response(conn, status)
 
       assert Map.has_key?(resp, "data")
       assert Map.has_key?(resp, "paging")
@@ -48,8 +95,8 @@ defmodule EHealth.Web.DeclarationsControllerTest do
     end
 
     test "with x-consumer-metadata that contains MSP client_id and invalid legal_entity_id", %{conn: conn} do
-      conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375222")
-      conn = get(conn, declarations_path(conn, :index, legal_entity_id: "296da7d2-3c5a-4f6a-b8b2-631063737271"))
+      conn = put_client_id_header(conn, UUID.generate())
+      conn = get(conn, declarations_path(conn, :index, legal_entity_id: UUID.generate()))
       resp = json_response(conn, 200)
 
       assert Map.has_key?(resp, "data")
@@ -58,21 +105,40 @@ defmodule EHealth.Web.DeclarationsControllerTest do
     end
 
     test "with x-consumer-metadata that contains MSP client_id", %{conn: conn} do
-      division = insert(:prm, :division, id: "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b")
-      legal_entity = insert(:prm, :legal_entity, id: "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+      status = 200
 
-      insert(
-        :prm,
-        :employee,
-        id: "7488a646-e31f-11e4-aace-600308960662",
-        legal_entity: legal_entity,
-        division: division
-      )
+      division = insert(:prm, :division)
+      legal_entity = insert(:prm, :legal_entity)
+      person_id = UUID.generate()
 
-      %{id: legal_entity_id} = legal_entity
-      conn = put_client_id_header(conn, legal_entity_id)
-      conn = get(conn, declarations_path(conn, :index, legal_entity_id: legal_entity_id))
-      resp = json_response(conn, 200)
+      %{id: employee_id} =
+        insert(
+          :prm,
+          :employee,
+          legal_entity: legal_entity,
+          division: division
+        )
+
+      expect(OPSMock, :get_declarations, fn _params, _headers ->
+        get_declarations(
+          %{
+            legal_entity_id: legal_entity.id,
+            division_id: division.id,
+            employee_id: employee_id,
+            person_id: person_id
+          },
+          1,
+          status
+        )
+      end)
+
+      expect(MPIMock, :search, fn %{ids: ids}, _headers ->
+        get_persons(ids)
+      end)
+
+      conn = put_client_id_header(conn, legal_entity.id)
+      conn = get(conn, declarations_path(conn, :index, legal_entity_id: legal_entity.id))
+      resp = json_response(conn, status)
 
       assert Map.has_key?(resp, "data")
       assert Map.has_key?(resp, "paging")
@@ -80,10 +146,34 @@ defmodule EHealth.Web.DeclarationsControllerTest do
     end
 
     test "with x-consumer-metadata that contains MIS client_id", %{conn: conn} do
-      legal_id = "296da7d2-3c5a-4f6a-b8b2-631063737271"
-      conn = put_client_id_header(conn, legal_id)
-      conn = get(conn, declarations_path(conn, :index, legal_entity_id: legal_id))
-      resp = json_response(conn, 200)
+      status = 200
+
+      %{party: party} = insert(:prm, :party_user)
+      legal_entity = insert(:prm, :legal_entity)
+      %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
+      %{id: division_id} = insert(:prm, :division, legal_entity: legal_entity)
+      person_id = UUID.generate()
+
+      expect(OPSMock, :get_declarations, fn %{"legal_entity_id" => legal_entity_id}, _headers ->
+        get_declarations(
+          %{
+            legal_entity_id: legal_entity_id,
+            division_id: division_id,
+            employee_id: employee_id,
+            person_id: person_id
+          },
+          2,
+          status
+        )
+      end)
+
+      expect(MPIMock, :search, fn %{ids: ids}, _headers ->
+        get_persons(ids)
+      end)
+
+      conn = put_client_id_header(conn, legal_entity.id)
+      conn = get(conn, declarations_path(conn, :index, legal_entity_id: legal_entity.id))
+      resp = json_response(conn, status)
 
       assert Map.has_key?(resp, "data")
       assert Map.has_key?(resp, "paging")
@@ -92,22 +182,42 @@ defmodule EHealth.Web.DeclarationsControllerTest do
     end
 
     test "with x-consumer-metadata that contains NHS client_id", %{conn: conn} do
-      legal_entity = insert(:prm, :legal_entity, id: get_client_admin())
-      division = insert(:prm, :division, id: "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b")
-      insert(:prm, :legal_entity, id: "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+      status = 200
 
-      insert(
-        :prm,
-        :employee,
-        id: "7488a646-e31f-11e4-aace-600308960662",
-        legal_entity: legal_entity,
-        division: division
-      )
+      legal_entity = insert(:prm, :legal_entity)
+      division = insert(:prm, :division)
+      insert(:prm, :legal_entity)
+      person_id = UUID.generate()
+
+      %{id: employee_id} =
+        insert(
+          :prm,
+          :employee,
+          legal_entity: legal_entity,
+          division: division
+        )
+
+      expect(OPSMock, :get_declarations, fn %{"legal_entity_id" => legal_entity_id}, _headers ->
+        get_declarations(
+          %{
+            legal_entity_id: legal_entity_id,
+            division_id: division.id,
+            employee_id: employee_id,
+            person_id: person_id
+          },
+          3,
+          status
+        )
+      end)
+
+      expect(MPIMock, :search, fn %{ids: ids}, _headers ->
+        get_persons(ids)
+      end)
 
       %{id: legal_entity_id} = legal_entity
       conn = put_client_id_header(conn, legal_entity_id)
       conn = get(conn, declarations_path(conn, :index, legal_entity_id: legal_entity_id))
-      resp = json_response(conn, 200)
+      resp = json_response(conn, status)
 
       assert Map.has_key?(resp, "data")
       assert Map.has_key?(resp, "paging")
@@ -119,37 +229,75 @@ defmodule EHealth.Web.DeclarationsControllerTest do
 
   describe "declaration by id" do
     test "with x-consumer-metadata that contains MSP client_id with empty client_type_name", %{conn: conn} do
-      conn = put_client_id_header(conn, get_client_nil())
-      conn = get(conn, declarations_path(conn, :show, @declaration_id))
+      {declaration, declaration_id} = get_declaration(%{}, 200)
+
+      expect(OPSMock, :get_declaration_by_id, fn _params, _headers ->
+        declaration
+      end)
+
+      conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375111")
+      conn = get(conn, declarations_path(conn, :show, declaration_id))
       json_response(conn, 401)
     end
 
     test "with x-consumer-metadata that contains MSP client_id with undefined declaration id", %{conn: conn} do
+      expect(OPSMock, :get_declaration_by_id, fn _params, _headers ->
+        nil
+      end)
+
       conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375222")
       conn = get(conn, declarations_path(conn, :show, "226b4182-f9ce-4eda-b6af-43d2de8600a0"))
       json_response(conn, 404)
     end
 
     test "with x-consumer-metadata that contains MSP client_id with invalid legal_entity_id", %{conn: conn} do
-      conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375000")
-      conn = get(conn, declarations_path(conn, :show, @declaration_id))
+      %{id: legal_entity_id} = insert(:prm, :legal_entity)
+      {declaration, declaration_id} = get_declaration(%{legal_entity_id: legal_entity_id}, 200)
+
+      expect(OPSMock, :get_declaration_by_id, fn _params, _headers ->
+        declaration
+      end)
+
+      conn = put_client_id_header(conn, UUID.generate())
+      conn = get(conn, declarations_path(conn, :show, declaration_id))
       json_response(conn, 403)
     end
 
     test "with x-consumer-metadata that contains MSP client_id", %{conn: conn} do
-      legal_entity = insert(:prm, :legal_entity, id: "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
-      division = insert(:prm, :division, id: "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b")
+      legal_entity = insert(:prm, :legal_entity)
+      division = insert(:prm, :division)
+      insert(:prm, :legal_entity)
+      person_id = UUID.generate()
 
-      insert(
-        :prm,
-        :employee,
-        id: "7488a646-e31f-11e4-aace-600308960662",
-        legal_entity: legal_entity,
-        division: division
-      )
+      %{id: employee_id} =
+        insert(
+          :prm,
+          :employee,
+          legal_entity: legal_entity,
+          division: division
+        )
+
+      {declaration, declaration_id} =
+        get_declaration(
+          %{
+            legal_entity_id: legal_entity.id,
+            division_id: division.id,
+            employee_id: employee_id,
+            person_id: person_id
+          },
+          200
+        )
+
+      expect(OPSMock, :get_declaration_by_id, fn _params, _headers ->
+        declaration
+      end)
+
+      expect(MPIMock, :person, fn id, _headers ->
+        get_person(id)
+      end)
 
       conn = put_client_id_header(conn, legal_entity.id)
-      conn = get(conn, declarations_path(conn, :show, @declaration_id))
+      conn = get(conn, declarations_path(conn, :show, declaration_id))
       data = json_response(conn, 200)["data"]
       assert Map.has_key?(data, "reason")
       assert Map.has_key?(data, "reason_description")
@@ -158,19 +306,84 @@ defmodule EHealth.Web.DeclarationsControllerTest do
     end
 
     test "with x-consumer-metadata that contains MIS client_id", %{conn: conn} do
-      conn = put_client_id_header(conn, get_client_mis())
-      conn = get(conn, declarations_path(conn, :show, @declaration_id))
+      legal_entity = insert(:prm, :legal_entity)
+      division = insert(:prm, :division)
+      insert(:prm, :legal_entity)
+      person_id = UUID.generate()
+
+      %{id: employee_id} =
+        insert(
+          :prm,
+          :employee,
+          legal_entity: legal_entity,
+          division: division
+        )
+
+      {declaration, declaration_id} =
+        get_declaration(
+          %{
+            legal_entity_id: legal_entity.id,
+            division_id: division.id,
+            employee_id: employee_id,
+            person_id: person_id
+          },
+          200
+        )
+
+      expect(OPSMock, :get_declaration_by_id, fn _params, _headers ->
+        declaration
+      end)
+
+      expect(MPIMock, :person, fn id, _headers ->
+        get_person(id)
+      end)
+
+      conn = put_client_id_header(conn, legal_entity.id)
+      conn = get(conn, declarations_path(conn, :show, declaration_id))
       data = json_response(conn, 200)["data"]
       assert is_map(data)
-      assert @declaration_id == data["id"]
+      assert declaration_id == data["id"]
     end
 
     test "with x-consumer-metadata that contains NHS client_id", %{conn: conn} do
-      conn = put_client_id_header(conn, get_client_admin())
-      conn = get(conn, declarations_path(conn, :show, @declaration_id))
+      legal_entity = insert(:prm, :legal_entity)
+      division = insert(:prm, :division)
+      insert(:prm, :legal_entity)
+      person_id = UUID.generate()
+
+      %{id: employee_id} =
+        insert(
+          :prm,
+          :employee,
+          legal_entity: legal_entity,
+          division: division
+        )
+
+      {declaration, declaration_id} =
+        get_declaration(
+          %{
+            id: person_id,
+            legal_entity_id: legal_entity.id,
+            division_id: division.id,
+            employee_id: employee_id,
+            person_id: person_id
+          },
+          200
+        )
+
+      expect(OPSMock, :get_declaration_by_id, fn _params, _headers ->
+        declaration
+      end)
+
+      expect(MPIMock, :person, fn id, _headers ->
+        get_person(id)
+      end)
+
+      conn = put_client_id_header(conn, legal_entity.id)
+      conn = get(conn, declarations_path(conn, :show, declaration_id))
       data = json_response(conn, 200)["data"]
       assert is_map(data)
-      assert @declaration_id == data["id"]
+      assert declaration_id == data["id"]
     end
   end
 
@@ -730,5 +943,64 @@ defmodule EHealth.Web.DeclarationsControllerTest do
 
       assert "Employee does not have active declarations" == response["error"]["message"]
     end
+  end
+
+  defp get_declarations(params, count, response_status) when count > 0 do
+    declarations =
+      Enum.map(1..count, fn _ ->
+        declaration = build(:declaration, params)
+
+        declaration
+        |> Poison.encode!()
+        |> Poison.decode!()
+      end)
+
+    {:ok,
+     %{
+       "data" => declarations,
+       "meta" => %{"code" => response_status},
+       "paging" => %{
+         "page_number" => 1,
+         "page_size" => 50,
+         "total_entries" => count,
+         "total_pages" => 1
+       }
+     }}
+  end
+
+  defp get_declaration(params, response_status) do
+    declaration = build(:declaration, params)
+    declaration_id = declaration.id
+
+    declaration =
+      declaration
+      |> Poison.encode!()
+      |> Poison.decode!()
+
+    {{:ok, %{"data" => declaration, "meta" => %{"code" => response_status}}}, declaration_id}
+  end
+
+  defp get_persons(params) when is_binary(params) do
+    persons =
+      Enum.map(String.split(params, ","), fn id ->
+        person = build(:person, id: id)
+
+        person
+        |> Poison.encode!()
+        |> Poison.decode!()
+      end)
+
+    {:ok, %{"data" => persons}}
+  end
+
+  defp get_person(id) do
+    person = build(:person, id: id)
+
+    person =
+      person
+      |> Poison.encode!()
+      |> Poison.decode!()
+
+    {:ok, %{"data" => person}}
   end
 end

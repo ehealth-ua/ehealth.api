@@ -449,6 +449,10 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       party = insert(:prm, :party, tax_id: "2222222220")
       insert(:prm, :party_user, party: party, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c")
 
+      expect(MPIMock, :update_person, fn id, _params, _headers ->
+        get_person(id, 200)
+      end)
+
       conn =
         conn
         |> put_req_header("edrpou", "2222222220")
@@ -516,6 +520,15 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
     test "returns person detail for logged user", %{conn: conn} do
       legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
 
+      expect(MPIMock, :person, fn id, _headers ->
+        get_person(id, 200, %{
+          id: "c8912855-21c3-4771-ba18-bcd8e524f14c",
+          first_name: "Алекс",
+          last_name: "Джонс",
+          second_name: "Петрович"
+        })
+      end)
+
       conn =
         conn
         |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
@@ -572,7 +585,34 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
 
   describe "terminate declaration" do
     test "success terminate declaration", %{conn: conn} do
+      %{party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
+      %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
+      %{id: division_id} = insert(:prm, :division, legal_entity: legal_entity)
+
+      {declaration, _} =
+        get_declaration(
+          %{
+            id: "0cd6a6f0-9a71-4aa7-819d-6c158201a282",
+            legal_entity_id: legal_entity.id,
+            division_id: division_id,
+            employee_id: employee_id,
+            person_id: "c8912855-21c3-4771-ba18-bcd8e524f14c"
+          },
+          200
+        )
+
+      expect(OPSMock, :get_declaration_by_id, fn _params, _headers ->
+        declaration
+      end)
+
+      expect(MPIMock, :person, fn id, _headers ->
+        get_person(id, 200)
+      end)
+
+      expect(MPIMock, :person, fn id, _headers ->
+        get_person(id, 200)
+      end)
 
       conn =
         conn
@@ -621,6 +661,56 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
       insert(:prm, :party_user, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c")
 
+      expect(MPIMock, :person, fn id, _headers ->
+        get_person(id, 200, %{
+          id: "c8912855-21c3-4771-ba18-bcd8e524f14c",
+          first_name: "Алекс",
+          second_name: "Петрович",
+          addresses: [
+            %{
+              "zip" => "02090",
+              "type" => "REGISTRATION",
+              "street_type" => "STREET",
+              "street" => "Ніжинська",
+              "settlement_type" => "CITY",
+              "settlement_id" => "707dbc55-cb6b-4aaa-97c1-2a1e03476100",
+              "settlement" => "СОРОКИ-ЛЬВІВСЬКІ",
+              "region" => "ПУСТОМИТІВСЬКИЙ",
+              "country" => "UA",
+              "building" => "15",
+              "area" => "ЛЬВІВСЬКА",
+              "apartment" => "23"
+            },
+            %{
+              "zip" => "02090",
+              "type" => "RESIDENCE",
+              "street_type" => "STREET",
+              "street" => "Ніжинська",
+              "settlement_type" => "CITY",
+              "settlement_id" => "707dbc55-cb6b-4aaa-97c1-2a1e03476100",
+              "settlement" => "СОРОКИ-ЛЬВІВСЬКІ",
+              "region" => "ПУСТОМИТІВСЬКИЙ",
+              "country" => "UA",
+              "building" => "15",
+              "area" => "ЛЬВІВСЬКА",
+              "apartment" => "23"
+            }
+          ],
+          birth_country: "string value",
+          birth_settlement: "string value",
+          gender: "string value",
+          email: "test@example.com",
+          tax_id: "2222222225",
+          documents: [%{"type" => "BIRTH_CERTIFICATE", "number" => "1234567890"}],
+          phones: [%{"type" => "MOBILE", "number" => "+380972526080"}],
+          secret: "string value",
+          emergency_contact: %{},
+          process_disclosure_data_consent: true,
+          authentication_methods: [%{"type" => "NA"}],
+          preferred_way_communication: "––"
+        })
+      end)
+
       conn =
         conn
         |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
@@ -657,5 +747,29 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       assert data["authentication_methods"] == [%{"type" => "NA"}]
       assert data["preferred_way_communication"] == "––"
     end
+  end
+
+  defp get_declaration(params, response_status) do
+    declaration = build(:declaration, params)
+    declaration_id = declaration.id
+
+    declaration =
+      declaration
+      |> Poison.encode!()
+      |> Poison.decode!()
+
+    {{:ok, %{"data" => declaration, "meta" => %{"code" => response_status}}}, declaration_id}
+  end
+
+  defp get_person(id, response_status, params \\ %{}) do
+    params = Map.put(params, :id, id)
+    person = build(:person, params)
+
+    person =
+      person
+      |> Poison.encode!()
+      |> Poison.decode!()
+
+    {:ok, %{"data" => person, "meta" => %{"code" => response_status}}}
   end
 end

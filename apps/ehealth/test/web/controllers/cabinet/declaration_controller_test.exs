@@ -98,6 +98,10 @@ defmodule EHealth.Web.Cabinet.DeclarationControllerTest do
   end
 
   test "searches person declarations in cabinet", %{conn: conn} do
+    expect(MPIMock, :person, fn id, _headers ->
+      get_person(id, 200)
+    end)
+
     response = conn |> send_list_declaration_request() |> json_response(200)
     verify!()
 
@@ -116,5 +120,17 @@ defmodule EHealth.Web.Cabinet.DeclarationControllerTest do
     |> put_consumer_id_header(@user_id)
     |> put_client_id_header(@user_id)
     |> get(cabinet_declarations_path(conn, :list_declarations), params)
+  end
+
+  defp get_person(id, response_status, params \\ %{}) do
+    params = Map.put(params, :id, id)
+    person = build(:person, params)
+
+    person =
+      person
+      |> Poison.encode!()
+      |> Poison.decode!()
+
+    {:ok, %{"data" => person, "meta" => %{"code" => response_status}}}
   end
 end

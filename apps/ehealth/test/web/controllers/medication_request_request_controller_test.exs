@@ -61,6 +61,11 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "lists all medication_request_requests with data", %{conn: conn} do
+      expect(OPSMock, :get_declarations, fn _params, _headers ->
+        declaration = build(:declaration)
+        {:ok, %{"data" => [declaration]}}
+      end)
+
       mrr = fixture(:medication_request_request)
       data = %{"employee_id" => mrr.medication_request_request.data.employee_id}
 
@@ -74,6 +79,11 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "lists all medication_request_requests with data search by status", %{conn: conn} do
+      expect(OPSMock, :get_declarations, fn _params, _headers ->
+        declaration = build(:declaration)
+        {:ok, %{"data" => [declaration]}}
+      end)
+
       fixture(:medication_request_request)
 
       assert 1 =
@@ -86,6 +96,11 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "lists all medication_request_requests with data search by person_id", %{conn: conn} do
+      expect(OPSMock, :get_declarations, fn _params, _headers ->
+        declaration = build(:declaration)
+        {:ok, %{"data" => [declaration]}}
+      end)
+
       mrr = fixture(:medication_request_request)
       data = %{"person_id" => mrr.medication_request_request.data.person_id}
 
@@ -99,6 +114,11 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "lists all medication_request_requests with data search by all posible filters", %{conn: conn} do
+      expect(OPSMock, :get_declarations, fn _params, _headers ->
+        declaration = build(:declaration)
+        {:ok, %{"data" => [declaration]}}
+      end)
+
       mrr = fixture(:medication_request_request)
 
       data = %{
@@ -119,6 +139,11 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
   describe "create medication_request_request" do
     test "render medication_request_request when data is valid", %{conn: conn} do
+      expect(OPSMock, :get_declarations, fn _params, _headers ->
+        declaration = build(:declaration)
+        {:ok, %{"data" => [declaration]}}
+      end)
+
       {medication_id, pm} = create_medications_structure()
 
       test_request =
@@ -176,6 +201,10 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "render errors when declaration doesn't exists", %{conn: conn} do
+      expect(OPSMock, :get_declarations, fn _params, _headers ->
+        {:ok, %{"data" => []}}
+      end)
+
       {medication_id, pm} = create_medications_structure()
 
       test_request =
@@ -244,6 +273,11 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "render errors when medication doesn't exists", %{conn: conn} do
+      expect(OPSMock, :get_declarations, fn _params, _headers ->
+        declaration = build(:declaration)
+        {:ok, %{"data" => [declaration]}}
+      end)
+
       {_, pm} = create_medications_structure()
       {medication_id1, _} = create_medications_structure()
 
@@ -268,6 +302,11 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "render errors when medication_qty is invalid", %{conn: conn} do
+      expect(OPSMock, :get_declarations, fn _params, _headers ->
+        declaration = build(:declaration)
+        {:ok, %{"data" => [declaration]}}
+      end)
+
       {medication_id, pm} = create_medications_structure()
 
       test_request =
@@ -293,6 +332,11 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "render medication_request_request when medication created with different qty", %{conn: conn} do
+      expect(OPSMock, :get_declarations, fn _params, _headers ->
+        declaration = build(:declaration)
+        {:ok, %{"data" => [declaration]}}
+      end)
+
       {medication_id, pm} = create_medications_structure()
 
       %{id: med_id1} =
@@ -332,6 +376,15 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
   describe "prequalify medication request request" do
     test "works when data is valid", %{conn: conn} do
+      expect(OPSMock, :get_declarations, fn _params, _headers ->
+        declaration = build(:declaration)
+        {:ok, %{"data" => [declaration]}}
+      end)
+
+      expect(OPSMock, :get_prequalify_medication_requests, fn _params, _headers ->
+        {:ok, %{"data" => []}}
+      end)
+
       {medication_id, pm} = create_medications_structure()
 
       test_request =
@@ -341,10 +394,6 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
       data = %{medication_request_request: test_request, programs: [%{id: pm.medical_program_id}]}
       schema_path = "specs/json_schemas/medication_request_request/medication_request_request_prequalify_response.json"
-
-      expect(OPSMock, :get_prequalify_medication_requests, fn _params, _headers ->
-        {:ok, %{"data" => []}}
-      end)
 
       resp =
         conn
@@ -359,6 +408,11 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "show proper message when program medication is invalid", %{conn: conn} do
+      expect(OPSMock, :get_declarations, fn _params, _headers ->
+        declaration = build(:declaration)
+        {:ok, %{"data" => [declaration]}}
+      end)
+
       {medication_id, _} = create_medications_structure()
       pm1 = insert(:prm, :program_medication)
 
@@ -396,6 +450,11 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
   describe "reject medication request request" do
     test "works when data is valid", %{conn: conn} do
+      expect(OPSMock, :get_declarations, fn _params, _headers ->
+        declaration = build(:declaration)
+        {:ok, %{"data" => [declaration]}}
+      end)
+
       {medication_id, pm} = create_medications_structure()
 
       test_request =
@@ -422,6 +481,11 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
   describe "autotermination works fine" do
     test "with direct call", %{conn: conn} do
+      expect(OPSMock, :get_declarations, fn _params, _headers ->
+        declaration = build(:declaration)
+        {:ok, %{"data" => [declaration]}}
+      end)
+
       {medication_id, pm} = create_medications_structure()
 
       test_request =
@@ -444,6 +508,11 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     test "when data is valid", %{conn: conn} do
       expect(OTPVerificationMock, :send_sms, fn phone_number, body, type, _ ->
         {:ok, %{"data" => %{"body" => body, "phone_number" => phone_number, "type" => type}}}
+      end)
+
+      expect(OPSMock, :get_declarations, fn _params, _headers ->
+        declaration = build(:declaration)
+        {:ok, %{"data" => [declaration]}}
       end)
 
       expect(OPSMock, :create_medication_request, fn params, _headers ->
@@ -501,6 +570,11 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "return 409 if request status is not new", %{conn: conn} do
+      expect(OPSMock, :get_declarations, fn _params, _headers ->
+        declaration = build(:declaration)
+        {:ok, %{"data" => [declaration]}}
+      end)
+
       {medication_id, pm} = create_medications_structure()
 
       test_request =
@@ -533,6 +607,11 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "when some data is invalid", %{conn: conn} do
+      expect(OPSMock, :get_declarations, fn _params, _headers ->
+        declaration = build(:declaration)
+        {:ok, %{"data" => [declaration]}}
+      end)
+
       {medication_id, pm} = create_medications_structure()
 
       test_request =
