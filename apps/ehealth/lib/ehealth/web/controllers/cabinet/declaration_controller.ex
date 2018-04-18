@@ -1,21 +1,20 @@
 defmodule EHealth.Web.Cabinet.DeclarationController do
   use EHealth.Web, :controller
 
-  import EHealth.Declarations.View, only: [render_declaration: 1]
-
   alias EHealth.API.OPS
   alias EHealth.DeclarationRequests
   alias EHealth.Declarations.API, as: Declarations
   alias EHealth.Web.DeclarationRequestView
   alias EHealth.Cabinet.Requests.DeclarationsSearch
+  alias EHealth.Web.DeclarationView
 
   action_fallback(EHealth.Web.FallbackController)
 
-  def list_declarations(%Plug.Conn{req_headers: headers} = conn, params) do
+  def index(%Plug.Conn{req_headers: headers} = conn, params) do
     with %Ecto.Changeset{valid?: true} <- DeclarationsSearch.changeset(params),
          {:ok, %{declarations: _, employees: _, person: _, paging: _} = response_data} <-
            Declarations.get_person_declarations(params, headers) do
-      render(conn, "list_declarations.json", response_data)
+      render(conn, DeclarationView, "cabinet_index.json", response_data)
     end
   end
 
@@ -34,27 +33,13 @@ defmodule EHealth.Web.Cabinet.DeclarationController do
     user_id = get_consumer_id(conn.req_headers)
 
     with {:ok, declaration} <- Declarations.terminate(id, user_id, params, conn.req_headers) do
-      response =
-        declaration
-        |> render_declaration()
-        |> Poison.encode!()
-
-      conn
-      |> put_resp_content_type("application/json")
-      |> send_resp(200, response)
+      render(conn, DeclarationView, "show.json", declaration: declaration)
     end
   end
 
   def show_declaration(conn, %{"id" => id}) do
     with {:ok, declaration} <- Declarations.get_declaration(id, conn.req_headers) do
-      response =
-        declaration
-        |> render_declaration()
-        |> Poison.encode!()
-
-      conn
-      |> put_resp_content_type("application/json")
-      |> send_resp(200, response)
+      render(conn, DeclarationView, "show.json", declaration: declaration)
     end
   end
 end

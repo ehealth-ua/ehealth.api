@@ -1,4 +1,4 @@
-defmodule EHealth.Declarations.View do
+defmodule EHealth.Web.DeclarationView do
   @moduledoc false
 
   use EHealth.Web, :view
@@ -7,19 +7,15 @@ defmodule EHealth.Declarations.View do
   alias EHealth.Employees.Employee
   alias EHealth.Parties.Party
   alias EHealth.Divisions.Division
+  alias EHealth.Web.PersonView
+  alias EHealth.Web.LegalEntityView
+  alias EHealth.Web.DivisionView
 
-  def render_declarations(declarations) do
-    Enum.map(declarations, &render_declaration(&1, :list))
+  def render("index.json", %{declarations: declarations}) do
+    render_many(declarations, __MODULE__, "declaration_list.json", as: :declaration)
   end
 
-  def render_declaration(declaration), do: render_declaration(declaration, :one)
-
-  def render_declaration(declaration, :list) do
-    legal_entity = render_one(declaration["legal_entity"], __MODULE__, "legal_entity_short.json", as: :legal_entity)
-    employee = render_one(declaration["employee"], __MODULE__, "employee_short.json", as: :employee)
-    division = render_one(declaration["division"], __MODULE__, "division_short.json", as: :division)
-    person = render_one(declaration["person"], __MODULE__, "person_short.json", as: :person)
-
+  def render("declaration_list.json", %{declaration: declaration}) do
     declaration
     |> Map.take(~w(
       id
@@ -34,14 +30,15 @@ defmodule EHealth.Declarations.View do
       declaration_number
     ))
     |> Map.merge(%{
-      "person" => person,
-      "division" => division,
-      "employee" => employee,
-      "legal_entity" => legal_entity
+      "person" => render_one(declaration["person"], __MODULE__, "person_short.json", as: :person),
+      "division" => render_one(declaration["division"], __MODULE__, "division_short.json", as: :division),
+      "employee" => render_one(declaration["employee"], __MODULE__, "employee_short.json", as: :employee),
+      "legal_entity" =>
+        render_one(declaration["legal_entity"], __MODULE__, "legal_entity_short.json", as: :legal_entity)
     })
   end
 
-  def render_declaration(declaration, :one) do
+  def render("show.json", %{declaration: declaration}) do
     declaration
     |> Map.take(~w(
       id
@@ -64,6 +61,22 @@ defmodule EHealth.Declarations.View do
       "employee" => render_one(declaration["employee"], __MODULE__, "employee.json", as: :employee),
       "legal_entity" => render_one(declaration["legal_entity"], __MODULE__, "legal_entity.json", as: :legal_entity)
     })
+  end
+
+  def render("cabinet_index.json", %{declarations: declarations, employees: _, person: _} = view_data) do
+    render_many(declarations, __MODULE__, "cabinet_declaration.json", view_data)
+  end
+
+  def render("cabinet_declaration.json", %{declaration: declaration, employees: employees, person: person}) do
+    %{legal_entity: legal_entity, division: division, party: party} = employee = employees[declaration["employee_id"]]
+
+    declaration
+    |> Map.take(~w(id start_date declaration_number status))
+    |> Map.put("person", render(PersonView, "person_short.json", %{"person" => person}))
+    |> Map.put("employee", Map.take(employee, ~w(id position)a))
+    |> put_in(["employee", "party"], Map.take(party, ~w(id first_name last_name second_name)a))
+    |> Map.put("legal_entity", render(LegalEntityView, "legal_entity_short.json", %{legal_entity: legal_entity}))
+    |> Map.put("division", render(DivisionView, "division_short.json", %{division: division}))
   end
 
   def render("legal_entity.json", %{legal_entity: %LegalEntity{} = legal_entity}) do

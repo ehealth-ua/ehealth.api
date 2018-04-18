@@ -5,14 +5,15 @@ defmodule EHealth.Web.PersonController do
   alias EHealth.API.MPI
   alias EHealth.Persons
   alias EHealth.Declarations.Person
+  alias EHealth.Web.DeclarationView
 
   action_fallback(EHealth.Web.FallbackController)
 
   @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
 
   def person_declarations(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
-    with {:ok, %{"meta" => %{}} = response} <- Person.get_person_declaration(id, req_headers) do
-      proxy(conn, response)
+    with {:ok, declaration} <- Person.get_person_declaration(id, req_headers) do
+      render(conn, DeclarationView, "show.json", declaration: declaration)
     end
   end
 

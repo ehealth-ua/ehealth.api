@@ -39,7 +39,7 @@ defmodule EHealth.MedicationRequestRequest.Validations do
   end
 
   def validate_declaration_existance(employee, person) do
-    with {:ok, %{"data" => declarations}} <-
+    with {:ok, %{declarations: declarations}} <-
            DeclarationsAPI.get_declarations(
              %{"employee_id" => employee.id, "person_id" => person["id"], "status" => "active"},
              []

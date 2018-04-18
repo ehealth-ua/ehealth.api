@@ -1,4 +1,4 @@
-defmodule EHealth.Web.DeclarationsControllerTest do
+defmodule EHealth.Web.DeclarationControllerTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase
@@ -10,7 +10,7 @@ defmodule EHealth.Web.DeclarationsControllerTest do
   describe "list declarations" do
     test "with x-consumer-metadata that contains MSP client_id with empty client_type_name", %{conn: conn} do
       put_client_id_header(conn, UUID.generate())
-      conn = get(conn, declarations_path(conn, :index, edrpou: "37367387"))
+      conn = get(conn, declaration_path(conn, :index, edrpou: "37367387"))
       json_response(conn, 401)
     end
 
@@ -40,7 +40,7 @@ defmodule EHealth.Web.DeclarationsControllerTest do
       end)
 
       conn = put_client_id_header(conn, legal_entity.id)
-      conn = get(conn, declarations_path(conn, :index, person_id: UUID.generate()))
+      conn = get(conn, declaration_path(conn, :index, person_id: UUID.generate()))
 
       resp =
         conn
@@ -64,7 +64,7 @@ defmodule EHealth.Web.DeclarationsControllerTest do
       end)
 
       conn = put_client_id_header(conn, UUID.generate())
-      conn = get(conn, declarations_path(conn, :index, person_id: UUID.generate()))
+      conn = get(conn, declaration_path(conn, :index, person_id: UUID.generate()))
       assert [] = json_response(conn, status)["data"]
     end
 
@@ -86,7 +86,7 @@ defmodule EHealth.Web.DeclarationsControllerTest do
       end)
 
       conn = put_client_id_header(conn, UUID.generate())
-      conn = get(conn, declarations_path(conn, :index, edrpou: "37367387"))
+      conn = get(conn, declaration_path(conn, :index, edrpou: "37367387"))
       resp = json_response(conn, status)
 
       assert Map.has_key?(resp, "data")
@@ -96,7 +96,7 @@ defmodule EHealth.Web.DeclarationsControllerTest do
 
     test "with x-consumer-metadata that contains MSP client_id and invalid legal_entity_id", %{conn: conn} do
       conn = put_client_id_header(conn, UUID.generate())
-      conn = get(conn, declarations_path(conn, :index, legal_entity_id: UUID.generate()))
+      conn = get(conn, declaration_path(conn, :index, legal_entity_id: UUID.generate()))
       resp = json_response(conn, 200)
 
       assert Map.has_key?(resp, "data")
@@ -137,7 +137,7 @@ defmodule EHealth.Web.DeclarationsControllerTest do
       end)
 
       conn = put_client_id_header(conn, legal_entity.id)
-      conn = get(conn, declarations_path(conn, :index, legal_entity_id: legal_entity.id))
+      conn = get(conn, declaration_path(conn, :index, legal_entity_id: legal_entity.id))
       resp = json_response(conn, status)
 
       assert Map.has_key?(resp, "data")
@@ -172,7 +172,7 @@ defmodule EHealth.Web.DeclarationsControllerTest do
       end)
 
       conn = put_client_id_header(conn, legal_entity.id)
-      conn = get(conn, declarations_path(conn, :index, legal_entity_id: legal_entity.id))
+      conn = get(conn, declaration_path(conn, :index, legal_entity_id: legal_entity.id))
       resp = json_response(conn, status)
 
       assert Map.has_key?(resp, "data")
@@ -216,7 +216,7 @@ defmodule EHealth.Web.DeclarationsControllerTest do
 
       %{id: legal_entity_id} = legal_entity
       conn = put_client_id_header(conn, legal_entity_id)
-      conn = get(conn, declarations_path(conn, :index, legal_entity_id: legal_entity_id))
+      conn = get(conn, declaration_path(conn, :index, legal_entity_id: legal_entity_id))
       resp = json_response(conn, status)
 
       assert Map.has_key?(resp, "data")
@@ -236,7 +236,7 @@ defmodule EHealth.Web.DeclarationsControllerTest do
       end)
 
       conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375111")
-      conn = get(conn, declarations_path(conn, :show, declaration_id))
+      conn = get(conn, declaration_path(conn, :show, declaration_id))
       json_response(conn, 401)
     end
 
@@ -246,7 +246,7 @@ defmodule EHealth.Web.DeclarationsControllerTest do
       end)
 
       conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375222")
-      conn = get(conn, declarations_path(conn, :show, "226b4182-f9ce-4eda-b6af-43d2de8600a0"))
+      conn = get(conn, declaration_path(conn, :show, "226b4182-f9ce-4eda-b6af-43d2de8600a0"))
       json_response(conn, 404)
     end
 
@@ -259,7 +259,7 @@ defmodule EHealth.Web.DeclarationsControllerTest do
       end)
 
       conn = put_client_id_header(conn, UUID.generate())
-      conn = get(conn, declarations_path(conn, :show, declaration_id))
+      conn = get(conn, declaration_path(conn, :show, declaration_id))
       json_response(conn, 403)
     end
 
@@ -297,7 +297,7 @@ defmodule EHealth.Web.DeclarationsControllerTest do
       end)
 
       conn = put_client_id_header(conn, legal_entity.id)
-      conn = get(conn, declarations_path(conn, :show, declaration_id))
+      conn = get(conn, declaration_path(conn, :show, declaration_id))
       data = json_response(conn, 200)["data"]
       assert Map.has_key?(data, "reason")
       assert Map.has_key?(data, "reason_description")
@@ -339,7 +339,7 @@ defmodule EHealth.Web.DeclarationsControllerTest do
       end)
 
       conn = put_client_id_header(conn, legal_entity.id)
-      conn = get(conn, declarations_path(conn, :show, declaration_id))
+      conn = get(conn, declaration_path(conn, :show, declaration_id))
       data = json_response(conn, 200)["data"]
       assert is_map(data)
       assert declaration_id == data["id"]
@@ -380,7 +380,7 @@ defmodule EHealth.Web.DeclarationsControllerTest do
       end)
 
       conn = put_client_id_header(conn, legal_entity.id)
-      conn = get(conn, declarations_path(conn, :show, declaration_id))
+      conn = get(conn, declaration_path(conn, :show, declaration_id))
       data = json_response(conn, 200)["data"]
       assert is_map(data)
       assert declaration_id == data["id"]

@@ -108,7 +108,7 @@ defmodule EHealth.Web.Cabinet.DeclarationControllerTest do
     assert %{"data" => response_data, "paging" => %{"total_entries" => 2}, "meta" => _} = response
     assert [@declaration_id, @declaration_id2] = Enum.map(response_data, & &1["id"])
 
-    assert_json_schema(response_data, "specs/json_schemas/cabinet/declarations/list_declarations_response.json")
+    assert_json_schema(response_data, "specs/json_schemas/cabinet/declarations/index_response.json")
   end
 
   test "rejects to search person declaration due to request validation", %{conn: conn} do
@@ -119,7 +119,7 @@ defmodule EHealth.Web.Cabinet.DeclarationControllerTest do
     conn
     |> put_consumer_id_header(@user_id)
     |> put_client_id_header(@user_id)
-    |> get(cabinet_declarations_path(conn, :list_declarations), params)
+    |> get(cabinet_declarations_path(conn, :index), params)
   end
 
   defp get_person(id, response_status, params \\ %{}) do

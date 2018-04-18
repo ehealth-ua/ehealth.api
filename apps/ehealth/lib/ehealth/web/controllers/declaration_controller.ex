@@ -1,4 +1,4 @@
-defmodule EHealth.Web.DeclarationsController do
+defmodule EHealth.Web.DeclarationController do
   @moduledoc false
 
   use EHealth.Web, :controller
@@ -8,14 +8,14 @@ defmodule EHealth.Web.DeclarationsController do
   action_fallback(EHealth.Web.FallbackController)
 
   def index(%Plug.Conn{req_headers: req_headers} = conn, params) do
-    with {:ok, %{"meta" => %{}} = response} <- API.get_declarations(params, req_headers) do
-      proxy(conn, response)
+    with {:ok, %{declarations: _, paging: _} = declarations_data} <- API.get_declarations(params, req_headers) do
+      render(conn, "index.json", declarations_data)
     end
   end
 
   def show(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
-    with {:ok, %{"meta" => %{}} = response} <- API.get_declaration_by_id(id, req_headers) do
-      proxy(conn, response)
+    with {:ok, declaration} <- API.get_declaration_by_id(id, req_headers) do
+      render(conn, "show.json", declaration: declaration)
     end
   end
 

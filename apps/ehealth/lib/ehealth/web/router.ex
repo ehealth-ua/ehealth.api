@@ -141,7 +141,7 @@ defmodule EHealthWeb.Router do
     # Employees
     get("/divisions", DivisionController, :index)
     # Declarations
-    get("/declarations", DeclarationsController, :index)
+    get("/declarations", DeclarationController, :index)
 
     # Declaration requests
     scope "/declaration_requests" do
@@ -207,10 +207,10 @@ defmodule EHealthWeb.Router do
     patch("/medication_request_requests/:id/actions/sign", MedicationRequestRequestController, :sign)
 
     # Declarations
-    get("/declarations/:id", DeclarationsController, :show)
-    patch("/declarations/:id/actions/approve", DeclarationsController, :approve)
-    patch("/declarations/:id/actions/reject", DeclarationsController, :reject)
-    patch("/declarations/terminate", DeclarationsController, :terminate)
+    get("/declarations/:id", DeclarationController, :show)
+    patch("/declarations/:id/actions/approve", DeclarationController, :approve)
+    patch("/declarations/:id/actions/reject", DeclarationController, :reject)
+    patch("/declarations/terminate", DeclarationController, :terminate)
 
     # Medication dispenses
     scope "/medication_dispenses" do
@@ -242,7 +242,7 @@ defmodule EHealthWeb.Router do
       get("/persons", Cabinet.PersonsController, :personal_info, as: :cabinet_persons)
       get("/persons/details", Cabinet.PersonsController, :person_details, as: :cabinet_persons)
 
-      get("/declarations", Cabinet.DeclarationController, :list_declarations, as: :cabinet_declarations)
+      get("/declarations", Cabinet.DeclarationController, :index, as: :cabinet_declarations)
 
       post(
         "/declaration_requests",
