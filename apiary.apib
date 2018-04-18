@@ -4602,6 +4602,108 @@ This method is used to abtain list of events with filters.
                 + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
             + employee_request_id: `d098aee7-5ab3-4a24-a6ba-811f9cf94c6d` - Employee request identifier
 
+
+# Group Contracts
+
+## Contract request [/api/contract_request]
+
+### Create Contract Request [POST /api/contract_request]
+
+This method allows legal entity owner create Contract Request and filled the part of inputs which belongs to contractor (MSP) side.
+The request will be created in status='NEW' and after that can be filled up from NHS side and changed to status='APPROVED' or 'DECLINED'.
+'APPROVED' request can be signed. If request was Declined than legal_entity owner must create the new request.
+Only one active ('NEW', 'APPROVED') request is allowed within same start_date and end_date and same type of contract. Next request will terminate previous one.
+
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
+    + Attributes (object)
+        + include `Contract_request_Request`
+
++ Response 201 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (object)
+            + include `Contract_request_Response`
+        + urgent (object, optional)
+            + security (object)
+                + `secret_key`: `secret_key` (string, required)
+                + `client_id`: `client_id` (string, required)
+                + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
+
+### Get Contract Requests list [GET /api/contract_request{?id,contractor_legal_entity_id,contractor_owner_id,nhs_signer_id,issue_city,status,contract_number,page,page_size}]
+
+This method is designed to obtain list of contract request with filters. This mothod return shorten information about contract request, in order to see all information try to use 'get contract request details'
+
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - id of contract request
+    + contractor_legal_entity_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - id of legal entity which created contract request.
+    + contractor_owner_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - id of legal entity owner.
+    + `nhs_signer_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - id of nhs employee
+    + issue_city: `КИЇВ` (string, optional) - contract request place
+    + status: `NEW` (enum, optional) - current status on contract request.
+        - NEW
+        - APPROVED
+        - DECLINED
+        - SIGNED
+        - TERMINATED
+    + contract_number: `0000-9EAX-XT7X-3115` (string, optional) - human readable number of contract request.
+    + page: 2 (number, optional) - Page number.
+    + page_size: 1000 (number, optional) - A limit on the number of objects to be returned. Default: 1000
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (`Response_Collection_V2`)
+        + data (array[`Contract_request_list`])
+
+### Get Contract Request Details [GET /api/contract_reauest/{id}]
+
+This method is designed to get full information of contract request by id
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - contract request identifier
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (object)
+            + include `Contract_request_Details`
+
+### Update contract request by NHS Signer [PATCH /api/contract_requst/{id}]
+
+This WS is designed to enrich conract request with information from NHS side. NHS Signer can change only contract requests in status NEW. NHS Signer can add only information from his side.
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - contract request identifier
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
+    + Attributes (object)
+        + include `Contract_request_Update`
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (object)
+            + include `Contract_request_Details`
+
+
 # Data Structures
 ## Responses
 ### `Response_Collection`
@@ -6577,3 +6679,88 @@ v
 
 ### `Event_properties`
 + new_value: `COMPLETED` (string) - new status of entity
+
+
+## `Contract_request`
+### `Contract_request_Request`
++ `contractor_legal_entity_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - legal entity ID which make contract request
++ `contractor_owner_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - person which represent legal entity
++ `contractor_base`: `на підставі закону про Медичне обслуговування населення` (string, required) - documents which allows to represent clinic
++ `contractor_payment_details` (object, required)
+    + include (`Payment_details`, required)
++ `contractor_rmsp_amount`: `50000` (number, required) - the amount of population which were served by this MSP
++ `external_contractor_flag`: true (boolean, optional) - the existence of second appendix
++ `external_contractors` (object, optional)
+    + include (`External_contractors`, required)
++ `contractor_employee_divisions` (array, fixed, required)
+    + (object)
+        + include `Employee_divisions`
++ `start_date`: `2017-04-20` (string, required) - contract start date 
++ `end_date`: `2017-04-20` (string, required) - contract end date
++ `id_form`: `5` (string, required) - type of contract {DICTIONARY CONTRACT_TYPE}
+
+### `Contract_request_Response`
++ id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract_request ID 
++ include (`Contract_request_Request`, required)
++ status: `NEW` (string, required) - contract_request status
++ `inserted_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `inserted_by`: `e1453f4c-1077-4e85-8c98-c13ffca0063e` (string, required)
++ `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
++ `updated_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
+
+### `Contract_request_list`
++ id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract_request ID 
++ `contractor_legal_entity_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - legal entity ID which make contract request
++ `contractor_owner_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - person which represent legal entity
++ `contractor_base`: `на підставі закону про Медичне обслуговування населення` (string, required) - documents which allows to represent clinic
++ status: `NEW` (string, required) - contract_request status
++ status_reason: `Не выдповідає попереднім домовленостям`(string, optional) - reason of status theat is setted bu nhs
++ `nhs_signer_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - person which represents nhs
++ `nhs_signer_base`: `на підставі наказу` (string, optional) - documents which allows to represent nhs
++ issue_city: `Київ` (string, optional) - place of contract request
++ `nhs_contract_price`: `50000` (number, optional) - contract price
++ contract_number: `0000-9EAX-XT7X-3115` (string, optional) - human readable number of contract request.
++ contract_id: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - contract id
++ `start_date`: `2017-04-20` (string, required) - contract start date 
++ `end_date`: `2017-04-20` (string, required) - contract end date
+
+### `Contract_request_Details`
++ id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract_request ID 
++ include (`Contract_request_Request`, required)
++ include (`Contract_request_Update`, required)
++ status: `NEW` (string, required) - contract_request status
++ status_reason: `Не выдповідає попереднім домовленостям`(string, optional) - reason of status theat is setted bu nhs
++ `nhs_signer_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - person which represents nhs
++ issue_city: `Київ` (string, optional) - place of contract request
++ contract_number: `0000-9EAX-XT7X-3115` (string, optional) - human readable number of contract request.
++ contract_id: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - contract id
++ `start_date`: `2017-04-20` (string, required) - contract start date 
++ `end_date`: `2017-04-20` (string, required) - contract end date
++ `printout_content`: `Contract request content` - HTML document for contract request, is shown only for requests in APPROVED or SIGNED status
+
+### `Contract_request_Update`
++ `nhs_signer_base`: `на підставі наказу` (string, optional) - documents which allows to represent nhs
++ `nhs_contract_price`: `50000` (number, optional) - contract price
++ `nhs_payment_method`: `prepayment` (enum, optional) - payment method for contract
+
+### `Payment_details`
++ `bank_name`: `Банк номер 1` (string, required) - bank name
++ MFO: `351005` (string, required) - bank code
++ `payer_account`: `32009102701026` (string, required) - Номер банківського рахунку
+
+### `External_contractors`
++ `legal_entity_id`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required) - external_contractor ID
++ `contract` (object,required)
+  + `number`: `1234567`(string, required) - number of contract with sub contractor
+  + `issued_at`: `2018-01-01` (string, required) - issue date of contract with sub contractor
+  + `expires_at`: `2019-01-01` (string, required) - expiry date of contract with sub contractor
++ divisions (array, fixed, required)
+    + (object)
+      + id: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
+      + `medical_service`: `Послуга ПМД` (string, required)
+
+### `Employee_divisions`
++ `employee_id`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required) - employee ID
++ `staff_units`: `0.5` (number, required)
++ `declaration_limit`: `2000` (number, required) - declaration limit for current employee within the contract
++ `division_id`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required) - division ID
