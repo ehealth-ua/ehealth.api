@@ -1983,9 +1983,9 @@ Method checks request with rules in AuthMethod table, and returns decision based
 
 # Group Internal. Cabinet
 
-## Cabinet [/api/cabinet]
+## Cabinet [/private/cabinet]
 
-### Email verification [POST /api/cabinet/email_verification]
+### Email verification [POST /private/cabinet/email_verification]
 
 Method check email and send a link via email.
 
@@ -2016,7 +2016,7 @@ Method check email and send a link via email.
             + type: unverified (string, required)
             + message: `Invalid email` (string, required)
 
-### Email Validation [POST /api/cabinet/email_validation]
+### Email Validation [POST /private/cabinet/email_validation]
 
 Method allows to verify Email and check whether the link we sent is the same as we received
 ```
@@ -2046,7 +2046,7 @@ Method allows to verify Email and check whether the link we sent is the same as 
             + type: `conflict`
             + message: `User with this email already exists` (string)
 
-### Patient Registration  [POST /api/cabinet/registration]
+### Patient Registration  [POST /private/cabinet/registration]
 This WS allows to register the patient into the system. This process is done through next steps:
 ```
 - Create/Update mpi.persons (based on birth_date and tax_id)
@@ -2123,7 +2123,7 @@ JWT_token:
         + data (object)
            + token: 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJtaXRocmlsLWxvZ2luIiwiZXhwIjoxNTIzNDM5MjAxLCJpYXQiOjE1MjM0MzgzMDEsImlzcyI6IkVIZWFsdGgiLCJqdGkiOiJlZmUxZjA4ZS1kNGI0LTRjZWYtYTAyYy03OGVhNGExZGRhMjUiLCJuYmYiOjE1MjM0MzgzMDAsIm5vbmNlIjoxMjMsInN1YiI6MTIzLCJ0eXAiOiJhY2Nlc3MifQ.UZ6S92h3nAG-GKY_XUE1Rc6uR_BuqR8ufUJfMhhKtNmt7DkkQlU49qPXjL0LFddVz1E2DXi2a-BQ0FG-DHsTHA' (string, required)
 
-### Get User [POST /api/cabinet/users{?tax_id}]
+### Get User [POST /private/cabinet/users{?tax_id}]
 
 Thie WS designed to check existence of user with input tax_id
 
@@ -4414,16 +4414,16 @@ This method is used to abtain list of events with filters.
                 + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
             + employee_request_id: `d098aee7-5ab3-4a24-a6ba-811f9cf94c6d` - Employee request identifier
 
-# Group Public. Cabinet
+# Group Public. Patient Cabinet
 
 ## Cabinet [/api/cabinet]
-
-There are 2 possible way to login into Cabinet: 
+Patient can login to cabinet using eHealth account.
+Initially 2 login strategies will be supported: 
 - via email/password and 2nd factor
 - via Digital Signature
-
-Email/password/2fa is the same as standart flow.
-DS login ignores existince of 2nd factor authorization. If patient reset 2nd factor it is possible to login via DS. 
+MIS can get access/refresh tokens via the [oauth2.0 flow](## oAuth).
+MIS should pass it's own client_id to the sign-in form.
+Using access token MIS can access all the endpoints described in this chapter to provide functionality for the patient.
 
 ### Get Personal info [GET /api/cabinet/persons]
 
