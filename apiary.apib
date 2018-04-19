@@ -7,7 +7,7 @@ This is a API documentation for Ukrainian Health Services government institution
 
 * Master Patients Index (MPI)
 * Global Medical Institutions and Doctors Registries
-* Partnership Relation Management (PRM) module that describes business relations between this 3 entities.
+* Partnership Relation Managementine (PRM) module that describes business relations between this 3 entities.
 
 Project development is fully transparent, you can find it's source code on GitHub:
 
@@ -2151,7 +2151,7 @@ Thie WS designed to check existence of user with input tax_id
 
 # Group Public. Medical Service Provider Integration Layer
 
-## oAuth [/api/oauth]
+##oAuth [/api/oauth]
 
 1. Client UI: redirects user to Login UI with `client_id`, `redirect_uri` and `response_type=code` query params;
 2. Login UI: completes [Session]() auth flow with `apps:create` scope;
@@ -4421,7 +4421,7 @@ Patient can login to cabinet using eHealth account.
 Initially 2 login strategies will be supported: 
 - via email/password and 2nd factor
 - via Digital Signature
-MIS can get access/refresh tokens via the [oauth2.0 flow](## oAuth).
+MIS can get access/refresh tokens via the [oauth2.0 flow](#reference/public.-medical-service-provider-integration-layer/oauth).
 MIS should pass it's own client_id to the sign-in form.
 Using access token MIS can access all the endpoints described in this chapter to provide functionality for the patient.
 
