@@ -69,7 +69,7 @@ defmodule EHealth.Persons do
   defp validate_tax_id(tax_id, person_tax_id, content, signer) do
     with true <- tax_id == person_tax_id,
          true <- person_tax_id == content["tax_id"],
-         true <- content["tax_id"] == signer["edrpou"] do
+         true <- content["tax_id"] == signer["drfo"] do
       :ok
     else
       _ ->

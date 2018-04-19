@@ -417,7 +417,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
 
       conn =
         conn
-        |> put_req_header("edrpou", "2222222220")
+        |> put_req_header("drfo", "2222222220")
         |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
         |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: legal_entity.id}))
 
@@ -472,7 +472,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
 
       conn =
         conn
-        |> put_req_header("edrpou", "2222222220")
+        |> put_req_header("drfo", "2222222220")
         |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
         |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: legal_entity.id}))
 
