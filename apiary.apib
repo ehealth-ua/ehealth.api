@@ -4644,11 +4644,6 @@ Only one active ('NEW', 'APPROVED') request is allowed within same start_date an
     + Attributes (Response__Process_OK)
         + data (object)
             + include `Contract_request_Response`
-        + urgent (object, optional)
-            + security (object)
-                + `secret_key`: `secret_key` (string, required)
-                + `client_id`: `client_id` (string, required)
-                + `redirect_uri`: `redirect_uri` (string, required, fixed) - Redirect uri
 
 ### Get Contract Requests list [GET /api/contract_request{?id,contractor_legal_entity_id,contractor_owner_id,nhs_signer_id,issue_city,status,contract_number,page,page_size}]
 
@@ -4696,7 +4691,7 @@ This method is designed to get full information of contract request by id
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + data (object)
-            + include `Contract_request_Details`
+            + include `Contract_request_Details_Full`
 
 ### Update contract request by NHS Signer [PATCH /api/contract_requst/{id}]
 
@@ -4719,6 +4714,48 @@ This WS is designed to enrich conract request with information from NHS side. NH
         + data (object)
             + include `Contract_request_Details`
 
+### Approve contract request by NHS [PATCH /api/contract_requst/{id}/actions/approve]
+
+This WS is designed to approve contract request by NHS. Contract request only in status NEW could be approved.
+
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `Contract_request_Details`
+
+### Decline contract request by NHS [PATCH /api/contract_requst/{id}/actions/decline]
+
+This WS is designed to decline contract request by NHS. Contract request only in status NEW could be declined.
+
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+            
+    + Attributes (object)
+        + `status_reason`: `Не відповідає попереднім домовленостям`(string, required) - the reason of declined status
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `Contract_request_Details`
 
 # Data Structures
 ## Responses
@@ -5733,8 +5770,8 @@ This WS is designed to enrich conract request with information from NHS side. NH
     + `32009102701026` (string, required) - banks account number
 
 ### `Archive`
-+ date: `2017-02-28` (string, required) - the date when paper documents were transferred to archive [optional]
-+ place: `вул. Грушевського 15` (string, required) - the address of building where paper documents are [optional]
++ date: `2017-02-28` (string, required) - the date when paper documents were transferred to archive
++ place: `вул. Грушевського 15` (string, required) - the address of building where paper documents are
 
 ## OTPs
 ### OTP
@@ -6732,6 +6769,7 @@ v
 + status: `NEW` (string, required) - contract_request status
 + status_reason: `Не выдповідає попереднім домовленостям`(string, optional) - reason of status theat is setted bu nhs
 + `nhs_signer_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - person which represents nhs
++ `nhs_legal_entity_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - nhs legal entity ID
 + `nhs_signer_base`: `на підставі наказу` (string, optional) - documents which allows to represent nhs
 + issue_city: `Київ` (string, optional) - place of contract request
 + `nhs_contract_price`: `50000` (number, optional) - contract price
@@ -6745,14 +6783,58 @@ v
 + include (`Contract_request_Request`, required)
 + include (`Contract_request_Update`, required)
 + status: `NEW` (string, required) - contract_request status
-+ status_reason: `Не выдповідає попереднім домовленостям`(string, optional) - reason of status theat is setted bu nhs
++ status_reason: `Не відповідає попереднім домовленостям`(string, optional) - reason of status theat is setted bu nhs
 + `nhs_signer_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - person which represents nhs
++ `nhs_legal_entity_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - nhs legal entity ID
 + issue_city: `Київ` (string, optional) - place of contract request
 + contract_number: `0000-9EAX-XT7X-3115` (string, optional) - human readable number of contract request.
 + contract_id: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - contract id
 + `start_date`: `2017-04-20` (string, required) - contract start date 
 + `end_date`: `2017-04-20` (string, required) - contract end date
 + `printout_content`: `Contract request content` - HTML document for contract request, is shown only for requests in APPROVED or SIGNED status
+
+### `Contract_request_Details_Full`
++ id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract_request ID 
++ `contractor_legal_entity`(object, required)
+    + include (`contract_legal_entity_details`)
++ `contractor_owner` (object, required)
+    + include (Person_Minimal)
++ `contractor_base`: `на підставі закону про Медичне обслуговування населення` (string, required) - documents which allows to represent clinic
++ `contractor_payment_details` (object, required)
+    + include (`Payment_details`, required)
++ `contractor_rmsp_amount`: `50000` (number, required) - the amount of population which were served by this MSP
++ `external_contractor_flag`: true (boolean, optional) - the existence of second appendix
++ `external_contractors` (object, optional)
+    + include (`External_contractors_response`, required)
++ `contractor_employee_divisions` (array, fixed, required)
+    + (object)
+        + include `Employee_divisions_response`
++ `start_date`: `2017-04-20` (string, required) - contract start date 
++ `end_date`: `2017-04-20` (string, required) - contract end date
++ `id_form`: `5` (string, required) - type of contract {DICTIONARY CONTRACT_TYPE}
++ `nhs_signer_base`: `на підставі наказу` (string, optional) - documents which allows to represent nhs
++ `nhs_contract_price`: `50000` (number, optional) - contract price
++ `nhs_payment_method`: `prepayment` (enum, optional) - payment method for contract
++ `nhs_payment_details` (object, optional)
+    + include (`Payment_details`, optional)
++ status: `NEW` (string, required) - contract_request status
++ status_reason: `Не відповідає попереднім домовленостям`(string, optional) - reason of status theat is setted bu nhs
++ `nhs_signer` (object, optional) 
+    + include (Person_Minimal)
++ `nhs_legal_entity_id` (object)
+    + include (`contract_legal_entity_details`)
++ issue_city: `Київ` (string, optional) - place of contract request
++ contract_number: `0000-9EAX-XT7X-3115` (string, optional) - human readable number of contract request.
++ contract_id: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - contract id
++ `start_date`: `2017-04-20` (string, required) - contract start date 
++ `end_date`: `2017-04-20` (string, required) - contract end date
++ `printout_content`: `Contract request content` (optional) - HTML document for contract request, is shown only for requests in APPROVED or SIGNED status
+
+### `contract_legal_entity_details`
++ id: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - legal entity ID which make contract request
++ name: Клініка Ноунейм (string, required) - full official name of legal entity also the name to show on public sources [as map, portal etc]
++ edrpou: 32323454 (string, required) - Unified Register of Businesses and Organizations
++ addresses (array[Address], required) - The max items of array is 2: REGISTRATION - required, RESIDENCE - optional. DIVISION is exception: REGISTRATION - optional, RESIDENCE - required
 
 ### `Contract_request_Update`
 + `nhs_signer_base`: `на підставі наказу` (string, optional) - documents which allows to represent nhs
@@ -6775,8 +6857,33 @@ v
       + id: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
       + `medical_service`: `Послуга ПМД` (string, required)
 
+### `External_contractors_response`
++ `legal_entity` (object)
+    + include (`Legal_Entity_Short_Cabinet`)
++ `contract` (object,required)
+  + `number`: `1234567`(string, required) - number of contract with sub contractor
+  + `issued_at`: `2018-01-01` (string, required) - issue date of contract with sub contractor
+  + `expires_at`: `2019-01-01` (string, required) - expiry date of contract with sub contractor
++ divisions (array, fixed, required)
+    + (object)
+      + id: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
+      + name: Бориспільське відділення Клініки Ноунейм (string, required) - the full name of division
+      + `medical_service`: `Послуга ПМД` (string, required)
+
 ### `Employee_divisions`
 + `employee_id`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required) - employee ID
 + `staff_units`: `0.5` (number, required)
 + `declaration_limit`: `2000` (number, required) - declaration limit for current employee within the contract
 + `division_id`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required) - division ID
+
+### `Employee_divisions_response`
++ `employee_id`
+    + id: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required) - employee ID
+    + include (Person_Minimal)
+    + include (DoctorNew_Short)
++ `staff_units`: `0.5` (number, required)
++ `declaration_limit`: `2000` (number, required) - declaration limit for current employee within the contract
++ division (object)
+    + id: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required) - division ID
+    + include (`Division`)
+    + mountain_group: false (boolean, optional)
