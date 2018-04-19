@@ -188,7 +188,8 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
         "settings" => %{},
         "email" => "test@example.com",
         "type" => "user",
-        "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c"
+        "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
+        "tax_id" => "2222222220"
       }
 
       response =
@@ -348,6 +349,10 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
     end
 
     test "tax_id doesn't match with signed content", %{conn: conn} do
+      expect(MPIMock, :person, fn id, _ ->
+        {:ok, %{"data" => %{"id" => id, "tax_id" => "3378115538"}}}
+      end)
+
       legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
       party = insert(:prm, :party)
       insert(:prm, :party_user, party: party, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c")
@@ -373,6 +378,10 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
     end
 
     test "tax_id doesn't match with signer", %{conn: conn} do
+      expect(MPIMock, :person, fn id, _ ->
+        {:ok, %{"data" => %{"id" => id, "tax_id" => "2222222220"}}}
+      end)
+
       legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
       party = insert(:prm, :party)
       insert(:prm, :party_user, party: party, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c")
@@ -398,6 +407,10 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
     end
 
     test "invalid signed content changeset", %{conn: conn} do
+      expect(MPIMock, :person, fn id, _ ->
+        {:ok, %{"data" => %{"id" => id, "tax_id" => "2222222220"}}}
+      end)
+
       legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
       party = insert(:prm, :party, tax_id: "2222222220")
       insert(:prm, :party_user, party: party, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c")
@@ -445,6 +458,10 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
     end
 
     test "success update person", %{conn: conn} do
+      expect(MPIMock, :person, fn id, _ ->
+        {:ok, %{"data" => %{"id" => id, "tax_id" => "2222222220"}}}
+      end)
+
       legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
       party = insert(:prm, :party, tax_id: "2222222220")
       insert(:prm, :party_user, party: party, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c")

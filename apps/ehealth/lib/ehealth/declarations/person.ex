@@ -1,7 +1,6 @@
 defmodule EHealth.Declarations.Person do
   @moduledoc false
 
-  alias EHealth.API.OPS
   import EHealth.Declarations.API, only: [expand_declaration_relations: 2]
 
   @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]
