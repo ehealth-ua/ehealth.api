@@ -6,11 +6,13 @@ defmodule EHealth.Persons.Validator do
 
   @validation_dictionaries ["DOCUMENT_TYPE", "PHONE_TYPE", "AUTHENTICATION_METHOD", "DOCUMENT_RELATIONSHIP_TYPE"]
   @auth_method_error "Must be one and only one authentication method."
+  @birth_certificate_number_regex ~r/^([A-Za-zА-яіІїЇєЄґҐё\d\#\№\–\-\—\－\_\'\,\s\/\\\=\|\!\<\;\?\%\:\]\*\+\.\√])+$/u
 
   def validate(person) do
     dict_keys = Dictionaries.get_dictionaries_keys(@validation_dictionaries)
 
-    with %{"DOCUMENT_TYPE" => doc_types} = dict_keys,
+    with :ok <- validate_birth_certificate_number(person),
+         %{"DOCUMENT_TYPE" => doc_types} = dict_keys,
          :ok <- JsonObjects.array_unique_by_key(person, ["documents"], "type", doc_types),
          %{"PHONE_TYPE" => phone_types} = dict_keys,
          :ok <- validate_person_phones(person, phone_types),
@@ -20,8 +22,40 @@ defmodule EHealth.Persons.Validator do
          :ok <- validate_confidant_persons(person, dict_keys) do
       :ok
     else
-      {:error, [{rules, path}]} -> {:error, [{rules, JsonObjects.combine_path("person", path)}]}
+      {:error, [{rules, path}]} ->
+        {:error, [{rules, JsonObjects.combine_path("person", path)}]}
     end
+  end
+
+  def validate_birth_certificate_number(%{} = person) do
+    age = Timex.diff(Timex.now(), Date.from_iso8601!(person["birth_date"]), :years)
+
+    {birth_certificate, document_index} =
+      person
+      |> Map.get("documents", [])
+      |> Enum.with_index()
+      |> Enum.find({%{}, 0}, fn {doc, _index} -> doc["type"] == "BIRTH_CERTIFICATE" end)
+
+    birth_certificate_number = Map.get(birth_certificate, "number", false)
+
+    cond do
+      age < 14 && !birth_certificate_number ->
+        {:error, [{JsonObjects.get_error("Must contain required item.", "BIRTH_CERTIFICATE"), "$.person.documents"}]}
+
+      birth_certificate_number && !birth_certificate_number_valid?(birth_certificate_number) ->
+        {:error,
+         [
+           {JsonObjects.get_error("Birth certificate number is not valid", "BIRTH_CERTIFICATE"),
+            "$.person.documents[#{document_index}].number"}
+         ]}
+
+      true ->
+        :ok
+    end
+  end
+
+  defp birth_certificate_number_valid?(birth_certificate_number) do
+    Regex.match?(@birth_certificate_number_regex, birth_certificate_number)
   end
 
   defp validate_person_phones(person, phone_types) do

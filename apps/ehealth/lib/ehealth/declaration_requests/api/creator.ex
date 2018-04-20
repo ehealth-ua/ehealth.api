@@ -17,11 +17,10 @@ defmodule EHealth.DeclarationRequests.API.Creator do
   alias EHealth.GlobalParameters
   alias EHealth.Man.Templates.DeclarationRequestPrintoutForm
   alias EHealth.PartyUsers
-  alias EHealth.Persons.Validator, as: ValidatePerson
   alias EHealth.Repo
   alias EHealth.Utils.Phone
   alias EHealth.Utils.NumberGenerator
-  alias EHealth.Validators.{TaxID, BirthDate, JsonObjects}
+  alias EHealth.Validators.{TaxID, BirthDate}
 
   @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
   @auth_na DeclarationRequest.authentication_method(:na)
@@ -95,21 +94,6 @@ defmodule EHealth.DeclarationRequests.API.Creator do
           Repo.rollback(reason)
       end
     end)
-  end
-
-  def validate_person(person) do
-    age = Timex.diff(Timex.now(), Date.from_iso8601!(Map.get(person, "birth_date")), :years)
-
-    birth_certificate =
-      person
-      |> Map.get("documents")
-      |> Enum.find(&(Map.get(&1, "type") == "BIRTH_CERTIFICATE"))
-
-    if age < 14 && !birth_certificate do
-      {:error, [{JsonObjects.get_error("Must contain required item.", "BIRTH_CERTIFICATE"), "$.person.documents"}]}
-    else
-      ValidatePerson.validate(person)
-    end
   end
 
   def validate_employee_speciality(%Employee{additional_info: additional_info}) do

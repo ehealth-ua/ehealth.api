@@ -4,6 +4,8 @@ defmodule EHealth.Persons.ValidatorTest do
   use EHealth.Web.ConnCase
   alias EHealth.Persons.Validator
 
+  @today_date Date.to_string(Date.utc_today())
+
   describe "Additional validation of JSON request: Validator.validate/1" do
     setup _context do
       insert(:il, :dictionary_phone_type)
@@ -265,29 +267,88 @@ defmodule EHealth.Persons.ValidatorTest do
       assert %{description: "No duplicate values.", params: ["CONFIDANT_CERTIFICATE"], rule: :invalid} == rules
       assert "$.person.confidant_person[1].documents_relationship[4].type" == path
     end
+
+    test "Success on valid birth certificate number", %{person: person} do
+      person = Map.put(person, "documents", [create_birth_certificate("І--АМ№179540")])
+      assert :ok = Validator.validate(person)
+    end
+
+    test "Error on age smaller than 14 without birth certificate", %{person: person} do
+      person = %{person | "birth_date" => @today_date}
+
+      {:error, [{rules, _path}]} = Validator.validate(person)
+      assert %{description: "Must contain required item.", params: ["BIRTH_CERTIFICATE"], rule: :invalid} == rules
+    end
+
+    test "Error on invalid birth certificate number", %{person: person} do
+      person = Map.put(person, "documents", [create_birth_certificate("I$-HM083557")])
+
+      assert {:error,
+              [
+                {%{description: "Birth certificate number is not valid", params: ["BIRTH_CERTIFICATE"], rule: :invalid},
+                 _path}
+              ]} = Validator.validate(person)
+    end
   end
 
-  defp create_person do
-    %{
-      "documents" => [
-        %{"type" => "PASSPORT", "number" => 1},
-        %{"type" => "NATIONAL_ID", "number" => 2}
-      ],
-      "phones" => [
-        %{"type" => "MOBILE", "number" => 1},
-        %{"type" => "LAND_LINE", "number" => 2}
-      ],
-      "emergency_contact" => %{
+  describe "validates birth certificate number" do
+    test "passes" do
+      valid_numbers = [
+        "серія1МИ№052966",
+        "І- ТП № 242141",
+        "ІБК№;??%:",
+        "ІСГ/178961",
+        "КІ3215**",
+        "№547./1/А"
+      ]
+
+      for number <- valid_numbers do
+        person = create_person(%{"birth_date" => @today_date, "documents" => [create_birth_certificate(number)]})
+
+        assert :ok == Validator.validate_birth_certificate_number(person)
+      end
+    end
+
+    test "fails" do
+      invalid_numbers = [
+        "се$рія1МИ№052966",
+        "І-ТП &№ 242141",
+        "ІЖС№0^24825"
+      ]
+
+      for number <- invalid_numbers do
+        person = create_person(%{"birth_date" => @today_date, "documents" => [create_birth_certificate(number)]})
+
+        assert {:error, _} = Validator.validate_birth_certificate_number(person)
+      end
+    end
+  end
+
+  defp create_person(merge_data \\ %{}) do
+    Map.merge(
+      %{
+        "birth_date" => "2000-01-01",
+        "documents" => [
+          %{"type" => "PASSPORT", "number" => 1},
+          %{"type" => "NATIONAL_ID", "number" => 2}
+        ],
         "phones" => [
           %{"type" => "MOBILE", "number" => 1},
           %{"type" => "LAND_LINE", "number" => 2}
+        ],
+        "emergency_contact" => %{
+          "phones" => [
+            %{"type" => "MOBILE", "number" => 1},
+            %{"type" => "LAND_LINE", "number" => 2}
+          ]
+        },
+        "authentication_methods" => [
+          # %{"type" => "OTP"},                  # only 1 of 2 at the same time
+          %{"type" => "OFFLINE"}
         ]
       },
-      "authentication_methods" => [
-        # %{"type" => "OTP"},                  # only 1 of 2 at the same time
-        %{"type" => "OFFLINE"}
-      ]
-    }
+      merge_data
+    )
   end
 
   defp create_confidant_person(relation) when relation in ["PRIMARY", "SECONDARY"] do
@@ -309,4 +370,6 @@ defmodule EHealth.Persons.ValidatorTest do
       ]
     }
   end
+
+  defp create_birth_certificate(number), do: %{"type" => "BIRTH_CERTIFICATE", "number" => number}
 end

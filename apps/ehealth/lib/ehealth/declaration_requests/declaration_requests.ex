@@ -1,6 +1,10 @@
 defmodule EHealth.DeclarationRequests do
   @moduledoc false
 
+  import Ecto.Changeset
+  import Ecto.Query
+  import EHealth.Utils.Connection, only: [get_consumer_id: 1, get_client_id: 1]
+
   alias EHealth.API.Mithril
   alias EHealth.Divisions.Division
   alias EHealth.DeclarationRequests.DeclarationRequest
@@ -18,9 +22,7 @@ defmodule EHealth.DeclarationRequests do
   alias EHealth.Validators.Reference
   alias Ecto.Multi
   alias EHealth.Email.Sanitizer
-  import Ecto.Changeset
-  import Ecto.Query
-  import EHealth.Utils.Connection, only: [get_consumer_id: 1, get_client_id: 1]
+  alias EHealth.Persons.Validator, as: PersonsValidator
 
   @status_new DeclarationRequest.status(:new)
   @status_rejected DeclarationRequest.status(:rejected)
@@ -137,7 +139,7 @@ defmodule EHealth.DeclarationRequests do
     # TODO: double check user_id/client_id has access to create given employee/legal_entity
     with :ok <- JsonSchema.validate(:declaration_request, %{"declaration_request" => params}),
          params <- lowercase_email(params),
-         :ok <- Creator.validate_person(params["person"]),
+         :ok <- PersonsValidator.validate(params["person"]),
          {:ok, _} <- Addresses.validate(get_in(params, ["person", "addresses"]), "REGISTRATION"),
          {:ok, %Employee{} = employee} <-
            Reference.validate(:employee, params["employee_id"], "$.declaration_request.employee_id"),

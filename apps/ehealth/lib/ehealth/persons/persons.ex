@@ -1,13 +1,15 @@
 defmodule EHealth.Persons do
   @moduledoc false
 
+  import EHealth.Utils.Connection, only: [get_consumer_id: 1]
+
   alias EHealth.API.Mithril
   alias EHealth.API.Signature
   alias EHealth.Persons.Person
   alias EHealth.Persons.Search
   alias EHealth.Persons.Signed
   alias EHealth.Validators.JsonSchema
-  import EHealth.Utils.Connection, only: [get_consumer_id: 1]
+  alias EHealth.Persons.Validator, as: PersonsValidator
 
   @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
 
@@ -33,6 +35,7 @@ defmodule EHealth.Persons do
          {:ok, %{"data" => person}} <- @mpi_api.person(user["person_id"], headers),
          :ok <- validate_tax_id(user["tax_id"], person["tax_id"], content, signer),
          :ok <- JsonSchema.validate(:person, content),
+         :ok <- PersonsValidator.validate_birth_certificate_number(content),
          %Ecto.Changeset{valid?: true, changes: changes} <- Person.changeset(content),
          {:ok, %{"data" => data}} <- @mpi_api.update_person(id, changes, headers) do
       {:ok, data}
@@ -66,10 +69,10 @@ defmodule EHealth.Persons do
     end
   end
 
-  defp validate_tax_id(tax_id, person_tax_id, content, signer) do
+  defp validate_tax_id(tax_id, person_tax_id, signed_content, signer) do
     with true <- tax_id == person_tax_id,
-         true <- person_tax_id == content["tax_id"],
-         true <- content["tax_id"] == signer["drfo"] do
+         true <- person_tax_id == signed_content["tax_id"],
+         true <- signed_content["tax_id"] == signer["drfo"] do
       :ok
     else
       _ ->
