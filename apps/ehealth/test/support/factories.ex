@@ -39,6 +39,10 @@ defmodule EHealth.Factories do
     |> repo_insert!(type)
   end
 
+  def string_params_for(factory, attrs \\ []) do
+    ExMachina.Ecto.string_params_for(__MODULE__, factory, attrs)
+  end
+
   defp repo_insert!(data, :il), do: Repo.insert!(data)
   defp repo_insert!(data, :prm), do: PRMRepo.insert!(data)
 end

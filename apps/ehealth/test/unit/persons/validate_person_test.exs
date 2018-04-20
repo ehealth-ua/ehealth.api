@@ -317,9 +317,10 @@ defmodule EHealth.Persons.ValidatorTest do
       ]
 
       for number <- invalid_numbers do
-        person = create_person(%{"birth_date" => @today_date, "documents" => [create_birth_certificate(number)]})
-
-        assert {:error, _} = Validator.validate_birth_certificate_number(person)
+        assert {:error, _} =
+                 :person
+                 |> string_params_for(birth_date: @today_date, documents: [create_birth_certificate(number)])
+                 |> Validator.validate_birth_certificate_number()
       end
     end
   end
