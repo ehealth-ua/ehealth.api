@@ -50,10 +50,8 @@ defmodule EHealth.Mixfile do
       {:poison, "~> 3.1"},
       {:plug, "~> 1.4"},
       {:cowboy, "~> 1.1"},
-      {:httpoison, "~> 0.12"},
+      {:httpoison, "~> 1.1.0"},
       {:csv, "~> 2.0.0"},
-      # fix for https://github.com/edgurgel/httpoison/issues/264
-      {:hackney, "== 1.8.0", override: true},
       {:postgrex, ">= 0.0.0"},
       {:ecto, "~> 2.1"},
       {:scrivener_ecto, "~> 1.2"},
