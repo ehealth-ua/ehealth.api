@@ -154,16 +154,15 @@ defmodule EHealth.DeclarationRequests do
 
   def create_online(params, headers) do
     user_id = get_consumer_id(headers)
-    client_id = get_client_id(headers)
     params = Map.delete(params, "legal_entity_id")
 
     with :ok <- JsonSchema.validate(:cabinet_declaration_request, params),
          {:ok, %{"data" => user}} <- Mithril.get_user_by_id(user_id, headers),
          :ok <- check_user_person_id(user, params["person_id"]),
          {:ok, person} <- Reference.validate(:person, params["person_id"]),
-         {:ok, %LegalEntity{} = legal_entity} <- Reference.validate(:legal_entity, client_id),
          {:ok, %Employee{} = employee} <- Reference.validate(:employee, params["employee_id"]),
-         {:ok, %Division{} = division} <- Reference.validate(:division, params["division_id"]) do
+         {:ok, %Division{} = division} <- Reference.validate(:division, params["division_id"]),
+         {:ok, %LegalEntity{} = legal_entity} <- Reference.validate(:legal_entity, division.legal_entity_id) do
       data =
         params
         |> Map.put("person", person)
