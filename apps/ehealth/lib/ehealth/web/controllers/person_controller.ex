@@ -2,7 +2,6 @@ defmodule EHealth.Web.PersonController do
   @moduledoc false
   use EHealth.Web, :controller
 
-  alias EHealth.API.MPI
   alias EHealth.Persons
   alias EHealth.Declarations.Person
   alias EHealth.Web.DeclarationView

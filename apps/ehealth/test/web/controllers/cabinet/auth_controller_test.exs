@@ -262,11 +262,12 @@ defmodule Mithril.Web.RegistrationControllerTest do
     end
 
     test "JWT expired", %{conn: conn} do
-      jwt =
-        "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJlbWFpbC12ZXJpZmljYXRpb24iLCJlbWFpbCI6ImVtYWlsQGV4YW1w" <>
-          "bGUuY29tIiwiZXhwIjoxNTIzNTY0NzUyLCJpYXQiOjE1MjM1NjQ2OTIsImlzcyI6IkVIZWFsdGgiLCJqdGkiOiJlMWU1NWIxZS0" <>
-          "1Y2I1LTRjYzAtODU4NC1mZDNjMjlhNGZhOTAiLCJuYmYiOjE1MjM1NjQ2OTEsInN1YiI6ImVtYWlsQGV4YW1wbGUuY29tIiwidH" <>
-          "lwIjoiYWNjZXNzIn0.YplIwmio_NTSDPlDQAmlUDIFsjBRYGxvdebPT1JLadINv5m3KoaR6tYium4lBvuM0XO0vTdlsUP2MgxKv5iagQ"
+      {:ok, jwt, _} =
+        encode_and_sign(
+          get_aud(:email_verification),
+          %{email: "email@example.com", exp: 1_524_210_044},
+          token_type: "access"
+        )
 
       assert {:error, :token_expired} = decode_and_verify(jwt)
 
