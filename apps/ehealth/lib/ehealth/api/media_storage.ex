@@ -5,7 +5,6 @@ defmodule EHealth.API.MediaStorage do
 
   use HTTPoison.Base
   use Confex, otp_app: :ehealth
-  use EHealth.API.Helpers.HeadersProcessor
   use EHealth.API.Helpers.MicroserviceBase
   alias EHealth.API.Helpers.SignedContent
   require Logger
@@ -32,18 +31,6 @@ defmodule EHealth.API.MediaStorage do
   end
 
   def create_signed_url(data, headers) do
-    Logger.info(fn ->
-      Poison.encode!(%{
-        "log_type" => "microservice_request",
-        "microservice" => config()[:endpoint],
-        "action" => "POST",
-        "path" => Enum.join([config()[:endpoint], "/media_content_storage_secrets"]),
-        "request_id" => Logger.metadata()[:request_id],
-        "body" => data,
-        "headers" => Enum.reduce(headers, %{}, fn {k, v}, map -> Map.put_new(map, k, v) end)
-      })
-    end)
-
     post!("/media_content_storage_secrets", Poison.encode!(data), headers)
   end
 

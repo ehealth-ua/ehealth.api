@@ -5,7 +5,6 @@ defmodule EHealth.API.OPS do
 
   use HTTPoison.Base
   use Confex, otp_app: :ehealth
-  use EHealth.API.Helpers.HeadersProcessor
   use EHealth.API.Helpers.MicroserviceBase
 
   def get_declaration_by_id(id, headers) do

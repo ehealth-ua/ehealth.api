@@ -6,7 +6,6 @@ defmodule EHealth.API.Signature do
 
   use HTTPoison.Base
   use Confex, otp_app: :ehealth
-  use EHealth.API.Helpers.HeadersProcessor
 
   alias EHealth.API.ResponseDecoder
   import EHealth.Utils.Connection, only: [get_header: 2]
