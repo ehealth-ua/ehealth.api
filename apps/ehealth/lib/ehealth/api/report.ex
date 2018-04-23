@@ -3,7 +3,6 @@ defmodule EHealth.API.Report do
 
   use HTTPoison.Base
   use Confex, otp_app: :ehealth
-  use EHealth.API.Helpers.HeadersProcessor
   use EHealth.API.Helpers.MicroserviceBase
 
   @behaviour EHealth.API.ReportBehaviour
