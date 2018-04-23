@@ -292,25 +292,6 @@
                 "last_name",
                 "phones"
               ]
-            },
-            "factor": {
-              "type": "object",
-              "properties": {
-                "type": {
-                  "type": "string"
-                },
-                "factor": {
-                  "type": "string"
-                },
-                "is_active": {
-                  "type": "boolean"
-                }
-              },
-              "required": [
-                "type",
-                "factor",
-                "is_active"
-              ]
             }
           },
           "required": [
@@ -319,13 +300,7 @@
             "birth_date",
             "birth_country",
             "birth_settlement",
-            "gender",
-            "secret",
-            "documents",
-            "addresses",
-            "authentication_methods",
-            "emergency_contact",
-            "factor"
+            "gender"
           ],
           "additionalProperties": false
         },
@@ -337,55 +312,13 @@
               "format": "email",
               "description": "User email."
             },
-            "settings": {
-              "type": "object",
-              "properties": {},
-              "description": "User settings."
-            },
-            "priv_settings": {
-              "type": "object",
-              "properties": {},
-              "description": "User private settings."
-            },
-            "id": {
-              "type": "string",
-              "$ref": "#/definitions/uuid",
-              "description": "Internal user ID, a UUID string."
-            },
-            "created_at": {
-              "type": "string",
-              "$ref": "#/definitions/date",
-              "description": "ISO 8601 date and time in UTC timezone."
-            },
-            "updated_at": {
-              "type": "string",
-              "$ref": "#/definitions/date",
-              "description": "ISO 8601 date and time in UTC timezone."
-            },
             "tax_id": {
-              "type": "string"
-            },
-            "person_id": {
-              "type": "string",
-              "$ref": "#/definitions/uuid"
-            },
-            "is_blocked": {
-              "type": "boolean"
-            },
-            "block_reason": {
-              "type": "string"
-            },
-            "password_set_at": {
               "type": "string"
             }
           },
           "required": [
             "email",
-            "created_at",
-            "updated_at",
-            "tax_id",
-            "person_id",
-            "password_set_at"
+            "tax_id"
           ]
         },
         "access_token": {

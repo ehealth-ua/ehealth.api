@@ -383,7 +383,13 @@ defmodule Mithril.Web.RegistrationControllerTest do
       expect(MPIMock, :create_or_update_person!, fn params, _headers ->
         refute Map.has_key?(params, "id")
         assert Map.has_key?(params, "patient_signed")
-        {:ok, %{"data" => Map.put(params, "id", UUID.generate())}}
+
+        data =
+          :person
+          |> string_params_for(params)
+          |> Map.put("id", UUID.generate())
+
+        {:ok, %{"data" => data}}
       end)
 
       user_id = UUID.generate()
@@ -408,8 +414,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
       conn
       |> post(cabinet_auth_path(conn, :registration, params))
       |> json_response(201)
-
-      #      |> assert_json_schema("specs/json_schemas/cabinet/cabinet_registration_show_response.json")
+      |> assert_json_schema("specs/json_schemas/cabinet/cabinet_registration_show_response.json")
     end
 
     test "update user and update MPI person", %{conn: conn, params: params} do
