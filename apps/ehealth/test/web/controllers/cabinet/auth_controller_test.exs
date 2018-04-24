@@ -375,6 +375,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
       # |> assert_show_response_schema("cabinet")
     end
 
+    @tag :pending
     test "update user and create new MPI person", %{conn: conn, params: params} do
       expect(MPIMock, :search, fn %{"tax_id" => "3126509816", "birth_date" => _}, _headers ->
         {:ok, %{"data" => []}}
