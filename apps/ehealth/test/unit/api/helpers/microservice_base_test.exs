@@ -3,7 +3,6 @@ defmodule EHealth.Unit.API.Helpers.MicroserviceBaseTest do
 
   use ExUnit.Case, async: true
 
-  use HTTPoison.Base
   use EHealth.API.Helpers.MicroserviceBase
   import ExUnit.CaptureLog
 

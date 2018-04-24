@@ -3,8 +3,6 @@ defmodule EHealth.API.MediaStorage do
   Media Storage on Google Cloud Platform
   """
 
-  use HTTPoison.Base
-  use Confex, otp_app: :ehealth
   use EHealth.API.Helpers.MicroserviceBase
   alias EHealth.API.Helpers.SignedContent
   require Logger
@@ -64,18 +62,7 @@ defmodule EHealth.API.MediaStorage do
     |> check_gcs_response()
   end
 
-  def put_signed_content(err, _signed_content) do
-    Logger.error(fn ->
-      Poison.encode!(%{
-        "log_type" => "microservice_response",
-        "microservice" => config()[:endpoint],
-        "response" => err,
-        "request_id" => Logger.metadata()[:request_id]
-      })
-    end)
-
-    err
-  end
+  def put_signed_content(err, _signed_content), do: err
 
   def check_gcs_response(%HTTPoison.Response{status_code: code, body: body}) when code in [200, 201] do
     {:ok, body}

@@ -3,6 +3,8 @@ defmodule EHealth.API.Helpers.MicroserviceBase do
 
   defmacro __using__(_) do
     quote do
+      use Confex, otp_app: :ehealth
+      use HTTPoison.Base
       require Logger
       alias EHealth.API.ResponseDecoder
 
@@ -19,7 +21,20 @@ defmodule EHealth.API.Helpers.MicroserviceBase do
       end
 
       def request!(method, url, body \\ "", headers \\ [], options \\ []) do
-        ResponseDecoder.check_response(super(method, url, body, headers, options))
+        response = super(method, url, body, headers, options)
+
+        if response.status_code >= 300 do
+          Logger.error(fn ->
+            Poison.encode!(%{
+              "log_type" => "microservice_response",
+              "microservice" => config()[:endpoint],
+              "response" => body,
+              "request_id" => Logger.metadata()[:request_id]
+            })
+          end)
+        end
+
+        ResponseDecoder.check_response(response)
       end
 
       def request(method, url, body \\ "", headers \\ [], options \\ []) do

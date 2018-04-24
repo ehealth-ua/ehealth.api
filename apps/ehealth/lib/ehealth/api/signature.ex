@@ -2,17 +2,12 @@ defmodule EHealth.API.Signature do
   @moduledoc """
   Signature validator and data mapper
   """
-  require Logger
-
-  use HTTPoison.Base
-  use Confex, otp_app: :ehealth
+  use EHealth.API.Helpers.MicroserviceBase
 
   alias EHealth.API.ResponseDecoder
   import EHealth.Utils.Connection, only: [get_header: 2]
 
   @behaviour EHealth.API.SignatureBehaviour
-
-  def process_url(url), do: config()[:endpoint] <> url
 
   def decode_and_validate(signed_content, signed_content_encoding, headers) do
     if config()[:enabled] do
@@ -21,35 +16,14 @@ defmodule EHealth.API.Signature do
         "signed_content_encoding" => signed_content_encoding
       }
 
-      result =
-        "/digital_signatures"
-        |> post!(Poison.encode!(params), headers, config()[:hackney_options])
-        |> ResponseDecoder.check_response()
-
-      {_, response} = result
-
-      Logger.info(fn ->
-        Poison.encode!(%{
-          "log_type" => "microservice_response",
-          "microservice" => "digital-signature",
-          "result" => response,
-          "request_id" => Logger.metadata()[:request_id]
-        })
-      end)
-
-      result
+      post!("/digital_signatures", Poison.encode!(params), headers)
     else
-      data = Base.decode64(signed_content)
-
-      case data do
-        :error ->
+      with {:ok, binary} <- Base.decode64(signed_content),
+           {:ok, data} <- Poison.decode(binary) do
+        data_is_valid_resp(data, headers)
+      else
+        _ ->
           data_is_invalid_resp()
-
-        {:ok, data} ->
-          case Poison.decode(data) do
-            {:ok, data} -> data_is_valid_resp(data, headers)
-            _ -> data_is_invalid_resp()
-          end
       end
     end
   end
@@ -83,13 +57,6 @@ defmodule EHealth.API.Signature do
 
     ResponseDecoder.check_response(%HTTPoison.Response{body: data, status_code: 422})
   end
-
-  def extract_edrpou({:ok, %{"data" => %{"signer" => %{"edrpou" => edrpou}}}}) do
-    edrpou
-  end
-
-  def extract_edrpou({:ok, _}), do: {:error, "signer.edrpou is missed in decoded digital signature"}
-  def extract_edrpou(err), do: err
 
   defp wrap_response(data, code) do
     %{

@@ -4,8 +4,6 @@ defmodule EHealth.API.Mithril do
   API documentation: http://docs.trump1.apiary.io
   """
 
-  use HTTPoison.Base
-  use Confex, otp_app: :ehealth
   use EHealth.API.Helpers.MicroserviceBase
 
   @behaviour EHealth.API.MithrilBehaviour

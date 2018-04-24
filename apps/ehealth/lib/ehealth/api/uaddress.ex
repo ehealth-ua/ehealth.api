@@ -3,8 +3,6 @@ defmodule EHealth.API.UAddress do
   PRM API client
   """
 
-  use HTTPoison.Base
-  use Confex, otp_app: :ehealth
   use EHealth.API.Helpers.MicroserviceBase
 
   def search_settlements(params \\ %{}, headers \\ []) do

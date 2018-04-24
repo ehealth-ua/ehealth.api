@@ -3,8 +3,6 @@ defmodule EHealth.API.MPI do
   MPI API client
   """
 
-  use HTTPoison.Base
-  use Confex, otp_app: :ehealth
   use EHealth.API.Helpers.MicroserviceBase
 
   @behaviour EHealth.API.MPIBehaviour
