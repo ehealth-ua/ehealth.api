@@ -62,8 +62,8 @@ defmodule EHealth.API.Signature do
         "signer" => %{
           "drfo" => get_header(headers, "drfo"),
           "edrpou" => get_header(headers, "edrpou"),
-          "surname" => get_header(headers, "surname"),
-          "given_name" => get_header(headers, "given_name")
+          "surname" => headers |> get_header("surname") |> uri_decode(),
+          "given_name" => headers |> get_header("given_name") |> uri_decode()
         }
       }
       |> wrap_response(200)
@@ -71,6 +71,9 @@ defmodule EHealth.API.Signature do
 
     ResponseDecoder.check_response(%HTTPoison.Response{body: data, status_code: 200})
   end
+
+  defp uri_decode(string) when is_binary(string), do: string |> URI.decode()
+  defp uri_decode(string), do: string
 
   defp data_is_invalid_resp do
     data =
