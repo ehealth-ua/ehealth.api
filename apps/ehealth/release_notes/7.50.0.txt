@@ -1,4 +1,4 @@
-Change log for versions 7.50.0 - 7.50.5
+Change log for versions 7.50.0 - 7.50.6
 
 **Minor changes**:
 
@@ -11,6 +11,7 @@ fix handle 422 persons search on declaration request sign (#2117)
 
 **Patches and bug fixes**:
 
+fix invalid module alias for Error
 Build container for preprod
 - improved ResponseDecoder for mapping failed response with empty body (#2172)
 - fix unique constraint error on Declaration Creation (#2125)
