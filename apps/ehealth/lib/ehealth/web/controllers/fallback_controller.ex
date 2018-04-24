@@ -145,7 +145,7 @@ defmodule EHealth.Web.FallbackController do
 
     conn
     |> put_status(code)
-    |> render(Error, :"400", %{message: "Proxied response with empty body"})
+    |> render(EView.Views.Error, :"400", %{message: "Proxied response with empty body"})
   end
 
   def call(conn, {:error, {:response_json_decoder, reason}}) do
