@@ -21,6 +21,11 @@ defmodule EHealth.API.Man do
       |> Keyword.drop(@filter_headers)
       |> Kernel.++([{"Content-Type", "application/json"}])
 
+    processed_request_headers =
+      Enum.reduce(headers, %{}, fn {k, v}, map ->
+        Map.put_new(map, k, v)
+      end)
+
     Logger.info(fn ->
       Poison.encode!(%{
         "log_type" => "microservice_request",
@@ -29,7 +34,7 @@ defmodule EHealth.API.Man do
         "path" => Enum.join([config()[:endpoint], path]),
         "request_id" => Logger.metadata()[:request_id],
         "body" => data,
-        "headers" => headers
+        "headers" => processed_request_headers
       })
     end)
 
