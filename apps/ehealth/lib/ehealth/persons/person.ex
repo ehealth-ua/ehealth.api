@@ -39,8 +39,6 @@ defmodule EHealth.Persons.Person do
 
   @fields_required ~w(
     version
-    first_name
-    last_name
     birth_date
     birth_country
     birth_settlement

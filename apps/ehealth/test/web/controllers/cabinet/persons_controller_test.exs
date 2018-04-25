@@ -269,22 +269,6 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
     end
   end
 
-  defmodule OTPVerificationServer do
-    @moduledoc false
-
-    use MicroservicesHelper
-    alias EHealth.MockServer
-
-    Plug.Router.get "/verifications/+380955947998" do
-      response =
-        %{}
-        |> MockServer.wrap_response()
-        |> Poison.encode!()
-
-      Plug.Conn.send_resp(conn, 200, response)
-    end
-  end
-
   # todo: move declarations tests to declaration_controller_test.exs
   setup do
     insert(:prm, :global_parameter, %{parameter: "adult_age", value: "18"})
@@ -294,7 +278,6 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
     register_mircoservices_for_tests([
       {MpiServer, "MPI_ENDPOINT"},
       {MithrilServer, "OAUTH_ENDPOINT"},
-      {OTPVerificationServer, "OTP_VERIFICATION_ENDPOINT"},
       {MediaStorageServer, "MEDIA_STORAGE_ENDPOINT"},
       {OpsServer, "OPS_ENDPOINT"}
     ])
@@ -462,6 +445,10 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
         {:ok, %{"data" => %{"id" => id, "tax_id" => "2222222220"}}}
       end)
 
+      expect(OTPVerificationMock, :search, fn _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
       legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
       party = insert(:prm, :party, tax_id: "2222222220")
       insert(:prm, :party_user, party: party, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c")
@@ -494,20 +481,22 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
                     "zip" => "02090",
                     "settlement_type" => "CITY",
                     "country" => "UA",
-                    "settlement" => "KYIV",
-                    "area" => "KYIV",
+                    "settlement" => "Київ",
+                    "area" => "Житомирська",
                     "settlement_id" => UUID.generate(),
-                    "building" => "15"
+                    "building" => "15",
+                    "region" => "Бердичівський"
                   },
                   %{
                     "type" => "REGISTRATION",
                     "zip" => "02090",
                     "settlement_type" => "CITY",
                     "country" => "UA",
-                    "settlement" => "KYIV",
-                    "area" => "KYIV",
+                    "settlement" => "Київ",
+                    "area" => "Житомирська",
                     "settlement_id" => UUID.generate(),
-                    "building" => "15"
+                    "building" => "15",
+                    "region" => "Бердичівський"
                   }
                 ],
                 "authentication_methods" => [%{"type" => "OTP", "phone_number" => "+380991112233"}],

@@ -4,6 +4,7 @@ defmodule EHealth.Persons.Validator do
   alias EHealth.Validators.JsonObjects
   alias EHealth.Dictionaries
 
+  @verification_api Application.get_env(:ehealth, :api_resolvers)[:otp_verification]
   @validation_dictionaries ["DOCUMENT_TYPE", "PHONE_TYPE", "AUTHENTICATION_METHOD", "DOCUMENT_RELATIONSHIP_TYPE"]
   @auth_method_error "Must be one and only one authentication method."
   @birth_certificate_number_regex ~r/^([A-Za-zА-яіІїЇєЄґҐё\d\#\№\–\-\—\－\_\'\,\s\/\\\=\|\!\<\;\?\%\:\]\*\+\.\√])+$/u
@@ -24,6 +25,53 @@ defmodule EHealth.Persons.Validator do
     else
       {:error, [{rules, path}]} ->
         {:error, [{rules, JsonObjects.combine_path("person", path)}]}
+    end
+  end
+
+  # TODO: this should be done in addresses validator #2228
+  def validate_addresses_types(addresses, types) do
+    err = {:error, {:"422", "Addresses with types #{Enum.join(types, ", ")} should be present"}}
+
+    Enum.reduce_while(types, :ok, fn type, _ ->
+      if address_with_type_exists?(addresses, type), do: {:cont, :ok}, else: {:halt, err}
+    end)
+  end
+
+  defp address_with_type_exists?(addresses, type) do
+    Enum.reduce_while(addresses, false, fn %{"type" => address_type}, _ ->
+      if address_type == type, do: {:halt, true}, else: {:cont, false}
+    end)
+  end
+
+  def validate_authentication_method_phone_number(authentication_methods, headers)
+      when is_list(authentication_methods) do
+    authentication_methods
+    |> Enum.map(& &1["phone_number"])
+    |> Enum.filter(&(!is_nil(&1)))
+    |> verify_phone_numbers(headers)
+  end
+
+  def validate_authentication_method_phone_number(_, _), do: :ok
+
+  defp verify_phone_numbers([], _), do: :ok
+
+  defp verify_phone_numbers(phone_numbers, headers) do
+    case Enum.any?(phone_numbers, &phone_number_verified?(&1, headers)) do
+      true -> :ok
+      false -> {:error, "The phone number is not verified."}
+    end
+  end
+
+  defp phone_number_verified?(phone_number, headers) do
+    case @verification_api.search(phone_number, headers) do
+      {:ok, _} ->
+        true
+
+      {:error, _} ->
+        false
+
+      result ->
+        raise "Error during OTP Verification interaction. Result from OTP Verification: #{inspect(result)}"
     end
   end
 

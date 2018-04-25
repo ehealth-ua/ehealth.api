@@ -8,10 +8,12 @@ defmodule EHealth.Persons do
   alias EHealth.Persons.Person
   alias EHealth.Persons.Search
   alias EHealth.Persons.Signed
+  alias EHealth.Validators.Addresses
   alias EHealth.Validators.JsonSchema
-  alias EHealth.Persons.Validator, as: PersonsValidator
+  alias EHealth.Persons.Validator, as: PersonValidator
 
   @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
+  @addresses_types ~w(REGISTRATION RESIDENCE)
 
   def search(params, headers \\ []) do
     with %Ecto.Changeset{valid?: true, changes: changes} <- Search.changeset(params),
@@ -35,8 +37,15 @@ defmodule EHealth.Persons do
          {:ok, %{"data" => person}} <- @mpi_api.person(user["person_id"], headers),
          :ok <- validate_tax_id(user["tax_id"], person["tax_id"], content, signer),
          :ok <- JsonSchema.validate(:person, content),
-         :ok <- PersonsValidator.validate_birth_certificate_number(content),
+         :ok <- PersonValidator.validate_addresses_types(content["addresses"], @addresses_types),
+         {:ok, _} <- Addresses.validate(content["addresses"]),
+         :ok <- PersonValidator.validate_birth_certificate_number(content),
          %Ecto.Changeset{valid?: true, changes: changes} <- Person.changeset(content),
+         :ok <-
+           PersonValidator.validate_authentication_method_phone_number(
+             Map.get(changes, :authentication_methods),
+             headers
+           ),
          {:ok, %{"data" => data}} <- @mpi_api.update_person(id, changes, headers) do
       {:ok, data}
     end

@@ -33,9 +33,9 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       end
 
       # OTP Verifications
-      Plug.Router.get "/verifications/+380508887700" do
-        send_resp(conn, 200, Poison.encode!(%{data: ["response_we_don't_care_about"]}))
-      end
+      # Plug.Router.get "/verifications/+380508887700" do
+      #   send_resp(conn, 200, Poison.encode!(%{data: ["response_we_don't_care_about"]}))
+      # end
 
       Plug.Router.post "/verifications" do
         "+380508887700" = conn.body_params["phone_number"]
@@ -155,6 +155,10 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
     end
 
     test "declaration request with invalid patient's age", %{conn: conn} do
+      expect(OTPVerificationMock, :search, fn _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
       declaration_request_params =
         "test/data/declaration_request.json"
         |> File.read!()
@@ -175,6 +179,10 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
     end
 
     test "declaration request with non verified phone for OTP auth", %{conn: conn} do
+      expect(OTPVerificationMock, :search, fn _, _ ->
+        {:error, nil}
+      end)
+
       auth_methods = [%{"type" => "OTP", "phone_number" => "+380508887404"}]
 
       declaration_request_params =
@@ -206,6 +214,10 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
              ])
            ]
          }}
+      end)
+
+      expect(OTPVerificationMock, :search, fn _, _ ->
+        {:ok, %{"data" => []}}
       end)
 
       declaration_request_params =
@@ -281,6 +293,10 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
              ])
            ]
          }}
+      end)
+
+      expect(OTPVerificationMock, :search, fn _, _ ->
+        {:ok, %{"data" => []}}
       end)
 
       params =
@@ -461,6 +477,10 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
 
     test "declaration request is created without verification", %{conn: conn} do
       expect(MPIMock, :search, fn _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
+      expect(OTPVerificationMock, :search, fn _, _ ->
         {:ok, %{"data" => []}}
       end)
 

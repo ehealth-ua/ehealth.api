@@ -16,7 +16,7 @@ config :ehealth,
     ops: EHealth.API.OPS,
     report: EHealth.API.Report,
     media_storage: EHealth.API.MediaStorage,
-    opt_verification: EHealth.API.OTPVerification,
+    otp_verification: EHealth.API.OTPVerification,
     postmark: EHealth.API.Postmark
   ]
 

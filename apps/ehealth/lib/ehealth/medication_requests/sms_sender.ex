@@ -1,7 +1,7 @@
 defmodule EHealth.MedicationRequests.SMSSender do
   @moduledoc false
 
-  @otp_verification_api Application.get_env(:ehealth, :api_resolvers)[:opt_verification]
+  @otp_verification_api Application.get_env(:ehealth, :api_resolvers)[:otp_verification]
 
   def maybe_send_sms(mrr, person, template_fun) do
     otp = Enum.find(person["authentication_methods"], nil, fn method -> method["type"] == "OTP" end)

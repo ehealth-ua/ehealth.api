@@ -16,6 +16,7 @@ defmodule EHealth.DeclarationRequests.API.Creator do
   alias EHealth.Employees.Employee
   alias EHealth.GlobalParameters
   alias EHealth.Man.Templates.DeclarationRequestPrintoutForm
+  alias EHealth.Persons.Validator, as: PersonValidator
   alias EHealth.PartyUsers
   alias EHealth.Repo
   alias EHealth.Utils.Phone
@@ -34,7 +35,7 @@ defmodule EHealth.DeclarationRequests.API.Creator do
 
   @allowed_employee_specialities ~w(THERAPIST PEDIATRICIAN FAMILY_DOCTOR)
 
-  def create(params, user_id, person, employee, division, legal_entity) do
+  def create(params, user_id, person, employee, division, legal_entity, headers) do
     updates = [
       status: DeclarationRequest.status(:cancelled),
       updated_at: DateTime.utc_now(),
@@ -61,7 +62,7 @@ defmodule EHealth.DeclarationRequests.API.Creator do
       query = where(DeclarationRequest, [dr], dr.id in ^previous_request_ids)
       Repo.update_all(query, set: updates)
 
-      with {:ok, declaration_request} <- insert_declaration_request(params, user_id, auxiliary_entities),
+      with {:ok, declaration_request} <- insert_declaration_request(params, user_id, auxiliary_entities, headers),
            {:ok, declaration_request} <- finalize(declaration_request),
            {:ok, urgent_data} <- prepare_urgent_data(declaration_request) do
         %{urgent_data: urgent_data, finalize: declaration_request}
@@ -71,9 +72,9 @@ defmodule EHealth.DeclarationRequests.API.Creator do
     end)
   end
 
-  defp insert_declaration_request(params, user_id, auxiliary_entities) do
+  defp insert_declaration_request(params, user_id, auxiliary_entities, headers) do
     params
-    |> changeset(user_id, auxiliary_entities)
+    |> changeset(user_id, auxiliary_entities, headers)
     |> do_insert_declaration_request(auxiliary_entities.employee)
   end
 
@@ -286,7 +287,7 @@ defmodule EHealth.DeclarationRequests.API.Creator do
     )
   end
 
-  def changeset(attrs, user_id, auxiliary_entities) do
+  def changeset(attrs, user_id, auxiliary_entities, headers) do
     %{
       employee: employee,
       global_parameters: global_parameters,
@@ -310,7 +311,7 @@ defmodule EHealth.DeclarationRequests.API.Creator do
     |> validate_employee_type(employee)
     |> validate_patient_birth_date()
     |> validate_patient_age(Enum.map(specialities, & &1["speciality"]), global_parameters["adult_age"])
-    |> validate_authentication_method_phone_number()
+    |> validate_authentication_method_phone_number(headers)
     |> validate_tax_id()
     |> validate_person_addresses()
     |> validate_confidant_persons_tax_id()
@@ -391,36 +392,18 @@ defmodule EHealth.DeclarationRequests.API.Creator do
   def belongs_to(age, adult_age, "PEDIATRICIAN"), do: age < string_to_integer(adult_age)
   def belongs_to(_age, _adult_age, "FAMILY_DOCTOR"), do: true
 
-  defp validate_authentication_method_phone_number(changeset) do
+  defp validate_authentication_method_phone_number(changeset, headers) do
     validate_change(changeset, :data, fn :data, data ->
-      data
-      |> get_in(["person", "authentication_methods"])
-      |> Enum.map(& &1["phone_number"])
-      |> Enum.filter(&(!is_nil(&1)))
-      |> verify_phone_numbers()
+      result =
+        data
+        |> get_in(["person", "authentication_methods"])
+        |> PersonValidator.validate_authentication_method_phone_number(headers)
+
+      case result do
+        :ok -> []
+        {:error, message} -> [data: message]
+      end
     end)
-  end
-
-  defp verify_phone_numbers([]), do: []
-
-  defp verify_phone_numbers(phone_numbers) do
-    case Enum.any?(phone_numbers, &phone_number_verified?/1) do
-      true -> []
-      false -> [data: "The phone number is not verified."]
-    end
-  end
-
-  defp phone_number_verified?(phone_number) do
-    case OTPVerification.search(phone_number) do
-      {:ok, _} ->
-        true
-
-      {:error, _} ->
-        false
-
-      result ->
-        raise "Error during OTP Verification interaction. Result from OTP Verification: #{inspect(result)}"
-    end
   end
 
   def validate_tax_id(changeset) do

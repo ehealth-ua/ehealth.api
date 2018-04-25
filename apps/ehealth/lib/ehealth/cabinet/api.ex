@@ -8,6 +8,7 @@ defmodule EHealth.Cabinet.API do
   alias EHealth.Validators.JsonSchema
   alias EHealth.Cabinet.Requests.{Registration, UserSearch}
   alias EHealth.Man.Templates.EmailVerification
+  alias EHealth.Persons.Validator, as: PersonValidator
 
   require Logger
 
@@ -24,7 +25,7 @@ defmodule EHealth.Cabinet.API do
          {:ok, %{"data" => %{"content" => content, "signer" => signer}}} <-
            @signature_api.decode_and_validate(params["signed_content"], params["signed_content_encoding"], headers),
          :ok <- JsonSchema.validate(:person, content),
-         :ok <- validate_adresses_types(content["addresses"], @addresses_types),
+         :ok <- PersonValidator.validate_addresses_types(content["addresses"], @addresses_types),
          {:ok, _} <- Addresses.validate(content["addresses"]),
          {:ok, tax_id} <- validate_tax_id(content, signer),
          :ok <- validate_first_name(content, signer),
@@ -56,20 +57,6 @@ defmodule EHealth.Cabinet.API do
       {:ok, %{"email" => email}} -> {:ok, email}
       _ -> {:error, {:access_denied, "invalid JWT claim"}}
     end
-  end
-
-  defp validate_adresses_types(addresses, types) do
-    err = {:error, {:"422", "Addresses with types #{Enum.join(types, ", ")} should be present"}}
-
-    Enum.reduce_while(types, :ok, fn type, _ ->
-      if address_with_type_exists?(addresses, type), do: {:cont, :ok}, else: {:halt, err}
-    end)
-  end
-
-  defp address_with_type_exists?(addresses, type) do
-    Enum.reduce_while(addresses, false, fn %{"type" => address_type}, _ ->
-      if address_type == type, do: {:halt, true}, else: {:cont, false}
-    end)
   end
 
   defp validate_tax_id(%{"tax_id" => tax_id}, %{"drfo" => drfo}) when drfo == tax_id, do: {:ok, tax_id}
