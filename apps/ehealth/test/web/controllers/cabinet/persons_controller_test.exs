@@ -189,7 +189,8 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
         "email" => "test@example.com",
         "type" => "user",
         "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
-        "tax_id" => "2222222220"
+        "tax_id" => "2222222220",
+        "is_blocked" => false
       }
 
       response =
@@ -531,7 +532,8 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
           id: "c8912855-21c3-4771-ba18-bcd8e524f14c",
           first_name: "Алекс",
           last_name: "Джонс",
-          second_name: "Петрович"
+          second_name: "Петрович",
+          tax_id: "2222222220"
         })
       end)
 

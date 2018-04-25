@@ -99,7 +99,7 @@ defmodule EHealth.Web.Cabinet.DeclarationControllerTest do
 
   test "searches person declarations in cabinet", %{conn: conn} do
     expect(MPIMock, :person, fn id, _headers ->
-      get_person(id, 200)
+      get_person(id, 200, %{tax_id: "12341234"})
     end)
 
     response = conn |> send_list_declaration_request() |> json_response(200)
@@ -122,7 +122,7 @@ defmodule EHealth.Web.Cabinet.DeclarationControllerTest do
     |> get(cabinet_declarations_path(conn, :index), params)
   end
 
-  defp get_person(id, response_status, params \\ %{}) do
+  defp get_person(id, response_status, params) do
     params = Map.put(params, :id, id)
     person = build(:person, params)
 

@@ -12,7 +12,9 @@ defmodule EHealth.Web.Cabinet.PersonsController do
   end
 
   def personal_info(conn, _params) do
-    with {:ok, person} <- Persons.get_person(conn.req_headers), do: render(conn, "personal_info.json", person: person)
+    with {:ok, person} <- Persons.get_person(conn.req_headers) do
+      render(conn, "personal_info.json", person: person)
+    end
   end
 
   def person_details(conn, _) do

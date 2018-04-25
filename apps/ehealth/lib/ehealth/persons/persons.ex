@@ -55,7 +55,9 @@ defmodule EHealth.Persons do
     user_id = get_consumer_id(headers)
 
     with {:ok, %{"data" => user}} <- Mithril.get_user_by_id(user_id, headers),
-         {:ok, %{"data" => person}} <- @mpi_api.person(user["person_id"], headers) do
+         {:ok, %{"data" => person}} <- @mpi_api.person(user["person_id"], headers),
+         :ok <- validate_user_person(user, person),
+         :ok <- check_user_blocked(user["is_blocked"]) do
       {:ok, person}
     end
   end
@@ -88,4 +90,16 @@ defmodule EHealth.Persons do
         {:error, {:conflict, "Person that logged in, person that is changed and person that sign should be the same"}}
     end
   end
+
+  defp validate_user_person(user, person) do
+    if user["person_id"] == person["id"] and user["tax_id"] == person["tax_id"] do
+      :ok
+    else
+      {:error, :access_denied}
+    end
+  end
+
+  defp check_user_blocked(false), do: :ok
+
+  defp check_user_blocked(true), do: {:error, :access_denied}
 end
