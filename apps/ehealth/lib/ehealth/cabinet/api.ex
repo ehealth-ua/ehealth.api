@@ -78,7 +78,16 @@ defmodule EHealth.Cabinet.API do
   defp prepare_person_params(content), do: Map.put(content, "patient_signed", true)
 
   defp create_or_update_person([], params, headers), do: @mpi_api.create_or_update_person!(params, headers)
-  defp create_or_update_person(persons, _, _) when length(persons) > 1, do: {:error, {:conflict, "Person duplicated"}}
+
+  defp create_or_update_person(persons, _, _) when length(persons) > 1,
+    do:
+      {:error,
+       {:conflict,
+        %{
+          message: "Person duplicated",
+          type: :person_duplicated
+        }}}
+
   defp create_or_update_person(persons, params, headers), do: @mpi_api.update_person(hd(persons)["id"], params, headers)
 
   defp prepare_user_params(tax_id, person_id, email, params, content) do

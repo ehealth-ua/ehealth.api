@@ -535,12 +535,12 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => []}}
       end)
 
-      assert "Person duplicated" ==
+      assert "person_duplicated" ==
                conn
                |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
                |> post(cabinet_auth_path(conn, :registration), params)
                |> json_response(409)
-               |> get_in(~w(error message))
+               |> get_in(~w(error type))
     end
 
     test "different last_name in signed content and DS", %{conn: conn, params: params, jwt: jwt} do
