@@ -32,7 +32,7 @@ defmodule EHealth.Persons do
     with {:ok, %{"data" => user}} <- Mithril.get_user_by_id(user_id, headers),
          :ok <- check_user_person_id(user, id),
          %Ecto.Changeset{valid?: true, changes: changes} <- Signed.changeset(params),
-         {:ok, %{"data" => %{"content" => content, "signer" => signer}}} <-
+         {:ok, %{"data" => %{"content" => content, "signer" => signer, "is_valid" => true}}} <-
            Signature.decode_and_validate(changes.signed_content, "base64", headers),
          {:ok, %{"data" => person}} <- @mpi_api.person(user["person_id"], headers),
          :ok <- validate_tax_id(user["tax_id"], person["tax_id"], content, signer),
@@ -48,6 +48,12 @@ defmodule EHealth.Persons do
            ),
          {:ok, %{"data" => data}} <- @mpi_api.update_person(id, changes, headers) do
       {:ok, data}
+    else
+      {:ok, %{"data" => %{"is_valid" => false, "validation_error_message" => error}}} ->
+        {:error, {:bad_request, error}}
+
+      error ->
+        error
     end
   end
 
