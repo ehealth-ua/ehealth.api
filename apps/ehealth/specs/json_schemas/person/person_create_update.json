@@ -65,7 +65,7 @@
         },
         "settlement_type": {
           "type": "string",
-          "description": "Dictionary: ADDRESS_TYPE"
+          "description": "Dictionary: SETTLEMENT_TYPE"
         },
         "settlement_id": {
           "type": "string",
@@ -106,7 +106,7 @@
       "properties": {
         "type": {
           "type": "string",
-          "description": "Dictionary: DOCUMENT_TYPE"
+          "description": "Dictionary: PHONE_TYPE"
         },
         "number": {
           "type": "string",
