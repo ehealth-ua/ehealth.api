@@ -68,6 +68,7 @@ defmodule EHealth.Mixfile do
       {:quantum, "~> 2.2"},
       {:plug_logger_json, "~> 0.5"},
       {:cipher, "~> 1.3"},
+      {:translit, "~> 0.1.0"},
       {:mox, "~> 0.3", only: :test},
       {:ecto_logger_json, git: "https://github.com/edenlabllc/ecto_logger_json.git", branch: "query_params"},
       {:ex_doc, ">= 0.15.0", only: [:dev, :test]},

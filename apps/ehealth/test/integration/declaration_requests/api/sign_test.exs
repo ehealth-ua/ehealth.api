@@ -126,13 +126,13 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
       assert :ok == check_drfo(signer, [{"x-consumer-id", user_id}])
     end
 
-    test "check latin to cyrillic convertion" do
-      tax_id = "АР111"
-      assert [1040, 1056, 49, 49, 49] == String.to_charlist(tax_id)
+    test "check drfo when it latin" do
+      tax_id = "МЮ111"
+      assert [1052, 1070, 49, 49, 49] == String.to_charlist(tax_id)
       %{user_id: user_id} = insert(:prm, :party_user, party: build(:party, tax_id: tax_id))
 
-      drfo = "AP 111"
-      assert 'AP 111' == String.to_charlist(drfo)
+      drfo = "MYU 111"
+      assert 'MYU 111' == String.to_charlist(drfo)
       signer = %{"drfo" => drfo}
       assert :ok == check_drfo(signer, [{"x-consumer-id", user_id}])
     end
