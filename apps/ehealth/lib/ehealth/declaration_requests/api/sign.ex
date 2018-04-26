@@ -25,21 +25,6 @@ defmodule EHealth.DeclarationRequests.API.Sign do
 
   @status_approved DeclarationRequest.status(:approved)
 
-  @latin_to_cyrillic %{
-    "A" => "А",
-    "B" => "В",
-    "C" => "С",
-    "E" => "Е",
-    "H" => "Н",
-    "I" => "І",
-    "K" => "К",
-    "M" => "М",
-    "O" => "О",
-    "P" => "Р",
-    "T" => "Т",
-    "X" => "Х"
-  }
-
   def sign(params, headers) do
     with {:ok, %{"data" => %{"content" => content, "signer" => signer}}} <- decode_and_validate(params, headers),
          %DeclarationRequest{} = declaration_request <- params |> Map.fetch!("id") |> DeclarationRequests.get_by_id!(),
@@ -106,22 +91,16 @@ defmodule EHealth.DeclarationRequests.API.Sign do
   def check_status(%DeclarationRequest{status: status}) do
     case status do
       @status_approved -> :ok
-      _ -> {:error, [{%{description: "incorrect status", params: [], rule: :invalid}, "$.status"}]}
+      _ -> err_422("incorrect status", "$.status")
     end
   end
 
-  def check_patient_signed("") do
-    {:error, [{%{description: "Can not be empty", params: [], rule: :invalid}, "$.declaration_request"}]}
-  end
+  def check_patient_signed(""), do: err_422("Can not be empty", "$.declaration_request")
 
   def check_patient_signed(content) do
     case get_in(content, ["person", "patient_signed"]) do
-      true ->
-        :ok
-
-      _ ->
-        {:error,
-         [{%{description: "Patient must sign declaration form", params: [], rule: :invalid}, "$.person.patient_signed"}]}
+      true -> :ok
+      _ -> err_422("Patient must sign declaration form", "$.person.patient_signed")
     end
   end
 
@@ -154,11 +133,7 @@ defmodule EHealth.DeclarationRequests.API.Sign do
           })
         end)
 
-        {:error,
-         [
-           {%{description: "Signed content does not match the previously created content", params: [], rule: :invalid},
-            "$.content"}
-         ]}
+        err_422("Signed content does not match the previously created content", "$.content")
     end
   end
 
@@ -180,15 +155,17 @@ defmodule EHealth.DeclarationRequests.API.Sign do
     end)
 
     with false <- tax_id == drfo,
-         {:ok, drfo} <- prepare_drfo(drfo),
-         false <- tax_id == drfo do
-      {:error,
-       [
-         {%{description: "Does not match the signer drfo", params: [], rule: :invalid}, "$.token.consumer_id"}
-       ]}
+         false <- translit_drfo(tax_id) == translit_drfo(drfo) do
+      err_422("Does not match the signer drfo", "$.token.consumer_id")
     else
       true -> :ok
     end
+  end
+
+  defp translit_drfo(drfo) do
+    drfo
+    |> Translit.translit()
+    |> String.upcase()
   end
 
   def check_employee_id(content, headers) do
@@ -338,24 +315,7 @@ defmodule EHealth.DeclarationRequests.API.Sign do
     hash
   end
 
-  defp prepare_drfo(drfo) do
-    {:ok,
-     drfo
-     |> String.upcase()
-     |> String.split("", trim: true)
-     |> Enum.reduce([], fn letter, acc ->
-       acc ++ [get_replacement_symbol(letter)]
-     end)
-     |> Enum.join("")}
-  end
-
-  defp get_replacement_symbol(letter) do
-    case Enum.find(@latin_to_cyrillic, fn {k, _} -> k == letter end) do
-      nil ->
-        letter
-
-      {_, replacement} ->
-        String.replace(letter, letter, replacement)
-    end
+  defp err_422(message, path) do
+    {:error, [{%{description: message, params: [], rule: :invalid}, path}]}
   end
 end
