@@ -122,7 +122,7 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
   end
 
   defp get_person_addresses(person) do
-    addresses = Map.get(person, "addresses", [])
+    addresses = Map.get(person, "addresses") || []
     registration_address = Enum.find(addresses, %{}, fn address -> Map.get(address, "type") == "REGISTRATION" end)
     residence_address = Enum.find(addresses, %{}, fn address -> Map.get(address, "type") == "RESIDENCE" end)
 
@@ -172,7 +172,7 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
   end
 
   defp get_confidant_persons(person) do
-    confidant_persons = Map.get(person, "confidant_person", [])
+    confidant_persons = Map.get(person, "confidant_person") || []
 
     primary_confidant_person =
       confidant_persons
@@ -227,7 +227,7 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
   end
 
   defp get_division_addresses(division) do
-    addresses = Map.get(division, "addresses", [])
+    addresses = Map.get(division, "addresses") || []
     residence_address = Enum.find(addresses, %{}, fn address -> Map.get(address, "type") == "RESIDENCE" end)
 
     full_street =
@@ -286,7 +286,7 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
   end
 
   defp get_legal_entity_addresses(legal_entity) do
-    addresses = Map.get(legal_entity, "addresses", [])
+    addresses = Map.get(legal_entity, "addresses") || []
     registration_address = Enum.find(addresses, fn address -> Map.get(address, "type") == "REGISTRATION" end)
 
     full_address =
@@ -323,7 +323,7 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
 
   defp check_confidant_persons(declaration_request) do
     person = Map.get(declaration_request, "person", %{})
-    confidant_persons = Map.get(person, "confidant_person", [])
+    confidant_persons = Map.get(person, "confidant_person") || []
     secondary_confidant_person = Enum.find(confidant_persons, fn x -> Map.get(x, "relation_type") == "SECONDARY" end)
 
     %{
