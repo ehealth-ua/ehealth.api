@@ -220,8 +220,11 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
 
   defp get_division(declaration_request) do
     division = Map.get(declaration_request, "division", %{})
+    phones = Map.get(division, "phones") || []
+    phone = List.first(phones) || %{}
 
     %{
+      phone: Map.get(phone, "number"),
       addresses: get_division_addresses(division)
     }
   end

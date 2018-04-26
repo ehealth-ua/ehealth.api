@@ -202,7 +202,8 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
             residence: %{
               full_street: nil
             }
-          }
+          },
+          phone: "+380503410870"
         },
         legal_entity: %{
           full_name: "Клініка Борис",
@@ -348,7 +349,8 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
             residence: %{
               full_street: nil
             }
-          }
+          },
+          phone: nil
         },
         legal_entity: %{
           full_name: "",
