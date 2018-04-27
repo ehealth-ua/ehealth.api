@@ -1,0 +1,7 @@
+Change log for versions 7.146.0 - 7.146.1
+
+**Patches and bug fixes**:
+
+remove verification_code from medication_request in FraudDB (#2247)
+
+
