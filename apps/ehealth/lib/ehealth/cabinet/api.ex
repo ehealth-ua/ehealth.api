@@ -25,6 +25,7 @@ defmodule EHealth.Cabinet.API do
          {:ok, %{"data" => %{"content" => content, "signer" => signer}}} <-
            @signature_api.decode_and_validate(params["signed_content"], params["signed_content_encoding"], headers),
          :ok <- JsonSchema.validate(:person, content),
+         :ok <- PersonValidator.validate_birth_date(content["birth_date"], "$.birth_date"),
          :ok <- PersonValidator.validate_addresses_types(content["addresses"], @addresses_types),
          {:ok, _} <- Addresses.validate(content["addresses"]),
          {:ok, tax_id} <- validate_tax_id(content, signer),

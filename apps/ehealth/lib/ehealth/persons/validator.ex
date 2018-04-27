@@ -1,8 +1,9 @@
 defmodule EHealth.Persons.Validator do
   @moduledoc "Additional validation of Person request structure that cannot be covered by JSON Schema"
 
-  alias EHealth.Validators.JsonObjects
   alias EHealth.Dictionaries
+  alias EHealth.Validators.BirthDate
+  alias EHealth.Validators.JsonObjects
 
   @verification_api Application.get_env(:ehealth, :api_resolvers)[:otp_verification]
   @validation_dictionaries ["DOCUMENT_TYPE", "PHONE_TYPE", "AUTHENTICATION_METHOD", "DOCUMENT_RELATIONSHIP_TYPE"]
@@ -74,6 +75,25 @@ defmodule EHealth.Persons.Validator do
         raise "Error during OTP Verification interaction. Result from OTP Verification: #{inspect(result)}"
     end
   end
+
+  def validate_birth_date(birth_date, path) when not is_nil(birth_date) do
+    case BirthDate.validate(birth_date) do
+      true ->
+        :ok
+
+      false ->
+        {:error,
+         [
+           {%{
+              description: "Invalid birth date",
+              params: [],
+              rule: :invalid
+            }, path}
+         ]}
+    end
+  end
+
+  def validate_birth_date(nil, _), do: :ok
 
   def validate_birth_certificate_number(%{} = person) do
     age = Timex.diff(Timex.now(), Date.from_iso8601!(person["birth_date"]), :years)

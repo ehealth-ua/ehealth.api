@@ -34,6 +34,7 @@ defmodule EHealth.Persons do
          %Ecto.Changeset{valid?: true, changes: changes} <- Signed.changeset(params),
          {:ok, %{"data" => %{"content" => content, "signer" => signer, "is_valid" => true}}} <-
            Signature.decode_and_validate(changes.signed_content, "base64", headers),
+         :ok <- PersonValidator.validate_birth_date(content["birth_date"], "$.birth_date"),
          {:ok, %{"data" => person}} <- @mpi_api.person(user["person_id"], headers),
          :ok <- validate_tax_id(user["tax_id"], person["tax_id"], content, signer),
          :ok <- JsonSchema.validate(:person, content),
@@ -41,11 +42,7 @@ defmodule EHealth.Persons do
          {:ok, _} <- Addresses.validate(content["addresses"]),
          :ok <- PersonValidator.validate_birth_certificate_number(content),
          %Ecto.Changeset{valid?: true, changes: changes} <- Person.changeset(content),
-         :ok <-
-           PersonValidator.validate_authentication_method_phone_number(
-             Map.get(changes, :authentication_methods),
-             headers
-           ),
+         :ok <- validate_authentication_method_phone(Map.get(changes, :authentication_methods), headers),
          {:ok, %{"data" => data}} <- @mpi_api.update_person(id, changes, headers) do
       {:ok, data}
     else
@@ -102,6 +99,23 @@ defmodule EHealth.Persons do
       :ok
     else
       {:error, :access_denied}
+    end
+  end
+
+  defp validate_authentication_method_phone(methods, headers) do
+    case PersonValidator.validate_authentication_method_phone_number(methods, headers) do
+      :ok ->
+        :ok
+
+      {:error, message} ->
+        {:error,
+         [
+           {%{
+              description: message,
+              params: [],
+              rule: :invalid
+            }, "$.authentication_methods"}
+         ]}
     end
   end
 
