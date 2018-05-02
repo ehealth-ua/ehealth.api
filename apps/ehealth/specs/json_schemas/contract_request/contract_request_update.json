@@ -1,0 +1,23 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "nhs_signer_base": {
+            "type": "string",
+            "description": "documents which allows to represent nhs"
+        },
+        "nhs_contract_price": {
+            "type": "number",
+            "description": "contract price"
+        },
+        "nhs_payment_method": {
+            "type": "string",
+            "description": "DICTIONARY: CONTRACT_PAYMENT_METHOD"
+        },
+        "issue_city": {
+            "type": "string",
+            "description": "place of contract request"
+        }
+    },
+    "additionalProperties": false
+}

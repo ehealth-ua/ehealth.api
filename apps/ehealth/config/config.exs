@@ -45,6 +45,7 @@ config :ehealth, EHealth.API.Signature,
 config :ehealth, EHealth.API.MediaStorage,
   endpoint: {:system, "MEDIA_STORAGE_ENDPOINT"},
   legal_entity_bucket: {:system, "MEDIA_STORAGE_LEGAL_ENTITY_BUCKET"},
+  contract_request_bucket: {:system, "MEDIA_STORAGE_CONTRACT_REQUEST_BUCKET"},
   declaration_request_bucket: {:system, "MEDIA_STORAGE_DECLARATION_REQUEST_BUCKET"},
   declaration_bucket: {:system, "MEDIA_STORAGE_DECLARATION_BUCKET"},
   medication_request_request_bucket: {:system, "MEDIA_STORAGE_MEDICATION_REQUEST_REQUEST_BUCKET"},
@@ -189,6 +190,11 @@ config :ehealth, EHealth.Man.Templates.DeclarationRequestPrintoutForm,
   id: {:system, "DECLARATION_REQUEST_PRINTOUT_FORM_TEMPLATE_ID"},
   format: {:system, "DECLARATION_REQUEST_PRINTOUT_FORM_TEMPLATE_FORMAT", "text/html"},
   locale: {:system, "DECLARATION_REQUEST_PRINTOUT_FORM_TEMPLATE_LOCALE", "uk_UA"}
+
+config :ehealth, EHealth.Man.Templates.ContractRequestPrintoutForm,
+  id: {:system, "CONTRACT_REQUEST_PRINTOUT_FORM_TEMPLATE_ID"},
+  format: {:system, "CONTRACT_REQUEST_PRINTOUT_FORM_TEMPLATE_FORMAT", "text/html"},
+  locale: {:system, "CONTRACT_REQUEST_PRINTOUT_FORM_TEMPLATE_LOCALE", "uk_UA"}
 
 config :ehealth, EHealth.Man.Templates.EmailVerification,
   id: {:system, "EMAIL_VERIFICATION_TEMPLATE_ID"},

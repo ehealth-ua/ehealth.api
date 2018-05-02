@@ -66,6 +66,13 @@ defmodule EHealth.Parties do
     |> PRMRepo.all()
   end
 
+  def get_by_user_id(user_id) do
+    Party
+    |> join(:inner, [p], u in assoc(p, :users))
+    |> where([..., u], u.user_id == ^user_id)
+    |> PRMRepo.one()
+  end
+
   def get_user_ids_by_tax_id(tax_id) do
     Party
     |> where([e], e.tax_id == ^tax_id)

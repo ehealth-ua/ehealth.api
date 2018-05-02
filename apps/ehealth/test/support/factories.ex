@@ -20,6 +20,7 @@ defmodule EHealth.Factories do
   use EHealth.ILFactories.DictionaryFactory
   use EHealth.ILFactories.EmployeeRequestFactory
   use EHealth.ILFactories.DeclarationRequestFactory
+  use EHealth.ILFactories.ContractRequestFactory
 
   # OPS
   use EHealth.OPSFactories.DeclarationFactory

@@ -49,6 +49,7 @@ config :ehealth, EHealth.API.OPS, endpoint: {:system, "OPS_ENDPOINT", "http://ap
 config :ehealth, EHealth.API.MediaStorage,
   endpoint: {:system, "MEDIA_STORAGE_ENDPOINT", "http://api-svc.ael"},
   legal_entity_bucket: {:system, "MEDIA_STORAGE_LEGAL_ENTITY_BUCKET", "legal-entities-dev"},
+  contract_request_bucket: {:system, "MEDIA_STORAGE_CONTRACT_REQUEST_BUCKET", "contract-requests-dev"},
   declaration_request_bucket: {:system, "MEDIA_STORAGE_DECLARATION_REQUEST_BUCKET", "declaration-requests-dev"},
   declaration_bucket: {:system, "MEDIA_STORAGE_DECLARATION_BUCKET", "declarations-dev"},
   medication_request_request_bucket:
@@ -71,6 +72,9 @@ config :ehealth, EHealth.Man.Templates.EmployeeCreatedNotification,
 
 config :ehealth, EHealth.Man.Templates.DeclarationRequestPrintoutForm,
   id: {:system, "DECLARATION_REQUEST_PRINTOUT_FORM_TEMPLATE_ID", 4}
+
+config :ehealth, EHealth.Man.Templates.ContractRequestPrintoutForm,
+  id: {:system, "CONTRACT_REQUEST_PRINTOUT_FORM_TEMPLATE_ID", 6}
 
 config :ehealth, EHealth.Man.Templates.CredentialsRecoveryRequest,
   id: {:system, "CREDENTIALS_RECOVERY_REQUEST_INVITATION_TEMPLATE_ID", 5}

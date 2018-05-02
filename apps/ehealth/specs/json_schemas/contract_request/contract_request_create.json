@@ -1,0 +1,211 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "definitions": {
+        "uuid": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "date": {
+            "type": "string",
+            "pattern": "^(\\d{4})-(\\d{2})-(\\d{2})T(\\d{2})\\:(\\d{2})\\:(\\d{2})\\.(\\d{1,6})$",
+            "description": "ISO 8601 date and time in UTC timezone."
+        },
+        "name": {
+            "type": "string",
+            "pattern": "^(?!.*[ЫЪЭЁыъэё@%&$^#])[a-zA-ZА-ЯҐЇІЄа-яґїіє0-9№\\\"!\\^\\*)\\]\\[(._-].*$"
+        },
+        "MFO": {
+            "type": "string",
+            "pattern": "^[0-9]{6}$",
+            "minLength": 6
+        },
+        "payer_account": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+        }
+    },
+    "type": "object",
+    "properties": {
+        "contractor_legal_entity_id": {
+            "type": "string",
+            "$ref": "#/definitions/uuid",
+            "description": "legal entity ID which make contract request"
+        },
+        "contractor_owner_id": {
+            "type": "string",
+            "$ref": "#/definitions/uuid",
+            "description": "person which represent legal entity"
+        },
+        "contractor_base": {
+            "type": "string",
+            "$ref": "#/definitions/name",
+            "description": "documents which allows to represent clinic",
+            "minLength": 1
+        },
+        "contractor_payment_details": {
+            "type": "object",
+            "properties": {
+                "bank_name": {
+                    "type": "string",
+                    "$ref": "#/definitions/name",
+                    "description": "bank name",
+                    "minLength": 1
+                },
+                "MFO": {
+                    "type": "string",
+                    "$ref": "#/definitions/MFO",
+                    "description": "bank code"
+                },
+                "payer_account": {
+                    "type": "string",
+                    "$ref": "#/definitions/payer_account",
+                    "description": "Номер банківського рахунку"
+                }
+            },
+            "required": [
+                "bank_name",
+                "MFO",
+                "payer_account"
+            ],
+            "additionalProperties": false
+        },
+        "contractor_rmsp_amount": {
+            "type": "number",
+            "minimum": 0,
+            "description": "the amount of population which were served by this MSP"
+        },
+        "external_contractor_flag": {
+            "type": "boolean",
+            "description": "the existence of second appendix"
+        },
+        "external_contractors": {
+            "type": "array",
+            "properties": {
+                "legal_entity_id": {
+                    "type": "string",
+                    "$ref": "#/definitions/uuid",
+                    "description": "external_contractor ID"
+                },
+                "contract": {
+                    "type": "object",
+                    "properties": {
+                        "number": {
+                            "type": "string",
+                            "$ref": "#/definitions/name",
+                            "description": "number of contract with sub contractor"
+                        },
+                        "issued_at": {
+                            "format": "date",
+                            "description": "issue date of contract with sub contractor"
+                        },
+                        "expires_at": {
+                            "format": "date",
+                            "description": "expiry date of contract with sub contractor"
+                        }
+                    },
+                    "required": [
+                        "number",
+                        "issued_at",
+                        "expires_at"
+                    ]
+                },
+                "divisions": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "$ref": "#/definitions/uuid"
+                            },
+                            "medical_service": {
+                                "type": "string",
+                                "$ref": "#/definitions/name"
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "medical_service"
+                        ],
+                        "additionalProperties": false
+                    },
+                    "minItems": 1
+                }
+            },
+            "required": [
+                "legal_entity_id",
+                "contract",
+                "divisions"
+            ],
+            "additionalProperties": false
+        },
+        "contractor_employee_divisions": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "employee_id": {
+                        "type": "string",
+                        "$ref": "#/definitions/uuid",
+                        "description": "employee ID"
+                    },
+                    "staff_units": {
+                        "type": "number",
+                        "minimum": 0,
+                        "exclusiveMinimum": true
+                    },
+                    "declaration_limit": {
+                        "type": "number",
+                        "minimum": 0,
+                        "exclusiveMinimum": true,
+                        "description": "declaration limit for current employee within the contract"
+                    },
+                    "division_id": {
+                        "type": "string",
+                        "$ref": "#/definitions/uuid",
+                        "description": "division ID"
+                    }
+                },
+                "required": [
+                    "employee_id",
+                    "staff_units",
+                    "declaration_limit",
+                    "division_id"
+                ],
+                "additionalProperties": false
+            },
+            "minItems": 1
+        },
+        "start_date": {
+            "format": "date",
+            "description": "contract start date"
+        },
+        "end_date": {
+            "format": "date",
+            "description": "contract end date"
+        },
+        "id_form": {
+            "type": "string",
+            "description": "Dictionary: CONTRACT_TYPE"
+        },
+        "contract_number": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "pattern": "^\\d{4}-[\\dAEHKMPTX]{4}-[\\dAEHKMPTX]{4}$"
+        }
+    },
+    "required": [
+        "contractor_legal_entity_id",
+        "contractor_owner_id",
+        "contractor_base",
+        "contractor_payment_details",
+        "contractor_rmsp_amount",
+        "contractor_employee_divisions",
+        "start_date",
+        "end_date",
+        "id_form"
+    ],
+    "additionalProperties": false
+}

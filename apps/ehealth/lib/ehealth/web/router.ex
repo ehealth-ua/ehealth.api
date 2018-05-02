@@ -26,11 +26,13 @@ defmodule EHealthWeb.Router do
     # plug :allow_jsonp
   end
 
+  # client_id = legal_entity_id
   pipeline :api_client_id do
     plug(:header_required, "x-consumer-metadata")
     plug(:client_id_exists)
   end
 
+  # consumer_id = user_id
   pipeline :api_consumer_id do
     plug(:header_required, "x-consumer-id")
   end
@@ -38,6 +40,10 @@ defmodule EHealthWeb.Router do
   pipeline :client_context_list do
     plug(:process_client_context_for_list)
     plug(:put_is_active_into_params)
+  end
+
+  pipeline :contract_context do
+    plug(:process_client_context_for_list, legal_entity_param_name: "contractor_legal_entity_id")
   end
 
   pipeline :cabinet do
@@ -195,6 +201,19 @@ defmodule EHealthWeb.Router do
     patch("/declaration_requests/:id/actions/approve", DeclarationRequestController, :approve)
     patch("/declaration_requests/:id/actions/reject", DeclarationRequestController, :reject)
     post("/declaration_requests/:id/actions/resend_otp", DeclarationRequestController, :resend_otp)
+
+    post("/contract_requests", ContractRequestController, :create)
+    patch("/contract_requests/:id", ContractRequestController, :update)
+    patch("/contract_requests/:id/actions/approve", ContractRequestController, :approve)
+
+    scope "/contract_requests" do
+      pipe_through([:contract_context])
+
+      get("/", ContractRequestController, :index)
+      get("/:id", ContractRequestController, :show)
+      patch("/contract_requests/:id/actions/terminate", ContractRequestController, :terminate)
+      patch("/:id/actions/sign_nhs", ContractRequestController, :sign_nhs)
+    end
 
     resources(
       "/medication_request_requests",

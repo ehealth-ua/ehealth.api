@@ -18,6 +18,8 @@ defmodule EHealth.API.MithrilBehaviour do
               {:ok, result :: term} | {:error, reason :: term}
 
   # user_roles
+  @callback get_user_roles(user_id :: binary, params :: map, headers :: list) ::
+              {:ok, result :: term} | {:error, reason :: term}
   @callback create_user_role(user_id :: binary, params :: map, headers :: list) ::
               {:ok, result :: term} | {:error, reason :: term}
 

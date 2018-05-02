@@ -1448,5 +1448,28 @@
       "EXTERNAL"
     ],
     "is_active": true
+  },
+  {
+    "name": "CONTRACT_TYPE",
+    "values": {
+      "PMD_1": "Договір про медичне обслуговування населення за програмою медичних гарантій"
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
+  },
+  {
+    "name": "CONTRACT_PAYMENT_METHOD",
+    "values": {
+      "FORWARD": "попередня оплата медичних послуг",
+      "BACKWARD": "оплата медичних послуг по факту"
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
   }
 ]
