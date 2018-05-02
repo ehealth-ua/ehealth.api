@@ -99,6 +99,8 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
                  "Mithril.create_access_token requires param `#{key}` in `#{inspect(params)}`"
         end)
 
+        assert "app:authorize" == params.scope
+
         data = %{
           "id" => UUID.generate(),
           "value" => "some_token_value"
