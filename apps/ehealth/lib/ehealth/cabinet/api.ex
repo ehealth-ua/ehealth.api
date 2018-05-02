@@ -46,8 +46,8 @@ defmodule EHealth.Cabinet.API do
          user_params <- prepare_user_params(tax_id, person["id"], email, params, content),
          {:ok, %{"data" => user}} <- create_or_update_user(mithril_user, user_params, headers),
          conf <- Confex.fetch_env!(:ehealth, __MODULE__),
-         role_params <- %{role_id: conf[:role_id], client_id: conf[:client_id]},
-         {:ok, %{"data" => _}} <- @mithril_api.create_user_role(user["id"], role_params, headers),
+         role_params <- %{role_id: conf[:role_id]},
+         {:ok, %{"data" => _}} <- @mithril_api.create_global_user_role(user["id"], role_params, headers),
          {:ok, %{"data" => token}} <- create_access_token(user, conf[:client_id], headers) do
       {:ok, %{user: user, patient: person, access_token: token["value"]}}
     end

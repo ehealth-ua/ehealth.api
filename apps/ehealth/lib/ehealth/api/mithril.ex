@@ -87,6 +87,10 @@ defmodule EHealth.API.Mithril do
     post!("/admin/users/#{user_id}/roles", Poison.encode!(%{"user_role" => role}), headers)
   end
 
+  def create_global_user_role(user_id, role, headers \\ []) do
+    post!("/admin/users/#{user_id}/global_roles", Poison.encode!(%{"global_user_role" => role}), headers)
+  end
+
   def delete_user_role(user_id, role_id, headers) do
     delete!("/admin/users/#{user_id}/roles/#{role_id}", headers)
   end

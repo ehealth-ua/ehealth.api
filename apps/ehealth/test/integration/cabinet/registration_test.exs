@@ -80,9 +80,10 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
         {:ok, %{"data" => data}}
       end)
 
-      expect(MithrilMock, :create_user_role, fn _user_id, params, _headers ->
-        Enum.each(~w(role_id client_id)a, fn key ->
-          assert Map.has_key?(params, key), "Mithril.create_user_role requires param `#{key}` in `#{inspect(params)}` "
+      expect(MithrilMock, :create_global_user_role, fn _user_id, params, _headers ->
+        Enum.each(~w(role_id)a, fn key ->
+          assert Map.has_key?(params, key),
+                 "Mithril.create_global_user_role requires param `#{key}` in `#{inspect(params)}` "
         end)
 
         data = %{

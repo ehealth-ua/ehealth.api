@@ -22,6 +22,8 @@ defmodule EHealth.API.MithrilBehaviour do
               {:ok, result :: term} | {:error, reason :: term}
   @callback create_user_role(user_id :: binary, params :: map, headers :: list) ::
               {:ok, result :: term} | {:error, reason :: term}
+  @callback create_global_user_role(user_id :: binary, params :: map, headers :: list) ::
+              {:ok, result :: term} | {:error, reason :: term}
 
   # tokens
   @callback create_access_token(user_id :: binary, token :: map, headers :: list) ::

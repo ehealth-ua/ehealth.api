@@ -36,8 +36,8 @@ defmodule Mithril.Web.RegistrationControllerTest do
   defmodule MithrilUserRoleExpect do
     defmacro __using__(_) do
       quote do
-        expect(MithrilMock, :create_user_role, fn _user_id, params, _headers ->
-          Enum.each(~w(role_id client_id)a, fn key ->
+        expect(MithrilMock, :create_global_user_role, fn _user_id, params, _headers ->
+          Enum.each(~w(role_id)a, fn key ->
             assert Map.has_key?(params, key),
                    "Mithril.create_user_role requires param `#{key}` in `#{inspect(params)}` "
           end)
@@ -55,6 +55,8 @@ defmodule Mithril.Web.RegistrationControllerTest do
             assert Map.has_key?(params, key),
                    "Mithril.create_access_token requires param `#{key}` in `#{inspect(params)}`"
           end)
+
+          assert "app:authorize" == params.scope
 
           data = %{
             "id" => UUID.generate(),
