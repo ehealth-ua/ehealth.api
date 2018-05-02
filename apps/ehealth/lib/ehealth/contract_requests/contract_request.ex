@@ -39,7 +39,7 @@ defmodule EHealth.ContractRequests.ContractRequest do
     field(:status_reason, :string)
     field(:nhs_contract_price, :float)
     field(:nhs_payment_method, :string)
-    field(:nhs_signed, :boolean)
+    field(:nhs_signed, :boolean, default: false)
     field(:contract_number, :string)
     field(:contract_id, UUID)
     field(:contractor_signed, :boolean)

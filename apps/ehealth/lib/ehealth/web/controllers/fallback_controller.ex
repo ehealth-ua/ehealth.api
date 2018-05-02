@@ -126,6 +126,13 @@ defmodule EHealth.Web.FallbackController do
     |> render(Error, :"500", %{message: message})
   end
 
+  def call(conn, {:error, {:bad_gateway, message}}) do
+    conn
+    |> put_status(:bad_gateway)
+    |> put_resp_content_type("application/json")
+    |> send_resp(502, Poison.encode!(%{message: message}))
+  end
+
   def call(conn, nil) do
     conn
     |> put_status(:not_found)

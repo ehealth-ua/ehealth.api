@@ -1234,16 +1234,12 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         })
 
       assert resp = json_response(conn, 422)
-      assert %{"message" => "Employee is not allowed to sign"} = resp["error"]
+      assert_error(resp, "Employee is not allowed to sign")
     end
 
     test "contract_request already signed", %{conn: conn} do
-      client_id = get_client_admin()
-      user_id = UUID.generate()
-      contract_request = insert(:il, :contract_request, nhs_legal_entity_id: client_id, nhs_signed: true)
-      %{party: party} = insert(:prm, :party_user, user_id: user_id)
-      insert(:prm, :legal_entity, id: client_id)
-      insert(:prm, :employee, party: party, legal_entity_id: client_id, id: contract_request.nhs_signer_id)
+      %{"client_id" => client_id, "user_id" => user_id, "contract_request" => contract_request} =
+        prepare_nhs_sign_params(nhs_signed: true)
 
       conn =
         conn
@@ -1257,7 +1253,143 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         })
 
       assert resp = json_response(conn, 422)
-      assert %{"message" => "The contract was already signed by NHS"} = resp["error"]
+      assert_error(resp, "The contract was already signed by NHS")
+    end
+
+    test "failed to decode signed content", %{conn: conn} do
+      %{"client_id" => client_id, "user_id" => user_id, "contract_request" => contract_request} =
+        prepare_nhs_sign_params()
+
+      conn =
+        conn
+        |> put_client_id_header(client_id)
+        |> put_consumer_id_header(user_id)
+
+      conn =
+        patch(conn, contract_request_path(conn, :sign_nhs, contract_request.id), %{
+          "signed_content" => "invalid",
+          "signed_content_encoding" => "base64"
+        })
+
+      assert resp = json_response(conn, 422)
+      assert %{"is_valid" => false} == resp["error"]
+    end
+
+    test "content doesn't match", %{conn: conn} do
+      %{"client_id" => client_id, "user_id" => user_id, "contract_request" => contract_request} =
+        prepare_nhs_sign_params()
+
+      conn =
+        conn
+        |> put_client_id_header(client_id)
+        |> put_consumer_id_header(user_id)
+
+      data = %{"id" => contract_request.id, "printout_content" => "<html></html>"}
+
+      conn =
+        patch(conn, contract_request_path(conn, :sign_nhs, contract_request.id), %{
+          "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+
+      assert resp = json_response(conn, 422)
+      assert_error(resp, "Signed content does not match the previously created content")
+    end
+
+    test "invalid status", %{conn: conn} do
+      id = UUID.generate()
+      data = %{"id" => id, "printout_content" => "<html></html>"}
+
+      %{"client_id" => client_id, "user_id" => user_id, "contract_request" => contract_request} =
+        prepare_nhs_sign_params(id: id, data: data)
+
+      conn =
+        conn
+        |> put_client_id_header(client_id)
+        |> put_consumer_id_header(user_id)
+
+      conn =
+        patch(conn, contract_request_path(conn, :sign_nhs, contract_request.id), %{
+          "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+
+      assert resp = json_response(conn, 422)
+      assert_error(resp, "Incorrect status of contract_request to modify it")
+    end
+
+    test "failed to save signed content", %{conn: conn} do
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
+        {:error, "failed to save content"}
+      end)
+
+      id = UUID.generate()
+      data = %{"id" => id, "printout_content" => "<html></html>"}
+
+      %{
+        "client_id" => client_id,
+        "user_id" => user_id,
+        "contract_request" => contract_request
+      } =
+        prepare_nhs_sign_params(
+          id: id,
+          data: data,
+          status: ContractRequest.status(:approved)
+        )
+
+      conn =
+        conn
+        |> put_client_id_header(client_id)
+        |> put_consumer_id_header(user_id)
+
+      conn =
+        patch(conn, contract_request_path(conn, :sign_nhs, contract_request.id), %{
+          "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+
+      assert resp = json_response(conn, 502)
+      assert %{"message" => "Failed to save signed content"} = resp["error"]
+    end
+
+    test "success to sign contract_request", %{conn: conn} do
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
+      id = UUID.generate()
+      data = %{"id" => id, "printout_content" => "<html></html>"}
+
+      %{
+        "client_id" => client_id,
+        "user_id" => user_id,
+        "contract_request" => contract_request
+      } =
+        prepare_nhs_sign_params(
+          id: id,
+          data: data,
+          status: ContractRequest.status(:approved)
+        )
+
+      conn =
+        conn
+        |> put_client_id_header(client_id)
+        |> put_consumer_id_header(user_id)
+
+      conn =
+        patch(conn, contract_request_path(conn, :sign_nhs, contract_request.id), %{
+          "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+
+      assert resp = json_response(conn, 200)
+
+      schema =
+        "specs/json_schemas/contract_request/contract_request_show_response.json"
+        |> File.read!()
+        |> Poison.decode!()
+
+      assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
     end
   end
 
@@ -1321,6 +1453,71 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       "start_date" => "2018-01-01",
       "end_date" => "2018-01-01"
     }
+  end
+
+  defp prepare_nhs_sign_params(contract_request_params \\ [], legal_entity_params \\ []) do
+    client_id = get_client_admin()
+    params = Keyword.merge([id: client_id], legal_entity_params)
+    legal_entity = insert(:prm, :legal_entity, params)
+    user_id = UUID.generate()
+    nhs_signer_id = Keyword.get(contract_request_params, :nhs_signer_id) || UUID.generate()
+    party_user = insert(:prm, :party_user, user_id: user_id)
+    insert(:prm, :employee, party: party_user.party, legal_entity_id: client_id, id: nhs_signer_id)
+    division = insert(:prm, :division, legal_entity: legal_entity)
+    employee_doctor = insert(:prm, :employee, legal_entity_id: legal_entity.id, division: division)
+
+    employee_owner =
+      insert(
+        :prm,
+        :employee,
+        id: user_id,
+        legal_entity_id: legal_entity.id,
+        employee_type: Employee.type(:owner),
+        party: party_user.party
+      )
+
+    now = Date.utc_today()
+    start_date = Date.add(now, 10)
+
+    params =
+      Keyword.merge(
+        [
+          nhs_legal_entity_id: client_id,
+          nhs_signer_id: user_id,
+          contractor_legal_entity_id: client_id,
+          contractor_owner_id: employee_owner.id,
+          contractor_employee_divisions: [
+            %{
+              "employee_id" => employee_doctor.id,
+              "staff_units" => 0.5,
+              "declaration_limit" => 2000,
+              "division_id" => division.id
+            }
+          ],
+          start_date: start_date
+        ],
+        contract_request_params
+      )
+
+    contract_request = insert(:il, :contract_request, params)
+
+    %{
+      "client_id" => client_id,
+      "user_id" => user_id,
+      "legal_entity" => legal_entity,
+      "party_user" => party_user,
+      "contract_request" => contract_request
+    }
+  end
+
+  defp assert_error(resp, message) do
+    assert %{
+             "invalid" => [
+               %{"entry_type" => "request", "rules" => [%{"rule" => "json"}]}
+             ],
+             "message" => ^message,
+             "type" => "request_malformed"
+           } = resp["error"]
   end
 
   defp assert_error(resp, entry, description, rule \\ "invalid") do

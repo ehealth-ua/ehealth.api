@@ -42,20 +42,69 @@
                 "id": {
                     "type": "string"
                 },
-                "first_name": {
-                    "type": "string"
+                "party": {
+                    "first_name": {
+                        "type": "string"
+                    },
+                    "last_name": {
+                        "type": "string"
+                    },
+                    "second_name": {
+                        "type": "string"
+                    }
                 },
-                "last_name": {
-                    "type": "string"
-                },
-                "second_name": {
-                    "type": "string"
+                "speciality": {
+                    "type": "object",
+                    "properties": {
+                        "speciality": {
+                            "type": "string",
+                            "description": "`Dictionary SPECIALITY_TYPE`"
+                        },
+                        "speciality_officio": {
+                            "type": "boolean",
+                            "description": "speciality by position, one and only one should be true"
+                        },
+                        "level": {
+                            "type": "string",
+                            "description": "`Dictionary SPECIALITY_LEVEL`"
+                        },
+                        "qualification_type": {
+                            "type": "string",
+                            "description": "`Dictionary SPEC_QUALIFICATION_TYPE`"
+                        },
+                        "attestation_name": {
+                            "type": "string",
+                            "description": "орган що видав"
+                        },
+                        "attestation_date": {
+                            "type": "string",
+                            "description": "02-28 (string, required) - дата отримання"
+                        },
+                        "valid_to_date": {
+                            "type": "string",
+                            "description": "02-28 (string, required) - дата дії до"
+                        },
+                        "certificate_number": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "speciality",
+                        "speciality_officio",
+                        "level",
+                        "qualification_type",
+                        "attestation_name",
+                        "attestation_date",
+                        "valid_to_date",
+                        "certificate_number"
+                    ],
+                    "additionalProperties": false
                 }
             },
             "required": [
                 "id",
-                "first_name",
-                "last_name"
+                "party",
+                "speciality"
             ]
         },
         "contractor_base": {
@@ -549,21 +598,73 @@
                 "id": {
                     "type": "string"
                 },
-                "first_name": {
-                    "type": "string"
+                "party": {
+                    "first_name": {
+                        "type": "string"
+                    },
+                    "last_name": {
+                        "type": "string"
+                    },
+                    "second_name": {
+                        "type": "string"
+                    }
                 },
-                "last_name": {
-                    "type": "string"
-                },
-                "second_name": {
-                    "type": "string"
+                "speciality": {
+                    "type": "object",
+                    "properties": {
+                        "speciality": {
+                            "type": "string",
+                            "description": "`Dictionary SPECIALITY_TYPE`"
+                        },
+                        "speciality_officio": {
+                            "type": "boolean",
+                            "description": "speciality by position, one and only one should be true"
+                        },
+                        "level": {
+                            "type": "string",
+                            "description": "`Dictionary SPECIALITY_LEVEL`"
+                        },
+                        "qualification_type": {
+                            "type": "string",
+                            "description": "`Dictionary SPEC_QUALIFICATION_TYPE`"
+                        },
+                        "attestation_name": {
+                            "type": "string",
+                            "description": "орган що видав"
+                        },
+                        "attestation_date": {
+                            "type": "string",
+                            "description": "02-28 (string, required) - дата отримання"
+                        },
+                        "valid_to_date": {
+                            "type": "string",
+                            "description": "02-28 (string, required) - дата дії до"
+                        },
+                        "certificate_number": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "speciality",
+                        "speciality_officio",
+                        "level",
+                        "qualification_type",
+                        "attestation_name",
+                        "attestation_date",
+                        "valid_to_date",
+                        "certificate_number"
+                    ],
+                    "additionalProperties": false
                 }
             },
             "required": [
                 "id",
-                "first_name",
-                "last_name"
+                "party",
+                "speciality"
             ]
+        },
+        "nhs_signed": {
+            "type": "boolean"
         },
         "nhs_signer_base": {
             "type": [
