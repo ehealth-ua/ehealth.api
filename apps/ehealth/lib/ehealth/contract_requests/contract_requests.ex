@@ -25,8 +25,7 @@ defmodule EHealth.ContractRequests do
   alias EHealth.EventManager
   alias EHealth.Web.ContractRequestView
   alias EHealth.Man.Templates.ContractRequestPrintoutForm
-  import Ecto.Changeset
-  import Ecto.Query
+
   require Logger
 
   @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
@@ -616,6 +615,10 @@ defmodule EHealth.ContractRequests do
     with {:ok, %ContractRequest{} = contract_request} <- get_contract_request(client_id, client_type, id) do
       {:ok, contract_request, preload_references(contract_request)}
     end
+  end
+
+  def get_by_id(id) do
+    Repo.get(ContractRequest, id)
   end
 
   defp get_contract_request(_, "NHS ADMIN", id) do

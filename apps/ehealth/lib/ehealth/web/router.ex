@@ -202,6 +202,12 @@ defmodule EHealthWeb.Router do
     patch("/declaration_requests/:id/actions/reject", DeclarationRequestController, :reject)
     post("/declaration_requests/:id/actions/resend_otp", DeclarationRequestController, :resend_otp)
 
+    scope "/contracts" do
+      pipe_through([:contract_context])
+
+      get("/:id", ContractController, :show)
+    end
+
     post("/contract_requests", ContractRequestController, :create)
     patch("/contract_requests/:id", ContractRequestController, :update)
     patch("/contract_requests/:id/actions/approve", ContractRequestController, :approve)

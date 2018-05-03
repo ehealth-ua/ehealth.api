@@ -81,6 +81,8 @@ defmodule EHealth.API.OPSBehaviour do
               {:ok, result :: term}
               | {:error, reason :: term}
 
+  @callback get_contract(id :: binary, headers :: list) :: {:ok, result :: term} | {:error, reason :: term}
+
   @callback get_latest_block(headers :: list) ::
               {:ok, result :: term}
               | {:error, reason :: term}

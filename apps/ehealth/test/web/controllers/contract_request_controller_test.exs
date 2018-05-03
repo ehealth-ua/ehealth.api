@@ -13,8 +13,6 @@ defmodule EHealth.Web.ContractRequestControllerTest do
   alias Ecto.UUID
   alias EHealth.EventManagerRepo
   alias EHealth.EventManager.Event
-  import Mox
-  import EHealth.MockServer, only: [get_client_admin: 0]
 
   @contract_request_status_new ContractRequest.status(:new)
   @contract_request_status_declined ContractRequest.status(:declined)

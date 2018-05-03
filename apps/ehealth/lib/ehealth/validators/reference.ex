@@ -4,8 +4,9 @@ defmodule EHealth.Validators.Reference do
   """
 
   alias EHealth.API.MPI
-  alias EHealth.{Divisions, Employees, LegalEntities, Medications, MedicalPrograms}
+  alias EHealth.{Divisions, Employees, LegalEntities, Medications, MedicalPrograms, ContractRequests}
   alias EHealth.Divisions.Division
+  alias EHealth.ContractRequests.ContractRequest
   alias EHealth.Employees.Employee
   alias EHealth.LegalEntities.LegalEntity
   alias EHealth.Medications.Medication
@@ -70,6 +71,14 @@ defmodule EHealth.Validators.Reference do
   def validate(:medication = type, id, path) do
     with %Medication{} = medication <- Medications.get_medication_by_id(id) do
       {:ok, medication}
+    else
+      _ -> error(type, path)
+    end
+  end
+
+  def validate(:contract_request = type, id, path) do
+    with %ContractRequest{} = contract_request <- ContractRequests.get_by_id(id) do
+      {:ok, contract_request}
     else
       _ -> error(type, path)
     end
