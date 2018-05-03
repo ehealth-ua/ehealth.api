@@ -262,11 +262,12 @@ defmodule EHealth.ContractRequests do
   end
 
   def terminate_changeset(%ContractRequest{} = contract_request, params) do
-    fields = ~w(status status_reason updated_by)a
+    fields_required = ~w(status updated_by)a
+    fields_optional = ~w(status_reason)a
 
     contract_request
-    |> cast(params, fields)
-    |> validate_required(fields)
+    |> cast(params, fields_required ++ fields_optional)
+    |> validate_required(fields_required)
   end
 
   def nhs_signed_changeset(%ContractRequest{} = contract_request, params) do
