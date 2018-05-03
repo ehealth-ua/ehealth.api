@@ -671,4 +671,34 @@ defmodule EHealth.ContractRequests do
         {:error, %{"type" => "internal_error"}}
     end
   end
+
+  def decline(headers, params) do
+    user_id = get_consumer_id(headers)
+    client_id = get_client_id(headers)
+
+    with {:ok, %{"data" => data}} <- @mithril_api.get_user_roles(user_id, %{}, headers),
+         :ok <- user_has_role(data, "NHS ADMIN SIGNER"),
+         %ContractRequest{} = contract_request <- Repo.get(ContractRequest, params["id"]),
+         :ok <- validate_status(contract_request, ContractRequest.status(:new)),
+         update_params <-
+           params
+           |> Map.put("status", ContractRequest.status(:declined))
+           |> Map.put("nhs_signer_id", user_id)
+           |> Map.put("nhs_legal_entity_id", client_id)
+           |> Map.put("updated_by", user_id),
+         %Ecto.Changeset{valid?: true} = changes <- decline_changeset(contract_request, update_params),
+         {:ok, contract_request} <- Repo.update(changes),
+         _ <- EventManager.insert_change_status(contract_request, contract_request.status, user_id) do
+      {:ok, contract_request, preload_references(contract_request)}
+    end
+  end
+
+  defp decline_changeset(%ContractRequest{} = contract_request, params) do
+    fields_required = ~w(status nhs_signer_id nhs_legal_entity_id updated_by)a
+    fields_optional = ~w(status_reason)a
+
+    contract_request
+    |> cast(params, fields_required ++ fields_optional)
+    |> validate_required(fields_required)
+  end
 end

@@ -57,4 +57,10 @@ defmodule EHealth.Web.ContractRequestController do
       render(conn, "show.json", contract_request: contract_request, references: references)
     end
   end
+
+  def decline(%Plug.Conn{req_headers: headers} = conn, params) do
+    with {:ok, %ContractRequest{} = contract_request, references} <- ContractRequests.decline(headers, params) do
+      render(conn, "show.json", contract_request: contract_request, references: references)
+    end
+  end
 end

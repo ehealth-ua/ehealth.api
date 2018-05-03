@@ -1393,6 +1393,145 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
   end
 
+  describe "decline contract_request" do
+    test "success decline contract request and event manager registration", %{conn: conn} do
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
+      end)
+
+      user_id = UUID.generate()
+      party_user = insert(:prm, :party_user, user_id: user_id)
+      legal_entity = insert(:prm, :legal_entity)
+
+      employee_owner =
+        insert(
+          :prm,
+          :employee,
+          legal_entity_id: legal_entity.id,
+          employee_type: Employee.type(:owner),
+          party: party_user.party
+        )
+
+      division = insert(:prm, :division, legal_entity: legal_entity)
+      employee_doctor = insert(:prm, :employee, legal_entity_id: legal_entity.id, division: division)
+
+      contract_request =
+        insert(
+          :il,
+          :contract_request,
+          contractor_legal_entity_id: legal_entity.id,
+          contractor_owner_id: employee_owner.id,
+          contractor_employee_divisions: [
+            %{
+              "employee_id" => employee_doctor.id,
+              "staff_units" => 0.5,
+              "declaration_limit" => 2000,
+              "division_id" => division.id
+            }
+          ]
+        )
+
+      conn =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(user_id)
+
+      conn =
+        patch(conn, contract_request_path(conn, :decline, contract_request.id), %{
+          "status_reason" => "Не відповідає попереднім домовленостям"
+        })
+
+      assert resp = json_response(conn, 200)
+
+      schema =
+        "specs/json_schemas/contract_request/contract_request_show_response.json"
+        |> File.read!()
+        |> Poison.decode!()
+
+      assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
+
+      assert resp["data"]["status"] == ContractRequest.status(:declined)
+      assert resp["data"]["updated_by"] == user_id
+
+      contract_request = EHealth.Repo.get(ContractRequest, contract_request.id)
+      assert contract_request.status_reason == "Не відповідає попереднім домовленостям"
+      assert contract_request.nhs_signer_id == user_id
+      assert contract_request.nhs_legal_entity_id == legal_entity.id
+
+      contract_request_id = contract_request.id
+      contract_request_status = contract_request.status
+      assert event = EventManagerRepo.one(Event)
+
+      assert %Event{
+               entity_type: "ContractRequest",
+               event_type: "StatusChangeEvent",
+               entity_id: ^contract_request_id,
+               changed_by: ^user_id,
+               properties: %{"status" => %{"new_value" => ^contract_request_status}}
+             } = event
+    end
+
+    test "user is not NHS ADMIN SIGNER", %{conn: conn} do
+      contract_request = insert(:il, :contract_request)
+
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok, %{"data" => [%{"role_name" => "OWNER"}]}}
+      end)
+
+      legal_entity = insert(:prm, :legal_entity)
+      conn = put_client_id_header(conn, legal_entity.id)
+
+      conn =
+        patch(conn, contract_request_path(conn, :decline, contract_request.id), %{
+          "status_reason" => "Не відповідає попереднім домовленостям"
+        })
+
+      assert json_response(conn, 403)
+    end
+
+    test "no contract_request found", %{conn: conn} do
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
+      end)
+
+      legal_entity = insert(:prm, :legal_entity)
+      conn = put_client_id_header(conn, legal_entity.id)
+
+      conn =
+        patch(conn, contract_request_path(conn, :decline, UUID.generate()), %{
+          "status_reason" => "Не відповідає попереднім домовленостям"
+        })
+
+      assert json_response(conn, 404)
+    end
+
+    test "contract_request has wrong status", %{conn: conn} do
+      contract_request = insert(:il, :contract_request, status: ContractRequest.status(:signed))
+
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
+      end)
+
+      legal_entity = insert(:prm, :legal_entity)
+      conn = put_client_id_header(conn, legal_entity.id)
+
+      conn =
+        patch(conn, contract_request_path(conn, :decline, contract_request.id), %{
+          "status_reason" => "Не відповідає попереднім домовленостям"
+        })
+
+      assert resp = json_response(conn, 422)
+
+      assert %{
+               "invalid" => [
+                 %{"entry_type" => "request", "rules" => [%{"rule" => "json"}]}
+               ],
+               "message" => "Incorrect status of contract_request to modify it",
+               "type" => "request_malformed"
+             } = resp["error"]
+    end
+  end
+
   defp prepare_data(role_name \\ "OWNER") do
     expect(MithrilMock, :get_user_roles, fn _, _, _ ->
       {:ok, %{"data" => [%{"role_name" => role_name}]}}
