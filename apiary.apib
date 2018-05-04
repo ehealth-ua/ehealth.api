@@ -2145,6 +2145,12 @@ Thie WS designed to check existence of user with input tax_id
             + message: `User with this tax_id already exists` (string)
 
 # Group Public. Medical Service Provider Integration Layer
+the below table reflects actual API endpoints for all the ehealth environments
+Env     | Host
+--------|-----
+DEMO    | https://demo.ehealth.world
+PREPROD | https://denovo.ehealth.world
+PROD    | https://api.ehealth-ukraine.org
 
 ##oAuth [/api/oauth]
 
@@ -2264,14 +2270,6 @@ In future, you will be able to refresh access tokens to extend `access_token` li
         + meta (Response__Meta)
             + code: 201 (number)
         + data (Access_Token)
-
-## Environments
-the below table reflects actual API endpoints for all the ehealth environments
-Env     | Host
---------|-----
-DEMO    | https://demo.ehealth.world
-PREPROD | https://denovo.ehealth.world
-PROD    | https://api.ehealth-ukraine.org
 
 ## Dictionaries [/api/dictionaries]
 
