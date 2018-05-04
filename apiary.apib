@@ -2186,8 +2186,7 @@ Use following HOSTs for oAuth 2.0 Authentication
 Env     | Host
 --------|-----
 DEMO    | http://auth.demo.ehealth.world
-PREPROD | https://auth.ehealth.world
-DENOVO  | https://denovo.ehealth.world
+PREPROD | https://auth-denovo.ehealth.world
 PROD    | https://auth.ehealth-ukraine.org
 
 You MUST redirect your users to this URL to obtain oAuth Code Grant (which is later exchanged to Access Token).
@@ -2265,6 +2264,14 @@ In future, you will be able to refresh access tokens to extend `access_token` li
         + meta (Response__Meta)
             + code: 201 (number)
         + data (Access_Token)
+
+## Environments
+the below table reflects actual API endpoints for all the ehealth environments
+Env     | Host
+--------|-----
+DEMO    | https://demo.ehealth.world
+PREPROD | https://denovo.ehealth.world
+PROD    | https://api.ehealth-ukraine.org
 
 ## Dictionaries [/api/dictionaries]
 
