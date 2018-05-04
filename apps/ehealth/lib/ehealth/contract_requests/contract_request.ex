@@ -11,12 +11,14 @@ defmodule EHealth.ContractRequests.ContractRequest do
   @status_new "NEW"
   @status_declined "DECLINED"
   @status_approved "APPROVED"
+  @status_nhs_signed "NHS_SIGNED"
   @status_signed "SIGNED"
   @status_terminated "TERMINATED"
 
   def status(:new), do: @status_new
   def status(:declined), do: @status_declined
   def status(:approved), do: @status_approved
+  def status(:nhs_signed), do: @status_nhs_signed
   def status(:signed), do: @status_signed
   def status(:terminated), do: @status_terminated
 
@@ -39,7 +41,6 @@ defmodule EHealth.ContractRequests.ContractRequest do
     field(:status_reason, :string)
     field(:nhs_contract_price, :float)
     field(:nhs_payment_method, :string)
-    field(:nhs_signed, :boolean, default: false)
     field(:contract_number, :string)
     field(:contract_id, UUID)
     field(:contractor_signed, :boolean)

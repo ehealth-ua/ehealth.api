@@ -35,7 +35,6 @@ defmodule EHealth.Web.ContractRequestView do
       contractor_rmsp_amount
       external_contractor_flag
       external_contractors
-      nhs_signed
       nhs_signer_base
       nhs_contract_price
       nhs_payment_method

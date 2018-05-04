@@ -1237,7 +1237,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
     test "contract_request already signed", %{conn: conn} do
       %{"client_id" => client_id, "user_id" => user_id, "contract_request" => contract_request} =
-        prepare_nhs_sign_params(nhs_signed: true)
+        prepare_nhs_sign_params(status: ContractRequest.status(:nhs_signed))
 
       conn =
         conn

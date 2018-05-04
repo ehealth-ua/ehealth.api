@@ -663,9 +663,6 @@
                 "speciality"
             ]
         },
-        "nhs_signed": {
-            "type": "boolean"
-        },
         "nhs_signer_base": {
             "type": [
                 "null",

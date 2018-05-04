@@ -183,7 +183,7 @@ defmodule EHealth.ContractRequests do
               "legal_entity_id" => client_id,
               "status" => Employee.status(:approved)
             })},
-         {_, false} <- {:already_signed, contract_request.nhs_signed == true},
+         {_, false} <- {:already_signed, contract_request.status == ContractRequest.status(:nhs_signed)},
          {:ok, %{"data" => %{"content" => content, "signer" => signer}}} <- decode_signed_content(params, headers),
          :ok <- validate_content(contract_request, content),
          :ok <- validate_status(contract_request, ContractRequest.status(:approved)),
@@ -195,7 +195,7 @@ defmodule EHealth.ContractRequests do
          update_params <-
            params
            |> Map.put("updated_by", user_id)
-           |> Map.put("nhs_signed", true),
+           |> Map.put("status", ContractRequest.status(:nhs_signed)),
          %Ecto.Changeset{valid?: true} = changes <- nhs_signed_changeset(contract_request, update_params),
          {:ok, contract_request} <- Repo.update(changes) do
       {:ok, contract_request, references}
@@ -270,7 +270,7 @@ defmodule EHealth.ContractRequests do
   end
 
   def nhs_signed_changeset(%ContractRequest{} = contract_request, params) do
-    fields = ~w(nhs_signed updated_by)a
+    fields = ~w(status updated_by)a
 
     contract_request
     |> cast(params, fields)
