@@ -171,8 +171,9 @@ defmodule EHealth.DeclarationRequests.API.Sign do
   def check_employee_id(content, headers) do
     employee_id = get_in(content, ["employee", "id"])
 
-    with %Employee{legal_entity_id: legal_entity_id} <- Employees.get_by_id(employee_id),
-         true <- legal_entity_id == get_client_id(headers) do
+    with %Employee{legal_entity_id: legal_entity_id, status: status} <- Employees.get_by_id(employee_id),
+         true <- legal_entity_id == get_client_id(headers),
+         true <- status == Employee.status(:approved) do
       :ok
     else
       _ -> {:error, :forbidden}

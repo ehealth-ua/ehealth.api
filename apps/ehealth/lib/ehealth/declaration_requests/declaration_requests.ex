@@ -143,6 +143,7 @@ defmodule EHealth.DeclarationRequests do
          {:ok, _} <- Addresses.validate(get_in(params, ["person", "addresses"]), "REGISTRATION"),
          {:ok, %Employee{} = employee} <-
            Reference.validate(:employee, params["employee_id"], "$.declaration_request.employee_id"),
+         :ok <- Creator.validate_employee_status(employee),
          :ok <- Creator.validate_employee_speciality(employee),
          %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(client_id),
          {:ok, %Division{} = division} <-
@@ -161,6 +162,7 @@ defmodule EHealth.DeclarationRequests do
          :ok <- check_user_person_id(user, params["person_id"]),
          {:ok, person} <- Reference.validate(:person, params["person_id"]),
          {:ok, %Employee{} = employee} <- Reference.validate(:employee, params["employee_id"]),
+         :ok <- Creator.validate_employee_status(employee),
          {:ok, %Division{} = division} <- Reference.validate(:division, params["division_id"]),
          {:ok, %LegalEntity{} = legal_entity} <- Reference.validate(:legal_entity, division.legal_entity_id) do
       data =

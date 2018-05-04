@@ -352,6 +352,24 @@ defmodule EHealth.DeclarationRequests.API.Creator do
     end)
   end
 
+  def validate_employee_status(%Employee{status: status}) do
+    if status == Employee.status(:approved) do
+      :ok
+    else
+      {:error,
+       [
+         {
+           %{
+             description: "Invalid employee status",
+             params: [],
+             rule: :invalid
+           },
+           "$.employee_id"
+         }
+       ]}
+    end
+  end
+
   def validate_employee_type(changeset, employee) do
     if Employee.type(:doctor) == employee.employee_type do
       changeset
