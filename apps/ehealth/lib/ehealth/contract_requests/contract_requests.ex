@@ -61,10 +61,12 @@ defmodule EHealth.ContractRequests do
 
   def create(headers, params) do
     user_id = get_consumer_id(headers)
+    client_id = get_client_id(headers)
 
     with {:ok, %{"data" => data}} <- @mithril_api.get_user_roles(user_id, %{}, headers),
          :ok <- JsonSchema.validate(:contract_request, params),
          :ok <- user_has_role(data, "OWNER"),
+         params <- Map.put(params, "contractor_legal_entity_id", client_id),
          :ok <- validate_employee_divisions(params),
          :ok <- validate_external_contractors(params),
          :ok <- validate_external_contractor_flag(params),
@@ -80,6 +82,9 @@ defmodule EHealth.ContractRequests do
          %Ecto.Changeset{valid?: true} = changes <- changeset(%ContractRequest{}, insert_params),
          {:ok, contract_request} <- Repo.insert(changes) do
       {:ok, contract_request, preload_references(contract_request)}
+    else
+      {:employee, _} -> {:error, {:forbidden, "User is not allowed to this action by client_id"}}
+      error -> error
     end
   end
 
@@ -380,8 +385,9 @@ defmodule EHealth.ContractRequests do
 
   defp validate_external_contractors(params) do
     employee_division_ids = Enum.map(params["contractor_employee_divisions"], &Map.get(&1, "division_id"))
+    external_contractors = params["external_contractors"] || []
 
-    params["external_contractors"]
+    external_contractors
     |> Enum.with_index()
     |> Enum.reduce_while(:ok, fn {contractor, i}, _ ->
       validation_result =

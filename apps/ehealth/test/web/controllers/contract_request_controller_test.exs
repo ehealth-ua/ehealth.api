@@ -1569,7 +1569,6 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "MFO" => "351005",
         "payer_account" => "32009102701026"
       },
-      "contractor_legal_entity_id" => legal_entity.id,
       "contractor_rmsp_amount" => 10,
       "id_form" => "5",
       "contractor_employee_divisions" => [

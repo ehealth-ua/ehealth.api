@@ -26,11 +26,6 @@
     },
     "type": "object",
     "properties": {
-        "contractor_legal_entity_id": {
-            "type": "string",
-            "$ref": "#/definitions/uuid",
-            "description": "legal entity ID which make contract request"
-        },
         "contractor_owner_id": {
             "type": "string",
             "$ref": "#/definitions/uuid",
@@ -197,7 +192,6 @@
         }
     },
     "required": [
-        "contractor_legal_entity_id",
         "contractor_owner_id",
         "contractor_base",
         "contractor_payment_details",
