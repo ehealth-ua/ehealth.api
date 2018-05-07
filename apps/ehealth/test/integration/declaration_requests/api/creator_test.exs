@@ -5,9 +5,11 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
 
   import Mox
   import Ecto.Changeset, only: [get_change: 2, put_change: 3]
+
   alias EHealth.DeclarationRequests.API.Creator
   alias EHealth.DeclarationRequests.DeclarationRequest
   alias EHealth.Utils.NumberGenerator
+  alias Ecto.UUID
 
   describe "generate_printout_form/1" do
     setup %{conn: _conn} do
@@ -56,7 +58,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       }
 
       printout_content =
-        %DeclarationRequest{id: 321, data: data}
+        %DeclarationRequest{id: UUID.generate(), data: data}
         |> Ecto.Changeset.change()
         |> put_change(:authentication_method_current, authentication_method_current)
         |> put_change(:declaration_number, number)
@@ -203,6 +205,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
               full_street: nil
             }
           },
+          email: "email@example.com",
           phone: "+380503410870"
         },
         legal_entity: %{
@@ -251,7 +254,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         |> put_in(["legal_entity", "licenses"], licenses)
 
       printout_content =
-        %DeclarationRequest{id: 321, data: data}
+        %DeclarationRequest{id: UUID.generate(), data: data}
         |> Ecto.Changeset.change()
         |> put_change(:authentication_method_current, authentication_method_current)
         |> Creator.generate_printout_form(employee)
@@ -274,7 +277,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       employee = insert(:prm, :employee, id: "d290f1ee-6c54-4b01-90e6-d701748f0851", speciality: employee_speciality)
 
       printout_content =
-        %DeclarationRequest{id: 321, data: %{}}
+        %DeclarationRequest{id: UUID.generate(), data: %{}}
         |> Ecto.Changeset.change()
         |> put_change(:authentication_method_current, %{})
         |> put_change(:declaration_number, number)
@@ -350,6 +353,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
               full_street: nil
             }
           },
+          email: nil,
           phone: nil
         },
         legal_entity: %{
@@ -387,7 +391,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       employee = insert(:prm, :employee)
 
       changeset =
-        %DeclarationRequest{id: 321, data: %{}}
+        %DeclarationRequest{id: UUID.generate(), data: %{}}
         |> Ecto.Changeset.change()
         |> put_change(:authentication_method_current, %{})
         |> Creator.generate_printout_form(employee)
@@ -652,7 +656,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       @invalid_party_id "6b4127ea-99ad-4493-b5ce-6f0769fa9fab"
       @invalid_user_id "79d70fe0-00dd-4dc3-b302-c8f3a6f6ad38"
       @user_id "53c63398-7033-47f6-9602-be250e35049e"
-      @role_id Ecto.UUID.generate()
+      @role_id UUID.generate()
 
       def user_id, do: @user_id
 
