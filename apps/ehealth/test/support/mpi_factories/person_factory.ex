@@ -17,7 +17,7 @@ defmodule EHealth.MPIFactories.PersonFactory do
           national_id: sequence(:national_id, &"national_id-#{&1}"),
           tax_id: sequence(:tax_id, &"tax_id-#{&1}"),
           invalid_tax_id: false,
-          birth_date: ~D[1996-12-12],
+          birth_date: Date.to_string(~D[1996-12-12]),
           birth_country: sequence(:birth_country, &"birth_country-#{&1}"),
           birth_settlement: sequence(:birth_settlement, &"birth_settlement-#{&1}"),
           death_date: ~D[2117-11-09],
