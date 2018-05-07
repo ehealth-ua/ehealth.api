@@ -12,6 +12,7 @@ defmodule EHealth.Unit.LegalEntityTest do
   alias EHealth.LegalEntities, as: API
   alias EHealth.LegalEntities.Validator
   alias EHealth.LegalEntities.LegalEntity
+  alias Ecto.UUID
 
   describe "validations" do
     setup _context do
@@ -257,7 +258,6 @@ defmodule EHealth.Unit.LegalEntityTest do
         })
 
       assert {:ok, %{legal_entity: legal_entity, security: security}} = create_legal_entity(update_data)
-
       assert "37367387" == legal_entity.edrpou
       assert "ACTIVE" == legal_entity.status
       assert "VERIFIED" == legal_entity.mis_verified

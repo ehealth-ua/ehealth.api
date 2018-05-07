@@ -47,7 +47,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       insert(:prm, :black_list_user, tax_id: "3067305998")
       party = insert(:prm, :party, tax_id: "3067305998")
       %{id: id} = insert(:prm, :employee, party: party)
-      %{id: division_id} = insert(:prm, :division)
+      %{id: division_id} = insert(:prm, :division, legal_entity: legal_entity)
 
       employee_request_params =
         doctor_request()
@@ -68,7 +68,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       legal_entity = insert(:prm, :legal_entity)
       party = insert(:prm, :party, tax_id: "3067305998")
       %{id: id} = insert(:prm, :employee, party: party)
-      %{id: division_id} = insert(:prm, :division)
+      %{id: division_id} = insert(:prm, :division, legal_entity: legal_entity)
 
       employee_request_params =
         doctor_request()
@@ -107,6 +107,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
         )
 
       legal_entity = insert(:prm, :legal_entity, type: LegalEntity.type(:pharmacy))
+      %{id: division_id} = insert(:prm, :division, legal_entity: legal_entity)
       conn = put_client_id_header(conn, legal_entity.id)
 
       employee_request_params =
@@ -133,7 +134,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       end)
 
       legal_entity = insert(:prm, :legal_entity)
-      %{id: division_id} = insert(:prm, :division)
+      %{id: division_id} = insert(:prm, :division, legal_entity: legal_entity)
 
       employee_request_params =
         doctor_request()
@@ -405,7 +406,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       assert Map.has_key?(invalid_division_id, "rules")
       assert 1 == length(invalid_division_id["rules"])
       rule = Enum.at(invalid_division_id["rules"], 0)
-      assert "does not exist" == Map.get(rule, "description")
+      assert "Division not found" == Map.get(rule, "description")
     end
 
     test "with invalid legal_entity_id", %{conn: conn} do
@@ -440,22 +441,32 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "with employee_id invalid tax_id", %{conn: conn} do
-      %{id: legal_entity_id} = insert(:prm, :legal_entity)
-      employee = insert(:prm, :employee)
-      employee_request_params = put_in(doctor_request(), ["employee_request", "employee_id"], employee.id)
-      conn = put_client_id_header(conn, legal_entity_id)
+      legal_entity = insert(:prm, :legal_entity)
+      division = insert(:prm, :division, legal_entity: legal_entity)
+      employee = insert(:prm, :employee, division: division)
+
+      employee_request_params =
+        doctor_request()
+        |> put_in(["employee_request", "employee_id"], employee.id)
+        |> put_in(["employee_request", "division_id"], division.id)
+
+      conn = put_client_id_header(conn, legal_entity.id)
       conn = post(conn, employee_request_path(conn, :create), employee_request_params)
       json_response(conn, 409)
     end
 
     test "with employee_id invalid employee_type", %{conn: conn} do
-      %{id: legal_entity_id} = insert(:prm, :legal_entity)
-      division = insert(:prm, :division)
+      legal_entity = insert(:prm, :legal_entity)
+      division = insert(:prm, :division, legal_entity: legal_entity)
       party = insert(:prm, :party, tax_id: "3067305998")
       employee = insert(:prm, :employee, party: party, division: division, employee_type: "OWNER")
 
-      employee_request_params = put_in(doctor_request(), ["employee_request", "employee_id"], employee.id)
-      conn = put_client_id_header(conn, legal_entity_id)
+      employee_request_params =
+        doctor_request()
+        |> put_in(["employee_request", "employee_id"], employee.id)
+        |> put_in(["employee_request", "division_id"], division.id)
+
+      conn = put_client_id_header(conn, legal_entity.id)
       conn = post(conn, employee_request_path(conn, :create), employee_request_params)
       json_response(conn, 409)
     end
@@ -465,8 +476,8 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
         {:ok, "<html><body>some_rendered_content</body></html>"}
       end)
 
-      %{id: legal_entity_id} = insert(:prm, :legal_entity)
-      division = insert(:prm, :division)
+      legal_entity = insert(:prm, :legal_entity)
+      division = insert(:prm, :division, legal_entity: legal_entity)
       party = insert(:prm, :party, tax_id: "3067305998")
       employee = insert(:prm, :employee, party: party, division: division)
 
@@ -475,15 +486,20 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
         |> put_in(["employee_request", "employee_id"], employee.id)
         |> put_in(["employee_request", "division_id"], division.id)
 
-      conn = put_client_id_header(conn, legal_entity_id)
+      conn = put_client_id_header(conn, legal_entity.id)
       conn = post(conn, employee_request_path(conn, :create), employee_request_params)
       json_response(conn, 200)
     end
 
     test "with invalid employee_id", %{conn: conn} do
       legal_entity_id = "8b797c23-ba47-45f2-bc0f-521013e01074"
-      insert(:prm, :legal_entity, id: legal_entity_id)
-      employee_request_params = put_in(doctor_request(), ["employee_request", "employee_id"], Ecto.UUID.generate())
+      legal_entity = insert(:prm, :legal_entity, id: legal_entity_id)
+      %{id: division_id} = insert(:prm, :division, legal_entity: legal_entity)
+
+      employee_request_params =
+        doctor_request()
+        |> put_in(["employee_request", "employee_id"], Ecto.UUID.generate())
+        |> put_in(["employee_request", "division_id"], division_id)
 
       conn = put_client_id_header(conn, legal_entity_id)
       conn = post(conn, employee_request_path(conn, :create), employee_request_params)
@@ -499,12 +515,16 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     test "with not active employee", %{conn: conn} do
       party = insert(:prm, :party, tax_id: "3067305998")
 
-      %{id: id, division: %{legal_entity_id: legal_entity_id}} =
+      %{id: id, division: %{id: division_id, legal_entity_id: legal_entity_id}} =
         :prm
         |> insert(:employee, status: "APPROVED", party: party, is_active: false)
         |> EHealth.PRMRepo.preload(:legal_entity)
 
-      employee_request_params = put_in(doctor_request(), ["employee_request", "employee_id"], id)
+      employee_request_params =
+        doctor_request()
+        |> put_in(["employee_request", "employee_id"], id)
+        |> put_in(["employee_request", "division_id"], division_id)
+
       conn = put_client_id_header(conn, legal_entity_id)
       conn = post(conn, employee_request_path(conn, :create), employee_request_params)
       assert json_response(conn, 404)
@@ -513,12 +533,16 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     test "with dismissed employee", %{conn: conn} do
       party = insert(:prm, :party, tax_id: "3067305998")
 
-      %{id: id, division: %{legal_entity_id: legal_entity_id}} =
+      %{id: id, division: %{id: division_id, legal_entity_id: legal_entity_id}} =
         :prm
         |> insert(:employee, status: "DISMISSED", party: party)
         |> EHealth.PRMRepo.preload(:legal_entity)
 
-      employee_request_params = put_in(doctor_request(), ["employee_request", "employee_id"], id)
+      employee_request_params =
+        doctor_request()
+        |> put_in(["employee_request", "employee_id"], id)
+        |> put_in(["employee_request", "division_id"], division_id)
+
       conn = put_client_id_header(conn, legal_entity_id)
       conn = post(conn, employee_request_path(conn, :create), employee_request_params)
       resp = json_response(conn, 409)

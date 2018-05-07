@@ -214,6 +214,9 @@ defmodule EHealth.Unit.ValidatorTest do
   end
 
   test "Employee Request: issued_date date format" do
+    legal_entity = insert(:prm, :legal_entity)
+    insert(:prm, :division, id: "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b", legal_entity: legal_entity)
+
     content =
       put_in(
         get_employee_request(),
@@ -222,17 +225,21 @@ defmodule EHealth.Unit.ValidatorTest do
       )
 
     assert {:error, [{%{description: _, rule: :format}, "$.employee_request.doctor.science_degree.issued_date"}]} =
-             EmployeeRequests.create(content)
+             EmployeeRequests.create(content, legal_entity.id)
   end
 
   test "Employee Request: start_date date format" do
+    legal_entity = insert(:prm, :legal_entity)
+    insert(:prm, :division, id: "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b", legal_entity: legal_entity)
     content = put_in(get_employee_request(), ["employee_request", "start_date"], "2012-12")
 
     assert {:error, [{%{description: _, rule: :format}, "$.employee_request.start_date"}]} =
-             EmployeeRequests.create(content)
+             EmployeeRequests.create(content, legal_entity.id)
   end
 
   test "Employee Request: educations issued_date format" do
+    legal_entity = insert(:prm, :legal_entity)
+    insert(:prm, :division, id: "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b", legal_entity: legal_entity)
     content = get_employee_request()
 
     education =
@@ -243,26 +250,31 @@ defmodule EHealth.Unit.ValidatorTest do
     content = put_in(content, ["employee_request", "doctor", "educations"], [Map.put(education, "issued_date", "2012")])
 
     assert {:error, [{%{description: _, rule: :format}, "$.employee_request.doctor.educations.[0].issued_date"}]} =
-             EmployeeRequests.create(content)
+             EmployeeRequests.create(content, legal_entity.id)
   end
 
   test "Employee Request: science_degree invalid", %{conn: conn} do
+    legal_entity = insert(:prm, :legal_entity)
+    insert(:prm, :division, id: "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b", legal_entity: legal_entity)
     patch(conn, dictionary_path(conn, :update, "SCIENCE_DEGREE"), @science_degree)
     patch(conn, dictionary_path(conn, :update, "PHONE_TYPE"), @phone_type)
 
     content = put_in(get_employee_request(), ~W(employee_request doctor science_degree degree), "INVALID")
 
     assert {:error, [{%{rule: :inclusion}, "$.employee_request.doctor.science_degree.degree"}]} =
-             EmployeeRequests.create(content)
+             EmployeeRequests.create(content, legal_entity.id)
   end
 
   test "Employee Request: employee_type invalid", %{conn: conn} do
+    legal_entity = insert(:prm, :legal_entity)
+    insert(:prm, :division, id: "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b", legal_entity: legal_entity)
     patch(conn, dictionary_path(conn, :update, "EMPLOYEE_TYPE"), @employee_type)
     patch(conn, dictionary_path(conn, :update, "PHONE_TYPE"), @phone_type)
 
     content = put_in(get_employee_request(), ~W(employee_request employee_type), "INVALID")
 
-    assert {:error, [{%{rule: :inclusion}, "$.employee_request.employee_type"}]} = EmployeeRequests.create(content)
+    assert {:error, [{%{rule: :inclusion}, "$.employee_request.employee_type"}]} =
+             EmployeeRequests.create(content, legal_entity.id)
   end
 
   test "unmapped dictionary name", %{conn: conn} do

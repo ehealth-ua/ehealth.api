@@ -26,6 +26,7 @@ defmodule EHealth.EmployeeRequests do
   alias EHealth.EventManager
   alias EHealth.Utils.Log
   alias EHealth.Email.Postmark
+  alias EHealth.Validators.Reference
 
   @status_new Request.status(:new)
   @status_approved Request.status(:approved)
@@ -127,12 +128,13 @@ defmodule EHealth.EmployeeRequests do
     Repo.get!(Request, id)
   end
 
-  def create(attrs, allowed_owner \\ false) do
+  def create(attrs, client_id, allowed_owner \\ false) do
     with {:ok, attrs} <- Validator.validate(attrs),
          params <- Map.fetch!(attrs, "employee_request"),
          :ok <- check_owner(params, allowed_owner),
          legal_entity_id <- Map.fetch!(params, "legal_entity_id"),
          %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(legal_entity_id),
+         :ok <- check_division_legal_entity(client_id, params["division_id"]),
          :ok <- validate_type(legal_entity, Map.fetch!(params, "employee_type")),
          :ok <- check_is_user_blacklisted(params),
          {:ok, _} = employee_request <- insert_employee_request(params) do
@@ -150,6 +152,14 @@ defmodule EHealth.EmployeeRequests do
 
       error ->
         error
+    end
+  end
+
+  defp check_division_legal_entity(nil, _), do: :ok
+
+  defp check_division_legal_entity(client_id, division_id) do
+    with {:ok, %Division{legal_entity_id: legal_entity_id}} <- Reference.validate(:division, division_id) do
+      if client_id == legal_entity_id, do: :ok, else: {:error, {:"422", "Division is not within current legal entity"}}
     end
   end
 
