@@ -2,11 +2,11 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
   @moduledoc false
 
   use Confex, otp_app: :ehealth
+  use Timex
 
   alias EHealth.Utils.AddressMerger
   alias EHealth.Dictionaries
   alias EHealth.DeclarationRequests.DeclarationRequest
-  use Timex
 
   @man_api Application.get_env(:ehealth, :api_resolvers)[:man]
 
@@ -225,6 +225,7 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
 
     %{
       phone: Map.get(phone, "number"),
+      email: Map.get(division, "email"),
       addresses: get_division_addresses(division)
     }
   end
