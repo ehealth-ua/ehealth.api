@@ -189,7 +189,7 @@ defmodule EHealth.ContractRequests do
               "status" => Employee.status(:approved)
             })},
          {_, false} <- {:already_signed, contract_request.status == ContractRequest.status(:nhs_signed)},
-         {:ok, %{"data" => %{"content" => content, "signer" => signer}}} <- decode_signed_content(params, headers),
+         {:ok, %{"data" => %{"content" => content, "signer" => _signer}}} <- decode_signed_content(params, headers),
          :ok <- validate_content(contract_request, content),
          :ok <- validate_status(contract_request, ContractRequest.status(:approved)),
          :ok <- validate_employee_divisions(contract_request),
@@ -223,7 +223,7 @@ defmodule EHealth.ContractRequests do
     |> @media_storage_api.store_signed_content(:contract_request_bucket, id, headers)
     |> case do
       {:ok, _} -> :ok
-      err -> {:error, {:bad_gateway, "Failed to save signed content"}}
+      _error -> {:error, {:bad_gateway, "Failed to save signed content"}}
     end
   end
 
@@ -668,6 +668,46 @@ defmodule EHealth.ContractRequests do
 
       error ->
         error
+    end
+  end
+
+  def get_partially_signed_content_url(headers, %{"id" => id}) do
+    client_id = get_client_id(headers)
+    user_id = get_consumer_id(headers)
+
+    with %ContractRequest{} = contract_request <- Repo.get(ContractRequest, id),
+         {_, true} <- {:signed_nhs, contract_request.status == ContractRequest.status(:nhs_signed)},
+         {_, true} <- {:client_id, client_id == contract_request.contractor_legal_entity_id},
+         {_, %Party{id: party_id}} <- {:employee, Parties.get_by_user_id(user_id)},
+         {_, %{entries: [_employee]}} <-
+           {:employee,
+            Employees.list(%{
+              "party_id" => party_id,
+              "legal_entity_id" => client_id,
+              "ids" => contract_request.contractor_owner_id,
+              "status" => Employee.status(:approved)
+            })},
+         {:ok, url} <- resolve_partially_signed_content_url(contract_request.id, headers) do
+      {:ok, url}
+    else
+      {:signed_nhs, _} -> {:error, {:"422", "The contract hasn't been signed yet"}}
+      {:client_id, _} -> {:error, {:forbidden, "Invalid client_id"}}
+      {:employee, _} -> {:error, {:"422", "Employee is not allowed to view"}}
+      {:error, :media_storage_error} -> {:error, {:bad_gateway, "Fail to resolve partially signed content"}}
+      error -> error
+    end
+  end
+
+  defp resolve_partially_signed_content_url(contract_request_id, headers) do
+    bucket = Confex.fetch_env!(:ehealth, EHealth.API.MediaStorage)[:contract_request_bucket]
+    resource_name = "contract_request_content.pkcs7"
+
+    media_storage_response =
+      @media_storage_api.create_signed_url("GET", bucket, contract_request_id, resource_name, headers)
+
+    case media_storage_response do
+      {:ok, %{"data" => %{"secret_url" => url}}} -> {:ok, url}
+      _ -> {:error, :media_storage_error}
     end
   end
 

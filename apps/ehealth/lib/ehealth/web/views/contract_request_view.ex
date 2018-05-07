@@ -74,6 +74,8 @@ defmodule EHealth.Web.ContractRequestView do
     )
   end
 
+  def render("partially_signed_content.json", %{url: url}), do: %{url: url}
+
   defp render_association(_, _, nil), do: nil
 
   defp render_association(:legal_entity, references, id) do

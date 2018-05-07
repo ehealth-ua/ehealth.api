@@ -63,4 +63,10 @@ defmodule EHealth.Web.ContractRequestController do
       render(conn, "show.json", contract_request: contract_request, references: references)
     end
   end
+
+  def get_partially_signed_content(%Plug.Conn{req_headers: headers} = conn, %{"id" => _} = params) do
+    with {:ok, url} <- ContractRequests.get_partially_signed_content_url(headers, params) do
+      render(conn, "partially_signed_content.json", url: url)
+    end
+  end
 end
