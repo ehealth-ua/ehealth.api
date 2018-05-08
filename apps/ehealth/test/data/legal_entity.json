@@ -19,6 +19,7 @@
       "settlement_type": "CITY",
       "settlement_id": "dsdafdf",
       "street": "вул. Ніжинська",
+      "street_type": "STREET",
       "building": "15-В",
       "apartment": "23",
       "zip": "02090"

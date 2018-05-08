@@ -3,12 +3,12 @@ defmodule EHealth.Unit.EmployeeRequestsTest do
 
   use EHealth.Web.ConnCase, async: false
 
-  alias EHealth.EmployeeRequests
-  alias EHealth.EmployeeRequests.EmployeeRequest, as: Request
-  alias EHealth.EventManagerRepo
-  alias EHealth.EventManager.Event
-  alias EHealth.Repo
+  import Mox
+
   alias Ecto.UUID
+  alias EHealth.{Repo, EventManagerRepo, EmployeeRequests}
+  alias EHealth.EmployeeRequests.EmployeeRequest, as: Request
+  alias EHealth.EventManager.Event
 
   @expired_status Request.status(:expired)
 
@@ -42,5 +42,32 @@ defmodule EHealth.Unit.EmployeeRequestsTest do
              "status" => %{"new_value" => @expired_status},
              "employee_id" => %{"new_value" => employee_id}
            } in events_expired_properties
+  end
+
+  test "rollback suspended contracts on employee_request approve when employee.division_id invalid" do
+    expect(OPSMock, :get_contracts, fn _params, _headers ->
+      {:ok, %{"data" => [%{"id" => UUID.generate()}, %{"id" => UUID.generate()}]}}
+    end)
+
+    # not all contracts was suspended
+    expect(OPSMock, :suspend_contracts, fn ids, _headers ->
+      {:ok, %{"data" => %{"suspended" => length(ids)}}}
+    end)
+
+    expect(OPSMock, :renew_contracts, fn _ids, _headers ->
+      {:ok, %{"data" => %{}}}
+    end)
+
+    %{id: legal_entity_id} = insert(:prm, :legal_entity)
+
+    data =
+      employee_request_data()
+      |> put_in([:party, :email], "mis_bot_1493831618@user.com")
+      |> put_in([:division_id], UUID.generate())
+      |> put_in([:legal_entity_id], legal_entity_id)
+
+    %{id: request_id} = insert(:il, :employee_request, employee_id: nil, data: data)
+
+    assert {:error, %Ecto.Changeset{valid?: false}} = EmployeeRequests.approve(request_id, [])
   end
 end

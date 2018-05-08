@@ -133,6 +133,12 @@ defmodule EHealth.Web.FallbackController do
     |> send_resp(502, Poison.encode!(%{message: message}))
   end
 
+  def call(conn, {:error, {:service_unavailable, message}}) do
+    conn
+    |> put_status(:service_unavailable)
+    |> render(Error, :"503", %{message: message})
+  end
+
   def call(conn, nil) do
     conn
     |> put_status(:not_found)

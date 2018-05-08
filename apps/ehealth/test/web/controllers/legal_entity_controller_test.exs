@@ -1,13 +1,15 @@
 defmodule EHealth.Web.LegalEntityControllerTest do
   @moduledoc false
 
-  use EHealth.Web.ConnCase
+  use EHealth.Web.ConnCase, async: false
   import Mox
+  alias Ecto.UUID
   alias EHealth.Employees.Employee
   alias EHealth.PRMRepo
   alias EHealth.LegalEntities.LegalEntity
 
   setup :verify_on_exit!
+  setup :set_mox_global
 
   test "invalid legal entity", %{conn: conn} do
     conn = put(conn, legal_entity_path(conn, :create_or_update), %{"invalid" => "data"})
@@ -252,6 +254,15 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     end
 
     test "deactivate legal entity with valid transitions condition", %{conn: conn} do
+      expect(OPSMock, :get_contracts, fn _params, _headers ->
+        {:ok, %{"data" => [%{"id" => UUID.generate()}]}}
+      end)
+
+      expect(OPSMock, :suspend_contracts, fn ids, _headers ->
+        assert 1 == length(ids)
+        {:ok, %{"data" => %{"suspended" => 1}}}
+      end)
+
       %{id: id} = insert(:prm, :legal_entity)
       conn = put_client_id_header(conn, id)
       conn = patch(conn, legal_entity_path(conn, :deactivate, id))
@@ -265,6 +276,19 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     end
 
     test "deactivate legal entity with OWNER employee", %{conn: conn} do
+      expect(OPSMock, :get_contracts, fn _params, _headers ->
+        {:ok, %{"data" => [%{"id" => UUID.generate()}]}}
+      end)
+
+      expect(OPSMock, :suspend_contracts, fn ids, _headers ->
+        assert 1 == length(ids)
+        {:ok, %{"data" => %{"suspended" => 1}}}
+      end)
+
+      expect(OPSMock, :get_contracts, fn _params, _headers ->
+        {:ok, %{"data" => []}}
+      end)
+
       %{id: id} = insert(:prm, :legal_entity)
 
       employee =
@@ -276,10 +300,13 @@ defmodule EHealth.Web.LegalEntityControllerTest do
         )
 
       assert employee.is_active
-      conn = put_client_id_header(conn, id)
-      conn = patch(conn, legal_entity_path(conn, :deactivate, id))
 
-      resp = json_response(conn, 200)
+      resp =
+        conn
+        |> put_client_id_header(id)
+        |> patch(legal_entity_path(conn, :deactivate, id))
+        |> json_response(200)
+
       assert "CLOSED" == resp["data"]["status"]
       employee = PRMRepo.one(Employee)
       refute employee.is_active

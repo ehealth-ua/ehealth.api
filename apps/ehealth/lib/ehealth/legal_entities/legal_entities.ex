@@ -8,21 +8,16 @@ defmodule EHealth.LegalEntities do
   import EHealth.Utils.Connection, only: [get_consumer_id: 1, get_client_id: 1]
   import EHealth.Plugs.ClientContext, only: [authorize_legal_entity_id: 3]
   import Ecto.Query, except: [update: 3]
+  import EHealth.LegalEntities.ContractSuspender
 
-  alias EHealth.PRMRepo
   alias Scrivener.Page
-  alias Ecto.Date
-  alias Ecto.UUID
-  alias EHealth.API.MediaStorage
-  alias EHealth.API.Mithril
-  alias EHealth.OAuth.API, as: OAuth
-  alias EHealth.LegalEntities.LegalEntity
-  alias EHealth.LegalEntities.Search
-  alias EHealth.LegalEntities.Validator
-  alias EHealth.EmployeeRequests
-  alias EHealth.Employees.Employee
-  alias EHealth.Registries
+  alias Ecto.{Changeset, Date, Multi, UUID}
   alias Ecto.Schema.Metadata
+  alias EHealth.{PRMRepo, Registries, EmployeeRequests}
+  alias EHealth.API.{Mithril, MediaStorage}
+  alias EHealth.OAuth.API, as: OAuth
+  alias EHealth.LegalEntities.{LegalEntity, Search, Validator}
+  alias EHealth.Employees.Employee
 
   require Logger
 
@@ -153,6 +148,32 @@ defmodule EHealth.LegalEntities do
     |> PRMRepo.update_and_log(author_id)
   end
 
+  def update_with_ops_contract(%Changeset{valid?: true} = changeset, headers) do
+    case maybe_suspend_contracts?(changeset, :legal_entity) do
+      true -> transaction_update_with_ops_contract(changeset, headers)
+      false -> PRMRepo.update_and_log(changeset, get_consumer_id(headers))
+    end
+  end
+
+  def update_with_ops_contract(changeset, _headers), do: changeset
+
+  def transaction_update_with_ops_contract(changeset, headers) do
+    get_contracts_params = %{
+      legal_entity_id: Changeset.get_field(changeset, :id),
+      status: status_verified(),
+      is_suspended: false
+    }
+
+    Multi.new()
+    |> Multi.run(:ops_get_contracts, fn _ -> ops_get_contracts(get_contracts_params, headers) end)
+    |> Multi.run(:ops_suspend_contracts, &ops_suspend_contracts(&1, headers))
+    |> Multi.run(:update_legal_entity, fn _ ->
+      EctoTrail.update_and_log(PRMRepo, changeset, get_consumer_id(headers))
+    end)
+    |> PRMRepo.transaction()
+    |> maybe_rollback()
+  end
+
   defp load_legal_entity(id) do
     %{"id" => id, "is_active" => true}
     |> list()
@@ -266,7 +287,9 @@ defmodule EHealth.LegalEntities do
         "is_active" => true
       })
 
-    update(legal_entity, update_data, consumer_id)
+    legal_entity
+    |> changeset(update_data)
+    |> update_with_ops_contract(headers)
   end
 
   defp get_oauth_credentials(%LegalEntity{} = legal_entity, client_type_id, request_params, headers) do
@@ -337,11 +360,11 @@ defmodule EHealth.LegalEntities do
     preload(query, :medical_service_provider)
   end
 
-  defp changeset(%Search{} = legal_entity, attrs) do
+  def changeset(%Search{} = legal_entity, attrs) do
     cast(legal_entity, attrs, @search_fields)
   end
 
-  defp changeset(%LegalEntity{} = legal_entity, attrs) do
+  def changeset(%LegalEntity{} = legal_entity, attrs) do
     legal_entity
     |> cast(attrs, @required_fields ++ @optional_fields)
     |> cast_assoc(:medical_service_provider)

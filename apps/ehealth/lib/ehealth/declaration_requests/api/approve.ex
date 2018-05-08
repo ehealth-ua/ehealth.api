@@ -11,7 +11,6 @@ defmodule EHealth.DeclarationRequests.API.Approve do
 
   @media_storage_api Application.get_env(:ehealth, :api_resolvers)[:media_storage]
   @auth_otp DeclarationRequest.authentication_method(:otp)
-  @auth_offline DeclarationRequest.authentication_method(:offline)
 
   def verify(declaration_request, code, headers \\ []) do
     with {:ok, _} <- verify_auth(declaration_request, code),

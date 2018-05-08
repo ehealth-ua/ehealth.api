@@ -88,4 +88,18 @@ defmodule EHealth.API.OPS do
   def get_latest_block(headers \\ []) do
     get!("/latest_block", headers)
   end
+
+  def get_contracts(params, headers) do
+    get!("/contracts", headers, params: params)
+  end
+
+  def suspend_contracts(ids, headers) when is_list(ids) do
+    params = %{ids: Enum.join(ids, ",")}
+    patch!("/contracts/actions/suspend", Poison.encode!(params), headers)
+  end
+
+  def renew_contracts(ids, headers) when is_list(ids) do
+    params = %{ids: Enum.join(ids, ",")}
+    patch!("/contracts/actions/renew", Poison.encode!(params), headers)
+  end
 end

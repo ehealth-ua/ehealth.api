@@ -29,7 +29,7 @@ defmodule EHealth.Employees.EmployeeUpdater do
          active_employees <- get_active_employees(employee),
          :ok <- revoke_user_auth_data(employee, active_employees, headers),
          {:ok, _} <- OPS.terminate_employee_declarations(id, user_id, "auto_employee_deactivate", "", headers) do
-      update_employee_status(employee, headers)
+      set_employee_status_as_dismissed(employee, headers)
     end
   end
 
@@ -114,16 +114,19 @@ defmodule EHealth.Employees.EmployeeUpdater do
     end
   end
 
-  def update_employee_status(%Employee{} = employee, headers) do
+  def set_employee_status_as_dismissed(%Employee{} = employee, headers) do
     params =
       headers
-      |> get_update_employee_params()
+      |> get_deactivate_employee_params()
       |> put_employee_status(employee)
 
-    Employees.update(employee, params, get_consumer_id(headers))
+    case employee.employee_type do
+      @type_owner -> Employees.update_with_ops_contract(employee, params, headers)
+      _ -> Employees.update(employee, params, get_consumer_id(headers))
+    end
   end
 
-  defp get_update_employee_params(headers) do
+  defp get_deactivate_employee_params(headers) do
     %{}
     |> Map.put(:updated_by, get_consumer_id(headers))
     |> Map.put(:end_date, Date.utc_today() |> Date.to_iso8601())

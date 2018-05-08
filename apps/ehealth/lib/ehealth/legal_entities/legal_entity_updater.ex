@@ -57,10 +57,14 @@ defmodule EHealth.LegalEntities.LegalEntityUpdater do
   end
 
   def update_legal_entity_status(%LegalEntity{} = legal_entity, headers) do
-    with params <- get_update_legal_entity_params(headers),
-         params <- put_legal_entity_status(params) do
-      LegalEntities.update(legal_entity, params, get_consumer_id(headers))
-    end
+    params =
+      headers
+      |> get_update_legal_entity_params()
+      |> put_legal_entity_status()
+
+    legal_entity
+    |> LegalEntities.changeset(params)
+    |> LegalEntities.update_with_ops_contract(headers)
   end
 
   defp get_update_legal_entity_params(headers) do

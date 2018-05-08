@@ -6,13 +6,13 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   import EHealth.SimpleFactory
   import Mox
 
+  alias Ecto.UUID
   alias EHealth.EmployeeRequests.EmployeeRequest, as: Request
   alias EHealth.LegalEntities.LegalEntity
   alias EHealth.Employees.Employee
   alias EHealth.PartyUsers.PartyUser
   alias EHealth.MockServer
-  alias EHealth.PRMRepo
-  alias EHealth.EventManagerRepo
+  alias EHealth.{PRMRepo, EventManagerRepo}
   alias EHealth.EventManager.Event
 
   @moduletag :with_client_id
@@ -1005,7 +1005,20 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       %{conn: conn}
     end
 
-    test "can approve employee request with employee_id", %{conn: conn} do
+    test "can approve employee request with employee_id with changed party.name", %{conn: conn} do
+      expect(OPSMock, :get_contracts, fn _params, _headers ->
+        {:ok, %{"data" => [%{"id" => UUID.generate()}]}}
+      end)
+
+      expect(OPSMock, :suspend_contracts, fn ids, _headers ->
+        assert 1 == length(ids)
+        {:ok, %{"data" => %{"suspended" => 1}}}
+      end)
+
+      expect(ReportMock, :get_declaration_count, fn _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
       %{id: legal_entity_id} = insert(:prm, :legal_entity)
       %{id: division_id} = insert(:prm, :division)
 
@@ -1035,10 +1048,6 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       resp = json_response(conn2, 200)["data"]
       assert employee_id = resp["employee_id"]
       refute Map.has_key?(resp["doctor"], "science_degree")
-
-      expect(ReportMock, :get_declaration_count, fn _, _ ->
-        {:ok, %{"data" => []}}
-      end)
 
       conn3 = get(conn, employee_path(conn, :show, employee_id))
       resp = json_response(conn3, 200)["data"]
@@ -1175,6 +1184,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
         employee_request_data()
         |> put_in([:party, :email], "mis_bot_1493831618@user.com")
         |> put_in([:division_id], division_id)
+        |> put_in([:employee_id], employee.id)
 
       %{id: id, data: data} =
         insert(

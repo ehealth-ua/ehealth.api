@@ -6,7 +6,9 @@ defmodule EHealth.Employees do
   import Ecto.Changeset
   import EHealth.Utils.Connection
   import EHealth.Plugs.ClientContext, only: [authorize_legal_entity_id: 3]
+  import EHealth.LegalEntities.ContractSuspender
 
+  alias Ecto.{Changeset, Multi}
   alias EHealth.API.Mithril
   alias EHealth.EmployeeRequests.EmployeeRequest, as: Request
   alias EHealth.EmployeeRequests
@@ -141,6 +143,36 @@ defmodule EHealth.Employees do
     |> PRMRepo.all()
   end
 
+  def create_or_update_employee(%Request{data: %{"employee_id" => employee_id} = employee_request}, req_headers) do
+    employee = get_by_id!(employee_id)
+    party = employee |> Map.get(:party, %{}) |> Map.get(:id) |> Parties.get_by_id!()
+    party_update_params = EmployeeRequests.create_party_params(employee_request)
+
+    employee_update_params =
+      Map.merge(employee_request, %{
+        "employee_type" => employee.employee_type,
+        "updated_by" => get_consumer_id(req_headers),
+        "speciality" => EmployeeRequests.get_employee_speciality(employee_request)
+      })
+
+    with {:ok, _} <- EmployeeCreator.create_party_user(party, req_headers),
+         %Changeset{valid?: true} = party_changeset <- Parties.changeset(party, party_update_params),
+         %Changeset{valid?: true} = employee_changeset <- changeset(employee, employee_update_params) do
+      if maybe_suspend_contracts?(party_changeset, :party) do
+        transaction_update_with_ops_contract(party_changeset, employee_changeset, req_headers)
+      else
+        __MODULE__.update(employee, employee_update_params, get_consumer_id(req_headers))
+      end
+    end
+  end
+
+  def create_or_update_employee(%Request{} = employee_request, req_headers) do
+    with {:ok, employee} <- EmployeeCreator.create(employee_request, req_headers),
+         :ok <- UserRoleCreator.create(employee, req_headers) do
+      {:ok, employee}
+    end
+  end
+
   def update(%Employee{status: old_status} = employee, attrs, author_id) do
     with {:ok, employee} <-
            employee
@@ -149,6 +181,62 @@ defmodule EHealth.Employees do
          _ <- EventManager.insert_change_status(employee, old_status, employee.status, author_id) do
       {:ok, load_references(employee)}
     end
+  end
+
+  def update_with_ops_contract(%Employee{status: old_status} = employee, attrs, headers) do
+    with {:ok, employee} <- transaction_update_with_ops_contract(nil, changeset(employee, attrs), headers) do
+      EventManager.insert_change_status(employee, old_status, employee.status, get_consumer_id(headers))
+      {:ok, employee}
+    end
+  end
+
+  defp transaction_update_with_ops_contract(party_changeset, employee_changeset, headers) do
+    author_id = get_consumer_id(headers)
+    employee_id = Changeset.get_field(employee_changeset, :id)
+
+    get_contracts_params = %{
+      contractor_owner_id: employee_id,
+      status: status_verified(),
+      is_suspended: false
+    }
+
+    Multi.new()
+    |> Multi.run(:ops_get_contracts, fn _ -> ops_get_contracts2(get_contracts_params, headers) end)
+    |> Multi.run(:ops_suspend_contracts, &ops_suspend_contracts(&1, headers))
+    |> Multi.run(:update_party, fn _ -> transaction_update_party(party_changeset, author_id) end)
+    |> Multi.run(:update_employee, fn _ -> EctoTrail.update_and_log(PRMRepo, employee_changeset, author_id) end)
+    |> PRMRepo.transaction()
+    |> maybe_rollback()
+    |> load_references()
+  end
+
+  def ops_get_contracts2(params, headers) do
+    #    case @ops_api.get_contracts(params, headers) do
+    ops_api = Application.get_env(:ehealth, :api_resolvers)[:ops]
+
+    case apply(ops_api, :get_contracts, [params, headers]) do
+      # no contracts for legal_entity. Mark transaction as completed
+      {:ok, %{"data" => []}} ->
+        {:ok, "no contracts for suspend"}
+
+      # contracts found
+      {:ok, %{"data" => contracts}} when is_list(contracts) ->
+        {:ok, contracts}
+
+      # invalid response format. Break transaction
+      {:ok, _} ->
+        {:error, {"Invalid response format returned from OPS.get_contracts", params}}
+
+      # request failed. Break transaction
+      {:error, reason} ->
+        {:error, {"Failed get response from OPS.get_contracts with #{reason}", params}}
+    end
+  end
+
+  defp transaction_update_party(nil, _author_id), do: {:ok, "party not changed"}
+
+  defp transaction_update_party(party_changeset, author_id) do
+    EctoTrail.update_and_log(PRMRepo, party_changeset, author_id)
   end
 
   defp changeset(%Search{} = employee, attrs) do
@@ -216,27 +304,8 @@ defmodule EHealth.Employees do
     Enum.map(employees, &load_references/1)
   end
 
-  def create_or_update_employee(%Request{data: %{"employee_id" => employee_id} = employee_request}, req_headers) do
-    with employee <- get_by_id!(employee_id),
-         party_id <- employee |> Map.get(:party, %{}) |> Map.get(:id),
-         party <- Parties.get_by_id!(party_id),
-         {:ok, _} <- EmployeeCreator.create_party_user(party, req_headers),
-         {:ok, _} <- Parties.update(party, EmployeeRequests.create_party_params(employee_request), employee_id),
-         params <-
-           employee_request
-           |> Map.put("employee_type", employee.employee_type)
-           |> Map.put("updated_by", get_consumer_id(req_headers))
-           |> Map.put("speciality", EmployeeRequests.get_employee_speciality(employee_request)) do
-      __MODULE__.update(employee, params, get_consumer_id(req_headers))
-    end
-  end
-
-  def create_or_update_employee(%Request{} = employee_request, req_headers) do
-    with {:ok, employee} <- EmployeeCreator.create(employee_request, req_headers),
-         :ok <- UserRoleCreator.create(employee, req_headers) do
-      {:ok, employee}
-    end
-  end
+  defp load_references({:ok, entity}), do: {:ok, load_references(entity)}
+  defp load_references({:error, _} = error), do: error
 
   defp convert_comma_params_to_where_in_clause(changes, param_name, db_field) do
     changes

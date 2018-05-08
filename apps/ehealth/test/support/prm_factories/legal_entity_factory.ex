@@ -8,12 +8,27 @@ defmodule EHealth.PRMFactories.LegalEntityFactory do
       def legal_entity_factory do
         %EHealth.LegalEntities.LegalEntity{
           is_active: true,
-          addresses: [],
+          addresses: [
+            %{
+              type: "REGISTRATION",
+              country: "UA",
+              area: "Житомирська",
+              region: "Бердичівський",
+              settlement: "Київ",
+              settlement_type: "CITY",
+              settlement_id: "dsdafdf",
+              street_type: "STREET",
+              street: "вул. Ніжинська",
+              building: "15-В",
+              apartment: "23",
+              zip: "02090"
+            }
+          ],
           edrpou: to_string(3_300_000_000 + :rand.uniform(99_999_999)),
           email: "some email",
           kveds: [],
           legal_form: "240",
-          name: "some name",
+          name: "Клініка Борис",
           owner_property_type: "STATE",
           phones: [],
           public_name: "some public_name",

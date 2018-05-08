@@ -17,10 +17,10 @@ defmodule EHealth.MPIFactories.PersonFactory do
           national_id: sequence(:national_id, &"national_id-#{&1}"),
           tax_id: sequence(:tax_id, &"tax_id-#{&1}"),
           invalid_tax_id: false,
-          birth_date: Date.to_string(~D[1996-12-12]),
+          birth_date: "1996-12-12",
+          death_date: "2117-11-09",
           birth_country: sequence(:birth_country, &"birth_country-#{&1}"),
           birth_settlement: sequence(:birth_settlement, &"birth_settlement-#{&1}"),
-          death_date: ~D[2117-11-09],
           preferred_way_communication: "email",
           emergency_contact: %{},
           documents: [],
@@ -35,9 +35,7 @@ defmodule EHealth.MPIFactories.PersonFactory do
           patient_signed: true,
           process_disclosure_data_consent: true,
           inserted_by: UUID.generate(),
-          updated_by: UUID.generate(),
-          inserted_at: ~D[2017-12-12],
-          updated_at: ~D[2017-12-12]
+          updated_by: UUID.generate()
         }
       end
 

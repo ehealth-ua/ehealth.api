@@ -7,25 +7,25 @@ defmodule EHealth.PRMFactories.PartyFactory do
 
       def party_factory do
         %EHealth.Parties.Party{
+          first_name: "Петро",
+          last_name: "Іванов",
+          second_name: "Миколайович",
           birth_date: ~D[1991-08-19],
+          gender: "MALE",
+          tax_id: sequence("222222222"),
+          no_tax_id: false,
           documents: [
             %EHealth.Parties.Document{
               type: "NATIONAL_ID",
               number: "AA000000"
             }
           ],
-          first_name: "some first_name",
-          gender: "some gender",
-          last_name: "some last_name",
           phones: [
             %EHealth.Parties.Phone{
               type: "MOBILE",
               number: "+380972526080"
             }
           ],
-          second_name: "some second_name",
-          tax_id: sequence("222222222"),
-          no_tax_id: false,
           inserted_by: UUID.generate(),
           updated_by: UUID.generate()
         }

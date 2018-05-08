@@ -6,13 +6,13 @@ defmodule EHealth.Unit.LegalEntityTest do
   import Mox
   import Ecto.Query, warn: false
 
-  alias EHealth.Repo
-  alias EHealth.PRMRepo
+  alias Ecto.UUID
+  alias EHealth.{Repo, PRMRepo}
   alias EHealth.EmployeeRequests.EmployeeRequest
   alias EHealth.LegalEntities, as: API
-  alias EHealth.LegalEntities.Validator
-  alias EHealth.LegalEntities.LegalEntity
-  alias Ecto.UUID
+  alias EHealth.LegalEntities.{Validator, LegalEntity}
+
+  setup :verify_on_exit!
 
   describe "validations" do
     setup _context do
@@ -258,6 +258,7 @@ defmodule EHealth.Unit.LegalEntityTest do
         })
 
       assert {:ok, %{legal_entity: legal_entity, security: security}} = create_legal_entity(update_data)
+
       assert "37367387" == legal_entity.edrpou
       assert "ACTIVE" == legal_entity.status
       assert "VERIFIED" == legal_entity.mis_verified
@@ -288,10 +289,136 @@ defmodule EHealth.Unit.LegalEntityTest do
       assert {:ok, %{legal_entity: legal_entity}} = create_legal_entity(data)
       assert true = legal_entity.is_active
     end
+  end
 
-    test "invalid status" do
-      insert(:prm, :legal_entity, edrpou: "37367387", status: "CLOSED")
-      assert {:error, {:conflict, "LegalEntity can't be updated"}} == create_legal_entity(get_legal_entity_data())
+  test "CLOSED Legal Entity cannot be updated" do
+    insert_dictionaries()
+    insert(:prm, :legal_entity, edrpou: "37367387", status: "CLOSED")
+    assert {:error, {:conflict, "LegalEntity can't be updated"}} == create_legal_entity(get_legal_entity_data())
+  end
+
+  describe "update Legal Entity with OPS contract suspend" do
+    test "successfully update name" do
+      expect(ManMock, :render_template, fn _id, _data ->
+        {:ok, "<html><body>Printout form for declaration request.</body></html>"}
+      end)
+
+      expect(OPSMock, :get_contracts, fn _params, _headers ->
+        {:ok, %{"data" => [%{"id" => UUID.generate()}, %{"id" => UUID.generate()}]}}
+      end)
+
+      expect(OPSMock, :suspend_contracts, fn ids, _headers ->
+        assert 2 == length(ids)
+        {:ok, %{"data" => %{"suspended" => 2}}}
+      end)
+
+      insert_dictionaries()
+      insert(:prm, :registry)
+      insert(:prm, :legal_entity, edrpou: "37367387")
+
+      update_data = Map.merge(get_legal_entity_data(), %{"name" => "Нова"})
+
+      assert {:ok, %{legal_entity: legal_entity, security: security}} = create_legal_entity(update_data)
+
+      assert "Нова" == legal_entity.name
+      assert "ACTIVE" == legal_entity.status
+
+      assert_security(security, legal_entity.id)
+      assert 1 == PRMRepo.one(from(l in LegalEntity, select: count("*")))
+
+      qry = "SELECT changeset FROM audit_log WHERE resource = 'legal_entities'"
+
+      # check that audit_log created in transaction
+      assert %{num_rows: 1, rows: [[row]]} = Ecto.Adapters.SQL.query!(PRMRepo, qry, [])
+      assert "Нова" == row["name"]
+    end
+
+    test "OPS get_contracts respond with invalid data" do
+      expect(OPSMock, :get_contracts, fn _params, _headers ->
+        {:ok, %{"data" => "invalid format"}}
+      end)
+
+      legal_entity = insert(:prm, :legal_entity, name: "New Line")
+      changeset = API.changeset(legal_entity, %{"name" => "New World"})
+
+      assert {:error, {:service_unavailable, "Cannot suspend contracts. Try later"}} =
+               API.transaction_update_with_ops_contract(changeset, [])
+    end
+
+    test "OPS suspend_contracts respond with invalid data" do
+      expect(OPSMock, :get_contracts, fn _params, _headers ->
+        {:ok, %{"data" => [%{"id" => UUID.generate()}, %{"id" => UUID.generate()}]}}
+      end)
+
+      expect(OPSMock, :suspend_contracts, fn _ids, _headers ->
+        {:ok, %{"data" => "invalid format"}}
+      end)
+
+      legal_entity = insert(:prm, :legal_entity, name: "New Line")
+      changeset = API.changeset(legal_entity, %{"name" => "New World"})
+
+      assert {:error, {:service_unavailable, "Cannot suspend contracts. Try later"}} =
+               API.transaction_update_with_ops_contract(changeset, [])
+    end
+
+    test "rollback suspended contracts on failed contracts suspending" do
+      contract_id_1 = UUID.generate()
+      contract_id_2 = UUID.generate()
+      legal_entity = insert(:prm, :legal_entity, name: "New Line")
+
+      expect(OPSMock, :get_contracts, fn params, _headers ->
+        Enum.each(~w(legal_entity_id status is_suspended)a, fn key ->
+          assert Map.has_key?(params, key), "OPS.get_contracts requires param `#{key}` in `#{inspect(params)}`"
+        end)
+
+        assert params.legal_entity_id == legal_entity.id
+        assert params.status == "VERIFIED"
+        assert params.is_suspended == false
+
+        {:ok, %{"data" => [%{"id" => contract_id_1}, %{"id" => contract_id_2}]}}
+      end)
+
+      # not all contracts was suspended
+      expect(OPSMock, :suspend_contracts, fn ids, _headers ->
+        assert 2 = length(ids)
+        assert contract_id_1 in ids
+        assert contract_id_2 in ids
+        {:ok, %{"data" => %{"suspended" => 1}}}
+      end)
+
+      expect(OPSMock, :renew_contracts, fn ids, _headers ->
+        assert 2 = length(ids)
+        assert contract_id_1 in ids
+        assert contract_id_2 in ids
+        {:ok, %{"data" => %{}}}
+      end)
+
+      changeset = API.changeset(legal_entity, %{"name" => "New World"})
+
+      assert {:error, {:service_unavailable, "Cannot suspend contracts. Try later"}} =
+               API.transaction_update_with_ops_contract(changeset, [])
+    end
+
+    test "rollback suspended contracts on legal entity update when edrpou is duplicated" do
+      insert(:prm, :legal_entity, edrpou: "10020030")
+      legal_entity = insert(:prm, :legal_entity)
+
+      expect(OPSMock, :get_contracts, fn _params, _headers ->
+        {:ok, %{"data" => [%{"id" => UUID.generate()}, %{"id" => UUID.generate()}]}}
+      end)
+
+      # not all contracts was suspended
+      expect(OPSMock, :suspend_contracts, fn ids, _headers ->
+        {:ok, %{"data" => %{"suspended" => length(ids)}}}
+      end)
+
+      expect(OPSMock, :renew_contracts, fn _ids, _headers ->
+        {:ok, %{"data" => %{}}}
+      end)
+
+      changeset = API.changeset(legal_entity, %{"edrpou" => "10020030"})
+
+      assert {:error, %Ecto.Changeset{valid?: false}} = API.transaction_update_with_ops_contract(changeset, [])
     end
   end
 

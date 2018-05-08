@@ -144,7 +144,7 @@ defmodule EHealthWeb.Router do
     get("/legal_entities", LegalEntityController, :index)
     # Employees
     get("/employees", EmployeeController, :index)
-    # Employees
+    # Divisions
     get("/divisions", DivisionController, :index)
     # Declarations
     get("/declarations", DeclarationController, :index)

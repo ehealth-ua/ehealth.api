@@ -92,4 +92,16 @@ defmodule EHealth.API.OPSBehaviour do
   @callback get_latest_block(headers :: list) ::
               {:ok, result :: term}
               | {:error, reason :: term}
+
+  @callback get_contracts(params :: map, headers :: list) ::
+              {:ok, result :: term}
+              | {:error, reason :: term}
+
+  @callback suspend_contracts(ids :: list, headers :: list) ::
+              {:ok, result :: term}
+              | {:error, reason :: term}
+
+  @callback renew_contracts(ids :: list, headers :: list) ::
+              {:ok, result :: term}
+              | {:error, reason :: term}
 end
