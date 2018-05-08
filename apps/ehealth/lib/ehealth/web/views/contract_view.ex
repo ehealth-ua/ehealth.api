@@ -91,4 +91,32 @@ defmodule EHealth.Web.ContractView do
       Map.take(division, ~w(id name addresses phones email working_hours mountain_group)a)
     end
   end
+
+  def render("index.json", %{contracts: contracts, references: references}) do
+    Enum.map(contracts, fn contract ->
+      render_one(contract, __MODULE__, "contract.json", references: references)
+    end)
+  end
+
+  def render("contract.json", %{contract: contract, references: references}) do
+    contract
+    |> Map.take(~w(
+      id
+      start_date
+      end_date
+      status
+      contractor_legal_entity_id
+      contractor_base
+      external_contractor_flag
+      nhs_legal_entity_id
+      nhs_signer_id
+      nhs_signer_base
+      issue_city
+      price
+      contract_number
+      is_suspended
+      contract_request_id
+    ))
+    |> Map.put("contractor_owner", render_association(:employee_short, references, contract["contractor_owner_id"]))
+  end
 end

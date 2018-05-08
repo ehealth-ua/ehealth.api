@@ -206,6 +206,7 @@ defmodule EHealthWeb.Router do
       pipe_through([:contract_context])
 
       get("/:id", ContractController, :show)
+      get("/", ContractController, :index)
     end
 
     post("/contract_requests", ContractRequestController, :create)

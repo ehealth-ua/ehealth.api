@@ -3,9 +3,27 @@ defmodule EHealth.Validators.Preload do
 
   alias EHealth.Validators.Reference
 
+  def preload_references_for_list(entities, fields) when is_list(entities) do
+    entities
+    |> Enum.map(fn item ->
+      Enum.reduce(fields, %{}, &get_reference_id(item, &1, &2))
+    end)
+    |> Enum.reduce(%{}, fn item_references, acc ->
+      Map.merge(item_references, acc, fn _k, refs_1, refs_2 ->
+        Enum.uniq(refs_1 ++ refs_2)
+      end)
+    end)
+    |> load_references()
+  end
+
   def preload_references(%{} = item, fields) do
     fields
     |> Enum.reduce(%{}, &get_reference_id(item, &1, &2))
+    |> load_references()
+  end
+
+  defp load_references(item_references) do
+    item_references
     |> Enum.into(%{}, fn {type, ids} ->
       {type,
        Enum.into(ids, %{}, fn id ->
