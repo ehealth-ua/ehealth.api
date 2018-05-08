@@ -4830,7 +4830,7 @@ This method is designed to get link with file after Contract Request has been al
 
 ### SIGN contract request by MSP [PATCH /api/contract_requests/{id}/actions/sign_msp]
 
-This WS is designed to sign contract request from MSP side. Contract request's status must be ='APPROVED' and signed_nhs=true.
+This WS is designed to sign contract request from MSP side. Contract request's status must be in status ='NHS_SIGNED'.
 Method receives signed message (pkcs7) including signed content, digital signature of first signer, digital signature of second signer and signer public key in signed_content property. 
 All signature fields will be validated (including signer certificate authority). This service will store signed copy of Contract Request in Media Content Storage (will update previous version of file),created contract records and linked employees_divisions if signature is all checks is passed. 
 Object that need to be signed is returned by Get Partially Sigend Contract request by ID. In response will be receive a link to download a file in pkcs7 format (signed by NHS side).
@@ -7113,8 +7113,6 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + `start_date`: `2017-04-20` (string, required) - contract start date 
 + `end_date`: `2017-04-20` (string, required) - contract end date
 + `end_date`: `2017-04-20` (string, required) - contract end date
-+ `nhs_signed`: true (boolean, required) - whether contract was signed by NHS
-+ `contractor_signed`: true (boolean, required) - whether contract was signed by MSP
 
 
 ### `Contract_request_Details`
@@ -7129,7 +7127,6 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + contract_id: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - contract id
 + `start_date`: `2017-04-20` (string, required) - contract start date 
 + `end_date`: `2017-04-20` (string, required) - contract end date
-+ `nhs_signed`: true (boolean, required) - whether contract was signed by NHS
 + `printout_content`: `Contract request content` - HTML document for contract request, is shown only for requests in APPROVED or SIGNED status
 
 ### `Contract_request_Details_Full`
