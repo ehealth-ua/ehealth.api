@@ -207,6 +207,37 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       assert "The phone number is not verified." == error["rules"] |> List.first() |> Map.get("description")
     end
 
+    test "secret is too long", %{conn: conn} do
+      declaration_request_params =
+        "test/data/declaration_request.json"
+        |> File.read!()
+        |> Poison.decode!()
+        |> put_in(~W(declaration_request person secret), "a very long secret value")
+
+      resp =
+        conn
+        |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
+        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
+        |> post(declaration_request_path(conn, :create), declaration_request_params)
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.declaration_request.person.secret",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "expected value to have a maximum length of 20 but was 24",
+                       "params" => %{"max" => 20},
+                       "rule" => "length"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
+    end
+
     test "declaration request without person.phone", %{conn: conn} do
       expect(MPIMock, :search, fn params, _ ->
         {:ok,
