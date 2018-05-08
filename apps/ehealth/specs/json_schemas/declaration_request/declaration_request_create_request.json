@@ -217,7 +217,8 @@
             "secret": {
               "type": "string",
               "$ref": "#/definitions/name",
-              "minLength": 6
+              "minLength": 6,
+              "maxLength": 20
             },
             "preferred_way_communication": {
               "type": "string",
