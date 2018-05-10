@@ -77,16 +77,12 @@ defmodule EHealth.API.OPS do
     patch!("/medication_requests/#{id}", Poison.encode!(params), headers)
   end
 
-  def get_contract(id, headers \\ []) do
-    get!("/contracts/#{id}", headers)
-  end
-
-  def get_contracts(params, headers \\ []) do
-    get!("/contracts/", headers, params: params)
-  end
-
   def get_latest_block(headers \\ []) do
     get!("/latest_block", headers)
+  end
+
+  def get_contract(id, headers \\ []) do
+    get!("/contracts/#{id}", headers)
   end
 
   def get_contracts(params, headers) do

@@ -73,7 +73,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
     test "invalid email", %{conn: conn} do
       assert "$.email" ==
                conn
-               |> post(cabinet_auth_path(conn, :email_verification), %{email: "invalid"})
+               |> post(cabinet_auth_path(conn, :email_verification), %{email: "invalid@example"})
                |> json_response(422)
                |> get_in(~w(error invalid))
                |> hd()

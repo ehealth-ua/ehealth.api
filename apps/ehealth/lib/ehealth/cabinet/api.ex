@@ -9,6 +9,7 @@ defmodule EHealth.Cabinet.API do
   alias EHealth.Cabinet.Requests.{Registration, UserSearch}
   alias EHealth.Man.Templates.EmailVerification
   alias EHealth.Persons.Validator, as: PersonValidator
+  alias EView.Changeset.Validators.Email, as: EmailValidator
 
   require Logger
 
@@ -156,7 +157,7 @@ defmodule EHealth.Cabinet.API do
     {%{}, %{email: :string}}
     |> cast(params, [:email])
     |> validate_required([:email])
-    |> validate_format(:email, ~r/^[a-zA-Z0-9.!#$%&’*+\/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/)
+    |> EmailValidator.validate_email(:email)
   end
 
   defp validate_params(:patient, params) do
