@@ -117,6 +117,18 @@ defmodule EHealth.Validators.SchemaMapper do
     put_into_schema(["definitions", "speciality", "properties", "level", "enum"], schema, values)
   end
 
+  def put_dictionary_value(%Dictionary{name: "CONTRACT_TYPE", values: values}, schema, :contract_request) do
+    put_into_schema(["properties", "id_form"], schema, values)
+  end
+
+  def put_dictionary_value(
+        %Dictionary{name: "CONTRACT_PAYMENT_METHOD", values: values},
+        schema,
+        :contract_request_update
+      ) do
+    put_into_schema(["properties", "nhs_payment_method"], schema, values)
+  end
+
   def put_dictionary_value(%Dictionary{name: "SCIENCE_DEGREE", values: values}, schema, :employee_request) do
     put_into_schema(~W(definitions science_degree properties degree enum), schema, values)
   end

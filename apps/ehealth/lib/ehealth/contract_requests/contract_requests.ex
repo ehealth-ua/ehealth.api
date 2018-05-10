@@ -100,6 +100,7 @@ defmodule EHealth.ContractRequests do
          :ok <- user_has_role(data, "NHS ADMIN SIGNER"),
          %ContractRequest{} = contract_request <- Repo.get(ContractRequest, params["id"]),
          :ok <- validate_status(contract_request, ContractRequest.status(:new)),
+         :ok <- validate_start_date(contract_request),
          update_params <-
            params
            |> Map.delete("id")

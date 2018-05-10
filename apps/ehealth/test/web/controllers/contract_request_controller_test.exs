@@ -328,7 +328,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "success update contract_request", %{conn: conn} do
-      contract_request = insert(:il, :contract_request)
+      contract_request = insert(:il, :contract_request, start_date: Date.add(Date.utc_today(), 10))
 
       expect(MithrilMock, :get_user_roles, fn _, _, _ ->
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
