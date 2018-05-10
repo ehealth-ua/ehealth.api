@@ -4,7 +4,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
   use EHealth.Web.ConnCase
 
   import Mox
-  import EHealth.MockServer, only: [get_client_admin: 0]
+  import EHealth.MockServer, only: [get_client_nhs: 0]
 
   alias EHealth.ContractRequests.ContractRequest
   alias EHealth.Employees.Employee
@@ -395,19 +395,19 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
     test "success showing any contract_request for NHS ADMIN client", %{conn: conn} = context do
       assert conn
-             |> put_client_id_header(get_client_admin())
+             |> put_client_id_header(get_client_nhs())
              |> get(contract_request_path(conn, :show, context.contract_request_id_1))
              |> json_response(200)
 
       assert conn
-             |> put_client_id_header(get_client_admin())
+             |> put_client_id_header(get_client_nhs())
              |> get(contract_request_path(conn, :show, context.contract_request_id_2))
              |> json_response(200)
     end
 
     test "contract_request not found for NHS ADMIN client", %{conn: conn} do
       assert conn
-             |> put_client_id_header(get_client_admin())
+             |> put_client_id_header(get_client_nhs())
              |> get(contract_request_path(conn, :show, UUID.generate()))
              |> json_response(404)
     end
@@ -1068,10 +1068,10 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       contract_number = UUID.generate()
       contractor_owner_id = UUID.generate()
       legal_entity_id_1 = UUID.generate()
-      legal_entity_id_2 = get_client_admin()
+      legal_entity_id_2 = get_client_nhs()
 
       insert(:prm, :legal_entity, type: "MSP", id: legal_entity_id_1)
-      insert(:prm, :legal_entity, type: "NHS ADMIN", id: legal_entity_id_2)
+      insert(:prm, :legal_entity, type: "NHS", id: legal_entity_id_2)
       insert(:il, :contract_request, %{issue_city: "Львів"})
 
       insert(:il, :contract_request, %{
@@ -1187,7 +1187,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
     test "invalid client_id", %{conn: conn} do
       contract_request = insert(:il, :contract_request)
-      conn = put_client_id_header(conn, get_client_admin())
+      conn = put_client_id_header(conn, get_client_nhs())
 
       conn =
         patch(conn, contract_request_path(conn, :sign_nhs, contract_request.id), %{
@@ -1200,7 +1200,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "party_user not found", %{conn: conn} do
-      client_id = get_client_admin()
+      client_id = get_client_nhs()
       contract_request = insert(:il, :contract_request, nhs_legal_entity_id: client_id)
       conn = put_client_id_header(conn, client_id)
 
@@ -1215,7 +1215,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "valid employee not found", %{conn: conn} do
-      client_id = get_client_admin()
+      client_id = get_client_nhs()
       user_id = UUID.generate()
       insert(:prm, :party_user, user_id: user_id)
       contract_request = insert(:il, :contract_request, nhs_legal_entity_id: client_id)
@@ -1690,7 +1690,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
   end
 
   defp prepare_nhs_sign_params(contract_request_params \\ [], legal_entity_params \\ []) do
-    client_id = get_client_admin()
+    client_id = get_client_nhs()
     params = Keyword.merge([id: client_id], legal_entity_params)
     legal_entity = insert(:prm, :legal_entity, params)
     user_id = UUID.generate()

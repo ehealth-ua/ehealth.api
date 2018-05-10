@@ -95,7 +95,7 @@ defmodule EHealth.Contracts do
     end
   end
 
-  defp validate_client_type(_, "NHS ADMIN", search_params), do: {:ok, search_params}
+  defp validate_client_type(_, "NHS", search_params), do: {:ok, search_params}
 
   defp validate_client_type(client_id, "MSP", %{contractor_legal_entity_id: id} = search_params) do
     cond do

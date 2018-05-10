@@ -288,7 +288,7 @@ defmodule EHealth.ContractRequests do
     Preload.preload_references(contract_request, [
       {:contractor_legal_entity_id, :legal_entity},
       {:nhs_legal_entity_id, :legal_entity},
-      {:contract_owner_id, :employee},
+      {:contractor_owner_id, :employee},
       {:nhs_signer_id, :employee},
       {[:contractor_employee_divisions, "$", "employee_id"], :employee},
       {[:contractor_employee_divisions, "$", "division_id"], :division}
@@ -302,7 +302,14 @@ defmodule EHealth.ContractRequests do
       |> select([c], c.id)
       |> where([c], c.contractor_legal_entity_id == ^params["contractor_legal_entity_id"])
       |> where([c], c.id_form == ^params["id_form"])
-      |> where([c], c.status in ^[ContractRequest.status(:new), ContractRequest.status(:approved)])
+      |> where(
+        [c],
+        c.status in ^[
+          ContractRequest.status(:new),
+          ContractRequest.status(:approved),
+          ContractRequest.status(:nhs_signed)
+        ]
+      )
       |> where([c], c.end_date >= ^params["start_date"] and c.start_date <= ^params["end_date"])
       |> Repo.all()
 
@@ -361,7 +368,7 @@ defmodule EHealth.ContractRequests do
          "external_contractors" => external_contractors,
          "external_contractor_flag" => true
        })
-       when not is_nil(external_contractors),
+       when not is_nil(external_contractors) and external_contractors != [],
        do: :ok
 
   defp validate_external_contractor_flag(params) do
@@ -513,7 +520,7 @@ defmodule EHealth.ContractRequests do
     start_date = Date.from_iso8601!(start_date)
     end_date = Date.from_iso8601!(end_date)
 
-    if start_date.year == end_date.year do
+    if start_date.year == end_date.year and Date.compare(start_date, end_date) != :gt do
       :ok
     else
       {:error,
@@ -629,7 +636,7 @@ defmodule EHealth.ContractRequests do
     Repo.get(ContractRequest, id)
   end
 
-  defp get_contract_request(_, "NHS ADMIN", id) do
+  defp get_contract_request(_, "NHS", id) do
     with %ContractRequest{} = contract_request <- Repo.get(ContractRequest, id) do
       {:ok, contract_request}
     end

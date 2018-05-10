@@ -4,7 +4,7 @@ defmodule EHealth.Web.ContractControllerTest do
   use EHealth.Web.ConnCase
 
   import Mox
-  import EHealth.MockServer, only: [get_client_admin: 0]
+  import EHealth.MockServer, only: [get_client_nhs: 0]
 
   alias Ecto.UUID
   alias Scrivener.Page
@@ -15,7 +15,7 @@ defmodule EHealth.Web.ContractControllerTest do
 
       assert %{"data" => response_data} =
                conn
-               |> put_client_id_header(get_client_admin())
+               |> put_client_id_header(get_client_nhs())
                |> get(contract_path(conn, :show, contract["id"]))
                |> json_response(200)
 
@@ -62,7 +62,7 @@ defmodule EHealth.Web.ContractControllerTest do
 
       assert %{"error" => %{"type" => "not_found"}} =
                conn
-               |> put_client_id_header(get_client_admin())
+               |> put_client_id_header(get_client_nhs())
                |> get(contract_path(conn, :show, UUID.generate()))
                |> json_response(404)
     end
@@ -95,7 +95,7 @@ defmodule EHealth.Web.ContractControllerTest do
 
       conn =
         conn
-        |> put_client_id_header(get_client_admin())
+        |> put_client_id_header(get_client_nhs())
         |> get(contract_path(conn, :index), %{created_by: UUID.generate()})
 
       assert resp = json_response(conn, 200)["data"]
@@ -111,7 +111,7 @@ defmodule EHealth.Web.ContractControllerTest do
 
       conn =
         conn
-        |> put_client_id_header(get_client_admin())
+        |> put_client_id_header(get_client_nhs())
         |> get(contract_path(conn, :index), %{edrpou: edrpou})
 
       assert resp = json_response(conn, 200)["data"]
@@ -128,7 +128,7 @@ defmodule EHealth.Web.ContractControllerTest do
 
       conn =
         conn
-        |> put_client_id_header(get_client_admin())
+        |> put_client_id_header(get_client_nhs())
         |> get(contract_path(conn, :index), %{contractor_legal_entity_id: contractor_legal_entity_id})
 
       assert resp = json_response(conn, 200)["data"]
@@ -143,7 +143,7 @@ defmodule EHealth.Web.ContractControllerTest do
 
       conn =
         conn
-        |> put_client_id_header(get_client_admin())
+        |> put_client_id_header(get_client_nhs())
         |> get(contract_path(conn, :index), %{edrpou: edrpou, contractor_legal_entity_id: contractor_legal_entity_id})
 
       assert resp = json_response(conn, 200)["data"]
@@ -157,7 +157,7 @@ defmodule EHealth.Web.ContractControllerTest do
 
       conn =
         conn
-        |> put_client_id_header(get_client_admin())
+        |> put_client_id_header(get_client_nhs())
         |> get(contract_path(conn, :index), %{edrpou: edrpou, contractor_legal_entity_id: contractor_legal_entity_id})
 
       resp = json_response(conn, 200)
@@ -175,7 +175,7 @@ defmodule EHealth.Web.ContractControllerTest do
 
       conn =
         conn
-        |> put_client_id_header(get_client_admin())
+        |> put_client_id_header(get_client_nhs())
         |> get(contract_path(conn, :index))
 
       resp = json_response(conn, 200)
@@ -194,7 +194,7 @@ defmodule EHealth.Web.ContractControllerTest do
 
       conn =
         conn
-        |> put_client_id_header(get_client_admin())
+        |> put_client_id_header(get_client_nhs())
         |> get(contract_path(conn, :index), %{page_size: page_size})
 
       resp = json_response(conn, 200)
@@ -217,7 +217,7 @@ defmodule EHealth.Web.ContractControllerTest do
 
       conn =
         conn
-        |> put_client_id_header(get_client_admin())
+        |> put_client_id_header(get_client_nhs())
         |> get(contract_path(conn, :index), search_params)
 
       assert resp = json_response(conn, 200)["data"]

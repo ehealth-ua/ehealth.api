@@ -7,6 +7,7 @@ defmodule EHealth.MockServer do
   alias EHealth.Utils.NumberGenerator
 
   @client_type_admin "356b4182-f9ce-4eda-b6af-43d2de8601a1"
+  @client_type_nhs "b7d4d790-d427-4144-8607-f3892064c9e1"
   @client_type_mis "296da7d2-3c5a-4f6a-b8b2-631063737271"
   @client_type_nil "7cc91a5d-c02f-41e9-b571-1ea4f2375111"
 
@@ -29,6 +30,7 @@ defmodule EHealth.MockServer do
   def get_client_mis, do: @client_type_mis
   def get_client_nil, do: @client_type_nil
   def get_client_admin, do: @client_type_admin
+  def get_client_nhs, do: @client_type_nhs
 
   def get_active_person, do: @active_person
   def get_user_for_role_1, do: @user_for_role_1
@@ -144,6 +146,7 @@ defmodule EHealth.MockServer do
       case id do
         @client_type_mis -> "MIS"
         @client_type_admin -> "NHS ADMIN"
+        @client_type_nhs -> "NHS"
         @client_type_nil -> nil
         _ -> "MSP"
       end
