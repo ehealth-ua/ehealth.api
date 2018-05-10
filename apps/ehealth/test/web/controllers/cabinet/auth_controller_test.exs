@@ -880,6 +880,73 @@ defmodule Mithril.Web.RegistrationControllerTest do
       |> json_response(200)
     end
 
+    test "Empty drfo in Signer from DS", %{conn: conn, jwt: jwt} do
+      expect(SignatureMock, :decode_and_validate, fn signed_content, "base64", _headers ->
+        content = signed_content |> Base.decode64!() |> Poison.decode!()
+
+        data = %{
+          "signer" => %{
+            "drfo" => "",
+            "surname" => content["last_name"]
+          },
+          "is_valid" => true,
+          "content" => content
+        }
+
+        {:ok, %{"data" => data}}
+      end)
+
+      expect(MithrilMock, :search_user, fn params, _headers ->
+        assert Map.has_key?(params, :email)
+        {:ok, %{"data" => []}}
+      end)
+
+      params = %{
+        signed_content: sign_content(%{tax_id: ""}),
+        signed_content_encoding: "base64"
+      }
+
+      assert "drfo_not_present" ==
+               conn
+               |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
+               |> post(cabinet_auth_path(conn, :search_user), params)
+               |> json_response(409)
+               |> get_in(~w(error type))
+    end
+
+    test "No drfo in Signer from DS", %{conn: conn, jwt: jwt} do
+      expect(SignatureMock, :decode_and_validate, fn signed_content, "base64", _headers ->
+        content = signed_content |> Base.decode64!() |> Poison.decode!()
+
+        data = %{
+          "signer" => %{
+            "surname" => content["last_name"]
+          },
+          "is_valid" => true,
+          "content" => content
+        }
+
+        {:ok, %{"data" => data}}
+      end)
+
+      expect(MithrilMock, :search_user, fn params, _headers ->
+        assert Map.has_key?(params, :email)
+        {:ok, %{"data" => []}}
+      end)
+
+      params = %{
+        signed_content: sign_content(%{tax_id: ""}),
+        signed_content_encoding: "base64"
+      }
+
+      assert "drfo_not_present" ==
+               conn
+               |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
+               |> post(cabinet_auth_path(conn, :search_user), params)
+               |> json_response(409)
+               |> get_in(~w(error type))
+    end
+
     test "by tax_id found", %{conn: conn, jwt: jwt, params: params} do
       use SignatureExpect
 

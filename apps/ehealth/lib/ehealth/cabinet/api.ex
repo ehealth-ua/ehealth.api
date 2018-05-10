@@ -228,7 +228,7 @@ defmodule EHealth.Cabinet.API do
     end
   end
 
-  defp fetch_drfo(%{"drfo" => drfo}), do: {:ok, drfo}
+  defp fetch_drfo(%{"drfo" => drfo}) when is_binary(drfo) and byte_size(drfo) > 0, do: {:ok, drfo}
   defp fetch_drfo(_signer), do: {:error, {:conflict, %{message: "DRFO in DS not present", type: :drfo_not_present}}}
 
   defp check_mithril_user_absence({:ok, %{"data" => data}}) when length(data) > 0 do
