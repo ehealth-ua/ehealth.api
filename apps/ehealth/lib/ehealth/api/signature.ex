@@ -32,13 +32,18 @@ defmodule EHealth.API.Signature do
     data =
       %{
         "content" => data,
-        "is_valid" => true,
-        "signer" => %{
-          "drfo" => get_header(headers, "drfo"),
-          "edrpou" => get_header(headers, "edrpou"),
-          "surname" => headers |> get_header("surname") |> uri_decode(),
-          "given_name" => headers |> get_header("given_name") |> uri_decode()
-        }
+        "signatures" => [
+          %{
+            "is_valid" => true,
+            "signer" => %{
+              "drfo" => get_header(headers, "drfo"),
+              "edrpou" => get_header(headers, "edrpou"),
+              "surname" => headers |> get_header("surname") |> uri_decode(),
+              "given_name" => headers |> get_header("given_name") |> uri_decode()
+            },
+            "validation_error_message" => ""
+          }
+        ]
       }
       |> wrap_response(200)
       |> Poison.encode!()
@@ -51,8 +56,33 @@ defmodule EHealth.API.Signature do
 
   defp data_is_invalid_resp do
     data =
-      %{"is_valid" => false}
-      |> wrap_response(422)
+      %{
+        "error" => %{
+          "invalid" => [
+            %{
+              "entry" => "$.signed_content",
+              "entry_type" => "json_data_property",
+              "rules" => [
+                %{
+                  "description" => "Not a base64 string",
+                  "params" => [],
+                  "rule" => "invalid"
+                }
+              ]
+            }
+          ],
+          "message" =>
+            "Validation failed. You can find validators description at our API Manifest:" <>
+              " http://docs.apimanifest.apiary.io/#introduction/interacting-with-api/errors.",
+          "type" => "validation_failed"
+        },
+        "meta" => %{
+          "code" => 422,
+          "request_id" => "2kmaguf9ec791885t40008s2",
+          "type" => "object",
+          "url" => "http://www.example.com/digital_signatures"
+        }
+      }
       |> Poison.encode!()
 
     ResponseDecoder.check_response(%HTTPoison.Response{body: data, status_code: 422})

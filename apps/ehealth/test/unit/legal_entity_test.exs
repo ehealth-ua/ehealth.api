@@ -47,10 +47,44 @@ defmodule EHealth.Unit.LegalEntityTest do
                )
     end
 
+    test "can process 424 error" do
+      error = %{
+        "error" => %{
+          "message" =>
+            "The method could not be performed on the resource because the requested action depended on another action and that action failed.",
+          "type" => "failed_dependency"
+        },
+        "meta" => %{
+          "code" => 424,
+          "request_id" => "2kmadsntegh08ugvek000ef2",
+          "type" => "object",
+          "url" => "http://www.example.com/digital_signatures"
+        }
+      }
+
+      assert %Ecto.Changeset{valid?: false} = Validator.normalize_signature_error({:error, error})
+    end
+
+    test "invalid signed content - 2 signers" do
+      content = get_legal_entity_data()
+
+      signatures = [
+        %{"is_valid" => true, "signer" => %{}, "validation_error_message" => ""},
+        %{"is_valid" => true, "signer" => %{}, "validation_error_message" => ""}
+      ]
+
+      {:error, {:bad_request, "document must be signed by 1 signer but contains 2 signatures"}} =
+        Validator.validate_json({:ok, %{"data" => %{"content" => content, "signatures" => signatures}}})
+    end
+
     test "invalid signed content - no security" do
       content = get_legal_entity_data() |> Map.delete("security")
 
-      assert {:error, [{error, _}]} = Validator.validate_json({:ok, %{"data" => %{"content" => content}}})
+      signatures = [%{"is_valid" => true, "signer" => %{}, "validation_error_message" => ""}]
+
+      {:error, [{error, _}]} =
+        Validator.validate_json({:ok, %{"data" => %{"content" => content, "signatures" => signatures}}})
+
       assert :required == error[:rule]
       assert "required property security was not present" == error[:description]
     end
@@ -205,7 +239,7 @@ defmodule EHealth.Unit.LegalEntityTest do
     test "mis_verified VERIFIED" do
       data =
         Map.merge(get_legal_entity_data(), %{
-          "short_name" => "Nebo15",
+          "short_name" => "edenlab",
           "email" => "changed@example.com",
           "kveds" => ["12.21"]
         })
@@ -213,9 +247,8 @@ defmodule EHealth.Unit.LegalEntityTest do
       insert(:prm, :registry, edrpou: "37367387", type: LegalEntity.type(:msp))
 
       assert {:ok, %{legal_entity: legal_entity, security: security}} = create_legal_entity(data)
-
       # test legal entity data
-      assert "Nebo15" == legal_entity.short_name
+      assert "edenlab" == legal_entity.short_name
       assert "ACTIVE" == legal_entity.status
       assert "VERIFIED" == legal_entity.mis_verified
       refute is_nil(legal_entity.nhs_verified)

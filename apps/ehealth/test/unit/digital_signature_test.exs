@@ -1,23 +1,23 @@
 defmodule EHealth.Unit.DigitalSignatureTest do
   @moduledoc false
 
-  use ExUnit.Case
+  use ExUnit.Case, async: true
 
   alias EHealth.API.Signature
 
   test "valid digital signature" do
-    assert {:ok, %{"meta" => %{"code" => 200}, "data" => data}} =
-             get_signed_content()
-             |> Signature.decode_and_validate("base64", [{"edrpou", "38782323"}])
+    {:ok, %{"meta" => %{"code" => 200}, "data" => data}} =
+      Signature.decode_and_validate(get_signed_content(), "base64", [{"edrpou", "38782323"}])
 
-    assert data["is_valid"]
-    assert Map.has_key?(data, "signer")
-    assert Map.has_key?(data["signer"], "edrpou")
+    [signature] = data["signatures"]
+
+    assert signature["is_valid"]
+    assert Map.has_key?(signature["signer"], "edrpou")
   end
 
   test "invalid base64 signed content" do
-    assert {:error, %{"meta" => %{"code" => 422}}} =
-             Signature.decode_and_validate("invalid", "base64", [{"edrpou", "38782323"}])
+    {:error, %{"meta" => %{"code" => 422}}} =
+      Signature.decode_and_validate("invalid", "base64", [{"edrpou", "38782323"}])
   end
 
   defp get_signed_content do

@@ -1269,8 +1269,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
           "signed_content_encoding" => "base64"
         })
 
-      assert resp = json_response(conn, 422)
-      assert %{"is_valid" => false} == resp["error"]
+      %{"error" => %{"invalid" => [%{"rules" => [%{"description" => err_descr}]}]}} = json_response(conn, 422)
+      assert "Not a base64 string" == err_descr
     end
 
     test "content doesn't match", %{conn: conn} do

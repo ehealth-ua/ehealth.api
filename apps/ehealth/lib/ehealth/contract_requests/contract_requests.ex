@@ -189,7 +189,7 @@ defmodule EHealth.ContractRequests do
               "status" => Employee.status(:approved)
             })},
          {_, false} <- {:already_signed, contract_request.status == ContractRequest.status(:nhs_signed)},
-         {:ok, %{"data" => %{"content" => content, "signer" => _signer}}} <- decode_signed_content(params, headers),
+         {:ok, content} <- decode_signed_content(params, headers),
          :ok <- validate_content(contract_request, content),
          :ok <- validate_status(contract_request, ContractRequest.status(:approved)),
          :ok <- validate_employee_divisions(contract_request),
@@ -227,17 +227,19 @@ defmodule EHealth.ContractRequests do
     end
   end
 
-  defp decode_signed_content(%{"signed_content" => signed_content, "signed_content_encoding" => encoding}, headers) do
-    case Signature.decode_and_validate(signed_content, encoding, headers) do
-      {:ok, %{"data" => %{"is_valid" => false, "validation_error_message" => error}}} -> {:error, {:bad_request, error}}
-      {:ok, %{"data" => %{"is_valid" => true}} = result} -> {:ok, result}
-      error -> error
-    end
+  def decode_signed_content(%{"signed_content" => signed_content, "signed_content_encoding" => encoding}, headers) do
+    with {:ok, %{"data" => data}} <- Signature.decode_and_validate(signed_content, encoding, headers),
+         do: do_decode_valid_content(data)
   end
 
-  defp get_contract_number(%{"contract_number" => contract_number}) when not is_nil(contract_number) do
-    contract_number
-  end
+  defp do_decode_valid_content(%{"content" => content, "signatures" => [%{"is_valid" => true}]}), do: {:ok, content}
+
+  defp do_decode_valid_content(%{"signatures" => [%{"is_valid" => false, "validation_error_message" => error}]}),
+    do: {:error, {:bad_request, error}}
+
+  defp do_decode_valid_content(%{"signatures" => signatures}) when is_list(signatures),
+    do:
+      {:error, {:bad_request, "document must be signed by 1 signer but contains #{Enum.count(signatures)} signatures"}}
 
   defp get_contract_number(_) do
     with {:ok, sequence} <- get_contract_request_sequence() do

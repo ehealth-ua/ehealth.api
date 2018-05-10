@@ -30,10 +30,7 @@ defmodule EHealth.MedicationRequestRequest.SignOperation do
     |> validate_ops_resp(mrr)
   end
 
-  def decode_sign_content(_operation, {params, headers}) do
-    {:ok, %{"data" => data}} = Validations.decode_sign_content(params, headers)
-    {:ok, data}
-  end
+  def decode_sign_content(_operation, {params, headers}), do: Validations.decode_sign_content(params, headers)
 
   def validate_sign_content(operation, mrr) do
     {operation, Validations.validate_sign_content(mrr, operation.data.decoded_content)}

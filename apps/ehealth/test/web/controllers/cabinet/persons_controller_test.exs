@@ -328,8 +328,8 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
           "signed_content" => Base.encode64("invalid")
         })
 
-      assert resp = json_response(conn, 422)
-      assert %{"error" => %{"is_valid" => false}} = resp
+      %{"error" => %{"invalid" => [%{"rules" => [%{"description" => error_description}]}]}} = json_response(conn, 422)
+      assert "Not a base64 string" == error_description
     end
 
     test "tax_id doesn't match with signed content", %{conn: conn} do

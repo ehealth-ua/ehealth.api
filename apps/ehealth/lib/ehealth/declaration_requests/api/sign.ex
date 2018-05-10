@@ -26,7 +26,7 @@ defmodule EHealth.DeclarationRequests.API.Sign do
   @status_approved DeclarationRequest.status(:approved)
 
   def sign(params, headers) do
-    with {:ok, %{"data" => %{"content" => content, "signer" => signer}}} <- decode_and_validate(params, headers),
+    with {:ok, %{"content" => content, "signer" => signer}} <- decode_and_validate(params, headers),
          %DeclarationRequest{} = declaration_request <- params |> Map.fetch!("id") |> DeclarationRequests.get_by_id!(),
          :ok <- check_status(declaration_request),
          :ok <- check_patient_signed(content),
@@ -75,18 +75,27 @@ defmodule EHealth.DeclarationRequests.API.Sign do
     |> add_error(:signed_legal_entity_request, error)
   end
 
+  def normalize_signature_error({:error, %{"error" => %{"message" => message}, "meta" => %{"code" => code}}}) do
+    %SignRequest{}
+    |> cast(%{}, [:signed_legal_entity_request])
+    |> add_error(:signed_legal_entity_request, "#{code}: #{message}")
+  end
+
   def normalize_signature_error(ok_resp), do: ok_resp
 
-  def check_is_valid({:ok, %{"data" => %{"is_valid" => false, "validation_error_message" => error}}}) do
-    {:error, {:bad_request, error}}
-  end
-
-  def check_is_valid({:ok, %{"data" => %{"is_valid" => true}} = result}) do
-    {_empty_message, result} = pop_in(result, ["data", "validation_error_message"])
-    {:ok, result}
-  end
+  def check_is_valid({:ok, %{"data" => data}}), do: do_check_is_valid(data)
 
   def check_is_valid(err), do: err
+
+  defp do_check_is_valid(%{"content" => content, "signatures" => [%{"is_valid" => true, "signer" => signer}]}),
+    do: {:ok, %{"content" => content, "signer" => signer}}
+
+  defp do_check_is_valid(%{"signatures" => [%{"is_valid" => false, "validation_error_message" => error}]}),
+    do: {:error, {:bad_request, error}}
+
+  defp do_check_is_valid(%{"signatures" => signatures}) when is_list(signatures),
+    do:
+      {:error, {:bad_request, "document must be signed by 1 signer but contains #{Enum.count(signatures)} signatures"}}
 
   def check_status(%DeclarationRequest{status: status}) do
     case status do

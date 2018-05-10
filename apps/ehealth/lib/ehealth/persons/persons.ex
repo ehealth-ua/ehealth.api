@@ -32,8 +32,8 @@ defmodule EHealth.Persons do
     with {:ok, %{"data" => user}} <- Mithril.get_user_by_id(user_id, headers),
          :ok <- check_user_person_id(user, id),
          %Ecto.Changeset{valid?: true, changes: changes} <- Signed.changeset(params),
-         {:ok, %{"data" => %{"content" => content, "signer" => signer, "is_valid" => true}}} <-
-           Signature.decode_and_validate(changes.signed_content, "base64", headers),
+         {:ok, %{"data" => data}} <- Signature.decode_and_validate(changes.signed_content, "base64", headers),
+         {:ok, %{"content" => content, "signer" => signer}} <- check_is_valid(data),
          :ok <- PersonValidator.validate_birth_date(content["birth_date"], "$.birth_date"),
          {:ok, %{"data" => person}} <- @mpi_api.person(user["person_id"], headers),
          :ok <- validate_tax_id(user["tax_id"], person["tax_id"], content, signer),
@@ -45,12 +45,6 @@ defmodule EHealth.Persons do
          :ok <- validate_authentication_method_phone(Map.get(changes, :authentication_methods), headers),
          {:ok, %{"data" => data}} <- @mpi_api.update_person(id, changes, headers) do
       {:ok, data}
-    else
-      {:ok, %{"data" => %{"is_valid" => false, "validation_error_message" => error}}} ->
-        {:error, {:bad_request, error}}
-
-      error ->
-        error
     end
   end
 
@@ -82,6 +76,16 @@ defmodule EHealth.Persons do
       {:error, :forbidden}
     end
   end
+
+  defp check_is_valid(%{"content" => content, "signatures" => [%{"is_valid" => true, "signer" => signer}]}),
+    do: {:ok, %{"content" => content, "signer" => signer}}
+
+  defp check_is_valid(%{"signatures" => [%{"is_valid" => false, "validation_error_message" => error}]}),
+    do: {:error, {:bad_request, error}}
+
+  defp check_is_valid(%{"signatures" => signatures}) when is_list(signatures),
+    do:
+      {:error, {:bad_request, "document must be signed by 1 signer but contains #{Enum.count(signatures)} signatures"}}
 
   defp validate_tax_id(tax_id, person_tax_id, signed_content, signer) do
     with true <- tax_id == person_tax_id,

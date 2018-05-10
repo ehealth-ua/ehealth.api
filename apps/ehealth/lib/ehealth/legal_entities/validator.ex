@@ -35,20 +35,17 @@ defmodule EHealth.LegalEntities.Validator do
     |> normalize_signature_error()
   end
 
-  def validate_json({:ok, %{"data" => %{"is_valid" => false, "validation_error_message" => error}}}) do
-    {:error, {:bad_request, error}}
-  end
-
-  def validate_json({:ok, %{"data" => %{"content" => content} = data}}) do
-    with :ok <- validate_schema(content),
-         content <- lowercase_emails(content),
+  def validate_json({:ok, %{"data" => %{"content" => content, "signatures" => signatures}}}) when is_list(signatures) do
+    with {:ok, signer} <- get_valid_signer(signatures),
+         :ok <- validate_schema(content),
+         content = lowercase_emails(content),
          :ok <- validate_json_objects(content),
          :ok <- validate_kveds(content),
          :ok <- validate_addresses(content),
          :ok <- validate_tax_id(content),
          :ok <- validate_owner_birth_date(content),
          :ok <- validate_owner_position(content),
-         :ok <- validate_edrpou(content, Map.get(data, "signer")) do
+         :ok <- validate_edrpou(content, signer) do
       :ok
     end
   end
@@ -83,9 +80,24 @@ defmodule EHealth.LegalEntities.Validator do
     |> add_error(:signed_legal_entity_request, error)
   end
 
+  def normalize_signature_error({:error, %{"error" => %{"message" => message}, "meta" => %{"code" => code}}}) do
+    %LegalEntityRequest{}
+    |> cast(%{}, [:signed_legal_entity_request])
+    |> add_error(:signed_legal_entity_request, "#{code}: #{message}")
+  end
+
   def normalize_signature_error(ok_resp), do: ok_resp
 
   # Legal Entity content validator
+
+  def get_valid_signer([%{"is_valid" => true, "signer" => signer}]), do: {:ok, signer}
+
+  def get_valid_signer([%{"is_valid" => false, "validation_error_message" => error}]),
+    do: {:error, {:bad_request, error}}
+
+  def get_valid_signer(signatures) when is_list(signatures),
+    do:
+      {:error, {:bad_request, "document must be signed by 1 signer but contains #{Enum.count(signatures)} signatures"}}
 
   def validate_schema(content) do
     JsonSchema.validate(:legal_entity, content)
