@@ -119,7 +119,7 @@ defmodule EHealth.ContractRequests do
          %ContractRequest{} = contract_request <- Repo.get(ContractRequest, params["id"]),
          :ok <- validate_status(contract_request, ContractRequest.status(:new)),
          :ok <- validate_contractor_legal_entity(contract_request),
-         :ok <- validate_contractor_owner_id(user_id, contract_request),
+         :ok <- validate_contractor_owner_id(nil, contract_request),
          :ok <- validate_employee_divisions(contract_request),
          :ok <- validate_start_date(contract_request),
          update_params <-
@@ -196,7 +196,7 @@ defmodule EHealth.ContractRequests do
          :ok <- validate_employee_divisions(contract_request),
          :ok <- validate_start_date(contract_request),
          :ok <- validate_contractor_legal_entity(contract_request),
-         :ok <- validate_contractor_owner_id(user_id, contract_request),
+         :ok <- validate_contractor_owner_id(nil, contract_request),
          :ok <- save_signed_content(contract_request, params, headers),
          update_params <-
            params
@@ -546,6 +546,34 @@ defmodule EHealth.ContractRequests do
       "contractor_owner_id" => contractor_owner_id,
       "contractor_legal_entity_id" => contractor_legal_entity_id
     })
+  end
+
+  defp validate_contractor_owner_id(nil, %{
+         "contractor_owner_id" => contract_owner_id,
+         "contractor_legal_entity_id" => contractor_legal_entity_id
+       }) do
+    with %{entries: [_employee]} <-
+           Employees.list(%{
+             "legal_entity_id" => contractor_legal_entity_id,
+             "employee_type" => Employee.type(:owner),
+             "ids" => contract_owner_id,
+             "is_active" => true
+           }) do
+      :ok
+    else
+      _ ->
+        {:error,
+         [
+           {
+             %{
+               description: "Contractor owner must be active within current legal entity in contract request",
+               params: [],
+               rule: :invalid
+             },
+             "$.contractor_owner_id"
+           }
+         ]}
+    end
   end
 
   defp validate_contractor_owner_id(user_id, %{
