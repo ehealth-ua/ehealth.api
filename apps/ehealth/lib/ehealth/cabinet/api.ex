@@ -66,9 +66,19 @@ defmodule EHealth.Cabinet.API do
   defp validate_tax_id(_, _), do: {:error, {:conflict, "Registration person and person that sign should be the same"}}
 
   defp validate_first_name(content, signer) do
-    case Map.get(signer, "given_name", "") =~ content["first_name"] do
-      true -> :ok
-      _ -> {:error, {:conflict, "Input first_name doesn't match name from DS"}}
+    with given_name when is_binary(given_name) <- Map.get(signer, "given_name", :signer_empty_given_name),
+         first_name when is_binary(first_name) <- Map.get(content, "first_name", :signed_content_empty_first_name),
+         true <- String.downcase(given_name) =~ String.downcase(first_name) do
+      :ok
+    else
+      :signer_empty_given_name ->
+        conflict("Field given_name is empty in DS signer", :signer_empty_given_name)
+
+      :signed_content_empty_first_name ->
+        conflict("Field first_name is empty in signed content", :signed_content_empty_first_name)
+
+      _ ->
+        conflict("Input first_name doesn't match name from DS", :input_name_not_matched_with_ds)
     end
   end
 
@@ -83,13 +93,7 @@ defmodule EHealth.Cabinet.API do
   defp create_or_update_person([], params, headers), do: @mpi_api.create_or_update_person!(params, headers)
 
   defp create_or_update_person(persons, _, _) when length(persons) > 1,
-    do:
-      {:error,
-       {:conflict,
-        %{
-          message: "Person duplicated",
-          type: :person_duplicated
-        }}}
+    do: conflict("Person duplicated", :person_duplicated)
 
   defp create_or_update_person(persons, params, headers), do: @mpi_api.update_person(hd(persons)["id"], params, headers)
 
@@ -115,7 +119,7 @@ defmodule EHealth.Cabinet.API do
   defp check_user_blocked(_), do: :ok
 
   defp check_user_by_tax_id(%{"tax_id" => tax_id}) when is_binary(tax_id) and byte_size(tax_id) > 0 do
-    {:error, {:conflict, %{message: "User with this tax_id already exists", type: :tax_id_exists}}}
+    conflict("User with this tax_id already exists", :tax_id_exists)
   end
 
   defp check_user_by_tax_id(_), do: :ok
@@ -182,7 +186,7 @@ defmodule EHealth.Cabinet.API do
   def email_available_for_registration?(email, headers) do
     case @mithril_api.search_user(%{email: email}, headers) do
       {:ok, %{"data" => [%{"tax_id" => tax_id}]}} when is_binary(tax_id) and byte_size(tax_id) > 0 ->
-        {:error, {:conflict, %{message: "User with this email already exists", type: "email_exists"}}}
+        conflict("User with this email already exists", :email_exists)
 
       {:ok, _} ->
         true
@@ -232,10 +236,10 @@ defmodule EHealth.Cabinet.API do
   end
 
   defp fetch_drfo(%{"drfo" => drfo}) when is_binary(drfo) and byte_size(drfo) > 0, do: {:ok, drfo}
-  defp fetch_drfo(_signer), do: {:error, {:conflict, %{message: "DRFO in DS not present", type: :drfo_not_present}}}
+  defp fetch_drfo(_signer), do: conflict("DRFO in DS not present", :drfo_not_present)
 
   defp check_mithril_user_absence({:ok, %{"data" => data}}) when length(data) > 0 do
-    {:error, {:conflict, %{message: "User with this tax_id already exists", type: :tax_id_exists}}}
+    conflict("User with this tax_id already exists", :tax_id_exists)
   end
 
   defp check_mithril_user_absence({:ok, _}), do: :ok
@@ -253,4 +257,6 @@ defmodule EHealth.Cabinet.API do
   defp process_digital_signature_data(%{"signatures" => signatures}) when is_list(signatures),
     do:
       {:error, {:bad_request, "document must be signed by 1 signer but contains #{Enum.count(signatures)} signatures"}}
+
+  defp conflict(message, type), do: {:error, {:conflict, %{message: message, type: type}}}
 end

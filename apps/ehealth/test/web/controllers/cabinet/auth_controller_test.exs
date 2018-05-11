@@ -15,6 +15,8 @@ defmodule Mithril.Web.RegistrationControllerTest do
         expect(SignatureMock, :decode_and_validate, fn signed_content, "base64", _headers ->
           content = signed_content |> Base.decode64!() |> Poison.decode!()
 
+          first_name = content |> Map.get("first_name", "") |> String.upcase()
+
           data = %{
             "content" => content,
             "signed_content" => signed_content,
@@ -25,7 +27,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
                   "edrpou" => content["tax_id"],
                   "drfo" => content["tax_id"],
                   "surname" => content["last_name"],
-                  "given_name" => "#{content["first_name"]} #{content["second_name"]}"
+                  "given_name" => "#{first_name} #{content["second_name"]}"
                 },
                 "validation_error_message" => ""
               }
@@ -682,12 +684,12 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
       uaddresses_mock_expect()
 
-      assert "Input first_name doesn't match name from DS" ==
+      assert "signer_empty_given_name" ==
                conn
                |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
                |> post(cabinet_auth_path(conn, :registration), params)
                |> json_response(409)
-               |> get_in(~w(error message))
+               |> get_in(~w(error type))
     end
 
     test "different email in signed content and JWT", %{conn: conn, params: params} do
