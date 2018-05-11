@@ -181,7 +181,7 @@
                 },
                 "position": {
                   "type": "string",
-                  "description": "`Dictionary POSITION`"
+                  "description": "Dictionary: POSITION"
                 },
                 "party": {
                   "type": "object",
@@ -278,21 +278,21 @@
                 },
                 "form": {
                   "type": "string",
-                  "description": "`Dictionary MEDICATION_FORM`"
+                  "description": "Dictionary: MEDICATION_FORM"
                 },
                 "dosage": {
                   "type": "object",
                   "properties": {
                     "numerator_unit": {
                       "type": "string",
-                      "description": "`Dictionary MEDICATION_UNIT`"
+                      "description": "Dictionary: MEDICATION_UNIT"
                     },
                     "numerator_value": {
                       "type": "number"
                     },
                     "denumerator_unit": {
                       "type": "string",
-                      "description": "`Dictionary MEDICATION_UNIT`"
+                      "description": "Dictionary: MEDICATION_UNIT"
                     },
                     "denumerator_value": {
                       "type": "number"
@@ -497,7 +497,7 @@
                       },
                       "country": {
                         "type": "string",
-                        "description": "`Dictionary COUNTRY`"
+                        "description": "Dictionary: COUNTRY"
                       }
                     },
                     "required": [
@@ -508,21 +508,21 @@
                   },
                   "form": {
                     "type": "string",
-                    "description": "`Dictionary MEDICATION_FORM`"
+                    "description": "Dictionary: MEDICATION_FORM"
                   },
                   "container": {
                     "type": "object",
                     "properties": {
                       "numerator_unit": {
                         "type": "string",
-                        "description": "`Dictionary MEDICATION_UNIT`"
+                        "description": "Dictionary: MEDICATION_UNIT"
                       },
                       "numerator_value": {
                         "type": "number"
                       },
                       "denumerator_unit": {
                         "type": "string",
-                        "description": "`Dictionary MEDICATION_UNIT`"
+                        "description": "Dictionary: MEDICATION_UNIT"
                       },
                       "denumerator_value": {
                         "type": "number"

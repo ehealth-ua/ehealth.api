@@ -17,6 +17,7 @@ defmodule EHealth do
 
     # Define workers and child supervisors to be supervised
     children = [
+      worker(EHealth.Validators.Cache, []),
       # Start the Ecto repository
       supervisor(EHealth.DuplicatePersons, []),
       supervisor(EHealth.Repo, []),

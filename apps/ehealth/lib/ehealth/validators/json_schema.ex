@@ -50,41 +50,10 @@ defmodule EHealth.Validators.JsonSchema do
     "specs/json_schemas/medication_request/medication_request_qualify_request.json"
   )
 
-  @schemas_with_dictionaries [
-    :legal_entity,
-    :innm_dosage,
-    :medication,
-    :declaration_request,
-    :division,
-    :employee_request,
-    :registers,
-    :person,
-    :contract_request,
-    :contract_request_update
-  ]
-
-  def validate(schema, attrs) when schema in @schemas_with_dictionaries do
-    validate_with_dictionaries(schema, schema, attrs)
-  end
-
-  def validate(schema, attrs) when schema in [:employee_doctor, :employee_pharmacist] do
-    validate_with_dictionaries(schema, :employee_additional_info, attrs)
-  end
-
-  def validate(schema, attrs) when schema in [:program_medication, :program_medication_update] do
-    validate_with_dictionaries(schema, :program_medication, attrs)
-  end
-
-  def validate(schema_name, attrs) do
+  def validate(schema, attrs) do
     @schemas
-    |> Keyword.get(schema_name)
-    |> validate_schema(attrs)
-  end
-
-  defp validate_with_dictionaries(schema_name, type, attrs) do
-    @schemas
-    |> Keyword.get(schema_name)
-    |> SchemaMapper.prepare_schema(type)
+    |> Keyword.get(schema)
+    |> SchemaMapper.prepare_schema(schema)
     |> validate_schema(attrs)
   end
 end

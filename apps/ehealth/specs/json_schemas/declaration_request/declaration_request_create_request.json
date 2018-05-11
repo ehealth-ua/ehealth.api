@@ -5,7 +5,8 @@
       "type": "object",
       "properties": {
         "type": {
-          "type": "string"
+          "type": "string",
+          "description": "Dictionary: PHONE_TYPE"
         },
         "number": {
           "type": "string",
@@ -121,6 +122,7 @@
       "properties": {
         "type": {
           "type": "string",
+          "description": "Dictionary: DOCUMENT_RELATIONSHIP_TYPE",
           "minLength": 1
         },
         "number": {
@@ -146,7 +148,8 @@
       "type": "object",
       "properties": {
         "type": {
-          "type": "string"
+          "type": "string",
+          "description": "Dictionary: AUTHENTICATION_METHOD"
         },
         "phone_number": {
           "type": "string",

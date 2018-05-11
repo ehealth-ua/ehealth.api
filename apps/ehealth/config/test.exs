@@ -46,6 +46,9 @@ config :ehealth,
     otp_verification: OTPVerificationMock,
     postmark: PostmarkMock,
     uaddresses: UAddressesMock
+  ],
+  cache: [
+    validators: EHealth.Validators.CacheTest
   ]
 
 config :ehealth, :legal_entity_employee_types,

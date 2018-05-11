@@ -14,7 +14,7 @@
         "type": {
           "type": "string",
           "minLength": 1,
-          "description": "fixed or external type of reimbursement (Dictionary REIMBURSEMENT_TYPE)"
+          "description": "Dictionary: REIMBURSEMENT_TYPE"
         },
         "reimbursement_amount": {
           "type": "number",

@@ -19,6 +19,9 @@ config :ehealth,
     otp_verification: EHealth.API.OTPVerification,
     postmark: EHealth.API.Postmark,
     uaddresses: EHealth.API.UAddress
+  ],
+  cache: [
+    validators: EHealth.Validators.Cache
   ]
 
 # Configures the endpoint
