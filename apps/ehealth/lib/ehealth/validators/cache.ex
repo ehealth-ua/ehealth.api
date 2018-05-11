@@ -1,19 +1,31 @@
 defmodule EHealth.Validators.Cache do
   @moduledoc false
 
-  use Agent
+  use GenServer
 
   @behaviour EHealth.Validators.CacheBehaviour
 
   def start_link do
-    Agent.start_link(fn -> %{} end, name: __MODULE__)
+    GenServer.start_link(__MODULE__, [])
   end
 
+  @impl true
+  def init(state) do
+    :ets.new(__MODULE__, [:set, :public, :named_table])
+    {:ok, state}
+  end
+
+  @impl true
   def get_json_schema(key) do
-    Agent.get(__MODULE__, &{:ok, Map.get(&1, key)})
+    case :ets.lookup(__MODULE__, key) do
+      [{^key, schema}] -> {:ok, schema}
+      _ -> {:ok, nil}
+    end
   end
 
+  @impl true
   def set_json_schema(key, schema) do
-    Agent.update(__MODULE__, &Map.put(&1, key, schema))
+    :ets.insert(__MODULE__, {key, schema})
+    :ok
   end
 end
