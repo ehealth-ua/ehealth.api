@@ -16,15 +16,20 @@ defmodule Mithril.Web.RegistrationControllerTest do
           content = signed_content |> Base.decode64!() |> Poison.decode!()
 
           data = %{
-            "signer" => %{
-              "edrpou" => content["tax_id"],
-              "drfo" => content["tax_id"],
-              "surname" => content["last_name"],
-              "given_name" => "#{content["first_name"]} #{content["second_name"]}"
-            },
+            "content" => content,
             "signed_content" => signed_content,
-            "is_valid" => true,
-            "content" => content
+            "signatures" => [
+              %{
+                "is_valid" => true,
+                "signer" => %{
+                  "edrpou" => content["tax_id"],
+                  "drfo" => content["tax_id"],
+                  "surname" => content["last_name"],
+                  "given_name" => "#{content["first_name"]} #{content["second_name"]}"
+                },
+                "validation_error_message" => ""
+              }
+            ]
           }
 
           {:ok, %{"data" => data}}
@@ -550,13 +555,18 @@ defmodule Mithril.Web.RegistrationControllerTest do
         content = signed_content |> Base.decode64!() |> Poison.decode!()
 
         data = %{
-          "signer" => %{
-            "drfo" => content["tax_id"],
-            "surname" => "Шевченко",
-            "given_name" => content["first_name"] <> " " <> content["second_name"]
-          },
-          "is_valid" => true,
-          "content" => content
+          "content" => content,
+          "signatures" => [
+            %{
+              "is_valid" => true,
+              "signer" => %{
+                "drfo" => content["tax_id"],
+                "surname" => "Шевченко",
+                "given_name" => content["first_name"] <> " " <> content["second_name"]
+              },
+              "validation_error_message" => ""
+            }
+          ]
         }
 
         {:ok, %{"data" => data}}
@@ -575,12 +585,17 @@ defmodule Mithril.Web.RegistrationControllerTest do
         content = signed_content |> Base.decode64!() |> Poison.decode!()
 
         data = %{
-          "signer" => %{
-            "drfo" => content["tax_id"],
-            "given_name" => content["first_name"] <> " " <> content["second_name"]
-          },
-          "is_valid" => true,
-          "content" => content
+          "content" => content,
+          "signatures" => [
+            %{
+              "is_valid" => true,
+              "signer" => %{
+                "drfo" => content["tax_id"],
+                "given_name" => content["first_name"] <> " " <> content["second_name"]
+              },
+              "validation_error_message" => ""
+            }
+          ]
         }
 
         {:ok, %{"data" => data}}
@@ -599,13 +614,18 @@ defmodule Mithril.Web.RegistrationControllerTest do
         content = signed_content |> Base.decode64!() |> Poison.decode!()
 
         data = %{
-          "signer" => %{
-            "drfo" => content["tax_id"],
-            "surname" => content["last_name"],
-            "given_name" => "Сара Коннор"
-          },
-          "is_valid" => true,
-          "content" => content
+          "content" => content,
+          "signatures" => [
+            %{
+              "is_valid" => true,
+              "signer" => %{
+                "drfo" => content["tax_id"],
+                "surname" => content["last_name"],
+                "given_name" => "Сара Коннор"
+              },
+              "validation_error_message" => ""
+            }
+          ]
         }
 
         {:ok, %{"data" => data}}
@@ -624,12 +644,17 @@ defmodule Mithril.Web.RegistrationControllerTest do
         content = signed_content |> Base.decode64!() |> Poison.decode!()
 
         data = %{
-          "signer" => %{
-            "drfo" => content["tax_id"],
-            "surname" => content["last_name"]
-          },
-          "is_valid" => true,
-          "content" => content
+          "content" => content,
+          "signatures" => [
+            %{
+              "is_valid" => true,
+              "signer" => %{
+                "drfo" => content["tax_id"],
+                "surname" => content["last_name"]
+              },
+              "validation_error_message" => ""
+            }
+          ]
         }
 
         {:ok, %{"data" => data}}
@@ -657,7 +682,35 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
     test "DS cannot decode signed content", %{conn: conn, params: params, jwt: jwt} do
       expect(SignatureMock, :decode_and_validate, fn _signed_content, "base64", _headers ->
-        {:error, %{"data" => %{"is_valid" => false}, "meta" => %{"code" => 422, "type" => "list"}}}
+        err_data = %{
+          "error" => %{
+            "invalid" => [
+              %{
+                "entry" => "$.signed_content",
+                "entry_type" => "json_data_property",
+                "rules" => [
+                  %{
+                    "description" => "Not a base64 string",
+                    "params" => [],
+                    "rule" => "invalid"
+                  }
+                ]
+              }
+            ],
+            "message" =>
+              "Validation failed. You can find validators description at our API Manifest:" <>
+                " http://docs.apimanifest.apiary.io/#introduction/interacting-with-api/errors.",
+            "type" => "validation_failed"
+          },
+          "meta" => %{
+            "code" => 422,
+            "request_id" => "2kmaguf9ec791885t40008s2",
+            "type" => "object",
+            "url" => "http://www.example.com/digital_signatures"
+          }
+        }
+
+        {:error, %{"data" => err_data, "meta" => %{"code" => 422, "type" => "list"}}}
       end)
 
       conn
@@ -672,12 +725,17 @@ defmodule Mithril.Web.RegistrationControllerTest do
         assert Map.has_key?(content, "tax_id")
 
         data = %{
-          "signer" => %{
-            "drfo" => "002233445566"
-          },
+          "content" => content,
           "signed_content" => signed_content,
-          "is_valid" => true,
-          "content" => content
+          "signatures" => [
+            %{
+              "is_valid" => true,
+              "signer" => %{
+                "drfo" => "002233445566"
+              },
+              "validation_error_message" => ""
+            }
+          ]
         }
 
         {:ok, %{"data" => data}}
@@ -885,12 +943,17 @@ defmodule Mithril.Web.RegistrationControllerTest do
         content = signed_content |> Base.decode64!() |> Poison.decode!()
 
         data = %{
-          "signer" => %{
-            "drfo" => "",
-            "surname" => content["last_name"]
-          },
-          "is_valid" => true,
-          "content" => content
+          "content" => content,
+          "signatures" => [
+            %{
+              "is_valid" => true,
+              "signer" => %{
+                "drfo" => "",
+                "surname" => content["last_name"]
+              },
+              "validation_error_message" => ""
+            }
+          ]
         }
 
         {:ok, %{"data" => data}}
@@ -919,11 +982,16 @@ defmodule Mithril.Web.RegistrationControllerTest do
         content = signed_content |> Base.decode64!() |> Poison.decode!()
 
         data = %{
-          "signer" => %{
-            "surname" => content["last_name"]
-          },
-          "is_valid" => true,
-          "content" => content
+          "content" => content,
+          "signatures" => [
+            %{
+              "is_valid" => true,
+              "signer" => %{
+                "surname" => content["last_name"]
+              },
+              "validation_error_message" => ""
+            }
+          ]
         }
 
         {:ok, %{"data" => data}}

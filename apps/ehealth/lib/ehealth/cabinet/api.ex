@@ -23,8 +23,9 @@ defmodule EHealth.Cabinet.API do
   def create_patient(jwt, params, headers) do
     with {:ok, email} <- fetch_email_from_jwt(jwt),
          %Ecto.Changeset{valid?: true} <- validate_params(:patient, params),
-         {:ok, %{"data" => %{"content" => content, "signer" => signer}}} <-
+         {:ok, %{"data" => data}} <-
            @signature_api.decode_and_validate(params["signed_content"], params["signed_content_encoding"], headers),
+         {:ok, %{"content" => content, "signer" => signer}} <- process_digital_signature_data(data),
          :ok <- JsonSchema.validate(:person, content),
          :ok <- PersonValidator.validate_birth_date(content["birth_date"], "$.birth_date"),
          :ok <- PersonValidator.validate_addresses_types(content["addresses"], @addresses_types),
@@ -220,8 +221,9 @@ defmodule EHealth.Cabinet.API do
     with %Ecto.Changeset{valid?: true} <- validate_params(:user_search, params),
          {:ok, %{"email" => email}} <- Guardian.decode_and_verify(jwt),
          true <- email_available_for_registration?(email, headers),
-         {:ok, %{"data" => %{"signer" => signer}}} <-
+         {:ok, %{"data" => data}} <-
            @signature_api.decode_and_validate(params["signed_content"], params["signed_content_encoding"], headers),
+         {:ok, %{"signer" => signer}} <- process_digital_signature_data(data),
          {:ok, tax_id} <- fetch_drfo(signer) do
       %{tax_id: tax_id}
       |> @mithril_api.search_user(headers)
@@ -238,4 +240,17 @@ defmodule EHealth.Cabinet.API do
 
   defp check_mithril_user_absence({:ok, _}), do: :ok
   defp check_mithril_user_absence(_), do: {:error, {:internal_error, "Cannot fetch user"}}
+
+  defp process_digital_signature_data(%{
+         "content" => content,
+         "signatures" => [%{"is_valid" => true, "signer" => signer}]
+       }),
+       do: {:ok, %{"content" => content, "signer" => signer}}
+
+  defp process_digital_signature_data(%{"signatures" => [%{"is_valid" => false, "validation_error_message" => error}]}),
+    do: {:error, {:bad_request, error}}
+
+  defp process_digital_signature_data(%{"signatures" => signatures}) when is_list(signatures),
+    do:
+      {:error, {:bad_request, "document must be signed by 1 signer but contains #{Enum.count(signatures)} signatures"}}
 end

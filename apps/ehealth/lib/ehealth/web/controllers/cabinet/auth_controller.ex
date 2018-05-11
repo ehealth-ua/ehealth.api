@@ -10,7 +10,7 @@ defmodule EHealth.Web.Cabinet.AuthController do
     with {:ok, jwt} <- CabinetAPI.send_email_verification(params, conn.req_headers) do
       conn
       |> assign_token(jwt)
-      |> render(EHealth.Web.Cabinet.AuthView, "raw.json", %{json: %{}})
+      |> render("raw.json", %{json: %{}})
     end
   end
 
@@ -24,14 +24,14 @@ defmodule EHealth.Web.Cabinet.AuthController do
   def email_validation(conn, _params) do
     with jwt <- Plug.current_token(conn),
          {:ok, new_jwt} <- CabinetAPI.validate_email_jwt(jwt, conn.req_headers) do
-      render(conn, EHealth.Web.Cabinet.AuthView, "email_validation.json", %{token: new_jwt})
+      render(conn, "email_validation.json", %{token: new_jwt})
     end
   end
 
   def search_user(conn, params) do
     with jwt <- Plug.current_token(conn),
          :ok <- CabinetAPI.check_user_absence(jwt, params, conn.req_headers) do
-      render(conn, EHealth.Web.Cabinet.AuthView, "raw.json", %{json: %{}})
+      render(conn, "raw.json", %{json: %{}})
     end
   end
 
@@ -43,7 +43,7 @@ defmodule EHealth.Web.Cabinet.AuthController do
          {:ok, patient} <- CabinetAPI.create_patient(jwt, params, conn.req_headers) do
       conn
       |> put_status(:created)
-      |> render(EHealth.Web.Cabinet.AuthView, "patient.json", patient: patient)
+      |> render("patient.json", patient: patient)
     end
   end
 end

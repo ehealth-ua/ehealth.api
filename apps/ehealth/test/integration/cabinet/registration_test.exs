@@ -26,15 +26,20 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
         assert Map.has_key?(content, "tax_id")
 
         data = %{
-          "signer" => %{
-            "edrpou" => content["tax_id"],
-            "drfo" => content["tax_id"],
-            "surname" => content["last_name"],
-            "given_name" => "#{content["first_name"]} #{content["second_name"]}"
-          },
+          "content" => content,
           "signed_content" => signed_content,
-          "is_valid" => true,
-          "content" => content
+          "signatures" => [
+            %{
+              "is_valid" => true,
+              "signer" => %{
+                "edrpou" => content["tax_id"],
+                "drfo" => content["tax_id"],
+                "surname" => content["last_name"],
+                "given_name" => "#{content["first_name"]} #{content["second_name"]}"
+              },
+              "validation_error_message" => ""
+            }
+          ]
         }
 
         {:ok, %{"data" => data}}
