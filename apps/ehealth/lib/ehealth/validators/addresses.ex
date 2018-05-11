@@ -2,7 +2,7 @@ defmodule EHealth.Validators.Addresses do
   @moduledoc """
   KVED codes validator
   """
-  alias EHealth.API.UAddress
+  @uaddresses_api Application.get_env(:ehealth, :api_resolvers)[:uaddresses]
 
   def validate(addresses) do
     validate_addresses_values({:ok, addresses})
@@ -44,7 +44,7 @@ defmodule EHealth.Validators.Addresses do
   defp validate_address_values(address, errors) do
     address
     |> Map.get("settlement_id")
-    |> UAddress.get_settlement_by_id()
+    |> @uaddresses_api.get_settlement_by_id([])
     |> validate_settlement(address)
     |> Kernel.++(errors)
   end
@@ -80,7 +80,7 @@ defmodule EHealth.Validators.Addresses do
   defp get_region_info(data, address) do
     data
     |> Map.get("region_id")
-    |> UAddress.get_region_by_id()
+    |> @uaddresses_api.get_region_by_id([])
     |> validate_region(data, address)
   end
 
@@ -122,7 +122,7 @@ defmodule EHealth.Validators.Addresses do
 
   defp check_district(district_id, address) do
     district_id
-    |> UAddress.get_district_by_id()
+    |> @uaddresses_api.get_district_by_id([])
     |> validate_district(address)
   end
 

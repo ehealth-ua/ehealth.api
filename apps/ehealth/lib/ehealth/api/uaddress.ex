@@ -5,6 +5,8 @@ defmodule EHealth.API.UAddress do
 
   use EHealth.API.Helpers.MicroserviceBase
 
+  @behaviour EHealth.API.UAddressesBehaviour
+
   def search_settlements(params \\ %{}, headers \\ []) do
     get!("/settlements", headers, params: params)
   end

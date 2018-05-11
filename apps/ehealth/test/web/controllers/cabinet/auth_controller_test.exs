@@ -332,6 +332,8 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => data}}
       end)
 
+      uaddresses_mock_expect()
+
       conn
       |> post(cabinet_auth_path(conn, :registration, params))
       |> json_response(201)
@@ -374,6 +376,8 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
         {:ok, %{"data" => data}}
       end)
+
+      uaddresses_mock_expect()
 
       conn
       |> post(cabinet_auth_path(conn, :registration, params))
@@ -419,6 +423,8 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => data}}
       end)
 
+      uaddresses_mock_expect()
+
       conn
       |> post(cabinet_auth_path(conn, :registration, params))
       |> json_response(201)
@@ -457,6 +463,8 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => data}}
       end)
 
+      uaddresses_mock_expect()
+
       conn
       |> post(cabinet_auth_path(conn, :registration, params))
       |> json_response(201)
@@ -490,6 +498,8 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => [%{"tax_id" => "1234567890"}]}}
       end)
 
+      uaddresses_mock_expect()
+
       assert "tax_id_exists" ==
                conn
                |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
@@ -508,6 +518,8 @@ defmodule Mithril.Web.RegistrationControllerTest do
       expect(MithrilMock, :search_user, fn %{email: "email@example.com"}, _headers ->
         {:ok, %{"data" => [%{"tax_id" => "1234567890", "is_blocked" => true}]}}
       end)
+
+      uaddresses_mock_expect()
 
       assert "User blocked" ==
                conn
@@ -542,6 +554,8 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => []}}
       end)
 
+      uaddresses_mock_expect()
+
       assert "person_duplicated" ==
                conn
                |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
@@ -572,6 +586,8 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => data}}
       end)
 
+      uaddresses_mock_expect()
+
       assert "Input last_name doesn't match name from DS" ==
                conn
                |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
@@ -600,6 +616,8 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
         {:ok, %{"data" => data}}
       end)
+
+      uaddresses_mock_expect()
 
       assert "Input last_name doesn't match name from DS" ==
                conn
@@ -631,6 +649,8 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => data}}
       end)
 
+      uaddresses_mock_expect()
+
       assert "Input first_name doesn't match name from DS" ==
                conn
                |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
@@ -660,6 +680,8 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => data}}
       end)
 
+      uaddresses_mock_expect()
+
       assert "Input first_name doesn't match name from DS" ==
                conn
                |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
@@ -671,6 +693,8 @@ defmodule Mithril.Web.RegistrationControllerTest do
     test "different email in signed content and JWT", %{conn: conn, params: params} do
       use SignatureExpect
       {:ok, jwt, _} = encode_and_sign(get_aud(:registration), %{email: "not-matched@example.com"})
+
+      uaddresses_mock_expect()
 
       assert "Email in signed content is incorrect" ==
                conn
@@ -740,6 +764,8 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
         {:ok, %{"data" => data}}
       end)
+
+      uaddresses_mock_expect()
 
       assert "Registration person and person that sign should be the same" ==
                conn
@@ -836,6 +862,8 @@ defmodule Mithril.Web.RegistrationControllerTest do
          }}
       end)
 
+      uaddresses_mock_expect()
+
       assert [err] =
                conn
                |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
@@ -888,6 +916,8 @@ defmodule Mithril.Web.RegistrationControllerTest do
            }
          }}
       end)
+
+      uaddresses_mock_expect()
 
       assert [err] =
                conn
@@ -1061,5 +1091,55 @@ defmodule Mithril.Web.RegistrationControllerTest do
     content
     |> Poison.encode!()
     |> Base.encode64()
+  end
+
+  defp uaddresses_mock_expect() do
+    params =
+      "test/data/cabinet/patient.json"
+      |> File.read!()
+      |> Poison.decode!()
+      |> Map.get("addresses", [])
+      |> Enum.at(0)
+      |> Map.take(~w(settlement_id region_id district_id area))
+
+    expect(UAddressesMock, :get_settlement_by_id, 2, fn _id, _headers ->
+      get_settlement(
+        %{
+          "id" => params["settlement_id"],
+          "region_id" => params["region_id"],
+          "district_id" => params["district_id"]
+        },
+        200
+      )
+    end)
+
+    expect(UAddressesMock, :get_region_by_id, 2, fn _id, _headers ->
+      get_region(%{"id" => params["region_id"], "name" => params["area"]}, 200)
+    end)
+  end
+
+  defp get_settlement(params, response_status, mountain_group \\ false) do
+    settlement =
+      %{
+        "id" => UUID.generate(),
+        "region_id" => UUID.generate(),
+        "district_id" => UUID.generate(),
+        "name" => "Київ",
+        "mountain_group" => mountain_group
+      }
+      |> Map.merge(params)
+
+    {:ok, %{"data" => settlement, "meta" => %{"code" => response_status}}}
+  end
+
+  def get_region(params, response_status) do
+    region =
+      %{
+        "id" => UUID.generate(),
+        "name" => "Львівська"
+      }
+      |> Map.merge(params)
+
+    {:ok, %{"data" => region, "meta" => %{"code" => response_status}}}
   end
 end

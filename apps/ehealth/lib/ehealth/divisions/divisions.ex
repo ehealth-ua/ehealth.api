@@ -10,7 +10,6 @@ defmodule EHealth.Divisions do
 
   alias EHealth.PRMRepo
   alias EHealth.Divisions.Search
-  alias EHealth.API.UAddress
   alias EHealth.Validators.Addresses
   alias EHealth.Divisions.Division
   alias EHealth.LegalEntities.LegalEntity
@@ -21,6 +20,8 @@ defmodule EHealth.Divisions do
   alias Ecto.Multi
   alias EctoTrail.Changelog
   alias EHealth.Email.Sanitizer
+
+  @uaddresses_api Application.get_env(:ehealth, :api_resolvers)[:uaddresses]
 
   @search_fields ~w(
     ids
@@ -197,7 +198,7 @@ defmodule EHealth.Divisions do
       |> Map.fetch!("settlement_id")
 
     settlement_id
-    |> UAddress.get_settlement_by_id()
+    |> @uaddresses_api.get_settlement_by_id([])
     |> put_mountain_group(division)
   end
 

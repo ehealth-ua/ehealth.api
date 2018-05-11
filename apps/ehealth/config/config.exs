@@ -17,7 +17,8 @@ config :ehealth,
     report: EHealth.API.Report,
     media_storage: EHealth.API.MediaStorage,
     otp_verification: EHealth.API.OTPVerification,
-    postmark: EHealth.API.Postmark
+    postmark: EHealth.API.Postmark,
+    uaddresses: EHealth.API.UAddress
   ]
 
 # Configures the endpoint

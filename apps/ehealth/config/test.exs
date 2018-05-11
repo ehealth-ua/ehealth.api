@@ -44,7 +44,8 @@ config :ehealth,
     report: ReportMock,
     media_storage: MediaStorageMock,
     otp_verification: OTPVerificationMock,
-    postmark: PostmarkMock
+    postmark: PostmarkMock,
+    uaddresses: UAddressesMock
   ]
 
 config :ehealth, :legal_entity_employee_types,

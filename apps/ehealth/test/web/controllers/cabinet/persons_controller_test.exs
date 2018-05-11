@@ -359,53 +359,60 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
         |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
         |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: legal_entity.id}))
 
+      data = %{
+        "first_name" => "Артем",
+        "last_name" => "Иванов",
+        "birth_date" => "1990-01-01",
+        "birth_country" => "Ukraine",
+        "birth_settlement" => "Kyiv",
+        "gender" => "MALE",
+        "documents" => [%{"type" => "PASSPORT", "number" => "120518"}],
+        "addresses" => [
+          %{
+            "type" => "RESIDENCE",
+            "zip" => "02090",
+            "settlement_type" => "CITY",
+            "country" => "UA",
+            "settlement" => "Київ",
+            "area" => "Житомирська",
+            "settlement_id" => UUID.generate(),
+            "building" => "15",
+            "region" => "Бердичівський"
+          },
+          %{
+            "type" => "REGISTRATION",
+            "zip" => "02090",
+            "settlement_type" => "CITY",
+            "country" => "UA",
+            "settlement" => "Київ",
+            "area" => "Житомирська",
+            "settlement_id" => UUID.generate(),
+            "building" => "15",
+            "region" => "Бердичівський"
+          }
+        ],
+        "authentication_methods" => [%{"type" => "OTP", "phone_number" => "+380991112233"}],
+        "emergency_contact" => %{
+          "first_name" => "Петро",
+          "last_name" => "Іванов",
+          "second_name" => "Миколайович"
+        },
+        "process_disclosure_data_consent" => true,
+        "secret" => "secret",
+        "tax_id" => "2222222220"
+      }
+
+      mock_params =
+        data
+        |> Map.get("addresses", [])
+        |> Enum.at(0)
+        |> Map.take(~w(settlement_id region_id district_id area))
+
+      uaddresses_mock_expect(mock_params)
+
       conn =
         patch(conn, cabinet_persons_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{
-          "signed_content" =>
-            Base.encode64(
-              Poison.encode!(%{
-                "first_name" => "Артем",
-                "last_name" => "Иванов",
-                "birth_date" => "1990-01-01",
-                "birth_country" => "Ukraine",
-                "birth_settlement" => "Kyiv",
-                "gender" => "MALE",
-                "documents" => [%{"type" => "PASSPORT", "number" => "120518"}],
-                "addresses" => [
-                  %{
-                    "type" => "RESIDENCE",
-                    "zip" => "02090",
-                    "settlement_type" => "CITY",
-                    "country" => "UA",
-                    "settlement" => "Київ",
-                    "area" => "Житомирська",
-                    "settlement_id" => UUID.generate(),
-                    "building" => "15",
-                    "region" => "Бердичівський"
-                  },
-                  %{
-                    "type" => "REGISTRATION",
-                    "zip" => "02090",
-                    "settlement_type" => "CITY",
-                    "country" => "UA",
-                    "settlement" => "Київ",
-                    "area" => "Житомирська",
-                    "settlement_id" => UUID.generate(),
-                    "building" => "15",
-                    "region" => "Бердичівський"
-                  }
-                ],
-                "authentication_methods" => [%{"type" => "OTP", "phone_number" => "+380991112233"}],
-                "emergency_contact" => %{
-                  "first_name" => "Петро",
-                  "last_name" => "Іванов",
-                  "second_name" => "Миколайович"
-                },
-                "process_disclosure_data_consent" => true,
-                "secret" => "secret",
-                "tax_id" => "2222222220"
-              })
-            )
+          "signed_content" => Base.encode64(Poison.encode!(data))
         })
 
       assert json_response(conn, 200)
@@ -695,5 +702,47 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
         "apartment" => "23"
       }
     ]
+  end
+
+  defp uaddresses_mock_expect(params) do
+    expect(UAddressesMock, :get_settlement_by_id, 2, fn _id, _headers ->
+      get_settlement(
+        %{
+          "id" => params["settlement_id"],
+          "region_id" => params["region_id"],
+          "district_id" => params["district_id"]
+        },
+        200
+      )
+    end)
+
+    expect(UAddressesMock, :get_region_by_id, 2, fn _id, _headers ->
+      get_region(%{"id" => params["region_id"], "name" => params["area"]}, 200)
+    end)
+  end
+
+  defp get_settlement(params, response_status, mountain_group \\ false) do
+    settlement =
+      %{
+        "id" => UUID.generate(),
+        "region_id" => UUID.generate(),
+        "district_id" => UUID.generate(),
+        "name" => "Київ",
+        "mountain_group" => mountain_group
+      }
+      |> Map.merge(params)
+
+    {:ok, %{"data" => settlement, "meta" => %{"code" => response_status}}}
+  end
+
+  def get_region(params, response_status) do
+    region =
+      %{
+        "id" => UUID.generate(),
+        "name" => "Львівська"
+      }
+      |> Map.merge(params)
+
+    {:ok, %{"data" => region, "meta" => %{"code" => response_status}}}
   end
 end

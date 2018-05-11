@@ -7,6 +7,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
   alias EHealth.Repo
   alias EHealth.Utils.NumberGenerator
   import Mox
+  alias Ecto.UUID
 
   describe "Happy paths" do
     defmodule TwoHappyPaths do
@@ -165,6 +166,14 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         |> Poison.decode!()
         |> put_in(~W(declaration_request person birth_date), "1989-08-19")
 
+      mock_params =
+        declaration_request_params
+        |> get_in(~w(declaration_request person addresses))
+        |> Enum.at(0)
+        |> Map.take(~w(settlement_id region_id district_id area))
+
+      uaddresses_mock_expect(mock_params)
+
       conn =
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
@@ -190,6 +199,14 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         |> File.read!()
         |> Poison.decode!()
         |> put_in(~W(declaration_request person authentication_methods), auth_methods)
+
+      mock_params =
+        declaration_request_params
+        |> get_in(~w(declaration_request person addresses))
+        |> Enum.at(0)
+        |> Map.take(~w(settlement_id region_id district_id area))
+
+      uaddresses_mock_expect(mock_params)
 
       conn =
         conn
@@ -263,6 +280,14 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
           Map.delete(declaration_request_params["declaration_request"]["person"], "phones")
         )
 
+      mock_params =
+        declaration_request_params
+        |> get_in(~w(declaration_request person addresses))
+        |> Enum.at(0)
+        |> Map.take(~w(settlement_id region_id district_id area))
+
+      uaddresses_mock_expect(mock_params)
+
       conn
       |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
       |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
@@ -276,6 +301,14 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         |> File.read!()
         |> Poison.decode!()
         |> put_in(~W(declaration_request person authentication_methods), [%{"type" => "OTP"}])
+
+      mock_params =
+        declaration_request_params
+        |> get_in(~w(declaration_request person addresses))
+        |> Enum.at(0)
+        |> Map.take(~w(settlement_id region_id district_id area))
+
+      uaddresses_mock_expect(mock_params)
 
       conn =
         conn
@@ -334,6 +367,14 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         "test/data/declaration_request.json"
         |> File.read!()
         |> Poison.decode!()
+
+      mock_params =
+        params
+        |> get_in(~w(declaration_request person addresses))
+        |> Enum.at(0)
+        |> Map.take(~w(settlement_id region_id district_id area))
+
+      uaddresses_mock_expect(mock_params)
 
       tax_id = get_in(params["declaration_request"], ["person", "tax_id"])
       employee_id = "ce377dea-d8c4-4dd8-9328-de24b1ee3879"
@@ -431,6 +472,14 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         |> put_in(~W(declaration_request person first_name), "Тест")
         |> put_in(~W(declaration_request person authentication_methods), [%{"type" => "OFFLINE"}])
 
+      mock_params =
+        declaration_request_params
+        |> get_in(~w(declaration_request person addresses))
+        |> Enum.at(0)
+        |> Map.take(~w(settlement_id region_id district_id area))
+
+      uaddresses_mock_expect(mock_params)
+
       resp =
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
@@ -473,6 +522,14 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         "test/data/declaration_request.json"
         |> File.read!()
         |> Poison.decode!()
+
+      mock_params =
+        declaration_request_params
+        |> get_in(~w(declaration_request person addresses))
+        |> Enum.at(0)
+        |> Map.take(~w(settlement_id region_id district_id area))
+
+      uaddresses_mock_expect(mock_params)
 
       person =
         declaration_request_params
@@ -522,6 +579,14 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         |> File.read!()
         |> Poison.decode!()
         |> put_in(["declaration_request", "person", "first_name"], "Тест")
+
+      mock_params =
+        declaration_request_params
+        |> get_in(~w(declaration_request person addresses))
+        |> Enum.at(0)
+        |> Map.take(~w(settlement_id region_id district_id area))
+
+      uaddresses_mock_expect(mock_params)
 
       decoded = declaration_request_params["declaration_request"]
       d1 = clone_declaration_request(decoded, "8799e3b6-34e7-4798-ba70-d897235d2b6d", "NEW")
@@ -590,6 +655,14 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         |> put_in(["declaration_request", "division_id"], "31506899-55a5-4011-b88c-10ba90c5e9bd")
         |> put_in(["declaration_request", "employee_id"], "b03f057f-aa84-4152-b6e5-3905ba821b66")
 
+      mock_params =
+        declaration_request_params
+        |> get_in(~w(declaration_request person addresses))
+        |> Enum.at(0)
+        |> Map.take(~w(settlement_id region_id district_id area))
+
+      uaddresses_mock_expect(mock_params)
+
       conn =
         conn
         |> put_req_header("x-consumer-id", "b03f057f-aa84-4152-b6e5-3905ba821b66")
@@ -642,6 +715,15 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
 
     test "returns error if global parameters do not exist", %{port: _port, conn: conn} do
       declaration_request_params = File.read!("test/data/declaration_request.json")
+
+      mock_params =
+        declaration_request_params
+        |> Poison.decode!()
+        |> get_in(~w(declaration_request person addresses))
+        |> Enum.at(0)
+        |> Map.take(~w(settlement_id region_id district_id area))
+
+      uaddresses_mock_expect(mock_params)
 
       conn =
         conn
@@ -704,6 +786,14 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         |> Poison.decode!()
         |> put_in(["declaration_request", "employee_id"], wrong_id)
 
+      mock_params =
+        declaration_request_params
+        |> get_in(~w(declaration_request person addresses))
+        |> Enum.at(0)
+        |> Map.take(~w(settlement_id region_id district_id area))
+
+      uaddresses_mock_expect(mock_params)
+
       conn =
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
@@ -749,6 +839,10 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
 
     test "validation error is returned", %{conn: conn} do
       declaration_request_params = File.read!("test/data/declaration_request.json")
+
+      expect(UAddressesMock, :get_settlement_by_id, 2, fn _id, _headers ->
+        {:error, :not_found}
+      end)
 
       conn =
         conn
@@ -997,5 +1091,47 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
     |> File.read!()
     |> Poison.decode!()
     |> Map.fetch!("declaration_request")
+  end
+
+  defp uaddresses_mock_expect(params) do
+    expect(UAddressesMock, :get_settlement_by_id, 2, fn _id, _headers ->
+      get_settlement(
+        %{
+          "id" => params["settlement_id"],
+          "region_id" => params["region_id"],
+          "district_id" => params["district_id"]
+        },
+        200
+      )
+    end)
+
+    expect(UAddressesMock, :get_region_by_id, 2, fn _id, _headers ->
+      get_region(%{"id" => params["region_id"], "name" => params["area"]}, 200)
+    end)
+  end
+
+  defp get_settlement(params, response_status, mountain_group \\ false) do
+    settlement =
+      %{
+        "id" => UUID.generate(),
+        "region_id" => UUID.generate(),
+        "district_id" => UUID.generate(),
+        "name" => "Київ",
+        "mountain_group" => mountain_group
+      }
+      |> Map.merge(params)
+
+    {:ok, %{"data" => settlement, "meta" => %{"code" => response_status}}}
+  end
+
+  def get_region(params, response_status) do
+    region =
+      %{
+        "id" => UUID.generate(),
+        "name" => "Львівська"
+      }
+      |> Map.merge(params)
+
+    {:ok, %{"data" => region, "meta" => %{"code" => response_status}}}
   end
 end

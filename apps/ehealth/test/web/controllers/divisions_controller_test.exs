@@ -4,6 +4,8 @@ defmodule EHealth.Web.DivisionsControllerTest do
   use EHealth.Web.ConnCase, async: false
   import EHealth.SimpleFactory, only: [address: 1]
 
+  import Mox
+
   alias Ecto.UUID
 
   setup %{conn: conn} do
@@ -138,8 +140,20 @@ defmodule EHealth.Web.DivisionsControllerTest do
 
   test "create division", %{conn: conn} do
     legal_entity = insert(:prm, :legal_entity)
+    division_params = get_division()
+
+    params =
+      get_division()
+      |> Map.get("addresses", [])
+      |> Enum.at(0)
+      |> Map.take(~w(settlement_id region_id district_id area))
+      |> Map.put_new("region_id", UUID.generate())
+      |> Map.put_new("district_id", nil)
+
+    uaddresses_mock_expect(params)
+
     conn = put_client_id_header(conn, legal_entity.id)
-    conn = post(conn, division_path(conn, :create), get_division())
+    conn = post(conn, division_path(conn, :create), division_params)
 
     refute %{} == json_response(conn, 201)["data"]
   end
@@ -216,15 +230,37 @@ defmodule EHealth.Web.DivisionsControllerTest do
   test "update division", %{conn: conn} do
     legal_entity = insert(:prm, :legal_entity)
     division = insert(:prm, :division, legal_entity: legal_entity)
+
+    params =
+      division
+      |> Map.get(:addresses, [])
+      |> Enum.at(0)
+      |> Map.take(~w(settlement_id region_id district_id area))
+      |> Map.put_new("region_id", UUID.generate())
+      |> Map.put_new("district_id", nil)
+
+    uaddresses_mock_expect(params)
+
     conn = put_client_id_header(conn, legal_entity.id)
     conn = put(conn, division_path(conn, :update, division.id), get_division())
 
-    assert 200 == json_response(conn, 200)["meta"]["code"]
+    assert json_response(conn, 200)
   end
 
   test "update division with wrong legal_entity_id", %{conn: conn} do
     %{id: id} = insert(:prm, :legal_entity)
     division = insert(:prm, :division)
+
+    params =
+      division
+      |> Map.get(:addresses, [])
+      |> Enum.at(0)
+      |> Map.take(~w(settlement_id region_id district_id area))
+      |> Map.put_new("region_id", UUID.generate())
+      |> Map.put_new("district_id", nil)
+
+    uaddresses_mock_expect(params)
+
     conn = put_client_id_header(conn, id)
     conn = put(conn, division_path(conn, :update, division.id), get_division())
 
@@ -272,5 +308,47 @@ defmodule EHealth.Web.DivisionsControllerTest do
     "test/data/division.json"
     |> File.read!()
     |> Poison.decode!()
+  end
+
+  defp uaddresses_mock_expect(params) do
+    expect(UAddressesMock, :get_settlement_by_id, 3, fn _id, _headers ->
+      get_settlement(
+        %{
+          "id" => params["settlement_id"],
+          "region_id" => params["region_id"],
+          "district_id" => params["district_id"]
+        },
+        200
+      )
+    end)
+
+    expect(UAddressesMock, :get_region_by_id, 2, fn _id, _headers ->
+      get_region(%{"id" => params["region_id"], "name" => params["area"]}, 200)
+    end)
+  end
+
+  defp get_settlement(params, response_status, mountain_group \\ false) do
+    settlement =
+      %{
+        "id" => UUID.generate(),
+        "region_id" => UUID.generate(),
+        "district_id" => UUID.generate(),
+        "name" => "Сороки-Львівські",
+        "mountain_group" => mountain_group
+      }
+      |> Map.merge(params)
+
+    {:ok, %{"data" => settlement, "meta" => %{"code" => response_status}}}
+  end
+
+  def get_region(params, response_status) do
+    region =
+      %{
+        "id" => UUID.generate(),
+        "name" => "Львівська"
+      }
+      |> Map.merge(params)
+
+    {:ok, %{"data" => region, "meta" => %{"code" => response_status}}}
   end
 end

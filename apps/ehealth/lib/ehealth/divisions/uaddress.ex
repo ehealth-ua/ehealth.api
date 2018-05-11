@@ -7,9 +7,11 @@ defmodule EHealth.Divisions.UAddress do
 
   import EHealth.Utils.Connection, only: [get_consumer_id: 1]
 
+  @uaddresses_api Application.get_env(:ehealth, :api_resolvers)[:uaddresses]
+
   def update_settlement(%{"id" => id} = params, headers) do
     with {:ok, data} <- prepare_settlement_data(params),
-         {:ok, settlement} <- UAddress.get_settlement_by_id(id, headers),
+         {:ok, settlement} <- @uaddresses_api.get_settlement_by_id(id, headers),
          {:ok, settlement} <- api_update_settlement(data, headers, settlement) do
       {:ok, settlement}
     end
@@ -40,7 +42,7 @@ defmodule EHealth.Divisions.UAddress do
   defp api_update_settlement(%{"id" => id} = data, headers, settlement) do
     case update_required?(data, settlement) do
       true ->
-        with {:ok, updated_settlement} <- UAddress.update_settlement(id, data, headers),
+        with {:ok, updated_settlement} <- @uaddresses_api.update_settlement(id, data, headers),
              :ok <- api_update_divisions(data, headers, settlement) do
           {:ok, updated_settlement}
         end
@@ -66,7 +68,7 @@ defmodule EHealth.Divisions.UAddress do
   defp api_update_divisions(_, _, _), do: :ok
 
   defp rollback_settlement(%{"id" => id}, headers, settlement, reason) do
-    UAddress.update_settlement(id, settlement, headers)
+    @uaddresses_api.update_settlement(id, settlement, headers)
     {:error, reason}
   end
 end

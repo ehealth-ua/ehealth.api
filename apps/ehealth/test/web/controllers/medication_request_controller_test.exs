@@ -1,6 +1,7 @@
 defmodule EHealth.Web.MedicationRequestControllerTest do
   use EHealth.Web.ConnCase, async: true
   import EHealth.Utils.Connection, only: [get_consumer_id: 1, get_client_id: 1]
+  import EHealth.MockServer, only: [get_client_admin: 0]
   import Mox
 
   alias EHealth.PRMRepo
@@ -303,9 +304,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
         {:ok, %{"data" => [medication_id]}}
       end)
 
-      conn
-      |> put_client_id_header(legal_entity_id)
-      |> assign(:client_type, "NHS ADMIN")
+      conn = put_client_id_header(conn, get_client_admin())
 
       conn =
         post(conn, medication_request_path(conn, :qualify, medication_request["id"]), %{
@@ -360,9 +359,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
          }}
       end)
 
-      conn
-      |> put_client_id_header(legal_entity_id)
-      |> assign(:client_type, "NHS ADMIN")
+      conn = put_client_id_header(conn, get_client_admin())
 
       conn =
         post(conn, medication_request_path(conn, :qualify, medication_request["id"]), %{

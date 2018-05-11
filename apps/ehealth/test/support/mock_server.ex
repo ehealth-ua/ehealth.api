@@ -213,53 +213,6 @@ defmodule EHealth.MockServer do
     Plug.Conn.send_resp(conn, 200, resp)
   end
 
-  # UAddress
-
-  get "/settlements" do
-    conn.body_params
-    |> case do
-      %{"settlement_id" => "b075f148-7f93-4fc2-b2ec-2d81b19a9b7a"} -> get_settlement("1")
-      _ -> get_settlement()
-    end
-    |> List.wrap()
-    |> render_with_paging(conn)
-  end
-
-  get "/settlements/:id" do
-    resp =
-      "1"
-      |> get_settlement()
-      |> wrap_response()
-      |> Poison.encode!()
-
-    Plug.Conn.send_resp(conn, 200, resp)
-  end
-
-  patch "/settlements/:id" do
-    conn.path_params["id"]
-    |> get_settlement()
-    |> MapDeepMerge.merge(conn.body_params["settlement"])
-    |> render(conn, 200)
-  end
-
-  get "/regions/:id" do
-    resp =
-      get_region()
-      |> wrap_response()
-      |> Poison.encode!()
-
-    Plug.Conn.send_resp(conn, 200, resp)
-  end
-
-  get "/districts/:id" do
-    resp =
-      get_district()
-      |> wrap_response()
-      |> Poison.encode!()
-
-    Plug.Conn.send_resp(conn, 200, resp)
-  end
-
   # Digital signature
 
   post "/digital_signatures" do
@@ -345,27 +298,86 @@ defmodule EHealth.MockServer do
     }
   end
 
-  def get_settlement(mountain_group \\ "0") do
-    %{
-      id: "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
-      region_id: "18981558-ff6c-4b35-9d5f-001848f98987",
-      district_id: "46dbf26a-2cd2-43fe-a592-c4f3c85e6d6a",
-      name: "Київ",
-      mountain_group: mountain_group
-    }
+  defp get_medication_request(id, params \\ %{}) do
+    now = Date.utc_today()
+
+    Map.merge(
+      %{
+        id: id,
+        is_active: true,
+        status: "ACTIVE",
+        created_at: "2017-08-17",
+        started_at: now,
+        ended_at: now,
+        medical_program_id: "6ee844fd-9f4d-4457-9eda-22aa506be4c4",
+        dispense_valid_from: now,
+        dispense_valid_to: now,
+        person_id: "cc8bf10c-c419-4bdd-b92c-e445b3ac9bf6",
+        legal_entity_id: "dae597a8-c858-42f6-bc16-1a7bdd340466",
+        division_id: "e00e20ba-d20f-4ebb-a1dc-4bf58231019c",
+        employee_id: "46be2081-4bd2-4a7e-8999-2f6ce4b57dab",
+        innm: %{
+          innm: %{
+            id: Ecto.UUID.generate(),
+            is_active: true
+          },
+          medication_id: Ecto.UUID.generate(),
+          form: "Pill",
+          dosage: %{
+            numerator_unit: "mg",
+            numerator_value: 5,
+            denumerator_unit: "g",
+            denumerator_value: 1
+          },
+          container: %{
+            numerator_unit: "pill",
+            numerator_value: 1,
+            denumerator_unit: "pill",
+            denumerator_value: 1
+          },
+          request_qty: 5
+        },
+        request_for_medication_request_id: Ecto.UUID.generate(),
+        inserted_at: "2017-08-17",
+        verification_code: "1234",
+        medication_id: "2cdb8396-a1e9-11e7-abc4-cec278b6b50a",
+        medication_qty: 30,
+        request_number: "20"
+      },
+      params
+    )
   end
 
-  def get_region do
+  def get_person(id \\ nil) do
     %{
-      id: "7e060885-6982-48fe-870c-8ccbee8744ba",
-      name: "Житомирська"
-    }
-  end
-
-  def get_district do
-    %{
-      id: "ed183157-e12b-4dda-aa1a-6cc5118905b2",
-      name: "Бердичівський"
+      "id" => id || "156b4182-f9ce-4eda-b6af-43d2de8601z2",
+      "version" => "default",
+      "first_name" => "string value",
+      "last_name" => "string value",
+      "second_name" => "string value",
+      "birth_date" => "1991-08-19",
+      "birth_country" => "string value",
+      "birth_settlement" => "string value",
+      "gender" => "string value",
+      "email" => "test@example.com",
+      "tax_id" => "string value",
+      "national_id" => "string value",
+      "death_date" => "2091-08-19",
+      "is_active" => true,
+      "documents" => [],
+      "addresses" => [],
+      "phones" => [%{type: "MOBILE", number: "+380972526080"}],
+      "secret" => "string value",
+      "emergency_contact" => %{},
+      "confidant_person" => [],
+      "patient_signed" => true,
+      "process_disclosure_data_consent" => true,
+      "status" => "active",
+      "inserted_by" => UUID.generate(),
+      "updated_by" => UUID.generate(),
+      "merged_ids" => [UUID.generate(), UUID.generate()],
+      "authentication_methods" => [%{"type" => "OTP", "phone_number" => "+380955947998"}],
+      "preferred_way_communication" => "––"
     }
   end
 
