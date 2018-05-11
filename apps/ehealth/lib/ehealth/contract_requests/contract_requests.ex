@@ -256,7 +256,7 @@ defmodule EHealth.ContractRequests do
 
   def update_changeset(%ContractRequest{} = contract_request, params) do
     contract_request
-    |> cast(params, ~w(nhs_signer_base nhs_contract_price nhs_payment_method)a)
+    |> cast(params, ~w(nhs_signer_base nhs_contract_price nhs_payment_method issue_city)a)
     |> validate_number(:nhs_contract_price, greater_than: 0)
   end
 
