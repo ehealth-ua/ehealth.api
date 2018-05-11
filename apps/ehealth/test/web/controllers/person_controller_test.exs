@@ -160,7 +160,7 @@ defmodule EHealth.Web.PersonControllerTest do
         get_person(id, 200, %{"authentication_methods" => [%{"type" => "NA"}]})
       end)
 
-      conn = patch(conn, person_path(conn, :reset_authentication_method, MockServer.get_active_person()))
+      conn = patch(conn, person_path(conn, :reset_authentication_method, UUID.generate()))
       assert [%{"type" => "NA"}] == json_response(conn, 200)["data"]["authentication_methods"]
     end
 

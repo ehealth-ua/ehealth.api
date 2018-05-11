@@ -5,6 +5,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
   import Mox
 
   alias Ecto.UUID
+  alias EHealth.MockServer
 
   defmodule OpsServer do
     @moduledoc false
@@ -47,111 +48,6 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       response =
         %{"hash" => "some_current_hash"}
         |> MockServer.wrap_response()
-        |> Poison.encode!()
-
-      Plug.Conn.send_resp(conn, 200, response)
-    end
-  end
-
-  defmodule MpiServer do
-    @moduledoc false
-
-    use MicroservicesHelper
-    alias EHealth.MockServer
-
-    Plug.Router.patch "/persons/c8912855-21c3-4771-ba18-bcd8e524f14c" do
-      response =
-        conn.body_params
-        |> MockServer.wrap_response()
-        |> Poison.encode!()
-
-      Plug.Conn.send_resp(conn, 200, response)
-    end
-
-    Plug.Router.get "/persons/c8912855-21c3-4771-ba18-bcd8e524f14c" do
-      birth_date =
-        Date.utc_today()
-        |> Date.add(-365 * 10)
-        |> to_string
-
-      response =
-        "c8912855-21c3-4771-ba18-bcd8e524f14c"
-        |> MockServer.get_person()
-        |> Map.put("first_name", "Алекс")
-        |> Map.put("last_name", "Джонс")
-        |> Map.put("second_name", "Петрович")
-        |> Map.put("addresses", [
-          %{
-            "zip" => "02090",
-            "type" => "REGISTRATION",
-            "street_type" => "STREET",
-            "street" => "Ніжинська",
-            "settlement_type" => "CITY",
-            "settlement_id" => "707dbc55-cb6b-4aaa-97c1-2a1e03476100",
-            "settlement" => "СОРОКИ-ЛЬВІВСЬКІ",
-            "region" => "ПУСТОМИТІВСЬКИЙ",
-            "country" => "UA",
-            "building" => "15",
-            "area" => "ЛЬВІВСЬКА",
-            "apartment" => "23"
-          },
-          %{
-            "zip" => "02090",
-            "type" => "RESIDENCE",
-            "street_type" => "STREET",
-            "street" => "Ніжинська",
-            "settlement_type" => "CITY",
-            "settlement_id" => "707dbc55-cb6b-4aaa-97c1-2a1e03476100",
-            "settlement" => "СОРОКИ-ЛЬВІВСЬКІ",
-            "region" => "ПУСТОМИТІВСЬКИЙ",
-            "country" => "UA",
-            "building" => "15",
-            "area" => "ЛЬВІВСЬКА",
-            "apartment" => "23"
-          }
-        ])
-        |> Map.put("tax_id", "2222222225")
-        |> Map.put("birth_date", birth_date)
-        |> Map.put("documents", [
-          %{"type" => "BIRTH_CERTIFICATE", "number" => "1234567890"}
-        ])
-        |> Map.put("authentication_methods", [%{"type" => "NA"}])
-        |> MockServer.wrap_response()
-        |> Poison.encode!()
-
-      Plug.Conn.send_resp(conn, 200, response)
-    end
-
-    Plug.Router.get "/persons" do
-      paging = %{
-        "page_number" => 1,
-        "total_pages" => 1,
-        "page_size" => 10,
-        "total_entries" => 1
-      }
-
-      birth_date =
-        Date.utc_today()
-        |> Date.add(-365 * 10)
-        |> to_string
-
-      person =
-        "c8912855-21c3-4771-ba18-bcd8e524f14c"
-        |> MockServer.get_person()
-        |> Map.put("addresses", [
-          %{"type" => "REGISTRATION"},
-          %{"type" => "RESIDENCE"}
-        ])
-        |> Map.put("tax_id", "2222222225")
-        |> Map.put("birth_date", birth_date)
-        |> Map.put("documents", [
-          %{"type" => "BIRTH_CERTIFICATE", "number" => "1234567890"}
-        ])
-        |> Map.put("authentication_methods", [%{"type" => "NA"}])
-
-      response =
-        [person]
-        |> MockServer.wrap_response_with_paging(paging)
         |> Poison.encode!()
 
       Plug.Conn.send_resp(conn, 200, response)
@@ -277,7 +173,6 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
     insert(:prm, :global_parameter, %{parameter: "declaration_term_unit", value: "YEARS"})
 
     register_mircoservices_for_tests([
-      {MpiServer, "MPI_ENDPOINT"},
       {MithrilServer, "OAUTH_ENDPOINT"},
       {MediaStorageServer, "MEDIA_STORAGE_ENDPOINT"},
       {OpsServer, "OPS_ENDPOINT"}
@@ -554,6 +449,22 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
 
   describe "create declaration request online" do
     test "success create declaration request online", %{conn: conn} do
+      expect(MPIMock, :person, fn _, _ ->
+        birth_date =
+          Date.utc_today()
+          |> Date.add(-365 * 10)
+          |> to_string()
+
+        get_person("c8912855-21c3-4771-ba18-bcd8e524f14c", 200, %{
+          birth_date: birth_date,
+          documents: [
+            %{"type" => "BIRTH_CERTIFICATE", "number" => "1234567890"}
+          ],
+          tax_id: "2222222225",
+          authentication_methods: [%{"type" => "NA"}]
+        })
+      end)
+
       legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
       person_id = "c8912855-21c3-4771-ba18-bcd8e524f14c"
       division = insert(:prm, :division, legal_entity: legal_entity)
@@ -635,6 +546,8 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
 
   describe "get declaration details" do
     test "successfully get declaration details by id", %{conn: conn} do
+      expect(MPIMock, :person, fn id, _ -> get_person(id, 200) end)
+
       legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
       insert(:prm, :party_user, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c")
       insert(:prm, :division, id: "21f22e09-8dd9-4ca4-bcc7-72994ef2850a", legal_entity: legal_entity)
@@ -674,36 +587,6 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
           id: "c8912855-21c3-4771-ba18-bcd8e524f14c",
           first_name: "Алекс",
           second_name: "Петрович",
-          addresses: [
-            %{
-              "zip" => "02090",
-              "type" => "REGISTRATION",
-              "street_type" => "STREET",
-              "street" => "Ніжинська",
-              "settlement_type" => "CITY",
-              "settlement_id" => "707dbc55-cb6b-4aaa-97c1-2a1e03476100",
-              "settlement" => "СОРОКИ-ЛЬВІВСЬКІ",
-              "region" => "ПУСТОМИТІВСЬКИЙ",
-              "country" => "UA",
-              "building" => "15",
-              "area" => "ЛЬВІВСЬКА",
-              "apartment" => "23"
-            },
-            %{
-              "zip" => "02090",
-              "type" => "RESIDENCE",
-              "street_type" => "STREET",
-              "street" => "Ніжинська",
-              "settlement_type" => "CITY",
-              "settlement_id" => "707dbc55-cb6b-4aaa-97c1-2a1e03476100",
-              "settlement" => "СОРОКИ-ЛЬВІВСЬКІ",
-              "region" => "ПУСТОМИТІВСЬКИЙ",
-              "country" => "UA",
-              "building" => "15",
-              "area" => "ЛЬВІВСЬКА",
-              "apartment" => "23"
-            }
-          ],
           birth_country: "string value",
           birth_settlement: "string value",
           gender: "string value",
@@ -770,7 +653,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
   end
 
   defp get_person(id, response_status, params \\ %{}) do
-    params = Map.put(params, :id, id)
+    params = Map.merge(params, %{id: id, addresses: get_person_addresses()})
     person = build(:person, params)
 
     person =
@@ -778,6 +661,39 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       |> Poison.encode!()
       |> Poison.decode!()
 
-    {:ok, %{"data" => person, "meta" => %{"code" => response_status}}}
+    {:ok, MockServer.wrap_object_response(person, response_status)}
+  end
+
+  defp get_person_addresses do
+    [
+      %{
+        "zip" => "02090",
+        "type" => "REGISTRATION",
+        "street_type" => "STREET",
+        "street" => "Ніжинська",
+        "settlement_type" => "CITY",
+        "settlement_id" => "707dbc55-cb6b-4aaa-97c1-2a1e03476100",
+        "settlement" => "СОРОКИ-ЛЬВІВСЬКІ",
+        "region" => "ПУСТОМИТІВСЬКИЙ",
+        "country" => "UA",
+        "building" => "15",
+        "area" => "ЛЬВІВСЬКА",
+        "apartment" => "23"
+      },
+      %{
+        "zip" => "02090",
+        "type" => "RESIDENCE",
+        "street_type" => "STREET",
+        "street" => "Ніжинська",
+        "settlement_type" => "CITY",
+        "settlement_id" => "707dbc55-cb6b-4aaa-97c1-2a1e03476100",
+        "settlement" => "СОРОКИ-ЛЬВІВСЬКІ",
+        "region" => "ПУСТОМИТІВСЬКИЙ",
+        "country" => "UA",
+        "building" => "15",
+        "area" => "ЛЬВІВСЬКА",
+        "apartment" => "23"
+      }
+    ]
   end
 end

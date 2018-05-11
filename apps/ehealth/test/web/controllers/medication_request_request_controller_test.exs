@@ -63,6 +63,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
     test "lists all medication_request_requests with data", %{conn: conn} do
       expect_ops_get_declarations()
+      expect_mpi_get_person(2)
 
       mrr = fixture(:medication_request_request)
       data = %{"employee_id" => mrr.medication_request_request.data.employee_id}
@@ -78,6 +79,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
     test "lists all medication_request_requests with data search by status", %{conn: conn} do
       expect_ops_get_declarations()
+      expect_mpi_get_person(2)
 
       fixture(:medication_request_request)
 
@@ -92,6 +94,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
     test "lists all medication_request_requests with data search by person_id", %{conn: conn} do
       expect_ops_get_declarations()
+      expect_mpi_get_person(2)
 
       mrr = fixture(:medication_request_request)
       data = %{"person_id" => mrr.medication_request_request.data.person_id}
@@ -107,6 +110,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
     test "lists all medication_request_requests with data search by all posible filters", %{conn: conn} do
       expect_ops_get_declarations()
+      expect_mpi_get_person(2)
 
       mrr = fixture(:medication_request_request)
 
@@ -129,6 +133,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
   describe "create medication_request_request" do
     test "render medication_request_request when data is valid", %{conn: conn} do
       expect_ops_get_declarations()
+      expect_mpi_get_person(2)
 
       {medication_id, pm} = create_medications_structure()
 
@@ -157,6 +162,10 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "render errors when person_id is invalid", %{conn: conn} do
+      expect(MPIMock, :person, fn _id, _headers ->
+        {:error, %{"error" => %{"type" => "not_found"}, "meta" => %{"code" => 404}}}
+      end)
+
       test_request =
         test_request()
         |> Map.put("person_id", "585041f5-1272-4bca-8d41-8440eefe7d26")
@@ -177,6 +186,8 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "render errors when division_id is invalid", %{conn: conn} do
+      expect_mpi_get_person()
+
       test_request =
         test_request()
         |> Map.put("division_id", "585041f5-1272-4bca-8d41-8440eefe7d26")
@@ -190,6 +201,8 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       expect(OPSMock, :get_declarations, fn _params, _headers ->
         {:ok, %{"data" => []}}
       end)
+
+      expect_mpi_get_person()
 
       {medication_id, pm} = create_medications_structure()
 
@@ -215,6 +228,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "render errors when ended_at < started_at", %{conn: conn} do
+      expect_mpi_get_person()
       {medication_id, pm} = create_medications_structure()
 
       test_request =
@@ -230,6 +244,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "render errors when started_at < created_at", %{conn: conn} do
+      expect_mpi_get_person()
       {medication_id, pm} = create_medications_structure()
 
       test_request =
@@ -245,6 +260,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "render errors when started_at < today", %{conn: conn} do
+      expect_mpi_get_person()
       {medication_id, pm} = create_medications_structure()
 
       test_request =
@@ -260,6 +276,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
     test "render errors when medication doesn't exists", %{conn: conn} do
       expect_ops_get_declarations()
+      expect_mpi_get_person()
 
       {_, pm} = create_medications_structure()
       {medication_id1, _} = create_medications_structure()
@@ -286,6 +303,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
     test "render errors when medication_qty is invalid", %{conn: conn} do
       expect_ops_get_declarations()
+      expect_mpi_get_person()
 
       {medication_id, pm} = create_medications_structure()
 
@@ -313,6 +331,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
     test "render medication_request_request when medication created with different qty", %{conn: conn} do
       expect_ops_get_declarations()
+      expect_mpi_get_person()
 
       {medication_id, pm} = create_medications_structure()
 
@@ -338,6 +357,8 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "render errors when medication_program is invalid", %{conn: conn} do
+      expect_mpi_get_person()
+
       {medication_id, _} = create_medications_structure()
 
       test_request =
@@ -354,6 +375,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
   describe "prequalify medication request request" do
     test "works when data is valid", %{conn: conn} do
       expect_ops_get_declarations()
+      expect_mpi_get_person()
 
       expect(OPSMock, :get_prequalify_medication_requests, fn _params, _headers ->
         {:ok, %{"data" => []}}
@@ -383,6 +405,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
     test "show proper message when program medication is invalid", %{conn: conn} do
       expect_ops_get_declarations()
+      expect_mpi_get_person()
 
       {medication_id, _} = create_medications_structure()
       pm1 = insert(:prm, :program_medication)
@@ -422,6 +445,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
   describe "reject medication request request" do
     test "works when data is valid", %{conn: conn} do
       expect_ops_get_declarations()
+      expect_mpi_get_person(2)
 
       {medication_id, pm} = create_medications_structure()
 
@@ -450,6 +474,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
   describe "autotermination works fine" do
     test "with direct call", %{conn: conn} do
       expect_ops_get_declarations()
+      expect_mpi_get_person()
 
       {medication_id, pm} = create_medications_structure()
 
@@ -476,6 +501,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       end)
 
       expect_ops_get_declarations()
+      expect_mpi_get_person(2)
 
       expect(OPSMock, :create_medication_request, fn params, _headers ->
         medication_request = build(:medication_request, id: params.medication_request.id)
@@ -533,6 +559,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
     test "return 409 if request status is not new", %{conn: conn} do
       expect_ops_get_declarations()
+      expect_mpi_get_person()
 
       {medication_id, pm} = create_medications_structure()
 
@@ -567,6 +594,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
     test "when some data is invalid", %{conn: conn} do
       expect_ops_get_declarations()
+      expect_mpi_get_person(2)
 
       {medication_id, pm} = create_medications_structure()
 
@@ -599,6 +627,12 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       declaration = build(:declaration)
 
       {:ok, MockServer.wrap_response_with_paging([declaration])}
+    end)
+  end
+
+  defp expect_mpi_get_person(times_called \\ 1) do
+    expect(MPIMock, :person, times_called, fn id, _headers ->
+      {:ok, %{"data" => string_params_for(:person, id: id)}}
     end)
   end
 

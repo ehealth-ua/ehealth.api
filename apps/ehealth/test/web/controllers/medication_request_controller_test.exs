@@ -16,6 +16,10 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
 
   describe "list medication requests" do
     test "success list medication requests", %{conn: conn} do
+      expect(MPIMock, :person, fn id, _headers ->
+        {:ok, %{"data" => string_params_for(:person, id: id)}}
+      end)
+
       user_id = get_consumer_id(conn.req_headers)
       legal_entity_id = get_client_id(conn.req_headers)
       division = insert(:prm, :division)
@@ -121,6 +125,10 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
 
   describe "show medication_request" do
     test "success get medication_request by id", %{conn: conn} do
+      expect(MPIMock, :person, fn id, _headers ->
+        {:ok, %{"data" => string_params_for(:person, id: id)}}
+      end)
+
       user_id = get_consumer_id(conn.req_headers)
       legal_entity_id = get_client_id(conn.req_headers)
       division = insert(:prm, :division)
@@ -486,6 +494,10 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
 
   describe "reject medication request" do
     test "success", %{conn: conn} do
+      expect(MPIMock, :person, fn id, _headers ->
+        {:ok, %{"data" => string_params_for(:person, id: id)}}
+      end)
+
       user_id = get_consumer_id(conn.req_headers)
       legal_entity_id = get_client_id(conn.req_headers)
       division = insert(:prm, :division)
@@ -564,6 +576,10 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
 
   describe "resend medication request info" do
     test "success", %{conn: conn} do
+      expect(MPIMock, :person, fn id, _headers ->
+        {:ok, %{"data" => string_params_for(:person, id: id)}}
+      end)
+
       user_id = get_consumer_id(conn.req_headers)
       legal_entity_id = get_client_id(conn.req_headers)
       division = insert(:prm, :division)

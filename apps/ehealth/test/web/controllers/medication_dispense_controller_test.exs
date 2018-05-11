@@ -108,6 +108,8 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "no active employee", %{conn: conn} do
+      expect_mpi_get_person()
+
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
       %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity, is_active: false)
@@ -139,6 +141,8 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "invalid division", %{conn: conn} do
+      expect_mpi_get_person()
+
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
       %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
@@ -171,6 +175,8 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "division is not active", %{conn: conn} do
+      expect_mpi_get_person()
+
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
       %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
@@ -213,6 +219,8 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "invalid medical program", %{conn: conn} do
+      expect_mpi_get_person()
+
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
       %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
@@ -264,6 +272,8 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "medical program is not active", %{conn: conn} do
+      expect_mpi_get_person()
+
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
       %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
@@ -325,6 +335,8 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "invalid medication", %{conn: conn} do
+      expect_mpi_get_person()
+
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
       %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
@@ -385,6 +397,8 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "medication is not active", %{conn: conn} do
+      expect_mpi_get_person()
+
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
       %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
@@ -436,6 +450,8 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "medication is not a participant of program", %{conn: conn} do
+      expect_mpi_get_person()
+
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
       %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
@@ -497,6 +513,8 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "invalid code", %{conn: conn} do
+      expect_mpi_get_person()
+
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
       %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
@@ -565,6 +583,8 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "requested reimbursement is higher than allowed", %{conn: conn} do
+      expect_mpi_get_person()
+
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
       %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
@@ -634,6 +654,8 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "success create medication dispense", %{conn: conn} do
+      expect_mpi_get_person()
+
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
       %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
@@ -732,6 +754,8 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
   describe "show medication dispense" do
     test "success show by id", %{conn: conn} do
+      expect_mpi_get_person()
+
       legal_entity = insert(:prm, :legal_entity)
       medication = insert(:prm, :medication)
       party = insert(:prm, :party)
@@ -776,6 +800,8 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
   describe "list medication dispenses" do
     test "success list", %{conn: conn} do
+      expect_mpi_get_person()
+
       %{party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
       %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
@@ -843,6 +869,8 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
   describe "process medication dispense" do
     test "success process", %{conn: conn} do
+      expect_mpi_get_person()
+
       %{party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
       %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
@@ -991,6 +1019,8 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "invalid transition", %{conn: conn} do
+      expect_mpi_get_person()
+
       legal_entity = insert(:prm, :legal_entity)
       medication = insert(:prm, :medication)
       party = insert(:prm, :party)
@@ -1031,6 +1061,8 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
   describe "reject medication dispense" do
     test "success reject", %{conn: conn} do
+      expect_mpi_get_person()
+
       %{party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
       %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
@@ -1179,6 +1211,8 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "invalid transition", %{conn: conn} do
+      expect_mpi_get_person()
+
       legal_entity = insert(:prm, :legal_entity)
       medication = insert(:prm, :medication)
       party = insert(:prm, :party)
@@ -1219,6 +1253,8 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
   describe "list by medication_request_id" do
     test "success list", %{conn: conn} do
+      expect_mpi_get_person()
+
       party = insert(:prm, :party)
       %{user_id: user_id, party: party} = insert(:prm, :party_user, party: party)
       legal_entity = insert(:prm, :legal_entity)
@@ -1283,6 +1319,12 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       conn = get(conn, medication_dispense_path(conn, :by_medication_request, UUID.generate()))
       assert json_response(conn, 500)
     end
+  end
+
+  defp expect_mpi_get_person do
+    expect(MPIMock, :person, fn id, _headers ->
+      {:ok, %{"data" => string_params_for(:person, id: id)}}
+    end)
   end
 
   defp new_dispense_params(params \\ %{}) do

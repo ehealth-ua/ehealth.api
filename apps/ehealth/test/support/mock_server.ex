@@ -14,8 +14,6 @@ defmodule EHealth.MockServer do
   @user_for_role_1 "7cc91a5d-c02f-41e9-b571-1ea4f2375111"
   @user_for_role_2 "7cc91a5d-c02f-41e9-b571-1ea4f2375222"
 
-  @active_person "585041f5-1272-4bca-8d41-8440eefe7200"
-
   plug(:match)
 
   plug(
@@ -32,7 +30,6 @@ defmodule EHealth.MockServer do
   def get_client_admin, do: @client_type_admin
   def get_client_nhs, do: @client_type_nhs
 
-  def get_active_person, do: @active_person
   def get_user_for_role_1, do: @user_for_role_1
   def get_user_for_role_2, do: @user_for_role_2
 
@@ -45,13 +42,13 @@ defmodule EHealth.MockServer do
   patch "/admin/clients/:client_id/refresh_secret" do
     %{"client_id" => id} = conn.params
 
-    response =
+    resp =
       id
       |> get_oauth_client()
       |> wrap_response(200)
       |> Poison.encode!()
 
-    Plug.Conn.send_resp(conn, 200, response)
+    Plug.Conn.send_resp(conn, 200, resp)
   end
 
   get "/admin/users" do
@@ -319,64 +316,6 @@ defmodule EHealth.MockServer do
     end
   end
 
-  # MPI
-  get "/persons/585041f5-1272-4bca-8d41-8440eefe7d26" do
-    render_404(conn)
-  end
-
-  get "/persons/:id" do
-    render(get_person(id), conn, 200)
-  end
-
-  get "/persons" do
-    paging = %{
-      "page_number" => 1,
-      "total_pages" => 1,
-      "page_size" => 10,
-      "total_entries" => 2
-    }
-
-    render_with_paging(
-      [
-        get_person(),
-        get_person()
-      ],
-      conn,
-      paging
-    )
-  end
-
-  post "/persons" do
-    render(get_person(), conn, 200)
-  end
-
-  patch "/persons/:id" do
-    case conn.params["id"] do
-      id = @active_person ->
-        medication_dispense =
-          Map.merge(
-            get_person(id),
-            conn.body_params
-          )
-
-        render(medication_dispense, conn, 200)
-
-      _ ->
-        render_404(conn)
-    end
-  end
-
-  patch "/persons/:id/actions/reset_auth_method" do
-    case conn.params["id"] do
-      id = @active_person ->
-        person = id |> get_person() |> Map.put("authentication_methods", [%{"type" => "NA"}])
-        render(person, conn, 200)
-
-      _ ->
-        render_404(conn)
-    end
-  end
-
   def get_declaration("terminated") do
     nil |> get_declaration() |> Map.put("status", "terminated")
   end
@@ -403,89 +342,6 @@ defmodule EHealth.MockServer do
         %{"type" => "OTP", "phone_number" => "+380670000000"}
       ],
       "declaration_number" => NumberGenerator.generate(1, 2)
-    }
-  end
-
-  defp get_medication_request(id, params \\ %{}) do
-    now = Date.utc_today()
-
-    Map.merge(
-      %{
-        id: id,
-        is_active: true,
-        status: "ACTIVE",
-        created_at: "2017-08-17",
-        started_at: now,
-        ended_at: now,
-        medical_program_id: "6ee844fd-9f4d-4457-9eda-22aa506be4c4",
-        dispense_valid_from: now,
-        dispense_valid_to: now,
-        person_id: "cc8bf10c-c419-4bdd-b92c-e445b3ac9bf6",
-        legal_entity_id: "dae597a8-c858-42f6-bc16-1a7bdd340466",
-        division_id: "e00e20ba-d20f-4ebb-a1dc-4bf58231019c",
-        employee_id: "46be2081-4bd2-4a7e-8999-2f6ce4b57dab",
-        innm: %{
-          innm: %{
-            id: Ecto.UUID.generate(),
-            is_active: true
-          },
-          medication_id: Ecto.UUID.generate(),
-          form: "Pill",
-          dosage: %{
-            numerator_unit: "mg",
-            numerator_value: 5,
-            denumerator_unit: "g",
-            denumerator_value: 1
-          },
-          container: %{
-            numerator_unit: "pill",
-            numerator_value: 1,
-            denumerator_unit: "pill",
-            denumerator_value: 1
-          },
-          request_qty: 5
-        },
-        request_for_medication_request_id: Ecto.UUID.generate(),
-        inserted_at: "2017-08-17",
-        verification_code: "1234",
-        medication_id: "2cdb8396-a1e9-11e7-abc4-cec278b6b50a",
-        medication_qty: 30,
-        request_number: "20"
-      },
-      params
-    )
-  end
-
-  def get_person(id \\ nil) do
-    %{
-      "id" => id || "156b4182-f9ce-4eda-b6af-43d2de8601z2",
-      "version" => "default",
-      "first_name" => "string value",
-      "last_name" => "string value",
-      "second_name" => "string value",
-      "birth_date" => "1991-08-19",
-      "birth_country" => "string value",
-      "birth_settlement" => "string value",
-      "gender" => "string value",
-      "email" => "test@example.com",
-      "tax_id" => "string value",
-      "national_id" => "string value",
-      "death_date" => "2091-08-19",
-      "is_active" => true,
-      "documents" => [],
-      "addresses" => [],
-      "phones" => [%{type: "MOBILE", number: "+380972526080"}],
-      "secret" => "string value",
-      "emergency_contact" => %{},
-      "confidant_person" => [],
-      "patient_signed" => true,
-      "process_disclosure_data_consent" => true,
-      "status" => "active",
-      "inserted_by" => UUID.generate(),
-      "updated_by" => UUID.generate(),
-      "merged_ids" => [UUID.generate(), UUID.generate()],
-      "authentication_methods" => [%{"type" => "OTP", "phone_number" => "+380955947998"}],
-      "preferred_way_communication" => "––"
     }
   end
 
@@ -568,64 +424,6 @@ defmodule EHealth.MockServer do
   def get_oauth_users(%{"email" => _}), do: []
   def get_oauth_users(_), do: [get_oauth_user()]
 
-  def get_medication_dispense(id \\ nil, params \\ %{}) do
-    Map.merge(
-      %{
-        "id" => id || Ecto.UUID.generate(),
-        "party_id" => "02852372-9e06-11e7-abc4-cec278b6b50a",
-        "legal_entity_id" => "5243c8e6-9e06-11e7-abc4-cec278b6b50a",
-        "medical_program_id" => "6ee844fd-9f4d-4457-9eda-22aa506be4c4",
-        "division_id" => "e00e20ba-d20f-4ebb-a1dc-4bf58231019c",
-        "dispensed_at" => "2017-05-01",
-        "details" => [
-          %{
-            "medication" => %{
-              "certificate" => "3335065522",
-              "certificate_expired_at" => "2012-04-17",
-              "code_atc" => "C08CA00",
-              "container" => %{
-                "denumerator_unit" => "pill",
-                "denumerator_value" => 1,
-                "numerator_unit" => "pill",
-                "numerator_value" => 1
-              },
-              "form" => "Pill",
-              "id" => "340ef14a-ab9b-4303-b01b-d40a2237e512",
-              "ingredients" => [],
-              "inserted_at" => "2017-04-20T19 =>14 =>13Z",
-              "inserted_by" => "a3becded-a731-40c7-938d-466a9ea7631d",
-              "is_active" => true,
-              "manufacturer" => %{
-                "country" => "UA",
-                "name" => "ПАТ `Київський вітамінний завод`"
-              },
-              "name" => "Prednisolonum Forte0",
-              "package_min_qty" => 10,
-              "package_qty" => 30,
-              "type" => "BRAND",
-              "updated_at" => "2017-04-20T19 =>14 =>13Z",
-              "updated_by" => "e739f67f-8b3f-474d-b0aa-f76e7602e477"
-            },
-            "medication_id" => "340ef14a-ab9b-4303-b01b-d40a2237e512",
-            "medication_qty" => 10,
-            "sell_price" => 18.65,
-            "sell_amount" => 186.5,
-            "discount_amount" => 150,
-            "reimbursement_amount" => 15
-          }
-        ],
-        "medication_request" => get_medication_request(Ecto.UUID.generate()),
-        "payment_id" => "1239804",
-        "status" => "NEW",
-        "inserted_at" => "2017-04-20T19:14:13Z",
-        "inserted_by" => "e1453f4c-1077-4e85-8c98-c13ffca0063e",
-        "updated_at" => "2017-04-20T19:14:13Z",
-        "updated_by" => "2922a240-63db-404e-b730-09222bfeb2dd"
-      },
-      params
-    )
-  end
-
   def render(resource, conn, status) do
     conn = Plug.Conn.put_status(conn, status)
 
@@ -664,6 +462,15 @@ defmodule EHealth.MockServer do
       "meta" => %{
         "code" => code,
         "type" => "list"
+      },
+      "data" => data
+    }
+  end
+
+  def wrap_object_response(data \\ %{}, code \\ 200) do
+    %{
+      "meta" => %{
+        "code" => code
       },
       "data" => data
     }

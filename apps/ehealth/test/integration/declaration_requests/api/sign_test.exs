@@ -2,13 +2,14 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase
+
+  import EHealth.DeclarationRequests.API.Sign
+  import Mox
+
   alias Ecto.UUID
   alias EHealth.DeclarationRequests.DeclarationRequest
   alias EHealth.Repo
   alias HTTPoison.Response
-  alias EHealth.MockServer
-  import EHealth.DeclarationRequests.API.Sign
-  import Mox
 
   describe "check_status/2" do
     test "returns error when status is not APPROVED" do
@@ -239,7 +240,7 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
       person_id = UUID.generate()
 
       expect(MPIMock, :search, fn _params, _headers ->
-        {:ok, %{"data" => [MockServer.get_person(person_id)]}}
+        {:ok, %{"data" => [string_params_for(:person, id: person_id)]}}
       end)
 
       expect(MPIMock, :update_person, fn id, params, _headers ->

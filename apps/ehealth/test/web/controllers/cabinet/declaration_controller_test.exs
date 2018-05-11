@@ -38,23 +38,6 @@ defmodule EHealth.Web.Cabinet.DeclarationControllerTest do
     end
   end
 
-  defmodule MpiServer do
-    @moduledoc false
-
-    use MicroservicesHelper
-    alias EHealth.MockServer
-
-    Plug.Router.get "/persons/c8912855-21c3-4771-ba18-bc0person_id" do
-      response =
-        :person
-        |> build(id: "c8912855-21c3-4771-ba18-bc0person_id")
-        |> MockServer.wrap_response()
-        |> Poison.encode!()
-
-      Plug.Conn.send_resp(conn, 200, response)
-    end
-  end
-
   @user_id "c8912855-21c3-4771-ba18-bcd80user_id"
   @person_id "c8912855-21c3-4771-ba18-bc0person_id"
   @legal_entity_id "edac9408-0998-4184-b64c-34eb9f27e3ba"
@@ -69,7 +52,6 @@ defmodule EHealth.Web.Cabinet.DeclarationControllerTest do
     insert(:prm, :division, %{id: @division_id})
 
     register_mircoservices_for_tests([
-      {MpiServer, "MPI_ENDPOINT"},
       {MithrilServer, "OAUTH_ENDPOINT"}
     ])
 

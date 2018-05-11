@@ -2,7 +2,11 @@ defmodule EHealth.Web.RegisterControllerTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase
+  import Mox
+
+  alias Ecto.UUID
   alias EHealth.Registers.Register
+  alias EHealth.MockServer
 
   @status_new Register.status(:new)
   @status_processed Register.status(:processed)
@@ -63,22 +67,6 @@ defmodule EHealth.Web.RegisterControllerTest do
     defmodule Termination do
       use MicroservicesHelper
 
-      Plug.Router.get "/persons" do
-        {code, data} =
-          case conn.query_params do
-            %{"number" => "primary"} ->
-              {200, [%{id: Ecto.UUID.generate()}, %{id: Ecto.UUID.generate()}]}
-
-            %{"number" => "processing"} ->
-              {500, %{error: "system unavailable"}}
-
-            _ ->
-              {200, []}
-          end
-
-        send_resp(conn, code, Poison.encode!(%{meta: %{code: code}, data: data}))
-      end
-
       Plug.Router.patch "/persons/:id/declarations/actions/terminate" do
         # check that declaration termination reason started with `auto_`
         case conn.body_params["reason"] do
@@ -86,20 +74,16 @@ defmodule EHealth.Web.RegisterControllerTest do
           _ -> send_resp(conn, 404, Poison.encode!(%{meta: %{code: 404}, data: %{}}))
         end
       end
-
-      Plug.Router.patch "/persons/:id" do
-        send_resp(conn, 200, Poison.encode!(%{meta: %{code: 200}, data: %{}}))
-      end
     end
+
+    setup :set_mox_global
 
     setup %{conn: conn} do
       {:ok, port, ref} = start_microservices(Termination)
 
-      System.put_env("MPI_ENDPOINT", "http://localhost:#{port}")
       System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
 
       on_exit(fn ->
-        System.put_env("MPI_ENDPOINT", "http://localhost:4040")
         System.put_env("OPS_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
       end)
@@ -108,6 +92,15 @@ defmodule EHealth.Web.RegisterControllerTest do
     end
 
     test "success with status PROCESSED", %{conn: conn} do
+      expect(MPIMock, :search, 3, fn _, _ ->
+        persons_data = [%{"id" => UUID.generate()}, %{"id" => UUID.generate()}]
+        {:ok, MockServer.wrap_response_with_paging(persons_data)}
+      end)
+
+      expect(MPIMock, :update_person, 6, fn _, _, _ ->
+        {:ok, MockServer.wrap_object_response()}
+      end)
+
       insert(:il, :dictionary_document_type)
       insert(:il, :dictionary_register_type)
 
@@ -152,6 +145,26 @@ defmodule EHealth.Web.RegisterControllerTest do
     end
 
     test "success with status PROCESSING", %{conn: conn} do
+      expect(MPIMock, :search, 4, fn params, _ ->
+        {operation_status, response_data} =
+          case params do
+            %{"number" => "primary"} ->
+              {:ok, MockServer.wrap_response_with_paging([%{"id" => UUID.generate()}, %{"id" => UUID.generate()}])}
+
+            %{"number" => "processing"} ->
+              {:error, %{"error" => %{"message" => "system unavailable"}}}
+
+            _ ->
+              {:ok, MockServer.wrap_response_with_paging([])}
+          end
+
+        {operation_status, response_data}
+      end)
+
+      expect(MPIMock, :update_person, 4, fn _, _, _ ->
+        {:ok, %{"data" => %{}, "meta" => %{"code" => 200}}}
+      end)
+
       %{values: values} = insert(:il, :dictionary_document_type)
       dict_values = values |> Map.keys() |> Kernel.++(["TAX_ID"]) |> Enum.join(", ")
 
@@ -324,13 +337,6 @@ defmodule EHealth.Web.RegisterControllerTest do
     defmodule TerminationWithRequiredParams do
       use MicroservicesHelper
 
-      Plug.Router.get "/persons" do
-        case is_binary(conn.query_params["type"]) do
-          true -> send_resp(conn, 200, Poison.encode!(%{meta: %{code: 200}, data: [%{id: Ecto.UUID.generate()}]}))
-          _ -> send_resp(conn, 404, Poison.encode!(%{meta: %{code: 422}, data: %{}}))
-        end
-      end
-
       Plug.Router.patch "/persons/:id/declarations/actions/terminate" do
         case is_binary(conn.body_params["reason_description"]) do
           true -> send_resp(conn, 200, Poison.encode!(%{meta: %{code: 200}, data: %{}}))
@@ -339,14 +345,14 @@ defmodule EHealth.Web.RegisterControllerTest do
       end
     end
 
+    setup :set_mox_global
+
     setup %{conn: conn} do
       {:ok, port, ref} = start_microservices(TerminationWithRequiredParams)
 
-      System.put_env("MPI_ENDPOINT", "http://localhost:#{port}")
       System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
 
       on_exit(fn ->
-        System.put_env("MPI_ENDPOINT", "http://localhost:4040")
         System.put_env("OPS_ENDPOINT", "http://localhost:4040")
         stop_microservices(ref)
       end)
@@ -356,6 +362,17 @@ defmodule EHealth.Web.RegisterControllerTest do
     end
 
     test "both params passed", %{conn: conn} do
+      expect(MPIMock, :search, 3, fn params, _ ->
+        case is_binary(params["type"]) do
+          true -> {:ok, MockServer.wrap_response_with_paging([%{"id" => UUID.generate()}], 200)}
+          _ -> {:error, MockServer.wrap_object_response(%{}, 422)}
+        end
+      end)
+
+      expect(MPIMock, :update_person, 3, fn _, _, _ ->
+        {:ok, MockServer.wrap_object_response()}
+      end)
+
       attrs = %{
         file: get_csv_file("valid"),
         file_name: "persons",
@@ -381,6 +398,13 @@ defmodule EHealth.Web.RegisterControllerTest do
     end
 
     test "param reason_description not passed", %{conn: conn} do
+      expect(MPIMock, :search, 3, fn params, _ ->
+        case is_binary(params["type"]) do
+          true -> {:ok, MockServer.wrap_response_with_paging([%{"id" => UUID.generate()}])}
+          _ -> {:error, MockServer.wrap_object_response(%{}, 422)}
+        end
+      end)
+
       attrs = %{
         file: get_csv_file("valid"),
         file_name: "persons",

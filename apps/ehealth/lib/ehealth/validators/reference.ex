@@ -3,7 +3,6 @@ defmodule EHealth.Validators.Reference do
   Validates reference existance
   """
 
-  alias EHealth.API.MPI
   alias EHealth.{Divisions, Employees, LegalEntities, Medications, MedicalPrograms, ContractRequests}
   alias EHealth.Divisions.Division
   alias EHealth.ContractRequests.ContractRequest
@@ -13,6 +12,7 @@ defmodule EHealth.Validators.Reference do
   alias EHealth.MedicalPrograms.MedicalProgram
 
   @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]
+  @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
 
   def validate(type, nil) do
     error(type)
@@ -61,7 +61,7 @@ defmodule EHealth.Validators.Reference do
   end
 
   def validate(:person = type, id, path) do
-    with {:ok, %{"data" => person}} <- MPI.person(id) do
+    with {:ok, %{"data" => person}} <- @mpi_api.person(id, []) do
       {:ok, person}
     else
       _ -> error(type, path)

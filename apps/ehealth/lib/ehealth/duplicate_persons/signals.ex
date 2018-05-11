@@ -3,10 +3,11 @@ defmodule EHealth.DuplicatePersons.Signals do
 
   use GenServer
 
-  alias EHealth.API.MPI
   alias EHealth.DuplicatePersons.Cleanup
   alias EHealth.DuplicatePersons.CleanupTasks
   alias EHealth.Declarations.Person
+
+  @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
 
   def init(args) do
     {:ok, args}
@@ -21,7 +22,7 @@ defmodule EHealth.DuplicatePersons.Signals do
   end
 
   def handle_call(:deactivate, _from, state) do
-    {:ok, %{"data" => merge_candidates}} = MPI.get_merge_candidates(%{status: Person.status(:new)})
+    {:ok, %{"data" => merge_candidates}} = @mpi_api.get_merge_candidates(%{status: Person.status(:new)}, [])
 
     groups = Enum.group_by(merge_candidates, & &1["master_person_id"], &{&1["id"], &1["person_id"]})
 

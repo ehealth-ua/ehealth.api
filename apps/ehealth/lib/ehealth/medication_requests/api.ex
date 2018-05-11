@@ -1,6 +1,10 @@
 defmodule EHealth.MedicationRequests.API do
   @moduledoc false
 
+  import Ecto.Changeset
+  import Ecto.Query
+  import EHealth.Utils.Connection, only: [get_consumer_id: 1, get_client_id: 1]
+
   alias EHealth.PartyUsers
   alias EHealth.Employees
   alias EHealth.Divisions.Division
@@ -16,19 +20,18 @@ defmodule EHealth.MedicationRequests.API do
   alias EHealth.LegalEntities
   alias EHealth.Divisions
   alias EHealth.MedicalPrograms
-  alias EHealth.API.MPI
   alias EHealth.Validators.JsonSchema
   alias EHealth.MedicationRequests.Search
   alias EHealth.PRMRepo
   alias EHealth.MedicationRequests.SMSSender
-  import EHealth.Utils.Connection, only: [get_consumer_id: 1, get_client_id: 1]
-  import Ecto.Changeset
-  import Ecto.Query
+
   require Logger
+
+  @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]
+  @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
 
   @legal_entity_msp LegalEntity.type(:msp)
   @legal_entity_pharmacy LegalEntity.type(:pharmacy)
-  @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]
 
   def list(params, client_type, headers) do
     with %Ecto.Changeset{valid?: true, changes: changes} <- changeset(params),
@@ -235,7 +238,7 @@ defmodule EHealth.MedicationRequests.API do
          %MedicalProgram{} = medical_program <- MedicalPrograms.get_by_id(medication_request["medical_program_id"]),
          %INNMDosage{} = medication <- Medications.get_innm_dosage_by_id(medication_request["medication_id"]),
          %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(medication_request["legal_entity_id"]),
-         {:ok, %{"data" => person}} <- MPI.person(medication_request["person_id"]) do
+         {:ok, %{"data" => person}} <- @mpi_api.person(medication_request["person_id"], []) do
       {
         :ok,
         medication_request

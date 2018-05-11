@@ -2,10 +2,9 @@ defmodule EHealth.DuplicatePersons.Cleanup do
   @moduledoc false
 
   alias EHealth.API.OPS
-  alias EHealth.API.MPI
   alias EHealth.Declarations.Person
 
-  @system_consumer_id Confex.fetch_env!(:ehealth, :system_user)
+  @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
 
   def cleanup(id, person_id) do
     {:ok, %{"data" => declarations}} =
@@ -15,19 +14,18 @@ defmodule EHealth.DuplicatePersons.Cleanup do
       })
 
     Enum.each(declarations, fn declaration ->
-      user_id = Confex.fetch_env!(:ehealth, :system_user)
-      OPS.terminate_person_declarations(declaration["person_id"], user_id, "auto_merge")
+      OPS.terminate_person_declarations(declaration["person_id"], system_user_id(), "auto_merge")
     end)
 
-    {:ok, %{"data" => _}} = MPI.update_merge_candidate(id, %{status: Person.status(:merged)}, headers())
-    {:ok, %{"data" => _}} = MPI.update_person(person_id, %{status: Person.status(:inactive)}, headers())
+    {:ok, %{"data" => _}} = @mpi_api.update_merge_candidate(id, %{status: Person.status(:merged)}, headers())
+    {:ok, %{"data" => _}} = @mpi_api.update_person(person_id, %{status: Person.status(:inactive)}, headers())
   end
 
   def update_master_merged_ids(master_person_id, duplicate_person_ids) do
-    {:ok, %{"data" => _}} = MPI.update_person(master_person_id, %{merged_ids: duplicate_person_ids}, headers())
+    {:ok, %{"data" => _}} = @mpi_api.update_person(master_person_id, %{merged_ids: duplicate_person_ids}, headers())
   end
 
-  defp headers do
-    [{"x-consumer-id", @system_consumer_id}]
-  end
+  defp system_user_id, do: Confex.fetch_env!(:ehealth, :system_user)
+
+  defp headers, do: [{"x-consumer-id", system_user_id()}]
 end

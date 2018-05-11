@@ -7,10 +7,12 @@ defmodule EHealth.Registers.API do
 
   alias EHealth.{Repo, Dictionaries}
   alias EHealth.Dictionaries.Dictionary
-  alias EHealth.API.{MPI, OPS}
+  alias EHealth.API.OPS
   alias EHealth.Ecto.Base64
   alias EHealth.Validators.JsonSchema
   alias EHealth.Registers.{Register, RegisterEntry, SearchRegisters, SearchRegisterEntries}
+
+  @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
 
   @status_matched RegisterEntry.status(:matched)
   @status_not_found RegisterEntry.status(:not_found)
@@ -101,8 +103,8 @@ defmodule EHealth.Registers.API do
          :ok <- JsonSchema.validate(:registers, attrs),
          register_data <- prepare_register_data(attrs, author_id),
          {:ok, %Register{} = register} <- create_register(register_data),
-         reason_desc <- attrs["reason_description"],
-         {:ok, processed_entries} <- batch_create_register_entries(register, attrs, reason_desc, author_id),
+         {:ok, processed_entries} <-
+           batch_create_register_entries(register, attrs, attrs["reason_description"], author_id),
          register_update_data <- prepare_register_update_data(processed_entries),
          {:ok, register} <- update_register(register, register_update_data) do
       {:ok, register}
@@ -205,7 +207,7 @@ defmodule EHealth.Registers.API do
     entry_data
     |> Map.put("type", String.downcase(type))
     |> Map.take(~w(type number))
-    |> MPI.search()
+    |> @mpi_api.search([])
   end
 
   defp set_entry_status(entry_data, {:ok, %{"data" => persons}}) when is_list(persons) and length(persons) > 0 do
@@ -263,7 +265,7 @@ defmodule EHealth.Registers.API do
   defp maybe_terminate_person_declaration(entry_data, _type, _reason_desc), do: entry_data
 
   defp maybe_deactivate_person(%{"status" => @status_matched, "person_id" => person_id} = entry_data, author_id) do
-    MPI.update_person(person_id, %{status: "INACTIVE"}, "x-consumer-id": author_id)
+    @mpi_api.update_person(person_id, %{status: "INACTIVE"}, "x-consumer-id": author_id)
     # don't care about MPI response
     entry_data
   end

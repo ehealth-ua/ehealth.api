@@ -6,7 +6,7 @@ defmodule EHealth.Declarations.API do
   import EHealth.Plugs.ClientContext, only: [get_context_params: 2]
   import EHealth.Utils.TypesConverter, only: [strings_to_keys: 1]
 
-  alias EHealth.API.{OPS, MPI, Mithril}
+  alias EHealth.API.{OPS, Mithril}
   alias EHealth.{LegalEntities, Employees, Persons, Divisions}
   alias EHealth.Employees.Employee
   alias EHealth.Divisions.Division
@@ -47,13 +47,13 @@ defmodule EHealth.Declarations.API do
   end
 
   def get_declaration(id, headers) do
-    with {:ok, %{"data" => decl_data}} <- OPS.get_declaration_by_id(id, headers),
-         division = Divisions.get_by_id(decl_data["division_id"]),
-         employee = Employees.get_by_id(decl_data["employee_id"]),
-         legal_entity = LegalEntities.get_by_id(decl_data["legal_entity_id"]),
-         {:ok, %{"data" => person_data}} <- MPI.person(decl_data["person_id"], headers),
-         merged_decl_data = merge_related_data(decl_data, person_data, legal_entity, division, employee),
-         do: {:ok, merged_decl_data}
+    with {:ok, %{"data" => declaration_data}} <- OPS.get_declaration_by_id(id, headers),
+         division = Divisions.get_by_id(declaration_data["division_id"]),
+         employee = Employees.get_by_id(declaration_data["employee_id"]),
+         legal_entity = LegalEntities.get_by_id(declaration_data["legal_entity_id"]),
+         {:ok, %{"data" => person_data}} <- @mpi_api.person(declaration_data["person_id"], headers),
+         merged_declaration_data = merge_related_data(declaration_data, person_data, legal_entity, division, employee),
+         do: {:ok, merged_declaration_data}
   end
 
   def fetch_related_ids(declarations) do

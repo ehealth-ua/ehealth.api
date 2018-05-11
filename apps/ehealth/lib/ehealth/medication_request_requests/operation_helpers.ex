@@ -7,10 +7,11 @@ defmodule EHealth.MedicationRequestRequest.OperationHelpers do
   alias EHealth.Divisions
   alias EHealth.MedicationRequestRequest.Validations
   alias EHealth.Utils.Helpers
-  alias EHealth.API.MPI
   alias EHealth.MedicationRequestRequest.Operation
   alias EHealth.Medications
   alias EHealth.MedicalPrograms
+
+  @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
 
   def get_employee(id) do
     Helpers.get_assoc_by_func("employee_id", fn -> Employees.get_by_id(id) end)
@@ -31,7 +32,7 @@ defmodule EHealth.MedicationRequestRequest.OperationHelpers do
   end
 
   def get_person(id) do
-    Helpers.get_assoc_by_func("person_id", fn -> MPI.person(id) end)
+    Helpers.get_assoc_by_func("person_id", fn -> @mpi_api.person(id, []) end)
   end
 
   def get_legal_entity(client_id) do
