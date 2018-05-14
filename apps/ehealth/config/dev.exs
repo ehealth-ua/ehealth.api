@@ -74,7 +74,7 @@ config :ehealth, EHealth.Man.Templates.DeclarationRequestPrintoutForm,
   id: {:system, "DECLARATION_REQUEST_PRINTOUT_FORM_TEMPLATE_ID", 4}
 
 config :ehealth, EHealth.Man.Templates.ContractRequestPrintoutForm,
-  id: {:system, "CONTRACT_REQUEST_PRINTOUT_FORM_TEMPLATE_ID", 6}
+  id: {:system, "CONTRACT_REQUEST_PRINTOUT_FORM_TEMPLATE_ID", 9}
 
 config :ehealth, EHealth.Man.Templates.CredentialsRecoveryRequest,
   id: {:system, "CREDENTIALS_RECOVERY_REQUEST_INVITATION_TEMPLATE_ID", 5}
