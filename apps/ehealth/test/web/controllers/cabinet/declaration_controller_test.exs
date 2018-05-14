@@ -56,20 +56,24 @@ defmodule EHealth.Web.Cabinet.DeclarationControllerTest do
     ])
 
     expect(OPSMock, :get_declarations, fn _params, _headers ->
-      declaration_data = [
-        id: @declaration_id,
-        person_id: @person_id,
-        employee_id: @employee_id,
-        legal_entity_id: @legal_entity_id,
-        division_id: @division_id
-      ]
-
-      declaration_data2 = [id: @declaration_id2, person_id: @person_id, employee_id: @employee_id]
-
       response =
         [
-          :declaration |> build(declaration_data) |> convert_atom_keys_to_strings(),
-          :declaration |> build(declaration_data2) |> convert_atom_keys_to_strings()
+          string_params_for(
+            :declaration,
+            id: @declaration_id,
+            person_id: @person_id,
+            employee_id: @employee_id,
+            legal_entity_id: @legal_entity_id,
+            division_id: @division_id
+          ),
+          string_params_for(
+            :declaration,
+            id: @declaration_id2,
+            person_id: @person_id,
+            employee_id: @employee_id,
+            legal_entity_id: @legal_entity_id,
+            division_id: @division_id
+          )
         ]
         |> MockServer.wrap_response_with_paging()
 
@@ -81,7 +85,7 @@ defmodule EHealth.Web.Cabinet.DeclarationControllerTest do
 
   test "searches person declarations in cabinet", %{conn: conn} do
     expect(MPIMock, :person, fn id, _headers ->
-      get_person(id, 200, %{tax_id: "12341234"})
+      mpi_get_person(id, 200, %{tax_id: "12341234"})
     end)
 
     response = conn |> send_list_declaration_request() |> json_response(200)
@@ -104,14 +108,9 @@ defmodule EHealth.Web.Cabinet.DeclarationControllerTest do
     |> get(cabinet_declarations_path(conn, :index), params)
   end
 
-  defp get_person(id, response_status, params) do
+  defp mpi_get_person(id, response_status, params) do
     params = Map.put(params, :id, id)
-    person = build(:person, params)
-
-    person =
-      person
-      |> Poison.encode!()
-      |> Poison.decode!()
+    person = string_params_for(:person, params)
 
     {:ok, %{"data" => person, "meta" => %{"code" => response_status}}}
   end

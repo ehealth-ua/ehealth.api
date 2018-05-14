@@ -63,18 +63,24 @@ defmodule EHealth.Web.DeclarationView do
     })
   end
 
-  def render("cabinet_index.json", %{declarations: declarations, employees: _, person: _} = view_data) do
+  def render("cabinet_index.json", %{declarations: declarations, declaration_references: _, person: _} = view_data) do
     render_many(declarations, __MODULE__, "cabinet_declaration.json", view_data)
   end
 
-  def render("cabinet_declaration.json", %{declaration: declaration, employees: employees, person: person}) do
-    %{legal_entity: legal_entity, division: division, party: party} = employee = employees[declaration["employee_id"]]
+  def render("cabinet_declaration.json", %{
+        declaration: declaration,
+        declaration_references: declaration_references,
+        person: person
+      }) do
+    legal_entity = get_in(declaration_references, [:legal_entity, declaration["legal_entity_id"]])
+    division = get_in(declaration_references, [:division, declaration["division_id"]])
+    employee = get_in(declaration_references, [:employee, declaration["employee_id"]])
 
     declaration
     |> Map.take(~w(id start_date declaration_number status))
     |> Map.put("person", render(PersonView, "person_short.json", %{"person" => person}))
     |> Map.put("employee", Map.take(employee, ~w(id position)a))
-    |> put_in(["employee", "party"], Map.take(party, ~w(id first_name last_name second_name)a))
+    |> put_in(["employee", "party"], Map.take(employee.party, ~w(id first_name last_name second_name)a))
     |> Map.put("legal_entity", render(LegalEntityView, "legal_entity_short.json", %{legal_entity: legal_entity}))
     |> Map.put("division", render(DivisionView, "division_short.json", %{division: division}))
   end

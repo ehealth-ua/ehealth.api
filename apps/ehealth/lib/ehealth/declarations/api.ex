@@ -6,6 +6,7 @@ defmodule EHealth.Declarations.API do
   import EHealth.Plugs.ClientContext, only: [get_context_params: 2]
   import EHealth.Utils.TypesConverter, only: [strings_to_keys: 1]
 
+  alias EHealth.Validators.Preload
   alias EHealth.API.{OPS, Mithril}
   alias EHealth.{LegalEntities, Employees, Persons, Divisions}
   alias EHealth.Employees.Employee
@@ -20,17 +21,18 @@ defmodule EHealth.Declarations.API do
     with {:ok, person} <- Persons.get_person(headers),
          declaration_params <- Map.merge(params, %{"person_id" => person["id"]}),
          {:ok, %{"data" => declarations, "paging" => paging}} <- @ops_api.get_declarations(declaration_params, headers),
-         employees <- preload_employees(declarations),
+         references <- load_declarations_references(declarations),
          paging <- strings_to_keys(paging) do
-      {:ok, %{declarations: declarations, employees: employees, person: person, paging: paging}}
+      {:ok, %{declarations: declarations, declaration_references: references, person: person, paging: paging}}
     end
   end
 
-  defp preload_employees(declarations) when is_list(declarations) do
-    declarations
-    |> Enum.map(&Map.get(&1, "employee_id"))
-    |> Employees.get_preloaded_by_ids()
-    |> Map.new(&{&1.id, &1})
+  defp load_declarations_references(declarations) when is_list(declarations) do
+    Preload.preload_references_for_list(declarations, [
+      {"employee_id", :employee},
+      {"division_id", :division},
+      {"legal_entity_id", :legal_entity}
+    ])
   end
 
   def get_declarations(params, headers) do

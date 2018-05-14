@@ -12,7 +12,7 @@ defmodule EHealth.Web.Cabinet.DeclarationController do
 
   def index(%Plug.Conn{req_headers: headers} = conn, params) do
     with %Ecto.Changeset{valid?: true} <- DeclarationsSearch.changeset(params),
-         {:ok, %{declarations: _, employees: _, person: _, paging: _} = response_data} <-
+         {:ok, %{declarations: _, declaration_references: _, person: _, paging: _} = response_data} <-
            Declarations.get_person_declarations(params, headers) do
       render(conn, DeclarationView, "cabinet_index.json", response_data)
     end

@@ -13,10 +13,10 @@ defmodule EHealth.OPSFactories.DeclarationFactory do
         %{
           id: UUID.generate(),
           declaration_request_id: UUID.generate(),
-          start_date: start_date,
+          start_date: to_string(start_date),
           end_date: end_date,
           status: "active",
-          signed_at: start_date,
+          signed_at: to_string(start_date),
           created_by: UUID.generate(),
           updated_by: UUID.generate(),
           employee_id: UUID.generate(),
