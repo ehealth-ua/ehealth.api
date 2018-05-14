@@ -24,6 +24,7 @@ defmodule EHealth.MedicationRequests.API do
   alias EHealth.MedicationRequests.Search
   alias EHealth.PRMRepo
   alias EHealth.MedicationRequests.SMSSender
+  alias EHealth.Utils.NumberGenerator
 
   require Logger
 
@@ -151,7 +152,7 @@ defmodule EHealth.MedicationRequests.API do
   end
 
   defp do_get_medication_request(_, _, "NHS ADMIN", id, headers) do
-    with search_params <- get_show_search_params(id),
+    with {:ok, search_params} <- add_id_search_params(%{}, id),
          {:ok, %{"data" => [medication_request]}} <- @ops_api.get_doctor_medication_requests(search_params, headers) do
       {:ok, medication_request}
     else
@@ -163,11 +164,12 @@ defmodule EHealth.MedicationRequests.API do
   defp do_get_medication_request(legal_entity_id, user_id, _, id, headers) do
     with %PartyUser{party: party} <- get_party_user(user_id),
          %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(legal_entity_id),
-         search_params <- get_show_search_params(party.id, legal_entity, id),
+         {:ok, search_params} <- get_show_search_params(party.id, legal_entity, id),
          {:ok, %{"data" => [medication_request]}} <- @ops_api.get_doctor_medication_requests(search_params, headers) do
       {:ok, medication_request}
     else
       {:ok, %{"data" => []}} -> nil
+      :validation_error -> nil
       error -> error
     end
   end
@@ -179,12 +181,28 @@ defmodule EHealth.MedicationRequests.API do
   end
 
   defp get_show_search_params(party_id, %LegalEntity{id: legal_entity_id, type: @legal_entity_msp}, id) do
-    employee_ids = get_employees(party_id, legal_entity_id)
-    %{"employee_id" => Enum.join(employee_ids, ","), "id" => id}
+    with employee_ids <- get_employees(party_id, legal_entity_id),
+         {:ok, search_params} <- add_id_search_params(%{"employee_id" => Enum.join(employee_ids, ",")}, id) do
+      {:ok, search_params}
+    end
   end
 
-  defp get_show_search_params(_, %LegalEntity{type: @legal_entity_pharmacy}, id), do: get_show_search_params(id)
-  defp get_show_search_params(id), do: %{"id" => id}
+  defp get_show_search_params(_, %LegalEntity{type: @legal_entity_pharmacy}, id), do: add_id_search_params(%{}, id)
+
+  defp add_id_search_params(search_params, id) do
+    symbols = NumberGenerator.get_number_symbols()
+
+    cond do
+      Regex.match?(~r/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i, id) ->
+        {:ok, Map.put(search_params, "id", id)}
+
+      Regex.match?(~r/^[0]{4}-[#{symbols}]{4}-[#{symbols}]{4}-[#{symbols}]{4}/, id) ->
+        {:ok, Map.put(search_params, "request_number", id)}
+
+      true ->
+        :validation_error
+    end
+  end
 
   defp get_search_params(employee_ids, %{person_id: person_id} = params) do
     Map.put(do_get_search_params(employee_ids, params), :person_id, person_id)

@@ -7,6 +7,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
   alias EHealth.PRMRepo
   alias EHealth.LegalEntities.LegalEntity
   alias Ecto.UUID
+  alias EHealth.Utils.NumberGenerator
 
   setup :verify_on_exit!
 
@@ -197,6 +198,86 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       end)
 
       conn = get(conn, medication_request_path(conn, :show, UUID.generate()))
+      assert json_response(conn, 404)
+    end
+  end
+
+  describe "show medication_request by number" do
+    test "success get medication_request by number", %{conn: conn} do
+      expect(MPIMock, :person, fn id, _headers ->
+        {:ok, %{"data" => string_params_for(:person, id: id)}}
+      end)
+
+      user_id = get_consumer_id(conn.req_headers)
+      legal_entity_id = get_client_id(conn.req_headers)
+      division = insert(:prm, :division)
+      %{id: innm_dosage_id} = insert_innm_dosage()
+      insert_medication(innm_dosage_id)
+      %{id: medical_program_id} = insert(:prm, :medical_program)
+
+      %{party: party} =
+        :prm
+        |> insert(:party_user, user_id: user_id)
+        |> PRMRepo.preload(:party)
+
+      legal_entity = PRMRepo.get!(LegalEntity, legal_entity_id)
+      %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
+
+      medication_request_number = NumberGenerator.generate(1)
+
+      medication_request =
+        build_resp(%{
+          legal_entity_id: legal_entity_id,
+          division_id: division.id,
+          employee_id: employee_id,
+          medical_program_id: medical_program_id,
+          medication_id: innm_dosage_id
+        })
+        |> Map.put("request_number", medication_request_number)
+
+      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
+        {:ok,
+         %{
+           "data" => [medication_request],
+           "paging" => %{
+             "page_number" => 1,
+             "page_size" => 50,
+             "total_entries" => 1,
+             "total_pages" => 1
+           }
+         }}
+      end)
+
+      conn
+      |> get(medication_request_path(conn, :show, medication_request_number))
+      |> json_response(200)
+      |> Map.get("data")
+      |> assert_show_response_schema("medication_request")
+    end
+
+    test "no party user", %{conn: conn} do
+      conn = get(conn, medication_request_path(conn, :show, NumberGenerator.generate(1)))
+      assert json_response(conn, 500)
+    end
+
+    test "not found", %{conn: conn} do
+      user_id = get_consumer_id(conn.req_headers)
+      insert(:prm, :party_user, user_id: user_id)
+
+      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
+        {:ok,
+         %{
+           "data" => [],
+           "paging" => %{
+             "page_number" => 1,
+             "page_size" => 50,
+             "total_entries" => 0,
+             "total_pages" => 1
+           }
+         }}
+      end)
+
+      conn = get(conn, medication_request_path(conn, :show, NumberGenerator.generate(1)))
       assert json_response(conn, 404)
     end
   end

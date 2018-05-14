@@ -58,4 +58,6 @@ defmodule EHealth.Utils.NumberGenerator do
     |> Enum.map(fn _ -> :rand.uniform(9) end)
     |> Enum.join()
   end
+
+  def get_number_symbols, do: Enum.join(@human_readble_symbols)
 end
