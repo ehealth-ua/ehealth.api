@@ -9,7 +9,7 @@ defmodule EHealth.API.Man do
 
   @behaviour EHealth.API.ManBehaviour
 
-  @filter_headers ~w(content-length Content-Length api-key authorization accept-language)
+  @filter_headers ~w(content-length Content-Length api-key authorization accept-language content-type)
 
   def process_url(url), do: config()[:endpoint] <> url
 
@@ -19,7 +19,8 @@ defmodule EHealth.API.Man do
     headers =
       headers
       |> Keyword.drop(@filter_headers)
-      |> Kernel.++([{"Content-Type", "application/json"}])
+      |> Kernel.++([{"content-type", "application/json"}])
+      |> Kernel.++([{"accept", "text/html"}])
 
     processed_request_headers =
       Enum.reduce(headers, %{}, fn {k, v}, map ->
