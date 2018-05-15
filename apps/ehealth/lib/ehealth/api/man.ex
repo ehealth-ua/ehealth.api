@@ -9,7 +9,7 @@ defmodule EHealth.API.Man do
 
   @behaviour EHealth.API.ManBehaviour
 
-  @filter_headers ~w(content-length Content-Length api-key authorization accept-language content-type)
+  @filter_headers ~w(content-length Content-Length api-key authorization accept-language content-type accept)
 
   def process_url(url), do: config()[:endpoint] <> url
 
