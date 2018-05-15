@@ -3,7 +3,7 @@ defmodule EHealth.Validators.CacheTest do
 
   @behaviour EHealth.Validators.CacheBehaviour
 
-  def get_json_schema(key), do: {:ok, nil}
+  def get_json_schema(_key), do: {:ok, nil}
 
-  def set_json_schema(key, schema), do: :ok
+  def set_json_schema(_key, _schema), do: :ok
 end

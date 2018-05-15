@@ -298,56 +298,6 @@ defmodule EHealth.MockServer do
     }
   end
 
-  defp get_medication_request(id, params \\ %{}) do
-    now = Date.utc_today()
-
-    Map.merge(
-      %{
-        id: id,
-        is_active: true,
-        status: "ACTIVE",
-        created_at: "2017-08-17",
-        started_at: now,
-        ended_at: now,
-        medical_program_id: "6ee844fd-9f4d-4457-9eda-22aa506be4c4",
-        dispense_valid_from: now,
-        dispense_valid_to: now,
-        person_id: "cc8bf10c-c419-4bdd-b92c-e445b3ac9bf6",
-        legal_entity_id: "dae597a8-c858-42f6-bc16-1a7bdd340466",
-        division_id: "e00e20ba-d20f-4ebb-a1dc-4bf58231019c",
-        employee_id: "46be2081-4bd2-4a7e-8999-2f6ce4b57dab",
-        innm: %{
-          innm: %{
-            id: Ecto.UUID.generate(),
-            is_active: true
-          },
-          medication_id: Ecto.UUID.generate(),
-          form: "Pill",
-          dosage: %{
-            numerator_unit: "mg",
-            numerator_value: 5,
-            denumerator_unit: "g",
-            denumerator_value: 1
-          },
-          container: %{
-            numerator_unit: "pill",
-            numerator_value: 1,
-            denumerator_unit: "pill",
-            denumerator_value: 1
-          },
-          request_qty: 5
-        },
-        request_for_medication_request_id: Ecto.UUID.generate(),
-        inserted_at: "2017-08-17",
-        verification_code: "1234",
-        medication_id: "2cdb8396-a1e9-11e7-abc4-cec278b6b50a",
-        medication_qty: 30,
-        request_number: "20"
-      },
-      params
-    )
-  end
-
   def get_person(id \\ nil) do
     %{
       "id" => id || "156b4182-f9ce-4eda-b6af-43d2de8601z2",

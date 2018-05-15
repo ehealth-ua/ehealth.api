@@ -4,7 +4,6 @@ defmodule EHealth.Contracts.Search do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias EHealth.Ecto.StringLike
   alias Ecto.UUID
 
   @primary_key false

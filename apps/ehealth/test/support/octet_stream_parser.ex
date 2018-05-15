@@ -6,6 +6,8 @@ defmodule Plug.Parsers.OCTETSTREAM do
   @behaviour Plug.Parsers
   alias Plug.Conn
 
+  def init(opts), do: opts
+
   def parse(conn, "application", "octet-stream", _headers, opts) do
     case Conn.read_body(conn, opts) do
       {:ok, body, conn} ->

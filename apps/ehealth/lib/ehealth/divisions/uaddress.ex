@@ -2,10 +2,9 @@ defmodule EHealth.Divisions.UAddress do
   @moduledoc """
   Service layer for synchronous update of the UAddress settlement and divisions
   """
-  alias EHealth.API.UAddress
-  alias EHealth.Divisions
-
   import EHealth.Utils.Connection, only: [get_consumer_id: 1]
+
+  alias EHealth.Divisions
 
   @uaddresses_api Application.get_env(:ehealth, :api_resolvers)[:uaddresses]
 
