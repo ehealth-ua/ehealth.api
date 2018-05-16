@@ -45,7 +45,11 @@ defmodule EHealth.Declarations.API do
            preload_persons(Enum.join(related_ids["person_ids"], ","), Map.get(params, "page_size"), headers),
          relations <- build_indexes(divisions, employees, legal_entities, persons["data"]),
          declarations <- merge_related_data(declarations_data, relations) do
-      {:ok, %{declarations: declarations, paging: struct(Page, paging)}}
+      {:ok,
+       %{
+         declarations: declarations,
+         paging: struct(Page, Enum.into(paging, %{}, fn {k, v} -> {String.to_atom(k), v} end))
+       }}
     end
   end
 
