@@ -58,8 +58,8 @@ defmodule EHealth.Declarations.API do
   end
 
   defp preload_persons("", _, _), do: {:ok, %{"data" => []}}
-  defp preload_persons(ids, nil, headers), do: @mpi_api.search(%{ids: ids}, headers)
-  defp preload_persons(ids, page_size, headers), do: @mpi_api.search(%{ids: ids, page_size: page_size}, headers)
+  defp preload_persons(ids, nil, headers), do: EHealth.API.MPI.search(%{ids: ids}, headers)
+  defp preload_persons(ids, page_size, headers), do: EHealth.API.MPI.search(%{ids: ids, page_size: page_size}, headers)
 
   defp put_related_id(list, id) do
     case Enum.member?(list, id) do
