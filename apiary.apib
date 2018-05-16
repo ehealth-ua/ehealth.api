@@ -2148,8 +2148,8 @@ Thie WS designed to check existence of user with input tax_id
 the below table reflects actual API endpoints for all the ehealth environments
 Env     | Host
 --------|-----
-DEMO    | https://demo.ehealth.world
-PREPROD | https://denovo.ehealth.world
+DEMO    | https://api-demo.ehealth-ukraine.org
+PREPROD | https://api-preprod.ehealth-ukraine.org
 PROD    | https://api.ehealth-ukraine.org
 
 ##oAuth [/api/oauth]
@@ -2191,8 +2191,8 @@ Use following HOSTs for oAuth 2.0 Authentication
 
 Env     | Host
 --------|-----
-DEMO    | http://auth.demo.ehealth.world
-PREPROD | https://auth-denovo.ehealth.world
+DEMO    | https://auth-demo.ehealth-ukraine.org
+PREPROD | https://auth-preprod.ehealth-ukraine.org
 PROD    | https://auth.ehealth-ukraine.org
 
 You MUST redirect your users to this URL to obtain oAuth Code Grant (which is later exchanged to Access Token).
@@ -4943,14 +4943,14 @@ The data received in response can be changed and signed in order to update emplo
 
 This method is designed to manage and update employee and division in contract.
 Contract itself can be updated only through 2 signed contract request with input contract_number.
-Update must be done through signed content. After update previous list of employees and their division is deactivated.
+Employees in contract update must be done through signed content. Each employee updates individually.
 For each employee there is start_date and end_date (within contract). In case employees by contract id weren't updated end_date=null.
 Otherwise end_date=update_date.
+To decativate employee in contract parameter `is_active=false` must be set in signed content.
 It's impossible to update contract appendix 2 if contract status<>'VERIFIED'
 
 Example data to sign:
 ```
-[
   {
     "employee_id": {
       "id": "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
@@ -4972,6 +4972,7 @@ Example data to sign:
     },
     "staff_units": 0.5,
     "declaration_limit": 2000,
+    "is_active": true,
     "division": {
       "id": "2922a240-63db-404e-b730-09222bfeb2dd",
       "name": "Бориспільське відділення Клініки Ноунейм",
@@ -5039,7 +5040,6 @@ Example data to sign:
       "mountain_group": false
     }
   }
-]
 ```
 
 + Parameters
