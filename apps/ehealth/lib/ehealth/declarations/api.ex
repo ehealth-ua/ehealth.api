@@ -22,7 +22,8 @@ defmodule EHealth.Declarations.API do
          divisions <- Divisions.get_by_ids(related_ids["division_ids"]),
          employees <- Employees.get_by_ids(related_ids["employee_ids"]),
          legal_entities <- LegalEntities.get_by_ids(related_ids["legal_entity_ids"]),
-         {:ok, persons} <- preload_persons(Enum.join(related_ids["person_ids"], ","), headers),
+         {:ok, persons} <-
+           preload_persons(Enum.join(related_ids["person_ids"], ","), Map.get(params, "page_size"), headers),
          relations <- build_indexes(divisions, employees, legal_entities, persons["data"]),
          prepared_data <- merge_related_data(resp["data"], relations),
          declarations <- render_declarations(prepared_data),
@@ -56,8 +57,9 @@ defmodule EHealth.Declarations.API do
     |> Enum.into(%{})
   end
 
-  defp preload_persons("", _), do: {:ok, %{"data" => []}}
-  defp preload_persons(ids, headers), do: MPI.search(%{ids: ids}, headers)
+  defp preload_persons("", _, _), do: {:ok, %{"data" => []}}
+  defp preload_persons(ids, nil, headers), do: @mpi_api.search(%{ids: ids}, headers)
+  defp preload_persons(ids, page_size, headers), do: @mpi_api.search(%{ids: ids, page_size: page_size}, headers)
 
   defp put_related_id(list, id) do
     case Enum.member?(list, id) do
