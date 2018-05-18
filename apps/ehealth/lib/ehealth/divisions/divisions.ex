@@ -3,10 +3,10 @@ defmodule EHealth.Divisions do
   The boundary for the Divisions system.
   """
 
+  use EHealth.Search, EHealth.PRMRepo
+
   import Ecto.Changeset, warn: false
   import EHealth.Utils.Connection, only: [get_client_id: 1, get_consumer_id: 1]
-
-  use EHealth.Search, EHealth.PRMRepo
 
   alias EHealth.PRMRepo
   alias EHealth.Divisions.Search
@@ -61,16 +61,21 @@ defmodule EHealth.Divisions do
   end
 
   def get_by_id!(id) do
-    PRMRepo.get!(Division, id)
+    Division
+    |> query_addresses()
+    |> PRMRepo.get!(id)
   end
 
   def get_by_id(id) do
-    PRMRepo.get(Division, id)
+    Division
+    |> query_addresses()
+    |> PRMRepo.get(id)
   end
 
   def get_by_ids(ids) when is_list(ids) do
     Division
     |> where([d], d.id in ^ids)
+    |> query_addresses()
     |> PRMRepo.all()
   end
 
@@ -219,7 +224,9 @@ defmodule EHealth.Divisions do
   end
 
   defp changeset(%Division{} = division, %{"location" => %{"longitude" => lng, "latitude" => lat}} = attrs) do
-    changeset(division, Map.put(attrs, "location", %Geo.Point{coordinates: {lng, lat}}))
+    division
+    |> changeset(Map.put(attrs, "location", %Geo.Point{coordinates: {lng, lat}}))
+    |> cast_division_addresses(attrs)
   end
 
   defp changeset(%Division{} = division, attrs) do
@@ -227,10 +234,19 @@ defmodule EHealth.Divisions do
     |> cast(attrs, @fields_optional ++ @fields_required)
     |> validate_required(@fields_required)
     |> foreign_key_constraint(:legal_entity_id)
+    |> cast_division_addresses(attrs)
   end
 
   defp changeset(%Search{} = division, attrs) do
     cast(division, attrs, @search_fields)
+  end
+
+  defp cast_division_addresses(changeset, attrs) do
+    attrs = Map.put(attrs, "division_addresses", Map.get(attrs, "addresses", []))
+
+    changeset
+    |> cast(attrs, [])
+    |> cast_assoc(:division_addresses)
   end
 
   defp mountain_group_changeset(attrs) do
@@ -253,14 +269,21 @@ defmodule EHealth.Divisions do
 
     division
     |> select([d], d)
+    |> query_addresses()
     |> query_name(Map.get(changes, :name))
     |> where(^params)
   end
 
-  def query_name(query, nil), do: query
+  defp query_name(query, nil), do: query
 
-  def query_name(query, name) do
+  defp query_name(query, name) do
     query |> where([d], ilike(d.name, ^"%#{name}%"))
+  end
+
+  defp query_addresses(division_query) do
+    division_query
+    |> join(:left, [d], da in assoc(d, :division_addresses))
+    |> preload([d, da], division_addresses: da)
   end
 
   defp convert_comma_params_to_where_in_clause(changes, param_name, db_field) do
@@ -293,12 +316,12 @@ defmodule EHealth.Divisions do
   defp log_changes(%{update_divisions_mountain_group: {_, updated_divisions}}, consumer_id) do
     changes =
       updated_divisions
-      |> Enum.map(fn ud ->
+      |> Enum.map(fn division ->
         %{
           actor_id: consumer_id,
           resource: "divisions",
-          resource_id: ud.id,
-          changeset: %{mountain_group: ud.mountain_group}
+          resource_id: division.id,
+          changeset: %{mountain_group: division.mountain_group}
         }
       end)
       |> Enum.map(&Map.put(&1, :inserted_at, NaiveDateTime.utc_now()))

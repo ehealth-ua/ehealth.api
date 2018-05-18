@@ -2,8 +2,8 @@ defmodule EHealth.Web.DivisionsControllerTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase, async: false
-  import EHealth.SimpleFactory, only: [address: 1]
 
+  import EHealth.SimpleFactory, only: [address: 1]
   import Mox
 
   alias Ecto.UUID
@@ -85,7 +85,7 @@ defmodule EHealth.Web.DivisionsControllerTest do
   end
 
   test "get divisions with  client_id that does not match legal entity id", %{conn: conn} do
-    conn = put_client_id_header(conn, Ecto.UUID.generate())
+    conn = put_client_id_header(conn, UUID.generate())
     id = "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
     conn = get(conn, division_path(conn, :index, legal_entity_id: id))
     resp = json_response(conn, 200)
@@ -182,7 +182,7 @@ defmodule EHealth.Web.DivisionsControllerTest do
 
   test "create division with invalid legal_entity", %{conn: conn} do
     division = get_division()
-    conn = put_client_id_header(conn, Ecto.UUID.generate())
+    conn = put_client_id_header(conn, UUID.generate())
     conn = post(conn, division_path(conn, :create), division)
 
     assert [err] = json_response(conn, 422)["error"]["invalid"]
@@ -203,7 +203,7 @@ defmodule EHealth.Web.DivisionsControllerTest do
       |> Confex.fetch_env!(:legal_entity_division_types)
       |> Keyword.get(:msp)
 
-    assert allowed_types == err["rules"] |> hd |> Map.get("params")
+    assert allowed_types == err["rules"] |> hd() |> Map.get("params")
   end
 
   test "create division with invalid working hours", %{conn: conn} do

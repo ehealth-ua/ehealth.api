@@ -32,6 +32,7 @@ defmodule EHealth.Divisions.Division do
     field(:working_hours, :map)
 
     belongs_to(:legal_entity, EHealth.LegalEntities.LegalEntity, type: Ecto.UUID)
+    has_many(:division_addresses, EHealth.Divisions.DivisionAddress, foreign_key: :division_id, on_replace: :delete)
 
     timestamps()
   end
