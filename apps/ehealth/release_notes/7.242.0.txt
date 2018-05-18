@@ -1,0 +1,7 @@
+Change log for versions 7.242.0 - 7.242.1
+
+**Patches and bug fixes**:
+
+change 409 to 422 validation for Cabinet:email_validation (#2315)
+
+
