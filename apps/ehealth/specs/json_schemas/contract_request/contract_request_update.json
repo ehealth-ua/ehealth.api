@@ -2,6 +2,10 @@
     "$schema": "http://json-schema.org/draft-04/schema#",
     "type": "object",
     "properties": {
+        "nhs_signer_id": {
+            "type": "string",
+            "description": "id of signer of nhs side"
+        },
         "nhs_signer_base": {
             "type": "string",
             "description": "documents which allows to represent nhs"

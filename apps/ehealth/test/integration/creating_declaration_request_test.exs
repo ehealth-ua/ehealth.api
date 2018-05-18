@@ -34,10 +34,6 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       end
 
       # OTP Verifications
-      # Plug.Router.get "/verifications/+380508887700" do
-      #   send_resp(conn, 200, Poison.encode!(%{data: ["response_we_don't_care_about"]}))
-      # end
-
       Plug.Router.post "/verifications" do
         "+380508887700" = conn.body_params["phone_number"]
 

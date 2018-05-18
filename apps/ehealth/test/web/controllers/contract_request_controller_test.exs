@@ -18,14 +18,6 @@ defmodule EHealth.Web.ContractRequestControllerTest do
   @contract_request_status_declined ContractRequest.status(:declined)
 
   describe "create contract request" do
-    test "user is not owner", %{conn: conn} do
-      %{legal_entity: legal_entity, division: division, employee: employee} = prepare_data("DOCTOR")
-      params = prepare_params(division, employee)
-      conn = put_client_id_header(conn, legal_entity.id)
-      conn = post(conn, contract_request_path(conn, :create), params)
-      assert json_response(conn, 403)
-    end
-
     test "employee division is not active", %{conn: conn} do
       %{legal_entity: legal_entity, employee: employee} = prepare_data()
       division = insert(:prm, :division)
@@ -36,12 +28,12 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       assert_error(
         resp,
-        "$.contractor_employee_divisions[0].division_id",
+        "$.contractor_divisions[0]",
         "Division must be active and within current legal_entity"
       )
     end
 
-    test "external contractor division is not present in employee divisions", %{conn: conn} do
+    test "external contractor division is not present in contract divisions", %{conn: conn} do
       %{legal_entity: legal_entity, division: division, employee: employee} = prepare_data()
       conn = put_client_id_header(conn, legal_entity.id)
 
@@ -59,7 +51,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       assert_error(
         resp,
         "$.external_contractors[0].divisions[0].id",
-        "The division is not belong to contractor_employee_divisions"
+        "The division is not belong to contractor_divisions"
       )
     end
 
@@ -217,9 +209,10 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> Map.put("contract_number", NumberGenerator.generate_from_sequence(1, 1))
         |> Map.put("start_date", Date.to_iso8601(start_date))
         |> Map.put("end_date", Date.to_iso8601(Date.add(now, 30)))
+        |> Map.delete("contractor_employee_divisions")
 
-      conn1 = post(conn, contract_request_path(conn, :create), params)
-      assert resp = json_response(conn1, 200)
+      conn = post(conn, contract_request_path(conn, :create), params)
+      assert resp = json_response(conn, 200)
 
       schema =
         "specs/json_schemas/contract_request/contract_request_show_response.json"
@@ -711,7 +704,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
                    "entry_type" => "json_data_property",
                    "rules" => [
                      %{
-                       "description" => "Employee must be active DOCTOR with linked division",
+                       "description" => "Employee must be active DOCTOR",
                        "params" => [],
                        "rule" => "invalid"
                      }
@@ -751,6 +744,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
           contractor_legal_entity_id: legal_entity.id,
           contractor_owner_id: employee_owner.id,
           start_date: start_date,
+          contractor_divisions: [division.id],
           contractor_employee_divisions: [
             %{
               "employee_id" => employee_doctor.id,
@@ -817,8 +811,11 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         insert(
           :il,
           :contract_request,
+          nhs_signer_id: employee_owner.id,
+          nhs_legal_entity_id: legal_entity.id,
           contractor_legal_entity_id: legal_entity.id,
           contractor_owner_id: employee_owner.id,
+          contractor_divisions: [division.id],
           contractor_employee_divisions: [
             %{
               "employee_id" => employee_doctor.id,
@@ -1199,42 +1196,6 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       assert %{"message" => "Invalid client_id", "type" => "forbidden"} = resp["error"]
     end
 
-    test "party_user not found", %{conn: conn} do
-      client_id = get_client_nhs()
-      contract_request = insert(:il, :contract_request, nhs_legal_entity_id: client_id)
-      conn = put_client_id_header(conn, client_id)
-
-      conn =
-        patch(conn, contract_request_path(conn, :sign_nhs, contract_request.id), %{
-          "signed_content" => "",
-          "signed_content_encoding" => "base64"
-        })
-
-      assert resp = json_response(conn, 422)
-      assert %{"message" => "Employee is not allowed to sign"} = resp["error"]
-    end
-
-    test "valid employee not found", %{conn: conn} do
-      client_id = get_client_nhs()
-      user_id = UUID.generate()
-      insert(:prm, :party_user, user_id: user_id)
-      contract_request = insert(:il, :contract_request, nhs_legal_entity_id: client_id)
-
-      conn =
-        conn
-        |> put_client_id_header(client_id)
-        |> put_consumer_id_header(user_id)
-
-      conn =
-        patch(conn, contract_request_path(conn, :sign_nhs, contract_request.id), %{
-          "signed_content" => "",
-          "signed_content_encoding" => "base64"
-        })
-
-      assert resp = json_response(conn, 422)
-      assert_error(resp, "Employee is not allowed to sign")
-    end
-
     test "contract_request already signed", %{conn: conn} do
       %{"client_id" => client_id, "user_id" => user_id, "contract_request" => contract_request} =
         prepare_nhs_sign_params(status: ContractRequest.status(:nhs_signed))
@@ -1274,13 +1235,18 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "content doesn't match", %{conn: conn} do
-      %{"client_id" => client_id, "user_id" => user_id, "contract_request" => contract_request} =
-        prepare_nhs_sign_params()
+      %{
+        "client_id" => client_id,
+        "user_id" => user_id,
+        "contract_request" => contract_request,
+        "party_user" => party_user
+      } = prepare_nhs_sign_params()
 
       conn =
         conn
         |> put_client_id_header(client_id)
         |> put_consumer_id_header(user_id)
+        |> put_req_header("drfo", party_user.party.tax_id)
 
       data = %{"id" => contract_request.id, "printout_content" => "<html></html>"}
 
@@ -1298,13 +1264,18 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       id = UUID.generate()
       data = %{"id" => id, "printout_content" => "<html></html>"}
 
-      %{"client_id" => client_id, "user_id" => user_id, "contract_request" => contract_request} =
-        prepare_nhs_sign_params(id: id, data: data)
+      %{
+        "client_id" => client_id,
+        "party_user" => party_user,
+        "user_id" => user_id,
+        "contract_request" => contract_request
+      } = prepare_nhs_sign_params(id: id, data: data)
 
       conn =
         conn
         |> put_client_id_header(client_id)
         |> put_consumer_id_header(user_id)
+        |> put_req_header("drfo", party_user.party.tax_id)
 
       conn =
         patch(conn, contract_request_path(conn, :sign_nhs, contract_request.id), %{
@@ -1327,7 +1298,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       %{
         "client_id" => client_id,
         "user_id" => user_id,
-        "contract_request" => contract_request
+        "contract_request" => contract_request,
+        "party_user" => party_user
       } =
         prepare_nhs_sign_params(
           id: id,
@@ -1339,6 +1311,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         conn
         |> put_client_id_header(client_id)
         |> put_consumer_id_header(user_id)
+        |> put_req_header("drfo", party_user.party.tax_id)
 
       conn =
         patch(conn, contract_request_path(conn, :sign_nhs, contract_request.id), %{
@@ -1361,7 +1334,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       %{
         "client_id" => client_id,
         "user_id" => user_id,
-        "contract_request" => contract_request
+        "contract_request" => contract_request,
+        "party_user" => party_user
       } =
         prepare_nhs_sign_params(
           id: id,
@@ -1373,6 +1347,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         conn
         |> put_client_id_header(client_id)
         |> put_consumer_id_header(user_id)
+        |> put_req_header("drfo", party_user.party.tax_id)
 
       conn =
         patch(conn, contract_request_path(conn, :sign_nhs, contract_request.id), %{
@@ -1677,6 +1652,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
           "division_id" => division.id
         }
       ],
+      "contractor_divisions" => [division.id],
       "external_contractors" => [
         %{
           "divisions" => [%{"id" => division.id}],
@@ -1720,6 +1696,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
           nhs_signer_id: user_id,
           contractor_legal_entity_id: client_id,
           contractor_owner_id: employee_owner.id,
+          contractor_divisions: [division.id],
           contractor_employee_divisions: [
             %{
               "employee_id" => employee_doctor.id,

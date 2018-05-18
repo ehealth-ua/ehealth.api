@@ -31,6 +31,7 @@ defmodule EHealth.ContractRequests.ContractRequest do
     field(:external_contractor_flag, :boolean, default: false)
     field(:external_contractors, {:array, :map})
     field(:contractor_employee_divisions, {:array, :map})
+    field(:contractor_divisions, {:array, UUID})
     field(:start_date, :date)
     field(:end_date, :date)
     field(:nhs_legal_entity_id, UUID)

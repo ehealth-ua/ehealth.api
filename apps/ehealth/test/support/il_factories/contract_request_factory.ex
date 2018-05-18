@@ -33,6 +33,7 @@ defmodule EHealth.ILFactories.ContractRequestFactory do
               "division_id" => division.id
             }
           ],
+          contractor_divisions: [division.id],
           external_contractors: [
             %{
               "divisions" => [%{"id" => division.id}],

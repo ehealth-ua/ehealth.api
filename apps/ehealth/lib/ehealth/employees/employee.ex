@@ -7,6 +7,7 @@ defmodule EHealth.Employees.Employee do
   alias EHealth.Divisions.Division
   alias EHealth.Parties.Party
 
+  @type_admin "ADMIN"
   @type_owner "OWNER"
   @type_doctor "DOCTOR"
   @type_pharmacy_owner "PHARMACY_OWNER"
@@ -16,6 +17,7 @@ defmodule EHealth.Employees.Employee do
   @status_approved "APPROVED"
   @status_dismissed "DISMISSED"
 
+  def type(:admin), do: @type_admin
   def type(:owner), do: @type_owner
   def type(:doctor), do: @type_doctor
   def type(:pharmacy_owner), do: @type_pharmacy_owner

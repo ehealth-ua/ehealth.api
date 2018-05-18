@@ -37,16 +37,17 @@ defmodule EHealth.ContractRequests do
     contractor_base
     contractor_payment_details
     contractor_rmsp_amount
-    contractor_employee_divisions
+    contractor_divisions
     start_date
     end_date
     id_form
     status
     inserted_by
     updated_by
-    )a
+  )a
 
   @fields_optional ~w(
+    contractor_employee_divisions
     external_contractor_flag
     external_contractors
     contract_number
@@ -63,16 +64,17 @@ defmodule EHealth.ContractRequests do
     user_id = get_consumer_id(headers)
     client_id = get_client_id(headers)
 
-    with {:ok, %{"data" => data}} <- @mithril_api.get_user_roles(user_id, %{}, headers),
-         :ok <- JsonSchema.validate(:contract_request, params),
-         :ok <- user_has_role(data, "OWNER"),
+    with :ok <- JsonSchema.validate(:contract_request, params),
          params <- Map.put(params, "contractor_legal_entity_id", client_id),
+         :ok <- validate_unique_contractor_employee_divisions(params),
+         :ok <- validate_unique_contractor_divisions(params),
          :ok <- validate_employee_divisions(params),
+         :ok <- validate_contractor_divisions(params),
          :ok <- validate_external_contractors(params),
          :ok <- validate_external_contractor_flag(params),
          :ok <- validate_start_date(params),
          :ok <- validate_end_date(params),
-         :ok <- validate_contractor_owner_id(user_id, params),
+         :ok <- validate_contractor_owner_id(params),
          _ <- terminate_pending_contracts(params),
          insert_params <-
            params
@@ -90,37 +92,44 @@ defmodule EHealth.ContractRequests do
 
   def update(headers, params) do
     user_id = get_consumer_id(headers)
+    client_id = get_client_id(headers)
 
     with :ok <-
            JsonSchema.validate(
              :contract_request_update,
-             Map.take(params, ~w(nhs_signer_base nhs_contract_price nhs_payment_method issue_city))
+             Map.take(params, ~w(nhs_signer_id nhs_signer_base nhs_contract_price nhs_payment_method issue_city))
            ),
          {:ok, %{"data" => data}} <- @mithril_api.get_user_roles(user_id, %{}, headers),
          :ok <- user_has_role(data, "NHS ADMIN SIGNER"),
          %ContractRequest{} = contract_request <- Repo.get(ContractRequest, params["id"]),
+         :ok <- validate_nhs_signer_id(params, client_id),
          :ok <- validate_status(contract_request, ContractRequest.status(:new)),
          :ok <- validate_start_date(contract_request),
          update_params <-
            params
            |> Map.delete("id")
+           |> Map.put("nhs_legal_entity_id", client_id)
            |> Map.put("updated_by", user_id),
          %Ecto.Changeset{valid?: true} = changes <- update_changeset(contract_request, update_params),
-         {:ok, contract_request} <- Repo.update(changes) do
+         {:ok, contract_request} <- Repo.update(changes),
+         _ <- EventManager.insert_change_status(contract_request, contract_request.status, user_id) do
       {:ok, contract_request, preload_references(contract_request)}
     end
   end
 
   def approve(headers, params) do
     user_id = get_consumer_id(headers)
+    client_id = get_client_id(headers)
 
     with {:ok, %{"data" => data}} <- @mithril_api.get_user_roles(user_id, %{}, headers),
          :ok <- user_has_role(data, "NHS ADMIN SIGNER"),
          %ContractRequest{} = contract_request <- Repo.get(ContractRequest, params["id"]),
          :ok <- validate_status(contract_request, ContractRequest.status(:new)),
          :ok <- validate_contractor_legal_entity(contract_request),
-         :ok <- validate_contractor_owner_id(nil, contract_request),
+         :ok <- validate_contractor_owner_id(contract_request),
+         :ok <- validate_nhs_signer_id(contract_request, client_id),
          :ok <- validate_employee_divisions(contract_request),
+         :ok <- validate_contractor_divisions(contract_request),
          :ok <- validate_start_date(contract_request),
          update_params <-
            params
@@ -150,7 +159,7 @@ defmodule EHealth.ContractRequests do
     user_id = get_consumer_id(headers)
 
     with {:ok, %ContractRequest{} = contract_request} <- get_contract_request(client_id, client_type, params["id"]),
-         {:contractor_owner, :ok} <- {:contractor_owner, validate_contractor_owner_id(user_id, contract_request)},
+         {:contractor_owner, :ok} <- {:contractor_owner, validate_contractor_owner_id(contract_request)},
          true <- contract_request.status != ContractRequest.status(:signed),
          update_params <-
            params
@@ -180,23 +189,15 @@ defmodule EHealth.ContractRequests do
     with {:ok, %ContractRequest{} = contract_request, references} <- get_by_id(headers, client_type, id),
          :ok <- JsonSchema.validate(:contract_request_sign, params),
          {_, true} <- {:client_id, client_id == contract_request.nhs_legal_entity_id},
-         {_, %Party{id: party_id}} <- {:employee, Parties.get_by_user_id(user_id)},
-         {_, %{entries: [_employee]}} <-
-           {:employee,
-            Employees.list(%{
-              "party_id" => party_id,
-              "ids" => contract_request.nhs_signer_id,
-              "legal_entity_id" => client_id,
-              "status" => Employee.status(:approved)
-            })},
          {_, false} <- {:already_signed, contract_request.status == ContractRequest.status(:nhs_signed)},
-         {:ok, content} <- decode_signed_content(params, headers),
+         {:ok, content, signer} <- decode_signed_content(params, headers),
+         :ok <- validate_signer_drfo(contract_request.nhs_signer_id, signer["drfo"]),
          :ok <- validate_content(contract_request, content),
          :ok <- validate_status(contract_request, ContractRequest.status(:approved)),
          :ok <- validate_employee_divisions(contract_request),
          :ok <- validate_start_date(contract_request),
          :ok <- validate_contractor_legal_entity(contract_request),
-         :ok <- validate_contractor_owner_id(nil, contract_request),
+         :ok <- validate_contractor_owner_id(contract_request),
          :ok <- save_signed_content(contract_request, params, headers),
          update_params <-
            params
@@ -207,10 +208,52 @@ defmodule EHealth.ContractRequests do
       {:ok, contract_request, references}
     else
       {:client_id, _} -> {:error, {:forbidden, "Invalid client_id"}}
-      {:employee, _} -> {:error, {:"422", "Employee is not allowed to sign"}}
       {:already_signed, _} -> {:error, {:"422", "The contract was already signed by NHS"}}
       error -> error
     end
+  end
+
+  defp validate_signer_drfo(nhs_signer_id, signer_drfo) when not is_nil(signer_drfo) do
+    drfo = String.replace(signer_drfo, " ", "")
+
+    with %Employee{party_id: party_id} <- Employees.get_by_id(nhs_signer_id),
+         %Party{tax_id: tax_id} <- Parties.get_by_id(party_id),
+         true <- tax_id == drfo || translit_drfo(tax_id) == translit_drfo(drfo) do
+      :ok
+    else
+      _ ->
+        {:error,
+         [
+           {
+             %{
+               description: "Does not match the signer drfo",
+               params: [],
+               rule: :invalid
+             },
+             "$.nhs_signer_id"
+           }
+         ]}
+    end
+  end
+
+  defp validate_signer_drfo(_, _) do
+    {:error,
+     [
+       {
+         %{
+           description: "Invalid drfo",
+           params: [],
+           rule: :invalid
+         },
+         "$.nhs_signer_id"
+       }
+     ]}
+  end
+
+  defp translit_drfo(drfo) do
+    drfo
+    |> Translit.translit()
+    |> String.upcase()
   end
 
   defp validate_content(%ContractRequest{data: data}, content) do
@@ -233,7 +276,9 @@ defmodule EHealth.ContractRequests do
          do: do_decode_valid_content(data)
   end
 
-  defp do_decode_valid_content(%{"content" => content, "signatures" => [%{"is_valid" => true}]}), do: {:ok, content}
+  defp do_decode_valid_content(%{"content" => content, "signatures" => [%{"is_valid" => true, "signer" => signer}]}) do
+    {:ok, content, signer}
+  end
 
   defp do_decode_valid_content(%{"signatures" => [%{"is_valid" => false, "validation_error_message" => error}]}),
     do: {:error, {:bad_request, error}}
@@ -256,12 +301,25 @@ defmodule EHealth.ContractRequests do
 
   def update_changeset(%ContractRequest{} = contract_request, params) do
     contract_request
-    |> cast(params, ~w(nhs_signer_base nhs_contract_price nhs_payment_method issue_city)a)
+    |> cast(
+      params,
+      ~w(nhs_legal_entity_id nhs_signer_id nhs_signer_base nhs_contract_price nhs_payment_method issue_city)a
+    )
     |> validate_number(:nhs_contract_price, greater_than: 0)
   end
 
   def approve_changeset(%ContractRequest{} = contract_request, params) do
-    fields = ~w(nhs_signer_base nhs_contract_price nhs_payment_method issue_city status updated_by contract_number)a
+    fields = ~w(
+      nhs_legal_entity_id
+      nhs_signer_id
+      nhs_signer_base
+      nhs_contract_price
+      nhs_payment_method
+      issue_city
+      status
+      updated_by
+      contract_number
+    )a
 
     contract_request
     |> cast(params, fields)
@@ -286,14 +344,25 @@ defmodule EHealth.ContractRequests do
   end
 
   defp preload_references(%ContractRequest{} = contract_request) do
-    Preload.preload_references(contract_request, [
+    fields = [
       {:contractor_legal_entity_id, :legal_entity},
       {:nhs_legal_entity_id, :legal_entity},
       {:contractor_owner_id, :employee},
-      {:nhs_signer_id, :employee},
-      {[:contractor_employee_divisions, "$", "employee_id"], :employee},
-      {[:contractor_employee_divisions, "$", "division_id"], :division}
-    ])
+      {:nhs_signer_id, :employee}
+    ]
+
+    fields =
+      if is_list(contract_request.contractor_employee_divisions) do
+        fields ++
+          [
+            {[:contractor_employee_divisions, "$", "employee_id"], :employee},
+            {[:contractor_employee_divisions, "$", "division_id"], :division}
+          ]
+      else
+        fields
+      end
+
+    Preload.preload_references(contract_request, fields)
   end
 
   defp terminate_pending_contracts(params) do
@@ -334,33 +403,195 @@ defmodule EHealth.ContractRequests do
   end
 
   defp validate_employee_divisions(params) do
-    params["contractor_employee_divisions"]
+    contractor_divisions = params["contractor_divisions"]
+    contractor_employee_divisions = params["contractor_employee_divisions"]
+    contract_number = params["contract_number"]
+
+    cond do
+      !is_nil(contractor_employee_divisions) and !is_nil(contract_number) ->
+        {:error,
+         [
+           {
+             %{
+               description: "Employee can't be updated via Contract Request",
+               params: [],
+               rule: :invalid
+             },
+             "$.contractor_employee_divisions"
+           }
+         ]}
+
+      (is_nil(contractor_employee_divisions) or contractor_employee_divisions == []) and is_nil(contract_number) ->
+        {:error,
+         [
+           {
+             %{
+               description: "Contractor employee divisions can’t be empty on create",
+               params: [],
+               rule: :invalid
+             },
+             "$.contractor_employee_divisions"
+           }
+         ]}
+
+      is_nil(contractor_employee_divisions) and !is_nil(contract_number) ->
+        :ok
+
+      true ->
+        contractor_employee_divisions
+        |> Enum.with_index()
+        |> Enum.reduce_while(:ok, fn {employee_division, i}, _ ->
+          with {:ok, %Employee{} = employee} <-
+                 Reference.validate(
+                   :employee,
+                   employee_division["employee_id"],
+                   "$.contractor_employee_divisions[#{i}].employee_id"
+                 ),
+               :ok <- check_employee(employee),
+               {:division_subset, true} <- {:division_subset, employee_division["division_id"] in contractor_divisions} do
+            {:cont, :ok}
+          else
+            {:division_subset, _} ->
+              {:halt,
+               {:error,
+                [
+                  {
+                    %{
+                      description: "Division should be among contractor_divisions",
+                      params: [],
+                      rule: :invalid
+                    },
+                    "$.contractor_employee_divisions[#{i}].division_id"
+                  }
+                ]}}
+
+            error ->
+              {:halt, error}
+          end
+        end)
+    end
+  end
+
+  defp validate_nhs_signer_id(%ContractRequest{nhs_signer_id: nhs_signer_id}, client_id)
+       when not is_nil(nhs_signer_id) do
+    validate_nhs_signer_id(%{"nhs_signer_id" => nhs_signer_id}, client_id)
+  end
+
+  defp validate_nhs_signer_id(%{"nhs_signer_id" => nhs_signer_id}, client_id) when not is_nil(nhs_signer_id) do
+    with %Employee{} = employee <- Employees.get_by_id(nhs_signer_id),
+         {:client_id, true} <- {:client_id, employee.legal_entity_id == client_id},
+         {:active, true} <- {:active, employee.is_active and employee.status == Employee.status(:approved)} do
+      :ok
+    else
+      {:active, _} ->
+        {:error,
+         [
+           {
+             %{
+               description: "Employee must be active",
+               params: [],
+               rule: :invalid
+             },
+             "$.nhs_signer_id"
+           }
+         ]}
+
+      {:client_id, _} ->
+        {:error,
+         [
+           {
+             %{
+               description: "Employee doesn't belong to legal_entity",
+               params: [],
+               rule: :invalid
+             },
+             "$.nhs_signer_id"
+           }
+         ]}
+
+      _ ->
+        {:error,
+         [
+           {
+             %{
+               description: "Invalid nhs_signer_id",
+               params: [],
+               rule: :invalid
+             },
+             "$.nhs_signer_id"
+           }
+         ]}
+    end
+  end
+
+  defp validate_nhs_signer_id(_, _), do: :ok
+
+  defp validate_unique_contractor_employee_divisions(%{"contractor_employee_divisions" => employee_divisions})
+       when is_list(employee_divisions) do
+    employee_divisions_values =
+      Enum.map(employee_divisions, fn %{"employee_id" => employee_id, "division_id" => division_id} ->
+        "#{employee_id}#{division_id}"
+      end)
+
+    if Enum.uniq(employee_divisions_values) == employee_divisions_values do
+      :ok
+    else
+      {:error,
+       [
+         {
+           %{
+             description: "Employee division must be unique",
+             params: [],
+             rule: :invalid
+           },
+           "$.contractor_employee_divisions"
+         }
+       ]}
+    end
+  end
+
+  defp validate_unique_contractor_employee_divisions(_), do: :ok
+
+  defp validate_unique_contractor_divisions(%{"contractor_divisions" => contractor_divisions}) do
+    if Enum.uniq(contractor_divisions) == contractor_divisions do
+      :ok
+    else
+      {:error,
+       [
+         {
+           %{
+             description: "Division must be unique",
+             params: [],
+             rule: :invalid
+           },
+           "$.contractor_divisions"
+         }
+       ]}
+    end
+  end
+
+  defp validate_contractor_divisions(%ContractRequest{} = contract_request) do
+    validate_contractor_divisions(%{
+      "contractor_divisions" => contract_request.contractor_divisions,
+      "contractor_legal_entity_id" => contract_request.contractor_legal_entity_id
+    })
+  end
+
+  defp validate_contractor_divisions(%{
+         "contractor_divisions" => contractor_divisions,
+         "contractor_legal_entity_id" => contractor_legal_entity_id
+       }) do
+    contractor_divisions
     |> Enum.with_index()
-    |> Enum.reduce_while(:ok, fn {employee_division, i}, _ ->
-      with {:ok, %Employee{} = employee} <-
-             Reference.validate(
-               :employee,
-               employee_division["employee_id"],
-               "$.contractor_employee_divisions[#{i}].employee_id"
-             ),
-           :ok <- check_employee(employee),
-           {:ok, %Division{} = division} <-
-             Reference.validate(
-               :division,
-               employee_division["division_id"],
-               "$.contractor_employee_divisions[#{i}].division_id"
-             ),
-           :ok <-
-             check_division(
-               division,
-               params["contractor_legal_entity_id"],
-               "$.contractor_employee_divisions[#{i}].division_id"
-             ),
-           :ok <- check_employee_division(employee, division, "$.contractor_employee_divisions[#{i}].employee_id") do
-        {:cont, :ok}
-      else
-        error ->
-          {:halt, error}
+    |> Enum.reduce_while(:ok, fn {division_id, i}, acc ->
+      result =
+        with {:ok, division} <- Reference.validate(:division, division_id, "$.contractor_divisions[#{i}]") do
+          check_division(division, contractor_legal_entity_id, "$.contractor_divisions[#{i}]")
+        end
+
+      case result do
+        :ok -> {:cont, acc}
+        error -> {:halt, error}
       end
     end)
   end
@@ -394,7 +625,6 @@ defmodule EHealth.ContractRequests do
   end
 
   defp validate_external_contractors(params) do
-    employee_division_ids = Enum.map(params["contractor_employee_divisions"], &Map.get(&1, "division_id"))
     external_contractors = params["external_contractors"] || []
 
     external_contractors
@@ -405,7 +635,7 @@ defmodule EHealth.ContractRequests do
         |> Enum.with_index()
         |> Enum.reduce_while(:ok, fn {contractor_division, j}, _ ->
           validate_external_contractor_division(
-            employee_division_ids,
+            params["contractor_divisions"],
             contractor_division,
             "$.external_contractors[#{i}].divisions[#{j}].id"
           )
@@ -421,8 +651,8 @@ defmodule EHealth.ContractRequests do
     end)
   end
 
-  defp validate_external_contractor_division(employee_division_ids, division, error) do
-    if division["id"] in employee_division_ids do
+  defp validate_external_contractor_division(division_ids, division, error) do
+    if division["id"] in division_ids do
       {:cont, :ok}
     else
       {:halt,
@@ -430,7 +660,7 @@ defmodule EHealth.ContractRequests do
         [
           {
             %{
-              description: "The division is not belong to contractor_employee_divisions",
+              description: "The division is not belong to contractor_divisions",
               params: [],
               rule: :invalid
             },
@@ -464,16 +694,14 @@ defmodule EHealth.ContractRequests do
     end
   end
 
-  defp check_employee(%Employee{employee_type: "DOCTOR", status: "APPROVED", division_id: division_id})
-       when not is_nil(division_id),
-       do: :ok
+  defp check_employee(%Employee{employee_type: "DOCTOR", status: "APPROVED"}), do: :ok
 
   defp check_employee(_) do
     {:error,
      [
        {
          %{
-           description: "Employee must be active DOCTOR with linked division",
+           description: "Employee must be active DOCTOR",
            params: [],
            rule: :invalid
          },
@@ -492,23 +720,6 @@ defmodule EHealth.ContractRequests do
        {
          %{
            description: "Division must be active and within current legal_entity",
-           params: [],
-           rule: :invalid
-         },
-         error
-       }
-     ]}
-  end
-
-  defp check_employee_division(%Employee{division_id: division_id}, %Division{id: id}, _) when division_id == id,
-    do: :ok
-
-  defp check_employee_division(_, _, error) do
-    {:error,
-     [
-       {
-         %{
-           description: "Employee must be within current division",
            params: [],
            rule: :invalid
          },
@@ -538,57 +749,25 @@ defmodule EHealth.ContractRequests do
     end
   end
 
-  defp validate_contractor_owner_id(user_id, %ContractRequest{
+  defp validate_contractor_owner_id(%ContractRequest{
          contractor_owner_id: contractor_owner_id,
          contractor_legal_entity_id: contractor_legal_entity_id
        }) do
-    validate_contractor_owner_id(user_id, %{
+    validate_contractor_owner_id(%{
       "contractor_owner_id" => contractor_owner_id,
       "contractor_legal_entity_id" => contractor_legal_entity_id
     })
   end
 
-  defp validate_contractor_owner_id(nil, %{
-         "contractor_owner_id" => contract_owner_id,
+  defp validate_contractor_owner_id(%{
+         "contractor_owner_id" => contractor_owner_id,
          "contractor_legal_entity_id" => contractor_legal_entity_id
        }) do
-    with %{entries: [_employee]} <-
-           Employees.list(%{
-             "legal_entity_id" => contractor_legal_entity_id,
-             "employee_type" => Employee.type(:owner),
-             "ids" => contract_owner_id,
-             "is_active" => true
-           }) do
-      :ok
-    else
-      _ ->
-        {:error,
-         [
-           {
-             %{
-               description: "Contractor owner must be active within current legal entity in contract request",
-               params: [],
-               rule: :invalid
-             },
-             "$.contractor_owner_id"
-           }
-         ]}
-    end
-  end
-
-  defp validate_contractor_owner_id(user_id, %{
-         "contractor_owner_id" => contract_owner_id,
-         "contractor_legal_entity_id" => contractor_legal_entity_id
-       }) do
-    with %Party{id: id} <- Parties.get_by_user_id(user_id),
-         %{entries: [_employee]} <-
-           Employees.list(%{
-             "party_id" => id,
-             "legal_entity_id" => contractor_legal_entity_id,
-             "employee_type" => Employee.type(:owner),
-             "ids" => contract_owner_id,
-             "status" => Employee.status(:approved)
-           }) do
+    with %Employee{} = employee <- Employees.get_by_id(contractor_owner_id),
+         true <- employee.status == Employee.status(:approved),
+         true <- employee.is_active,
+         true <- employee.legal_entity_id == contractor_legal_entity_id,
+         true <- employee.employee_type in [Employee.type(:owner), Employee.type(:admin)] do
       :ok
     else
       _ ->

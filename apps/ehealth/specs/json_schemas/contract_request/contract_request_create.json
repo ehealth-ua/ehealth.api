@@ -168,6 +168,14 @@
                     "division_id"
                 ],
                 "additionalProperties": false
+            }
+        },
+        "contractor_divisions": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "$ref": "#/definitions/uuid",
+                "description": "division ID"
             },
             "minItems": 1
         },
@@ -196,7 +204,7 @@
         "contractor_base",
         "contractor_payment_details",
         "contractor_rmsp_amount",
-        "contractor_employee_divisions",
+        "contractor_divisions",
         "start_date",
         "end_date",
         "id_form"
