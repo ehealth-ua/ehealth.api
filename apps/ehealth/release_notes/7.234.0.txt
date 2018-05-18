@@ -1,0 +1,7 @@
+Change log for versions 7.234.0 - 7.234.1
+
+**Patches and bug fixes**:
+
+Declaration Sign: change inserted_by, updated_by form client_id(MIS) to consumer_id (User) (#2313)
+
+
