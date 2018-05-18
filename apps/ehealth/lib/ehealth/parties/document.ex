@@ -10,7 +10,7 @@ defmodule EHealth.Parties.Document do
     number
   )a
 
-  @derive {Poison.Encoder, except: [:__meta__]}
+  @derive {Jason.Encoder, except: [:__meta__]}
 
   @primary_key false
   schema "documents" do

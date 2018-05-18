@@ -328,8 +328,8 @@ defmodule EHealth.ContractRequests do
 
   defp validate_employee_divisions(%ContractRequest{} = contract_request) do
     contract_request
-    |> Poison.encode!()
-    |> Poison.decode!()
+    |> Jason.encode!()
+    |> Jason.decode!()
     |> validate_employee_divisions()
   end
 
@@ -608,8 +608,8 @@ defmodule EHealth.ContractRequests do
 
   defp validate_start_date(%ContractRequest{} = contract_request) do
     contract_request
-    |> Poison.encode!()
-    |> Poison.decode!()
+    |> Jason.encode!()
+    |> Jason.decode!()
     |> validate_start_date()
   end
 

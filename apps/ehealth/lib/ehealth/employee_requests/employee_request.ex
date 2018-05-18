@@ -5,7 +5,7 @@ defmodule EHealth.EmployeeRequests.EmployeeRequest do
 
   @primary_key {:id, :binary_id, autogenerate: true}
 
-  @derive {Poison.Encoder, except: [:__meta__]}
+  @derive {Jason.Encoder, except: [:__meta__]}
 
   @status_new "NEW"
   @status_approved "APPROVED"

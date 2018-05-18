@@ -6,6 +6,6 @@ defmodule EHealth.API.Report do
   @behaviour EHealth.API.ReportBehaviour
 
   def get_declaration_count(ids, headers) do
-    post!("/api/parties/declaration_count", Poison.encode!(%{ids: ids}), headers)
+    post!("/api/parties/declaration_count", Jason.encode!(%{ids: ids}), headers)
   end
 end

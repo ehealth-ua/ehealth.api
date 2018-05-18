@@ -9,7 +9,7 @@ defmodule EHealth.API.Helpers.SignedContent do
 
   def save(url, content, headers, options) do
     Logger.info(fn ->
-      Poison.encode!(%{
+      Jason.encode!(%{
         "log_type" => "http_request",
         "action" => "PUT",
         "path" => url,

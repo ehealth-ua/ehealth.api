@@ -44,7 +44,7 @@ defmodule EHealth.Web.DeclarationRequestController do
     else
       {:error, _, %{"meta" => %{"code" => 404}}, _} ->
         Logger.error(fn ->
-          Poison.encode!(%{
+          Jason.encode!(%{
             "log_type" => "error",
             "message" => "Phone was not found for declaration request #{id}",
             "request_id" => Logger.metadata()[:request_id]
@@ -85,7 +85,7 @@ defmodule EHealth.Web.DeclarationRequestController do
 
       error ->
         Logger.error(fn ->
-          Poison.encode!(%{
+          Jason.encode!(%{
             "log_type" => "error",
             "message" => "Failed to sign Declaration Request \"#{params["id"]}\". Reason: #{inspect(error)}",
             "request_id" => Logger.metadata()[:request_id]

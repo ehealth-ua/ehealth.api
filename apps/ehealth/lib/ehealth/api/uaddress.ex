@@ -16,7 +16,7 @@ defmodule EHealth.API.UAddress do
   end
 
   def update_settlement(id, data, headers) do
-    patch!("/settlements/#{id}", Poison.encode!(%{"settlement" => data}), headers)
+    patch!("/settlements/#{id}", Jason.encode!(%{"settlement" => data}), headers)
   end
 
   def get_region_by_id(id, headers \\ []) do

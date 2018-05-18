@@ -22,7 +22,7 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
       end)
 
       expect(SignatureMock, :decode_and_validate, 2, fn signed_content, "base64", _headers ->
-        content = signed_content |> Base.decode64!() |> Poison.decode!()
+        content = signed_content |> Base.decode64!() |> Jason.decode!()
         assert Map.has_key?(content, "tax_id")
 
         data = %{
@@ -149,7 +149,7 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
       mock_params =
         "test/data/cabinet/patient.json"
         |> File.read!()
-        |> Poison.decode!()
+        |> Jason.decode!()
         |> Map.get("addresses", [])
         |> Enum.at(0)
         |> Map.take(~w(settlement_id region_id district_id area))

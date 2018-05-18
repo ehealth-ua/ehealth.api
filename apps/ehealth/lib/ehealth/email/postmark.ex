@@ -46,7 +46,7 @@ defmodule EHealth.Email.Postmark do
   end
 
   defp parse_response_body({:ok, %{status_code: 200, body: body}}) do
-    case Poison.decode(body) do
+    case Jason.decode(body) do
       {:ok, result} -> result
       _ -> %{}
     end

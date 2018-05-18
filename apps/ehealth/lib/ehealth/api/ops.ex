@@ -16,29 +16,29 @@ defmodule EHealth.API.OPS do
   end
 
   def get_declarations_count(employee_ids, headers \\ []) do
-    post!("/declarations_count", Poison.encode!(%{ids: employee_ids}), headers)
+    post!("/declarations_count", Jason.encode!(%{ids: employee_ids}), headers)
   end
 
   def terminate_declaration(id, params, headers \\ []) do
-    patch!("/declarations/#{id}/actions/terminate", Poison.encode!(params), headers)
+    patch!("/declarations/#{id}/actions/terminate", Jason.encode!(params), headers)
   end
 
   def terminate_employee_declarations(employee_id, user_id, reason, reason_description \\ "", headers \\ []) do
-    body = Poison.encode!(%{user_id: user_id, reason: reason, reason_description: reason_description})
+    body = Jason.encode!(%{user_id: user_id, reason: reason, reason_description: reason_description})
     patch!("/employees/#{employee_id}/declarations/actions/terminate", body, headers)
   end
 
   def terminate_person_declarations(person_id, user_id, reason, reason_description \\ "", headers \\ []) do
-    body = Poison.encode!(%{user_id: user_id, reason: reason, reason_description: reason_description})
+    body = Jason.encode!(%{user_id: user_id, reason: reason, reason_description: reason_description})
     patch!("/persons/#{person_id}/declarations/actions/terminate", body, headers)
   end
 
   def create_declaration_with_termination_logic(params, headers \\ []) do
-    post!("/declarations/with_termination", Poison.encode!(params), headers)
+    post!("/declarations/with_termination", Jason.encode!(params), headers)
   end
 
   def update_declaration(id, params, headers \\ []) do
-    patch!("/declarations/#{id}", Poison.encode!(params), headers)
+    patch!("/declarations/#{id}", Jason.encode!(params), headers)
   end
 
   def get_medication_dispenses(params, headers \\ []) do
@@ -46,11 +46,11 @@ defmodule EHealth.API.OPS do
   end
 
   def create_medication_dispense(params, headers \\ []) do
-    post!("/medication_dispenses", Poison.encode!(params), headers)
+    post!("/medication_dispenses", Jason.encode!(params), headers)
   end
 
   def update_medication_dispense(id, params, headers \\ []) do
-    put!("/medication_dispenses/#{id}", Poison.encode!(params), headers)
+    put!("/medication_dispenses/#{id}", Jason.encode!(params), headers)
   end
 
   def get_medication_requests(params, headers \\ []) do
@@ -58,7 +58,7 @@ defmodule EHealth.API.OPS do
   end
 
   def get_doctor_medication_requests(params, headers \\ []) do
-    post!("/doctor_medication_requests", Poison.encode!(params), headers)
+    post!("/doctor_medication_requests", Jason.encode!(params), headers)
   end
 
   def get_qualify_medication_requests(params, headers \\ []) do
@@ -70,11 +70,11 @@ defmodule EHealth.API.OPS do
   end
 
   def create_medication_request(params, headers \\ []) do
-    post!("/medication_requests", Poison.encode!(params), headers)
+    post!("/medication_requests", Jason.encode!(params), headers)
   end
 
   def update_medication_request(id, params, headers \\ []) do
-    patch!("/medication_requests/#{id}", Poison.encode!(params), headers)
+    patch!("/medication_requests/#{id}", Jason.encode!(params), headers)
   end
 
   def get_latest_block(headers \\ []) do
@@ -91,11 +91,11 @@ defmodule EHealth.API.OPS do
 
   def suspend_contracts(ids, headers) when is_list(ids) do
     params = %{ids: Enum.join(ids, ",")}
-    patch!("/contracts/actions/suspend", Poison.encode!(params), headers)
+    patch!("/contracts/actions/suspend", Jason.encode!(params), headers)
   end
 
   def renew_contracts(ids, headers) when is_list(ids) do
     params = %{ids: Enum.join(ids, ",")}
-    patch!("/contracts/actions/renew", Poison.encode!(params), headers)
+    patch!("/contracts/actions/renew", Jason.encode!(params), headers)
   end
 end

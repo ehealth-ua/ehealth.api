@@ -24,7 +24,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
           legal_entity_id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9"
         )
         |> MockServer.wrap_response()
-        |> Poison.encode!()
+        |> Jason.encode!()
 
       Plug.Conn.send_resp(conn, 200, response)
     end
@@ -39,7 +39,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
         )
         |> Map.put("reason", "manual_person")
         |> MockServer.wrap_response()
-        |> Poison.encode!()
+        |> Jason.encode!()
 
       Plug.Conn.send_resp(conn, 200, response)
     end
@@ -48,7 +48,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       response =
         %{"hash" => "some_current_hash"}
         |> MockServer.wrap_response()
-        |> Poison.encode!()
+        |> Jason.encode!()
 
       Plug.Conn.send_resp(conn, 200, response)
     end
@@ -66,7 +66,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
           secret_url: "http://localhost:4040/good_upload"
         }
         |> MockServer.wrap_response()
-        |> Poison.encode!()
+        |> Jason.encode!()
 
       Plug.Conn.send_resp(conn, 200, response)
     end
@@ -92,7 +92,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       response =
         user
         |> MockServer.wrap_response()
-        |> Poison.encode!()
+        |> Jason.encode!()
 
       Plug.Conn.send_resp(conn, 200, response)
     end
@@ -101,7 +101,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       response =
         %{"client_type_name" => "CABINET"}
         |> MockServer.wrap_response()
-        |> Poison.encode!()
+        |> Jason.encode!()
 
       Plug.Conn.send_resp(conn, 200, response)
     end
@@ -110,7 +110,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       response =
         %{"client_type_name" => "MSP"}
         |> MockServer.wrap_response()
-        |> Poison.encode!()
+        |> Jason.encode!()
 
       Plug.Conn.send_resp(conn, 200, response)
     end
@@ -126,7 +126,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       response =
         user
         |> MockServer.wrap_response()
-        |> Poison.encode!()
+        |> Jason.encode!()
 
       Plug.Conn.send_resp(conn, 200, response)
     end
@@ -140,7 +140,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
           }
         ]
         |> MockServer.wrap_response()
-        |> Poison.encode!()
+        |> Jason.encode!()
 
       Plug.Conn.send_resp(conn, 200, response)
     end
@@ -156,7 +156,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
           }
         ]
         |> MockServer.wrap_response()
-        |> Poison.encode!()
+        |> Jason.encode!()
 
       Plug.Conn.send_resp(conn, 200, response)
     end
@@ -194,7 +194,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       conn =
         conn
         |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
-        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: legal_entity.id}))
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
 
       conn = patch(conn, cabinet_persons_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"))
       assert resp = json_response(conn, 422)
@@ -216,7 +216,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       conn =
         conn
         |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
-        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: legal_entity.id}))
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
 
       conn =
         patch(conn, cabinet_persons_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{
@@ -239,11 +239,11 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       conn =
         conn
         |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
-        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: legal_entity.id}))
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
 
       conn =
         patch(conn, cabinet_persons_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{
-          "signed_content" => Base.encode64(Poison.encode!(%{}))
+          "signed_content" => Base.encode64(Jason.encode!(%{}))
         })
 
       assert resp = json_response(conn, 409)
@@ -268,11 +268,11 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       conn =
         conn
         |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
-        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: legal_entity.id}))
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
 
       conn =
         patch(conn, cabinet_persons_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{
-          "signed_content" => Base.encode64(Poison.encode!(%{"tax_id" => "2222222220"}))
+          "signed_content" => Base.encode64(Jason.encode!(%{"tax_id" => "2222222220"}))
         })
 
       assert resp = json_response(conn, 409)
@@ -298,11 +298,11 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
         conn
         |> put_req_header("drfo", "2222222220")
         |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
-        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: legal_entity.id}))
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
 
       conn =
         patch(conn, cabinet_persons_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{
-          "signed_content" => Base.encode64(Poison.encode!(%{"tax_id" => "2222222220"}))
+          "signed_content" => Base.encode64(Jason.encode!(%{"tax_id" => "2222222220"}))
         })
 
       assert json_response(conn, 422)
@@ -314,11 +314,11 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       conn =
         conn
         |> put_req_header("x-consumer-id", "668d1541-e4cf-4a95-a25a-60d83864ceaf")
-        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: legal_entity.id}))
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
 
       conn =
         patch(conn, cabinet_persons_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{
-          "signed_content" => Base.encode64(Poison.encode!(%{}))
+          "signed_content" => Base.encode64(Jason.encode!(%{}))
         })
 
       assert json_response(conn, 403)
@@ -330,7 +330,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       conn =
         conn
         |> put_req_header("x-consumer-id", "668d1541-e4cf-4a95-a25a-60d83864ceaf")
-        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: legal_entity.id}))
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
 
       conn = patch(conn, cabinet_persons_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{})
       assert json_response(conn, 403)
@@ -357,7 +357,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
         conn
         |> put_req_header("drfo", "2222222220")
         |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
-        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: legal_entity.id}))
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
 
       data = %{
         "first_name" => "Артем",
@@ -412,7 +412,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
 
       conn =
         patch(conn, cabinet_persons_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{
-          "signed_content" => Base.encode64(Poison.encode!(data))
+          "signed_content" => Base.encode64(Jason.encode!(data))
         })
 
       assert json_response(conn, 200)
@@ -442,7 +442,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       conn =
         conn
         |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
-        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: legal_entity.id}))
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
 
       conn = get(conn, cabinet_persons_path(conn, :personal_info))
       response_data = json_response(conn, 200)["data"]
@@ -498,7 +498,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
         conn
         |> put_req_header("edrpou", "2222222220")
         |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
-        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: legal_entity.id}))
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
         |> post(cabinet_declarations_path(conn, :create_declaration_request), %{
           person_id: person_id,
           employee_id: employee.id,
@@ -543,7 +543,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       conn =
         conn
         |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
-        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: legal_entity.id}))
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
         |> patch(cabinet_declarations_path(conn, :terminate_declaration, "0cd6a6f0-9a71-4aa7-819d-6c158201a282"))
 
       assert %{"data" => %{"id" => "0cd6a6f0-9a71-4aa7-819d-6c158201a282", "status" => "terminated"}} =
@@ -564,7 +564,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       resp =
         conn
         |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
-        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: legal_entity.id}))
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
         |> get(cabinet_declarations_path(conn, :show_declaration, "0cd6a6f0-9a71-4aa7-819d-6c158201a282"))
         |> json_response(200)
 
@@ -612,7 +612,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       conn =
         conn
         |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
-        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: legal_entity.id}))
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
 
       response =
         conn
@@ -653,8 +653,8 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
 
     declaration =
       declaration
-      |> Poison.encode!()
-      |> Poison.decode!()
+      |> Jason.encode!()
+      |> Jason.decode!()
 
     {{:ok, %{"data" => declaration, "meta" => %{"code" => response_status}}}, declaration_id}
   end
@@ -665,8 +665,8 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
 
     person =
       person
-      |> Poison.encode!()
-      |> Poison.decode!()
+      |> Jason.encode!()
+      |> Jason.decode!()
 
     {:ok, MockServer.wrap_object_response(person, response_status)}
   end

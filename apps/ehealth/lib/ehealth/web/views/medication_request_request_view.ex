@@ -18,10 +18,14 @@ defmodule EHealth.Web.MedicationRequestRequestView do
 
   def render("medication_request_request_detail.json", %{data: values}) do
     values.medication_request_request.data
+    |> Map.take(~w(created_at started_at ended_at dispense_valid_from dispense_valid_to)a)
     |> Map.put(:id, values.medication_request_request.id)
     |> Map.put(:person, render_person(values.person, values.medication_request_request.data.created_at))
     |> Map.put(:employee, render(EmployeeView, "employee_private.json", %{employee: values.employee}))
-    |> Map.put(:legal_entity, render(LegalEntityView, "show_reimbursement.json", %{legal_entity: values.legal_entity}))
+    |> Map.put(
+      :legal_entity,
+      render(LegalEntityView, "show_reimbursement.json", %{legal_entity: values.legal_entity})
+    )
     |> Map.put(:division, render(DivisionView, "division.json", %{division: values.division}))
     |> Map.put(
       :medication_info,
@@ -33,15 +37,6 @@ defmodule EHealth.Web.MedicationRequestRequestView do
     |> Map.put(:medical_program, render(MedicalProgramView, "show.json", %{medical_program: values.medical_program}))
     |> Map.put(:request_number, values.medication_request_request.request_number)
     |> Map.put(:status, values.medication_request_request.status)
-    |> Map.drop([
-      :person_id,
-      :employee_id,
-      :legal_entity_id,
-      :medication_qty,
-      :medication_id,
-      :division_id,
-      :medical_program_id
-    ])
   end
 
   def render("medication_request_request.json", %{medication_request_request: medication_request_request}) do

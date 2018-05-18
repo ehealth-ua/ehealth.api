@@ -13,7 +13,7 @@ defmodule EHealth.Utils.Log do
     log_function.(fn ->
       log_data
       |> Map.merge(%{"request_id" => Logger.metadata()[:request_id]})
-      |> Poison.encode!()
+      |> Jason.encode!()
     end)
   end
 end

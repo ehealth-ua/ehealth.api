@@ -15,7 +15,7 @@ defmodule EHealth.Web.Cabinet.DeclarationControllerTest do
       response =
         %{"client_type_name" => "CABINET"}
         |> MockServer.wrap_response()
-        |> Poison.encode!()
+        |> Jason.encode!()
 
       Plug.Conn.send_resp(conn, 200, response)
     end
@@ -32,7 +32,7 @@ defmodule EHealth.Web.Cabinet.DeclarationControllerTest do
           "tax_id" => "12341234"
         }
         |> MockServer.wrap_response()
-        |> Poison.encode!()
+        |> Jason.encode!()
 
       Plug.Conn.send_resp(conn, 200, response)
     end

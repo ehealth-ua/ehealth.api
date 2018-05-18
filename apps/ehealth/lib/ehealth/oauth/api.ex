@@ -55,7 +55,7 @@ defmodule EHealth.OAuth.API do
 
   defp fetch_client_credentials({:error, response}, id) do
     Logger.error(fn ->
-      Poison.encode!(%{
+      Jason.encode!(%{
         "log_type" => "error",
         "message" => "Cannot create or find Mithril client for Legal Entity #{id} Response: #{inspect(response)}",
         "request_id" => Logger.metadata()[:request_id]

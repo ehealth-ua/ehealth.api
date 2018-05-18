@@ -25,9 +25,7 @@ defmodule EHealth.Unit.API.MediaStorageTest do
       end
 
       message =
-        ~s("log_type":"microservice_request","headers":{"Content-Type":"application/json","some_header":"x"},"body":\"{\\\"secret\\\":{\\\") <>
-          ~s(resource_name\\\":\\\"my_resource\\\",\\\"resource_id\\\":\\\"my_id\\\",\\\"content_type\\\":\\\"application/octe) <>
-          ~s(t-stream\\\",\\\"bucket\\\":\\\"some_bucket\\\",\\\"action\\\":\\\"PUT\\\"}}\","action":"post")
+        ~s("action":"post","body":\"{\\\"secret\\\":{\\\"action\\\":\\\"PUT\\\",\\\"bucket\\\":\\\"some_bucket\\\",\\\"content_type\\\":\\\"application/octet-stream\\\",\\\"resource_id\\\":\\\"my_id\\\",\\\"resource_name\\\":\\\"my_resource\\\"}}\",\"headers\":{\"some_header\":\"x\",\"Content-Type\":\"application/json\"},\"log_type\":\"microservice_request\")
 
       assert capture_log([level: :info], fun) =~ message
     end

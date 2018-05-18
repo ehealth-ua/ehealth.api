@@ -266,7 +266,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
           "inserted_at" => "some_time"
         }
 
-        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: block}))
+        Plug.Conn.send_resp(conn, 200, Jason.encode!(%{data: block}))
       end
     end
 
@@ -316,7 +316,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       use MicroservicesHelper
 
       Plug.Router.post "/verifications" do
-        send_resp(conn, 200, Poison.encode!(%{status: "NEW"}))
+        send_resp(conn, 200, Jason.encode!(%{status: "NEW"}))
       end
     end
 
@@ -416,7 +416,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
           }
         }
 
-        Plug.Conn.send_resp(conn, 200, Poison.encode!(data))
+        Plug.Conn.send_resp(conn, 200, Jason.encode!(data))
       end
     end
 
@@ -479,13 +479,13 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       end)
 
       expect(MPIMock, :create_or_update_person, fn _params, _headers ->
-        {:ok, %Response{body: Poison.encode!(%{"data" => string_params_for(:person)}), status_code: 200}}
+        {:ok, %Response{body: Jason.encode!(%{"data" => string_params_for(:person)}), status_code: 200}}
       end)
 
       data =
         "test/data/declaration_request/sign_request.json"
         |> File.read!()
-        |> Poison.decode!()
+        |> Jason.decode!()
 
       tax_id = get_in(data, ~w(employee party tax_id))
       employee_id = get_in(data, ~w(employee id))
@@ -518,7 +518,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
         data
         |> Map.put("seed", "some_current_hash")
         |> Map.put("declaration_number", declaration_number)
-        |> Poison.encode!()
+        |> Jason.encode!()
         |> Base.encode64()
 
       conn
@@ -557,13 +557,13 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
           "type" => "validation_failed"
         }
 
-        {:ok, %Response{status_code: 422, body: Poison.encode!(errors)}}
+        {:ok, %Response{status_code: 422, body: Jason.encode!(errors)}}
       end)
 
       data =
         "test/data/declaration_request/sign_request.json"
         |> File.read!()
-        |> Poison.decode!()
+        |> Jason.decode!()
 
       tax_id = get_in(data, ~w(employee party tax_id))
       employee_id = get_in(data, ~w(employee id))
@@ -596,7 +596,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
         data
         |> Map.put("seed", "some_current_hash")
         |> Map.put("declaration_number", declaration_number)
-        |> Poison.encode!()
+        |> Jason.encode!()
         |> Base.encode64()
 
       assert response =
@@ -631,7 +631,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       data =
         "test/data/declaration_request/sign_request.json"
         |> File.read!()
-        |> Poison.decode!()
+        |> Jason.decode!()
 
       %{id: legal_entity_id} = insert(:prm, :legal_entity)
       %{id: declaration_id} = insert(:il, :declaration_request)

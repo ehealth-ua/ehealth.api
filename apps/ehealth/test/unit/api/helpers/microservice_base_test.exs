@@ -27,8 +27,7 @@ defmodule EHealth.Unit.API.Helpers.MicroserviceBaseTest do
     end
 
     message =
-      ~s({"request_id":null,"path":"http://google.com/test?param1=test","microservice":"http://google.com",) <>
-        ~s("log_type":"microservice_request","headers":{"some_header":"x","Content-Type":"application/json"},"body":"","action":"get"})
+      ~s({"action":"get","body":"","headers":{"Content-Type":"application/json","some_header":"x"},"log_type":"microservice_request","microservice":"http://google.com","path":"http://google.com/test?param1=test","request_id":null})
 
     assert capture_log([level: :info], fun) =~ message
   end
@@ -37,12 +36,11 @@ defmodule EHealth.Unit.API.Helpers.MicroserviceBaseTest do
     headers = [{"some_header", "x"}, {"api-key", "y"}, {"authorization", "z"}]
 
     fun = fn ->
-      post!("/test", Poison.encode!(%{a: 1, b: 2}), headers)
+      post!("/test", Jason.encode!(%{a: 1, b: 2}), headers)
     end
 
     message =
-      ~s({"request_id":null,"path":"http://google.com/test","microservice":"http://google.com","log_type":") <>
-        ~s(microservice_request","headers":{"some_header":"x","Content-Type":"application/json"},"body":"{\\\"b\\\":2,\\\"a\\\":1}","action":"post"})
+      ~s({"action":"post","body":"{\\\"a\\\":1,\\\"b\\\":2}","headers":{"Content-Type":"application/json","some_header":"x"},"log_type":"microservice_request","microservice":"http://google.com","path":"http://google.com/test","request_id":null})
 
     assert capture_log([level: :info], fun) =~ message
   end

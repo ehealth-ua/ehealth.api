@@ -11,7 +11,7 @@ defmodule EHealth.ILFactories.DeclarationRequestFactory do
         data =
           "test/data/sign_declaration_request.json"
           |> File.read!()
-          |> Poison.decode!()
+          |> Jason.decode!()
 
         %DeclarationRequest{
           data: data,

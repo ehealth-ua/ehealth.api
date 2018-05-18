@@ -6,7 +6,7 @@ defmodule EHealth.MedicationRequestRequest do
   use Ecto.Schema
   alias EHealth.MedicationRequestRequest.EmbeddedData
 
-  @derive {Poison.Encoder, except: [:__meta__]}
+  @derive {Jason.Encoder, except: [:__meta__]}
 
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "medication_request_requests" do

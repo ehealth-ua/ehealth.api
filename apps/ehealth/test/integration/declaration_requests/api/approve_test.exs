@@ -160,7 +160,7 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.ApproveTest do
               {422, %{}}
           end
 
-        Plug.Conn.send_resp(conn, code, Poison.encode!(%{data: status}))
+        Plug.Conn.send_resp(conn, code, Jason.encode!(%{data: status}))
       end
     end
 

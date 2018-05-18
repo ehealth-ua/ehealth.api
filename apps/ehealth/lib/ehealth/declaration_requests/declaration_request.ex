@@ -6,7 +6,7 @@ defmodule EHealth.DeclarationRequests.DeclarationRequest do
 
   @primary_key {:id, :binary_id, autogenerate: true}
 
-  @derive {Poison.Encoder, except: [:__meta__]}
+  @derive {Jason.Encoder, except: [:__meta__]}
 
   @status_new "NEW"
   @status_signed "SIGNED"

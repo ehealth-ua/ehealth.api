@@ -248,7 +248,7 @@ defmodule EHealth.Web.ContractControllerTest do
     contract_params = [contract_request_id: contract_request.id] ++ params
 
     # string_params_for converts NaiveDateTime to map instead of string, so encode, decode
-    contract = build(:contract, contract_params) |> Poison.encode!() |> Poison.decode!()
+    contract = build(:contract, contract_params) |> Jason.encode!() |> Jason.decode!()
 
     expect(OPSMock, :get_contract, fn _, _ ->
       {:ok, %{"data" => contract}}
@@ -261,8 +261,8 @@ defmodule EHealth.Web.ContractControllerTest do
     data =
       Enum.map(params, fn item_params ->
         build(:contract, item_params)
-        |> Poison.encode!()
-        |> Poison.decode!()
+        |> Jason.encode!()
+        |> Jason.decode!()
       end)
 
     expect(OPSMock, :get_contracts, fn search_params, _ ->

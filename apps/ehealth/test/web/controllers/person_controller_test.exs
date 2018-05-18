@@ -157,7 +157,7 @@ defmodule EHealth.Web.PersonControllerTest do
   describe "reset authentication method to NA" do
     test "success", %{conn: conn} do
       expect(MPIMock, :reset_person_auth_method, fn id, _headers ->
-        get_person(id, 200, %{"authentication_methods" => [%{"type" => "NA"}]})
+        get_person(id, 200, %{:authentication_methods => [%{"type" => "NA"}]})
       end)
 
       conn = patch(conn, person_path(conn, :reset_authentication_method, UUID.generate()))
@@ -295,8 +295,8 @@ defmodule EHealth.Web.PersonControllerTest do
         declaration = build(:declaration, current_params)
 
         declaration
-        |> Poison.encode!()
-        |> Poison.decode!()
+        |> Jason.encode!()
+        |> Jason.decode!()
       end)
 
     {:ok,
@@ -317,8 +317,8 @@ defmodule EHealth.Web.PersonControllerTest do
 
     person =
       person
-      |> Poison.encode!()
-      |> Poison.decode!()
+      |> Jason.encode!()
+      |> Jason.decode!()
 
     {:ok, %{"data" => [person], "paging" => %{"total_pages" => 1}}}
   end
@@ -329,8 +329,8 @@ defmodule EHealth.Web.PersonControllerTest do
 
     person =
       person
-      |> Poison.encode!()
-      |> Poison.decode!()
+      |> Jason.encode!()
+      |> Jason.decode!()
 
     {:ok, %{"data" => person, "meta" => %{"code" => response_status}}}
   end

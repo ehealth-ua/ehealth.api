@@ -10,7 +10,7 @@ defmodule EHealth.Proxy do
     resp =
       response
       |> get_proxy_resp_data()
-      |> Poison.encode!()
+      |> Jason.encode!()
 
     paging =
       response

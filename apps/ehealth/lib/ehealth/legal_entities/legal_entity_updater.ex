@@ -78,7 +78,7 @@ defmodule EHealth.LegalEntities.LegalEntityUpdater do
 
   defp log_deactivate_employee_error(error, id) do
     Logger.error(fn ->
-      Poison.encode!(%{
+      Jason.encode!(%{
         "log_type" => "error",
         "message" => "Failed to deactivate employee with id \"#{id}\". Reason: #{inspect(error)}",
         "request_id" => Logger.metadata()[:request_id]

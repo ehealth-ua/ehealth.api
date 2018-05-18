@@ -211,7 +211,7 @@ defmodule EHealth.Cabinet.API do
   rescue
     e ->
       Logger.error(fn ->
-        Poison.encode!(%{
+        Jason.encode!(%{
           "log_type" => "error",
           "message" => e.message,
           "request_id" => Logger.metadata()[:request_id]

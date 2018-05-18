@@ -38,6 +38,6 @@ defmodule EHealth.MedicationRequestRequestsTest do
   def test_request do
     "test/data/medication_request_request/medication_request_request.json"
     |> File.read!()
-    |> Poison.decode!()
+    |> Jason.decode!()
   end
 end

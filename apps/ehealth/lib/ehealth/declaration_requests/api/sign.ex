@@ -132,7 +132,7 @@ defmodule EHealth.DeclarationRequests.API.Sign do
         mismatches = do_compare_with_db(db_content, content)
 
         Logger.info(fn ->
-          Poison.encode!(%{
+          Jason.encode!(%{
             "log_type" => "debug",
             "process" => "declaration_request_sign",
             "details" => %{
@@ -152,7 +152,7 @@ defmodule EHealth.DeclarationRequests.API.Sign do
     tax_id = headers |> get_consumer_id() |> Parties.get_tax_id_by_user_id()
 
     Logger.info(fn ->
-      Poison.encode!(%{
+      Jason.encode!(%{
         "log_type" => "debug",
         "process" => "declaration_request_sign",
         "details" => %{
@@ -231,7 +231,7 @@ defmodule EHealth.DeclarationRequests.API.Sign do
   defp create_or_update_person_response({:ok, %Response{status_code: 404}}), do: {:conflict, "person is not found"}
 
   defp create_or_update_person_response({:ok, %Response{body: person, status_code: code}}) when code in [200, 201] do
-    Poison.decode(person)
+    Jason.decode(person)
   end
 
   defp create_or_update_person_response({:ok, %Response{status_code: 422, body: errors}}) do
@@ -297,7 +297,7 @@ defmodule EHealth.DeclarationRequests.API.Sign do
 
   defp get_status(_) do
     Logger.error(fn ->
-      Poison.encode!(%{
+      Jason.encode!(%{
         "log_type" => "error",
         "message" => "Unknown authentication_method_current.type",
         "request_id" => Logger.metadata()[:request_id]

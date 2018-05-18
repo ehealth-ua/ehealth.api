@@ -700,7 +700,7 @@ defmodule EHealth.Unit.LegalEntityTest do
 
   defp create_legal_entity(request_params) do
     request = %{
-      "signed_legal_entity_request" => Base.encode64(Poison.encode!(request_params)),
+      "signed_legal_entity_request" => Base.encode64(Jason.encode!(request_params)),
       "signed_content_encoding" => "base64"
     }
 
@@ -710,7 +710,7 @@ defmodule EHealth.Unit.LegalEntityTest do
   defp get_legal_entity_data do
     "test/data/legal_entity.json"
     |> File.read!()
-    |> Poison.decode!()
+    |> Jason.decode!()
   end
 
   defp insert_dictionaries do

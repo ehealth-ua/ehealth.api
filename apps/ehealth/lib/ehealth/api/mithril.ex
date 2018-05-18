@@ -11,7 +11,7 @@ defmodule EHealth.API.Mithril do
   # Clients
 
   def put_client(%{"id" => id} = params, headers \\ []) do
-    put!("/admin/clients/#{id}", Poison.encode!(%{"client" => params}), headers)
+    put!("/admin/clients/#{id}", Jason.encode!(%{"client" => params}), headers)
   end
 
   def get_client(id, headers \\ []) do
@@ -38,7 +38,7 @@ defmodule EHealth.API.Mithril do
   # Client types
 
   def create_client_type(client_type, headers \\ []) do
-    post!("/admin/client_types", Poison.encode!(%{"client_type" => client_type}), headers)
+    post!("/admin/client_types", Jason.encode!(%{"client_type" => client_type}), headers)
   end
 
   def get_client_types(params \\ [], headers \\ []) do
@@ -60,11 +60,11 @@ defmodule EHealth.API.Mithril do
   end
 
   def create_user(params, headers \\ []) do
-    post!("/admin/users", Poison.encode!(%{"user" => params}), headers)
+    post!("/admin/users", Jason.encode!(%{"user" => params}), headers)
   end
 
   def change_user(id, attrs, headers \\ []) do
-    put!("/admin/users/#{id}", Poison.encode!(%{"user" => attrs}), headers)
+    put!("/admin/users/#{id}", Jason.encode!(%{"user" => attrs}), headers)
   end
 
   # Roles
@@ -84,11 +84,11 @@ defmodule EHealth.API.Mithril do
   end
 
   def create_user_role(user_id, role, headers \\ []) do
-    post!("/admin/users/#{user_id}/roles", Poison.encode!(%{"user_role" => role}), headers)
+    post!("/admin/users/#{user_id}/roles", Jason.encode!(%{"user_role" => role}), headers)
   end
 
   def create_global_user_role(user_id, role, headers \\ []) do
-    post!("/admin/users/#{user_id}/global_roles", Poison.encode!(%{"global_user_role" => role}), headers)
+    post!("/admin/users/#{user_id}/global_roles", Jason.encode!(%{"global_user_role" => role}), headers)
   end
 
   def delete_user_role(user_id, role_id, headers) do
@@ -120,7 +120,7 @@ defmodule EHealth.API.Mithril do
   end
 
   def create_access_token(user_id, token, headers) do
-    post!("/admin/users/#{user_id}/tokens/access", Poison.encode!(%{token: token}), headers)
+    post!("/admin/users/#{user_id}/tokens/access", Jason.encode!(%{token: token}), headers)
   end
 
   def delete_token(token_id, headers) do

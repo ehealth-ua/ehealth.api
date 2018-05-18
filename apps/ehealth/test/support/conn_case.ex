@@ -58,7 +58,7 @@ defmodule EHealth.Web.ConnCase do
   defp put_client_id(conn, _), do: conn
 
   def put_client_id_header(conn, id \\ @client_id) do
-    data = Poison.encode!(%{"client_id" => id})
+    data = Jason.encode!(%{"client_id" => id})
 
     Plug.Conn.put_req_header(conn, @header_consumer_meta, data)
   end
@@ -115,7 +115,7 @@ defmodule EHealth.Web.ConnCase do
     assert :ok ==
              schema_path
              |> File.read!()
-             |> Poison.decode!()
+             |> Jason.decode!()
              |> NExJsonSchema.Validator.validate(data)
 
     data

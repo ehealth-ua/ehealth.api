@@ -10,8 +10,8 @@ defmodule EHealth.Man.Templates.ContractRequestPrintoutForm do
   def render(%ContractRequest{} = contract_request, headers) do
     template_data =
       contract_request
-      |> Poison.encode!()
-      |> Poison.decode!()
+      |> Jason.encode!()
+      |> Jason.decode!()
       |> Map.put(:format, config()[:format])
       |> Map.put(:locale, config()[:locale])
 

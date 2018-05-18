@@ -150,7 +150,7 @@ defmodule EHealth.Employees.EmployeeUpdater do
 
   defp log_error(id, message) do
     Logger.error(fn ->
-      Poison.encode!(%{
+      Jason.encode!(%{
         "log_type" => "error",
         "message" => "Failed to revoke user roles with user_id \"#{id}\". Reason: #{inspect(message)}",
         "request_id" => Logger.metadata()[:request_id]

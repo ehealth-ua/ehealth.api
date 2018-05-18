@@ -224,7 +224,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       schema =
         "specs/json_schemas/contract_request/contract_request_show_response.json"
         |> File.read!()
-        |> Poison.decode!()
+        |> Jason.decode!()
 
       assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
     end
@@ -254,7 +254,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       schema =
         "specs/json_schemas/contract_request/contract_request_show_response.json"
         |> File.read!()
-        |> Poison.decode!()
+        |> Jason.decode!()
 
       assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
     end
@@ -349,7 +349,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       schema =
         "specs/json_schemas/contract_request/contract_request_show_response.json"
         |> File.read!()
-        |> Poison.decode!()
+        |> Jason.decode!()
 
       assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
     end
@@ -841,7 +841,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       schema =
         "specs/json_schemas/contract_request/contract_request_show_response.json"
         |> File.read!()
-        |> Poison.decode!()
+        |> Jason.decode!()
 
       assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
     end
@@ -911,7 +911,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       schema =
         "specs/json_schemas/contract_request/contract_request_show_response.json"
         |> File.read!()
-        |> Poison.decode!()
+        |> Jason.decode!()
 
       assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
 
@@ -1286,7 +1286,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       conn =
         patch(conn, contract_request_path(conn, :sign_nhs, contract_request.id), %{
-          "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+          "signed_content" => data |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
 
@@ -1308,7 +1308,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       conn =
         patch(conn, contract_request_path(conn, :sign_nhs, contract_request.id), %{
-          "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+          "signed_content" => data |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
 
@@ -1342,7 +1342,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       conn =
         patch(conn, contract_request_path(conn, :sign_nhs, contract_request.id), %{
-          "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+          "signed_content" => data |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
 
@@ -1376,7 +1376,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       conn =
         patch(conn, contract_request_path(conn, :sign_nhs, contract_request.id), %{
-          "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+          "signed_content" => data |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
 
@@ -1385,7 +1385,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       schema =
         "specs/json_schemas/contract_request/contract_request_show_response.json"
         |> File.read!()
-        |> Poison.decode!()
+        |> Jason.decode!()
 
       assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
     end
@@ -1444,7 +1444,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       schema =
         "specs/json_schemas/contract_request/contract_request_show_response.json"
         |> File.read!()
-        |> Poison.decode!()
+        |> Jason.decode!()
 
       assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
 

@@ -24,6 +24,10 @@ config :ehealth,
     validators: EHealth.Validators.Cache
   ]
 
+# Config Jason as default Json encoder for Phoenix and Ecto
+config :phoenix, :format_encoders, json: Jason
+config :ecto, json_library: Jason
+
 # Configures the endpoint
 config :ehealth, EHealth.Web.Endpoint,
   url: [

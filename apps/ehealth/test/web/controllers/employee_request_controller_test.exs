@@ -392,7 +392,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
         doctor_request()
         |> put_in(["employee_request", "division_id"], "356b4182-f9ce-4eda-b6af-43d2de8602f2")
         |> put_in(["employee_request", "employee_id"], employee.id)
-        |> Poison.encode!()
+        |> Jason.encode!()
 
       conn = put_client_id_header(conn, legal_entity.id)
       conn = post(conn, employee_request_path(conn, :create), employee_request_params)
@@ -414,7 +414,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
       employee_request_params =
         doctor_request()
-        |> Poison.encode!()
+        |> Jason.encode!()
 
       conn = post(conn, employee_request_path(conn, :create), employee_request_params)
       resp = json_response(conn, 422)
@@ -1353,12 +1353,12 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   defp doctor_request do
     "test/data/employee_doctor_request.json"
     |> File.read!()
-    |> Poison.decode!()
+    |> Jason.decode!()
   end
 
   defp pharmacist_request do
     "test/data/employee_pharmacist_request.json"
     |> File.read!()
-    |> Poison.decode!()
+    |> Jason.decode!()
   end
 end

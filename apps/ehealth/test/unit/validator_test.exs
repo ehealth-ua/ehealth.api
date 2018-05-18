@@ -109,7 +109,7 @@ defmodule EHealth.Unit.ValidatorTest do
     content =
       "test/data/legal_entity.json"
       |> File.read!()
-      |> Poison.decode!()
+      |> Jason.decode!()
       |> Map.put("type", "STRANGE")
 
     assert {:error, [{%{description: "value is not allowed in enum", rule: :inclusion}, "$.type"}]} =
@@ -122,7 +122,7 @@ defmodule EHealth.Unit.ValidatorTest do
     content =
       "test/data/legal_entity.json"
       |> File.read!()
-      |> Poison.decode!()
+      |> Jason.decode!()
       |> Map.put("phones", [%{"type" => "INVALID", "number" => "+380503410870"}])
 
     assert {:error, [{%{description: "value is not allowed in enum", rule: :inclusion}, "$.phones.[0].type"}]} =
@@ -133,7 +133,7 @@ defmodule EHealth.Unit.ValidatorTest do
     content =
       "test/data/legal_entity.json"
       |> File.read!()
-      |> Poison.decode!()
+      |> Jason.decode!()
       |> put_in(["owner", "position"], "P99")
 
     assert {:error, [{%{description: _, rule: :invalid}, "$.owner.position"}]} =
@@ -146,7 +146,7 @@ defmodule EHealth.Unit.ValidatorTest do
     content =
       "test/data/legal_entity.json"
       |> File.read!()
-      |> Poison.decode!()
+      |> Jason.decode!()
       |> put_in(["owner", "position"], "P99")
 
     assert :ok = Validator.validate_owner_position(content)
@@ -157,7 +157,7 @@ defmodule EHealth.Unit.ValidatorTest do
     content =
       "test/data/legal_entity.json"
       |> File.read!()
-      |> Poison.decode!()
+      |> Jason.decode!()
       |> put_in(["owner", "birth_date"], "1985-W12-6")
 
     assert {:error, [{%{description: _, rule: :format}, "$.owner.birth_date"}]} = Validator.validate_schema(content)
@@ -167,7 +167,7 @@ defmodule EHealth.Unit.ValidatorTest do
     content =
       "test/data/legal_entity.json"
       |> File.read!()
-      |> Poison.decode!()
+      |> Jason.decode!()
       |> put_in(["owner", "birth_date"], "1988.12.11")
 
     assert {:error, [{%{description: _, rule: :format}, "$.owner.birth_date"}]} = Validator.validate_schema(content)
@@ -177,7 +177,7 @@ defmodule EHealth.Unit.ValidatorTest do
     content =
       "test/data/legal_entity.json"
       |> File.read!()
-      |> Poison.decode!()
+      |> Jason.decode!()
       |> put_in(["owner", "birth_date"], "1815-12-06")
 
     assert {:error, [{%{description: _, rule: :invalid}, "$.owner.birth_date"}]} =
@@ -195,7 +195,7 @@ defmodule EHealth.Unit.ValidatorTest do
     content =
       "test/data/legal_entity.json"
       |> File.read!()
-      |> Poison.decode!()
+      |> Jason.decode!()
       |> put_in(["owner", "birth_date"], date)
 
     assert {:error, [{%{description: _, rule: :invalid}, "$.owner.birth_date"}]} =
@@ -206,7 +206,7 @@ defmodule EHealth.Unit.ValidatorTest do
     content =
       "test/data/legal_entity.json"
       |> File.read!()
-      |> Poison.decode!()
+      |> Jason.decode!()
       |> put_in(["medical_service_provider", "accreditation", "issued_date"], "20-12-2011")
 
     assert {:error, [{%{description: _, rule: :format}, "$.medical_service_provider.accreditation.issued_date"}]} =
@@ -283,7 +283,7 @@ defmodule EHealth.Unit.ValidatorTest do
     content =
       "test/data/legal_entity.json"
       |> File.read!()
-      |> Poison.decode!()
+      |> Jason.decode!()
 
     assert :ok = Validator.validate_schema(content)
   end
@@ -299,7 +299,7 @@ defmodule EHealth.Unit.ValidatorTest do
     content =
       "test/data/legal_entity.json"
       |> File.read!()
-      |> Poison.decode!()
+      |> Jason.decode!()
 
     address =
       content
@@ -349,7 +349,7 @@ defmodule EHealth.Unit.ValidatorTest do
   defp get_employee_request do
     "test/data/employee_doctor_request.json"
     |> File.read!()
-    |> Poison.decode!()
+    |> Jason.decode!()
     |> put_in(~W(employee_request legal_entity_id), "8b797c23-ba47-45f2-bc0f-521013e01074")
   end
 end

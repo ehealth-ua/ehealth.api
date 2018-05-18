@@ -2,11 +2,11 @@
 Postgrex.Types.define(
   EHealth.PRM.PostgresTypes,
   [Geo.PostGIS.Extension] ++ Ecto.Adapters.Postgres.extensions(),
-  json: Poison
+  json: Jason
 )
 
 Postgrex.Types.define(
   EHealth.Fraud.PostgresTypes,
   [Geo.PostGIS.Extension] ++ Ecto.Adapters.Postgres.extensions(),
-  json: Poison
+  json: Jason
 )

@@ -4,7 +4,7 @@ defmodule EHealth.Medications.INNM do
 
   alias EHealth.Medications.INNMDosage.Ingredient
 
-  @derive {Poison.Encoder, except: [:__meta__, :ingredients]}
+  @derive {Jason.Encoder, except: [:__meta__, :ingredients]}
 
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "innms" do

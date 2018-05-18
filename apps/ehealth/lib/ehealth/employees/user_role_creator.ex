@@ -43,7 +43,7 @@ defmodule EHealth.Employees.UserRoleCreator do
 
   def add_oauth_users_role(_, _, _, party_id, _) do
     Logger.error(fn ->
-      Poison.encode!(%{
+      Jason.encode!(%{
         "log_type" => "error",
         "message" => "Empty party users by party_id #{party_id}. Cannot create new roles",
         "request_id" => Logger.metadata()[:request_id]
@@ -75,7 +75,7 @@ defmodule EHealth.Employees.UserRoleCreator do
   """
   def create_user_role({:error, reason}, user_id, role_id, client_id, headers) do
     Logger.error(fn ->
-      Poison.encode!(%{
+      Jason.encode!(%{
         "log_type" => "error",
         "message" => "Cannot get user roles for user #{user_id}. Creates role for user. Response: #{inspect(reason)}",
         "request_id" => Logger.metadata()[:request_id]

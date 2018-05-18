@@ -48,7 +48,7 @@ defmodule EHealth.Integration.DeduplicatingPersonsTest do
               ]
           end
 
-        send_resp(conn, 200, Poison.encode!(%{data: declarations}))
+        send_resp(conn, 200, Jason.encode!(%{data: declarations}))
       end
 
       Plug.Router.patch "/persons/:id/declarations/actions/terminate" do

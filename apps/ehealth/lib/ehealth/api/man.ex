@@ -28,7 +28,7 @@ defmodule EHealth.API.Man do
       end)
 
     Logger.info(fn ->
-      Poison.encode!(%{
+      Jason.encode!(%{
         "log_type" => "microservice_request",
         "microservice" => config()[:endpoint],
         "action" => "POST",
@@ -40,7 +40,7 @@ defmodule EHealth.API.Man do
     end)
 
     path
-    |> post!(Poison.encode!(data), headers, config()[:hackney_options])
+    |> post!(Jason.encode!(data), headers, config()[:hackney_options])
     |> process_template()
   end
 
@@ -50,7 +50,7 @@ defmodule EHealth.API.Man do
 
   defp process_template(%HTTPoison.Response{body: body}) do
     Logger.error(fn ->
-      Poison.encode!(%{
+      Jason.encode!(%{
         "log_type" => "microservice_response",
         "microservice" => config()[:endpoint],
         "response" => body,

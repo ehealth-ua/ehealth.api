@@ -10,6 +10,7 @@ defmodule EHealth.Parties.Phone do
     number
   )a
 
+  @derive {Jason.Encoder, except: [:__meta__]}
   @derive {Poison.Encoder, except: [:__meta__]}
 
   @primary_key false

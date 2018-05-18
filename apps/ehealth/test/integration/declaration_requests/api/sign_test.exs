@@ -168,7 +168,7 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
       %{id: employee_id} = insert(:prm, :employee, legal_entity_id: legal_entity_id, party: party)
 
       content = %{"employee" => %{"id" => employee_id}}
-      headers = [{"x-consumer-metadata", Poison.encode!(%{client_id: legal_entity_id})}]
+      headers = [{"x-consumer-metadata", Jason.encode!(%{client_id: legal_entity_id})}]
       assert :ok == check_employee_id(content, headers)
     end
   end
@@ -269,7 +269,7 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
 
       Plug.Router.post "/declarations/with_termination" do
         %{"declaration_request_id" => _} = conn.body_params
-        send_resp(conn, 200, Poison.encode!(%{data: conn.body_params}))
+        send_resp(conn, 200, Jason.encode!(%{data: conn.body_params}))
       end
     end
 

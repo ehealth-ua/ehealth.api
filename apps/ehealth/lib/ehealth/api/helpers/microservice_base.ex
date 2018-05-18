@@ -25,7 +25,7 @@ defmodule EHealth.API.Helpers.MicroserviceBase do
 
         if response.status_code >= 300 do
           Logger.error(fn ->
-            Poison.encode!(%{
+            Jason.encode!(%{
               "log_type" => "microservice_response",
               "microservice" => config()[:endpoint],
               "response" => body,
@@ -42,7 +42,7 @@ defmodule EHealth.API.Helpers.MicroserviceBase do
         query_string = if Enum.empty?(params), do: "", else: "?#{URI.encode_query(params)}"
 
         Logger.info(fn ->
-          Poison.encode!(%{
+          Jason.encode!(%{
             "log_type" => "microservice_request",
             "microservice" => config()[:endpoint],
             "action" => method,

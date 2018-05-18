@@ -22,7 +22,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
             printout_form =
               data
               |> Map.drop(~w(locale format)a)
-              |> Poison.encode!()
+              |> Jason.encode!()
 
             {:ok, printout_form}
         end
@@ -51,7 +51,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       data =
         "test/data/sign_declaration_request.json"
         |> File.read!()
-        |> Poison.decode!()
+        |> Jason.decode!()
 
       authentication_method_current = %{
         "type" => "OTP"
@@ -236,7 +236,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         start_date: "02.03.2017"
       }
 
-      assert printout_content == Poison.encode!(expected_content)
+      assert printout_content == Jason.encode!(expected_content)
     end
 
     test "updates declaration request with expected printout form when data contains more than three licenses " do
@@ -250,7 +250,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       data =
         "test/data/sign_declaration_request.json"
         |> File.read!()
-        |> Poison.decode!()
+        |> Jason.decode!()
         |> put_in(["legal_entity", "licenses"], licenses)
 
       printout_content =
@@ -259,7 +259,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         |> put_change(:authentication_method_current, authentication_method_current)
         |> Creator.generate_printout_form(employee)
         |> get_change(:printout_content)
-        |> Poison.decode!()
+        |> Jason.decode!()
         |> get_in(["legal_entity", "full_license"])
 
       assert printout_content == "1a (2017-02-28), 2b (2017-02-28), 3c (2017-02-28)"
@@ -383,7 +383,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
         start_date: ""
       }
 
-      assert printout_content == Poison.encode!(expected_content)
+      assert printout_content == Jason.encode!(expected_content)
     end
 
     test "returns error on printout_content field" do
@@ -631,7 +631,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
             "+380508887700" -> 404
           end
 
-        send_resp(conn, code, Poison.encode!(%{data: ["response_we_don't_care_about"]}))
+        send_resp(conn, code, Jason.encode!(%{data: ["response_we_don't_care_about"]}))
       end
     end
 
@@ -676,7 +676,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
           }
         ]
 
-        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: party_users}))
+        Plug.Conn.send_resp(conn, 200, Jason.encode!(%{data: party_users}))
       end
 
       # Mithril API
@@ -687,11 +687,11 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
           }
         ]
 
-        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: roles}))
+        Plug.Conn.send_resp(conn, 200, Jason.encode!(%{data: roles}))
       end
 
       Plug.Router.get "/admin/users/#{@invalid_user_id}/roles" do
-        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: []}))
+        Plug.Conn.send_resp(conn, 200, Jason.encode!(%{data: []}))
       end
 
       Plug.Router.get "/admin/users/#{@user_id}/roles" do
@@ -702,7 +702,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
           }
         ]
 
-        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: roles}))
+        Plug.Conn.send_resp(conn, 200, Jason.encode!(%{data: roles}))
       end
 
       Plug.Router.get "/admin/users/#{@user_id}" do
@@ -710,7 +710,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
           "email" => "user@email.com"
         }
 
-        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: user}))
+        Plug.Conn.send_resp(conn, 200, Jason.encode!(%{data: user}))
       end
     end
 

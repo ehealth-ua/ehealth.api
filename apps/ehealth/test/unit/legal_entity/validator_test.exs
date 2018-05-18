@@ -17,7 +17,7 @@ defmodule EHealth.Unit.LegalEntity.ValidatorTest do
       legal_entity =
         "test/data/legal_entity.json"
         |> File.read!()
-        |> Poison.decode!()
+        |> Jason.decode!()
 
       {:ok, legal_entity: legal_entity}
     end

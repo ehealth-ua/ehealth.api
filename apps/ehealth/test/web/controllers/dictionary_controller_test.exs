@@ -35,8 +35,8 @@ defmodule EHealth.Web.DictionaryControllerTest do
   end
 
   test "lists all entries on index", %{conn: conn} do
-    patch(conn, dictionary_path(conn, :update, "GENDER"), Poison.encode!(@gender))
-    patch(conn, dictionary_path(conn, :update, "DOCUMENT_TYPE"), Poison.encode!(@document_type))
+    patch(conn, dictionary_path(conn, :update, "GENDER"), Jason.encode!(@gender))
+    patch(conn, dictionary_path(conn, :update, "DOCUMENT_TYPE"), Jason.encode!(@document_type))
 
     conn = get(conn, dictionary_path(conn, :index))
     resp = json_response(conn, 200)["data"]
@@ -62,7 +62,7 @@ defmodule EHealth.Web.DictionaryControllerTest do
   end
 
   test "does not update chosen dictionary and renders errors when data is invalid", %{conn: conn} do
-    conn = patch(conn, dictionary_path(conn, :update, "GENDER"), Poison.encode!(@invalid_attrs))
+    conn = patch(conn, dictionary_path(conn, :update, "GENDER"), Jason.encode!(@invalid_attrs))
     assert json_response(conn, 422)["errors"] != %{}
   end
 

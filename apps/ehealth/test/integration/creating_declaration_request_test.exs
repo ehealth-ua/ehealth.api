@@ -21,7 +21,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
           name: "Київ"
         }
 
-        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{meta: "", data: settlement}))
+        Plug.Conn.send_resp(conn, 200, Jason.encode!(%{meta: "", data: settlement}))
       end
 
       # UAddresses API
@@ -30,7 +30,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
           name: "М.КИЇВ"
         }
 
-        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{meta: "", data: region}))
+        Plug.Conn.send_resp(conn, 200, Jason.encode!(%{meta: "", data: region}))
       end
 
       # OTP Verifications
@@ -41,15 +41,15 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       Plug.Router.post "/verifications" do
         "+380508887700" = conn.body_params["phone_number"]
 
-        send_resp(conn, 200, Poison.encode!(%{data: ["response_we_don't_care_about"]}))
+        send_resp(conn, 200, Jason.encode!(%{data: ["response_we_don't_care_about"]}))
       end
 
       Plug.Router.post "/api/v1/tables/some_gndf_table_id/decisions" do
-        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: %{final_decision: "OFFLINE"}}))
+        Plug.Conn.send_resp(conn, 200, Jason.encode!(%{data: %{final_decision: "OFFLINE"}}))
       end
 
       Plug.Router.post "/api/v1/tables/not_available/decisions" do
-        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: %{final_decision: "NA"}}))
+        Plug.Conn.send_resp(conn, 200, Jason.encode!(%{data: %{final_decision: "NA"}}))
       end
 
       # Mithril API
@@ -60,7 +60,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
           }
         ]
 
-        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: roles}))
+        Plug.Conn.send_resp(conn, 200, Jason.encode!(%{data: roles}))
       end
 
       Plug.Router.get "/admin/users/:id/roles" do
@@ -71,7 +71,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
           }
         ]
 
-        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: roles}))
+        Plug.Conn.send_resp(conn, 200, Jason.encode!(%{data: roles}))
       end
 
       Plug.Router.get "/admin/users/:id" do
@@ -79,7 +79,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
           "email" => "user@email.com"
         }
 
-        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: user}))
+        Plug.Conn.send_resp(conn, 200, Jason.encode!(%{data: user}))
       end
 
       # OPS API
@@ -91,7 +91,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
           "inserted_at" => "some_time"
         }
 
-        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: block}))
+        Plug.Conn.send_resp(conn, 200, Jason.encode!(%{data: block}))
       end
 
       match _ do
@@ -101,7 +101,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         require Logger
         Logger.error(message)
 
-        send_resp(conn, 404, Poison.encode!(%{}))
+        send_resp(conn, 404, Jason.encode!(%{}))
       end
     end
 
@@ -163,7 +163,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       declaration_request_params =
         "test/data/declaration_request.json"
         |> File.read!()
-        |> Poison.decode!()
+        |> Jason.decode!()
         |> put_in(~W(declaration_request person birth_date), "1989-08-19")
 
       mock_params =
@@ -177,7 +177,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       conn =
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
-        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
         |> post(declaration_request_path(conn, :create), declaration_request_params)
 
       resp = json_response(conn, 422)
@@ -197,7 +197,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       declaration_request_params =
         "test/data/declaration_request.json"
         |> File.read!()
-        |> Poison.decode!()
+        |> Jason.decode!()
         |> put_in(~W(declaration_request person authentication_methods), auth_methods)
 
       mock_params =
@@ -211,7 +211,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       conn =
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
-        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
         |> post(declaration_request_path(conn, :create), declaration_request_params)
 
       resp = json_response(conn, 422)
@@ -223,13 +223,13 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       declaration_request_params =
         "test/data/declaration_request.json"
         |> File.read!()
-        |> Poison.decode!()
+        |> Jason.decode!()
         |> put_in(~W(declaration_request person secret), "a very long secret value")
 
       resp =
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
-        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
         |> post(declaration_request_path(conn, :create), declaration_request_params)
         |> json_response(422)
 
@@ -271,7 +271,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       declaration_request_params =
         "test/data/declaration_request.json"
         |> File.read!()
-        |> Poison.decode!()
+        |> Jason.decode!()
 
       declaration_request_params =
         put_in(
@@ -290,7 +290,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
 
       conn
       |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
-      |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
+      |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
       |> post(declaration_request_path(conn, :create), declaration_request_params)
       |> json_response(200)
     end
@@ -299,7 +299,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       declaration_request_params =
         "test/data/declaration_request.json"
         |> File.read!()
-        |> Poison.decode!()
+        |> Jason.decode!()
         |> put_in(~W(declaration_request person authentication_methods), [%{"type" => "OTP"}])
 
       mock_params =
@@ -313,7 +313,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       conn =
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
-        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
         |> post(declaration_request_path(conn, :create), declaration_request_params)
 
       resp = json_response(conn, 422)
@@ -329,13 +329,13 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       declaration_request_params =
         "test/data/declaration_request.json"
         |> File.read!()
-        |> Poison.decode!()
+        |> Jason.decode!()
         |> put_in(~W(declaration_request person phones), phones)
 
       conn =
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
-        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
         |> post(declaration_request_path(conn, :create), declaration_request_params)
 
       resp = json_response(conn, 422)
@@ -366,7 +366,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       params =
         "test/data/declaration_request.json"
         |> File.read!()
-        |> Poison.decode!()
+        |> Jason.decode!()
 
       mock_params =
         params
@@ -468,7 +468,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       declaration_request_params =
         "test/data/declaration_request.json"
         |> File.read!()
-        |> Poison.decode!()
+        |> Jason.decode!()
         |> put_in(~W(declaration_request person first_name), "Тест")
         |> put_in(~W(declaration_request person authentication_methods), [%{"type" => "OFFLINE"}])
 
@@ -483,8 +483,8 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       resp =
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
-        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
-        |> post(declaration_request_path(conn, :create), Poison.encode!(declaration_request_params))
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
+        |> post(declaration_request_path(conn, :create), Jason.encode!(declaration_request_params))
         |> json_response(200)
 
       assert_show_response_schema(resp, "declaration_request")
@@ -521,7 +521,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       declaration_request_params =
         "test/data/declaration_request.json"
         |> File.read!()
-        |> Poison.decode!()
+        |> Jason.decode!()
 
       mock_params =
         declaration_request_params
@@ -553,8 +553,8 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       resp =
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
-        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
-        |> post(declaration_request_path(conn, :create), Poison.encode!(declaration_request_params))
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
+        |> post(declaration_request_path(conn, :create), Jason.encode!(declaration_request_params))
         |> json_response(200)
 
       assert_show_response_schema(resp, "declaration_request")
@@ -577,7 +577,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       declaration_request_params =
         "test/data/declaration_request.json"
         |> File.read!()
-        |> Poison.decode!()
+        |> Jason.decode!()
         |> put_in(["declaration_request", "person", "first_name"], "Тест")
 
       mock_params =
@@ -595,8 +595,8 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       conn =
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
-        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
-        |> post("/api/declaration_requests", Poison.encode!(declaration_request_params))
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
+        |> post("/api/declaration_requests", Jason.encode!(declaration_request_params))
 
       resp = json_response(conn, 200)
 
@@ -651,7 +651,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       declaration_request_params =
         "test/data/declaration_request.json"
         |> File.read!()
-        |> Poison.decode!()
+        |> Jason.decode!()
         |> put_in(["declaration_request", "division_id"], "31506899-55a5-4011-b88c-10ba90c5e9bd")
         |> put_in(["declaration_request", "employee_id"], "b03f057f-aa84-4152-b6e5-3905ba821b66")
 
@@ -666,7 +666,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       conn =
         conn
         |> put_req_header("x-consumer-id", "b03f057f-aa84-4152-b6e5-3905ba821b66")
-        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: "ec7b4900-d7bf-4794-98cd-0fd72f4321ec"}))
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "ec7b4900-d7bf-4794-98cd-0fd72f4321ec"}))
         |> post(declaration_request_path(conn, :create), declaration_request_params)
 
       resp = json_response(conn, 422)
@@ -686,7 +686,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
           name: "Київ"
         }
 
-        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{meta: "", data: settlement}))
+        Plug.Conn.send_resp(conn, 200, Jason.encode!(%{meta: "", data: settlement}))
       end
 
       Plug.Router.get "/regions/555dfcd7-2be5-4417-aaaf-ca95564f7977" do
@@ -694,7 +694,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
           name: "М.КИЇВ"
         }
 
-        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{meta: "", data: region}))
+        Plug.Conn.send_resp(conn, 200, Jason.encode!(%{meta: "", data: region}))
       end
     end
 
@@ -718,7 +718,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
 
       mock_params =
         declaration_request_params
-        |> Poison.decode!()
+        |> Jason.decode!()
         |> get_in(~w(declaration_request person addresses))
         |> Enum.at(0)
         |> Map.take(~w(settlement_id region_id district_id area))
@@ -728,7 +728,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       conn =
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
-        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: ""}))
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: ""}))
         |> post(declaration_request_path(conn, :create), declaration_request_params)
 
       json_response(conn, 422)
@@ -746,7 +746,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
           name: "Київ"
         }
 
-        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{meta: "", data: settlement}))
+        Plug.Conn.send_resp(conn, 200, Jason.encode!(%{meta: "", data: settlement}))
       end
 
       Plug.Router.get "/regions/555dfcd7-2be5-4417-aaaf-ca95564f7977" do
@@ -754,7 +754,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
           name: "М.КИЇВ"
         }
 
-        Plug.Conn.send_resp(conn, 200, Poison.encode!(%{meta: "", data: region}))
+        Plug.Conn.send_resp(conn, 200, Jason.encode!(%{meta: "", data: region}))
       end
     end
 
@@ -783,7 +783,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       declaration_request_params =
         "test/data/declaration_request.json"
         |> File.read!()
-        |> Poison.decode!()
+        |> Jason.decode!()
         |> put_in(["declaration_request", "employee_id"], wrong_id)
 
       mock_params =
@@ -797,8 +797,8 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       conn =
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
-        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: ""}))
-        |> post(declaration_request_path(conn, :create), Poison.encode!(declaration_request_params))
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: ""}))
+        |> post(declaration_request_path(conn, :create), Jason.encode!(declaration_request_params))
 
       resp = json_response(conn, 422)
 
@@ -818,7 +818,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       use MicroservicesHelper
 
       Plug.Router.get "/settlements/adaa4abf-f530-461c-bcbf-a0ac210d955b" do
-        Plug.Conn.send_resp(conn, 404, Poison.encode!(%{meta: "", data: %{}}))
+        Plug.Conn.send_resp(conn, 404, Jason.encode!(%{meta: "", data: %{}}))
       end
     end
 
@@ -847,7 +847,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       conn =
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
-        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: ""}))
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: ""}))
         |> post(declaration_request_path(conn, :create), declaration_request_params)
 
       assert %{
@@ -903,7 +903,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       conn =
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
-        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
         |> post(declaration_request_path(conn, :create), %{"declaration_request" => content})
 
       assert %{
@@ -941,7 +941,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       conn =
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
-        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
         |> post(declaration_request_path(conn, :create), %{"declaration_request" => content})
 
       assert %{
@@ -987,7 +987,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       conn =
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
-        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
         |> post(declaration_request_path(conn, :create), %{"declaration_request" => content})
 
       assert %{
@@ -1026,7 +1026,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       conn =
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
-        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
         |> post(declaration_request_path(conn, :create), %{"declaration_request" => content})
 
       assert %{
@@ -1089,7 +1089,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
   defp get_declaration_request do
     "test/data/declaration_request.json"
     |> File.read!()
-    |> Poison.decode!()
+    |> Jason.decode!()
     |> Map.fetch!("declaration_request")
   end
 

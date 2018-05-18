@@ -16,10 +16,10 @@ defmodule EHealth.API.Signature do
         "signed_content_encoding" => signed_content_encoding
       }
 
-      post!("/digital_signatures", Poison.encode!(params), headers)
+      post!("/digital_signatures", Jason.encode!(params), headers)
     else
       with {:ok, binary} <- Base.decode64(signed_content),
-           {:ok, data} <- Poison.decode(binary) do
+           {:ok, data} <- Jason.decode(binary) do
         data_is_valid_resp(data, headers)
       else
         _ ->
@@ -46,7 +46,7 @@ defmodule EHealth.API.Signature do
         ]
       }
       |> wrap_response(200)
-      |> Poison.encode!()
+      |> Jason.encode!()
 
     ResponseDecoder.check_response(%HTTPoison.Response{body: data, status_code: 200})
   end
@@ -83,7 +83,7 @@ defmodule EHealth.API.Signature do
           "url" => "http://www.example.com/digital_signatures"
         }
       }
-      |> Poison.encode!()
+      |> Jason.encode!()
 
     ResponseDecoder.check_response(%HTTPoison.Response{body: data, status_code: 422})
   end

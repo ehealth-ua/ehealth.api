@@ -13,7 +13,7 @@ defmodule EHealth.Integraiton.DeclarationRequestRejectTest do
       conn =
         build_conn()
         |> put_req_header("x-consumer-id", user_id)
-        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: client_id}))
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: client_id}))
         |> patch("/api/declaration_requests/#{record.id}/actions/reject")
 
       assert json_response(conn, 200)
@@ -28,7 +28,7 @@ defmodule EHealth.Integraiton.DeclarationRequestRejectTest do
       conn =
         build_conn()
         |> put_req_header("x-consumer-id", user_id)
-        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: client_id}))
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: client_id}))
         |> patch("/api/declaration_requests/#{record.id}/actions/reject")
 
       assert json_response(conn, 409)
@@ -41,7 +41,7 @@ defmodule EHealth.Integraiton.DeclarationRequestRejectTest do
       assert_raise Ecto.NoResultsError, fn ->
         build_conn()
         |> put_req_header("x-consumer-id", user_id)
-        |> put_req_header("x-consumer-metadata", Poison.encode!(%{client_id: client_id}))
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: client_id}))
         |> patch("/api/declaration_requests/#{Ecto.UUID.generate()}/actions/reject")
       end
     end

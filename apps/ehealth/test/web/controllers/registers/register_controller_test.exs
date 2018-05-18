@@ -70,8 +70,8 @@ defmodule EHealth.Web.RegisterControllerTest do
       Plug.Router.patch "/persons/:id/declarations/actions/terminate" do
         # check that declaration termination reason started with `auto_`
         case conn.body_params["reason"] do
-          "auto_" <> _type -> send_resp(conn, 200, Poison.encode!(%{meta: %{code: 200}, data: %{}}))
-          _ -> send_resp(conn, 404, Poison.encode!(%{meta: %{code: 404}, data: %{}}))
+          "auto_" <> _type -> send_resp(conn, 200, Jason.encode!(%{meta: %{code: 200}, data: %{}}))
+          _ -> send_resp(conn, 404, Jason.encode!(%{meta: %{code: 404}, data: %{}}))
         end
       end
     end
@@ -339,8 +339,8 @@ defmodule EHealth.Web.RegisterControllerTest do
 
       Plug.Router.patch "/persons/:id/declarations/actions/terminate" do
         case is_binary(conn.body_params["reason_description"]) do
-          true -> send_resp(conn, 200, Poison.encode!(%{meta: %{code: 200}, data: %{}}))
-          _ -> send_resp(conn, 404, Poison.encode!(%{meta: %{code: 404}, data: %{}}))
+          true -> send_resp(conn, 200, Jason.encode!(%{meta: %{code: 200}, data: %{}}))
+          _ -> send_resp(conn, 404, Jason.encode!(%{meta: %{code: 404}, data: %{}}))
         end
       end
     end

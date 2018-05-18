@@ -332,14 +332,14 @@ defmodule EHealthWeb.Router do
     LoggerJSON.log_error(kind, reason, stacktrace)
 
     Logger.log(:info, fn ->
-      Poison.encode!(%{
+      Jason.encode!(%{
         "log_type" => "debug",
         "request_params" => conn.params,
         "request_id" => Logger.metadata()[:request_id]
       })
     end)
 
-    send_resp(conn, 500, Poison.encode!(%{errors: %{detail: "Internal server error"}}))
+    send_resp(conn, 500, Jason.encode!(%{errors: %{detail: "Internal server error"}}))
   end
 
   defp handle_errors(_, _), do: nil

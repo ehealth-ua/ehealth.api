@@ -19,5 +19,11 @@ Repo.delete_all(Dictionary)
 :ehealth
 |> Application.app_dir("priv/repo/fixtures/dictionaries.json")
 |> File.read!()
-|> Poison.decode!(as: [%Dictionary{}])
+|> Jason.decode!()
+|> Enum.map(fn item ->
+  Enum.reduce(item, %{}, fn {k, v}, acc ->
+    Map.put(acc, String.to_atom(k), v)
+  end)
+end)
+|> Enum.map(&struct(%Dictionary{}, &1))
 |> Enum.each(&Repo.insert!/1)

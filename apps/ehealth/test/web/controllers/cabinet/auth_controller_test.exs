@@ -13,7 +13,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
     defmacro __using__(_) do
       quote do
         expect(SignatureMock, :decode_and_validate, fn signed_content, "base64", _headers ->
-          content = signed_content |> Base.decode64!() |> Poison.decode!()
+          content = signed_content |> Base.decode64!() |> Jason.decode!()
 
           first_name = content |> Map.get("first_name", "") |> String.upcase()
 
@@ -568,7 +568,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
     test "different last_name in signed content and DS", %{conn: conn, params: params, jwt: jwt} do
       expect(SignatureMock, :decode_and_validate, fn signed_content, "base64", _headers ->
-        content = signed_content |> Base.decode64!() |> Poison.decode!()
+        content = signed_content |> Base.decode64!() |> Jason.decode!()
 
         data = %{
           "content" => content,
@@ -600,7 +600,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
     test "no surname in Signer from DS", %{conn: conn, params: params, jwt: jwt} do
       expect(SignatureMock, :decode_and_validate, fn signed_content, "base64", _headers ->
-        content = signed_content |> Base.decode64!() |> Poison.decode!()
+        content = signed_content |> Base.decode64!() |> Jason.decode!()
 
         data = %{
           "content" => content,
@@ -631,7 +631,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
     test "different first_name in signed content and DS", %{conn: conn, params: params, jwt: jwt} do
       expect(SignatureMock, :decode_and_validate, fn signed_content, "base64", _headers ->
-        content = signed_content |> Base.decode64!() |> Poison.decode!()
+        content = signed_content |> Base.decode64!() |> Jason.decode!()
 
         data = %{
           "content" => content,
@@ -663,7 +663,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
     test "no given_name in Signer from DS", %{conn: conn, params: params, jwt: jwt} do
       expect(SignatureMock, :decode_and_validate, fn signed_content, "base64", _headers ->
-        content = signed_content |> Base.decode64!() |> Poison.decode!()
+        content = signed_content |> Base.decode64!() |> Jason.decode!()
 
         data = %{
           "content" => content,
@@ -747,7 +747,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
     test "different tax_id in signed content and digital signature", %{conn: conn, params: params, jwt: jwt} do
       expect(SignatureMock, :decode_and_validate, fn signed_content, "base64", _headers ->
-        content = signed_content |> Base.decode64!() |> Poison.decode!()
+        content = signed_content |> Base.decode64!() |> Jason.decode!()
         assert Map.has_key?(content, "tax_id")
 
         data = %{
@@ -814,7 +814,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
           "tax_id" => "1112223344",
           "email" => "email@example.com"
         }
-        |> Poison.encode!()
+        |> Jason.encode!()
         |> Base.encode64()
 
       err =
@@ -972,7 +972,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
     test "Empty drfo in Signer from DS", %{conn: conn, jwt: jwt} do
       expect(SignatureMock, :decode_and_validate, fn signed_content, "base64", _headers ->
-        content = signed_content |> Base.decode64!() |> Poison.decode!()
+        content = signed_content |> Base.decode64!() |> Jason.decode!()
 
         data = %{
           "content" => content,
@@ -1011,7 +1011,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
     test "No drfo in Signer from DS", %{conn: conn, jwt: jwt} do
       expect(SignatureMock, :decode_and_validate, fn signed_content, "base64", _headers ->
-        content = signed_content |> Base.decode64!() |> Poison.decode!()
+        content = signed_content |> Base.decode64!() |> Jason.decode!()
 
         data = %{
           "content" => content,
@@ -1091,7 +1091,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
   defp sign_content(content) do
     content
-    |> Poison.encode!()
+    |> Jason.encode!()
     |> Base.encode64()
   end
 
@@ -1099,7 +1099,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
     params =
       "test/data/cabinet/patient.json"
       |> File.read!()
-      |> Poison.decode!()
+      |> Jason.decode!()
       |> Map.get("addresses", [])
       |> Enum.at(0)
       |> Map.take(~w(settlement_id region_id district_id area))

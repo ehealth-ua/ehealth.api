@@ -35,7 +35,7 @@ defmodule EHealth.API.MediaStorage do
   end
 
   def create_signed_url(data, headers) do
-    post!("/media_content_storage_secrets", Poison.encode!(data), headers)
+    post!("/media_content_storage_secrets", Jason.encode!(data), headers)
   end
 
   def store_signed_content(signed_content, bucket, id, headers) do

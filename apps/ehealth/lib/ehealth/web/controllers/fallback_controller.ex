@@ -130,7 +130,7 @@ defmodule EHealth.Web.FallbackController do
     conn
     |> put_status(:bad_gateway)
     |> put_resp_content_type("application/json")
-    |> send_resp(502, Poison.encode!(%{message: message}))
+    |> send_resp(502, Jason.encode!(%{message: message}))
   end
 
   def call(conn, {:error, {:service_unavailable, message}}) do
@@ -161,7 +161,7 @@ defmodule EHealth.Web.FallbackController do
 
   def call(conn, {:error, {:empty_body, code}}) do
     Logger.error(fn ->
-      Poison.encode!(%{
+      Jason.encode!(%{
         "log_type" => "error",
         "message" => "Proxied response with empty body. Status code: #{code}",
         "request_id" => Logger.metadata()[:request_id]
@@ -175,7 +175,7 @@ defmodule EHealth.Web.FallbackController do
 
   def call(conn, {:error, {:response_json_decoder, reason}}) do
     Logger.error(fn ->
-      Poison.encode!(%{
+      Jason.encode!(%{
         "log_type" => "error",
         "message" => "Cannot decode HTTP JSON response: #{inspect(reason)}",
         "request_id" => Logger.metadata()[:request_id]
@@ -189,7 +189,7 @@ defmodule EHealth.Web.FallbackController do
 
   def call(conn, params) do
     Logger.error(fn ->
-      Poison.encode!(%{
+      Jason.encode!(%{
         "log_type" => "error",
         "message" => "No function clause matching in EHealth.Web.FallbackController.call/2: #{inspect(params)}",
         "request_id" => Logger.metadata()[:request_id]

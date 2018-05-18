@@ -21,7 +21,7 @@ defmodule EHealth.Unit.DeclarationRequests.API.ResendOTPTest do
           active: true
         }
         |> wrap_response(200)
-        |> Poison.encode!()
+        |> Jason.encode!()
 
       send_resp(conn, 200, response)
     end

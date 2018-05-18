@@ -1418,13 +1418,13 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       medication_dispense
       |> Map.put(:medication_request_id, medication_request.id)
       |> Map.put(:details, [medication_dispense_details])
-      |> Poison.encode!()
-      |> Poison.decode!()
+      |> Jason.encode!()
+      |> Jason.decode!()
 
     medication_request =
       medication_request
-      |> Poison.encode!()
-      |> Poison.decode!()
+      |> Jason.encode!()
+      |> Jason.decode!()
 
     {medication_request, medication_dispense}
   end
