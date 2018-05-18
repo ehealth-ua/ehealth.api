@@ -300,10 +300,10 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
       person_id = UUID.generate()
       person_data = %{"data" => %{"id" => person_id}}
       client_id = UUID.generate()
-      x_consumer_metadata_header = {"x-consumer-metadata", Poison.encode!(%{"client_id" => client_id})}
+      x_consumer_id_header = {"x-consumer-id", client_id}
 
       {:ok, %{"data" => data}} =
-        create_declaration_with_termination_logic(person_data, declaration_request, [x_consumer_metadata_header])
+        create_declaration_with_termination_logic(person_data, declaration_request, [x_consumer_id_header])
 
       assert false === data["overlimit"]
       assert client_id == data["created_by"]

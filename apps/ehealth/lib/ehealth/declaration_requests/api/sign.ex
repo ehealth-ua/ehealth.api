@@ -252,7 +252,7 @@ defmodule EHealth.DeclarationRequests.API.Sign do
         },
         headers
       ) do
-    client_id = get_client_id(headers)
+    consumer_id = get_consumer_id(headers)
 
     data
     |> Map.take(["start_date", "end_date", "scope", "seed"])
@@ -264,8 +264,8 @@ defmodule EHealth.DeclarationRequests.API.Sign do
       "person_id" => person_id,
       "status" => get_status(authentication_method_current),
       "is_active" => true,
-      "created_by" => client_id,
-      "updated_by" => client_id,
+      "created_by" => consumer_id,
+      "updated_by" => consumer_id,
       "signed_at" => Timex.now(),
       "declaration_request_id" => id,
       "overlimit" => overlimit,
