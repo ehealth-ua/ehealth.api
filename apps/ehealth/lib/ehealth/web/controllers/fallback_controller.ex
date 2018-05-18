@@ -35,6 +35,16 @@ defmodule EHealth.Web.FallbackController do
     |> render(Error, :"400", %{message: error})
   end
 
+  def call(conn, %Ecto.Changeset{valid?: false} = changeset) do
+    call(conn, {:error, changeset})
+  end
+
+  def call(conn, {:error, %Ecto.Changeset{valid?: false} = changeset}) do
+    conn
+    |> put_status(:unprocessable_entity)
+    |> render(ValidationError, :"422", changeset)
+  end
+
   @doc """
   Proxy response from APIs
   """
@@ -50,16 +60,6 @@ defmodule EHealth.Web.FallbackController do
 
   def call(conn, {:error, _ecto_multi_key, reason, _}) do
     proxy(conn, reason)
-  end
-
-  def call(conn, %Ecto.Changeset{valid?: false} = changeset) do
-    call(conn, {:error, changeset})
-  end
-
-  def call(conn, {:error, %Ecto.Changeset{valid?: false} = changeset}) do
-    conn
-    |> put_status(:unprocessable_entity)
-    |> render(ValidationError, :"422", changeset)
   end
 
   def call(conn, {:error, {:bad_request, reason}}) when is_binary(reason) do

@@ -186,7 +186,7 @@ defmodule EHealth.Cabinet.API do
   def email_available_for_registration?(email, headers) do
     case @mithril_api.search_user(%{email: email}, headers) do
       {:ok, %{"data" => [%{"tax_id" => tax_id}]}} when is_binary(tax_id) and byte_size(tax_id) > 0 ->
-        conflict("User with this email already exists", :email_exists)
+        {:error, [{%{"description" => "invalid", "params" => [], "rule" => "email_exists"}, "$.email"}]}
 
       {:ok, _} ->
         true

@@ -104,11 +104,15 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => [%{"tax_id" => "23451234"}]}}
       end)
 
-      assert "email_exists" ==
+      assert [err] =
                conn
                |> post(cabinet_auth_path(conn, :email_verification), %{email: email})
-               |> json_response(409)
-               |> get_in(~w(error type))
+               |> json_response(422)
+               |> get_in(~w(error invalid))
+
+      assert "$.email" == err["entry"]
+      assert [rules] = err["rules"]
+      assert "email_exists" == rules["rule"]
     end
 
     test "user with passed email already exists but tax_id is empty", %{conn: conn} do
@@ -214,12 +218,16 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
       {:ok, jwt, _} = encode_and_sign(get_aud(:email_verification), %{email: "info@example.com"}, token_type: "access")
 
-      assert "email_exists" =
+      assert [err] =
                conn
                |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
                |> post(cabinet_auth_path(conn, :email_validation))
-               |> json_response(409)
-               |> get_in(~w(error type))
+               |> json_response(422)
+               |> get_in(~w(error invalid))
+
+      assert "$.email" == err["entry"]
+      assert [rules] = err["rules"]
+      assert "email_exists" == rules["rule"]
     end
 
     test "authorization header not send", %{conn: conn} do
@@ -1073,12 +1081,16 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => [%{"id" => UUID.generate(), "tax_id" => "12342345"}]}}
       end)
 
-      assert "email_exists" =
+      assert [err] =
                conn
                |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
                |> post(cabinet_auth_path(conn, :search_user), params)
-               |> json_response(409)
-               |> get_in(~w(error type))
+               |> json_response(422)
+               |> get_in(~w(error invalid))
+
+      assert "$.email" == err["entry"]
+      assert [rules] = err["rules"]
+      assert "email_exists" == rules["rule"]
     end
 
     test "invalid params", %{conn: conn, jwt: jwt} do
