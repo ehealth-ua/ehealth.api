@@ -322,8 +322,8 @@ defmodule EHealth.Web.DivisionsControllerTest do
       )
     end)
 
-    expect(UAddressesMock, :get_region_by_id, 2, fn _id, _headers ->
-      get_region(%{"id" => params["region_id"], "name" => params["area"]}, 200)
+    expect(UAddressesMock, :validate_addresses, fn _, _ ->
+      {:ok, %{"data" => %{}}}
     end)
   end
 
@@ -339,16 +339,5 @@ defmodule EHealth.Web.DivisionsControllerTest do
       |> Map.merge(params)
 
     {:ok, %{"data" => settlement, "meta" => %{"code" => response_status}}}
-  end
-
-  def get_region(params, response_status) do
-    region =
-      %{
-        "id" => UUID.generate(),
-        "name" => "Львівська"
-      }
-      |> Map.merge(params)
-
-    {:ok, %{"data" => region, "meta" => %{"code" => response_status}}}
   end
 end

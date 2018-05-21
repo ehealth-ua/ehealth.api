@@ -39,7 +39,7 @@ defmodule EHealth.Persons do
          :ok <- validate_tax_id(user["tax_id"], person["tax_id"], content, signer),
          :ok <- JsonSchema.validate(:person, content),
          :ok <- PersonValidator.validate_addresses_types(content["addresses"], @addresses_types),
-         {:ok, _} <- Addresses.validate(content["addresses"]),
+         :ok <- Addresses.validate(content["addresses"], headers),
          :ok <- PersonValidator.validate_birth_certificate_number(content),
          %Ecto.Changeset{valid?: true, changes: changes} <- Person.changeset(content),
          :ok <- validate_authentication_method_phone(Map.get(changes, :authentication_methods), headers),

@@ -26,4 +26,8 @@ defmodule EHealth.API.UAddress do
   def get_district_by_id(id, headers \\ []) do
     get!("/districts/#{id}", headers)
   end
+
+  def validate_addresses(addresses, headers \\ []) when is_list(addresses) do
+    post!("/validate_address", Jason.encode!(%{"addresses" => addresses}), headers)
+  end
 end

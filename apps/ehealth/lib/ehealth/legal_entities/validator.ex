@@ -25,7 +25,7 @@ defmodule EHealth.LegalEntities.Validator do
   def decode_and_validate(params, headers) do
     params
     |> validate_sign_content(headers)
-    |> validate_json()
+    |> validate_json(headers)
   end
 
   def validate_sign_content(content, headers) do
@@ -35,13 +35,14 @@ defmodule EHealth.LegalEntities.Validator do
     |> normalize_signature_error()
   end
 
-  def validate_json({:ok, %{"data" => %{"content" => content, "signatures" => signatures}}}) when is_list(signatures) do
+  def validate_json({:ok, %{"data" => %{"content" => content, "signatures" => signatures}}}, headers)
+      when is_list(signatures) do
     with {:ok, signer} <- get_valid_signer(signatures),
          :ok <- validate_schema(content),
          content = lowercase_emails(content),
          :ok <- validate_json_objects(content),
          :ok <- validate_kveds(content),
-         :ok <- validate_addresses(content),
+         :ok <- validate_addresses(content, headers),
          :ok <- validate_tax_id(content),
          :ok <- validate_owner_birth_date(content),
          :ok <- validate_owner_position(content),
@@ -50,7 +51,7 @@ defmodule EHealth.LegalEntities.Validator do
     end
   end
 
-  def validate_json(err), do: err
+  def validate_json(err, _), do: err
 
   # Request validator
 
@@ -128,14 +129,9 @@ defmodule EHealth.LegalEntities.Validator do
 
   # Addresses validator
 
-  def validate_addresses(content) do
-    content
-    |> Map.get("addresses")
-    |> Addresses.validate("REGISTRATION")
-    |> case do
-      {:ok, _} -> :ok
-      err -> err
-    end
+  def validate_addresses(content, headers) do
+    addresses = Map.get(content, "addresses") || []
+    Addresses.validate(addresses, "REGISTRATION", headers)
   end
 
   # Tax ID validator

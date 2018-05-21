@@ -74,7 +74,7 @@ defmodule EHealth.Unit.LegalEntityTest do
       ]
 
       {:error, {:bad_request, "document must be signed by 1 signer but contains 2 signatures"}} =
-        Validator.validate_json({:ok, %{"data" => %{"content" => content, "signatures" => signatures}}})
+        Validator.validate_json({:ok, %{"data" => %{"content" => content, "signatures" => signatures}}}, [])
     end
 
     test "invalid signed content - no security" do
@@ -83,7 +83,7 @@ defmodule EHealth.Unit.LegalEntityTest do
       signatures = [%{"is_valid" => true, "signer" => %{}, "validation_error_message" => ""}]
 
       {:error, [{error, _}]} =
-        Validator.validate_json({:ok, %{"data" => %{"content" => content, "signatures" => signatures}}})
+        Validator.validate_json({:ok, %{"data" => %{"content" => content, "signatures" => signatures}}}, [])
 
       assert :required == error[:rule]
       assert "required property security was not present" == error[:description]
@@ -216,14 +216,7 @@ defmodule EHealth.Unit.LegalEntityTest do
           "kveds" => ["12.21"]
         })
 
-      params =
-        data
-        |> Map.get("addresses", [])
-        |> Enum.at(0)
-        |> Map.take(~w(settlement_id region_id district_id area))
-
-      uaddresses_mock_expect(params)
-
+      uaddresses_mock_expect()
       assert {:ok, %{legal_entity: legal_entity, security: security}} = create_legal_entity(data)
 
       # test legal entity data
@@ -252,14 +245,7 @@ defmodule EHealth.Unit.LegalEntityTest do
           "kveds" => ["12.21"]
         })
 
-      params =
-        data
-        |> Map.get("addresses", [])
-        |> Enum.at(0)
-        |> Map.take(~w(settlement_id region_id district_id area))
-
-      uaddresses_mock_expect(params)
-
+      uaddresses_mock_expect()
       insert(:prm, :registry, edrpou: "37367387", type: LegalEntity.type(:msp))
 
       assert {:ok, %{legal_entity: legal_entity, security: security}} = create_legal_entity(data)
@@ -306,14 +292,7 @@ defmodule EHealth.Unit.LegalEntityTest do
           "kveds" => ["12.21"]
         })
 
-      params =
-        update_data
-        |> Map.get("addresses", [])
-        |> Enum.at(0)
-        |> Map.take(~w(settlement_id region_id district_id area))
-
-      uaddresses_mock_expect(params)
-
+      uaddresses_mock_expect()
       assert {:ok, %{legal_entity: legal_entity, security: security}} = create_legal_entity(update_data)
 
       assert "37367387" == legal_entity.edrpou
@@ -342,15 +321,7 @@ defmodule EHealth.Unit.LegalEntityTest do
       insert(:prm, :legal_entity, edrpou: "37367387", is_active: false)
 
       data = Map.merge(get_legal_entity_data(), %{"edrpou" => "37367387"})
-
-      params =
-        data
-        |> Map.get("addresses", [])
-        |> Enum.at(0)
-        |> Map.take(~w(settlement_id region_id district_id area))
-
-      uaddresses_mock_expect(params)
-
+      uaddresses_mock_expect()
       assert {:ok, %{legal_entity: legal_entity}} = create_legal_entity(data)
       assert true = legal_entity.is_active
     end
@@ -358,17 +329,8 @@ defmodule EHealth.Unit.LegalEntityTest do
 
   test "CLOSED Legal Entity cannot be updated" do
     insert_dictionaries()
-    legal_entity = insert(:prm, :legal_entity, edrpou: "37367387", status: "CLOSED")
-
-    params =
-      legal_entity
-      |> Map.get(:addresses, [])
-      |> Enum.at(0)
-      |> Map.take(~w(settlement_id region_id district_id area)a)
-      |> convert_atom_keys_to_strings()
-
-    uaddresses_mock_expect(params)
-
+    insert(:prm, :legal_entity, edrpou: "37367387", status: "CLOSED")
+    uaddresses_mock_expect()
     assert {:error, {:conflict, "LegalEntity can't be updated"}} == create_legal_entity(get_legal_entity_data())
   end
 
@@ -392,15 +354,7 @@ defmodule EHealth.Unit.LegalEntityTest do
       insert(:prm, :legal_entity, edrpou: "37367387")
 
       update_data = Map.merge(get_legal_entity_data(), %{"name" => "Нова"})
-
-      params =
-        update_data
-        |> Map.get("addresses", [])
-        |> Enum.at(0)
-        |> Map.take(~w(settlement_id region_id district_id area))
-
-      uaddresses_mock_expect(params)
-
+      uaddresses_mock_expect()
       assert {:ok, %{legal_entity: legal_entity, security: security}} = create_legal_entity(update_data)
 
       assert "Нова" == legal_entity.name
@@ -518,20 +472,10 @@ defmodule EHealth.Unit.LegalEntityTest do
       legal_entity_data
       |> Map.put("addresses", [address])
 
-    expect(UAddressesMock, :get_settlement_by_id, fn _id, _headers ->
-      get_settlement(
-        %{
-          "id" => Map.get(List.first(content["addresses"]), "settlement_id"),
-          "region_id" => Map.get(List.first(content["addresses"]), "region_id"),
-          "district_id" => Map.get(List.first(content["addresses"]), "district_id")
-        },
-        200
-      )
-    end)
+    uaddresses_invalid_mock()
 
-    assert {:error,
-            [{%{description: "invalid settlement value", params: [], rule: :invalid}, "$.addresses.settlement"}]} ==
-             Validator.validate_addresses(content)
+    assert {:error, [{%{"description" => "invalid settlement value", "params" => []}, "$.addresses[0].settlement"}]} ==
+             Validator.validate_addresses(content, [])
   end
 
   test "settlement validation with empty settlement" do
@@ -547,13 +491,10 @@ defmodule EHealth.Unit.LegalEntityTest do
       legal_entity_data
       |> Map.put("addresses", [address])
 
-    expect(UAddressesMock, :get_settlement_by_id, fn _id, _headers ->
-      get_settlement(%{}, 200)
-    end)
+    uaddresses_invalid_mock()
 
-    assert {:error,
-            [{%{description: "invalid settlement value", params: [], rule: :invalid}, "$.addresses.settlement"}]} ==
-             Validator.validate_addresses(content)
+    assert {:error, [{%{"description" => "invalid settlement value", "params" => []}, "$.addresses[0].settlement"}]} ==
+             Validator.validate_addresses(content, [])
   end
 
   test "region validation with invalid region" do
@@ -569,23 +510,10 @@ defmodule EHealth.Unit.LegalEntityTest do
       legal_entity_data
       |> Map.put("addresses", [address])
 
-    district_id = UUID.generate()
+    uaddresses_invalid_mock("$.addresses[0].region", "invalid region value")
 
-    params =
-      legal_entity_data
-      |> Map.get("addresses", [])
-      |> Enum.at(0)
-      |> Map.take(~w(settlement_id region_id district_id area))
-      |> Map.put("district_id", district_id)
-
-    uaddresses_mock_expect(params)
-
-    expect(UAddressesMock, :get_district_by_id, fn _id, _headers ->
-      get_region(%{"id" => district_id, "name" => "test"}, 200)
-    end)
-
-    assert {:error, [{%{description: "invalid region value", params: [], rule: :invalid}, "$.addresses.region"}]} ==
-             Validator.validate_addresses(content)
+    assert {:error, [{%{"description" => "invalid region value", "params" => []}, "$.addresses[0].region"}]} ==
+             Validator.validate_addresses(content, [])
   end
 
   test "region validation with empty region" do
@@ -601,23 +529,10 @@ defmodule EHealth.Unit.LegalEntityTest do
       legal_entity_data
       |> Map.put("addresses", [address])
 
-    district_id = UUID.generate()
+    uaddresses_invalid_mock("$.addresses[0].region", "invalid region value")
 
-    params =
-      legal_entity_data
-      |> Map.get("addresses", [])
-      |> Enum.at(0)
-      |> Map.take(~w(settlement_id region_id district_id area))
-      |> Map.put("district_id", district_id)
-
-    uaddresses_mock_expect(params)
-
-    expect(UAddressesMock, :get_district_by_id, fn _id, _headers ->
-      get_region(%{"id" => district_id, "name" => "test"}, 200)
-    end)
-
-    assert {:error, [{%{description: "invalid region value", params: [], rule: :invalid}, "$.addresses.region"}]} ==
-             Validator.validate_addresses(content)
+    assert {:error, [{%{"description" => "invalid region value", "params" => []}, "$.addresses[0].region"}]} ==
+             Validator.validate_addresses(content, [])
   end
 
   test "area validation with invalid area" do
@@ -633,16 +548,10 @@ defmodule EHealth.Unit.LegalEntityTest do
       legal_entity_data
       |> Map.put("addresses", [address])
 
-    params =
-      legal_entity_data
-      |> Map.get("addresses", [])
-      |> Enum.at(0)
-      |> Map.take(~w(settlement_id region_id district_id area))
+    uaddresses_invalid_mock("$.addresses[0].area", "invalid area value")
 
-    uaddresses_mock_expect(params)
-
-    assert {:error, [{%{description: "invalid area value", params: [], rule: :invalid}, "$.addresses.area"}]} ==
-             Validator.validate_addresses(content)
+    assert {:error, [{%{"description" => "invalid area value", "params" => []}, "$.addresses[0].area"}]} ==
+             Validator.validate_addresses(content, [])
   end
 
   test "area validation with empty area" do
@@ -658,16 +567,10 @@ defmodule EHealth.Unit.LegalEntityTest do
       legal_entity_data
       |> Map.put("addresses", [address])
 
-    params =
-      legal_entity_data
-      |> Map.get("addresses", [])
-      |> Enum.at(0)
-      |> Map.take(~w(settlement_id region_id district_id area))
+    uaddresses_invalid_mock("$.addresses[0].area", "invalid area value")
 
-    uaddresses_mock_expect(params)
-
-    assert {:error, [{%{description: "invalid area value", params: [], rule: :invalid}, "$.addresses.area"}]} ==
-             Validator.validate_addresses(content)
+    assert {:error, [{%{"description" => "invalid area value", "params" => []}, "$.addresses[0].area"}]} ==
+             Validator.validate_addresses(content, [])
   end
 
   test "position validation with invalid position" do
@@ -719,45 +622,28 @@ defmodule EHealth.Unit.LegalEntityTest do
     insert(:il, :dictionary_document_type)
   end
 
-  defp uaddresses_mock_expect(params) do
-    expect(UAddressesMock, :get_settlement_by_id, fn _id, _headers ->
-      get_settlement(
-        %{
-          "id" => params["settlement_id"],
-          "region_id" => params["region_id"],
-          "district_id" => params["district_id"]
-        },
-        200
-      )
-    end)
-
-    expect(UAddressesMock, :get_region_by_id, fn _id, _headers ->
-      get_region(%{"id" => params["region_id"], "name" => params["area"]}, 200)
+  defp uaddresses_mock_expect do
+    expect(UAddressesMock, :validate_addresses, fn _, _ ->
+      {:ok, %{"data" => %{}}}
     end)
   end
 
-  defp get_settlement(params, response_status, mountain_group \\ false) do
-    settlement =
-      %{
-        "id" => UUID.generate(),
-        "region_id" => UUID.generate(),
-        "district_id" => UUID.generate(),
-        "name" => "Київ",
-        "mountain_group" => mountain_group
-      }
-      |> Map.merge(params)
-
-    {:ok, %{"data" => settlement, "meta" => %{"code" => response_status}}}
-  end
-
-  def get_region(params, response_status) do
-    region =
-      %{
-        "id" => UUID.generate(),
-        "name" => "Львівська"
-      }
-      |> Map.merge(params)
-
-    {:ok, %{"data" => region, "meta" => %{"code" => response_status}}}
+  defp uaddresses_invalid_mock(path \\ "$.addresses[0].settlement", message \\ "invalid settlement value") do
+    expect(UAddressesMock, :validate_addresses, fn _, _ ->
+      {:error,
+       %{
+         "error" => %{
+           "invalid" => [
+             %{
+               "entry" => path,
+               "entry_type" => "json_data_property",
+               "rules" => [
+                 %{"description" => message, "params" => []}
+               ]
+             }
+           ]
+         }
+       }}
+    end)
   end
 end

@@ -146,15 +146,7 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
         signed_content_encoding: "base64"
       }
 
-      mock_params =
-        "test/data/cabinet/patient.json"
-        |> File.read!()
-        |> Jason.decode!()
-        |> Map.get("addresses", [])
-        |> Enum.at(0)
-        |> Map.take(~w(settlement_id region_id district_id area))
-
-      uaddresses_mock_expect(mock_params)
+      uaddresses_mock_expect()
 
       conn
       |> Plug.Conn.put_req_header("authorization", "Bearer " <> auth_token)
@@ -185,45 +177,9 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
     end
   end
 
-  defp uaddresses_mock_expect(params) do
-    expect(UAddressesMock, :get_settlement_by_id, 2, fn _id, _headers ->
-      get_settlement(
-        %{
-          "id" => params["settlement_id"],
-          "region_id" => params["region_id"],
-          "district_id" => params["district_id"]
-        },
-        200
-      )
+  defp uaddresses_mock_expect do
+    expect(UAddressesMock, :validate_addresses, fn _, _ ->
+      {:ok, %{"data" => %{}}}
     end)
-
-    expect(UAddressesMock, :get_region_by_id, 2, fn _id, _headers ->
-      get_region(%{"id" => params["region_id"], "name" => params["area"]}, 200)
-    end)
-  end
-
-  defp get_settlement(params, response_status, mountain_group \\ false) do
-    settlement =
-      %{
-        "id" => UUID.generate(),
-        "region_id" => UUID.generate(),
-        "district_id" => UUID.generate(),
-        "name" => "Київ",
-        "mountain_group" => mountain_group
-      }
-      |> Map.merge(params)
-
-    {:ok, %{"data" => settlement, "meta" => %{"code" => response_status}}}
-  end
-
-  def get_region(params, response_status) do
-    region =
-      %{
-        "id" => UUID.generate(),
-        "name" => "Львівська"
-      }
-      |> Map.merge(params)
-
-    {:ok, %{"data" => region, "meta" => %{"code" => response_status}}}
   end
 end

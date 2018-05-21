@@ -29,7 +29,7 @@ defmodule EHealth.Cabinet.API do
          :ok <- JsonSchema.validate(:person, content),
          :ok <- PersonValidator.validate_birth_date(content["birth_date"], "$.birth_date"),
          :ok <- PersonValidator.validate_addresses_types(content["addresses"], @addresses_types),
-         {:ok, _} <- Addresses.validate(content["addresses"]),
+         :ok <- Addresses.validate(content["addresses"], headers),
          {:ok, tax_id} <- validate_tax_id(content, signer),
          :ok <- validate_first_name(content, signer),
          :ok <- validate_last_name(content, signer),

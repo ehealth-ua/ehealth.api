@@ -86,7 +86,7 @@ defmodule EHealth.Divisions do
   end
 
   def create(params, headers) do
-    with {:ok, attrs} <- prepare_division_data(params, get_client_id(headers)),
+    with {:ok, attrs} <- prepare_division_data(params, get_client_id(headers), headers),
          attrs <- Map.merge(attrs, %{"status" => @status_active, "is_active" => true}) do
       %Division{}
       |> changeset(attrs)
@@ -97,7 +97,7 @@ defmodule EHealth.Divisions do
   def update(id, params, headers) do
     legal_entity_id = get_client_id(headers)
 
-    with {:ok, attrs} <- prepare_division_data(params, legal_entity_id),
+    with {:ok, attrs} <- prepare_division_data(params, legal_entity_id, headers),
          %Division{} = division <- get_by_id(id),
          :ok <- validate_legal_entity(division, legal_entity_id) do
       division
@@ -106,7 +106,7 @@ defmodule EHealth.Divisions do
     end
   end
 
-  def prepare_division_data(params, legal_entity_id) do
+  def prepare_division_data(params, legal_entity_id, headers) do
     with %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(legal_entity_id),
          :ok <- validate_division_type(legal_entity, params),
          params <-
@@ -116,7 +116,7 @@ defmodule EHealth.Divisions do
          :ok <- JsonSchema.validate(:division, params),
          params <- lowercase_email(params),
          :ok <- validate_json_objects(params),
-         :ok <- validate_addresses(params) do
+         :ok <- validate_addresses(params, headers) do
       put_mountain_group(params)
     else
       nil ->
@@ -161,14 +161,9 @@ defmodule EHealth.Divisions do
          do: :ok
   end
 
-  def validate_addresses(data) do
-    data
-    |> Map.get("addresses")
-    |> Addresses.validate("RESIDENCE")
-    |> case do
-      {:ok, _} -> :ok
-      err -> err
-    end
+  def validate_addresses(data, headers) do
+    addresses = Map.get(data, "addresses") || []
+    Addresses.validate(addresses, "RESIDENCE", headers)
   end
 
   defp validate_division_type(%LegalEntity{type: legal_entity_type}, params) do

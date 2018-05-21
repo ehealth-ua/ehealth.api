@@ -7,45 +7,16 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
   alias EHealth.Repo
   alias EHealth.Utils.NumberGenerator
   import Mox
-  alias Ecto.UUID
 
   describe "Happy paths" do
     defmodule TwoHappyPaths do
       use MicroservicesHelper
-
-      # UAddresses API
-      Plug.Router.get "/settlements/adaa4abf-f530-461c-bcbf-a0ac210d955b" do
-        settlement = %{
-          id: "adaa4abf-f530-461c-bcbf-a0ac210d955b",
-          region_id: "555dfcd7-2be5-4417-aaaf-ca95564f7977",
-          name: "Київ"
-        }
-
-        Plug.Conn.send_resp(conn, 200, Jason.encode!(%{meta: "", data: settlement}))
-      end
-
-      # UAddresses API
-      Plug.Router.get "/regions/555dfcd7-2be5-4417-aaaf-ca95564f7977" do
-        region = %{
-          name: "М.КИЇВ"
-        }
-
-        Plug.Conn.send_resp(conn, 200, Jason.encode!(%{meta: "", data: region}))
-      end
 
       # OTP Verifications
       Plug.Router.post "/verifications" do
         "+380508887700" = conn.body_params["phone_number"]
 
         send_resp(conn, 200, Jason.encode!(%{data: ["response_we_don't_care_about"]}))
-      end
-
-      Plug.Router.post "/api/v1/tables/some_gndf_table_id/decisions" do
-        Plug.Conn.send_resp(conn, 200, Jason.encode!(%{data: %{final_decision: "OFFLINE"}}))
-      end
-
-      Plug.Router.post "/api/v1/tables/not_available/decisions" do
-        Plug.Conn.send_resp(conn, 200, Jason.encode!(%{data: %{final_decision: "NA"}}))
       end
 
       # Mithril API
@@ -127,16 +98,11 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
 
       {:ok, port, ref} = start_microservices(TwoHappyPaths)
 
-      System.put_env("GNDF_ENDPOINT", "http://localhost:#{port}")
-      System.put_env("UADDRESS_ENDPOINT", "http://localhost:#{port}")
       System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:#{port}")
       System.put_env("OAUTH_ENDPOINT", "http://localhost:#{port}")
       System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
 
       on_exit(fn ->
-        System.put_env("GNDF_TABLE_ID", "some_gndf_table_id")
-        System.put_env("GNDF_ENDPOINT", "http://localhost:4040")
-        System.put_env("UADDRESS_ENDPOINT", "http://localhost:4040")
         System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:4040")
         System.put_env("OAUTH_ENDPOINT", "http://localhost:4040")
         System.put_env("OPS_ENDPOINT", "http://localhost:4040")
@@ -162,13 +128,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         |> Jason.decode!()
         |> put_in(~W(declaration_request person birth_date), "1989-08-19")
 
-      mock_params =
-        declaration_request_params
-        |> get_in(~w(declaration_request person addresses))
-        |> Enum.at(0)
-        |> Map.take(~w(settlement_id region_id district_id area))
-
-      uaddresses_mock_expect(mock_params)
+      uaddresses_mock_expect()
 
       conn =
         conn
@@ -196,13 +156,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         |> Jason.decode!()
         |> put_in(~W(declaration_request person authentication_methods), auth_methods)
 
-      mock_params =
-        declaration_request_params
-        |> get_in(~w(declaration_request person addresses))
-        |> Enum.at(0)
-        |> Map.take(~w(settlement_id region_id district_id area))
-
-      uaddresses_mock_expect(mock_params)
+      uaddresses_mock_expect()
 
       conn =
         conn
@@ -276,13 +230,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
           Map.delete(declaration_request_params["declaration_request"]["person"], "phones")
         )
 
-      mock_params =
-        declaration_request_params
-        |> get_in(~w(declaration_request person addresses))
-        |> Enum.at(0)
-        |> Map.take(~w(settlement_id region_id district_id area))
-
-      uaddresses_mock_expect(mock_params)
+      uaddresses_mock_expect()
 
       conn
       |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
@@ -298,13 +246,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         |> Jason.decode!()
         |> put_in(~W(declaration_request person authentication_methods), [%{"type" => "OTP"}])
 
-      mock_params =
-        declaration_request_params
-        |> get_in(~w(declaration_request person addresses))
-        |> Enum.at(0)
-        |> Map.take(~w(settlement_id region_id district_id area))
-
-      uaddresses_mock_expect(mock_params)
+      uaddresses_mock_expect()
 
       conn =
         conn
@@ -364,13 +306,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         |> File.read!()
         |> Jason.decode!()
 
-      mock_params =
-        params
-        |> get_in(~w(declaration_request person addresses))
-        |> Enum.at(0)
-        |> Map.take(~w(settlement_id region_id district_id area))
-
-      uaddresses_mock_expect(mock_params)
+      uaddresses_mock_expect()
 
       tax_id = get_in(params["declaration_request"], ["person", "tax_id"])
       employee_id = "ce377dea-d8c4-4dd8-9328-de24b1ee3879"
@@ -468,13 +404,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         |> put_in(~W(declaration_request person first_name), "Тест")
         |> put_in(~W(declaration_request person authentication_methods), [%{"type" => "OFFLINE"}])
 
-      mock_params =
-        declaration_request_params
-        |> get_in(~w(declaration_request person addresses))
-        |> Enum.at(0)
-        |> Map.take(~w(settlement_id region_id district_id area))
-
-      uaddresses_mock_expect(mock_params)
+      uaddresses_mock_expect()
 
       resp =
         conn
@@ -519,13 +449,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         |> File.read!()
         |> Jason.decode!()
 
-      mock_params =
-        declaration_request_params
-        |> get_in(~w(declaration_request person addresses))
-        |> Enum.at(0)
-        |> Map.take(~w(settlement_id region_id district_id area))
-
-      uaddresses_mock_expect(mock_params)
+      uaddresses_mock_expect()
 
       person =
         declaration_request_params
@@ -568,21 +492,13 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         {:ok, %{"data" => []}}
       end)
 
-      System.put_env("GNDF_TABLE_ID", "not_available")
-
       declaration_request_params =
         "test/data/declaration_request.json"
         |> File.read!()
         |> Jason.decode!()
         |> put_in(["declaration_request", "person", "first_name"], "Тест")
 
-      mock_params =
-        declaration_request_params
-        |> get_in(~w(declaration_request person addresses))
-        |> Enum.at(0)
-        |> Map.take(~w(settlement_id region_id district_id area))
-
-      uaddresses_mock_expect(mock_params)
+      uaddresses_mock_expect()
 
       decoded = declaration_request_params["declaration_request"]
       d1 = clone_declaration_request(decoded, "8799e3b6-34e7-4798-ba70-d897235d2b6d", "NEW")
@@ -651,13 +567,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         |> put_in(["declaration_request", "division_id"], "31506899-55a5-4011-b88c-10ba90c5e9bd")
         |> put_in(["declaration_request", "employee_id"], "b03f057f-aa84-4152-b6e5-3905ba821b66")
 
-      mock_params =
-        declaration_request_params
-        |> get_in(~w(declaration_request person addresses))
-        |> Enum.at(0)
-        |> Map.take(~w(settlement_id region_id district_id area))
-
-      uaddresses_mock_expect(mock_params)
+      uaddresses_mock_expect()
 
       conn =
         conn
@@ -711,15 +621,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
 
     test "returns error if global parameters do not exist", %{port: _port, conn: conn} do
       declaration_request_params = File.read!("test/data/declaration_request.json")
-
-      mock_params =
-        declaration_request_params
-        |> Jason.decode!()
-        |> get_in(~w(declaration_request person addresses))
-        |> Enum.at(0)
-        |> Map.take(~w(settlement_id region_id district_id area))
-
-      uaddresses_mock_expect(mock_params)
+      uaddresses_mock_expect()
 
       conn =
         conn
@@ -782,13 +684,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         |> Jason.decode!()
         |> put_in(["declaration_request", "employee_id"], wrong_id)
 
-      mock_params =
-        declaration_request_params
-        |> get_in(~w(declaration_request person addresses))
-        |> Enum.at(0)
-        |> Map.take(~w(settlement_id region_id district_id area))
-
-      uaddresses_mock_expect(mock_params)
+      uaddresses_mock_expect()
 
       conn =
         conn
@@ -836,8 +732,34 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
     test "validation error is returned", %{conn: conn} do
       declaration_request_params = File.read!("test/data/declaration_request.json")
 
-      expect(UAddressesMock, :get_settlement_by_id, 2, fn _id, _headers ->
-        {:error, :not_found}
+      expect(UAddressesMock, :validate_addresses, fn _, _headers ->
+        {:error,
+         %{
+           "error" => %{
+             "invalid" => [
+               %{
+                 "entry" => "$.addresses[0].settlement_id",
+                 "entry_type" => "json_data_property",
+                 "rules" => [
+                   %{
+                     "description" => "settlement with id = adaa4abf-f530-461c-bcbf-a0ac210d955b does not exist",
+                     "params" => []
+                   }
+                 ]
+               },
+               %{
+                 "entry" => "$.addresses[1].settlement_id",
+                 "entry_type" => "json_data_property",
+                 "rules" => [
+                   %{
+                     "description" => "settlement with id = adaa4abf-f530-461c-bcbf-a0ac210d955b does not exist",
+                     "params" => []
+                   }
+                 ]
+               }
+             ]
+           }
+         }}
       end)
 
       conn =
@@ -846,34 +768,32 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: ""}))
         |> post(declaration_request_path(conn, :create), declaration_request_params)
 
+      assert resp = json_response(conn, 422)["error"]
+
       assert %{
                "invalid" => [
                  %{
-                   "entry" => "$.addresses.settlement_id",
+                   "entry" => "$.addresses[0].settlement_id",
                    "entry_type" => "json_data_property",
                    "rules" => [
                      %{
                        "description" => "settlement with id = adaa4abf-f530-461c-bcbf-a0ac210d955b does not exist",
-                       "params" => [],
-                       "rule" => "not_found"
+                       "params" => []
                      }
                    ]
                  },
                  %{
-                   "entry" => "$.addresses.settlement_id",
+                   "entry" => "$.addresses[1].settlement_id",
                    "entry_type" => "json_data_property",
                    "rules" => [
                      %{
                        "description" => "settlement with id = adaa4abf-f530-461c-bcbf-a0ac210d955b does not exist",
-                       "params" => [],
-                       "rule" => "not_found"
+                       "params" => []
                      }
                    ]
                  }
-               ],
-               "message" => _,
-               "type" => "validation_failed"
-             } = json_response(conn, 422)["error"]
+               ]
+             } = resp
     end
   end
 
@@ -1089,45 +1009,9 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
     |> Map.fetch!("declaration_request")
   end
 
-  defp uaddresses_mock_expect(params) do
-    expect(UAddressesMock, :get_settlement_by_id, 2, fn _id, _headers ->
-      get_settlement(
-        %{
-          "id" => params["settlement_id"],
-          "region_id" => params["region_id"],
-          "district_id" => params["district_id"]
-        },
-        200
-      )
+  defp uaddresses_mock_expect do
+    expect(UAddressesMock, :validate_addresses, fn _, _ ->
+      {:ok, %{"data" => %{}}}
     end)
-
-    expect(UAddressesMock, :get_region_by_id, 2, fn _id, _headers ->
-      get_region(%{"id" => params["region_id"], "name" => params["area"]}, 200)
-    end)
-  end
-
-  defp get_settlement(params, response_status, mountain_group \\ false) do
-    settlement =
-      %{
-        "id" => UUID.generate(),
-        "region_id" => UUID.generate(),
-        "district_id" => UUID.generate(),
-        "name" => "Київ",
-        "mountain_group" => mountain_group
-      }
-      |> Map.merge(params)
-
-    {:ok, %{"data" => settlement, "meta" => %{"code" => response_status}}}
-  end
-
-  def get_region(params, response_status) do
-    region =
-      %{
-        "id" => UUID.generate(),
-        "name" => "Львівська"
-      }
-      |> Map.merge(params)
-
-    {:ok, %{"data" => region, "meta" => %{"code" => response_status}}}
   end
 end

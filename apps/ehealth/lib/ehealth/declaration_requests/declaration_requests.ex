@@ -140,7 +140,7 @@ defmodule EHealth.DeclarationRequests do
     with :ok <- JsonSchema.validate(:declaration_request, %{"declaration_request" => params}),
          params <- lowercase_email(params),
          :ok <- PersonsValidator.validate(params["person"]),
-         {:ok, _} <- Addresses.validate(get_in(params, ["person", "addresses"]), "REGISTRATION"),
+         :ok <- Addresses.validate(get_in(params, ["person", "addresses"]), "REGISTRATION", headers),
          {:ok, %Employee{} = employee} <-
            Reference.validate(:employee, params["employee_id"], "$.declaration_request.employee_id"),
          :ok <- Creator.validate_employee_status(employee),
