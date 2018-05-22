@@ -620,7 +620,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
                    "entry_type" => "json_data_property",
                    "rules" => [
                      %{
-                       "description" => "Legal entity in contract request should be active",
+                       "description" => "Legal entity is not active",
                        "params" => [],
                        "rule" => "invalid"
                      }

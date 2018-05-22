@@ -163,6 +163,7 @@ defmodule EHealth.DeclarationRequests do
          {:ok, person} <- Reference.validate(:person, params["person_id"]),
          {:ok, %Employee{} = employee} <- Reference.validate(:employee, params["employee_id"]),
          :ok <- Creator.validate_employee_status(employee),
+         :ok <- Creator.validate_employee_speciality(employee),
          {:ok, %Division{} = division} <- Reference.validate(:division, params["division_id"]),
          {:ok, %LegalEntity{} = legal_entity} <- Reference.validate(:legal_entity, division.legal_entity_id) do
       data =

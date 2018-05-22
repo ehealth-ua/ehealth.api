@@ -37,9 +37,11 @@ defmodule EHealth.Validators.Reference do
   end
 
   def validate(:division = type, id, path) do
-    with %Division{} = division <- Divisions.get_by_id(id) do
+    with %Division{} = division <- Divisions.get_by_id(id),
+         {:status, true} <- {:status, division.status == Division.status(:active)} do
       {:ok, division}
     else
+      {:status, _} -> error_status(type, path)
       _ -> error(type, path)
     end
   end
@@ -53,9 +55,11 @@ defmodule EHealth.Validators.Reference do
   end
 
   def validate(:legal_entity = type, id, path) do
-    with %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(id) do
+    with %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(id),
+         {:status, true} <- {:status, legal_entity.status == LegalEntity.status(:active)} do
       {:ok, legal_entity}
     else
+      {:status, _} -> error_status(type, path)
       _ -> error(type, path)
     end
   end
@@ -97,6 +101,25 @@ defmodule EHealth.Validators.Reference do
      [
        {%{
           description: "#{description} not found",
+          params: [],
+          rule: :invalid
+        }, path}
+     ]}
+  end
+
+  defp error_status(type, path) when is_atom(type) do
+    description =
+      type
+      |> to_string()
+      |> String.capitalize()
+      |> String.replace("_", " ")
+
+    path = path || "$.#{type}_id"
+
+    {:error,
+     [
+       {%{
+          description: "#{description} is not active",
           params: [],
           rule: :invalid
         }, path}

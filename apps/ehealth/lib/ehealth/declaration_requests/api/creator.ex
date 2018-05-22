@@ -636,7 +636,11 @@ defmodule EHealth.DeclarationRequests.API.Creator do
   def determine_auth_method_for_mpi(%Changeset{valid?: false} = changeset, _), do: changeset
 
   def determine_auth_method_for_mpi(changeset, @channel_cabinet) do
-    put_change(changeset, :authentication_method_current, %{"type" => @auth_na})
+    data = get_field(changeset, :data)
+
+    changeset
+    |> put_change(:authentication_method_current, %{"type" => @auth_na})
+    |> put_change(:mpi_id, get_in(data, ~w(person id)))
   end
 
   def determine_auth_method_for_mpi(changeset, _) do
