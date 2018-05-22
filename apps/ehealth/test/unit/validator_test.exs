@@ -224,7 +224,7 @@ defmodule EHealth.Unit.ValidatorTest do
         "20.12.2011"
       )
 
-    assert {:error, [{%{description: _, rule: :format}, "$.employee_request.doctor.science_degree.issued_date"}]} =
+    assert {:error, [{%{description: _, rule: :date}, "$.employee_request.doctor.science_degree.issued_date"}]} =
              EmployeeRequests.create(content, legal_entity.id)
   end
 
@@ -233,7 +233,7 @@ defmodule EHealth.Unit.ValidatorTest do
     insert(:prm, :division, id: "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b", legal_entity: legal_entity)
     content = put_in(get_employee_request(), ["employee_request", "start_date"], "2012-12")
 
-    assert {:error, [{%{description: _, rule: :format}, "$.employee_request.start_date"}]} =
+    assert {:error, [{%{description: _, rule: :date}, "$.employee_request.start_date"}]} =
              EmployeeRequests.create(content, legal_entity.id)
   end
 
@@ -249,7 +249,7 @@ defmodule EHealth.Unit.ValidatorTest do
 
     content = put_in(content, ["employee_request", "doctor", "educations"], [Map.put(education, "issued_date", "2012")])
 
-    assert {:error, [{%{description: _, rule: :format}, "$.employee_request.doctor.educations.[0].issued_date"}]} =
+    assert {:error, [{%{description: _, rule: :date}, "$.employee_request.doctor.educations.[0].issued_date"}]} =
              EmployeeRequests.create(content, legal_entity.id)
   end
 

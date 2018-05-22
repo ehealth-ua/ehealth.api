@@ -586,6 +586,106 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
                |> List.first()
                |> Map.get("entry")
     end
+
+    test "with valid start_date", %{conn: conn} do
+      expect(ManMock, :render_template, 2, fn _id, _data ->
+        {:ok, "<html><body>some_rendered_content</body></html>"}
+      end)
+
+      legal_entity = insert(:prm, :legal_entity)
+      party = insert(:prm, :party, tax_id: "3067305998")
+      %{id: id} = insert(:prm, :employee, party: party)
+      %{id: division_id} = insert(:prm, :division, legal_entity: legal_entity)
+
+      employee_request_params =
+        doctor_request()
+        |> put_in(["employee_request", "employee_id"], id)
+        |> put_in(["employee_request", "division_id"], division_id)
+        |> put_in(["employee_request", "start_date"], "2017-08-07")
+
+      conn
+      |> put_client_id_header(legal_entity.id)
+      |> post(employee_request_path(conn, :create), employee_request_params)
+      |> json_response(200)
+    end
+
+    test "with invalid start_date - wrong format", %{conn: conn} do
+      expect(ManMock, :render_template, 2, fn _id, _data ->
+        {:ok, "<html><body>some_rendered_content</body></html>"}
+      end)
+
+      legal_entity = insert(:prm, :legal_entity)
+      party = insert(:prm, :party, tax_id: "3067305998")
+      %{id: id} = insert(:prm, :employee, party: party)
+      %{id: division_id} = insert(:prm, :division, legal_entity: legal_entity)
+
+      employee_request_params =
+        doctor_request()
+        |> put_in(["employee_request", "employee_id"], id)
+        |> put_in(["employee_request", "division_id"], division_id)
+        |> put_in(["employee_request", "start_date"], "2017-W08-7")
+
+      conn = put_client_id_header(conn, legal_entity.id)
+      conn = post(conn, employee_request_path(conn, :create), employee_request_params)
+      resp = json_response(conn, 422)
+
+      assert %{
+               "error" => %{
+                 "invalid" => [
+                   %{
+                     "entry" => "$.employee_request.start_date",
+                     "entry_type" => "json_data_property",
+                     "rules" => [
+                       %{
+                         "description" => "expected \"2017-W08-7\" to be an existing date",
+                         "params" => [],
+                         "rule" => "date"
+                       }
+                     ]
+                   }
+                 ]
+               }
+             } = resp
+    end
+
+    test "with invalid start_date - date is not exist", %{conn: conn} do
+      expect(ManMock, :render_template, 2, fn _id, _data ->
+        {:ok, "<html><body>some_rendered_content</body></html>"}
+      end)
+
+      legal_entity = insert(:prm, :legal_entity)
+      party = insert(:prm, :party, tax_id: "3067305998")
+      %{id: id} = insert(:prm, :employee, party: party)
+      %{id: division_id} = insert(:prm, :division, legal_entity: legal_entity)
+
+      employee_request_params =
+        doctor_request()
+        |> put_in(["employee_request", "employee_id"], id)
+        |> put_in(["employee_request", "division_id"], division_id)
+        |> put_in(["employee_request", "start_date"], "2017-02-29")
+
+      conn = put_client_id_header(conn, legal_entity.id)
+      conn = post(conn, employee_request_path(conn, :create), employee_request_params)
+      resp = json_response(conn, 422)
+
+      assert %{
+               "error" => %{
+                 "invalid" => [
+                   %{
+                     "entry" => "$.employee_request.start_date",
+                     "entry_type" => "json_data_property",
+                     "rules" => [
+                       %{
+                         "description" => "expected \"2017-02-29\" to be an existing date",
+                         "params" => [],
+                         "rule" => "date"
+                       }
+                     ]
+                   }
+                 ]
+               }
+             } = resp
+    end
   end
 
   describe "create employee request with invalid specialities" do
