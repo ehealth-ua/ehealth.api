@@ -1,0 +1,710 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "string",
+            "description": "contract ID"
+        },
+        "start_date": {
+            "type": "string",
+            "description": "contract start date"
+        },
+        "contractor_legal_entity": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "description": "legal entity ID which make contract request"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "full official name of legal entity also the name to show on public sources [as map, portal etc]"
+                },
+                "edrpou": {
+                    "type": "string",
+                    "description": "Unified Register of Businesses and Organizations"
+                },
+                "addresses": {
+                    "type": "array",
+                    "description": "The max items of array is 2: REGISTRATION - required, RESIDENCE - optional. DIVISION is exception: REGISTRATION - optional, RESIDENCE - required"
+                }
+            },
+            "required": [
+                "id",
+                "name",
+                "edrpou",
+                "addresses"
+            ]
+        },
+        "contractor_owner": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "party": {
+                    "first_name": {
+                        "type": "string"
+                    },
+                    "last_name": {
+                        "type": "string"
+                    },
+                    "second_name": {
+                        "type": "string"
+                    }
+                },
+                "speciality": {
+                    "type": "object",
+                    "properties": {
+                        "speciality": {
+                            "type": "string",
+                            "description": "`Dictionary SPECIALITY_TYPE`"
+                        },
+                        "speciality_officio": {
+                            "type": "boolean",
+                            "description": "speciality by position, one and only one should be true"
+                        },
+                        "level": {
+                            "type": "string",
+                            "description": "`Dictionary SPECIALITY_LEVEL`"
+                        },
+                        "qualification_type": {
+                            "type": "string",
+                            "description": "`Dictionary SPEC_QUALIFICATION_TYPE`"
+                        },
+                        "attestation_name": {
+                            "type": "string",
+                            "description": "орган що видав"
+                        },
+                        "attestation_date": {
+                            "type": "string",
+                            "description": "02-28 (string, required) - дата отримання"
+                        },
+                        "valid_to_date": {
+                            "type": "string",
+                            "description": "02-28 (string, required) - дата дії до"
+                        },
+                        "certificate_number": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "speciality",
+                        "speciality_officio",
+                        "level",
+                        "qualification_type",
+                        "attestation_name",
+                        "attestation_date",
+                        "valid_to_date",
+                        "certificate_number"
+                    ],
+                    "additionalProperties": false
+                }
+            },
+            "required": [
+                "id",
+                "party",
+                "speciality"
+            ]
+        },
+        "contractor_base": {
+            "type": "string",
+            "description": "documents which allows to represent clinic"
+        },
+        "contractor_payment_details": {
+            "type": "object",
+            "properties": {
+                "bank_name": {
+                    "type": "string",
+                    "description": "bank name"
+                },
+                "MFO": {
+                    "type": "string",
+                    "description": "bank code"
+                },
+                "payer_account": {
+                    "type": "string",
+                    "description": "Номер банківського рахунку"
+                }
+            },
+            "required": [
+                "bank_name",
+                "MFO",
+                "payer_account"
+            ]
+        },
+        "contractor_rmsp_amount": {
+            "type": "number",
+            "description": "the amount of population which were served by this MSP"
+        },
+        "external_contractor_flag": {
+            "type": "boolean",
+            "description": "the existence of second appendix"
+        },
+        "external_contractors": {
+            "type": "array",
+            "properties": {
+                "legal_entity_id": {
+                    "type": "string",
+                    "description": "external_contractor ID"
+                },
+                "contract": {
+                    "type": "object",
+                    "properties": {
+                        "number": {
+                            "type": "string",
+                            "description": "number of contract with sub contractor"
+                        },
+                        "issued_at": {
+                            "type": "string",
+                            "description": "issue date of contract with sub contractor"
+                        },
+                        "expires_at": {
+                            "type": "string",
+                            "description": "expiry date of contract with sub contractor"
+                        }
+                    },
+                    "required": [
+                        "number",
+                        "issued_at",
+                        "expires_at"
+                    ]
+                },
+                "divisions": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "medical_service": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "medical_service"
+                        ],
+                        "additionalProperties": false
+                    }
+                }
+            },
+            "required": [
+                "legal_entity_id",
+                "contract",
+                "divisions"
+            ]
+        },
+        "contractor_employee_divisions": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "employee": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "party": {
+                                "type": "object",
+                                "properties": {
+                                    "id": {
+                                        "type": "string"
+                                    },
+                                    "first_name": {
+                                        "type": "string"
+                                    },
+                                    "last_name": {
+                                        "type": "string"
+                                    },
+                                    "second_name": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "id",
+                                    "first_name",
+                                    "last_name",
+                                    "second_name"
+                                ],
+                                "additionalProperties": false
+                            },
+                            "speciality": {
+                                "type": "object",
+                                "properties": {
+                                    "speciality": {
+                                        "type": "string",
+                                        "description": "`Dictionary SPECIALITY_TYPE`"
+                                    },
+                                    "speciality_officio": {
+                                        "type": "boolean",
+                                        "description": "speciality by position, one and only one should be true"
+                                    },
+                                    "level": {
+                                        "type": "string",
+                                        "description": "`Dictionary SPECIALITY_LEVEL`"
+                                    },
+                                    "qualification_type": {
+                                        "type": "string",
+                                        "description": "`Dictionary SPEC_QUALIFICATION_TYPE`"
+                                    },
+                                    "attestation_name": {
+                                        "type": "string",
+                                        "description": "орган що видав"
+                                    },
+                                    "attestation_date": {
+                                        "type": "string",
+                                        "description": "02-28 (string, required) - дата отримання"
+                                    },
+                                    "valid_to_date": {
+                                        "type": "string",
+                                        "description": "02-28 (string, required) - дата дії до"
+                                    },
+                                    "certificate_number": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "speciality",
+                                    "speciality_officio",
+                                    "level",
+                                    "qualification_type",
+                                    "attestation_name",
+                                    "attestation_date",
+                                    "valid_to_date",
+                                    "certificate_number"
+                                ],
+                                "additionalProperties": false
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "party",
+                            "speciality"
+                        ],
+                        "additionalProperties": false
+                    },
+                    "staff_units": {
+                        "type": "number"
+                    },
+                    "declaration_limit": {
+                        "type": "number",
+                        "description": "declaration limit for current employee within the contract"
+                    },
+                    "division": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "description": "division ID"
+                            },
+                            "name": {
+                                "type": "string",
+                                "description": "the full name of division"
+                            },
+                            "addresses": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "type": {
+                                            "type": "string",
+                                            "description": "`Dictionary ADDRESS_TYPE`. As for now Regisrtration and Residence types"
+                                        },
+                                        "country": {
+                                            "type": "string",
+                                            "description": "`Dictionary COUNTRY`"
+                                        },
+                                        "area": {
+                                            "type": "string",
+                                            "description": "one of Ukraianian area"
+                                        },
+                                        "region": {
+                                            "type": "string",
+                                            "description": "district of area"
+                                        },
+                                        "settlement": {
+                                            "type": "string",
+                                            "description": "city name"
+                                        },
+                                        "settlement_type": {
+                                            "type": "string",
+                                            "description": "`Dictionary SETTLEMENT_TYPE` - type of settlement as city/town/village etc"
+                                        },
+                                        "settlement_id": {
+                                            "type": "string",
+                                            "description": "settlement identificator from uaadresses"
+                                        },
+                                        "street_type": {
+                                            "type": "string",
+                                            "description": "`Dictionary STREET_TYPE` - type of street as street/road/line etc"
+                                        },
+                                        "street": {
+                                            "type": "string",
+                                            "description": "street name"
+                                        },
+                                        "building": {
+                                            "type": "string",
+                                            "description": "number of building"
+                                        },
+                                        "apartment": {
+                                            "type": "string",
+                                            "description": "number of appartment"
+                                        },
+                                        "zip": {
+                                            "type": "string",
+                                            "description": "system of postal codes"
+                                        }
+                                    },
+                                    "required": [
+                                        "type",
+                                        "country",
+                                        "area",
+                                        "settlement",
+                                        "settlement_type",
+                                        "settlement_id",
+                                        "building"
+                                    ],
+                                    "additionalProperties": false
+                                }
+                            },
+                            "phones": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "type": {
+                                            "type": "string",
+                                            "description": "`Dictionary PHONE_TYPE` type of phone Land Line or Mobile. At least one of type must be present. Each type can be represented only once."
+                                        },
+                                        "number": {
+                                            "type": "string",
+                                            "description": "phone number in format '+38/'"
+                                        }
+                                    },
+                                    "required": [
+                                        "type",
+                                        "number"
+                                    ],
+                                    "additionalProperties": false
+                                }
+                            },
+                            "email": {
+                                "type": "string",
+                                "description": "division's email"
+                            },
+                            "working_hours": {
+                                "type": [
+                                    "object",
+                                    "null"
+                                ],
+                                "properties": {
+                                    "mon": {
+                                        "type": "array",
+                                        "items": [
+                                            {
+                                                "type": "array",
+                                                "items": [
+                                                    {
+                                                        "type": "string"
+                                                    },
+                                                    {
+                                                        "type": "string"
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "type": "array",
+                                                "items": [
+                                                    {
+                                                        "type": "string"
+                                                    },
+                                                    {
+                                                        "type": "string"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "tue": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "array",
+                                            "items": [
+                                                {
+                                                    "type": "string"
+                                                },
+                                                {
+                                                    "type": "string"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "wed": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "array",
+                                            "items": [
+                                                {
+                                                    "type": "string"
+                                                },
+                                                {
+                                                    "type": "string"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "thu": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "array",
+                                            "items": [
+                                                {
+                                                    "type": "string"
+                                                },
+                                                {
+                                                    "type": "string"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "fri": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "array",
+                                            "items": [
+                                                {
+                                                    "type": "string"
+                                                },
+                                                {
+                                                    "type": "string"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "sat": {},
+                                    "sun": {}
+                                },
+                                "required": [
+                                    "mon",
+                                    "tue",
+                                    "wed",
+                                    "thu",
+                                    "fri",
+                                    "sat",
+                                    "sun"
+                                ],
+                                "additionalProperties": false,
+                                "description": "optional field, business hours by each day weekly, doesn't make any influence on business process and will be shown on portal and map."
+                            },
+                            "mountain_group": {
+                                "type": "boolean"
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "name",
+                            "addresses",
+                            "phones",
+                            "email",
+                            "working_hours"
+                        ],
+                        "additionalProperties": false
+                    }
+                },
+                "required": [
+                    "employee",
+                    "staff_units",
+                    "declaration_limit",
+                    "division"
+                ],
+                "additionalProperties": false
+            }
+        },
+        "nhs_signer_base": {
+            "type": "string",
+            "description": "documents which allows to represent nhs"
+        },
+        "nhs_contract_price": {
+            "type": "number",
+            "description": "contract price"
+        },
+        "nhs_payment_method": {
+            "type": "string",
+            "description": "payment method for contract"
+        },
+        "nhs_payment_details": {
+            "type": "object",
+            "properties": {
+                "bank_name": {
+                    "type": "string",
+                    "description": "bank name"
+                },
+                "MFO": {
+                    "type": "string",
+                    "description": "bank code"
+                },
+                "payer_account": {
+                    "type": "string",
+                    "description": "Номер банківського рахунку"
+                }
+            },
+            "required": [
+                "bank_name",
+                "MFO",
+                "payer_account"
+            ]
+        },
+        "status": {
+            "type": "string",
+            "description": "contract_request status"
+        },
+        "nhs_signer": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "party": {
+                    "first_name": {
+                        "type": "string"
+                    },
+                    "last_name": {
+                        "type": "string"
+                    },
+                    "second_name": {
+                        "type": "string"
+                    }
+                },
+                "speciality": {
+                    "type": "object",
+                    "properties": {
+                        "speciality": {
+                            "type": "string",
+                            "description": "`Dictionary SPECIALITY_TYPE`"
+                        },
+                        "speciality_officio": {
+                            "type": "boolean",
+                            "description": "speciality by position, one and only one should be true"
+                        },
+                        "level": {
+                            "type": "string",
+                            "description": "`Dictionary SPECIALITY_LEVEL`"
+                        },
+                        "qualification_type": {
+                            "type": "string",
+                            "description": "`Dictionary SPEC_QUALIFICATION_TYPE`"
+                        },
+                        "attestation_name": {
+                            "type": "string",
+                            "description": "орган що видав"
+                        },
+                        "attestation_date": {
+                            "type": "string",
+                            "description": "02-28 (string, required) - дата отримання"
+                        },
+                        "valid_to_date": {
+                            "type": "string",
+                            "description": "02-28 (string, required) - дата дії до"
+                        },
+                        "certificate_number": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "speciality",
+                        "speciality_officio",
+                        "level",
+                        "qualification_type",
+                        "attestation_name",
+                        "attestation_date",
+                        "valid_to_date",
+                        "certificate_number"
+                    ],
+                    "additionalProperties": false
+                }
+            },
+            "required": [
+                "id",
+                "party",
+                "speciality"
+            ]
+        },
+        "nhs_legal_entity": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "description": "legal entity ID which make contract request"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "full official name of legal entity also the name to show on public sources [as map, portal etc]"
+                },
+                "edrpou": {
+                    "type": "string",
+                    "description": "Unified Register of Businesses and Organizations"
+                },
+                "addresses": {
+                    "type": "array",
+                    "description": "The max items of array is 2: REGISTRATION - required, RESIDENCE - optional. DIVISION is exception: REGISTRATION - optional, RESIDENCE - required"
+                }
+            },
+            "required": [
+                "id",
+                "name",
+                "edrpou",
+                "addresses"
+            ]
+        },
+        "issue_city": {
+            "type": "string",
+            "description": "place of contract request"
+        },
+        "contract_number": {
+            "type": "string",
+            "description": "human readable number of contract request."
+        },
+        "contract_request_id": {
+            "type": "string",
+            "description": "contract request id"
+        },
+        "is_suspended": {
+            "type": "boolean",
+            "description": "whether the contract is active or temporary suspended"
+        },
+        "end_date": {
+            "type": "string",
+            "description": "contract end date"
+        },
+        "price": {
+            "type": "number"
+        }
+    },
+    "required": [
+        "id",
+        "start_date",
+        "end_date",
+        "contractor_legal_entity",
+        "contractor_owner",
+        "contractor_base",
+        "contractor_payment_details",
+        "contractor_rmsp_amount",
+        "contractor_employee_divisions",
+        "status",
+        "nhs_legal_entity",
+        "contract_request_id",
+        "is_suspended",
+        "price"
+    ],
+    "additionalProperties": false
+}

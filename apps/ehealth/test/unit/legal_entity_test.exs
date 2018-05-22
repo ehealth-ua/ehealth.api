@@ -596,7 +596,7 @@ defmodule EHealth.Unit.LegalEntityTest do
     [
       {"content-type", "application/json"},
       {"content-length", "7000"},
-      {"x-consumer-id", Ecto.UUID.generate()},
+      {"x-consumer-id", UUID.generate()},
       {"edrpou", "37367387"}
     ]
   end

@@ -223,6 +223,7 @@ defmodule EHealthWeb.Router do
 
       patch("/contract_requests/:id/actions/terminate", ContractRequestController, :terminate)
       patch("/:id/actions/sign_nhs", ContractRequestController, :sign_nhs)
+      patch("/:id/actions/sign_msp", ContractRequestController, :sign_msp)
     end
 
     resources(

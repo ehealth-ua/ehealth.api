@@ -106,17 +106,9 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
     test "returns error when drfo does not match the tax_id" do
       tax_id = "AA111"
       %{user_id: user_id} = insert(:prm, :party_user, party: build(:party, tax_id: tax_id))
-
       signer = %{"drfo" => "222"}
       result = check_drfo(signer, [{"x-consumer-id", user_id}])
-
-      expected_result =
-        {:error,
-         [
-           {%{description: "Does not match the signer drfo", params: [], rule: :invalid}, "$.token.consumer_id"}
-         ]}
-
-      assert expected_result == result
+      assert {:error, {:"422", "Does not match the signer drfo"}} == result
     end
 
     test "returns expected result when drfo matches the tax_id" do
@@ -141,17 +133,9 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
     test "returns expected result when drfo is null" do
       tax_id = "AA111"
       %{user_id: user_id} = insert(:prm, :party_user, party: build(:party, tax_id: tax_id))
-
       signer = %{"drfo" => nil}
       result = check_drfo(signer, [{"x-consumer-id", user_id}])
-
-      expected_result =
-        {:error,
-         [
-           {%{description: "Does not match the signer drfo", params: [], rule: :invalid}, "$.token.consumer_id"}
-         ]}
-
-      assert expected_result == result
+      assert {:error, {:"422", "Does not match the signer drfo"}} == result
     end
   end
 

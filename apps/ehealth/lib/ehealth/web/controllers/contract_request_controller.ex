@@ -4,6 +4,7 @@ defmodule EHealth.Web.ContractRequestController do
   use EHealth.Web, :controller
   alias EHealth.ContractRequests
   alias EHealth.ContractRequests.ContractRequest
+  alias EHealth.Web.ContractView
 
   action_fallback(EHealth.Web.FallbackController)
 
@@ -55,6 +56,14 @@ defmodule EHealth.Web.ContractRequestController do
     with {:ok, %ContractRequest{} = contract_request, references} <-
            ContractRequests.sign_nhs(headers, client_type, params) do
       render(conn, "show.json", contract_request: contract_request, references: references)
+    end
+  end
+
+  def sign_msp(%Plug.Conn{req_headers: headers} = conn, params) do
+    client_type = conn.assigns.client_type
+
+    with {:ok, contract, references} <- ContractRequests.sign_msp(headers, client_type, params) do
+      render(conn, ContractView, "show.json", contract: contract, references: references)
     end
   end
 

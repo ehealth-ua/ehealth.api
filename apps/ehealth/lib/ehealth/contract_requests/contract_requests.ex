@@ -8,6 +8,8 @@ defmodule EHealth.ContractRequests do
   import EHealth.Utils.Connection, only: [get_consumer_id: 1, get_client_id: 1]
 
   alias Ecto.Adapters.SQL
+  alias Ecto.UUID
+  alias EHealth.Contracts
   alias EHealth.API.Signature
   alias EHealth.ContractRequests.ContractRequest
   alias EHealth.ContractRequests.Search
@@ -28,6 +30,7 @@ defmodule EHealth.ContractRequests do
 
   require Logger
 
+  @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]
   @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
   @media_storage_api Application.get_env(:ehealth, :api_resolvers)[:media_storage]
 
@@ -64,8 +67,12 @@ defmodule EHealth.ContractRequests do
     user_id = get_consumer_id(headers)
     client_id = get_client_id(headers)
 
-    with :ok <- JsonSchema.validate(:contract_request, params),
-         params <- Map.put(params, "contractor_legal_entity_id", client_id),
+    with :ok <- JsonSchema.validate(:contract_request_sign, params),
+         {_, %Party{tax_id: tax_id}} <- {:employee, Parties.get_by_user_id(user_id)},
+         {:ok, content, signer} <- decode_signed_content(params, headers),
+         :ok <- validate_signer_drfo(tax_id, signer["drfo"]),
+         :ok <- JsonSchema.validate(:contract_request, content),
+         params <- Map.put(content, "contractor_legal_entity_id", client_id),
          :ok <- validate_unique_contractor_employee_divisions(params),
          :ok <- validate_unique_contractor_divisions(params),
          :ok <- validate_employee_divisions(params),
@@ -154,6 +161,27 @@ defmodule EHealth.ContractRequests do
     end
   end
 
+  def decline(headers, params) do
+    user_id = get_consumer_id(headers)
+    client_id = get_client_id(headers)
+
+    with {:ok, %{"data" => data}} <- @mithril_api.get_user_roles(user_id, %{}, headers),
+         :ok <- user_has_role(data, "NHS ADMIN SIGNER"),
+         %ContractRequest{} = contract_request <- Repo.get(ContractRequest, params["id"]),
+         :ok <- validate_status(contract_request, ContractRequest.status(:new)),
+         update_params <-
+           params
+           |> Map.put("status", ContractRequest.status(:declined))
+           |> Map.put("nhs_signer_id", user_id)
+           |> Map.put("nhs_legal_entity_id", client_id)
+           |> Map.put("updated_by", user_id),
+         %Ecto.Changeset{valid?: true} = changes <- decline_changeset(contract_request, update_params),
+         {:ok, contract_request} <- Repo.update(changes),
+         _ <- EventManager.insert_change_status(contract_request, contract_request.status, user_id) do
+      {:ok, contract_request, preload_references(contract_request)}
+    end
+  end
+
   def terminate(headers, client_type, params) do
     client_id = get_client_id(headers)
     user_id = get_consumer_id(headers)
@@ -190,21 +218,22 @@ defmodule EHealth.ContractRequests do
          :ok <- JsonSchema.validate(:contract_request_sign, params),
          {_, true} <- {:client_id, client_id == contract_request.nhs_legal_entity_id},
          {_, false} <- {:already_signed, contract_request.status == ContractRequest.status(:nhs_signed)},
-         {:ok, content, signer} <- decode_signed_content(params, headers),
-         :ok <- validate_signer_drfo(contract_request.nhs_signer_id, signer["drfo"]),
+         {:ok, content, signer} <- decode_signed_content(:nhs, params, headers),
+         :ok <- validate_signer_drfo(contract_request.nhs_signer_id, signer["drfo"], "$.nhs_signer_id"),
          :ok <- validate_content(contract_request, content),
          :ok <- validate_status(contract_request, ContractRequest.status(:approved)),
          :ok <- validate_employee_divisions(contract_request),
          :ok <- validate_start_date(contract_request),
          :ok <- validate_contractor_legal_entity(contract_request),
          :ok <- validate_contractor_owner_id(contract_request),
-         :ok <- save_signed_content(contract_request, params, headers),
+         :ok <- save_signed_content(contract_request.id, params, headers),
          update_params <-
            params
            |> Map.put("updated_by", user_id)
            |> Map.put("status", ContractRequest.status(:nhs_signed)),
          %Ecto.Changeset{valid?: true} = changes <- nhs_signed_changeset(contract_request, update_params),
-         {:ok, contract_request} <- Repo.update(changes) do
+         {:ok, contract_request} <- Repo.update(changes),
+         _ <- EventManager.insert_change_status(contract_request, contract_request.status, user_id) do
       {:ok, contract_request, references}
     else
       {:client_id, _} -> {:error, {:forbidden, "Invalid client_id"}}
@@ -213,10 +242,64 @@ defmodule EHealth.ContractRequests do
     end
   end
 
-  defp validate_signer_drfo(nhs_signer_id, signer_drfo) when not is_nil(signer_drfo) do
+  def sign_msp(headers, client_type, %{"id" => id} = params) do
+    client_id = get_client_id(headers)
+    user_id = get_consumer_id(headers)
+    params = Map.delete(params, "id")
+
+    with {:ok, %ContractRequest{} = contract_request, _references} <- get_by_id(headers, client_type, id),
+         :ok <- JsonSchema.validate(:contract_request_sign, params),
+         {_, true} <- {:signed_nhs, contract_request.status == ContractRequest.status(:nhs_signed)},
+         {_, true} <- {:client_id, client_id == contract_request.contractor_legal_entity_id},
+         {:ok, content, signer} <- decode_signed_content(:msp, params, headers),
+         :ok <- validate_signer_drfo(contract_request.contractor_owner_id, signer["drfo"], "$.contractor_owner_id"),
+         :ok <- validate_content(contract_request, content),
+         :ok <- validate_employee_divisions(contract_request),
+         :ok <- validate_start_date(contract_request),
+         :ok <- validate_contractor_legal_entity(contract_request),
+         :ok <- validate_contractor_owner_id(contract_request),
+         contract_id <- UUID.generate(),
+         :ok <- save_signed_content(contract_id, params, headers),
+         update_params <-
+           params
+           |> Map.put("updated_by", user_id)
+           |> Map.put("status", ContractRequest.status(:signed))
+           |> Map.put("contract_id", contract_id),
+         %Ecto.Changeset{valid?: true} = changes <- msp_signed_changeset(contract_request, update_params),
+         {:ok, contract_request} <- Repo.update(changes),
+         contract_params <- get_contract_create_params(contract_request),
+         {:create_contract, {:ok, %{"data" => contract}}} <-
+           {:create_contract, @ops_api.create_contract(contract_params, headers)},
+         _ <- EventManager.insert_change_status(contract_request, contract_request.status, user_id) do
+      Contracts.load_contract_references(contract)
+    else
+      {:signed_nhs, false} -> {:error, {:"422", "Incorrect status for signing"}}
+      {:client_id, _} -> {:error, {:forbidden, "Invalid client_id"}}
+      {:employee, _} -> {:error, {:"422", "Employee is not allowed to sign"}}
+      {:create_contract, _} -> {:error, {:bad_gateway, "Failed to save contract"}}
+      error -> error
+    end
+  end
+
+  defp validate_signer_drfo(tax_id, signer_drfo) when not is_nil(signer_drfo) do
     drfo = String.replace(signer_drfo, " ", "")
 
-    with %Employee{party_id: party_id} <- Employees.get_by_id(nhs_signer_id),
+    with true <- tax_id == drfo || translit_drfo(tax_id) == translit_drfo(drfo) do
+      :ok
+    else
+      _ ->
+        {:error, {:"422", "Does not match the signer drfo"}}
+    end
+  end
+
+  defp validate_signer_drfo(_, _) do
+    {:error, {:"422", "Invalid drfo"}}
+  end
+
+  defp validate_signer_drfo(employee_id, signer_drfo, path) when not is_nil(signer_drfo) do
+    drfo = String.replace(signer_drfo, " ", "")
+
+    with %Employee{party_id: party_id} <- Employees.get_by_id(employee_id),
          %Party{tax_id: tax_id} <- Parties.get_by_id(party_id),
          true <- tax_id == drfo || translit_drfo(tax_id) == translit_drfo(drfo) do
       :ok
@@ -230,13 +313,13 @@ defmodule EHealth.ContractRequests do
                params: [],
                rule: :invalid
              },
-             "$.nhs_signer_id"
+             path
            }
          ]}
     end
   end
 
-  defp validate_signer_drfo(_, _) do
+  defp validate_signer_drfo(_, _, path) do
     {:error,
      [
        {
@@ -245,7 +328,7 @@ defmodule EHealth.ContractRequests do
            params: [],
            rule: :invalid
          },
-         "$.nhs_signer_id"
+         path
        }
      ]}
   end
@@ -256,13 +339,59 @@ defmodule EHealth.ContractRequests do
     |> String.upcase()
   end
 
+  def get_partially_signed_content_url(headers, %{"id" => id}) do
+    client_id = get_client_id(headers)
+
+    with %ContractRequest{} = contract_request <- Repo.get(ContractRequest, id),
+         {_, true} <- {:signed_nhs, contract_request.status == ContractRequest.status(:nhs_signed)},
+         {_, true} <- {:client_id, client_id == contract_request.contractor_legal_entity_id},
+         {:ok, url} <- resolve_partially_signed_content_url(contract_request.id, headers) do
+      {:ok, url}
+    else
+      {:signed_nhs, _} -> {:error, {:"422", "The contract hasn't been signed yet"}}
+      {:client_id, _} -> {:error, {:forbidden, "Invalid client_id"}}
+      {:error, :media_storage_error} -> {:error, {:bad_gateway, "Fail to resolve partially signed content"}}
+      error -> error
+    end
+  end
+
+  defp get_contract_create_params(%ContractRequest{id: id, contract_id: contract_id} = contract_request) do
+    contract_request
+    |> Map.take(~w(
+      start_date
+      end_date
+      status_reason
+      contractor_legal_entity_id
+      contractor_owner_id
+      contractor_base
+      contractor_payment_details
+      contractor_rmsp_amount
+      external_contractor_flag
+      external_contractors
+      nhs_legal_entity_id
+      nhgs_signed_id
+      nhs_payment_method
+      nhs_payment_details
+      nhs_signer_base
+      issue_city
+      price
+      contract_number
+      contract_employees
+      contractor_employee_divisions
+    )a)
+    |> Map.put("id", contract_id)
+    |> Map.put("contract_request_id", id)
+    |> Map.put("is_suspended", false)
+    |> Map.put("is_active", true)
+  end
+
   defp validate_content(%ContractRequest{data: data}, content) do
     if data == content,
       do: :ok,
       else: {:error, {:"422", "Signed content does not match the previously created content"}}
   end
 
-  defp save_signed_content(%ContractRequest{id: id}, %{"signed_content" => signed_content}, headers) do
+  defp save_signed_content(id, %{"signed_content" => signed_content}, headers) do
     signed_content
     |> @media_storage_api.store_signed_content(:contract_request_bucket, id, headers)
     |> case do
@@ -271,21 +400,66 @@ defmodule EHealth.ContractRequests do
     end
   end
 
-  def decode_signed_content(%{"signed_content" => signed_content, "signed_content_encoding" => encoding}, headers) do
+  def decode_signed_content(type, %{"signed_content" => signed_content, "signed_content_encoding" => encoding}, headers) do
     with {:ok, %{"data" => data}} <- Signature.decode_and_validate(signed_content, encoding, headers),
-         do: do_decode_valid_content(data)
+         do: do_decode_valid_content(type, data)
   end
 
-  defp do_decode_valid_content(%{"content" => content, "signatures" => [%{"is_valid" => true, "signer" => signer}]}) do
+  def decode_signed_content(
+        %{"signed_content" => signed_content, "signed_content_encoding" => encoding},
+        headers
+      ) do
+    with {:ok, %{"data" => data}} <- Signature.decode_and_validate(signed_content, encoding, headers) do
+      case data do
+        %{
+          "content" => content,
+          "signatures" => [%{"is_valid" => true, "signer" => signer}]
+        } ->
+          {:ok, content, signer}
+
+        %{"signatures" => [%{"is_valid" => false, "validation_error_message" => error}]} ->
+          {:error, {:bad_request, error}}
+
+        %{"signatures" => signatures} ->
+          {:error,
+           {:bad_request, "document must be signed by 1 signer but contains #{Enum.count(signatures)} signatures"}}
+
+        error ->
+          error
+      end
+    end
+  end
+
+  defp do_decode_valid_content(:nhs, %{
+         "content" => content,
+         "signatures" => [%{"is_valid" => true, "signer" => signer}]
+       }) do
     {:ok, content, signer}
   end
 
-  defp do_decode_valid_content(%{"signatures" => [%{"is_valid" => false, "validation_error_message" => error}]}),
+  defp do_decode_valid_content(:msp, %{
+         "content" => content,
+         "signatures" => [_, %{"is_valid" => true, "signer" => signer}]
+       }) do
+    {:ok, content, signer}
+  end
+
+  defp do_decode_valid_content(_, %{"signatures" => [%{"is_valid" => false, "validation_error_message" => error}]}),
     do: {:error, {:bad_request, error}}
 
-  defp do_decode_valid_content(%{"signatures" => signatures}) when is_list(signatures),
+  defp do_decode_valid_content(:msp, %{
+         "signatures" => [_, %{"is_valid" => false, "validation_error_message" => error}]
+       }) do
+    {:error, {:bad_request, error}}
+  end
+
+  defp do_decode_valid_content(:nhs, %{"signatures" => signatures}) when is_list(signatures),
     do:
       {:error, {:bad_request, "document must be signed by 1 signer but contains #{Enum.count(signatures)} signatures"}}
+
+  defp do_decode_valid_content(:msp, %{"signatures" => signatures}) when is_list(signatures),
+    do:
+      {:error, {:bad_request, "document must be signed by 2 signers but contains #{Enum.count(signatures)} signatures"}}
 
   defp get_contract_number(_) do
     with {:ok, sequence} <- get_contract_request_sequence() do
@@ -337,6 +511,14 @@ defmodule EHealth.ContractRequests do
 
   def nhs_signed_changeset(%ContractRequest{} = contract_request, params) do
     fields = ~w(status updated_by)a
+
+    contract_request
+    |> cast(params, fields)
+    |> validate_required(fields)
+  end
+
+  def msp_signed_changeset(%ContractRequest{} = contract_request, params) do
+    fields = ~w(status updated_by contract_id)a
 
     contract_request
     |> cast(params, fields)
@@ -888,33 +1070,6 @@ defmodule EHealth.ContractRequests do
     end
   end
 
-  def get_partially_signed_content_url(headers, %{"id" => id}) do
-    client_id = get_client_id(headers)
-    user_id = get_consumer_id(headers)
-
-    with %ContractRequest{} = contract_request <- Repo.get(ContractRequest, id),
-         {_, true} <- {:signed_nhs, contract_request.status == ContractRequest.status(:nhs_signed)},
-         {_, true} <- {:client_id, client_id == contract_request.contractor_legal_entity_id},
-         {_, %Party{id: party_id}} <- {:employee, Parties.get_by_user_id(user_id)},
-         {_, %{entries: [_employee]}} <-
-           {:employee,
-            Employees.list(%{
-              "party_id" => party_id,
-              "legal_entity_id" => client_id,
-              "ids" => contract_request.contractor_owner_id,
-              "status" => Employee.status(:approved)
-            })},
-         {:ok, url} <- resolve_partially_signed_content_url(contract_request.id, headers) do
-      {:ok, url}
-    else
-      {:signed_nhs, _} -> {:error, {:"422", "The contract hasn't been signed yet"}}
-      {:client_id, _} -> {:error, {:forbidden, "Invalid client_id"}}
-      {:employee, _} -> {:error, {:"422", "Employee is not allowed to view"}}
-      {:error, :media_storage_error} -> {:error, {:bad_gateway, "Fail to resolve partially signed content"}}
-      error -> error
-    end
-  end
-
   defp resolve_partially_signed_content_url(contract_request_id, headers) do
     bucket = Confex.fetch_env!(:ehealth, EHealth.API.MediaStorage)[:contract_request_bucket]
     resource_name = "contract_request_content.pkcs7"
@@ -936,27 +1091,6 @@ defmodule EHealth.ContractRequests do
       _ ->
         Logger.error("Can't get contract_request sequence")
         {:error, %{"type" => "internal_error"}}
-    end
-  end
-
-  def decline(headers, params) do
-    user_id = get_consumer_id(headers)
-    client_id = get_client_id(headers)
-
-    with {:ok, %{"data" => data}} <- @mithril_api.get_user_roles(user_id, %{}, headers),
-         :ok <- user_has_role(data, "NHS ADMIN SIGNER"),
-         %ContractRequest{} = contract_request <- Repo.get(ContractRequest, params["id"]),
-         :ok <- validate_status(contract_request, ContractRequest.status(:new)),
-         update_params <-
-           params
-           |> Map.put("status", ContractRequest.status(:declined))
-           |> Map.put("nhs_signer_id", user_id)
-           |> Map.put("nhs_legal_entity_id", client_id)
-           |> Map.put("updated_by", user_id),
-         %Ecto.Changeset{valid?: true} = changes <- decline_changeset(contract_request, update_params),
-         {:ok, contract_request} <- Repo.update(changes),
-         _ <- EventManager.insert_change_status(contract_request, contract_request.status, user_id) do
-      {:ok, contract_request, preload_references(contract_request)}
     end
   end
 

@@ -165,7 +165,7 @@ defmodule EHealth.DeclarationRequests.API.Sign do
 
     with false <- tax_id == drfo,
          false <- translit_drfo(tax_id) == translit_drfo(drfo) do
-      err_422("Does not match the signer drfo", "$.token.consumer_id")
+      {:error, {:"422", "Does not match the signer drfo"}}
     else
       true -> :ok
     end

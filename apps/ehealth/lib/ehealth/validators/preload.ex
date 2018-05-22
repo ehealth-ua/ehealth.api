@@ -22,6 +22,8 @@ defmodule EHealth.Validators.Preload do
     |> load_references()
   end
 
+  def preload_references(nil, _), do: %{}
+
   defp load_references(item_references) do
     item_references
     |> Enum.into(%{}, fn {type, ids} ->

@@ -15,8 +15,8 @@ defmodule EHealth.Contracts do
   def get_by_id(id, params) do
     with {:ok, %{"data" => contract}} <- @ops_api.get_contract(id, []),
          :ok <- validate_contractor_legal_entity_id(contract, params),
-         {:ok, contract_data} <- load_contract_references(contract) do
-      {:ok, contract_data}
+         {:ok, contract, references} <- load_contract_references(contract) do
+      {:ok, contract, references}
     else
       error -> error
     end
@@ -30,7 +30,7 @@ defmodule EHealth.Contracts do
 
   defp validate_contractor_legal_entity_id(_contract, _params), do: :ok
 
-  defp load_contract_references(contract) do
+  def load_contract_references(contract) do
     contract_references =
       Preload.preload_references(contract, [
         {"contractor_legal_entity_id", :legal_entity},
@@ -50,7 +50,7 @@ defmodule EHealth.Contracts do
 
     references = MapDeepMerge.merge(contract_references, contract_request_references)
 
-    {:ok, {contract, references}}
+    {:ok, contract, references}
   end
 
   def search(headers, client_type, search_params) do

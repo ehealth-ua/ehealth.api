@@ -2,6 +2,7 @@ defmodule EHealth.Web.ContractView do
   @moduledoc false
 
   use EHealth.Web, :view
+  alias EHealth.Web.ContractRequestView
 
   def render("index.json", %{contracts: contracts, references: references}) do
     Enum.map(contracts, fn contract ->
@@ -28,7 +29,10 @@ defmodule EHealth.Web.ContractView do
       is_suspended
       contract_request_id
     ))
-    |> Map.put("contractor_owner", render_association(:employee_short, references, contract["contractor_owner_id"]))
+    |> Map.put(
+      "contractor_owner",
+      ContractRequestView.render_association(:employee, references, contract["contractor_owner_id"])
+    )
   end
 
   def render("show.json", %{contract: contract, references: references}) do
@@ -53,70 +57,31 @@ defmodule EHealth.Web.ContractView do
       contract_number
       is_suspended
       contract_request_id
-      nhs_contract_price
     ))
-    |> Map.merge(Map.take(contract_request, ~w(contractor_employee_divisions nhs_contract_price)a))
+    |> Map.put("nhs_contract_price", contract_request.nhs_contract_price)
     |> Map.put(
       "contractor_legal_entity",
-      render_association(:legal_entity, references, contract["contractor_legal_entity_id"])
+      ContractRequestView.render_association(:legal_entity, references, contract["contractor_legal_entity_id"])
     )
-    |> Map.put("nhs_legal_entity", render_association(:legal_entity, references, contract["nhs_legal_entity_id"]))
-    |> Map.put("contractor_owner", render_association(:employee_short, references, contract["contractor_owner_id"]))
-    |> Map.put("nhs_signer", render_association(:employee_short, references, contract["nhs_signer_id"]))
+    |> Map.put(
+      "nhs_legal_entity",
+      ContractRequestView.render_association(:legal_entity, references, contract["nhs_legal_entity_id"])
+    )
+    |> Map.put(
+      "contractor_owner",
+      ContractRequestView.render_association(:employee, references, contract["contractor_owner_id"])
+    )
+    |> Map.put(
+      "nhs_signer",
+      ContractRequestView.render_association(:employee, references, contract["nhs_signer_id"])
+    )
     |> Map.put(
       "contractor_employee_divisions",
-      render_association(:employee_divisions, references, contract_request.contractor_employee_divisions || [])
+      ContractRequestView.render_association(
+        :employee_divisions,
+        references,
+        contract["contractor_employee_divisions"] || []
+      )
     )
-  end
-
-  defp render_association(_, _, nil), do: nil
-
-  defp render_association(:legal_entity, references, id) do
-    with %{} = legal_entity <-
-           references
-           |> Map.get(:legal_entity)
-           |> Map.get(id) do
-      Map.take(legal_entity, ~w(id name edrpou addresses)a)
-    end
-  end
-
-  defp render_association(:employee_short, references, id) do
-    with %{party: party} = employee <-
-           references
-           |> Map.get(:employee)
-           |> Map.get(id) do
-      employee
-      |> Map.take(~w(id)a)
-      |> Map.merge(Map.take(party, ~w(first_name last_name second_name)a))
-    end
-  end
-
-  defp render_association(:employee_divisions, references, employee_divisions) do
-    Enum.map(employee_divisions, fn employee_division ->
-      employee_division
-      |> Map.take(~w(staff_units declaration_limit))
-      |> Map.put("employee", render_association(:employee, references, employee_division["employee_id"]))
-      |> Map.put("division", render_association(:division, references, employee_division["division_id"]))
-    end)
-  end
-
-  defp render_association(:employee, references, id) do
-    with %{party: party} = employee <-
-           references
-           |> Map.get(:employee)
-           |> Map.get(id) do
-      employee
-      |> Map.take(~w(id)a)
-      |> Map.merge(Map.take(party, ~w(first_name last_name second_name specialities)a))
-    end
-  end
-
-  defp render_association(:division, references, id) do
-    with %{} = division <-
-           references
-           |> Map.get(:division)
-           |> Map.get(id) do
-      Map.take(division, ~w(id name addresses phones email working_hours mountain_group)a)
-    end
   end
 end

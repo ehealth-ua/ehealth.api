@@ -19,11 +19,23 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
   describe "create contract request" do
     test "employee division is not active", %{conn: conn} do
-      %{legal_entity: legal_entity, employee: employee} = prepare_data()
+      %{legal_entity: legal_entity, employee: employee, party_user: party_user} = prepare_data()
       division = insert(:prm, :division)
-      conn = put_client_id_header(conn, legal_entity.id)
+
+      conn =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(party_user.user_id)
+        |> put_req_header("drfo", party_user.party.tax_id)
+
       params = prepare_params(division, employee)
-      conn = post(conn, contract_request_path(conn, :create), params)
+
+      conn =
+        post(conn, contract_request_path(conn, :create), %{
+          "signed_content" => params |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+
       resp = json_response(conn, 422)
 
       assert_error(
@@ -34,8 +46,13 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "external contractor division is not present in contract divisions", %{conn: conn} do
-      %{legal_entity: legal_entity, division: division, employee: employee} = prepare_data()
-      conn = put_client_id_header(conn, legal_entity.id)
+      %{legal_entity: legal_entity, division: division, employee: employee, party_user: party_user} = prepare_data()
+
+      conn =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(party_user.user_id)
+        |> put_req_header("drfo", party_user.party.tax_id)
 
       params =
         division
@@ -45,7 +62,12 @@ defmodule EHealth.Web.ContractRequestControllerTest do
           %{"divisions" => [%{"id" => UUID.generate()}]}
         ])
 
-      conn = post(conn, contract_request_path(conn, :create), params)
+      conn =
+        post(conn, contract_request_path(conn, :create), %{
+          "signed_content" => params |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+
       assert resp = json_response(conn, 422)
 
       assert_error(
@@ -56,8 +78,13 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "invalid expires_at date", %{conn: conn} do
-      %{legal_entity: legal_entity, division: division, employee: employee} = prepare_data()
-      conn = put_client_id_header(conn, legal_entity.id)
+      %{legal_entity: legal_entity, division: division, employee: employee, party_user: party_user} = prepare_data()
+
+      conn =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(party_user.user_id)
+        |> put_req_header("drfo", party_user.party.tax_id)
 
       params =
         division
@@ -65,7 +92,12 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> Map.put("start_date", "2018-02-01")
         |> Map.delete("external_contractor_flag")
 
-      conn = post(conn, contract_request_path(conn, :create), params)
+      conn =
+        post(conn, contract_request_path(conn, :create), %{
+          "signed_content" => params |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+
       assert resp = json_response(conn, 422)
 
       assert_error(
@@ -76,8 +108,13 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "invalid external_contractor_flag", %{conn: conn} do
-      %{legal_entity: legal_entity, division: division, employee: employee} = prepare_data()
-      conn = put_client_id_header(conn, legal_entity.id)
+      %{legal_entity: legal_entity, division: division, employee: employee, party_user: party_user} = prepare_data()
+
+      conn =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(party_user.user_id)
+        |> put_req_header("drfo", party_user.party.tax_id)
 
       params =
         division
@@ -85,28 +122,49 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> Map.put("start_date", "2018-02-01")
         |> Map.delete("external_contractor_flag")
 
-      conn = post(conn, contract_request_path(conn, :create), params)
+      conn =
+        post(conn, contract_request_path(conn, :create), %{
+          "signed_content" => params |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+
       assert resp = json_response(conn, 422)
       assert_error(resp, "$.external_contractor_flag", "Invalid external_contractor_flag")
     end
 
     test "start_date is in the past", %{conn: conn} do
-      %{legal_entity: legal_entity, division: division, employee: employee} = prepare_data()
-      conn = put_client_id_header(conn, legal_entity.id)
+      %{legal_entity: legal_entity, division: division, employee: employee, party_user: party_user} = prepare_data()
+
+      conn =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(party_user.user_id)
+        |> put_req_header("drfo", party_user.party.tax_id)
 
       params =
         division
         |> prepare_params(employee, "2018-03-01")
         |> Map.put("start_date", "2018-02-01")
 
-      conn = post(conn, contract_request_path(conn, :create), params)
+      conn =
+        post(conn, contract_request_path(conn, :create), %{
+          "signed_content" => params |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+
       assert resp = json_response(conn, 422)
       assert_error(resp, "$.start_date", "Start date must be greater than create date")
     end
 
     test "start_date is too far in the future", %{conn: conn} do
-      %{legal_entity: legal_entity, division: division, employee: employee} = prepare_data()
-      conn = put_client_id_header(conn, legal_entity.id)
+      %{legal_entity: legal_entity, division: division, employee: employee, party_user: party_user} = prepare_data()
+
+      conn =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(party_user.user_id)
+        |> put_req_header("drfo", party_user.party.tax_id)
+
       now = Date.utc_today()
       start_date = Date.add(now, 3650)
 
@@ -115,14 +173,25 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> prepare_params(employee, Date.to_iso8601(Date.add(start_date, 1)))
         |> Map.put("start_date", Date.to_iso8601(start_date))
 
-      conn = post(conn, contract_request_path(conn, :create), params)
+      conn =
+        post(conn, contract_request_path(conn, :create), %{
+          "signed_content" => params |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+
       assert resp = json_response(conn, 422)
       assert_error(resp, "$.start_date", "Start date must be within this or next year")
     end
 
     test "invalid end_date", %{conn: conn} do
-      %{legal_entity: legal_entity, division: division, employee: employee} = prepare_data()
-      conn = put_client_id_header(conn, legal_entity.id)
+      %{legal_entity: legal_entity, division: division, employee: employee, party_user: party_user} = prepare_data()
+
+      conn =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(party_user.user_id)
+        |> put_req_header("drfo", party_user.party.tax_id)
+
       now = Date.utc_today()
       start_date = Date.add(now, 10)
 
@@ -132,14 +201,25 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> Map.put("start_date", Date.to_iso8601(start_date))
         |> Map.put("end_date", Date.to_iso8601(Date.add(now, 365 * 3)))
 
-      conn = post(conn, contract_request_path(conn, :create), params)
+      conn =
+        post(conn, contract_request_path(conn, :create), %{
+          "signed_content" => params |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+
       assert resp = json_response(conn, 422)
       assert_error(resp, "$.end_date", "The year of start_date and and date must be equal")
     end
 
     test "invalid contractor_owner_id", %{conn: conn} do
-      %{legal_entity: legal_entity, division: division, employee: employee} = prepare_data()
-      conn = put_client_id_header(conn, legal_entity.id)
+      %{legal_entity: legal_entity, division: division, employee: employee, party_user: party_user} = prepare_data()
+
+      conn =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(party_user.user_id)
+        |> put_req_header("drfo", party_user.party.tax_id)
+
       now = Date.utc_today()
       start_date = Date.add(now, 10)
 
@@ -149,7 +229,12 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> Map.put("start_date", Date.to_iso8601(start_date))
         |> Map.put("end_date", Date.to_iso8601(Date.add(now, 30)))
 
-      conn = post(conn, contract_request_path(conn, :create), params)
+      conn =
+        post(conn, contract_request_path(conn, :create), %{
+          "signed_content" => params |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+
       assert resp = json_response(conn, 422)
 
       assert_error(
@@ -160,13 +245,20 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "invalid contract number", %{conn: conn} do
-      %{legal_entity: legal_entity, division: division, employee: employee, user_id: user_id, owner: owner} =
-        prepare_data()
+      %{
+        legal_entity: legal_entity,
+        division: division,
+        employee: employee,
+        user_id: user_id,
+        owner: owner,
+        party_user: party_user
+      } = prepare_data()
 
       conn =
         conn
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(user_id)
+        |> put_req_header("drfo", party_user.party.tax_id)
 
       now = Date.utc_today()
       start_date = Date.add(now, 10)
@@ -179,7 +271,12 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> Map.put("start_date", Date.to_iso8601(start_date))
         |> Map.put("end_date", Date.to_iso8601(Date.add(now, 30)))
 
-      conn = post(conn, contract_request_path(conn, :create), params)
+      conn =
+        post(conn, contract_request_path(conn, :create), %{
+          "signed_content" => params |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+
       assert resp = json_response(conn, 422)
 
       assert_error(
@@ -191,13 +288,20 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "success create contract request with contract_number", %{conn: conn} do
-      %{legal_entity: legal_entity, division: division, employee: employee, user_id: user_id, owner: owner} =
-        prepare_data()
+      %{
+        legal_entity: legal_entity,
+        division: division,
+        employee: employee,
+        user_id: user_id,
+        owner: owner,
+        party_user: party_user
+      } = prepare_data()
 
       conn =
         conn
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(user_id)
+        |> put_req_header("drfo", party_user.party.tax_id)
 
       now = Date.utc_today()
       start_date = Date.add(now, 10)
@@ -211,7 +315,12 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> Map.put("end_date", Date.to_iso8601(Date.add(now, 30)))
         |> Map.delete("contractor_employee_divisions")
 
-      conn = post(conn, contract_request_path(conn, :create), params)
+      conn =
+        post(conn, contract_request_path(conn, :create), %{
+          "signed_content" => params |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+
       assert resp = json_response(conn, 200)
 
       schema =
@@ -223,13 +332,20 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "success create contract request without contract_number", %{conn: conn} do
-      %{legal_entity: legal_entity, division: division, employee: employee, user_id: user_id, owner: owner} =
-        prepare_data()
+      %{
+        legal_entity: legal_entity,
+        division: division,
+        employee: employee,
+        user_id: user_id,
+        owner: owner,
+        party_user: party_user
+      } = prepare_data()
 
       conn =
         conn
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(user_id)
+        |> put_req_header("drfo", party_user.party.tax_id)
 
       now = Date.utc_today()
       start_date = Date.add(now, 10)
@@ -241,7 +357,12 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> Map.put("start_date", Date.to_iso8601(start_date))
         |> Map.put("end_date", Date.to_iso8601(Date.add(now, 30)))
 
-      conn1 = post(conn, contract_request_path(conn, :create), params)
+      conn1 =
+        post(conn, contract_request_path(conn, :create), %{
+          "signed_content" => params |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+
       assert resp = json_response(conn1, 200)
 
       schema =
@@ -1555,28 +1676,6 @@ defmodule EHealth.Web.ContractRequestControllerTest do
                |> json_response(403)
     end
 
-    test "employee is not allowed to view", %{conn: conn} do
-      # user id is not connected to employee party
-      %{user_id: user_id, employee: employee} = prepare_data()
-      client_id = employee.legal_entity_id
-
-      contract_request =
-        insert(
-          :il,
-          :contract_request,
-          status: ContractRequest.status(:nhs_signed),
-          contractor_owner_id: employee.id,
-          contractor_legal_entity_id: client_id
-        )
-
-      assert %{"error" => _} =
-               conn
-               |> put_client_id_header(client_id)
-               |> put_consumer_id_header(user_id)
-               |> get(contract_request_path(conn, :get_partially_signed_content, contract_request.id))
-               |> json_response(422)
-    end
-
     test "media storage fail to resolve url", %{conn: conn} do
       expect(MediaStorageMock, :create_signed_url, fn _, _, _, _, _ ->
         {:ok, %{"error" => %{}}}
@@ -1600,6 +1699,236 @@ defmodule EHealth.Web.ContractRequestControllerTest do
                |> put_consumer_id_header(user_id)
                |> get(contract_request_path(conn, :get_partially_signed_content, contract_request.id))
                |> json_response(502)
+    end
+  end
+
+  describe "sign MSP" do
+    test "no contract_request found", %{conn: conn} do
+      conn = put_client_id_header(conn, UUID.generate())
+      conn = patch(conn, contract_request_path(conn, :sign_msp, UUID.generate()))
+      assert json_response(conn, 404)
+    end
+
+    test "invalid client_id", %{conn: conn} do
+      contract_request = insert(:il, :contract_request, status: ContractRequest.status(:nhs_signed))
+      conn = put_client_id_header(conn, get_client_nhs())
+
+      conn =
+        patch(conn, contract_request_path(conn, :sign_msp, contract_request.id), %{
+          "signed_content" => "",
+          "signed_content_encoding" => "base64"
+        })
+
+      assert resp = json_response(conn, 403)
+      assert %{"message" => "Invalid client_id", "type" => "forbidden"} = resp["error"]
+    end
+
+    test "contract_request already signed", %{conn: conn} do
+      %{"client_id" => client_id, "user_id" => user_id, "contract_request" => contract_request} =
+        prepare_nhs_sign_params(status: ContractRequest.status(:signed))
+
+      conn =
+        conn
+        |> put_client_id_header(client_id)
+        |> put_consumer_id_header(user_id)
+
+      conn =
+        patch(conn, contract_request_path(conn, :sign_msp, contract_request.id), %{
+          "signed_content" => "",
+          "signed_content_encoding" => "base64"
+        })
+
+      assert resp = json_response(conn, 422)
+      assert_error(resp, "Incorrect status for signing")
+    end
+
+    test "failed to decode signed content", %{conn: conn} do
+      %{
+        "client_id" => client_id,
+        "user_id" => user_id,
+        "contract_request" => contract_request,
+        "party_user" => party_user
+      } = prepare_nhs_sign_params(status: ContractRequest.status(:nhs_signed))
+
+      conn =
+        conn
+        |> put_client_id_header(client_id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("msp_drfo", party_user.party.tax_id)
+
+      conn =
+        patch(conn, contract_request_path(conn, :sign_msp, contract_request.id), %{
+          "signed_content" => "invalid",
+          "signed_content_encoding" => "base64"
+        })
+
+      assert resp = json_response(conn, 422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.signed_content",
+                   "entry_type" => "json_data_property",
+                   "rules" => [%{"description" => "Not a base64 string", "params" => [], "rule" => "invalid"}]
+                 }
+               ],
+               "type" => "validation_failed"
+             } = resp["error"]
+    end
+
+    test "content doesn't match", %{conn: conn} do
+      %{
+        "client_id" => client_id,
+        "user_id" => user_id,
+        "contract_request" => contract_request,
+        "party_user" => party_user
+      } = prepare_nhs_sign_params(status: ContractRequest.status(:nhs_signed))
+
+      conn =
+        conn
+        |> put_client_id_header(client_id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("msp_drfo", party_user.party.tax_id)
+
+      data = %{"id" => contract_request.id, "printout_content" => "<html></html>"}
+
+      conn =
+        patch(conn, contract_request_path(conn, :sign_msp, contract_request.id), %{
+          "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+
+      assert resp = json_response(conn, 422)
+      assert_error(resp, "Signed content does not match the previously created content")
+    end
+
+    test "failed to save signed content", %{conn: conn} do
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
+        {:error, "failed to save content"}
+      end)
+
+      id = UUID.generate()
+      data = %{"id" => id, "printout_content" => "<html></html>"}
+
+      %{
+        "client_id" => client_id,
+        "user_id" => user_id,
+        "contract_request" => contract_request,
+        "party_user" => party_user
+      } =
+        prepare_nhs_sign_params(
+          id: id,
+          data: data,
+          status: ContractRequest.status(:nhs_signed)
+        )
+
+      conn =
+        conn
+        |> put_client_id_header(client_id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("msp_drfo", party_user.party.tax_id)
+
+      conn =
+        patch(conn, contract_request_path(conn, :sign_msp, contract_request.id), %{
+          "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+
+      assert resp = json_response(conn, 502)
+      assert %{"message" => "Failed to save signed content"} = resp["error"]
+    end
+
+    test "failed to create contract", %{conn: conn} do
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
+      expect(OPSMock, :create_contract, fn _, _ ->
+        {:error, %HTTPoison.Error{reason: :timeout}}
+      end)
+
+      id = UUID.generate()
+      data = %{"id" => id, "printout_content" => "<html></html>"}
+
+      %{
+        "client_id" => client_id,
+        "user_id" => user_id,
+        "contract_request" => contract_request,
+        "party_user" => party_user
+      } =
+        prepare_nhs_sign_params(
+          id: id,
+          data: data,
+          status: ContractRequest.status(:nhs_signed)
+        )
+
+      conn =
+        conn
+        |> put_client_id_header(client_id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("msp_drfo", party_user.party.tax_id)
+
+      conn =
+        patch(conn, contract_request_path(conn, :sign_msp, contract_request.id), %{
+          "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+
+      assert json_response(conn, 502)
+    end
+
+    test "success to sign contract_request", %{conn: conn} do
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
+      contract_request = insert(:il, :contract_request)
+
+      expect(OPSMock, :create_contract, fn _, _ ->
+        contract =
+          :contract
+          |> build(contract_request_id: contract_request.id)
+          |> Poison.encode!()
+          |> Poison.decode!()
+
+        {:ok, %{"data" => contract}}
+      end)
+
+      id = UUID.generate()
+      data = %{"id" => id, "printout_content" => "<html></html>"}
+
+      %{
+        "client_id" => client_id,
+        "user_id" => user_id,
+        "contract_request" => contract_request,
+        "party_user" => party_user
+      } =
+        prepare_nhs_sign_params(
+          id: id,
+          data: data,
+          status: ContractRequest.status(:nhs_signed)
+        )
+
+      conn =
+        conn
+        |> put_client_id_header(client_id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("msp_drfo", party_user.party.tax_id)
+
+      conn =
+        patch(conn, contract_request_path(conn, :sign_msp, contract_request.id), %{
+          "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+
+      assert resp = json_response(conn, 200)
+
+      schema =
+        "specs/json_schemas/contract/contract_show_response.json"
+        |> File.read!()
+        |> Poison.decode!()
+
+      assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
     end
   end
 
@@ -1630,7 +1959,14 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         legal_entity_id: legal_entity.id
       )
 
-    %{legal_entity: legal_entity, employee: employee, division: division, user_id: user_id, owner: owner}
+    %{
+      legal_entity: legal_entity,
+      employee: employee,
+      division: division,
+      user_id: user_id,
+      owner: owner,
+      party_user: party_user
+    }
   end
 
   defp prepare_params(division, employee, expires_at \\ nil) do

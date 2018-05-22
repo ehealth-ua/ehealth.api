@@ -29,21 +29,41 @@ defmodule EHealth.API.Signature do
   end
 
   defp data_is_valid_resp(data, headers) do
+    signatures = [
+      %{
+        "is_valid" => true,
+        "signer" => %{
+          "drfo" => get_header(headers, "drfo"),
+          "edrpou" => get_header(headers, "edrpou"),
+          "surname" => headers |> get_header("surname") |> uri_decode(),
+          "given_name" => headers |> get_header("given_name") |> uri_decode()
+        },
+        "validation_error_message" => ""
+      }
+    ]
+
+    signatures =
+      case get_header(headers, "msp_drfo") do
+        nil ->
+          signatures
+
+        msp_drfo ->
+          signatures ++
+            [
+              %{
+                "is_valid" => true,
+                "signer" => %{
+                  "drfo" => msp_drfo
+                },
+                "validation_error_message" => ""
+              }
+            ]
+      end
+
     data =
       %{
         "content" => data,
-        "signatures" => [
-          %{
-            "is_valid" => true,
-            "signer" => %{
-              "drfo" => get_header(headers, "drfo"),
-              "edrpou" => get_header(headers, "edrpou"),
-              "surname" => headers |> get_header("surname") |> uri_decode(),
-              "given_name" => headers |> get_header("given_name") |> uri_decode()
-            },
-            "validation_error_message" => ""
-          }
-        ]
+        "signatures" => signatures
       }
       |> wrap_response(200)
       |> Jason.encode!()

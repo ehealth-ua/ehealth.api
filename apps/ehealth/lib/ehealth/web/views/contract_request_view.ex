@@ -76,9 +76,9 @@ defmodule EHealth.Web.ContractRequestView do
 
   def render("partially_signed_content.json", %{url: url}), do: %{url: url}
 
-  defp render_association(_, _, nil), do: nil
+  def render_association(_, _, nil), do: nil
 
-  defp render_association(:legal_entity, references, id) do
+  def render_association(:legal_entity, references, id) do
     with %{} = legal_entity <-
            references
            |> Map.get(:legal_entity)
@@ -87,7 +87,7 @@ defmodule EHealth.Web.ContractRequestView do
     end
   end
 
-  defp render_association(:employee, references, id) do
+  def render_association(:employee, references, id) do
     with %{} = employee <-
            references
            |> Map.get(:employee)
@@ -98,7 +98,7 @@ defmodule EHealth.Web.ContractRequestView do
     end
   end
 
-  defp render_association(:division, references, id) do
+  def render_association(:division, references, id) do
     with %{} = division <-
            references
            |> Map.get(:division)
@@ -107,7 +107,7 @@ defmodule EHealth.Web.ContractRequestView do
     end
   end
 
-  defp render_association(:employee_divisions, references, employee_divisions) do
+  def render_association(:employee_divisions, references, employee_divisions) do
     Enum.map(employee_divisions, fn employee_division ->
       employee_division
       |> Map.take(~w(staff_units declaration_limit))
