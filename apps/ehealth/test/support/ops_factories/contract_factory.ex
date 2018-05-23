@@ -10,6 +10,7 @@ defmodule EHealth.OPSFactories.ContractFactory do
         nhs_legal_entity = insert(:prm, :legal_entity)
         contractor_owner = insert(:prm, :employee)
         nhs_signer = insert(:prm, :employee)
+        division = insert(:prm, :division, phones: [%{"type" => "MOBILE", "number" => "+380631111111"}])
 
         %{
           id: UUID.generate(),
@@ -54,9 +55,10 @@ defmodule EHealth.OPSFactories.ContractFactory do
             MFO: "351005",
             payer_account: "32009102701026"
           },
+          contractor_divisions: [division.id],
           nhs_signer_base: "на підставі наказу",
           issue_city: "Київ",
-          price: Enum.random(100_000..200_000),
+          nhs_contract_price: Enum.random(100_000..200_000),
           contract_number: "0000-9EAX-XT7X-3115",
           contract_request_id: UUID.generate(),
           is_active: true,

@@ -9,7 +9,15 @@ defmodule EHealth.ILFactories.ContractRequestFactory do
       def contract_request_factory do
         legal_entity = insert(:prm, :legal_entity)
         employee = insert(:prm, :employee)
-        division = insert(:prm, :division, legal_entity: legal_entity)
+
+        division =
+          insert(
+            :prm,
+            :division,
+            legal_entity: legal_entity,
+            phones: [%{"type" => "MOBILE", "number" => "+380631111111"}]
+          )
+
         today = Date.utc_today()
         end_date = Date.add(today, 50)
 

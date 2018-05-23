@@ -530,15 +530,15 @@ defmodule EHealth.ContractRequests do
       {:contractor_legal_entity_id, :legal_entity},
       {:nhs_legal_entity_id, :legal_entity},
       {:contractor_owner_id, :employee},
-      {:nhs_signer_id, :employee}
+      {:nhs_signer_id, :employee},
+      {:contractor_divisions, :division}
     ]
 
     fields =
       if is_list(contract_request.contractor_employee_divisions) do
         fields ++
           [
-            {[:contractor_employee_divisions, "$", "employee_id"], :employee},
-            {[:contractor_employee_divisions, "$", "division_id"], :division}
+            {[:contractor_employee_divisions, "$", "employee_id"], :employee}
           ]
       else
         fields

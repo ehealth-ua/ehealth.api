@@ -280,6 +280,10 @@ defmodule EHealth.Unit.LegalEntityTest do
     end
 
     test "happy path" do
+      expect(OPSMock, :get_contracts, fn _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
       insert(:prm, :registry)
       insert(:prm, :legal_entity, edrpou: "10002000")
       insert(:prm, :legal_entity, edrpou: "37367387")
@@ -318,6 +322,10 @@ defmodule EHealth.Unit.LegalEntityTest do
     end
 
     test "update inactive Legal Entity" do
+      expect(OPSMock, :get_contracts, fn _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
       insert(:prm, :legal_entity, edrpou: "37367387", is_active: false)
 
       data = Map.merge(get_legal_entity_data(), %{"edrpou" => "37367387"})

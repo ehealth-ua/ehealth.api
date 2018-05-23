@@ -16,7 +16,7 @@ defmodule EHealth.PRMFactories.LegalEntityFactory do
               region: "Бердичівський",
               settlement: "Київ",
               settlement_type: "CITY",
-              settlement_id: "dsdafdf",
+              settlement_id: UUID.generate(),
               street_type: "STREET",
               street: "вул. Ніжинська",
               building: "15-В",

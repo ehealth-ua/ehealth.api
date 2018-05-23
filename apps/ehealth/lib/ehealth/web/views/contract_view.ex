@@ -23,8 +23,8 @@ defmodule EHealth.Web.ContractView do
       nhs_legal_entity_id
       nhs_signer_id
       nhs_signer_base
+      nhs_contract_price
       issue_city
-      price
       contract_number
       is_suspended
       contract_request_id
@@ -53,12 +53,11 @@ defmodule EHealth.Web.ContractView do
       nhs_signer_base
       nhs_payment_details
       issue_city
-      price
+      nhs_contract_price
       contract_number
       is_suspended
       contract_request_id
     ))
-    |> Map.put("nhs_contract_price", contract_request.nhs_contract_price)
     |> Map.put(
       "contractor_legal_entity",
       ContractRequestView.render_association(:legal_entity, references, contract["contractor_legal_entity_id"])
@@ -83,5 +82,22 @@ defmodule EHealth.Web.ContractView do
         contract["contractor_employee_divisions"] || []
       )
     )
+    |> Map.put(
+      "contractor_divisions",
+      render_association(:contractor_divisions, references, contract["contractor_divisions"] || [])
+    )
+  end
+
+  def render_association(:contractor_divisions, references, contractor_divisions) do
+    Enum.map(contractor_divisions, &render_association(:division, references, &1))
+  end
+
+  def render_association(:division, references, id) do
+    with %{} = division <-
+           references
+           |> Map.get(:division)
+           |> Map.get(id) do
+      Map.take(division, ~w(id name addresses phone email working_hours mountain_group phones)a)
+    end
   end
 end

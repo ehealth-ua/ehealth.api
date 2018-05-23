@@ -22,7 +22,7 @@ defmodule EHealth.PRMFactories.DivisionFactory do
           phones: [],
           external_id: "7ae4bbd6-a9e7-4ce0-992b-6a1b18a262dc",
           type: Division.type(:clinic),
-          email: "some",
+          email: "some@local.com",
           name: "some",
           status: Division.status(:active),
           mountain_group: false,

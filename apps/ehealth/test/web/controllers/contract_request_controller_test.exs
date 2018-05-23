@@ -442,7 +442,10 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "success update contract_request", %{conn: conn} do
-      contract_request = insert(:il, :contract_request, start_date: Date.add(Date.utc_today(), 10))
+      employee = insert(:prm, :employee)
+
+      contract_request =
+        insert(:il, :contract_request, start_date: Date.add(Date.utc_today(), 10), contractor_owner_id: employee.id)
 
       expect(MithrilMock, :get_user_roles, fn _, _, _ ->
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
@@ -923,7 +926,14 @@ defmodule EHealth.Web.ContractRequestControllerTest do
           party: party_user.party
         )
 
-      division = insert(:prm, :division, legal_entity: legal_entity)
+      division =
+        insert(
+          :prm,
+          :division,
+          legal_entity: legal_entity,
+          phones: [%{"type" => "MOBILE", "number" => "+380631111111"}]
+        )
+
       employee_doctor = insert(:prm, :employee, legal_entity_id: legal_entity.id, division: division)
       now = Date.utc_today()
       start_date = Date.add(now, 10)
@@ -1940,7 +1950,9 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     user_id = UUID.generate()
     party_user = insert(:prm, :party_user, user_id: user_id)
     legal_entity = insert(:prm, :legal_entity)
-    division = insert(:prm, :division, legal_entity: legal_entity)
+
+    division =
+      insert(:prm, :division, legal_entity: legal_entity, phones: [%{"type" => "MOBILE", "number" => "+380631111111"}])
 
     employee =
       insert(
@@ -2009,7 +2021,10 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     nhs_signer_id = Keyword.get(contract_request_params, :nhs_signer_id) || UUID.generate()
     party_user = insert(:prm, :party_user, user_id: user_id)
     insert(:prm, :employee, party: party_user.party, legal_entity_id: client_id, id: nhs_signer_id)
-    division = insert(:prm, :division, legal_entity: legal_entity)
+
+    division =
+      insert(:prm, :division, legal_entity: legal_entity, phones: [%{"type" => "MOBILE", "number" => "+380631111111"}])
+
     employee_doctor = insert(:prm, :employee, legal_entity_id: legal_entity.id, division: division)
 
     employee_owner =

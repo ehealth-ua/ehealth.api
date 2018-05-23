@@ -39,11 +39,11 @@ defmodule EHealth.Validators.Preload do
   end
 
   defp get_reference_id(item, {field_path, type}, acc) when is_atom(field_path) or is_binary(field_path) do
-    do_get_reference_id(item, field_path, type, acc)
+    do_get_reference_id(Map.get(item, field_path), type, acc)
   end
 
   defp get_reference_id(item, {[field_path], type}, acc) when is_atom(field_path) or is_binary(field_path) do
-    do_get_reference_id(item, field_path, type, acc)
+    do_get_reference_id(Map.get(item, field_path), type, acc)
   end
 
   defp get_reference_id(item, {field_path, type}, acc) when is_list(field_path) do
@@ -60,10 +60,19 @@ defmodule EHealth.Validators.Preload do
     end
   end
 
-  defp do_get_reference_id(item, field_path, type, acc) do
-    reference_id = Map.get(item, field_path)
+  defp do_get_reference_id(nil, _, acc), do: acc
+
+  defp do_get_reference_id(reference_id, type, acc) when is_binary(reference_id) do
     ids = Map.get(acc, type) || []
     ids = if Enum.member?(ids, reference_id) || is_nil(reference_id), do: ids, else: [reference_id | ids]
     Map.put(acc, type, ids)
+  end
+
+  defp do_get_reference_id(reference_ids, type, map) when is_list(reference_ids) do
+    Enum.reduce(reference_ids, map, fn id, acc ->
+      ids = Map.get(acc, type) || []
+      ids = if Enum.member?(ids, id) || is_nil(id), do: ids, else: [id | ids]
+      Map.put(acc, type, ids)
+    end)
   end
 end

@@ -72,6 +72,10 @@ defmodule EHealth.Web.ContractRequestView do
       "contractor_employee_divisions",
       render_association(:employee_divisions, references, contract_request.contractor_employee_divisions || [])
     )
+    |> Map.put(
+      "contractor_divisions",
+      render_association(:contractor_divisions, references, contract_request.contractor_divisions || [])
+    )
   end
 
   def render("partially_signed_content.json", %{url: url}), do: %{url: url}
@@ -87,14 +91,25 @@ defmodule EHealth.Web.ContractRequestView do
     end
   end
 
-  def render_association(:employee, references, id) do
+  def render_association(:employee_division, references, id) do
     with %{} = employee <-
            references
            |> Map.get(:employee)
            |> Map.get(id) do
       employee
       |> Map.take(~w(id speciality)a)
-      |> Map.put("party", Map.take(employee.party, ~w(id first_name last_name second_name)a))
+      |> Map.put("party", Map.take(employee.party, ~w(first_name last_name second_name)a))
+    end
+  end
+
+  def render_association(:employee, references, id) do
+    with %{} = employee <-
+           references
+           |> Map.get(:employee)
+           |> Map.get(id) do
+      employee
+      |> Map.take(~w(id)a)
+      |> Map.put("party", Map.take(employee.party, ~w(first_name last_name second_name)a))
     end
   end
 
@@ -110,9 +125,15 @@ defmodule EHealth.Web.ContractRequestView do
   def render_association(:employee_divisions, references, employee_divisions) do
     Enum.map(employee_divisions, fn employee_division ->
       employee_division
-      |> Map.take(~w(staff_units declaration_limit))
-      |> Map.put("employee", render_association(:employee, references, Map.get(employee_division, "employee_id")))
-      |> Map.put("division", render_association(:division, references, Map.get(employee_division, "division_id")))
+      |> Map.take(~w(division_id staff_units declaration_limit))
+      |> Map.put(
+        "employee",
+        render_association(:employee_division, references, Map.get(employee_division, "employee_id"))
+      )
     end)
+  end
+
+  def render_association(:contractor_divisions, references, contractor_divisions) do
+    Enum.map(contractor_divisions, &render_association(:division, references, &1))
   end
 end

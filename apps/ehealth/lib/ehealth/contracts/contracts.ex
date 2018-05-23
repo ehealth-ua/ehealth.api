@@ -37,15 +37,15 @@ defmodule EHealth.Contracts do
         {"contractor_owner_id", :employee},
         {"nhs_legal_entity_id", :legal_entity},
         {"nhs_signer_id", :employee},
-        {"contract_request_id", :contract_request}
+        {"contract_request_id", :contract_request},
+        {"contractor_divisions", :division}
       ])
 
     contract_request = get_in(contract_references, [:contract_request, contract["contract_request_id"]])
 
     contract_request_references =
       Preload.preload_references(contract_request, [
-        {[:contractor_employee_divisions, "$", "employee_id"], :employee},
-        {[:contractor_employee_divisions, "$", "division_id"], :division}
+        {[:contractor_employee_divisions, "$", "employee_id"], :employee}
       ])
 
     references = MapDeepMerge.merge(contract_references, contract_request_references)
