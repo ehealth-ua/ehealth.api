@@ -73,6 +73,7 @@ defmodule EHealth.ContractRequests do
          :ok <- validate_signer_drfo(tax_id, signer["drfo"]),
          :ok <- JsonSchema.validate(:contract_request, content),
          params <- Map.put(content, "contractor_legal_entity_id", client_id),
+         :ok <- validate_contract_number(params, headers),
          :ok <- validate_unique_contractor_employee_divisions(params),
          :ok <- validate_unique_contractor_divisions(params),
          :ok <- validate_employee_divisions(params),
@@ -132,6 +133,7 @@ defmodule EHealth.ContractRequests do
          :ok <- user_has_role(data, "NHS ADMIN SIGNER"),
          %ContractRequest{} = contract_request <- Repo.get(ContractRequest, params["id"]),
          :ok <- validate_status(contract_request, ContractRequest.status(:new)),
+         :ok <- validate_contract_number(params, headers),
          :ok <- validate_contractor_legal_entity(contract_request),
          :ok <- validate_contractor_owner_id(contract_request),
          :ok <- validate_nhs_signer_id(contract_request, client_id),
@@ -376,13 +378,14 @@ defmodule EHealth.ContractRequests do
       issue_city
       price
       contract_number
-      contract_employees
       contractor_employee_divisions
     )a)
     |> Map.put("id", contract_id)
     |> Map.put("contract_request_id", id)
     |> Map.put("is_suspended", false)
     |> Map.put("is_active", true)
+    |> Map.put("inserted_by", contract_request.updated_by)
+    |> Map.put("updated_by", contract_request.updated_by)
   end
 
   defp validate_content(%ContractRequest{data: data}, content) do
@@ -1102,4 +1105,15 @@ defmodule EHealth.ContractRequests do
     |> cast(params, fields_required ++ fields_optional)
     |> validate_required(fields_required)
   end
+
+  defp validate_contract_number(%{"contract_number" => contract_number}, headers) when not is_nil(contract_number) do
+    with {:ok, %{"data" => [_]}} <-
+           @ops_api.get_contracts(%{"contract_number" => contract_number, "status" => "VERIFIED"}, headers) do
+      :ok
+    else
+      _ -> {:error, {:"422", "There is no active contract with such contract_number"}}
+    end
+  end
+
+  defp validate_contract_number(_, _), do: :ok
 end

@@ -288,6 +288,10 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "success create contract request with contract_number", %{conn: conn} do
+      expect(OPSMock, :get_contracts, fn _, _ ->
+        {:ok, %{"data" => [%{}]}}
+      end)
+
       %{
         legal_entity: legal_entity,
         division: division,
