@@ -91,8 +91,7 @@ defmodule EHealth.MedicationRequestRequest.Validations do
     do: {:error, error}
 
   defp do_check_is_valid(%{"signatures" => signatures}) when is_list(signatures),
-    do:
-      {:error, "document must be signed by 1 signer but contains #{Enum.count(signatures)} signatures"}
+    do: {:error, "document must be signed by 1 signer but contains #{Enum.count(signatures)} signatures"}
 
   def validate_sign_content(mrr, %{"content" => content, "signer" => signer}) do
     with %Employee{} = employee <- Employees.get_by_id(mrr.data.employee_id),
