@@ -1090,9 +1090,9 @@ Method searches divisions by parameters and returnes division details
     + Attributes (`Response_Collection_V2`)
         + data (array[EntriesDivisionMap], optional)
 
-## Employees [/report/employees]
+## Employees [/api/stats/employees]
 
-### Search Employees [GET /stats/employees{?id,employee_type,full_name,speciality,division_id,division_name,area,region,settlement,is_available,page,page_size}]
+### Search Employees [GET /api/stats/employees{?id,employee_type,full_name,speciality,division_id,division_name,area,region,settlement,is_available,page,page_size}]
 Method searches doctor by parameters and returnes division details
 
 + Parameters
@@ -1115,7 +1115,7 @@ Method searches doctor by parameters and returnes division details
     + Attributes (`Response_Collection_V2`)
         + data (array[EntriesEmployeesListMap], optional)
 
-### Search Employee Details [GET /stats/employees/{id}]
+### Search Employee Details [GET /api/stats/employees/{id}]
 This method returns employee details by id
 
 + Request (application/json)
