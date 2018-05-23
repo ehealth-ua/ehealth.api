@@ -420,6 +420,29 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       assert %{"error" => %{"type" => "access_denied", "message" => "Missing header x-consumer-metadata"}} = resp
     end
 
+    test "tax_id are different in user and person", %{conn: conn} do
+      legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
+
+      expect(MPIMock, :person, fn id, _headers ->
+        get_person(id, 200, %{
+          id: "c8912855-21c3-4771-ba18-bcd8e524f14c",
+          first_name: "Алекс",
+          last_name: "Джонс",
+          second_name: "Петрович",
+          tax_id: "2222222225"
+        })
+      end)
+
+      conn =
+        conn
+        |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
+
+      conn = get(conn, cabinet_persons_path(conn, :personal_info))
+      assert resp = json_response(conn, 401)
+      assert %{"error" => %{"type" => "access_denied", "message" => "Person not found"}} = resp
+    end
+
     test "returns person detail for logged user", %{conn: conn} do
       legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
 
@@ -579,7 +602,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       assert %{"error" => %{"type" => "access_denied", "message" => "Missing header x-consumer-metadata"}} = resp
     end
 
-    test "success get person details", %{conn: conn} do
+    test "tax_id are different in user and person", %{conn: conn} do
       legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
       insert(:prm, :party_user, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c")
 
@@ -593,6 +616,40 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
           gender: "string value",
           email: "test@example.com",
           tax_id: "2222222225",
+          documents: [%{"type" => "BIRTH_CERTIFICATE", "number" => "1234567890"}],
+          phones: [%{"type" => "MOBILE", "number" => "+380972526080"}],
+          secret: "string value",
+          emergency_contact: %{},
+          process_disclosure_data_consent: true,
+          authentication_methods: [%{"type" => "NA"}],
+          preferred_way_communication: "––"
+        })
+      end)
+
+      conn =
+        conn
+        |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
+
+      conn = get(conn, cabinet_persons_path(conn, :person_details))
+      assert resp = json_response(conn, 401)
+      assert %{"error" => %{"type" => "access_denied", "message" => "Person not found"}} = resp
+    end
+
+    test "success get person details", %{conn: conn} do
+      legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
+      insert(:prm, :party_user, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c")
+
+      expect(MPIMock, :person, fn id, _headers ->
+        get_person(id, 200, %{
+          id: "c8912855-21c3-4771-ba18-bcd8e524f14c",
+          first_name: "Алекс",
+          second_name: "Петрович",
+          birth_country: "string value",
+          birth_settlement: "string value",
+          gender: "string value",
+          email: "test@example.com",
+          tax_id: "2222222220",
           documents: [%{"type" => "BIRTH_CERTIFICATE", "number" => "1234567890"}],
           phones: [%{"type" => "MOBILE", "number" => "+380972526080"}],
           secret: "string value",
@@ -623,7 +680,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       assert data["birth_settlement"] == "string value"
       assert data["gender"] == "string value"
       assert data["email"] == "test@example.com"
-      assert data["tax_id"] == "2222222225"
+      assert data["tax_id"] == "2222222220"
       assert data["documents"] == [%{"type" => "BIRTH_CERTIFICATE", "number" => "1234567890"}]
 
       assert Enum.count(data["addresses"]) == 2

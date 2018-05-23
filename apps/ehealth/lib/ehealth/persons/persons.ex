@@ -64,6 +64,7 @@ defmodule EHealth.Persons do
 
     with {:ok, %{"data" => user}} <- Mithril.get_user_by_id(user_id, headers),
          {:ok, %{"data" => person}} <- @mpi_api.person(user["person_id"], headers),
+         :ok <- validate_user_person(user, person),
          :ok <- check_user_person_id(user, person["id"]) do
       {:ok, person}
     end
@@ -102,7 +103,7 @@ defmodule EHealth.Persons do
     if user["person_id"] == person["id"] and user["tax_id"] == person["tax_id"] do
       :ok
     else
-      {:error, :access_denied}
+      {:error, {:access_denied, "Person not found"}}
     end
   end
 
