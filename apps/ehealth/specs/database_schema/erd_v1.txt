@@ -1,0 +1,163 @@
+[legal_entities]
+id | uuid | not null
+name | varchar | not null
+short_name | varchar | not null
+public_name | varchar | not null
+status | varchar | not null
+type | varchar | not null
+owner_property_type | varchar | not null
+legal_form | varchar | not null
+edrpou | varchar | not null
+kveds | jsonb | not null
+addresses | jsonb | not null
+phones | jsonb | not null
+email | varchar | not null
+is_active | boolean
+mis_verified | boolean
+nhs_verified | boolean
+website | varchar
+beneficiary | varchar
+receiver_funds_code | varchar
+archive | jsonb
+inserted_at | timestamp | not null
+inserted_by | uuid | not null
+updated_at | timestamp | not null
+updated_by | uuid | not null
+
+[divisions]
+id | uuid | not null
+external_id | varchar 
+name | varchar | not null
+type | varchar | not null
+mountaint_group | boolean | not null
+addresses | jsonb | not null
+phones | jsonb | not null
+email | varchar | not null
+location | geometry | not null
+status | enum ('') | not null
+legal_entity_id | uuid | not null
+working_hours | jsonb
+is_active | boolean
+
+[employees]
+id | uuid | not null
+party_id | uuid | not null
+position | varchar | not null
+email | varchar | not null
+status | varchar | not null
+status_reason | varchar
+employee_type | varchar | not null
+is_active | boolean
+start_date| timestamp
+end_date| timestamp
+legal_entity_id | uuid | not null
+division_id | uuid
+speciality | jsonb
+properties | jsonb
+inserted_at | timestamp | not null
+inserted_by | uuid | not null
+updated_at | timestamp | not null
+updated_by | uuid | not null
+
+[contract_requests]
+id | uuid | not null
+contractor_legal_entity_id | uuid | not null
+contractor_owner_id | uuid | not null
+contractor_base | varchar | not null
+contractor_payment_details | json | not null
+rmsp_amount | number | not null 
+external_contractor_flag | boolean
+external_contractors | jsonb 
+contractor_employee_divisions | jsonb 
+contractor_divisions | array | not null
+start_date | timestamp | not null
+end_date | timestamp | not null
+nhs_legal_entity_id | uuid 
+nhs_signer_id | uuid 
+nhs_signer_base | varchar
+nhs_payment_method | DICTIONARY	
+nhs_payment_details | jsonb 
+issue_city | varchar 
+status | enum('NEW', 'APPROVED', 'DECLINED', 'NHS_SIGNED', SIGNED') | not null
+status_reason | varchar 
+price | number 
+contract_number | varchar 
+contract_id | uuid
+printout_content | varchar 
+id_form | uuid | not null
+inserted_by | uuid | not null
+updated_by | uuid | not null
+inserted_at | timestamp | not null
+updated_at | timestamp | not null
+
+[contracts]
+id | uuid | not null
+start_date | timestamp | not null
+end_date | timestamp | not null
+status | enum('VERIFIED', 'TERMINATED') | not null
+contractor_legal_entity_id | uuid | not null
+contractor_owner_id | uuid | not null
+contractor_base | varchar | not null
+contractor_payment_details | json | not null
+rmsp_amount | number | not null 
+external_contractor_flag | boolean
+external_contractors | jsonb
+nhs_legal_entity_id  | uuid | not null
+nhs_signer_id | uuid | not null
+nhs_signer_base | varchar | not null
+nhs_payment_method | DICTIONARY	| not null 
+nhs_payment_details | jsonb | not null 
+issue_city | varchar | not null
+price | number | not null
+contract_number | varchar | not null
+contract_request_id | uuid | not null
+inserted_by | uuid | not null
+updated_by | uuid | not null
+inserted_at | timestamp | not null
+updated_at | timestamp | not null
+
+[contract_employees]
+id | uuid | not null
+employee_id | uuid | not null
+staff_units | number | not null
+declaration_limit | number | not null
+division_id | uuid | not null
+contract_id | uuid | not null
+start_date | date | not null
+end_date | date 
+inserted_by | uuid | not null
+updated_by | uuid | not null
+inserted_at | timestamp | not null
+updated_at | timestamp | not null
+
+[contract_divisions]
+id | uuid | not null
+division_id | uuid | not null
+contract_id | uuid | not null
+inserted_by | uuid | not null
+updated_by | uuid | not null
+inserted_at | timestamp | not null
+updated_at | timestamp | not null
+
+(il_db)
+contract_requests
+
+(prm_db)
+legal_entities
+divisions
+employees
+
+(ops_db)
+contracts
+contract_employees
+contract_divisions
+
+contract_requests 1--? contracts
+contracts 1--* contract_employees
+contracts 1--* contract_divisions
+employees 1--? contract_employees
+divisions 1--? contract_divisions
+contracts ?--1 legal_entities
+legal_entities 1--* employees
+legal_entities 1--* divisions
+employees 1--? divisions

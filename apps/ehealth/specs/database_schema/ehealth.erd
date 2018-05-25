@@ -1,0 +1,251 @@
+[apps]
+id | uuid | not null
+scope | varchar
+user_id | uuid | not null
+client_id | uuid | not null
+inserted_at | timestamp | not null
+updated_at | timestamp | not null
+
+[authentication_factors]
+id | uuid | not null
+type | varchar | not null
+factor | varchar | not null
+is_active | boolean
+user_id | uuid | not null
+inserted_at | timeatamp | not null
+updated_at | timeatamp | not null
+
+[client_types]
+id | uuid | not null
+name | varchar | not null
+scope | varchar
+inserted_at | timeatamp | not null
+updated_at | timeatamp | not null
+
+[clients]
+id | uuid | not null
+name | varchar | not null
+secret | varchar | not null
+redirect_uri | varchar | not null
+settings | jsonb
+priv_settings | jsonb
+user_id | uuid | not null
+inserted_at | timeatamp | not null
+updated_at | timeatamp | not null
+client_type_id | varchar | not null
+is_blocked | boolean | not null
+block_reason | varchar
+
+[clients_block_reason_hstr]
+id | uuid | not null
+legal_entity_id | uuid | not null
+is_blocked | boolean | not null
+block_reason | varchar
+inserted_at | timeatamp | not null
+
+[global_user_roles]
+id | uuid | not null
+user_id | uuid | not null
+role_id | uuid | not null
+inserted_at | timeatamp | not null
+updated_at | timeatamp | not null
+
+[otp]
+id | uuid | not null
+key | varchar
+code | integer
+code_expired_at | timeatamp
+status | varchar
+attempts_count | integer
+inserted_at | timeatamp
+active | boolean
+
+[password_hstr]
+id | integer | not null
+user_id | uuid | not null
+password | varchar |not null
+inserted_at | timeatamp | not null
+
+[roles]
+id | uuid | not null
+name | varchar | not null
+scope | varchar | not null
+inserted_at | timeatamp | not null
+updated_at | timeatamp | not null
+
+[tokens]
+id | uuid | not null
+name | varchar | not null
+value | varchar | not null
+expires_at | timeatamp | not null
+details | jsonb | not null
+user_id | uuid | not null
+inserted_at | timeatamp | not null
+updated_at | timeatamp | not null
+
+[user_roles]
+id | uuid | not null
+user_id | uuid | not null
+role_id | uuid | not null
+client_id | uuid | not null
+inserted_at | timeatamp | not null
+updated_at | timeatamp | not null
+
+[users]
+id | uuid | not null
+email | varchar | not null | unique
+password | varchar | not null
+settings | jsonb
+priv_settings | jsonb
+inserted_at | timestamp | not null
+updated_at | timestamp | not null
+is_blocked | boolean | not null
+block_reason | varchar
+password_set_at | timeatamp | not null
+person_id | uuid
+tax_id | varchar | unique
+
+[contract_requests]
+id | uuid | not null
+contractor_legal_entity_id | uuid | not null
+contractor_owner_id | uuid | not null
+contractor_base | varchar | not null
+contractor_payment_details | json | not null
+contractor_rmsp_amount | number | not null
+external_contractor_flag | boolean
+start_date | timestamp | not null
+end_date | timestamp | not null
+nhs_legal_entity_id | uuid
+nhs_signer_id | uuid
+nhs_signer_base | varchar
+contractor_signed | boolean | not null
+issue_city | varchar
+status | varchar | not null
+status_reason | varchar
+nhs_contract_price | number
+nhs_payment_method | varchar
+nhs_payment_details | jsonb
+contract_number | varchar
+contract_id | uuid
+printout_content | varchar
+id_form | uuid | not null
+data | jsonb | not null
+inserted_by | uuid | not null
+updated_by | uuid | not null
+inserted_at | timestamp | not null
+updated_at | timestamp | not null
+external_contractors | jsonb
+contractor_employee_divisions | jsonb
+contractor_divisions | array | not null
+
+[credentials_recovery_requests]
+id | uuid | not null
+user_id | uuid | not null
+is_active | boolean | not null
+inserted_at | timestamp | not null
+updated_at | timestamp | not null
+
+[declaration_requests]
+id | uuid | not null
+data | jsonb
+status | varchar | not null
+authentication_method_current | jsonb
+printout_content | varchar
+documents | jsonb
+declaration_id | uuid | not null
+mpi_id | uuid
+overlimit | boolean | not null
+channel | varchar | not null
+declaration_number | varchar | not null
+inserted_by | uuid | not null
+updated_by | uuid | not null
+inserted_at | timestamp | not null
+updated_at | timestamp | not null
+
+[dictionaries]
+name | varchar | not null
+values | jsonb | not null
+labels | jsonb | not null
+is_active | boolean | not null
+
+[employee_requests]
+id | uuid | not null
+data | jsonb | not null
+status | varchar | not null
+employee_id | uuid
+inserted_at | timestamp | not null
+updated_at | timestamp | not null
+
+[medication_request_requests]
+id | uuid | not null
+data | jsonb | not null
+request_number | varchar | not null | unique
+status | varchar | not null
+verification_code | varchar
+medication_request_id | uuid | not null
+inserted_at | timestamp | not null
+inserted_by | uuid | not null
+updated_at | timestamp | not null
+updated_by | uuid | not null
+
+[register_entries]
+id | uuid | not null
+status | varchar | not null
+person_id | uuid
+register_id	| uuid	| not null
+document_type | DICTIONARY='DOCUMENT_TYPE' | not null
+document_number | varchar  | not null
+inserted_at	| uuid	| not null
+inserted_by	| timestamp	| not null
+updated_at	| uuid | not null
+updated_by	| timestamp	| not null
+
+[registers]
+id | uuid | not null
+file_name | varchar | not null
+status | varchar | not null
+type | DICTIONARY='REGISTER_TYPE' | not null
+qty	| jsonb | not null
+errors	| array | not null
+person_type | enum(patient, employee) | not null
+inserted_at | timestamp | not null
+inserted_by | uuid | not null
+updated_at | timestamp | not null
+updated_by | uuid | not null
+
+(il_db)
+contract_requests
+credentials_recovery_requests
+declaration_requests
+dictionaries
+employee_requests
+medication_request_requests
+register_entries
+registers
+
+(mithril)
+apps
+authentication_factors
+client_types
+clients
+clients_block_reason_hstr
+global_user_roles
+otp
+password_hstr
+roles
+tokens
+user_roles
+users
+
+
+apps *--1 users
+apps *--1 clients
+authentication_factors *--1 users
+client_types 1--* clients
+users 1--* global_user_roles
+clients 1--* global_user_roles
+password_hstr *--1 users
+users 1--* clients
+tokens *--1 users
+user_roles *--1 roles
+user_roles *--1 users

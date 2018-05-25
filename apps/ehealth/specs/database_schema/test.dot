@@ -1,0 +1,1094 @@
+
+digraph G {
+  node [shape=plaintext]
+
+  
+"apps" [label=<
+<table border="0" cellborder="0" cellspacing="0" bgcolor="#FFFFFF">
+  <tr>
+    <td colspan="3" border="1" bgcolor="#EEEEEE" cellpadding="0"><font face="PT Mono"><b>apps</b></font></td>
+  </tr>
+  <tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">scope &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">varchar&nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">&nbsp;</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">user_id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">client_id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">inserted_at &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">timestamp &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="lb" align="left" port="id"><font face="PT Mono">updated_at &nbsp;</font></td>
+  <td border="1" sides="b" align="left"><font color="#999999" face="PT Mono">timestamp &nbsp;</font></td>
+  <td border="1" sides="rb" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+</table>
+>]
+
+
+"authentication_factors" [label=<
+<table border="0" cellborder="0" cellspacing="0" bgcolor="#FFFFFF">
+  <tr>
+    <td colspan="3" border="1" bgcolor="#EEEEEE" cellpadding="0"><font face="PT Mono"><b>authentication_factors</b></font></td>
+  </tr>
+  <tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">type &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">varchar &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">factor &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">varchar &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">is_active &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">boolean&nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">&nbsp;</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">user_id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">inserted_at &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">timeatamp &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="lb" align="left" port="id"><font face="PT Mono">updated_at &nbsp;</font></td>
+  <td border="1" sides="b" align="left"><font color="#999999" face="PT Mono">timeatamp &nbsp;</font></td>
+  <td border="1" sides="rb" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+</table>
+>]
+
+
+"client_types" [label=<
+<table border="0" cellborder="0" cellspacing="0" bgcolor="#FFFFFF">
+  <tr>
+    <td colspan="3" border="1" bgcolor="#EEEEEE" cellpadding="0"><font face="PT Mono"><b>client_types</b></font></td>
+  </tr>
+  <tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">name &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">varchar &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">scope &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">varchar&nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">&nbsp;</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">inserted_at &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">timeatamp &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="lb" align="left" port="id"><font face="PT Mono">updated_at &nbsp;</font></td>
+  <td border="1" sides="b" align="left"><font color="#999999" face="PT Mono">timeatamp &nbsp;</font></td>
+  <td border="1" sides="rb" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+</table>
+>]
+
+
+"clients" [label=<
+<table border="0" cellborder="0" cellspacing="0" bgcolor="#FFFFFF">
+  <tr>
+    <td colspan="3" border="1" bgcolor="#EEEEEE" cellpadding="0"><font face="PT Mono"><b>clients</b></font></td>
+  </tr>
+  <tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">name &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">varchar &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">secret &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">varchar &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">redirect_uri &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">varchar &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">settings &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">jsonb&nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">&nbsp;</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">priv_settings &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">jsonb&nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">&nbsp;</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">user_id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">inserted_at &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">timeatamp &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">updated_at &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">timeatamp &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">client_type_id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">varchar &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">is_blocked &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">boolean &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="lb" align="left" port="id"><font face="PT Mono">block_reason &nbsp;</font></td>
+  <td border="1" sides="b" align="left"><font color="#999999" face="PT Mono">varchar&nbsp;</font></td>
+  <td border="1" sides="rb" align="left"><font color="#CCCCCC" face="PT Mono">&nbsp;</font></td>
+</tr>
+</table>
+>]
+
+
+"clients_block_reason_hstr" [label=<
+<table border="0" cellborder="0" cellspacing="0" bgcolor="#FFFFFF">
+  <tr>
+    <td colspan="3" border="1" bgcolor="#EEEEEE" cellpadding="0"><font face="PT Mono"><b>clients_block_reason_hstr</b></font></td>
+  </tr>
+  <tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">legal_entity_id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">is_blocked &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">boolean &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">block_reason &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">varchar&nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">&nbsp;</font></td>
+</tr>
+<tr>
+  <td border="1" sides="lb" align="left" port="id"><font face="PT Mono">inserted_at &nbsp;</font></td>
+  <td border="1" sides="b" align="left"><font color="#999999" face="PT Mono">timeatamp &nbsp;</font></td>
+  <td border="1" sides="rb" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+</table>
+>]
+
+
+"global_user_roles" [label=<
+<table border="0" cellborder="0" cellspacing="0" bgcolor="#FFFFFF">
+  <tr>
+    <td colspan="3" border="1" bgcolor="#EEEEEE" cellpadding="0"><font face="PT Mono"><b>global_user_roles</b></font></td>
+  </tr>
+  <tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">user_id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">role_id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">inserted_at &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">timeatamp &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="lb" align="left" port="id"><font face="PT Mono">updated_at &nbsp;</font></td>
+  <td border="1" sides="b" align="left"><font color="#999999" face="PT Mono">timeatamp &nbsp;</font></td>
+  <td border="1" sides="rb" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+</table>
+>]
+
+
+"otp" [label=<
+<table border="0" cellborder="0" cellspacing="0" bgcolor="#FFFFFF">
+  <tr>
+    <td colspan="3" border="1" bgcolor="#EEEEEE" cellpadding="0"><font face="PT Mono"><b>otp</b></font></td>
+  </tr>
+  <tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">key &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">varchar&nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">&nbsp;</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">code &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">integer&nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">&nbsp;</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">code_expired_at &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">timeatamp&nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">&nbsp;</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">status &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">varchar&nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">&nbsp;</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">attempts_count &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">integer&nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">&nbsp;</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">inserted_at &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">timeatamp&nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">&nbsp;</font></td>
+</tr>
+<tr>
+  <td border="1" sides="lb" align="left" port="id"><font face="PT Mono">active &nbsp;</font></td>
+  <td border="1" sides="b" align="left"><font color="#999999" face="PT Mono">boolean&nbsp;</font></td>
+  <td border="1" sides="rb" align="left"><font color="#CCCCCC" face="PT Mono">&nbsp;</font></td>
+</tr>
+</table>
+>]
+
+
+"password_hstr" [label=<
+<table border="0" cellborder="0" cellspacing="0" bgcolor="#FFFFFF">
+  <tr>
+    <td colspan="3" border="1" bgcolor="#EEEEEE" cellpadding="0"><font face="PT Mono"><b>password_hstr</b></font></td>
+  </tr>
+  <tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">integer &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">user_id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">password &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">varchar &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="lb" align="left" port="id"><font face="PT Mono">inserted_at &nbsp;</font></td>
+  <td border="1" sides="b" align="left"><font color="#999999" face="PT Mono">timeatamp &nbsp;</font></td>
+  <td border="1" sides="rb" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+</table>
+>]
+
+
+"roles" [label=<
+<table border="0" cellborder="0" cellspacing="0" bgcolor="#FFFFFF">
+  <tr>
+    <td colspan="3" border="1" bgcolor="#EEEEEE" cellpadding="0"><font face="PT Mono"><b>roles</b></font></td>
+  </tr>
+  <tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">name &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">varchar &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">scope &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">varchar &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">inserted_at &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">timeatamp &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="lb" align="left" port="id"><font face="PT Mono">updated_at &nbsp;</font></td>
+  <td border="1" sides="b" align="left"><font color="#999999" face="PT Mono">timeatamp &nbsp;</font></td>
+  <td border="1" sides="rb" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+</table>
+>]
+
+
+"tokens" [label=<
+<table border="0" cellborder="0" cellspacing="0" bgcolor="#FFFFFF">
+  <tr>
+    <td colspan="3" border="1" bgcolor="#EEEEEE" cellpadding="0"><font face="PT Mono"><b>tokens</b></font></td>
+  </tr>
+  <tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">name &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">varchar &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">value &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">varchar &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">expires_at &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">timeatamp &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">details &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">jsonb &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">user_id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">inserted_at &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">timeatamp &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="lb" align="left" port="id"><font face="PT Mono">updated_at &nbsp;</font></td>
+  <td border="1" sides="b" align="left"><font color="#999999" face="PT Mono">timeatamp &nbsp;</font></td>
+  <td border="1" sides="rb" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+</table>
+>]
+
+
+"user_roles" [label=<
+<table border="0" cellborder="0" cellspacing="0" bgcolor="#FFFFFF">
+  <tr>
+    <td colspan="3" border="1" bgcolor="#EEEEEE" cellpadding="0"><font face="PT Mono"><b>user_roles</b></font></td>
+  </tr>
+  <tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">user_id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">role_id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">client_id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">inserted_at &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">timeatamp &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="lb" align="left" port="id"><font face="PT Mono">updated_at &nbsp;</font></td>
+  <td border="1" sides="b" align="left"><font color="#999999" face="PT Mono">timeatamp &nbsp;</font></td>
+  <td border="1" sides="rb" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+</table>
+>]
+
+
+"users" [label=<
+<table border="0" cellborder="0" cellspacing="0" bgcolor="#FFFFFF">
+  <tr>
+    <td colspan="3" border="1" bgcolor="#EEEEEE" cellpadding="0"><font face="PT Mono"><b>users</b></font></td>
+  </tr>
+  <tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">email &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">varchar &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null </font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">password &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">varchar &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">settings &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">jsonb&nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">&nbsp;</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">priv_settings &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">jsonb&nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">&nbsp;</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">inserted_at &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">timestamp &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">updated_at &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">timestamp &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">is_blocked &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">boolean &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">block_reason &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">varchar&nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">&nbsp;</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">password_set_at &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">timeatamp &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">person_id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid&nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">&nbsp;</font></td>
+</tr>
+<tr>
+  <td border="1" sides="lb" align="left" port="id"><font face="PT Mono">tax_id &nbsp;</font></td>
+  <td border="1" sides="b" align="left"><font color="#999999" face="PT Mono">varchar &nbsp;</font></td>
+  <td border="1" sides="rb" align="left"><font color="#CCCCCC" face="PT Mono">unique</font></td>
+</tr>
+</table>
+>]
+
+
+"contract_requests" [label=<
+<table border="0" cellborder="0" cellspacing="0" bgcolor="#FFFFFF">
+  <tr>
+    <td colspan="3" border="1" bgcolor="#EEEEEE" cellpadding="0"><font face="PT Mono"><b>contract_requests</b></font></td>
+  </tr>
+  <tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">contractor_legal_entity_id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">contractor_owner_id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">contractor_base &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">varchar &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">contractor_payment_details &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">json &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">contractor_rmsp_amount &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">number &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">external_contractor_flag &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">boolean&nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">&nbsp;</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">start_date &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">timestamp &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">end_date &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">timestamp &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">nhs_legal_entity_id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid&nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">&nbsp;</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">nhs_signer_id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid&nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">&nbsp;</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">nhs_signer_base &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">varchar&nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">&nbsp;</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">contractor_signed &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">boolean &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">issue_city &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">varchar&nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">&nbsp;</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">status &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">varchar &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">status_reason &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">varchar&nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">&nbsp;</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">nhs_contract_price &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">number&nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">&nbsp;</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">nhs_payment_method &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">varchar&nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">&nbsp;</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">nhs_payment_details &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">jsonb&nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">&nbsp;</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">contract_number &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">varchar&nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">&nbsp;</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">contract_id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid&nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">&nbsp;</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">printout_content &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">varchar&nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">&nbsp;</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">id_form &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">data &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">jsonb &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">inserted_by &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">updated_by &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">inserted_at &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">timestamp &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">updated_at &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">timestamp &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">external_contractors &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">jsonb&nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">&nbsp;</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">contractor_employee_divisions &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">jsonb&nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">&nbsp;</font></td>
+</tr>
+<tr>
+  <td border="1" sides="lb" align="left" port="id"><font face="PT Mono">contractor_divisions &nbsp;</font></td>
+  <td border="1" sides="b" align="left"><font color="#999999" face="PT Mono">array &nbsp;</font></td>
+  <td border="1" sides="rb" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+</table>
+>]
+
+
+"credentials_recovery_requests" [label=<
+<table border="0" cellborder="0" cellspacing="0" bgcolor="#FFFFFF">
+  <tr>
+    <td colspan="3" border="1" bgcolor="#EEEEEE" cellpadding="0"><font face="PT Mono"><b>credentials_recovery_requests</b></font></td>
+  </tr>
+  <tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">user_id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">is_active &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">boolean &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">inserted_at &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">timestamp &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="lb" align="left" port="id"><font face="PT Mono">updated_at &nbsp;</font></td>
+  <td border="1" sides="b" align="left"><font color="#999999" face="PT Mono">timestamp &nbsp;</font></td>
+  <td border="1" sides="rb" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+</table>
+>]
+
+
+"declaration_requests" [label=<
+<table border="0" cellborder="0" cellspacing="0" bgcolor="#FFFFFF">
+  <tr>
+    <td colspan="3" border="1" bgcolor="#EEEEEE" cellpadding="0"><font face="PT Mono"><b>declaration_requests</b></font></td>
+  </tr>
+  <tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">data &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">jsonb&nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">&nbsp;</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">status &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">varchar &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">authentication_method_current &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">jsonb&nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">&nbsp;</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">printout_content &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">varchar&nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">&nbsp;</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">documents &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">jsonb&nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">&nbsp;</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">declaration_id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">mpi_id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid&nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">&nbsp;</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">overlimit &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">boolean &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">channel &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">varchar &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">declaration_number &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">varchar &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">inserted_by &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">updated_by &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">inserted_at &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">timestamp &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="lb" align="left" port="id"><font face="PT Mono">updated_at &nbsp;</font></td>
+  <td border="1" sides="b" align="left"><font color="#999999" face="PT Mono">timestamp &nbsp;</font></td>
+  <td border="1" sides="rb" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+</table>
+>]
+
+
+"dictionaries" [label=<
+<table border="0" cellborder="0" cellspacing="0" bgcolor="#FFFFFF">
+  <tr>
+    <td colspan="3" border="1" bgcolor="#EEEEEE" cellpadding="0"><font face="PT Mono"><b>dictionaries</b></font></td>
+  </tr>
+  <tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">name &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">varchar &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">values &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">jsonb &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">labels &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">jsonb &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="lb" align="left" port="id"><font face="PT Mono">is_active &nbsp;</font></td>
+  <td border="1" sides="b" align="left"><font color="#999999" face="PT Mono">boolean &nbsp;</font></td>
+  <td border="1" sides="rb" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+</table>
+>]
+
+
+"employee_requests" [label=<
+<table border="0" cellborder="0" cellspacing="0" bgcolor="#FFFFFF">
+  <tr>
+    <td colspan="3" border="1" bgcolor="#EEEEEE" cellpadding="0"><font face="PT Mono"><b>employee_requests</b></font></td>
+  </tr>
+  <tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">data &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">jsonb &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">status &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">varchar &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">employee_id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid&nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">&nbsp;</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">inserted_at &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">timestamp &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="lb" align="left" port="id"><font face="PT Mono">updated_at &nbsp;</font></td>
+  <td border="1" sides="b" align="left"><font color="#999999" face="PT Mono">timestamp &nbsp;</font></td>
+  <td border="1" sides="rb" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+</table>
+>]
+
+
+"medication_request_requests" [label=<
+<table border="0" cellborder="0" cellspacing="0" bgcolor="#FFFFFF">
+  <tr>
+    <td colspan="3" border="1" bgcolor="#EEEEEE" cellpadding="0"><font face="PT Mono"><b>medication_request_requests</b></font></td>
+  </tr>
+  <tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">data &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">jsonb &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">request_number &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">varchar &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null </font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">status &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">varchar &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">verification_code &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">varchar&nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">&nbsp;</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">medication_request_id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">inserted_at &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">timestamp &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">inserted_by &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">updated_at &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">timestamp &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="lb" align="left" port="id"><font face="PT Mono">updated_by &nbsp;</font></td>
+  <td border="1" sides="b" align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="rb" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+</table>
+>]
+
+
+"register_entries" [label=<
+<table border="0" cellborder="0" cellspacing="0" bgcolor="#FFFFFF">
+  <tr>
+    <td colspan="3" border="1" bgcolor="#EEEEEE" cellpadding="0"><font face="PT Mono"><b>register_entries</b></font></td>
+  </tr>
+  <tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">status &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">varchar &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">person_id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid&nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">&nbsp;</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">register_id	&nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid	&nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">document_type &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">DICTIONARY='DOCUMENT_TYPE' &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">document_number &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">varchar  &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">inserted_at	&nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid	&nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">inserted_by	&nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">timestamp	&nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">updated_at	&nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="lb" align="left" port="id"><font face="PT Mono">updated_by	&nbsp;</font></td>
+  <td border="1" sides="b" align="left"><font color="#999999" face="PT Mono">timestamp	&nbsp;</font></td>
+  <td border="1" sides="rb" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+</table>
+>]
+
+
+"registers" [label=<
+<table border="0" cellborder="0" cellspacing="0" bgcolor="#FFFFFF">
+  <tr>
+    <td colspan="3" border="1" bgcolor="#EEEEEE" cellpadding="0"><font face="PT Mono"><b>registers</b></font></td>
+  </tr>
+  <tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">id &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">file_name &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">varchar &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">status &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">varchar &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">type &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">DICTIONARY='REGISTER_TYPE' &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">qty	&nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">jsonb &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">errors	&nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">array &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">person_type &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">enum(patient, employee) &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">inserted_at &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">timestamp &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">inserted_by &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="l" align="left" port="id"><font face="PT Mono">updated_at &nbsp;</font></td>
+  <td  align="left"><font color="#999999" face="PT Mono">timestamp &nbsp;</font></td>
+  <td border="1" sides="r" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+<tr>
+  <td border="1" sides="lb" align="left" port="id"><font face="PT Mono">updated_by &nbsp;</font></td>
+  <td border="1" sides="b" align="left"><font color="#999999" face="PT Mono">uuid &nbsp;</font></td>
+  <td border="1" sides="rb" align="left"><font color="#CCCCCC" face="PT Mono">not null</font></td>
+</tr>
+</table>
+>]
+
+
+        subgraph cluster_1 {
+          label = "il_db";
+          labeljust = "l";
+          style=filled;
+          fontname = "PT Mono";
+          color="#f0f1fe";
+
+          contract_requests,credentials_recovery_requests,declaration_requests,dictionaries,employee_requests,medication_request_requests,register_entries,registers;
+        }
+      
+
+        subgraph cluster_2 {
+          label = "mithril";
+          labeljust = "l";
+          style=filled;
+          fontname = "PT Mono";
+          color="#f0f1fe";
+
+          apps,authentication_factors,client_types,clients,clients_block_reason_hstr,global_user_roles,otp,password_hstr,roles,tokens,user_roles,users;
+        }
+      
+apps -> users [headlabel="1", taillabel="0..n", arrowtail=odot, arrowhead=none, style="dashed", fontname="PT Mono"]
+apps -> clients [headlabel="1", taillabel="0..n", arrowtail=odot, arrowhead=none, style="dashed", fontname="PT Mono"]
+authentication_factors -> users [headlabel="1", taillabel="0..n", arrowtail=odot, arrowhead=none, style="dashed", fontname="PT Mono"]
+client_types -> clients [headlabel="0..n", taillabel="1", arrowtail=odot, arrowhead=none, style="dashed", fontname="PT Mono"]
+users -> global_user_roles [headlabel="0..n", taillabel="1", arrowtail=odot, arrowhead=none, style="dashed", fontname="PT Mono"]
+clients -> global_user_roles [headlabel="0..n", taillabel="1", arrowtail=odot, arrowhead=none, style="dashed", fontname="PT Mono"]
+password_hstr -> users [headlabel="1", taillabel="0..n", arrowtail=odot, arrowhead=none, style="dashed", fontname="PT Mono"]
+users -> clients [headlabel="0..n", taillabel="1", arrowtail=odot, arrowhead=none, style="dashed", fontname="PT Mono"]
+tokens -> users [headlabel="1", taillabel="0..n", arrowtail=odot, arrowhead=none, style="dashed", fontname="PT Mono"]
+user_roles -> roles [headlabel="1", taillabel="0..n", arrowtail=odot, arrowhead=none, style="dashed", fontname="PT Mono"]
+user_roles -> users [headlabel="1", taillabel="0..n", arrowtail=odot, arrowhead=none, style="dashed", fontname="PT Mono"]
+}
+  
