@@ -36,8 +36,6 @@ defmodule EHealth.Web.ContractView do
   end
 
   def render("show.json", %{contract: contract, references: references}) do
-    contract_request = get_in(references, [:contract_request, contract["contract_request_id"]])
-
     contract
     |> Map.take(~w(
       id

@@ -149,13 +149,7 @@ defmodule EHealth.ContractRequests do
          %Ecto.Changeset{valid?: true} = changes <- approve_changeset(contract_request, update_params),
          {:ok, printout_form} <- ContractRequestPrintoutForm.render(apply_changes(changes), headers),
          %Ecto.Changeset{valid?: true} = changes <- put_change(changes, :printout_content, printout_form),
-         data <-
-           Phoenix.View.render(
-             ContractRequestView,
-             "show.json",
-             contract_request: apply_changes(changes),
-             references: preload_references(apply_changes(changes))
-           ),
+         data <- prepare_contract_request_data(changes),
          %Ecto.Changeset{valid?: true} = changes <- put_change(changes, :data, data),
          {:ok, contract_request} <- Repo.update(changes),
          _ <- EventManager.insert_change_status(contract_request, contract_request.status, user_id) do
@@ -1116,4 +1110,18 @@ defmodule EHealth.ContractRequests do
   end
 
   defp validate_contract_number(_, _), do: :ok
+
+  defp prepare_contract_request_data(%Ecto.Changeset{} = changeset) do
+    data =
+      Phoenix.View.render(
+        ContractRequestView,
+        "show.json",
+        contract_request: apply_changes(changeset),
+        references: preload_references(apply_changes(changeset))
+      )
+
+    data
+    |> Jason.encode!()
+    |> Jason.decode!()
+  end
 end
