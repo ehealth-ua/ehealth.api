@@ -3796,6 +3796,45 @@ Only legal entity owner can request new client secret for his own legal entity
     + Attributes (`Response_OK`)
         + data (`Client`)
 
+## Capitation reports [/api/capitation_reports]
+
+### Get capitation reports [GET /api/capitation_reports{?page,page_size}]
+
+This method returns list of all available already created capitation reports.
+Capitation reports are created monthly
+
+**Scopes required:** `capitation_report:read`
+
++ Parameters
+    + `page`: 2 (number) - Page number.    
+    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+
++ Request (application/json)
+
++ Response 200 (application/json)
+    + Attributes (`Response_OK`)
+        + data (array)
+            + (`Capitation_report`)
+
+### Get capitation report details [GET /api/capitation_reports/{id}]
+
+This method returns details of specified capitation report.
+
+For MSP User service will return the report details limited by user's MSP Id (Client Id)
+For NHS User service will return all the details
+
+**Scopes required:** `capitation_report:read`
+
++ Parameters
+    + id: `role-1380df72-275a-11e7-93ae-92361f002671` (string, required)
+
++ Request (application/json)
+
++ Response 200 (application/json)
+    + Attributes (`Response_OK`)
+        + data (array)
+            + (`Capitation_report_detail`)
+
 # Group Public. Reimbursement
 
 ## Drugs [/apidrugs]
@@ -7286,3 +7325,42 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + contract_requets_id: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - contract id
 + is_suspended: false (boolean, required) - whether the contract is active or temporary suspended
 + `end_date`: `2017-04-20` (string, required) - contract end date
+
+### `Capitation_report`
++ report_id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - Unique report id
++ type: `CAPITATION` (string, required) - Report type. There is only one report type now
++ report_date: `2018-05-01` (string, required)
++ created_at: `2018-05-22` (string, required) - Date that shows when the report was generated
+
+### `Capitation_report_detail`
++ legal_entity_id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - Legal entity id
++ edrpou: `29000165` (string, required) - Legal entity edrpou
++ legal_entity_name: `Поліклініка для Капітації` (string, required) - Legal entity name
++ capitation_contracts (array, required)
+    + (object)
+        + contract_id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract ID
+        + contract_number: `0000-9EAX-XT7X-3115` (string, optional) - human readable number of contract request.
+        + details (array, required)
+            + (object)
+                + mountain_group: true (boolean)
+                + attributes (object, required)
+                    + `0-5`: 17 (number, required)
+                    + `6-17`: 7 (number, required)
+                    + `18-39`: 9 (number, required)
+                    + `40-65`: 12 (number, required)
+                    + `65+`: 15 (number, required)
+            + (object)
+                + mountain_group: false (boolean)
+                + attributes (object, required)
+                    + `0-5`: 22 (number, required)
+                    + `6-17`: 10 (number, required)
+                    + `18-39`: 15 (number, required)
+                    + `40-65`: 19 (number, required)
+                    + `65+`: 21 (number, required)
+        + total (object, required)
+            + attributes (object, required)
+                + `0-5`: 39 (number, required)
+                + `6-17`: 17 (number, required)
+                + `18-39`: 24 (number, required)
+                + `40-65`: 31 (number, required)
+                + `65+`: 36 (number, required)
