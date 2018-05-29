@@ -426,7 +426,10 @@
           "type": "string"
         },
         "overlimit": {
-          "type": "boolean"
+          "type": "boolean",
+          "enum": [
+            false
+          ]
         }
       },
       "required": [
