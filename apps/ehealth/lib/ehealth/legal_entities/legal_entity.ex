@@ -5,6 +5,8 @@ defmodule EHealth.LegalEntities.LegalEntity do
 
   use Ecto.Schema
 
+  @derive {Jason.Encoder, except: [:__meta__]}
+
   @status_active "ACTIVE"
   @status_closed "CLOSED"
 

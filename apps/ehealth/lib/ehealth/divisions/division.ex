@@ -3,6 +3,8 @@ defmodule EHealth.Divisions.Division do
 
   use Ecto.Schema
 
+  @derive {Jason.Encoder, except: [:__meta__]}
+
   @status_active "ACTIVE"
   @status_inactive "INACTIVE"
 

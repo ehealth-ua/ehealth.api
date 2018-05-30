@@ -7,6 +7,8 @@ defmodule EHealth.Employees.Employee do
   alias EHealth.Divisions.Division
   alias EHealth.Parties.Party
 
+  @derive {Jason.Encoder, except: [:__meta__]}
+
   @type_admin "ADMIN"
   @type_owner "OWNER"
   @type_doctor "DOCTOR"
