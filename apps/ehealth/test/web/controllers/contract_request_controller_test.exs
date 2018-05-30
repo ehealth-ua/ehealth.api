@@ -2007,6 +2007,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       "contractor_divisions" => [division.id],
       "external_contractors" => [
         %{
+          "legal_entity_id" => UUID.generate(),
           "divisions" => [%{"id" => division.id}],
           "contract" => %{"expires_at" => expires_at}
         }
