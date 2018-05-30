@@ -27,12 +27,17 @@ defmodule EHealth.Man.Templates.ContractRequestPrintoutForm do
     contractor_owner = Map.get(references.employee, Map.get(data, "contractor_owner_id")) || %{}
 
     data
-    |> Map.put("nhs_signer", nhs_signer)
+    |> Map.put("nhs_signer", Map.take(nhs_signer, ~w(first_name last_name second_name)a))
     |> Map.put("contractor_legal_entity", prepare_contractor_legal_entity(data, references))
-    |> Map.put("contractor_owner", contractor_owner)
+    |> Map.put("contractor_owner", prepare_contractor_owner(contractor_owner))
     |> Map.put("contractor_divisions", prepare_contractor_divisions(data, references))
     |> Map.put("contractor_employee_divisions", prepare_contractor_employee_divisions(data, references))
     |> Map.put("external_contractors", prepare_external_contractors(data, references))
+  end
+
+  defp prepare_contractor_owner(contractor_owner) do
+    party = Map.get(contractor_owner, :party) || %{}
+    %{"party" => Map.take(party, ~w(first_name last_name second_name)a)}
   end
 
   defp prepare_contractor_legal_entity(data, references) do
@@ -40,10 +45,12 @@ defmodule EHealth.Man.Templates.ContractRequestPrintoutForm do
 
     address =
       contractor_legal_entity
-      |> Map.get("addresses", [])
+      |> Map.get(:addresses, [])
       |> Enum.find(fn address -> Map.get(address, "type") == "REGISTRATION" end)
 
-    Map.put(contractor_legal_entity, "address", address)
+    contractor_legal_entity
+    |> Map.take(~w(edrpou name)a)
+    |> Map.put(:address, address)
   end
 
   defp prepare_contractor_divisions(data, references) do
@@ -54,15 +61,16 @@ defmodule EHealth.Man.Templates.ContractRequestPrintoutForm do
 
       address =
         division
-        |> Map.get("address", [])
+        |> Map.get(:addresses, [])
         |> Enum.find(fn address -> Map.get(address, "type") == "REGISTRATION" end)
 
-      phones = Map.get(division, "phones") || []
+      phones = Map.get(division, :phones) || []
       phone = List.first(phones) || %{}
 
       division
-      |> Map.put("address", address)
-      |> Map.put("phone", phone)
+      |> Map.take(~w(id name email mountain_group)a)
+      |> Map.put(:address, address)
+      |> Map.put(:phone, phone)
     end)
   end
 
@@ -71,7 +79,17 @@ defmodule EHealth.Man.Templates.ContractRequestPrintoutForm do
 
     Enum.map(contractor_employee_divisions, fn contractor_employee_division ->
       employee = Map.get(references.employee, contractor_employee_division["employee_id"]) || %{}
-      Map.put(contractor_employee_division, "employee", employee)
+      party = Map.get(employee, :party) || %{}
+      party = Map.take(party, ~w(first_name last_name second_name)a)
+
+      employee =
+        employee
+        |> Map.take(~w(id speciality declaration_limit)a)
+        |> Map.put(:party, party)
+
+      contractor_employee_division
+      |> Map.take(~w(division_id staff_units))
+      |> Map.put("employee", employee)
     end)
   end
 
@@ -80,7 +98,11 @@ defmodule EHealth.Man.Templates.ContractRequestPrintoutForm do
 
     Enum.map(external_contractors, fn external_contractor ->
       legal_entity = Map.get(references.legal_entity, external_contractor["legal_entity_id"]) || %{}
-      Map.put(external_contractor, "legal_entity", legal_entity)
+      legal_entity = Map.take(legal_entity, ~w(id name)a)
+
+      external_contractor
+      |> Map.take(~w(contract divisions))
+      |> Map.put("legal_entity", legal_entity)
     end)
   end
 
