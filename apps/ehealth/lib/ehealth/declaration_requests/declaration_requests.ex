@@ -165,7 +165,8 @@ defmodule EHealth.DeclarationRequests do
          :ok <- Creator.validate_employee_status(employee),
          :ok <- Creator.validate_employee_speciality(employee),
          {:ok, %Division{} = division} <- Reference.validate(:division, params["division_id"]),
-         {:ok, %LegalEntity{} = legal_entity} <- Reference.validate(:legal_entity, division.legal_entity_id) do
+         {:ok, %LegalEntity{} = legal_entity} <- Reference.validate(:legal_entity, division.legal_entity_id),
+         :ok <- validate_tax_id(user["tax_id"], person["tax_id"]) do
       data =
         params
         |> Map.put("person", person)
@@ -173,6 +174,14 @@ defmodule EHealth.DeclarationRequests do
         |> Map.put("channel", DeclarationRequest.channel(:cabinet))
 
       Creator.create(data, user_id, person, employee, division, legal_entity, headers)
+    end
+  end
+
+  defp validate_tax_id(user_tax_id, person_tax_id) do
+    if user_tax_id == person_tax_id do
+      :ok
+    else
+      {:error, {:"422", "Invalid person"}}
     end
   end
 

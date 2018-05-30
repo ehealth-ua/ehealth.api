@@ -85,7 +85,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
         "email" => "test@example.com",
         "type" => "user",
         "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
-        "tax_id" => "2222222220",
+        "tax_id" => "2222222225",
         "is_blocked" => false
       }
 
@@ -287,22 +287,22 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
 
     test "invalid signed content changeset", %{conn: conn} do
       expect(MPIMock, :person, fn id, _ ->
-        {:ok, %{"data" => %{"id" => id, "tax_id" => "2222222220"}}}
+        {:ok, %{"data" => %{"id" => id, "tax_id" => "2222222225"}}}
       end)
 
       legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
-      party = insert(:prm, :party, tax_id: "2222222220")
+      party = insert(:prm, :party, tax_id: "2222222225")
       insert(:prm, :party_user, party: party, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c")
 
       conn =
         conn
-        |> put_req_header("drfo", "2222222220")
+        |> put_req_header("drfo", "2222222225")
         |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
 
       conn =
         patch(conn, cabinet_persons_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{
-          "signed_content" => Base.encode64(Jason.encode!(%{"tax_id" => "2222222220"}))
+          "signed_content" => Base.encode64(Jason.encode!(%{"tax_id" => "2222222225"}))
         })
 
       assert json_response(conn, 422)
@@ -338,7 +338,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
 
     test "success update person", %{conn: conn} do
       expect(MPIMock, :person, fn id, _ ->
-        {:ok, %{"data" => %{"id" => id, "tax_id" => "2222222220"}}}
+        {:ok, %{"data" => %{"id" => id, "tax_id" => "2222222225"}}}
       end)
 
       expect(OTPVerificationMock, :search, fn _, _ ->
@@ -346,7 +346,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       end)
 
       legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
-      party = insert(:prm, :party, tax_id: "2222222220")
+      party = insert(:prm, :party, tax_id: "2222222225")
       insert(:prm, :party_user, party: party, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c")
 
       expect(MPIMock, :update_person, fn id, _params, _headers ->
@@ -355,7 +355,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
 
       conn =
         conn
-        |> put_req_header("drfo", "2222222220")
+        |> put_req_header("drfo", "2222222225")
         |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
 
@@ -399,7 +399,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
         },
         "process_disclosure_data_consent" => true,
         "secret" => "secret",
-        "tax_id" => "2222222220"
+        "tax_id" => "2222222225"
       }
 
       uaddresses_mock_expect()
@@ -429,7 +429,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
           first_name: "Алекс",
           last_name: "Джонс",
           second_name: "Петрович",
-          tax_id: "2222222225"
+          tax_id: "2222222220"
         })
       end)
 
@@ -452,7 +452,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
           first_name: "Алекс",
           last_name: "Джонс",
           second_name: "Петрович",
-          tax_id: "2222222220"
+          tax_id: "2222222225"
         })
       end)
 
@@ -615,7 +615,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
           birth_settlement: "string value",
           gender: "string value",
           email: "test@example.com",
-          tax_id: "2222222225",
+          tax_id: "2222222220",
           documents: [%{"type" => "BIRTH_CERTIFICATE", "number" => "1234567890"}],
           phones: [%{"type" => "MOBILE", "number" => "+380972526080"}],
           secret: "string value",
@@ -649,7 +649,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
           birth_settlement: "string value",
           gender: "string value",
           email: "test@example.com",
-          tax_id: "2222222220",
+          tax_id: "2222222225",
           documents: [%{"type" => "BIRTH_CERTIFICATE", "number" => "1234567890"}],
           phones: [%{"type" => "MOBILE", "number" => "+380972526080"}],
           secret: "string value",
@@ -680,7 +680,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       assert data["birth_settlement"] == "string value"
       assert data["gender"] == "string value"
       assert data["email"] == "test@example.com"
-      assert data["tax_id"] == "2222222220"
+      assert data["tax_id"] == "2222222225"
       assert data["documents"] == [%{"type" => "BIRTH_CERTIFICATE", "number" => "1234567890"}]
 
       assert Enum.count(data["addresses"]) == 2
