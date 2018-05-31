@@ -213,6 +213,480 @@ inserted_by | uuid | not null
 updated_at | timestamp | not null
 updated_by | uuid | not null
 
+[audit_log]
+id | uuid | not null
+actor_id | uuid | not null
+resource | varchar | not null
+resource_id | uuid | not null
+changeset | jsonb | not null
+inserted_at | timeatamp | not null
+
+[black_list_users]
+id | uuid | not null
+tax_id | varchar | not null
+is_active | boolean | not null
+inserted_at | timestamp | not null
+inserted_by | uuid | not null
+updated_at | timestamp | not null
+updated_by | uuid | not null
+
+[division_addresses]
+id | uuid | not null
+division_id | uuid | not null
+zip | varchar
+area | varchar
+type | varchar
+region | varchar
+street | varchar
+country | varchar
+building | varchar
+apartment | varchar
+settlement | varchar
+street_type | varchar
+settlement_id | uuid,
+settlement_type | varchar
+
+[divisions]
+id | uuid | not null
+external_id | varchar
+name | varchar | not null
+type | varchar | not null
+mountaint_group | boolean | not null
+addresses | jsonb | not null
+phones | jsonb | not null
+email | varchar
+inserted_at | timestamp | not null
+updated_at | timestamp | not null
+legal_entity_id | uuid | not null
+location | geometry
+status | enum ('') | not null
+working_hours | jsonb
+is_active | boolean | not null
+
+[employees]
+id | uuid | not null
+position | varchar | not null
+    email | varchar | not null
+status | varchar | not null
+employee_type | varchar | not null
+is_active | boolean
+inserted_by | uuid | not null
+updated_by | uuid | not null
+start_date| timestamp | not null
+end_date| timestamp
+legal_entity_id | uuid | not null
+division_id | uuid
+party_id | uuid | not null
+inserted_at | timestamp | not null
+updated_at | timestamp | not null
+status_reason | varchar
+additional_info | jsonb | not null
+speciality | jsonb
+
+[global_parameters]
+id | uuid | not null
+parameter | varchar | not null
+value | varchar | not null
+inserted_at | timestamp | not null
+inserted_by | uuid | not null
+updated_at | timestamp | not null
+updated_by | uuid | not null
+
+[ingredients]
+id | uuid | not null
+dosage | jsonb | not null
+is_primary | boolean | not null
+parent_id | uuid | not null
+innm_child_id | uuid
+medication_child_id | uuid
+inserted_at | timestamp | not null
+inserted_by | uuid | not null
+updated_at | timestamp | not null
+updated_by | uuid | not null
+
+[innms]
+id | uuid | not null
+sctid | varchar
+name | varchar | not null
+name_original | varchar | not null | unique
+is_active | boolean | not null
+inserted_at | timestamp | not null
+inserted_by | uuid | not null
+updated_at | timestamp | not null
+updated_by | uuid | not null
+
+[legal_entities]
+id | uuid | not null
+name | varchar | not null
+short_name | varchar | not null
+public_name | varchar | not null
+status | varchar | not null
+type | varchar | not null
+owner_property_type | varchar | not null
+legal_form | varchar | not null
+edrpou | varchar | not null
+kveds | jsonb | not null
+addresses | jsonb | not null
+phones | jsonb | not null
+email | varchar | not null
+is_active | boolean
+mis_verified | boolean
+nhs_verified | boolean
+website | varchar
+beneficiary | varchar
+receiver_funds_code | varchar
+archive | jsonb
+inserted_at | timestamp | not null
+inserted_by | uuid | not null
+updated_at | timestamp | not null
+updated_by | uuid | not null
+
+[medical_programs]
+id | uuid | not null
+name | varchar | not null
+is_active | boolean | not null
+inserted_at | timestamp | not null
+inserted_by | uuid | not null
+updated_at | timestamp | not null
+updated_by | uuid | not null
+
+[medical_service_providers]
+id | uuid | not null
+accreditation | jsonb | not null
+licenses | jsonb
+inserted_at | timestamp | not null
+updated_at | timestamp | not null
+legal_entity_id | uuid | not null
+
+[medications]
+id | uuid | not null
+name | varchar | not null
+type | varchar | not null
+manufacturer | jsonb
+code_atc | varchar
+is_active | boolean | not null
+form | varchar | not null
+container | jsonb
+package_qty | number
+package_min_qty | number
+certificate | varchar
+certificate_expired_at | date
+inserted_at | timestamp | not null
+inserted_by | uuid | not null
+updated_at | timestamp | not null
+updated_by | uuid | not null
+
+[parties]
+id | uuid | not null
+last_name | varchar | not null
+first_name | varchar | not null
+second_name | varchar
+birth_date | date | not null
+gender | varchar | not null
+tax_id | varchar | not null
+no_tax_id | boolean | not null
+documents | jsonb[] | not null
+phones | jsonb[] | not null
+educations | jsonb
+qualifications | jsonb
+specialities | jsonb
+science_degree | jsonb
+about_myself | varchar
+working_experience | varchar
+declaration_limit | integer
+inserted_at | timestamp | not null
+inserted_by | uuid | not null
+updated_at | timestamp | not null
+updated_by | uuid | not null
+
+[party_users]
+id       | uuid | not null
+party_id | uuid | not null
+user_id  | uuid | not null
+inserted_at | timestamp | not null
+updated_at | timestamp | not null
+
+[program_medications]
+id | uuid | not null
+reimbursement | jsonb | not null
+is_active | boolean | not null
+medication_request_allowed | boolean | not null
+medication_id | uuid | not null
+medical_program_id | uuid | not null
+inserted_at | timestamp | not null
+inserted_by | uuid | not null
+updated_at | timestamp | not null
+updated_by | uuid | not null
+
+[ukr_med_registries]
+id | uuid | not null
+name | varchar | not null
+edrpou | varchar | not null
+inserted_at | timestamp | not null
+inserted_by | uuid | not null
+updated_at | timestamp | not null
+updated_by | uuid | not null
+type | varchar | not null
+
+[ops_audit_log]
+id | uuid | not null
+actor_id | uuid | not null
+resource | varchar | not null
+resource_id | uuid | not null
+changeset | jsonb | not null
+inserted_at | timeatamp | not null
+
+[contract_divisions]
+id | uuid | not null
+division_id | uuid | not null
+contract_id | uuid | not null
+inserted_at | timestamp | not null
+inserted_by | uuid | not null
+updated_at | timestamp | not null
+updated_by | uuid | not null
+
+[contract_employees]
+id | uuid | not null
+staff_units | numeric | not null
+declaration_limit | integer | not null
+employee_id | uuid | not null
+division_id | uuid | not null
+contract_id | uuid | not null
+inserted_at | timestamp | not null
+inserted_by | uuid | not null
+updated_at | timestamp | not null
+updated_by | uuid | not null
+start_date | date | not null
+end_date | date | not null
+
+[contracts]
+id | uuid | not null
+start_date | timestamp | not null
+end_date | timestamp | not null
+status | varchar | not null
+contractor_legal_entity_id | uuid | not null
+contractor_owner_id | uuid | not null
+contractor_base | varchar | not null
+contractor_payment_details | json | not null
+contractor_rmsp_amount | number | not null
+external_contractor_flag | boolean
+external_contractors | jsonb
+nhs_legal_entity_id  | uuid | not null
+nhs_signer_id | uuid | not null
+nhs_signer_base | varchar | not null
+nhs_payment_method | DICTIONARY	| not null
+nhs_payment_details | jsonb | not null
+issue_city | varchar | not null
+nhs_contract_price | number | not null
+contract_number | varchar | not null
+contract_request_id | uuid | not null
+inserted_by | uuid | not null
+updated_by | uuid | not null
+inserted_at | timestamp | not null
+updated_at | timestamp | not null
+is_active | boolean | not null
+is_suspended | boolean | not null
+status_reason | varchar | not null
+
+[declarations]
+id | uuid | not null
+employee_id | uuid | not null
+person_id | uuid | not null
+start_date | date | not null
+end_date | date | not null
+status | varchar | not null
+signed_at | timestamp | not null
+inserted_at | timestamp | not null
+created_by | uuid | not null
+updated_at | timestamp | not null
+updated_by | uuid | not null
+is_active | boolean
+scope | varchar | not null
+seed | varchar | not null
+division_id | uuid | not null
+legal_entity_id | uuid | not null
+declaration_request_id | uuid | not null
+reason | varchar
+reason_description | varchar
+overlimit | boolean | not null
+declaration_number | varchar | not null
+
+[declarations_status_hstr]
+id | integer | not null
+declaration_id | uuid | not null
+status | varchar | not null
+inserted_at | timestamp | not null
+
+[medication_dispense_details]
+id | uuid | not null
+medication_dispense_id | uuid | not null
+medication_id | uuid | not null
+medication_qty | number | not null
+sell_price | number | not null
+sell_amount | number | not null
+discount_amount | number | not null
+reimbursement_amount | number | not null
+
+[medication_dispense_status_hstr]
+id | integer | not null
+medication_dispense_id | uuid | not null
+status | varchar | not null
+inserted_at | timestamp | not null
+
+[medication_dispenses]
+id | uuid | not null
+medication_request_id | uuid | not null
+dispensed_at | date | not null
+party_id | uuid | not null
+legal_entity_id | uuid | not null
+division_id | uuid | not null
+medical_program_id | uuid
+payment_id | varchar
+status | varchar | not null
+is_active | boolean | not null
+inserted_at | timestamp | not null
+inserted_by | uuid | not null
+updated_at | timestamp | not null
+updated_by | uuid | not null
+dispensed_by | varchar
+
+[medication_requests]
+id | uuid | not null
+request_number | varchar | not null | unique
+verification_code | varchar
+created_at | date | not null
+started_at | date| not null
+ended_at | date| not null
+dispense_valid_from | date| not null
+dispense_valid_to | date| not null
+person_id | uuid | not null
+employee_id | uuid | not null
+division_id | uuid | not null
+legal_entity_id | uuid | not null
+medication_id | uuid | not null
+medication_qty | number | not null
+status | varchar | not null
+is_active | boolean | not null
+rejected_at | date
+rejected_by | uuid
+reject_reason | varchar
+medication_request_requests_id | uuid | not null
+medical_program_id | uuid
+inserted_at | timestamp | not null
+inserted_by | uuid | not null
+updated_at | timestamp | not null
+updated_by | uuid | not null
+
+[medication_requests_status_hstr]
+id | integer | not null
+medication_request_id | uuid | not null
+status | varchar | not null
+inserted_at | timestamp | not null
+
+[audit_log_mpi]
+id | uuid | not null
+actor_id | uuid | not null
+resource | varchar | not null
+resource_id | uuid | not null
+changeset | jsonb | not null
+inserted_at | timeatamp | not null
+
+[merge_candidates]
+id | uuid | not null
+person_id | uuid | not null
+master_person_id | uuid | not null
+status | varchar | not null
+inserted_at | timestamp | not null
+updated_at | timestamp | not null
+config | jsonb
+details | jsonb
+
+[persons]
+id | uuid | not null
+version | varchar | not null
+last_name | varchar | not null
+first_name | varchar | not null
+second_name | varchar
+birth_date | date | not null
+birth_country | varchar | not null
+birth_settlement | varchar | not null
+gender | varchar | not null
+email | varchar
+tax_id | varchar
+invalid_tax_id | boolean
+national_id | varchar
+death_date | date
+is_active | boolean | not null
+documents | json | not null
+addresses | json | not null
+phones | json
+secret | varchar
+emergency_contact | json | not null
+confidant_person | json
+patient_signed | boolean | not null
+process_disclosure_data_consent | boolean | not null
+authentication_methods | json | not null
+preferred_way_communication | enum('email', 'phone')
+merged_ids  | varchar | not null
+status | varchar | not null
+inserted_at | timestamp | not null
+inserted_by | varchar | not null
+updated_at | timestamp | not null
+updated_by | varchar | not null
+
+[audit_log_em]
+id | uuid | not null
+actor_id | uuid | not null
+resource | varchar | not null
+resource_id | uuid | not null
+changeset | jsonb | not null
+inserted_at | timeatamp | not null
+
+[events]
+event_type | varchar | not null
+entity_type | varchar | not null
+entity_id | uuid | not null
+properties | jsonb | not null
+event_time | timestamp | not null
+changed_by | uuid | not null
+inserted_at | timestamp | not null
+updated_at | timestamp | not null
+
+[districts]
+id | uuid | not null
+region_id | uuid | not null
+name | varchar | not null
+inserted_at | timestamp | not null
+updated_at | timestamp | not null
+koatuu | varchar
+
+[regions]
+id | uuid | not null
+name | varchar | not null
+inserted_at | timestamp | not null
+updated_at | timestamp | not null
+koatuu | varchar
+
+[settlements]
+id | uuid | not null
+district_id | uuid
+region_id | uuid | not null
+name | varchar | not null
+mountaint_group | boolean | not null
+inserted_at | timestamp | not null
+updated_at | timestamp | not null
+koatuu | varchar
+type | varchar
+parent_settlement_id | uuid
+
+[streets]
+id | uuid | not null
+settlement_id | uuid | not null
+type | varchar
+name | varchar | not null
+inserted_at | timestamp | not null
+updated_at | timestamp | not null
+
 (il_db)
 contract_requests
 credentials_recovery_requests
@@ -237,6 +711,51 @@ tokens
 user_roles
 users
 
+(prm)
+audit_log
+black_list_users
+division_addresses
+divisions
+employees
+global_parameters
+ingredients
+innms
+legal_entities
+medical_programs
+medical_service_providers
+medications
+parties
+party_users
+program_medications
+ukr_med_registries
+
+(ops_db)
+ops_audit_log
+contract_divisions
+contract_employees
+contracts
+declarations
+declarations_status_hstr
+medication_dispense_details
+medication_dispense_status_hstr
+medication_dispenses
+medication_requests
+medication_requests_status_hstr
+
+(mpi)
+audit_log_mpi
+merge_candidates
+persons
+
+(em)
+audit_log_em
+events
+
+(uaddresses)
+districts
+regions
+settlements
+streets
 
 apps *--1 users
 apps *--1 clients
@@ -245,7 +764,54 @@ client_types 1--* clients
 users 1--* global_user_roles
 clients 1--* global_user_roles
 password_hstr *--1 users
-users 1--* clients
+users 1--+ clients
 tokens *--1 users
 user_roles *--1 roles
 user_roles *--1 users
+
+
+parties 1--* employees
+legal_entities 1--+ employees
+legal_entities 1--* divisions
+divisions 1--+ division_addresses
+medical_service_providers 1--1 legal_entities
+parties 1--+ party_users
+party_users 1--1 users
+innms 1--* ingredients
+medications 1--* ingredients
+medications 1--* program_medications
+medical_programs 1--* program_medications
+medication_requests *--1 legal_entities
+medication_requests *--1 divisions
+medication_requests *--1 employees
+medication_requests *--1 medications
+medication_requests ?--1 medication_request_requests
+medication_requests 1--* medication_dispenses
+medication_requests *--1 medication_requests_status_hstr
+medication_dispenses *--1 legal_entities
+medication_dispenses *--1 divisions
+medication_dispenses *--1 employees
+medication_dispenses *--1 medication_dispense_status_hstr
+medication_dispenses 1--* medication_dispense_details
+medication_dispenses *--1 medical_programs
+medication_dispense_details 1--1 medications
+persons 1--* merge_candidates
+declarations *--1 persons
+credentials_recovery_requests *--1 users
+declaration_requests 1--? declarations
+declaration_requests 1--? persons
+registers 1--+ register_entries
+register_entries *--1 parties
+register_entries *--1 persons
+
+regions 1--* districts
+districts 1--* settlements
+regions 1--* settlements
+settlements 1--* streets
+
+events *--1 declarations
+events *--1 employees
+events *--1 employee_requests
+events *--1 medication_requests
+events *--1 medication_dispenses
+events *--1 contract_requests

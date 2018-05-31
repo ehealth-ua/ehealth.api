@@ -155,6 +155,48 @@ red_msp_id | uuid | not null
 mountain_group | enum('')
 age_group | enum('')
 
+[capitation_reports]
+id | uuid | not null
+type | varchar | not null
+billing_date | timestamp | not null
+created_at | timestamp | not null
+
+[capitation_report_details]
+id | uuid | not null
+capitation_report_id | uuid | not null
+legal_entity_id | uuid | not null
+capitation_contract_id | uuid | not null
+mountain_group | boolean | not null
+age_group | varchar | not null
+declarations_count | integer | not null
+
+[capitation_report_errors]
+id | uuid | not null
+capitation_report_id | uuid | not null
+declaration_id | uuid | not null
+action | varchar | not null
+message | varchar | not null
+inserted_at | timestamp | not null
+
+(reporting_db)
+billing
+declarations
+divisions
+doctors
+employees
+employee_doctors
+legal_entities
+medical_service_providers
+parties
+party_users
+regions
+districts
+settlements
+streets
+streets_aliases
+capitation_reports
+capitation_report_details
+capitation_report_errors
 
 
 employees 1--* declarations
@@ -168,7 +210,6 @@ medical_service_providers 1--1 legal_entities
 parties 1--? doctors
 
 
-
 regions 1--+ districts
 regions 1--+ settlements
 districts 1--+ settlements
@@ -180,3 +221,8 @@ streets 1--+ streets_aliases
 
 billing 1--1 declarations
 billing *--1 legal_entities
+
+capitation_reports 1--* capitation_report_details
+capitation_reports 1--* capitation_report_errors
+capitation_report_details *--1 legal_entities
+capitation_report_errors *--1 declarations
