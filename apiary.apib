@@ -4615,6 +4615,17 @@ This method is used to create Declaration Request online (as part of Declaration
             + type: unverified (string, required)
             + message: `Unverified phone number` (string, required)
 
+### Approve declaration request via Cabinet [PATCH /api/cabinet/declaration_requests/{id}/actions/approve]
+
+This method in used to approve declaration request by patient via Cabinet
+
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - declaration request id
+
++ Response 200 (application/json)
+    + Attributes (`Response_Collection_V2`)
+        + data (Declaration_Details_Cabinet)
+
 ### Terminate declarations via Cabinet [PATCH /api/cabinet/declarations/{id}/actions/terminate]
 Patient can terminate active declaration using this method. 
 
@@ -5473,6 +5484,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + scope (enum, required)
     - family doctor
 + `declaration_request_id`: `74a6fae6-4207-4e03-a136-f2e70c6b0c02` (string, required)
++ content: `Declaration content` (string, required) - HTML document that MUST be shown to a end-user and signed by hes key. - Should be defined on the client side.
 + inserted_at: `2017-03-02T10:45:16.000Z` (string, optional)
 + updated_at: `2017-03-02T10:45:16.000Z` (string, optional)
 
