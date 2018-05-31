@@ -4,6 +4,7 @@ defmodule EHealth.Web.Cabinet.DeclarationControllerTest do
   import Mox
 
   alias EHealth.MockServer
+  alias EHealth.DeclarationRequests.DeclarationRequest
 
   defmodule MithrilServer do
     @moduledoc false
@@ -11,7 +12,7 @@ defmodule EHealth.Web.Cabinet.DeclarationControllerTest do
     use MicroservicesHelper
     alias EHealth.MockServer
 
-    Plug.Router.get "/admin/clients/c8912855-21c3-4771-ba18-bcd80user_id/details" do
+    Plug.Router.get "/admin/clients/4d593e84-34dc-48d3-9e33-0628a8446956/details" do
       response =
         %{"client_type_name" => "CABINET"}
         |> MockServer.wrap_response()
@@ -20,11 +21,11 @@ defmodule EHealth.Web.Cabinet.DeclarationControllerTest do
       Plug.Conn.send_resp(conn, 200, response)
     end
 
-    Plug.Router.get "/admin/users/c8912855-21c3-4771-ba18-bcd80user_id" do
+    Plug.Router.get "/admin/users/4d593e84-34dc-48d3-9e33-0628a8446956" do
       response =
         %{
-          "id" => "c8912855-21c3-4771-ba18-bcd80user_id",
-          "person_id" => "c8912855-21c3-4771-ba18-bc0person_id",
+          "id" => "4d593e84-34dc-48d3-9e33-0628a8446956",
+          "person_id" => "0c65d15b-32b4-4e82-b53d-0572416d890e",
           "block_reason" => nil,
           "email" => "email@example.com",
           "is_blocked" => false,
@@ -38,8 +39,8 @@ defmodule EHealth.Web.Cabinet.DeclarationControllerTest do
     end
   end
 
-  @user_id "c8912855-21c3-4771-ba18-bcd80user_id"
-  @person_id "c8912855-21c3-4771-ba18-bc0person_id"
+  @user_id "4d593e84-34dc-48d3-9e33-0628a8446956"
+  @person_id "0c65d15b-32b4-4e82-b53d-0572416d890e"
   @legal_entity_id "edac9408-0998-4184-b64c-34eb9f27e3ba"
   @employee_id "9739fb7d-5aa9-4b6b-95a2-4121d0459c47"
   @division_id "1bb33d3d-ce51-456d-97ac-26d51d9e08bb"
@@ -99,6 +100,51 @@ defmodule EHealth.Web.Cabinet.DeclarationControllerTest do
 
   test "rejects to search person declaration due to request validation", %{conn: conn} do
     assert %{status: 422} = send_list_declaration_request(conn, start_year: "20IZ")
+  end
+
+  describe "approve declaration_request" do
+    test "success approve", %{conn: conn} do
+      expect(OPSMock, :get_declarations_count, fn _, _ ->
+        {:ok, %{"data" => %{"count" => 10}}}
+      end)
+
+      declaration_request =
+        insert(
+          :il,
+          :declaration_request,
+          channel: DeclarationRequest.channel(:cabinet),
+          mpi_id: "0c65d15b-32b4-4e82-b53d-0572416d890e"
+        )
+
+      insert(:prm, :employee, id: "d290f1ee-6c54-4b01-90e6-d701748f0851")
+
+      conn =
+        conn
+        |> put_consumer_id_header(@user_id)
+        |> put_client_id_header(@user_id)
+        |> patch(cabinet_declarations_path(conn, :approve_declaration_request, declaration_request.id))
+
+      assert resp = json_response(conn, 200)
+      assert DeclarationRequest.status(:approved) == resp["data"]["status"]
+    end
+
+    test "wrong channel", %{conn: conn} do
+      declaration_request =
+        insert(
+          :il,
+          :declaration_request,
+          channel: DeclarationRequest.channel(:mis)
+        )
+
+      conn =
+        conn
+        |> put_consumer_id_header(@user_id)
+        |> put_client_id_header(@user_id)
+        |> patch(cabinet_declarations_path(conn, :approve_declaration_request, declaration_request.id))
+
+      assert resp = json_response(conn, 403)
+      assert "Declaration request should be approved by Doctor" == resp["error"]["message"]
+    end
   end
 
   defp send_list_declaration_request(conn, params \\ []) do

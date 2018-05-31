@@ -181,6 +181,10 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
 
     test "approve NEW declaration_request", %{conn: conn} do
+      expect(OPSMock, :get_declarations_count, fn _, _ ->
+        {:ok, %{"data" => %{"count" => 10}}}
+      end)
+
       expect(MediaStorageMock, :create_signed_url, fn _, _, _, _, _ ->
         {:ok, %{"data" => %{"secret_url" => "http://localhost/good_upload_1"}}}
       end)

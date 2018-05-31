@@ -69,6 +69,10 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.ApproveTest do
     end
 
     test "all documents were verified to be successfully uploaded" do
+      expect(OPSMock, :get_declarations_count, fn _, _ ->
+        {:ok, %{"data" => %{"count" => 10}}}
+      end)
+
       expect(MediaStorageMock, :create_signed_url, 2, fn _, _, _, _, _ ->
         {:ok, %{"data" => %{"secret_url" => "http://localhost/good_upload_1"}}}
       end)
@@ -94,7 +98,7 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.ApproveTest do
           ]
         )
 
-      assert {:ok, true} = verify(declaration_request, "doesn't matter")
+      assert {:ok, true} = verify(declaration_request, "doesn't matter", [])
     end
 
     test "there's a missing upload" do

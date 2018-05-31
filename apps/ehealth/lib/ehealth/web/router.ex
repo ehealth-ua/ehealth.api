@@ -282,6 +282,13 @@ defmodule EHealthWeb.Router do
       )
 
       patch(
+        "/declaration_requests/:id/actions/approve",
+        Cabinet.DeclarationController,
+        :approve_declaration_request,
+        as: :cabinet_declarations
+      )
+
+      patch(
         "/declarations/:id/actions/terminate",
         Cabinet.DeclarationController,
         :terminate_declaration,

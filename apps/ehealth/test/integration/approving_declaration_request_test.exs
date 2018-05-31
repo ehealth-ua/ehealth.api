@@ -51,6 +51,10 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
     end
 
     test "happy path: declaration is successfully approved via OTP code", %{conn: conn} do
+      expect(OPSMock, :get_declarations_count, fn _, _ ->
+        {:ok, %{"data" => %{"count" => 10}}}
+      end)
+
       party = insert(:prm, :party)
       %{id: employee_id} = insert(:prm, :employee, party: party)
 
@@ -82,6 +86,10 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
     end
 
     test "declaration is successfully approved without verification", %{conn: conn} do
+      expect(OPSMock, :get_declarations_count, fn _, _ ->
+        {:ok, %{"data" => %{"count" => 10}}}
+      end)
+
       party = insert(:prm, :party)
       %{id: employee_id} = insert(:prm, :employee, party: party)
 
@@ -190,6 +198,10 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
     end
 
     test "happy path: declaration is successfully approved via offline docs check", %{conn: conn} do
+      expect(OPSMock, :get_declarations_count, fn _, _ ->
+        {:ok, %{"data" => %{"count" => 10}}}
+      end)
+
       expect(MediaStorageMock, :create_signed_url, 3, fn _, _, _, _, _ ->
         {:ok, %{"data" => %{"secret_url" => "http://localhost/good_upload_1"}}}
       end)

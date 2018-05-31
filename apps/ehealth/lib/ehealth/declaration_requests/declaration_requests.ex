@@ -24,6 +24,9 @@ defmodule EHealth.DeclarationRequests do
   alias EHealth.Email.Sanitizer
   alias EHealth.Persons.Validator, as: PersonsValidator
 
+  @channel_cabinet DeclarationRequest.channel(:cabinet)
+  @channel_mis DeclarationRequest.channel(:mis)
+
   @status_new DeclarationRequest.status(:new)
   @status_rejected DeclarationRequest.status(:rejected)
   @status_approved DeclarationRequest.status(:approved)
@@ -64,6 +67,7 @@ defmodule EHealth.DeclarationRequests do
     user_id = get_consumer_id(headers)
 
     with declaration_request <- get_by_id!(id),
+         :ok <- validate_channel(declaration_request, @channel_mis),
          updates <-
            changeset(declaration_request, %{
              status: @status_approved,
@@ -72,6 +76,26 @@ defmodule EHealth.DeclarationRequests do
          :ok <- validate_status_transition(updates) do
       Multi.new()
       |> Multi.run(:verification, fn _ -> Approve.verify(declaration_request, verification_code, headers) end)
+      |> Multi.update(:declaration_request, updates)
+      |> Repo.transaction()
+    end
+  end
+
+  def approve(id, headers) do
+    user_id = get_consumer_id(headers)
+
+    with declaration_request <- get_by_id!(id),
+         :ok <- validate_channel(declaration_request, @channel_cabinet),
+         {:ok, %{"data" => user}} <- Mithril.get_user_by_id(user_id, headers),
+         :ok <- check_user_person_id(user, declaration_request.mpi_id),
+         updates <-
+           changeset(declaration_request, %{
+             status: @status_approved,
+             updated_by: user_id
+           }),
+         :ok <- validate_status_transition(updates) do
+      Multi.new()
+      |> Multi.run(:verification, fn _ -> Approve.verify(declaration_request, headers) end)
       |> Multi.update(:declaration_request, updates)
       |> Repo.transaction()
     end
@@ -202,4 +226,14 @@ defmodule EHealth.DeclarationRequests do
     email = get_in(params, path)
     put_in(params, path, Sanitizer.sanitize(email))
   end
+
+  defp validate_channel(%DeclarationRequest{channel: @channel_mis}, @channel_cabinet) do
+    {:error, {:forbidden, "Declaration request should be approved by Doctor"}}
+  end
+
+  defp validate_channel(%DeclarationRequest{channel: @channel_cabinet}, @channel_mis) do
+    {:error, {:forbidden, "Declaration request should be approved by Patient"}}
+  end
+
+  defp validate_channel(_, _), do: :ok
 end
