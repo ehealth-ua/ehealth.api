@@ -243,7 +243,7 @@ building | varchar
 apartment | varchar
 settlement | varchar
 street_type | varchar
-settlement_id | uuid,
+settlement_id | uuid
 settlement_type | varchar
 
 [divisions]
@@ -259,14 +259,13 @@ inserted_at | timestamp | not null
 updated_at | timestamp | not null
 legal_entity_id | uuid | not null
 location | geometry
-status | enum ('') | not null
+status | varchar | not null
 working_hours | jsonb
 is_active | boolean | not null
 
 [employees]
 id | uuid | not null
 position | varchar | not null
-    email | varchar | not null
 status | varchar | not null
 employee_type | varchar | not null
 is_active | boolean
@@ -336,6 +335,7 @@ website | varchar
 beneficiary | varchar
 receiver_funds_code | varchar
 archive | jsonb
+created_by_mis_client_id | uuid
 inserted_at | timestamp | not null
 inserted_by | uuid | not null
 updated_at | timestamp | not null
