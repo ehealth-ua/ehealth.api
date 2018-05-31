@@ -76,6 +76,7 @@ defmodule EHealth.ContractRequests do
          :ok <- validate_contract_number(params, headers),
          :ok <- validate_unique_contractor_employee_divisions(params),
          :ok <- validate_unique_contractor_divisions(params),
+         :ok <- validate_contract_employee_divisions(params),
          :ok <- validate_employee_divisions(params),
          :ok <- validate_contractor_divisions(params),
          :ok <- validate_external_contractors(params),
@@ -137,6 +138,7 @@ defmodule EHealth.ContractRequests do
          :ok <- validate_contractor_legal_entity(contract_request),
          :ok <- validate_contractor_owner_id(contract_request),
          :ok <- validate_nhs_signer_id(contract_request, client_id),
+         :ok <- validate_contract_employee_divisions(contract_request),
          :ok <- validate_employee_divisions(contract_request),
          :ok <- validate_contractor_divisions(contract_request),
          :ok <- validate_start_date(contract_request),
@@ -574,15 +576,14 @@ defmodule EHealth.ContractRequests do
     end
   end
 
-  defp validate_employee_divisions(%ContractRequest{} = contract_request) do
+  defp validate_contract_employee_divisions(%ContractRequest{} = contract_request) do
     contract_request
     |> Jason.encode!()
     |> Jason.decode!()
-    |> validate_employee_divisions()
+    |> validate_contract_employee_divisions()
   end
 
-  defp validate_employee_divisions(params) do
-    contractor_divisions = params["contractor_divisions"]
+  defp validate_contract_employee_divisions(params) do
     contractor_employee_divisions = params["contractor_employee_divisions"]
     contract_number = params["contract_number"]
 
@@ -613,42 +614,53 @@ defmodule EHealth.ContractRequests do
            }
          ]}
 
-      is_nil(contractor_employee_divisions) and !is_nil(contract_number) ->
-        :ok
-
       true ->
-        contractor_employee_divisions
-        |> Enum.with_index()
-        |> Enum.reduce_while(:ok, fn {employee_division, i}, _ ->
-          with {:ok, %Employee{} = employee} <-
-                 Reference.validate(
-                   :employee,
-                   employee_division["employee_id"],
-                   "$.contractor_employee_divisions[#{i}].employee_id"
-                 ),
-               :ok <- check_employee(employee),
-               {:division_subset, true} <- {:division_subset, employee_division["division_id"] in contractor_divisions} do
-            {:cont, :ok}
-          else
-            {:division_subset, _} ->
-              {:halt,
-               {:error,
-                [
-                  {
-                    %{
-                      description: "Division should be among contractor_divisions",
-                      params: [],
-                      rule: :invalid
-                    },
-                    "$.contractor_employee_divisions[#{i}].division_id"
-                  }
-                ]}}
-
-            error ->
-              {:halt, error}
-          end
-        end)
+        :ok
     end
+  end
+
+  defp validate_employee_divisions(%ContractRequest{} = contract_request) do
+    contract_request
+    |> Jason.encode!()
+    |> Jason.decode!()
+    |> validate_employee_divisions()
+  end
+
+  defp validate_employee_divisions(params) do
+    contractor_divisions = params["contractor_divisions"]
+    contractor_employee_divisions = params["contractor_employee_divisions"] || []
+
+    contractor_employee_divisions
+    |> Enum.with_index()
+    |> Enum.reduce_while(:ok, fn {employee_division, i}, _ ->
+      with {:ok, %Employee{} = employee} <-
+             Reference.validate(
+               :employee,
+               employee_division["employee_id"],
+               "$.contractor_employee_divisions[#{i}].employee_id"
+             ),
+           :ok <- check_employee(employee),
+           {:division_subset, true} <- {:division_subset, employee_division["division_id"] in contractor_divisions} do
+        {:cont, :ok}
+      else
+        {:division_subset, _} ->
+          {:halt,
+           {:error,
+            [
+              {
+                %{
+                  description: "Division should be among contractor_divisions",
+                  params: [],
+                  rule: :invalid
+                },
+                "$.contractor_employee_divisions[#{i}].division_id"
+              }
+            ]}}
+
+        error ->
+          {:halt, error}
+      end
+    end)
   end
 
   defp validate_nhs_signer_id(%ContractRequest{nhs_signer_id: nhs_signer_id}, client_id)
