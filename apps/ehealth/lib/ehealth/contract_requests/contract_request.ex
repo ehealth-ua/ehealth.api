@@ -37,6 +37,7 @@ defmodule EHealth.ContractRequests.ContractRequest do
     field(:nhs_legal_entity_id, UUID)
     field(:nhs_signer_id, UUID)
     field(:nhs_signer_base, :string)
+    field(:nhs_signed_date, :date)
     field(:issue_city, :string)
     field(:status, :string)
     field(:status_reason, :string)

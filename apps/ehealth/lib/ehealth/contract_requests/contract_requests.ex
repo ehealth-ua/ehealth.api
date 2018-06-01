@@ -228,7 +228,8 @@ defmodule EHealth.ContractRequests do
          update_params <-
            params
            |> Map.put("updated_by", user_id)
-           |> Map.put("status", ContractRequest.status(:nhs_signed)),
+           |> Map.put("status", ContractRequest.status(:nhs_signed))
+           |> Map.put("nhs_signed_date", Date.utc_today()),
          %Ecto.Changeset{valid?: true} = changes <- nhs_signed_changeset(contract_request, update_params),
          {:ok, contract_request} <- Repo.update(changes),
          _ <- EventManager.insert_change_status(contract_request, contract_request.status, user_id) do

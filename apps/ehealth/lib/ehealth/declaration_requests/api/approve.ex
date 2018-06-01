@@ -3,7 +3,6 @@ defmodule EHealth.DeclarationRequests.API.Approve do
 
   alias EHealth.Employees
   alias EHealth.Employees.Employee
-  alias EHealth.API.OPS
   alias EHealth.API.OTPVerification
   alias EHealth.DeclarationRequests.DeclarationRequest
   alias EHealth.Parties.Party

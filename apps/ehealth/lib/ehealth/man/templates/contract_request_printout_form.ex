@@ -27,12 +27,39 @@ defmodule EHealth.Man.Templates.ContractRequestPrintoutForm do
     contractor_owner = Map.get(references.employee, Map.get(data, "contractor_owner_id")) || %{}
 
     data
+    |> format_date("start_date")
+    |> format_date("end_date")
+    |> format_date("nhs_signed_date")
+    |> format_price("nhs_contract_price")
     |> Map.put("nhs_signer", Map.take(nhs_signer, ~w(first_name last_name second_name)a))
     |> Map.put("contractor_legal_entity", prepare_contractor_legal_entity(data, references))
     |> Map.put("contractor_owner", prepare_contractor_owner(contractor_owner))
     |> Map.put("contractor_divisions", prepare_contractor_divisions(data, references))
     |> Map.put("contractor_employee_divisions", prepare_contractor_employee_divisions(data, references))
     |> Map.put("external_contractors", prepare_external_contractors(data, references))
+  end
+
+  defp format_price(data, field) do
+    case Map.get(data, field) do
+      value when is_integer(value) -> Map.put(data, field, :erlang.float_to_binary(value / 1, decimals: 2))
+      value when is_float(value) -> Map.put(data, field, :erlang.float_to_binary(value, decimals: 2))
+      _ -> data
+    end
+  end
+
+  defp format_date(data, field) do
+    case Map.get(data, field) do
+      nil ->
+        data
+
+      date ->
+        value =
+          date
+          |> Timex.parse!("%Y-%m-%d", :strftime)
+          |> Timex.format!("%d.%m.%Y", :strftime)
+
+        Map.put(data, field, value)
+    end
   end
 
   defp prepare_contractor_owner(contractor_owner) do
@@ -62,7 +89,7 @@ defmodule EHealth.Man.Templates.ContractRequestPrintoutForm do
       address =
         division
         |> Map.get(:addresses, [])
-        |> Enum.find(fn address -> Map.get(address, "type") == "REGISTRATION" end)
+        |> Enum.find(fn address -> Map.get(address, "type") == "RESIDENCE" end)
 
       phones = Map.get(division, :phones) || []
       phone = List.first(phones) || %{}
@@ -84,11 +111,11 @@ defmodule EHealth.Man.Templates.ContractRequestPrintoutForm do
 
       employee =
         employee
-        |> Map.take(~w(id speciality declaration_limit)a)
+        |> Map.take(~w(id speciality)a)
         |> Map.put(:party, party)
 
       contractor_employee_division
-      |> Map.take(~w(division_id staff_units))
+      |> Map.take(~w(division_id staff_units declaration_limit))
       |> Map.put("employee", employee)
     end)
   end
