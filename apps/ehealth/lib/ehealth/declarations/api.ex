@@ -7,7 +7,7 @@ defmodule EHealth.Declarations.API do
   import EHealth.Utils.TypesConverter, only: [strings_to_keys: 1]
 
   alias EHealth.Validators.Preload
-  alias EHealth.API.{OPS, Mithril}
+  alias EHealth.API.{OPS, Mithril, MediaStorage}
   alias EHealth.{LegalEntities, Employees, Persons, Divisions}
   alias EHealth.Employees.Employee
   alias EHealth.Divisions.Division
@@ -16,6 +16,8 @@ defmodule EHealth.Declarations.API do
 
   @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
   @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]
+  @media_storage_api Application.get_env(:ehealth, :api_resolvers)[:media_storage]
+  @signature_api Application.get_env(:ehealth, :api_resolvers)[:digital_signature]
 
   def get_person_declarations(%{} = params, headers) do
     with {:ok, person} <- Persons.get_person(headers),
@@ -54,13 +56,14 @@ defmodule EHealth.Declarations.API do
   end
 
   def get_declaration(id, headers) do
-    with {:ok, %{"data" => declaration_data}} <- OPS.get_declaration_by_id(id, headers),
+    with {:ok, %{"data" => declaration_data}} <- @ops_api.get_declaration_by_id(id, headers),
          division = Divisions.get_by_id(declaration_data["division_id"]),
          employee = Employees.get_by_id(declaration_data["employee_id"]),
          legal_entity = LegalEntities.get_by_id(declaration_data["legal_entity_id"]),
          {:ok, %{"data" => person_data}} <- @mpi_api.person(declaration_data["person_id"], headers),
          merged_declaration_data = merge_related_data(declaration_data, person_data, legal_entity, division, employee),
-         do: {:ok, merged_declaration_data}
+         data = put_signed_content(merged_declaration_data, headers),
+         do: {:ok, data}
   end
 
   def fetch_related_ids(declarations) do
@@ -139,6 +142,24 @@ defmodule EHealth.Declarations.API do
       "legal_entity" => legal_entity
     })
     |> Map.drop(~W(person_id division_id employee_id legal_entity_id))
+  end
+
+  defp put_signed_content(declaration_data, headers) do
+    with id <- Map.get(declaration_data, "id"),
+         {:ok, %{"data" => data}} <-
+           @media_storage_api.create_signed_url(
+             "GET",
+             MediaStorage.config()[:declaration_bucket],
+             "signed_content",
+             id,
+             headers
+           ),
+         {:ok, secret_url} <- Map.fetch(data, "secret_url"),
+         {:ok, %{"body" => signed_content}} <- @media_storage_api.get_signed_content(secret_url, headers),
+         {:ok, %{"data" => %{"content" => content}}} <-
+           @signature_api.decode_and_validate(signed_content, "base64", headers) do
+      Map.put(declaration_data, "content", content)
+    end
   end
 
   def get_declaration_by_id(id, headers) do

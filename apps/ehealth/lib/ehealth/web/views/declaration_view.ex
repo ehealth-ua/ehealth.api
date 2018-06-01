@@ -54,6 +54,7 @@ defmodule EHealth.Web.DeclarationView do
       reason
       reason_description
       declaration_number
+      content
     ))
     |> Map.merge(%{
       "person" => render_one(declaration["person"], __MODULE__, "person.json", as: :person),

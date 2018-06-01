@@ -14,4 +14,6 @@ defmodule EHealth.API.MediaStorageBehaviour do
 
   @callback store_signed_content(signed_content :: binary, bucket :: binary, id :: binary, headers :: list) ::
               {:ok, result :: term} | {:error, reason :: term}
+
+  @callback get_signed_content(url :: binary, headers :: list) :: {:ok, result :: term} | {:error, reason :: term}
 end

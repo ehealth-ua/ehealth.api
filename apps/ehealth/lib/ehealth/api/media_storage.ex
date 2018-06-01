@@ -71,4 +71,6 @@ defmodule EHealth.API.MediaStorage do
   def check_gcs_response(%HTTPoison.Response{body: body}) do
     {:error, body}
   end
+
+  def get_signed_content(secret_url, headers), do: HTTPoison.get(secret_url, headers)
 end

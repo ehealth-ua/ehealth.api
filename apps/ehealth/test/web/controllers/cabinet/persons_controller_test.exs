@@ -570,28 +570,78 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
 
   describe "get declaration details" do
     test "successfully get declaration details by id", %{conn: conn} do
+      user_id = "8069cb5c-3156-410b-9039-a1b2f2a4136c"
+      legal_entity_id = "c3cc1def-48b6-4451-be9d-3b777ef06ff9"
+      division_id = "21f22e09-8dd9-4ca4-bcc7-72994ef2850a"
+      employee_id = "5753a279-8f8c-42b9-8f4d-57b38cabe55d"
+      person_id = "c8912855-21c3-4771-ba18-bcd8e524f14c"
+      declaration_id = "0cd6a6f0-9a71-4aa7-819d-6c158201a282"
+
+      legal_entity = insert(:prm, :legal_entity, id: legal_entity_id)
+      insert(:prm, :party_user, user_id: user_id)
+      insert(:prm, :division, id: division_id, legal_entity: legal_entity)
+      party = insert(:prm, :party)
+      insert(:prm, :employee, id: employee_id, party: party)
+
+      {declaration, _} =
+        get_declaration(
+          %{
+            id: declaration_id,
+            legal_entity_id: legal_entity.id,
+            division_id: division_id,
+            employee_id: employee_id,
+            person_id: person_id
+          },
+          200
+        )
+
       expect(MPIMock, :person, fn id, _ -> get_person(id, 200) end)
 
-      legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
-      insert(:prm, :party_user, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c")
-      insert(:prm, :division, id: "21f22e09-8dd9-4ca4-bcc7-72994ef2850a", legal_entity: legal_entity)
-      party = insert(:prm, :party)
-      insert(:prm, :employee, id: "5753a279-8f8c-42b9-8f4d-57b38cabe55d", party: party)
+      expect(OPSMock, :get_declaration_by_id, fn _params, _headers ->
+        declaration
+      end)
+
+      expect(MediaStorageMock, :create_signed_url, fn _, _, _, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://localhost/declaration_id"}}}
+      end)
+
+      expect(MediaStorageMock, :get_signed_content, fn _, _ ->
+        {:ok, %{"body" => "signed_content_hash"}}
+      end)
+
+      expect(SignatureMock, :decode_and_validate, fn signed_content, "base64", _headers ->
+        content = "<html><body>Printout form for declaration #{declaration_id}</body></html>"
+
+        data = %{
+          "content" => content,
+          "signed_content" => signed_content,
+          "signatures" => [
+            %{
+              "is_valid" => true,
+              "signer" => %{},
+              "validation_error_message" => ""
+            }
+          ]
+        }
+
+        {:ok, %{"data" => data}}
+      end)
 
       resp =
         conn
-        |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
+        |> put_req_header("x-consumer-id", user_id)
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
-        |> get(cabinet_declarations_path(conn, :show_declaration, "0cd6a6f0-9a71-4aa7-819d-6c158201a282"))
+        |> get(cabinet_declarations_path(conn, :show_declaration, declaration_id))
         |> json_response(200)
 
       data = resp["data"]
 
-      assert data["id"] == "0cd6a6f0-9a71-4aa7-819d-6c158201a282"
-      assert data["division"]["id"] == "21f22e09-8dd9-4ca4-bcc7-72994ef2850a"
-      assert data["employee"]["id"] == "5753a279-8f8c-42b9-8f4d-57b38cabe55d"
-      assert data["legal_entity"]["id"] == "c3cc1def-48b6-4451-be9d-3b777ef06ff9"
-      assert data["person"]["id"] == "c8912855-21c3-4771-ba18-bcd8e524f14c"
+      assert data["id"] == declaration_id
+      assert data["division"]["id"] == division_id
+      assert data["employee"]["id"] == employee_id
+      assert data["legal_entity"]["id"] == legal_entity_id
+      assert data["person"]["id"] == person_id
+      assert data["content"] == "<html><body>Printout form for declaration #{declaration_id}</body></html>"
     end
   end
 
