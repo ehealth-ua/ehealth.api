@@ -1,0 +1,8 @@
+Change log for versions 7.277.0 - 7.277.2
+
+**Patches and bug fixes**:
+
+fix tests
+add logging
+
+
