@@ -72,5 +72,5 @@ defmodule EHealth.API.MediaStorage do
     {:error, body}
   end
 
-  def get_signed_content(secret_url, headers), do: HTTPoison.get(secret_url, headers)
+  def get_signed_content(secret_url), do: HTTPoison.get(secret_url)
 end

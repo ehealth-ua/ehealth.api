@@ -605,7 +605,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
         {:ok, %{"data" => %{"secret_url" => "http://localhost/declaration_id"}}}
       end)
 
-      expect(MediaStorageMock, :get_signed_content, fn _, _ ->
+      expect(MediaStorageMock, :get_signed_content, fn _ ->
         {:ok, %{body: "signed_content_hash"}}
       end)
 
