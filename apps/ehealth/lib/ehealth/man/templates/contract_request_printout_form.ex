@@ -3,10 +3,21 @@ defmodule EHealth.Man.Templates.ContractRequestPrintoutForm do
 
   use Confex, otp_app: :ehealth
 
+  alias EHealth.Dictionaries
+  alias EHealth.Dictionaries.Dictionary
   alias EHealth.Validators.Preload
   alias EHealth.ContractRequests.ContractRequest
 
   @man_api Application.get_env(:ehealth, :api_resolvers)[:man]
+  @working_hours [
+    mon: "Пн.",
+    tue: "Вт.",
+    wed: "Ср.",
+    thu: "Чт.",
+    fri: "Пт.",
+    sat: "Сб.",
+    sun: "Нд."
+  ]
 
   def render(%ContractRequest{} = contract_request, headers) do
     template_data =
@@ -21,6 +32,7 @@ defmodule EHealth.Man.Templates.ContractRequestPrintoutForm do
   end
 
   defp prepare_data(data) do
+    {:ok, dictionaries} = Dictionaries.list_dictionaries()
     references = preload_references(data)
     nhs_signer = Map.get(references.employee, Map.get(data, "nhs_signer_id")) || %{}
 
@@ -32,9 +44,9 @@ defmodule EHealth.Man.Templates.ContractRequestPrintoutForm do
     |> format_date("nhs_signed_date")
     |> format_price("nhs_contract_price")
     |> Map.put("nhs_signer", prepare_employee(nhs_signer))
-    |> Map.put("contractor_legal_entity", prepare_contractor_legal_entity(data, references))
+    |> Map.put("contractor_legal_entity", prepare_contractor_legal_entity(data, references, dictionaries))
     |> Map.put("contractor_owner", prepare_employee(contractor_owner))
-    |> Map.put("contractor_divisions", prepare_contractor_divisions(data, references))
+    |> Map.put("contractor_divisions", prepare_contractor_divisions(data, references, dictionaries))
     |> Map.put("contractor_employee_divisions", prepare_contractor_employee_divisions(data, references))
     |> Map.put("external_contractors", prepare_external_contractors(data, references))
   end
@@ -67,20 +79,21 @@ defmodule EHealth.Man.Templates.ContractRequestPrintoutForm do
     %{"party" => Map.take(party, ~w(first_name last_name second_name)a)}
   end
 
-  defp prepare_contractor_legal_entity(data, references) do
+  defp prepare_contractor_legal_entity(data, references, dictionaries) do
     contractor_legal_entity = Map.get(references.legal_entity, Map.get(data, "contractor_legal_entity_id")) || %{}
 
     address =
       contractor_legal_entity
       |> Map.get(:addresses, [])
       |> Enum.find(fn address -> Map.get(address, "type") == "REGISTRATION" end)
+      |> translate_address(dictionaries)
 
     contractor_legal_entity
     |> Map.take(~w(edrpou name)a)
     |> Map.put(:address, address)
   end
 
-  defp prepare_contractor_divisions(data, references) do
+  defp prepare_contractor_divisions(data, references, dictionaries) do
     contractor_divisions = Map.get(data, "contractor_divisions") || []
 
     Enum.map(contractor_divisions, fn division_id ->
@@ -90,15 +103,48 @@ defmodule EHealth.Man.Templates.ContractRequestPrintoutForm do
         division
         |> Map.get(:addresses, [])
         |> Enum.find(fn address -> Map.get(address, "type") == "RESIDENCE" end)
+        |> translate_address(dictionaries)
 
       phones = Map.get(division, :phones) || []
       phone = List.first(phones) || %{}
 
       division
       |> Map.take(~w(id name email mountain_group working_hours)a)
+      |> translate_working_hours()
       |> Map.put(:address, address)
       |> Map.put(:phone, phone)
     end)
+  end
+
+  defp translate_working_hours(%{working_hours: working_hours} = division) when is_map(working_hours) do
+    translations =
+      Enum.reduce(@working_hours, [], fn {key, value}, acc ->
+        case Map.get(working_hours, to_string(key)) do
+          nil ->
+            acc
+
+          schedule ->
+            acc ++ [%{name: value, schedule: schedule}]
+        end
+      end)
+
+    %{division | working_hours: translations}
+  end
+
+  defp translate_working_hours(division), do: division
+
+  defp translate_address(nil, _), do: nil
+
+  defp translate_address(address, dictionaries) do
+    %Dictionary{values: values} = Enum.find(dictionaries, fn %Dictionary{name: name} -> name == "STREET_TYPE" end)
+    street_type = Map.get(values, Map.get(address, "street_type"))
+
+    %Dictionary{values: values} = Enum.find(dictionaries, fn %Dictionary{name: name} -> name == "SETTLEMENT_TYPE" end)
+    settlement_type = Map.get(values, Map.get(address, "settlement_type"))
+
+    address
+    |> Map.put("street_type", street_type)
+    |> Map.put("settlement_type", settlement_type)
   end
 
   defp prepare_contractor_employee_divisions(data, references) do
