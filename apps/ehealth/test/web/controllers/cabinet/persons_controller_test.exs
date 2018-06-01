@@ -606,7 +606,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       end)
 
       expect(MediaStorageMock, :get_signed_content, fn _, _ ->
-        {:ok, %{"body" => "signed_content_hash"}}
+        {:ok, %{body: "signed_content_hash"}}
       end)
 
       expect(SignatureMock, :decode_and_validate, fn signed_content, "base64", _headers ->
