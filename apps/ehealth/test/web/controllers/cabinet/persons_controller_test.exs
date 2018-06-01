@@ -613,7 +613,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
         content = "<html><body>Printout form for declaration #{declaration_id}</body></html>"
 
         data = %{
-          "content" => content,
+          "content" => %{"content" => content},
           "signed_content" => signed_content,
           "signatures" => [
             %{

@@ -158,7 +158,7 @@ defmodule EHealth.Declarations.API do
          {:ok, %{body: signed_content}} <- @media_storage_api.get_signed_content(secret_url, headers),
          {:ok, %{"data" => %{"content" => content}}} <-
            @signature_api.decode_and_validate(Base.encode64(signed_content), "base64", headers) do
-      Map.put(declaration_data, "content", content)
+      Map.put(declaration_data, "content", Map.get(content, "content"))
     end
   end
 
