@@ -31,9 +31,9 @@ defmodule EHealth.Man.Templates.ContractRequestPrintoutForm do
     |> format_date("end_date")
     |> format_date("nhs_signed_date")
     |> format_price("nhs_contract_price")
-    |> Map.put("nhs_signer", Map.take(nhs_signer, ~w(first_name last_name second_name)a))
+    |> Map.put("nhs_signer", prepare_employee(nhs_signer))
     |> Map.put("contractor_legal_entity", prepare_contractor_legal_entity(data, references))
-    |> Map.put("contractor_owner", prepare_contractor_owner(contractor_owner))
+    |> Map.put("contractor_owner", prepare_employee(contractor_owner))
     |> Map.put("contractor_divisions", prepare_contractor_divisions(data, references))
     |> Map.put("contractor_employee_divisions", prepare_contractor_employee_divisions(data, references))
     |> Map.put("external_contractors", prepare_external_contractors(data, references))
@@ -62,8 +62,8 @@ defmodule EHealth.Man.Templates.ContractRequestPrintoutForm do
     end
   end
 
-  defp prepare_contractor_owner(contractor_owner) do
-    party = Map.get(contractor_owner, :party) || %{}
+  defp prepare_employee(employee) do
+    party = Map.get(employee, :party) || %{}
     %{"party" => Map.take(party, ~w(first_name last_name second_name)a)}
   end
 
@@ -95,7 +95,7 @@ defmodule EHealth.Man.Templates.ContractRequestPrintoutForm do
       phone = List.first(phones) || %{}
 
       division
-      |> Map.take(~w(id name email mountain_group)a)
+      |> Map.take(~w(id name email mountain_group working_hours)a)
       |> Map.put(:address, address)
       |> Map.put(:phone, phone)
     end)
