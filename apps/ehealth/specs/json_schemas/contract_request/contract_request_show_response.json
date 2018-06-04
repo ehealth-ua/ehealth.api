@@ -33,14 +33,16 @@
                     "$ref": "#/definitions/name"
                 },
                 "settlement_type": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "settlement type Dictionary: SETTLEMENT_TYPE"
                 },
                 "settlement_id": {
                     "type": "string",
                     "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
                 },
                 "street_type": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "street type Dictionary: STREET_TYPE"
                 },
                 "street": {
                     "$ref": "#/definitions/name"
@@ -518,7 +520,7 @@
         },
         "id_form": {
             "type": "string",
-            "description": "type of contract - DICTIONARY: CONTRACT_TYPE"
+            "description": "type of contract - Dictionary: CONTRACT_TYPE"
         },
         "nhs_signer_base": {
             "type": [
@@ -539,7 +541,7 @@
                 "string",
                 "null"
             ],
-            "description": "payment method for contract DICTIONARY: CONTRACT_PAYMENT_METHOD"
+            "description": "payment method for contract Dictionary: CONTRACT_PAYMENT_METHOD"
         },
         "nhs_payment_details": {
             "type": [

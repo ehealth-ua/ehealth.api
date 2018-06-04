@@ -101,13 +101,15 @@
                     "type": "string"
                   },
                   "settlement_type": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "settlement type Dictionary: SETTLEMENT_TYPE"
                   },
                   "street": {
                     "type": "string"
                   },
                   "street_type": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "street type Dictionary: STREET_TYPE"
                   },
                   "type": {
                     "type": "string"
@@ -321,13 +323,15 @@
                     "type": "string"
                   },
                   "settlement_type": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "settlement type Dictionary: SETTLEMENT_TYPE"
                   },
                   "street": {
                     "type": "string"
                   },
                   "street_type": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "street type Dictionary: STREET_TYPE"
                   },
                   "type": {
                     "type": "string"
@@ -478,13 +482,15 @@
                     "type": "string"
                   },
                   "settlement_type": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "settlement type Dictionary: SETTLEMENT_TYPE"
                   },
                   "street": {
                     "type": "string"
                   },
                   "street_type": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "street type Dictionary: STREET_TYPE"
                   },
                   "type": {
                     "type": "string"
@@ -719,7 +725,10 @@
             },
             "preferred_way_communication": {
               "type": "string",
-              "enum": ["email", "phone"]
+              "enum": [
+                "email",
+                "phone"
+              ]
             }
           },
           "required": [

@@ -56,14 +56,16 @@
           "$ref": "#/definitions/name"
         },
         "settlement_type": {
-          "type": "string"
+          "type": "string",
+          "description": "settlement type Dictionary: SETTLEMENT_TYPE"
         },
         "settlement_id": {
           "type": "string",
           "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "street_type": {
-          "type": "string"
+          "type": "string",
+          "description": "street type Dictionary: STREET_TYPE"
         },
         "street": {
           "$ref": "#/definitions/name"

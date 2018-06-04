@@ -56,13 +56,15 @@
           "$ref": "#/definitions/name"
         },
         "settlement_type": {
-          "type": "string"
+          "type": "string",
+          "description": "settlement type Dictionary: SETTLEMENT_TYPE"
         },
         "settlement_id": {
           "type": "string"
         },
         "street_type": {
-          "type": "string"
+          "type": "string",
+          "description": "street type Dictionary: STREET_TYPE"
         },
         "street": {
           "$ref": "#/definitions/name"

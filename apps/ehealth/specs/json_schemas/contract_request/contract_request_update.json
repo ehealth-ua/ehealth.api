@@ -16,7 +16,7 @@
         },
         "nhs_payment_method": {
             "type": "string",
-            "description": "DICTIONARY: CONTRACT_PAYMENT_METHOD"
+            "description": "Dictionary: CONTRACT_PAYMENT_METHOD"
         },
         "issue_city": {
             "type": "string",

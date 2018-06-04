@@ -73,7 +73,7 @@
         },
         "street_type": {
           "type": "string",
-          "description": "Dictionary: STREET_TYPE"
+          "description": "street type Dictionary: STREET_TYPE"
         },
         "street": {
           "$ref": "#/definitions/name"
