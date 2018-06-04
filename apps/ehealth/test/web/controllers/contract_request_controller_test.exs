@@ -1052,7 +1052,6 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
 
       assert resp["data"]["status"] == ContractRequest.status(:terminated)
-      assert resp["data"]["updated_by"] == user_id
     end
 
     test "contract_request not found", %{
@@ -1563,7 +1562,6 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
 
       assert resp["data"]["status"] == ContractRequest.status(:declined)
-      assert resp["data"]["updated_by"] == user_id
 
       contract_request = EHealth.Repo.get(ContractRequest, contract_request.id)
       assert contract_request.status_reason == "Не відповідає попереднім домовленостям"
