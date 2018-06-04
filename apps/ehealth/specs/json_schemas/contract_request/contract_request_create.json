@@ -205,8 +205,6 @@
         "contractor_payment_details",
         "contractor_rmsp_amount",
         "contractor_divisions",
-        "start_date",
-        "end_date",
         "id_form"
     ],
     "additionalProperties": false

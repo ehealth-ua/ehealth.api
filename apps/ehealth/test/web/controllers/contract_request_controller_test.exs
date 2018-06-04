@@ -288,10 +288,6 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "success create contract request with contract_number", %{conn: conn} do
-      expect(OPSMock, :get_contracts, fn _, _ ->
-        {:ok, %{"data" => [%{}]}}
-      end)
-
       %{
         legal_entity: legal_entity,
         division: division,
@@ -301,23 +297,34 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         party_user: party_user
       } = prepare_data()
 
+      now = Date.utc_today()
+      start_date = Date.add(now, 10)
+
+      expect(OPSMock, :get_contracts, fn _, _ ->
+        {:ok,
+         %{
+           "data" => [
+             %{
+               "contractor_legal_entity_id" => legal_entity.id,
+               "start_date" => Date.to_iso8601(start_date),
+               "end_date" => Date.to_iso8601(Date.add(now, 30))
+             }
+           ]
+         }}
+      end)
+
       conn =
         conn
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(user_id)
         |> put_req_header("drfo", party_user.party.tax_id)
 
-      now = Date.utc_today()
-      start_date = Date.add(now, 10)
-
       params =
         division
         |> prepare_params(employee, Date.to_iso8601(Date.add(start_date, 1)))
         |> Map.put("contractor_owner_id", owner.id)
         |> Map.put("contract_number", NumberGenerator.generate_from_sequence(1, 1))
-        |> Map.put("start_date", Date.to_iso8601(start_date))
-        |> Map.put("end_date", Date.to_iso8601(Date.add(now, 30)))
-        |> Map.delete("contractor_employee_divisions")
+        |> Map.drop(~w(contractor_employee_divisions start_date end_date))
 
       conn =
         post(conn, contract_request_path(conn, :create), %{
