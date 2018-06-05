@@ -1407,8 +1407,12 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "invalid status", %{conn: conn} do
+      expect(OPSMock, :get_contracts, fn _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
       id = UUID.generate()
-      data = %{"id" => id, "printout_content" => "<html></html>"}
+      data = %{"id" => id, "printout_content" => "<html></html>", "contract_number" => "0000-9EAX-XT7X-3115"}
 
       %{
         "client_id" => client_id,
@@ -1438,8 +1442,12 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         {:error, "failed to save content"}
       end)
 
+      expect(OPSMock, :get_contracts, fn _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
       id = UUID.generate()
-      data = %{"id" => id, "printout_content" => "<html></html>"}
+      data = %{"id" => id, "printout_content" => "<html></html>", "contract_number" => "0000-9EAX-XT7X-3115"}
 
       %{
         "client_id" => client_id,
@@ -1474,8 +1482,12 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         {:ok, "success"}
       end)
 
+      expect(OPSMock, :get_contracts, fn _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
       id = UUID.generate()
-      data = %{"id" => id, "printout_content" => "<html></html>"}
+      data = %{"id" => id, "printout_content" => "<html></html>", "contract_number" => "0000-9EAX-XT7X-3115"}
 
       %{
         "client_id" => client_id,

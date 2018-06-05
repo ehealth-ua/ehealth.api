@@ -217,9 +217,9 @@ defmodule EHealth.ContractRequests do
          {_, true} <- {:client_id, client_id == contract_request.nhs_legal_entity_id},
          {_, false} <- {:already_signed, contract_request.status == ContractRequest.status(:nhs_signed)},
          {:ok, content, signer} <- decode_signed_content(:nhs, params, headers),
-         {:ok, _} <- validate_contract_number(content, client_id, headers),
          :ok <- validate_signer_drfo(contract_request.nhs_signer_id, signer["drfo"], "$.nhs_signer_id"),
          :ok <- validate_content(contract_request, content),
+         :ok <- validate_sign_contract_number(content, headers),
          :ok <- validate_status(contract_request, ContractRequest.status(:approved)),
          :ok <- validate_employee_divisions(contract_request),
          :ok <- validate_start_date(contract_request),
@@ -1196,6 +1196,14 @@ defmodule EHealth.ContractRequests do
     contract_request
     |> cast(params, fields_required ++ fields_optional)
     |> validate_required(fields_required)
+  end
+
+  defp validate_sign_contract_number(%{"contract_number" => contract_number}, headers) do
+    case @ops_api.get_contracts(%{"contract_number" => contract_number, "status" => "VERIFIED"}, headers) do
+      {:ok, %{"data" => [_]}} -> :ok
+      {:ok, %{"data" => []}} -> :ok
+      _ -> {:error, {:"422", "There is no active contract with such contract_number"}}
+    end
   end
 
   defp validate_contract_number(%{"contract_number" => contract_number} = params, client_id, headers)
