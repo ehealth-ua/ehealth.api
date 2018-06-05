@@ -57,6 +57,7 @@ defmodule EHealth.MedicationRequestRequest.SignOperation do
   def create_medication_request({operation, {:ok, mrr}}, headers) do
     params =
       mrr.data
+      |> Map.delete(:__meta__)
       |> Map.put(:id, mrr.medication_request_id)
       |> Map.put(:medication_request_requests_id, mrr.id)
       |> Map.put(:request_number, mrr.request_number)
