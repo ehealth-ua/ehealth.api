@@ -39,15 +39,15 @@ defmodule EHealth.Man.Templates.ContractRequestPrintoutForm do
     contractor_owner = Map.get(references.employee, Map.get(data, "contractor_owner_id")) || %{}
 
     data
-    |> format_date("start_date")
-    |> format_date("end_date")
-    |> format_date("nhs_signed_date")
+    |> format_date(~w(start_date))
+    |> format_date(~w(end_date))
+    |> format_date(~w(nhs_signed_date))
     |> format_price("nhs_contract_price")
     |> Map.put("nhs_signer", prepare_employee(nhs_signer))
     |> Map.put("contractor_legal_entity", prepare_contractor_legal_entity(data, references, dictionaries))
     |> Map.put("contractor_owner", prepare_employee(contractor_owner))
     |> Map.put("contractor_divisions", prepare_contractor_divisions(data, references, dictionaries))
-    |> Map.put("contractor_employee_divisions", prepare_contractor_employee_divisions(data, references))
+    |> Map.put("contractor_employee_divisions", prepare_contractor_employee_divisions(data, references, dictionaries))
     |> Map.put("external_contractors", prepare_external_contractors(data, references))
   end
 
@@ -59,8 +59,8 @@ defmodule EHealth.Man.Templates.ContractRequestPrintoutForm do
     end
   end
 
-  defp format_date(data, field) do
-    case Map.get(data, field) do
+  defp format_date(data, field) when is_list(field) do
+    case get_in(data, field) do
       nil ->
         data
 
@@ -70,7 +70,7 @@ defmodule EHealth.Man.Templates.ContractRequestPrintoutForm do
           |> Timex.parse!("%Y-%m-%d", :strftime)
           |> Timex.format!("%d.%m.%Y", :strftime)
 
-        Map.put(data, field, value)
+        put_in(data, field, value)
     end
   end
 
@@ -147,7 +147,7 @@ defmodule EHealth.Man.Templates.ContractRequestPrintoutForm do
     |> Map.put("settlement_type", settlement_type)
   end
 
-  defp prepare_contractor_employee_divisions(data, references) do
+  defp prepare_contractor_employee_divisions(data, references, dictionaries) do
     contractor_employee_divisions = Map.get(data, "contractor_employee_divisions") || []
 
     Enum.map(contractor_employee_divisions, fn contractor_employee_division ->
@@ -158,12 +158,20 @@ defmodule EHealth.Man.Templates.ContractRequestPrintoutForm do
       employee =
         employee
         |> Map.take(~w(id speciality)a)
+        |> translate_speciality(dictionaries)
         |> Map.put(:party, party)
 
       contractor_employee_division
       |> Map.take(~w(division_id staff_units declaration_limit))
       |> Map.put("employee", employee)
     end)
+  end
+
+  defp translate_speciality(%{speciality: speciality} = params, dictionaries) do
+    %Dictionary{values: values} = Enum.find(dictionaries, fn %Dictionary{name: name} -> name == "SPECIALITY_TYPE" end)
+    speciality_value = Map.get(speciality, "speciality")
+    translated_speciality = Map.get(values, speciality_value)
+    Map.put(params, :speciality, Map.put(speciality, "speciality", translated_speciality))
   end
 
   defp prepare_external_contractors(data, references) do
@@ -175,6 +183,7 @@ defmodule EHealth.Man.Templates.ContractRequestPrintoutForm do
 
       external_contractor
       |> Map.take(~w(contract divisions))
+      |> format_date(~w(contract expires_at))
       |> Map.put("legal_entity", legal_entity)
     end)
   end

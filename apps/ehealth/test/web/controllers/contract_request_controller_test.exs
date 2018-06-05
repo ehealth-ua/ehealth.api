@@ -918,6 +918,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     test "success approve contract request", %{conn: conn} do
       insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
       insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
+      insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
 
       expect(MithrilMock, :get_user_roles, fn _, _, _ ->
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
