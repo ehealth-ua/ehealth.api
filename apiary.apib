@@ -7281,6 +7281,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + `nhs_contract_price`: `50000` (number, optional) - contract price
 + `nhs_payment_method`: `prepayment` (enum, optional) - payment method for contract
 + `issue_city`: `Київ` (string, optional) - place of contract request
++ `miscellaneous`: `Жодна зі сторін не має права передавати права і зобов’язання за цим контрактом третій стороні без письмової на те згоди іншої сторони` (string, optional) - miscellaneous of a contract
 
 ### `Contract_request_Details`
 + id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract_request ID 
@@ -7319,9 +7320,10 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + `id_form`: `5` (string, required) - type of contract {DICTIONARY CONTRACT_TYPE}
 + `nhs_signer_base`: `на підставі наказу` (string, optional) - documents which allows to represent nhs
 + `nhs_contract_price`: `50000` (number, optional) - contract price
-+ `nhs_payment_method`: `prepayment` (enum, optional) - payment method for contract
++ `nhs_payment_method`: `BACKWARD` (enum, optional) - payment method for contract
 + `nhs_payment_details` (object, optional)
     + include (`Payment_details`, optional)
++ `miscellaneous`: `Жодна зі сторін не має права передавати права і зобов’язання за цим контрактом третій стороні без письмової на те згоди іншої сторони` (string, optional) - miscellaneous of a contract
 + status: `NEW` (string, required) - contract_request status
 + status_reason: `Не відповідає попереднім домовленостям`(string, optional) - reason of status theat is setted bu nhs
 + `nhs_signer` (object, optional) 
@@ -7443,6 +7445,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + `nhs_payment_method`: `prepayment` (enum, optional) - payment method for contract
 + `nhs_payment_details` (object, optional)
     + include (`Payment_details`, optional)
++ `miscellaneous`: `Жодна зі сторін не має права передавати права і зобов’язання за цим контрактом третій стороні без письмової на те згоди іншої сторони` (string, optional) - miscellaneous of a contract
 + status: `VERIFIED` (string, required) - contract_request status
 + `nhs_signer` (object, optional) 
     + include (`Person_Minimal_Contract`)
