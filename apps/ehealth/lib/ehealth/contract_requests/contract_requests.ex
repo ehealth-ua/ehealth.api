@@ -217,6 +217,7 @@ defmodule EHealth.ContractRequests do
          {_, true} <- {:client_id, client_id == contract_request.nhs_legal_entity_id},
          {_, false} <- {:already_signed, contract_request.status == ContractRequest.status(:nhs_signed)},
          {:ok, content, signer} <- decode_signed_content(:nhs, params, headers),
+         {:ok, _} <- validate_contract_number(content, client_id, headers),
          :ok <- validate_signer_drfo(contract_request.nhs_signer_id, signer["drfo"], "$.nhs_signer_id"),
          :ok <- validate_content(contract_request, content),
          :ok <- validate_status(contract_request, ContractRequest.status(:approved)),
@@ -1207,7 +1208,7 @@ defmodule EHealth.ContractRequests do
        params
        |> Map.put("start_date", contract["start_date"])
        |> Map.put("end_date", contract["end_date"])
-       |> Map.put("contractor_legal_entity_id", contract["contractor_legal_entity_id"])}
+       |> Map.put("contractor_legal_entity_id", client_id)}
     else
       {:contractor_legal_entity_id, false} -> {:error, {:forbidden, "You are not allowed to change this contract"}}
       _ -> {:error, {:"422", "There is no active contract with such contract_number"}}
