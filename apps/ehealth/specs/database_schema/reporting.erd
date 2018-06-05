@@ -287,7 +287,6 @@ updated_at | timestamp | not null
 
 [capitation_reports]
 id | uuid | not null
-type | varchar | not null
 billing_date | timestamp | not null
 created_at | timestamp | not null
 
@@ -400,6 +399,8 @@ parties 1--* party_users
 employees *--1 divisions
 medical_service_providers 1--1 legal_entities
 declarations *--1 persons
+divisions 1--+ division_addresses
+declarations 1--* declarations_status_hstr
 
 innms 1--* ingredients
 medications 1--* ingredients
