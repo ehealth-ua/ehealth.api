@@ -4669,8 +4669,32 @@ This WS allows to see history of all patient's declarations and filter them.
     + Attributes (Response_Collection_V2)
         + data (array[`Declaration_list_cabinet`])
 
+### Get declaration Request details via Cabinet [GET /api/cabinet/declaration_requests/{id}]
 
-# Group Contracts
+Current WS allows to see details of declaration request knowing its' id.
+
++ Parameters
+    + id: 7e9cffd9-c75f-45fb-badf-6e8d20b6a8a8 (uuid)
+    
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (`Declaration_Request_Details_Cabinet`) 
+
+### Get declaration request list via Cabinet [GET /api/cabinet/declaration_requests{?status,start_year,page,page_size}]
+
+This WS allows to see history of all patient's declaration requests and filter them. 
+
++ Parameters
+    + status: active (string, optional)
+    + start_year: 2018 (string, optional)
+    + page: 2 (number, optional) - Page number.
+    + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
+
++ Response 200 (application/json)
+    + Attributes (Response_Collection_V2)
+        + data (array[`Declaration_requests_list_cabinet`])
+
+# Group Public. Contracts
 
 ## Contract request [/api/contract_requests]
 
@@ -4679,8 +4703,8 @@ This WS allows to see history of all patient's declarations and filter them.
 This method allows legal entity owner create Contract Request and filled the part of inputs which belongs to contractor (MSP) side.
 Request must be signed by same person as the one who makes api-call. 
 The request will be created in status='NEW' and after that can be filled up from NHS side and changed to status='APPROVED' or 'DECLINED'.
-'APPROVED' request can be signed. If request was Declined than legal_entity owner must create the new request.
-Only one active ('NEW', 'APPROVED', 'NHS_SIGNED') request is allowed within same start_date and end_date and same type of contract. Next request will terminate previous one.
+APPROVED by NHS request must be also approved by MSP side (status change from APPROVED to 'PENDING_NHS_SIGN') and then can be signed by NHS. If request was Declined than legal_entity owner must create the new request.
+Only one active ('NEW', 'APPROVED', 'PENDING_NHS_SIGN', 'NHS_SIGNED') request is allowed within same start_date and end_date and same type of contract. Next request will terminate previous one.
 
 Also using this route it's possible to update contract. In this case contract_number must be input. Contractor_employee_divisions in this case is not allowed in request (to update contractor_employees use another route).
 If contract_number is not set, than it will be generate on APPROVE step (as well as printout form). In this case contractor_employee_divisions is required field.
@@ -4817,6 +4841,19 @@ This WS is designed to enrich conract request with information from NHS side. NH
 
 This WS is designed to approve contract request by NHS. Contract request only in status NEW could be approved.
 
+To approve contract next fields must be signed by nhs_signer and sent by NHS employee in base64 format (all fields below are required):
+```
+{
+"id":"09106b70-18b0-4726-b0ed-6bda1369fd52",
+"contractor_legal_entity": {
+      "id": "df9f70ee-4b12-4740-b0f5-bb5aea116863",
+      "name": "Клініка Ноунейм",
+      "edrpou": "32323454"
+    },
+"text": "static_text"
+}
+```
+
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 
@@ -4825,6 +4862,10 @@ This WS is designed to approve contract request by NHS. Contract request only in
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
+    
+    + Attributes (object)
+        + `signed_content`: `ew0KImlkIjoiMDkxMDZiNzAtMThiMC00NzI2LWIwZWQtNmJkYTEzNjlmZDUyIiwNCiJjb250cmFjdG9yX2xlZ2FsX2VudGl0eSI6IHsNCiAgICAgICJpZCI6ICJkZjlmNzBlZS00YjEyLTQ3NDAtYjBmNS1iYjVhZWExMTY4NjMiLA0KICAgICAgIm5hbWUiOiAi0JrQu9GW0L3RltC60LAg0J3QvtGD0L3QtdC50LwiLA0KICAgICAgImVkcnBvdSI6ICIzMjMyMzQ1NCINCiAgICB9LA0KInRleHQiOiAic3RhdGljX3RleHQiDQp9`(string, required) 
+        + `signed_content_encoding`: `base64` (string, required)
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
@@ -4836,6 +4877,20 @@ This WS is designed to approve contract request by NHS. Contract request only in
 ### Decline contract request by NHS [PATCH /api/contract_requests/{id}/actions/decline]
 
 This WS is designed to decline contract request by NHS. Contract request only in status NEW could be declined.
+To decline contract next fields must be signed by nhs_signer and sent by NHS employee in base64 format (all fields below are required):
+```
+{
+"id":"09106b70-18b0-4726-b0ed-6bda1369fd52",
+"contractor_legal_entity": {
+      "id": "df9f70ee-4b12-4740-b0f5-bb5aea116863",
+      "name": "Клініка Ноунейм",
+      "edrpou": "32323454"
+    },
+"status_reason": "Не відповідає попереднім домовленостям"
+"text": "static_text"
+}
+```
+
 
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -4847,7 +4902,31 @@ This WS is designed to decline contract request by NHS. Contract request only in
             Authorization: Bearer mF_9.B5f-4.1JqM
             
     + Attributes (object)
-        + `status_reason`: `Не відповідає попереднім домовленостям`(string, required) - the reason of declined status
+        + `signed_content`: `ew0KImlkIjoiMDkxMDZiNzAtMThiMC00NzI2LWIwZWQtNmJkYTEzNjlmZDUyIiwNCiJjb250cmFjdG9yX2xlZ2FsX2VudGl0eSI6IHsNCiAgICAgICJpZCI6ICJkZjlmNzBlZS00YjEyLTQ3NDAtYjBmNS1iYjVhZWExMTY4NjMiLA0KICAgICAgIm5hbWUiOiAi0JrQu9GW0L3RltC60LAg0J3QvtGD0L3QtdC50LwiLA0KICAgICAgImVkcnBvdSI6ICIzMjMyMzQ1NCINCiAgICB9LA0KInN0YXR1c19yZWFzb24iOiAi0J3QtSDQstGW0LTQv9C+0LLRltC00LDRlCDQv9C+0L/QtdGA0LXQtNC90ZbQvCDQtNC+0LzQvtCy0LvQtdC90L7RgdGC0Y/QvCINCiJ0ZXh0IjogInN0YXRpY190ZXh0Ig0KfQ==`(string, required) 
+        + `signed_content_encoding`: `base64` (string, required)
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `Contract_request_Details_Full`
+
+### Approve contract request by MSP [PATCH /api/contract_requests/{id}/actions/approve/msp]
+
+This WS is designed to approve contract request by MSP side after it was approved by NHS side. 
+Contract request only in status APPROVED can be approved by MSP and as a result status changes to 'PENDING_NHS_SIGN'.
+Only after that NHS employee can sign the contract request.
+
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+    
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
@@ -4905,7 +4984,7 @@ Object that need to be signed is returned by Get Contract request by ID response
         + data (object)
             + include `Contract_request_Details_Full`
 
-### Get Partially Signed Contract Reqeust by ID [GET /api/contract_requests/{id}/signed_conte_content]
+### Get Partially Signed Contract Reqeust by ID [GET /api/contract_requests/{id}/signed_content]
 
 This method is designed to get link with file after Contract Request has been already signed by NHS side
 
@@ -5488,6 +5567,29 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + inserted_at: `2017-03-02T10:45:16.000Z` (string, optional)
 + updated_at: `2017-03-02T10:45:16.000Z` (string, optional)
 
+### `Declaration_Request_Details_Cabinet`
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
++ declaration_number: `0000-12H4-245D` (string, required) - unique number of declaration.
++ start_date: `2017-03-02` (string, required)
++ signed_at: `2017-03-02T00:00:00.000Z` (string, required)
++ person(`Person_Short`)
+    + `emergency_contact` (`Emergency_Contact`, required)
+    + `confidant_person` (array[`Confidant_Person`], optional) - Should be set if this Person is disabled, underage, etc.
++ employee (Employee_Declaration_Short)
++ `legal_entity` (`MSP_Details`)
++ division (`Division_Details_Cabinet`)
++ status (enum, required)
+    - new
+    - approved
+    - signed
+    - expired
++ scope (enum, required)
+    - family doctor
++ `declaration_id`: `74a6fae6-4207-4e03-a136-f2e70c6b0c02` (string, required)
++ content: `Declaration content` (string, required) - HTML document that MUST be shown to a end-user and signed by hes key. - Should be defined on the client side.
++ inserted_at: `2017-03-02T10:45:16.000Z` (string, optional)
++ updated_at: `2017-03-02T10:45:16.000Z` (string, optional)
+
 ### `Declaration_list_cabinet`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - unique id of declaration
 + declaration_number: `0000-12H4-245D` (string, required) - unique number of declaration.
@@ -5496,6 +5598,20 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
     - active
     - pending_verification
     - terminated
++ person (Person_Minimal)
++ employee (`Employee_Minimal_cabinet`)
++ `legal_entity` (`MSP_Short`)
++ division (`Division_Short_List`)
+
+### `Declaration_requests_list_cabinet`
++ id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - unique id of declaration request
++ declaration_number: `0000-12H4-245D` (string, required) - unique number of declaration.
++ start_date: `2017-03-02` (string, required)
++ status (enum, required)
+    - new
+    - approved
+    - signed
+    - expired
 + person (Person_Minimal)
 + employee (`Employee_Minimal_cabinet`)
 + `legal_entity` (`MSP_Short`)
