@@ -1438,7 +1438,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "failed to save signed content", %{conn: conn} do
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
         {:error, "failed to save content"}
       end)
 
@@ -1478,7 +1478,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "success to sign contract_request", %{conn: conn} do
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -1530,6 +1530,10 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
       end)
 
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
       user_id = UUID.generate()
       party_user = insert(:prm, :party_user, user_id: user_id)
       legal_entity = insert(:prm, :legal_entity)
@@ -1550,6 +1554,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         insert(
           :il,
           :contract_request,
+          nhs_signer_id: employee_owner.id,
           contractor_legal_entity_id: legal_entity.id,
           contractor_owner_id: employee_owner.id,
           contractor_employee_divisions: [
@@ -1567,9 +1572,23 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(user_id)
 
+      data = %{
+        "id" => contract_request.id,
+        "contractor_legal_entity" => %{
+          "id" => contract_request.contractor_legal_entity_id,
+          "name" => legal_entity.name,
+          "edrpou" => legal_entity.edrpou
+        },
+        "status_reason" => "Не відповідає попереднім домовленостям",
+        "text" => "something"
+      }
+
       conn =
-        patch(conn, contract_request_path(conn, :decline, contract_request.id), %{
-          "status_reason" => "Не відповідає попереднім домовленостям"
+        conn
+        |> put_req_header("drfo", party_user.party.tax_id)
+        |> patch(contract_request_path(conn, :decline, contract_request.id), %{
+          "signed_content" => data |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
         })
 
       assert resp = json_response(conn, 200)
@@ -1602,18 +1621,36 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "user is not NHS ADMIN SIGNER", %{conn: conn} do
-      contract_request = insert(:il, :contract_request)
+      legal_entity = insert(:prm, :legal_entity)
+      user_id = UUID.generate()
+      party_user = insert(:prm, :party_user, user_id: user_id)
+
+      employee_owner =
+        insert(
+          :prm,
+          :employee,
+          legal_entity_id: legal_entity.id,
+          employee_type: Employee.type(:owner),
+          party: party_user.party
+        )
+
+      contract_request = insert(:il, :contract_request, nhs_signer_id: employee_owner.id)
 
       expect(MithrilMock, :get_user_roles, fn _, _, _ ->
         {:ok, %{"data" => [%{"role_name" => "OWNER"}]}}
       end)
 
-      legal_entity = insert(:prm, :legal_entity)
-      conn = put_client_id_header(conn, legal_entity.id)
+      conn =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(user_id)
 
       conn =
-        patch(conn, contract_request_path(conn, :decline, contract_request.id), %{
-          "status_reason" => "Не відповідає попереднім домовленостям"
+        conn
+        |> put_req_header("drfo", party_user.party.tax_id)
+        |> patch(contract_request_path(conn, :decline, contract_request.id), %{
+          "signed_content" => %{} |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
         })
 
       assert json_response(conn, 403)
@@ -1636,18 +1673,54 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "contract_request has wrong status", %{conn: conn} do
-      contract_request = insert(:il, :contract_request, status: ContractRequest.status(:signed))
+      legal_entity = insert(:prm, :legal_entity)
+      user_id = UUID.generate()
+      party_user = insert(:prm, :party_user, user_id: user_id)
+
+      employee_owner =
+        insert(
+          :prm,
+          :employee,
+          legal_entity_id: legal_entity.id,
+          employee_type: Employee.type(:owner),
+          party: party_user.party
+        )
+
+      contract_request =
+        insert(
+          :il,
+          :contract_request,
+          contractor_legal_entity_id: legal_entity.id,
+          status: ContractRequest.status(:signed),
+          nhs_signer_id: employee_owner.id
+        )
 
       expect(MithrilMock, :get_user_roles, fn _, _, _ ->
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
       end)
 
-      legal_entity = insert(:prm, :legal_entity)
-      conn = put_client_id_header(conn, legal_entity.id)
+      conn =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(user_id)
+
+      data = %{
+        "id" => contract_request.id,
+        "contractor_legal_entity" => %{
+          "id" => contract_request.contractor_legal_entity_id,
+          "name" => legal_entity.name,
+          "edrpou" => legal_entity.edrpou
+        },
+        "status_reason" => "Не відповідає попереднім домовленостям",
+        "text" => "something"
+      }
 
       conn =
-        patch(conn, contract_request_path(conn, :decline, contract_request.id), %{
-          "status_reason" => "Не відповідає попереднім домовленостям"
+        conn
+        |> put_req_header("drfo", party_user.party.tax_id)
+        |> patch(contract_request_path(conn, :decline, contract_request.id), %{
+          "signed_content" => data |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
         })
 
       assert resp = json_response(conn, 422)
@@ -1839,7 +1912,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "failed to save signed content", %{conn: conn} do
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
         {:error, "failed to save content"}
       end)
 
@@ -1875,7 +1948,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "failed to create contract", %{conn: conn} do
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -1914,7 +1987,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "success to sign contract_request", %{conn: conn} do
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
         {:ok, "success"}
       end)
 

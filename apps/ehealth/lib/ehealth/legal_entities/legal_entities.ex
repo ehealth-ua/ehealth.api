@@ -254,7 +254,7 @@ defmodule EHealth.LegalEntities do
   defp store_signed_content(id, input, headers) do
     input
     |> Map.fetch!("signed_legal_entity_request")
-    |> MediaStorage.store_signed_content(:legal_entity_bucket, id, headers)
+    |> MediaStorage.store_signed_content(:legal_entity_bucket, id, "signed_content", headers)
   end
 
   defp put_legal_entity_to_prm(%LegalEntity{__meta__: %Metadata{state: :built}} = legal_entity, attrs, headers) do

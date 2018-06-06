@@ -44,6 +44,7 @@ defmodule EHealth.MedicationRequestRequest.SignOperation do
     |> MediaStorage.store_signed_content(
       :medication_request_request_bucket,
       Map.fetch!(mrr, :medication_request_id),
+      "signed_content",
       []
     )
     |> validate_api_response(operation, mrr)

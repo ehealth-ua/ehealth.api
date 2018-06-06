@@ -38,17 +38,17 @@ defmodule EHealth.API.MediaStorage do
     post!("/media_content_storage_secrets", Jason.encode!(data), headers)
   end
 
-  def store_signed_content(signed_content, bucket, id, headers) do
-    store_signed_content(config()[:enabled?], bucket, signed_content, id, headers)
+  def store_signed_content(signed_content, bucket, id, resource_name, headers) do
+    store_signed_content(config()[:enabled?], bucket, signed_content, id, resource_name, headers)
   end
 
-  def store_signed_content(true, bucket, signed_content, id, headers) do
+  def store_signed_content(true, bucket, signed_content, id, resource_name, headers) do
     "PUT"
-    |> create_signed_url(config()[bucket], "signed_content", id, headers)
+    |> create_signed_url(config()[bucket], resource_name, id, headers)
     |> put_signed_content(signed_content)
   end
 
-  def store_signed_content(false, _bucket, _signed_content, _id, _headers) do
+  def store_signed_content(false, _bucket, _signed_content, _id, _, _headers) do
     {:ok, "Media Storage is disabled in config"}
   end
 

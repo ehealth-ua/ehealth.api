@@ -206,6 +206,7 @@ defmodule EHealth.DeclarationRequests.API.Sign do
     |> MediaStorage.store_signed_content(
       :declaration_bucket,
       Map.fetch!(declaration_request, :declaration_id),
+      "signed_content",
       headers
     )
     |> case do

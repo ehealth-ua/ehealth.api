@@ -159,16 +159,25 @@ defmodule EHealth.ContractRequests do
     end
   end
 
-  def decline(headers, params) do
+  def decline(headers, %{"id" => id} = params) do
     user_id = get_consumer_id(headers)
     client_id = get_client_id(headers)
+    params = Map.delete(params, "id")
 
-    with {:ok, %{"data" => data}} <- @mithril_api.get_user_roles(user_id, %{}, headers),
+    with %ContractRequest{} = contract_request <- get_by_id(id),
+         references <- preload_references(contract_request),
+         :ok <- JsonSchema.validate(:contract_request_sign, params),
+         {:ok, content, signer} <- decode_signed_content(:nhs, params, headers),
+         :ok <- validate_signer_drfo(contract_request.nhs_signer_id, signer["drfo"], "$.nhs_signer_id"),
+         {:ok, %{"data" => data}} <- @mithril_api.get_user_roles(user_id, %{}, headers),
          :ok <- user_has_role(data, "NHS ADMIN SIGNER"),
-         %ContractRequest{} = contract_request <- Repo.get(ContractRequest, params["id"]),
+         :ok <- JsonSchema.validate(:contract_request_decline, content),
+         :ok <- validate_decline_content(content, contract_request, references),
          :ok <- validate_status(contract_request, ContractRequest.status(:new)),
+         :ok <- save_signed_content(contract_request.id, params, headers, "contract_request_declined"),
          update_params <-
-           params
+           content
+           |> Map.take(~w(status_reason))
            |> Map.put("status", ContractRequest.status(:declined))
            |> Map.put("nhs_signer_id", user_id)
            |> Map.put("nhs_legal_entity_id", client_id)
@@ -392,9 +401,9 @@ defmodule EHealth.ContractRequests do
       else: {:error, {:"422", "Signed content does not match the previously created content"}}
   end
 
-  defp save_signed_content(id, %{"signed_content" => signed_content}, headers) do
+  defp save_signed_content(id, %{"signed_content" => signed_content}, headers, resource_name \\ "signed_content") do
     signed_content
-    |> @media_storage_api.store_signed_content(:contract_request_bucket, id, headers)
+    |> @media_storage_api.store_signed_content(:contract_request_bucket, id, resource_name, headers)
     |> case do
       {:ok, _} -> :ok
       _error -> {:error, {:bad_gateway, "Failed to save signed content"}}
@@ -1241,5 +1250,23 @@ defmodule EHealth.ContractRequests do
     data
     |> Jason.encode!()
     |> Jason.decode!()
+  end
+
+  defp validate_decline_content(content, contract_request, references) do
+    data =
+      ContractRequestView
+      |> Phoenix.View.render(
+        "contract_request_decline.json",
+        contract_request: contract_request,
+        references: references
+      )
+      |> Jason.encode!()
+      |> Jason.decode!()
+
+    if data == Map.drop(content, ~w(status_reason text)) do
+      :ok
+    else
+      {:error, {:bad_request, "Signed content doesn't match with contract request"}}
+    end
   end
 end
