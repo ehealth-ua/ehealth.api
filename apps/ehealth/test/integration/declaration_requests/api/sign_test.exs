@@ -15,7 +15,9 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
     test "returns error when status is not APPROVED" do
       declaration_request = insert(:il, :declaration_request, status: "ACTIVE")
       result = check_status(declaration_request)
+
       expected_result = {:error, [{%{description: "incorrect status", params: [], rule: :invalid}, "$.status"}]}
+
       assert expected_result == result
     end
 
@@ -30,7 +32,10 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
       result = check_patient_signed("")
 
       expected_result =
-        {:error, [{%{description: "Can not be empty", params: [], rule: :invalid}, "$.declaration_request"}]}
+        {:error,
+         [
+           {%{description: "Can not be empty", params: [], rule: :invalid}, "$.declaration_request"}
+         ]}
 
       assert expected_result == result
     end
@@ -41,7 +46,9 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
 
       expected_result =
         {:error,
-         [{%{description: "Patient must sign declaration form", params: [], rule: :invalid}, "$.person.patient_signed"}]}
+         [
+           {%{description: "Patient must sign declaration form", params: [], rule: :invalid}, "$.person.patient_signed"}
+         ]}
 
       assert expected_result == result
     end
@@ -62,6 +69,10 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
 
   describe "compare_with_db/1" do
     test "returns error when data does not match" do
+      expect(OPSMock, :get_latest_block, fn _params ->
+        {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
+      end)
+
       db_data = %DeclarationRequest{data: %{"person" => %{"key" => "another_value"}}}
       input_data = %{"person" => %{"key" => "value"}}
       result = compare_with_db(input_data, db_data)
@@ -69,14 +80,21 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
       expected_result =
         {:error,
          [
-           {%{description: "Signed content does not match the previously created content", params: [], rule: :invalid},
-            "$.content"}
+           {%{
+              description: "Signed content does not match the previously created content",
+              params: [],
+              rule: :invalid
+            }, "$.content"}
          ]}
 
       assert expected_result == result
     end
 
     test "returns expected result when data matches" do
+      expect(OPSMock, :get_latest_block, fn _params ->
+        {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
+      end)
+
       id = UUID.generate()
 
       db_data = %DeclarationRequest{
@@ -167,7 +185,13 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
         {:ok, %{"data" => params}}
       end)
 
-      person = %{"first_name" => "test", "birth_date" => "1990-01-01", "last_name" => "test", "patient_signed" => false}
+      person = %{
+        "first_name" => "test",
+        "birth_date" => "1990-01-01",
+        "last_name" => "test",
+        "patient_signed" => false
+      }
+
       uuid = "6e8d4595-e83c-4f97-be76-c6e2b96b05f1"
 
       assert {:ok,
@@ -231,7 +255,13 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
         {:ok, %{"data" => Map.put(params, "id", id)}}
       end)
 
-      person = %{"first_name" => "test", "birth_date" => "1990-01-01", "last_name" => "test", "patient_signed" => false}
+      person = %{
+        "first_name" => "test",
+        "birth_date" => "1990-01-01",
+        "last_name" => "test",
+        "patient_signed" => false
+      }
+
       uuid = UUID.generate()
 
       assert {:ok,
@@ -248,29 +278,11 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
   end
 
   describe "create_declaration_with_termination_logic/2" do
-    defmodule OPSMock do
-      use MicroservicesHelper
-
-      Plug.Router.post "/declarations/with_termination" do
-        %{"declaration_request_id" => _} = conn.body_params
-        send_resp(conn, 200, Jason.encode!(%{data: conn.body_params}))
-      end
-    end
-
-    setup do
-      {:ok, port, ref} = start_microservices(OPSMock)
-
-      System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
-
-      on_exit(fn ->
-        System.put_env("OPS_ENDPOINT", "http://localhost:4040")
-        stop_microservices(ref)
+    test "returns expected result" do
+      expect(OPSMock, :create_declaration_with_termination_logic, fn params, _headers ->
+        {:ok, EHealth.MockServer.wrap_response(params)}
       end)
 
-      :ok
-    end
-
-    test "returns expected result" do
       %{data: declaration_request_data} =
         declaration_request =
         insert(
@@ -287,7 +299,9 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
       x_consumer_id_header = {"x-consumer-id", client_id}
 
       {:ok, %{"data" => data}} =
-        create_declaration_with_termination_logic(person_data, declaration_request, [x_consumer_id_header])
+        create_declaration_with_termination_logic(person_data, declaration_request, [
+          x_consumer_id_header
+        ])
 
       assert false === data["overlimit"]
       assert client_id == data["created_by"]
@@ -305,29 +319,62 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
     end
 
     test "returns active status when authentication_method_current.type == NA" do
+      expect(OPSMock, :create_declaration_with_termination_logic, fn params, _headers ->
+        {:ok, EHealth.MockServer.wrap_response(params)}
+      end)
+
       declaration_request =
-        insert(:il, :declaration_request, status: "ACTIVE", authentication_method_current: %{"type" => "NA"})
+        insert(
+          :il,
+          :declaration_request,
+          status: "ACTIVE",
+          authentication_method_current: %{"type" => "NA"}
+        )
 
       person_data = %{"data" => %{"id" => ""}}
+
       {:ok, %{"data" => data}} = create_declaration_with_termination_logic(person_data, declaration_request, [])
+
       assert "active" == data["status"]
     end
 
     test "returns pending_validation status when authentication_method_current.type == OFFLINE" do
+      expect(OPSMock, :create_declaration_with_termination_logic, fn params, _headers ->
+        {:ok, EHealth.MockServer.wrap_response(params)}
+      end)
+
       declaration_request =
-        insert(:il, :declaration_request, status: "ACTIVE", authentication_method_current: %{"type" => "OFFLINE"})
+        insert(
+          :il,
+          :declaration_request,
+          status: "ACTIVE",
+          authentication_method_current: %{"type" => "OFFLINE"}
+        )
 
       person_data = %{"data" => %{"id" => ""}}
+
       {:ok, %{"data" => data}} = create_declaration_with_termination_logic(person_data, declaration_request, [])
+
       assert "pending_verification" == data["status"]
     end
 
     test "returns empty status when authentication_method_current.type is unknown" do
+      expect(OPSMock, :create_declaration_with_termination_logic, fn params, _headers ->
+        {:ok, EHealth.MockServer.wrap_response(params)}
+      end)
+
       declaration_request =
-        insert(:il, :declaration_request, status: "ACTIVE", authentication_method_current: %{"type" => "SOME_TYPE"})
+        insert(
+          :il,
+          :declaration_request,
+          status: "ACTIVE",
+          authentication_method_current: %{"type" => "SOME_TYPE"}
+        )
 
       person_data = %{"data" => %{"id" => ""}}
+
       {:ok, %{"data" => data}} = create_declaration_with_termination_logic(person_data, declaration_request, [])
+
       assert "" == data["status"]
     end
   end
@@ -335,7 +382,14 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
   describe "update_declaration_request_status/2" do
     test "updates declaration request status to SIGNED and drops unnecessary fields in response" do
       declaration_request = insert(:il, :declaration_request, status: "ACTIVE")
-      declaration_response_data = %{"updated_by" => "", "updated_at" => "", "created_by" => "", "another_key" => ""}
+
+      declaration_response_data = %{
+        "updated_by" => "",
+        "updated_at" => "",
+        "created_by" => "",
+        "another_key" => ""
+      }
+
       declaration_response = %{"data" => declaration_response_data}
       {:ok, data} = update_declaration_request_status(declaration_request, declaration_response)
       refute Map.has_key?(data, "updated_by")

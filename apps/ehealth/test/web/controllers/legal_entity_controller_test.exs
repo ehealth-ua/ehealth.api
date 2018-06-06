@@ -289,6 +289,10 @@ defmodule EHealth.Web.LegalEntityControllerTest do
         {:ok, %{"data" => []}}
       end)
 
+      expect(OPSMock, :terminate_employee_declarations, fn _id, _user_id, "auto_employee_deactivate", "", _headers ->
+        {:ok, %{}}
+      end)
+
       %{id: id} = insert(:prm, :legal_entity)
 
       employee =

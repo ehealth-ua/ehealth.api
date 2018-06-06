@@ -36,7 +36,11 @@ defmodule EHealth.MockServer do
   # Mithril
 
   get "/admin/clients" do
-    Plug.Conn.send_resp(conn, 200, [get_oauth_client()] |> wrap_response_with_paging() |> Jason.encode!())
+    Plug.Conn.send_resp(
+      conn,
+      200,
+      [get_oauth_client()] |> wrap_response_with_paging() |> Jason.encode!()
+    )
   end
 
   patch "/admin/clients/:client_id/refresh_secret" do
@@ -246,34 +250,17 @@ defmodule EHealth.MockServer do
     end
   end
 
-  # OPS
-  get "/declarations/:id" do
-    case conn.path_params["id"] do
-      "156b4182-f9ce-4eda-b6af-43d2de8601z2" -> render(get_declaration(), conn, 200)
-      _ -> render_404(conn)
-    end
-  end
-
-  post "/declarations/with_termination" do
-    render(Map.merge(conn.body_params, %{data: %{}}), conn, 200)
-  end
-
-  get "/latest_block" do
-    render(%{"hash" => "some_current_hash"}, conn, 200)
-  end
-
-  patch "/employees/:id/declarations/actions/terminate" do
-    case conn.params do
-      %{"id" => _, "user_id" => _} -> render([], conn, 200)
-      _ -> render([], conn, 404)
-    end
-  end
-
   def get_declaration("terminated") do
     nil |> get_declaration() |> Map.put("status", "terminated")
   end
 
-  def get_declaration(id \\ nil, legal_entity_id \\ nil, division_id \\ nil, employee_id \\ nil, person_id \\ nil) do
+  def get_declaration(
+        id \\ nil,
+        legal_entity_id \\ nil,
+        division_id \\ nil,
+        employee_id \\ nil,
+        person_id \\ nil
+      ) do
     %{
       "id" => id || "156b4182-f9ce-4eda-b6af-43d2de8601z2",
       "legal_entity_id" => legal_entity_id || "7cc91a5d-c02f-41e9-b571-1ea4f2375552",
@@ -358,7 +345,10 @@ defmodule EHealth.MockServer do
     }
   end
 
-  def get_oauth_user_role(user_id \\ "userid", client_id \\ "f9bd4210-7c4b-40b6-957f-300829ad37dc") do
+  def get_oauth_user_role(
+        user_id \\ "userid",
+        client_id \\ "f9bd4210-7c4b-40b6-957f-300829ad37dc"
+      ) do
     %{
       "id" => "7488a646-e31f-11e4-aace-600308960611",
       "user_id" => user_id,
@@ -378,7 +368,10 @@ defmodule EHealth.MockServer do
     }
   end
 
-  def get_oauth_users(%{"ids" => @user_for_role_1 <> "," <> @user_for_role_2, "is_blocked" => "true"}) do
+  def get_oauth_users(%{
+        "ids" => @user_for_role_1 <> "," <> @user_for_role_2,
+        "is_blocked" => "true"
+      }) do
     [get_oauth_user(@user_for_role_1), get_oauth_user(@user_for_role_1)]
   end
 

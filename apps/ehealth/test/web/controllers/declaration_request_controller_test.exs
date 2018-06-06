@@ -189,7 +189,9 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
         {:ok, %{"data" => %{"secret_url" => "http://localhost/good_upload_1"}}}
       end)
 
-      expect(MediaStorageMock, :verify_uploaded_file, fn _, _ -> {:ok, %HTTPoison.Response{status_code: 200}} end)
+      expect(MediaStorageMock, :verify_uploaded_file, fn _, _ ->
+        {:ok, %HTTPoison.Response{status_code: 200}}
+      end)
 
       party = insert(:prm, :party)
       %{id: employee_id} = insert(:prm, :employee, party: party)
@@ -478,6 +480,14 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
 
   describe "sign declaration request" do
     test "success", %{conn: conn} do
+      expect(OPSMock, :create_declaration_with_termination_logic, fn params, _headers ->
+        {:ok, EHealth.MockServer.wrap_response(params)}
+      end)
+
+      expect(OPSMock, :get_latest_block, fn _params ->
+        {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
+      end)
+
       expect(MPIMock, :search, fn _params, _headers ->
         {:ok, %{"data" => []}}
       end)
@@ -515,7 +525,9 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
             "legal_entity" => data["legal_entity"]
           },
           printout_content: data["content"],
-          authentication_method_current: %{"type" => DeclarationRequest.authentication_method(:na)}
+          authentication_method_current: %{
+            "type" => DeclarationRequest.authentication_method(:na)
+          }
         )
 
       signed_declaration_request =
@@ -537,6 +549,10 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
 
     test "can't insert person", %{conn: conn} do
+      expect(OPSMock, :get_latest_block, fn _params ->
+        {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
+      end)
+
       expect(MPIMock, :search, fn _params, _headers ->
         {:ok, %{"data" => []}}
       end)
@@ -593,7 +609,9 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
             "legal_entity" => data["legal_entity"]
           },
           printout_content: data["content"],
-          authentication_method_current: %{"type" => DeclarationRequest.authentication_method(:na)}
+          authentication_method_current: %{
+            "type" => DeclarationRequest.authentication_method(:na)
+          }
         )
 
       signed_declaration_request =

@@ -4,7 +4,6 @@ defmodule EHealth.DeclarationRequests.API.Sign do
   import Ecto.Changeset
   import EHealth.Utils.Connection
   alias EHealth.API.MediaStorage
-  alias EHealth.API.OPS
   alias EHealth.API.Signature
   alias EHealth.DeclarationRequests
   alias EHealth.DeclarationRequests.API.Persons
@@ -18,6 +17,7 @@ defmodule EHealth.DeclarationRequests.API.Sign do
   require Logger
 
   @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
+  @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]
 
   @auth_na DeclarationRequest.authentication_method(:na)
   @auth_otp DeclarationRequest.authentication_method(:otp)
@@ -87,11 +87,16 @@ defmodule EHealth.DeclarationRequests.API.Sign do
 
   def check_is_valid(err), do: err
 
-  defp do_check_is_valid(%{"content" => content, "signatures" => [%{"is_valid" => true, "signer" => signer}]}),
-    do: {:ok, %{"content" => content, "signer" => signer}}
+  defp do_check_is_valid(%{
+         "content" => content,
+         "signatures" => [%{"is_valid" => true, "signer" => signer}]
+       }),
+       do: {:ok, %{"content" => content, "signer" => signer}}
 
-  defp do_check_is_valid(%{"signatures" => [%{"is_valid" => false, "validation_error_message" => error}]}),
-    do: {:error, {:bad_request, error}}
+  defp do_check_is_valid(%{
+         "signatures" => [%{"is_valid" => false, "validation_error_message" => error}]
+       }),
+       do: {:error, {:bad_request, error}}
 
   defp do_check_is_valid(%{"signatures" => signatures}) when is_list(signatures),
     do:
@@ -198,7 +203,11 @@ defmodule EHealth.DeclarationRequests.API.Sign do
 
     input
     |> Map.fetch!("signed_declaration_request")
-    |> MediaStorage.store_signed_content(:declaration_bucket, Map.fetch!(declaration_request, :declaration_id), headers)
+    |> MediaStorage.store_signed_content(
+      :declaration_bucket,
+      Map.fetch!(declaration_request, :declaration_id),
+      headers
+    )
     |> case do
       {:ok, _} -> :ok
       err -> err
@@ -212,7 +221,11 @@ defmodule EHealth.DeclarationRequests.API.Sign do
     response =
       case @mpi_api.search(Persons.get_search_params(person_params), headers) do
         {:ok, %{"data" => [person]}} ->
-          @mpi_api.update_person(person["id"], Map.put(person_params, "patient_signed", true), headers)
+          @mpi_api.update_person(
+            person["id"],
+            Map.put(person_params, "patient_signed", true),
+            headers
+          )
 
         {:ok, %{"data" => _}} ->
           person_params
@@ -228,9 +241,11 @@ defmodule EHealth.DeclarationRequests.API.Sign do
   end
 
   defp create_or_update_person_response({:ok, %Response{status_code: 409}}), do: {:conflict, "person is not active"}
+
   defp create_or_update_person_response({:ok, %Response{status_code: 404}}), do: {:conflict, "person is not found"}
 
-  defp create_or_update_person_response({:ok, %Response{body: person, status_code: code}}) when code in [200, 201] do
+  defp create_or_update_person_response({:ok, %Response{body: person, status_code: code}})
+       when code in [200, 201] do
     Jason.decode(person)
   end
 
@@ -271,7 +286,7 @@ defmodule EHealth.DeclarationRequests.API.Sign do
       "overlimit" => overlimit,
       "declaration_number" => declaration_number
     })
-    |> OPS.create_declaration_with_termination_logic(headers)
+    |> @ops_api.create_declaration_with_termination_logic(headers)
   end
 
   def update_declaration_request_status(%DeclarationRequest{} = declaration_request, declaration) do
@@ -321,7 +336,7 @@ defmodule EHealth.DeclarationRequests.API.Sign do
   end
 
   defp current_hash(headers) do
-    {:ok, %{"data" => %{"hash" => hash}}} = OPS.get_latest_block(headers)
+    {:ok, %{"data" => %{"hash" => hash}}} = @ops_api.get_latest_block(headers)
     hash
   end
 

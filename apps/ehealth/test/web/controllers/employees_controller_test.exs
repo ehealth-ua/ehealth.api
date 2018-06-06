@@ -397,6 +397,10 @@ defmodule EHealth.Web.EmployeesControllerTest do
         {:ok, %{"data" => [%{"id" => doctor.party_id, "declaration_count" => 10}]}}
       end)
 
+      expect(OPSMock, :terminate_employee_declarations, fn _id, _user_id, "auto_employee_deactivate", "", _headers ->
+        {:ok, %{}}
+      end)
+
       conn = put_client_id_header(conn, legal_entity.id)
       conn = patch(conn, employee_path(conn, :deactivate, doctor.id))
 
@@ -408,6 +412,10 @@ defmodule EHealth.Web.EmployeesControllerTest do
     test "successful pharmacist", %{conn: conn, pharmacist: pharmacist, legal_entity: legal_entity} do
       expect(ReportMock, :get_declaration_count, fn _, _ ->
         {:ok, %{"data" => [%{"id" => pharmacist.party_id, "declaration_count" => 10}]}}
+      end)
+
+      expect(OPSMock, :terminate_employee_declarations, fn _id, _user_id, "auto_employee_deactivate", "", _headers ->
+        {:ok, %{}}
       end)
 
       conn = put_client_id_header(conn, legal_entity.id)

@@ -3,7 +3,6 @@ defmodule EHealth.Employees.EmployeeUpdater do
 
   import EHealth.Utils.Connection, only: [get_consumer_id: 1]
 
-  alias EHealth.API.OPS
   alias EHealth.API.Mithril
   alias EHealth.PartyUsers
   alias EHealth.Employees
@@ -19,6 +18,8 @@ defmodule EHealth.Employees.EmployeeUpdater do
   @status_approved Employee.status(:approved)
   @status_dismissed Employee.status(:dismissed)
 
+  @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]
+
   def deactivate(%{"id" => id} = params, headers, with_owner \\ false) do
     user_id = get_consumer_id(headers)
     legal_entity_id = Map.get(params, "legal_entity_id")
@@ -28,7 +29,14 @@ defmodule EHealth.Employees.EmployeeUpdater do
          :ok <- check_transition(employee, with_owner),
          active_employees <- get_active_employees(employee),
          :ok <- revoke_user_auth_data(employee, active_employees, headers),
-         {:ok, _} <- OPS.terminate_employee_declarations(id, user_id, "auto_employee_deactivate", "", headers) do
+         {:ok, _} <-
+           @ops_api.terminate_employee_declarations(
+             id,
+             user_id,
+             "auto_employee_deactivate",
+             "",
+             headers
+           ) do
       set_employee_status_as_dismissed(employee, headers)
     end
   end
@@ -71,7 +79,8 @@ defmodule EHealth.Employees.EmployeeUpdater do
 
   def revoke_user_auth_data(_employee, _headers), do: :ok
 
-  defp revoke_user_auth_data(%Employee{} = employee, active_employees, headers) when length(active_employees) <= 1 do
+  defp revoke_user_auth_data(%Employee{} = employee, active_employees, headers)
+       when length(active_employees) <= 1 do
     revoke_user_auth_data(employee, headers)
   end
 
