@@ -184,6 +184,7 @@ defmodule EHealth.Man.Templates.ContractRequestPrintoutForm do
       external_contractor
       |> Map.take(~w(contract divisions))
       |> format_date(~w(contract expires_at))
+      |> format_date(~w(contract issued_at))
       |> Map.put("legal_entity", legal_entity)
     end)
   end
