@@ -104,6 +104,10 @@ defmodule EHealth.Web.Cabinet.DeclarationControllerTest do
 
   describe "approve declaration_request" do
     test "success approve", %{conn: conn} do
+      expect(MPIMock, :person, fn id, _headers ->
+        mpi_get_person(id, 200, %{tax_id: "12341234"})
+      end)
+
       expect(OPSMock, :get_declarations_count, fn _, _ ->
         {:ok, %{"data" => %{"count" => 10}}}
       end)

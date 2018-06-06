@@ -88,6 +88,8 @@ defmodule EHealth.DeclarationRequests do
          :ok <- validate_channel(declaration_request, @channel_cabinet),
          {:ok, %{"data" => user}} <- Mithril.get_user_by_id(user_id, headers),
          :ok <- check_user_person_id(user, declaration_request.mpi_id),
+         {:ok, person} <- Reference.validate(:person, declaration_request.mpi_id),
+         :ok <- validate_tax_id(user["tax_id"], person["tax_id"]),
          updates <-
            changeset(declaration_request, %{
              status: @status_approved,
