@@ -307,6 +307,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
            "data" => [
              %{
                "id" => contract_id,
+               "status" => "VERIFIED",
                "contractor_legal_entity_id" => legal_entity.id,
                "start_date" => Date.to_iso8601(start_date),
                "end_date" => Date.to_iso8601(Date.add(now, 30))

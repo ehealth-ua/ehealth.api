@@ -1113,20 +1113,35 @@ defmodule EHealth.ContractRequests do
     start_date = Date.from_iso8601!(start_date)
     end_date = Date.from_iso8601!(end_date)
 
-    if start_date.year == end_date.year and Date.compare(start_date, end_date) != :gt do
-      :ok
-    else
-      {:error,
-       [
-         {
-           %{
-             description: "The year of start_date and and date must be equal",
-             params: [],
-             rule: :invalid
-           },
-           "$.end_date"
-         }
-       ]}
+    cond do
+      start_date.year != end_date.year ->
+        {:error,
+         [
+           {
+             %{
+               description: "The year of start_date and and date must be equal",
+               params: [],
+               rule: :invalid
+             },
+             "$.end_date"
+           }
+         ]}
+
+      Date.compare(start_date, end_date) == :gt ->
+        {:error,
+         [
+           {
+             %{
+               description: "end_date should be equal or greater than start_date",
+               params: [],
+               rule: :invalid
+             },
+             "$.end_date"
+           }
+         ]}
+
+      true ->
+        :ok
     end
   end
 
@@ -1232,11 +1247,13 @@ defmodule EHealth.ContractRequests do
 
   defp validate_contract_number(%{"contract_number" => contract_number} = params, headers)
        when not is_nil(contract_number) do
-    with {:ok, %{"data" => [contract]}} <-
-           @ops_api.get_contracts(%{"contract_number" => contract_number, "status" => "VERIFIED"}, headers) do
+    with {:contract_exists, {:ok, %{"data" => [contract]}}} <-
+           {:contract_exists, @ops_api.get_contracts(%{"contract_number" => contract_number}, headers)},
+         true <- contract["status"] == "VERIFIED" do
       {:ok, Map.put(params, "parent_contract_id", contract["id"]), contract}
     else
-      _ -> {:error, {:"422", "There is no active contract with such contract_number"}}
+      {:contract_exists, _} -> {:error, {:"422", "Contract with such contract number does not exist"}}
+      false -> {:error, {:conflict, "Can not update terminated contract"}}
     end
   end
 
