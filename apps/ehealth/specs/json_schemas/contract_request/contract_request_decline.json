@@ -27,7 +27,8 @@
                 "id",
                 "name",
                 "edrpou"
-            ]
+            ],
+            "additionalProperties": false
         },
         "status_reason": {
             "type": "string",
@@ -43,5 +44,6 @@
         "contractor_legal_entity",
         "status_reason",
         "text"
-    ]
+    ],
+    "additionalProperties": false
 }
