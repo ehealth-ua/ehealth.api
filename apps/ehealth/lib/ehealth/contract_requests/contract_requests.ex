@@ -168,7 +168,8 @@ defmodule EHealth.ContractRequests do
          references <- preload_references(contract_request),
          :ok <- JsonSchema.validate(:contract_request_sign, params),
          {:ok, content, signer} <- decode_signed_content(:nhs, params, headers),
-         :ok <- validate_signer_drfo(contract_request.nhs_signer_id, signer["drfo"], "$.nhs_signer_id"),
+         {_, %Party{tax_id: tax_id}} <- {:employee, Parties.get_by_user_id(user_id)},
+         :ok <- validate_signer_drfo(tax_id, signer["drfo"]),
          {:ok, %{"data" => data}} <- @mithril_api.get_user_roles(user_id, %{}, headers),
          :ok <- user_has_role(data, "NHS ADMIN SIGNER"),
          :ok <- JsonSchema.validate(:contract_request_decline, content),
@@ -186,6 +187,9 @@ defmodule EHealth.ContractRequests do
          {:ok, contract_request} <- Repo.update(changes),
          _ <- EventManager.insert_change_status(contract_request, contract_request.status, user_id) do
       {:ok, contract_request, preload_references(contract_request)}
+    else
+      {:employee, _} -> {:error, {:forbidden, "User is not allowed to this action by client_id"}}
+      error -> error
     end
   end
 
