@@ -500,13 +500,21 @@ defmodule EHealth.ContractRequests do
     contract_request
     |> cast(
       params,
-      ~w(nhs_legal_entity_id nhs_signer_id nhs_signer_base nhs_contract_price nhs_payment_method issue_city)a
+      ~w(
+        nhs_legal_entity_id
+        nhs_signer_id
+        nhs_signer_base
+        nhs_contract_price
+        nhs_payment_method
+        issue_city
+        misc
+      )a
     )
     |> validate_number(:nhs_contract_price, greater_than: 0)
   end
 
   def approve_changeset(%ContractRequest{} = contract_request, params) do
-    fields = ~w(
+    fields_required = ~w(
       nhs_legal_entity_id
       nhs_signer_id
       nhs_signer_base
@@ -518,9 +526,11 @@ defmodule EHealth.ContractRequests do
       contract_number
     )a
 
+    fields_optional = ~w(misc)a
+
     contract_request
-    |> cast(params, fields)
-    |> validate_required(fields)
+    |> cast(params, fields_required ++ fields_optional)
+    |> validate_required(fields_required)
   end
 
   def terminate_changeset(%ContractRequest{} = contract_request, params) do

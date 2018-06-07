@@ -50,6 +50,7 @@ defmodule EHealth.ContractRequests.ContractRequest do
     field(:printout_content, :string)
     field(:id_form, :string)
     field(:data, :map)
+    field(:misc, :string)
     field(:inserted_by, UUID)
     field(:updated_by, UUID)
 

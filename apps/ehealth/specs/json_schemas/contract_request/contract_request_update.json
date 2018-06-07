@@ -26,6 +26,9 @@
             "type": "string",
             "minLength": 1,
             "description": "place of contract request"
+        },
+        "misc": {
+            "type": "string"
         }
     },
     "additionalProperties": false
