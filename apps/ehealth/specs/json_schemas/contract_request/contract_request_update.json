@@ -4,22 +4,27 @@
     "properties": {
         "nhs_signer_id": {
             "type": "string",
-            "description": "id of signer of nhs side"
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+            "description": "id of signer from nhs side"
         },
         "nhs_signer_base": {
             "type": "string",
+            "minLength": 1,
             "description": "documents which allows to represent nhs"
         },
         "nhs_contract_price": {
             "type": "number",
+            "minimum": 0,
+            "exclusiveMinimum": true,
             "description": "contract price"
         },
         "nhs_payment_method": {
             "type": "string",
-            "description": "Dictionary: CONTRACT_PAYMENT_METHOD"
+            "description": "payment method for contract Dictionary: CONTRACT_PAYMENT_METHOD"
         },
         "issue_city": {
             "type": "string",
+            "minLength": 1,
             "description": "place of contract request"
         }
     },

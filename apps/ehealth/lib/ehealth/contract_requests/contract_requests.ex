@@ -124,8 +124,7 @@ defmodule EHealth.ContractRequests do
            |> Map.put("nhs_legal_entity_id", client_id)
            |> Map.put("updated_by", user_id),
          %Ecto.Changeset{valid?: true} = changes <- update_changeset(contract_request, update_params),
-         {:ok, contract_request} <- Repo.update(changes),
-         _ <- EventManager.insert_change_status(contract_request, contract_request.status, user_id) do
+         {:ok, contract_request} <- Repo.update(changes) do
       {:ok, contract_request, preload_references(contract_request)}
     end
   end
