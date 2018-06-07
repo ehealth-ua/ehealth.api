@@ -88,6 +88,18 @@ defmodule EHealth.Web.ContractRequestView do
     }
   end
 
+  def render("contract_request_approve.json", %{contract_request: contract_request, references: references}) do
+    contractor_legal_entity =
+      references
+      |> Map.get(:legal_entity)
+      |> Map.get(contract_request.contractor_legal_entity_id)
+
+    %{
+      "id" => contract_request.id,
+      "contractor_legal_entity" => Map.take(contractor_legal_entity, ~w(id name edrpou)a)
+    }
+  end
+
   def render_association(_, _, nil), do: nil
 
   def render_association(:legal_entity, references, id) do

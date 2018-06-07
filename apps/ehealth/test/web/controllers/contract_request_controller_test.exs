@@ -552,9 +552,32 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         {:ok, %{"data" => [%{"role_name" => "OWNER"}]}}
       end)
 
+      user_id = UUID.generate()
+      party_user = insert(:prm, :party_user, user_id: user_id)
       legal_entity = insert(:prm, :legal_entity)
-      conn = put_client_id_header(conn, legal_entity.id)
-      conn = patch(conn, contract_request_path(conn, :approve, contract_request.id))
+
+      conn =
+        conn
+        |> put_consumer_id_header(user_id)
+        |> put_client_id_header(legal_entity.id)
+        |> put_req_header("drfo", party_user.party.tax_id)
+
+      data = %{
+        "id" => contract_request.id,
+        "contractor_legal_entity" => %{
+          "id" => contract_request.contractor_legal_entity_id,
+          "name" => legal_entity.name,
+          "edrpou" => legal_entity.edrpou
+        },
+        "text" => "something"
+      }
+
+      conn =
+        patch(conn, contract_request_path(conn, :approve, contract_request.id), %{
+          "signed_content" => data |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+
       assert json_response(conn, 403)
     end
 
@@ -570,15 +593,49 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "contract_request has wrong status", %{conn: conn} do
-      contract_request = insert(:il, :contract_request, status: ContractRequest.status(:signed))
+      legal_entity = insert(:prm, :legal_entity)
+
+      contract_request =
+        insert(
+          :il,
+          :contract_request,
+          status: ContractRequest.status(:signed),
+          contractor_legal_entity_id: legal_entity.id
+        )
 
       expect(MithrilMock, :get_user_roles, fn _, _, _ ->
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
       end)
 
-      legal_entity = insert(:prm, :legal_entity)
-      conn = put_client_id_header(conn, legal_entity.id)
-      conn = patch(conn, contract_request_path(conn, :approve, contract_request.id))
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
+      user_id = UUID.generate()
+      party_user = insert(:prm, :party_user, user_id: user_id)
+
+      conn =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("drfo", party_user.party.tax_id)
+
+      data = %{
+        "id" => contract_request.id,
+        "contractor_legal_entity" => %{
+          "id" => legal_entity.id,
+          "name" => legal_entity.name,
+          "edrpou" => legal_entity.edrpou
+        },
+        "text" => "something"
+      }
+
+      conn =
+        patch(conn, contract_request_path(conn, :approve, contract_request.id), %{
+          "signed_content" => data |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+
       assert resp = json_response(conn, 422)
 
       assert %{
@@ -595,10 +652,33 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
       end)
 
+      user_id = UUID.generate()
       legal_entity = insert(:prm, :legal_entity)
+      party_user = insert(:prm, :party_user, user_id: user_id)
       contract_request = insert(:il, :contract_request, contractor_legal_entity_id: UUID.generate())
-      conn = put_client_id_header(conn, legal_entity.id)
-      conn = patch(conn, contract_request_path(conn, :approve, contract_request.id))
+
+      data = %{
+        "id" => contract_request.id,
+        "contractor_legal_entity" => %{
+          "id" => contract_request.contractor_legal_entity_id,
+          "name" => legal_entity.name,
+          "edrpou" => legal_entity.edrpou
+        },
+        "text" => "something"
+      }
+
+      conn =
+        conn
+        |> put_consumer_id_header(user_id)
+        |> put_client_id_header(legal_entity.id)
+        |> put_req_header("drfo", party_user.party.tax_id)
+
+      conn =
+        patch(conn, contract_request_path(conn, :approve, contract_request.id), %{
+          "signed_content" => data |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+
       assert resp = json_response(conn, 422)
 
       assert %{
@@ -623,11 +703,38 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
       end)
 
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
+      user_id = UUID.generate()
       legal_entity = insert(:prm, :legal_entity, status: LegalEntity.status(:closed))
       contract_request = insert(:il, :contract_request, contractor_legal_entity_id: legal_entity.id)
       legal_entity = insert(:prm, :legal_entity)
-      conn = put_client_id_header(conn, legal_entity.id)
-      conn = patch(conn, contract_request_path(conn, :approve, contract_request.id))
+      party_user = insert(:prm, :party_user, user_id: user_id)
+
+      conn =
+        conn
+        |> put_consumer_id_header(user_id)
+        |> put_client_id_header(legal_entity.id)
+        |> put_req_header("drfo", party_user.party.tax_id)
+
+      data = %{
+        "id" => contract_request.id,
+        "contractor_legal_entity" => %{
+          "id" => contract_request.contractor_legal_entity_id,
+          "name" => legal_entity.name,
+          "edrpou" => legal_entity.edrpou
+        },
+        "text" => "something"
+      }
+
+      conn =
+        patch(conn, contract_request_path(conn, :approve, contract_request.id), %{
+          "signed_content" => data |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+
       assert resp = json_response(conn, 422)
 
       assert %{
@@ -652,7 +759,13 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
       end)
 
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
+      user_id = UUID.generate()
       legal_entity = insert(:prm, :legal_entity)
+      party_user = insert(:prm, :party_user, user_id: user_id)
 
       contract_request =
         insert(
@@ -662,8 +775,28 @@ defmodule EHealth.Web.ContractRequestControllerTest do
           contractor_owner_id: UUID.generate()
         )
 
-      conn = put_client_id_header(conn, legal_entity.id)
-      conn = patch(conn, contract_request_path(conn, :approve, contract_request.id))
+      conn =
+        conn
+        |> put_consumer_id_header(user_id)
+        |> put_client_id_header(legal_entity.id)
+        |> put_req_header("drfo", party_user.party.tax_id)
+
+      data = %{
+        "id" => contract_request.id,
+        "contractor_legal_entity" => %{
+          "id" => contract_request.contractor_legal_entity_id,
+          "name" => legal_entity.name,
+          "edrpou" => legal_entity.edrpou
+        },
+        "text" => "something"
+      }
+
+      conn =
+        patch(conn, contract_request_path(conn, :approve, contract_request.id), %{
+          "signed_content" => data |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+
       assert resp = json_response(conn, 422)
 
       assert %{
@@ -689,8 +822,14 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
       end)
 
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
+      user_id = UUID.generate()
       legal_entity = insert(:prm, :legal_entity)
       employee = insert(:prm, :employee, status: Employee.status(:new))
+      party_user = insert(:prm, :party_user, user_id: user_id)
 
       contract_request =
         insert(
@@ -700,8 +839,28 @@ defmodule EHealth.Web.ContractRequestControllerTest do
           contractor_owner_id: employee.id
         )
 
-      conn = put_client_id_header(conn, legal_entity.id)
-      conn = patch(conn, contract_request_path(conn, :approve, contract_request.id))
+      conn =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("drfo", party_user.party.tax_id)
+
+      data = %{
+        "id" => contract_request.id,
+        "contractor_legal_entity" => %{
+          "id" => contract_request.contractor_legal_entity_id,
+          "name" => legal_entity.name,
+          "edrpou" => legal_entity.edrpou
+        },
+        "text" => "something"
+      }
+
+      conn =
+        patch(conn, contract_request_path(conn, :approve, contract_request.id), %{
+          "signed_content" => data |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+
       assert resp = json_response(conn, 422)
 
       assert %{
@@ -727,6 +886,12 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
       end)
 
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
+      user_id = UUID.generate()
+      party_user = insert(:prm, :party_user, user_id: user_id)
       legal_entity = insert(:prm, :legal_entity)
       employee = insert(:prm, :employee)
 
@@ -738,8 +903,28 @@ defmodule EHealth.Web.ContractRequestControllerTest do
           contractor_owner_id: employee.id
         )
 
-      conn = put_client_id_header(conn, legal_entity.id)
-      conn = patch(conn, contract_request_path(conn, :approve, contract_request.id))
+      conn =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("drfo", party_user.party.tax_id)
+
+      data = %{
+        "id" => contract_request.id,
+        "contractor_legal_entity" => %{
+          "id" => contract_request.contractor_legal_entity_id,
+          "name" => legal_entity.name,
+          "edrpou" => legal_entity.edrpou
+        },
+        "text" => "something"
+      }
+
+      conn =
+        patch(conn, contract_request_path(conn, :approve, contract_request.id), %{
+          "signed_content" => data |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+
       assert resp = json_response(conn, 422)
 
       assert %{
@@ -765,8 +950,14 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
       end)
 
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
       legal_entity = insert(:prm, :legal_entity)
       employee = insert(:prm, :employee, legal_entity_id: legal_entity.id)
+      user_id = UUID.generate()
+      party_user = insert(:prm, :party_user, user_id: user_id)
 
       contract_request =
         insert(
@@ -776,8 +967,28 @@ defmodule EHealth.Web.ContractRequestControllerTest do
           contractor_owner_id: employee.id
         )
 
-      conn = put_client_id_header(conn, legal_entity.id)
-      conn = patch(conn, contract_request_path(conn, :approve, contract_request.id))
+      data = %{
+        "id" => contract_request.id,
+        "contractor_legal_entity" => %{
+          "id" => contract_request.contractor_legal_entity_id,
+          "name" => legal_entity.name,
+          "edrpou" => legal_entity.edrpou
+        },
+        "text" => "something"
+      }
+
+      conn =
+        conn
+        |> put_consumer_id_header(user_id)
+        |> put_client_id_header(legal_entity.id)
+        |> put_req_header("drfo", party_user.party.tax_id)
+
+      conn =
+        patch(conn, contract_request_path(conn, :approve, contract_request.id), %{
+          "signed_content" => data |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+
       assert resp = json_response(conn, 422)
 
       assert %{
@@ -801,6 +1012,10 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     test "external contractor division is not present in employee divisions", %{conn: conn} do
       expect(MithrilMock, :get_user_roles, fn _, _, _ ->
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
+      end)
+
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
       end)
 
       user_id = UUID.generate()
@@ -831,8 +1046,24 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         conn
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(user_id)
+        |> put_req_header("drfo", party_user.party.tax_id)
 
-      conn = patch(conn, contract_request_path(conn, :approve, contract_request.id))
+      data = %{
+        "id" => contract_request.id,
+        "contractor_legal_entity" => %{
+          "id" => contract_request.contractor_legal_entity_id,
+          "name" => legal_entity.name,
+          "edrpou" => legal_entity.edrpou
+        },
+        "text" => "something"
+      }
+
+      conn =
+        patch(conn, contract_request_path(conn, :approve, contract_request.id), %{
+          "signed_content" => data |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+
       assert resp = json_response(conn, 422)
 
       assert %{
@@ -855,6 +1086,10 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     test "invalid start date", %{conn: conn} do
       expect(MithrilMock, :get_user_roles, fn _, _, _ ->
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
+      end)
+
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
       end)
 
       user_id = UUID.generate()
@@ -897,8 +1132,24 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         conn
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(user_id)
+        |> put_req_header("drfo", party_user.party.tax_id)
 
-      conn = patch(conn, contract_request_path(conn, :approve, contract_request.id))
+      data = %{
+        "id" => contract_request.id,
+        "contractor_legal_entity" => %{
+          "id" => contract_request.contractor_legal_entity_id,
+          "name" => legal_entity.name,
+          "edrpou" => legal_entity.edrpou
+        },
+        "text" => "something"
+      }
+
+      conn =
+        patch(conn, contract_request_path(conn, :approve, contract_request.id), %{
+          "signed_content" => data |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+
       assert resp = json_response(conn, 422)
 
       assert %{
@@ -929,6 +1180,10 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       expect(ManMock, :render_template, fn _, _, _ ->
         {:ok, "<html></html>"}
+      end)
+
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
       end)
 
       user_id = UUID.generate()
@@ -981,8 +1236,24 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         conn
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(user_id)
+        |> put_req_header("drfo", party_user.party.tax_id)
 
-      conn = patch(conn, contract_request_path(conn, :approve, contract_request.id))
+      data = %{
+        "id" => contract_request.id,
+        "contractor_legal_entity" => %{
+          "id" => contract_request.contractor_legal_entity_id,
+          "name" => legal_entity.name,
+          "edrpou" => legal_entity.edrpou
+        },
+        "text" => "something"
+      }
+
+      conn =
+        patch(conn, contract_request_path(conn, :approve, contract_request.id), %{
+          "signed_content" => data |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+
       assert resp = json_response(conn, 200)
 
       schema =

@@ -26,7 +26,6 @@ defmodule EHealth.ContractRequests do
   alias EHealth.Utils.NumberGenerator
   alias EHealth.EventManager
   alias EHealth.Web.ContractRequestView
-  alias EHealth.Man.Templates.ContractRequestPrintoutForm
 
   require Logger
 
@@ -103,24 +102,20 @@ defmodule EHealth.ContractRequests do
     end
   end
 
-  def update(headers, params) do
+  def update(headers, %{"id" => id} = params) do
     user_id = get_consumer_id(headers)
     client_id = get_client_id(headers)
+    params = Map.delete(params, "id")
 
-    with :ok <-
-           JsonSchema.validate(
-             :contract_request_update,
-             Map.take(params, ~w(nhs_signer_id nhs_signer_base nhs_contract_price nhs_payment_method issue_city))
-           ),
+    with :ok <- JsonSchema.validate(:contract_request_update, params),
          {:ok, %{"data" => data}} <- @mithril_api.get_user_roles(user_id, %{}, headers),
          :ok <- user_has_role(data, "NHS ADMIN SIGNER"),
-         %ContractRequest{} = contract_request <- Repo.get(ContractRequest, params["id"]),
+         %ContractRequest{} = contract_request <- Repo.get(ContractRequest, id),
          :ok <- validate_nhs_signer_id(params, client_id),
          :ok <- validate_status(contract_request, ContractRequest.status(:new)),
          :ok <- validate_start_date(contract_request),
          update_params <-
            params
-           |> Map.delete("id")
            |> Map.put("nhs_legal_entity_id", client_id)
            |> Map.put("updated_by", user_id),
          %Ecto.Changeset{valid?: true} = changes <- update_changeset(contract_request, update_params),
@@ -129,16 +124,25 @@ defmodule EHealth.ContractRequests do
     end
   end
 
-  def approve(headers, params) do
+  def approve(headers, %{"id" => id} = params) do
     user_id = get_consumer_id(headers)
     client_id = get_client_id(headers)
+    params = Map.delete(params, "id")
 
-    with {:ok, %{"data" => data}} <- @mithril_api.get_user_roles(user_id, %{}, headers),
+    with %ContractRequest{} = contract_request <- get_by_id(id),
+         references <- preload_references(contract_request),
+         :ok <- JsonSchema.validate(:contract_request_sign, params),
+         {:ok, content, signer} <- decode_signed_content(:nhs, params, headers),
+         {_, %Party{tax_id: tax_id}} <- {:employee, Parties.get_by_user_id(user_id)},
+         :ok <- validate_signer_drfo(tax_id, signer["drfo"]),
+         {:ok, %{"data" => data}} <- @mithril_api.get_user_roles(user_id, %{}, headers),
          :ok <- user_has_role(data, "NHS ADMIN SIGNER"),
-         %ContractRequest{} = contract_request <- Repo.get(ContractRequest, params["id"]),
-         :ok <- validate_status(contract_request, ContractRequest.status(:new)),
-         {:ok, _, _} <- validate_contract_number(params, headers),
+         :ok <- JsonSchema.validate(:contract_request_approve, content),
          :ok <- validate_contractor_legal_entity(contract_request),
+         :ok <- validate_approve_content(content, contract_request, references),
+         :ok <- validate_status(contract_request, ContractRequest.status(:new)),
+         :ok <- save_signed_content(contract_request.id, params, headers, "contract_request_approved"),
+         :ok <- validate_contract_id(contract_request, headers),
          :ok <- validate_contractor_owner_id(contract_request),
          :ok <- validate_nhs_signer_id(contract_request, client_id),
          :ok <- validate_contract_employee_divisions(contract_request),
@@ -152,13 +156,14 @@ defmodule EHealth.ContractRequests do
            |> Map.put("contract_number", get_contract_number(params))
            |> Map.put("status", ContractRequest.status(:approved)),
          %Ecto.Changeset{valid?: true} = changes <- approve_changeset(contract_request, update_params),
-         {:ok, printout_form} <- ContractRequestPrintoutForm.render(apply_changes(changes), headers),
-         %Ecto.Changeset{valid?: true} = changes <- put_change(changes, :printout_content, printout_form),
          data <- prepare_contract_request_data(changes),
          %Ecto.Changeset{valid?: true} = changes <- put_change(changes, :data, data),
          {:ok, contract_request} <- Repo.update(changes),
          _ <- EventManager.insert_change_status(contract_request, contract_request.status, user_id) do
       {:ok, contract_request, preload_references(contract_request)}
+    else
+      {:employee, _} -> {:error, {:forbidden, "User is not allowed to this action by client_id"}}
+      error -> error
     end
   end
 
@@ -176,6 +181,7 @@ defmodule EHealth.ContractRequests do
          {:ok, %{"data" => data}} <- @mithril_api.get_user_roles(user_id, %{}, headers),
          :ok <- user_has_role(data, "NHS ADMIN SIGNER"),
          :ok <- JsonSchema.validate(:contract_request_decline, content),
+         :ok <- validate_contractor_legal_entity(contract_request),
          :ok <- validate_decline_content(content, contract_request, references),
          :ok <- validate_status(contract_request, ContractRequest.status(:new)),
          :ok <- save_signed_content(contract_request.id, params, headers, "contract_request_declined"),
@@ -1244,6 +1250,17 @@ defmodule EHealth.ContractRequests do
     end
   end
 
+  defp validate_contract_id(%ContractRequest{parent_contract_id: contract_id}, headers) when not is_nil(contract_id) do
+    with {:ok, %{"data" => contract}} <- @ops_api.get_contract(contract_id, headers),
+         true <- contract["status"] == "VERIFIED" do
+      :ok
+    else
+      _ -> {:error, {:conflict, "Parent contract can’t be updated"}}
+    end
+  end
+
+  defp validate_contract_id(_, _), do: :ok
+
   defp validate_contract_number(%{"contract_number" => contract_number} = params, headers)
        when not is_nil(contract_number) do
     with {:contract_exists, {:ok, %{"data" => [contract]}}} <-
@@ -1294,6 +1311,24 @@ defmodule EHealth.ContractRequests do
       |> Jason.decode!()
 
     if data == Map.drop(content, ~w(status_reason text)) do
+      :ok
+    else
+      {:error, {:bad_request, "Signed content doesn't match with contract request"}}
+    end
+  end
+
+  defp validate_approve_content(content, contract_request, references) do
+    data =
+      ContractRequestView
+      |> Phoenix.View.render(
+        "contract_request_approve.json",
+        contract_request: contract_request,
+        references: references
+      )
+      |> Jason.encode!()
+      |> Jason.decode!()
+
+    if data == Map.drop(content, ~w(text)) do
       :ok
     else
       {:error, {:bad_request, "Signed content doesn't match with contract request"}}
