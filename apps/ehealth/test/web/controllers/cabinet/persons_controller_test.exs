@@ -595,7 +595,27 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
           200
         )
 
-      expect(MPIMock, :person, fn id, _ -> get_person(id, 200) end)
+      person = %{
+        id: user_id,
+        first_name: "Алекс",
+        second_name: "Петрович",
+        birth_country: "Ukraine",
+        birth_settlement: "string value",
+        gender: "MALE",
+        email: "test@example.com",
+        tax_id: "2222222220",
+        documents: [%{"type" => "BIRTH_CERTIFICATE", "number" => "1234567890"}],
+        phones: [%{"type" => "MOBILE", "number" => "+380972526080"}],
+        secret: "string value",
+        emergency_contact: %{},
+        process_disclosure_data_consent: true,
+        authentication_methods: [%{"type" => "NA"}],
+        preferred_way_communication: "––"
+      }
+
+      expect(MPIMock, :person, fn id, _headers ->
+        get_person(id, 200, person)
+      end)
 
       expect(OPSMock, :get_declaration_by_id, fn _params, _headers ->
         declaration
@@ -641,6 +661,8 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       assert data["employee"]["id"] == employee_id
       assert data["legal_entity"]["id"] == legal_entity_id
       assert data["person"]["id"] == person_id
+      assert data["person"]["gender"] == person.gender
+      assert data["person"]["birth_country"] == person.birth_country
       assert data["content"] == "<html><body>Printout form for declaration #{declaration_id}</body></html>"
     end
   end
