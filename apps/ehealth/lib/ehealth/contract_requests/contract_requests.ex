@@ -54,6 +54,7 @@ defmodule EHealth.ContractRequests do
     external_contractor_flag
     external_contractors
     contract_number
+    parent_contract_id
   )a
 
   def search(search_params) do
@@ -72,8 +73,11 @@ defmodule EHealth.ContractRequests do
          {:ok, content, signer} <- decode_signed_content(params, headers),
          :ok <- validate_signer_drfo(tax_id, signer["drfo"]),
          :ok <- JsonSchema.validate(:contract_request, content),
-         :ok <- validate_dates(content),
-         {:ok, params} <- validate_contract_number(content, client_id, headers),
+         content <- Map.put(content, "contractor_legal_entity_id", client_id),
+         {:ok, params, contract} <- validate_contract_number(content, headers),
+         :ok <- validate_contractor_legal_entity_id(params, contract),
+         :ok <- validate_dates(params),
+         params <- set_dates(contract, params),
          :ok <- validate_unique_contractor_employee_divisions(params),
          :ok <- validate_unique_contractor_divisions(params),
          :ok <- validate_contract_employee_divisions(params),
@@ -134,7 +138,7 @@ defmodule EHealth.ContractRequests do
          :ok <- user_has_role(data, "NHS ADMIN SIGNER"),
          %ContractRequest{} = contract_request <- Repo.get(ContractRequest, params["id"]),
          :ok <- validate_status(contract_request, ContractRequest.status(:new)),
-         {:ok, _} <- validate_contract_number(params, nil, headers),
+         {:ok, _, _} <- validate_contract_number(params, headers),
          :ok <- validate_contractor_legal_entity(contract_request),
          :ok <- validate_contractor_owner_id(contract_request),
          :ok <- validate_nhs_signer_id(contract_request, client_id),
@@ -598,39 +602,42 @@ defmodule EHealth.ContractRequests do
     |> validate_contract_employee_divisions()
   end
 
+  defp validate_contract_employee_divisions(%{
+         "parent_contract_id" => parent_contract_id,
+         "contractor_employee_divisions" => contractor_employee_divisions
+       })
+       when not is_nil(parent_contract_id) and not is_nil(contractor_employee_divisions) do
+    {:error,
+     [
+       {
+         %{
+           description: "Employee can't be updated via Contract Request",
+           params: [],
+           rule: :invalid
+         },
+         "$.contractor_employee_divisions"
+       }
+     ]}
+  end
+
   defp validate_contract_employee_divisions(params) do
     contractor_employee_divisions = params["contractor_employee_divisions"]
-    contract_number = params["contract_number"]
 
-    cond do
-      !is_nil(contractor_employee_divisions) and !is_nil(contract_number) ->
-        {:error,
-         [
-           {
-             %{
-               description: "Employee can't be updated via Contract Request",
-               params: [],
-               rule: :invalid
-             },
-             "$.contractor_employee_divisions"
-           }
-         ]}
-
-      (is_nil(contractor_employee_divisions) or contractor_employee_divisions == []) and is_nil(contract_number) ->
-        {:error,
-         [
-           {
-             %{
-               description: "Contractor employee divisions can’t be empty on create",
-               params: [],
-               rule: :invalid
-             },
-             "$.contractor_employee_divisions"
-           }
-         ]}
-
-      true ->
-        :ok
+    if (is_nil(contractor_employee_divisions) or contractor_employee_divisions == []) and
+         is_nil(params["parent_contract_id"]) do
+      {:error,
+       [
+         {
+           %{
+             description: "Contractor employee divisions can’t be empty on create",
+             params: [],
+             rule: :invalid
+           },
+           "$.contractor_employee_divisions"
+         }
+       ]}
+    else
+      :ok
     end
   end
 
@@ -934,53 +941,41 @@ defmodule EHealth.ContractRequests do
      ]}
   end
 
+  defp validate_dates(%{"parent_contract_id" => parent_contract_id, "start_date" => start_date})
+       when not is_nil(parent_contract_id) and not is_nil(start_date) do
+    {:error,
+     [
+       {
+         %{
+           description: "Start date can't be updated via Contract Request",
+           params: [],
+           rule: :invalid
+         },
+         "$.start_date"
+       }
+     ]}
+  end
+
+  defp validate_dates(%{"parent_contract_id" => parent_contract_id, "end_date" => end_date})
+       when not is_nil(parent_contract_id) and not is_nil(end_date) do
+    {:error,
+     [
+       {
+         %{
+           description: "End date can't be updated via Contract Request",
+           params: [],
+           rule: :invalid
+         },
+         "$.end_date"
+       }
+     ]}
+  end
+
+  defp validate_dates(%{"parent_contract_id" => parent_contract_id}) when not is_nil(parent_contract_id), do: :ok
+
   defp validate_dates(params) do
-    contract_number = params["contract_number"]
-    start_date = Map.get(params, "start_date")
-    end_date = Map.get(params, "end_date")
-
-    with :ok <- validate_update_dates(contract_number, start_date, end_date),
-         :ok <- validate_date_existance(contract_number, start_date, end_date) do
-      :ok
-    end
-  end
-
-  defp validate_update_dates(contract_number, start_date, end_date) do
     cond do
-      !is_nil(start_date) and !is_nil(contract_number) ->
-        {:error,
-         [
-           {
-             %{
-               description: "Start date can't be updated via Contract Request",
-               params: [],
-               rule: :invalid
-             },
-             "$.start_date"
-           }
-         ]}
-
-      !is_nil(end_date) and !is_nil(contract_number) ->
-        {:error,
-         [
-           {
-             %{
-               description: "End date can't be updated via Contract Request",
-               params: [],
-               rule: :invalid
-             },
-             "$.end_date"
-           }
-         ]}
-
-      true ->
-        :ok
-    end
-  end
-
-  defp validate_date_existance(contract_number, start_date, end_date) do
-    cond do
-      is_nil(start_date) and is_nil(contract_number) ->
+      is_nil(params["start_date"]) ->
         {:error,
          [
            {
@@ -993,7 +988,7 @@ defmodule EHealth.ContractRequests do
            }
          ]}
 
-      is_nil(end_date) and is_nil(contract_number) ->
+      is_nil(params["end_date"]) ->
         {:error,
          [
            {
@@ -1009,6 +1004,14 @@ defmodule EHealth.ContractRequests do
       true ->
         :ok
     end
+  end
+
+  defp set_dates(nil, params), do: params
+
+  defp set_dates(contract, params) do
+    params
+    |> Map.put("start_date", contract["start_date"])
+    |> Map.put("end_date", contract["end_date"])
   end
 
   defp validate_contractor_owner_id(%ContractRequest{
@@ -1054,6 +1057,10 @@ defmodule EHealth.ContractRequests do
     |> validate_start_date()
   end
 
+  defp validate_start_date(%{"parent_contract_id" => parent_contract_id}) when not is_nil(parent_contract_id) do
+    :ok
+  end
+
   defp validate_start_date(%{"start_date" => start_date}) do
     now = Date.utc_today()
     start_date = Date.from_iso8601!(start_date)
@@ -1096,6 +1103,10 @@ defmodule EHealth.ContractRequests do
     |> Jason.encode!()
     |> Jason.decode!()
     |> validate_end_date()
+  end
+
+  defp validate_end_date(%{"parent_contract_id" => parent_contract_id}) when not is_nil(parent_contract_id) do
+    :ok
   end
 
   defp validate_end_date(%{"start_date" => start_date, "end_date" => end_date}) do
@@ -1219,28 +1230,27 @@ defmodule EHealth.ContractRequests do
     end
   end
 
-  defp validate_contract_number(%{"contract_number" => contract_number} = params, client_id, headers)
+  defp validate_contract_number(%{"contract_number" => contract_number} = params, headers)
        when not is_nil(contract_number) do
     with {:ok, %{"data" => [contract]}} <-
-           @ops_api.get_contracts(%{"contract_number" => contract_number, "status" => "VERIFIED"}, headers),
-         {:contractor_legal_entity_id, true} <-
-           {:contractor_legal_entity_id, contract["contractor_legal_entity_id"] == client_id} do
-      {:ok,
-       params
-       |> Map.put("start_date", contract["start_date"])
-       |> Map.put("end_date", contract["end_date"])
-       |> Map.put("contractor_legal_entity_id", client_id)}
+           @ops_api.get_contracts(%{"contract_number" => contract_number, "status" => "VERIFIED"}, headers) do
+      {:ok, Map.put(params, "parent_contract_id", contract["id"]), contract}
     else
-      {:contractor_legal_entity_id, false} -> {:error, {:forbidden, "You are not allowed to change this contract"}}
       _ -> {:error, {:"422", "There is no active contract with such contract_number"}}
     end
   end
 
-  defp validate_contract_number(params, client_id, _headers) when not is_nil(client_id) do
-    {:ok, Map.put(params, "contractor_legal_entity_id", client_id)}
-  end
+  defp validate_contract_number(params, _), do: {:ok, params, nil}
 
-  defp validate_contract_number(params, _, _), do: {:ok, params}
+  defp validate_contractor_legal_entity_id(_, nil), do: :ok
+
+  defp validate_contractor_legal_entity_id(%{"contractor_legal_entity_id" => contractor_legal_entity_id}, contract) do
+    if contract["contractor_legal_entity_id"] == contractor_legal_entity_id do
+      :ok
+    else
+      {:error, {:forbidden, "You are not allowed to change this contract"}}
+    end
+  end
 
   defp prepare_contract_request_data(%Ecto.Changeset{} = changeset) do
     data =

@@ -45,6 +45,7 @@ defmodule EHealth.ContractRequests.ContractRequest do
     field(:nhs_payment_method, :string)
     field(:contract_number, :string)
     field(:contract_id, UUID)
+    field(:parent_contract_id, UUID)
     field(:contractor_signed, :boolean)
     field(:printout_content, :string)
     field(:id_form, :string)

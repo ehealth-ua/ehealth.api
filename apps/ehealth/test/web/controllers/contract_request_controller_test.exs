@@ -299,12 +299,14 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       now = Date.utc_today()
       start_date = Date.add(now, 10)
+      contract_id = UUID.generate()
 
       expect(OPSMock, :get_contracts, fn _, _ ->
         {:ok,
          %{
            "data" => [
              %{
+               "id" => contract_id,
                "contractor_legal_entity_id" => legal_entity.id,
                "start_date" => Date.to_iso8601(start_date),
                "end_date" => Date.to_iso8601(Date.add(now, 30))
