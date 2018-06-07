@@ -1,0 +1,44 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{12}$"
+        },
+        "contractor_legal_entity": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{8}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{12}$"
+                },
+                "name": {
+                    "type": "string",
+                    "pattern": "^(?!.*[ЫЪЭЁыъэё@%&$^#])[a-zA-ZА-ЯҐЇІЄа-яґїіє0-9№\\\"!\\^\\*)\\]\\[(._-].*$",
+                    "minLength": 1
+                },
+                "edrpou": {
+                    "type": "string",
+                    "pattern": "^[0-9]{8,10}$"
+                }
+            },
+            "required": [
+                "id",
+                "name",
+                "edrpou"
+            ],
+            "additionalProperties": false
+        },
+        "text": {
+            "type": "string",
+            "minLength": 1
+        }
+    },
+    "required": [
+        "id",
+        "contractor_legal_entity",
+        "text"
+    ],
+    "additionalProperties": false
+}
