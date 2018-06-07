@@ -155,6 +155,7 @@ defmodule EHealth.Web.DeclarationView do
   def render("person.json", %{person: person}) when is_map(person) do
     Map.take(person, ~w(
       id
+      gender
       first_name
       last_name
       second_name
@@ -162,6 +163,7 @@ defmodule EHealth.Web.DeclarationView do
       tax_id
       phones
       birth_date
+      birth_country
       birth_settlement
       emergency_contact
       confidant_person

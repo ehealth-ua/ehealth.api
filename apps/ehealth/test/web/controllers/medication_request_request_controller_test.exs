@@ -544,6 +544,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
         })
 
       assert json_response(conn1, 200)
+      assert is_binary(json_response(conn1, 200)["data"]["employee"]["division"]["id"])
       assert json_response(conn1, 200)["data"]["status"] == "ACTIVE"
     end
 
