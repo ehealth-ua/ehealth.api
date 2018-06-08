@@ -4765,11 +4765,11 @@ If contract_number is not set, than it will be generate on APPROVE step (as well
 + Response 201 (application/json)
     + Attributes (Response__Process_OK)
         + data (object)
-            + include `Contract_request_Details_Full`
+            + include `Contract_request_Details`
 
 ### Get Contract Requests list [GET /api/contract_requests{?id,contractor_legal_entity_id,contractor_owner_id,nhs_signer_id,issue_city,status,contract_number,page,page_size}]
 
-This method is designed to obtain list of contract request with filters. This mothod return shorten information about contract request, in order to see all information try to use 'get contract request details'
+This method is designed to obtain list of contract request with filters. This method returns shorten information about contract request, in order to see all information try to use 'get contract request details'
 
 + Parameters
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - id of contract request
@@ -4814,7 +4814,7 @@ This method is designed to get full information of contract request by id
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + data (object)
-            + include `Contract_request_Details_Full`
+            + include `Contract_request_Details`
 
 ### Update contract request by NHS Signer [PATCH /api/contract_requests/{id}]
 
@@ -4835,7 +4835,7 @@ This WS is designed to enrich conract request with information from NHS side. NH
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + data (object)
-            + include `Contract_request_Details_Full`
+            + include `Contract_request_Details`
 
 ### Approve contract request by NHS [PATCH /api/contract_requests/{id}/actions/approve]
 
@@ -4872,7 +4872,7 @@ To approve contract next fields must be signed by NHS employee and sent by same 
         + meta (Response__Meta)
             + code: 201 (number)
         + data (object)
-            + include `Contract_request_Details_Full`
+            + include `Contract_request_Details`
 
 ### Decline contract request by NHS [PATCH /api/contract_requests/{id}/actions/decline]
 
@@ -4933,7 +4933,7 @@ Only after that NHS employee can sign the contract request.
         + meta (Response__Meta)
             + code: 201 (number)
         + data (object)
-            + include `Contract_request_Details_Full`
+            + include `Contract_request_Details`
 
 ### TERMINATE contract request by MSP [PATCH /api/contract_requests/{id}/actions/terminate]
 
@@ -4956,7 +4956,29 @@ This WS is designed to terminate contract request by contractor. Contract reques
         + meta (Response__Meta)
             + code: 201 (number)
         + data (object)
-            + include `Contract_request_Details_Full`
+            + include `Contract_request_Details`
+
+### Get Contract Request Printout Content [GET /api/contract_requests/{id}/printout_content]
+
+This method is designed to get printout content by contract request id. In order to sign contract it's need to invoke
+Get Contract Request Details and Get Contract Request Printout Content and sign whole data.
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - contract request identifier
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (object)
+            + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - contract request identifier
+            + `printout_content`: `Contract request content` (string, required) - HTML document for contract request, is shown only for requests in `APPROVED`, `PENDING_NHS_SIGN`, `NHS_SIGNED`, `SIGNED` statuses.
+
+
 
 ### SIGN contract request by NHS [PATCH /api/contract_requests/{id}/actions/sign_nhs]
 
@@ -7271,6 +7293,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + `nhs_payment_method`: `prepayment` (enum, optional) - payment method for contract
 + contract_number: `0000-9EAX-XT7X-3115` (string, optional) - human readable number of contract request.
 + contract_id: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - contract id
++ `parent_contract_id`: `22e416c4-5747-41cd-9f73-c3a85cdee885` (string, optional) - parent contract id
 + `start_date`: `2017-04-20` (string, required) - contract start date 
 + `end_date`: `2017-04-20` (string, required) - contract end date
 + `end_date`: `2017-04-20` (string, required) - contract end date
@@ -7284,19 +7307,6 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + `miscellaneous`: `Жодна зі сторін не має права передавати права і зобов’язання за цим контрактом третій стороні без письмової на те згоди іншої сторони` (string, optional) - miscellaneous of a contract
 
 ### `Contract_request_Details`
-+ id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract_request ID 
-+ include (`Contract_request_Request`, required)
-+ include (`Contract_request_Update`, required)
-+ status: `NEW` (string, required) - contract_request status
-+ status_reason: `Не відповідає попереднім домовленостям`(string, optional) - reason of status theat is setted bu nhs
-+ `nhs_legal_entity_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - nhs legal entity ID
-+ contract_number: `0000-9EAX-XT7X-3115` (string, optional) - human readable number of contract request.
-+ contract_id: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - contract id
-+ `start_date`: `2017-04-20` (string, required) - contract start date 
-+ `end_date`: `2017-04-20` (string, required) - contract end date
-+ `printout_content`: `Contract request content` - HTML document for contract request, is shown only for requests in APPROVED or SIGNED status
-
-### `Contract_request_Details_Full`
 + id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract_request ID 
 + `contractor_legal_entity`(object, required)
     + include (`contract_legal_entity_details`)
@@ -7333,9 +7343,13 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + issue_city: `Київ` (string, optional) - place of contract request
 + contract_number: `0000-9EAX-XT7X-3115` (string, optional) - human readable number of contract request.
 + contract_id: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - contract id
++ `parent_contract_id`: `22e416c4-5747-41cd-9f73-c3a85cdee885` (string, optional) - parent contract id
 + `start_date`: `2017-04-20` (string, required) - contract start date 
 + `end_date`: `2017-04-20` (string, required) - contract end date
-+ `printout_content`: `Contract request content` (optional) - HTML document for contract request, is shown only for requests in APPROVED or SIGNED status
+
+### `Contract_request_Details_Full`
++ include `Contract_request_Details`
++ `printout_content`: `Contract request content` (optional) - HTML document for contract request, is shown only for requests in `APPROVED`, `PENDING_NHS_SIGN`, `NHS_SIGNED`, `SIGNED` statuses.
 
 ### `contract_legal_entity_details`
 + id: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - legal entity ID which make contract request
