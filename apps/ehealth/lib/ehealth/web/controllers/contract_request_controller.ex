@@ -41,6 +41,12 @@ defmodule EHealth.Web.ContractRequestController do
     end
   end
 
+  def approve_msp(%Plug.Conn{req_headers: headers} = conn, params) do
+    with {:ok, %ContractRequest{} = contract_request, references} <- ContractRequests.approve_msp(headers, params) do
+      render(conn, "show.json", contract_request: contract_request, references: references)
+    end
+  end
+
   def terminate(%Plug.Conn{req_headers: headers} = conn, params) do
     client_type = conn.assigns.client_type
 

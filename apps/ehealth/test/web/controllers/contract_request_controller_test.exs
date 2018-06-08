@@ -444,14 +444,11 @@ defmodule EHealth.Web.ContractRequestControllerTest do
           "nhs_payment_method" => "prepayment"
         })
 
-      assert resp = json_response(conn, 422)
+      assert resp = json_response(conn, 409)
 
       assert %{
-               "invalid" => [
-                 %{"entry_type" => "request", "rules" => [%{"rule" => "json"}]}
-               ],
                "message" => "Incorrect status of contract_request to modify it",
-               "type" => "request_malformed"
+               "type" => "request_conflict"
              } = resp["error"]
     end
 
@@ -636,14 +633,11 @@ defmodule EHealth.Web.ContractRequestControllerTest do
           "signed_content_encoding" => "base64"
         })
 
-      assert resp = json_response(conn, 422)
+      assert resp = json_response(conn, 409)
 
       assert %{
-               "invalid" => [
-                 %{"entry_type" => "request", "rules" => [%{"rule" => "json"}]}
-               ],
                "message" => "Incorrect status of contract_request to modify it",
-               "type" => "request_malformed"
+               "type" => "request_conflict"
              } = resp["error"]
     end
 
@@ -1265,6 +1259,91 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
   end
 
+  describe "approve by msp" do
+    test "success approve by msp", %{conn: conn} do
+      user_id = UUID.generate()
+      party_user = insert(:prm, :party_user, user_id: user_id)
+      legal_entity = insert(:prm, :legal_entity)
+
+      employee_owner =
+        insert(
+          :prm,
+          :employee,
+          legal_entity_id: legal_entity.id,
+          employee_type: Employee.type(:owner),
+          party: party_user.party
+        )
+
+      division =
+        insert(
+          :prm,
+          :division,
+          legal_entity: legal_entity,
+          phones: [%{"type" => "MOBILE", "number" => "+380631111111"}],
+          working_hours: %{fri: [["08.00", "12.00"], ["14.00", "16.00"]]}
+        )
+
+      employee_doctor = insert(:prm, :employee, legal_entity_id: legal_entity.id, division: division)
+      now = Date.utc_today()
+      start_date = Date.add(now, 10)
+
+      contract_request =
+        insert(
+          :il,
+          :contract_request,
+          status: ContractRequest.status(:approved),
+          contractor_legal_entity_id: legal_entity.id,
+          contractor_owner_id: employee_owner.id,
+          contractor_divisions: [division.id],
+          contractor_employee_divisions: [
+            %{
+              "employee_id" => employee_doctor.id,
+              "staff_units" => 0.5,
+              "declaration_limit" => 2000,
+              "division_id" => division.id
+            }
+          ],
+          start_date: start_date
+        )
+
+      conn =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(user_id)
+
+      conn = patch(conn, contract_request_path(conn, :approve_msp, contract_request.id))
+      assert resp = json_response(conn, 200)
+
+      schema =
+        "specs/json_schemas/contract_request/contract_request_show_response.json"
+        |> File.read!()
+        |> Jason.decode!()
+
+      assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
+    end
+
+    test "invalid contractor_owner_id", %{conn: conn} do
+      legal_entity = insert(:prm, :legal_entity)
+
+      contract_request =
+        insert(
+          :il,
+          :contract_request,
+          status: ContractRequest.status(:approved)
+        )
+
+      conn = put_client_id_header(conn, legal_entity.id)
+      conn = patch(conn, contract_request_path(conn, :approve_msp, contract_request.id))
+      assert json_response(conn, 403)
+    end
+
+    test "contract_request not found", %{conn: conn} do
+      conn = put_client_id_header(conn, UUID.generate())
+      conn = patch(conn, contract_request_path(conn, :approve_msp, UUID.generate()))
+      assert json_response(conn, 404)
+    end
+  end
+
   describe "terminate contract_request" do
     setup %{conn: conn} do
       user_id = UUID.generate()
@@ -1707,8 +1786,12 @@ defmodule EHealth.Web.ContractRequestControllerTest do
           "signed_content_encoding" => "base64"
         })
 
-      assert resp = json_response(conn, 422)
-      assert_error(resp, "Incorrect status of contract_request to modify it")
+      assert resp = json_response(conn, 409)
+
+      assert %{
+               "message" => "Incorrect status of contract_request to modify it",
+               "type" => "request_conflict"
+             } = resp["error"]
     end
 
     test "failed to save signed content", %{conn: conn} do
@@ -1997,14 +2080,11 @@ defmodule EHealth.Web.ContractRequestControllerTest do
           "signed_content_encoding" => "base64"
         })
 
-      assert resp = json_response(conn, 422)
+      assert resp = json_response(conn, 409)
 
       assert %{
-               "invalid" => [
-                 %{"entry_type" => "request", "rules" => [%{"rule" => "json"}]}
-               ],
                "message" => "Incorrect status of contract_request to modify it",
-               "type" => "request_malformed"
+               "type" => "request_conflict"
              } = resp["error"]
     end
   end

@@ -167,6 +167,33 @@ defmodule EHealth.ContractRequests do
     end
   end
 
+  def approve_msp(headers, %{"id" => id} = params) do
+    user_id = get_consumer_id(headers)
+
+    with %ContractRequest{} = contract_request <- get_by_id(id),
+         :ok <- validate_status(contract_request, ContractRequest.status(:approved)),
+         :ok <- validate_contractor_legal_entity(contract_request),
+         {:contractor_owner, :ok} <- {:contractor_owner, validate_contractor_owner_id(contract_request)},
+         :ok <- validate_employee_divisions(contract_request),
+         :ok <- validate_contractor_divisions(contract_request),
+         update_params <-
+           params
+           |> Map.delete("id")
+           |> Map.put("updated_by", user_id)
+           |> Map.put("status", ContractRequest.status(:pending_nhs_sign)),
+         %Ecto.Changeset{valid?: true} = changes <- approve_msp_changeset(contract_request, update_params),
+         {:ok, contract_request} <- Repo.update(changes),
+         _ <- EventManager.insert_change_status(contract_request, contract_request.status, user_id) do
+      {:ok, contract_request, preload_references(contract_request)}
+    else
+      {:contractor_owner, _} ->
+        {:error, {:forbidden, "User is not allowed to perform this action"}}
+
+      error ->
+        error
+    end
+  end
+
   def decline(headers, %{"id" => id} = params) do
     user_id = get_consumer_id(headers)
     client_id = get_client_id(headers)
@@ -531,6 +558,17 @@ defmodule EHealth.ContractRequests do
     contract_request
     |> cast(params, fields_required ++ fields_optional)
     |> validate_required(fields_required)
+  end
+
+  def approve_msp_changeset(%ContractRequest{} = contract_request, params) do
+    fields = ~w(
+      status
+      updated_by
+    )a
+
+    contract_request
+    |> cast(params, fields)
+    |> validate_required(fields)
   end
 
   def terminate_changeset(%ContractRequest{} = contract_request, params) do
@@ -1161,7 +1199,7 @@ defmodule EHealth.ContractRequests do
   end
 
   defp validate_status(%ContractRequest{status: status}, required_status) when status == required_status, do: :ok
-  defp validate_status(_, _), do: {:error, {:"422", "Incorrect status of contract_request to modify it"}}
+  defp validate_status(_, _), do: {:error, {:conflict, "Incorrect status of contract_request to modify it"}}
 
   def get_by_id(headers, client_type, id) do
     client_id = get_client_id(headers)

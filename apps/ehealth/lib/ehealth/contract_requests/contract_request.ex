@@ -11,6 +11,7 @@ defmodule EHealth.ContractRequests.ContractRequest do
   @status_new "NEW"
   @status_declined "DECLINED"
   @status_approved "APPROVED"
+  @status_pending_nhs_sign "PENDING_NHS_SIGN"
   @status_nhs_signed "NHS_SIGNED"
   @status_signed "SIGNED"
   @status_terminated "TERMINATED"
@@ -18,6 +19,7 @@ defmodule EHealth.ContractRequests.ContractRequest do
   def status(:new), do: @status_new
   def status(:declined), do: @status_declined
   def status(:approved), do: @status_approved
+  def status(:pending_nhs_sign), do: @status_pending_nhs_sign
   def status(:nhs_signed), do: @status_nhs_signed
   def status(:signed), do: @status_signed
   def status(:terminated), do: @status_terminated
