@@ -24,6 +24,7 @@ defmodule EHealth.Web.ContractRequestView do
       contract_id
       start_date
       end_date
+      parent_contract_id
     )a)
   end
 
@@ -45,6 +46,7 @@ defmodule EHealth.Web.ContractRequestView do
       status
       contract_number
       printout_content
+      parent_contract_id
     )a)
 
     data

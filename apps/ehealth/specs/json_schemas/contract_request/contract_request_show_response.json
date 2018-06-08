@@ -688,6 +688,12 @@
                 "null"
             ],
             "description": "HTML document for contract request, is shown only for requests in APPROVED or SIGNED status"
+        },
+        "parent_contract_id": {
+            "type": [
+                "string",
+                "null"
+            ]
         }
     },
     "required": [
