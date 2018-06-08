@@ -26,6 +26,7 @@ defmodule EHealth.ContractRequests do
   alias EHealth.Utils.NumberGenerator
   alias EHealth.EventManager
   alias EHealth.Web.ContractRequestView
+  alias EHealth.Man.Templates.ContractRequestPrintoutForm
 
   require Logger
 
@@ -256,20 +257,21 @@ defmodule EHealth.ContractRequests do
     end
   end
 
-  def sign_nhs(headers, client_type, %{"id" => id} = params) do
+  def sign_nhs(headers, %{"id" => id} = params) do
     client_id = get_client_id(headers)
     user_id = get_consumer_id(headers)
     params = Map.delete(params, "id")
 
-    with {:ok, %ContractRequest{} = contract_request, references} <- get_by_id(headers, client_type, id),
+    with %ContractRequest{} = contract_request <- get_by_id(id),
          :ok <- JsonSchema.validate(:contract_request_sign, params),
          {_, true} <- {:client_id, client_id == contract_request.nhs_legal_entity_id},
          {_, false} <- {:already_signed, contract_request.status == ContractRequest.status(:nhs_signed)},
+         :ok <- validate_status(contract_request, ContractRequest.status(:pending_nhs_sign)),
          {:ok, content, signer} <- decode_signed_content(:nhs, params, headers),
          :ok <- validate_signer_drfo(contract_request.nhs_signer_id, signer["drfo"], "$.nhs_signer_id"),
-         :ok <- validate_content(contract_request, content),
-         :ok <- validate_sign_contract_number(content, headers),
-         :ok <- validate_status(contract_request, ContractRequest.status(:approved)),
+         {:ok, printout_content} <- ContractRequestPrintoutForm.render(contract_request, headers),
+         :ok <- validate_content(contract_request, printout_content, content),
+         :ok <- validate_contract_id(contract_request, headers),
          :ok <- validate_employee_divisions(contract_request),
          :ok <- validate_start_date(contract_request),
          :ok <- validate_contractor_legal_entity(contract_request),
@@ -279,11 +281,12 @@ defmodule EHealth.ContractRequests do
            params
            |> Map.put("updated_by", user_id)
            |> Map.put("status", ContractRequest.status(:nhs_signed))
-           |> Map.put("nhs_signed_date", Date.utc_today()),
+           |> Map.put("nhs_signed_date", Date.utc_today())
+           |> Map.put("printout_content", printout_content),
          %Ecto.Changeset{valid?: true} = changes <- nhs_signed_changeset(contract_request, update_params),
          {:ok, contract_request} <- Repo.update(changes),
          _ <- EventManager.insert_change_status(contract_request, contract_request.status, user_id) do
-      {:ok, contract_request, references}
+      {:ok, contract_request, preload_references(contract_request)}
     else
       {:client_id, _} -> {:error, {:forbidden, "Invalid client_id"}}
       {:already_signed, _} -> {:error, {:"422", "The contract was already signed by NHS"}}
@@ -302,7 +305,7 @@ defmodule EHealth.ContractRequests do
          {_, true} <- {:client_id, client_id == contract_request.contractor_legal_entity_id},
          {:ok, content, signer} <- decode_signed_content(:msp, params, headers),
          :ok <- validate_signer_drfo(contract_request.contractor_owner_id, signer["drfo"], "$.contractor_owner_id"),
-         :ok <- validate_content(contract_request, content),
+         :ok <- validate_content(contract_request, nil, content),
          :ok <- validate_employee_divisions(contract_request),
          :ok <- validate_start_date(contract_request),
          :ok <- validate_contractor_legal_entity(contract_request),
@@ -435,8 +438,8 @@ defmodule EHealth.ContractRequests do
     |> Map.put("updated_by", contract_request.updated_by)
   end
 
-  defp validate_content(%ContractRequest{data: data}, content) do
-    if data == content,
+  defp validate_content(%ContractRequest{data: data}, printout_content, content) do
+    if Map.put(data, "printout_content", printout_content) == content,
       do: :ok,
       else: {:error, {:"422", "Signed content does not match the previously created content"}}
   end
@@ -581,7 +584,7 @@ defmodule EHealth.ContractRequests do
   end
 
   def nhs_signed_changeset(%ContractRequest{} = contract_request, params) do
-    fields = ~w(status updated_by)a
+    fields = ~w(status updated_by printout_content)a
 
     contract_request
     |> cast(params, fields)
@@ -1288,14 +1291,6 @@ defmodule EHealth.ContractRequests do
     contract_request
     |> cast(params, fields_required ++ fields_optional)
     |> validate_required(fields_required)
-  end
-
-  defp validate_sign_contract_number(%{"contract_number" => contract_number}, headers) do
-    case @ops_api.get_contracts(%{"contract_number" => contract_number, "status" => "VERIFIED"}, headers) do
-      {:ok, %{"data" => [_]}} -> :ok
-      {:ok, %{"data" => []}} -> :ok
-      _ -> {:error, {:"422", "There is no active contract with such contract_number"}}
-    end
   end
 
   defp validate_contract_id(%ContractRequest{parent_contract_id: contract_id}, headers) when not is_nil(contract_id) do

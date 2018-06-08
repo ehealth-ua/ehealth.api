@@ -1715,8 +1715,11 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "failed to decode signed content", %{conn: conn} do
-      %{"client_id" => client_id, "user_id" => user_id, "contract_request" => contract_request} =
-        prepare_nhs_sign_params()
+      %{
+        "client_id" => client_id,
+        "user_id" => user_id,
+        "contract_request" => contract_request
+      } = prepare_nhs_sign_params(status: ContractRequest.status(:pending_nhs_sign))
 
       conn =
         conn
@@ -1734,12 +1737,20 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "content doesn't match", %{conn: conn} do
+      insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
+      insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
+      insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
+
+      expect(ManMock, :render_template, fn _, _, _ ->
+        {:ok, "<html></html>"}
+      end)
+
       %{
         "client_id" => client_id,
         "user_id" => user_id,
         "contract_request" => contract_request,
         "party_user" => party_user
-      } = prepare_nhs_sign_params()
+      } = prepare_nhs_sign_params(status: ContractRequest.status(:pending_nhs_sign))
 
       conn =
         conn
@@ -1795,12 +1806,20 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "failed to save signed content", %{conn: conn} do
+      insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
+      insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
+      insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
+
       expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
         {:error, "failed to save content"}
       end)
 
       expect(OPSMock, :get_contracts, fn _, _ ->
         {:ok, %{"data" => []}}
+      end)
+
+      expect(ManMock, :render_template, fn _, _, _ ->
+        {:ok, "<html></html>"}
       end)
 
       id = UUID.generate()
@@ -1815,7 +1834,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         prepare_nhs_sign_params(
           id: id,
           data: data,
-          status: ContractRequest.status(:approved)
+          status: ContractRequest.status(:pending_nhs_sign)
         )
 
       conn =
@@ -1835,6 +1854,14 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "success to sign contract_request", %{conn: conn} do
+      insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
+      insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
+      insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
+
+      expect(ManMock, :render_template, fn _, _, _ ->
+        {:ok, "<html></html>"}
+      end)
+
       expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
         {:ok, "success"}
       end)
@@ -1844,7 +1871,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       end)
 
       id = UUID.generate()
-      data = %{"id" => id, "printout_content" => "<html></html>", "contract_number" => "0000-9EAX-XT7X-3115"}
+      data = %{"id" => id, "contract_number" => "0000-9EAX-XT7X-3115"}
 
       %{
         "client_id" => client_id,
@@ -1855,7 +1882,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         prepare_nhs_sign_params(
           id: id,
           data: data,
-          status: ContractRequest.status(:approved)
+          status: ContractRequest.status(:pending_nhs_sign)
         )
 
       conn =
@@ -1866,7 +1893,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       conn =
         patch(conn, contract_request_path(conn, :sign_nhs, contract_request.id), %{
-          "signed_content" => data |> Jason.encode!() |> Base.encode64(),
+          "signed_content" =>
+            data |> Map.put("printout_content", "<html></html>") |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
 
@@ -2240,6 +2268,14 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "content doesn't match", %{conn: conn} do
+      insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
+      insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
+      insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
+
+      expect(ManMock, :render_template, fn _, _, _ ->
+        {:ok, "<html></html>"}
+      end)
+
       %{
         "client_id" => client_id,
         "user_id" => user_id,
@@ -2271,7 +2307,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       end)
 
       id = UUID.generate()
-      data = %{"id" => id, "printout_content" => "<html></html>"}
+      data = %{"id" => id, "printout_content" => nil}
 
       %{
         "client_id" => client_id,
@@ -2311,7 +2347,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       end)
 
       id = UUID.generate()
-      data = %{"id" => id, "printout_content" => "<html></html>"}
+      data = %{"id" => id, "printout_content" => nil}
 
       %{
         "client_id" => client_id,
@@ -2341,6 +2377,10 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "success to sign contract_request", %{conn: conn} do
+      expect(ManMock, :render_template, fn _, _, _ ->
+        {:ok, "<html></html>"}
+      end)
+
       expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
         {:ok, "success"}
       end)
@@ -2358,7 +2398,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       end)
 
       id = UUID.generate()
-      data = %{"id" => id, "printout_content" => "<html></html>"}
+      data = %{"id" => id, "printout_content" => nil}
 
       %{
         "client_id" => client_id,
@@ -2467,7 +2507,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     }
   end
 
-  defp prepare_nhs_sign_params(contract_request_params \\ [], legal_entity_params \\ []) do
+  defp prepare_nhs_sign_params(contract_request_params, legal_entity_params \\ []) do
     client_id = get_client_nhs()
     params = Keyword.merge([id: client_id], legal_entity_params)
     legal_entity = insert(:prm, :legal_entity, params)

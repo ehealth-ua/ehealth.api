@@ -57,10 +57,7 @@ defmodule EHealth.Web.ContractRequestController do
   end
 
   def sign_nhs(%Plug.Conn{req_headers: headers} = conn, params) do
-    client_type = conn.assigns.client_type
-
-    with {:ok, %ContractRequest{} = contract_request, references} <-
-           ContractRequests.sign_nhs(headers, client_type, params) do
+    with {:ok, %ContractRequest{} = contract_request, references} <- ContractRequests.sign_nhs(headers, params) do
       render(conn, "show.json", contract_request: contract_request, references: references)
     end
   end

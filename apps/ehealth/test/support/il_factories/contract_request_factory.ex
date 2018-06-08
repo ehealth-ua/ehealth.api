@@ -32,6 +32,7 @@ defmodule EHealth.ILFactories.ContractRequestFactory do
           },
           contractor_legal_entity_id: legal_entity.id,
           contractor_rmsp_amount: 10,
+          data: %{},
           id_form: "5",
           contractor_employee_divisions: [
             %{
