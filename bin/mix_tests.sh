@@ -14,6 +14,7 @@ cd $TRAVIS_BUILD_DIR
 
   # Submit code coverage report to Coveralls
   # Add --pro if you using private repo.
+  if [ ${COVERALLS} == "true" ]; then
   echo "- mix coveralls.travis --exclude pending --umbrella;"
         mix coveralls.travis --exclude pending --umbrella
 
@@ -23,7 +24,7 @@ cd $TRAVIS_BUILD_DIR
             echo "mix coveralls.travis finished with errors , exited with 1"
             mix_test=1;
       fi;
-
+  fi;
 
   # Run static code analysis
   echo "- mix credo --strict ; "
