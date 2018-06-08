@@ -1,4 +1,4 @@
-defmodule EHealth.Cabinet.Requests.DeclarationsSearch do
+defmodule EHealth.Cabinet.DeclarationRequestsSearch do
   @moduledoc false
   use Ecto.Schema
   import Ecto.Changeset

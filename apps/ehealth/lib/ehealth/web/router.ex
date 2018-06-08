@@ -273,6 +273,14 @@ defmodule EHealthWeb.Router do
       get("/persons/details", Cabinet.PersonsController, :person_details, as: :cabinet_persons)
 
       get("/declarations", Cabinet.DeclarationController, :index, as: :cabinet_declarations)
+      get("/declarations/:id", Cabinet.DeclarationController, :show_declaration, as: :cabinet_declarations)
+
+      get(
+        "/declaration_requests",
+        Cabinet.DeclarationRequestController,
+        :index,
+        as: :cabinet_declaration_requests
+      )
 
       post(
         "/declaration_requests",
@@ -294,8 +302,6 @@ defmodule EHealthWeb.Router do
         :terminate_declaration,
         as: :cabinet_declarations
       )
-
-      get("/declarations/:id", Cabinet.DeclarationController, :show_declaration, as: :cabinet_declarations)
     end
 
     # Person declarations

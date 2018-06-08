@@ -1,0 +1,207 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "meta": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "number"
+        },
+        "url": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "object",
+            "list"
+          ]
+        },
+        "request_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "url",
+        "type",
+        "request_id"
+      ],
+      "additionalProperties": false
+    },
+    "data": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "declaration_number": {
+            "type": "string"
+          },
+          "start_date": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "NEW",
+              "APPROVED",
+              "SIGNED",
+              "EXPIRED"
+            ]
+          },
+          "person": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "first_name": {
+                "type": "string"
+              },
+              "last_name": {
+                "type": "string"
+              },
+              "second_name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "first_name",
+              "last_name"
+            ]
+          },
+          "employee": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "position": {
+                "type": "string"
+              },
+              "party": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "first_name": {
+                    "type": "string"
+                  },
+                  "last_name": {
+                    "type": "string"
+                  },
+                  "second_name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "first_name",
+                  "last_name"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "position"
+            ]
+          },
+          "legal_entity": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "short_name": {
+                "type": "string"
+              },
+              "legal_form": {
+                "type": "string"
+              },
+              "edrpou": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name",
+              "short_name",
+              "legal_form",
+              "edrpou"
+            ]
+          },
+          "division": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "CLINIC",
+                  "AMBULANT_CLINIC",
+                  "FAP"
+                ]
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "ACTIVE",
+                  "INACTIVE"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "type",
+              "status"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "declaration_number",
+          "start_date",
+          "status"
+        ]
+      }
+    },
+    "paging": {
+      "type": "object",
+      "properties": {
+        "page_number": {
+          "type": "number"
+        },
+        "page_size": {
+          "type": "number"
+        },
+        "total_entries": {
+          "type": "number"
+        },
+        "total_pages": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "page_number",
+        "page_size",
+        "total_entries",
+        "total_pages"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
