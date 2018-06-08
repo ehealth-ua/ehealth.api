@@ -78,6 +78,10 @@ defmodule EHealth.Web.ContractRequestView do
 
   def render("partially_signed_content.json", %{url: url}), do: %{url: url}
 
+  def render("printout_content.json", %{contract_request: contract_request, printout_content: printout_content}) do
+    %{id: contract_request.id, printout_content: printout_content}
+  end
+
   def render("contract_request_decline.json", %{contract_request: contract_request, references: references}) do
     contractor_legal_entity =
       references

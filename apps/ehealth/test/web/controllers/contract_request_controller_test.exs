@@ -2435,6 +2435,44 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
   end
 
+  describe "get printout_form" do
+    test "success get printout_form", %{conn: conn} do
+      insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
+      insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
+      insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
+
+      printout_content = "<html></html>"
+
+      expect(ManMock, :render_template, fn _, _, _ ->
+        {:ok, printout_content}
+      end)
+
+      contract_request = insert(:il, :contract_request, status: ContractRequest.status(:pending_nhs_sign))
+      id = contract_request.id
+      client_id = get_client_nhs()
+
+      conn =
+        conn
+        |> put_client_id_header(client_id)
+        |> get(contract_request_path(conn, :printout_content, id))
+
+      assert resp = json_response(conn, 200)
+      assert %{"id" => id, "printout_content" => printout_content} == resp["data"]
+    end
+
+    test "invalid status", %{conn: conn} do
+      contract_request = insert(:il, :contract_request)
+      client_id = get_client_nhs()
+
+      conn =
+        conn
+        |> put_client_id_header(client_id)
+        |> get(contract_request_path(conn, :printout_content, contract_request.id))
+
+      assert json_response(conn, 409)
+    end
+  end
+
   defp prepare_data(role_name \\ "OWNER") do
     expect(MithrilMock, :get_user_roles, fn _, _, _ ->
       {:ok, %{"data" => [%{"role_name" => role_name}]}}

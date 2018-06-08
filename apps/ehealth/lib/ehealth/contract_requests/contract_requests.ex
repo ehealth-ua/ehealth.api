@@ -407,6 +407,14 @@ defmodule EHealth.ContractRequests do
     end
   end
 
+  def get_printout_content(id, client_type, headers) do
+    with {:ok, contract_request, _} <- get_by_id(headers, client_type, id),
+         :ok <- validate_status(contract_request, ContractRequest.status(:pending_nhs_sign)),
+         {:ok, printout_content} <- ContractRequestPrintoutForm.render(contract_request, headers) do
+      {:ok, contract_request, printout_content}
+    end
+  end
+
   defp get_contract_create_params(%ContractRequest{id: id, contract_id: contract_id} = contract_request) do
     contract_request
     |> Map.take(~w(
