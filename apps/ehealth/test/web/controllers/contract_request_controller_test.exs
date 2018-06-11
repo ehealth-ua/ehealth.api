@@ -335,7 +335,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
           "signed_content_encoding" => "base64"
         })
 
-      assert resp = json_response(conn, 200)
+      assert resp = json_response(conn, 201)
 
       schema =
         "specs/json_schemas/contract_request/contract_request_show_response.json"
@@ -377,7 +377,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
           "signed_content_encoding" => "base64"
         })
 
-      assert resp = json_response(conn1, 200)
+      assert resp = json_response(conn1, 201)
 
       schema =
         "specs/json_schemas/contract_request/contract_request_show_response.json"

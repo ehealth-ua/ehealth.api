@@ -1253,7 +1253,7 @@ defmodule EHealth.ContractRequests do
 
   defp validate_contractor_legal_entity(%ContractRequest{contractor_legal_entity_id: legal_entity_id}) do
     with {:ok, legal_entity} <- Reference.validate(:legal_entity, legal_entity_id, "$.contractor_legal_entity_id"),
-         true <- legal_entity.status == LegalEntity.status(:active) do
+         true <- legal_entity.status == LegalEntity.status(:active) and legal_entity.is_active do
       :ok
     else
       false ->
