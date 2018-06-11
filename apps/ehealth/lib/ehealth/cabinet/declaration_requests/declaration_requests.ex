@@ -20,7 +20,7 @@ defmodule EHealth.Cabinet.DeclarationRequests do
          :ok <- validate_user_person(user, person),
          :ok <- check_user_blocked(user["is_blocked"]),
          %Ecto.Changeset{valid?: true} <- DeclarationRequestsSearch.changeset(search_params),
-         %Page{} = paging <- get_person_declaration_requests(search_params, user_id) do
+         %Page{} = paging <- get_person_declaration_requests(search_params, person["id"]) do
       {:ok, paging}
     end
   end
@@ -37,17 +37,17 @@ defmodule EHealth.Cabinet.DeclarationRequests do
 
   defp check_user_blocked(true), do: {:error, :access_denied}
 
-  def get_person_declaration_requests(params, user_id) do
+  def get_person_declaration_requests(params, person_id) do
     DeclarationRequest
     |> order_by([dr], desc: :inserted_at)
-    |> filter_by_person_id(user_id)
+    |> filter_by_person_id(person_id)
     |> filter_by_status(params)
     |> filter_by_start_year(params)
     |> Repo.paginate(params)
   end
 
-  defp filter_by_person_id(query, user_id) when is_binary(user_id) do
-    where(query, [r], r.mpi_id == ^user_id)
+  defp filter_by_person_id(query, person_id) when is_binary(person_id) do
+    where(query, [r], r.mpi_id == ^person_id)
   end
 
   defp filter_by_person_id(query, _), do: query

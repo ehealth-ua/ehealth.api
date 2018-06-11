@@ -42,6 +42,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
   end
 
   @user_id "4d593e84-34dc-48d3-9e33-0628a8446956"
+  @person_id "0c65d15b-32b4-4e82-b53d-0572416d890e"
 
   setup do
     register_mircoservices_for_tests([
@@ -69,7 +70,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         get_person(id, 200, %{"tax_id" => "12341234"})
       end)
 
-      declaration_request_in = insert(:il, :declaration_request, mpi_id: @user_id, data: fixture_params())
+      declaration_request_in = insert(:il, :declaration_request, mpi_id: @person_id, data: fixture_params())
       declaration_request_out = insert(:il, :declaration_request, data: fixture_params())
 
       conn =
@@ -116,12 +117,12 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         insert(
           :il,
           :declaration_request,
-          mpi_id: @user_id,
+          mpi_id: @person_id,
           status: search_status,
           data: fixture_params(%{start_date: "2018-03-02"})
         )
 
-      declaration_request_out = insert(:il, :declaration_request, mpi_id: @user_id, data: fixture_params())
+      declaration_request_out = insert(:il, :declaration_request, mpi_id: @person_id, data: fixture_params())
 
       conn =
         conn
@@ -160,7 +161,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         get_person(id, 200, %{"tax_id" => "12341234"})
       end)
 
-      for _ <- 1..2, do: insert(:il, :declaration_request, mpi_id: @user_id, data: fixture_params())
+      for _ <- 1..2, do: insert(:il, :declaration_request, mpi_id: @person_id, data: fixture_params())
 
       conn =
         conn
