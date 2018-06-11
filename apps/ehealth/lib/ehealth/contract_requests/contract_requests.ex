@@ -169,14 +169,17 @@ defmodule EHealth.ContractRequests do
   end
 
   def approve_msp(headers, %{"id" => id} = params) do
+    client_id = get_client_id(headers)
     user_id = get_consumer_id(headers)
 
     with %ContractRequest{} = contract_request <- get_by_id(id),
+         {_, true} <- {:client_id, client_id == contract_request.contractor_legal_entity_id},
          :ok <- validate_status(contract_request, ContractRequest.status(:approved)),
          :ok <- validate_contractor_legal_entity(contract_request),
          {:contractor_owner, :ok} <- {:contractor_owner, validate_contractor_owner_id(contract_request)},
          :ok <- validate_employee_divisions(contract_request),
          :ok <- validate_contractor_divisions(contract_request),
+         :ok <- validate_start_date(contract_request),
          update_params <-
            params
            |> Map.delete("id")
@@ -187,6 +190,9 @@ defmodule EHealth.ContractRequests do
          _ <- EventManager.insert_change_status(contract_request, contract_request.status, user_id) do
       {:ok, contract_request, preload_references(contract_request)}
     else
+      {:client_id, _} ->
+        {:error, {:forbidden, "Client is not allowed to modify contract_request"}}
+
       {:contractor_owner, _} ->
         {:error, {:forbidden, "User is not allowed to perform this action"}}
 
