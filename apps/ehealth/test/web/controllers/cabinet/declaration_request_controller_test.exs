@@ -233,6 +233,94 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
       assert resp = json_response(conn, 401)
       assert %{"type" => "access_denied"} == resp["error"]
     end
+
+    test "declaration requests list - expired status is not shown", %{conn: conn} do
+      expect(MithrilMock, :get_user_by_id, fn user_id, _headers ->
+        {:ok,
+         %{
+           "data" => %{
+             "id" => user_id,
+             "person_id" => "0c65d15b-32b4-4e82-b53d-0572416d890e",
+             "tax_id" => "12341234",
+             "is_blocked" => false
+           }
+         }}
+      end)
+
+      expect(MPIMock, :person, fn id, _headers ->
+        get_person(id, 200, %{"tax_id" => "12341234"})
+      end)
+
+      declaration_request_in = insert(:il, :declaration_request, mpi_id: @person_id, data: fixture_params())
+
+      declaration_request_out =
+        insert(
+          :il,
+          :declaration_request,
+          mpi_id: @person_id,
+          status: DeclarationRequest.status(:expired),
+          data: fixture_params()
+        )
+
+      conn =
+        conn
+        |> put_consumer_id_header(@user_id)
+        |> put_client_id_header(@user_id)
+        |> get(cabinet_declaration_requests_path(conn, :index))
+
+      resp = json_response(conn, 200)
+
+      declaration_request_ids = Enum.map(resp["data"], fn item -> Map.get(item, "id") end)
+      assert declaration_request_in.id in declaration_request_ids
+      refute declaration_request_out.id in declaration_request_ids
+
+      schema =
+        "specs/json_schemas/cabinet/declaration_requests_list.json"
+        |> File.read!()
+        |> Jason.decode!()
+
+      assert :ok = NExJsonSchema.Validator.validate(schema, resp)
+    end
+
+    test "declaration requests list with status search param - expired status means empty list", %{conn: conn} do
+      expect(MithrilMock, :get_user_by_id, fn user_id, _headers ->
+        {:ok,
+         %{
+           "data" => %{
+             "id" => user_id,
+             "person_id" => "0c65d15b-32b4-4e82-b53d-0572416d890e",
+             "tax_id" => "12341234",
+             "is_blocked" => false
+           }
+         }}
+      end)
+
+      expect(MPIMock, :person, fn id, _headers ->
+        get_person(id, 200, %{"tax_id" => "12341234"})
+      end)
+
+      search_status = DeclarationRequest.status(:expired)
+      search_start_year = "2018"
+
+      insert(
+        :il,
+        :declaration_request,
+        mpi_id: @person_id,
+        status: search_status,
+        data: fixture_params(%{start_date: "2018-03-02"})
+      )
+
+      insert(:il, :declaration_request, mpi_id: @person_id, data: fixture_params())
+
+      conn =
+        conn
+        |> put_consumer_id_header(@user_id)
+        |> put_client_id_header(@user_id)
+        |> get(cabinet_declaration_requests_path(conn, :index), %{status: search_status, start_year: search_start_year})
+
+      resp = json_response(conn, 200)
+      assert resp["data"] == []
+    end
   end
 
   defp fixture_params(params \\ %{}) do

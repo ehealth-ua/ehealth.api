@@ -11,6 +11,7 @@ defmodule EHealth.Cabinet.DeclarationRequests do
 
   @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
   @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
+  @status_expired DeclarationRequest.status(:expired)
 
   def search(search_params, headers) do
     user_id = get_consumer_id(headers)
@@ -37,6 +38,16 @@ defmodule EHealth.Cabinet.DeclarationRequests do
 
   defp check_user_blocked(true), do: {:error, :access_denied}
 
+  def get_person_declaration_requests(%{"status" => @status_expired} = params, person_id) do
+    %Page{
+      entries: [],
+      page_number: 1,
+      page_size: Map.get(params, "page_size", 50),
+      total_entries: 0,
+      total_pages: 1
+    }
+  end
+
   def get_person_declaration_requests(params, person_id) do
     DeclarationRequest
     |> order_by([dr], desc: :inserted_at)
@@ -56,7 +67,9 @@ defmodule EHealth.Cabinet.DeclarationRequests do
     where(query, [r], r.status == ^status)
   end
 
-  defp filter_by_status(query, _), do: query
+  defp filter_by_status(query, _) do
+    where(query, [r], r.status != ^@status_expired)
+  end
 
   defp filter_by_start_year(query, %{"start_year" => start_year}) when is_binary(start_year) do
     where(query, [r], fragment("date_part_immutable(?) = to_number(?, '9999')", r.data, ^start_year))
