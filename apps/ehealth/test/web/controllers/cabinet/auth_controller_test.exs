@@ -342,6 +342,10 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => data}}
       end)
 
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
       uaddresses_mock_expect()
 
       conn
@@ -385,6 +389,10 @@ defmodule Mithril.Web.RegistrationControllerTest do
           |> Map.delete("password")
 
         {:ok, %{"data" => data}}
+      end)
+
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
       end)
 
       uaddresses_mock_expect()
@@ -433,6 +441,10 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => data}}
       end)
 
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
       uaddresses_mock_expect()
 
       conn
@@ -471,6 +483,10 @@ defmodule Mithril.Web.RegistrationControllerTest do
           |> Map.delete("password")
 
         {:ok, %{"data" => data}}
+      end)
+
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
       end)
 
       uaddresses_mock_expect()
@@ -925,6 +941,10 @@ defmodule Mithril.Web.RegistrationControllerTest do
              "code" => 422
            }
          }}
+      end)
+
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
       end)
 
       uaddresses_mock_expect()

@@ -7,6 +7,8 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
   alias Ecto.UUID
   alias EHealth.MockServer
 
+  setup :verify_on_exit!
+
   defmodule OpsServer do
     @moduledoc false
 
@@ -47,24 +49,6 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
     Plug.Router.get "/latest_block" do
       response =
         %{"hash" => "some_current_hash"}
-        |> MockServer.wrap_response()
-        |> Jason.encode!()
-
-      Plug.Conn.send_resp(conn, 200, response)
-    end
-  end
-
-  defmodule MediaStorageServer do
-    @moduledoc false
-
-    use MicroservicesHelper
-    alias EHealth.MockServer
-
-    Plug.Router.post "/media_content_storage_secrets" do
-      response =
-        %{
-          secret_url: "http://localhost:4040/good_upload"
-        }
         |> MockServer.wrap_response()
         |> Jason.encode!()
 
@@ -174,7 +158,6 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
 
     register_mircoservices_for_tests([
       {MithrilServer, "OAUTH_ENDPOINT"},
-      {MediaStorageServer, "MEDIA_STORAGE_ENDPOINT"},
       {OpsServer, "OPS_ENDPOINT"}
     ])
 
@@ -351,6 +334,10 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
 
       expect(MPIMock, :update_person, fn id, _params, _headers ->
         get_person(id, 200)
+      end)
+
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
       end)
 
       conn =
@@ -686,32 +673,6 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
 
       expect(OPSMock, :get_declaration_by_id, fn _params, _headers ->
         declaration
-      end)
-
-      expect(MediaStorageMock, :create_signed_url, fn _, _, _, _, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://localhost/declaration_id"}}}
-      end)
-
-      expect(MediaStorageMock, :get_signed_content, fn _ ->
-        {:ok, %{body: "signed_content_hash"}}
-      end)
-
-      expect(SignatureMock, :decode_and_validate, fn signed_content, "base64", _headers ->
-        content = "<html><body>Printout form for declaration #{declaration_id}</body></html>"
-
-        data = %{
-          "content" => %{"content" => content},
-          "signed_content" => signed_content,
-          "signatures" => [
-            %{
-              "is_valid" => true,
-              "signer" => %{},
-              "validation_error_message" => ""
-            }
-          ]
-        }
-
-        {:ok, %{"data" => data}}
       end)
 
       response =

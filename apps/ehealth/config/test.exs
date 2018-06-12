@@ -63,6 +63,7 @@ config :ehealth, EHealth.API.MediaStorage,
   declaration_bucket: {:system, "MEDIA_STORAGE_DECLARATION_BUCKET", "declarations-dev"},
   medication_request_request_bucket:
     {:system, "MEDIA_STORAGE_MEDICATION_REQUEST_REQUEST_BUCKET", "medication-request-requests-dev"},
+  person_bucket: {:system, "MEDIA_STORAGE_PERSON_BUCKET", "persons-dev"},
   enabled?: {:system, :boolean, "MEDIA_STORAGE_ENABLED", false}
 
 # employee request invitation

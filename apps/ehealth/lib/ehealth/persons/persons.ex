@@ -13,6 +13,7 @@ defmodule EHealth.Persons do
   alias EHealth.Persons.Validator, as: PersonValidator
 
   @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
+  @media_storage_api Application.get_env(:ehealth, :api_resolvers)[:media_storage]
   @addresses_types ~w(REGISTRATION RESIDENCE)
 
   def search(params, headers \\ []) do
@@ -43,7 +44,8 @@ defmodule EHealth.Persons do
          :ok <- PersonValidator.validate_birth_certificate_number(content),
          %Ecto.Changeset{valid?: true, changes: changes} <- Person.changeset(content),
          :ok <- validate_authentication_method_phone(Map.get(changes, :authentication_methods), headers),
-         {:ok, %{"data" => data}} <- @mpi_api.update_person(id, changes, headers) do
+         {:ok, %{"data" => data}} <- @mpi_api.update_person(id, changes, headers),
+         :ok <- save_signed_content(data["id"], params, headers) do
       {:ok, data}
     end
   end
@@ -127,4 +129,13 @@ defmodule EHealth.Persons do
   defp check_user_blocked(false), do: :ok
 
   defp check_user_blocked(true), do: {:error, :access_denied}
+
+  defp save_signed_content(id, %{"signed_content" => signed_content}, headers, resource_name \\ "signed_content") do
+    signed_content
+    |> @media_storage_api.store_signed_content(:person_bucket, id, resource_name, headers)
+    |> case do
+      {:ok, _} -> :ok
+      _error -> {:error, {:bad_gateway, "Failed to save signed content"}}
+    end
+  end
 end

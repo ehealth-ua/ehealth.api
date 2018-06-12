@@ -16,6 +16,7 @@ defmodule EHealth.Cabinet.API do
   @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
   @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
   @signature_api Application.get_env(:ehealth, :api_resolvers)[:digital_signature]
+  @media_storage_api Application.get_env(:ehealth, :api_resolvers)[:media_storage]
 
   @person_active "active"
   @addresses_types ~w(REGISTRATION RESIDENCE)
@@ -45,6 +46,7 @@ defmodule EHealth.Cabinet.API do
          :ok <- check_user_by_tax_id(mithril_user),
          person_params <- prepare_person_params(content),
          {:ok, %{"data" => person}} <- create_or_update_person(mpi_person, person_params, headers),
+         :ok <- save_signed_content(person["id"], params, headers),
          user_params <- prepare_user_params(tax_id, person["id"], email, params, content),
          {:ok, %{"data" => user}} <- create_or_update_user(mithril_user, user_params, headers),
          conf <- Confex.fetch_env!(:ehealth, __MODULE__),
@@ -259,4 +261,13 @@ defmodule EHealth.Cabinet.API do
       {:error, {:bad_request, "document must be signed by 1 signer but contains #{Enum.count(signatures)} signatures"}}
 
   defp conflict(message, type), do: {:error, {:conflict, %{message: message, type: type}}}
+
+  defp save_signed_content(id, %{"signed_content" => signed_content}, headers, resource_name \\ "signed_content") do
+    signed_content
+    |> @media_storage_api.store_signed_content(:person_bucket, id, resource_name, headers)
+    |> case do
+      {:ok, _} -> :ok
+      _error -> {:error, {:bad_gateway, "Failed to save signed content"}}
+    end
+  end
 end
