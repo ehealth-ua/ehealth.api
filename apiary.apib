@@ -5600,7 +5600,10 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + declaration_number: `0000-12H4-245D` (string, required) - unique number of declaration.
 + start_date: `2017-03-02` (string, required)
++ end_date: `2017-03-02` (string, required)
 + signed_at: `2017-03-02T00:00:00.000Z` (string, required)
++ seed: hash (string, required)
++ person_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + person(`Person_Short`)
     + 
     + `emergency_contact` (`Emergency_Contact`, required)
@@ -5619,6 +5622,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + content: `Declaration content` (string, required) - HTML document that MUST be shown to a end-user and signed by hes key. - Should be defined on the client side.
 + inserted_at: `2017-03-02T10:45:16.000Z` (string, optional)
 + updated_at: `2017-03-02T10:45:16.000Z` (string, optional)
++ channel: `CABINET` (enum, required) - channel that invoke declaration create service
 
 ### `Declaration_list_cabinet`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - unique id of declaration
