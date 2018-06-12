@@ -42,9 +42,7 @@ defmodule EHealth.Unit.DeclarationRequests.API.ResendOTPTest do
 
   describe "resent_otp" do
     test "invalid id" do
-      assert_raise Ecto.NoResultsError, fn ->
-        resend_otp(UUID.generate(), [])
-      end
+      refute resend_otp(UUID.generate(), [])
     end
 
     test "invalid status" do

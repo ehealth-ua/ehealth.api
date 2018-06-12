@@ -289,18 +289,18 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     test "get declaration request by invalid id", %{conn: conn} do
       conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8602f2")
 
-      assert_raise Ecto.NoResultsError, fn ->
-        get(conn, declaration_request_path(conn, :show, UUID.generate()))
-      end
+      assert conn
+             |> get(declaration_request_path(conn, :show, UUID.generate()))
+             |> json_response(404)
     end
 
     test "get declaration request by invalid legal_entity_id", %{conn: conn} do
       %{id: id} = fixture(DeclarationRequest, fixture_params())
       conn = put_client_id_header(conn, UUID.generate())
 
-      assert_raise Ecto.NoResultsError, fn ->
-        get(conn, declaration_request_path(conn, :show, id))
-      end
+      assert conn
+             |> get(declaration_request_path(conn, :show, id))
+             |> json_response(404)
     end
 
     test "get declaration request by id", %{conn: conn} do
@@ -312,6 +312,32 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       assert Map.has_key?(resp, "data")
       assert Map.has_key?(resp, "urgent")
       assert "some_hash" == get_in(resp, ["data", "seed"])
+    end
+
+    test "get declaration request by id in status expired" do
+      declaration_id = UUID.generate()
+      legal_entity_id = UUID.generate()
+      status = "EXPIRED"
+
+      params =
+        fixture_params()
+        |> put_in([:id], declaration_id)
+        |> put_in([:status], status)
+        |> put_in([:data], %{})
+
+      fixture(DeclarationRequest, params)
+
+      conn = put_client_id_header(build_conn(), legal_entity_id)
+      conn = get(conn, declaration_request_path(conn, :show, declaration_id))
+      resp = json_response(conn, 200)
+
+      assert resp
+      assert resp["data"]["id"]
+      assert resp["data"]["declaration_number"]
+      assert resp["data"]["status"] == "EXPIRED"
+      assert resp["data"]["person"] == nil
+      assert resp["data"]["employee"] == nil
+      assert resp["data"]["legal_entity"] == nil
     end
   end
 
@@ -342,9 +368,9 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     test "when declaration request id is invalid", %{conn: conn} do
       conn = put_client_id_header(conn, UUID.generate())
 
-      assert_raise Ecto.NoResultsError, fn ->
-        post(conn, declaration_request_path(conn, :resend_otp, UUID.generate()))
-      end
+      assert conn
+             |> post(declaration_request_path(conn, :resend_otp, UUID.generate()))
+             |> json_response(404)
     end
 
     test "when declaration request status is not NEW", %{conn: conn} do

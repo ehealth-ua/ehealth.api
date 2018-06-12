@@ -5,6 +5,7 @@ defmodule EHealth.Web.DeclarationRequestController do
   alias Scrivener.Page
   alias EHealth.API.OPS
   alias EHealth.DeclarationRequests
+  alias EHealth.DeclarationRequests.DeclarationRequest
   require Logger
 
   action_fallback(EHealth.Web.FallbackController)
@@ -18,13 +19,14 @@ defmodule EHealth.Web.DeclarationRequestController do
   end
 
   def show(conn, %{"declaration_request_id" => id} = params) do
-    declaration_request = DeclarationRequests.get_by_id!(id, params)
-    urgent_data = Map.take(declaration_request, [:authentication_method_current, :documents])
-    {:ok, %{"data" => %{"hash" => hash}}} = OPS.get_latest_block()
+    with %DeclarationRequest{} = declaration_request <- DeclarationRequests.get_by_id!(id, params) do
+      urgent_data = Map.take(declaration_request, [:authentication_method_current, :documents])
+      {:ok, %{"data" => %{"hash" => hash}}} = OPS.get_latest_block()
 
-    conn
-    |> assign(:urgent, urgent_data)
-    |> render("declaration_request.json", declaration_request: declaration_request, hash: hash)
+      conn
+      |> assign(:urgent, urgent_data)
+      |> render("declaration_request.json", declaration_request: declaration_request, hash: hash)
+    end
   end
 
   def create(conn, %{"declaration_request" => params}) do
