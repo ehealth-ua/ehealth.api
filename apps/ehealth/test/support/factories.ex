@@ -14,6 +14,7 @@ defmodule EHealth.Factories do
   use EHealth.PRMFactories.MedicationFactory
   use EHealth.PRMFactories.MedicalProgramFactory
   use EHealth.PRMFactories.BlackListUserFactory
+  use EHealth.PRMFactories.ContractFactory
 
   # IL
   use EHealth.ILFactories.RegisterFactory
@@ -27,7 +28,6 @@ defmodule EHealth.Factories do
   use EHealth.OPSFactories.MedicationRequestFactory
   use EHealth.OPSFactories.MedicationDispenseFactory
   use EHealth.OPSFactories.MedicationDispenseDetailsFactory
-  use EHealth.OPSFactories.ContractFactory
 
   # MPI
   use EHealth.MPIFactories.PersonFactory

@@ -28,14 +28,19 @@ defmodule EHealth.Web.ContractView do
       contract_number
       is_suspended
       contract_request_id
-    ))
+    )a)
     |> Map.put(
-      "contractor_owner",
-      ContractRequestView.render_association(:employee, references, contract["contractor_owner_id"])
+      :contractor_owner,
+      ContractRequestView.render_association(:employee, references, contract.contractor_owner_id)
     )
   end
 
   def render("show.json", %{contract: contract, references: references}) do
+    contract_request =
+      references
+      |> Map.get(:contract_request)
+      |> Map.get(contract.contract_request_id)
+
     contract
     |> Map.take(~w(
       id
@@ -49,42 +54,44 @@ defmodule EHealth.Web.ContractView do
       external_contractors
       nhs_payment_method
       nhs_signer_base
-      nhs_payment_details
       issue_city
       nhs_contract_price
       contract_number
       is_suspended
       contract_request_id
-    ))
+    )a)
     |> Map.put(
-      "contractor_legal_entity",
-      ContractRequestView.render_association(:legal_entity, references, contract["contractor_legal_entity_id"])
+      :contractor_legal_entity,
+      ContractRequestView.render_association(:legal_entity, references, contract.contractor_legal_entity_id)
     )
     |> Map.put(
-      "nhs_legal_entity",
-      ContractRequestView.render_association(:legal_entity, references, contract["nhs_legal_entity_id"])
+      :nhs_legal_entity,
+      ContractRequestView.render_association(:legal_entity, references, contract.nhs_legal_entity_id)
     )
     |> Map.put(
-      "contractor_owner",
-      ContractRequestView.render_association(:employee, references, contract["contractor_owner_id"])
+      :contractor_owner,
+      ContractRequestView.render_association(:employee, references, contract.contractor_owner_id)
     )
     |> Map.put(
-      "nhs_signer",
-      ContractRequestView.render_association(:employee, references, contract["nhs_signer_id"])
+      :nhs_signer,
+      ContractRequestView.render_association(:employee, references, contract.nhs_signer_id)
     )
     |> Map.put(
-      "contractor_employee_divisions",
+      :contractor_employee_divisions,
       ContractRequestView.render_association(
         :employee_divisions,
         references,
-        contract["contractor_employee_divisions"] || []
+        contract_request.contractor_employee_divisions || []
       )
     )
     |> Map.put(
-      "contractor_divisions",
-      render_association(:contractor_divisions, references, contract["contractor_divisions"] || [])
+      :contractor_divisions,
+      render_association(:contractor_divisions, references, contract.contract_divisions || [])
     )
   end
+
+  def render("suspended.json", %{suspended: suspended}), do: %{suspended: suspended}
+  def render("renewed.json", %{renewed: renewed}), do: %{renewed: renewed}
 
   def render_association(:contractor_divisions, references, contractor_divisions) do
     Enum.map(contractor_divisions, &render_association(:division, references, &1))

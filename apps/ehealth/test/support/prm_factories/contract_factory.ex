@@ -1,24 +1,21 @@
-defmodule EHealth.OPSFactories.ContractFactory do
+defmodule EHealth.PRMFactories.ContractFactory do
   @moduledoc false
 
   alias Ecto.UUID
+  alias EHealth.Contracts.Contract
+  alias EHealth.Contracts.ContractDivision
+  alias EHealth.Contracts.ContractEmployee
 
   defmacro __using__(_opts) do
     quote do
       def contract_factory do
-        contractor_legal_entity = insert(:prm, :legal_entity)
-        nhs_legal_entity = insert(:prm, :legal_entity)
-        contractor_owner = insert(:prm, :employee)
-        nhs_signer = insert(:prm, :employee)
-        division = insert(:prm, :division, phones: [%{"type" => "MOBILE", "number" => "+380631111111"}])
-
-        %{
+        %Contract{
           id: UUID.generate(),
-          start_date: NaiveDateTime.utc_now(),
-          end_date: NaiveDateTime.add(NaiveDateTime.utc_now(), days_to_seconds(30), :seconds),
-          status: "VERIFIED",
-          contractor_legal_entity_id: contractor_legal_entity.id,
-          contractor_owner_id: contractor_owner.id,
+          start_date: Date.utc_today(),
+          end_date: Date.utc_today(),
+          status: Contract.status(:verified),
+          contractor_legal_entity_id: UUID.generate(),
+          contractor_owner_id: UUID.generate(),
           contractor_base: "на підставі закону про Медичне обслуговування населення",
           contractor_payment_details: %{
             bank_name: "Банк номер 1",
@@ -47,18 +44,12 @@ defmodule EHealth.OPSFactories.ContractFactory do
               ]
             }
           ],
-          nhs_legal_entity_id: nhs_legal_entity.id,
-          nhs_signer_id: nhs_signer.id,
+          nhs_legal_entity_id: UUID.generate(),
+          nhs_signer_id: UUID.generate(),
           nhs_payment_method: "prepayment",
-          nhs_payment_details: %{
-            bank_name: "Банк номер 1",
-            MFO: "351005",
-            payer_account: "32009102701026"
-          },
-          contractor_divisions: [division.id],
           nhs_signer_base: "на підставі наказу",
           issue_city: "Київ",
-          nhs_contract_price: Enum.random(100_000..200_000),
+          nhs_contract_price: to_float(Enum.random(100_000..200_000)),
           contract_number: "0000-9EAX-XT7X-3115",
           contract_request_id: UUID.generate(),
           is_active: true,
@@ -68,7 +59,30 @@ defmodule EHealth.OPSFactories.ContractFactory do
         }
       end
 
+      def contract_employee_factory do
+        %ContractEmployee{
+          contract_id: UUID.generate(),
+          employee_id: UUID.generate(),
+          division_id: UUID.generate(),
+          staff_units: to_float(Enum.random(100_000..200_000)),
+          declaration_limit: 2000,
+          inserted_by: UUID.generate(),
+          updated_by: UUID.generate(),
+          start_date: Date.utc_today()
+        }
+      end
+
+      def contract_division_factory do
+        %ContractDivision{
+          contract_id: UUID.generate(),
+          division_id: UUID.generate(),
+          inserted_by: UUID.generate(),
+          updated_by: UUID.generate()
+        }
+      end
+
       defp days_to_seconds(days_count), do: days_count * 24 * 60 * 60
+      defp to_float(number) when is_integer(number), do: number + 0.0
     end
   end
 end

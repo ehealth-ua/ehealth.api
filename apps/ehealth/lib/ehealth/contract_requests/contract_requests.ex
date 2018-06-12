@@ -27,6 +27,7 @@ defmodule EHealth.ContractRequests do
   alias EHealth.EventManager
   alias EHealth.Web.ContractRequestView
   alias EHealth.Man.Templates.ContractRequestPrintoutForm
+  alias EHealth.Contracts
 
   require Logger
 
@@ -326,16 +327,24 @@ defmodule EHealth.ContractRequests do
          %Ecto.Changeset{valid?: true} = changes <- msp_signed_changeset(contract_request, update_params),
          {:ok, contract_request} <- Repo.update(changes),
          contract_params <- get_contract_create_params(contract_request),
-         {:create_contract, {:ok, %{"data" => contract}}} <-
-           {:create_contract, @ops_api.create_contract(contract_params, headers)},
+         {:create_contract, {:ok, contract}} <- {:create_contract, Contracts.create(contract_params)},
          _ <- EventManager.insert_change_status(contract_request, contract_request.status, user_id) do
       Contracts.load_contract_references(contract)
     else
-      {:signed_nhs, false} -> {:error, {:"422", "Incorrect status for signing"}}
-      {:client_id, _} -> {:error, {:forbidden, "Invalid client_id"}}
-      {:employee, _} -> {:error, {:"422", "Employee is not allowed to sign"}}
-      {:create_contract, _} -> {:error, {:bad_gateway, "Failed to save contract"}}
-      error -> error
+      {:signed_nhs, false} ->
+        {:error, {:"422", "Incorrect status for signing"}}
+
+      {:client_id, _} ->
+        {:error, {:forbidden, "Invalid client_id"}}
+
+      {:employee, _} ->
+        {:error, {:"422", "Employee is not allowed to sign"}}
+
+      {:create_contract, _} ->
+        {:error, {:bad_gateway, "Failed to save contract"}}
+
+      error ->
+        error
     end
   end
 
@@ -437,19 +446,20 @@ defmodule EHealth.ContractRequests do
       nhs_legal_entity_id
       nhgs_signed_id
       nhs_payment_method
-      nhs_payment_details
       nhs_signer_base
       issue_city
-      price
       contract_number
       contractor_employee_divisions
+      status
+      nhs_signer_id
+      nhs_contract_price
     )a)
-    |> Map.put("id", contract_id)
-    |> Map.put("contract_request_id", id)
-    |> Map.put("is_suspended", false)
-    |> Map.put("is_active", true)
-    |> Map.put("inserted_by", contract_request.updated_by)
-    |> Map.put("updated_by", contract_request.updated_by)
+    |> Map.put(:id, contract_id)
+    |> Map.put(:contract_request_id, id)
+    |> Map.put(:is_suspended, false)
+    |> Map.put(:is_active, true)
+    |> Map.put(:inserted_by, contract_request.updated_by)
+    |> Map.put(:updated_by, contract_request.updated_by)
   end
 
   defp validate_content(%ContractRequest{data: data}, printout_content, content) do

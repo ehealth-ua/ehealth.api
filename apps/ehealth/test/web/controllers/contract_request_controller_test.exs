@@ -1033,7 +1033,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
           contractor_owner_id: employee.id,
           contractor_employee_divisions: [
             %{division_id: UUID.generate(), employee_id: employee.id}
-          ]
+          ],
+          nhs_signer_id: nil
         )
 
       conn =
@@ -1119,7 +1120,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
               "declaration_limit" => 2000,
               "division_id" => division.id
             }
-          ]
+          ],
+          nhs_signer_id: nil
         )
 
       conn =
@@ -2385,18 +2387,6 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         {:ok, "success"}
       end)
 
-      contract_request = insert(:il, :contract_request)
-
-      expect(OPSMock, :create_contract, fn _, _ ->
-        contract =
-          :contract
-          |> build(contract_request_id: contract_request.id)
-          |> Poison.encode!()
-          |> Poison.decode!()
-
-        {:ok, %{"data" => contract}}
-      end)
-
       id = UUID.generate()
       data = %{"id" => id, "printout_content" => nil}
 
@@ -2409,7 +2399,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         prepare_nhs_sign_params(
           id: id,
           data: data,
-          status: ContractRequest.status(:nhs_signed)
+          status: ContractRequest.status(:nhs_signed),
+          contract_number: "1345"
         )
 
       conn =

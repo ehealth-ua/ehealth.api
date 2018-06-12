@@ -4,10 +4,12 @@ defmodule EHealth.Contracts.Search do
   use Ecto.Schema
   import Ecto.Changeset
   alias Ecto.UUID
+  alias EHealth.Ecto.CommaParamsUUID
 
   @primary_key false
   embedded_schema do
     field(:id, UUID)
+    field(:ids, CommaParamsUUID)
     field(:date_from_start_date, :date)
     field(:date_to_start_date, :date)
     field(:date_from_end_date, :date)

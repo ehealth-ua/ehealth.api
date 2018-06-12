@@ -530,29 +530,6 @@
             "type": "string",
             "description": "payment method for contract Dictionary: CONTRACT_PAYMENT_METHOD"
         },
-        "nhs_payment_details": {
-            "type": "object",
-            "properties": {
-                "bank_name": {
-                    "type": "string",
-                    "description": "bank name"
-                },
-                "MFO": {
-                    "type": "string",
-                    "description": "bank code"
-                },
-                "payer_account": {
-                    "type": "string",
-                    "description": "Номер банківського рахунку"
-                }
-            },
-            "required": [
-                "bank_name",
-                "MFO",
-                "payer_account"
-            ],
-            "additionalProperties": false
-        },
         "status": {
             "type": "string",
             "description": "contract status"
@@ -674,7 +651,6 @@
         "nhs_signer_base",
         "nhs_contract_price",
         "nhs_payment_method",
-        "nhs_payment_details",
         "nhs_signer",
         "nhs_legal_entity",
         "issue_city",

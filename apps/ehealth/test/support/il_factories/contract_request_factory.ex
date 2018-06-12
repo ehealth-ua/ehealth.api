@@ -56,6 +56,7 @@ defmodule EHealth.ILFactories.ContractRequestFactory do
           inserted_by: UUID.generate(),
           updated_by: UUID.generate(),
           issue_city: "Київ",
+          nhs_signer_id: UUID.generate(),
           nhs_signer_base: "на підставі наказу",
           nhs_contract_price: 50_000.00,
           nhs_payment_method: "prepayment"
