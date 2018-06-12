@@ -6,7 +6,6 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   import EHealth.SimpleFactory
   import Mox
 
-  alias Ecto.UUID
   alias EHealth.EmployeeRequests.EmployeeRequest, as: Request
   alias EHealth.LegalEntities.LegalEntity
   alias EHealth.Employees.Employee
@@ -1106,15 +1105,6 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "can approve employee request with employee_id with changed party.name", %{conn: conn} do
-      expect(OPSMock, :get_contracts, fn _params, _headers ->
-        {:ok, %{"data" => [%{"id" => UUID.generate()}]}}
-      end)
-
-      expect(OPSMock, :suspend_contracts, fn ids, _headers ->
-        assert 1 == length(ids)
-        {:ok, %{"data" => %{"suspended" => 1}}}
-      end)
-
       expect(ReportMock, :get_declaration_count, fn _, _ ->
         {:ok, %{"data" => []}}
       end)

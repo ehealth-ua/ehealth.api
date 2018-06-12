@@ -3,8 +3,6 @@ defmodule EHealth.Unit.EmployeeRequestsTest do
 
   use EHealth.Web.ConnCase, async: false
 
-  import Mox
-
   alias Ecto.UUID
   alias EHealth.{Repo, EventManagerRepo, EmployeeRequests}
   alias EHealth.EmployeeRequests.EmployeeRequest, as: Request
@@ -45,19 +43,6 @@ defmodule EHealth.Unit.EmployeeRequestsTest do
   end
 
   test "rollback suspended contracts on employee_request approve when employee.division_id invalid" do
-    expect(OPSMock, :get_contracts, fn _params, _headers ->
-      {:ok, %{"data" => [%{"id" => UUID.generate()}, %{"id" => UUID.generate()}]}}
-    end)
-
-    # not all contracts was suspended
-    expect(OPSMock, :suspend_contracts, fn ids, _headers ->
-      {:ok, %{"data" => %{"suspended" => length(ids)}}}
-    end)
-
-    expect(OPSMock, :renew_contracts, fn _ids, _headers ->
-      {:ok, %{"data" => %{}}}
-    end)
-
     %{id: legal_entity_id} = insert(:prm, :legal_entity)
 
     data =

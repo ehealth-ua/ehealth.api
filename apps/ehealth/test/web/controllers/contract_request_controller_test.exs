@@ -7,6 +7,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
   import EHealth.MockServer, only: [get_client_nhs: 0]
 
   alias EHealth.ContractRequests.ContractRequest
+  alias EHealth.Contracts.Contract
   alias EHealth.Employees.Employee
   alias EHealth.LegalEntities.LegalEntity
   alias EHealth.Utils.NumberGenerator
@@ -299,22 +300,15 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       now = Date.utc_today()
       start_date = Date.add(now, 10)
-      contract_id = UUID.generate()
+      contract_number = NumberGenerator.generate_from_sequence(1, 1)
 
-      expect(OPSMock, :get_contracts, fn _, _ ->
-        {:ok,
-         %{
-           "data" => [
-             %{
-               "id" => contract_id,
-               "status" => "VERIFIED",
-               "contractor_legal_entity_id" => legal_entity.id,
-               "start_date" => Date.to_iso8601(start_date),
-               "end_date" => Date.to_iso8601(Date.add(now, 30))
-             }
-           ]
-         }}
-      end)
+      insert(
+        :prm,
+        :contract,
+        contract_number: contract_number,
+        status: Contract.status(:verified),
+        contractor_legal_entity_id: legal_entity.id
+      )
 
       conn =
         conn
@@ -326,7 +320,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         division
         |> prepare_params(employee, Date.to_iso8601(Date.add(start_date, 1)))
         |> Map.put("contractor_owner_id", owner.id)
-        |> Map.put("contract_number", NumberGenerator.generate_from_sequence(1, 1))
+        |> Map.put("contract_number", contract_number)
         |> Map.drop(~w(contractor_employee_divisions start_date end_date))
 
       conn =
@@ -1773,10 +1767,6 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "invalid status", %{conn: conn} do
-      expect(OPSMock, :get_contracts, fn _, _ ->
-        {:ok, %{"data" => []}}
-      end)
-
       id = UUID.generate()
       data = %{"id" => id, "printout_content" => "<html></html>", "contract_number" => "0000-9EAX-XT7X-3115"}
 
@@ -1816,16 +1806,18 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         {:error, "failed to save content"}
       end)
 
-      expect(OPSMock, :get_contracts, fn _, _ ->
-        {:ok, %{"data" => []}}
-      end)
-
       expect(ManMock, :render_template, fn _, _, _ ->
         {:ok, "<html></html>"}
       end)
 
       id = UUID.generate()
-      data = %{"id" => id, "printout_content" => "<html></html>", "contract_number" => "0000-9EAX-XT7X-3115"}
+
+      data = %{
+        "id" => id,
+        "printout_content" => "<html></html>",
+        "contract_number" => "0000-9EAX-XT7X-3115",
+        "status" => ContractRequest.status(:pending_nhs_sign)
+      }
 
       %{
         "client_id" => client_id,
@@ -1868,12 +1860,13 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         {:ok, "success"}
       end)
 
-      expect(OPSMock, :get_contracts, fn _, _ ->
-        {:ok, %{"data" => []}}
-      end)
-
       id = UUID.generate()
-      data = %{"id" => id, "contract_number" => "0000-9EAX-XT7X-3115"}
+
+      data = %{
+        "id" => id,
+        "contract_number" => "0000-9EAX-XT7X-3115",
+        "status" => ContractRequest.status(:pending_nhs_sign)
+      }
 
       %{
         "client_id" => client_id,
@@ -2309,7 +2302,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       end)
 
       id = UUID.generate()
-      data = %{"id" => id, "printout_content" => nil}
+      data = %{"id" => id, "printout_content" => nil, "status" => ContractRequest.status(:nhs_signed)}
 
       %{
         "client_id" => client_id,
@@ -2344,12 +2337,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         {:ok, "success"}
       end)
 
-      expect(OPSMock, :create_contract, fn _, _ ->
-        {:error, %HTTPoison.Error{reason: :timeout}}
-      end)
-
       id = UUID.generate()
-      data = %{"id" => id, "printout_content" => nil}
+      data = %{"id" => id, "printout_content" => nil, "status" => ContractRequest.status(:nhs_signed)}
 
       %{
         "client_id" => client_id,
@@ -2388,7 +2377,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       end)
 
       id = UUID.generate()
-      data = %{"id" => id, "printout_content" => nil}
+      data = %{"id" => id, "printout_content" => nil, "status" => ContractRequest.status(:nhs_signed)}
 
       %{
         "client_id" => client_id,

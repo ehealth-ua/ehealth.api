@@ -27,10 +27,4 @@ defmodule EHealth.Web.ContractController do
       render(conn, "suspended.json", suspended: suspended)
     end
   end
-
-  def renew(conn, params) do
-    with {:ok, renewed} <- Contracts.renew(params) do
-      render(conn, "renewed.json", renewed: renewed)
-    end
-  end
 end

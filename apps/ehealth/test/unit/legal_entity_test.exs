@@ -280,10 +280,6 @@ defmodule EHealth.Unit.LegalEntityTest do
     end
 
     test "happy path" do
-      expect(OPSMock, :get_contracts, fn _, _ ->
-        {:ok, %{"data" => []}}
-      end)
-
       insert(:prm, :registry)
       insert(:prm, :legal_entity, edrpou: "10002000")
       insert(:prm, :legal_entity, edrpou: "37367387")
@@ -322,10 +318,6 @@ defmodule EHealth.Unit.LegalEntityTest do
     end
 
     test "update inactive Legal Entity" do
-      expect(OPSMock, :get_contracts, fn _, _ ->
-        {:ok, %{"data" => []}}
-      end)
-
       insert(:prm, :legal_entity, edrpou: "37367387", is_active: false)
 
       data = Map.merge(get_legal_entity_data(), %{"edrpou" => "37367387"})
@@ -346,15 +338,6 @@ defmodule EHealth.Unit.LegalEntityTest do
     test "successfully update name" do
       expect(ManMock, :render_template, fn _id, _data ->
         {:ok, "<html><body>Printout form for declaration request.</body></html>"}
-      end)
-
-      expect(OPSMock, :get_contracts, fn _params, _headers ->
-        {:ok, %{"data" => [%{"id" => UUID.generate()}, %{"id" => UUID.generate()}]}}
-      end)
-
-      expect(OPSMock, :suspend_contracts, fn ids, _headers ->
-        assert 2 == length(ids)
-        {:ok, %{"data" => %{"suspended" => 2}}}
       end)
 
       insert_dictionaries()
@@ -378,91 +361,10 @@ defmodule EHealth.Unit.LegalEntityTest do
       assert "Нова" == row["name"]
     end
 
-    test "OPS get_contracts respond with invalid data" do
-      expect(OPSMock, :get_contracts, fn _params, _headers ->
-        {:ok, %{"data" => "invalid format"}}
-      end)
-
-      legal_entity = insert(:prm, :legal_entity, name: "New Line")
-      changeset = API.changeset(legal_entity, %{"name" => "New World"})
-
-      assert {:error, {:service_unavailable, "Cannot suspend contracts. Try later"}} =
-               API.transaction_update_with_ops_contract(changeset, [])
-    end
-
-    test "OPS suspend_contracts respond with invalid data" do
-      expect(OPSMock, :get_contracts, fn _params, _headers ->
-        {:ok, %{"data" => [%{"id" => UUID.generate()}, %{"id" => UUID.generate()}]}}
-      end)
-
-      expect(OPSMock, :suspend_contracts, fn _ids, _headers ->
-        {:ok, %{"data" => "invalid format"}}
-      end)
-
-      legal_entity = insert(:prm, :legal_entity, name: "New Line")
-      changeset = API.changeset(legal_entity, %{"name" => "New World"})
-
-      assert {:error, {:service_unavailable, "Cannot suspend contracts. Try later"}} =
-               API.transaction_update_with_ops_contract(changeset, [])
-    end
-
-    test "rollback suspended contracts on failed contracts suspending" do
-      contract_id_1 = UUID.generate()
-      contract_id_2 = UUID.generate()
-      legal_entity = insert(:prm, :legal_entity, name: "New Line")
-
-      expect(OPSMock, :get_contracts, fn params, _headers ->
-        Enum.each(~w(legal_entity_id status is_suspended)a, fn key ->
-          assert Map.has_key?(params, key), "OPS.get_contracts requires param `#{key}` in `#{inspect(params)}`"
-        end)
-
-        assert params.legal_entity_id == legal_entity.id
-        assert params.status == "VERIFIED"
-        assert params.is_suspended == false
-
-        {:ok, %{"data" => [%{"id" => contract_id_1}, %{"id" => contract_id_2}]}}
-      end)
-
-      # not all contracts was suspended
-      expect(OPSMock, :suspend_contracts, fn ids, _headers ->
-        assert 2 = length(ids)
-        assert contract_id_1 in ids
-        assert contract_id_2 in ids
-        {:ok, %{"data" => %{"suspended" => 1}}}
-      end)
-
-      expect(OPSMock, :renew_contracts, fn ids, _headers ->
-        assert 2 = length(ids)
-        assert contract_id_1 in ids
-        assert contract_id_2 in ids
-        {:ok, %{"data" => %{}}}
-      end)
-
-      changeset = API.changeset(legal_entity, %{"name" => "New World"})
-
-      assert {:error, {:service_unavailable, "Cannot suspend contracts. Try later"}} =
-               API.transaction_update_with_ops_contract(changeset, [])
-    end
-
     test "rollback suspended contracts on legal entity update when edrpou is duplicated" do
       insert(:prm, :legal_entity, edrpou: "10020030")
       legal_entity = insert(:prm, :legal_entity)
-
-      expect(OPSMock, :get_contracts, fn _params, _headers ->
-        {:ok, %{"data" => [%{"id" => UUID.generate()}, %{"id" => UUID.generate()}]}}
-      end)
-
-      # not all contracts was suspended
-      expect(OPSMock, :suspend_contracts, fn ids, _headers ->
-        {:ok, %{"data" => %{"suspended" => length(ids)}}}
-      end)
-
-      expect(OPSMock, :renew_contracts, fn _ids, _headers ->
-        {:ok, %{"data" => %{}}}
-      end)
-
       changeset = API.changeset(legal_entity, %{"edrpou" => "10020030"})
-
       assert {:error, %Ecto.Changeset{valid?: false}} = API.transaction_update_with_ops_contract(changeset, [])
     end
   end

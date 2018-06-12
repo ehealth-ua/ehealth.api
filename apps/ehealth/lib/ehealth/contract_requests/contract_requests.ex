@@ -7,6 +7,7 @@ defmodule EHealth.ContractRequests do
   import Ecto.Query
   import EHealth.Utils.Connection, only: [get_consumer_id: 1, get_client_id: 1]
 
+  alias Scrivener.Page
   alias Ecto.Adapters.SQL
   alias Ecto.UUID
   alias EHealth.Contracts
@@ -28,10 +29,10 @@ defmodule EHealth.ContractRequests do
   alias EHealth.Web.ContractRequestView
   alias EHealth.Man.Templates.ContractRequestPrintoutForm
   alias EHealth.Contracts
+  alias EHealth.Contracts.Contract
 
   require Logger
 
-  @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]
   @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
   @media_storage_api Application.get_env(:ehealth, :api_resolvers)[:media_storage]
 
@@ -60,7 +61,7 @@ defmodule EHealth.ContractRequests do
 
   def search(search_params) do
     with %Ecto.Changeset{valid?: true} = changeset <- Search.changeset(search_params),
-         %Scrivener.Page{} = paging <- search(changeset, search_params, ContractRequest) do
+         %Page{} = paging <- search(changeset, search_params, ContractRequest) do
       {:ok, paging}
     end
   end
@@ -144,7 +145,7 @@ defmodule EHealth.ContractRequests do
          :ok <- validate_approve_content(content, contract_request, references),
          :ok <- validate_status(contract_request, ContractRequest.status(:new)),
          :ok <- save_signed_content(contract_request.id, params, headers, "contract_request_approved"),
-         :ok <- validate_contract_id(contract_request, headers),
+         :ok <- validate_contract_id(contract_request),
          :ok <- validate_contractor_owner_id(contract_request),
          :ok <- validate_nhs_signer_id(contract_request, client_id),
          :ok <- validate_contract_employee_divisions(contract_request),
@@ -278,7 +279,7 @@ defmodule EHealth.ContractRequests do
          :ok <- validate_signer_drfo(contract_request.nhs_signer_id, signer["drfo"], "$.nhs_signer_id"),
          {:ok, printout_content} <- ContractRequestPrintoutForm.render(contract_request, headers),
          :ok <- validate_content(contract_request, printout_content, content),
-         :ok <- validate_contract_id(contract_request, headers),
+         :ok <- validate_contract_id(contract_request),
          :ok <- validate_employee_divisions(contract_request),
          :ok <- validate_start_date(contract_request),
          :ok <- validate_contractor_legal_entity(contract_request),
@@ -462,8 +463,13 @@ defmodule EHealth.ContractRequests do
     |> Map.put(:updated_by, contract_request.updated_by)
   end
 
-  defp validate_content(%ContractRequest{data: data}, printout_content, content) do
-    if Map.put(data, "printout_content", printout_content) == content,
+  defp validate_content(%ContractRequest{data: data, status: status}, printout_content, content) do
+    data_content =
+      data
+      |> Map.put("status", status)
+      |> Map.put("printout_content", printout_content)
+
+    if data_content == content,
       do: :ok,
       else: {:error, {:"422", "Signed content does not match the previously created content"}}
   end
@@ -1088,10 +1094,10 @@ defmodule EHealth.ContractRequests do
 
   defp set_dates(nil, params), do: params
 
-  defp set_dates(contract, params) do
+  defp set_dates(%Contract{} = contract, params) do
     params
-    |> Map.put("start_date", contract["start_date"])
-    |> Map.put("end_date", contract["end_date"])
+    |> Map.put("start_date", to_string(contract.start_date))
+    |> Map.put("end_date", to_string(contract.end_date))
   end
 
   defp validate_contractor_owner_id(%ContractRequest{
@@ -1317,23 +1323,23 @@ defmodule EHealth.ContractRequests do
     |> validate_required(fields_required)
   end
 
-  defp validate_contract_id(%ContractRequest{parent_contract_id: contract_id}, headers) when not is_nil(contract_id) do
-    with {:ok, %{"data" => contract}} <- @ops_api.get_contract(contract_id, headers),
-         true <- contract["status"] == "VERIFIED" do
+  defp validate_contract_id(%ContractRequest{parent_contract_id: contract_id}) when not is_nil(contract_id) do
+    with %Contract{} = contract <- Contracts.get_by_id(contract_id),
+         true <- contract.status == "VERIFIED" do
       :ok
     else
       _ -> {:error, {:conflict, "Parent contract can’t be updated"}}
     end
   end
 
-  defp validate_contract_id(_, _), do: :ok
+  defp validate_contract_id(_), do: :ok
 
   defp validate_contract_number(%{"contract_number" => contract_number} = params, headers)
        when not is_nil(contract_number) do
-    with {:contract_exists, {:ok, %{"data" => [contract]}}} <-
-           {:contract_exists, @ops_api.get_contracts(%{"contract_number" => contract_number}, headers)},
-         true <- contract["status"] == "VERIFIED" do
-      {:ok, Map.put(params, "parent_contract_id", contract["id"]), contract}
+    with {:contract_exists, {:ok, %Page{entries: [%Contract{} = contract]}, _}} <-
+           {:contract_exists, Contracts.list(%{"contract_number" => contract_number}, nil, headers)},
+         true <- contract.status == "VERIFIED" do
+      {:ok, Map.put(params, "parent_contract_id", contract.id), contract}
     else
       {:contract_exists, _} -> {:error, {:"422", "Contract with such contract number does not exist"}}
       false -> {:error, {:conflict, "Can not update terminated contract"}}
@@ -1344,8 +1350,11 @@ defmodule EHealth.ContractRequests do
 
   defp validate_contractor_legal_entity_id(_, nil), do: :ok
 
-  defp validate_contractor_legal_entity_id(%{"contractor_legal_entity_id" => contractor_legal_entity_id}, contract) do
-    if contract["contractor_legal_entity_id"] == contractor_legal_entity_id do
+  defp validate_contractor_legal_entity_id(
+         %{"contractor_legal_entity_id" => contractor_legal_entity_id},
+         %Contract{} = contract
+       ) do
+    if contract.contractor_legal_entity_id == contractor_legal_entity_id do
       :ok
     else
       {:error, {:forbidden, "You are not allowed to change this contract"}}

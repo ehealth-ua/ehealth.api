@@ -148,18 +148,11 @@ defmodule EHealth.Contracts do
 
   def suspend(params) do
     with %Ecto.Changeset{valid?: true, changes: changes} <- ids_changeset(params) do
-      update_is_suspended(changes.ids, true)
+      update_is_suspended(String.split(changes.ids, ","), true)
     end
   end
 
-  def renew(params) do
-    with %Ecto.Changeset{valid?: true, changes: changes} <- ids_changeset(params) do
-      update_is_suspended(changes.ids, false)
-    end
-  end
-
-  defp update_is_suspended(ids, is_suspended) when is_boolean(is_suspended) do
-    ids = String.split(ids, ",")
+  def update_is_suspended(ids, is_suspended) when is_list(ids) and is_boolean(is_suspended) do
     query = where(Contract, [c], c.id in ^ids)
 
     case PRMRepo.update_all(query, set: [is_suspended: is_suspended]) do
@@ -344,6 +337,8 @@ defmodule EHealth.Contracts do
       true -> get_empty_response(search_params)
     end
   end
+
+  defp validate_client_type(_, nil, search_params), do: {:ok, search_params}
 
   defp load_contracts_references(contracts) do
     references =

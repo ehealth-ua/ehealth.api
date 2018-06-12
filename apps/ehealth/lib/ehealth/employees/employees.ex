@@ -8,12 +8,15 @@ defmodule EHealth.Employees do
   import EHealth.Plugs.ClientContext, only: [authorize_legal_entity_id: 3]
   import EHealth.LegalEntities.ContractSuspender
 
-  alias Ecto.{Changeset, Multi}
+  alias Scrivener.Page
+  alias Ecto.Changeset
   alias EHealth.API.Mithril
   alias EHealth.EmployeeRequests.EmployeeRequest, as: Request
   alias EHealth.EmployeeRequests
   alias EHealth.Employees.{EmployeeCreator, UserRoleCreator, Employee, Search}
   alias EHealth.{PRMRepo, Parties, EventManager}
+  alias EHealth.Contracts.Contract
+  alias EHealth.Contracts
 
   @doctor Employee.type(:doctor)
   @pharmacist Employee.type(:pharmacist)
@@ -196,41 +199,22 @@ defmodule EHealth.Employees do
 
     get_contracts_params = %{
       contractor_owner_id: employee_id,
-      status: status_verified(),
+      status: Contract.status(:verified),
       is_suspended: false
     }
 
-    Multi.new()
-    |> Multi.run(:ops_get_contracts, fn _ -> ops_get_contracts2(get_contracts_params, headers) end)
-    |> Multi.run(:ops_suspend_contracts, &ops_suspend_contracts(&1, headers))
-    |> Multi.run(:update_party, fn _ -> transaction_update_party(party_changeset, author_id) end)
-    |> Multi.run(:update_employee, fn _ -> EctoTrail.update_and_log(PRMRepo, employee_changeset, author_id) end)
-    |> PRMRepo.transaction()
-    |> maybe_rollback()
-    |> load_references()
-  end
+    PRMRepo.transaction(fn ->
+      {:ok, %Page{entries: contracts}, _} = Contracts.list(get_contracts_params, nil, headers)
+      {:ok, _} = ops_suspend_contracts(contracts)
 
-  def ops_get_contracts2(params, headers) do
-    #    case @ops_api.get_contracts(params, headers) do
-    ops_api = Application.get_env(:ehealth, :api_resolvers)[:ops]
-
-    case apply(ops_api, :get_contracts, [params, headers]) do
-      # no contracts for legal_entity. Mark transaction as completed
-      {:ok, %{"data" => []}} ->
-        {:ok, "no contracts for suspend"}
-
-      # contracts found
-      {:ok, %{"data" => contracts}} when is_list(contracts) ->
-        {:ok, contracts}
-
-      # invalid response format. Break transaction
-      {:ok, _} ->
-        {:error, {"Invalid response format returned from OPS.get_contracts", params}}
-
-      # request failed. Break transaction
-      {:error, reason} ->
-        {:error, {"Failed get response from OPS.get_contracts with #{reason}", params}}
-    end
+      with {:ok, _} <- transaction_update_party(party_changeset, author_id),
+           {:ok, result} <- EctoTrail.update_and_log(PRMRepo, employee_changeset, author_id) do
+        load_references(result)
+      else
+        {:error, reason} ->
+          PRMRepo.rollback(reason)
+      end
+    end)
   end
 
   defp transaction_update_party(nil, _author_id), do: {:ok, "party not changed"}
