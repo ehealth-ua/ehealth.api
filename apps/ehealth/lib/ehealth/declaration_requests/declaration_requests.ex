@@ -199,6 +199,7 @@ defmodule EHealth.DeclarationRequests do
     params = Map.delete(params, "legal_entity_id")
 
     with :ok <- JsonSchema.validate(:cabinet_declaration_request, params),
+         params <- Map.put(params, "scope", "family_doctor"),
          {:ok, %{"data" => user}} <- Mithril.get_user_by_id(user_id, headers),
          :ok <- check_user_person_id(user, params["person_id"]),
          {:ok, person} <- Reference.validate(:person, params["person_id"]),
