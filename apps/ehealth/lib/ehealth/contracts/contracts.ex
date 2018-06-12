@@ -250,9 +250,6 @@ defmodule EHealth.Contracts do
     {:ok, contract, references}
   end
 
-  def search(headers, client_type, search_params) do
-  end
-
   defp changeset(%Search{} = contract, attrs) do
     fields =
       :fields

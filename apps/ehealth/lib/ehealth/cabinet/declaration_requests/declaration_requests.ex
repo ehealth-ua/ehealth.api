@@ -38,7 +38,7 @@ defmodule EHealth.Cabinet.DeclarationRequests do
 
   defp check_user_blocked(true), do: {:error, :access_denied}
 
-  def get_person_declaration_requests(%{"status" => @status_expired} = params, person_id) do
+  def get_person_declaration_requests(%{"status" => @status_expired} = params, _) do
     %Page{
       entries: [],
       page_number: 1,
