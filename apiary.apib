@@ -4589,15 +4589,7 @@ This method is used to create Declaration Request online (as part of Declaration
         + meta (Response__Meta)
             + code: 201 (number)
         + data (object)
-            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + seed: hash (string, required)
-            + include `Declaration_Request_Online_Response`
-            + status: `NEW` (string, required)
-            + employee (Employee_Minimal, required)
-            + `legal_entity` (`Medical_Service_Provider`, required)
-                + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + division (`Division_Details`, required)
-            + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
+            + include `Declaration_Request_Details_Cabinet`
         + urgent (object, required)
             + `authentication_method_current` (object, required)
                 + type: `NA` (enum, required)
@@ -4678,7 +4670,15 @@ Current WS allows to see details of declaration request knowing its' id.
     
 + Response 200 (application/json)
     + Attributes (Response_OK)
-        + data (`Declaration_Request_Details_Cabinet`) 
+        + data (`Declaration_Request_Details_Cabinet`)
+        + urgent (object, required)
+            + `authentication_method_current` (object, required)
+                + type: `NA` (enum, required)
+                    - OTP
+                    - OFFLINE
+                    - NA
+                + number: `+38093*****85` (string, required)
+            + documents (array[`media_content`], optional)
 
 ### Get declaration request list via Cabinet [GET /api/cabinet/declaration_requests{?status,start_year,page,page_size}]
 
@@ -4706,8 +4706,10 @@ The request will be created in status='NEW' and after that can be filled up from
 APPROVED by NHS request must be also approved by MSP side (status change from APPROVED to 'PENDING_NHS_SIGN') and then can be signed by NHS. If request was Declined than legal_entity owner must create the new request.
 Only one active ('NEW', 'APPROVED', 'PENDING_NHS_SIGN', 'NHS_SIGNED') request is allowed within same start_date and end_date and same type of contract. Next request will terminate previous one.
 
-Also using this route it's possible to update contract. In this case contract_number must be input. Contractor_employee_divisions in this case is not allowed in request (to update contractor_employees use another route).
-If contract_number is not set, than it will be generate on APPROVE step (as well as printout form). In this case contractor_employee_divisions is required field.
+Also using this route it's possible to update contract. In this case contract_number must be input. 
+If contract_number is not set, than it will be generate on APPROVE step (as well as printout form). 
+
+If it's needed to change limit of employee routhe with one side signed contetnt is not allowed and can be changed through update contract (contractor_employee_divisions).
 
 ```
 {
@@ -4748,7 +4750,9 @@ If contract_number is not set, than it will be generate on APPROVE step (as well
   "start_date": "2017-04-20",
   "end_date": "2017-04-20",
   "id_form": "5",
-  "contract_number": "0000-9EAX-XT7X-3115"
+  "contract_number": "0000-9EAX-XT7X-3115",
+  "statute":"base64_document"
+  "equipment_agreement":"base64_document"
 }
 ```
 
@@ -4765,7 +4769,7 @@ If contract_number is not set, than it will be generate on APPROVE step (as well
 + Response 201 (application/json)
     + Attributes (Response__Process_OK)
         + data (object)
-            + include `Contract_request_Details`
+            + include `Contract_request_Details_Full`
 
 ### Get Contract Requests list [GET /api/contract_requests{?id,contractor_legal_entity_id,contractor_owner_id,nhs_signer_id,issue_city,status,contract_number,page,page_size}]
 
@@ -4814,7 +4818,7 @@ This method is designed to get full information of contract request by id
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + data (object)
-            + include `Contract_request_Details`
+            + include `Contract_request_Details_Full`
 
 ### Update contract request by NHS Signer [PATCH /api/contract_requests/{id}]
 
@@ -4910,9 +4914,9 @@ To decline contract next fields must be signed by NHS employee and sent by same 
         + meta (Response__Meta)
             + code: 201 (number)
         + data (object)
-            + include `Contract_request_Details_Full`
+            + include `Contract_request_Details`
 
-### Approve contract request by MSP [PATCH /api/contract_requests/{id}/actions/approve/msp]
+### Approve contract request by MSP [PATCH /api/contract_requests/{id}/actions/approve_msp]
 
 This WS is designed to approve contract request by MSP side after it was approved by NHS side. 
 Contract request only in status APPROVED can be approved by MSP and as a result status changes to 'PENDING_NHS_SIGN'.
@@ -5004,7 +5008,7 @@ Object that need to be signed is returned by Get Contract request by ID response
         + meta (Response__Meta)
             + code: 201 (number)
         + data (object)
-            + include `Contract_request_Details_Full`
+            + include `Contract_request_Details`
 
 ### Get Partially Signed Contract Reqeust by ID [GET /api/contract_requests/{id}/signed_content]
 
@@ -5051,7 +5055,7 @@ This data must be signed.
         + meta (Response__Meta)
             + code: 201 (number)
         + data (object)
-            + include `Contract_request_Details_Full`
+            + include `Contract_request_Details`
 
 ## Contracts [/api/contract]
 ### Get Contracts list [GET /api/contracts{?id,contractor_legal_entity_id,edrpou,contractor_owner_id,nhs_signer_id,is_suspended,status,contract_number,date_from_start_date,date_to_start_date,date_from_end_date,date_to_end_date,page,page_size}]
@@ -5169,7 +5173,6 @@ Example data to sign:
       ]
     },
     "staff_units": 0.5,
-    "declaration_limit": 2000,
     "is_active": true,
     "division": {
       "id": "2922a240-63db-404e-b730-09222bfeb2dd",
@@ -5188,7 +5191,7 @@ Example data to sign:
             Authorization: Bearer mF_9.B5f-4.1JqM
             
     + Attributes (object)
-        + `signed_content`: `WwogIHsKICAgICJlbXBsb3llZV9pZCI6IHsKICAgICAgImlkIjogImIwNzVmMTQ4LTdmOTMtNGZjMi1iMmVjLTJkODFiMTlhOWI3YiIsCiAgICAgICJmaXJzdF9uYW1lIjogItCf0LXRgtGA0L4iLAogICAgICAibGFzdF9uYW1lIjogItCG0LLQsNC90L7QsiIsCiAgICAgICJzZWNvbmRfbmFtZSI6ICLQnNC40LrQvtC70LDQudC+0LLQuNGHIiwKICAgICAgInNwZWNpYWxpdGllcyI6IFsKICAgICAgICB7CiAgICAgICAgICAic3BlY2lhbGl0eSI6ICJUSEVSQVBJU1QiLAogICAgICAgICAgInNwZWNpYWxpdHlfb2ZmaWNpbyI6IHRydWUsCiAgICAgICAgICAibGV2ZWwiOiAiRklSU1QiLAogICAgICAgICAgInF1YWxpZmljYXRpb25fdHlwZSI6ICJBV0FSRElORyIsCiAgICAgICAgICAiYXR0ZXN0YXRpb25fbmFtZSI6ICLQkNC60LDQtNC10LzRltGPINCR0L7Qs9C+0LzQvtC70YzRhtGPIiwKICAgICAgICAgICJhdHRlc3RhdGlvbl9kYXRlIjogIjIwMTciLAogICAgICAgICAgInZhbGlkX3RvX2RhdGUiOiAiMjAyMCIsCiAgICAgICAgICAiY2VydGlmaWNhdGVfbnVtYmVyIjogIkFCLzIxMzMxIgogICAgICAgIH0KICAgICAgXQogICAgfSwKICAgICJzdGFmZl91bml0cyI6IDAuNSwKICAgICJkZWNsYXJhdGlvbl9saW1pdCI6IDIwMDAsCiAgICAiZGl2aXNpb24iOiB7CiAgICAgICJpZCI6ICIyOTIyYTI0MC02M2RiLTQwNGUtYjczMC0wOTIyMmJmZWIyZGQiLAogICAgICAibmFtZSI6ICLQkdC+0YDQuNGB0L/RltC70YzRgdGM0LrQtSDQstGW0LTQtNGW0LvQtdC90L3RjyDQmtC70ZbQvdGW0LrQuCDQndC+0YPQvdC10LnQvCIsCiAgICAgICJhZGRyZXNzZXMiOiBbCiAgICAgICAgewogICAgICAgICAgInR5cGUiOiAiUkVTSURFTkNFIiwKICAgICAgICAgICJjb3VudHJ5IjogIlVBIiwKICAgICAgICAgICJhcmVhIjogItCW0LjRgtC+0LzQuNGA0YHRjNC60LAiLAogICAgICAgICAgInJlZ2lvbiI6ICLQkdC10YDQtNC40YfRltCy0YHRjNC60LjQuSIsCiAgICAgICAgICAic2V0dGxlbWVudCI6ICLQmtC40ZfQsiIsCiAgICAgICAgICAic2V0dGxlbWVudF90eXBlIjogIkNJVFkiLAogICAgICAgICAgInNldHRsZW1lbnRfaWQiOiAiNDM0MzI0MzIiLAogICAgICAgICAgInN0cmVldF90eXBlIjogIlNUUkVFVCIsCiAgICAgICAgICAic3RyZWV0IjogItCy0YPQuy4g0J3RltC20LjQvdGB0YzQutCwIiwKICAgICAgICAgICJidWlsZGluZyI6ICIxNSIsCiAgICAgICAgICAiYXBhcnRtZW50IjogIjIzIiwKICAgICAgICAgICJ6aXAiOiAiMDIwOTAiCiAgICAgICAgfQogICAgICBdLAogICAgICAicGhvbmVzIjogWwogICAgICAgIHsKICAgICAgICAgICJ0eXBlIjogIk1PQklMRSIsCiAgICAgICAgICAibnVtYmVyIjogIiszODA1MDM0MTA4NzAiCiAgICAgICAgfQogICAgICBdLAogICAgICAiZW1haWwiOiAiZW1haWxAZXhhbXBsZS5jb20iLAogICAgICAid29ya2luZ19ob3VycyI6IHsKICAgICAgICAibW9uIjogWwogICAgICAgICAgWwogICAgICAgICAgICAiMDguMDAiLAogICAgICAgICAgICAiMTIuMDAiCiAgICAgICAgICBdLAogICAgICAgICAgWwogICAgICAgICAgICAiMTQuMDAiLAogICAgICAgICAgICAiMTguMDAiCiAgICAgICAgICBdCiAgICAgICAgXSwKICAgICAgICAidHVlIjogWwogICAgICAgICAgWwogICAgICAgICAgICAiMDguMDAiLAogICAgICAgICAgICAiMTIuMDAiCiAgICAgICAgICBdCiAgICAgICAgXSwKICAgICAgICAid2VkIjogWwogICAgICAgICAgWwogICAgICAgICAgICAiMDguMDAiLAogICAgICAgICAgICAiMTIuMDAiCiAgICAgICAgICBdCiAgICAgICAgXSwKICAgICAgICAidGh1IjogWwogICAgICAgICAgWwogICAgICAgICAgICAiMDguMDAiLAogICAgICAgICAgICAiMTIuMDAiCiAgICAgICAgICBdCiAgICAgICAgXSwKICAgICAgICAiZnJpIjogWwogICAgICAgICAgWwogICAgICAgICAgICAiMDguMDAiLAogICAgICAgICAgICAiMTIuMDAiCiAgICAgICAgICBdCiAgICAgICAgXSwKICAgICAgICAic2F0IjogW10sCiAgICAgICAgInN1biI6IFtdCiAgICAgIH0sCiAgICAgICJtb3VudGFpbl9ncm91cCI6IGZhbHNlCiAgICB9CiAgfQpd`(string, required) 
+        + `signed_content`: `ICB7DQogICAgImVtcGxveWVlX2lkIjogew0KICAgICAgImlkIjogImIwNzVmMTQ4LTdmOTMtNGZjMi1iMmVjLTJkODFiMTlhOWI3YiIsDQogICAgICAiZmlyc3RfbmFtZSI6ICLQn9C10YLRgNC+IiwNCiAgICAgICJsYXN0X25hbWUiOiAi0IbQstCw0L3QvtCyIiwNCiAgICAgICJzZWNvbmRfbmFtZSI6ICLQnNC40LrQvtC70LDQudC+0LLQuNGHIiwNCiAgICAgICJzcGVjaWFsaXRpZXMiOiBbDQogICAgICAgIHsNCiAgICAgICAgICAic3BlY2lhbGl0eSI6ICJUSEVSQVBJU1QiLA0KICAgICAgICAgICJzcGVjaWFsaXR5X29mZmljaW8iOiB0cnVlLA0KICAgICAgICAgICJsZXZlbCI6ICJGSVJTVCIsDQogICAgICAgICAgInF1YWxpZmljYXRpb25fdHlwZSI6ICJBV0FSRElORyIsDQogICAgICAgICAgImF0dGVzdGF0aW9uX25hbWUiOiAi0JDQutCw0LTQtdC80ZbRjyDQkdC+0LPQvtC80L7Qu9GM0YbRjyIsDQogICAgICAgICAgImF0dGVzdGF0aW9uX2RhdGUiOiAiMjAxNyIsDQogICAgICAgICAgInZhbGlkX3RvX2RhdGUiOiAiMjAyMCIsDQogICAgICAgICAgImNlcnRpZmljYXRlX251bWJlciI6ICJBQi8yMTMzMSINCiAgICAgICAgfQ0KICAgICAgXQ0KICAgIH0sDQogICAgInN0YWZmX3VuaXRzIjogMC41LA0KICAgICJpc19hY3RpdmUiOiB0cnVlLA0KICAgICJkaXZpc2lvbiI6IHsNCiAgICAgICJpZCI6ICIyOTIyYTI0MC02M2RiLTQwNGUtYjczMC0wOTIyMmJmZWIyZGQiLA0KICAgICAgIm5hbWUiOiAi0JHQvtGA0LjRgdC/0ZbQu9GM0YHRjNC60LUg0LLRltC00LTRltC70LXQvdC90Y8g0JrQu9GW0L3RltC60Lgg0J3QvtGD0L3QtdC50LwiDQogICAgfQ0KICB9`(string, required) 
         + `signed_content_encoding`: `base64` (string, required)
         
 + Response 200 (application/json)
@@ -5378,9 +5381,13 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + last_name: Іванов (string, required)
 + second_name: Миколайович (string, optional)
 + birth_date: `1991-08-19` (string, required) - ISO Datetime.
++ gender (enum, required)
+    - FEMALE
+    - MALE
 + tax_id: 3126509816 (string, optional)
 + phones (array[Phone], required)
 + birth_settlement: Вінниця (string, required)
++ birth_country: Україна (string, required) - країна народження
 + documents (array[Document],optional) 
 
 ### `Person_Medication_Request`
@@ -5595,6 +5602,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + start_date: `2017-03-02` (string, required)
 + signed_at: `2017-03-02T00:00:00.000Z` (string, required)
 + person(`Person_Short`)
+    + 
     + `emergency_contact` (`Emergency_Contact`, required)
     + `confidant_person` (array[`Confidant_Person`], optional) - Should be set if this Person is disabled, underage, etc.
 + employee (Employee_Declaration_Short)
@@ -7256,7 +7264,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 ## `Contract_request`
 
 ### `Contract_request_Request_signed`
-+ `signed_content`: `ew0KICAiY29udHJhY3Rvcl9vd25lcl9pZCI6ICJkZjlmNzBlZS00YjEyLTQ3NDAtYjBmNS1iYjVhZWExMTY4NjMiLA0KICAiY29udHJhY3Rvcl9iYXNlIjogItC90LAg0L/RltC00YHRgtCw0LLRliDQt9Cw0LrQvtC90YMg0L/RgNC+INCc0LXQtNC40YfQvdC1INC+0LHRgdC70YPQs9C+0LLRg9Cy0LDQvdC90Y8g0L3QsNGB0LXQu9C10L3QvdGPIiwNCiAgImNvbnRyYWN0b3JfcGF5bWVudF9kZXRhaWxzIjogew0KICAgICJiYW5rX25hbWUiOiAi0JHQsNC90Log0L3QvtC80LXRgCAxIiwNCiAgICAiTUZPIjogIjM1MTAwNSIsDQogICAgInBheWVyX2FjY291bnQiOiAiMzIwMDkxMDI3MDEwMjYiDQogIH0sDQogICJjb250cmFjdG9yX3Jtc3BfYW1vdW50IjogNTAwMDAsDQogICJjb250cmFjdG9yX2RpdmlzaW9ucyI6IFsNCiAgICAiaWQ6IGAyOTIyYTI0MC02M2RiLTQwNGUtYjczMC0wOTIyMmJmZWIyZGRgIg0KICBdLA0KICAiY29udHJhY3Rvcl9lbXBsb3llZV9kaXZpc2lvbnMiOiBbDQogICAgew0KICAgICAgImVtcGxveWVlX2lkIjogIjI5MjJhMjQwLTYzZGItNDA0ZS1iNzMwLTA5MjIyYmZlYjJkZCIsDQogICAgICAic3RhZmZfdW5pdHMiOiAwLjUsDQogICAgICAiZGVjbGFyYXRpb25fbGltaXQiOiAyMDAwLA0KICAgICAgImRpdmlzaW9uX2lkIjogIjI5MjJhMjQwLTYzZGItNDA0ZS1iNzMwLTA5MjIyYmZlYjJkZCINCiAgICB9DQogIF0sDQogICJleHRlcm5hbF9jb250cmFjdG9yX2ZsYWciOiB0cnVlLA0KICAiZXh0ZXJuYWxfY29udHJhY3RvcnMiOiB7DQogICAgImxlZ2FsX2VudGl0eV9pZCI6ICIyOTIyYTI0MC02M2RiLTQwNGUtYjczMC0wOTIyMmJmZWIyZGQiLA0KICAgICJjb250cmFjdCI6IHsNCiAgICAgICJudW1iZXIiOiAiMTIzNDU2NyIsDQogICAgICAiaXNzdWVkX2F0IjogIjIwMTgtMDEtMDEiLA0KICAgICAgImV4cGlyZXNfYXQiOiAiMjAxOS0wMS0wMSINCiAgICB9LA0KICAgICJkaXZpc2lvbnMiOiBbDQogICAgICB7DQogICAgICAgICJpZCI6ICIyOTIyYTI0MC02M2RiLTQwNGUtYjczMC0wOTIyMmJmZWIyZGQiLA0KICAgICAgICAibWVkaWNhbF9zZXJ2aWNlIjogItCf0L7RgdC70YPQs9CwINCf0JzQlCINCiAgICAgIH0NCiAgICBdDQogIH0sDQogICJzdGFydF9kYXRlIjogIjIwMTctMDQtMjAiLA0KICAiZW5kX2RhdGUiOiAiMjAxNy0wNC0yMCIsDQogICJpZF9mb3JtIjogIjUiLA0KICAiY29udHJhY3RfbnVtYmVyIjogIjAwMDAtOUVBWC1YVDdYLTMxMTUiDQp9` (string,required)
++ `signed_content`: `ew0KICAiY29udHJhY3Rvcl9vd25lcl9pZCI6ICJkZjlmNzBlZS00YjEyLTQ3NDAtYjBmNS1iYjVhZWExMTY4NjMiLA0KICAiY29udHJhY3Rvcl9iYXNlIjogItC90LAg0L/RltC00YHRgtCw0LLRliDQt9Cw0LrQvtC90YMg0L/RgNC+INCc0LXQtNC40YfQvdC1INC+0LHRgdC70YPQs9C+0LLRg9Cy0LDQvdC90Y8g0L3QsNGB0LXQu9C10L3QvdGPIiwNCiAgImNvbnRyYWN0b3JfcGF5bWVudF9kZXRhaWxzIjogew0KICAgICJiYW5rX25hbWUiOiAi0JHQsNC90Log0L3QvtC80LXRgCAxIiwNCiAgICAiTUZPIjogIjM1MTAwNSIsDQogICAgInBheWVyX2FjY291bnQiOiAiMzIwMDkxMDI3MDEwMjYiDQogIH0sDQogICJjb250cmFjdG9yX3Jtc3BfYW1vdW50IjogNTAwMDAsDQogICJjb250cmFjdG9yX2RpdmlzaW9ucyI6IFsNCiAgICAiaWQ6IGAyOTIyYTI0MC02M2RiLTQwNGUtYjczMC0wOTIyMmJmZWIyZGRgIg0KICBdLA0KICAiY29udHJhY3Rvcl9lbXBsb3llZV9kaXZpc2lvbnMiOiBbDQogICAgew0KICAgICAgImVtcGxveWVlX2lkIjogIjI5MjJhMjQwLTYzZGItNDA0ZS1iNzMwLTA5MjIyYmZlYjJkZCIsDQogICAgICAic3RhZmZfdW5pdHMiOiAwLjUsDQogICAgICAiZGVjbGFyYXRpb25fbGltaXQiOiAyMDAwLA0KICAgICAgImRpdmlzaW9uX2lkIjogIjI5MjJhMjQwLTYzZGItNDA0ZS1iNzMwLTA5MjIyYmZlYjJkZCINCiAgICB9DQogIF0sDQogICJleHRlcm5hbF9jb250cmFjdG9yX2ZsYWciOiB0cnVlLA0KICAiZXh0ZXJuYWxfY29udHJhY3RvcnMiOiB7DQogICAgImxlZ2FsX2VudGl0eV9pZCI6ICIyOTIyYTI0MC02M2RiLTQwNGUtYjczMC0wOTIyMmJmZWIyZGQiLA0KICAgICJjb250cmFjdCI6IHsNCiAgICAgICJudW1iZXIiOiAiMTIzNDU2NyIsDQogICAgICAiaXNzdWVkX2F0IjogIjIwMTgtMDEtMDEiLA0KICAgICAgImV4cGlyZXNfYXQiOiAiMjAxOS0wMS0wMSINCiAgICB9LA0KICAgICJkaXZpc2lvbnMiOiBbDQogICAgICB7DQogICAgICAgICJpZCI6ICIyOTIyYTI0MC02M2RiLTQwNGUtYjczMC0wOTIyMmJmZWIyZGQiLA0KICAgICAgICAibWVkaWNhbF9zZXJ2aWNlIjogItCf0L7RgdC70YPQs9CwINCf0JzQlCINCiAgICAgIH0NCiAgICBdDQogIH0sDQogICJzdGFydF9kYXRlIjogIjIwMTctMDQtMjAiLA0KICAiZW5kX2RhdGUiOiAiMjAxNy0wNC0yMCIsDQogICJpZF9mb3JtIjogIjUiLA0KICAiY29udHJhY3RfbnVtYmVyIjogIjAwMDAtOUVBWC1YVDdYLTMxMTUiLA0KICAic3RhdHV0ZSI6ImJhc2U2NF9kb2N1bWVudCINCiAgImVxdWlwbWVudF9hZ3JlZW1lbnQiOiJiYXNlNjRfZG9jdW1lbnQiDQp9` (string,required)
 + `signed_content_encoding`: `base64` (string, required)
 
 ### `Contract_request_Request`
@@ -7346,10 +7354,12 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + `parent_contract_id`: `22e416c4-5747-41cd-9f73-c3a85cdee885` (string, optional) - parent contract id
 + `start_date`: `2017-04-20` (string, required) - contract start date 
 + `end_date`: `2017-04-20` (string, required) - contract end date
++ `printout_content`: `Contract request content` (optional) - HTML document for contract request, is shown only for requests in `APPROVED`, `PENDING_NHS_SIGN`, `NHS_SIGNED`, `SIGNED` statuses.
 
 ### `Contract_request_Details_Full`
 + include `Contract_request_Details`
-+ `printout_content`: `Contract request content` (optional) - HTML document for contract request, is shown only for requests in `APPROVED`, `PENDING_NHS_SIGN`, `NHS_SIGNED`, `SIGNED` statuses.
++`statute`: `www.url_1` (string, required) - link to statute document
++`equipment_agreement`: `www.url_2` (string, required) - link to report with technical equipmnet
 
 ### `contract_legal_entity_details`
 + id: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - legal entity ID which make contract request
