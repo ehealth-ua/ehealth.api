@@ -4698,7 +4698,21 @@ This WS allows to see history of all patient's declaration requests and filter t
 
 ## Contract request [/api/contract_requests]
 
-### Create Contract Request [POST /api/contract_requests]
+### Initialize Contract Request [POST /api/contract_requests]
+This method generates links for contract request documents
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (object)
+            + include `Init_contract_request_response`
+
+### Create Contract Request [POST /api/contract_requests/{id}]
 
 This method allows legal entity owner create Contract Request and filled the part of inputs which belongs to contractor (MSP) side.
 Request must be signed by same person as the one who makes api-call. 
@@ -4750,7 +4764,9 @@ If it's needed to change limit of employee routhe with one side signed contetnt 
   "start_date": "2017-04-20",
   "end_date": "2017-04-20",
   "id_form": "5",
-  "contract_number": "0000-9EAX-XT7X-3115"
+  "contract_number": "0000-9EAX-XT7X-3115",
+  "statute_md5": "db218b04eff70f86f40c1572ce8ca16a",
+  "equipment_agreement_md5": "ac642b04eff40f86f40c1572ce8ca16a"
 }
 ```
 
@@ -5608,7 +5624,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
     - pending_verification
     - terminated
 + scope (enum, required)
-    - family doctor
+    - family_doctor
 + `declaration_request_id`: `74a6fae6-4207-4e03-a136-f2e70c6b0c02` (string, required)
 + inserted_at: `2017-03-02T10:45:16.000Z` (string, optional)
 + updated_at: `2017-03-02T10:45:16.000Z` (string, optional)
@@ -5618,7 +5634,6 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + declaration_number: `0000-12H4-245D` (string, required) - unique number of declaration.
 + start_date: `2017-03-02` (string, required)
 + end_date: `2017-03-02` (string, required)
-+ signed_at: `2017-03-02T00:00:00.000Z` (string, required)
 + person(`Person_Short`)
     + `emergency_contact` (`Emergency_Contact`, required)
     + `confidant_person` (array[`Confidant_Person`], optional) - Should be set if this Person is disabled, underage, etc.
@@ -5630,7 +5645,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
     - pending_verification
     - terminated
 + scope (enum, required)
-    - family doctor
+    - family_doctor
 + `declaration_request_id`: `74a6fae6-4207-4e03-a136-f2e70c6b0c02` (string, required)
 + content: `Declaration content` (string, required) - HTML document that MUST be shown to a end-user and signed by hes key. - Should be defined on the client side.
 + inserted_at: `2017-03-02T10:45:16.000Z` (string, optional)
@@ -5641,7 +5656,6 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + declaration_number: `0000-12H4-245D` (string, required) - unique number of declaration.
 + start_date: `2017-03-02` (string, required)
 + end_date: `2017-03-02` (string, required)
-+ signed_at: `2017-03-02T00:00:00.000Z` (string, required)
 + seed: hash (string, required)
 + person_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + person(`Person_Short`)
@@ -5657,7 +5671,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
     - signed
     - expired
 + scope (enum, required)
-    - family doctor
+    - family_doctor
 + `declaration_id`: `74a6fae6-4207-4e03-a136-f2e70c6b0c02` (string, required)
 + content: `Declaration content` (string, required) - HTML document that MUST be shown to a end-user and signed by hes key. - Should be defined on the client side.
 + inserted_at: `2017-03-02T10:45:16.000Z` (string, optional)
@@ -5922,7 +5936,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
     + include `Party_Short`
 + division_id: `4cffa825-8b5b-4cba-9a38-fb57733e14b2` (string, optional) - division identifier
-+ `legal_entity`: `be3a154c-3e07-496d-9680-f22c443f5d0c` (string, required) - legal entity identifier
++ `legal_entity_id`: `be3a154c-3e07-496d-9680-f22c443f5d0c` (string, required) - legal entity identifier
 + doctor (DoctorNew)
 
 ## `Legal_Entities`
@@ -7304,8 +7318,12 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 ### `Event_properties`
 + new_value: `COMPLETED` (string) - new status of entity
 
-
 ## `Contract_request`
+
+### `Init_contract_request_response`
++ id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract_request ID
++ statute_url: `url://upload` (string, required) - URL to upload statute document
++ equipment_agreement: `url://upload` (string, required) - URL to upload equipment agreement
 
 ### `Contract_request_Request_signed`
 + `signed_content`: `ew0KICAiY29udHJhY3Rvcl9vd25lcl9pZCI6ICJkZjlmNzBlZS00YjEyLTQ3NDAtYjBmNS1iYjVhZWExMTY4NjMiLA0KICAiY29udHJhY3Rvcl9iYXNlIjogItC90LAg0L/RltC00YHRgtCw0LLRliDQt9Cw0LrQvtC90YMg0L/RgNC+INCc0LXQtNC40YfQvdC1INC+0LHRgdC70YPQs9C+0LLRg9Cy0LDQvdC90Y8g0L3QsNGB0LXQu9C10L3QvdGPIiwNCiAgImNvbnRyYWN0b3JfcGF5bWVudF9kZXRhaWxzIjogew0KICAgICJiYW5rX25hbWUiOiAi0JHQsNC90Log0L3QvtC80LXRgCAxIiwNCiAgICAiTUZPIjogIjM1MTAwNSIsDQogICAgInBheWVyX2FjY291bnQiOiAiMzIwMDkxMDI3MDEwMjYiDQogIH0sDQogICJjb250cmFjdG9yX3Jtc3BfYW1vdW50IjogNTAwMDAsDQogICJjb250cmFjdG9yX2RpdmlzaW9ucyI6IFsNCiAgICAiaWQ6IGAyOTIyYTI0MC02M2RiLTQwNGUtYjczMC0wOTIyMmJmZWIyZGRgIg0KICBdLA0KICAiY29udHJhY3Rvcl9lbXBsb3llZV9kaXZpc2lvbnMiOiBbDQogICAgew0KICAgICAgImVtcGxveWVlX2lkIjogIjI5MjJhMjQwLTYzZGItNDA0ZS1iNzMwLTA5MjIyYmZlYjJkZCIsDQogICAgICAic3RhZmZfdW5pdHMiOiAwLjUsDQogICAgICAiZGVjbGFyYXRpb25fbGltaXQiOiAyMDAwLA0KICAgICAgImRpdmlzaW9uX2lkIjogIjI5MjJhMjQwLTYzZGItNDA0ZS1iNzMwLTA5MjIyYmZlYjJkZCINCiAgICB9DQogIF0sDQogICJleHRlcm5hbF9jb250cmFjdG9yX2ZsYWciOiB0cnVlLA0KICAiZXh0ZXJuYWxfY29udHJhY3RvcnMiOiB7DQogICAgImxlZ2FsX2VudGl0eV9pZCI6ICIyOTIyYTI0MC02M2RiLTQwNGUtYjczMC0wOTIyMmJmZWIyZGQiLA0KICAgICJjb250cmFjdCI6IHsNCiAgICAgICJudW1iZXIiOiAiMTIzNDU2NyIsDQogICAgICAiaXNzdWVkX2F0IjogIjIwMTgtMDEtMDEiLA0KICAgICAgImV4cGlyZXNfYXQiOiAiMjAxOS0wMS0wMSINCiAgICB9LA0KICAgICJkaXZpc2lvbnMiOiBbDQogICAgICB7DQogICAgICAgICJpZCI6ICIyOTIyYTI0MC02M2RiLTQwNGUtYjczMC0wOTIyMmJmZWIyZGQiLA0KICAgICAgICAibWVkaWNhbF9zZXJ2aWNlIjogItCf0L7RgdC70YPQs9CwINCf0JzQlCINCiAgICAgIH0NCiAgICBdDQogIH0sDQogICJzdGFydF9kYXRlIjogIjIwMTctMDQtMjAiLA0KICAiZW5kX2RhdGUiOiAiMjAxNy0wNC0yMCIsDQogICJpZF9mb3JtIjogIjUiLA0KICAiY29udHJhY3RfbnVtYmVyIjogIjAwMDAtOUVBWC1YVDdYLTMxMTUiLA0KICAic3RhdHV0ZSI6ImJhc2U2NF9kb2N1bWVudCINCiAgImVxdWlwbWVudF9hZ3JlZW1lbnQiOiJiYXNlNjRfZG9jdW1lbnQiDQp9` (string,required)
@@ -7402,9 +7420,6 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 
 ### `Contract_request_Details_Full`
 + include `Contract_request_Details`
-+`statute`: `www.url_1` (string, required) - link to statute document
-+`equipment_agreement`: `www.url_2` (string, required) - link to report with technical equipmnet
-
 
 ### `Contract_request_Docs`
 + id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract_request ID 
