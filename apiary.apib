@@ -4750,9 +4750,7 @@ If it's needed to change limit of employee routhe with one side signed contetnt 
   "start_date": "2017-04-20",
   "end_date": "2017-04-20",
   "id_form": "5",
-  "contract_number": "0000-9EAX-XT7X-3115",
-  "statute":"base64_document"
-  "equipment_agreement":"base64_document"
+  "contract_number": "0000-9EAX-XT7X-3115"
 }
 ```
 
@@ -4771,6 +4769,29 @@ If it's needed to change limit of employee routhe with one side signed contetnt 
         + data (object)
             + include `Contract_request_Details_Full`
 
+### Approve uploaded documents for contract request by MSP [PATCH /api/contract_requests/{id}/actions/documents_uploaded]
+
+This WS is designed to approve that documents were uploaded and contract request can be updated/declined by NHS side. 
+Contract request only in status DRAFT can be approved.
+After that status will be changed to `NEW`
+
++ Parameters
+    + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+            
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + meta (Response__Meta)
+            + code: 201 (number)
+        + data (object)
+            + include `Contract_request_Details_Full`
+
 ### Get Contract Requests list [GET /api/contract_requests{?id,contractor_legal_entity_id,contractor_owner_id,nhs_signer_id,issue_city,status,contract_number,page,page_size}]
 
 This method is designed to obtain list of contract request with filters. This method returns shorten information about contract request, in order to see all information try to use 'get contract request details'
@@ -4782,6 +4803,7 @@ This method is designed to obtain list of contract request with filters. This me
     + `nhs_signer_id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional) - id of nhs employee
     + issue_city: `КИЇВ` (string, optional) - contract request place
     + status: `NEW` (enum, optional) - current status on contract request.
+        - DRAFT
         - NEW
         - APPROVED
         - DECLINED
@@ -4802,6 +4824,24 @@ This method is designed to obtain list of contract request with filters. This me
     + Attributes (`Response_Collection_V2`)
         + data (array[`Contract_request_list`])
 
+### Get Contract Request Documents [GET /api/contract_requests/{id}/uploaded_documents]
+
+This method is designed to get contract request documents by id. 
+
++ Parameters
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - contract request identifier
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (Response__Process_OK)
+        + data (object)
+            + include `Contract_request_Docs`
+
 ### Get Contract Request Details [GET /api/contract_requests/{id}]
 
 This method is designed to get full information of contract request by id
@@ -4818,7 +4858,7 @@ This method is designed to get full information of contract request by id
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + data (object)
-            + include `Contract_request_Details_Full`
+            + include `Contract_request_Details`
 
 ### Update contract request by NHS Signer [PATCH /api/contract_requests/{id}]
 
@@ -4871,7 +4911,7 @@ To approve contract next fields must be signed by NHS employee and sent by same 
         + `signed_content`: `ew0KImlkIjoiMDkxMDZiNzAtMThiMC00NzI2LWIwZWQtNmJkYTEzNjlmZDUyIiwNCiJjb250cmFjdG9yX2xlZ2FsX2VudGl0eSI6IHsNCiAgICAgICJpZCI6ICJkZjlmNzBlZS00YjEyLTQ3NDAtYjBmNS1iYjVhZWExMTY4NjMiLA0KICAgICAgIm5hbWUiOiAi0JrQu9GW0L3RltC60LAg0J3QvtGD0L3QtdC50LwiLA0KICAgICAgImVkcnBvdSI6ICIzMjMyMzQ1NCINCiAgICB9LA0KInRleHQiOiAic3RhdGljX3RleHQiDQp9`(string, required) 
         + `signed_content_encoding`: `base64` (string, required)
 
-+ Response 200 (application/json)
++ Response 201 (application/json)
     + Attributes (Response__Process_OK)
         + meta (Response__Meta)
             + code: 201 (number)
@@ -7364,6 +7404,13 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + include `Contract_request_Details`
 +`statute`: `www.url_1` (string, required) - link to statute document
 +`equipment_agreement`: `www.url_2` (string, required) - link to report with technical equipmnet
+
+
+### `Contract_request_Docs`
++ id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract_request ID 
++ status: `NEW` (string, required) - contract_request status
++ statute: `www.url_1` (string, required) - link to statute document
++ `equipment_agreement`: `www.url_2` (string, required) - link to report with technical equipmnet
 
 ### `contract_legal_entity_details`
 + id: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - legal entity ID which make contract request
