@@ -14,6 +14,13 @@ defmodule EHealth.Web.ContractRequestController do
     end
   end
 
+  def draft(%Plug.Conn{req_headers: headers} = conn, _) do
+    with %{"id" => id, "statute_url" => statute_url, "equipment_agreement_url" => equipment_agreement_url} <-
+           ContractRequests.draft(headers) do
+      render(conn, "draft.json", id: id, statute_url: statute_url, equipment_agreement_url: equipment_agreement_url)
+    end
+  end
+
   def create(%Plug.Conn{req_headers: headers} = conn, params) do
     with {:ok, %ContractRequest{} = contract_request, references} <- ContractRequests.create(headers, params) do
       conn

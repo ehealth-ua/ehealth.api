@@ -5,7 +5,7 @@ defmodule EHealth.ContractRequests do
 
   import Ecto.Changeset
   import Ecto.Query
-  import EHealth.Utils.Connection, only: [get_consumer_id: 1, get_client_id: 1]
+  import EHealth.Utils.Connection, only: [get_header: 2, get_consumer_id: 1, get_client_id: 1]
 
   alias Scrivener.Page
   alias Ecto.Adapters.SQL
@@ -66,11 +66,30 @@ defmodule EHealth.ContractRequests do
     end
   end
 
-  def create(headers, params) do
+  def draft(headers) do
+    id = UUID.generate()
+
+    with {:ok, %{"data" => %{"secret_url" => statute_url}}} <-
+           @media_storage_api.create_signed_url("PUT", get_bucket(), id, "contract_request_statute.jpeg", headers),
+         {:ok, %{"data" => %{"secret_url" => equipment_agreement_url}}} <-
+           @media_storage_api.create_signed_url(
+             "PUT",
+             get_bucket(),
+             id,
+             "contract_request_equipment_agreement.jpeg",
+             headers
+           ) do
+      %{"id" => id, "statute_url" => statute_url, "equipment_agreement_url" => equipment_agreement_url}
+    end
+  end
+
+  def create(headers, %{"id" => id} = params) do
     user_id = get_consumer_id(headers)
     client_id = get_client_id(headers)
+    params = Map.delete(params, "id")
 
-    with :ok <- JsonSchema.validate(:contract_request_sign, params),
+    with {:contract_request_exists, true} <- {:contract_request_exists, is_nil(get_by_id(id))},
+         :ok <- JsonSchema.validate(:contract_request_sign, params),
          {_, %Party{tax_id: tax_id}} <- {:employee, Parties.get_by_user_id(user_id)},
          {:ok, content, signer} <- decode_signed_content(params, headers),
          :ok <- validate_signer_drfo(tax_id, signer["drfo"]),
@@ -90,6 +109,14 @@ defmodule EHealth.ContractRequests do
          :ok <- validate_start_date(params),
          :ok <- validate_end_date(params),
          :ok <- validate_contractor_owner_id(params),
+         :ok <- validate_document(id, "contract_request_statute.jpeg", params["statute_md5"], headers),
+         :ok <-
+           validate_document(
+             id,
+             "contract_request_equipment_agreement.jpeg",
+             params["equipment_agreement_md5"],
+             headers
+           ),
          _ <- terminate_pending_contracts(params),
          insert_params <-
            params
@@ -100,6 +127,7 @@ defmodule EHealth.ContractRequests do
          {:ok, contract_request} <- Repo.insert(changes) do
       {:ok, contract_request, preload_references(contract_request)}
     else
+      {:contract_request_exists, false} -> {:error, {:conflict, "Invalid contract_request id"}}
       {:employee, _} -> {:error, {:forbidden, "User is not allowed to this action by client_id"}}
       error -> error
     end
@@ -1421,5 +1449,21 @@ defmodule EHealth.ContractRequests do
     else
       {:error, {:bad_request, "Signed content doesn't match with contract request"}}
     end
+  end
+
+  defp validate_document(id, resource_name, md5, headers) do
+    with {:ok, %{"data" => %{"secret_url" => url}}} <-
+           @media_storage_api.create_signed_url("HEAD", get_bucket(), resource_name, id, headers),
+         {:ok, %HTTPoison.Response{status_code: 200, headers: resource_headers}} <-
+           @media_storage_api.verify_uploaded_file(url, resource_name),
+         true <- md5 == get_header(resource_headers, "etag") do
+      :ok
+    else
+      _ -> {:error, {:"422", "#{resource_name} md5 doesn't match"}}
+    end
+  end
+
+  defp get_bucket do
+    Confex.fetch_env!(:ehealth, EHealth.API.MediaStorage)[:contract_request_bucket]
   end
 end

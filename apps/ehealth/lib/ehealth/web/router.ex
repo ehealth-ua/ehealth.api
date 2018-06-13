@@ -211,8 +211,9 @@ defmodule EHealthWeb.Router do
       patch("/actions/suspend", ContractController, :suspend)
     end
 
-    post("/contract_requests", ContractRequestController, :create)
-    patch("/contract_requests/:id", ContractRequestController, :update)
+    post("/contract_requests", ContractRequestController, :draft)
+    post("/contract_requests/:id", ContractRequestController, :create)
+    patch("/contract_requests/:id/actions/update", ContractRequestController, :update)
     patch("/contract_requests/:id/actions/approve", ContractRequestController, :approve)
     patch("/contract_requests/:id/actions/approve_msp", ContractRequestController, :approve_msp)
     patch("/contract_requests/:id/actions/decline", ContractRequestController, :decline)

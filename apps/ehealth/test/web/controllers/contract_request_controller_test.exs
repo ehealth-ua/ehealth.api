@@ -18,10 +18,34 @@ defmodule EHealth.Web.ContractRequestControllerTest do
   @contract_request_status_new ContractRequest.status(:new)
   @contract_request_status_declined ContractRequest.status(:declined)
 
+  describe "contract request draft" do
+    test "success create draft", %{conn: conn} do
+      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, resource, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      end)
+
+      conn =
+        conn
+        |> put_client_id_header(UUID.generate())
+        |> post(contract_request_path(conn, :draft))
+
+      assert resp = json_response(conn, 200)
+      assert Enum.all?(~w(id statute_url equipment_agreement_url), &Map.has_key?(resp["data"], &1))
+    end
+  end
+
   describe "create contract request" do
     test "employee division is not active", %{conn: conn} do
       %{legal_entity: legal_entity, employee: employee, party_user: party_user} = prepare_data()
       division = insert(:prm, :division)
+
+      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      end)
+
+      expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
+        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"etag", resource}]}}
+      end)
 
       conn =
         conn
@@ -32,7 +56,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       params = prepare_params(division, employee)
 
       conn =
-        post(conn, contract_request_path(conn, :create), %{
+        post(conn, contract_request_path(conn, :create, UUID.generate()), %{
           "signed_content" => params |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
@@ -49,6 +73,14 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     test "external contractor division is not present in contract divisions", %{conn: conn} do
       %{legal_entity: legal_entity, division: division, employee: employee, party_user: party_user} = prepare_data()
 
+      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      end)
+
+      expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
+        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"etag", resource}]}}
+      end)
+
       conn =
         conn
         |> put_client_id_header(legal_entity.id)
@@ -64,7 +96,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         ])
 
       conn =
-        post(conn, contract_request_path(conn, :create), %{
+        post(conn, contract_request_path(conn, :create, UUID.generate()), %{
           "signed_content" => params |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
@@ -81,6 +113,14 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     test "invalid expires_at date", %{conn: conn} do
       %{legal_entity: legal_entity, division: division, employee: employee, party_user: party_user} = prepare_data()
 
+      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      end)
+
+      expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
+        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"etag", resource}]}}
+      end)
+
       conn =
         conn
         |> put_client_id_header(legal_entity.id)
@@ -94,7 +134,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> Map.delete("external_contractor_flag")
 
       conn =
-        post(conn, contract_request_path(conn, :create), %{
+        post(conn, contract_request_path(conn, :create, UUID.generate()), %{
           "signed_content" => params |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
@@ -111,6 +151,14 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     test "invalid external_contractor_flag", %{conn: conn} do
       %{legal_entity: legal_entity, division: division, employee: employee, party_user: party_user} = prepare_data()
 
+      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      end)
+
+      expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
+        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"etag", resource}]}}
+      end)
+
       conn =
         conn
         |> put_client_id_header(legal_entity.id)
@@ -124,7 +172,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> Map.delete("external_contractor_flag")
 
       conn =
-        post(conn, contract_request_path(conn, :create), %{
+        post(conn, contract_request_path(conn, :create, UUID.generate()), %{
           "signed_content" => params |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
@@ -135,6 +183,14 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
     test "start_date is in the past", %{conn: conn} do
       %{legal_entity: legal_entity, division: division, employee: employee, party_user: party_user} = prepare_data()
+
+      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      end)
+
+      expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
+        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"etag", resource}]}}
+      end)
 
       conn =
         conn
@@ -148,7 +204,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> Map.put("start_date", "2018-02-01")
 
       conn =
-        post(conn, contract_request_path(conn, :create), %{
+        post(conn, contract_request_path(conn, :create, UUID.generate()), %{
           "signed_content" => params |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
@@ -159,6 +215,14 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
     test "start_date is too far in the future", %{conn: conn} do
       %{legal_entity: legal_entity, division: division, employee: employee, party_user: party_user} = prepare_data()
+
+      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      end)
+
+      expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
+        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"etag", resource}]}}
+      end)
 
       conn =
         conn
@@ -175,7 +239,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> Map.put("start_date", Date.to_iso8601(start_date))
 
       conn =
-        post(conn, contract_request_path(conn, :create), %{
+        post(conn, contract_request_path(conn, :create, UUID.generate()), %{
           "signed_content" => params |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
@@ -186,6 +250,14 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
     test "invalid end_date", %{conn: conn} do
       %{legal_entity: legal_entity, division: division, employee: employee, party_user: party_user} = prepare_data()
+
+      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      end)
+
+      expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
+        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"etag", resource}]}}
+      end)
 
       conn =
         conn
@@ -203,7 +275,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> Map.put("end_date", Date.to_iso8601(Date.add(now, 365 * 3)))
 
       conn =
-        post(conn, contract_request_path(conn, :create), %{
+        post(conn, contract_request_path(conn, :create, UUID.generate()), %{
           "signed_content" => params |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
@@ -214,6 +286,14 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
     test "invalid contractor_owner_id", %{conn: conn} do
       %{legal_entity: legal_entity, division: division, employee: employee, party_user: party_user} = prepare_data()
+
+      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      end)
+
+      expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
+        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"etag", resource}]}}
+      end)
 
       conn =
         conn
@@ -231,7 +311,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> Map.put("end_date", Date.to_iso8601(Date.add(now, 30)))
 
       conn =
-        post(conn, contract_request_path(conn, :create), %{
+        post(conn, contract_request_path(conn, :create, UUID.generate()), %{
           "signed_content" => params |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
@@ -255,6 +335,14 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         party_user: party_user
       } = prepare_data()
 
+      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      end)
+
+      expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
+        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"etag", resource}]}}
+      end)
+
       conn =
         conn
         |> put_client_id_header(legal_entity.id)
@@ -273,7 +361,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> Map.put("end_date", Date.to_iso8601(Date.add(now, 30)))
 
       conn =
-        post(conn, contract_request_path(conn, :create), %{
+        post(conn, contract_request_path(conn, :create, UUID.generate()), %{
           "signed_content" => params |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
@@ -297,6 +385,14 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         owner: owner,
         party_user: party_user
       } = prepare_data()
+
+      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      end)
+
+      expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
+        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"etag", resource}]}}
+      end)
 
       now = Date.utc_today()
       start_date = Date.add(now, 10)
@@ -324,7 +420,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> Map.drop(~w(contractor_employee_divisions start_date end_date))
 
       conn =
-        post(conn, contract_request_path(conn, :create), %{
+        post(conn, contract_request_path(conn, :create, UUID.generate()), %{
           "signed_content" => params |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
@@ -349,6 +445,14 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         party_user: party_user
       } = prepare_data()
 
+      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      end)
+
+      expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
+        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"etag", resource}]}}
+      end)
+
       conn =
         conn
         |> put_client_id_header(legal_entity.id)
@@ -366,7 +470,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> Map.put("end_date", Date.to_iso8601(Date.add(now, 30)))
 
       conn1 =
-        post(conn, contract_request_path(conn, :create), %{
+        post(conn, contract_request_path(conn, :create, UUID.generate()), %{
           "signed_content" => params |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
@@ -2521,7 +2625,9 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       ],
       "external_contractor_flag" => true,
       "start_date" => "2018-01-01",
-      "end_date" => "2018-01-01"
+      "end_date" => "2018-01-01",
+      "statute_md5" => "contract_request_statute.jpeg",
+      "equipment_agreement_md5" => "contract_request_equipment_agreement.jpeg"
     }
   end
 

@@ -28,6 +28,14 @@ defmodule EHealth.Web.ContractRequestView do
     )a)
   end
 
+  def render("draft.json", %{id: id, statute_url: statute_url, equipment_agreement_url: equipment_agreement_url}) do
+    %{
+      id: id,
+      statute_url: statute_url,
+      equipment_agreement_url: equipment_agreement_url
+    }
+  end
+
   def render("show.json", %{contract_request: contract_request, references: references}) do
     data = Map.take(contract_request, ~w(
       id

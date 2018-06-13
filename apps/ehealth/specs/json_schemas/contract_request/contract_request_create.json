@@ -197,9 +197,17 @@
                 "null"
             ],
             "pattern": "^\\d{4}-[\\dAEHKMPTX]{4}-[\\dAEHKMPTX]{4}$"
+        },
+        "statute_md5": {
+            "type": "string"
+        },
+        "equipment_agreement_md5": {
+            "type": "string"
         }
     },
     "required": [
+        "statute_md5",
+        "equipment_agreement_md5",
         "contractor_owner_id",
         "contractor_base",
         "contractor_payment_details",

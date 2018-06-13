@@ -1,9 +1,7 @@
 defmodule EHealth.LegalEntities.ContractSuspender do
   @moduledoc false
 
-  alias EHealth.Utils.Log
   alias EHealth.Contracts
-  alias Scrivener.Page
 
   def maybe_suspend_contracts?(%{changes: changes}, :party) do
     maybe_suspend_contracts?(changes, ~w(first_name last_name second_name)a)
@@ -21,8 +19,6 @@ defmodule EHealth.LegalEntities.ContractSuspender do
     Enum.any?(keys, &Map.has_key?(changes, &1))
   end
 
-  # when length(contracts) > 0 do
-
   def ops_suspend_contracts(contracts) do
     ids = fetch_contract_ids(contracts)
 
@@ -33,8 +29,6 @@ defmodule EHealth.LegalEntities.ContractSuspender do
       {:error, reason} -> {:error, {reason, ids}}
     end
   end
-
-  def ops_suspend_contracts(_contracts), do: {:ok, "no contracts for suspend"}
 
   defp fetch_contract_ids(data), do: Enum.map(data, &Map.get(&1, "id"))
 
