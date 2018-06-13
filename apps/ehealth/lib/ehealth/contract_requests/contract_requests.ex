@@ -313,7 +313,7 @@ defmodule EHealth.ContractRequests do
          {_, true} <- {:client_id, client_id == contract_request.contractor_legal_entity_id},
          {:ok, content, signer} <- decode_signed_content(:msp, params, headers),
          :ok <- validate_signer_drfo(contract_request.contractor_owner_id, signer["drfo"], "$.contractor_owner_id"),
-         :ok <- validate_content(contract_request, nil, content),
+         :ok <- validate_content(contract_request, content),
          :ok <- validate_employee_divisions(contract_request),
          :ok <- validate_start_date(contract_request),
          :ok <- validate_contractor_legal_entity(contract_request),
@@ -454,6 +454,7 @@ defmodule EHealth.ContractRequests do
       status
       nhs_signer_id
       nhs_contract_price
+      parent_contract_id
     )a)
     |> Map.put(:id, contract_id)
     |> Map.put(:contract_request_id, id)
@@ -461,6 +462,17 @@ defmodule EHealth.ContractRequests do
     |> Map.put(:is_active, true)
     |> Map.put(:inserted_by, contract_request.updated_by)
     |> Map.put(:updated_by, contract_request.updated_by)
+  end
+
+  defp validate_content(%ContractRequest{data: data, status: status, printout_content: printout_content}, content) do
+    data_content =
+      data
+      |> Map.put("status", status)
+      |> Map.put("printout_content", printout_content)
+
+    if data_content == content,
+      do: :ok,
+      else: {:error, {:"422", "Signed content does not match the previously created content"}}
   end
 
   defp validate_content(%ContractRequest{data: data, status: status}, printout_content, content) do

@@ -66,57 +66,48 @@ defmodule EHealth.Contracts do
     end
   end
 
-  def create(%{contract_number: contract_number} = params) when not is_nil(contract_number) do
-    contract =
-      Contract
-      |> where([c], c.contract_number == ^contract_number)
-      |> PRMRepo.one()
+  def create(%{parent_contract_id: parent_contract_id} = params) when not is_nil(parent_contract_id) do
+    with %Contract{status: @status_verified} = contract <- PRMRepo.one(Contract, parent_contract_id) do
+      contract = load_references(contract)
 
-    case contract do
-      %Contract{status: @status_verified} ->
-        contract = load_references(contract)
-
+      PRMRepo.transaction(fn ->
         ContractEmployee
         |> where([ce], ce.contract_id == ^contract.id)
         |> PRMRepo.update_all(set: [end_date: Date.utc_today(), updated_by: params.updated_by])
 
-        PRMRepo.transaction(fn ->
-          contract
-          |> changeset(%{"status" => @status_terminated})
-          |> PRMRepo.update()
+        contract
+        |> changeset(%{"status" => @status_terminated})
+        |> PRMRepo.update()
 
-          contract_employees =
-            contract.contract_employees
-            |> Poison.encode!()
-            |> Poison.decode!()
-            |> Enum.map(&Map.drop(&1, ~w(id contract_id inserted_by updated_by)))
+        contract_employees =
+          contract.contract_employees
+          |> Poison.encode!()
+          |> Poison.decode!()
+          |> Enum.map(&Map.drop(&1, ~w(id contract_id inserted_by updated_by)))
 
-          contract_divisions =
-            contract.contract_divisions
-            |> Poison.encode!()
-            |> Poison.decode!()
-            |> Enum.map(&Map.get(&1, "division_id"))
+        contract_divisions =
+          contract.contract_divisions
+          |> Poison.encode!()
+          |> Poison.decode!()
+          |> Enum.map(&Map.get(&1, "division_id"))
 
-          new_contract_params =
-            params
-            |> Map.put(:contractor_employee_divisions, contract_employees)
-            |> Map.put(:contract_divisions, contract_divisions)
+        new_contract_params =
+          params
+          |> Map.put(:contractor_employee_divisions, contract_employees)
+          |> Map.put(:contract_divisions, contract_divisions)
 
-          with {:ok, new_contract} <- do_create(new_contract_params) do
-            new_contract
-          end
-        end)
-
-      nil ->
-        do_create(params)
-
-      _ ->
-        {:error, {:"422", "There is no active contract with such contract_number"}}
+        with {:ok, new_contract} <- do_create(new_contract_params) do
+          new_contract
+        end
+      end)
+    else
+      _ -> {:error, {:conflict, "Incorrect status of parent contract"}}
     end
   end
 
-  @doc "This should never happen"
-  def create(_), do: {:error, {:"422", "Contract number is required"}}
+  def create(params) do
+    do_create(params)
+  end
 
   defp do_create(params) do
     with {:ok, contract} <-
