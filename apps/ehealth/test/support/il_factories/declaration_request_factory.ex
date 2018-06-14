@@ -2,11 +2,12 @@ defmodule EHealth.ILFactories.DeclarationRequestFactory do
   @moduledoc false
 
   alias EHealth.DeclarationRequests.DeclarationRequest
+  alias Ecto.UUID
 
   defmacro __using__(_opts) do
     quote do
       def declaration_request_factory do
-        uuid = Ecto.UUID.generate()
+        uuid = UUID.generate()
 
         data =
           "test/data/sign_declaration_request.json"
@@ -18,11 +19,15 @@ defmodule EHealth.ILFactories.DeclarationRequestFactory do
           status: "NEW",
           inserted_by: uuid,
           updated_by: uuid,
-          authentication_method_current: %{},
+          authentication_method_current: %{
+            type: "NA",
+            number: "+38093*****85"
+          },
           printout_content: "something",
           documents: [],
           channel: DeclarationRequest.channel(:mis),
-          declaration_number: to_string(Enum.random(1..1000))
+          declaration_number: to_string(Enum.random(1..1000)),
+          declaration_id: UUID.generate()
         }
       end
     end

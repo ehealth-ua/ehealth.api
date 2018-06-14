@@ -1,0 +1,424 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "meta": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "number",
+          "description": "HTTP response code."
+        },
+        "url": {
+          "type": "string",
+          "description": "URL to requested resource."
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "object",
+            "list"
+          ],
+          "description": "Type of data that is located in `data` attribute."
+        },
+        "request_id": {
+          "type": "string",
+          "description": "[Request ID](http://docs.apimanifest.apiary.io/#introduction/interacting-with-api/request-id). Send it with `X-Request-ID` header."
+        }
+      },
+      "required": [
+        "code",
+        "url",
+        "type",
+        "request_id"
+      ],
+      "additionalProperties": false
+    },
+    "data": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "seed": {
+          "type": "string"
+        },
+        "declaration_number": {
+          "type": "string"
+        },
+        "start_date": {
+          "type": "string"
+        },
+        "end_date": {
+          "type": "string"
+        },
+        "person_id": {
+          "type": "string"
+        },
+        "person": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "first_name": {
+              "type": "string"
+            },
+            "last_name": {
+              "type": "string"
+            },
+            "second_name": {
+              "type": "string"
+            },
+            "birth_date": {
+              "type": "string",
+              "description": "ISO Datetime."
+            },
+            "gender": {
+              "type": "string",
+              "enum": [
+                "FEMALE",
+                "MALE"
+              ]
+            },
+            "tax_id": {
+              "type": "string"
+            },
+            "phones": {
+              "type": "array"
+            },
+            "birth_settlement": {
+              "type": "string"
+            },
+            "birth_country": {
+              "type": "string",
+              "description": "країна народження"
+            },
+            "documents": {
+              "type": "array"
+            },
+            "emergency_contact": {
+              "type": "object",
+              "properties": {
+                "first_name": {
+                  "type": "string"
+                },
+                "last_name": {
+                  "type": "string"
+                },
+                "second_name": {
+                  "type": "string"
+                },
+                "phones": {
+                  "type": "array"
+                }
+              },
+              "required": [
+                "first_name",
+                "last_name",
+                "phones"
+              ]
+            },
+            "confidant_person": {
+              "type": "array"
+            }
+          },
+          "required": [
+            "id",
+            "first_name",
+            "last_name",
+            "birth_date",
+            "gender",
+            "phones",
+            "birth_settlement",
+            "birth_country",
+            "emergency_contact"
+          ]
+        },
+        "employee": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "position": {
+              "type": "string",
+              "description": "`Dictionary: POSITION`"
+            },
+            "employee_type": {
+              "type": "string",
+              "description": "`Dictionary: EMPLOYEE_TYPE`"
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "APPROVED",
+                "DISMISSED"
+              ],
+              "description": "Employee status"
+            },
+            "start_date": {
+              "type": "string"
+            },
+            "end_date": {
+              "type": "string"
+            },
+            "party": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "first_name": {
+                  "type": "string"
+                },
+                "last_name": {
+                  "type": "string"
+                },
+                "second_name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "first_name",
+                "last_name"
+              ]
+            },
+            "division_id": {
+              "type": "string",
+              "description": "division identifier"
+            },
+            "legal_entity_id": {
+              "type": "string",
+              "description": "legal entity identifier"
+            },
+            "doctor": {
+              "type": "object",
+              "properties": {
+                "educations": {
+                  "type": "array",
+                  "description": "освіта"
+                },
+                "qualifications": {
+                  "type": "array",
+                  "description": "підвищення кваліфікації"
+                },
+                "specialities": {
+                  "type": "array",
+                  "description": "блок інформації про отримання сертифікату спеціалісту та проходження атестацій"
+                },
+                "science_degree": {
+                  "type": "object",
+                  "properties": {
+                    "country": {
+                      "type": "string",
+                      "description": "`Dictionary COUNTRY`"
+                    },
+                    "city": {
+                      "type": "string"
+                    },
+                    "degree": {
+                      "type": "string",
+                      "description": "`Dictionary SCIENCE_DEGREE`"
+                    },
+                    "institution_name": {
+                      "type": "string"
+                    },
+                    "diploma_number": {
+                      "type": "string"
+                    },
+                    "speciality": {
+                      "type": "string"
+                    },
+                    "issued_date": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "country",
+                    "city",
+                    "degree",
+                    "institution_name",
+                    "diploma_number",
+                    "speciality"
+                  ]
+                }
+              },
+              "required": [
+                "educations",
+                "specialities"
+              ]
+            }
+          },
+          "required": [
+            "id",
+            "position",
+            "status",
+            "start_date",
+            "legal_entity_id"
+          ]
+        },
+        "legal_entity": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "6c54-4b01-90e6-d701748f0851"
+            },
+            "name": {
+              "type": "string"
+            },
+            "short_name": {
+              "type": "string"
+            },
+            "legal_form": {
+              "type": "string",
+              "description": "`Dictionary LEGAL_FORM`"
+            },
+            "public_name": {
+              "type": "string"
+            },
+            "edrpou": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "ACTIVE",
+                "CLOSED"
+              ]
+            },
+            "email": {
+              "type": "string"
+            },
+            "phones": {
+              "type": "array"
+            },
+            "addresses": {
+              "type": "array"
+            }
+          },
+          "required": [
+            "name",
+            "short_name",
+            "legal_form",
+            "edrpou",
+            "status",
+            "email",
+            "phones"
+          ]
+        },
+        "division": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string",
+              "description": "the full name of division"
+            },
+            "addresses": {
+              "type": "array"
+            },
+            "phones": {
+              "type": "array"
+            },
+            "email": {
+              "type": "string",
+              "description": "division's email"
+            }
+          },
+          "required": [
+            "id",
+            "name",
+            "addresses",
+            "phones",
+            "email"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "NEW",
+            "APPROVED",
+            "SIGNED",
+            "EXPIRED"
+          ]
+        },
+        "scope": {
+          "type": "string",
+          "enum": [
+            "family_doctor"
+          ]
+        },
+        "declaration_id": {
+          "type": "string"
+        },
+        "content": {
+          "type": "string"
+        },
+        "inserted_at": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "string"
+        },
+        "channel": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "declaration_number",
+        "start_date",
+        "person_id",
+        "person",
+        "employee",
+        "legal_entity",
+        "division",
+        "status",
+        "scope",
+        "declaration_id",
+        "content",
+        "channel"
+      ],
+      "additionalProperties": false
+    },
+    "urgent": {
+      "type": "object",
+      "properties": {
+        "authentication_method_current": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "OTP",
+                "OFFLINE",
+                "NA"
+              ]
+            },
+            "number": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "number"
+          ]
+        },
+        "documents": {
+          "type": "array"
+        }
+      },
+      "required": [
+        "authentication_method_current"
+      ]
+    }
+  },
+  "required": [
+    "urgent"
+  ]
+}

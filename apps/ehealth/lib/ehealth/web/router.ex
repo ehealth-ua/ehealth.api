@@ -301,6 +301,8 @@ defmodule EHealthWeb.Router do
         as: :cabinet_declarations
       )
 
+      get("/declaration_requests/:id", Cabinet.DeclarationRequestController, :show, as: :cabinet_declaration_requests)
+
       patch(
         "/declarations/:id/actions/terminate",
         Cabinet.DeclarationController,

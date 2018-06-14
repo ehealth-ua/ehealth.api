@@ -26,6 +26,19 @@ defmodule EHealth.Cabinet.DeclarationRequests do
     end
   end
 
+  def get_by_id(id, headers) do
+    user_id = get_consumer_id(headers)
+
+    with {:ok, %{"data" => user}} <- @mithril_api.get_user_by_id(user_id, headers),
+         {:ok, %{"data" => person}} <- @mpi_api.person(user["person_id"], headers),
+         :ok <- validate_user_person(user, person),
+         :ok <- check_user_blocked(user["is_blocked"]),
+         %DeclarationRequest{} = declaration_request <- Repo.get(DeclarationRequest, id),
+         :ok <- validate_person_id(declaration_request, person["id"]) do
+      {:ok, declaration_request}
+    end
+  end
+
   defp validate_user_person(user, person) do
     if user["person_id"] == person["id"] and user["tax_id"] == person["tax_id"] do
       :ok
@@ -38,7 +51,7 @@ defmodule EHealth.Cabinet.DeclarationRequests do
 
   defp check_user_blocked(true), do: {:error, :access_denied}
 
-  def get_person_declaration_requests(%{"status" => @status_expired} = params, _) do
+  defp get_person_declaration_requests(%{"status" => @status_expired} = params, _) do
     %Page{
       entries: [],
       page_number: 1,
@@ -48,7 +61,7 @@ defmodule EHealth.Cabinet.DeclarationRequests do
     }
   end
 
-  def get_person_declaration_requests(params, person_id) do
+  defp get_person_declaration_requests(params, person_id) do
     DeclarationRequest
     |> order_by([dr], desc: :inserted_at)
     |> filter_by_person_id(person_id)
@@ -76,4 +89,7 @@ defmodule EHealth.Cabinet.DeclarationRequests do
   end
 
   defp filter_by_start_year(query, _), do: query
+
+  defp validate_person_id(%DeclarationRequest{mpi_id: person_id}, person_id), do: :ok
+  defp validate_person_id(_, _), do: {:error, :forbidden}
 end
