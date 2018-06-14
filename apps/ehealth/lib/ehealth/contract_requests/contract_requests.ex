@@ -184,7 +184,7 @@ defmodule EHealth.ContractRequests do
            params
            |> Map.delete("id")
            |> Map.put("updated_by", user_id)
-           |> Map.put("contract_number", get_contract_number(params))
+           |> set_contract_number(params)
            |> Map.put("status", ContractRequest.status(:approved)),
          %Ecto.Changeset{valid?: true} = changes <- approve_changeset(contract_request, update_params),
          data <- prepare_contract_request_data(changes),
@@ -584,9 +584,13 @@ defmodule EHealth.ContractRequests do
     do:
       {:error, {:bad_request, "document must be signed by 2 signers but contains #{Enum.count(signatures)} signatures"}}
 
-  defp get_contract_number(_) do
+  defp set_contract_number(params, %{"parent_contract_id" => parent_contract_id}) when not is_nil(parent_contract_id) do
+    params
+  end
+
+  defp set_contract_number(params, _) do
     with {:ok, sequence} <- get_contract_request_sequence() do
-      NumberGenerator.generate_from_sequence(1, sequence)
+      Map.put(params, "contract_number", NumberGenerator.generate_from_sequence(1, sequence))
     end
   end
 
