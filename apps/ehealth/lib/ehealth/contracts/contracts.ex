@@ -67,7 +67,7 @@ defmodule EHealth.Contracts do
   end
 
   def create(%{parent_contract_id: parent_contract_id} = params) when not is_nil(parent_contract_id) do
-    with %Contract{status: @status_verified} = contract <- PRMRepo.one(Contract, parent_contract_id) do
+    with %Contract{status: @status_verified} = contract <- PRMRepo.get(Contract, parent_contract_id) do
       contract = load_references(contract)
 
       PRMRepo.transaction(fn ->

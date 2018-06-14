@@ -210,7 +210,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         })
 
       assert resp = json_response(conn, 422)
-      assert_error(resp, "$.start_date", "Start date must be greater than create date")
+      assert_error(resp, "$.start_date", "Start date must be greater than current date")
     end
 
     test "start_date is too far in the future", %{conn: conn} do

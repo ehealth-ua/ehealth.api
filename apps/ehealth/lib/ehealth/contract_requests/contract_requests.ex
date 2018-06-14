@@ -1218,7 +1218,7 @@ defmodule EHealth.ContractRequests do
          [
            {
              %{
-               description: "Start date must be greater than create date",
+               description: "Start date must be greater than current date",
                params: [],
                rule: :invalid
              },
