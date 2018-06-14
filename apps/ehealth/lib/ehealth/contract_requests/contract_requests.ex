@@ -70,14 +70,14 @@ defmodule EHealth.ContractRequests do
     id = UUID.generate()
 
     with {:ok, %{"data" => %{"secret_url" => statute_url}}} <-
-           @media_storage_api.create_signed_url("PUT", get_bucket(), id, "contract_request_statute.jpeg", headers),
+           @media_storage_api.create_signed_url("PUT", get_bucket(), id, "contract_request_statute.jpeg", []),
          {:ok, %{"data" => %{"secret_url" => equipment_agreement_url}}} <-
            @media_storage_api.create_signed_url(
              "PUT",
              get_bucket(),
              id,
              "contract_request_equipment_agreement.jpeg",
-             headers
+             []
            ) do
       %{"id" => id, "statute_url" => statute_url, "equipment_agreement_url" => equipment_agreement_url}
     end
