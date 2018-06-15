@@ -1460,7 +1460,7 @@ defmodule EHealth.ContractRequests do
            @media_storage_api.create_signed_url("HEAD", get_bucket(), resource_name, id, headers),
          {:ok, %HTTPoison.Response{status_code: 200, headers: resource_headers}} <-
            @media_storage_api.verify_uploaded_file(url, resource_name),
-         true <- md5 == get_header(resource_headers, "etag") do
+         true <- md5 == resource_headers |> get_header("ETag") |> Jason.decode!() do
       :ok
     else
       _ -> {:error, {:"422", "#{resource_name} md5 doesn't match"}}
