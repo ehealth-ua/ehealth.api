@@ -123,7 +123,7 @@ defmodule EHealth.ContractRequests do
            |> Map.put("status", ContractRequest.status(:new))
            |> Map.put("inserted_by", user_id)
            |> Map.put("updated_by", user_id),
-         %Ecto.Changeset{valid?: true} = changes <- changeset(%ContractRequest{}, insert_params),
+         %Ecto.Changeset{valid?: true} = changes <- changeset(%ContractRequest{id: id}, insert_params),
          {:ok, contract_request} <- Repo.insert(changes) do
       {:ok, contract_request, preload_references(contract_request)}
     else
@@ -1380,13 +1380,16 @@ defmodule EHealth.ContractRequests do
 
   defp validate_contract_number(%{"contract_number" => contract_number} = params, headers)
        when not is_nil(contract_number) do
-    with {:contract_exists, {:ok, %Page{entries: [%Contract{} = contract]}, _}} <-
-           {:contract_exists, Contracts.list(%{"contract_number" => contract_number}, nil, headers)},
-         true <- contract.status == "VERIFIED" do
+    with {:ok, %Page{entries: [%Contract{} = contract]}, _} <-
+           Contracts.list(
+             %{"contract_number" => contract_number, "status" => Contract.status(:verified)},
+             nil,
+             headers
+           ) do
       {:ok, Map.put(params, "parent_contract_id", contract.id), contract}
     else
-      {:contract_exists, _} -> {:error, {:"422", "Contract with such contract number does not exist"}}
-      false -> {:error, {:conflict, "Can not update terminated contract"}}
+      _ ->
+        {:error, {:"422", "Verified contract with such contract number does not exist"}}
     end
   end
 

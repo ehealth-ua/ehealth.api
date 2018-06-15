@@ -51,9 +51,13 @@ defmodule EHealth.Validators.Preload do
 
     case path do
       "$" ->
-        Enum.reduce(item, acc, fn list_item, acc ->
-          get_reference_id(list_item, {tail_path, type}, acc)
-        end)
+        if is_nil(item) do
+          acc
+        else
+          Enum.reduce(item, acc, fn list_item, acc ->
+            get_reference_id(list_item, {tail_path, type}, acc)
+          end)
+        end
 
       _ ->
         get_reference_id(Map.get(item, path), {tail_path, type}, acc)
