@@ -169,6 +169,10 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
         signed_content_encoding: "base64"
       }
 
+      expect(OTPVerificationMock, :complete, fn _, _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
       patient =
         conn
         |> Plug.Conn.put_req_header("authorization", "Bearer " <> auth_token)

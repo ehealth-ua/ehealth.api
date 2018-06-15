@@ -346,6 +346,10 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, "success"}
       end)
 
+      expect(OTPVerificationMock, :complete, fn _, _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
       uaddresses_mock_expect()
 
       conn
@@ -393,6 +397,10 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
       expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
         {:ok, "success"}
+      end)
+
+      expect(OTPVerificationMock, :complete, fn _, _, _ ->
+        {:ok, %{"data" => []}}
       end)
 
       uaddresses_mock_expect()
@@ -445,6 +453,10 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, "success"}
       end)
 
+      expect(OTPVerificationMock, :complete, fn _, _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
       uaddresses_mock_expect()
 
       conn
@@ -489,6 +501,10 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, "success"}
       end)
 
+      expect(OTPVerificationMock, :complete, fn _, _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
       uaddresses_mock_expect()
 
       conn
@@ -524,6 +540,10 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => [%{"tax_id" => "1234567890"}]}}
       end)
 
+      expect(OTPVerificationMock, :complete, fn _, _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
       uaddresses_mock_expect()
 
       assert "tax_id_exists" ==
@@ -545,6 +565,10 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => [%{"tax_id" => "1234567890", "is_blocked" => true}]}}
       end)
 
+      expect(OTPVerificationMock, :complete, fn _, _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
       uaddresses_mock_expect()
 
       assert "User blocked" ==
@@ -560,6 +584,10 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
       signed_content = "test/data/cabinet/patient-invalid-addresses-types.json" |> File.read!() |> Base.encode64()
       params = Map.put(params, :signed_content, signed_content)
+
+      expect(OTPVerificationMock, :complete, fn _, _, _ ->
+        {:ok, %{"data" => []}}
+      end)
 
       assert "Addresses with types REGISTRATION, RESIDENCE should be present" ==
                conn
@@ -577,6 +605,10 @@ defmodule Mithril.Web.RegistrationControllerTest do
       end)
 
       expect(MithrilMock, :search_user, fn %{email: "email@example.com"}, _headers ->
+        {:ok, %{"data" => []}}
+      end)
+
+      expect(OTPVerificationMock, :complete, fn _, _, _ ->
         {:ok, %{"data" => []}}
       end)
 
@@ -612,6 +644,10 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => data}}
       end)
 
+      expect(OTPVerificationMock, :complete, fn _, _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
       uaddresses_mock_expect()
 
       assert "Input last_name doesn't match name from DS" ==
@@ -641,6 +677,10 @@ defmodule Mithril.Web.RegistrationControllerTest do
         }
 
         {:ok, %{"data" => data}}
+      end)
+
+      expect(OTPVerificationMock, :complete, fn _, _, _ ->
+        {:ok, %{"data" => []}}
       end)
 
       uaddresses_mock_expect()
@@ -675,6 +715,10 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => data}}
       end)
 
+      expect(OTPVerificationMock, :complete, fn _, _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
       uaddresses_mock_expect()
 
       assert "Input first_name doesn't match name from DS" ==
@@ -706,6 +750,10 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => data}}
       end)
 
+      expect(OTPVerificationMock, :complete, fn _, _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
       uaddresses_mock_expect()
 
       assert "signer_empty_given_name" ==
@@ -719,6 +767,10 @@ defmodule Mithril.Web.RegistrationControllerTest do
     test "different email in signed content and JWT", %{conn: conn, params: params} do
       use SignatureExpect
       {:ok, jwt, _} = encode_and_sign(get_aud(:registration), %{email: "not-matched@example.com"})
+
+      expect(OTPVerificationMock, :complete, fn _, _, _ ->
+        {:ok, %{"data" => []}}
+      end)
 
       uaddresses_mock_expect()
 
@@ -791,6 +843,10 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => data}}
       end)
 
+      expect(OTPVerificationMock, :complete, fn _, _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
       uaddresses_mock_expect()
 
       assert "Registration person and person that sign should be the same" ==
@@ -832,11 +888,21 @@ defmodule Mithril.Web.RegistrationControllerTest do
     test "invalid person data", %{conn: conn, params: params, jwt: jwt} do
       use SignatureExpect
 
+      expect(OTPVerificationMock, :complete, fn _, _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
       signed_content =
         %{
           "birth_date" => "today",
           "tax_id" => "1112223344",
-          "email" => "email@example.com"
+          "email" => "email@example.com",
+          "authentication_methods" => [
+            %{
+              "type" => "OTP",
+              "phone_number" => "+380508887700"
+            }
+          ]
         }
         |> Jason.encode!()
         |> Base.encode64()
@@ -888,6 +954,10 @@ defmodule Mithril.Web.RegistrationControllerTest do
          }}
       end)
 
+      expect(OTPVerificationMock, :complete, fn _, _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
       uaddresses_mock_expect()
 
       assert [err] =
@@ -903,60 +973,55 @@ defmodule Mithril.Web.RegistrationControllerTest do
     test "invalid OTP for user factor", %{conn: conn, params: params, jwt: jwt} do
       use SignatureExpect
 
-      expect(MPIMock, :search, fn %{"tax_id" => "3126509816", "birth_date" => _}, _headers ->
-        {:ok, %{"data" => []}}
+      expect(OTPVerificationMock, :complete, fn _, _, _ ->
+        {:error, %{"error" => %{"message" => "Invalid verification code"}}}
       end)
 
-      expect(MPIMock, :create_or_update_person!, fn params, _headers ->
-        refute Map.has_key?(params, "id")
-        assert Map.has_key?(params, "patient_signed")
-        {:ok, %{"data" => Map.put(params, "id", UUID.generate())}}
-      end)
+      assert conn
+             |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
+             |> post(cabinet_auth_path(conn, :registration, params))
+             |> json_response(403)
+    end
 
-      expect(MithrilMock, :search_user, fn %{email: "email@example.com"}, _headers ->
-        {:ok, %{"data" => []}}
-      end)
+    test "invalid auth metod for user factor", %{conn: conn, params: params, jwt: jwt} do
+      use SignatureExpect
 
-      expect(MithrilMock, :create_user, fn _params, _headers ->
-        {:error,
-         %{
-           "error" => %{
-             "invalid" => [
-               %{
-                 "entry" => "$.otp",
-                 "entry_type" => "json_data_property",
-                 "rules" => [
-                   %{
-                     "description" => "invalid code",
-                     "params" => [],
-                     "rule" => "invalid"
-                   }
-                 ]
-               }
-             ],
-             "message" => "Validation failed.",
-             "type" => "validation_failed"
-           },
-           "meta" => %{
-             "code" => 422
-           }
-         }}
-      end)
+      signed_content =
+        %{
+          "birth_date" => "today",
+          "tax_id" => "1112223344",
+          "email" => "email@example.com",
+          "authentication_methods" => [
+            %{
+              "type" => "NA"
+            }
+          ]
+        }
+        |> Jason.encode!()
+        |> Base.encode64()
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
-        {:ok, "success"}
-      end)
+      assert conn
+             |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
+             |> post(cabinet_auth_path(conn, :registration, Map.put(params, :signed_content, signed_content)))
+             |> json_response(401)
+    end
 
-      uaddresses_mock_expect()
+    test "auth metod for user is absent", %{conn: conn, params: params, jwt: jwt} do
+      use SignatureExpect
 
-      assert [err] =
-               conn
-               |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
-               |> post(cabinet_auth_path(conn, :registration, params))
-               |> json_response(422)
-               |> get_in(~w(error invalid))
+      signed_content =
+        %{
+          "birth_date" => "today",
+          "tax_id" => "1112223344",
+          "email" => "email@example.com"
+        }
+        |> Jason.encode!()
+        |> Base.encode64()
 
-      assert "$.otp" == err["entry"]
+      assert conn
+             |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
+             |> post(cabinet_auth_path(conn, :registration, Map.put(params, :signed_content, signed_content)))
+             |> json_response(401)
     end
   end
 

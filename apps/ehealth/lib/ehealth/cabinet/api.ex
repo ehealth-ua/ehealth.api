@@ -17,9 +17,11 @@ defmodule EHealth.Cabinet.API do
   @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
   @signature_api Application.get_env(:ehealth, :api_resolvers)[:digital_signature]
   @media_storage_api Application.get_env(:ehealth, :api_resolvers)[:media_storage]
+  @otp_verification_api Application.get_env(:ehealth, :api_resolvers)[:otp_verification]
 
   @person_active "active"
   @addresses_types ~w(REGISTRATION RESIDENCE)
+  @authentication_otp "OTP"
 
   def create_patient(jwt, params, headers) do
     with {:ok, email} <- fetch_email_from_jwt(jwt),
@@ -27,6 +29,7 @@ defmodule EHealth.Cabinet.API do
          {:ok, %{"data" => data}} <-
            @signature_api.decode_and_validate(params["signed_content"], params["signed_content_encoding"], headers),
          {:ok, %{"content" => content, "signer" => signer}} <- process_digital_signature_data(data),
+         :ok <- verify_auth(content, params, headers),
          :ok <- JsonSchema.validate(:person, content),
          :ok <- PersonValidator.validate_birth_date(content["birth_date"], "$.birth_date"),
          :ok <- PersonValidator.validate_addresses_types(content["addresses"], @addresses_types),
@@ -270,4 +273,22 @@ defmodule EHealth.Cabinet.API do
       _error -> {:error, {:bad_gateway, "Failed to save signed content"}}
     end
   end
+
+  def verify_auth(%{"authentication_methods" => authentication_methods}, %{"otp" => code}, headers) do
+    case Enum.find(authentication_methods, &otp_params?(&1)) do
+      nil ->
+        {:error, :access_denied}
+
+      %{"phone_number" => phone_number} ->
+        case @otp_verification_api.complete(phone_number, %{code: code}, headers) do
+          {:ok, _} -> :ok
+          _error -> {:error, {:forbidden, "Invalid verification code"}}
+        end
+    end
+  end
+
+  def verify_auth(_, _, _), do: {:error, :access_denied}
+
+  defp otp_params?(%{"phone_number" => _, "type" => @authentication_otp}), do: true
+  defp otp_params?(_), do: false
 end
