@@ -78,7 +78,7 @@ config :ehealth, EHealth.API.PRM,
 config :ehealth, EHealth.Plugs.ClientContext,
   tokens_types_personal: {:system, :list, "TOKENS_TYPES_PERSONAL", ["MSP", "PHARMACY"]},
   tokens_types_mis: {:system, :list, "TOKENS_TYPES_MIS", ["MIS"]},
-  tokens_types_admin: {:system, :list, "TOKENS_TYPES_ADMIN", ["NHS ADMIN"]},
+  tokens_types_admin: {:system, :list, "TOKENS_TYPES_ADMIN", ["NHS"]},
   tokens_types_cabinet: {:system, :list, "TOKENS_TYPES_CABINET", ["CABINET"]}
 
 # Configures OAuth API
