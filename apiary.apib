@@ -4740,7 +4740,7 @@ end_date|false| пункт 9.2 - цей договір діє по (рік ма�
 id_form|true| словник `CONTRACT_TYPE`, поки що лише один вид Договір на ПМД
 contract_number|false| human-redable номер контракту
 statute_md5|true| хеш завантаженого документу (статуту)
-other_md5|true| хеш завантаженого документу (інший документ)
+additional_document_md5|true| хеш завантаженого документу (додатковий документ)
 consent_text|true|
 
 ####Contractor_payment_details
@@ -4831,7 +4831,7 @@ medical_service|true| послуга, що надається на відділ�
   "id_form": "5",
   "contract_number": "0000-9EAX-XT7X-3115",
   "statute_md5": "db218b04eff70f86f40c1572ce8ca16a",
-  "other_md5": "ac642b04eff40f86f40c1572ce8ca16a",
+  "additional_document_md5": "ac642b04eff40f86f40c1572ce8ca16a",
   "consent_text": "Погоджуюсь з публічними правилами"
 }
 ```
@@ -7315,7 +7315,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 ### `Init_contract_request_response`
 + id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract_request ID
 + statute_url: `url://upload` (string, required) - URL to upload statute document
-+ other_url: `url://upload` (string, required) - URL to upload other document
++ additional_document_url: `url://upload` (string, required) - URL to upload additional document
 
 ### `Contract_request_Request_signed`
 + `signed_content`: `ew0KICAiY29udHJhY3Rvcl9vd25lcl9pZCI6ICJkZjlmNzBlZS00YjEyLTQ3NDAtYjBmNS1iYjVhZWExMTY4NjMiLA0KICAiY29udHJhY3Rvcl9iYXNlIjogItC90LAg0L/RltC00YHRgtCw0LLRliDQt9Cw0LrQvtC90YMg0L/RgNC+INCc0LXQtNC40YfQvdC1INC+0LHRgdC70YPQs9C+0LLRg9Cy0LDQvdC90Y8g0L3QsNGB0LXQu9C10L3QvdGPIiwNCiAgImNvbnRyYWN0b3JfcGF5bWVudF9kZXRhaWxzIjogew0KICAgICJiYW5rX25hbWUiOiAi0JHQsNC90Log0L3QvtC80LXRgCAxIiwNCiAgICAiTUZPIjogIjM1MTAwNSIsDQogICAgInBheWVyX2FjY291bnQiOiAiMzIwMDkxMDI3MDEwMjYiDQogIH0sDQogICJjb250cmFjdG9yX3Jtc3BfYW1vdW50IjogNTAwMDAsDQogICJjb250cmFjdG9yX2RpdmlzaW9ucyI6IFsNCiAgICAiaWQ6IGAyOTIyYTI0MC02M2RiLTQwNGUtYjczMC0wOTIyMmJmZWIyZGRgIg0KICBdLA0KICAiY29udHJhY3Rvcl9lbXBsb3llZV9kaXZpc2lvbnMiOiBbDQogICAgew0KICAgICAgImVtcGxveWVlX2lkIjogIjI5MjJhMjQwLTYzZGItNDA0ZS1iNzMwLTA5MjIyYmZlYjJkZCIsDQogICAgICAic3RhZmZfdW5pdHMiOiAwLjUsDQogICAgICAiZGVjbGFyYXRpb25fbGltaXQiOiAyMDAwLA0KICAgICAgImRpdmlzaW9uX2lkIjogIjI5MjJhMjQwLTYzZGItNDA0ZS1iNzMwLTA5MjIyYmZlYjJkZCINCiAgICB9DQogIF0sDQogICJleHRlcm5hbF9jb250cmFjdG9yX2ZsYWciOiB0cnVlLA0KICAiZXh0ZXJuYWxfY29udHJhY3RvcnMiOiB7DQogICAgImxlZ2FsX2VudGl0eV9pZCI6ICIyOTIyYTI0MC02M2RiLTQwNGUtYjczMC0wOTIyMmJmZWIyZGQiLA0KICAgICJjb250cmFjdCI6IHsNCiAgICAgICJudW1iZXIiOiAiMTIzNDU2NyIsDQogICAgICAiaXNzdWVkX2F0IjogIjIwMTgtMDEtMDEiLA0KICAgICAgImV4cGlyZXNfYXQiOiAiMjAxOS0wMS0wMSINCiAgICB9LA0KICAgICJkaXZpc2lvbnMiOiBbDQogICAgICB7DQogICAgICAgICJpZCI6ICIyOTIyYTI0MC02M2RiLTQwNGUtYjczMC0wOTIyMmJmZWIyZGQiLA0KICAgICAgICAibWVkaWNhbF9zZXJ2aWNlIjogItCf0L7RgdC70YPQs9CwINCf0JzQlCINCiAgICAgIH0NCiAgICBdDQogIH0sDQogICJzdGFydF9kYXRlIjogIjIwMTctMDQtMjAiLA0KICAiZW5kX2RhdGUiOiAiMjAxNy0wNC0yMCIsDQogICJpZF9mb3JtIjogIjUiLA0KICAiY29udHJhY3RfbnVtYmVyIjogIjAwMDAtOUVBWC1YVDdYLTMxMTUiLA0KICAic3RhdHV0ZSI6ImJhc2U2NF9kb2N1bWVudCINCiAgImVxdWlwbWVudF9hZ3JlZW1lbnQiOiJiYXNlNjRfZG9jdW1lbnQiDQp9` (string,required)
@@ -7417,7 +7417,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract_request ID 
 + status: `NEW` (string, required) - contract_request status
 + statute: `www.url_1` (string, required) - link to statute document
-+ `other`: `www.url_2` (string, required) - link to report with technical equipmnet
++ `additional_document`: `www.url_2` (string, required) - link to report with additional document
 
 ### `contract_legal_entity_details`
 + id: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - legal entity ID which make contract request
