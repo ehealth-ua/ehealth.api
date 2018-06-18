@@ -157,12 +157,13 @@ defmodule EHealth.DeclarationRequests do
     |> Repo.one()
   end
 
+  defp validate_data_legal_entity(%DeclarationRequest{data: data} = declaration_request, _)
+       when data == %{} or is_nil(data) do
+    Map.put(declaration_request, :data, %{})
+  end
+
   defp validate_data_legal_entity(%DeclarationRequest{data: data} = declaration_request, legal_entity_id) do
-    cond do
-      data["legal_entity"]["id"] == legal_entity_id -> declaration_request
-      Enum.empty?(data) -> declaration_request
-      true -> nil
-    end
+    if data["legal_entity"]["id"] == legal_entity_id, do: declaration_request, else: nil
   end
 
   defp validate_data_legal_entity(declaration_request, _), do: declaration_request

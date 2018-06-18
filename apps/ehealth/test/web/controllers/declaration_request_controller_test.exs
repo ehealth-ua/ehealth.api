@@ -358,6 +358,31 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       assert resp["data"]["employee"] == nil
       assert resp["data"]["legal_entity"] == nil
     end
+
+    test "get declaration request by id in status expired when data is NULL" do
+      legal_entity_id = UUID.generate()
+
+      %{id: id} =
+        insert(
+          :il,
+          :declaration_request,
+          id: UUID.generate(),
+          data: nil,
+          status: DeclarationRequest.status(:expired)
+        )
+
+      conn = put_client_id_header(build_conn(), legal_entity_id)
+      conn = get(conn, declaration_request_path(conn, :show, id))
+      resp = json_response(conn, 200)
+
+      assert resp
+      assert resp["data"]["id"]
+      assert resp["data"]["declaration_number"]
+      assert resp["data"]["status"] == DeclarationRequest.status(:expired)
+      assert resp["data"]["person"] == nil
+      assert resp["data"]["employee"] == nil
+      assert resp["data"]["legal_entity"] == nil
+    end
   end
 
   describe "resend otp" do
