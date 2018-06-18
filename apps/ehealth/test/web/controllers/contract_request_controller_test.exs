@@ -43,7 +43,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> post(contract_request_path(conn, :draft))
 
       assert resp = json_response(conn, 200)
-      assert Enum.all?(~w(id statute_url equipment_agreement_url), &Map.has_key?(resp["data"], &1))
+      assert Enum.all?(~w(id statute_url additional_document_url), &Map.has_key?(resp["data"], &1))
     end
   end
 
@@ -2669,7 +2669,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       "start_date" => "2018-01-01",
       "end_date" => "2018-01-01",
       "statute_md5" => "contract_request_statute.jpeg",
-      "equipment_agreement_md5" => "contract_request_equipment_agreement.jpeg"
+      "additional_document_md5" => "contract_request_additional_document.jpeg"
     }
   end
 

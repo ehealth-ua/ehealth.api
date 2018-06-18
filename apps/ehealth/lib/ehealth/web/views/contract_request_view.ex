@@ -28,11 +28,11 @@ defmodule EHealth.Web.ContractRequestView do
     )a)
   end
 
-  def render("draft.json", %{id: id, statute_url: statute_url, equipment_agreement_url: equipment_agreement_url}) do
+  def render("draft.json", %{id: id, statute_url: statute_url, additional_document_url: additional_document_url}) do
     %{
       id: id,
       statute_url: statute_url,
-      equipment_agreement_url: equipment_agreement_url
+      additional_document_url: additional_document_url
     }
   end
 

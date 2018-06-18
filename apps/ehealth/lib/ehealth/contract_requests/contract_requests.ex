@@ -77,15 +77,15 @@ defmodule EHealth.ContractRequests do
 
     with {:ok, %{"data" => %{"secret_url" => statute_url}}} <-
            @media_storage_api.create_signed_url("PUT", get_bucket(), "contract_request_statute.jpeg", id, []),
-         {:ok, %{"data" => %{"secret_url" => equipment_agreement_url}}} <-
+         {:ok, %{"data" => %{"secret_url" => additional_document_url}}} <-
            @media_storage_api.create_signed_url(
              "PUT",
              get_bucket(),
-             "contract_request_equipment_agreement.jpeg",
+             "contract_request_additional_document.jpeg",
              id,
              []
            ) do
-      %{"id" => id, "statute_url" => statute_url, "equipment_agreement_url" => equipment_agreement_url}
+      %{"id" => id, "statute_url" => statute_url, "additional_document_url" => additional_document_url}
     end
   end
 
@@ -119,8 +119,8 @@ defmodule EHealth.ContractRequests do
          :ok <-
            validate_document(
              id,
-             "contract_request_equipment_agreement.jpeg",
-             params["equipment_agreement_md5"],
+             "contract_request_additional_document.jpeg",
+             params["additional_document_md5"],
              headers
            ),
          _ <- terminate_pending_contracts(params),
