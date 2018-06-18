@@ -417,7 +417,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> prepare_params(employee, Date.to_iso8601(Date.add(start_date, 1)))
         |> Map.put("contractor_owner_id", owner.id)
         |> Map.put("contract_number", contract_number)
-        |> Map.drop(~w(contractor_employee_divisions start_date end_date))
+        |> Map.drop(~w(start_date end_date))
 
       conn =
         post(conn, contract_request_path(conn, :create, UUID.generate()), %{

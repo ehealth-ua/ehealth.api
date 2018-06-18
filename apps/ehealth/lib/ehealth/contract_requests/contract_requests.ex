@@ -732,24 +732,6 @@ defmodule EHealth.ContractRequests do
     |> validate_contract_employee_divisions()
   end
 
-  defp validate_contract_employee_divisions(%{
-         "parent_contract_id" => parent_contract_id,
-         "contractor_employee_divisions" => contractor_employee_divisions
-       })
-       when not is_nil(parent_contract_id) and not is_nil(contractor_employee_divisions) do
-    {:error,
-     [
-       {
-         %{
-           description: "Employee can't be updated via Contract Request",
-           params: [],
-           rule: :invalid
-         },
-         "$.contractor_employee_divisions"
-       }
-     ]}
-  end
-
   defp validate_contract_employee_divisions(params) do
     contractor_employee_divisions = params["contractor_employee_divisions"]
 

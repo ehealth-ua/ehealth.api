@@ -168,7 +168,8 @@
                     "division_id"
                 ],
                 "additionalProperties": false
-            }
+            },
+            "minItems": 1
         },
         "contractor_divisions": {
             "type": "array",
@@ -213,6 +214,7 @@
         "contractor_payment_details",
         "contractor_rmsp_amount",
         "contractor_divisions",
+        "contractor_employee_divisions",
         "id_form"
     ],
     "additionalProperties": false
