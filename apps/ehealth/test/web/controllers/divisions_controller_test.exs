@@ -3,7 +3,6 @@ defmodule EHealth.Web.DivisionsControllerTest do
 
   use EHealth.Web.ConnCase, async: false
 
-  import EHealth.SimpleFactory, only: [address: 1]
   import Mox
 
   alias Ecto.UUID
@@ -12,7 +11,7 @@ defmodule EHealth.Web.DivisionsControllerTest do
     insert(:il, :dictionary_phone_type)
     insert(:il, :dictionary_address_type)
 
-    {:ok, conn: put_req_header(conn, "accept", "application/json")}
+    {:ok, conn: put_req_header(conn, "accept", "application/json"), address: build(:address)}
   end
 
   test "get divisions without x-client-id header", %{conn: conn} do
@@ -158,8 +157,8 @@ defmodule EHealth.Web.DivisionsControllerTest do
     refute %{} == json_response(conn, 201)["data"]
   end
 
-  test "create division without RESIDENCE address", %{conn: conn} do
-    division = Map.put(get_division(), "addresses", [address("REGISTRATION")])
+  test "create division without RESIDENCE address", %{conn: conn, address: address} do
+    division = Map.put(get_division(), "addresses", [%{address | "type" => "REGISTRATION"}])
 
     legal_entity = insert(:prm, :legal_entity)
     conn = put_client_id_header(conn, legal_entity.id)

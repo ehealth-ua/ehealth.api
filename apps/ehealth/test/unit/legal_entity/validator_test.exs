@@ -6,7 +6,6 @@ defmodule EHealth.Unit.LegalEntity.ValidatorTest do
   use EHealth.Web.ConnCase, async: false
 
   alias EHealth.LegalEntities.Validator
-  import EHealth.SimpleFactory, only: [address: 1]
 
   describe "Additional JSON objects validation: validate_json_objects/1" do
     setup _ do
@@ -19,24 +18,30 @@ defmodule EHealth.Unit.LegalEntity.ValidatorTest do
         |> File.read!()
         |> Jason.decode!()
 
-      {:ok, legal_entity: legal_entity}
+      {:ok, legal_entity: legal_entity, address: build(:address)}
     end
 
     test "returns :ok for correct structure", %{legal_entity: legal_entity} do
       assert :ok = Validator.validate_json_objects(legal_entity)
     end
 
-    test "returns :error for incorrect address type (not from Dictionary)", %{legal_entity: legal_entity} do
-      bad_addresses = [address("NOT_IN_DICTIONARY")]
+    test "returns :error for incorrect address type (not from Dictionary)", %{
+      legal_entity: legal_entity,
+      address: address
+    } do
+      bad_addresses = [%{address | "type" => "NOT_IN_DICTIONARY"}]
       bad_legal_entity = Map.put(legal_entity, "addresses", bad_addresses)
 
       assert {:error, _} = Validator.validate_json_objects(bad_legal_entity)
     end
 
-    test "returns :error for duplicate adress types", %{legal_entity: legal_entity} do
-      one = address("RESIDENCE")
-      two = address("REGISTRATION")
-      three = address("RESIDENCE")
+    test "returns :error for duplicate address types", %{
+      legal_entity: legal_entity,
+      address: address
+    } do
+      one = %{address | "type" => "RESIDENCE"}
+      two = %{address | "type" => "REGISTRATION"}
+      three = %{address | "type" => "RESIDENCE"}
       bad_legal_entity = Map.put(legal_entity, "addresses", [one, two, three])
 
       assert {:error, _} = Validator.validate_json_objects(bad_legal_entity)

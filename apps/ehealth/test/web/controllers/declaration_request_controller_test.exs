@@ -3,7 +3,6 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
 
   use EHealth.Web.ConnCase
 
-  import EHealth.SimpleFactory
   import Mox
 
   alias Ecto.UUID
@@ -17,7 +16,8 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       legal_entity_id = UUID.generate()
 
       Enum.map(1..2, fn _ ->
-        fixture(DeclarationRequest, fixture_params())
+        params = fixture_params()
+        insert(:il, :declaration_request, params)
       end)
 
       conn = put_client_id_header(conn, legal_entity_id)
@@ -37,7 +37,11 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
           |> put_in([:data, :employee, :id], employee_id)
           |> put_in([:data, :legal_entity, :id], legal_entity_id)
 
-        fixture(DeclarationRequest, params)
+        insert(
+          :il,
+          :declaration_request,
+          params
+        )
       end)
 
       conn = put_client_id_header(conn, legal_entity_id)
@@ -56,7 +60,11 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
           fixture_params()
           |> put_in([:data, :legal_entity, :id], legal_entity_id)
 
-        fixture(DeclarationRequest, params)
+        insert(
+          :il,
+          :declaration_request,
+          params
+        )
       end)
 
       conn = put_client_id_header(conn, legal_entity_id)
@@ -76,7 +84,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
           |> put_in([:data, :legal_entity, :id], legal_entity_id)
           |> put_in([:data, :employee, :id], employee_id)
 
-        fixture(DeclarationRequest, params)
+        insert(:il, :declaration_request, params)
       end)
 
       conn = put_client_id_header(conn, legal_entity_id)
@@ -94,7 +102,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
           fixture_params()
           |> put_in([:data, :legal_entity, :id], legal_entity_id)
 
-        fixture(DeclarationRequest, params)
+        insert(:il, :declaration_request, params)
       end)
 
       conn = put_client_id_header(conn, legal_entity_id)
@@ -114,7 +122,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
           |> put_in([:data, :legal_entity, :id], legal_entity_id)
           |> put_in([:status], status)
 
-        fixture(DeclarationRequest, params)
+        insert(:il, :declaration_request, params)
       end)
 
       conn = put_client_id_header(conn, legal_entity_id)
@@ -136,7 +144,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
           |> put_in([:data, :employee, :id], employee_id)
           |> put_in([:status], status)
 
-        fixture(DeclarationRequest, params)
+        insert(:il, :declaration_request, params)
       end)
 
       conn = put_client_id_header(conn, legal_entity_id)
@@ -204,7 +212,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
           data: %{"employee" => %{"id" => employee_id}}
         )
 
-      conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8602f2")
+      conn = put_client_id_header(conn, UUID.generate())
       conn = patch(conn, declaration_request_path(conn, :approve, declaration_request))
 
       resp = json_response(conn, 200)
@@ -212,10 +220,14 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
 
     test "approve APPROVED declaration_request", %{conn: conn} do
-      params = Map.put(fixture_params(), :status, DeclarationRequest.status(:approved))
-      declaration_request = fixture(DeclarationRequest, params)
+      declaration_request =
+        insert(
+          :il,
+          :declaration_request,
+          status: DeclarationRequest.status(:approved)
+        )
 
-      conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8602f2")
+      conn = put_client_id_header(conn, UUID.generate())
       conn = patch(conn, declaration_request_path(conn, :approve, declaration_request))
 
       resp = json_response(conn, 409)
@@ -252,7 +264,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
         )
 
       assert conn
-             |> put_client_id_header("356b4182-f9ce-4eda-b6af-43d2de8602f2")
+             |> put_client_id_header(UUID.generate())
              |> patch(declaration_request_path(conn, :approve, declaration_request))
              |> json_response(500)
     end
@@ -287,15 +299,17 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
 
     test "get declaration request by invalid id", %{conn: conn} do
-      conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8602f2")
+      id = UUID.generate()
+      another_id = UUID.generate()
+      conn = put_client_id_header(conn, id)
 
       assert conn
-             |> get(declaration_request_path(conn, :show, UUID.generate()))
+             |> get(declaration_request_path(conn, :show, another_id))
              |> json_response(404)
     end
 
     test "get declaration request by invalid legal_entity_id", %{conn: conn} do
-      %{id: id} = fixture(DeclarationRequest, fixture_params())
+      %{id: id} = insert(:il, :declaration_request)
       conn = put_client_id_header(conn, UUID.generate())
 
       assert conn
@@ -304,7 +318,13 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
 
     test "get declaration request by id", %{conn: conn} do
-      %{id: id, data: data} = fixture(DeclarationRequest, fixture_params())
+      %{id: id, data: data} =
+        insert(
+          :il,
+          :declaration_request,
+          fixture_params()
+        )
+
       conn = put_client_id_header(conn, get_in(data, [:legal_entity, :id]))
       conn = get(conn, declaration_request_path(conn, :show, id))
       resp = json_response(conn, 200)
@@ -315,26 +335,25 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
 
     test "get declaration request by id in status expired" do
-      declaration_id = UUID.generate()
       legal_entity_id = UUID.generate()
-      status = "EXPIRED"
 
-      params =
-        fixture_params()
-        |> put_in([:id], declaration_id)
-        |> put_in([:status], status)
-        |> put_in([:data], %{})
-
-      fixture(DeclarationRequest, params)
+      %{id: id} =
+        insert(
+          :il,
+          :declaration_request,
+          id: UUID.generate(),
+          data: %{},
+          status: DeclarationRequest.status(:expired)
+        )
 
       conn = put_client_id_header(build_conn(), legal_entity_id)
-      conn = get(conn, declaration_request_path(conn, :show, declaration_id))
+      conn = get(conn, declaration_request_path(conn, :show, id))
       resp = json_response(conn, 200)
 
       assert resp
       assert resp["data"]["id"]
       assert resp["data"]["declaration_number"]
-      assert resp["data"]["status"] == "EXPIRED"
+      assert resp["data"]["status"] == DeclarationRequest.status(:expired)
       assert resp["data"]["person"] == nil
       assert resp["data"]["employee"] == nil
       assert resp["data"]["legal_entity"] == nil
@@ -376,11 +395,12 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     test "when declaration request status is not NEW", %{conn: conn} do
       conn = put_client_id_header(conn, UUID.generate())
 
-      params =
-        fixture_params()
-        |> Map.put(:status, "APPROVED")
-
-      %{id: id} = fixture(DeclarationRequest, params)
+      %{id: id} =
+        insert(
+          :il,
+          :declaration_request,
+          status: DeclarationRequest.status(:approved)
+        )
 
       conn = post(conn, declaration_request_path(conn, :resend_otp, id))
       resp = json_response(conn, 422)
@@ -398,11 +418,14 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     test "when declaration request auth method is not OTP", %{conn: conn} do
       conn = put_client_id_header(conn, UUID.generate())
 
-      params =
-        fixture_params()
-        |> Map.put(:authentication_method_current, %{type: "OFFLINE"})
-
-      %{id: id} = fixture(DeclarationRequest, params)
+      %{id: id} =
+        insert(
+          :il,
+          :declaration_request,
+          authentication_method_current: %{
+            "type" => DeclarationRequest.authentication_method(:offline)
+          }
+        )
 
       conn = post(conn, declaration_request_path(conn, :resend_otp, id))
       resp = json_response(conn, 422)
@@ -420,11 +443,15 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     test "when declaration request fields are correct", %{conn: conn} do
       conn = put_client_id_header(conn, UUID.generate())
 
-      params =
-        fixture_params()
-        |> Map.put(:authentication_method_current, %{type: "OTP", number: 111})
-
-      %{id: id} = fixture(DeclarationRequest, params)
+      %{id: id} =
+        insert(
+          :il,
+          :declaration_request,
+          authentication_method_current: %{
+            "type" => DeclarationRequest.authentication_method(:otp),
+            "number" => 111
+          }
+        )
 
       conn = post(conn, declaration_request_path(conn, :resend_otp, id))
       resp = json_response(conn, 200)

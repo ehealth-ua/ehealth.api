@@ -3,8 +3,6 @@ defmodule EHealth.Unit.DivisionsTest do
   Divisions api tests
   """
 
-  import EHealth.SimpleFactory, only: [address: 1]
-
   use EHealth.Web.ConnCase, async: false
   alias EHealth.Divisions, as: API
 
@@ -12,11 +10,14 @@ defmodule EHealth.Unit.DivisionsTest do
     setup _context do
       insert(:il, :dictionary_phone_type)
       insert(:il, :dictionary_address_type)
+      build_division()
+    end
 
+    defp build_division do
       division =
-        "test/data/division.json"
-        |> File.read!()
-        |> Jason.decode!()
+        build(:division)
+        |> Map.from_struct()
+        |> Map.new(fn {k, v} -> {Atom.to_string(k), v} end)
 
       {:ok, division: division}
     end
@@ -26,18 +27,19 @@ defmodule EHealth.Unit.DivisionsTest do
     end
 
     test "returns :error for incorrect address type (not from Dictionary)", %{division: division} do
-      bad_addresses = [address("NOT_IN_DICTIONARY")]
+      address = build(:address, %{"type" => "NOT_IN_DICTIONARY"})
+      bad_addresses = [address]
       bad_division = Map.put(division, "addresses", bad_addresses)
 
       assert {:error, _} = API.validate_json_objects(bad_division)
     end
 
-    test "returns :error for duplicate adress types", %{division: division} do
-      res = address("RESIDENCE")
+    test "returns :error for duplicate address types", %{division: division} do
+      res = build(:address, %{"type" => "RESIDENCE"})
       bad_division = Map.put(division, "addresses", [res, res])
       assert {:error, _} = API.validate_json_objects(bad_division)
 
-      reg = address("REGISTRATION")
+      reg = build(:address, %{"type" => "REGISTRATION"})
       bad_division = Map.put(division, "addresses", [reg, reg])
       assert {:error, _} = API.validate_json_objects(bad_division)
     end

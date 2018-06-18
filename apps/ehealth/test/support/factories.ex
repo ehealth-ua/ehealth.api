@@ -32,6 +32,9 @@ defmodule EHealth.Factories do
   # MPI
   use EHealth.MPIFactories.PersonFactory
 
+  # Other factories
+  use EHealth.Factories.AddressFactory
+
   alias EHealth.Repo
   alias EHealth.PRMRepo
 
