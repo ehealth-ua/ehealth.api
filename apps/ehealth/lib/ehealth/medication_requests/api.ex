@@ -131,7 +131,7 @@ defmodule EHealth.MedicationRequests.API do
     do_get_medication_requests(get_consumer_id(headers), client_type, changes, headers)
   end
 
-  defp do_get_medication_requests(_, "NHS ADMIN", changes, headers) do
+  defp do_get_medication_requests(_, "NHS", changes, headers) do
     employee_id = Map.get(changes, :employee_id)
     search_params = get_search_params([], changes)
     search_params = if is_nil(employee_id), do: Map.delete(search_params, :employee_id), else: search_params
@@ -151,7 +151,7 @@ defmodule EHealth.MedicationRequests.API do
     do_get_medication_request(get_client_id(headers), get_consumer_id(headers), client_type, id, headers)
   end
 
-  defp do_get_medication_request(_, _, "NHS ADMIN", id, headers) do
+  defp do_get_medication_request(_, _, "NHS", id, headers) do
     with {:ok, search_params} <- add_id_search_params(%{}, id),
          {:ok, %{"data" => [medication_request]}} <- @ops_api.get_doctor_medication_requests(search_params, headers) do
       {:ok, medication_request}

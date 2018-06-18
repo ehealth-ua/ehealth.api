@@ -146,7 +146,7 @@ defmodule EHealth.MockServer do
     client_type_name =
       case id do
         @client_type_mis -> "MIS"
-        @client_type_admin -> "NHS ADMIN"
+        @client_type_admin -> "NHS"
         @client_type_nhs -> "NHS"
         @client_type_nil -> nil
         _ -> "MSP"
