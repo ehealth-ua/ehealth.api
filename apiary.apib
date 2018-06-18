@@ -4701,7 +4701,7 @@ This WS allows to see history of all patient's declaration requests and filter t
 ###Business logic
 In order to create new contract or update existing contract, legal entity owner should create contract request first. Contract request should be approved by both sides - Medical Service Provider(MSP) and National Health Service(NHS), and than signed by both sides as well. After that new contract will be created or existing contract will be updated. 
 The detailed flow is described in schema below:
-![Status chart](https://lh5.googleusercontent.com/-e677KTzFq4D75-I3blkaEqITTLXgCJWBq8MWXQqGAiCJRZcnQnU7Wh7XBYNomI_IroXP5wCPvOmRw3QRuvT=w1600-h767-rw)
+[Confluence: Status Chart](https://edenlab.atlassian.net/wiki/x/GIDMIg)
 
 ### Public. Initialize Contract Request [POST /api/contract_requests]
 This web service allows to initialize contract request creation by generating links for contract request documents upload.
@@ -4727,52 +4727,52 @@ The following tables describes contract_request object fields and it`s child obj
 
 Attribute |Is required| Description
 ----------|-----------|-------------
-contractor_owner_id|true|
-contractor_base|true|
-contractor_payment_details|true|Array of contractor_payment_detail objects
-contractor_rmsp_amount|true|
-contractor_divisions|true| Array of divisions id
-contractor_employee_divisions|true|Array of contractor_employee_division objects
-external_contractor_flag|true|
-external_contractors|false|Array of external_contractor objects
-start_date|false|
-end_date|false|
-id_form|true|
-contract_number|false|Number of existing contract in case of update
-statute_md5|true|
-equipment_agreement_md5|true|
+contractor_owner_id|true| підписант, зі сторони мед закладу
+contractor_base|true| на якій підставі діє підписант: закон/домовленість
+contractor_payment_details|true| об'єкт, що місить дані по рахунку, на який будуть здійснюватися виплати
+contractor_rmsp_amount|true| к-сть осіб, що обслуговувалися мед закладом (додаток 1.1 пункт 7)
+contractor_divisions|true| масив id відділень мед закладу, що включаютбся в договір
+contractor_employee_divisions|true| масив лікарів (на конкретних відділеннях), що входять да контракту та капітаційного звіту
+external_contractor_flag|true| наявність додатку 2 (підрядники, залучені до надання медичних послуг за Договором)
+external_contractors|false|Array of external_contractor objects - підрядники, залучені до надання медичних послуг за Договором
+start_date|false| пункт 9.2 - цей договір діє з (рік має бути поточний або настпуний)
+end_date|false| пункт 9.2 - цей договір діє по (рік має співпадати з роком у start_date)
+id_form|true| словник `CONTRACT_TYPE`, поки що лише один вид Договір на ПМД
+contract_number|false| human-redable номер контракту
+statute_md5|true| хеш завантаженого документу (статуту)
+other_md5|true| хеш завантаженого документу (інший документ)
 consent_text|true|
 
 ####Contractor_payment_details
 Attribute |Is required| Description
 ----------|-----------|-------------
-bank_name|true|
-MFO|true|
-payer_account|true|
+bank_name|true| назва банку
+MFO|true| МФО
+payer_account|true| розрахунковий рахунок
 ####Contractor_employee_division
 Attribute |Is required| Description
 ----------|-----------|------------
-employee_id|true|
-staff_units|true|
-declaration_limit|true|
-division_id|true|
-####External_contractor
+employee_id|true| id запис про медичного працівника в системі
+staff_units|true| штатна одиниця 
+declaration_limit|true| максимальна к-сть пацієнтів, які можуть подати декларації про вибір такого лікаря за Договором
+division_id|true| місце надання медичних послуг пов'язаниз з ПМД (підмножина contractor_divisions)
+####External_contractors
 Attribute |Is required| Description
 ----------|-----------|----------
-legal_entity_id|true|
-contract|true|true|Array of contract objects
-divisions|true|Array of division objects
+legal_entity_id|true| запис про надавача з системи  
+contract|true| договір з Підрядником
+divisions|true| запис про Місце надання медичних послуг з Системи та послуга
 ####Contract
 Attribute |Is required| Description
 ----------|-----------|------------
-number|true|Contract number of external contractor
-issued_at|true|
-expires_at|true|
+number|true| номер договору з Підрядником
+issued_at|true| дата укладення договору з Підрядником
+expires_at|true| строк дії договору з Підрядником
 ####Division
 Attribute |Is required| Description
 ----------|-----------|------------
-id|true|
-medical_service|true|Value should refer to medical_service dictionary
+id|true| запис про Місце надання медичних послуг з Системи
+medical_service|true| послуга, що надається на відділені (словник `medical_service`)
 
 ####Business ruels
 
@@ -4793,7 +4793,7 @@ medical_service|true|Value should refer to medical_service dictionary
 ```
 {
   "contractor_owner_id": "df9f70ee-4b12-4740-b0f5-bb5aea116863",
-  "contractor_base": "на підставі закону про Медичне обслуговування населення",
+  "contractor_base": "на підставі статуту",
   "contractor_payment_details": {
     "bank_name": "Банк номер 1",
     "MFO": "351005",
@@ -4831,7 +4831,7 @@ medical_service|true|Value should refer to medical_service dictionary
   "id_form": "5",
   "contract_number": "0000-9EAX-XT7X-3115",
   "statute_md5": "db218b04eff70f86f40c1572ce8ca16a",
-  "equipment_agreement_md5": "ac642b04eff40f86f40c1572ce8ca16a",
+  "other_md5": "ac642b04eff40f86f40c1572ce8ca16a",
   "consent_text": "Погоджуюсь з публічними правилами"
 }
 ```
@@ -5206,7 +5206,7 @@ The data received in response can be changed and signed in order to update emplo
             + `contract_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - contract identifier
             
 
-### Public. Update Contract Employees [PATCH /api/contracts/{contract_id}/actions/update]
+### Public. Update Contract Employees [PATCH /api/contracts/{contract_id}/employees/actions/update]
 
 This method is designed to manage and update employee and division in contract.
 Contract itself can be updated only through 2 signed contract request with input contract_number.
@@ -5218,32 +5218,14 @@ It's impossible to update contract appendix 2 if contract status<>'VERIFIED'
 
 Example data to sign:
 ```
-  {
-    "employee_id": {
-      "id": "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b",
-      "first_name": "Петро",
-      "last_name": "Іванов",
-      "second_name": "Миколайович",
-      "specialities": [
-        {
-          "speciality": "THERAPIST",
-          "speciality_officio": true,
-          "level": "FIRST",
-          "qualification_type": "AWARDING",
-          "attestation_name": "Академія Богомольця",
-          "attestation_date": "2017",
-          "valid_to_date": "2020",
-          "certificate_number": "AB/21331"
-        }
-      ]
-    },
-    "staff_units": 0.5,
-    "is_active": true,
-    "division": {
-      "id": "2922a240-63db-404e-b730-09222bfeb2dd",
-      "name": "Бориспільське відділення Клініки Ноунейм"
+{"employee":
+    {
+        "id": "09106b70-18b0-4726-b0ed-6bda1369fd52",
+        "staff_units": 1,
+        "declaration_limit": 45000,
+        "division_id": "6eb6123a-b3ce-4d27-ad3a-f6e3fb3ef1a1"
     }
-  }
+}
 ```
 
 + Parameters
@@ -5669,8 +5651,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + end_date: `2017-03-02` (string, required)
 + seed: hash (string, required)
 + person_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-+ person(`Person_Short`)
-    + 
++ person(`Person`)
     + `emergency_contact` (`Emergency_Contact`, required)
     + `confidant_person` (array[`Confidant_Person`], optional) - Should be set if this Person is disabled, underage, etc.
 + employee (Employee_Declaration_Short)
@@ -7334,7 +7315,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 ### `Init_contract_request_response`
 + id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract_request ID
 + statute_url: `url://upload` (string, required) - URL to upload statute document
-+ equipment_agreement_url: `url://upload` (string, required) - URL to upload equipment agreement
++ other_url: `url://upload` (string, required) - URL to upload other document
 
 ### `Contract_request_Request_signed`
 + `signed_content`: `ew0KICAiY29udHJhY3Rvcl9vd25lcl9pZCI6ICJkZjlmNzBlZS00YjEyLTQ3NDAtYjBmNS1iYjVhZWExMTY4NjMiLA0KICAiY29udHJhY3Rvcl9iYXNlIjogItC90LAg0L/RltC00YHRgtCw0LLRliDQt9Cw0LrQvtC90YMg0L/RgNC+INCc0LXQtNC40YfQvdC1INC+0LHRgdC70YPQs9C+0LLRg9Cy0LDQvdC90Y8g0L3QsNGB0LXQu9C10L3QvdGPIiwNCiAgImNvbnRyYWN0b3JfcGF5bWVudF9kZXRhaWxzIjogew0KICAgICJiYW5rX25hbWUiOiAi0JHQsNC90Log0L3QvtC80LXRgCAxIiwNCiAgICAiTUZPIjogIjM1MTAwNSIsDQogICAgInBheWVyX2FjY291bnQiOiAiMzIwMDkxMDI3MDEwMjYiDQogIH0sDQogICJjb250cmFjdG9yX3Jtc3BfYW1vdW50IjogNTAwMDAsDQogICJjb250cmFjdG9yX2RpdmlzaW9ucyI6IFsNCiAgICAiaWQ6IGAyOTIyYTI0MC02M2RiLTQwNGUtYjczMC0wOTIyMmJmZWIyZGRgIg0KICBdLA0KICAiY29udHJhY3Rvcl9lbXBsb3llZV9kaXZpc2lvbnMiOiBbDQogICAgew0KICAgICAgImVtcGxveWVlX2lkIjogIjI5MjJhMjQwLTYzZGItNDA0ZS1iNzMwLTA5MjIyYmZlYjJkZCIsDQogICAgICAic3RhZmZfdW5pdHMiOiAwLjUsDQogICAgICAiZGVjbGFyYXRpb25fbGltaXQiOiAyMDAwLA0KICAgICAgImRpdmlzaW9uX2lkIjogIjI5MjJhMjQwLTYzZGItNDA0ZS1iNzMwLTA5MjIyYmZlYjJkZCINCiAgICB9DQogIF0sDQogICJleHRlcm5hbF9jb250cmFjdG9yX2ZsYWciOiB0cnVlLA0KICAiZXh0ZXJuYWxfY29udHJhY3RvcnMiOiB7DQogICAgImxlZ2FsX2VudGl0eV9pZCI6ICIyOTIyYTI0MC02M2RiLTQwNGUtYjczMC0wOTIyMmJmZWIyZGQiLA0KICAgICJjb250cmFjdCI6IHsNCiAgICAgICJudW1iZXIiOiAiMTIzNDU2NyIsDQogICAgICAiaXNzdWVkX2F0IjogIjIwMTgtMDEtMDEiLA0KICAgICAgImV4cGlyZXNfYXQiOiAiMjAxOS0wMS0wMSINCiAgICB9LA0KICAgICJkaXZpc2lvbnMiOiBbDQogICAgICB7DQogICAgICAgICJpZCI6ICIyOTIyYTI0MC02M2RiLTQwNGUtYjczMC0wOTIyMmJmZWIyZGQiLA0KICAgICAgICAibWVkaWNhbF9zZXJ2aWNlIjogItCf0L7RgdC70YPQs9CwINCf0JzQlCINCiAgICAgIH0NCiAgICBdDQogIH0sDQogICJzdGFydF9kYXRlIjogIjIwMTctMDQtMjAiLA0KICAiZW5kX2RhdGUiOiAiMjAxNy0wNC0yMCIsDQogICJpZF9mb3JtIjogIjUiLA0KICAiY29udHJhY3RfbnVtYmVyIjogIjAwMDAtOUVBWC1YVDdYLTMxMTUiLA0KICAic3RhdHV0ZSI6ImJhc2U2NF9kb2N1bWVudCINCiAgImVxdWlwbWVudF9hZ3JlZW1lbnQiOiJiYXNlNjRfZG9jdW1lbnQiDQp9` (string,required)
@@ -7436,7 +7417,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract_request ID 
 + status: `NEW` (string, required) - contract_request status
 + statute: `www.url_1` (string, required) - link to statute document
-+ `equipment_agreement`: `www.url_2` (string, required) - link to report with technical equipmnet
++ `other`: `www.url_2` (string, required) - link to report with technical equipmnet
 
 ### `contract_legal_entity_details`
 + id: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - legal entity ID which make contract request
