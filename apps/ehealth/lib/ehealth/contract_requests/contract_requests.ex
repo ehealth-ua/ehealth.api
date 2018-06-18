@@ -59,6 +59,12 @@ defmodule EHealth.ContractRequests do
     parent_contract_id
   )a
 
+  @forbidden_statuses_for_termination [
+    ContractRequest.status(:declined),
+    ContractRequest.status(:signed),
+    ContractRequest.status(:terminated)
+  ]
+
   def search(search_params) do
     with %Ecto.Changeset{valid?: true} = changeset <- Search.changeset(search_params),
          %Page{} = paging <- search(changeset, search_params, ContractRequest) do
@@ -272,7 +278,7 @@ defmodule EHealth.ContractRequests do
 
     with {:ok, %ContractRequest{} = contract_request} <- get_contract_request(client_id, client_type, params["id"]),
          {:contractor_owner, :ok} <- {:contractor_owner, validate_contractor_owner_id(contract_request)},
-         true <- contract_request.status != ContractRequest.status(:signed),
+         true <- contract_request.status not in @forbidden_statuses_for_termination,
          update_params <-
            params
            |> Map.put("status", ContractRequest.status(:terminated))

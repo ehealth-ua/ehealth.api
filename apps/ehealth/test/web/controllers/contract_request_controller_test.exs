@@ -18,6 +18,19 @@ defmodule EHealth.Web.ContractRequestControllerTest do
   @contract_request_status_new ContractRequest.status(:new)
   @contract_request_status_declined ContractRequest.status(:declined)
 
+  @forbidden_statuses_for_termination [
+    ContractRequest.status(:declined),
+    ContractRequest.status(:signed),
+    ContractRequest.status(:terminated)
+  ]
+
+  @allowed_statuses_for_termination [
+    ContractRequest.status(:new),
+    ContractRequest.status(:approved),
+    ContractRequest.status(:pending_nhs_sign),
+    ContractRequest.status(:nhs_signed)
+  ]
+
   describe "contract request draft" do
     test "success create draft", %{conn: conn} do
       expect(MediaStorageMock, :create_signed_url, 2, fn _, _, resource, _, _ ->
@@ -1445,7 +1458,192 @@ defmodule EHealth.Web.ContractRequestControllerTest do
   end
 
   describe "terminate contract_request" do
-    setup %{conn: conn} do
+    test "success contract_request terminating", %{conn: conn} do
+      user_id = UUID.generate()
+      party_user = insert(:prm, :party_user, user_id: user_id)
+      legal_entity = insert(:prm, :legal_entity)
+
+      employee_owner =
+        insert(
+          :prm,
+          :employee,
+          legal_entity_id: legal_entity.id,
+          employee_type: Employee.type(:owner),
+          party: party_user.party
+        )
+
+      division = insert(:prm, :division, legal_entity: legal_entity)
+      employee_doctor = insert(:prm, :employee, legal_entity_id: legal_entity.id, division: division)
+
+      for status <- @allowed_statuses_for_termination do
+        contract_request =
+          insert(
+            :il,
+            :contract_request,
+            status: status,
+            contractor_legal_entity_id: legal_entity.id,
+            contractor_owner_id: employee_owner.id,
+            contractor_employee_divisions: [
+              %{
+                "employee_id" => employee_doctor.id,
+                "staff_units" => 0.5,
+                "declaration_limit" => 2000,
+                "division_id" => division.id
+              }
+            ]
+          )
+
+        conn_resp =
+          conn
+          |> put_client_id_header(legal_entity.id)
+          |> put_consumer_id_header(user_id)
+          |> patch(contract_request_path(conn, :terminate, contract_request.id), %{
+            "status_reason" => "Неправильний період контракту"
+          })
+
+        assert resp = json_response(conn_resp, 200)
+
+        schema =
+          "specs/json_schemas/contract_request/contract_request_show_response.json"
+          |> File.read!()
+          |> Jason.decode!()
+
+        assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
+
+        assert resp["data"]["status"] == ContractRequest.status(:terminated)
+      end
+    end
+
+    test "contract_request not found", %{conn: conn} do
+      user_id = UUID.generate()
+      legal_entity = insert(:prm, :legal_entity)
+
+      assert conn
+             |> put_client_id_header(legal_entity.id)
+             |> put_consumer_id_header(user_id)
+             |> patch(contract_request_path(conn, :terminate, UUID.generate()), %{
+               "status_reason" => "Неправильний період контракту"
+             })
+             |> json_response(404)
+    end
+
+    test "legal_entity_id doesn't match contractor_legal_entity_id", %{conn: conn} do
+      legal_entity = insert(:prm, :legal_entity)
+      contract_request = insert(:il, :contract_request, contractor_legal_entity_id: UUID.generate())
+
+      conn =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> patch(contract_request_path(conn, :terminate, contract_request.id), %{
+          "status_reason" => "Неправильний період контракту"
+        })
+
+      assert resp = json_response(conn, 403)
+      assert %{"message" => "User is not allowed to perform this action"} = resp["error"]
+    end
+
+    test "employee legal_entity_id doesn't match contractor_legal_entity_id", %{conn: conn} do
+      legal_entity = insert(:prm, :legal_entity)
+      employee = insert(:prm, :employee)
+
+      contract_request =
+        insert(
+          :il,
+          :contract_request,
+          contractor_legal_entity_id: legal_entity.id,
+          contractor_owner_id: employee.id
+        )
+
+      conn =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> patch(contract_request_path(conn, :terminate, contract_request.id), %{
+          "status_reason" => "Неправильний період контракту"
+        })
+
+      assert resp = json_response(conn, 403)
+      assert %{"message" => "User is not allowed to perform this action"} = resp["error"]
+    end
+
+    test "employee is not owner", %{conn: conn} do
+      legal_entity = insert(:prm, :legal_entity)
+      employee = insert(:prm, :employee, legal_entity_id: legal_entity.id)
+
+      contract_request =
+        insert(
+          :il,
+          :contract_request,
+          contractor_legal_entity_id: legal_entity.id,
+          contractor_owner_id: employee.id
+        )
+
+      conn =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> patch(contract_request_path(conn, :terminate, contract_request.id), %{
+          "status_reason" => "Неправильний період контракту"
+        })
+
+      assert resp = json_response(conn, 403)
+      assert %{"message" => "User is not allowed to perform this action"} = resp["error"]
+    end
+
+    test "contract_request has wrong status", %{conn: conn} do
+      user_id = UUID.generate()
+      party_user = insert(:prm, :party_user, user_id: user_id)
+      legal_entity = insert(:prm, :legal_entity)
+
+      employee_owner =
+        insert(
+          :prm,
+          :employee,
+          legal_entity_id: legal_entity.id,
+          employee_type: Employee.type(:owner),
+          party: party_user.party
+        )
+
+      division = insert(:prm, :division, legal_entity: legal_entity)
+      employee_doctor = insert(:prm, :employee, legal_entity_id: legal_entity.id, division: division)
+
+      for status <- @forbidden_statuses_for_termination do
+        contract_request =
+          insert(
+            :il,
+            :contract_request,
+            status: status,
+            contractor_legal_entity_id: legal_entity.id,
+            contractor_owner_id: employee_owner.id,
+            contractor_employee_divisions: [
+              %{
+                "employee_id" => employee_doctor.id,
+                "staff_units" => 0.5,
+                "declaration_limit" => 2000,
+                "division_id" => division.id
+              }
+            ]
+          )
+
+        conn_resp =
+          conn
+          |> put_client_id_header(legal_entity.id)
+          |> put_consumer_id_header(user_id)
+          |> patch(contract_request_path(conn, :terminate, contract_request.id), %{
+            "status_reason" => "Неправильний період контракту"
+          })
+
+        assert resp = json_response(conn_resp, 422)
+
+        assert %{
+                 "invalid" => [
+                   %{"entry_type" => "request", "rules" => [%{"rule" => "json"}]}
+                 ],
+                 "message" => "Incorrect status of contract_request to modify it",
+                 "type" => "request_malformed"
+               } = resp["error"]
+      end
+    end
+
+    test "event manager successful registration", %{conn: conn} do
       user_id = UUID.generate()
       party_user = insert(:prm, :party_user, user_id: user_id)
       legal_entity = insert(:prm, :legal_entity)
@@ -1478,167 +1676,11 @@ defmodule EHealth.Web.ContractRequestControllerTest do
           ]
         )
 
-      {:ok,
-       %{
-         conn: conn,
-         user_id: user_id,
-         legal_entity: legal_entity,
-         contract_request: contract_request
-       }}
-    end
-
-    test "success contract_request terminating", %{
-      conn: conn,
-      user_id: user_id,
-      legal_entity: legal_entity,
-      contract_request: contract_request
-    } do
       conn =
         conn
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(user_id)
-
-      conn =
-        patch(conn, contract_request_path(conn, :terminate, contract_request.id), %{
-          "status_reason" => "Неправильний період контракту"
-        })
-
-      assert resp = json_response(conn, 200)
-
-      schema =
-        "specs/json_schemas/contract_request/contract_request_show_response.json"
-        |> File.read!()
-        |> Jason.decode!()
-
-      assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
-
-      assert resp["data"]["status"] == ContractRequest.status(:terminated)
-    end
-
-    test "contract_request not found", %{
-      conn: conn,
-      user_id: user_id,
-      legal_entity: legal_entity
-    } do
-      assert conn
-             |> put_client_id_header(legal_entity.id)
-             |> put_consumer_id_header(user_id)
-             |> patch(contract_request_path(conn, :terminate, UUID.generate()), %{
-               "status_reason" => "Неправильний період контракту"
-             })
-             |> json_response(404)
-    end
-
-    test "legal_entity_id doesn't match contractor_legal_entity_id", %{
-      conn: conn,
-      legal_entity: legal_entity
-    } do
-      contract_request = insert(:il, :contract_request, contractor_legal_entity_id: UUID.generate())
-      conn = put_client_id_header(conn, legal_entity.id)
-
-      conn =
-        patch(conn, contract_request_path(conn, :terminate, contract_request.id), %{
-          "status_reason" => "Неправильний період контракту"
-        })
-
-      assert resp = json_response(conn, 403)
-      assert %{"message" => "User is not allowed to perform this action"} = resp["error"]
-    end
-
-    test "employee legal_entity_id doesn't match contractor_legal_entity_id", %{
-      conn: conn,
-      legal_entity: legal_entity
-    } do
-      employee = insert(:prm, :employee)
-
-      contract_request =
-        insert(
-          :il,
-          :contract_request,
-          contractor_legal_entity_id: legal_entity.id,
-          contractor_owner_id: employee.id
-        )
-
-      conn = put_client_id_header(conn, legal_entity.id)
-
-      conn =
-        patch(conn, contract_request_path(conn, :terminate, contract_request.id), %{
-          "status_reason" => "Неправильний період контракту"
-        })
-
-      assert resp = json_response(conn, 403)
-      assert %{"message" => "User is not allowed to perform this action"} = resp["error"]
-    end
-
-    test "employee is not owner", %{
-      conn: conn,
-      legal_entity: legal_entity
-    } do
-      employee = insert(:prm, :employee, legal_entity_id: legal_entity.id)
-
-      contract_request =
-        insert(
-          :il,
-          :contract_request,
-          contractor_legal_entity_id: legal_entity.id,
-          contractor_owner_id: employee.id
-        )
-
-      conn = put_client_id_header(conn, legal_entity.id)
-
-      conn =
-        patch(conn, contract_request_path(conn, :terminate, contract_request.id), %{
-          "status_reason" => "Неправильний період контракту"
-        })
-
-      assert resp = json_response(conn, 403)
-      assert %{"message" => "User is not allowed to perform this action"} = resp["error"]
-    end
-
-    test "contract_request has wrong status", %{
-      conn: conn,
-      user_id: user_id,
-      legal_entity: legal_entity,
-      contract_request: contract_request
-    } do
-      contract_request = EHealth.Repo.get(ContractRequest, contract_request.id)
-      contract_request = Ecto.Changeset.change(contract_request, status: ContractRequest.status(:signed))
-      {:ok, contract_request} = EHealth.Repo.update(contract_request)
-
-      conn =
-        conn
-        |> put_client_id_header(legal_entity.id)
-        |> put_consumer_id_header(user_id)
-
-      conn =
-        patch(conn, contract_request_path(conn, :terminate, contract_request.id), %{
-          "status_reason" => "Неправильний період контракту"
-        })
-
-      assert resp = json_response(conn, 422)
-
-      assert %{
-               "invalid" => [
-                 %{"entry_type" => "request", "rules" => [%{"rule" => "json"}]}
-               ],
-               "message" => "Incorrect status of contract_request to modify it",
-               "type" => "request_malformed"
-             } = resp["error"]
-    end
-
-    test "event manager successful registration", %{
-      conn: conn,
-      user_id: user_id,
-      legal_entity: legal_entity,
-      contract_request: contract_request
-    } do
-      conn =
-        conn
-        |> put_client_id_header(legal_entity.id)
-        |> put_consumer_id_header(user_id)
-
-      conn =
-        patch(conn, contract_request_path(conn, :terminate, contract_request.id), %{
+        |> patch(contract_request_path(conn, :terminate, contract_request.id), %{
           "status_reason" => "Неправильний період контракту"
         })
 
