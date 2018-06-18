@@ -41,6 +41,8 @@ defmodule EHealth.Validators.JsonSchema do
   use_schema(:program_medication, "specs/json_schemas/program_medication/program_medication_create_request.json")
   use_schema(:program_medication_update, "specs/json_schemas/program_medication/program_medication_update_request.json")
   use_schema(:registers, "specs/json_schemas/registers/registers_create_request.json")
+  use_schema(:contract_sign, "specs/json_schemas/contract/contract_sign.json")
+  use_schema(:contract_update_employees, "specs/json_schemas/contract/contract_update_employees.json")
   use_schema(:contract_request, "specs/json_schemas/contract_request/contract_request_create.json")
   use_schema(:contract_request_update, "specs/json_schemas/contract_request/contract_request_update.json")
   use_schema(:contract_request_sign, "specs/json_schemas/contract_request/contract_request_sign.json")

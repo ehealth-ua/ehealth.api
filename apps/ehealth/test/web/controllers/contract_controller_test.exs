@@ -4,6 +4,7 @@ defmodule EHealth.Web.ContractControllerTest do
   use EHealth.Web.ConnCase
 
   import EHealth.MockServer, only: [get_client_nhs: 0]
+  alias EHealth.Contracts.Contract
   alias Ecto.UUID
 
   describe "show contract" do
@@ -288,6 +289,189 @@ defmodule EHealth.Web.ContractControllerTest do
              |> put_client_id_header(get_client_nhs())
              |> patch(contract_path(conn, :suspend), ids: "invalid,uuid")
              |> json_response(422)
+    end
+  end
+
+  describe "update employees" do
+    test "contract_employee not found", %{conn: conn} do
+      conn =
+        conn
+        |> put_client_id_header(get_client_nhs())
+        |> patch(contract_path(conn, :update, UUID.generate()))
+
+      assert json_response(conn, 404)
+    end
+
+    test "failed to decode signed content", %{conn: conn} do
+      contract = insert(:prm, :contract)
+
+      params = %{
+        "signed_content" => Jason.encode!(%{}),
+        "signed_content_encoding" => "base64"
+      }
+
+      conn =
+        conn
+        |> put_client_id_header(get_client_nhs())
+        |> patch(contract_path(conn, :update, contract.id), params)
+
+      assert resp = json_response(conn, 422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "rules" => [%{"rule" => "invalid", "params" => [], "description" => "Not a base64 string"}],
+                   "entry_type" => "json_data_property",
+                   "entry" => "$.signed_content"
+                 }
+               ]
+             } = resp["error"]
+    end
+
+    test "invalid drfo", %{conn: conn} do
+      contract = insert(:prm, :contract)
+      division = insert(:prm, :division)
+      employee = insert(:prm, :employee)
+      employee_id = employee.id
+      party_user = insert(:prm, :party_user)
+
+      params = %{
+        "signed_content" =>
+          %{
+            "employee_id" => employee_id,
+            "division_id" => division.id,
+            "declaration_limit" => 10,
+            "staff_units" => 0.33
+          }
+          |> Jason.encode!()
+          |> Base.encode64(),
+        "signed_content_encoding" => "base64"
+      }
+
+      conn =
+        conn
+        |> put_client_id_header(get_client_nhs())
+        |> put_consumer_id_header(party_user.user_id)
+        |> patch(contract_path(conn, :update, contract.id), params)
+
+      assert resp = json_response(conn, 422)
+
+      assert %{
+               "message" => "Invalid drfo"
+             } = resp["error"]
+    end
+
+    test "invalid status", %{conn: conn} do
+      # contract_request = insert(:il, :contract_request)
+      contract = insert(:prm, :contract, status: Contract.status(:terminated))
+      division = insert(:prm, :division)
+      employee = insert(:prm, :employee)
+      employee_id = employee.id
+      insert(:prm, :contract_division, contract_id: contract.id, division_id: division.id)
+      party_user = insert(:prm, :party_user)
+
+      params = %{
+        "signed_content" =>
+          %{
+            "employee_id" => employee_id,
+            "division_id" => division.id,
+            "declaration_limit" => 10,
+            "staff_units" => 0.33
+          }
+          |> Jason.encode!()
+          |> Base.encode64(),
+        "signed_content_encoding" => "base64"
+      }
+
+      conn =
+        conn
+        |> put_client_id_header(get_client_nhs())
+        |> put_consumer_id_header(party_user.user_id)
+        |> Plug.Conn.put_req_header("drfo", party_user.party.tax_id)
+        |> patch(contract_path(conn, :update, contract.id), params)
+
+      assert resp = json_response(conn, 409)
+      assert "Not active contract can't be updated" == resp["error"]["message"]
+    end
+
+    test "succes update employee", %{conn: conn} do
+      contract_request = insert(:il, :contract_request)
+      contract = insert(:prm, :contract, contract_request_id: contract_request.id)
+      division = insert(:prm, :division)
+      employee = insert(:prm, :employee)
+      employee_id = employee.id
+      insert(:prm, :contract_division, contract_id: contract.id, division_id: division.id)
+
+      insert(
+        :prm,
+        :contract_employee,
+        contract_id: contract.id,
+        employee_id: employee_id,
+        division_id: division.id,
+        declaration_limit: 2000
+      )
+
+      party_user = insert(:prm, :party_user)
+
+      params = %{
+        "signed_content" =>
+          %{
+            "employee_id" => employee_id,
+            "division_id" => division.id,
+            "declaration_limit" => 10,
+            "staff_units" => 0.33
+          }
+          |> Jason.encode!()
+          |> Base.encode64(),
+        "signed_content_encoding" => "base64"
+      }
+
+      conn =
+        conn
+        |> put_client_id_header(get_client_nhs())
+        |> put_consumer_id_header(party_user.user_id)
+        |> Plug.Conn.put_req_header("drfo", party_user.party.tax_id)
+        |> patch(contract_path(conn, :update, contract.id), params)
+
+      assert resp = json_response(conn, 200)
+
+      assert [%{"employee" => %{"id" => ^employee_id}, "declaration_limit" => 10, "staff_units" => 0.33}] =
+               resp["data"]["contractor_employee_divisions"]
+    end
+
+    test "succes insert employees", %{conn: conn} do
+      contract_request = insert(:il, :contract_request)
+      contract = insert(:prm, :contract, contract_request_id: contract_request.id)
+      division = insert(:prm, :division)
+      employee = insert(:prm, :employee)
+      employee_id = employee.id
+      insert(:prm, :contract_division, contract_id: contract.id, division_id: division.id)
+      party_user = insert(:prm, :party_user)
+
+      params = %{
+        "signed_content" =>
+          %{
+            "employee_id" => employee_id,
+            "division_id" => division.id,
+            "declaration_limit" => 10,
+            "staff_units" => 0.33
+          }
+          |> Jason.encode!()
+          |> Base.encode64(),
+        "signed_content_encoding" => "base64"
+      }
+
+      conn =
+        conn
+        |> put_client_id_header(get_client_nhs())
+        |> put_consumer_id_header(party_user.user_id)
+        |> Plug.Conn.put_req_header("drfo", party_user.party.tax_id)
+        |> patch(contract_path(conn, :update, contract.id), params)
+
+      assert resp = json_response(conn, 200)
+
+      assert [%{"employee" => %{"id" => ^employee_id}, "declaration_limit" => 10, "staff_units" => 0.33}] =
+               resp["data"]["contractor_employee_divisions"]
     end
   end
 end

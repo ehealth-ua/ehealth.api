@@ -22,6 +22,12 @@ defmodule EHealth.Web.ContractController do
     end
   end
 
+  def update(%Plug.Conn{req_headers: headers} = conn, %{"id" => id} = params) do
+    with {:ok, contract, references} <- Contracts.update(id, Map.delete(params, "id"), headers) do
+      render(conn, "show.json", contract: contract, references: references)
+    end
+  end
+
   def suspend(conn, params) do
     with {:ok, suspended} <- Contracts.suspend(params) do
       render(conn, "suspended.json", suspended: suspended)
