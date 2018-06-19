@@ -421,11 +421,11 @@ defmodule EHealth.Contracts do
   end
 
   defp changeset(%Contract{} = contract, attrs) do
-    inserted_by = attrs.inserted_by
-    updated_by = attrs.updated_by
+    inserted_by = Map.get(attrs, :inserted_by)
+    updated_by = Map.get(attrs, :updated_by)
 
     attrs =
-      case attrs.contractor_employee_divisions do
+      case Map.get(attrs, :contractor_employee_divisions) do
         nil ->
           attrs
 
@@ -443,7 +443,7 @@ defmodule EHealth.Contracts do
       end
 
     attrs =
-      case attrs.contractor_divisions do
+      case Map.get(attrs, :contractor_divisions) do
         nil ->
           attrs
 

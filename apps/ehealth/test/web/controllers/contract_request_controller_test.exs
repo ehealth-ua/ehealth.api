@@ -2559,6 +2559,55 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
     end
+
+    test "success to sign contract_request with existing parent_contract_id", %{conn: conn} do
+      expect(ManMock, :render_template, fn _, _, _ ->
+        {:ok, "<html></html>"}
+      end)
+
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
+      id = UUID.generate()
+      data = %{"id" => id, "printout_content" => nil, "status" => ContractRequest.status(:nhs_signed)}
+      contract = insert(:prm, :contract, contract_number: "1345")
+
+      %{
+        "client_id" => client_id,
+        "user_id" => user_id,
+        "contract_request" => contract_request,
+        "party_user" => party_user
+      } =
+        prepare_nhs_sign_params(
+          id: id,
+          data: data,
+          status: ContractRequest.status(:nhs_signed),
+          contract_number: "1345",
+          parent_contract_id: contract.id
+        )
+
+      conn =
+        conn
+        |> put_client_id_header(client_id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("msp_drfo", party_user.party.tax_id)
+
+      conn =
+        patch(conn, contract_request_path(conn, :sign_msp, contract_request.id), %{
+          "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+
+      assert resp = json_response(conn, 200)
+
+      schema =
+        "specs/json_schemas/contract/contract_show_response.json"
+        |> File.read!()
+        |> Poison.decode!()
+
+      assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
+    end
   end
 
   describe "get printout_form" do
