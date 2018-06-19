@@ -7,6 +7,7 @@ defmodule EHealth.LegalEntities.Validator do
 
   alias EHealth.API.Signature
   alias EHealth.Validators.KVEDs
+  alias EHealth.LegalEntities.LegalEntity
   alias EHealth.LegalEntities.LegalEntityRequest
   alias EHealth.Validators.TaxID
   alias EHealth.Validators.Addresses
@@ -16,6 +17,8 @@ defmodule EHealth.LegalEntities.Validator do
   alias EHealth.Dictionaries
   alias EHealth.Email.Sanitizer
 
+  @msp LegalEntity.type(:msp)
+  @pharmacy LegalEntity.type(:pharmacy)
   @validation_dictionaries [
     "ADDRESS_TYPE",
     "PHONE_TYPE",
@@ -41,6 +44,7 @@ defmodule EHealth.LegalEntities.Validator do
          :ok <- validate_schema(content),
          content = lowercase_emails(content),
          :ok <- validate_json_objects(content),
+         :ok <- validate_type(content),
          :ok <- validate_kveds(content),
          :ok <- validate_addresses(content, headers),
          :ok <- validate_tax_id(content),
@@ -115,6 +119,13 @@ defmodule EHealth.LegalEntities.Validator do
          %{"DOCUMENT_TYPE" => document_types} = dict_keys,
          :ok <- JsonObjects.array_unique_by_key(content, ["owner", "documents"], "type", document_types),
          do: :ok
+  end
+
+  defp validate_type(%{"type" => @msp}), do: :ok
+  defp validate_type(%{"type" => @pharmacy}), do: :ok
+
+  defp validate_type(_) do
+    {:error, {:"422", "Only legal_entity with type MSP or Pharmacy could be created"}}
   end
 
   def validate_kveds(content) do

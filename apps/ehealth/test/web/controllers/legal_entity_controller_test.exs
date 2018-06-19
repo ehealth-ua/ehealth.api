@@ -3,6 +3,8 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
   use EHealth.Web.ConnCase, async: false
   import Mox
+
+  alias Ecto.UUID
   alias EHealth.Employees.Employee
   alias EHealth.PRMRepo
   alias EHealth.LegalEntities.LegalEntity
@@ -10,39 +12,81 @@ defmodule EHealth.Web.LegalEntityControllerTest do
   setup :verify_on_exit!
   setup :set_mox_global
 
-  test "invalid legal entity", %{conn: conn} do
-    conn = put(conn, legal_entity_path(conn, :create_or_update), %{"invalid" => "data"})
-    resp = json_response(conn, 422)
-    assert Map.has_key?(resp, "error")
-    assert resp["error"]
+  defp insert_dictionaries do
+    insert(:il, :dictionary_phone_type)
+    insert(:il, :dictionary_address_type)
+    insert(:il, :dictionary_document_type)
   end
 
-  test "mis verify legal entity", %{conn: conn} do
-    %{id: id} = insert(:prm, :legal_entity, mis_verified: "NOT_VERIFIED")
-    conn = put_client_id_header(conn, id)
-    conn = patch(conn, legal_entity_path(conn, :mis_verify, id))
-    assert json_response(conn, 200)["data"]["mis_verified"] == "VERIFIED"
+  defp get_legal_entity_data do
+    "test/data/legal_entity.json"
+    |> File.read!()
+    |> Jason.decode!()
   end
 
-  test "mis verify legal entity which was already verified", %{conn: conn} do
-    %{id: id} = insert(:prm, :legal_entity, mis_verified: "VERIFIED")
-    conn = put_client_id_header(conn, id)
-    conn = patch(conn, legal_entity_path(conn, :mis_verify, id))
-    assert json_response(conn, 409)
+  defp sign_legal_entity(request_params) do
+    %{
+      "signed_legal_entity_request" => Base.encode64(Jason.encode!(request_params)),
+      "signed_content_encoding" => "base64"
+    }
   end
 
-  test "nhs verify legal entity which was already verified", %{conn: conn} do
-    %{id: id} = insert(:prm, :legal_entity, nhs_verified: true)
-    conn = put_client_id_header(conn, id)
-    conn = patch(conn, legal_entity_path(conn, :nhs_verify, id))
-    refute json_response(conn, 409)["data"]["nhs_verified"]
+  describe "create or update legal entity" do
+    test "invalid legal entity", %{conn: conn} do
+      conn = put(conn, legal_entity_path(conn, :create_or_update), %{"invalid" => "data"})
+      resp = json_response(conn, 422)
+      assert Map.has_key?(resp, "error")
+      assert resp["error"]
+    end
+
+    test "create legal entity with wrong type", %{conn: conn} do
+      insert_dictionaries()
+      invalid_legal_entity_type = "MIS"
+      legal_entity_params = Map.merge(get_legal_entity_data(), %{"type" => invalid_legal_entity_type})
+      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
+
+      conn =
+        conn
+        |> put_req_header("content-type", "application/json")
+        |> put_req_header("content-length", "7000")
+        |> put_req_header("x-consumer-id", UUID.generate())
+        |> put_req_header("edrpou", legal_entity_params["edrpou"])
+        |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
+
+      resp = json_response(conn, 422)
+      assert resp
+      assert resp["error"]["message"] == "Only legal_entity with type MSP or Pharmacy could be created"
+    end
   end
 
-  test "nhs verify legal entity", %{conn: conn} do
-    %{id: id} = insert(:prm, :legal_entity, nhs_verified: false)
-    conn = put_client_id_header(conn, id)
-    conn = patch(conn, legal_entity_path(conn, :nhs_verify, id))
-    assert json_response(conn, 200)["data"]["nhs_verified"]
+  describe "verify legal entities" do
+    test "mis verify legal entity", %{conn: conn} do
+      %{id: id} = insert(:prm, :legal_entity, mis_verified: "NOT_VERIFIED")
+      conn = put_client_id_header(conn, id)
+      conn = patch(conn, legal_entity_path(conn, :mis_verify, id))
+      assert json_response(conn, 200)["data"]["mis_verified"] == "VERIFIED"
+    end
+
+    test "mis verify legal entity which was already verified", %{conn: conn} do
+      %{id: id} = insert(:prm, :legal_entity, mis_verified: "VERIFIED")
+      conn = put_client_id_header(conn, id)
+      conn = patch(conn, legal_entity_path(conn, :mis_verify, id))
+      assert json_response(conn, 409)
+    end
+
+    test "nhs verify legal entity which was already verified", %{conn: conn} do
+      %{id: id} = insert(:prm, :legal_entity, nhs_verified: true)
+      conn = put_client_id_header(conn, id)
+      conn = patch(conn, legal_entity_path(conn, :nhs_verify, id))
+      refute json_response(conn, 409)["data"]["nhs_verified"]
+    end
+
+    test "nhs verify legal entity", %{conn: conn} do
+      %{id: id} = insert(:prm, :legal_entity, nhs_verified: false)
+      conn = put_client_id_header(conn, id)
+      conn = patch(conn, legal_entity_path(conn, :nhs_verify, id))
+      assert json_response(conn, 200)["data"]["nhs_verified"]
+    end
   end
 
   describe "get legal entities" do
