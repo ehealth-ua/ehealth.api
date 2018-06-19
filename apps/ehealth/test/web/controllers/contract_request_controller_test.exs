@@ -2572,6 +2572,9 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       id = UUID.generate()
       data = %{"id" => id, "printout_content" => nil, "status" => ContractRequest.status(:nhs_signed)}
       contract = insert(:prm, :contract, contract_number: "1345")
+      employee = insert(:prm, :employee)
+      insert(:prm, :contract_employee, contract_id: contract.id, employee_id: employee.id)
+      insert(:prm, :contract_division, contract_id: contract.id)
 
       %{
         "client_id" => client_id,

@@ -86,14 +86,14 @@ defmodule EHealth.Contracts do
 
         contract_employees =
           contract.contract_employees
-          |> Poison.encode!()
-          |> Poison.decode!()
+          |> Jason.encode!()
+          |> Jason.decode!()
           |> Enum.map(&Map.drop(&1, ~w(id contract_id inserted_by updated_by)))
 
         contract_divisions =
           contract.contract_divisions
-          |> Poison.encode!()
-          |> Poison.decode!()
+          |> Jason.encode!()
+          |> Jason.decode!()
           |> Enum.map(&Map.get(&1, "division_id"))
 
         new_contract_params =
