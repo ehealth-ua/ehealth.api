@@ -266,6 +266,25 @@ defmodule EHealth.Web.ContractControllerTest do
       assert resp = json_response(conn, 200)["data"]
       assert length(resp) == 1
     end
+
+    test "success filtering by nhs_signer_id", %{conn: conn} do
+      contractor_legal_entity = insert(:prm, :legal_entity)
+      contract_in = insert(:prm, :contract, contractor_legal_entity_id: contractor_legal_entity.id)
+      contract_out = insert(:prm, :contract, contractor_legal_entity_id: contractor_legal_entity.id)
+
+      params = %{nhs_signer_id: contract_in.nhs_signer_id}
+
+      conn =
+        conn
+        |> put_client_id_header(contractor_legal_entity.id)
+        |> get(contract_path(conn, :index), params)
+
+      assert resp = json_response(conn, 200)["data"]
+
+      contract_ids = Enum.map(resp, fn item -> Map.get(item, "id") end)
+      assert contract_in.id in contract_ids
+      refute contract_out.id in contract_ids
+    end
   end
 
   describe "suspend contracts" do
