@@ -78,7 +78,7 @@ defmodule EHealth.Contracts do
       PRMRepo.transaction(fn ->
         ContractEmployee
         |> where([ce], ce.contract_id == ^contract.id)
-        |> PRMRepo.update_all(set: [end_date: Date.utc_today(), updated_by: params.updated_by])
+        |> PRMRepo.update_all(set: [end_date: NaiveDateTime.utc_now(), updated_by: params.updated_by])
 
         contract
         |> changeset(%{"status" => @status_terminated})
