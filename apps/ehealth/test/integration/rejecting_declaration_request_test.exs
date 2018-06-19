@@ -3,12 +3,20 @@ defmodule EHealth.Integraiton.DeclarationRequestRejectTest do
 
   use EHealth.Web.ConnCase
 
+  alias Ecto.UUID
+  alias EHealth.DeclarationRequests.DeclarationRequest
+
   describe "rejecting declaration request" do
     test "succesfully reject declaration request" do
-      client_id = "8799e3b6-34e7-4798-ba70-d897235d2b6d"
-      user_id = "ce377dea-d8c4-4dd8-9328-de24b1ee3879"
+      client_id = UUID.generate()
+      user_id = UUID.generate()
 
-      record = simple_fixture(:declaration_request, "NEW")
+      record =
+        insert(
+          :il,
+          :declaration_request,
+          status: DeclarationRequest.status(:new)
+        )
 
       conn =
         build_conn()
@@ -20,10 +28,15 @@ defmodule EHealth.Integraiton.DeclarationRequestRejectTest do
     end
 
     test "inability to reject declaration request" do
-      client_id = "8799e3b6-34e7-4798-ba70-d897235d2b6d"
-      user_id = "ce377dea-d8c4-4dd8-9328-de24b1ee3879"
+      client_id = UUID.generate()
+      user_id = UUID.generate()
 
-      record = simple_fixture(:declaration_request, "SIGNED")
+      record =
+        insert(
+          :il,
+          :declaration_request,
+          status: DeclarationRequest.status(:signed)
+        )
 
       conn =
         build_conn()
@@ -35,8 +48,8 @@ defmodule EHealth.Integraiton.DeclarationRequestRejectTest do
     end
 
     test "inability to reject non-existent request" do
-      client_id = "8799e3b6-34e7-4798-ba70-d897235d2b6d"
-      user_id = "ce377dea-d8c4-4dd8-9328-de24b1ee3879"
+      client_id = UUID.generate()
+      user_id = UUID.generate()
 
       assert build_conn()
              |> put_req_header("x-consumer-id", user_id)
