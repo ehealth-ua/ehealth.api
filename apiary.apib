@@ -4589,7 +4589,17 @@ This method is used to create Declaration Request online (as part of Declaration
         + meta (Response__Meta)
             + code: 201 (number)
         + data (object)
-            + include `Declaration_Request_Details_Cabinet`
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + seed: hash (string, required)
+            + include `Declaration_Request_Public_Response`
+            + status: `NEW` (string, required)
+            + employee (Employee_Minimal, required)
+                + specialities (array[Speciality], required)  - блок інформації про отримання сертифікату спеціалісту та проходження атестацій
+            + `legal_entity` (`Medical_Service_Provider`, required)
+                + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + division (`Division_Details`, required)
+            + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
+            + channel: `CABINET` (enum, required) - channel that invoke declaration create service
         + urgent (object, required)
             + `authentication_method_current` (object, required)
                 + type: `NA` (enum, required)
@@ -4670,7 +4680,18 @@ Current WS allows to see details of declaration request knowing its' id.
     
 + Response 200 (application/json)
     + Attributes (Response_OK)
-        + data (`Declaration_Request_Details_Cabinet`)
+        + data (object)
+            + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + seed: hash (string, required)
+            + include `Declaration_Request_Public_Response`
+            + status: `NEW` (string, required)
+            + employee (Employee_Minimal, required)
+                + specialities (array[Speciality], required)  - блок інформації про отримання сертифікату спеціалісту та проходження атестацій
+            + `legal_entity` (`Medical_Service_Provider`, required)
+                + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
+            + division (`Division_Details`, required)
+            + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
+            + channel: `CABINET` (enum, required) - channel that invoke declaration create service
         + urgent (object, required)
             + `authentication_method_current` (object, required)
                 + type: `NA` (enum, required)
