@@ -459,7 +459,12 @@ defmodule EHealth.ContractRequests do
 
   def get_printout_content(id, client_type, headers) do
     with {:ok, contract_request, _} <- get_by_id(headers, client_type, id),
-         :ok <- validate_status(contract_request, ContractRequest.status(:pending_nhs_sign)),
+         :ok <-
+           validate_status(
+             contract_request,
+             ContractRequest.status(:pending_nhs_sign),
+             "Incorrect status of contract_request to generate printout form"
+           ),
          {:ok, printout_content} <- ContractRequestPrintoutForm.render(contract_request, headers) do
       {:ok, contract_request, printout_content}
     end
@@ -484,6 +489,7 @@ defmodule EHealth.ContractRequests do
       nhs_signer_base
       issue_city
       contract_number
+      contractor_divisions
       contractor_employee_divisions
       status
       nhs_signer_id
@@ -496,6 +502,7 @@ defmodule EHealth.ContractRequests do
     |> Map.put(:is_active, true)
     |> Map.put(:inserted_by, contract_request.updated_by)
     |> Map.put(:updated_by, contract_request.updated_by)
+    |> Map.put(:status, Contract.status(:verified))
   end
 
   defp validate_content(%ContractRequest{data: data, status: status, printout_content: printout_content}, content) do
@@ -1263,8 +1270,11 @@ defmodule EHealth.ContractRequests do
     end
   end
 
-  defp validate_status(%ContractRequest{status: status}, required_status) when status == required_status, do: :ok
-  defp validate_status(_, _), do: {:error, {:conflict, "Incorrect status of contract_request to modify it"}}
+  defp validate_status(contract_request, status),
+    do: validate_status(contract_request, status, "Incorrect status of contract_request to modify it")
+
+  defp validate_status(%ContractRequest{status: status}, required_status, _) when status == required_status, do: :ok
+  defp validate_status(_, _, msg), do: {:error, {:conflict, msg}}
 
   def get_by_id(headers, client_type, id) do
     client_id = get_client_id(headers)

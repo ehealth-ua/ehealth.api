@@ -421,11 +421,11 @@ defmodule EHealth.Contracts do
   end
 
   defp changeset(%Contract{} = contract, attrs) do
-    inserted_by = Map.get(attrs, "inserted_by")
-    updated_by = Map.get(attrs, "updated_by")
+    inserted_by = attrs.inserted_by
+    updated_by = attrs.updated_by
 
     attrs =
-      case Map.get(attrs, "contractor_employee_divisions") do
+      case attrs.contractor_employee_divisions do
         nil ->
           attrs
 
@@ -434,16 +434,16 @@ defmodule EHealth.Contracts do
             Enum.map(
               contractor_employee_divisions,
               &(&1
-                |> Map.put("start_date", Map.get(attrs, "start_date"))
+                |> Map.put("start_date", NaiveDateTime.from_erl!({Date.to_erl(attrs.start_date), {0, 0, 0}}))
                 |> Map.put("inserted_by", inserted_by)
                 |> Map.put("updated_by", updated_by))
             )
 
-          Map.put(attrs, "contract_employees", contractor_employee_divisions)
+          Map.put(attrs, :contract_employees, contractor_employee_divisions)
       end
 
     attrs =
-      case Map.get(attrs, "contractor_divisions") do
+      case attrs.contractor_divisions do
         nil ->
           attrs
 
@@ -454,7 +454,7 @@ defmodule EHealth.Contracts do
               &%{"division_id" => &1, "inserted_by" => inserted_by, "updated_by" => updated_by}
             )
 
-          Map.put(attrs, "contract_divisions", contractor_divisions)
+          Map.put(attrs, :contract_divisions, contractor_divisions)
       end
 
     contract
