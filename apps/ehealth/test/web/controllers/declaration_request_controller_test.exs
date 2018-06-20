@@ -318,6 +318,10 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
 
     test "get declaration request by id", %{conn: conn} do
+      expect(OPSMock, :get_latest_block, fn _params ->
+        {:ok, %{"data" => %{"hash" => "some_hash"}}}
+      end)
+
       %{id: id, data: data} =
         insert(
           :il,
@@ -335,6 +339,10 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
 
     test "get declaration request by id in status expired" do
+      expect(OPSMock, :get_latest_block, fn _params ->
+        {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
+      end)
+
       legal_entity_id = UUID.generate()
 
       %{id: id, declaration_id: declaration_id} =
@@ -362,6 +370,10 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
 
     test "get declaration request by id in status expired when data is NULL" do
+      expect(OPSMock, :get_latest_block, fn _params ->
+        {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
+      end)
+
       legal_entity_id = UUID.generate()
 
       %{id: id, declaration_id: declaration_id} =

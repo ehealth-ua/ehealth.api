@@ -3,10 +3,11 @@ defmodule EHealth.Web.DeclarationRequestController do
 
   use EHealth.Web, :controller
   alias Scrivener.Page
-  alias EHealth.API.OPS
   alias EHealth.DeclarationRequests
   alias EHealth.DeclarationRequests.DeclarationRequest
   require Logger
+
+  @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]
 
   action_fallback(EHealth.Web.FallbackController)
 
@@ -18,10 +19,10 @@ defmodule EHealth.Web.DeclarationRequestController do
     end
   end
 
-  def show(conn, %{"declaration_request_id" => id} = params) do
+  def show(%Plug.Conn{req_headers: headers} = conn, %{"declaration_request_id" => id} = params) do
     with %DeclarationRequest{} = declaration_request <- DeclarationRequests.get_by_id!(id, params) do
       urgent_data = Map.take(declaration_request, [:authentication_method_current, :documents])
-      {:ok, %{"data" => %{"hash" => hash}}} = OPS.get_latest_block()
+      {:ok, %{"data" => %{"hash" => hash}}} = @ops_api.get_latest_block(headers)
 
       conn
       |> assign(:urgent, urgent_data)
@@ -29,10 +30,9 @@ defmodule EHealth.Web.DeclarationRequestController do
     end
   end
 
-  def create(conn, %{"declaration_request" => params}) do
-    with {:ok, %{urgent_data: urgent_data, finalize: result}} <-
-           DeclarationRequests.create_offline(params, conn.req_headers),
-         {:ok, %{"data" => %{"hash" => hash}}} = OPS.get_latest_block() do
+  def create(%Plug.Conn{req_headers: headers} = conn, %{"declaration_request" => params}) do
+    with {:ok, %{urgent_data: urgent_data, finalize: result}} <- DeclarationRequests.create_offline(params, headers),
+         {:ok, %{"data" => %{"hash" => hash}}} = @ops_api.get_latest_block(headers) do
       conn
       |> assign(:urgent, urgent_data)
       |> render("declaration_request.json", declaration_request: result, hash: hash)

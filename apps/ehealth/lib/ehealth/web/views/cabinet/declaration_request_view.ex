@@ -24,7 +24,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestView do
 
   def render("declaration_request.json", assigns) do
     response = render(DeclarationRequestView, "declaration_request.json", assigns)
-    put_in(response, ["employee", "speciality"], Map.get(assigns, :employee_speciality, ""))
+    put_in(response, ["employee", "speciality"], Map.get(assigns, :employee_speciality, %{}))
   end
 
   defp render_association(_, nil), do: nil

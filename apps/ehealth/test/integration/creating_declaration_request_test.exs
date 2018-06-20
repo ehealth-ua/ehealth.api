@@ -238,6 +238,10 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
          }}
       end)
 
+      expect(OPSMock, :get_latest_block, fn _params ->
+        {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
+      end)
+
       declaration_request_params =
         "test/data/declaration_request.json"
         |> File.read!()
@@ -339,6 +343,10 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
 
       expect(OTPVerificationMock, :search, fn _, _ ->
         {:ok, %{"data" => []}}
+      end)
+
+      expect(OPSMock, :get_latest_block, fn _params ->
+        {:ok, %{"data" => %{"hash" => "99bc78ba577a95a11f1a344d4d2ae55f2f857b98"}}}
       end)
 
       params =
@@ -457,6 +465,10 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
          }}
       end)
 
+      expect(OPSMock, :get_latest_block, fn _params ->
+        {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
+      end)
+
       declaration_request_params =
         "test/data/declaration_request.json"
         |> File.read!()
@@ -521,6 +533,10 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
              }
            ]
          }}
+      end)
+
+      expect(OPSMock, :get_latest_block, fn _params ->
+        {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
       end)
 
       declaration_request_params =
@@ -588,6 +604,10 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
              }
            ]
          }}
+      end)
+
+      expect(OPSMock, :get_latest_block, fn _params ->
+        {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
       end)
 
       declaration_request_params =
