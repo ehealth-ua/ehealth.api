@@ -290,9 +290,9 @@ defmodule EHealthWeb.Router do
 
       post(
         "/declaration_requests",
-        Cabinet.DeclarationController,
-        :create_declaration_request,
-        as: :cabinet_declarations
+        Cabinet.DeclarationRequestController,
+        :create,
+        as: :cabinet_declaration_requests
       )
 
       patch(
