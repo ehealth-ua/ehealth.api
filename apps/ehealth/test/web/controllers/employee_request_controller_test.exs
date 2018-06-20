@@ -14,6 +14,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   alias EHealth.EventManager.Event
 
   @moduletag :with_client_id
+  @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
 
   describe "create employee request" do
     setup %{conn: conn} do
@@ -1128,6 +1129,21 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
         {:ok, %{"data" => []}}
       end)
 
+      role_id = Ecto.UUID.generate()
+      user_id = Ecto.UUID.generate()
+
+      expect(MithrilMock, :get_user_roles, fn user_id, %{}, [] ->
+        {:ok,
+         %{
+           "data" => [
+             %{
+               "role_id" => role_id,
+               "user_id" => user_id
+             }
+           ]
+         }}
+      end)
+
       %{id: legal_entity_id} = insert(:prm, :legal_entity)
       %{id: division_id} = insert(:prm, :division)
 
@@ -1143,6 +1159,9 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       conn1 = post(conn, employee_request_path(conn, :approve, request_id))
       resp = json_response(conn1, 200)
       assert %{"data" => %{"employee_id" => employee_id}} = resp
+
+      {:ok, %{"data" => [role]}} = @mithril_api.get_user_roles(user_id, %{}, [])
+      assert Map.has_key?(role, "role_id")
 
       data =
         data

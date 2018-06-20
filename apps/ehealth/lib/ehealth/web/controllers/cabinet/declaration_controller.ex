@@ -1,7 +1,6 @@
 defmodule EHealth.Web.Cabinet.DeclarationController do
   use EHealth.Web, :controller
 
-  alias EHealth.API.OPS
   alias EHealth.DeclarationRequests
   alias EHealth.Declarations.API, as: Declarations
   alias EHealth.Web.DeclarationRequestView

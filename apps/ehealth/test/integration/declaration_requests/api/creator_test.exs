@@ -730,6 +730,10 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
     end
 
     test "user is not doctor" do
+      expect(MithrilMock, :get_roles_by_name, fn "DOCTOR", _headers ->
+        {:ok, %{"data" => [%{"id" => UUID.generate()}]}}
+      end)
+
       types = %{"data" => :map}
       data = %{"employee" => %{"party" => %{"id" => "6b4127ea-99ad-4493-b5ce-6f0769fa9fab"}}}
       changes = %{data: data}
@@ -745,15 +749,35 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       }
 
       result = Creator.put_party_email(%Ecto.Changeset{data: data, changes: changes, types: types, valid?: true})
+
       assert expected_result == result
     end
 
     test "everything is ok" do
+      role_id = UUID.generate()
       types = %{"data" => :map}
       party_user = insert(:prm, :party_user, user_id: PRMMithrilMock.user_id())
       data = %{"employee" => %{"party" => %{"id" => party_user.party_id}}}
       expected_changes = %{data: put_in(data, ["employee", "party", "email"], "user@email.com")}
       changes = %{data: data}
+
+      expect(MithrilMock, :get_roles_by_name, fn "DOCTOR", _headers ->
+        {:ok, %{"data" => [%{"id" => role_id}]}}
+      end)
+
+      expect(MithrilMock, :get_user_by_id, fn _, _ -> {:ok, %{"data" => %{"email" => "user@email.com"}}} end)
+
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok,
+         %{
+           "data" => [
+             %{
+               "role_id" => role_id,
+               "user_id" => UUID.generate()
+             }
+           ]
+         }}
+      end)
 
       expected_result = %Ecto.Changeset{
         action: nil,

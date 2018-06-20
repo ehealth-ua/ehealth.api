@@ -9,7 +9,7 @@ defmodule EHealth.DeclarationRequests.API.Creator do
   import EHealth.Utils.TypesConverter, only: [string_to_integer: 1]
 
   alias Ecto.{Changeset, UUID}
-  alias EHealth.API.{Mithril, OTPVerification}
+  alias EHealth.API.OTPVerification
   alias EHealth.DeclarationRequests
   alias EHealth.DeclarationRequests.DeclarationRequest
   alias EHealth.DeclarationRequests.API.{Documents, Persons}
@@ -27,6 +27,7 @@ defmodule EHealth.DeclarationRequests.API.Creator do
   @auth_na DeclarationRequest.authentication_method(:na)
   @auth_otp DeclarationRequest.authentication_method(:otp)
   @auth_offline DeclarationRequest.authentication_method(:offline)
+  @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
 
   @channel_cabinet DeclarationRequest.channel(:cabinet)
 
@@ -134,7 +135,7 @@ defmodule EHealth.DeclarationRequests.API.Creator do
   end
 
   defp get_role_id(name) do
-    with {:ok, results} <- Mithril.get_roles_by_name(name) do
+    with {:ok, results} <- @mithril_api.get_roles_by_name(name, []) do
       roles = Map.get(results, "data")
 
       case length(roles) do
@@ -145,7 +146,7 @@ defmodule EHealth.DeclarationRequests.API.Creator do
   end
 
   defp filter_users_by_role(role_id, users) do
-    user_roles_results = Enum.map(users, &Mithril.get_user_roles(&1, %{}))
+    user_roles_results = Enum.map(users, &@mithril_api.get_user_roles(&1, %{}, []))
     error = Enum.find(user_roles_results, fn {k, _} -> k == :error end)
 
     case error do
@@ -173,7 +174,7 @@ defmodule EHealth.DeclarationRequests.API.Creator do
   end
 
   defp get_user_email(user_id) do
-    with {:ok, user} <- Mithril.get_user_by_id(user_id), do: {:ok, get_in(user, ["data", "email"])}
+    with {:ok, user} <- @mithril_api.get_user_by_id(user_id, []), do: {:ok, get_in(user, ["data", "email"])}
   end
 
   defp get_party_email(party_id) do

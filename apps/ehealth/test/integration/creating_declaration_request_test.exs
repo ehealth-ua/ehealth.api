@@ -6,6 +6,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
   alias EHealth.DeclarationRequests.DeclarationRequest
   alias EHealth.Repo
   alias EHealth.Utils.NumberGenerator
+  alias Ecto.UUID
   import Mox
 
   describe "Happy paths" do
@@ -218,6 +219,25 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         {:ok, %{"data" => []}}
       end)
 
+      role_id = UUID.generate()
+      expect(MithrilMock, :get_user_by_id, fn _, _ -> {:ok, %{"data" => %{"email" => "user@email.com"}}} end)
+
+      expect(MithrilMock, :get_roles_by_name, fn "DOCTOR", _headers ->
+        {:ok, %{"data" => [%{"id" => role_id}]}}
+      end)
+
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok,
+         %{
+           "data" => [
+             %{
+               "role_id" => role_id,
+               "user_id" => UUID.generate()
+             }
+           ]
+         }}
+      end)
+
       declaration_request_params =
         "test/data/declaration_request.json"
         |> File.read!()
@@ -284,6 +304,8 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
     end
 
     test "declaration request is created with 'OTP' verification", %{conn: conn} do
+      role_id = UUID.generate()
+
       expect(MPIMock, :search, fn params, _ ->
         {:ok,
          %{
@@ -296,6 +318,24 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
            ]
          }}
       end)
+
+      expect(MithrilMock, :get_roles_by_name, fn "DOCTOR", _headers ->
+        {:ok, %{"data" => [%{"id" => role_id}]}}
+      end)
+
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok,
+         %{
+           "data" => [
+             %{
+               "role_id" => role_id,
+               "user_id" => UUID.generate()
+             }
+           ]
+         }}
+      end)
+
+      expect(MithrilMock, :get_user_by_id, fn _, _ -> {:ok, %{"data" => %{"email" => "user@email.com"}}} end)
 
       expect(OTPVerificationMock, :search, fn _, _ ->
         {:ok, %{"data" => []}}
@@ -397,6 +437,26 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
          }}
       end)
 
+      role_id = UUID.generate()
+
+      expect(MithrilMock, :get_user_by_id, fn _, _ -> {:ok, %{"data" => %{"email" => "user@email.com"}}} end)
+
+      expect(MithrilMock, :get_roles_by_name, fn "DOCTOR", _headers ->
+        {:ok, %{"data" => [%{"id" => role_id}]}}
+      end)
+
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok,
+         %{
+           "data" => [
+             %{
+               "role_id" => role_id,
+               "user_id" => UUID.generate()
+             }
+           ]
+         }}
+      end)
+
       declaration_request_params =
         "test/data/declaration_request.json"
         |> File.read!()
@@ -440,6 +500,25 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
              |> Map.put("authentication_methods", [
                %{"type" => "OTP", "phone_number" => "+380508887700"}
              ])
+           ]
+         }}
+      end)
+
+      role_id = UUID.generate()
+      expect(MithrilMock, :get_user_by_id, fn _, _ -> {:ok, %{"data" => %{"email" => "user@email.com"}}} end)
+
+      expect(MithrilMock, :get_roles_by_name, fn "DOCTOR", _headers ->
+        {:ok, %{"data" => [%{"id" => role_id}]}}
+      end)
+
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok,
+         %{
+           "data" => [
+             %{
+               "role_id" => role_id,
+               "user_id" => UUID.generate()
+             }
            ]
          }}
       end)
@@ -490,6 +569,25 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
 
       expect(OTPVerificationMock, :search, fn _, _ ->
         {:ok, %{"data" => []}}
+      end)
+
+      role_id = UUID.generate()
+      expect(MithrilMock, :get_user_by_id, fn _, _ -> {:ok, %{"data" => %{"email" => "user@email.com"}}} end)
+
+      expect(MithrilMock, :get_roles_by_name, fn "DOCTOR", _headers ->
+        {:ok, %{"data" => [%{"id" => role_id}]}}
+      end)
+
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok,
+         %{
+           "data" => [
+             %{
+               "role_id" => role_id,
+               "user_id" => UUID.generate()
+             }
+           ]
+         }}
       end)
 
       declaration_request_params =

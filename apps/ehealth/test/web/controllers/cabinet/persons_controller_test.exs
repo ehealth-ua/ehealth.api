@@ -476,6 +476,25 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
         })
       end)
 
+      role_id = UUID.generate()
+      expect(MithrilMock, :get_user_by_id, fn _, _ -> {:ok, %{"data" => %{"email" => "user@email.com"}}} end)
+
+      expect(MithrilMock, :get_roles_by_name, fn "DOCTOR", _headers ->
+        {:ok, %{"data" => [%{"id" => role_id}]}}
+      end)
+
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok,
+         %{
+           "data" => [
+             %{
+               "role_id" => role_id,
+               "user_id" => UUID.generate()
+             }
+           ]
+         }}
+      end)
+
       expect(OPSMock, :get_latest_block, fn _params ->
         {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
       end)

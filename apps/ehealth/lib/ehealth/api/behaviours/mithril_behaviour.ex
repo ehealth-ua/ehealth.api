@@ -28,4 +28,6 @@ defmodule EHealth.API.MithrilBehaviour do
   # tokens
   @callback create_access_token(user_id :: binary, token :: map, headers :: list) ::
               {:ok, result :: term} | {:error, reason :: term}
+  @callback get_roles_by_name(employee_type :: term, headers :: list) ::
+              {:ok, result :: term} | {:error, reason :: term}
 end
