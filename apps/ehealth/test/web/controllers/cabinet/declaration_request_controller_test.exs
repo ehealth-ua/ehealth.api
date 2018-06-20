@@ -483,6 +483,62 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
     end
   end
 
+  describe "approve declaration_request" do
+    test "success approve", %{conn: conn} do
+      expect(MPIMock, :person, fn id, _headers ->
+        mpi_get_person(id, 200, %{tax_id: "12341234"})
+      end)
+
+      expect(OPSMock, :get_declarations_count, fn _, _ ->
+        {:ok, %{"data" => %{"count" => 10}}}
+      end)
+
+      declaration_request =
+        insert(
+          :il,
+          :declaration_request,
+          channel: DeclarationRequest.channel(:cabinet),
+          mpi_id: "0c65d15b-32b4-4e82-b53d-0572416d890e"
+        )
+
+      insert(:prm, :employee, id: "d290f1ee-6c54-4b01-90e6-d701748f0851")
+
+      conn =
+        conn
+        |> put_consumer_id_header(@user_id)
+        |> put_client_id_header(@user_id)
+        |> patch(cabinet_declaration_requests_path(conn, :approve, declaration_request.id))
+
+      assert resp = json_response(conn, 200)
+      assert DeclarationRequest.status(:approved) == resp["data"]["status"]
+    end
+
+    test "wrong channel", %{conn: conn} do
+      declaration_request =
+        insert(
+          :il,
+          :declaration_request,
+          channel: DeclarationRequest.channel(:mis)
+        )
+
+      conn =
+        conn
+        |> put_consumer_id_header(@user_id)
+        |> put_client_id_header(@user_id)
+        |> patch(cabinet_declaration_requests_path(conn, :approve, declaration_request.id))
+
+      assert resp = json_response(conn, 403)
+      assert "Declaration request should be approved by Doctor" == resp["error"]["message"]
+    end
+  end
+
+  defp mpi_get_person(id, response_status, params) do
+    params = Map.put(params, :id, id)
+    person = string_params_for(:person, params)
+
+    {:ok, %{"data" => person, "meta" => %{"code" => response_status}}}
+  end
+
   defp fixture_params(params \\ %{}) do
     %{
       "scope" => "family_doctor",

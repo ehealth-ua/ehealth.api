@@ -3,9 +3,11 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestController do
 
   use EHealth.Web, :controller
   alias EHealth.Cabinet.DeclarationRequests, as: CabinetDeclarationRequests
+  alias EHealth.Web.DeclarationRequestView
   alias EHealth.DeclarationRequests
   alias EHealth.Employees
   alias EHealth.Employees.Employee
+  require Logger
 
   action_fallback(EHealth.Web.FallbackController)
 
@@ -47,6 +49,43 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestController do
         employee_speciality: employee.speciality,
         hash: hash
       )
+    end
+  end
+
+  def approve(%Plug.Conn{req_headers: headers} = conn, %{"id" => id}) do
+    with {:ok, %{declaration_request: declaration_request}} <- DeclarationRequests.approve(id, headers) do
+      conn
+      |> put_view(DeclarationRequestView)
+      |> render("declaration_request.json", declaration_request: declaration_request)
+    else
+      {:error, _, %{"meta" => %{"code" => 404}}, _} ->
+        Logger.error(fn ->
+          Jason.encode!(%{
+            "log_type" => "error",
+            "message" => "Phone was not found for declaration request #{id}",
+            "request_id" => Logger.metadata()[:request_id]
+          })
+        end)
+
+        {:error, %{"type" => "internal_error"}}
+
+      {:error, :verification, {:documents_not_uploaded, reason}, _} ->
+        {:conflict, "Documents #{Enum.join(reason, ", ")} is not uploaded"}
+
+      {:error, :verification, {:ael_bad_response, _}, _} ->
+        {:error, %{"type" => "internal_error"}}
+
+      {:error, :verification, {:conflict, message}, _} ->
+        {:error, {:conflict, message}}
+
+      {:error, :verification, {:"422", message}, _} ->
+        {:error, {:"422", message}}
+
+      {:error, _, %{"meta" => _} = error, _} ->
+        {:error, error}
+
+      {:error, error} ->
+        {:error, error}
     end
   end
 end

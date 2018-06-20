@@ -297,9 +297,9 @@ defmodule EHealthWeb.Router do
 
       patch(
         "/declaration_requests/:id/actions/approve",
-        Cabinet.DeclarationController,
-        :approve_declaration_request,
-        as: :cabinet_declarations
+        Cabinet.DeclarationRequestController,
+        :approve,
+        as: :cabinet_declaration_requests
       )
 
       get("/declaration_requests/:id", Cabinet.DeclarationRequestController, :show, as: :cabinet_declaration_requests)
