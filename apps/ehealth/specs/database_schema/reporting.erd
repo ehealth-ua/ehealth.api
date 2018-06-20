@@ -297,7 +297,7 @@ legal_entity_id | uuid | not null
 contract_id | uuid | not null
 mountain_group | boolean | not null
 age_group | varchar | not null
-declarations_count | integer | not null
+declaration_count | integer | not null
 
 [capitation_report_errors]
 id | uuid | not null
