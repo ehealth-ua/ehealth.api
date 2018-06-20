@@ -192,7 +192,7 @@ defmodule EHealth.Contracts do
         division_id: params["division_id"],
         staff_units: params["staff_units"],
         declaration_limit: params["declaration_limit"],
-        start_date: NaiveDateTime.add(NaiveDateTime.utc_now(), 1, :millisecond),
+        start_date: NaiveDateTime.utc_now(),
         inserted_by: user_id,
         updated_by: user_id
       })
