@@ -134,12 +134,14 @@ defmodule EHealth.Contracts do
          :ok <- validate_status(contract, Contract.status(:verified)),
          :ok <- JsonSchema.validate(:contract_update_employees, content),
          {:ok, _} <- process_employee_division(contract, content, user_id) do
+      now = NaiveDateTime.utc_now()
+
       query =
         ContractEmployee
         |> where([ce], ce.contract_id == ^contract.id)
         |> where(
           [ce],
-          ce.start_date <= ^NaiveDateTime.utc_now() and (is_nil(ce.end_date) or ce.end_date >= ^NaiveDateTime.utc_now())
+          ce.start_date <= ^now and (is_nil(ce.end_date) or ce.end_date >= ^now)
         )
 
       contract
