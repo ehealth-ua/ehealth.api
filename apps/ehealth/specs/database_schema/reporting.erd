@@ -287,14 +287,14 @@ updated_at | timestamp | not null
 
 [capitation_reports]
 id | uuid | not null
-billing_date | timestamp | not null
-created_at | timestamp | not null
+billing_date | date | not null
+inserted_at | timestamp | not null
 
 [capitation_report_details]
 id | uuid | not null
 capitation_report_id | uuid | not null
 legal_entity_id | uuid | not null
-capitation_contract_id | uuid | not null
+contract_id | uuid | not null
 mountain_group | boolean | not null
 age_group | varchar | not null
 declarations_count | integer | not null
@@ -304,7 +304,7 @@ id | uuid | not null
 capitation_report_id | uuid | not null
 declaration_id | uuid | not null
 action | varchar | not null
-message | varchar | not null
+message | text | not null
 inserted_at | timestamp | not null
 
 [contracts]
