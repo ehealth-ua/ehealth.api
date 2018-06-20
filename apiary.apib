@@ -4722,7 +4722,10 @@ This WS allows to see history of all patient's declaration requests and filter t
 ###Business logic
 In order to create new contract or update existing contract, legal entity owner should create contract request first. Contract request should be approved by both sides - Medical Service Provider(MSP) and National Health Service(NHS), and than signed by both sides as well. After that new contract will be created or existing contract will be updated. 
 The detailed flow is described in schema below:
+
 [Confluence: Status Chart](https://edenlab.atlassian.net/wiki/x/GIDMIg)
+
+![Contract request flow](https://www.websequencediagrams.com/cgi-bin/cdraw?lz=dGl0bGUgQ29udHJhY3QgcmVxdWVzdHMKCnBhcnRpY2lwYW50IE1TUCBhcyBtc3AACg1lSGVhbHRoIGFzIGVoAAYFACkNRG9jdW1lbnQgc3RvcmFnZSBhcwADCABRDU5IUyBhcyBuaHMKCm1zcC0-AEYHOiA8PEluaXRpYWxpemUgYwCBFQ8-PgoAbwcAJwtHZW5lcmF0ZSBVUkxzABYKbXNwOiA8PFJlc3BvbnNlIHdpdGggaWQgYW5kACUFPj4AdAYAgSMHOiBVcGxvYWQgZACBPAdzAIETBgBCBVNpZ24AfBEgdXNpbmcgZGlnaXRhbCBzaWduYXR1cmUgAIFBEUNyZWF0AIE5FW5ocwCBbw1HZXQAgWQRcyBsaQAEKSBkZXRhaWxzPj4KCmFsdCBBcHByb3YAgjgSCiAgICAAbhBVcGQAgREXACUJbmhzAIFgLwBVFQCAfxggYnkgTkhTPj4KZWxzZSBEZWNsaW4AgSIcAElHAFEYPj4KZW5kIACFExIAgwwdAAkkAIMeCwCFcRAAggEcTVNQAINiKHByaW50b3UAhEsGZW4AhGYJAIMQMwCFFxAAhXoWAIMzCQCBTDQAhn4JRG93bgCHBAUAiQkFYWxseQCGVgVlZACFMhIAhxIPABgZXG4AhysIAIgABTJuZACFFAsAiG8QAIFDGQCCdQYKb3B0IFRlcm1pbgCHQBQAhlMFAIlCEAAVGgCDSQplbmQK&s=modern-blue)
 
 ### Public. Initialize Contract Request [POST /api/contract_requests]
 This web service allows to initialize contract request creation by generating links for contract request documents upload.
