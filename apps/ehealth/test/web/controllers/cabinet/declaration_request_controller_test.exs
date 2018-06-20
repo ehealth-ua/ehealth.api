@@ -345,7 +345,14 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
       end)
 
-      %{id: declaration_request_id} = insert(:il, :declaration_request, mpi_id: @person_id, data: fixture_params())
+      %{id: employee_id} =
+        insert(:prm, :employee, id: UUID.generate(), speciality: speciality(%{"speciality" => "PEDIATRICIAN"}))
+
+      data =
+        fixture_params()
+        |> put_in(["employee", "id"], employee_id)
+
+      %{id: declaration_request_id} = insert(:il, :declaration_request, mpi_id: @person_id, data: data)
 
       conn =
         conn
@@ -353,14 +360,16 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         |> put_client_id_header(@user_id)
         |> get(cabinet_declaration_requests_path(conn, :show, declaration_request_id))
 
-      resp = json_response(conn, 200)
-
-      schema =
-        "specs/json_schemas/declaration_request/declaration_request_details_online.json"
-        |> File.read!()
-        |> Jason.decode!()
-
-      assert :ok = NExJsonSchema.Validator.validate(schema, resp)
+      assert %{
+               "data" => %{
+                 "seed" => "some_current_hash",
+                 "employee" => %{
+                   "speciality" => %{
+                     "speciality" => "PEDIATRICIAN"
+                   }
+                 }
+               }
+             } = json_response(conn, 200)
     end
 
     test "declaration request is not found", %{conn: conn} do
@@ -664,5 +673,42 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
     person = string_params_for(:person, params)
 
     {:ok, %{"data" => person, "meta" => %{"code" => response_status}}}
+  end
+
+  def speciality(params \\ %{}) do
+    %{
+      "speciality" => Enum.random(doctor_specialities()),
+      "speciality_officio" => true,
+      "level" => Enum.random(doctor_levels()),
+      "qualification_type" => Enum.random(doctor_qualification_types()),
+      "attestation_name" => "random string",
+      "attestation_date" => ~D[1987-04-17],
+      "valid_to_date" => ~D[1987-04-17],
+      "certificate_number" => "random string"
+    }
+    |> Map.merge(params)
+  end
+
+  defp doctor_specialities do
+    [
+      "THERAPIST",
+      "PEDIATRICIAN",
+      "FAMILY_DOCTOR"
+    ]
+  end
+
+  defp doctor_levels do
+    [
+      "Друга категорія",
+      "Перша категорія",
+      "Вища категорія"
+    ]
+  end
+
+  defp doctor_qualification_types do
+    [
+      "Присвоєння",
+      "Підтвердження"
+    ]
   end
 end

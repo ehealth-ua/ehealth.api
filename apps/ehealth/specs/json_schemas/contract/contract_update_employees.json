@@ -1,0 +1,45 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "definitions": {
+        "uuid": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        }
+    },
+    "type": "object",
+    "properties": {
+        "employee_id": {
+            "type": "string",
+            "$ref": "#/definitions/uuid",
+            "description": "employee ID"
+        },
+        "staff_units": {
+            "type": "number",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 1,
+            "exclusiveMaximum": false
+        },
+        "declaration_limit": {
+            "type": "number",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "declaration limit for current employee within the contract"
+        },
+        "division_id": {
+            "type": "string",
+            "$ref": "#/definitions/uuid",
+            "description": "division ID"
+        },
+        "is_active": {
+            "type": "boolean"
+        }
+    },
+    "required": [
+        "employee_id",
+        "staff_units",
+        "declaration_limit",
+        "division_id"
+    ],
+    "additionalProperties": false
+}

@@ -337,13 +337,14 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     test "get declaration request by id in status expired" do
       legal_entity_id = UUID.generate()
 
-      %{id: id} =
+      %{id: id, declaration_id: declaration_id} =
         insert(
           :il,
           :declaration_request,
           id: UUID.generate(),
           data: %{},
-          status: DeclarationRequest.status(:expired)
+          status: DeclarationRequest.status(:expired),
+          declaration_id: UUID.generate()
         )
 
       conn = put_client_id_header(build_conn(), legal_entity_id)
@@ -353,6 +354,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       assert resp
       assert resp["data"]["id"]
       assert resp["data"]["declaration_number"]
+      assert resp["data"]["declaration_id"] == declaration_id
       assert resp["data"]["status"] == DeclarationRequest.status(:expired)
       assert resp["data"]["person"] == nil
       assert resp["data"]["employee"] == nil
@@ -362,13 +364,14 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     test "get declaration request by id in status expired when data is NULL" do
       legal_entity_id = UUID.generate()
 
-      %{id: id} =
+      %{id: id, declaration_id: declaration_id} =
         insert(
           :il,
           :declaration_request,
           id: UUID.generate(),
           data: nil,
-          status: DeclarationRequest.status(:expired)
+          status: DeclarationRequest.status(:expired),
+          declaration_id: UUID.generate()
         )
 
       conn = put_client_id_header(build_conn(), legal_entity_id)
@@ -378,6 +381,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       assert resp
       assert resp["data"]["id"]
       assert resp["data"]["declaration_number"]
+      assert resp["data"]["declaration_id"] == declaration_id
       assert resp["data"]["status"] == DeclarationRequest.status(:expired)
       assert resp["data"]["person"] == nil
       assert resp["data"]["employee"] == nil

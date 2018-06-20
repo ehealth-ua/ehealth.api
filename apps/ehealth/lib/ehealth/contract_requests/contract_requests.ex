@@ -59,6 +59,12 @@ defmodule EHealth.ContractRequests do
     parent_contract_id
   )a
 
+  @forbidden_statuses_for_termination [
+    ContractRequest.status(:declined),
+    ContractRequest.status(:signed),
+    ContractRequest.status(:terminated)
+  ]
+
   def search(search_params) do
     with %Ecto.Changeset{valid?: true} = changeset <- Search.changeset(search_params),
          %Page{} = paging <- search(changeset, search_params, ContractRequest) do
@@ -71,15 +77,15 @@ defmodule EHealth.ContractRequests do
 
     with {:ok, %{"data" => %{"secret_url" => statute_url}}} <-
            @media_storage_api.create_signed_url("PUT", get_bucket(), "contract_request_statute.jpeg", id, []),
-         {:ok, %{"data" => %{"secret_url" => equipment_agreement_url}}} <-
+         {:ok, %{"data" => %{"secret_url" => additional_document_url}}} <-
            @media_storage_api.create_signed_url(
              "PUT",
              get_bucket(),
-             "contract_request_equipment_agreement.jpeg",
+             "contract_request_additional_document.jpeg",
              id,
              []
            ) do
-      %{"id" => id, "statute_url" => statute_url, "equipment_agreement_url" => equipment_agreement_url}
+      %{"id" => id, "statute_url" => statute_url, "additional_document_url" => additional_document_url}
     end
   end
 
@@ -113,8 +119,8 @@ defmodule EHealth.ContractRequests do
          :ok <-
            validate_document(
              id,
-             "contract_request_equipment_agreement.jpeg",
-             params["equipment_agreement_md5"],
+             "contract_request_additional_document.jpeg",
+             params["additional_document_md5"],
              headers
            ),
          _ <- terminate_pending_contracts(params),
@@ -184,7 +190,7 @@ defmodule EHealth.ContractRequests do
            params
            |> Map.delete("id")
            |> Map.put("updated_by", user_id)
-           |> set_contract_number(params)
+           |> set_contract_number(contract_request)
            |> Map.put("status", ContractRequest.status(:approved)),
          %Ecto.Changeset{valid?: true} = changes <- approve_changeset(contract_request, update_params),
          data <- prepare_contract_request_data(changes),
@@ -272,7 +278,7 @@ defmodule EHealth.ContractRequests do
 
     with {:ok, %ContractRequest{} = contract_request} <- get_contract_request(client_id, client_type, params["id"]),
          {:contractor_owner, :ok} <- {:contractor_owner, validate_contractor_owner_id(contract_request)},
-         true <- contract_request.status != ContractRequest.status(:signed),
+         true <- contract_request.status not in @forbidden_statuses_for_termination,
          update_params <-
            params
            |> Map.put("status", ContractRequest.status(:terminated))
@@ -453,7 +459,12 @@ defmodule EHealth.ContractRequests do
 
   def get_printout_content(id, client_type, headers) do
     with {:ok, contract_request, _} <- get_by_id(headers, client_type, id),
-         :ok <- validate_status(contract_request, ContractRequest.status(:pending_nhs_sign)),
+         :ok <-
+           validate_status(
+             contract_request,
+             ContractRequest.status(:pending_nhs_sign),
+             "Incorrect status of contract_request to generate printout form"
+           ),
          {:ok, printout_content} <- ContractRequestPrintoutForm.render(contract_request, headers) do
       {:ok, contract_request, printout_content}
     end
@@ -478,6 +489,7 @@ defmodule EHealth.ContractRequests do
       nhs_signer_base
       issue_city
       contract_number
+      contractor_divisions
       contractor_employee_divisions
       status
       nhs_signer_id
@@ -490,6 +502,7 @@ defmodule EHealth.ContractRequests do
     |> Map.put(:is_active, true)
     |> Map.put(:inserted_by, contract_request.updated_by)
     |> Map.put(:updated_by, contract_request.updated_by)
+    |> Map.put(:status, Contract.status(:verified))
   end
 
   defp validate_content(%ContractRequest{data: data, status: status, printout_content: printout_content}, content) do
@@ -584,7 +597,7 @@ defmodule EHealth.ContractRequests do
     do:
       {:error, {:bad_request, "document must be signed by 2 signers but contains #{Enum.count(signatures)} signatures"}}
 
-  defp set_contract_number(params, %{"parent_contract_id" => parent_contract_id}) when not is_nil(parent_contract_id) do
+  defp set_contract_number(params, %{parent_contract_id: parent_contract_id}) when not is_nil(parent_contract_id) do
     params
   end
 
@@ -730,24 +743,6 @@ defmodule EHealth.ContractRequests do
     |> Jason.encode!()
     |> Jason.decode!()
     |> validate_contract_employee_divisions()
-  end
-
-  defp validate_contract_employee_divisions(%{
-         "parent_contract_id" => parent_contract_id,
-         "contractor_employee_divisions" => contractor_employee_divisions
-       })
-       when not is_nil(parent_contract_id) and not is_nil(contractor_employee_divisions) do
-    {:error,
-     [
-       {
-         %{
-           description: "Employee can't be updated via Contract Request",
-           params: [],
-           rule: :invalid
-         },
-         "$.contractor_employee_divisions"
-       }
-     ]}
   end
 
   defp validate_contract_employee_divisions(params) do
@@ -1275,8 +1270,11 @@ defmodule EHealth.ContractRequests do
     end
   end
 
-  defp validate_status(%ContractRequest{status: status}, required_status) when status == required_status, do: :ok
-  defp validate_status(_, _), do: {:error, {:conflict, "Incorrect status of contract_request to modify it"}}
+  defp validate_status(contract_request, status),
+    do: validate_status(contract_request, status, "Incorrect status of contract_request to modify it")
+
+  defp validate_status(%ContractRequest{status: status}, required_status, _) when status == required_status, do: :ok
+  defp validate_status(_, _, msg), do: {:error, {:conflict, msg}}
 
   def get_by_id(headers, client_type, id) do
     client_id = get_client_id(headers)

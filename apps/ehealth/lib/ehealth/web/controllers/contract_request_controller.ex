@@ -15,9 +15,9 @@ defmodule EHealth.Web.ContractRequestController do
   end
 
   def draft(conn, _) do
-    with %{"id" => id, "statute_url" => statute_url, "equipment_agreement_url" => equipment_agreement_url} <-
+    with %{"id" => id, "statute_url" => statute_url, "additional_document_url" => additional_document_url} <-
            ContractRequests.draft() do
-      render(conn, "draft.json", id: id, statute_url: statute_url, equipment_agreement_url: equipment_agreement_url)
+      render(conn, "draft.json", id: id, statute_url: statute_url, additional_document_url: additional_document_url)
     end
   end
 

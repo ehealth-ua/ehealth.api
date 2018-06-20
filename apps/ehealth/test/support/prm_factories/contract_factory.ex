@@ -68,7 +68,7 @@ defmodule EHealth.PRMFactories.ContractFactory do
           declaration_limit: 2000,
           inserted_by: UUID.generate(),
           updated_by: UUID.generate(),
-          start_date: Date.utc_today()
+          start_date: NaiveDateTime.utc_now()
         }
       end
 

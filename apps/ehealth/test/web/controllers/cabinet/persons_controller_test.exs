@@ -476,6 +476,10 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
         })
       end)
 
+      expect(OPSMock, :get_latest_block, fn _params ->
+        {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
+      end)
+
       legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
       person_id = "c8912855-21c3-4771-ba18-bcd8e524f14c"
       division = insert(:prm, :division, legal_entity: legal_entity)
@@ -503,13 +507,22 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
         |> put_req_header("edrpou", "2222222220")
         |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
-        |> post(cabinet_declarations_path(conn, :create_declaration_request), %{
+        |> post(cabinet_declaration_requests_path(conn, :create), %{
           person_id: person_id,
           employee_id: employee.id,
           division_id: employee.division.id
         })
 
-      assert %{"data" => %{"seed" => "some_current_hash"}} = json_response(conn, 200)
+      assert %{
+               "data" => %{
+                 "seed" => "some_current_hash",
+                 "employee" => %{
+                   "speciality" => %{
+                     "speciality" => "PEDIATRICIAN"
+                   }
+                 }
+               }
+             } = json_response(conn, 200)
     end
   end
 

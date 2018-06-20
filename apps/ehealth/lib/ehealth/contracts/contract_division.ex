@@ -7,6 +7,7 @@ defmodule EHealth.Contracts.ContractDivision do
   import Ecto.Changeset
 
   @primary_key {:id, :binary_id, autogenerate: true}
+  @derive {Jason.Encoder, except: [:__meta__, :contract]}
 
   @fields_required ~w(
     division_id

@@ -19,17 +19,6 @@ defmodule EHealth.Web.Cabinet.DeclarationController do
     end
   end
 
-  def create_declaration_request(conn, params) do
-    with {:ok, %{urgent_data: urgent_data, finalize: result}} <-
-           DeclarationRequests.create_online(params, conn.req_headers),
-         {:ok, %{"data" => %{"hash" => hash}}} = OPS.get_latest_block() do
-      conn
-      |> assign(:urgent, urgent_data)
-      |> put_view(DeclarationRequestView)
-      |> render("declaration_request.json", declaration_request: result, hash: hash)
-    end
-  end
-
   def approve_declaration_request(%Plug.Conn{req_headers: headers} = conn, %{"id" => id}) do
     with {:ok, %{declaration_request: declaration_request}} <- DeclarationRequests.approve(id, headers) do
       conn

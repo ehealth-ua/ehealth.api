@@ -141,7 +141,7 @@ defmodule EHealth.Unit.LegalEntityTest do
 
       content =
         Map.merge(get_legal_entity_data(), %{
-          "short_name" => "Nebo15",
+          "short_name" => "edenlab",
           "email" => "changed@example.com",
           "kveds" => ["12.21"]
         })
@@ -201,17 +201,27 @@ defmodule EHealth.Unit.LegalEntityTest do
     setup _context do
       insert_dictionaries()
 
+      :ok
+    end
+
+    test "create Legal Entity with invalid type" do
+      invalid_legal_entity_type = "MIS"
+      data = Map.merge(get_legal_entity_data(), %{"type" => invalid_legal_entity_type})
+
+      assert {
+               :error,
+               {:"422", "Only legal_entity with type MSP or Pharmacy could be created"}
+             } = create_legal_entity(data)
+    end
+
+    test "mis_verified NOT_VERIFIED" do
       expect(ManMock, :render_template, fn _id, _data ->
         {:ok, "<html><body>Printout form for declaration request.</body></html>"}
       end)
 
-      :ok
-    end
-
-    test "mis_verified NOT_VERIFIED" do
       data =
         Map.merge(get_legal_entity_data(), %{
-          "short_name" => "Nebo15",
+          "short_name" => "edenlab",
           "email" => "changed@example.com",
           "kveds" => ["12.21"]
         })
@@ -220,7 +230,7 @@ defmodule EHealth.Unit.LegalEntityTest do
       assert {:ok, %{legal_entity: legal_entity, security: security}} = create_legal_entity(data)
 
       # test legal entity data
-      assert "Nebo15" == legal_entity.short_name
+      assert "edenlab" == legal_entity.short_name
       assert "ACTIVE" == legal_entity.status
       assert "NOT_VERIFIED" == legal_entity.mis_verified
       refute is_nil(legal_entity.nhs_verified)
@@ -238,6 +248,10 @@ defmodule EHealth.Unit.LegalEntityTest do
     end
 
     test "mis_verified VERIFIED" do
+      expect(ManMock, :render_template, fn _id, _data ->
+        {:ok, "<html><body>Printout form for declaration request.</body></html>"}
+      end)
+
       data =
         Map.merge(get_legal_entity_data(), %{
           "short_name" => "edenlab",
@@ -287,7 +301,7 @@ defmodule EHealth.Unit.LegalEntityTest do
       update_data =
         Map.merge(get_legal_entity_data(), %{
           "edrpou" => "37367387",
-          "short_name" => "Nebo15",
+          "short_name" => "edenlab",
           "email" => "changed@example.com",
           "kveds" => ["12.21"]
         })
@@ -299,7 +313,7 @@ defmodule EHealth.Unit.LegalEntityTest do
       assert "ACTIVE" == legal_entity.status
       assert "VERIFIED" == legal_entity.mis_verified
       assert "changed@example.com" == legal_entity.email
-      assert "Nebo15" == legal_entity.short_name
+      assert "edenlab" == legal_entity.short_name
       assert "Лев Томас" == legal_entity.beneficiary
 
       assert [

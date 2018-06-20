@@ -7,18 +7,22 @@ defmodule EHealth.DeclarationRequests.TerminatorTest do
   import EHealth.DeclarationRequests.Terminator
 
   test "terminate outdated declaration_requests" do
-    simple_fixture(:declaration_request)
+    insert(:il, :declaration_request)
     inserted_at = NaiveDateTime.add(NaiveDateTime.utc_now(), -86_400 * 10, :seconds)
 
     declaration_request1 =
-      simple_fixture(:declaration_request)
-      |> Ecto.Changeset.change(inserted_at: inserted_at)
-      |> Repo.update!()
+      insert(
+        :il,
+        :declaration_request,
+        inserted_at: inserted_at
+      )
 
     declaration_request2 =
-      simple_fixture(:declaration_request)
-      |> Ecto.Changeset.change(inserted_at: inserted_at)
-      |> Repo.update!()
+      insert(
+        :il,
+        :declaration_request,
+        inserted_at: inserted_at
+      )
 
     insert(:prm, :global_parameter, parameter: "declaration_request_term_unit", value: "DAYS")
     insert(:prm, :global_parameter, parameter: "declaration_request_expiration", value: "5")

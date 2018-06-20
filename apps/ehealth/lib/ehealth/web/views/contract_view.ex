@@ -36,11 +36,6 @@ defmodule EHealth.Web.ContractView do
   end
 
   def render("show.json", %{contract: contract, references: references}) do
-    contract_request =
-      references
-      |> Map.get(:contract_request)
-      |> Map.get(contract.contract_request_id)
-
     contract
     |> Map.take(~w(
       id
@@ -78,10 +73,10 @@ defmodule EHealth.Web.ContractView do
     )
     |> Map.put(
       :contractor_employee_divisions,
-      ContractRequestView.render_association(
+      render_association(
         :employee_divisions,
         references,
-        contract_request.contractor_employee_divisions || []
+        contract.contract_employees || []
       )
     )
     |> Map.put(
@@ -93,15 +88,26 @@ defmodule EHealth.Web.ContractView do
   def render("suspended.json", %{suspended: suspended}), do: %{suspended: suspended}
   def render("renewed.json", %{renewed: renewed}), do: %{renewed: renewed}
 
+  def render_association(:employee_divisions, references, employee_divisions) do
+    Enum.map(employee_divisions, fn employee_division ->
+      employee_division
+      |> Map.take(~w(division_id staff_units declaration_limit)a)
+      |> Map.put(
+        "employee",
+        ContractRequestView.render_association(:employee_division, references, employee_division.employee_id)
+      )
+    end)
+  end
+
   def render_association(:contractor_divisions, references, contractor_divisions) do
     Enum.map(contractor_divisions, &render_association(:division, references, &1))
   end
 
-  def render_association(:division, references, id) do
+  def render_association(:division, references, contract_division) do
     with %{} = division <-
            references
            |> Map.get(:division)
-           |> Map.get(id) do
+           |> Map.get(contract_division.division_id) do
       Map.take(division, ~w(id name addresses phone email working_hours mountain_group phones)a)
     end
   end

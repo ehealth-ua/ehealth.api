@@ -168,7 +168,8 @@
                     "division_id"
                 ],
                 "additionalProperties": false
-            }
+            },
+            "minItems": 1
         },
         "contractor_divisions": {
             "type": "array",
@@ -201,18 +202,19 @@
         "statute_md5": {
             "type": "string"
         },
-        "equipment_agreement_md5": {
+        "additional_document_md5": {
             "type": "string"
         }
     },
     "required": [
         "statute_md5",
-        "equipment_agreement_md5",
+        "additional_document_md5",
         "contractor_owner_id",
         "contractor_base",
         "contractor_payment_details",
         "contractor_rmsp_amount",
         "contractor_divisions",
+        "contractor_employee_divisions",
         "id_form"
     ],
     "additionalProperties": false

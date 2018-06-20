@@ -1,18 +1,23 @@
 defmodule EHealth.Contracts do
   @moduledoc false
 
-  import EHealth.Utils.Connection, only: [get_client_id: 1]
+  import EHealth.Utils.Connection, only: [get_client_id: 1, get_consumer_id: 1]
 
   import Ecto.Query
   import Ecto.Changeset
-  alias EHealth.Validators.Preload
-  alias EHealth.Utils.MapDeepMerge
+  alias EHealth.API.Signature
   alias EHealth.Contracts.Contract
   alias EHealth.Contracts.ContractEmployee
   alias EHealth.Contracts.ContractDivision
   alias EHealth.Contracts.Search
+  alias EHealth.Employees.Employee
   alias EHealth.LegalEntities.LegalEntity
+  alias EHealth.Parties
+  alias EHealth.Parties.Party
   alias EHealth.PRMRepo
+  alias EHealth.Validators.JsonSchema
+  alias EHealth.Validators.Preload
+  alias EHealth.Validators.Reference
   alias Scrivener.Page
 
   @status_verified Contract.status(:verified)
@@ -73,7 +78,7 @@ defmodule EHealth.Contracts do
       PRMRepo.transaction(fn ->
         ContractEmployee
         |> where([ce], ce.contract_id == ^contract.id)
-        |> PRMRepo.update_all(set: [end_date: Date.utc_today(), updated_by: params.updated_by])
+        |> PRMRepo.update_all(set: [end_date: NaiveDateTime.utc_now(), updated_by: params.updated_by])
 
         contract
         |> changeset(%{"status" => @status_terminated})
@@ -81,14 +86,14 @@ defmodule EHealth.Contracts do
 
         contract_employees =
           contract.contract_employees
-          |> Poison.encode!()
-          |> Poison.decode!()
+          |> Jason.encode!()
+          |> Jason.decode!()
           |> Enum.map(&Map.drop(&1, ~w(id contract_id inserted_by updated_by)))
 
         contract_divisions =
           contract.contract_divisions
-          |> Poison.encode!()
-          |> Poison.decode!()
+          |> Jason.encode!()
+          |> Jason.decode!()
           |> Enum.map(&Map.get(&1, "division_id"))
 
         new_contract_params =
@@ -117,6 +122,188 @@ defmodule EHealth.Contracts do
       {:ok, load_references(contract)}
     end
   end
+
+  def update(id, params, headers) do
+    user_id = get_consumer_id(headers)
+
+    with {:ok, contract, _} <- get_by_id(id, params),
+         :ok <- JsonSchema.validate(:contract_sign, params),
+         {:ok, content, signer} <- decode_signed_content(params, headers),
+         {_, %Party{tax_id: tax_id}} <- {:employee, Parties.get_by_user_id(user_id)},
+         :ok <- validate_signer_drfo(tax_id, signer["drfo"]),
+         :ok <- validate_status(contract, Contract.status(:verified)),
+         :ok <- JsonSchema.validate(:contract_update_employees, content),
+         {:ok, _} <- process_employee_division(contract, content, user_id) do
+      now = NaiveDateTime.utc_now()
+
+      query =
+        ContractEmployee
+        |> where([ce], ce.contract_id == ^contract.id)
+        |> where(
+          [ce],
+          ce.start_date <= ^now and (is_nil(ce.end_date) or ce.end_date >= ^now)
+        )
+
+      contract
+      |> PRMRepo.preload([contract_employees: query], force: true)
+      |> load_contract_references()
+    else
+      {:employee, _} -> {:error, {:forbidden, "User is not allowed to this action by client_id"}}
+      error -> error
+    end
+  end
+
+  defp process_employee_division(
+         %Contract{id: id} = contract,
+         %{"employee_id" => employee_id, "division_id" => division_id} = params,
+         user_id
+       ) do
+    case get_contract_employee(id, employee_id, division_id) do
+      %ContractEmployee{} = contract_employee -> update_contract_employee(contract, contract_employee, params, user_id)
+      nil -> insert_contract_employee(contract, params, user_id)
+    end
+  end
+
+  defp update_contract_employee(_, %ContractEmployee{} = contract_employee, %{"is_active" => false}, user_id) do
+    contract_employee
+    |> ContractEmployee.changeset(%{"end_date" => NaiveDateTime.utc_now(), "updated_by" => user_id})
+    |> PRMRepo.update()
+  end
+
+  defp update_contract_employee(%Contract{} = contract, %ContractEmployee{} = contract_employee, params, user_id) do
+    with :ok <- validate_employee_division(contract, params) do
+      contract_employee
+      |> ContractEmployee.changeset(%{"end_date" => NaiveDateTime.utc_now(), "updated_by" => user_id})
+      |> PRMRepo.update()
+
+      insert_contract_employee(contract, params, user_id)
+    end
+  end
+
+  defp insert_contract_employee(_, %{"is_active" => false}, _) do
+    {:error, {:"422", "Invalid employee_id to deactivate"}}
+  end
+
+  defp insert_contract_employee(%Contract{} = contract, params, user_id) do
+    with :ok <- validate_employee_division(contract, params) do
+      %ContractEmployee{contract: contract}
+      |> ContractEmployee.changeset(%{
+        employee_id: params["employee_id"],
+        division_id: params["division_id"],
+        staff_units: params["staff_units"],
+        declaration_limit: params["declaration_limit"],
+        start_date: NaiveDateTime.utc_now(),
+        inserted_by: user_id,
+        updated_by: user_id
+      })
+      |> PRMRepo.insert()
+    end
+  end
+
+  defp validate_employee_division(%Contract{} = contract, params) do
+    contract_divisions = Enum.map(contract.contract_divisions, &Map.get(&1, :division_id))
+
+    with {:ok, %Employee{} = employee} <-
+           Reference.validate(
+             :employee,
+             params["employee_id"],
+             "$.employee_id"
+           ),
+         :ok <- check_employee(employee),
+         {:division_subset, true} <- {:division_subset, params["division_id"] in contract_divisions} do
+      :ok
+    else
+      {:division_subset, _} ->
+        {:error,
+         [
+           {
+             %{
+               description: "Division should be among contract_divisions",
+               params: [],
+               rule: :invalid
+             },
+             "$.division_id"
+           }
+         ]}
+
+      error ->
+        error
+    end
+  end
+
+  defp check_employee(%Employee{employee_type: "DOCTOR", status: "APPROVED"}), do: :ok
+
+  defp check_employee(_) do
+    {:error,
+     [
+       {
+         %{
+           description: "Employee must be active DOCTOR",
+           params: [],
+           rule: :invalid
+         },
+         "$.employee.id"
+       }
+     ]}
+  end
+
+  defp get_contract_employee(contract_id, employee_id, division_id) do
+    ContractEmployee
+    |> where([ce], ce.contract_id == ^contract_id)
+    |> where([ce], ce.employee_id == ^employee_id)
+    |> where([ce], ce.division_id == ^division_id)
+    |> where([ce], is_nil(ce.end_date) or ce.end_date > ^NaiveDateTime.utc_now())
+    |> PRMRepo.one()
+  end
+
+  def decode_signed_content(
+        %{"signed_content" => signed_content, "signed_content_encoding" => encoding},
+        headers
+      ) do
+    with {:ok, %{"data" => data}} <- Signature.decode_and_validate(signed_content, encoding, headers) do
+      case data do
+        %{
+          "content" => content,
+          "signatures" => [%{"is_valid" => true, "signer" => signer}]
+        } ->
+          {:ok, content, signer}
+
+        %{"signatures" => [%{"is_valid" => false, "validation_error_message" => error}]} ->
+          {:error, {:bad_request, error}}
+
+        %{"signatures" => signatures} ->
+          {:error,
+           {:bad_request, "document must be signed by 1 signer but contains #{Enum.count(signatures)} signatures"}}
+
+        error ->
+          error
+      end
+    end
+  end
+
+  defp validate_signer_drfo(tax_id, signer_drfo) when not is_nil(signer_drfo) do
+    drfo = String.replace(signer_drfo, " ", "")
+
+    with true <- tax_id == drfo || translit_drfo(tax_id) == translit_drfo(drfo) do
+      :ok
+    else
+      _ ->
+        {:error, {:"422", "Does not match the signer drfo"}}
+    end
+  end
+
+  defp validate_signer_drfo(_, _) do
+    {:error, {:"422", "Invalid drfo"}}
+  end
+
+  defp translit_drfo(drfo) do
+    drfo
+    |> Translit.translit()
+    |> String.upcase()
+  end
+
+  defp validate_status(%Contract{status: status}, status), do: :ok
+  defp validate_status(_, _), do: {:error, {:conflict, "Not active contract can't be updated"}}
 
   def get_by_id(id) do
     Contract
@@ -212,24 +399,16 @@ defmodule EHealth.Contracts do
   defp validate_contractor_legal_entity_id(_contract, _params), do: :ok
 
   def load_contract_references(contract) do
-    contract_references =
+    references =
       Preload.preload_references(contract, [
         {:contractor_legal_entity_id, :legal_entity},
         {:contractor_owner_id, :employee},
         {:nhs_legal_entity_id, :legal_entity},
         {:nhs_signer_id, :employee},
         {:contract_request_id, :contract_request},
-        {:contractor_divisions, :division}
+        {[:contract_employees, "$", :employee_id], :employee},
+        {[:contract_divisions, "$", :division_id], :division}
       ])
-
-    contract_request = get_in(contract_references, [:contract_request, contract.contract_request_id])
-
-    contract_request_references =
-      Preload.preload_references(contract_request, [
-        {[:contractor_employee_divisions, "$", "employee_id"], :employee}
-      ])
-
-    references = MapDeepMerge.merge(contract_references, contract_request_references)
 
     {:ok, contract, references}
   end
@@ -244,11 +423,11 @@ defmodule EHealth.Contracts do
   end
 
   defp changeset(%Contract{} = contract, attrs) do
-    inserted_by = Map.get(attrs, "inserted_by")
-    updated_by = Map.get(attrs, "updated_by")
+    inserted_by = Map.get(attrs, :inserted_by)
+    updated_by = Map.get(attrs, :updated_by)
 
     attrs =
-      case Map.get(attrs, "contractor_employee_divisions") do
+      case Map.get(attrs, :contractor_employee_divisions) do
         nil ->
           attrs
 
@@ -257,16 +436,16 @@ defmodule EHealth.Contracts do
             Enum.map(
               contractor_employee_divisions,
               &(&1
-                |> Map.put("start_date", Map.get(attrs, "start_date"))
+                |> Map.put("start_date", NaiveDateTime.from_erl!({Date.to_erl(attrs.start_date), {0, 0, 0}}))
                 |> Map.put("inserted_by", inserted_by)
                 |> Map.put("updated_by", updated_by))
             )
 
-          Map.put(attrs, "contract_employees", contractor_employee_divisions)
+          Map.put(attrs, :contract_employees, contractor_employee_divisions)
       end
 
     attrs =
-      case Map.get(attrs, "contractor_divisions") do
+      case Map.get(attrs, :contractor_divisions) do
         nil ->
           attrs
 
@@ -277,7 +456,7 @@ defmodule EHealth.Contracts do
               &%{"division_id" => &1, "inserted_by" => inserted_by, "updated_by" => updated_by}
             )
 
-          Map.put(attrs, "contract_divisions", contractor_divisions)
+          Map.put(attrs, :contract_divisions, contractor_divisions)
       end
 
     contract
