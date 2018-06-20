@@ -2450,7 +2450,7 @@ After sign new declaration all previously created pending (status one of the fol
             + employee (Employee_Minimal, required)
             + `legal_entity` (`Medical_Service_Provider`, required)
                 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + division (`Division_Details`, required)
+            + division (`Division_Declaration`, required)
             + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
             + channel: `MIS` (enum, required) - channel that invoke declaration create service
         + urgent (object, required)
@@ -4594,10 +4594,10 @@ This method is used to create Declaration Request online (as part of Declaration
             + include `Declaration_Request_Public_Response`
             + status: `NEW` (string, required)
             + employee (Employee_Minimal, required)
-                + specialities (array[Speciality], required)  - блок інформації про отримання сертифікату спеціалісту та проходження атестацій
+                + speciality: `FAMILY_DOCTOR` (string, required) - інформація про спеціальність лікаря
             + `legal_entity` (`Medical_Service_Provider`, required)
                 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + division (`Division_Details`, required)
+            + division (`Division_Declaration`, required)
             + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
             + channel: `CABINET` (enum, required) - channel that invoke declaration create service
         + urgent (object, required)
@@ -4686,10 +4686,10 @@ Current WS allows to see details of declaration request knowing its' id.
             + include `Declaration_Request_Public_Response`
             + status: `NEW` (string, required)
             + employee (Employee_Minimal, required)
-                + specialities (array[Speciality], required)  - блок інформації про отримання сертифікату спеціалісту та проходження атестацій
+                + speciality: `FAMILY_DOCTOR` (string, required) - інформація про спеціальність лікаря
             + `legal_entity` (`Medical_Service_Provider`, required)
                 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
-            + division (`Division_Details`, required)
+            + division (`Division_Declaration`, required)
             + content: `Declaration content` (string, required) - HTML document that MUST be shown to a  - Should be defined on the client side.end-user and signed by hes key.
             + channel: `CABINET` (enum, required) - channel that invoke declaration create service
         + urgent (object, required)
@@ -4748,14 +4748,14 @@ The following tables describes contract_request object fields and it`s child obj
 
 Attribute |Is required| Description
 ----------|-----------|-------------
-contractor_owner_id|true| підписант, зі сторони мед закладу
+contractor_owner_id|true| підписант, зі сторони мед. закладу
 contractor_base|true| на якій підставі діє підписант: закон/домовленість
-contractor_payment_details|true| об'єкт, що місить дані по рахунку, на який будуть здійснюватися виплати
+contractor_payment_details|true| об'єкт, що містить дані по рахунку, на який будуть здійснюватися виплати
 contractor_rmsp_amount|true| к-сть осіб, що обслуговувалися мед закладом (додаток 1.1 пункт 7)
-contractor_divisions|true| масив id відділень мед закладу, що включаютбся в договір
+contractor_divisions|true| масив id відділень мед. закладу, що включаються в договір
 contractor_employee_divisions|true| масив лікарів (на конкретних відділеннях), що входять да контракту та капітаційного звіту
 external_contractor_flag|true| наявність додатку 2 (підрядники, залучені до надання медичних послуг за Договором)
-external_contractors|false|Array of external_contractor objects - підрядники, залучені до надання медичних послуг за Договором
+external_contractors|false|масив об'єктів типу external_contractor objects - підрядники, залучені до надання медичних послуг за Договором
 start_date|false| пункт 9.2 - цей договір діє з (рік має бути поточний або настпуний)
 end_date|false| пункт 9.2 - цей договір діє по (рік має співпадати з роком у start_date)
 id_form|true| словник `CONTRACT_TYPE`, поки що лише один вид Договір на ПМД
@@ -4782,7 +4782,7 @@ Attribute |Is required| Description
 ----------|-----------|----------
 legal_entity_id|true| запис про надавача з системи  
 contract|true| договір з Підрядником
-divisions|true| запис про Місце надання медичних послуг з Системи та послуга
+divisions|true| масив об'єктів типу Division, що зберігає запис про Місце надання медичних послуг з Системи та послугу
 ####Contract
 Attribute |Is required| Description
 ----------|-----------|------------
@@ -4833,20 +4833,22 @@ medical_service|true| послуга, що надається на відділ�
     }
   ],
   "external_contractor_flag": true,
-  "external_contractors": {
-    "legal_entity_id": "2922a240-63db-404e-b730-09222bfeb2dd",
-    "contract": {
-      "number": "1234567",
-      "issued_at": "2018-01-01",
-      "expires_at": "2019-01-01"
-    },
-    "divisions": [
-      {
-        "id": "2922a240-63db-404e-b730-09222bfeb2dd",
-        "medical_service": "Послуга ПМД"
-      }
-    ]
-  },
+   "external_contractors": [
+    {
+      "legal_entity_id": "443e901e-b365-45d2-be14-083ee0aba657",
+      "contract": {
+        "number": "1234567",
+        "issued_at": "2018-01-01",
+        "expires_at": "2019-01-01"
+      },
+      "divisions": [
+        {
+          "id": "2922a240-63db-404e-b730-09222bfeb2dd",
+          "medical_service": "Послуга ПМД"
+        }
+      ]
+    }
+  ],
   "start_date": "2017-04-20",
   "end_date": "2017-04-20",
   "id_form": "5",
@@ -5899,7 +5901,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + doctor (DoctorNew, optional)
 
 ### `Employee_Request`
-+ division_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, optional)
++ division_id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional)
 + position: P8 (string, required) - `Dictionary POSITION`
 + start_date: `2017-03-02T10:45:16.000Z` (string, required)
@@ -6110,6 +6112,20 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + `legal_entity_id`: `c8aadb87-ecb9-41ca-9ad4-ffdfe1dd89c9` (string, required)
 + include Division
+
+### `Division_Declaration`
++ id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ `legal_entity_id`: `c8aadb87-ecb9-41ca-9ad4-ffdfe1dd89c9` (string, required)
++ name: Бориспільське відділення Клініки Ноунейм (string, required) - the full name of division
++ addresses (array[Address], required)
++ phones (array[Phone], required)
++ email: email@example.com (string, required) - division's email
++ type: clinic (enum, required) - division type
+    - CLINIC
+    - AMBULANT_CLINIC
+    - FAP
++ external_id: `3213213` (string, optional)
+
 
 ### `Division_Details_Cabinet`
 + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
