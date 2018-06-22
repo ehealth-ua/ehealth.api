@@ -9,12 +9,20 @@ defmodule EHealth.DeclarationRequests.API.CreatorTest do
   alias EHealth.Utils.NumberGenerator
 
   describe "request_end_date/5" do
-    test "patient is less than 18 years old" do
+    test "patient is less than 18 years old, speciality: PEDIATRICIAN" do
       term = [years: 40]
       birth_date = "2014-10-10"
       today = Date.from_iso8601!("2017-10-16")
 
-      assert ~D[2032-10-09] == Creator.request_end_date(today, term, birth_date, 18)
+      assert ~D[2032-10-09] == Creator.request_end_date("PEDIATRICIAN", today, term, birth_date, 18)
+    end
+
+    test "patient is less than 18 years old, speciality: FAMILY_DOCTOR" do
+      term = [years: 40]
+      birth_date = "2014-10-10"
+      today = Date.from_iso8601!("2017-10-16")
+
+      assert ~D[2057-10-16] == Creator.request_end_date("FAMILY_DOCTOR", today, term, birth_date, 18)
     end
 
     test "patient turns 18 years old tomorrow" do
@@ -22,7 +30,7 @@ defmodule EHealth.DeclarationRequests.API.CreatorTest do
       birth_date = "2000-10-17"
       today = Date.from_iso8601!("2018-10-16")
 
-      assert ~D[2018-10-16] == Creator.request_end_date(today, term, birth_date, 18)
+      assert ~D[2018-10-16] == Creator.request_end_date("PEDIATRICIAN", today, term, birth_date, 18)
     end
 
     test "patient turns 18 years today" do
@@ -30,7 +38,7 @@ defmodule EHealth.DeclarationRequests.API.CreatorTest do
       birth_date = "2000-10-17"
       today = Date.from_iso8601!("2018-10-17")
 
-      assert ~D[2058-10-17] == Creator.request_end_date(today, term, birth_date, 18)
+      assert ~D[2058-10-17] == Creator.request_end_date("FAMILY_DOCTOR", today, term, birth_date, 18)
     end
 
     test "patient is older than 18 years" do
@@ -38,16 +46,24 @@ defmodule EHealth.DeclarationRequests.API.CreatorTest do
       birth_date = "1988-10-10"
       today = Date.from_iso8601!("2017-10-16")
 
-      assert ~D[2057-10-16] == Creator.request_end_date(today, term, birth_date, 18)
+      assert ~D[2057-10-16] == Creator.request_end_date("THERAPIST", today, term, birth_date, 18)
     end
 
-    test "take min between 18 years and declaration term date" do
+    test "take min between 18 years and declaration term date, speciality: PEDIATRICIAN" do
       term = [years: 5]
       birth_date = "1988-10-10"
       today = Date.from_iso8601!("1990-10-10")
 
-      assert ~D[1995-10-10] == Creator.request_end_date(today, term, birth_date, 18)
+      assert ~D[1995-10-10] == Creator.request_end_date("PEDIATRICIAN", today, term, birth_date, 18)
     end
+  end
+
+  test "patient is underage, speciality: FAMILY_DOCTOR" do
+    term = [years: 40]
+    birth_date = "2010-10-10"
+    today = Date.from_iso8601!("2017-10-16")
+
+    assert ~D[2057-10-16] == Creator.request_end_date("THERAPIST", today, term, birth_date, 18)
   end
 
   describe "validate_patient_age/3" do
@@ -66,7 +82,7 @@ defmodule EHealth.DeclarationRequests.API.CreatorTest do
       result =
         %DeclarationRequest{}
         |> Ecto.Changeset.change(raw_declaration_request)
-        |> Creator.validate_patient_age(["PEDIATRICIAN"], 18)
+        |> Creator.validate_patient_age("PEDIATRICIAN", 18)
 
       assert is_nil(result.errors[:data])
     end
@@ -84,7 +100,7 @@ defmodule EHealth.DeclarationRequests.API.CreatorTest do
       result =
         %DeclarationRequest{}
         |> Ecto.Changeset.change(raw_declaration_request)
-        |> Creator.validate_patient_age(["PEDIATRICIAN"], 18)
+        |> Creator.validate_patient_age("PEDIATRICIAN", 18)
 
       assert result.errors[:data] == {"Doctor speciality does not meet the patient's age requirement.", []}
     end

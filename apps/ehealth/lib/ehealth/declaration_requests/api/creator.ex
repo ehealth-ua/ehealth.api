@@ -34,7 +34,12 @@ defmodule EHealth.DeclarationRequests.API.Creator do
   @status_new DeclarationRequest.status(:new)
   @status_approved DeclarationRequest.status(:approved)
 
-  @allowed_employee_specialities ~w(THERAPIST PEDIATRICIAN FAMILY_DOCTOR)
+  @pediatrician "PEDIATRICIAN"
+  @therapist "THERAPIST"
+  @family_doctor "FAMILY_DOCTOR"
+  @allowed_employee_specialities [@pediatrician, @therapist, @family_doctor]
+
+  @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
 
   def create(params, user_id, person, employee, division, legal_entity, headers) do
     updates = [
@@ -296,7 +301,7 @@ defmodule EHealth.DeclarationRequests.API.Creator do
       legal_entity: legal_entity
     } = auxiliary_entities
 
-    specialities = Map.get(employee.additional_info, "specialities") || []
+    employee_speciality_officio = employee.speciality["speciality"]
 
     overlimit = Map.get(attrs, "overlimit", false)
     channel = attrs["channel"]
@@ -311,14 +316,14 @@ defmodule EHealth.DeclarationRequests.API.Creator do
     |> validate_legal_entity_division(legal_entity, division)
     |> validate_employee_type(employee)
     |> validate_patient_birth_date()
-    |> validate_patient_age(Enum.map(specialities, & &1["speciality"]), global_parameters["adult_age"])
+    |> validate_patient_age(employee_speciality_officio, global_parameters["adult_age"])
     |> validate_authentication_method_phone_number(headers)
     |> validate_tax_id()
     |> validate_person_addresses()
     |> validate_confidant_persons_tax_id()
     |> validate_confidant_person_rel_type()
     |> validate_authentication_methods()
-    |> put_start_end_dates(global_parameters)
+    |> put_start_end_dates(employee_speciality_officio, global_parameters)
     |> put_in_data(["employee"], prepare_employee_struct(employee))
     |> put_in_data(["division"], prepare_division_struct(division))
     |> put_in_data(["legal_entity"], prepare_legal_entity_struct(legal_entity))
@@ -391,7 +396,7 @@ defmodule EHealth.DeclarationRequests.API.Creator do
     end)
   end
 
-  def validate_patient_age(changeset, specialities, adult_age) do
+  def validate_patient_age(changeset, speciality, adult_age) do
     validate_change(changeset, :data, fn :data, data ->
       patient_birth_date =
         data
@@ -400,16 +405,16 @@ defmodule EHealth.DeclarationRequests.API.Creator do
 
       patient_age = Timex.diff(Timex.now(), patient_birth_date, :years)
 
-      case Enum.any?(specialities, &belongs_to(patient_age, adult_age, &1)) do
+      case belongs_to(patient_age, adult_age, speciality) do
         true -> []
         false -> [data: "Doctor speciality does not meet the patient's age requirement."]
       end
     end)
   end
 
-  def belongs_to(age, adult_age, "THERAPIST"), do: age >= string_to_integer(adult_age)
-  def belongs_to(age, adult_age, "PEDIATRICIAN"), do: age < string_to_integer(adult_age)
-  def belongs_to(_age, _adult_age, "FAMILY_DOCTOR"), do: true
+  def belongs_to(age, adult_age, @therapist), do: age >= string_to_integer(adult_age)
+  def belongs_to(age, adult_age, @pediatrician), do: age < string_to_integer(adult_age)
+  def belongs_to(_age, _adult_age, @family_doctor), do: true
 
   defp validate_authentication_method_phone_number(changeset, headers) do
     validate_change(changeset, :data, fn :data, data ->
@@ -537,7 +542,7 @@ defmodule EHealth.DeclarationRequests.API.Creator do
     {i + 1, changeset}
   end
 
-  defp put_start_end_dates(changeset, global_parameters) do
+  defp put_start_end_dates(changeset, employee_speciality_officio, global_parameters) do
     %{
       "declaration_term" => term,
       "declaration_term_unit" => unit,
@@ -556,7 +561,9 @@ defmodule EHealth.DeclarationRequests.API.Creator do
     birth_date = get_in(data, ["person", "birth_date"])
 
     start_date = Date.utc_today()
-    end_date = request_end_date(start_date, [{normalized_unit, term}], birth_date, adult_age)
+
+    end_date =
+      request_end_date(employee_speciality_officio, start_date, [{normalized_unit, term}], birth_date, adult_age)
 
     new_data =
       data
@@ -703,19 +710,21 @@ defmodule EHealth.DeclarationRequests.API.Creator do
     end
   end
 
-  def request_end_date(today, expiration, birth_date, adult_age) do
+  def request_end_date(employee_speciality_officio, today, expiration, birth_date, adult_age) do
     birth_date = Date.from_iso8601!(birth_date)
 
     normal_expiration_date = Timex.shift(today, expiration)
     adjusted_expiration_date = Timex.shift(birth_date, years: adult_age, days: -1)
 
-    if Timex.diff(today, birth_date, :years) >= adult_age do
-      normal_expiration_date
-    else
-      case Timex.compare(normal_expiration_date, adjusted_expiration_date) do
-        1 -> adjusted_expiration_date
-        x when x < 1 -> normal_expiration_date
-      end
+    case {employee_speciality_officio, Timex.diff(today, birth_date, :years) >= adult_age} do
+      {@pediatrician, false} ->
+        case Timex.compare(normal_expiration_date, adjusted_expiration_date) do
+          1 -> adjusted_expiration_date
+          _ -> normal_expiration_date
+        end
+
+      _ ->
+        normal_expiration_date
     end
   end
 end

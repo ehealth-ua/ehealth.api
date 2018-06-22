@@ -63,7 +63,7 @@ defmodule EHealth.PRMFactories.EmployeeFactory do
 
       def speciality do
         %{
-          "speciality" => Enum.random(doctor_specialities()),
+          "speciality" => "PEDIATRICIAN",
           "speciality_officio" => true,
           "level" => Enum.random(doctor_levels()),
           "qualification_type" => Enum.random(doctor_qualification_types()),

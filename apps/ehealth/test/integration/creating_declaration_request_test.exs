@@ -85,6 +85,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       party = insert(:prm, :party, id: "ac6ca796-9cc8-4a8f-96f8-016dd52daac6")
       insert(:prm, :party_user, party: party)
       division = insert(:prm, :division, id: "51f56b0e-0223-49c1-9b5f-b07e09ba40f1", legal_entity: legal_entity)
+
       doctor = Map.put(doctor(), "specialities", [%{speciality: "PEDIATRICIAN"}])
 
       insert(
@@ -121,6 +122,38 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
     test "declaration request with invalid patient's age", %{conn: conn} do
       expect(OTPVerificationMock, :search, fn _, _ ->
         {:ok, %{"data" => []}}
+      end)
+
+      expect(MPIMock, :search, fn params, _ ->
+        {:ok,
+         %{
+           "data" => [
+             params
+             |> Map.put("id", "b5350f79-f2ca-408f-b15d-1ae0a8cc861c")
+             |> Map.put("authentication_methods", [
+               %{"type" => "OTP", "phone_number" => "+380508887700"}
+             ])
+           ]
+         }}
+      end)
+
+      role_id = UUID.generate()
+      expect(MithrilMock, :get_user_by_id, fn _, _ -> {:ok, %{"data" => %{"email" => "user@email.com"}}} end)
+
+      expect(MithrilMock, :get_roles_by_name, fn "DOCTOR", _headers ->
+        {:ok, %{"data" => [%{"id" => role_id}]}}
+      end)
+
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok,
+         %{
+           "data" => [
+             %{
+               "role_id" => role_id,
+               "user_id" => UUID.generate()
+             }
+           ]
+         }}
       end)
 
       declaration_request_params =
