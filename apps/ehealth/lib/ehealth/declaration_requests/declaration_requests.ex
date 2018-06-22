@@ -42,6 +42,28 @@ defmodule EHealth.DeclarationRequests do
     mpi_id
   )a
 
+  @person_create_params ~w(
+    addresses
+    authentication_methods
+    birth_country
+    birth_date
+    birth_settlement
+    confidant_person
+    documents
+    email
+    emergency_contact
+    first_name
+    gender
+    last_name
+    patient_signed
+    phones
+    preferred_way_communication
+    process_disclosure_data_consent
+    second_name
+    secret
+    tax_id
+  )
+
   def list(params) do
     DeclarationRequest
     |> order_by([dr], desc: :inserted_at)
@@ -212,7 +234,7 @@ defmodule EHealth.DeclarationRequests do
          :ok <- validate_tax_id(user["tax_id"], person["tax_id"]) do
       data =
         params
-        |> Map.put("person", person)
+        |> Map.put("person", Map.take(person, @person_create_params))
         |> Map.put("employee", employee)
         |> Map.put("channel", DeclarationRequest.channel(:cabinet))
 

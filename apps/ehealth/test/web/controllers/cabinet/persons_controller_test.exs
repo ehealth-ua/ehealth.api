@@ -7,6 +7,18 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
   alias Ecto.UUID
   alias EHealth.MockServer
 
+  @person_non_create_params ~w(
+    version
+    national_id
+    death_date
+    invalid_tax_id
+    is_active
+    status
+    inserted_by
+    updated_by
+    merged_ids
+  )
+
   setup :verify_on_exit!
 
   defmodule OpsServer do
@@ -542,12 +554,14 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
                "data" => %{
                  "seed" => "some_current_hash",
                  "employee" => %{
-                   "speciality" => %{
-                     "speciality" => "PEDIATRICIAN"
-                   }
+                   "speciality" => "PEDIATRICIAN"
                  }
                }
              } = resp
+
+      for key <- Map.keys(resp["data"]["person"]) do
+        refute key in @person_non_create_params
+      end
     end
 
     test "success create declaration request online  for underage person for FAMILY_DOCTOR", %{conn: conn} do
@@ -633,12 +647,14 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
                "data" => %{
                  "seed" => "some_current_hash",
                  "employee" => %{
-                   "speciality" => %{
-                     "speciality" => "FAMILY_DOCTOR"
-                   }
+                   "speciality" => "FAMILY_DOCTOR"
                  }
                }
              } = resp
+
+      for key <- Map.keys(resp["data"]["person"]) do
+        refute key in @person_non_create_params
+      end
     end
 
     test "success create declaration request online  for adult person for THERAPIST", %{conn: conn} do
@@ -724,12 +740,14 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
                "data" => %{
                  "seed" => "some_current_hash",
                  "employee" => %{
-                   "speciality" => %{
-                     "speciality" => "THERAPIST"
-                   }
+                   "speciality" => "THERAPIST"
                  }
                }
              } = resp
+
+      for key <- Map.keys(resp["data"]["person"]) do
+        refute key in @person_non_create_params
+      end
     end
   end
 

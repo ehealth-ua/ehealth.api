@@ -364,9 +364,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
                "data" => %{
                  "seed" => "some_current_hash",
                  "employee" => %{
-                   "speciality" => %{
-                     "speciality" => "PEDIATRICIAN"
-                   }
+                   "speciality" => "PEDIATRICIAN"
                  }
                }
              } = json_response(conn, 200)

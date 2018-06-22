@@ -30,7 +30,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestController do
       |> render(
         "declaration_request.json",
         declaration_request: declaration_request,
-        employee_speciality: employee.speciality,
+        employee_speciality: employee.speciality["speciality"],
         hash: hash
       )
     end
@@ -46,7 +46,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestController do
       |> render(
         "declaration_request.json",
         declaration_request: result,
-        employee_speciality: employee.speciality,
+        employee_speciality: employee.speciality["speciality"],
         hash: hash
       )
     end
