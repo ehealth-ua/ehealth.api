@@ -4715,13 +4715,28 @@ This WS allows to see history of all patient's declaration requests and filter t
     + Attributes (Response_Collection_V2)
         + data (array[`Declaration_requests_list_cabinet`])
 
+### Get authentication factor [GET /api/cabinet/authentication_factor]
+
+This WS allows to see 2FA number via Cabinet
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer mF_9.B5f-4.1JqM
+
++ Response 200 (application/json)
+    + Attributes (Response_OK)
+        + data (authentication_factor)
+
+
 # Group Public. Contracts
 
 ## Contract request [/api/contract_requests]
 
 ###Business logic
-In order to create new contract or update existing contract, legal entity owner should create contract request first. Contract request should be approved by both sides - Medical Service Provider(MSP) and National Health Service(NHS), and than signed by both sides as well. After that new contract will be created or existing contract will be updated. 
-The detailed flow is described in schema below:
+In order to create a new contract or update an existing contract, legal entity owner should create a contract request first. The contract request should be approved by both sides - Medical Service Provider(MSP) and National Health Service(NHS), and than signed by both sides as well. After that a new contract will be created or an existing contract will be updated. 
+The detailed flow is described in a schema below:
 
 [Confluence: Status Chart](https://edenlab.atlassian.net/wiki/x/GIDMIg)
 
@@ -5513,7 +5528,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + url: `https://storage.ehealth.world` (string, required)
 
 ### `contract_media_content`
-+ type: `SIGNED_CONTENT` (string, required)
++ type: `signed_content` (string, required)
 + url: `https://storage.ehealth.world` (string, required)
 
 ## Declarations
@@ -5825,6 +5840,15 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + inserted_by: `userid` (string, required)
 + updated_at: `1991-08-19T00:00:00.000Z` (string, required)
 + updated_by: `userid` (string, required)
+
+##2FA
+
+### `authentication_factor`
++ id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
++ type: `sms` (string, required) - 2fa type
++ factor: `+380881234567` (string, required) - 2fa factor, ex. phone number
++ is_active: true (boolean)
++ user_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 
 ## Employees
 ### `crud_employee`
