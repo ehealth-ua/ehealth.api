@@ -196,7 +196,7 @@ defmodule EHealth.Declarations.API do
            |> Map.take(["reason_description"])
            |> Map.put("updated_by", user_id)
            |> Map.put("reason", "manual_person"),
-         {:ok, %{"data" => declaration}} <- OPS.terminate_declaration(id, params, headers),
+         {:ok, %{"data" => declaration}} <- @ops_api.terminate_declaration(id, params, headers),
          {:ok, declaration_data} <- expand_declaration_relations(declaration, headers) do
       {:ok, declaration_data}
     else

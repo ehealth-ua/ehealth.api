@@ -1,9 +1,11 @@
 defmodule EHealth.Web.Cabinet.DeclarationControllerTest do
   @moduledoc false
-  use EHealth.Web.ConnCase, async: false
+  use EHealth.Web.ConnCase
   import Mox
 
   alias EHealth.MockServer
+
+  setup :verify_on_exit!
 
   defmodule MithrilServer do
     @moduledoc false
@@ -11,9 +13,76 @@ defmodule EHealth.Web.Cabinet.DeclarationControllerTest do
     use MicroservicesHelper
     alias EHealth.MockServer
 
+    Plug.Router.get "/admin/users/8069cb5c-3156-410b-9039-a1b2f2a4136c" do
+      user = %{
+        "id" => "8069cb5c-3156-410b-9039-a1b2f2a4136c",
+        "settings" => %{},
+        "email" => "test@example.com",
+        "type" => "user",
+        "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
+        "tax_id" => "2222222225",
+        "is_blocked" => false
+      }
+
+      response =
+        user
+        |> MockServer.wrap_response()
+        |> Jason.encode!()
+
+      Plug.Conn.send_resp(conn, 200, response)
+    end
+
+    Plug.Router.get "/admin/clients/c3cc1def-48b6-4451-be9d-3b777ef06ff9/details" do
+      response =
+        %{"client_type_name" => "CABINET"}
+        |> MockServer.wrap_response()
+        |> Jason.encode!()
+
+      Plug.Conn.send_resp(conn, 200, response)
+    end
+
+    Plug.Router.get "/admin/clients/75dfd749-c162-48ce-8a92-428c106d5dc3/details" do
+      response =
+        %{"client_type_name" => "MSP"}
+        |> MockServer.wrap_response()
+        |> Jason.encode!()
+
+      Plug.Conn.send_resp(conn, 200, response)
+    end
+
     Plug.Router.get "/admin/clients/4d593e84-34dc-48d3-9e33-0628a8446956/details" do
       response =
         %{"client_type_name" => "CABINET"}
+        |> MockServer.wrap_response()
+        |> Jason.encode!()
+
+      Plug.Conn.send_resp(conn, 200, response)
+    end
+
+    Plug.Router.get "/admin/users/668d1541-e4cf-4a95-a25a-60d83864ceaf" do
+      user = %{
+        "id" => "668d1541-e4cf-4a95-a25a-60d83864ceaf",
+        "settings" => %{},
+        "email" => "test@example.com",
+        "type" => "user"
+      }
+
+      response =
+        user
+        |> MockServer.wrap_response()
+        |> Jason.encode!()
+
+      Plug.Conn.send_resp(conn, 200, response)
+    end
+
+    Plug.Router.get "/admin/roles" do
+      response =
+        [
+          %{
+            id: "e945360c-8c4a-4f37-a259-320d2533cfc4",
+            role_name: "DOCTOR"
+          }
+        ]
         |> MockServer.wrap_response()
         |> Jason.encode!()
 
@@ -36,6 +105,26 @@ defmodule EHealth.Web.Cabinet.DeclarationControllerTest do
 
       Plug.Conn.send_resp(conn, 200, response)
     end
+
+    Plug.Router.get "/admin/users/8069cb5c-3156-410b-9039-a1b2f2a4136c/roles" do
+      response =
+        [
+          %{
+            id: UUID.generate(),
+            user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c",
+            role_id: "e945360c-8c4a-4f37-a259-320d2533cfc4",
+            role_name: "DOCTOR"
+          }
+        ]
+        |> MockServer.wrap_response()
+        |> Jason.encode!()
+
+      Plug.Conn.send_resp(conn, 200, response)
+    end
+
+    Plug.Router.get "/admin/users/:id" do
+      Plug.Conn.send_resp(conn, 404, "")
+    end
   end
 
   @user_id "4d593e84-34dc-48d3-9e33-0628a8446956"
@@ -51,9 +140,81 @@ defmodule EHealth.Web.Cabinet.DeclarationControllerTest do
     insert(:prm, :employee, %{id: @employee_id, legal_entity: legal_entity})
     insert(:prm, :division, %{id: @division_id})
 
+    insert(:prm, :global_parameter, %{parameter: "adult_age", value: "18"})
+    insert(:prm, :global_parameter, %{parameter: "declaration_term", value: "40"})
+    insert(:prm, :global_parameter, %{parameter: "declaration_term_unit", value: "YEARS"})
+
     register_mircoservices_for_tests([
       {MithrilServer, "OAUTH_ENDPOINT"}
     ])
+
+    :ok
+  end
+
+  describe "terminate declaration" do
+    test "success terminate declaration", %{conn: conn} do
+      %{party: party} = insert(:prm, :party_user)
+      legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
+      %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
+      %{id: division_id} = insert(:prm, :division, legal_entity: legal_entity)
+
+      {declaration, _} =
+        get_declaration(
+          %{
+            id: "0cd6a6f0-9a71-4aa7-819d-6c158201a282",
+            legal_entity_id: legal_entity.id,
+            division_id: division_id,
+            employee_id: employee_id,
+            person_id: "c8912855-21c3-4771-ba18-bcd8e524f14c"
+          },
+          200
+        )
+
+      expect(OPSMock, :terminate_declaration, fn id, _params, _headers ->
+        declaration =
+          build(
+            :declaration,
+            person_id: "c8912855-21c3-4771-ba18-bcd8e524f14c",
+            id: id,
+            status: "terminated"
+          )
+          |> Map.put("reason", "manual_person")
+
+        resp =
+          %{"data" => declaration, "meta" => %{"code" => 200, "type" => "list"}}
+          |> Jason.encode!()
+          |> Jason.decode!()
+
+        {:ok, resp}
+      end)
+
+      expect(OPSMock, :get_declaration_by_id, fn _params, _headers ->
+        declaration
+      end)
+
+      expect(MPIMock, :person, fn id, _headers ->
+        get_person(id, 200, %{addresses: get_person_addresses()})
+      end)
+
+      expect(MPIMock, :person, fn id, _headers ->
+        get_person(id, 200, %{addresses: get_person_addresses()})
+      end)
+
+      conn =
+        conn
+        |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
+        |> patch(cabinet_declarations_path(conn, :terminate_declaration, "0cd6a6f0-9a71-4aa7-819d-6c158201a282"))
+
+      assert %{"data" => %{"id" => "0cd6a6f0-9a71-4aa7-819d-6c158201a282", "status" => "terminated"}} =
+               json_response(conn, 200)
+    end
+  end
+
+  test "searches person declarations in cabinet", %{conn: conn} do
+    expect(MPIMock, :person, fn id, _headers ->
+      get_person(id, 200, %{tax_id: "12341234"})
+    end)
 
     expect(OPSMock, :get_declarations, fn _params, _headers ->
       response =
@@ -80,14 +241,6 @@ defmodule EHealth.Web.Cabinet.DeclarationControllerTest do
       {:ok, response}
     end)
 
-    :ok
-  end
-
-  test "searches person declarations in cabinet", %{conn: conn} do
-    expect(MPIMock, :person, fn id, _headers ->
-      mpi_get_person(id, 200, %{tax_id: "12341234"})
-    end)
-
     response = conn |> send_list_declaration_request() |> json_response(200)
     verify!()
 
@@ -101,6 +254,18 @@ defmodule EHealth.Web.Cabinet.DeclarationControllerTest do
     assert %{status: 422} = send_list_declaration_request(conn, start_year: "20IZ")
   end
 
+  defp get_declaration(params, response_status) do
+    declaration = build(:declaration, params)
+    declaration_id = declaration.id
+
+    declaration =
+      declaration
+      |> Jason.encode!()
+      |> Jason.decode!()
+
+    {{:ok, %{"data" => declaration, "meta" => %{"code" => response_status}}}, declaration_id}
+  end
+
   defp send_list_declaration_request(conn, params \\ []) do
     conn
     |> put_consumer_id_header(@user_id)
@@ -108,10 +273,17 @@ defmodule EHealth.Web.Cabinet.DeclarationControllerTest do
     |> get(cabinet_declarations_path(conn, :index), params)
   end
 
-  defp mpi_get_person(id, response_status, params) do
+  defp get_person(id, response_status, params) do
     params = Map.put(params, :id, id)
     person = string_params_for(:person, params)
 
     {:ok, %{"data" => person, "meta" => %{"code" => response_status}}}
+  end
+
+  defp get_person_addresses do
+    [
+      build(:address, %{"type" => "REGISTRATION"}),
+      build(:address, %{"type" => "RESIDENCE"})
+    ]
   end
 end
