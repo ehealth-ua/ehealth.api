@@ -54,7 +54,8 @@ defmodule EHealth.DeclarationRequests.API.Creator do
       employee: employee,
       global_parameters: global_parameters,
       division: division,
-      legal_entity: legal_entity
+      legal_entity: legal_entity,
+      person_id: person["id"]
     }
 
     pending_declaration_requests = pending_declaration_requests(person, employee.id, legal_entity.id)
@@ -298,7 +299,8 @@ defmodule EHealth.DeclarationRequests.API.Creator do
       employee: employee,
       global_parameters: global_parameters,
       division: division,
-      legal_entity: legal_entity
+      legal_entity: legal_entity,
+      person_id: person_id
     } = auxiliary_entities
 
     employee_speciality_officio = employee.speciality["speciality"]
@@ -336,7 +338,7 @@ defmodule EHealth.DeclarationRequests.API.Creator do
     |> put_declaration_number(NumberGenerator.generate(1, 2))
     |> unique_constraint(:declaration_number, name: :declaration_requests_declaration_number_index)
     |> put_party_email()
-    |> determine_auth_method_for_mpi(channel)
+    |> determine_auth_method_for_mpi(channel, person_id)
     |> generate_printout_form(employee)
   end
 
@@ -641,17 +643,15 @@ defmodule EHealth.DeclarationRequests.API.Creator do
     end
   end
 
-  def determine_auth_method_for_mpi(%Changeset{valid?: false} = changeset, _), do: changeset
+  def determine_auth_method_for_mpi(%Changeset{valid?: false} = changeset, _, _), do: changeset
 
-  def determine_auth_method_for_mpi(changeset, @channel_cabinet) do
-    data = get_field(changeset, :data)
-
+  def determine_auth_method_for_mpi(changeset, @channel_cabinet, person_id) do
     changeset
     |> put_change(:authentication_method_current, %{"type" => @auth_na})
-    |> put_change(:mpi_id, get_in(data, ~w(person id)))
+    |> put_change(:mpi_id, person_id)
   end
 
-  def determine_auth_method_for_mpi(changeset, _) do
+  def determine_auth_method_for_mpi(changeset, _, _) do
     data = get_field(changeset, :data)
     search_params = Persons.get_search_params(data["person"])
 

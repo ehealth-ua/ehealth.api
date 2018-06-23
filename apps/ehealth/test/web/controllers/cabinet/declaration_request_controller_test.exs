@@ -5,8 +5,9 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
   import Mox
 
   alias Ecto.UUID
-  alias EHealth.DeclarationRequests.DeclarationRequest
   alias EHealth.MockServer
+  alias EHealth.Repo
+  alias EHealth.DeclarationRequests.DeclarationRequest
 
   @person_non_create_params ~w(
     version
@@ -18,6 +19,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
     inserted_by
     updated_by
     merged_ids
+    id
   )
 
   setup :verify_on_exit!
@@ -247,6 +249,9 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
       for key <- Map.keys(resp["data"]["person"]) do
         refute key in @person_non_create_params
       end
+
+      declaration_request = Repo.get(DeclarationRequest, get_in(resp, ~w(data id)))
+      assert declaration_request.mpi_id == person_id
     end
 
     test "success create declaration request online  for underage person for FAMILY_DOCTOR", %{conn: conn} do
@@ -341,6 +346,9 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
       for key <- Map.keys(resp["data"]["person"]) do
         refute key in @person_non_create_params
       end
+
+      declaration_request = Repo.get(DeclarationRequest, get_in(resp, ~w(data id)))
+      assert declaration_request.mpi_id == person_id
     end
 
     test "success create declaration request online  for adult person for THERAPIST", %{conn: conn} do
@@ -435,6 +443,9 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
       for key <- Map.keys(resp["data"]["person"]) do
         refute key in @person_non_create_params
       end
+
+      declaration_request = Repo.get(DeclarationRequest, get_in(resp, ~w(data id)))
+      assert declaration_request.mpi_id == person_id
     end
   end
 
