@@ -115,7 +115,7 @@
                             },
                             "medical_service": {
                                 "type": "string",
-                                "$ref": "#/definitions/name"
+                                "description": "Dictionary: MEDICAL_SERVICE"
                             }
                         },
                         "required": [
