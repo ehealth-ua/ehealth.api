@@ -3816,7 +3816,7 @@ Capitation reports are created monthly
         + data (array)
             + (`Capitation_report`)
 
-### Get capitation report details [GET /api/capitation_reports/{id}]
+### Get capitation report details [GET /api/capitation_report_details{?edrpou,report_id,page,page_size}]
 
 This method returns details of specified capitation report.
 
@@ -3826,7 +3826,10 @@ This method returns details of specified capitation report.
 **Scopes required:** `capitation_report:read`
 
 + Parameters
-    + id: `role-1380df72-275a-11e7-93ae-92361f002671` (string, required)
+    + `edrpou`: `34056008` (string,optional)
+    + `report_id`: `role-1380df72-275a-11e7-93ae-92361f002671` (string, optional)
+    + `page`: 2 (number) - Page number.    
+    + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 + Request (application/json)
 
@@ -4869,7 +4872,7 @@ medical_service|true| послуга, що надається на відділ�
   ],
   "start_date": "2017-04-20",
   "end_date": "2017-04-20",
-  "id_form": "5",
+  "id_form": "PMD_1",
   "contract_number": "0000-9EAX-XT7X-3115",
   "statute_md5": "db218b04eff70f86f40c1572ce8ca16a",
   "additional_document_md5": "ac642b04eff40f86f40c1572ce8ca16a",
@@ -7401,7 +7404,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
     + include (`External_contractors`, required)
 + `start_date`: `2017-04-20` (string, required) - contract start date 
 + `end_date`: `2017-04-20` (string, required) - contract end date
-+ `id_form`: `5` (string, required) - type of contract {DICTIONARY CONTRACT_TYPE}
++ `id_form`: `PMD_1` (string, required) - type of contract {DICTIONARY CONTRACT_TYPE}
 + `contract_number`: `0000-9EAX-XT7X-3115` (string, optional) - number of existing VERIFIED contract
 
 ### `Contract_request_list`
@@ -7453,7 +7456,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
     + include (`External_contractors_response`, required)
 + `start_date`: `2017-04-20` (string, required) - contract start date 
 + `end_date`: `2017-04-20` (string, required) - contract end date
-+ `id_form`: `5` (string, required) - type of contract {DICTIONARY CONTRACT_TYPE}
++ `id_form`: `PMD_1` (string, required) - type of contract {DICTIONARY CONTRACT_TYPE}
 + `nhs_signer_base`: `на підставі наказу` (string, optional) - documents which allows to represent nhs
 + `nhs_contract_price`: `50000` (number, optional) - contract price
 + `nhs_payment_method`: `BACKWARD` (enum, optional) - payment method for contract
@@ -7609,6 +7612,8 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + created_at: `2018-05-22` (string, required) - Date that shows when the report was generated
 
 ### `Capitation_report_detail`
++ biling_date: `2017-04-20` (string, required) - report biling date
++ report_id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - Unique report id
 + legal_entity_id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - Legal entity id
 + edrpou: `29000165` (string, required) - Legal entity edrpou
 + legal_entity_name: `Поліклініка для Капітації` (string, required) - Legal entity name
