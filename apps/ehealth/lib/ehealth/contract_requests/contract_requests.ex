@@ -89,6 +89,37 @@ defmodule EHealth.ContractRequests do
     end
   end
 
+  def get_document_attribures_by_status(status) do
+    cond do
+      Enum.any?(~w(new approved pending_nhs_sign terminated declined)a, &(ContractRequest.status(&1) == status)) ->
+        [
+          {:contract_request_statute, "contract_request_statute.jpeg"},
+          {:additional_document, "additional_document.jpeg"}
+        ]
+
+      Enum.any?(~w(signed nhs_signed)a, &(ContractRequest.status(&1) == status)) ->
+        [
+          {:contract_request_statute, "contract_request_statute.jpeg"},
+          {:contract_request_additional_document, "contract_request_additional_document.jpeg"},
+          {:signed_content, "signed_content"}
+        ]
+
+      true ->
+        []
+    end
+  end
+
+  def gen_relevant_get_links(status) do
+    id = UUID.generate()
+
+    Enum.reduce(get_document_attribures_by_status(status), [], fn {name, resource_name}, acc ->
+      with {:ok, %{"data" => %{"secret_url" => secret_url}}} <-
+             @media_storage_api.create_signed_url("GET", get_bucket(), resource_name, id, []) do
+        [%{"type" => name, "url" => secret_url} | acc]
+      end
+    end)
+  end
+
   def create(headers, %{"id" => id} = params) do
     user_id = get_consumer_id(headers)
     client_id = get_client_id(headers)

@@ -40,7 +40,9 @@ defmodule EHealth.Web.ContractRequestController do
 
     with {:ok, %ContractRequest{} = contract_request, references} <-
            ContractRequests.get_by_id(headers, client_type, id) do
-      render(conn, "show.json", contract_request: contract_request, references: references)
+      conn
+      |> assign(:urgent, ContractRequests.gen_relevant_get_links(contract_request.status))
+      |> render("show.json", contract_request: contract_request, references: references)
     end
   end
 

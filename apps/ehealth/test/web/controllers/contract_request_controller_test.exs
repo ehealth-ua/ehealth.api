@@ -612,10 +612,22 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "success showing data for correct MPS client", %{conn: conn} = context do
-      assert conn
-             |> put_client_id_header(context.legal_entity_id_1)
-             |> get(contract_request_path(conn, :show, context.contract_request_id_1))
-             |> json_response(200)
+      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, id, resource_name, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://url.com/#{id}/#{resource_name}"}}}
+      end)
+
+      resp =
+        conn
+        |> put_client_id_header(context.legal_entity_id_1)
+        |> get(contract_request_path(conn, :show, context.contract_request_id_1))
+        |> json_response(200)
+
+      assert resp
+
+      Enum.each(resp["urgent"], fn urgent_data ->
+        assert Map.has_key?(urgent_data, "type")
+        assert(Map.has_key?(urgent_data, "url"))
+      end)
     end
 
     test "denied showing data for uncorrect MPS client", %{conn: conn} = context do
@@ -633,15 +645,35 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "success showing any contract_request for NHS ADMIN client", %{conn: conn} = context do
-      assert conn
-             |> put_client_id_header(get_client_nhs())
-             |> get(contract_request_path(conn, :show, context.contract_request_id_1))
-             |> json_response(200)
+      expect(MediaStorageMock, :create_signed_url, 4, fn _, _, id, resource_name, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://url.com/#{id}/#{resource_name}"}}}
+      end)
 
-      assert conn
-             |> put_client_id_header(get_client_nhs())
-             |> get(contract_request_path(conn, :show, context.contract_request_id_2))
-             |> json_response(200)
+      resp =
+        conn
+        |> put_client_id_header(get_client_nhs())
+        |> get(contract_request_path(conn, :show, context.contract_request_id_1))
+        |> json_response(200)
+
+      assert resp
+
+      Enum.each(resp["urgent"], fn urgent_data ->
+        assert Map.has_key?(urgent_data, "type")
+        assert(Map.has_key?(urgent_data, "url"))
+      end)
+
+      resp =
+        conn
+        |> put_client_id_header(get_client_nhs())
+        |> get(contract_request_path(conn, :show, context.contract_request_id_2))
+        |> json_response(200)
+
+      assert resp
+
+      Enum.each(resp["urgent"], fn urgent_data ->
+        assert Map.has_key?(urgent_data, "type")
+        assert(Map.has_key?(urgent_data, "url"))
+      end)
     end
 
     test "contract_request not found for NHS ADMIN client", %{conn: conn} do
