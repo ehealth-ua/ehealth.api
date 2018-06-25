@@ -163,7 +163,7 @@ defmodule EHealth.Employees do
          %Changeset{valid?: true} = party_changeset <- Parties.changeset(party, party_update_params),
          %Changeset{valid?: true} = employee_changeset <- changeset(employee, employee_update_params) do
       if maybe_suspend_contracts?(party_changeset, :party) do
-        transaction_update_with_ops_contract(party_changeset, employee_changeset, req_headers)
+        transaction_update_with_contract(party_changeset, employee_changeset, req_headers)
       else
         __MODULE__.update(employee, employee_update_params, get_consumer_id(req_headers))
       end
@@ -188,13 +188,13 @@ defmodule EHealth.Employees do
   end
 
   def update_with_ops_contract(%Employee{status: old_status} = employee, attrs, headers) do
-    with {:ok, employee} <- transaction_update_with_ops_contract(nil, changeset(employee, attrs), headers) do
+    with {:ok, employee} <- transaction_update_with_contract(nil, changeset(employee, attrs), headers) do
       EventManager.insert_change_status(employee, old_status, employee.status, get_consumer_id(headers))
       {:ok, employee}
     end
   end
 
-  defp transaction_update_with_ops_contract(party_changeset, employee_changeset, headers) do
+  defp transaction_update_with_contract(party_changeset, employee_changeset, headers) do
     author_id = get_consumer_id(headers)
     employee_id = Changeset.get_field(employee_changeset, :id)
 
@@ -206,7 +206,7 @@ defmodule EHealth.Employees do
 
     PRMRepo.transaction(fn ->
       {:ok, %Page{entries: contracts}, _} = Contracts.list(get_contracts_params, nil, headers)
-      {:ok, _} = ops_suspend_contracts(contracts)
+      {:ok, _} = suspend_contracts(contracts)
 
       with {:ok, _} <- transaction_update_party(party_changeset, author_id),
            {:ok, result} <- EctoTrail.update_and_log(PRMRepo, employee_changeset, author_id) do

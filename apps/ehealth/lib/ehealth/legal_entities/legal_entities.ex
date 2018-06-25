@@ -152,7 +152,7 @@ defmodule EHealth.LegalEntities do
 
   def update_with_ops_contract(%Changeset{valid?: true} = changeset, headers) do
     if maybe_suspend_contracts?(changeset, :legal_entity) do
-      transaction_update_with_ops_contract(changeset, headers)
+      transaction_update_with_contract(changeset, headers)
     else
       PRMRepo.update_and_log(changeset, get_consumer_id(headers))
     end
@@ -160,7 +160,7 @@ defmodule EHealth.LegalEntities do
 
   def update_with_ops_contract(changeset, _headers), do: changeset
 
-  def transaction_update_with_ops_contract(%Ecto.Changeset{valid?: true} = changeset, headers) do
+  def transaction_update_with_contract(%Ecto.Changeset{valid?: true} = changeset, headers) do
     get_contracts_params = %{
       legal_entity_id: Changeset.get_field(changeset, :id),
       status: Contract.status(:verified),
@@ -169,7 +169,7 @@ defmodule EHealth.LegalEntities do
 
     PRMRepo.transaction(fn ->
       {:ok, %Page{entries: contracts}, _} = Contracts.list(get_contracts_params, nil, headers)
-      {:ok, _} = ops_suspend_contracts(contracts)
+      {:ok, _} = suspend_contracts(contracts)
 
       with {:ok, result} <- EctoTrail.update_and_log(PRMRepo, changeset, get_consumer_id(headers)) do
         result
@@ -180,7 +180,7 @@ defmodule EHealth.LegalEntities do
     end)
   end
 
-  def transaction_update_with_ops_contract(changeset, _), do: changeset
+  def transaction_update_with_contract(changeset, _), do: changeset
 
   defp load_legal_entity(id) do
     %{"id" => id, "is_active" => true}

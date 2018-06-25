@@ -379,7 +379,7 @@ defmodule EHealth.Unit.LegalEntityTest do
       insert(:prm, :legal_entity, edrpou: "10020030")
       legal_entity = insert(:prm, :legal_entity)
       changeset = API.changeset(legal_entity, %{"edrpou" => "10020030"})
-      assert {:error, %Ecto.Changeset{valid?: false}} = API.transaction_update_with_ops_contract(changeset, [])
+      assert {:error, %Ecto.Changeset{valid?: false}} = API.transaction_update_with_contract(changeset, [])
     end
   end
 

@@ -19,8 +19,8 @@ defmodule EHealth.LegalEntities.ContractSuspender do
     Enum.any?(keys, &Map.has_key?(changes, &1))
   end
 
-  def ops_suspend_contracts(contracts) do
-    ids = fetch_contract_ids(contracts)
+  def suspend_contracts(contracts) do
+    ids = Enum.map(contracts, &Map.get(&1, :id))
 
     with {:ok, suspended} <- Contracts.update_is_suspended(ids, true),
          :ok <- check_suspended_contracts_amount(ids, suspended) do
@@ -29,8 +29,6 @@ defmodule EHealth.LegalEntities.ContractSuspender do
       {:error, reason} -> {:error, {reason, ids}}
     end
   end
-
-  defp fetch_contract_ids(data), do: Enum.map(data, &Map.get(&1, "id"))
 
   defp check_suspended_contracts_amount(ids, contracts_amount) when length(ids) == contracts_amount, do: :ok
 
