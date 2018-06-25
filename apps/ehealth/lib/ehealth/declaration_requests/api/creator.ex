@@ -307,7 +307,7 @@ defmodule EHealth.DeclarationRequests.API.Creator do
 
     overlimit = Map.get(attrs, "overlimit", false)
     channel = attrs["channel"]
-    attrs = Map.drop(attrs, ~w(employee_id division_id overlimit))
+    attrs = Map.drop(attrs, ~w(person_id employee_id division_id overlimit))
 
     id = UUID.generate()
     declaration_id = UUID.generate()
