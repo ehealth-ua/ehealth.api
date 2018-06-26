@@ -36,7 +36,7 @@ defmodule EHealth.Web.ContractView do
     |> Map.put(:contract_divisions, Enum.map(contract.contract_divisions, &render_association(:contract_division, &1)))
   end
 
-  def render_association(:contract_divisions, contract_division) do
+  def render_association(:contract_division, contract_division) do
     Map.take(contract_division, ~w(id name)a)
   end
 
