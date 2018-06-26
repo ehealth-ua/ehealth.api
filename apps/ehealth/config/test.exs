@@ -41,7 +41,6 @@ config :ehealth,
     digital_signature: SignatureMock,
     ops: OPSMock,
     report: ReportMock,
-    media_storage: MediaStorageMock,
     postmark: PostmarkMock
   ]
 

@@ -85,7 +85,6 @@ defmodule EHealth.Unit.DeclarationRequests.API.DocumentsTest do
           %{"type" => "B"},
           %{"type" => "C"},
           %{"type" => "BIRTH_CERTIFICATE"},
-          %{"type" => "SSN"},
           %{"type" => "PASSPORT"}
         ],
         "confidant_person" => [
@@ -123,7 +122,7 @@ defmodule EHealth.Unit.DeclarationRequests.API.DocumentsTest do
                "confidant_person.1.YYY.RELATIONSHIP.Y2",
                "confidant_person.0.XXX.RELATIONSHIP.B1",
                "confidant_person.0.XXX.RELATIONSHIP.B2",
-               "person.SSN",
+               "person.tax_id",
                "person.A",
                "person.B",
                "person.C",

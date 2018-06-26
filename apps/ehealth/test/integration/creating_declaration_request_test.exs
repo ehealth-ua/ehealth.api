@@ -17,7 +17,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         params = conn.body_params["secret"]
 
         upload = %{
-          secret_url: "http://some_resource.com/#{params["resource_id"]}/#{params["resource_name"]}"
+          secret_url: "http://a.link.for/#{params["resource_id"]}/#{params["resource_name"]}"
         }
 
         Plug.Conn.send_resp(conn, 200, Poison.encode!(%{data: upload}))
@@ -417,7 +417,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
              params
              |> Map.put("id", "b5350f79-f2ca-408f-b15d-1ae0a8cc861c")
              |> Map.put("authentication_methods", [
-               %{"type" => "OTP", "phone_number" => "+380508887700"}
+               %{"type" => "NA"}
              ])
            ]
          }}
@@ -451,7 +451,25 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       assert "<html><body>Printout form for declaration request. tax_id = #{tax_id}</body></html>" ==
                resp["data"]["content"]
 
-      refute resp["urgent"]["documents"]
+      assert [
+               %{
+                 "type" => "person.BIRTH_CERTIFICATE",
+                 "url" => "http://a.link.for/#{resp["data"]["id"]}/declaration_request_person.BIRTH_CERTIFICATE.jpeg"
+               },
+               %{
+                 "type" => "person.PASSPORT",
+                 "url" => "http://a.link.for/#{resp["data"]["id"]}/declaration_request_person.PASSPORT.jpeg"
+               },
+               %{
+                 "type" => "person.tax_id",
+                 "url" => "http://a.link.for/#{resp["data"]["id"]}/declaration_request_person.tax_id.jpeg"
+               },
+               %{
+                 "type" => "confidant_person.0.PRIMARY.RELATIONSHIP.COURT_DECISION",
+                 "url" =>
+                   "http://a.link.for/#{resp["data"]["id"]}/declaration_request_confidant_person.0.PRIMARY.RELATIONSHIP.COURT_DECISION.jpeg"
+               }
+             ] == resp["urgent"]["documents"]
     end
 
     test "declaration request is created for person without tax_id", %{conn: conn} do
