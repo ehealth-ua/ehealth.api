@@ -25,11 +25,11 @@ defmodule EHealth.Cabinet.API do
 
   def create_patient(jwt, params, headers) do
     with {:ok, email} <- fetch_email_from_jwt(jwt),
-         %Ecto.Changeset{valid?: true} <- validate_params(:patient, params),
+         %Ecto.Changeset{valid?: true, changes: changes} <- validate_params(:patient, params),
          {:ok, %{"data" => data}} <-
            @signature_api.decode_and_validate(params["signed_content"], params["signed_content_encoding"], headers),
          {:ok, %{"content" => content, "signer" => signer}} <- process_digital_signature_data(data),
-         :ok <- verify_auth(content, params, headers),
+         :ok <- verify_auth(content, changes, headers),
          :ok <- JsonSchema.validate(:person, content),
          :ok <- PersonValidator.validate_birth_date(content["birth_date"], "$.birth_date"),
          :ok <- PersonValidator.validate_addresses_types(content["addresses"], @addresses_types),
@@ -274,7 +274,7 @@ defmodule EHealth.Cabinet.API do
     end
   end
 
-  def verify_auth(%{"authentication_methods" => authentication_methods}, %{"otp" => code}, headers) do
+  def verify_auth(%{"authentication_methods" => authentication_methods}, %{otp: code}, headers) do
     case Enum.find(authentication_methods, &otp_params?(&1)) do
       nil ->
         {:error, :access_denied}

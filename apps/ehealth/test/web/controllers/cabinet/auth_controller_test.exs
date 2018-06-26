@@ -1023,6 +1023,26 @@ defmodule Mithril.Web.RegistrationControllerTest do
              |> post(cabinet_auth_path(conn, :registration, Map.put(params, :signed_content, signed_content)))
              |> json_response(401)
     end
+
+    test "invalid otp factor (float)", %{conn: conn, params: params, jwt: jwt} do
+      resp =
+        conn
+        |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
+        |> post(cabinet_auth_path(conn, :registration), Map.put(params, :otp, "1234.5"))
+        |> json_response(422)
+
+      assert %{"error" => %{"type" => "validation_failed"}} = resp
+    end
+
+    test "invalid otp factor (binary)", %{conn: conn, params: params, jwt: jwt} do
+      resp =
+        conn
+        |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
+        |> post(cabinet_auth_path(conn, :registration), Map.put(params, :otp, "1234test.5"))
+        |> json_response(422)
+
+      assert %{"error" => %{"type" => "validation_failed"}} = resp
+    end
   end
 
   describe "search user" do
