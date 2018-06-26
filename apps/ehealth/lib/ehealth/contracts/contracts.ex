@@ -60,8 +60,9 @@ defmodule EHealth.Contracts do
          {:edrpou, {:ok, changes}} <- {:edrpou, validate_edrpou(changes)},
          {:ok, changes} <- validate_client_type(client_id, client_type, changes),
          %Page{entries: contracts} = paging <- search(changes),
+         contracts <- PRMRepo.preload(contracts, :contract_divisions),
          {:ok, references} <- load_contracts_references(contracts) do
-      {:ok, paging, references}
+      {:ok, %{paging | entries: contracts}, references}
     else
       {:edrpou, _} ->
         get_empty_response(params)
@@ -362,9 +363,6 @@ defmodule EHealth.Contracts do
     |> add_date_range_at_query(:start_date, date_from_start_date, date_to_start_date)
     |> add_date_range_at_query(:end_date, date_from_end_date, date_to_end_date)
     |> add_legal_entity_id_query(legal_entity_id)
-    |> join(:left, [c], ce in ContractEmployee, c.id == ce.contract_id)
-    |> join(:left, [c], cd in ContractDivision, c.id == cd.contract_id)
-    |> preload([c, ce, cd], contract_employees: ce, contract_divisions: cd)
     |> PRMRepo.paginate(Map.take(changes, ~w(page page_size)a))
   end
 

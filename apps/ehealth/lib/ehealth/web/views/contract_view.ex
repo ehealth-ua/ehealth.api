@@ -33,6 +33,11 @@ defmodule EHealth.Web.ContractView do
       :contractor_owner,
       ContractRequestView.render_association(:employee, references, contract.contractor_owner_id)
     )
+    |> Map.put(:contract_divisions, Enum.map(contract.contract_divisions, &render_association(:contract_division, &1)))
+  end
+
+  def render_association(:contract_divisions, contract_division) do
+    Map.take(contract_division, ~w(id name)a)
   end
 
   def render("show.json", %{contract: contract, references: references}) do
