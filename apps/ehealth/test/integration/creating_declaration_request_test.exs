@@ -465,6 +465,10 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
     end
 
     test "declaration request is created with 'Offline' verification", %{conn: conn} do
+      expect(MediaStorageMock, :create_signed_url, 4, fn _, _, resource_name, resource_id, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://a.link.for/#{resource_id}/#{resource_name}"}}}
+      end)
+
       expect(MPIMock, :search, fn params, _ ->
         {:ok,
          %{
@@ -472,14 +476,13 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
              params
              |> Map.put("id", "b5350f79-f2ca-408f-b15d-1ae0a8cc861c")
              |> Map.put("authentication_methods", [
-               %{"type" => "OTP", "phone_number" => "+380508887700"}
+               %{"type" => "NA"}
              ])
            ]
          }}
       end)
 
       role_id = UUID.generate()
-
       expect(MithrilMock, :get_user_by_id, fn _, _ -> {:ok, %{"data" => %{"email" => "user@email.com"}}} end)
 
       expect(MithrilMock, :get_roles_by_name, fn "DOCTOR", _headers ->
@@ -532,7 +535,25 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       assert "<html><body>Printout form for declaration request. tax_id = #{tax_id}</body></html>" ==
                resp["data"]["content"]
 
-      refute resp["urgent"]["documents"]
+      assert [
+               %{
+                 "type" => "person.BIRTH_CERTIFICATE",
+                 "url" => "http://a.link.for/#{resp["data"]["id"]}/declaration_request_person.BIRTH_CERTIFICATE.jpeg"
+               },
+               %{
+                 "type" => "person.PASSPORT",
+                 "url" => "http://a.link.for/#{resp["data"]["id"]}/declaration_request_person.PASSPORT.jpeg"
+               },
+               %{
+                 "type" => "person.tax_id",
+                 "url" => "http://a.link.for/#{resp["data"]["id"]}/declaration_request_person.tax_id.jpeg"
+               },
+               %{
+                 "type" => "confidant_person.0.PRIMARY.RELATIONSHIP.COURT_DECISION",
+                 "url" =>
+                   "http://a.link.for/#{resp["data"]["id"]}/declaration_request_confidant_person.0.PRIMARY.RELATIONSHIP.COURT_DECISION.jpeg"
+               }
+             ] == resp["urgent"]["documents"]
     end
 
     test "declaration request is created for person without tax_id", %{conn: conn} do

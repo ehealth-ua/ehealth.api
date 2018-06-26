@@ -3,59 +3,21 @@ defmodule EHealth.Unit.DeclarationRequests.API.DocumentsTest do
 
   use EHealth.Web.ConnCase
   import EHealth.DeclarationRequests.API.Documents
+  import Mox
 
   describe "render_links/3" do
-    defmodule UploadingFiles do
-      @moduledoc false
-
-      use MicroservicesHelper
-
-      Plug.Router.post "/media_content_storage_secrets" do
-        %{
-          "secret" => %{
-            "action" => _,
-            "bucket" => _,
-            "resource_id" => resource_id,
-            "resource_name" => resource_name,
-            "content_type" => "image/jpeg"
-          }
-        } = conn.body_params
-
-        case resource_id do
-          "98e0a42f-20fe-472c-a614-0ea99426a3fb" ->
-            upload = %{
-              secret_url: "http://a.link.for/#{resource_id}/#{resource_name}"
-            }
-
-            Plug.Conn.send_resp(conn, 200, Jason.encode!(%{data: upload}))
-
-          "98e0a42f-0000-9999-5555-0ea99426a3fb" ->
-            Plug.Conn.send_resp(conn, 500, Jason.encode!(%{something: "went wrong with #{resource_name}"}))
-        end
-      end
-    end
-
-    setup %{conn: _conn} do
-      {:ok, port, ref} = start_microservices(UploadingFiles)
-
-      System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:#{port}")
-
-      on_exit(fn ->
-        System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:4040")
-        stop_microservices(ref)
+    test "generates links & updates declaration request" do
+      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, resource_name, resource_id, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://a.link.for/#{resource_id}/#{resource_name}"}}}
       end)
 
-      :ok
-    end
-
-    test "generates links & updates declaration request" do
-      result = render_links("98e0a42f-20fe-472c-a614-0ea99426a3fb", ["PUT"], ["Passport", "SSN"])
+      result = render_links("98e0a42f-20fe-472c-a614-0ea99426a3fb", ["PUT"], ["Passport", "tax_id"])
 
       expected_documents = [
         %{
-          "type" => "SSN",
+          "type" => "tax_id",
           "verb" => "PUT",
-          "url" => "http://a.link.for/98e0a42f-20fe-472c-a614-0ea99426a3fb/declaration_request_SSN.jpeg"
+          "url" => "http://a.link.for/98e0a42f-20fe-472c-a614-0ea99426a3fb/declaration_request_tax_id.jpeg"
         },
         %{
           "type" => "Passport",
@@ -68,6 +30,10 @@ defmodule EHealth.Unit.DeclarationRequests.API.DocumentsTest do
     end
 
     test "returns error on documents field" do
+      expect(MediaStorageMock, :create_signed_url, fn _, _, _, _, _ ->
+        {:error, %{"something" => "went wrong with declaration_request_Passport.jpeg"}}
+      end)
+
       result = render_links("98e0a42f-0000-9999-5555-0ea99426a3fb", ["PUT"], ["Passport"])
 
       error_message = %{"something" => "went wrong with declaration_request_Passport.jpeg"}
@@ -85,7 +51,6 @@ defmodule EHealth.Unit.DeclarationRequests.API.DocumentsTest do
           %{"type" => "B"},
           %{"type" => "C"},
           %{"type" => "BIRTH_CERTIFICATE"},
-          %{"type" => "SSN"},
           %{"type" => "PASSPORT"}
         ],
         "confidant_person" => [
@@ -123,7 +88,7 @@ defmodule EHealth.Unit.DeclarationRequests.API.DocumentsTest do
                "confidant_person.1.YYY.RELATIONSHIP.Y2",
                "confidant_person.0.XXX.RELATIONSHIP.B1",
                "confidant_person.0.XXX.RELATIONSHIP.B2",
-               "person.SSN",
+               "person.tax_id",
                "person.A",
                "person.B",
                "person.C",
