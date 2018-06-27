@@ -138,4 +138,10 @@ defmodule EHealth.API.Mithril do
   def refresh_secret(client_id, headers) do
     patch!("/admin/clients/#{client_id}/refresh_secret", "", headers)
   end
+
+  # Authentication factors
+
+  def get_authentication_factors(user_id, params, headers \\ []) do
+    get!("/admin/users/#{user_id}/authentication_factors", Jason.encode!(params), headers)
+  end
 end

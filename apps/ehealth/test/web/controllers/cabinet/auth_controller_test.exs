@@ -9,6 +9,42 @@ defmodule Mithril.Web.RegistrationControllerTest do
   # For Mox lib. Make sure mocks are verified when the test exits
   setup :verify_on_exit!
 
+  defmodule MithrilServer do
+    @moduledoc false
+
+    use MicroservicesHelper
+    alias EHealth.MockServer
+
+    Plug.Router.get "/admin/users/4d593e84-34dc-48d3-9e33-0628a8446956" do
+      response =
+        %{
+          "id" => "4d593e84-34dc-48d3-9e33-0628a8446956",
+          "person_id" => "0c65d15b-32b4-4e82-b53d-0572416d890e",
+          "block_reason" => nil,
+          "email" => "email@example.com",
+          "is_blocked" => false,
+          "settings" => %{},
+          "tax_id" => "12341234"
+        }
+        |> MockServer.wrap_response()
+        |> Jason.encode!()
+
+      Plug.Conn.send_resp(conn, 200, response)
+    end
+
+    Plug.Router.get "/admin/clients/4d593e84-34dc-48d3-9e33-0628a8446956/details" do
+      response =
+        %{"client_type_name" => "CABINET"}
+        |> MockServer.wrap_response()
+        |> Jason.encode!()
+
+      Plug.Conn.send_resp(conn, 200, response)
+    end
+  end
+
+  @user_id "4d593e84-34dc-48d3-9e33-0628a8446956"
+  @person_id "0c65d15b-32b4-4e82-b53d-0572416d890e"
+
   defmodule SignatureExpect do
     defmacro __using__(_) do
       quote do
@@ -1206,6 +1242,106 @@ defmodule Mithril.Web.RegistrationControllerTest do
     end
   end
 
+  describe "cabinet user authentication factors" do
+    setup %{conn: conn} do
+      register_mircoservices_for_tests([
+        {MithrilServer, "OAUTH_ENDPOINT"}
+      ])
+
+      {:ok, %{conn: conn}}
+    end
+
+    test "successful list", %{conn: conn} do
+      count = 3
+
+      expect(MithrilMock, :get_user_by_id, fn user_id, _headers ->
+        {:ok,
+         %{
+           "data" => %{
+             "id" => user_id,
+             "person_id" => @person_id,
+             "email" => "email@example.com",
+             "tax_id" => "12341234",
+             "is_blocked" => false
+           }
+         }}
+      end)
+
+      expect(MithrilMock, :get_authentication_factors, fn user_id, _params, _headers ->
+        authentication_factors_response(count, user_id)
+      end)
+
+      expect(MPIMock, :person, fn id, _headers ->
+        get_person(id, 200, %{"tax_id" => "12341234"})
+      end)
+
+      assert resp =
+               conn
+               |> put_req_header("x-consumer-id", @user_id)
+               |> put_client_id_header(@user_id)
+               |> get(cabinet_auth_path(conn, :get_authentication_factor))
+               |> json_response(200)
+
+      assert length(resp["data"]) == count
+    end
+
+    test "failed when user is blocked", %{conn: conn} do
+      expect(MithrilMock, :get_user_by_id, fn user_id, _headers ->
+        {:ok,
+         %{
+           "data" => %{
+             "id" => user_id,
+             "person_id" => @person_id,
+             "email" => "email@example.com",
+             "tax_id" => "12341234",
+             "is_blocked" => true
+           }
+         }}
+      end)
+
+      expect(MPIMock, :person, fn id, _headers ->
+        get_person(id, 200, %{"tax_id" => "12341234"})
+      end)
+
+      assert resp =
+               conn
+               |> put_req_header("x-consumer-id", @user_id)
+               |> put_client_id_header(@user_id)
+               |> get(cabinet_auth_path(conn, :get_authentication_factor))
+               |> json_response(401)
+
+      assert %{"message" => "User blocked", "type" => "access_denied"} == resp["error"]
+    end
+
+    test "failed when person is not active", %{conn: conn} do
+      expect(MithrilMock, :get_user_by_id, fn user_id, _headers ->
+        {:ok,
+         %{
+           "data" => %{
+             "id" => user_id,
+             "person_id" => @person_id,
+             "email" => "email@example.com",
+             "tax_id" => "12341234",
+             "is_blocked" => false
+           }
+         }}
+      end)
+
+      expect(MPIMock, :person, fn id, _headers ->
+        get_person(id, 200, %{"tax_id" => "12341234", "status" => "inactive"})
+      end)
+
+      assert resp =
+               conn
+               |> put_req_header("x-consumer-id", @user_id)
+               |> put_client_id_header(@user_id)
+               |> get(cabinet_auth_path(conn, :get_authentication_factor))
+               |> json_response(409)
+
+      assert %{"message" => "Person is not active", "type" => "request_conflict"} == resp["error"]
+    end
+  end
+
   defp sign_content(content) do
     content
     |> Jason.encode!()
@@ -1217,4 +1353,39 @@ defmodule Mithril.Web.RegistrationControllerTest do
       {:ok, %{"data" => %{}}}
     end)
   end
+
+  defp get_person(id, response_status, params) do
+    params = Map.put(params, :id, id)
+    person = string_params_for(:person, params)
+
+    {:ok, %{"data" => person, "meta" => %{"code" => response_status}}}
+  end
+
+  defp authentication_factors_response(count, user_id) do
+    {:ok,
+     %{
+       "data" => get_authentication_factors_data(count, user_id),
+       "meta" => %{"code" => 200},
+       "paging" => %{
+         "page_number" => 1,
+         "page_size" => 50,
+         "total_entries" => count,
+         "total_pages" => 1
+       }
+     }}
+  end
+
+  defp get_authentication_factors_data(count, user_id) when count > 0 do
+    Enum.map(1..count, fn _ ->
+      %{
+        "factor" => "+380901112233",
+        "id" => UUID.generate(),
+        "is_active" => true,
+        "type" => "PHONE",
+        "user_id" => user_id
+      }
+    end)
+  end
+
+  defp get_authentication_factors_data(_, _), do: []
 end

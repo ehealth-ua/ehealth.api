@@ -30,4 +30,8 @@ defmodule EHealth.API.MithrilBehaviour do
               {:ok, result :: term} | {:error, reason :: term}
   @callback get_roles_by_name(employee_type :: term, headers :: list) ::
               {:ok, result :: term} | {:error, reason :: term}
+
+  # auth factors
+  @callback get_authentication_factors(user_id :: binary, params :: map, headers :: list) ::
+              {:ok, result :: term} | {:error, reason :: term}
 end

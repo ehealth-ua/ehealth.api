@@ -3,6 +3,7 @@ defmodule EHealth.Web.Cabinet.AuthController do
 
   alias EHealth.Cabinet.API, as: CabinetAPI
   alias EHealth.Guardian.Plug
+  alias Scrivener.Page
 
   action_fallback(EHealth.Web.FallbackController)
 
@@ -44,6 +45,12 @@ defmodule EHealth.Web.Cabinet.AuthController do
       conn
       |> put_status(:created)
       |> render("patient.json", patient: patient)
+    end
+  end
+
+  def get_authentication_factor(conn, _) do
+    with %Page{} = paging <- CabinetAPI.get_user_authentication_factor(conn.req_headers) do
+      render(conn, "authentication_factors_list.json", authentication_factors: paging.entries, paging: paging)
     end
   end
 end

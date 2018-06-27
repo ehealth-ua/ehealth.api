@@ -1,6 +1,7 @@
 defmodule EHealth.Cabinet.API do
   @moduledoc false
   import Ecto.{Query, Changeset}, warn: false
+  import EHealth.Utils.Connection, only: [get_consumer_id: 1]
 
   alias EHealth.Guardian
   alias EHealth.Bamboo.Emails.Sender
@@ -291,4 +292,19 @@ defmodule EHealth.Cabinet.API do
 
   defp otp_params?(%{"phone_number" => _, "type" => @authentication_otp}), do: true
   defp otp_params?(_), do: false
+
+  def get_user_authentication_factor(headers) do
+    user_id = get_consumer_id(headers)
+
+    with {:ok, %{"data" => user}} <- @mithril_api.get_user_by_id(user_id, headers),
+         {:ok, %{"data" => person}} <- @mpi_api.person(user["person_id"], headers),
+         :ok <- check_user_blocked(user),
+         :ok <- check_person_status(person),
+         {:ok, paging} <- @mithril_api.get_authentication_factors(user_id, %{}, headers) do
+      {:ok, paging}
+    end
+  end
+
+  defp check_person_status(%{"status" => @person_active}), do: :ok
+  defp check_person_status(_), do: {:error, {:conflict, "Person is not active"}}
 end

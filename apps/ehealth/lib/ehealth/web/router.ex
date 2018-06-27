@@ -312,6 +312,8 @@ defmodule EHealthWeb.Router do
         :terminate_declaration,
         as: :cabinet_declarations
       )
+
+      get("/authentication_factor", Cabinet.AuthController, :get_authentication_factor, as: :cabinet_auth)
     end
 
     # Person declarations
