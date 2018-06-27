@@ -142,6 +142,6 @@ defmodule EHealth.API.Mithril do
   # Authentication factors
 
   def get_authentication_factors(user_id, params, headers \\ []) do
-    get!("/admin/users/#{user_id}/authentication_factors", Jason.encode!(params), headers)
+    get!("/admin/users/#{user_id}/authentication_factors", headers, params: params)
   end
 end
