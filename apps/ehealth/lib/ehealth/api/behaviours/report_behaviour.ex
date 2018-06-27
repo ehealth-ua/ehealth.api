@@ -8,4 +8,8 @@ defmodule EHealth.API.ReportBehaviour do
   @callback get_declaration_count(ids :: list, headers :: list) ::
               {:ok, result :: term}
               | {:error, reason :: term}
+
+  @callback get_capitation_details(params :: map, headers :: list) ::
+              {:ok, result :: term}
+              | {:error, reason :: term}
 end

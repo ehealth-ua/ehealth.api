@@ -17,4 +17,15 @@ defmodule EHealth.Web.CapitationController do
       )
     end
   end
+
+  def details(%Plug.Conn{req_headers: headers} = conn, params) do
+    with %Page{} = paging <- Capitation.details(params, headers) do
+      render(
+        conn,
+        "details.json",
+        details: paging.entries,
+        paging: paging
+      )
+    end
+  end
 end

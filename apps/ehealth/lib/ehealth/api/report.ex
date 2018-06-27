@@ -8,6 +8,10 @@ defmodule EHealth.API.Report do
     get("/capitation_reports", headers, params: params)
   end
 
+  def get_capitation_details(params, headers \\ []) do
+    get("/capitation_report_details", headers, params: params)
+  end
+
   def get_declaration_count(ids, headers) do
     post!("/api/parties/declaration_count", Jason.encode!(%{ids: ids}), headers)
   end

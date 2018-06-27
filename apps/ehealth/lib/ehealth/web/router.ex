@@ -68,6 +68,7 @@ defmodule EHealthWeb.Router do
     pipe_through(:api)
 
     get("/capitation_reports", CapitationController, :index)
+    get("/capitation_report_details", CapitationController, :details)
 
     post("/credentials_recovery_requests", UserController, :create_credentials_recovery_request)
     patch("/credentials_recovery_requests/:id/actions/reset_password", UserController, :reset_password)
