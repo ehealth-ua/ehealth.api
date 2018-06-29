@@ -7,7 +7,7 @@ defmodule EHealth.Declarations.API do
   import EHealth.Utils.TypesConverter, only: [strings_to_keys: 1]
 
   alias EHealth.Validators.Preload
-  alias EHealth.API.{OPS, Mithril, MediaStorage}
+  alias EHealth.API.{OPS, MediaStorage}
   alias EHealth.{LegalEntities, Employees, Persons, Divisions}
   alias EHealth.Employees.Employee
   alias EHealth.Divisions.Division
@@ -187,7 +187,7 @@ defmodule EHealth.Declarations.API do
   end
 
   def terminate(id, user_id, params, headers) do
-    with {:ok, %{"data" => user}} <- Mithril.get_user_by_id(user_id, headers),
+    with {:ok, %{"data" => user}} <- @mithril_api.get_user_by_id(user_id, headers),
          {:ok, declaration} <- get_declaration_by_id(id, headers),
          {:status, true} <- {:status, declaration["status"] == "active"},
          {:person_id, true} <- {:person_id, user["person_id"] == get_in(declaration, ~w(person id))},
@@ -263,7 +263,7 @@ defmodule EHealth.Declarations.API do
   end
 
   defp check_declaration_access(legal_entity_id, headers) do
-    case Mithril.get_client_type_name(get_client_id(headers), headers) do
+    case @mithril_api.get_client_type_name(get_client_id(headers), headers) do
       {:ok, nil} ->
         {:error, :access_denied}
 

@@ -4,8 +4,6 @@ defmodule EHealth.Web.ContractRequestControllerTest do
   use EHealth.Web.ConnCase
 
   import Mox
-  import EHealth.MockServer, only: [get_client_nhs: 0]
-
   alias EHealth.ContractRequests.ContractRequest
   alias EHealth.Contracts.Contract
   alias EHealth.Employees.Employee
@@ -33,6 +31,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
   describe "contract request draft" do
     test "success create draft", %{conn: conn} do
+      msp()
+
       expect(MediaStorageMock, :create_signed_url, 2, fn _, _, resource, _, _ ->
         {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
       end)
@@ -49,6 +49,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
   describe "create contract request" do
     test "employee division is not active", %{conn: conn} do
+      msp()
       %{legal_entity: legal_entity, employee: employee, party_user: party_user} = prepare_data()
       division = insert(:prm, :division)
 
@@ -84,6 +85,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "external contractor division is not present in contract divisions", %{conn: conn} do
+      msp()
       %{legal_entity: legal_entity, division: division, employee: employee, party_user: party_user} = prepare_data()
 
       expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
@@ -124,6 +126,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "invalid expires_at date", %{conn: conn} do
+      msp()
       %{legal_entity: legal_entity, division: division, employee: employee, party_user: party_user} = prepare_data()
 
       expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
@@ -162,6 +165,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "invalid external_contractor_flag", %{conn: conn} do
+      msp()
       %{legal_entity: legal_entity, division: division, employee: employee, party_user: party_user} = prepare_data()
 
       expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
@@ -195,6 +199,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "start_date is in the past", %{conn: conn} do
+      msp()
       %{legal_entity: legal_entity, division: division, employee: employee, party_user: party_user} = prepare_data()
 
       expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
@@ -227,6 +232,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "start_date is too far in the future", %{conn: conn} do
+      msp()
       %{legal_entity: legal_entity, division: division, employee: employee, party_user: party_user} = prepare_data()
 
       expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
@@ -262,6 +268,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "invalid end_date", %{conn: conn} do
+      msp()
       %{legal_entity: legal_entity, division: division, employee: employee, party_user: party_user} = prepare_data()
 
       expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
@@ -298,6 +305,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "invalid contractor_owner_id", %{conn: conn} do
+      msp()
       %{legal_entity: legal_entity, division: division, employee: employee, party_user: party_user} = prepare_data()
 
       expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
@@ -339,6 +347,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "invalid contract number", %{conn: conn} do
+      msp()
+
       %{
         legal_entity: legal_entity,
         division: division,
@@ -390,6 +400,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "success create contract request with contract_number", %{conn: conn} do
+      msp()
+
       %{
         legal_entity: legal_entity,
         division: division,
@@ -449,6 +461,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "success create contract request without contract_number", %{conn: conn} do
+      msp()
+
       %{
         legal_entity: legal_entity,
         division: division,
@@ -501,6 +515,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
   describe "update contract_request" do
     test "user is not NHS ADMIN SIGNER", %{conn: conn} do
+      msp()
       contract_request = insert(:il, :contract_request)
 
       expect(MithrilMock, :get_user_roles, fn _, _, _ ->
@@ -521,6 +536,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "no contract_request found", %{conn: conn} do
+      msp()
+
       expect(MithrilMock, :get_user_roles, fn _, _, _ ->
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
       end)
@@ -539,6 +556,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "contract_request has wrong status", %{conn: conn} do
+      msp()
       contract_request = insert(:il, :contract_request, status: ContractRequest.status(:signed))
 
       expect(MithrilMock, :get_user_roles, fn _, _, _ ->
@@ -564,6 +582,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "success update contract_request", %{conn: conn} do
+      msp()
       employee = insert(:prm, :employee)
 
       contract_request =
@@ -612,6 +631,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "success showing data for correct MPS client", %{conn: conn} = context do
+      msp()
+
       expect(MediaStorageMock, :create_signed_url, 2, fn _, _, id, resource_name, _ ->
         {:ok, %{"data" => %{"secret_url" => "http://url.com/#{id}/#{resource_name}"}}}
       end)
@@ -631,6 +652,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "denied showing data for uncorrect MPS client", %{conn: conn} = context do
+      msp()
+
       assert conn
              |> put_client_id_header(context.legal_entity_id_1)
              |> get(contract_request_path(conn, :show, context.contract_request_id_2))
@@ -638,6 +661,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "contract_request not found", %{conn: conn} = context do
+      msp()
+
       assert conn
              |> put_client_id_header(context.legal_entity_id_1)
              |> get(contract_request_path(conn, :show, UUID.generate()))
@@ -645,13 +670,15 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "success showing any contract_request for NHS ADMIN client", %{conn: conn} = context do
+      nhs(2)
+
       expect(MediaStorageMock, :create_signed_url, 4, fn _, _, id, resource_name, _ ->
         {:ok, %{"data" => %{"secret_url" => "http://url.com/#{id}/#{resource_name}"}}}
       end)
 
       resp =
         conn
-        |> put_client_id_header(get_client_nhs())
+        |> put_client_id_header(UUID.generate())
         |> get(contract_request_path(conn, :show, context.contract_request_id_1))
         |> json_response(200)
 
@@ -664,7 +691,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       resp =
         conn
-        |> put_client_id_header(get_client_nhs())
+        |> put_client_id_header(UUID.generate())
         |> get(contract_request_path(conn, :show, context.contract_request_id_2))
         |> json_response(200)
 
@@ -677,8 +704,10 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "contract_request not found for NHS ADMIN client", %{conn: conn} do
+      nhs()
+
       assert conn
-             |> put_client_id_header(get_client_nhs())
+             |> put_client_id_header(UUID.generate())
              |> get(contract_request_path(conn, :show, UUID.generate()))
              |> json_response(404)
     end
@@ -1491,6 +1520,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
   describe "terminate contract_request" do
     test "success contract_request terminating", %{conn: conn} do
+      msp(4)
       user_id = UUID.generate()
       party_user = insert(:prm, :party_user, user_id: user_id)
       legal_entity = insert(:prm, :legal_entity)
@@ -1547,6 +1577,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "contract_request not found", %{conn: conn} do
+      msp()
       user_id = UUID.generate()
       legal_entity = insert(:prm, :legal_entity)
 
@@ -1560,6 +1591,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "legal_entity_id doesn't match contractor_legal_entity_id", %{conn: conn} do
+      msp()
       legal_entity = insert(:prm, :legal_entity)
       contract_request = insert(:il, :contract_request, contractor_legal_entity_id: UUID.generate())
 
@@ -1575,6 +1607,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "employee legal_entity_id doesn't match contractor_legal_entity_id", %{conn: conn} do
+      msp()
       legal_entity = insert(:prm, :legal_entity)
       employee = insert(:prm, :employee)
 
@@ -1598,6 +1631,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "employee is not owner", %{conn: conn} do
+      msp()
       legal_entity = insert(:prm, :legal_entity)
       employee = insert(:prm, :employee, legal_entity_id: legal_entity.id)
 
@@ -1621,6 +1655,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "contract_request has wrong status", %{conn: conn} do
+      msp(3)
       user_id = UUID.generate()
       party_user = insert(:prm, :party_user, user_id: user_id)
       legal_entity = insert(:prm, :legal_entity)
@@ -1676,6 +1711,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "event manager successful registration", %{conn: conn} do
+      msp()
       user_id = UUID.generate()
       party_user = insert(:prm, :party_user, user_id: user_id)
       legal_entity = insert(:prm, :legal_entity)
@@ -1738,7 +1774,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       contract_number = UUID.generate()
       contractor_owner_id = UUID.generate()
       legal_entity_id_1 = UUID.generate()
-      legal_entity_id_2 = get_client_nhs()
+      legal_entity_id_2 = UUID.generate()
 
       insert(:prm, :legal_entity, type: "MSP", id: legal_entity_id_1)
       insert(:prm, :legal_entity, type: "NHS", id: legal_entity_id_2)
@@ -1784,57 +1820,73 @@ defmodule EHealth.Web.ContractRequestControllerTest do
        }}
     end
 
-    test "finds by status from different client types", %{
+    test "finds by status as MSP", %{
       conn: conn,
-      legal_entity_id_1: legal_entity_id_1,
-      legal_entity_id_2: legal_entity_id_2
+      legal_entity_id_1: legal_entity_id
     } do
-      %{"data" => response_data} = do_get_contract_request(conn, legal_entity_id_1, %{"status" => "New"})
+      msp(2)
+      %{"data" => response_data} = do_get_contract_request(conn, legal_entity_id, %{"status" => "New"})
       assert [%{"status" => @contract_request_status_new}, _] = response_data
 
-      %{"data" => response_data} = do_get_contract_request(conn, legal_entity_id_2, %{"status" => "new"})
-      assert 4 === length(response_data)
-
       %{"data" => response_data} =
-        do_get_contract_request(conn, legal_entity_id_1, %{"issue_city" => "ЛЬВІВ", "status" => "declined"})
+        do_get_contract_request(conn, legal_entity_id, %{"issue_city" => "ЛЬВІВ", "status" => "declined"})
 
       assert [%{"status" => @contract_request_status_declined}] = response_data
     end
 
+    test "find by status as NHS", %{
+      conn: conn,
+      legal_entity_id_2: legal_entity_id
+    } do
+      nhs()
+      %{"data" => response_data} = do_get_contract_request(conn, legal_entity_id, %{"status" => "new"})
+      assert 4 === length(response_data)
+    end
+
     test "finds by issue city", %{conn: conn, legal_entity_id_1: legal_entity_id_1} do
+      msp()
       %{"data" => response_data} = do_get_contract_request(conn, legal_entity_id_1, %{"issue_city" => "КИЇВ"})
       assert 2 === length(response_data)
     end
 
-    test "finds by attributtes", %{
+    test "finds by attributtes as MSP", %{
       conn: conn,
-      contractor_owner_id: contractor_owner_id,
-      nhs_signer_id: nhs_signer_id,
       contract_number: contract_number,
-      legal_entity_id_1: legal_entity_id_1,
-      legal_entity_id_2: legal_entity_id_2
+      legal_entity_id_1: legal_entity_id
     } do
-      %{"data" => response_data} =
-        do_get_contract_request(conn, legal_entity_id_2, %{"contractor_owner_id" => contractor_owner_id})
-
-      assert [%{"contractor_owner_id" => ^contractor_owner_id}] = response_data
-
-      %{"data" => response_data} = do_get_contract_request(conn, legal_entity_id_2, %{"nhs_signer_id" => nhs_signer_id})
-
-      assert [%{"nhs_signer_id" => ^nhs_signer_id}, _] = response_data
+      msp(2)
 
       %{"data" => response_data} =
-        do_get_contract_request(conn, legal_entity_id_1, %{"contract_number" => contract_number})
+        do_get_contract_request(conn, legal_entity_id, %{"contract_number" => contract_number})
 
       assert [%{"contract_number" => ^contract_number}] = response_data
 
       %{"data" => response_data} =
-        do_get_contract_request(conn, legal_entity_id_1, %{"contractor_legal_entity_id" => legal_entity_id_1})
+        do_get_contract_request(conn, legal_entity_id, %{"contractor_legal_entity_id" => legal_entity_id})
 
-      assert [%{"contractor_legal_entity_id" => ^legal_entity_id_1}, _, _] = response_data
+      assert [%{"contractor_legal_entity_id" => ^legal_entity_id}, _, _] = response_data
+    end
+
+    test "finds by attributtes as NHS", %{
+      conn: conn,
+      contractor_owner_id: contractor_owner_id,
+      nhs_signer_id: nhs_signer_id,
+      legal_entity_id_2: legal_entity_id
+    } do
+      nhs(2)
+
+      %{"data" => response_data} =
+        do_get_contract_request(conn, legal_entity_id, %{"contractor_owner_id" => contractor_owner_id})
+
+      assert [%{"contractor_owner_id" => ^contractor_owner_id}] = response_data
+
+      %{"data" => response_data} = do_get_contract_request(conn, legal_entity_id, %{"nhs_signer_id" => nhs_signer_id})
+
+      assert [%{"nhs_signer_id" => ^nhs_signer_id}, _] = response_data
     end
 
     test "finds nothing", %{conn: conn, legal_entity_id_1: legal_entity_id_1} do
+      msp()
       assert %{"data" => []} = do_get_contract_request(conn, legal_entity_id_1, %{"contract_number" => UUID.generate()})
     end
   end
@@ -1850,17 +1902,24 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
   describe "sign nhs" do
     test "no contract_request found", %{conn: conn} do
-      conn = put_client_id_header(conn, UUID.generate())
-      conn = patch(conn, contract_request_path(conn, :sign_nhs, UUID.generate()))
+      nhs()
+
+      conn =
+        conn
+        |> put_client_id_header(UUID.generate())
+        |> patch(contract_request_path(conn, :sign_nhs, UUID.generate()))
+
       assert json_response(conn, 404)
     end
 
     test "invalid client_id", %{conn: conn} do
       contract_request = insert(:il, :contract_request)
-      conn = put_client_id_header(conn, get_client_nhs())
+      nhs()
 
       conn =
-        patch(conn, contract_request_path(conn, :sign_nhs, contract_request.id), %{
+        conn
+        |> put_client_id_header(UUID.generate())
+        |> patch(contract_request_path(conn, :sign_nhs, contract_request.id), %{
           "signed_content" => "",
           "signed_content_encoding" => "base64"
         })
@@ -1870,6 +1929,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "contract_request already signed", %{conn: conn} do
+      nhs()
+
       %{"client_id" => client_id, "user_id" => user_id, "contract_request" => contract_request} =
         prepare_nhs_sign_params(status: ContractRequest.status(:nhs_signed))
 
@@ -1889,6 +1950,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "failed to decode signed content", %{conn: conn} do
+      nhs()
+
       %{
         "client_id" => client_id,
         "user_id" => user_id,
@@ -1914,6 +1977,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
       insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
       insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
+      nhs()
 
       expect(ManMock, :render_template, fn _, _, _ ->
         {:ok, "<html></html>"}
@@ -1947,6 +2011,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     test "invalid status", %{conn: conn} do
       id = UUID.generate()
       data = %{"id" => id, "printout_content" => "<html></html>", "contract_number" => "0000-9EAX-XT7X-3115"}
+      nhs()
 
       %{
         "client_id" => client_id,
@@ -1979,6 +2044,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
       insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
       insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
+      nhs()
 
       expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
         {:error, "failed to save content"}
@@ -2029,6 +2095,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
       insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
       insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
+      nhs()
 
       expect(ManMock, :render_template, fn _, _, _ ->
         {:ok, "<html></html>"}
@@ -2292,6 +2359,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
   describe "get partially signed contract request url" do
     test "returns url successfully to owner", %{conn: conn} do
+      msp()
+
       expect(MediaStorageMock, :create_signed_url, fn _, _, id, resource_name, _ ->
         {:ok, %{"data" => %{"secret_url" => "http://url.com/#{id}/#{resource_name}"}}}
       end)
@@ -2319,6 +2388,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "contract request was no signed by nhs", %{conn: conn} do
+      msp()
       contract_request = insert(:il, :contract_request, status: ContractRequest.status(:new))
 
       assert %{"error" => %{"message" => "The contract hasn't been signed yet"}} =
@@ -2330,6 +2400,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "invalid client id for contractor_legal_entity_id", %{conn: conn} do
+      msp()
       contract_request = insert(:il, :contract_request, status: ContractRequest.status(:nhs_signed))
 
       assert %{"error" => %{"type" => "forbidden", "message" => _}} =
@@ -2341,6 +2412,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "media storage fail to resolve url", %{conn: conn} do
+      msp()
+
       expect(MediaStorageMock, :create_signed_url, fn _, _, _, _, _ ->
         {:ok, %{"error" => %{}}}
       end)
@@ -2368,14 +2441,16 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
   describe "sign MSP" do
     test "no contract_request found", %{conn: conn} do
+      msp()
       conn = put_client_id_header(conn, UUID.generate())
       conn = patch(conn, contract_request_path(conn, :sign_msp, UUID.generate()))
       assert json_response(conn, 404)
     end
 
     test "invalid client_id", %{conn: conn} do
+      nhs()
       contract_request = insert(:il, :contract_request, status: ContractRequest.status(:nhs_signed))
-      conn = put_client_id_header(conn, get_client_nhs())
+      conn = put_client_id_header(conn, UUID.generate())
 
       conn =
         patch(conn, contract_request_path(conn, :sign_msp, contract_request.id), %{
@@ -2388,6 +2463,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "contract_request already signed", %{conn: conn} do
+      nhs()
+
       %{"client_id" => client_id, "user_id" => user_id, "contract_request" => contract_request} =
         prepare_nhs_sign_params(status: ContractRequest.status(:signed))
 
@@ -2407,6 +2484,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "failed to decode signed content", %{conn: conn} do
+      nhs()
+
       %{
         "client_id" => client_id,
         "user_id" => user_id,
@@ -2444,6 +2523,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
       insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
       insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
+      nhs()
 
       expect(ManMock, :render_template, fn _, _, _ ->
         {:ok, "<html></html>"}
@@ -2475,6 +2555,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "failed to save signed content", %{conn: conn} do
+      nhs()
+
       expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
         {:error, "failed to save content"}
       end)
@@ -2511,6 +2593,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "failed to create contract", %{conn: conn} do
+      nhs()
+
       expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
         {:ok, "success"}
       end)
@@ -2546,6 +2630,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "success to sign contract_request", %{conn: conn} do
+      nhs()
+
       expect(ManMock, :render_template, fn _, _, _ ->
         {:ok, "<html></html>"}
       end)
@@ -2593,6 +2679,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "success to sign contract_request with existing parent_contract_id", %{conn: conn} do
+      nhs()
+
       expect(ManMock, :render_template, fn _, _, _ ->
         {:ok, "<html></html>"}
       end)
@@ -2650,6 +2738,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
       insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
       insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
+      nhs()
 
       printout_content = "<html></html>"
 
@@ -2659,11 +2748,10 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       contract_request = insert(:il, :contract_request, status: ContractRequest.status(:pending_nhs_sign))
       id = contract_request.id
-      client_id = get_client_nhs()
 
       conn =
         conn
-        |> put_client_id_header(client_id)
+        |> put_client_id_header(UUID.generate())
         |> get(contract_request_path(conn, :printout_content, id))
 
       assert resp = json_response(conn, 200)
@@ -2672,11 +2760,11 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
     test "invalid status", %{conn: conn} do
       contract_request = insert(:il, :contract_request)
-      client_id = get_client_nhs()
+      nhs()
 
       conn =
         conn
-        |> put_client_id_header(client_id)
+        |> put_client_id_header(UUID.generate())
         |> get(contract_request_path(conn, :printout_content, contract_request.id))
 
       assert json_response(conn, 409)
@@ -2758,7 +2846,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
   end
 
   defp prepare_nhs_sign_params(contract_request_params, legal_entity_params \\ []) do
-    client_id = get_client_nhs()
+    client_id = UUID.generate()
     params = Keyword.merge([id: client_id], legal_entity_params)
     legal_entity = insert(:prm, :legal_entity, params)
     user_id = UUID.generate()

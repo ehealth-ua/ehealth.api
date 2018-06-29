@@ -14,7 +14,7 @@ defmodule EHealth.LegalEntities do
   alias Ecto.{Changeset, Date, UUID}
   alias Ecto.Schema.Metadata
   alias EHealth.{PRMRepo, Registries, EmployeeRequests}
-  alias EHealth.API.{Mithril, MediaStorage}
+  alias EHealth.API.MediaStorage
   alias EHealth.OAuth.API, as: OAuth
   alias EHealth.LegalEntities.{LegalEntity, Search, Validator}
   alias EHealth.Contracts.Contract
@@ -22,6 +22,8 @@ defmodule EHealth.LegalEntities do
   alias EHealth.Employees.Employee
 
   require Logger
+
+  @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
 
   @search_fields ~w(
     id
@@ -122,7 +124,7 @@ defmodule EHealth.LegalEntities do
   def get_by_id(id, headers) do
     client_id = get_client_id(headers)
 
-    with {:ok, client_type} <- Mithril.get_client_type_name(client_id, headers),
+    with {:ok, client_type} <- @mithril_api.get_client_type_name(client_id, headers),
          :ok <- authorize_legal_entity_id(id, client_id, client_type),
          {:ok, legal_entity} <- load_legal_entity(id),
          %{} = oauth_client <- OAuth.get_client(legal_entity.id, headers) do
@@ -352,7 +354,7 @@ defmodule EHealth.LegalEntities do
   end
 
   defp get_client_type_id(type, headers) do
-    case Mithril.get_client_type_by_name(type, headers) do
+    case @mithril_api.get_client_type_by_name(type, headers) do
       {:ok, %{"data" => [client_type]}} -> {:ok, Map.get(client_type, "id")}
       _ -> {:error, {:bad_request, "No client type #{type}"}}
     end

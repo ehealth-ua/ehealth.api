@@ -15,6 +15,7 @@ defmodule EHealth.Web.DeclarationControllerTest do
     end
 
     test "by person_id", %{conn: conn} do
+      msp()
       status = 200
 
       %{party: party} = insert(:prm, :party_user)
@@ -57,6 +58,7 @@ defmodule EHealth.Web.DeclarationControllerTest do
     end
 
     test "empty by person_id", %{conn: conn} do
+      msp()
       status = 200
 
       expect(OPSMock, :get_declarations, fn _params, _headers ->
@@ -69,6 +71,7 @@ defmodule EHealth.Web.DeclarationControllerTest do
     end
 
     test "with x-consumer-metadata that contains MSP client_id with empty declarations list", %{conn: conn} do
+      msp()
       status = 200
 
       expect(OPSMock, :get_declarations, fn _params, _headers ->
@@ -95,6 +98,7 @@ defmodule EHealth.Web.DeclarationControllerTest do
     end
 
     test "with x-consumer-metadata that contains MSP client_id and invalid legal_entity_id", %{conn: conn} do
+      msp()
       conn = put_client_id_header(conn, UUID.generate())
       conn = get(conn, declaration_path(conn, :index, legal_entity_id: UUID.generate()))
       resp = json_response(conn, 200)
@@ -105,6 +109,7 @@ defmodule EHealth.Web.DeclarationControllerTest do
     end
 
     test "with x-consumer-metadata that contains MSP client_id", %{conn: conn} do
+      msp()
       status = 200
 
       division = insert(:prm, :division)
@@ -146,6 +151,7 @@ defmodule EHealth.Web.DeclarationControllerTest do
     end
 
     test "with x-consumer-metadata that contains MIS client_id", %{conn: conn} do
+      mis()
       status = 200
 
       %{party: party} = insert(:prm, :party_user)
@@ -182,6 +188,7 @@ defmodule EHealth.Web.DeclarationControllerTest do
     end
 
     test "with x-consumer-metadata that contains NHS client_id", %{conn: conn} do
+      nhs()
       status = 200
 
       legal_entity = insert(:prm, :legal_entity)
@@ -229,13 +236,14 @@ defmodule EHealth.Web.DeclarationControllerTest do
 
   describe "declaration by id" do
     test "with x-consumer-metadata that contains MSP client_id with empty client_type_name", %{conn: conn} do
+      expect(MithrilMock, :get_client_type_name, fn _, _ -> {:ok, nil} end)
       {declaration, declaration_id} = get_declaration(%{}, 200)
 
       expect(OPSMock, :get_declaration_by_id, fn _params, _headers ->
         declaration
       end)
 
-      conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375111")
+      conn = put_client_id_header(conn, UUID.generate())
       conn = get(conn, declaration_path(conn, :show, declaration_id))
       json_response(conn, 401)
     end
@@ -251,6 +259,7 @@ defmodule EHealth.Web.DeclarationControllerTest do
     end
 
     test "with x-consumer-metadata that contains MSP client_id with invalid legal_entity_id", %{conn: conn} do
+      msp()
       %{id: legal_entity_id} = insert(:prm, :legal_entity)
       {declaration, declaration_id} = get_declaration(%{legal_entity_id: legal_entity_id}, 200)
 
@@ -264,6 +273,7 @@ defmodule EHealth.Web.DeclarationControllerTest do
     end
 
     test "with x-consumer-metadata that contains MSP client_id", %{conn: conn} do
+      msp()
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division)
       insert(:prm, :legal_entity)
@@ -306,6 +316,7 @@ defmodule EHealth.Web.DeclarationControllerTest do
     end
 
     test "with x-consumer-metadata that contains MIS client_id", %{conn: conn} do
+      mis()
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division)
       insert(:prm, :legal_entity)
@@ -346,6 +357,7 @@ defmodule EHealth.Web.DeclarationControllerTest do
     end
 
     test "with x-consumer-metadata that contains NHS client_id", %{conn: conn} do
+      nhs()
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division)
       insert(:prm, :legal_entity)
@@ -448,14 +460,14 @@ defmodule EHealth.Web.DeclarationControllerTest do
     end
 
     test "it transitions declaration to approved status" do
+      nhs()
       user_id = "80ff0b87-25a1-4819-bf33-37db90977437"
-      client_id = "d8ea20e3-5949-46e6-88ef-62c708e57ad7"
       declaration_id = "ce377dea-d8c4-4dd8-9328-de24b1ee3879"
 
       response =
         build_conn()
         |> put_req_header("x-consumer-id", user_id)
-        |> put_client_id_header(client_id)
+        |> put_client_id_header(UUID.generate())
         |> patch("/api/declarations/#{declaration_id}/actions/approve")
 
       response = json_response(response, 200)
@@ -494,6 +506,7 @@ defmodule EHealth.Web.DeclarationControllerTest do
     end
 
     test "a 403 error is returned" do
+      msp()
       client_id = Ecto.UUID.generate()
       declaration_id = "ce377dea-d8c4-4dd8-9328-de24b1ee3879"
 
@@ -536,12 +549,12 @@ defmodule EHealth.Web.DeclarationControllerTest do
     end
 
     test "a 404 error is returned (as if declaration never existed)" do
-      client_id = "d8ea20e3-5949-46e6-88ef-62c708e57ad7"
+      nhs()
       declaration_id = "ce377dea-d8c4-4dd8-9328-de24b1ee3879"
 
       response =
         build_conn()
-        |> put_client_id_header(client_id)
+        |> put_client_id_header(UUID.generate())
         |> patch("/api/declarations/#{declaration_id}/actions/approve")
 
       assert json_response(response, 404)
@@ -598,14 +611,14 @@ defmodule EHealth.Web.DeclarationControllerTest do
     end
 
     test "a 409 error is returned" do
+      nhs()
       user_id = "80ff0b87-25a1-4819-bf33-37db90977437"
-      client_id = "d8ea20e3-5949-46e6-88ef-62c708e57ad7"
       declaration_id = "ce377dea-d8c4-4dd8-9328-de24b1ee3879"
 
       response =
         build_conn()
         |> put_req_header("x-consumer-id", user_id)
-        |> put_client_id_header(client_id)
+        |> put_client_id_header(UUID.generate())
         |> patch("/api/declarations/#{declaration_id}/actions/approve")
 
       assert json_response(response, 409)
@@ -660,6 +673,7 @@ defmodule EHealth.Web.DeclarationControllerTest do
     end
 
     test "it transitions declaration to rejected status" do
+      msp()
       user_id = "80ff0b87-25a1-4819-bf33-37db90977437"
       client_id = "d8ea20e3-5949-46e6-88ef-62c708e57ad7"
       declaration_id = "ce377dea-d8c4-4dd8-9328-de24b1ee3879"
@@ -706,12 +720,12 @@ defmodule EHealth.Web.DeclarationControllerTest do
     end
 
     test "a 403 error is returned" do
-      client_id = Ecto.UUID.generate()
+      msp()
       declaration_id = "ce377dea-d8c4-4dd8-9328-de24b1ee3879"
 
       response =
         build_conn()
-        |> put_client_id_header(client_id)
+        |> put_client_id_header(UUID.generate())
         |> patch("/api/declarations/#{declaration_id}/actions/reject")
 
       assert json_response(response, 403)
@@ -748,12 +762,12 @@ defmodule EHealth.Web.DeclarationControllerTest do
     end
 
     test "a 404 error is returned (as if declaration never existed)" do
-      client_id = "d8ea20e3-5949-46e6-88ef-62c708e57ad7"
+      nhs()
       declaration_id = "ce377dea-d8c4-4dd8-9328-de24b1ee3879"
 
       response =
         build_conn()
-        |> put_client_id_header(client_id)
+        |> put_client_id_header(UUID.generate())
         |> patch("/api/declarations/#{declaration_id}/actions/reject")
 
       assert json_response(response, 404)
@@ -810,14 +824,14 @@ defmodule EHealth.Web.DeclarationControllerTest do
     end
 
     test "a 409 error is returned" do
+      nhs()
       user_id = "80ff0b87-25a1-4819-bf33-37db90977437"
-      client_id = "d8ea20e3-5949-46e6-88ef-62c708e57ad7"
       declaration_id = "ce377dea-d8c4-4dd8-9328-de24b1ee3879"
 
       response =
         build_conn()
         |> put_req_header("x-consumer-id", user_id)
-        |> put_client_id_header(client_id)
+        |> put_client_id_header(UUID.generate())
         |> patch("/api/declarations/#{declaration_id}/actions/reject")
 
       assert json_response(response, 409)

@@ -3,7 +3,6 @@ defmodule EHealth.Persons do
 
   import EHealth.Utils.Connection, only: [get_consumer_id: 1]
 
-  alias EHealth.API.Mithril
   alias EHealth.API.Signature
   alias EHealth.Persons.Person
   alias EHealth.Persons.Search
@@ -13,6 +12,7 @@ defmodule EHealth.Persons do
   alias EHealth.Persons.Validator, as: PersonValidator
 
   @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
+  @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
   @media_storage_api Application.get_env(:ehealth, :api_resolvers)[:media_storage]
   @addresses_types ~w(REGISTRATION RESIDENCE)
 
@@ -30,7 +30,7 @@ defmodule EHealth.Persons do
   def update(id, params, headers) do
     user_id = get_consumer_id(headers)
 
-    with {:ok, %{"data" => user}} <- Mithril.get_user_by_id(user_id, headers),
+    with {:ok, %{"data" => user}} <- @mithril_api.get_user_by_id(user_id, headers),
          :ok <- check_user_person_id(user, id),
          %Ecto.Changeset{valid?: true, changes: changes} <- Signed.changeset(params),
          {:ok, %{"data" => data}} <- Signature.decode_and_validate(changes.signed_content, "base64", headers),
@@ -53,7 +53,7 @@ defmodule EHealth.Persons do
   def get_person(headers) do
     user_id = get_consumer_id(headers)
 
-    with {:ok, %{"data" => user}} <- Mithril.get_user_by_id(user_id, headers),
+    with {:ok, %{"data" => user}} <- @mithril_api.get_user_by_id(user_id, headers),
          {:ok, %{"data" => person}} <- @mpi_api.person(user["person_id"], headers),
          :ok <- validate_user_person(user, person),
          :ok <- check_user_blocked(user["is_blocked"]) do
@@ -64,7 +64,7 @@ defmodule EHealth.Persons do
   def get_details(headers) do
     user_id = get_consumer_id(headers)
 
-    with {:ok, %{"data" => user}} <- Mithril.get_user_by_id(user_id, headers),
+    with {:ok, %{"data" => user}} <- @mithril_api.get_user_by_id(user_id, headers),
          {:ok, %{"data" => person}} <- @mpi_api.person(user["person_id"], headers),
          :ok <- validate_user_person(user, person),
          :ok <- check_user_person_id(user, person["id"]) do

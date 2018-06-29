@@ -5,7 +5,6 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
   import Mox
 
   alias Ecto.UUID
-  alias EHealth.MockServer
   alias EHealth.Repo
   alias EHealth.DeclarationRequests.DeclarationRequest
 
@@ -24,140 +23,28 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
 
   setup :verify_on_exit!
 
-  defmodule MithrilServer do
-    @moduledoc false
-
-    use MicroservicesHelper
-    alias EHealth.MockServer
-
-    Plug.Router.get "/admin/roles" do
-      response =
-        [
-          %{
-            id: "e945360c-8c4a-4f37-a259-320d2533cfc4",
-            role_name: "DOCTOR"
-          }
-        ]
-        |> MockServer.wrap_response()
-        |> Jason.encode!()
-
-      Plug.Conn.send_resp(conn, 200, response)
-    end
-
-    Plug.Router.get "/admin/users/8069cb5c-3156-410b-9039-a1b2f2a4136c" do
-      user = %{
-        "id" => "8069cb5c-3156-410b-9039-a1b2f2a4136c",
-        "settings" => %{},
-        "email" => "test@example.com",
-        "type" => "user",
-        "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
-        "tax_id" => "2222222225",
-        "is_blocked" => false
-      }
-
-      response =
-        user
-        |> MockServer.wrap_response()
-        |> Jason.encode!()
-
-      Plug.Conn.send_resp(conn, 200, response)
-    end
-
-    Plug.Router.get "/admin/users/4d593e84-34dc-48d3-9e33-0628a8446956" do
-      response =
-        %{
-          "id" => "4d593e84-34dc-48d3-9e33-0628a8446956",
-          "person_id" => "0c65d15b-32b4-4e82-b53d-0572416d890e",
-          "block_reason" => nil,
-          "email" => "email@example.com",
-          "is_blocked" => false,
-          "settings" => %{},
-          "tax_id" => "12341234"
-        }
-        |> MockServer.wrap_response()
-        |> Jason.encode!()
-
-      Plug.Conn.send_resp(conn, 200, response)
-    end
-
-    Plug.Router.get "/admin/clients/c3cc1def-48b6-4451-be9d-3b777ef06ff9/details" do
-      response =
-        %{"client_type_name" => "CABINET"}
-        |> MockServer.wrap_response()
-        |> Jason.encode!()
-
-      Plug.Conn.send_resp(conn, 200, response)
-    end
-
-    Plug.Router.get "/admin/clients/75dfd749-c162-48ce-8a92-428c106d5dc3/details" do
-      response =
-        %{"client_type_name" => "MSP"}
-        |> MockServer.wrap_response()
-        |> Jason.encode!()
-
-      Plug.Conn.send_resp(conn, 200, response)
-    end
-
-    Plug.Router.get "/admin/clients/4d593e84-34dc-48d3-9e33-0628a8446956/details" do
-      response =
-        %{"client_type_name" => "CABINET"}
-        |> MockServer.wrap_response()
-        |> Jason.encode!()
-
-      Plug.Conn.send_resp(conn, 200, response)
-    end
-
-    Plug.Router.get "/admin/users/668d1541-e4cf-4a95-a25a-60d83864ceaf" do
-      user = %{
-        "id" => "668d1541-e4cf-4a95-a25a-60d83864ceaf",
-        "settings" => %{},
-        "email" => "test@example.com",
-        "type" => "user"
-      }
-
-      response =
-        user
-        |> MockServer.wrap_response()
-        |> Jason.encode!()
-
-      Plug.Conn.send_resp(conn, 200, response)
-    end
-
-    Plug.Router.get "/admin/users/8069cb5c-3156-410b-9039-a1b2f2a4136c/roles" do
-      response =
-        [
-          %{
-            id: UUID.generate(),
-            user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c",
-            role_id: "e945360c-8c4a-4f37-a259-320d2533cfc4",
-            role_name: "DOCTOR"
-          }
-        ]
-        |> MockServer.wrap_response()
-        |> Jason.encode!()
-
-      Plug.Conn.send_resp(conn, 200, response)
-    end
-
-    Plug.Router.get "/admin/users/:id" do
-      Plug.Conn.send_resp(conn, 404, "")
-    end
-  end
-
   setup do
     insert(:prm, :global_parameter, %{parameter: "adult_age", value: "18"})
     insert(:prm, :global_parameter, %{parameter: "declaration_term", value: "40"})
     insert(:prm, :global_parameter, %{parameter: "declaration_term_unit", value: "YEARS"})
-
-    register_mircoservices_for_tests([
-      {MithrilServer, "OAUTH_ENDPOINT"}
-    ])
-
     :ok
   end
 
   describe "create declaration request online" do
-    test "success create declaration request online  for underage person for PEDIATRICIAN", %{conn: conn} do
+    test "success create declaration request online for underage person for PEDIATRICIAN", %{conn: conn} do
+      cabinet()
+
+      expect(MithrilMock, :get_user_by_id, fn id, _ ->
+        {:ok,
+         %{
+           "data" => %{
+             "id" => id,
+             "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
+             "tax_id" => "2222222225"
+           }
+         }}
+      end)
+
       birth_date =
         Date.utc_today()
         |> Date.add(-365 * 10)
@@ -198,7 +85,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
       end)
 
-      legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
+      legal_entity = insert(:prm, :legal_entity)
       person_id = "c8912855-21c3-4771-ba18-bcd8e524f14c"
       division = insert(:prm, :division, legal_entity: legal_entity)
       employee_speciality = Map.put(speciality(), "speciality", "PEDIATRICIAN")
@@ -254,7 +141,9 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
       assert declaration_request.mpi_id == person_id
     end
 
-    test "success create declaration request online  for underage person for FAMILY_DOCTOR", %{conn: conn} do
+    test "success create declaration request online for underage person for FAMILY_DOCTOR", %{conn: conn} do
+      cabinet()
+
       birth_date =
         Date.utc_today()
         |> Date.add(-365 * 10)
@@ -273,7 +162,18 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
       end)
 
       role_id = UUID.generate()
-      expect(MithrilMock, :get_user_by_id, fn _, _ -> {:ok, %{"data" => %{"email" => "user@email.com"}}} end)
+
+      expect(MithrilMock, :get_user_by_id, 2, fn id, _ ->
+        {:ok,
+         %{
+           "data" => %{
+             "id" => id,
+             "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
+             "tax_id" => "2222222225",
+             "email" => "user@email.com"
+           }
+         }}
+      end)
 
       expect(MithrilMock, :get_roles_by_name, fn "DOCTOR", _headers ->
         {:ok, %{"data" => [%{"id" => role_id}]}}
@@ -295,7 +195,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
       end)
 
-      legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
+      legal_entity = insert(:prm, :legal_entity)
       person_id = "c8912855-21c3-4771-ba18-bcd8e524f14c"
       division = insert(:prm, :division, legal_entity: legal_entity)
       employee_speciality = Map.put(speciality(), "speciality", "FAMILY_DOCTOR")
@@ -351,7 +251,9 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
       assert declaration_request.mpi_id == person_id
     end
 
-    test "success create declaration request online  for adult person for THERAPIST", %{conn: conn} do
+    test "success create declaration request online for adult person for THERAPIST", %{conn: conn} do
+      cabinet()
+
       birth_date =
         Date.utc_today()
         |> Date.add(-365 * 30)
@@ -370,7 +272,18 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
       end)
 
       role_id = UUID.generate()
-      expect(MithrilMock, :get_user_by_id, fn _, _ -> {:ok, %{"data" => %{"email" => "user@email.com"}}} end)
+
+      expect(MithrilMock, :get_user_by_id, 2, fn id, _ ->
+        {:ok,
+         %{
+           "data" => %{
+             "id" => id,
+             "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
+             "tax_id" => "2222222225",
+             "email" => "user@email.com"
+           }
+         }}
+      end)
 
       expect(MithrilMock, :get_roles_by_name, fn "DOCTOR", _headers ->
         {:ok, %{"data" => [%{"id" => role_id}]}}
@@ -454,6 +367,8 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
 
   describe "declaration requests list via cabinet" do
     test "declaration requests list is successfully showed", %{conn: conn} do
+      cabinet()
+
       expect(MithrilMock, :get_user_by_id, fn user_id, _headers ->
         {:ok,
          %{
@@ -494,6 +409,8 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
     end
 
     test "declaration requests list with search params", %{conn: conn} do
+      cabinet()
+
       expect(MithrilMock, :get_user_by_id, fn user_id, _headers ->
         {:ok,
          %{
@@ -545,6 +462,8 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
     end
 
     test "declaration requests list ignore invalid search params", %{conn: conn} do
+      cabinet()
+
       expect(MithrilMock, :get_user_by_id, fn user_id, _headers ->
         {:ok,
          %{
@@ -581,6 +500,8 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
     end
 
     test "failed when person is not valid", %{conn: conn} do
+      cabinet()
+
       expect(MithrilMock, :get_user_by_id, fn user_id, _headers ->
         {:ok,
          %{
@@ -608,6 +529,8 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
     end
 
     test "failed when user is blocked", %{conn: conn} do
+      cabinet()
+
       expect(MithrilMock, :get_user_by_id, fn user_id, _headers ->
         {:ok,
          %{
@@ -635,6 +558,8 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
     end
 
     test "declaration requests list - expired status is not shown", %{conn: conn} do
+      cabinet()
+
       expect(MithrilMock, :get_user_by_id, fn user_id, _headers ->
         {:ok,
          %{
@@ -683,6 +608,8 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
     end
 
     test "declaration requests list with status search param - expired status means empty list", %{conn: conn} do
+      cabinet()
+
       expect(MithrilMock, :get_user_by_id, fn user_id, _headers ->
         {:ok,
          %{
@@ -725,6 +652,8 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
 
   describe "declaration request details via cabinet" do
     test "declaration request details is successfully showed", %{conn: conn} do
+      cabinet()
+
       expect(MithrilMock, :get_user_by_id, fn user_id, _headers ->
         {:ok,
          %{
@@ -787,6 +716,8 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
     end
 
     test "declaration request is not found", %{conn: conn} do
+      cabinet()
+
       expect(MithrilMock, :get_user_by_id, fn user_id, _headers ->
         {:ok,
          %{
@@ -814,6 +745,8 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
     end
 
     test "failed when declaration request is not belong to person", %{conn: conn} do
+      cabinet()
+
       expect(MithrilMock, :get_user_by_id, fn user_id, _headers ->
         {:ok,
          %{
@@ -843,6 +776,8 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
     end
 
     test "failed when person is not valid", %{conn: conn} do
+      cabinet()
+
       expect(MithrilMock, :get_user_by_id, fn user_id, _headers ->
         {:ok,
          %{
@@ -870,6 +805,8 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
     end
 
     test "failed when user is blocked", %{conn: conn} do
+      cabinet()
+
       expect(MithrilMock, :get_user_by_id, fn user_id, _headers ->
         {:ok,
          %{
@@ -899,6 +836,19 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
 
   describe "approve declaration_request" do
     test "success approve", %{conn: conn} do
+      cabinet()
+
+      expect(MithrilMock, :get_user_by_id, fn id, _ ->
+        {:ok,
+         %{
+           "data" => %{
+             "id" => id,
+             "person_id" => "0c65d15b-32b4-4e82-b53d-0572416d890e",
+             "tax_id" => "12341234"
+           }
+         }}
+      end)
+
       expect(MPIMock, :person, fn id, _headers ->
         get_person(id, 200, %{tax_id: "12341234"})
       end)
@@ -928,6 +878,8 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
     end
 
     test "wrong channel", %{conn: conn} do
+      cabinet()
+
       declaration_request =
         insert(
           :il,

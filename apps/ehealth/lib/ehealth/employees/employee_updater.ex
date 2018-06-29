@@ -3,7 +3,6 @@ defmodule EHealth.Employees.EmployeeUpdater do
 
   import EHealth.Utils.Connection, only: [get_consumer_id: 1]
 
-  alias EHealth.API.Mithril
   alias EHealth.PartyUsers
   alias EHealth.Employees
   alias EHealth.Employees.Employee
@@ -18,6 +17,7 @@ defmodule EHealth.Employees.EmployeeUpdater do
   @status_approved Employee.status(:approved)
   @status_dismissed Employee.status(:dismissed)
 
+  @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
   @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]
 
   def deactivate(%{"id" => id} = params, headers, with_owner \\ false) do
@@ -98,9 +98,9 @@ defmodule EHealth.Employees.EmployeeUpdater do
   end
 
   def delete_mithril_entities(user_id, client_id, role_name, headers) do
-    with {:ok, _} <- Mithril.delete_user_roles_by_user_and_role_name(user_id, role_name, headers),
-         {:ok, _} <- Mithril.delete_apps_by_user_and_client(user_id, client_id, headers),
-         {:ok, _} <- Mithril.delete_tokens_by_user_and_client(user_id, client_id, headers) do
+    with {:ok, _} <- @mithril_api.delete_user_roles_by_user_and_role_name(user_id, role_name, headers),
+         {:ok, _} <- @mithril_api.delete_apps_by_user_and_client(user_id, client_id, headers),
+         {:ok, _} <- @mithril_api.delete_tokens_by_user_and_client(user_id, client_id, headers) do
       :ok
     end
   end

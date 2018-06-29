@@ -10,13 +10,14 @@ defmodule EHealth.Employees do
 
   alias Scrivener.Page
   alias Ecto.Changeset
-  alias EHealth.API.Mithril
   alias EHealth.EmployeeRequests.EmployeeRequest, as: Request
   alias EHealth.EmployeeRequests
   alias EHealth.Employees.{EmployeeCreator, UserRoleCreator, Employee, Search}
   alias EHealth.{PRMRepo, Parties, EventManager}
   alias EHealth.Contracts.Contract
   alias EHealth.Contracts
+
+  @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
 
   @doctor Employee.type(:doctor)
   @pharmacist Employee.type(:pharmacist)
@@ -101,7 +102,7 @@ defmodule EHealth.Employees do
     client_id = get_client_id(headers)
 
     with employee <- get_by_id!(id),
-         {:ok, client_type} <- Mithril.get_client_type_name(client_id, headers),
+         {:ok, client_type} <- @mithril_api.get_client_type_name(client_id, headers),
          :ok <- authorize_legal_entity_id(employee.legal_entity_id, client_id, client_type) do
       {:ok,
        employee

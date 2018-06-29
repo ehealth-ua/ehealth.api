@@ -46,6 +46,7 @@ defmodule EHealth.Web.DivisionsControllerTest do
 
   describe "Get divisions" do
     test "get divisions", %{conn: conn} do
+      msp()
       conn = put_client_id_header(conn)
 
       conn = get(conn, division_path(conn, :index))
@@ -57,6 +58,7 @@ defmodule EHealth.Web.DivisionsControllerTest do
     end
 
     test "get INACTIVE divisions", %{conn: conn} do
+      msp(2)
       %{legal_entity_id: id} = insert(:prm, :division, status: "ACTIVE", is_active: true)
       conn = put_client_id_header(conn, id)
 
@@ -83,7 +85,8 @@ defmodule EHealth.Web.DivisionsControllerTest do
     assert division.id == resp["id"]
   end
 
-  test "get divisions with  client_id that does not match legal entity id", %{conn: conn} do
+  test "get divisions with client_id that does not match legal entity id", %{conn: conn} do
+    msp()
     conn = put_client_id_header(conn, UUID.generate())
     id = "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
     conn = get(conn, division_path(conn, :index, legal_entity_id: id))

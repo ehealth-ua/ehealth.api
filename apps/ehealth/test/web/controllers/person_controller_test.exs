@@ -4,7 +4,6 @@ defmodule EHealth.Web.PersonControllerTest do
   use EHealth.Web.ConnCase
   import Mox
   alias Ecto.UUID
-  alias EHealth.MockServer
 
   @moduletag :with_client_id
 
@@ -12,6 +11,7 @@ defmodule EHealth.Web.PersonControllerTest do
 
   describe "get person declaration" do
     test "MSP can see own declaration", %{conn: conn} do
+      msp()
       status = 200
 
       %{party: party} = insert(:prm, :party_user)
@@ -49,6 +49,7 @@ defmodule EHealth.Web.PersonControllerTest do
     end
 
     test "MSP can't see not own declaration", %{conn: conn} do
+      msp()
       %{party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
       %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
@@ -75,10 +76,11 @@ defmodule EHealth.Web.PersonControllerTest do
     end
 
     test "NHS ADMIN can see any employees declarations", %{conn: conn} do
+      admin()
       status = 200
 
       %{party: party} = insert(:prm, :party_user)
-      legal_entity = insert(:prm, :legal_entity, id: MockServer.get_client_admin())
+      legal_entity = insert(:prm, :legal_entity)
       %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
       %{id: division_id} = insert(:prm, :division, legal_entity: legal_entity)
       person_id = UUID.generate()

@@ -1,7 +1,9 @@
 defmodule EHealth.Web.MedicationRequestControllerTest do
+  @moduledoc false
+
   use EHealth.Web.ConnCase, async: true
+
   import EHealth.Utils.Connection, only: [get_consumer_id: 1, get_client_id: 1]
-  import EHealth.MockServer, only: [get_client_admin: 0]
   import Mox
 
   alias EHealth.PRMRepo
@@ -18,6 +20,8 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
 
   describe "list medication requests" do
     test "success list medication requests", %{conn: conn} do
+      msp()
+
       expect(MPIMock, :person, fn id, _headers ->
         {:ok, %{"data" => string_params_for(:person, id: id)}}
       end)
@@ -74,11 +78,13 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
     end
 
     test "no party user", %{conn: conn} do
+      msp()
       conn = get(conn, medication_request_path(conn, :index))
       assert json_response(conn, 500)
     end
 
     test "no employees found", %{conn: conn} do
+      msp()
       user_id = get_consumer_id(conn.req_headers)
       legal_entity_id = get_client_id(conn.req_headers)
 
@@ -94,6 +100,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
     end
 
     test "could not load remote reference", %{conn: conn} do
+      msp()
       user_id = get_consumer_id(conn.req_headers)
       legal_entity_id = get_client_id(conn.req_headers)
 
@@ -127,6 +134,8 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
 
   describe "show medication_request" do
     test "success get medication_request by id", %{conn: conn} do
+      msp()
+
       expect(MPIMock, :person, fn id, _headers ->
         {:ok, %{"data" => string_params_for(:person, id: id)}}
       end)
@@ -176,11 +185,13 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
     end
 
     test "no party user", %{conn: conn} do
+      msp()
       conn = get(conn, medication_request_path(conn, :show, Ecto.UUID.generate()))
       assert json_response(conn, 500)
     end
 
     test "not found", %{conn: conn} do
+      msp()
       user_id = get_consumer_id(conn.req_headers)
       insert(:prm, :party_user, user_id: user_id)
 
@@ -204,6 +215,8 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
 
   describe "show medication_request by number" do
     test "success get medication_request by number", %{conn: conn} do
+      msp()
+
       expect(MPIMock, :person, fn id, _headers ->
         {:ok, %{"data" => string_params_for(:person, id: id)}}
       end)
@@ -226,13 +239,14 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       medication_request_number = NumberGenerator.generate(1)
 
       medication_request =
-        build_resp(%{
+        %{
           legal_entity_id: legal_entity_id,
           division_id: division.id,
           employee_id: employee_id,
           medical_program_id: medical_program_id,
           medication_id: innm_dosage_id
-        })
+        }
+        |> build_resp()
         |> Map.put("request_number", medication_request_number)
 
       expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
@@ -256,11 +270,13 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
     end
 
     test "no party user", %{conn: conn} do
+      msp()
       conn = get(conn, medication_request_path(conn, :show, NumberGenerator.generate(1)))
       assert json_response(conn, 500)
     end
 
     test "not found", %{conn: conn} do
+      msp()
       user_id = get_consumer_id(conn.req_headers)
       insert(:prm, :party_user, user_id: user_id)
 
@@ -284,6 +300,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
 
   describe "qualify medication request" do
     test "success qualify", %{conn: conn} do
+      msp()
       user_id = get_consumer_id(conn.req_headers)
       legal_entity_id = get_client_id(conn.req_headers)
       division = insert(:prm, :division)
@@ -337,6 +354,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
     end
 
     test "success qualify as admin", %{conn: conn} do
+      admin()
       user_id = get_consumer_id(conn.req_headers)
       legal_entity_id = get_client_id(conn.req_headers)
       division = insert(:prm, :division)
@@ -385,7 +403,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
         {:ok, %{"data" => [medication_id]}}
       end)
 
-      conn = put_client_id_header(conn, get_client_admin())
+      conn = put_client_id_header(conn, UUID.generate())
 
       conn =
         post(conn, medication_request_path(conn, :qualify, medication_request["id"]), %{
@@ -403,6 +421,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
     end
 
     test "INVALID qualify as admin", %{conn: conn} do
+      admin()
       user_id = get_consumer_id(conn.req_headers)
       legal_entity_id = get_client_id(conn.req_headers)
       division = insert(:prm, :division)
@@ -440,7 +459,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
          }}
       end)
 
-      conn = put_client_id_header(conn, get_client_admin())
+      conn = put_client_id_header(conn, UUID.generate())
 
       conn =
         post(conn, medication_request_path(conn, :qualify, medication_request["id"]), %{
@@ -458,6 +477,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
     end
 
     test "failed validation", %{conn: conn} do
+      msp()
       user_id = get_consumer_id(conn.req_headers)
       legal_entity_id = get_client_id(conn.req_headers)
       division = insert(:prm, :division)
@@ -502,6 +522,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
     end
 
     test "medication_request not found", %{conn: conn} do
+      msp()
       user_id = get_consumer_id(conn.req_headers)
       insert(:prm, :party_user, user_id: user_id)
 
@@ -523,6 +544,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
     end
 
     test "program medication not found", %{conn: conn} do
+      msp()
       user_id = get_consumer_id(conn.req_headers)
       legal_entity_id = get_client_id(conn.req_headers)
       division = insert(:prm, :division)
@@ -572,6 +594,8 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
 
   describe "reject medication request" do
     test "success", %{conn: conn} do
+      msp()
+
       expect(MPIMock, :person, fn id, _headers ->
         {:ok, %{"data" => string_params_for(:person, id: id)}}
       end)
@@ -627,6 +651,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
     end
 
     test "404", %{conn: conn} do
+      msp()
       user_id = get_consumer_id(conn.req_headers)
 
       :prm
@@ -654,6 +679,8 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
 
   describe "resend medication request info" do
     test "success", %{conn: conn} do
+      msp()
+
       expect(MPIMock, :person, fn id, _headers ->
         {:ok, %{"data" => string_params_for(:person, id: id)}}
       end)
@@ -704,6 +731,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
     end
 
     test "404", %{conn: conn} do
+      msp()
       user_id = get_consumer_id(conn.req_headers)
 
       :prm

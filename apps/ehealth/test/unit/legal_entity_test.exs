@@ -215,6 +215,12 @@ defmodule EHealth.Unit.LegalEntityTest do
     end
 
     test "mis_verified NOT_VERIFIED" do
+      put_client()
+
+      expect(MithrilMock, :get_client_type_by_name, fn _, _ ->
+        {:ok, %{"data" => [%{"id" => UUID.generate()}]}}
+      end)
+
       expect(ManMock, :render_template, fn _id, _data ->
         {:ok, "<html><body>Printout form for declaration request.</body></html>"}
       end)
@@ -248,6 +254,12 @@ defmodule EHealth.Unit.LegalEntityTest do
     end
 
     test "mis_verified VERIFIED" do
+      put_client()
+
+      expect(MithrilMock, :get_client_type_by_name, fn _, _ ->
+        {:ok, %{"data" => [%{"id" => UUID.generate()}]}}
+      end)
+
       expect(ManMock, :render_template, fn _id, _data ->
         {:ok, "<html><body>Printout form for declaration request.</body></html>"}
       end)
@@ -297,6 +309,7 @@ defmodule EHealth.Unit.LegalEntityTest do
       insert(:prm, :registry)
       insert(:prm, :legal_entity, edrpou: "10002000")
       insert(:prm, :legal_entity, edrpou: "37367387")
+      put_client()
 
       update_data =
         Map.merge(get_legal_entity_data(), %{
@@ -305,6 +318,10 @@ defmodule EHealth.Unit.LegalEntityTest do
           "email" => "changed@example.com",
           "kveds" => ["12.21"]
         })
+
+      expect(MithrilMock, :get_client_type_by_name, fn _, _ ->
+        {:ok, %{"data" => [%{"id" => UUID.generate()}]}}
+      end)
 
       uaddresses_mock_expect()
       assert {:ok, %{legal_entity: legal_entity, security: security}} = create_legal_entity(update_data)
@@ -332,7 +349,12 @@ defmodule EHealth.Unit.LegalEntityTest do
     end
 
     test "update inactive Legal Entity" do
+      put_client()
       insert(:prm, :legal_entity, edrpou: "37367387", is_active: false)
+
+      expect(MithrilMock, :get_client_type_by_name, fn _, _ ->
+        {:ok, %{"data" => [%{"id" => UUID.generate()}]}}
+      end)
 
       data = Map.merge(get_legal_entity_data(), %{"edrpou" => "37367387"})
       uaddresses_mock_expect()
@@ -350,8 +372,14 @@ defmodule EHealth.Unit.LegalEntityTest do
 
   describe "update Legal Entity with OPS contract suspend" do
     test "successfully update name" do
+      put_client()
+
       expect(ManMock, :render_template, fn _id, _data ->
         {:ok, "<html><body>Printout form for declaration request.</body></html>"}
+      end)
+
+      expect(MithrilMock, :get_client_type_by_name, fn _, _ ->
+        {:ok, %{"data" => [%{"id" => UUID.generate()}]}}
       end)
 
       insert_dictionaries()

@@ -4,9 +4,10 @@ defmodule EHealth.Web.EmployeeRequestController do
   use EHealth.Web, :controller
   alias Scrivener.Page
   alias EHealth.EmployeeRequests, as: API
-  alias EHealth.API.Mithril
   alias EHealth.EmployeeRequests.EmployeeRequest, as: Request
   alias EHealth.LegalEntities
+
+  @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
 
   action_fallback(EHealth.Web.FallbackController)
 
@@ -96,11 +97,11 @@ defmodule EHealth.Web.EmployeeRequestController do
     LegalEntities.get_by_id(request.data["legal_entity_id"]) || %{}
   end
 
-  defp put_urgent_user_id(conn, %Request{data: data}) do
+  defp put_urgent_user_id(%Plug.Conn{req_headers: headers} = conn, %Request{data: data}) do
     email = get_in(data, ["party", "email"])
 
     %{email: email}
-    |> Mithril.search_user()
+    |> @mithril_api.search_user(headers)
     |> process_user_id(conn)
   end
 

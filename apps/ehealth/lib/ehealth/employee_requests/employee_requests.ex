@@ -20,13 +20,14 @@ defmodule EHealth.EmployeeRequests do
   alias EHealth.Man.Templates.EmployeeRequestInvitation, as: EmployeeRequestInvitationTemplate
   alias EHealth.Man.Templates.EmployeeRequestUpdateInvitation, as: EmployeeUpdateInvitationTemplate
   alias EHealth.Man.Templates.EmployeeCreatedNotification, as: EmployeeCreatedNotificationTemplate
-  alias EHealth.API.Mithril
   alias EHealth.Employees
   alias EHealth.BlackListUsers
   alias EHealth.EventManager
   alias EHealth.Utils.Log
   alias EHealth.Email.Postmark
   alias EHealth.Validators.Reference
+
+  @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
 
   @status_new Request.status(:new)
   @status_approved Request.status(:approved)
@@ -373,7 +374,7 @@ defmodule EHealth.EmployeeRequests do
 
   defp get_user_email(consumer_id) do
     consumer_id
-    |> Mithril.get_user_by_id()
+    |> @mithril_api.get_user_by_id([])
     |> fetch_user_email()
   end
 

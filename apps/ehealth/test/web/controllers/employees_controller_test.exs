@@ -2,7 +2,6 @@ defmodule EHealth.Web.EmployeesControllerTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase
-  alias EHealth.MockServer
   alias EHealth.Employees.Employee
   alias EHealth.Parties.Party
   alias Ecto.UUID
@@ -11,6 +10,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
 
   describe "list employees" do
     test "gets only employees that have legal_entity_id == client_id", %{conn: conn} do
+      msp()
       legal_entity = insert(:prm, :legal_entity, id: UUID.generate())
       %{id: legal_entity_id} = legal_entity
       party1 = insert(:prm, :party, tax_id: "2222222225")
@@ -51,14 +51,16 @@ defmodule EHealth.Web.EmployeesControllerTest do
     end
 
     test "filter employees by invalid party_id", %{conn: conn} do
-      %{id: legal_entity_id} = insert(:prm, :legal_entity, id: "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+      msp()
+      %{id: legal_entity_id} = insert(:prm, :legal_entity)
       conn = put_client_id_header(conn, legal_entity_id)
       conn = get(conn, employee_path(conn, :index, party_id: "invalid"))
       assert json_response(conn, 422)
     end
 
     test "get employees", %{conn: conn} do
-      legal_entity = insert(:prm, :legal_entity, id: "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+      msp()
+      legal_entity = insert(:prm, :legal_entity)
       %{id: legal_entity_id} = legal_entity
       party = insert(:prm, :party)
 
@@ -87,6 +89,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
     end
 
     test "get employees by NHS ADMIN", %{conn: conn} do
+      nhs()
       party1 = insert(:prm, :party, tax_id: "2222222225")
       party2 = insert(:prm, :party, tax_id: "2222222224")
 
@@ -94,7 +97,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
         {:ok, %{"data" => [%{"id" => party1.id, "declaration_count" => 10}]}}
       end)
 
-      legal_entity = insert(:prm, :legal_entity, id: MockServer.get_client_admin())
+      legal_entity = insert(:prm, :legal_entity)
       insert(:prm, :employee, legal_entity: legal_entity, party: party1)
       insert(:prm, :employee, legal_entity: legal_entity, party: party2)
       conn = put_client_id_header(conn, legal_entity.id)
@@ -104,6 +107,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
     end
 
     test "get employees with client_id that does not match legal entity id", %{conn: conn} do
+      msp()
       conn = put_client_id_header(conn, UUID.generate())
       id = "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
       conn = get(conn, employee_path(conn, :index, legal_entity_id: id))
@@ -114,6 +118,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
     end
 
     test "search employees by tax_id" do
+      msp()
       tax_id = "123"
       party = insert(:prm, :party, tax_id: tax_id)
 
@@ -133,6 +138,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
     end
 
     test "search employees by no_tax_id", %{conn: conn} do
+      msp()
       party = insert(:prm, :party, no_tax_id: true)
 
       expect(ReportMock, :get_declaration_count, fn _, _ ->
@@ -151,17 +157,20 @@ defmodule EHealth.Web.EmployeesControllerTest do
     end
 
     test "search employees by invalid tax_id" do
+      msp()
+
       expect(ReportMock, :get_declaration_count, fn _, _ ->
         {:ok, %{"data" => []}}
       end)
 
-      conn = put_client_id_header(build_conn(), "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+      conn = put_client_id_header(build_conn())
       conn = get(conn, employee_path(conn, :index, tax_id: ""))
       resp = json_response(conn, 200)["data"]
       assert Enum.empty?(resp)
     end
 
     test "search employees by edrpou" do
+      msp()
       edrpou = "37367387"
       legal_entity = insert(:prm, :legal_entity, edrpou: edrpou)
       employee = insert(:prm, :employee, legal_entity: legal_entity)
@@ -178,7 +187,8 @@ defmodule EHealth.Web.EmployeesControllerTest do
     end
 
     test "search employees by invalid edrpou" do
-      conn = put_client_id_header(build_conn(), "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+      msp()
+      conn = put_client_id_header(build_conn())
 
       expect(ReportMock, :get_declaration_count, fn _, _ ->
         {:ok, %{"data" => []}}
@@ -192,7 +202,8 @@ defmodule EHealth.Web.EmployeesControllerTest do
 
   describe "get employee by id" do
     test "with party, division, legal_entity", %{conn: conn} do
-      legal_entity = insert(:prm, :legal_entity, id: "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+      msp(2)
+      legal_entity = insert(:prm, :legal_entity)
 
       speciality_officio = %{
         "speciality" => "PEDIATRICIAN",
@@ -264,6 +275,8 @@ defmodule EHealth.Web.EmployeesControllerTest do
     end
 
     test "without division", %{conn: conn} do
+      msp()
+
       expect(ReportMock, :get_declaration_count, fn _, _ ->
         {:ok, %{"data" => []}}
       end)
@@ -290,6 +303,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
     end
 
     test "with MSP token when legal_entity_id != client_id", %{conn: conn} do
+      msp()
       employee = insert(:prm, :employee)
       conn = put_client_id_header(conn, UUID.generate())
       conn = get(conn, employee_path(conn, :show, employee.id))
@@ -297,33 +311,39 @@ defmodule EHealth.Web.EmployeesControllerTest do
     end
 
     test "with MIS token when legal_entity_id != client_id", %{conn: conn} do
+      mis()
+
       expect(ReportMock, :get_declaration_count, fn _, _ ->
         {:ok, %{"data" => []}}
       end)
 
       employee = insert(:prm, :employee)
-      conn = put_client_id_header(conn, MockServer.get_client_mis())
+      conn = put_client_id_header(conn, UUID.generate())
       conn = get(conn, employee_path(conn, :show, employee.id))
       json_response(conn, 200)
     end
 
     test "with ADMIN token when legal_entity_id != client_id", %{conn: conn} do
+      admin()
+
       expect(ReportMock, :get_declaration_count, fn _, _ ->
         {:ok, %{"data" => []}}
       end)
 
       employee = insert(:prm, :employee)
-      conn = put_client_id_header(conn, MockServer.get_client_admin())
+      conn = put_client_id_header(conn, UUID.generate())
       conn = get(conn, employee_path(conn, :show, employee.id))
       json_response(conn, 200)
     end
 
     test "when legal_entity_id == client_id", %{conn: conn} do
+      msp()
+
       expect(ReportMock, :get_declaration_count, fn _, _ ->
         {:ok, %{"data" => []}}
       end)
 
-      legal_entity = insert(:prm, :legal_entity, id: "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+      legal_entity = insert(:prm, :legal_entity)
       employee = insert(:prm, :employee, legal_entity: legal_entity)
       conn = put_client_id_header(conn, legal_entity.id)
       conn = get(conn, employee_path(conn, :show, employee.id))
@@ -355,6 +375,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
     end
 
     test "with invalid transitions condition", %{conn: conn, legal_entity: legal_entity} do
+      msp()
       employee = insert(:prm, :employee, legal_entity: legal_entity, status: "DEACTIVATED")
       conn = put_client_id_header(conn, legal_entity.id)
       conn_resp = patch(conn, employee_path(conn, :deactivate, employee.id))
@@ -363,6 +384,8 @@ defmodule EHealth.Web.EmployeesControllerTest do
     end
 
     test "can't deactivate OWNER", %{conn: conn, legal_entity: legal_entity} do
+      msp()
+
       employee =
         insert(
           :prm,
@@ -378,10 +401,14 @@ defmodule EHealth.Web.EmployeesControllerTest do
     end
 
     test "can't deactivate PHARMACY OWNER", %{conn: conn, legal_entity: legal_entity} do
+      msp()
+      party = insert(:prm, :party, birth_date: ~D[1990-01-01], tax_id: "2222222225")
+
       employee =
         insert(
           :prm,
           :employee,
+          party: party,
           legal_entity: legal_entity,
           employee_type: Employee.type(:pharmacy_owner)
         )
@@ -393,6 +420,21 @@ defmodule EHealth.Web.EmployeesControllerTest do
     end
 
     test "successful doctor", %{conn: conn, doctor: doctor, legal_entity: legal_entity} do
+      msp()
+      set_mox_global()
+
+      expect(MithrilMock, :delete_user_roles_by_user_and_role_name, 2, fn _, _, _ ->
+        {:ok, %{"data" => nil}}
+      end)
+
+      expect(MithrilMock, :delete_apps_by_user_and_client, 2, fn _, _, _ ->
+        {:ok, %{"data" => nil}}
+      end)
+
+      expect(MithrilMock, :delete_tokens_by_user_and_client, 2, fn _, _, _ ->
+        {:ok, %{"data" => nil}}
+      end)
+
       expect(ReportMock, :get_declaration_count, fn _, _ ->
         {:ok, %{"data" => [%{"id" => doctor.party_id, "declaration_count" => 10}]}}
       end)
@@ -410,6 +452,21 @@ defmodule EHealth.Web.EmployeesControllerTest do
     end
 
     test "successful pharmacist", %{conn: conn, pharmacist: pharmacist, legal_entity: legal_entity} do
+      msp()
+      set_mox_global()
+
+      expect(MithrilMock, :delete_user_roles_by_user_and_role_name, 2, fn _, _, _ ->
+        {:ok, %{"data" => nil}}
+      end)
+
+      expect(MithrilMock, :delete_apps_by_user_and_client, 2, fn _, _, _ ->
+        {:ok, %{"data" => nil}}
+      end)
+
+      expect(MithrilMock, :delete_tokens_by_user_and_client, 2, fn _, _, _ ->
+        {:ok, %{"data" => nil}}
+      end)
+
       expect(ReportMock, :get_declaration_count, fn _, _ ->
         {:ok, %{"data" => [%{"id" => pharmacist.party_id, "declaration_count" => 10}]}}
       end)
@@ -427,7 +484,8 @@ defmodule EHealth.Web.EmployeesControllerTest do
     end
 
     test "not found", %{conn: conn} do
-      conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+      msp()
+      conn = put_client_id_header(conn)
 
       assert_raise Ecto.NoResultsError, fn ->
         patch(conn, employee_path(conn, :deactivate, UUID.generate()))

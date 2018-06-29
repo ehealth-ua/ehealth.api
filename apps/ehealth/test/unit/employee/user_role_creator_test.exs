@@ -1,15 +1,25 @@
 defmodule EHealth.Unit.Employee.UserRoleCreatorTest do
   @moduledoc false
 
-  use EHealth.Web.ConnCase, async: true
-
+  use EHealth.Web.ConnCase
+  import Mox
   alias EHealth.Employees.UserRoleCreator
+  alias Ecto.UUID
 
   test "create/2" do
+    expect(MithrilMock, :get_roles_by_name, fn _, _ ->
+      {:ok, %{"data" => []}}
+    end)
+
+    user_id = UUID.generate()
     legal_entity = insert(:prm, :legal_entity)
-    insert(:prm, :division, id: "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b")
+
+    expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+      {:ok, %{"data" => [%{"user_id" => user_id, "client_id" => legal_entity.id}]}}
+    end)
+
+    insert(:prm, :division)
     party = insert(:prm, :party)
-    user_id = "d0bde310-8401-11e7-bb31-be2e44b06b34"
     insert(:prm, :party_user, party: party, user_id: user_id)
     employee = insert(:prm, :employee, party: party, legal_entity: legal_entity)
     assert :ok == UserRoleCreator.create(employee, get_headers())

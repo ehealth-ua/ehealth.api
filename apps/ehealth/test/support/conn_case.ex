@@ -25,6 +25,7 @@ defmodule EHealth.Web.ConnCase do
       import EHealth.Web.ConnCase
       import EHealthWeb.Router.Helpers
       import EHealth.Factories
+      import EHealth.Expectations.Mithril
 
       # The default endpoint for testing
       @endpoint EHealth.Web.Endpoint

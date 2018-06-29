@@ -5,111 +5,8 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
   import Mox
 
   alias Ecto.UUID
-  alias EHealth.MockServer
 
   setup :verify_on_exit!
-
-  defmodule MithrilServer do
-    @moduledoc false
-
-    use MicroservicesHelper
-    alias EHealth.MockServer
-
-    Plug.Router.get "/admin/users/8069cb5c-3156-410b-9039-a1b2f2a4136c" do
-      user = %{
-        "id" => "8069cb5c-3156-410b-9039-a1b2f2a4136c",
-        "settings" => %{},
-        "email" => "test@example.com",
-        "type" => "user",
-        "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
-        "tax_id" => "2222222225",
-        "is_blocked" => false
-      }
-
-      response =
-        user
-        |> MockServer.wrap_response()
-        |> Jason.encode!()
-
-      Plug.Conn.send_resp(conn, 200, response)
-    end
-
-    Plug.Router.get "/admin/clients/c3cc1def-48b6-4451-be9d-3b777ef06ff9/details" do
-      response =
-        %{"client_type_name" => "CABINET"}
-        |> MockServer.wrap_response()
-        |> Jason.encode!()
-
-      Plug.Conn.send_resp(conn, 200, response)
-    end
-
-    Plug.Router.get "/admin/clients/75dfd749-c162-48ce-8a92-428c106d5dc3/details" do
-      response =
-        %{"client_type_name" => "MSP"}
-        |> MockServer.wrap_response()
-        |> Jason.encode!()
-
-      Plug.Conn.send_resp(conn, 200, response)
-    end
-
-    Plug.Router.get "/admin/users/668d1541-e4cf-4a95-a25a-60d83864ceaf" do
-      user = %{
-        "id" => "668d1541-e4cf-4a95-a25a-60d83864ceaf",
-        "settings" => %{},
-        "email" => "test@example.com",
-        "type" => "user"
-      }
-
-      response =
-        user
-        |> MockServer.wrap_response()
-        |> Jason.encode!()
-
-      Plug.Conn.send_resp(conn, 200, response)
-    end
-
-    Plug.Router.get "/admin/roles" do
-      response =
-        [
-          %{
-            id: "e945360c-8c4a-4f37-a259-320d2533cfc4",
-            role_name: "DOCTOR"
-          }
-        ]
-        |> MockServer.wrap_response()
-        |> Jason.encode!()
-
-      Plug.Conn.send_resp(conn, 200, response)
-    end
-
-    Plug.Router.get "/admin/users/8069cb5c-3156-410b-9039-a1b2f2a4136c/roles" do
-      response =
-        [
-          %{
-            id: UUID.generate(),
-            user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c",
-            role_id: "e945360c-8c4a-4f37-a259-320d2533cfc4",
-            role_name: "DOCTOR"
-          }
-        ]
-        |> MockServer.wrap_response()
-        |> Jason.encode!()
-
-      Plug.Conn.send_resp(conn, 200, response)
-    end
-
-    Plug.Router.get "/admin/users/:id" do
-      Plug.Conn.send_resp(conn, 404, "")
-    end
-  end
-
-  setup do
-    register_mircoservices_for_tests([
-      {MithrilServer, "OAUTH_ENDPOINT"}
-    ])
-
-    :ok
-  end
 
   describe "update person" do
     test "no required header", %{conn: conn} do
@@ -119,7 +16,20 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
     end
 
     test "invalid params", %{conn: conn} do
-      legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
+      cabinet()
+
+      expect(MithrilMock, :get_user_by_id, fn id, _ ->
+        {:ok,
+         %{
+           "data" => %{
+             "id" => id,
+             "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
+             "tax_id" => "2222222225"
+           }
+         }}
+      end)
+
+      legal_entity = insert(:prm, :legal_entity)
 
       conn =
         conn
@@ -141,7 +51,19 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
     end
 
     test "invalid signed content", %{conn: conn} do
-      legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
+      cabinet()
+      legal_entity = insert(:prm, :legal_entity)
+
+      expect(MithrilMock, :get_user_by_id, fn id, _ ->
+        {:ok,
+         %{
+           "data" => %{
+             "id" => id,
+             "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
+             "tax_id" => "2222222225"
+           }
+         }}
+      end)
 
       conn =
         conn
@@ -158,11 +80,24 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
     end
 
     test "tax_id doesn't match with signed content", %{conn: conn} do
+      cabinet()
+
+      expect(MithrilMock, :get_user_by_id, fn id, _ ->
+        {:ok,
+         %{
+           "data" => %{
+             "id" => id,
+             "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
+             "tax_id" => "2222222225"
+           }
+         }}
+      end)
+
       expect(MPIMock, :person, fn id, _ ->
         {:ok, %{"data" => %{"id" => id, "tax_id" => "3378115538"}}}
       end)
 
-      legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
+      legal_entity = insert(:prm, :legal_entity)
       party = insert(:prm, :party)
       insert(:prm, :party_user, party: party, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c")
 
@@ -187,11 +122,24 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
     end
 
     test "tax_id doesn't match with signer", %{conn: conn} do
+      cabinet()
+
+      expect(MithrilMock, :get_user_by_id, fn id, _ ->
+        {:ok,
+         %{
+           "data" => %{
+             "id" => id,
+             "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
+             "tax_id" => "2222222225"
+           }
+         }}
+      end)
+
       expect(MPIMock, :person, fn id, _ ->
         {:ok, %{"data" => %{"id" => id, "tax_id" => "2222222220"}}}
       end)
 
-      legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
+      legal_entity = insert(:prm, :legal_entity)
       party = insert(:prm, :party)
       insert(:prm, :party_user, party: party, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c")
 
@@ -216,11 +164,24 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
     end
 
     test "invalid signed content changeset", %{conn: conn} do
+      cabinet()
+
+      expect(MithrilMock, :get_user_by_id, fn id, _ ->
+        {:ok,
+         %{
+           "data" => %{
+             "id" => id,
+             "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
+             "tax_id" => "2222222225"
+           }
+         }}
+      end)
+
       expect(MPIMock, :person, fn id, _ ->
         {:ok, %{"data" => %{"id" => id, "tax_id" => "2222222225"}}}
       end)
 
-      legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
+      legal_entity = insert(:prm, :legal_entity)
       party = insert(:prm, :party, tax_id: "2222222225")
       insert(:prm, :party_user, party: party, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c")
 
@@ -239,7 +200,20 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
     end
 
     test "user person_id doesn't match query param id", %{conn: conn} do
-      legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
+      cabinet()
+
+      expect(MithrilMock, :get_user_by_id, fn id, _ ->
+        {:ok,
+         %{
+           "data" => %{
+             "id" => id,
+             "person_id" => UUID.generate(),
+             "tax_id" => "2222222225"
+           }
+         }}
+      end)
+
+      legal_entity = insert(:prm, :legal_entity)
 
       conn =
         conn
@@ -255,7 +229,8 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
     end
 
     test "invalid client_type", %{conn: conn} do
-      legal_entity = insert(:prm, :legal_entity, id: "75dfd749-c162-48ce-8a92-428c106d5dc3")
+      msp()
+      legal_entity = insert(:prm, :legal_entity)
 
       conn =
         conn
@@ -267,12 +242,25 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
     end
 
     test "success update person", %{conn: conn} do
+      cabinet()
+
       expect(MPIMock, :person, fn id, _ ->
         {:ok, %{"data" => %{"id" => id, "tax_id" => "2222222225"}}}
       end)
 
       expect(OTPVerificationMock, :search, fn _, _ ->
         {:ok, %{"data" => []}}
+      end)
+
+      expect(MithrilMock, :get_user_by_id, fn id, _ ->
+        {:ok,
+         %{
+           "data" => %{
+             "id" => id,
+             "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
+             "tax_id" => "2222222225"
+           }
+         }}
       end)
 
       legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
@@ -357,7 +345,19 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
     end
 
     test "tax_id are different in user and person", %{conn: conn} do
+      cabinet()
       legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
+
+      expect(MithrilMock, :get_user_by_id, fn id, _ ->
+        {:ok,
+         %{
+           "data" => %{
+             "id" => id,
+             "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
+             "tax_id" => "2222222225"
+           }
+         }}
+      end)
 
       expect(MPIMock, :person, fn id, _headers ->
         get_person(id, 200, %{
@@ -380,7 +380,20 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
     end
 
     test "returns person detail for logged user", %{conn: conn} do
+      cabinet()
       legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
+
+      expect(MithrilMock, :get_user_by_id, fn id, _ ->
+        {:ok,
+         %{
+           "data" => %{
+             "id" => id,
+             "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
+             "tax_id" => "2222222225",
+             "is_blocked" => false
+           }
+         }}
+      end)
 
       expect(MPIMock, :person, fn id, _headers ->
         get_person(id, 200, %{
@@ -415,6 +428,19 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
     end
 
     test "tax_id are different in user and person", %{conn: conn} do
+      cabinet()
+
+      expect(MithrilMock, :get_user_by_id, fn id, _ ->
+        {:ok,
+         %{
+           "data" => %{
+             "id" => id,
+             "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
+             "tax_id" => "2222222225"
+           }
+         }}
+      end)
+
       legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
       insert(:prm, :party_user, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c")
 
@@ -449,8 +475,20 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
     end
 
     test "success get person details", %{conn: conn} do
-      legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
+      cabinet()
+      legal_entity = insert(:prm, :legal_entity)
       insert(:prm, :party_user, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c")
+
+      expect(MithrilMock, :get_user_by_id, fn id, _ ->
+        {:ok,
+         %{
+           "data" => %{
+             "id" => id,
+             "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
+             "tax_id" => "2222222225"
+           }
+         }}
+      end)
 
       expect(MPIMock, :person, fn id, _headers ->
         get_person(id, 200, %{

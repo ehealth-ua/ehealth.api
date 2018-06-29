@@ -2,7 +2,8 @@ defmodule EHealth.Web.BlackListUserControllerTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase
-  alias EHealth.MockServer
+  import Mox
+  alias Ecto.UUID
 
   describe "list black list users" do
     test "search by id", %{conn: conn} do
@@ -62,9 +63,17 @@ defmodule EHealth.Web.BlackListUserControllerTest do
 
   describe "create black list user" do
     test "success", %{conn: conn} do
+      expect(MithrilMock, :search_user, fn _, _ ->
+        {:ok, %{"data" => [%{}, %{}]}}
+      end)
+
+      expect(MithrilMock, :delete_tokens_by_user_ids, fn _, _ ->
+        {:ok, nil}
+      end)
+
       party = insert(:prm, :party, tax_id: "0123456720")
-      insert(:prm, :party_user, party: party, user_id: MockServer.get_user_for_role_1())
-      insert(:prm, :party_user, party: party, user_id: MockServer.get_user_for_role_2())
+      insert(:prm, :party_user, party: party, user_id: UUID.generate())
+      insert(:prm, :party_user, party: party, user_id: UUID.generate())
 
       conn = post(conn, black_list_user_path(conn, :create), tax_id: "0123456720")
       assert %{"id" => id} = json_response(conn, 201)["data"]
@@ -78,6 +87,10 @@ defmodule EHealth.Web.BlackListUserControllerTest do
     end
 
     test "users not blocked", %{conn: conn} do
+      expect(MithrilMock, :search_user, fn _, _ ->
+        {:ok, %{"data" => [%{}]}}
+      end)
+
       party = insert(:prm, :party, tax_id: "1234567221")
       insert(:prm, :party_user, party: party)
       insert(:prm, :party_user, party: party)
@@ -99,6 +112,10 @@ defmodule EHealth.Web.BlackListUserControllerTest do
     end
 
     test "invalid tax_id", %{conn: conn} do
+      expect(MithrilMock, :search_user, fn _, _ ->
+        {:ok, %{"data" => [%{}]}}
+      end)
+
       conn = post(conn, black_list_user_path(conn, :create), tax_id: "ME100900")
       resp = json_response(conn, 422)
 

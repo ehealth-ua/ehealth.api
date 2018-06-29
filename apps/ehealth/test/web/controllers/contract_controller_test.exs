@@ -3,18 +3,18 @@ defmodule EHealth.Web.ContractControllerTest do
 
   use EHealth.Web.ConnCase
 
-  import EHealth.MockServer, only: [get_client_nhs: 0]
   alias EHealth.Contracts.Contract
   alias Ecto.UUID
 
   describe "show contract" do
     test "finds contract successfully and nhs can see any contracts", %{conn: conn} do
+      nhs()
       contract_request = insert(:il, :contract_request)
       contract = insert(:prm, :contract, contract_request_id: contract_request.id)
 
       assert %{"data" => response_data} =
                conn
-               |> put_client_id_header(get_client_nhs())
+               |> put_client_id_header(UUID.generate())
                |> get(contract_path(conn, :show, contract.id))
                |> json_response(200)
 
@@ -22,6 +22,7 @@ defmodule EHealth.Web.ContractControllerTest do
     end
 
     test "ensure TOKENS_TYPES_PERSONAL has access to own contracts", %{conn: conn} do
+      msp()
       contractor_legal_entity = insert(:prm, :legal_entity)
       contract_request = insert(:il, :contract_request)
 
@@ -43,6 +44,7 @@ defmodule EHealth.Web.ContractControllerTest do
     end
 
     test "ensure TOKENS_TYPES_PERSONAL has no access to other contracts", %{conn: conn} do
+      msp()
       contractor_legal_entity = insert(:prm, :legal_entity)
       contract = insert(:prm, :contract)
 
@@ -54,9 +56,11 @@ defmodule EHealth.Web.ContractControllerTest do
     end
 
     test "not found", %{conn: conn} do
+      nhs()
+
       assert %{"error" => %{"type" => "not_found"}} =
                conn
-               |> put_client_id_header(get_client_nhs())
+               |> put_client_id_header(UUID.generate())
                |> get(contract_path(conn, :show, UUID.generate()))
                |> json_response(404)
     end
@@ -64,12 +68,13 @@ defmodule EHealth.Web.ContractControllerTest do
 
   describe "contract list" do
     test "validating search params: ignore invalid search params", %{conn: conn} do
+      nhs()
       insert(:prm, :contract)
       insert(:prm, :contract)
 
       conn =
         conn
-        |> put_client_id_header(get_client_nhs())
+        |> put_client_id_header(UUID.generate())
         |> get(contract_path(conn, :index), %{created_by: UUID.generate()})
 
       assert resp = json_response(conn, 200)["data"]
@@ -77,6 +82,7 @@ defmodule EHealth.Web.ContractControllerTest do
     end
 
     test "validating search params: edrpou is defined, contractor_legal_entity_id is not defined", %{conn: conn} do
+      nhs()
       edrpou = "5432345432"
       contractor_legal_entity = insert(:prm, :legal_entity, edrpou: edrpou)
       insert(:prm, :contract, contractor_legal_entity_id: contractor_legal_entity.id)
@@ -84,7 +90,7 @@ defmodule EHealth.Web.ContractControllerTest do
 
       conn =
         conn
-        |> put_client_id_header(get_client_nhs())
+        |> put_client_id_header(UUID.generate())
         |> get(contract_path(conn, :index), %{edrpou: edrpou})
 
       assert resp = json_response(conn, 200)["data"]
@@ -93,13 +99,14 @@ defmodule EHealth.Web.ContractControllerTest do
     end
 
     test "validating search params: edrpou is not defined, contractor_legal_entity_id is defined", %{conn: conn} do
+      nhs()
       contractor_legal_entity = insert(:prm, :legal_entity)
       insert(:prm, :contract, contractor_legal_entity_id: contractor_legal_entity.id)
       insert(:prm, :contract)
 
       conn =
         conn
-        |> put_client_id_header(get_client_nhs())
+        |> put_client_id_header(UUID.generate())
         |> get(contract_path(conn, :index), %{contractor_legal_entity_id: contractor_legal_entity.id})
 
       assert resp = json_response(conn, 200)["data"]
@@ -109,6 +116,7 @@ defmodule EHealth.Web.ContractControllerTest do
 
     test "validating search params: edrpou and contractor_legal_entity_id are defined and belong to the same legal entity",
          %{conn: conn} do
+      nhs()
       edrpou = "5432345432"
       contractor_legal_entity = insert(:prm, :legal_entity, edrpou: edrpou)
       insert(:prm, :contract, contractor_legal_entity_id: contractor_legal_entity.id)
@@ -116,7 +124,7 @@ defmodule EHealth.Web.ContractControllerTest do
 
       conn =
         conn
-        |> put_client_id_header(get_client_nhs())
+        |> put_client_id_header(UUID.generate())
         |> get(contract_path(conn, :index), %{edrpou: edrpou, contractor_legal_entity_id: contractor_legal_entity.id})
 
       assert resp = json_response(conn, 200)["data"]
@@ -126,12 +134,13 @@ defmodule EHealth.Web.ContractControllerTest do
 
     test "validating search params: edrpou and contractor_legal_entity_id are defined and do not belong to the same legal entity",
          %{conn: conn} do
+      nhs()
       edrpou = "5432345432"
       contractor_legal_entity = insert(:prm, :legal_entity)
 
       conn =
         conn
-        |> put_client_id_header(get_client_nhs())
+        |> put_client_id_header(UUID.generate())
         |> get(contract_path(conn, :index), %{edrpou: edrpou, contractor_legal_entity_id: contractor_legal_entity.id})
 
       resp = json_response(conn, 200)
@@ -145,9 +154,11 @@ defmodule EHealth.Web.ContractControllerTest do
     end
 
     test "validating search params: page_size by default", %{conn: conn} do
+      nhs()
+
       conn =
         conn
-        |> put_client_id_header(get_client_nhs())
+        |> put_client_id_header(UUID.generate())
         |> get(contract_path(conn, :index))
 
       resp = json_response(conn, 200)
@@ -161,11 +172,12 @@ defmodule EHealth.Web.ContractControllerTest do
     end
 
     test "validating search params: page_size defined by user", %{conn: conn} do
+      nhs()
       page_size = 100
 
       conn =
         conn
-        |> put_client_id_header(get_client_nhs())
+        |> put_client_id_header(UUID.generate())
         |> get(contract_path(conn, :index), %{page_size: page_size})
 
       resp = json_response(conn, 200)
@@ -179,6 +191,7 @@ defmodule EHealth.Web.ContractControllerTest do
     end
 
     test "success contract list for NHS admin user", %{conn: conn} do
+      nhs()
       contract = insert(:prm, :contract, is_suspended: true)
       insert(:prm, :contract)
 
@@ -197,7 +210,7 @@ defmodule EHealth.Web.ContractControllerTest do
 
       conn =
         conn
-        |> put_client_id_header(get_client_nhs())
+        |> put_client_id_header(UUID.generate())
         |> get(contract_path(conn, :index), params)
 
       assert resp = json_response(conn, 200)["data"]
@@ -205,6 +218,7 @@ defmodule EHealth.Web.ContractControllerTest do
     end
 
     test "success contract list for NHS admin user from dates only", %{conn: conn} do
+      nhs()
       contract = insert(:prm, :contract)
       insert(:prm, :contract, start_date: ~D[2017-01-01])
 
@@ -215,7 +229,7 @@ defmodule EHealth.Web.ContractControllerTest do
 
       conn =
         conn
-        |> put_client_id_header(get_client_nhs())
+        |> put_client_id_header(UUID.generate())
         |> get(contract_path(conn, :index), params)
 
       assert resp = json_response(conn, 200)["data"]
@@ -223,6 +237,7 @@ defmodule EHealth.Web.ContractControllerTest do
     end
 
     test "success contract list for NHS admin user to dates only", %{conn: conn} do
+      nhs()
       contract = insert(:prm, :contract, end_date: ~D[2017-01-01])
       insert(:prm, :contract)
 
@@ -233,7 +248,7 @@ defmodule EHealth.Web.ContractControllerTest do
 
       conn =
         conn
-        |> put_client_id_header(get_client_nhs())
+        |> put_client_id_header(UUID.generate())
         |> get(contract_path(conn, :index), params)
 
       assert resp = json_response(conn, 200)["data"]
@@ -241,6 +256,7 @@ defmodule EHealth.Web.ContractControllerTest do
     end
 
     test "success contract list for non-NHS admin user", %{conn: conn} do
+      msp()
       contractor_legal_entity = insert(:prm, :legal_entity)
       contract = insert(:prm, :contract, contractor_legal_entity_id: contractor_legal_entity.id, is_suspended: true)
       insert(:prm, :contract)
@@ -268,6 +284,7 @@ defmodule EHealth.Web.ContractControllerTest do
     end
 
     test "success filtering by nhs_signer_id", %{conn: conn} do
+      msp()
       contractor_legal_entity = insert(:prm, :legal_entity)
       contract_in = insert(:prm, :contract, contractor_legal_entity_id: contractor_legal_entity.id)
       contract_out = insert(:prm, :contract, contractor_legal_entity_id: contractor_legal_entity.id)
@@ -289,6 +306,7 @@ defmodule EHealth.Web.ContractControllerTest do
 
   describe "suspend contracts" do
     test "success", %{conn: conn} do
+      nhs()
       insert(:prm, :contract)
       %{id: id1} = insert(:prm, :contract)
       %{id: id2} = insert(:prm, :contract)
@@ -297,15 +315,17 @@ defmodule EHealth.Web.ContractControllerTest do
 
       assert %{"suspended" => 3} ==
                conn
-               |> put_client_id_header(get_client_nhs())
+               |> put_client_id_header(UUID.generate())
                |> patch(contract_path(conn, :suspend), params)
                |> json_response(200)
                |> Map.get("data")
     end
 
     test "invalid ids", %{conn: conn} do
+      nhs()
+
       assert conn
-             |> put_client_id_header(get_client_nhs())
+             |> put_client_id_header(UUID.generate())
              |> patch(contract_path(conn, :suspend), ids: "invalid,uuid")
              |> json_response(422)
     end
@@ -313,15 +333,18 @@ defmodule EHealth.Web.ContractControllerTest do
 
   describe "update employees" do
     test "contract_employee not found", %{conn: conn} do
+      nhs()
+
       conn =
         conn
-        |> put_client_id_header(get_client_nhs())
+        |> put_client_id_header(UUID.generate())
         |> patch(contract_path(conn, :update, UUID.generate()))
 
       assert json_response(conn, 404)
     end
 
     test "failed to decode signed content", %{conn: conn} do
+      nhs()
       contract = insert(:prm, :contract)
 
       params = %{
@@ -331,7 +354,7 @@ defmodule EHealth.Web.ContractControllerTest do
 
       conn =
         conn
-        |> put_client_id_header(get_client_nhs())
+        |> put_client_id_header(UUID.generate())
         |> patch(contract_path(conn, :update, contract.id), params)
 
       assert resp = json_response(conn, 422)
@@ -348,6 +371,7 @@ defmodule EHealth.Web.ContractControllerTest do
     end
 
     test "invalid drfo", %{conn: conn} do
+      nhs()
       contract = insert(:prm, :contract)
       division = insert(:prm, :division)
       employee = insert(:prm, :employee)
@@ -369,7 +393,7 @@ defmodule EHealth.Web.ContractControllerTest do
 
       conn =
         conn
-        |> put_client_id_header(get_client_nhs())
+        |> put_client_id_header(UUID.generate())
         |> put_consumer_id_header(party_user.user_id)
         |> patch(contract_path(conn, :update, contract.id), params)
 
@@ -381,7 +405,7 @@ defmodule EHealth.Web.ContractControllerTest do
     end
 
     test "invalid status", %{conn: conn} do
-      # contract_request = insert(:il, :contract_request)
+      nhs()
       contract = insert(:prm, :contract, status: Contract.status(:terminated))
       division = insert(:prm, :division)
       employee = insert(:prm, :employee)
@@ -404,7 +428,7 @@ defmodule EHealth.Web.ContractControllerTest do
 
       conn =
         conn
-        |> put_client_id_header(get_client_nhs())
+        |> put_client_id_header(UUID.generate())
         |> put_consumer_id_header(party_user.user_id)
         |> Plug.Conn.put_req_header("drfo", party_user.party.tax_id)
         |> patch(contract_path(conn, :update, contract.id), params)
@@ -414,6 +438,7 @@ defmodule EHealth.Web.ContractControllerTest do
     end
 
     test "succes update employee", %{conn: conn} do
+      nhs()
       contract_request = insert(:il, :contract_request)
       contract = insert(:prm, :contract, contract_request_id: contract_request.id)
       division = insert(:prm, :division)
@@ -447,7 +472,7 @@ defmodule EHealth.Web.ContractControllerTest do
 
       conn =
         conn
-        |> put_client_id_header(get_client_nhs())
+        |> put_client_id_header(UUID.generate())
         |> put_consumer_id_header(party_user.user_id)
         |> Plug.Conn.put_req_header("drfo", party_user.party.tax_id)
         |> patch(contract_path(conn, :update, contract.id), params)
@@ -459,6 +484,7 @@ defmodule EHealth.Web.ContractControllerTest do
     end
 
     test "succes insert employees", %{conn: conn} do
+      nhs()
       contract_request = insert(:il, :contract_request)
       contract = insert(:prm, :contract, contract_request_id: contract_request.id)
       division = insert(:prm, :division)
@@ -482,7 +508,7 @@ defmodule EHealth.Web.ContractControllerTest do
 
       conn =
         conn
-        |> put_client_id_header(get_client_nhs())
+        |> put_client_id_header(UUID.generate())
         |> put_consumer_id_header(party_user.user_id)
         |> Plug.Conn.put_req_header("drfo", party_user.party.tax_id)
         |> patch(contract_path(conn, :update, contract.id), params)

@@ -10,13 +10,15 @@ defmodule EHealth.Employees.UserRoleCreator do
 
   require Logger
 
+  @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
+
   def create(%Employee{} = employee, headers) do
     party_id = employee.party_id
     client_id = employee.legal_entity_id
     employee_type = employee.employee_type
 
     with party_users <- PartyUsers.list!(%{party_id: party_id}),
-         {:ok, roles} <- Mithril.get_roles_by_name(employee_type, headers),
+         {:ok, roles} <- @mithril_api.get_roles_by_name(employee_type, headers),
          role_id <- find_role_id_by_employee_type(roles),
          :ok <- add_oauth_users_role(party_users, role_id, client_id, party_id, headers) do
       :ok
@@ -36,7 +38,7 @@ defmodule EHealth.Employees.UserRoleCreator do
   def add_oauth_users_role(party_users, role_id, client_id, _, headers) when length(party_users) > 0 do
     Enum.each(party_users, fn %PartyUser{user_id: user_id} ->
       user_id
-      |> Mithril.get_user_roles([role_id: role_id, client_id: client_id], headers)
+      |> @mithril_api.get_user_roles([role_id: role_id, client_id: client_id], headers)
       |> create_user_role(user_id, role_id, client_id, headers)
     end)
   end
@@ -62,7 +64,7 @@ defmodule EHealth.Employees.UserRoleCreator do
       "client_id" => client_id
     }
 
-    Mithril.create_user_role(user_id, role, headers)
+    @mithril_api.create_user_role(user_id, role, headers)
   end
 
   @doc """

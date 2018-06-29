@@ -102,6 +102,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     end
 
     test "with x-consumer-metadata that contains MIS client_id", %{conn: conn} do
+      msp()
       %{id: id, edrpou: edrpou} = insert(:prm, :legal_entity)
 
       resp =
@@ -119,6 +120,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     end
 
     test "with x-consumer-metadata that contains NHS client_id", %{conn: conn} do
+      nhs()
       %{id: id, edrpou: edrpou} = insert(:prm, :legal_entity)
       conn = put_client_id_header(conn, id)
       conn = get(conn, legal_entity_path(conn, :index, edrpou: edrpou))
@@ -129,7 +131,8 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       assert 1 == length(resp["data"])
     end
 
-    test "with x-consumer-metadata that contains not MIS client_id that matches one of legal entities id", %{conn: conn} do
+    test "with not MIS client_id that matches one of legal entities id", %{conn: conn} do
+      msp()
       insert(:prm, :legal_entity)
       %{id: id} = insert(:prm, :legal_entity)
       conn = put_client_id_header(conn, id)
@@ -143,6 +146,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     end
 
     test "search by type msp", %{conn: conn} do
+      msp()
       insert(:prm, :legal_entity)
       %{id: id} = insert(:prm, :legal_entity)
       conn = put_client_id_header(conn, id)
@@ -156,6 +160,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     end
 
     test "search by type pharmacy", %{conn: conn} do
+      msp()
       %{id: id} = insert(:prm, :legal_entity, type: LegalEntity.type(:pharmacy))
       conn = put_client_id_header(conn, id)
       conn = get(conn, legal_entity_path(conn, :index, type: LegalEntity.type(:pharmacy)))
@@ -168,6 +173,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     end
 
     test "search by type status and settlement_id", %{conn: conn} do
+      msp()
       settlement_id = Ecto.UUID.generate()
 
       %{id: id} =
@@ -191,6 +197,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     end
 
     test "with x-consumer-metadata that contains client_id that does not match legal entity id", %{conn: conn} do
+      msp()
       conn = put_client_id_header(conn, Ecto.UUID.generate())
       id = "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
       conn = get(conn, legal_entity_path(conn, :index, legal_entity_id: id))
@@ -201,7 +208,8 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     end
 
     test "with client_id that does not exists", %{conn: conn} do
-      conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8603f3")
+      expect(MithrilMock, :get_client_type_name, fn _, _ -> {:error, :access_denied} end)
+      conn = put_client_id_header(conn, UUID.generate())
       id = "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
       conn = get(conn, legal_entity_path(conn, :index, legal_entity_id: id))
       json_response(conn, 401)
@@ -216,6 +224,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     end
 
     test "with x-consumer-metadata that contains client_id that does not match legal entity id", %{conn: conn} do
+      msp()
       conn = put_client_id_header(conn, Ecto.UUID.generate())
       %{id: id} = insert(:prm, :legal_entity)
       conn = get(conn, legal_entity_path(conn, :show, id))
@@ -223,13 +232,16 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     end
 
     test "with x-consumer-metadata that contains invalid client_type_name", %{conn: conn} do
-      conn = put_client_id_header(conn, "7cc91a5d-c02f-41e9-b571-1ea4f2375111")
+      expect(MithrilMock, :get_client_type_name, fn _, _ -> {:ok, nil} end)
+      conn = put_client_id_header(conn, UUID.generate())
       id = "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
       conn = get(conn, legal_entity_path(conn, :show, id))
       json_response(conn, 403)
     end
 
     test "check required legal entity fields", %{conn: conn} do
+      msp()
+      get_client()
       %{id: id} = insert(:prm, :legal_entity)
       conn = put_client_id_header(conn, id)
       conn = get(conn, legal_entity_path(conn, :show, id))
@@ -241,6 +253,8 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     end
 
     test "with x-consumer-metadata that contains client_id that matches legal entity id", %{conn: conn} do
+      msp()
+      get_client()
       %{id: id} = insert(:prm, :legal_entity)
       conn = put_client_id_header(conn, id)
       conn = get(conn, legal_entity_path(conn, :show, id))
@@ -257,6 +271,8 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     end
 
     test "with x-consumer-metadata that contains MIS client_id that does not match legal entity id", %{conn: conn} do
+      mis()
+      get_client()
       %{id: id} = insert(:prm, :legal_entity)
       conn = put_client_id_header(conn, id)
       conn = get(conn, legal_entity_path(conn, :show, id))
@@ -269,6 +285,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     end
 
     test "with x-consumer-metadata that contains client_id that matches inactive legal entity id", %{conn: conn} do
+      msp()
       %{id: id} = insert(:prm, :legal_entity, is_active: false)
       conn = put_client_id_header(conn, id)
       conn = get(conn, legal_entity_path(conn, :show, id))
@@ -276,9 +293,9 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     end
 
     test "with client_id that does not exists", %{conn: conn} do
-      conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8603f3")
-      id = "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
-      conn = get(conn, legal_entity_path(conn, :show, id))
+      expect(MithrilMock, :get_client_type_name, fn _, _ -> {:error, :access_denied} end)
+      conn = put_client_id_header(conn, UUID.generate())
+      conn = get(conn, legal_entity_path(conn, :show, UUID.generate()))
       json_response(conn, 401)
     end
   end

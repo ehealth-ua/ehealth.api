@@ -10,9 +10,10 @@ defmodule EHealth.BlackListUsers do
   alias EHealth.PRMRepo
   alias EHealth.Parties
   alias EHealth.Parties.Party
-  alias EHealth.API.Mithril
   alias EHealth.BlackListUsers.Search
   alias EHealth.BlackListUsers.BlackListUser
+
+  @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
 
   @fields_required [:tax_id]
   @fields_optional [:is_active]
@@ -81,7 +82,7 @@ defmodule EHealth.BlackListUsers do
       users_amount = user_ids |> String.split(",") |> length()
 
       %{"ids" => user_ids, "is_blocked" => true}
-      |> Mithril.search_user()
+      |> @mithril_api.search_user([])
       |> check_blocked_users_amount(users_amount)
     end)
   end
@@ -104,7 +105,7 @@ defmodule EHealth.BlackListUsers do
 
   defp remove_tokens_by_user_ids(%Ecto.Changeset{valid?: true} = changeset, user_ids, headers) do
     validate_change(changeset, :tax_id, fn :tax_id, _tax_id ->
-      case Mithril.delete_tokens_by_user_ids(user_ids, headers) do
+      case @mithril_api.delete_tokens_by_user_ids(user_ids, headers) do
         {:ok, _} -> []
         _ -> [user_tokens: "Cannot delete user tokens"]
       end

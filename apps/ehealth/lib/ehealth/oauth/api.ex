@@ -5,33 +5,37 @@ defmodule EHealth.OAuth.API do
 
   import EHealth.Utils.Connection, only: [get_consumer_id: 1]
 
-  alias EHealth.API.Mithril
   alias EHealth.LegalEntities.LegalEntity
 
   require Logger
+
+  @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
 
   @doc """
   Creates a new Mithril client for MSP after successfully created a new Legal Entity
   """
   def put_client(%LegalEntity{} = legal_entity, client_type_id, redirect_uri, headers) do
-    Mithril.put_client(%{
-      "id" => legal_entity.id,
-      "name" => legal_entity.name,
-      "redirect_uri" => redirect_uri,
-      "user_id" => get_consumer_id(headers),
-      "client_type_id" => client_type_id
-    })
+    @mithril_api.put_client(
+      %{
+        "id" => legal_entity.id,
+        "name" => legal_entity.name,
+        "redirect_uri" => redirect_uri,
+        "user_id" => get_consumer_id(headers),
+        "client_type_id" => client_type_id
+      },
+      headers
+    )
   end
 
   def create_user(%Ecto.Changeset{valid?: true, changes: %{password: password}}, email, headers) do
-    Mithril.create_user(%{"password" => password, "email" => email}, headers)
+    @mithril_api.create_user(%{"password" => password, "email" => email}, headers)
   end
 
   def create_user(err, _email, _headers), do: err
 
   def get_client(id, headers) do
     id
-    |> Mithril.get_client(headers)
+    |> @mithril_api.get_client(headers)
     |> fetch_client_credentials(id)
   end
 

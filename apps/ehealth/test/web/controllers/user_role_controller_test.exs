@@ -2,10 +2,17 @@ defmodule EHealth.Web.UserRoleControllerTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase
+  import Mox
+  alias Ecto.UUID
 
   test "get current user roles", %{conn: conn} do
-    user_id = "1380df72-275a-11e7-93ae-92361f002671"
-    client_id = "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
+    user_id = UUID.generate()
+    client_id = UUID.generate()
+    set_mox_global()
+
+    expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+      {:ok, %{"data" => [%{"user_id" => user_id, "client_id" => client_id}]}}
+    end)
 
     conn =
       conn

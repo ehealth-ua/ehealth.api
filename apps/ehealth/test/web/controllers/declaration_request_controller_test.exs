@@ -11,6 +11,11 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
   alias EHealth.MockServer
   alias HTTPoison.Response
 
+  setup do
+    msp()
+    :ok
+  end
+
   describe "list declaration requests" do
     test "no legal_entity_id match", %{conn: conn} do
       legal_entity_id = UUID.generate()

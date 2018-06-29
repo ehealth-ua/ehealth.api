@@ -5,7 +5,6 @@ defmodule EHealth.DeclarationRequests do
   import Ecto.Query
   import EHealth.Utils.Connection, only: [get_consumer_id: 1, get_client_id: 1]
 
-  alias EHealth.API.Mithril
   alias EHealth.Divisions.Division
   alias EHealth.DeclarationRequests.DeclarationRequest
   alias EHealth.DeclarationRequests.API.Approve
@@ -23,6 +22,8 @@ defmodule EHealth.DeclarationRequests do
   alias Ecto.Multi
   alias EHealth.Email.Sanitizer
   alias EHealth.Persons.Validator, as: PersonsValidator
+
+  @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
 
   @channel_cabinet DeclarationRequest.channel(:cabinet)
   @channel_mis DeclarationRequest.channel(:mis)
@@ -108,7 +109,7 @@ defmodule EHealth.DeclarationRequests do
 
     with declaration_request <- get_by_id!(id),
          :ok <- validate_channel(declaration_request, @channel_cabinet),
-         {:ok, %{"data" => user}} <- Mithril.get_user_by_id(user_id, headers),
+         {:ok, %{"data" => user}} <- @mithril_api.get_user_by_id(user_id, headers),
          :ok <- check_user_person_id(user, declaration_request.mpi_id),
          {:ok, person} <- Reference.validate(:person, declaration_request.mpi_id),
          :ok <- validate_tax_id(user["tax_id"], person["tax_id"]),
@@ -223,7 +224,7 @@ defmodule EHealth.DeclarationRequests do
 
     with :ok <- JsonSchema.validate(:cabinet_declaration_request, params),
          params <- Map.put(params, "scope", "family_doctor"),
-         {:ok, %{"data" => user}} <- Mithril.get_user_by_id(user_id, headers),
+         {:ok, %{"data" => user}} <- @mithril_api.get_user_by_id(user_id, headers),
          :ok <- check_user_person_id(user, params["person_id"]),
          {:ok, person} <- Reference.validate(:person, params["person_id"]),
          {:ok, %Employee{} = employee} <- Reference.validate(:employee, params["employee_id"]),

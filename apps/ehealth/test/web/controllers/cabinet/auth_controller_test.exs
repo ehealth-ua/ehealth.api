@@ -9,43 +9,12 @@ defmodule Mithril.Web.RegistrationControllerTest do
   # For Mox lib. Make sure mocks are verified when the test exits
   setup :verify_on_exit!
 
-  defmodule MithrilServer do
-    @moduledoc false
-
-    use MicroservicesHelper
-    alias EHealth.MockServer
-
-    Plug.Router.get "/admin/users/4d593e84-34dc-48d3-9e33-0628a8446956" do
-      response =
-        %{
-          "id" => "4d593e84-34dc-48d3-9e33-0628a8446956",
-          "person_id" => "0c65d15b-32b4-4e82-b53d-0572416d890e",
-          "block_reason" => nil,
-          "email" => "email@example.com",
-          "is_blocked" => false,
-          "settings" => %{},
-          "tax_id" => "12341234"
-        }
-        |> MockServer.wrap_response()
-        |> Jason.encode!()
-
-      Plug.Conn.send_resp(conn, 200, response)
-    end
-
-    Plug.Router.get "/admin/clients/4d593e84-34dc-48d3-9e33-0628a8446956/details" do
-      response =
-        %{"client_type_name" => "CABINET"}
-        |> MockServer.wrap_response()
-        |> Jason.encode!()
-
-      Plug.Conn.send_resp(conn, 200, response)
-    end
-  end
-
   @user_id "4d593e84-34dc-48d3-9e33-0628a8446956"
   @person_id "0c65d15b-32b4-4e82-b53d-0572416d890e"
 
   defmodule SignatureExpect do
+    @moduledoc false
+
     defmacro __using__(_) do
       quote do
         expect(SignatureMock, :decode_and_validate, fn signed_content, "base64", _headers ->
@@ -77,6 +46,8 @@ defmodule Mithril.Web.RegistrationControllerTest do
   end
 
   defmodule MithrilUserRoleExpect do
+    @moduledoc false
+
     defmacro __using__(_) do
       quote do
         expect(MithrilMock, :create_global_user_role, fn _user_id, params, _headers ->
@@ -1243,15 +1214,8 @@ defmodule Mithril.Web.RegistrationControllerTest do
   end
 
   describe "cabinet user authentication factors" do
-    setup %{conn: conn} do
-      register_mircoservices_for_tests([
-        {MithrilServer, "OAUTH_ENDPOINT"}
-      ])
-
-      {:ok, %{conn: conn}}
-    end
-
     test "successful list", %{conn: conn} do
+      cabinet()
       count = 3
 
       expect(MithrilMock, :get_user_by_id, fn user_id, _headers ->
@@ -1286,6 +1250,8 @@ defmodule Mithril.Web.RegistrationControllerTest do
     end
 
     test "failed when user is blocked", %{conn: conn} do
+      cabinet()
+
       expect(MithrilMock, :get_user_by_id, fn user_id, _headers ->
         {:ok,
          %{
@@ -1314,6 +1280,8 @@ defmodule Mithril.Web.RegistrationControllerTest do
     end
 
     test "failed when person is not active", %{conn: conn} do
+      cabinet()
+
       expect(MithrilMock, :get_user_by_id, fn user_id, _headers ->
         {:ok,
          %{

@@ -5,12 +5,12 @@ defmodule EHealth.Plugs.ClientContext do
   use EHealth.Web, :plugs
   use Confex, otp_app: :ehealth
 
-  alias EHealth.API.Mithril
   alias Scrivener.Page
   alias Plug.Conn
 
   require Logger
 
+  @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
   @legal_entity_param_name_default "legal_entity_id"
 
   def put_is_active_into_params(%Conn{params: params} = conn, _) do
@@ -43,7 +43,7 @@ defmodule EHealth.Plugs.ClientContext do
   defp put_client_type_name(%Conn{req_headers: req_headers} = conn) do
     req_headers
     |> get_client_id()
-    |> Mithril.get_client_type_name(req_headers)
+    |> @mithril_api.get_client_type_name(req_headers)
     |> case do
       {:ok, nil} -> conn_unauthorized(conn)
       {:ok, client_type} -> assign(conn, :client_type, client_type)

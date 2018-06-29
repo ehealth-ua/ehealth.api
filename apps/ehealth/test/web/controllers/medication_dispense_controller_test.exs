@@ -7,6 +7,11 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
   setup :verify_on_exit!
 
+  setup do
+    msp()
+    :ok
+  end
+
   describe "create medication dispense" do
     test "invalid legal_entity", %{conn: conn} do
       legal_entity_id = UUID.generate()

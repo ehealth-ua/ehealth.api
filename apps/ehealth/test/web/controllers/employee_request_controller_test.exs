@@ -9,9 +9,9 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   alias EHealth.LegalEntities.LegalEntity
   alias EHealth.Employees.Employee
   alias EHealth.PartyUsers.PartyUser
-  alias EHealth.MockServer
   alias EHealth.{PRMRepo, EventManagerRepo}
   alias EHealth.EventManager.Event
+  alias Ecto.UUID
 
   @moduletag :with_client_id
   @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
@@ -38,7 +38,6 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     } do
       insert(:prm, :employee)
       employee_request_params = File.read!("test/data/employee_doctor_request.json")
-      conn = put_client_id_header(conn, "356b4182-f9ce-4eda-b6af-43d2de8602f2")
       conn = post(conn, employee_request_path(conn, :create), employee_request_params)
       json_response(conn, 422)
     end
@@ -62,6 +61,9 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "with valid params and x-consumer-metadata that contains valid client_id", %{conn: conn} do
+      msp()
+      expect(MithrilMock, :search_user, fn _, _ -> {:ok, %{"data" => []}} end)
+
       expect(ManMock, :render_template, 2, fn _id, _data ->
         {:ok, "<html><body>some_rendered_content</body></html>"}
       end)
@@ -130,6 +132,9 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "without tax_id and employee_id with valid params and valid client_id", %{conn: conn} do
+      msp()
+      expect(MithrilMock, :search_user, fn _, _ -> {:ok, %{"data" => []}} end)
+
       expect(ManMock, :render_template, fn _id, _data ->
         {:ok, "<html><body>some_rendered_content</body></html>"}
       end)
@@ -415,8 +420,6 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "with invalid legal_entity_id", %{conn: conn} do
-      conn = put_client_id_header(conn, Ecto.UUID.generate())
-
       employee_request_params =
         doctor_request()
         |> Jason.encode!()
@@ -503,7 +506,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
       employee_request_params =
         doctor_request()
-        |> put_in(["employee_request", "employee_id"], Ecto.UUID.generate())
+        |> put_in(["employee_request", "employee_id"], UUID.generate())
         |> put_in(["employee_request", "division_id"], division_id)
 
       conn = put_client_id_header(conn, legal_entity_id)
@@ -838,6 +841,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
   describe "list employee requests" do
     test "without filters", %{conn: conn} do
+      msp()
       conn = get(conn, employee_request_path(conn, :index))
       resp = json_response(conn, 200)
 
@@ -847,10 +851,10 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "by NHS ADMIN", %{conn: conn} do
+      admin()
       legal_entity = insert(:prm, :legal_entity, id: "8b797c23-ba47-45f2-bc0f-521013e01074")
       insert(:il, :employee_request)
       insert(:il, :employee_request)
-      conn = put_client_id_header(conn, MockServer.get_client_admin())
       conn = get(conn, employee_request_path(conn, :index))
       resp = json_response(conn, 200)["data"]
       assert 2 = length(resp)
@@ -860,11 +864,11 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "filter by no_tax_id", %{conn: conn} do
+      admin()
       insert(:prm, :legal_entity, id: "8b797c23-ba47-45f2-bc0f-521013e01074")
       insert(:il, :employee_request)
       employee_data = put_in(employee_request_data(), ~w(party no_tax_id)a, true)
       insert(:il, :employee_request, data: employee_data)
-      conn = put_client_id_header(conn, MockServer.get_client_admin())
       conn = get(conn, employee_request_path(conn, :index), no_tax_id: true)
       resp = json_response(conn, 200)["data"]
       assert 1 = length(resp)
@@ -874,8 +878,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "invalid no_tax_id", %{conn: conn} do
-      conn = put_client_id_header(conn, MockServer.get_client_admin())
-
+      admin(2)
       insert(:prm, :legal_entity, id: "8b797c23-ba47-45f2-bc0f-521013e01074")
       insert(:il, :employee_request)
       employee_data = put_in(employee_request_data(), ~w(party no_tax_id)a, true)
@@ -900,6 +903,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "filter by legal_entity_name, edrpou and no_tax_id", %{conn: conn} do
+      admin(3)
       # 1
       insert(:il, :employee_request)
       # 2
@@ -919,7 +923,6 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       # by legal_entity_name
       resp =
         conn
-        |> put_client_id_header(MockServer.get_client_admin())
         |> get(employee_request_path(conn, :index), legal_entity_name: "боли")
         |> json_response(200)
         |> Map.get("data")
@@ -933,7 +936,6 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       # legal_entity_name and edrpou
       resp =
         conn
-        |> put_client_id_header(MockServer.get_client_admin())
         |> get(employee_request_path(conn, :index), legal_entity_name: "боли", edrpou: "10020030")
         |> json_response(200)
         |> Map.get("data")
@@ -944,7 +946,6 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       # legal_entity_name and edrpou
       resp =
         conn
-        |> put_client_id_header(MockServer.get_client_admin())
         |> get(employee_request_path(conn, :index), legal_entity_name: "боли", no_tax_id: "true")
         |> json_response(200)
         |> Map.get("data")
@@ -954,6 +955,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "filter by edrpou", %{conn: conn} do
+      admin()
       insert(:il, :employee_request)
       %{id: legal_entity_id} = insert(:prm, :legal_entity, edrpou: "10020030")
       employee_data = Map.put(employee_request_data(), :legal_entity_id, legal_entity_id)
@@ -961,7 +963,6 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
       resp =
         conn
-        |> put_client_id_header(MockServer.get_client_admin())
         |> get(employee_request_path(conn, :index), edrpou: "10020030")
         |> json_response(200)
         |> Map.get("data")
@@ -971,12 +972,12 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "filter by employee_request_id", %{conn: conn} do
+      admin()
       %{id: id} = insert(:il, :employee_request)
       insert(:il, :employee_request)
 
       resp =
         conn
-        |> put_client_id_header(MockServer.get_client_admin())
         |> get(employee_request_path(conn, :index), id: id)
         |> json_response(200)
         |> Map.get("data")
@@ -986,6 +987,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "with valid client_id in metadata", %{conn: conn} do
+      msp()
       %{id: legal_entity_id} = legal_entity = insert(:prm, :legal_entity)
       %{id: legal_entity_id_2} = insert(:prm, :legal_entity)
 
@@ -1018,19 +1020,21 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "with invalid client_id in metadata", %{conn: conn} do
+      msp()
       insert(:il, :employee_request)
-      conn = put_client_id_header(conn, Ecto.UUID.generate())
       conn = get(conn, employee_request_path(conn, :index))
       resp = json_response(conn, 200)
 
       assert Map.has_key?(resp, "data")
       assert Map.has_key?(resp, "paging")
       assert is_list(resp["data"])
-      assert 0 == length(resp["data"])
+      assert Enum.empty?(resp["data"])
     end
   end
 
   test "get employee request with non-existing user", %{conn: conn} do
+    msp()
+    expect(MithrilMock, :search_user, fn _, _ -> {:ok, %{"data" => []}} end)
     employee_request = %{id: id} = insert(:il, :employee_request)
     insert(:prm, :legal_entity, id: employee_request.data["legal_entity_id"])
 
@@ -1050,6 +1054,13 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   end
 
   test "get employee request with existing user", %{conn: conn} do
+    msp()
+    user_id = UUID.generate()
+
+    expect(MithrilMock, :search_user, fn _, _ ->
+      {:ok, %{"data" => [%{"id" => user_id}]}}
+    end)
+
     fixture_params =
       employee_request_data()
       |> put_in([:party, :email], "test@user.com")
@@ -1077,10 +1088,12 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     assert NaiveDateTime.to_iso8601(Map.get(fixture_request, :updated_at)) == resp["data"]["updated_at"]
     assert Map.has_key?(resp, "urgent")
     assert Map.has_key?(resp["urgent"], "user_id")
-    assert "userid" == resp["urgent"]["user_id"]
+    assert user_id == resp["urgent"]["user_id"]
   end
 
   test "show employee_request with status NEW", %{conn: conn} do
+    msp()
+    expect(MithrilMock, :search_user, fn _, _ -> {:ok, %{"data" => []}} end)
     %{id: id} = insert(:il, :employee_request)
 
     conn = get(conn, employee_request_path(conn, :show, id))
@@ -1090,6 +1103,12 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   end
 
   test "create user by employee request", %{conn: conn} do
+    msp()
+
+    expect(MithrilMock, :create_user, fn _, _ ->
+      {:ok, %{"data" => %{"email" => "test@user.com"}, "meta" => %{"code" => 201}}}
+    end)
+
     fixture_params =
       employee_request_data()
       |> put_in([:party, :email], "test@user.com")
@@ -1101,6 +1120,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   end
 
   test "create user by employee request invalid params", %{conn: conn} do
+    msp()
     fixture_params = employee_request_data() |> put_in([:party, :email], "test@user.com")
     %{id: id} = insert(:il, :employee_request, data: fixture_params)
     conn = post(conn, employee_request_path(conn, :create_user, id), %{"passwords" => "123"})
@@ -1109,7 +1129,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
   test "create user by employee request invalid id", %{conn: conn} do
     assert_raise Ecto.NoResultsError, ~r/expected at least one result but got none in query/, fn ->
-      post(conn, employee_request_path(conn, :create_user, Ecto.UUID.generate()), %{
+      post(conn, employee_request_path(conn, :create_user, UUID.generate()), %{
         "password" => "pw"
       })
     end
@@ -1125,14 +1145,17 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "can approve employee request with employee_id with changed party.name", %{conn: conn} do
+      msp()
+      get_user(2)
+
       expect(ReportMock, :get_declaration_count, fn _, _ ->
         {:ok, %{"data" => []}}
       end)
 
-      role_id = Ecto.UUID.generate()
-      user_id = Ecto.UUID.generate()
+      role_id = UUID.generate()
+      user_id = UUID.generate()
 
-      expect(MithrilMock, :get_user_roles, fn user_id, %{}, [] ->
+      expect(MithrilMock, :get_user_roles, 3, fn user_id, _, _ ->
         {:ok,
          %{
            "data" => [
@@ -1142,6 +1165,10 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
              }
            ]
          }}
+      end)
+
+      expect(MithrilMock, :get_roles_by_name, 3, fn _, _ ->
+        {:ok, %{"data" => [%{"id" => role_id}]}}
       end)
 
       %{id: legal_entity_id} = insert(:prm, :legal_entity)
@@ -1182,6 +1209,20 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "can approve pharmacist", %{conn: conn} do
+      get_user()
+
+      expect(MithrilMock, :get_roles_by_name, fn _, _ ->
+        {:ok, %{"data" => [%{"id" => UUID.generate()}]}}
+      end)
+
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
+      expect(MithrilMock, :create_user_role, fn _, _, _ ->
+        {:ok, %{"data" => %{}}}
+      end)
+
       %{id: legal_entity_id} = insert(:prm, :legal_entity)
       %{id: division_id} = insert(:prm, :division)
 
@@ -1207,6 +1248,20 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "can approve employee request if email matches", %{conn: conn} do
+      get_user()
+
+      expect(MithrilMock, :get_roles_by_name, fn _, _ ->
+        {:ok, %{"data" => [%{"id" => UUID.generate()}]}}
+      end)
+
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
+      expect(MithrilMock, :create_user_role, fn _, _, _ ->
+        {:ok, %{"data" => %{}}}
+      end)
+
       legal_entity = insert(:prm, :legal_entity)
       party = insert(:prm, :party, id: "01981ab9-904c-4c36-88ab-959a94087483")
 
@@ -1242,29 +1297,41 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "cannot approve employee request if email does not match", %{conn: conn} do
+      get_user()
       %{id: id} = insert(:il, :employee_request)
       conn = post(conn, employee_request_path(conn, :approve, id))
       json_response(conn, 403)
     end
 
     test "cannot approve rejected employee request", %{conn: conn} do
-      conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
+      msp()
+      get_user()
+      expect(MithrilMock, :search_user, fn _, _ -> {:ok, %{"data" => []}} end)
       test_invalid_status_transition(conn, "REJECTED", :approve)
     end
 
     test "cannot approve approved employee request", %{conn: conn} do
-      conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
+      msp()
+      get_user()
+      expect(MithrilMock, :search_user, fn _, _ -> {:ok, %{"data" => []}} end)
       test_invalid_status_transition(conn, "APPROVED", :approve)
     end
 
     test "cannot approve employee request if you didn't create it'", %{conn: conn} do
+      get_user()
       %{id: id} = insert(:il, :employee_request)
-      conn = put_client_id_header(conn, Ecto.UUID.generate())
+      conn = put_client_id_header(conn, UUID.generate())
       conn = post(conn, employee_request_path(conn, :approve, id))
       json_response(conn, 403)
     end
 
     test "can approve employee request if you created it'", %{conn: conn} do
+      get_user()
+
+      expect(MithrilMock, :get_roles_by_name, fn _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division)
       party = insert(:prm, :party, id: "01981ab9-904c-4c36-88ab-959a94087483")
@@ -1300,6 +1367,20 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "can approve employee request with employee_id'", %{conn: conn} do
+      get_user()
+
+      expect(MithrilMock, :get_roles_by_name, fn _, _ ->
+        {:ok, %{"data" => [%{"id" => UUID.generate()}]}}
+      end)
+
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
+      expect(MithrilMock, :create_user_role, fn _, _, _ ->
+        {:ok, %{"data" => %{}}}
+      end)
+
       employee = insert(:prm, :employee)
       insert(:prm, :party, id: "01981ab9-904c-4c36-88ab-959a94087483", tax_id: "2222222225")
       %{id: division_id} = insert(:prm, :division)
@@ -1327,6 +1408,8 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "cannot approve expired employee request", %{conn: conn} do
+      get_user()
+
       %{id: id} =
         insert(
           :il,
@@ -1341,6 +1424,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "cannot approve employee request with existing user_id", %{conn: conn} do
+      get_user()
       party = insert(:prm, :party, tax_id: "2222222225")
       %PartyUser{user_id: user_id} = insert(:prm, :party_user, party: party)
 
@@ -1358,6 +1442,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "cannot approve employee request with existing user_id and party_id, but wrong party_user", %{conn: conn} do
+      get_user()
       tax_id = "2222222225"
       party = insert(:prm, :party, tax_id: tax_id)
       party2 = insert(:prm, :party, tax_id: "3222222225")
@@ -1381,6 +1466,8 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
   describe "reject employee request" do
     test "can reject employee request if email matches", %{conn: conn} do
+      get_user()
+
       fixture_params =
         employee_request_data()
         |> put_in([:party, :email], "mis_bot_1493831618@user.com")
@@ -1402,6 +1489,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "cannot reject employee request if email doesnot match", %{conn: conn} do
+      get_user()
       %{id: id} = insert(:il, :employee_request, data: employee_request_data())
 
       conn = post(conn, employee_request_path(conn, :reject, id))
@@ -1409,31 +1497,38 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "cannot reject rejected employee request", %{conn: conn} do
+      msp()
+      get_user()
+      expect(MithrilMock, :search_user, fn _, _ -> {:ok, %{"data" => []}} end)
+
       fixture_params =
         employee_request_data()
         |> put_in([:party, :email], "mis_bot_1493831618@user.com")
 
       insert(:il, :employee_request, data: fixture_params)
-      conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
       test_invalid_status_transition(conn, "REJECTED", :reject)
     end
 
     test "cannot reject approved employee request", %{conn: conn} do
+      msp()
+      get_user()
+      expect(MithrilMock, :search_user, fn _, _ -> {:ok, %{"data" => []}} end)
       insert(:il, :employee_request, data: employee_request_data())
-
-      conn = put_client_id_header(conn, "8b797c23-ba47-45f2-bc0f-521013e01074")
       test_invalid_status_transition(conn, "APPROVED", :reject)
     end
 
     test "cannot reject employee request if you didn't create it'", %{conn: conn} do
+      msp()
+      get_user()
       %{id: id} = insert(:il, :employee_request, data: employee_request_data())
-
-      conn = put_client_id_header(conn, Ecto.UUID.generate())
       conn = post(conn, employee_request_path(conn, :reject, id))
       json_response(conn, 403)
     end
 
     test "can reject employee request if you created it'", %{conn: conn} do
+      msp()
+      get_user()
+
       fixture_params =
         employee_request_data()
         |> put_in([:party, :email], "mis_bot_1493831618@user.com")
@@ -1442,8 +1537,6 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
       legal_entity_id = data.legal_entity_id
       insert(:prm, :legal_entity, id: legal_entity_id)
-
-      conn = put_client_id_header(conn, legal_entity_id)
       conn = post(conn, employee_request_path(conn, :reject, id))
       resp = json_response(conn, 200)["data"]
       assert "REJECTED" == resp["status"]
@@ -1452,6 +1545,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
   describe "show invite" do
     test "success show invite", %{conn: conn} do
+      expect(MithrilMock, :search_user, fn _, _ -> {:ok, %{"data" => []}} end)
       %{id: id} = insert(:il, :employee_request)
       conn = get(conn, employee_request_path(conn, :invite, id |> Cipher.encrypt() |> Base.encode64()))
       assert json_response(conn, 200)

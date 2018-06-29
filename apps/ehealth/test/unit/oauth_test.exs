@@ -3,11 +3,13 @@ defmodule EHealth.Unit.OAuthAPITest do
 
   use ExUnit.Case
 
+  import EHealth.Expectations.Mithril
   alias Ecto.UUID
   alias EHealth.OAuth.API
   alias EHealth.LegalEntities.LegalEntity
 
   test "check client name for client creation" do
+    put_client()
     name = "my name"
 
     client = %LegalEntity{
