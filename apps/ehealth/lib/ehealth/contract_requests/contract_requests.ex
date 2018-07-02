@@ -76,12 +76,12 @@ defmodule EHealth.ContractRequests do
     id = UUID.generate()
 
     with {:ok, %{"data" => %{"secret_url" => statute_url}}} <-
-           @media_storage_api.create_signed_url("PUT", get_bucket(), "contract_request_statute.jpeg", id, []),
+           @media_storage_api.create_signed_url("PUT", get_bucket(), "upload_contract_request_statute.pdf", id, []),
          {:ok, %{"data" => %{"secret_url" => additional_document_url}}} <-
            @media_storage_api.create_signed_url(
              "PUT",
              get_bucket(),
-             "contract_request_additional_document.jpeg",
+             "upload_contract_request_additional_document.pdf",
              id,
              []
            ) do
@@ -93,14 +93,14 @@ defmodule EHealth.ContractRequests do
     cond do
       Enum.any?(~w(new approved pending_nhs_sign terminated declined)a, &(ContractRequest.status(&1) == status)) ->
         [
-          {:contract_request_statute, "contract_request_statute.jpeg"},
-          {:additional_document, "additional_document.jpeg"}
+          {:contract_request_statute, "contract_request_statute.pdf"},
+          {:additional_document, "additional_document.pdf"}
         ]
 
       Enum.any?(~w(signed nhs_signed)a, &(ContractRequest.status(&1) == status)) ->
         [
-          {:contract_request_statute, "contract_request_statute.jpeg"},
-          {:contract_request_additional_document, "contract_request_additional_document.jpeg"},
+          {:contract_request_statute, "contract_request_statute.pdf"},
+          {:contract_request_additional_document, "contract_request_additional_document.pdf"},
           {:signed_content, "signed_content"}
         ]
 
@@ -146,14 +146,15 @@ defmodule EHealth.ContractRequests do
          :ok <- validate_start_date(params),
          :ok <- validate_end_date(params),
          :ok <- validate_contractor_owner_id(params),
-         :ok <- validate_document(id, "contract_request_statute.jpeg", params["statute_md5"], headers),
+         :ok <- validate_document(id, "upload_contract_request_statute.pdf", params["statute_md5"], headers),
          :ok <-
            validate_document(
              id,
-             "contract_request_additional_document.jpeg",
+             "upload_contract_request_additional_document.pdf",
              params["additional_document_md5"],
              headers
            ),
+         :ok <- move_uploaded_documents(id, headers),
          _ <- terminate_pending_contracts(params),
          insert_params <-
            params
@@ -1496,6 +1497,33 @@ defmodule EHealth.ContractRequests do
       :ok
     else
       _ -> {:error, {:"422", "#{resource_name} md5 doesn't match"}}
+    end
+  end
+
+  defp move_uploaded_documents(id, headers) do
+    Enum.reduce_while(
+      [
+        {"upload_contract_request_statute.pdf", "contract_request_statute.pdf"},
+        {"upload_contract_request_additional_document.pdf", "contract_request_additional_document.pdf"}
+      ],
+      :ok,
+      fn {temp_resource_name, resource_name}, _ ->
+        move_file(id, {temp_resource_name, resource_name}, headers)
+      end
+    )
+  end
+
+  defp move_file(id, {temp_resource_name, resource_name}, headers) do
+    bucket = get_bucket()
+
+    with {:ok, %{"data" => %{"secret_url" => url}}} <-
+           @media_storage_api.create_signed_url("GET", bucket, temp_resource_name, id, headers),
+         {:ok, %{body: signed_content}} <- @media_storage_api.get_signed_content(url),
+         {:ok, _} <- @media_storage_api.store_signed_content(signed_content, bucket, id, resource_name, headers),
+         {:ok, %{"data" => %{"secret_url" => url}}} <-
+           @media_storage_api.create_signed_url("DELETE", bucket, temp_resource_name, id, headers),
+         {:ok, _} <- @media_storage_api.delete_file(url) do
+      {:cont, :ok}
     end
   end
 

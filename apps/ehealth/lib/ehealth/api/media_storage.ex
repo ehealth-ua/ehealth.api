@@ -73,4 +73,6 @@ defmodule EHealth.API.MediaStorage do
   end
 
   def get_signed_content(secret_url), do: HTTPoison.get(secret_url)
+
+  def delete_file(url), do: HTTPoison.delete(url)
 end

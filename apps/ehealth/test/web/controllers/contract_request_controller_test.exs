@@ -411,9 +411,13 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         party_user: party_user
       } = prepare_data()
 
-      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
+      expect(MediaStorageMock, :create_signed_url, 6, fn _, _, resource, _, _ ->
         {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
       end)
+
+      expect(MediaStorageMock, :get_signed_content, 2, fn _ -> {:ok, %{body: ""}} end)
+      expect(MediaStorageMock, :delete_file, 2, fn _ -> {:ok, nil} end)
+      expect(MediaStorageMock, :store_signed_content, 2, fn _, _, _, _, _ -> {:ok, nil} end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
         {:ok, %HTTPoison.Response{status_code: 200, headers: [{"ETag", Jason.encode!(resource)}]}}
@@ -472,9 +476,13 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         party_user: party_user
       } = prepare_data()
 
-      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
+      expect(MediaStorageMock, :create_signed_url, 6, fn _, _, resource, _, _ ->
         {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
       end)
+
+      expect(MediaStorageMock, :get_signed_content, 2, fn _ -> {:ok, %{body: ""}} end)
+      expect(MediaStorageMock, :store_signed_content, 2, fn _, _, _, _, _ -> {:ok, nil} end)
+      expect(MediaStorageMock, :delete_file, 2, fn _ -> {:ok, nil} end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
         {:ok, %HTTPoison.Response{status_code: 200, headers: [{"ETag", Jason.encode!(resource)}]}}
@@ -2840,8 +2848,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       "external_contractor_flag" => true,
       "start_date" => "2018-01-01",
       "end_date" => "2018-01-01",
-      "statute_md5" => "contract_request_statute.jpeg",
-      "additional_document_md5" => "contract_request_additional_document.jpeg"
+      "statute_md5" => "upload_contract_request_statute.pdf",
+      "additional_document_md5" => "upload_contract_request_additional_document.pdf"
     }
   end
 
