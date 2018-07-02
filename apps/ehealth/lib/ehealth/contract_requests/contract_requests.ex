@@ -152,7 +152,7 @@ defmodule EHealth.ContractRequests do
              params["additional_document_md5"],
              headers
            ),
-         :ok <- move_uploaded_documents(id),
+         :ok <- move_uploaded_documents(id, headers),
          _ <- terminate_pending_contracts(params),
          insert_params <-
            params
@@ -1498,7 +1498,7 @@ defmodule EHealth.ContractRequests do
     end
   end
 
-  defp move_uploaded_documents(id) do
+  defp move_uploaded_documents(id, headers) do
     Enum.reduce_while(
       [
         {"upload_contract_request_statute.pdf", "contract_request_statute.pdf"},
@@ -1506,18 +1506,16 @@ defmodule EHealth.ContractRequests do
       ],
       :ok,
       fn {temp_resource_name, resource_name}, _ ->
-        move_file(id, temp_resource_name, resource_name)
+        move_file(id, temp_resource_name, resource_name, headers)
       end
     )
   end
 
-  defp move_file(id, temp_resource_name, resource_name) do
-    bucket = :contract_request_bucket
-
+  defp move_file(id, temp_resource_name, resource_name, headers) do
     with {:ok, %{"data" => %{"secret_url" => url}}} <-
            @media_storage_api.create_signed_url("GET", get_bucket(), temp_resource_name, id, []),
          {:ok, %{body: signed_content}} <- @media_storage_api.get_signed_content(url),
-         {:ok, _} <- @media_storage_api.store_signed_content(signed_content, bucket, id, resource_name, []),
+         {:ok, _} <- @media_storage_api.save_file(id, signed_content, get_bucket(), resource_name, headers),
          {:ok, %{"data" => %{"secret_url" => url}}} <-
            @media_storage_api.create_signed_url("DELETE", get_bucket(), temp_resource_name, id, []),
          {:ok, _} <- @media_storage_api.delete_file(url) do

@@ -74,5 +74,13 @@ defmodule EHealth.API.MediaStorage do
 
   def get_signed_content(secret_url), do: HTTPoison.get(secret_url)
 
+  def save_file(id, content, bucket, resource_name, headers \\ []) do
+    with {:ok, %{"data" => %{"secret_url" => url}}} <- create_signed_url("PUT", bucket, resource_name, id, headers) do
+      url
+      |> SignedContent.save(content, [{"Content-Type", MIME.from_path(resource_name)}], config()[:hackney_options])
+      |> check_gcs_response()
+    end
+  end
+
   def delete_file(url), do: HTTPoison.delete(url)
 end

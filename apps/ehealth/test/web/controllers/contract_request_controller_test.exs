@@ -417,7 +417,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       expect(MediaStorageMock, :get_signed_content, 2, fn _ -> {:ok, %{body: ""}} end)
       expect(MediaStorageMock, :delete_file, 2, fn _ -> {:ok, nil} end)
-      expect(MediaStorageMock, :store_signed_content, 2, fn _, _, _, _, _ -> {:ok, nil} end)
+      expect(MediaStorageMock, :save_file, 2, fn _, _, _, _, _ -> {:ok, nil} end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
         {:ok, %HTTPoison.Response{status_code: 200, headers: [{"ETag", Jason.encode!(resource)}]}}
@@ -481,7 +481,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       end)
 
       expect(MediaStorageMock, :get_signed_content, 2, fn _ -> {:ok, %{body: ""}} end)
-      expect(MediaStorageMock, :store_signed_content, 2, fn _, _, _, _, _ -> {:ok, nil} end)
+      expect(MediaStorageMock, :save_file, 2, fn _, _, _, _, _ -> {:ok, nil} end)
       expect(MediaStorageMock, :delete_file, 2, fn _ -> {:ok, nil} end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
