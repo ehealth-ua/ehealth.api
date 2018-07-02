@@ -984,10 +984,25 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:error, %{"error" => %{"message" => "Invalid verification code"}}}
       end)
 
-      assert conn
-             |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
-             |> post(cabinet_auth_path(conn, :registration, params))
-             |> json_response(403)
+      assert resp =
+               conn
+               |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
+               |> post(cabinet_auth_path(conn, :registration, params))
+               |> json_response(422)
+
+      assert [
+               %{
+                 "entry" => "$.otp",
+                 "rules" => [
+                   %{
+                     "description" => "Invalid verification code",
+                     "params" => [],
+                     "rule" => "invalid"
+                   }
+                 ],
+                 "entry_type" => "json_data_property"
+               }
+             ] == get_in(resp, ~w(error invalid))
     end
 
     test "invalid auth metod for user factor", %{conn: conn, params: params, jwt: jwt} do

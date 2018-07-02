@@ -282,7 +282,7 @@ defmodule EHealth.Cabinet.API do
       %{"phone_number" => phone_number} ->
         case @otp_verification_api.complete(phone_number, %{code: code}, headers) do
           {:ok, _} -> :ok
-          _error -> {:error, {:forbidden, "Invalid verification code"}}
+          _error -> {:error, [{%{description: "Invalid verification code", params: [], rule: :invalid}, "$.otp"}]}
         end
     end
   end
