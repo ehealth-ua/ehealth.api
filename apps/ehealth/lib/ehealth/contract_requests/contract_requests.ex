@@ -1514,14 +1514,14 @@ defmodule EHealth.ContractRequests do
   end
 
   defp move_file(id, {temp_resource_name, resource_name}, headers) do
-    bucket = get_bucket()
+    bucket = :contract_request_bucket
 
     with {:ok, %{"data" => %{"secret_url" => url}}} <-
-           @media_storage_api.create_signed_url("GET", bucket, temp_resource_name, id, headers),
+           @media_storage_api.create_signed_url("GET", get_bucket(), temp_resource_name, id, headers),
          {:ok, %{body: signed_content}} <- @media_storage_api.get_signed_content(url),
          {:ok, _} <- @media_storage_api.store_signed_content(signed_content, bucket, id, resource_name, headers),
          {:ok, %{"data" => %{"secret_url" => url}}} <-
-           @media_storage_api.create_signed_url("DELETE", bucket, temp_resource_name, id, headers),
+           @media_storage_api.create_signed_url("DELETE", get_bucket(), temp_resource_name, id, headers),
          {:ok, _} <- @media_storage_api.delete_file(url) do
       {:cont, :ok}
     end
