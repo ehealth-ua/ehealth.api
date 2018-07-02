@@ -2848,8 +2848,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       "external_contractor_flag" => true,
       "start_date" => "2018-01-01",
       "end_date" => "2018-01-01",
-      "statute_md5" => "upload_contract_request_statute.pdf",
-      "additional_document_md5" => "upload_contract_request_additional_document.pdf"
+      "statute_md5" => "media/upload_contract_request_statute.pdf",
+      "additional_document_md5" => "media/upload_contract_request_additional_document.pdf"
     }
   end
 

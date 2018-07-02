@@ -76,12 +76,18 @@ defmodule EHealth.ContractRequests do
     id = UUID.generate()
 
     with {:ok, %{"data" => %{"secret_url" => statute_url}}} <-
-           @media_storage_api.create_signed_url("PUT", get_bucket(), "upload_contract_request_statute.pdf", id, []),
+           @media_storage_api.create_signed_url(
+             "PUT",
+             get_bucket(),
+             "media/upload_contract_request_statute.pdf",
+             id,
+             []
+           ),
          {:ok, %{"data" => %{"secret_url" => additional_document_url}}} <-
            @media_storage_api.create_signed_url(
              "PUT",
              get_bucket(),
-             "upload_contract_request_additional_document.pdf",
+             "media/upload_contract_request_additional_document.pdf",
              id,
              []
            ) do
@@ -144,11 +150,11 @@ defmodule EHealth.ContractRequests do
          :ok <- validate_start_date(params),
          :ok <- validate_end_date(params),
          :ok <- validate_contractor_owner_id(params),
-         :ok <- validate_document(id, "upload_contract_request_statute.pdf", params["statute_md5"], headers),
+         :ok <- validate_document(id, "media/upload_contract_request_statute.pdf", params["statute_md5"], headers),
          :ok <-
            validate_document(
              id,
-             "upload_contract_request_additional_document.pdf",
+             "media/upload_contract_request_additional_document.pdf",
              params["additional_document_md5"],
              headers
            ),
@@ -208,7 +214,7 @@ defmodule EHealth.ContractRequests do
          :ok <- validate_contractor_legal_entity(contract_request),
          :ok <- validate_approve_content(content, contract_request, references),
          :ok <- validate_status(contract_request, ContractRequest.status(:new)),
-         :ok <- save_signed_content(contract_request.id, params, headers, "contract_request_approved"),
+         :ok <- save_signed_content(contract_request.id, params, headers, "signed_content/contract_request_approved"),
          :ok <- validate_contract_id(contract_request),
          :ok <- validate_contractor_owner_id(contract_request),
          :ok <- validate_nhs_signer_id(contract_request, client_id),
@@ -284,7 +290,7 @@ defmodule EHealth.ContractRequests do
          :ok <- validate_contractor_legal_entity(contract_request),
          :ok <- validate_decline_content(content, contract_request, references),
          :ok <- validate_status(contract_request, ContractRequest.status(:new)),
-         :ok <- save_signed_content(contract_request.id, params, headers, "contract_request_declined"),
+         :ok <- save_signed_content(contract_request.id, params, headers, "signed_content/contract_request_declined"),
          update_params <-
            content
            |> Map.take(~w(status_reason))
@@ -348,7 +354,7 @@ defmodule EHealth.ContractRequests do
          :ok <- validate_start_date(contract_request),
          :ok <- validate_contractor_legal_entity(contract_request),
          :ok <- validate_contractor_owner_id(contract_request),
-         :ok <- save_signed_content(contract_request.id, params, headers),
+         :ok <- save_signed_content(contract_request.id, params, headers, "signed_content/signed_content"),
          update_params <-
            params
            |> Map.put("updated_by", user_id)
@@ -383,7 +389,7 @@ defmodule EHealth.ContractRequests do
          :ok <- validate_contractor_legal_entity(contract_request),
          :ok <- validate_contractor_owner_id(contract_request),
          contract_id <- UUID.generate(),
-         :ok <- save_signed_content(contract_id, params, headers),
+         :ok <- save_signed_content(contract_id, params, headers, "signed_content/signed_content"),
          update_params <-
            params
            |> Map.put("updated_by", user_id)
@@ -557,7 +563,7 @@ defmodule EHealth.ContractRequests do
       else: {:error, {:"422", "Signed content does not match the previously created content"}}
   end
 
-  defp save_signed_content(id, %{"signed_content" => signed_content}, headers, resource_name \\ "signed_content") do
+  defp save_signed_content(id, %{"signed_content" => signed_content}, headers, resource_name) do
     signed_content
     |> @media_storage_api.store_signed_content(:contract_request_bucket, id, resource_name, headers)
     |> case do
@@ -1501,8 +1507,8 @@ defmodule EHealth.ContractRequests do
   defp move_uploaded_documents(id, headers) do
     Enum.reduce_while(
       [
-        {"upload_contract_request_statute.pdf", "contract_request_statute.pdf"},
-        {"upload_contract_request_additional_document.pdf", "contract_request_additional_document.pdf"}
+        {"media/upload_contract_request_statute.pdf", "media/contract_request_statute.pdf"},
+        {"media/upload_contract_request_additional_document.pdf", "media/contract_request_additional_document.pdf"}
       ],
       :ok,
       fn {temp_resource_name, resource_name}, _ ->
