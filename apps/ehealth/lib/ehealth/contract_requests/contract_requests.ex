@@ -109,9 +109,7 @@ defmodule EHealth.ContractRequests do
     end
   end
 
-  def gen_relevant_get_links(status) do
-    id = UUID.generate()
-
+  def gen_relevant_get_links(id, status) do
     Enum.reduce(get_document_attribures_by_status(status), [], fn {name, resource_name}, acc ->
       with {:ok, %{"data" => %{"secret_url" => secret_url}}} <-
              @media_storage_api.create_signed_url("GET", get_bucket(), resource_name, id, []) do
