@@ -163,7 +163,7 @@ defmodule EHealth.Employees do
          :ok <- UserRoleCreator.create(employee, req_headers),
          %Changeset{valid?: true} = party_changeset <- Parties.changeset(party, party_update_params),
          %Changeset{valid?: true} = employee_changeset <- changeset(employee, employee_update_params) do
-      if maybe_suspend_contracts?(party_changeset, :party) do
+      if maybe_suspend_contracts?(party_changeset, :party) || maybe_suspend_contracts?(employee_changeset, :employee) do
         transaction_update_with_contract(party_changeset, employee_changeset, req_headers)
       else
         __MODULE__.update(employee, employee_update_params, get_consumer_id(req_headers))

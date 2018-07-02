@@ -57,6 +57,182 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       assert resp
       assert resp["error"]["message"] == "Only legal_entity with type MSP or Pharmacy could be created"
     end
+
+    test "create legal entity", %{conn: conn} do
+      get_client_type_by_name(UUID.generate())
+
+      expect(MithrilMock, :put_client, fn params, _ ->
+        {:ok, %{"data" => Map.put(params, "secret", "secret")}}
+      end)
+
+      validate_addresses()
+      render_template()
+
+      insert_dictionaries()
+      legal_entity_type = "MSP"
+      legal_entity_params = Map.merge(get_legal_entity_data(), %{"type" => legal_entity_type})
+      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
+
+      conn =
+        conn
+        |> put_req_header("content-type", "application/json")
+        |> put_req_header("content-length", "7000")
+        |> put_req_header("x-consumer-id", UUID.generate())
+        |> put_req_header("edrpou", legal_entity_params["edrpou"])
+        |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
+
+      resp = json_response(conn, 200)
+      assert resp
+    end
+  end
+
+  describe "contract suspend on update legal entity" do
+    test "contract suspend on change legal enityty name", %{conn: conn} do
+      get_client_type_by_name(UUID.generate(), 2)
+      put_client(2)
+      validate_addresses(2)
+      render_template(2)
+
+      insert_dictionaries()
+      legal_entity_params = Map.merge(get_legal_entity_data(), %{"type" => "MSP"})
+      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
+      consumer_id = UUID.generate()
+
+      conn1 =
+        conn
+        |> put_req_header("content-type", "application/json")
+        |> put_req_header("content-length", "7000")
+        |> put_req_header("x-consumer-id", consumer_id)
+        |> put_req_header("edrpou", legal_entity_params["edrpou"])
+        |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
+
+      id = json_response(conn1, 200)["data"]["id"]
+
+      %{id: contract_id} = insert(:prm, :contract, contractor_legal_entity_id: id)
+
+      legal_entity_params = Map.put(legal_entity_params, "name", "Institute of medical researches ISMT")
+
+      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
+
+      conn2 =
+        conn
+        |> put_req_header("content-type", "application/json")
+        |> put_req_header("content-length", "7000")
+        |> put_req_header("x-consumer-id", UUID.generate())
+        |> put_req_header("edrpou", legal_entity_params["edrpou"])
+        |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
+
+      resp2 = json_response(conn2, 200)
+
+      assert resp2
+
+      assert %{"data" => response_data} =
+               conn
+               |> put_client_id_header(nhs())
+               |> get(contract_path(conn, :show, contract_id))
+               |> json_response(200)
+
+      assert response_data["is_suspended"] == true
+    end
+
+    test "contract suspend on change status", %{conn: conn} do
+      get_client_type_by_name(UUID.generate(), 2)
+      put_client(2)
+      validate_addresses(2)
+      render_template(2)
+
+      insert_dictionaries()
+      legal_entity_params = Map.merge(get_legal_entity_data(), %{"type" => "MSP"})
+      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
+      consumer_id = UUID.generate()
+
+      conn1 =
+        conn
+        |> put_req_header("content-type", "application/json")
+        |> put_req_header("content-length", "7000")
+        |> put_req_header("x-consumer-id", consumer_id)
+        |> put_req_header("edrpou", legal_entity_params["edrpou"])
+        |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
+
+      id = json_response(conn1, 200)["data"]["id"]
+
+      %{id: contract_id} = insert(:prm, :contract, contractor_legal_entity_id: id)
+
+      legal_entity_params = Map.put(legal_entity_params, "status", "CLOSED")
+
+      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
+
+      conn2 =
+        conn
+        |> put_req_header("content-type", "application/json")
+        |> put_req_header("content-length", "7000")
+        |> put_req_header("x-consumer-id", UUID.generate())
+        |> put_req_header("edrpou", legal_entity_params["edrpou"])
+        |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
+
+      resp2 = json_response(conn2, 200)
+
+      assert resp2
+
+      assert %{"data" => response_data} =
+               conn
+               |> put_client_id_header(nhs())
+               |> get(contract_path(conn, :show, contract_id))
+               |> json_response(200)
+
+      assert response_data["is_suspended"] == true
+    end
+
+    test "contract suspend on change address", %{conn: conn} do
+      get_client_type_by_name(UUID.generate(), 2)
+      put_client(2)
+      validate_addresses(2)
+      render_template(2)
+
+      insert_dictionaries()
+      legal_entity_params = Map.merge(get_legal_entity_data(), %{"type" => "MSP"})
+      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
+      consumer_id = UUID.generate()
+
+      conn1 =
+        conn
+        |> put_req_header("content-type", "application/json")
+        |> put_req_header("content-length", "7000")
+        |> put_req_header("x-consumer-id", consumer_id)
+        |> put_req_header("edrpou", legal_entity_params["edrpou"])
+        |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
+
+      id = json_response(conn1, 200)["data"]["id"]
+
+      %{id: contract_id} = insert(:prm, :contract, contractor_legal_entity_id: id)
+
+      [addres | addresses] = legal_entity_params["addresses"]
+      addresses = [%{addres | "apartment" => "42/12"} | addresses]
+
+      legal_entity_params = Map.put(legal_entity_params, "addresses", addresses)
+
+      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
+
+      conn2 =
+        conn
+        |> put_req_header("content-type", "application/json")
+        |> put_req_header("content-length", "7000")
+        |> put_req_header("x-consumer-id", UUID.generate())
+        |> put_req_header("edrpou", legal_entity_params["edrpou"])
+        |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
+
+      resp2 = json_response(conn2, 200)
+
+      assert resp2
+
+      assert %{"data" => response_data} =
+               conn
+               |> put_client_id_header(nhs())
+               |> get(contract_path(conn, :show, contract_id))
+               |> json_response(200)
+
+      assert response_data["is_suspended"] == true
+    end
   end
 
   describe "verify legal entities" do
@@ -365,5 +541,23 @@ defmodule EHealth.Web.LegalEntityControllerTest do
   def assert_urgent_field(resp, field) do
     assert Map.has_key?(resp, "urgent")
     assert Map.has_key?(resp["urgent"], field)
+  end
+
+  defp get_client_type_by_name(id, n \\ 1) do
+    expect(MithrilMock, :get_client_type_by_name, n, fn _, _ ->
+      {:ok, %{"data" => [%{"id" => id}]}}
+    end)
+  end
+
+  defp render_template(n \\ 1) do
+    expect(ManMock, :render_template, n, fn _, _ ->
+      {:ok, "<html></html>"}
+    end)
+  end
+
+  defp validate_addresses(n \\ 1) do
+    expect(UAddressesMock, :validate_addresses, n, fn _, _ ->
+      {:ok, %{"data" => %{}}}
+    end)
   end
 end

@@ -1167,9 +1167,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
          }}
       end)
 
-      expect(MithrilMock, :get_roles_by_name, 3, fn _, _ ->
-        {:ok, %{"data" => [%{"id" => role_id}]}}
-      end)
+      get_roles_by_name(role_id, 3)
 
       %{id: legal_entity_id} = insert(:prm, :legal_entity)
       %{id: division_id} = insert(:prm, :division)
@@ -1210,18 +1208,9 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
     test "can approve pharmacist", %{conn: conn} do
       get_user()
-
-      expect(MithrilMock, :get_roles_by_name, fn _, _ ->
-        {:ok, %{"data" => [%{"id" => UUID.generate()}]}}
-      end)
-
-      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
-        {:ok, %{"data" => []}}
-      end)
-
-      expect(MithrilMock, :create_user_role, fn _, _, _ ->
-        {:ok, %{"data" => %{}}}
-      end)
+      get_roles_by_name(UUID.generate())
+      get_user_roles()
+      create_user_role()
 
       %{id: legal_entity_id} = insert(:prm, :legal_entity)
       %{id: division_id} = insert(:prm, :division)
@@ -1249,18 +1238,9 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
     test "can approve employee request if email matches", %{conn: conn} do
       get_user()
-
-      expect(MithrilMock, :get_roles_by_name, fn _, _ ->
-        {:ok, %{"data" => [%{"id" => UUID.generate()}]}}
-      end)
-
-      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
-        {:ok, %{"data" => []}}
-      end)
-
-      expect(MithrilMock, :create_user_role, fn _, _, _ ->
-        {:ok, %{"data" => %{}}}
-      end)
+      get_roles_by_name(UUID.generate())
+      get_user_roles()
+      create_user_role()
 
       legal_entity = insert(:prm, :legal_entity)
       party = insert(:prm, :party, id: "01981ab9-904c-4c36-88ab-959a94087483")
@@ -1327,11 +1307,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
     test "can approve employee request if you created it'", %{conn: conn} do
       get_user()
-
-      expect(MithrilMock, :get_roles_by_name, fn _, _ ->
-        {:ok, %{"data" => []}}
-      end)
-
+      get_roles_by_name(UUID.generate())
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division)
       party = insert(:prm, :party, id: "01981ab9-904c-4c36-88ab-959a94087483")
@@ -1368,18 +1344,9 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
     test "can approve employee request with employee_id'", %{conn: conn} do
       get_user()
-
-      expect(MithrilMock, :get_roles_by_name, fn _, _ ->
-        {:ok, %{"data" => [%{"id" => UUID.generate()}]}}
-      end)
-
-      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
-        {:ok, %{"data" => []}}
-      end)
-
-      expect(MithrilMock, :create_user_role, fn _, _, _ ->
-        {:ok, %{"data" => %{}}}
-      end)
+      get_roles_by_name(UUID.generate())
+      get_user_roles()
+      create_user_role()
 
       employee = insert(:prm, :employee)
       insert(:prm, :party, id: "01981ab9-904c-4c36-88ab-959a94087483", tax_id: "2222222225")
@@ -1461,6 +1428,313 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       conn_resp = post(conn, employee_request_path(conn, :approve, id))
       resp = json_response(conn_resp, 409)
       assert "Email is already used by another person" == resp["error"]["message"]
+    end
+  end
+
+  describe "update employee suspend contract" do
+    test "update employee first name suspend contract", %{conn: conn} do
+      create_user_role()
+      get_user_roles()
+      get_roles_by_name(UUID.generate())
+
+      get_user()
+      put_client()
+
+      get_client_type_by_name(UUID.generate(), 2)
+      render_template(2)
+
+      legal_entity = insert(:prm, :legal_entity)
+      division = insert(:prm, :division)
+      party = insert(:prm, :party, id: "01981ab9-904c-4c36-88ab-959a94087483")
+
+      employee =
+        insert(
+          :prm,
+          :employee,
+          legal_entity: legal_entity,
+          division: division,
+          party: party
+        )
+
+      contract = insert(:prm, :contract, contractor_owner_id: employee.id)
+
+      data =
+        employee_request_data()
+        |> put_in([:employee_id], employee.id)
+        |> put_in([:party, :email], "mis_bot_1493831618@user.com")
+        |> put_in([:party, :first_name], "Mario")
+        |> put_in([:legal_entity_id], legal_entity.id)
+        |> put_in([:division_id], division.id)
+        |> put_in([:party_id], party.id)
+
+      employee_request =
+        insert(
+          :il,
+          :employee_request,
+          employee_id: employee.id,
+          data: data
+        )
+
+      resp =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> post(employee_request_path(conn, :approve, employee_request.id))
+        |> json_response(200)
+        |> Map.get("data")
+
+      assert "APPROVED" == resp["status"]
+
+      assert %{"data" => response_data} =
+               conn
+               |> put_client_id_header(nhs())
+               |> get(contract_path(conn, :show, contract.id))
+               |> json_response(200)
+
+      assert response_data["is_suspended"] == true
+    end
+
+    test "update employee last name suspend contract", %{conn: conn} do
+      create_user_role()
+      get_user_roles()
+      get_roles_by_name(UUID.generate())
+
+      get_user()
+      put_client()
+
+      get_client_type_by_name(UUID.generate(), 2)
+      render_template(2)
+
+      legal_entity = insert(:prm, :legal_entity)
+      division = insert(:prm, :division)
+      party = insert(:prm, :party, id: "01981ab9-904c-4c36-88ab-959a94087483")
+
+      employee =
+        insert(
+          :prm,
+          :employee,
+          legal_entity: legal_entity,
+          division: division,
+          party: party
+        )
+
+      contract = insert(:prm, :contract, contractor_owner_id: employee.id)
+
+      data =
+        employee_request_data()
+        |> put_in([:employee_id], employee.id)
+        |> put_in([:party, :email], "mis_bot_1493831618@user.com")
+        |> put_in([:party, :last_name], "Victorovich")
+        |> put_in([:legal_entity_id], legal_entity.id)
+        |> put_in([:division_id], division.id)
+        |> put_in([:party_id], party.id)
+
+      employee_request =
+        insert(
+          :il,
+          :employee_request,
+          employee_id: employee.id,
+          data: data
+        )
+
+      resp =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> post(employee_request_path(conn, :approve, employee_request.id))
+        |> json_response(200)
+        |> Map.get("data")
+
+      assert "APPROVED" == resp["status"]
+
+      assert %{"data" => response_data} =
+               conn
+               |> put_client_id_header(nhs())
+               |> get(contract_path(conn, :show, contract.id))
+               |> json_response(200)
+
+      assert response_data["is_suspended"] == true
+    end
+
+    test "update employee second name suspend contract", %{conn: conn} do
+      create_user_role()
+      get_user_roles()
+      get_roles_by_name(UUID.generate())
+
+      get_user()
+      put_client()
+
+      get_client_type_by_name(UUID.generate(), 2)
+      render_template(2)
+
+      legal_entity = insert(:prm, :legal_entity)
+      division = insert(:prm, :division)
+      party = insert(:prm, :party, id: "01981ab9-904c-4c36-88ab-959a94087483")
+
+      employee =
+        insert(
+          :prm,
+          :employee,
+          legal_entity: legal_entity,
+          division: division,
+          party: party
+        )
+
+      contract = insert(:prm, :contract, contractor_owner_id: employee.id)
+
+      data =
+        employee_request_data()
+        |> put_in([:employee_id], employee.id)
+        |> put_in([:party, :email], "mis_bot_1493831618@user.com")
+        |> put_in([:party, :second_name], "Vernadsky")
+        |> put_in([:legal_entity_id], legal_entity.id)
+        |> put_in([:division_id], division.id)
+        |> put_in([:party_id], party.id)
+
+      employee_request =
+        insert(
+          :il,
+          :employee_request,
+          employee_id: employee.id,
+          data: data
+        )
+
+      resp =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> post(employee_request_path(conn, :approve, employee_request.id))
+        |> json_response(200)
+        |> Map.get("data")
+
+      assert "APPROVED" == resp["status"]
+
+      assert %{"data" => response_data} =
+               conn
+               |> put_client_id_header(nhs())
+               |> get(contract_path(conn, :show, contract.id))
+               |> json_response(200)
+
+      assert response_data["is_suspended"] == true
+    end
+
+    test "update employee type suspend contract", %{conn: conn} do
+      create_user_role()
+      get_user_roles()
+      get_roles_by_name(UUID.generate())
+
+      get_user()
+      put_client()
+
+      get_client_type_by_name(UUID.generate(), 2)
+      render_template(2)
+
+      legal_entity = insert(:prm, :legal_entity)
+      division = insert(:prm, :division)
+      party = insert(:prm, :party, id: "01981ab9-904c-4c36-88ab-959a94087483")
+
+      employee =
+        insert(
+          :prm,
+          :employee,
+          legal_entity: legal_entity,
+          division: division,
+          party: party
+        )
+
+      contract = insert(:prm, :contract, contractor_owner_id: employee.id)
+
+      data =
+        employee_request_data()
+        |> put_in([:employee_id], employee.id)
+        |> put_in([:party, :email], "mis_bot_1493831618@user.com")
+        |> put_in([:employee_type], "PHARMACIST")
+        |> put_in([:legal_entity_id], legal_entity.id)
+        |> put_in([:division_id], division.id)
+        |> put_in([:party_id], party.id)
+
+      employee_request =
+        insert(
+          :il,
+          :employee_request,
+          employee_id: employee.id,
+          data: data
+        )
+
+      resp =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> post(employee_request_path(conn, :approve, employee_request.id))
+        |> json_response(200)
+        |> Map.get("data")
+
+      assert "APPROVED" == resp["status"]
+
+      assert %{"data" => response_data} =
+               conn
+               |> put_client_id_header(nhs())
+               |> get(contract_path(conn, :show, contract.id))
+               |> json_response(200)
+
+      assert response_data["is_suspended"] == true
+    end
+
+    test "update employee status contract", %{conn: conn} do
+      create_user_role()
+      get_user_roles()
+      get_roles_by_name(UUID.generate())
+
+      get_user()
+      put_client()
+
+      get_client_type_by_name(UUID.generate(), 2)
+      render_template(2)
+
+      legal_entity = insert(:prm, :legal_entity)
+      division = insert(:prm, :division)
+      party = insert(:prm, :party, id: "01981ab9-904c-4c36-88ab-959a94087483")
+
+      employee =
+        insert(
+          :prm,
+          :employee,
+          legal_entity: legal_entity,
+          division: division,
+          party: party
+        )
+
+      contract = insert(:prm, :contract, contractor_owner_id: employee.id)
+
+      data =
+        employee_request_data()
+        |> put_in([:employee_id], employee.id)
+        |> put_in([:party, :email], "mis_bot_1493831618@user.com")
+        |> put_in([:status], "OLD")
+        |> put_in([:legal_entity_id], legal_entity.id)
+        |> put_in([:division_id], division.id)
+        |> put_in([:party_id], party.id)
+
+      employee_request =
+        insert(
+          :il,
+          :employee_request,
+          employee_id: employee.id,
+          data: data
+        )
+
+      resp =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> post(employee_request_path(conn, :approve, employee_request.id))
+        |> json_response(200)
+        |> Map.get("data")
+
+      assert "APPROVED" == resp["status"]
+
+      assert %{"data" => response_data} =
+               conn
+               |> put_client_id_header(nhs())
+               |> get(contract_path(conn, :show, contract.id))
+               |> json_response(200)
+
+      assert response_data["is_suspended"] == true
     end
   end
 
@@ -1590,5 +1864,35 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     "test/data/employee_pharmacist_request.json"
     |> File.read!()
     |> Jason.decode!()
+  end
+
+  defp create_user_role(n \\ 1) do
+    expect(MithrilMock, :create_user_role, n, fn _, _, _ ->
+      {:ok, %{"data" => %{}}}
+    end)
+  end
+
+  defp get_user_roles(n \\ 1) do
+    expect(MithrilMock, :get_user_roles, n, fn _, _, _ ->
+      {:ok, %{"data" => []}}
+    end)
+  end
+
+  defp get_roles_by_name(id, n \\ 1) do
+    expect(MithrilMock, :get_roles_by_name, n, fn _, _ ->
+      {:ok, %{"data" => [%{"id" => id}]}}
+    end)
+  end
+
+  defp get_client_type_by_name(id, n) do
+    expect(MithrilMock, :get_client_type_by_name, n, fn _, _ ->
+      {:ok, %{"data" => [%{"id" => id}]}}
+    end)
+  end
+
+  defp render_template(n) do
+    expect(ManMock, :render_template, n, fn _, _ ->
+      {:ok, "<html></html>"}
+    end)
   end
 end
