@@ -107,7 +107,6 @@ defmodule EHealth.Cabinet.API do
     [%{"phone_number" => phone_number}] = content["authentication_methods"]
 
     %{
-      "2fa_enable" => true,
       "factor" => phone_number,
       "otp" => params["otp"],
       "email" => email,
