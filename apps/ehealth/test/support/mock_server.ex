@@ -1,20 +1,5 @@
 defmodule EHealth.MockServer do
   @moduledoc false
-  use Plug.Router
-
-  alias Ecto.UUID
-  alias EHealth.Utils.NumberGenerator
-
-  plug(:match)
-
-  plug(
-    Plug.Parsers,
-    parsers: [:json],
-    pass: ["application/json"],
-    json_decoder: Jason
-  )
-
-  plug(:dispatch)
 
   def render(resource, conn, status) do
     conn = Plug.Conn.put_status(conn, status)
@@ -35,16 +20,6 @@ defmodule EHealth.MockServer do
       |> wrap_response_with_paging(paging)
       |> Jason.encode!()
     )
-  end
-
-  def render_404(conn) do
-    "404.json"
-    |> EView.Views.Error.render()
-    |> render(conn, 404)
-  end
-
-  match _ do
-    render_404(conn)
   end
 
   def get_resp_body(resource, conn), do: resource |> EView.wrap_body(conn) |> Jason.encode!()

@@ -120,26 +120,4 @@ defmodule EHealth.Web.ConnCase do
 
     data
   end
-
-  @doc """
-  Registers microservices with config list, in format {MockClient, "MOCK_ENDPOINT"}
-  Use it in setup function
-    Example: register_mircoservices_for_tests([{MpiServer, "MPI_ENDPOINT"}])
-  """
-  @spec register_mircoservices_for_tests([{atom, binary}]) :: term
-  def register_mircoservices_for_tests(microservices_config) do
-    started_processes =
-      for {microservice_module, env_name} <- microservices_config do
-        {:ok, port, referrence} = start_microservices(microservice_module)
-        System.put_env(env_name, "http://localhost:#{port}")
-        {referrence, env_name}
-      end
-
-    on_exit(fn ->
-      for {referrence, env_name} <- started_processes do
-        stop_microservices(referrence)
-        System.put_env(env_name, "http://localhost:4040")
-      end
-    end)
-  end
 end

@@ -58,6 +58,13 @@ defmodule EHealth.API.MediaStorage do
     {:ok, "Media Storage is disabled in config"}
   end
 
+  def check_gcs_response({:ok, %HTTPoison.Response{status_code: code} = response})
+      when code in [200, 201] do
+    check_gcs_response(response)
+  end
+
+  def check_gcs_response({_, response}), do: check_gcs_response(response)
+
   def check_gcs_response(%HTTPoison.Response{status_code: code, body: body}) when code in [200, 201] do
     {:ok, body}
   end
