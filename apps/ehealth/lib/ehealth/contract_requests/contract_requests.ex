@@ -100,7 +100,7 @@ defmodule EHealth.ContractRequests do
       Enum.any?(~w(new approved pending_nhs_sign terminated declined)a, &(ContractRequest.status(&1) == status)) ->
         [
           {:contract_request_statute, "media/contract_request_statute.pdf"},
-          {:additional_document, "media/additional_document.pdf"}
+          {:additional_document, "media/contract_request_additional_document.pdf"}
         ]
 
       Enum.any?(~w(signed nhs_signed)a, &(ContractRequest.status(&1) == status)) ->
