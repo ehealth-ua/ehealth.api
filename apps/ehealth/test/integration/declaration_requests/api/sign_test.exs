@@ -11,6 +11,8 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
   alias EHealth.Repo
   alias HTTPoison.Response
 
+  setup :verify_on_exit!
+
   describe "check_status/2" do
     test "returns error when status is not APPROVED" do
       declaration_request = insert(:il, :declaration_request, status: "ACTIVE")
@@ -280,7 +282,7 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
   describe "create_declaration_with_termination_logic/2" do
     test "returns expected result" do
       expect(OPSMock, :create_declaration_with_termination_logic, fn params, _headers ->
-        {:ok, EHealth.MockServer.wrap_response(params)}
+        {:ok, %{"data" => params}}
       end)
 
       %{data: declaration_request_data} =
@@ -320,7 +322,7 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
 
     test "returns active status when authentication_method_current.type == NA" do
       expect(OPSMock, :create_declaration_with_termination_logic, fn params, _headers ->
-        {:ok, EHealth.MockServer.wrap_response(params)}
+        {:ok, %{"data" => params}}
       end)
 
       declaration_request =
@@ -340,7 +342,7 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
 
     test "returns pending_validation status when authentication_method_current.type == OFFLINE" do
       expect(OPSMock, :create_declaration_with_termination_logic, fn params, _headers ->
-        {:ok, EHealth.MockServer.wrap_response(params)}
+        {:ok, %{"data" => params}}
       end)
 
       declaration_request =
@@ -360,7 +362,7 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
 
     test "returns empty status when authentication_method_current.type is unknown" do
       expect(OPSMock, :create_declaration_with_termination_logic, fn params, _headers ->
-        {:ok, EHealth.MockServer.wrap_response(params)}
+        {:ok, %{"data" => params}}
       end)
 
       declaration_request =

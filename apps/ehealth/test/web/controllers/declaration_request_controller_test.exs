@@ -8,16 +8,13 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
   alias Ecto.UUID
   alias EHealth.DeclarationRequests.DeclarationRequest
   alias EHealth.Utils.NumberGenerator
-  alias EHealth.MockServer
   alias HTTPoison.Response
 
-  setup do
-    msp()
-    :ok
-  end
+  setup :verify_on_exit!
 
   describe "list declaration requests" do
     test "no legal_entity_id match", %{conn: conn} do
+      msp()
       legal_entity_id = UUID.generate()
 
       Enum.map(1..2, fn _ ->
@@ -33,6 +30,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
 
     test "match by legal_entity_id", %{conn: conn} do
+      msp()
       legal_entity_id = UUID.generate()
       employee_id = UUID.generate()
 
@@ -57,6 +55,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
 
     test "no employee_id match", %{conn: conn} do
+      msp()
       legal_entity_id = UUID.generate()
       employee_id = UUID.generate()
 
@@ -80,6 +79,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
 
     test "match by employee_id", %{conn: conn} do
+      msp()
       legal_entity_id = UUID.generate()
       employee_id = UUID.generate()
 
@@ -100,6 +100,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
 
     test "no status match", %{conn: conn} do
+      msp()
       legal_entity_id = UUID.generate()
 
       Enum.map(1..2, fn _ ->
@@ -118,6 +119,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
 
     test "match by status", %{conn: conn} do
+      msp()
       legal_entity_id = UUID.generate()
       status = "ACTIVE"
 
@@ -138,6 +140,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
 
     test "match by legal_entity_id, employee_id, status", %{conn: conn} do
+      msp()
       legal_entity_id = UUID.generate()
       employee_id = UUID.generate()
       status = "ACTIVE"
@@ -170,32 +173,9 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
   end
 
   describe "approve declaration_request" do
-    defmodule ApproveDeclarationRequest do
-      @moduledoc false
-
-      use MicroservicesHelper
-      alias EHealth.MockServer
-
-      Plug.Router.post "/declarations_count" do
-        MockServer.render(%{"count" => 2}, conn, 200)
-      end
-    end
-
-    setup %{conn: _conn} do
-      {:ok, port, ref} = start_microservices(ApproveDeclarationRequest)
-      System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
-
-      on_exit(fn ->
-        System.put_env("OPS_ENDPOINT", "http://localhost:4040")
-        stop_microservices(ref)
-      end)
-
-      {:ok, %{port: port}}
-    end
-
     test "approve NEW declaration_request", %{conn: conn} do
       expect(OPSMock, :get_declarations_count, fn _, _ ->
-        {:ok, %{"data" => %{"count" => 10}}}
+        {:ok, %{"data" => %{"count" => 1}}}
       end)
 
       expect(MediaStorageMock, :create_signed_url, fn _, _, _, _, _ ->
@@ -276,34 +256,8 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
   end
 
   describe "get declaration request by id" do
-    defmodule DynamicSeedValue do
-      @moduledoc false
-
-      use MicroservicesHelper
-
-      Plug.Router.get "/latest_block" do
-        block = %{
-          "block_start" => "some_time",
-          "block_end" => "some_time",
-          "hash" => "some_hash",
-          "inserted_at" => "some_time"
-        }
-
-        Plug.Conn.send_resp(conn, 200, Jason.encode!(%{data: block}))
-      end
-    end
-
-    setup do
-      {:ok, port, ref} = start_microservices(DynamicSeedValue)
-      System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
-
-      on_exit(fn ->
-        System.put_env("OPS_ENDPOINT", "http://localhost:4040")
-        stop_microservices(ref)
-      end)
-    end
-
     test "get declaration request by invalid id", %{conn: conn} do
+      msp()
       id = UUID.generate()
       another_id = UUID.generate()
       conn = put_client_id_header(conn, id)
@@ -314,6 +268,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
 
     test "get declaration request by invalid legal_entity_id", %{conn: conn} do
+      msp()
       %{id: id} = insert(:il, :declaration_request)
       conn = put_client_id_header(conn, UUID.generate())
 
@@ -323,6 +278,8 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
 
     test "get declaration request by id", %{conn: conn} do
+      msp()
+
       expect(OPSMock, :get_latest_block, fn _params ->
         {:ok, %{"data" => %{"hash" => "some_hash"}}}
       end)
@@ -344,6 +301,8 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
 
     test "get declaration request by id in status expired" do
+      msp()
+
       expect(OPSMock, :get_latest_block, fn _params ->
         {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
       end)
@@ -375,6 +334,8 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
 
     test "get declaration request by id in status expired when data is NULL" do
+      msp()
+
       expect(OPSMock, :get_latest_block, fn _params ->
         {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
       end)
@@ -407,29 +368,6 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
   end
 
   describe "resend otp" do
-    defmodule OTPVerificationMock do
-      @moduledoc false
-
-      use MicroservicesHelper
-
-      Plug.Router.post "/verifications" do
-        send_resp(conn, 200, Jason.encode!(%{status: "NEW"}))
-      end
-    end
-
-    setup do
-      {:ok, port, ref} = start_microservices(OTPVerificationMock)
-
-      System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:#{port}")
-
-      on_exit(fn ->
-        System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:4040")
-        stop_microservices(ref)
-      end)
-
-      :ok
-    end
-
     test "when declaration request id is invalid", %{conn: conn} do
       conn = put_client_id_header(conn, UUID.generate())
 
@@ -487,6 +425,10 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
 
     test "when declaration request fields are correct", %{conn: conn} do
+      expect(OTPVerificationMock, :initialize, fn _number, _headers ->
+        {:ok, %{"status" => "NEW"}}
+      end)
+
       conn = put_client_id_header(conn, UUID.generate())
 
       %{id: id} =
@@ -507,37 +449,6 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
   end
 
   describe "get documents" do
-    defmodule MediaContentStorageMock do
-      @moduledoc false
-
-      use MicroservicesHelper
-
-      Plug.Router.post "/media_content_storage_secrets" do
-        params = conn.body_params["secret"]
-
-        data = %{
-          data: %{
-            secret_url: "http://a.link.for/#{params["resource_id"]}/#{params["resource_name"]}"
-          }
-        }
-
-        Plug.Conn.send_resp(conn, 200, Jason.encode!(data))
-      end
-    end
-
-    setup do
-      {:ok, port, ref} = start_microservices(MediaContentStorageMock)
-
-      System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:#{port}")
-
-      on_exit(fn ->
-        System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:4040")
-        stop_microservices(ref)
-      end)
-
-      :ok
-    end
-
     test "when declaration id is invalid", %{conn: conn} do
       assert_raise Ecto.NoResultsError, fn ->
         get(conn, declaration_request_path(conn, :documents, UUID.generate()))
@@ -584,7 +495,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
   describe "sign declaration request" do
     test "success", %{conn: conn} do
       expect(OPSMock, :create_declaration_with_termination_logic, fn params, _headers ->
-        {:ok, EHealth.MockServer.wrap_response(params)}
+        {:ok, %{"data" => params}}
       end)
 
       expect(OPSMock, :get_latest_block, fn _params ->

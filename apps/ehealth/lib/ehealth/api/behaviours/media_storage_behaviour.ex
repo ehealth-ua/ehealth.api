@@ -31,4 +31,7 @@ defmodule EHealth.API.MediaStorageBehaviour do
   @callback save_file(id :: binary, content :: binary, bucket :: binary, resource_name :: binary, headers :: list) ::
               {:ok, result :: term} | {:error, reason :: term}
   @callback delete_file(url :: binary) :: {:ok, result :: term} | {:error, reason :: term}
+
+  @callback put_signed_content(url :: binary, content :: binary, headers :: list, options :: list) ::
+              {:ok, result :: term} | {:error, reason :: term}
 end

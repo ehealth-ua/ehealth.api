@@ -5,6 +5,10 @@ defmodule EHealth.Unit.DeclarationRequests.API.DocumentsTest do
   import EHealth.DeclarationRequests.API.Documents
   import Mox
 
+  import Mox
+
+  setup :verify_on_exit!
+
   describe "render_links/3" do
     test "generates links & updates declaration request" do
       expect(MediaStorageMock, :create_signed_url, 2, fn _, _, resource_name, resource_id, _ ->

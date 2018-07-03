@@ -8,9 +8,13 @@ defmodule EHealth.Web.RegisterControllerTest do
   alias EHealth.Registers.Register
   alias EHealth.MockServer
 
+  require Logger
+
   @status_new Register.status(:new)
   @status_processed Register.status(:processed)
   @status_processing Register.status(:processing)
+
+  setup :verify_on_exit!
 
   describe "list registers" do
     setup %{conn: conn} do
@@ -64,32 +68,7 @@ defmodule EHealth.Web.RegisterControllerTest do
   end
 
   describe "create register" do
-    defmodule Termination do
-      use MicroservicesHelper
-
-      Plug.Router.patch "/persons/:id/declarations/actions/terminate" do
-        # check that declaration termination reason started with `auto_`
-        case conn.body_params["reason"] do
-          "auto_" <> _type -> send_resp(conn, 200, Jason.encode!(%{meta: %{code: 200}, data: %{}}))
-          _ -> send_resp(conn, 404, Jason.encode!(%{meta: %{code: 404}, data: %{}}))
-        end
-      end
-    end
-
     setup :set_mox_global
-
-    setup %{conn: conn} do
-      {:ok, port, ref} = start_microservices(Termination)
-
-      System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
-
-      on_exit(fn ->
-        System.put_env("OPS_ENDPOINT", "http://localhost:4040")
-        stop_microservices(ref)
-      end)
-
-      %{conn: conn}
-    end
 
     test "success with status PROCESSED", %{conn: conn} do
       expect(MPIMock, :search, 3, fn _, _ ->
@@ -99,6 +78,11 @@ defmodule EHealth.Web.RegisterControllerTest do
 
       expect(MPIMock, :update_person, 6, fn _, _, _ ->
         {:ok, MockServer.wrap_object_response()}
+      end)
+
+      expect(OPSMock, :terminate_person_declarations, 6, fn person_id, _, _, _, _ ->
+        Logger.info("Person #{person_id} got his declarations terminated.")
+        {:ok, %{"data" => %{}}}
       end)
 
       insert(:il, :dictionary_document_type)
@@ -146,23 +130,25 @@ defmodule EHealth.Web.RegisterControllerTest do
 
     test "success with status PROCESSING", %{conn: conn} do
       expect(MPIMock, :search, 4, fn params, _ ->
-        {operation_status, response_data} =
-          case params do
-            %{"number" => "primary"} ->
-              {:ok, MockServer.wrap_response_with_paging([%{"id" => UUID.generate()}, %{"id" => UUID.generate()}])}
+        case params do
+          %{"number" => "primary"} ->
+            {:ok, MockServer.wrap_response_with_paging([%{"id" => UUID.generate()}, %{"id" => UUID.generate()}])}
 
-            %{"number" => "processing"} ->
-              {:error, %{"error" => %{"message" => "system unavailable"}}}
+          %{"number" => "processing"} ->
+            {:error, %{"error" => %{"message" => "system unavailable"}}}
 
-            _ ->
-              {:ok, MockServer.wrap_response_with_paging([])}
-          end
-
-        {operation_status, response_data}
+          _ ->
+            {:ok, MockServer.wrap_response_with_paging([])}
+        end
       end)
 
       expect(MPIMock, :update_person, 4, fn _, _, _ ->
         {:ok, %{"data" => %{}, "meta" => %{"code" => 200}}}
+      end)
+
+      expect(OPSMock, :terminate_person_declarations, 4, fn person_id, _, _, _, _ ->
+        Logger.info("Person #{person_id} got his declarations terminated.")
+        {:ok, %{"data" => %{}}}
       end)
 
       %{values: values} = insert(:il, :dictionary_document_type)
@@ -334,29 +320,9 @@ defmodule EHealth.Web.RegisterControllerTest do
   end
 
   describe "create register with param reason_description and user_id" do
-    defmodule TerminationWithRequiredParams do
-      use MicroservicesHelper
-
-      Plug.Router.patch "/persons/:id/declarations/actions/terminate" do
-        case is_binary(conn.body_params["reason_description"]) do
-          true -> send_resp(conn, 200, Jason.encode!(%{meta: %{code: 200}, data: %{}}))
-          _ -> send_resp(conn, 404, Jason.encode!(%{meta: %{code: 404}, data: %{}}))
-        end
-      end
-    end
-
     setup :set_mox_global
 
     setup %{conn: conn} do
-      {:ok, port, ref} = start_microservices(TerminationWithRequiredParams)
-
-      System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
-
-      on_exit(fn ->
-        System.put_env("OPS_ENDPOINT", "http://localhost:4040")
-        stop_microservices(ref)
-      end)
-
       insert(:il, :dictionary_document_type)
       %{conn: conn}
     end
@@ -371,6 +337,17 @@ defmodule EHealth.Web.RegisterControllerTest do
 
       expect(MPIMock, :update_person, 3, fn _, _, _ ->
         {:ok, MockServer.wrap_object_response()}
+      end)
+
+      expect(OPSMock, :terminate_person_declarations, 3, fn person_id, _, _, reason_description, _ ->
+        case is_binary(reason_description) do
+          true ->
+            Logger.info("Person #{person_id} got his declarations terminated.")
+            {:ok, MockServer.wrap_object_response(%{}, 200)}
+
+          _ ->
+            {:error, MockServer.wrap_object_response(%{}, 404)}
+        end
       end)
 
       attrs = %{
@@ -402,6 +379,17 @@ defmodule EHealth.Web.RegisterControllerTest do
         case is_binary(params["type"]) do
           true -> {:ok, MockServer.wrap_response_with_paging([%{"id" => UUID.generate()}])}
           _ -> {:error, MockServer.wrap_object_response(%{}, 422)}
+        end
+      end)
+
+      expect(OPSMock, :terminate_person_declarations, 3, fn person_id, _, _, reason_description, _ ->
+        case is_binary(reason_description) do
+          true ->
+            Logger.info("Person #{person_id} got his declarations terminated.")
+            {:ok, MockServer.wrap_object_response(%{}, 200)}
+
+          _ ->
+            {:error, MockServer.wrap_object_response(%{}, 404)}
         end
       end)
 

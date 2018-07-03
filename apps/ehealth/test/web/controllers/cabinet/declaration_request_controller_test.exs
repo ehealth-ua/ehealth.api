@@ -854,7 +854,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
       end)
 
       expect(OPSMock, :get_declarations_count, fn _, _ ->
-        {:ok, %{"data" => %{"count" => 10}}}
+        {:ok, %{"data" => %{"count" => 1}}}
       end)
 
       declaration_request =

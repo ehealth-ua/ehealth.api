@@ -5,72 +5,12 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.ApproveTest do
   import EHealth.DeclarationRequests.API.Approve
   import Mox
 
+  setup :verify_on_exit!
+
   describe "verify/2 - via offline docs" do
-    defmodule VerifyViaOfflineDocs do
-      @moduledoc false
-
-      use MicroservicesHelper
-      alias EHealth.MockServer
-
-      Plug.Router.post "/declarations_count" do
-        MockServer.render(%{"count" => 2}, conn, 200)
-      end
-
-      # Plug.Router.post "/media_content_storage_secrets" do
-      #   params = conn.body_params["secret"]
-
-      #   [{"port", port}] = :ets.lookup(:uploaded_at_port, "port")
-
-      #   secret_url =
-      #     case params["resource_name"] do
-      #       "declaration_request_person.DECLARATION_FORM.jpeg" -> "http://localhost:#{port}/good_upload_1"
-      #       "declaration_request_A.jpeg" -> "http://localhost:#{port}/good_upload_1"
-      #       "declaration_request_B.jpeg" -> "http://localhost:#{port}/good_upload_2"
-      #       "declaration_request_C.jpeg" -> "http://localhost:#{port}/missing_upload"
-      #     end
-
-      #   resp = %{
-      #     data: %{
-      #       secret_url: secret_url
-      #     }
-      #   }
-
-      #   Plug.Conn.send_resp(conn, 200, Poison.encode!(resp))
-      # end
-
-      # Plug.Router.get "/good_upload_1" do
-      #   Plug.Conn.send_resp(conn, 200, "")
-      # end
-
-      # Plug.Router.get "/good_upload_2" do
-      #   Plug.Conn.send_resp(conn, 200, "")
-      # end
-
-      # Plug.Router.get "/missing_upload" do
-      #   Plug.Conn.send_resp(conn, 404, "")
-      # end
-    end
-
-    setup %{conn: _conn} do
-      {:ok, port, ref} = start_microservices(VerifyViaOfflineDocs)
-
-      # :ets.new(:uploaded_at_port, [:named_table])
-      # :ets.insert(:uploaded_at_port, {"port", port})
-      # System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:#{port}")
-      System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
-
-      on_exit(fn ->
-        # System.put_env("MEDIA_STORAGE_ENDPOINT", "http://localhost:4040")
-        System.put_env("OPS_ENDPOINT", "http://localhost:4040")
-        stop_microservices(ref)
-      end)
-
-      {:ok, %{port: port}}
-    end
-
     test "all documents were verified to be successfully uploaded" do
       expect(OPSMock, :get_declarations_count, fn _, _ ->
-        {:ok, %{"data" => %{"count" => 10}}}
+        {:ok, %{"data" => %{"count" => 1}}}
       end)
 
       expect(MediaStorageMock, :create_signed_url, 2, fn _, _, _, _, _ ->
@@ -126,11 +66,11 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.ApproveTest do
     end
 
     test "response error" do
-      expect(MediaStorageMock, :create_signed_url, 1, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :create_signed_url, fn _, _, _, _, _ ->
         {:ok, %{"data" => %{"secret_url" => "http://localhost/good_upload_1"}}}
       end)
 
-      expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, _ ->
+      expect(MediaStorageMock, :verify_uploaded_file, fn _, _ ->
         {:error, "reason"}
       end)
 
@@ -149,39 +89,9 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.ApproveTest do
   end
 
   describe "verify/2 - via code" do
-    defmodule VerifyViaOTP do
-      @moduledoc false
-
-      use MicroservicesHelper
-
-      Plug.Router.patch "/verifications/+380972805261/actions/complete" do
-        {code, status} =
-          case conn.body_params["code"] do
-            "99911" ->
-              {200, %{status: "verified"}}
-
-            "11999" ->
-              {422, %{}}
-          end
-
-        Plug.Conn.send_resp(conn, code, Jason.encode!(%{data: status}))
-      end
-    end
-
-    setup %{conn: _conn} do
-      {:ok, port, ref} = start_microservices(VerifyViaOTP)
-
-      System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:#{port}")
-
-      on_exit(fn ->
-        System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:4040")
-        stop_microservices(ref)
-      end)
-
-      :ok
-    end
-
     test "successfully completes phone verification" do
+      otp_verification_expect()
+
       declaration_request = %{
         authentication_method_current: %{
           "type" => "OTP",
@@ -189,10 +99,12 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.ApproveTest do
         }
       }
 
-      assert {:ok, %{"data" => %{"status" => "verified"}}} == verify_auth(declaration_request, "99911")
+      assert {:ok, %{"data" => %{"status" => "verified"}}} = verify_auth(declaration_request, "99911")
     end
 
     test "phone is not verified verification" do
+      otp_verification_expect()
+
       declaration_request = %{
         authentication_method_current: %{
           "type" => "OTP",
@@ -200,7 +112,7 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.ApproveTest do
         }
       }
 
-      assert {:error, %{"data" => %{}}} == verify_auth(declaration_request, "11999")
+      assert {:error, %{"error" => %{}}} = verify_auth(declaration_request, "11999")
     end
 
     test "auth method NA is not required verification" do
@@ -213,5 +125,21 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.ApproveTest do
 
       assert {:ok, true} == verify_auth(declaration_request, nil)
     end
+  end
+
+  defp otp_verification_expect(count \\ 1) do
+    expect(OTPVerificationMock, :complete, count, fn _number, params, _headers ->
+      case params.code do
+        "99911" ->
+          {:ok, %{"meta" => %{"code" => 200}, "data" => %{"status" => "verified"}}}
+
+        "11999" ->
+          {:error,
+           %{"meta" => %{"code" => 422}, "error" => %{"type" => "forbidden", "message" => "invalid verification code"}}}
+
+        _ ->
+          nil
+      end
+    end)
   end
 end

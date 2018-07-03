@@ -7,12 +7,12 @@ defmodule EHealth.Registers.API do
 
   alias EHealth.{Repo, Dictionaries}
   alias EHealth.Dictionaries.Dictionary
-  alias EHealth.API.OPS
   alias EHealth.Ecto.Base64
   alias EHealth.Validators.JsonSchema
   alias EHealth.Registers.{Register, RegisterEntry, SearchRegisters, SearchRegisterEntries}
 
   @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
+  @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]
 
   @status_matched RegisterEntry.status(:matched)
   @status_not_found RegisterEntry.status(:not_found)
@@ -251,11 +251,12 @@ defmodule EHealth.Registers.API do
   end
 
   defp maybe_terminate_person_declaration(%{"status" => @status_matched} = entry_data, type, reason_desc) do
-    case OPS.terminate_person_declarations(
+    case @ops_api.terminate_person_declarations(
            entry_data["person_id"],
            entry_data["inserted_by"],
            "auto_" <> type,
-           reason_desc
+           reason_desc,
+           []
          ) do
       {:ok, _} -> entry_data
       _ -> Map.put(entry_data, "status", @status_processing)

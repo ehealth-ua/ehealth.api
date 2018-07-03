@@ -11,6 +11,8 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
   alias EHealth.Utils.NumberGenerator
   alias Ecto.UUID
 
+  setup :verify_on_exit!
+
   describe "generate_printout_form/1" do
     setup %{conn: _conn} do
       expect(ManMock, :render_template, fn id, data ->
@@ -623,115 +625,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
     end
   end
 
-  describe "send_verification_code/1" do
-    defmodule SendingVerificationCode do
-      use MicroservicesHelper
-
-      Plug.Router.post "/verifications" do
-        code =
-          case conn.body_params["phone_number"] do
-            "+380991234567" -> 200
-            "+380508887700" -> 404
-          end
-
-        send_resp(conn, code, Jason.encode!(%{data: ["response_we_don't_care_about"]}))
-      end
-    end
-
-    setup do
-      {:ok, port, ref} = start_microservices(SendingVerificationCode)
-
-      System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:#{port}")
-
-      on_exit(fn ->
-        System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:4040")
-        stop_microservices(ref)
-      end)
-
-      :ok
-    end
-  end
-
   describe "put_party_email/1" do
-    defmodule PRMMithrilMock do
-      use MicroservicesHelper
-
-      @invalid_party_id "6b4127ea-99ad-4493-b5ce-6f0769fa9fab"
-      @invalid_user_id "79d70fe0-00dd-4dc3-b302-c8f3a6f6ad38"
-      @user_id "53c63398-7033-47f6-9602-be250e35049e"
-      @role_id UUID.generate()
-
-      def user_id, do: @user_id
-
-      # PRM API
-      Plug.Router.get "/party_users" do
-        party_id = Map.get(conn.query_params, "party_id")
-
-        user_id =
-          case party_id do
-            @invalid_party_id -> @invalid_user_id
-            _ -> @user_id
-          end
-
-        party_users = [
-          %{
-            user_id: user_id
-          }
-        ]
-
-        Plug.Conn.send_resp(conn, 200, Jason.encode!(%{data: party_users}))
-      end
-
-      # Mithril API
-      Plug.Router.get "/admin/roles" do
-        roles = [
-          %{
-            "id" => @role_id
-          }
-        ]
-
-        Plug.Conn.send_resp(conn, 200, Jason.encode!(%{data: roles}))
-      end
-
-      Plug.Router.get "/admin/users/#{@invalid_user_id}/roles" do
-        Plug.Conn.send_resp(conn, 200, Jason.encode!(%{data: []}))
-      end
-
-      Plug.Router.get "/admin/users/#{@user_id}/roles" do
-        roles = [
-          %{
-            "user_id" => @user_id,
-            "role_id" => @role_id
-          }
-        ]
-
-        Plug.Conn.send_resp(conn, 200, Jason.encode!(%{data: roles}))
-      end
-
-      Plug.Router.get "/admin/users/#{@user_id}" do
-        user = %{
-          "email" => "user@email.com"
-        }
-
-        Plug.Conn.send_resp(conn, 200, Jason.encode!(%{data: user}))
-      end
-    end
-
-    setup do
-      {:ok, port, ref} = start_microservices(PRMMithrilMock)
-
-      System.put_env("PRM_ENDPOINT", "http://localhost:#{port}")
-      System.put_env("OAUTH_ENDPOINT", "http://localhost:#{port}")
-
-      on_exit(fn ->
-        System.put_env("PRM_ENDPOINT", "http://localhost:4040")
-        System.put_env("OAUTH_ENDPOINT", "http://localhost:4040")
-        stop_microservices(ref)
-      end)
-
-      :ok
-    end
-
     test "user is not doctor" do
       expect(MithrilMock, :get_roles_by_name, fn "DOCTOR", _headers ->
         {:ok, %{"data" => [%{"id" => UUID.generate()}]}}
@@ -759,7 +653,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
     test "everything is ok" do
       role_id = UUID.generate()
       types = %{"data" => :map}
-      party_user = insert(:prm, :party_user, user_id: PRMMithrilMock.user_id())
+      party_user = insert(:prm, :party_user)
       data = %{"employee" => %{"party" => %{"id" => party_user.party_id}}}
       expected_changes = %{data: put_in(data, ["employee", "party", "email"], "user@email.com")}
       changes = %{data: data}

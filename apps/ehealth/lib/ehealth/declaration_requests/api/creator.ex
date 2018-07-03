@@ -9,7 +9,6 @@ defmodule EHealth.DeclarationRequests.API.Creator do
   import EHealth.Utils.TypesConverter, only: [string_to_integer: 1]
 
   alias Ecto.{Changeset, UUID}
-  alias EHealth.API.OTPVerification
   alias EHealth.DeclarationRequests
   alias EHealth.DeclarationRequests.DeclarationRequest
   alias EHealth.DeclarationRequests.API.{Documents, Persons}
@@ -24,6 +23,8 @@ defmodule EHealth.DeclarationRequests.API.Creator do
   alias EHealth.Validators.{TaxID, BirthDate}
 
   @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
+  @otp_verification_api Application.get_env(:ehealth, :api_resolvers)[:otp_verification]
+
   @auth_na DeclarationRequest.authentication_method(:na)
   @auth_otp DeclarationRequest.authentication_method(:otp)
   @auth_offline DeclarationRequest.authentication_method(:offline)
@@ -213,7 +214,7 @@ defmodule EHealth.DeclarationRequests.API.Creator do
         {:ok, declaration_request}
 
       @auth_otp ->
-        case OTPVerification.initialize(authorization["number"]) do
+        case @otp_verification_api.initialize(authorization["number"], []) do
           {:ok, _} ->
             {:ok, declaration_request}
 

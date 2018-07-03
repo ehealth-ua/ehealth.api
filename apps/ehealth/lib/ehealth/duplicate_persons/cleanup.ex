@@ -1,20 +1,23 @@
 defmodule EHealth.DuplicatePersons.Cleanup do
   @moduledoc false
 
-  alias EHealth.API.OPS
   alias EHealth.Declarations.Person
 
   @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
+  @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]
 
   def cleanup(id, person_id) do
     {:ok, %{"data" => declarations}} =
-      OPS.get_declarations(%{
-        person_id: person_id,
-        is_active: true
-      })
+      @ops_api.get_declarations(
+        %{
+          person_id: person_id,
+          is_active: true
+        },
+        []
+      )
 
     Enum.each(declarations, fn declaration ->
-      OPS.terminate_person_declarations(declaration["person_id"], system_user_id(), "auto_merge")
+      @ops_api.terminate_person_declarations(declaration["person_id"], system_user_id(), "auto_merge", "", [])
     end)
 
     {:ok, %{"data" => _}} = @mpi_api.update_merge_candidate(id, %{status: Person.status(:merged)}, headers())

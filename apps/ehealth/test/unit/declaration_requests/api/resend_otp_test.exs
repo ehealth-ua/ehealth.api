@@ -5,40 +5,9 @@ defmodule EHealth.Unit.DeclarationRequests.API.ResendOTPTest do
   alias Ecto.UUID
   alias EHealth.DeclarationRequests.DeclarationRequest
   import EHealth.DeclarationRequests.API.ResendOTP
+  import Mox
 
-  defmodule OTPVerificationMock do
-    @moduledoc false
-
-    use MicroservicesHelper
-    import EHealth.MockServer, only: [wrap_response: 2]
-
-    Plug.Router.post "/verifications" do
-      response =
-        %{
-          id: UUID.generate(),
-          status: "new",
-          code_expired_at: DateTime.utc_now(),
-          active: true
-        }
-        |> wrap_response(200)
-        |> Jason.encode!()
-
-      send_resp(conn, 200, response)
-    end
-  end
-
-  setup do
-    {:ok, port, ref} = start_microservices(OTPVerificationMock)
-
-    System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:#{port}")
-
-    on_exit(fn ->
-      System.put_env("OTP_VERIFICATION_ENDPOINT", "http://localhost:4040")
-      stop_microservices(ref)
-    end)
-
-    :ok
-  end
+  setup :verify_on_exit!
 
   describe "resent_otp" do
     test "invalid id" do
@@ -65,6 +34,10 @@ defmodule EHealth.Unit.DeclarationRequests.API.ResendOTPTest do
     end
 
     test "success send otp" do
+      expect(OTPVerificationMock, :initialize, fn _number, _headers ->
+        {:ok, %{}}
+      end)
+
       declaration_request =
         insert(
           :il,

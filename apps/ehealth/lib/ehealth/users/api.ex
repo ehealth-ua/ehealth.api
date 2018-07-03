@@ -6,16 +6,17 @@ defmodule EHealth.Users.API do
   alias Ecto.Changeset
   alias EHealth.Users.CredentialsRecoveryRequest
   alias EView.Changeset.Validators.Email, as: EmailValidator
-  alias EHealth.API.Mithril
   alias EHealth.Repo
   alias EHealth.Bamboo.Emails.Sender
   require Logger
+
+  @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
 
   def create_credentials_recovery_request(attrs, opts \\ []) do
     upstream_headers = Keyword.get(opts, :upstream_headers, [])
 
     with {:ok, email} <- Map.fetch(attrs, "email"),
-         {:ok, %{"data" => users}} <- Mithril.search_user(%{"email" => email}, upstream_headers),
+         {:ok, %{"data" => users}} <- @mithril_api.search_user(%{"email" => email}, upstream_headers),
          [%{"id" => user_id, "email" => user_email}] <- users,
          {:ok, request} <- insert_credentials_recovery_request(user_id),
          :ok <- send_email(user_email, request) do
@@ -78,7 +79,7 @@ defmodule EHealth.Users.API do
     with {:ok, %{user_id: user_id} = request} <- fetch_credentials_recovery_request(request_id),
          false <- request_expired?(request),
          %Changeset{valid?: true} <- reset_password_changeset(attrs),
-         {:ok, %{"data" => user}} <- Mithril.change_user(user_id, attrs, upstream_headers),
+         {:ok, %{"data" => user}} <- @mithril_api.change_user(user_id, attrs, upstream_headers),
          {:ok, _updated_request} <- deactivate_credentials_recovery_request(request) do
       {:ok, user}
     else

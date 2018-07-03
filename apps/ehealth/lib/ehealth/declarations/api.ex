@@ -7,7 +7,7 @@ defmodule EHealth.Declarations.API do
   import EHealth.Utils.TypesConverter, only: [strings_to_keys: 1]
 
   alias EHealth.Validators.Preload
-  alias EHealth.API.{OPS, MediaStorage}
+  alias EHealth.API.MediaStorage
   alias EHealth.{LegalEntities, Employees, Persons, Divisions}
   alias EHealth.Employees.Employee
   alias EHealth.Divisions.Division
@@ -179,10 +179,10 @@ defmodule EHealth.Declarations.API do
   end
 
   def update_declaration(id, attrs, headers) do
-    with {:ok, %{"data" => declaration}} <- OPS.get_declaration_by_id(id, headers),
+    with {:ok, %{"data" => declaration}} <- @ops_api.get_declaration_by_id(id, headers),
          :ok <- check_declaration_access(declaration["legal_entity_id"], headers),
          :ok <- active?(declaration) do
-      OPS.update_declaration(declaration["id"], %{"declaration" => attrs}, headers)
+      @ops_api.update_declaration(declaration["id"], %{"declaration" => attrs}, headers)
     end
   end
 
@@ -220,13 +220,13 @@ defmodule EHealth.Declarations.API do
 
   defp terminate_ops_declarations(%Ecto.Changeset{changes: %{person_id: person_id}}, user_id, reason_desc, headers) do
     person_id
-    |> OPS.terminate_person_declarations(user_id, "manual_person", reason_desc, headers)
+    |> @ops_api.terminate_person_declarations(user_id, "manual_person", reason_desc, headers)
     |> maybe_render_error("Person does not have active declarations")
   end
 
   defp terminate_ops_declarations(%Ecto.Changeset{changes: %{employee_id: employee_id}}, user_id, reason_desc, headers) do
     employee_id
-    |> OPS.terminate_employee_declarations(user_id, "manual_employee", reason_desc, headers)
+    |> @ops_api.terminate_employee_declarations(user_id, "manual_employee", reason_desc, headers)
     |> maybe_render_error("Employee does not have active declarations")
   end
 

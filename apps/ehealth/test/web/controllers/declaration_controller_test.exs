@@ -413,56 +413,22 @@ defmodule EHealth.Web.DeclarationControllerTest do
   end
 
   describe "approve/2 - Happy case" do
-    defmodule ApproveOPSMicroservice do
-      use MicroservicesHelper
-
-      Plug.Router.get "/declarations/ce377dea-d8c4-4dd8-9328-de24b1ee3879" do
-        declaration = %{
-          "id" => "ce377dea-d8c4-4dd8-9328-de24b1ee3879",
-          "legal_entity_id" => "d8ea20e3-5949-46e6-88ef-62c708e57ad7",
-          "is_active" => true,
-          "status" => "pending_verification"
-        }
-
-        send_resp(conn, 200, Jason.encode!(%{data: declaration}))
-      end
-
-      Plug.Router.patch "/declarations/ce377dea-d8c4-4dd8-9328-de24b1ee3879" do
-        %{
-          "declaration" => %{
-            "status" => "active",
-            "updated_by" => "80ff0b87-25a1-4819-bf33-37db90977437"
-          }
-        } = conn.params
-
-        declaration = %{
-          "id" => "ce377dea-d8c4-4dd8-9328-de24b1ee3879",
-          "legal_entity_id" => "d8ea20e3-5949-46e6-88ef-62c708e57ad7",
-          "is_active" => true,
-          "status" => "approved"
-        }
-
-        send_resp(conn, 200, Jason.encode!(%{meta: %{code: 200}, data: declaration}))
-      end
-    end
-
-    setup %{conn: conn} do
-      {:ok, port, ref} = start_microservices(ApproveOPSMicroservice)
-
-      System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
-
-      on_exit(fn ->
-        System.put_env("OPS_ENDPOINT", "http://localhost:4040")
-        stop_microservices(ref)
-      end)
-
-      {:ok, %{port: port, conn: conn}}
-    end
-
     test "it transitions declaration to approved status" do
       nhs()
-      user_id = "80ff0b87-25a1-4819-bf33-37db90977437"
-      declaration_id = "ce377dea-d8c4-4dd8-9328-de24b1ee3879"
+      {declaration, declaration_id} = get_declaration(%{}, 200)
+      user_id = UUID.generate()
+
+      expect(OPSMock, :get_declaration_by_id, fn _params, _headers ->
+        declaration
+      end)
+
+      expect(OPSMock, :update_declaration, fn _id, _params, _headers ->
+        {:ok,
+         %{
+           "meta" => %{"code" => 200},
+           "data" => Map.merge(elem(declaration, 1)["data"], %{"status" => "approved", "updated_by" => user_id})
+         }}
+      end)
 
       response =
         build_conn()
@@ -477,42 +443,17 @@ defmodule EHealth.Web.DeclarationControllerTest do
   end
 
   describe "approve/2 - not owner of declaration" do
-    defmodule ApproveNotOwnerOfDeclaration do
-      use MicroservicesHelper
-
-      Plug.Router.get "/declarations/ce377dea-d8c4-4dd8-9328-de24b1ee3879" do
-        declaration = %{
-          "id" => "ce377dea-d8c4-4dd8-9328-de24b1ee3879",
-          "legal_entity_id" => "d8ea20e3-5949-46e6-88ef-62c708e57ad7",
-          "is_active" => true,
-          "status" => "pending_verification"
-        }
-
-        send_resp(conn, 200, Jason.encode!(%{data: declaration}))
-      end
-    end
-
-    setup %{conn: conn} do
-      {:ok, port, ref} = start_microservices(ApproveNotOwnerOfDeclaration)
-
-      System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
-
-      on_exit(fn ->
-        System.put_env("OPS_ENDPOINT", "http://localhost:4040")
-        stop_microservices(ref)
-      end)
-
-      {:ok, %{port: port, conn: conn}}
-    end
-
     test "a 403 error is returned" do
       msp()
-      client_id = Ecto.UUID.generate()
-      declaration_id = "ce377dea-d8c4-4dd8-9328-de24b1ee3879"
+      {declaration, declaration_id} = get_declaration(%{}, 200)
+
+      expect(OPSMock, :get_declaration_by_id, fn _params, _headers ->
+        declaration
+      end)
 
       response =
         build_conn()
-        |> put_client_id_header(client_id)
+        |> put_client_id_header(UUID.generate())
         |> patch("/api/declarations/#{declaration_id}/actions/approve")
 
       assert json_response(response, 403)
@@ -520,100 +461,33 @@ defmodule EHealth.Web.DeclarationControllerTest do
   end
 
   describe "approve/2 - declaration was inactive" do
-    defmodule ApproveDeclarationIsInactive do
-      use MicroservicesHelper
-
-      Plug.Router.get "/declarations/ce377dea-d8c4-4dd8-9328-de24b1ee3879" do
-        declaration = %{
-          "id" => "ce377dea-d8c4-4dd8-9328-de24b1ee3879",
-          "legal_entity_id" => "d8ea20e3-5949-46e6-88ef-62c708e57ad7",
-          "is_active" => false,
-          "status" => "pending_verification"
-        }
-
-        send_resp(conn, 200, Jason.encode!(%{data: declaration}))
-      end
-    end
-
-    setup %{conn: conn} do
-      {:ok, port, ref} = start_microservices(ApproveDeclarationIsInactive)
-
-      System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
-
-      on_exit(fn ->
-        System.put_env("OPS_ENDPOINT", "http://localhost:4040")
-        stop_microservices(ref)
-      end)
-
-      {:ok, %{port: port, conn: conn}}
-    end
-
     test "a 404 error is returned (as if declaration never existed)" do
-      nhs()
-      declaration_id = "ce377dea-d8c4-4dd8-9328-de24b1ee3879"
+      expect(OPSMock, :get_declaration_by_id, fn _params, _headers ->
+        {:error, :not_found}
+      end)
 
       response =
         build_conn()
         |> put_client_id_header(UUID.generate())
-        |> patch("/api/declarations/#{declaration_id}/actions/approve")
+        |> patch("/api/declarations/#{UUID.generate()}/actions/approve")
 
       assert json_response(response, 404)
     end
   end
 
   describe "approve/2 - could not transition status" do
-    defmodule ApproveCannotTransitionStatus do
-      use MicroservicesHelper
-
-      Plug.Router.get "/declarations/ce377dea-d8c4-4dd8-9328-de24b1ee3879" do
-        declaration = %{
-          "id" => "ce377dea-d8c4-4dd8-9328-de24b1ee3879",
-          "legal_entity_id" => "d8ea20e3-5949-46e6-88ef-62c708e57ad7",
-          "is_active" => true,
-          "status" => "approved"
-        }
-
-        send_resp(conn, 200, Jason.encode!(%{data: declaration}))
-      end
-
-      Plug.Router.patch "/declarations/ce377dea-d8c4-4dd8-9328-de24b1ee3879" do
-        %{
-          "declaration" => %{
-            "status" => "active",
-            "updated_by" => "80ff0b87-25a1-4819-bf33-37db90977437"
-          }
-        } = conn.params
-
-        error_resp = %{
-          meta: %{
-            code: 422
-          },
-          error: %{
-            message: "some_eview_message"
-          }
-        }
-
-        send_resp(conn, 422, Jason.encode!(error_resp))
-      end
-    end
-
-    setup %{conn: conn} do
-      {:ok, port, ref} = start_microservices(ApproveCannotTransitionStatus)
-
-      System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
-
-      on_exit(fn ->
-        System.put_env("OPS_ENDPOINT", "http://localhost:4040")
-        stop_microservices(ref)
-      end)
-
-      {:ok, %{port: port, conn: conn}}
-    end
-
     test "a 409 error is returned" do
       nhs()
-      user_id = "80ff0b87-25a1-4819-bf33-37db90977437"
-      declaration_id = "ce377dea-d8c4-4dd8-9328-de24b1ee3879"
+      {declaration, declaration_id} = get_declaration(%{}, 200)
+      user_id = UUID.generate()
+
+      expect(OPSMock, :get_declaration_by_id, fn _params, _headers ->
+        declaration
+      end)
+
+      expect(OPSMock, :update_declaration, fn _id, _params, _headers ->
+        {:error, %{"meta" => %{"code" => 422}, "error" => %{"message" => "some_eview_message"}}}
+      end)
 
       response =
         build_conn()
@@ -626,62 +500,52 @@ defmodule EHealth.Web.DeclarationControllerTest do
   end
 
   describe "reject/2 - Happy case" do
-    defmodule OPSMicroservice do
-      use MicroservicesHelper
-
-      Plug.Router.get "/declarations/ce377dea-d8c4-4dd8-9328-de24b1ee3879" do
-        declaration = %{
-          "id" => "ce377dea-d8c4-4dd8-9328-de24b1ee3879",
-          "legal_entity_id" => "d8ea20e3-5949-46e6-88ef-62c708e57ad7",
-          "is_active" => true,
-          "status" => "pending_verification"
-        }
-
-        send_resp(conn, 200, Jason.encode!(%{data: declaration}))
-      end
-
-      Plug.Router.patch "/declarations/ce377dea-d8c4-4dd8-9328-de24b1ee3879" do
-        %{
-          "declaration" => %{
-            "status" => "rejected",
-            "updated_by" => "80ff0b87-25a1-4819-bf33-37db90977437"
-          }
-        } = conn.params
-
-        declaration = %{
-          "id" => "ce377dea-d8c4-4dd8-9328-de24b1ee3879",
-          "legal_entity_id" => "d8ea20e3-5949-46e6-88ef-62c708e57ad7",
-          "is_active" => true,
-          "status" => "rejected"
-        }
-
-        send_resp(conn, 200, Jason.encode!(%{meta: %{code: 200}, data: declaration}))
-      end
-    end
-
-    setup %{conn: conn} do
-      {:ok, port, ref} = start_microservices(OPSMicroservice)
-
-      System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
-
-      on_exit(fn ->
-        System.put_env("OPS_ENDPOINT", "http://localhost:4040")
-        stop_microservices(ref)
-      end)
-
-      {:ok, %{port: port, conn: conn}}
-    end
-
     test "it transitions declaration to rejected status" do
       msp()
-      user_id = "80ff0b87-25a1-4819-bf33-37db90977437"
-      client_id = "d8ea20e3-5949-46e6-88ef-62c708e57ad7"
-      declaration_id = "ce377dea-d8c4-4dd8-9328-de24b1ee3879"
+
+      legal_entity = insert(:prm, :legal_entity)
+      division = insert(:prm, :division)
+      insert(:prm, :legal_entity)
+      person_id = UUID.generate()
+
+      %{id: employee_id} =
+        insert(
+          :prm,
+          :employee,
+          legal_entity: legal_entity,
+          division: division
+        )
+
+      {declaration, declaration_id} =
+        get_declaration(
+          %{
+            id: person_id,
+            legal_entity_id: legal_entity.id,
+            division_id: division.id,
+            employee_id: employee_id,
+            person_id: person_id
+          },
+          200
+        )
+
+      user_id = UUID.generate()
+
+      expect(OPSMock, :get_declaration_by_id, fn _params, _headers ->
+        declaration
+      end)
+
+      expect(OPSMock, :update_declaration, fn _id, _params, _headers ->
+        {:ok,
+         %{
+           "meta" => %{"code" => 200},
+           "data" => Map.merge(elem(declaration, 1)["data"], %{"status" => "rejected", "updated_by" => user_id})
+         }}
+      end)
 
       response =
         build_conn()
         |> put_req_header("x-consumer-id", user_id)
-        |> put_client_id_header(client_id)
+        |> put_client_id_header(legal_entity.id)
         |> patch("/api/declarations/#{declaration_id}/actions/reject")
 
       response = json_response(response, 200)
@@ -691,37 +555,13 @@ defmodule EHealth.Web.DeclarationControllerTest do
   end
 
   describe "reject/2 - not owner of declaration" do
-    defmodule NotOwnerOfDeclaration do
-      use MicroservicesHelper
-
-      Plug.Router.get "/declarations/ce377dea-d8c4-4dd8-9328-de24b1ee3879" do
-        declaration = %{
-          "id" => "ce377dea-d8c4-4dd8-9328-de24b1ee3879",
-          "legal_entity_id" => "d8ea20e3-5949-46e6-88ef-62c708e57ad7",
-          "is_active" => true,
-          "status" => "pending_verification"
-        }
-
-        send_resp(conn, 200, Jason.encode!(%{data: declaration}))
-      end
-    end
-
-    setup %{conn: conn} do
-      {:ok, port, ref} = start_microservices(NotOwnerOfDeclaration)
-
-      System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
-
-      on_exit(fn ->
-        System.put_env("OPS_ENDPOINT", "http://localhost:4040")
-        stop_microservices(ref)
-      end)
-
-      {:ok, %{port: port, conn: conn}}
-    end
-
     test "a 403 error is returned" do
       msp()
-      declaration_id = "ce377dea-d8c4-4dd8-9328-de24b1ee3879"
+      {declaration, declaration_id} = get_declaration(%{}, 200)
+
+      expect(OPSMock, :get_declaration_by_id, fn _params, _headers ->
+        declaration
+      end)
 
       response =
         build_conn()
@@ -733,100 +573,33 @@ defmodule EHealth.Web.DeclarationControllerTest do
   end
 
   describe "reject/2 - declaration was inactive" do
-    defmodule DeclarationIsInactive do
-      use MicroservicesHelper
-
-      Plug.Router.get "/declarations/ce377dea-d8c4-4dd8-9328-de24b1ee3879" do
-        declaration = %{
-          "id" => "ce377dea-d8c4-4dd8-9328-de24b1ee3879",
-          "legal_entity_id" => "d8ea20e3-5949-46e6-88ef-62c708e57ad7",
-          "is_active" => false,
-          "status" => "pending_verification"
-        }
-
-        send_resp(conn, 200, Jason.encode!(%{data: declaration}))
-      end
-    end
-
-    setup %{conn: conn} do
-      {:ok, port, ref} = start_microservices(DeclarationIsInactive)
-
-      System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
-
-      on_exit(fn ->
-        System.put_env("OPS_ENDPOINT", "http://localhost:4040")
-        stop_microservices(ref)
-      end)
-
-      {:ok, %{port: port, conn: conn}}
-    end
-
     test "a 404 error is returned (as if declaration never existed)" do
-      nhs()
-      declaration_id = "ce377dea-d8c4-4dd8-9328-de24b1ee3879"
+      expect(OPSMock, :get_declaration_by_id, fn _params, _headers ->
+        {:error, :not_found}
+      end)
 
       response =
         build_conn()
         |> put_client_id_header(UUID.generate())
-        |> patch("/api/declarations/#{declaration_id}/actions/reject")
+        |> patch("/api/declarations/#{UUID.generate()}/actions/reject")
 
       assert json_response(response, 404)
     end
   end
 
   describe "reject/2 - could not transition status" do
-    defmodule CannotTransitionStatus do
-      use MicroservicesHelper
-
-      Plug.Router.get "/declarations/ce377dea-d8c4-4dd8-9328-de24b1ee3879" do
-        declaration = %{
-          "id" => "ce377dea-d8c4-4dd8-9328-de24b1ee3879",
-          "legal_entity_id" => "d8ea20e3-5949-46e6-88ef-62c708e57ad7",
-          "is_active" => true,
-          "status" => "closed"
-        }
-
-        send_resp(conn, 200, Jason.encode!(%{data: declaration}))
-      end
-
-      Plug.Router.patch "/declarations/ce377dea-d8c4-4dd8-9328-de24b1ee3879" do
-        %{
-          "declaration" => %{
-            "status" => "rejected",
-            "updated_by" => "80ff0b87-25a1-4819-bf33-37db90977437"
-          }
-        } = conn.params
-
-        error_resp = %{
-          meta: %{
-            code: 422
-          },
-          error: %{
-            message: "some_eview_message"
-          }
-        }
-
-        send_resp(conn, 422, Jason.encode!(error_resp))
-      end
-    end
-
-    setup %{conn: conn} do
-      {:ok, port, ref} = start_microservices(CannotTransitionStatus)
-
-      System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
-
-      on_exit(fn ->
-        System.put_env("OPS_ENDPOINT", "http://localhost:4040")
-        stop_microservices(ref)
-      end)
-
-      {:ok, %{port: port, conn: conn}}
-    end
-
     test "a 409 error is returned" do
       nhs()
-      user_id = "80ff0b87-25a1-4819-bf33-37db90977437"
-      declaration_id = "ce377dea-d8c4-4dd8-9328-de24b1ee3879"
+      {declaration, declaration_id} = get_declaration(%{}, 200)
+      user_id = UUID.generate()
+
+      expect(OPSMock, :get_declaration_by_id, fn _params, _headers ->
+        declaration
+      end)
+
+      expect(OPSMock, :update_declaration, fn _id, _params, _headers ->
+        {:error, %{"meta" => %{"code" => 422}, "error" => %{"message" => "some_eview_message"}}}
+      end)
 
       response =
         build_conn()
@@ -839,119 +612,96 @@ defmodule EHealth.Web.DeclarationControllerTest do
   end
 
   describe "terminate declarations" do
-    defmodule Terminate do
-      use MicroservicesHelper
-
-      Plug.Router.patch "/employees/9b6c7be2-278e-4be5-a297-2d009985c200/declarations/actions/terminate" do
-        data = %{
-          "terminated_declarations" => [
-            %{
-              "id" => "9b6c7be2-278e-4be5-a297-2d009985c720",
-              "reason" => conn.body_params["reason"],
-              "reason_description" => conn.body_params["reason_description"],
-              "status" => "terminated",
-              "updated_at" => "2018-01-26T14:21:36.404375Z",
-              "updated_by" => "4261eacf-8008-4e62-899f-de1e2f7065f0"
-            }
-          ]
-        }
-
-        send_resp(conn, 200, Jason.encode!(%{meta: %{code: 200}, data: data}))
-      end
-
-      Plug.Router.patch "/persons/9b6c7be2-278e-4be5-a297-2d009985c200/declarations/actions/terminate" do
-        data = %{
-          "terminated_declarations" => [
-            %{
-              "id" => "9b6c7be2-278e-4be5-a297-2d009985c720",
-              "reason" => conn.body_params["reason"],
-              "reason_description" => conn.body_params["reason_description"],
-              "status" => "terminated",
-              "updated_at" => "2018-01-26T14:21:36.404375Z",
-              "updated_by" => "4261eacf-8008-4e62-899f-de1e2f7065f0"
-            }
-          ]
-        }
-
-        send_resp(conn, 200, Jason.encode!(%{meta: %{code: 200}, data: data}))
-      end
-
-      Plug.Router.patch "/employees/9b6c7be2-278e-4be5-a297-2d009985c404/declarations/actions/terminate" do
-        send_resp(conn, 200, Jason.encode!(%{meta: %{code: 200}, data: %{terminated_declarations: []}}))
-      end
-
-      Plug.Router.patch "/persons/9b6c7be2-278e-4be5-a297-2d009985c404/declarations/actions/terminate" do
-        send_resp(conn, 200, Jason.encode!(%{meta: %{code: 200}, data: %{terminated_declarations: []}}))
-      end
-    end
-
-    setup %{conn: conn} do
-      {:ok, port, ref} = start_microservices(Terminate)
-
-      System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
-
-      on_exit(fn ->
-        System.put_env("OPS_ENDPOINT", "http://localhost:4040")
-        stop_microservices(ref)
-      end)
-
-      user_id = "80ff0b87-25a1-4819-bf33-37db90977437"
-      client_id = "d8ea20e3-5949-46e6-88ef-62c708e57ad7"
-      route_id = "9b6c7be2-278e-4be5-a297-2d009985c200"
-
-      {:ok, %{port: port, conn: conn, user_id: user_id, client_id: client_id, route_id: route_id}}
-    end
-
-    test "both params person_id and employee_id passed", %{conn: conn, client_id: client_id, user_id: user_id} do
+    test "both params person_id and employee_id passed", %{conn: conn} do
       payload = %{person_id: Ecto.UUID.generate(), employee_id: Ecto.UUID.generate(), reason_description: "lol"}
 
       conn
-      |> put_req_header("x-consumer-id", user_id)
-      |> put_client_id_header(client_id)
+      |> put_req_header("x-consumer-id", UUID.generate())
+      |> put_client_id_header(UUID.generate())
       |> patch("/api/declarations/terminate", payload)
       |> json_response(422)
     end
 
-    test "terminate by person_id", %{conn: conn, route_id: person_id, user_id: user_id, client_id: client_id} do
+    test "terminate by person_id", %{conn: conn} do
+      legal_entity = insert(:prm, :legal_entity)
+      user_id = UUID.generate()
+
+      expect(OPSMock, :terminate_person_declarations, fn _, _, _, _, _ ->
+        {:ok,
+         %{
+           "meta" => %{"code" => 200},
+           "data" => %{
+             "terminated_declarations" => [%{"reason" => "manual_person", "reason_description" => "Person cheater"}]
+           }
+         }}
+      end)
+
       response =
         conn
         |> put_req_header("x-consumer-id", user_id)
-        |> put_client_id_header(client_id)
-        |> patch("/api/declarations/terminate", %{person_id: person_id, reason_description: "Person cheater"})
+        |> put_client_id_header(legal_entity.id)
+        |> patch("/api/declarations/terminate", %{person_id: UUID.generate(), reason_description: "Person cheater"})
         |> json_response(200)
 
       assert [%{"reason" => "manual_person", "reason_description" => "Person cheater"}] =
                response["data"]["terminated_declarations"]
     end
 
-    test "no declarations by person_id", %{conn: conn, user_id: user_id, client_id: client_id} do
+    test "no declarations by person_id", %{conn: conn} do
+      legal_entity = insert(:prm, :legal_entity)
+      user_id = UUID.generate()
+
+      expect(OPSMock, :terminate_person_declarations, fn _, _, _, _, _ ->
+        {:ok, %{"meta" => %{"code" => 200}, "data" => %{"terminated_declarations" => []}}}
+      end)
+
       response =
         conn
         |> put_req_header("x-consumer-id", user_id)
-        |> put_client_id_header(client_id)
+        |> put_client_id_header(legal_entity.id)
         |> patch("/api/declarations/terminate", %{person_id: "9b6c7be2-278e-4be5-a297-2d009985c404"})
         |> json_response(422)
 
       assert "Person does not have active declarations" == response["error"]["message"]
     end
 
-    test "terminate by employee_id", %{conn: conn, route_id: employee_id, user_id: user_id, client_id: client_id} do
+    test "terminate by employee_id", %{conn: conn} do
+      legal_entity = insert(:prm, :legal_entity)
+      user_id = UUID.generate()
+
+      expect(OPSMock, :terminate_employee_declarations, fn _, _, _, _, _ ->
+        {:ok,
+         %{
+           "meta" => %{"code" => 200},
+           "data" => %{
+             "terminated_declarations" => [%{"reason" => "manual_employee", "reason_description" => "Employee died"}]
+           }
+         }}
+      end)
+
       response =
         conn
         |> put_req_header("x-consumer-id", user_id)
-        |> put_client_id_header(client_id)
-        |> patch("/api/declarations/terminate", %{employee_id: employee_id, reason_description: "Employee died"})
+        |> put_client_id_header(legal_entity.id)
+        |> patch("/api/declarations/terminate", %{employee_id: UUID.generate(), reason_description: "Employee died"})
         |> json_response(200)
 
       assert [%{"reason" => "manual_employee", "reason_description" => "Employee died"}] =
                response["data"]["terminated_declarations"]
     end
 
-    test "no declarations by employee_id", %{conn: conn, user_id: user_id, client_id: client_id} do
+    test "no declarations by employee_id", %{conn: conn} do
+      legal_entity = insert(:prm, :legal_entity)
+      user_id = UUID.generate()
+
+      expect(OPSMock, :terminate_employee_declarations, fn _, _, _, _, _ ->
+        {:ok, %{"meta" => %{"code" => 200}, "data" => %{"terminated_declarations" => []}}}
+      end)
+
       response =
         conn
         |> put_req_header("x-consumer-id", user_id)
-        |> put_client_id_header(client_id)
+        |> put_client_id_header(legal_entity.id)
         |> patch("/api/declarations/terminate", %{employee_id: "9b6c7be2-278e-4be5-a297-2d009985c404"})
         |> json_response(422)
 

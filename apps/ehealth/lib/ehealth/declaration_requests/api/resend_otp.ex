@@ -1,9 +1,10 @@
 defmodule EHealth.DeclarationRequests.API.ResendOTP do
   @moduledoc false
 
-  alias EHealth.API.OTPVerification
   alias EHealth.DeclarationRequests
   alias EHealth.DeclarationRequests.DeclarationRequest
+
+  @otp_verification_api Application.get_env(:ehealth, :api_resolvers)[:otp_verification]
 
   @status_new DeclarationRequest.status(:new)
   @auth_otp DeclarationRequest.authentication_method(:otp)
@@ -29,6 +30,6 @@ defmodule EHealth.DeclarationRequests.API.ResendOTP do
        [{%{description: "Auth method is not OTP", params: [], rule: :invalid}, "$.authentication_method_current"}]}
 
   defp init_otp(number, headers) do
-    with {:ok, %{"data" => data}} <- OTPVerification.initialize(number, headers), do: {:ok, data}
+    with {:ok, %{"data" => data}} <- @otp_verification_api.initialize(number, headers), do: {:ok, data}
   end
 end

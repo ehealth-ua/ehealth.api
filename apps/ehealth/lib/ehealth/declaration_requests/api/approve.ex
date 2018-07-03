@@ -3,14 +3,14 @@ defmodule EHealth.DeclarationRequests.API.Approve do
 
   alias EHealth.Employees
   alias EHealth.Employees.Employee
-  alias EHealth.API.OTPVerification
   alias EHealth.DeclarationRequests.DeclarationRequest
   alias EHealth.Parties.Party
   require Logger
 
   @media_storage_api Application.get_env(:ehealth, :api_resolvers)[:media_storage]
-  @auth_otp DeclarationRequest.authentication_method(:otp)
+  @otp_verification_api Application.get_env(:ehealth, :api_resolvers)[:otp_verification]
   @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]
+  @auth_otp DeclarationRequest.authentication_method(:otp)
 
   def verify(declaration_request, code, headers) do
     with {:ok, _} <- verify_auth(declaration_request, code),
@@ -28,7 +28,7 @@ defmodule EHealth.DeclarationRequests.API.Approve do
   end
 
   def verify_auth(%{authentication_method_current: %{"type" => @auth_otp, "number" => phone}}, code) do
-    OTPVerification.complete(phone, %{code: code})
+    @otp_verification_api.complete(phone, %{code: code}, [])
   end
 
   def verify_auth(_, _), do: {:ok, true}

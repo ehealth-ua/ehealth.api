@@ -14,62 +14,6 @@ defmodule EHealth.Integration.DeduplicatingPersonsTest do
   setup :verify_on_exit!
 
   describe "found_duplicates/0" do
-    defmodule DeactivatingDuplicates do
-      use MicroservicesHelper
-
-      @person1 "abcf619e-ee57-4637-9bc8-3a465eca047c"
-      @person2 "8060385c-c663-4f8f-bf8f-d8121216084e"
-
-      Plug.Router.get "/declarations" do
-        declarations =
-          case conn.query_params do
-            %{"person_id" => @person1} ->
-              [
-                %{
-                  "id" => "1",
-                  "person_id" => @person1
-                },
-                %{
-                  "id" => "2",
-                  "person_id" => @person1
-                }
-              ]
-
-            %{"person_id" => @person2} ->
-              [
-                %{
-                  "id" => "3",
-                  "person_id" => @person2
-                },
-                %{
-                  "id" => "4",
-                  "person_id" => @person2
-                }
-              ]
-          end
-
-        send_resp(conn, 200, Jason.encode!(%{data: declarations}))
-      end
-
-      Plug.Router.patch "/persons/:id/declarations/actions/terminate" do
-        Logger.info("Person #{id} got his declarations terminated.")
-        # todo: use Mox.expect with n = 2 parameter
-        send_resp(conn, 200, "")
-      end
-    end
-
-    setup %{conn: conn} do
-      {:ok, port, ref} = start_microservices(DeactivatingDuplicates)
-      System.put_env("OPS_ENDPOINT", "http://localhost:#{port}")
-
-      on_exit(fn ->
-        System.put_env("OPS_ENDPOINT", "http://localhost:4040")
-        stop_microservices(ref)
-      end)
-
-      {:ok, %{port: port, conn: conn}}
-    end
-
     @person1 "abcf619e-ee57-4637-9bc8-3a465eca047c"
     @person2 "8060385c-c663-4f8f-bf8f-d8121216084e"
     @master_person_id "c3c765eb-378a-4c23-a36e-ad12ae073960"
@@ -119,6 +63,52 @@ defmodule EHealth.Integration.DeduplicatingPersonsTest do
         Logger.info("Candidate mc_2 was merged.")
         %{status: @person_status_merged} = params
         {:ok, %{"data" => @updated_candidate}}
+      end)
+
+      expect(OPSMock, :get_declarations, 2, fn %{person_id: person_id}, _headers ->
+        declarations =
+          case person_id do
+            @person1 ->
+              [
+                %{
+                  "id" => "1",
+                  "person_id" => @person1
+                },
+                %{
+                  "id" => "2",
+                  "person_id" => @person1
+                }
+              ]
+
+            @person2 ->
+              [
+                %{
+                  "id" => "3",
+                  "person_id" => @person2
+                },
+                %{
+                  "id" => "4",
+                  "person_id" => @person2
+                }
+              ]
+          end
+
+        {:ok,
+         %{
+           "data" => declarations,
+           "meta" => %{"code" => 200},
+           "paging" => %{
+             "page_number" => 1,
+             "page_size" => 50,
+             "total_entries" => 2,
+             "total_pages" => 1
+           }
+         }}
+      end)
+
+      expect(OPSMock, :terminate_person_declarations, 4, fn person_id, _, _, _, _ ->
+        Logger.info("Person #{person_id} got his declarations terminated.")
+        {:ok, %{"data" => %{}}}
       end)
 
       captured_log =
