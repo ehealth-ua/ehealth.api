@@ -325,21 +325,6 @@ defmodule EHealth.Contracts do
     end
   end
 
-  def suspend(params) do
-    with %Ecto.Changeset{valid?: true, changes: changes} <- ids_changeset(params) do
-      update_is_suspended(String.split(changes.ids, ","), true)
-    end
-  end
-
-  def update_is_suspended(ids, is_suspended) when is_list(ids) and is_boolean(is_suspended) do
-    query = where(Contract, [c], c.id in ^ids)
-
-    case PRMRepo.update_all(query, set: [is_suspended: is_suspended]) do
-      {suspended, _} -> {:ok, suspended}
-      err -> err
-    end
-  end
-
   defp search(changes) do
     date_from_start_date = Map.get(changes, :date_from_start_date)
     date_to_start_date = Map.get(changes, :date_to_start_date)
@@ -464,12 +449,13 @@ defmodule EHealth.Contracts do
     |> validate_required(@fields_required)
   end
 
-  defp ids_changeset(attrs) do
-    fields = ~w(ids)a
+  def update_is_suspended(ids, is_suspended) when is_list(ids) and is_boolean(is_suspended) do
+    query = where(Contract, [c], c.id in ^ids)
 
-    %Search{}
-    |> cast(attrs, fields)
-    |> validate_required(fields)
+    case PRMRepo.update_all(query, set: [is_suspended: is_suspended]) do
+      {suspended, _} -> {:ok, suspended}
+      err -> err
+    end
   end
 
   defp validate_edrpou(search_params) do

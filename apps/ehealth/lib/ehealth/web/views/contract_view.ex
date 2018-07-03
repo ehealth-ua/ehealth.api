@@ -86,9 +86,6 @@ defmodule EHealth.Web.ContractView do
     )
   end
 
-  def render("suspended.json", %{suspended: suspended}), do: %{suspended: suspended}
-  def render("renewed.json", %{renewed: renewed}), do: %{renewed: renewed}
-
   def render_association(:contract_division, contract_division) do
     Map.take(contract_division, ~w(id name)a)
   end

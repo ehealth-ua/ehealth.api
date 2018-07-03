@@ -27,10 +27,4 @@ defmodule EHealth.Web.ContractController do
       render(conn, "show.json", contract: contract, references: references)
     end
   end
-
-  def suspend(conn, params) do
-    with {:ok, suspended} <- Contracts.suspend(params) do
-      render(conn, "suspended.json", suspended: suspended)
-    end
-  end
 end

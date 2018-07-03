@@ -304,33 +304,6 @@ defmodule EHealth.Web.ContractControllerTest do
     end
   end
 
-  describe "suspend contracts" do
-    test "success", %{conn: conn} do
-      nhs()
-      insert(:prm, :contract)
-      %{id: id1} = insert(:prm, :contract)
-      %{id: id2} = insert(:prm, :contract)
-      %{id: id3} = insert(:prm, :contract, is_suspended: true)
-      params = [ids: Enum.join([id1, id2, id3, UUID.generate()], ",")]
-
-      assert %{"suspended" => 3} ==
-               conn
-               |> put_client_id_header(UUID.generate())
-               |> patch(contract_path(conn, :suspend), params)
-               |> json_response(200)
-               |> Map.get("data")
-    end
-
-    test "invalid ids", %{conn: conn} do
-      nhs()
-
-      assert conn
-             |> put_client_id_header(UUID.generate())
-             |> patch(contract_path(conn, :suspend), ids: "invalid,uuid")
-             |> json_response(422)
-    end
-  end
-
   describe "update employees" do
     test "contract_employee not found", %{conn: conn} do
       nhs()
