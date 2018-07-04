@@ -75,6 +75,7 @@
         },
         "external_contractors": {
             "type": "array",
+            "items": {
             "properties": {
                 "legal_entity_id": {
                     "type": "string",
@@ -133,6 +134,8 @@
                 "divisions"
             ],
             "additionalProperties": false
+            },
+            "minItems": 1
         },
         "contractor_employee_divisions": {
             "type": "array",

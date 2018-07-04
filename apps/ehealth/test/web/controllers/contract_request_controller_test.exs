@@ -107,7 +107,15 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> prepare_params(employee)
         |> Map.delete("external_contractor_flag")
         |> Map.put("external_contractors", [
-          %{"divisions" => [%{"id" => UUID.generate()}]}
+          %{
+            "divisions" => [%{"id" => UUID.generate(), "medical_service" => "Послуга ПМД"}],
+            "legal_entity_id" => UUID.generate(),
+            "contract" => %{
+              "number" => "1234567",
+              "issued_at" => nil,
+              "expires_at" => nil
+            }
+          }
         ])
 
       conn =
@@ -2841,8 +2849,17 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       "external_contractors" => [
         %{
           "legal_entity_id" => UUID.generate(),
-          "divisions" => [%{"id" => division.id}],
-          "contract" => %{"expires_at" => expires_at}
+          "contract" => %{
+            "number" => "1234567",
+            "issued_at" => expires_at,
+            "expires_at" => expires_at
+          },
+          "divisions" => [
+            %{
+              "id" => division.id,
+              "medical_service" => "Послуга ПМД"
+            }
+          ]
         }
       ],
       "external_contractor_flag" => true,
