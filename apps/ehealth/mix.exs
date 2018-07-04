@@ -3,7 +3,7 @@ defmodule EHealth.Mixfile do
 
   use Mix.Project
 
-  @version "7.390.0"
+  @version "7.391.0"
 
   def project do
     [
