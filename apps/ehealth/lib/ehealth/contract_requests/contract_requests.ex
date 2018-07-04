@@ -998,49 +998,81 @@ defmodule EHealth.ContractRequests do
     end
   end
 
+  defp validate_external_legal_entity(%{"legal_entity_id" => legal_entity_id}, i)
+       when not is_nil(legal_entity_id) do
+    validation_result =
+      Reference.validate(
+        :legal_entity,
+        legal_entity_id,
+        "$.external_contractors[#{i}].legal_entity_id"
+      )
+
+    case validation_result do
+      {:error, _} ->
+        {:error, {:"422", "Active $external_contractors[#{i}].legal_entity_id does not exist"}}
+
+      _ ->
+        :ok
+    end
+  end
+
+  defp validate_external_legal_entity(_, i) do
+    {:error, {:"422", "Active $external_contractors[#{i}].legal_entity_id does not exist"}}
+  end
+
+  defp validate_divisions(params, contractor, i) do
+    contractor["divisions"]
+    |> Enum.with_index()
+    |> Enum.reduce_while(:ok, fn {contractor_division, j}, _ ->
+      with :ok <-
+             validate_external_contractor_division(
+               params["contractor_divisions"],
+               contractor_division,
+               "$.external_contractors[#{i}].divisions[#{j}].id"
+             ) do
+        {:cont, :ok}
+      else
+        {:error, reason} -> {:halt, {:error, reason}}
+      end
+    end)
+  end
+
   defp validate_external_contractors(params) do
     external_contractors = params["external_contractors"] || []
 
     external_contractors
     |> Enum.with_index()
     |> Enum.reduce_while(:ok, fn {contractor, i}, _ ->
-      validation_result =
-        contractor["divisions"]
-        |> Enum.with_index()
-        |> Enum.reduce_while(:ok, fn {contractor_division, j}, _ ->
-          validate_external_contractor_division(
-            params["contractor_divisions"],
-            contractor_division,
-            "$.external_contractors[#{i}].divisions[#{j}].id"
-          )
-        end)
-
-      case validation_result do
-        :ok ->
-          validate_external_contract(contractor, params, "$.external_contractors[#{i}].contract.expires_at")
-
-        {:error, error} ->
-          {:halt, {:error, error}}
+      with :ok <- validate_external_legal_entity(contractor, i),
+           :ok <- validate_divisions(params, contractor, i),
+           :ok <-
+             validate_external_contract(
+               contractor,
+               params,
+               "$.external_contractors[#{i}].contract.expires_at"
+             ) do
+        {:cont, :ok}
+      else
+        {:error, reason} -> {:halt, {:error, reason}}
       end
     end)
   end
 
   defp validate_external_contractor_division(division_ids, division, error) do
     if division["id"] in division_ids do
-      {:cont, :ok}
+      :ok
     else
-      {:halt,
-       {:error,
-        [
-          {
-            %{
-              description: "The division is not belong to contractor_divisions",
-              params: [],
-              rule: :invalid
-            },
-            error
-          }
-        ]}}
+      {:error,
+       [
+         {
+           %{
+             description: "The division is not belong to contractor_divisions",
+             params: [],
+             rule: :invalid
+           },
+           error
+         }
+       ]}
     end
   end
 
@@ -1050,21 +1082,20 @@ defmodule EHealth.ContractRequests do
 
     case Date.compare(expires_at, start_date) do
       :gt ->
-        {:cont, :ok}
+        :ok
 
       _ ->
-        {:halt,
-         {:error,
-          [
-            {
-              %{
-                description: "Expires date must be greater than contract start_date",
-                params: [],
-                rule: :invalid
-              },
-              error
-            }
-          ]}}
+        {:error,
+         [
+           {
+             %{
+               description: "Expires date must be greater than contract start_date",
+               params: [],
+               rule: :invalid
+             },
+             error
+           }
+         ]}
     end
   end
 

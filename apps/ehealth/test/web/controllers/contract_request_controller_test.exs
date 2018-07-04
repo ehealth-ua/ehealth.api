@@ -102,6 +102,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> put_consumer_id_header(party_user.user_id)
         |> put_req_header("drfo", party_user.party.tax_id)
 
+      %{id: external_legal_entity_id} = insert(:prm, :legal_entity)
+
       params =
         division
         |> prepare_params(employee)
@@ -109,7 +111,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> Map.put("external_contractors", [
           %{
             "divisions" => [%{"id" => UUID.generate(), "medical_service" => "Послуга ПМД"}],
-            "legal_entity_id" => UUID.generate(),
+            "legal_entity_id" => external_legal_entity_id,
             "contract" => %{
               "number" => "1234567",
               "issued_at" => nil,
@@ -131,6 +133,75 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "$.external_contractors[0].divisions[0].id",
         "The division is not belong to contractor_divisions"
       )
+    end
+
+    test "external contractors invalid legal entity", %{conn: conn} do
+      msp()
+
+      %{
+        legal_entity: legal_entity,
+        division: division,
+        employee: employee,
+        user_id: user_id,
+        owner: owner,
+        party_user: party_user
+      } = prepare_data()
+
+      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      end)
+
+      expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
+        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"ETag", Jason.encode!(resource)}]}}
+      end)
+
+      conn =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("drfo", party_user.party.tax_id)
+
+      now = Date.utc_today()
+      start_date = Date.add(now, 10)
+      expires_at = Date.to_iso8601(Date.add(start_date, 1))
+
+      %{id: valid_id} = insert(:prm, :legal_entity)
+
+      contractor =
+        division
+        |> prepare_params(employee, expires_at)
+        |> Map.get("external_contractors")
+        |> Enum.at(0)
+
+      external_contractors = [
+        %{contractor | "legal_entity_id" => UUID.generate()},
+        %{contractor | "legal_entity_id" => valid_id},
+        %{contractor | "legal_entity_id" => UUID.generate()}
+      ]
+
+      params =
+        division
+        |> prepare_params(employee, expires_at)
+        |> Map.put("contractor_owner_id", owner.id)
+        |> Map.put("start_date", Date.to_iso8601(start_date))
+        |> Map.put("end_date", Date.to_iso8601(Date.add(now, 30)))
+        |> Map.put("external_contractors", external_contractors)
+
+      conn =
+        post(conn, contract_request_path(conn, :create, UUID.generate()), %{
+          "signed_content" => params |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+
+      assert resp = json_response(conn, 422)
+
+      assert %{
+               "invalid" => [
+                 %{"entry_type" => "request", "rules" => [%{"rule" => "json"}]}
+               ],
+               "message" => "Active $external_contractors[0].legal_entity_id does not exist",
+               "type" => "request_malformed"
+             } = resp["error"]
     end
 
     test "invalid expires_at date", %{conn: conn} do
@@ -2827,6 +2898,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
   end
 
   defp prepare_params(division, employee, expires_at \\ nil) do
+    %{id: external_legal_entity_id} = insert(:prm, :legal_entity)
+
     %{
       "contractor_owner_id" => UUID.generate(),
       "contractor_base" => "на підставі закону про Медичне обслуговування населення",
@@ -2848,7 +2921,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       "contractor_divisions" => [division.id],
       "external_contractors" => [
         %{
-          "legal_entity_id" => UUID.generate(),
+          "legal_entity_id" => external_legal_entity_id,
           "contract" => %{
             "number" => "1234567",
             "issued_at" => expires_at,
