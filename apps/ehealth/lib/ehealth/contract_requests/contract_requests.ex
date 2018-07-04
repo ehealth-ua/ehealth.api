@@ -1427,7 +1427,24 @@ defmodule EHealth.ContractRequests do
     end
   end
 
-  defp validate_contract_number(params, _), do: {:ok, params, nil}
+  defp validate_contract_number(%{"contractor_legal_entity_id" => legal_entity_id} = params, headers) do
+    with {:ok, %Page{entries: []}, _} <-
+           Contracts.list(
+             %{
+               "contractor_legal_entity_id" => legal_entity_id,
+               "status" => Contract.status(:verified),
+               "date_from_start_date" => params["start_date"],
+               "date_to_end_date" => params["end_date"]
+             },
+             nil,
+             headers
+           ) do
+      {:ok, params, nil}
+    else
+      _ ->
+        {:error, {:"422", "Active contract is found. Contract number must be sent in request"}}
+    end
+  end
 
   defp validate_contractor_legal_entity_id(_, nil), do: :ok
 
