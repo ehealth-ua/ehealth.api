@@ -1323,7 +1323,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       assert %{
                "invalid" => [
                  %{
-                   "entry" => "$.contractor_employee_divisions.employee_id",
+                   "entry" => "$.contractor_employee_divisions[0].employee_id",
                    "entry_type" => "json_data_property",
                    "rules" => [
                      %{

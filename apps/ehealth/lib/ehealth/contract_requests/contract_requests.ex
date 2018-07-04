@@ -822,7 +822,7 @@ defmodule EHealth.ContractRequests do
                employee_division["employee_id"],
                "$.contractor_employee_divisions[#{i}].employee_id"
              ),
-           :ok <- check_employee(employee),
+           :ok <- check_employee(employee, i),
            {:division_subset, true} <- {:division_subset, employee_division["division_id"] in contractor_divisions} do
         {:cont, :ok}
       else
@@ -1099,9 +1099,9 @@ defmodule EHealth.ContractRequests do
     end
   end
 
-  defp check_employee(%Employee{employee_type: "DOCTOR", status: "APPROVED"}), do: :ok
+  defp check_employee(%Employee{employee_type: "DOCTOR", status: "APPROVED"}, _), do: :ok
 
-  defp check_employee(_) do
+  defp check_employee(_, index) do
     {:error,
      [
        {
@@ -1110,7 +1110,7 @@ defmodule EHealth.ContractRequests do
            params: [],
            rule: :invalid
          },
-         "$.contractor_employee_divisions.employee_id"
+         "$.contractor_employee_divisions[#{index}].employee_id"
        }
      ]}
   end
