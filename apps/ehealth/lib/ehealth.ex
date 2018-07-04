@@ -25,6 +25,12 @@ defmodule EHealth do
       supervisor(EHealth.EventManagerRepo, []),
       # Start the endpoint when the application starts
       supervisor(EHealth.Web.Endpoint, []),
+      worker(
+        EHealth.DeclarationRequests.Terminator,
+        [:declaration_request_terminator],
+        id: :declaration_request_terminator
+      ),
+      worker(EHealth.DeclarationRequests.Terminator, [:declaration_request_cleaner], id: :declaration_request_cleaner),
       worker(EHealth.Scheduler, [])
     ]
 

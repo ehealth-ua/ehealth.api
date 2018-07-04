@@ -1,16 +1,24 @@
 defmodule EHealth.DeclarationRequests.Terminator do
   @moduledoc false
-
+  import Ecto.Query
   use Confex, otp_app: :ehealth
-  alias Ecto.Adapters.SQL
   alias Ecto.UUID
   alias EHealth.DeclarationRequests.DeclarationRequest
   alias EHealth.GlobalParameters
   alias EHealth.Repo
-  alias Postgrex.Error
   require Logger
+  use GenServer
 
-  def terminate_declaration_requests do
+  def start_link(name) do
+    GenServer.start_link(__MODULE__, %{}, name: name)
+  end
+
+  @impl true
+  def init(state) do
+    {:ok, state}
+  end
+
+  def state_options do
     parameters = GlobalParameters.get_values()
 
     is_valid? =
@@ -29,38 +37,129 @@ defmodule EHealth.DeclarationRequests.Terminator do
         |> String.downcase()
         |> String.replace_trailing("s", "")
 
-      do_terminate_declaration_requests(term, normalized_unit)
+      {:ok, user_id} = UUID.dump(Confex.fetch_env!(:ehealth, :system_user))
+      limit = config()[:termination_batch_size]
+
+      %{term: term, normalized_unit: normalized_unit, user_id: user_id, limit: limit}
+    else
+      Logger.error(fn -> "Autoterminate declaration requests is not working, parameters invalid!" end)
     end
   end
 
-  defp do_terminate_declaration_requests(term, unit) do
-    query = """
-    UPDATE declaration_requests
-    SET (status, data, authentication_method_current, documents, printout_content, updated_by, updated_at) = ($1, NULL, NULL, NULL, NULL, $2, now())
-    WHERE id IN (
-      SELECT id
-      FROM declaration_requests
-      WHERE ((inserted_at::timestamp + ($3::numeric * interval '1 #{unit}'))::timestamp < $4) AND status != $5
-      ORDER BY inserted_at
-      LIMIT $6
-    );
-    """
+  @impl true
+  def handle_call({:update_state, state}, _, _) do
+    {:reply, :ok, state}
+  end
 
-    {:ok, user_id} = UUID.dump(Confex.fetch_env!(:ehealth, :system_user))
-
-    case SQL.query(Repo, query, [
-           DeclarationRequest.status(:expired),
-           user_id,
-           String.to_integer(term),
-           NaiveDateTime.utc_now(),
-           DeclarationRequest.status(:expired),
-           config()[:termination_batch_size]
-         ]) do
-      {:ok, %{num_rows: update_count}} ->
-        if update_count >= config()[:termination_batch_size], do: do_terminate_declaration_requests(term, unit)
-
-      {:error, reason} ->
-        Logger.error("Error deleting declaration_requests, #{Error.message(reason)}")
+  @impl true
+  def handle_cast(
+        {:process_signed, caller},
+        %{term: term, normalized_unit: unit, user_id: user_id, limit: limit} = state
+      ) do
+    subselect_condition = fn query ->
+      where(
+        query,
+        [dr],
+        dr.status == ^DeclarationRequest.status(:signed) and not is_nil(dr.data)
+      )
     end
+
+    rows_number =
+      teminate_declaration_requests(
+        subselect_condition,
+        DeclarationRequest.status(:signed),
+        term,
+        unit,
+        user_id,
+        limit
+      )
+
+    if rows_number >= limit do
+      GenServer.cast(:declaration_request_cleaner, {:process_signed, caller})
+    else
+      send(caller, :terminated_signed)
+    end
+
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_cast(
+        {:process_expired, caller},
+        %{term: term, normalized_unit: unit, user_id: user_id, limit: limit} = state
+      ) do
+    subselect_condition = fn query ->
+      where(
+        query,
+        [dr],
+        dr.status != ^DeclarationRequest.status(:signed) and dr.status != ^DeclarationRequest.status(:expired)
+      )
+    end
+
+    rows_number =
+      teminate_declaration_requests(
+        subselect_condition,
+        DeclarationRequest.status(:expired),
+        term,
+        unit,
+        user_id,
+        limit
+      )
+
+    if rows_number >= limit do
+      GenServer.cast(:declaration_request_terminator, {:process_expired, caller})
+    else
+      send(caller, :terminated_expired)
+    end
+
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_cast(_signal, state) do
+    {:noreply, state}
+  end
+
+  def terminate_declaration_requests(caller) do
+    state = state_options()
+
+    Enum.each(
+      [:declaration_request_terminator, :declaration_request_cleaner],
+      &(:ok = GenServer.call(&1, {:update_state, state}))
+    )
+
+    GenServer.cast(:declaration_request_cleaner, {:process_signed, caller})
+    GenServer.cast(:declaration_request_terminator, {:process_expired, caller})
+  end
+
+  def teminate_declaration_requests(subselect_condition, status, term, unit, user_id, limit) do
+    subselect_ids =
+      DeclarationRequest
+      |> select([dr], %{id: dr.id})
+      |> where(
+        [dr],
+        dr.inserted_at < datetime_add(^NaiveDateTime.utc_now(), ^(-1 * String.to_integer(term)), ^unit)
+      )
+      |> subselect_condition.()
+      |> limit(^limit)
+
+    {rows_updated, _} =
+      DeclarationRequest
+      |> join(:inner, [d], dr in subquery(subselect_ids), dr.id == d.id)
+      |> update(
+        [d],
+        set: [
+          status: ^status,
+          data: nil,
+          authentication_method_current: nil,
+          documents: nil,
+          printout_content: nil,
+          updated_by: ^user_id,
+          updated_at: ^NaiveDateTime.utc_now()
+        ]
+      )
+      |> Repo.update_all([])
+
+    rows_updated
   end
 end
