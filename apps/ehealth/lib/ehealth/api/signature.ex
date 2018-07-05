@@ -48,16 +48,15 @@ defmodule EHealth.API.Signature do
           signatures
 
         msp_drfo ->
-          signatures ++
-            [
-              %{
-                "is_valid" => true,
-                "signer" => %{
-                  "drfo" => msp_drfo
-                },
-                "validation_error_message" => ""
-              }
-            ]
+          msp_signature = %{
+            "is_valid" => true,
+            "signer" => %{
+              "drfo" => msp_drfo
+            },
+            "validation_error_message" => ""
+          }
+
+          [msp_signature | signatures]
       end
 
     data =

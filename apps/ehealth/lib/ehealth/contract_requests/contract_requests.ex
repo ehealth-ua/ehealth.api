@@ -611,7 +611,7 @@ defmodule EHealth.ContractRequests do
 
   defp do_decode_valid_content(:msp, %{
          "content" => content,
-         "signatures" => [_, %{"is_valid" => true, "signer" => signer}]
+         "signatures" => [%{"is_valid" => true, "signer" => signer}, _]
        }) do
     {:ok, content, signer}
   end
@@ -620,7 +620,7 @@ defmodule EHealth.ContractRequests do
     do: {:error, {:bad_request, error}}
 
   defp do_decode_valid_content(:msp, %{
-         "signatures" => [_, %{"is_valid" => false, "validation_error_message" => error}]
+         "signatures" => [%{"is_valid" => false, "validation_error_message" => error}, _]
        }) do
     {:error, {:bad_request, error}}
   end
