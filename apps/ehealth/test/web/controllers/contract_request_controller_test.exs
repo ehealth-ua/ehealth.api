@@ -2225,6 +2225,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
           "signed_content_encoding" => "base64"
         })
 
+      contract_request = EHealth.Repo.get(ContractRequest, contract_request.id)
+      assert contract_request.nhs_signed_date == Date.utc_today()
       assert resp = json_response(conn, 200)
 
       schema =

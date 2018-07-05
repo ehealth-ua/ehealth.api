@@ -711,7 +711,7 @@ defmodule EHealth.ContractRequests do
   end
 
   def nhs_signed_changeset(%ContractRequest{} = contract_request, params) do
-    fields = ~w(status updated_by printout_content)a
+    fields = ~w(status updated_by printout_content nhs_signed_date)a
 
     contract_request
     |> cast(params, fields)
