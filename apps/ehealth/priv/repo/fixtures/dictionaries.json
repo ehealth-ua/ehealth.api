@@ -1470,5 +1470,16 @@
       "EXTERNAL"
     ],
     "is_active": true
+  },
+  {
+    "name": "MEDICAL_SERVICE",
+    "values": {
+      "PHC_SERVICES": "послуга ПМД"
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
   }
 ]
