@@ -39,6 +39,7 @@ defmodule EHealth.Web.CapitationControllerTest do
     end
 
     test "List capitation report details", %{conn: conn} do
+      nhs(3)
       report_id = UUID.generate()
 
       expect(ReportMock, :get_capitation_details, 3, fn _params, _headers ->
