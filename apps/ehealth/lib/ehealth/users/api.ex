@@ -12,14 +12,14 @@ defmodule EHealth.Users.API do
 
   @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
 
-  def create_credentials_recovery_request(attrs, opts \\ []) do
+  def create_credentials_recovery_request(attrs, client_id, opts \\ []) do
     upstream_headers = Keyword.get(opts, :upstream_headers, [])
 
     with {:ok, email} <- Map.fetch(attrs, "email"),
          {:ok, %{"data" => users}} <- @mithril_api.search_user(%{"email" => email}, upstream_headers),
          [%{"id" => user_id, "email" => user_email}] <- users,
          {:ok, request} <- insert_credentials_recovery_request(user_id),
-         :ok <- send_email(user_email, request) do
+         :ok <- send_email(user_email, request, client_id, Map.get(attrs, "redirect_uri", "")) do
       {:ok, %{request | expires_at: get_expiration_date(request)}}
     else
       :error ->
@@ -117,8 +117,8 @@ defmodule EHealth.Users.API do
     |> validate_required(keys)
   end
 
-  defp send_email(email, %CredentialsRecoveryRequest{} = request) do
-    case EHealth.Man.Templates.CredentialsRecoveryRequest.render(request) do
+  defp send_email(email, %CredentialsRecoveryRequest{} = request, client_id, redirect_uri) do
+    case EHealth.Man.Templates.CredentialsRecoveryRequest.render(request, client_id, redirect_uri) do
       {:ok, body} ->
         try do
           email_config =

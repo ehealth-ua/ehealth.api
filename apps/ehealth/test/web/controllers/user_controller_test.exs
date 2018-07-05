@@ -35,12 +35,14 @@ defmodule EHealth.Web.UserControllerTest do
       expect(ManMock, :render_template, fn 5, data ->
         printout_form =
           "<html><body>Email for credentials recovery " <>
-            "request ##{data.credentials_recovery_request_id}</body></html>"
+            "request ##{data.credentials_recovery_request_id}?client_id=#{data.client_id}&redirect_uri=#{
+              data.redirect_uri
+            }</body></html>"
 
         {:ok, printout_form}
       end)
 
-      attrs = %{"credentials_recovery_request" => %{"email" => "bob@example.com"}}
+      attrs = %{"credentials_recovery_request" => %{"email" => "bob@example.com", "redirect_uri" => "blabla"}}
       conn = post(conn, user_path(conn, :create_credentials_recovery_request), attrs)
       assert %{"is_active" => true, "expires_at" => _} = json_response(conn, 201)["data"]
       assert 1 == length(Repo.all(CredentialsRecoveryRequest))
@@ -52,7 +54,7 @@ defmodule EHealth.Web.UserControllerTest do
         {:ok, %{"data" => []}}
       end)
 
-      attrs = %{"credentials_recovery_request" => %{"email" => "mike@example.com"}}
+      attrs = %{"credentials_recovery_request" => %{"email" => "mike@example.com", "redirect_uri" => "blabla"}}
       conn = post(conn, user_path(conn, :create_credentials_recovery_request), attrs)
 
       assert [%{"entry" => "$.email", "rules" => [%{"description" => "does not exist", "rule" => "existence"}]}] =
