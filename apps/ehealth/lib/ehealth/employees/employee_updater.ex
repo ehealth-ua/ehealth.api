@@ -12,6 +12,7 @@ defmodule EHealth.Employees.EmployeeUpdater do
   require Logger
 
   @type_owner Employee.type(:owner)
+  @type_admin Employee.type(:admin)
   @type_pharmacy_owner Employee.type(:pharmacy_owner)
 
   @status_approved Employee.status(:approved)
@@ -129,9 +130,10 @@ defmodule EHealth.Employees.EmployeeUpdater do
       |> get_deactivate_employee_params()
       |> put_employee_status(employee)
 
-    case employee.employee_type do
-      @type_owner -> Employees.update_with_ops_contract(employee, params, headers)
-      _ -> Employees.update(employee, params, get_consumer_id(headers))
+    if employee.employee_type in [@type_owner, @type_admin] do
+      Employees.update_with_ops_contract(employee, params, headers)
+    else
+      Employees.update(employee, params, get_consumer_id(headers))
     end
   end
 

@@ -11,6 +11,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   alias EHealth.PartyUsers.PartyUser
   alias EHealth.{PRMRepo, EventManagerRepo}
   alias EHealth.EventManager.Event
+  alias EHealth.Contracts.Contract
   alias Ecto.UUID
 
   @moduletag :with_client_id
@@ -1432,6 +1433,129 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   end
 
   describe "update employee suspend contract" do
+    test "approve new not-existing legal entity owner suspend contract", %{conn: conn} do
+      create_user_role()
+      get_user_roles()
+      get_roles_by_name(UUID.generate())
+
+      get_user()
+      put_client()
+
+      get_client_type_by_name(UUID.generate(), 2)
+      render_template(2)
+
+      legal_entity = insert(:prm, :legal_entity)
+      division = insert(:prm, :division)
+
+      employee =
+        insert(
+          :prm,
+          :employee,
+          legal_entity: legal_entity,
+          division: division,
+          employee_type: "OWNER"
+        )
+
+      contract = insert(:prm, :contract, contractor_owner_id: employee.id)
+
+      employee_request_data = employee_request_data()
+
+      data =
+        employee_request_data
+        |> put_in([:party, :email], "mis_bot_1493831618@user.com")
+        |> put_in([:party, :tax_id], "47542240")
+        |> put_in([:legal_entity_id], legal_entity.id)
+        |> put_in([:division_id], division.id)
+        |> put_in([:employee_type], "OWNER")
+
+      employee_request =
+        insert(
+          :il,
+          :employee_request,
+          employee_id: employee.id,
+          data: data
+        )
+
+      resp =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> post(employee_request_path(conn, :approve, employee_request.id))
+        |> json_response(200)
+        |> Map.get("data")
+
+      assert "APPROVED" == resp["status"]
+
+      contract = PRMRepo.get(Contract, contract.id)
+
+      assert contract.is_suspended
+    end
+
+    test "approve existing employee as legal entity owner suspend contract", %{conn: conn} do
+      create_user_role()
+      get_user_roles()
+      get_roles_by_name(UUID.generate())
+
+      get_user()
+      put_client()
+
+      get_client_type_by_name(UUID.generate(), 2)
+      render_template(2)
+
+      legal_entity = insert(:prm, :legal_entity)
+      division = insert(:prm, :division)
+
+      employee =
+        insert(
+          :prm,
+          :employee,
+          legal_entity: legal_entity,
+          division: division,
+          employee_type: "OWNER"
+        )
+
+      new_employee =
+        insert(
+          :prm,
+          :employee,
+          legal_entity: legal_entity,
+          division: division
+        )
+
+      contract = insert(:prm, :contract, contractor_owner_id: employee.id)
+
+      employee_request_data = employee_request_data()
+
+      data =
+        employee_request_data
+        |> put_in([:party, :email], "mis_bot_1493831618@user.com")
+        |> put_in([:party, :tax_id], "47542240")
+        |> put_in([:legal_entity_id], legal_entity.id)
+        |> put_in([:division_id], division.id)
+        |> put_in([:employee_type], "OWNER")
+        |> put_in([:employee_id], new_employee.id)
+
+      employee_request =
+        insert(
+          :il,
+          :employee_request,
+          employee_id: employee.id,
+          data: data
+        )
+
+      resp =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> post(employee_request_path(conn, :approve, employee_request.id))
+        |> json_response(200)
+        |> Map.get("data")
+
+      assert "APPROVED" == resp["status"]
+
+      contract = PRMRepo.get(Contract, contract.id)
+
+      assert contract.is_suspended
+    end
+
     test "update employee first name suspend contract", %{conn: conn} do
       create_user_role()
       get_user_roles()
@@ -1445,7 +1569,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division)
-      party = insert(:prm, :party, id: "01981ab9-904c-4c36-88ab-959a94087483")
+      party = insert(:prm, :party)
 
       employee =
         insert(
@@ -1484,13 +1608,8 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
       assert "APPROVED" == resp["status"]
 
-      assert %{"data" => response_data} =
-               conn
-               |> put_client_id_header(nhs())
-               |> get(contract_path(conn, :show, contract.id))
-               |> json_response(200)
-
-      assert response_data["is_suspended"] == true
+      contract = PRMRepo.get(Contract, contract.id)
+      assert contract.is_suspended == true
     end
 
     test "update employee last name suspend contract", %{conn: conn} do
@@ -1506,7 +1625,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division)
-      party = insert(:prm, :party, id: "01981ab9-904c-4c36-88ab-959a94087483")
+      party = insert(:prm, :party)
 
       employee =
         insert(
@@ -1545,13 +1664,8 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
       assert "APPROVED" == resp["status"]
 
-      assert %{"data" => response_data} =
-               conn
-               |> put_client_id_header(nhs())
-               |> get(contract_path(conn, :show, contract.id))
-               |> json_response(200)
-
-      assert response_data["is_suspended"] == true
+      contract = PRMRepo.get(Contract, contract.id)
+      assert contract.is_suspended == true
     end
 
     test "update employee second name suspend contract", %{conn: conn} do
@@ -1567,7 +1681,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division)
-      party = insert(:prm, :party, id: "01981ab9-904c-4c36-88ab-959a94087483")
+      party = insert(:prm, :party)
 
       employee =
         insert(
@@ -1606,13 +1720,8 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
       assert "APPROVED" == resp["status"]
 
-      assert %{"data" => response_data} =
-               conn
-               |> put_client_id_header(nhs())
-               |> get(contract_path(conn, :show, contract.id))
-               |> json_response(200)
-
-      assert response_data["is_suspended"] == true
+      contract = PRMRepo.get(Contract, contract.id)
+      assert contract.is_suspended == true
     end
 
     test "update employee type suspend contract", %{conn: conn} do
@@ -1628,7 +1737,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division)
-      party = insert(:prm, :party, id: "01981ab9-904c-4c36-88ab-959a94087483")
+      party = insert(:prm, :party)
 
       employee =
         insert(
@@ -1667,13 +1776,8 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
       assert "APPROVED" == resp["status"]
 
-      assert %{"data" => response_data} =
-               conn
-               |> put_client_id_header(nhs())
-               |> get(contract_path(conn, :show, contract.id))
-               |> json_response(200)
-
-      assert response_data["is_suspended"] == true
+      contract = PRMRepo.get(Contract, contract.id)
+      assert contract.is_suspended == true
     end
 
     test "update employee status contract", %{conn: conn} do
@@ -1689,7 +1793,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division)
-      party = insert(:prm, :party, id: "01981ab9-904c-4c36-88ab-959a94087483")
+      party = insert(:prm, :party)
 
       employee =
         insert(
@@ -1728,13 +1832,8 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
       assert "APPROVED" == resp["status"]
 
-      assert %{"data" => response_data} =
-               conn
-               |> put_client_id_header(nhs())
-               |> get(contract_path(conn, :show, contract.id))
-               |> json_response(200)
-
-      assert response_data["is_suspended"] == true
+      contract = PRMRepo.get(Contract, contract.id)
+      assert contract.is_suspended == true
     end
   end
 

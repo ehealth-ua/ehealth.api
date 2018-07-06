@@ -6,6 +6,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
   alias EHealth.Parties.Party
   alias Ecto.UUID
   alias EHealth.PRMRepo
+  alias EHealth.Contracts.Contract
   import Mox
 
   describe "list employees" do
@@ -372,6 +373,43 @@ defmodule EHealth.Web.EmployeesControllerTest do
         )
 
       {:ok, %{conn: conn, legal_entity: legal_entity, doctor: doctor, pharmacist: pharmacist}}
+    end
+
+    test "deactivate employee admin suspend contracts", %{conn: conn, legal_entity: legal_entity} do
+      expect(OPSMock, :terminate_employee_declarations, fn _id, _user_id, "auto_employee_deactivate", "", _headers ->
+        {:ok, %{}}
+      end)
+
+      expect(ReportMock, :get_declaration_count, fn _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
+      msp()
+      employee = insert(:prm, :employee, legal_entity: legal_entity, employee_type: "ADMIN")
+      contract = insert(:prm, :contract, contractor_owner_id: employee.id)
+      conn = put_client_id_header(conn, legal_entity.id)
+      conn_resp = patch(conn, employee_path(conn, :deactivate, employee.id))
+
+      assert json_response(conn_resp, 200)
+      contract = PRMRepo.get(Contract, contract.id)
+      assert contract.is_suspended
+    end
+
+    test "deactivate employee", %{conn: conn, legal_entity: legal_entity} do
+      expect(OPSMock, :terminate_employee_declarations, fn _id, _user_id, "auto_employee_deactivate", "", _headers ->
+        {:ok, %{}}
+      end)
+
+      expect(ReportMock, :get_declaration_count, fn _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
+      msp()
+      employee = insert(:prm, :employee, legal_entity: legal_entity)
+      conn = put_client_id_header(conn, legal_entity.id)
+      conn_resp = patch(conn, employee_path(conn, :deactivate, employee.id))
+
+      assert json_response(conn_resp, 200)
     end
 
     test "with invalid transitions condition", %{conn: conn, legal_entity: legal_entity} do

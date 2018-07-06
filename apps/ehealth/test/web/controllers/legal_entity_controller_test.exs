@@ -8,6 +8,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
   alias EHealth.Employees.Employee
   alias EHealth.PRMRepo
   alias EHealth.LegalEntities.LegalEntity
+  alias EHealth.Contracts.Contract
 
   setup :verify_on_exit!
   setup :set_mox_global
@@ -229,6 +230,21 @@ defmodule EHealth.Web.LegalEntityControllerTest do
                |> json_response(200)
 
       assert response_data["is_suspended"] == true
+    end
+
+    test "deactivate legal entity suspend contract", %{conn: conn} do
+      %{id: id} = insert(:prm, :legal_entity)
+      %{id: contract_id} = insert(:prm, :contract, contractor_legal_entity_id: id)
+
+      resp =
+        conn
+        |> put_client_id_header(id)
+        |> patch(legal_entity_path(conn, :deactivate, id))
+        |> json_response(200)
+
+      assert "CLOSED" == resp["data"]["status"]
+      contract = PRMRepo.get(Contract, contract_id)
+      assert contract.is_suspended
     end
   end
 

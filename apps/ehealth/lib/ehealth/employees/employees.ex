@@ -16,6 +16,7 @@ defmodule EHealth.Employees do
   alias EHealth.{PRMRepo, Parties, EventManager}
   alias EHealth.Contracts.Contract
   alias EHealth.Contracts
+  alias EHealth.Employees.Employee
 
   @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
 
@@ -40,6 +41,8 @@ defmodule EHealth.Employees do
     end_date
     speciality
   )a
+
+  @type_owner Employee.type(:owner)
 
   def list(params) do
     %Search{}
@@ -159,7 +162,8 @@ defmodule EHealth.Employees do
         "speciality" => EmployeeRequests.get_employee_speciality(employee_request)
       })
 
-    with {:ok, _} <- EmployeeCreator.create_party_user(party, req_headers),
+    with {:ok, _} <- suspend_legal_entity_owner_contracts(employee_request, req_headers),
+         {:ok, _} <- EmployeeCreator.create_party_user(party, req_headers),
          :ok <- UserRoleCreator.create(employee, req_headers),
          %Changeset{valid?: true} = party_changeset <- Parties.changeset(party, party_update_params),
          %Changeset{valid?: true} = employee_changeset <- changeset(employee, employee_update_params) do
@@ -172,9 +176,42 @@ defmodule EHealth.Employees do
   end
 
   def create_or_update_employee(%Request{} = employee_request, req_headers) do
-    with {:ok, employee} <- EmployeeCreator.create(employee_request, req_headers),
+    with {:ok, _} <- suspend_legal_entity_owner_contracts(employee_request.data, req_headers),
+         {:ok, employee} <- EmployeeCreator.create(employee_request, req_headers),
          :ok <- UserRoleCreator.create(employee, req_headers) do
       {:ok, employee}
+    end
+  end
+
+  defp suspend_legal_entity_owner_contracts(
+         %{"employee_type" => @type_owner, "legal_entity_id" => legal_entity_id},
+         headers
+       ) do
+    contracts = owner_contracts_to_suspend(legal_entity_id, headers)
+    suspend_contracts(contracts)
+  end
+
+  defp suspend_legal_entity_owner_contracts(_, _), do: {:ok, nil}
+
+  defp owner_contracts_to_suspend(legal_entity_id, headers) do
+    Employee
+    |> where([e], e.is_active)
+    |> where([e], e.employee_type == ^@type_owner)
+    |> where([e], e.legal_entity_id == ^legal_entity_id)
+    |> PRMRepo.one()
+    |> case do
+      nil ->
+        []
+
+      legal_entity_owner ->
+        get_contracts_params = %{
+          contractor_owner_id: legal_entity_owner.id,
+          status: Contract.status(:verified),
+          is_suspended: false
+        }
+
+        {:ok, %Page{entries: contracts}, _} = Contracts.list(get_contracts_params, nil, headers)
+        contracts
     end
   end
 
