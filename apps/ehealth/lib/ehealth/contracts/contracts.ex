@@ -5,7 +5,6 @@ defmodule EHealth.Contracts do
 
   import Ecto.Query
   import Ecto.Changeset
-  alias EHealth.API.Signature
   alias EHealth.Contracts.Contract
   alias EHealth.Contracts.ContractEmployee
   alias EHealth.Contracts.ContractDivision
@@ -18,6 +17,7 @@ defmodule EHealth.Contracts do
   alias EHealth.Validators.JsonSchema
   alias EHealth.Validators.Preload
   alias EHealth.Validators.Reference
+  alias EHealth.Validators.Signature, as: SignatureValidator
   alias Scrivener.Page
 
   @status_verified Contract.status(:verified)
@@ -129,7 +129,7 @@ defmodule EHealth.Contracts do
 
     with {:ok, contract, _} <- get_by_id(id, params),
          :ok <- JsonSchema.validate(:contract_sign, params),
-         {:ok, content, signer} <- decode_signed_content(params, headers),
+         {:ok, %{"content" => content, "signer" => signer}} <- decode_signed_content(params, headers),
          {_, %Party{tax_id: tax_id}} <- {:employee, Parties.get_by_user_id(user_id)},
          :ok <- validate_signer_drfo(tax_id, signer["drfo"]),
          :ok <- validate_status(contract, Contract.status(:verified)),
@@ -261,25 +261,7 @@ defmodule EHealth.Contracts do
         %{"signed_content" => signed_content, "signed_content_encoding" => encoding},
         headers
       ) do
-    with {:ok, %{"data" => data}} <- Signature.decode_and_validate(signed_content, encoding, headers) do
-      case data do
-        %{
-          "content" => content,
-          "signatures" => [%{"is_valid" => true, "signer" => signer}]
-        } ->
-          {:ok, content, signer}
-
-        %{"signatures" => [%{"is_valid" => false, "validation_error_message" => error}]} ->
-          {:error, {:bad_request, error}}
-
-        %{"signatures" => signatures} ->
-          {:error,
-           {:bad_request, "document must be signed by 1 signer but contains #{Enum.count(signatures)} signatures"}}
-
-        error ->
-          error
-      end
-    end
+    SignatureValidator.validate(signed_content, encoding, headers)
   end
 
   defp validate_signer_drfo(tax_id, signer_drfo) when not is_nil(signer_drfo) do

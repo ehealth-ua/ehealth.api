@@ -1,12 +1,12 @@
 defmodule EHealth.MedicationRequestRequest.Validations do
   @moduledoc false
 
-  alias EHealth.API.Signature
   alias EHealth.Employees
   alias EHealth.Validators.JsonSchema
   alias EHealth.Employees.Employee
   alias EHealth.Declarations.API, as: DeclarationsAPI
   alias EHealth.Medications
+  alias EHealth.Validators.Signature, as: SignatureValidator
 
   def validate_create_schema(params) do
     JsonSchema.validate(:medication_request_request_create, params)
@@ -75,23 +75,12 @@ defmodule EHealth.MedicationRequestRequest.Validations do
   end
 
   def decode_sign_content(content, headers) do
-    content["signed_medication_request_request"]
-    |> Signature.decode_and_validate(content["signed_content_encoding"], headers)
-    |> check_is_valid()
+    SignatureValidator.validate(
+      content["signed_medication_request_request"],
+      content["signed_content_encoding"],
+      headers
+    )
   end
-
-  def check_is_valid({:ok, %{"data" => data}}), do: do_check_is_valid(data)
-
-  def check_is_valid({:error, error}), do: {:error, error}
-
-  defp do_check_is_valid(%{"content" => content, "signatures" => [%{"is_valid" => true, "signer" => signer}]}),
-    do: {:ok, %{"content" => content, "signer" => signer}}
-
-  defp do_check_is_valid(%{"signatures" => [%{"is_valid" => false, "validation_error_message" => error}]}),
-    do: {:error, error}
-
-  defp do_check_is_valid(%{"signatures" => signatures}) when is_list(signatures),
-    do: {:error, "document must be signed by 1 signer but contains #{Enum.count(signatures)} signatures"}
 
   def validate_sign_content(mrr, %{"content" => content, "signer" => signer}) do
     with %Employee{} = employee <- Employees.get_by_id(mrr.data.employee_id),

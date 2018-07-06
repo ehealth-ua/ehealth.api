@@ -5,6 +5,7 @@ defmodule EHealth.Unit.LegalEntityTest do
 
   import Mox
   import Ecto.Query, warn: false
+  import EHealth.Expectations.Signature
 
   alias Ecto.UUID
   alias EHealth.{Repo, PRMRepo}
@@ -25,6 +26,8 @@ defmodule EHealth.Unit.LegalEntityTest do
         "test/data/signed_content.json"
         |> File.read!()
         |> Base.encode64()
+
+      edrpou_signed_content(content, "37367387")
 
       assert {:ok, _} =
                Validator.validate_sign_content(
@@ -68,38 +71,34 @@ defmodule EHealth.Unit.LegalEntityTest do
     test "invalid signed content - 2 signers" do
       content = get_legal_entity_data()
 
-      signatures = [
-        %{"is_valid" => true, "signer" => %{}, "validation_error_message" => ""},
-        %{"is_valid" => true, "signer" => %{}, "validation_error_message" => ""}
-      ]
+      request = %{
+        "signed_legal_entity_request" => Base.encode64(Jason.encode!(content)),
+        "signed_content_encoding" => "base64"
+      }
 
-      {:error, {:bad_request, "document must be signed by 1 signer but contains 2 signatures"}} =
-        Validator.validate_json({:ok, %{"data" => %{"content" => content, "signatures" => signatures}}}, [])
+      edrpou_signed_content(content, ["37367387", "37367387"])
+
+      assert {:error, {:bad_request, "document must be signed by 1 signer but contains 2 signatures"}} ==
+               Validator.decode_and_validate(request, [])
     end
 
     test "invalid signed content - no security" do
       content = get_legal_entity_data() |> Map.delete("security")
-
-      signatures = [%{"is_valid" => true, "signer" => %{}, "validation_error_message" => ""}]
-
-      {:error, [{error, _}]} =
-        Validator.validate_json({:ok, %{"data" => %{"content" => content, "signatures" => signatures}}}, [])
-
+      signer = %{"is_valid" => true, "signer" => %{}, "validation_error_message" => ""}
+      {:error, [{error, _}]} = Validator.validate_json(content, signer, [])
       assert :required == error[:rule]
       assert "required property security was not present" == error[:description]
     end
 
     test "invalid signed content - birth date format" do
-      content =
-        "test/data/signed_content_invalid_owner_birth_date.json"
-        |> File.read!()
-        |> Base.encode64()
+      content = File.read!("test/data/signed_content_invalid_owner_birth_date.json")
+      edrpou_signed_content(Jason.decode!(content), "37367387")
 
       assert {:error, [_, {error, entry}]} =
                Validator.decode_and_validate(
                  %{
                    "signed_content_encoding" => "base64",
-                   "signed_legal_entity_request" => content
+                   "signed_legal_entity_request" => Base.encode64(content)
                  },
                  []
                )
@@ -559,6 +558,7 @@ defmodule EHealth.Unit.LegalEntityTest do
       "signed_content_encoding" => "base64"
     }
 
+    edrpou_signed_content(request_params, "37367387")
     API.create(request, get_headers())
   end
 

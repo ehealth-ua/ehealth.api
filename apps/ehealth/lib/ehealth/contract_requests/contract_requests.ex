@@ -11,7 +11,6 @@ defmodule EHealth.ContractRequests do
   alias Ecto.Adapters.SQL
   alias Ecto.UUID
   alias EHealth.Contracts
-  alias EHealth.API.Signature
   alias EHealth.ContractRequests.ContractRequest
   alias EHealth.ContractRequests.Search
   alias EHealth.Divisions.Division
@@ -30,6 +29,7 @@ defmodule EHealth.ContractRequests do
   alias EHealth.Man.Templates.ContractRequestPrintoutForm
   alias EHealth.Contracts
   alias EHealth.Contracts.Contract
+  alias EHealth.Validators.Signature, as: SignatureValidator
 
   require Logger
 
@@ -132,7 +132,7 @@ defmodule EHealth.ContractRequests do
     with {:contract_request_exists, true} <- {:contract_request_exists, is_nil(get_by_id(id))},
          :ok <- JsonSchema.validate(:contract_request_sign, params),
          {_, %Party{tax_id: tax_id}} <- {:employee, Parties.get_by_user_id(user_id)},
-         {:ok, content, signer} <- decode_signed_content(params, headers),
+         {:ok, %{"content" => content, "signer" => signer}} <- decode_signed_content(params, headers),
          :ok <- validate_signer_drfo(tax_id, signer["drfo"]),
          :ok <- JsonSchema.validate(:contract_request, content),
          content <- Map.put(content, "contractor_legal_entity_id", client_id),
@@ -205,7 +205,7 @@ defmodule EHealth.ContractRequests do
     with %ContractRequest{} = contract_request <- get_by_id(id),
          references <- preload_references(contract_request),
          :ok <- JsonSchema.validate(:contract_request_sign, params),
-         {:ok, content, signer} <- decode_signed_content(:nhs, params, headers),
+         {:ok, %{"content" => content, "signer" => signer}} <- decode_signed_content(:nhs, params, headers),
          {_, %Party{tax_id: tax_id}} <- {:employee, Parties.get_by_user_id(user_id)},
          :ok <- validate_signer_drfo(tax_id, signer["drfo"]),
          {:ok, %{"data" => data}} <- @mithril_api.get_user_roles(user_id, %{}, headers),
@@ -281,7 +281,7 @@ defmodule EHealth.ContractRequests do
     with %ContractRequest{} = contract_request <- get_by_id(id),
          references <- preload_references(contract_request),
          :ok <- JsonSchema.validate(:contract_request_sign, params),
-         {:ok, content, signer} <- decode_signed_content(:nhs, params, headers),
+         {:ok, %{"content" => content, "signer" => signer}} <- decode_signed_content(:nhs, params, headers),
          {_, %Party{tax_id: tax_id}} <- {:employee, Parties.get_by_user_id(user_id)},
          :ok <- validate_signer_drfo(tax_id, signer["drfo"]),
          {:ok, %{"data" => data}} <- @mithril_api.get_user_roles(user_id, %{}, headers),
@@ -345,7 +345,7 @@ defmodule EHealth.ContractRequests do
          {_, true} <- {:client_id, client_id == contract_request.nhs_legal_entity_id},
          {_, false} <- {:already_signed, contract_request.status == ContractRequest.status(:nhs_signed)},
          :ok <- validate_status(contract_request, ContractRequest.status(:pending_nhs_sign)),
-         {:ok, content, signer} <- decode_signed_content(:nhs, params, headers),
+         {:ok, %{"content" => content, "signer" => signer}} <- decode_signed_content(:nhs, params, headers),
          :ok <- validate_signer_drfo(contract_request.nhs_signer_id, signer["drfo"], "$.nhs_signer_id"),
          {:ok, printout_content} <- ContractRequestPrintoutForm.render(contract_request, headers),
          :ok <- validate_content(contract_request, printout_content, content),
@@ -381,7 +381,7 @@ defmodule EHealth.ContractRequests do
          :ok <- JsonSchema.validate(:contract_request_sign, params),
          {_, true} <- {:signed_nhs, contract_request.status == ContractRequest.status(:nhs_signed)},
          {_, true} <- {:client_id, client_id == contract_request.contractor_legal_entity_id},
-         {:ok, content, signer} <- decode_signed_content(:msp, params, headers),
+         {:ok, %{"content" => content, "signer" => signer}} <- decode_signed_content(:msp, params, headers),
          :ok <- validate_signer_drfo(contract_request.contractor_owner_id, signer["drfo"], "$.contractor_owner_id"),
          :ok <- validate_content(contract_request, content),
          :ok <- validate_employee_divisions(contract_request),
@@ -576,66 +576,20 @@ defmodule EHealth.ContractRequests do
     end
   end
 
-  def decode_signed_content(type, %{"signed_content" => signed_content, "signed_content_encoding" => encoding}, headers) do
-    with {:ok, %{"data" => data}} <- Signature.decode_and_validate(signed_content, encoding, headers),
-         do: do_decode_valid_content(type, data)
+  def decode_signed_content(:nhs, %{"signed_content" => signed_content, "signed_content_encoding" => encoding}, headers) do
+    SignatureValidator.validate(signed_content, encoding, headers)
+  end
+
+  def decode_signed_content(:msp, %{"signed_content" => signed_content, "signed_content_encoding" => encoding}, headers) do
+    SignatureValidator.validate(signed_content, encoding, headers, 2)
   end
 
   def decode_signed_content(
         %{"signed_content" => signed_content, "signed_content_encoding" => encoding},
         headers
       ) do
-    with {:ok, %{"data" => data}} <- Signature.decode_and_validate(signed_content, encoding, headers) do
-      case data do
-        %{
-          "content" => content,
-          "signatures" => [%{"is_valid" => true, "signer" => signer}]
-        } ->
-          {:ok, content, signer}
-
-        %{"signatures" => [%{"is_valid" => false, "validation_error_message" => error}]} ->
-          {:error, {:bad_request, error}}
-
-        %{"signatures" => signatures} ->
-          {:error,
-           {:bad_request, "document must be signed by 1 signer but contains #{Enum.count(signatures)} signatures"}}
-
-        error ->
-          error
-      end
-    end
+    SignatureValidator.validate(signed_content, encoding, headers)
   end
-
-  defp do_decode_valid_content(:nhs, %{
-         "content" => content,
-         "signatures" => [%{"is_valid" => true, "signer" => signer}]
-       }) do
-    {:ok, content, signer}
-  end
-
-  defp do_decode_valid_content(:msp, %{
-         "content" => content,
-         "signatures" => [%{"is_valid" => true, "signer" => signer}, _]
-       }) do
-    {:ok, content, signer}
-  end
-
-  defp do_decode_valid_content(_, %{"signatures" => [%{"is_valid" => false, "validation_error_message" => error}]}),
-    do: {:error, {:bad_request, error}}
-
-  defp do_decode_valid_content(:msp, %{
-         "signatures" => [%{"is_valid" => false, "validation_error_message" => error}, _]
-       }) do
-    {:error, {:bad_request, error}}
-  end
-
-  defp do_decode_valid_content(:nhs, %{"signatures" => signatures}) when is_list(signatures),
-    do:
-      {:error, {:bad_request, "document must be signed by 1 signer but contains #{Enum.count(signatures)} signatures"}}
-
-  defp do_decode_valid_content(:msp, %{"signatures" => signatures}) when is_list(signatures),
-    do:
-      {:error, {:bad_request, "document must be signed by 2 signers but contains #{Enum.count(signatures)} signatures"}}
 
   defp set_contract_number(params, %{parent_contract_id: parent_contract_id}) when not is_nil(parent_contract_id) do
     params

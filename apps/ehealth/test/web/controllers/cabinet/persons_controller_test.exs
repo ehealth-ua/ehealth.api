@@ -2,6 +2,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase
+  import EHealth.Expectations.Signature
   import Mox
 
   alias Ecto.UUID
@@ -70,6 +71,8 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
         |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
 
+      invalid_signed_content()
+
       conn =
         patch(conn, cabinet_persons_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{
           "signed_content" => Base.encode64("invalid")
@@ -97,6 +100,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
         {:ok, %{"data" => %{"id" => id, "tax_id" => "3378115538"}}}
       end)
 
+      drfo_signed_content(%{}, "3378115538")
       legal_entity = insert(:prm, :legal_entity)
       party = insert(:prm, :party)
       insert(:prm, :party_user, party: party, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c")
@@ -139,6 +143,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
         {:ok, %{"data" => %{"id" => id, "tax_id" => "2222222220"}}}
       end)
 
+      drfo_signed_content(%{"tax_id" => "2222222220"}, "2222222220")
       legal_entity = insert(:prm, :legal_entity)
       party = insert(:prm, :party)
       insert(:prm, :party_user, party: party, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c")
@@ -184,6 +189,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       legal_entity = insert(:prm, :legal_entity)
       party = insert(:prm, :party, tax_id: "2222222225")
       insert(:prm, :party_user, party: party, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c")
+      drfo_signed_content(%{"tax_id" => "2222222225"}, "2222222225")
 
       conn =
         conn
@@ -327,6 +333,8 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       expect(UAddressesMock, :validate_addresses, fn _, _ ->
         {:ok, %{"data" => %{}}}
       end)
+
+      drfo_signed_content(data, "2222222225")
 
       conn =
         patch(conn, cabinet_persons_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{

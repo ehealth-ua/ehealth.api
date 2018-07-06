@@ -5,7 +5,7 @@ defmodule EHealth.LegalEntities.Validator do
 
   import Ecto.Changeset
 
-  alias EHealth.API.Signature
+  alias EHealth.Validators.Signature, as: SignatureValidator
   alias EHealth.Validators.KVEDs
   alias EHealth.LegalEntities.LegalEntity
   alias EHealth.LegalEntities.LegalEntityRequest
@@ -26,9 +26,9 @@ defmodule EHealth.LegalEntities.Validator do
   ]
 
   def decode_and_validate(params, headers) do
-    params
-    |> validate_sign_content(headers)
-    |> validate_json(headers)
+    with {:ok, %{"content" => content, "signer" => signer}} <- validate_sign_content(params, headers) do
+      validate_json(content, signer, headers)
+    end
   end
 
   def validate_sign_content(content, headers) do
@@ -38,10 +38,8 @@ defmodule EHealth.LegalEntities.Validator do
     |> normalize_signature_error()
   end
 
-  def validate_json({:ok, %{"data" => %{"content" => content, "signatures" => signatures}}}, headers)
-      when is_list(signatures) do
-    with {:ok, signer} <- get_valid_signer(signatures),
-         :ok <- validate_schema(content),
+  def validate_json(content, signer, headers) do
+    with :ok <- validate_schema(content),
          content = lowercase_emails(content),
          :ok <- validate_json_objects(content),
          :ok <- validate_type(content),
@@ -54,8 +52,6 @@ defmodule EHealth.LegalEntities.Validator do
       :ok
     end
   end
-
-  def validate_json(err, _), do: err
 
   # Request validator
 
@@ -72,9 +68,11 @@ defmodule EHealth.LegalEntities.Validator do
   end
 
   def validate_signature(%Ecto.Changeset{valid?: true, changes: changes}, headers) do
-    changes
-    |> Map.get(:signed_legal_entity_request)
-    |> Signature.decode_and_validate(Map.get(changes, :signed_content_encoding), headers)
+    SignatureValidator.validate(
+      Map.get(changes, :signed_legal_entity_request),
+      Map.get(changes, :signed_content_encoding),
+      headers
+    )
   end
 
   def validate_signature(err, _), do: err
@@ -92,17 +90,6 @@ defmodule EHealth.LegalEntities.Validator do
   end
 
   def normalize_signature_error(ok_resp), do: ok_resp
-
-  # Legal Entity content validator
-
-  def get_valid_signer([%{"is_valid" => true, "signer" => signer}]), do: {:ok, signer}
-
-  def get_valid_signer([%{"is_valid" => false, "validation_error_message" => error}]),
-    do: {:error, {:bad_request, error}}
-
-  def get_valid_signer(signatures) when is_list(signatures),
-    do:
-      {:error, {:bad_request, "document must be signed by 1 signer but contains #{Enum.count(signatures)} signatures"}}
 
   def validate_schema(content) do
     JsonSchema.validate(:legal_entity, content)

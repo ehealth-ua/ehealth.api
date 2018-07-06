@@ -4,7 +4,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
   use EHealth.Web.ConnCase
 
   import Mox
-
+  import EHealth.Expectations.Signature
   alias Ecto.UUID
   alias EHealth.DeclarationRequests.DeclarationRequest
   alias EHealth.Utils.NumberGenerator
@@ -548,15 +548,18 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
         data
         |> Map.put("seed", "some_current_hash")
         |> Map.put("declaration_number", declaration_number)
-        |> Jason.encode!()
-        |> Base.encode64()
+
+      drfo_signed_content(signed_declaration_request, tax_id)
 
       conn
       |> Plug.Conn.put_req_header("drfo", tax_id)
       |> put_client_id_header(legal_entity_id)
       |> put_consumer_id_header(user_id)
       |> patch(declaration_request_path(conn, :sign, declaration_id), %{
-        "signed_declaration_request" => signed_declaration_request,
+        "signed_declaration_request" =>
+          signed_declaration_request
+          |> Jason.encode!()
+          |> Base.encode64(),
         "signed_content_encoding" => "base64"
       })
       |> json_response(200)
@@ -632,8 +635,8 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
         data
         |> Map.put("seed", "some_current_hash")
         |> Map.put("declaration_number", declaration_number)
-        |> Jason.encode!()
-        |> Base.encode64()
+
+      drfo_signed_content(signed_declaration_request, "3173108921")
 
       assert response =
                conn
@@ -641,7 +644,10 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
                |> put_client_id_header(legal_entity_id)
                |> put_consumer_id_header(user_id)
                |> patch(declaration_request_path(conn, :sign, declaration_id), %{
-                 "signed_declaration_request" => signed_declaration_request,
+                 "signed_declaration_request" =>
+                   signed_declaration_request
+                   |> Jason.encode!()
+                   |> Base.encode64(),
                  "signed_content_encoding" => "base64"
                })
                |> json_response(422)

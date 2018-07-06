@@ -3,6 +3,7 @@ defmodule EHealth.Web.ContractControllerTest do
 
   use EHealth.Web.ConnCase
 
+  import EHealth.Expectations.Signature
   alias EHealth.Contracts.Contract
   alias Ecto.UUID
 
@@ -325,6 +326,8 @@ defmodule EHealth.Web.ContractControllerTest do
         "signed_content_encoding" => "base64"
       }
 
+      invalid_signed_content()
+
       conn =
         conn
         |> put_client_id_header(UUID.generate())
@@ -351,18 +354,22 @@ defmodule EHealth.Web.ContractControllerTest do
       employee_id = employee.id
       party_user = insert(:prm, :party_user)
 
+      content = %{
+        "employee_id" => employee_id,
+        "division_id" => division.id,
+        "declaration_limit" => 10,
+        "staff_units" => 0.33
+      }
+
       params = %{
         "signed_content" =>
-          %{
-            "employee_id" => employee_id,
-            "division_id" => division.id,
-            "declaration_limit" => 10,
-            "staff_units" => 0.33
-          }
+          content
           |> Jason.encode!()
           |> Base.encode64(),
         "signed_content_encoding" => "base64"
       }
+
+      drfo_signed_content(content, nil)
 
       conn =
         conn
@@ -386,18 +393,22 @@ defmodule EHealth.Web.ContractControllerTest do
       insert(:prm, :contract_division, contract_id: contract.id, division_id: division.id)
       party_user = insert(:prm, :party_user)
 
+      content = %{
+        "employee_id" => employee_id,
+        "division_id" => division.id,
+        "declaration_limit" => 10,
+        "staff_units" => 0.33
+      }
+
       params = %{
         "signed_content" =>
-          %{
-            "employee_id" => employee_id,
-            "division_id" => division.id,
-            "declaration_limit" => 10,
-            "staff_units" => 0.33
-          }
+          content
           |> Jason.encode!()
           |> Base.encode64(),
         "signed_content_encoding" => "base64"
       }
+
+      drfo_signed_content(content, party_user.party.tax_id)
 
       conn =
         conn
@@ -430,18 +441,22 @@ defmodule EHealth.Web.ContractControllerTest do
 
       party_user = insert(:prm, :party_user)
 
+      content = %{
+        "employee_id" => employee_id,
+        "division_id" => division.id,
+        "declaration_limit" => 10,
+        "staff_units" => 0.33
+      }
+
       params = %{
         "signed_content" =>
-          %{
-            "employee_id" => employee_id,
-            "division_id" => division.id,
-            "declaration_limit" => 10,
-            "staff_units" => 0.33
-          }
+          content
           |> Jason.encode!()
           |> Base.encode64(),
         "signed_content_encoding" => "base64"
       }
+
+      drfo_signed_content(content, party_user.party.tax_id)
 
       conn =
         conn
@@ -466,18 +481,22 @@ defmodule EHealth.Web.ContractControllerTest do
       insert(:prm, :contract_division, contract_id: contract.id, division_id: division.id)
       party_user = insert(:prm, :party_user)
 
+      content = %{
+        "employee_id" => employee_id,
+        "division_id" => division.id,
+        "declaration_limit" => 10,
+        "staff_units" => 0.33
+      }
+
       params = %{
         "signed_content" =>
-          %{
-            "employee_id" => employee_id,
-            "division_id" => division.id,
-            "declaration_limit" => 10,
-            "staff_units" => 0.33
-          }
+          content
           |> Jason.encode!()
           |> Base.encode64(),
         "signed_content_encoding" => "base64"
       }
+
+      drfo_signed_content(content, party_user.party.tax_id)
 
       conn =
         conn

@@ -1,8 +1,13 @@
 defmodule EHealth.Web.MedicationRequestRequestControllerTest do
+  @moduledoc false
+
   use EHealth.Web.ConnCase, async: false
   import Mox
+  import EHealth.Expectations.Signature
   alias EHealth.MedicationRequestRequests
   alias EHealth.MockServer
+  alias EHealth.Repo
+  alias EHealth.PRMRepo
 
   setup :verify_on_exit!
 
@@ -45,7 +50,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
     party_id = employee.party |> Map.get(:id)
     user_id = Ecto.UUID.generate()
-    EHealth.PRMRepo.insert!(%EHealth.PartyUsers.PartyUser{user_id: user_id, party_id: party_id})
+    PRMRepo.insert!(%EHealth.PartyUsers.PartyUser{user_id: user_id, party_id: party_id})
 
     conn =
       conn
@@ -486,7 +491,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       conn1 = post(conn, medication_request_request_path(conn, :create), medication_request_request: test_request)
       assert %{"id" => id} = json_response(conn1, 201)["data"]
 
-      EHealth.Repo.update_all(EHealth.MedicationRequestRequest, set: [inserted_at: ~N[1970-01-01 13:26:08.003]])
+      Repo.update_all(EHealth.MedicationRequestRequest, set: [inserted_at: ~N[1970-01-01 13:26:08.003]])
       MedicationRequestRequests.autoterminate()
       mrr = MedicationRequestRequests.get_medication_request_request(id)
       assert mrr.status == "EXPIRED"
@@ -535,6 +540,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
         |> (fn x -> EHealth.PRMRepo.get!(EHealth.Parties.Party, x) end).()
         |> Map.get(:tax_id)
 
+      drfo_signed_content(mrr, drfo)
       conn = Plug.Conn.put_req_header(conn, "drfo", drfo)
 
       conn1 =
@@ -571,8 +577,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
       conn1 = post(conn, medication_request_request_path(conn, :create), medication_request_request: test_request)
       assert mrr = json_response(conn1, 201)["data"]
-
-      EHealth.Repo.update_all(EHealth.MedicationRequestRequest, set: [status: "EXPIRED"])
+      Repo.update_all(EHealth.MedicationRequestRequest, set: [status: "EXPIRED"])
 
       conn1 =
         patch(conn, medication_request_request_path(conn, :sign, mrr["id"]), %{
@@ -606,16 +611,15 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
       conn1 = post(conn, medication_request_request_path(conn, :create), medication_request_request: test_request)
       assert mrr = json_response(conn1, 201)["data"]
-
-      signed_mrr =
-        mrr
-        |> put_in(["employee", "id"], Ecto.UUID.generate())
-        |> Jason.encode!()
-        |> Base.encode64()
+      signed_mrr = put_in(mrr, ["employee", "id"], Ecto.UUID.generate())
+      drfo_signed_content(signed_mrr, nil)
 
       conn1 =
         patch(conn, medication_request_request_path(conn, :sign, mrr["id"]), %{
-          signed_medication_request_request: signed_mrr,
+          signed_medication_request_request:
+            signed_mrr
+            |> Jason.encode!()
+            |> Base.encode64(),
           signed_content_encoding: "base64"
         })
 

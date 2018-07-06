@@ -4,6 +4,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
   use EHealth.Web.ConnCase
 
   import Mox
+  import EHealth.Expectations.Signature
   alias EHealth.ContractRequests.ContractRequest
   alias EHealth.Contracts.Contract
   alias EHealth.Employees.Employee
@@ -68,6 +69,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> put_req_header("drfo", party_user.party.tax_id)
 
       params = prepare_params(division, employee)
+      drfo_signed_content(params, party_user.party.tax_id)
 
       conn =
         post(conn, contract_request_path(conn, :create, UUID.generate()), %{
@@ -119,6 +121,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
             }
           }
         ])
+
+      drfo_signed_content(params, party_user.party.tax_id)
 
       conn =
         post(conn, contract_request_path(conn, :create, UUID.generate()), %{
@@ -187,6 +191,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> Map.put("end_date", Date.to_iso8601(Date.add(now, 30)))
         |> Map.put("external_contractors", external_contractors)
 
+      drfo_signed_content(params, party_user.party.tax_id)
+
       conn =
         post(conn, contract_request_path(conn, :create, UUID.generate()), %{
           "signed_content" => params |> Jason.encode!() |> Base.encode64(),
@@ -228,6 +234,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> Map.put("start_date", "2018-02-01")
         |> Map.delete("external_contractor_flag")
 
+      drfo_signed_content(params, party_user.party.tax_id)
+
       conn =
         post(conn, contract_request_path(conn, :create, UUID.generate()), %{
           "signed_content" => params |> Jason.encode!() |> Base.encode64(),
@@ -267,6 +275,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> Map.put("start_date", "2018-02-01")
         |> Map.delete("external_contractor_flag")
 
+      drfo_signed_content(params, party_user.party.tax_id)
+
       conn =
         post(conn, contract_request_path(conn, :create, UUID.generate()), %{
           "signed_content" => params |> Jason.encode!() |> Base.encode64(),
@@ -299,6 +309,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         division
         |> prepare_params(employee, "2018-03-01")
         |> Map.put("start_date", "2018-02-01")
+
+      drfo_signed_content(params, party_user.party.tax_id)
 
       conn =
         post(conn, contract_request_path(conn, :create, UUID.generate()), %{
@@ -335,6 +347,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         division
         |> prepare_params(employee, Date.to_iso8601(Date.add(start_date, 1)))
         |> Map.put("start_date", Date.to_iso8601(start_date))
+
+      drfo_signed_content(params, party_user.party.tax_id)
 
       conn =
         post(conn, contract_request_path(conn, :create, UUID.generate()), %{
@@ -373,6 +387,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> Map.put("start_date", Date.to_iso8601(start_date))
         |> Map.put("end_date", Date.to_iso8601(Date.add(now, 365 * 3)))
 
+      drfo_signed_content(params, party_user.party.tax_id)
+
       conn =
         post(conn, contract_request_path(conn, :create, UUID.generate()), %{
           "signed_content" => params |> Jason.encode!() |> Base.encode64(),
@@ -409,6 +425,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> prepare_params(employee, Date.to_iso8601(Date.add(start_date, 1)))
         |> Map.put("start_date", Date.to_iso8601(start_date))
         |> Map.put("end_date", Date.to_iso8601(Date.add(now, 30)))
+
+      drfo_signed_content(params, party_user.party.tax_id)
 
       conn =
         post(conn, contract_request_path(conn, :create, UUID.generate()), %{
@@ -461,6 +479,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> Map.put("contract_number", "invalid")
         |> Map.put("start_date", Date.to_iso8601(start_date))
         |> Map.put("end_date", Date.to_iso8601(Date.add(now, 30)))
+
+      drfo_signed_content(params, party_user.party.tax_id)
 
       conn =
         post(conn, contract_request_path(conn, :create, UUID.generate()), %{
@@ -527,6 +547,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> Map.put("contract_number", contract_number)
         |> Map.drop(~w(start_date end_date))
 
+      drfo_signed_content(params, party_user.party.tax_id)
+
       conn =
         post(conn, contract_request_path(conn, :create, UUID.generate()), %{
           "signed_content" => params |> Jason.encode!() |> Base.encode64(),
@@ -582,6 +604,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> Map.put("contractor_owner_id", owner.id)
         |> Map.put("start_date", Date.to_iso8601(start_date))
         |> Map.put("end_date", Date.to_iso8601(Date.add(now, 30)))
+
+      drfo_signed_content(params, party_user.party.tax_id)
 
       conn1 =
         post(conn, contract_request_path(conn, :create, UUID.generate()), %{
@@ -828,6 +852,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "text" => "something"
       }
 
+      drfo_signed_content(data, party_user.party.tax_id)
+
       conn =
         patch(conn, contract_request_path(conn, :approve, contract_request.id), %{
           "signed_content" => data |> Jason.encode!() |> Base.encode64(),
@@ -886,6 +912,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "text" => "something"
       }
 
+      drfo_signed_content(data, party_user.party.tax_id)
+
       conn =
         patch(conn, contract_request_path(conn, :approve, contract_request.id), %{
           "signed_content" => data |> Jason.encode!() |> Base.encode64(),
@@ -919,6 +947,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         },
         "text" => "something"
       }
+
+      drfo_signed_content(data, party_user.party.tax_id)
 
       conn =
         conn
@@ -982,6 +1012,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "text" => "something"
       }
 
+      drfo_signed_content(data, party_user.party.tax_id)
+
       conn =
         patch(conn, contract_request_path(conn, :approve, contract_request.id), %{
           "signed_content" => data |> Jason.encode!() |> Base.encode64(),
@@ -1043,6 +1075,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         },
         "text" => "something"
       }
+
+      drfo_signed_content(data, party_user.party.tax_id)
 
       conn =
         patch(conn, contract_request_path(conn, :approve, contract_request.id), %{
@@ -1108,6 +1142,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "text" => "something"
       }
 
+      drfo_signed_content(data, party_user.party.tax_id)
+
       conn =
         patch(conn, contract_request_path(conn, :approve, contract_request.id), %{
           "signed_content" => data |> Jason.encode!() |> Base.encode64(),
@@ -1172,6 +1208,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "text" => "something"
       }
 
+      drfo_signed_content(data, party_user.party.tax_id)
+
       conn =
         patch(conn, contract_request_path(conn, :approve, contract_request.id), %{
           "signed_content" => data |> Jason.encode!() |> Base.encode64(),
@@ -1235,6 +1273,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> put_consumer_id_header(user_id)
         |> put_client_id_header(legal_entity.id)
         |> put_req_header("drfo", party_user.party.tax_id)
+
+      drfo_signed_content(data, party_user.party.tax_id)
 
       conn =
         patch(conn, contract_request_path(conn, :approve, contract_request.id), %{
@@ -1311,6 +1351,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         },
         "text" => "something"
       }
+
+      drfo_signed_content(data, party_user.party.tax_id)
 
       conn =
         patch(conn, contract_request_path(conn, :approve, contract_request.id), %{
@@ -1398,6 +1440,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         },
         "text" => "something"
       }
+
+      drfo_signed_content(data, party_user.party.tax_id)
 
       conn =
         patch(conn, contract_request_path(conn, :approve, contract_request.id), %{
@@ -1502,6 +1546,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         },
         "text" => "something"
       }
+
+      drfo_signed_content(data, party_user.party.tax_id)
 
       conn =
         patch(conn, contract_request_path(conn, :approve, contract_request.id), %{
@@ -2038,6 +2084,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
     test "failed to decode signed content", %{conn: conn} do
       nhs()
+      invalid_signed_content()
 
       %{
         "client_id" => client_id,
@@ -2084,6 +2131,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> put_req_header("drfo", party_user.party.tax_id)
 
       data = %{"id" => contract_request.id, "printout_content" => "<html></html>"}
+      drfo_signed_content(data, party_user.party.tax_id)
 
       conn =
         patch(conn, contract_request_path(conn, :sign_nhs, contract_request.id), %{
@@ -2168,6 +2216,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> put_consumer_id_header(user_id)
         |> put_req_header("drfo", party_user.party.tax_id)
 
+      drfo_signed_content(data, party_user.party.tax_id)
+
       conn =
         patch(conn, contract_request_path(conn, :sign_nhs, contract_request.id), %{
           "signed_content" => data |> Jason.encode!() |> Base.encode64(),
@@ -2212,16 +2262,19 @@ defmodule EHealth.Web.ContractRequestControllerTest do
           status: ContractRequest.status(:pending_nhs_sign)
         )
 
+      data = Map.put(data, "printout_content", "<html></html>")
+
       conn =
         conn
         |> put_client_id_header(client_id)
         |> put_consumer_id_header(user_id)
         |> put_req_header("drfo", party_user.party.tax_id)
 
+      drfo_signed_content(data, party_user.party.tax_id)
+
       conn =
         patch(conn, contract_request_path(conn, :sign_nhs, contract_request.id), %{
-          "signed_content" =>
-            data |> Map.put("printout_content", "<html></html>") |> Jason.encode!() |> Base.encode64(),
+          "signed_content" => data |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
 
@@ -2297,6 +2350,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "text" => "something"
       }
 
+      drfo_signed_content(data, party_user.party.tax_id)
+
       conn =
         conn
         |> put_req_header("drfo", party_user.party.tax_id)
@@ -2358,6 +2413,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         conn
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(user_id)
+
+      drfo_signed_content(%{}, party_user.party.tax_id)
 
       conn =
         conn
@@ -2429,6 +2486,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "text" => "something"
       }
 
+      drfo_signed_content(data, party_user.party.tax_id)
+
       conn =
         conn
         |> put_req_header("drfo", party_user.party.tax_id)
@@ -2476,7 +2535,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
                |> json_response(200)
     end
 
-    test "contract request was no signed by nhs", %{conn: conn} do
+    test "contract request was not signed by nhs", %{conn: conn} do
       msp()
       contract_request = insert(:il, :contract_request, status: ContractRequest.status(:new))
 
@@ -2588,6 +2647,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> put_consumer_id_header(user_id)
         |> put_req_header("msp_drfo", party_user.party.tax_id)
 
+      invalid_signed_content()
+
       conn =
         patch(conn, contract_request_path(conn, :sign_msp, contract_request.id), %{
           "signed_content" => "invalid",
@@ -2632,6 +2693,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> put_req_header("msp_drfo", party_user.party.tax_id)
 
       data = %{"id" => contract_request.id, "printout_content" => "<html></html>"}
+      drfo_signed_content(data, [party_user.party.tax_id, nil])
 
       conn =
         patch(conn, contract_request_path(conn, :sign_msp, contract_request.id), %{
@@ -2671,6 +2733,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> put_consumer_id_header(user_id)
         |> put_req_header("msp_drfo", party_user.party.tax_id)
 
+      drfo_signed_content(data, [party_user.party.tax_id, nil])
+
       conn =
         patch(conn, contract_request_path(conn, :sign_msp, contract_request.id), %{
           "signed_content" => data |> Poison.encode!() |> Base.encode64(),
@@ -2708,6 +2772,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> put_client_id_header(client_id)
         |> put_consumer_id_header(user_id)
         |> put_req_header("msp_drfo", party_user.party.tax_id)
+
+      drfo_signed_content(data, [party_user.party.tax_id, nil])
 
       conn =
         patch(conn, contract_request_path(conn, :sign_msp, contract_request.id), %{
@@ -2750,6 +2816,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> put_client_id_header(client_id)
         |> put_consumer_id_header(user_id)
         |> put_req_header("msp_drfo", party_user.party.tax_id)
+
+      drfo_signed_content(data, [party_user.party.tax_id, nil])
 
       conn =
         patch(conn, contract_request_path(conn, :sign_msp, contract_request.id), %{
@@ -2804,6 +2872,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> put_client_id_header(client_id)
         |> put_consumer_id_header(user_id)
         |> put_req_header("msp_drfo", party_user.party.tax_id)
+
+      drfo_signed_content(data, [party_user.party.tax_id, nil])
 
       conn =
         patch(conn, contract_request_path(conn, :sign_msp, contract_request.id), %{

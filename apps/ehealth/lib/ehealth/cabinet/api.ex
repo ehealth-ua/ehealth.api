@@ -11,12 +11,12 @@ defmodule EHealth.Cabinet.API do
   alias EHealth.Man.Templates.EmailVerification
   alias EHealth.Persons.Validator, as: PersonValidator
   alias EView.Changeset.Validators.Email, as: EmailValidator
+  alias EHealth.Validators.Signature, as: SignatureValidator
 
   require Logger
 
   @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
   @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
-  @signature_api Application.get_env(:ehealth, :api_resolvers)[:digital_signature]
   @media_storage_api Application.get_env(:ehealth, :api_resolvers)[:media_storage]
   @otp_verification_api Application.get_env(:ehealth, :api_resolvers)[:otp_verification]
 
@@ -27,9 +27,8 @@ defmodule EHealth.Cabinet.API do
   def create_patient(jwt, params, headers) do
     with {:ok, email} <- fetch_email_from_jwt(jwt),
          %Ecto.Changeset{valid?: true, changes: changes} <- validate_params(:patient, params),
-         {:ok, %{"data" => data}} <-
-           @signature_api.decode_and_validate(params["signed_content"], params["signed_content_encoding"], headers),
-         {:ok, %{"content" => content, "signer" => signer}} <- process_digital_signature_data(data),
+         {:ok, %{"content" => content, "signer" => signer}} <-
+           SignatureValidator.validate(params["signed_content"], params["signed_content_encoding"], headers),
          :ok <- verify_auth(content, changes, headers),
          :ok <- JsonSchema.validate(:person, content),
          :ok <- PersonValidator.validate_birth_date(content["birth_date"], "$.birth_date"),
@@ -230,9 +229,8 @@ defmodule EHealth.Cabinet.API do
     with %Ecto.Changeset{valid?: true} <- validate_params(:user_search, params),
          {:ok, %{"email" => email}} <- Guardian.decode_and_verify(jwt),
          true <- email_available_for_registration?(email, headers),
-         {:ok, %{"data" => data}} <-
-           @signature_api.decode_and_validate(params["signed_content"], params["signed_content_encoding"], headers),
-         {:ok, %{"signer" => signer}} <- process_digital_signature_data(data),
+         {:ok, %{"signer" => signer}} <-
+           SignatureValidator.validate(params["signed_content"], params["signed_content_encoding"], headers),
          {:ok, tax_id} <- fetch_drfo(signer) do
       %{tax_id: tax_id}
       |> @mithril_api.search_user(headers)
@@ -249,19 +247,6 @@ defmodule EHealth.Cabinet.API do
 
   defp check_mithril_user_absence({:ok, _}), do: :ok
   defp check_mithril_user_absence(_), do: {:error, {:internal_error, "Cannot fetch user"}}
-
-  defp process_digital_signature_data(%{
-         "content" => content,
-         "signatures" => [%{"is_valid" => true, "signer" => signer}]
-       }),
-       do: {:ok, %{"content" => content, "signer" => signer}}
-
-  defp process_digital_signature_data(%{"signatures" => [%{"is_valid" => false, "validation_error_message" => error}]}),
-    do: {:error, {:bad_request, error}}
-
-  defp process_digital_signature_data(%{"signatures" => signatures}) when is_list(signatures),
-    do:
-      {:error, {:bad_request, "document must be signed by 1 signer but contains #{Enum.count(signatures)} signatures"}}
 
   defp conflict(message, type), do: {:error, {:conflict, %{message: message, type: type}}}
 

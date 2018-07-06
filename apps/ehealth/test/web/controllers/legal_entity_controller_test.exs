@@ -3,7 +3,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
   use EHealth.Web.ConnCase, async: false
   import Mox
-
+  import EHealth.Expectations.Signature
   alias Ecto.UUID
   alias EHealth.Employees.Employee
   alias EHealth.PRMRepo
@@ -44,6 +44,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       invalid_legal_entity_type = "MIS"
       legal_entity_params = Map.merge(get_legal_entity_data(), %{"type" => invalid_legal_entity_type})
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
+      edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
       conn =
         conn
@@ -72,6 +73,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       legal_entity_type = "MSP"
       legal_entity_params = Map.merge(get_legal_entity_data(), %{"type" => legal_entity_type})
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
+      edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
       conn =
         conn
@@ -87,7 +89,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
   end
 
   describe "contract suspend on update legal entity" do
-    test "contract suspend on change legal enityty name", %{conn: conn} do
+    test "contract suspend on change legal entity name", %{conn: conn} do
       get_client_type_by_name(UUID.generate(), 2)
       put_client(2)
       validate_addresses(2)
@@ -97,6 +99,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       legal_entity_params = Map.merge(get_legal_entity_data(), %{"type" => "MSP"})
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       consumer_id = UUID.generate()
+      edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
       conn1 =
         conn
@@ -107,12 +110,10 @@ defmodule EHealth.Web.LegalEntityControllerTest do
         |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
 
       id = json_response(conn1, 200)["data"]["id"]
-
       %{id: contract_id} = insert(:prm, :contract, contractor_legal_entity_id: id)
-
       legal_entity_params = Map.put(legal_entity_params, "name", "Institute of medical researches ISMT")
-
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
+      edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
       conn2 =
         conn
@@ -123,7 +124,6 @@ defmodule EHealth.Web.LegalEntityControllerTest do
         |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
 
       resp2 = json_response(conn2, 200)
-
       assert resp2
 
       assert %{"data" => response_data} =
@@ -145,6 +145,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       legal_entity_params = Map.merge(get_legal_entity_data(), %{"type" => "MSP"})
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       consumer_id = UUID.generate()
+      edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
       conn1 =
         conn
@@ -155,12 +156,10 @@ defmodule EHealth.Web.LegalEntityControllerTest do
         |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
 
       id = json_response(conn1, 200)["data"]["id"]
-
       %{id: contract_id} = insert(:prm, :contract, contractor_legal_entity_id: id)
-
       legal_entity_params = Map.put(legal_entity_params, "status", "CLOSED")
-
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
+      edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
       conn2 =
         conn
@@ -171,7 +170,6 @@ defmodule EHealth.Web.LegalEntityControllerTest do
         |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
 
       resp2 = json_response(conn2, 200)
-
       assert resp2
 
       assert %{"data" => response_data} =
@@ -193,6 +191,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       legal_entity_params = Map.merge(get_legal_entity_data(), %{"type" => "MSP"})
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       consumer_id = UUID.generate()
+      edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
       conn1 =
         conn
@@ -208,10 +207,9 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
       [addres | addresses] = legal_entity_params["addresses"]
       addresses = [%{addres | "apartment" => "42/12"} | addresses]
-
       legal_entity_params = Map.put(legal_entity_params, "addresses", addresses)
-
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
+      edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
       conn2 =
         conn
@@ -222,7 +220,6 @@ defmodule EHealth.Web.LegalEntityControllerTest do
         |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
 
       resp2 = json_response(conn2, 200)
-
       assert resp2
 
       assert %{"data" => response_data} =

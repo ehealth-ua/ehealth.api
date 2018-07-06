@@ -4,7 +4,6 @@ defmodule EHealth.DeclarationRequests.API.Sign do
   import Ecto.Changeset
   import EHealth.Utils.Connection
   alias EHealth.API.MediaStorage
-  alias EHealth.API.Signature
   alias EHealth.DeclarationRequests
   alias EHealth.DeclarationRequests.API.Persons
   alias EHealth.DeclarationRequests.DeclarationRequest
@@ -14,6 +13,7 @@ defmodule EHealth.DeclarationRequests.API.Sign do
   alias EHealth.Employees.Employee
   alias HTTPoison.Response
   alias EHealth.Repo
+  alias EHealth.Validators.Signature, as: SignatureValidator
   require Logger
 
   @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
@@ -45,8 +45,6 @@ defmodule EHealth.DeclarationRequests.API.Sign do
     params
     |> validate_sign_request()
     |> validate_signature(headers)
-    |> normalize_signature_error()
-    |> check_is_valid()
   end
 
   def validate_sign_request(params) do
@@ -62,9 +60,16 @@ defmodule EHealth.DeclarationRequests.API.Sign do
   end
 
   def validate_signature(%Ecto.Changeset{valid?: true, changes: changes}, headers) do
-    changes
-    |> Map.get(:signed_declaration_request)
-    |> Signature.decode_and_validate(Map.get(changes, :signed_content_encoding), headers)
+    with {:ok, %{"content" => content, "signer" => signer}} <-
+           SignatureValidator.validate(
+             Map.get(changes, :signed_declaration_request),
+             Map.get(changes, :signed_content_encoding),
+             headers
+           ) do
+      {:ok, %{"content" => content, "signer" => signer}}
+    else
+      error -> normalize_signature_error(error)
+    end
   end
 
   def validate_signature(err, _headers), do: err
@@ -82,25 +87,6 @@ defmodule EHealth.DeclarationRequests.API.Sign do
   end
 
   def normalize_signature_error(ok_resp), do: ok_resp
-
-  def check_is_valid({:ok, %{"data" => data}}), do: do_check_is_valid(data)
-
-  def check_is_valid(err), do: err
-
-  defp do_check_is_valid(%{
-         "content" => content,
-         "signatures" => [%{"is_valid" => true, "signer" => signer}]
-       }),
-       do: {:ok, %{"content" => content, "signer" => signer}}
-
-  defp do_check_is_valid(%{
-         "signatures" => [%{"is_valid" => false, "validation_error_message" => error}]
-       }),
-       do: {:error, {:bad_request, error}}
-
-  defp do_check_is_valid(%{"signatures" => signatures}) when is_list(signatures),
-    do:
-      {:error, {:bad_request, "document must be signed by 1 signer but contains #{Enum.count(signatures)} signatures"}}
 
   def check_status(%DeclarationRequest{status: status}) do
     case status do
