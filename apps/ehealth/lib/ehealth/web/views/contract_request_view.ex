@@ -43,7 +43,6 @@ defmodule EHealth.Web.ContractRequestView do
       contractor_payment_details
       contractor_rmsp_amount
       external_contractor_flag
-      external_contractors
       nhs_signer_base
       nhs_contract_price
       nhs_payment_method
@@ -81,6 +80,10 @@ defmodule EHealth.Web.ContractRequestView do
     |> Map.put(
       "contractor_divisions",
       render_association(:contractor_divisions, references, contract_request.contractor_divisions || [])
+    )
+    |> Map.put(
+      "external_contractors",
+      render_association(:external_contractors, references, contract_request.external_contractors || [])
     )
   end
 
@@ -167,7 +170,35 @@ defmodule EHealth.Web.ContractRequestView do
     end)
   end
 
+  def render_association(:external_contractor, references, external_contractor) do
+    legal_entity =
+      references
+      |> Map.get(:legal_entity)
+      |> Map.get(external_contractor["legal_entity_id"]) || %{}
+
+    divisions = external_contractor["divisions"] || []
+
+    divisions =
+      Enum.map(divisions, fn %{"id" => id, "medical_service" => medical_service} ->
+        division =
+          references
+          |> Map.get(:division)
+          |> Map.get(id) || %{}
+
+        %{"id" => id, "name" => division.name, "medical_service" => medical_service}
+      end)
+
+    external_contractor
+    |> Map.take(~w(contract))
+    |> Map.put("legal_entity", Map.take(legal_entity, ~w(id name)a))
+    |> Map.put("divisions", divisions)
+  end
+
   def render_association(:contractor_divisions, references, contractor_divisions) do
     Enum.map(contractor_divisions, &render_association(:division, references, &1))
+  end
+
+  def render_association(:external_contractors, references, external_contractors) do
+    Enum.map(external_contractors, &render_association(:external_contractor, references, &1))
   end
 end

@@ -756,7 +756,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       assert resp
 
-      Enum.each(resp["urgent"], fn urgent_data ->
+      Enum.each(resp["urgent"]["documents"], fn urgent_data ->
         assert Map.has_key?(urgent_data, "type")
         assert(Map.has_key?(urgent_data, "url"))
       end)
@@ -795,7 +795,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       assert resp
 
-      Enum.each(resp["urgent"], fn urgent_data ->
+      Enum.each(resp["urgent"]["documents"], fn urgent_data ->
         assert Map.has_key?(urgent_data, "type")
         assert(Map.has_key?(urgent_data, "url"))
       end)
@@ -808,7 +808,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       assert resp
 
-      Enum.each(resp["urgent"], fn urgent_data ->
+      Enum.each(resp["urgent"]["documents"], fn urgent_data ->
         assert Map.has_key?(urgent_data, "type")
         assert(Map.has_key?(urgent_data, "url"))
       end)
