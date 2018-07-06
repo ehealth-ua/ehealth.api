@@ -2111,6 +2111,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
       insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
       insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
+      insert(:il, :dictionary, name: "MEDICAL_SERVICE", values: %{})
       nhs()
 
       expect(ManMock, :render_template, fn _, _, _ ->
@@ -2179,6 +2180,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
       insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
       insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
+      insert(:il, :dictionary, name: "MEDICAL_SERVICE", values: %{})
       nhs()
 
       expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
@@ -2232,6 +2234,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
       insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
       insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
+      insert(:il, :dictionary, name: "MEDICAL_SERVICE", values: %{})
       nhs()
 
       expect(ManMock, :render_template, fn _, _, _ ->
@@ -2897,6 +2900,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
       insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
       insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
+      insert(:il, :dictionary, name: "MEDICAL_SERVICE", values: %{})
       nhs()
 
       printout_content = "<html></html>"

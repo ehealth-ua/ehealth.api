@@ -45,7 +45,7 @@ defmodule EHealth.ILFactories.ContractRequestFactory do
           contractor_divisions: [division.id],
           external_contractors: [
             %{
-              "divisions" => [%{"id" => division.id}],
+              "divisions" => [%{"id" => division.id, "medical_service" => "PHC_SERVICES"}],
               "contract" => %{"expires_at" => to_string(end_date)}
             }
           ],

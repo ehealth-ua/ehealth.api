@@ -48,7 +48,7 @@ defmodule EHealth.Man.Templates.ContractRequestPrintoutForm do
     |> Map.put("contractor_owner", prepare_employee(contractor_owner))
     |> Map.put("contractor_divisions", prepare_contractor_divisions(data, references, dictionaries))
     |> Map.put("contractor_employee_divisions", prepare_contractor_employee_divisions(data, references, dictionaries))
-    |> Map.put("external_contractors", prepare_external_contractors(data, references))
+    |> Map.put("external_contractors", prepare_external_contractors(data, references, dictionaries))
   end
 
   defp format_price(data, field) do
@@ -174,19 +174,27 @@ defmodule EHealth.Man.Templates.ContractRequestPrintoutForm do
     Map.put(params, :speciality, Map.put(speciality, "speciality", translated_speciality))
   end
 
-  defp prepare_external_contractors(data, references) do
+  defp prepare_external_contractors(data, references, dictionaries) do
     external_contractors = Map.get(data, "external_contractors") || []
 
     Enum.map(external_contractors, fn external_contractor ->
       legal_entity = Map.get(references.legal_entity, external_contractor["legal_entity_id"]) || %{}
       legal_entity = Map.take(legal_entity, ~w(id name)a)
+      divisions = Enum.map(external_contractor["divisions"], &translate_medical_service(&1, dictionaries))
 
       external_contractor
-      |> Map.take(~w(contract divisions))
+      |> Map.take(~w(contract))
+      |> Map.put("divisions", divisions)
       |> format_date(~w(contract expires_at))
       |> format_date(~w(contract issued_at))
       |> Map.put("legal_entity", legal_entity)
     end)
+  end
+
+  defp translate_medical_service(%{"medical_service" => medical_service} = division, dictionaries) do
+    %Dictionary{values: values} = Enum.find(dictionaries, fn %Dictionary{name: name} -> name == "MEDICAL_SERVICE" end)
+    translated_medical_service = Map.get(values, medical_service)
+    Map.put(division, "medical_service", translated_medical_service)
   end
 
   defp preload_references(contract_request) do
