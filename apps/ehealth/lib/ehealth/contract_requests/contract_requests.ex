@@ -502,7 +502,7 @@ defmodule EHealth.ContractRequests do
              "Incorrect status of contract_request to generate printout form"
            ),
          {:ok, printout_content} <-
-           ContractRequestPrintoutForm.render(Map.put(contract_request, "nhs_signed_date", Date.utc_today()), headers) do
+           ContractRequestPrintoutForm.render(Map.put(contract_request, :nhs_signed_date, Date.utc_today()), headers) do
       {:ok, contract_request, printout_content}
     end
   end
@@ -666,7 +666,7 @@ defmodule EHealth.ContractRequests do
   end
 
   def nhs_signed_changeset(%ContractRequest{} = contract_request, params) do
-    fields = ~w(status updated_by printout_content)a
+    fields = ~w(status updated_by printout_content nhs_signed_date)a
 
     contract_request
     |> cast(params, fields)
