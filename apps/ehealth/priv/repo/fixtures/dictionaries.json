@@ -1481,5 +1481,17 @@
       "EXTERNAL"
     ],
     "is_active": true
+  },
+  {
+    "name": "CONTRACT_DOCUMENT",
+    "values": {
+      "CONTRACT_REQUEST_STATUT": "Статут",
+      "ADDITIONAL_DOCUMENT": "Додатковий документ"
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
   }
 ]
