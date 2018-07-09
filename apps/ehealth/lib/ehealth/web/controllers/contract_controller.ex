@@ -4,6 +4,7 @@ defmodule EHealth.Web.ContractController do
   use EHealth.Web, :controller
 
   alias EHealth.Contracts
+  alias EHealth.ContractRequests
   alias Scrivener.Page
 
   action_fallback(EHealth.Web.FallbackController)
@@ -18,7 +19,11 @@ defmodule EHealth.Web.ContractController do
 
   def show(conn, %{"id" => id} = params) do
     with {:ok, contract, references} <- Contracts.get_by_id(id, params) do
-      render(conn, "show.json", contract: contract, references: references)
+      conn
+      |> assign(:urgent, %{
+        "documents" => ContractRequests.gen_relevant_get_links(contract.contract_request_id, contract.status)
+      })
+      |> render("show.json", contract: contract, references: references)
     end
   end
 

@@ -4,22 +4,35 @@ defmodule EHealth.Web.ContractControllerTest do
   use EHealth.Web.ConnCase
 
   import EHealth.Expectations.Signature
+  import Mox
   alias EHealth.Contracts.Contract
   alias Ecto.UUID
 
   describe "show contract" do
     test "finds contract successfully and nhs can see any contracts", %{conn: conn} do
-      nhs()
-      contract_request = insert(:il, :contract_request)
-      contract = insert(:prm, :contract, contract_request_id: contract_request.id)
+      nhs(2)
 
-      assert %{"data" => response_data} =
+      expect(MediaStorageMock, :create_signed_url, 4, fn _, _, id, resource_name, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://url.com/#{id}/#{resource_name}"}}}
+      end)
+
+      contract_request = insert(:il, :contract_request)
+      contract = insert(:prm, :contract, contract_request_id: contract_request.id, status: "SIGNED")
+
+      assert response =
+               %{"data" => response_data} =
                conn
                |> put_client_id_header(UUID.generate())
                |> get(contract_path(conn, :show, contract.id))
                |> json_response(200)
 
       assert response_data["id"] == contract.id
+      assert length(response["urgent"]["documents"]) == 3
+
+      Enum.each(response["urgent"]["documents"], fn urgent_data ->
+        assert Map.has_key?(urgent_data, "type")
+        assert(Map.has_key?(urgent_data, "url"))
+      end)
     end
 
     test "ensure TOKENS_TYPES_PERSONAL has access to own contracts", %{conn: conn} do
