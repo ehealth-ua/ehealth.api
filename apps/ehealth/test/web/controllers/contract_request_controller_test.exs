@@ -68,7 +68,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> put_consumer_id_header(party_user.user_id)
         |> put_req_header("drfo", party_user.party.tax_id)
 
-      params = prepare_params(division, employee)
+      params = prepare_params(division, employee) |> Map.put("contractor_divisions", [division.id, UUID.generate()])
       drfo_signed_content(params, party_user.party.tax_id)
 
       conn =
@@ -79,11 +79,30 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       resp = json_response(conn, 422)
 
-      assert_error(
-        resp,
-        "$.contractor_divisions[0]",
-        "Division must be active and within current legal_entity"
-      )
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.contractor_divisions[0]",
+                   "rules" => [
+                     %{
+                       "description" => "Division must be active and within current legal_entity",
+                       "params" => [],
+                       "rule" => "invalid"
+                     }
+                   ]
+                 },
+                 %{
+                   "entry" => "$.contractor_divisions[1]",
+                   "rules" => [
+                     %{
+                       "description" => "Division not found",
+                       "params" => [],
+                       "rule" => "invalid"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
     end
 
     test "external contractor division is not present in contract divisions", %{conn: conn} do
@@ -116,8 +135,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
             "legal_entity_id" => external_legal_entity_id,
             "contract" => %{
               "number" => "1234567",
-              "issued_at" => nil,
-              "expires_at" => nil
+              "issued_at" => Date.to_iso8601(Date.utc_today()),
+              "expires_at" => Date.to_iso8601(Date.utc_today())
             }
           }
         ])
@@ -203,10 +222,28 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       assert %{
                "invalid" => [
-                 %{"entry_type" => "request", "rules" => [%{"rule" => "json"}]}
+                 %{
+                   "entry" => "$.contractor_employee_divisions[0].division_id",
+                   "rules" => [
+                     %{
+                       "description" => "Active $external_contractors[0].legal_entity_id does not exist",
+                       "params" => [],
+                       "rule" => "invalid"
+                     }
+                   ]
+                 },
+                 %{
+                   "entry" => "$.contractor_employee_divisions[2].division_id",
+                   "rules" => [
+                     %{
+                       "description" => "Active $external_contractors[2].legal_entity_id does not exist",
+                       "params" => [],
+                       "rule" => "invalid"
+                     }
+                   ]
+                 }
                ],
-               "message" => "Active $external_contractors[0].legal_entity_id does not exist",
-               "type" => "request_malformed"
+               "type" => "validation_failed"
              } = resp["error"]
     end
 
@@ -1302,7 +1339,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
              } = resp["error"]
     end
 
-    test "external contractor division is not present in employee divisions", %{conn: conn} do
+    test "contractor divisions validation errors mix", %{conn: conn} do
       expect(MithrilMock, :get_user_roles, fn _, _, _ ->
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
       end)
@@ -1314,6 +1351,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       user_id = UUID.generate()
       legal_entity = insert(:prm, :legal_entity)
       party_user = insert(:prm, :party_user, user_id: user_id)
+      contractor_division_1 = insert(:prm, :division, legal_entity: legal_entity)
+      contractor_division_2 = insert(:prm, :division, legal_entity: legal_entity)
 
       employee =
         insert(
@@ -1330,8 +1369,11 @@ defmodule EHealth.Web.ContractRequestControllerTest do
           :contract_request,
           contractor_legal_entity_id: legal_entity.id,
           contractor_owner_id: employee.id,
+          contractor_divisions: [contractor_division_1.id, contractor_division_2.id],
           contractor_employee_divisions: [
-            %{division_id: UUID.generate(), employee_id: employee.id}
+            %{division_id: contractor_division_1.id, employee_id: employee.id},
+            %{division_id: contractor_division_2.id, employee_id: UUID.generate()},
+            %{division_id: UUID.generate(), employee_id: UUID.generate()}
           ],
           nhs_signer_id: nil
         )
@@ -1366,10 +1408,39 @@ defmodule EHealth.Web.ContractRequestControllerTest do
                "invalid" => [
                  %{
                    "entry" => "$.contractor_employee_divisions[0].employee_id",
-                   "entry_type" => "json_data_property",
                    "rules" => [
                      %{
                        "description" => "Employee must be active DOCTOR",
+                       "params" => [],
+                       "rule" => "invalid"
+                     }
+                   ]
+                 },
+                 %{
+                   "entry" => "$.contractor_employee_divisions[1].employee_id",
+                   "rules" => [
+                     %{
+                       "description" => "Employee not found",
+                       "params" => [],
+                       "rule" => "invalid"
+                     }
+                   ]
+                 },
+                 %{
+                   "entry" => "$.contractor_employee_divisions[2].employee_id",
+                   "rules" => [
+                     %{
+                       "description" => "Employee not found",
+                       "params" => [],
+                       "rule" => "invalid"
+                     }
+                   ]
+                 },
+                 %{
+                   "entry" => "$.contractor_employee_divisions[2].division_id",
+                   "rules" => [
+                     %{
+                       "description" => "Division should be among contractor_divisions",
                        "params" => [],
                        "rule" => "invalid"
                      }

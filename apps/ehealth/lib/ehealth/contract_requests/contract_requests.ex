@@ -773,37 +773,49 @@ defmodule EHealth.ContractRequests do
     contractor_divisions = params["contractor_divisions"]
     contractor_employee_divisions = params["contractor_employee_divisions"] || []
 
-    contractor_employee_divisions
-    |> Enum.with_index()
-    |> Enum.reduce_while(:ok, fn {employee_division, i}, _ ->
-      with {:ok, %Employee{} = employee} <-
-             Reference.validate(
-               :employee,
-               employee_division["employee_id"],
-               "$.contractor_employee_divisions[#{i}].employee_id"
-             ),
-           :ok <- check_employee(employee, i),
-           {:division_subset, true} <- {:division_subset, employee_division["division_id"] in contractor_divisions} do
-        {:cont, :ok}
-      else
-        {:division_subset, _} ->
-          {:halt,
-           {:error,
-            [
-              {
-                %{
-                  description: "Division should be among contractor_divisions",
-                  params: [],
-                  rule: :invalid
-                },
-                "$.contractor_employee_divisions[#{i}].division_id"
-              }
-            ]}}
+    errors =
+      contractor_employee_divisions
+      |> Enum.with_index()
+      |> Enum.reduce([], fn {employee_division, i}, errors_list ->
+        errors_list
+        |> validate_employee_division_employee(employee_division, i)
+        |> validate_employee_division_subset(contractor_divisions, employee_division, i)
+      end)
 
-        error ->
-          {:halt, error}
-      end
-    end)
+    if length(errors) > 0, do: {:error, errors}, else: :ok
+  end
+
+  defp validate_employee_division_employee(errors, division, index) do
+    with {:ok, %Employee{} = employee} <-
+           Reference.validate(
+             :employee,
+             division["employee_id"],
+             "$.contractor_employee_divisions[#{index}].employee_id"
+           ),
+         :ok <- check_employee(employee, index) do
+      errors
+    else
+      {:error, error} when is_list(error) -> errors ++ error
+      {:error, error} -> errors ++ [error]
+    end
+  end
+
+  defp validate_employee_division_subset(errors, division_subset, division, index) do
+    if division["division_id"] in division_subset do
+      errors
+    else
+      errors ++
+        [
+          {
+            %{
+              description: "Division should be among contractor_divisions",
+              params: [],
+              rule: :invalid
+            },
+            "$.contractor_employee_divisions[#{index}].division_id"
+          }
+        ]
+    end
   end
 
   defp validate_nhs_signer_id(%ContractRequest{nhs_signer_id: nhs_signer_id}, client_id)
@@ -915,19 +927,23 @@ defmodule EHealth.ContractRequests do
          "contractor_divisions" => contractor_divisions,
          "contractor_legal_entity_id" => contractor_legal_entity_id
        }) do
-    contractor_divisions
-    |> Enum.with_index()
-    |> Enum.reduce_while(:ok, fn {division_id, i}, acc ->
-      result =
-        with {:ok, division} <- Reference.validate(:division, division_id, "$.contractor_divisions[#{i}]") do
-          check_division(division, contractor_legal_entity_id, "$.contractor_divisions[#{i}]")
-        end
+    errors =
+      contractor_divisions
+      |> Enum.with_index()
+      |> Enum.reduce([], fn {division_id, i}, acc ->
+        result =
+          with {:ok, division} <- Reference.validate(:division, division_id, "$.contractor_divisions[#{i}]") do
+            check_division(division, contractor_legal_entity_id, "$.contractor_divisions[#{i}]")
+          end
 
-      case result do
-        :ok -> {:cont, acc}
-        error -> {:halt, error}
-      end
-    end)
+        case result do
+          :ok -> acc
+          {:error, error} when is_list(error) -> acc ++ error
+          {:error, error} -> acc ++ [error]
+        end
+      end)
+
+    if length(errors) > 0, do: {:error, errors}, else: :ok
   end
 
   defp validate_external_contractor_flag(%{
@@ -958,41 +974,62 @@ defmodule EHealth.ContractRequests do
     end
   end
 
-  defp validate_external_legal_entity(%{"legal_entity_id" => legal_entity_id}, i)
+  defp validate_external_legal_entity(errors, %{"legal_entity_id" => legal_entity_id}, index)
        when not is_nil(legal_entity_id) do
     validation_result =
       Reference.validate(
         :legal_entity,
         legal_entity_id,
-        "$.external_contractors[#{i}].legal_entity_id"
+        "$.external_contractors[#{index}].legal_entity_id"
       )
 
     case validation_result do
       {:error, _} ->
-        {:error, {:"422", "Active $external_contractors[#{i}].legal_entity_id does not exist"}}
+        errors ++
+          [
+            {
+              %{
+                description: "Active $external_contractors[#{index}].legal_entity_id does not exist",
+                params: [],
+                rule: :invalid
+              },
+              "$.contractor_employee_divisions[#{index}].division_id"
+            }
+          ]
 
       _ ->
-        :ok
+        errors
     end
   end
 
-  defp validate_external_legal_entity(_, i) do
-    {:error, {:"422", "Active $external_contractors[#{i}].legal_entity_id does not exist"}}
+  defp validate_external_legal_entity(errors, _, index) do
+    errors ++
+      [
+        {
+          %{
+            description: "Active $external_contractors[#{index}].legal_entity_id does not exist",
+            params: [],
+            rule: :invalid
+          },
+          "$.contractor_employee_divisions[#{index}].division_id"
+        }
+      ]
   end
 
-  defp validate_divisions(params, contractor, i) do
+  defp validate_divisions(errors, params, contractor, i) do
     contractor["divisions"]
     |> Enum.with_index()
-    |> Enum.reduce_while(:ok, fn {contractor_division, j}, _ ->
+    |> Enum.reduce(errors, fn {contractor_division, j}, errors ->
       with :ok <-
              validate_external_contractor_division(
                params["contractor_divisions"],
                contractor_division,
                "$.external_contractors[#{i}].divisions[#{j}].id"
              ) do
-        {:cont, :ok}
+        errors
       else
-        {:error, reason} -> {:halt, {:error, reason}}
+        {:error, error} when is_list(error) -> errors ++ error
+        {:error, error} -> errors ++ [error]
       end
     end)
   end
@@ -1000,22 +1037,21 @@ defmodule EHealth.ContractRequests do
   defp validate_external_contractors(params) do
     external_contractors = params["external_contractors"] || []
 
-    external_contractors
-    |> Enum.with_index()
-    |> Enum.reduce_while(:ok, fn {contractor, i}, _ ->
-      with :ok <- validate_external_legal_entity(contractor, i),
-           :ok <- validate_divisions(params, contractor, i),
-           :ok <-
-             validate_external_contract(
-               contractor,
-               params,
-               "$.external_contractors[#{i}].contract.expires_at"
-             ) do
-        {:cont, :ok}
-      else
-        {:error, reason} -> {:halt, {:error, reason}}
-      end
-    end)
+    errors =
+      external_contractors
+      |> Enum.with_index()
+      |> Enum.reduce([], fn {contractor, i}, errors_list ->
+        errors_list
+        |> validate_external_legal_entity(contractor, i)
+        |> validate_divisions(params, contractor, i)
+        |> validate_external_contract(
+          contractor,
+          params,
+          "$.external_contractors[#{i}].contract.expires_at"
+        )
+      end)
+
+    if length(errors) > 0, do: {:error, errors}, else: :ok
   end
 
   defp validate_external_contractor_division(division_ids, division, error) do
@@ -1036,26 +1072,26 @@ defmodule EHealth.ContractRequests do
     end
   end
 
-  defp validate_external_contract(contractor, params, error) do
+  defp validate_external_contract(errors, contractor, params, error) do
     expires_at = Date.from_iso8601!(contractor["contract"]["expires_at"])
     start_date = Date.from_iso8601!(params["start_date"])
 
     case Date.compare(expires_at, start_date) do
       :gt ->
-        :ok
+        errors
 
       _ ->
-        {:error,
-         [
-           {
-             %{
-               description: "Expires date must be greater than contract start_date",
-               params: [],
-               rule: :invalid
-             },
-             error
-           }
-         ]}
+        errors ++
+          [
+            {
+              %{
+                description: "Expires date must be greater than contract start_date",
+                params: [],
+                rule: :invalid
+              },
+              error
+            }
+          ]
     end
   end
 
@@ -1063,16 +1099,14 @@ defmodule EHealth.ContractRequests do
 
   defp check_employee(_, index) do
     {:error,
-     [
-       {
-         %{
-           description: "Employee must be active DOCTOR",
-           params: [],
-           rule: :invalid
-         },
-         "$.contractor_employee_divisions[#{index}].employee_id"
-       }
-     ]}
+     {
+       %{
+         description: "Employee must be active DOCTOR",
+         params: [],
+         rule: :invalid
+       },
+       "$.contractor_employee_divisions[#{index}].employee_id"
+     }}
   end
 
   defp check_division(%Division{status: "ACTIVE", legal_entity_id: legal_entity_id}, contractor_legal_entity_id, _)
