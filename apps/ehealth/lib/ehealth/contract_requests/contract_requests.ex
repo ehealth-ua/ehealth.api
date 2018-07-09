@@ -10,6 +10,7 @@ defmodule EHealth.ContractRequests do
   alias Scrivener.Page
   alias Ecto.Adapters.SQL
   alias Ecto.UUID
+  alias EHealth.API.MediaStorage
   alias EHealth.Contracts
   alias EHealth.ContractRequests.ContractRequest
   alias EHealth.ContractRequests.Search
@@ -35,6 +36,7 @@ defmodule EHealth.ContractRequests do
 
   @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
   @media_storage_api Application.get_env(:ehealth, :api_resolvers)[:media_storage]
+  @signature_api Application.get_env(:ehealth, :api_resolvers)[:digital_signature]
 
   @fields_required ~w(
     contractor_legal_entity_id
@@ -591,6 +593,26 @@ defmodule EHealth.ContractRequests do
         headers
       ) do
     SignatureValidator.validate(signed_content, encoding, headers)
+  end
+
+  def decode_and_validate_signed_content(%ContractRequest{id: id}, headers) do
+    with {:ok, %{"data" => %{"secret_url" => secret_url}}} <-
+           @media_storage_api.create_signed_url(
+             "GET",
+             MediaStorage.config()[:contract_request_bucket],
+             "signed_content",
+             id,
+             headers
+           ),
+         {:ok, %{body: content}} <- @media_storage_api.get_signed_content(secret_url),
+         {:ok, %{"data" => %{"content" => content}}} <-
+           @signature_api.decode_and_validate(
+             Base.encode64(content),
+             "base64",
+             headers
+           ) do
+      {:ok, content}
+    end
   end
 
   defp set_contract_number(params, %{parent_contract_id: parent_contract_id}) when not is_nil(parent_contract_id) do

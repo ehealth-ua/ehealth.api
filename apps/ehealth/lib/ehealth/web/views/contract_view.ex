@@ -86,6 +86,10 @@ defmodule EHealth.Web.ContractView do
     )
   end
 
+  def render("printout_content.json", %{contract: contract, printout_content: printout_content}) do
+    %{id: contract.id, printout_content: printout_content}
+  end
+
   def render_association(:contract_division, contract_division) do
     Map.take(contract_division, ~w(id name)a)
   end

@@ -210,7 +210,7 @@ defmodule EHealthWeb.Router do
 
       get("/:id", ContractController, :show)
       get("/", ContractController, :index)
-
+      get("/:id/printout_content", ContractController, :printout_content)
       patch("/:id/employees/actions/update", ContractController, :update)
     end
 

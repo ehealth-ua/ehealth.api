@@ -7,6 +7,7 @@ defmodule EHealth.Web.ContractControllerTest do
   import Mox
   alias EHealth.Contracts.Contract
   alias Ecto.UUID
+  import Mox
 
   describe "show contract" do
     test "finds contract successfully and nhs can see any contracts", %{conn: conn} do
@@ -522,6 +523,55 @@ defmodule EHealth.Web.ContractControllerTest do
 
       assert [%{"employee" => %{"id" => ^employee_id}, "declaration_limit" => 10, "staff_units" => 0.33}] =
                resp["data"]["contractor_employee_divisions"]
+    end
+  end
+
+  describe "get printout_form" do
+    test "success get printout_form", %{conn: conn} do
+      nhs()
+
+      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, _, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://localhost/good_upload_1"}}}
+      end)
+
+      printout_content = "<html></html>"
+
+      legal_entity_signer = insert(:prm, :legal_entity, edrpou: "10002000")
+
+      expect(MediaStorageMock, :get_signed_content, 2, fn _ ->
+        {:ok, %{body: ""}}
+      end)
+
+      %{id: contract_request_id} =
+        contract_request =
+        insert(
+          :il,
+          :contract_request,
+          printout_content: printout_content
+        )
+
+      %{id: contract_id} =
+        insert(
+          :prm,
+          :contract,
+          status: Contract.status(:verified),
+          contract_request_id: contract_request_id
+        )
+
+      content =
+        contract_request
+        |> Jason.encode!()
+        |> Jason.decode!()
+
+      edrpou_signed_content(content, legal_entity_signer.edrpou)
+
+      conn =
+        conn
+        |> put_client_id_header(UUID.generate())
+        |> get(contract_path(conn, :printout_content, contract_id))
+
+      assert resp = json_response(conn, 200)
+      assert %{"id" => contract_id, "printout_content" => printout_content} == resp["data"]
     end
   end
 end

@@ -5,6 +5,8 @@ defmodule EHealth.Contracts do
 
   import Ecto.Query
   import Ecto.Changeset
+  alias EHealth.ContractRequests
+  alias EHealth.ContractRequests.ContractRequest
   alias EHealth.Contracts.Contract
   alias EHealth.Contracts.ContractEmployee
   alias EHealth.Contracts.ContractDivision
@@ -302,8 +304,16 @@ defmodule EHealth.Contracts do
          :ok <- validate_contractor_legal_entity_id(contract, params),
          {:ok, contract, references} <- load_contract_references(contract) do
       {:ok, contract, references}
-    else
-      error -> error
+    end
+  end
+
+  def get_printout_content(id, client_type, headers) do
+    with %Contract{contract_request_id: contract_request_id} = contract <- get_by_id(id),
+         {:ok, %ContractRequest{} = contract_request, _} <-
+           ContractRequests.get_by_id(headers, client_type, contract_request_id),
+         {:ok, %{"printout_content" => printout_content}} <-
+           ContractRequests.decode_and_validate_signed_content(contract_request, headers) do
+      {:ok, contract, printout_content}
     end
   end
 

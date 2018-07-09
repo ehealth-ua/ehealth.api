@@ -32,4 +32,12 @@ defmodule EHealth.Web.ContractController do
       render(conn, "show.json", contract: contract, references: references)
     end
   end
+
+  def printout_content(%Plug.Conn{req_headers: headers} = conn, %{"id" => id}) do
+    client_type = conn.assigns.client_type
+
+    with {:ok, contract, printout_content} <- Contracts.get_printout_content(id, client_type, headers) do
+      render(conn, "printout_content.json", contract: contract, printout_content: printout_content)
+    end
+  end
 end
