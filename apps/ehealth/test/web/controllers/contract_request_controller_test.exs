@@ -794,7 +794,9 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       assert resp
 
       Enum.each(resp["urgent"]["documents"], fn urgent_data ->
-        assert Map.has_key?(urgent_data, "type")
+        assert %{"type" => type} = urgent_data
+        assert type == String.upcase(type)
+
         assert(Map.has_key?(urgent_data, "url"))
       end)
     end
