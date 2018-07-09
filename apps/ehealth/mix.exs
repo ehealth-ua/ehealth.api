@@ -11,7 +11,7 @@ defmodule EHealth.Mixfile do
       description: "Integration Layer for projects that related to Ukrainian Health Services government institution.",
       package: package(),
       version: @version,
-      elixir: "~> 1.5",
+      elixir: "~> 1.6",
       build_path: "../../_build",
       config_path: "../../config/config.exs",
       deps_path: "../../deps",
