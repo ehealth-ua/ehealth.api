@@ -347,7 +347,8 @@ defmodule EHealth.ContractRequests do
          :ok <- validate_status(contract_request, ContractRequest.status(:pending_nhs_sign)),
          {:ok, %{"content" => content, "signer" => signer}} <- decode_signed_content(:nhs, params, headers),
          :ok <- validate_signer_drfo(contract_request.nhs_signer_id, signer["drfo"], "$.nhs_signer_id"),
-         {:ok, printout_content} <- ContractRequestPrintoutForm.render(contract_request, headers),
+         {:ok, printout_content} <-
+           ContractRequestPrintoutForm.render(%{contract_request | nhs_signed_date: Date.utc_today()}, headers),
          :ok <- validate_content(contract_request, printout_content, content),
          :ok <- validate_contract_id(contract_request),
          :ok <- validate_employee_divisions(contract_request),
