@@ -1016,7 +1016,7 @@ defmodule EHealth.ContractRequests do
                 params: [],
                 rule: :invalid
               },
-              "$.contractor_employee_divisions[#{index}].division_id"
+              "$.external_contractors[#{index}].legal_entity_id"
             }
           ]
 
@@ -1034,7 +1034,7 @@ defmodule EHealth.ContractRequests do
             params: [],
             rule: :invalid
           },
-          "$.contractor_employee_divisions[#{index}].division_id"
+          "$.external_contractors[#{index}].legal_entity_id"
         }
       ]
   end

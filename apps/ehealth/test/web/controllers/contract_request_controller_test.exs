@@ -223,7 +223,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       assert %{
                "invalid" => [
                  %{
-                   "entry" => "$.contractor_employee_divisions[0].division_id",
+                   "entry" => "$.external_contractors[0].legal_entity_id",
                    "rules" => [
                      %{
                        "description" => "Active $external_contractors[0].legal_entity_id does not exist",
@@ -233,7 +233,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
                    ]
                  },
                  %{
-                   "entry" => "$.contractor_employee_divisions[2].division_id",
+                   "entry" => "$.external_contractors[2].legal_entity_id",
                    "rules" => [
                      %{
                        "description" => "Active $external_contractors[2].legal_entity_id does not exist",
