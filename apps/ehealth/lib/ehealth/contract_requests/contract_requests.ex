@@ -1532,7 +1532,7 @@ defmodule EHealth.ContractRequests do
       |> Jason.encode!()
       |> Jason.decode!()
 
-    if data == Map.drop(content, ~w(status_reason text)) do
+    if data == Map.drop(content, ~w(next_status status_reason text)) do
       :ok
     else
       {:error, {:bad_request, "Signed content doesn't match with contract request"}}
@@ -1550,7 +1550,7 @@ defmodule EHealth.ContractRequests do
       |> Jason.encode!()
       |> Jason.decode!()
 
-    if data == Map.drop(content, ~w(text)) do
+    if data == Map.drop(content, ~w(next_status text)) do
       :ok
     else
       {:error, {:bad_request, "Signed content doesn't match with contract request"}}

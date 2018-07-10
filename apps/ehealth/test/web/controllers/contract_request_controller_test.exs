@@ -943,6 +943,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       data = %{
         "id" => contract_request.id,
+        "next_status" => "APPROVED",
         "contractor_legal_entity" => %{
           "id" => legal_entity.id,
           "name" => legal_entity.name,
@@ -979,6 +980,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       data = %{
         "id" => contract_request.id,
+        "next_status" => "APPROVED",
         "contractor_legal_entity" => %{
           "id" => contract_request.contractor_legal_entity_id,
           "name" => legal_entity.name,
@@ -1043,6 +1045,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       data = %{
         "id" => contract_request.id,
+        "next_status" => "APPROVED",
         "contractor_legal_entity" => %{
           "id" => contract_request.contractor_legal_entity_id,
           "name" => legal_entity.name,
@@ -1107,6 +1110,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       data = %{
         "id" => contract_request.id,
+        "next_status" => "APPROVED",
         "contractor_legal_entity" => %{
           "id" => contract_request.contractor_legal_entity_id,
           "name" => legal_entity.name,
@@ -1173,6 +1177,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       data = %{
         "id" => contract_request.id,
+        "next_status" => "APPROVED",
         "contractor_legal_entity" => %{
           "id" => contract_request.contractor_legal_entity_id,
           "name" => legal_entity.name,
@@ -1239,6 +1244,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       data = %{
         "id" => contract_request.id,
+        "next_status" => "APPROVED",
         "contractor_legal_entity" => %{
           "id" => contract_request.contractor_legal_entity_id,
           "name" => legal_entity.name,
@@ -1299,6 +1305,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       data = %{
         "id" => contract_request.id,
+        "next_status" => "APPROVED",
         "contractor_legal_entity" => %{
           "id" => contract_request.contractor_legal_entity_id,
           "name" => legal_entity.name,
@@ -1388,6 +1395,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       data = %{
         "id" => contract_request.id,
+        "next_status" => "APPROVED",
         "contractor_legal_entity" => %{
           "id" => contract_request.contractor_legal_entity_id,
           "name" => legal_entity.name,
@@ -1506,6 +1514,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       data = %{
         "id" => contract_request.id,
+        "next_status" => "APPROVED",
         "contractor_legal_entity" => %{
           "id" => contract_request.contractor_legal_entity_id,
           "name" => legal_entity.name,
@@ -1612,6 +1621,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       data = %{
         "id" => contract_request.id,
+        "next_status" => "APPROVED",
         "contractor_legal_entity" => %{
           "id" => contract_request.contractor_legal_entity_id,
           "name" => legal_entity.name,
@@ -2417,6 +2427,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       data = %{
         "id" => contract_request.id,
+        "next_status" => "DECLINED",
         "contractor_legal_entity" => %{
           "id" => contract_request.contractor_legal_entity_id,
           "name" => legal_entity.name,
@@ -2553,6 +2564,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       data = %{
         "id" => contract_request.id,
+        "next_status" => "DECLINED",
         "contractor_legal_entity" => %{
           "id" => contract_request.contractor_legal_entity_id,
           "name" => legal_entity.name,

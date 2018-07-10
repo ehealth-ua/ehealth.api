@@ -6,6 +6,10 @@
             "type": "string",
             "pattern": "^[0-9a-f]{8}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{12}$"
         },
+        "next_status": {
+          "type": "string",
+          "pattern": "DECLINED"
+        },
         "contractor_legal_entity": {
             "type": "object",
             "properties": {
@@ -41,6 +45,7 @@
     },
     "required": [
         "id",
+        "next_status",
         "contractor_legal_entity",
         "status_reason",
         "text"
