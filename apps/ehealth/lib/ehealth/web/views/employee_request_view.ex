@@ -26,7 +26,12 @@ defmodule EHealth.Web.EmployeeRequestView do
     end)
   end
 
-  def render("show.json", %{employee_request: employee_request, legal_entity: legal_entity}) do
+  def render("show.json", %{employee_request: employee_request, references: references}) do
+    legal_entity =
+      references
+      |> Map.get(:legal_entity)
+      |> Map.get(employee_request.data["legal_entity_id"], %{})
+
     employee_request = Map.from_struct(employee_request)
     data = for {key, val} <- employee_request.data, into: %{}, do: {String.to_atom(key), val}
     party = Map.get(data, :party, %{})

@@ -3,7 +3,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
   import Mox
   import EHealth.Guardian
-
+  import EHealth.Expectations.Man
   alias Ecto.UUID
 
   # For Mox lib. Make sure mocks are verified when the test exits
@@ -129,9 +129,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => [%{"tax_id" => ""}]}}
       end)
 
-      expect(ManMock, :render_template, fn _id, _template_data ->
-        {:ok, "<html></html>"}
-      end)
+      template()
 
       conn
       |> post(cabinet_auth_path(conn, :email_verification), %{email: email})
@@ -145,7 +143,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => []}}
       end)
 
-      expect(ManMock, :render_template, 2, fn _id, %{verification_code: jwt} ->
+      expect(ManMock, :render_template, 2, fn _id, %{verification_code: jwt}, _ ->
         {:ok, claims} = decode_and_verify(jwt)
         assert Map.has_key?(claims, "email")
         assert "success-new-user@example.com" == claims["email"]

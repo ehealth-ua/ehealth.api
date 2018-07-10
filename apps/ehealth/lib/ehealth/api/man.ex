@@ -13,7 +13,7 @@ defmodule EHealth.API.Man do
 
   def process_url(url), do: config()[:endpoint] <> url
 
-  def render_template(id, data, headers \\ []) do
+  def render_template(id, data, headers) do
     path = "/templates/#{id}/actions/render"
 
     headers =

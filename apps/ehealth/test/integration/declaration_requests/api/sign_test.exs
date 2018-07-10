@@ -122,43 +122,6 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
     end
   end
 
-  describe "check_drfo/1" do
-    test "returns error when drfo does not match the tax_id" do
-      tax_id = "AA111"
-      %{user_id: user_id} = insert(:prm, :party_user, party: build(:party, tax_id: tax_id))
-      signer = %{"drfo" => "222"}
-      result = check_drfo(signer, [{"x-consumer-id", user_id}])
-      assert {:error, {:"422", "Does not match the signer drfo"}} == result
-    end
-
-    test "returns expected result when drfo matches the tax_id" do
-      tax_id = "AA111"
-      %{user_id: user_id} = insert(:prm, :party_user, party: build(:party, tax_id: tax_id))
-
-      signer = %{"drfo" => "AA 111"}
-      assert :ok == check_drfo(signer, [{"x-consumer-id", user_id}])
-    end
-
-    test "check drfo when it latin" do
-      tax_id = "МЮ111"
-      assert [1052, 1070, 49, 49, 49] == String.to_charlist(tax_id)
-      %{user_id: user_id} = insert(:prm, :party_user, party: build(:party, tax_id: tax_id))
-
-      drfo = "MYU 111"
-      assert 'MYU 111' == String.to_charlist(drfo)
-      signer = %{"drfo" => drfo}
-      assert :ok == check_drfo(signer, [{"x-consumer-id", user_id}])
-    end
-
-    test "returns expected result when drfo is null" do
-      tax_id = "AA111"
-      %{user_id: user_id} = insert(:prm, :party_user, party: build(:party, tax_id: tax_id))
-      signer = %{"drfo" => nil}
-      result = check_drfo(signer, [{"x-consumer-id", user_id}])
-      assert {:error, {:"422", "Does not match the signer drfo"}} == result
-    end
-  end
-
   describe "check_employee_id/2" do
     test "returns forbidden when you try to sign someone else's declaration" do
       content = %{"employee" => %{"id" => UUID.generate()}}

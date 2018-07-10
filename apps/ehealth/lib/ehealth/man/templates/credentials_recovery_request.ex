@@ -18,6 +18,6 @@ defmodule EHealth.Man.Templates.CredentialsRecoveryRequest do
 
     template_id = config()[:id]
 
-    @man_api.render_template(template_id, template_data)
+    @man_api.render_template(template_id, template_data, [])
   end
 end

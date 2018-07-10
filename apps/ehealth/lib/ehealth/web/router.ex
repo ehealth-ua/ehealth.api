@@ -189,6 +189,10 @@ defmodule EHealthWeb.Router do
     post("/employee_requests/:id/approve", EmployeeRequestController, :approve)
     post("/employee_requests/:id/reject", EmployeeRequestController, :reject)
 
+    scope "/v2" do
+      post("/employee_requests", V2.EmployeeRequestController, :create, as: :v2_employee_request_path)
+    end
+
     # Divisions
     resources("/divisions", DivisionController, except: [:index, :new, :edit, :delete])
     patch("/divisions/:id/actions/activate", DivisionController, :activate)

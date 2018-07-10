@@ -18,15 +18,19 @@ defmodule EHealth.Man.Templates.EmployeeRequestInvitation do
       |> LegalEntities.get_by_id()
       |> get_clinic_info()
 
-    @man_api.render_template(config()[:id], %{
-      format: config()[:format],
-      locale: config()[:locale],
-      date: current_date("Europe/Kiev", "%d.%m.%y"),
-      clinic_name: Map.get(clinic_info, :name),
-      clinic_address: Map.get(clinic_info, :address),
-      doctor_role: get_position(data),
-      request_id: id |> Cipher.encrypt() |> Base.encode64()
-    })
+    @man_api.render_template(
+      config()[:id],
+      %{
+        format: config()[:format],
+        locale: config()[:locale],
+        date: current_date("Europe/Kiev", "%d.%m.%y"),
+        clinic_name: Map.get(clinic_info, :name),
+        clinic_address: Map.get(clinic_info, :address),
+        doctor_role: get_position(data),
+        request_id: id |> Cipher.encrypt() |> Base.encode64()
+      },
+      []
+    )
   end
 
   def get_position(data) do

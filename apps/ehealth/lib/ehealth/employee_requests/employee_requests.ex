@@ -5,6 +5,9 @@ defmodule EHealth.EmployeeRequests do
   import Ecto.Changeset
   import EHealth.Utils.Connection
 
+  alias EHealth.Validators.Preload
+  alias EHealth.Validators.JsonSchema
+  alias EHealth.Validators.Signature
   alias EHealth.GlobalParameters
   alias EHealth.EmployeeRequests.EmployeeRequest, as: Request
   alias EHealth.Repo
@@ -35,6 +38,7 @@ defmodule EHealth.EmployeeRequests do
   @status_expired Request.status(:expired)
 
   @employee_status_dismissed Employee.status(:dismissed)
+
   @owner Employee.type(:owner)
   @pharmacy_owner Employee.type(:pharmacy_owner)
 
@@ -129,14 +133,47 @@ defmodule EHealth.EmployeeRequests do
     Repo.get!(Request, id)
   end
 
-  def create(attrs, client_id, allowed_owner \\ false) do
+  def get_by_id(id) do
+    with %Request{} = employee_request <- Repo.get(Request, id) do
+      {:ok, employee_request, preload_references(employee_request)}
+    end
+  end
+
+  def create_signed(attrs, headers) do
+    user_id = get_consumer_id(headers)
+
+    with :ok <- JsonSchema.validate(:employee_request_sign, attrs),
+         {:ok, %{"content" => content, "signer" => signer}} <-
+           Signature.validate(attrs["signed_content"], attrs["signed_content_encoding"], headers),
+         :ok <- Signature.check_drfo(signer, user_id, "create_signed_employee_request") do
+      create(content, headers)
+    end
+  end
+
+  def create(attrs, headers) do
+    client_id = get_client_id(headers)
+    attrs = put_in(attrs, ~w(employee_request legal_entity_id), client_id)
+
     with {:ok, attrs} <- Validator.validate(attrs),
-         params <- Map.fetch!(attrs, "employee_request"),
-         :ok <- check_owner(params, allowed_owner),
+         %{"employee_type" => employee_type, "legal_entity_id" => legal_entity_id, "division_id" => division_id} =
+           params <- attrs["employee_request"],
+         :ok <- not_is_owner?(employee_type),
+         {:ok, %LegalEntity{} = legal_entity} <- Reference.validate(:legal_entity, legal_entity_id),
+         :ok <- check_division_legal_entity(client_id, division_id),
+         :ok <- validate_type(legal_entity, employee_type),
+         :ok <- check_is_user_blacklisted(params),
+         {:ok, employee_request} <- insert_employee_request(params) do
+      {:ok, employee_request, preload_references(employee_request)}
+    end
+  end
+
+  def create_owner(attrs) do
+    with {:ok, attrs} <- Validator.validate(attrs),
+         %{"employee_request" => %{"employee_type" => employee_type} = params} <- attrs,
+         :ok <- is_owner?(employee_type),
          legal_entity_id <- Map.fetch!(params, "legal_entity_id"),
          %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(legal_entity_id),
-         :ok <- check_division_legal_entity(client_id, params["division_id"]),
-         :ok <- validate_type(legal_entity, Map.fetch!(params, "employee_type")),
+         :ok <- validate_type(legal_entity, employee_type),
          :ok <- check_is_user_blacklisted(params),
          {:ok, _} = employee_request <- insert_employee_request(params) do
       employee_request
@@ -155,6 +192,20 @@ defmodule EHealth.EmployeeRequests do
         error
     end
   end
+
+  defp preload_references(%Request{} = employee_request) do
+    fields = [
+      {[:data, "legal_entity_id"], :legal_entity}
+    ]
+
+    Preload.preload_references(employee_request, fields)
+  end
+
+  defp is_owner?(type) when type in [@owner, @pharmacy_owner], do: :ok
+  defp is_owner?(type), do: {:error, {:conflict, "Forbidden to create #{type}"}}
+
+  defp not_is_owner?(type) when type not in [@owner, @pharmacy_owner], do: :ok
+  defp not_is_owner?(type), do: {:error, {:conflict, "Forbidden to create #{type}"}}
 
   defp check_division_legal_entity(nil, _), do: :ok
 
@@ -184,8 +235,9 @@ defmodule EHealth.EmployeeRequests do
     user_id = get_consumer_id(headers)
 
     with employee_request <- get_by_id!(id),
-         {:ok, employee_request} <- check_transition_status(employee_request) do
-      update_status(employee_request, @status_rejected, user_id)
+         {:ok, employee_request} <- check_transition_status(employee_request),
+         {:ok, employee_request} <- update_status(employee_request, @status_rejected, user_id) do
+      {:ok, employee_request, preload_references(employee_request)}
     end
   end
 
@@ -195,12 +247,14 @@ defmodule EHealth.EmployeeRequests do
 
     with {:ok, employee_request} <- check_transition_status(employee_request),
          {:ok, employee} <- Employees.create_or_update_employee(employee_request, headers),
-         {:ok, employee_request} <- update_status(employee_request, employee, @status_approved, user_id) do
-      send_email(
-        employee_request,
-        EmployeeCreatedNotificationTemplate,
-        get_email_config(:employee_created_notification)
-      )
+         {:ok, employee_request} <- update_status(employee_request, employee, @status_approved, user_id),
+         {:ok, employee_request} <-
+           send_email(
+             employee_request,
+             EmployeeCreatedNotificationTemplate,
+             get_email_config(:employee_created_notification)
+           ) do
+      {:ok, employee_request, preload_references(employee_request)}
     end
   end
 
@@ -543,13 +597,6 @@ defmodule EHealth.EmployeeRequests do
       true -> {:error, {:conflict, "new employee with this tax_id can't be created"}}
       false -> :ok
     end
-  end
-
-  defp check_owner(%{"employee_type" => type}, false) when type in [@owner, @pharmacy_owner], do: owner_forbidden(type)
-  defp check_owner(_, _), do: :ok
-
-  defp owner_forbidden(type) do
-    {:error, {:conflict, "Forbidden to create #{type}"}}
   end
 
   defp validate_type(%LegalEntity{type: legal_entity_type}, type) do

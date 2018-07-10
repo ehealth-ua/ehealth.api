@@ -21,7 +21,7 @@ defmodule EHealth.Web.EmailsControllerTest do
 
   describe "send email" do
     test "success", %{conn: conn} do
-      expect(ManMock, :render_template, fn @man_id, data ->
+      expect(ManMock, :render_template, fn @man_id, data, _ ->
         assert Map.has_key?(data, "locale")
         assert Map.has_key?(data, "format")
         {:ok, "<html>#{inspect(data)}</html>"}
@@ -35,7 +35,7 @@ defmodule EHealth.Web.EmailsControllerTest do
     end
 
     test "invalid Man template id", %{conn: conn} do
-      expect(ManMock, :render_template, fn "123", _data ->
+      expect(ManMock, :render_template, fn "123", _data, _ ->
         {:error, %{"error" => "invalid Man id"}}
       end)
 

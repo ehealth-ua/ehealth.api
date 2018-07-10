@@ -4,7 +4,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   use EHealth.Web.ConnCase, async: false
 
   import Mox
-
+  import EHealth.Expectations.Man
   alias EHealth.EmployeeRequests.EmployeeRequest, as: Request
   alias EHealth.LegalEntities.LegalEntity
   alias EHealth.Employees.Employee
@@ -64,11 +64,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     test "with valid params and x-consumer-metadata that contains valid client_id", %{conn: conn} do
       msp()
       expect(MithrilMock, :search_user, fn _, _ -> {:ok, %{"data" => []}} end)
-
-      expect(ManMock, :render_template, 2, fn _id, _data ->
-        {:ok, "<html><body>some_rendered_content</body></html>"}
-      end)
-
+      template(2)
       legal_entity = insert(:prm, :legal_entity)
       party = insert(:prm, :party, tax_id: "3067305998")
       %{id: id} = insert(:prm, :employee, party: party)
@@ -135,11 +131,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     test "without tax_id and employee_id with valid params and valid client_id", %{conn: conn} do
       msp()
       expect(MithrilMock, :search_user, fn _, _ -> {:ok, %{"data" => []}} end)
-
-      expect(ManMock, :render_template, fn _id, _data ->
-        {:ok, "<html><body>some_rendered_content</body></html>"}
-      end)
-
+      template()
       legal_entity = insert(:prm, :legal_entity)
       %{id: division_id} = insert(:prm, :division, legal_entity: legal_entity)
 
@@ -481,10 +473,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "with employee_id and valid tax_id, employee_type", %{conn: conn} do
-      expect(ManMock, :render_template, fn _id, _data ->
-        {:ok, "<html><body>some_rendered_content</body></html>"}
-      end)
-
+      template()
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division, legal_entity: legal_entity)
       party = insert(:prm, :party, tax_id: "3067305998")
@@ -593,10 +582,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "with valid start_date", %{conn: conn} do
-      expect(ManMock, :render_template, 2, fn _id, _data ->
-        {:ok, "<html><body>some_rendered_content</body></html>"}
-      end)
-
+      template(2)
       legal_entity = insert(:prm, :legal_entity)
       party = insert(:prm, :party, tax_id: "3067305998")
       %{id: id} = insert(:prm, :employee, party: party)
@@ -615,10 +601,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "with invalid start_date - wrong format", %{conn: conn} do
-      expect(ManMock, :render_template, 2, fn _id, _data ->
-        {:ok, "<html><body>some_rendered_content</body></html>"}
-      end)
-
+      template(2)
       legal_entity = insert(:prm, :legal_entity)
       party = insert(:prm, :party, tax_id: "3067305998")
       %{id: id} = insert(:prm, :employee, party: party)
@@ -654,10 +637,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "with invalid start_date - date is not exist", %{conn: conn} do
-      expect(ManMock, :render_template, 2, fn _id, _data ->
-        {:ok, "<html><body>some_rendered_content</body></html>"}
-      end)
-
+      template(2)
       legal_entity = insert(:prm, :legal_entity)
       party = insert(:prm, :party, tax_id: "3067305998")
       %{id: id} = insert(:prm, :employee, party: party)
@@ -1037,7 +1017,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     msp()
     expect(MithrilMock, :search_user, fn _, _ -> {:ok, %{"data" => []}} end)
     employee_request = %{id: id} = insert(:il, :employee_request)
-    insert(:prm, :legal_entity, id: employee_request.data["legal_entity_id"])
+    insert(:prm, :legal_entity, id: employee_request.data.legal_entity_id)
 
     conn = get(conn, employee_request_path(conn, :show, id))
     resp = json_response(conn, 200)
@@ -1065,6 +1045,8 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     fixture_params =
       employee_request_data()
       |> put_in([:party, :email], "test@user.com")
+
+    insert(:prm, :legal_entity, id: fixture_params.legal_entity_id)
 
     fixture_request =
       %{id: id} =
@@ -1095,9 +1077,9 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   test "show employee_request with status NEW", %{conn: conn} do
     msp()
     expect(MithrilMock, :search_user, fn _, _ -> {:ok, %{"data" => []}} end)
-    %{id: id} = insert(:il, :employee_request)
-
-    conn = get(conn, employee_request_path(conn, :show, id))
+    employee_request = insert(:il, :employee_request)
+    insert(:prm, :legal_entity, id: employee_request.data.legal_entity_id)
+    conn = get(conn, employee_request_path(conn, :show, employee_request.id))
     resp = json_response(conn, 200)["data"]
     assert Map.has_key?(resp, "no_tax_id")
     refute resp["no_tax_id"]
@@ -1138,10 +1120,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
   describe "approve employee request" do
     setup %{conn: conn} do
-      expect(ManMock, :render_template, 2, fn _id, _data ->
-        {:ok, "<html><body>some_rendered_content</body></html>"}
-      end)
-
+      template(2)
       %{conn: conn}
     end
 
@@ -1442,8 +1421,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       put_client()
 
       get_client_type_by_name(UUID.generate(), 2)
-      render_template(2)
-
+      template(2)
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division)
 
@@ -1499,8 +1477,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       put_client()
 
       get_client_type_by_name(UUID.generate(), 2)
-      render_template(2)
-
+      template(2)
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division)
 
@@ -1565,8 +1542,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       put_client()
 
       get_client_type_by_name(UUID.generate(), 2)
-      render_template(2)
-
+      template(2)
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division)
       party = insert(:prm, :party)
@@ -1621,8 +1597,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       put_client()
 
       get_client_type_by_name(UUID.generate(), 2)
-      render_template(2)
-
+      template(2)
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division)
       party = insert(:prm, :party)
@@ -1677,8 +1652,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       put_client()
 
       get_client_type_by_name(UUID.generate(), 2)
-      render_template(2)
-
+      template(2)
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division)
       party = insert(:prm, :party)
@@ -1733,8 +1707,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       put_client()
 
       get_client_type_by_name(UUID.generate(), 2)
-      render_template(2)
-
+      template(2)
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division)
       party = insert(:prm, :party)
@@ -1789,7 +1762,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       put_client()
 
       get_client_type_by_name(UUID.generate(), 2)
-      render_template(2)
+      template(2)
 
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division)
@@ -1846,6 +1819,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
         |> put_in([:party, :email], "mis_bot_1493831618@user.com")
 
       %{id: id} = insert(:il, :employee_request, data: fixture_params)
+      insert(:prm, :legal_entity, id: fixture_params.legal_entity_id)
 
       conn = post(conn, employee_request_path(conn, :reject, id))
       resp = json_response(conn, 200)["data"]
@@ -1919,8 +1893,9 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   describe "show invite" do
     test "success show invite", %{conn: conn} do
       expect(MithrilMock, :search_user, fn _, _ -> {:ok, %{"data" => []}} end)
-      %{id: id} = insert(:il, :employee_request)
-      conn = get(conn, employee_request_path(conn, :invite, id |> Cipher.encrypt() |> Base.encode64()))
+      employee_request = insert(:il, :employee_request)
+      insert(:prm, :legal_entity, id: employee_request.data.legal_entity_id)
+      conn = get(conn, employee_request_path(conn, :invite, employee_request.id |> Cipher.encrypt() |> Base.encode64()))
       assert json_response(conn, 200)
     end
 
@@ -1942,6 +1917,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       employee_request_data()
       |> put_in([:party, :email], "mis_bot_1493831618@user.com")
 
+    insert(:prm, :legal_entity, id: fixture_params.legal_entity_id)
     %{id: id} = insert(:il, :employee_request, data: fixture_params, status: init_status)
 
     conn_resp = post(conn, employee_request_path(conn, action, id))
@@ -1986,12 +1962,6 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   defp get_client_type_by_name(id, n) do
     expect(MithrilMock, :get_client_type_by_name, n, fn _, _ ->
       {:ok, %{"data" => [%{"id" => id}]}}
-    end)
-  end
-
-  defp render_template(n) do
-    expect(ManMock, :render_template, n, fn _, _ ->
-      {:ok, "<html></html>"}
     end)
   end
 end

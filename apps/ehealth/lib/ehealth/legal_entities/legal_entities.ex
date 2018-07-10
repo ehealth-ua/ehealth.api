@@ -338,7 +338,7 @@ defmodule EHealth.LegalEntities do
     id
     |> prepare_employee_request_data(party)
     |> put_in(["employee_request", "employee_type"], employee_type)
-    |> EmployeeRequests.create(nil, true)
+    |> EmployeeRequests.create_owner()
   end
 
   defp prepare_employee_request_data(legal_entity_id, party) do

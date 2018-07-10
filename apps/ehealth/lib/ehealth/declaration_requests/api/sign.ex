@@ -8,7 +8,6 @@ defmodule EHealth.DeclarationRequests.API.Sign do
   alias EHealth.DeclarationRequests.API.Persons
   alias EHealth.DeclarationRequests.DeclarationRequest
   alias EHealth.DeclarationRequests.SignRequest
-  alias EHealth.Parties
   alias EHealth.Employees
   alias EHealth.Employees.Employee
   alias HTTPoison.Response
@@ -32,7 +31,7 @@ defmodule EHealth.DeclarationRequests.API.Sign do
          :ok <- check_patient_signed(content),
          :ok <- compare_with_db(content, declaration_request, headers),
          :ok <- check_employee_id(content, headers),
-         :ok <- check_drfo(signer, headers),
+         :ok <- SignatureValidator.check_drfo(signer, get_consumer_id(headers), "declaration_request_sign"),
          :ok <- store_signed_content(declaration_request, params, headers),
          {:ok, person} <- create_or_update_person(declaration_request, content, headers),
          {:ok, declaration} <- create_declaration_with_termination_logic(person, declaration_request, headers),
@@ -135,37 +134,6 @@ defmodule EHealth.DeclarationRequests.API.Sign do
 
         err_422("Signed content does not match the previously created content", "$.content")
     end
-  end
-
-  def check_drfo(signer, headers) do
-    drfo = Map.get(signer, "drfo", "") || ""
-    drfo = String.replace(drfo, " ", "")
-    tax_id = headers |> get_consumer_id() |> Parties.get_tax_id_by_user_id()
-
-    Logger.info(fn ->
-      Jason.encode!(%{
-        "log_type" => "debug",
-        "process" => "declaration_request_sign",
-        "details" => %{
-          "drfo" => drfo,
-          "tax_id" => tax_id
-        },
-        "request_id" => Logger.metadata()[:request_id]
-      })
-    end)
-
-    with false <- tax_id == drfo,
-         false <- translit_drfo(tax_id) == translit_drfo(drfo) do
-      {:error, {:"422", "Does not match the signer drfo"}}
-    else
-      true -> :ok
-    end
-  end
-
-  defp translit_drfo(drfo) do
-    drfo
-    |> Translit.translit()
-    |> String.upcase()
   end
 
   def check_employee_id(content, headers) do

@@ -204,7 +204,9 @@ defmodule EHealth.Unit.ValidatorTest do
       )
 
     assert {:error, [{%{description: _, rule: :date}, "$.employee_request.doctor.science_degree.issued_date"}]} =
-             EmployeeRequests.create(content, legal_entity.id)
+             EmployeeRequests.create(content, [
+               {"x-consumer-metadata", Jason.encode!(%{"client_id" => legal_entity.id})}
+             ])
   end
 
   test "Employee Request: start_date date format" do
@@ -213,7 +215,9 @@ defmodule EHealth.Unit.ValidatorTest do
     content = put_in(get_employee_request(), ["employee_request", "start_date"], "2012-12")
 
     assert {:error, [{%{description: _, rule: :date}, "$.employee_request.start_date"}]} =
-             EmployeeRequests.create(content, legal_entity.id)
+             EmployeeRequests.create(content, [
+               {"x-consumer-metadata", Jason.encode!(%{"client_id" => legal_entity.id})}
+             ])
   end
 
   test "Employee Request: educations issued_date format" do
@@ -229,7 +233,9 @@ defmodule EHealth.Unit.ValidatorTest do
     content = put_in(content, ["employee_request", "doctor", "educations"], [Map.put(education, "issued_date", "2012")])
 
     assert {:error, [{%{description: _, rule: :date}, "$.employee_request.doctor.educations.[0].issued_date"}]} =
-             EmployeeRequests.create(content, legal_entity.id)
+             EmployeeRequests.create(content, [
+               {"x-consumer-metadata", Jason.encode!(%{"client_id" => legal_entity.id})}
+             ])
   end
 
   test "Employee Request: science_degree invalid", %{conn: conn} do
@@ -241,7 +247,9 @@ defmodule EHealth.Unit.ValidatorTest do
     content = put_in(get_employee_request(), ~W(employee_request doctor science_degree degree), "INVALID")
 
     assert {:error, [{%{rule: :inclusion}, "$.employee_request.doctor.science_degree.degree"}]} =
-             EmployeeRequests.create(content, legal_entity.id)
+             EmployeeRequests.create(content, [
+               {"x-consumer-metadata", Jason.encode!(%{"client_id" => legal_entity.id})}
+             ])
   end
 
   test "Employee Request: employee_type invalid", %{conn: conn} do
@@ -253,7 +261,9 @@ defmodule EHealth.Unit.ValidatorTest do
     content = put_in(get_employee_request(), ~W(employee_request employee_type), "INVALID")
 
     assert {:error, [{%{rule: :inclusion}, "$.employee_request.employee_type"}]} =
-             EmployeeRequests.create(content, legal_entity.id)
+             EmployeeRequests.create(content, [
+               {"x-consumer-metadata", Jason.encode!(%{"client_id" => legal_entity.id})}
+             ])
   end
 
   test "unmapped dictionary name", %{conn: conn} do

@@ -18,8 +18,6 @@ defmodule EHealth.ContractRequests do
   alias EHealth.Employees
   alias EHealth.Employees.Employee
   alias EHealth.LegalEntities.LegalEntity
-  alias EHealth.Parties
-  alias EHealth.Parties.Party
   alias EHealth.Validators.Reference
   alias EHealth.Validators.JsonSchema
   alias EHealth.Validators.Preload
@@ -133,9 +131,8 @@ defmodule EHealth.ContractRequests do
 
     with {:contract_request_exists, true} <- {:contract_request_exists, is_nil(get_by_id(id))},
          :ok <- JsonSchema.validate(:contract_request_sign, params),
-         {_, %Party{tax_id: tax_id}} <- {:employee, Parties.get_by_user_id(user_id)},
          {:ok, %{"content" => content, "signer" => signer}} <- decode_signed_content(params, headers),
-         :ok <- validate_signer_drfo(tax_id, signer["drfo"]),
+         :ok <- SignatureValidator.check_drfo(signer, user_id, "contract_request_create"),
          :ok <- JsonSchema.validate(:contract_request, content),
          content <- Map.put(content, "contractor_legal_entity_id", client_id),
          {:ok, params, contract} <- validate_contract_number(content, headers),
@@ -172,7 +169,6 @@ defmodule EHealth.ContractRequests do
       {:ok, contract_request, preload_references(contract_request)}
     else
       {:contract_request_exists, false} -> {:error, {:conflict, "Invalid contract_request id"}}
-      {:employee, _} -> {:error, {:forbidden, "User is not allowed to this action by client_id"}}
       error -> error
     end
   end
@@ -208,8 +204,7 @@ defmodule EHealth.ContractRequests do
          references <- preload_references(contract_request),
          :ok <- JsonSchema.validate(:contract_request_sign, params),
          {:ok, %{"content" => content, "signer" => signer}} <- decode_signed_content(:nhs, params, headers),
-         {_, %Party{tax_id: tax_id}} <- {:employee, Parties.get_by_user_id(user_id)},
-         :ok <- validate_signer_drfo(tax_id, signer["drfo"]),
+         :ok <- SignatureValidator.check_drfo(signer, user_id, "contract_request_approve"),
          {:ok, %{"data" => data}} <- @mithril_api.get_user_roles(user_id, %{}, headers),
          :ok <- user_has_role(data, "NHS ADMIN SIGNER"),
          :ok <- JsonSchema.validate(:contract_request_approve, content),
@@ -236,9 +231,6 @@ defmodule EHealth.ContractRequests do
          {:ok, contract_request} <- Repo.update(changes),
          _ <- EventManager.insert_change_status(contract_request, contract_request.status, user_id) do
       {:ok, contract_request, preload_references(contract_request)}
-    else
-      {:employee, _} -> {:error, {:forbidden, "User is not allowed to this action by client_id"}}
-      error -> error
     end
   end
 
@@ -284,8 +276,7 @@ defmodule EHealth.ContractRequests do
          references <- preload_references(contract_request),
          :ok <- JsonSchema.validate(:contract_request_sign, params),
          {:ok, %{"content" => content, "signer" => signer}} <- decode_signed_content(:nhs, params, headers),
-         {_, %Party{tax_id: tax_id}} <- {:employee, Parties.get_by_user_id(user_id)},
-         :ok <- validate_signer_drfo(tax_id, signer["drfo"]),
+         :ok <- SignatureValidator.check_drfo(signer, user_id, "contract_request_decline"),
          {:ok, %{"data" => data}} <- @mithril_api.get_user_roles(user_id, %{}, headers),
          :ok <- user_has_role(data, "NHS ADMIN SIGNER"),
          :ok <- JsonSchema.validate(:contract_request_decline, content),
@@ -304,9 +295,6 @@ defmodule EHealth.ContractRequests do
          {:ok, contract_request} <- Repo.update(changes),
          _ <- EventManager.insert_change_status(contract_request, contract_request.status, user_id) do
       {:ok, contract_request, preload_references(contract_request)}
-    else
-      {:employee, _} -> {:error, {:forbidden, "User is not allowed to this action by client_id"}}
-      error -> error
     end
   end
 
@@ -348,7 +336,13 @@ defmodule EHealth.ContractRequests do
          {_, false} <- {:already_signed, contract_request.status == ContractRequest.status(:nhs_signed)},
          :ok <- validate_status(contract_request, ContractRequest.status(:pending_nhs_sign)),
          {:ok, %{"content" => content, "signer" => signer}} <- decode_signed_content(:nhs, params, headers),
-         :ok <- validate_signer_drfo(contract_request.nhs_signer_id, signer["drfo"], "$.nhs_signer_id"),
+         :ok <-
+           SignatureValidator.check_drfo(
+             signer,
+             contract_request.nhs_signer_id,
+             "$.nhs_signer_id",
+             "contract_request_sign_nhs"
+           ),
          {:ok, printout_content} <-
            ContractRequestPrintoutForm.render(%{contract_request | nhs_signed_date: Date.utc_today()}, headers),
          :ok <- validate_content(contract_request, printout_content, content),
@@ -385,7 +379,13 @@ defmodule EHealth.ContractRequests do
          {_, true} <- {:signed_nhs, contract_request.status == ContractRequest.status(:nhs_signed)},
          {_, true} <- {:client_id, client_id == contract_request.contractor_legal_entity_id},
          {:ok, %{"content" => content, "signer" => signer}} <- decode_signed_content(:msp, params, headers),
-         :ok <- validate_signer_drfo(contract_request.contractor_owner_id, signer["drfo"], "$.contractor_owner_id"),
+         :ok <-
+           SignatureValidator.check_drfo(
+             signer,
+             contract_request.contractor_owner_id,
+             "$.contractor_owner_id",
+             "contract_request_sign_msp"
+           ),
          :ok <- validate_content(contract_request, content),
          :ok <- validate_employee_divisions(contract_request),
          :ok <- validate_start_date(contract_request),
@@ -420,64 +420,6 @@ defmodule EHealth.ContractRequests do
       error ->
         error
     end
-  end
-
-  defp validate_signer_drfo(tax_id, signer_drfo) when not is_nil(signer_drfo) do
-    drfo = String.replace(signer_drfo, " ", "")
-
-    with true <- tax_id == drfo || translit_drfo(tax_id) == translit_drfo(drfo) do
-      :ok
-    else
-      _ ->
-        {:error, {:"422", "Does not match the signer drfo"}}
-    end
-  end
-
-  defp validate_signer_drfo(_, _) do
-    {:error, {:"422", "Invalid drfo"}}
-  end
-
-  defp validate_signer_drfo(employee_id, signer_drfo, path) when not is_nil(signer_drfo) do
-    drfo = String.replace(signer_drfo, " ", "")
-
-    with %Employee{party_id: party_id} <- Employees.get_by_id(employee_id),
-         %Party{tax_id: tax_id} <- Parties.get_by_id(party_id),
-         true <- tax_id == drfo || translit_drfo(tax_id) == translit_drfo(drfo) do
-      :ok
-    else
-      _ ->
-        {:error,
-         [
-           {
-             %{
-               description: "Does not match the signer drfo",
-               params: [],
-               rule: :invalid
-             },
-             path
-           }
-         ]}
-    end
-  end
-
-  defp validate_signer_drfo(_, _, path) do
-    {:error,
-     [
-       {
-         %{
-           description: "Invalid drfo",
-           params: [],
-           rule: :invalid
-         },
-         path
-       }
-     ]}
-  end
-
-  defp translit_drfo(drfo) do
-    drfo
-    |> Translit.translit()
-    |> String.upcase()
   end
 
   def get_partially_signed_content_url(headers, %{"id" => id}) do

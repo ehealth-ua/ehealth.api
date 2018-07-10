@@ -3,7 +3,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
 
   use EHealth.Web.ConnCase
   import Mox
-
+  import EHealth.Expectations.Man
   alias Ecto.UUID
   alias EHealth.Repo
   alias EHealth.DeclarationRequests.DeclarationRequest
@@ -102,10 +102,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         )
 
       insert(:prm, :party_user, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c", party: employee.party)
-
-      expect(ManMock, :render_template, fn _id, _data ->
-        {:ok, "<html><body>Printout form for declaration request.</body></html>"}
-      end)
+      template()
 
       conn =
         conn
@@ -212,10 +209,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         )
 
       insert(:prm, :party_user, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c", party: employee.party)
-
-      expect(ManMock, :render_template, fn _id, _data ->
-        {:ok, "<html><body>Printout form for declaration request.</body></html>"}
-      end)
+      template()
 
       conn =
         conn
@@ -322,10 +316,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         )
 
       insert(:prm, :party_user, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c", party: employee.party)
-
-      expect(ManMock, :render_template, fn _id, _data ->
-        {:ok, "<html><body>Printout form for declaration request.</body></html>"}
-      end)
+      template()
 
       conn =
         conn

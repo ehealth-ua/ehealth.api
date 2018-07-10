@@ -6,7 +6,7 @@ defmodule EHealth.Unit.LegalEntityTest do
   import Mox
   import Ecto.Query, warn: false
   import EHealth.Expectations.Signature
-
+  import EHealth.Expectations.Man
   alias Ecto.UUID
   alias EHealth.{Repo, PRMRepo}
   alias EHealth.EmployeeRequests.EmployeeRequest
@@ -220,9 +220,7 @@ defmodule EHealth.Unit.LegalEntityTest do
         {:ok, %{"data" => [%{"id" => UUID.generate()}]}}
       end)
 
-      expect(ManMock, :render_template, fn _id, _data ->
-        {:ok, "<html><body>Printout form for declaration request.</body></html>"}
-      end)
+      template()
 
       data =
         Map.merge(get_legal_entity_data(), %{
@@ -259,9 +257,7 @@ defmodule EHealth.Unit.LegalEntityTest do
         {:ok, %{"data" => [%{"id" => UUID.generate()}]}}
       end)
 
-      expect(ManMock, :render_template, fn _id, _data ->
-        {:ok, "<html><body>Printout form for declaration request.</body></html>"}
-      end)
+      template()
 
       data =
         Map.merge(get_legal_entity_data(), %{
@@ -296,11 +292,7 @@ defmodule EHealth.Unit.LegalEntityTest do
   describe "update Legal Entity" do
     setup _context do
       insert_dictionaries()
-
-      expect(ManMock, :render_template, fn _id, _data ->
-        {:ok, "<html><body>Printout form for declaration request.</body></html>"}
-      end)
-
+      template()
       :ok
     end
 
@@ -372,10 +364,7 @@ defmodule EHealth.Unit.LegalEntityTest do
   describe "update Legal Entity with OPS contract suspend" do
     test "successfully update name" do
       put_client()
-
-      expect(ManMock, :render_template, fn _id, _data ->
-        {:ok, "<html><body>Printout form for declaration request.</body></html>"}
-      end)
+      template()
 
       expect(MithrilMock, :get_client_type_by_name, fn _, _ ->
         {:ok, %{"data" => [%{"id" => UUID.generate()}]}}

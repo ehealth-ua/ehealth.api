@@ -30,7 +30,7 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
 
     template_id = config()[:id]
 
-    @man_api.render_template(template_id, template_data)
+    @man_api.render_template(template_id, template_data, [])
   end
 
   defp map_declaration_data(nil, declaration_number, _), do: %{declaration_number: declaration_number}

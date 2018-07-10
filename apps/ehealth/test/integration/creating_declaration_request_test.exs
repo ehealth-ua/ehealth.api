@@ -8,6 +8,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
   alias EHealth.Utils.NumberGenerator
   alias Ecto.UUID
   import Mox
+  import EHealth.Expectations.Man
 
   setup :verify_on_exit!
 
@@ -124,10 +125,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
     end
 
     test "declaration request without person.phone", %{conn: conn} do
-      expect(ManMock, :render_template, fn _id, data ->
-        tax_id = get_in(data, ~w(person tax_id)a)
-        {:ok, "<html><body>Printout form for declaration request. tax_id = #{tax_id}</body></html>"}
-      end)
+      template()
 
       expect(MPIMock, :search, fn params, _ ->
         {:ok,
@@ -241,11 +239,6 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
     test "declaration request is created with 'OTP' verification", %{conn: conn} do
       role_id = UUID.generate()
 
-      expect(ManMock, :render_template, fn _id, data ->
-        tax_id = get_in(data, ~w(person tax_id)a)
-        {:ok, "<html><body>Printout form for declaration request. tax_id = #{tax_id}</body></html>"}
-      end)
-
       expect(MPIMock, :search, fn params, _ ->
         {:ok,
          %{
@@ -293,6 +286,9 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         "test/data/declaration_request.json"
         |> File.read!()
         |> Jason.decode!()
+
+      tax_id = get_in(params, ~w(declaration_request person tax_id))
+      html_template("<html><body>Printout form for declaration request. tax_id = #{tax_id}</body></html>")
 
       uaddresses_mock_expect()
 
@@ -376,11 +372,6 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         {:ok, %{"data" => %{"secret_url" => "http://a.link.for/#{resource_id}/#{resource_name}"}}}
       end)
 
-      expect(ManMock, :render_template, fn _id, data ->
-        tax_id = get_in(data, ~w(person tax_id)a)
-        {:ok, "<html><body>Printout form for declaration request. tax_id = #{tax_id}</body></html>"}
-      end)
-
       expect(MPIMock, :search, fn params, _ ->
         {:ok,
          %{
@@ -424,6 +415,8 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         |> put_in(~W(declaration_request person first_name), "Тест")
         |> put_in(~W(declaration_request person authentication_methods), [%{"type" => "OFFLINE"}])
 
+      tax_id = get_in(declaration_request_params, ~w(declaration_request person tax_id))
+      html_template("<html><body>Printout form for declaration request. tax_id = #{tax_id}</body></html>")
       uaddresses_mock_expect()
 
       resp =
@@ -469,10 +462,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
     end
 
     test "declaration request is created for person without tax_id", %{conn: conn} do
-      expect(ManMock, :render_template, fn _id, data ->
-        tax_id = get_in(data, ~w(person tax_id)a)
-        {:ok, "<html><body>Printout form for declaration request. tax_id = #{tax_id}</body></html>"}
-      end)
+      template()
 
       expect(MPIMock, :search, fn params, _ ->
         {:ok,
@@ -554,11 +544,6 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
     end
 
     test "declaration request is created without verification", %{conn: conn} do
-      expect(ManMock, :render_template, fn _id, data ->
-        tax_id = get_in(data, ~w(person tax_id)a)
-        {:ok, "<html><body>Printout form for declaration request. tax_id = #{tax_id}</body></html>"}
-      end)
-
       expect(MPIMock, :search, fn _, _ ->
         {:ok, %{"data" => []}}
       end)
@@ -596,6 +581,8 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         |> Jason.decode!()
         |> put_in(["declaration_request", "person", "first_name"], "Тест")
 
+      tax_id = get_in(declaration_request_params, ~w(declaration_request person tax_id))
+      html_template("<html><body>Printout form for declaration request. tax_id = #{tax_id}</body></html>")
       uaddresses_mock_expect()
 
       decoded = declaration_request_params["declaration_request"]
@@ -627,7 +614,6 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       # assert "ce377dea-d8c4-4dd8-9328-de24b1ee3879" = resp["data"]["updated_by"]
       # assert "ce377dea-d8c4-4dd8-9328-de24b1ee3879" = resp["data"]["inserted_by"]
       # assert %{"number" => "+380508887700", "type" => "OTP"} = resp["authentication_method_current"]
-      tax_id = resp["data"]["person"]["tax_id"]
 
       assert "<html><body>Printout form for declaration request. tax_id = #{tax_id}</body></html>" ==
                resp["data"]["content"]

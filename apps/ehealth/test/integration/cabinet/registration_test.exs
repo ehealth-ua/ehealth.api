@@ -15,7 +15,7 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
       email = "email@example.com"
       tax_id = "3126509816"
 
-      expect(ManMock, :render_template, fn _id, template_data ->
+      expect(ManMock, :render_template, fn _id, template_data, _ ->
         assert Map.has_key?(template_data, :verification_code)
         :ets.insert(:jwt, {"jwt", template_data.verification_code})
         {:ok, "<html></html>"}

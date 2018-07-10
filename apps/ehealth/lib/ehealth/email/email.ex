@@ -29,7 +29,7 @@ defmodule EHealth.Email do
       |> Map.merge(data)
       |> Map.delete("id")
 
-    case @man_api.render_template(id, data) do
+    case @man_api.render_template(id, data, []) do
       {:ok, body} -> {:ok, body}
       {:error, err} -> {:error, {:bad_request, "Cannot render email template with: \"#{inspect(err)}\""}}
     end

@@ -17,8 +17,6 @@ defmodule EHealth.Contracts do
   alias EHealth.LegalEntities.LegalEntity
   alias EHealth.Divisions
   alias EHealth.Divisions.Division
-  alias EHealth.Parties
-  alias EHealth.Parties.Party
   alias EHealth.PRMRepo
   alias EHealth.Validators.JsonSchema
   alias EHealth.Validators.Preload
@@ -136,8 +134,7 @@ defmodule EHealth.Contracts do
     with {:ok, contract, _} <- get_by_id(id, params),
          :ok <- JsonSchema.validate(:contract_sign, params),
          {:ok, %{"content" => content, "signer" => signer}} <- decode_signed_content(params, headers),
-         {_, %Party{tax_id: tax_id}} <- {:employee, Parties.get_by_user_id(user_id)},
-         :ok <- validate_signer_drfo(tax_id, signer["drfo"]),
+         :ok <- SignatureValidator.check_drfo(signer, user_id, "contract_request_update"),
          :ok <- validate_status(contract, Contract.status(:verified)),
          :ok <- validate_update_json_schema(content),
          :ok <- validate_legal_entity_division(contract, content),
@@ -156,9 +153,6 @@ defmodule EHealth.Contracts do
       contract
       |> PRMRepo.preload([contract_employees: query], force: true)
       |> load_contract_references()
-    else
-      {:employee, _} -> {:error, {:forbidden, "User is not allowed to this action by client_id"}}
-      error -> error
     end
   end
 
@@ -295,27 +289,6 @@ defmodule EHealth.Contracts do
         headers
       ) do
     SignatureValidator.validate(signed_content, encoding, headers)
-  end
-
-  defp validate_signer_drfo(tax_id, signer_drfo) when not is_nil(signer_drfo) do
-    drfo = String.replace(signer_drfo, " ", "")
-
-    with true <- tax_id == drfo || translit_drfo(tax_id) == translit_drfo(drfo) do
-      :ok
-    else
-      _ ->
-        {:error, {:"422", "Does not match the signer drfo"}}
-    end
-  end
-
-  defp validate_signer_drfo(_, _) do
-    {:error, {:"422", "Invalid drfo"}}
-  end
-
-  defp translit_drfo(drfo) do
-    drfo
-    |> Translit.translit()
-    |> String.upcase()
   end
 
   defp validate_status(%Contract{status: status}, status), do: :ok

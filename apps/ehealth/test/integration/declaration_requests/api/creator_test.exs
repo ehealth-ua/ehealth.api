@@ -15,7 +15,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
 
   describe "generate_printout_form/1" do
     setup %{conn: _conn} do
-      expect(ManMock, :render_template, fn id, data ->
+      expect(ManMock, :render_template, fn id, data, _ ->
         case id do
           "999" ->
             {:error, "oops, I did it again"}

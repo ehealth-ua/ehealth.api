@@ -4,6 +4,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
   use EHealth.Web.ConnCase, async: false
   import Mox
   import EHealth.Expectations.Signature
+  import EHealth.Expectations.Man
   alias Ecto.UUID
   alias EHealth.Employees.Employee
   alias EHealth.PRMRepo
@@ -68,7 +69,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       end)
 
       validate_addresses()
-      render_template()
+      template()
 
       insert_dictionaries()
       legal_entity_type = "MSP"
@@ -94,7 +95,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       get_client_type_by_name(UUID.generate(), 2)
       put_client(2)
       validate_addresses(2)
-      render_template(2)
+      template(2)
 
       insert_dictionaries()
       legal_entity_params = Map.merge(get_legal_entity_data(), %{"type" => "MSP"})
@@ -136,7 +137,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       get_client_type_by_name(UUID.generate(), 2)
       put_client(2)
       validate_addresses(2)
-      render_template(2)
+      template(2)
 
       insert_dictionaries()
       legal_entity_params = Map.merge(get_legal_entity_data(), %{"type" => "MSP"})
@@ -178,7 +179,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       get_client_type_by_name(UUID.generate(), 2)
       put_client(2)
       validate_addresses(2)
-      render_template(2)
+      template(2)
 
       insert_dictionaries()
       legal_entity_params = Map.merge(get_legal_entity_data(), %{"type" => "MSP"})
@@ -547,12 +548,6 @@ defmodule EHealth.Web.LegalEntityControllerTest do
   defp get_client_type_by_name(id, n \\ 1) do
     expect(MithrilMock, :get_client_type_by_name, n, fn _, _ ->
       {:ok, %{"data" => [%{"id" => id}]}}
-    end)
-  end
-
-  defp render_template(n \\ 1) do
-    expect(ManMock, :render_template, n, fn _, _ ->
-      {:ok, "<html></html>"}
     end)
   end
 

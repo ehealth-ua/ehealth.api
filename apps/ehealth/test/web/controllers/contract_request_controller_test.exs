@@ -5,6 +5,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
   import Mox
   import EHealth.Expectations.Signature
+  import EHealth.Expectations.Man
   alias EHealth.ContractRequests.ContractRequest
   alias EHealth.Contracts.Contract
   alias EHealth.Employees.Employee
@@ -1559,9 +1560,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
       end)
 
-      expect(ManMock, :render_template, fn _, _, _ ->
-        {:ok, "<html></html>"}
-      end)
+      template()
 
       expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
         {:ok, "success"}
@@ -2196,10 +2195,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
       insert(:il, :dictionary, name: "MEDICAL_SERVICE", values: %{})
       nhs()
-
-      expect(ManMock, :render_template, fn _, _, _ ->
-        {:ok, "<html></html>"}
-      end)
+      template()
 
       %{
         "client_id" => client_id,
@@ -2270,10 +2266,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         {:error, "failed to save content"}
       end)
 
-      expect(ManMock, :render_template, fn _, _, _ ->
-        {:ok, "<html></html>"}
-      end)
-
+      template()
       id = UUID.generate()
 
       data = %{
@@ -2319,10 +2312,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
       insert(:il, :dictionary, name: "MEDICAL_SERVICE", values: %{})
       nhs()
-
-      expect(ManMock, :render_template, fn _, _, _ ->
-        {:ok, "<html></html>"}
-      end)
+      template()
 
       expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
         {:ok, "success"}
@@ -2762,10 +2752,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
       insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
       nhs()
-
-      expect(ManMock, :render_template, fn _, _, _ ->
-        {:ok, "<html></html>"}
-      end)
+      template()
 
       %{
         "client_id" => client_id,
@@ -2874,10 +2861,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
     test "success to sign contract_request", %{conn: conn} do
       nhs()
-
-      expect(ManMock, :render_template, fn _, _, _ ->
-        {:ok, "<html></html>"}
-      end)
+      template()
 
       expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
         {:ok, "success"}
@@ -2925,10 +2909,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
     test "success to sign contract_request with existing parent_contract_id", %{conn: conn} do
       nhs()
-
-      expect(ManMock, :render_template, fn _, _, _ ->
-        {:ok, "<html></html>"}
-      end)
+      template()
 
       expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
         {:ok, "success"}
@@ -2987,12 +2968,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
       insert(:il, :dictionary, name: "MEDICAL_SERVICE", values: %{})
       nhs()
-
-      printout_content = "<html></html>"
-
-      expect(ManMock, :render_template, fn _, _, _ ->
-        {:ok, printout_content}
-      end)
+      template()
 
       contract_request = insert(:il, :contract_request, status: ContractRequest.status(:pending_nhs_sign))
       id = contract_request.id
@@ -3003,7 +2979,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> get(contract_request_path(conn, :printout_content, id))
 
       assert resp = json_response(conn, 200)
-      assert %{"id" => id, "printout_content" => printout_content} == resp["data"]
+      assert %{"id" => id, "printout_content" => "<html></html>"} == resp["data"]
     end
 
     test "invalid status", %{conn: conn} do
