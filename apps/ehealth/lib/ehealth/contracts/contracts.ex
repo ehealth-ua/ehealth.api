@@ -11,8 +11,11 @@ defmodule EHealth.Contracts do
   alias EHealth.Contracts.ContractEmployee
   alias EHealth.Contracts.ContractDivision
   alias EHealth.Contracts.Search
+  alias EHealth.Employees
   alias EHealth.Employees.Employee
   alias EHealth.LegalEntities.LegalEntity
+  alias EHealth.Divisions
+  alias EHealth.Divisions.Division
   alias EHealth.Parties
   alias EHealth.Parties.Party
   alias EHealth.PRMRepo
@@ -135,7 +138,9 @@ defmodule EHealth.Contracts do
          {_, %Party{tax_id: tax_id}} <- {:employee, Parties.get_by_user_id(user_id)},
          :ok <- validate_signer_drfo(tax_id, signer["drfo"]),
          :ok <- validate_status(contract, Contract.status(:verified)),
-         :ok <- JsonSchema.validate(:contract_update_employees, content),
+         :ok <- validate_update_json_schema(content),
+         :ok <- validate_legal_entity_division(contract, content),
+         :ok <- validate_legal_entity_employee(contract, content),
          {:ok, _} <- process_employee_division(contract, content, user_id) do
       now = NaiveDateTime.utc_now()
 
@@ -153,6 +158,31 @@ defmodule EHealth.Contracts do
     else
       {:employee, _} -> {:error, {:forbidden, "User is not allowed to this action by client_id"}}
       error -> error
+    end
+  end
+
+  defp validate_update_json_schema(%{"is_active" => false} = content) do
+    JsonSchema.validate(:contract_update_employees_is_active, content)
+  end
+
+  defp validate_update_json_schema(content) do
+    JsonSchema.validate(:contract_update_employees, content)
+  end
+
+  defp validate_legal_entity_division(%Contract{contractor_legal_entity_id: legal_entity_id}, %{"division_id" => id}) do
+    with %Page{entries: [_]} <- Divisions.search(legal_entity_id, %{"ids" => id, "status" => Division.status(:active)}) do
+      :ok
+    else
+      _ -> {:error, {:"422", "Division must be active and within current legal_entity"}}
+    end
+  end
+
+  defp validate_legal_entity_employee(%Contract{contractor_legal_entity_id: legal_entity_id}, %{"employee_id" => id}) do
+    with %Employee{} = employee <- Employees.get_by_id(id),
+         true <- employee.legal_entity_id == legal_entity_id && employee.status == Employee.status(:approved) do
+      :ok
+    else
+      _ -> {:error, {:"422", "Employee must be within current legal_entity"}}
     end
   end
 

@@ -439,8 +439,9 @@ defmodule EHealth.Web.ContractControllerTest do
       nhs()
       contract_request = insert(:il, :contract_request)
       contract = insert(:prm, :contract, contract_request_id: contract_request.id)
-      division = insert(:prm, :division)
-      employee = insert(:prm, :employee)
+      legal_entity = insert(:prm, :legal_entity, id: contract.contractor_legal_entity_id)
+      division = insert(:prm, :division, legal_entity: legal_entity)
+      employee = insert(:prm, :employee, legal_entity: legal_entity)
       employee_id = employee.id
       insert(:prm, :contract_division, contract_id: contract.id, division_id: division.id)
 
@@ -489,8 +490,9 @@ defmodule EHealth.Web.ContractControllerTest do
       nhs()
       contract_request = insert(:il, :contract_request)
       contract = insert(:prm, :contract, contract_request_id: contract_request.id)
-      division = insert(:prm, :division)
-      employee = insert(:prm, :employee)
+      legal_entity = insert(:prm, :legal_entity, id: contract.contractor_legal_entity_id)
+      division = insert(:prm, :division, legal_entity: legal_entity)
+      employee = insert(:prm, :employee, legal_entity: legal_entity)
       employee_id = employee.id
       insert(:prm, :contract_division, contract_id: contract.id, division_id: division.id)
       party_user = insert(:prm, :party_user)

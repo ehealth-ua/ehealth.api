@@ -34,15 +34,14 @@
         "is_active": {
             "type": "boolean",
             "enum": [
-                true
+                false
             ]
         }
     },
     "required": [
         "employee_id",
-        "staff_units",
-        "declaration_limit",
-        "division_id"
+        "division_id",
+        "is_active"
     ],
     "additionalProperties": false
 }
