@@ -13,12 +13,12 @@ defmodule EHealth.Web.ContractControllerTest do
     test "finds contract successfully and nhs can see any contracts", %{conn: conn} do
       nhs(2)
 
-      expect(MediaStorageMock, :create_signed_url, 4, fn _, _, id, resource_name, _ ->
+      expect(MediaStorageMock, :create_signed_url, 6, fn _, _, id, resource_name, _ ->
         {:ok, %{"data" => %{"secret_url" => "http://url.com/#{id}/#{resource_name}"}}}
       end)
 
-      contract_request = insert(:il, :contract_request)
-      contract = insert(:prm, :contract, contract_request_id: contract_request.id, status: "SIGNED")
+      contract_request = insert(:il, :contract_request, status: "SIGNED")
+      contract = insert(:prm, :contract, contract_request_id: contract_request.id)
 
       assert response =
                %{"data" => response_data} =
@@ -37,6 +37,10 @@ defmodule EHealth.Web.ContractControllerTest do
     end
 
     test "ensure TOKENS_TYPES_PERSONAL has access to own contracts", %{conn: conn} do
+      expect(MediaStorageMock, :create_signed_url, 4, fn _, _, id, resource_name, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://url.com/#{id}/#{resource_name}"}}}
+      end)
+
       msp()
       contractor_legal_entity = insert(:prm, :legal_entity)
       contract_request = insert(:il, :contract_request)

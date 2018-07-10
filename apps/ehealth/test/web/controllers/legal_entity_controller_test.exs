@@ -102,38 +102,34 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       consumer_id = UUID.generate()
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
-      conn1 =
+      resp1 =
         conn
         |> put_req_header("content-type", "application/json")
         |> put_req_header("content-length", "7000")
         |> put_req_header("x-consumer-id", consumer_id)
         |> put_req_header("edrpou", legal_entity_params["edrpou"])
         |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
+        |> json_response(200)
 
-      id = json_response(conn1, 200)["data"]["id"]
+      id = resp1["data"]["id"]
       %{id: contract_id} = insert(:prm, :contract, contractor_legal_entity_id: id)
       legal_entity_params = Map.put(legal_entity_params, "name", "Institute of medical researches ISMT")
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
-      conn2 =
+      resp2 =
         conn
         |> put_req_header("content-type", "application/json")
         |> put_req_header("content-length", "7000")
         |> put_req_header("x-consumer-id", UUID.generate())
         |> put_req_header("edrpou", legal_entity_params["edrpou"])
         |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
+        |> json_response(200)
 
-      resp2 = json_response(conn2, 200)
       assert resp2
 
-      assert %{"data" => response_data} =
-               conn
-               |> put_client_id_header(nhs())
-               |> get(contract_path(conn, :show, contract_id))
-               |> json_response(200)
-
-      assert response_data["is_suspended"] == true
+      contract = PRMRepo.get(Contract, contract_id)
+      assert contract.is_suspended
     end
 
     test "contract suspend on change status", %{conn: conn} do
@@ -148,38 +144,34 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       consumer_id = UUID.generate()
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
-      conn1 =
+      resp1 =
         conn
         |> put_req_header("content-type", "application/json")
         |> put_req_header("content-length", "7000")
         |> put_req_header("x-consumer-id", consumer_id)
         |> put_req_header("edrpou", legal_entity_params["edrpou"])
         |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
+        |> json_response(200)
 
-      id = json_response(conn1, 200)["data"]["id"]
+      id = resp1["data"]["id"]
       %{id: contract_id} = insert(:prm, :contract, contractor_legal_entity_id: id)
       legal_entity_params = Map.put(legal_entity_params, "status", "CLOSED")
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
-      conn2 =
+      resp2 =
         conn
         |> put_req_header("content-type", "application/json")
         |> put_req_header("content-length", "7000")
         |> put_req_header("x-consumer-id", UUID.generate())
         |> put_req_header("edrpou", legal_entity_params["edrpou"])
         |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
+        |> json_response(200)
 
-      resp2 = json_response(conn2, 200)
       assert resp2
 
-      assert %{"data" => response_data} =
-               conn
-               |> put_client_id_header(nhs())
-               |> get(contract_path(conn, :show, contract_id))
-               |> json_response(200)
-
-      assert response_data["is_suspended"] == true
+      contract = PRMRepo.get(Contract, contract_id)
+      assert contract.is_suspended
     end
 
     test "contract suspend on change address", %{conn: conn} do
@@ -194,15 +186,16 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       consumer_id = UUID.generate()
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
-      conn1 =
+      resp1 =
         conn
         |> put_req_header("content-type", "application/json")
         |> put_req_header("content-length", "7000")
         |> put_req_header("x-consumer-id", consumer_id)
         |> put_req_header("edrpou", legal_entity_params["edrpou"])
         |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
+        |> json_response(200)
 
-      id = json_response(conn1, 200)["data"]["id"]
+      id = resp1["data"]["id"]
 
       %{id: contract_id} = insert(:prm, :contract, contractor_legal_entity_id: id)
 
@@ -212,24 +205,19 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
-      conn2 =
+      resp2 =
         conn
         |> put_req_header("content-type", "application/json")
         |> put_req_header("content-length", "7000")
         |> put_req_header("x-consumer-id", UUID.generate())
         |> put_req_header("edrpou", legal_entity_params["edrpou"])
         |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
+        |> json_response(200)
 
-      resp2 = json_response(conn2, 200)
       assert resp2
 
-      assert %{"data" => response_data} =
-               conn
-               |> put_client_id_header(nhs())
-               |> get(contract_path(conn, :show, contract_id))
-               |> json_response(200)
-
-      assert response_data["is_suspended"] == true
+      contract = PRMRepo.get(Contract, contract_id)
+      assert contract.is_suspended
     end
 
     test "deactivate legal entity suspend contract", %{conn: conn} do
