@@ -60,6 +60,8 @@ defmodule EHealth.Validators.JsonSchema do
     "specs/json_schemas/medication_request/medication_request_qualify_request.json"
   )
 
+  use_schema(:credentials_recovery_request, "specs/json_schemas/user/credentials_recovery_request.json")
+
   def validate(schema, attrs) do
     @schemas
     |> Keyword.get(schema)

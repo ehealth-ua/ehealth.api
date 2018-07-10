@@ -7,9 +7,8 @@ defmodule EHealth.Web.UserController do
 
   def create_credentials_recovery_request(conn, %{"credentials_recovery_request" => attrs}) do
     opts = build_upstream_opts(conn)
-    client_id = get_client_id(conn.req_headers)
 
-    with {:ok, credentials_recovery_request} <- API.create_credentials_recovery_request(attrs, client_id, opts) do
+    with {:ok, credentials_recovery_request} <- API.create_credentials_recovery_request(attrs, opts) do
       conn
       |> put_status(:created)
       |> render("credentials_recovery_request.json", credentials_recovery_request: credentials_recovery_request)

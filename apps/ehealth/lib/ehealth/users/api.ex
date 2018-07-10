@@ -8,18 +8,20 @@ defmodule EHealth.Users.API do
   alias EView.Changeset.Validators.Email, as: EmailValidator
   alias EHealth.Repo
   alias EHealth.Bamboo.Emails.Sender
+  alias EHealth.Validators.JsonSchema
   require Logger
 
   @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
 
-  def create_credentials_recovery_request(attrs, client_id, opts \\ []) do
+  def create_credentials_recovery_request(attrs, opts \\ []) do
     upstream_headers = Keyword.get(opts, :upstream_headers, [])
 
     with {:ok, email} <- Map.fetch(attrs, "email"),
+         :ok <- JsonSchema.validate(:credentials_recovery_request, attrs),
          {:ok, %{"data" => users}} <- @mithril_api.search_user(%{"email" => email}, upstream_headers),
          [%{"id" => user_id, "email" => user_email}] <- users,
          {:ok, request} <- insert_credentials_recovery_request(user_id),
-         :ok <- send_email(user_email, request, client_id, Map.get(attrs, "redirect_uri", "")) do
+         :ok <- send_email(user_email, request, Map.get(attrs, "client_id"), Map.get(attrs, "redirect_uri")) do
       {:ok, %{request | expires_at: get_expiration_date(request)}}
     else
       :error ->

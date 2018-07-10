@@ -42,7 +42,14 @@ defmodule EHealth.Web.UserControllerTest do
         {:ok, printout_form}
       end)
 
-      attrs = %{"credentials_recovery_request" => %{"email" => "bob@example.com", "redirect_uri" => "blabla"}}
+      attrs = %{
+        "credentials_recovery_request" => %{
+          "email" => "bob@example.com",
+          "client_id" => UUID.generate(),
+          "redirect_uri" => "blabla"
+        }
+      }
+
       conn = post(conn, user_path(conn, :create_credentials_recovery_request), attrs)
       assert %{"is_active" => true, "expires_at" => _} = json_response(conn, 201)["data"]
       assert 1 == length(Repo.all(CredentialsRecoveryRequest))
@@ -54,7 +61,14 @@ defmodule EHealth.Web.UserControllerTest do
         {:ok, %{"data" => []}}
       end)
 
-      attrs = %{"credentials_recovery_request" => %{"email" => "mike@example.com", "redirect_uri" => "blabla"}}
+      attrs = %{
+        "credentials_recovery_request" => %{
+          "email" => "mike@example.com",
+          "client_id" => UUID.generate(),
+          "redirect_uri" => "blabla"
+        }
+      }
+
       conn = post(conn, user_path(conn, :create_credentials_recovery_request), attrs)
 
       assert [%{"entry" => "$.email", "rules" => [%{"description" => "does not exist", "rule" => "existence"}]}] =
@@ -66,6 +80,51 @@ defmodule EHealth.Web.UserControllerTest do
       conn = post(conn, user_path(conn, :create_credentials_recovery_request), attrs)
 
       assert [%{"entry" => "$.email", "rules" => [%{"rule" => "required"}]}] =
+               json_response(conn, 422)["error"]["invalid"]
+    end
+
+    test "returns validation error when client_id or/and redirect_uri is not set", %{conn: conn} do
+      attrs = %{"credentials_recovery_request" => %{"email" => "bob@example.com"}}
+      conn = post(conn, user_path(conn, :create_credentials_recovery_request), attrs)
+
+      assert [
+               %{
+                 "entry" => "$.client_id",
+                 "entry_type" => "json_data_property",
+                 "rules" => [
+                   %{
+                     "description" => "required property client_id was not present",
+                     "params" => [],
+                     "rule" => "required"
+                   }
+                 ]
+               },
+               %{
+                 "entry" => "$.redirect_uri",
+                 "entry_type" => "json_data_property",
+                 "rules" => [
+                   %{
+                     "description" => "required property redirect_uri was not present",
+                     "params" => [],
+                     "rule" => "required"
+                   }
+                 ]
+               }
+             ] = json_response(conn, 422)["error"]["invalid"]
+    end
+
+    test "returns validation error when client_id is invalid", %{conn: conn} do
+      attrs = %{
+        "credentials_recovery_request" => %{
+          "email" => "mike@example.com",
+          "client_id" => "test",
+          "redirect_uri" => "blabla"
+        }
+      }
+
+      conn = post(conn, user_path(conn, :create_credentials_recovery_request), attrs)
+
+      assert [%{"entry" => "$.client_id", "rules" => [%{"rule" => "format"}]}] =
                json_response(conn, 422)["error"]["invalid"]
     end
   end
