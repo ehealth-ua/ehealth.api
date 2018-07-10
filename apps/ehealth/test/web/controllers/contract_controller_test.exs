@@ -580,4 +580,191 @@ defmodule EHealth.Web.ContractControllerTest do
       assert %{"id" => contract_id, "printout_content" => printout_content} == resp["data"]
     end
   end
+
+  describe "show contract employees" do
+    test "finds contract successfully and nhs can see any contracts", %{conn: conn} do
+      nhs()
+      %{id: client_id} = insert(:prm, :legal_entity)
+
+      contract_request = insert(:il, :contract_request)
+      contract = insert(:prm, :contract, contract_request_id: contract_request.id)
+      division = insert(:prm, :division)
+      employee = insert(:prm, :employee)
+      insert(:prm, :contract_division, contract_id: contract.id, division_id: division.id)
+
+      for _ <- 1..3 do
+        insert(
+          :prm,
+          :contract_employee,
+          contract_id: contract.id,
+          employee_id: employee.id,
+          division_id: division.id,
+          declaration_limit: 2000
+        )
+      end
+
+      response =
+        conn
+        |> put_client_id_header(client_id)
+        |> get(contract_path(conn, :show_employees, contract.id))
+        |> json_response(200)
+
+      assert length(response["data"]) == 3
+
+      Enum.map(response["data"], fn contract_employee ->
+        assert Map.get(contract_employee, "contract_id") == contract.id
+      end)
+
+      assert %{"total_entries" => 3} = response["paging"]
+    end
+
+    test "ensure MSP has access to own contracts", %{conn: conn} do
+      msp()
+      contractor_legal_entity = insert(:prm, :legal_entity)
+      contract_request = insert(:il, :contract_request)
+
+      contract =
+        insert(
+          :prm,
+          :contract,
+          contractor_legal_entity_id: contractor_legal_entity.id,
+          contract_request_id: contract_request.id
+        )
+
+      assert conn
+             |> put_client_id_header(contractor_legal_entity.id)
+             |> get(contract_path(conn, :show_employees, contract.id))
+             |> json_response(200)
+    end
+
+    test "ensure MSP has no access to other contracts", %{conn: conn} do
+      msp()
+      contractor_legal_entity = insert(:prm, :legal_entity)
+      contract = insert(:prm, :contract)
+
+      assert %{"error" => %{"type" => "forbidden", "message" => _}} =
+               conn
+               |> put_client_id_header(contractor_legal_entity.id)
+               |> get(contract_path(conn, :show_employees, contract.id))
+               |> json_response(403)
+    end
+
+    test "not found", %{conn: conn} do
+      msp()
+      %{id: client_id} = insert(:prm, :legal_entity)
+
+      assert %{"error" => %{"type" => "not_found"}} =
+               conn
+               |> put_client_id_header(client_id)
+               |> get(contract_path(conn, :show_employees, UUID.generate()))
+               |> json_response(404)
+    end
+
+    test "client is not active", %{conn: conn} do
+      msp()
+      %{id: client_id} = insert(:prm, :legal_entity, is_active: false)
+
+      assert %{"error" => %{"type" => "forbidden", "message" => "Client is not active"}} =
+               conn
+               |> put_client_id_header(client_id)
+               |> get(contract_path(conn, :show_employees, UUID.generate()))
+               |> json_response(403)
+    end
+
+    test "finds contract successfully with search params", %{conn: conn} do
+      nhs()
+      %{id: client_id} = insert(:prm, :legal_entity)
+
+      contract_request = insert(:il, :contract_request)
+      contract = insert(:prm, :contract, contract_request_id: contract_request.id)
+      division_1 = insert(:prm, :division)
+      division_2 = insert(:prm, :division)
+      employee = insert(:prm, :employee)
+      insert(:prm, :contract_division, contract_id: contract.id, division_id: division_1.id)
+      insert(:prm, :contract_division, contract_id: contract.id, division_id: division_2.id)
+
+      # contract_employee_in_1
+      insert(
+        :prm,
+        :contract_employee,
+        contract_id: contract.id,
+        employee_id: employee.id,
+        division_id: division_1.id,
+        declaration_limit: 2000
+      )
+
+      # contract_employee_out_1
+      insert(
+        :prm,
+        :contract_employee,
+        contract_id: contract.id,
+        employee_id: employee.id,
+        division_id: division_2.id,
+        declaration_limit: 2000
+      )
+
+      # contract_employee_out_2
+      insert(
+        :prm,
+        :contract_employee,
+        contract_id: contract.id,
+        employee_id: employee.id,
+        division_id: division_1.id,
+        declaration_limit: 2000,
+        end_date: NaiveDateTime.add(NaiveDateTime.utc_now(), -60)
+      )
+
+      search_params = %{
+        "employee_id" => employee.id,
+        "division_id" => division_1.id,
+        "is_active" => true
+      }
+
+      response =
+        conn
+        |> put_client_id_header(client_id)
+        |> get(contract_path(conn, :show_employees, contract.id), search_params)
+        |> json_response(200)
+
+      assert length(response["data"]) == 1
+    end
+
+    test "ignore invalid search params", %{conn: conn} do
+      nhs()
+      %{id: client_id} = insert(:prm, :legal_entity)
+
+      contract_request = insert(:il, :contract_request)
+      contract = insert(:prm, :contract, contract_request_id: contract_request.id)
+      division = insert(:prm, :division)
+      employee = insert(:prm, :employee)
+      insert(:prm, :contract_division, contract_id: contract.id, division_id: division.id)
+
+      for _ <- 1..3 do
+        insert(
+          :prm,
+          :contract_employee,
+          contract_id: contract.id,
+          employee_id: employee.id,
+          division_id: division.id,
+          declaration_limit: 2000
+        )
+      end
+
+      search_params = %{"test" => true}
+
+      response =
+        conn
+        |> put_client_id_header(client_id)
+        |> get(contract_path(conn, :show_employees, contract.id), search_params)
+        |> json_response(200)
+
+      assert length(response["data"]) == 3
+
+      Enum.map(response["data"], fn contract_employee ->
+        assert Map.get(contract_employee, "contract_id") == contract.id
+      end)
+
+      assert %{"total_entries" => 3} = response["paging"]
+    end
+  end
 end

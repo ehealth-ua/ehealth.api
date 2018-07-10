@@ -90,6 +90,32 @@ defmodule EHealth.Web.ContractView do
     %{id: contract.id, printout_content: printout_content}
   end
 
+  def render("show_employees.json", %{contract_employees: contract_employees, references: references}) do
+    render_many(
+      contract_employees,
+      __MODULE__,
+      "contract_employee.json",
+      references: references,
+      as: :contract_employee
+    )
+  end
+
+  def render("contract_employee.json", %{contract_employee: contract_employee, references: references}) do
+    contract_employee
+    |> Map.take(~w(
+      contract_id
+      division_id
+      staff_units
+      declaration_limit
+      start_date
+      end_date
+    )a)
+    |> Map.put(
+      :employee,
+      render_association(:employee, references, contract_employee.employee_id)
+    )
+  end
+
   def render_association(:contract_division, contract_division) do
     Map.take(contract_division, ~w(id name)a)
   end
@@ -115,6 +141,17 @@ defmodule EHealth.Web.ContractView do
            |> Map.get(:division)
            |> Map.get(contract_division.division_id) do
       Map.take(division, ~w(id name addresses phone email working_hours mountain_group phones)a)
+    end
+  end
+
+  def render_association(:employee, references, id) do
+    with %{} = employee <-
+           references
+           |> Map.get(:employee)
+           |> Map.get(id) do
+      employee
+      |> Map.take(~w(id speciality)a)
+      |> Map.put(:party, Map.take(employee.party, ~w(first_name last_name second_name)a))
     end
   end
 end

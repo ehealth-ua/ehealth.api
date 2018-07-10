@@ -30,6 +30,12 @@ defmodule EHealth.Web.ContractController do
     end
   end
 
+  def show_employees(%Plug.Conn{req_headers: headers} = conn, %{"id" => id} = params) do
+    with {:ok, paging, references} <- Contracts.get_employees_by_id(id, params, headers) do
+      render(conn, "show_employees.json", contract_employees: paging.entries, paging: paging, references: references)
+    end
+  end
+
   def update(%Plug.Conn{req_headers: headers} = conn, %{"id" => id} = params) do
     with {:ok, contract, references} <- Contracts.update(id, Map.delete(params, "id"), headers) do
       render(conn, "show.json", contract: contract, references: references)

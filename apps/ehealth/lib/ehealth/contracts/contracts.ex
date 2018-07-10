@@ -12,6 +12,7 @@ defmodule EHealth.Contracts do
   alias EHealth.Contracts.ContractDivision
   alias EHealth.Contracts.Search
   alias EHealth.Employees
+  alias EHealth.Contracts.ContractEmployeeSearch
   alias EHealth.Employees.Employee
   alias EHealth.LegalEntities.LegalEntity
   alias EHealth.Divisions
@@ -345,6 +346,47 @@ defmodule EHealth.Contracts do
            ContractRequests.decode_and_validate_signed_content(contract_request, headers) do
       {:ok, contract, printout_content}
     end
+  end
+
+  def get_employees_by_id(id, params, headers) do
+    client_id = get_client_id(headers)
+
+    with %LegalEntity{} = client_legal_entity <- PRMRepo.get(LegalEntity, client_id),
+         :ok <- check_client_legal_entity(client_legal_entity),
+         %Contract{} = contract <- PRMRepo.get(Contract, id),
+         :ok <- validate_contractor_legal_entity_id(contract, params),
+         %Ecto.Changeset{valid?: true, changes: changes} <- ContractEmployeeSearch.changeset(params),
+         %Page{entries: contract_employees} = paging <- contract_employee_search(contract, changes) do
+      {:ok, paging, load_contract_employees_references(contract_employees)}
+    end
+  end
+
+  defp check_client_legal_entity(%LegalEntity{is_active: true}), do: :ok
+  defp check_client_legal_entity(_), do: {:error, {:forbidden, "Client is not active"}}
+
+  defp contract_employee_search(%Contract{id: contract_id}, search_params) do
+    is_active = Map.get(search_params, :is_active)
+    params = Map.delete(search_params, :is_active)
+    query = if map_size(params) > 0, do: where(ContractEmployee, ^Map.to_list(params)), else: ContractEmployee
+
+    query
+    |> where([ce], ce.contract_id == ^contract_id)
+    |> add_is_active_query_param(is_active)
+    |> PRMRepo.paginate(Map.take(search_params, ~w(page page_size)a))
+  end
+
+  defp add_is_active_query_param(query, true) do
+    where(query, [ce], is_nil(ce.end_date) or ce.end_date > ^NaiveDateTime.utc_now())
+  end
+
+  defp add_is_active_query_param(query, false) do
+    where(query, [ce], not (is_nil(ce.end_date) or ce.end_date > ^NaiveDateTime.utc_now()))
+  end
+
+  defp add_is_active_query_param(query, nil), do: query
+
+  defp load_contract_employees_references(contract_employees) do
+    Preload.preload_references_for_list(contract_employees, [{:employee_id, :employee}])
   end
 
   defp search(changes) do
