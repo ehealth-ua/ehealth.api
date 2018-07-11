@@ -545,7 +545,7 @@ defmodule EHealth.Web.ContractControllerTest do
       legal_entity_signer = insert(:prm, :legal_entity, edrpou: "10002000")
 
       expect(MediaStorageMock, :get_signed_content, 2, fn _ ->
-        {:ok, %{body: ""}}
+        {:ok, %{body: "", status_code: 200}}
       end)
 
       %{id: contract_request_id} =
