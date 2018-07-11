@@ -3,6 +3,8 @@ defmodule EHealth.Repo.Migrations.AddDeclarationRequestsStatusInsertedAtIndex do
 
   @disable_ddl_transaction true
   def change do
-    create(index(:declaration_requests, [:status, :inserted_at], concurrently: true))
+    execute(
+      "CREATE INDEX CONCURRENTLY IF NOT EXISTS declaration_requests_status_inserted_at_index ON declaration_requests(status, inserted_at desc)"
+    )
   end
 end
