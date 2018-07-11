@@ -542,11 +542,11 @@ defmodule EHealth.ContractRequests do
            @media_storage_api.create_signed_url(
              "GET",
              MediaStorage.config()[:contract_request_bucket],
-             "signed_content",
+             "signed_content/signed_content",
              id,
              headers
            ),
-         {:ok, %{body: content}} <- @media_storage_api.get_signed_content(secret_url),
+         {:ok, %{body: content, status_code: 200}} <- @media_storage_api.get_signed_content(secret_url),
          {:ok, %{"data" => %{"content" => content}}} <-
            @signature_api.decode_and_validate(
              Base.encode64(content),
