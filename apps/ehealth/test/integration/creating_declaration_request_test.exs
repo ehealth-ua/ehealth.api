@@ -67,6 +67,29 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
                error["rules"] |> List.first() |> Map.get("description")
     end
 
+    test "declaration request without required confidant person for child", %{conn: conn} do
+      age = 13
+      person_birth_date = Timex.shift(Timex.today(), years: -age) |> to_string()
+
+      declaration_request_params =
+        "test/data/declaration_request.json"
+        |> File.read!()
+        |> Jason.decode!()
+        |> put_in(["declaration_request", "person", "birth_date"], person_birth_date)
+        |> pop_in(["declaration_request", "person", "confidant_person"])
+        |> elem(1)
+
+      resp =
+        conn
+        |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
+        |> post(declaration_request_path(conn, :create), declaration_request_params)
+        |> json_response(422)
+
+      assert [error] = resp["error"]["invalid"]
+      assert "Confidant person is mandatory for children" == error["rules"] |> List.first() |> Map.get("description")
+    end
+
     test "declaration request with non verified phone for OTP auth", %{conn: conn} do
       expect(OTPVerificationMock, :search, fn _, _ ->
         {:error, nil}

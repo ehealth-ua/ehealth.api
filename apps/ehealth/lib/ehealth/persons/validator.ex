@@ -148,21 +148,35 @@ defmodule EHealth.Persons.Validator do
     end
   end
 
-  defp validate_confidant_persons(person, dict_keys) when is_map(person) do
+  defp validate_confidant_persons(%{"confidant_person" => [_ | _] = confidant_persons} = person, dict_keys) do
     valid_relations = ["PRIMARY", "SECONDARY"]
 
-    case Map.get(person, "confidant_person") do
-      nil ->
-        :ok
+    with :ok <- JsonObjects.array_unique_by_key(person, ["confidant_person"], "relation_type", valid_relations),
+         :ok <- JsonObjects.array_item_required(person, ["confidant_person"], "relation_type", "PRIMARY"),
+         :ok <- validate_every_confidant_person(confidant_persons, dict_keys, 0) do
+      :ok
+    end
+  end
 
-      [] ->
-        :ok
+  defp validate_confidant_persons(person, _) do
+    age =
+      Timex.diff(
+        Timex.now(),
+        Date.from_iso8601!(person["birth_date"]),
+        :years
+      )
 
-      confidant_persons ->
-        with :ok <- JsonObjects.array_unique_by_key(person, ["confidant_person"], "relation_type", valid_relations),
-             :ok <- JsonObjects.array_item_required(person, ["confidant_person"], "relation_type", "PRIMARY"),
-             :ok <- validate_every_confidant_person(confidant_persons, dict_keys, 0),
-             do: :ok
+    if age < 14 do
+      {:error,
+       [
+         {%{
+            description: "Confidant person is mandatory for children",
+            params: [],
+            rule: :invalid
+          }, "$.confidant_person"}
+       ]}
+    else
+      :ok
     end
   end
 
