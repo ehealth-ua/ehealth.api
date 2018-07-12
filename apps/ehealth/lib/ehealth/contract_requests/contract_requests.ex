@@ -91,13 +91,20 @@ defmodule EHealth.ContractRequests do
              id,
              []
            ) do
-      %{"id" => id, "statute_url" => statute_url, "additional_document_url" => additional_document_url}
+      %{
+        "id" => id,
+        "statute_url" => statute_url,
+        "additional_document_url" => additional_document_url
+      }
     end
   end
 
   def get_document_attribures_by_status(status) do
     cond do
-      Enum.any?(~w(new approved pending_nhs_sign terminated declined)a, &(ContractRequest.status(&1) == status)) ->
+      Enum.any?(
+        ~w(new approved pending_nhs_sign terminated declined)a,
+        &(ContractRequest.status(&1) == status)
+      ) ->
         [
           {"CONTRACT_REQUEST_STATUTE", "media/contract_request_statute.pdf"},
           {"ADDITIONAL_DOCUMENT", "media/contract_request_additional_document.pdf"}
@@ -149,7 +156,13 @@ defmodule EHealth.ContractRequests do
          :ok <- validate_start_date(params),
          :ok <- validate_end_date(params),
          :ok <- validate_contractor_owner_id(params),
-         :ok <- validate_document(id, "media/upload_contract_request_statute.pdf", params["statute_md5"], headers),
+         :ok <-
+           validate_document(
+             id,
+             "media/upload_contract_request_statute.pdf",
+             params["statute_md5"],
+             headers
+           ),
          :ok <-
            validate_document(
              id,
@@ -211,7 +224,13 @@ defmodule EHealth.ContractRequests do
          :ok <- validate_contractor_legal_entity(contract_request),
          :ok <- validate_approve_content(content, contract_request, references),
          :ok <- validate_status(contract_request, ContractRequest.status(:new)),
-         :ok <- save_signed_content(contract_request.id, params, headers, "signed_content/contract_request_approved"),
+         :ok <-
+           save_signed_content(
+             contract_request.id,
+             params,
+             headers,
+             "signed_content/contract_request_approved"
+           ),
          :ok <- validate_contract_id(contract_request),
          :ok <- validate_contractor_owner_id(contract_request),
          :ok <- validate_nhs_signer_id(contract_request, client_id),
@@ -283,7 +302,13 @@ defmodule EHealth.ContractRequests do
          :ok <- validate_contractor_legal_entity(contract_request),
          :ok <- validate_decline_content(content, contract_request, references),
          :ok <- validate_status(contract_request, ContractRequest.status(:new)),
-         :ok <- save_signed_content(contract_request.id, params, headers, "signed_content/contract_request_declined"),
+         :ok <-
+           save_signed_content(
+             contract_request.id,
+             params,
+             headers,
+             "signed_content/contract_request_declined"
+           ),
          update_params <-
            content
            |> Map.take(~w(status_reason))
@@ -344,14 +369,23 @@ defmodule EHealth.ContractRequests do
              "contract_request_sign_nhs"
            ),
          {:ok, printout_content} <-
-           ContractRequestPrintoutForm.render(%{contract_request | nhs_signed_date: Date.utc_today()}, headers),
+           ContractRequestPrintoutForm.render(
+             %{contract_request | nhs_signed_date: Date.utc_today()},
+             headers
+           ),
          :ok <- validate_content(contract_request, printout_content, content),
          :ok <- validate_contract_id(contract_request),
          :ok <- validate_employee_divisions(contract_request),
          :ok <- validate_start_date(contract_request),
          :ok <- validate_contractor_legal_entity(contract_request),
          :ok <- validate_contractor_owner_id(contract_request),
-         :ok <- save_signed_content(contract_request.id, params, headers, "signed_content/signed_content"),
+         :ok <-
+           save_signed_content(
+             contract_request.id,
+             params,
+             headers,
+             "signed_content/signed_content"
+           ),
          update_params <-
            params
            |> Map.put("updated_by", user_id)
@@ -431,10 +465,17 @@ defmodule EHealth.ContractRequests do
          {:ok, url} <- resolve_partially_signed_content_url(contract_request.id, headers) do
       {:ok, url}
     else
-      {:signed_nhs, _} -> {:error, {:"422", "The contract hasn't been signed yet"}}
-      {:client_id, _} -> {:error, {:forbidden, "Invalid client_id"}}
-      {:error, :media_storage_error} -> {:error, {:bad_gateway, "Fail to resolve partially signed content"}}
-      error -> error
+      {:signed_nhs, _} ->
+        {:error, {:"422", "The contract hasn't been signed yet"}}
+
+      {:client_id, _} ->
+        {:error, {:forbidden, "Invalid client_id"}}
+
+      {:error, :media_storage_error} ->
+        {:error, {:bad_gateway, "Fail to resolve partially signed content"}}
+
+      error ->
+        error
     end
   end
 
@@ -447,7 +488,10 @@ defmodule EHealth.ContractRequests do
              "Incorrect status of contract_request to generate printout form"
            ),
          {:ok, printout_content} <-
-           ContractRequestPrintoutForm.render(Map.put(contract_request, :nhs_signed_date, Date.utc_today()), headers) do
+           ContractRequestPrintoutForm.render(
+             Map.put(contract_request, :nhs_signed_date, Date.utc_today()),
+             headers
+           ) do
       {:ok, contract_request, printout_content}
     end
   end
@@ -515,18 +559,31 @@ defmodule EHealth.ContractRequests do
 
   defp save_signed_content(id, %{"signed_content" => signed_content}, headers, resource_name) do
     signed_content
-    |> @media_storage_api.store_signed_content(:contract_request_bucket, id, resource_name, headers)
+    |> @media_storage_api.store_signed_content(
+      :contract_request_bucket,
+      id,
+      resource_name,
+      headers
+    )
     |> case do
       {:ok, _} -> :ok
       _error -> {:error, {:bad_gateway, "Failed to save signed content"}}
     end
   end
 
-  def decode_signed_content(:nhs, %{"signed_content" => signed_content, "signed_content_encoding" => encoding}, headers) do
+  def decode_signed_content(
+        :nhs,
+        %{"signed_content" => signed_content, "signed_content_encoding" => encoding},
+        headers
+      ) do
     SignatureValidator.validate(signed_content, encoding, headers)
   end
 
-  def decode_signed_content(:msp, %{"signed_content" => signed_content, "signed_content_encoding" => encoding}, headers) do
+  def decode_signed_content(
+        :msp,
+        %{"signed_content" => signed_content, "signed_content_encoding" => encoding},
+        headers
+      ) do
     SignatureValidator.validate(signed_content, encoding, headers, 2)
   end
 
@@ -557,7 +614,8 @@ defmodule EHealth.ContractRequests do
     end
   end
 
-  defp set_contract_number(params, %{parent_contract_id: parent_contract_id}) when not is_nil(parent_contract_id) do
+  defp set_contract_number(params, %{parent_contract_id: parent_contract_id})
+       when not is_nil(parent_contract_id) do
     params
   end
 
@@ -681,7 +739,8 @@ defmodule EHealth.ContractRequests do
         c.status in ^[
           ContractRequest.status(:new),
           ContractRequest.status(:approved),
-          ContractRequest.status(:nhs_signed)
+          ContractRequest.status(:nhs_signed),
+          ContractRequest.status(:pending_nhs_sign)
         ]
       )
       |> where([c], c.end_date >= ^params["start_date"] and c.start_date <= ^params["end_date"])
@@ -788,7 +847,8 @@ defmodule EHealth.ContractRequests do
     validate_nhs_signer_id(%{"nhs_signer_id" => nhs_signer_id}, client_id)
   end
 
-  defp validate_nhs_signer_id(%{"nhs_signer_id" => nhs_signer_id}, client_id) when not is_nil(nhs_signer_id) do
+  defp validate_nhs_signer_id(%{"nhs_signer_id" => nhs_signer_id}, client_id)
+       when not is_nil(nhs_signer_id) do
     with %Employee{} = employee <- Employees.get_by_id(nhs_signer_id),
          {:client_id, true} <- {:client_id, employee.legal_entity_id == client_id},
          {:active, true} <- {:active, employee.is_active and employee.status == Employee.status(:approved)} do
@@ -837,10 +897,15 @@ defmodule EHealth.ContractRequests do
 
   defp validate_nhs_signer_id(_, _), do: :ok
 
-  defp validate_unique_contractor_employee_divisions(%{"contractor_employee_divisions" => employee_divisions})
+  defp validate_unique_contractor_employee_divisions(%{
+         "contractor_employee_divisions" => employee_divisions
+       })
        when is_list(employee_divisions) do
     employee_divisions_values =
-      Enum.map(employee_divisions, fn %{"employee_id" => employee_id, "division_id" => division_id} ->
+      Enum.map(employee_divisions, fn %{
+                                        "employee_id" => employee_id,
+                                        "division_id" => division_id
+                                      } ->
         "#{employee_id}#{division_id}"
       end)
 
@@ -1074,7 +1139,11 @@ defmodule EHealth.ContractRequests do
      }}
   end
 
-  defp check_division(%Division{status: "ACTIVE", legal_entity_id: legal_entity_id}, contractor_legal_entity_id, _)
+  defp check_division(
+         %Division{status: "ACTIVE", legal_entity_id: legal_entity_id},
+         contractor_legal_entity_id,
+         _
+       )
        when legal_entity_id == contractor_legal_entity_id,
        do: :ok
 
@@ -1122,7 +1191,9 @@ defmodule EHealth.ContractRequests do
      ]}
   end
 
-  defp validate_dates(%{"parent_contract_id" => parent_contract_id}) when not is_nil(parent_contract_id), do: :ok
+  defp validate_dates(%{"parent_contract_id" => parent_contract_id})
+       when not is_nil(parent_contract_id),
+       do: :ok
 
   defp validate_dates(params) do
     cond do
@@ -1208,7 +1279,8 @@ defmodule EHealth.ContractRequests do
     |> validate_start_date()
   end
 
-  defp validate_start_date(%{"parent_contract_id" => parent_contract_id}) when not is_nil(parent_contract_id) do
+  defp validate_start_date(%{"parent_contract_id" => parent_contract_id})
+       when not is_nil(parent_contract_id) do
     :ok
   end
 
@@ -1256,7 +1328,8 @@ defmodule EHealth.ContractRequests do
     |> validate_end_date()
   end
 
-  defp validate_end_date(%{"parent_contract_id" => parent_contract_id}) when not is_nil(parent_contract_id) do
+  defp validate_end_date(%{"parent_contract_id" => parent_contract_id})
+       when not is_nil(parent_contract_id) do
     :ok
   end
 
@@ -1297,9 +1370,17 @@ defmodule EHealth.ContractRequests do
   end
 
   defp validate_status(contract_request, status),
-    do: validate_status(contract_request, status, "Incorrect status of contract_request to modify it")
+    do:
+      validate_status(
+        contract_request,
+        status,
+        "Incorrect status of contract_request to modify it"
+      )
 
-  defp validate_status(%ContractRequest{status: status}, required_status, _) when status == required_status, do: :ok
+  defp validate_status(%ContractRequest{status: status}, required_status, _)
+       when status == required_status,
+       do: :ok
+
   defp validate_status(_, _, msg), do: {:error, {:conflict, msg}}
 
   def get_by_id(headers, client_type, id) do
@@ -1335,7 +1416,9 @@ defmodule EHealth.ContractRequests do
     end
   end
 
-  defp validate_contractor_legal_entity(%ContractRequest{contractor_legal_entity_id: legal_entity_id}) do
+  defp validate_contractor_legal_entity(%ContractRequest{
+         contractor_legal_entity_id: legal_entity_id
+       }) do
     with {:ok, legal_entity} <- Reference.validate(:legal_entity, legal_entity_id, "$.contractor_legal_entity_id"),
          true <- legal_entity.status == LegalEntity.status(:active) and legal_entity.is_active do
       :ok
@@ -1363,7 +1446,13 @@ defmodule EHealth.ContractRequests do
     resource_name = "contract_request_content.pkcs7"
 
     media_storage_response =
-      @media_storage_api.create_signed_url("GET", bucket, contract_request_id, resource_name, headers)
+      @media_storage_api.create_signed_url(
+        "GET",
+        bucket,
+        contract_request_id,
+        resource_name,
+        headers
+      )
 
     case media_storage_response do
       {:ok, %{"data" => %{"secret_url" => url}}} -> {:ok, url}
@@ -1391,7 +1480,8 @@ defmodule EHealth.ContractRequests do
     |> validate_required(fields_required)
   end
 
-  defp validate_contract_id(%ContractRequest{parent_contract_id: contract_id}) when not is_nil(contract_id) do
+  defp validate_contract_id(%ContractRequest{parent_contract_id: contract_id})
+       when not is_nil(contract_id) do
     with %Contract{} = contract <- Contracts.get_by_id(contract_id),
          true <- contract.status == "VERIFIED" do
       :ok
@@ -1417,7 +1507,10 @@ defmodule EHealth.ContractRequests do
     end
   end
 
-  defp validate_contract_number(%{"contractor_legal_entity_id" => legal_entity_id} = params, headers) do
+  defp validate_contract_number(
+         %{"contractor_legal_entity_id" => legal_entity_id} = params,
+         headers
+       ) do
     with {:ok, %Page{entries: []}, _} <-
            Contracts.list(
              %{
@@ -1530,7 +1623,13 @@ defmodule EHealth.ContractRequests do
          {:ok, %{body: signed_content}} <- @media_storage_api.get_signed_content(url),
          {:ok, _} <- @media_storage_api.save_file(id, signed_content, get_bucket(), resource_name, headers),
          {:ok, %{"data" => %{"secret_url" => url}}} <-
-           @media_storage_api.create_signed_url("DELETE", get_bucket(), temp_resource_name, id, []),
+           @media_storage_api.create_signed_url(
+             "DELETE",
+             get_bucket(),
+             temp_resource_name,
+             id,
+             []
+           ),
          {:ok, _} <- @media_storage_api.delete_file(url) do
       {:cont, :ok}
     end

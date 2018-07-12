@@ -138,8 +138,6 @@ defmodule EHealth.Contracts do
          :ok <- SignatureValidator.check_drfo(signer, user_id, "contract_request_update"),
          :ok <- validate_status(contract, Contract.status(:verified)),
          :ok <- validate_update_json_schema(content),
-         :ok <- validate_legal_entity_division(contract, content),
-         :ok <- validate_legal_entity_employee(contract, content),
          {:ok, _} <- process_employee_division(contract, content, user_id) do
       now = NaiveDateTime.utc_now()
 
@@ -229,7 +227,9 @@ defmodule EHealth.Contracts do
   end
 
   defp update_contract_employee(%Contract{} = contract, %ContractEmployee{} = contract_employee, params, user_id) do
-    with :ok <- validate_employee_division(contract, params) do
+    with :ok <- validate_legal_entity_division(contract, params),
+         :ok <- validate_legal_entity_employee(contract, params),
+         :ok <- validate_employee_division(contract, params) do
       contract_employee
       |> ContractEmployee.changeset(%{"end_date" => NaiveDateTime.utc_now(), "updated_by" => user_id})
       |> PRMRepo.update()
