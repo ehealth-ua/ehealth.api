@@ -107,22 +107,21 @@ defmodule EHealth.Web.CapitationControllerTest do
 
       check_response = fn data ->
         Enum.each(data, fn legal ->
-          Enum.each(
-            ["report_id", "legal_entity_name", "legal_entity_id", "edrpou", "billing_date", "capitation_contracts"],
-            fn k ->
-              assert Map.has_key?(legal, k)
+          Enum.each(~w(id report_id legal_entity_name legal_entity_id edrpou billing_date capitation_contracts), fn k ->
+            assert Map.has_key?(legal, k)
 
-              Enum.each(legal["capitation_contracts"], fn contract ->
-                Enum.each(["contract_id", "contract_number", "details", "total"], fn k ->
-                  assert Map.has_key?(contract, k)
-                end)
+            assert %{"id" => "edrpou-9ce44b25-cf35-4629-a5ee-dfed7470daaf"} = legal
 
-                Enum.each(contract["details"], fn detail ->
-                  Enum.each(["attributes", "mountain_group"], fn k -> assert Map.has_key?(detail, k) end)
-                end)
+            Enum.each(legal["capitation_contracts"], fn contract ->
+              Enum.each(["contract_id", "contract_number", "details", "total"], fn k ->
+                assert Map.has_key?(contract, k)
               end)
-            end
-          )
+
+              Enum.each(contract["details"], fn detail ->
+                Enum.each(["attributes", "mountain_group"], fn k -> assert Map.has_key?(detail, k) end)
+              end)
+            end)
+          end)
         end)
       end
 

@@ -17,6 +17,7 @@ defmodule EHealth.Web.CapitationView do
   def render("detail.json", %{detail: detail}) do
     detail
     |> Map.take(~w(billing_date capitation_contracts edrpou legal_entity_id legal_entity_name report_id))
+    |> Map.put("id", detail["edrpou"] <> "-" <> detail["report_id"])
     |> Map.put(
       "capitation_contracts",
       render_many(detail["capitation_contracts"], __MODULE__, "contract.json", as: :contract)
