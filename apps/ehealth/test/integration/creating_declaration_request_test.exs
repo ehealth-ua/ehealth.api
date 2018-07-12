@@ -41,30 +41,76 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       {:ok, %{conn: conn}}
     end
 
-    test "declaration request with invalid patient's age", %{conn: conn} do
+    test "declaration request doctor speciality doesn't match patient's age", %{conn: conn} do
       expect(OTPVerificationMock, :search, fn _, _ ->
         {:ok, %{"data" => []}}
       end)
+
+      age = 17
+      person_birth_date = Timex.shift(Timex.today(), years: -age) |> to_string()
+      speciality = %{"speciality" => "THERAPIST"}
+
+      %{id: employee_id} =
+        insert(
+          :prm,
+          :employee,
+          speciality: speciality
+        )
 
       declaration_request_params =
         "test/data/declaration_request.json"
         |> File.read!()
         |> Jason.decode!()
-        |> put_in(~W(declaration_request person birth_date), "1989-08-19")
+        |> put_in(["declaration_request", "person", "birth_date"], person_birth_date)
+        |> put_in(["declaration_request", "employee_id"], employee_id)
 
       uaddresses_mock_expect()
 
-      conn =
+      resp =
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
         |> post(declaration_request_path(conn, :create), declaration_request_params)
+        |> json_response(422)
 
-      resp = json_response(conn, 422)
       assert [error] = resp["error"]["invalid"]
+      assert "Doctor speciality doesn't match patient's age" == error["rules"] |> List.first() |> Map.get("description")
+    end
 
-      assert "Doctor speciality does not meet the patient's age requirement." ==
-               error["rules"] |> List.first() |> Map.get("description")
+    test "declaration request doctor speciality doesn't match patient's adult age", %{conn: conn} do
+      expect(OTPVerificationMock, :search, fn _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
+      age = 18
+      person_birth_date = Timex.shift(Timex.today(), years: -age) |> to_string()
+      speciality = %{"speciality" => "PEDIATRICIAN"}
+
+      %{id: employee_id} =
+        insert(
+          :prm,
+          :employee,
+          speciality: speciality
+        )
+
+      declaration_request_params =
+        "test/data/declaration_request.json"
+        |> File.read!()
+        |> Jason.decode!()
+        |> put_in(["declaration_request", "person", "birth_date"], person_birth_date)
+        |> put_in(["declaration_request", "employee_id"], employee_id)
+
+      uaddresses_mock_expect()
+
+      resp =
+        conn
+        |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
+        |> post(declaration_request_path(conn, :create), declaration_request_params)
+        |> json_response(422)
+
+      assert [error] = resp["error"]["invalid"]
+      assert "Doctor speciality doesn't match patient's age" == error["rules"] |> List.first() |> Map.get("description")
     end
 
     test "declaration request without required confidant person for child", %{conn: conn} do

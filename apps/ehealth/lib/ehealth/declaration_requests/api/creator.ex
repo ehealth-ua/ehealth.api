@@ -418,7 +418,7 @@ defmodule EHealth.DeclarationRequests.API.Creator do
 
       case belongs_to(patient_age, adult_age, speciality) do
         true -> []
-        false -> [data: {"Doctor speciality does not meet the patient's age requirement.", validation: "invalid_age"}]
+        false -> [data: {"Doctor speciality doesn't match patient's age", validation: "invalid_age"}]
       end
     end)
   end

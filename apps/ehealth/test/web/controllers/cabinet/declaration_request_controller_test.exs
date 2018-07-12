@@ -206,7 +206,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
                  "entry_type" => "json_data_property",
                  "rules" => [
                    %{
-                     "description" => "Doctor speciality does not meet the patient's age requirement.",
+                     "description" => "Doctor speciality doesn't match patient's age",
                      "params" => [],
                      "rule" => "invalid_age"
                    }
