@@ -138,6 +138,83 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
       assert declaration_request.mpi_id == person_id
     end
 
+    test "invalid doctor speciality", %{conn: conn} do
+      cabinet()
+
+      expect(MithrilMock, :get_user_by_id, fn id, _ ->
+        {:ok,
+         %{
+           "data" => %{
+             "id" => id,
+             "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
+             "tax_id" => "2222222225"
+           }
+         }}
+      end)
+
+      birth_date =
+        Date.utc_today()
+        |> Date.add(-365 * 20)
+        |> to_string()
+
+      expect(MPIMock, :person, fn _, _ ->
+        get_person("c8912855-21c3-4771-ba18-bcd8e524f14c", 200, %{
+          birth_date: birth_date,
+          documents: [
+            %{"type" => "BIRTH_CERTIFICATE", "number" => "1234567890"}
+          ],
+          tax_id: "2222222225",
+          authentication_methods: [%{"type" => "NA"}],
+          addresses: get_person_addresses()
+        })
+      end)
+
+      legal_entity = insert(:prm, :legal_entity)
+      person_id = "c8912855-21c3-4771-ba18-bcd8e524f14c"
+      division = insert(:prm, :division, legal_entity: legal_entity)
+      employee_speciality = Map.put(speciality(), "speciality", "PEDIATRICIAN")
+      additional_info = Map.put(doctor(), "specialities", [employee_speciality])
+
+      employee =
+        insert(
+          :prm,
+          :employee,
+          division: division,
+          legal_entity_id: legal_entity.id,
+          additional_info: additional_info,
+          speciality: employee_speciality
+        )
+
+      insert(:prm, :party_user, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c", party: employee.party)
+
+      conn =
+        conn
+        |> put_req_header("edrpou", "2222222220")
+        |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
+        |> post(cabinet_declaration_requests_path(conn, :create), %{
+          person_id: person_id,
+          employee_id: employee.id,
+          division_id: employee.division.id
+        })
+
+      assert resp = json_response(conn, 422)
+
+      assert [
+               %{
+                 "entry" => "$.data",
+                 "entry_type" => "json_data_property",
+                 "rules" => [
+                   %{
+                     "description" => "Doctor speciality does not meet the patient's age requirement.",
+                     "params" => [],
+                     "rule" => "invalid_age"
+                   }
+                 ]
+               }
+             ] == resp["error"]["invalid"]
+    end
+
     test "success create declaration request online for underage person for FAMILY_DOCTOR", %{conn: conn} do
       cabinet()
 

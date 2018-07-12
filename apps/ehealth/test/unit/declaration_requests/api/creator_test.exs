@@ -102,7 +102,8 @@ defmodule EHealth.DeclarationRequests.API.CreatorTest do
         |> Ecto.Changeset.change(raw_declaration_request)
         |> Creator.validate_patient_age("PEDIATRICIAN", 18)
 
-      assert result.errors[:data] == {"Doctor speciality does not meet the patient's age requirement.", []}
+      assert result.errors[:data] ==
+               {"Doctor speciality does not meet the patient's age requirement.", [validation: "invalid_age"]}
     end
   end
 

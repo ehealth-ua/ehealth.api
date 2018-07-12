@@ -112,7 +112,15 @@ defmodule EHealth.DeclarationRequests.API.Creator do
       :ok
     else
       alllowed_types = Enum.join(@allowed_employee_specialities, ", ")
-      {:error, {:"422", "Employee's speciality does not belong to a doctor: #{alllowed_types}"}}
+
+      {:error,
+       [
+         {%{
+            description: "Employee's speciality does not belong to a doctor: #{alllowed_types}",
+            params: [allowed_types: alllowed_types],
+            rule: "speciality_inclusion"
+          }, "$.data"}
+       ]}
     end
   end
 
@@ -347,7 +355,7 @@ defmodule EHealth.DeclarationRequests.API.Creator do
     validate_change(changeset, :data, fn :data, _data ->
       case employee.legal_entity_id == legal_entity.id do
         true -> []
-        false -> [data: "Employee does not belong to legal entity."]
+        false -> [data: {"Employee does not belong to legal entity.", validation: "employee_unemployed"}]
       end
     end)
   end
@@ -410,7 +418,7 @@ defmodule EHealth.DeclarationRequests.API.Creator do
 
       case belongs_to(patient_age, adult_age, speciality) do
         true -> []
-        false -> [data: "Doctor speciality does not meet the patient's age requirement."]
+        false -> [data: {"Doctor speciality does not meet the patient's age requirement.", validation: "invalid_age"}]
       end
     end)
   end

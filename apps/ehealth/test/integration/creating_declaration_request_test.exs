@@ -683,8 +683,23 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         |> post(declaration_request_path(conn, :create), declaration_request_params)
 
       resp = json_response(conn, 422)
-      error_message = resp["error"]["message"]
-      assert String.starts_with?(error_message, "Employee's speciality does not belong to a doctor")
+
+      assert [
+               %{
+                 "entry" => "$.data",
+                 "entry_type" => "json_data_property",
+                 "rules" => [
+                   %{
+                     "description" =>
+                       "Employee's speciality does not belong to a doctor: PEDIATRICIAN, THERAPIST, FAMILY_DOCTOR",
+                     "params" => [
+                       ["allowed_types", "PEDIATRICIAN, THERAPIST, FAMILY_DOCTOR"]
+                     ],
+                     "rule" => "speciality_inclusion"
+                   }
+                 ]
+               }
+             ] == resp["error"]["invalid"]
     end
   end
 
