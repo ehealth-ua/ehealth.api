@@ -217,7 +217,7 @@ defmodule EHealthWeb.Router do
       get("/", ContractController, :index)
       get("/:id/printout_content", ContractController, :printout_content)
       patch("/:id/employees/actions/update", ContractController, :update)
-      patch("/:id/employees/actions/terminate", ContractController, :terminate)
+      patch("/:id/actions/terminate", ContractController, :terminate)
     end
 
     post("/contract_requests", ContractRequestController, :draft)
