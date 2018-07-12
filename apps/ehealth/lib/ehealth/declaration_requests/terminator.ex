@@ -120,7 +120,7 @@ defmodule EHealth.DeclarationRequests.Terminator do
     {:noreply, state}
   end
 
-  def terminate_declaration_requests(caller) do
+  def terminate_declaration_requests do
     state = state_options()
 
     Enum.each(
@@ -128,8 +128,8 @@ defmodule EHealth.DeclarationRequests.Terminator do
       &(:ok = GenServer.call(&1, {:update_state, state}))
     )
 
-    GenServer.cast(:declaration_request_cleaner, {:process_signed, caller})
-    GenServer.cast(:declaration_request_terminator, {:process_expired, caller})
+    GenServer.cast(:declaration_request_cleaner, {:process_signed, self()})
+    GenServer.cast(:declaration_request_terminator, {:process_expired, self()})
   end
 
   def teminate_declaration_requests(subselect_condition, status, term, unit, user_id, limit) do

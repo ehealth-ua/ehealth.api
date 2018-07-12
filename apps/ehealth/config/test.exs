@@ -111,6 +111,8 @@ config :ehealth, EHealth.EmployeeRequest.Terminator,
 config :ehealth, EHealth.DeclarationRequests.Terminator,
   termination_batch_size: {:system, :integer, "DECLARATION_REQUEST_AUTOTERMINATION_BATCH", 1}
 
+config :ehealth, EHealth.Contracts.Terminator, termination_batch_size: 1
+
 # Configures genral validator
 config :ehealth, EHealth.LegalEntities.Validator, owner_positions: {:system, :list, "OWNER_POSITIONS", ["P1"]}
 

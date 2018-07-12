@@ -86,6 +86,59 @@ defmodule EHealth.Web.ContractView do
     )
   end
 
+  def render("terminate.json", %{contract: contract, references: references}) do
+    contract
+    |> Map.take(~w(
+      id
+      start_date
+      end_date
+      contractor_base
+      contractor_payment_details
+      contractor_rmsp_amount
+      external_contractor_flag
+      external_contractors
+      nhs_signer_base
+      nhs_contract_price
+      nhs_payment_method
+      status
+      status_reason
+      issue_city
+      contract_number
+      contract_request_id
+      is_suspended
+      updated_by
+      updated_at
+      )a)
+    |> Map.put(
+      :contractor_legal_entity,
+      ContractRequestView.render_association(:legal_entity, references, contract.contractor_legal_entity_id)
+    )
+    |> Map.put(
+      :nhs_legal_entity,
+      ContractRequestView.render_association(:legal_entity, references, contract.nhs_legal_entity_id)
+    )
+    |> Map.put(
+      :contractor_owner,
+      ContractRequestView.render_association(:employee, references, contract.contractor_owner_id)
+    )
+    |> Map.put(
+      :nhs_signer,
+      ContractRequestView.render_association(:employee, references, contract.nhs_signer_id)
+    )
+    |> Map.put(
+      :contractor_employee_divisions,
+      render_association(
+        :employee_divisions,
+        references,
+        contract.contract_employees || []
+      )
+    )
+    |> Map.put(
+      :contractor_divisions,
+      render_association(:contractor_divisions, references, contract.contract_divisions || [])
+    )
+  end
+
   def render("printout_content.json", %{contract: contract, printout_content: printout_content}) do
     %{id: contract.id, printout_content: printout_content}
   end

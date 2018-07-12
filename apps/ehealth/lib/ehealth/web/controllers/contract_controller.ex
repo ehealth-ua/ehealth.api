@@ -42,6 +42,12 @@ defmodule EHealth.Web.ContractController do
     end
   end
 
+  def terminate(%Plug.Conn{req_headers: headers} = conn, %{"id" => id} = params) do
+    with {:ok, contract, references} <- Contracts.terminate(id, Map.delete(params, "id"), headers) do
+      render(conn, "terminate.json", contract: contract, references: references)
+    end
+  end
+
   def printout_content(%Plug.Conn{req_headers: headers} = conn, %{"id" => id}) do
     client_type = conn.assigns.client_type
 

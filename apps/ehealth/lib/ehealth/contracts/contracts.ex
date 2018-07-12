@@ -21,6 +21,7 @@ defmodule EHealth.Contracts do
   alias EHealth.Validators.JsonSchema
   alias EHealth.Validators.Preload
   alias EHealth.Validators.Reference
+  alias EHealth.EventManager
   alias EHealth.Validators.Signature, as: SignatureValidator
   alias Scrivener.Page
 
@@ -153,6 +154,35 @@ defmodule EHealth.Contracts do
       contract
       |> PRMRepo.preload([contract_employees: query], force: true)
       |> load_contract_references()
+    end
+  end
+
+  def terminate(id, params, headers) do
+    legal_entity_id = get_client_id(headers)
+    user_id = get_consumer_id(headers)
+
+    with {:ok, contract, references} <- get_by_id(id, params),
+         :ok <- JsonSchema.validate(:contract_terminate, params),
+         {:legal_entity_allowed, true} <-
+           {:legal_entity_allowed,
+            legal_entity_id in [contract.contractor_legal_entity_id, contract.nhs_legal_entity_id]},
+         :ok <- validate_status(contract, Contract.status(:verified)),
+         {:ok, contract} <-
+           contract
+           |> changeset(%{
+             "status_reason" => params["status_reason"],
+             "status" => Contract.status(:terminated),
+             "updated_by" => user_id
+           })
+           |> PRMRepo.update(),
+         EventManager.insert_change_status(contract, contract.status, user_id) do
+      {:ok, contract, references}
+    else
+      {:legal_entity_allowed, false} ->
+        {:error, {:forbidden, "Legal entity is not allowed to this action by client_id"}}
+
+      error ->
+        error
     end
   end
 

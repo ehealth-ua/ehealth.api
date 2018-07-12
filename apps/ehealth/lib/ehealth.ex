@@ -32,6 +32,7 @@ defmodule EHealth do
         id: :declaration_request_terminator
       ),
       worker(EHealth.DeclarationRequests.Terminator, [:declaration_request_cleaner], id: :declaration_request_cleaner),
+      worker(EHealth.Contracts.Terminator, []),
       worker(EHealth.Scheduler, [])
     ]
 

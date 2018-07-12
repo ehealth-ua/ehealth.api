@@ -29,7 +29,7 @@ defmodule EHealth.DeclarationRequests.TerminatorTest do
     insert(:prm, :global_parameter, parameter: "declaration_request_term_unit", value: "DAYS")
     insert(:prm, :global_parameter, parameter: "declaration_request_expiration", value: "5")
 
-    terminate_declaration_requests(self())
+    terminate_declaration_requests()
     assert_receive :terminated_signed
     assert_receive :terminated_expired
 

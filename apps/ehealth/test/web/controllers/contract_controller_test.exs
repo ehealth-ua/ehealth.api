@@ -323,6 +323,100 @@ defmodule EHealth.Web.ContractControllerTest do
     end
   end
 
+  describe "terminate contract" do
+    def terminate_response_fields do
+      ~w(
+      status
+      status_reason
+      is_suspended
+      updated_by
+      updated_at
+    )
+    end
+
+    test "legal entity terminate verified contract", %{conn: conn} do
+      nhs()
+      contract = insert(:prm, :contract)
+      params = %{"status_reason" => "Period of contract is wrong"}
+
+      resp =
+        conn
+        |> put_client_id_header(contract.contractor_legal_entity_id)
+        |> patch(contract_path(conn, :terminate, contract.id), params)
+        |> json_response(200)
+
+      assert resp["data"]["status"] == Contract.status(:terminated)
+      assert resp["data"]["status_reason"] == "Period of contract is wrong"
+      Enum.each(terminate_response_fields(), fn field -> assert %{^field => _} = resp["data"] end)
+    end
+
+    test "NHS terminate verified contract", %{conn: conn} do
+      nhs()
+      contract = insert(:prm, :contract)
+      params = %{"status_reason" => "Period of contract is wrong"}
+
+      resp =
+        conn
+        |> put_client_id_header(contract.nhs_legal_entity_id)
+        |> patch(contract_path(conn, :terminate, contract.id), params)
+        |> json_response(200)
+
+      assert resp["data"]["status"] == Contract.status(:terminated)
+      assert resp["data"]["status_reason"] == "Period of contract is wrong"
+      Enum.each(terminate_response_fields(), fn field -> assert %{^field => _} = resp["data"] end)
+    end
+
+    test "NHS terminate not verified contract", %{conn: conn} do
+      nhs()
+      contract = insert(:prm, :contract, status: "SIGNED")
+      params = %{"status_reason" => "Period of contract is wrong"}
+
+      resp =
+        conn
+        |> put_client_id_header(contract.nhs_legal_entity_id)
+        |> patch(contract_path(conn, :terminate, contract.id), params)
+
+      assert json_response(resp, 409)
+    end
+
+    test "NHS terminate contract without request data", %{conn: conn} do
+      nhs()
+      contract = insert(:prm, :contract)
+
+      resp =
+        conn
+        |> put_client_id_header(contract.nhs_legal_entity_id)
+        |> patch(contract_path(conn, :terminate, contract.id), %{})
+
+      assert json_response(resp, 422)
+    end
+
+    test "terminate contract with wrong client id", %{conn: conn} do
+      nhs()
+      contract = insert(:prm, :contract)
+      params = %{"status_reason" => "Period of contract is wrong"}
+
+      resp =
+        conn
+        |> put_client_id_header(UUID.generate())
+        |> patch(contract_path(conn, :terminate, contract.id), params)
+
+      assert json_response(resp, 403)
+    end
+
+    test "terminate contract not exists", %{conn: conn} do
+      nhs()
+      params = %{"status_reason" => "Period of contract is wrong"}
+
+      resp =
+        conn
+        |> put_client_id_header(UUID.generate())
+        |> patch(contract_path(conn, :terminate, UUID.generate()), params)
+
+      assert json_response(resp, 404)
+    end
+  end
+
   describe "update employees" do
     test "contract_employee not found", %{conn: conn} do
       nhs()
