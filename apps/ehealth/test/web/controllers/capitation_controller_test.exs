@@ -118,7 +118,9 @@ defmodule EHealth.Web.CapitationControllerTest do
               end)
 
               Enum.each(contract["details"], fn detail ->
-                Enum.each(["attributes", "mountain_group"], fn k -> assert Map.has_key?(detail, k) end)
+                Enum.each(~w(attributes mountain_group), fn k -> assert Map.has_key?(detail, k) end)
+                assert is_map(detail["attributes"])
+                assert is_boolean(detail["mountain_group"])
               end)
             end)
           end)

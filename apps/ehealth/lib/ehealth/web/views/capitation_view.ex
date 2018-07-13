@@ -28,7 +28,7 @@ defmodule EHealth.Web.CapitationView do
     contract
     |> Map.take(~w(contract_id contract_number details total))
     |> Map.put(
-      "contract_detail",
+      "details",
       render_many(contract["details"], __MODULE__, "contract_detail.json", as: :contract_detail)
     )
     |> Map.put("total", merge_attributes(contract["total"]))
