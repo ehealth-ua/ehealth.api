@@ -91,7 +91,14 @@ defmodule EHealth.Persons do
       :ok
     else
       _ ->
-        {:error, {:"422", "Person that logged in, person that is changed and person that sign should be the same"}}
+        {:error,
+         [
+           {%{
+              description: "Person that logged in, person that is changed and person that sign should be the same",
+              params: [],
+              rule: :invalid
+            }, "$.data"}
+         ]}
     end
   end
 

@@ -117,12 +117,20 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
 
       assert resp = json_response(conn, 422)
 
-      assert %{
-               "error" => %{
-                 "type" => "request_malformed",
-                 "message" => "Person that logged in, person that is changed and person that sign should be the same"
+      assert [
+               %{
+                 "entry" => "$.data",
+                 "entry_type" => "json_data_property",
+                 "rules" => [
+                   %{
+                     "description" =>
+                       "Person that logged in, person that is changed and person that sign should be the same",
+                     "params" => [],
+                     "rule" => "invalid"
+                   }
+                 ]
                }
-             } = resp
+             ] == resp["error"]["invalid"]
     end
 
     test "tax_id doesn't match with signer", %{conn: conn} do
@@ -160,12 +168,20 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
 
       assert resp = json_response(conn, 422)
 
-      assert %{
-               "error" => %{
-                 "type" => "request_malformed",
-                 "message" => "Person that logged in, person that is changed and person that sign should be the same"
+      assert [
+               %{
+                 "entry" => "$.data",
+                 "entry_type" => "json_data_property",
+                 "rules" => [
+                   %{
+                     "description" =>
+                       "Person that logged in, person that is changed and person that sign should be the same",
+                     "params" => [],
+                     "rule" => "invalid"
+                   }
+                 ]
                }
-             } = resp
+             ] == resp["error"]["invalid"]
     end
 
     test "invalid signed content changeset", %{conn: conn} do
