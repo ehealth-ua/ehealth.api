@@ -115,11 +115,11 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
           "signed_content" => Base.encode64(Jason.encode!(%{}))
         })
 
-      assert resp = json_response(conn, 409)
+      assert resp = json_response(conn, 422)
 
       assert %{
                "error" => %{
-                 "type" => "request_conflict",
+                 "type" => "request_malformed",
                  "message" => "Person that logged in, person that is changed and person that sign should be the same"
                }
              } = resp
@@ -158,11 +158,11 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
           "signed_content" => Base.encode64(Jason.encode!(%{"tax_id" => "2222222220"}))
         })
 
-      assert resp = json_response(conn, 409)
+      assert resp = json_response(conn, 422)
 
       assert %{
                "error" => %{
-                 "type" => "request_conflict",
+                 "type" => "request_malformed",
                  "message" => "Person that logged in, person that is changed and person that sign should be the same"
                }
              } = resp

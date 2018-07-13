@@ -43,7 +43,11 @@ defmodule EHealth.Persons do
          :ok <- Addresses.validate(content["addresses"], headers),
          :ok <- PersonValidator.validate_birth_certificate_number(content),
          %Ecto.Changeset{valid?: true, changes: changes} <- Person.changeset(content),
-         :ok <- validate_authentication_method_phone(Map.get(changes, :authentication_methods), headers),
+         :ok <-
+           validate_authentication_method_phone(
+             Map.get(changes, :authentication_methods),
+             headers
+           ),
          {:ok, %{"data" => data}} <- @mpi_api.update_person(id, changes, headers),
          :ok <- save_signed_content(data["id"], params, headers) do
       {:ok, data}
@@ -87,7 +91,7 @@ defmodule EHealth.Persons do
       :ok
     else
       _ ->
-        {:error, {:conflict, "Person that logged in, person that is changed and person that sign should be the same"}}
+        {:error, {:"422", "Person that logged in, person that is changed and person that sign should be the same"}}
     end
   end
 
@@ -120,7 +124,12 @@ defmodule EHealth.Persons do
 
   defp check_user_blocked(true), do: {:error, :access_denied}
 
-  defp save_signed_content(id, %{"signed_content" => signed_content}, headers, resource_name \\ "signed_content") do
+  defp save_signed_content(
+         id,
+         %{"signed_content" => signed_content},
+         headers,
+         resource_name \\ "signed_content"
+       ) do
     signed_content
     |> @media_storage_api.store_signed_content(:person_bucket, id, resource_name, headers)
     |> case do
