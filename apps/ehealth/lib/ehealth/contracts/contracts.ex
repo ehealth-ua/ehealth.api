@@ -90,24 +90,7 @@ defmodule EHealth.Contracts do
         |> changeset(%{"status" => @status_terminated})
         |> PRMRepo.update()
 
-        contract_employees =
-          contract.contract_employees
-          |> Jason.encode!()
-          |> Jason.decode!()
-          |> Enum.map(&Map.drop(&1, ~w(id contract_id inserted_by updated_by)))
-
-        contract_divisions =
-          contract.contract_divisions
-          |> Jason.encode!()
-          |> Jason.decode!()
-          |> Enum.map(&Map.get(&1, "division_id"))
-
-        new_contract_params =
-          params
-          |> Map.put(:contractor_employee_divisions, contract_employees)
-          |> Map.put(:contract_divisions, contract_divisions)
-
-        with {:ok, new_contract} <- do_create(new_contract_params) do
+        with {:ok, new_contract} <- do_create(params) do
           new_contract
         end
       end)

@@ -148,7 +148,6 @@ defmodule EHealth.ContractRequests do
          params <- set_dates(contract, params),
          :ok <- validate_unique_contractor_employee_divisions(params),
          :ok <- validate_unique_contractor_divisions(params),
-         :ok <- validate_contract_employee_divisions(params),
          :ok <- validate_employee_divisions(params),
          :ok <- validate_contractor_divisions(params),
          :ok <- validate_external_contractors(params),
@@ -234,7 +233,6 @@ defmodule EHealth.ContractRequests do
          :ok <- validate_contract_id(contract_request),
          :ok <- validate_contractor_owner_id(contract_request),
          :ok <- validate_nhs_signer_id(contract_request, client_id),
-         :ok <- validate_contract_employee_divisions(contract_request),
          :ok <- validate_employee_divisions(contract_request),
          :ok <- validate_contractor_divisions(contract_request),
          :ok <- validate_start_date(contract_request),
@@ -755,34 +753,6 @@ defmodule EHealth.ContractRequests do
     case Enum.find(data, &(Map.get(&1, "role_name") == role)) do
       nil -> {:error, :forbidden}
       _ -> :ok
-    end
-  end
-
-  defp validate_contract_employee_divisions(%ContractRequest{} = contract_request) do
-    contract_request
-    |> Jason.encode!()
-    |> Jason.decode!()
-    |> validate_contract_employee_divisions()
-  end
-
-  defp validate_contract_employee_divisions(params) do
-    contractor_employee_divisions = params["contractor_employee_divisions"]
-
-    if (is_nil(contractor_employee_divisions) or contractor_employee_divisions == []) and
-         is_nil(params["parent_contract_id"]) do
-      {:error,
-       [
-         {
-           %{
-             description: "Contractor employee divisions can’t be empty on create",
-             params: [],
-             rule: :invalid
-           },
-           "$.contractor_employee_divisions"
-         }
-       ]}
-    else
-      :ok
     end
   end
 
