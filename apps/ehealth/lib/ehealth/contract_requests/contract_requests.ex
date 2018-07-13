@@ -107,7 +107,7 @@ defmodule EHealth.ContractRequests do
       ) ->
         [
           {"CONTRACT_REQUEST_STATUTE", "media/contract_request_statute.pdf"},
-          {"ADDITIONAL_DOCUMENT", "media/contract_request_additional_document.pdf"}
+          {"CONTRACT_REQUEST_ADDITIONAL_DOCUMENT", "media/contract_request_additional_document.pdf"}
         ]
 
       Enum.any?(~w(signed nhs_signed)a, &(ContractRequest.status(&1) == status)) ->
@@ -1623,7 +1623,13 @@ defmodule EHealth.ContractRequests do
          {:ok, %{body: signed_content}} <- @media_storage_api.get_signed_content(url),
          {:ok, _} <- @media_storage_api.save_file(id, signed_content, get_bucket(), resource_name, headers),
          {:ok, %{"data" => %{"secret_url" => url}}} <-
-           @media_storage_api.create_signed_url("DELETE", get_bucket(), temp_resource_name, id, []),
+           @media_storage_api.create_signed_url(
+             "DELETE",
+             get_bucket(),
+             temp_resource_name,
+             id,
+             []
+           ),
          {:ok, _} <- @media_storage_api.delete_file(url) do
       {:cont, :ok}
     end

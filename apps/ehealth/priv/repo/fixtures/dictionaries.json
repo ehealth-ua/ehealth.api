@@ -1486,7 +1486,7 @@
     "name": "CONTRACT_DOCUMENT",
     "values": {
       "CONTRACT_REQUEST_STATUT": "Статут",
-      "ADDITIONAL_DOCUMENT": "Додатковий документ"
+      "CONTRACT_REQUEST_ADDITIONAL_DOCUMENT": "Додатковий документ"
     },
     "labels": [
       "SYSTEM",
