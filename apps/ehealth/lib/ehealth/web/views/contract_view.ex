@@ -160,14 +160,17 @@ defmodule EHealth.Web.ContractView do
       division_id
       staff_units
       declaration_limit
-      start_date
-      end_date
     )a)
+    |> Map.put(:start_date, convert_naive_datetime_to_date(contract_employee.start_date))
+    |> Map.put(:end_date, convert_naive_datetime_to_date(contract_employee.end_date))
     |> Map.put(
       :employee,
       render_association(:employee, references, contract_employee.employee_id)
     )
   end
+
+  defp convert_naive_datetime_to_date(%NaiveDateTime{} = value), do: NaiveDateTime.to_date(value)
+  defp convert_naive_datetime_to_date(value), do: value
 
   def render_association(:contract_division, contract_division) do
     Map.take(contract_division, ~w(id name)a)

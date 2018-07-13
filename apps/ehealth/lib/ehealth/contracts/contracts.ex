@@ -378,15 +378,13 @@ defmodule EHealth.Contracts do
     |> PRMRepo.paginate(Map.take(search_params, ~w(page page_size)a))
   end
 
-  defp add_is_active_query_param(query, true) do
-    where(query, [ce], is_nil(ce.end_date) or ce.end_date > ^NaiveDateTime.utc_now())
-  end
-
   defp add_is_active_query_param(query, false) do
     where(query, [ce], not (is_nil(ce.end_date) or ce.end_date > ^NaiveDateTime.utc_now()))
   end
 
-  defp add_is_active_query_param(query, nil), do: query
+  defp add_is_active_query_param(query, _) do
+    where(query, [ce], is_nil(ce.end_date) or ce.end_date > ^NaiveDateTime.utc_now())
+  end
 
   defp load_contract_employees_references(contract_employees) do
     Preload.preload_references_for_list(contract_employees, [{:employee_id, :employee}])

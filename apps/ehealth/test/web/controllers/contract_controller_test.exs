@@ -784,7 +784,8 @@ defmodule EHealth.Web.ContractControllerTest do
         contract_id: contract.id,
         employee_id: employee.id,
         division_id: division_1.id,
-        declaration_limit: 2000
+        declaration_limit: 2000,
+        end_date: NaiveDateTime.add(NaiveDateTime.utc_now(), -60)
       )
 
       # contract_employee_out_1
@@ -804,14 +805,13 @@ defmodule EHealth.Web.ContractControllerTest do
         contract_id: contract.id,
         employee_id: employee.id,
         division_id: division_1.id,
-        declaration_limit: 2000,
-        end_date: NaiveDateTime.add(NaiveDateTime.utc_now(), -60)
+        declaration_limit: 2000
       )
 
       search_params = %{
         "employee_id" => employee.id,
         "division_id" => division_1.id,
-        "is_active" => true
+        "is_active" => false
       }
 
       response =
@@ -859,6 +859,59 @@ defmodule EHealth.Web.ContractControllerTest do
       end)
 
       assert %{"total_entries" => 3} = response["paging"]
+    end
+
+    test "insure is_active search param is true by default, start_date and end_date are date format", %{conn: conn} do
+      nhs()
+      %{id: client_id} = insert(:prm, :legal_entity)
+
+      contract_request = insert(:il, :contract_request)
+      contract = insert(:prm, :contract, contract_request_id: contract_request.id)
+      division = insert(:prm, :division)
+      employee = insert(:prm, :employee)
+      insert(:prm, :contract_division, contract_id: contract.id, division_id: division.id)
+
+      start_date = NaiveDateTime.add(NaiveDateTime.utc_now(), -60 * 60 * 24)
+      end_date = NaiveDateTime.add(NaiveDateTime.utc_now(), 60 * 60 * 24)
+
+      for _ <- 1..2 do
+        insert(
+          :prm,
+          :contract_employee,
+          contract_id: contract.id,
+          employee_id: employee.id,
+          division_id: division.id,
+          declaration_limit: 2000,
+          start_date: start_date,
+          end_date: end_date
+        )
+      end
+
+      insert(
+        :prm,
+        :contract_employee,
+        contract_id: contract.id,
+        employee_id: employee.id,
+        division_id: division.id,
+        declaration_limit: 2000,
+        end_date: NaiveDateTime.add(NaiveDateTime.utc_now(), -60)
+      )
+
+      response =
+        conn
+        |> put_client_id_header(client_id)
+        |> get(contract_path(conn, :show_employees, contract.id))
+        |> json_response(200)
+
+      assert length(response["data"]) == 2
+
+      Enum.map(response["data"], fn contract_employee ->
+        assert Map.get(contract_employee, "contract_id") == contract.id
+        assert Map.get(contract_employee, "start_date") == Date.utc_today() |> Date.add(-1) |> Date.to_string()
+        assert Map.get(contract_employee, "end_date") == Date.utc_today() |> Date.add(1) |> Date.to_string()
+      end)
+
+      assert %{"total_entries" => 2} = response["paging"]
     end
   end
 end
