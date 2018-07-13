@@ -79,6 +79,9 @@
         "id": {
           "type": "string"
         },
+        "legal_entity_id": {
+          "type": "string"
+        },
         "name": {
           "type": "string"
         },
@@ -91,13 +94,15 @@
         "email": {
           "type": "string"
         },
+        "working_hours": {
+          "type": [
+            "object",
+            "null"
+          ]
+        },
         "type": {
           "type": "string",
-          "enum": [
-            "CLINIC",
-            "AMBULANT_CLINIC",
-            "FAP"
-          ]
+          "description": "Dictionary DIVISION_TYPE"
         },
         "external_id": {
           "type": "string"
@@ -121,14 +126,7 @@
           ]
         }
       },
-      "required": [
-        "id",
-        "name",
-        "addresses",
-        "phones",
-        "email",
-        "type"
-      ]
+      "additionalProperties": false
     },
     "employee": {
       "type": "object",
@@ -155,30 +153,14 @@
             "second_name": {
               "type": "string"
             },
-            "email": {
-              "type": "string"
-            },
             "phones": {
               "type": "array"
-            },
-            "tax_id": {
-              "not": {}
-            },
-            "documents": {
-              "not": {}
             }
           },
-          "required": [
-            "id",
-            "first_name",
-            "last_name"
-          ]
+          "additionalProperties": false
         }
       },
-      "required": [
-        "id",
-        "position"
-      ]
+      "additionalProperties": false
     },
     "person": {
       "type": "object",
@@ -273,10 +255,7 @@
           "description": "Medical program name"
         }
       },
-      "required": [
-        "id",
-        "name"
-      ]
+      "additionalProperties": false
     }
   },
   "required": [

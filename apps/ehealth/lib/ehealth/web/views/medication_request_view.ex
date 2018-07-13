@@ -2,7 +2,7 @@ defmodule EHealth.Web.MedicationRequestView do
   @moduledoc false
 
   use EHealth.Web, :view
-  alias EHealth.Web.{LegalEntityView, DivisionView, MedicalProgramView, MedicationRequestRequestView}
+  alias EHealth.Web.{LegalEntityView, MedicationRequestRequestView}
 
   def render("index.json", %{medication_requests: medication_requests}) do
     render_many(medication_requests, __MODULE__, "show.json")
@@ -26,8 +26,11 @@ defmodule EHealth.Web.MedicationRequestView do
     ))
     |> Map.put("legal_entity", render_one(legal_entity, LegalEntityView, "show_reimbursement.json"))
     |> Map.put("employee", render_one(medication_request["employee"], __MODULE__, "employee.json", as: :employee))
-    |> Map.put("division", render_one(medication_request["division"], DivisionView, "show.json"))
-    |> Map.put("medical_program", render_one(medication_request["medical_program"], MedicalProgramView, "show.json"))
+    |> Map.put("division", render_one(medication_request["division"], __MODULE__, "division.json", as: :division))
+    |> Map.put(
+      "medical_program",
+      render_one(medication_request["medical_program"], __MODULE__, "medical_program.json", as: :medical_program)
+    )
     |> Map.put("medication_info", render_one(medication_request, __MODULE__, "medication_info.json"))
     |> Map.put("person", person)
   end
@@ -85,48 +88,46 @@ defmodule EHealth.Web.MedicationRequestView do
     }
   end
 
+  def render("division.json", %{division: division}) do
+    division
+    |> Map.take(~w(
+          id
+          name
+          type
+          addresses
+          phones
+          email
+          external_id
+          legal_entity_id
+          working_hours
+        )a)
+    |> Map.put(:location, to_coordinates(division.location))
+  end
+
   def render("employee.json", %{employee: employee}) do
     party = Map.take(employee.party, ~w(
       id
       first_name
       last_name
       second_name
-      birth_date
-      gender
       phones
-    )a)
-    division = Map.take(employee.division, ~w(
-      id
-      name
-      status
-      type
-      legal_entity_id
-      mountain_group
-    )a)
-    legal_entity = Map.take(employee.legal_entity, ~w(
-      id
-      name
-      short_name
-      public_name
-      type
-      edrpou
-      status
-      owner_property_type
-      legal_form
-      mis_verified
     )a)
 
     employee
-    |> Map.take(~w(
-      id
-      position
-      status
-      employee_type
-      start_date
-      end_date
-    )a)
+    |> Map.take(~w(id position)a)
     |> Map.put(:party, party)
-    |> Map.put(:division, division)
-    |> Map.put(:legal_entity, legal_entity)
   end
+
+  def render("medical_program.json", %{medical_program: medical_program}) do
+    Map.take(medical_program, ~w(id name)a)
+  end
+
+  def to_coordinates(%Geo.Point{coordinates: {lng, lat}}) do
+    %{
+      longitude: lng,
+      latitude: lat
+    }
+  end
+
+  def to_coordinates(field), do: field
 end
