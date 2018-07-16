@@ -243,6 +243,11 @@ config :ehealth, :medication_request,
   reject_template_sms:
     {:system, "TEMPLATE_SMS_FOR_REJECT_MEDICATION_REQUEST", "Відкликано рецепт: <request_number> від <created_at>"}
 
+config :ehealth, :employee_speciality_limits,
+  pediatrician_declaration_limit: {:system, :integer, "PEDIATRICIAN_DECLARATION_LIMIT", 900},
+  therapist_declaration_limit: {:system, :integer, "THERAPIST_DECLARATION_LIMIT", 2_000},
+  family_doctor_declaration_limit: {:system, :integer, "FAMILY_DOCTOR_DECLARATION_LIMIT", 1_800}
+
 config :ehealth, EHealth.Bamboo.Emails.Sender, mailer: {:system, :module, "BAMBOO_MAILER"}
 
 # Configures bamboo

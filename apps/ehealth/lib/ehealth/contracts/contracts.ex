@@ -197,9 +197,51 @@ defmodule EHealth.Contracts do
          %{"employee_id" => employee_id, "division_id" => division_id} = params,
          user_id
        ) do
-    case get_contract_employee(id, employee_id, division_id) do
-      %ContractEmployee{} = contract_employee -> update_contract_employee(contract, contract_employee, params, user_id)
-      nil -> insert_contract_employee(contract, params, user_id)
+    case PRMRepo.get(Employee, employee_id) do
+      nil ->
+        {:error, {:"422", "Employee_id is invalid"}}
+
+      %Employee{speciality: speciality} ->
+        employee_speciality = Map.get(speciality, "speciality")
+
+        with %ContractEmployee{} = contract_employee <- get_contract_employee(id, employee_id, division_id),
+             :ok <- validate_employee_speciality_limit(Map.get(params, "declaration_limit"), employee_speciality) do
+          update_contract_employee(contract, contract_employee, params, user_id)
+        else
+          nil -> insert_and_validate_contract_employee(contract, params, user_id, employee_speciality)
+          error -> error
+        end
+    end
+  end
+
+  defp insert_and_validate_contract_employee(contract, params, user_id, employee_speciality) do
+    with :ok <- validate_employee_speciality_limit(Map.get(params, "declaration_limit"), employee_speciality) do
+      insert_contract_employee(contract, params, user_id)
+    end
+  end
+
+  defp validate_employee_speciality_limit(_, nil), do: {:error, {:"422", "Employee speciality is invalid"}}
+  defp validate_employee_speciality_limit(nil, _), do: :ok
+
+  defp validate_employee_speciality_limit(declaration_limit, employee_speciality) do
+    config = Confex.fetch_env!(:ehealth, :employee_speciality_limits)
+
+    employee_speciality_limit =
+      case employee_speciality do
+        "THERAPIST" ->
+          config[:therapist_declaration_limit]
+
+        "PEDIATRICIAN" ->
+          config[:pediatrician_declaration_limit]
+
+        "FAMILY_DOCTOR" ->
+          config[:family_doctor_declaration_limit]
+      end
+
+    if declaration_limit <= employee_speciality_limit do
+      :ok
+    else
+      {:error, {:"422", "declaration_limit is not allowed for employee speciality"}}
     end
   end
 
