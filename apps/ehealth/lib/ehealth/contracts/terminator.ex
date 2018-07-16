@@ -31,7 +31,7 @@ defmodule EHealth.Contracts.Terminator do
       ) do
     rows_number = terminate_contracts(user_id, limit)
 
-    if rows_number >= limit do
+    if rows_number > 0 do
       GenServer.cast(@server, {:process_terminate, caller})
     else
       send(caller, :terminated_contracts)
