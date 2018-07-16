@@ -535,6 +535,11 @@ defmodule EHealth.Web.ContractControllerTest do
 
     test "succes update employee", %{conn: conn} do
       nhs()
+
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
       contract_request = insert(:il, :contract_request)
       contract = insert(:prm, :contract, contract_request_id: contract_request.id)
       legal_entity = insert(:prm, :legal_entity, id: contract.contractor_legal_entity_id)
@@ -584,8 +589,72 @@ defmodule EHealth.Web.ContractControllerTest do
                resp["data"]["contractor_employee_divisions"]
     end
 
+    test "succes update employee set inactive", %{conn: conn} do
+      nhs()
+
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
+      contract_request = insert(:il, :contract_request)
+      contract = insert(:prm, :contract, contract_request_id: contract_request.id)
+      legal_entity = insert(:prm, :legal_entity, id: contract.contractor_legal_entity_id)
+      division = insert(:prm, :division, legal_entity: legal_entity)
+      insert(:prm, :contract_division, contract_id: contract.id, division_id: division.id)
+
+      [employee_id_active, employee_id_inactive] =
+        Enum.reduce(1..2, [], fn _, acc ->
+          employee = insert(:prm, :employee, legal_entity: legal_entity)
+
+          insert(
+            :prm,
+            :contract_employee,
+            contract_id: contract.id,
+            employee_id: employee.id,
+            division_id: division.id,
+            declaration_limit: 2000
+          )
+
+          [employee.id | acc]
+        end)
+
+      party_user = insert(:prm, :party_user)
+
+      content = %{
+        "employee_id" => employee_id_inactive,
+        "division_id" => division.id,
+        "is_active" => false
+      }
+
+      params = %{
+        "signed_content" =>
+          content
+          |> Jason.encode!()
+          |> Base.encode64(),
+        "signed_content_encoding" => "base64"
+      }
+
+      drfo_signed_content(content, party_user.party.tax_id)
+
+      conn =
+        conn
+        |> put_client_id_header(UUID.generate())
+        |> put_consumer_id_header(party_user.user_id)
+        |> Plug.Conn.put_req_header("drfo", party_user.party.tax_id)
+        |> patch(contract_path(conn, :update, contract.id), params)
+
+      assert resp = json_response(conn, 200)
+
+      assert [%{"employee" => %{"id" => ^employee_id_active}}] = resp["data"]["contractor_employee_divisions"]
+    end
+
     test "succes insert employees", %{conn: conn} do
       nhs()
+
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
       contract_request = insert(:il, :contract_request)
       contract = insert(:prm, :contract, contract_request_id: contract_request.id)
       legal_entity = insert(:prm, :legal_entity, id: contract.contractor_legal_entity_id)

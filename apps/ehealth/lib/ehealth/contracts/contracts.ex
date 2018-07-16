@@ -25,6 +25,8 @@ defmodule EHealth.Contracts do
   alias EHealth.Validators.Signature, as: SignatureValidator
   alias Scrivener.Page
 
+  @media_storage_api Application.get_env(:ehealth, :api_resolvers)[:media_storage]
+
   @status_verified Contract.status(:verified)
   @status_terminated Contract.status(:terminated)
 
@@ -121,7 +123,14 @@ defmodule EHealth.Contracts do
          :ok <- SignatureValidator.check_drfo(signer, user_id, "contract_request_update"),
          :ok <- validate_status(contract, Contract.status(:verified)),
          :ok <- validate_update_json_schema(content),
-         {:ok, _} <- process_employee_division(contract, content, user_id) do
+         {:ok, _} <- process_employee_division(contract, content, user_id),
+         :ok <-
+           save_signed_content(
+             contract.id,
+             params,
+             headers,
+             content["employee_id"]
+           ) do
       now = NaiveDateTime.utc_now()
 
       query =
@@ -537,6 +546,24 @@ defmodule EHealth.Contracts do
     |> cast_assoc(:contract_employees)
     |> cast_assoc(:contract_divisions)
     |> validate_required(@fields_required)
+  end
+
+  defp save_signed_content(id, %{"signed_content" => signed_content}, headers, employee_id) do
+    datetime =
+      DateTime.utc_now()
+      |> DateTime.to_unix()
+
+    signed_content
+    |> @media_storage_api.store_signed_content(
+      :contract_bucket,
+      id,
+      "employee_update/#{employee_id}/#{datetime}",
+      headers
+    )
+    |> case do
+      {:ok, _} -> :ok
+      _error -> {:error, {:bad_gateway, "Failed to save signed content"}}
+    end
   end
 
   def update_is_suspended(ids, is_suspended) when is_list(ids) and is_boolean(is_suspended) do
