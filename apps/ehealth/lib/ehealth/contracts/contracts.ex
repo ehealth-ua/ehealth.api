@@ -116,6 +116,7 @@ defmodule EHealth.Contracts do
 
   def update(id, params, headers) do
     user_id = get_consumer_id(headers)
+    client_id = get_client_id(headers)
 
     with {:ok, contract, _} <- get_by_id(id, params),
          :ok <- JsonSchema.validate(:contract_sign, params),
@@ -123,7 +124,7 @@ defmodule EHealth.Contracts do
          :ok <- SignatureValidator.check_drfo(signer, user_id, "contract_request_update"),
          :ok <- validate_status(contract, Contract.status(:verified)),
          :ok <- validate_update_json_schema(content),
-         {:ok, _} <- process_employee_division(contract, content, user_id),
+         {:ok, _} <- process_employee_division(contract, content, user_id, client_id),
          :ok <-
            save_signed_content(
              contract.id,
@@ -204,7 +205,8 @@ defmodule EHealth.Contracts do
   defp process_employee_division(
          %Contract{id: id} = contract,
          %{"employee_id" => employee_id, "division_id" => division_id} = params,
-         user_id
+         user_id,
+         client_id
        ) do
     case PRMRepo.get(Employee, employee_id) do
       nil ->
@@ -213,19 +215,30 @@ defmodule EHealth.Contracts do
       %Employee{speciality: speciality, legal_entity_id: legal_entity_id} ->
         employee_speciality = Map.get(speciality, "speciality")
 
-        with :ok <- validate_contract_employee_legal_entity_id(legal_entity_id, contract.contractor_legal_entity_id),
-             %ContractEmployee{} = contract_employee <- get_contract_employee(id, employee_id, division_id),
-             :ok <- validate_employee_speciality_limit(Map.get(params, "declaration_limit"), employee_speciality) do
+        with %ContractEmployee{} = contract_employee <- get_contract_employee(id, employee_id, division_id),
+             :ok <- validate_employee_speciality_limit(Map.get(params, "declaration_limit"), employee_speciality),
+             :ok <- check_employee_legal_entity(client_id, legal_entity_id) do
           update_contract_employee(contract, contract_employee, params, user_id)
         else
-          nil -> insert_and_validate_contract_employee(contract, params, user_id, employee_speciality)
-          error -> error
+          nil ->
+            insert_and_validate_contract_employee(
+              contract,
+              params,
+              user_id,
+              client_id,
+              employee_speciality,
+              legal_entity_id
+            )
+
+          error ->
+            error
         end
     end
   end
 
-  defp insert_and_validate_contract_employee(contract, params, user_id, employee_speciality) do
-    with :ok <- validate_employee_speciality_limit(Map.get(params, "declaration_limit"), employee_speciality) do
+  defp insert_and_validate_contract_employee(contract, params, user_id, client_id, employee_speciality, legal_entity_id) do
+    with :ok <- validate_employee_speciality_limit(Map.get(params, "declaration_limit"), employee_speciality),
+         :ok <- check_employee_legal_entity(client_id, legal_entity_id) do
       insert_contract_employee(contract, params, user_id)
     end
   end
@@ -259,6 +272,11 @@ defmodule EHealth.Contracts do
       {:error, {:"422", "declaration_limit is not allowed for employee speciality"}}
     end
   end
+
+  defp check_employee_legal_entity(client_id, client_id), do: :ok
+
+  defp check_employee_legal_entity(_, _),
+    do: {:error, {:"422", "Employee should be active Doctor within current legal_entity_id"}}
 
   defp update_contract_employee(_, %ContractEmployee{} = contract_employee, %{"is_active" => false}, user_id) do
     contract_employee
