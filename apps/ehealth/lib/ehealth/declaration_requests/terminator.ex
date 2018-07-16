@@ -65,7 +65,7 @@ defmodule EHealth.DeclarationRequests.Terminator do
     end
 
     rows_number =
-      teminate_declaration_requests(
+      change_status_declaration_requests(
         subselect_condition,
         DeclarationRequest.status(:signed),
         term,
@@ -74,7 +74,7 @@ defmodule EHealth.DeclarationRequests.Terminator do
         limit
       )
 
-    if rows_number > 0 do
+    if rows_number >= limit do
       GenServer.cast(:declaration_request_cleaner, {:process_signed, caller})
     else
       send(caller, :terminated_signed)
@@ -97,7 +97,7 @@ defmodule EHealth.DeclarationRequests.Terminator do
     end
 
     rows_number =
-      teminate_declaration_requests(
+      change_status_declaration_requests(
         subselect_condition,
         DeclarationRequest.status(:expired),
         term,
@@ -132,7 +132,7 @@ defmodule EHealth.DeclarationRequests.Terminator do
     GenServer.cast(:declaration_request_terminator, {:process_expired, self()})
   end
 
-  def teminate_declaration_requests(subselect_condition, status, term, unit, user_id, limit) do
+  def change_status_declaration_requests(subselect_condition, status, term, unit, user_id, limit) do
     subselect_ids =
       DeclarationRequest
       |> select([dr], %{id: dr.id})
