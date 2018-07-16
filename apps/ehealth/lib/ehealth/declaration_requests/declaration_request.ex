@@ -29,6 +29,10 @@ defmodule EHealth.DeclarationRequests.DeclarationRequest do
   def status(:approved), do: @status_approved
   def status(:expired), do: @status_expired
 
+  def status_options do
+    [@status_new, @status_signed, @status_cancelled, @status_rejected, @status_approved, @status_expired]
+  end
+
   def authentication_method(:na), do: @authentication_na
   def authentication_method(:otp), do: @authentication_otp
   def authentication_method(:offline), do: @authentication_offline

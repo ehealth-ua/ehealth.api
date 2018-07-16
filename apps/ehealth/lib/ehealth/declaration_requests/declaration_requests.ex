@@ -56,7 +56,7 @@ defmodule EHealth.DeclarationRequests do
     where(query, [r], r.status == ^status)
   end
 
-  defp filter_by_status(query, _), do: query
+  defp filter_by_status(query, _), do: where(query, [r], r.status in ^DeclarationRequest.status_options())
 
   def approve(id, verification_code, headers) do
     user_id = get_consumer_id(headers)
