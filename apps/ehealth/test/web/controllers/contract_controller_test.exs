@@ -335,7 +335,7 @@ defmodule EHealth.Web.ContractControllerTest do
     end
 
     test "legal entity terminate verified contract", %{conn: conn} do
-      nhs()
+      msp()
       contract = insert(:prm, :contract)
       params = %{"status_reason" => "Period of contract is wrong"}
 

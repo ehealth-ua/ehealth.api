@@ -5,6 +5,9 @@
       "status_reason": {
         "type": "string",
         "description": "the reason of terminated status"
+      },
+      "contractor_legal_entity_id": {
+        "type": "string"
       }
     },
     "required": [
