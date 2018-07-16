@@ -359,6 +359,8 @@ defmodule EHealth.ContractRequests do
          {_, false} <- {:already_signed, contract_request.status == ContractRequest.status(:nhs_signed)},
          :ok <- validate_status(contract_request, ContractRequest.status(:pending_nhs_sign)),
          {:ok, %{"content" => content, "signer" => signer}} <- decode_signed_content(:nhs, params, headers),
+         :ok <- validate_contractor_legal_entity(contract_request),
+         :ok <- validate_contractor_owner_id(contract_request),
          :ok <-
            SignatureValidator.check_drfo(
              signer,
@@ -375,8 +377,6 @@ defmodule EHealth.ContractRequests do
          :ok <- validate_contract_id(contract_request),
          :ok <- validate_employee_divisions(contract_request),
          :ok <- validate_start_date(contract_request),
-         :ok <- validate_contractor_legal_entity(contract_request),
-         :ok <- validate_contractor_owner_id(contract_request),
          :ok <-
            save_signed_content(
              contract_request.id,
