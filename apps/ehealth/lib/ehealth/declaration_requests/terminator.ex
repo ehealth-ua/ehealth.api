@@ -74,7 +74,7 @@ defmodule EHealth.DeclarationRequests.Terminator do
         limit
       )
 
-    if rows_number >= limit do
+    if rows_number > 0 do
       GenServer.cast(:declaration_request_cleaner, {:process_signed, caller})
     else
       send(caller, :terminated_signed)
