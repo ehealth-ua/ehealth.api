@@ -210,10 +210,11 @@ defmodule EHealth.Contracts do
       nil ->
         {:error, {:"422", "Employee_id is invalid"}}
 
-      %Employee{speciality: speciality} ->
+      %Employee{speciality: speciality, legal_entity_id: legal_entity_id} ->
         employee_speciality = Map.get(speciality, "speciality")
 
-        with %ContractEmployee{} = contract_employee <- get_contract_employee(id, employee_id, division_id),
+        with :ok <- validate_contract_employee_legal_entity_id(legal_entity_id, contract.contractor_legal_entity_id),
+             %ContractEmployee{} = contract_employee <- get_contract_employee(id, employee_id, division_id),
              :ok <- validate_employee_speciality_limit(Map.get(params, "declaration_limit"), employee_speciality) do
           update_contract_employee(contract, contract_employee, params, user_id)
         else
@@ -228,6 +229,11 @@ defmodule EHealth.Contracts do
       insert_contract_employee(contract, params, user_id)
     end
   end
+
+  defp validate_contract_employee_legal_entity_id(legal_entity_id, legal_entity_id), do: :ok
+
+  defp validate_contract_employee_legal_entity_id(_, _),
+    do: {:error, {:"422", "Employee and contract legal_entity_id mismatch"}}
 
   defp validate_employee_speciality_limit(_, nil), do: {:error, {:"422", "Employee speciality is invalid"}}
   defp validate_employee_speciality_limit(nil, _), do: :ok
