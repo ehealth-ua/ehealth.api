@@ -54,6 +54,7 @@ defmodule EHealth.Web.DeclarationControllerTest do
         assert Map.has_key?(elem, "reason")
         assert Map.has_key?(elem, "reason_description")
         assert Map.has_key?(elem, "declaration_number")
+        assert Map.get(elem["person"], "birth_date", nil) != nil
       end)
     end
 

@@ -176,6 +176,7 @@ defmodule EHealth.Web.DeclarationView do
       first_name
       last_name
       second_name
+      birth_date
     ))
   end
 
