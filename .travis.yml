@@ -12,7 +12,7 @@ addons:
   postgresql: "9.6"
   apt:
     packages:
-      - postgresql-9.5-postgis-2.3
+      - postgresql-9.6-postgis-2.3
       - docker-ce
 elixir:
   - 1.6.6
@@ -25,44 +25,28 @@ notifications:
     on_success: always
 env:
   global:
-    - Chart=il
     - MIX_ENV=test
-    - REQUIRE_VERSION_TAGS="true"
-    - DOCKER_HUB_ACCOUNT=edenlabllc
-    - TRUNK_BRANCH="master"
+    - DOCKER_NAMESPACE=edenlabllc
+    - APPS='{"ehealth":"il"}'
+    - POSTGRES_VERSION=9.6
     - secure: "cm8F6poDy8DYOHjUDdJ4lqeFN9jAjwCeQlyvrM6mgPjthGEdjzUp7+4YkBPDrDkyj6KkBXyFIAizmp/YKWifQBs0C4J6wfXXdB5c1z39K4DY9omdzZ+r4o2EsmUBG2qHPhUhq9mT+BHGA+GmgzaaZzVzTLvo1XnF0voP+dAmkAcujhIQW7pa8Hi80EOHuHRpKRZ1Yo5VnmdktZU+AHSR5de8QP71nfmXTOaXWVM/I1OoyIaP/9X9vl5qsy0VdAWwI4+5mUzVgXcggYIBBbtNvwJ+CSZdOl5NzRu8mxcHu4YFNRejRf9rENlF4QmdmVfTvIiOGnyVjZudRsP6CahjEpXxICRub+PanXGjwOIzwsswnXZmyYI/ZZdViXRJ25nBAe2u8H+67v7PA9jdlKy4X4O7kCENSPaxFuTD7cRxgfDLxOfr+tlvagFPaXSPQ7ZZYxMY0xVKpsl4Ng1gFVywSeigTgTwTZDf4494nW0Kwg78rnnDVUdWNS4k4WT933GmSxl3EwootuvWbLPMAqJX/uPIj7LQ2iD2jXrZn2s3a3eXNh9PWmsxzurSSpr2CXbkmOOoqeOgCXafP/98X/kswBojaHh3wZj+3+D7dWr95fYluz2o7tISpOCSKxO9LhRE5JxSI6CfH5ddCJn1Eyf1MDcPRguCTOCZF1ttreVWVj8="
     - secure: "P5OkzHv8ToKlrm0ZkbsPVTOgDXRFbsZB/izg4AGAdAFJKjKoNe76G3TEgx+wWlLtx9DQ/8R9dYa2MlwdUGDN+lcMVPXOjRDv23h6XJwqIRWzU2tMk7tvuOUmQjqKtKgwa8yX+AaMs9DX484ypyg3TEGiv023yFXuXuWKvo3Mej5Ro8xqxzwXv7L+rmTUGJEJdXoOz2ciJnIe1zkqPLnB8c/35tlekqY7nOG8zy9AqnSiQVs7LxnaxBhiENJC3+LWKJ3JE95I1nQq6K1LoEDJLPlvyEQd53HxN4G9GibNsTUu/Vd85jI7ImxmEhwl3x0eb1ApIgeoQxthMIT7/zkZSAlCPFDI4/pixzUMKL/BCeWak+aR60hAPyYYjQC9Jx15B0FdneO9bGvtIAN3caaDWLxkMGpkFWVenb5hHk2wHEkz0DP+YXNtre7flE4aR+moTzfsp4kB70lvMDbC4QzpYan0eLDZWxRH+7klI5YB/+2jZeXMIeT5UfpP/Utm0K+p2yHshzJuA4jdCjnw4wO1sDZIXh58nBjOsJx3B3+XeKFarb+D+S/D1S8ByHvILY4a6PeQDsI/9jDcY2LzXFn4ESY4dmZs/ns9lK/NDApC0oQzTPclKfl4n/AcfTbxPxEvpdQPx9Y3RiaGoNd0QPMDG7p74qClK8+TsqojUzgUdFc="
 branches:
   except:
     - /[0-9]*\.[0-9]*\.[0-9]*/
-before_install:
-  # Expose DB to Docker container
-  - sudo ./bin/ci/init-db.sh
 before_script:
-  # Extract project name and version from mix.exs
-  - source ./bin/ci/rel/fetch-project-environment.sh
-  # Load information about new version
-  - source ./bin/ci/release/fetch-source-version.sh
-  # Load information about changelog
-  - source ./bin/ci/release/fetch-changelog.sh
-script:
-  # Check for versioning error
-  - ./bin/ci/release/check-version-error.sh || travis_terminate 1
-  # Increment version in mix.exs
-  - ./bin/ci/release/put-source-version.sh || travis_terminate 1
-  # Create release notes log for minor version
-  - ./bin/ci/release/put-release-notes.sh
-  # Run all tests except pending ones
-  - ./bin/mix_tests.sh || travis_terminate 1
-  # Build Docker container
-  - ./bin/ci/rel/build-container.sh || travis_terminate 1
-  # Initialize DB for Docker container
-  - (cd apps/ehealth && MIX_ENV=dev mix ecto.setup)
-  # Run Docker container
-  - sudo ./bin/ci/release/start-container.sh
-  - sudo ./bin/ci/release/check-container.sh || travis_terminate 1
-  # Submit Docker container to Docker Hub and create GitHub Release by pushing tag with changelog
-  - ./bin/ci/rel/push-changes.sh || travis_terminate 1
-  - echo "Decrypting deploy key..."
-  - openssl aes-256-cbc -K $encrypted_c996ec964e08_key -iv $encrypted_c996ec964e08_iv -in eHealth-8110bd102a69.json.enc -out eHealth-8110bd102a69.json -d
-  - sudo ./bin/deploy.sh || travis_terminate 1
+  - psql -U postgres -c "create extension postgis"
+before_install:
+- sudo apt-get install jq
+- curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella/init-db.sh -o init-db.sh; sudo sh ./init-db.sh
+jobs:
+  include:
+    - stage: "test and build"
+      # run tests
+      script: (curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella/tests.sh -o tests.sh; bash ./tests.sh) || travis_terminate 1
+      # Build Docker container
+    - stage: "test and build"
+      # "Decrypting deploy key..."
+      script:
+      - openssl aes-256-cbc -K $encrypted_c996ec964e08_key -iv $encrypted_c996ec964e08_iv -in eHealth-8110bd102a69.json.enc -out eHealth-8110bd102a69.json -d
+      - (curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella/docker.sh -o docker.sh; bash ./docker.sh) || travis_terminate 1

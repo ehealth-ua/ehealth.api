@@ -3,14 +3,12 @@ defmodule EHealth.Mixfile do
 
   use Mix.Project
 
-  @version "7.448.0"
-
   def project do
     [
       app: :ehealth,
       description: "Integration Layer for projects that related to Ukrainian Health Services government institution.",
       package: package(),
-      version: @version,
+      version: "0.1.0",
       elixir: "~> 1.6",
       build_path: "../../_build",
       config_path: "../../config/config.exs",

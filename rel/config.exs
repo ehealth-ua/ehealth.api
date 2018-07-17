@@ -16,7 +16,7 @@ environment :default do
 end
 
 release :ehealth do
-  set(version: current_version(:ehealth))
+  set(version: "0.1.0")
 
   set(
     applications: [
