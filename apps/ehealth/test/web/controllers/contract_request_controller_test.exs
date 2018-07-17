@@ -437,6 +437,269 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       assert_error(resp, "$.end_date", "The year of start_date and and date must be equal")
     end
 
+    test "contract request overlaps w/ active contract dates (earlier)", %{conn: conn} do
+      msp()
+
+      %{
+        legal_entity: legal_entity,
+        division: division,
+        employee: employee,
+        user_id: user_id,
+        owner: owner,
+        party_user: party_user
+      } = prepare_data()
+
+      expect(MediaStorageMock, :create_signed_url, 6, fn _, _, resource, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      end)
+
+      expect(MediaStorageMock, :get_signed_content, 2, fn _ -> {:ok, %{body: ""}} end)
+      expect(MediaStorageMock, :save_file, 2, fn _, _, _, _, _ -> {:ok, nil} end)
+      expect(MediaStorageMock, :delete_file, 2, fn _ -> {:ok, nil} end)
+
+      expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
+        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"ETag", Jason.encode!(resource)}]}}
+      end)
+
+      conn =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("drfo", party_user.party.tax_id)
+
+      now = Date.utc_today()
+      contract_request_start_date = Date.add(now, 1)
+      contract_request_end_date = Date.add(contract_request_start_date, 10)
+      expires_at = Date.to_iso8601(Date.add(contract_request_start_date, 1))
+
+      contract_start_date = Date.add(contract_request_start_date, 5)
+      contract_end_date = Date.add(contract_start_date, 10)
+
+      insert(
+        :prm,
+        :contract,
+        status: Contract.status(:verified),
+        contractor_legal_entity_id: legal_entity.id,
+        start_date: contract_start_date,
+        end_date: contract_end_date
+      )
+
+      params =
+        division
+        |> prepare_params(employee, expires_at)
+        |> Map.put("contractor_owner_id", owner.id)
+        |> Map.put("start_date", Date.to_iso8601(contract_request_start_date))
+        |> Map.put("end_date", Date.to_iso8601(contract_request_end_date))
+
+      drfo_signed_content(params, party_user.party.tax_id)
+
+      conn =
+        post(conn, contract_request_path(conn, :create, UUID.generate()), %{
+          "signed_content" => params |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+
+      assert resp = json_response(conn, 422)
+      assert_error(resp, "Active contract is found. Contract number must be sent in request")
+    end
+
+    test "contract request overlaps w/ active contract dates (later)", %{conn: conn} do
+      msp()
+
+      %{
+        legal_entity: legal_entity,
+        division: division,
+        employee: employee,
+        user_id: user_id,
+        owner: owner,
+        party_user: party_user
+      } = prepare_data()
+
+      expect(MediaStorageMock, :create_signed_url, 6, fn _, _, resource, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      end)
+
+      expect(MediaStorageMock, :get_signed_content, 2, fn _ -> {:ok, %{body: ""}} end)
+      expect(MediaStorageMock, :save_file, 2, fn _, _, _, _, _ -> {:ok, nil} end)
+      expect(MediaStorageMock, :delete_file, 2, fn _ -> {:ok, nil} end)
+
+      expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
+        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"ETag", Jason.encode!(resource)}]}}
+      end)
+
+      conn =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("drfo", party_user.party.tax_id)
+
+      now = Date.utc_today()
+      contract_request_start_date = Date.add(now, 1)
+      contract_request_end_date = Date.add(contract_request_start_date, 10)
+      expires_at = Date.to_iso8601(Date.add(contract_request_start_date, 1))
+
+      contract_start_date = Date.add(contract_request_start_date, -5)
+      contract_end_date = Date.add(contract_start_date, 10)
+
+      insert(
+        :prm,
+        :contract,
+        status: Contract.status(:verified),
+        contractor_legal_entity_id: legal_entity.id,
+        start_date: contract_start_date,
+        end_date: contract_end_date
+      )
+
+      params =
+        division
+        |> prepare_params(employee, expires_at)
+        |> Map.put("contractor_owner_id", owner.id)
+        |> Map.put("start_date", Date.to_iso8601(contract_request_start_date))
+        |> Map.put("end_date", Date.to_iso8601(contract_request_end_date))
+
+      drfo_signed_content(params, party_user.party.tax_id)
+
+      conn =
+        post(conn, contract_request_path(conn, :create, UUID.generate()), %{
+          "signed_content" => params |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+
+      assert resp = json_response(conn, 422)
+      assert_error(resp, "Active contract is found. Contract number must be sent in request")
+    end
+
+    test "contract request overlaps w/ active contract dates (coincides)", %{conn: conn} do
+      msp()
+
+      %{
+        legal_entity: legal_entity,
+        division: division,
+        employee: employee,
+        user_id: user_id,
+        owner: owner,
+        party_user: party_user
+      } = prepare_data()
+
+      expect(MediaStorageMock, :create_signed_url, 6, fn _, _, resource, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      end)
+
+      expect(MediaStorageMock, :get_signed_content, 2, fn _ -> {:ok, %{body: ""}} end)
+      expect(MediaStorageMock, :save_file, 2, fn _, _, _, _, _ -> {:ok, nil} end)
+      expect(MediaStorageMock, :delete_file, 2, fn _ -> {:ok, nil} end)
+
+      expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
+        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"ETag", Jason.encode!(resource)}]}}
+      end)
+
+      conn =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("drfo", party_user.party.tax_id)
+
+      now = Date.utc_today()
+      contract_request_start_date = Date.add(now, 1)
+      contract_request_end_date = Date.add(contract_request_start_date, 10)
+      expires_at = Date.to_iso8601(Date.add(contract_request_start_date, 1))
+
+      contract_start_date = contract_request_start_date
+      contract_end_date = contract_request_end_date
+
+      insert(
+        :prm,
+        :contract,
+        status: Contract.status(:verified),
+        contractor_legal_entity_id: legal_entity.id,
+        start_date: contract_start_date,
+        end_date: contract_end_date
+      )
+
+      params =
+        division
+        |> prepare_params(employee, expires_at)
+        |> Map.put("contractor_owner_id", owner.id)
+        |> Map.put("start_date", Date.to_iso8601(contract_request_start_date))
+        |> Map.put("end_date", Date.to_iso8601(contract_request_end_date))
+
+      drfo_signed_content(params, party_user.party.tax_id)
+
+      conn =
+        post(conn, contract_request_path(conn, :create, UUID.generate()), %{
+          "signed_content" => params |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+
+      assert resp = json_response(conn, 422)
+      assert_error(resp, "Active contract is found. Contract number must be sent in request")
+    end
+
+    test "success create contract request, active contract has passed", %{conn: conn} do
+      msp()
+
+      %{
+        legal_entity: legal_entity,
+        division: division,
+        employee: employee,
+        user_id: user_id,
+        owner: owner,
+        party_user: party_user
+      } = prepare_data()
+
+      expect(MediaStorageMock, :create_signed_url, 6, fn _, _, resource, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      end)
+
+      expect(MediaStorageMock, :get_signed_content, 2, fn _ -> {:ok, %{body: ""}} end)
+      expect(MediaStorageMock, :save_file, 2, fn _, _, _, _, _ -> {:ok, nil} end)
+      expect(MediaStorageMock, :delete_file, 2, fn _ -> {:ok, nil} end)
+
+      expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
+        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"ETag", Jason.encode!(resource)}]}}
+      end)
+
+      conn =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("drfo", party_user.party.tax_id)
+
+      now = Date.utc_today()
+      contract_request_start_date = Date.add(now, 1)
+      contract_request_end_date = Date.add(contract_request_start_date, 10)
+      expires_at = Date.to_iso8601(Date.add(contract_request_start_date, 1))
+
+      contract_start_date = Date.add(contract_request_start_date, -100)
+      contract_end_date = Date.add(contract_start_date, 10)
+
+      insert(
+        :prm,
+        :contract,
+        status: Contract.status(:verified),
+        contractor_legal_entity_id: legal_entity.id,
+        start_date: contract_start_date,
+        end_date: contract_end_date
+      )
+
+      params =
+        division
+        |> prepare_params(employee, expires_at)
+        |> Map.put("contractor_owner_id", owner.id)
+        |> Map.put("start_date", Date.to_iso8601(contract_request_start_date))
+        |> Map.put("end_date", Date.to_iso8601(contract_request_end_date))
+
+      drfo_signed_content(params, party_user.party.tax_id)
+
+      conn =
+        post(conn, contract_request_path(conn, :create, UUID.generate()), %{
+          "signed_content" => params |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+
+      assert json_response(conn, 201)
+    end
+
     test "invalid contractor_owner_id", %{conn: conn} do
       msp()
       %{legal_entity: legal_entity, division: division, employee: employee, party_user: party_user} = prepare_data()

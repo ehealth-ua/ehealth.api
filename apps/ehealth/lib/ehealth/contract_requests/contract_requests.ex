@@ -1481,21 +1481,20 @@ defmodule EHealth.ContractRequests do
          %{"contractor_legal_entity_id" => legal_entity_id} = params,
          headers
        ) do
-    with {:ok, %Page{entries: []}, _} <-
+    with {:ok, %Page{entries: [_ | _]}, _} <-
            Contracts.list(
              %{
                "contractor_legal_entity_id" => legal_entity_id,
                "status" => Contract.status(:verified),
-               "date_from_start_date" => params["start_date"],
-               "date_to_end_date" => params["end_date"]
+               "date_to_start_date" => params["end_date"],
+               "date_from_end_date" => params["start_date"]
              },
              nil,
              headers
            ) do
-      {:ok, params, nil}
+      {:error, {:"422", "Active contract is found. Contract number must be sent in request"}}
     else
-      _ ->
-        {:error, {:"422", "Active contract is found. Contract number must be sent in request"}}
+      _ -> {:ok, params, nil}
     end
   end
 
@@ -1593,13 +1592,7 @@ defmodule EHealth.ContractRequests do
          {:ok, %{body: signed_content}} <- @media_storage_api.get_signed_content(url),
          {:ok, _} <- @media_storage_api.save_file(id, signed_content, get_bucket(), resource_name, headers),
          {:ok, %{"data" => %{"secret_url" => url}}} <-
-           @media_storage_api.create_signed_url(
-             "DELETE",
-             get_bucket(),
-             temp_resource_name,
-             id,
-             []
-           ),
+           @media_storage_api.create_signed_url("DELETE", get_bucket(), temp_resource_name, id, []),
          {:ok, _} <- @media_storage_api.delete_file(url) do
       {:cont, :ok}
     end
