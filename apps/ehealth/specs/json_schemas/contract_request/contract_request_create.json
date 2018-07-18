@@ -76,64 +76,64 @@
         "external_contractors": {
             "type": "array",
             "items": {
-            "properties": {
-                "legal_entity_id": {
-                    "type": "string",
-                    "$ref": "#/definitions/uuid",
-                    "description": "external_contractor ID"
-                },
-                "contract": {
-                    "type": "object",
-                    "properties": {
-                        "number": {
-                            "type": "string",
-                            "$ref": "#/definitions/name",
-                            "description": "number of contract with sub contractor"
-                        },
-                        "issued_at": {
-                            "format": "date",
-                            "description": "issue date of contract with sub contractor"
-                        },
-                        "expires_at": {
-                            "format": "date",
-                            "description": "expiry date of contract with sub contractor"
-                        }
+                "properties": {
+                    "legal_entity_id": {
+                        "type": "string",
+                        "$ref": "#/definitions/uuid",
+                        "description": "external_contractor ID"
                     },
-                    "required": [
-                        "number",
-                        "issued_at",
-                        "expires_at"
-                    ]
-                },
-                "divisions": {
-                    "type": "array",
-                    "items": {
+                    "contract": {
                         "type": "object",
                         "properties": {
-                            "id": {
+                            "number": {
                                 "type": "string",
-                                "$ref": "#/definitions/uuid"
+                                "$ref": "#/definitions/name",
+                                "description": "number of contract with sub contractor"
                             },
-                            "medical_service": {
-                                "type": "string",
-                                "description": "Dictionary: MEDICAL_SERVICE"
+                            "issued_at": {
+                                "format": "date",
+                                "description": "issue date of contract with sub contractor"
+                            },
+                            "expires_at": {
+                                "format": "date",
+                                "description": "expiry date of contract with sub contractor"
                             }
                         },
                         "required": [
-                            "id",
-                            "medical_service"
-                        ],
-                        "additionalProperties": false
+                            "number",
+                            "issued_at",
+                            "expires_at"
+                        ]
                     },
-                    "minItems": 1
-                }
-            },
-            "required": [
-                "legal_entity_id",
-                "contract",
-                "divisions"
-            ],
-            "additionalProperties": false
+                    "divisions": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "string",
+                                    "$ref": "#/definitions/uuid"
+                                },
+                                "medical_service": {
+                                    "type": "string",
+                                    "description": "Dictionary: MEDICAL_SERVICE"
+                                }
+                            },
+                            "required": [
+                                "id",
+                                "medical_service"
+                            ],
+                            "additionalProperties": false
+                        },
+                        "minItems": 1
+                    }
+                },
+                "required": [
+                    "legal_entity_id",
+                    "contract",
+                    "divisions"
+                ],
+                "additionalProperties": false
             },
             "minItems": 1
         },
@@ -207,6 +207,9 @@
         },
         "additional_document_md5": {
             "type": "string"
+        },
+        "consent_text": {
+            "type": "string"
         }
     },
     "required": [
@@ -218,7 +221,8 @@
         "contractor_rmsp_amount",
         "contractor_divisions",
         "contractor_employee_divisions",
-        "id_form"
+        "id_form",
+        "consent_text"
     ],
     "additionalProperties": false
 }

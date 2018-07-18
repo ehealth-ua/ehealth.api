@@ -3339,7 +3339,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       "start_date" => "2018-01-01",
       "end_date" => "2018-01-01",
       "statute_md5" => "media/upload_contract_request_statute.pdf",
-      "additional_document_md5" => "media/upload_contract_request_additional_document.pdf"
+      "additional_document_md5" => "media/upload_contract_request_additional_document.pdf",
+      "consent_text" => "Погоджуюсь з публічною офертою"
     }
   end
 
