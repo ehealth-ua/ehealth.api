@@ -8,7 +8,7 @@ defmodule EHealth.LegalEntities do
   import EHealth.Utils.Connection, only: [get_consumer_id: 1, get_client_id: 1]
   import EHealth.Plugs.ClientContext, only: [authorize_legal_entity_id: 3]
   import Ecto.Query, except: [update: 3]
-  import EHealth.LegalEntities.ContractSuspender
+  import EHealth.Contracts.ContractSuspender
 
   alias Scrivener.Page
   alias Ecto.{Changeset, Date, UUID}
@@ -87,7 +87,8 @@ defmodule EHealth.LegalEntities do
     get_search_query(entity, convert_comma_params_to_where_in_clause(changes, :ids, :id))
   end
 
-  def get_search_query(LegalEntity = entity, %{settlement_id: settlement_id} = changes) when is_binary(settlement_id) do
+  def get_search_query(LegalEntity = entity, %{settlement_id: settlement_id} = changes)
+      when is_binary(settlement_id) do
     changes =
       changes
       |> Map.put(:addresses, {[%{settlement_id: settlement_id}], :json_list})
@@ -267,7 +268,11 @@ defmodule EHealth.LegalEntities do
     |> MediaStorage.store_signed_content(:legal_entity_bucket, id, "signed_content", headers)
   end
 
-  defp put_legal_entity_to_prm(%LegalEntity{__meta__: %Metadata{state: :built}} = legal_entity, attrs, headers) do
+  defp put_legal_entity_to_prm(
+         %LegalEntity{__meta__: %Metadata{state: :built}} = legal_entity,
+         attrs,
+         headers
+       ) do
     # Creates new Legal Entity in PRM
     consumer_id = get_consumer_id(headers)
     client_id = get_client_id(headers)
@@ -285,7 +290,11 @@ defmodule EHealth.LegalEntities do
     create(legal_entity, creation_data, consumer_id)
   end
 
-  defp put_legal_entity_to_prm(%LegalEntity{__meta__: %Metadata{state: :loaded}} = legal_entity, attrs, headers) do
+  defp put_legal_entity_to_prm(
+         %LegalEntity{__meta__: %Metadata{state: :loaded}} = legal_entity,
+         attrs,
+         headers
+       ) do
     # Updates Legal Entity
     consumer_id = get_consumer_id(headers)
     # filter immutable data
@@ -302,7 +311,12 @@ defmodule EHealth.LegalEntities do
     |> update_with_ops_contract(headers)
   end
 
-  defp get_oauth_credentials(%LegalEntity{} = legal_entity, client_type_id, request_params, headers) do
+  defp get_oauth_credentials(
+         %LegalEntity{} = legal_entity,
+         client_type_id,
+         request_params,
+         headers
+       ) do
     redirect_uri =
       request_params
       |> Map.fetch!("security")

@@ -6,7 +6,7 @@ defmodule EHealth.Employees do
   import Ecto.Changeset
   import EHealth.Utils.Connection
   import EHealth.Plugs.ClientContext, only: [authorize_legal_entity_id: 3]
-  import EHealth.LegalEntities.ContractSuspender
+  import EHealth.Contracts.ContractSuspender
 
   alias Scrivener.Page
   alias Ecto.Changeset
@@ -150,69 +150,61 @@ defmodule EHealth.Employees do
     |> PRMRepo.all()
   end
 
-  def create_or_update_employee(%Request{data: %{"employee_id" => employee_id} = employee_request}, req_headers) do
+  def create_or_update_employee(%Request{data: %{"employee_id" => employee_id} = employee_request}, headers) do
     employee = get_by_id!(employee_id)
-    party = employee |> Map.get(:party, %{}) |> Map.get(:id) |> Parties.get_by_id!()
+    party = Parties.get_by_id!(employee.party.id)
+    party_id = party.id
     party_update_params = EmployeeRequests.create_party_params(employee_request)
 
     employee_update_params =
       Map.merge(employee_request, %{
         "employee_type" => employee.employee_type,
-        "updated_by" => get_consumer_id(req_headers),
+        "updated_by" => get_consumer_id(headers),
         "speciality" => EmployeeRequests.get_employee_speciality(employee_request)
       })
 
-    with {:ok, _} <- suspend_legal_entity_owner_contracts(employee_request, req_headers),
-         {:ok, _} <- EmployeeCreator.create_party_user(party, req_headers),
-         :ok <- UserRoleCreator.create(employee, req_headers),
+    with {:ok, _} <- suspend_all_party_contracts(party_id, headers),
+         {:ok, _} <- EmployeeCreator.create_party_user(party, headers),
+         :ok <- UserRoleCreator.create(employee, headers),
          %Changeset{valid?: true} = party_changeset <- Parties.changeset(party, party_update_params),
          %Changeset{valid?: true} = employee_changeset <- changeset(employee, employee_update_params) do
       if maybe_suspend_contracts?(party_changeset, :party) || maybe_suspend_contracts?(employee_changeset, :employee) do
-        transaction_update_with_contract(party_changeset, employee_changeset, req_headers)
+        transaction_update_with_contract(party_changeset, employee_changeset, headers)
       else
-        __MODULE__.update(employee, employee_update_params, get_consumer_id(req_headers))
+        __MODULE__.update(employee, employee_update_params, get_consumer_id(headers))
       end
     end
   end
 
-  def create_or_update_employee(%Request{} = employee_request, req_headers) do
-    with {:ok, _} <- suspend_legal_entity_owner_contracts(employee_request.data, req_headers),
-         {:ok, employee} <- EmployeeCreator.create(employee_request, req_headers),
-         :ok <- UserRoleCreator.create(employee, req_headers) do
+  def create_or_update_employee(%Request{} = employee_request, headers) do
+    with {:ok, %Employee{party_id: party_id} = employee} <- EmployeeCreator.create(employee_request, headers),
+         {:ok, _} <- suspend_all_party_contracts(party_id, headers),
+         :ok <- UserRoleCreator.create(employee, headers) do
       {:ok, employee}
     end
   end
 
-  defp suspend_legal_entity_owner_contracts(
-         %{"employee_type" => @type_owner, "legal_entity_id" => legal_entity_id},
-         headers
-       ) do
-    contracts = owner_contracts_to_suspend(legal_entity_id, headers)
+  defp suspend_all_party_contracts(party_id, headers) do
+    contracts = party_contracts_to_suspend(party_id, headers)
     suspend_contracts(contracts)
   end
 
-  defp suspend_legal_entity_owner_contracts(_, _), do: {:ok, nil}
-
-  defp owner_contracts_to_suspend(legal_entity_id, headers) do
+  defp party_contracts_to_suspend(party_id, headers) do
     Employee
     |> where([e], e.is_active)
     |> where([e], e.employee_type == ^@type_owner)
-    |> where([e], e.legal_entity_id == ^legal_entity_id)
-    |> PRMRepo.one()
-    |> case do
-      nil ->
-        []
+    |> where([e], e.party_id == ^party_id)
+    |> PRMRepo.all()
+    |> Enum.reduce([], fn owner, acc ->
+      contract_params = %{
+        contractor_owner_id: owner.id,
+        status: Contract.status(:verified),
+        is_suspended: false
+      }
 
-      legal_entity_owner ->
-        get_contracts_params = %{
-          contractor_owner_id: legal_entity_owner.id,
-          status: Contract.status(:verified),
-          is_suspended: false
-        }
-
-        {:ok, %Page{entries: contracts}, _} = Contracts.list(get_contracts_params, nil, headers)
-        contracts
-    end
+      {:ok, %Page{entries: contracts}, _} = Contracts.list(contract_params, nil, headers)
+      contracts ++ acc
+    end)
   end
 
   def update(%Employee{status: old_status} = employee, attrs, author_id) do

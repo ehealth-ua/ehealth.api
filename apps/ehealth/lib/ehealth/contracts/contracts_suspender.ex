@@ -1,4 +1,4 @@
-defmodule EHealth.LegalEntities.ContractSuspender do
+defmodule EHealth.Contracts.ContractSuspender do
   @moduledoc false
 
   alias EHealth.Contracts
