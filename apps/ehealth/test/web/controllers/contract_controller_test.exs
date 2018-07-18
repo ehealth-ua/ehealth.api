@@ -18,6 +18,11 @@ defmodule EHealth.Web.ContractControllerTest do
         {:ok, %{"data" => %{"secret_url" => "http://url.com/#{id}/#{resource_name}"}}}
       end)
 
+      owner = insert(:prm, :employee)
+      signer = insert(:prm, :employee)
+      legal_entity = insert(:prm, :legal_entity)
+      legal_entity_nhs = insert(:prm, :legal_entity)
+
       %{id: legal_entity_id} = insert(:prm, :legal_entity)
       %{id: division_id} = insert(:prm, :division)
 
@@ -29,10 +34,27 @@ defmodule EHealth.Web.ContractControllerTest do
         }
       ]
 
-      contract_request = insert(:il, :contract_request, status: "SIGNED", external_contractors: external_contractors)
+      contract_request =
+        insert(
+          :il,
+          :contract_request,
+          status: "SIGNED",
+          contractor_owner_id: owner.id,
+          nhs_signer_id: signer.id,
+          external_contractors: external_contractors
+        )
 
       contract =
-        insert(:prm, :contract, contract_request_id: contract_request.id, external_contractors: external_contractors)
+        insert(
+          :prm,
+          :contract,
+          contract_request_id: contract_request.id,
+          contractor_legal_entity_id: legal_entity.id,
+          contractor_owner_id: contract_request.contractor_owner_id,
+          nhs_legal_entity_id: legal_entity_nhs.id,
+          nhs_signer_id: contract_request.nhs_signer_id,
+          external_contractors: external_contractors
+        )
 
       assert response =
                %{"data" => response_data} =
@@ -56,6 +78,13 @@ defmodule EHealth.Web.ContractControllerTest do
         assert Map.has_key?(legal_entity, "id")
         assert Map.has_key?(legal_entity, "name")
       end)
+
+      schema =
+        "specs/json_schemas/contract/contract_show_response.json"
+        |> File.read!()
+        |> Poison.decode!()
+
+      assert :ok = NExJsonSchema.Validator.validate(schema, response_data)
     end
 
     test "ensure TOKENS_TYPES_PERSONAL has access to own contracts", %{conn: conn} do
@@ -132,6 +161,11 @@ defmodule EHealth.Web.ContractControllerTest do
         |> get(contract_path(conn, :index), %{created_by: UUID.generate()})
 
       assert resp = json_response(conn, 200)["data"]
+
+      Enum.each(resp, fn contract ->
+        Enum.each(~w(id_form parent_contract_id nhs_signed_date), fn key -> assert Map.has_key?(contract, key) end)
+      end)
+
       assert length(resp) == 2
     end
 

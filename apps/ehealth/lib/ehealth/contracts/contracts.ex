@@ -52,9 +52,12 @@ defmodule EHealth.Contracts do
     is_active
     inserted_by
     updated_by
+    id_form
+    nhs_signed_date
   )a
 
   @fields_optional ~w(
+    parent_contract_id
     status_reason
     external_contractor_flag
     external_contractors
@@ -242,11 +245,6 @@ defmodule EHealth.Contracts do
       insert_contract_employee(contract, params, user_id)
     end
   end
-
-  defp validate_contract_employee_legal_entity_id(legal_entity_id, legal_entity_id), do: :ok
-
-  defp validate_contract_employee_legal_entity_id(_, _),
-    do: {:error, {:"422", "Employee and contract legal_entity_id mismatch"}}
 
   defp validate_employee_speciality_limit(_, nil), do: {:error, {:"422", "Employee speciality is invalid"}}
   defp validate_employee_speciality_limit(nil, _), do: :ok

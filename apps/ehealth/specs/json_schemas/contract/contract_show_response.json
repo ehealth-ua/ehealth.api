@@ -616,6 +616,20 @@
         "is_suspended": {
             "type": "boolean"
         },
+        "id_form": {
+            "type": "string",
+            "description": "type of contract - Dictionary: CONTRACT_TYPE"
+        },
+        "parent_contract_id": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "nhs_signed_date": {
+          "type": "string",
+          "description": "nhs sign date"
+        },
         "start_date": {
             "type": "string",
             "description": "contract start date"
@@ -656,7 +670,10 @@
         "issue_city",
         "contract_number",
         "contract_request_id",
-        "is_suspended"
+        "is_suspended",
+        "id_form",
+        "parent_contract_id",
+        "nhs_signed_date"
     ],
     "additionalProperties": false
 }

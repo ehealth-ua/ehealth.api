@@ -519,6 +519,8 @@ defmodule EHealth.ContractRequests do
       nhs_signer_id
       nhs_contract_price
       parent_contract_id
+      id_form
+      nhs_signed_date
     )a)
     |> Map.put(:id, contract_id)
     |> Map.put(:contract_request_id, id)

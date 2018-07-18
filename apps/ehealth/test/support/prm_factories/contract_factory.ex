@@ -52,7 +52,10 @@ defmodule EHealth.PRMFactories.ContractFactory do
           is_active: true,
           is_suspended: false,
           inserted_by: UUID.generate(),
-          updated_by: UUID.generate()
+          updated_by: UUID.generate(),
+          parent_contract_id: Enum.random([UUID.generate(), nil]),
+          id_form: Enum.random(~w(1..20)),
+          nhs_signed_date: Date.utc_today()
         }
       end
 

@@ -3382,6 +3382,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     params =
       Keyword.merge(
         [
+          nhs_signed_date: Date.utc_today(),
           nhs_legal_entity_id: client_id,
           nhs_signer_id: user_id,
           contractor_legal_entity_id: client_id,

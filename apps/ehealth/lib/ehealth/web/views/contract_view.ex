@@ -28,6 +28,9 @@ defmodule EHealth.Web.ContractView do
       contract_number
       is_suspended
       contract_request_id
+      parent_contract_id
+      id_form
+      nhs_signed_date
     )a)
     |> Map.put(
       :contractor_owner,
@@ -54,6 +57,9 @@ defmodule EHealth.Web.ContractView do
       contract_number
       is_suspended
       contract_request_id
+      parent_contract_id
+      id_form
+      nhs_signed_date
     )a)
     |> Map.put(
       :contractor_legal_entity,

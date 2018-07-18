@@ -37,6 +37,9 @@ defmodule EHealth.Contracts.Contract do
     field(:is_suspended, :boolean)
     field(:inserted_by, UUID)
     field(:updated_by, UUID)
+    field(:parent_contract_id, UUID)
+    field(:id_form, :string)
+    field(:nhs_signed_date, :date)
 
     has_many(:contract_employees, ContractEmployee)
     has_many(:contract_divisions, ContractDivision)
