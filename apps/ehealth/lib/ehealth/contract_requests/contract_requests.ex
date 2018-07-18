@@ -709,7 +709,8 @@ defmodule EHealth.ContractRequests do
       {:contractor_owner_id, :employee},
       {:nhs_signer_id, :employee},
       {:contractor_divisions, :division},
-      {[:external_contractors, "$", "divisions", "$", "id"], :division}
+      {[:external_contractors, "$", "divisions", "$", "id"], :division},
+      {[:external_contractors, "$", "legal_entity_id"], :legal_entity}
     ]
 
     fields =

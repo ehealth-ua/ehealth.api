@@ -697,7 +697,15 @@ defmodule EHealth.Web.ContractRequestControllerTest do
           "signed_content_encoding" => "base64"
         })
 
-      assert json_response(conn, 201)
+      assert resp = json_response(conn, 201)
+
+      resp
+      |> get_in(~w(data external_contractors))
+      |> Enum.each(fn external_contractor ->
+        legal_entity = Map.get(external_contractor, "legal_entity")
+        assert Map.has_key?(legal_entity, "id")
+        assert Map.has_key?(legal_entity, "name")
+      end)
     end
 
     test "invalid contractor_owner_id", %{conn: conn} do

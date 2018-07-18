@@ -513,7 +513,9 @@ defmodule EHealth.Contracts do
         {:nhs_signer_id, :employee},
         {:contract_request_id, :contract_request},
         {[:contract_employees, "$", :employee_id], :employee},
-        {[:contract_divisions, "$", :division_id], :division}
+        {[:contract_divisions, "$", :division_id], :division},
+        {[:external_contractors, "$", "divisions", "$", "id"], :division},
+        {[:external_contractors, "$", "legal_entity_id"], :legal_entity}
       ])
 
     {:ok, contract, references}

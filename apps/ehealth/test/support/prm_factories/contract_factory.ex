@@ -26,10 +26,7 @@ defmodule EHealth.PRMFactories.ContractFactory do
           external_contractor_flag: true,
           external_contractors: [
             %{
-              legal_entity: %{
-                id: UUID.generate(),
-                name: "Клініка Ноунейм"
-              },
+              legal_entity_id: UUID.generate(),
               contract: %{
                 number: "1234567",
                 issued_at: NaiveDateTime.utc_now(),

@@ -47,7 +47,6 @@ defmodule EHealth.Web.ContractView do
       contractor_payment_details
       contractor_rmsp_amount
       external_contractor_flag
-      external_contractors
       nhs_payment_method
       nhs_signer_base
       issue_city
@@ -84,6 +83,14 @@ defmodule EHealth.Web.ContractView do
       :contractor_divisions,
       render_association(:contractor_divisions, references, contract.contract_divisions || [])
     )
+    |> Map.put(
+      :external_contractors,
+      ContractRequestView.render_association(
+        :external_contractors,
+        references,
+        contract.external_contractors || []
+      )
+    )
   end
 
   def render("terminate.json", %{contract: contract, references: references}) do
@@ -96,7 +103,6 @@ defmodule EHealth.Web.ContractView do
       contractor_payment_details
       contractor_rmsp_amount
       external_contractor_flag
-      external_contractors
       nhs_signer_base
       nhs_contract_price
       nhs_payment_method
@@ -136,6 +142,14 @@ defmodule EHealth.Web.ContractView do
     |> Map.put(
       :contractor_divisions,
       render_association(:contractor_divisions, references, contract.contract_divisions || [])
+    )
+    |> Map.put(
+      :external_contractors,
+      ContractRequestView.render_association(
+        :external_contractors,
+        references,
+        contract.external_contractors || []
+      )
     )
   end
 

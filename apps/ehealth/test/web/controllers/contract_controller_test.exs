@@ -18,8 +18,21 @@ defmodule EHealth.Web.ContractControllerTest do
         {:ok, %{"data" => %{"secret_url" => "http://url.com/#{id}/#{resource_name}"}}}
       end)
 
-      contract_request = insert(:il, :contract_request, status: "SIGNED")
-      contract = insert(:prm, :contract, contract_request_id: contract_request.id)
+      %{id: legal_entity_id} = insert(:prm, :legal_entity)
+      %{id: division_id} = insert(:prm, :division)
+
+      external_contractors = [
+        %{
+          "divisions" => [%{"id" => division_id, "medical_service" => "PHC_SERVICES"}],
+          "contract" => %{"expires_at" => to_string(Date.add(Date.utc_today(), 50))},
+          "legal_entity_id" => legal_entity_id
+        }
+      ]
+
+      contract_request = insert(:il, :contract_request, status: "SIGNED", external_contractors: external_contractors)
+
+      contract =
+        insert(:prm, :contract, contract_request_id: contract_request.id, external_contractors: external_contractors)
 
       assert response =
                %{"data" => response_data} =
@@ -35,6 +48,14 @@ defmodule EHealth.Web.ContractControllerTest do
         assert Map.has_key?(urgent_data, "type")
         assert(Map.has_key?(urgent_data, "url"))
       end)
+
+      response
+      |> get_in(~w(data external_contractors))
+      |> Enum.each(fn external_contractor ->
+        legal_entity = Map.get(external_contractor, "legal_entity")
+        assert Map.has_key?(legal_entity, "id")
+        assert Map.has_key?(legal_entity, "name")
+      end)
     end
 
     test "ensure TOKENS_TYPES_PERSONAL has access to own contracts", %{conn: conn} do
@@ -43,15 +64,28 @@ defmodule EHealth.Web.ContractControllerTest do
       end)
 
       msp()
+
+      %{id: legal_entity_id} = insert(:prm, :legal_entity)
+      %{id: division_id} = insert(:prm, :division)
       contractor_legal_entity = insert(:prm, :legal_entity)
-      contract_request = insert(:il, :contract_request)
+
+      external_contractors = [
+        %{
+          "divisions" => [%{"id" => division_id, "medical_service" => "PHC_SERVICES"}],
+          "contract" => %{"expires_at" => to_string(Date.add(Date.utc_today(), 50))},
+          "legal_entity_id" => legal_entity_id
+        }
+      ]
+
+      contract_request = insert(:il, :contract_request, external_contractors: external_contractors)
 
       contract =
         insert(
           :prm,
           :contract,
           contractor_legal_entity_id: contractor_legal_entity.id,
-          contract_request_id: contract_request.id
+          contract_request_id: contract_request.id,
+          external_contractors: external_contractors
         )
 
       assert %{"data" => response_data} =
@@ -337,7 +371,23 @@ defmodule EHealth.Web.ContractControllerTest do
 
     test "legal entity terminate verified contract", %{conn: conn} do
       msp()
-      contract = insert(:prm, :contract)
+
+      %{id: legal_entity_id} = insert(:prm, :legal_entity)
+      %{id: division_id} = insert(:prm, :division)
+
+      external_contractors = [
+        %{
+          "divisions" => [%{"id" => division_id, "medical_service" => "PHC_SERVICES"}],
+          "contract" => %{"expires_at" => to_string(Date.add(Date.utc_today(), 50))},
+          "legal_entity_id" => legal_entity_id
+        }
+      ]
+
+      contract_request = insert(:il, :contract_request, status: "SIGNED", external_contractors: external_contractors)
+
+      contract =
+        insert(:prm, :contract, contract_request_id: contract_request.id, external_contractors: external_contractors)
+
       params = %{"status_reason" => "Period of contract is wrong"}
 
       resp =
@@ -349,11 +399,35 @@ defmodule EHealth.Web.ContractControllerTest do
       assert resp["data"]["status"] == Contract.status(:terminated)
       assert resp["data"]["status_reason"] == "Period of contract is wrong"
       Enum.each(terminate_response_fields(), fn field -> assert %{^field => _} = resp["data"] end)
+
+      resp
+      |> get_in(~w(data external_contractors))
+      |> Enum.each(fn external_contractor ->
+        legal_entity = Map.get(external_contractor, "legal_entity")
+        assert Map.has_key?(legal_entity, "id")
+        assert Map.has_key?(legal_entity, "name")
+      end)
     end
 
     test "NHS terminate verified contract", %{conn: conn} do
       nhs()
-      contract = insert(:prm, :contract)
+
+      %{id: legal_entity_id} = insert(:prm, :legal_entity)
+      %{id: division_id} = insert(:prm, :division)
+
+      external_contractors = [
+        %{
+          "divisions" => [%{"id" => division_id, "medical_service" => "PHC_SERVICES"}],
+          "contract" => %{"expires_at" => to_string(Date.add(Date.utc_today(), 50))},
+          "legal_entity_id" => legal_entity_id
+        }
+      ]
+
+      contract_request = insert(:il, :contract_request, status: "SIGNED", external_contractors: external_contractors)
+
+      contract =
+        insert(:prm, :contract, contract_request_id: contract_request.id, external_contractors: external_contractors)
+
       params = %{"status_reason" => "Period of contract is wrong"}
 
       resp =
@@ -365,6 +439,14 @@ defmodule EHealth.Web.ContractControllerTest do
       assert resp["data"]["status"] == Contract.status(:terminated)
       assert resp["data"]["status_reason"] == "Period of contract is wrong"
       Enum.each(terminate_response_fields(), fn field -> assert %{^field => _} = resp["data"] end)
+
+      resp
+      |> get_in(~w(data external_contractors))
+      |> Enum.each(fn external_contractor ->
+        legal_entity = Map.get(external_contractor, "legal_entity")
+        assert Map.has_key?(legal_entity, "id")
+        assert Map.has_key?(legal_entity, "name")
+      end)
     end
 
     test "NHS terminate not verified contract", %{conn: conn} do
@@ -590,8 +672,22 @@ defmodule EHealth.Web.ContractControllerTest do
         {:ok, "success"}
       end)
 
-      contract_request = insert(:il, :contract_request)
-      contract = insert(:prm, :contract, contract_request_id: contract_request.id)
+      %{id: ext_legal_entity_id} = insert(:prm, :legal_entity)
+      %{id: ext_division_id} = insert(:prm, :division)
+
+      external_contractors = [
+        %{
+          "divisions" => [%{"id" => ext_division_id, "medical_service" => "PHC_SERVICES"}],
+          "contract" => %{"expires_at" => to_string(Date.add(Date.utc_today(), 50))},
+          "legal_entity_id" => ext_legal_entity_id
+        }
+      ]
+
+      contract_request = insert(:il, :contract_request, external_contractors: external_contractors)
+
+      contract =
+        insert(:prm, :contract, contract_request_id: contract_request.id, external_contractors: external_contractors)
+
       legal_entity = insert(:prm, :legal_entity, id: contract.contractor_legal_entity_id)
       division = insert(:prm, :division, legal_entity: legal_entity)
       employee = insert(:prm, :employee, legal_entity: legal_entity)
@@ -646,8 +742,22 @@ defmodule EHealth.Web.ContractControllerTest do
         {:ok, "success"}
       end)
 
-      contract_request = insert(:il, :contract_request)
-      contract = insert(:prm, :contract, contract_request_id: contract_request.id)
+      %{id: ext_legal_entity_id} = insert(:prm, :legal_entity)
+      %{id: ext_division_id} = insert(:prm, :division)
+
+      external_contractors = [
+        %{
+          "divisions" => [%{"id" => ext_division_id, "medical_service" => "PHC_SERVICES"}],
+          "contract" => %{"expires_at" => to_string(Date.add(Date.utc_today(), 50))},
+          "legal_entity_id" => ext_legal_entity_id
+        }
+      ]
+
+      contract_request = insert(:il, :contract_request, external_contractors: external_contractors)
+
+      contract =
+        insert(:prm, :contract, contract_request_id: contract_request.id, external_contractors: external_contractors)
+
       legal_entity = insert(:prm, :legal_entity, id: contract.contractor_legal_entity_id)
       division = insert(:prm, :division, legal_entity: legal_entity)
       insert(:prm, :contract_division, contract_id: contract.id, division_id: division.id)
@@ -705,8 +815,22 @@ defmodule EHealth.Web.ContractControllerTest do
         {:ok, "success"}
       end)
 
-      contract_request = insert(:il, :contract_request)
-      contract = insert(:prm, :contract, contract_request_id: contract_request.id)
+      %{id: ext_legal_entity_id} = insert(:prm, :legal_entity)
+      %{id: ext_division_id} = insert(:prm, :division)
+
+      external_contractors = [
+        %{
+          "divisions" => [%{"id" => ext_division_id, "medical_service" => "PHC_SERVICES"}],
+          "contract" => %{"expires_at" => to_string(Date.add(Date.utc_today(), 50))},
+          "legal_entity_id" => ext_legal_entity_id
+        }
+      ]
+
+      contract_request = insert(:il, :contract_request, external_contractors: external_contractors)
+
+      contract =
+        insert(:prm, :contract, contract_request_id: contract_request.id, external_contractors: external_contractors)
+
       legal_entity = insert(:prm, :legal_entity, id: contract.contractor_legal_entity_id)
       division = insert(:prm, :division, legal_entity: legal_entity)
       employee = insert(:prm, :employee, legal_entity: legal_entity)
