@@ -127,6 +127,7 @@ nhs_payment_method | varchar
 nhs_payment_details | jsonb
 contract_number | varchar
 contract_id | uuid
+parent_contract_id | uuid
 printout_content | varchar
 id_form | uuid | not null
 data | jsonb | not null
@@ -485,6 +486,8 @@ updated_by | uuid | not null
 inserted_at | timestamp | not null
 updated_at | timestamp | not null
 is_active | boolean | not null
+id_form | varchar | not null
+parent_contract_id | uuid
 is_suspended | boolean | not null
 status_reason | varchar | not null
 
@@ -728,12 +731,12 @@ parties
 party_users
 program_medications
 ukr_med_registries
-
-(ops_db)
-ops_audit_log
 contract_divisions
 contract_employees
 contracts
+
+(ops_db)
+ops_audit_log
 declarations
 declarations_status_hstr
 medication_dispense_details
