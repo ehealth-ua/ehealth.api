@@ -3,10 +3,13 @@ defmodule EHealth.Man.Templates.ContractRequestPrintoutForm do
 
   use Confex, otp_app: :ehealth
 
+  import Ecto.Query
+  alias EHealth.Contracts.Contract
+  alias EHealth.ContractRequests.ContractRequest
   alias EHealth.Dictionaries
   alias EHealth.Dictionaries.Dictionary
+  alias EHealth.PRMRepo
   alias EHealth.Validators.Preload
-  alias EHealth.ContractRequests.ContractRequest
 
   @man_api Application.get_env(:ehealth, :api_resolvers)[:man]
   @working_hours [
@@ -18,6 +21,29 @@ defmodule EHealth.Man.Templates.ContractRequestPrintoutForm do
     sat: "Сб.",
     sun: "Нд."
   ]
+
+  def render(
+        %ContractRequest{parent_contract_id: parent_contract_id, contract_number: contract_number} = contract_request,
+        headers
+      )
+      when not is_nil(parent_contract_id) do
+    parent_contract =
+      Contract
+      |> where([c], c.contract_number == ^contract_number and is_nil(c.parent_contract_id))
+      |> PRMRepo.one()
+
+    template_data =
+      contract_request
+      |> Jason.encode!()
+      |> Jason.decode!()
+      |> Map.put("format", config()[:format])
+      |> Map.put("locale", config()[:locale])
+      |> prepare_data()
+      |> Map.put("parent", %{"nhs_signed_date" => parent_contract.nhs_signed_date})
+
+    template_id = config()[:appendix_id]
+    @man_api.render_template(template_id, template_data, headers)
+  end
 
   def render(%ContractRequest{} = contract_request, headers) do
     template_data =

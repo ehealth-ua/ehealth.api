@@ -203,6 +203,7 @@ config :ehealth, EHealth.Man.Templates.DeclarationRequestPrintoutForm,
 
 config :ehealth, EHealth.Man.Templates.ContractRequestPrintoutForm,
   id: {:system, "CONTRACT_REQUEST_PRINTOUT_FORM_TEMPLATE_ID"},
+  appendix_id: {:system, "CONTRACT_REQUEST_PRINTOUT_FORM_APPENDIX_TEMPLATE_ID"},
   format: {:system, "CONTRACT_REQUEST_PRINTOUT_FORM_TEMPLATE_FORMAT", "text/html"},
   locale: {:system, "CONTRACT_REQUEST_PRINTOUT_FORM_TEMPLATE_LOCALE", "uk_UA"}
 
