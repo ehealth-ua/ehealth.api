@@ -27,6 +27,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
     insert(:prm, :global_parameter, %{parameter: "adult_age", value: "18"})
     insert(:prm, :global_parameter, %{parameter: "declaration_term", value: "40"})
     insert(:prm, :global_parameter, %{parameter: "declaration_term_unit", value: "YEARS"})
+    insert_dictionaries()
     :ok
   end
 
@@ -34,12 +35,14 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
     test "success create declaration request online for underage person for PEDIATRICIAN", %{conn: conn} do
       cabinet()
 
+      person_id = UUID.generate()
+
       expect(MithrilMock, :get_user_by_id, fn id, _ ->
         {:ok,
          %{
            "data" => %{
              "id" => id,
-             "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
+             "person_id" => person_id,
              "tax_id" => "2222222225"
            }
          }}
@@ -51,14 +54,14 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         |> to_string()
 
       expect(MPIMock, :person, fn _, _ ->
-        get_person("c8912855-21c3-4771-ba18-bcd8e524f14c", 200, %{
+        get_person(person_id, 200, %{
           birth_date: birth_date,
-          documents: [
-            %{"type" => "BIRTH_CERTIFICATE", "number" => "1234567890"}
-          ],
+          documents: get_person_documents(),
           tax_id: "2222222225",
-          authentication_methods: [%{"type" => "NA"}],
-          addresses: get_person_addresses()
+          authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}],
+          addresses: get_person_addresses(),
+          emergency_contact: get_person_emergency_contact(),
+          confidant_person: get_person_confidant_person()
         })
       end)
 
@@ -85,8 +88,11 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
       end)
 
+      expect(OTPVerificationMock, :search, fn _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
       legal_entity = insert(:prm, :legal_entity)
-      person_id = "c8912855-21c3-4771-ba18-bcd8e524f14c"
       division = insert(:prm, :division, legal_entity: legal_entity)
       employee_speciality = Map.put(speciality(), "speciality", "PEDIATRICIAN")
       additional_info = Map.put(doctor(), "specialities", [employee_speciality])
@@ -141,12 +147,14 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
     test "invalid doctor speciality", %{conn: conn} do
       cabinet()
 
+      person_id = UUID.generate()
+
       expect(MithrilMock, :get_user_by_id, fn id, _ ->
         {:ok,
          %{
            "data" => %{
              "id" => id,
-             "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
+             "person_id" => person_id,
              "tax_id" => "2222222225"
            }
          }}
@@ -158,19 +166,21 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         |> to_string()
 
       expect(MPIMock, :person, fn _, _ ->
-        get_person("c8912855-21c3-4771-ba18-bcd8e524f14c", 200, %{
+        get_person(person_id, 200, %{
           birth_date: birth_date,
-          documents: [
-            %{"type" => "BIRTH_CERTIFICATE", "number" => "1234567890"}
-          ],
+          documents: get_person_documents(),
           tax_id: "2222222225",
-          authentication_methods: [%{"type" => "NA"}],
-          addresses: get_person_addresses()
+          authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}],
+          addresses: get_person_addresses(),
+          emergency_contact: get_person_emergency_contact()
         })
       end)
 
+      expect(OTPVerificationMock, :search, fn _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
       legal_entity = insert(:prm, :legal_entity)
-      person_id = "c8912855-21c3-4771-ba18-bcd8e524f14c"
       division = insert(:prm, :division, legal_entity: legal_entity)
       employee_speciality = Map.put(speciality(), "speciality", "PEDIATRICIAN")
       additional_info = Map.put(doctor(), "specialities", [employee_speciality])
@@ -223,15 +233,17 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         |> Date.add(-365 * 10)
         |> to_string()
 
+      person_id = UUID.generate()
+
       expect(MPIMock, :person, fn _, _ ->
-        get_person("c8912855-21c3-4771-ba18-bcd8e524f14c", 200, %{
+        get_person(person_id, 200, %{
           birth_date: birth_date,
-          documents: [
-            %{"type" => "BIRTH_CERTIFICATE", "number" => "1234567890"}
-          ],
+          documents: get_person_documents(),
           tax_id: "2222222225",
-          authentication_methods: [%{"type" => "NA"}],
-          addresses: get_person_addresses()
+          authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}],
+          addresses: get_person_addresses(),
+          emergency_contact: get_person_emergency_contact(),
+          confidant_person: get_person_confidant_person()
         })
       end)
 
@@ -242,7 +254,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
          %{
            "data" => %{
              "id" => id,
-             "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
+             "person_id" => person_id,
              "tax_id" => "2222222225",
              "email" => "user@email.com"
            }
@@ -269,8 +281,11 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
       end)
 
+      expect(OTPVerificationMock, :search, fn _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
       legal_entity = insert(:prm, :legal_entity)
-      person_id = "c8912855-21c3-4771-ba18-bcd8e524f14c"
       division = insert(:prm, :division, legal_entity: legal_entity)
       employee_speciality = Map.put(speciality(), "speciality", "FAMILY_DOCTOR")
       additional_info = Map.put(doctor(), "specialities", [employee_speciality])
@@ -330,15 +345,16 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         |> Date.add(-365 * 30)
         |> to_string()
 
+      person_id = UUID.generate()
+
       expect(MPIMock, :person, fn _, _ ->
-        get_person("c8912855-21c3-4771-ba18-bcd8e524f14c", 200, %{
+        get_person(person_id, 200, %{
           birth_date: birth_date,
-          documents: [
-            %{"type" => "BIRTH_CERTIFICATE", "number" => "1234567890"}
-          ],
+          documents: get_person_documents(),
           tax_id: "2222222225",
-          authentication_methods: [%{"type" => "NA"}],
-          addresses: get_person_addresses()
+          authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}],
+          addresses: get_person_addresses(),
+          emergency_contact: get_person_emergency_contact()
         })
       end)
 
@@ -349,7 +365,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
          %{
            "data" => %{
              "id" => id,
-             "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
+             "person_id" => person_id,
              "tax_id" => "2222222225",
              "email" => "user@email.com"
            }
@@ -376,8 +392,11 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
       end)
 
+      expect(OTPVerificationMock, :search, fn _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
       legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
-      person_id = "c8912855-21c3-4771-ba18-bcd8e524f14c"
       division = insert(:prm, :division, legal_entity: legal_entity)
       employee_speciality = Map.put(speciality(), "speciality", "THERAPIST")
       additional_info = Map.put(doctor(), "specialities", [employee_speciality])
@@ -427,6 +446,67 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
 
       declaration_request = Repo.get(DeclarationRequest, get_in(resp, ~w(data id)))
       assert declaration_request.mpi_id == person_id
+    end
+
+    test "declaration request without required confidant person for child", %{conn: conn} do
+      cabinet()
+
+      age = 13
+      birth_date = Timex.shift(Timex.today(), years: -age) |> to_string()
+
+      person_id = UUID.generate()
+
+      expect(MithrilMock, :get_user_by_id, fn id, _ ->
+        {:ok,
+         %{
+           "data" => %{
+             "id" => id,
+             "person_id" => person_id,
+             "tax_id" => "2222222225",
+             "email" => "user@email.com",
+             "is_blocked" => false
+           }
+         }}
+      end)
+
+      expect(MPIMock, :person, fn _, _ ->
+        get_person(person_id, 200, %{
+          birth_date: birth_date,
+          documents: get_person_documents(),
+          tax_id: "2222222225",
+          authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}],
+          addresses: get_person_addresses(),
+          emergency_contact: get_person_emergency_contact()
+        })
+      end)
+
+      legal_entity = insert(:prm, :legal_entity)
+      division = insert(:prm, :division, legal_entity: legal_entity)
+
+      employee =
+        insert(
+          :prm,
+          :employee,
+          division: division,
+          legal_entity_id: legal_entity.id
+        )
+
+      request_params = %{
+        person_id: person_id,
+        employee_id: employee.id,
+        division_id: employee.division.id
+      }
+
+      conn =
+        conn
+        |> put_req_header("edrpou", "2222222220")
+        |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
+        |> post(cabinet_declaration_requests_path(conn, :create), request_params)
+
+      assert resp = json_response(conn, 422)
+      assert [error] = resp["error"]["invalid"]
+      assert "Confidant person is mandatory for children" == error["rules"] |> List.first() |> Map.get("description")
     end
   end
 
@@ -1004,7 +1084,15 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
             "settlement_type" => "VILLAGE"
           }
         ],
-        "documents" => [%{"type" => "TEMPORARY_CERTIFICATE", "number" => "тт260656"}],
+        "documents" => [
+          %{
+            "issued_at" => "2014-02-12",
+            "issued_by" => "Збухівський РО ГО МЖД",
+            "number" => "120518",
+            "type" => "PASSPORT"
+          },
+          %{"number" => "1234567", "type" => "BIRTH_CERTIFICATE"}
+        ],
         "last_name" => "Петров",
         "birth_date" => "1991-08-20",
         "first_name" => "Іван",
@@ -1151,6 +1239,18 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
     |> Map.merge(params)
   end
 
+  defp get_person_emergency_contact do
+    fixture_params() |> get_in(["person", "emergency_contact"])
+  end
+
+  defp get_person_documents do
+    fixture_params() |> get_in(["person", "documents"])
+  end
+
+  defp get_person_confidant_person do
+    fixture_params() |> get_in(["person", "confidant_person"])
+  end
+
   defp get_person(id, response_status, params) do
     params = Map.put(params, :id, id)
     person = string_params_for(:person, params)
@@ -1163,5 +1263,12 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
       build(:address, %{"type" => "REGISTRATION"}),
       build(:address, %{"type" => "RESIDENCE"})
     ]
+  end
+
+  defp insert_dictionaries do
+    insert(:il, :dictionary_phone_type)
+    insert(:il, :dictionary_document_type)
+    insert(:il, :dictionary_authentication_method)
+    insert(:il, :dictionary_document_relationship_type)
   end
 end

@@ -227,6 +227,7 @@ defmodule EHealth.DeclarationRequests do
          {:ok, %{"data" => user}} <- @mithril_api.get_user_by_id(user_id, headers),
          :ok <- check_user_person_id(user, params["person_id"]),
          {:ok, person} <- Reference.validate(:person, params["person_id"]),
+         :ok <- PersonsValidator.validate(person),
          {:ok, %Employee{} = employee} <- Reference.validate(:employee, params["employee_id"]),
          :ok <- Creator.validate_employee_status(employee),
          :ok <- Creator.validate_employee_speciality(employee),
