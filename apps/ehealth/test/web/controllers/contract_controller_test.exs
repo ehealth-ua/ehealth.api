@@ -87,6 +87,88 @@ defmodule EHealth.Web.ContractControllerTest do
       assert :ok = NExJsonSchema.Validator.validate(schema, response_data)
     end
 
+    test "contract employees are only with nil end_date", %{conn: conn} do
+      nhs(2)
+
+      expect(MediaStorageMock, :create_signed_url, 6, fn _, _, id, resource_name, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://url.com/#{id}/#{resource_name}"}}}
+      end)
+
+      owner = insert(:prm, :employee)
+      signer = insert(:prm, :employee)
+      legal_entity = insert(:prm, :legal_entity)
+      legal_entity_nhs = insert(:prm, :legal_entity)
+
+      %{id: legal_entity_id} = insert(:prm, :legal_entity)
+      %{id: division_id} = insert(:prm, :division)
+
+      external_contractors = [
+        %{
+          "divisions" => [%{"id" => division_id, "medical_service" => "PHC_SERVICES"}],
+          "contract" => %{"expires_at" => to_string(Date.add(Date.utc_today(), 50))},
+          "legal_entity_id" => legal_entity_id
+        }
+      ]
+
+      contract_request =
+        insert(
+          :il,
+          :contract_request,
+          status: "SIGNED",
+          contractor_owner_id: owner.id,
+          nhs_signer_id: signer.id,
+          external_contractors: external_contractors
+        )
+
+      contract =
+        insert(
+          :prm,
+          :contract,
+          contract_request_id: contract_request.id,
+          contractor_legal_entity_id: legal_entity.id,
+          contractor_owner_id: contract_request.contractor_owner_id,
+          nhs_legal_entity_id: legal_entity_nhs.id,
+          nhs_signer_id: contract_request.nhs_signer_id,
+          external_contractors: external_contractors
+        )
+
+      division = insert(:prm, :division)
+      employee1 = insert(:prm, :employee)
+
+      insert(
+        :prm,
+        :contract_employee,
+        contract_id: contract.id,
+        employee_id: employee1.id,
+        division_id: division.id,
+        declaration_limit: 2000,
+        end_date: NaiveDateTime.add(NaiveDateTime.utc_now(), -60)
+      )
+
+      employee2 = insert(:prm, :employee)
+
+      insert(
+        :prm,
+        :contract_employee,
+        contract_id: contract.id,
+        employee_id: employee2.id,
+        division_id: division.id,
+        declaration_limit: 2000,
+        end_date: nil
+      )
+
+      assert %{
+               "data" => %{"contractor_employee_divisions" => resp_employees}
+             } =
+               conn
+               |> put_client_id_header(UUID.generate())
+               |> get(contract_path(conn, :show, contract.id))
+               |> json_response(200)
+
+      assert 1 == length(resp_employees)
+      assert employee2.id == resp_employees |> Enum.at(0) |> get_in(["employee", "id"])
+    end
+
     test "ensure TOKENS_TYPES_PERSONAL has access to own contracts", %{conn: conn} do
       expect(MediaStorageMock, :create_signed_url, 4, fn _, _, id, resource_name, _ ->
         {:ok, %{"data" => %{"secret_url" => "http://url.com/#{id}/#{resource_name}"}}}

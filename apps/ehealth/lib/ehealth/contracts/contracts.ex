@@ -383,7 +383,7 @@ defmodule EHealth.Contracts do
   def get_by_id(id) do
     Contract
     |> where([c], c.id == ^id)
-    |> join(:left, [c], ce in ContractEmployee, c.id == ce.contract_id)
+    |> join(:left, [c], ce in ContractEmployee, c.id == ce.contract_id and is_nil(ce.end_date))
     |> join(:left, [c], cd in ContractDivision, c.id == cd.contract_id)
     |> preload([c, ce, cd], contract_employees: ce, contract_divisions: cd)
     |> PRMRepo.one()
