@@ -671,6 +671,63 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
                }
              } = resp
     end
+
+    test "success doctor employee request", %{conn: conn} do
+      msp()
+      template()
+      legal_entity = insert(:prm, :legal_entity)
+      %{id: division_id} = insert(:prm, :division, legal_entity: legal_entity)
+
+      employee_request_params = put_in(doctor_request(), ["employee_request", "division_id"], division_id)
+
+      conn =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> post(employee_request_path(conn, :create), employee_request_params)
+
+      assert json_response(conn, 200)
+    end
+
+    test "doctor employee request failed when division_id attribute is absent", %{conn: conn} do
+      msp()
+      template()
+      legal_entity = insert(:prm, :legal_entity)
+
+      employee_request_params = doctor_request()
+      attrs = Map.delete(employee_request_params["employee_request"], "division_id")
+      employee_request_params = Map.put(employee_request_params, "employee_request", attrs)
+
+      conn =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> post(employee_request_path(conn, :create), employee_request_params)
+
+      resp = json_response(conn, 422)["error"]
+      assert %{"message" => "Division does not exist"} = resp
+    end
+
+    test "non-doctor employee request is successful when division_id attribute is absent", %{conn: conn} do
+      msp()
+      template()
+      legal_entity = insert(:prm, :legal_entity)
+
+      employee_request_params = pharmacist_request()
+
+      attrs =
+        employee_request_params["employee_request"]
+        |> Map.drop(~w(division_id pharmacist))
+        |> Map.put("legal_entity_id", legal_entity.id)
+        |> Map.put("employee_type", Employee.type(:admin))
+
+      employee_request_params = Map.put(employee_request_params, "employee_request", attrs)
+
+      conn =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> post(employee_request_path(conn, :create), employee_request_params)
+
+      assert json_response(conn, 200)
+    end
   end
 
   describe "create employee request with invalid specialities" do
