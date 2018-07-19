@@ -7,7 +7,7 @@ defmodule EHealth.PRMRepo.Migrations.AddContractsParentIdFormId do
     alter table(:contracts) do
       add(:parent_contract_id, :uuid)
       add(:id_form, :string, null: false, default: "PMD_1")
-      add(:nhs_signed_date, :date, null: false)
+      add(:nhs_signed_date, :date, null: false, default: fragment("now()::date"))
     end
   end
 end
