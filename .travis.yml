@@ -37,8 +37,8 @@ branches:
 before_script:
   - psql -U postgres -c "create extension postgis"
 before_install:
-- sudo apt-get install jq
-- curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella/init-db.sh -o init-db.sh; sudo sh ./init-db.sh
+  - sudo apt-get install jq
+  - curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella/init-db.sh -o init-db.sh; sudo sh ./init-db.sh
 jobs:
   include:
     - stage: "test and build"
