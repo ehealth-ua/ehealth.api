@@ -51,11 +51,12 @@ defmodule EHealth.Integraiton.DeclarationRequestRejectTest do
       client_id = UUID.generate()
       user_id = UUID.generate()
 
-      assert build_conn()
-             |> put_req_header("x-consumer-id", user_id)
-             |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: client_id}))
-             |> patch("/api/declaration_requests/#{Ecto.UUID.generate()}/actions/reject")
-             |> json_response(404)
+      assert_raise Ecto.NoResultsError, fn ->
+        build_conn()
+        |> put_req_header("x-consumer-id", user_id)
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: client_id}))
+        |> patch("/api/declaration_requests/#{Ecto.UUID.generate()}/actions/reject")
+      end
     end
   end
 end
