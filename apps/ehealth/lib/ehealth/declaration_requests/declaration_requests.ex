@@ -168,28 +168,12 @@ defmodule EHealth.DeclarationRequests do
   def get_by_id!(id), do: get_by_id!(id, %{})
   def get_by_id!(id, nil), do: get_by_id!(id, %{})
 
-  def get_by_id!(id, %{"legal_entity_id" => legal_entity_id}) do
-    id
-    |> get_by_id!(%{})
-    |> validate_data_legal_entity(legal_entity_id)
-  end
-
-  def get_by_id!(id, _) do
+  def get_by_id!(id, params) do
     DeclarationRequest
     |> where([dr], dr.id == ^id)
-    |> Repo.one()
+    |> filter_by_legal_entity_id(params)
+    |> Repo.one!()
   end
-
-  defp validate_data_legal_entity(%DeclarationRequest{data: data} = declaration_request, _)
-       when data == %{} or is_nil(data) do
-    Map.put(declaration_request, :data, %{})
-  end
-
-  defp validate_data_legal_entity(%DeclarationRequest{data: data} = declaration_request, legal_entity_id) do
-    if data["legal_entity"]["id"] == legal_entity_id, do: declaration_request, else: nil
-  end
-
-  defp validate_data_legal_entity(declaration_request, _), do: declaration_request
 
   defp filter_by_legal_entity_id(query, %{"legal_entity_id" => legal_entity_id}) do
     where(query, [r], fragment("?->'legal_entity'->>'id' = ?", r.data, ^legal_entity_id))

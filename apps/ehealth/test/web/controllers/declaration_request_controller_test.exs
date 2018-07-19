@@ -262,9 +262,9 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       another_id = UUID.generate()
       conn = put_client_id_header(conn, id)
 
-      assert conn
-             |> get(declaration_request_path(conn, :show, another_id))
-             |> json_response(404)
+      assert_raise Ecto.NoResultsError, fn ->
+        get(conn, declaration_request_path(conn, :show, another_id))
+      end
     end
 
     test "get declaration request by invalid legal_entity_id", %{conn: conn} do
@@ -272,9 +272,9 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       %{id: id} = insert(:il, :declaration_request)
       conn = put_client_id_header(conn, UUID.generate())
 
-      assert conn
-             |> get(declaration_request_path(conn, :show, id))
-             |> json_response(404)
+      assert_raise Ecto.NoResultsError, fn ->
+        get(conn, declaration_request_path(conn, :show, id))
+      end
     end
 
     test "get declaration request by id", %{conn: conn} do
@@ -299,81 +299,15 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       assert Map.has_key?(resp, "urgent")
       assert "some_hash" == get_in(resp, ["data", "seed"])
     end
-
-    test "get declaration request by id in status expired" do
-      msp()
-
-      expect(OPSMock, :get_latest_block, fn _params ->
-        {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
-      end)
-
-      legal_entity_id = UUID.generate()
-
-      %{id: id, declaration_id: declaration_id} =
-        insert(
-          :il,
-          :declaration_request,
-          id: UUID.generate(),
-          data: %{},
-          status: DeclarationRequest.status(:expired),
-          declaration_id: UUID.generate()
-        )
-
-      conn = put_client_id_header(build_conn(), legal_entity_id)
-      conn = get(conn, declaration_request_path(conn, :show, id))
-      resp = json_response(conn, 200)
-
-      assert resp
-      assert resp["data"]["id"]
-      assert resp["data"]["declaration_number"]
-      assert resp["data"]["declaration_id"] == declaration_id
-      assert resp["data"]["status"] == DeclarationRequest.status(:expired)
-      assert resp["data"]["person"] == nil
-      assert resp["data"]["employee"] == nil
-      assert resp["data"]["legal_entity"] == nil
-    end
-
-    test "get declaration request by id in status expired when data is NULL" do
-      msp()
-
-      expect(OPSMock, :get_latest_block, fn _params ->
-        {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
-      end)
-
-      legal_entity_id = UUID.generate()
-
-      %{id: id, declaration_id: declaration_id} =
-        insert(
-          :il,
-          :declaration_request,
-          id: UUID.generate(),
-          data: nil,
-          status: DeclarationRequest.status(:expired),
-          declaration_id: UUID.generate()
-        )
-
-      conn = put_client_id_header(build_conn(), legal_entity_id)
-      conn = get(conn, declaration_request_path(conn, :show, id))
-      resp = json_response(conn, 200)
-
-      assert resp
-      assert resp["data"]["id"]
-      assert resp["data"]["declaration_number"]
-      assert resp["data"]["declaration_id"] == declaration_id
-      assert resp["data"]["status"] == DeclarationRequest.status(:expired)
-      assert resp["data"]["person"] == nil
-      assert resp["data"]["employee"] == nil
-      assert resp["data"]["legal_entity"] == nil
-    end
   end
 
   describe "resend otp" do
     test "when declaration request id is invalid", %{conn: conn} do
       conn = put_client_id_header(conn, UUID.generate())
 
-      assert conn
-             |> post(declaration_request_path(conn, :resend_otp, UUID.generate()))
-             |> json_response(404)
+      assert_raise Ecto.NoResultsError, fn ->
+        post(conn, declaration_request_path(conn, :resend_otp, UUID.generate()))
+      end
     end
 
     test "when declaration request status is not NEW", %{conn: conn} do
