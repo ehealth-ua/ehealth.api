@@ -1,4 +1,0 @@
-[submodule "bin/ci/release"]
-	path = bin/ci/release
-	url = https://github.com/edenlabllc/ci-utils.git
-	branch = elixir
