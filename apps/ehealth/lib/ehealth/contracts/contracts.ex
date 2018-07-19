@@ -425,8 +425,13 @@ defmodule EHealth.Contracts do
 
   defp contract_employee_search(%Contract{id: contract_id}, search_params) do
     is_active = Map.get(search_params, :is_active)
-    params = Map.delete(search_params, :is_active)
-    query = if map_size(params) > 0, do: where(ContractEmployee, ^Map.to_list(params)), else: ContractEmployee
+
+    params =
+      search_params
+      |> Map.drop([:is_active, :page_size, :page])
+      |> Map.to_list()
+
+    query = if Enum.count(params) > 0, do: where(ContractEmployee, ^params), else: ContractEmployee
 
     query
     |> where([ce], ce.contract_id == ^contract_id)

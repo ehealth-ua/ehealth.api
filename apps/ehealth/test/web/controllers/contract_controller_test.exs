@@ -266,7 +266,7 @@ defmodule EHealth.Web.ContractControllerTest do
       conn =
         conn
         |> put_client_id_header(UUID.generate())
-        |> get(contract_path(conn, :index), %{page_size: page_size})
+        |> get(contract_path(conn, :index, %{"page_size" => Integer.to_string(page_size)}))
 
       resp = json_response(conn, 200)
 
@@ -1184,6 +1184,55 @@ defmodule EHealth.Web.ContractControllerTest do
              |> put_client_id_header(contractor_legal_entity.id)
              |> get(contract_path(conn, :show_employees, contract.id))
              |> json_response(200)
+    end
+
+    test "can change paging params", %{conn: conn} do
+      nhs()
+      %{id: client_id} = insert(:prm, :legal_entity)
+
+      contract_request = insert(:il, :contract_request)
+      contract = insert(:prm, :contract, contract_request_id: contract_request.id)
+      division = insert(:prm, :division)
+      employee = insert(:prm, :employee)
+      insert(:prm, :contract_division, contract_id: contract.id, division_id: division.id)
+
+      for _ <- 1..5 do
+        insert(
+          :prm,
+          :contract_employee,
+          contract_id: contract.id,
+          employee_id: employee.id,
+          division_id: division.id,
+          declaration_limit: 2000
+        )
+      end
+
+      page_size = 2
+      page = 2
+
+      response =
+        conn
+        |> put_client_id_header(client_id)
+        |> get(
+          contract_path(conn, :show_employees, contract.id, %{
+            "page_size" => Integer.to_string(page_size),
+            "page" => Integer.to_string(page)
+          })
+        )
+        |> json_response(200)
+
+      assert length(response["data"]) == 2
+
+      Enum.map(response["data"], fn contract_employee ->
+        assert Map.get(contract_employee, "contract_id") == contract.id
+      end)
+
+      assert %{
+               "page_size" => ^page_size,
+               "page_number" => ^page,
+               "total_entries" => 5,
+               "total_pages" => 3
+             } = response["paging"]
     end
 
     test "ensure MSP has no access to other contracts", %{conn: conn} do
