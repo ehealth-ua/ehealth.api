@@ -41,6 +41,7 @@ defmodule EHealth.EmployeeRequests do
 
   @owner Employee.type(:owner)
   @pharmacy_owner Employee.type(:pharmacy_owner)
+  @doctor Employee.type(:doctor)
 
   @inactive_email_exception_message "You tried to send to a recipient that has been marked as inactive"
 
@@ -155,8 +156,9 @@ defmodule EHealth.EmployeeRequests do
     attrs = put_in(attrs, ~w(employee_request legal_entity_id), client_id)
 
     with {:ok, attrs} <- Validator.validate(attrs),
-         %{"employee_type" => employee_type, "legal_entity_id" => legal_entity_id, "division_id" => division_id} =
-           params <- attrs["employee_request"],
+         %{"employee_type" => employee_type, "legal_entity_id" => legal_entity_id} = params <-
+           attrs["employee_request"],
+         {:ok, division_id} <- validate_division_id(params),
          :ok <- not_is_owner?(employee_type),
          {:ok, %LegalEntity{} = legal_entity} <- Reference.validate(:legal_entity, legal_entity_id),
          :ok <- check_division_legal_entity(client_id, division_id),
@@ -193,6 +195,20 @@ defmodule EHealth.EmployeeRequests do
     end
   end
 
+  defp validate_division_id(%{"employee_type" => @doctor} = params) do
+    division_id = Map.get(params, "division_id")
+
+    if is_nil(division_id) do
+      {:error, {:"422", "Division does not exist"}}
+    else
+      {:ok, division_id}
+    end
+  end
+
+  defp validate_division_id(params) do
+    {:ok, Map.get(params, "division_id")}
+  end
+
   defp preload_references(%Request{} = employee_request) do
     fields = [
       {[:data, "legal_entity_id"], :legal_entity}
@@ -208,6 +224,7 @@ defmodule EHealth.EmployeeRequests do
   defp not_is_owner?(type), do: {:error, {:conflict, "Forbidden to create #{type}"}}
 
   defp check_division_legal_entity(nil, _), do: :ok
+  defp check_division_legal_entity(_, nil), do: :ok
 
   defp check_division_legal_entity(client_id, division_id) do
     with {:ok, %Division{legal_entity_id: legal_entity_id}} <- Reference.validate(:division, division_id) do
