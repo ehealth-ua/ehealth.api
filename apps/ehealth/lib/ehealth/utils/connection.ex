@@ -49,10 +49,13 @@ defmodule EHealth.Utils.Connection do
   defp process_decoded_data(_error), do: nil
 
   def get_header(headers, header) when is_list(headers) do
-    case List.keyfind(headers, header, 0) do
-      nil -> nil
-      {_key, val} -> val
-    end
+    Enum.reduce_while(headers, nil, fn {k, v}, acc ->
+      if String.downcase(k) == String.downcase(header) do
+        {:halt, v}
+      else
+        {:cont, acc}
+      end
+    end)
   end
 
   def get_header_name(:header_consumer_metadata), do: @header_consumer_metadata
