@@ -3,13 +3,13 @@ defmodule EHealth.Web.DeclarationView do
 
   use EHealth.Web, :view
 
-  alias EHealth.LegalEntities.LegalEntity
-  alias EHealth.Employees.Employee
-  alias EHealth.Parties.Party
   alias EHealth.Divisions.Division
-  alias EHealth.Web.PersonView
-  alias EHealth.Web.LegalEntityView
+  alias EHealth.Employees.Employee
+  alias EHealth.LegalEntities.LegalEntity
+  alias EHealth.Parties.Party
   alias EHealth.Web.DivisionView
+  alias EHealth.Web.LegalEntityView
+  alias EHealth.Web.PersonView
 
   def render("index.json", %{declarations: declarations}) do
     render_many(declarations, __MODULE__, "declaration_list.json", as: :declaration)

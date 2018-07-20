@@ -5,17 +5,17 @@ defmodule EHealth.LegalEntities.Validator do
 
   import Ecto.Changeset
 
-  alias EHealth.Validators.Signature, as: SignatureValidator
-  alias EHealth.Validators.KVEDs
-  alias EHealth.LegalEntities.LegalEntity
-  alias EHealth.LegalEntities.LegalEntityRequest
-  alias EHealth.Validators.TaxID
-  alias EHealth.Validators.Addresses
-  alias EHealth.Validators.BirthDate
-  alias EHealth.Validators.JsonSchema
-  alias EHealth.Validators.JsonObjects
   alias EHealth.Dictionaries
   alias EHealth.Email.Sanitizer
+  alias EHealth.LegalEntities.LegalEntity
+  alias EHealth.LegalEntities.LegalEntityRequest
+  alias EHealth.Validators.Addresses
+  alias EHealth.Validators.BirthDate
+  alias EHealth.Validators.JsonObjects
+  alias EHealth.Validators.JsonSchema
+  alias EHealth.Validators.KVEDs
+  alias EHealth.Validators.Signature, as: SignatureValidator
+  alias EHealth.Validators.TaxID
 
   @msp LegalEntity.type(:msp)
   @pharmacy LegalEntity.type(:pharmacy)

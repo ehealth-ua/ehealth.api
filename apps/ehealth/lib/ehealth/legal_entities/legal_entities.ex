@@ -10,16 +10,20 @@ defmodule EHealth.LegalEntities do
   import Ecto.Query, except: [update: 3]
   import EHealth.Contracts.ContractSuspender
 
-  alias Scrivener.Page
-  alias Ecto.{Changeset, Date, UUID}
+  alias Ecto.Changeset
+  alias Ecto.Date
   alias Ecto.Schema.Metadata
-  alias EHealth.{PRMRepo, Registries, EmployeeRequests}
+  alias Ecto.UUID
   alias EHealth.API.MediaStorage
-  alias EHealth.OAuth.API, as: OAuth
-  alias EHealth.LegalEntities.{LegalEntity, Search, Validator}
-  alias EHealth.Contracts.Contract
   alias EHealth.Contracts
+  alias EHealth.Contracts.Contract
+  alias EHealth.EmployeeRequests
   alias EHealth.Employees.Employee
+  alias EHealth.LegalEntities.{LegalEntity, Search, Validator}
+  alias EHealth.OAuth.API, as: OAuth
+  alias EHealth.PRMRepo
+  alias EHealth.Registries
+  alias Scrivener.Page
 
   require Logger
 

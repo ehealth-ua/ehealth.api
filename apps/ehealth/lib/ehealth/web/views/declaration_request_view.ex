@@ -2,7 +2,10 @@ defmodule EHealth.Web.DeclarationRequestView do
   @moduledoc false
 
   use EHealth.Web, :view
-  alias EHealth.Web.{PersonView, EmployeeView, LegalEntityView, DivisionView}
+  alias EHealth.Web.DivisionView
+  alias EHealth.Web.EmployeeView
+  alias EHealth.Web.LegalEntityView
+  alias EHealth.Web.PersonView
 
   def render("index.json", %{declaration_requests: declaration_requests}) do
     render_many(declaration_requests, __MODULE__, "declaration_request_short.json")

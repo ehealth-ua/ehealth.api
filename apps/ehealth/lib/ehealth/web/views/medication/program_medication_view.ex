@@ -3,8 +3,8 @@ defmodule EHealth.Web.ProgramMedicationView do
 
   use EHealth.Web, :view
 
-  alias EHealth.Web.MedicationView
   alias EHealth.Web.MedicalProgramView
+  alias EHealth.Web.MedicationView
 
   @program_medication_view_fields [
     :id,

@@ -5,11 +5,15 @@ defmodule EHealth.Registers.API do
 
   import Ecto.Changeset
 
-  alias EHealth.{Repo, Dictionaries}
+  alias EHealth.Dictionaries
   alias EHealth.Dictionaries.Dictionary
   alias EHealth.Ecto.Base64
+  alias EHealth.Registers.Register
+  alias EHealth.Registers.RegisterEntry
+  alias EHealth.Registers.SearchRegisterEntries
+  alias EHealth.Registers.SearchRegisters
+  alias EHealth.Repo
   alias EHealth.Validators.JsonSchema
-  alias EHealth.Registers.{Register, RegisterEntry, SearchRegisters, SearchRegisterEntries}
 
   @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
   @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]

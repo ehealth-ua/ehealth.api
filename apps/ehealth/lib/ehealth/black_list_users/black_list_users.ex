@@ -6,12 +6,12 @@ defmodule EHealth.BlackListUsers do
   import Ecto.{Query, Changeset}, warn: false
   import EHealth.Utils.Connection, only: [get_consumer_id: 1]
 
-  alias Scrivener.Page
-  alias EHealth.PRMRepo
+  alias EHealth.BlackListUsers.BlackListUser
+  alias EHealth.BlackListUsers.Search
   alias EHealth.Parties
   alias EHealth.Parties.Party
-  alias EHealth.BlackListUsers.Search
-  alias EHealth.BlackListUsers.BlackListUser
+  alias EHealth.PRMRepo
+  alias Scrivener.Page
 
   @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
 

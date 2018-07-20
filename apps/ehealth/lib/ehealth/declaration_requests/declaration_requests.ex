@@ -5,22 +5,22 @@ defmodule EHealth.DeclarationRequests do
   import Ecto.Query
   import EHealth.Utils.Connection, only: [get_consumer_id: 1, get_client_id: 1]
 
-  alias EHealth.Divisions.Division
-  alias EHealth.DeclarationRequests.DeclarationRequest
+  alias Ecto.Multi
   alias EHealth.DeclarationRequests.API.Approve
   alias EHealth.DeclarationRequests.API.Creator
   alias EHealth.DeclarationRequests.API.Documents
   alias EHealth.DeclarationRequests.API.ResendOTP
   alias EHealth.DeclarationRequests.API.Sign
+  alias EHealth.DeclarationRequests.DeclarationRequest
+  alias EHealth.Divisions.Division
+  alias EHealth.Email.Sanitizer
   alias EHealth.Employees.Employee
-  alias EHealth.LegalEntities.LegalEntity
   alias EHealth.LegalEntities
+  alias EHealth.LegalEntities.LegalEntity
   alias EHealth.Repo
   alias EHealth.Validators.Addresses
   alias EHealth.Validators.JsonSchema
   alias EHealth.Validators.Reference
-  alias Ecto.Multi
-  alias EHealth.Email.Sanitizer
   alias EHealth.Persons.Validator, as: PersonsValidator
 
   @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]

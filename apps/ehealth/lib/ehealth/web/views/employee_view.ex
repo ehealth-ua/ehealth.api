@@ -3,11 +3,11 @@ defmodule EHealth.Web.EmployeeView do
 
   use EHealth.Web, :view
 
-  alias EHealth.Web.PartyView
-  alias EHealth.Parties.Party
   alias EHealth.Divisions.Division
-  alias EHealth.LegalEntities.LegalEntity
   alias EHealth.Employees.Employee
+  alias EHealth.LegalEntities.LegalEntity
+  alias EHealth.Parties.Party
+  alias EHealth.Web.PartyView
 
   @doctor Employee.type(:doctor)
   @pharmacist Employee.type(:pharmacist)

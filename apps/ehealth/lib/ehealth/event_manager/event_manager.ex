@@ -1,9 +1,9 @@
 defmodule EHealth.EventManager do
   @moduledoc false
 
+  alias EHealth.EmployeeRequests.EmployeeRequest
   alias EHealth.EventManagerRepo, as: Repo
   alias EHealth.EventManager.Event
-  alias EHealth.EmployeeRequests.EmployeeRequest
 
   @type_change_status "StatusChangeEvent"
 

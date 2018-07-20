@@ -3,8 +3,8 @@ defmodule EHealth.Web.MedicalProgramController do
 
   use EHealth.Web, :controller
   alias EHealth.MedicalPrograms
-  alias Scrivener.Page
   alias EHealth.Validators.JsonSchema
+  alias Scrivener.Page
   require Logger
 
   action_fallback(EHealth.Web.FallbackController)

@@ -8,20 +8,20 @@ defmodule EHealth.Contracts do
   alias EHealth.ContractRequests
   alias EHealth.ContractRequests.ContractRequest
   alias EHealth.Contracts.Contract
-  alias EHealth.Contracts.ContractEmployee
   alias EHealth.Contracts.ContractDivision
-  alias EHealth.Contracts.Search
-  alias EHealth.Employees
+  alias EHealth.Contracts.ContractEmployee
   alias EHealth.Contracts.ContractEmployeeSearch
-  alias EHealth.Employees.Employee
-  alias EHealth.LegalEntities.LegalEntity
+  alias EHealth.Contracts.Search
   alias EHealth.Divisions
   alias EHealth.Divisions.Division
+  alias EHealth.Employees
+  alias EHealth.Employees.Employee
+  alias EHealth.EventManager
+  alias EHealth.LegalEntities.LegalEntity
   alias EHealth.PRMRepo
   alias EHealth.Validators.JsonSchema
   alias EHealth.Validators.Preload
   alias EHealth.Validators.Reference
-  alias EHealth.EventManager
   alias EHealth.Validators.Signature, as: SignatureValidator
   alias Scrivener.Page
 

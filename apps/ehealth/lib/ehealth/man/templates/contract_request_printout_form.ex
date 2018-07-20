@@ -4,8 +4,8 @@ defmodule EHealth.Man.Templates.ContractRequestPrintoutForm do
   use Confex, otp_app: :ehealth
 
   import Ecto.Query
-  alias EHealth.Contracts.Contract
   alias EHealth.ContractRequests.ContractRequest
+  alias EHealth.Contracts.Contract
   alias EHealth.Dictionaries
   alias EHealth.Dictionaries.Dictionary
   alias EHealth.PRMRepo

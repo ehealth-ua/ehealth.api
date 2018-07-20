@@ -4,11 +4,11 @@ defmodule EHealth.Users.API do
   """
   import Ecto.{Query, Changeset}, warn: false
   alias Ecto.Changeset
-  alias EHealth.Users.CredentialsRecoveryRequest
-  alias EView.Changeset.Validators.Email, as: EmailValidator
-  alias EHealth.Repo
   alias EHealth.Bamboo.Emails.Sender
+  alias EHealth.Repo
+  alias EHealth.Users.CredentialsRecoveryRequest
   alias EHealth.Validators.JsonSchema
+  alias EView.Changeset.Validators.Email, as: EmailValidator
   require Logger
 
   @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]

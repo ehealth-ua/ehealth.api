@@ -3,9 +3,9 @@ defmodule EHealth.Employees.UserRoleCreator do
   Creates or updates user roles in Mithril
   """
 
+  alias EHealth.Employees.Employee
   alias EHealth.PartyUsers
   alias EHealth.PartyUsers.PartyUser
-  alias EHealth.Employees.Employee
 
   require Logger
 

@@ -5,9 +5,9 @@ defmodule EHealth.PartyUsers do
 
   import Ecto.{Query, Changeset}, warn: false
 
-  alias EHealth.PRMRepo
-  alias EHealth.PartyUsers.Search
   alias EHealth.PartyUsers.PartyUser
+  alias EHealth.PartyUsers.Search
+  alias EHealth.PRMRepo
 
   @fields_required ~w(
     user_id

@@ -3,11 +3,11 @@ defmodule EHealth.LegalEntities.LegalEntityUpdater do
 
   import EHealth.Utils.Connection, only: [get_consumer_id: 1]
 
-  alias EHealth.LegalEntities
-  alias EHealth.Employees.EmployeeUpdater
-  alias EHealth.LegalEntities.LegalEntity
-  alias EHealth.Employees.Employee
   alias EHealth.Employees
+  alias EHealth.Employees.Employee
+  alias EHealth.Employees.EmployeeUpdater
+  alias EHealth.LegalEntities
+  alias EHealth.LegalEntities.LegalEntity
 
   require Logger
 

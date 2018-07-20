@@ -1,9 +1,10 @@
 defmodule EHealth.Web.PersonController do
   @moduledoc false
+
   use EHealth.Web, :controller
 
-  alias EHealth.Persons
   alias EHealth.Declarations.Person
+  alias EHealth.Persons
   alias EHealth.Web.DeclarationView
 
   action_fallback(EHealth.Web.FallbackController)

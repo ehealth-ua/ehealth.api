@@ -2,15 +2,15 @@ defmodule EHealth.MedicationRequestRequest.OperationHelpers do
   @moduledoc false
   import Ecto.Changeset
 
+  alias EHealth.Divisions
   alias EHealth.Employees
   alias EHealth.LegalEntities
-  alias EHealth.Divisions
-  alias EHealth.MedicationRequestRequest.Validations
-  alias EHealth.Utils.Helpers
-  alias EHealth.MedicationRequestRequest.Operation
-  alias EHealth.Medications
   alias EHealth.MedicalPrograms
+  alias EHealth.MedicationRequestRequest.Operation
+  alias EHealth.MedicationRequestRequest.Validations
+  alias EHealth.Medications
   alias EHealth.PRMRepo
+  alias EHealth.Utils.Helpers
 
   @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
 

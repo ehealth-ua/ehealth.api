@@ -10,17 +10,18 @@ defmodule EHealth.DeclarationRequests.API.Creator do
 
   alias Ecto.{Changeset, UUID}
   alias EHealth.DeclarationRequests
-  alias EHealth.DeclarationRequests.DeclarationRequest
   alias EHealth.DeclarationRequests.API.{Documents, Persons}
+  alias EHealth.DeclarationRequests.DeclarationRequest
   alias EHealth.Employees.Employee
   alias EHealth.GlobalParameters
   alias EHealth.Man.Templates.DeclarationRequestPrintoutForm
   alias EHealth.Persons.Validator, as: PersonValidator
   alias EHealth.PartyUsers
   alias EHealth.Repo
-  alias EHealth.Utils.Phone
   alias EHealth.Utils.NumberGenerator
-  alias EHealth.Validators.{TaxID, BirthDate}
+  alias EHealth.Utils.Phone
+  alias EHealth.Validators.BirthDate
+  alias EHealth.Validators.TaxID
 
   @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
   @otp_verification_api Application.get_env(:ehealth, :api_resolvers)[:otp_verification]

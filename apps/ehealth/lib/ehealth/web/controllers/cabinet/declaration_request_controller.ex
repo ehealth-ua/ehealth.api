@@ -3,10 +3,10 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestController do
 
   use EHealth.Web, :controller
   alias EHealth.Cabinet.DeclarationRequests, as: CabinetDeclarationRequests
-  alias EHealth.Web.DeclarationRequestView
   alias EHealth.DeclarationRequests
   alias EHealth.Employees
   alias EHealth.Employees.Employee
+  alias EHealth.Web.DeclarationRequestView
   require Logger
 
   action_fallback(EHealth.Web.FallbackController)

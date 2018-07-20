@@ -4,9 +4,9 @@ defmodule EHealth do
   """
 
   use Application
-  alias EHealth.Web.Endpoint
   alias Confex.Resolver
   alias EHealth.Scheduler
+  alias EHealth.Web.Endpoint
   import Supervisor.Spec, warn: false
 
   # See http://elixir-lang.org/docs/stable/elixir/Application.html

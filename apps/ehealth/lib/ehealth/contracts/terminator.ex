@@ -1,11 +1,12 @@
 defmodule EHealth.Contracts.Terminator do
   @moduledoc false
+
   import Ecto.Query
   use Confex, otp_app: :ehealth
   use GenServer
-  alias EHealth.PRMRepo
   alias Ecto.UUID
   alias EHealth.Contracts.Contract
+  alias EHealth.PRMRepo
   require Logger
 
   @server __MODULE__

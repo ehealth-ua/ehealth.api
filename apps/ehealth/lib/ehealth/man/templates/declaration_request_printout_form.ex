@@ -4,9 +4,9 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
   use Confex, otp_app: :ehealth
   use Timex
 
-  alias EHealth.Utils.AddressMerger
-  alias EHealth.Dictionaries
   alias EHealth.DeclarationRequests.DeclarationRequest
+  alias EHealth.Dictionaries
+  alias EHealth.Utils.AddressMerger
 
   @man_api Application.get_env(:ehealth, :api_resolvers)[:man]
 

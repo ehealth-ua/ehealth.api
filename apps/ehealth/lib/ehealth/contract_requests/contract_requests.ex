@@ -7,28 +7,27 @@ defmodule EHealth.ContractRequests do
   import Ecto.Query
   import EHealth.Utils.Connection, only: [get_header: 2, get_consumer_id: 1, get_client_id: 1]
 
-  alias Scrivener.Page
   alias Ecto.Adapters.SQL
   alias Ecto.UUID
   alias EHealth.API.MediaStorage
-  alias EHealth.Contracts
   alias EHealth.ContractRequests.ContractRequest
   alias EHealth.ContractRequests.Search
+  alias EHealth.Contracts
+  alias EHealth.Contracts.Contract
   alias EHealth.Divisions.Division
   alias EHealth.Employees
   alias EHealth.Employees.Employee
+  alias EHealth.EventManager
   alias EHealth.LegalEntities.LegalEntity
-  alias EHealth.Validators.Reference
-  alias EHealth.Validators.JsonSchema
-  alias EHealth.Validators.Preload
+  alias EHealth.Man.Templates.ContractRequestPrintoutForm
   alias EHealth.Repo
   alias EHealth.Utils.NumberGenerator
-  alias EHealth.EventManager
-  alias EHealth.Web.ContractRequestView
-  alias EHealth.Man.Templates.ContractRequestPrintoutForm
-  alias EHealth.Contracts
-  alias EHealth.Contracts.Contract
+  alias EHealth.Validators.JsonSchema
+  alias EHealth.Validators.Preload
+  alias EHealth.Validators.Reference
   alias EHealth.Validators.Signature, as: SignatureValidator
+  alias EHealth.Web.ContractRequestView
+  alias Scrivener.Page
 
   require Logger
 

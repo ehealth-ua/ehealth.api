@@ -5,8 +5,8 @@ defmodule EHealth.Email do
   import EView.Changeset.Validators.Email
 
   alias Ecto.Changeset
-  alias EHealth.Email.Schema
   alias EHealth.Bamboo.Emails.Sender
+  alias EHealth.Email.Schema
 
   @man_api Application.get_env(:ehealth, :api_resolvers)[:man]
 

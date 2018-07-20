@@ -3,13 +3,13 @@ defmodule EHealth.EmployeeRequests.Validator do
   Request and Tax ID validators
   """
 
-  alias EHealth.Validators.TaxID
-  alias EHealth.Validators.BirthDate
-  alias EHealth.Employees.Employee
-  alias EHealth.Validators.JsonSchema
-  alias EHealth.Validators.JsonObjects
   alias EHealth.Dictionaries
   alias EHealth.Email.Sanitizer
+  alias EHealth.Employees.Employee
+  alias EHealth.Validators.BirthDate
+  alias EHealth.Validators.JsonObjects
+  alias EHealth.Validators.JsonSchema
+  alias EHealth.Validators.TaxID
 
   @doctor Employee.type(:doctor)
   @pharmacist Employee.type(:pharmacist)

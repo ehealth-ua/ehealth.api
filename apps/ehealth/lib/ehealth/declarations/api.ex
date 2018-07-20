@@ -6,12 +6,15 @@ defmodule EHealth.Declarations.API do
   import EHealth.Plugs.ClientContext, only: [get_context_params: 2]
   import EHealth.Utils.TypesConverter, only: [strings_to_keys: 1]
 
-  alias EHealth.Validators.Preload
   alias EHealth.API.MediaStorage
-  alias EHealth.{LegalEntities, Employees, Persons, Divisions}
-  alias EHealth.Employees.Employee
+  alias EHealth.Divisions
   alias EHealth.Divisions.Division
+  alias EHealth.Employees
+  alias EHealth.Employees.Employee
+  alias EHealth.LegalEntities
   alias EHealth.LegalEntities.LegalEntity
+  alias EHealth.Persons
+  alias EHealth.Validators.Preload
   alias Scrivener.Page
   require Logger
 

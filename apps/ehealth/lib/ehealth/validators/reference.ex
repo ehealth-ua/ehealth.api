@@ -3,13 +3,18 @@ defmodule EHealth.Validators.Reference do
   Validates reference existance
   """
 
-  alias EHealth.{Divisions, Employees, LegalEntities, Medications, MedicalPrograms, ContractRequests}
-  alias EHealth.Divisions.Division
+  alias EHealth.ContractRequests
   alias EHealth.ContractRequests.ContractRequest
+  alias EHealth.Divisions
+  alias EHealth.Divisions.Division
+  alias EHealth.Employees
   alias EHealth.Employees.Employee
+  alias EHealth.LegalEntities
   alias EHealth.LegalEntities.LegalEntity
-  alias EHealth.Medications.Medication
+  alias EHealth.MedicalPrograms
   alias EHealth.MedicalPrograms.MedicalProgram
+  alias EHealth.Medications
+  alias EHealth.Medications.Medication
 
   @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]
   @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]

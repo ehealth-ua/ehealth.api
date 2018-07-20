@@ -6,13 +6,13 @@ defmodule EHealth.Medications.Validator do
   import Ecto.Changeset
   import Ecto.Query, warn: false
 
-  alias EHealth.PRMRepo
-  alias EHealth.Medications.INNM
   alias EHealth.MedicalPrograms.MedicalProgram
-  alias EHealth.Medications.Medication
+  alias EHealth.Medications.INNM
   alias EHealth.Medications.INNMDosage
   alias EHealth.Medications.INNMDosage.Ingredient, as: INNMIngredient
+  alias EHealth.Medications.Medication
   alias EHealth.Medications.Medication.Ingredient, as: MedicationIngredient
+  alias EHealth.PRMRepo
 
   @type_innm_dosage INNMDosage.type()
   @type_medication Medication.type()

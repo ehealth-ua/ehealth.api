@@ -3,9 +3,9 @@ defmodule EHealth.DuplicatePersons.Signals do
 
   use GenServer
 
+  alias EHealth.Declarations.Person
   alias EHealth.DuplicatePersons.Cleanup
   alias EHealth.DuplicatePersons.CleanupTasks
-  alias EHealth.Declarations.Person
 
   @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
 

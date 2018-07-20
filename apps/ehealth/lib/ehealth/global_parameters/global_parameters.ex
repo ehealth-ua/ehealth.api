@@ -6,8 +6,8 @@ defmodule EHealth.GlobalParameters do
   import Ecto.Query, only: [from: 2]
   import Ecto.Changeset
 
-  alias EHealth.PRMRepo
   alias EHealth.GlobalParameters.GlobalParameter
+  alias EHealth.PRMRepo
 
   @fields_required ~w(
     parameter

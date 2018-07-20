@@ -3,9 +3,9 @@ defmodule EHealth.Employees.EmployeeUpdater do
 
   import EHealth.Utils.Connection, only: [get_consumer_id: 1]
 
-  alias EHealth.PartyUsers
   alias EHealth.Employees
   alias EHealth.Employees.Employee
+  alias EHealth.PartyUsers
   alias EHealth.PRMRepo
   import Ecto.Query
 

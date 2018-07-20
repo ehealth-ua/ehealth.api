@@ -10,9 +10,9 @@ defmodule EHealth.DeclarationRequests.API.Sign do
   alias EHealth.DeclarationRequests.SignRequest
   alias EHealth.Employees
   alias EHealth.Employees.Employee
-  alias HTTPoison.Response
   alias EHealth.Repo
   alias EHealth.Validators.Signature, as: SignatureValidator
+  alias HTTPoison.Response
   require Logger
 
   @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
