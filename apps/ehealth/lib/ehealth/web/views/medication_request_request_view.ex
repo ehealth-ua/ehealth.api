@@ -1,7 +1,13 @@
 defmodule EHealth.Web.MedicationRequestRequestView do
   @moduledoc false
+
   use EHealth.Web, :view
-  alias EHealth.Web.{PersonView, EmployeeView, LegalEntityView, DivisionView, MedicalProgramView, INNMDosageView}
+  alias EHealth.Web.DivisionView
+  alias EHealth.Web.EmployeeView
+  alias EHealth.Web.INNMDosageView
+  alias EHealth.Web.LegalEntityView
+  alias EHealth.Web.MedicalProgramView
+  alias EHealth.Web.PersonView
 
   def render("index.json", %{medication_request_requests: medication_request_requests}) do
     render_many(

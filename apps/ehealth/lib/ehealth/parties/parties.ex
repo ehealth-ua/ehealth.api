@@ -5,8 +5,11 @@ defmodule EHealth.Parties do
 
   import Ecto.{Query, Changeset}, warn: false
 
+  alias EHealth.Parties.Document
+  alias EHealth.Parties.Party
+  alias EHealth.Parties.Phone
+  alias EHealth.Parties.Search
   alias EHealth.PRMRepo
-  alias EHealth.Parties.{Party, Search, Phone, Document}
 
   # Party users
 

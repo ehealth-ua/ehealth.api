@@ -1,9 +1,9 @@
 defmodule EHealth.DeclarationRequests.API.Approve do
   @moduledoc false
 
+  alias EHealth.DeclarationRequests.DeclarationRequest
   alias EHealth.Employees
   alias EHealth.Employees.Employee
-  alias EHealth.DeclarationRequests.DeclarationRequest
   alias EHealth.Parties.Party
   require Logger
 

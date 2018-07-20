@@ -1,11 +1,11 @@
 defmodule EHealth.MedicationRequestRequest.Validations do
   @moduledoc false
 
-  alias EHealth.Employees
-  alias EHealth.Validators.JsonSchema
-  alias EHealth.Employees.Employee
   alias EHealth.Declarations.API, as: DeclarationsAPI
+  alias EHealth.Employees
+  alias EHealth.Employees.Employee
   alias EHealth.Medications
+  alias EHealth.Validators.JsonSchema
   alias EHealth.Validators.Signature, as: SignatureValidator
 
   def validate_create_schema(params) do

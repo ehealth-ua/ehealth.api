@@ -5,26 +5,26 @@ defmodule EHealth.MedicationRequests.API do
   import Ecto.Query
   import EHealth.Utils.Connection, only: [get_consumer_id: 1, get_client_id: 1]
 
-  alias EHealth.PartyUsers
-  alias EHealth.Employees
+  alias EHealth.Divisions
   alias EHealth.Divisions.Division
-  alias EHealth.PartyUsers.PartyUser
+  alias EHealth.Employees
   alias EHealth.Employees.Employee
   alias EHealth.LegalEntities.LegalEntity
   alias EHealth.MedicalPrograms.MedicalProgram
+  alias EHealth.MedicationRequests.Search
+  alias EHealth.MedicationRequests.SMSSender
   alias EHealth.Medications.INNMDosage
   alias EHealth.Medications.Program, as: ProgramMedication
   alias EHealth.Medications
   alias EHealth.Medications.Medication.Ingredient
   alias EHealth.Medications.INNMDosage.Ingredient, as: INNMDosageIngredient
   alias EHealth.LegalEntities
-  alias EHealth.Divisions
   alias EHealth.MedicalPrograms
-  alias EHealth.Validators.JsonSchema
-  alias EHealth.MedicationRequests.Search
+  alias EHealth.PartyUsers
+  alias EHealth.PartyUsers.PartyUser
   alias EHealth.PRMRepo
-  alias EHealth.MedicationRequests.SMSSender
   alias EHealth.Utils.NumberGenerator
+  alias EHealth.Validators.JsonSchema
 
   require Logger
 

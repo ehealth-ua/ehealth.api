@@ -3,9 +3,9 @@ defmodule EHealth.Web.ContractController do
 
   use EHealth.Web, :controller
 
-  alias EHealth.Contracts
   alias EHealth.ContractRequests
   alias EHealth.ContractRequests.ContractRequest
+  alias EHealth.Contracts
   alias Scrivener.Page
 
   action_fallback(EHealth.Web.FallbackController)

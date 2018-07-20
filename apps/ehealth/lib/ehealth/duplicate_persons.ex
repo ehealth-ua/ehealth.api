@@ -3,8 +3,8 @@ defmodule EHealth.DuplicatePersons do
 
   use Supervisor
 
-  alias EHealth.DuplicatePersons.Signals
   alias EHealth.DuplicatePersons.CleanupTasks
+  alias EHealth.DuplicatePersons.Signals
 
   def start_link do
     Supervisor.start_link(__MODULE__, [], name: __MODULE__)

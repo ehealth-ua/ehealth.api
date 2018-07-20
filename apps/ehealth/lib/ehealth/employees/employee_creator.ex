@@ -6,17 +6,17 @@ defmodule EHealth.Employees.EmployeeCreator do
   import EHealth.Utils.Connection, only: [get_consumer_id: 1]
   import Ecto.Query
 
-  alias Scrivener.Page
   alias EHealth.EmployeeRequests.EmployeeRequest, as: Request
   alias EHealth.EmployeeRequests
   alias EHealth.Employees
-  alias EHealth.Parties.Party
   alias EHealth.Employees.Employee
-  alias EHealth.PartyUsers.PartyUser
-  alias EHealth.Parties
-  alias EHealth.PartyUsers
   alias EHealth.Employees.EmployeeUpdater
+  alias EHealth.Parties
+  alias EHealth.Parties.Party
+  alias EHealth.PartyUsers
+  alias EHealth.PartyUsers.PartyUser
   alias EHealth.PRMRepo
+  alias Scrivener.Page
 
   require Logger
 

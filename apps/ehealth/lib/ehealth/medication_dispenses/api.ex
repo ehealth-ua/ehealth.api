@@ -6,25 +6,25 @@ defmodule EHealth.MedicationDispense.API do
   import Ecto.Query
 
   alias EHealth.Divisions
-  alias EHealth.Employees
-  alias EHealth.LegalEntities
-  alias EHealth.MedicalPrograms
-  alias EHealth.LegalEntities.LegalEntity
-  alias EHealth.Employees.Employee
   alias EHealth.Divisions.Division
-  alias EHealth.PartyUsers.PartyUser
-  alias EHealth.Parties.Party
+  alias EHealth.Employees
+  alias EHealth.Employees.Employee
+  alias EHealth.LegalEntities
+  alias EHealth.LegalEntities.LegalEntity
+  alias EHealth.MedicalPrograms
   alias EHealth.Medications.Medication
   alias EHealth.Medications.Program, as: ProgramMedication
   alias EHealth.MedicationDispenses.Search
   alias EHealth.MedicationDispenses.SearchByMedicationRequest
-  alias EHealth.Validators.JsonSchema
-  alias EHealth.Validators.Reference
-  alias EHealth.PartyUsers
-  alias EHealth.Parties
-  alias EHealth.PRMRepo
   alias EHealth.MedicationRequests.API, as: MedicationRequests
   alias EHealth.Medications
+  alias EHealth.Parties
+  alias EHealth.Parties.Party
+  alias EHealth.PartyUsers
+  alias EHealth.PartyUsers.PartyUser
+  alias EHealth.PRMRepo
+  alias EHealth.Validators.JsonSchema
+  alias EHealth.Validators.Reference
 
   @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]
 

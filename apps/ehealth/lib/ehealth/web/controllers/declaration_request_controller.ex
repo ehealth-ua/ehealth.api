@@ -2,9 +2,9 @@ defmodule EHealth.Web.DeclarationRequestController do
   @moduledoc false
 
   use EHealth.Web, :controller
-  alias Scrivener.Page
   alias EHealth.DeclarationRequests
   alias EHealth.DeclarationRequests.DeclarationRequest
+  alias Scrivener.Page
   require Logger
 
   @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]

@@ -9,14 +9,23 @@ defmodule EHealth.MedicationRequestRequests do
 
   use Confex, otp_app: :ehealth
 
-  alias EHealth.{Repo, PRMRepo, Employees, Medications, MedicalPrograms, MedicationRequestRequest}
-  alias EHealth.MedicationRequests.SMSSender
-  alias EHealth.MedicationRequestRequest.{Operation, Validations, SignOperation}
-  alias EHealth.MedicationRequestRequest.{RejectOperation, PreloadFkOperation, CreateDataOperation}
+  alias EHealth.Employees
+  alias EHealth.MedicalPrograms
   alias EHealth.MedicalPrograms.MedicalProgram
+  alias EHealth.MedicationRequestRequest
+  alias EHealth.MedicationRequestRequest.CreateDataOperation
+  alias EHealth.MedicationRequestRequest.Operation
+  alias EHealth.MedicationRequestRequest.PreloadFkOperation
+  alias EHealth.MedicationRequestRequest.RejectOperation
+  alias EHealth.MedicationRequestRequest.SignOperation
+  alias EHealth.MedicationRequestRequest.Validations
+  alias EHealth.MedicationRequests.SMSSender
+  alias EHealth.Medications
   alias EHealth.Medications.INNMDosage
-  alias EHealth.Medications.Program, as: ProgramMedication
   alias EHealth.Medications.INNMDosage.Ingredient, as: INNMDosageIngredient
+  alias EHealth.Medications.Program, as: ProgramMedication
+  alias EHealth.PRMRepo
+  alias EHealth.Repo
   alias EHealth.Utils.NumberGenerator
 
   @status_new MedicationRequestRequest.status(:new)

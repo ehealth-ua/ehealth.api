@@ -8,15 +8,19 @@ defmodule EHealth.Employees do
   import EHealth.Plugs.ClientContext, only: [authorize_legal_entity_id: 3]
   import EHealth.Contracts.ContractSuspender
 
-  alias Scrivener.Page
   alias Ecto.Changeset
+  alias EHealth.Contracts
+  alias EHealth.Contracts.Contract
   alias EHealth.EmployeeRequests.EmployeeRequest, as: Request
   alias EHealth.EmployeeRequests
-  alias EHealth.Employees.{EmployeeCreator, UserRoleCreator, Employee, Search}
-  alias EHealth.{PRMRepo, Parties, EventManager}
-  alias EHealth.Contracts.Contract
-  alias EHealth.Contracts
   alias EHealth.Employees.Employee
+  alias EHealth.Employees.EmployeeCreator
+  alias EHealth.Employees.Search
+  alias EHealth.Employees.UserRoleCreator
+  alias EHealth.EventManager
+  alias EHealth.Parties
+  alias EHealth.PRMRepo
+  alias Scrivener.Page
 
   @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
 
@@ -150,7 +154,10 @@ defmodule EHealth.Employees do
     |> PRMRepo.all()
   end
 
-  def create_or_update_employee(%Request{data: %{"employee_id" => employee_id} = employee_request}, headers) do
+  def create_or_update_employee(
+        %Request{data: %{"employee_id" => employee_id} = employee_request},
+        headers
+      ) do
     employee = get_by_id!(employee_id)
     party = Parties.get_by_id!(employee.party.id)
     party_id = party.id
@@ -219,7 +226,13 @@ defmodule EHealth.Employees do
 
   def update_with_ops_contract(%Employee{status: old_status} = employee, attrs, headers) do
     with {:ok, employee} <- transaction_update_with_contract(nil, changeset(employee, attrs), headers) do
-      EventManager.insert_change_status(employee, old_status, employee.status, get_consumer_id(headers))
+      EventManager.insert_change_status(
+        employee,
+        old_status,
+        employee.status,
+        get_consumer_id(headers)
+      )
+
       {:ok, employee}
     end
   end
@@ -285,7 +298,9 @@ defmodule EHealth.Employees do
     put_change(changeset, :additional_info, doctor)
   end
 
-  defp put_additional_info(%Ecto.Changeset{valid?: true} = changeset, %{"pharmacist" => pharmacist}) do
+  defp put_additional_info(%Ecto.Changeset{valid?: true} = changeset, %{
+         "pharmacist" => pharmacist
+       }) do
     put_change(changeset, :additional_info, pharmacist)
   end
 

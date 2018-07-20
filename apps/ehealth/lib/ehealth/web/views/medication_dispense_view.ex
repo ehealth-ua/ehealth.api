@@ -2,8 +2,8 @@ defmodule EHealth.Web.MedicationDispenseView do
   @moduledoc false
 
   use EHealth.Web, :view
-  alias EHealth.Web.LegalEntityView
   alias EHealth.Web.DivisionView
+  alias EHealth.Web.LegalEntityView
   alias EHealth.Web.MedicalProgramView
   alias EHealth.Web.MedicationRequestView
   alias EHealth.Web.PartyView

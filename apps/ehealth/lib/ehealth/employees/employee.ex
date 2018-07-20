@@ -3,8 +3,8 @@ defmodule EHealth.Employees.Employee do
 
   use Ecto.Schema
 
-  alias EHealth.LegalEntities.LegalEntity
   alias EHealth.Divisions.Division
+  alias EHealth.LegalEntities.LegalEntity
   alias EHealth.Parties.Party
 
   @derive {Jason.Encoder, except: [:__meta__]}

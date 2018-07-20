@@ -4,9 +4,9 @@ defmodule EHealth.Cabinet.DeclarationRequests do
   import Ecto.Query
   import EHealth.Utils.Connection, only: [get_consumer_id: 1]
 
-  alias EHealth.Repo
   alias EHealth.Cabinet.DeclarationRequestsSearch
   alias EHealth.DeclarationRequests.DeclarationRequest
+  alias EHealth.Repo
   alias Scrivener.Page
 
   @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]

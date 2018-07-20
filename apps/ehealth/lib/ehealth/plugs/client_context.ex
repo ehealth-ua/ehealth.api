@@ -5,8 +5,8 @@ defmodule EHealth.Plugs.ClientContext do
   use EHealth.Web, :plugs
   use Confex, otp_app: :ehealth
 
-  alias Scrivener.Page
   alias Plug.Conn
+  alias Scrivener.Page
 
   require Logger
 

@@ -1,10 +1,11 @@
 defmodule EHealth.MedicationRequestRequest.CreateDataOperation do
   @moduledoc false
+
   import Ecto.Changeset
   import EHealth.MedicationRequestRequest.OperationHelpers
 
-  alias EHealth.MedicationRequestRequest.Operation
   alias EHealth.MedicationRequestRequest.EmbeddedData
+  alias EHealth.MedicationRequestRequest.Operation
 
   @map_fields [
     :created_at,

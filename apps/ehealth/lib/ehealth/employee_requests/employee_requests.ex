@@ -5,30 +5,30 @@ defmodule EHealth.EmployeeRequests do
   import Ecto.Changeset
   import EHealth.Utils.Connection
 
-  alias EHealth.Validators.Preload
-  alias EHealth.Validators.JsonSchema
-  alias EHealth.Validators.Signature
-  alias EHealth.GlobalParameters
-  alias EHealth.EmployeeRequests.EmployeeRequest, as: Request
-  alias EHealth.Repo
   alias EHealth.Bamboo.Emails.Sender
-  alias EHealth.PRMRepo
-  alias EHealth.Employees.Employee
+  alias EHealth.BlackListUsers
   alias EHealth.Divisions.Division
+  alias EHealth.Email.Postmark
+  alias EHealth.Employee.UserCreateRequest
+  alias EHealth.EmployeeRequests.EmployeeRequest, as: Request
+  alias EHealth.EmployeeRequests.Validator
+  alias EHealth.Employees
+  alias EHealth.Employees.Employee
+  alias EHealth.EventManager
+  alias EHealth.GlobalParameters
   alias EHealth.LegalEntities
   alias EHealth.LegalEntities.LegalEntity
-  alias EHealth.EmployeeRequests.Validator
-  alias EHealth.OAuth.API, as: OAuth
-  alias EHealth.Employee.UserCreateRequest
   alias EHealth.Man.Templates.EmployeeRequestInvitation, as: EmployeeRequestInvitationTemplate
   alias EHealth.Man.Templates.EmployeeRequestUpdateInvitation, as: EmployeeUpdateInvitationTemplate
   alias EHealth.Man.Templates.EmployeeCreatedNotification, as: EmployeeCreatedNotificationTemplate
-  alias EHealth.Employees
-  alias EHealth.BlackListUsers
-  alias EHealth.EventManager
+  alias EHealth.OAuth.API, as: OAuth
+  alias EHealth.PRMRepo
+  alias EHealth.Repo
   alias EHealth.Utils.Log
-  alias EHealth.Email.Postmark
+  alias EHealth.Validators.JsonSchema
+  alias EHealth.Validators.Preload
   alias EHealth.Validators.Reference
+  alias EHealth.Validators.Signature
 
   @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
 

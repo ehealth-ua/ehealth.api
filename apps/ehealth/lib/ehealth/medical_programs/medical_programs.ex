@@ -3,10 +3,10 @@ defmodule EHealth.MedicalPrograms do
 
   use EHealth.Search, EHealth.PRMRepo
 
-  alias EHealth.PRMRepo
-  alias EHealth.Medications
-  alias EHealth.MedicalPrograms.Search
   alias EHealth.MedicalPrograms.MedicalProgram
+  alias EHealth.MedicalPrograms.Search
+  alias EHealth.Medications
+  alias EHealth.PRMRepo
 
   @fields_required ~w(name)a
   @fields_optional ~w(is_active)a

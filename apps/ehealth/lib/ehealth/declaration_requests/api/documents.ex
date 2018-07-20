@@ -1,8 +1,8 @@
 defmodule EHealth.DeclarationRequests.API.Documents do
   @moduledoc false
 
-  alias EHealth.DeclarationRequests.DeclarationRequest
   alias EHealth.API.MediaStorage
+  alias EHealth.DeclarationRequests.DeclarationRequest
 
   @media_storage_api Application.get_env(:ehealth, :api_resolvers)[:media_storage]
 

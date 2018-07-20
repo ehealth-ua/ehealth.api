@@ -3,9 +3,9 @@ defmodule EHealth.Validators.SchemaMapper do
   Load dictionaries from DB and put enum rules into json schema
   """
 
-  alias NExJsonSchema.Schema.Root
   alias EHealth.Dictionaries
   alias EHealth.Dictionaries.Dictionary
+  alias NExJsonSchema.Schema.Root
   require Logger
 
   @validator_cache Application.get_env(:ehealth, :cache)[:validators]

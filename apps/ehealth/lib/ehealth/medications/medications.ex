@@ -9,7 +9,7 @@ defmodule EHealth.Medications do
   import Ecto.Query, warn: false
   import EHealth.Utils.Connection, only: [get_consumer_id: 1]
 
-  alias EHealth.PRMRepo
+  alias EHealth.Medications.DrugsSearch
   alias EHealth.Medications.INNM
   alias EHealth.Medications.INNM.Search, as: INNMSearch
   alias EHealth.Medications.INNMDosage
@@ -20,9 +20,9 @@ defmodule EHealth.Medications do
   alias EHealth.Medications.Program, as: ProgramMedication
   alias EHealth.Medications.Program.Search, as: ProgramMedicationSearch
   alias EHealth.MedicalPrograms.MedicalProgram
-  alias EHealth.Medications.DrugsSearch
-  alias EHealth.Validators.JsonSchema
   alias EHealth.Medications.Validator
+  alias EHealth.PRMRepo
+  alias EHealth.Validators.JsonSchema
 
   @type_innm_dosage INNMDosage.type()
   @type_medication Medication.type()

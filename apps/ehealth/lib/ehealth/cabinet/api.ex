@@ -1,17 +1,18 @@
 defmodule EHealth.Cabinet.API do
   @moduledoc false
+
   import Ecto.{Query, Changeset}, warn: false
   import EHealth.Utils.Connection, only: [get_consumer_id: 1]
 
-  alias EHealth.Guardian
   alias EHealth.Bamboo.Emails.Sender
-  alias EHealth.Validators.Addresses
-  alias EHealth.Validators.JsonSchema
   alias EHealth.Cabinet.Requests.{Registration, UserSearch}
+  alias EHealth.Guardian
   alias EHealth.Man.Templates.EmailVerification
   alias EHealth.Persons.Validator, as: PersonValidator
-  alias EView.Changeset.Validators.Email, as: EmailValidator
+  alias EHealth.Validators.Addresses
+  alias EHealth.Validators.JsonSchema
   alias EHealth.Validators.Signature, as: SignatureValidator
+  alias EView.Changeset.Validators.Email, as: EmailValidator
 
   require Logger
 

@@ -8,18 +8,18 @@ defmodule EHealth.Divisions do
   import Ecto.Changeset, warn: false
   import EHealth.Utils.Connection, only: [get_client_id: 1, get_consumer_id: 1]
 
-  alias EHealth.PRMRepo
-  alias EHealth.Divisions.Search
-  alias EHealth.Validators.Addresses
-  alias EHealth.Divisions.Division
-  alias EHealth.LegalEntities.LegalEntity
-  alias EHealth.LegalEntities
-  alias EHealth.Validators.JsonSchema
-  alias EHealth.Validators.JsonObjects
-  alias EHealth.Dictionaries
   alias Ecto.Multi
   alias EctoTrail.Changelog
+  alias EHealth.Dictionaries
+  alias EHealth.Divisions.Division
+  alias EHealth.Divisions.Search
   alias EHealth.Email.Sanitizer
+  alias EHealth.LegalEntities
+  alias EHealth.LegalEntities.LegalEntity
+  alias EHealth.PRMRepo
+  alias EHealth.Validators.Addresses
+  alias EHealth.Validators.JsonObjects
+  alias EHealth.Validators.JsonSchema
 
   @uaddresses_api Application.get_env(:ehealth, :api_resolvers)[:uaddresses]
 

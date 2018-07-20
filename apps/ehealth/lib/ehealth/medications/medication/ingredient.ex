@@ -5,8 +5,8 @@ defmodule EHealth.Medications.Medication.Ingredient do
 
   import Ecto.Changeset, warn: false
 
-  alias EHealth.Medications.Medication
   alias EHealth.Medications.INNMDosage
+  alias EHealth.Medications.Medication
 
   @fields ~w(
     dosage

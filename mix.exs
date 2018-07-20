@@ -21,7 +21,7 @@ defmodule Ehealth.MixProject do
     [
       {:distillery, "~> 1.5.3", runtime: false},
       {:excoveralls, "~> 0.8.1", only: [:dev, :test]},
-      {:credo, "~> 0.9.0-rc3", only: [:dev, :test]}
+      {:credo, "~> 0.9.3", only: [:dev, :test]}
     ]
   end
 end
