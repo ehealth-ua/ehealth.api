@@ -39,7 +39,7 @@ defmodule EHealth.Man.Templates.ContractRequestPrintoutForm do
       |> Map.put("format", config()[:format])
       |> Map.put("locale", config()[:locale])
       |> prepare_data()
-      |> Map.put("parent", %{"nhs_signed_date" => parent_contract.nhs_signed_date})
+      |> Map.put("parent", %{"nhs_signed_date" => to_string(parent_contract.nhs_signed_date)})
       |> format_date(~w(parent nhs_signed_date))
 
     template_id = config()[:appendix_id]
