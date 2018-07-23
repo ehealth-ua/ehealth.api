@@ -19,6 +19,8 @@ defmodule EHealth.Contracts do
   alias EHealth.EventManager
   alias EHealth.LegalEntities.LegalEntity
   alias EHealth.PRMRepo
+  alias EHealth.ValidationError
+  alias EHealth.Validators.Error
   alias EHealth.Validators.JsonSchema
   alias EHealth.Validators.Preload
   alias EHealth.Validators.Reference
@@ -192,7 +194,7 @@ defmodule EHealth.Contracts do
     with %Page{entries: [_]} <- Divisions.search(legal_entity_id, %{"ids" => id, "status" => Division.status(:active)}) do
       :ok
     else
-      _ -> {:error, {:"422", "Division must be active and within current legal_entity"}}
+      _ -> Error.dump("Division must be active and within current legal_entity")
     end
   end
 
@@ -201,7 +203,7 @@ defmodule EHealth.Contracts do
          true <- employee.legal_entity_id == legal_entity_id && employee.status == Employee.status(:approved) do
       :ok
     else
-      _ -> {:error, {:"422", "Employee must be within current legal_entity"}}
+      _ -> Error.dump("Employee must be within current legal_entity")
     end
   end
 
@@ -213,7 +215,7 @@ defmodule EHealth.Contracts do
        ) do
     case PRMRepo.get(Employee, employee_id) do
       nil ->
-        {:error, {:"422", "Employee_id is invalid"}}
+        Error.dump("Employee_id is invalid")
 
       %Employee{speciality: speciality, legal_entity_id: legal_entity_id} ->
         employee_speciality = Map.get(speciality, "speciality")
@@ -267,14 +269,14 @@ defmodule EHealth.Contracts do
     if declaration_limit <= employee_speciality_limit do
       :ok
     else
-      {:error, {:"422", "declaration_limit is not allowed for employee speciality"}}
+      Error.dump("declaration_limit is not allowed for employee speciality")
     end
   end
 
   defp check_employee_legal_entity(client_id, client_id), do: :ok
 
   defp check_employee_legal_entity(_, _),
-    do: {:error, {:"422", "Employee should be active Doctor within current legal_entity_id"}}
+    do: Error.dump("Employee should be active Doctor within current legal_entity_id")
 
   defp update_contract_employee(_, %ContractEmployee{} = contract_employee, %{"is_active" => false}, user_id) do
     contract_employee
@@ -294,9 +296,7 @@ defmodule EHealth.Contracts do
     end
   end
 
-  defp insert_contract_employee(_, %{"is_active" => false}, _) do
-    {:error, {:"422", "Invalid employee_id to deactivate"}}
-  end
+  defp insert_contract_employee(_, %{"is_active" => false}, _), do: Error.dump("Invalid employee_id to deactivate")
 
   defp insert_contract_employee(%Contract{} = contract, params, user_id) do
     with :ok <- validate_employee_division(contract, params) do
@@ -328,17 +328,7 @@ defmodule EHealth.Contracts do
       :ok
     else
       {:division_subset, _} ->
-        {:error,
-         [
-           {
-             %{
-               description: "Division should be among contract_divisions",
-               params: [],
-               rule: :invalid
-             },
-             "$.division_id"
-           }
-         ]}
+        Error.dump(%ValidationError{description: "Division should be among contract_divisions", path: "$.division_id"})
 
       error ->
         error
@@ -348,17 +338,7 @@ defmodule EHealth.Contracts do
   defp check_employee(%Employee{employee_type: "DOCTOR", status: "APPROVED"}), do: :ok
 
   defp check_employee(_) do
-    {:error,
-     [
-       {
-         %{
-           description: "Employee must be active DOCTOR",
-           params: [],
-           rule: :invalid
-         },
-         "$.employee.id"
-       }
-     ]}
+    Error.dump(%ValidationError{description: "Employee must be active DOCTOR", path: "$.employee.id"})
   end
 
   defp get_contract_employee(contract_id, employee_id, division_id) do

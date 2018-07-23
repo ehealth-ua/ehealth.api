@@ -13,6 +13,7 @@ defmodule EHealth.Registers.API do
   alias EHealth.Registers.SearchRegisterEntries
   alias EHealth.Registers.SearchRegisters
   alias EHealth.Repo
+  alias EHealth.Validators.Error
   alias EHealth.Validators.JsonSchema
 
   @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
@@ -151,7 +152,7 @@ defmodule EHealth.Registers.API do
   defp get_allowed_types do
     case Dictionaries.get_dictionary("DOCUMENT_TYPE") do
       %Dictionary{values: values} -> {:ok, values |> Map.keys() |> put_tax_id()}
-      _ -> {:error, {:"422", "Type not allowed"}}
+      _ -> Error.dump("Type not allowed")
     end
   end
 
@@ -165,7 +166,7 @@ defmodule EHealth.Registers.API do
   defp fetch_headers(csv) do
     case Enum.take(csv, 1) do
       [ok: headers] -> {:ok, headers}
-      _ -> {:error, {:"422", "Invalid CSV headers"}}
+      _ -> Error.dump("Invalid CSV headers")
     end
   end
 
@@ -174,7 +175,7 @@ defmodule EHealth.Registers.API do
   end
 
   defp valid_csv_headers?(_) do
-    {:error, {:"422", "Invalid CSV headers"}}
+    Error.dump("Invalid CSV headers")
   end
 
   defp process_register_entry({:ok, entry_data}, register, allowed_types, reason_desc, author_id) do

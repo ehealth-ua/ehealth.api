@@ -8,9 +8,10 @@ defmodule EHealth.LegalEntities.Validator do
   alias EHealth.Dictionaries
   alias EHealth.Email.Sanitizer
   alias EHealth.LegalEntities.LegalEntity
-  alias EHealth.LegalEntities.LegalEntityRequest
+  alias EHealth.ValidationError
   alias EHealth.Validators.Addresses
   alias EHealth.Validators.BirthDate
+  alias EHealth.Validators.Error
   alias EHealth.Validators.JsonObjects
   alias EHealth.Validators.JsonSchema
   alias EHealth.Validators.KVEDs
@@ -26,20 +27,15 @@ defmodule EHealth.LegalEntities.Validator do
   ]
 
   def decode_and_validate(params, headers) do
-    with {:ok, %{"content" => content, "signer" => signer}} <- validate_sign_content(params, headers) do
-      validate_json(content, signer, headers)
-    end
-  end
-
-  def validate_sign_content(content, headers) do
-    content
-    |> validate_request()
-    |> validate_signature(headers)
-    |> normalize_signature_error()
-  end
-
-  def validate_json(content, signer, headers) do
-    with :ok <- validate_schema(content),
+    with :ok <- JsonSchema.validate(:legal_entity_sign, params),
+         {_, {:ok, %{"content" => content, "signer" => signer}}} <-
+           {:signed_content,
+            SignatureValidator.validate(
+              params["signed_legal_entity_request"],
+              params["signed_content_encoding"],
+              headers
+            )},
+         :ok <- JsonSchema.validate(:legal_entity, content),
          content = lowercase_emails(content),
          :ok <- validate_json_objects(content),
          :ok <- validate_type(content),
@@ -50,49 +46,13 @@ defmodule EHealth.LegalEntities.Validator do
          :ok <- validate_owner_position(content),
          :ok <- validate_edrpou(content, signer) do
       :ok
+    else
+      {:signed_content, {:error, {:bad_request, reason}}} ->
+        Error.dump(%ValidationError{description: reason, path: "$.signed_legal_entity_request"})
+
+      error ->
+        error
     end
-  end
-
-  # Request validator
-
-  def validate_request(params) do
-    fields = ~W(
-      signed_legal_entity_request
-      signed_content_encoding
-    )a
-
-    %LegalEntityRequest{}
-    |> cast(params, fields)
-    |> validate_required(fields)
-    |> validate_inclusion(:signed_content_encoding, ["base64"])
-  end
-
-  def validate_signature(%Ecto.Changeset{valid?: true, changes: changes}, headers) do
-    SignatureValidator.validate(
-      Map.get(changes, :signed_legal_entity_request),
-      Map.get(changes, :signed_content_encoding),
-      headers
-    )
-  end
-
-  def validate_signature(err, _), do: err
-
-  def normalize_signature_error({:error, %{"meta" => %{"description" => error}}}) do
-    %LegalEntityRequest{}
-    |> cast(%{}, [:signed_legal_entity_request])
-    |> add_error(:signed_legal_entity_request, error)
-  end
-
-  def normalize_signature_error({:error, %{"error" => %{"message" => message}, "meta" => %{"code" => code}}}) do
-    %LegalEntityRequest{}
-    |> cast(%{}, [:signed_legal_entity_request])
-    |> add_error(:signed_legal_entity_request, "#{code}: #{message}")
-  end
-
-  def normalize_signature_error(ok_resp), do: ok_resp
-
-  def validate_schema(content) do
-    JsonSchema.validate(:legal_entity, content)
   end
 
   def validate_json_objects(content) do
@@ -104,16 +64,19 @@ defmodule EHealth.LegalEntities.Validator do
          :ok <- JsonObjects.array_unique_by_key(content, ["phones"], "type", phone_types),
          :ok <- JsonObjects.array_unique_by_key(content, ["owner", "phones"], "type", phone_types),
          %{"DOCUMENT_TYPE" => document_types} = dict_keys,
-         :ok <- JsonObjects.array_unique_by_key(content, ["owner", "documents"], "type", document_types),
+         :ok <-
+           JsonObjects.array_unique_by_key(
+             content,
+             ["owner", "documents"],
+             "type",
+             document_types
+           ),
          do: :ok
   end
 
   defp validate_type(%{"type" => @msp}), do: :ok
   defp validate_type(%{"type" => @pharmacy}), do: :ok
-
-  defp validate_type(_) do
-    {:error, {:"422", "Only legal_entity with type MSP or Pharmacy could be created"}}
-  end
+  defp validate_type(_), do: Error.dump("Only legal_entity with type MSP or Pharmacy could be created")
 
   def validate_kveds(content) do
     content
@@ -138,33 +101,12 @@ defmodule EHealth.LegalEntities.Validator do
 
     case no_tax_id do
       true ->
-        {:error,
-         [
-           {%{
-              description: "'no_tax_id must be false",
-              params: [],
-              rule: :invalid
-            }, "$.owner.no_tax_id"}
-         ]}
+        Error.dump(%ValidationError{description: "'no_tax_id' must be false", path: "$.owner.no_tax_id"})
 
       _ ->
         content
         |> get_in(["owner", "tax_id"])
-        |> TaxID.validate()
-        |> case do
-          true ->
-            :ok
-
-          _ ->
-            {:error,
-             [
-               {%{
-                  description: "invalid tax_id value",
-                  params: [],
-                  rule: :invalid
-                }, "$.owner.tax_id"}
-             ]}
-        end
+        |> TaxID.validate(%ValidationError{description: "invalid tax_id value", path: "$.owner.tax_id"})
     end
   end
 
@@ -191,14 +133,7 @@ defmodule EHealth.LegalEntities.Validator do
         :ok
 
       _ ->
-        {:error,
-         [
-           {%{
-              description: "invalid birth_date value",
-              params: [],
-              rule: :invalid
-            }, "$.owner.birth_date"}
-         ]}
+        Error.dump(%ValidationError{description: "invalid birth_date value", path: "$.owner.birth_date"})
     end
   end
 
@@ -213,19 +148,14 @@ defmodule EHealth.LegalEntities.Validator do
         :ok
 
       _ ->
-        {:error,
-         [
-           {%{
-              description: "invalid owner position value",
-              params: [],
-              rule: :invalid
-            }, "$.owner.position"}
-         ]}
+        Error.dump(%ValidationError{description: "invalid owner position value", path: "$.owner.position"})
     end
   end
 
   defp valid_owner_position?(_position, nil), do: false
-  defp valid_owner_position?(position, positions), do: Enum.any?(positions, fn x -> x == position end)
+
+  defp valid_owner_position?(position, positions),
+    do: Enum.any?(positions, fn x -> x == position end)
 
   defp prepare_legal_entity(%Ecto.Changeset{valid?: true}, legal_entity), do: {:ok, legal_entity}
   defp prepare_legal_entity(changeset, _legal_entity), do: {:error, changeset}

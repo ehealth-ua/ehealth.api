@@ -25,6 +25,8 @@ defmodule EHealth.EmployeeRequests do
   alias EHealth.PRMRepo
   alias EHealth.Repo
   alias EHealth.Utils.Log
+  alias EHealth.ValidationError
+  alias EHealth.Validators.Error
   alias EHealth.Validators.JsonSchema
   alias EHealth.Validators.Preload
   alias EHealth.Validators.Reference
@@ -181,14 +183,7 @@ defmodule EHealth.EmployeeRequests do
       employee_request
     else
       nil ->
-        {:error,
-         [
-           {%{
-              rule: :invalid,
-              params: [],
-              description: "invalid legal entity"
-            }, "$.legal_entity_id"}
-         ]}
+        Error.dump(%ValidationError{description: "invalid legal entity", path: "$.legal_entity_id"})
 
       error ->
         error
@@ -199,7 +194,7 @@ defmodule EHealth.EmployeeRequests do
     division_id = Map.get(params, "division_id")
 
     if is_nil(division_id) do
-      {:error, {:"422", "Division does not exist"}}
+      Error.dump("Division does not exist")
     else
       {:ok, division_id}
     end
@@ -228,7 +223,7 @@ defmodule EHealth.EmployeeRequests do
 
   defp check_division_legal_entity(client_id, division_id) do
     with {:ok, %Division{legal_entity_id: legal_entity_id}} <- Reference.validate(:division, division_id) do
-      if client_id == legal_entity_id, do: :ok, else: {:error, {:"422", "Division is not within current legal entity"}}
+      if client_id == legal_entity_id, do: :ok, else: Error.dump("Division is not within current legal entity")
     end
   end
 
@@ -467,17 +462,7 @@ defmodule EHealth.EmployeeRequests do
     employee = Employees.get_by_id(employee_id)
 
     if is_nil(employee) do
-      {:error,
-       [
-         {
-           %{
-             description: "Employee not found",
-             params: [],
-             rule: :required
-           },
-           "$.employee_request.employee_id"
-         }
-       ]}
+      Error.dump(%ValidationError{description: "Employee not found", path: "$.employee_request.employee_id"})
     else
       with :ok <- check_tax_id(params, employee),
            :ok <- check_employee_type(params, employee),
@@ -629,14 +614,12 @@ defmodule EHealth.EmployeeRequests do
     if Enum.member?(allowed_types, type) do
       :ok
     else
-      {:error,
-       [
-         {%{
-            rule: "inclusion",
-            params: allowed_types,
-            description: "value is not allowed in enum"
-          }, "$.employee_type"}
-       ]}
+      Error.dump(%ValidationError{
+        description: "value is not allowed in enum",
+        path: "$.employee_type",
+        rule: "inclusion",
+        params: allowed_types
+      })
     end
   end
 

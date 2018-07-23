@@ -15,6 +15,8 @@ defmodule EHealth.Validators.Reference do
   alias EHealth.MedicalPrograms.MedicalProgram
   alias EHealth.Medications
   alias EHealth.Medications.Medication
+  alias EHealth.ValidationError
+  alias EHealth.Validators.Error
 
   @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]
   @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
@@ -101,15 +103,7 @@ defmodule EHealth.Validators.Reference do
       |> String.replace("_", " ")
 
     path = path || "$.#{type}_id"
-
-    {:error,
-     [
-       {%{
-          description: "#{description} not found",
-          params: [],
-          rule: :invalid
-        }, path}
-     ]}
+    Error.dump(%ValidationError{description: "#{description} not found", path: path})
   end
 
   defp error_status(type, path) when is_atom(type) do
@@ -120,14 +114,6 @@ defmodule EHealth.Validators.Reference do
       |> String.replace("_", " ")
 
     path = path || "$.#{type}_id"
-
-    {:error,
-     [
-       {%{
-          description: "#{description} is not active",
-          params: [],
-          rule: :invalid
-        }, path}
-     ]}
+    Error.dump(%ValidationError{description: "#{description} is not active", path: path})
   end
 end

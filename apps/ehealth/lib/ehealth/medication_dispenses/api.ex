@@ -23,6 +23,8 @@ defmodule EHealth.MedicationDispense.API do
   alias EHealth.PartyUsers
   alias EHealth.PartyUsers.PartyUser
   alias EHealth.PRMRepo
+  alias EHealth.ValidationError
+  alias EHealth.Validators.Error
   alias EHealth.Validators.JsonSchema
   alias EHealth.Validators.Reference
 
@@ -274,11 +276,10 @@ defmodule EHealth.MedicationDispense.API do
       |> PRMRepo.one()
 
     if is_nil(program_medication) do
-      {:error,
-       [
-         {%{description: "medication is not a participant of program", params: [], rule: :required},
-          "$.dispense_details[#{i}].medication_id"}
-       ]}
+      Error.dump(%ValidationError{
+        description: "medication is not a participant of program",
+        path: "$.dispense_details[#{i}].medication_id"
+      })
     else
       {:ok, program_medication}
     end
@@ -290,11 +291,11 @@ defmodule EHealth.MedicationDispense.API do
     if reimbursement_amount / medication.package_qty * medication_qty >= discount_amount do
       :ok
     else
-      {:error,
-       [
-         {%{description: "Requested discount price is higher than allowed", params: [], rule: :required},
-          "$.dispense_details[#{i}].discount_amount"}
-       ]}
+      Error.dump(%ValidationError{
+        description: "Requested discount price is higher than allowed",
+        path: "$.dispense_details[#{i}].discount_amount",
+        rule: :required
+      })
     end
   end
 
@@ -304,11 +305,11 @@ defmodule EHealth.MedicationDispense.API do
     if medication.is_active && ingredient do
       :ok
     else
-      {:error,
-       [
-         {%{description: "medication is not active", params: [], rule: :required},
-          "$.dispense_details[#{i}].medication_id"}
-       ]}
+      Error.dump(%ValidationError{
+        description: "medication is not active",
+        path: "$.dispense_details[#{i}].medication_id",
+        rule: :required
+      })
     end
   end
 
@@ -342,17 +343,11 @@ defmodule EHealth.MedicationDispense.API do
     if request_qty <= Map.get(medication_request, "medication_qty") do
       :ok
     else
-      {:error,
-       [
-         {%{
-            description: """
-              dispensed medication quantity must be less or equal
-              to medication quantity in Medication Request
-            """,
-            rule: :required,
-            params: []
-          }, "$.medication_request.medication_qty"}
-       ]}
+      Error.dump(%ValidationError{
+        description: "dispensed medication quantity must be less or equal to medication quantity in Medication Request",
+        path: "$.medication_request.medication_qty",
+        rule: :required
+      })
     end
   end
 
@@ -503,14 +498,11 @@ defmodule EHealth.MedicationDispense.API do
         if rem(request_medication["medication_qty"], medication.package_min_qty) == 0 do
           :ok
         else
-          {:error,
-           [
-             {%{
-                description: "Requested medication brand quantity must be a multiplier of package minimal quantity",
-                params: [],
-                rule: :required
-              }, "$.dispense_details[#{i}].medication_qty"}
-           ]}
+          Error.dump(%ValidationError{
+            description: "Requested medication brand quantity must be a multiplier of package minimal quantity",
+            path: "$.dispense_details[#{i}].medication_qty",
+            rule: :required
+          })
         end
       end)
       |> Enum.filter(&(&1 != :ok))

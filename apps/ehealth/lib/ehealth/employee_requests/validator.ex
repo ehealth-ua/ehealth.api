@@ -6,7 +6,9 @@ defmodule EHealth.EmployeeRequests.Validator do
   alias EHealth.Dictionaries
   alias EHealth.Email.Sanitizer
   alias EHealth.Employees.Employee
+  alias EHealth.ValidationError
   alias EHealth.Validators.BirthDate
+  alias EHealth.Validators.Error
   alias EHealth.Validators.JsonObjects
   alias EHealth.Validators.JsonSchema
   alias EHealth.Validators.TaxID
@@ -111,11 +113,10 @@ defmodule EHealth.EmployeeRequests.Validator do
 
     content
     |> get_in(~w(employee_request party tax_id))
-    |> TaxID.validate(no_tax_id)
-    |> case do
-      true -> :ok
-      _ -> cast_error("invalid tax_id value", "$.employee_request.party.tax_id", :invalid)
-    end
+    |> TaxID.validate(no_tax_id, %ValidationError{
+      description: "invalid tax_id value",
+      path: "$.employee_request.party.tax_id"
+    })
   end
 
   defp validate_birth_date(content) do
@@ -129,14 +130,7 @@ defmodule EHealth.EmployeeRequests.Validator do
   end
 
   defp cast_error(message, path, rule) do
-    {:error,
-     [
-       {%{
-          description: message,
-          params: [],
-          rule: rule
-        }, path}
-     ]}
+    Error.dump(%ValidationError{description: message, path: path, rule: rule})
   end
 
   defp lowercase_email(params) do

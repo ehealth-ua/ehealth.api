@@ -3,17 +3,28 @@ defmodule EHealth.Validators.TaxID do
   Tax ID validator
   """
 
+  alias EHealth.Validators.Error
+
   @ratios [-1, 5, 7, 9, 4, 6, 10, 5, 7]
 
-  def validate(tax_id, true), do: Regex.match?(~r/^([0-9]{9}|[А-ЯЁЇIЄҐ]{4}\d{6})$/, tax_id)
-  def validate(tax_id, _), do: validate(tax_id)
-  def validate(tax_id) when byte_size(tax_id) != 10, do: false
-  def validate("0000000000"), do: false
+  def validate(tax_id, true, error) do
+    if Regex.match?(~r/^([0-9]{9}|[А-ЯЁЇIЄҐ]{4}\d{6})$/, tax_id) do
+      :ok
+    else
+      Error.dump(error)
+    end
+  end
 
-  def validate(tax_id) do
-    if Regex.match?(~r/^[0-9]{10}$/, tax_id) do
+  def validate(tax_id, _, error), do: validate(tax_id, error)
+  def validate(tax_id, error) when byte_size(tax_id) != 10, do: Error.dump(error)
+  def validate("0000000000", error), do: Error.dump(error)
+
+  def validate(tax_id, error) do
+    with true <- Regex.match?(~r/^[0-9]{10}$/, tax_id) do
       {check_sum, i} =
-        Enum.reduce(@ratios, {0, 0}, fn x, {acc, i} -> {acc + x * String.to_integer(String.at(tax_id, i)), i + 1} end)
+        Enum.reduce(@ratios, {0, 0}, fn x, {acc, i} ->
+          {acc + x * String.to_integer(String.at(tax_id, i)), i + 1}
+        end)
 
       check_number =
         check_sum
@@ -25,9 +36,9 @@ defmodule EHealth.Validators.TaxID do
         |> String.at(i)
         |> String.to_integer()
 
-      last_number == check_number
+      if last_number == check_number, do: :ok, else: Error.dump(error)
     else
-      false
+      _ -> Error.dump(error)
     end
   end
 end

@@ -2,7 +2,9 @@ defmodule EHealth.Persons.Validator do
   @moduledoc "Additional validation of Person request structure that cannot be covered by JSON Schema"
 
   alias EHealth.Dictionaries
+  alias EHealth.ValidationError
   alias EHealth.Validators.BirthDate
+  alias EHealth.Validators.Error
   alias EHealth.Validators.JsonObjects
 
   @verification_api Application.get_env(:ehealth, :api_resolvers)[:otp_verification]
@@ -31,10 +33,12 @@ defmodule EHealth.Persons.Validator do
 
   # TODO: this should be done in addresses validator #2228
   def validate_addresses_types(addresses, types) do
-    err = {:error, {:"422", "Addresses with types #{Enum.join(types, ", ")} should be present"}}
-
     Enum.reduce_while(types, :ok, fn type, _ ->
-      if address_with_type_exists?(addresses, type), do: {:cont, :ok}, else: {:halt, err}
+      if address_with_type_exists?(addresses, type) do
+        {:cont, :ok}
+      else
+        {:halt, Error.dump("Addresses with types #{Enum.join(types, ", ")} should be present")}
+      end
     end)
   end
 
@@ -82,14 +86,7 @@ defmodule EHealth.Persons.Validator do
         :ok
 
       false ->
-        {:error,
-         [
-           {%{
-              description: "Invalid birth date",
-              params: [],
-              rule: :invalid
-            }, path}
-         ]}
+        Error.dump(%ValidationError{description: "Invalid birth date", path: path})
     end
   end
 
@@ -108,14 +105,18 @@ defmodule EHealth.Persons.Validator do
 
     cond do
       age < 14 && !birth_certificate_number ->
-        {:error, [{JsonObjects.get_error("Must contain required item.", "BIRTH_CERTIFICATE"), "$.person.documents"}]}
+        Error.dump(%ValidationError{
+          description: "Must contain required item.",
+          params: ["BIRTH_CERTIFICATE"],
+          path: "$.person.documents"
+        })
 
       birth_certificate_number && !birth_certificate_number_valid?(birth_certificate_number) ->
-        {:error,
-         [
-           {JsonObjects.get_error("Birth certificate number is not valid", "BIRTH_CERTIFICATE"),
-            "$.person.documents[#{document_index}].number"}
-         ]}
+        Error.dump(%ValidationError{
+          description: "Birth certificate number is not valid",
+          params: ["BIRTH_CERTIFICATE"],
+          path: "$.person.documents[#{document_index}].number"
+        })
 
       true ->
         :ok
@@ -139,11 +140,19 @@ defmodule EHealth.Persons.Validator do
       :ok ->
         :ok
 
-      {:error, [{%{description: description} = descr, path}]} ->
+      {:error, [{%{description: description, params: params}, path}]} ->
         if description =~ "not found" do
-          {:error, [{descr, path}]}
+          Error.dump(%ValidationError{
+            description: description,
+            params: params,
+            path: path
+          })
         else
-          {:error, [{JsonObjects.get_error(@auth_method_error, auth_methods), path}]}
+          Error.dump(%ValidationError{
+            description: @auth_method_error,
+            params: auth_methods,
+            path: path
+          })
         end
     end
   end
@@ -167,14 +176,10 @@ defmodule EHealth.Persons.Validator do
       )
 
     if age < 14 do
-      {:error,
-       [
-         {%{
-            description: "Confidant person is mandatory for children",
-            params: [],
-            rule: :invalid
-          }, "$.confidant_person"}
-       ]}
+      Error.dump(%ValidationError{
+        description: "Confidant person is mandatory for children",
+        path: "$.confidant_person"
+      })
     else
       :ok
     end
@@ -191,7 +196,8 @@ defmodule EHealth.Persons.Validator do
          :ok <- JsonObjects.array_unique_by_key(h, ["documents_relationship"], "type", doc_relation_type) do
       validate_every_confidant_person(t, dict_keys, i + 1)
     else
-      {:error, [{rules, path}]} -> {:error, [{rules, JsonObjects.combine_path("confidant_person[#{i}]", path)}]}
+      {:error, [{rules, path}]} ->
+        {:error, [{rules, JsonObjects.combine_path("confidant_person[#{i}]", path)}]}
     end
   end
 end

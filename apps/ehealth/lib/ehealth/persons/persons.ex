@@ -6,7 +6,9 @@ defmodule EHealth.Persons do
   alias EHealth.Persons.Person
   alias EHealth.Persons.Search
   alias EHealth.Persons.Signed
+  alias EHealth.ValidationError
   alias EHealth.Validators.Addresses
+  alias EHealth.Validators.Error
   alias EHealth.Validators.JsonSchema
   alias EHealth.Persons.Validator, as: PersonValidator
   alias EHealth.Validators.Signature, as: SignatureValidator
@@ -91,14 +93,10 @@ defmodule EHealth.Persons do
       :ok
     else
       _ ->
-        {:error,
-         [
-           {%{
-              description: "Person that logged in, person that is changed and person that sign should be the same",
-              params: [],
-              rule: :invalid
-            }, "$.data"}
-         ]}
+        Error.dump(%ValidationError{
+          description: "Person that logged in, person that is changed and person that sign should be the same",
+          path: "$.data"
+        })
     end
   end
 
@@ -116,14 +114,10 @@ defmodule EHealth.Persons do
         :ok
 
       {:error, message} ->
-        {:error,
-         [
-           {%{
-              description: message,
-              params: [],
-              rule: :invalid
-            }, "$.authentication_methods"}
-         ]}
+        Error.dump(%ValidationError{
+          description: message,
+          path: "$.authentication_methods"
+        })
     end
   end
 

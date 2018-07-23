@@ -9,7 +9,9 @@ defmodule EHealth.Cabinet.API do
   alias EHealth.Guardian
   alias EHealth.Man.Templates.EmailVerification
   alias EHealth.Persons.Validator, as: PersonValidator
+  alias EHealth.ValidationError
   alias EHealth.Validators.Addresses
+  alias EHealth.Validators.Error
   alias EHealth.Validators.JsonSchema
   alias EHealth.Validators.Signature, as: SignatureValidator
   alias EView.Changeset.Validators.Email, as: EmailValidator
@@ -68,7 +70,7 @@ defmodule EHealth.Cabinet.API do
     end
   end
 
-  defp validate_tax_id(%{"tax_id" => tax_id}, %{"drfo" => drfo}) when drfo == tax_id, do: {:ok, tax_id}
+  defp validate_tax_id(%{"tax_id" => tax_id}, %{"drfo" => tax_id}), do: {:ok, tax_id}
   defp validate_tax_id(_, _), do: {:error, {:conflict, "Registration person and person that sign should be the same"}}
 
   defp validate_first_name(content, signer) do
@@ -88,10 +90,10 @@ defmodule EHealth.Cabinet.API do
     end
   end
 
-  defp validate_last_name(%{"last_name" => last_name}, %{"surname" => surname}) when last_name == surname, do: :ok
+  defp validate_last_name(%{"last_name" => last_name}, %{"surname" => last_name}), do: :ok
   defp validate_last_name(_, _), do: {:error, {:conflict, "Input last_name doesn't match name from DS"}}
 
-  def validate_email(%{"email" => signed_content_email}, jwt_email) when signed_content_email == jwt_email, do: :ok
+  def validate_email(%{"email" => signed_content_email}, signed_content_email), do: :ok
   def validate_email(_, _), do: {:error, {:conflict, "Email in signed content is incorrect"}}
 
   defp prepare_person_params(content), do: Map.put(content, "patient_signed", true)
@@ -191,7 +193,7 @@ defmodule EHealth.Cabinet.API do
   def email_available_for_registration?(email, headers) do
     case @mithril_api.search_user(%{email: email}, headers) do
       {:ok, %{"data" => [%{"tax_id" => tax_id}]}} when is_binary(tax_id) and byte_size(tax_id) > 0 ->
-        {:error, [{%{"description" => "invalid", "params" => [], "rule" => "email_exists"}, "$.email"}]}
+        Error.dump(%ValidationError{description: "invalid", rule: "email_exists", path: "$.email"})
 
       {:ok, _} ->
         true
@@ -268,7 +270,7 @@ defmodule EHealth.Cabinet.API do
       %{"phone_number" => phone_number} ->
         case @otp_verification_api.complete(phone_number, %{code: code}, headers) do
           {:ok, _} -> :ok
-          _error -> {:error, [{%{description: "Invalid verification code", params: [], rule: :invalid}, "$.otp"}]}
+          _error -> Error.dump(%ValidationError{description: "Invalid verification code", path: "$.otp"})
         end
     end
   end

@@ -11,6 +11,8 @@ defmodule EHealth.DeclarationRequests.API.Sign do
   alias EHealth.Employees
   alias EHealth.Employees.Employee
   alias EHealth.Repo
+  alias EHealth.ValidationError
+  alias EHealth.Validators.Error
   alias EHealth.Validators.Signature, as: SignatureValidator
   alias HTTPoison.Response
   require Logger
@@ -90,16 +92,20 @@ defmodule EHealth.DeclarationRequests.API.Sign do
   def check_status(%DeclarationRequest{status: status}) do
     case status do
       @status_approved -> :ok
-      _ -> err_422("incorrect status", "$.status")
+      _ -> Error.dump(%ValidationError{description: "incorrect status", path: "$.status"})
     end
   end
 
-  def check_patient_signed(""), do: err_422("Can not be empty", "$.declaration_request")
+  def check_patient_signed(""),
+    do: Error.dump(%ValidationError{description: "Can not be empty", path: "$.declaration_request"})
 
   def check_patient_signed(content) do
     case get_in(content, ["person", "patient_signed"]) do
-      true -> :ok
-      _ -> err_422("Patient must sign declaration form", "$.person.patient_signed")
+      true ->
+        :ok
+
+      _ ->
+        Error.dump(%ValidationError{description: "Patient must sign declaration form", path: "$.person.patient_signed"})
     end
   end
 
@@ -132,7 +138,10 @@ defmodule EHealth.DeclarationRequests.API.Sign do
           })
         end)
 
-        err_422("Signed content does not match the previously created content", "$.content")
+        Error.dump(%ValidationError{
+          description: "Signed content does not match the previously created content",
+          path: "$.content"
+        })
     end
   end
 
@@ -293,9 +302,5 @@ defmodule EHealth.DeclarationRequests.API.Sign do
   defp current_hash(headers) do
     {:ok, %{"data" => %{"hash" => hash}}} = @ops_api.get_latest_block(headers)
     hash
-  end
-
-  defp err_422(message, path) do
-    {:error, [{%{description: message, params: [], rule: :invalid}, path}]}
   end
 end

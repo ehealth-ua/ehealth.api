@@ -5,6 +5,8 @@ defmodule EHealth.Validators.Signature do
   alias EHealth.Employees.Employee
   alias EHealth.Parties
   alias EHealth.Parties.Party
+  alias EHealth.ValidationError
+  alias EHealth.Validators.Error
   require Logger
 
   @signature_api Application.get_env(:ehealth, :api_resolvers)[:digital_signature]
@@ -24,14 +26,14 @@ defmodule EHealth.Validators.Signature do
       if tax_id == drfo || translit_drfo(tax_id) == translit_drfo(drfo) do
         :ok
       else
-        {:error, {:"422", "Does not match the signer drfo"}}
+        Error.dump("Does not match the signer drfo")
       end
     else
       _ -> {:error, {:forbidden, "User is not allowed to this action by client_id"}}
     end
   end
 
-  def check_drfo(_, _, _), do: {:error, {:"422", "Invalid drfo"}}
+  def check_drfo(_, _, _), do: Error.dump("Invalid drfo")
 
   def check_drfo(%{"drfo" => drfo}, employee_id, path, process) when not is_nil(drfo) do
     drfo = String.replace(drfo, " ", "")
@@ -43,32 +45,12 @@ defmodule EHealth.Validators.Signature do
       :ok
     else
       _ ->
-        {:error,
-         [
-           {
-             %{
-               description: "Does not match the signer drfo",
-               params: [],
-               rule: :invalid
-             },
-             path
-           }
-         ]}
+        Error.dump(%ValidationError{description: "Does not match the signer drfo", path: path})
     end
   end
 
   def check_drfo(_, _, path, _) do
-    {:error,
-     [
-       {
-         %{
-           description: "Invalid drfo",
-           params: [],
-           rule: :invalid
-         },
-         path
-       }
-     ]}
+    Error.dump(%ValidationError{description: "Invalid drfo", path: path})
   end
 
   defp translit_drfo(drfo) do
