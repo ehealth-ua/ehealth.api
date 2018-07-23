@@ -1617,6 +1617,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
           legal_entity: legal_entity1,
           division: division1,
           party: party,
+          is_active: false,
           employee_type: "OWNER"
         )
 
