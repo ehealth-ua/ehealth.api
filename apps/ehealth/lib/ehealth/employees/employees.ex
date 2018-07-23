@@ -198,7 +198,6 @@ defmodule EHealth.Employees do
 
   defp party_contracts_to_suspend(party_id, headers) do
     Employee
-    |> where([e], e.is_active)
     |> where([e], e.employee_type == ^@type_owner)
     |> where([e], e.party_id == ^party_id)
     |> PRMRepo.all()
