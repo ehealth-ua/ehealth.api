@@ -5,6 +5,7 @@ defmodule EHealth.DeclarationRequests.API.Approve do
   alias EHealth.Employees
   alias EHealth.Employees.Employee
   alias EHealth.Parties.Party
+  alias EHealth.Validators.Error
   require Logger
 
   @media_storage_api Application.get_env(:ehealth, :api_resolvers)[:media_storage]
@@ -109,7 +110,7 @@ defmodule EHealth.DeclarationRequests.API.Approve do
          {:limit, true} <- {:limit, !party.declaration_limit || declarations_count < party.declaration_limit} do
       :ok
     else
-      {:limit, false} -> {:error, {:"422", "This doctor reaches his limit and could not sign more declarations"}}
+      {:limit, false} -> Error.dump("This doctor reaches his limit and could not sign more declarations")
       _ -> {:error, {:conflict, "employee or party not found"}}
     end
   end

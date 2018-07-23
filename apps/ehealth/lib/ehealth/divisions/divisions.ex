@@ -17,7 +17,9 @@ defmodule EHealth.Divisions do
   alias EHealth.LegalEntities
   alias EHealth.LegalEntities.LegalEntity
   alias EHealth.PRMRepo
+  alias EHealth.ValidationError
   alias EHealth.Validators.Addresses
+  alias EHealth.Validators.Error
   alias EHealth.Validators.JsonObjects
   alias EHealth.Validators.JsonSchema
 
@@ -120,14 +122,7 @@ defmodule EHealth.Divisions do
       put_mountain_group(params)
     else
       nil ->
-        {:error,
-         [
-           {%{
-              rule: :invalid,
-              params: [],
-              description: "invalid legal entity"
-            }, "$.legal_entity_id"}
-         ]}
+        Error.dump(%ValidationError{description: "invalid legal entity", path: "$.legal_entity_id"})
 
       err ->
         err
@@ -180,14 +175,12 @@ defmodule EHealth.Divisions do
     if !type || Enum.member?(allowed_types, type) do
       :ok
     else
-      {:error,
-       [
-         {%{
-            rule: "inclusion",
-            params: allowed_types,
-            description: "value is not allowed in enum"
-          }, "$.type"}
-       ]}
+      Error.dump(%ValidationError{
+        description: "value is not allowed in enum",
+        path: "$.type",
+        params: allowed_types,
+        rule: "inclusion"
+      })
     end
   end
 

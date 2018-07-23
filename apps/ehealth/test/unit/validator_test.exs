@@ -4,11 +4,11 @@ defmodule EHealth.Unit.ValidatorTest do
   use EHealth.Web.ConnCase
   import Mox
 
-  alias EHealth.LegalEntities.Validator
-  alias EHealth.Validators.KVEDs
+  alias Ecto.UUID
   alias EHealth.API.MediaStorage
   alias EHealth.EmployeeRequests
-  alias Ecto.UUID
+  alias EHealth.LegalEntities.Validator
+  alias EHealth.Validators.KVEDs
 
   setup :verify_on_exit!
 
@@ -17,16 +17,6 @@ defmodule EHealth.Unit.ValidatorTest do
     "values" => %{
       "MOBILE" => "mobile",
       "LANDLINE" => "landline"
-    },
-    "labels" => ["SYSTEM"],
-    "is_active" => true
-  }
-
-  @legal_entity_type %{
-    "name" => "LEGAL_ENTITY_TYPE",
-    "values" => %{
-      "MSP" => "MSP",
-      "MIS" => "MIS"
     },
     "labels" => ["SYSTEM"],
     "is_active" => true
@@ -73,41 +63,6 @@ defmodule EHealth.Unit.ValidatorTest do
     "is_active" => true
   }
 
-  @unmapped %{
-    "name" => "UNMAPPED",
-    "values" => %{
-      "NEW" => "yes"
-    },
-    "labels" => ["SYSTEM"],
-    "is_active" => true
-  }
-
-  test "JSON schema dictionary enum validate LEGAL_ENTITY_TYPE", %{conn: conn} do
-    patch(conn, dictionary_path(conn, :update, "LEGAL_ENTITY_TYPE"), @legal_entity_type)
-
-    content =
-      "test/data/legal_entity.json"
-      |> File.read!()
-      |> Jason.decode!()
-      |> Map.put("type", "STRANGE")
-
-    assert {:error, [{%{description: "value is not allowed in enum", rule: :inclusion}, "$.type"}]} =
-             Validator.validate_schema(content)
-  end
-
-  test "JSON schema dictionary enum validate PHONE_TYPE", %{conn: conn} do
-    patch(conn, dictionary_path(conn, :update, "PHONE_TYPE"), @phone_type)
-
-    content =
-      "test/data/legal_entity.json"
-      |> File.read!()
-      |> Jason.decode!()
-      |> Map.put("phones", [%{"type" => "INVALID", "number" => "+380503410870"}])
-
-    assert {:error, [{%{description: "value is not allowed in enum", rule: :inclusion}, "$.phones.[0].type"}]} =
-             Validator.validate_schema(content)
-  end
-
   test "JSON schema owner position not allowed" do
     content =
       "test/data/legal_entity.json"
@@ -130,26 +85,6 @@ defmodule EHealth.Unit.ValidatorTest do
 
     assert :ok = Validator.validate_owner_position(content)
     System.put_env("OWNER_POSITIONS", "P1")
-  end
-
-  test "JSON schema birth_date date format with weeks" do
-    content =
-      "test/data/legal_entity.json"
-      |> File.read!()
-      |> Jason.decode!()
-      |> put_in(["owner", "birth_date"], "1985-W12-6")
-
-    assert {:error, [{%{description: _, rule: :format}, "$.owner.birth_date"}]} = Validator.validate_schema(content)
-  end
-
-  test "JSON schema birth_date date format" do
-    content =
-      "test/data/legal_entity.json"
-      |> File.read!()
-      |> Jason.decode!()
-      |> put_in(["owner", "birth_date"], "1988.12.11")
-
-    assert {:error, [{%{description: _, rule: :format}, "$.owner.birth_date"}]} = Validator.validate_schema(content)
   end
 
   test "JSON schema birth_date more than 150 years" do
@@ -179,17 +114,6 @@ defmodule EHealth.Unit.ValidatorTest do
 
     assert {:error, [{%{description: _, rule: :invalid}, "$.owner.birth_date"}]} =
              Validator.validate_owner_birth_date(content)
-  end
-
-  test "JSON schema issued_date date format" do
-    content =
-      "test/data/legal_entity.json"
-      |> File.read!()
-      |> Jason.decode!()
-      |> put_in(["medical_service_provider", "accreditation", "issued_date"], "20-12-2011")
-
-    assert {:error, [{%{description: _, rule: :format}, "$.medical_service_provider.accreditation.issued_date"}]} =
-             Validator.validate_schema(content)
   end
 
   test "Employee Request: issued_date date format" do
@@ -266,17 +190,6 @@ defmodule EHealth.Unit.ValidatorTest do
              ])
   end
 
-  test "unmapped dictionary name", %{conn: conn} do
-    patch(conn, dictionary_path(conn, :update, "UNMAPPED"), @unmapped)
-
-    content =
-      "test/data/legal_entity.json"
-      |> File.read!()
-      |> Jason.decode!()
-
-    assert :ok = Validator.validate_schema(content)
-  end
-
   test "base64 decode signed_content with white spaces" do
     signed_content = File.read!("test/data/signed_content_whitespace.txt")
 
@@ -297,29 +210,6 @@ defmodule EHealth.Unit.ValidatorTest do
                "signed_content",
                []
              )
-  end
-
-  test "validate address building" do
-    content =
-      "test/data/legal_entity.json"
-      |> File.read!()
-      |> Jason.decode!()
-
-    address =
-      content
-      |> Map.get("addresses")
-      |> List.first()
-
-    content =
-      Map.put(content, "addresses", [
-        Map.put(address, "building", "12-И"),
-        Map.put(address, "building", "109-а/2-В"),
-        Map.put(address, "building", "10/999"),
-        Map.put(address, "building", "010")
-      ])
-
-    assert {:error, [{%{description: _, rule: :format}, "$.addresses.[3].building"}]} =
-             Validator.validate_schema(content)
   end
 
   test "validate allowed and required kveds", %{conn: conn} do

@@ -22,6 +22,8 @@ defmodule EHealth.ContractRequests do
   alias EHealth.Man.Templates.ContractRequestPrintoutForm
   alias EHealth.Repo
   alias EHealth.Utils.NumberGenerator
+  alias EHealth.ValidationError
+  alias EHealth.Validators.Error
   alias EHealth.Validators.JsonSchema
   alias EHealth.Validators.Preload
   alias EHealth.Validators.Reference
@@ -337,7 +339,7 @@ defmodule EHealth.ContractRequests do
       {:ok, contract_request, preload_references(contract_request)}
     else
       false ->
-        {:error, {:"422", "Incorrect status of contract_request to modify it"}}
+        Error.dump("Incorrect status of contract_request to modify it")
 
       {:contractor_owner, _} ->
         {:error, {:forbidden, "User is not allowed to perform this action"}}
@@ -395,7 +397,7 @@ defmodule EHealth.ContractRequests do
       {:ok, contract_request, preload_references(contract_request)}
     else
       {:client_id, _} -> {:error, {:forbidden, "Invalid client_id"}}
-      {:already_signed, _} -> {:error, {:"422", "The contract was already signed by NHS"}}
+      {:already_signed, _} -> Error.dump("The contract was already signed by NHS")
       error -> error
     end
   end
@@ -437,13 +439,13 @@ defmodule EHealth.ContractRequests do
       Contracts.load_contract_references(contract)
     else
       {:signed_nhs, false} ->
-        {:error, {:"422", "Incorrect status for signing"}}
+        Error.dump("Incorrect status for signing")
 
       {:client_id, _} ->
         {:error, {:forbidden, "Invalid client_id"}}
 
       {:employee, _} ->
-        {:error, {:"422", "Employee is not allowed to sign"}}
+        Error.dump("Employee is not allowed to sign")
 
       {:create_contract, _} ->
         {:error, {:bad_gateway, "Failed to save contract"}}
@@ -463,7 +465,7 @@ defmodule EHealth.ContractRequests do
       {:ok, url}
     else
       {:signed_nhs, _} ->
-        {:error, {:"422", "The contract hasn't been signed yet"}}
+        Error.dump("The contract hasn't been signed yet")
 
       {:client_id, _} ->
         {:error, {:forbidden, "Invalid client_id"}}
@@ -540,7 +542,7 @@ defmodule EHealth.ContractRequests do
 
     if data_content == content,
       do: :ok,
-      else: {:error, {:"422", "Signed content does not match the previously created content"}}
+      else: Error.dump("Signed content does not match the previously created content")
   end
 
   defp validate_content(%ContractRequest{data: data}, printout_content, content) do
@@ -553,7 +555,7 @@ defmodule EHealth.ContractRequests do
 
     if data_content == content,
       do: :ok,
-      else: {:error, {:"422", "Signed content does not match the previously created content"}}
+      else: Error.dump("Signed content does not match the previously created content")
   end
 
   defp save_signed_content(id, %{"signed_content" => signed_content}, headers, resource_name) do
@@ -800,17 +802,13 @@ defmodule EHealth.ContractRequests do
     if division["division_id"] in division_subset do
       errors
     else
-      errors ++
-        [
-          {
-            %{
-              description: "Division should be among contractor_divisions",
-              params: [],
-              rule: :invalid
-            },
-            "$.contractor_employee_divisions[#{index}].division_id"
-          }
-        ]
+      {:error, error} =
+        Error.dump(%ValidationError{
+          description: "Division should be among contractor_divisions",
+          path: "$.contractor_employee_divisions[#{index}].division_id"
+        })
+
+      errors ++ error
     end
   end
 
@@ -827,43 +825,13 @@ defmodule EHealth.ContractRequests do
       :ok
     else
       {:active, _} ->
-        {:error,
-         [
-           {
-             %{
-               description: "Employee must be active",
-               params: [],
-               rule: :invalid
-             },
-             "$.nhs_signer_id"
-           }
-         ]}
+        Error.dump(%ValidationError{description: "Employee must be active", path: "$.nhs_signer_id"})
 
       {:client_id, _} ->
-        {:error,
-         [
-           {
-             %{
-               description: "Employee doesn't belong to legal_entity",
-               params: [],
-               rule: :invalid
-             },
-             "$.nhs_signer_id"
-           }
-         ]}
+        Error.dump(%ValidationError{description: "Employee doesn't belong to legal_entity", path: "$.nhs_signer_id"})
 
       _ ->
-        {:error,
-         [
-           {
-             %{
-               description: "Invalid nhs_signer_id",
-               params: [],
-               rule: :invalid
-             },
-             "$.nhs_signer_id"
-           }
-         ]}
+        Error.dump(%ValidationError{description: "Invalid nhs_signer_id", path: "$.nhs_signer_id"})
     end
   end
 
@@ -884,17 +852,10 @@ defmodule EHealth.ContractRequests do
     if Enum.uniq(employee_divisions_values) == employee_divisions_values do
       :ok
     else
-      {:error,
-       [
-         {
-           %{
-             description: "Employee division must be unique",
-             params: [],
-             rule: :invalid
-           },
-           "$.contractor_employee_divisions"
-         }
-       ]}
+      Error.dump(%ValidationError{
+        description: "Employee division must be unique",
+        path: "$.contractor_employee_divisions"
+      })
     end
   end
 
@@ -904,17 +865,10 @@ defmodule EHealth.ContractRequests do
     if Enum.uniq(contractor_divisions) == contractor_divisions do
       :ok
     else
-      {:error,
-       [
-         {
-           %{
-             description: "Division must be unique",
-             params: [],
-             rule: :invalid
-           },
-           "$.contractor_divisions"
-         }
-       ]}
+      Error.dump(%ValidationError{
+        description: "Division must be unique",
+        path: "$.contractor_divisions"
+      })
     end
   end
 
@@ -962,17 +916,10 @@ defmodule EHealth.ContractRequests do
     if is_nil(external_contractors) && !external_contractor_flag do
       :ok
     else
-      {:error,
-       [
-         {
-           %{
-             description: "Invalid external_contractor_flag",
-             params: [],
-             rule: :invalid
-           },
-           "$.external_contractor_flag"
-         }
-       ]}
+      Error.dump(%ValidationError{
+        description: "Invalid external_contractor_flag",
+        path: "$.external_contractor_flag"
+      })
     end
   end
 
@@ -987,17 +934,13 @@ defmodule EHealth.ContractRequests do
 
     case validation_result do
       {:error, _} ->
-        errors ++
-          [
-            {
-              %{
-                description: "Active $external_contractors[#{index}].legal_entity_id does not exist",
-                params: [],
-                rule: :invalid
-              },
-              "$.external_contractors[#{index}].legal_entity_id"
-            }
-          ]
+        {:error, error} =
+          Error.dump(%ValidationError{
+            description: "Active $external_contractors[#{index}].legal_entity_id does not exist",
+            path: "$.external_contractors[#{index}].legal_entity_id"
+          })
+
+        errors ++ error
 
       _ ->
         errors
@@ -1005,17 +948,13 @@ defmodule EHealth.ContractRequests do
   end
 
   defp validate_external_legal_entity(errors, _, index) do
-    errors ++
-      [
-        {
-          %{
-            description: "Active $external_contractors[#{index}].legal_entity_id does not exist",
-            params: [],
-            rule: :invalid
-          },
-          "$.external_contractors[#{index}].legal_entity_id"
-        }
-      ]
+    {:error, error} =
+      Error.dump(%ValidationError{
+        description: "Active $external_contractors[#{index}].legal_entity_id does not exist",
+        path: "$.external_contractors[#{index}].legal_entity_id"
+      })
+
+    errors ++ error
   end
 
   defp validate_divisions(errors, params, contractor, i) do
@@ -1056,25 +995,18 @@ defmodule EHealth.ContractRequests do
     if length(errors) > 0, do: {:error, errors}, else: :ok
   end
 
-  defp validate_external_contractor_division(division_ids, division, error) do
+  defp validate_external_contractor_division(division_ids, division, path) do
     if division["id"] in division_ids do
       :ok
     else
-      {:error,
-       [
-         {
-           %{
-             description: "The division is not belong to contractor_divisions",
-             params: [],
-             rule: :invalid
-           },
-           error
-         }
-       ]}
+      Error.dump(%ValidationError{
+        description: "The division is not belong to contractor_divisions",
+        path: path
+      })
     end
   end
 
-  defp validate_external_contract(errors, contractor, params, error) do
+  defp validate_external_contract(errors, contractor, params, path) do
     expires_at = Date.from_iso8601!(contractor["contract"]["expires_at"])
     start_date = Date.from_iso8601!(params["start_date"])
 
@@ -1083,32 +1015,23 @@ defmodule EHealth.ContractRequests do
         errors
 
       _ ->
-        errors ++
-          [
-            {
-              %{
-                description: "Expires date must be greater than contract start_date",
-                params: [],
-                rule: :invalid
-              },
-              error
-            }
-          ]
+        {:error, error} =
+          Error.dump(%ValidationError{
+            description: "Expires date must be greater than contract start_date",
+            path: path
+          })
+
+        errors ++ error
     end
   end
 
   defp check_employee(%Employee{employee_type: "DOCTOR", status: "APPROVED"}, _), do: :ok
 
   defp check_employee(_, index) do
-    {:error,
-     {
-       %{
-         description: "Employee must be active DOCTOR",
-         params: [],
-         rule: :invalid
-       },
-       "$.contractor_employee_divisions[#{index}].employee_id"
-     }}
+    Error.dump(%ValidationError{
+      description: "Employee must be active DOCTOR",
+      path: "$.contractor_employee_divisions[#{index}].employee_id"
+    })
   end
 
   defp check_division(
@@ -1119,48 +1042,27 @@ defmodule EHealth.ContractRequests do
        when legal_entity_id == contractor_legal_entity_id,
        do: :ok
 
-  defp check_division(_, _, error) do
-    {:error,
-     [
-       {
-         %{
-           description: "Division must be active and within current legal_entity",
-           params: [],
-           rule: :invalid
-         },
-         error
-       }
-     ]}
+  defp check_division(_, _, path) do
+    Error.dump(%ValidationError{
+      description: "Division must be active and within current legal_entity",
+      path: path
+    })
   end
 
   defp validate_dates(%{"parent_contract_id" => parent_contract_id, "start_date" => start_date})
        when not is_nil(parent_contract_id) and not is_nil(start_date) do
-    {:error,
-     [
-       {
-         %{
-           description: "Start date can't be updated via Contract Request",
-           params: [],
-           rule: :invalid
-         },
-         "$.start_date"
-       }
-     ]}
+    Error.dump(%ValidationError{
+      description: "Start date can't be updated via Contract Request",
+      path: "$.start_date"
+    })
   end
 
   defp validate_dates(%{"parent_contract_id" => parent_contract_id, "end_date" => end_date})
        when not is_nil(parent_contract_id) and not is_nil(end_date) do
-    {:error,
-     [
-       {
-         %{
-           description: "End date can't be updated via Contract Request",
-           params: [],
-           rule: :invalid
-         },
-         "$.end_date"
-       }
-     ]}
+    Error.dump(%ValidationError{
+      description: "End date can't be updated via Contract Request",
+      path: "$.end_date"
+    })
   end
 
   defp validate_dates(%{"parent_contract_id" => parent_contract_id})
@@ -1170,30 +1072,10 @@ defmodule EHealth.ContractRequests do
   defp validate_dates(params) do
     cond do
       is_nil(params["start_date"]) ->
-        {:error,
-         [
-           {
-             %{
-               description: "Start date can't be empty",
-               params: [],
-               rule: :required
-             },
-             "$.start_date"
-           }
-         ]}
+        Error.dump(%ValidationError{description: "Start date can't be empty", path: "$.start_date"})
 
       is_nil(params["end_date"]) ->
-        {:error,
-         [
-           {
-             %{
-               description: "End date can't be empty",
-               params: [],
-               rule: :required
-             },
-             "$.end_date"
-           }
-         ]}
+        Error.dump(%ValidationError{description: "End date can't be empty", path: "$.end_date"})
 
       true ->
         :ok
@@ -1230,17 +1112,10 @@ defmodule EHealth.ContractRequests do
       :ok
     else
       _ ->
-        {:error,
-         [
-           {
-             %{
-               description: "Contractor owner must be active within current legal entity in contract request",
-               params: [],
-               rule: :invalid
-             },
-             "$.contractor_owner_id"
-           }
-         ]}
+        Error.dump(%ValidationError{
+          description: "Contractor owner must be active within current legal entity in contract request",
+          path: "$.contractor_owner_id"
+        })
     end
   end
 
@@ -1266,30 +1141,10 @@ defmodule EHealth.ContractRequests do
       :ok
     else
       {:diff, false} ->
-        {:error,
-         [
-           {
-             %{
-               description: "Start date must be within this or next year",
-               params: [],
-               rule: :invalid
-             },
-             "$.start_date"
-           }
-         ]}
+        Error.dump(%ValidationError{description: "Start date must be within this or next year", path: "$.start_date"})
 
       {:future, false} ->
-        {:error,
-         [
-           {
-             %{
-               description: "Start date must be greater than current date",
-               params: [],
-               rule: :invalid
-             },
-             "$.start_date"
-           }
-         ]}
+        Error.dump(%ValidationError{description: "Start date must be greater than current date", path: "$.start_date"})
     end
   end
 
@@ -1311,30 +1166,16 @@ defmodule EHealth.ContractRequests do
 
     cond do
       start_date.year != end_date.year ->
-        {:error,
-         [
-           {
-             %{
-               description: "The year of start_date and and date must be equal",
-               params: [],
-               rule: :invalid
-             },
-             "$.end_date"
-           }
-         ]}
+        Error.dump(%ValidationError{
+          description: "The year of start_date and and date must be equal",
+          path: "$.end_date"
+        })
 
       Date.compare(start_date, end_date) == :gt ->
-        {:error,
-         [
-           {
-             %{
-               description: "end_date should be equal or greater than start_date",
-               params: [],
-               rule: :invalid
-             },
-             "$.end_date"
-           }
-         ]}
+        Error.dump(%ValidationError{
+          description: "end_date should be equal or greater than start_date",
+          path: "$.end_date"
+        })
 
       true ->
         :ok
@@ -1396,17 +1237,10 @@ defmodule EHealth.ContractRequests do
       :ok
     else
       false ->
-        {:error,
-         [
-           {
-             %{
-               description: "Legal entity in contract request should be active",
-               params: [],
-               rule: :invalid
-             },
-             "$.contractor_legal_entity_id"
-           }
-         ]}
+        Error.dump(%ValidationError{
+          description: "Legal entity in contract request should be active",
+          path: "$.contractor_legal_entity_id"
+        })
 
       error ->
         error
@@ -1475,7 +1309,7 @@ defmodule EHealth.ContractRequests do
       {:ok, Map.put(params, "parent_contract_id", contract.id), contract}
     else
       _ ->
-        {:error, {:"422", "Verified contract with such contract number does not exist"}}
+        Error.dump("Verified contract with such contract number does not exist")
     end
   end
 
@@ -1494,7 +1328,7 @@ defmodule EHealth.ContractRequests do
              nil,
              headers
            ) do
-      {:error, {:"422", "Active contract is found. Contract number must be sent in request"}}
+      Error.dump("Active contract is found. Contract number must be sent in request")
     else
       _ -> {:ok, params, nil}
     end
@@ -1571,7 +1405,7 @@ defmodule EHealth.ContractRequests do
          true <- md5 == resource_headers |> get_header("ETag") |> Jason.decode!() do
       :ok
     else
-      _ -> {:error, {:"422", "#{resource_name} md5 doesn't match"}}
+      _ -> Error.dump("#{resource_name} md5 doesn't match")
     end
   end
 

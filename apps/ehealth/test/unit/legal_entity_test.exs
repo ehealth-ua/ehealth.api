@@ -25,22 +25,33 @@ defmodule EHealth.Unit.LegalEntityTest do
       content =
         "test/data/signed_content.json"
         |> File.read!()
-        |> Base.encode64()
+        |> Jason.decode!()
 
-      edrpou_signed_content(content, "37367387")
+      edrpou_signed_content(content, "38782323")
+
+      expect(UAddressesMock, :validate_addresses, fn _, _ ->
+        {:ok, %{"data" => %{}}}
+      end)
 
       assert {:ok, _} =
-               Validator.validate_sign_content(
+               Validator.decode_and_validate(
                  %{
                    "signed_content_encoding" => "base64",
-                   "signed_legal_entity_request" => content
+                   "signed_legal_entity_request" => Jason.encode!(content)
                  },
-                 [{"edrpou", "37367387"}]
+                 [{"edrpou", "38782323"}]
                )
     end
 
     test "invalid signed content validation" do
-      assert %Ecto.Changeset{valid?: false} =
+      assert {:error,
+              [
+                {%{
+                   description: "value is not allowed in enum",
+                   params: ["base64"],
+                   rule: :inclusion
+                 }, "$.signed_content_encoding"}
+              ]} =
                Validator.decode_and_validate(
                  %{
                    "signed_content_encoding" => "base256",
@@ -48,24 +59,6 @@ defmodule EHealth.Unit.LegalEntityTest do
                  },
                  []
                )
-    end
-
-    test "can process 424 error" do
-      error = %{
-        "error" => %{
-          "message" =>
-            "The method could not be performed on the resource because the requested action depended on another action and that action failed.",
-          "type" => "failed_dependency"
-        },
-        "meta" => %{
-          "code" => 424,
-          "request_id" => "2kmadsntegh08ugvek000ef2",
-          "type" => "object",
-          "url" => "http://www.example.com/digital_signatures"
-        }
-      }
-
-      assert %Ecto.Changeset{valid?: false} = Validator.normalize_signature_error({:error, error})
     end
 
     test "invalid signed content - 2 signers" do
@@ -78,16 +71,14 @@ defmodule EHealth.Unit.LegalEntityTest do
 
       edrpou_signed_content(content, ["37367387", "37367387"])
 
-      assert {:error, {:bad_request, "document must be signed by 1 signer but contains 2 signatures"}} ==
-               Validator.decode_and_validate(request, [])
-    end
-
-    test "invalid signed content - no security" do
-      content = get_legal_entity_data() |> Map.delete("security")
-      signer = %{"is_valid" => true, "signer" => %{}, "validation_error_message" => ""}
-      {:error, [{error, _}]} = Validator.validate_json(content, signer, [])
-      assert :required == error[:rule]
-      assert "required property security was not present" == error[:description]
+      assert {:error,
+              [
+                {%{
+                   description: "document must be signed by 1 signer but contains 2 signatures",
+                   params: [],
+                   rule: :invalid
+                 }, "$.signed_legal_entity_request"}
+              ]} == Validator.decode_and_validate(request, [])
     end
 
     test "invalid signed content - birth date format" do
@@ -146,52 +137,39 @@ defmodule EHealth.Unit.LegalEntityTest do
         })
 
       request = %{"data" => %{"content" => content}}
+      edrpou_signed_content(content, ["37367387"])
 
-      assert %Ecto.Changeset{valid?: false} =
+      assert {:error, %Ecto.Changeset{valid?: false}} =
                API.create(
                  %{
                    "signed_content_encoding" => "base64",
-                   "signed_legal_entity_request" => request
+                   "signed_legal_entity_request" => Jason.encode!(request)
                  },
                  []
                )
     end
 
-    test "validate decoded legal entity" do
-      content = get_legal_entity_data()
-
-      assert :ok == Validator.validate_schema(content)
-    end
-
     test "validate legal entity EDRPOU" do
       content = get_legal_entity_data()
-
       signer = %{"edrpou" => "37367387"}
-
       assert {:ok, _} = Validator.validate_edrpou(content, signer)
     end
 
     test "empty signer EDRPOU" do
       content = get_legal_entity_data()
-
       signer = %{"empty" => "37367387"}
-
       assert {:error, %Ecto.Changeset{valid?: false}} = Validator.validate_edrpou(content, signer)
     end
 
     test "invalid signer EDRPOU" do
       content = get_legal_entity_data()
-
       signer = %{"edrpou" => "03736738"}
-
       assert {:error, %Ecto.Changeset{valid?: false}} = Validator.validate_edrpou(content, signer)
     end
 
     test "different signer EDRPOU" do
       content = get_legal_entity_data()
-
       signer = %{"edrpou" => "0373167387"}
-
       assert {:error, %Ecto.Changeset{valid?: false}} = Validator.validate_edrpou(content, signer)
     end
   end
@@ -414,7 +392,8 @@ defmodule EHealth.Unit.LegalEntityTest do
 
     uaddresses_invalid_mock()
 
-    assert {:error, [{%{"description" => "invalid settlement value", "params" => []}, "$.addresses[0].settlement"}]} ==
+    assert {:error,
+            [{%{description: "invalid settlement value", params: [], rule: :invalid}, "$.addresses[0].settlement"}]} ==
              Validator.validate_addresses(content, [])
   end
 
@@ -433,7 +412,8 @@ defmodule EHealth.Unit.LegalEntityTest do
 
     uaddresses_invalid_mock()
 
-    assert {:error, [{%{"description" => "invalid settlement value", "params" => []}, "$.addresses[0].settlement"}]} ==
+    assert {:error,
+            [{%{description: "invalid settlement value", params: [], rule: :invalid}, "$.addresses[0].settlement"}]} ==
              Validator.validate_addresses(content, [])
   end
 
@@ -452,7 +432,7 @@ defmodule EHealth.Unit.LegalEntityTest do
 
     uaddresses_invalid_mock("$.addresses[0].region", "invalid region value")
 
-    assert {:error, [{%{"description" => "invalid region value", "params" => []}, "$.addresses[0].region"}]} ==
+    assert {:error, [{%{description: "invalid region value", params: [], rule: :invalid}, "$.addresses[0].region"}]} ==
              Validator.validate_addresses(content, [])
   end
 
@@ -471,7 +451,7 @@ defmodule EHealth.Unit.LegalEntityTest do
 
     uaddresses_invalid_mock("$.addresses[0].region", "invalid region value")
 
-    assert {:error, [{%{"description" => "invalid region value", "params" => []}, "$.addresses[0].region"}]} ==
+    assert {:error, [{%{description: "invalid region value", params: [], rule: :invalid}, "$.addresses[0].region"}]} ==
              Validator.validate_addresses(content, [])
   end
 
@@ -490,7 +470,7 @@ defmodule EHealth.Unit.LegalEntityTest do
 
     uaddresses_invalid_mock("$.addresses[0].area", "invalid area value")
 
-    assert {:error, [{%{"description" => "invalid area value", "params" => []}, "$.addresses[0].area"}]} ==
+    assert {:error, [{%{description: "invalid area value", params: [], rule: :invalid}, "$.addresses[0].area"}]} ==
              Validator.validate_addresses(content, [])
   end
 
@@ -509,7 +489,7 @@ defmodule EHealth.Unit.LegalEntityTest do
 
     uaddresses_invalid_mock("$.addresses[0].area", "invalid area value")
 
-    assert {:error, [{%{"description" => "invalid area value", "params" => []}, "$.addresses[0].area"}]} ==
+    assert {:error, [{%{description: "invalid area value", params: [], rule: :invalid}, "$.addresses[0].area"}]} ==
              Validator.validate_addresses(content, [])
   end
 

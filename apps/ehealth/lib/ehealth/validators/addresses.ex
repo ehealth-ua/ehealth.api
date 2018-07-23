@@ -2,6 +2,9 @@ defmodule EHealth.Validators.Addresses do
   @moduledoc """
   KVED codes validator
   """
+
+  alias EHealth.ValidationError
+  alias EHealth.Validators.Error
   @uaddresses_api Application.get_env(:ehealth, :api_resolvers)[:uaddresses]
 
   def validate(addresses, headers) when is_list(addresses), do: validate_addresses_values(addresses, headers)
@@ -23,11 +26,10 @@ defmodule EHealth.Validators.Addresses do
         :ok
 
       _ ->
-        {:error,
-         [
-           {%{description: "Single address of type '#{required_type}' is required", params: [], rule: :invalid},
-            "$.addresses"}
-         ]}
+        Error.dump(%ValidationError{
+          description: "Single address of type '#{required_type}' is required",
+          path: "$.addresses"
+        })
     end
   end
 
@@ -37,10 +39,14 @@ defmodule EHealth.Validators.Addresses do
         :ok
 
       {:error, %{"error" => %{"invalid" => errors}}} ->
-        {:error,
-         Enum.map(errors, fn error ->
-           {hd(error["rules"]), error["entry"]}
-         end)}
+        Error.dump(
+          Enum.map(errors, fn %{"rules" => rules, "entry" => entry} ->
+            %ValidationError{
+              description: rules |> hd |> Map.get("description"),
+              path: entry
+            }
+          end)
+        )
     end
   end
 end

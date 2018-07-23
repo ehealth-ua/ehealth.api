@@ -20,7 +20,9 @@ defmodule EHealth.DeclarationRequests.API.Creator do
   alias EHealth.Repo
   alias EHealth.Utils.NumberGenerator
   alias EHealth.Utils.Phone
+  alias EHealth.ValidationError
   alias EHealth.Validators.BirthDate
+  alias EHealth.Validators.Error
   alias EHealth.Validators.TaxID
 
   @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
@@ -114,14 +116,12 @@ defmodule EHealth.DeclarationRequests.API.Creator do
     else
       alllowed_types = Enum.join(@allowed_employee_specialities, ", ")
 
-      {:error,
-       [
-         {%{
-            description: "Employee's speciality does not belong to a doctor: #{alllowed_types}",
-            params: [allowed_types: alllowed_types],
-            rule: "speciality_inclusion"
-          }, "$.data"}
-       ]}
+      Error.dump(%ValidationError{
+        description: "Employee's speciality does not belong to a doctor: #{alllowed_types}",
+        params: [allowed_types: alllowed_types],
+        rule: "speciality_inclusion",
+        path: "$.data"
+      })
     end
   end
 
@@ -374,17 +374,7 @@ defmodule EHealth.DeclarationRequests.API.Creator do
     if status == Employee.status(:approved) do
       :ok
     else
-      {:error,
-       [
-         {
-           %{
-             description: "Invalid employee status",
-             params: [],
-             rule: :invalid
-           },
-           "$.employee_id"
-         }
-       ]}
+      Error.dump(%ValidationError{description: "Invalid employee status", path: "$.employee_id"})
     end
   end
 
@@ -448,7 +438,7 @@ defmodule EHealth.DeclarationRequests.API.Creator do
       |> get_field(:data)
       |> get_in(["person", "tax_id"])
 
-    if is_nil(tax_id) || TaxID.validate(tax_id) do
+    if is_nil(tax_id) || TaxID.validate(tax_id, nil) == :ok do
       changeset
     else
       add_error(changeset, :"data.person.tax_id", "Person's tax ID in not valid.")
@@ -491,7 +481,7 @@ defmodule EHealth.DeclarationRequests.API.Creator do
       validation = fn {person, index}, changeset ->
         tax_id = person["tax_id"]
 
-        if is_nil(tax_id) || TaxID.validate(tax_id) do
+        if is_nil(tax_id) || TaxID.validate(tax_id, nil) == :ok do
           changeset
         else
           add_error(changeset, :"data.person.confidant_person[#{index}].tax_id", "Person's tax ID in not valid.")
