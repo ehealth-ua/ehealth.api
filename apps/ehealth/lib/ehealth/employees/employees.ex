@@ -46,8 +46,6 @@ defmodule EHealth.Employees do
     speciality
   )a
 
-  @type_owner Employee.type(:owner)
-
   def list(params) do
     %Search{}
     |> changeset(params)
@@ -160,7 +158,6 @@ defmodule EHealth.Employees do
       ) do
     employee = get_by_id!(employee_id)
     party = Parties.get_by_id!(employee.party.id)
-    party_id = party.id
     party_update_params = EmployeeRequests.create_party_params(employee_request)
 
     employee_update_params =
@@ -170,7 +167,7 @@ defmodule EHealth.Employees do
         "speciality" => EmployeeRequests.get_employee_speciality(employee_request)
       })
 
-    with {:ok, _} <- suspend_all_party_contracts(party_id, headers),
+    with {:ok, _} <- EmployeeCreator.suspend_party_contracts(party, employee_request, headers),
          {:ok, _} <- EmployeeCreator.create_party_user(party, headers),
          :ok <- UserRoleCreator.create(employee, headers),
          %Changeset{valid?: true} = party_changeset <- Parties.changeset(party, party_update_params),
@@ -184,33 +181,10 @@ defmodule EHealth.Employees do
   end
 
   def create_or_update_employee(%Request{} = employee_request, headers) do
-    with {:ok, %Employee{party_id: party_id} = employee} <- EmployeeCreator.create(employee_request, headers),
-         {:ok, _} <- suspend_all_party_contracts(party_id, headers),
+    with {:ok, employee} <- EmployeeCreator.create(employee_request, headers),
          :ok <- UserRoleCreator.create(employee, headers) do
       {:ok, employee}
     end
-  end
-
-  defp suspend_all_party_contracts(party_id, headers) do
-    contracts = party_contracts_to_suspend(party_id, headers)
-    suspend_contracts(contracts)
-  end
-
-  defp party_contracts_to_suspend(party_id, headers) do
-    Employee
-    |> where([e], e.employee_type == ^@type_owner)
-    |> where([e], e.party_id == ^party_id)
-    |> PRMRepo.all()
-    |> Enum.reduce([], fn owner, acc ->
-      contract_params = %{
-        contractor_owner_id: owner.id,
-        status: Contract.status(:verified),
-        is_suspended: false
-      }
-
-      {:ok, %Page{entries: contracts}, _} = Contracts.list(contract_params, nil, headers)
-      contracts ++ acc
-    end)
   end
 
   def update(%Employee{status: old_status} = employee, attrs, author_id) do
