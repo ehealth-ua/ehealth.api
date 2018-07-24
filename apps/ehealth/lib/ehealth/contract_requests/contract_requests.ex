@@ -234,7 +234,7 @@ defmodule EHealth.ContractRequests do
          :ok <- validate_contract_id(contract_request),
          :ok <- validate_contractor_owner_id(contract_request),
          :ok <- validate_nhs_signer_id(contract_request, client_id),
-         :ok <- validate_employee_divisions(contract_request, client_id),
+         :ok <- validate_employee_divisions(contract_request, contract_request.contractor_legal_entity_id),
          :ok <- validate_contractor_divisions(contract_request),
          :ok <- validate_start_date(contract_request),
          update_params <-
@@ -376,7 +376,7 @@ defmodule EHealth.ContractRequests do
            ),
          :ok <- validate_content(contract_request, printout_content, content),
          :ok <- validate_contract_id(contract_request),
-         :ok <- validate_employee_divisions(contract_request, client_id),
+         :ok <- validate_employee_divisions(contract_request, contract_request.contractor_legal_entity_id),
          :ok <- validate_start_date(contract_request),
          :ok <-
            save_signed_content(
