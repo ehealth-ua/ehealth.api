@@ -1,33 +1,26 @@
 defmodule EHealth.Persons.Validator do
   @moduledoc "Additional validation of Person request structure that cannot be covered by JSON Schema"
 
-  alias EHealth.Dictionaries
   alias EHealth.ValidationError
   alias EHealth.Validators.BirthDate
   alias EHealth.Validators.Error
   alias EHealth.Validators.JsonObjects
 
   @verification_api Application.get_env(:ehealth, :api_resolvers)[:otp_verification]
-  @validation_dictionaries ["DOCUMENT_TYPE", "PHONE_TYPE", "AUTHENTICATION_METHOD", "DOCUMENT_RELATIONSHIP_TYPE"]
   @auth_method_error "Must be one and only one authentication method."
   @birth_certificate_number_regex ~r/^([A-Za-zА-яіІїЇєЄґҐё\d\#\№\–\-\—\－\_\'\,\s\/\\\=\|\!\<\;\?\%\:\]\*\+\.\√])+$/u
 
   def validate(person) do
-    dict_keys = Dictionaries.get_dictionaries_keys(@validation_dictionaries)
-
     with :ok <- validate_birth_certificate_number(person),
-         %{"DOCUMENT_TYPE" => doc_types} = dict_keys,
-         :ok <- JsonObjects.array_unique_by_key(person, ["documents"], "type", doc_types),
-         %{"PHONE_TYPE" => phone_types} = dict_keys,
-         :ok <- validate_person_phones(person, phone_types),
-         :ok <- JsonObjects.array_unique_by_key(person, ["emergency_contact", "phones"], "type", phone_types),
-         %{"AUTHENTICATION_METHOD" => auth_methods} = dict_keys,
-         :ok <- validate_auth_method(person, auth_methods),
-         :ok <- validate_confidant_persons(person, dict_keys) do
+         :ok <- JsonObjects.array_unique_by_key(person, ["documents"], "type"),
+         :ok <- validate_person_phones(person),
+         :ok <- JsonObjects.array_unique_by_key(person, ["emergency_contact", "phones"], "type"),
+         :ok <- validate_auth_method(person),
+         :ok <- validate_confidant_persons(person) do
       :ok
     else
-      {:error, [{rules, path}]} ->
-        {:error, [{rules, JsonObjects.combine_path("person", path)}]}
+      %ValidationError{path: path} = error ->
+        Error.dump(%{error | path: JsonObjects.combine_path("person", path)})
     end
   end
 
@@ -105,18 +98,18 @@ defmodule EHealth.Persons.Validator do
 
     cond do
       age < 14 && !birth_certificate_number ->
-        Error.dump(%ValidationError{
+        %ValidationError{
           description: "Must contain required item.",
           params: ["BIRTH_CERTIFICATE"],
           path: "$.person.documents"
-        })
+        }
 
       birth_certificate_number && !birth_certificate_number_valid?(birth_certificate_number) ->
-        Error.dump(%ValidationError{
+        %ValidationError{
           description: "Birth certificate number is not valid",
           params: ["BIRTH_CERTIFICATE"],
           path: "$.person.documents[#{document_index}].number"
-        })
+        }
 
       true ->
         :ok
@@ -127,47 +120,33 @@ defmodule EHealth.Persons.Validator do
     Regex.match?(@birth_certificate_number_regex, birth_certificate_number)
   end
 
-  defp validate_person_phones(person, phone_types) do
+  defp validate_person_phones(person) do
     case Map.get(person, "phones") do
       nil -> :ok
       [] -> :ok
-      _phones -> JsonObjects.array_unique_by_key(person, ["phones"], "type", phone_types)
+      _phones -> JsonObjects.array_unique_by_key(person, ["phones"], "type")
     end
   end
 
-  defp validate_auth_method(person, auth_methods) do
-    case JsonObjects.array_single_item(person, ["authentication_methods"], "type", auth_methods) do
+  defp validate_auth_method(person) do
+    case JsonObjects.array_single_item(person, ["authentication_methods"], "type") do
       :ok ->
         :ok
 
-      {:error, [{%{description: description, params: params}, path}]} ->
-        if description =~ "not found" do
-          Error.dump(%ValidationError{
-            description: description,
-            params: params,
-            path: path
-          })
-        else
-          Error.dump(%ValidationError{
-            description: @auth_method_error,
-            params: auth_methods,
-            path: path
-          })
-        end
+      %ValidationError{} = error ->
+        %{error | description: @auth_method_error}
     end
   end
 
-  defp validate_confidant_persons(%{"confidant_person" => [_ | _] = confidant_persons} = person, dict_keys) do
-    valid_relations = ["PRIMARY", "SECONDARY"]
-
-    with :ok <- JsonObjects.array_unique_by_key(person, ["confidant_person"], "relation_type", valid_relations),
+  defp validate_confidant_persons(%{"confidant_person" => [_ | _] = confidant_persons} = person) do
+    with :ok <- JsonObjects.array_unique_by_key(person, ["confidant_person"], "relation_type"),
          :ok <- JsonObjects.array_item_required(person, ["confidant_person"], "relation_type", "PRIMARY"),
-         :ok <- validate_every_confidant_person(confidant_persons, dict_keys, 0) do
+         :ok <- validate_every_confidant_person(confidant_persons, 0) do
       :ok
     end
   end
 
-  defp validate_confidant_persons(person, _) do
+  defp validate_confidant_persons(person) do
     age =
       Timex.diff(
         Timex.now(),
@@ -176,28 +155,25 @@ defmodule EHealth.Persons.Validator do
       )
 
     if age < 14 do
-      Error.dump(%ValidationError{
+      %ValidationError{
         description: "Confidant person is mandatory for children",
         path: "$.confidant_person"
-      })
+      }
     else
       :ok
     end
   end
 
-  defp validate_every_confidant_person([], _, _), do: :ok
+  defp validate_every_confidant_person([], _), do: :ok
 
-  defp validate_every_confidant_person([h | t], dict_keys, i) do
-    with %{"DOCUMENT_TYPE" => doc_types} = dict_keys,
-         :ok <- JsonObjects.array_unique_by_key(h, ["documents_person"], "type", doc_types),
-         %{"PHONE_TYPE" => phone_types} = dict_keys,
-         :ok <- validate_person_phones(h, phone_types),
-         %{"DOCUMENT_RELATIONSHIP_TYPE" => doc_relation_type} = dict_keys,
-         :ok <- JsonObjects.array_unique_by_key(h, ["documents_relationship"], "type", doc_relation_type) do
-      validate_every_confidant_person(t, dict_keys, i + 1)
+  defp validate_every_confidant_person([h | t], i) do
+    with :ok <- JsonObjects.array_unique_by_key(h, ["documents_person"], "type"),
+         :ok <- validate_person_phones(h),
+         :ok <- JsonObjects.array_unique_by_key(h, ["documents_relationship"], "type") do
+      validate_every_confidant_person(t, i + 1)
     else
-      {:error, [{rules, path}]} ->
-        {:error, [{rules, JsonObjects.combine_path("confidant_person[#{i}]", path)}]}
+      %ValidationError{path: path} = error ->
+        %{error | path: JsonObjects.combine_path("confidant_person[#{i}]", path)}
     end
   end
 end

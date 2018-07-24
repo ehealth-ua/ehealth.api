@@ -3,6 +3,7 @@ defmodule EHealth.Persons.ValidatorTest do
 
   use EHealth.Web.ConnCase
   alias EHealth.Persons.Validator
+  alias EHealth.ValidationError
 
   @today_date Date.to_string(Date.utc_today())
 
@@ -27,11 +28,12 @@ defmodule EHealth.Persons.ValidatorTest do
     test "Returns :error if person documents contains incorrect objects", %{person: person} do
       # two documents of the same type
       bad_person = Map.update!(person, "documents", &[%{"type" => "PASSPORT", "number" => 3} | &1])
-      assert {:error, _} = Validator.validate(bad_person)
 
-      # document with type not from dictionary
-      bad_person = Map.update!(person, "documents", &[%{"type" => "NOT_IN_DICTIONARY", "number" => 3} | &1])
-      assert {:error, _} = Validator.validate(bad_person)
+      assert {:error,
+              [
+                {%{description: "No duplicate values.", params: ["PASSPORT"], rule: :invalid},
+                 "$.person.documents[1].type"}
+              ]} = Validator.validate(bad_person)
     end
 
     test "Returns :ok for person without phones", %{person: person} do
@@ -39,40 +41,58 @@ defmodule EHealth.Persons.ValidatorTest do
       assert :ok = Validator.validate(person)
     end
 
-    test "Returns :error if person phones contains incorrect objects", %{person: person} do
+    test "Returns error if person phones contains incorrect objects", %{person: person} do
       # two phones of the same type
       bad_person = Map.update!(person, "phones", &[%{"type" => "MOBILE", "number" => 3} | &1])
-      assert {:error, _} = Validator.validate(bad_person)
 
-      # phone with type not from dictionary
-      bad_person = Map.update!(person, "phones", &[%{"type" => "NOT_FROM_DICTIONARY", "number" => 3} | &1])
-      assert {:error, _} = Validator.validate(bad_person)
+      assert {:error,
+              [
+                {%{
+                   description: "No duplicate values.",
+                   params: ["MOBILE"],
+                   rule: :invalid
+                 }, "$.person.phones[1].type"}
+              ]} = Validator.validate(bad_person)
     end
 
     test "Returns :error if emergency_contact phones contains incorrect objects", %{person: person} do
       # two phones of the same type
       bad_person = update_in(person["emergency_contact"]["phones"], &[%{"type" => "MOBILE", "number" => 3} | &1])
-      assert {:error, _} = Validator.validate(bad_person)
 
-      # phone with type not from dictionary
-      bad_person =
-        update_in(person["emergency_contact"]["phones"], &[%{"type" => "NOT_FROM_DICTIONARY", "number" => 3} | &1])
-
-      assert {:error, _} = Validator.validate(bad_person)
+      assert {:error,
+              [
+                {%{
+                   description: "No duplicate values.",
+                   params: ["MOBILE"],
+                   rule: :invalid
+                 }, "$.person.emergency_contact.phones[1].type"}
+              ]} = Validator.validate(bad_person)
     end
 
     test "Returns :error if person authentication_methods contains incorrect objects", %{person: person} do
       # two correct auth methods
       bad_person = Map.update!(person, "authentication_methods", &[%{"type" => "OTP"} | &1])
-      assert {:error, _} = Validator.validate(bad_person)
+
+      assert {:error,
+              [
+                {%{
+                   description: "Must be one and only one authentication method.",
+                   params: [],
+                   rule: :invalid
+                 }, "$.person.authentication_methods[0].type"}
+              ]} = Validator.validate(bad_person)
 
       # two auth methods of the same type
       bad_person = Map.update!(person, "authentication_methods", &[%{"type" => "OFFLINE"} | &1])
-      assert {:error, _} = Validator.validate(bad_person)
 
-      # auth method not from dictionary
-      bad_person = Map.put(person, "authentication_methods", [%{"type" => "NOT_FROM_DICTIONARY"}])
-      assert {:error, _} = Validator.validate(bad_person)
+      assert {:error,
+              [
+                {%{
+                   description: "Must be one and only one authentication method.",
+                   params: [],
+                   rule: :invalid
+                 }, "$.person.authentication_methods[0].type"}
+              ]} = Validator.validate(bad_person)
     end
 
     test "Returns :ok for correct person with primary confidant_person", %{person: person, pconf_person: pconf_person} do
@@ -98,14 +118,15 @@ defmodule EHealth.Persons.ValidatorTest do
         Map.update!(pconf_person, "documents_person", &[%{"type" => "NATIONAL_ID", "number" => 5} | &1])
 
       bad_person = Map.put(person, "confidant_person", [bad_pconf_person])
-      assert {:error, _} = Validator.validate(bad_person)
 
-      # document with type not from dictionary
-      bad_pconf_person =
-        Map.update!(pconf_person, "documents_person", &[%{"type" => "NOT_IN_DICTIONARY", "number" => 3} | &1])
-
-      bad_person = Map.put(person, "confidant_person", [bad_pconf_person])
-      assert {:error, _} = Validator.validate(bad_person)
+      assert {:error,
+              [
+                {%{
+                   description: "No duplicate values.",
+                   params: ["NATIONAL_ID"],
+                   rule: :invalid
+                 }, "$.person.confidant_person[0].documents_person[2].type"}
+              ]} = Validator.validate(bad_person)
     end
 
     test "Returns :ok for correct person with primary confidant_person without phones", %{
@@ -124,12 +145,12 @@ defmodule EHealth.Persons.ValidatorTest do
       # two phones of the same type
       bad_pconf_person = Map.update!(pconf_person, "phones", &[%{"type" => "MOBILE", "number" => 3} | &1])
       bad_person = Map.put(person, "confidant_person", [bad_pconf_person])
-      assert {:error, _} = Validator.validate(bad_person)
 
-      # phone with type not from dictionary
-      bad_pconf_person = Map.update!(pconf_person, "phones", &[%{"type" => "NOT_FROM_DICTIONARY", "number" => 3} | &1])
-      bad_person = Map.put(person, "confidant_person", [bad_pconf_person])
-      assert {:error, _} = Validator.validate(bad_person)
+      assert {:error,
+              [
+                {%{description: "No duplicate values.", params: ["MOBILE"], rule: :invalid},
+                 "$.person.confidant_person[0].phones[1].type"}
+              ]} = Validator.validate(bad_person)
     end
 
     test "Returns :error if there is two primary confidant_person", %{person: person, pconf_person: pconf_person} do
@@ -160,14 +181,15 @@ defmodule EHealth.Persons.ValidatorTest do
         Map.update!(pconf_person, "documents_relationship", &[%{"type" => "CONFIDANT_CERTIFICATE", "number" => 5} | &1])
 
       bad_person = Map.put(person, "confidant_person", [bad_pconf_person])
-      assert {:error, _} = Validator.validate(bad_person)
 
-      # document with type not from dictionary
-      bad_pconf_person =
-        Map.update!(pconf_person, "documents_relationship", &[%{"type" => "NOT_IN_DICTIONARY", "number" => 3} | &1])
-
-      bad_person = Map.put(person, "confidant_person", [bad_pconf_person])
-      assert {:error, _} = Validator.validate(bad_person)
+      assert {:error,
+              [
+                {%{
+                   description: "No duplicate values.",
+                   params: ["CONFIDANT_CERTIFICATE"],
+                   rule: :invalid
+                 }, "$.person.confidant_person[0].documents_relationship[4].type"}
+              ]} = Validator.validate(bad_person)
     end
 
     test "returns :ok if confidant_person is empty list", %{person: person} do
@@ -204,52 +226,28 @@ defmodule EHealth.Persons.ValidatorTest do
       assert "$.person.documents[1].type" == path
     end
 
-    test "Error message if person phones contains incorrect objects", %{person: person} do
-      # phone with type not from dictionary
-      bad_person = Map.update!(person, "phones", &[%{"type" => "NOT_FROM_DICTIONARY", "number" => 3} | &1])
-      {:error, [{rules, path}]} = Validator.validate(bad_person)
-
-      assert %{
-               description: "Value 'NOT_FROM_DICTIONARY' is not found in Dictionary.",
-               params: ["LAND_LINE", "MOBILE"],
-               rule: :invalid
-             } == rules
-
-      assert "$.person.phones[0].type" == path
-    end
-
     test "Error message if person authentication_methods contains incorrect objects", %{person: person} do
       # two correct auth methods
       bad_person = Map.update!(person, "authentication_methods", &[%{"type" => "OTP"} | &1])
-      {:error, [{rules, path}]} = Validator.validate(bad_person)
 
-      assert %{
-               description: "Must be one and only one authentication method.",
-               params: ["OFFLINE", "OTP"],
-               rule: :invalid
-             } == rules
-
-      assert "$.person.authentication_methods[0].type" == path
-
-      # auth method not from dictionary
-      bad_person = Map.put(person, "authentication_methods", [%{"type" => "NOT_FROM_DICTIONARY"}])
-      {:error, [{rules, path}]} = Validator.validate(bad_person)
-
-      assert %{
-               description: "Value 'NOT_FROM_DICTIONARY' is not found in Dictionary.",
-               params: ["OFFLINE", "OTP"],
-               rule: :invalid
-             } == rules
-
-      assert "$.person.authentication_methods[0].type" == path
+      assert {:error,
+              [
+                {%{
+                   description: "Must be one and only one authentication method.",
+                   params: [],
+                   rule: :invalid
+                 }, "$.person.authentication_methods[0].type"}
+              ]} = Validator.validate(bad_person)
     end
 
     test "Error message if there is only SECONDARY confidant_person", %{person: person, sconf_person: sconf_person} do
       bad_person = Map.put(person, "confidant_person", [sconf_person])
-      {:error, [{rules, path}]} = Validator.validate(bad_person)
 
-      assert %{description: "Must contain required item.", params: ["PRIMARY"], rule: :invalid} == rules
-      assert "$.person.confidant_person[].relation_type" == path
+      assert {:error,
+              [
+                {%{description: "Must contain required item.", params: ["PRIMARY"], rule: :invalid},
+                 "$.person.confidant_person[].relation_type"}
+              ]} = Validator.validate(bad_person)
     end
 
     test "Error message if 1 of 2 confidant_person contains incorrect data", %{
@@ -263,9 +261,14 @@ defmodule EHealth.Persons.ValidatorTest do
 
       bad_person = Map.put(person, "confidant_person", [pconf_person, bad_sconf_person])
 
-      {:error, [{rules, path}]} = Validator.validate(bad_person)
-      assert %{description: "No duplicate values.", params: ["CONFIDANT_CERTIFICATE"], rule: :invalid} == rules
-      assert "$.person.confidant_person[1].documents_relationship[4].type" == path
+      assert {:error,
+              [
+                {%{
+                   description: "No duplicate values.",
+                   params: ["CONFIDANT_CERTIFICATE"],
+                   rule: :invalid
+                 }, "$.person.confidant_person[1].documents_relationship[4].type"}
+              ]} = Validator.validate(bad_person)
     end
 
     test "Success on valid birth certificate number", %{person: person} do
@@ -317,7 +320,12 @@ defmodule EHealth.Persons.ValidatorTest do
       ]
 
       for number <- invalid_numbers do
-        assert {:error, _} =
+        assert %ValidationError{
+                 description: "Birth certificate number is not valid",
+                 params: ["BIRTH_CERTIFICATE"],
+                 path: "$.person.documents[0].number",
+                 rule: :invalid
+               } =
                  :person
                  |> string_params_for(birth_date: @today_date, documents: [create_birth_certificate(number)])
                  |> Validator.validate_birth_certificate_number()

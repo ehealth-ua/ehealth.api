@@ -54,7 +54,6 @@ defmodule EHealth.Divisions do
   @mountain_group_required_types %{mountain_group: :boolean, settlement_id: Ecto.UUID}
   @status_active Division.status(:active)
   @default_mountain_group "0"
-  @validation_dictionaries ["ADDRESS_TYPE", "PHONE_TYPE"]
 
   def list(params) do
     %Search{}
@@ -147,12 +146,8 @@ defmodule EHealth.Divisions do
   end
 
   def validate_json_objects(data) do
-    dict_keys = Dictionaries.get_dictionaries_keys(@validation_dictionaries)
-
-    with %{"ADDRESS_TYPE" => address_types} = dict_keys,
-         :ok <- JsonObjects.array_unique_by_key(data, ["addresses"], "type", address_types),
-         %{"PHONE_TYPE" => phone_types} = dict_keys,
-         :ok <- JsonObjects.array_unique_by_key(data, ["phones"], "type", phone_types),
+    with :ok <- JsonObjects.array_unique_by_key(data, ["addresses"], "type"),
+         :ok <- JsonObjects.array_unique_by_key(data, ["phones"], "type"),
          do: :ok
   end
 
