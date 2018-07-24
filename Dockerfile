@@ -16,7 +16,7 @@ RUN mix do \
       deps.compile, \
       release
 
-FROM alpine:3.7
+FROM alpine:3.8
 
 ARG APP_NAME
 
