@@ -1479,9 +1479,20 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
       get_client_type_by_name(UUID.generate(), 2)
       template(2)
+
+      birth_date = ~D[1991-08-19]
+      tax_id = "3067305998"
+
+      party =
+        insert(
+          :prm,
+          :party,
+          birth_date: birth_date,
+          tax_id: tax_id
+        )
+
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division)
-      party = insert(:prm, :party)
 
       employee =
         insert(
@@ -1500,7 +1511,9 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       data =
         employee_request_data
         |> put_in([:party, :email], "mis_bot_1493831618@user.com")
-        |> put_in([:party, :tax_id], "47542240")
+        |> put_in([:party, :birth_date], to_string(birth_date))
+        |> put_in([:party, :tax_id], tax_id)
+        |> put_in([:party, :first_name], "Димон")
         |> put_in([:legal_entity_id], legal_entity.id)
         |> put_in([:division_id], division.id)
         |> put_in([:party_id], party.id)
@@ -1592,7 +1605,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
       contract = PRMRepo.get(Contract, contract.id)
 
-      assert contract.is_suspended
+      assert false == contract.is_suspended
     end
 
     test "approve non-existing employee, suspend all party contracts", %{conn: conn} do
@@ -1604,7 +1617,17 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       get_client_type_by_name(UUID.generate(), 2)
       template(2)
 
-      party = insert(:prm, :party)
+      birth_date = ~D[1991-08-19]
+      tax_id = "3067305998"
+
+      party =
+        insert(
+          :prm,
+          :party,
+          birth_date: birth_date,
+          tax_id: tax_id
+        )
+
       division1 = insert(:prm, :division)
       division2 = insert(:prm, :division)
       legal_entity1 = insert(:prm, :legal_entity)
@@ -1637,6 +1660,9 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       data =
         employee_request_data()
         |> put_in([:party, :email], "mis_bot_1493831618@user.com")
+        |> put_in([:party, :birth_date], to_string(birth_date))
+        |> put_in([:party, :tax_id], tax_id)
+        |> put_in([:party, :second_name], "Randomsky")
         |> put_in([:legal_entity_id], legal_entity2.id)
         |> put_in([:division_id], division2.id)
         |> put_in([:party_id], party.id)
@@ -1732,6 +1758,142 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       contract2 = PRMRepo.get(Contract, contract2.id)
       assert contract1.is_suspended
       assert contract2.is_suspended
+    end
+
+    test "approve non-existing employee, keep party credentials", %{conn: conn} do
+      create_user_role()
+      get_user_roles()
+      get_roles_by_name(UUID.generate())
+      get_user()
+      put_client()
+      get_client_type_by_name(UUID.generate(), 2)
+      template(2)
+
+      party = insert(:prm, :party)
+      division1 = insert(:prm, :division)
+      division2 = insert(:prm, :division)
+      legal_entity1 = insert(:prm, :legal_entity)
+      legal_entity2 = insert(:prm, :legal_entity)
+
+      employee1 =
+        insert(
+          :prm,
+          :employee,
+          legal_entity: legal_entity1,
+          division: division1,
+          party: party,
+          is_active: false,
+          employee_type: "OWNER"
+        )
+
+      contract = insert(:prm, :contract, contractor_owner_id: employee1.id)
+
+      employee2 =
+        build(
+          :employee,
+          legal_entity: legal_entity2,
+          division: division2,
+          party: party
+        )
+
+      # Create employee2
+
+      data =
+        employee_request_data()
+        |> put_in([:party, :email], "mis_bot_1493831618@user.com")
+        |> put_in([:legal_entity_id], legal_entity2.id)
+        |> put_in([:division_id], division2.id)
+        |> put_in([:party_id], party.id)
+
+      employee_request =
+        insert(
+          :il,
+          :employee_request,
+          employee_id: employee2.id,
+          data: data
+        )
+
+      resp =
+        conn
+        |> put_client_id_header(legal_entity2.id)
+        |> post(employee_request_path(conn, :approve, employee_request.id))
+        |> json_response(200)
+        |> Map.get("data")
+
+      assert "APPROVED" == resp["status"]
+
+      contract = PRMRepo.get(Contract, contract.id)
+      assert false == contract.is_suspended
+    end
+
+    test "approve existing employee, keep party credentials", %{conn: conn} do
+      create_user_role()
+      get_user_roles()
+      get_roles_by_name(UUID.generate())
+      get_user()
+      put_client()
+      get_client_type_by_name(UUID.generate(), 2)
+      template(2)
+
+      party = insert(:prm, :party)
+      division1 = insert(:prm, :division)
+      division2 = insert(:prm, :division)
+      legal_entity1 = insert(:prm, :legal_entity)
+      legal_entity2 = insert(:prm, :legal_entity)
+
+      employee1 =
+        insert(
+          :prm,
+          :employee,
+          legal_entity: legal_entity1,
+          division: division1,
+          party: party,
+          employee_type: "OWNER"
+        )
+
+      employee2 =
+        insert(
+          :prm,
+          :employee,
+          legal_entity: legal_entity2,
+          division: division2,
+          party: party,
+          employee_type: "OWNER"
+        )
+
+      contract1 = insert(:prm, :contract, contractor_owner_id: employee1.id)
+      contract2 = insert(:prm, :contract, contractor_owner_id: employee2.id)
+
+      # Update employee1
+
+      data =
+        employee_request_data()
+        |> put_in([:party, :email], "mis_bot_1493831618@user.com")
+        |> put_in([:legal_entity_id], legal_entity1.id)
+        |> put_in([:division_id], division1.id)
+        |> put_in([:party_id], party.id)
+
+      employee_request =
+        insert(
+          :il,
+          :employee_request,
+          employee_id: employee1.id,
+          data: data
+        )
+
+      resp =
+        conn
+        |> put_client_id_header(legal_entity1.id)
+        |> post(employee_request_path(conn, :approve, employee_request.id))
+        |> json_response(200)
+        |> Map.get("data")
+
+      assert "APPROVED" == resp["status"]
+
+      contract1 = PRMRepo.get(Contract, contract1.id)
+      contract2 = PRMRepo.get(Contract, contract2.id)
+      assert false == contract1.is_suspended
+      assert false == contract2.is_suspended
     end
 
     test "update employee first name suspend contract", %{conn: conn} do

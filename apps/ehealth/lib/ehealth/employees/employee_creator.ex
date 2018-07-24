@@ -5,7 +5,10 @@ defmodule EHealth.Employees.EmployeeCreator do
 
   import EHealth.Utils.Connection, only: [get_consumer_id: 1]
   import Ecto.Query
+  import EHealth.Contracts.ContractSuspender
 
+  alias EHealth.Contracts
+  alias EHealth.Contracts.Contract
   alias EHealth.EmployeeRequests.EmployeeRequest, as: Request
   alias EHealth.EmployeeRequests
   alias EHealth.Employees
@@ -24,27 +27,67 @@ defmodule EHealth.Employees.EmployeeCreator do
   @type_pharmacy_owner Employee.type(:pharmacy_owner)
   @status_approved Employee.status(:approved)
 
-  def create(%Request{data: data} = employee_request, req_headers) do
+  def create(%Request{data: data} = employee_request, headers) do
     party = EmployeeRequests.create_party_params(data)
     search_params = %{tax_id: party["tax_id"], birth_date: party["birth_date"]}
-    user_id = get_consumer_id(req_headers)
+    user_id = get_consumer_id(headers)
 
     with %Page{} = paging <- Parties.list(search_params),
          :ok <- check_party_user(user_id, paging.entries),
-         {:ok, party} <- create_or_update_party(paging.entries, party, req_headers) do
-      result =
-        PRMRepo.transaction(fn ->
-          deactivate_employee_owners(
-            employee_request.data["employee_type"],
-            employee_request.data["legal_entity_id"],
-            req_headers
-          )
+         {:ok, %Party{} = party} <- create_or_update_party(paging.entries, party, headers),
+         {:ok, _} <- suspend_party_contracts(List.first(paging.entries) || party, employee_request.data, headers),
+         {:ok, {:ok, %Employee{} = employee}} <-
+           PRMRepo.transaction(fn ->
+             deactivate_employee_owners(
+               employee_request.data["employee_type"],
+               employee_request.data["legal_entity_id"],
+               headers
+             )
 
-          create_employee(party, employee_request, req_headers)
-        end)
-
-      elem(result, 1)
+             create_employee(party, employee_request, headers)
+           end) do
+      {:ok, employee}
     end
+  end
+
+  def suspend_party_contracts(party, employee_request, headers) do
+    if should_suspend_party_contracts(party, employee_request) do
+      suspend_all_party_contracts(party.id, headers)
+    else
+      {:ok, []}
+    end
+  end
+
+  defp should_suspend_party_contracts(party, employee_request) do
+    party_fields =
+      party
+      |> Map.take(~w(first_name second_name last_name)a)
+      |> Map.new(fn {k, v} -> {to_string(k), v} end)
+
+    new_party_fields = Map.take(employee_request["party"], ["first_name", "second_name", "last_name"])
+    party_fields !== new_party_fields
+  end
+
+  defp suspend_all_party_contracts(party_id, headers) do
+    contracts = party_contracts_to_suspend(party_id, headers)
+    suspend_contracts(contracts)
+  end
+
+  defp party_contracts_to_suspend(party_id, headers) do
+    Employee
+    |> where([e], e.employee_type == ^@type_owner)
+    |> where([e], e.party_id == ^party_id)
+    |> PRMRepo.all()
+    |> Enum.reduce([], fn owner, acc ->
+      contract_params = %{
+        contractor_owner_id: owner.id,
+        status: Contract.status(:verified),
+        is_suspended: false
+      }
+
+      {:ok, %Page{entries: contracts}, _} = Contracts.list(contract_params, nil, headers)
+      contracts ++ acc
+    end)
   end
 
   @doc """
