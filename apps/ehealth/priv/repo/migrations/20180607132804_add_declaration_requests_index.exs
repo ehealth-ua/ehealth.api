@@ -14,7 +14,7 @@ defmodule EHealth.Repo.Migrations.AddDeclarationRequestsIndex do
     """)
 
     execute("""
-    CREATE INDEX CONCURRENTLY cabinet_declaration_req_index
+    CREATE INDEX CONCURRENTLY IF NOT EXISTS cabinet_declaration_req_index
     ON declaration_requests (
       mpi_id,
       status,
