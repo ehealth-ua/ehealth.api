@@ -56,21 +56,10 @@ defmodule EHealth.LegalEntities.Validator do
   end
 
   def validate_json_objects(content) do
-    dict_keys = Dictionaries.get_dictionaries_keys(@validation_dictionaries)
-
-    with %{"ADDRESS_TYPE" => address_types} = dict_keys,
-         :ok <- JsonObjects.array_unique_by_key(content, ["addresses"], "type", address_types),
-         %{"PHONE_TYPE" => phone_types} = dict_keys,
-         :ok <- JsonObjects.array_unique_by_key(content, ["phones"], "type", phone_types),
-         :ok <- JsonObjects.array_unique_by_key(content, ["owner", "phones"], "type", phone_types),
-         %{"DOCUMENT_TYPE" => document_types} = dict_keys,
-         :ok <-
-           JsonObjects.array_unique_by_key(
-             content,
-             ["owner", "documents"],
-             "type",
-             document_types
-           ),
+    with :ok <- JsonObjects.array_unique_by_key(content, ["addresses"], "type"),
+         :ok <- JsonObjects.array_unique_by_key(content, ["phones"], "type"),
+         :ok <- JsonObjects.array_unique_by_key(content, ["owner", "phones"], "type"),
+         :ok <- JsonObjects.array_unique_by_key(content, ["owner", "documents"], "type"),
          do: :ok
   end
 

@@ -549,9 +549,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
     test "with invalid party documents", %{conn: conn} do
       %{legal_entity_id: legal_entity_id} = insert(:prm, :division, id: "b075f148-7f93-4fc2-b2ec-2d81b19a9b7b")
-
       doc = %{"type" => "PASSPORT", "number" => "120518"}
-
       employee_request_params = put_in(doctor_request(), ["employee_request", "party", "documents"], [doc, doc])
       conn = put_client_id_header(conn, legal_entity_id)
       conn1 = post(conn, employee_request_path(conn, :create), employee_request_params)

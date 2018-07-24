@@ -3,7 +3,6 @@ defmodule EHealth.EmployeeRequests.Validator do
   Request and Tax ID validators
   """
 
-  alias EHealth.Dictionaries
   alias EHealth.Email.Sanitizer
   alias EHealth.Employees.Employee
   alias EHealth.ValidationError
@@ -15,7 +14,6 @@ defmodule EHealth.EmployeeRequests.Validator do
 
   @doctor Employee.type(:doctor)
   @pharmacist Employee.type(:pharmacist)
-  @validation_dictionaries ["DOCUMENT_TYPE", "PHONE_TYPE"]
 
   def validate(params) do
     with :ok <- JsonSchema.validate(:employee_request, params),
@@ -87,22 +85,16 @@ defmodule EHealth.EmployeeRequests.Validator do
   end
 
   defp validate_json_objects(params) do
-    dict_keys = Dictionaries.get_dictionaries_keys(@validation_dictionaries)
-
-    with %{"DOCUMENT_TYPE" => doc_types} = dict_keys,
-         docs_path = ["employee_request", "party", "documents"],
-         :ok <- validate_non_req_parameteter(params, docs_path, "type", doc_types),
-         %{"PHONE_TYPE" => phone_types} = dict_keys,
-         ph_path = ["employee_request", "party", "phones"],
-         :ok <- validate_non_req_parameteter(params, ph_path, "type", phone_types),
+    with :ok <- validate_non_req_parameteter(params, ~w(employee_request party documents), "type"),
+         :ok <- validate_non_req_parameteter(params, ~w(employee_request party phones), "type"),
          do: :ok
   end
 
-  defp validate_non_req_parameteter(params, path, key_name, valid_types) do
+  defp validate_non_req_parameteter(params, path, key_name) do
     elements = get_in(params, path)
 
     if elements != nil and elements != [] do
-      JsonObjects.array_unique_by_key(params, path, key_name, valid_types)
+      JsonObjects.array_unique_by_key(params, path, key_name)
     else
       :ok
     end

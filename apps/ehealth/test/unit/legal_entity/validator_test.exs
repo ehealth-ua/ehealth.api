@@ -6,6 +6,7 @@ defmodule EHealth.Unit.LegalEntity.ValidatorTest do
   use EHealth.Web.ConnCase, async: false
 
   alias EHealth.LegalEntities.Validator
+  alias EHealth.ValidationError
 
   describe "Additional JSON objects validation: validate_json_objects/1" do
     setup _ do
@@ -25,47 +26,58 @@ defmodule EHealth.Unit.LegalEntity.ValidatorTest do
       assert :ok = Validator.validate_json_objects(legal_entity)
     end
 
-    test "returns :error for incorrect address type (not from Dictionary)", %{
-      legal_entity: legal_entity,
-      address: address
-    } do
-      bad_addresses = [%{address | "type" => "NOT_IN_DICTIONARY"}]
-      bad_legal_entity = Map.put(legal_entity, "addresses", bad_addresses)
-
-      assert {:error, _} = Validator.validate_json_objects(bad_legal_entity)
-    end
-
-    test "returns :error for duplicate address types", %{
+    test "returns error for duplicate address types", %{
       legal_entity: legal_entity,
       address: address
     } do
       one = %{address | "type" => "RESIDENCE"}
       two = %{address | "type" => "REGISTRATION"}
       three = %{address | "type" => "RESIDENCE"}
+
       bad_legal_entity = Map.put(legal_entity, "addresses", [one, two, three])
 
-      assert {:error, _} = Validator.validate_json_objects(bad_legal_entity)
+      assert %ValidationError{
+               description: "No duplicate values.",
+               params: ["RESIDENCE"],
+               path: "$.addresses[2].type",
+               rule: :invalid
+             } = Validator.validate_json_objects(bad_legal_entity)
     end
 
     test "returns :error for multiple phones of the same type", %{legal_entity: legal_entity} do
       mob = %{"number" => "+380503410870", "type" => "MOBILE"}
       bad_legal_entity = Map.put(legal_entity, "phones", [mob, mob])
 
-      assert {:error, _} = Validator.validate_json_objects(bad_legal_entity)
+      assert %ValidationError{
+               description: "No duplicate values.",
+               params: ["MOBILE"],
+               path: "$.phones[1].type",
+               rule: :invalid
+             } = Validator.validate_json_objects(bad_legal_entity)
     end
 
-    test "return :error for incorrect owner phones", %{legal_entity: legal_entity} do
+    test "return error for incorrect owner phones", %{legal_entity: legal_entity} do
       mob = %{"number" => "+380503410870", "type" => "MOBILE"}
       bad_legal_entity = put_in(legal_entity, ["owner", "phones"], [mob, mob])
 
-      assert {:error, _} = Validator.validate_json_objects(bad_legal_entity)
+      assert %ValidationError{
+               description: "No duplicate values.",
+               params: ["MOBILE"],
+               path: "$.owner.phones[1].type",
+               rule: :invalid
+             } = Validator.validate_json_objects(bad_legal_entity)
     end
 
     test "return :error for incorrect owner documents", %{legal_entity: legal_entity} do
       passp = %{"type" => "PASSPORT", "number" => "120518"}
       bad_legal_entity = put_in(legal_entity, ["owner", "documents"], [passp, passp])
 
-      assert {:error, _} = Validator.validate_json_objects(bad_legal_entity)
+      assert %ValidationError{
+               description: "No duplicate values.",
+               params: ["PASSPORT"],
+               path: "$.owner.documents[1].type",
+               rule: :invalid
+             } = Validator.validate_json_objects(bad_legal_entity)
     end
   end
 end
