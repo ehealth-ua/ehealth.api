@@ -149,7 +149,7 @@ defmodule EHealth.ContractRequests do
          params <- set_dates(contract, params),
          :ok <- validate_unique_contractor_employee_divisions(params),
          :ok <- validate_unique_contractor_divisions(params),
-         :ok <- validate_employee_divisions(params),
+         :ok <- validate_employee_divisions(params, client_id),
          :ok <- validate_contractor_divisions(params),
          :ok <- validate_external_contractors(params),
          :ok <- validate_external_contractor_flag(params),
@@ -234,7 +234,7 @@ defmodule EHealth.ContractRequests do
          :ok <- validate_contract_id(contract_request),
          :ok <- validate_contractor_owner_id(contract_request),
          :ok <- validate_nhs_signer_id(contract_request, client_id),
-         :ok <- validate_employee_divisions(contract_request),
+         :ok <- validate_employee_divisions(contract_request, client_id),
          :ok <- validate_contractor_divisions(contract_request),
          :ok <- validate_start_date(contract_request),
          update_params <-
@@ -261,7 +261,7 @@ defmodule EHealth.ContractRequests do
          :ok <- validate_status(contract_request, ContractRequest.status(:approved)),
          :ok <- validate_contractor_legal_entity(contract_request),
          {:contractor_owner, :ok} <- {:contractor_owner, validate_contractor_owner_id(contract_request)},
-         :ok <- validate_employee_divisions(contract_request),
+         :ok <- validate_employee_divisions(contract_request, client_id),
          :ok <- validate_contractor_divisions(contract_request),
          :ok <- validate_start_date(contract_request),
          update_params <-
@@ -376,7 +376,7 @@ defmodule EHealth.ContractRequests do
            ),
          :ok <- validate_content(contract_request, printout_content, content),
          :ok <- validate_contract_id(contract_request),
-         :ok <- validate_employee_divisions(contract_request),
+         :ok <- validate_employee_divisions(contract_request, client_id),
          :ok <- validate_start_date(contract_request),
          :ok <-
            save_signed_content(
@@ -420,7 +420,7 @@ defmodule EHealth.ContractRequests do
              "contract_request_sign_msp"
            ),
          :ok <- validate_content(contract_request, content),
-         :ok <- validate_employee_divisions(contract_request),
+         :ok <- validate_employee_divisions(contract_request, client_id),
          :ok <- validate_start_date(contract_request),
          :ok <- validate_contractor_legal_entity(contract_request),
          :ok <- validate_contractor_owner_id(contract_request),
@@ -760,14 +760,14 @@ defmodule EHealth.ContractRequests do
     end
   end
 
-  defp validate_employee_divisions(%ContractRequest{} = contract_request) do
+  defp validate_employee_divisions(%ContractRequest{} = contract_request, client_id) do
     contract_request
     |> Jason.encode!()
     |> Jason.decode!()
-    |> validate_employee_divisions()
+    |> validate_employee_divisions(client_id)
   end
 
-  defp validate_employee_divisions(params) do
+  defp validate_employee_divisions(params, client_id) do
     contractor_divisions = params["contractor_divisions"]
     contractor_employee_divisions = params["contractor_employee_divisions"] || []
 
@@ -776,21 +776,27 @@ defmodule EHealth.ContractRequests do
       |> Enum.with_index()
       |> Enum.reduce([], fn {employee_division, i}, errors_list ->
         errors_list
-        |> validate_employee_division_employee(employee_division, i)
+        |> validate_employee_division_employee(employee_division, client_id, i)
         |> validate_employee_division_subset(contractor_divisions, employee_division, i)
       end)
 
-    if length(errors) > 0, do: {:error, errors}, else: :ok
+    if length(errors) > 0 do
+      errors
+      |> validate_and_convert_errors
+      |> Error.dump()
+    else
+      :ok
+    end
   end
 
-  defp validate_employee_division_employee(errors, division, index) do
+  defp validate_employee_division_employee(errors, division, client_id, index) do
     with {:ok, %Employee{} = employee} <-
            Reference.validate(
              :employee,
              division["employee_id"],
              "$.contractor_employee_divisions[#{index}].employee_id"
            ),
-         :ok <- check_employee(employee, index) do
+         :ok <- check_employee(employee, client_id, index) do
       errors
     else
       {:error, error} when is_list(error) -> errors ++ error
@@ -802,13 +808,13 @@ defmodule EHealth.ContractRequests do
     if division["division_id"] in division_subset do
       errors
     else
-      {:error, error} =
-        Error.dump(%ValidationError{
-          description: "Division should be among contractor_divisions",
-          path: "$.contractor_employee_divisions[#{index}].division_id"
-        })
-
-      errors ++ error
+      errors ++
+        [
+          %ValidationError{
+            description: "Division should be among contractor_divisions",
+            path: "$.contractor_employee_divisions[#{index}].division_id"
+          }
+        ]
     end
   end
 
@@ -865,10 +871,7 @@ defmodule EHealth.ContractRequests do
     if Enum.uniq(contractor_divisions) == contractor_divisions do
       :ok
     else
-      Error.dump(%ValidationError{
-        description: "Division must be unique",
-        path: "$.contractor_divisions"
-      })
+      Error.dump(%ValidationError{description: "Division must be unique", path: "$.contractor_divisions"})
     end
   end
 
@@ -899,7 +902,13 @@ defmodule EHealth.ContractRequests do
         end
       end)
 
-    if length(errors) > 0, do: {:error, errors}, else: :ok
+    if length(errors) > 0 do
+      errors
+      |> validate_and_convert_errors
+      |> Error.dump()
+    else
+      :ok
+    end
   end
 
   defp validate_external_contractor_flag(%{
@@ -916,10 +925,7 @@ defmodule EHealth.ContractRequests do
     if is_nil(external_contractors) && !external_contractor_flag do
       :ok
     else
-      Error.dump(%ValidationError{
-        description: "Invalid external_contractor_flag",
-        path: "$.external_contractor_flag"
-      })
+      Error.dump(%ValidationError{description: "Invalid external_contractor_flag", path: "$.external_contractor_flag"})
     end
   end
 
@@ -934,13 +940,13 @@ defmodule EHealth.ContractRequests do
 
     case validation_result do
       {:error, _} ->
-        {:error, error} =
-          Error.dump(%ValidationError{
-            description: "Active $external_contractors[#{index}].legal_entity_id does not exist",
-            path: "$.external_contractors[#{index}].legal_entity_id"
-          })
-
-        errors ++ error
+        errors ++
+          [
+            %ValidationError{
+              description: "Active $external_contractors[#{index}].legal_entity_id does not exist",
+              path: "$.external_contractors[#{index}].legal_entity_id"
+            }
+          ]
 
       _ ->
         errors
@@ -948,13 +954,13 @@ defmodule EHealth.ContractRequests do
   end
 
   defp validate_external_legal_entity(errors, _, index) do
-    {:error, error} =
-      Error.dump(%ValidationError{
-        description: "Active $external_contractors[#{index}].legal_entity_id does not exist",
-        path: "$.external_contractors[#{index}].legal_entity_id"
-      })
-
-    errors ++ error
+    errors ++
+      [
+        %ValidationError{
+          description: "Active $external_contractors[#{index}].legal_entity_id does not exist",
+          path: "$.external_contractors[#{index}].legal_entity_id"
+        }
+      ]
   end
 
   defp validate_divisions(errors, params, contractor, i) do
@@ -992,21 +998,24 @@ defmodule EHealth.ContractRequests do
         )
       end)
 
-    if length(errors) > 0, do: {:error, errors}, else: :ok
-  end
-
-  defp validate_external_contractor_division(division_ids, division, path) do
-    if division["id"] in division_ids do
-      :ok
+    if length(errors) > 0 do
+      errors
+      |> validate_and_convert_errors
+      |> Error.dump()
     else
-      Error.dump(%ValidationError{
-        description: "The division is not belong to contractor_divisions",
-        path: path
-      })
+      :ok
     end
   end
 
-  defp validate_external_contract(errors, contractor, params, path) do
+  defp validate_external_contractor_division(division_ids, division, error) do
+    if division["id"] in division_ids do
+      :ok
+    else
+      Error.dump(%ValidationError{description: "The division is not belong to contractor_divisions", path: error})
+    end
+  end
+
+  defp validate_external_contract(errors, contractor, params, error) do
     expires_at = Date.from_iso8601!(contractor["contract"]["expires_at"])
     start_date = Date.from_iso8601!(params["start_date"])
 
@@ -1015,23 +1024,41 @@ defmodule EHealth.ContractRequests do
         errors
 
       _ ->
-        {:error, error} =
-          Error.dump(%ValidationError{
-            description: "Expires date must be greater than contract start_date",
-            path: path
-          })
-
-        errors ++ error
+        errors ++ [%ValidationError{description: "Expires date must be greater than contract start_date", path: error}]
     end
   end
 
-  defp check_employee(%Employee{employee_type: "DOCTOR", status: "APPROVED"}, _), do: :ok
+  defp check_employee(employee, client_id, index) do
+    errors =
+      []
+      |> check_employee_type_and_status(employee, index)
+      |> check_employee_legal_entity(employee, client_id, index)
 
-  defp check_employee(_, index) do
-    Error.dump(%ValidationError{
-      description: "Employee must be active DOCTOR",
-      path: "$.contractor_employee_divisions[#{index}].employee_id"
-    })
+    if length(errors) > 0, do: {:error, errors}, else: :ok
+  end
+
+  defp check_employee_type_and_status(errors, %Employee{employee_type: "DOCTOR", status: "APPROVED"}, _), do: errors
+
+  defp check_employee_type_and_status(errors, _, index) do
+    errors ++
+      [
+        %ValidationError{
+          description: "Employee must be active DOCTOR",
+          path: "$.contractor_employee_divisions[#{index}].employee_id"
+        }
+      ]
+  end
+
+  defp check_employee_legal_entity(errors, %Employee{legal_entity_id: legal_entity_id}, legal_entity_id, _), do: errors
+
+  defp check_employee_legal_entity(errors, _, _, index) do
+    errors ++
+      [
+        %ValidationError{
+          description: "Employee should be active Doctor within current legal_entity_id",
+          path: "$.contractor_employee_divisions[#{index}].employee_id"
+        }
+      ]
   end
 
   defp check_division(
@@ -1042,27 +1069,18 @@ defmodule EHealth.ContractRequests do
        when legal_entity_id == contractor_legal_entity_id,
        do: :ok
 
-  defp check_division(_, _, path) do
-    Error.dump(%ValidationError{
-      description: "Division must be active and within current legal_entity",
-      path: path
-    })
+  defp check_division(_, _, error) do
+    Error.dump(%ValidationError{description: "Division must be active and within current legal_entity", path: error})
   end
 
   defp validate_dates(%{"parent_contract_id" => parent_contract_id, "start_date" => start_date})
        when not is_nil(parent_contract_id) and not is_nil(start_date) do
-    Error.dump(%ValidationError{
-      description: "Start date can't be updated via Contract Request",
-      path: "$.start_date"
-    })
+    Error.dump(%ValidationError{description: "Start date can't be updated via Contract Request", path: "$.start_date"})
   end
 
   defp validate_dates(%{"parent_contract_id" => parent_contract_id, "end_date" => end_date})
        when not is_nil(parent_contract_id) and not is_nil(end_date) do
-    Error.dump(%ValidationError{
-      description: "End date can't be updated via Contract Request",
-      path: "$.end_date"
-    })
+    Error.dump(%ValidationError{description: "End date can't be updated via Contract Request", path: "$.end_date"})
   end
 
   defp validate_dates(%{"parent_contract_id" => parent_contract_id})
@@ -1436,5 +1454,21 @@ defmodule EHealth.ContractRequests do
 
   defp get_bucket do
     Confex.fetch_env!(:ehealth, EHealth.API.MediaStorage)[:contract_request_bucket]
+  end
+
+  defp validate_and_convert_errors(errors) when is_list(errors) do
+    Enum.map(errors, fn error ->
+      case error do
+        {%{
+           description: description,
+           params: params,
+           rule: rule
+         }, path} ->
+          %ValidationError{description: description, rule: rule, path: path, params: params}
+
+        _ ->
+          error
+      end
+    end)
   end
 end
