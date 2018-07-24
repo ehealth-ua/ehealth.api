@@ -931,6 +931,144 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
     end
+
+    test "contract employees validation failed", %{conn: conn} do
+      msp()
+
+      %{
+        legal_entity: legal_entity,
+        division: division,
+        employee: employee,
+        user_id: user_id,
+        owner: owner,
+        party_user: party_user
+      } = prepare_data()
+
+      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      end)
+
+      expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
+        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"ETag", Jason.encode!(resource)}]}}
+      end)
+
+      conn =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("drfo", party_user.party.tax_id)
+
+      now = Date.utc_today()
+      start_date = Date.add(now, 10)
+      expires_at = Date.to_iso8601(Date.add(start_date, 1))
+
+      party_user_out = insert(:prm, :party_user)
+      legal_entity_out = insert(:prm, :legal_entity)
+      division_out = insert(:prm, :division, legal_entity: legal_entity_out)
+
+      employee_out =
+        insert(
+          :prm,
+          :employee,
+          legal_entity_id: legal_entity_out.id,
+          employee_type: Employee.type(:owner),
+          party: party_user_out.party
+        )
+
+      contractor_employee_divisions = [
+        %{
+          "employee_id" => employee.id,
+          "staff_units" => 0.5,
+          "declaration_limit" => 2000,
+          "division_id" => division.id
+        },
+        %{
+          "employee_id" => employee_out.id,
+          "staff_units" => 0.5,
+          "declaration_limit" => 2000,
+          "division_id" => division_out.id
+        },
+        %{
+          "employee_id" => UUID.generate(),
+          "staff_units" => 0.5,
+          "declaration_limit" => 2000,
+          "division_id" => UUID.generate()
+        }
+      ]
+
+      params =
+        division
+        |> prepare_params(employee, expires_at)
+        |> Map.put("contractor_owner_id", owner.id)
+        |> Map.put("start_date", Date.to_iso8601(start_date))
+        |> Map.put("end_date", Date.to_iso8601(Date.add(now, 30)))
+        |> Map.put("contractor_employee_divisions", contractor_employee_divisions)
+
+      drfo_signed_content(params, party_user.party.tax_id)
+
+      conn =
+        post(conn, contract_request_path(conn, :create, UUID.generate()), %{
+          "signed_content" => params |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+
+      assert resp = json_response(conn, 422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.contractor_employee_divisions[1].employee_id",
+                   "rules" => [
+                     %{
+                       "description" => "Employee must be active DOCTOR",
+                       "params" => [],
+                       "rule" => "invalid"
+                     }
+                   ]
+                 },
+                 %{
+                   "entry" => "$.contractor_employee_divisions[1].employee_id",
+                   "rules" => [
+                     %{
+                       "description" => "Employee should be active Doctor within current legal_entity_id",
+                       "params" => [],
+                       "rule" => "invalid"
+                     }
+                   ]
+                 },
+                 %{
+                   "entry" => "$.contractor_employee_divisions[1].division_id",
+                   "rules" => [
+                     %{
+                       "description" => "Division should be among contractor_divisions",
+                       "params" => [],
+                       "rule" => "invalid"
+                     }
+                   ]
+                 },
+                 %{
+                   "entry" => "$.contractor_employee_divisions[2].employee_id",
+                   "rules" => [
+                     %{
+                       "description" => "Employee not found",
+                       "params" => [],
+                       "rule" => "invalid"
+                     }
+                   ]
+                 },
+                 %{
+                   "entry" => "$.contractor_employee_divisions[2].division_id",
+                   "rules" => [
+                     %{
+                       "description" => "Division should be among contractor_divisions",
+                       "params" => [],
+                       "rule" => "invalid"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
+    end
   end
 
   describe "update contract_request" do
