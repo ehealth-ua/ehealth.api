@@ -77,14 +77,14 @@ defmodule EHealth.DeclarationRequests.API.Sign do
 
   def normalize_signature_error({:error, %{"meta" => %{"description" => error}}}) do
     %SignRequest{}
-    |> cast(%{}, [:signed_legal_entity_request])
-    |> add_error(:signed_legal_entity_request, error)
+    |> cast(%{}, [:signed_declaration_request])
+    |> add_error(:signed_declaration_request, error)
   end
 
   def normalize_signature_error({:error, %{"error" => %{"message" => message}, "meta" => %{"code" => code}}}) do
     %SignRequest{}
-    |> cast(%{}, [:signed_legal_entity_request])
-    |> add_error(:signed_legal_entity_request, "#{code}: #{message}")
+    |> cast(%{}, [:signed_declaration_request])
+    |> add_error(:signed_declaration_request, "#{code}: #{message}")
   end
 
   def normalize_signature_error(ok_resp), do: ok_resp
