@@ -90,22 +90,20 @@ defmodule EHealth.DeclarationRequests.API.Creator do
   end
 
   defp do_insert_declaration_request(changeset, employee) do
-    Repo.transaction(fn ->
-      case Repo.insert(changeset) do
-        {:ok, declaration_request} ->
-          declaration_request
+    case Repo.insert(changeset) do
+      {:ok, declaration_request} ->
+        {:ok, declaration_request}
 
-        {:error, %Changeset{errors: [declaration_number: {"has already been taken", []}]}} ->
-          # declaration_number collision, let's regenerate it
-          changeset
-          |> put_declaration_number(NumberGenerator.generate(1, 2))
-          |> generate_printout_form(employee)
-          |> do_insert_declaration_request(employee)
+      {:error, %Changeset{errors: [declaration_number: {"has already been taken", []}]}} ->
+        # declaration_number collision, let's regenerate it
+        changeset
+        |> put_declaration_number(NumberGenerator.generate(1, 2))
+        |> generate_printout_form(employee)
+        |> do_insert_declaration_request(employee)
 
-        {:error, reason} ->
-          Repo.rollback(reason)
-      end
-    end)
+      {:error, reason} ->
+        {:error, reason}
+    end
   end
 
   def validate_employee_speciality(%Employee{additional_info: additional_info}) do
