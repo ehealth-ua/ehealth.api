@@ -1049,6 +1049,62 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
                }
              } = json_response(conn, 422)
     end
+
+    test "Declaration Request: person name is too long", %{conn: conn} do
+      first_name = String.duplicate("Галина", 43)
+      last_name = String.duplicate("Галина", 43)
+      second_name = String.duplicate("Галина", 43)
+
+      content =
+        get_declaration_request()
+        |> put_in(~W(person first_name), first_name)
+        |> put_in(~W(person last_name), last_name)
+        |> put_in(~W(person second_name), second_name)
+
+      conn =
+        conn
+        |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
+        |> post(declaration_request_path(conn, :create), %{"declaration_request" => content})
+
+      assert %{"error" => %{"invalid" => errors}} = json_response(conn, 422)
+
+      assert %{
+               "entry" => "$.declaration_request.person.first_name",
+               "entry_type" => "json_data_property",
+               "rules" => [
+                 %{
+                   "description" => "expected value to have a maximum length of 255 but was 258",
+                   "params" => %{"max" => 255},
+                   "rule" => "length"
+                 }
+               ]
+             } in errors
+
+      assert %{
+               "entry" => "$.declaration_request.person.last_name",
+               "entry_type" => "json_data_property",
+               "rules" => [
+                 %{
+                   "description" => "expected value to have a maximum length of 255 but was 258",
+                   "params" => %{"max" => 255},
+                   "rule" => "length"
+                 }
+               ]
+             } in errors
+
+      assert %{
+               "entry" => "$.declaration_request.person.second_name",
+               "entry_type" => "json_data_property",
+               "rules" => [
+                 %{
+                   "description" => "expected value to have a maximum length of 255 but was 258",
+                   "params" => %{"max" => 255},
+                   "rule" => "length"
+                 }
+               ]
+             } in errors
+    end
   end
 
   def clone_declaration_request(params, legal_entity_id, status) do
