@@ -25,16 +25,20 @@
     },
     "person_name": {
       "type": "string",
-      "pattern": "^(?!.*[ЫЪЭЁыъэё@%&$^#])[А-ЯҐЇІЄа-яґїіє\\'\\- ]+$"
+      "pattern": "^(?!.*[ЫЪЭЁыъэё@%&$^#])[А-ЯҐЇІЄа-яґїіє\\'\\- ]+$",
+      "minLength": 1,
+      "maxLength": 255
     },
     "tax_id": {
       "type": "string",
       "pattern": "^[0-9]{10}$",
-      "minLength": 10
+      "minLength": 10,
+      "maxLength": 255
     },
     "gender": {
       "type": "string",
-      "description": "Dictionary: GENDER"
+      "description": "Dictionary: GENDER",
+      "maxLength": 255
     },
     "address": {
       "type": "object",
@@ -101,7 +105,8 @@
         },
         "number": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "maxLength": 255
         },
         "issued_by": {
           "type": "string",
@@ -178,18 +183,15 @@
           "properties": {
             "first_name": {
               "type": "string",
-              "$ref": "#/definitions/person_name",
-              "minLength": 1
+              "$ref": "#/definitions/person_name"
             },
             "last_name": {
               "type": "string",
-              "$ref": "#/definitions/person_name",
-              "minLength": 1
+              "$ref": "#/definitions/person_name"
             },
             "second_name": {
               "type": "string",
-              "$ref": "#/definitions/person_name",
-              "minLength": 1
+              "$ref": "#/definitions/person_name"
             },
             "birth_date": {
               "type": "string",
@@ -197,19 +199,22 @@
             },
             "birth_country": {
               "type": "string",
-              "minLength": 1
+              "minLength": 1,
+              "maxLength": 255
             },
             "birth_settlement": {
               "type": "string",
               "$ref": "#/definitions/name",
-              "minLength": 1
+              "minLength": 1,
+              "maxLength": 255
             },
             "gender": {
               "$ref": "#/definitions/gender"
             },
             "email": {
               "type": "string",
-              "format": "email"
+              "format": "email",
+              "maxLength": 255
             },
             "tax_id": {
               "type": "string",
@@ -262,18 +267,15 @@
               "properties": {
                 "first_name": {
                   "type": "string",
-                  "$ref": "#/definitions/person_name",
-                  "minLength": 1
+                  "$ref": "#/definitions/person_name"
                 },
                 "last_name": {
                   "type": "string",
-                  "$ref": "#/definitions/person_name",
-                  "minLength": 1
+                  "$ref": "#/definitions/person_name"
                 },
                 "second_name": {
                   "type": "string",
-                  "$ref": "#/definitions/person_name",
-                  "minLength": 1
+                  "$ref": "#/definitions/person_name"
                 },
                 "phones": {
                   "type": "array",
@@ -304,13 +306,11 @@
                   },
                   "first_name": {
                     "type": "string",
-                    "$ref": "#/definitions/person_name",
-                    "minLength": 1
+                    "$ref": "#/definitions/person_name"
                   },
                   "last_name": {
                     "type": "string",
-                    "$ref": "#/definitions/person_name",
-                    "minLength": 1
+                    "$ref": "#/definitions/person_name"
                   },
                   "second_name": {
                     "type": "string",
