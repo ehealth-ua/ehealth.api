@@ -8,12 +8,12 @@
     "file_name": {
       "type": "string"
     },
-    "person_type": {
+    "entity_type": {
       "type": "string",
       "enum": [
-        "patient"
-      ],
-      "description":  "patient or employee"
+        "patient",
+        "declaration"
+      ]
     },
     "type": {
       "type": "string",

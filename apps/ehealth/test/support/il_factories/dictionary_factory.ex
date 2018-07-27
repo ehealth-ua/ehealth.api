@@ -64,6 +64,29 @@ defmodule EHealth.ILFactories.DictionaryFactory do
         )
       end
 
+      def dictionary_register_documents_factory do
+        build(
+          :dictionary,
+          name: "REGISTER_DOCUMENTS",
+          values: %{
+            "PATIENT" => %{
+              "PASSPORT" => "Паспорт громадянина України",
+              "NATIONAL_ID" => "Біометричний паспорт громадянина України",
+              "TAX_ID" => "Індивідуальний податковий номер",
+              "TEMPORARY_PASSPORT" => "Тимчасове посвідчення громадянина України",
+              "BIRTH_CERTIFICATE" => "Свідоцтво про народження (для осіб, які не досягли 14-річного віку)",
+              "TEMPORARY_CERTIFICATE" => "Посвідка на проживання",
+              "PERMANENT_RESIDENCE_PERMIT" => "Посвідка на постійне проживання в Україні",
+              "REFUGEE_CERTIFICATE" => "Посвідка біженця",
+              "COMPLEMENTARY_PROTECTION_CERTIFICATE" => "Посвідчення особи, яка потребує додаткового захисту"
+            },
+            "DECLARATION" => %{
+              "DECLARATION_ID" => "id декларації"
+            }
+          }
+        )
+      end
+
       def dictionary_authentication_method_factory do
         build(
           :dictionary,

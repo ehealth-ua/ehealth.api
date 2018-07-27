@@ -8,7 +8,7 @@ defmodule EHealth.Web.RegisterView do
     file_name
     qty
     type
-    person_type
+    entity_type
     status
     errors
     inserted_at
