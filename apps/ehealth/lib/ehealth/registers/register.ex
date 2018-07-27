@@ -13,7 +13,7 @@ defmodule EHealth.Registers.Register do
   schema "registers" do
     field(:file_name, :string)
     field(:type, :string, null: false)
-    field(:person_type, :string, null: false)
+    field(:entity_type, :string, null: false)
     field(:status, :string, default: @new)
     field(:errors, {:array, :string})
     field(:inserted_by, Ecto.UUID, null: false)

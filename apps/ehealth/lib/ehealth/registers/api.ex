@@ -28,7 +28,7 @@ defmodule EHealth.Registers.API do
     file_name
     type
     status
-    person_type
+    entity_type
     inserted_by
     updated_by
   )a
@@ -128,7 +128,7 @@ defmodule EHealth.Registers.API do
     with parsed_csv <- parse_csv(base64file),
          {:ok, headers} <- fetch_headers(parsed_csv),
          true <- valid_csv_headers?(headers),
-         {:ok, allowed_types} <- get_allowed_types() do
+         {:ok, allowed_types} <- get_allowed_types(register) do
       entries =
         parsed_csv
         |> Enum.map(&Task.async(fn -> process_register_entry(&1, register, allowed_types, reason_desc, author_id) end))
@@ -149,17 +149,17 @@ defmodule EHealth.Registers.API do
     |> CSV.decode(headers: true)
   end
 
-  defp get_allowed_types do
-    case Dictionaries.get_dictionary("DOCUMENT_TYPE") do
-      %Dictionary{values: values} -> {:ok, values |> Map.keys() |> put_tax_id()}
+  defp get_allowed_types(%Register{entity_type: "patient"}) do
+    case Dictionaries.get_dictionary("REGISTER_DOCUMENTS") do
+      %Dictionary{values: values} -> {:ok, values |> Map.get("PATIENT") |> Map.keys()}
       _ -> Error.dump("Type not allowed")
     end
   end
 
-  defp put_tax_id(list) do
-    case Enum.member?(list, "TAX_ID") do
-      true -> list
-      false -> list ++ ["TAX_ID"]
+  defp get_allowed_types(%Register{entity_type: "declaration"}) do
+    case Dictionaries.get_dictionary("REGISTER_DOCUMENTS") do
+      %Dictionary{values: values} -> {:ok, values |> Map.get("DECLARATION") |> Map.keys()}
+      _ -> Error.dump("Type not allowed")
     end
   end
 
@@ -178,7 +178,13 @@ defmodule EHealth.Registers.API do
     Error.dump("Invalid CSV headers")
   end
 
-  defp process_register_entry({:ok, entry_data}, register, allowed_types, reason_desc, author_id) do
+  defp process_register_entry(
+         {:ok, entry_data},
+         %Register{entity_type: "patient"} = register,
+         allowed_types,
+         reason_desc,
+         author_id
+       ) do
     with :ok <- validate_csv_type(entry_data, allowed_types),
          :ok <- validate_csv_number(entry_data) do
       mpi_response = search_person(entry_data)
@@ -196,16 +202,42 @@ defmodule EHealth.Registers.API do
     end
   end
 
+  defp process_register_entry(
+         {:ok, entry_data},
+         %Register{entity_type: "declaration"} = register,
+         allowed_types,
+         reason_desc,
+         author_id
+       ) do
+    with :ok <- validate_csv_type(entry_data, allowed_types),
+         :ok <- validate_csv_number(entry_data) do
+      entry_data
+      |> Map.merge(%{
+        "document_type" => entry_data["type"],
+        "document_number" => entry_data["number"],
+        "register_id" => register.id,
+        "updated_by" => register.inserted_by,
+        "inserted_by" => register.inserted_by
+      })
+      |> terminate_declaration(register.type, reason_desc, author_id)
+      |> create_register_entry()
+    end
+  end
+
   defp process_register_entry(err, _, _, _, _), do: err
 
   defp validate_csv_type(%{"type" => type}, allowed_types) do
     case type in allowed_types do
-      true -> :ok
-      false -> {:error, "Invalid type - expected one of #{Enum.join(allowed_types, ", ")} on line "}
+      true ->
+        :ok
+
+      false ->
+        {:error, "Invalid type - expected one of #{Enum.join(allowed_types, ", ")} on line "}
     end
   end
 
   defp validate_csv_number(%{"number" => number}) when is_binary(number) and byte_size(number) > 0, do: :ok
+
   defp validate_csv_number(_), do: {:error, "Invalid number - expected non empty string on line "}
 
   defp search_person(%{"type" => type} = entry_data) do
@@ -236,7 +268,12 @@ defmodule EHealth.Registers.API do
     {@status_matched, [Map.put(entry_data, "status", @status_processing)]}
   end
 
-  defp terminate_person_declaration_and_create_entry({@status_matched, entries}, type, reason_desc, author_id) do
+  defp terminate_person_declaration_and_create_entry(
+         {@status_matched, entries},
+         type,
+         reason_desc,
+         author_id
+       ) do
     entries
     |> Enum.map(
       &Task.async(fn ->
@@ -255,7 +292,48 @@ defmodule EHealth.Registers.API do
     |> Enum.map(&Task.await/1)
   end
 
-  defp maybe_terminate_person_declaration(%{"status" => @status_matched} = entry_data, type, reason_desc) do
+  defp terminate_declaration(entry_data, type, reason_description, author_id) do
+    declaration_id = entry_data["document_number"]
+
+    with {:ok, %{"data" => declaration}} <- @ops_api.get_declaration_by_id(declaration_id, []) do
+      if declaration["status"] == "terminated" do
+        Map.put(entry_data, "status", @status_processed)
+      else
+        case @ops_api.terminate_declaration(
+               declaration_id,
+               %{
+                 "updated_by" => author_id,
+                 "reason" => "auto_#{type}",
+                 "reason_description" => reason_description
+               },
+               []
+             ) do
+          {:ok, _} ->
+            Map.put(entry_data, "status", @status_matched)
+
+          {:error,
+           %{
+             "meta" => %{
+               "code" => 404
+             }
+           }} ->
+            Map.put(entry_data, "status", @status_not_found)
+
+          _ ->
+            Map.put(entry_data, "status", @status_processing)
+        end
+      end
+    else
+      _ ->
+        Map.put(entry_data, "status", @status_not_found)
+    end
+  end
+
+  defp maybe_terminate_person_declaration(
+         %{"status" => @status_matched} = entry_data,
+         type,
+         reason_desc
+       ) do
     case @ops_api.terminate_person_declarations(
            entry_data["person_id"],
            entry_data["inserted_by"],

@@ -5,8 +5,8 @@ defmodule EHealth.Web.RegisterControllerTest do
   import Mox
 
   alias Ecto.UUID
-  alias EHealth.Registers.Register
   alias EHealth.MockServer
+  alias EHealth.Registers.Register
 
   require Logger
 
@@ -67,7 +67,7 @@ defmodule EHealth.Web.RegisterControllerTest do
     end
   end
 
-  describe "create register" do
+  describe "create patient register" do
     setup :set_mox_global
 
     test "success with status PROCESSED", %{conn: conn} do
@@ -85,14 +85,14 @@ defmodule EHealth.Web.RegisterControllerTest do
         {:ok, %{"data" => %{}}}
       end)
 
-      insert(:il, :dictionary_document_type)
+      insert(:il, :dictionary_register_documents)
       insert(:il, :dictionary_register_type)
 
       attrs = %{
         file: get_csv_file("valid"),
         file_name: "persons",
         type: "DEATH_REGISTRATION",
-        person_type: "patient"
+        entity_type: "patient"
       }
 
       data =
@@ -151,14 +151,19 @@ defmodule EHealth.Web.RegisterControllerTest do
         {:ok, %{"data" => %{}}}
       end)
 
-      %{values: values} = insert(:il, :dictionary_document_type)
-      dict_values = values |> Map.keys() |> Kernel.++(["TAX_ID"]) |> Enum.join(", ")
+      %{values: values} = insert(:il, :dictionary_register_documents)
+
+      dict_values =
+        values
+        |> Map.get("PATIENT")
+        |> Map.keys()
+        |> Enum.join(", ")
 
       attrs = %{
         file: get_csv_file("diverse"),
         file_name: "persons",
         type: "death",
-        person_type: "patient"
+        entity_type: "patient"
       }
 
       data =
@@ -185,7 +190,7 @@ defmodule EHealth.Web.RegisterControllerTest do
              ] == data["errors"]
     end
 
-    test "person_type not passed", %{conn: conn} do
+    test "entity_type not passed", %{conn: conn} do
       attrs = %{
         file: get_csv_file("valid"),
         file_name: "death",
@@ -198,7 +203,7 @@ defmodule EHealth.Web.RegisterControllerTest do
                |> json_response(422)
                |> get_in(~w(error invalid))
 
-      assert "$.person_type" == invalid["entry"]
+      assert "$.entity_type" == invalid["entry"]
     end
 
     test "invalid dictionary type", %{conn: conn} do
@@ -208,7 +213,7 @@ defmodule EHealth.Web.RegisterControllerTest do
         file: get_csv_file("valid"),
         file_name: "persons",
         type: "death",
-        person_type: "patient"
+        entity_type: "patient"
       }
 
       assert [invalid] =
@@ -220,12 +225,12 @@ defmodule EHealth.Web.RegisterControllerTest do
       assert "$.type" == invalid["entry"]
     end
 
-    test "invalid person_type", %{conn: conn} do
+    test "invalid entity_type", %{conn: conn} do
       attrs = %{
         file: get_csv_file("valid"),
         file_name: "death",
         type: "death",
-        person_type: "invalid"
+        entity_type: "invalid"
       }
 
       assert [invalid] =
@@ -234,7 +239,7 @@ defmodule EHealth.Web.RegisterControllerTest do
                |> json_response(422)
                |> get_in(~w(error invalid))
 
-      assert "$.person_type" == invalid["entry"]
+      assert "$.entity_type" == invalid["entry"]
     end
 
     test "invalid CSV file format", %{conn: conn} do
@@ -242,7 +247,7 @@ defmodule EHealth.Web.RegisterControllerTest do
         file: "invalid base64 string",
         file_name: "death",
         type: "death",
-        person_type: "patient"
+        entity_type: "patient"
       }
 
       assert [invalid] =
@@ -259,7 +264,7 @@ defmodule EHealth.Web.RegisterControllerTest do
         file: get_csv_file("invalid_headers"),
         file_name: "death",
         type: "death",
-        person_type: "patient"
+        entity_type: "patient"
       }
 
       assert "Invalid CSV headers" =
@@ -272,14 +277,19 @@ defmodule EHealth.Web.RegisterControllerTest do
     end
 
     test "invalid CSV body", %{conn: conn} do
-      %{values: values} = insert(:il, :dictionary_document_type)
-      dict_values = values |> Map.keys() |> Kernel.++(["TAX_ID"]) |> Enum.join(", ")
+      %{values: values} = insert(:il, :dictionary_register_documents)
+
+      dict_values =
+        values
+        |> Map.get("PATIENT")
+        |> Map.keys()
+        |> Enum.join(", ")
 
       attrs = %{
         file: get_csv_file("invalid_body"),
         file_name: "death",
         type: "death",
-        person_type: "patient"
+        entity_type: "patient"
       }
 
       data =
@@ -308,7 +318,7 @@ defmodule EHealth.Web.RegisterControllerTest do
         file: get_csv_file("valid"),
         file_name: "death",
         type: "death",
-        person_type: "patient"
+        entity_type: "patient"
       }
 
       assert "Type not allowed" =
@@ -323,7 +333,7 @@ defmodule EHealth.Web.RegisterControllerTest do
     setup :set_mox_global
 
     setup %{conn: conn} do
-      insert(:il, :dictionary_document_type)
+      insert(:il, :dictionary_register_documents)
       %{conn: conn}
     end
 
@@ -354,7 +364,7 @@ defmodule EHealth.Web.RegisterControllerTest do
         file: get_csv_file("valid"),
         file_name: "persons",
         type: "death",
-        person_type: "patient",
+        entity_type: "patient",
         reason_description: "Згідно реєстру померлих"
       }
 
@@ -397,7 +407,7 @@ defmodule EHealth.Web.RegisterControllerTest do
         file: get_csv_file("valid"),
         file_name: "persons",
         type: "death",
-        person_type: "patient"
+        entity_type: "patient"
       }
 
       data =
@@ -423,7 +433,7 @@ defmodule EHealth.Web.RegisterControllerTest do
         file: get_csv_file("valid"),
         file_name: "persons",
         type: "death",
-        person_type: "patient",
+        entity_type: "patient",
         reason_description: "Згідно реєстру померлих"
       }
 
@@ -434,6 +444,115 @@ defmodule EHealth.Web.RegisterControllerTest do
         |> get_in(~w(error message))
 
       assert "Missing header x-consumer-id" == message
+    end
+  end
+
+  describe "create declaration register" do
+    setup :set_mox_global
+
+    test "success with status PROCESSED", %{conn: conn} do
+      expect(OPSMock, :terminate_declaration, 2, fn _, _, _ ->
+        {:ok, %{"data" => %{}}}
+      end)
+
+      expect(OPSMock, :get_declaration_by_id, 2, fn _, _ ->
+        {:ok, %{"data" => %{"status" => "active"}}}
+      end)
+
+      insert(:il, :dictionary_register_documents)
+      insert(:il, :dictionary_register_type)
+
+      attrs = %{
+        file: get_csv_file("declarations"),
+        file_name: "declarations",
+        type: "DEATH_REGISTRATION",
+        entity_type: "declaration"
+      }
+
+      data =
+        conn
+        |> post(register_path(conn, :create), attrs)
+        |> json_response(201)
+        |> Map.get("data")
+
+      assert %{
+               "errors" => 0,
+               "not_found" => 0,
+               "processing" => 0,
+               "total" => 2
+             } == data["qty"]
+
+      assert "PROCESSED" = data["status"]
+
+      # check register_entry
+      register_entries =
+        conn
+        |> get(register_entry_path(conn, :index), register_id: data["id"])
+        |> json_response(200)
+        |> Map.get("data")
+
+      assert 2 = length(register_entries)
+
+      Enum.each(register_entries, fn entry ->
+        assert data["id"] == entry["register_id"]
+        assert data["inserted_by"] == entry["updated_by"]
+        assert data["updated_by"] == entry["inserted_by"]
+        assert Map.has_key?(entry, "document_type")
+        assert Map.has_key?(entry, "document_number")
+      end)
+    end
+
+    test "success with status PROCESSING", %{conn: conn} do
+      expect(OPSMock, :terminate_declaration, 2, fn _, _, _ ->
+        {:ok, %{"data" => %{}}}
+      end)
+
+      expect(OPSMock, :get_declaration_by_id, 3, fn
+        "not_found", _ ->
+          {:error, %{"meta" => %{"code" => 404}}}
+
+        _, _ ->
+          {:ok, %{"data" => %{"status" => "active"}}}
+      end)
+
+      %{values: values} = insert(:il, :dictionary_register_documents)
+
+      dict_values =
+        values
+        |> Map.get("DECLARATION")
+        |> Map.keys()
+        |> Enum.join(", ")
+
+      attrs = %{
+        file: get_csv_file("declarations_diverse"),
+        file_name: "persons",
+        type: "death",
+        entity_type: "declaration"
+      }
+
+      data =
+        conn
+        |> post(register_path(conn, :create), attrs)
+        |> json_response(201)
+        |> Map.get("data")
+
+      assert %{
+               "errors" => 6,
+               "not_found" => 1,
+               "processing" => 0,
+               "total" => 9
+             } == data["qty"]
+
+      assert "PROCESSED" = data["status"]
+
+      assert [
+               "Row has length 4 - expected length 2 on line 4",
+               "Invalid type - expected one of #{dict_values} on line 5",
+               "Invalid type - expected one of #{dict_values} on line 6",
+               "Row has length 1 - expected length 2 on line 7",
+               "Invalid type - expected one of #{dict_values} on line 8",
+               "Row has length 1 - expected length 2 on line 10"
+             ] == data["errors"]
     end
   end
 
