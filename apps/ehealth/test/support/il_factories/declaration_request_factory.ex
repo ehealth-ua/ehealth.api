@@ -26,7 +26,7 @@ defmodule EHealth.ILFactories.DeclarationRequestFactory do
           printout_content: "something",
           documents: [],
           channel: DeclarationRequest.channel(:mis),
-          declaration_number: to_string(Enum.random(1..1000)),
+          declaration_number: to_string(DateTime.to_unix(DateTime.utc_now())) <> to_string(Enum.random(1..1000)),
           declaration_id: UUID.generate()
         }
       end
