@@ -1227,7 +1227,7 @@
     "name": "REGISTER_TYPE",
     "values": {
       "DEATH_REGISTRATION": "Реєстрація смерті",
-      "FRAUD": "Шахрайство"
+      "FRAUD": "FRAUD"
     },
     "labels": [
       "SYSTEM",
