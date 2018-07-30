@@ -379,6 +379,10 @@ defmodule EHealth.Registers.API do
     increment_qty(acc, :not_found)
   end
 
+  defp count_register_qty({:ok, %RegisterEntry{status: @status_processed}}, acc) do
+    Map.put(acc, :qty, Map.update!(acc.qty, :total, &(&1 + 1)))
+  end
+
   defp count_register_qty({:ok, %RegisterEntry{status: @status_processing}}, acc) do
     acc
     |> increment_qty(:processing)
