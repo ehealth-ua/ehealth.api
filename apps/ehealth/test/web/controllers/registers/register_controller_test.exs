@@ -12,7 +12,7 @@ defmodule EHealth.Web.RegisterControllerTest do
 
   @status_new Register.status(:new)
   @status_processed Register.status(:processed)
-  @status_processing Register.status(:processing)
+  @status_invalid Register.status(:invalid)
 
   setup :verify_on_exit!
 
@@ -20,7 +20,7 @@ defmodule EHealth.Web.RegisterControllerTest do
     setup %{conn: conn} do
       insert(:il, :register, status: @status_new)
       insert(:il, :register, status: @status_processed)
-      insert(:il, :register, status: @status_processing)
+      insert(:il, :register, status: @status_invalid)
 
       %{conn: conn}
     end
@@ -46,12 +46,12 @@ defmodule EHealth.Web.RegisterControllerTest do
     end
 
     test "search by inserted_at range", %{conn: conn} do
-      insert(:il, :register, status: @status_processing, inserted_at: ~N[2017-12-12 12:10:12])
-      %{id: id} = insert(:il, :register, status: @status_processing, inserted_at: ~N[2017-12-13 02:10:12])
-      insert(:il, :register, status: @status_processing, inserted_at: ~N[2017-12-14 14:10:12])
+      insert(:il, :register, status: @status_invalid, inserted_at: ~N[2017-12-12 12:10:12])
+      %{id: id} = insert(:il, :register, status: @status_invalid, inserted_at: ~N[2017-12-13 02:10:12])
+      insert(:il, :register, status: @status_invalid, inserted_at: ~N[2017-12-14 14:10:12])
 
       params = %{
-        status: @status_processing,
+        status: @status_invalid,
         inserted_at_from: "2017-12-13",
         inserted_at_to: "2017-12-13"
       }
@@ -63,7 +63,7 @@ defmodule EHealth.Web.RegisterControllerTest do
                |> Map.get("data")
 
       assert id == register["id"]
-      assert @status_processing == register["status"]
+      assert @status_invalid == register["status"]
     end
   end
 
@@ -104,7 +104,7 @@ defmodule EHealth.Web.RegisterControllerTest do
       assert %{
                "errors" => 0,
                "not_found" => 0,
-               "processing" => 0,
+               "processed" => 6,
                "total" => 6
              } == data["qty"]
 
@@ -173,13 +173,13 @@ defmodule EHealth.Web.RegisterControllerTest do
         |> Map.get("data")
 
       assert %{
-               "errors" => 5,
+               "errors" => 6,
                "not_found" => 1,
-               "processing" => 1,
+               "processed" => 4,
                "total" => 11
              } == data["qty"]
 
-      assert "PROCESSING" = data["status"]
+      assert "PROCESSED" = data["status"]
 
       assert [
                "Row has length 4 - expected length 2 on line 4",
@@ -273,7 +273,16 @@ defmodule EHealth.Web.RegisterControllerTest do
                |> json_response(422)
                |> get_in(~w(error message))
 
-      assert [] == conn |> get(register_path(conn, :index)) |> json_response(200) |> Map.get("data")
+      assert [
+               %{
+                 "entity_type" => "patient",
+                 "errors" => nil,
+                 "file_name" => "death",
+                 "qty" => %{"errors" => 0, "not_found" => 0, "processed" => 0, "total" => 0},
+                 "status" => "INVALID",
+                 "type" => "death"
+               }
+             ] = conn |> get(register_path(conn, :index)) |> json_response(200) |> Map.get("data")
     end
 
     test "invalid CSV body", %{conn: conn} do
@@ -301,7 +310,7 @@ defmodule EHealth.Web.RegisterControllerTest do
       assert %{
                "errors" => 2,
                "not_found" => 0,
-               "processing" => 0,
+               "processed" => 0,
                "total" => 2
              } == data["qty"]
 
@@ -377,7 +386,7 @@ defmodule EHealth.Web.RegisterControllerTest do
       assert %{
                "errors" => 0,
                "not_found" => 0,
-               "processing" => 0,
+               "processed" => 3,
                "total" => 3
              } == data["qty"]
 
@@ -417,13 +426,13 @@ defmodule EHealth.Web.RegisterControllerTest do
         |> Map.get("data")
 
       assert %{
-               "errors" => 0,
+               "errors" => 3,
                "not_found" => 0,
-               "processing" => 3,
+               "processed" => 0,
                "total" => 3
              } == data["qty"]
 
-      assert "PROCESSING" = data["status"]
+      assert "PROCESSED" = data["status"]
     end
 
     test "header consumer_id not set", %{conn: conn} do
@@ -478,7 +487,7 @@ defmodule EHealth.Web.RegisterControllerTest do
       assert %{
                "errors" => 0,
                "not_found" => 0,
-               "processing" => 0,
+               "processed" => 2,
                "total" => 2
              } == data["qty"]
 
@@ -539,7 +548,7 @@ defmodule EHealth.Web.RegisterControllerTest do
       assert %{
                "errors" => 6,
                "not_found" => 1,
-               "processing" => 0,
+               "processed" => 2,
                "total" => 9
              } == data["qty"]
 

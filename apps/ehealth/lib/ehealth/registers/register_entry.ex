@@ -5,7 +5,7 @@ defmodule EHealth.Registers.RegisterEntry do
 
   @matched "MATCHED"
   @not_found "NOT_FOUND"
-  @processing "PROCESSING"
+  @error "ERROR"
   @processed "PROCESSED"
 
   @primary_key {:id, :binary_id, autogenerate: true}
@@ -24,6 +24,6 @@ defmodule EHealth.Registers.RegisterEntry do
 
   def status(:matched), do: @matched
   def status(:not_found), do: @not_found
-  def status(:processing), do: @processing
+  def status(:error), do: @error
   def status(:processed), do: @processed
 end

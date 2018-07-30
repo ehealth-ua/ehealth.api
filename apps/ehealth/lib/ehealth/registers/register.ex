@@ -5,7 +5,7 @@ defmodule EHealth.Registers.Register do
 
   @new "NEW"
   @processed "PROCESSED"
-  @processing "PROCESSING"
+  @invalid "INVALID"
 
   @death "death_registration"
 
@@ -23,7 +23,7 @@ defmodule EHealth.Registers.Register do
       field(:total, :integer, default: 0)
       field(:errors, :integer, default: 0)
       field(:not_found, :integer, default: 0)
-      field(:processing, :integer, default: 0)
+      field(:processed, :integer, default: 0)
     end
 
     has_many(:register_entries, EHealth.Registers.RegisterEntry)
@@ -35,5 +35,5 @@ defmodule EHealth.Registers.Register do
 
   def status(:new), do: @new
   def status(:processed), do: @processed
-  def status(:processing), do: @processing
+  def status(:invalid), do: @invalid
 end
