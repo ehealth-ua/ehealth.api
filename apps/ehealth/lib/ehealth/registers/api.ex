@@ -21,8 +21,12 @@ defmodule EHealth.Registers.API do
 
   @status_matched RegisterEntry.status(:matched)
   @status_not_found RegisterEntry.status(:not_found)
-  @status_processing RegisterEntry.status(:processing)
+  @status_error RegisterEntry.status(:error)
+  @status_processed RegisterEntry.status(:processed)
+
+  @status_new Register.status(:new)
   @status_processed Register.status(:processed)
+  @status_invalid Register.status(:invalid)
 
   @required_register_fields ~w(
     file_name
@@ -40,7 +44,7 @@ defmodule EHealth.Registers.API do
     total
     errors
     not_found
-    processing
+    processed
   )a
 
   @required_register_entry_fields ~w(
@@ -51,6 +55,7 @@ defmodule EHealth.Registers.API do
     inserted_by
     updated_by
   )a
+
   @optional_register_entry_fields ~w(
     person_id
   )a
@@ -118,14 +123,14 @@ defmodule EHealth.Registers.API do
 
   defp prepare_register_data(attrs, author_id) do
     Map.merge(attrs, %{
-      "status" => Register.status(:new),
+      "status" => @status_new,
       "inserted_by" => author_id,
       "updated_by" => author_id
     })
   end
 
   def batch_create_register_entries(register, %{"file" => base64file}, reason_desc, author_id) do
-    with parsed_csv <- parse_csv(base64file),
+    with {:ok, parsed_csv} <- parse_csv(base64file),
          {:ok, headers} <- fetch_headers(parsed_csv),
          true <- valid_csv_headers?(headers),
          {:ok, allowed_types} <- get_allowed_types(register) do
@@ -137,16 +142,22 @@ defmodule EHealth.Registers.API do
       {:ok, entries}
     else
       err ->
-        Repo.delete(register)
+        register
+        |> changeset(%{"status" => @status_invalid})
+        |> Repo.update!()
+
         err
     end
   end
 
   defp parse_csv(file) do
-    file
-    |> Base.decode64!()
-    |> String.split("\n")
-    |> CSV.decode(headers: true)
+    {:ok,
+     file
+     |> Base.decode64!()
+     |> String.split("\n")
+     |> CSV.decode(headers: true)}
+  rescue
+    _ -> {:error, :invalid}
   end
 
   defp get_allowed_types(%Register{entity_type: "patient"}) do
@@ -265,7 +276,7 @@ defmodule EHealth.Registers.API do
   end
 
   defp set_entry_status(entry_data, _) do
-    {@status_matched, [Map.put(entry_data, "status", @status_processing)]}
+    {@status_not_found, [Map.put(entry_data, "status", @status_error)]}
   end
 
   defp terminate_person_declaration_and_create_entry(
@@ -320,12 +331,20 @@ defmodule EHealth.Registers.API do
             Map.put(entry_data, "status", @status_not_found)
 
           _ ->
-            Map.put(entry_data, "status", @status_processing)
+            Map.put(entry_data, "status", @status_error)
         end
       end
     else
-      _ ->
+      {:error,
+       %{
+         "meta" => %{
+           "code" => 404
+         }
+       }} ->
         Map.put(entry_data, "status", @status_not_found)
+
+      _ ->
+        Map.put(entry_data, "status", @status_error)
     end
   end
 
@@ -341,8 +360,11 @@ defmodule EHealth.Registers.API do
            reason_desc,
            []
          ) do
-      {:ok, _} -> entry_data
-      _ -> Map.put(entry_data, "status", @status_processing)
+      {:ok, _} ->
+        entry_data
+
+      _ ->
+        Map.put(entry_data, "status", @status_error)
     end
   end
 
@@ -359,7 +381,7 @@ defmodule EHealth.Registers.API do
   defp prepare_register_update_data(processed_entries) do
     acc = %{
       status: @status_processed,
-      qty: %{total: 0, not_found: 0, processing: 0, errors: 0},
+      qty: %{total: 0, not_found: 0, errors: 0, processed: 0},
       errors: [],
       # starts with first because of CSV headers
       tmp_line: 1
@@ -372,7 +394,7 @@ defmodule EHealth.Registers.API do
   end
 
   defp count_register_qty({:ok, %RegisterEntry{status: @status_matched}}, acc) do
-    Map.put(acc, :qty, Map.update!(acc.qty, :total, &(&1 + 1)))
+    increment_qty(acc, :processed)
   end
 
   defp count_register_qty({:ok, %RegisterEntry{status: @status_not_found}}, acc) do
@@ -380,13 +402,11 @@ defmodule EHealth.Registers.API do
   end
 
   defp count_register_qty({:ok, %RegisterEntry{status: @status_processed}}, acc) do
-    Map.put(acc, :qty, Map.update!(acc.qty, :total, &(&1 + 1)))
+    increment_qty(acc, :processed)
   end
 
-  defp count_register_qty({:ok, %RegisterEntry{status: @status_processing}}, acc) do
-    acc
-    |> increment_qty(:processing)
-    |> Map.put(:status, @status_processing)
+  defp count_register_qty({:ok, %RegisterEntry{status: @status_error}}, acc) do
+    increment_qty(acc, :errors)
   end
 
   defp count_register_qty({:error, msg}, acc) do
