@@ -7,6 +7,7 @@ defmodule EHealth.Web.RegisterControllerTest do
   alias Ecto.UUID
   alias EHealth.MockServer
   alias EHealth.Registers.Register
+  alias EHealth.Registers.Register.Qty
 
   require Logger
 
@@ -104,11 +105,22 @@ defmodule EHealth.Web.RegisterControllerTest do
       assert %{
                "errors" => 0,
                "not_found" => 0,
-               "processed" => 6,
-               "total" => 6
+               "processed" => 0,
+               "total" => 0
              } == data["qty"]
 
       assert "PROCESSED" = data["status"]
+
+      assert_receive {:ok,
+                      %Register{
+                        status: @status_processed,
+                        qty: %Qty{
+                          errors: 0,
+                          not_found: 0,
+                          processed: 6,
+                          total: 6
+                        }
+                      }}
 
       # check register_entry
       register_entries =
@@ -173,21 +185,33 @@ defmodule EHealth.Web.RegisterControllerTest do
         |> Map.get("data")
 
       assert %{
-               "errors" => 6,
-               "not_found" => 1,
-               "processed" => 4,
-               "total" => 11
+               "errors" => 0,
+               "not_found" => 0,
+               "processed" => 0,
+               "total" => 0
              } == data["qty"]
 
       assert "PROCESSED" = data["status"]
 
-      assert [
-               "Row has length 4 - expected length 2 on line 4",
-               "Invalid type - expected one of #{dict_values} on line 6",
-               "Row has length 1 - expected length 2 on line 7",
-               "Invalid number - expected non empty string on line 8",
-               "Row has length 1 - expected length 2 on line 10"
-             ] == data["errors"]
+      errors = [
+        "Row has length 4 - expected length 2 on line 4",
+        "Invalid type - expected one of #{dict_values} on line 6",
+        "Row has length 1 - expected length 2 on line 7",
+        "Invalid number - expected non empty string on line 8",
+        "Row has length 1 - expected length 2 on line 10"
+      ]
+
+      assert_receive {:ok,
+                      %Register{
+                        errors: ^errors,
+                        status: @status_processed,
+                        qty: %Qty{
+                          errors: 6,
+                          not_found: 1,
+                          processed: 4,
+                          total: 11
+                        }
+                      }}
     end
 
     test "entity_type not passed", %{conn: conn} do
@@ -308,18 +332,35 @@ defmodule EHealth.Web.RegisterControllerTest do
         |> Map.get("data")
 
       assert %{
-               "errors" => 2,
+               "errors" => 0,
                "not_found" => 0,
                "processed" => 0,
-               "total" => 2
+               "total" => 0
              } == data["qty"]
+
+      errors = [
+        "Invalid number - expected non empty string on line 2",
+        "Invalid type - expected one of #{dict_values} on line 3"
+      ]
 
       assert "PROCESSED" = data["status"]
 
-      assert [
-               "Invalid number - expected non empty string on line 2",
-               "Invalid type - expected one of #{dict_values} on line 3"
-             ] == data["errors"]
+      assert_receive {:ok,
+                      %Register{
+                        errors: ^errors,
+                        status: @status_processed,
+                        qty: %Qty{
+                          errors: 2,
+                          not_found: 0,
+                          processed: 0,
+                          total: 2
+                        }
+                      }}
+
+      # assert [
+      #          "Invalid number - expected non empty string on line 2",
+      #          "Invalid type - expected one of #{dict_values} on line 3"
+      #        ] == data["errors"]
     end
 
     test "invalid CSV type field because of empty dictionary values by DOCUMENT_TYPE", %{conn: conn} do
@@ -386,11 +427,22 @@ defmodule EHealth.Web.RegisterControllerTest do
       assert %{
                "errors" => 0,
                "not_found" => 0,
-               "processed" => 3,
-               "total" => 3
+               "processed" => 0,
+               "total" => 0
              } == data["qty"]
 
       assert "PROCESSED" = data["status"]
+
+      assert_receive {:ok,
+                      %Register{
+                        status: @status_processed,
+                        qty: %Qty{
+                          errors: 0,
+                          not_found: 0,
+                          processed: 3,
+                          total: 3
+                        }
+                      }}
     end
 
     test "param reason_description not passed", %{conn: conn} do
@@ -426,13 +478,24 @@ defmodule EHealth.Web.RegisterControllerTest do
         |> Map.get("data")
 
       assert %{
-               "errors" => 3,
+               "errors" => 0,
                "not_found" => 0,
                "processed" => 0,
-               "total" => 3
+               "total" => 0
              } == data["qty"]
 
       assert "PROCESSED" = data["status"]
+
+      assert_receive {:ok,
+                      %Register{
+                        status: @status_processed,
+                        qty: %Qty{
+                          errors: 3,
+                          not_found: 0,
+                          processed: 0,
+                          total: 3
+                        }
+                      }}
     end
 
     test "header consumer_id not set", %{conn: conn} do
@@ -487,11 +550,22 @@ defmodule EHealth.Web.RegisterControllerTest do
       assert %{
                "errors" => 0,
                "not_found" => 0,
-               "processed" => 2,
-               "total" => 2
+               "processed" => 0,
+               "total" => 0
              } == data["qty"]
 
       assert "PROCESSED" = data["status"]
+
+      assert_receive {:ok,
+                      %Register{
+                        status: @status_processed,
+                        qty: %Qty{
+                          errors: 0,
+                          not_found: 0,
+                          processed: 2,
+                          total: 2
+                        }
+                      }}
 
       # check register_entry
       register_entries =
@@ -546,22 +620,34 @@ defmodule EHealth.Web.RegisterControllerTest do
         |> Map.get("data")
 
       assert %{
-               "errors" => 6,
-               "not_found" => 1,
-               "processed" => 2,
-               "total" => 9
+               "errors" => 0,
+               "not_found" => 0,
+               "processed" => 0,
+               "total" => 0
              } == data["qty"]
 
       assert "PROCESSED" = data["status"]
 
-      assert [
-               "Row has length 4 - expected length 2 on line 4",
-               "Invalid type - expected one of #{dict_values} on line 5",
-               "Invalid type - expected one of #{dict_values} on line 6",
-               "Row has length 1 - expected length 2 on line 7",
-               "Invalid type - expected one of #{dict_values} on line 8",
-               "Row has length 1 - expected length 2 on line 10"
-             ] == data["errors"]
+      errors = [
+        "Row has length 4 - expected length 2 on line 4",
+        "Invalid type - expected one of #{dict_values} on line 5",
+        "Invalid type - expected one of #{dict_values} on line 6",
+        "Row has length 1 - expected length 2 on line 7",
+        "Invalid type - expected one of #{dict_values} on line 8",
+        "Row has length 1 - expected length 2 on line 10"
+      ]
+
+      assert_receive {:ok,
+                      %Register{
+                        errors: ^errors,
+                        status: @status_processed,
+                        qty: %Qty{
+                          errors: 6,
+                          not_found: 1,
+                          processed: 2,
+                          total: 9
+                        }
+                      }}
     end
   end
 
