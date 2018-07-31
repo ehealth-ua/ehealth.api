@@ -113,9 +113,8 @@ defmodule EHealth.Registers.API do
          :ok <- JsonSchema.validate(:registers, attrs),
          register_data <- prepare_register_data(attrs, author_id),
          {:ok, %Register{} = register} <- create_register(register_data),
-         {:ok, processed_entries} <-
-           batch_create_register_entries(register, attrs, attrs["reason_description"], author_id),
-         register_update_data <- prepare_register_update_data(processed_entries),
+         :ok <- batch_create_register_entries(register, attrs, attrs["reason_description"], author_id),
+         register_update_data <- prepare_register_update_data([]),
          {:ok, register} <- update_register(register, register_update_data) do
       {:ok, register}
     end
@@ -134,12 +133,25 @@ defmodule EHealth.Registers.API do
          {:ok, headers} <- fetch_headers(parsed_csv),
          true <- valid_csv_headers?(headers),
          {:ok, allowed_types} <- get_allowed_types(register) do
-      entries =
-        parsed_csv
-        |> Enum.map(&Task.async(fn -> process_register_entry(&1, register, allowed_types, reason_desc, author_id) end))
-        |> Enum.map(&Task.await/1)
+      try do
+        parent = self()
 
-      {:ok, entries}
+        Task.async(fn ->
+          processed_data =
+            parsed_csv
+            |> Enum.map(&process_register_entry(&1, register, allowed_types, reason_desc, author_id))
+            |> prepare_register_update_data()
+
+          send(parent, update_register(register, processed_data))
+        end)
+      catch
+        :exit, _ ->
+          register
+          |> changeset(%{"status" => @status_invalid})
+          |> Repo.update!()
+      end
+
+      :ok
     else
       err ->
         register
@@ -287,20 +299,15 @@ defmodule EHealth.Registers.API do
        ) do
     entries
     |> Enum.map(
-      &Task.async(fn ->
-        &1
+      &(&1
         |> maybe_terminate_person_declaration(type, reason_desc)
         |> maybe_deactivate_person(author_id)
-        |> create_register_entry()
-      end)
+        |> create_register_entry())
     )
-    |> Enum.map(&Task.await/1)
   end
 
   defp terminate_person_declaration_and_create_entry({_, entries}, _type, _reason_desc, _author_id) do
-    entries
-    |> Enum.map(&Task.async(fn -> create_register_entry(&1) end))
-    |> Enum.map(&Task.await/1)
+    Enum.map(entries, &create_register_entry/1)
   end
 
   defp terminate_declaration(entry_data, type, reason_description, author_id) do
