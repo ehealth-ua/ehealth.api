@@ -91,7 +91,12 @@ defmodule EHealth.Registers.API do
     |> order_by([r], desc: r.inserted_at)
   end
 
-  def get_search_query(entity, changes), do: entity |> super(changes) |> preload_register(entity)
+  def get_search_query(entity, changes) do
+    entity
+    |> super(changes)
+    |> order_by([r], desc: r.inserted_at)
+    |> preload_register(entity)
+  end
 
   defp preload_register(query, RegisterEntry) do
     query
@@ -180,6 +185,8 @@ defmodule EHealth.Registers.API do
      |> String.split("\n")
      |> CSV.decode(headers: true)}
   rescue
+    _ -> {:error, :invalid}
+  catch
     _ -> {:error, :invalid}
   end
 
