@@ -75,15 +75,20 @@ defmodule EHealth.Registers.API do
   def get_search_query(entity, changes) when map_size(changes) > 0 do
     params = Enum.filter(changes, fn {k, v} -> !is_tuple(v) && k not in ~W(inserted_at_from inserted_at_to)a end)
 
-    q = entity |> where(^params) |> preload_register(entity)
+    q =
+      entity
+      |> where(^params)
+      |> preload_register(entity)
 
-    Enum.reduce(changes, q, fn {key, val}, query ->
+    changes
+    |> Enum.reduce(q, fn {key, val}, query ->
       case key do
         :inserted_at_from -> where(query, [r], r.inserted_at >= ^date_to_datetime(val))
         :inserted_at_to -> where(query, [r], r.inserted_at <= ^date_to_end_datetime(val))
         _ -> query
       end
     end)
+    |> order_by([r], desc: r.inserted_at)
   end
 
   def get_search_query(entity, changes), do: entity |> super(changes) |> preload_register(entity)
@@ -114,7 +119,7 @@ defmodule EHealth.Registers.API do
          register_data <- prepare_register_data(attrs, author_id),
          {:ok, %Register{} = register} <- create_register(register_data),
          :ok <- batch_create_register_entries(register, attrs, attrs["reason_description"], author_id),
-         register_update_data <- prepare_register_update_data([]),
+         register_update_data <- prepare_register_update_data([], @status_new),
          {:ok, register} <- update_register(register, register_update_data) do
       {:ok, register}
     end
@@ -139,19 +144,25 @@ defmodule EHealth.Registers.API do
         Task.async(fn ->
           processed_data =
             parsed_csv
-            |> Enum.map(&process_register_entry(&1, register, allowed_types, reason_desc, author_id))
-            |> prepare_register_update_data()
+            |> Enum.with_index()
+            |> Enum.reduce([], fn {row, index}, acc ->
+              if rem(index, 100) == 0 do
+                update_register(register, prepare_register_update_data(acc))
+              end
 
-          send(parent, update_register(register, processed_data))
+              acc ++ [process_register_entry(row, register, allowed_types, reason_desc, author_id)]
+            end)
+
+          send(parent, update_register(register, prepare_register_update_data(processed_data)))
         end)
+
+        :ok
       catch
         :exit, _ ->
           register
           |> changeset(%{"status" => @status_invalid})
           |> Repo.update!()
       end
-
-      :ok
     else
       err ->
         register
@@ -385,9 +396,9 @@ defmodule EHealth.Registers.API do
 
   defp maybe_deactivate_person(entry_data, _author_id), do: entry_data
 
-  defp prepare_register_update_data(processed_entries) do
+  defp prepare_register_update_data(processed_entries, status \\ @status_processed) do
     acc = %{
-      status: @status_processed,
+      status: status,
       qty: %{total: 0, not_found: 0, errors: 0, processed: 0},
       errors: [],
       # starts with first because of CSV headers

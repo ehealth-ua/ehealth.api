@@ -109,7 +109,7 @@ defmodule EHealth.Web.RegisterControllerTest do
                "total" => 0
              } == data["qty"]
 
-      assert "PROCESSED" = data["status"]
+      assert "NEW" = data["status"]
 
       assert_receive {:ok,
                       %Register{
@@ -191,7 +191,7 @@ defmodule EHealth.Web.RegisterControllerTest do
                "total" => 0
              } == data["qty"]
 
-      assert "PROCESSED" = data["status"]
+      assert "NEW" = data["status"]
 
       errors = [
         "Row has length 4 - expected length 2 on line 4",
@@ -343,7 +343,7 @@ defmodule EHealth.Web.RegisterControllerTest do
         "Invalid type - expected one of #{dict_values} on line 3"
       ]
 
-      assert "PROCESSED" = data["status"]
+      assert "NEW" = data["status"]
 
       assert_receive {:ok,
                       %Register{
@@ -431,7 +431,7 @@ defmodule EHealth.Web.RegisterControllerTest do
                "total" => 0
              } == data["qty"]
 
-      assert "PROCESSED" = data["status"]
+      assert "NEW" = data["status"]
 
       assert_receive {:ok,
                       %Register{
@@ -484,7 +484,7 @@ defmodule EHealth.Web.RegisterControllerTest do
                "total" => 0
              } == data["qty"]
 
-      assert "PROCESSED" = data["status"]
+      assert "NEW" = data["status"]
 
       assert_receive {:ok,
                       %Register{
@@ -554,7 +554,7 @@ defmodule EHealth.Web.RegisterControllerTest do
                "total" => 0
              } == data["qty"]
 
-      assert "PROCESSED" = data["status"]
+      assert "NEW" = data["status"]
 
       assert_receive {:ok,
                       %Register{
@@ -626,7 +626,7 @@ defmodule EHealth.Web.RegisterControllerTest do
                "total" => 0
              } == data["qty"]
 
-      assert "PROCESSED" = data["status"]
+      assert "NEW" = data["status"]
 
       errors = [
         "Row has length 4 - expected length 2 on line 4",
