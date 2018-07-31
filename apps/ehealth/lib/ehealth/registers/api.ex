@@ -152,7 +152,7 @@ defmodule EHealth.Registers.API do
             |> Enum.with_index()
             |> Enum.reduce([], fn {row, index}, acc ->
               if rem(index, 100) == 0 do
-                update_register(register, prepare_register_update_data(acc))
+                update_register(register, prepare_register_update_data(acc, @status_new))
               end
 
               acc ++ [process_register_entry(row, register, allowed_types, reason_desc, author_id)]
@@ -164,18 +164,23 @@ defmodule EHealth.Registers.API do
         :ok
       catch
         :exit, _ ->
-          register
-          |> changeset(%{"status" => @status_invalid})
-          |> Repo.update!()
+          invalid_register(register)
       end
     else
       err ->
-        register
-        |> changeset(%{"status" => @status_invalid})
-        |> Repo.update!()
-
+        invalid_register(register)
         err
     end
+  rescue
+    _ -> invalid_register(register)
+  catch
+    _ -> invalid_register(register)
+  end
+
+  defp invalid_register(%Register{} = register) do
+    register
+    |> changeset(%{"status" => @status_invalid})
+    |> Repo.update()
   end
 
   defp parse_csv(file) do
@@ -184,10 +189,6 @@ defmodule EHealth.Registers.API do
      |> Base.decode64!()
      |> String.split("\n")
      |> CSV.decode(headers: true)}
-  rescue
-    _ -> {:error, :invalid}
-  catch
-    _ -> {:error, :invalid}
   end
 
   defp get_allowed_types(%Register{entity_type: "patient"}) do

@@ -356,11 +356,6 @@ defmodule EHealth.Web.RegisterControllerTest do
                           total: 2
                         }
                       }}
-
-      # assert [
-      #          "Invalid number - expected non empty string on line 2",
-      #          "Invalid type - expected one of #{dict_values} on line 3"
-      #        ] == data["errors"]
     end
 
     test "invalid CSV type field because of empty dictionary values by DOCUMENT_TYPE", %{conn: conn} do
@@ -583,6 +578,22 @@ defmodule EHealth.Web.RegisterControllerTest do
         assert Map.has_key?(entry, "document_type")
         assert Map.has_key?(entry, "document_number")
       end)
+    end
+
+    test "invalid file", %{conn: conn} do
+      attrs = %{
+        file:
+          "JVBERi0xLjMKJcfsj6IKMzAgMCBvYmoKPDwvTGVuZ3RoIDMxIDAgUi9GaWx0ZXIgL0ZsYXRlRGVjb2RlPj4Kc3RyZWFtCnic7X3dkyW3be/7/BVT9yVOVfa4+U0mTzeJ45uUXXFspZKHvNgrS3K8K9mSJcf56y9+ALqbPY2ew9N7ZmVZm1SiBaabDYIAiC/y/P5xujj/OOF/53+8fvvw+4cf",
+        file_name: "persons",
+        type: "death",
+        entity_type: "declaration"
+      }
+
+      assert "Invalid CSV headers" =
+               conn
+               |> post(register_path(conn, :create), attrs)
+               |> json_response(422)
+               |> get_in(~w(error message))
     end
 
     test "success with status PROCESSING", %{conn: conn} do
