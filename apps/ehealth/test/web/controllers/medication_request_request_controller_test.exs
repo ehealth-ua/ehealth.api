@@ -135,6 +135,25 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
   end
 
+  describe "show medication_request_request" do
+    test "success", %{conn: conn} do
+      expect_ops_get_declarations()
+      expect_mpi_get_person(2)
+
+      %{medication_request_request: %{id: id}} = fixture(:medication_request_request)
+
+      conn = get(conn, medication_request_request_path(conn, :show, id))
+      resp = json_response(conn, 200)
+      assert resp["data"]["id"] == id
+    end
+
+    test "invalid request id", %{conn: conn} do
+      id = Ecto.UUID.generate()
+      conn = get(conn, medication_request_request_path(conn, :show, id))
+      assert json_response(conn, 404)
+    end
+  end
+
   describe "create medication_request_request" do
     test "render medication_request_request when data is valid", %{conn: conn} do
       expect_ops_get_declarations()

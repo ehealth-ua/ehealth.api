@@ -57,7 +57,10 @@ defmodule EHealth.Web.MedicationRequestRequestController do
   end
 
   def show(conn, %{"id" => id}) do
-    medication_request_request = API.show(id)
-    render(conn, "medication_request_request_detail.json", data: medication_request_request)
+    with {:ok, mrr} <- API.show(id) do
+      conn
+      |> put_status(200)
+      |> render("medication_request_request_detail.json", data: mrr)
+    end
   end
 end

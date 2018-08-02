@@ -102,9 +102,10 @@ defmodule EHealth.MedicationRequestRequests do
   defp filter_by_person_id(query, _), do: query
 
   def show(id) do
-    mrr = get_medication_request_request(id)
-    operation = PreloadFkOperation.preload(mrr)
-    Map.merge(operation.data, %{medication_request_request: mrr})
+    with %MedicationRequestRequest{} = mrr <- get_medication_request_request(id) do
+      operation = PreloadFkOperation.preload(mrr)
+      {:ok, Map.merge(operation.data, %{medication_request_request: mrr})}
+    end
   end
 
   def get_medication_request_request(id), do: Repo.get(MedicationRequestRequest, id)
