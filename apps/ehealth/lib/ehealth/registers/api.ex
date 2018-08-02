@@ -333,7 +333,7 @@ defmodule EHealth.Registers.API do
     declaration_id = entry_data["document_number"]
 
     with {:ok, %{"data" => declaration}} <- @ops_api.get_declaration_by_id(declaration_id, []) do
-      if declaration["status"] == "terminated" do
+      if declaration["status"] in ["terminated", "closed", "rejected"] do
         Map.put(entry_data, "status", @status_processed)
       else
         case @ops_api.terminate_declaration(
