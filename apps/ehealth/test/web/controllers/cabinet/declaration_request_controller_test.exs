@@ -31,11 +31,18 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
     :ok
   end
 
+  def gen_sequence_number do
+    expect(DeclarationRequestsCreatorMock, :sql_get_sequence_number, fn ->
+      {:ok, %Postgrex.Result{rows: [[Enum.random(1_000_000..2_000_000)]]}}
+    end)
+  end
+
   describe "create declaration request online" do
     test "success create declaration request online for underage person for PEDIATRICIAN", %{conn: conn} do
       cabinet()
 
       person_id = UUID.generate()
+      gen_sequence_number()
 
       expect(MithrilMock, :get_user_by_id, fn id, _ ->
         {:ok,
@@ -149,6 +156,8 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
 
       person_id = UUID.generate()
 
+      gen_sequence_number()
+
       expect(MithrilMock, :get_user_by_id, fn id, _ ->
         {:ok,
          %{
@@ -247,6 +256,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         })
       end)
 
+      gen_sequence_number()
       role_id = UUID.generate()
 
       expect(MithrilMock, :get_user_by_id, 2, fn id, _ ->
@@ -346,6 +356,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         |> to_string()
 
       person_id = UUID.generate()
+      role_id = UUID.generate()
 
       expect(MPIMock, :person, fn _, _ ->
         get_person(person_id, 200, %{
@@ -358,7 +369,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         })
       end)
 
-      role_id = UUID.generate()
+      gen_sequence_number()
 
       expect(MithrilMock, :get_user_by_id, 2, fn id, _ ->
         {:ok,

@@ -236,7 +236,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       legal_entity = PRMRepo.get!(LegalEntity, legal_entity_id)
       %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
 
-      medication_request_number = NumberGenerator.generate(1)
+      medication_request_number = NumberGenerator.generate(0)
 
       medication_request =
         %{
@@ -271,7 +271,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
 
     test "no party user", %{conn: conn} do
       msp()
-      conn = get(conn, medication_request_path(conn, :show, NumberGenerator.generate(1)))
+      conn = get(conn, medication_request_path(conn, :show, NumberGenerator.generate(0)))
       assert json_response(conn, 500)
     end
 
@@ -293,7 +293,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
          }}
       end)
 
-      conn = get(conn, medication_request_path(conn, :show, NumberGenerator.generate(1)))
+      conn = get(conn, medication_request_path(conn, :show, NumberGenerator.generate(0)))
       assert json_response(conn, 404)
     end
   end

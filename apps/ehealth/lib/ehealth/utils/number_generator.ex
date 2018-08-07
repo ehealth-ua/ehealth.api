@@ -8,9 +8,10 @@ defmodule EHealth.Utils.NumberGenerator do
   @human_readble_symbols ~w(0 A 1 E 2 H 3 K 4 M 5 P 6 T 7 X 8 9)
   # Number of symbols available, set as module attribute for better performance
   @options_count 18
-  @ver_1 "0000-"
 
-  def generate_from_sequence(1, sequence, blocks \\ 3) do
+  defp version_prefix(n), do: "000#{n}-"
+
+  def generate_from_sequence(n, sequence, blocks \\ 3) do
     number =
       ""
       |> do_generate_from_sequence(sequence)
@@ -21,7 +22,7 @@ defmodule EHealth.Utils.NumberGenerator do
       |> Enum.reduce([], fn i, acc -> acc ++ [String.slice(number, i * 4, 4)] end)
       |> Enum.join("-")
 
-    "#{@ver_1}#{number}"
+    "#{version_prefix(n)}#{number}"
   end
 
   defp do_generate_from_sequence(number, reminder) do
@@ -38,13 +39,13 @@ defmodule EHealth.Utils.NumberGenerator do
     do_generate(version, blocks)
   end
 
-  defp do_generate(1, blocks) do
+  defp do_generate(n, blocks) do
     sequence =
       1..blocks
       |> Enum.map(fn _ -> get_combination_of(4) end)
       |> Enum.join("-")
 
-    @ver_1 <> sequence
+    version_prefix(n) <> sequence
   end
 
   defp get_combination_of(number_length) do

@@ -622,7 +622,7 @@ defmodule EHealth.ContractRequests do
 
   defp set_contract_number(params, _) do
     with {:ok, sequence} <- get_contract_request_sequence() do
-      Map.put(params, "contract_number", NumberGenerator.generate_from_sequence(1, sequence))
+      Map.put(params, "contract_number", NumberGenerator.generate_from_sequence(0, sequence))
     end
   end
 

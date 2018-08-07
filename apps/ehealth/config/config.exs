@@ -18,7 +18,8 @@ config :ehealth,
     media_storage: EHealth.API.MediaStorage,
     otp_verification: EHealth.API.OTPVerification,
     postmark: EHealth.API.Postmark,
-    uaddresses: EHealth.API.UAddress
+    uaddresses: EHealth.API.UAddress,
+    declaration_request_creator: EHealth.DeclarationRequests.API.Creator
   ],
   cache: [
     validators: EHealth.Validators.Cache

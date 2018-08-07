@@ -41,7 +41,8 @@ config :ehealth,
     media_storage: MediaStorageMock,
     otp_verification: OTPVerificationMock,
     postmark: PostmarkMock,
-    uaddresses: UAddressesMock
+    uaddresses: UAddressesMock,
+    declaration_request_creator: DeclarationRequestsCreatorMock
   ],
   cache: [
     validators: EHealth.Validators.CacheTest

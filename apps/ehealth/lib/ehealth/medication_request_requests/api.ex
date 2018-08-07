@@ -162,7 +162,7 @@ defmodule EHealth.MedicationRequestRequests do
     |> cast(attrs, [:request_number, :status, :inserted_by, :updated_by])
     |> put_embed(:data, create_operation.changeset)
     |> put_change(:status, @status_new)
-    |> put_change(:request_number, NumberGenerator.generate(1))
+    |> put_change(:request_number, NumberGenerator.generate(0))
     |> put_change(:verification_code, put_verification_code(create_operation))
     |> put_change(:inserted_by, user_id)
     |> put_change(:updated_by, user_id)
