@@ -12,6 +12,12 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
 
   setup :verify_on_exit!
 
+  def gen_sequence_number do
+    expect(DeclarationRequestsCreatorMock, :sql_get_sequence_number, fn ->
+      {:ok, %Postgrex.Result{rows: [[Enum.random(1_000_000..2_000_000)]]}}
+    end)
+  end
+
   describe "Happy paths" do
     setup %{conn: conn} do
       insert(:prm, :global_parameter, %{parameter: "adult_age", value: "18"})
@@ -42,6 +48,8 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
     end
 
     test "declaration request doctor speciality doesn't match patient's age", %{conn: conn} do
+      gen_sequence_number()
+
       expect(OTPVerificationMock, :search, fn _, _ ->
         {:ok, %{"data" => []}}
       end)
@@ -78,6 +86,8 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
     end
 
     test "declaration request doctor speciality doesn't match patient's adult age", %{conn: conn} do
+      gen_sequence_number()
+
       expect(OTPVerificationMock, :search, fn _, _ ->
         {:ok, %{"data" => []}}
       end)
@@ -137,6 +147,8 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
     end
 
     test "declaration request with non verified phone for OTP auth", %{conn: conn} do
+      gen_sequence_number()
+
       expect(OTPVerificationMock, :search, fn _, _ ->
         {:error, nil}
       end)
@@ -193,7 +205,54 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
              } = resp["error"]
     end
 
+    test "declaration request sequence is not works", %{conn: conn} do
+      expect(DeclarationRequestsCreatorMock, :sql_get_sequence_number, fn ->
+        {:error, [:any]}
+      end)
+
+      expect(OTPVerificationMock, :search, fn _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
+      declaration_request_params =
+        "test/data/declaration_request.json"
+        |> File.read!()
+        |> Jason.decode!()
+
+      declaration_request_params =
+        put_in(
+          declaration_request_params,
+          ~W(declaration_request person),
+          Map.delete(declaration_request_params["declaration_request"]["person"], "phones")
+        )
+
+      uaddresses_mock_expect()
+
+      resp =
+        conn
+        |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
+        |> post(declaration_request_path(conn, :create), declaration_request_params)
+        |> json_response(422)
+
+      assert %{
+               "error" => %{
+                 "invalid" => [
+                   %{
+                     "entry" => "$.sequence",
+                     "rules" => [
+                       %{
+                         "description" => "declaration_request sequence doesn't return a number"
+                       }
+                     ]
+                   }
+                 ]
+               }
+             } = resp
+    end
+
     test "declaration request without person.phone", %{conn: conn} do
+      gen_sequence_number()
       template()
 
       expect(MPIMock, :search, fn params, _ ->
@@ -262,6 +321,8 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
     end
 
     test "declaration request without required phone number", %{conn: conn} do
+      gen_sequence_number()
+
       declaration_request_params =
         "test/data/declaration_request.json"
         |> File.read!()
@@ -306,6 +367,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
     end
 
     test "declaration request is created with 'OTP' verification", %{conn: conn} do
+      gen_sequence_number()
       role_id = UUID.generate()
 
       expect(MPIMock, :search, fn params, _ ->
@@ -437,6 +499,8 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
     end
 
     test "declaration request is created with 'Offline' verification", %{conn: conn} do
+      gen_sequence_number()
+
       expect(MediaStorageMock, :create_signed_url, 4, fn _, _, resource_name, resource_id, _ ->
         {:ok, %{"data" => %{"secret_url" => "http://a.link.for/#{resource_id}/#{resource_name}"}}}
       end)
@@ -533,6 +597,8 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
     test "declaration request is created for person without tax_id", %{conn: conn} do
       template()
 
+      gen_sequence_number()
+
       expect(MPIMock, :search, fn params, _ ->
         {:ok,
          %{
@@ -613,6 +679,8 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
     end
 
     test "declaration request is created without verification", %{conn: conn} do
+      gen_sequence_number()
+
       expect(MPIMock, :search, fn _, _ ->
         {:ok, %{"data" => []}}
       end)

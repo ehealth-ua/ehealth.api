@@ -8,6 +8,7 @@ defmodule EHealth.DeclarationRequests.API.Creator do
   import Ecto.Changeset
   import EHealth.Utils.TypesConverter, only: [string_to_integer: 1]
 
+  alias Ecto.Adapters.SQL
   alias Ecto.{Changeset, UUID}
   alias EHealth.DeclarationRequests
   alias EHealth.DeclarationRequests.API.{Documents, Persons}
@@ -25,8 +26,11 @@ defmodule EHealth.DeclarationRequests.API.Creator do
   alias EHealth.Validators.Error
   alias EHealth.Validators.TaxID
 
+  require Logger
+
   @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
   @otp_verification_api Application.get_env(:ehealth, :api_resolvers)[:otp_verification]
+  @declaration_request_creator Application.get_env(:ehealth, :api_resolvers)[:declaration_request_creator]
 
   @auth_na DeclarationRequest.authentication_method(:na)
   @auth_otp DeclarationRequest.authentication_method(:otp)
@@ -86,20 +90,13 @@ defmodule EHealth.DeclarationRequests.API.Creator do
   defp insert_declaration_request(params, user_id, auxiliary_entities, headers) do
     params
     |> changeset(user_id, auxiliary_entities, headers)
-    |> do_insert_declaration_request(auxiliary_entities.employee)
+    |> do_insert_declaration_request()
   end
 
-  defp do_insert_declaration_request(changeset, employee) do
+  defp do_insert_declaration_request(changeset) do
     case Repo.insert(changeset) do
       {:ok, declaration_request} ->
         {:ok, declaration_request}
-
-      {:error, %Changeset{errors: [declaration_number: {"has already been taken", []}]}} ->
-        # declaration_number collision, let's regenerate it
-        changeset
-        |> put_declaration_number(NumberGenerator.generate(1, 2))
-        |> generate_printout_form(employee)
-        |> do_insert_declaration_request(employee)
 
       {:error, reason} ->
         {:error, reason}
@@ -343,7 +340,7 @@ defmodule EHealth.DeclarationRequests.API.Creator do
     |> put_change(:status, @status_new)
     |> put_change(:inserted_by, user_id)
     |> put_change(:updated_by, user_id)
-    |> put_declaration_number(NumberGenerator.generate(1, 2))
+    |> put_declaration_number()
     |> unique_constraint(:declaration_number, name: :declaration_requests_declaration_number_index)
     |> put_party_email()
     |> determine_auth_method_for_mpi(channel, person_id)
@@ -617,8 +614,13 @@ defmodule EHealth.DeclarationRequests.API.Creator do
     }
   end
 
-  defp put_declaration_number(changeset, num) do
-    put_change(changeset, :declaration_number, num)
+  defp put_declaration_number(changeset) do
+    with {:ok, sequence} <- get_sequence_number() do
+      put_change(changeset, :declaration_number, NumberGenerator.generate_from_sequence(1, sequence))
+    else
+      _ ->
+        add_error(changeset, :sequence, "declaration_request sequence doesn't return a number")
+    end
   end
 
   def put_party_email(%Changeset{valid?: false} = changeset), do: changeset
@@ -723,6 +725,21 @@ defmodule EHealth.DeclarationRequests.API.Creator do
 
       _ ->
         normal_expiration_date
+    end
+  end
+
+  def sql_get_sequence_number do
+    SQL.query(Repo, "SELECT nextval('declaration_request');", [])
+  end
+
+  def get_sequence_number do
+    case @declaration_request_creator.sql_get_sequence_number() do
+      {:ok, %Postgrex.Result{rows: [[sequence]]}} ->
+        {:ok, sequence}
+
+      _ ->
+        Logger.error("Can't get declaration_request sequence")
+        {:error, %{"type" => "internal_error"}}
     end
   end
 end

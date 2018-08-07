@@ -143,8 +143,7 @@ defmodule EHealth.LegalEntities.Validator do
 
   defp valid_owner_position?(_position, nil), do: false
 
-  defp valid_owner_position?(position, positions),
-    do: Enum.any?(positions, fn x -> x == position end)
+  defp valid_owner_position?(position, positions), do: Enum.any?(positions, fn x -> x == position end)
 
   defp prepare_legal_entity(%Ecto.Changeset{valid?: true}, legal_entity), do: {:ok, legal_entity}
   defp prepare_legal_entity(changeset, _legal_entity), do: {:error, changeset}

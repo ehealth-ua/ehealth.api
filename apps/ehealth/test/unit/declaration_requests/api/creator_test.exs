@@ -1,12 +1,31 @@
 defmodule EHealth.DeclarationRequests.API.CreatorTest do
   @moduledoc false
 
+  import Mox
   use EHealth.Web.ConnCase, async: true
   alias Ecto.UUID
   alias EHealth.DeclarationRequests.DeclarationRequest
   alias EHealth.DeclarationRequests.API.Creator
   alias EHealth.Repo
   alias EHealth.Utils.NumberGenerator
+
+  describe "gen_sequence_number" do
+    test "nuber generated successfully" do
+      expect(DeclarationRequestsCreatorMock, :sql_get_sequence_number, fn ->
+        {:ok, %Postgrex.Result{rows: [[Enum.random(1_000_000..2_000_000)]]}}
+      end)
+
+      assert {:ok, _} = Creator.get_sequence_number()
+    end
+
+    test "nuber generated fail" do
+      expect(DeclarationRequestsCreatorMock, :sql_get_sequence_number, fn ->
+        {:error, [:any]}
+      end)
+
+      assert {:error, %{"type" => "internal_error"}} = Creator.get_sequence_number()
+    end
+  end
 
   describe "request_end_date/5" do
     test "patient is less than 18 years old, speciality: PEDIATRICIAN" do
