@@ -4,8 +4,8 @@ defmodule EHealth.Contracts.Terminator do
   import Ecto.Query
   use Confex, otp_app: :ehealth
   use GenServer
-  alias Ecto.UUID
   alias EHealth.Contracts.Contract
+  alias EHealth.EventManager
   alias EHealth.PRMRepo
   require Logger
 
@@ -45,7 +45,7 @@ defmodule EHealth.Contracts.Terminator do
   def handle_cast(_, state), do: {:noreply, state}
 
   defp state_options do
-    {:ok, user_id} = UUID.dump(Confex.fetch_env!(:ehealth, :system_user))
+    user_id = Confex.fetch_env!(:ehealth, :system_user)
     limit = config()[:termination_batch_size]
     %{limit: limit, user_id: user_id}
   end
@@ -64,20 +64,33 @@ defmodule EHealth.Contracts.Terminator do
       |> where([c], c.end_date < ^NaiveDateTime.utc_now() and c.status != ^terminated)
       |> limit(^limit)
 
-    {rows_updated, _} =
+    query = join(Contract, :inner, [c], cr in subquery(subselect_ids), c.id == cr.id)
+
+    {rows_updated, contracts} =
       Contract
       |> join(:inner, [c], cr in subquery(subselect_ids), c.id == cr.id)
-      |> update(
-        [c],
-        set: [
-          status: ^terminated,
-          status_reason: "auto_expired",
-          updated_by: ^user_id,
-          updated_at: ^NaiveDateTime.utc_now()
-        ]
+      |> PRMRepo.update_all(
+        [
+          set: [
+            status: terminated,
+            status_reason: "auto_expired",
+            updated_by: user_id,
+            updated_at: NaiveDateTime.utc_now()
+          ]
+        ],
+        returning: [:id]
       )
-      |> PRMRepo.update_all([])
+
+    log_status_updates(contracts, user_id)
 
     rows_updated
+  end
+
+  def log_status_updates(contracts, user_id) do
+    Enum.map(contracts, fn contract ->
+      with {:ok, event} <- EventManager.insert_change_status(contract, contract.status, user_id) do
+        event
+      end
+    end)
   end
 end
