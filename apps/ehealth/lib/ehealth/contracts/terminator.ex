@@ -64,8 +64,6 @@ defmodule EHealth.Contracts.Terminator do
       |> where([c], c.end_date < ^NaiveDateTime.utc_now() and c.status != ^terminated)
       |> limit(^limit)
 
-    query = join(Contract, :inner, [c], cr in subquery(subselect_ids), c.id == cr.id)
-
     {rows_updated, contracts} =
       Contract
       |> join(:inner, [c], cr in subquery(subselect_ids), c.id == cr.id)
