@@ -594,8 +594,17 @@ defmodule EHealth.DeclarationRequests.API.Creator do
       "legal_entity_id" => division.legal_entity_id,
       "external_id" => division.external_id,
       "email" => division.email,
-      "addresses" => division.addresses
+      "addresses" => prepare_addresses(division.addresses)
     }
+  end
+
+  defp prepare_addresses(addresses) do
+    Enum.map(addresses, fn address ->
+      address
+      |> Jason.encode!()
+      |> Jason.decode!()
+      |> Map.drop(~w(id division_id))
+    end)
   end
 
   defp prepare_legal_entity_struct(legal_entity) do

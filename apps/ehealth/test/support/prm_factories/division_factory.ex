@@ -14,8 +14,7 @@ defmodule EHealth.PRMFactories.DivisionFactory do
         %Division{
           id: division_id,
           legal_entity: build(:legal_entity),
-          addresses: [address()],
-          division_addresses: [
+          addresses: [
             build(:division_address, division_id: division_id, type: "REGISTRATION"),
             build(:division_address, division_id: division_id)
           ],
@@ -44,23 +43,6 @@ defmodule EHealth.PRMFactories.DivisionFactory do
           settlement: "СОРОКИ-ЛЬВІВСЬКІ",
           type: "RESIDENCE",
           street_type: "STREET"
-        }
-      end
-
-      defp address do
-        %{
-          "building" => "15",
-          "apartment" => "23",
-          "zip" => "02090",
-          "area" => "ЛЬВІВСЬКА",
-          "country" => "UA",
-          "region" => "ПУСТОМИТІВСЬКИЙ",
-          "settlement_type" => "CITY",
-          "settlement_id" => "707dbc55-cb6b-4aaa-97c1-2a1e03476100",
-          "street" => "вул. Ніжинська",
-          "settlement" => "СОРОКИ-ЛЬВІВСЬКІ",
-          "type" => "RESIDENCE",
-          "street_type" => "STREET"
         }
       end
     end

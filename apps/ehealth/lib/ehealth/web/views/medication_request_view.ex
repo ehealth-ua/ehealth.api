@@ -2,6 +2,7 @@ defmodule EHealth.Web.MedicationRequestView do
   @moduledoc false
 
   use EHealth.Web, :view
+  alias EHealth.Web.DivisionView
   alias EHealth.Web.{LegalEntityView, MedicationRequestRequestView}
 
   def render("index.json", %{medication_requests: medication_requests}) do
@@ -102,6 +103,10 @@ defmodule EHealth.Web.MedicationRequestView do
           working_hours
         )a)
     |> Map.put(:location, to_coordinates(division.location))
+    |> Map.put(
+      :addresses,
+      render_many(division.addresses, DivisionView, "division_addresses.json", as: :address)
+    )
   end
 
   def render("employee.json", %{employee: employee}) do

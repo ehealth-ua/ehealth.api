@@ -11,7 +11,7 @@ defmodule EHealth.Web.EUaddressesControllerTest do
   describe "update settlement mountain group" do
     test "success", %{conn: conn} do
       division = insert(:prm, :division)
-      settlement_id = Map.get(List.first(division.addresses), "settlement_id")
+      settlement_id = Map.get(List.first(division.addresses), :settlement_id)
       data = %{"settlement" => %{"mountain_group" => true}}
 
       {get_settlement_response, settlement} = get_settlement(settlement_id, 200)
@@ -56,7 +56,13 @@ defmodule EHealth.Web.EUaddressesControllerTest do
 
     test "no changes", %{conn: conn} do
       division = insert(:prm, :division)
-      settlement_id = Map.get(List.first(division.addresses), "settlement_id")
+
+      settlement_id =
+        Map.get(
+          List.first(division.addresses),
+          :settlement_id
+        )
+
       data = %{"settlement" => %{"name" => "Київ"}}
 
       {get_settlement_response, settlement} = get_settlement(settlement_id, 200)

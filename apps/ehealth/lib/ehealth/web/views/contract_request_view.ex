@@ -2,6 +2,7 @@ defmodule EHealth.Web.ContractRequestView do
   @moduledoc false
 
   use EHealth.Web, :view
+  alias EHealth.Web.DivisionView
 
   def render("index.json", %{contract_requests: contract_requests}) do
     render_many(contract_requests, __MODULE__, "list_contract_request.json")
@@ -152,11 +153,10 @@ defmodule EHealth.Web.ContractRequestView do
   end
 
   def render_association(:division, references, id) do
-    with %{} = division <-
-           references
-           |> Map.get(:division)
-           |> Map.get(id) do
-      Map.take(division, ~w(id name addresses phone email working_hours mountain_group phones)a)
+    with %{} = division <- references |> Map.get(:division) |> Map.get(id) do
+      division
+      |> Map.take(~w(id name phone email working_hours mountain_group phones)a)
+      |> Map.put(:addresses, render_many(division.addresses, DivisionView, "division_addresses.json", as: :address))
     end
   end
 

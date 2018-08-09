@@ -2,6 +2,8 @@ defmodule EHealth.Divisions.Division do
   @moduledoc false
 
   use Ecto.Schema
+  alias EHealth.Divisions.DivisionAddress
+  alias EHealth.LegalEntities.LegalEntity
 
   @derive {Jason.Encoder, except: [:__meta__]}
 
@@ -25,7 +27,6 @@ defmodule EHealth.Divisions.Division do
     field(:external_id, :string)
     field(:mountain_group, :boolean, null: false)
     field(:name, :string)
-    field(:addresses, {:array, :map})
     field(:phones, {:array, :map})
     field(:type, :string)
     field(:status, :string, null: false)
@@ -33,8 +34,8 @@ defmodule EHealth.Divisions.Division do
     field(:location, Geo.Geometry)
     field(:working_hours, :map)
 
-    belongs_to(:legal_entity, EHealth.LegalEntities.LegalEntity, type: Ecto.UUID)
-    has_many(:division_addresses, EHealth.Divisions.DivisionAddress, foreign_key: :division_id, on_replace: :delete)
+    belongs_to(:legal_entity, LegalEntity, type: Ecto.UUID)
+    has_many(:addresses, DivisionAddress, foreign_key: :division_id, on_replace: :delete)
 
     timestamps()
   end
