@@ -79,14 +79,14 @@ defmodule EHealth.Contracts.Terminator do
         returning: [:id]
       )
 
-    log_status_updates(contracts, user_id)
+    log_status_updates(contracts, terminated, user_id)
 
     rows_updated
   end
 
-  def log_status_updates(contracts, user_id) do
+  def log_status_updates(contracts, new_status, user_id) do
     Enum.map(contracts, fn contract ->
-      with {:ok, event} <- EventManager.insert_change_status(contract, contract.status, user_id) do
+      with {:ok, event} <- EventManager.insert_change_status(contract, new_status, user_id) do
         event
       end
     end)
