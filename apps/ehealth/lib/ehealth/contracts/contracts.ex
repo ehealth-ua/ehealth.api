@@ -84,7 +84,7 @@ defmodule EHealth.Contracts do
     end
   end
 
-  def create(%{parent_contract_id: parent_contract_id} = params) when not is_nil(parent_contract_id) do
+  def create(%{parent_contract_id: parent_contract_id} = params, user_id) when not is_nil(parent_contract_id) do
     with %Contract{status: @status_verified} = contract <- PRMRepo.get(Contract, parent_contract_id) do
       contract = load_references(contract)
 
@@ -93,9 +93,12 @@ defmodule EHealth.Contracts do
         |> where([ce], ce.contract_id == ^contract.id)
         |> PRMRepo.update_all(set: [end_date: NaiveDateTime.utc_now(), updated_by: params.updated_by])
 
-        contract
-        |> changeset(%{"status" => @status_terminated})
-        |> PRMRepo.update()
+        with {:ok, _} <-
+               contract
+               |> changeset(%{"status" => @status_terminated})
+               |> PRMRepo.update() do
+          EventManager.insert_change_status(contract, @status_terminated, user_id)
+        end
 
         with {:ok, new_contract} <- do_create(params) do
           new_contract
@@ -106,7 +109,7 @@ defmodule EHealth.Contracts do
     end
   end
 
-  def create(params) do
+  def create(params, _) do
     do_create(params)
   end
 

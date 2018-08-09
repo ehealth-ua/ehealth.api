@@ -434,7 +434,7 @@ defmodule EHealth.ContractRequests do
          %Ecto.Changeset{valid?: true} = changes <- msp_signed_changeset(contract_request, update_params),
          {:ok, contract_request} <- Repo.update(changes),
          contract_params <- get_contract_create_params(contract_request),
-         {:create_contract, {:ok, contract}} <- {:create_contract, Contracts.create(contract_params)},
+         {:create_contract, {:ok, contract}} <- {:create_contract, Contracts.create(contract_params, user_id)},
          _ <- EventManager.insert_change_status(contract_request, contract_request.status, user_id) do
       Contracts.load_contract_references(contract)
     else
