@@ -20,6 +20,14 @@ defmodule EHealth.Unit.DivisionsTest do
         |> Map.from_struct()
         |> Map.new(fn {k, v} -> {Atom.to_string(k), v} end)
 
+      addresses =
+        Enum.map(division["addresses"], fn x ->
+          x
+          |> Map.from_struct()
+          |> Map.new(fn {k, v} -> {Atom.to_string(k), v} end)
+        end)
+
+      division = Map.put(division, "addresses", addresses)
       {:ok, division: division}
     end
 

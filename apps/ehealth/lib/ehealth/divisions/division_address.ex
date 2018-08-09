@@ -4,6 +4,8 @@ defmodule EHealth.Divisions.DivisionAddress do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @derive {Jason.Encoder, except: [:__meta__]}
+
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "division_addresses" do
     field(:division_id, Ecto.UUID)
