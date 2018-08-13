@@ -101,8 +101,16 @@ defmodule EHealth.API.Mithril do
 
   # Apps
 
+  def get_app(id, headers \\ [], params) do
+    get!("/admin/apps/#{id}", headers, params: params)
+  end
+
   def get_apps(params \\ [], headers \\ []) do
     get!("/admin/apps", headers, params: params)
+  end
+
+  def update_app(headers, %{"id" => id} = params) do
+    put!("/admin/apps/#{id}", headers, params: params)
   end
 
   def delete_app(app_id, headers) do

@@ -15,12 +15,14 @@ defmodule EHealth.API.MithrilBehaviour do
   @callback get_user_by_id(id :: binary, headers :: list) :: {:ok, result :: term} | {:error, reason :: term}
   @callback search_user(params :: map, headers :: list) :: {:ok, result :: term} | {:error, reason :: term}
   @callback create_user(params :: map, headers :: list) :: {:ok, result :: term} | {:error, reason :: term}
-  @callback change_user(id :: binary, params :: map, headers :: list) ::
-              {:ok, result :: term} | {:error, reason :: term}
-
+  @callback change_user(id :: binary, params :: map, headers :: list) :: params :: map
   # apps
   @callback delete_apps_by_user_and_client(user_id :: binary, client_id :: binary, headers :: list) ::
               {:ok, result :: term} | {:error, reason :: term}
+  @callback get_app(id :: binary, params :: map, headers :: list) :: {:ok, result :: term} | {:error, reason :: term}
+  @callback get_apps(params :: map, headers :: list) :: {:ok, result :: term} | {:error, reason :: term}
+  @callback update_app(params :: map, headers :: list) :: {:ok, result :: term} | {:error, reason :: term}
+  @callback delete_app(id :: binary, headers :: list) :: {:ok, result :: term} | {:error, reason :: term}
 
   # user_roles
   @callback get_user_roles(user_id :: binary, params :: map, headers :: list) ::
