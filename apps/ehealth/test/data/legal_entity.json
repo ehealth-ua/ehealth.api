@@ -76,7 +76,7 @@
     }
   },
   "security": {
-    "redirect_uri": "http://example.com/redirect_uri"
+    "redirect_uri": "https://example.com/redirect_uri"
   },
   "public_offer": {
     "consent": true,

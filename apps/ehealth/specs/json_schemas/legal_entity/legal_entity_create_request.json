@@ -345,7 +345,7 @@
         "redirect_uri": {
           "type": "string",
           "format": "uri",
-          "pattern": "^https?:\/\/.+"
+          "pattern": "^(https):\/\/.+"
         }
       },
       "required": [
