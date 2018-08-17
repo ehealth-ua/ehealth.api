@@ -105,7 +105,7 @@ defmodule EHealth.API.Mithril do
     get!("/admin/apps/#{id}", headers, params: params)
   end
 
-  def get_apps(params \\ [], headers \\ []) do
+  def list_apps(params \\ [], headers \\ []) do
     get!("/admin/apps", headers, params: params)
   end
 

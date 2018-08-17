@@ -7,15 +7,24 @@ defmodule Mithril.Web.AppControllerTest do
   # For Mox lib. Make sure mocks are verified when the test exits
   setup :verify_on_exit!
 
-  def app(id \\ "0", user_id \\ "1", client_id \\ "2") do
+  defp app do
     %{
-      "id" => id,
-      "user_id" => user_id,
+      "id" => UUID.generate(),
+      "user_id" => UUID.generate(),
       "client_name" => "app",
-      "client_id" => client_id,
+      "client_id" => UUID.generate(),
       "scope" => "scope",
       "created_at" => DateTime.utc_now(),
       "updated_at" => DateTime.utc_now()
+    }
+  end
+
+  defp paging do
+    %{
+      "page_number" => 2,
+      "page_size" => 1,
+      "total_entries" => 2,
+      "total_pages" => 2
     }
   end
 
@@ -55,7 +64,13 @@ defmodule Mithril.Web.AppControllerTest do
 
   describe "get apps" do
     test "get app ok", %{conn: conn} do
-      expect(MithrilMock, :get_app, fn _id, _params, _headers -> {:ok, %{"data" => app()}} end)
+      expect(MithrilMock, :get_app, fn _id, _params, _headers ->
+        {:ok,
+         %{
+           "data" => app(),
+           "paging" => paging()
+         }}
+      end)
 
       resp =
         conn
@@ -81,8 +96,12 @@ defmodule Mithril.Web.AppControllerTest do
     end
 
     test "get apps ok", %{conn: conn} do
-      expect(MithrilMock, :get_apps, fn _params, _headers ->
-        {:ok, %{"data" => 1..3 |> Enum.map(fn _ -> app() end)}}
+      expect(MithrilMock, :list_apps, fn _params, _headers ->
+        {:ok,
+         %{
+           "data" => Enum.map(1..3, fn _ -> app() end),
+           "paging" => paging()
+         }}
       end)
 
       resp =
@@ -101,7 +120,10 @@ defmodule Mithril.Web.AppControllerTest do
 
     test "update app put ok", %{conn: conn} do
       expect(MithrilMock, :update_app, fn _params, _headers ->
-        {:ok, %{"data" => app()}}
+        {:ok,
+         %{
+           "data" => app()
+         }}
       end)
 
       resp =
@@ -120,7 +142,11 @@ defmodule Mithril.Web.AppControllerTest do
 
     test "update app patch ok", %{conn: conn} do
       expect(MithrilMock, :update_app, fn _params, _headers ->
-        {:ok, %{"data" => app()}}
+        {:ok,
+         %{
+           "data" => app(),
+           "paging" => paging()
+         }}
       end)
 
       resp =

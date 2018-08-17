@@ -9,7 +9,9 @@ defmodule EHealth.Capitation.Capitation do
 
   def list(params, headers) do
     with {:ok, %{"data" => data, "paging" => paging}} <- @report_api.get_capitation_list(params, headers) do
-      %{create_page(paging) | entries: data}
+      paging
+      |> create_page()
+      |> Map.put(:entries, data)
     end
   end
 
@@ -23,7 +25,9 @@ defmodule EHealth.Capitation.Capitation do
       end
 
     with {:ok, %{"data" => data, "paging" => paging}} <- @report_api.get_capitation_details(params, headers) do
-      %{create_page(paging) | entries: data}
+      paging
+      |> create_page()
+      |> Map.put(:entries, data)
     end
   end
 

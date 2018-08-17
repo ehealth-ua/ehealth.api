@@ -2,7 +2,10 @@ defmodule EHealth.Web.AppsController do
   @moduledoc false
   import EHealth.Utils.Connection, only: [get_consumer_id: 1]
   use EHealth.Web, :controller
+
+  alias EHealth.Cabinet.Apps
   alias EHealth.Web.Cabinet.AppsView
+  alias Scrivener.Page
 
   @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
 
@@ -17,20 +20,41 @@ defmodule EHealth.Web.AppsController do
   end
 
   def show(%Plug.Conn{req_headers: headers} = conn, %{"id" => id} = params) do
-    with {:ok, %{"data" => app}} <- @mithril_api.get_app(id, params, headers) do
-      render(conn, AppsView, "app_show.json", %{app: app})
+    with {:ok, %{"data" => app}} <- @mithril_api.get_app(id, headers, params) do
+      render(
+        conn,
+        AppsView,
+        "app_show.json",
+        app: app
+      )
     end
   end
 
   def index(%Plug.Conn{req_headers: headers} = conn, params) do
-    with {:ok, %{"data" => apps}} <- @mithril_api.get_apps(params, headers) do
-      render(conn, AppsView, "app_index.json", %{apps: apps})
+    with {:ok, %{"data" => apps, "paging" => paging}} <- @mithril_api.list_apps(params, headers) do
+      paging =
+        paging
+        |> create_page()
+        |> Map.put(:entries, apps)
+
+      render(
+        conn,
+        AppsView,
+        "app_index.json",
+        apps: paging.entries,
+        paging: paging
+      )
     end
   end
 
   def update(%Plug.Conn{req_headers: headers} = conn, params) do
     with {:ok, %{"data" => app}} <- @mithril_api.update_app(headers, params) do
-      render(conn, AppsView, "app_show.json", %{app: app})
+      render(
+        conn,
+        AppsView,
+        "app_show.json",
+        app: app
+      )
     end
   end
 
@@ -40,15 +64,20 @@ defmodule EHealth.Web.AppsController do
     end
   end
 
-  def refresh_secret(%Plug.Conn{req_headers: headers} = conn, %{"legal_entity_id" => client_id, "id" => id}) do
-    if client_id == id do
-      with {:ok, %{"data" => client}} <- @mithril_api.refresh_secret(client_id, headers) do
-        render(conn, AppsView, "client.json", %{client: client})
-      end
-    else
-      {:error, :forbidden}
+  def refresh_secret(%Plug.Conn{req_headers: headers} = conn, %{"legal_entity_id" => client_id, "id" => client_id}) do
+    with {:ok, %{"data" => client}} <- @mithril_api.refresh_secret(client_id, headers) do
+      render(
+        conn,
+        AppsView,
+        "client.json",
+        client: client
+      )
     end
   end
 
   def refresh_secret(_, _), do: {:error, :forbidden}
+
+  defp create_page(paging) do
+    struct(Page, Enum.into(paging, %{}, fn {k, v} -> {String.to_atom(k), v} end))
+  end
 end

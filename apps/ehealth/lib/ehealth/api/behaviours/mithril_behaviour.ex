@@ -20,7 +20,7 @@ defmodule EHealth.API.MithrilBehaviour do
   @callback delete_apps_by_user_and_client(user_id :: binary, client_id :: binary, headers :: list) ::
               {:ok, result :: term} | {:error, reason :: term}
   @callback get_app(id :: binary, params :: map, headers :: list) :: {:ok, result :: term} | {:error, reason :: term}
-  @callback get_apps(params :: map, headers :: list) :: {:ok, result :: term} | {:error, reason :: term}
+  @callback list_apps(params :: map, headers :: list) :: {:ok, result :: term} | {:error, reason :: term}
   @callback update_app(params :: map, headers :: list) :: {:ok, result :: term} | {:error, reason :: term}
   @callback delete_app(id :: binary, headers :: list) :: {:ok, result :: term} | {:error, reason :: term}
 
