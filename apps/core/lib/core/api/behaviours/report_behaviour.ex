@@ -1,4 +1,4 @@
-defmodule EHealth.API.ReportBehaviour do
+defmodule Core.API.ReportBehaviour do
   @moduledoc false
 
   @callback get_capitation_list(params :: map, headers :: list) ::

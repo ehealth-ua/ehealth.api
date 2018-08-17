@@ -18,8 +18,8 @@ defmodule EHealth.Employees.EmployeeUpdater do
   @status_approved Employee.status(:approved)
   @status_dismissed Employee.status(:dismissed)
 
-  @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
-  @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]
+  @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
+  @ops_api Application.get_env(:core, :api_resolvers)[:ops]
 
   def deactivate(%{"id" => id} = params, headers, with_owner \\ false) do
     user_id = get_consumer_id(headers)

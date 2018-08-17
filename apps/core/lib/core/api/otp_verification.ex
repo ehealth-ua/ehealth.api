@@ -1,11 +1,11 @@
-defmodule EHealth.API.OTPVerification do
+defmodule Core.API.OTPVerification do
   @moduledoc """
   OTP Verification API client
   """
 
-  @behaviour EHealth.API.OTPVerificationBehaviour
+  @behaviour Core.API.OTPVerificationBehaviour
 
-  use EHealth.API.Helpers.MicroserviceBase
+  use Core.API.Helpers.MicroserviceBase
 
   def initialize(number, headers \\ []) do
     post!("/verifications", Jason.encode!(%{phone_number: number}), headers)

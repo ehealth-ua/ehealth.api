@@ -7,9 +7,9 @@ defmodule EHealth.ContractRequests do
   import Ecto.Query
   import EHealth.Utils.Connection, only: [get_header: 2, get_consumer_id: 1, get_client_id: 1]
 
+  alias Core.API.MediaStorage
   alias Ecto.Adapters.SQL
   alias Ecto.UUID
-  alias EHealth.API.MediaStorage
   alias EHealth.ContractRequests.ContractRequest
   alias EHealth.ContractRequests.Search
   alias EHealth.Contracts
@@ -33,9 +33,9 @@ defmodule EHealth.ContractRequests do
 
   require Logger
 
-  @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
-  @media_storage_api Application.get_env(:ehealth, :api_resolvers)[:media_storage]
-  @signature_api Application.get_env(:ehealth, :api_resolvers)[:digital_signature]
+  @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
+  @media_storage_api Application.get_env(:core, :api_resolvers)[:media_storage]
+  @signature_api Application.get_env(:core, :api_resolvers)[:digital_signature]
 
   @fields_required ~w(
     contractor_legal_entity_id
@@ -1266,7 +1266,7 @@ defmodule EHealth.ContractRequests do
   end
 
   defp resolve_partially_signed_content_url(contract_request_id, headers) do
-    bucket = Confex.fetch_env!(:ehealth, EHealth.API.MediaStorage)[:contract_request_bucket]
+    bucket = Confex.fetch_env!(:core, Core.API.MediaStorage)[:contract_request_bucket]
     resource_name = "contract_request_content.pkcs7"
 
     media_storage_response =
@@ -1453,7 +1453,7 @@ defmodule EHealth.ContractRequests do
   end
 
   defp get_bucket do
-    Confex.fetch_env!(:ehealth, EHealth.API.MediaStorage)[:contract_request_bucket]
+    Confex.fetch_env!(:core, Core.API.MediaStorage)[:contract_request_bucket]
   end
 
   defp validate_and_convert_errors(errors) when is_list(errors) do

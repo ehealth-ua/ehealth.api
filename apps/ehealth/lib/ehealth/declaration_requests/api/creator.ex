@@ -28,14 +28,14 @@ defmodule EHealth.DeclarationRequests.API.Creator do
 
   require Logger
 
-  @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
-  @otp_verification_api Application.get_env(:ehealth, :api_resolvers)[:otp_verification]
+  @mpi_api Application.get_env(:core, :api_resolvers)[:mpi]
+  @otp_verification_api Application.get_env(:core, :api_resolvers)[:otp_verification]
   @declaration_request_creator Application.get_env(:ehealth, :api_resolvers)[:declaration_request_creator]
 
   @auth_na DeclarationRequest.authentication_method(:na)
   @auth_otp DeclarationRequest.authentication_method(:otp)
   @auth_offline DeclarationRequest.authentication_method(:offline)
-  @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
+  @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
 
   @channel_cabinet DeclarationRequest.channel(:cabinet)
 
@@ -47,7 +47,7 @@ defmodule EHealth.DeclarationRequests.API.Creator do
   @family_doctor "FAMILY_DOCTOR"
   @allowed_employee_specialities [@pediatrician, @therapist, @family_doctor]
 
-  @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
+  @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
 
   def create(params, user_id, person, employee, division, legal_entity, headers) do
     updates = [

@@ -16,8 +16,8 @@ defmodule EHealth.Registers.API do
   alias EHealth.Validators.Error
   alias EHealth.Validators.JsonSchema
 
-  @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
-  @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]
+  @mpi_api Application.get_env(:core, :api_resolvers)[:mpi]
+  @ops_api Application.get_env(:core, :api_resolvers)[:ops]
 
   @status_matched RegisterEntry.status(:matched)
   @status_not_found RegisterEntry.status(:not_found)

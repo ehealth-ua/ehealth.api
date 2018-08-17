@@ -8,7 +8,7 @@ defmodule EHealth.Man.Templates.DeclarationRequestPrintoutForm do
   alias EHealth.Dictionaries
   alias EHealth.Utils.AddressMerger
 
-  @man_api Application.get_env(:ehealth, :api_resolvers)[:man]
+  @man_api Application.get_env(:core, :api_resolvers)[:man]
 
   @auth_otp DeclarationRequest.authentication_method(:otp)
   @auth_offline DeclarationRequest.authentication_method(:offline)

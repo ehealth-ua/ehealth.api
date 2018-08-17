@@ -6,7 +6,7 @@ defmodule EHealth.Web.UserRoleControllerTest do
   alias Ecto.UUID
 
   defmodule MicroserviceBaseTest do
-    use EHealth.API.Helpers.MicroserviceBase
+    use Core.API.Helpers.MicroserviceBase
   end
 
   test "get current user roles", %{conn: conn} do

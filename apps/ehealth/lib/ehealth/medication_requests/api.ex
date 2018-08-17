@@ -28,8 +28,8 @@ defmodule EHealth.MedicationRequests.API do
 
   require Logger
 
-  @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]
-  @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
+  @ops_api Application.get_env(:core, :api_resolvers)[:ops]
+  @mpi_api Application.get_env(:core, :api_resolvers)[:mpi]
 
   @legal_entity_msp LegalEntity.type(:msp)
   @legal_entity_pharmacy LegalEntity.type(:pharmacy)

@@ -6,7 +6,7 @@ defmodule EHealth.Declarations.API do
   import EHealth.Plugs.ClientContext, only: [get_context_params: 2]
   import EHealth.Utils.TypesConverter, only: [strings_to_keys: 1]
 
-  alias EHealth.API.MediaStorage
+  alias Core.API.MediaStorage
   alias EHealth.Divisions
   alias EHealth.Divisions.Division
   alias EHealth.Employees
@@ -18,11 +18,11 @@ defmodule EHealth.Declarations.API do
   alias Scrivener.Page
   require Logger
 
-  @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
-  @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
-  @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]
-  @media_storage_api Application.get_env(:ehealth, :api_resolvers)[:media_storage]
-  @signature_api Application.get_env(:ehealth, :api_resolvers)[:digital_signature]
+  @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
+  @mpi_api Application.get_env(:core, :api_resolvers)[:mpi]
+  @ops_api Application.get_env(:core, :api_resolvers)[:ops]
+  @media_storage_api Application.get_env(:core, :api_resolvers)[:media_storage]
+  @signature_api Application.get_env(:core, :api_resolvers)[:digital_signature]
 
   def get_person_declarations(%{} = params, headers) do
     with {:ok, person} <- Persons.get_person(headers),

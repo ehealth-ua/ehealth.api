@@ -6,7 +6,7 @@ defmodule EHealth.Divisions.UAddress do
 
   alias EHealth.Divisions
 
-  @uaddresses_api Application.get_env(:ehealth, :api_resolvers)[:uaddresses]
+  @uaddresses_api Application.get_env(:core, :api_resolvers)[:uaddresses]
 
   def update_settlement(%{"id" => id} = params, headers) do
     with {:ok, data} <- prepare_settlement_data(params),

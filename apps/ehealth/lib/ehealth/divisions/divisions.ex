@@ -22,7 +22,7 @@ defmodule EHealth.Divisions do
   alias EHealth.Validators.JsonObjects
   alias EHealth.Validators.JsonSchema
 
-  @uaddresses_api Application.get_env(:ehealth, :api_resolvers)[:uaddresses]
+  @uaddresses_api Application.get_env(:core, :api_resolvers)[:uaddresses]
 
   @search_fields ~w(
     ids

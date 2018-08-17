@@ -1,11 +1,11 @@
-defmodule EHealth.API.OPS do
+defmodule Core.API.OPS do
   @moduledoc """
   OPS API client
   """
 
-  use EHealth.API.Helpers.MicroserviceBase
+  use Core.API.Helpers.MicroserviceBase
 
-  @behaviour EHealth.API.OPSBehaviour
+  @behaviour Core.API.OPSBehaviour
 
   def get_declaration_by_id(id, headers) do
     get!("/declarations/#{id}", headers)

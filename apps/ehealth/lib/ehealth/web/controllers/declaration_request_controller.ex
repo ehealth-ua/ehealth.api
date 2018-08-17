@@ -7,7 +7,7 @@ defmodule EHealth.Web.DeclarationRequestController do
   alias Scrivener.Page
   require Logger
 
-  @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]
+  @ops_api Application.get_env(:core, :api_resolvers)[:ops]
 
   action_fallback(EHealth.Web.FallbackController)
 

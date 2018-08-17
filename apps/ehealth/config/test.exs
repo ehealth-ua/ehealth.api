@@ -9,39 +9,10 @@ config :ehealth, EHealth.Web.Endpoint,
   http: [port: 4001],
   server: true
 
-# Configures PRM API
-config :ehealth, EHealth.API.PRM, endpoint: {:system, "PRM_ENDPOINT", "http://localhost:4040"}
-
-# Configures Man API
-config :ehealth, EHealth.API.Man, endpoint: {:system, "MAN_ENDPOINT", "http://localhost:4040"}
-
-# Configures OPS API
-config :ehealth, EHealth.API.OPS, endpoint: {:system, "OPS_ENDPOINT", "http://localhost:4040"}
-
-# Configures UAdress API
-config :ehealth, EHealth.API.UAddress, endpoint: {:system, "UADDRESS_ENDPOINT", "http://localhost:4040"}
-
-config :ehealth, EHealth.API.Mithril, endpoint: {:system, "OAUTH_ENDPOINT", "http://localhost:4040"}
-
-config :ehealth, EHealth.API.OTPVerification, endpoint: {:system, "OTP_VERIFICATION_ENDPOINT", "http://localhost:4040"}
-
-config :ehealth, EHealth.API.MPI, endpoint: {:system, "MPI_ENDPOINT", "http://localhost:4040"}
-
-config :ehealth, EHealth.API.Signature, enabled: {:system, :boolean, "DIGITAL_SIGNATURE_ENABLED", false}
-
 config :ehealth,
   sensitive_data_in_response: {:system, :boolean, "SENSITIVE_DATA_IN_RESPONSE_ENABLED", true},
   api_resolvers: [
-    man: ManMock,
-    mpi: MPIMock,
-    mithril: MithrilMock,
-    digital_signature: SignatureMock,
-    ops: OPSMock,
-    report: ReportMock,
-    media_storage: MediaStorageMock,
-    otp_verification: OTPVerificationMock,
     postmark: PostmarkMock,
-    uaddresses: UAddressesMock,
     declaration_request_creator: DeclarationRequestsCreatorMock
   ],
   cache: [
@@ -51,18 +22,6 @@ config :ehealth,
 config :ehealth, :legal_entity_employee_types,
   msp: {:system, "LEGAL_ENTITY_MSP_EMPLOYEE_TYPES", ["OWNER", "HR", "DOCTOR", "ADMIN", "ACCOUNTANT"]},
   pharmacy: {:system, "LEGAL_ENTITY_PHARMACY_EMPLOYEE_TYPES", ["PHARMACY_OWNER", "PHARMACIST"]}
-
-config :ehealth, EHealth.API.MediaStorage,
-  endpoint: {:system, "MEDIA_STORAGE_ENDPOINT", "http://localhost:4040"},
-  legal_entity_bucket: {:system, "MEDIA_STORAGE_LEGAL_ENTITY_BUCKET", "legal-entities-dev"},
-  contract_request_bucket: {:system, "MEDIA_STORAGE_CONTRACT_REQUEST_BUCKET", "contract-requests-dev"},
-  contract_bucket: {:system, "MEDIA_STORAGE_CONTRACT_BUCKET", "contracts-dev"},
-  declaration_request_bucket: {:system, "MEDIA_STORAGE_DECLARATION_REQUEST_BUCKET", "declaration-requests-dev"},
-  declaration_bucket: {:system, "MEDIA_STORAGE_DECLARATION_BUCKET", "declarations-dev"},
-  medication_request_request_bucket:
-    {:system, "MEDIA_STORAGE_MEDICATION_REQUEST_REQUEST_BUCKET", "medication-request-requests-dev"},
-  person_bucket: {:system, "MEDIA_STORAGE_PERSON_BUCKET", "persons-dev"},
-  enabled?: {:system, :boolean, "MEDIA_STORAGE_ENABLED", false}
 
 # employee request invitation
 # Configures employee request invitation template

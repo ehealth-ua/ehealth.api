@@ -2,9 +2,8 @@ defmodule EHealth.Unit.DeclarationRequests.API.DocumentsTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase
-  import EHealth.DeclarationRequests.API.Documents
-  import Mox
 
+  import EHealth.DeclarationRequests.API.Documents
   import Mox
 
   setup :verify_on_exit!

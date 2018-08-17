@@ -1,11 +1,11 @@
-defmodule EHealth.API.UAddress do
+defmodule Core.API.UAddress do
   @moduledoc """
   PRM API client
   """
 
-  use EHealth.API.Helpers.MicroserviceBase
+  use Core.API.Helpers.MicroserviceBase
 
-  @behaviour EHealth.API.UAddressesBehaviour
+  @behaviour Core.API.UAddressesBehaviour
 
   def search_settlements(params \\ %{}, headers \\ []) do
     get!("/settlements", headers, params: params)

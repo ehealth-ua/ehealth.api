@@ -1,7 +1,7 @@
 defmodule EHealth.Email.Postmark do
   @moduledoc false
 
-  alias EHealth.Utils.Log
+  alias Core.Log
 
   @postmark Application.get_env(:ehealth, :api_resolvers)[:postmark]
 

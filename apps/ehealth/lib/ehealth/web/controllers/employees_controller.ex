@@ -9,7 +9,7 @@ defmodule EHealth.Web.EmployeeController do
 
   action_fallback(EHealth.Web.FallbackController)
 
-  @report_api Application.get_env(:ehealth, :api_resolvers)[:report]
+  @report_api Application.get_env(:core, :api_resolvers)[:report]
 
   def index(%Plug.Conn{req_headers: req_headers} = conn, params) do
     with %Page{} = paging <- API.list(Map.put(params, "is_active", true)),

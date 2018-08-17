@@ -1,4 +1,4 @@
-defmodule EHealth.API.ResponseDecoder do
+defmodule Core.API.Helpers.ResponseDecoder do
   @moduledoc """
   HTTPPoison JSON to Elixir data decoder and formatter
   """

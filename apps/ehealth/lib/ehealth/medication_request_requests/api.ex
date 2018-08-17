@@ -33,7 +33,7 @@ defmodule EHealth.MedicationRequestRequests do
   @status_expired MedicationRequestRequest.status(:expired)
   @status_rejected MedicationRequestRequest.status(:rejected)
 
-  @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]
+  @ops_api Application.get_env(:core, :api_resolvers)[:ops]
 
   @doc """
   Returns the list of medication_request_requests.

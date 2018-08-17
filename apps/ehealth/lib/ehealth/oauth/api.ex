@@ -9,7 +9,7 @@ defmodule EHealth.OAuth.API do
 
   require Logger
 
-  @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
+  @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
 
   @doc """
   Creates a new Mithril client for MSP after successfully created a new Legal Entity

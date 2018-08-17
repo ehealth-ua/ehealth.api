@@ -3,7 +3,7 @@ defmodule EHealth.DeclarationRequests.API.Sign do
 
   import Ecto.Changeset
   import EHealth.Utils.Connection
-  alias EHealth.API.MediaStorage
+  alias Core.API.MediaStorage
   alias EHealth.DeclarationRequests
   alias EHealth.DeclarationRequests.API.Persons
   alias EHealth.DeclarationRequests.DeclarationRequest
@@ -17,8 +17,8 @@ defmodule EHealth.DeclarationRequests.API.Sign do
   alias HTTPoison.Response
   require Logger
 
-  @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
-  @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]
+  @mpi_api Application.get_env(:core, :api_resolvers)[:mpi]
+  @ops_api Application.get_env(:core, :api_resolvers)[:ops]
 
   @auth_na DeclarationRequest.authentication_method(:na)
   @auth_otp DeclarationRequest.authentication_method(:otp)

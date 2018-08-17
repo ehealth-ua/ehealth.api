@@ -9,7 +9,7 @@ defmodule EHealth.Web.PersonController do
 
   action_fallback(EHealth.Web.FallbackController)
 
-  @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
+  @mpi_api Application.get_env(:core, :api_resolvers)[:mpi]
 
   def person_declarations(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
     with {:ok, declaration} <- Person.get_person_declaration(id, req_headers) do

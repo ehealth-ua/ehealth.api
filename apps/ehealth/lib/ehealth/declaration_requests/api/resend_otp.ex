@@ -4,7 +4,7 @@ defmodule EHealth.DeclarationRequests.API.ResendOTP do
   alias EHealth.DeclarationRequests
   alias EHealth.DeclarationRequests.DeclarationRequest
 
-  @otp_verification_api Application.get_env(:ehealth, :api_resolvers)[:otp_verification]
+  @otp_verification_api Application.get_env(:core, :api_resolvers)[:otp_verification]
 
   @status_new DeclarationRequest.status(:new)
   @auth_otp DeclarationRequest.authentication_method(:otp)

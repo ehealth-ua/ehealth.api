@@ -1,4 +1,4 @@
-defmodule EHealth.API.MediaStorageBehaviour do
+defmodule Core.API.MediaStorageBehaviour do
   @moduledoc false
 
   @callback verify_uploaded_file(url :: binary, recource_name :: binary) ::

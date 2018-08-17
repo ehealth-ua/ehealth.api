@@ -1,11 +1,11 @@
-defmodule EHealth.API.MPI do
+defmodule Core.API.MPI do
   @moduledoc """
   MPI API client
   """
 
-  use EHealth.API.Helpers.MicroserviceBase
+  use Core.API.Helpers.MicroserviceBase
 
-  @behaviour EHealth.API.MPIBehaviour
+  @behaviour Core.API.MPIBehaviour
 
   def search(params \\ %{}, headers \\ []) do
     get!("/persons", headers, params: params)

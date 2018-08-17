@@ -9,16 +9,7 @@ config :ehealth,
   system_user: {:system, "EHEALTH_SYSTEM_USER", "4261eacf-8008-4e62-899f-de1e2f7065f0"},
   sensitive_data_in_response: {:system, :boolean, "SENSITIVE_DATA_IN_RESPONSE_ENABLED", false},
   api_resolvers: [
-    man: EHealth.API.Man,
-    mpi: EHealth.API.MPI,
-    mithril: EHealth.API.Mithril,
-    digital_signature: EHealth.API.Signature,
-    ops: EHealth.API.OPS,
-    report: EHealth.API.Report,
-    media_storage: EHealth.API.MediaStorage,
-    otp_verification: EHealth.API.OTPVerification,
     postmark: EHealth.API.Postmark,
-    uaddresses: EHealth.API.UAddress,
     declaration_request_creator: EHealth.DeclarationRequests.API.Creator
   ],
   cache: [
@@ -40,111 +31,12 @@ config :ehealth, EHealth.Web.Endpoint,
     accepts: ~w(json)
   ]
 
-# Configures Digital Signature API
-config :ehealth, EHealth.API.Signature,
-  enabled: {:system, :boolean, "DIGITAL_SIGNATURE_ENABLED", true},
-  endpoint: {:system, "DIGITAL_SIGNATURE_ENDPOINT"},
-  hackney_options: [
-    connect_timeout: {:system, :integer, "DIGITAL_SIGNATURE_REQUEST_TIMEOUT", 30_000},
-    recv_timeout: {:system, :integer, "DIGITAL_SIGNATURE_REQUEST_TIMEOUT", 30_000},
-    timeout: {:system, :integer, "DIGITAL_SIGNATURE_REQUEST_TIMEOUT", 30_000}
-  ]
-
-# Configures MediaStorage API
-config :ehealth, EHealth.API.MediaStorage,
-  endpoint: {:system, "MEDIA_STORAGE_ENDPOINT"},
-  legal_entity_bucket: {:system, "MEDIA_STORAGE_LEGAL_ENTITY_BUCKET"},
-  contract_request_bucket: {:system, "MEDIA_STORAGE_CONTRACT_REQUEST_BUCKET"},
-  contract_bucket: {:system, "MEDIA_STORAGE_CONTRACT_BUCKET"},
-  declaration_request_bucket: {:system, "MEDIA_STORAGE_DECLARATION_REQUEST_BUCKET"},
-  declaration_bucket: {:system, "MEDIA_STORAGE_DECLARATION_BUCKET"},
-  medication_request_request_bucket: {:system, "MEDIA_STORAGE_MEDICATION_REQUEST_REQUEST_BUCKET"},
-  person_bucket: {:system, "MEDIA_STORAGE_PERSON_BUCKET"},
-  enabled?: {:system, :boolean, "MEDIA_STORAGE_ENABLED", false},
-  hackney_options: [
-    connect_timeout: {:system, :integer, "MEDIA_STORAGE_REQUEST_TIMEOUT", 30_000},
-    recv_timeout: {:system, :integer, "MEDIA_STORAGE_REQUEST_TIMEOUT", 30_000},
-    timeout: {:system, :integer, "MEDIA_STORAGE_REQUEST_TIMEOUT", 30_000}
-  ]
-
-# Configures PRM API
-config :ehealth, EHealth.API.PRM,
-  endpoint: {:system, "PRM_ENDPOINT", "http://api-svc.prm/api"},
-  hackney_options: [
-    connect_timeout: {:system, :integer, "PRM_REQUEST_TIMEOUT", 30_000},
-    recv_timeout: {:system, :integer, "PRM_REQUEST_TIMEOUT", 30_000},
-    timeout: {:system, :integer, "PRM_REQUEST_TIMEOUT", 30_000}
-  ]
-
 # Configures Legal Entities token permission
 config :ehealth, EHealth.Plugs.ClientContext,
   tokens_types_personal: {:system, :list, "TOKENS_TYPES_PERSONAL", ["MSP", "PHARMACY"]},
   tokens_types_mis: {:system, :list, "TOKENS_TYPES_MIS", ["MIS"]},
   tokens_types_admin: {:system, :list, "TOKENS_TYPES_ADMIN", ["NHS"]},
   tokens_types_cabinet: {:system, :list, "TOKENS_TYPES_CABINET", ["CABINET"]}
-
-# Configures OAuth API
-config :ehealth, EHealth.API.Mithril,
-  endpoint: {:system, "OAUTH_ENDPOINT"},
-  hackney_options: [
-    connect_timeout: {:system, :integer, "OAUTH_REQUEST_TIMEOUT", 30_000},
-    recv_timeout: {:system, :integer, "OAUTH_REQUEST_TIMEOUT", 30_000},
-    timeout: {:system, :integer, "OAUTH_REQUEST_TIMEOUT", 30_000}
-  ]
-
-# Configures Man API
-config :ehealth, EHealth.API.Man,
-  endpoint: {:system, "MAN_ENDPOINT"},
-  hackney_options: [
-    connect_timeout: {:system, :integer, "MAN_REQUEST_TIMEOUT", 30_000},
-    recv_timeout: {:system, :integer, "MAN_REQUEST_TIMEOUT", 30_000},
-    timeout: {:system, :integer, "MAN_REQUEST_TIMEOUT", 30_000}
-  ]
-
-# Configures UAddress API
-config :ehealth, EHealth.API.UAddress,
-  endpoint: {:system, "UADDRESS_ENDPOINT"},
-  hackney_options: [
-    connect_timeout: {:system, :integer, "UADDRESS_REQUEST_TIMEOUT", 30_000},
-    recv_timeout: {:system, :integer, "UADDRESS_REQUEST_TIMEOUT", 30_000},
-    timeout: {:system, :integer, "UADDRESS_REQUEST_TIMEOUT", 30_000}
-  ]
-
-# Configures OTP Verification API
-config :ehealth, EHealth.API.OTPVerification,
-  endpoint: {:system, "OTP_VERIFICATION_ENDPOINT"},
-  hackney_options: [
-    connect_timeout: {:system, :integer, "OTP_VERIFICATION_REQUEST_TIMEOUT", 30_000},
-    recv_timeout: {:system, :integer, "OTP_VERIFICATION_REQUEST_TIMEOUT", 30_000},
-    timeout: {:system, :integer, "OTP_VERIFICATION_REQUEST_TIMEOUT", 30_000}
-  ]
-
-# Configures MPI API
-config :ehealth, EHealth.API.MPI,
-  endpoint: {:system, "MPI_ENDPOINT"},
-  hackney_options: [
-    connect_timeout: {:system, :integer, "MPI_REQUEST_TIMEOUT", 30_000},
-    recv_timeout: {:system, :integer, "MPI_REQUEST_TIMEOUT", 30_000},
-    timeout: {:system, :integer, "MPI_REQUEST_TIMEOUT", 30_000}
-  ]
-
-# Configures OPS API
-config :ehealth, EHealth.API.OPS,
-  endpoint: {:system, "OPS_ENDPOINT"},
-  hackney_options: [
-    connect_timeout: {:system, :integer, "OPS_REQUEST_TIMEOUT", 30_000},
-    recv_timeout: {:system, :integer, "OPS_REQUEST_TIMEOUT", 30_000},
-    timeout: {:system, :integer, "OPS_REQUEST_TIMEOUT", 30_000}
-  ]
-
-# Configures Report API
-config :ehealth, EHealth.API.Report,
-  endpoint: {:system, "REPORT_ENDPOINT"},
-  hackney_options: [
-    connect_timeout: {:system, :integer, "REPORT_REQUEST_TIMEOUT", 30_000},
-    recv_timeout: {:system, :integer, "REPORT_REQUEST_TIMEOUT", 30_000},
-    timeout: {:system, :integer, "REPORT_REQUEST_TIMEOUT", 30_000}
-  ]
 
 # configure emails
 config :ehealth, :emails,
@@ -287,12 +179,6 @@ config :ehealth, EHealth.LegalEntities.Validator, owner_positions: {:system, :li
 config :ehealth, EHealth.Validators.BirthDate,
   min_age: {:system, "MIN_AGE", 0},
   max_age: {:system, "MAX_AGE", 150}
-
-# Configures Elixir's Logger
-config :logger, :console,
-  format: "$message\n",
-  handle_otp_reports: true,
-  level: :info
 
 config :ehealth, EHealth.Scheduler,
   declaration_request_autotermination:

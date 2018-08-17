@@ -1,4 +1,4 @@
-defmodule EHealth.Utils.Log do
+defmodule Core.Log do
   @moduledoc false
 
   require Logger

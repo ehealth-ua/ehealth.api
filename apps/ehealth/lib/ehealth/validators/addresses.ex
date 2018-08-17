@@ -5,7 +5,7 @@ defmodule EHealth.Validators.Addresses do
 
   alias EHealth.ValidationError
   alias EHealth.Validators.Error
-  @uaddresses_api Application.get_env(:ehealth, :api_resolvers)[:uaddresses]
+  @uaddresses_api Application.get_env(:core, :api_resolvers)[:uaddresses]
 
   def validate(addresses, headers) when is_list(addresses), do: validate_addresses_values(addresses, headers)
 

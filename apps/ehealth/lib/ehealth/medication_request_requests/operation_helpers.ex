@@ -12,7 +12,7 @@ defmodule EHealth.MedicationRequestRequest.OperationHelpers do
   alias EHealth.PRMRepo
   alias EHealth.Utils.Helpers
 
-  @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
+  @mpi_api Application.get_env(:core, :api_resolvers)[:mpi]
 
   def get_employee(id) do
     Helpers.get_assoc_by_func("employee_id", fn -> id |> Employees.get_by_id() |> PRMRepo.preload(:division) end)

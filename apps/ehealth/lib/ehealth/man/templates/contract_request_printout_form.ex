@@ -11,7 +11,7 @@ defmodule EHealth.Man.Templates.ContractRequestPrintoutForm do
   alias EHealth.PRMRepo
   alias EHealth.Validators.Preload
 
-  @man_api Application.get_env(:ehealth, :api_resolvers)[:man]
+  @man_api Application.get_env(:core, :api_resolvers)[:man]
   @working_hours [
     mon: "Пн.",
     tue: "Вт.",

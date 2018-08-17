@@ -10,7 +10,7 @@ defmodule EHealth.Plugs.ClientContext do
 
   require Logger
 
-  @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
+  @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
   @legal_entity_param_name_default "legal_entity_id"
 
   def put_is_active_into_params(%Conn{params: params} = conn, _) do

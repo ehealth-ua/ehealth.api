@@ -9,7 +9,7 @@ defmodule EHealth.Validators.Signature do
   alias EHealth.Validators.Error
   require Logger
 
-  @signature_api Application.get_env(:ehealth, :api_resolvers)[:digital_signature]
+  @signature_api Application.get_env(:core, :api_resolvers)[:digital_signature]
 
   def validate(signed_content, encoding, headers, required_signatures \\ 1) do
     with {:ok, %{"data" => data}} <- @signature_api.decode_and_validate(signed_content, encoding, headers) do

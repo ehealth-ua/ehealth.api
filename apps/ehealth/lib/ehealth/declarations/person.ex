@@ -3,7 +3,7 @@ defmodule EHealth.Declarations.Person do
 
   import EHealth.Declarations.API, only: [expand_declaration_relations: 2]
 
-  @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]
+  @ops_api Application.get_env(:core, :api_resolvers)[:ops]
 
   @status_new "NEW"
   @status_merged "MERGED"

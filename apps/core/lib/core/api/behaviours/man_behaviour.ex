@@ -1,4 +1,4 @@
-defmodule EHealth.API.ManBehaviour do
+defmodule Core.API.ManBehaviour do
   @moduledoc false
 
   @callback render_template(id :: binary, data :: map, headers :: list) ::

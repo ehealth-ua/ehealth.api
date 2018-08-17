@@ -6,7 +6,7 @@ defmodule EHealth.Persons.Validator do
   alias EHealth.Validators.Error
   alias EHealth.Validators.JsonObjects
 
-  @verification_api Application.get_env(:ehealth, :api_resolvers)[:otp_verification]
+  @verification_api Application.get_env(:core, :api_resolvers)[:otp_verification]
   @auth_method_error "Must be one and only one authentication method."
   @birth_certificate_number_regex ~r/^([A-Za-zА-яіІїЇєЄґҐё\d\#\№\–\-\—\－\_\'\,\s\/\\\=\|\!\<\;\?\%\:\]\*\+\.\√])+$/u
 

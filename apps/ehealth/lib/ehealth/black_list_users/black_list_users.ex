@@ -13,7 +13,7 @@ defmodule EHealth.BlackListUsers do
   alias EHealth.PRMRepo
   alias Scrivener.Page
 
-  @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
+  @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
 
   @fields_required [:tax_id]
   @fields_optional [:is_active]

@@ -5,7 +5,7 @@ defmodule EHealth.Unit.ValidatorTest do
   import Mox
 
   alias Ecto.UUID
-  alias EHealth.API.MediaStorage
+  alias Core.API.MediaStorage
   alias EHealth.EmployeeRequests
   alias EHealth.LegalEntities.Validator
   alias EHealth.Validators.KVEDs
