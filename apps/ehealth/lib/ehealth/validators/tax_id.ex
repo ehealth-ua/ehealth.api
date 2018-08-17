@@ -8,7 +8,7 @@ defmodule EHealth.Validators.TaxID do
   @ratios [-1, 5, 7, 9, 4, 6, 10, 5, 7]
 
   def validate(tax_id, true, error) do
-    if Regex.match?(~r/^([0-9]{9}|[А-ЯЁЇIЄҐ]{4}\d{6})$/, tax_id) do
+    if Regex.match?(~r/^([0-9]{9}|[А-ЯЁЇIЄҐ]{2}\d{6})$/ui, tax_id) do
       :ok
     else
       Error.dump(error)

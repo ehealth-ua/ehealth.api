@@ -41,6 +41,60 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       assert resp["error"]
     end
 
+    test "create legal entity with invalid drfo", %{conn: conn} do
+      insert_dictionaries()
+      legal_entity_type = "MSP"
+      legal_entity_params = Map.merge(get_legal_entity_data(), %{"type" => legal_entity_type, "edrpou" => "01234АЄ"})
+      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
+      drfo_signed_content(legal_entity_params, legal_entity_params["edrpou"])
+
+      resp =
+        conn
+        |> put_req_header("content-type", "application/json")
+        |> put_req_header("content-length", "7000")
+        |> put_req_header("x-consumer-id", UUID.generate())
+        |> put_req_header("edrpou", legal_entity_params["edrpou"])
+        |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
+        |> json_response(422)
+
+      assert resp["error"]
+    end
+
+    test "create legal entity without edrpou / drfo in signature", %{conn: conn} do
+      validate_addresses()
+
+      insert_dictionaries()
+      legal_entity_type = "MSP"
+      legal_entity_params = Map.merge(get_legal_entity_data(), %{"type" => legal_entity_type})
+      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
+
+      expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
+        {:ok,
+         %{
+           "data" => %{
+             "content" => legal_entity_params,
+             "signatures" => [
+               %{
+                 "is_valid" => true,
+                 "signer" => %{}
+               }
+             ]
+           }
+         }}
+      end)
+
+      resp =
+        conn
+        |> put_req_header("content-type", "application/json")
+        |> put_req_header("content-length", "7000")
+        |> put_req_header("x-consumer-id", UUID.generate())
+        |> put_req_header("edrpou", legal_entity_params["edrpou"])
+        |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
+        |> json_response(422)
+
+      assert [%{"rules" => [%{"description" => "EDRPOU and DRFO is empty in digital sign"}]}] = resp["error"]["invalid"]
+    end
+
     test "create legal entity with wrong type", %{conn: conn} do
       insert_dictionaries()
       invalid_legal_entity_type = "MIS"
@@ -48,20 +102,20 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
-      conn =
+      resp =
         conn
         |> put_req_header("content-type", "application/json")
         |> put_req_header("content-length", "7000")
         |> put_req_header("x-consumer-id", UUID.generate())
         |> put_req_header("edrpou", legal_entity_params["edrpou"])
         |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
+        |> json_response(422)
 
-      resp = json_response(conn, 422)
       assert resp
       assert resp["error"]["message"] == "Only legal_entity with type MSP or Pharmacy could be created"
     end
 
-    test "create legal entity", %{conn: conn} do
+    test "create legal entity sign edrpou", %{conn: conn} do
       get_client_type_by_name(UUID.generate())
 
       expect(MithrilMock, :put_client, fn params, _ ->
@@ -77,15 +131,71 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
-      conn =
+      resp =
         conn
         |> put_req_header("content-type", "application/json")
         |> put_req_header("content-length", "7000")
         |> put_req_header("x-consumer-id", UUID.generate())
         |> put_req_header("edrpou", legal_entity_params["edrpou"])
         |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
+        |> json_response(200)
 
-      resp = json_response(conn, 200)
+      assert resp
+    end
+
+    test "create legal entity sign drfo code", %{conn: conn} do
+      get_client_type_by_name(UUID.generate())
+
+      expect(MithrilMock, :put_client, fn params, _ ->
+        {:ok, %{"data" => Map.put(params, "secret", "secret")}}
+      end)
+
+      validate_addresses()
+      template()
+
+      insert_dictionaries()
+      legal_entity_type = "MSP"
+      legal_entity_params = Map.merge(get_legal_entity_data(), %{"type" => legal_entity_type, "edrpou" => "123456789"})
+      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
+      drfo_signed_content(legal_entity_params, legal_entity_params["edrpou"])
+
+      resp =
+        conn
+        |> put_req_header("content-type", "application/json")
+        |> put_req_header("content-length", "7000")
+        |> put_req_header("x-consumer-id", UUID.generate())
+        |> put_req_header("edrpou", legal_entity_params["edrpou"])
+        |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
+        |> json_response(200)
+
+      assert resp
+    end
+
+    test "create legal entity sign drfo passport number", %{conn: conn} do
+      get_client_type_by_name(UUID.generate())
+
+      expect(MithrilMock, :put_client, fn params, _ ->
+        {:ok, %{"data" => Map.put(params, "secret", "secret")}}
+      end)
+
+      validate_addresses()
+      template()
+
+      insert_dictionaries()
+      legal_entity_type = "MSP"
+      legal_entity_params = Map.merge(get_legal_entity_data(), %{"type" => legal_entity_type, "edrpou" => "ЯЁ756475"})
+      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
+      drfo_signed_content(legal_entity_params, legal_entity_params["edrpou"])
+
+      resp =
+        conn
+        |> put_req_header("content-type", "application/json")
+        |> put_req_header("content-length", "7000")
+        |> put_req_header("x-consumer-id", UUID.generate())
+        |> put_req_header("edrpou", legal_entity_params["edrpou"])
+        |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
+        |> json_response(200)
+
       assert resp
     end
   end

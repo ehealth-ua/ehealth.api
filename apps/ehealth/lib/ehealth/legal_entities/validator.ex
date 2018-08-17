@@ -5,7 +5,6 @@ defmodule EHealth.LegalEntities.Validator do
 
   import Ecto.Changeset
 
-  alias EHealth.Dictionaries
   alias EHealth.Email.Sanitizer
   alias EHealth.LegalEntities.LegalEntity
   alias EHealth.ValidationError
@@ -44,8 +43,8 @@ defmodule EHealth.LegalEntities.Validator do
          :ok <- validate_tax_id(content),
          :ok <- validate_owner_birth_date(content),
          :ok <- validate_owner_position(content),
-         :ok <- validate_edrpou(content, signer) do
-      :ok
+         {:ok, data} <- validate_edrpou(content, signer) do
+      {:ok, data}
     else
       {:signed_content, {:error, {:bad_request, reason}}} ->
         Error.dump(%ValidationError{description: reason, path: "$.signed_legal_entity_request"})
@@ -99,9 +98,8 @@ defmodule EHealth.LegalEntities.Validator do
     end
   end
 
-  # EDRPOU validator
-
-  def validate_edrpou(content, signer) do
+  # EDRPOU content to EDRPOU / DRFO signer validator
+  def validate_edrpou(content, %{"edrpou" => _} = signer) do
     data = %{}
     types = %{edrpou: :string}
 
@@ -111,6 +109,24 @@ defmodule EHealth.LegalEntities.Validator do
     |> validate_format(:edrpou, ~r/^[0-9]{8,10}$/)
     |> validate_inclusion(:edrpou, [Map.fetch!(content, "edrpou")])
     |> prepare_legal_entity(content)
+  end
+
+  def validate_edrpou(content, %{"drfo" => drfo} = signer) do
+    signer = Map.put(signer, "drfo", drfo)
+
+    data = %{}
+    types = %{drfo: :string}
+
+    {data, types}
+    |> cast(signer, Map.keys(types))
+    |> validate_required(Map.keys(types))
+    |> validate_format(:drfo, ~r/^([0-9]{9,10}|[А-ЯЁЇIЄҐ]{2}\d{6})$/ui)
+    |> validate_inclusion(:drfo, [String.upcase(Map.fetch!(content, "edrpou"))])
+    |> prepare_legal_entity(content)
+  end
+
+  def validate_edrpou(_content, _signer) do
+    Error.dump(%ValidationError{description: "EDRPOU and DRFO is empty in digital sign", path: "$.data.signatures"})
   end
 
   def validate_owner_birth_date(content) do
@@ -146,6 +162,7 @@ defmodule EHealth.LegalEntities.Validator do
   defp valid_owner_position?(position, positions), do: Enum.any?(positions, fn x -> x == position end)
 
   defp prepare_legal_entity(%Ecto.Changeset{valid?: true}, legal_entity), do: {:ok, legal_entity}
+
   defp prepare_legal_entity(changeset, _legal_entity), do: {:error, changeset}
 
   defp lowercase_emails(content) do

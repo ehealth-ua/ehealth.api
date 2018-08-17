@@ -155,10 +155,53 @@ defmodule EHealth.Unit.LegalEntityTest do
       assert {:ok, _} = Validator.validate_edrpou(content, signer)
     end
 
+    test "validate legal entity DRFO int" do
+      content = get_legal_entity_data()
+      drfo = "2856209537"
+      signer = %{"drfo" => drfo}
+
+      assert {:ok, _} =
+               content
+               |> Map.put("edrpou", drfo)
+               |> Validator.validate_edrpou(signer)
+    end
+
+    test "validate legal entity DRFO text" do
+      content = get_legal_entity_data()
+      drfo = "ЁЇ756475"
+      signer = %{"drfo" => drfo}
+
+      assert {:ok, _} =
+               {:ok, _} =
+               content
+               |> Map.put("edrpou", "Ёї756475")
+               |> Validator.validate_edrpou(signer)
+    end
+
+    test "invalid legal entity DRFO text" do
+      content = get_legal_entity_data()
+      drfo = "їҐ12345"
+      signer = %{"drfo" => drfo}
+
+      assert {:error, %Ecto.Changeset{valid?: false}} =
+               content
+               |> Map.put("edrpou", drfo)
+               |> Validator.validate_edrpou(signer)
+    end
+
     test "empty signer EDRPOU" do
       content = get_legal_entity_data()
       signer = %{"empty" => "37367387"}
-      assert {:error, %Ecto.Changeset{valid?: false}} = Validator.validate_edrpou(content, signer)
+
+      assert {:error,
+              [
+                {%{
+                   description: "EDRPOU and DRFO is empty in digital sign",
+                   rule: :invalid
+                 }, "$.data"}
+              ]}
+
+      Validator.validate_edrpou(content, signer)
     end
 
     test "invalid signer EDRPOU" do
