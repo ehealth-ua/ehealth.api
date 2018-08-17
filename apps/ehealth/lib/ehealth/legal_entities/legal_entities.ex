@@ -10,11 +10,11 @@ defmodule EHealth.LegalEntities do
   import Ecto.Query, except: [update: 3]
   import EHealth.Contracts.ContractSuspender
 
+  alias Core.API.MediaStorage
   alias Ecto.Changeset
   alias Ecto.Date
   alias Ecto.Schema.Metadata
   alias Ecto.UUID
-  alias EHealth.API.MediaStorage
   alias EHealth.Contracts
   alias EHealth.Contracts.Contract
   alias EHealth.EmployeeRequests
@@ -27,7 +27,7 @@ defmodule EHealth.LegalEntities do
 
   require Logger
 
-  @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
+  @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
 
   @search_fields ~w(
     id

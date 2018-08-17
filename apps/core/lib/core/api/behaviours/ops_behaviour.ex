@@ -1,4 +1,4 @@
-defmodule EHealth.API.OPSBehaviour do
+defmodule Core.API.OPSBehaviour do
   @moduledoc false
 
   @callback get_declaration_by_id(id :: binary, headers :: list) ::

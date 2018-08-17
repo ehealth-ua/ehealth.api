@@ -5,6 +5,7 @@ defmodule EHealth.EmployeeRequests do
   import Ecto.Changeset
   import EHealth.Utils.Connection
 
+  alias Core.Log
   alias EHealth.Bamboo.Emails.Sender
   alias EHealth.BlackListUsers
   alias EHealth.Divisions.Division
@@ -24,7 +25,6 @@ defmodule EHealth.EmployeeRequests do
   alias EHealth.OAuth.API, as: OAuth
   alias EHealth.PRMRepo
   alias EHealth.Repo
-  alias EHealth.Utils.Log
   alias EHealth.ValidationError
   alias EHealth.Validators.Error
   alias EHealth.Validators.JsonSchema
@@ -32,7 +32,7 @@ defmodule EHealth.EmployeeRequests do
   alias EHealth.Validators.Reference
   alias EHealth.Validators.Signature
 
-  @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
+  @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
 
   @status_new Request.status(:new)
   @status_approved Request.status(:approved)

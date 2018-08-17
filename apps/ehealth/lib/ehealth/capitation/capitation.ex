@@ -4,8 +4,8 @@ defmodule EHealth.Capitation.Capitation do
   alias Scrivener.Page
   import EHealth.Utils.Connection, only: [get_client_id: 1]
 
-  @report_api Application.get_env(:ehealth, :api_resolvers)[:report]
-  @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
+  @report_api Application.get_env(:core, :api_resolvers)[:report]
+  @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
 
   def list(params, headers) do
     with {:ok, %{"data" => data, "paging" => paging}} <- @report_api.get_capitation_list(params, headers) do

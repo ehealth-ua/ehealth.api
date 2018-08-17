@@ -1,12 +1,12 @@
-defmodule EHealth.API.Helpers.MicroserviceBase do
+defmodule Core.API.Helpers.MicroserviceBase do
   @moduledoc false
 
   defmacro __using__(_) do
     quote do
-      use Confex, otp_app: :ehealth
+      use Confex, otp_app: :core
       use HTTPoison.Base
+      alias Core.API.Helpers.ResponseDecoder
       require Logger
-      alias EHealth.API.ResponseDecoder
 
       def process_url(url), do: config()[:endpoint] <> url
 

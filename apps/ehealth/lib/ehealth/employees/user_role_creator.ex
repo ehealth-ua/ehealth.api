@@ -9,7 +9,7 @@ defmodule EHealth.Employees.UserRoleCreator do
 
   require Logger
 
-  @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
+  @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
 
   def create(%Employee{} = employee, headers) do
     party_id = employee.party_id

@@ -11,7 +11,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestController do
 
   action_fallback(EHealth.Web.FallbackController)
 
-  @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]
+  @ops_api Application.get_env(:core, :api_resolvers)[:ops]
 
   def index(%Plug.Conn{req_headers: headers} = conn, params) do
     with {:ok, paging} <- CabinetDeclarationRequests.search(params, headers) do

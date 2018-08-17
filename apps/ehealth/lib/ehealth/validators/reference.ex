@@ -18,8 +18,8 @@ defmodule EHealth.Validators.Reference do
   alias EHealth.ValidationError
   alias EHealth.Validators.Error
 
-  @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]
-  @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
+  @ops_api Application.get_env(:core, :api_resolvers)[:ops]
+  @mpi_api Application.get_env(:core, :api_resolvers)[:mpi]
 
   def validate(type, nil) do
     error(type)

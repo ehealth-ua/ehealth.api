@@ -9,8 +9,8 @@ defmodule EHealth.Cabinet.DeclarationRequests do
   alias EHealth.Repo
   alias Scrivener.Page
 
-  @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
-  @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
+  @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
+  @mpi_api Application.get_env(:core, :api_resolvers)[:mpi]
   @status_expired DeclarationRequest.status(:expired)
 
   def search(search_params, headers) do

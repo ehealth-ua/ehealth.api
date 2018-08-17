@@ -1,4 +1,4 @@
-defmodule EHealth.API.MithrilBehaviour do
+defmodule Core.API.MithrilBehaviour do
   @moduledoc false
 
   # clients

@@ -1,13 +1,13 @@
-defmodule EHealth.API.Man do
+defmodule Core.API.Man do
   @moduledoc """
   Man API client
   """
 
   use HTTPoison.Base
-  use Confex, otp_app: :ehealth
+  use Confex, otp_app: :core
   require Logger
 
-  @behaviour EHealth.API.ManBehaviour
+  @behaviour Core.API.ManBehaviour
 
   @filter_headers ~w(content-length Content-Length api-key authorization accept-language content-type accept)
 

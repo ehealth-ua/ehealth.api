@@ -1,10 +1,10 @@
 defmodule EHealth.DeclarationRequests.API.Documents do
   @moduledoc false
 
-  alias EHealth.API.MediaStorage
+  alias Core.API.MediaStorage
   alias EHealth.DeclarationRequests.DeclarationRequest
 
-  @media_storage_api Application.get_env(:ehealth, :api_resolvers)[:media_storage]
+  @media_storage_api Application.get_env(:core, :api_resolvers)[:media_storage]
 
   def generate_links(%DeclarationRequest{id: id, documents: nil}) do
     render_links(id, ["GET"], [])
@@ -20,7 +20,7 @@ defmodule EHealth.DeclarationRequests.API.Documents do
   end
 
   def render_links(declaration_request_id, http_verbs, documents_list) do
-    bucket = Confex.fetch_env!(:ehealth, MediaStorage)[:declaration_request_bucket]
+    bucket = Confex.fetch_env!(:core, MediaStorage)[:declaration_request_bucket]
 
     link_versions =
       for verb <- http_verbs,

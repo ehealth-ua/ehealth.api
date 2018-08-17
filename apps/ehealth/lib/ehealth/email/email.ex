@@ -8,7 +8,7 @@ defmodule EHealth.Email do
   alias EHealth.Bamboo.Emails.Sender
   alias EHealth.Email.Schema
 
-  @man_api Application.get_env(:ehealth, :api_resolvers)[:man]
+  @man_api Application.get_env(:core, :api_resolvers)[:man]
 
   def send(%{"id" => man_id} = attrs) do
     with %Changeset{valid?: true} <- validate_attrs(attrs),

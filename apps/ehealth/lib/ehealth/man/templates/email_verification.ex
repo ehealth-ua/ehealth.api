@@ -2,7 +2,7 @@ defmodule EHealth.Man.Templates.EmailVerification do
   @moduledoc false
   use Confex, otp_app: :ehealth
 
-  @man_api Application.get_env(:ehealth, :api_resolvers)[:man]
+  @man_api Application.get_env(:core, :api_resolvers)[:man]
 
   def render(verification_code) do
     template_data = %{

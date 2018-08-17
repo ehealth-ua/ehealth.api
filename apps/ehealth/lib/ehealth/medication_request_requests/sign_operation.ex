@@ -2,12 +2,12 @@ defmodule EHealth.MedicationRequestRequest.SignOperation do
   @moduledoc false
   import EHealth.MedicationRequestRequest.OperationHelpers
 
-  alias EHealth.API.MediaStorage
+  alias Core.API.MediaStorage
   alias EHealth.MedicationRequestRequest.Operation
   alias EHealth.MedicationRequestRequest.Validations
   alias EHealth.Utils.Connection
 
-  @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]
+  @ops_api Application.get_env(:core, :api_resolvers)[:ops]
 
   def sign(mrr, params, headers) do
     mrr

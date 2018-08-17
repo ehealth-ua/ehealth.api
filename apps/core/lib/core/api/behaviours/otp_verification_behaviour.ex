@@ -1,4 +1,4 @@
-defmodule EHealth.API.OTPVerificationBehaviour do
+defmodule Core.API.OTPVerificationBehaviour do
   @moduledoc false
 
   @callback initialize(number :: binary, headers :: list) :: {:ok, result :: term} | {:error, reason :: term}

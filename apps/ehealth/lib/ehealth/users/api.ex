@@ -11,7 +11,7 @@ defmodule EHealth.Users.API do
   alias EView.Changeset.Validators.Email, as: EmailValidator
   require Logger
 
-  @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
+  @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
 
   def create_credentials_recovery_request(attrs, opts \\ []) do
     upstream_headers = Keyword.get(opts, :upstream_headers, [])

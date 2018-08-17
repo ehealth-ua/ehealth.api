@@ -1,4 +1,4 @@
-defmodule EHealth.API.MPIBehaviour do
+defmodule Core.API.MPIBehaviour do
   @moduledoc false
 
   @callback search(params :: map, headers :: list) ::

@@ -5,10 +5,10 @@ defmodule EHealth.Web.ContractControllerTest do
 
   import EHealth.Expectations.Signature
   import Mox
+
   alias EHealth.Contracts.Contract
   alias EHealth.Divisions.Division
   alias Ecto.UUID
-  import Mox
 
   describe "show contract" do
     test "finds contract successfully and nhs can see any contracts", %{conn: conn} do

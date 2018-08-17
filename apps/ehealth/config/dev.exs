@@ -23,41 +23,6 @@ config :ehealth, :legal_entity_employee_types,
   msp: {:system, "LEGAL_ENTITY_MSP_EMPLOYEE_TYPES", ["OWNER", "HR", "DOCTOR", "ADMIN", "ACCOUNTANT"]},
   pharmacy: {:system, "LEGAL_ENTITY_PHARMACY_EMPLOYEE_TYPES", ["PHARMACY_OWNER", "PHARMACIST"]}
 
-# Configures Digital Signature API
-config :ehealth, EHealth.API.Signature, endpoint: {:system, "DIGITAL_SIGNATURE_ENDPOINT", "http://35.187.186.145"}
-
-# Configures OAuth API
-config :ehealth, EHealth.API.Mithril, endpoint: {:system, "OAUTH_ENDPOINT", "http://api-svc.mithril"}
-
-# Configures Man API
-config :ehealth, EHealth.API.Man, endpoint: {:system, "MAN_ENDPOINT", "http://api-svc.man"}
-
-# Configures UAddress API
-config :ehealth, EHealth.API.UAddress, endpoint: {:system, "UADDRESS_ENDPOINT", "http://api-svc.uaddresses"}
-
-# Configures OTP Verification API
-config :ehealth, EHealth.API.OTPVerification,
-  endpoint: {:system, "OTP_VERIFICATION_ENDPOINT", "http://api-svc.verification"}
-
-# Configures MPI API
-config :ehealth, EHealth.API.MPI, endpoint: {:system, "MPI_ENDPOINT", "http://api-svc.mpi"}
-
-# Configures OPS API
-config :ehealth, EHealth.API.OPS, endpoint: {:system, "OPS_ENDPOINT", "http://api-svc.ops"}
-
-# Configures MediaStorage API
-config :ehealth, EHealth.API.MediaStorage,
-  endpoint: {:system, "MEDIA_STORAGE_ENDPOINT", "http://api-svc.ael"},
-  legal_entity_bucket: {:system, "MEDIA_STORAGE_LEGAL_ENTITY_BUCKET", "legal-entities-dev"},
-  contract_request_bucket: {:system, "MEDIA_STORAGE_CONTRACT_REQUEST_BUCKET", "contract-requests-dev"},
-  contract_bucket: {:system, "MEDIA_STORAGE_CONTRACT_BUCKET", "contracts-dev"},
-  declaration_request_bucket: {:system, "MEDIA_STORAGE_DECLARATION_REQUEST_BUCKET", "declaration-requests-dev"},
-  declaration_bucket: {:system, "MEDIA_STORAGE_DECLARATION_BUCKET", "declarations-dev"},
-  medication_request_request_bucket:
-    {:system, "MEDIA_STORAGE_MEDICATION_REQUEST_REQUEST_BUCKET", "medication-request-requests-dev"},
-  person_bucket: {:system, "MEDIA_STORAGE_PERSON_BUCKET", "persons-dev"},
-  enabled?: {:system, :boolean, "MEDIA_STORAGE_ENABLED", false}
-
 # employee request invitation
 # Configures employee request invitation template
 config :ehealth, EHealth.Man.Templates.EmployeeRequestInvitation,

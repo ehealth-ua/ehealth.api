@@ -28,7 +28,7 @@ defmodule EHealth.MedicationDispense.API do
   alias EHealth.Validators.JsonSchema
   alias EHealth.Validators.Reference
 
-  @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]
+  @ops_api Application.get_env(:core, :api_resolvers)[:ops]
 
   @search_fields ~w(
     id

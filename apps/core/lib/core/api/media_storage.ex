@@ -1,13 +1,13 @@
-defmodule EHealth.API.MediaStorage do
+defmodule Core.API.MediaStorage do
   @moduledoc """
   Media Storage on Google Cloud Platform
   """
 
-  use EHealth.API.Helpers.MicroserviceBase
+  use Core.API.Helpers.MicroserviceBase
   require Logger
 
-  @behaviour EHealth.API.MediaStorageBehaviour
-  @media_storage_api Application.get_env(:ehealth, :api_resolvers)[:media_storage]
+  @behaviour Core.API.MediaStorageBehaviour
+  @media_storage_api Application.get_env(:core, :api_resolvers)[:media_storage]
 
   def verify_uploaded_file(url, resource_name) do
     HTTPoison.head(url, "Content-Type": MIME.from_path(resource_name))

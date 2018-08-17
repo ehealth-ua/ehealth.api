@@ -3,7 +3,7 @@ defmodule EHealth.Man.Templates.HashChainVerificationNotification do
 
   use Confex, otp_app: :ehealth
 
-  @man_api Application.get_env(:ehealth, :api_resolvers)[:man]
+  @man_api Application.get_env(:core, :api_resolvers)[:man]
 
   def render(failure_details) do
     @man_api.render_template(

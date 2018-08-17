@@ -7,7 +7,7 @@ defmodule EHealth.DuplicatePersons.Signals do
   alias EHealth.DuplicatePersons.Cleanup
   alias EHealth.DuplicatePersons.CleanupTasks
 
-  @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
+  @mpi_api Application.get_env(:core, :api_resolvers)[:mpi]
 
   def init(args) do
     {:ok, args}

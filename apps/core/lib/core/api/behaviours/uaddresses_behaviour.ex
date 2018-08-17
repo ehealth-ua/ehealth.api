@@ -1,4 +1,4 @@
-defmodule EHealth.API.UAddressesBehaviour do
+defmodule Core.API.UAddressesBehaviour do
   @moduledoc false
 
   @callback search_settlements(params :: map, headers :: list) ::

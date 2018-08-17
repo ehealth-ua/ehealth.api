@@ -3,7 +3,7 @@ defmodule EHealth.Web.UserRoleController do
 
   use EHealth.Web, :controller
 
-  @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
+  @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
 
   action_fallback(EHealth.Web.FallbackController)
 

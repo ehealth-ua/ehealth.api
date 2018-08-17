@@ -18,10 +18,10 @@ defmodule EHealth.Cabinet.API do
 
   require Logger
 
-  @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
-  @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
-  @media_storage_api Application.get_env(:ehealth, :api_resolvers)[:media_storage]
-  @otp_verification_api Application.get_env(:ehealth, :api_resolvers)[:otp_verification]
+  @mpi_api Application.get_env(:core, :api_resolvers)[:mpi]
+  @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
+  @media_storage_api Application.get_env(:core, :api_resolvers)[:media_storage]
+  @otp_verification_api Application.get_env(:core, :api_resolvers)[:otp_verification]
 
   @person_active "active"
   @addresses_types ~w(REGISTRATION RESIDENCE)

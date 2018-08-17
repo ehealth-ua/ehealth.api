@@ -22,7 +22,7 @@ defmodule EHealth.Employees do
   alias EHealth.PRMRepo
   alias Scrivener.Page
 
-  @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
+  @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
 
   @doctor Employee.type(:doctor)
   @pharmacist Employee.type(:pharmacist)

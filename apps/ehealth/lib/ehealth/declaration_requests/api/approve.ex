@@ -8,9 +8,9 @@ defmodule EHealth.DeclarationRequests.API.Approve do
   alias EHealth.Validators.Error
   require Logger
 
-  @media_storage_api Application.get_env(:ehealth, :api_resolvers)[:media_storage]
-  @otp_verification_api Application.get_env(:ehealth, :api_resolvers)[:otp_verification]
-  @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]
+  @media_storage_api Application.get_env(:core, :api_resolvers)[:media_storage]
+  @otp_verification_api Application.get_env(:core, :api_resolvers)[:otp_verification]
+  @ops_api Application.get_env(:core, :api_resolvers)[:ops]
   @auth_otp DeclarationRequest.authentication_method(:otp)
 
   def verify(declaration_request, code, headers) do
@@ -54,7 +54,7 @@ defmodule EHealth.DeclarationRequests.API.Approve do
 
   def uploaded?(id, %{"type" => type}) do
     resource_name = "declaration_request_#{type}.jpeg"
-    bucket = Confex.fetch_env!(:ehealth, EHealth.API.MediaStorage)[:declaration_request_bucket]
+    bucket = Confex.fetch_env!(:core, Core.API.MediaStorage)[:declaration_request_bucket]
 
     {:ok, %{"data" => %{"secret_url" => url}} = result} =
       @media_storage_api.create_signed_url("HEAD", bucket, resource_name, id, [])

@@ -3,8 +3,8 @@ defmodule EHealth.DuplicatePersons.Cleanup do
 
   alias EHealth.Declarations.Person
 
-  @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
-  @ops_api Application.get_env(:ehealth, :api_resolvers)[:ops]
+  @mpi_api Application.get_env(:core, :api_resolvers)[:mpi]
+  @ops_api Application.get_env(:core, :api_resolvers)[:ops]
 
   def cleanup(id, person_id) do
     {:ok, %{"data" => declarations}} =

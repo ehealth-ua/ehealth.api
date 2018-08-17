@@ -43,6 +43,7 @@ defmodule EHealth.Mixfile do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:core, in_umbrella: true},
       {:confex, "~> 3.2"},
       {:timex, "~> 3.2"},
       {:poison, "~> 3.1"},
@@ -105,9 +106,9 @@ defmodule EHealth.Mixfile do
       ],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: [
-        "ecto.create --quiet",
-        "ecto.create --quiet --repo EHealth.PRMRepo",
-        "ecto.create --quiet --repo EHealth.EventManagerRepo",
+        "ecto.create",
+        "ecto.create --repo EHealth.PRMRepo",
+        "ecto.create --repo EHealth.EventManagerRepo",
         "ecto.migrate",
         "test"
       ]

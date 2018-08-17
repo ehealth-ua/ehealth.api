@@ -1,12 +1,12 @@
-defmodule EHealth.API.Mithril do
+defmodule Core.API.Mithril do
   @moduledoc """
   Trump API client
   API documentation: http://docs.trump1.apiary.io
   """
 
-  use EHealth.API.Helpers.MicroserviceBase
+  use Core.API.Helpers.MicroserviceBase
 
-  @behaviour EHealth.API.MithrilBehaviour
+  @behaviour Core.API.MithrilBehaviour
 
   # Clients
 

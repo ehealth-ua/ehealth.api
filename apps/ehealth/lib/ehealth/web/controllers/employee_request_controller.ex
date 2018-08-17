@@ -6,7 +6,7 @@ defmodule EHealth.Web.EmployeeRequestController do
   alias EHealth.EmployeeRequests, as: API
   alias EHealth.EmployeeRequests.EmployeeRequest, as: Request
 
-  @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
+  @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
 
   action_fallback(EHealth.Web.FallbackController)
 

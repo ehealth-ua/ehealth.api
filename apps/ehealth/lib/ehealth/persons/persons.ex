@@ -13,9 +13,9 @@ defmodule EHealth.Persons do
   alias EHealth.Persons.Validator, as: PersonValidator
   alias EHealth.Validators.Signature, as: SignatureValidator
 
-  @mpi_api Application.get_env(:ehealth, :api_resolvers)[:mpi]
-  @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
-  @media_storage_api Application.get_env(:ehealth, :api_resolvers)[:media_storage]
+  @mpi_api Application.get_env(:core, :api_resolvers)[:mpi]
+  @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
+  @media_storage_api Application.get_env(:core, :api_resolvers)[:media_storage]
   @addresses_types ~w(REGISTRATION RESIDENCE)
 
   def search(params, headers \\ []) do

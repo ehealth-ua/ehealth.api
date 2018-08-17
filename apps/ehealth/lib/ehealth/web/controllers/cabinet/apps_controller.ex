@@ -7,7 +7,7 @@ defmodule EHealth.Web.AppsController do
   alias EHealth.Web.Cabinet.AppsView
   alias Scrivener.Page
 
-  @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
+  @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
 
   action_fallback(EHealth.Web.FallbackController)
 

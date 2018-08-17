@@ -1,13 +1,13 @@
-defmodule EHealth.API.Signature do
+defmodule Core.API.Signature do
   @moduledoc """
   Signature validator and data mapper
   """
-  use EHealth.API.Helpers.MicroserviceBase
 
-  alias EHealth.API.ResponseDecoder
-  import EHealth.Utils.Connection, only: [get_header: 2]
+  use Core.API.Helpers.MicroserviceBase
+  import Core.API.Helpers.Connection, only: [get_header: 2]
+  alias Core.API.Helpers.ResponseDecoder
 
-  @behaviour EHealth.API.SignatureBehaviour
+  @behaviour Core.API.SignatureBehaviour
 
   def decode_and_validate(signed_content, signed_content_encoding, headers) do
     if config()[:enabled] do

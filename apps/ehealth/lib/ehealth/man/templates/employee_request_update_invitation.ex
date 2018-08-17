@@ -7,7 +7,7 @@ defmodule EHealth.Man.Templates.EmployeeRequestUpdateInvitation do
   alias EHealth.Man.Templates.EmployeeRequestInvitation
   alias EHealth.EmployeeRequests.EmployeeRequest, as: Request
 
-  @man_api Application.get_env(:ehealth, :api_resolvers)[:man]
+  @man_api Application.get_env(:core, :api_resolvers)[:man]
 
   def render(%Request{id: id, data: data}) do
     clinic_info =

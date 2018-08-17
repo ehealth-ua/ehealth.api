@@ -23,7 +23,7 @@ defmodule EHealth.DeclarationRequests do
   alias EHealth.Validators.Reference
   alias EHealth.Persons.Validator, as: PersonsValidator
 
-  @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
+  @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
 
   @channel_cabinet DeclarationRequest.channel(:cabinet)
   @channel_mis DeclarationRequest.channel(:mis)

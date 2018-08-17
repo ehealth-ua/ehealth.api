@@ -3,7 +3,7 @@ defmodule EHealth.Unit.DigitalSignatureTest do
 
   use ExUnit.Case, async: true
 
-  alias EHealth.API.Signature
+  alias Core.API.Signature
 
   test "valid digital signature" do
     {:ok, %{"meta" => %{"code" => 200}, "data" => data}} =

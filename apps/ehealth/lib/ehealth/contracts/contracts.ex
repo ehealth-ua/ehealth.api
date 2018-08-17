@@ -27,7 +27,7 @@ defmodule EHealth.Contracts do
   alias EHealth.Validators.Signature, as: SignatureValidator
   alias Scrivener.Page
 
-  @media_storage_api Application.get_env(:ehealth, :api_resolvers)[:media_storage]
+  @media_storage_api Application.get_env(:core, :api_resolvers)[:media_storage]
 
   @status_verified Contract.status(:verified)
   @status_terminated Contract.status(:terminated)

@@ -1,8 +1,8 @@
-defmodule EHealth.API.Report do
+defmodule Core.API.Report do
   @moduledoc false
 
-  use EHealth.API.Helpers.MicroserviceBase
-  @behaviour EHealth.API.ReportBehaviour
+  use Core.API.Helpers.MicroserviceBase
+  @behaviour Core.API.ReportBehaviour
 
   def get_capitation_list(params, headers \\ []) do
     get!("/api/capitation_reports", headers, params: params)

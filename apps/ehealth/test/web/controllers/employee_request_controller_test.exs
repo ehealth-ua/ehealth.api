@@ -15,7 +15,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   alias Ecto.UUID
 
   @moduletag :with_client_id
-  @mithril_api Application.get_env(:ehealth, :api_resolvers)[:mithril]
+  @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
 
   describe "create employee request" do
     setup %{conn: conn} do

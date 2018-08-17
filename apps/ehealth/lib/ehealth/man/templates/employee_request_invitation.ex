@@ -9,7 +9,7 @@ defmodule EHealth.Man.Templates.EmployeeRequestInvitation do
   alias EHealth.LegalEntities.LegalEntity
   alias EHealth.Utils.AddressMerger
 
-  @man_api Application.get_env(:ehealth, :api_resolvers)[:man]
+  @man_api Application.get_env(:core, :api_resolvers)[:man]
 
   def render(%Request{id: id, data: data}) do
     clinic_info =

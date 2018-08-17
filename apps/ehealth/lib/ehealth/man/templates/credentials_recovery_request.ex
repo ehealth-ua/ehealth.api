@@ -4,7 +4,7 @@ defmodule EHealth.Man.Templates.CredentialsRecoveryRequest do
 
   alias EHealth.Users.CredentialsRecoveryRequest
 
-  @man_api Application.get_env(:ehealth, :api_resolvers)[:man]
+  @man_api Application.get_env(:core, :api_resolvers)[:man]
 
   def render(%CredentialsRecoveryRequest{id: id, user_id: user_id}, client_id, redirect_uri) do
     template_data = %{
