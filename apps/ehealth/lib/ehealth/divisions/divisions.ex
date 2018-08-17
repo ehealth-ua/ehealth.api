@@ -10,7 +10,6 @@ defmodule EHealth.Divisions do
 
   alias Ecto.Multi
   alias EctoTrail.Changelog
-  alias EHealth.Dictionaries
   alias EHealth.Divisions.Division
   alias EHealth.Divisions.Search
   alias EHealth.Email.Sanitizer
