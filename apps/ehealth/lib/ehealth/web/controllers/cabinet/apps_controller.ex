@@ -1,9 +1,8 @@
 defmodule EHealth.Web.AppsController do
   @moduledoc false
-  import EHealth.Utils.Connection, only: [get_consumer_id: 1]
+
   use EHealth.Web, :controller
 
-  alias EHealth.Cabinet.Apps
   alias EHealth.Web.Cabinet.AppsView
   alias Scrivener.Page
 

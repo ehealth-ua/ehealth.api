@@ -1,7 +1,7 @@
 defmodule EHealth.Web.MedicationControllerTest do
   use EHealth.Web.ConnCase
 
-  alias EHealth.Medications.Medication
+  alias Core.Medications.Medication
   alias Ecto.UUID
 
   @create_attrs %{

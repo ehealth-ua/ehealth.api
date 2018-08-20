@@ -51,16 +51,16 @@ defmodule EHealthWeb.Router do
   end
 
   pipeline :jwt do
-    plug(Guardian.Plug.Pipeline, module: EHealth.Guardian, error_handler: EHealth.Web.FallbackController)
+    plug(Guardian.Plug.Pipeline, module: Core.Guardian, error_handler: EHealth.Web.FallbackController)
   end
 
   pipeline :jwt_registration do
-    plug(Guardian.Plug.VerifyHeader, claims: %{typ: "access", aud: EHealth.Guardian.get_aud(:registration)})
+    plug(Guardian.Plug.VerifyHeader, claims: %{typ: "access", aud: Core.Guardian.get_aud(:registration)})
     plug(Guardian.Plug.EnsureAuthenticated)
   end
 
   pipeline :jwt_email_verification do
-    plug(Guardian.Plug.VerifyHeader, claims: %{typ: "access", aud: EHealth.Guardian.get_aud(:email_verification)})
+    plug(Guardian.Plug.VerifyHeader, claims: %{typ: "access", aud: Core.Guardian.get_aud(:email_verification)})
     plug(Guardian.Plug.EnsureAuthenticated)
   end
 

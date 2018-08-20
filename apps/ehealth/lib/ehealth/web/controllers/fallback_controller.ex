@@ -4,13 +4,13 @@ defmodule EHealth.Web.FallbackController do
   """
   use EHealth.Web, :controller
 
-  alias EHealth.ValidationError, as: EHealthValidationError
-  alias EHealth.Validators.Error, as: EHealthError
+  alias Core.ValidationError, as: CoreValidationError
+  alias Core.Validators.Error, as: EHealthError
   alias EView.Views.{Error, PhoenixError, ValidationError}
 
   require Logger
 
-  def call(conn, %EHealthValidationError{} = error), do: call(conn, EHealthError.dump(error))
+  def call(conn, %CoreValidationError{} = error), do: call(conn, EHealthError.dump(error))
 
   def call(conn, {:error, %{"paging" => %{"total_pages" => pages}}}) when pages > 1 do
     forbidden_message =

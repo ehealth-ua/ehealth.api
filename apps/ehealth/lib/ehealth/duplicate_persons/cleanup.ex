@@ -1,7 +1,7 @@
 defmodule EHealth.DuplicatePersons.Cleanup do
   @moduledoc false
 
-  alias EHealth.Declarations.Person
+  alias Core.Declarations.Person
 
   @mpi_api Application.get_env(:core, :api_resolvers)[:mpi]
   @ops_api Application.get_env(:core, :api_resolvers)[:ops]
@@ -28,7 +28,7 @@ defmodule EHealth.DuplicatePersons.Cleanup do
     {:ok, %{"data" => _}} = @mpi_api.update_person(master_person_id, %{merged_ids: duplicate_person_ids}, headers())
   end
 
-  defp system_user_id, do: Confex.fetch_env!(:ehealth, :system_user)
+  defp system_user_id, do: Confex.fetch_env!(:core, :system_user)
 
   defp headers, do: [{"x-consumer-id", system_user_id()}]
 end

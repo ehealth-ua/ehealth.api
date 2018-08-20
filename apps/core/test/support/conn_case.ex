@@ -1,0 +1,63 @@
+defmodule Core.ConnCase do
+  @moduledoc """
+  This module defines the test case to be used by
+  tests that require setting up a connection.
+
+  Such tests rely on `Phoenix.ConnTest` and also
+  import other functionality to make it easier
+  to build and query models.
+
+  Finally, if the test case interacts with the database,
+  it cannot be async. For this reason, every test runs
+  inside a transaction which is reset at the beginning
+  of the test unless the test case is marked as async.
+  """
+
+  use ExUnit.CaseTemplate
+
+  using do
+    quote do
+      import Core.Expectations.Mithril
+      import Core.Factories
+      import Core.ConnCase
+    end
+  end
+
+  setup tags do
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Core.Repo)
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Core.PRMRepo)
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Core.EventManagerRepo)
+
+    unless tags[:async] do
+      Ecto.Adapters.SQL.Sandbox.mode(Core.Repo, {:shared, self()})
+      Ecto.Adapters.SQL.Sandbox.mode(Core.PRMRepo, {:shared, self()})
+      Ecto.Adapters.SQL.Sandbox.mode(Core.EventManagerRepo, {:shared, self()})
+    end
+
+    :ok
+  end
+
+  def get_headers_with_consumer_id do
+    [
+      {"x-consumer-id", Ecto.UUID.generate()}
+    ]
+  end
+
+  def assert_show_response_schema(response, type) when is_binary(type) do
+    assert_json_schema(response, File.cwd!() <> "/../core/specs/json_schemas/#{type}/#{type}_show_response.json")
+  end
+
+  def assert_list_response_schema(response, type) when is_binary(type) do
+    assert_json_schema(response, File.cwd!() <> "/../core/specs/json_schemas/#{type}/#{type}_list_response.json")
+  end
+
+  def assert_json_schema(data, schema_path) do
+    assert :ok ==
+             schema_path
+             |> File.read!()
+             |> Jason.decode!()
+             |> NExJsonSchema.Validator.validate(data)
+
+    data
+  end
+end

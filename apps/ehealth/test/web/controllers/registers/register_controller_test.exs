@@ -6,8 +6,8 @@ defmodule EHealth.Web.RegisterControllerTest do
 
   alias Ecto.UUID
   alias EHealth.MockServer
-  alias EHealth.Registers.Register
-  alias EHealth.Registers.Register.Qty
+  alias Core.Registers.Register
+  alias Core.Registers.Register.Qty
 
   require Logger
 
@@ -663,7 +663,7 @@ defmodule EHealth.Web.RegisterControllerTest do
   end
 
   defp get_csv_file(name) do
-    "test/data/register/#{name}.csv"
+    "../core/test/data/register/#{name}.csv"
     |> File.read!()
     |> Base.encode64()
   end

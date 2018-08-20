@@ -3,11 +3,11 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
   use EHealth.Web.ConnCase, async: false
   import Mox
-  import EHealth.Expectations.Signature
-  alias EHealth.MedicationRequestRequests
+  import Core.Expectations.Signature
+  alias Core.MedicationRequestRequests
   alias EHealth.MockServer
-  alias EHealth.Repo
-  alias EHealth.PRMRepo
+  alias Core.Repo
+  alias Core.PRMRepo
 
   setup :verify_on_exit!
 
@@ -50,7 +50,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
     party_id = employee.party |> Map.get(:id)
     user_id = Ecto.UUID.generate()
-    PRMRepo.insert!(%EHealth.PartyUsers.PartyUser{user_id: user_id, party_id: party_id})
+    PRMRepo.insert!(%Core.PartyUsers.PartyUser{user_id: user_id, party_id: party_id})
 
     conn =
       conn
@@ -413,7 +413,9 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
         |> Map.delete("medical_program_id")
 
       data = %{medication_request_request: test_request, programs: [%{id: pm.medical_program_id}]}
-      schema_path = "specs/json_schemas/medication_request_request/medication_request_request_prequalify_response.json"
+
+      schema_path =
+        "../core/specs/json_schemas/medication_request_request/medication_request_request_prequalify_response.json"
 
       resp =
         conn
@@ -510,11 +512,11 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       conn1 = post(conn, medication_request_request_path(conn, :create), medication_request_request: test_request)
       assert %{"id" => id} = json_response(conn1, 201)["data"]
 
-      Repo.update_all(EHealth.MedicationRequestRequest, set: [inserted_at: ~N[1970-01-01 13:26:08.003]])
+      Repo.update_all(Core.MedicationRequestRequest, set: [inserted_at: ~N[1970-01-01 13:26:08.003]])
       MedicationRequestRequests.autoterminate()
       mrr = MedicationRequestRequests.get_medication_request_request(id)
       assert mrr.status == "EXPIRED"
-      assert mrr.updated_by == Confex.fetch_env!(:ehealth, :system_user)
+      assert mrr.updated_by == Confex.fetch_env!(:core, :system_user)
     end
   end
 
@@ -556,7 +558,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       drfo =
         mrr
         |> get_in(["employee", "party", "id"])
-        |> (fn x -> EHealth.PRMRepo.get!(EHealth.Parties.Party, x) end).()
+        |> (fn x -> Core.PRMRepo.get!(Core.Parties.Party, x) end).()
         |> Map.get(:tax_id)
 
       drfo_signed_content(mrr, drfo)
@@ -595,7 +597,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
       conn1 = post(conn, medication_request_request_path(conn, :create), medication_request_request: test_request)
       assert mrr = json_response(conn1, 201)["data"]
-      Repo.update_all(EHealth.MedicationRequestRequest, set: [status: "EXPIRED"])
+      Repo.update_all(Core.MedicationRequestRequest, set: [status: "EXPIRED"])
 
       conn1 =
         patch(conn, medication_request_request_path(conn, :sign, mrr["id"]), %{
@@ -677,7 +679,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
   end
 
   defp test_request do
-    "test/data/medication_request_request/medication_request_request.json"
+    "../core/test/data/medication_request_request/medication_request_request.json"
     |> File.read!()
     |> Jason.decode!()
   end

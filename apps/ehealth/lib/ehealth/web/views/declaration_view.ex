@@ -3,10 +3,10 @@ defmodule EHealth.Web.DeclarationView do
 
   use EHealth.Web, :view
 
-  alias EHealth.Divisions.Division
-  alias EHealth.Employees.Employee
-  alias EHealth.LegalEntities.LegalEntity
-  alias EHealth.Parties.Party
+  alias Core.Divisions.Division
+  alias Core.Employees.Employee
+  alias Core.LegalEntities.LegalEntity
+  alias Core.Parties.Party
   alias EHealth.Web.DivisionView
   alias EHealth.Web.LegalEntityView
   alias EHealth.Web.PersonView

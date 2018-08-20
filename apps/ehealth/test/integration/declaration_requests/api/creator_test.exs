@@ -6,9 +6,9 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
   import Mox
   import Ecto.Changeset, only: [get_change: 2, put_change: 3]
 
-  alias EHealth.DeclarationRequests.API.Creator
-  alias EHealth.DeclarationRequests.DeclarationRequest
-  alias EHealth.Utils.NumberGenerator
+  alias Core.DeclarationRequests.API.Creator
+  alias Core.DeclarationRequests.DeclarationRequest
+  alias Core.Utils.NumberGenerator
   alias Ecto.UUID
 
   setup :verify_on_exit!
@@ -51,7 +51,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       employee = insert(:prm, :employee, speciality: employee_speciality)
 
       data =
-        "test/data/sign_declaration_request.json"
+        "../core/test/data/sign_declaration_request.json"
         |> File.read!()
         |> Jason.decode!()
 
@@ -250,7 +250,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
       employee = insert(:prm, :employee, id: "d290f1ee-6c54-4b01-90e6-d701748f0851")
 
       data =
-        "test/data/sign_declaration_request.json"
+        "../core/test/data/sign_declaration_request.json"
         |> File.read!()
         |> Jason.decode!()
         |> put_in(["legal_entity", "licenses"], licenses)

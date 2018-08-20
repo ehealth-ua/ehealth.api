@@ -33,3 +33,64 @@ config :core, Core.API.MediaStorage,
     {:system, "MEDIA_STORAGE_MEDICATION_REQUEST_REQUEST_BUCKET", "medication-request-requests-dev"},
   person_bucket: {:system, "MEDIA_STORAGE_PERSON_BUCKET", "persons-dev"},
   enabled?: {:system, :boolean, "MEDIA_STORAGE_ENABLED", false}
+
+config :core, :legal_entity_employee_types,
+  msp: {:system, "LEGAL_ENTITY_MSP_EMPLOYEE_TYPES", ["OWNER", "HR", "DOCTOR", "ADMIN", "ACCOUNTANT"]},
+  pharmacy: {:system, "LEGAL_ENTITY_PHARMACY_EMPLOYEE_TYPES", ["PHARMACY_OWNER", "PHARMACIST"]}
+
+# employee request invitation
+# Configures employee request invitation template
+config :core, Core.Man.Templates.EmployeeRequestInvitation, id: {:system, "EMPLOYEE_REQUEST_INVITATION_TEMPLATE_ID", 1}
+
+# Configures employee request update invitation template
+config :core, Core.Man.Templates.EmployeeRequestUpdateInvitation,
+  id: {:system, "EMPLOYEE_REQUEST_UPDATE_INVITATION_TEMPLATE_ID", 1}
+
+# employee created notification
+# Configures employee created notification template
+config :core, Core.Man.Templates.EmployeeCreatedNotification,
+  id: {:system, "EMPLOYEE_CREATED_NOTIFICATION_TEMPLATE_ID", 35}
+
+config :core, Core.Man.Templates.DeclarationRequestPrintoutForm,
+  id: {:system, "DECLARATION_REQUEST_PRINTOUT_FORM_TEMPLATE_ID", 4}
+
+config :core, Core.Man.Templates.ContractRequestPrintoutForm,
+  id: {:system, "CONTRACT_REQUEST_PRINTOUT_FORM_TEMPLATE_ID", 9}
+
+config :core, Core.Man.Templates.CredentialsRecoveryRequest,
+  id: {:system, "CREDENTIALS_RECOVERY_REQUEST_INVITATION_TEMPLATE_ID", 5}
+
+# Configure your database
+config :core, Core.Repo,
+  adapter: Ecto.Adapters.Postgres,
+  username: "postgres",
+  password: "postgres",
+  database: "ehealth",
+  hostname: "localhost",
+  pool_size: 10
+
+config :core, Core.PRMRepo,
+  adapter: Ecto.Adapters.Postgres,
+  username: "postgres",
+  password: "postgres",
+  database: "prm_dev",
+  hostname: "localhost",
+  pool_size: 10,
+  types: Core.PRM.PostgresTypes
+
+config :core, Core.FraudRepo,
+  adapter: Ecto.Adapters.Postgres,
+  username: "postgres",
+  password: "postgres",
+  database: "fraud_dev",
+  hostname: "localhost",
+  pool_size: 10,
+  types: Core.Fraud.PostgresTypes
+
+config :core, Core.EventManagerRepo,
+  adapter: Ecto.Adapters.Postgres,
+  username: "postgres",
+  password: "postgres",
+  database: "event_manager_dev",
+  hostname: "localhost",
+  pool_size: 10

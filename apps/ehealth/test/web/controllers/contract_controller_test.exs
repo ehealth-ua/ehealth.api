@@ -3,11 +3,11 @@ defmodule EHealth.Web.ContractControllerTest do
 
   use EHealth.Web.ConnCase
 
-  import EHealth.Expectations.Signature
+  import Core.Expectations.Signature
   import Mox
 
-  alias EHealth.Contracts.Contract
-  alias EHealth.Divisions.Division
+  alias Core.Contracts.Contract
+  alias Core.Divisions.Division
   alias Ecto.UUID
 
   describe "show contract" do
@@ -80,7 +80,7 @@ defmodule EHealth.Web.ContractControllerTest do
       end)
 
       schema =
-        "specs/json_schemas/contract/contract_show_response.json"
+        "../core/specs/json_schemas/contract/contract_show_response.json"
         |> File.read!()
         |> Poison.decode!()
 

@@ -6,26 +6,26 @@ defmodule EHealth.ReleaseTasks do
 
       ehealth/bin/ehealth command ehealth_tasks migrate!
   """
-  alias EHealth.Dictionaries.Dictionary
+  alias Core.Dictionaries.Dictionary
 
   def migrate do
-    fraud_migrations_dir = Application.app_dir(:ehealth, "priv/fraud_repo/migrations")
-    prm_migrations_dir = Application.app_dir(:ehealth, "priv/prm_repo/migrations")
-    migrations_dir = Application.app_dir(:ehealth, "priv/repo/migrations")
+    fraud_migrations_dir = Application.app_dir(:core, "priv/fraud_repo/migrations")
+    prm_migrations_dir = Application.app_dir(:core, "priv/prm_repo/migrations")
+    migrations_dir = Application.app_dir(:core, "priv/repo/migrations")
 
     load_app()
 
-    prm_repo = EHealth.PRMRepo
+    prm_repo = Core.PRMRepo
     prm_repo.start_link()
 
     Ecto.Migrator.run(prm_repo, prm_migrations_dir, :up, all: true)
 
-    fraud_repo = EHealth.FraudRepo
+    fraud_repo = Core.FraudRepo
     fraud_repo.start_link()
 
     Ecto.Migrator.run(fraud_repo, fraud_migrations_dir, :up, all: true)
 
-    repo = EHealth.Repo
+    repo = Core.Repo
     repo.start_link()
 
     Ecto.Migrator.run(repo, migrations_dir, :up, all: true)
@@ -37,12 +37,12 @@ defmodule EHealth.ReleaseTasks do
   def seed do
     load_app()
 
-    repo = EHealth.Repo
+    repo = Core.Repo
     repo.start_link()
 
     repo.delete_all(Dictionary)
 
-    :ehealth
+    :core
     |> Application.app_dir("priv/repo/fixtures/dictionaries.json")
     |> File.read!()
     |> Jason.decode!()
@@ -60,6 +60,7 @@ defmodule EHealth.ReleaseTasks do
 
   defp load_app do
     start_applications([:logger, :postgrex, :ecto])
+    :ok = Application.load(:core)
     :ok = Application.load(:ehealth)
   end
 

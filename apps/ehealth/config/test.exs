@@ -10,54 +10,7 @@ config :ehealth, EHealth.Web.Endpoint,
   server: true
 
 config :ehealth,
-  sensitive_data_in_response: {:system, :boolean, "SENSITIVE_DATA_IN_RESPONSE_ENABLED", true},
-  api_resolvers: [
-    postmark: PostmarkMock,
-    declaration_request_creator: DeclarationRequestsCreatorMock
-  ],
-  cache: [
-    validators: EHealth.Validators.CacheTest
-  ]
-
-config :ehealth, :legal_entity_employee_types,
-  msp: {:system, "LEGAL_ENTITY_MSP_EMPLOYEE_TYPES", ["OWNER", "HR", "DOCTOR", "ADMIN", "ACCOUNTANT"]},
-  pharmacy: {:system, "LEGAL_ENTITY_PHARMACY_EMPLOYEE_TYPES", ["PHARMACY_OWNER", "PHARMACIST"]}
-
-# employee request invitation
-# Configures employee request invitation template
-config :ehealth, EHealth.Man.Templates.EmployeeRequestInvitation,
-  id: {:system, "EMPLOYEE_REQUEST_INVITATION_TEMPLATE_ID", 1}
-
-# Configures employee request update invitation template
-config :ehealth, EHealth.Man.Templates.EmployeeRequestUpdateInvitation,
-  id: {:system, "EMPLOYEE_REQUEST_UPDATE_INVITATION_TEMPLATE_ID", 1}
-
-# employee created notification
-# Configures employee created notification template
-config :ehealth, EHealth.Man.Templates.EmployeeCreatedNotification,
-  id: {:system, "EMPLOYEE_CREATED_NOTIFICATION_TEMPLATE_ID", 35}
-
-config :ehealth, EHealth.Man.Templates.DeclarationRequestPrintoutForm,
-  id: {:system, "DECLARATION_REQUEST_PRINTOUT_FORM_TEMPLATE_ID", 4}
-
-config :ehealth, EHealth.Man.Templates.ContractRequestPrintoutForm,
-  id: {:system, "CONTRACT_REQUEST_PRINTOUT_FORM_TEMPLATE_ID", 6}
-
-config :ehealth, EHealth.Man.Templates.CredentialsRecoveryRequest,
-  id: {:system, "CREDENTIALS_RECOVERY_REQUEST_INVITATION_TEMPLATE_ID", 5}
-
-# configure emails
-config :ehealth, :emails,
-  hash_chain_verification_notification: %{
-    from: "automatic@system.com",
-    to: "serious@authority.com",
-    subject: "Hash chain has been mangled!"
-  }
-
-config :ehealth, EHealth.Man.Templates.HashChainVerificationNotification,
-  id: 32167,
-  format: "text/html",
-  locale: "uk_UA"
+  sensitive_data_in_response: {:system, :boolean, "SENSITIVE_DATA_IN_RESPONSE_ENABLED", true}
 
 # Configures declaration request terminator
 config :ehealth, EHealth.DeclarationRequest.Terminator,
@@ -74,71 +27,8 @@ config :ehealth, EHealth.DeclarationRequests.Terminator,
 
 config :ehealth, EHealth.Contracts.Terminator, termination_batch_size: 1
 
-# Configures genral validator
-config :ehealth, EHealth.LegalEntities.Validator, owner_positions: {:system, :list, "OWNER_POSITIONS", ["P1"]}
-
-config :ehealth, EHealth.Bamboo.Emails.Sender, mailer: EHealth.Bamboo.TestMailer
-
-config :ehealth, EHealth.Bamboo.TestMailer, adapter: Bamboo.TestAdapter
-
-# Configures Cabinet
-config :ehealth, EHealth.Cabinet.API,
-  # hours
-  jwt_ttl_email: 1,
-  jwt_ttl_registration: 1,
-  role_id: "068c3ba7-2b6f-47b6-acf1-e219f0e84eed",
-  client_id: "50918162-4d48-4d84-9d17-518bb80e65d8"
-
-config :ehealth, EHealth.Guardian,
-  issuer: "EHealth",
-  secret_key: "some_super-sEcret"
-
-config :ehealth, EHealth.Man.Templates.EmailVerification,
-  id: "1",
-  from: "info@ehealth.world",
-  subject: "verification"
-
 config :ehealth,
   # Run acceptance test in concurrent mode
   sql_sandbox: true,
   # Don't start terminator in test env
   run_declaration_request_terminator: false
-
-# Configure your database
-config :ehealth, EHealth.Repo,
-  adapter: Ecto.Adapters.Postgres,
-  username: "postgres",
-  password: "postgres",
-  database: "ehealth_test",
-  hostname: "localhost",
-  pool: Ecto.Adapters.SQL.Sandbox,
-  ownership_timeout: 120_000_000
-
-config :ehealth, EHealth.PRMRepo,
-  adapter: Ecto.Adapters.Postgres,
-  username: "postgres",
-  password: "postgres",
-  database: "prm_test",
-  hostname: "localhost",
-  pool: Ecto.Adapters.SQL.Sandbox,
-  types: EHealth.PRM.PostgresTypes,
-  ownership_timeout: 120_000_000
-
-config :ehealth, EHealth.FraudRepo,
-  adapter: Ecto.Adapters.Postgres,
-  username: "postgres",
-  password: "postgres",
-  database: "fraud_test",
-  hostname: "localhost",
-  pool: Ecto.Adapters.SQL.Sandbox,
-  types: EHealth.Fraud.PostgresTypes,
-  ownership_timeout: 120_000_000
-
-config :ehealth, EHealth.EventManagerRepo,
-  adapter: Ecto.Adapters.Postgres,
-  username: "postgres",
-  password: "postgres",
-  database: "event_manager_test",
-  hostname: "localhost",
-  pool: Ecto.Adapters.SQL.Sandbox,
-  ownership_timeout: 120_000_000

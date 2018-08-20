@@ -2,8 +2,8 @@ defmodule Mithril.Web.RegistrationControllerTest do
   use EHealth.Web.ConnCase
 
   import Mox
-  import EHealth.Guardian
-  import EHealth.Expectations.Man
+  import Core.Guardian
+  import Core.Expectations.Man
   alias Ecto.UUID
 
   # For Mox lib. Make sure mocks are verified when the test exits
@@ -310,7 +310,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
       params = %{
         otp: "1234",
         password: "pAs$w0rd",
-        signed_content: "test/data/cabinet/patient.json" |> File.read!() |> Base.encode64(),
+        signed_content: "../core/test/data/cabinet/patient.json" |> File.read!() |> Base.encode64(),
         signed_content_encoding: "base64"
       }
 
@@ -467,7 +467,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
       conn
       |> post(cabinet_auth_path(conn, :registration, params))
       |> json_response(201)
-      |> assert_json_schema("specs/json_schemas/cabinet/cabinet_registration_show_response.json")
+      |> assert_json_schema("../core/specs/json_schemas/cabinet/cabinet_registration_show_response.json")
     end
 
     test "update user and update MPI person", %{conn: conn, params: params} do
@@ -525,7 +525,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
       params = %{
         otp: "1234",
         password: "pAs$w0rd",
-        signed_content: "test/data/cabinet/patient.json" |> File.read!() |> Base.encode64(),
+        signed_content: "../core/test/data/cabinet/patient.json" |> File.read!() |> Base.encode64(),
         signed_content_encoding: "base64"
       }
 
@@ -587,7 +587,9 @@ defmodule Mithril.Web.RegistrationControllerTest do
     test "invalid adresses types", %{conn: conn, params: params, jwt: jwt} do
       use SignatureExpect
 
-      signed_content = "test/data/cabinet/patient-invalid-addresses-types.json" |> File.read!() |> Base.encode64()
+      signed_content =
+        "../core/test/data/cabinet/patient-invalid-addresses-types.json" |> File.read!() |> Base.encode64()
+
       params = Map.put(params, :signed_content, signed_content)
 
       expect(OTPVerificationMock, :complete, fn _, _, _ ->

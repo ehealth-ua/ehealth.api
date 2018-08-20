@@ -201,7 +201,7 @@ defmodule EHealth.Web.DivisionsControllerTest do
     assert "$.type" == err["entry"]
 
     allowed_types =
-      :ehealth
+      :core
       |> Confex.fetch_env!(:legal_entity_division_types)
       |> Keyword.get(:msp)
 
@@ -307,7 +307,7 @@ defmodule EHealth.Web.DivisionsControllerTest do
   end
 
   def get_division do
-    "test/data/division.json"
+    "../core/test/data/division.json"
     |> File.read!()
     |> Jason.decode!()
   end

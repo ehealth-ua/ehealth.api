@@ -3,12 +3,12 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
 
   use EHealth.Web.ConnCase
 
-  import EHealth.DeclarationRequests.API.Sign
+  import Core.DeclarationRequests.API.Sign
   import Mox
 
   alias Ecto.UUID
-  alias EHealth.DeclarationRequests.DeclarationRequest
-  alias EHealth.Repo
+  alias Core.DeclarationRequests.DeclarationRequest
+  alias Core.Repo
   alias HTTPoison.Response
 
   setup :verify_on_exit!

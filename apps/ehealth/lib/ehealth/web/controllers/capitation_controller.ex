@@ -2,7 +2,7 @@ defmodule EHealth.Web.CapitationController do
   @moduledoc false
 
   use EHealth.Web, :controller
-  alias EHealth.Capitation.Capitation
+  alias Core.Capitation.Capitation
   alias Scrivener.Page
 
   action_fallback(EHealth.Web.FallbackController)

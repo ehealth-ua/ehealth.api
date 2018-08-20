@@ -1,8 +1,8 @@
 defmodule EHealth.Web.Cabinet.DeclarationController do
   use EHealth.Web, :controller
 
-  alias EHealth.Declarations.API, as: Declarations
-  alias EHealth.Cabinet.Requests.DeclarationsSearch
+  alias Core.Declarations.API, as: Declarations
+  alias Core.Cabinet.Requests.DeclarationsSearch
   alias EHealth.Web.DeclarationView
 
   action_fallback(EHealth.Web.FallbackController)

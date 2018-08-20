@@ -1,13 +1,17 @@
 defmodule EHealth.DeclarationRequests.Terminator do
   @moduledoc false
-  import Ecto.Query
+
   use Confex, otp_app: :ehealth
-  alias Ecto.UUID
-  alias EHealth.DeclarationRequests.DeclarationRequest
-  alias EHealth.GlobalParameters
-  alias EHealth.Repo
-  require Logger
   use GenServer
+
+  import Ecto.Query
+
+  alias Core.DeclarationRequests.DeclarationRequest
+  alias Core.GlobalParameters
+  alias Core.Repo
+  alias Ecto.UUID
+
+  require Logger
 
   def start_link(name) do
     GenServer.start_link(__MODULE__, %{}, name: name)
@@ -37,7 +41,7 @@ defmodule EHealth.DeclarationRequests.Terminator do
         |> String.downcase()
         |> String.replace_trailing("s", "")
 
-      {:ok, user_id} = UUID.dump(Confex.fetch_env!(:ehealth, :system_user))
+      {:ok, user_id} = UUID.dump(Confex.fetch_env!(:core, :system_user))
       limit = config()[:termination_batch_size]
 
       %{term: term, normalized_unit: normalized_unit, user_id: user_id, limit: limit}

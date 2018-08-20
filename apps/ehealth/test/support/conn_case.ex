@@ -22,10 +22,10 @@ defmodule EHealth.Web.ConnCase do
     quote do
       # Import conveniences for testing with connections
       use Phoenix.ConnTest
+      import Core.Expectations.Mithril
+      import Core.Factories
       import EHealth.Web.ConnCase
       import EHealthWeb.Router.Helpers
-      import EHealth.Factories
-      import EHealth.Expectations.Mithril
 
       # The default endpoint for testing
       @endpoint EHealth.Web.Endpoint
@@ -33,14 +33,14 @@ defmodule EHealth.Web.ConnCase do
   end
 
   setup tags do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(EHealth.Repo)
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(EHealth.PRMRepo)
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(EHealth.EventManagerRepo)
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Core.Repo)
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Core.PRMRepo)
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Core.EventManagerRepo)
 
     unless tags[:async] do
-      Ecto.Adapters.SQL.Sandbox.mode(EHealth.Repo, {:shared, self()})
-      Ecto.Adapters.SQL.Sandbox.mode(EHealth.PRMRepo, {:shared, self()})
-      Ecto.Adapters.SQL.Sandbox.mode(EHealth.EventManagerRepo, {:shared, self()})
+      Ecto.Adapters.SQL.Sandbox.mode(Core.Repo, {:shared, self()})
+      Ecto.Adapters.SQL.Sandbox.mode(Core.PRMRepo, {:shared, self()})
+      Ecto.Adapters.SQL.Sandbox.mode(Core.EventManagerRepo, {:shared, self()})
     end
 
     conn =
@@ -104,11 +104,11 @@ defmodule EHealth.Web.ConnCase do
   end
 
   def assert_show_response_schema(response, type) when is_binary(type) do
-    assert_json_schema(response, "specs/json_schemas/#{type}/#{type}_show_response.json")
+    assert_json_schema(response, File.cwd!() <> "/../core/specs/json_schemas/#{type}/#{type}_show_response.json")
   end
 
   def assert_list_response_schema(response, type) when is_binary(type) do
-    assert_json_schema(response, "specs/json_schemas/#{type}/#{type}_list_response.json")
+    assert_json_schema(response, File.cwd!() <> "/../core/specs/json_schemas/#{type}/#{type}_list_response.json")
   end
 
   def assert_json_schema(data, schema_path) do

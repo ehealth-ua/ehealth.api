@@ -1,7 +1,7 @@
 defmodule EHealth.Web.UaddressesController do
   @moduledoc false
   use EHealth.Web, :controller
-  alias EHealth.Divisions.UAddress
+  alias Core.Divisions.UAddress
 
   action_fallback(EHealth.Web.FallbackController)
 

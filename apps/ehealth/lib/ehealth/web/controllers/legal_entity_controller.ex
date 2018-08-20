@@ -5,8 +5,8 @@ defmodule EHealth.Web.LegalEntityController do
   use EHealth.Web, :controller
 
   alias Scrivener.Page
-  alias EHealth.LegalEntities, as: API
-  alias EHealth.LegalEntities.LegalEntityUpdater
+  alias Core.LegalEntities, as: API
+  alias Core.LegalEntities.LegalEntityUpdater
 
   action_fallback(EHealth.Web.FallbackController)
 
@@ -60,7 +60,7 @@ defmodule EHealth.Web.LegalEntityController do
     end
   end
 
-  defp assign_employee_request_id(conn, %EHealth.EmployeeRequests.EmployeeRequest{id: id}) do
+  defp assign_employee_request_id(conn, %Core.EmployeeRequests.EmployeeRequest{id: id}) do
     assign_urgent(conn, "employee_request_id", id)
   end
 

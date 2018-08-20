@@ -2,7 +2,7 @@ defmodule EHealth.Web.MedicationRequestController do
   @moduledoc false
   use EHealth.Web, :controller
 
-  alias EHealth.MedicationRequests.API
+  alias Core.MedicationRequests.API
   alias Scrivener.Page
 
   action_fallback(EHealth.Web.FallbackController)

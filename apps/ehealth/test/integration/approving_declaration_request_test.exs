@@ -3,8 +3,8 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
 
   use EHealth.Web.ConnCase, async: false
 
-  alias EHealth.Repo
-  alias EHealth.DeclarationRequests.DeclarationRequest
+  alias Core.Repo
+  alias Core.DeclarationRequests.DeclarationRequest
   import Mox
 
   setup :verify_on_exit!

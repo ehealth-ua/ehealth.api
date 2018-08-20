@@ -2,13 +2,15 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase, async: false
-  alias EHealth.DeclarationRequests
-  alias EHealth.DeclarationRequests.DeclarationRequest
-  alias EHealth.Repo
-  alias EHealth.Utils.NumberGenerator
-  alias Ecto.UUID
+
   import Mox
-  import EHealth.Expectations.Man
+  import Core.Expectations.Man
+
+  alias Core.DeclarationRequests
+  alias Core.DeclarationRequests.DeclarationRequest
+  alias Core.Repo
+  alias Core.Utils.NumberGenerator
+  alias Ecto.UUID
 
   setup :verify_on_exit!
 
@@ -66,7 +68,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         )
 
       declaration_request_params =
-        "test/data/declaration_request.json"
+        "../core/test/data/declaration_request.json"
         |> File.read!()
         |> Jason.decode!()
         |> put_in(["declaration_request", "person", "birth_date"], person_birth_date)
@@ -104,7 +106,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         )
 
       declaration_request_params =
-        "test/data/declaration_request.json"
+        "../core/test/data/declaration_request.json"
         |> File.read!()
         |> Jason.decode!()
         |> put_in(["declaration_request", "person", "birth_date"], person_birth_date)
@@ -128,7 +130,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       person_birth_date = Timex.shift(Timex.today(), years: -age) |> to_string()
 
       declaration_request_params =
-        "test/data/declaration_request.json"
+        "../core/test/data/declaration_request.json"
         |> File.read!()
         |> Jason.decode!()
         |> put_in(["declaration_request", "person", "birth_date"], person_birth_date)
@@ -156,7 +158,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       auth_methods = [%{"type" => "OTP", "phone_number" => "+380508887404"}]
 
       declaration_request_params =
-        "test/data/declaration_request.json"
+        "../core/test/data/declaration_request.json"
         |> File.read!()
         |> Jason.decode!()
         |> put_in(~W(declaration_request person authentication_methods), auth_methods)
@@ -176,7 +178,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
 
     test "secret is too long", %{conn: conn} do
       declaration_request_params =
-        "test/data/declaration_request.json"
+        "../core/test/data/declaration_request.json"
         |> File.read!()
         |> Jason.decode!()
         |> put_in(~W(declaration_request person secret), "a very long secret value")
@@ -215,7 +217,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       end)
 
       declaration_request_params =
-        "test/data/declaration_request.json"
+        "../core/test/data/declaration_request.json"
         |> File.read!()
         |> Jason.decode!()
 
@@ -300,7 +302,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       end)
 
       declaration_request_params =
-        "test/data/declaration_request.json"
+        "../core/test/data/declaration_request.json"
         |> File.read!()
         |> Jason.decode!()
 
@@ -324,7 +326,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       gen_sequence_number()
 
       declaration_request_params =
-        "test/data/declaration_request.json"
+        "../core/test/data/declaration_request.json"
         |> File.read!()
         |> Jason.decode!()
         |> put_in(~W(declaration_request person authentication_methods), [%{"type" => "OTP"}])
@@ -348,7 +350,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       phones = [%{"type" => "MOBILE", "number" => "+380508887700"}, %{"type" => "MOBILE", "number" => "+380508887700"}]
 
       declaration_request_params =
-        "test/data/declaration_request.json"
+        "../core/test/data/declaration_request.json"
         |> File.read!()
         |> Jason.decode!()
         |> put_in(~W(declaration_request person phones), phones)
@@ -414,7 +416,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       end)
 
       params =
-        "test/data/declaration_request.json"
+        "../core/test/data/declaration_request.json"
         |> File.read!()
         |> Jason.decode!()
 
@@ -542,7 +544,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       end)
 
       declaration_request_params =
-        "test/data/declaration_request.json"
+        "../core/test/data/declaration_request.json"
         |> File.read!()
         |> Jason.decode!()
         |> put_in(~W(declaration_request person first_name), "Тест")
@@ -640,7 +642,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       end)
 
       declaration_request_params =
-        "test/data/declaration_request.json"
+        "../core/test/data/declaration_request.json"
         |> File.read!()
         |> Jason.decode!()
 
@@ -713,7 +715,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       end)
 
       declaration_request_params =
-        "test/data/declaration_request.json"
+        "../core/test/data/declaration_request.json"
         |> File.read!()
         |> Jason.decode!()
         |> put_in(["declaration_request", "person", "first_name"], "Тест")
@@ -782,7 +784,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       )
 
       declaration_request_params =
-        "test/data/declaration_request.json"
+        "../core/test/data/declaration_request.json"
         |> File.read!()
         |> Jason.decode!()
         |> put_in(["declaration_request", "division_id"], "31506899-55a5-4011-b88c-10ba90c5e9bd")
@@ -824,7 +826,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
     end
 
     test "returns error if global parameters do not exist", %{conn: conn} do
-      declaration_request_params = File.read!("test/data/declaration_request.json")
+      declaration_request_params = File.read!("../core/test/data/declaration_request.json")
       uaddresses_mock_expect()
 
       conn =
@@ -851,7 +853,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       wrong_id = "2f650a5c-7a04-4615-a1e7-00fa41bf160d"
 
       declaration_request_params =
-        "test/data/declaration_request.json"
+        "../core/test/data/declaration_request.json"
         |> File.read!()
         |> Jason.decode!()
         |> put_in(["declaration_request", "employee_id"], wrong_id)
@@ -884,7 +886,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
     end
 
     test "validation error is returned", %{conn: conn} do
-      declaration_request_params = File.read!("test/data/declaration_request.json")
+      declaration_request_params = File.read!("../core/test/data/declaration_request.json")
 
       expect(UAddressesMock, :validate_addresses, fn _, _headers ->
         {:error,
@@ -1213,7 +1215,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
   end
 
   defp get_declaration_request do
-    "test/data/declaration_request.json"
+    "../core/test/data/declaration_request.json"
     |> File.read!()
     |> Jason.decode!()
     |> Map.fetch!("declaration_request")

@@ -2,15 +2,15 @@ defmodule EHealth.Web.V2.EmployeeRequestControllerTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase, async: false
-  import EHealth.Expectations.Signature
-  import EHealth.Expectations.Man
+  import Core.Expectations.Signature
+  import Core.Expectations.Man
 
   describe "create employee request" do
     test "success", %{conn: conn} do
       nhs()
 
       employee_request_params =
-        "test/data/employee_doctor_request.json"
+        "../core/test/data/employee_doctor_request.json"
         |> File.read!()
         |> Jason.decode!()
 

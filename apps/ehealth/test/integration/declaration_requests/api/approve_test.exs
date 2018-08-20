@@ -2,7 +2,7 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.ApproveTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase
-  import EHealth.DeclarationRequests.API.Approve
+  import Core.DeclarationRequests.API.Approve
   import Mox
 
   setup :verify_on_exit!

@@ -2,8 +2,8 @@ defmodule EHealth.DeclarationRequests.TerminatorTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase, async: false
-  alias EHealth.DeclarationRequests.DeclarationRequest
-  alias EHealth.Repo
+  alias Core.DeclarationRequests.DeclarationRequest
+  alias Core.Repo
   import EHealth.DeclarationRequests.Terminator
 
   test "terminate outdated declaration_requests" do

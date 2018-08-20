@@ -4,10 +4,10 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
   use EHealth.Web.ConnCase
 
   import Mox
-  import EHealth.Expectations.Signature
+  import Core.Expectations.Signature
   alias Ecto.UUID
-  alias EHealth.DeclarationRequests.DeclarationRequest
-  alias EHealth.Utils.NumberGenerator
+  alias Core.DeclarationRequests.DeclarationRequest
+  alias Core.Utils.NumberGenerator
   alias HTTPoison.Response
 
   setup :verify_on_exit!
@@ -445,7 +445,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       end)
 
       data =
-        "test/data/declaration_request/sign_request.json"
+        "../core/test/data/declaration_request/sign_request.json"
         |> File.read!()
         |> Jason.decode!()
 
@@ -532,7 +532,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       end)
 
       data =
-        "test/data/declaration_request/sign_request.json"
+        "../core/test/data/declaration_request/sign_request.json"
         |> File.read!()
         |> Jason.decode!()
 
@@ -605,7 +605,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
 
     test "invalid request", %{conn: conn} do
       data =
-        "test/data/declaration_request/sign_request.json"
+        "../core/test/data/declaration_request/sign_request.json"
         |> File.read!()
         |> Jason.decode!()
 

@@ -133,7 +133,7 @@ defmodule EHealth.Web.Cabinet.DeclarationControllerTest do
     assert %{"data" => response_data, "paging" => %{"total_entries" => 2}, "meta" => _} = response
     assert [@declaration_id, @declaration_id2] = Enum.map(response_data, & &1["id"])
 
-    assert_json_schema(response_data, "specs/json_schemas/cabinet/declarations/index_response.json")
+    assert_json_schema(response_data, "../core/specs/json_schemas/cabinet/declarations/index_response.json")
   end
 
   test "rejects to search person declaration due to request validation", %{conn: conn} do

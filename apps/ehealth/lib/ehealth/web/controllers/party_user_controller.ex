@@ -2,7 +2,7 @@ defmodule EHealth.Web.PartyUserController do
   @moduledoc false
   use EHealth.Web, :controller
 
-  alias EHealth.PartyUsers
+  alias Core.PartyUsers
   alias Scrivener.Page
 
   action_fallback(EHealth.Web.FallbackController)

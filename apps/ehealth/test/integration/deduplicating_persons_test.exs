@@ -6,7 +6,7 @@ defmodule EHealth.Integration.DeduplicatingPersonsTest do
   import Mox
   import ExUnit.CaptureLog
 
-  alias EHealth.Declarations.Person
+  alias Core.Declarations.Person
 
   require Logger
 

@@ -3,7 +3,7 @@ defmodule EHealth.Web.GlobalParameterController do
 
   use EHealth.Web, :controller
 
-  alias EHealth.GlobalParameters
+  alias Core.GlobalParameters
 
   action_fallback(EHealth.Web.FallbackController)
 

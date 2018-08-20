@@ -2,8 +2,8 @@ defmodule EHealth.Web.MedicationDispenseController do
   @moduledoc false
 
   use EHealth.Web, :controller
-  alias EHealth.MedicationDispense.API
-  alias EHealth.MedicationRequests.API, as: MedicationRequests
+  alias Core.MedicationDispense.API
+  alias Core.MedicationRequests.API, as: MedicationRequests
   alias Scrivener.Page
   require Logger
 

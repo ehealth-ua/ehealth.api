@@ -2,7 +2,7 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
   use EHealth.Web.ConnCase
 
   import Mox
-  import EHealth.Guardian
+  import Core.Guardian
 
   alias Ecto.UUID
 
@@ -142,7 +142,7 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
       # 3. Check that user with tax_id from signet content not exist
 
       params = %{
-        signed_content: "test/data/cabinet/patient.json" |> File.read!() |> Base.encode64(),
+        signed_content: "../core/test/data/cabinet/patient.json" |> File.read!() |> Base.encode64(),
         signed_content_encoding: "base64"
       }
 
@@ -165,7 +165,7 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
       params = %{
         otp: "1234",
         password: "pAs$w0rd",
-        signed_content: "test/data/cabinet/patient.json" |> File.read!() |> Base.encode64(),
+        signed_content: "../core/test/data/cabinet/patient.json" |> File.read!() |> Base.encode64(),
         signed_content_encoding: "base64"
       }
 

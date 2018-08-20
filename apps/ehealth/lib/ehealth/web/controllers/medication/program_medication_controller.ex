@@ -3,8 +3,8 @@ defmodule EHealth.Web.ProgramMedicationController do
 
   use EHealth.Web, :controller
 
-  alias EHealth.Medications.Program, as: ProgramMedication
-  alias EHealth.Medications
+  alias Core.Medications.Program, as: ProgramMedication
+  alias Core.Medications
   alias Scrivener.Page
 
   action_fallback(EHealth.Web.FallbackController)

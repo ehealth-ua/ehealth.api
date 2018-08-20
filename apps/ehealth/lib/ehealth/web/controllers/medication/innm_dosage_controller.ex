@@ -3,8 +3,8 @@ defmodule EHealth.Web.INNMDosageController do
 
   use EHealth.Web, :controller
 
-  alias EHealth.Medications, as: API
-  alias EHealth.Medications.INNMDosage
+  alias Core.Medications, as: API
+  alias Core.Medications.INNMDosage
   alias Scrivener.Page
 
   action_fallback(EHealth.Web.FallbackController)

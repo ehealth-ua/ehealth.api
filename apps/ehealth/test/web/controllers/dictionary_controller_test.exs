@@ -1,4 +1,6 @@
 defmodule EHealth.Web.DictionaryControllerTest do
+  @moduledoc false
+
   use EHealth.Web.ConnCase
 
   @gender %{

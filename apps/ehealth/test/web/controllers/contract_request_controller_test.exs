@@ -3,17 +3,18 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
   use EHealth.Web.ConnCase
 
+  import Core.Expectations.Man
+  import Core.Expectations.Signature
   import Mox
-  import EHealth.Expectations.Signature
-  import EHealth.Expectations.Man
-  alias EHealth.ContractRequests.ContractRequest
-  alias EHealth.Contracts.Contract
-  alias EHealth.Employees.Employee
-  alias EHealth.LegalEntities.LegalEntity
-  alias EHealth.Utils.NumberGenerator
+
+  alias Core.ContractRequests.ContractRequest
+  alias Core.Contracts.Contract
+  alias Core.Employees.Employee
+  alias Core.LegalEntities.LegalEntity
+  alias Core.Utils.NumberGenerator
   alias Ecto.UUID
-  alias EHealth.EventManagerRepo
-  alias EHealth.EventManager.Event
+  alias Core.EventManagerRepo
+  alias Core.EventManager.Event
 
   @contract_request_status_new ContractRequest.status(:new)
   @contract_request_status_declined ContractRequest.status(:declined)
@@ -867,7 +868,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       assert resp = json_response(conn, 201)
 
       schema =
-        "specs/json_schemas/contract_request/contract_request_show_response.json"
+        "../core/specs/json_schemas/contract_request/contract_request_show_response.json"
         |> File.read!()
         |> Jason.decode!()
 
@@ -925,7 +926,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       assert resp = json_response(conn1, 201)
 
       schema =
-        "specs/json_schemas/contract_request/contract_request_show_response.json"
+        "../core/specs/json_schemas/contract_request/contract_request_show_response.json"
         |> File.read!()
         |> Jason.decode!()
 
@@ -1163,7 +1164,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       assert resp = json_response(conn, 200)
 
       schema =
-        "specs/json_schemas/contract_request/contract_request_show_response.json"
+        "../core/specs/json_schemas/contract_request/contract_request_show_response.json"
         |> File.read!()
         |> Jason.decode!()
 
@@ -2049,7 +2050,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       assert resp = json_response(conn, 200)
 
       schema =
-        "specs/json_schemas/contract_request/contract_request_show_response.json"
+        "../core/specs/json_schemas/contract_request/contract_request_show_response.json"
         |> File.read!()
         |> Jason.decode!()
 
@@ -2113,7 +2114,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       assert resp = json_response(conn, 200)
 
       schema =
-        "specs/json_schemas/contract_request/contract_request_show_response.json"
+        "../core/specs/json_schemas/contract_request/contract_request_show_response.json"
         |> File.read!()
         |> Jason.decode!()
 
@@ -2190,7 +2191,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         assert resp = json_response(conn_resp, 200)
 
         schema =
-          "specs/json_schemas/contract_request/contract_request_show_response.json"
+          "../core/specs/json_schemas/contract_request/contract_request_show_response.json"
           |> File.read!()
           |> Jason.decode!()
 
@@ -2763,12 +2764,12 @@ defmodule EHealth.Web.ContractRequestControllerTest do
           "signed_content_encoding" => "base64"
         })
 
-      contract_request = EHealth.Repo.get(ContractRequest, contract_request.id)
+      contract_request = Core.Repo.get(ContractRequest, contract_request.id)
       assert contract_request.nhs_signed_date == Date.utc_today()
       assert resp = json_response(conn, 200)
 
       schema =
-        "specs/json_schemas/contract_request/contract_request_show_response.json"
+        "../core/specs/json_schemas/contract_request/contract_request_show_response.json"
         |> File.read!()
         |> Jason.decode!()
 
@@ -2849,7 +2850,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       assert resp = json_response(conn, 200)
 
       schema =
-        "specs/json_schemas/contract_request/contract_request_show_response.json"
+        "../core/specs/json_schemas/contract_request/contract_request_show_response.json"
         |> File.read!()
         |> Jason.decode!()
 
@@ -2857,7 +2858,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       assert resp["data"]["status"] == ContractRequest.status(:declined)
 
-      contract_request = EHealth.Repo.get(ContractRequest, contract_request.id)
+      contract_request = Core.Repo.get(ContractRequest, contract_request.id)
       assert contract_request.status_reason == "Не відповідає попереднім домовленостям"
       assert contract_request.nhs_signer_id == user_id
       assert contract_request.nhs_legal_entity_id == legal_entity.id
@@ -3309,7 +3310,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       assert resp = json_response(conn, 200)
 
       schema =
-        "specs/json_schemas/contract/contract_show_response.json"
+        "../core/specs/json_schemas/contract/contract_show_response.json"
         |> File.read!()
         |> Poison.decode!()
 
@@ -3362,7 +3363,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       assert resp = json_response(conn, 200)
 
       schema =
-        "specs/json_schemas/contract/contract_show_response.json"
+        "../core/specs/json_schemas/contract/contract_show_response.json"
         |> File.read!()
         |> Poison.decode!()
 

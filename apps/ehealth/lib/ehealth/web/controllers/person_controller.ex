@@ -3,8 +3,8 @@ defmodule EHealth.Web.PersonController do
 
   use EHealth.Web, :controller
 
-  alias EHealth.Declarations.Person
-  alias EHealth.Persons
+  alias Core.Declarations.Person
+  alias Core.Persons
   alias EHealth.Web.DeclarationView
 
   action_fallback(EHealth.Web.FallbackController)
