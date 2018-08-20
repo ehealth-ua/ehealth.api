@@ -2,7 +2,7 @@ defmodule EHealth.Web.RegisterEntryControllerTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase
-  alias EHealth.Registers.RegisterEntry
+  alias Core.Registers.RegisterEntry
 
   @matched RegisterEntry.status(:matched)
 

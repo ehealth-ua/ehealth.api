@@ -7,3 +7,6 @@ Mox.defmock(MediaStorageMock, for: Core.API.MediaStorageBehaviour)
 Mox.defmock(ReportMock, for: Core.API.ReportBehaviour)
 Mox.defmock(OTPVerificationMock, for: Core.API.OTPVerificationBehaviour)
 Mox.defmock(UAddressesMock, for: Core.API.UAddressesBehaviour)
+
+Mox.defmock(PostmarkMock, for: Core.API.PostmarkBehaviour)
+Mox.defmock(DeclarationRequestsCreatorMock, for: Core.DeclarationRequests.API.CreatorBehaviour)

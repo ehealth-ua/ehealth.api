@@ -4,8 +4,8 @@ defmodule EHealth.Web.DivisionController do
   use EHealth.Web, :controller
 
   alias Scrivener.Page
-  alias EHealth.Divisions, as: API
-  alias EHealth.Divisions.Division
+  alias Core.Divisions, as: API
+  alias Core.Divisions.Division
 
   action_fallback(EHealth.Web.FallbackController)
 

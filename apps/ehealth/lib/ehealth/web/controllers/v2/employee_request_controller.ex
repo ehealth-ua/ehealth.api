@@ -2,7 +2,7 @@ defmodule EHealth.Web.V2.EmployeeRequestController do
   @moduledoc false
 
   use EHealth.Web, :controller
-  alias EHealth.EmployeeRequests
+  alias Core.EmployeeRequests
   alias EHealth.Web.EmployeeRequestView
 
   action_fallback(EHealth.Web.FallbackController)

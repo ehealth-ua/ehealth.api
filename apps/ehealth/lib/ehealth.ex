@@ -4,27 +4,19 @@ defmodule EHealth do
   """
 
   use Application
+  import Supervisor.Spec, warn: false
+
   alias Confex.Resolver
   alias EHealth.Scheduler
   alias EHealth.Web.Endpoint
-  import Supervisor.Spec, warn: false
 
-  # See http://elixir-lang.org/docs/stable/elixir/Application.html
-  # for more information on OTP Applications
   def start(_type, _args) do
     # Configure Logger severity at runtime
     configure_log_level()
 
     # Define workers and child supervisors to be supervised
     children = [
-      worker(EHealth.Validators.Cache, []),
-      # Start the Ecto repository
       supervisor(EHealth.DuplicatePersons, []),
-      supervisor(EHealth.Repo, []),
-      supervisor(EHealth.PRMRepo, []),
-      supervisor(EHealth.FraudRepo, []),
-      supervisor(EHealth.EventManagerRepo, []),
-      # Start the endpoint when the application starts
       supervisor(EHealth.Web.Endpoint, []),
       worker(
         EHealth.DeclarationRequests.Terminator,
@@ -36,8 +28,6 @@ defmodule EHealth do
       worker(EHealth.Scheduler, [])
     ]
 
-    # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html
-    # for other strategies and supported options
     opts = [strategy: :one_for_one, name: EHealth.Supervisor]
     result = Supervisor.start_link(children, opts)
     Scheduler.create_jobs()

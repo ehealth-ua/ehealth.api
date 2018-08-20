@@ -2,10 +2,10 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestController do
   @moduledoc false
 
   use EHealth.Web, :controller
-  alias EHealth.Cabinet.DeclarationRequests, as: CabinetDeclarationRequests
-  alias EHealth.DeclarationRequests
-  alias EHealth.Employees
-  alias EHealth.Employees.Employee
+  alias Core.Cabinet.DeclarationRequests, as: CabinetDeclarationRequests
+  alias Core.DeclarationRequests
+  alias Core.Employees
+  alias Core.Employees.Employee
   alias EHealth.Web.DeclarationRequestView
   require Logger
 

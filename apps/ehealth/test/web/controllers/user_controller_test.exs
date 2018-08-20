@@ -3,8 +3,8 @@ defmodule EHealth.Web.UserControllerTest do
   use EHealth.Web.ConnCase
   use Bamboo.Test
   import Mox
-  alias EHealth.Users.CredentialsRecoveryRequest
-  alias EHealth.Repo
+  alias Core.Users.CredentialsRecoveryRequest
+  alias Core.Repo
   alias Ecto.UUID
 
   setup :verify_on_exit!
@@ -159,13 +159,13 @@ defmodule EHealth.Web.UserControllerTest do
     test "returns validation error when request is expired", %{conn: conn} do
       %{id: id} = credentials_recovery_request_fixture(@create_attrs)
 
-      old_ttl = Application.get_env(:ehealth, :credentials_recovery_request_ttl)
+      old_ttl = Application.get_env(:core, :credentials_recovery_request_ttl)
 
       on_exit(fn ->
-        Application.put_env(:ehealth, :credentials_recovery_request_ttl, old_ttl)
+        Application.put_env(:core, :credentials_recovery_request_ttl, old_ttl)
       end)
 
-      Application.put_env(:ehealth, :credentials_recovery_request_ttl, 0)
+      Application.put_env(:core, :credentials_recovery_request_ttl, 0)
       reset_attrs = %{"user" => %{"password" => "new_but_not_a_secret"}}
       conn = patch(conn, user_path(conn, :reset_password, id), reset_attrs)
 

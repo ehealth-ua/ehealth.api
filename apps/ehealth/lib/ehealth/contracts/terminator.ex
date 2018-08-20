@@ -1,12 +1,15 @@
 defmodule EHealth.Contracts.Terminator do
   @moduledoc false
 
-  import Ecto.Query
   use Confex, otp_app: :ehealth
   use GenServer
-  alias EHealth.Contracts.Contract
-  alias EHealth.EventManager
-  alias EHealth.PRMRepo
+
+  import Ecto.Query
+
+  alias Core.Contracts.Contract
+  alias Core.EventManager
+  alias Core.PRMRepo
+
   require Logger
 
   @server __MODULE__
@@ -45,7 +48,7 @@ defmodule EHealth.Contracts.Terminator do
   def handle_cast(_, state), do: {:noreply, state}
 
   defp state_options do
-    user_id = Confex.fetch_env!(:ehealth, :system_user)
+    user_id = Confex.fetch_env!(:core, :system_user)
     limit = config()[:termination_batch_size]
     %{limit: limit, user_id: user_id}
   end

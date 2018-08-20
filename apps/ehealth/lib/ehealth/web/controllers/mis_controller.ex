@@ -1,9 +1,10 @@
 defmodule EHealth.Web.MisController do
   @moduledoc false
+
   use EHealth.Web, :controller
 
-  alias EHealth.EmployeeRequests.EmployeeRequest
-  alias EHealth.Repo
+  alias Core.EmployeeRequests.EmployeeRequest
+  alias Core.Repo
 
   action_fallback(EHealth.Web.FallbackController)
 

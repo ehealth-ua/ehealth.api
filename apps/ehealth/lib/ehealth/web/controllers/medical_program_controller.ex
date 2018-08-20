@@ -2,8 +2,8 @@ defmodule EHealth.Web.MedicalProgramController do
   @moduledoc false
 
   use EHealth.Web, :controller
-  alias EHealth.MedicalPrograms
-  alias EHealth.Validators.JsonSchema
+  alias Core.MedicalPrograms
+  alias Core.Validators.JsonSchema
   alias Scrivener.Page
   require Logger
 

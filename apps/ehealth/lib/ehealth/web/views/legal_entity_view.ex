@@ -2,8 +2,9 @@ defmodule EHealth.Web.LegalEntityView do
   @moduledoc """
   Sample view for LegalEntitys controller.
   """
+
   use EHealth.Web, :view
-  alias EHealth.LegalEntities.LegalEntity
+  alias Core.LegalEntities.LegalEntity
 
   @fields ~w(
     id

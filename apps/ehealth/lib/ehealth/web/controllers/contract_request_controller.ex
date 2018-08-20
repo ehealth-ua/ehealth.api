@@ -2,8 +2,10 @@ defmodule EHealth.Web.ContractRequestController do
   @moduledoc false
 
   use EHealth.Web, :controller
-  alias EHealth.ContractRequests
-  alias EHealth.ContractRequests.ContractRequest
+
+  alias Core.ContractRequests
+  alias Core.ContractRequests.ContractRequest
+  alias EHealth.Web.ContractRequestView
   alias EHealth.Web.ContractView
 
   action_fallback(EHealth.Web.FallbackController)
@@ -47,7 +49,10 @@ defmodule EHealth.Web.ContractRequestController do
   end
 
   def approve(%Plug.Conn{req_headers: headers} = conn, params) do
-    with {:ok, %ContractRequest{} = contract_request, references} <- ContractRequests.approve(headers, params) do
+    render_func = {Phoenix.View, :render, [ContractRequestView, "show.json"]}
+
+    with {:ok, %ContractRequest{} = contract_request, references} <-
+           ContractRequests.approve(headers, params, render_func) do
       render(conn, "show.json", contract_request: contract_request, references: references)
     end
   end

@@ -3,15 +3,17 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
   use EHealth.Web.ConnCase, async: false
 
+  import Core.Expectations.Man
   import Mox
-  import EHealth.Expectations.Man
-  alias EHealth.EmployeeRequests.EmployeeRequest, as: Request
-  alias EHealth.LegalEntities.LegalEntity
-  alias EHealth.Employees.Employee
-  alias EHealth.PartyUsers.PartyUser
-  alias EHealth.{PRMRepo, EventManagerRepo}
-  alias EHealth.EventManager.Event
-  alias EHealth.Contracts.Contract
+
+  alias Core.EventManagerRepo
+  alias Core.PRMRepo
+  alias Core.EmployeeRequests.EmployeeRequest, as: Request
+  alias Core.LegalEntities.LegalEntity
+  alias Core.Employees.Employee
+  alias Core.PartyUsers.PartyUser
+  alias Core.EventManager.Event
+  alias Core.Contracts.Contract
   alias Ecto.UUID
 
   @moduletag :with_client_id
@@ -29,7 +31,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
     test "with valid params and empty x-consumer-metadata", %{conn: conn} do
       conn = delete_client_id_header(conn)
-      employee_request_params = File.read!("test/data/employee_doctor_request.json")
+      employee_request_params = File.read!("../core/test/data/employee_doctor_request.json")
       conn = post(conn, employee_request_path(conn, :create), employee_request_params)
       json_response(conn, 401)
     end
@@ -38,7 +40,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       conn: conn
     } do
       insert(:prm, :employee)
-      employee_request_params = File.read!("test/data/employee_doctor_request.json")
+      employee_request_params = File.read!("../core/test/data/employee_doctor_request.json")
       conn = post(conn, employee_request_path(conn, :create), employee_request_params)
       json_response(conn, 422)
     end
@@ -516,7 +518,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       %{id: id, division: %{id: division_id, legal_entity_id: legal_entity_id}} =
         :prm
         |> insert(:employee, status: "APPROVED", party: party, is_active: false)
-        |> EHealth.PRMRepo.preload(:legal_entity)
+        |> Core.PRMRepo.preload(:legal_entity)
 
       employee_request_params =
         doctor_request()
@@ -534,7 +536,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       %{id: id, division: %{id: division_id, legal_entity_id: legal_entity_id}} =
         :prm
         |> insert(:employee, status: "DISMISSED", party: party)
-        |> EHealth.PRMRepo.preload(:legal_entity)
+        |> Core.PRMRepo.preload(:legal_entity)
 
       employee_request_params =
         doctor_request()
@@ -2291,13 +2293,13 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   end
 
   defp doctor_request do
-    "test/data/employee_doctor_request.json"
+    "../core/test/data/employee_doctor_request.json"
     |> File.read!()
     |> Jason.decode!()
   end
 
   defp pharmacist_request do
-    "test/data/employee_pharmacist_request.json"
+    "../core/test/data/employee_pharmacist_request.json"
     |> File.read!()
     |> Jason.decode!()
   end

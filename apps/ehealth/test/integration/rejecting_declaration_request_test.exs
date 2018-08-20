@@ -4,7 +4,7 @@ defmodule EHealth.Integraiton.DeclarationRequestRejectTest do
   use EHealth.Web.ConnCase
 
   alias Ecto.UUID
-  alias EHealth.DeclarationRequests.DeclarationRequest
+  alias Core.DeclarationRequests.DeclarationRequest
 
   describe "rejecting declaration request" do
     test "succesfully reject declaration request" do

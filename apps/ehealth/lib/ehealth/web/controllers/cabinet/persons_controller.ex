@@ -1,7 +1,7 @@
 defmodule EHealth.Web.Cabinet.PersonsController do
   use EHealth.Web, :controller
 
-  alias EHealth.Persons
+  alias Core.Persons
 
   action_fallback(EHealth.Web.FallbackController)
 

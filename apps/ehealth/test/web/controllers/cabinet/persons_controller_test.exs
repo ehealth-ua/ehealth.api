@@ -2,7 +2,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase
-  import EHealth.Expectations.Signature
+  import Core.Expectations.Signature
   import Mox
 
   alias Ecto.UUID

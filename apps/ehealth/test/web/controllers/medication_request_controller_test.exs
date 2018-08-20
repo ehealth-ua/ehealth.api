@@ -3,13 +3,13 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
 
   use EHealth.Web.ConnCase, async: true
 
-  import EHealth.Utils.Connection, only: [get_consumer_id: 1, get_client_id: 1]
+  import Core.API.Helpers.Connection, only: [get_consumer_id: 1, get_client_id: 1]
   import Mox
 
-  alias EHealth.PRMRepo
-  alias EHealth.LegalEntities.LegalEntity
+  alias Core.LegalEntities.LegalEntity
+  alias Core.PRMRepo
+  alias Core.Utils.NumberGenerator
   alias Ecto.UUID
-  alias EHealth.Utils.NumberGenerator
 
   setup :verify_on_exit!
 
@@ -346,7 +346,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       resp = json_response(conn, 200)
 
       schema =
-        "specs/json_schemas/medication_request/medication_request_qualify_response.json"
+        "../core/specs/json_schemas/medication_request/medication_request_qualify_response.json"
         |> File.read!()
         |> Jason.decode!()
 
@@ -413,7 +413,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       resp = json_response(conn, 200)
 
       schema =
-        "specs/json_schemas/medication_request/medication_request_qualify_response.json"
+        "../core/specs/json_schemas/medication_request/medication_request_qualify_response.json"
         |> File.read!()
         |> Jason.decode!()
 
@@ -469,7 +469,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       resp = json_response(conn, 200)
 
       schema =
-        "specs/json_schemas/medication_request/medication_request_qualify_response.json"
+        "../core/specs/json_schemas/medication_request/medication_request_qualify_response.json"
         |> File.read!()
         |> Jason.decode!()
 

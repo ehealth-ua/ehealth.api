@@ -2,8 +2,8 @@ defmodule EHealth.Web.DeclarationRequestController do
   @moduledoc false
 
   use EHealth.Web, :controller
-  alias EHealth.DeclarationRequests
-  alias EHealth.DeclarationRequests.DeclarationRequest
+  alias Core.DeclarationRequests
+  alias Core.DeclarationRequests.DeclarationRequest
   alias Scrivener.Page
   require Logger
 

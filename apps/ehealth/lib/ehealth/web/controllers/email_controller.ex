@@ -3,7 +3,7 @@ defmodule EHealth.Web.EmailController do
 
   use EHealth.Web, :controller
 
-  alias EHealth.Email
+  alias Core.Email
 
   action_fallback(EHealth.Web.FallbackController)
 

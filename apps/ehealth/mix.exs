@@ -18,11 +18,11 @@ defmodule EHealth.Mixfile do
       compilers: [:phoenix] ++ Mix.compilers(),
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
-      aliases: aliases(),
       deps: deps(),
       preferred_cli_env: [coveralls: :test],
       test_coverage: [tool: ExCoveralls],
-      docs: [source_ref: "v#\{@version\}", main: "readme", extras: ["README.md"]]
+      docs: [source_ref: "v#\{@version\}", main: "readme", extras: ["README.md"]],
+      aliases: aliases()
     ]
   end
 
@@ -37,43 +37,30 @@ defmodule EHealth.Mixfile do
   end
 
   # Specifies which paths to compile per environment.
-  defp elixirc_paths(:test), do: ["lib", "web", "test/support"]
-  defp elixirc_paths(_), do: ["lib", "web"]
+  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(_), do: ["lib"]
 
   # Type `mix help deps` for examples and options.
   defp deps do
     [
       {:core, in_umbrella: true},
       {:confex, "~> 3.2"},
-      {:timex, "~> 3.2"},
       {:poison, "~> 3.1"},
       {:plug, "~> 1.4"},
       {:cowboy, "~> 1.1"},
       {:httpoison, "~> 1.1.0"},
-      {:csv, "~> 2.0.0"},
-      {:postgrex, ">= 0.0.0"},
-      {:ecto, "~> 2.1"},
-      {:scrivener_ecto, "~> 1.2"},
-      {:ecto_trail, "0.2.3"},
       {:phoenix, "~> 1.3.3"},
       {:phoenix_ecto, "~> 3.2"},
+      {:ecto, "~> 2.1"},
+      {:ecto_trail, "0.2.3"},
       {:eview, "~> 0.12.2"},
       {:jvalid, "~> 0.6.0"},
-      {:guardian, "~> 1.0"},
-      {:bamboo, "~> 0.8"},
-      {:bamboo_postmark, "~> 0.2.0"},
-      {:bamboo_smtp, "~> 1.4.0"},
-      {:geo, "~> 1.4"},
       {:quantum, "~> 2.2"},
       {:plug_logger_json, "~> 0.5"},
-      {:cipher, "~> 1.3"},
-      {:translit, "~> 0.1.0"},
-      {:mox, "~> 0.3", only: :test},
-      {:ecto_logger_json, git: "https://github.com/edenlabllc/ecto_logger_json.git", branch: "query_params"},
-      {:ex_doc, ">= 0.15.0", only: [:dev, :test]},
-      {:ex_machina, "~> 2.0", only: [:dev, :test]},
+      {:jason, "~> 1.0"},
       {:nex_json_schema, ">= 0.7.2"},
-      {:jason, "~> 1.0"}
+      {:mox, "~> 0.3", only: :test},
+      {:ex_doc, ">= 0.15.0", only: [:dev, :test]}
     ]
   end
 
@@ -88,30 +75,13 @@ defmodule EHealth.Mixfile do
     ]
   end
 
-  # Aliases are shortcuts or tasks specific to the current project.
-  # For example, to create, migrate and run the seeds file at once:
-  #
-  #     $ mix ecto.setup
-  #
-  # See the documentation for `Mix` for more info on aliases.
   defp aliases do
     [
-      "ecto.setup": [
-        "ecto.create",
-        "ecto.create --repo EHealth.FraudRepo",
-        "ecto.create --repo EHealth.PRMRepo",
-        "ecto.create --repo EHealth.EventManagerRepo",
-        "ecto.migrate",
-        "run priv/repo/seeds.exs"
-      ],
-      "ecto.reset": ["ecto.drop", "ecto.setup"],
-      test: [
-        "ecto.create",
-        "ecto.create --repo EHealth.PRMRepo",
-        "ecto.create --repo EHealth.EventManagerRepo",
-        "ecto.migrate",
-        "test"
-      ]
+      "ecto.setup": &ecto_setup/1
     ]
+  end
+
+  defp ecto_setup(_) do
+    Mix.shell().cmd("cd ../core && mix ecto.setup && cd ../ehealth")
   end
 end

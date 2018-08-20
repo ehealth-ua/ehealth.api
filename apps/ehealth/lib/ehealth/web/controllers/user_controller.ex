@@ -1,7 +1,7 @@
 defmodule EHealth.Web.UserController do
   @moduledoc false
   use EHealth.Web, :controller
-  alias EHealth.Users.API
+  alias Core.Users.API
 
   action_fallback(EHealth.Web.FallbackController)
 

@@ -4,7 +4,7 @@ defmodule EHealth.Proxy do
   """
 
   import Plug.Conn
-  import EHealth.Utils.TypesConverter
+  import Core.Utils.TypesConverter
 
   def proxy(conn, %{"meta" => %{"code" => status}} = response) do
     resp =

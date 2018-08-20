@@ -5,7 +5,7 @@ defmodule EHealthWeb.ProgramMedicationControllerTest do
 
   alias Ecto.UUID
   alias ExMachina.Sequence
-  alias EHealth.Medications.Program, as: ProgramMedication
+  alias Core.Medications.Program, as: ProgramMedication
 
   describe "index" do
     test "empty program_medications list", %{conn: conn} do

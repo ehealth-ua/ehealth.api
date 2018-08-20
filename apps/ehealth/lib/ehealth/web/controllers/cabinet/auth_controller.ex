@@ -1,8 +1,8 @@
 defmodule EHealth.Web.Cabinet.AuthController do
   use EHealth.Web, :controller
 
-  alias EHealth.Cabinet.API, as: CabinetAPI
-  alias EHealth.Guardian.Plug
+  alias Core.Cabinet.API, as: CabinetAPI
+  alias Core.Guardian.Plug
   alias Scrivener.Page
 
   action_fallback(EHealth.Web.FallbackController)
@@ -37,7 +37,7 @@ defmodule EHealth.Web.Cabinet.AuthController do
   end
 
   def registration(conn, params) do
-    system_user = Confex.fetch_env!(:ehealth, :system_user)
+    system_user = Confex.fetch_env!(:core, :system_user)
 
     with jwt <- Plug.current_token(conn),
          conn <- put_req_header(conn, "x-consumer-id", system_user),

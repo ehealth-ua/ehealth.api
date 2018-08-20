@@ -2,12 +2,13 @@ defmodule EHealth.Web.EmployeesControllerTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase
-  alias EHealth.Employees.Employee
-  alias EHealth.Parties.Party
-  alias Ecto.UUID
-  alias EHealth.PRMRepo
-  alias EHealth.Contracts.Contract
   import Mox
+
+  alias Core.Employees.Employee
+  alias Core.Parties.Party
+  alias Ecto.UUID
+  alias Core.PRMRepo
+  alias Core.Contracts.Contract
 
   describe "list employees" do
     test "gets only employees that have legal_entity_id == client_id", %{conn: conn} do

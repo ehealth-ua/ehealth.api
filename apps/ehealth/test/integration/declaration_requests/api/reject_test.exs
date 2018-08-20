@@ -4,8 +4,8 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.RejectTest do
   use EHealth.Web.ConnCase
 
   alias Ecto.UUID
-  alias EHealth.DeclarationRequests
-  alias EHealth.DeclarationRequests.DeclarationRequest
+  alias Core.DeclarationRequests
+  alias Core.DeclarationRequests.DeclarationRequest
 
   describe "reject/2" do
     test "rejecting record in NEW status" do

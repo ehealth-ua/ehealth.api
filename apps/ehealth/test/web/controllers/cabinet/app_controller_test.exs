@@ -79,7 +79,7 @@ defmodule Mithril.Web.AppControllerTest do
         |> json_response(200)
 
       schema =
-        "specs/json_schemas/apps/app_show_response.json"
+        "../core/specs/json_schemas/apps/app_show_response.json"
         |> File.read!()
         |> Poison.decode!()
 
@@ -111,7 +111,7 @@ defmodule Mithril.Web.AppControllerTest do
         |> json_response(200)
 
       schema =
-        "specs/json_schemas/apps/apps_show_response.json"
+        "../core/specs/json_schemas/apps/apps_show_response.json"
         |> File.read!()
         |> Poison.decode!()
 
@@ -133,7 +133,7 @@ defmodule Mithril.Web.AppControllerTest do
         |> json_response(200)
 
       schema =
-        "specs/json_schemas/apps/app_show_response.json"
+        "../core/specs/json_schemas/apps/app_show_response.json"
         |> File.read!()
         |> Poison.decode!()
 
@@ -156,7 +156,7 @@ defmodule Mithril.Web.AppControllerTest do
         |> json_response(200)
 
       schema =
-        "specs/json_schemas/apps/app_show_response.json"
+        "../core/specs/json_schemas/apps/app_show_response.json"
         |> File.read!()
         |> Poison.decode!()
 

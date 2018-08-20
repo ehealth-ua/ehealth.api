@@ -3,8 +3,8 @@ defmodule EHealth.Web.EmployeeRequestController do
 
   use EHealth.Web, :controller
   alias Scrivener.Page
-  alias EHealth.EmployeeRequests, as: API
-  alias EHealth.EmployeeRequests.EmployeeRequest, as: Request
+  alias Core.EmployeeRequests, as: API
+  alias Core.EmployeeRequests.EmployeeRequest, as: Request
 
   @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
 

@@ -3,7 +3,7 @@ defmodule EHealth.Web.DeclarationController do
 
   use EHealth.Web, :controller
 
-  alias EHealth.Declarations.API
+  alias Core.Declarations.API
 
   action_fallback(EHealth.Web.FallbackController)
 

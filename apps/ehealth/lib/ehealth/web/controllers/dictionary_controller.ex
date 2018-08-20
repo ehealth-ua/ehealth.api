@@ -3,8 +3,8 @@ defmodule EHealth.Web.DictionaryController do
 
   use EHealth.Web, :controller
 
-  alias EHealth.Dictionaries
-  alias EHealth.Dictionaries.Dictionary
+  alias Core.Dictionaries
+  alias Core.Dictionaries.Dictionary
 
   action_fallback(EHealth.Web.FallbackController)
 

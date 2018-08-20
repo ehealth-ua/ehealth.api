@@ -138,7 +138,7 @@ Also sample `.env` can be used as payload for `docker run` cli.
 
 | VAR_NAME                                                | Default Value | Description |
 | ------------------------------------------------------- | ------------- | ----------- |
-| BAMBOO_MAILER                                           | ``            | Service that will be used to send emails. Posible variants: EHealth.Bamboo.PostmarkMailer, EHealth.Bamboo.MailgunMailter, EHealth.Bamboo.SMTPMailer. All services need to be configured by thier own modules configes
+| BAMBOO_MAILER                                           | ``            | Service that will be used to send emails. Posible variants: Core.Bamboo.PostmarkMailer, Core.Bamboo.MailgunMailer, Core.Bamboo.SMTPMailer. All services need to be configured by thier own modules configes
 | BAMBOO_EMPLOYEE_REQUEST_INVITATION_FROM                 | ``            | Email address that will be used as a sender in employee request invitation email. |
 | BAMBOO_EMPLOYEE_REQUEST_INVITATION_SUBJECT              | ``            | The subject of the employee request invitation email. |
 | BAMBOO_EMPLOYEE_CREATED_NOTIFICATION_FROM               | ``            | Email address that will be used as a sender in employee created notification email. |

@@ -3,13 +3,13 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
   use EHealth.Web.ConnCase, async: false
   import Mox
-  import EHealth.Expectations.Signature
-  import EHealth.Expectations.Man
+  import Core.Expectations.Signature
+  import Core.Expectations.Man
   alias Ecto.UUID
-  alias EHealth.Employees.Employee
-  alias EHealth.PRMRepo
-  alias EHealth.LegalEntities.LegalEntity
-  alias EHealth.Contracts.Contract
+  alias Core.Employees.Employee
+  alias Core.PRMRepo
+  alias Core.LegalEntities.LegalEntity
+  alias Core.Contracts.Contract
 
   setup :verify_on_exit!
   setup :set_mox_global
@@ -21,7 +21,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
   end
 
   defp get_legal_entity_data do
-    "test/data/legal_entity.json"
+    "../core/test/data/legal_entity.json"
     |> File.read!()
     |> Jason.decode!()
   end

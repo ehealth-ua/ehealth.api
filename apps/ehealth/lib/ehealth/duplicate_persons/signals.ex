@@ -3,7 +3,7 @@ defmodule EHealth.DuplicatePersons.Signals do
 
   use GenServer
 
-  alias EHealth.Declarations.Person
+  alias Core.Declarations.Person
   alias EHealth.DuplicatePersons.Cleanup
   alias EHealth.DuplicatePersons.CleanupTasks
 

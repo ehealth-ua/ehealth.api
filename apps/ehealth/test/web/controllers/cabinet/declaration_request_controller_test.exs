@@ -3,10 +3,10 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
 
   use EHealth.Web.ConnCase
   import Mox
-  import EHealth.Expectations.Man
+  import Core.Expectations.Man
   alias Ecto.UUID
-  alias EHealth.Repo
-  alias EHealth.DeclarationRequests.DeclarationRequest
+  alias Core.Repo
+  alias Core.DeclarationRequests.DeclarationRequest
 
   @person_non_create_params ~w(
     version
@@ -131,7 +131,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
       resp = json_response(conn, 200)
 
       assert Kernel.trunc(Date.diff(Date.from_iso8601!(resp["data"]["end_date"]), Date.from_iso8601!(birth_date)) / 365) ==
-               EHealth.GlobalParameters.get_values()["adult_age"]
+               Core.GlobalParameters.get_values()["adult_age"]
                |> String.to_integer()
 
       assert %{
@@ -327,7 +327,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
       resp = json_response(conn, 200)
 
       assert Kernel.trunc(Date.diff(Date.from_iso8601!(resp["data"]["end_date"]), Date.utc_today()) / 365) ==
-               EHealth.GlobalParameters.get_values()["declaration_term"]
+               Core.GlobalParameters.get_values()["declaration_term"]
                |> String.to_integer()
 
       assert %{
@@ -439,7 +439,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
       resp = json_response(conn, 200)
 
       assert Kernel.trunc(Date.diff(Date.from_iso8601!(resp["data"]["end_date"]), Date.utc_today()) / 365) ==
-               EHealth.GlobalParameters.get_values()["declaration_term"]
+               Core.GlobalParameters.get_values()["declaration_term"]
                |> String.to_integer()
 
       assert %{
@@ -560,7 +560,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
       refute declaration_request_out.id in declaration_request_ids
 
       schema =
-        "specs/json_schemas/cabinet/declaration_requests_list.json"
+        "../core/specs/json_schemas/cabinet/declaration_requests_list.json"
         |> File.read!()
         |> Jason.decode!()
 
@@ -613,7 +613,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
       refute declaration_request_out.id in declaration_request_ids
 
       schema =
-        "specs/json_schemas/cabinet/declaration_requests_list.json"
+        "../core/specs/json_schemas/cabinet/declaration_requests_list.json"
         |> File.read!()
         |> Jason.decode!()
 
@@ -651,7 +651,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
       assert length(resp["data"]) == 2
 
       schema =
-        "specs/json_schemas/cabinet/declaration_requests_list.json"
+        "../core/specs/json_schemas/cabinet/declaration_requests_list.json"
         |> File.read!()
         |> Jason.decode!()
 
@@ -759,7 +759,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
       refute declaration_request_out.id in declaration_request_ids
 
       schema =
-        "specs/json_schemas/cabinet/declaration_requests_list.json"
+        "../core/specs/json_schemas/cabinet/declaration_requests_list.json"
         |> File.read!()
         |> Jason.decode!()
 
