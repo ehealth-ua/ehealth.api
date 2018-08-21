@@ -23,6 +23,7 @@ defmodule Core.Medications do
   alias Core.Medications.Validator
   alias Core.PRMRepo
   alias Core.Validators.JsonSchema
+  alias Scrivener.Page
 
   @type_innm_dosage INNMDosage.type()
   @type_medication Medication.type()
@@ -61,36 +62,91 @@ defmodule Core.Medications do
   end
 
   defp search_drugs(%{valid?: true, changes: attrs}, params) do
+    page_number = Map.get(params, "page", 1)
+    page_size = Map.get(params, "page_size", 50)
+    offset = page_size * (page_number - 1)
+
     # get primary INNMDosage ingredients
     # get active INNM
     # get primary Medication ingredients related to INNMDosage
     # get active Medication
     # group by primary keys
-    INNMDosage
-    |> distinct(true)
-    |> join(:inner, [id], ii in assoc(id, :ingredients))
-    |> where([_, ii], ii.is_primary)
-    |> join(:inner, [_, ii], i in assoc(ii, :innm))
-    |> join(:inner, [id], idi in assoc(id, :ingredients_medication))
-    |> where([..., idi], idi.is_primary)
-    |> join(:inner, [..., idi], m in assoc(idi, :medication))
-    |> where_drugs_attrs(attrs)
-    |> group_by([innm], innm.id)
-    |> group_by([_, innm_ingrdient], innm_ingrdient.id)
-    |> group_by([_, _, innm_dosage], innm_dosage.id)
-    |> select([innm_dosage, innm_ingredient, innm, _, medication], %{
-      innm_id: innm.id,
-      innm_name: innm.name,
-      innm_name_original: innm.name_original,
-      innm_sctid: innm.sctid,
-      innm_dosage_id: innm_dosage.id,
-      innm_dosage_name: innm_dosage.name,
-      innm_dosage_form: innm_dosage.form,
-      innm_dosage_dosage: innm_ingredient.dosage,
-      packages:
-        fragment("array_agg((?, ?, ?))", medication.container, medication.package_qty, medication.package_min_qty)
-    })
-    |> PRMRepo.paginate(params)
+    query =
+      INNMDosage
+      |> distinct(true)
+      |> join(:inner, [id], ii in assoc(id, :ingredients))
+      |> where([_, ii], ii.is_primary)
+      |> join(:inner, [_, ii], i in assoc(ii, :innm))
+      |> join(:inner, [id], idi in assoc(id, :ingredients_medication))
+      |> where([..., idi], idi.is_primary)
+      |> join(:inner, [..., idi], m in assoc(idi, :medication))
+      |> where_drugs_attrs(attrs)
+      |> select([innm_dosage, innm_ingredient, innm, _, medication], %{
+        innm_id: innm.id,
+        innm_name: innm.name,
+        innm_name_original: innm.name_original,
+        innm_sctid: innm.sctid,
+        innm_dosage_id: innm_dosage.id,
+        innm_dosage_name: innm_dosage.name,
+        innm_dosage_form: innm_dosage.form,
+        innm_dosage_dosage: innm_ingredient.dosage,
+        medication_container: medication.container,
+        medication_package_qty: medication.package_qty,
+        medication_package_min_qty: medication.package_min_qty
+      })
+      |> subquery()
+      |> group_by([a], a.innm_id)
+      |> group_by([a], a.innm_name)
+      |> group_by([a], a.innm_name_original)
+      |> group_by([a], a.innm_sctid)
+      |> group_by([a], a.innm_dosage_id)
+      |> group_by([a], a.innm_dosage_name)
+      |> group_by([a], a.innm_dosage_form)
+      |> group_by([a], a.innm_dosage_dosage)
+      |> select([a], %{
+        innm_id: a.innm_id,
+        innm_name: a.innm_name,
+        innm_name_original: a.innm_name_original,
+        innm_sctid: a.innm_sctid,
+        innm_dosage_id: a.innm_dosage_id,
+        innm_dosage_name: a.innm_dosage_name,
+        innm_dosage_form: a.innm_dosage_form,
+        innm_dosage_dosage: a.innm_dosage_dosage,
+        packages:
+          fragment(
+            "array_agg((?, ?, ?))",
+            a.medication_container,
+            a.medication_package_qty,
+            a.medication_package_min_qty
+          )
+      })
+
+    dataset =
+      query
+      |> limit([a], ^page_size)
+      |> offset([], ^offset)
+      |> PRMRepo.all()
+
+    total_entries =
+      query
+      |> PRMRepo.all()
+      |> length()
+
+    total_pages =
+      if page_size != 0 do
+        trunced = trunc(total_entries / page_size)
+        if trunced < total_entries / page_size, do: trunced + 1, else: trunced
+      else
+        1
+      end
+
+    %Scrivener.Page{
+      entries: dataset,
+      page_number: page_number,
+      page_size: page_size,
+      total_entries: total_entries,
+      total_pages: total_pages
+    }
   end
 
   defp search_drugs(changeset, _params) do
