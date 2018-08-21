@@ -171,6 +171,86 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       assert resp
     end
 
+    test "create legal entity sign drfo code when edrpou empty string", %{conn: conn} do
+      get_client_type_by_name(UUID.generate())
+
+      expect(MithrilMock, :put_client, fn params, _ ->
+        {:ok, %{"data" => Map.put(params, "secret", "secret")}}
+      end)
+
+      validate_addresses()
+      template()
+
+      insert_dictionaries()
+      legal_entity_type = "MSP"
+      legal_entity_params = Map.merge(get_legal_entity_data(), %{"type" => legal_entity_type, "edrpou" => "123456789"})
+      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
+
+      expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
+        {:ok,
+         %{
+           "data" => %{
+             "content" => legal_entity_params,
+             "signatures" =>
+               Enum.map([legal_entity_params["edrpou"]], fn drfo ->
+                 %{"is_valid" => true, "signer" => %{"drfo" => drfo, "edrpou" => ""}}
+               end)
+           }
+         }}
+      end)
+
+      resp =
+        conn
+        |> put_req_header("content-type", "application/json")
+        |> put_req_header("content-length", "7000")
+        |> put_req_header("x-consumer-id", UUID.generate())
+        |> put_req_header("edrpou", legal_entity_params["edrpou"])
+        |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
+        |> json_response(200)
+
+      assert resp
+    end
+
+    test "create legal entity sign drfo code when edrpou nil string", %{conn: conn} do
+      get_client_type_by_name(UUID.generate())
+
+      expect(MithrilMock, :put_client, fn params, _ ->
+        {:ok, %{"data" => Map.put(params, "secret", "secret")}}
+      end)
+
+      validate_addresses()
+      template()
+
+      insert_dictionaries()
+      legal_entity_type = "MSP"
+      legal_entity_params = Map.merge(get_legal_entity_data(), %{"type" => legal_entity_type, "edrpou" => "123456789"})
+      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
+
+      expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
+        {:ok,
+         %{
+           "data" => %{
+             "content" => legal_entity_params,
+             "signatures" =>
+               Enum.map([legal_entity_params["edrpou"]], fn drfo ->
+                 %{"is_valid" => true, "signer" => %{"drfo" => drfo, "edrpou" => nil}}
+               end)
+           }
+         }}
+      end)
+
+      resp =
+        conn
+        |> put_req_header("content-type", "application/json")
+        |> put_req_header("content-length", "7000")
+        |> put_req_header("x-consumer-id", UUID.generate())
+        |> put_req_header("edrpou", legal_entity_params["edrpou"])
+        |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
+        |> json_response(200)
+
+      assert resp
+    end
+
     test "create legal entity sign drfo passport number", %{conn: conn} do
       get_client_type_by_name(UUID.generate())
 
