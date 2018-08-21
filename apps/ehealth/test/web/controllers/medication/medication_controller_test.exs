@@ -116,6 +116,19 @@ defmodule EHealth.Web.MedicationControllerTest do
       assert id == innm_dosage["id"]
     end
 
+    test "find by INNM Dosage id with dublicates", %{conn: conn} do
+      id = fixture(:list_with_dublicates)
+
+      conn = get(conn, medication_path(conn, :drugs), innm_dosage_id: id)
+
+      data = json_response(conn, 200)["data"]
+      assert 1 == length(data)
+
+      innm_dosage = List.first(data)
+      assert 1 == length(innm_dosage["packages"])
+      assert id == innm_dosage["id"]
+    end
+
     test "find by Medication code_atc", %{conn: conn} do
       fixture(:list)
       conn = get(conn, medication_path(conn, :drugs), medication_code_atc: "Z00CA01")
@@ -448,6 +461,18 @@ defmodule EHealth.Web.MedicationControllerTest do
     insert(:prm, :ingredient_medication, parent_id: med_id5, medication_child_id: dosage_id5, is_primary: false)
 
     %{innms: [innm_id1, innm_id2], innm_dosage: [dosage_id1, dosage_id2]}
+  end
+
+  def fixture(:list_with_dublicates) do
+    %{id: innm_id} = insert(:prm, :innm, name: "Бупропіон")
+    %{id: dosage_id} = insert(:prm, :innm_dosage, name: "Бупропіон Форте")
+    insert(:prm, :ingredient_innm_dosage, parent_id: dosage_id, innm_child_id: innm_id)
+    insert(:prm, :ingredient_innm_dosage, parent_id: dosage_id, innm_child_id: innm_id, is_primary: false)
+    %{id: med_id} = insert(:prm, :medication, package_qty: 5, package_min_qty: 20, name: "Бупропіонол")
+    insert(:prm, :ingredient_medication, parent_id: med_id, medication_child_id: dosage_id)
+    insert(:prm, :ingredient_medication, parent_id: med_id, medication_child_id: dosage_id)
+
+    dosage_id
   end
 
   defp get_ingredient(params) do
