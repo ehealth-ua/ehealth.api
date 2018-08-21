@@ -94,6 +94,9 @@ defmodule Core.LegalEntities.Validator do
   end
 
   # EDRPOU content to EDRPOU / DRFO signer validator
+  def validate_edrpou(content, %{"edrpou" => edrpou} = signer) when is_nil(edrpou) or edrpou == "",
+    do: validate_edrpou(content, Map.delete(signer, "edrpou"))
+
   def validate_edrpou(content, %{"edrpou" => _} = signer) do
     data = %{}
     types = %{edrpou: :string}
