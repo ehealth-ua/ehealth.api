@@ -1024,7 +1024,8 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
           mpi_id: "0c65d15b-32b4-4e82-b53d-0572416d890e"
         )
 
-      insert(:prm, :employee, id: "d290f1ee-6c54-4b01-90e6-d701748f0851")
+      legal_entity = insert(:prm, :legal_entity)
+      insert(:prm, :employee, id: "d290f1ee-6c54-4b01-90e6-d701748f0851", legal_entity_id: legal_entity.id)
 
       conn =
         conn

@@ -22,7 +22,8 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.ApproveTest do
       end)
 
       party = insert(:prm, :party)
-      %{id: employee_id} = insert(:prm, :employee, party: party)
+      legal_entity = insert(:prm, :legal_entity)
+      %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity_id: legal_entity.id)
 
       declaration_request =
         build(
