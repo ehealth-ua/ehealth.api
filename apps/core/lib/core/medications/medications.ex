@@ -140,7 +140,7 @@ defmodule Core.Medications do
         1
       end
 
-    %Scrivener.Page{
+    %Page{
       entries: dataset,
       page_number: page_number,
       page_size: page_size,
@@ -271,48 +271,41 @@ defmodule Core.Medications do
   def get_medication_for_medication_request_request(innm_dosage_id, program_id) do
     innm_dosage_id
     |> get_medication_for_medication_request_request_query()
-    |> maybe_validate_medication_program_for_medication_request_request(innm_dosage_id, program_id)
+    |> maybe_validate_medication_program_for_medication_request_request(program_id)
     |> PRMRepo.all()
   end
 
-  def maybe_validate_medication_program_for_medication_request_request(query, _, nil), do: query
+  def maybe_validate_medication_program_for_medication_request_request(query, nil), do: query
 
-  def maybe_validate_medication_program_for_medication_request_request(query, innm_dosage_id, program_id) do
-    from(
-      q in query,
-      inner_join: ing in MedicationIngredient,
-      on: ing.medication_child_id == ^innm_dosage_id,
-      inner_join: med in Medication,
-      on: ing.parent_id == med.id,
-      inner_join: mp in MedicalProgram,
-      on: mp.id == ^program_id,
-      inner_join: pm in ProgramMedication,
-      on: mp.id == pm.medical_program_id and pm.medication_id == med.id,
-      where: pm.is_active,
-      where: pm.medication_request_allowed,
-      select_merge: %{medical_program_id: mp.id, medical_program_name: mp.name}
+  def maybe_validate_medication_program_for_medication_request_request(query, program_id) do
+    query
+    |> join(:inner, [...], mp in MedicalProgram, mp.id == ^program_id)
+    |> join(
+      :inner,
+      [innm_dosage, ing, med, mp],
+      pm in ProgramMedication,
+      mp.id == pm.medical_program_id and pm.medication_id == med.id
     )
+    |> where([..., pm], pm.is_active == true)
+    |> where([..., pm], pm.medication_request_allowed == true)
+    |> select_merge([innm_dosage, ing, med, mp, pm], %{medical_program_id: mp.id, medical_program_name: mp.name})
   end
 
   def get_medication_for_medication_request_request_query(innm_dosage_id) do
-    from(
-      innm_dosage in INNMDosage,
-      inner_join: ing in MedicationIngredient,
-      on: ing.medication_child_id == ^innm_dosage_id,
-      inner_join: med in Medication,
-      on: ing.parent_id == med.id,
-      where: ing.is_primary,
-      where: innm_dosage.id == ^innm_dosage_id,
-      where: innm_dosage.type == ^INNMDosage.type(),
-      where: innm_dosage.is_active,
-      where: med.is_active,
-      select: %{
-        id: innm_dosage.id,
-        medication_id: med.id,
-        package_qty: med.package_qty,
-        package_min_qty: med.package_min_qty
-      }
-    )
+    INNMDosage
+    |> join(:inner, [innm_dosage], ing in MedicationIngredient, ing.medication_child_id == ^innm_dosage_id)
+    |> join(:inner, [innm_dosage, ing], med in Medication, ing.parent_id == med.id)
+    |> where([innm_dosage, ing, med], ing.is_primary == true)
+    |> where([innm_dosage], innm_dosage.id == ^innm_dosage_id)
+    |> where([innm_dosage], innm_dosage.type == ^INNMDosage.type())
+    |> where([innm_dosage], innm_dosage.is_active == true)
+    |> where([..., med], med.is_active == true)
+    |> select([innm_dosage, ing, med], %{
+      id: innm_dosage.id,
+      medication_id: med.id,
+      package_qty: med.package_qty,
+      package_min_qty: med.package_min_qty
+    })
   end
 
   # Create
