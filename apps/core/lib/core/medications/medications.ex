@@ -62,8 +62,22 @@ defmodule Core.Medications do
   end
 
   defp search_drugs(%{valid?: true, changes: attrs}, params) do
-    page_number = Map.get(params, "page", 1)
-    page_size = Map.get(params, "page_size", 50)
+    page_number = 1
+
+    page_number =
+      case Integer.parse(Map.get(params, "page", "")) do
+        {int, _} -> max(int, page_number)
+        :error -> page_number
+      end
+
+    page_size = 50
+
+    page_size =
+      case Integer.parse(Map.get(params, "page_size", "")) do
+        {int, _} -> if int > 0, do: int, else: page_size
+        :error -> page_size
+      end
+
     offset = page_size * (page_number - 1)
 
     # get primary INNMDosage ingredients
