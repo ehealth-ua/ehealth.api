@@ -55,7 +55,7 @@ defmodule EHealth.Web.MedicationControllerTest do
 
     test "paging", %{conn: conn} do
       fixture(:list)
-      conn = get(conn, medication_path(conn, :drugs), page: 2, page_size: 1)
+      conn = get(conn, medication_path(conn, :drugs), %{"page" => "2", "page_size" => "1"})
       paging = json_response(conn, 200)["paging"]
       assert 1 == paging["page_size"]
       assert 2 == paging["total_entries"]
