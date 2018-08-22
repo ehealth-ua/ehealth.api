@@ -1,10 +1,13 @@
 defmodule Core.DeclarationRequests.API.Approve do
   @moduledoc false
 
+  import Ecto.Query
+
   alias Core.DeclarationRequests.DeclarationRequest
   alias Core.Employees
   alias Core.Employees.Employee
   alias Core.Parties.Party
+  alias Core.Repo
   alias Core.Validators.Error
   require Logger
 
@@ -102,16 +105,35 @@ defmodule Core.DeclarationRequests.API.Approve do
 
   defp validate_declaration_limit(%DeclarationRequest{overlimit: true}, _), do: :ok
 
-  defp validate_declaration_limit(%DeclarationRequest{data: %{"employee" => %{"id" => employee_id}}}, headers) do
+  defp validate_declaration_limit(
+         %DeclarationRequest{
+           data: %{"employee" => %{"id" => employee_id}}
+         },
+         headers
+       ) do
     with %Employee{party: %Party{} = party} <- Employees.get_by_id(employee_id),
          employees <- Employees.get_active_by_party_id(party.id),
-         {:ok, %{"data" => %{"count" => declarations_count}}} <-
-           @ops_api.get_declarations_count(Enum.map(employees, &Map.get(&1, :id)), headers),
-         {:limit, true} <- {:limit, !party.declaration_limit || declarations_count < party.declaration_limit} do
+         employee_ids <- Enum.map(employees, &Map.get(&1, :id)),
+         declarations_request_count <-
+           get_declarations_requests_count(DeclarationRequest.status(:approved), employee_ids),
+         {:ok, %{"data" => %{"count" => declarations_count}}} <- @ops_api.get_declarations_count(employee_ids, headers),
+         {:limit, true} <-
+           {:limit,
+            !party.declaration_limit || declarations_count + declarations_request_count < party.declaration_limit} do
       :ok
     else
       {:limit, false} -> Error.dump("This doctor reaches his limit and could not sign more declarations")
       _ -> {:error, {:conflict, "employee or party not found"}}
     end
+  end
+
+  def get_declarations_requests_count(status, employee_ids) do
+    DeclarationRequest
+    |> select([dr], count(dr.id))
+    |> where(
+      [dr],
+      dr.status == ^status and fragment("?->'employee'->>'id'", dr.data) in ^employee_ids
+    )
+    |> Repo.one()
   end
 end

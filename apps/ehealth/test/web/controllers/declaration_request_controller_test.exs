@@ -187,7 +187,8 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       end)
 
       party = insert(:prm, :party)
-      %{id: employee_id} = insert(:prm, :employee, party: party)
+      legal_entity = insert(:prm, :legal_entity)
+      %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity_id: legal_entity.id)
 
       declaration_request =
         insert(
@@ -202,6 +203,47 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
 
       resp = json_response(conn, 200)
       assert DeclarationRequest.status(:approved) == resp["data"]["status"]
+    end
+
+    test "approve NEW declaration_request when limit exited", %{conn: conn} do
+      expect(OPSMock, :get_declarations_count, fn _, _ ->
+        {:ok, %{"data" => %{"count" => 1}}}
+      end)
+
+      expect(MediaStorageMock, :create_signed_url, fn _, _, _, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://localhost/good_upload_1"}}}
+      end)
+
+      expect(MediaStorageMock, :verify_uploaded_file, fn _, _ ->
+        {:ok, %HTTPoison.Response{status_code: 200}}
+      end)
+
+      party = insert(:prm, :party, declaration_limit: 5)
+      legal_entity = insert(:prm, :legal_entity)
+
+      %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity_id: legal_entity.id)
+
+      data = %{"employee" => %{"id" => employee_id}}
+
+      declaration_request =
+        insert(
+          :il,
+          :declaration_request,
+          documents: [%{"type" => "ok", "verb" => "HEAD"}],
+          data: data
+        )
+
+      Enum.each(1..4, fn _ ->
+        insert(:il, :declaration_request, data: data, status: DeclarationRequest.status(:approved))
+      end)
+
+      resp =
+        conn
+        |> put_client_id_header(UUID.generate())
+        |> patch(declaration_request_path(conn, :approve, declaration_request))
+        |> json_response(422)
+
+      assert resp["error"]["message"] == "This doctor reaches his limit and could not sign more declarations"
     end
 
     test "approve APPROVED declaration_request", %{conn: conn} do

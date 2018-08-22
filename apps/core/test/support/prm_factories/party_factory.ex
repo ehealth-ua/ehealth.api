@@ -27,7 +27,8 @@ defmodule Core.PRMFactories.PartyFactory do
             }
           ],
           inserted_by: UUID.generate(),
-          updated_by: UUID.generate()
+          updated_by: UUID.generate(),
+          declaration_limit: 10
         }
       end
 
