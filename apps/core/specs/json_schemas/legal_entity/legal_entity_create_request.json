@@ -245,6 +245,7 @@
         "tax_id",
         "birth_date",
         "gender",
+        "documents",
         "email"
       ]
     },
