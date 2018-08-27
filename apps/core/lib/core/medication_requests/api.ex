@@ -375,23 +375,21 @@ defmodule Core.MedicationRequests.API do
   end
 
   defp filter_medical_programs_data(programs, %{"medication_id" => medication_id}) do
-    programs
-    |> Enum.map(fn %{id: id} ->
+    Enum.map(programs, fn %{id: id} ->
       with {program_medications_ids, medications_ids} <- get_medical_programs_data_ids(id, medication_id) do
         MedicalProgram
         |> where([mp], mp.is_active)
         |> join(
-          :inner,
+          :left,
           [mp],
           pm in ProgramMedication,
           pm.medical_program_id == mp.id and pm.is_active and pm.id in ^program_medications_ids
         )
-        |> join(:inner, [mp, pm], m in assoc(pm, :medication), m.id in ^medications_ids)
+        |> join(:left, [mp, pm], m in assoc(pm, :medication), m.id in ^medications_ids)
         |> preload([mp, pm, m], program_medications: {pm, medication: m})
         |> PRMRepo.get(id)
       end
     end)
-    |> Enum.filter(fn medical_program -> not is_nil(medical_program) end)
   end
 
   defp get_medical_programs_data_ids(medical_program_id, medication_id) do
