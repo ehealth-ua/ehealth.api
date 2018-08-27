@@ -251,16 +251,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       assert resp
     end
 
-    test "create legal entity sign drfo passport number", %{conn: conn} do
-      get_client_type_by_name(UUID.generate())
-
-      expect(MithrilMock, :put_client, fn params, _ ->
-        {:ok, %{"data" => Map.put(params, "secret", "secret")}}
-      end)
-
-      validate_addresses()
-      template()
-
+    test "create legal entity sign drfo passport number is not allowed", %{conn: conn} do
       insert_dictionaries()
       legal_entity_type = "MSP"
       legal_entity_params = Map.merge(get_legal_entity_data(), %{"type" => legal_entity_type, "edrpou" => "ЯЁ756475"})
@@ -274,9 +265,9 @@ defmodule EHealth.Web.LegalEntityControllerTest do
         |> put_req_header("x-consumer-id", UUID.generate())
         |> put_req_header("edrpou", legal_entity_params["edrpou"])
         |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
-        |> json_response(200)
+        |> json_response(422)
 
-      assert resp
+      assert resp["error"]
     end
   end
 
