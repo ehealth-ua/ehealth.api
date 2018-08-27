@@ -23,6 +23,8 @@ defmodule Core.MedicationRequestRequests do
   alias Core.Medications
   alias Core.Medications.INNMDosage
   alias Core.Medications.INNMDosage.Ingredient, as: INNMDosageIngredient
+  alias Core.Medications.Medication
+  alias Core.Medications.Medication.Ingredient
   alias Core.Medications.Program, as: ProgramMedication
   alias Core.PRMRepo
   alias Core.Repo
@@ -231,7 +233,10 @@ defmodule Core.MedicationRequestRequests do
   defp show_program_status(%{id: _id, data: {:ok, result}, mrr: mrr}) do
     mp = Enum.at(result, 0)
 
-    with medical_program <- get_medical_program_with_participants(mp.medical_program_id),
+    with {program_medications_ids, medications_ids} <-
+           get_medical_programs_data_ids(mp.medical_program_id, mrr["medication_id"]),
+         medical_program <-
+           get_medical_program_with_participants(mp.medical_program_id, program_medications_ids, medications_ids),
          participants <- build_participants(medical_program.program_medications),
          {:ok, check_innm_id} <- get_check_innm_id(mrr["medication_id"]),
          {:ok, %{"data" => medication_ids}} <- get_prequalify_requests(mrr),
@@ -266,13 +271,42 @@ defmodule Core.MedicationRequestRequests do
     end)
   end
 
-  defp get_medical_program_with_participants(id) do
+  defp get_medical_program_with_participants(id, program_medications_ids, medications_ids) do
     MedicalProgram
     |> where([mp], mp.is_active)
-    |> join(:left, [mp], pm in ProgramMedication, pm.medical_program_id == mp.id and pm.is_active)
-    |> join(:left, [mp, pm], m in assoc(pm, :medication))
+    |> join(
+      :left,
+      [mp],
+      pm in ProgramMedication,
+      pm.medical_program_id == mp.id and pm.is_active and pm.id in ^program_medications_ids
+    )
+    |> join(:left, [mp, pm], m in assoc(pm, :medication), m.id in ^medications_ids)
     |> preload([mp, pm, m], program_medications: {pm, medication: m})
     |> PRMRepo.get(id)
+  end
+
+  defp get_medical_programs_data_ids(medical_program_id, medication_id) do
+    ids =
+      Ingredient
+      |> join(
+        :inner,
+        [ing],
+        m in Medication,
+        ing.parent_id == m.id and ing.medication_child_id == ^medication_id and ing.is_primary == true
+      )
+      |> join(
+        :inner,
+        [ing, m],
+        pm in ProgramMedication,
+        ing.parent_id == pm.medication_id and pm.medical_program_id == ^medical_program_id and pm.is_active == true
+      )
+      |> select([ing, m, pm], {pm.id, m.id})
+      |> PRMRepo.all()
+
+    program_medications_ids = Enum.map(ids, fn {program_medications_ids, _} -> program_medications_ids end)
+    medications_ids = Enum.map(ids, fn {_, medications_id} -> medications_id end)
+
+    {program_medications_ids, medications_ids}
   end
 
   def reject(id, user_id, client_id) do
