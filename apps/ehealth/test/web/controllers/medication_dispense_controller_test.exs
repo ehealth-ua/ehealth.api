@@ -658,6 +658,104 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       assert %{"error" => %{"invalid" => [%{"entry" => "$.dispense_details[0].discount_amount"}]}} = resp
     end
 
+    test "success create medication dispense in devitaion koeficient", %{conn: conn} do
+      expect_mpi_get_person()
+
+      %{user_id: user_id, party: party} = insert(:prm, :party_user)
+      legal_entity = insert(:prm, :legal_entity)
+      %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
+
+      %{id: division_id} =
+        insert(
+          :prm,
+          :division,
+          is_active: true,
+          legal_entity: legal_entity
+        )
+
+      %{id: innm_dosage_id} = insert_innm_dosage()
+      %{id: medication_id} = insert_medication(innm_dosage_id)
+      %{id: medical_program_id} = insert(:prm, :medical_program, is_active: true)
+
+      insert(
+        :prm,
+        :program_medication,
+        medication_id: medication_id,
+        medical_program_id: medical_program_id,
+        reimbursement: build(:reimbursement, reimbursement_amount: 150)
+      )
+
+      {medication_request, medication_dispense} =
+        build_resp(%{
+          legal_entity_id: legal_entity.id,
+          division_id: division_id,
+          employee_id: employee_id,
+          medical_program_id: medical_program_id,
+          medication_id: innm_dosage_id,
+          medication_request_params: %{
+            dispense_valid_from: Date.utc_today() |> Date.add(-1),
+            dispense_valid_to: Date.utc_today() |> Date.add(1),
+            medication_qty: 110,
+            verification_code: "1234"
+          },
+          medication_dispense_params: %{
+            party_id: party.id
+          },
+          medication_dispense_details_params: %{
+            medication_id: medication_id,
+            medication_qty: 100,
+            sell_price: 18.65,
+            sell_amount: 1865,
+            discount_amount: 450
+          }
+        })
+
+      expect(OPSMock, :get_medication_requests, fn _params, _headers ->
+        {:ok, %{"data" => [medication_request]}}
+      end)
+
+      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
+        {:ok, %{"data" => [medication_request]}}
+      end)
+
+      expect(OPSMock, :create_medication_dispense, fn _params, _headers ->
+        {:ok, %{"data" => medication_dispense}}
+      end)
+
+      expect(OPSMock, :get_medication_dispenses, fn _params, _headers ->
+        {:ok, %{"data" => []}}
+      end)
+
+      expect(OPSMock, :get_qualify_medication_requests, fn _params, _headers ->
+        {:ok, %{"data" => [medication_id]}}
+      end)
+
+      create_data = %{
+        code: "1234",
+        medication_dispense:
+          new_dispense_params(%{
+            "division_id" => division_id,
+            "medical_program_id" => medical_program_id,
+            "dispense_details" => [
+              %{
+                medication_id: medication_id,
+                medication_qty: 100,
+                sell_price: 18.65,
+                sell_amount: 1865,
+                discount_amount: 450
+              }
+            ]
+          })
+      }
+
+      conn
+      |> put_client_id_header(legal_entity.id)
+      |> Plug.Conn.put_req_header(consumer_id_header(), user_id)
+      |> post(medication_dispense_path(conn, :create), create_data)
+      |> json_response(201)
+      |> assert_show_response_schema("medication_dispense")
+    end
+
     test "success create medication dispense", %{conn: conn} do
       expect_mpi_get_person()
 
