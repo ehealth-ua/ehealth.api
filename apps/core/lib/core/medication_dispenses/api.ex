@@ -28,6 +28,8 @@ defmodule Core.MedicationDispense.API do
   alias Core.Validators.JsonSchema
   alias Core.Validators.Reference
 
+  use Confex, otp_app: :core
+
   @ops_api Application.get_env(:core, :api_resolvers)[:ops]
 
   @search_fields ~w(
@@ -288,7 +290,10 @@ defmodule Core.MedicationDispense.API do
   defp validate_reimbursement_amount(reimbursement_amount, details, medication, i) do
     %{"medication_qty" => medication_qty, "discount_amount" => discount_amount} = details
 
-    if reimbursement_amount / medication.package_qty * medication_qty >= discount_amount do
+    deviation = config()[:deviation]
+    coefficient = discount_amount / (reimbursement_amount / medication.package_qty * medication_qty)
+
+    if 1 >= coefficient and coefficient >= 1 - deviation do
       :ok
     else
       Error.dump(%ValidationError{

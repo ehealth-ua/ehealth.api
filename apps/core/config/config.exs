@@ -294,6 +294,9 @@ config :core, Core.Guardian,
   issuer: "EHealth",
   secret_key: {Confex, :fetch_env!, [:core, :jwt_secret]}
 
+# Deviation koeficient 0..1, equal to percents
+config :core, Core.MedicationDispense.API, deviation: {:system, :float, "DEVIATION", 0.1}
+
 config :cipher,
   keyphrase: System.get_env("CIPHER_KEYPHRASE") || "8()VN#U#_CU#X)*BFG(Cadsvn$&",
   ivphrase: System.get_env("CIPHER_IVPHRASE") || "B((%(^(%V(CWBY(**(by(*YCBDYB#(Y(C#"
