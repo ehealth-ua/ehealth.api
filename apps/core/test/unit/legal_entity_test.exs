@@ -137,13 +137,12 @@ defmodule Core.Unit.LegalEntityTest do
                |> Validator.validate_edrpou(signer)
     end
 
-    test "validate legal entity DRFO text" do
+    test "validate legal entity DRFO text not allowed" do
       content = get_legal_entity_data()
       drfo = "ЁЇ756475"
       signer = %{"drfo" => drfo}
 
-      assert {:ok, _} =
-               {:ok, _} =
+      assert {:error, _} =
                content
                |> Map.put("edrpou", "Ёї756475")
                |> Validator.validate_edrpou(signer)

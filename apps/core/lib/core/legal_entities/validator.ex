@@ -118,7 +118,7 @@ defmodule Core.LegalEntities.Validator do
     {data, types}
     |> cast(signer, Map.keys(types))
     |> validate_required(Map.keys(types))
-    |> validate_format(:drfo, ~r/^([0-9]{9,10}|[А-ЯЁЇIЄҐ]{2}\d{6})$/ui)
+    |> validate_format(:drfo, ~r/^[0-9]{9,10}$/ui)
     |> validate_inclusion(:drfo, [String.upcase(Map.fetch!(content, "edrpou"))])
     |> prepare_legal_entity(content)
   end
