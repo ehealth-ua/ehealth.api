@@ -24,6 +24,7 @@ config :core,
     media_storage: Core.API.MediaStorage,
     otp_verification: Core.API.OTPVerification,
     uaddresses: Core.API.UAddress,
+    casher: Core.API.Casher,
     postmark: Core.API.Postmark,
     declaration_request_creator: Core.DeclarationRequests.API.Creator
   ],
@@ -131,6 +132,15 @@ config :core, Core.API.OPS,
     connect_timeout: {:system, :integer, "OPS_REQUEST_TIMEOUT", 30_000},
     recv_timeout: {:system, :integer, "OPS_REQUEST_TIMEOUT", 30_000},
     timeout: {:system, :integer, "OPS_REQUEST_TIMEOUT", 30_000}
+  ]
+
+# Configures Casher
+config :core, Core.API.Casher,
+  endpoint: {:system, "CASHER_ENDPOINT"},
+  hackney_options: [
+    connect_timeout: {:system, :integer, "CASHER_REQUEST_TIMEOUT", 30_000},
+    recv_timeout: {:system, :integer, "CASHER_REQUEST_TIMEOUT", 30_000},
+    timeout: {:system, :integer, "CASHER_REQUEST_TIMEOUT", 30_000}
   ]
 
 # Configures Report API
