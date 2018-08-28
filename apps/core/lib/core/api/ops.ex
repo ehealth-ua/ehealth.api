@@ -15,6 +15,10 @@ defmodule Core.API.OPS do
     get!("/declarations", headers, params: params)
   end
 
+  def get_person_ids(employee_ids, headers \\ []) when is_list(employee_ids) do
+    post!("/declarations/person_ids", Jason.encode!(%{"employee_ids" => employee_ids}), headers)
+  end
+
   def get_declarations_count(employee_ids, headers \\ []) do
     post!("/declarations_count", Jason.encode!(%{ids: employee_ids}), headers)
   end
