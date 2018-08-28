@@ -14,7 +14,7 @@ RUN mix do \
       local.rebar --force, \
       deps.get, \
       deps.compile, \
-      release
+      release --name="${APP_NAME}"
 
 FROM alpine:3.8
 

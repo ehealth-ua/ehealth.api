@@ -9,6 +9,8 @@ defmodule Core.API.OPSBehaviour do
               {:ok, result :: term}
               | {:error, reason :: term}
 
+  @callback get_person_ids(list, list) :: {:ok, map} | {:error, term}
+
   @callback get_declarations_count(ids :: list, headers :: list) ::
               {:ok, result :: integer}
               | {:error, reason :: term}

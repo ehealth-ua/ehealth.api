@@ -6,6 +6,7 @@ defmodule Core.Employees.Employee do
   alias Core.Divisions.Division
   alias Core.LegalEntities.LegalEntity
   alias Core.Parties.Party
+  alias Core.PartyUsers.PartyUser
 
   @derive {Jason.Encoder, except: [:__meta__]}
 
@@ -46,6 +47,7 @@ defmodule Core.Employees.Employee do
     belongs_to(:party, Party, type: Ecto.UUID)
     belongs_to(:division, Division, type: Ecto.UUID)
     belongs_to(:legal_entity, LegalEntity, type: Ecto.UUID)
+    has_many(:party_users, PartyUser, references: :party_id, foreign_key: :party_id)
 
     timestamps()
   end
