@@ -21,6 +21,7 @@ defmodule Core.DeclarationRequests.API.Sign do
 
   @mpi_api Application.get_env(:core, :api_resolvers)[:mpi]
   @ops_api Application.get_env(:core, :api_resolvers)[:ops]
+  @casher_api Application.get_env(:core, :api_resolvers)[:casher]
 
   @auth_na DeclarationRequest.authentication_method(:na)
   @auth_otp DeclarationRequest.authentication_method(:otp)
@@ -39,6 +40,7 @@ defmodule Core.DeclarationRequests.API.Sign do
          :ok <- store_signed_content(declaration_request, params, headers),
          {:ok, person} <- create_or_update_person(declaration_request, content, headers),
          {:ok, declaration} <- create_declaration_with_termination_logic(person, declaration_request, headers),
+         :ok <- update_casher_person_data(declaration["data"]["employee_id"]),
          {:ok, signed_declaration} <- update_declaration_request_status(declaration_request, declaration) do
       {:ok, signed_declaration}
     end
@@ -253,6 +255,12 @@ defmodule Core.DeclarationRequests.API.Sign do
       "declaration_number" => declaration_number
     })
     |> @ops_api.create_declaration_with_termination_logic(headers)
+  end
+
+  defp update_casher_person_data(employee_id) do
+    with {:ok, _response} <- @casher_api.update_person_data(%{"employee_id" => employee_id}, []) do
+      :ok
+    end
   end
 
   def update_declaration_request_status(%DeclarationRequest{} = declaration_request, declaration) do
