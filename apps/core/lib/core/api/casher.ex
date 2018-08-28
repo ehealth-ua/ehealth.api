@@ -7,11 +7,11 @@ defmodule Core.API.Casher do
 
   @doc "params: user_id, client_id or employee_id"
   def get_person_data(params, headers \\ []) do
-    get!("/person_data", headers, params: params)
+    get!("/api/person_data", headers, params: params)
   end
 
   @doc "params: user_id, client_id or employee_id"
   def update_person_data(params, headers \\ []) do
-    patch!("/person_data", Jason.encode!(params), headers)
+    patch!("/api/person_data", Jason.encode!(params), headers)
   end
 end
