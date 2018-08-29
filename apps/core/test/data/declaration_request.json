@@ -16,7 +16,7 @@
       "documents": [
         {
           "type": "PASSPORT",
-          "number": "120518",
+          "number": "АЯ120518",
           "issued_at": "2014-02-12",
           "issued_by": "Збухівський РО ГО МЖД"
         },
@@ -92,7 +92,7 @@
           "documents_person": [
             {
               "type": "PASSPORT",
-              "number": "120518"
+              "number": "АЯ120518"
             }
           ],
           "documents_relationship": [
