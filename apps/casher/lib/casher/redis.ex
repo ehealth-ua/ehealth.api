@@ -4,6 +4,7 @@ defmodule Casher.Redis do
   Serializes and stores data using Erlang `term_to_binary`
   """
 
+  use Confex, otp_app: :casher
   alias Core.Log
 
   @spec get(binary) :: {:ok, term} | {:error, binary}
@@ -65,7 +66,7 @@ defmodule Casher.Redis do
 
   @spec command(list) :: {:ok, term} | {:error, term}
   defp command(command) when is_list(command) do
-    pool_size = Confex.fetch_env!(:casher, :redis_pool_size)
+    pool_size = config()[:pool_size]
     connection_index = rem(System.unique_integer([:positive]), pool_size)
 
     Redix.command(:"redis_#{connection_index}", command)

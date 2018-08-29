@@ -1,8 +1,5 @@
 use Mix.Config
 
-config :casher,
-  redis_pool_size: {:system, :integer, "REDIS_POOL_SIZE", 5}
-
 config :casher, Casher.Web.Endpoint,
   load_from_system_env: true,
   url: [host: "localhost"],
