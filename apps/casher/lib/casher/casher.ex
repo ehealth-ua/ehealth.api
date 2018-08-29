@@ -17,13 +17,22 @@ defmodule Casher do
 
   @spec redis_workers :: list
   def redis_workers do
-    pool_size = Confex.fetch_env!(:casher, :redis_pool_size)
-    redis_config = Confex.fetch_env!(:casher, Redix)
+    redis_config = Casher.Redis.config()
 
-    Enum.map(0..(pool_size - 1), fn connection_index ->
-      args = [redis_config, [name: :"redis_#{connection_index}"]]
-
-      Supervisor.child_spec({Redix, args}, id: {Redix, connection_index})
+    Enum.map(0..(redis_config[:pool_size] - 1), fn connection_index ->
+      worker(
+        Redix,
+        [
+          [
+            host: redis_config[:host],
+            port: redis_config[:port],
+            password: redis_config[:password],
+            database: redis_config[:database]
+          ],
+          [name: :"redis_#{connection_index}"]
+        ],
+        id: {Redix, connection_index}
+      )
     end)
   end
 end

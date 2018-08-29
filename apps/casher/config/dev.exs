@@ -9,6 +9,9 @@ config :casher, Casher.Web.Endpoint,
 
 config :phoenix, :stacktrace_depth, 20
 
-config :casher, Redix,
+config :casher, Casher.Redis,
   host: "127.0.0.1",
-  port: 6379
+  database: 1,
+  password: nil,
+  port: 6379,
+  pool_size: 5
