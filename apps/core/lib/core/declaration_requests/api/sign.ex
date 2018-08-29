@@ -258,9 +258,9 @@ defmodule Core.DeclarationRequests.API.Sign do
   end
 
   defp update_casher_person_data(employee_id) do
-    with {:ok, _response} <- @casher_api.update_person_data(%{"employee_id" => employee_id}, []) do
-      :ok
-    end
+    # with {:ok, _response} <- @casher_api.update_person_data(%{"employee_id" => employee_id}, []) do
+    :ok
+    # end
   end
 
   def update_declaration_request_status(%DeclarationRequest{} = declaration_request, declaration) do
