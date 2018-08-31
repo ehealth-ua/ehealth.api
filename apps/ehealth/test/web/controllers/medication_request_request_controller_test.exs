@@ -8,6 +8,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
   alias EHealth.MockServer
   alias Core.Repo
   alias Core.PRMRepo
+  alias Ecto.UUID
 
   setup :verify_on_exit!
 
@@ -427,6 +428,58 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
       assert %{"status" => "VALID"} = resp
       assert is_list(Map.get(resp, "participants"))
+    end
+
+    test "failed on medical programs validation", %{conn: conn} do
+      expect_ops_get_declarations()
+      expect_mpi_get_person()
+
+      {medication_id, pm} = create_medications_structure()
+
+      inactive_mp = insert(:prm, :medical_program, is_active: false)
+      inactive_pm = insert(:prm, :program_medication, medical_program_id: inactive_mp.id)
+
+      test_request =
+        test_request()
+        |> Map.put("medication_id", medication_id)
+        |> Map.delete("medical_program_id")
+
+      data = %{
+        medication_request_request: test_request,
+        programs: [%{id: pm.medical_program_id}, %{id: inactive_pm.medical_program_id}, %{id: UUID.generate()}]
+      }
+
+      resp =
+        conn
+        |> post(medication_request_request_path(conn, :prequalify), data)
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.programs[1].id",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "Medical program is not active",
+                       "params" => [],
+                       "rule" => "invalid"
+                     }
+                   ]
+                 },
+                 %{
+                   "entry" => "$.programs[2].id",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "Medical program not found",
+                       "params" => [],
+                       "rule" => "required"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
     end
 
     test "show proper message when program medication is invalid", %{conn: conn} do
