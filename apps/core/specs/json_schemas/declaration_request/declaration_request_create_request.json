@@ -96,17 +96,84 @@
       ],
       "additionalProperties": false
     },
-    "document": {
+    "series_number_document": {
       "type": "object",
       "properties": {
         "type": {
           "type": "string",
+          "enum": [
+            "PASSPORT",
+            "COMPLEMENTARY_PROTECTION_CERTIFICATE",
+            "PERMANENT_RESIDENCE_PERMIT",
+            "REFUGEE_CERTIFICATE",
+            "TEMPORARY_CERTIFICATE"
+          ],
           "description": "Dictionary: DOCUMENT_TYPE"
         },
         "number": {
           "type": "string",
+          "pattern": "^((?![ЫЪЭЁ])([А-ЯҐЇІЄ])){2}[0-9]{6}$"
+        },
+        "issued_by": {
+          "type": "string",
+          "minLength": 1
+        },
+        "issued_at": {
+          "type": "string",
+          "format": "date"
+        }
+      },
+      "required": [
+        "type",
+        "number"
+      ],
+      "additionalProperties": false
+    },
+    "number_document": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "BIRTH_CERTIFICATE",
+            "TEMPORARY_PASSPORT"
+          ],
+          "description": "Dictionary: DOCUMENT_TYPE"
+        },
+        "number": {
+          "type": "string",
+          "pattern": "^(?![ыъэ@%&$^#`~:,.*|}{?!])[А-ЯҐЇІЄа-яґїіє0-9 №\\\"()-]+$",
           "minLength": 1,
           "maxLength": 255
+        },
+        "issued_by": {
+          "type": "string",
+          "minLength": 1
+        },
+        "issued_at": {
+          "type": "string",
+          "format": "date"
+        }
+      },
+      "required": [
+        "type",
+        "number"
+      ],
+      "additionalProperties": false
+    },
+    "id_card": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "NATIONAL_ID"
+          ],
+          "description": "Dictionary: DOCUMENT_TYPE"
+        },
+        "number": {
+          "type": "string",
+          "pattern": "^[0-9]{9}$"
         },
         "issued_by": {
           "type": "string",
@@ -220,6 +287,10 @@
               "type": "string",
               "$ref": "#/definitions/tax_id"
             },
+            "national_id": {
+              "type": "string",
+              "pattern": "^[0-9]{8}-[0-9]{5}$"
+            },
             "invalid_tax_id": {
               "type": "boolean"
             },
@@ -240,7 +311,17 @@
               "type": "array",
               "minItems": 1,
               "items": {
-                "$ref": "#/definitions/document"
+                "oneOf": [
+                  {
+                    "$ref": "#/definitions/series_number_document"
+                  },
+                  {
+                    "$ref": "#/definitions/number_document"
+                  },
+                  {
+                    "$ref": "#/definitions/id_card"
+                  }
+                ]
               }
             },
             "addresses": {
@@ -248,7 +329,7 @@
               "items": {
                 "$ref": "#/definitions/address"
               },
-              "minItems": 2
+              "minItems": 1
             },
             "phones": {
               "type": "array",
@@ -345,7 +426,17 @@
                     "type": "array",
                     "minItems": 1,
                     "items": {
-                      "$ref": "#/definitions/document"
+                      "oneOf": [
+                        {
+                          "$ref": "#/definitions/series_number_document"
+                        },
+                        {
+                          "$ref": "#/definitions/number_document"
+                        },
+                        {
+                          "$ref": "#/definitions/id_card"
+                        }
+                      ]
                     }
                   },
                   "documents_relationship": {
@@ -366,7 +457,6 @@
                   "relation_type",
                   "first_name",
                   "last_name",
-                  "birth_date",
                   "birth_country",
                   "birth_settlement",
                   "gender",

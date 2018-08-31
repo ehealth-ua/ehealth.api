@@ -817,6 +817,221 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
                }
              ] == resp["error"]["invalid"]
     end
+
+    test "declaration request document validation: series_number_document", %{conn: conn} do
+      gen_sequence_number()
+      template()
+
+      expect(MPIMock, :search, fn params, _ ->
+        {:ok,
+         %{
+           "data" => [
+             params
+             |> Map.put("id", "b5350f79-f2ca-408f-b15d-1ae0a8cc861c")
+             |> Map.put("authentication_methods", [
+               %{"type" => "OTP", "phone_number" => "+380508887700"}
+             ])
+           ]
+         }}
+      end)
+
+      expect(OTPVerificationMock, :initialize, fn _number, _headers ->
+        {:ok, %{}}
+      end)
+
+      expect(OTPVerificationMock, :search, fn _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
+      role_id = UUID.generate()
+      expect(MithrilMock, :get_user_by_id, fn _, _ -> {:ok, %{"data" => %{"email" => "user@email.com"}}} end)
+
+      expect(MithrilMock, :get_roles_by_name, fn "DOCTOR", _headers ->
+        {:ok, %{"data" => [%{"id" => role_id}]}}
+      end)
+
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok,
+         %{
+           "data" => [
+             %{
+               "role_id" => role_id,
+               "user_id" => UUID.generate()
+             }
+           ]
+         }}
+      end)
+
+      expect(OPSMock, :get_latest_block, fn _params ->
+        {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
+      end)
+
+      declaration_request_params =
+        "../core/test/data/declaration_request.json"
+        |> File.read!()
+        |> Jason.decode!()
+
+      uaddresses_mock_expect()
+
+      assert conn
+             |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
+             |> put_req_header(
+               "x-consumer-metadata",
+               Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"})
+             )
+             |> post(declaration_request_path(conn, :create), declaration_request_params)
+             |> json_response(200)
+
+      declaration_request_params =
+        declaration_request_params
+        |> put_in(["declaration_request", "person", "documents"], [
+          %{
+            type: "PASSPORT",
+            number: "120518",
+            issued_at: "2014-02-12",
+            issued_by: "Збухівський РО ГО МЖД"
+          }
+        ])
+
+      resp =
+        conn
+        |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
+        |> put_req_header(
+          "x-consumer-metadata",
+          Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"})
+        )
+        |> post(declaration_request_path(conn, :create), declaration_request_params)
+        |> json_response(422)
+
+      assert resp["error"]["invalid"]
+
+      declaration_request_params =
+        declaration_request_params
+        |> put_in(["declaration_request", "person", "documents"], [
+          %{
+            type: "PASSPORT",
+            number: "ЫЯ120518",
+            issued_at: "2014-02-12",
+            issued_by: "Збухівський РО ГО МЖД"
+          }
+        ])
+
+      resp =
+        conn
+        |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
+        |> put_req_header(
+          "x-consumer-metadata",
+          Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"})
+        )
+        |> post(declaration_request_path(conn, :create), declaration_request_params)
+        |> json_response(422)
+
+      assert resp["error"]["invalid"]
+    end
+
+    test "declaration request document validation: id_card", %{conn: conn} do
+      gen_sequence_number()
+      template()
+
+      expect(MPIMock, :search, fn params, _ ->
+        {:ok,
+         %{
+           "data" => [
+             params
+             |> Map.put("id", "b5350f79-f2ca-408f-b15d-1ae0a8cc861c")
+             |> Map.put("authentication_methods", [
+               %{"type" => "OTP", "phone_number" => "+380508887700"}
+             ])
+           ]
+         }}
+      end)
+
+      expect(OTPVerificationMock, :initialize, fn _number, _headers ->
+        {:ok, %{}}
+      end)
+
+      expect(OTPVerificationMock, :search, fn _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
+      role_id = UUID.generate()
+      expect(MithrilMock, :get_user_by_id, fn _, _ -> {:ok, %{"data" => %{"email" => "user@email.com"}}} end)
+
+      expect(MithrilMock, :get_roles_by_name, fn "DOCTOR", _headers ->
+        {:ok, %{"data" => [%{"id" => role_id}]}}
+      end)
+
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok,
+         %{
+           "data" => [
+             %{
+               "role_id" => role_id,
+               "user_id" => UUID.generate()
+             }
+           ]
+         }}
+      end)
+
+      expect(OPSMock, :get_latest_block, fn _params ->
+        {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
+      end)
+
+      declaration_request_params =
+        "../core/test/data/declaration_request.json"
+        |> File.read!()
+        |> Jason.decode!()
+        |> put_in(["declaration_request", "person", "documents"], [
+          %{
+            type: "NATIONAL_ID",
+            number: "123456789",
+            issued_at: "2014-02-12",
+            issued_by: "Збухівський РО ГО МЖД"
+          },
+          %{
+            type: "BIRTH_CERTIFICATE",
+            number: "1234567"
+          }
+        ])
+
+      uaddresses_mock_expect()
+
+      assert conn
+             |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
+             |> put_req_header(
+               "x-consumer-metadata",
+               Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"})
+             )
+             |> post(declaration_request_path(conn, :create), declaration_request_params)
+             |> json_response(200)
+
+      declaration_request_params =
+        declaration_request_params
+        |> put_in(["declaration_request", "person", "documents"], [
+          %{
+            type: "NATIONAL_ID",
+            number: "ы12345678",
+            issued_at: "2014-02-12",
+            issued_by: "Збухівський РО ГО МЖД"
+          },
+          %{
+            type: "BIRTH_CERTIFICATE",
+            number: "1234567"
+          }
+        ])
+
+      resp =
+        conn
+        |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
+        |> put_req_header(
+          "x-consumer-metadata",
+          Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"})
+        )
+        |> post(declaration_request_path(conn, :create), declaration_request_params)
+        |> json_response(422)
+
+      assert resp["error"]["invalid"]
+    end
   end
 
   describe "Global parameters return 404" do
@@ -1020,13 +1235,13 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
                "error" => %{
                  "invalid" => [
                    %{
-                     "entry" => "$.declaration_request.person.documents.[0].type",
+                     "entry" => "$.declaration_request.person.documents.[0]",
                      "entry_type" => "json_data_property",
                      "rules" => [
                        %{
-                         "description" => "value is not allowed in enum",
-                         "params" => ["PASSPORT"],
-                         "rule" => "inclusion"
+                         "description" => "expected exactly one of the schemata to match, but none of them did",
+                         "params" => [],
+                         "rule" => "schemata"
                        }
                      ]
                    }
