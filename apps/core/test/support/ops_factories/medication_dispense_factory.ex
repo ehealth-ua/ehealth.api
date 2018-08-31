@@ -16,6 +16,7 @@ defmodule Core.OPSFactories.MedicationDispenseFactory do
           party_id: UUID.generate(),
           legal_entity_id: UUID.generate(),
           payment_id: UUID.generate(),
+          payment_amount: 20.5,
           division_id: UUID.generate(),
           medical_program_id: UUID.generate(),
           medication_request: nil,

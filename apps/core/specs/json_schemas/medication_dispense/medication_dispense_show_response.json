@@ -585,6 +585,13 @@
           ],
           "description": "receipt number for the paid medications"
         },
+        "payment_amount": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "amount for the paid medications"
+        },
         "status": {
           "type": "string",
           "description": "Medication Dispense status (NEW, PROCESSED, REJECTED, EXPIRED)"
