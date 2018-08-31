@@ -6,6 +6,7 @@ defmodule Core.Users.API do
   import Ecto.{Query, Changeset}, warn: false
 
   alias Core.Bamboo.Emails.Sender
+  alias Core.Man.Templates.CredentialsRecoveryRequest, as: CredentialsRecoveryRequestTemplate
   alias Core.Repo
   alias Core.Users.CredentialsRecoveryRequest
   alias Core.Validators.JsonSchema
@@ -123,24 +124,14 @@ defmodule Core.Users.API do
   end
 
   defp send_email(email, %CredentialsRecoveryRequest{} = request, client_id, redirect_uri) do
-    case Core.Man.Templates.CredentialsRecoveryRequest.render(request, client_id, redirect_uri) do
-      {:ok, body} ->
-        try do
-          email_config =
-            :core
-            |> Confex.fetch_env!(:emails)
-            |> Keyword.get(:credentials_recovery_request)
+    email_config =
+      :core
+      |> Confex.fetch_env!(:emails)
+      |> Keyword.get(:credentials_recovery_request)
 
-          Sender.send_email(email, body, email_config[:from], email_config[:subject])
-          :ok
-        rescue
-          error in [Bamboo.PostmarkAdapter.ApiError] ->
-            Logger.warn(Exception.message(error))
-            :ok
-        end
-
-      {:error, reason} ->
-        {:error, reason}
+    with {:ok, body} <- CredentialsRecoveryRequestTemplate.render(request, client_id, redirect_uri),
+         {:ok, _} <- Sender.send_email_with_activation(email, body, email_config[:from], email_config[:subject]) do
+      :ok
     end
   end
 end

@@ -8,7 +8,6 @@ defmodule Core.EmployeeRequests do
   alias Core.Bamboo.Emails.Sender
   alias Core.BlackListUsers
   alias Core.Divisions.Division
-  alias Core.Email.Postmark
   alias Core.Employee.UserCreateRequest
   alias Core.EmployeeRequests.EmployeeRequest, as: Request
   alias Core.EmployeeRequests.Validator
@@ -44,8 +43,6 @@ defmodule Core.EmployeeRequests do
   @owner Employee.type(:owner)
   @pharmacy_owner Employee.type(:pharmacy_owner)
   @doctor Employee.type(:doctor)
-
-  @inactive_email_exception_message "You tried to send to a recipient that has been marked as inactive"
 
   def list(params) do
     query = from(er in Request, order_by: [desc: :inserted_at])
@@ -526,35 +523,10 @@ defmodule Core.EmployeeRequests do
     email = get_in(data, ["party", "email"])
 
     with {:ok, body} <- template.render(employee_request),
-         {:ok, _} <- send_email_with_retry_on_inactive(email, body, email_config) do
+         {:ok, _} <- Sender.send_email_with_activation(email, body, email_config[:from], email_config[:subject]) do
       {:ok, employee_request}
     end
   end
-
-  defp send_email_with_retry_on_inactive(email, body, email_config, attempts \\ 2) do
-    attempts = attempts - 1
-
-    try do
-      mail_entity = Sender.send_email(email, body, email_config[:from], email_config[:subject])
-      {:ok, mail_entity}
-    rescue
-      error ->
-        Log.error(%{"message" => error.message})
-
-        with true <- should_activate_email?(error, attempts),
-             {:ok, _} <- Postmark.activate_email(email) do
-          send_email_with_retry_on_inactive(email, body, email_config, attempts)
-        else
-          _ -> {:error, "can not sent message"}
-        end
-    end
-  end
-
-  defp should_activate_email?(%Bamboo.PostmarkAdapter.ApiError{} = error, attempts) when attempts > 0 do
-    String.contains?(error.message, @inactive_email_exception_message)
-  end
-
-  defp should_activate_email?(_, _), do: false
 
   def validate_status_type(%Employee{is_active: false}) do
     {:error, :not_found}
