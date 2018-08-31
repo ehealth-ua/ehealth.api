@@ -151,7 +151,8 @@ defmodule Core.MedicationRequestRequests do
     with :ok <- Validations.validate_prequalify_schema(attrs),
          %{"medication_request_request" => mrr, "programs" => programs} <- attrs,
          create_operation <- CreateDataOperation.create(mrr, client_id),
-         %Ecto.Changeset{valid?: true} <- create_changeset(create_operation, mrr, user_id, client_id) do
+         %Ecto.Changeset{valid?: true} <- create_changeset(create_operation, mrr, user_id, client_id),
+         :ok <- validate_medical_programs(attrs) do
       {:ok, prequalify_programs(mrr, programs)}
     else
       err -> err
@@ -394,5 +395,31 @@ defmodule Core.MedicationRequestRequests do
     mrr
     |> change
     |> put_change(:status, @status_signed)
+  end
+
+  defp validate_medical_programs(%{"programs" => programs}) do
+    errors =
+      programs
+      |> Enum.map(fn %{"id" => id} -> PRMRepo.get(MedicalProgram, id) end)
+      |> Enum.with_index()
+      |> Enum.reduce([], fn {medical_program, i}, acc ->
+        case medical_program do
+          nil ->
+            acc ++ [{%{description: "Medical program not found", params: [], rule: :required}, "$.programs[#{i}].id"}]
+
+          %MedicalProgram{is_active: false} ->
+            acc ++
+              [{%{description: "Medical program is not active", params: [], rule: :invalid}, "$.programs[#{i}].id"}]
+
+          _ ->
+            acc
+        end
+      end)
+
+    if Enum.empty?(errors) do
+      :ok
+    else
+      {:error, errors}
+    end
   end
 end
