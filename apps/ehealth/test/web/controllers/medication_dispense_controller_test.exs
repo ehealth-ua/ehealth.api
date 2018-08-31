@@ -991,6 +991,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       )
 
       payment_id = "12345"
+      payment_amount = 20
 
       {medication_request, medication_dispense} =
         build_resp(%{
@@ -1005,7 +1006,8 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           },
           medication_dispense_params: %{
             party_id: party.id,
-            payment_id: payment_id
+            payment_id: payment_id,
+            payment_amount: payment_amount
           },
           medication_dispense_details_params: %{
             medication_id: medication.id,
@@ -1042,7 +1044,10 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       resp =
         conn
         |> put_client_id_header(legal_entity.id)
-        |> patch(medication_dispense_path(conn, :process, medication_dispense["id"]), %{"payment_id" => payment_id})
+        |> patch(medication_dispense_path(conn, :process, medication_dispense["id"]), %{
+          "payment_id" => payment_id,
+          "payment_amount" => payment_amount
+        })
         |> json_response(200)
         |> assert_show_response_schema("medication_dispense")
         |> Map.get("data")

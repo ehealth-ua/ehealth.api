@@ -143,7 +143,7 @@ defmodule Core.MedicationDispense.API do
   def process(%{"id" => id} = params, headers) do
     attrs =
       params
-      |> Map.take(~w(payment_id))
+      |> Map.take(~w(payment_id payment_amount))
       |> Map.put("status", "PROCESSED")
       |> Map.put("updated_by", get_consumer_id(headers))
 

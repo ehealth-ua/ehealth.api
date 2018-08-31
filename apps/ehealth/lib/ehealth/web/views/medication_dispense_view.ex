@@ -46,6 +46,7 @@ defmodule EHealth.Web.MedicationDispenseView do
       updated_by
       dispense_details
       payment_id
+      payment_amount
     ))
     |> Map.put("details", render_many(details, __MODULE__, "details.json", as: :details))
     |> Map.put("medication_request", render_one(references.medication_request, MedicationRequestView, "show.json"))
