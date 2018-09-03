@@ -84,7 +84,7 @@ defmodule Core.Man.Templates.DeclarationRequestPrintoutForm do
     second_name = Map.get(person, "second_name")
     last_name = Map.get(person, "last_name")
 
-    [first_name, second_name, last_name]
+    [last_name, first_name, second_name]
     |> Enum.filter(&(&1 != nil))
     |> Enum.join(" ")
   end

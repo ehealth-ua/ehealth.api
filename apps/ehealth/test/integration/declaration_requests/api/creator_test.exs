@@ -69,7 +69,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
 
       expected_content = %{
         person: %{
-          full_name: "Петро Миколайович Іванов",
+          full_name: "Іванов Петро Миколайович",
           first_name: "Петро",
           second_name: "Миколайович",
           last_name: "Іванов",
@@ -126,14 +126,14 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
           email: "email@example.com",
           secret: "secret",
           emergency_contact: %{
-            full_name: "Петро Миколайович Іванов",
+            full_name: "Іванов Петро Миколайович",
             phones: %{
               number: "+380503410870"
             }
           },
           confidant_person: %{
             primary: %{
-              full_name: "Петро Миколайович Іванов",
+              full_name: "Іванов Петро Миколайович",
               phones: %{
                 number: "+380503410870"
               },
@@ -157,7 +157,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
               }
             },
             secondary: %{
-              full_name: "Іван Миколайович Петров",
+              full_name: "Петров Іван Миколайович",
               phones: %{
                 number: "+380503410871"
               },
@@ -185,7 +185,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
           preferred_way_communication: "––"
         },
         employee: %{
-          full_name: "Петро Миколайович Іванов",
+          full_name: "Іванов Петро Миколайович",
           phones: %{
             number: "+380503410870"
           },
