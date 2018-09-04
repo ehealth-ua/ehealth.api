@@ -7,7 +7,7 @@ defmodule EHealth.Web.MedicationControllerTest do
   @create_attrs %{
     name: "some name",
     form: "some form",
-    code_atc: "C08CA01",
+    code_atc: ["C08CA01", "C01BD01"],
     certificate: "some certificate",
     certificate_expired_at: "2010-04-17",
     container: container("Pill"),
@@ -267,6 +267,67 @@ defmodule EHealth.Web.MedicationControllerTest do
       end)
     end
 
+    test "invalid code_atc", %{conn: conn} do
+      ingredient = get_ingredient(id: fixture(:innm_dosage).id)
+      ingredient_inactive = get_ingredient(id: fixture(:innm_dosage).id, is_primary: false)
+
+      attrs =
+        @create_attrs
+        |> Map.put(:code_atc, ["C08CA01", "М01АЕ01"])
+        |> Map.put(:ingredients, [ingredient, ingredient_inactive])
+
+      conn = post(conn, medication_path(conn, :create), attrs)
+
+      resp = json_response(conn, 422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.code_atc.[1]",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" =>
+                         "string does not match pattern \"^[abcdghjlmnprsvABCDGHJLMNPRSV]{1}[0-9]{2}[a-zA-Z]{2}[0-9]{2}$\"",
+                       "params" => ["^[abcdghjlmnprsvABCDGHJLMNPRSV]{1}[0-9]{2}[a-zA-Z]{2}[0-9]{2}$"],
+                       "rule" => "format"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
+    end
+
+    test "empty code_atc", %{conn: conn} do
+      ingredient = get_ingredient(id: fixture(:innm_dosage).id)
+      ingredient_inactive = get_ingredient(id: fixture(:innm_dosage).id, is_primary: false)
+
+      attrs =
+        @create_attrs
+        |> Map.put(:code_atc, [])
+        |> Map.put(:ingredients, [ingredient, ingredient_inactive])
+
+      conn = post(conn, medication_path(conn, :create), attrs)
+
+      resp = json_response(conn, 422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.code_atc",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "expected a minimum of 1 items but got 0",
+                       "params" => %{"min" => 1},
+                       "rule" => "length"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
+    end
+
     test "ingredients innm_dosage duplicated", %{conn: conn} do
       %{id: innm_dosage_id} = fixture(:innm_dosage)
 
@@ -353,9 +414,10 @@ defmodule EHealth.Web.MedicationControllerTest do
 
     test "success", %{conn: conn, medication: %Medication{id: id} = medication} do
       conn = patch(conn, medication_path(conn, :deactivate, medication))
-      assert %{"id" => ^id} = json_response(conn, 200)["data"]
-
-      refute json_response(conn, 200)["data"]["is_active"]
+      resp = json_response(conn, 200)["data"]
+      assert %{"id" => ^id} = resp
+      refute resp["is_active"]
+      assert is_list(resp["code_atc"])
     end
 
     test "Medication is inactive", %{conn: conn} do
@@ -441,7 +503,7 @@ defmodule EHealth.Web.MedicationControllerTest do
         name: "Діетіламід Бупропіон",
         package_qty: 10,
         package_min_qty: 40,
-        code_atc: "Z00CA01"
+        code_atc: ["Z00CA01", "Z00CA02"]
       )
 
     %{id: med_id5} = insert(:prm, :medication, name: "Неактивний мед")

@@ -107,8 +107,12 @@
       "$ref": "#/definitions/dosage_object"
     },
     "code_atc": {
-      "type": "string",
-      "pattern": "^[abcdghjlmnprsvABCDGHJLMNPRSV]{1}[0-9]{2}[a-zA-Z]{2}[0-9]{2}$"
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[abcdghjlmnprsvABCDGHJLMNPRSV]{1}[0-9]{2}[a-zA-Z]{2}[0-9]{2}$"
+      },
+      "minItems": 1
     },
     "package_qty": {
       "type": "number",

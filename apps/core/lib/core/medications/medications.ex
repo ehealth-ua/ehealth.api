@@ -171,14 +171,29 @@ defmodule Core.Medications do
     attrs
     |> Enum.reduce(query, fn {field, value}, query ->
       case field do
-        :innm_id -> where(query, [_, _, innm], innm.id == ^value)
-        :innm_name -> where(query, [_, _, innm], ilike(innm.name, ^("%" <> value <> "%")))
-        :innm_sctid -> where(query, [_, _, innm], innm.sctid == ^value)
-        :innm_dosage_id -> where(query, [innm_dosage], innm_dosage.id == ^value)
-        :innm_dosage_name -> where(query, [innm_dosage], ilike(innm_dosage.name, ^("%" <> value <> "%")))
-        :innm_dosage_form -> where(query, [innm_dosage], innm_dosage.form == ^value)
-        :medication_code_atc -> where(query, [..., med], med.code_atc == ^value)
-        _ -> query
+        :innm_id ->
+          where(query, [_, _, innm], innm.id == ^value)
+
+        :innm_name ->
+          where(query, [_, _, innm], ilike(innm.name, ^("%" <> value <> "%")))
+
+        :innm_sctid ->
+          where(query, [_, _, innm], innm.sctid == ^value)
+
+        :innm_dosage_id ->
+          where(query, [innm_dosage], innm_dosage.id == ^value)
+
+        :innm_dosage_name ->
+          where(query, [innm_dosage], ilike(innm_dosage.name, ^("%" <> value <> "%")))
+
+        :innm_dosage_form ->
+          where(query, [innm_dosage], innm_dosage.form == ^value)
+
+        :medication_code_atc ->
+          where(query, [..., med], fragment("? @> ?", med.code_atc, ^value))
+
+        _ ->
+          query
       end
     end)
     |> where([innm_dosage, ...], innm_dosage.is_active)
