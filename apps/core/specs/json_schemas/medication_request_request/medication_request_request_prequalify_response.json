@@ -22,48 +22,6 @@
       "rejection_reason": {
         "type": "string",
         "description": "Reason to fetch invalid status"
-      },
-      "participants": {
-        "type": "array",
-        "items": {
-          "type": "object",
-          "properties": {
-            "medication_id": {
-              "type": "string"
-            },
-            "medication_name": {
-              "type": "string"
-            },
-            "form": {
-              "type": "string"
-            },
-            "manufacturer": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "type": "string"
-                },
-                "country": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "name",
-                "country"
-              ]
-            },
-            "reimbursement_amount": {
-              "type": "number"
-            }
-          },
-          "required": [
-            "medication_id",
-            "medication_name",
-            "form",
-            "manufacturer",
-            "reimbursement_amount"
-          ]
-        }
       }
     },
     "required": [

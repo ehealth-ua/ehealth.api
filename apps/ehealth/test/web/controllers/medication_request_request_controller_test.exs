@@ -427,7 +427,6 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
         |> Enum.at(0)
 
       assert %{"status" => "VALID"} = resp
-      assert is_list(Map.get(resp, "participants"))
     end
 
     test "failed on medical programs validation", %{conn: conn} do
