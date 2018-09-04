@@ -63,7 +63,7 @@ defmodule Core.PRMFactories.MedicationFactory do
           certificate: to_string(3_300_000_000 + :rand.uniform(99_999_999)),
           certificate_expired_at: ~D[2012-04-17],
           is_active: true,
-          code_atc: sequence("C08CA0"),
+          code_atc: [sequence("C08CA0")],
           updated_by: UUID.generate(),
           inserted_by: UUID.generate()
         }
