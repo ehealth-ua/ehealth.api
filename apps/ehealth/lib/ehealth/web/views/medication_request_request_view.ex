@@ -74,22 +74,7 @@ defmodule EHealth.Web.MedicationRequestRequestView do
       program_id: program.id,
       program_name: program.name,
       status: program.status,
-      rejection_reason: "",
-      participants: render(__MODULE__, "participants.json", %{participants: program.participants})
-    }
-  end
-
-  def render("participants.json", %{participants: participants}) do
-    render_many(participants, __MODULE__, "participant.json", as: :participant)
-  end
-
-  def render("participant.json", %{participant: participant}) do
-    %{
-      medication_id: participant.id,
-      medication_name: participant.name,
-      form: participant.form,
-      manufacturer: participant.manufacturer,
-      reimbursement_amount: participant["reimbursement_amount"]
+      rejection_reason: ""
     }
   end
 
