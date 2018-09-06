@@ -231,7 +231,9 @@ defmodule Core.Divisions do
   end
 
   def get_search_query(Division = entity, %{ids: _} = changes) do
-    super(entity, convert_comma_params_to_where_in_clause(changes, :ids, :id))
+    entity
+    |> super(convert_comma_params_to_where_in_clause(changes, :ids, :id))
+    |> preload([:addresses])
   end
 
   def get_search_query(Division = division, changes) do
