@@ -57,6 +57,79 @@ defmodule EHealth.Web.DivisionsControllerTest do
       assert is_list(resp["data"])
     end
 
+    test "get divisions by valid ids", %{conn: conn} do
+      msp()
+      legal_entity = insert(:prm, :legal_entity)
+
+      %{id: id1} = insert(:prm, :division, is_active: true, legal_entity: legal_entity)
+      %{id: id2} = insert(:prm, :division, is_active: true, legal_entity: legal_entity)
+
+      resp =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> get(division_path(conn, :index, ids: "#{id1},#{id2}"))
+        |> json_response(200)
+
+      assert Map.has_key?(resp, "data")
+      assert 2 == Enum.count(resp["data"])
+    end
+
+    test "get divisions by invalid ids", %{conn: conn} do
+      msp()
+      legal_entity = insert(:prm, :legal_entity)
+
+      insert(:prm, :division, is_active: true, legal_entity: legal_entity)
+      insert(:prm, :division, is_active: true, legal_entity: legal_entity)
+
+      resp =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> get(division_path(conn, :index, ids: "PROD,TEXT"))
+        |> json_response(422)
+
+      assert [
+               %{
+                 "entry" => "$.ids",
+                 "entry_type" => "json_data_property",
+                 "rules" => [
+                   %{
+                     "description" => "is invalid",
+                     "params" => ["Elixir.Core.Ecto.CommaParamsUUID"],
+                     "rule" => "cast"
+                   }
+                 ]
+               }
+             ] == resp["error"]["invalid"]
+    end
+
+    test "get divisions by valid and invalid ids", %{conn: conn} do
+      msp()
+      legal_entity = insert(:prm, :legal_entity)
+
+      %{id: id1} = insert(:prm, :division, is_active: true, legal_entity: legal_entity)
+      insert(:prm, :division, is_active: true, legal_entity: legal_entity)
+
+      resp =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> get(division_path(conn, :index, ids: "#{id1},any_text"))
+        |> json_response(422)
+
+      assert [
+               %{
+                 "entry" => "$.ids",
+                 "entry_type" => "json_data_property",
+                 "rules" => [
+                   %{
+                     "description" => "is invalid",
+                     "params" => ["Elixir.Core.Ecto.CommaParamsUUID"],
+                     "rule" => "cast"
+                   }
+                 ]
+               }
+             ] == resp["error"]["invalid"]
+    end
+
     test "get INACTIVE divisions", %{conn: conn} do
       msp(2)
       %{legal_entity_id: id} = insert(:prm, :division, status: "ACTIVE", is_active: true)
