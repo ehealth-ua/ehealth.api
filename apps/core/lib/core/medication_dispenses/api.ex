@@ -297,7 +297,7 @@ defmodule Core.MedicationDispense.API do
       :ok
     else
       Error.dump(%ValidationError{
-        description: "Requested discount price is higher than allowed",
+        description: "Requested discount price does not satisfy allowed reimbursement amount",
         path: "$.dispense_details[#{i}].discount_amount",
         rule: :required
       })
