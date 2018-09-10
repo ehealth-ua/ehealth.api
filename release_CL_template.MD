@@ -58,3 +58,4 @@
   - [ ] every table status
 - [ ] check dictionaries
 - [ ] check scopes
+- [ ] check that mpi.persons triggers is enabled
