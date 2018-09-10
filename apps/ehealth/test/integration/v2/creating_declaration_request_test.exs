@@ -1,4 +1,4 @@
-defmodule EHealth.Integration.DeclarationRequestCreateTest do
+defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase, async: false
@@ -68,7 +68,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         )
 
       declaration_request_params =
-        "../core/test/data/declaration_request.json"
+        "../core/test/data/v2/declaration_request.json"
         |> File.read!()
         |> Jason.decode!()
         |> put_in(["declaration_request", "person", "birth_date"], person_birth_date)
@@ -80,7 +80,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
-        |> post(declaration_request_path(conn, :create), declaration_request_params)
+        |> post(v2_declaration_request_post_path(conn, :create), declaration_request_params)
         |> json_response(422)
 
       assert [error] = resp["error"]["invalid"]
@@ -106,7 +106,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         )
 
       declaration_request_params =
-        "../core/test/data/declaration_request.json"
+        "../core/test/data/v2/declaration_request.json"
         |> File.read!()
         |> Jason.decode!()
         |> put_in(["declaration_request", "person", "birth_date"], person_birth_date)
@@ -118,7 +118,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
-        |> post(declaration_request_path(conn, :create), declaration_request_params)
+        |> post(v2_declaration_request_post_path(conn, :create), declaration_request_params)
         |> json_response(422)
 
       assert [error] = resp["error"]["invalid"]
@@ -130,7 +130,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       person_birth_date = Timex.shift(Timex.today(), years: -age) |> to_string()
 
       declaration_request_params =
-        "../core/test/data/declaration_request.json"
+        "../core/test/data/v2/declaration_request.json"
         |> File.read!()
         |> Jason.decode!()
         |> put_in(["declaration_request", "person", "birth_date"], person_birth_date)
@@ -141,7 +141,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
-        |> post(declaration_request_path(conn, :create), declaration_request_params)
+        |> post(v2_declaration_request_post_path(conn, :create), declaration_request_params)
         |> json_response(422)
 
       assert [error] = resp["error"]["invalid"]
@@ -158,7 +158,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       auth_methods = [%{"type" => "OTP", "phone_number" => "+380508887404"}]
 
       declaration_request_params =
-        "../core/test/data/declaration_request.json"
+        "../core/test/data/v2/declaration_request.json"
         |> File.read!()
         |> Jason.decode!()
         |> put_in(~W(declaration_request person authentication_methods), auth_methods)
@@ -169,7 +169,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
-        |> post(declaration_request_path(conn, :create), declaration_request_params)
+        |> post(v2_declaration_request_post_path(conn, :create), declaration_request_params)
 
       resp = json_response(conn, 422)
       assert [error] = resp["error"]["invalid"]
@@ -178,7 +178,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
 
     test "secret is too long", %{conn: conn} do
       declaration_request_params =
-        "../core/test/data/declaration_request.json"
+        "../core/test/data/v2/declaration_request.json"
         |> File.read!()
         |> Jason.decode!()
         |> put_in(~W(declaration_request person secret), "a very long secret value")
@@ -187,7 +187,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
-        |> post(declaration_request_path(conn, :create), declaration_request_params)
+        |> post(v2_declaration_request_post_path(conn, :create), declaration_request_params)
         |> json_response(422)
 
       assert %{
@@ -217,7 +217,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       end)
 
       declaration_request_params =
-        "../core/test/data/declaration_request.json"
+        "../core/test/data/v2/declaration_request.json"
         |> File.read!()
         |> Jason.decode!()
 
@@ -234,7 +234,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
-        |> post(declaration_request_path(conn, :create), declaration_request_params)
+        |> post(v2_declaration_request_post_path(conn, :create), declaration_request_params)
         |> json_response(422)
 
       assert %{
@@ -302,7 +302,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       end)
 
       declaration_request_params =
-        "../core/test/data/declaration_request.json"
+        "../core/test/data/v2/declaration_request.json"
         |> File.read!()
         |> Jason.decode!()
 
@@ -318,7 +318,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       conn
       |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
       |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
-      |> post(declaration_request_path(conn, :create), declaration_request_params)
+      |> post(v2_declaration_request_post_path(conn, :create), declaration_request_params)
       |> json_response(200)
     end
 
@@ -326,7 +326,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       gen_sequence_number()
 
       declaration_request_params =
-        "../core/test/data/declaration_request.json"
+        "../core/test/data/v2/declaration_request.json"
         |> File.read!()
         |> Jason.decode!()
         |> put_in(~W(declaration_request person authentication_methods), [%{"type" => "OTP"}])
@@ -337,7 +337,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
-        |> post(declaration_request_path(conn, :create), declaration_request_params)
+        |> post(v2_declaration_request_post_path(conn, :create), declaration_request_params)
 
       resp = json_response(conn, 422)
       assert [error] = resp["error"]["invalid"]
@@ -350,7 +350,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       phones = [%{"type" => "MOBILE", "number" => "+380508887700"}, %{"type" => "MOBILE", "number" => "+380508887700"}]
 
       declaration_request_params =
-        "../core/test/data/declaration_request.json"
+        "../core/test/data/v2/declaration_request.json"
         |> File.read!()
         |> Jason.decode!()
         |> put_in(~W(declaration_request person phones), phones)
@@ -359,7 +359,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
-        |> post(declaration_request_path(conn, :create), declaration_request_params)
+        |> post(v2_declaration_request_post_path(conn, :create), declaration_request_params)
 
       resp = json_response(conn, 422)
       assert [error] = resp["error"]["invalid"]
@@ -416,7 +416,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       end)
 
       params =
-        "../core/test/data/declaration_request.json"
+        "../core/test/data/v2/declaration_request.json"
         |> File.read!()
         |> Jason.decode!()
 
@@ -469,12 +469,12 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         conn
         |> put_req_header("x-consumer-id", employee_id)
         |> put_client_id_header(legal_entity_id)
-        |> post(declaration_request_path(conn, :create), params)
+        |> post(v2_declaration_request_post_path(conn, :create), params)
         |> json_response(200)
 
       id = resp["data"]["id"]
 
-      assert_show_response_schema(resp, "declaration_request")
+      assert_show_response_schema(resp, "declaration_request", "v2")
 
       assert to_string(Date.utc_today()) == resp["data"]["start_date"]
       assert {:ok, _} = Date.from_iso8601(resp["data"]["end_date"])
@@ -544,7 +544,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       end)
 
       declaration_request_params =
-        "../core/test/data/declaration_request.json"
+        "../core/test/data/v2/declaration_request.json"
         |> File.read!()
         |> Jason.decode!()
         |> put_in(~W(declaration_request person first_name), "Тест")
@@ -558,10 +558,10 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
-        |> post(declaration_request_path(conn, :create), Jason.encode!(declaration_request_params))
+        |> post(v2_declaration_request_post_path(conn, :create), Jason.encode!(declaration_request_params))
         |> json_response(200)
 
-      assert_show_response_schema(resp, "declaration_request")
+      assert_show_response_schema(resp, "declaration_request", "v2")
       assert to_string(Date.utc_today()) == resp["data"]["start_date"]
       assert {:ok, _} = Date.from_iso8601(resp["data"]["end_date"])
       # TODO: turn this into DB checks
@@ -642,7 +642,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       end)
 
       declaration_request_params =
-        "../core/test/data/declaration_request.json"
+        "../core/test/data/v2/declaration_request.json"
         |> File.read!()
         |> Jason.decode!()
 
@@ -652,6 +652,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         declaration_request_params
         |> get_in(~W(declaration_request person))
         |> Map.put("authentication_methods", [%{"type" => "OFFLINE"}])
+        |> Map.put("no_tax_id", true)
         |> Map.delete("tax_id")
 
       declaration_request_params = put_in(declaration_request_params, ~W(declaration_request person), person)
@@ -671,13 +672,86 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
-        |> post(declaration_request_path(conn, :create), Jason.encode!(declaration_request_params))
+        |> post(v2_declaration_request_post_path(conn, :create), Jason.encode!(declaration_request_params))
         |> json_response(200)
 
-      assert_show_response_schema(resp, "declaration_request")
+      assert_show_response_schema(resp, "declaration_request", "v2")
       assert "NEW" = resp["data"]["status"]
       assert "NEW" = Repo.get(DeclarationRequest, d1.id).status
       assert "CANCELLED" = Repo.get(DeclarationRequest, d2.id).status
+    end
+
+    test "declaration request failed for person without tax_id but no_tax_id=false", %{conn: conn} do
+      declaration_request_params =
+        "../core/test/data/v2/declaration_request.json"
+        |> File.read!()
+        |> Jason.decode!()
+
+      person =
+        declaration_request_params
+        |> get_in(~W(declaration_request person))
+        |> Map.put("authentication_methods", [%{"type" => "OFFLINE"}])
+        |> Map.put("no_tax_id", false)
+        |> Map.delete("tax_id")
+
+      declaration_request_params = put_in(declaration_request_params, ~W(declaration_request person), person)
+
+      resp =
+        conn
+        |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
+        |> post(v2_declaration_request_post_path(conn, :create), Jason.encode!(declaration_request_params))
+        |> json_response(422)
+
+      assert [
+               %{
+                 "entry" => "$.person.person.tax_id",
+                 "entry_type" => "json_data_property",
+                 "rules" => [
+                   %{
+                     "description" => "Only persons who refused the tax_id could be without tax_id",
+                     "params" => ["tax_id"],
+                     "rule" => "invalid"
+                   }
+                 ]
+               }
+             ] = resp["error"]["invalid"]
+    end
+
+    test "declaration request failed for person with tax_id but no_tax_id=true", %{conn: conn} do
+      declaration_request_params =
+        "../core/test/data/v2/declaration_request.json"
+        |> File.read!()
+        |> Jason.decode!()
+
+      person =
+        declaration_request_params
+        |> get_in(~W(declaration_request person))
+        |> Map.put("authentication_methods", [%{"type" => "OFFLINE"}])
+        |> Map.put("no_tax_id", true)
+
+      declaration_request_params = put_in(declaration_request_params, ~W(declaration_request person), person)
+
+      resp =
+        conn
+        |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
+        |> post(v2_declaration_request_post_path(conn, :create), Jason.encode!(declaration_request_params))
+        |> json_response(422)
+
+      assert [
+               %{
+                 "entry" => "$.person.person.tax_id",
+                 "entry_type" => "json_data_property",
+                 "rules" => [
+                   %{
+                     "description" => "Persons who refused the tax_id should be without tax_id",
+                     "params" => ["no_tax_id"],
+                     "rule" => "invalid"
+                   }
+                 ]
+               }
+             ] = resp["error"]["invalid"]
     end
 
     test "declaration request is created without verification", %{conn: conn} do
@@ -715,7 +789,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       end)
 
       declaration_request_params =
-        "../core/test/data/declaration_request.json"
+        "../core/test/data/v2/declaration_request.json"
         |> File.read!()
         |> Jason.decode!()
         |> put_in(["declaration_request", "person", "first_name"], "Тест")
@@ -732,13 +806,13 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
-        |> post("/api/declaration_requests", Jason.encode!(declaration_request_params))
+        |> post(v2_declaration_request_post_path(conn, :create), Jason.encode!(declaration_request_params))
 
       resp = json_response(conn, 200)
 
       id = resp["data"]["id"]
 
-      assert_show_response_schema(resp, "declaration_request")
+      assert_show_response_schema(resp, "declaration_request", "v2")
 
       assert to_string(Date.utc_today()) == resp["data"]["start_date"]
       assert {:ok, _} = Date.from_iso8601(resp["data"]["end_date"])
@@ -784,7 +858,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       )
 
       declaration_request_params =
-        "../core/test/data/declaration_request.json"
+        "../core/test/data/v2/declaration_request.json"
         |> File.read!()
         |> Jason.decode!()
         |> put_in(["declaration_request", "division_id"], "31506899-55a5-4011-b88c-10ba90c5e9bd")
@@ -796,7 +870,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         conn
         |> put_req_header("x-consumer-id", "b03f057f-aa84-4152-b6e5-3905ba821b66")
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "ec7b4900-d7bf-4794-98cd-0fd72f4321ec"}))
-        |> post(declaration_request_path(conn, :create), declaration_request_params)
+        |> post(v2_declaration_request_post_path(conn, :create), declaration_request_params)
 
       resp = json_response(conn, 422)
 
@@ -867,7 +941,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       end)
 
       declaration_request_params =
-        "../core/test/data/declaration_request.json"
+        "../core/test/data/v2/declaration_request.json"
         |> File.read!()
         |> Jason.decode!()
 
@@ -879,7 +953,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
                "x-consumer-metadata",
                Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"})
              )
-             |> post(declaration_request_path(conn, :create), declaration_request_params)
+             |> post(v2_declaration_request_post_path(conn, :create), declaration_request_params)
              |> json_response(200)
 
       declaration_request_params =
@@ -900,7 +974,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
           "x-consumer-metadata",
           Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"})
         )
-        |> post(declaration_request_path(conn, :create), declaration_request_params)
+        |> post(v2_declaration_request_post_path(conn, :create), declaration_request_params)
         |> json_response(422)
 
       assert resp["error"]["invalid"]
@@ -923,7 +997,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
           "x-consumer-metadata",
           Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"})
         )
-        |> post(declaration_request_path(conn, :create), declaration_request_params)
+        |> post(v2_declaration_request_post_path(conn, :create), declaration_request_params)
         |> json_response(422)
 
       assert resp["error"]["invalid"]
@@ -978,7 +1052,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       end)
 
       declaration_request =
-        "../core/test/data/declaration_request.json"
+        "../core/test/data/v2/declaration_request.json"
         |> File.read!()
         |> Jason.decode!()
 
@@ -1009,7 +1083,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
                "x-consumer-metadata",
                Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"})
              )
-             |> post(declaration_request_path(conn, :create), declaration_request_params)
+             |> post(v2_declaration_request_post_path(conn, :create), declaration_request_params)
              |> json_response(200)
 
       declaration_request_params =
@@ -1034,10 +1108,214 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
           "x-consumer-metadata",
           Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"})
         )
-        |> post(declaration_request_path(conn, :create), declaration_request_params)
+        |> post(v2_declaration_request_post_path(conn, :create), declaration_request_params)
         |> json_response(422)
 
       assert resp["error"]["invalid"]
+    end
+  end
+
+  describe "Declaration request v2 with unzr" do
+    setup %{conn: conn} do
+      insert(:prm, :global_parameter, %{parameter: "adult_age", value: "18"})
+      insert(:prm, :global_parameter, %{parameter: "declaration_term", value: "40"})
+      insert(:prm, :global_parameter, %{parameter: "declaration_term_unit", value: "YEARS"})
+
+      insert_dictionaries()
+
+      legal_entity = insert(:prm, :legal_entity, id: "8799e3b6-34e7-4798-ba70-d897235d2b6d")
+      insert(:prm, :medical_service_provider, legal_entity: legal_entity)
+      party = insert(:prm, :party, id: "ac6ca796-9cc8-4a8f-96f8-016dd52daac6")
+      insert(:prm, :party_user, party: party)
+      division = insert(:prm, :division, id: "51f56b0e-0223-49c1-9b5f-b07e09ba40f1", legal_entity: legal_entity)
+
+      doctor = Map.put(doctor(), "specialities", [%{speciality: "PEDIATRICIAN"}])
+
+      insert(
+        :prm,
+        :employee,
+        id: "ce377dea-d8c4-4dd8-9328-de24b1ee3879",
+        division: division,
+        party: party,
+        legal_entity: legal_entity,
+        additional_info: doctor
+      )
+
+      {:ok, %{conn: conn}}
+    end
+
+    test "document validation: id_card with unzr success", %{conn: conn} do
+      gen_sequence_number()
+      template()
+
+      expect(MPIMock, :search, fn params, _ ->
+        {:ok,
+         %{
+           "data" => [
+             params
+             |> Map.put("id", "b5350f79-f2ca-408f-b15d-1ae0a8cc861c")
+             |> Map.put("authentication_methods", [
+               %{"type" => "OTP", "phone_number" => "+380508887700"}
+             ])
+           ]
+         }}
+      end)
+
+      expect(OTPVerificationMock, :initialize, fn _number, _headers ->
+        {:ok, %{}}
+      end)
+
+      expect(OTPVerificationMock, :search, fn _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
+      role_id = UUID.generate()
+      expect(MithrilMock, :get_user_by_id, fn _, _ -> {:ok, %{"data" => %{"email" => "user@email.com"}}} end)
+
+      expect(MithrilMock, :get_roles_by_name, fn "DOCTOR", _headers ->
+        {:ok, %{"data" => [%{"id" => role_id}]}}
+      end)
+
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok,
+         %{
+           "data" => [
+             %{
+               "role_id" => role_id,
+               "user_id" => UUID.generate()
+             }
+           ]
+         }}
+      end)
+
+      expect(OPSMock, :get_latest_block, fn _params ->
+        {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
+      end)
+
+      uaddresses_mock_expect()
+
+      declaration_request_params =
+        "../core/test/data/v2/declaration_request.json"
+        |> File.read!()
+        |> Jason.decode!()
+
+      declaration_request_params =
+        declaration_request_params
+        |> put_in(
+          ["declaration_request", "person", "unzr"],
+          "#{String.replace(declaration_request_params["declaration_request"]["person"]["birth_date"], "-", "")}-01234"
+        )
+        |> put_in(["declaration_request", "person", "documents"], [
+          %{
+            type: "NATIONAL_ID",
+            number: "123456789",
+            issued_at: "2014-02-12",
+            issued_by: "Збухівський РО ГО МЖД"
+          },
+          %{
+            type: "BIRTH_CERTIFICATE",
+            number: "1234567"
+          }
+        ])
+
+      resp =
+        conn
+        |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
+        |> put_req_header(
+          "x-consumer-metadata",
+          Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"})
+        )
+        |> post(v2_declaration_request_post_path(conn, :create), declaration_request_params)
+        |> json_response(200)
+
+      assert resp["data"]
+    end
+
+    test "document validation: id_card without unzr", %{conn: conn} do
+      declaration_request_params =
+        "../core/test/data/v2/declaration_request.json"
+        |> File.read!()
+        |> Jason.decode!()
+        |> put_in(["declaration_request", "person", "documents"], [
+          %{
+            type: "NATIONAL_ID",
+            number: "123456789",
+            issued_at: "2014-02-12",
+            issued_by: "Збухівський РО ГО МЖД"
+          },
+          %{
+            type: "BIRTH_CERTIFICATE",
+            number: "1234567"
+          }
+        ])
+
+      resp =
+        conn
+        |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
+        |> put_req_header(
+          "x-consumer-metadata",
+          Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"})
+        )
+        |> post(v2_declaration_request_post_path(conn, :create), declaration_request_params)
+        |> json_response(422)
+
+      assert [
+               %{
+                 "entry" => "$.person.person",
+                 "entry_type" => "json_data_property",
+                 "rules" => [
+                   %{
+                     "description" => "unzr is mandatory for document type NATIONAL_ID",
+                     "params" => ["unzr"],
+                     "rule" => "invalid"
+                   }
+                 ]
+               }
+             ] = resp["error"]["invalid"]
+    end
+
+    test "document validation: id_card with invalid unzr", %{conn: conn} do
+      declaration_request_params =
+        "../core/test/data/v2/declaration_request.json"
+        |> File.read!()
+        |> Jason.decode!()
+        |> put_in(["declaration_request", "person", "unzr"], "invalid")
+        |> put_in(["declaration_request", "person", "documents"], [
+          %{
+            type: "NATIONAL_ID",
+            number: "123456789",
+            issued_at: "2014-02-12",
+            issued_by: "Збухівський РО ГО МЖД"
+          },
+          %{
+            type: "BIRTH_CERTIFICATE",
+            number: "1234567"
+          }
+        ])
+
+      resp =
+        conn
+        |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
+        |> put_req_header(
+          "x-consumer-metadata",
+          Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"})
+        )
+        |> post(v2_declaration_request_post_path(conn, :create), declaration_request_params)
+        |> json_response(422)
+
+      assert [
+               %{
+                 "entry" => "$.declaration_request.person.unzr",
+                 "entry_type" => "json_data_property",
+                 "rules" => [
+                   %{
+                     "description" => "string does not match pattern \"^[0-9]{8}-[0-9]{5}$\"",
+                     "params" => ["^[0-9]{8}-[0-9]{5}$"],
+                     "rule" => "format"
+                   }
+                 ]
+               }
+             ] = resp["error"]["invalid"]
     end
   end
 
@@ -1048,14 +1326,14 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
     end
 
     test "returns error if global parameters do not exist", %{conn: conn} do
-      declaration_request_params = File.read!("../core/test/data/declaration_request.json")
+      declaration_request_params = File.read!("../core/test/data/v2/declaration_request.json")
       uaddresses_mock_expect()
 
       conn =
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: ""}))
-        |> post(declaration_request_path(conn, :create), declaration_request_params)
+        |> post(v2_declaration_request_post_path(conn, :create), declaration_request_params)
 
       json_response(conn, 422)
     end
@@ -1075,7 +1353,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       wrong_id = "2f650a5c-7a04-4615-a1e7-00fa41bf160d"
 
       declaration_request_params =
-        "../core/test/data/declaration_request.json"
+        "../core/test/data/v2/declaration_request.json"
         |> File.read!()
         |> Jason.decode!()
         |> put_in(["declaration_request", "employee_id"], wrong_id)
@@ -1086,14 +1364,14 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: ""}))
-        |> post(declaration_request_path(conn, :create), Jason.encode!(declaration_request_params))
+        |> post(v2_declaration_request_post_path(conn, :create), Jason.encode!(declaration_request_params))
 
       resp = json_response(conn, 422)
 
       assert %{
                "meta" => %{
                  "code" => 422,
-                 "url" => "http://www.example.com/api/declaration_requests",
+                 "url" => "http://www.example.com/api/v2/declaration_requests",
                  "type" => "object",
                  "request_id" => _
                }
@@ -1108,7 +1386,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
     end
 
     test "validation error is returned", %{conn: conn} do
-      declaration_request_params = File.read!("../core/test/data/declaration_request.json")
+      declaration_request_params = File.read!("../core/test/data/v2/declaration_request.json")
 
       expect(UAddressesMock, :validate_addresses, fn _, _headers ->
         {:error,
@@ -1144,7 +1422,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: ""}))
-        |> post(declaration_request_path(conn, :create), declaration_request_params)
+        |> post(v2_declaration_request_post_path(conn, :create), declaration_request_params)
 
       assert resp = json_response(conn, 422)["error"]
 
@@ -1198,7 +1476,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
-        |> post(declaration_request_path(conn, :create), %{"declaration_request" => content})
+        |> post(v2_declaration_request_post_path(conn, :create), %{"declaration_request" => content})
 
       assert %{
                "error" => %{
@@ -1236,7 +1514,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
-        |> post(declaration_request_path(conn, :create), %{"declaration_request" => content})
+        |> post(v2_declaration_request_post_path(conn, :create), %{"declaration_request" => content})
 
       assert %{
                "error" => %{
@@ -1282,7 +1560,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
-        |> post(declaration_request_path(conn, :create), %{"declaration_request" => content})
+        |> post(v2_declaration_request_post_path(conn, :create), %{"declaration_request" => content})
 
       assert %{
                "error" => %{
@@ -1321,7 +1599,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
-        |> post(declaration_request_path(conn, :create), %{"declaration_request" => content})
+        |> post(v2_declaration_request_post_path(conn, :create), %{"declaration_request" => content})
 
       assert %{
                "error" => %{
@@ -1357,7 +1635,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
-        |> post(declaration_request_path(conn, :create), %{"declaration_request" => content})
+        |> post(v2_declaration_request_post_path(conn, :create), %{"declaration_request" => content})
 
       assert %{"error" => %{"invalid" => errors}} = json_response(conn, 422)
 
@@ -1437,7 +1715,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
   end
 
   defp get_declaration_request do
-    "../core/test/data/declaration_request.json"
+    "../core/test/data/v2/declaration_request.json"
     |> File.read!()
     |> Jason.decode!()
     |> Map.fetch!("declaration_request")

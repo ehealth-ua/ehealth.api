@@ -39,10 +39,6 @@
       "minLength": 10,
       "maxLength": 255
     },
-    "no_tax_id": {
-      "type": "boolean",
-      "description":  "Status person refused tax_id"
-    },
     "gender": {
       "type": "string",
       "description": "Dictionary: GENDER",
@@ -295,6 +291,10 @@
               "type": "string",
               "$ref": "#/definitions/tax_id"
             },
+            "no_tax_id": {
+              "type": "boolean",
+              "description":  "Status person refused tax_id"
+            },
             "unzr": {
               "type": "string",
               "$ref": "#/definitions/unzr"
@@ -522,7 +522,8 @@
             "authentication_methods",
             "emergency_contact",
             "patient_signed",
-            "process_disclosure_data_consent"
+            "process_disclosure_data_consent",
+            "no_tax_id"
           ],
           "additionalProperties": false,
           "description": "Object that described a Patient. Confidant person should be set for disabled persons, underage persons, etc."

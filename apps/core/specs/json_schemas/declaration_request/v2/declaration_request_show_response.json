@@ -1,0 +1,786 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "definitions": {
+    "document": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Dictionary: DOCUMENT_TYPE"
+        },
+        "number": {
+          "type": "string",
+          "minLength": 1
+        },
+        "issued_by": {
+          "type": "string",
+          "minLength": 1
+        },
+        "issued_at": {
+          "type": "string",
+          "format": "date"
+        }
+      },
+      "required": [
+        "type",
+        "number"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "type": "object",
+  "properties": {
+    "urgent": {
+      "type": "object",
+      "description": "Additional data."
+    },
+    "meta": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "number",
+          "description": "HTTP response code."
+        },
+        "url": {
+          "type": "string",
+          "description": "URL to requested resource."
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "object",
+            "list"
+          ],
+          "description": "Type of data that is located in `data` attribute."
+        },
+        "request_id": {
+          "type": "string",
+          "description": "[Request ID](http://docs.apimanifest.apiary.io/#introduction/interacting-with-api/request-id). Send it with `X-Request-ID` header."
+        }
+      },
+      "required": [
+        "code",
+        "url",
+        "type",
+        "request_id"
+      ],
+      "additionalProperties": false
+    },
+    "data": {
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "string"
+        },
+        "division": {
+          "additionalProperties": false,
+          "properties": {
+            "addresses": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "apartment": {
+                    "type": "string"
+                  },
+                  "area": {
+                    "type": "string"
+                  },
+                  "building": {
+                    "type": "string"
+                  },
+                  "country": {
+                    "type": "string"
+                  },
+                  "region": {
+                    "type": "string"
+                  },
+                  "settlement": {
+                    "type": "string"
+                  },
+                  "settlement_id": {
+                    "type": "string"
+                  },
+                  "settlement_type": {
+                    "type": "string",
+                    "description": "settlement type Dictionary: SETTLEMENT_TYPE"
+                  },
+                  "street": {
+                    "type": "string"
+                  },
+                  "street_type": {
+                    "type": "string",
+                    "description": "street type Dictionary: STREET_TYPE"
+                  },
+                  "type": {
+                    "type": "string"
+                  },
+                  "zip": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "building",
+                  "apartment",
+                  "street",
+                  "zip",
+                  "area",
+                  "country",
+                  "region",
+                  "settlement_type",
+                  "settlement_id",
+                  "street_type",
+                  "settlement",
+                  "type"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "email": {
+              "type": "string"
+            },
+            "external_id": {
+              "type": "string"
+            },
+            "id": {
+              "type": "string"
+            },
+            "legal_entity_id": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "phones": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "number": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "type",
+                  "number"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "type": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "addresses",
+            "phones",
+            "legal_entity_id",
+            "external_id",
+            "id",
+            "type",
+            "email",
+            "name"
+          ],
+          "type": "object"
+        },
+        "employee": {
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "party": {
+              "additionalProperties": false,
+              "properties": {
+                "email": {
+                  "type": "string"
+                },
+                "first_name": {
+                  "type": "string"
+                },
+                "id": {
+                  "type": "string"
+                },
+                "last_name": {
+                  "type": "string"
+                },
+                "phones": {
+                  "items": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "number": {
+                        "type": "string"
+                      },
+                      "type": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "type",
+                      "number"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "second_name": {
+                  "type": "string"
+                },
+                "tax_id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "first_name",
+                "last_name",
+                "phones",
+                "id",
+                "second_name",
+                "email"
+              ],
+              "type": "object"
+            },
+            "position": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "position",
+            "id",
+            "party"
+          ],
+          "type": "object"
+        },
+        "end_date": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "seed": {
+          "type": "string"
+        },
+        "declaration_id": {
+          "type": "string"
+        },
+        "legal_entity": {
+          "additionalProperties": false,
+          "properties": {
+            "accreditation": {
+              "additionalProperties": false,
+              "properties": {
+                "category": {
+                  "type": "string"
+                },
+                "expiry_date": {
+                  "type": "string"
+                },
+                "issued_date": {
+                  "type": "string"
+                },
+                "order_date": {
+                  "type": "string"
+                },
+                "order_no": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "category",
+                "order_date",
+                "expiry_date",
+                "issued_date",
+                "order_no"
+              ],
+              "type": "object"
+            },
+            "addresses": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "apartment": {
+                    "type": "string"
+                  },
+                  "area": {
+                    "type": "string"
+                  },
+                  "building": {
+                    "type": "string"
+                  },
+                  "country": {
+                    "type": "string"
+                  },
+                  "region": {
+                    "type": "string"
+                  },
+                  "settlement": {
+                    "type": "string"
+                  },
+                  "settlement_id": {
+                    "type": "string"
+                  },
+                  "settlement_type": {
+                    "type": "string",
+                    "description": "settlement type Dictionary: SETTLEMENT_TYPE"
+                  },
+                  "street": {
+                    "type": "string"
+                  },
+                  "street_type": {
+                    "type": "string",
+                    "description": "street type Dictionary: STREET_TYPE"
+                  },
+                  "type": {
+                    "type": "string"
+                  },
+                  "zip": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "building",
+                  "apartment",
+                  "street",
+                  "zip",
+                  "area",
+                  "country",
+                  "region",
+                  "settlement_type",
+                  "settlement_id",
+                  "street_type",
+                  "settlement",
+                  "type"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "edrpou": {
+              "type": "string"
+            },
+            "email": {
+              "type": "string"
+            },
+            "id": {
+              "type": "string"
+            },
+            "legal_form": {
+              "type": "string"
+            },
+            "licenses": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "active_from_date": {
+                    "type": "string"
+                  },
+                  "expiry_date": {
+                    "type": "string"
+                  },
+                  "issued_by": {
+                    "type": "string"
+                  },
+                  "issued_date": {
+                    "type": "string"
+                  },
+                  "license_number": {
+                    "type": "string"
+                  },
+                  "what_licensed": {
+                    "type": "string"
+                  },
+                  "order_no": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "license_number",
+                  "issued_by",
+                  "active_from_date",
+                  "expiry_date",
+                  "what_licensed",
+                  "issued_date",
+                  "order_no"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "name": {
+              "type": "string"
+            },
+            "phones": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "number": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "type",
+                  "number"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "public_name": {
+              "type": "string"
+            },
+            "short_name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "short_name",
+            "accreditation",
+            "phones",
+            "id",
+            "legal_form",
+            "edrpou",
+            "public_name",
+            "licenses",
+            "email",
+            "addresses"
+          ],
+          "type": "object"
+        },
+        "person": {
+          "additionalProperties": false,
+          "properties": {
+            "addresses": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "apartment": {
+                    "type": "string"
+                  },
+                  "area": {
+                    "type": "string"
+                  },
+                  "building": {
+                    "type": "string"
+                  },
+                  "country": {
+                    "type": "string"
+                  },
+                  "region": {
+                    "type": "string"
+                  },
+                  "settlement": {
+                    "type": "string"
+                  },
+                  "settlement_id": {
+                    "type": "string"
+                  },
+                  "settlement_type": {
+                    "type": "string",
+                    "description": "settlement type Dictionary: SETTLEMENT_TYPE"
+                  },
+                  "street": {
+                    "type": "string"
+                  },
+                  "street_type": {
+                    "type": "string",
+                    "description": "street type Dictionary: STREET_TYPE"
+                  },
+                  "type": {
+                    "type": "string"
+                  },
+                  "zip": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "building",
+                  "apartment",
+                  "street",
+                  "zip",
+                  "area",
+                  "country",
+                  "region",
+                  "settlement_type",
+                  "settlement_id",
+                  "street_type",
+                  "settlement",
+                  "type"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "authentication_methods": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "phone_number": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "type"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "birth_country": {
+              "type": "string"
+            },
+            "birth_date": {
+              "type": "string"
+            },
+            "birth_settlement": {
+              "type": "string"
+            },
+            "confidant_person": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "secret": {
+                    "type": "string"
+                  },
+                  "birth_country": {
+                    "type": "string"
+                  },
+                  "birth_date": {
+                    "type": "string"
+                  },
+                  "birth_settlement": {
+                    "type": "string"
+                  },
+                  "documents_person": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/document"
+                    }
+                  },
+                  "documents_relationship": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/document"
+                    }
+                  },
+                  "first_name": {
+                    "type": "string"
+                  },
+                  "gender": {
+                    "type": "string"
+                  },
+                  "last_name": {
+                    "type": "string"
+                  },
+                  "phones": {
+                    "items": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "number": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "number"
+                      ],
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "relation_type": {
+                    "type": "string"
+                  },
+                  "second_name": {
+                    "type": "string"
+                  },
+                  "tax_id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "phones",
+                  "first_name",
+                  "last_name",
+                  "gender",
+                  "relation_type",
+                  "documents_person",
+                  "documents_relationship",
+                  "birth_country",
+                  "birth_settlement",
+                  "birth_date",
+                  "second_name",
+                  "tax_id"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "documents": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/document"
+              }
+            },
+            "email": {
+              "type": "string"
+            },
+            "emergency_contact": {
+              "additionalProperties": false,
+              "properties": {
+                "first_name": {
+                  "type": "string"
+                },
+                "last_name": {
+                  "type": "string"
+                },
+                "phones": {
+                  "items": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "number": {
+                        "type": "string"
+                      },
+                      "type": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "type",
+                      "number"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "second_name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "phones",
+                "first_name",
+                "last_name",
+                "second_name"
+              ],
+              "type": "object"
+            },
+            "first_name": {
+              "type": "string"
+            },
+            "gender": {
+              "type": "string"
+            },
+            "last_name": {
+              "type": "string"
+            },
+            "patient_signed": {
+              "type": "boolean"
+            },
+            "phones": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "number": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "type",
+                  "number"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "second_name": {
+              "type": "string"
+            },
+            "secret": {
+              "type": "string"
+            },
+            "process_disclosure_data_consent": {
+              "type": "boolean"
+            },
+            "tax_id": {
+              "type": "string"
+            },
+            "no_tax_id": {
+              "type": "boolean",
+              "description":  "Status person refused tax_id"
+            },
+            "invalid_tax_id": {
+              "type": "boolean"
+            },
+            "preferred_way_communication": {
+              "type": "string",
+              "enum": [
+                "email",
+                "phone"
+              ]
+            }
+          },
+          "required": [
+            "phones",
+            "first_name",
+            "last_name",
+            "patient_signed",
+            "addresses",
+            "process_disclosure_data_consent",
+            "emergency_contact",
+            "gender",
+            "email",
+            "authentication_methods",
+            "secret",
+            "documents",
+            "confidant_person",
+            "birth_country",
+            "birth_settlement",
+            "birth_date",
+            "second_name"
+          ],
+          "type": "object"
+        },
+        "scope": {
+          "type": "string"
+        },
+        "start_date": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "division",
+        "end_date",
+        "start_date",
+        "content",
+        "person",
+        "employee",
+        "scope",
+        "seed",
+        "declaration_id",
+        "legal_entity",
+        "status",
+        "id"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

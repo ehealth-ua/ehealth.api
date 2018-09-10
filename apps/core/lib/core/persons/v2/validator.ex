@@ -1,4 +1,4 @@
-defmodule Core.Persons.Validator do
+defmodule Core.Persons.V2.Validator do
   @moduledoc "Additional validation of Person request structure that cannot be covered by JSON Schema"
 
   alias Core.ValidationError
@@ -11,7 +11,10 @@ defmodule Core.Persons.Validator do
   @birth_certificate_number_regex ~r/^([A-Za-zА-яіІїЇєЄґҐё\d\#\№\–\-\—\－\_\'\,\s\/\\\=\|\!\<\;\?\%\:\]\*\+\.\√])+$/u
 
   def validate(person) do
-    with :ok <- validate_birth_certificate_number(person),
+    with :ok <- validate_tax_id(person),
+         :ok <- validate_unzr(person),
+         :ok <- validate_national_id(person),
+         :ok <- validate_birth_certificate_number(person),
          :ok <- JsonObjects.array_unique_by_key(person, ["documents"], "type"),
          :ok <- validate_person_phones(person),
          :ok <- JsonObjects.array_unique_by_key(person, ["emergency_contact", "phones"], "type"),
@@ -67,6 +70,68 @@ defmodule Core.Persons.Validator do
   end
 
   def validate_birth_date(nil, _), do: :ok
+
+  def validate_tax_id(%{"no_tax_id" => false, "tax_id" => tax_id}) when not is_nil(tax_id), do: :ok
+
+  def validate_tax_id(%{"no_tax_id" => true} = person) do
+    if is_nil(Map.get(person, "tax_id")) do
+      :ok
+    else
+      %ValidationError{
+        description: "Persons who refused the tax_id should be without tax_id",
+        params: ["no_tax_id"],
+        path: "$.person.tax_id"
+      }
+    end
+  end
+
+  def validate_tax_id(_person),
+    do: %ValidationError{
+      description: "Only persons who refused the tax_id could be without tax_id",
+      params: ["tax_id"],
+      path: "$.person.tax_id"
+    }
+
+  def validate_unzr(%{"birth_date" => birth_date, "unzr" => unzr}) do
+    bdate = String.replace(birth_date, "-", "")
+
+    if Regex.match?(~r/^(#{bdate}-\d{5})$/ui, unzr) do
+      :ok
+    else
+      %ValidationError{
+        description: "Birthdate or unzr is not correct",
+        params: ["unzr"],
+        path: "$.person.unzr"
+      }
+    end
+  end
+
+  def validate_unzr(_), do: :ok
+
+  def validate_national_id(%{} = person) do
+    national_id =
+      person
+      |> Map.get("documents", [])
+      |> Enum.find(fn
+        %{"type" => "NATIONAL_ID"} = national_id ->
+          national_id
+
+        _ ->
+          nil
+      end)
+
+    unzr? = Map.has_key?(person, "unzr")
+
+    if !national_id or unzr? do
+      :ok
+    else
+      %ValidationError{
+        description: "unzr is mandatory for document type NATIONAL_ID",
+        params: ["unzr"],
+        path: "$.person"
+      }
+    end
+  end
 
   def validate_birth_certificate_number(%{} = person) do
     age = Timex.diff(Timex.now(), Date.from_iso8601!(person["birth_date"]), :years)

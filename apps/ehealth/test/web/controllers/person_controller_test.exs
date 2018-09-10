@@ -220,6 +220,35 @@ defmodule EHealth.Web.PersonControllerTest do
       assert expected_keys == Map.keys(hd(response["data"]))
     end
 
+    test "success search with unzr", %{conn: conn} do
+      expect(MPIMock, :search, fn params, _headers ->
+        get_persons(params)
+      end)
+
+      conn =
+        get(conn, person_path(conn, :search_persons), %{
+          unzr: "19930823-01234",
+          birth_date: "1990-01-01",
+          first_name: "string",
+          last_name: "string"
+        })
+
+      assert response = json_response(conn, 200)
+      assert 1 == Enum.count(response["data"])
+      expected_keys = ~w(
+        birth_country
+        birth_date
+        birth_settlement
+        first_name
+        id
+        last_name
+        merged_ids
+        second_name
+        unzr
+        )
+      assert expected_keys == Map.keys(hd(response["data"]))
+    end
+
     test "invalid phone number", %{conn: conn} do
       conn =
         get(conn, person_path(conn, :search_persons), %{

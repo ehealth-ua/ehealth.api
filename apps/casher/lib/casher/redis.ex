@@ -23,8 +23,7 @@ defmodule Casher.Redis do
   end
 
   @spec set(binary, term) :: :ok | {:error, binary}
-  def set(key, value) when is_binary(key) and value != nil,
-    do: do_set(["SET", key, encode(value)])
+  def set(key, value) when is_binary(key) and value != nil, do: do_set(["SET", key, encode(value)])
 
   @spec setex(binary, term, pos_integer) :: :ok | {:error, binary}
   def setex(key, ttl_seconds, value) when is_binary(key) and is_integer(ttl_seconds) and value != nil,

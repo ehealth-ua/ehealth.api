@@ -7,9 +7,10 @@ defmodule Core.Cabinet.API do
   alias Core.Bamboo.Emails.Sender
   alias Core.Cabinet.Requests.Registration
   alias Core.Cabinet.Requests.UserSearch
+  alias Core.DeclarationRequests.API.Persons
   alias Core.Guardian
   alias Core.Man.Templates.EmailVerification
-  alias Core.Persons.Validator, as: PersonValidator
+  alias Core.Persons.Validator, as: PersonsValidator
   alias Core.ValidationError
   alias Core.Validators.Addresses
   alias Core.Validators.Error
@@ -25,7 +26,6 @@ defmodule Core.Cabinet.API do
   @otp_verification_api Application.get_env(:core, :api_resolvers)[:otp_verification]
 
   @person_active "active"
-  @addresses_types ~w(REGISTRATION RESIDENCE)
   @authentication_otp "OTP"
 
   def create_patient(jwt, params, headers) do
@@ -35,16 +35,19 @@ defmodule Core.Cabinet.API do
            SignatureValidator.validate(params["signed_content"], params["signed_content_encoding"], headers),
          :ok <- verify_auth(content, changes, headers),
          :ok <- JsonSchema.validate(:person, content),
-         :ok <- PersonValidator.validate_birth_date(content["birth_date"], "$.birth_date"),
-         :ok <- PersonValidator.validate_addresses_types(content["addresses"], @addresses_types),
-         :ok <- Addresses.validate(content["addresses"], headers),
+         :ok <- PersonsValidator.validate_birth_date(content["birth_date"], "$.birth_date"),
+         :ok <- Addresses.validate(content["addresses"], "RESIDENCE", headers),
          {:ok, tax_id} <- validate_tax_id(content, signer),
          :ok <- validate_first_name(content, signer),
          :ok <- validate_last_name(content, signer),
          :ok <- validate_email(content, email),
          {:ok, %{"data" => mpi_person}} <-
            @mpi_api.search(
-             %{"tax_id" => tax_id, "birth_date" => content["birth_date"], "status" => @person_active},
+             Persons.get_search_params(%{
+               "tax_id" => tax_id,
+               "birth_date" => content["birth_date"],
+               "unzr" => content["unzr"]
+             }),
              headers
            ),
          {:ok, %{"data" => user_data}} <- @mithril_api.search_user(%{email: email}, headers),

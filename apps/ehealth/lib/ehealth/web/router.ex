@@ -204,6 +204,10 @@ defmodule EHealthWeb.Router do
       patch("/:id/actions/sign", DeclarationRequestController, :sign)
     end
 
+    scope "/v2" do
+      post("/declaration_requests", V2.DeclarationRequestController, :create, as: :v2_declaration_request_post)
+    end
+
     post("/declaration_requests", DeclarationRequestController, :create)
     patch("/declaration_requests/:id/actions/approve", DeclarationRequestController, :approve)
     patch("/declaration_requests/:id/actions/reject", DeclarationRequestController, :reject)

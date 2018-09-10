@@ -237,11 +237,15 @@ defmodule EHealth.Web.DivisionsControllerTest do
     division = Map.put(get_division(), "addresses", [%{address | "type" => "REGISTRATION"}])
 
     legal_entity = insert(:prm, :legal_entity)
-    conn = put_client_id_header(conn, legal_entity.id)
-    conn = post(conn, division_path(conn, :create), division)
 
-    assert [%{"rules" => [%{"description" => decription}]}] = json_response(conn, 422)["error"]["invalid"]
-    assert "Single address of type 'RESIDENCE' is required" == decription
+    resp =
+      conn
+      |> put_client_id_header(legal_entity.id)
+      |> post(division_path(conn, :create), division)
+      |> json_response(422)
+
+    assert [%{"rules" => [%{"description" => decription}]}] = resp["error"]["invalid"]
+    assert "Addresses with type RESIDENCE should be present" == decription
   end
 
   test "create division without type and phone number", %{conn: conn} do

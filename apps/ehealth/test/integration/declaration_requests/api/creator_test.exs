@@ -86,23 +86,8 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
           birth_settlement: "Вінниця",
           birth_country: "Україна",
           tax_id: "3126509816",
+          unzr: "––",
           addresses: %{
-            registration: %{
-              full_address:
-                "Житомирська область, Бердичівський район, місто Київ, вулиця Ніжинська 15, квартира 23, 02090",
-              zip: "02090",
-              type: "REGISTRATION",
-              street_type: "вулиця",
-              street: "Ніжинська",
-              settlement_type: "місто",
-              settlement_id: "43432432",
-              settlement: "Київ",
-              region: "Бердичівський",
-              country: "UA",
-              building: "15",
-              area: "Житомирська",
-              apartment: "23"
-            },
             residence: %{
               full_address: "Житомирська область, Бердичівський район, місто Київ, вулиця Ніжинська 16, квартира 41, \
 02090",
@@ -181,7 +166,6 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
               }
             }
           },
-          national_id: "––",
           preferred_way_communication: "––"
         },
         employee: %{
@@ -214,8 +198,8 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
           full_name: "Клініка Борис",
           addresses: %{
             registration: %{
-              full_address: "Житомирська область, Бердичівський район, місто Київ, вулиця Ніжинська 15, квартира 23, \
-02090"
+              full_address:
+                "Житомирська область, Бердичівський район, місто Київ, вулиця Ніжинська 15, квартира 23, 02090"
             }
           },
           edrpou: "5432345432",
@@ -306,10 +290,8 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
           birth_settlement: "",
           birth_country: "",
           tax_id: "––",
+          unzr: "––",
           addresses: %{
-            registration: %{
-              full_address: ""
-            },
             residence: %{
               full_address: ""
             }
@@ -329,8 +311,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
             primary: %{},
             secondary: %{}
           },
-          preferred_way_communication: "––",
-          national_id: "––"
+          preferred_way_communication: "––"
         },
         employee: %{
           full_name: "",

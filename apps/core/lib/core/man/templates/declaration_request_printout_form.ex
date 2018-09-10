@@ -71,7 +71,7 @@ defmodule Core.Man.Templates.DeclarationRequestPrintoutForm do
       confidant_person: get_confidant_persons(person),
       preferred_way_communication:
         get_preferred_way_communication(Map.get(person, "preferred_way_communication") || "––"),
-      national_id: Map.get(person, "national_id") || "––"
+      unzr: Map.get(person, "unzr") || "––"
     }
   end
 
@@ -122,33 +122,17 @@ defmodule Core.Man.Templates.DeclarationRequestPrintoutForm do
   end
 
   defp get_person_addresses(person) do
-    addresses = Map.get(person, "addresses") || []
-    registration_address = Enum.find(addresses, %{}, fn address -> Map.get(address, "type") == "REGISTRATION" end)
-    residence_address = Enum.find(addresses, %{}, fn address -> Map.get(address, "type") == "RESIDENCE" end)
-
-    full_registration_address =
-      case registration_address do
-        nil -> ""
-        address -> AddressMerger.merge_address(address)
-      end
-
-    full_residence_address =
-      case residence_address do
-        nil -> ""
-        address -> AddressMerger.merge_address(address)
-      end
+    residence_address =
+      person
+      |> Map.get("addresses")
+      |> get_address_by_type("RESIDENCE")
 
     %{
-      registration:
-        registration_address
-        |> Map.put("full_address", full_registration_address)
-        |> update_street_type
-        |> update_settlement_type,
       residence:
         residence_address
-        |> Map.put("full_address", full_residence_address)
-        |> update_street_type
-        |> update_settlement_type
+        |> Map.put("full_address", AddressMerger.merge_address(residence_address))
+        |> update_street_type()
+        |> update_settlement_type()
     }
   end
 
@@ -231,8 +215,10 @@ defmodule Core.Man.Templates.DeclarationRequestPrintoutForm do
   end
 
   defp get_division_addresses(division) do
-    addresses = Map.get(division, "addresses") || []
-    residence_address = Enum.find(addresses, %{}, fn address -> Map.get(address, "type") == "RESIDENCE" end)
+    residence_address =
+      division
+      |> Map.get("addresses")
+      |> get_address_by_type("RESIDENCE")
 
     full_street =
       case residence_address do
@@ -242,7 +228,10 @@ defmodule Core.Man.Templates.DeclarationRequestPrintoutForm do
 
     %{
       residence:
-        residence_address |> Map.put("full_street", full_street) |> update_street_type() |> update_settlement_type()
+        residence_address
+        |> Map.put("full_street", full_street)
+        |> update_street_type()
+        |> update_settlement_type()
     }
   end
 
@@ -290,18 +279,13 @@ defmodule Core.Man.Templates.DeclarationRequestPrintoutForm do
   end
 
   defp get_legal_entity_addresses(legal_entity) do
-    addresses = Map.get(legal_entity, "addresses") || []
-    registration_address = Enum.find(addresses, fn address -> Map.get(address, "type") == "REGISTRATION" end)
-
-    full_address =
-      case registration_address do
-        nil -> ""
-        address -> AddressMerger.merge_address(address)
-      end
-
     %{
       registration: %{
-        full_address: full_address
+        "full_address" =>
+          legal_entity
+          |> Map.get("addresses")
+          |> get_address_by_type("REGISTRATION")
+          |> AddressMerger.merge_address()
       }
     }
   end
@@ -357,5 +341,17 @@ defmodule Core.Man.Templates.DeclarationRequestPrintoutForm do
     else
       _ -> value
     end
+  end
+
+  defp get_address_by_type(nil, _), do: %{}
+
+  defp get_address_by_type(addresses, address_type) do
+    Enum.find(addresses, %{}, fn
+      %{"type" => ^address_type} ->
+        true
+
+      _ ->
+        false
+    end)
   end
 end

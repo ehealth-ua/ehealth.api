@@ -356,7 +356,7 @@ defmodule Core.DeclarationRequests.API.CreatorTest do
       assert [] = result.errors
     end
 
-    test "when there are more than one REGISTRATION address" do
+    test "when there are more than one REGISTRATION address and no RESIDENCE" do
       raw_declaration_request = %{
         data: %{
           "person" => %{
@@ -373,10 +373,10 @@ defmodule Core.DeclarationRequests.API.CreatorTest do
         |> Ecto.Changeset.change(raw_declaration_request)
         |> Creator.validate_person_addresses()
 
-      assert ["data.person.addresses": {"one and only one registration address is required", []}] = result.errors
+      assert ["data.person.addresses": {"one and only one residence address is required", []}] = result.errors
     end
 
-    test "when there no REGISTRATION address" do
+    test "when there no REGISTRATION address, RESIDENCE required" do
       raw_declaration_request = %{
         data: %{
           "person" => %{
@@ -390,7 +390,7 @@ defmodule Core.DeclarationRequests.API.CreatorTest do
         |> Ecto.Changeset.change(raw_declaration_request)
         |> Creator.validate_person_addresses()
 
-      assert ["data.person.addresses": {"one and only one registration address is required", []}] = result.errors
+      assert ["data.person.addresses": {"one and only one residence address is required", []}] = result.errors
     end
 
     test "when there are more than one RESIDENCE address" do
