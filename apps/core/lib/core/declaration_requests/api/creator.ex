@@ -16,7 +16,7 @@ defmodule Core.DeclarationRequests.API.Creator do
   alias Core.GlobalParameters
   alias Core.Man.Templates.DeclarationRequestPrintoutForm
   alias Core.PartyUsers
-  alias Core.Persons.Validator, as: PersonValidator
+  alias Core.Persons.Validator, as: PersonsValidator
   alias Core.Repo
   alias Core.Utils.NumberGenerator
   alias Core.Utils.Phone
@@ -420,7 +420,7 @@ defmodule Core.DeclarationRequests.API.Creator do
       result =
         data
         |> get_in(["person", "authentication_methods"])
-        |> PersonValidator.validate_authentication_method_phone_number(headers)
+        |> PersonsValidator.validate_authentication_method_phone_number(headers)
 
       case result do
         :ok -> []
@@ -448,13 +448,9 @@ defmodule Core.DeclarationRequests.API.Creator do
       |> get_field(:data)
       |> get_in(["person", "addresses"])
 
-    with :ok <- assert_address_count(addresses, "REGISTRATION", 1),
-         :ok <- assert_address_count(addresses, "RESIDENCE", 1) do
+    with :ok <- assert_address_count(addresses, "RESIDENCE", 1) do
       changeset
     else
-      {:error, "REGISTRATION"} ->
-        add_error(changeset, :"data.person.addresses", "one and only one registration address is required")
-
       {:error, "RESIDENCE"} ->
         add_error(changeset, :"data.person.addresses", "one and only one residence address is required")
     end
@@ -664,9 +660,8 @@ defmodule Core.DeclarationRequests.API.Creator do
 
   def determine_auth_method_for_mpi(changeset, _, _) do
     data = get_field(changeset, :data)
-    search_params = Persons.get_search_params(data["person"])
 
-    case @mpi_api.search(search_params, []) do
+    case @mpi_api.search(Persons.get_search_params(data["person"]), []) do
       {:ok, %{"data" => [person]}} ->
         do_determine_auth_method_for_mpi(person, changeset)
 

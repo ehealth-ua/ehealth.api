@@ -1,5 +1,6 @@
 defmodule Core.DeclarationRequests.API.Persons do
   @moduledoc false
+  @person_active "active"
 
   def get_search_params(person_data) do
     birth_date = person_data["birth_date"]
@@ -27,7 +28,13 @@ defmodule Core.DeclarationRequests.API.Persons do
           }
       end
 
-    Map.put(search_params, "status", "active")
+    search_params = Map.put(search_params, "status", @person_active)
+
+    if person_data["unzr"] do
+      Map.put(search_params, "unzr", person_data["unzr"])
+    else
+      search_params
+    end
   end
 
   defp get_birth_certificate(nil), do: nil

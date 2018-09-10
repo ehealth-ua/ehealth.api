@@ -584,7 +584,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
                |> get_in(~w(error message))
     end
 
-    test "invalid adresses types", %{conn: conn, params: params, jwt: jwt} do
+    test "invalid adresses types with 2 RESIDENCE", %{conn: conn, params: params, jwt: jwt} do
       use SignatureExpect
 
       signed_content =
@@ -596,12 +596,72 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => []}}
       end)
 
-      assert "Addresses with types REGISTRATION, RESIDENCE should be present" ==
-               conn
-               |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
-               |> post(cabinet_auth_path(conn, :registration), params)
-               |> json_response(422)
-               |> get_in(~w(error message))
+      resp =
+        conn
+        |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
+        |> post(cabinet_auth_path(conn, :registration), params)
+        |> json_response(422)
+
+      assert [
+               %{
+                 "entry" => "$.addresses",
+                 "rules" => [
+                   %{
+                     "description" => "Single address of type 'RESIDENCE' is required, got: 2"
+                   }
+                 ]
+               }
+             ] = resp["error"]["invalid"]
+    end
+
+    test "invalid adresses types with no RESIDENCE", %{conn: conn, params: params, jwt: jwt} do
+      use SignatureExpect
+
+      signed_content =
+        "../core/test/data/cabinet/patient-invalid-addresses-types.json"
+        |> File.read!()
+        |> Jason.decode!()
+        |> Map.put("addresses", [
+          %{
+            "apartment" => "23",
+            "area" => "Житомирська",
+            "building" => "15",
+            "country" => "UA",
+            "region" => "Бердичівський",
+            "settlement" => "Київ",
+            "settlement_id" => "079e1326-3b60-4253-94d3-9f8f13a9fa40",
+            "settlement_type" => "CITY",
+            "street" => "вул. Ніжинська",
+            "street_type" => "STREET",
+            "type" => "__",
+            "zip" => "02090"
+          }
+        ])
+        |> Jason.encode!()
+        |> Base.encode64()
+
+      params = Map.put(params, :signed_content, signed_content)
+
+      expect(OTPVerificationMock, :complete, fn _, _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
+      resp =
+        conn
+        |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
+        |> post(cabinet_auth_path(conn, :registration), params)
+        |> json_response(422)
+
+      [
+        %{
+          "entry" => "$.addresses",
+          "rules" => [
+            %{
+              "description" => "Addresses with type RESIDENCE should be present"
+            }
+          ]
+        }
+      ] = resp["error"]["invalid"]
     end
 
     test "MPI persons duplicated", %{conn: conn, params: params, jwt: jwt} do

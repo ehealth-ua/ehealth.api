@@ -30,6 +30,12 @@ defmodule Core.Validators.JsonSchema do
   use_schema(:medication_dispense, "specs/json_schemas/medication_dispense/medication_dispense_create_request.json")
   use_schema(:medical_program, "specs/json_schemas/medical_program/medical_program_create_request.json")
   use_schema(:declaration_request, "specs/json_schemas/declaration_request/declaration_request_create_request.json")
+
+  use_schema(
+    :declaration_request_v2,
+    "specs/json_schemas/declaration_request/v2/declaration_request_create_request.json"
+  )
+
   use_schema(:division, "specs/json_schemas/division/division_create_request.json")
   use_schema(:employee_request, "specs/json_schemas/employee_request/employee_request_create_request.json")
   use_schema(:employee_request_sign, "specs/json_schemas/employee_request/employee_request_sign.json")

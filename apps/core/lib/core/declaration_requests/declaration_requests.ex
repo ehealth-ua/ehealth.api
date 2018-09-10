@@ -17,6 +17,7 @@ defmodule Core.DeclarationRequests do
   alias Core.LegalEntities
   alias Core.LegalEntities.LegalEntity
   alias Core.Persons.Validator, as: PersonsValidator
+  alias Core.Persons.V2.Validator, as: PersonsValidatorV2
   alias Core.Repo
   alias Core.Validators.Addresses
   alias Core.Validators.JsonSchema
@@ -63,6 +64,7 @@ defmodule Core.DeclarationRequests do
     second_name
     secret
     tax_id
+    unzr
   )
 
   def list(params) do
@@ -181,15 +183,14 @@ defmodule Core.DeclarationRequests do
 
   defp filter_by_legal_entity_id(query, _), do: query
 
-  def create_offline(params, headers) do
+  def create_offline(params, headers, api_version \\ :v1) do
     user_id = get_consumer_id(headers)
     client_id = get_client_id(headers)
 
-    # TODO: double check user_id/client_id has access to create given employee/legal_entity
-    with :ok <- JsonSchema.validate(:declaration_request, %{"declaration_request" => params}),
+    with :ok <- validate_schema(api_version, params),
          params <- lowercase_email(params),
-         :ok <- PersonsValidator.validate(params["person"]),
-         :ok <- Addresses.validate(get_in(params, ["person", "addresses"]), "REGISTRATION", headers),
+         :ok <- validate_person(api_version, params["person"]),
+         :ok <- Addresses.validate(get_in(params, ["person", "addresses"]), "RESIDENCE", headers),
          {:ok, %Employee{} = employee} <-
            Reference.validate(:employee, params["employee_id"], "$.declaration_request.employee_id"),
          :ok <- Creator.validate_employee_status(employee),
@@ -211,7 +212,7 @@ defmodule Core.DeclarationRequests do
          {:ok, %{"data" => user}} <- @mithril_api.get_user_by_id(user_id, headers),
          :ok <- check_user_person_id(user, params["person_id"]),
          {:ok, person} <- Reference.validate(:person, params["person_id"]),
-         :ok <- PersonsValidator.validate(person),
+         :ok <- validate_person(:v2, person),
          {:ok, %Employee{} = employee} <- Reference.validate(:employee, params["employee_id"]),
          :ok <- Creator.validate_employee_status(employee),
          :ok <- Creator.validate_employee_speciality(employee),
@@ -263,4 +264,12 @@ defmodule Core.DeclarationRequests do
   end
 
   defp validate_channel(_, _), do: :ok
+
+  def validate_schema(:v1, params), do: JsonSchema.validate(:declaration_request, %{"declaration_request" => params})
+
+  def validate_schema(:v2, params), do: JsonSchema.validate(:declaration_request_v2, %{"declaration_request" => params})
+
+  defp validate_person(:v1, person), do: PersonsValidator.validate(person)
+
+  defp validate_person(:v2, person), do: PersonsValidatorV2.validate(person)
 end

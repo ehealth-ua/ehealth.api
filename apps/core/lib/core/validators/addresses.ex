@@ -23,12 +23,18 @@ defmodule Core.Validators.Addresses do
       |> length()
 
     case addresses_count do
+      0 ->
+        Error.dump(%ValidationError{
+          description: "Addresses with type #{required_type} should be present",
+          path: "$.addresses"
+        })
+
       1 ->
         :ok
 
-      _ ->
+      n ->
         Error.dump(%ValidationError{
-          description: "Single address of type '#{required_type}' is required",
+          description: "Single address of type '#{required_type}' is required, got: #{n}",
           path: "$.addresses"
         })
     end

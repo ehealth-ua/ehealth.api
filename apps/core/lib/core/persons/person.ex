@@ -15,7 +15,7 @@ defmodule Core.Persons.Person do
     field(:gender, :string)
     field(:email, :string)
     field(:tax_id, :string)
-    field(:national_id, :string)
+    field(:unzr, :string)
     field(:death_date, :date)
     field(:preferred_way_communication, :string)
     field(:invalid_tax_id, :boolean, default: false)
@@ -58,7 +58,7 @@ defmodule Core.Persons.Person do
     second_name
     email
     tax_id
-    national_id
+    unzr
     death_date
     preferred_way_communication
     invalid_tax_id

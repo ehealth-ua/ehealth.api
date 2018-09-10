@@ -10,17 +10,18 @@ defmodule Core.Persons do
   alias Core.Validators.Addresses
   alias Core.Validators.Error
   alias Core.Validators.JsonSchema
-  alias Core.Persons.Validator, as: PersonValidator
+  alias Core.Persons.Validator, as: PersonsValidator
   alias Core.Validators.Signature, as: SignatureValidator
 
   @mpi_api Application.get_env(:core, :api_resolvers)[:mpi]
   @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
   @media_storage_api Application.get_env(:core, :api_resolvers)[:media_storage]
-  @addresses_types ~w(REGISTRATION RESIDENCE)
+
+  @person_active "active"
 
   def search(params, headers \\ []) do
     with %Ecto.Changeset{valid?: true, changes: changes} <- Search.changeset(params),
-         search_params <- Map.put(changes, "status", "active"),
+         search_params <- Map.put(changes, "status", @person_active),
          {:ok, %{"data" => persons, "paging" => %{"total_pages" => 1}}} <- @mpi_api.search(search_params, headers) do
       {:ok, persons, changes}
     else
@@ -37,13 +38,12 @@ defmodule Core.Persons do
          %Ecto.Changeset{valid?: true, changes: changes} <- Signed.changeset(params),
          {:ok, %{"content" => content, "signer" => signer}} <-
            SignatureValidator.validate(changes.signed_content, "base64", headers),
-         :ok <- PersonValidator.validate_birth_date(content["birth_date"], "$.birth_date"),
+         :ok <- PersonsValidator.validate_birth_date(content["birth_date"], "$.birth_date"),
          {:ok, %{"data" => person}} <- @mpi_api.person(user["person_id"], headers),
          :ok <- validate_tax_id(user["tax_id"], person["tax_id"], content, signer),
          :ok <- JsonSchema.validate(:person, content),
-         :ok <- PersonValidator.validate_addresses_types(content["addresses"], @addresses_types),
-         :ok <- Addresses.validate(content["addresses"], headers),
-         :ok <- PersonValidator.validate_birth_certificate_number(content),
+         :ok <- Addresses.validate(content["addresses"], "RESIDENCE", headers),
+         :ok <- PersonsValidator.validate_birth_certificate_number(content),
          %Ecto.Changeset{valid?: true, changes: changes} <- Person.changeset(content),
          :ok <-
            validate_authentication_method_phone(
@@ -109,7 +109,7 @@ defmodule Core.Persons do
   end
 
   defp validate_authentication_method_phone(methods, headers) do
-    case PersonValidator.validate_authentication_method_phone_number(methods, headers) do
+    case PersonsValidator.validate_authentication_method_phone_number(methods, headers) do
       :ok ->
         :ok
 
