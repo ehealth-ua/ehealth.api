@@ -1,0 +1,82 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "definitions": {
+    "uuid": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{12}$"
+    }
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "meta": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "number"
+        },
+        "url": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "object",
+            "list"
+          ]
+        },
+        "request_id": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "data": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/uuid"
+        },
+        "name": {
+          "type": "string"
+        },
+        "settings": {
+          "type": "object"
+        },
+        "is_blocked": {
+          "type": "boolean"
+        },
+        "block_reason": {
+          "type": "string"
+        },
+        "user_id": {
+          "$ref": "#/definitions/uuid"
+        },
+        "client_type_id": {
+          "$ref": "#/definitions/uuid"
+        },
+        "client_type_name": {
+          "type": "string"
+        },
+        "inserted_at": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "settings",
+        "is_blocked",
+        "block_reason",
+        "user_id",
+        "client_type_id",
+        "client_type_name",
+        "inserted_at",
+        "updated_at"
+      ]
+    }
+  }
+}

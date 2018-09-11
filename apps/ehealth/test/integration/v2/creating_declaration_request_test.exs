@@ -474,7 +474,7 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
 
       id = resp["data"]["id"]
 
-      assert_show_response_schema(resp, "declaration_request", "v2")
+      assert_show_response_schema(resp, "declaration_request/v2", "declaration_request")
 
       assert to_string(Date.utc_today()) == resp["data"]["start_date"]
       assert {:ok, _} = Date.from_iso8601(resp["data"]["end_date"])
@@ -561,7 +561,7 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
         |> post(v2_declaration_request_post_path(conn, :create), Jason.encode!(declaration_request_params))
         |> json_response(200)
 
-      assert_show_response_schema(resp, "declaration_request", "v2")
+      assert_show_response_schema(resp, "declaration_request/v2", "declaration_request")
       assert to_string(Date.utc_today()) == resp["data"]["start_date"]
       assert {:ok, _} = Date.from_iso8601(resp["data"]["end_date"])
       # TODO: turn this into DB checks
@@ -675,7 +675,7 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
         |> post(v2_declaration_request_post_path(conn, :create), Jason.encode!(declaration_request_params))
         |> json_response(200)
 
-      assert_show_response_schema(resp, "declaration_request", "v2")
+      assert_show_response_schema(resp, "declaration_request/v2", "declaration_request")
       assert "NEW" = resp["data"]["status"]
       assert "NEW" = Repo.get(DeclarationRequest, d1.id).status
       assert "CANCELLED" = Repo.get(DeclarationRequest, d2.id).status
@@ -812,7 +812,7 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
 
       id = resp["data"]["id"]
 
-      assert_show_response_schema(resp, "declaration_request", "v2")
+      assert_show_response_schema(resp, "declaration_request/v2", "declaration_request")
 
       assert to_string(Date.utc_today()) == resp["data"]["start_date"]
       assert {:ok, _} = Date.from_iso8601(resp["data"]["end_date"])

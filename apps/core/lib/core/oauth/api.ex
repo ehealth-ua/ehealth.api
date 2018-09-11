@@ -11,6 +11,29 @@ defmodule Core.OAuth.API do
 
   @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
 
+  def upsert_client_with_connection(%LegalEntity{} = legal_entity, client_type_id, request_params, headers) do
+    redirect_uri = get_in(request_params, ~w(security redirect_uri))
+
+    client_attrs = %{
+      "id" => legal_entity.id,
+      "name" => legal_entity.name,
+      "user_id" => get_consumer_id(headers),
+      "client_type_id" => client_type_id
+    }
+
+    connection_attrs = %{"redirect_uri" => redirect_uri}
+
+    with {:ok, %{"data" => client}} <- @mithril_api.put_client(client_attrs, headers),
+         {:ok, %{"data" => connection}} <- create_or_update_connection(client["id"], connection_attrs, headers) do
+      {:ok, client, connection}
+    end
+  end
+
+  def create_or_update_connection(client_id, attrs, headers) do
+    attrs = Map.put(attrs, "consumer_id", get_consumer_id(headers))
+    @mithril_api.upsert_client_connection(client_id, attrs, headers)
+  end
+
   @doc """
   Creates a new Mithril client for MSP after successfully created a new Legal Entity
   """
@@ -33,39 +56,31 @@ defmodule Core.OAuth.API do
 
   def create_user(err, _email, _headers), do: err
 
-  def get_client(id, headers) do
-    id
-    |> @mithril_api.get_client(headers)
-    |> fetch_client_credentials(id)
+  def get_connection_credentials(client_id, headers) do
+    attrs = %{"consumer_id" => get_consumer_id(headers)}
+
+    with {:ok, %{"data" => connections}} <- @mithril_api.get_client_connections(client_id, attrs, headers) do
+      {:ok, fetch_connection_credentials(connections, client_id)}
+    end
   end
 
-  defp fetch_client_credentials({:ok, %{"data" => data}}, id) when is_list(data) do
-    data =
-      case length(data) > 0 do
-        true -> List.first(data)
-        false -> %{}
-      end
-
-    fetch_client_credentials({:ok, %{"data" => data}}, id)
-  end
-
-  defp fetch_client_credentials({:ok, %{"data" => data}}, _id) do
+  defp fetch_connection_credentials([connection], client_id) do
     %{
-      "client_id" => Map.get(data, "id"),
-      "client_secret" => Map.get(data, "secret"),
-      "redirect_uri" => Map.get(data, "redirect_uri")
+      "client_id" => client_id,
+      "client_secret" => Map.get(connection, "secret"),
+      "redirect_uri" => Map.get(connection, "redirect_uri")
     }
   end
 
-  defp fetch_client_credentials({:error, response}, id) do
+  defp fetch_connection_credentials(_, client_id) do
     Logger.error(fn ->
       Jason.encode!(%{
         "log_type" => "error",
-        "message" => "Cannot create or find Mithril client for Legal Entity #{id} Response: #{inspect(response)}",
+        "message" => "Cannot create or find Mithril client for Legal Entity #{client_id}}",
         "request_id" => Logger.metadata()[:request_id]
       })
     end)
 
-    nil
+    %{}
   end
 end

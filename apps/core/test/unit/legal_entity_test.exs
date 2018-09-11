@@ -221,6 +221,7 @@ defmodule Core.Unit.LegalEntityTest do
         })
 
       uaddresses_mock_expect()
+      upsert_client_connection()
       assert {:ok, %{legal_entity: legal_entity, security: security}} = create_legal_entity(data)
 
       # test legal entity data
@@ -260,6 +261,7 @@ defmodule Core.Unit.LegalEntityTest do
       uaddresses_mock_expect()
       insert(:prm, :registry, edrpou: "37367387", type: LegalEntity.type(:msp))
 
+      upsert_client_connection()
       assert {:ok, %{legal_entity: legal_entity, security: security}} = create_legal_entity(data)
       # test legal entity data
       assert "edenlab" == legal_entity.short_name
@@ -306,6 +308,7 @@ defmodule Core.Unit.LegalEntityTest do
       end)
 
       uaddresses_mock_expect()
+      upsert_client_connection()
       assert {:ok, %{legal_entity: legal_entity, security: security}} = create_legal_entity(update_data)
 
       assert "37367387" == legal_entity.edrpou
@@ -340,6 +343,7 @@ defmodule Core.Unit.LegalEntityTest do
 
       data = Map.merge(get_legal_entity_data(), %{"edrpou" => "37367387"})
       uaddresses_mock_expect()
+      upsert_client_connection()
       assert {:ok, %{legal_entity: legal_entity}} = create_legal_entity(data)
       assert true = legal_entity.is_active
     end
@@ -367,6 +371,7 @@ defmodule Core.Unit.LegalEntityTest do
 
       update_data = Map.merge(get_legal_entity_data(), %{"name" => "Нова"})
       uaddresses_mock_expect()
+      upsert_client_connection()
       assert {:ok, %{legal_entity: legal_entity, security: security}} = create_legal_entity(update_data)
 
       assert "Нова" == legal_entity.name

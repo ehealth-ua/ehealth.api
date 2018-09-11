@@ -28,40 +28,6 @@ defmodule Mithril.Web.AppControllerTest do
     }
   end
 
-  describe "refresh client secret" do
-    test "success refresh client secret", %{conn: conn} do
-      id = UUID.generate()
-      msp()
-
-      expect(MithrilMock, :refresh_secret, fn id, _ ->
-        {:ok,
-         %{
-           "data" => %{
-             "id" => id,
-             "name" => "client"
-           },
-           "meta" => %{"code" => 200}
-         }}
-      end)
-
-      conn = put_client_id_header(conn, id)
-
-      resp =
-        conn
-        |> patch(apps_path(conn, :refresh_secret, id))
-        |> json_response(200)
-
-      assert %{"id" => ^id, "name" => "client"} = resp["data"]
-    end
-
-    test "failed to refresh client secret", %{conn: conn} do
-      msp()
-      conn = put_client_id_header(conn, UUID.generate())
-      conn = patch(conn, apps_path(conn, :refresh_secret, Ecto.UUID.generate()))
-      assert json_response(conn, 403)
-    end
-  end
-
   describe "get apps" do
     test "get app ok", %{conn: conn} do
       expect(MithrilMock, :get_app, fn _id, _params, _headers ->

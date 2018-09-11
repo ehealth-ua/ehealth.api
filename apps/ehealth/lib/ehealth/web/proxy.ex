@@ -6,6 +6,8 @@ defmodule EHealth.Proxy do
   import Plug.Conn
   import Core.Utils.TypesConverter
 
+  alias Scrivener.Page
+
   def proxy(conn, %{"meta" => %{"code" => status}} = response) do
     resp =
       response
@@ -25,4 +27,8 @@ defmodule EHealth.Proxy do
 
   def get_proxy_resp_data(%{"error" => error}), do: error
   def get_proxy_resp_data(%{"data" => data}), do: data
+
+  def create_page(paging) do
+    struct(Page, Enum.into(paging, %{}, fn {k, v} -> {String.to_atom(k), v} end))
+  end
 end

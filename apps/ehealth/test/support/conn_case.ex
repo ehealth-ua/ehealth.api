@@ -103,18 +103,20 @@ defmodule EHealth.Web.ConnCase do
     ]
   end
 
-  def assert_show_response_schema(response, type, api_version \\ "") when is_binary(type) do
-    assert_json_schema(
-      response,
-      File.cwd!() <> "/../core/specs/json_schemas/#{type}/#{api_version}/#{type}_show_response.json"
-    )
+  def assert_show_response_schema(response, type, name) when is_binary(type) do
+    assert_json_schema(response, File.cwd!() <> "/../core/specs/json_schemas/#{type}/#{name}_show_response.json")
   end
 
-  def assert_list_response_schema(response, type, api_version \\ "") when is_binary(type) do
-    assert_json_schema(
-      response,
-      File.cwd!() <> "/../core/specs/json_schemas/#{type}/#{api_version}/#{type}_list_response.json"
-    )
+  def assert_list_response_schema(response, type, name) when is_binary(type) do
+    assert_json_schema(response, File.cwd!() <> "/../core/specs/json_schemas/#{type}/#{name}_list_response.json")
+  end
+
+  def assert_show_response_schema(response, type) when is_binary(type) do
+    assert_show_response_schema(response, type, type)
+  end
+
+  def assert_list_response_schema(response, type) when is_binary(type) do
+    assert_list_response_schema(response, type, type)
   end
 
   def assert_json_schema(data, schema_path) do

@@ -135,8 +135,8 @@ defmodule Core.LegalEntities do
     with {:ok, client_type} <- @mithril_api.get_client_type_name(client_id, headers),
          :ok <- authorize_legal_entity_id(id, client_id, client_type),
          {:ok, legal_entity} <- load_legal_entity(id),
-         %{} = oauth_client <- OAuth.get_client(legal_entity.id, headers) do
-      {:ok, legal_entity, oauth_client}
+         {:ok, credentials} <- OAuth.get_connection_credentials(legal_entity.id, headers) do
+      {:ok, legal_entity, credentials}
     end
   end
 
@@ -244,8 +244,9 @@ defmodule Core.LegalEntities do
          request_params <- put_mis_verified_state(request_params),
          {:ok, legal_entity} <- put_legal_entity_to_prm(legal_entity, request_params, headers),
          {:ok, client_type_id} <- get_client_type_id(type, headers),
-         {:ok, oauth_client} <- get_oauth_credentials(legal_entity, client_type_id, request_params, headers),
-         {:ok, security} <- prepare_security_data(oauth_client),
+         {:ok, client, client_connection} <-
+           OAuth.upsert_client_with_connection(legal_entity, client_type_id, request_params, headers),
+         {:ok, security} <- prepare_security_data(client, client_connection),
          {:ok, employee_request} <- create_employee_request(legal_entity, request_params) do
       {:ok,
        %{
@@ -318,25 +319,11 @@ defmodule Core.LegalEntities do
     |> update_with_ops_contract(headers)
   end
 
-  defp get_oauth_credentials(
-         %LegalEntity{} = legal_entity,
-         client_type_id,
-         request_params,
-         headers
-       ) do
-    redirect_uri =
-      request_params
-      |> Map.fetch!("security")
-      |> Map.fetch!("redirect_uri")
-
-    OAuth.put_client(legal_entity, client_type_id, redirect_uri, headers)
-  end
-
-  defp prepare_security_data(%{"data" => oauth_client}) do
+  defp prepare_security_data(client, client_connection) do
     security = %{
-      "client_id" => Map.get(oauth_client, "id"),
-      "client_secret" => Map.get(oauth_client, "secret"),
-      "redirect_uri" => Map.get(oauth_client, "redirect_uri")
+      "client_id" => Map.get(client, "id"),
+      "client_secret" => Map.get(client_connection, "secret"),
+      "redirect_uri" => Map.get(client_connection, "redirect_uri")
     }
 
     {:ok, security}

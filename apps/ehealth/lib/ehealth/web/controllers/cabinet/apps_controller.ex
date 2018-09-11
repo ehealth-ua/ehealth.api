@@ -4,7 +4,6 @@ defmodule EHealth.Web.AppsController do
   use EHealth.Web, :controller
 
   alias EHealth.Web.Cabinet.AppsView
-  alias Scrivener.Page
 
   @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
 
@@ -61,22 +60,5 @@ defmodule EHealth.Web.AppsController do
     with {:ok, _} <- @mithril_api.delete_app(id, headers) do
       send_resp(conn, :no_content, "")
     end
-  end
-
-  def refresh_secret(%Plug.Conn{req_headers: headers} = conn, %{"legal_entity_id" => client_id, "id" => client_id}) do
-    with {:ok, %{"data" => client}} <- @mithril_api.refresh_secret(client_id, headers) do
-      render(
-        conn,
-        AppsView,
-        "client.json",
-        client: client
-      )
-    end
-  end
-
-  def refresh_secret(_, _), do: {:error, :forbidden}
-
-  defp create_page(paging) do
-    struct(Page, Enum.into(paging, %{}, fn {k, v} -> {String.to_atom(k), v} end))
   end
 end

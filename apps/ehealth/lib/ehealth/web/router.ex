@@ -341,12 +341,19 @@ defmodule EHealthWeb.Router do
   end
 
   scope "/admin", EHealth.Web do
-    pipe_through([:api])
+    pipe_through([:api, :client_context_list])
 
-    scope "/clients" do
-      pipe_through([:client_context_list])
-      patch("/:id/refresh_secret", AppsController, :refresh_secret)
+    resources "/clients", ClientController, only: [:index, :show] do
+      resources("/connections", ConnectionController, only: [:index, :show, :update, :delete])
+
+      scope "/connections" do
+        patch("/:id/actions/refresh_secret", ConnectionController, :refresh_secret)
+      end
     end
+  end
+
+  scope "/admin", EHealth.Web do
+    pipe_through([:api])
 
     scope "/users" do
       pipe_through([:api_consumer_id, :api_client_id])
