@@ -3,7 +3,7 @@ defmodule Core.OAuth.API do
   OAuth service layer
   """
 
-  import Core.API.Helpers.Connection, only: [get_consumer_id: 1]
+  import Core.API.Helpers.Connection, only: [get_consumer_id: 1, get_client_id: 1]
 
   alias Core.LegalEntities.LegalEntity
 
@@ -30,7 +30,8 @@ defmodule Core.OAuth.API do
   end
 
   def create_or_update_connection(client_id, attrs, headers) do
-    attrs = Map.put(attrs, "consumer_id", get_consumer_id(headers))
+    # fetch consumer_id from get_client_id() is valid. get_consumer_id() returns user_id in Mithril context
+    attrs = Map.put(attrs, "consumer_id", get_client_id(headers))
     @mithril_api.upsert_client_connection(client_id, attrs, headers)
   end
 
