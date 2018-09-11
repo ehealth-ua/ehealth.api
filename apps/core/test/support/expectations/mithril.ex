@@ -29,7 +29,31 @@ defmodule Core.Expectations.Mithril do
 
   def put_client(n \\ 1) do
     expect(MithrilMock, :put_client, n, fn params, _ ->
-      {:ok, %{"data" => Map.put(params, "secret", "secret")}}
+      {:ok, %{"data" => params}}
+    end)
+  end
+
+  def upsert_client_connection(n \\ 1) do
+    expect(MithrilMock, :upsert_client_connection, n, fn client_id, params, _ ->
+      default = %{
+        "client_id" => client_id,
+        "redirect_uri" => "https://example.com",
+        "secret" => "secret"
+      }
+
+      {:ok, %{"data" => Map.merge(default, params)}}
+    end)
+  end
+
+  def get_client_connections(n \\ 1) do
+    expect(MithrilMock, :get_client_connections, n, fn client_id, _params, _ ->
+      connection = %{
+        "client_id" => client_id,
+        "redirect_uri" => "https://example.com",
+        "secret" => "secret"
+      }
+
+      {:ok, %{"data" => [connection]}}
     end)
   end
 

@@ -35,6 +35,32 @@ defmodule Core.API.Mithril do
     end
   end
 
+  # client connections
+
+  def get_client_connections(client_id, params \\ [], headers \\ []) do
+    get!("/admin/clients/#{client_id}/connections", headers, params: params)
+  end
+
+  def get_client_connection(client_id, connection_id, headers) do
+    get!("/admin/clients/#{client_id}/connections/#{connection_id}}", headers)
+  end
+
+  def upsert_client_connection(client_id, params, headers) do
+    patch!("/admin/clients/#{client_id}/connections", Jason.encode!(params), headers)
+  end
+
+  def update_client_connection(client_id, connection_id, params, headers) do
+    patch!("/admin/clients/#{client_id}/connections/#{connection_id}}", Jason.encode!(params), headers)
+  end
+
+  def delete_client_connection(client_id, connection_id, headers) do
+    delete!("/admin/clients/#{client_id}/connections/#{connection_id}", headers)
+  end
+
+  def refresh_connection_secret(client_id, connection_id, headers) do
+    patch!("/admin/clients/#{client_id}/connections/#{connection_id}/actions/refresh_secret", "", headers)
+  end
+
   # Client types
 
   def create_client_type(client_type, headers \\ []) do
@@ -141,10 +167,6 @@ defmodule Core.API.Mithril do
 
   def delete_tokens_by_user_ids(user_ids, headers) do
     delete!("/admin/tokens?user_ids=#{user_ids}", headers)
-  end
-
-  def refresh_secret(client_id, headers) do
-    patch!("/admin/clients/#{client_id}/refresh_secret", "", headers)
   end
 
   # Authentication factors

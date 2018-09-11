@@ -117,11 +117,8 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
     test "create legal entity sign edrpou", %{conn: conn} do
       get_client_type_by_name(UUID.generate())
-
-      expect(MithrilMock, :put_client, fn params, _ ->
-        {:ok, %{"data" => Map.put(params, "secret", "secret")}}
-      end)
-
+      put_client()
+      upsert_client_connection()
       validate_addresses()
       template()
 
@@ -145,10 +142,8 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
     test "create legal entity sign drfo code", %{conn: conn} do
       get_client_type_by_name(UUID.generate())
-
-      expect(MithrilMock, :put_client, fn params, _ ->
-        {:ok, %{"data" => Map.put(params, "secret", "secret")}}
-      end)
+      put_client()
+      upsert_client_connection()
 
       validate_addresses()
       template()
@@ -173,11 +168,8 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
     test "create legal entity sign drfo code when edrpou empty string", %{conn: conn} do
       get_client_type_by_name(UUID.generate())
-
-      expect(MithrilMock, :put_client, fn params, _ ->
-        {:ok, %{"data" => Map.put(params, "secret", "secret")}}
-      end)
-
+      put_client()
+      upsert_client_connection()
       validate_addresses()
       template()
 
@@ -213,10 +205,8 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
     test "create legal entity sign drfo code when edrpou nil string", %{conn: conn} do
       get_client_type_by_name(UUID.generate())
-
-      expect(MithrilMock, :put_client, fn params, _ ->
-        {:ok, %{"data" => Map.put(params, "secret", "secret")}}
-      end)
+      put_client()
+      upsert_client_connection()
 
       validate_addresses()
       template()
@@ -275,6 +265,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     test "contract suspend on change legal entity name", %{conn: conn} do
       get_client_type_by_name(UUID.generate(), 2)
       put_client(2)
+      upsert_client_connection(2)
       validate_addresses(2)
       template(2)
 
@@ -317,6 +308,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     test "contract suspend on change status", %{conn: conn} do
       get_client_type_by_name(UUID.generate(), 2)
       put_client(2)
+      upsert_client_connection(2)
       validate_addresses(2)
       template(2)
 
@@ -359,6 +351,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     test "contract suspend on change address", %{conn: conn} do
       get_client_type_by_name(UUID.generate(), 2)
       put_client(2)
+      upsert_client_connection(2)
       validate_addresses(2)
       template(2)
 
@@ -600,7 +593,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
     test "check required legal entity fields", %{conn: conn} do
       msp()
-      get_client()
+      get_client_connections()
       %{id: id} = insert(:prm, :legal_entity)
       conn = put_client_id_header(conn, id)
       conn = get(conn, legal_entity_path(conn, :show, id))
@@ -613,7 +606,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
     test "with x-consumer-metadata that contains client_id that matches legal entity id", %{conn: conn} do
       msp()
-      get_client()
+      get_client_connections()
       %{id: id} = insert(:prm, :legal_entity)
       conn = put_client_id_header(conn, id)
       conn = get(conn, legal_entity_path(conn, :show, id))
@@ -631,7 +624,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
     test "with x-consumer-metadata that contains MIS client_id that does not match legal entity id", %{conn: conn} do
       mis()
-      get_client()
+      get_client_connections()
       %{id: id} = insert(:prm, :legal_entity)
       conn = put_client_id_header(conn, id)
       conn = get(conn, legal_entity_path(conn, :show, id))
@@ -715,15 +708,14 @@ defmodule EHealth.Web.LegalEntityControllerTest do
   end
 
   def assert_security_in_urgent_response(resp) do
-    assert_urgent_field(resp, "security")
-    assert Map.has_key?(resp["urgent"]["security"], "redirect_uri")
-    assert Map.has_key?(resp["urgent"]["security"], "client_id")
-    assert Map.has_key?(resp["urgent"]["security"], "client_secret")
-  end
-
-  def assert_urgent_field(resp, field) do
     assert Map.has_key?(resp, "urgent")
-    assert Map.has_key?(resp["urgent"], field)
+    assert Map.has_key?(resp["urgent"], "security")
+    security = resp["urgent"]["security"]
+
+    Enum.each(~w(redirect_uri client_id client_secret), fn field ->
+      assert Map.has_key?(security, field), "Field `#{field}` required in urgent.security"
+      assert Map.get(security, field), "Field `#{field}` is empty in urgent.security"
+    end)
   end
 
   defp get_client_type_by_name(id, n \\ 1) do

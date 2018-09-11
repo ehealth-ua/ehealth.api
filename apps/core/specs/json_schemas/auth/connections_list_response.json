@@ -1,0 +1,97 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "definitions": {
+    "uuid": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{12}$"
+    }
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "meta": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "number"
+        },
+        "url": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "object",
+            "list"
+          ]
+        },
+        "request_id": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "data": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/definitions/uuid"
+          },
+          "redirect_uri": {
+            "type": "string"
+          },
+          "client_id": {
+            "$ref": "#/definitions/uuid"
+          },
+          "consumer_id": {
+            "$ref": "#/definitions/uuid"
+          },
+          "inserted_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "redirect_uri",
+          "client_id",
+          "consumer_id",
+          "inserted_at",
+          "updated_at"
+        ]
+      }
+    },
+    "paging": {
+      "type": "object",
+      "properties": {
+        "page_number": {
+          "type": "number",
+          "description": "Page number."
+        },
+        "page_size": {
+          "type": "number",
+          "description": "A limit on the number of objects to be returned, between 1 and 100. Default: 50"
+        },
+        "total_entries": {
+          "type": "number",
+          "description": "Total number of objects in collection."
+        },
+        "total_pages": {
+          "type": "number",
+          "description": "Total number of pages."
+        }
+      },
+      "required": [
+        "page_number",
+        "page_size",
+        "total_entries",
+        "total_pages"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
