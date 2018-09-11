@@ -186,7 +186,10 @@ defmodule Core.Man.Templates.DeclarationRequestPrintoutForm do
       birth_country: Map.get(confidant_person, "birth_country", ""),
       documents_person: get_document(confidant_person, "documents_person", @documents_dict),
       tax_id: Map.get(confidant_person, "tax_id", ""),
-      documents_relationship: get_document(confidant_person, "documents_relationship", @relationship_documents_dict)
+      documents_relationship: get_document(confidant_person, "documents_relationship", @relationship_documents_dict),
+      preferred_way_communication:
+        get_preferred_way_communication(Map.get(confidant_person, "preferred_way_communication") || "––"),
+      email: Map.get(confidant_person, "email") || "––"
     }
   end
 
