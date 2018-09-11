@@ -122,6 +122,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
               phones: %{
                 number: "+380503410870"
               },
+              preferred_way_communication: "––",
               birth_date: "19.08.1991",
               gender: %{
                 male: true,
@@ -135,6 +136,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
                 issued_at: ""
               },
               tax_id: "3126509816",
+              email: "––",
               documents_relationship: %{
                 type: "Документ",
                 number: "120519",
@@ -146,6 +148,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
               phones: %{
                 number: "+380503410871"
               },
+              preferred_way_communication: "––",
               birth_date: "20.08.1991",
               gender: %{
                 male: true,
@@ -159,6 +162,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
                 issued_at: ""
               },
               tax_id: "3126509817",
+              email: "––",
               documents_relationship: %{
                 type: "Документ",
                 number: "120521",
