@@ -46,7 +46,7 @@ defmodule Core.API.Mithril do
   end
 
   def upsert_client_connection(client_id, params, headers) do
-    patch!("/admin/clients/#{client_id}/connections", Jason.encode!(params), headers)
+    put!("/admin/clients/#{client_id}/connections", Jason.encode!(params), headers)
   end
 
   def update_client_connection(client_id, connection_id, params, headers) do
