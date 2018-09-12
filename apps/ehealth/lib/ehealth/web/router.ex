@@ -340,7 +340,7 @@ defmodule EHealthWeb.Router do
     get("/party_users", PartyUserController, :index)
   end
 
-  scope "/admin", EHealth.Web do
+  scope "/api", EHealth.Web do
     pipe_through([:api, :client_context_list])
 
     resources "/clients", ClientController, only: [:index, :show] do
