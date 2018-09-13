@@ -257,11 +257,10 @@ defmodule Core.DeclarationRequests.API.Sign do
     |> @ops_api.create_declaration_with_termination_logic(headers)
   end
 
-  defp update_casher_person_data(_employee_id) do
-    # todo: uncomment after deploy
-    # with {:ok, _response} <- @casher_api.update_person_data(%{"employee_id" => employee_id}, []) do
-    :ok
-    # end
+  defp update_casher_person_data(employee_id) do
+    with {:ok, _response} <- @casher_api.update_person_data(%{"employee_id" => employee_id}, []) do
+      :ok
+    end
   end
 
   def update_declaration_request_status(%DeclarationRequest{} = declaration_request, declaration) do
