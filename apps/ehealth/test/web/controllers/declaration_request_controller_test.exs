@@ -486,10 +486,9 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
         {:ok, %Response{body: Jason.encode!(%{"data" => string_params_for(:person)}), status_code: 200}}
       end)
 
-      # todo: uncomment after deploy
-      # expect(CasherMock, :update_person_data, fn _params, _headers ->
-      #   {:ok, %{}}
-      # end)
+      expect(CasherMock, :update_person_data, fn _params, _headers ->
+        {:ok, %{}}
+      end)
 
       data =
         "../core/test/data/declaration_request/sign_request.json"
