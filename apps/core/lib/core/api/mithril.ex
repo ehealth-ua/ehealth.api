@@ -42,7 +42,7 @@ defmodule Core.API.Mithril do
   end
 
   def get_client_connection(client_id, connection_id, headers) do
-    get!("/admin/clients/#{client_id}/connections/#{connection_id}}", headers)
+    get!("/admin/clients/#{client_id}/connections/#{connection_id}", headers)
   end
 
   def upsert_client_connection(client_id, params, headers) do
@@ -50,7 +50,7 @@ defmodule Core.API.Mithril do
   end
 
   def update_client_connection(client_id, connection_id, params, headers) do
-    patch!("/admin/clients/#{client_id}/connections/#{connection_id}}", Jason.encode!(params), headers)
+    patch!("/admin/clients/#{client_id}/connections/#{connection_id}", Jason.encode!(params), headers)
   end
 
   def delete_client_connection(client_id, connection_id, headers) do
