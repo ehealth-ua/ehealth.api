@@ -26,10 +26,10 @@ defmodule EHealth.Web.ClientController do
     end
   end
 
-  defp prepare_params(%{"legal_entity_id" => client_id} = params), do: Map.put(params, "id", client_id)
+  defp prepare_params(%{"allowed_client_id" => client_id} = params), do: Map.put(params, "id", client_id)
   defp prepare_params(params), do: params
 
-  defp validate_client_id(%{"legal_entity_id" => context_client_id, "id" => client_id}) do
+  defp validate_client_id(%{"allowed_client_id" => context_client_id, "id" => client_id}) do
     case context_client_id == client_id do
       true -> :ok
       false -> {:error, :forbidden}

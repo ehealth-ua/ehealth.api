@@ -4,20 +4,21 @@ defmodule EHealth.Web.Plugs.ClientContext do
   """
 
   use EHealth.Web, :plugs
-  import Core.LegalEntities, only: [get_context_params: 3]
 
+  alias Core.Context
   alias Plug.Conn
   alias Scrivener.Page
 
   @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
-  @legal_entity_param_name_default "legal_entity_id"
+  @context_param_name_default "legal_entity_id"
+  @context_params_resolver_default :get_context_params
 
   def put_is_active_into_params(%Conn{params: params} = conn, _) do
     %{conn | params: Map.merge(params, %{"is_active" => true})}
   end
 
   def process_client_context_for_list(%Conn{} = conn, plug_params) do
-    config = Confex.fetch_env!(:core, Core.LegalEntities)
+    config = Confex.fetch_env!(:core, Context)
 
     conn
     |> put_client_type_name()
@@ -85,12 +86,9 @@ defmodule EHealth.Web.Plugs.ClientContext do
          } = conn,
          plug_params
        ) do
-    legal_entity_param_name = Keyword.get(plug_params, :legal_entity_param_name, @legal_entity_param_name_default)
-
-    context_params =
-      headers
-      |> get_client_id()
-      |> get_context_params(client_type, legal_entity_param_name)
+    context_param_name = Keyword.get(plug_params, :context_param_name, @context_param_name_default)
+    context_params_resolver = Keyword.get(plug_params, :context_params_resolver, @context_params_resolver_default)
+    context_params = apply(Context, context_params_resolver, [get_client_id(headers), client_type, context_param_name])
 
     %{conn | params: Map.merge(params, context_params)}
   end

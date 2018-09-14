@@ -10,6 +10,7 @@ defmodule Core.LegalEntities do
   import Ecto.Query, except: [update: 3]
 
   alias Core.API.MediaStorage
+  alias Core.Context
   alias Core.Contracts
   alias Core.Contracts.Contract
   alias Core.EmployeeRequests
@@ -82,8 +83,6 @@ defmodule Core.LegalEntities do
   @mis_verified_verified LegalEntity.mis_verified(:verified)
   @mis_verified_not_verified LegalEntity.mis_verified(:not_verified)
 
-  @legal_entity_param_name_default "legal_entity_id"
-
   def list(params \\ %{}) do
     %Search{}
     |> changeset(params)
@@ -133,7 +132,7 @@ defmodule Core.LegalEntities do
     client_id = get_client_id(headers)
 
     with {:ok, client_type} <- @mithril_api.get_client_type_name(client_id, headers),
-         :ok <- authorize_legal_entity_id(id, client_id, client_type),
+         :ok <- Context.authorize_legal_entity_id(id, client_id, client_type),
          {:ok, legal_entity} <- load_legal_entity(id),
          {:ok, credentials} <- OAuth.get_connection_credentials(legal_entity.id, headers) do
       {:ok, legal_entity, credentials}
@@ -396,62 +395,4 @@ defmodule Core.LegalEntities do
   end
 
   defp validate_msp_required(changeset), do: changeset
-
-  def get_context_params(client_id, client_type, legal_entity_param_name \\ @legal_entity_param_name_default) do
-    config = Confex.fetch_env!(:core, Core.LegalEntities)
-
-    cond do
-      client_type in config[:tokens_types_personal] ->
-        %{legal_entity_param_name => client_id}
-
-      client_type in config[:tokens_types_mis] ->
-        %{}
-
-      client_type in config[:tokens_types_admin] ->
-        %{}
-
-      client_type in config[:tokens_types_cabinet] ->
-        %{}
-
-      true ->
-        Logger.error(fn ->
-          Jason.encode!(%{
-            "log_type" => "error",
-            "message" => "Undefined client type name #{client_type} for context request.",
-            "request_id" => Logger.metadata()[:request_id]
-          })
-        end)
-
-        %{"legal_entity_id" => client_id}
-    end
-  end
-
-  def authorize_legal_entity_id(legal_entity_id, client_id, client_type) do
-    config = Confex.fetch_env!(:core, Core.LegalEntities)
-
-    cond do
-      client_type in config[:tokens_types_personal] and legal_entity_id != client_id ->
-        {:error, :forbidden}
-
-      client_type in config[:tokens_types_personal] ->
-        :ok
-
-      client_type in config[:tokens_types_mis] ->
-        :ok
-
-      client_type in config[:tokens_types_admin] ->
-        :ok
-
-      true ->
-        Logger.error(fn ->
-          Jason.encode!(%{
-            "log_type" => "error",
-            "message" => "Undefined client type name #{client_type} for context request.",
-            "request_id" => Logger.metadata()[:request_id]
-          })
-        end)
-
-        {:error, :forbidden}
-    end
-  end
 end

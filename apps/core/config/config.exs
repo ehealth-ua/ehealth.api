@@ -33,7 +33,7 @@ config :core,
   ]
 
 # Configures Legal Entities token permission
-config :core, Core.LegalEntities,
+config :core, Core.Context,
   tokens_types_personal: {:system, :list, "TOKENS_TYPES_PERSONAL", ["MSP", "PHARMACY"]},
   tokens_types_mis: {:system, :list, "TOKENS_TYPES_MIS", ["MIS"]},
   tokens_types_admin: {:system, :list, "TOKENS_TYPES_ADMIN", ["NHS"]},
