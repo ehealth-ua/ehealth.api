@@ -211,7 +211,7 @@ defmodule Mithril.Web.Auth.ConnectionControllerTest do
     end
   end
 
-  describe "client_id not allowed by context" do
+  describe "client_id not allowed by context for MSP" do
     test "refresh_secret", %{conn: conn} do
       msp()
 
@@ -250,6 +250,53 @@ defmodule Mithril.Web.Auth.ConnectionControllerTest do
 
     test "delete connection", %{conn: conn} do
       msp()
+
+      conn
+      |> put_client_id_header(UUID.generate())
+      |> delete(client_connection_path(conn, :delete, UUID.generate(), UUID.generate()))
+      |> json_response(403)
+    end
+  end
+
+  describe "client_id not allowed by context for MIS" do
+    test "refresh_secret", %{conn: conn} do
+      mis()
+
+      conn
+      |> put_client_id_header(UUID.generate())
+      |> patch(client_connection_path(conn, :refresh_secret, UUID.generate(), UUID.generate()))
+      |> json_response(403)
+    end
+
+    test "show connections", %{conn: conn} do
+      mis()
+
+      conn
+      |> put_client_id_header(UUID.generate())
+      |> get(client_connection_path(conn, :index, UUID.generate()))
+      |> json_response(403)
+    end
+
+    test "show connection details", %{conn: conn} do
+      mis()
+
+      conn
+      |> put_client_id_header(UUID.generate())
+      |> get(client_connection_path(conn, :show, UUID.generate(), UUID.generate()))
+      |> json_response(403)
+    end
+
+    test "update connection", %{conn: conn} do
+      mis()
+
+      conn
+      |> put_client_id_header(UUID.generate())
+      |> patch(client_connection_path(conn, :update, UUID.generate(), UUID.generate(), %{}))
+      |> json_response(403)
+    end
+
+    test "delete connection", %{conn: conn} do
+      mis()
 
       conn
       |> put_client_id_header(UUID.generate())

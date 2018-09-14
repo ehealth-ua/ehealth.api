@@ -37,6 +37,31 @@ defmodule Mithril.Web.Auth.ClientControllerTest do
       assert Map.has_key?(resp, "paging")
     end
 
+    test "MIS can see only self-related clients", %{conn: conn} do
+      mis()
+      client_id = UUID.generate()
+
+      expect(MithrilMock, :get_clients, fn params, _headers ->
+        assert Map.has_key?(params, "id")
+        assert client_id == params["id"]
+
+        {:ok,
+         %{
+           "meta" => %{"code" => 200},
+           "paging" => paging(),
+           "data" => [
+             client(UUID.generate())
+           ]
+         }}
+      end)
+
+      conn
+      |> put_client_id_header(client_id)
+      |> get(client_path(conn, :index))
+      |> json_response(200)
+      |> assert_list_response_schema("auth", "clients")
+    end
+
     test "admin allowed to see all clients", %{conn: conn} do
       admin()
       client_id = UUID.generate()
@@ -99,8 +124,17 @@ defmodule Mithril.Web.Auth.ClientControllerTest do
                |> json_response(404)
     end
 
-    test "client_id not allowed by context", %{conn: conn} do
+    test "MSP client_id not allowed by context", %{conn: conn} do
       msp()
+
+      conn
+      |> put_client_id_header(UUID.generate())
+      |> get(client_path(conn, :show, UUID.generate()))
+      |> json_response(403)
+    end
+
+    test "MIS client_id not allowed by context", %{conn: conn} do
+      mis()
 
       conn
       |> put_client_id_header(UUID.generate())

@@ -6,7 +6,7 @@ defmodule Core.Employees do
   import Core.API.Helpers.Connection
   import Ecto.Changeset
   import Core.Contracts.ContractSuspender
-  import Core.LegalEntities, only: [authorize_legal_entity_id: 3]
+  import Core.Context, only: [authorize_legal_entity_id: 3]
 
   alias Core.Contracts
   alias Core.Contracts.Contract

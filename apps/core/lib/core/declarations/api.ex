@@ -3,7 +3,7 @@ defmodule Core.Declarations.API do
 
   import Ecto.Changeset
   import Core.API.Helpers.Connection, only: [get_client_id: 1, get_consumer_id: 1]
-  import Core.LegalEntities, only: [get_context_params: 2]
+  import Core.Context, only: [get_context_params: 2]
   import Core.Utils.TypesConverter, only: [strings_to_keys: 1]
 
   alias Core.API.MediaStorage

@@ -42,8 +42,16 @@ defmodule EHealthWeb.Router do
     plug(:put_is_active_into_params)
   end
 
+  pipeline :connection_context do
+    plug(
+      :process_client_context_for_list,
+      context_param_name: "allowed_client_id",
+      context_params_resolver: :get_connection_context_params
+    )
+  end
+
   pipeline :contract_context do
-    plug(:process_client_context_for_list, legal_entity_param_name: "contractor_legal_entity_id")
+    plug(:process_client_context_for_list, context_param_name: "contractor_legal_entity_id")
   end
 
   pipeline :cabinet do
@@ -341,7 +349,7 @@ defmodule EHealthWeb.Router do
   end
 
   scope "/api", EHealth.Web do
-    pipe_through([:api, :client_context_list])
+    pipe_through([:api, :connection_context])
 
     resources "/clients", ClientController, only: [:index, :show] do
       resources("/connections", ConnectionController, only: [:index, :show, :update, :delete])

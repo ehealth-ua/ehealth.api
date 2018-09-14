@@ -51,7 +51,7 @@ defmodule EHealth.Web.ConnectionController do
     end
   end
 
-  defp validate_client_id(%{"legal_entity_id" => context_client_id, "client_id" => client_id})
+  defp validate_client_id(%{"allowed_client_id" => context_client_id, "client_id" => client_id})
        when context_client_id != client_id do
     {:error, :forbidden}
   end
