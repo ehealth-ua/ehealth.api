@@ -92,6 +92,8 @@ defmodule Core.Persons.V2.Validator do
       path: "$.person.tax_id"
     }
 
+  def validate_unzr(%{"birth_date" => _, "unzr" => nil}), do: :ok
+
   def validate_unzr(%{"birth_date" => birth_date, "unzr" => unzr}) do
     bdate = String.replace(birth_date, "-", "")
 

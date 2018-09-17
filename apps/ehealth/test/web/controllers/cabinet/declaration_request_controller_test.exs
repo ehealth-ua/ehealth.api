@@ -711,6 +711,105 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
              ] == resp["error"]["invalid"]
     end
 
+    test "successful declaration request online creation with undefined unzr", %{conn: conn} do
+      cabinet()
+
+      birth_date =
+        Date.utc_today()
+        |> Date.add(-365 * 10)
+        |> to_string()
+
+      person_id = UUID.generate()
+
+      expect(MPIMock, :person, fn _, _ ->
+        {:ok, person} =
+          get_person(person_id, 200, %{
+            birth_date: birth_date,
+            unzr: nil,
+            documents: get_person_documents(),
+            tax_id: "2222222225",
+            no_tax_id: false,
+            authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}],
+            addresses: get_person_addresses(),
+            emergency_contact: get_person_emergency_contact(),
+            confidant_person: get_person_confidant_person()
+          })
+
+        {:ok, Map.put(person, "data", Map.delete(person["data"], "unzr"))}
+      end)
+
+      gen_sequence_number()
+      role_id = UUID.generate()
+
+      expect(MithrilMock, :get_user_by_id, 2, fn id, _ ->
+        {:ok,
+         %{
+           "data" => %{
+             "id" => id,
+             "person_id" => person_id,
+             "tax_id" => "2222222225",
+             "no_tax_id" => false,
+             "email" => "user@email.com"
+           }
+         }}
+      end)
+
+      expect(MithrilMock, :get_roles_by_name, fn "DOCTOR", _headers ->
+        {:ok, %{"data" => [%{"id" => role_id}]}}
+      end)
+
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok,
+         %{
+           "data" => [
+             %{
+               "role_id" => role_id,
+               "user_id" => UUID.generate()
+             }
+           ]
+         }}
+      end)
+
+      expect(OPSMock, :get_latest_block, fn _params ->
+        {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
+      end)
+
+      expect(OTPVerificationMock, :search, fn _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
+      legal_entity = insert(:prm, :legal_entity)
+      division = insert(:prm, :division, legal_entity: legal_entity)
+      employee_speciality = Map.put(speciality(), "speciality", "FAMILY_DOCTOR")
+      additional_info = Map.put(doctor(), "specialities", [employee_speciality])
+
+      employee =
+        insert(
+          :prm,
+          :employee,
+          division: division,
+          legal_entity_id: legal_entity.id,
+          additional_info: additional_info,
+          speciality: employee_speciality
+        )
+
+      insert(:prm, :party_user, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c", party: employee.party)
+      template()
+
+      conn =
+        conn
+        |> put_req_header("edrpou", "2222222220")
+        |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
+        |> post(cabinet_declaration_requests_path(conn, :create), %{
+          person_id: person_id,
+          employee_id: employee.id,
+          division_id: employee.division.id
+        })
+
+      assert json_response(conn, 200)
+    end
+
     test "success create declaration request online for underage person for FAMILY_DOCTOR with unzr", %{conn: conn} do
       cabinet()
 
