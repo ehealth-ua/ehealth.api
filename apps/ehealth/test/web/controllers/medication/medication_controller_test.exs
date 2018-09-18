@@ -328,6 +328,36 @@ defmodule EHealth.Web.MedicationControllerTest do
              } = resp["error"]
     end
 
+    test "duplicated code_atc", %{conn: conn} do
+      ingredient = get_ingredient(id: fixture(:innm_dosage).id)
+      ingredient_inactive = get_ingredient(id: fixture(:innm_dosage).id, is_primary: false)
+
+      attrs =
+        @create_attrs
+        |> Map.put(:code_atc, ["C08CA01", "C08CA02", "C08CA02"])
+        |> Map.put(:ingredients, [ingredient, ingredient_inactive])
+
+      conn = post(conn, medication_path(conn, :create), attrs)
+
+      resp = json_response(conn, 422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.code_atc",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "atc codes are duplicated",
+                       "params" => [],
+                       "rule" => "invalid"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
+    end
+
     test "ingredients innm_dosage duplicated", %{conn: conn} do
       %{id: innm_dosage_id} = fixture(:innm_dosage)
 
