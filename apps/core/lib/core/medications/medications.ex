@@ -22,6 +22,8 @@ defmodule Core.Medications do
   alias Core.Medications.Program.Search, as: ProgramMedicationSearch
   alias Core.Medications.Validator
   alias Core.PRMRepo
+  alias Core.ValidationError
+  alias Core.Validators.Error
   alias Core.Validators.JsonSchema
   alias Scrivener.Page
 
@@ -341,7 +343,27 @@ defmodule Core.Medications do
 
   def create_innm_dosage(attrs, headers), do: create_medication_entity(INNMDosage, attrs, headers)
 
-  def create_medication(attrs, headers), do: create_medication_entity(Medication, attrs, headers)
+  def create_medication(attrs, headers) do
+    code_atc = Map.get(attrs, "code_atc")
+
+    case check_duplicates_in_list(code_atc, "code_atc", "atc codes are duplicated") do
+      :ok ->
+        create_medication_entity(Medication, attrs, headers)
+
+      err ->
+        err
+    end
+  end
+
+  defp check_duplicates_in_list(attr, attr_name, error_description) when is_list(attr) do
+    if attr == Enum.uniq(attr) do
+      :ok
+    else
+      Error.dump(%ValidationError{description: error_description, path: "$." <> attr_name})
+    end
+  end
+
+  defp check_duplicates_in_list(_, _, _), do: :ok
 
   defp create_medication_entity(entity, attrs, headers) do
     schema_type =
