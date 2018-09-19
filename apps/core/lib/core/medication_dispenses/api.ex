@@ -141,11 +141,7 @@ defmodule Core.MedicationDispense.API do
   end
 
   def process(%{"id" => id} = params, headers) do
-    attrs =
-      params
-      |> Map.take(~w(payment_id payment_amount))
-      |> Map.put("status", "PROCESSED")
-      |> Map.put("updated_by", get_consumer_id(headers))
+    attrs = Map.take(params, ~w(payment_id payment_amount))
 
     request_attrs = %{
       "status" => "COMPLETED",
@@ -154,6 +150,11 @@ defmodule Core.MedicationDispense.API do
 
     with {:ok, medication_dispense, references} <- get_by_id(params, headers),
          :ok <- validate_status_transition(medication_dispense, "PROCESSED"),
+         :ok <- JsonSchema.validate(:medication_dispense_process, attrs),
+         attrs <-
+           attrs
+           |> Map.put("status", "PROCESSED")
+           |> Map.put("updated_by", get_consumer_id(headers)),
          {:ok, %{"data" => medication_dispense}} <-
            @ops_api.update_medication_dispense(id, %{"medication_dispense" => attrs}, headers),
          medication_request_id <- Map.get(references.medication_request, "id"),
