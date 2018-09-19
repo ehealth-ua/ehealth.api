@@ -12,12 +12,21 @@ defmodule Core.API.Helpers.MicroserviceBase do
 
       def process_request_options(options), do: Keyword.merge(config()[:hackney_options], options)
 
-      @filter_headers ["content-length", "Content-Length", "api-key", "authorization"]
+      @filter_request_headers ["content-length", "Content-Length", "authorization"]
+      @filter_log_headers ["api-key", "authorization"]
 
       def process_request_headers(headers) do
         headers
-        |> Keyword.drop(@filter_headers)
+        |> Keyword.drop(@filter_request_headers)
         |> Kernel.++([{"Content-Type", "application/json"}])
+      end
+
+      def process_log_headers(headers) do
+        headers
+        |> Keyword.drop(@filter_log_headers)
+        |> Enum.reduce(%{}, fn {k, v}, map ->
+          Map.put_new(map, k, v)
+        end)
       end
 
       def request!(method, url, body \\ "", headers \\ [], options \\ []) do
@@ -51,10 +60,7 @@ defmodule Core.API.Helpers.MicroserviceBase do
               "path" => Enum.join([process_url(url), query_string]),
               "request_id" => Logger.metadata()[:request_id],
               "body" => body,
-              "headers" =>
-                Enum.reduce(process_request_headers(headers), %{}, fn {k, v}, map ->
-                  Map.put_new(map, k, v)
-                end)
+              "headers" => process_log_headers(headers)
             })
           end)
 
