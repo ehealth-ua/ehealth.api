@@ -3,6 +3,8 @@ defmodule EHealth.Web.ConnectionController do
 
   use EHealth.Web, :controller
 
+  alias Core.Validators.JsonSchema
+
   @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
 
   action_fallback(EHealth.Web.FallbackController)
@@ -30,6 +32,7 @@ defmodule EHealth.Web.ConnectionController do
 
   def update(%Plug.Conn{req_headers: headers} = conn, params) do
     with :ok <- validate_client_id(params),
+         :ok <- JsonSchema.validate(:connection_update, Map.take(params, ~w(redirect_uri))),
          {:ok, %{"data" => connection}} <-
            @mithril_api.update_client_connection(params["client_id"], params["id"], params, headers) do
       render(conn, "show.json", connection: connection)

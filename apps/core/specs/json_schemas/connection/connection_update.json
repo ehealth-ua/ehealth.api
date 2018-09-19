@@ -1,0 +1,15 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "redirect_uri": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^(https):\/\/.+"
+        }
+    },
+    "required": [
+        "redirect_uri"
+    ],
+    "additionalProperties": false
+}
