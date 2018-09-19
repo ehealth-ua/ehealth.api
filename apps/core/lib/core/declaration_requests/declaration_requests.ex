@@ -17,7 +17,6 @@ defmodule Core.DeclarationRequests do
   alias Core.LegalEntities
   alias Core.LegalEntities.LegalEntity
   alias Core.Persons.Validator, as: PersonsValidator
-  alias Core.Persons.V2.Validator, as: PersonsValidatorV2
   alias Core.Repo
   alias Core.Validators.Addresses
   alias Core.Validators.JsonSchema
@@ -43,29 +42,6 @@ defmodule Core.DeclarationRequests do
     updated_by
     mpi_id
   )a
-
-  @person_create_params ~w(
-    addresses
-    authentication_methods
-    birth_country
-    birth_date
-    birth_settlement
-    confidant_person
-    documents
-    email
-    emergency_contact
-    first_name
-    gender
-    last_name
-    patient_signed
-    phones
-    preferred_way_communication
-    process_disclosure_data_consent
-    second_name
-    secret
-    tax_id
-    unzr
-  )
 
   def list(params) do
     DeclarationRequest
@@ -183,13 +159,13 @@ defmodule Core.DeclarationRequests do
 
   defp filter_by_legal_entity_id(query, _), do: query
 
-  def create_offline(params, headers, api_version \\ :v1) do
+  def create_offline(params, headers) do
     user_id = get_consumer_id(headers)
     client_id = get_client_id(headers)
 
-    with :ok <- validate_schema(api_version, params),
+    with :ok <- JsonSchema.validate(:declaration_request, %{"declaration_request" => params}),
          params <- lowercase_email(params),
-         :ok <- validate_person(api_version, params["person"]),
+         :ok <- PersonsValidator.validate(params["person"]),
          :ok <- Addresses.validate(get_in(params, ["person", "addresses"]), "RESIDENCE", headers),
          {:ok, %Employee{} = employee} <-
            Reference.validate(:employee, params["employee_id"], "$.declaration_request.employee_id"),
@@ -200,32 +176,6 @@ defmodule Core.DeclarationRequests do
            Reference.validate(:division, params["division_id"], "$.declaration_request.division_id") do
       data = Map.put(params, "channel", DeclarationRequest.channel(:mis))
       Creator.create(data, user_id, params["person"], employee, division, legal_entity, headers)
-    end
-  end
-
-  def create_online(params, headers) do
-    user_id = get_consumer_id(headers)
-    params = Map.delete(params, "legal_entity_id")
-
-    with :ok <- JsonSchema.validate(:cabinet_declaration_request, params),
-         params <- Map.put(params, "scope", "family_doctor"),
-         {:ok, %{"data" => user}} <- @mithril_api.get_user_by_id(user_id, headers),
-         :ok <- check_user_person_id(user, params["person_id"]),
-         {:ok, person} <- Reference.validate(:person, params["person_id"]),
-         :ok <- validate_person(:v2, person),
-         {:ok, %Employee{} = employee} <- Reference.validate(:employee, params["employee_id"]),
-         :ok <- Creator.validate_employee_status(employee),
-         :ok <- Creator.validate_employee_speciality(employee),
-         {:ok, %Division{} = division} <- Reference.validate(:division, params["division_id"]),
-         {:ok, %LegalEntity{} = legal_entity} <- Reference.validate(:legal_entity, division.legal_entity_id),
-         :ok <- validate_tax_id(user["tax_id"], person["tax_id"]) do
-      data =
-        params
-        |> Map.put("person", Map.take(person, @person_create_params))
-        |> Map.put("employee", employee)
-        |> Map.put("channel", DeclarationRequest.channel(:cabinet))
-
-      Creator.create(data, user_id, person, employee, division, legal_entity, headers)
     end
   end
 
@@ -264,12 +214,4 @@ defmodule Core.DeclarationRequests do
   end
 
   defp validate_channel(_, _), do: :ok
-
-  def validate_schema(:v1, params), do: JsonSchema.validate(:declaration_request, %{"declaration_request" => params})
-
-  def validate_schema(:v2, params), do: JsonSchema.validate(:declaration_request_v2, %{"declaration_request" => params})
-
-  defp validate_person(:v1, person), do: PersonsValidator.validate(person)
-
-  defp validate_person(:v2, person), do: PersonsValidatorV2.validate(person)
 end

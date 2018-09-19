@@ -14,13 +14,13 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
 
   setup :verify_on_exit!
 
-  def gen_sequence_number do
-    expect(DeclarationRequestsCreatorMock, :sql_get_sequence_number, fn ->
+  def gen_sequence_number(n \\ 1) do
+    expect(DeclarationRequestsCreatorMock, :sql_get_sequence_number, n, fn ->
       {:ok, %Postgrex.Result{rows: [[Enum.random(1_000_000..2_000_000)]]}}
     end)
   end
 
-  describe "Happy paths v1" do
+  describe "Happy paths v2" do
     setup %{conn: conn} do
       insert(:prm, :global_parameter, %{parameter: "adult_age", value: "18"})
       insert(:prm, :global_parameter, %{parameter: "declaration_term", value: "40"})
