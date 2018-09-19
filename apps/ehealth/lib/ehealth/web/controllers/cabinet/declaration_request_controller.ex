@@ -4,6 +4,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestController do
   use EHealth.Web, :controller
   alias Core.Cabinet.DeclarationRequests, as: CabinetDeclarationRequests
   alias Core.DeclarationRequests
+  alias Core.V2.DeclarationRequests, as: DeclarationRequestsV2
   alias Core.Employees
   alias Core.Employees.Employee
   alias EHealth.Web.DeclarationRequestView
@@ -38,7 +39,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestController do
 
   def create(%Plug.Conn{req_headers: headers} = conn, %{"employee_id" => employee_id} = params) do
     with {:ok, %{urgent_data: urgent_data, finalize: result}} <-
-           DeclarationRequests.create_online(params, conn.req_headers),
+           DeclarationRequestsV2.create_online(params, conn.req_headers),
          %Employee{} = employee <- Employees.get_by_id(employee_id),
          {:ok, %{"data" => %{"hash" => hash}}} = @ops_api.get_latest_block(headers) do
       conn

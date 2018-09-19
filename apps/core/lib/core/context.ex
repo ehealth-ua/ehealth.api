@@ -1,8 +1,6 @@
 defmodule Core.Context do
   @moduledoc false
-  @doc """
-  Context resolver for API calls
-  """
+
   use Confex, otp_app: :core
   require Logger
 
