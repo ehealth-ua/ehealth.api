@@ -13,22 +13,7 @@ defmodule Core.DeclarationRequests.Validator do
   @channel_mis DeclarationRequest.channel(:mis)
   @channel_cabinet DeclarationRequest.channel(:cabinet)
 
-  def validate_status_transition(changeset) do
-    from = changeset.data.status
-    {_, to} = fetch_field(changeset, :status)
-
-    valid_transitions = [
-      {@status_new, @status_rejected},
-      {@status_approved, @status_rejected},
-      {@status_new, @status_approved}
-    ]
-
-    if {from, to} in valid_transitions do
-      :ok
-    else
-      {:error, {:conflict, "Invalid transition"}}
-    end
-  end
+  # Declaration Requests BOTH V1, V2
 
   def validate_tax_id(user_tax_id, person_tax_id) do
     if user_tax_id == person_tax_id do
@@ -50,6 +35,25 @@ defmodule Core.DeclarationRequests.Validator do
     path = ~w(person email)
     email = get_in(params, path)
     put_in(params, path, Sanitizer.sanitize(email))
+  end
+
+  # Declaration Requests V1
+
+  def validate_status_transition(changeset) do
+    from = changeset.data.status
+    {_, to} = fetch_field(changeset, :status)
+
+    valid_transitions = [
+      {@status_new, @status_rejected},
+      {@status_approved, @status_rejected},
+      {@status_new, @status_approved}
+    ]
+
+    if {from, to} in valid_transitions do
+      :ok
+    else
+      {:error, {:conflict, "Invalid transition"}}
+    end
   end
 
   def validate_channel(%DeclarationRequest{channel: @channel_mis}, @channel_cabinet) do
