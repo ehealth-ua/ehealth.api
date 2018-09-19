@@ -417,6 +417,48 @@ defmodule Mithril.Web.RegistrationControllerTest do
       # |> assert_show_response_schema("cabinet")
     end
 
+    test "MPI persons duplicated", %{conn: conn, params: params} do
+      expect(MPIMock, :search, fn %{"tax_id" => "3126509816", "birth_date" => _}, _headers ->
+        {:ok, %{"data" => [%{"id" => UUID.generate()}, %{"id" => UUID.generate()}]}}
+      end)
+
+      expect(MithrilMock, :search_user, fn %{email: "email@example.com"}, _headers ->
+        {:ok, %{"data" => []}}
+      end)
+
+      expect(OTPVerificationMock, :complete, fn _, _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
+      expect(MPIMock, :update_person, fn person_id, params, _headers ->
+        assert Map.has_key?(params, "patient_signed")
+        {:ok, %{"data" => Map.put(params, "id", person_id)}}
+      end)
+
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
+      expect(MithrilMock, :create_user, fn params, _headers ->
+        Enum.each(~w(otp tax_id person_id email password factor), fn key ->
+          assert Map.has_key?(params, key)
+        end)
+
+        data =
+          params
+          |> Map.put("id", UUID.generate())
+          |> Map.delete("password")
+
+        {:ok, %{"data" => data}}
+      end)
+
+      uaddresses_mock_expect()
+
+      conn
+      |> post(cabinet_auth_path(conn, :registration), params)
+      |> json_response(201)
+    end
+
     @tag :pending
     test "update user and create new MPI person", %{conn: conn, params: params} do
       expect(MPIMock, :search, fn %{"tax_id" => "3126509816", "birth_date" => _}, _headers ->
@@ -662,31 +704,6 @@ defmodule Mithril.Web.RegistrationControllerTest do
           ]
         }
       ] = resp["error"]["invalid"]
-    end
-
-    test "MPI persons duplicated", %{conn: conn, params: params, jwt: jwt} do
-      use SignatureExpect
-
-      expect(MPIMock, :search, fn %{"tax_id" => "3126509816", "birth_date" => _}, _headers ->
-        {:ok, %{"data" => [%{"id" => UUID.generate()}, %{"id" => UUID.generate()}]}}
-      end)
-
-      expect(MithrilMock, :search_user, fn %{email: "email@example.com"}, _headers ->
-        {:ok, %{"data" => []}}
-      end)
-
-      expect(OTPVerificationMock, :complete, fn _, _, _ ->
-        {:ok, %{"data" => []}}
-      end)
-
-      uaddresses_mock_expect()
-
-      assert "person_duplicated" ==
-               conn
-               |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
-               |> post(cabinet_auth_path(conn, :registration), params)
-               |> json_response(409)
-               |> get_in(~w(error type))
     end
 
     test "different last_name in signed content and DS", %{conn: conn, params: params, jwt: jwt} do
