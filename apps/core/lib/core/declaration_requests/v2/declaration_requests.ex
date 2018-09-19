@@ -1,15 +1,12 @@
 defmodule Core.V2.DeclarationRequests do
   @moduledoc false
 
+  import Core.DeclarationRequests.Validator
   import Core.API.Helpers.Connection, only: [get_consumer_id: 1, get_client_id: 1]
-  import Ecto.Changeset
 
   alias Core.DeclarationRequests.API.Creator
-  alias Core.DeclarationRequests.API.ResendOTP
-  alias Core.DeclarationRequests.API.Sign
   alias Core.DeclarationRequests.DeclarationRequest
   alias Core.Divisions.Division
-  alias Core.Email.Sanitizer
   alias Core.Employees.Employee
   alias Core.LegalEntities
   alias Core.LegalEntities.LegalEntity
@@ -19,17 +16,6 @@ defmodule Core.V2.DeclarationRequests do
   alias Core.Validators.Reference
 
   @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
-
-  @fields_optional ~w(
-    data
-    status
-    documents
-    authentication_method_current
-    printout_content
-    inserted_by
-    updated_by
-    mpi_id
-  )a
 
   @person_create_params ~w(
     addresses
@@ -53,9 +39,6 @@ defmodule Core.V2.DeclarationRequests do
     tax_id
     unzr
   )
-
-  defdelegate sign(params, headers), to: Sign
-  defdelegate resend_otp(id, headers), to: ResendOTP
 
   def create_offline(params, headers) do
     user_id = get_consumer_id(headers)
@@ -101,31 +84,5 @@ defmodule Core.V2.DeclarationRequests do
 
       Creator.create(data, user_id, person, employee, division, legal_entity, headers)
     end
-  end
-
-  defp validate_tax_id(user_tax_id, person_tax_id) do
-    if user_tax_id == person_tax_id do
-      :ok
-    else
-      {:error, {:"422", "Invalid person"}}
-    end
-  end
-
-  defp check_user_person_id(user, person_id) do
-    if user["person_id"] == person_id do
-      :ok
-    else
-      {:error, :forbidden}
-    end
-  end
-
-  def changeset(%DeclarationRequest{} = declaration_request, params) do
-    cast(declaration_request, params, @fields_optional)
-  end
-
-  defp lowercase_email(params) do
-    path = ~w(person email)
-    email = get_in(params, path)
-    put_in(params, path, Sanitizer.sanitize(email))
   end
 end
