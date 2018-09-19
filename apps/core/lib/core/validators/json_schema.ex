@@ -77,6 +77,8 @@ defmodule Core.Validators.JsonSchema do
 
   use_schema(:credentials_recovery_request, "specs/json_schemas/user/credentials_recovery_request.json")
 
+  use_schema(:connection_update, "specs/json_schemas/connection/connection_update.json")
+
   def validate(schema, attrs) do
     @schemas
     |> Keyword.get(schema)

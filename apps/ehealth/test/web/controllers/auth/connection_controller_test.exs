@@ -173,7 +173,11 @@ defmodule Mithril.Web.Auth.ConnectionControllerTest do
       assert %{"error" => %{"type" => "not_found"}} =
                conn
                |> put_client_id_header(client_id)
-               |> patch(client_connection_path(conn, :update, client_id, UUID.generate(), %{}))
+               |> patch(
+                 client_connection_path(conn, :update, client_id, UUID.generate(), %{
+                   "redirect_uri" => "https://example.com"
+                 })
+               )
                |> json_response(404)
     end
   end
