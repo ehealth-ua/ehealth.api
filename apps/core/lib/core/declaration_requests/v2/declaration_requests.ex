@@ -1,7 +1,7 @@
 defmodule Core.V2.DeclarationRequests do
   @moduledoc false
 
-  import Core.DeclarationRequests.Validator
+  import Core.DeclarationRequests.Validator, only: [validate_tax_id: 2, check_user_person_id: 2, lowercase_email: 1]
   import Core.API.Helpers.Connection, only: [get_consumer_id: 1, get_client_id: 1]
 
   alias Core.DeclarationRequests.API.Creator
