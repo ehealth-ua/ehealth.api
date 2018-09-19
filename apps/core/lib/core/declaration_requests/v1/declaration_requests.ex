@@ -4,6 +4,7 @@ defmodule Core.DeclarationRequests do
   import Core.API.Helpers.Connection, only: [get_consumer_id: 1, get_client_id: 1]
   import Ecto.Changeset
   import Ecto.Query
+  import Core.DeclarationRequests.Validator
 
   alias Core.DeclarationRequests.API.Approve
   alias Core.DeclarationRequests.API.Creator
@@ -12,7 +13,6 @@ defmodule Core.DeclarationRequests do
   alias Core.DeclarationRequests.API.Sign
   alias Core.DeclarationRequests.DeclarationRequest
   alias Core.Divisions.Division
-  alias Core.Email.Sanitizer
   alias Core.Employees.Employee
   alias Core.LegalEntities
   alias Core.LegalEntities.LegalEntity
@@ -24,11 +24,8 @@ defmodule Core.DeclarationRequests do
   alias Ecto.Multi
 
   @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
-
   @channel_cabinet DeclarationRequest.channel(:cabinet)
   @channel_mis DeclarationRequest.channel(:mis)
-
-  @status_new DeclarationRequest.status(:new)
   @status_rejected DeclarationRequest.status(:rejected)
   @status_approved DeclarationRequest.status(:approved)
 
@@ -43,6 +40,10 @@ defmodule Core.DeclarationRequests do
     mpi_id
   )a
 
+  def changeset(%DeclarationRequest{} = declaration_request, params) do
+    cast(declaration_request, params, @fields_optional)
+  end
+
   def list(params) do
     DeclarationRequest
     |> order_by([dr], desc: :inserted_at)
@@ -51,18 +52,6 @@ defmodule Core.DeclarationRequests do
     |> filter_by_status(params)
     |> Repo.paginate(params)
   end
-
-  defp filter_by_employee_id(query, %{"employee_id" => employee_id}) do
-    where(query, [r], fragment("?->'employee'->>'id' = ?", r.data, ^employee_id))
-  end
-
-  defp filter_by_employee_id(query, _), do: query
-
-  defp filter_by_status(query, %{"status" => status}) when is_binary(status) do
-    where(query, [r], r.status == ^status)
-  end
-
-  defp filter_by_status(query, _), do: where(query, [r], r.status in ^DeclarationRequest.status_options())
 
   def approve(id, verification_code, headers) do
     user_id = get_consumer_id(headers)
@@ -126,23 +115,6 @@ defmodule Core.DeclarationRequests do
     |> Documents.generate_links()
   end
 
-  defp validate_status_transition(changeset) do
-    from = changeset.data.status
-    {_, to} = fetch_field(changeset, :status)
-
-    valid_transitions = [
-      {@status_new, @status_rejected},
-      {@status_approved, @status_rejected},
-      {@status_new, @status_approved}
-    ]
-
-    if {from, to} in valid_transitions do
-      :ok
-    else
-      {:error, {:conflict, "Invalid transition"}}
-    end
-  end
-
   def get_by_id!(id), do: get_by_id!(id, %{})
   def get_by_id!(id, nil), do: get_by_id!(id, %{})
 
@@ -152,12 +124,6 @@ defmodule Core.DeclarationRequests do
     |> filter_by_legal_entity_id(params)
     |> Repo.one!()
   end
-
-  defp filter_by_legal_entity_id(query, %{"legal_entity_id" => legal_entity_id}) do
-    where(query, [r], fragment("?->'legal_entity'->>'id' = ?", r.data, ^legal_entity_id))
-  end
-
-  defp filter_by_legal_entity_id(query, _), do: query
 
   def create_offline(params, headers) do
     user_id = get_consumer_id(headers)
@@ -179,39 +145,9 @@ defmodule Core.DeclarationRequests do
     end
   end
 
-  defp validate_tax_id(user_tax_id, person_tax_id) do
-    if user_tax_id == person_tax_id do
-      :ok
-    else
-      {:error, {:"422", "Invalid person"}}
-    end
+  def filter_by_legal_entity_id(query, %{"legal_entity_id" => legal_entity_id}) do
+    where(query, [r], fragment("?->'legal_entity'->>'id' = ?", r.data, ^legal_entity_id))
   end
 
-  defp check_user_person_id(user, person_id) do
-    if user["person_id"] == person_id do
-      :ok
-    else
-      {:error, :forbidden}
-    end
-  end
-
-  def changeset(%DeclarationRequest{} = declaration_request, params) do
-    cast(declaration_request, params, @fields_optional)
-  end
-
-  defp lowercase_email(params) do
-    path = ~w(person email)
-    email = get_in(params, path)
-    put_in(params, path, Sanitizer.sanitize(email))
-  end
-
-  defp validate_channel(%DeclarationRequest{channel: @channel_mis}, @channel_cabinet) do
-    {:error, {:forbidden, "Declaration request should be approved by Doctor"}}
-  end
-
-  defp validate_channel(%DeclarationRequest{channel: @channel_cabinet}, @channel_mis) do
-    {:error, {:forbidden, "Declaration request should be approved by Patient"}}
-  end
-
-  defp validate_channel(_, _), do: :ok
+  def filter_by_legal_entity_id(query, _), do: query
 end
