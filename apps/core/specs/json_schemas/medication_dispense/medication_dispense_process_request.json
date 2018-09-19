@@ -1,0 +1,19 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "payment_id": {
+            "type": "string",
+            "description": "receipt number for the paid medications"
+        },
+        "payment_amount": {
+            "type": "number",
+            "minimum": 0,
+            "description": "amount for the paid medications"
+        }
+    },
+    "required": [
+        "payment_id",
+        "payment_amount"
+    ]
+}
