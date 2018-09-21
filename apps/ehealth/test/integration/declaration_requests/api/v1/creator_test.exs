@@ -1,4 +1,4 @@
-defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
+defmodule EHealth.Integraiton.DeclarationRequest.API.V1.CreateTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase
@@ -6,7 +6,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
   import Mox
   import Ecto.Changeset, only: [get_change: 2, put_change: 3]
 
-  alias Core.DeclarationRequests.API.Creator
+  alias Core.DeclarationRequests.API.V1.Creator
   alias Core.DeclarationRequests.DeclarationRequest
   alias Core.Utils.NumberGenerator
   alias Ecto.UUID
@@ -435,6 +435,58 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.CreateTest do
 
       assert %{"number" => "+380508887700", "type" => "OTP"} == get_change(changeset, :authentication_method_current)
       assert "b5350f79-f2ca-408f-b15d-1ae0a8cc861c" == get_change(changeset, :mpi_id)
+    end
+  end
+
+  describe "determine_auth_method_for_mpi/1, MPI has many existing records" do
+    test "auth method's type is set to NA if many persons" do
+      expect(MPIMock, :search, fn params, _ ->
+        person =
+          params
+          |> Map.put("id", "b5350f79-f2ca-408f-b15d-1ae0a8cc861c")
+          |> Map.put("authentication_methods", [
+            %{
+              "type" => "OTP",
+              "phone_number" => "+380508887700"
+            }
+          ])
+
+        {:ok,
+         %{
+           "data" => [
+             person,
+             person
+           ]
+         }}
+      end)
+
+      declaration_request = %DeclarationRequest{
+        data: %{
+          "person" => %{
+            "first_name" => "Олена",
+            "second_name" => "XXX",
+            "last_name" => "Пчілка",
+            "birth_date" => "1980-08-19",
+            "tax_id" => "3126509816",
+            "authentication_methods" => [
+              %{
+                "phone_number" => "+380508887700"
+              }
+            ]
+          }
+        }
+      }
+
+      changeset =
+        declaration_request
+        |> Ecto.Changeset.change()
+        |> Creator.determine_auth_method_for_mpi(
+          DeclarationRequest.channel(:mis),
+          "b5350f79-f2ca-408f-b15d-1ae0a8cc861c"
+        )
+
+      assert %{"type" => "NA"} == get_change(changeset, :authentication_method_current)
+      refute "b5350f79-f2ca-408f-b15d-1ae0a8cc861c" == get_change(changeset, :mpi_id)
     end
   end
 

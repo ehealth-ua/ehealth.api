@@ -26,7 +26,7 @@ config :core,
     uaddresses: Core.API.UAddress,
     casher: Core.API.Casher,
     postmark: Core.API.Postmark,
-    declaration_request_creator: Core.DeclarationRequests.API.Creator
+    declaration_request_creator: Core.DeclarationRequests.API.V1.Creator
   ],
   cache: [
     validators: Core.Validators.Cache

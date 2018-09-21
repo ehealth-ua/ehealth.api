@@ -1,10 +1,10 @@
 defmodule Core.V2.DeclarationRequests do
   @moduledoc false
 
-  import Core.DeclarationRequests.Validator, only: [validate_tax_id: 2, check_user_person_id: 2, lowercase_email: 1]
   import Core.API.Helpers.Connection, only: [get_consumer_id: 1, get_client_id: 1]
 
-  alias Core.DeclarationRequests.API.Creator
+  alias Core.DeclarationRequests, as: V1DeclarationRequests
+  alias Core.DeclarationRequests.API.V2.Creator
   alias Core.DeclarationRequests.DeclarationRequest
   alias Core.Divisions.Division
   alias Core.Employees.Employee
@@ -85,4 +85,10 @@ defmodule Core.V2.DeclarationRequests do
       Creator.create(data, user_id, person, employee, division, legal_entity, headers)
     end
   end
+
+  defdelegate validate_tax_id(user_tax_id, person_tax_id), to: V1DeclarationRequests
+
+  defdelegate check_user_person_id(user, person_id), to: V1DeclarationRequests
+
+  defdelegate lowercase_email(params), to: V1DeclarationRequests
 end
