@@ -1,4 +1,4 @@
-defmodule Core.DeclarationRequests.API.Creator do
+defmodule Core.DeclarationRequests.API.V1.Creator do
   @moduledoc false
 
   use Confex, otp_app: :core
@@ -10,7 +10,7 @@ defmodule Core.DeclarationRequests.API.Creator do
 
   alias Core.DeclarationRequests
   alias Core.DeclarationRequests.API.Documents
-  alias Core.DeclarationRequests.API.Persons
+  alias Core.DeclarationRequests.API.V1.MpiSearch
   alias Core.DeclarationRequests.DeclarationRequest
   alias Core.Employees.Employee
   alias Core.GlobalParameters
@@ -30,7 +30,6 @@ defmodule Core.DeclarationRequests.API.Creator do
 
   require Logger
 
-  @mpi_api Application.get_env(:core, :api_resolvers)[:mpi]
   @otp_verification_api Application.get_env(:core, :api_resolvers)[:otp_verification]
   @declaration_request_creator Application.get_env(:core, :api_resolvers)[:declaration_request_creator]
 
@@ -38,7 +37,6 @@ defmodule Core.DeclarationRequests.API.Creator do
   @auth_otp DeclarationRequest.authentication_method(:otp)
   @auth_offline DeclarationRequest.authentication_method(:offline)
   @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
-
   @channel_cabinet DeclarationRequest.channel(:cabinet)
 
   @status_new DeclarationRequest.status(:new)
@@ -52,12 +50,6 @@ defmodule Core.DeclarationRequests.API.Creator do
   @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
 
   def create(params, user_id, person, employee, division, legal_entity, headers) do
-    updates = [
-      status: DeclarationRequest.status(:cancelled),
-      updated_at: DateTime.utc_now(),
-      updated_by: user_id
-    ]
-
     global_parameters = GlobalParameters.get_values()
 
     auxiliary_entities = %{
@@ -71,13 +63,7 @@ defmodule Core.DeclarationRequests.API.Creator do
     pending_declaration_requests = pending_declaration_requests(person, employee.id, legal_entity.id)
 
     Repo.transaction(fn ->
-      previous_request_ids =
-        pending_declaration_requests
-        |> Repo.all()
-        |> Enum.map(&Map.get(&1, :id))
-
-      query = where(DeclarationRequest, [dr], dr.id in ^previous_request_ids)
-      Repo.update_all(query, set: updates)
+      cancell_declaration_requests(user_id, pending_declaration_requests)
 
       with {:ok, declaration_request} <- insert_declaration_request(params, user_id, auxiliary_entities, headers),
            {:ok, declaration_request} <- finalize(declaration_request),
@@ -89,13 +75,32 @@ defmodule Core.DeclarationRequests.API.Creator do
     end)
   end
 
+  def cancell_declaration_requests(user_id, pending_declaration_requests) do
+    previous_request_ids =
+      pending_declaration_requests
+      |> Repo.all()
+      |> Enum.map(&Map.get(&1, :id))
+
+    DeclarationRequest
+    |> where([dr], dr.id in ^previous_request_ids)
+    |> Repo.update_all(
+      set: [
+        status: DeclarationRequest.status(:cancelled),
+        updated_at: DateTime.utc_now(),
+        updated_by: user_id
+      ]
+    )
+  end
+
   defp insert_declaration_request(params, user_id, auxiliary_entities, headers) do
     params
     |> changeset(user_id, auxiliary_entities, headers)
+    |> determine_auth_method_for_mpi(params["channel"], auxiliary_entities[:person_id])
+    |> generate_printout_form(auxiliary_entities[:employee])
     |> do_insert_declaration_request()
   end
 
-  defp do_insert_declaration_request(changeset) do
+  def do_insert_declaration_request(changeset) do
     case Repo.insert(changeset) do
       {:ok, declaration_request} ->
         {:ok, declaration_request}
@@ -306,8 +311,7 @@ defmodule Core.DeclarationRequests.API.Creator do
       employee: employee,
       global_parameters: global_parameters,
       division: division,
-      legal_entity: legal_entity,
-      person_id: person_id
+      legal_entity: legal_entity
     } = auxiliary_entities
 
     employee_speciality_officio = employee.speciality["speciality"]
@@ -345,8 +349,6 @@ defmodule Core.DeclarationRequests.API.Creator do
     |> put_declaration_number()
     |> unique_constraint(:declaration_number, name: :declaration_requests_declaration_number_index)
     |> put_party_email()
-    |> determine_auth_method_for_mpi(channel, person_id)
-    |> generate_printout_form(employee)
   end
 
   defp validate_legal_entity_employee(changeset, legal_entity, employee) do
@@ -659,25 +661,24 @@ defmodule Core.DeclarationRequests.API.Creator do
   end
 
   def determine_auth_method_for_mpi(changeset, _, _) do
-    data = get_field(changeset, :data)
-
-    case @mpi_api.search(Persons.get_search_params(data["person"]), []) do
-      {:ok, %{"data" => [person]}} ->
-        do_determine_auth_method_for_mpi(person, changeset)
-
-      {:ok, %{"data" => _}} ->
-        authentication_method = hd(data["person"]["authentication_methods"])
-        put_change(changeset, :authentication_method_current, prepare_auth_method_current(authentication_method))
-
-      {:error, %HTTPoison.Error{reason: reason}} ->
-        add_error(changeset, :authentication_method_current, format_error_response("MPI", reason))
-
-      {:error, error_response} ->
-        add_error(changeset, :authentication_method_current, format_error_response("MPI", error_response))
-    end
+    changeset
+    |> get_field(:data)
+    |> get_in(["person"])
+    |> mpi_search()
+    |> do_determine_auth_method_for_mpi(changeset)
   end
 
-  defp do_determine_auth_method_for_mpi(person, changeset) do
+  def mpi_search(person) do
+    MpiSearch.search(person)
+  end
+
+  def do_determine_auth_method_for_mpi({:ok, nil}, changeset) do
+    data = get_field(changeset, :data)
+    authentication_method = hd(data["person"]["authentication_methods"])
+    put_change(changeset, :authentication_method_current, prepare_auth_method_current(authentication_method))
+  end
+
+  def do_determine_auth_method_for_mpi({:ok, person}, changeset) do
     authentication_method = List.first(person["authentication_methods"] || [])
     authenticated_methods = changeset |> get_field(:data) |> get_in(~w(person authentication_methods)) |> hd
 
@@ -692,6 +693,9 @@ defmodule Core.DeclarationRequests.API.Creator do
     |> put_change(:authentication_method_current, authentication_method_current)
     |> put_change(:mpi_id, person["id"])
   end
+
+  def do_determine_auth_method_for_mpi({:error, reason}, changeset),
+    do: add_error(changeset, :authentication_method_current, format_error_response("MPI", reason))
 
   def generate_printout_form(%Changeset{valid?: false} = changeset, _), do: changeset
 

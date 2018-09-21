@@ -802,13 +802,12 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
       d1 = clone_declaration_request(decoded, "8799e3b6-34e7-4798-ba70-d897235d2b6d", "NEW")
       d2 = clone_declaration_request(decoded, "8799e3b6-34e7-4798-ba70-d897235d2b6d", "NEW")
 
-      conn =
+      resp =
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
         |> post(v2_declaration_request_post_path(conn, :create), Jason.encode!(declaration_request_params))
-
-      resp = json_response(conn, 200)
+        |> json_response(200)
 
       id = resp["data"]["id"]
 
@@ -821,12 +820,6 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
       assert declaration_request.data["legal_entity"]["id"]
       assert declaration_request.data["division"]["id"]
       assert declaration_request.data["employee"]["id"]
-      # TODO: turn this into DB checks
-      #
-      # assert "NEW" = resp["status"]
-      # assert "ce377dea-d8c4-4dd8-9328-de24b1ee3879" = resp["data"]["updated_by"]
-      # assert "ce377dea-d8c4-4dd8-9328-de24b1ee3879" = resp["data"]["inserted_by"]
-      # assert %{"number" => "+380508887700", "type" => "OTP"} = resp["authentication_method_current"]
 
       assert "<html><body>Printout form for declaration request. tax_id = #{tax_id}</body></html>" ==
                resp["data"]["content"]
