@@ -273,7 +273,22 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         )
 
       resp = json_response(conn, 422)
-      assert %{"error" => %{"invalid" => [%{"entry" => "$.medical_program_id"}]}} = resp
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.medical_program_id",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "Medical program not found",
+                       "params" => [],
+                       "rule" => "invalid"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
     end
 
     test "medical program is not active", %{conn: conn} do
@@ -337,6 +352,76 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
       resp = json_response(conn, 409)
       assert %{"error" => %{"type" => "request_conflict", "message" => "Medical program is not active"}} = resp
+    end
+
+    test "medical program in dispense does not match the one in medication request", %{conn: conn} do
+      expect_mpi_get_person()
+
+      %{user_id: user_id, party: party} = insert(:prm, :party_user)
+      legal_entity = insert(:prm, :legal_entity)
+      %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
+
+      %{id: division_id} =
+        insert(
+          :prm,
+          :division,
+          is_active: true,
+          legal_entity: legal_entity
+        )
+
+      %{id: innm_dosage_id} = insert_innm_dosage()
+      insert_medication(innm_dosage_id)
+      %{id: medical_program_id} = insert(:prm, :medical_program, is_active: true)
+      %{id: medical_program_id_request} = insert(:prm, :medical_program, is_active: true)
+
+      {medication_request, _} =
+        build_resp(%{
+          legal_entity_id: legal_entity.id,
+          division_id: division_id,
+          employee_id: employee_id,
+          medical_program_id: medical_program_id,
+          medication_id: innm_dosage_id,
+          medication_request_params: %{
+            dispense_valid_from: Date.utc_today() |> Date.add(-1),
+            dispense_valid_to: Date.utc_today() |> Date.add(1)
+          }
+        })
+
+      expect(OPSMock, :get_medication_requests, fn _params, _headers ->
+        {:ok, %{"data" => [medication_request]}}
+      end)
+
+      conn = put_client_id_header(conn, legal_entity.id)
+      conn = Plug.Conn.put_req_header(conn, consumer_id_header(), user_id)
+
+      conn =
+        post(
+          conn,
+          medication_dispense_path(conn, :create),
+          medication_dispense:
+            new_dispense_params(%{
+              "division_id" => division_id,
+              "medical_program_id" => medical_program_id_request
+            })
+        )
+
+      resp = json_response(conn, 422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.medical_program_id",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "Medical program in dispense doesn't match the one in medication request",
+                       "params" => [],
+                       "rule" => "invalid"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
     end
 
     test "invalid medication", %{conn: conn} do

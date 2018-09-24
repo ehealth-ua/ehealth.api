@@ -220,15 +220,29 @@ defmodule Core.MedicationDispense.API do
 
   defp validate_medical_program(id, medication_request) do
     is_active = fn medical_program ->
-      medical_program.is_active && medical_program.id == Map.get(medication_request, "medical_program_id")
+      {:is_active, medical_program.is_active}
+    end
+
+    is_matched = fn medical_program ->
+      {:is_matched, medical_program.id == Map.get(medication_request, "medical_program_id")}
     end
 
     with {:ok, medical_program} <- Reference.validate(:medical_program, id),
-         true <- is_active.(medical_program) do
+         {:is_active, true} <- is_active.(medical_program),
+         {:is_matched, true} <- is_matched.(medical_program) do
       {:ok, medical_program}
     else
-      false -> {:conflict, "Medical program is not active"}
-      err -> err
+      {:is_active, false} ->
+        {:conflict, "Medical program is not active"}
+
+      {:is_matched, false} ->
+        Error.dump(%ValidationError{
+          description: "Medical program in dispense doesn't match the one in medication request",
+          path: "$.medical_program_id"
+        })
+
+      err ->
+        err
     end
   end
 
