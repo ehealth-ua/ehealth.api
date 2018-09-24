@@ -25,7 +25,7 @@
     },
     "person_name": {
       "type": "string",
-      "pattern": "^(?!.*[ЫЪЭЁыъэё@%&$^#])[А-ЯҐЇІЄа-яґїіє\\'\\- ]+$",
+      "pattern": "^[^ ](?!.*[ЫЪЭЁыъэё@%&$^#])[А-ЯҐЇІЄа-яґїіє\\'\\- ]+[^ ]$",
       "minLength": 1,
       "maxLength": 255
     },
@@ -125,11 +125,17 @@
         "issued_at": {
           "type": "string",
           "format": "date"
+        },
+        "expiration_date": {
+          "type": "string",
+          "format": "date"
         }
       },
       "required": [
         "type",
-        "number"
+        "number",
+        "issued_at",
+        "issued_by"
       ],
       "additionalProperties": false
     },
@@ -146,9 +152,9 @@
         },
         "number": {
           "type": "string",
-          "pattern": "^(?![ыъэ@%&$^#`~:,.*|}{?!])[А-ЯҐЇІЄа-яґїіє0-9 №\\\"()-]+$",
-          "minLength": 1,
-          "maxLength": 255
+          "pattern": "^(?![ЫЪЭЁыъэё@%&$^#`~:,.*|}{?!])[A-ZА-ЯҐЇІЄ0-9№\\/()-]+$",
+          "minLength": 2,
+          "maxLength": 25
         },
         "issued_by": {
           "type": "string",
@@ -157,11 +163,17 @@
         "issued_at": {
           "type": "string",
           "format": "date"
+        },
+        "expiration_date": {
+          "type": "string",
+          "format": "date"
         }
       },
       "required": [
         "type",
-        "number"
+        "number",
+        "issued_at",
+        "issued_by"
       ],
       "additionalProperties": false
     },
@@ -186,11 +198,18 @@
         "issued_at": {
           "type": "string",
           "format": "date"
+        },
+        "expiration_date": {
+          "type": "string",
+          "format": "date"
         }
       },
       "required": [
         "type",
-        "number"
+        "number",
+        "issued_at",
+        "issued_by",
+        "expiration_date"
       ],
       "additionalProperties": false
     },
@@ -293,15 +312,11 @@
             },
             "no_tax_id": {
               "type": "boolean",
-              "description":  "Status person refused tax_id"
+              "description": "Status person refused tax_id"
             },
             "unzr": {
               "type": "string",
               "$ref": "#/definitions/unzr"
-            },
-            "national_id": {
-              "type": "string",
-              "pattern": "^[0-9]{8}-[0-9]{5}$"
             },
             "invalid_tax_id": {
               "type": "boolean"

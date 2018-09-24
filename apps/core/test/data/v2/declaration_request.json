@@ -23,7 +23,9 @@
         },
         {
           "type": "BIRTH_CERTIFICATE",
-          "number": "1234567"
+          "number": "1234567",
+          "issued_at": "1996-12-25",
+          "issued_by": "Збухівський РО ГО МЖД"
         }
       ],
       "addresses": [
@@ -79,7 +81,9 @@
           "documents_person": [
             {
               "type": "PASSPORT",
-              "number": "АЯ120518"
+              "number": "АЯ120518",
+              "issued_at": "2014-02-12",
+              "issued_by": "Збухівський РО ГО МЖД"
             }
           ],
           "documents_relationship": [

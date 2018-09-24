@@ -1060,11 +1060,14 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
             type: "NATIONAL_ID",
             number: "123456789",
             issued_at: "2014-02-12",
-            issued_by: "Збухівський РО ГО МЖД"
+            issued_by: "Збухівський РО ГО МЖД",
+            expiration_date: "2024-02-12"
           },
           %{
             type: "BIRTH_CERTIFICATE",
-            number: "1234567"
+            number: "1234567",
+            issued_at: "1996-12-25",
+            issued_by: "Збухівський РО ГО МЖД"
           }
         ])
 
@@ -1203,11 +1206,14 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
             type: "NATIONAL_ID",
             number: "123456789",
             issued_at: "2014-02-12",
-            issued_by: "Збухівський РО ГО МЖД"
+            issued_by: "Збухівський РО ГО МЖД",
+            expiration_date: "2024-02-12"
           },
           %{
             type: "BIRTH_CERTIFICATE",
-            number: "1234567"
+            number: "1234567",
+            issued_at: "1996-12-25",
+            issued_by: "Збухівський РО ГО МЖД"
           }
         ])
 
@@ -1234,11 +1240,14 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
             type: "NATIONAL_ID",
             number: "123456789",
             issued_at: "2014-02-12",
-            issued_by: "Збухівський РО ГО МЖД"
+            issued_by: "Збухівський РО ГО МЖД",
+            expiration_date: "2024-02-12"
           },
           %{
             type: "BIRTH_CERTIFICATE",
-            number: "1234567"
+            number: "1234567",
+            issued_at: "1996-12-25",
+            issued_by: "Збухівський РО ГО МЖД"
           }
         ])
 
@@ -1278,11 +1287,14 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
             type: "NATIONAL_ID",
             number: "123456789",
             issued_at: "2014-02-12",
-            issued_by: "Збухівський РО ГО МЖД"
+            issued_by: "Збухівський РО ГО МЖД",
+            expiration_date: "2024-02-12"
           },
           %{
             type: "BIRTH_CERTIFICATE",
-            number: "1234567"
+            number: "1234567",
+            issued_at: "1996-12-25",
+            issued_by: "Збухівський РО ГО МЖД"
           }
         ])
 
