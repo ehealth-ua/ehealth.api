@@ -18,16 +18,23 @@
       "pattern": "^[0-9]{10}$",
       "minLength": 10
     },
-    "document": {
+    "series_number_document": {
       "type": "object",
       "properties": {
         "type": {
           "type": "string",
+          "enum": [
+            "PASSPORT",
+            "COMPLEMENTARY_PROTECTION_CERTIFICATE",
+            "PERMANENT_RESIDENCE_PERMIT",
+            "REFUGEE_CERTIFICATE",
+            "TEMPORARY_CERTIFICATE"
+          ],
           "description": "Dictionary: DOCUMENT_TYPE"
         },
         "number": {
           "type": "string",
-          "minLength": 1
+          "pattern": "^((?![ЫЪЭЁ])([А-ЯҐЇІЄ])){2}[0-9]{6}$"
         },
         "issued_by": {
           "type": "string",
@@ -36,11 +43,91 @@
         "issued_at": {
           "type": "string",
           "format": "date"
+        },
+        "expiration_date": {
+          "type": "string",
+          "format": "date"
         }
       },
       "required": [
         "type",
-        "number"
+        "number",
+        "issued_at",
+        "issued_by"
+      ],
+      "additionalProperties": false
+    },
+    "number_document": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "BIRTH_CERTIFICATE",
+            "TEMPORARY_PASSPORT"
+          ],
+          "description": "Dictionary: DOCUMENT_TYPE"
+        },
+        "number": {
+          "type": "string",
+          "pattern": "^(?![ЫЪЭЁыъэё@%&$^#`~:,.*|}{?!])[A-ZА-ЯҐЇІЄ0-9№\\/()-]+$",
+          "minLength": 2,
+          "maxLength": 25
+        },
+        "issued_by": {
+          "type": "string",
+          "minLength": 1
+        },
+        "issued_at": {
+          "type": "string",
+          "format": "date"
+        },
+        "expiration_date": {
+          "type": "string",
+          "format": "date"
+        }
+      },
+      "required": [
+        "type",
+        "number",
+        "issued_at",
+        "issued_by"
+      ],
+      "additionalProperties": false
+    },
+    "id_card": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "NATIONAL_ID"
+          ],
+          "description": "Dictionary: DOCUMENT_TYPE"
+        },
+        "number": {
+          "type": "string",
+          "pattern": "^[0-9]{9}$"
+        },
+        "issued_by": {
+          "type": "string",
+          "minLength": 1
+        },
+        "issued_at": {
+          "type": "string",
+          "format": "date"
+        },
+        "expiration_date": {
+          "type": "string",
+          "format": "date"
+        }
+      },
+      "required": [
+        "type",
+        "number",
+        "issued_at",
+        "issued_by",
+        "expiration_date"
       ],
       "additionalProperties": false
     },
@@ -181,6 +268,10 @@
       "type": "string",
       "$ref": "#/definitions/tax_id"
     },
+    "unzr": {
+      "type": "string",
+      "pattern": "^[0-9]{8}-[0-9]{5}$"
+    },
     "secret": {
       "type": "string",
       "$ref": "#/definitions/name",
@@ -190,7 +281,17 @@
       "type": "array",
       "minItems": 1,
       "items": {
-        "$ref": "#/definitions/document"
+        "oneOf": [
+          {
+            "$ref": "#/definitions/series_number_document"
+          },
+          {
+            "$ref": "#/definitions/number_document"
+          },
+          {
+            "$ref": "#/definitions/id_card"
+          }
+        ]
       }
     },
     "addresses": {

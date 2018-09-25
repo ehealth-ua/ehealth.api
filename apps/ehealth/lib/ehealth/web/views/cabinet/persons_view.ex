@@ -53,6 +53,7 @@ defmodule EHealth.Web.Cabinet.PersonsView do
       gender
       email
       tax_id
+      unzr
       documents
       addresses
       phones

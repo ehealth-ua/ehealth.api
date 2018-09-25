@@ -8,13 +8,15 @@
   "gender": "MALE",
   "email": "email@example.com",
   "tax_id": "3126509816",
+  "unzr": "19910819-01234",
   "secret": "secret",
   "documents": [
     {
       "type": "PASSPORT",
-      "number": "120518",
+      "number": "АІ546700",
       "issued_by": "Рокитнянським РВ ГУ МВС Київської області",
-      "issued_at": "2017-02-28"
+      "issued_at": "2017-02-28",
+      "expiration_date": "2017-02-28"
     }
   ],
   "addresses": [

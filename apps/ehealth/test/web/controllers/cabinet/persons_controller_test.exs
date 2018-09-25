@@ -310,7 +310,14 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
         "birth_country" => "Ukraine",
         "birth_settlement" => "Kyiv",
         "gender" => "MALE",
-        "documents" => [%{"type" => "PASSPORT", "number" => "120518"}],
+        "documents" => [
+          %{
+            "type" => "PASSPORT",
+            "number" => "ФШ543210",
+            "issued_by" => "Рокитнянським РВ ГУ МВС Київської області",
+            "issued_at" => "2017-02-28"
+          }
+        ],
         "addresses" => [
           %{
             "type" => "RESIDENCE",
@@ -524,6 +531,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
           gender: "string value",
           email: "test@example.com",
           tax_id: "2222222225",
+          unzr: "20180925-012345",
           documents: [%{"type" => "BIRTH_CERTIFICATE", "number" => "1234567890"}],
           phones: [%{"type" => "MOBILE", "number" => "+380972526080"}],
           secret: "string value",
@@ -556,6 +564,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       assert data["gender"] == "string value"
       assert data["email"] == "test@example.com"
       assert data["tax_id"] == "2222222225"
+      assert data["unzr"] == "20180925-012345"
       assert data["documents"] == [%{"type" => "BIRTH_CERTIFICATE", "number" => "1234567890"}]
 
       assert Enum.count(data["addresses"]) == 2
