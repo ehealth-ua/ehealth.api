@@ -10,13 +10,52 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
   setup :verify_on_exit!
 
   describe "update person" do
+    setup conn_data do
+      tax_id = "2222222225"
+
+      emergency_contact = %{
+        "first_name" => "Петро",
+        "last_name" => "Іванов",
+        "second_name" => "Миколайович"
+      }
+
+      documents = [
+        %{
+          "type" => "PASSPORT",
+          "number" => "ФШ543210",
+          "issued_by" => "Рокитнянським РВ ГУ МВС Київської області",
+          "issued_at" => "2017-02-28"
+        }
+      ]
+
+      data =
+        :person
+        |> build(
+          addresses: [build(:address)],
+          tax_id: tax_id,
+          emergency_contact: emergency_contact,
+          documents: documents,
+          birth_date: "1990-01-01",
+          unzr: nil
+        )
+        |> Poison.encode!()
+        |> Poison.decode!()
+        |> Map.drop(
+          ~w(unzr version updated_by updated_at patient_signed merged_ids invalid_tax_id inserted_by inserted_at status is_active id death_date)
+        )
+
+      conn_data
+      |> Map.put(:data, data)
+      |> Map.put(:tax_id, tax_id)
+    end
+
     test "no required header", %{conn: conn} do
       conn = patch(conn, cabinet_persons_path(conn, :update_person, UUID.generate()))
       assert resp = json_response(conn, 401)
       assert %{"error" => %{"type" => "access_denied", "message" => "Missing header x-consumer-metadata"}} = resp
     end
 
-    test "invalid params", %{conn: conn} do
+    test "invalid params", %{conn: conn, tax_id: tax_id} do
       cabinet()
 
       expect(MithrilMock, :get_user_by_id, fn id, _ ->
@@ -25,7 +64,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
            "data" => %{
              "id" => id,
              "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
-             "tax_id" => "2222222225"
+             "tax_id" => tax_id
            }
          }}
       end)
@@ -51,7 +90,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
              } = resp
     end
 
-    test "invalid signed content", %{conn: conn} do
+    test "invalid signed content", %{conn: conn, tax_id: tax_id} do
       cabinet()
       legal_entity = insert(:prm, :legal_entity)
 
@@ -61,7 +100,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
            "data" => %{
              "id" => id,
              "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
-             "tax_id" => "2222222225"
+             "tax_id" => tax_id
            }
          }}
       end)
@@ -82,7 +121,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       assert "Not a base64 string" == error_description
     end
 
-    test "tax_id doesn't match with signed content", %{conn: conn} do
+    test "tax_id doesn't match with signed content", %{conn: conn, tax_id: tax_id} do
       cabinet()
 
       expect(MithrilMock, :get_user_by_id, fn id, _ ->
@@ -91,7 +130,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
            "data" => %{
              "id" => id,
              "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
-             "tax_id" => "2222222225"
+             "tax_id" => tax_id
            }
          }}
       end)
@@ -133,7 +172,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
              ] == resp["error"]["invalid"]
     end
 
-    test "tax_id doesn't match with signer", %{conn: conn} do
+    test "tax_id doesn't match with signer", %{conn: conn, tax_id: tax_id} do
       cabinet()
 
       expect(MithrilMock, :get_user_by_id, fn id, _ ->
@@ -142,7 +181,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
            "data" => %{
              "id" => id,
              "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
-             "tax_id" => "2222222225"
+             "tax_id" => tax_id
            }
          }}
       end)
@@ -184,7 +223,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
              ] == resp["error"]["invalid"]
     end
 
-    test "invalid signed content changeset", %{conn: conn} do
+    test "invalid signed content changeset", %{conn: conn, tax_id: tax_id} do
       cabinet()
 
       expect(MithrilMock, :get_user_by_id, fn id, _ ->
@@ -193,35 +232,35 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
            "data" => %{
              "id" => id,
              "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
-             "tax_id" => "2222222225"
+             "tax_id" => tax_id
            }
          }}
       end)
 
       expect(MPIMock, :person, fn id, _ ->
-        {:ok, %{"data" => %{"id" => id, "tax_id" => "2222222225"}}}
+        {:ok, %{"data" => %{"id" => id, "tax_id" => tax_id}}}
       end)
 
       legal_entity = insert(:prm, :legal_entity)
-      party = insert(:prm, :party, tax_id: "2222222225")
+      party = insert(:prm, :party, tax_id: tax_id)
       insert(:prm, :party_user, party: party, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c")
-      drfo_signed_content(%{"tax_id" => "2222222225"}, "2222222225")
+      drfo_signed_content(%{"tax_id" => tax_id}, tax_id)
 
       conn =
         conn
-        |> put_req_header("drfo", "2222222225")
+        |> put_req_header("drfo", tax_id)
         |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
 
       conn =
         patch(conn, cabinet_persons_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{
-          "signed_content" => Base.encode64(Jason.encode!(%{"tax_id" => "2222222225"}))
+          "signed_content" => Base.encode64(Jason.encode!(%{"tax_id" => tax_id}))
         })
 
       assert json_response(conn, 422)
     end
 
-    test "user person_id doesn't match query param id", %{conn: conn} do
+    test "user person_id doesn't match query param id", %{conn: conn, tax_id: tax_id} do
       cabinet()
 
       expect(MithrilMock, :get_user_by_id, fn id, _ ->
@@ -230,7 +269,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
            "data" => %{
              "id" => id,
              "person_id" => UUID.generate(),
-             "tax_id" => "2222222225"
+             "tax_id" => tax_id
            }
          }}
       end)
@@ -263,11 +302,11 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       assert json_response(conn, 403)
     end
 
-    test "success update person", %{conn: conn} do
+    test "success update person", %{conn: conn, data: data} do
       cabinet()
 
       expect(MPIMock, :person, fn id, _ ->
-        {:ok, %{"data" => %{"id" => id, "tax_id" => "2222222225"}}}
+        {:ok, %{"data" => %{"id" => id, "tax_id" => data["tax_id"]}}}
       end)
 
       expect(OTPVerificationMock, :search, fn _, _ ->
@@ -280,13 +319,13 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
            "data" => %{
              "id" => id,
              "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
-             "tax_id" => "2222222225"
+             "tax_id" => data["tax_id"]
            }
          }}
       end)
 
       legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
-      party = insert(:prm, :party, tax_id: "2222222225")
+      party = insert(:prm, :party, tax_id: data["tax_id"])
       insert(:prm, :party_user, party: party, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c")
 
       expect(MPIMock, :update_person, fn id, _params, _headers ->
@@ -299,83 +338,259 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
 
       conn =
         conn
-        |> put_req_header("drfo", "2222222225")
+        |> put_req_header("drfo", data["tax_id"])
         |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
-
-      data = %{
-        "first_name" => "Артем",
-        "last_name" => "Иванов",
-        "birth_date" => "1990-01-01",
-        "birth_country" => "Ukraine",
-        "birth_settlement" => "Kyiv",
-        "gender" => "MALE",
-        "documents" => [
-          %{
-            "type" => "PASSPORT",
-            "number" => "ФШ543210",
-            "issued_by" => "Рокитнянським РВ ГУ МВС Київської області",
-            "issued_at" => "2017-02-28"
-          }
-        ],
-        "addresses" => [
-          %{
-            "type" => "RESIDENCE",
-            "zip" => "02090",
-            "settlement_type" => "CITY",
-            "country" => "UA",
-            "settlement" => "Київ",
-            "area" => "Житомирська",
-            "settlement_id" => UUID.generate(),
-            "building" => "15",
-            "region" => "Бердичівський"
-          },
-          %{
-            "type" => "REGISTRATION",
-            "zip" => "02090",
-            "settlement_type" => "CITY",
-            "country" => "UA",
-            "settlement" => "Київ",
-            "area" => "Житомирська",
-            "settlement_id" => UUID.generate(),
-            "building" => "15",
-            "region" => "Бердичівський"
-          }
-        ],
-        "authentication_methods" => [%{"type" => "OTP", "phone_number" => "+380991112233"}],
-        "emergency_contact" => %{
-          "first_name" => "Петро",
-          "last_name" => "Іванов",
-          "second_name" => "Миколайович"
-        },
-        "process_disclosure_data_consent" => true,
-        "secret" => "secret",
-        "tax_id" => "2222222225"
-      }
 
       expect(UAddressesMock, :validate_addresses, fn _, _ ->
         {:ok, %{"data" => %{}}}
       end)
 
-      drfo_signed_content(data, "2222222225")
+      drfo_signed_content(data, data["tax_id"])
+
+      assert conn
+             |> patch(cabinet_persons_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{
+               "signed_content" => Base.encode64(Jason.encode!(data))
+             })
+             |> json_response(200)
+    end
+
+    test "update person with valid unzr", %{conn: conn, data: data} do
+      cabinet()
+
+      expect(MPIMock, :person, fn id, _ ->
+        {:ok, %{"data" => %{"id" => id, "tax_id" => data["tax_id"]}}}
+      end)
+
+      expect(OTPVerificationMock, :search, fn _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
+      expect(MithrilMock, :get_user_by_id, fn id, _ ->
+        {:ok,
+         %{
+           "data" => %{
+             "id" => id,
+             "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
+             "tax_id" => data["tax_id"]
+           }
+         }}
+      end)
+
+      legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
+      party = insert(:prm, :party, tax_id: data["tax_id"])
+      insert(:prm, :party_user, party: party, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c")
+
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
 
       conn =
-        patch(conn, cabinet_persons_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{
+        conn
+        |> put_req_header("drfo", data["tax_id"])
+        |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
+
+      expect(UAddressesMock, :validate_addresses, fn _, _ ->
+        {:ok, %{"data" => %{}}}
+      end)
+
+      unzr = "#{String.replace(data["birth_date"], "-", "")}-01234"
+      data = Map.put(data, "unzr", unzr)
+
+      expect(MPIMock, :update_person, fn id, _params, _headers ->
+        get_person(id, 200, %{addresses: get_person_addresses(), unzr: unzr})
+      end)
+
+      drfo_signed_content(data, data["tax_id"])
+
+      resp =
+        conn
+        |> patch(cabinet_persons_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{
           "signed_content" => Base.encode64(Jason.encode!(data))
         })
+        |> json_response(200)
 
-      assert json_response(conn, 200)
+      assert resp["data"]["unzr"] == unzr
+    end
+
+    test "validation unzr works", %{conn: conn, data: data} do
+      cabinet()
+
+      expect(MithrilMock, :get_user_by_id, fn id, _ ->
+        {:ok,
+         %{
+           "data" => %{
+             "id" => id,
+             "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
+             "tax_id" => data["tax_id"]
+           }
+         }}
+      end)
+
+      legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
+      party = insert(:prm, :party, tax_id: data["tax_id"])
+      insert(:prm, :party_user, party: party, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c")
+
+      conn =
+        conn
+        |> put_req_header("drfo", data["tax_id"])
+        |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
+
+      unzr = "20180925-01234"
+      data = Map.put(data, "unzr", unzr)
+
+      drfo_signed_content(data, data["tax_id"])
+
+      resp =
+        conn
+        |> patch(cabinet_persons_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{
+          "signed_content" => Base.encode64(Jason.encode!(data))
+        })
+        |> json_response(422)
+
+      assert [
+               %{
+                 "entry" => "$.person.unzr",
+                 "rules" => [
+                   %{"description" => "Birthdate or unzr is not correct", "params" => ["unzr"], "rule" => "invalid"}
+                 ]
+               }
+             ] = resp["error"]["invalid"]
+    end
+
+    test "validation person passports works", %{conn: conn, data: data} do
+      cabinet()
+
+      expect(MithrilMock, :get_user_by_id, fn id, _ ->
+        {:ok,
+         %{
+           "data" => %{
+             "id" => id,
+             "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
+             "tax_id" => data["tax_id"]
+           }
+         }}
+      end)
+
+      legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
+      party = insert(:prm, :party, tax_id: data["tax_id"])
+      insert(:prm, :party_user, party: party, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c")
+
+      conn =
+        conn
+        |> put_req_header("drfo", data["tax_id"])
+        |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
+
+      unzr = "#{String.replace(data["birth_date"], "-", "")}-01234"
+
+      data =
+        data
+        |> Map.put("unzr", unzr)
+        |> Map.put("documents", [
+          %{
+            "issued_at" => "2017-02-28",
+            "issued_by" => "Рокитнянським РВ ГУ МВС Київської області",
+            "number" => "012345678",
+            "type" => "NATIONAL_ID"
+          }
+          | data["documents"]
+        ])
+
+      drfo_signed_content(data, data["tax_id"])
+
+      resp =
+        conn
+        |> patch(cabinet_persons_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{
+          "signed_content" => Base.encode64(Jason.encode!(data))
+        })
+        |> json_response(422)
+
+      assert [
+               %{
+                 "entry" => "$.person.documents",
+                 "rules" => [
+                   %{
+                     "description" => "Person can have only new passport NATIONAL_ID or old PASSPORT",
+                     "params" => ["$.person.documents"]
+                   }
+                 ]
+               }
+             ] = resp["error"]["invalid"]
+    end
+
+    test "validation unzr exists if document NATIONAL_ID provided", %{conn: conn, data: data} do
+      cabinet()
+
+      expect(MithrilMock, :get_user_by_id, fn id, _ ->
+        {:ok,
+         %{
+           "data" => %{
+             "id" => id,
+             "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
+             "tax_id" => data["tax_id"]
+           }
+         }}
+      end)
+
+      legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
+      party = insert(:prm, :party, tax_id: data["tax_id"])
+      insert(:prm, :party_user, party: party, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c")
+
+      conn =
+        conn
+        |> put_req_header("drfo", data["tax_id"])
+        |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
+
+      data =
+        data
+        |> Map.put("documents", [
+          %{
+            "issued_at" => "2017-02-28",
+            "issued_by" => "Рокитнянським РВ ГУ МВС Київської області",
+            "number" => "012345678",
+            "type" => "NATIONAL_ID"
+          }
+        ])
+
+      drfo_signed_content(data, data["tax_id"])
+
+      resp =
+        conn
+        |> patch(cabinet_persons_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{
+          "signed_content" => Base.encode64(Jason.encode!(data))
+        })
+        |> json_response(422)
+
+      assert [
+               %{
+                 "entry" => "$.person",
+                 "rules" => [
+                   %{
+                     "description" => "unzr is mandatory for document type NATIONAL_ID",
+                     "params" => ["unzr"]
+                   }
+                 ]
+               }
+             ] = resp["error"]["invalid"]
     end
   end
 
   describe "get person details" do
+    setup conn_data do
+      Map.put(conn_data, :tax_id, "2222222225")
+    end
+
     test "no required header", %{conn: conn} do
       conn = get(conn, cabinet_persons_path(conn, :personal_info))
       assert resp = json_response(conn, 401)
       assert %{"error" => %{"type" => "access_denied", "message" => "Missing header x-consumer-metadata"}} = resp
     end
 
-    test "tax_id are different in user and person", %{conn: conn} do
+    test "tax_id are different in user and person", %{conn: conn, tax_id: tax_id} do
       cabinet()
       legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
 
@@ -385,7 +600,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
            "data" => %{
              "id" => id,
              "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
-             "tax_id" => "2222222225"
+             "tax_id" => tax_id
            }
          }}
       end)
@@ -400,17 +615,17 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
         })
       end)
 
-      conn =
+      resp =
         conn
         |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
+        |> get(cabinet_persons_path(conn, :personal_info))
+        |> json_response(401)
 
-      conn = get(conn, cabinet_persons_path(conn, :personal_info))
-      assert resp = json_response(conn, 401)
       assert %{"error" => %{"type" => "access_denied", "message" => "Person not found"}} = resp
     end
 
-    test "returns person detail for logged user", %{conn: conn} do
+    test "returns person detail for logged user", %{conn: conn, tax_id: tax_id} do
       cabinet()
       legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
 
@@ -420,7 +635,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
            "data" => %{
              "id" => id,
              "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
-             "tax_id" => "2222222225",
+             "tax_id" => tax_id,
              "is_blocked" => false
            }
          }}
@@ -432,7 +647,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
           first_name: "Алекс",
           last_name: "Джонс",
           second_name: "Петрович",
-          tax_id: "2222222225"
+          tax_id: tax_id
         })
       end)
 
@@ -452,13 +667,17 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
   end
 
   describe "person details" do
+    setup conn_data do
+      Map.put(conn_data, :tax_id, "2222222225")
+    end
+
     test "no required header", %{conn: conn} do
       conn = get(conn, cabinet_persons_path(conn, :person_details))
       assert resp = json_response(conn, 401)
       assert %{"error" => %{"type" => "access_denied", "message" => "Missing header x-consumer-metadata"}} = resp
     end
 
-    test "tax_id are different in user and person", %{conn: conn} do
+    test "tax_id are different in user and person", %{conn: conn, tax_id: tax_id} do
       cabinet()
 
       expect(MithrilMock, :get_user_by_id, fn id, _ ->
@@ -467,7 +686,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
            "data" => %{
              "id" => id,
              "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
-             "tax_id" => "2222222225"
+             "tax_id" => tax_id
            }
          }}
       end)
@@ -505,7 +724,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       assert %{"error" => %{"type" => "access_denied", "message" => "Person not found"}} = resp
     end
 
-    test "success get person details", %{conn: conn} do
+    test "success get person details", %{conn: conn, tax_id: tax_id} do
       cabinet()
       legal_entity = insert(:prm, :legal_entity)
       insert(:prm, :party_user, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c")
@@ -516,7 +735,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
            "data" => %{
              "id" => id,
              "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
-             "tax_id" => "2222222225"
+             "tax_id" => tax_id
            }
          }}
       end)
@@ -530,7 +749,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
           birth_settlement: "string value",
           gender: "string value",
           email: "test@example.com",
-          tax_id: "2222222225",
+          tax_id: tax_id,
           unzr: "20180925-012345",
           documents: [%{"type" => "BIRTH_CERTIFICATE", "number" => "1234567890"}],
           phones: [%{"type" => "MOBILE", "number" => "+380972526080"}],
@@ -563,7 +782,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       assert data["birth_settlement"] == "string value"
       assert data["gender"] == "string value"
       assert data["email"] == "test@example.com"
-      assert data["tax_id"] == "2222222225"
+      assert data["tax_id"] == tax_id
       assert data["unzr"] == "20180925-012345"
       assert data["documents"] == [%{"type" => "BIRTH_CERTIFICATE", "number" => "1234567890"}]
 

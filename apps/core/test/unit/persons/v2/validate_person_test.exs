@@ -35,13 +35,13 @@ defmodule Core.Persons.V2.ValidatorTest do
 
     test "Returns :error if person documents contains incorrect objects", %{person: person} do
       # two documents of the same type
-      bad_person = Map.update!(person, "documents", &[%{"type" => "PASSPORT", "number" => 3} | &1])
+      invalid_person = Map.update!(person, "documents", &[%{"type" => "PASSPORT", "number" => 3} | &1])
 
       assert {:error,
               [
                 {%{description: "No duplicate values.", params: ["PASSPORT"], rule: :invalid},
                  "$.person.documents[1].type"}
-              ]} = Validator.validate(bad_person)
+              ]} = Validator.validate(invalid_person)
     end
 
     test "Returns :ok for person without phones", %{person: person} do
@@ -51,7 +51,7 @@ defmodule Core.Persons.V2.ValidatorTest do
 
     test "Returns error if person phones contains incorrect objects", %{person: person} do
       # two phones of the same type
-      bad_person = Map.update!(person, "phones", &[%{"type" => "MOBILE", "number" => 3} | &1])
+      invalid_person = Map.update!(person, "phones", &[%{"type" => "MOBILE", "number" => 3} | &1])
 
       assert {:error,
               [
@@ -60,12 +60,12 @@ defmodule Core.Persons.V2.ValidatorTest do
                    params: ["MOBILE"],
                    rule: :invalid
                  }, "$.person.phones[1].type"}
-              ]} = Validator.validate(bad_person)
+              ]} = Validator.validate(invalid_person)
     end
 
     test "Returns :error if emergency_contact phones contains incorrect objects", %{person: person} do
       # two phones of the same type
-      bad_person = update_in(person["emergency_contact"]["phones"], &[%{"type" => "MOBILE", "number" => 3} | &1])
+      invalid_person = update_in(person["emergency_contact"]["phones"], &[%{"type" => "MOBILE", "number" => 3} | &1])
 
       assert {:error,
               [
@@ -74,12 +74,12 @@ defmodule Core.Persons.V2.ValidatorTest do
                    params: ["MOBILE"],
                    rule: :invalid
                  }, "$.person.emergency_contact.phones[1].type"}
-              ]} = Validator.validate(bad_person)
+              ]} = Validator.validate(invalid_person)
     end
 
     test "Returns :error if person authentication_methods contains incorrect objects", %{person: person} do
       # two correct auth methods
-      bad_person = Map.update!(person, "authentication_methods", &[%{"type" => "OTP"} | &1])
+      invalid_person = Map.update!(person, "authentication_methods", &[%{"type" => "OTP"} | &1])
 
       assert {:error,
               [
@@ -88,10 +88,10 @@ defmodule Core.Persons.V2.ValidatorTest do
                    params: [],
                    rule: :invalid
                  }, "$.person.authentication_methods[0].type"}
-              ]} = Validator.validate(bad_person)
+              ]} = Validator.validate(invalid_person)
 
       # two auth methods of the same type
-      bad_person = Map.update!(person, "authentication_methods", &[%{"type" => "OFFLINE"} | &1])
+      invalid_person = Map.update!(person, "authentication_methods", &[%{"type" => "OFFLINE"} | &1])
 
       assert {:error,
               [
@@ -100,7 +100,7 @@ defmodule Core.Persons.V2.ValidatorTest do
                    params: [],
                    rule: :invalid
                  }, "$.person.authentication_methods[0].type"}
-              ]} = Validator.validate(bad_person)
+              ]} = Validator.validate(invalid_person)
     end
 
     test "Returns :ok for correct person with primary confidant_person", %{person: person, pconf_person: pconf_person} do
@@ -122,10 +122,10 @@ defmodule Core.Persons.V2.ValidatorTest do
       pconf_person: pconf_person
     } do
       # two documents of the same type
-      bad_pconf_person =
+      invalid_pconf_person =
         Map.update!(pconf_person, "documents_person", &[%{"type" => "NATIONAL_ID", "number" => 5} | &1])
 
-      bad_person = Map.put(person, "confidant_person", [bad_pconf_person])
+      invalid_person = Map.put(person, "confidant_person", [invalid_pconf_person])
 
       assert {:error,
               [
@@ -134,7 +134,7 @@ defmodule Core.Persons.V2.ValidatorTest do
                    params: ["NATIONAL_ID"],
                    rule: :invalid
                  }, "$.person.confidant_person[0].documents_person[2].type"}
-              ]} = Validator.validate(bad_person)
+              ]} = Validator.validate(invalid_person)
     end
 
     test "Returns :ok for correct person with primary confidant_person without phones", %{
@@ -151,24 +151,24 @@ defmodule Core.Persons.V2.ValidatorTest do
       pconf_person: pconf_person
     } do
       # two phones of the same type
-      bad_pconf_person = Map.update!(pconf_person, "phones", &[%{"type" => "MOBILE", "number" => 3} | &1])
-      bad_person = Map.put(person, "confidant_person", [bad_pconf_person])
+      invalid_pconf_person = Map.update!(pconf_person, "phones", &[%{"type" => "MOBILE", "number" => 3} | &1])
+      invalid_person = Map.put(person, "confidant_person", [invalid_pconf_person])
 
       assert {:error,
               [
                 {%{description: "No duplicate values.", params: ["MOBILE"], rule: :invalid},
                  "$.person.confidant_person[0].phones[1].type"}
-              ]} = Validator.validate(bad_person)
+              ]} = Validator.validate(invalid_person)
     end
 
     test "Returns :error if there is two primary confidant_person", %{person: person, pconf_person: pconf_person} do
-      bad_person = Map.put(person, "confidant_person", [pconf_person, pconf_person])
-      assert {:error, _} = Validator.validate(bad_person)
+      invalid_person = Map.put(person, "confidant_person", [pconf_person, pconf_person])
+      assert {:error, _} = Validator.validate(invalid_person)
     end
 
     test "Returns :error if there is only secondary confidant_person", %{person: person, sconf_person: sconf_person} do
-      bad_person = Map.put(person, "confidant_person", [sconf_person, sconf_person])
-      assert {:error, _} = Validator.validate(bad_person)
+      invalid_person = Map.put(person, "confidant_person", [sconf_person, sconf_person])
+      assert {:error, _} = Validator.validate(invalid_person)
     end
 
     test "Returns :error if there is more than 2 confidant_person", %{
@@ -176,8 +176,8 @@ defmodule Core.Persons.V2.ValidatorTest do
       pconf_person: pconf_person,
       sconf_person: sconf_person
     } do
-      bad_person = Map.put(person, "confidant_person", [pconf_person, sconf_person, pconf_person])
-      assert {:error, _} = Validator.validate(bad_person)
+      invalid_person = Map.put(person, "confidant_person", [pconf_person, sconf_person, pconf_person])
+      assert {:error, _} = Validator.validate(invalid_person)
     end
 
     test "Returns :error if confidant_person documents_relationship contains incorrect objects", %{
@@ -185,10 +185,10 @@ defmodule Core.Persons.V2.ValidatorTest do
       pconf_person: pconf_person
     } do
       # two documents of the same type
-      bad_pconf_person =
+      invalid_pconf_person =
         Map.update!(pconf_person, "documents_relationship", &[%{"type" => "CONFIDANT_CERTIFICATE", "number" => 5} | &1])
 
-      bad_person = Map.put(person, "confidant_person", [bad_pconf_person])
+      invalid_person = Map.put(person, "confidant_person", [invalid_pconf_person])
 
       assert {:error,
               [
@@ -197,7 +197,7 @@ defmodule Core.Persons.V2.ValidatorTest do
                    params: ["CONFIDANT_CERTIFICATE"],
                    rule: :invalid
                  }, "$.person.confidant_person[0].documents_relationship[4].type"}
-              ]} = Validator.validate(bad_person)
+              ]} = Validator.validate(invalid_person)
     end
 
     test "returns :ok if confidant_person is empty list", %{person: person} do
@@ -227,8 +227,8 @@ defmodule Core.Persons.V2.ValidatorTest do
 
     test "Error message if person documents contains duplicate objects", %{person: person} do
       # two documents of the same type
-      bad_person = Map.update!(person, "documents", &[%{"type" => "PASSPORT", "number" => 3} | &1])
-      {:error, [{rules, path}]} = Validator.validate(bad_person)
+      invalid_person = Map.update!(person, "documents", &[%{"type" => "PASSPORT", "number" => 3} | &1])
+      {:error, [{rules, path}]} = Validator.validate(invalid_person)
 
       assert %{description: "No duplicate values.", params: ["PASSPORT"], rule: :invalid} == rules
       assert "$.person.documents[1].type" == path
@@ -236,7 +236,7 @@ defmodule Core.Persons.V2.ValidatorTest do
 
     test "Error message if person authentication_methods contains incorrect objects", %{person: person} do
       # two correct auth methods
-      bad_person = Map.update!(person, "authentication_methods", &[%{"type" => "OTP"} | &1])
+      invalid_person = Map.update!(person, "authentication_methods", &[%{"type" => "OTP"} | &1])
 
       assert {:error,
               [
@@ -245,17 +245,17 @@ defmodule Core.Persons.V2.ValidatorTest do
                    params: [],
                    rule: :invalid
                  }, "$.person.authentication_methods[0].type"}
-              ]} = Validator.validate(bad_person)
+              ]} = Validator.validate(invalid_person)
     end
 
     test "Error message if there is only SECONDARY confidant_person", %{person: person, sconf_person: sconf_person} do
-      bad_person = Map.put(person, "confidant_person", [sconf_person])
+      invalid_person = Map.put(person, "confidant_person", [sconf_person])
 
       assert {:error,
               [
                 {%{description: "Must contain required item.", params: ["PRIMARY"], rule: :invalid},
                  "$.person.confidant_person[].relation_type"}
-              ]} = Validator.validate(bad_person)
+              ]} = Validator.validate(invalid_person)
     end
 
     test "Error message if 1 of 2 confidant_person contains incorrect data", %{
@@ -264,10 +264,10 @@ defmodule Core.Persons.V2.ValidatorTest do
       sconf_person: sconf_person
     } do
       # two documents of the same type
-      bad_sconf_person =
+      invalid_sconf_person =
         Map.update!(sconf_person, "documents_relationship", &[%{"type" => "CONFIDANT_CERTIFICATE", "number" => 5} | &1])
 
-      bad_person = Map.put(person, "confidant_person", [pconf_person, bad_sconf_person])
+      invalid_person = Map.put(person, "confidant_person", [pconf_person, invalid_sconf_person])
 
       assert {:error,
               [
@@ -276,7 +276,7 @@ defmodule Core.Persons.V2.ValidatorTest do
                    params: ["CONFIDANT_CERTIFICATE"],
                    rule: :invalid
                  }, "$.person.confidant_person[1].documents_relationship[4].type"}
-              ]} = Validator.validate(bad_person)
+              ]} = Validator.validate(invalid_person)
     end
 
     test "Success on valid birth certificate number", %{person: person} do
@@ -411,8 +411,8 @@ defmodule Core.Persons.V2.ValidatorTest do
         "unzr" => "20000101-00000",
         "no_tax_id" => true,
         "documents" => [
-          %{"type" => "PASSPORT", "number" => 1},
-          %{"type" => "NATIONAL_ID", "number" => 2}
+          %{"type" => "PASSPORT", "number" => "ЇЇ012345"},
+          %{"type" => "REFUGEE_CERTIFICATE", "number" => "ЇЇ012345"}
         ],
         "phones" => [
           %{"type" => "MOBILE", "number" => 1},
@@ -437,8 +437,8 @@ defmodule Core.Persons.V2.ValidatorTest do
     %{
       "relation_type" => relation,
       "documents_person" => [
-        %{"type" => "PASSPORT", "number" => 1},
-        %{"type" => "NATIONAL_ID", "number" => 2}
+        %{"type" => "REFUGEE_CERTIFICATE", "number" => "ЇЇ012345"},
+        %{"type" => "NATIONAL_ID", "number" => "20180925-01234"}
       ],
       "phones" => [
         %{"type" => "MOBILE", "number" => 1},

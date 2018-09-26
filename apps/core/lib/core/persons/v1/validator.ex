@@ -1,4 +1,4 @@
-defmodule Core.Persons.Validator do
+defmodule Core.Persons.V1.Validator do
   @moduledoc "Additional validation of Person request structure that cannot be covered by JSON Schema"
 
   alias Core.ValidationError
@@ -16,7 +16,8 @@ defmodule Core.Persons.Validator do
          :ok <- validate_person_phones(person),
          :ok <- JsonObjects.array_unique_by_key(person, ["emergency_contact", "phones"], "type"),
          :ok <- validate_auth_method(person),
-         :ok <- validate_confidant_persons(person) do
+         :ok <- validate_confidant_persons(person),
+         :ok <- validate_person_passports(person) do
       :ok
     else
       %ValidationError{path: path} = error ->
@@ -103,7 +104,7 @@ defmodule Core.Persons.Validator do
     Regex.match?(@birth_certificate_number_regex, birth_certificate_number)
   end
 
-  defp validate_person_phones(person) do
+  def validate_person_phones(person) do
     case Map.get(person, "phones") do
       nil -> :ok
       [] -> :ok
@@ -111,7 +112,7 @@ defmodule Core.Persons.Validator do
     end
   end
 
-  defp validate_auth_method(person) do
+  def validate_auth_method(person) do
     case JsonObjects.array_single_item(person, ["authentication_methods"], "type") do
       :ok ->
         :ok
@@ -121,7 +122,30 @@ defmodule Core.Persons.Validator do
     end
   end
 
-  defp validate_confidant_persons(%{"confidant_person" => [_ | _] = confidant_persons} = person) do
+  def validate_person_passports(%{} = person) do
+    passports_count =
+      person
+      |> Map.get("documents", [])
+      |> Enum.reduce(0, fn
+        %{"type" => type}, acc when type in ~w(NATIONAL_ID PASSPORT) ->
+          acc + 1
+
+        _, acc ->
+          acc
+      end)
+
+    if passports_count <= 1 do
+      :ok
+    else
+      %ValidationError{
+        description: "Person can have only new passport NATIONAL_ID or old PASSPORT",
+        params: ["$.person.documents"],
+        path: "$.person.documents"
+      }
+    end
+  end
+
+  def validate_confidant_persons(%{"confidant_person" => [_ | _] = confidant_persons} = person) do
     with :ok <- JsonObjects.array_unique_by_key(person, ["confidant_person"], "relation_type"),
          :ok <- JsonObjects.array_item_required(person, ["confidant_person"], "relation_type", "PRIMARY"),
          :ok <- validate_every_confidant_person(confidant_persons, 0) do
@@ -129,7 +153,7 @@ defmodule Core.Persons.Validator do
     end
   end
 
-  defp validate_confidant_persons(person) do
+  def validate_confidant_persons(person) do
     age =
       Timex.diff(
         Timex.now(),

@@ -10,7 +10,7 @@ defmodule Core.Persons do
   alias Core.Validators.Addresses
   alias Core.Validators.Error
   alias Core.Validators.JsonSchema
-  alias Core.Persons.Validator, as: PersonsValidator
+  alias Core.Persons.V2.Validator, as: PersonsValidator
   alias Core.Validators.Signature, as: SignatureValidator
 
   @mpi_api Application.get_env(:core, :api_resolvers)[:mpi]
@@ -38,6 +38,9 @@ defmodule Core.Persons do
          %Ecto.Changeset{valid?: true, changes: changes} <- Signed.changeset(params),
          {:ok, %{"content" => content, "signer" => signer}} <-
            SignatureValidator.validate(changes.signed_content, "base64", headers),
+         :ok <- PersonsValidator.validate_unzr(content),
+         :ok <- PersonsValidator.validate_national_id(content),
+         :ok <- PersonsValidator.validate_person_passports(content),
          :ok <- PersonsValidator.validate_birth_date(content["birth_date"], "$.birth_date"),
          {:ok, %{"data" => person}} <- @mpi_api.person(user["person_id"], headers),
          :ok <- validate_tax_id(user["tax_id"], person["tax_id"], content, signer),

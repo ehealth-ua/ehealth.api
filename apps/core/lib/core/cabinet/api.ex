@@ -10,7 +10,7 @@ defmodule Core.Cabinet.API do
   alias Core.DeclarationRequests.API.Persons
   alias Core.Guardian
   alias Core.Man.Templates.EmailVerification
-  alias Core.Persons.Validator, as: PersonsValidator
+  alias Core.Persons.V2.Validator, as: PersonsValidator
   alias Core.ValidationError
   alias Core.Validators.Addresses
   alias Core.Validators.Error
@@ -35,6 +35,9 @@ defmodule Core.Cabinet.API do
            SignatureValidator.validate(params["signed_content"], params["signed_content_encoding"], headers),
          :ok <- verify_auth(content, changes, headers),
          :ok <- JsonSchema.validate(:person, content),
+         :ok <- PersonsValidator.validate_unzr(content),
+         :ok <- PersonsValidator.validate_national_id(content),
+         :ok <- PersonsValidator.validate_person_passports(content),
          :ok <- PersonsValidator.validate_birth_date(content["birth_date"], "$.birth_date"),
          :ok <- Addresses.validate(content["addresses"], "RESIDENCE", headers),
          {:ok, tax_id} <- validate_tax_id(content, signer),

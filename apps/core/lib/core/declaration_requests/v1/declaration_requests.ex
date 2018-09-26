@@ -16,7 +16,7 @@ defmodule Core.DeclarationRequests do
   alias Core.Employees.Employee
   alias Core.LegalEntities
   alias Core.LegalEntities.LegalEntity
-  alias Core.Persons.Validator, as: PersonsValidator
+  alias Core.Persons.V1.Validator, as: PersonsValidator
   alias Core.Repo
   alias Core.Validators.Addresses
   alias Core.Validators.JsonSchema

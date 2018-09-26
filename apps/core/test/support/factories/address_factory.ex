@@ -5,7 +5,7 @@ defmodule Core.Factories.AddressFactory do
     quote do
       def address_factory do
         %{
-          "type" => "REGISTRATION",
+          "type" => "RESIDENCE",
           "country" => "UA",
           "area" => "М.КИЇВ",
           "region" => "Бердичівський",

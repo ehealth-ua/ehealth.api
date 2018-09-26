@@ -16,7 +16,7 @@ defmodule Core.DeclarationRequests.API.V1.Creator do
   alias Core.GlobalParameters
   alias Core.Man.Templates.DeclarationRequestPrintoutForm
   alias Core.PartyUsers
-  alias Core.Persons.Validator, as: PersonsValidator
+  alias Core.Persons.V1.Validator, as: PersonsValidator
   alias Core.Repo
   alias Core.Utils.NumberGenerator
   alias Core.Utils.Phone

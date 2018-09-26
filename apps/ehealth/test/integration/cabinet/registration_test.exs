@@ -185,6 +185,197 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
     end
   end
 
+  describe "Validation" do
+    setup %{conn: conn} do
+      :ets.new(:jwt, [:named_table])
+
+      email = "email@example.com"
+      tax_id = "3126509816"
+
+      expect(ManMock, :render_template, fn _id, template_data, _ ->
+        assert Map.has_key?(template_data, :verification_code)
+        :ets.insert(:jwt, {"jwt", template_data.verification_code})
+        {:ok, "<html></html>"}
+      end)
+
+      expect(SignatureMock, :decode_and_validate, fn signed_content, "base64", _headers ->
+        content = signed_content |> Base.decode64!() |> Jason.decode!()
+        assert Map.has_key?(content, "tax_id")
+
+        data = %{
+          "content" => content,
+          "signed_content" => signed_content,
+          "signatures" => [
+            %{
+              "is_valid" => true,
+              "signer" => %{
+                "edrpou" => content["tax_id"],
+                "drfo" => content["tax_id"],
+                "surname" => content["last_name"],
+                "given_name" => "#{content["first_name"]} #{content["second_name"]}"
+              },
+              "validation_error_message" => ""
+            }
+          ]
+        }
+
+        {:ok, %{"data" => data}}
+      end)
+
+      expect(MithrilMock, :search_user, 2, fn %{email: ^email}, _headers ->
+        {:ok, %{"data" => []}}
+      end)
+
+      expect(OTPVerificationMock, :complete, fn _, _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
+      %{conn: conn, email: email, tax_id: tax_id}
+    end
+
+    test "unzr does not match birthdate", %{conn: conn, email: email} do
+      # 1. Send JWT to email for verification
+      conn
+      |> post(cabinet_auth_path(conn, :email_verification), %{email: email})
+      |> json_response(200)
+
+      # 2. Validate JWT from email and generate new JWT
+
+      [{"jwt", jwt}] = :ets.lookup(:jwt, "jwt")
+
+      auth_token =
+        conn
+        |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
+        |> post(cabinet_auth_path(conn, :email_validation))
+        |> json_response(200)
+        |> get_in(~w(data token))
+
+      params = %{
+        otp: "1234",
+        password: "pAs$w0rd",
+        signed_content:
+          "../core/test/data/cabinet/patient.json"
+          |> File.read!()
+          |> Jason.decode!()
+          |> Map.put("unzr", "20180925-01234")
+          |> Jason.encode!()
+          |> Base.encode64(),
+        signed_content_encoding: "base64"
+      }
+
+      resp =
+        conn
+        |> Plug.Conn.put_req_header("authorization", "Bearer " <> auth_token)
+        |> post(cabinet_auth_path(conn, :registration, params))
+        |> json_response(422)
+
+      assert [%{"entry" => "$.person.unzr", "rules" => [%{"description" => "Birthdate or unzr is not correct"}]}] =
+               resp["error"]["invalid"]
+    end
+
+    test "unzr invalid format", %{conn: conn, email: email} do
+      # 1. Send JWT to email for verification
+      conn
+      |> post(cabinet_auth_path(conn, :email_verification), %{email: email})
+      |> json_response(200)
+
+      # 2. Validate JWT from email and generate new JWT
+
+      [{"jwt", jwt}] = :ets.lookup(:jwt, "jwt")
+
+      auth_token =
+        conn
+        |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
+        |> post(cabinet_auth_path(conn, :email_validation))
+        |> json_response(200)
+        |> get_in(~w(data token))
+
+      params = %{
+        otp: "1234",
+        password: "pAs$w0rd",
+        signed_content:
+          "../core/test/data/cabinet/patient.json"
+          |> File.read!()
+          |> Jason.decode!()
+          |> Map.put("unzr", "0-1-2-3-4")
+          |> Jason.encode!()
+          |> Base.encode64(),
+        signed_content_encoding: "base64"
+      }
+
+      resp =
+        conn
+        |> Plug.Conn.put_req_header("authorization", "Bearer " <> auth_token)
+        |> post(cabinet_auth_path(conn, :registration, params))
+        |> json_response(422)
+
+      assert [
+               %{
+                 "entry" => "$.unzr",
+                 "rules" => [%{"description" => "string does not match pattern \"^[0-9]{8}-[0-9]{5}$\""}]
+               }
+             ] = resp["error"]["invalid"]
+    end
+
+    test "invalid documents", %{conn: conn, email: email} do
+      # 1. Send JWT to email for verification
+      conn
+      |> post(cabinet_auth_path(conn, :email_verification), %{email: email})
+      |> json_response(200)
+
+      # 2. Validate JWT from email and generate new JWT
+
+      [{"jwt", jwt}] = :ets.lookup(:jwt, "jwt")
+
+      auth_token =
+        conn
+        |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
+        |> post(cabinet_auth_path(conn, :email_validation))
+        |> json_response(200)
+        |> get_in(~w(data token))
+
+      person =
+        "../core/test/data/cabinet/patient.json"
+        |> File.read!()
+        |> Jason.decode!()
+
+      person =
+        Map.put(person, "documents", [
+          %{
+            "expiration_date" => "2017-02-28",
+            "issued_at" => "2017-02-28",
+            "issued_by" => "Рокитнянським РВ ГУ МВС Київської області",
+            "number" => "012345678",
+            "type" => "NATIONAL_ID"
+          }
+          | person["documents"]
+        ])
+
+      params = %{
+        otp: "1234",
+        password: "pAs$w0rd",
+        signed_content:
+          person
+          |> Jason.encode!()
+          |> Base.encode64(),
+        signed_content_encoding: "base64"
+      }
+
+      resp =
+        conn
+        |> Plug.Conn.put_req_header("authorization", "Bearer " <> auth_token)
+        |> post(cabinet_auth_path(conn, :registration, params))
+        |> json_response(422)
+
+      assert [
+               %{
+                 "entry" => "$.person.documents",
+                 "rules" => [%{"description" => "Person can have only new passport NATIONAL_ID or old PASSPORT"}]
+               }
+             ] = resp["error"]["invalid"]
+    end
+  end
+
   defp uaddresses_mock_expect do
     expect(UAddressesMock, :validate_addresses, fn _, _ ->
       {:ok, %{"data" => %{}}}
