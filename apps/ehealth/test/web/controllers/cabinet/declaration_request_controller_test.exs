@@ -148,6 +148,8 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         refute key in @person_non_create_params
       end
 
+      assert get_person_documents() == resp["data"]["person"]["documents"]
+
       declaration_request = Repo.get(DeclarationRequest, get_in(resp, ~w(data id)))
       assert declaration_request.mpi_id == person_id
     end
@@ -1609,13 +1611,13 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
       legal_entity = insert(:prm, :legal_entity)
       insert(:prm, :employee, id: "d290f1ee-6c54-4b01-90e6-d701748f0851", legal_entity_id: legal_entity.id)
 
-      conn =
+      resp =
         conn
         |> put_consumer_id_header(@user_id)
         |> put_client_id_header(@user_id)
         |> patch(cabinet_declaration_requests_path(conn, :approve, declaration_request.id))
+        |> json_response(200)
 
-      assert resp = json_response(conn, 200)
       assert DeclarationRequest.status(:approved) == resp["data"]["status"]
     end
 
@@ -1683,7 +1685,8 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
             "issued_at" => "2014-02-12",
             "issued_by" => "Збухівський РО ГО МЖД",
             "number" => "120518",
-            "type" => "PASSPORT"
+            "type" => "PASSPORT",
+            "expiration_date" => "2024-02-12"
           },
           %{"number" => "1234567", "type" => "BIRTH_CERTIFICATE"}
         ],

@@ -329,7 +329,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       insert(:prm, :party_user, party: party, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c")
 
       expect(MPIMock, :update_person, fn id, _params, _headers ->
-        get_person(id, 200, %{addresses: get_person_addresses()})
+        get_person(id, 200, %{documents: get_person_documents(), addresses: get_person_addresses()})
       end)
 
       expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
@@ -751,7 +751,13 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
           email: "test@example.com",
           tax_id: tax_id,
           unzr: "20180925-012345",
-          documents: [%{"type" => "BIRTH_CERTIFICATE", "number" => "1234567890"}],
+          documents: [
+            %{
+              "type" => "BIRTH_CERTIFICATE",
+              "number" => "1234567890",
+              "expiration_date" => "2024-02-12"
+            }
+          ],
           phones: [%{"type" => "MOBILE", "number" => "+380972526080"}],
           secret: "string value",
           emergency_contact: %{},
@@ -784,7 +790,10 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       assert data["email"] == "test@example.com"
       assert data["tax_id"] == tax_id
       assert data["unzr"] == "20180925-012345"
-      assert data["documents"] == [%{"type" => "BIRTH_CERTIFICATE", "number" => "1234567890"}]
+
+      assert [
+               %{"type" => "BIRTH_CERTIFICATE", "number" => "1234567890", "expiration_date" => "2024-02-12"}
+             ] == data["documents"]
 
       assert Enum.count(data["addresses"]) == 2
 
@@ -812,6 +821,17 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
     [
       build(:address, %{"type" => "REGISTRATION"}),
       build(:address, %{"type" => "RESIDENCE"})
+    ]
+  end
+
+  defp get_person_documents do
+    [
+      %{
+        "type" => "BIRTH_CERTIFICATE",
+        "number" => "1234567890",
+        "issued_at" => "2014-02-12",
+        "expiration_date" => "2024-02-12"
+      }
     ]
   end
 end
