@@ -49,6 +49,79 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       {:ok, %{conn: conn}}
     end
 
+    test "declaration request `mpi_id` is not saved for children", %{conn: conn} do
+      gen_sequence_number()
+      template()
+
+      expect(MPIMock, :search, fn params, _ ->
+        {:ok,
+         %{
+           "data" => [
+             params
+             |> Map.put("id", "b5350f79-f2ca-408f-b15d-1ae0a8cc861c")
+             |> Map.put("authentication_methods", [
+               %{"type" => "OTP", "phone_number" => "+380508887700"}
+             ])
+           ]
+         }}
+      end)
+
+      expect(OTPVerificationMock, :initialize, fn _number, _headers ->
+        {:ok, %{}}
+      end)
+
+      expect(OTPVerificationMock, :search, fn _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
+      role_id = UUID.generate()
+      expect(MithrilMock, :get_user_by_id, fn _, _ -> {:ok, %{"data" => %{"email" => "user@email.com"}}} end)
+
+      expect(MithrilMock, :get_roles_by_name, fn "DOCTOR", _headers ->
+        {:ok, %{"data" => [%{"id" => role_id}]}}
+      end)
+
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok,
+         %{
+           "data" => [
+             %{
+               "role_id" => role_id,
+               "user_id" => UUID.generate()
+             }
+           ]
+         }}
+      end)
+
+      expect(OPSMock, :get_latest_block, fn _params ->
+        {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
+      end)
+
+      age = 13
+      person_birth_date = Timex.shift(Timex.today(), years: -age) |> to_string()
+
+      declaration_request_params =
+        "../core/test/data/declaration_request.json"
+        |> File.read!()
+        |> Jason.decode!()
+        |> put_in(["declaration_request", "person", "birth_date"], person_birth_date)
+
+      uaddresses_mock_expect()
+
+      assert %{"id" => declaration_request_id} =
+               conn
+               |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
+               |> put_req_header(
+                 "x-consumer-metadata",
+                 Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"})
+               )
+               |> post(declaration_request_path(conn, :create), declaration_request_params)
+               |> json_response(200)
+               |> Map.get("data")
+
+      assert nil == Repo.get(DeclarationRequest, declaration_request_id).mpi_id
+    end
+
     test "declaration request doctor speciality doesn't match patient's age", %{conn: conn} do
       gen_sequence_number()
 
@@ -315,11 +388,15 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
 
       uaddresses_mock_expect()
 
-      conn
-      |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
-      |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
-      |> post(declaration_request_path(conn, :create), declaration_request_params)
-      |> json_response(200)
+      %{"id" => declaration_request_id} =
+        conn
+        |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
+        |> post(declaration_request_path(conn, :create), declaration_request_params)
+        |> json_response(200)
+        |> Map.get("data")
+
+      refute Repo.get(DeclarationRequest, declaration_request_id).mpi_id
     end
 
     test "declaration request without required phone number", %{conn: conn} do
