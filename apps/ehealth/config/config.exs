@@ -31,6 +31,6 @@ config :ehealth, EHealth.DeclarationRequests.Terminator,
   termination_batch_size: {:system, :integer, "DECLARATION_REQUEST_AUTOTERMINATION_BATCH", 10}
 
 config :ehealth, EHealth.Contracts.Terminator,
-  termination_batch_size: {:system, :integer, "CONTRACT_AUTOTERMINATION_BATCH", 500}
+  termination_batch_size: {:system, :integer, "CONTRACT_AUTOTERMINATION_BATCH", 10}
 
 import_config "#{Mix.env()}.exs"
