@@ -641,10 +641,14 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
         {:ok, %{}}
       end)
 
+      age = 16
+      person_birth_date = Timex.shift(Timex.today(), years: -age) |> to_string()
+
       declaration_request_params =
         "../core/test/data/v2/declaration_request.json"
         |> File.read!()
         |> Jason.decode!()
+        |> put_in(["declaration_request", "person", "birth_date"], person_birth_date)
 
       uaddresses_mock_expect()
 

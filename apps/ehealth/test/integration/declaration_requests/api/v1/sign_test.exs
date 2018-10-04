@@ -142,10 +142,6 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
 
   describe "create_or_update_person/2" do
     test "returns expected result" do
-      expect(MPIMock, :search, fn _params, _headers ->
-        {:ok, %{"data" => []}}
-      end)
-
       expect(MPIMock, :create_or_update_person, fn params, _headers ->
         {:ok, %{"data" => params}}
       end)
@@ -172,10 +168,6 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
     end
 
     test "person is not active" do
-      expect(MPIMock, :search, fn _params, _headers ->
-        {:ok, %{"data" => []}}
-      end)
-
       expect(MPIMock, :create_or_update_person, fn _params, _headers ->
         {:ok, %Response{status_code: 409}}
       end)
@@ -194,10 +186,6 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
     end
 
     test "person not found" do
-      expect(MPIMock, :search, fn _params, _headers ->
-        {:ok, %{"data" => []}}
-      end)
-
       expect(MPIMock, :create_or_update_person, fn _params, _headers ->
         {:ok, %Response{status_code: 404}}
       end)
@@ -212,12 +200,8 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
     test "person already exists on MPI" do
       person_id = UUID.generate()
 
-      expect(MPIMock, :search, fn _params, _headers ->
-        {:ok, %{"data" => [string_params_for(:person, id: person_id)]}}
-      end)
-
-      expect(MPIMock, :update_person, fn id, params, _headers ->
-        {:ok, %{"data" => Map.put(params, "id", id)}}
+      expect(MPIMock, :create_or_update_person, fn params, _headers ->
+        {:ok, %{"data" => Map.put(params, "id", person_id)}}
       end)
 
       person = %{

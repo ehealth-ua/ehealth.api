@@ -478,10 +478,6 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
         {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
       end)
 
-      expect(MPIMock, :search, fn _params, _headers ->
-        {:ok, %{"data" => []}}
-      end)
-
       expect(MPIMock, :create_or_update_person, fn _params, _headers ->
         {:ok, %Response{body: Jason.encode!(%{"data" => string_params_for(:person)}), status_code: 200}}
       end)
@@ -548,10 +544,6 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     test "can't insert person", %{conn: conn} do
       expect(OPSMock, :get_latest_block, fn _params ->
         {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
-      end)
-
-      expect(MPIMock, :search, fn _params, _headers ->
-        {:ok, %{"data" => []}}
       end)
 
       expect(MPIMock, :create_or_update_person, fn _params, _headers ->

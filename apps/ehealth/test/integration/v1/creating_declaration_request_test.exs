@@ -14,7 +14,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
 
   setup :verify_on_exit!
 
-  def gen_sequence_number do
+  defp gen_sequence_number do
     expect(DeclarationRequestsCreatorMock, :sql_get_sequence_number, fn ->
       {:ok, %Postgrex.Result{rows: [[Enum.random(1_000_000..2_000_000)]]}}
     end)
@@ -53,23 +53,6 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       gen_sequence_number()
       template()
 
-      expect(MPIMock, :search, fn params, _ ->
-        {:ok,
-         %{
-           "data" => [
-             params
-             |> Map.put("id", "b5350f79-f2ca-408f-b15d-1ae0a8cc861c")
-             |> Map.put("authentication_methods", [
-               %{"type" => "OTP", "phone_number" => "+380508887700"}
-             ])
-           ]
-         }}
-      end)
-
-      expect(OTPVerificationMock, :initialize, fn _number, _headers ->
-        {:ok, %{}}
-      end)
-
       expect(OTPVerificationMock, :search, fn _, _ ->
         {:ok, %{"data" => []}}
       end)
@@ -105,6 +88,8 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         |> File.read!()
         |> Jason.decode!()
         |> put_in(["declaration_request", "person", "birth_date"], person_birth_date)
+        |> pop_in(["declaration_request", "person", "tax_id"])
+        |> elem(1)
 
       uaddresses_mock_expect()
 
@@ -388,15 +373,11 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
 
       uaddresses_mock_expect()
 
-      %{"id" => declaration_request_id} =
-        conn
-        |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
-        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
-        |> post(declaration_request_path(conn, :create), declaration_request_params)
-        |> json_response(200)
-        |> Map.get("data")
-
-      refute Repo.get(DeclarationRequest, declaration_request_id).mpi_id
+      conn
+      |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
+      |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
+      |> post(declaration_request_path(conn, :create), declaration_request_params)
+      |> json_response(200)
     end
 
     test "declaration request without required phone number", %{conn: conn} do
@@ -718,10 +699,14 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         {:ok, %{}}
       end)
 
+      age = 16
+      person_birth_date = Timex.shift(Timex.today(), years: -age) |> to_string()
+
       declaration_request_params =
         "../core/test/data/declaration_request.json"
         |> File.read!()
         |> Jason.decode!()
+        |> put_in(["declaration_request", "person", "birth_date"], person_birth_date)
 
       uaddresses_mock_expect()
 
@@ -753,7 +738,11 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
 
       assert_show_response_schema(resp, "declaration_request")
       assert "NEW" = resp["data"]["status"]
-      assert "NEW" = Repo.get(DeclarationRequest, d1.id).status
+
+      declaration_request = Repo.get(DeclarationRequest, d1.id)
+
+      refute declaration_request.mpi_id
+      assert "NEW" = declaration_request.status
       assert "CANCELLED" = Repo.get(DeclarationRequest, d2.id).status
     end
 

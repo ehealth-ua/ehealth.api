@@ -44,15 +44,13 @@ defmodule Core.Cabinet.API do
          :ok <- validate_first_name(content, signer),
          :ok <- validate_last_name(content, signer),
          :ok <- validate_email(content, email),
-         {:ok, %{"data" => mpi_person}} <-
-           @mpi_api.search(
-             Persons.get_search_params(%{
-               "tax_id" => tax_id,
-               "birth_date" => content["birth_date"],
-               "unzr" => content["unzr"]
-             }),
-             headers
-           ),
+         {:ok, search_params} <-
+           Persons.get_search_params(%{
+             "tax_id" => tax_id,
+             "birth_date" => content["birth_date"],
+             "unzr" => content["unzr"]
+           }),
+         {:ok, %{"data" => mpi_person}} <- @mpi_api.search(search_params, headers),
          {:ok, %{"data" => user_data}} <- @mithril_api.search_user(%{email: email}, headers),
          mithril_user <- fetch_mithril_user(user_data),
          :ok <- check_user_blocked(mithril_user),

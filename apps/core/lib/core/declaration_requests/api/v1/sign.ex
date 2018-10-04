@@ -6,7 +6,6 @@ defmodule Core.DeclarationRequests.API.Sign do
 
   alias Core.API.MediaStorage
   alias Core.DeclarationRequests
-  alias Core.DeclarationRequests.API.Persons
   alias Core.DeclarationRequests.DeclarationRequest
   alias Core.DeclarationRequests.SignRequest
   alias Core.Employees
@@ -183,37 +182,19 @@ defmodule Core.DeclarationRequests.API.Sign do
   end
 
   def create_or_update_person(%DeclarationRequest{} = declaration_request, content, headers) do
-    person_params = Map.fetch!(content, "person")
-
-    # @todo complex logic to search person before sign. Should be removed in a week
-    response =
-      case @mpi_api.search(Persons.get_search_params(person_params), headers) do
-        {:ok, %{"data" => [person]}} ->
-          @mpi_api.update_person(
-            person["id"],
-            Map.put(person_params, "patient_signed", true),
-            headers
-          )
-
-        {:ok, %{"data" => _}} ->
-          person_params
-          |> Map.put("patient_signed", true)
-          |> Map.put("id", declaration_request.mpi_id)
-          |> @mpi_api.create_or_update_person(headers)
-
-        err ->
-          err
-      end
-
-    create_or_update_person_response(response)
+    content
+    |> Map.fetch!("person")
+    |> Map.put("patient_signed", true)
+    |> maybe_put("id", declaration_request.mpi_id)
+    |> @mpi_api.create_or_update_person(headers)
+    |> create_or_update_person_response()
   end
 
   defp create_or_update_person_response({:ok, %Response{status_code: 409}}), do: {:conflict, "person is not active"}
 
   defp create_or_update_person_response({:ok, %Response{status_code: 404}}), do: {:conflict, "person is not found"}
 
-  defp create_or_update_person_response({:ok, %Response{body: person, status_code: code}})
-       when code in [200, 201] do
+  defp create_or_update_person_response({:ok, %Response{body: person, status_code: code}}) when code in [200, 201] do
     Jason.decode(person)
   end
 
@@ -313,4 +294,7 @@ defmodule Core.DeclarationRequests.API.Sign do
     {:ok, %{"data" => %{"hash" => hash}}} = @ops_api.get_latest_block(headers)
     hash
   end
+
+  defp maybe_put(map, _key, nil), do: map
+  defp maybe_put(map, key, value), do: Map.put(map, key, value)
 end
