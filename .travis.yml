@@ -28,7 +28,7 @@ env:
   global:
     - MIX_ENV=test
     - DOCKER_NAMESPACE=edenlabllc
-    - APPS='{"ehealth":"il","casher":"casher"}'
+    - APPS='{"ehealth":"il","casher":"casher", "graphql":"graphql"}'
     - POSTGRES_VERSION=9.6
     - secure: "cm8F6poDy8DYOHjUDdJ4lqeFN9jAjwCeQlyvrM6mgPjthGEdjzUp7+4YkBPDrDkyj6KkBXyFIAizmp/YKWifQBs0C4J6wfXXdB5c1z39K4DY9omdzZ+r4o2EsmUBG2qHPhUhq9mT+BHGA+GmgzaaZzVzTLvo1XnF0voP+dAmkAcujhIQW7pa8Hi80EOHuHRpKRZ1Yo5VnmdktZU+AHSR5de8QP71nfmXTOaXWVM/I1OoyIaP/9X9vl5qsy0VdAWwI4+5mUzVgXcggYIBBbtNvwJ+CSZdOl5NzRu8mxcHu4YFNRejRf9rENlF4QmdmVfTvIiOGnyVjZudRsP6CahjEpXxICRub+PanXGjwOIzwsswnXZmyYI/ZZdViXRJ25nBAe2u8H+67v7PA9jdlKy4X4O7kCENSPaxFuTD7cRxgfDLxOfr+tlvagFPaXSPQ7ZZYxMY0xVKpsl4Ng1gFVywSeigTgTwTZDf4494nW0Kwg78rnnDVUdWNS4k4WT933GmSxl3EwootuvWbLPMAqJX/uPIj7LQ2iD2jXrZn2s3a3eXNh9PWmsxzurSSpr2CXbkmOOoqeOgCXafP/98X/kswBojaHh3wZj+3+D7dWr95fYluz2o7tISpOCSKxO9LhRE5JxSI6CfH5ddCJn1Eyf1MDcPRguCTOCZF1ttreVWVj8="
     - secure: "P5OkzHv8ToKlrm0ZkbsPVTOgDXRFbsZB/izg4AGAdAFJKjKoNe76G3TEgx+wWlLtx9DQ/8R9dYa2MlwdUGDN+lcMVPXOjRDv23h6XJwqIRWzU2tMk7tvuOUmQjqKtKgwa8yX+AaMs9DX484ypyg3TEGiv023yFXuXuWKvo3Mej5Ro8xqxzwXv7L+rmTUGJEJdXoOz2ciJnIe1zkqPLnB8c/35tlekqY7nOG8zy9AqnSiQVs7LxnaxBhiENJC3+LWKJ3JE95I1nQq6K1LoEDJLPlvyEQd53HxN4G9GibNsTUu/Vd85jI7ImxmEhwl3x0eb1ApIgeoQxthMIT7/zkZSAlCPFDI4/pixzUMKL/BCeWak+aR60hAPyYYjQC9Jx15B0FdneO9bGvtIAN3caaDWLxkMGpkFWVenb5hHk2wHEkz0DP+YXNtre7flE4aR+moTzfsp4kB70lvMDbC4QzpYan0eLDZWxRH+7klI5YB/+2jZeXMIeT5UfpP/Utm0K+p2yHshzJuA4jdCjnw4wO1sDZIXh58nBjOsJx3B3+XeKFarb+D+S/D1S8ByHvILY4a6PeQDsI/9jDcY2LzXFn4ESY4dmZs/ns9lK/NDApC0oQzTPclKfl4n/AcfTbxPxEvpdQPx9Y3RiaGoNd0QPMDG7p74qClK8+TsqojUzgUdFc="

@@ -34,3 +34,13 @@ release :casher do
     ]
   )
 end
+
+release :graphql do
+  set(version: current_version(:graphql))
+
+  set(
+    applications: [
+      graphql: :permanent
+    ]
+  )
+end
