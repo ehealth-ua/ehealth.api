@@ -2,8 +2,10 @@ defmodule EHealth.Web.V2.DeclarationRequestController do
   @moduledoc false
 
   use EHealth.Web, :controller
+
   alias Core.V2.DeclarationRequests
   alias EHealth.Web.DeclarationRequestView
+
   require Logger
 
   @ops_api Application.get_env(:core, :api_resolvers)[:ops]

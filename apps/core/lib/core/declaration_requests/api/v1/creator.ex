@@ -63,7 +63,7 @@ defmodule Core.DeclarationRequests.API.V1.Creator do
     pending_declaration_requests = pending_declaration_requests(person, employee.id, legal_entity.id)
 
     Repo.transaction(fn ->
-      cancell_declaration_requests(user_id, pending_declaration_requests)
+      cancel_declaration_requests(user_id, pending_declaration_requests)
 
       with {:ok, declaration_request} <- insert_declaration_request(params, user_id, auxiliary_entities, headers),
            {:ok, declaration_request} <- finalize(declaration_request),
@@ -75,7 +75,7 @@ defmodule Core.DeclarationRequests.API.V1.Creator do
     end)
   end
 
-  def cancell_declaration_requests(user_id, pending_declaration_requests) do
+  def cancel_declaration_requests(user_id, pending_declaration_requests) do
     previous_request_ids =
       pending_declaration_requests
       |> Repo.all()

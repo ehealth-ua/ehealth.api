@@ -26,7 +26,7 @@ defmodule Core.DeclarationRequests.API.V2.Creator do
     pending_declaration_requests = pending_declaration_requests(person, employee.id, legal_entity.id)
 
     Repo.transaction(fn ->
-      cancell_declaration_requests(user_id, pending_declaration_requests)
+      cancel_declaration_requests(user_id, pending_declaration_requests)
 
       with {:ok, declaration_request} <- insert_declaration_request(params, user_id, auxiliary_entities, headers),
            {:ok, declaration_request} <- finalize(declaration_request),
@@ -40,7 +40,7 @@ defmodule Core.DeclarationRequests.API.V2.Creator do
 
   defdelegate pending_declaration_requests(person, employee_id, legal_entity_id), to: V1Creator
 
-  defdelegate cancell_declaration_requests(user_id, pending_declaration_requests), to: V1Creator
+  defdelegate cancel_declaration_requests(user_id, pending_declaration_requests), to: V1Creator
 
   defdelegate finalize(declaration_request), to: V1Creator
   defdelegate prepare_urgent_data(declaration_request), to: V1Creator
