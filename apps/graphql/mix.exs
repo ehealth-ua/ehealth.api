@@ -64,6 +64,6 @@ defmodule GraphQL.Mixfile do
   end
 
   defp ecto_setup(_) do
-    Mix.shell().cmd("cd ../core && mix ecto.setup")
+    Mix.shell().cmd("cd ../core && mix ecto.setup && cd ../graphql")
   end
 end

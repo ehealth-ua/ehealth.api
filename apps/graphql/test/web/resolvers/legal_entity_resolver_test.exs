@@ -1,6 +1,9 @@
 defmodule GraphQLWeb.LegalEntityResolverTest do
   use GraphQLWeb.ConnCase, async: true
+
   import Core.Factories
+
+  alias Absinthe.Relay.Node
 
   setup %{conn: conn} do
     conn = put_scope(conn, "legal_entity:read legal_entity:write")
@@ -101,8 +104,8 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
       refute data["page_info"]["has_previous_page"]
 
       query = """
-        {
-          legal_entities(first: 2, after: "#{data["page_info"]["end_cursor"]}") {
+        query ListLegalEntitiesQuery($first: Int!, $after: String!) {
+          legal_entities(first: $first, after: $after) {
             page_info {
               has_previous_page
               has_next_page
@@ -115,9 +118,11 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
         }
       """
 
+      variables = %{first: 2, after: data["page_info"]["end_cursor"]}
+
       data =
         conn
-        |> post_query(query)
+        |> post_query(query, variables)
         |> json_response(200)
         |> get_in(~w(data legal_entities))
 
@@ -133,9 +138,11 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
       phone = %{"type" => "MOBILE", "number" => "+380201112233"}
       legal_entity = insert(:prm, :legal_entity, phones: [phone])
 
+      id = Node.to_global_id("LegalEntity", legal_entity.id)
+
       query = """
-        {
-          legal_entity(id: "#{legal_entity.id}") {
+        query GetLegalEntityQuery($id: ID) {
+          legal_entity(id: $id) {
             id
             public_name
             nhs_verified
@@ -164,9 +171,11 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
         }
       """
 
+      variables = %{id: id}
+
       resp =
         conn
-        |> post_query(query)
+        |> post_query(query, variables)
         |> json_response(200)
         |> get_in(~w(data legal_entity))
 

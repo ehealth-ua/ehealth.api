@@ -34,8 +34,8 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
     edge(do: nil)
   end
 
-  object :legal_entity do
-    field(:id, non_null(:id))
+  node object(:legal_entity) do
+    field(:database_id, non_null(:id))
     field(:name, non_null(:string))
     field(:email, non_null(:string))
     field(:kveds, non_null(list_of(:string)))

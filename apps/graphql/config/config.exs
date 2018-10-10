@@ -7,7 +7,12 @@ config :graphql,
 # Configures the endpoint
 config :graphql, GraphQLWeb.Endpoint,
   url: [host: "localhost"],
-  secret_key_base: "CYmgC8ImSRDRzR8UuogkPi3LY9xnvdta6S4pJmKDSQPnqRF9p5PNNS11eE7a2Uc5"
+  secret_key_base: "CYmgC8ImSRDRzR8UuogkPi3LY9xnvdta6S4pJmKDSQPnqRF9p5PNNS11eE7a2Uc5",
+  debug_errors: false,
+  render_errors: [
+    view: EView.Views.PhoenixError,
+    accepts: ~w(json)
+  ]
 
 # Config Jason as default Json encoder for Phoenix
 config :phoenix, :format_encoders, json: Jason
