@@ -18,10 +18,10 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
 
       query = """
         {
-          legal_entities(first: 10) {
+          legalEntities(first: 10) {
             nodes {
               id
-              public_name
+              publicName
             }
           }
         }
@@ -31,59 +31,86 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
         conn
         |> post_query(query)
         |> json_response(200)
-        |> get_in(~w(data legal_entities nodes))
+        |> get_in(~w(data legalEntities nodes))
 
       assert 2 == length(legal_entities)
 
       Enum.each(legal_entities, fn legal_entity ->
         assert Map.has_key?(legal_entity, "id")
-        assert Map.has_key?(legal_entity, "public_name")
+        assert Map.has_key?(legal_entity, "publicName")
       end)
     end
 
-    test "filter by edrpou", %{conn: conn} do
-      insert(:prm, :legal_entity, edrpou: "1234567890")
-      insert(:prm, :legal_entity, edrpou: "0987654321")
+    test "success with filter", %{conn: conn} do
+      for edrpou <- ["1234567890", "0987654321"], do: insert(:prm, :legal_entity, edrpou: edrpou)
 
       query = """
-        {
-          legal_entities(first: 100, edrpou: "1234567890") {
+        query ListLegalEntitiesQuery($first: Int!, $filter: LegalEntityFilter!) {
+          legalEntities(first: $first, filter: $filter) {
             nodes {
               id
               edrpou
-              public_name
             }
           }
         }
       """
 
+      variables = %{first: 10, filter: %{edrpou: "1234567890"}}
+
       legal_entities =
         conn
-        |> post_query(query)
+        |> post_query(query, variables)
         |> json_response(200)
-        |> get_in(~w(data legal_entities nodes))
+        |> get_in(~w(data legalEntities nodes))
 
       assert 1 == length(legal_entities)
       assert "1234567890" == hd(legal_entities)["edrpou"]
     end
 
-    test "paging", %{conn: conn} do
+    test "success with ordering", %{conn: conn} do
+      for edrpou <- ["1234567890", "0987654321"], do: insert(:prm, :legal_entity, edrpou: edrpou)
+
+      query = """
+        query ListLegalEntitiesQuery($first: Int!, $order_by: LegalEntityFilter!) {
+          legalEntities(first: $first, orderBy: $order_by) {
+            nodes {
+              id
+              edrpou
+            }
+          }
+        }
+      """
+
+      variables = %{first: 10, order_by: "EDRPOU_ASC"}
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data legalEntities nodes))
+
+      assert nil == resp_body["errors"]
+      assert "0987654321" == hd(resp_entities)["edrpou"]
+    end
+
+    test "cursor pagination", %{conn: conn} do
       insert(:prm, :legal_entity)
       insert(:prm, :legal_entity)
       insert(:prm, :legal_entity)
 
       query = """
-        {
-          legal_entities(first: 2) {
-            page_info {
-              start_cursor
-              end_cursor
-              has_previous_page
-              has_next_page
+        query ListLegalEntitiesQuery($first: Int!) {
+          legalEntities(first: $first) {
+            pageInfo {
+              startCursor
+              endCursor
+              hasPreviousPage
+              hasNextPage
             }
             nodes {
               id
-              public_name
+              publicName
               addresses {
                 type
                 country
@@ -93,42 +120,44 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
         }
       """
 
-      data =
-        conn
-        |> post_query(query)
-        |> json_response(200)
-        |> get_in(~w(data legal_entities))
-
-      assert 2 == length(data["nodes"])
-      assert data["page_info"]["has_next_page"]
-      refute data["page_info"]["has_previous_page"]
-
-      query = """
-        query ListLegalEntitiesQuery($first: Int!, $after: String!) {
-          legal_entities(first: $first, after: $after) {
-            page_info {
-              has_previous_page
-              has_next_page
-            }
-            nodes {
-              id
-              public_name
-            }
-          }
-        }
-      """
-
-      variables = %{first: 2, after: data["page_info"]["end_cursor"]}
+      variables = %{first: 2}
 
       data =
         conn
         |> post_query(query, variables)
         |> json_response(200)
-        |> get_in(~w(data legal_entities))
+        |> get_in(~w(data legalEntities))
+
+      assert 2 == length(data["nodes"])
+      assert data["pageInfo"]["hasNextPage"]
+      refute data["pageInfo"]["hasPreviousPage"]
+
+      query = """
+        query ListLegalEntitiesQuery($first: Int!, $after: String!) {
+          legalEntities(first: $first, after: $after) {
+            pageInfo {
+              hasPreviousPage
+              hasNextPage
+            }
+            nodes {
+              id
+              publicName
+            }
+          }
+        }
+      """
+
+      variables = %{first: 2, after: data["pageInfo"]["endCursor"]}
+
+      data =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+        |> get_in(~w(data legalEntities))
 
       assert 1 == length(data["nodes"])
-      refute data["page_info"]["has_next_page"]
-      assert data["page_info"]["has_previous_page"]
+      refute data["pageInfo"]["hasNextPage"]
+      assert data["pageInfo"]["hasPreviousPage"]
     end
   end
 
@@ -142,10 +171,10 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
 
       query = """
         query GetLegalEntityQuery($id: ID) {
-          legal_entity(id: $id) {
+          legalEntity(id: $id) {
             id
-            public_name
-            nhs_verified
+            publicName
+            nhsVerified
             phones {
               type
               number
@@ -158,10 +187,10 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
               date
               place
             }
-            medical_service_provider {
+            medicalServiceProvider {
               licenses {
-                license_number
-                what_licensed
+                licenseNumber
+                whatLicensed
               }
               accreditation {
                 category
@@ -177,16 +206,13 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
         conn
         |> post_query(query, variables)
         |> json_response(200)
-        |> get_in(~w(data legal_entity))
+        |> get_in(~w(data legalEntity))
 
-      assert legal_entity.public_name == resp["public_name"]
+      assert legal_entity.public_name == resp["publicName"]
       assert legal_entity.phones == resp["phones"]
       assert legal_entity.archive == resp["archive"]
-      assert Map.has_key?(resp["medical_service_provider"], "licenses")
-      assert "some" == get_in(resp, ~w(medical_service_provider accreditation category))
+      assert Map.has_key?(resp["medicalServiceProvider"], "licenses")
+      assert "some" == get_in(resp, ~w(medicalServiceProvider accreditation category))
     end
-  end
-
-  describe "get by edrpou" do
   end
 end

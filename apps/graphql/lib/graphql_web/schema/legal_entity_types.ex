@@ -10,7 +10,8 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
     @desc "get list of Legal Entities"
     connection field(:legal_entities, node_type: :legal_entity) do
       meta(:scope, ~w(legal_entity:read))
-      arg(:edrpou, :string)
+      arg(:filter, :legal_entity_filter)
+      arg(:order_by, :legal_entity_order_by, default_value: :inserted_at_asc)
       resolve(&LegalEntity.list_legal_entities/2)
     end
 
@@ -20,6 +21,25 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
       arg(:id, non_null(:id))
       resolve(&LegalEntity.get_legal_entity_by_id/3)
     end
+  end
+
+  input_object :legal_entity_filter do
+    field(:nhs_verified, :boolean)
+    field(:area, :string)
+    field(:settlement, :string)
+    field(:id, :id)
+    field(:edrpou, :string)
+  end
+
+  enum :legal_entity_order_by do
+    value(:edrpou_asc)
+    value(:edrpou_desc)
+    value(:inserted_at_asc)
+    value(:inserted_at_desc)
+    value(:nhs_verified_asc)
+    value(:nhs_verified_desc)
+    value(:status_asc)
+    value(:status_desc)
   end
 
   connection(node_type: :legal_entity) do
