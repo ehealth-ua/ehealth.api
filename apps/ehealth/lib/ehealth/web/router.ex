@@ -186,6 +186,9 @@ defmodule EHealthWeb.Router do
     # Employees
     get("/employees/:id", EmployeeController, :show)
 
+    # Internal fot checking signatures
+    get("/employees/:id/users", EmployeeController, :employee_users)
+
     scope "/employees" do
       pipe_through([:client_context_list])
 

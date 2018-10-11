@@ -48,4 +48,16 @@ defmodule EHealth.Web.PartyView do
   def render("phone.json", %{phone: phone}) do
     Map.take(phone, ~w(type number)a)
   end
+
+  def render("party_users.json", %{party: party}) do
+    %{
+      id: party.id,
+      tax_id: party.tax_id,
+      users: render_many(party.users || [], __MODULE__, "user.json", as: :user)
+    }
+  end
+
+  def render("user.json", %{user: user}) do
+    %{user_id: user.user_id}
+  end
 end

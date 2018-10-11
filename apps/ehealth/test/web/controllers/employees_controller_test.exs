@@ -531,4 +531,29 @@ defmodule EHealth.Web.EmployeesControllerTest do
       end
     end
   end
+
+  describe "get employee users" do
+    test "success", %{conn: conn} do
+      party_user = insert(:prm, :party_user)
+      legal_entity = insert(:prm, :legal_entity)
+      employee = insert(:prm, :employee, party: party_user.party, legal_entity: legal_entity)
+
+      assert %{"party" => party} =
+               conn
+               |> put_client_id_header(legal_entity.id)
+               |> get(employee_path(conn, :employee_users, employee.id))
+               |> json_response(200)
+               |> Map.get("data")
+
+      assert party_user.party.tax_id == party["tax_id"]
+      assert [%{"user_id" => party_user.user_id}] == party["users"]
+    end
+
+    test "not found", %{conn: conn} do
+      assert conn
+             |> put_client_id_header(UUID.generate())
+             |> get(employee_path(conn, :employee_users, UUID.generate()))
+             |> json_response(404)
+    end
+  end
 end

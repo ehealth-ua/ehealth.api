@@ -138,6 +138,18 @@ defmodule Core.Employees do
     |> PRMRepo.all()
   end
 
+  def get_by_id_with_users(id) do
+    Employee
+    |> where([e], e.id == ^id)
+    |> join(:left, [e], p in assoc(e, :party))
+    |> join(:left, [e, p], pu in assoc(p, :users))
+    |> PRMRepo.one()
+    |> case do
+      nil -> nil
+      employee -> {:ok, PRMRepo.preload(employee, party: [:users])}
+    end
+  end
+
   def create(attrs, author_id) do
     %Employee{}
     |> changeset(attrs)

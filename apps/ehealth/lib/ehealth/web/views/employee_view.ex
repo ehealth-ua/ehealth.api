@@ -88,6 +88,13 @@ defmodule EHealth.Web.EmployeeView do
     render_employee(employee, Map.get(assigns, :declaration_count_data))
   end
 
+  def render("employee_users_short.json", %{employee: employee}) do
+    %{
+      "id" => employee.id,
+      "party" => render(PartyView, "party_users.json", %{party: employee.party})
+    }
+  end
+
   def render_employee(employee, declaration_count_data) do
     employee
     |> Map.take(~w(

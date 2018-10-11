@@ -40,4 +40,10 @@ defmodule EHealth.Web.EmployeeController do
       render(conn, "employee.json", employee: employee, declaration_count_data: declaration_count_data)
     end
   end
+
+  def employee_users(conn, %{"id" => employee_id}) do
+    with {:ok, employee} <- API.get_by_id_with_users(employee_id) do
+      render(conn, "employee_users_short.json", employee: employee)
+    end
+  end
 end
