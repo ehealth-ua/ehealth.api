@@ -1568,5 +1568,29 @@
       "EXTERNAL"
     ],
     "is_active": true
+  },
+  {
+    "name": "eHealth/ICPC2/conditions",
+    "values": {
+      "R80":"Грип",
+      "T90" : "Інсулінонезалежний цукровий діабет"
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
+  },
+  {
+    "name": "eHealth/ICD10/conditions",
+    "values": {
+      "J11":"Грип, вірус не ідентифіковано",
+      "E10.1" : "Цукровий діабет з комою"
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
   }
 ]
