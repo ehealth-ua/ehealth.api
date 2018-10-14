@@ -49,6 +49,7 @@ defmodule Core.Validators.JsonSchema do
   use_schema(:employee_pharmacist, "specs/json_schemas/employee/employee_pharmacist_create_request.json")
   use_schema(:legal_entity, "specs/json_schemas/legal_entity/legal_entity_create_request.json")
   use_schema(:legal_entity_sign, "specs/json_schemas/legal_entity/legal_entity_sign.json")
+  use_schema(:legal_entity_merge_job, "specs/json_schemas/legal_entity/legal_entity_merge_job.json")
   use_schema(:innm, "specs/json_schemas/innm/innm_create_request.json")
   use_schema(:medication, "specs/json_schemas/medication/medication_create_request.json")
   use_schema(:innm_dosage, "specs/json_schemas/innm_dosage/innm_dosage_create_request.json")

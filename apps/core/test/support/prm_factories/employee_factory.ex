@@ -3,13 +3,14 @@ defmodule Core.PRMFactories.EmployeeFactory do
 
   defmacro __using__(_opts) do
     quote do
+      alias Core.Employees.Employee
       alias Ecto.UUID
 
       def employee_factory do
         division = build(:division)
         party = build(:party)
 
-        %Core.Employees.Employee{
+        %Employee{
           is_active: true,
           position: "some position",
           status: "APPROVED",

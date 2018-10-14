@@ -10,15 +10,23 @@ defmodule GraphQLWeb.Schema do
 
   alias Core.LegalEntities.LegalEntity
   alias Core.Persons.Person
-  alias GraphQLWeb.Schema.LegalEntityTypes
-  alias GraphQLWeb.Schema.PersonTypes
 
-  import_types(LegalEntityTypes)
-  import_types(PersonTypes)
+  import_types(Absinthe.Type.Custom)
+
+  import_types(GraphQLWeb.Schema.{
+    LegalEntityTypes,
+    LegalEntityMergeJobTypes,
+    PersonTypes,
+    SignedContentTypes
+  })
 
   query do
     import_fields(:legal_entity_queries)
     import_fields(:person_queries)
+  end
+
+  mutation do
+    import_fields(:legal_entity_merge_job_mutations)
   end
 
   node interface do

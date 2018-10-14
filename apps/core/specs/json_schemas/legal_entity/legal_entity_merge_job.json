@@ -1,0 +1,80 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "definitions": {
+    "edrpou": {
+      "type": "string",
+      "pattern": "^[0-9]{8,10}$"
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^(?!.*[ЫЪЭЁыъэё@%&$^#])[a-zA-ZА-ЯҐЇІЄа-яґїіє0-9№\\\"!\\^\\*)\\]\\[(._-].*$"
+    },
+    "uuid": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    }
+  },
+  "type": "object",
+  "properties": {
+    "merged_from_legal_entity": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "$ref": "#/definitions/uuid",
+          "description": "legal entity id"
+        },
+        "name": {
+          "type": "string",
+          "$ref": "#/definitions/name",
+          "description": "legal entity name"
+        },
+        "edrpou": {
+          "type": "string",
+          "description": "legal entity edrpou"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "edrpou"
+      ],
+      "additionalProperties": false
+    },
+    "merged_to_legal_entity": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "$ref": "#/definitions/uuid",
+          "description": "legal entity id"
+        },
+        "name": {
+          "type": "string",
+          "$ref": "#/definitions/name",
+          "description": "legal entity name"
+        },
+        "edrpou": {
+          "type": "string",
+          "description": "legal entity edrpou"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "edrpou"
+      ],
+      "additionalProperties": false
+    },
+    "reason": {
+      "type": "string",
+      "description": "base to merge legal entities"
+    }
+  },
+  "required": [
+    "merged_from_legal_entity",
+    "merged_to_legal_entity",
+    "reason"
+  ],
+  "additionalProperties": false
+}

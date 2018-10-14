@@ -76,7 +76,7 @@ defmodule Core.LegalEntities.LegalEntityUpdater do
 
   def put_legal_entity_status(params), do: Map.put(params, :status, @status_closed)
 
-  defp log_deactivate_employee_error(error, id) do
+  def log_deactivate_employee_error(error, id) do
     Logger.error(fn ->
       Jason.encode!(%{
         "log_type" => "error",

@@ -22,22 +22,18 @@ defmodule Core.Employees.EmployeeUpdater do
   @ops_api Application.get_env(:core, :api_resolvers)[:ops]
 
   def deactivate(%{"id" => id} = params, headers, with_owner \\ false) do
-    user_id = get_consumer_id(headers)
-    legal_entity_id = Map.get(params, "legal_entity_id")
+    deactivate(id, params["legal_entity_id"], "auto_employee_deactivate", headers, with_owner)
+  end
 
-    with employee <- Employees.get_by_id!(id),
+  def deactivate(employee_id, legal_entity_id, reason, headers, with_owner \\ false) do
+    user_id = get_consumer_id(headers)
+
+    with employee <- Employees.get_by_id!(employee_id),
          :ok <- check_legal_entity_id(legal_entity_id, employee),
          :ok <- check_transition(employee, with_owner),
          active_employees <- get_active_employees(employee),
          :ok <- revoke_user_auth_data(employee, active_employees, headers),
-         {:ok, _} <-
-           @ops_api.terminate_employee_declarations(
-             id,
-             user_id,
-             "auto_employee_deactivate",
-             "",
-             headers
-           ) do
+         {:ok, _} <- @ops_api.terminate_employee_declarations(employee_id, user_id, reason, "", headers) do
       set_employee_status_as_dismissed(employee, headers)
     end
   end
@@ -80,8 +76,7 @@ defmodule Core.Employees.EmployeeUpdater do
 
   def revoke_user_auth_data(_employee, _headers), do: :ok
 
-  defp revoke_user_auth_data(%Employee{} = employee, active_employees, headers)
-       when length(active_employees) <= 1 do
+  defp revoke_user_auth_data(%Employee{} = employee, active_employees, headers) when length(active_employees) <= 1 do
     revoke_user_auth_data(employee, headers)
   end
 

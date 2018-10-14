@@ -30,8 +30,14 @@ defmodule GraphQLWeb.ConnCase do
 
       @graphql_path "/graphql"
 
+      @consumer_id_header "x-consumer-id"
+
       def put_scope(conn, scope) do
         put_req_header(conn, @endpoint.scope_header(), scope)
+      end
+
+      def put_consumer_id(conn, id \\ Ecto.UUID.generate()) do
+        put_req_header(conn, @consumer_id_header, id)
       end
 
       def post_query(conn, query, variables \\ %{}) do

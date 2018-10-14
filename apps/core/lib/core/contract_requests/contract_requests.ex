@@ -557,15 +557,8 @@ defmodule Core.ContractRequests do
       else: Error.dump("Signed content does not match the previously created content")
   end
 
-  defp save_signed_content(id, %{"signed_content" => signed_content}, headers, resource_name) do
-    signed_content
-    |> @media_storage_api.store_signed_content(
-      :contract_request_bucket,
-      id,
-      resource_name,
-      headers
-    )
-    |> case do
+  defp save_signed_content(id, %{"signed_content" => content}, headers, resource_name) do
+    case @media_storage_api.store_signed_content(content, :contract_request_bucket, id, resource_name, headers) do
       {:ok, _} -> :ok
       _error -> {:error, {:bad_gateway, "Failed to save signed content"}}
     end

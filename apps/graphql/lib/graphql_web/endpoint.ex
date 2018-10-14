@@ -1,6 +1,9 @@
 defmodule GraphQLWeb.Endpoint do
+  @moduledoc false
+
   use Phoenix.Endpoint, otp_app: :graphql
 
+  alias Confex.Resolver
   alias GraphQLWeb.Plugs.Context
 
   @scope_header "x-consumer-scope"
@@ -29,13 +32,15 @@ defmodule GraphQLWeb.Endpoint do
   It receives the endpoint configuration and checks if
   configuration should be loaded from the system environment.
   """
+  @spec init(term, term) :: {:ok, term}
   def init(_key, config) do
-    if config[:load_from_system_env] do
-      port = System.get_env("PORT") || raise "expected the PORT environment variable to be set"
-      {:ok, Keyword.put(config, :http, [:inet6, port: port])}
-    else
-      {:ok, config}
+    config = Resolver.resolve!(config)
+
+    unless config[:secret_key_base] do
+      raise "Set SECRET_KEY environment variable!"
     end
+
+    {:ok, config}
   end
 
   def scope_header, do: @scope_header

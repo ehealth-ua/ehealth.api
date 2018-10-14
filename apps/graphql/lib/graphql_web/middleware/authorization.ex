@@ -28,29 +28,28 @@ defmodule GraphQLWeb.Middleware.Authorization do
   def call(%{state: :unresolved} = resolution, opts) do
     [meta_key: meta_key, context_key: context_key] = opts
 
-    requested_scopes = Type.meta(resolution.definition.schema_node, meta_key)
-    available_scopes = Map.get(resolution.context, context_key, [])
+    requested_scope = Type.meta(resolution.definition.schema_node, meta_key)
+    token_scope = Map.get(resolution.context, context_key, [])
 
-    missing_scopes =
-      [requested_scopes, available_scopes]
+    missing_allowances =
+      [requested_scope, token_scope]
       |> Enum.map(&MapSet.new/1)
       |> (&apply(&2, &1)).(&MapSet.difference/2)
       |> MapSet.to_list()
 
-    if Enum.empty?(missing_scopes) do
+    if Enum.empty?(missing_allowances) do
       resolution
     else
-      resolution
-      |> Resolution.put_result({:error, format_forbidden_error(missing_scopes)})
+      Resolution.put_result(resolution, {:error, format_forbidden_error(missing_allowances)})
     end
   end
 
   def call(res, _), do: res
 
-  defp format_forbidden_error(missing_scopes) do
+  defp format_forbidden_error(missing_allowances) do
     %{
       message: @forbidden_error_message,
-      extensions: %{code: "FORBIDDEN", exception: %{missingAllowances: missing_scopes}}
+      extensions: %{code: "FORBIDDEN", exception: %{missingAllowances: missing_allowances}}
     }
   end
 end

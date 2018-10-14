@@ -64,6 +64,7 @@ config :core, Core.API.MediaStorage,
   declaration_bucket: {:system, "MEDIA_STORAGE_DECLARATION_BUCKET"},
   medication_request_request_bucket: {:system, "MEDIA_STORAGE_MEDICATION_REQUEST_REQUEST_BUCKET"},
   person_bucket: {:system, "MEDIA_STORAGE_PERSON_BUCKET"},
+  related_legal_entity_bucket: {:system, "MEDIA_STORAGE_RELATED_LEGAL_ENTITY_BUCKET"},
   enabled?: {:system, :boolean, "MEDIA_STORAGE_ENABLED", false},
   hackney_options: [
     connect_timeout: {:system, :integer, "MEDIA_STORAGE_REQUEST_TIMEOUT", 30_000},
@@ -299,6 +300,10 @@ config :core, Core.Cabinet.API,
   role_id: {:system, "CABINET_ROLE_ID"},
   client_id: {:system, "CABINET_CLIENT_ID"}
 
+config :core, Core.Jobs.LegalEntityMergeJob,
+  client_type_id: {:system, "CLIENT_TYPE_MSP_LIMITED_ID"},
+  media_storage_resource_name: {:system, "MEDIA_STORAGE_MERGED_LEGAL_ENTITIES_RESOURCE_NAME", "merged_legal_entities"}
+
 # Configures Guardian
 config :core, Core.Guardian,
   issuer: "EHealth",
@@ -310,5 +315,17 @@ config :core, Core.MedicationDispense.API, deviation: {:system, :float, "DEVIATI
 config :cipher,
   keyphrase: System.get_env("CIPHER_KEYPHRASE") || "8()VN#U#_CU#X)*BFG(Cadsvn$&",
   ivphrase: System.get_env("CIPHER_IVPHRASE") || "B((%(^(%V(CWBY(**(by(*YCBDYB#(Y(C#"
+
+config :kafka_ex,
+  brokers: "localhost:9092",
+  consumer_group: "ehealth",
+  disable_default_worker: false,
+  sync_timeout: 3000,
+  max_restarts: 10,
+  max_seconds: 60,
+  commit_interval: 5_000,
+  auto_offset_reset: :earliest,
+  commit_threshold: 100,
+  kafka_version: "1.1.0"
 
 import_config "#{Mix.env()}.exs"

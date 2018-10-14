@@ -16,6 +16,7 @@ defmodule Core.LegalEntities do
   alias Core.EmployeeRequests
   alias Core.Employees.Employee
   alias Core.LegalEntities.LegalEntity
+  alias Core.LegalEntities.RelatedLegalEntity
   alias Core.LegalEntities.Search
   alias Core.LegalEntities.Validator
   alias Core.OAuth.API, as: OAuth
@@ -147,9 +148,17 @@ defmodule Core.LegalEntities do
     |> PRMRepo.all()
   end
 
+  def get_related_by(args), do: PRMRepo.get_by(RelatedLegalEntity, args)
+
   def create(%LegalEntity{} = legal_entity, attrs, author_id) do
     legal_entity
     |> changeset(attrs)
+    |> PRMRepo.insert_and_log(author_id)
+  end
+
+  def create(%RelatedLegalEntity{} = related_legal_entity, attrs, author_id) do
+    related_legal_entity
+    |> RelatedLegalEntity.changeset(attrs)
     |> PRMRepo.insert_and_log(author_id)
   end
 

@@ -51,6 +51,7 @@ config :core, Core.API.MediaStorage,
   medication_request_request_bucket:
     {:system, "MEDIA_STORAGE_MEDICATION_REQUEST_REQUEST_BUCKET", "medication-request-requests-dev"},
   person_bucket: {:system, "MEDIA_STORAGE_PERSON_BUCKET", "persons-dev"},
+  related_legal_entity_bucket: {:system, "MEDIA_STORAGE_RELATED_LEGAL_ENTITY_BUCKET", "related-legal-entities-dev"},
   enabled?: {:system, :boolean, "MEDIA_STORAGE_ENABLED", false}
 
 # Databases configuration
@@ -154,5 +155,8 @@ config :core, Core.Cabinet.API,
 config :core, Core.Guardian,
   issuer: "EHealth",
   secret_key: "some_super-sEcret"
+
+config :taskafka, :mongo, url: "mongodb://localhost:27017/taskafka_test"
+config :taskafka, :idle, true
 
 config :ex_unit, capture_log: true
