@@ -1,7 +1,7 @@
 defmodule Core.Jobs.LegalEntityMergeJob do
   @moduledoc false
 
-  use Confex, otp_app: :ehealth
+  use Confex, otp_app: :core
   use TasKafka.Task, topic: "merge_legal_entities"
   import Core.API.Helpers.Connection, only: [get_consumer_id: 1]
   import Ecto.Query

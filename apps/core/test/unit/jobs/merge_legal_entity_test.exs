@@ -4,7 +4,6 @@ defmodule Core.Unit.LegalEntityMergeJobTest do
   use Core.ConnCase, async: false
 
   import Mox
-  import Core.Expectations.Mithril
 
   alias BSON.ObjectId
   alias Ecto.UUID
@@ -34,7 +33,13 @@ defmodule Core.Unit.LegalEntityMergeJobTest do
       employee_owner = insert(:prm, :employee, legal_entity: legal_entity_to, employee_type: @owner)
 
       set_mox_global()
-      put_client()
+      client_type_id = UUID.generate()
+      System.put_env("CLIENT_TYPE_MSP_LIMITED_ID", client_type_id)
+
+      expect(MithrilMock, :put_client, fn _client_id, params ->
+        assert client_type_id == params.client_type_id
+        {:ok, %{"data" => params}}
+      end)
 
       expect(OPSMock, :terminate_employee_declarations, fn employee_id, user_id, reason, _description, _headers ->
         assert employee_dismissed.id == employee_id
