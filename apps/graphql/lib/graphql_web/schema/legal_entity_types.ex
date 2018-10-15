@@ -105,26 +105,6 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
     field(:category, non_null(:string))
   end
 
-  object :phone do
-    field(:type, :string)
-    field(:number, :string)
-  end
-
-  object :address do
-    field(:type, :string)
-    field(:country, :string)
-    field(:area, :string)
-    field(:region, :string)
-    field(:settlement, :string)
-    field(:settlement_type, :string)
-    field(:settlement_id, :string)
-    field(:street, :string)
-    field(:street_type, :string)
-    field(:building, :string)
-    field(:apartment, :string)
-    field(:zip, :string)
-  end
-
   object :legal_entity_archive do
     field(:date, :string)
     field(:place, :string)

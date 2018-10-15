@@ -15,9 +15,11 @@ defmodule GraphQLWeb.Schema do
   import_types(Absinthe.Type.Custom)
 
   import_types(GraphQLWeb.Schema.{
+    AddressTypes,
     LegalEntityTypes,
     LegalEntityMergeJobTypes,
     PersonTypes,
+    PhoneTypes,
     SignedContentTypes
   })
 
