@@ -6,6 +6,7 @@ defmodule GraphQLWeb.Schema do
   use GraphQLWeb.Middleware.MapGet
   use GraphQLWeb.Middleware.Authorization
   use GraphQLWeb.Middleware.ParseIDs
+  use GraphQLWeb.Middleware.FilterArgument
   use GraphQLWeb.Middleware.DatabaseIDs
 
   alias Core.LegalEntities.LegalEntity

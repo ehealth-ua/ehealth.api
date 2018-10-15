@@ -10,22 +10,15 @@ defmodule GraphQLWeb.Resolvers.LegalEntity do
 
   @order_by_regex ~r/(\w+)_(asc|desc)$/
 
-  def list_legal_entities(args, _context) do
+  def list_legal_entities(%{filter: filter} = args, _context) do
     LegalEntity
-    |> where(^prepare_filter(args))
+    |> where(^filter)
     |> order_by(^prepare_ordering(args))
     |> Connection.from_query(&PRMRepo.all/1, args)
   end
 
   def get_legal_entity_by_id(_parent, %{id: id}, _resolution) do
     {:ok, LegalEntities.get_by_id(id)}
-  end
-
-  # TODO: move to middleware
-  defp prepare_filter(args) do
-    args
-    |> Map.get(:filter, %{})
-    |> Map.to_list()
   end
 
   # TODO: move to middleware
