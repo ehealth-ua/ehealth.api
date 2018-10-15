@@ -21,7 +21,7 @@ defmodule Core.Jobs.LegalEntityMergeJob do
 
   def consume(%__MODULE__{} = job) do
     with :ok <- dismiss_employees(job),
-         :ok <- update_client_type(job.merged_from_legal_entity.id),
+         :ok <- update_client_type(job.merged_from_legal_entity.id, job.headers),
          {:ok, related} <- create_related_legal_entity(job),
          :ok <- store_signed_content(job.signed_content, related.id) do
       Jobs.processed(job.job_id, %{related_legal_entity_id: related.id})
@@ -102,8 +102,10 @@ defmodule Core.Jobs.LegalEntityMergeJob do
     end)
   end
 
-  defp update_client_type(legal_entity_id) do
-    case @mithril_api.put_client(legal_entity_id, %{client_type_id: config()[:client_type_id]}) do
+  defp update_client_type(legal_entity_id, headers) do
+    params = %{"id" => legal_entity_id, "client_type_id" => config()[:client_type_id]}
+
+    case @mithril_api.put_client(params, headers) do
       {:ok, _} ->
         :ok
 
