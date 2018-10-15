@@ -24,6 +24,9 @@ defmodule Core.LegalEntities.RelatedLegalEntity do
   def changeset(%__MODULE__{} = entity, attrs) do
     entity
     |> cast(attrs, @required_fields)
+    |> foreign_key_constraint(:merged_to_id)
+    |> foreign_key_constraint(:merged_from_id)
+    |> unique_constraint(:merged_to, name: :merged_ids_index, message: "related legal entity already created")
     |> validate_required(@required_fields)
   end
 end

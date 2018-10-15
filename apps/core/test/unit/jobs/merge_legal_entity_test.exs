@@ -4,7 +4,6 @@ defmodule Core.Unit.LegalEntityMergeJobTest do
   use Core.ConnCase, async: false
 
   import Mox
-  import Core.Expectations.Mithril
 
   alias BSON.ObjectId
   alias Ecto.UUID
@@ -50,7 +49,11 @@ defmodule Core.Unit.LegalEntityMergeJobTest do
         {:ok, %{}}
       end)
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn signed_content, bucket, id, resource_name, _headers ->
+        assert "some-base-64-encoded-content" = signed_content
+        assert :related_legal_entity_bucket = bucket
+        assert "merged_legal_entities" = resource_name
+        assert id
         {:ok, "success"}
       end)
 

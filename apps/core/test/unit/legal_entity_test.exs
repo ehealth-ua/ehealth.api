@@ -11,9 +11,11 @@ defmodule Core.Unit.LegalEntityTest do
   alias Core.EmployeeRequests.EmployeeRequest
   alias Core.LegalEntities, as: API
   alias Core.LegalEntities.LegalEntity
+  alias Core.LegalEntities.RelatedLegalEntity
   alias Core.LegalEntities.Validator
   alias Core.PRMRepo
   alias Core.Repo
+  alias Ecto.Changeset
   alias Ecto.UUID
 
   setup :verify_on_exit!
@@ -153,7 +155,7 @@ defmodule Core.Unit.LegalEntityTest do
       drfo = "їҐ12345"
       signer = %{"drfo" => drfo}
 
-      assert {:error, %Ecto.Changeset{valid?: false}} =
+      assert {:error, %Changeset{valid?: false}} =
                content
                |> Map.put("edrpou", drfo)
                |> Validator.validate_edrpou(signer)
@@ -177,13 +179,13 @@ defmodule Core.Unit.LegalEntityTest do
     test "invalid signer EDRPOU" do
       content = get_legal_entity_data()
       signer = %{"edrpou" => "03736738"}
-      assert {:error, %Ecto.Changeset{valid?: false}} = Validator.validate_edrpou(content, signer)
+      assert {:error, %Changeset{valid?: false}} = Validator.validate_edrpou(content, signer)
     end
 
     test "different signer EDRPOU" do
       content = get_legal_entity_data()
       signer = %{"edrpou" => "0373167387"}
-      assert {:error, %Ecto.Changeset{valid?: false}} = Validator.validate_edrpou(content, signer)
+      assert {:error, %Changeset{valid?: false}} = Validator.validate_edrpou(content, signer)
     end
   end
 
@@ -391,7 +393,28 @@ defmodule Core.Unit.LegalEntityTest do
       insert(:prm, :legal_entity, edrpou: "10020030")
       legal_entity = insert(:prm, :legal_entity)
       changeset = API.changeset(legal_entity, %{"edrpou" => "10020030"})
-      assert {:error, %Ecto.Changeset{valid?: false}} = API.transaction_update_with_contract(changeset, [])
+      assert {:error, %Changeset{valid?: false}} = API.transaction_update_with_contract(changeset, [])
+    end
+  end
+
+  describe "create related legal entity" do
+    test "duplicated merged ids" do
+      to = insert(:prm, :legal_entity)
+      from = insert(:prm, :legal_entity)
+
+      inserted_by = UUID.generate()
+
+      data = %{
+        reason: "test merge",
+        merged_to_id: to.id,
+        merged_from_id: from.id,
+        inserted_by: inserted_by,
+        is_active: true
+      }
+
+      assert {:ok, _} = API.create(%RelatedLegalEntity{}, data, inserted_by)
+      assert {:error, %Changeset{errors: errors}} = API.create(%RelatedLegalEntity{}, data, inserted_by)
+      assert {"related legal entity already created", []} == errors[:merged_to]
     end
   end
 
