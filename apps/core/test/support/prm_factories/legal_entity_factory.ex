@@ -4,9 +4,11 @@ defmodule Core.PRMFactories.LegalEntityFactory do
   defmacro __using__(_opts) do
     quote do
       alias Ecto.UUID
+      alias Core.LegalEntities.LegalEntity
+      alias Core.LegalEntities.RelatedLegalEntity
 
       def legal_entity_factory do
-        %Core.LegalEntities.LegalEntity{
+        %LegalEntity{
           is_active: true,
           addresses: [
             %{
@@ -45,6 +47,16 @@ defmodule Core.PRMFactories.LegalEntityFactory do
           inserted_by: UUID.generate(),
           created_by_mis_client_id: UUID.generate(),
           medical_service_provider: build(:medical_service_provider)
+        }
+      end
+
+      def related_legal_entity_factory do
+        %RelatedLegalEntity{
+          reason: "some reason",
+          is_active: true,
+          inserted_by: UUID.generate(),
+          merged_from: build(:legal_entity),
+          merged_to: build(:legal_entity)
         }
       end
     end

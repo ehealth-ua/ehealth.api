@@ -11,6 +11,7 @@ defmodule Core.Jobs.LegalEntityMergeJob do
   alias Core.LegalEntities.LegalEntityUpdater
   alias Core.LegalEntities.RelatedLegalEntity
   alias Core.PRMRepo
+  alias Ecto.Changeset
   alias TasKafka.Jobs
   require Logger
 
@@ -26,12 +27,28 @@ defmodule Core.Jobs.LegalEntityMergeJob do
          :ok <- store_signed_content(job.signed_content, related.id) do
       Jobs.processed(job.job_id, %{related_legal_entity_id: related.id})
     else
+      {:error, %Changeset{} = changeset} ->
+        errors =
+          Changeset.traverse_errors(changeset, fn {msg, opts} ->
+            Enum.reduce(opts, msg, fn {key, value}, acc ->
+              String.replace(acc, "%{#{key}}", to_string(value))
+            end)
+          end)
+
+        Logger.error("failed to merge legal entities with: #{inspect(errors)}")
+        Jobs.failed(job.job_id, errors)
+
       {:error, reason} ->
+        Logger.error("failed to merge legal entities with: #{inspect(reason)}")
         Jobs.failed(job.job_id, reason)
-        Logger.error("Failed to merge legal entities with: #{inspect(reason)}")
     end
 
     :ok
+  rescue
+    e ->
+      Logger.error("failed to merge legal entities with: #{inspect(e)}")
+      Jobs.failed(job.job_id, "raised an exception: #{inspect(e)}")
+      :ok
   end
 
   def consume(value) do
@@ -94,7 +111,7 @@ defmodule Core.Jobs.LegalEntityMergeJob do
       case resp do
         {:error, err} ->
           LegalEntityUpdater.log_deactivate_employee_error(err, id)
-          {:halt, err}
+          {:halt, {:error, "Cannot terminate employee `#{id}` with `#{inspect(err)}`"}}
 
         _ ->
           {:cont, acc}
@@ -110,7 +127,7 @@ defmodule Core.Jobs.LegalEntityMergeJob do
         :ok
 
       {:error, reason} ->
-        {:error, "Cannot update client type on Mithril for client #{legal_entity_id} with `#{inspect(reason)}`"}
+        {:error, "Cannot update client type on Mithril for client `#{legal_entity_id}` with `#{inspect(reason)}`"}
     end
   end
 
