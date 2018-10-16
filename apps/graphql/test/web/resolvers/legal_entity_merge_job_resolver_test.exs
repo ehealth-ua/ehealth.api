@@ -6,7 +6,10 @@ defmodule GraphQLWeb.LegalEntityMergeJobResolverTest do
   import Core.Factories
   import Mox
 
+  alias Absinthe.Relay.Node
+  alias BSON.ObjectId
   alias Ecto.UUID
+  alias TasKafka.Jobs
 
   @query """
     mutation MergeLegalEntitiesMutation($input: MergeLegalEntitiesInput!) {
@@ -108,5 +111,71 @@ defmodule GraphQLWeb.LegalEntityMergeJobResolverTest do
       assert match?(%{"mergeLegalEntities" => nil}, resp["data"])
       assert Enum.any?(resp["errors"], &match?(%{"extensions" => %{"code" => "FORBIDDEN"}}, &1))
     end
+  end
+
+  describe "get by id" do
+    setup %{conn: conn} do
+      {:ok, %{conn: put_scope(conn, "legal_entity_merge_job:read")}}
+    end
+
+    test "success", %{conn: conn} do
+      merged_to = insert(:prm, :legal_entity)
+      merged_from = insert(:prm, :legal_entity)
+
+      meta = %{
+        "merged_to_legal_entity" => %{
+          "id" => merged_to.id,
+          "name" => merged_to.name,
+          "edrpou" => merged_to.edrpou
+        },
+        "merged_from_legal_entity" => %{
+          "id" => merged_from.id,
+          "name" => merged_from.name,
+          "edrpou" => merged_from.edrpou
+        }
+      }
+
+      {:ok, job_id, _} = create_job(meta)
+      Jobs.processed(job_id, %{related_legal_entity_id: UUID.generate()})
+      id = Node.to_global_id("LegalEntityMergeJob", job_id)
+
+      query = """
+        query GetLegalEntityMergeJobQuery($id: ID) {
+          legalEntityMergeJob(id: $id) {
+            id
+            status
+            startedAt
+            endedAt
+            mergedToLegalEntity{
+              id
+              name
+              edrpou
+            }
+            mergedFromLegalEntity{
+              id
+              name
+              edrpou
+            }
+          }
+        }
+      """
+
+      variables = %{id: id}
+
+      resp =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+        |> get_in(~w(data legalEntityMergeJob))
+
+      assert meta["merged_to_legal_entity"] == resp["mergedToLegalEntity"]
+      assert meta["merged_from_legal_entity"] == resp["mergedFromLegalEntity"]
+      assert "PROCESSED" == resp["status"]
+    end
+  end
+
+  defp create_job(meta) do
+    {:ok, job} = Jobs.create(meta)
+    {:ok, ObjectId.encode!(job._id), job}
   end
 end

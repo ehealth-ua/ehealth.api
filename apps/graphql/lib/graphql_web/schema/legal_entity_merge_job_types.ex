@@ -6,6 +6,23 @@ defmodule GraphQLWeb.Schema.LegalEntityMergeJobTypes do
 
   alias GraphQLWeb.Resolvers.LegalEntityMergeJob
 
+  object :legal_entity_merge_job_queries do
+    @desc "get list of Legal Entities merge jobs"
+    connection field(:legal_entity_merge_jobs, node_type: :legal_entity_merge_job) do
+      meta(:scope, ~w(legal_entity_merge_job:read))
+      arg(:filter, :legal_entity_merge_job_filter)
+      arg(:order_by, :legal_entity_merge_job_order_by, default_value: :started_at_asc)
+      resolve(&LegalEntityMergeJob.list_jobs/2)
+    end
+
+    @desc "get one Legal Entity merge job by id"
+    field :legal_entity_merge_job, :legal_entity_merge_job do
+      meta(:scope, ~w(legal_entity_merge_job:read))
+      arg(:id, non_null(:id))
+      resolve(&LegalEntityMergeJob.get_by_id/3)
+    end
+  end
+
   object :legal_entity_merge_job_mutations do
     payload field(:merge_legal_entities) do
       meta(:scope, ~w(legal_entity:merge))
@@ -20,6 +37,26 @@ defmodule GraphQLWeb.Schema.LegalEntityMergeJobTypes do
 
       resolve(&LegalEntityMergeJob.merge_legal_entities/2)
     end
+  end
+
+  input_object :legal_entity_merge_job_filter do
+    field(:status, :legal_entity_merge_job_status)
+  end
+
+  enum :legal_entity_merge_job_order_by do
+    value(:started_at_asc)
+    value(:started_at_desc)
+  end
+
+  connection(node_type: :legal_entity_merge_job) do
+    field :nodes, list_of(:legal_entity_merge_job) do
+      resolve(fn
+        _, %{source: conn} ->
+          {:ok, Enum.map(conn.edges, & &1.node)}
+      end)
+    end
+
+    edge(do: nil)
   end
 
   node object(:legal_entity_merge_job) do

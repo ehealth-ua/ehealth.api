@@ -26,6 +26,7 @@ defmodule GraphQLWeb.Schema do
 
   query do
     import_fields(:legal_entity_queries)
+    import_fields(:legal_entity_merge_job_queries)
     import_fields(:person_queries)
   end
 
