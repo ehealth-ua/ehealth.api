@@ -91,7 +91,6 @@ defmodule GraphQLWeb.LegalEntityMergeJobResolverTest do
       assert "PENDING" == job["status"]
     end
 
-    @tag :pending
     test "invalid scope", %{conn: conn} do
       resp =
         conn

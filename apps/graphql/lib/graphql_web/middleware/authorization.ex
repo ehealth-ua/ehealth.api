@@ -14,7 +14,7 @@ defmodule GraphQLWeb.Middleware.Authorization do
     context_key = Keyword.get(opts, :context_key, :scope)
 
     quote do
-      def middleware(middleware, %{__private__: [meta: [{unquote(meta_key), _}]]} = field, object) do
+      def middleware(middleware, %{__private__: [{:meta, [{unquote(meta_key), _}]} | _]} = field, object) do
         opts = [meta_key: unquote(meta_key), context_key: unquote(context_key)]
         [{unquote(__MODULE__), opts} | super(middleware, field, object)]
       end
