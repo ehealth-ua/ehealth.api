@@ -27,7 +27,7 @@ defmodule Core.Jobs.LegalEntityMergeJob do
       Jobs.processed(job.job_id, %{related_legal_entity_id: related.id})
     else
       {:error, reason} ->
-        Jobs.failed(job.id, reason)
+        Jobs.failed(job.job_id, reason)
         Logger.error("Failed to merge legal entities with: #{inspect(reason)}")
     end
 
