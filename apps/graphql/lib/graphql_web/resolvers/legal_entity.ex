@@ -8,27 +8,14 @@ defmodule GraphQLWeb.Resolvers.LegalEntity do
   alias Core.LegalEntities.LegalEntity
   alias Core.PRMRepo
 
-  @order_by_regex ~r/(\w+)_(asc|desc)$/
-
-  def list_legal_entities(%{filter: filter} = args, _context) do
+  def list_legal_entities(%{filter: filter, order_by: order_by} = args, _context) do
     LegalEntity
     |> where(^filter)
-    |> order_by(^prepare_ordering(args))
+    |> order_by(^order_by)
     |> Connection.from_query(&PRMRepo.all/1, args)
   end
 
   def get_legal_entity_by_id(_parent, %{id: id}, _resolution) do
     {:ok, LegalEntities.get_by_id(id)}
-  end
-
-  # TODO: move to middleware
-  defp prepare_ordering(args) do
-    with {:ok, order_by} <- Map.fetch(args, :order_by),
-         order_by <- Atom.to_string(order_by),
-         [field, direction] <- Regex.run(@order_by_regex, order_by, capture: :all_but_first) do
-      [{String.to_atom(direction), String.to_atom(field)}]
-    else
-      _ -> []
-    end
   end
 end
