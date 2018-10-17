@@ -1,8 +1,7 @@
 use Mix.Config
 
 # General application configuration
-config :graphql,
-  namespace: GraphQL
+config :graphql, namespace: GraphQL
 
 # Configures the endpoint
 config :graphql, GraphQLWeb.Endpoint,

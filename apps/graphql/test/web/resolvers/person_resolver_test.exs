@@ -44,10 +44,9 @@ defmodule GraphQLWeb.PersonResolverTest do
         }
       """
 
-      resp =
-        conn
-        |> post_query(query)
-        |> json_response(200)
+      conn
+      |> post_query(query)
+      |> json_response(200)
     end
   end
 end

@@ -41,7 +41,7 @@ defmodule Core.Validators.Signature do
 
     with %Employee{party_id: party_id} <- Employees.get_by_id(employee_id),
          %Party{tax_id: tax_id} <- Parties.get_by_id(party_id),
-         _ <- log_drfo(drfo, tax_id, process),
+         log_drfo(drfo, tax_id, process),
          true <- tax_id == drfo || translit_drfo(tax_id) == translit_drfo(drfo) do
       :ok
     else

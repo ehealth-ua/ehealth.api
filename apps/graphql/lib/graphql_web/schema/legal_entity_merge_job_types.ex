@@ -50,9 +50,8 @@ defmodule GraphQLWeb.Schema.LegalEntityMergeJobTypes do
 
   connection(node_type: :legal_entity_merge_job) do
     field :nodes, list_of(:legal_entity_merge_job) do
-      resolve(fn
-        _, %{source: conn} ->
-          {:ok, Enum.map(conn.edges, & &1.node)}
+      resolve(fn _, %{source: conn} ->
+        {:ok, Enum.map(conn.edges, & &1.node)}
       end)
     end
 

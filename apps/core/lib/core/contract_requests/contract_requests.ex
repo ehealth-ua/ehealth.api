@@ -16,8 +16,12 @@ defmodule Core.ContractRequests do
   alias Core.Employees
   alias Core.Employees.Employee
   alias Core.EventManager
+  alias Core.LegalEntities
   alias Core.LegalEntities.LegalEntity
+  alias Core.LegalEntities.Validator, as: LegalEntitiesValidator
   alias Core.Man.Templates.ContractRequestPrintoutForm
+  alias Core.Parties
+  alias Core.Parties.Party
   alias Core.Repo
   alias Core.Utils.NumberGenerator
   alias Core.ValidationError
@@ -136,14 +140,16 @@ defmodule Core.ContractRequests do
     client_id = get_client_id(headers)
     params = Map.delete(params, "id")
 
-    with {:contract_request_exists, true} <- {:contract_request_exists, is_nil(get_by_id(id))},
+    with %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(client_id),
+         {:contract_request_exists, true} <- {:contract_request_exists, is_nil(get_by_id(id))},
          :ok <- JsonSchema.validate(:contract_request_sign, params),
          {:ok, %{"content" => content, "signer" => signer}} <- decode_signed_content(params, headers),
-         :ok <- SignatureValidator.check_drfo(signer, user_id, "contract_request_create"),
+         :ok <- validate_legal_entity_edrpou(legal_entity, signer),
+         :ok <- validate_user_signer_last_name(user_id, signer),
          :ok <- JsonSchema.validate(:contract_request, content),
          content <- Map.put(content, "contractor_legal_entity_id", client_id),
          {:ok, params, contract} <- validate_contract_number(content, headers),
-         :ok <- validate_contractor_legal_entity_id(params, contract),
+         :ok <- validate_contractor_legal_entity_id(client_id, contract),
          :ok <- validate_dates(params),
          params <- set_dates(contract, params),
          :ok <- validate_unique_contractor_employee_divisions(params),
@@ -212,15 +218,17 @@ defmodule Core.ContractRequests do
     client_id = get_client_id(headers)
     params = Map.delete(params, "id")
 
-    with %ContractRequest{} = contract_request <- get_by_id(id),
+    with %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(client_id),
+         %ContractRequest{} = contract_request <- get_by_id(id),
          references <- preload_references(contract_request),
          :ok <- JsonSchema.validate(:contract_request_sign, params),
          {:ok, %{"content" => content, "signer" => signer}} <- decode_signed_content(:nhs, params, headers),
-         :ok <- SignatureValidator.check_drfo(signer, user_id, "contract_request_approve"),
+         :ok <- validate_legal_entity_edrpou(legal_entity, signer),
+         :ok <- validate_user_signer_last_name(user_id, signer),
          {:ok, %{"data" => data}} <- @mithril_api.get_user_roles(user_id, %{}, headers),
          :ok <- user_has_role(data, "NHS ADMIN SIGNER"),
          :ok <- JsonSchema.validate(:contract_request_approve, content),
-         :ok <- validate_contractor_legal_entity(contract_request),
+         :ok <- validate_contractor_legal_entity(contract_request.contractor_legal_entity_id),
          :ok <- validate_approve_content(content, contract_request, references),
          :ok <- validate_status(contract_request, ContractRequest.status(:new)),
          :ok <-
@@ -258,7 +266,7 @@ defmodule Core.ContractRequests do
     with %ContractRequest{} = contract_request <- get_by_id(id),
          {_, true} <- {:client_id, client_id == contract_request.contractor_legal_entity_id},
          :ok <- validate_status(contract_request, ContractRequest.status(:approved)),
-         :ok <- validate_contractor_legal_entity(contract_request),
+         :ok <- validate_contractor_legal_entity(contract_request.contractor_legal_entity_id),
          {:contractor_owner, :ok} <- {:contractor_owner, validate_contractor_owner_id(contract_request)},
          :ok <- validate_employee_divisions(contract_request, client_id),
          :ok <- validate_contractor_divisions(contract_request),
@@ -289,15 +297,17 @@ defmodule Core.ContractRequests do
     client_id = get_client_id(headers)
     params = Map.delete(params, "id")
 
-    with %ContractRequest{} = contract_request <- get_by_id(id),
+    with %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(client_id),
+         %ContractRequest{} = contract_request <- get_by_id(id),
          references <- preload_references(contract_request),
          :ok <- JsonSchema.validate(:contract_request_sign, params),
          {:ok, %{"content" => content, "signer" => signer}} <- decode_signed_content(:nhs, params, headers),
-         :ok <- SignatureValidator.check_drfo(signer, user_id, "contract_request_decline"),
+         :ok <- validate_legal_entity_edrpou(legal_entity, signer),
+         :ok <- validate_user_signer_last_name(user_id, signer),
          {:ok, %{"data" => data}} <- @mithril_api.get_user_roles(user_id, %{}, headers),
          :ok <- user_has_role(data, "NHS ADMIN SIGNER"),
          :ok <- JsonSchema.validate(:contract_request_decline, content),
-         :ok <- validate_contractor_legal_entity(contract_request),
+         :ok <- validate_contractor_legal_entity(contract_request.contractor_legal_entity_id),
          :ok <- validate_decline_content(content, contract_request, references),
          :ok <- validate_status(contract_request, ContractRequest.status(:new)),
          :ok <-
@@ -353,21 +363,17 @@ defmodule Core.ContractRequests do
     user_id = get_consumer_id(headers)
     params = Map.delete(params, "id")
 
-    with %ContractRequest{} = contract_request <- get_by_id(id),
+    with %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(client_id),
+         %ContractRequest{} = contract_request <- get_by_id(id),
          :ok <- JsonSchema.validate(:contract_request_sign, params),
          {_, true} <- {:client_id, client_id == contract_request.nhs_legal_entity_id},
          {_, false} <- {:already_signed, contract_request.status == ContractRequest.status(:nhs_signed)},
          :ok <- validate_status(contract_request, ContractRequest.status(:pending_nhs_sign)),
          {:ok, %{"content" => content, "signer" => signer}} <- decode_signed_content(:nhs, params, headers),
-         :ok <- validate_contractor_legal_entity(contract_request),
+         :ok <- validate_legal_entity_edrpou(legal_entity, signer),
+         :ok <- validate_user_signer_last_name(contract_request.nhs_signer_id, signer),
+         :ok <- validate_contractor_legal_entity(contract_request.contractor_legal_entity_id),
          :ok <- validate_contractor_owner_id(contract_request),
-         :ok <-
-           SignatureValidator.check_drfo(
-             signer,
-             contract_request.nhs_signer_id,
-             "$.nhs_signer_id",
-             "contract_request_sign_nhs"
-           ),
          {:ok, printout_content} <-
            ContractRequestPrintoutForm.render(
              %{contract_request | nhs_signed_date: Date.utc_today()},
@@ -406,22 +412,18 @@ defmodule Core.ContractRequests do
     user_id = get_consumer_id(headers)
     params = Map.delete(params, "id")
 
-    with {:ok, %ContractRequest{} = contract_request, _references} <- get_by_id(headers, client_type, id),
+    with %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(client_id),
+         {:ok, %ContractRequest{} = contract_request, _references} <- get_by_id(headers, client_type, id),
          :ok <- JsonSchema.validate(:contract_request_sign, params),
          {_, true} <- {:signed_nhs, contract_request.status == ContractRequest.status(:nhs_signed)},
          {_, true} <- {:client_id, client_id == contract_request.contractor_legal_entity_id},
          {:ok, %{"content" => content, "signer" => signer}} <- decode_signed_content(:msp, params, headers),
-         :ok <-
-           SignatureValidator.check_drfo(
-             signer,
-             contract_request.contractor_owner_id,
-             "$.contractor_owner_id",
-             "contract_request_sign_msp"
-           ),
+         :ok <- validate_legal_entity_edrpou(legal_entity, signer),
+         :ok <- validate_user_signer_last_name(contract_request.contractor_owner_id, signer),
          :ok <- validate_content(contract_request, content),
          :ok <- validate_employee_divisions(contract_request, client_id),
          :ok <- validate_start_date(contract_request),
-         :ok <- validate_contractor_legal_entity(contract_request),
+         :ok <- validate_contractor_legal_entity(contract_request.contractor_legal_entity_id),
          :ok <- validate_contractor_owner_id(contract_request),
          contract_id <- UUID.generate(),
          :ok <- save_signed_content(contract_id, params, headers, "signed_content/signed_content"),
@@ -1226,23 +1228,21 @@ defmodule Core.ContractRequests do
 
   defp get_contract_request(client_id, "MSP", id) do
     with %ContractRequest{} = contract_request <- Repo.get(ContractRequest, id),
-         :ok <- validate_legal_entity_id(contract_request, client_id) do
+         :ok <- validate_legal_entity_id(client_id, contract_request.contractor_legal_entity_id) do
       {:ok, contract_request}
     end
   end
 
-  defp validate_legal_entity_id(%ContractRequest{contractor_legal_entity_id: id}, legal_entity_id) do
-    if id == legal_entity_id do
-      :ok
-    else
-      {:error, {:forbidden, "User is not allowed to perform this action"}}
-    end
-  end
+  defp validate_legal_entity_id(legal_entity_id, legal_entity_id), do: :ok
+  defp validate_legal_entity_id(_, _), do: {:error, {:forbidden, "User is not allowed to perform this action"}}
 
-  defp validate_contractor_legal_entity(%ContractRequest{
-         contractor_legal_entity_id: legal_entity_id
-       }) do
-    with {:ok, legal_entity} <- Reference.validate(:legal_entity, legal_entity_id, "$.contractor_legal_entity_id"),
+  defp validate_contractor_legal_entity(legal_entity_id) do
+    with {:ok, legal_entity} <-
+           Reference.validate(
+             :legal_entity,
+             legal_entity_id,
+             "$.contractor_legal_entity_id"
+           ),
          true <- legal_entity.status == LegalEntity.status(:active) and legal_entity.is_active do
       :ok
     else
@@ -1256,6 +1256,34 @@ defmodule Core.ContractRequests do
         error
     end
   end
+
+  defp validate_user_signer_last_name(user_id, %{"surname" => surname}) when not is_nil(surname) do
+    with %Party{last_name: last_name} <- Parties.get_by_user_id(user_id),
+         true <- String.upcase(last_name) == String.upcase(surname) do
+      :ok
+    else
+      false ->
+        Error.dump(%ValidationError{
+          description: "Signer surname does not match with current user last_name",
+          path: "$.last_name"
+        })
+
+      error ->
+        error
+    end
+  end
+
+  defp validate_user_signer_last_name(_, _),
+    do:
+      Error.dump(%ValidationError{
+        description: "Signer surname is not exist in sign info",
+        path: "$.surname"
+      })
+
+  defp validate_legal_entity_edrpou(legal_entity, nil), do: {:ok, legal_entity}
+
+  defp validate_legal_entity_edrpou(legal_entity, signer),
+    do: LegalEntitiesValidator.validate_edrpou(legal_entity, signer)
 
   defp resolve_partially_signed_content_url(contract_request_id, headers) do
     bucket = Confex.fetch_env!(:core, Core.API.MediaStorage)[:contract_request_bucket]
@@ -1346,16 +1374,10 @@ defmodule Core.ContractRequests do
 
   defp validate_contractor_legal_entity_id(_, nil), do: :ok
 
-  defp validate_contractor_legal_entity_id(
-         %{"contractor_legal_entity_id" => contractor_legal_entity_id},
-         %Contract{} = contract
-       ) do
-    if contract.contractor_legal_entity_id == contractor_legal_entity_id do
-      :ok
-    else
-      {:error, {:forbidden, "You are not allowed to change this contract"}}
-    end
-  end
+  defp validate_contractor_legal_entity_id(id, %Contract{contractor_legal_entity_id: id}), do: :ok
+
+  defp validate_contractor_legal_entity_id(_, _),
+    do: {:error, {:forbidden, "You are not allowed to change this contract"}}
 
   defp prepare_contract_request_data(%Ecto.Changeset{} = changeset, {view_renderer, func, args}) do
     render_data = [

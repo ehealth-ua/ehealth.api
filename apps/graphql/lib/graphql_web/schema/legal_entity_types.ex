@@ -44,10 +44,9 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
 
   connection(node_type: :legal_entity) do
     field :nodes, list_of(:legal_entity) do
-      resolve(fn
-        _, %{source: conn} ->
-          nodes = conn.edges |> Enum.map(& &1.node)
-          {:ok, nodes}
+      resolve(fn _, %{source: conn} ->
+        nodes = conn.edges |> Enum.map(& &1.node)
+        {:ok, nodes}
       end)
     end
 

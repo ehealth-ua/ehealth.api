@@ -38,8 +38,8 @@ defmodule Core.LegalEntities.Validator do
          :ok <- validate_tax_id(content),
          :ok <- validate_owner_birth_date(content),
          :ok <- validate_owner_position(content),
-         {:ok, data} <- validate_edrpou(content, signer) do
-      {:ok, data}
+         :ok <- validate_edrpou(content, signer) do
+      {:ok, content}
     else
       {:signed_content, {:error, {:bad_request, reason}}} ->
         Error.dump(%ValidationError{description: reason, path: "$.signed_legal_entity_request"})
@@ -94,10 +94,11 @@ defmodule Core.LegalEntities.Validator do
   end
 
   # EDRPOU content to EDRPOU / DRFO signer validator
-  def validate_edrpou(content, %{"edrpou" => edrpou} = signer) when is_nil(edrpou) or edrpou == "",
-    do: validate_edrpou(content, Map.delete(signer, "edrpou"))
+  def validate_edrpou(content, %{"edrpou" => edrpou} = signer)
+      when is_nil(edrpou) or edrpou == "",
+      do: validate_edrpou(content, Map.delete(signer, "edrpou"))
 
-  def validate_edrpou(content, %{"edrpou" => _} = signer) do
+  def validate_edrpou(content, %{"edrpou" => _edrpou} = signer) do
     data = %{}
     types = %{edrpou: :string}
 
@@ -105,13 +106,11 @@ defmodule Core.LegalEntities.Validator do
     |> cast(signer, Map.keys(types))
     |> validate_required(Map.keys(types))
     |> validate_format(:edrpou, ~r/^[0-9]{8,10}$/)
-    |> validate_inclusion(:edrpou, [Map.fetch!(content, "edrpou")])
-    |> prepare_legal_entity(content)
+    |> validate_inclusion(:edrpou, [content_edrpou(content)])
+    |> is_valid_content(content)
   end
 
-  def validate_edrpou(content, %{"drfo" => drfo} = signer) do
-    signer = Map.put(signer, "drfo", drfo)
-
+  def validate_edrpou(content, %{"drfo" => _drfo} = signer) do
     data = %{}
     types = %{drfo: :string}
 
@@ -119,13 +118,26 @@ defmodule Core.LegalEntities.Validator do
     |> cast(signer, Map.keys(types))
     |> validate_required(Map.keys(types))
     |> validate_format(:drfo, ~r/^[0-9]{9,10}$/ui)
-    |> validate_inclusion(:drfo, [String.upcase(Map.fetch!(content, "edrpou"))])
-    |> prepare_legal_entity(content)
+    |> validate_inclusion(:drfo, [content_edrpou(content)])
+    |> is_valid_content(content)
   end
 
   def validate_edrpou(_content, _signer) do
     Error.dump(%ValidationError{description: "EDRPOU and DRFO is empty in digital sign", path: "$.data.signatures"})
   end
+
+  defp content_edrpou(content) do
+    content
+    |> legal_entity_edrpou()
+    |> String.upcase()
+  end
+
+  defp legal_entity_edrpou(%{"edrpou" => edrpou}), do: edrpou
+  defp legal_entity_edrpou(%LegalEntity{edrpou: edrpou}), do: edrpou
+
+  defp is_valid_content(%Ecto.Changeset{valid?: true}, _), do: :ok
+
+  defp is_valid_content(changeset, _content), do: {:error, changeset}
 
   def validate_owner_birth_date(content) do
     content
@@ -158,10 +170,6 @@ defmodule Core.LegalEntities.Validator do
   defp valid_owner_position?(_position, nil), do: false
 
   defp valid_owner_position?(position, positions), do: Enum.any?(positions, fn x -> x == position end)
-
-  defp prepare_legal_entity(%Ecto.Changeset{valid?: true}, legal_entity), do: {:ok, legal_entity}
-
-  defp prepare_legal_entity(changeset, _legal_entity), do: {:error, changeset}
 
   defp lowercase_emails(content) do
     email = Map.get(content, "email")

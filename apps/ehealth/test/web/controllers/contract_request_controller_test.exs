@@ -68,10 +68,10 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         conn
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(party_user.user_id)
-        |> put_req_header("drfo", party_user.party.tax_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
 
       params = prepare_params(division, employee) |> Map.put("contractor_divisions", [division.id, UUID.generate()])
-      drfo_signed_content(params, party_user.party.tax_id)
+      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
 
       conn =
         post(conn, contract_request_path(conn, :create, UUID.generate()), %{
@@ -107,6 +107,158 @@ defmodule EHealth.Web.ContractRequestControllerTest do
              } = resp["error"]
     end
 
+    test "edrpou in sign and in legal entity mismatch", %{conn: conn} do
+      msp()
+      %{legal_entity: legal_entity, employee: employee, party_user: party_user} = prepare_data()
+      division = insert(:prm, :division)
+
+      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      end)
+
+      expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
+        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"etag", resource}]}}
+      end)
+
+      conn =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(party_user.user_id)
+
+      params = prepare_params(division, employee) |> Map.put("contractor_divisions", [division.id, UUID.generate()])
+      drfo_signed_content(params, party_user.party.tax_id, party_user.party.last_name)
+
+      conn =
+        post(conn, contract_request_path(conn, :create, UUID.generate()), %{
+          "signed_content" => params |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+
+      resp = json_response(conn, 422)
+
+      assert %{
+               "invalid" => [%{"entry" => "$.drfo"}],
+               "type" => "validation_failed"
+             } = resp["error"]
+    end
+
+    test "last name of party and surname of sign and in legal entity mismatch", %{conn: conn} do
+      msp()
+      %{legal_entity: legal_entity, employee: employee, party_user: party_user} = prepare_data()
+      division = insert(:prm, :division)
+
+      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      end)
+
+      expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
+        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"etag", resource}]}}
+      end)
+
+      conn =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(party_user.user_id)
+
+      params = prepare_params(division, employee) |> Map.put("contractor_divisions", [division.id, UUID.generate()])
+      drfo_signed_content(params, legal_entity.edrpou, "Інше прізвище")
+
+      resp =
+        conn
+        |> post(contract_request_path(conn, :create, UUID.generate()), %{
+          "signed_content" => params |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.last_name",
+                   "rules" => [
+                     %{
+                       "description" => "Signer surname does not match with current user last_name"
+                     }
+                   ]
+                 }
+               ],
+               "type" => "validation_failed"
+             } = resp["error"]
+    end
+
+    test "surname of sign does not exists", %{conn: conn} do
+      msp()
+      %{legal_entity: legal_entity, employee: employee, party_user: party_user} = prepare_data()
+      division = insert(:prm, :division)
+
+      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      end)
+
+      expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
+        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"etag", resource}]}}
+      end)
+
+      conn =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(party_user.user_id)
+
+      params = prepare_params(division, employee) |> Map.put("contractor_divisions", [division.id, UUID.generate()])
+      drfo_signed_content(params, [%{drfo: legal_entity.edrpou}])
+
+      resp =
+        conn
+        |> post(contract_request_path(conn, :create, UUID.generate()), %{
+          "signed_content" => params |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.surname",
+                   "rules" => [
+                     %{
+                       "description" => "Signer surname is not exist in sign info"
+                     }
+                   ]
+                 }
+               ],
+               "type" => "validation_failed"
+             } = resp["error"]
+    end
+
+    test "party for user_id not found", %{conn: conn} do
+      msp()
+      %{legal_entity: legal_entity, employee: employee} = prepare_data()
+      division = insert(:prm, :division)
+
+      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      end)
+
+      expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
+        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"etag", resource}]}}
+      end)
+
+      conn =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(UUID.generate())
+
+      params = prepare_params(division, employee) |> Map.put("contractor_divisions", [division.id, UUID.generate()])
+      drfo_signed_content(params, [%{drfo: legal_entity.edrpou, surname: "Підпісант"}])
+
+      conn
+      |> post(contract_request_path(conn, :create, UUID.generate()), %{
+        "signed_content" => params |> Jason.encode!() |> Base.encode64(),
+        "signed_content_encoding" => "base64"
+      })
+      |> json_response(404)
+    end
+
     test "external contractor division is not present in contract divisions", %{conn: conn} do
       msp()
       %{legal_entity: legal_entity, division: division, employee: employee, party_user: party_user} = prepare_data()
@@ -123,7 +275,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         conn
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(party_user.user_id)
-        |> put_req_header("drfo", party_user.party.tax_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
 
       %{id: external_legal_entity_id} = insert(:prm, :legal_entity)
 
@@ -143,7 +295,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
           }
         ])
 
-      drfo_signed_content(params, party_user.party.tax_id)
+      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
 
       conn =
         post(conn, contract_request_path(conn, :create, UUID.generate()), %{
@@ -184,7 +336,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         conn
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(user_id)
-        |> put_req_header("drfo", party_user.party.tax_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
 
       now = Date.utc_today()
       start_date = Date.add(now, 10)
@@ -212,7 +364,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> Map.put("end_date", Date.to_iso8601(Date.add(now, 30)))
         |> Map.put("external_contractors", external_contractors)
 
-      drfo_signed_content(params, party_user.party.tax_id)
+      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
 
       conn =
         post(conn, contract_request_path(conn, :create, UUID.generate()), %{
@@ -265,7 +417,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         conn
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(party_user.user_id)
-        |> put_req_header("drfo", party_user.party.tax_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
 
       params =
         division
@@ -273,7 +425,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> Map.put("start_date", "2018-02-01")
         |> Map.delete("external_contractor_flag")
 
-      drfo_signed_content(params, party_user.party.tax_id)
+      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
 
       conn =
         post(conn, contract_request_path(conn, :create, UUID.generate()), %{
@@ -306,7 +458,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         conn
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(party_user.user_id)
-        |> put_req_header("drfo", party_user.party.tax_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
 
       params =
         division
@@ -314,7 +466,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> Map.put("start_date", "2018-02-01")
         |> Map.delete("external_contractor_flag")
 
-      drfo_signed_content(params, party_user.party.tax_id)
+      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
 
       conn =
         post(conn, contract_request_path(conn, :create, UUID.generate()), %{
@@ -342,14 +494,14 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         conn
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(party_user.user_id)
-        |> put_req_header("drfo", party_user.party.tax_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
 
       params =
         division
         |> prepare_params(employee, "2018-03-01")
         |> Map.put("start_date", "2018-02-01")
 
-      drfo_signed_content(params, party_user.party.tax_id)
+      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
 
       conn =
         post(conn, contract_request_path(conn, :create, UUID.generate()), %{
@@ -377,7 +529,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         conn
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(party_user.user_id)
-        |> put_req_header("drfo", party_user.party.tax_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
 
       now = Date.utc_today()
       start_date = Date.add(now, 3650)
@@ -387,7 +539,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> prepare_params(employee, Date.to_iso8601(Date.add(start_date, 1)))
         |> Map.put("start_date", Date.to_iso8601(start_date))
 
-      drfo_signed_content(params, party_user.party.tax_id)
+      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
 
       conn =
         post(conn, contract_request_path(conn, :create, UUID.generate()), %{
@@ -415,7 +567,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         conn
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(party_user.user_id)
-        |> put_req_header("drfo", party_user.party.tax_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
 
       now = Date.utc_today()
       start_date = Date.add(now, 10)
@@ -426,7 +578,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> Map.put("start_date", Date.to_iso8601(start_date))
         |> Map.put("end_date", Date.to_iso8601(Date.add(now, 365 * 3)))
 
-      drfo_signed_content(params, party_user.party.tax_id)
+      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
 
       conn =
         post(conn, contract_request_path(conn, :create, UUID.generate()), %{
@@ -466,7 +618,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         conn
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(user_id)
-        |> put_req_header("drfo", party_user.party.tax_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
 
       now = Date.utc_today()
       contract_request_start_date = Date.add(now, 1)
@@ -492,7 +644,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> Map.put("start_date", Date.to_iso8601(contract_request_start_date))
         |> Map.put("end_date", Date.to_iso8601(contract_request_end_date))
 
-      drfo_signed_content(params, party_user.party.tax_id)
+      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
 
       conn =
         post(conn, contract_request_path(conn, :create, UUID.generate()), %{
@@ -532,7 +684,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         conn
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(user_id)
-        |> put_req_header("drfo", party_user.party.tax_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
 
       now = Date.utc_today()
       contract_request_start_date = Date.add(now, 1)
@@ -558,7 +710,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> Map.put("start_date", Date.to_iso8601(contract_request_start_date))
         |> Map.put("end_date", Date.to_iso8601(contract_request_end_date))
 
-      drfo_signed_content(params, party_user.party.tax_id)
+      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
 
       conn =
         post(conn, contract_request_path(conn, :create, UUID.generate()), %{
@@ -598,7 +750,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         conn
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(user_id)
-        |> put_req_header("drfo", party_user.party.tax_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
 
       now = Date.utc_today()
       contract_request_start_date = Date.add(now, 1)
@@ -624,7 +776,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> Map.put("start_date", Date.to_iso8601(contract_request_start_date))
         |> Map.put("end_date", Date.to_iso8601(contract_request_end_date))
 
-      drfo_signed_content(params, party_user.party.tax_id)
+      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
 
       conn =
         post(conn, contract_request_path(conn, :create, UUID.generate()), %{
@@ -664,7 +816,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         conn
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(user_id)
-        |> put_req_header("drfo", party_user.party.tax_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
 
       now = Date.utc_today()
       contract_request_start_date = Date.add(now, 1)
@@ -690,7 +842,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> Map.put("start_date", Date.to_iso8601(contract_request_start_date))
         |> Map.put("end_date", Date.to_iso8601(contract_request_end_date))
 
-      drfo_signed_content(params, party_user.party.tax_id)
+      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
 
       conn =
         post(conn, contract_request_path(conn, :create, UUID.generate()), %{
@@ -725,7 +877,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         conn
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(party_user.user_id)
-        |> put_req_header("drfo", party_user.party.tax_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
 
       now = Date.utc_today()
       start_date = Date.add(now, 10)
@@ -736,7 +888,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> Map.put("start_date", Date.to_iso8601(start_date))
         |> Map.put("end_date", Date.to_iso8601(Date.add(now, 30)))
 
-      drfo_signed_content(params, party_user.party.tax_id)
+      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
 
       conn =
         post(conn, contract_request_path(conn, :create, UUID.generate()), %{
@@ -777,7 +929,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         conn
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(user_id)
-        |> put_req_header("drfo", party_user.party.tax_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
 
       now = Date.utc_today()
       start_date = Date.add(now, 10)
@@ -790,7 +942,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> Map.put("start_date", Date.to_iso8601(start_date))
         |> Map.put("end_date", Date.to_iso8601(Date.add(now, 30)))
 
-      drfo_signed_content(params, party_user.party.tax_id)
+      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
 
       conn =
         post(conn, contract_request_path(conn, :create, UUID.generate()), %{
@@ -848,7 +1000,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         conn
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(user_id)
-        |> put_req_header("drfo", party_user.party.tax_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
 
       params =
         division
@@ -857,7 +1009,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> Map.put("contract_number", contract_number)
         |> Map.drop(~w(start_date end_date))
 
-      drfo_signed_content(params, party_user.party.tax_id)
+      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
 
       conn =
         post(conn, contract_request_path(conn, :create, UUID.generate()), %{
@@ -903,7 +1055,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         conn
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(user_id)
-        |> put_req_header("drfo", party_user.party.tax_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
 
       now = Date.utc_today()
       start_date = Date.add(now, 10)
@@ -915,7 +1067,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> Map.put("start_date", Date.to_iso8601(start_date))
         |> Map.put("end_date", Date.to_iso8601(Date.add(now, 30)))
 
-      drfo_signed_content(params, party_user.party.tax_id)
+      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
 
       conn1 =
         post(conn, contract_request_path(conn, :create, UUID.generate()), %{
@@ -957,7 +1109,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         conn
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(user_id)
-        |> put_req_header("drfo", party_user.party.tax_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
 
       now = Date.utc_today()
       start_date = Date.add(now, 10)
@@ -1005,7 +1157,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> Map.put("end_date", Date.to_iso8601(Date.add(now, 30)))
         |> Map.put("contractor_employee_divisions", contractor_employee_divisions)
 
-      drfo_signed_content(params, party_user.party.tax_id)
+      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
 
       conn =
         post(conn, contract_request_path(conn, :create, UUID.generate()), %{
@@ -1275,9 +1427,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
   end
 
   describe "approve contract_request" do
-    test "user is not NHS ADMIN SIGNER", %{conn: conn} do
-      contract_request = insert(:il, :contract_request)
-
+    test "legal enitity edrpou does not match with signer edrpou", %{conn: conn} do
       expect(MithrilMock, :get_user_roles, fn _, _, _ ->
         {:ok, %{"data" => [%{"role_name" => "OWNER"}]}}
       end)
@@ -1285,12 +1435,13 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       user_id = UUID.generate()
       party_user = insert(:prm, :party_user, user_id: user_id)
       legal_entity = insert(:prm, :legal_entity)
+      contract_request = insert(:il, :contract_request, contractor_legal_entity_id: legal_entity.id)
 
       conn =
         conn
         |> put_consumer_id_header(user_id)
         |> put_client_id_header(legal_entity.id)
-        |> put_req_header("drfo", party_user.party.tax_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
 
       data = %{
         "id" => contract_request.id,
@@ -1302,7 +1453,186 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "text" => "something"
       }
 
-      drfo_signed_content(data, party_user.party.tax_id)
+      drfo_signed_content(data, party_user.party.tax_id, party_user.party.last_name)
+
+      resp =
+        conn
+        |> patch(contract_request_path(conn, :approve, contract_request.id), %{
+          "signed_content" => data |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.drfo"
+                 }
+               ],
+               "type" => "validation_failed"
+             } = resp["error"]
+    end
+
+    test "party last name does not match with signer surname", %{conn: conn} do
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok, %{"data" => [%{"role_name" => "OWNER"}]}}
+      end)
+
+      party_user = insert(:prm, :party_user)
+      legal_entity = insert(:prm, :legal_entity)
+      contract_request = insert(:il, :contract_request, contractor_legal_entity_id: legal_entity.id)
+
+      conn =
+        conn
+        |> put_consumer_id_header(party_user.user_id)
+        |> put_client_id_header(legal_entity.id)
+        |> put_req_header("drfo", legal_entity.edrpou)
+
+      data = %{
+        "id" => contract_request.id,
+        "contractor_legal_entity" => %{
+          "id" => contract_request.contractor_legal_entity_id,
+          "name" => legal_entity.name,
+          "edrpou" => legal_entity.edrpou
+        },
+        "text" => "something"
+      }
+
+      drfo_signed_content(data, legal_entity.edrpou, "Інше Прізвище")
+
+      resp =
+        conn
+        |> patch(contract_request_path(conn, :approve, contract_request.id), %{
+          "signed_content" => data |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.last_name",
+                   "rules" => [
+                     %{
+                       "description" => "Signer surname does not match with current user last_name"
+                     }
+                   ]
+                 }
+               ],
+               "type" => "validation_failed"
+             } = resp["error"]
+    end
+
+    test "signer has no surname", %{conn: conn} do
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok, %{"data" => [%{"role_name" => "OWNER"}]}}
+      end)
+
+      party_user = insert(:prm, :party_user)
+      legal_entity = insert(:prm, :legal_entity)
+      contract_request = insert(:il, :contract_request, contractor_legal_entity_id: legal_entity.id)
+
+      conn =
+        conn
+        |> put_consumer_id_header(party_user.user_id)
+        |> put_client_id_header(legal_entity.id)
+        |> put_req_header("drfo", legal_entity.edrpou)
+
+      data = %{
+        "id" => contract_request.id,
+        "contractor_legal_entity" => %{
+          "id" => contract_request.contractor_legal_entity_id,
+          "name" => legal_entity.name,
+          "edrpou" => legal_entity.edrpou
+        },
+        "text" => "something"
+      }
+
+      drfo_signed_content(data, [%{drfo: legal_entity.edrpou}])
+
+      resp =
+        conn
+        |> patch(contract_request_path(conn, :approve, contract_request.id), %{
+          "signed_content" => data |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.surname",
+                   "rules" => [
+                     %{
+                       "description" => "Signer surname is not exist in sign info"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
+    end
+
+    test "user party does not exists", %{conn: conn} do
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok, %{"data" => [%{"role_name" => "OWNER"}]}}
+      end)
+
+      legal_entity = insert(:prm, :legal_entity)
+      contract_request = insert(:il, :contract_request, contractor_legal_entity_id: legal_entity.id)
+
+      conn =
+        conn
+        |> put_consumer_id_header(UUID.generate())
+        |> put_client_id_header(legal_entity.id)
+        |> put_req_header("drfo", legal_entity.edrpou)
+
+      data = %{
+        "id" => contract_request.id,
+        "contractor_legal_entity" => %{
+          "id" => contract_request.contractor_legal_entity_id,
+          "name" => legal_entity.name,
+          "edrpou" => legal_entity.edrpou
+        },
+        "text" => "something"
+      }
+
+      drfo_signed_content(data, [%{drfo: legal_entity.edrpou, surname: "Підписант"}])
+
+      conn
+      |> patch(contract_request_path(conn, :approve, contract_request.id), %{
+        "signed_content" => data |> Jason.encode!() |> Base.encode64(),
+        "signed_content_encoding" => "base64"
+      })
+      |> json_response(404)
+    end
+
+    test "user is not NHS ADMIN SIGNER", %{conn: conn} do
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok, %{"data" => [%{"role_name" => "OWNER"}]}}
+      end)
+
+      user_id = UUID.generate()
+      party_user = insert(:prm, :party_user, user_id: user_id)
+      legal_entity = insert(:prm, :legal_entity)
+      contract_request = insert(:il, :contract_request, contractor_legal_entity_id: legal_entity.id)
+
+      conn =
+        conn
+        |> put_consumer_id_header(user_id)
+        |> put_client_id_header(legal_entity.id)
+        |> put_req_header("drfo", legal_entity.edrpou)
+
+      data = %{
+        "id" => contract_request.id,
+        "contractor_legal_entity" => %{
+          "id" => contract_request.contractor_legal_entity_id,
+          "name" => legal_entity.name,
+          "edrpou" => legal_entity.edrpou
+        },
+        "text" => "something"
+      }
+
+      drfo_signed_content(data, legal_entity.edrpou, party_user.party.last_name)
 
       conn =
         patch(conn, contract_request_path(conn, :approve, contract_request.id), %{
@@ -1350,7 +1680,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         conn
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(user_id)
-        |> put_req_header("drfo", party_user.party.tax_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
 
       data = %{
         "id" => contract_request.id,
@@ -1363,7 +1693,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "text" => "something"
       }
 
-      drfo_signed_content(data, party_user.party.tax_id)
+      drfo_signed_content(data, legal_entity.edrpou, party_user.party.last_name)
 
       conn =
         patch(conn, contract_request_path(conn, :approve, contract_request.id), %{
@@ -1385,8 +1715,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       end)
 
       user_id = UUID.generate()
-      legal_entity = insert(:prm, :legal_entity)
       party_user = insert(:prm, :party_user, user_id: user_id)
+      legal_entity = insert(:prm, :legal_entity)
       contract_request = insert(:il, :contract_request, contractor_legal_entity_id: UUID.generate())
 
       data = %{
@@ -1400,13 +1730,13 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "text" => "something"
       }
 
-      drfo_signed_content(data, party_user.party.tax_id)
+      drfo_signed_content(data, legal_entity.edrpou, party_user.party.last_name)
 
       conn =
         conn
         |> put_consumer_id_header(user_id)
         |> put_client_id_header(legal_entity.id)
-        |> put_req_header("drfo", party_user.party.tax_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
 
       conn =
         patch(conn, contract_request_path(conn, :approve, contract_request.id), %{
@@ -1443,16 +1773,16 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       end)
 
       user_id = UUID.generate()
+      party_user = insert(:prm, :party_user, user_id: user_id)
       legal_entity = insert(:prm, :legal_entity, status: LegalEntity.status(:closed))
       contract_request = insert(:il, :contract_request, contractor_legal_entity_id: legal_entity.id)
       legal_entity = insert(:prm, :legal_entity)
-      party_user = insert(:prm, :party_user, user_id: user_id)
 
       conn =
         conn
         |> put_consumer_id_header(user_id)
         |> put_client_id_header(legal_entity.id)
-        |> put_req_header("drfo", party_user.party.tax_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
 
       data = %{
         "id" => contract_request.id,
@@ -1465,7 +1795,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "text" => "something"
       }
 
-      drfo_signed_content(data, party_user.party.tax_id)
+      drfo_signed_content(data, legal_entity.edrpou, party_user.party.last_name)
 
       conn =
         patch(conn, contract_request_path(conn, :approve, contract_request.id), %{
@@ -1502,8 +1832,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       end)
 
       user_id = UUID.generate()
-      legal_entity = insert(:prm, :legal_entity)
       party_user = insert(:prm, :party_user, user_id: user_id)
+      legal_entity = insert(:prm, :legal_entity)
 
       contract_request =
         insert(
@@ -1517,7 +1847,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         conn
         |> put_consumer_id_header(user_id)
         |> put_client_id_header(legal_entity.id)
-        |> put_req_header("drfo", party_user.party.tax_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
 
       data = %{
         "id" => contract_request.id,
@@ -1530,7 +1860,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "text" => "something"
       }
 
-      drfo_signed_content(data, party_user.party.tax_id)
+      drfo_signed_content(data, legal_entity.edrpou, party_user.party.last_name)
 
       conn =
         patch(conn, contract_request_path(conn, :approve, contract_request.id), %{
@@ -1568,9 +1898,9 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       end)
 
       user_id = UUID.generate()
+      party_user = insert(:prm, :party_user, user_id: user_id)
       legal_entity = insert(:prm, :legal_entity)
       employee = insert(:prm, :employee, status: Employee.status(:new))
-      party_user = insert(:prm, :party_user, user_id: user_id)
 
       contract_request =
         insert(
@@ -1584,7 +1914,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         conn
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(user_id)
-        |> put_req_header("drfo", party_user.party.tax_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
 
       data = %{
         "id" => contract_request.id,
@@ -1597,7 +1927,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "text" => "something"
       }
 
-      drfo_signed_content(data, party_user.party.tax_id)
+      drfo_signed_content(data, legal_entity.edrpou, party_user.party.last_name)
 
       conn =
         patch(conn, contract_request_path(conn, :approve, contract_request.id), %{
@@ -1651,7 +1981,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         conn
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(user_id)
-        |> put_req_header("drfo", party_user.party.tax_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
 
       data = %{
         "id" => contract_request.id,
@@ -1664,7 +1994,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "text" => "something"
       }
 
-      drfo_signed_content(data, party_user.party.tax_id)
+      drfo_signed_content(data, legal_entity.edrpou, party_user.party.last_name)
 
       conn =
         patch(conn, contract_request_path(conn, :approve, contract_request.id), %{
@@ -1729,9 +2059,9 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         conn
         |> put_consumer_id_header(user_id)
         |> put_client_id_header(legal_entity.id)
-        |> put_req_header("drfo", party_user.party.tax_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
 
-      drfo_signed_content(data, party_user.party.tax_id)
+      drfo_signed_content(data, legal_entity.edrpou, party_user.party.last_name)
 
       conn =
         patch(conn, contract_request_path(conn, :approve, contract_request.id), %{
@@ -1802,7 +2132,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         conn
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(user_id)
-        |> put_req_header("drfo", party_user.party.tax_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
 
       data = %{
         "id" => contract_request.id,
@@ -1815,7 +2145,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "text" => "something"
       }
 
-      drfo_signed_content(data, party_user.party.tax_id)
+      drfo_signed_content(data, legal_entity.edrpou, party_user.party.last_name)
 
       conn =
         patch(conn, contract_request_path(conn, :approve, contract_request.id), %{
@@ -1921,7 +2251,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         conn
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(user_id)
-        |> put_req_header("drfo", party_user.party.tax_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
 
       data = %{
         "id" => contract_request.id,
@@ -1934,7 +2264,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "text" => "something"
       }
 
-      drfo_signed_content(data, party_user.party.tax_id)
+      drfo_signed_content(data, legal_entity.edrpou, party_user.party.last_name)
 
       conn =
         patch(conn, contract_request_path(conn, :approve, contract_request.id), %{
@@ -2026,7 +2356,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         conn
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(user_id)
-        |> put_req_header("drfo", party_user.party.tax_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
 
       data = %{
         "id" => contract_request.id,
@@ -2039,7 +2369,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "text" => "something"
       }
 
-      drfo_signed_content(data, party_user.party.tax_id)
+      drfo_signed_content(data, legal_entity.edrpou, party_user.party.last_name)
 
       conn =
         patch(conn, contract_request_path(conn, :approve, contract_request.id), %{
@@ -2540,10 +2870,11 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     test "invalid client_id", %{conn: conn} do
       contract_request = insert(:il, :contract_request)
       nhs()
+      legal_entity = insert(:prm, :legal_entity)
 
       conn =
         conn
-        |> put_client_id_header(UUID.generate())
+        |> put_client_id_header(legal_entity.id)
         |> patch(contract_request_path(conn, :sign_nhs, contract_request.id), %{
           "signed_content" => "",
           "signed_content_encoding" => "base64"
@@ -2611,6 +2942,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "client_id" => client_id,
         "user_id" => user_id,
         "contract_request" => contract_request,
+        "legal_entity" => legal_entity,
         "party_user" => party_user
       } = prepare_nhs_sign_params(status: ContractRequest.status(:pending_nhs_sign))
 
@@ -2618,10 +2950,10 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         conn
         |> put_client_id_header(client_id)
         |> put_consumer_id_header(user_id)
-        |> put_req_header("drfo", party_user.party.tax_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
 
       data = %{"id" => contract_request.id, "printout_content" => "<html></html>"}
-      drfo_signed_content(data, party_user.party.tax_id)
+      drfo_signed_content(data, legal_entity.edrpou, party_user.party.last_name)
 
       conn =
         patch(conn, contract_request_path(conn, :sign_nhs, contract_request.id), %{
@@ -2631,6 +2963,123 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       assert resp = json_response(conn, 422)
       assert_error(resp, "Signed content does not match the previously created content")
+    end
+
+    test "legal entity edrpou does not match with signer edrpou", %{conn: conn} do
+      insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
+      insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
+      insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
+      insert(:il, :dictionary, name: "MEDICAL_SERVICE", values: %{})
+      nhs()
+      template()
+
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
+      id = UUID.generate()
+
+      data = %{
+        "id" => id,
+        "contract_number" => "0000-9EAX-XT7X-3115",
+        "status" => ContractRequest.status(:pending_nhs_sign)
+      }
+
+      %{
+        "client_id" => client_id,
+        "user_id" => user_id,
+        "contract_request" => contract_request,
+        "legal_entity" => legal_entity,
+        "party_user" => party_user
+      } =
+        prepare_nhs_sign_params(
+          id: id,
+          data: data,
+          status: ContractRequest.status(:pending_nhs_sign)
+        )
+
+      data = Map.put(data, "printout_content", "<html></html>")
+      drfo_signed_content(data, party_user.party.tax_id, party_user.party.last_name)
+
+      resp =
+        conn
+        |> put_client_id_header(client_id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
+        |> patch(contract_request_path(conn, :sign_nhs, contract_request.id), %{
+          "signed_content" => data |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.drfo"
+                 }
+               ]
+             } = resp["error"]
+    end
+
+    test "party last_name does not match with signer surname", %{conn: conn} do
+      insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
+      insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
+      insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
+      insert(:il, :dictionary, name: "MEDICAL_SERVICE", values: %{})
+      nhs()
+      template()
+
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
+      id = UUID.generate()
+
+      data = %{
+        "id" => id,
+        "contract_number" => "0000-9EAX-XT7X-3115",
+        "status" => ContractRequest.status(:pending_nhs_sign)
+      }
+
+      %{
+        "client_id" => client_id,
+        "user_id" => user_id,
+        "contract_request" => contract_request,
+        "legal_entity" => legal_entity
+      } =
+        prepare_nhs_sign_params(
+          id: id,
+          data: data,
+          status: ContractRequest.status(:pending_nhs_sign)
+        )
+
+      data = Map.put(data, "printout_content", "<html></html>")
+      drfo_signed_content(data, legal_entity.edrpou, "Підписант")
+
+      resp =
+        conn
+        |> put_client_id_header(client_id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
+        |> patch(contract_request_path(conn, :sign_nhs, contract_request.id), %{
+          "signed_content" => data |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.last_name",
+                   "rules" => [
+                     %{
+                       "description" => "Signer surname does not match with current user last_name",
+                       "rule" => "invalid"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
     end
 
     test "invalid status", %{conn: conn} do
@@ -2690,6 +3139,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "client_id" => client_id,
         "user_id" => user_id,
         "contract_request" => contract_request,
+        "legal_entity" => legal_entity,
         "party_user" => party_user
       } =
         prepare_nhs_sign_params(
@@ -2702,9 +3152,9 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         conn
         |> put_client_id_header(client_id)
         |> put_consumer_id_header(user_id)
-        |> put_req_header("drfo", party_user.party.tax_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
 
-      drfo_signed_content(data, party_user.party.tax_id)
+      drfo_signed_content(data, legal_entity.edrpou, party_user.party.last_name)
 
       conn =
         patch(conn, contract_request_path(conn, :sign_nhs, contract_request.id), %{
@@ -2740,6 +3190,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "client_id" => client_id,
         "user_id" => user_id,
         "contract_request" => contract_request,
+        "legal_entity" => legal_entity,
         "party_user" => party_user
       } =
         prepare_nhs_sign_params(
@@ -2754,9 +3205,9 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         conn
         |> put_client_id_header(client_id)
         |> put_consumer_id_header(user_id)
-        |> put_req_header("drfo", party_user.party.tax_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
 
-      drfo_signed_content(data, party_user.party.tax_id)
+      drfo_signed_content(data, legal_entity.edrpou, party_user.party.last_name)
 
       conn =
         patch(conn, contract_request_path(conn, :sign_nhs, contract_request.id), %{
@@ -2837,11 +3288,11 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "text" => "something"
       }
 
-      drfo_signed_content(data, party_user.party.tax_id)
+      drfo_signed_content(data, legal_entity.edrpou, party_user.party.last_name)
 
       conn =
         conn
-        |> put_req_header("drfo", party_user.party.tax_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
         |> patch(contract_request_path(conn, :decline, contract_request.id), %{
           "signed_content" => data |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
@@ -2876,6 +3327,103 @@ defmodule EHealth.Web.ContractRequestControllerTest do
              } = event
     end
 
+    test "legal entity edrpou does not match with signer drfo", %{conn: conn} do
+      legal_entity = insert(:prm, :legal_entity)
+      user_id = UUID.generate()
+      party_user = insert(:prm, :party_user, user_id: user_id)
+
+      employee_owner =
+        insert(
+          :prm,
+          :employee,
+          legal_entity_id: legal_entity.id,
+          employee_type: Employee.type(:owner),
+          party: party_user.party
+        )
+
+      contract_request =
+        insert(:il, :contract_request, nhs_signer_id: employee_owner.id, contractor_legal_entity_id: legal_entity.id)
+
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok, %{"data" => [%{"role_name" => "OWNER"}]}}
+      end)
+
+      conn =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(user_id)
+
+      drfo_signed_content(%{}, party_user.party.tax_id, party_user.party.last_name)
+
+      resp =
+        conn
+        |> put_req_header("drfo", party_user.party.tax_id)
+        |> patch(contract_request_path(conn, :decline, contract_request.id), %{
+          "signed_content" => %{} |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.drfo"
+                 }
+               ]
+             } = resp["error"]
+    end
+
+    test "user last name does not match with signer surname", %{conn: conn} do
+      legal_entity = insert(:prm, :legal_entity)
+      user_id = UUID.generate()
+      party_user = insert(:prm, :party_user, user_id: user_id)
+
+      employee_owner =
+        insert(
+          :prm,
+          :employee,
+          legal_entity_id: legal_entity.id,
+          employee_type: Employee.type(:owner),
+          party: party_user.party
+        )
+
+      contract_request =
+        insert(:il, :contract_request, nhs_signer_id: employee_owner.id, contractor_legal_entity_id: legal_entity.id)
+
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok, %{"data" => [%{"role_name" => "OWNER"}]}}
+      end)
+
+      conn =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(user_id)
+
+      drfo_signed_content(%{}, legal_entity.edrpou, "Підписант")
+
+      resp =
+        conn
+        |> put_req_header("drfo", party_user.party.tax_id)
+        |> patch(contract_request_path(conn, :decline, contract_request.id), %{
+          "signed_content" => %{} |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.last_name",
+                   "rules" => [
+                     %{
+                       "description" => "Signer surname does not match with current user last_name"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
+    end
+
     test "user is not NHS ADMIN SIGNER", %{conn: conn} do
       legal_entity = insert(:prm, :legal_entity)
       user_id = UUID.generate()
@@ -2890,7 +3438,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
           party: party_user.party
         )
 
-      contract_request = insert(:il, :contract_request, nhs_signer_id: employee_owner.id)
+      contract_request =
+        insert(:il, :contract_request, nhs_signer_id: employee_owner.id, contractor_legal_entity_id: legal_entity.id)
 
       expect(MithrilMock, :get_user_roles, fn _, _, _ ->
         {:ok, %{"data" => [%{"role_name" => "OWNER"}]}}
@@ -2901,7 +3450,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(user_id)
 
-      drfo_signed_content(%{}, party_user.party.tax_id)
+      drfo_signed_content(%{}, legal_entity.edrpou, party_user.party.last_name)
 
       conn =
         conn
@@ -2974,11 +3523,11 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "text" => "something"
       }
 
-      drfo_signed_content(data, party_user.party.tax_id)
+      drfo_signed_content(data, legal_entity.edrpou, party_user.party.last_name)
 
       conn =
         conn
-        |> put_req_header("drfo", party_user.party.tax_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
         |> patch(contract_request_path(conn, :decline, contract_request.id), %{
           "signed_content" => data |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
@@ -3086,7 +3635,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     test "invalid client_id", %{conn: conn} do
       nhs()
       contract_request = insert(:il, :contract_request, status: ContractRequest.status(:nhs_signed))
-      conn = put_client_id_header(conn, UUID.generate())
+      legal_entity = insert(:prm, :legal_entity)
+      conn = put_client_id_header(conn, legal_entity.id)
 
       conn =
         patch(conn, contract_request_path(conn, :sign_msp, contract_request.id), %{
@@ -3157,6 +3707,100 @@ defmodule EHealth.Web.ContractRequestControllerTest do
              } = resp["error"]
     end
 
+    test "legal entity edrpou does not match with signer drfo", %{conn: conn} do
+      insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
+      insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
+      insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
+      nhs()
+      template()
+
+      %{
+        "client_id" => client_id,
+        "user_id" => user_id,
+        "contract_request" => contract_request,
+        "legal_entity" => legal_entity,
+        "party_user" => party_user
+      } = prepare_nhs_sign_params(status: ContractRequest.status(:nhs_signed))
+
+      conn =
+        conn
+        |> put_client_id_header(client_id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("msp_drfo", legal_entity.edrpou)
+
+      data = %{"id" => contract_request.id, "printout_content" => "<html></html>"}
+
+      drfo_signed_content(data, [
+        %{drfo: party_user.party.tax_id, surname: party_user.party.last_name},
+        %{drfo: nil, surname: nil}
+      ])
+
+      resp =
+        conn
+        |> patch(contract_request_path(conn, :sign_msp, contract_request.id), %{
+          "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.drfo"
+                 }
+               ]
+             } = resp["error"]
+    end
+
+    test "party last_name does not match with signer surname", %{conn: conn} do
+      insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
+      insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
+      insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
+      nhs()
+      template()
+
+      %{
+        "client_id" => client_id,
+        "user_id" => user_id,
+        "contract_request" => contract_request,
+        "legal_entity" => legal_entity
+      } = prepare_nhs_sign_params(status: ContractRequest.status(:nhs_signed))
+
+      conn =
+        conn
+        |> put_client_id_header(client_id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("msp_drfo", legal_entity.edrpou)
+
+      data = %{"id" => contract_request.id, "printout_content" => "<html></html>"}
+
+      drfo_signed_content(data, [
+        %{drfo: legal_entity.edrpou, surname: "Підписант"},
+        %{drfo: nil, surname: nil}
+      ])
+
+      resp =
+        conn
+        |> patch(contract_request_path(conn, :sign_msp, contract_request.id), %{
+          "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.last_name",
+                   "rules" => [
+                     %{
+                       "description" => "Signer surname does not match with current user last_name"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
+    end
+
     test "content doesn't match", %{conn: conn} do
       insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
       insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
@@ -3168,6 +3812,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "client_id" => client_id,
         "user_id" => user_id,
         "contract_request" => contract_request,
+        "legal_entity" => legal_entity,
         "party_user" => party_user
       } = prepare_nhs_sign_params(status: ContractRequest.status(:nhs_signed))
 
@@ -3175,10 +3820,14 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         conn
         |> put_client_id_header(client_id)
         |> put_consumer_id_header(user_id)
-        |> put_req_header("msp_drfo", party_user.party.tax_id)
+        |> put_req_header("msp_drfo", legal_entity.edrpou)
 
       data = %{"id" => contract_request.id, "printout_content" => "<html></html>"}
-      drfo_signed_content(data, [party_user.party.tax_id, nil])
+
+      drfo_signed_content(data, [
+        %{drfo: legal_entity.edrpou, surname: party_user.party.last_name},
+        %{drfo: nil, surname: nil}
+      ])
 
       conn =
         patch(conn, contract_request_path(conn, :sign_msp, contract_request.id), %{
@@ -3204,6 +3853,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "client_id" => client_id,
         "user_id" => user_id,
         "contract_request" => contract_request,
+        "legal_entity" => legal_entity,
         "party_user" => party_user
       } =
         prepare_nhs_sign_params(
@@ -3216,9 +3866,12 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         conn
         |> put_client_id_header(client_id)
         |> put_consumer_id_header(user_id)
-        |> put_req_header("msp_drfo", party_user.party.tax_id)
+        |> put_req_header("msp_drfo", legal_entity.edrpou)
 
-      drfo_signed_content(data, [party_user.party.tax_id, nil])
+      drfo_signed_content(data, [
+        %{drfo: legal_entity.edrpou, surname: party_user.party.last_name},
+        %{drfo: nil, surname: nil}
+      ])
 
       conn =
         patch(conn, contract_request_path(conn, :sign_msp, contract_request.id), %{
@@ -3244,6 +3897,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "client_id" => client_id,
         "user_id" => user_id,
         "contract_request" => contract_request,
+        "legal_entity" => legal_entity,
         "party_user" => party_user
       } =
         prepare_nhs_sign_params(
@@ -3256,9 +3910,12 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         conn
         |> put_client_id_header(client_id)
         |> put_consumer_id_header(user_id)
-        |> put_req_header("msp_drfo", party_user.party.tax_id)
+        |> put_req_header("msp_drfo", legal_entity.edrpou)
 
-      drfo_signed_content(data, [party_user.party.tax_id, nil])
+      drfo_signed_content(data, [
+        %{drfo: legal_entity.edrpou, surname: party_user.party.last_name},
+        %{drfo: nil, surname: nil}
+      ])
 
       conn =
         patch(conn, contract_request_path(conn, :sign_msp, contract_request.id), %{
@@ -3284,6 +3941,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "client_id" => client_id,
         "user_id" => user_id,
         "contract_request" => contract_request,
+        "legal_entity" => legal_entity,
         "party_user" => party_user
       } =
         prepare_nhs_sign_params(
@@ -3297,9 +3955,12 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         conn
         |> put_client_id_header(client_id)
         |> put_consumer_id_header(user_id)
-        |> put_req_header("msp_drfo", party_user.party.tax_id)
+        |> put_req_header("msp_drfo", legal_entity.edrpou)
 
-      drfo_signed_content(data, [party_user.party.tax_id, nil])
+      drfo_signed_content(data, [
+        %{drfo: legal_entity.edrpou, surname: party_user.party.last_name},
+        %{drfo: nil, surname: nil}
+      ])
 
       conn =
         patch(conn, contract_request_path(conn, :sign_msp, contract_request.id), %{
@@ -3336,6 +3997,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "client_id" => client_id,
         "user_id" => user_id,
         "contract_request" => contract_request,
+        "legal_entity" => legal_entity,
         "party_user" => party_user
       } =
         prepare_nhs_sign_params(
@@ -3350,9 +4012,12 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         conn
         |> put_client_id_header(client_id)
         |> put_consumer_id_header(user_id)
-        |> put_req_header("msp_drfo", party_user.party.tax_id)
+        |> put_req_header("msp_drfo", legal_entity.edrpou)
 
-      drfo_signed_content(data, [party_user.party.tax_id, nil])
+      drfo_signed_content(data, [
+        %{drfo: legal_entity.edrpou, surname: party_user.party.last_name},
+        %{drfo: nil, surname: nil}
+      ])
 
       conn =
         patch(conn, contract_request_path(conn, :sign_msp, contract_request.id), %{

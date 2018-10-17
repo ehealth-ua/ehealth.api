@@ -125,7 +125,7 @@ defmodule Core.Unit.LegalEntityTest do
     test "validate legal entity EDRPOU" do
       content = get_legal_entity_data()
       signer = %{"edrpou" => "37367387"}
-      assert {:ok, _} = Validator.validate_edrpou(content, signer)
+      assert :ok = Validator.validate_edrpou(content, signer)
     end
 
     test "validate legal entity DRFO int" do
@@ -133,7 +133,7 @@ defmodule Core.Unit.LegalEntityTest do
       drfo = "2856209537"
       signer = %{"drfo" => drfo}
 
-      assert {:ok, _} =
+      assert :ok =
                content
                |> Map.put("edrpou", drfo)
                |> Validator.validate_edrpou(signer)
