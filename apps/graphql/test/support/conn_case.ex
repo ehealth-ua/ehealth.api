@@ -31,14 +31,13 @@ defmodule GraphQLWeb.ConnCase do
       @graphql_path "/graphql"
 
       @consumer_id_header "x-consumer-id"
+      @drfo_header "drfo"
 
-      def put_scope(conn, scope) do
-        put_req_header(conn, @endpoint.scope_header(), scope)
-      end
+      def put_scope(conn, scope), do: put_req_header(conn, @endpoint.scope_header(), scope)
 
-      def put_consumer_id(conn, id \\ Ecto.UUID.generate()) do
-        put_req_header(conn, @consumer_id_header, id)
-      end
+      def put_consumer_id(conn, id \\ Ecto.UUID.generate()), do: put_req_header(conn, @consumer_id_header, id)
+
+      def put_drfo(conn, drfo \\ "002233445566"), do: put_req_header(conn, @drfo_header, drfo)
 
       def post_query(conn, query, variables \\ %{}) do
         post(conn, @graphql_path, %{query: query, variables: variables})

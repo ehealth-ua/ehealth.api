@@ -3,19 +3,21 @@ defmodule Core.Jobs do
   Kafka Jobs entry
   """
 
-  alias Core.API.Signature
+  import Core.API.Helpers.Connection, only: [get_consumer_id: 1]
+
   alias Core.Jobs.LegalEntityMergeJob
   alias Core.LegalEntities
   alias Core.LegalEntities.LegalEntity
   alias Core.LegalEntities.RelatedLegalEntity
   alias Core.Utils.TypesConverter
   alias Core.Validators.JsonSchema
+  alias Core.Validators.Signature
 
-  def create_merge_legal_entities_job(
-        %{signed_content: %{content: content, encoding: encoding}},
-        headers
-      ) do
-    with {:ok, %{"data" => %{"content" => content}}} <- Signature.decode_and_validate(content, encoding, headers),
+  def create_merge_legal_entities_job(%{signed_content: %{content: content, encoding: encoding}}, headers) do
+    user_id = get_consumer_id(headers)
+
+    with {:ok, %{"content" => content, "signer" => signer}} <- Signature.validate(content, encoding, headers),
+         :ok <- Signature.check_drfo(signer, user_id, "merge_legal_entities"),
          :ok <- JsonSchema.validate(:legal_entity_merge_job, content),
          :ok <- validate_merged_id(content["merged_from_legal_entity"]["id"], content["merged_to_legal_entity"]["id"]),
          :ok <- validate_related_legal_entity("from", content),
@@ -24,6 +26,9 @@ defmodule Core.Jobs do
          {:ok, legal_entity_to} <- validate_legal_entity("to", content),
          :ok <- validate_legal_entities_type(legal_entity_from, legal_entity_to) do
       create(content, headers)
+    else
+      {:error, {code, reason}} when is_atom(code) -> {:error, reason}
+      err -> err
     end
   end
 

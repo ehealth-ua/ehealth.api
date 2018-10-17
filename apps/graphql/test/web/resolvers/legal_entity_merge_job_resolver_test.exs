@@ -11,6 +11,10 @@ defmodule GraphQLWeb.LegalEntityMergeJobResolverTest do
   alias Ecto.UUID
   alias TasKafka.Jobs
 
+  setup :verify_on_exit!
+
+  @tax_id "002233445566"
+
   @query """
     mutation MergeLegalEntitiesMutation($input: MergeLegalEntitiesInput!) {
       mergeLegalEntities(input: $input) {
@@ -28,14 +32,15 @@ defmodule GraphQLWeb.LegalEntityMergeJobResolverTest do
     conn =
       conn
       |> put_scope("legal_entity:merge")
+      |> put_drfo(@tax_id)
       |> put_consumer_id(consumer_id)
 
-    {:ok, %{conn: conn}}
+    {:ok, %{conn: conn, consumer_id: consumer_id}}
   end
 
   describe "merge legal entities" do
-    test "success", %{conn: conn} do
-      expect(SignatureMock, :decode_and_validate, fn signed_content, "base64", _headers ->
+    test "success", %{conn: conn, consumer_id: consumer_id} do
+      expect(SignatureMock, :decode_and_validate, fn signed_content, :base64, _headers ->
         content = signed_content |> Base.decode64!() |> Jason.decode!()
 
         data = %{
@@ -44,7 +49,7 @@ defmodule GraphQLWeb.LegalEntityMergeJobResolverTest do
             %{
               "is_valid" => true,
               "signer" => %{
-                "drfo" => content["tax_id"],
+                "drfo" => @tax_id,
                 "surname" => content["last_name"],
                 "given_name" => "Сара Коннор"
               },
@@ -55,6 +60,9 @@ defmodule GraphQLWeb.LegalEntityMergeJobResolverTest do
 
         {:ok, %{"data" => data}}
       end)
+
+      party = insert(:prm, :party, tax_id: @tax_id)
+      insert(:prm, :party_user, party: party, user_id: consumer_id)
 
       from = insert(:prm, :legal_entity)
       to = insert(:prm, :legal_entity)
