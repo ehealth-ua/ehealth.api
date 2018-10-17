@@ -1,5 +1,5 @@
 defmodule EHealth.Integration.Cabinet.RegistrationTest do
-  use EHealth.Web.ConnCase
+  use EHealth.Web.ConnCase, async: false
 
   import Mox
   import Core.Guardian
