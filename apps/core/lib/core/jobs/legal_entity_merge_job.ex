@@ -61,10 +61,12 @@ defmodule Core.Jobs.LegalEntityMergeJob do
 
   defp dismiss_employees(%{merged_from_legal_entity: merged_from, merged_to_legal_entity: merged_to} = job) do
     merged_from_employees = get_merged_from_employees(merged_from.id)
-    merged_to_employees_party_ids = get_merged_to_employees_party_ids(merged_from_employees, merged_to.id)
+    merged_to_employees = get_merged_to_employees(merged_from_employees, merged_to.id)
 
     merged_from_employees
-    |> Enum.filter(fn %{party_id: party_id} -> party_id not in merged_to_employees_party_ids end)
+    |> Enum.filter(fn %{party_id: party_id, speciality: %{"speciality" => speciality}} ->
+      {party_id, speciality} not in merged_to_employees
+    end)
     |> terminate_employees_declarations(job.headers)
   end
 
@@ -80,16 +82,16 @@ defmodule Core.Jobs.LegalEntityMergeJob do
     |> PRMRepo.all()
   end
 
-  defp get_merged_to_employees_party_ids([], _to_id), do: []
+  defp get_merged_to_employees([], _to_id), do: []
 
-  defp get_merged_to_employees_party_ids(from_employees, merged_to_legal_entity_id) do
+  defp get_merged_to_employees(from_employees, merged_to_legal_entity_id) do
     {party_ids, specialities} =
       Enum.reduce(from_employees, {[], []}, fn employee, {parties, specialities} ->
         {parties ++ [employee.party_id], specialities ++ [employee.speciality["speciality"]]}
       end)
 
     Employee
-    |> select([e], e.party_id)
+    |> select([e], {e.party_id, fragment("?->>?", e.speciality, "speciality")})
     |> where([e], e.legal_entity_id == ^merged_to_legal_entity_id)
     |> where([e], e.employee_type == ^Employee.type(:doctor))
     |> where([e], e.status == ^Employee.status(:approved))

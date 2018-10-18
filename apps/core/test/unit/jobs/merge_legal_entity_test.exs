@@ -35,9 +35,26 @@ defmodule Core.Unit.LegalEntityMergeJobTest do
     test "with declaration termination", %{merged_to: merged_to, merged_from: merged_from, consumer_id: consumer_id} do
       :ets.new(:related_legal_entity, [:named_table])
       party = insert(:prm, :party)
+      party2 = insert(:prm, :party)
+
+      # doctor not exist in merged_to legal entity
       employee_dismissed = insert(:prm, :employee, legal_entity: merged_from)
-      employee_approved = insert(:prm, :employee, legal_entity: merged_from, party: party)
-      insert(:prm, :employee, legal_entity: merged_to, party: party)
+
+      # doctor with different speciality in merged_to and merged_from legal entity
+      speciality = Map.put(speciality(), "speciality", "FAMILY DOCTOR")
+      employee_dismissed2 = insert(:prm, :employee, legal_entity: merged_from, party: party)
+      insert(:prm, :employee, legal_entity: merged_to, party: party, speciality: speciality)
+
+      # doctor with different speciality in merged_to and merged_from legal entity
+      employee_dismissed3 = insert(:prm, :employee, legal_entity: merged_from, party: party2)
+      insert(:prm, :employee, legal_entity: merged_to, party: party2, speciality: speciality)
+
+      # doctor with the same speciality exist in both legal entities
+      speciality2 = Map.put(speciality(), "speciality", "THERAPIST")
+      employee_approved = insert(:prm, :employee, legal_entity: merged_from, party: party2, speciality: speciality2)
+      insert(:prm, :employee, legal_entity: merged_to, party: party2, speciality: speciality2)
+
+      # employee type not a doctor
       employee_admin = insert(:prm, :employee, legal_entity: merged_from, employee_type: @admin)
       employee_owner = insert(:prm, :employee, legal_entity: merged_to, employee_type: @owner)
 
@@ -49,8 +66,8 @@ defmodule Core.Unit.LegalEntityMergeJobTest do
         {:ok, %{"data" => params}}
       end)
 
-      expect(OPSMock, :terminate_employee_declarations, fn employee_id, user_id, reason, _description, _headers ->
-        assert employee_dismissed.id == employee_id
+      expect(OPSMock, :terminate_employee_declarations, 3, fn employee_id, user_id, reason, _description, _headers ->
+        assert employee_id in [employee_dismissed.id, employee_dismissed2.id, employee_dismissed3.id]
         assert consumer_id == user_id
         assert "auto_reorganization" == reason
 
@@ -72,6 +89,8 @@ defmodule Core.Unit.LegalEntityMergeJobTest do
 
       # employee with type doctor dismissed
       assert @dismissed == Employees.get_by_id(employee_dismissed.id).status
+      assert @dismissed == Employees.get_by_id(employee_dismissed2.id).status
+      assert @dismissed == Employees.get_by_id(employee_dismissed3.id).status
 
       # approved employees
       assert @approved == Employees.get_by_id(employee_approved.id).status
