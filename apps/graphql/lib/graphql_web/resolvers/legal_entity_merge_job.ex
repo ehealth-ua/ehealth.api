@@ -32,6 +32,7 @@ defmodule GraphQLWeb.Resolvers.LegalEntityMergeJob do
       status: Job.status_to_string(job.status),
       merged_from_legal_entity: meta.merged_from_legal_entity,
       merged_to_legal_entity: meta.merged_to_legal_entity,
+      result: Jason.encode!(job.result),
       started_at: job.started_at,
       ended_at: job.ended_at
     }

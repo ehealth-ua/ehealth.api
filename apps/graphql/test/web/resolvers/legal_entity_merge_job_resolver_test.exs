@@ -191,7 +191,8 @@ defmodule GraphQLWeb.LegalEntityMergeJobResolverTest do
       }
 
       {:ok, job_id, _} = create_job(meta)
-      Jobs.processed(job_id, %{related_legal_entity_id: UUID.generate()})
+      result = %{related_legal_entity_id: UUID.generate()}
+      Jobs.processed(job_id, result)
       id = Node.to_global_id("LegalEntityMergeJob", job_id)
 
       query = """
@@ -199,6 +200,7 @@ defmodule GraphQLWeb.LegalEntityMergeJobResolverTest do
           legalEntityMergeJob(id: $id) {
             id
             status
+            result
             startedAt
             endedAt
             mergedToLegalEntity{
@@ -226,6 +228,7 @@ defmodule GraphQLWeb.LegalEntityMergeJobResolverTest do
       assert meta["merged_to_legal_entity"] == resp["mergedToLegalEntity"]
       assert meta["merged_from_legal_entity"] == resp["mergedFromLegalEntity"]
       assert "PROCESSED" == resp["status"]
+      assert Jason.encode!(result) == resp["result"]
     end
   end
 
