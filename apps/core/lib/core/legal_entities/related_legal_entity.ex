@@ -8,6 +8,7 @@ defmodule Core.LegalEntities.RelatedLegalEntity do
   @derive {Jason.Encoder, except: [:__meta__]}
 
   @required_fields ~w(merged_from_id merged_to_id reason is_active inserted_by)a
+  @optional_fields ~w(id)
 
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "related_legal_entities" do
@@ -23,7 +24,7 @@ defmodule Core.LegalEntities.RelatedLegalEntity do
 
   def changeset(%__MODULE__{} = entity, attrs) do
     entity
-    |> cast(attrs, @required_fields)
+    |> cast(attrs, @required_fields ++ @optional_fields)
     |> foreign_key_constraint(:merged_to_id)
     |> foreign_key_constraint(:merged_from_id)
     |> unique_constraint(:merged_to, name: :merged_ids_index, message: "related legal entity already created")

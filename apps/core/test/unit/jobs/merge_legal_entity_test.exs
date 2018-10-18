@@ -33,6 +33,7 @@ defmodule Core.Unit.LegalEntityMergeJobTest do
     end
 
     test "with declaration termination", %{merged_to: merged_to, merged_from: merged_from, consumer_id: consumer_id} do
+      :ets.new(:related_legal_entity, [:named_table])
       party = insert(:prm, :party)
       employee_dismissed = insert(:prm, :employee, legal_entity: merged_from)
       employee_approved = insert(:prm, :employee, legal_entity: merged_from, party: party)
@@ -56,11 +57,12 @@ defmodule Core.Unit.LegalEntityMergeJobTest do
         {:ok, %{}}
       end)
 
-      expect(MediaStorageMock, :store_signed_content, fn signed_content, bucket, id, resource_name, _headers ->
+      expect(MediaStorageMock, :store_signed_content, fn signed_content, bucket, related_id, resource_name, _headers ->
         assert "some-base-64-encoded-content" = signed_content
         assert :related_legal_entity_bucket = bucket
         assert "merged_legal_entities" = resource_name
-        assert id
+        assert related_id
+        :ets.insert(:related_legal_entity, {:id, related_id})
         {:ok, "success"}
       end)
 
@@ -80,6 +82,7 @@ defmodule Core.Unit.LegalEntityMergeJobTest do
       assert {:ok, mongo_job} = Jobs.get_by_id(job_id)
       assert Job.status(:processed) == mongo_job.status
       assert %{"related_legal_entity_id" => related_id} = mongo_job.result
+      assert :ets.lookup(:related_legal_entity, :id)[:id] == related_id
 
       # related legal entity created
       related = LegalEntities.get_related_by(id: related_id)
@@ -115,6 +118,7 @@ defmodule Core.Unit.LegalEntityMergeJobTest do
     end
 
     test "related legal entity exist", %{merged_to: merged_to, merged_from: merged_from, consumer_id: consumer_id} do
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ -> {:ok, %{"success" => true}} end)
       put_client()
       insert(:prm, :related_legal_entity, merged_from: merged_from, merged_to: merged_to)
       {:ok, job_id, _} = create_job()
@@ -127,6 +131,8 @@ defmodule Core.Unit.LegalEntityMergeJobTest do
     end
 
     test "cannot terminate declaration", %{merged_to: merged_to, merged_from: merged_from, consumer_id: consumer_id} do
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ -> {:ok, %{"success" => true}} end)
+
       expect(OPSMock, :terminate_employee_declarations, fn _, _, _, _, _ ->
         {:error, %{"data" => "Declaration does not exist"}}
       end)
@@ -142,6 +148,7 @@ defmodule Core.Unit.LegalEntityMergeJobTest do
     end
 
     test "cannot update client_type", %{merged_to: merged_to, merged_from: merged_from, consumer_id: consumer_id} do
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ -> {:ok, %{"success" => true}} end)
       expect(MithrilMock, :put_client, fn %{"id" => _id}, _headers -> {:error, %{"error" => "db connection"}} end)
 
       {:ok, job_id, _} = create_job()
@@ -153,7 +160,6 @@ defmodule Core.Unit.LegalEntityMergeJobTest do
     end
 
     test "cannot store signed content", %{merged_to: merged_to, merged_from: merged_from, consumer_id: consumer_id} do
-      put_client()
       expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ -> {:error, %{"error_code" => 500}} end)
 
       {:ok, job_id, _} = create_job()
@@ -166,6 +172,7 @@ defmodule Core.Unit.LegalEntityMergeJobTest do
 
     test "when raised an error", %{merged_to: merged_to, merged_from: merged_from, consumer_id: consumer_id} do
       expect(MithrilMock, :put_client, fn %{"id" => _id}, _headers -> {:response_not_expected} end)
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ -> {:ok, %{"success" => true}} end)
 
       {:ok, job_id, _} = create_job()
       assert_consume(merged_from, merged_to, job_id, consumer_id)

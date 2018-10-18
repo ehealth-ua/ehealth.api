@@ -12,6 +12,7 @@ defmodule Core.Jobs.LegalEntityMergeJob do
   alias Core.LegalEntities.RelatedLegalEntity
   alias Core.PRMRepo
   alias Ecto.Changeset
+  alias Ecto.UUID
   alias TasKafka.Jobs
   require Logger
 
@@ -21,10 +22,12 @@ defmodule Core.Jobs.LegalEntityMergeJob do
   @media_storage_api Application.get_env(:core, :api_resolvers)[:media_storage]
 
   def consume(%__MODULE__{} = job) do
-    with :ok <- dismiss_employees(job),
+    related_legal_entity_id = UUID.generate()
+
+    with :ok <- store_signed_content(job.signed_content, related_legal_entity_id),
+         :ok <- dismiss_employees(job),
          :ok <- update_client_type(job.merged_from_legal_entity.id, job.headers),
-         {:ok, related} <- create_related_legal_entity(job),
-         :ok <- store_signed_content(job.signed_content, related.id) do
+         {:ok, related} <- create_related_legal_entity(related_legal_entity_id, job) do
       Jobs.processed(job.job_id, %{related_legal_entity_id: related.id})
     else
       {:error, %Changeset{} = changeset} ->
@@ -131,12 +134,13 @@ defmodule Core.Jobs.LegalEntityMergeJob do
     end
   end
 
-  defp create_related_legal_entity(job) do
+  defp create_related_legal_entity(id, job) do
     inserted_by = get_consumer_id(job.headers)
 
     LegalEntities.create(
       %RelatedLegalEntity{},
       %{
+        id: id,
         reason: job.reason,
         merged_from_id: job.merged_from_legal_entity.id,
         merged_to_id: job.merged_to_legal_entity.id,
