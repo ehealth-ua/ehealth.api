@@ -48,6 +48,7 @@ defmodule GraphQLWeb.LegalEntityMergeJobResolverTest do
 
       from = insert(:prm, :legal_entity)
       to = insert(:prm, :legal_entity)
+      insert(:prm, :related_legal_entity, merged_to: to)
 
       signed_content = merged_signed_content(from, to)
 

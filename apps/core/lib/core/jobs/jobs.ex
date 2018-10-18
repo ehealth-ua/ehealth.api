@@ -64,8 +64,7 @@ defmodule Core.Jobs do
     with {:ok, legal_entity} <- validate_is_active(direction, id),
          :ok <- validate_name(direction, legal_entity, name),
          :ok <- validate_edrpou(direction, legal_entity, edrpou),
-         :ok <- validate_status(direction, legal_entity),
-         :ok <- validate_processed(direction, id) do
+         :ok <- validate_status(direction, legal_entity) do
       {:ok, legal_entity}
     end
   end
@@ -75,18 +74,6 @@ defmodule Core.Jobs do
       %LegalEntity{is_active: true} = legal_entity -> {:ok, legal_entity}
       %LegalEntity{is_active: false} -> {:error, "Merged #{direction} legal entity must be active"}
       _ -> {:error, "Merged #{direction} legal entity not found"}
-    end
-  end
-
-  defp validate_processed(direction, id) do
-    field = String.to_atom("merged_#{direction}_id")
-
-    case LegalEntities.get_related_by([{field, id}]) do
-      %RelatedLegalEntity{is_active: true} ->
-        {:error, "Merged #{direction} legal entity is in the process of reorganisation itself"}
-
-      _ ->
-        :ok
     end
   end
 
