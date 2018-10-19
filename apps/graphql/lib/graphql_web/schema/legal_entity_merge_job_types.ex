@@ -41,8 +41,12 @@ defmodule GraphQLWeb.Schema.LegalEntityMergeJobTypes do
 
   input_object :legal_entity_merge_job_filter do
     field(:status, :legal_entity_merge_job_status)
-    field(:merged_to_legal_entity, :mergee_legal_entity_metadata)
-    field(:merged_from_legal_entity, :mergee_legal_entity_metadata)
+    field(:merged_to_legal_entity, :mergee_legal_entity_filter)
+    field(:merged_from_legal_entity, :mergee_legal_entity_filter)
+  end
+
+  input_object :mergee_legal_entity_filter do
+    field(:edrpou, :string)
   end
 
   enum :legal_entity_merge_job_order_by do
