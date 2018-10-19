@@ -158,7 +158,7 @@ defmodule Core.Jobs.LegalEntityMergeJob do
 
     case @media_storage_api.store_signed_content(signed_content, :related_legal_entity_bucket, id, resource_name, []) do
       {:ok, _} -> :ok
-      _error -> {:error, "Failed to save signed content"}
+      {:error, reason} -> {:error, "Failed to save signed content with `#{inspect(reason)}`"}
     end
   end
 end
