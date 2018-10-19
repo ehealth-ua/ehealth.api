@@ -11,7 +11,7 @@ defmodule GraphQLWeb.Schema.LegalEntityMergeJobTypes do
     connection field(:legal_entity_merge_jobs, node_type: :legal_entity_merge_job) do
       meta(:scope, ~w(legal_entity_merge_job:read))
       arg(:filter, :legal_entity_merge_job_filter)
-      arg(:order_by, :legal_entity_merge_job_order_by, default_value: :started_at_asc)
+      arg(:order_by, :legal_entity_merge_job_order_by, default_value: :started_at_desc)
       resolve(&LegalEntityMergeJob.list_jobs/2)
     end
 
@@ -41,6 +41,8 @@ defmodule GraphQLWeb.Schema.LegalEntityMergeJobTypes do
 
   input_object :legal_entity_merge_job_filter do
     field(:status, :legal_entity_merge_job_status)
+    field(:merged_to_legal_entity, :mergee_legal_entity_metadata)
+    field(:merged_from_legal_entity, :mergee_legal_entity_metadata)
   end
 
   enum :legal_entity_merge_job_order_by do

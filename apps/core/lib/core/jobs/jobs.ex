@@ -16,6 +16,10 @@ defmodule Core.Jobs do
   @status_active LegalEntity.status(:active)
   @type_msp LegalEntity.type(:msp)
 
+  @merge_legal_entities_type 200
+
+  def type(:merge_legal_entities), do: @merge_legal_entities_type
+
   def create_merge_legal_entities_job(%{signed_content: %{content: content, encoding: encoding}}, headers) do
     user_id = get_consumer_id(headers)
 
@@ -98,6 +102,6 @@ defmodule Core.Jobs do
 
     LegalEntityMergeJob
     |> struct(TypesConverter.strings_to_keys(job_data))
-    |> LegalEntityMergeJob.produce(meta)
+    |> LegalEntityMergeJob.produce(meta, type: @merge_legal_entities_type)
   end
 end

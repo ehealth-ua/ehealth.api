@@ -12,6 +12,7 @@ defmodule GraphQLWeb.Schema do
 
   alias Core.LegalEntities.LegalEntity
   alias Core.Persons.Person
+  alias TasKafka.Job
 
   import_types(Absinthe.Type.Custom)
 
@@ -38,6 +39,7 @@ defmodule GraphQLWeb.Schema do
     resolve_type(fn
       %LegalEntity{}, _ -> :legal_entity
       %Person{}, _ -> :person
+      %Job{}, _ -> :legal_entity_merge_job
       _, _ -> nil
     end)
   end

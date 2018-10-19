@@ -14,6 +14,8 @@ defmodule GraphQLWeb.LegalEntityMergeJobResolverTest do
 
   setup :verify_on_exit!
 
+  @type_merge_legal_entities Core.Jobs.type(:merge_legal_entities)
+
   @tax_id "002233445566"
 
   @query """
@@ -169,6 +171,124 @@ defmodule GraphQLWeb.LegalEntityMergeJobResolverTest do
     end
   end
 
+  describe "get list" do
+    setup %{conn: conn} do
+      {:ok, %{conn: put_scope(conn, "legal_entity_merge_job:read")}}
+    end
+
+    test "filter by status and mergedToLegalEntity", %{conn: conn} do
+      merged_to = insert(:prm, :legal_entity)
+      {:ok, job_id1, _} = create_job(insert(:prm, :legal_entity), merged_to)
+      {:ok, job_id2, _} = create_job(insert(:prm, :legal_entity), merged_to)
+      {:ok, job_id3, _} = create_job(insert(:prm, :legal_entity), merged_to)
+      {:ok, job_id4, _} = create_job(insert(:prm, :legal_entity), insert(:prm, :legal_entity))
+      create_job(insert(:prm, :legal_entity), insert(:prm, :legal_entity))
+      result = %{related_legal_entity_id: UUID.generate()}
+      Jobs.processed(job_id1, result)
+      Jobs.processed(job_id2, result)
+      Jobs.processed(job_id3, result)
+      Jobs.processed(job_id4, result)
+
+      query = """
+        query ListLegalEntityMergeJobsQuery(
+          $first: Int!,
+          $filter: LegalEntityMergeJobFilter!,
+          $order_by: LegalEntityMergeJobOrderBy!
+        ){
+          legalEntityMergeJobs(first: $first, filter: $filter, order_by: $order_by) {
+            pageInfo {
+              startCursor
+              endCursor
+              hasPreviousPage
+              hasNextPage
+            }
+            nodes {
+              id
+              status
+              result
+              startedAt
+              endedAt
+              result
+              mergedToLegalEntity{
+                id
+                name
+                edrpou
+              }
+              mergedFromLegalEntity{
+                id
+                name
+                edrpou
+              }
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: 2,
+        filter: %{
+          status: "PROCESSED",
+          mergedToLegalEntity: %{
+            edrpou: merged_to.edrpou
+          }
+        },
+        order_by: "STARTED_AT_ASC"
+      }
+
+      resp =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+        |> get_in(~w(data legalEntityMergeJobs))
+
+      assert 2 == length(resp["nodes"])
+      assert resp["pageInfo"]["hasNextPage"]
+      refute resp["pageInfo"]["hasPreviousPage"]
+
+      query = """
+        query ListLegalEntitiesQuery(
+          $first: Int!,
+          $filter: LegalEntityMergeJobFilter!,
+          $order_by: LegalEntityMergeJobOrderBy!,
+          $after: String!
+        ){
+          legalEntityMergeJobs(first: $first, filter: $filter, order_by: $order_by, after: $after) {
+            pageInfo {
+              hasPreviousPage
+              hasNextPage
+            }
+            nodes {
+              id
+              status
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: 2,
+        filter: %{
+          status: "PROCESSED",
+          mergedToLegalEntity: %{
+            edrpou: merged_to.edrpou
+          }
+        },
+        order_by: "STARTED_AT_ASC",
+        after: resp["pageInfo"]["endCursor"]
+      }
+
+      resp =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+        |> get_in(~w(data legalEntityMergeJobs))
+
+      assert 1 == length(resp["nodes"])
+      refute resp["pageInfo"]["hasNextPage"]
+      assert resp["pageInfo"]["hasPreviousPage"]
+    end
+  end
+
   describe "get by id" do
     setup %{conn: conn} do
       {:ok, %{conn: put_scope(conn, "legal_entity_merge_job:read")}}
@@ -204,6 +324,7 @@ defmodule GraphQLWeb.LegalEntityMergeJobResolverTest do
             result
             startedAt
             endedAt
+            result
             mergedToLegalEntity{
               id
               name
@@ -233,8 +354,24 @@ defmodule GraphQLWeb.LegalEntityMergeJobResolverTest do
     end
   end
 
+  defp create_job(merged_from, merged_to) do
+    %{
+      "merged_to_legal_entity" => %{
+        "id" => merged_to.id,
+        "name" => merged_to.name,
+        "edrpou" => merged_to.edrpou
+      },
+      "merged_from_legal_entity" => %{
+        "id" => merged_from.id,
+        "name" => merged_from.name,
+        "edrpou" => merged_from.edrpou
+      }
+    }
+    |> create_job()
+  end
+
   defp create_job(meta) do
-    {:ok, job} = Jobs.create(meta)
+    {:ok, job} = Jobs.create(meta, @type_merge_legal_entities)
     {:ok, ObjectId.encode!(job._id), job}
   end
 
