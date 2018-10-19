@@ -232,7 +232,7 @@ defmodule GraphQLWeb.LegalEntityMergeJobResolverTest do
             edrpou: merged_to.edrpou
           }
         },
-        order_by: "STARTED_AT_ASC"
+        order_by: "STARTED_AT_DESC"
       }
 
       resp =
@@ -286,6 +286,65 @@ defmodule GraphQLWeb.LegalEntityMergeJobResolverTest do
       assert 1 == length(resp["nodes"])
       refute resp["pageInfo"]["hasNextPage"]
       assert resp["pageInfo"]["hasPreviousPage"]
+    end
+
+    test "order_by", %{conn: conn} do
+      merged_to = insert(:prm, :legal_entity)
+      {:ok, job_id_first, _} = create_job(insert(:prm, :legal_entity), merged_to)
+      create_job(insert(:prm, :legal_entity), merged_to)
+      create_job(insert(:prm, :legal_entity), merged_to)
+      {:ok, job_id_last, _} = create_job(insert(:prm, :legal_entity), merged_to)
+
+      query = """
+        query ListLegalEntityMergeJobsQuery(
+          $first: Int!,
+          $filter: LegalEntityMergeJobFilter!,
+          $order_by: LegalEntityMergeJobOrderBy!
+        ){
+          legalEntityMergeJobs(first: $first, filter: $filter, order_by: $order_by) {
+            nodes {
+              id
+              startedAt
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: 10,
+        filter: %{
+          mergedToLegalEntity: %{
+            edrpou: merged_to.edrpou
+          }
+        },
+        order_by: "STARTED_AT_DESC"
+      }
+
+      resp =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+        |> get_in(~w(data legalEntityMergeJobs nodes))
+
+      assert Node.to_global_id("LegalEntityMergeJob", job_id_last) == hd(resp)["id"]
+
+      variables = %{
+        first: 10,
+        filter: %{
+          mergedToLegalEntity: %{
+            edrpou: merged_to.edrpou
+          }
+        },
+        order_by: "STARTED_AT_ASC"
+      }
+
+      resp =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+        |> get_in(~w(data legalEntityMergeJobs nodes))
+
+      assert Node.to_global_id("LegalEntityMergeJob", job_id_first) == hd(resp)["id"]
     end
   end
 

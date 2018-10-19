@@ -25,7 +25,7 @@ defmodule GraphQLWeb.Resolvers.LegalEntityMergeJob do
         _ -> 0
       end
 
-    opts = [limit: limit + 1, skip: offset, order_by: prepare_order_by(order_by)]
+    opts = [limit: limit + 1, skip: offset, sort: prepare_order_by(order_by)]
 
     records =
       filter
