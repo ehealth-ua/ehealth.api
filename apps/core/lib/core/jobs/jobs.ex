@@ -20,10 +20,10 @@ defmodule Core.Jobs do
 
   def type(:merge_legal_entities), do: @merge_legal_entities_type
 
-  def create_merge_legal_entities_job(%{signed_content: %{content: content, encoding: encoding}}, headers) do
+  def create_merge_legal_entities_job(%{signed_content: %{content: encoded_content, encoding: encoding}}, headers) do
     user_id = get_consumer_id(headers)
 
-    with {:ok, %{"content" => content, "signer" => signer}} <- Signature.validate(content, encoding, headers),
+    with {:ok, %{"content" => content, "signer" => signer}} <- Signature.validate(encoded_content, encoding, headers),
          :ok <- Signature.check_drfo(signer, user_id, "merge_legal_entities"),
          :ok <- JsonSchema.validate(:legal_entity_merge_job, content),
          :ok <- validate_merged_id(content["merged_from_legal_entity"]["id"], content["merged_to_legal_entity"]["id"]),
@@ -32,7 +32,7 @@ defmodule Core.Jobs do
          {:ok, legal_entity_from} <- validate_legal_entity("from", content),
          {:ok, legal_entity_to} <- validate_legal_entity("to", content),
          :ok <- validate_legal_entities_type(legal_entity_from, legal_entity_to) do
-      create(content, headers)
+      create(content, encoded_content, headers)
     else
       {:error, {code, reason}} when is_atom(code) -> {:error, reason}
       err -> err
@@ -96,9 +96,9 @@ defmodule Core.Jobs do
   defp validate_legal_entities_type(%{type: @type_msp}, %{type: @type_msp}), do: :ok
   defp validate_legal_entities_type(_, _), do: {:error, "Invalid legal entity type"}
 
-  defp create(content, headers) do
+  defp create(content, encoded_content, headers) do
     meta = Map.take(content, ~w(merged_from_legal_entity merged_to_legal_entity))
-    job_data = Map.put(content, "headers", headers)
+    job_data = Map.merge(content, %{"headers" => headers, "signed_content" => encoded_content})
 
     LegalEntityMergeJob
     |> struct(TypesConverter.strings_to_keys(job_data))
