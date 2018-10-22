@@ -208,6 +208,10 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
       insert(:prm, :legal_entity)
       phone = %{"type" => "MOBILE", "number" => "+380201112233"}
       legal_entity = insert(:prm, :legal_entity, phones: [phone])
+      insert(:prm, :related_legal_entity, merged_to: legal_entity, is_active: false)
+      related_merged_from = insert(:prm, :related_legal_entity, merged_to: legal_entity)
+      insert(:prm, :related_legal_entity, merged_to: legal_entity)
+      related_merged_to = insert(:prm, :related_legal_entity, merged_from: legal_entity)
 
       id = Node.to_global_id("LegalEntity", legal_entity.id)
 
@@ -228,6 +232,26 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
             archive {
               date
               place
+            }
+            mergedFromLegalEntities(first: 1, filter: {isActive: true}){
+              nodes {
+                databaseId
+                mergedTo {
+                  databaseId
+                  publicName
+                }
+                mergedFrom {
+                  databaseId
+                  publicName
+                }
+              }
+            }
+            mergedToLegalEntity {
+              databaseId
+              mergedTo {
+                databaseId
+                publicName
+              }
             }
             medicalServiceProvider {
               licenses {
@@ -255,6 +279,9 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
       assert legal_entity.archive == resp["archive"]
       assert Map.has_key?(resp["medicalServiceProvider"], "licenses")
       assert "some" == get_in(resp, ~w(medicalServiceProvider accreditation category))
+      # related
+      assert related_merged_to.id == resp["mergedToLegalEntity"]["databaseId"]
+      assert related_merged_from.id == hd(resp["mergedFromLegalEntities"]["nodes"])["databaseId"]
     end
   end
 end
