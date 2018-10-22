@@ -13,15 +13,56 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
 
   describe "list" do
     test "success without params", %{conn: conn} do
-      insert(:prm, :legal_entity)
-      insert(:prm, :legal_entity)
+      from = insert(:prm, :legal_entity, edrpou: "1234567890")
+      from2 = insert(:prm, :legal_entity, edrpou: "2234567890")
+      from3 = insert(:prm, :legal_entity, edrpou: "3234567890")
+      to = insert(:prm, :legal_entity)
+      insert(:prm, :related_legal_entity, merged_from: from, merged_to: to)
+      insert(:prm, :related_legal_entity, merged_from: from2, merged_to: to)
+      insert(:prm, :related_legal_entity, merged_from: from3, merged_to: to)
 
       query = """
         {
           legalEntities(first: 10) {
+            pageInfo {
+              startCursor
+              endCursor
+              hasPreviousPage
+              hasNextPage
+            }
             nodes {
               id
+              databaseId
               publicName
+              mergedFromLegalEntities(first: 2, filter: {isActive: true}){
+                pageInfo {
+                  startCursor
+                  endCursor
+                  hasPreviousPage
+                  hasNextPage
+                }
+                nodes {
+                  databaseId
+                  reason
+                  isActive
+                  mergedTo {
+                    databaseId
+                    publicName
+                  }
+                  mergedFrom {
+                    databaseId
+                    publicName
+                  }
+                }
+              }
+              mergedToLegalEntity {
+                reason
+                isActive
+                mergedTo {
+                  databaseId
+                  publicName
+                }
+              }
             }
           }
         }
@@ -33,11 +74,12 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
         |> json_response(200)
         |> get_in(~w(data legalEntities nodes))
 
-      assert 2 == length(legal_entities)
+      assert 4 == length(legal_entities)
 
       Enum.each(legal_entities, fn legal_entity ->
-        assert Map.has_key?(legal_entity, "id")
-        assert Map.has_key?(legal_entity, "publicName")
+        Enum.each(~w(id publicName mergedFromLegalEntities), fn field ->
+          assert Map.has_key?(legal_entity, field)
+        end)
       end)
     end
 

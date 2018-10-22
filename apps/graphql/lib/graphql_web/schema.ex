@@ -11,7 +11,10 @@ defmodule GraphQLWeb.Schema do
   use GraphQLWeb.Middleware.DatabaseIDs
 
   alias Core.LegalEntities.LegalEntity
+  alias Core.LegalEntities.RelatedLegalEntity
   alias Core.Persons.Person
+  alias GraphQLWeb.Resolvers.LegalEntity, as: LegalEntityResolver
+  alias GraphQLWeb.Resolvers.RelatedLegalEntity, as: RelatedLegalEntityResolver
   alias TasKafka.Job
 
   import_types(Absinthe.Type.Custom)
@@ -22,6 +25,7 @@ defmodule GraphQLWeb.Schema do
     LegalEntityMergeJobTypes,
     PersonTypes,
     PhoneTypes,
+    RelatedLegalEntityTypes,
     SignedContentTypes
   })
 
@@ -38,9 +42,23 @@ defmodule GraphQLWeb.Schema do
   node interface do
     resolve_type(fn
       %LegalEntity{}, _ -> :legal_entity
+      %RelatedLegalEntity{}, _ -> :related_legal_entity
       %Person{}, _ -> :person
       %Job{}, _ -> :legal_entity_merge_job
       _, _ -> nil
     end)
+  end
+
+  def context(ctx) do
+    loader =
+      Dataloader.new()
+      |> Dataloader.add_source(LegalEntityResolver, LegalEntityResolver.data())
+      |> Dataloader.add_source(RelatedLegalEntityResolver, RelatedLegalEntityResolver.data())
+
+    Map.put(ctx, :loader, loader)
+  end
+
+  def plugins do
+    [Absinthe.Middleware.Dataloader] ++ Absinthe.Plugin.defaults()
   end
 end

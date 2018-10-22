@@ -4,7 +4,10 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
   use Absinthe.Schema.Notation
   use Absinthe.Relay.Schema.Notation, :modern
 
+  import Absinthe.Resolution.Helpers, only: [dataloader: 1]
+
   alias GraphQLWeb.Resolvers.LegalEntity
+  alias GraphQLWeb.Resolvers.RelatedLegalEntity
 
   object :legal_entity_queries do
     @desc "get list of Legal Entities"
@@ -53,6 +56,16 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
     edge(do: nil)
   end
 
+  connection(node_type: :related_legal_entity) do
+    field :nodes, list_of(:related_legal_entity) do
+      resolve(fn _, %{source: conn} ->
+        {:ok, Enum.map(conn.edges, & &1.node)}
+      end)
+    end
+
+    edge(do: nil)
+  end
+
   node object(:legal_entity) do
     field(:database_id, non_null(:id))
     field(:name, non_null(:string))
@@ -77,6 +90,15 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
     field(:addresses, non_null(list_of(:address)))
     field(:archive, non_null(list_of(:legal_entity_archive)))
     field(:medical_service_provider, non_null(:msp))
+
+    # relations
+    field(:merged_to_legal_entity, :related_legal_entity, resolve: dataloader(RelatedLegalEntity))
+
+    connection field(:merged_from_legal_entities, node_type: :related_legal_entity) do
+      arg(:filter, :related_legal_entity_filter)
+      arg(:order_by, :related_legal_entity_order_by, default_value: :inserted_at_asc)
+      resolve(&RelatedLegalEntity.load_related_legal_entities/3)
+    end
 
     # dates
     field(:inserted_at, :string)

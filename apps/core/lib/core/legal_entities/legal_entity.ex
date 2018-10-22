@@ -4,6 +4,7 @@ defmodule Core.LegalEntities.LegalEntity do
   use Ecto.Schema
 
   alias Core.LegalEntities.MedicalServiceProvider
+  alias Core.LegalEntities.RelatedLegalEntity
 
   @derive {Jason.Encoder, except: [:__meta__]}
 
@@ -54,6 +55,8 @@ defmodule Core.LegalEntities.LegalEntity do
     field(:created_by_mis_client_id, Ecto.UUID)
 
     has_one(:medical_service_provider, MedicalServiceProvider, on_replace: :delete, foreign_key: :legal_entity_id)
+    has_one(:merged_to_legal_entity, RelatedLegalEntity, foreign_key: :merged_from_id)
+    has_many(:merged_from_legal_entities, RelatedLegalEntity, foreign_key: :merged_to_id)
 
     timestamps()
   end
