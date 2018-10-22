@@ -109,6 +109,12 @@
             "$ref": "#/definitions/uuid",
             "description": "contract_request ID"
         },
+        "previous_request": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
         "contractor_legal_entity": {
             "type": "object",
             "properties": {
