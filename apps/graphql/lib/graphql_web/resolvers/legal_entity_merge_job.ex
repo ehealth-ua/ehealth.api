@@ -40,8 +40,9 @@ defmodule GraphQLWeb.Resolvers.LegalEntityMergeJob do
   end
 
   def get_by_id(_parent, %{id: id}, _resolution) do
-    with {:ok, job} <- TasKafkaJobs.get_by_id(id) do
-      {:ok, job_view(job)}
+    case TasKafkaJobs.get_by_id(id) do
+      {:ok, job} -> {:ok, job_view(job)}
+      nil -> {:ok, nil}
     end
   end
 

@@ -24,6 +24,7 @@ defmodule GraphQLWeb.LegalEntityMergeJobResolverTest do
         legalEntityMergeJob {
           id
           status
+          endedAt
         }
       }
     }
@@ -61,6 +62,8 @@ defmodule GraphQLWeb.LegalEntityMergeJobResolverTest do
         |> get_in(~w(data mergeLegalEntities legalEntityMergeJob))
 
       assert "PENDING" == job["status"]
+      assert Map.has_key?(job, "endedAt")
+      refute job["endedAt"]
     end
 
     test "invalid scope", %{conn: conn} do
@@ -410,6 +413,25 @@ defmodule GraphQLWeb.LegalEntityMergeJobResolverTest do
       assert meta["merged_from_legal_entity"] == resp["mergedFromLegalEntity"]
       assert "PROCESSED" == resp["status"]
       assert Jason.encode!(result) == resp["result"]
+    end
+
+    test "job not found", %{conn: conn} do
+      query = """
+        query GetLegalEntityMergeJobQuery($id: ID) {
+          legalEntityMergeJob(id: $id) {
+            id
+          }
+        }
+      """
+
+      variables = %{id: Node.to_global_id("LegalEntityMergeJob", "invalid-id")}
+
+      resp =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      assert match?(%{"legalEntityMergeJob" => nil}, resp["data"])
     end
   end
 
