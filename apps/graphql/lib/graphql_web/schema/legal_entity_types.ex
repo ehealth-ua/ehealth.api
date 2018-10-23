@@ -6,6 +6,8 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
 
   import Absinthe.Resolution.Helpers, only: [dataloader: 1]
 
+  alias GraphQLWeb.Loaders.DivisionLoader
+  alias GraphQLWeb.Loaders.EmployeeLoader
   alias GraphQLWeb.Resolvers.LegalEntity
   alias GraphQLWeb.Resolvers.RelatedLegalEntity
 
@@ -66,6 +68,26 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
     edge(do: nil)
   end
 
+  connection(node_type: :employee) do
+    field :nodes, list_of(:employee) do
+      resolve(fn _, %{source: conn} ->
+        {:ok, Enum.map(conn.edges, & &1.node)}
+      end)
+    end
+
+    edge(do: nil)
+  end
+
+  connection(node_type: :division) do
+    field :nodes, list_of(:division) do
+      resolve(fn _, %{source: conn} ->
+        {:ok, Enum.map(conn.edges, & &1.node)}
+      end)
+    end
+
+    edge(do: nil)
+  end
+
   node object(:legal_entity) do
     field(:database_id, non_null(:id))
     field(:name, non_null(:string))
@@ -77,6 +99,7 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
     field(:owner_property_type, non_null(:string))
     field(:legal_form, non_null(:string))
     field(:website, :string)
+    field(:receiver_funds_code, :string)
     field(:beneficiary, :string)
     field(:nhs_verified, :boolean)
 
@@ -92,6 +115,19 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
     field(:medical_service_provider, non_null(:msp))
 
     # relations
+    #    field(:owner, :employee, resolve: dataloader(EmployeeLoader))
+    connection field(:employees, node_type: :employee) do
+      arg(:filter, :employee_filter)
+      arg(:order_by, :employee_order_by, default_value: :inserted_at_asc)
+      resolve(&EmployeeLoader.load_employees/3)
+    end
+
+    connection field(:divisions, node_type: :division) do
+      arg(:filter, :division_filter)
+      arg(:order_by, :division_order_by, default_value: :inserted_at_asc)
+      resolve(&DivisionLoader.load_divisions/3)
+    end
+
     field(:merged_to_legal_entity, :related_legal_entity, resolve: dataloader(RelatedLegalEntity))
 
     connection field(:merged_from_legal_entities, node_type: :related_legal_entity) do
@@ -124,6 +160,10 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
 
   object :msp_accreditation do
     field(:category, non_null(:string))
+    field(:order_no, non_null(:string))
+    field(:order_date, :string)
+    field(:issued_date, :string)
+    field(:expiry_date, :string)
   end
 
   object :legal_entity_archive do

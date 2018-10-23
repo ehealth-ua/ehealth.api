@@ -13,6 +13,8 @@ defmodule GraphQLWeb.Schema do
   alias Core.LegalEntities.LegalEntity
   alias Core.LegalEntities.RelatedLegalEntity
   alias Core.Persons.Person
+  alias GraphQLWeb.Loaders.DivisionLoader
+  alias GraphQLWeb.Loaders.EmployeeLoader
   alias GraphQLWeb.Resolvers.LegalEntity, as: LegalEntityResolver
   alias GraphQLWeb.Resolvers.RelatedLegalEntity, as: RelatedLegalEntityResolver
   alias TasKafka.Job
@@ -21,6 +23,8 @@ defmodule GraphQLWeb.Schema do
 
   import_types(GraphQLWeb.Schema.{
     AddressTypes,
+    DivisionTypes,
+    EmployeeTypes,
     LegalEntityTypes,
     LegalEntityMergeJobTypes,
     PersonTypes,
@@ -52,6 +56,8 @@ defmodule GraphQLWeb.Schema do
   def context(ctx) do
     loader =
       Dataloader.new()
+      |> Dataloader.add_source(DivisionLoader, DivisionLoader.data())
+      |> Dataloader.add_source(EmployeeLoader, EmployeeLoader.data())
       |> Dataloader.add_source(LegalEntityResolver, LegalEntityResolver.data())
       |> Dataloader.add_source(RelatedLegalEntityResolver, RelatedLegalEntityResolver.data())
 
