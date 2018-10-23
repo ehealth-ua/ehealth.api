@@ -4,6 +4,10 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
   import Core.Factories
 
   alias Absinthe.Relay.Node
+  alias Core.Employees.Employee
+
+  @owner Employee.type(:owner)
+  @doctor Employee.type(:doctor)
 
   setup %{conn: conn} do
     conn = put_scope(conn, "legal_entity:read legal_entity:write")
@@ -208,8 +212,14 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
       insert(:prm, :legal_entity)
       phone = %{"type" => "MOBILE", "number" => "+380201112233"}
       legal_entity = insert(:prm, :legal_entity, phones: [phone])
-      insert(:prm, :division, legal_entity: legal_entity, name: "Захід Сонця")
+      division = insert(:prm, :division, legal_entity: legal_entity, name: "Захід Сонця")
       insert(:prm, :division, legal_entity: legal_entity)
+
+      inactive_attrs = [division: division, legal_entity_id: legal_entity.id, employee_type: @owner, is_active: false]
+      insert(:prm, :employee, inactive_attrs)
+      owner = insert(:prm, :employee, division: division, legal_entity_id: legal_entity.id, employee_type: @owner)
+      doctor = insert(:prm, :employee, division: division, legal_entity_id: legal_entity.id, employee_type: @doctor)
+      insert(:prm, :employee, inactive_attrs)
 
       insert(:prm, :related_legal_entity, merged_to: legal_entity, is_active: false)
       related_merged_from = insert(:prm, :related_legal_entity, merged_to: legal_entity)
@@ -236,7 +246,25 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
               date
               place
             }
-            employees(first: 1){
+            owner {
+              databaseId
+              position
+              additionalInfo{
+                specialities{
+                  speciality
+                  speciality_officio
+                }
+              }
+              party {
+                databaseId
+                firstName
+              }
+              legal_entity {
+                databaseId
+                publicName
+              }
+            }
+            employees(first: 2, filter: {isActive: true}){
               nodes {
                 databaseId
                 additionalInfo{
@@ -260,6 +288,10 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
                 databaseId
                 name
                 email
+                addresses {
+                  area
+                  region
+                }
               }
             }
             mergedFromLegalEntities(first: 1, filter: {isActive: true}){
@@ -308,9 +340,39 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
       assert legal_entity.archive == resp["archive"]
       assert Map.has_key?(resp["medicalServiceProvider"], "licenses")
       assert "some" == get_in(resp, ~w(medicalServiceProvider accreditation category))
-      # related
+
+      # mergedToLegalEntity
       assert related_merged_to.id == resp["mergedToLegalEntity"]["databaseId"]
+
+      # mergedFromLegalEntity
       assert related_merged_from.id == hd(resp["mergedFromLegalEntities"]["nodes"])["databaseId"]
+
+      # owner
+      assert owner.id == resp["owner"]["databaseId"]
+
+      # employees
+      employees_from_resp = resp["employees"]["nodes"]
+      assert 2 = length(employees_from_resp)
+
+      Enum.each(employees_from_resp, fn employee_from_resp ->
+        assert employee_from_resp["databaseId"] in [doctor.id, owner.id]
+        assert Map.has_key?(employee_from_resp, "additionalInfo")
+        assert Map.has_key?(employee_from_resp, "legal_entity")
+        assert Map.has_key?(employee_from_resp["additionalInfo"], "specialities")
+
+        assert [
+                 %{
+                   "speciality" => "PEDIATRICIAN",
+                   "speciality_officio" => true
+                 }
+               ] == employee_from_resp["additionalInfo"]["specialities"]
+      end)
+
+      # divisions
+      assert 1 == length(resp["divisions"]["nodes"])
+      division_from_resp = hd(resp["divisions"]["nodes"])
+      assert division.id == division_from_resp["databaseId"]
+      assert match?(%{"area" => _, "region" => _}, hd(division_from_resp["addresses"]))
     end
   end
 end

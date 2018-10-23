@@ -2,6 +2,7 @@ defmodule GraphQLWeb.Schema.EmployeeTypes do
   @moduledoc false
 
   use Absinthe.Schema.Notation
+  use Absinthe.Relay.Schema.Notation, :modern
 
   import Absinthe.Resolution.Helpers, only: [dataloader: 1]
 
@@ -18,7 +19,7 @@ defmodule GraphQLWeb.Schema.EmployeeTypes do
   @status_approved Employee.status(:approved)
   @status_dismissed Employee.status(:dismissed)
 
-  object :employee do
+  node object(:employee) do
     field(:database_id, non_null(:id))
     field(:position, non_null(:string))
     field(:start_date, non_null(:string))

@@ -5,6 +5,7 @@ defmodule GraphQLWeb.Resolvers.LegalEntity do
   import Absinthe.Resolution.Helpers, only: [on_load: 2]
 
   alias Absinthe.Relay.Connection
+  alias Core.Employees.Employee
   alias Core.LegalEntities
   alias Core.LegalEntities.LegalEntity
   alias Core.PRMRepo
@@ -56,6 +57,21 @@ defmodule GraphQLWeb.Resolvers.LegalEntity do
       opts = [has_previous_page: offset > 0, has_next_page: length(records) > limit]
 
       Connection.from_slice(Enum.take(records, limit), offset, opts)
+    end)
+  end
+
+  def load_owner(parent, args, %{context: %{loader: loader}}) do
+    args =
+      Map.merge(args, %{
+        first: 1,
+        order_by: nil,
+        filter: [employee_type: Employee.type(:owner), is_active: true]
+      })
+
+    loader
+    |> Dataloader.load(PRM, {:employee, args}, parent)
+    |> on_load(fn loader ->
+      {:ok, Dataloader.get(loader, PRM, {:employee, args}, parent)}
     end)
   end
 

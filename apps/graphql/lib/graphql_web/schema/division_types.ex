@@ -2,7 +2,12 @@ defmodule GraphQLWeb.Schema.DivisionTypes do
   @moduledoc false
 
   use Absinthe.Schema.Notation
+  use Absinthe.Relay.Schema.Notation, :modern
+
+  import Absinthe.Resolution.Helpers, only: [dataloader: 1]
+
   alias Core.Divisions.Division
+  alias GraphQLWeb.Loaders.PRM
 
   @active Division.status(:active)
   @inactive Division.status(:inactive)
@@ -11,7 +16,7 @@ defmodule GraphQLWeb.Schema.DivisionTypes do
   @type_ambulant_clinic Division.type(:ambulant_clinic)
   @type_fap Division.type(:fap)
 
-  object :division do
+  node object(:division) do
     field(:database_id, non_null(:id))
     field(:name, non_null(:string))
     field(:email, non_null(:string))
@@ -27,7 +32,7 @@ defmodule GraphQLWeb.Schema.DivisionTypes do
     # embed
 
     field(:phones, non_null(list_of(:phone)))
-    field(:addresses, non_null(list_of(:address)))
+    field(:addresses, non_null(list_of(:address)), resolve: dataloader(PRM))
   end
 
   input_object :division_filter do

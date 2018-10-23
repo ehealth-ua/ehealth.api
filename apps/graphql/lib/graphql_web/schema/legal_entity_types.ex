@@ -113,7 +113,8 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
     field(:medical_service_provider, non_null(:msp))
 
     # relations
-    # field(:owner, :employee, resolve: dataloader(PRM))
+    field(:owner, :employee, resolve: &LegalEntity.load_owner/3)
+
     connection field(:employees, node_type: :employee) do
       arg(:filter, :employee_filter)
       arg(:order_by, :employee_order_by, default_value: :inserted_at_asc)
