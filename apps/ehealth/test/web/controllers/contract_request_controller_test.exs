@@ -835,12 +835,15 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         end_date: contract_end_date
       )
 
+      previous_request = insert(:il, :contract_request)
+
       params =
         division
         |> prepare_params(employee, expires_at)
         |> Map.put("contractor_owner_id", owner.id)
         |> Map.put("start_date", Date.to_iso8601(contract_request_start_date))
         |> Map.put("end_date", Date.to_iso8601(contract_request_end_date))
+        |> Map.put("previous_request", previous_request.id)
 
       drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
 

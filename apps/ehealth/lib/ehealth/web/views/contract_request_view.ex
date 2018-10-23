@@ -56,6 +56,7 @@ defmodule EHealth.Web.ContractRequestView do
       printout_content
       parent_contract_id
       status_reason
+      previous_request
     )a)
 
     data

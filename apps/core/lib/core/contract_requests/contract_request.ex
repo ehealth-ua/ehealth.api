@@ -52,6 +52,7 @@ defmodule Core.ContractRequests.ContractRequest do
     field(:data, :map)
     field(:misc, :string)
     field(:assignee_id, UUID)
+    field(:previous_request, UUID)
     field(:inserted_by, UUID)
     field(:updated_by, UUID)
 
