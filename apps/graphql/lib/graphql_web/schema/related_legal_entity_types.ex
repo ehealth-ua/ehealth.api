@@ -6,7 +6,7 @@ defmodule GraphQLWeb.Schema.RelatedLegalEntityTypes do
 
   import Absinthe.Resolution.Helpers, only: [dataloader: 1]
 
-  alias GraphQLWeb.Resolvers.LegalEntity
+  alias GraphQLWeb.Loaders.PRM
 
   node object(:related_legal_entity) do
     field(:database_id, non_null(:id))
@@ -14,8 +14,8 @@ defmodule GraphQLWeb.Schema.RelatedLegalEntityTypes do
     field(:is_active, non_null(:boolean))
 
     # relations
-    field(:merged_to, non_null(:legal_entity), resolve: dataloader(LegalEntity))
-    field(:merged_from, non_null(:legal_entity), resolve: dataloader(LegalEntity))
+    field(:merged_to, non_null(:legal_entity), resolve: dataloader(PRM))
+    field(:merged_from, non_null(:legal_entity), resolve: dataloader(PRM))
 
     # dates
     field(:inserted_at, non_null(:string))

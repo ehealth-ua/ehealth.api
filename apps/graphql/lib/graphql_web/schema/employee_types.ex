@@ -6,8 +6,7 @@ defmodule GraphQLWeb.Schema.EmployeeTypes do
   import Absinthe.Resolution.Helpers, only: [dataloader: 1]
 
   alias Core.Employees.Employee
-  alias GraphQLWeb.Loaders.EmployeeLoader
-  alias GraphQLWeb.Resolvers.LegalEntity
+  alias GraphQLWeb.Loaders.PRM
 
   @type_admin Employee.type(:admin)
   @type_owner Employee.type(:owner)
@@ -34,9 +33,9 @@ defmodule GraphQLWeb.Schema.EmployeeTypes do
     field(:additional_info, :employee_additional_info)
 
     # relations
-    field(:party, non_null(:party), resolve: dataloader(EmployeeLoader))
-    field(:division, :division, resolve: dataloader(EmployeeLoader))
-    field(:legal_entity, non_null(:legal_entity), resolve: dataloader(LegalEntity))
+    field(:party, non_null(:party), resolve: dataloader(PRM))
+    field(:division, :division, resolve: dataloader(PRM))
+    field(:legal_entity, non_null(:legal_entity), resolve: dataloader(PRM))
   end
 
   input_object :employee_filter do
