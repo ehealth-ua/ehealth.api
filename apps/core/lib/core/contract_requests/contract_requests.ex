@@ -62,7 +62,7 @@ defmodule Core.ContractRequests do
     external_contractors
     contract_number
     parent_contract_id
-    previous_request
+    previous_request_id
   )a
 
   @forbidden_statuses_for_termination [
@@ -152,7 +152,7 @@ defmodule Core.ContractRequests do
          content <- Map.put(content, "contractor_legal_entity_id", client_id),
          {:ok, params, contract} <- validate_contract_number(content, headers),
          :ok <- validate_contractor_legal_entity_id(client_id, contract),
-         :ok <- validate_previous_request(params),
+         :ok <- validate_previous_request(params, client_id),
          :ok <- validate_dates(params),
          params <- set_dates(contract, params),
          :ok <- validate_unique_contractor_employee_divisions(params),
@@ -1131,17 +1131,21 @@ defmodule Core.ContractRequests do
     Error.dump(%ValidationError{description: "Division must be active and within current legal_entity", path: error})
   end
 
-  defp validate_previous_request(%{"previous_request" => previous_request_id}) when not is_nil(previous_request_id) do
+  defp validate_previous_request(%{"previous_request_id" => previous_request_id}, contractor_legal_entity_id)
+       when not is_nil(previous_request_id) do
     with {_, %ContractRequest{} = contract_request} <- {:request, get_by_id(previous_request_id)},
+         {_, true} <-
+           {:contractor_legal_entity_id, contract_request.contractor_legal_entity_id == contractor_legal_entity_id},
          {_, true} <- {:status, contract_request.status != ContractRequest.status(:signed)} do
       :ok
     else
-      {:request, _} -> {:error, {:"422", "previous_request does not exist"}}
+      {:contractor_legal_entity_id, _} -> {:error, {:"422", "Previous request doesn't belong to legal entity"}}
+      {:request, _} -> {:error, {:"422", "previous_request_id does not exist"}}
       {:status, _} -> {:error, {:"422", "In case contract exists new contract request should be created"}}
     end
   end
 
-  defp validate_previous_request(_), do: :ok
+  defp validate_previous_request(_, _), do: :ok
 
   defp validate_dates(%{"parent_contract_id" => parent_contract_id, "start_date" => start_date})
        when not is_nil(parent_contract_id) and not is_nil(start_date) do

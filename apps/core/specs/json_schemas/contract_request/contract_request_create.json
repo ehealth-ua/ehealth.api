@@ -31,7 +31,7 @@
             "$ref": "#/definitions/uuid",
             "description": "person which represent legal entity"
         },
-        "previous_request": {
+        "previous_request_id": {
             "type": "string",
             "$ref": "#/definitions/uuid",
             "description": "another contract request which is changed by this request"
