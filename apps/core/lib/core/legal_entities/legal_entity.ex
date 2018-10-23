@@ -3,6 +3,8 @@ defmodule Core.LegalEntities.LegalEntity do
 
   use Ecto.Schema
 
+  alias Core.Divisions.Division
+  alias Core.Employees.Employee
   alias Core.LegalEntities.MedicalServiceProvider
   alias Core.LegalEntities.RelatedLegalEntity
 
@@ -57,6 +59,8 @@ defmodule Core.LegalEntities.LegalEntity do
     has_one(:medical_service_provider, MedicalServiceProvider, on_replace: :delete, foreign_key: :legal_entity_id)
     has_one(:merged_to_legal_entity, RelatedLegalEntity, foreign_key: :merged_from_id)
     has_many(:merged_from_legal_entities, RelatedLegalEntity, foreign_key: :merged_to_id)
+    has_many(:employees, Employee, foreign_key: :legal_entity_id)
+    has_many(:divisions, Division, foreign_key: :legal_entity_id)
 
     timestamps()
   end

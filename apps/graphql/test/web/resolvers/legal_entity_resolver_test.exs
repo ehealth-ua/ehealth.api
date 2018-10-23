@@ -208,6 +208,9 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
       insert(:prm, :legal_entity)
       phone = %{"type" => "MOBILE", "number" => "+380201112233"}
       legal_entity = insert(:prm, :legal_entity, phones: [phone])
+      insert(:prm, :division, legal_entity: legal_entity, name: "Захід Сонця")
+      insert(:prm, :division, legal_entity: legal_entity)
+
       insert(:prm, :related_legal_entity, merged_to: legal_entity, is_active: false)
       related_merged_from = insert(:prm, :related_legal_entity, merged_to: legal_entity)
       insert(:prm, :related_legal_entity, merged_to: legal_entity)
@@ -232,6 +235,32 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
             archive {
               date
               place
+            }
+            employees(first: 1){
+              nodes {
+                databaseId
+                additionalInfo{
+                  specialities{
+                    speciality
+                    speciality_officio
+                  }
+                }
+                party {
+                  databaseId
+                  firstName
+                }
+                legal_entity {
+                  databaseId
+                  publicName
+                }
+              }
+            }
+            divisions(first: 1){
+              nodes {
+                databaseId
+                name
+                email
+              }
             }
             mergedFromLegalEntities(first: 1, filter: {isActive: true}){
               nodes {
@@ -266,7 +295,7 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
         }
       """
 
-      variables = %{id: id}
+      variables = %{id: id, divisionName: "Захід Сонця", employeeType: "DOCTOR"}
 
       resp =
         conn
