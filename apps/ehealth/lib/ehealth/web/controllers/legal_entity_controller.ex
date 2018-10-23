@@ -34,6 +34,12 @@ defmodule EHealth.Web.LegalEntityController do
     end
   end
 
+  def list_legators(%Plug.Conn{} = conn, params) do
+    with %Page{} = paging <- API.list_legators(params, get_client_id(conn.req_headers)) do
+      render(conn, "index.json", legal_entities: paging.entries, paging: paging)
+    end
+  end
+
   def show(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
     with {:ok, legal_entity, security} <- API.get_by_id(id, req_headers) do
       conn

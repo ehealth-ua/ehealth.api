@@ -5,7 +5,6 @@ defmodule GraphQLWeb.Resolvers.RelatedLegalEntity do
 
   alias Absinthe.Relay.Connection
   alias Absinthe.Resolution.Helpers, as: ResolutionHelper
-  alias Core.LegalEntities
   alias Core.LegalEntities.RelatedLegalEntity
   alias Core.PRMRepo
   alias Dataloader.Ecto
@@ -33,7 +32,7 @@ defmodule GraphQLWeb.Resolvers.RelatedLegalEntity do
 
   def data, do: Ecto.new(PRMRepo, query: &query/2)
 
-  def query(queryable, %{filter: filter, order_by: order_by} = args) do
+  def query(_, %{filter: filter, order_by: order_by} = args) do
     {:ok, :forward, limit} = Connection.limit(args)
     limit = limit + 1
 

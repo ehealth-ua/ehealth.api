@@ -707,6 +707,31 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     end
   end
 
+  describe "get related legal_entities" do
+    test "invalid client_id", %{conn: conn} do
+      from_legal_entity = insert(:prm, :legal_entity)
+      to_legal_entity = insert(:prm, :legal_entity)
+
+      conn = put_client_id_header(conn, to_legal_entity.id)
+      conn = get(conn, legal_entity_path(conn, :list_legators, from_legal_entity.id))
+
+      assert resp = json_response(conn, 403)
+      assert %{"error" => %{"message" => "User is not allowed to view"}} = resp
+    end
+
+    test "success", %{conn: conn} do
+      from_legal_entity = insert(:prm, :legal_entity)
+      to_legal_entity = insert(:prm, :legal_entity)
+      insert(:prm, :related_legal_entity, merged_from: to_legal_entity, merged_to: from_legal_entity)
+
+      conn = put_client_id_header(conn, from_legal_entity.id)
+      conn = get(conn, legal_entity_path(conn, :list_legators, from_legal_entity.id))
+
+      assert resp = json_response(conn, 200)
+      assert_list_response_schema(resp["data"], "related_legal_entity")
+    end
+  end
+
   def assert_security_in_urgent_response(resp) do
     assert Map.has_key?(resp, "urgent")
     assert Map.has_key?(resp["urgent"], "security")

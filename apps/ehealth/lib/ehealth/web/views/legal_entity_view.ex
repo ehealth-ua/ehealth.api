@@ -5,6 +5,7 @@ defmodule EHealth.Web.LegalEntityView do
 
   use EHealth.Web, :view
   alias Core.LegalEntities.LegalEntity
+  alias Core.LegalEntities.RelatedLegalEntity
 
   @fields ~w(
     id
@@ -47,6 +48,18 @@ defmodule EHealth.Web.LegalEntityView do
     legal_entity
     |> Map.take(@fields)
     |> Map.put(:medical_service_provider, render_one(msp, __MODULE__, "medical_service_provider.json"))
+  end
+
+  def render("legal_entity.json", %{legal_entity: %RelatedLegalEntity{} = legal_entity}) do
+    %{merged_from: merged_from_legal_entity} = legal_entity
+
+    legal_entity
+    |> Map.take(~w(reason is_active inserted_at inserted_by)a)
+    |> Map.put(:merged_from_legal_entity, render_one(merged_from_legal_entity, __MODULE__, "legator.json"))
+  end
+
+  def render("legator.json", %{legal_entity: %LegalEntity{} = legal_entity}) do
+    Map.take(legal_entity, ~w(id name edrpou)a)
   end
 
   def render("legal_entity.json", %{legal_entity: legal_entity}) do

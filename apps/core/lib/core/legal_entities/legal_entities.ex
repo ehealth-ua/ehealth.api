@@ -90,6 +90,18 @@ defmodule Core.LegalEntities do
     |> search(params, LegalEntity)
   end
 
+  def list_legators(%{"id" => id} = params, id) do
+    RelatedLegalEntity
+    |> where([rle], rle.merged_to_id == ^id)
+    |> join(:left, [rle], from_le in assoc(rle, :merged_from))
+    |> preload([rle, from_le], merged_from: from_le)
+    |> PRMRepo.paginate(Map.delete(params, "id"))
+  end
+
+  def list_legators(_, _) do
+    {:error, {:forbidden, "User is not allowed to view"}}
+  end
+
   def get_search_query(LegalEntity = entity, %{ids: _ids} = changes) do
     get_search_query(entity, convert_comma_params_to_where_in_clause(changes, :ids, :id))
   end

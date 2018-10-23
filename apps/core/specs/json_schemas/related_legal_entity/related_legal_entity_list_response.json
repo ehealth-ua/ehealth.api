@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "merged_from_legal_entity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "merged_from legal entity id"
+          },
+          "name": {
+            "type": "string",
+            "description": "full official name of legal entity"
+          },
+          "edrpou": {
+            "type": "string",
+            "description": "Unified Register of Businesses and Organizations"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "edrpou"
+        ]
+      },
+      "reason": {
+        "type": "string",
+        "description": "the legit documents which prove the relationship between legal entities"
+      },
+      "is_active": {
+        "type": "boolean",
+        "description": "whether relationship between legal entities is active",
+        "default": true
+      },
+      "inserted_at": {
+        "type": "string",
+        "description": "timestamp"
+      },
+      "inserted_by": {
+        "type": "string",
+        "description": "user id"
+      }
+    },
+    "required": [
+      "merged_from_legal_entity",
+      "reason",
+      "is_active",
+      "inserted_at",
+      "inserted_by"
+    ]
+  }
+}

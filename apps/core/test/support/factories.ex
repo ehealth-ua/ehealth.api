@@ -35,8 +35,8 @@ defmodule Core.Factories do
   # Other factories
   use Core.Factories.AddressFactory
 
-  alias Core.Repo
   alias Core.PRMRepo
+  alias Core.Repo
 
   def insert(type, factory, attrs \\ []) do
     factory
