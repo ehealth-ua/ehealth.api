@@ -16,14 +16,6 @@ defmodule EHealthWeb.Router do
   pipeline :api do
     plug(:accepts, ["json"])
     plug(:put_secure_browser_headers)
-
-    # Uncomment to enable versioning of your API
-    # plug Multiverse, gates: [
-    #   "2016-07-31": EHealth.Web.InitialGate
-    # ]
-
-    # You can allow JSONP requests by uncommenting this line:
-    # plug :allow_jsonp
   end
 
   # client_id = legal_entity_id
@@ -239,6 +231,7 @@ defmodule EHealthWeb.Router do
     post("/contract_requests", ContractRequestController, :draft)
     post("/contract_requests/:id", ContractRequestController, :create)
     patch("/contract_requests/:id", ContractRequestController, :update)
+    patch("/contract_requests/:id/actions/assign", ContractRequestController, :update_assignee)
     patch("/contract_requests/:id/actions/approve", ContractRequestController, :approve)
     patch("/contract_requests/:id/actions/approve_msp", ContractRequestController, :approve_msp)
     patch("/contract_requests/:id/actions/decline", ContractRequestController, :decline)

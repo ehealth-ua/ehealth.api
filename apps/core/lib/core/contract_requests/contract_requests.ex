@@ -22,6 +22,7 @@ defmodule Core.ContractRequests do
   alias Core.Man.Templates.ContractRequestPrintoutForm
   alias Core.Parties
   alias Core.Parties.Party
+  alias Core.PRMRepo
   alias Core.Repo
   alias Core.Utils.NumberGenerator
   alias Core.ValidationError
@@ -203,7 +204,7 @@ defmodule Core.ContractRequests do
          :ok <- user_has_role(data, "NHS ADMIN SIGNER"),
          %ContractRequest{} = contract_request <- Repo.get(ContractRequest, id),
          :ok <- validate_nhs_signer_id(params, client_id),
-         :ok <- validate_status(contract_request, ContractRequest.status(:new)),
+         :ok <- validate_status(contract_request, ContractRequest.status(:in_progress)),
          :ok <- validate_start_date(contract_request),
          update_params <-
            params
@@ -211,6 +212,30 @@ defmodule Core.ContractRequests do
            |> Map.put("updated_by", user_id),
          %Ecto.Changeset{valid?: true} = changes <- update_changeset(contract_request, update_params),
          {:ok, contract_request} <- Repo.update(changes) do
+      {:ok, contract_request, preload_references(contract_request)}
+    end
+  end
+
+  def update_assignee(headers, %{"id" => contract_request_id, "employee_id" => employee_id} = params) do
+    user_id = get_consumer_id(headers)
+    client_id = get_client_id(headers)
+
+    with :ok <- JsonSchema.validate(:contract_request_assign, Map.take(params, ~w(employee_id))),
+         {:ok, %{"data" => user_data}} <- @mithril_api.get_user_roles(user_id, %{}, headers),
+         :ok <- user_has_role(user_data, "NHS ADMIN SIGNER"),
+         %ContractRequest{} = contract_request <- Repo.get(ContractRequest, contract_request_id),
+         {:ok, employee} <- validate_employee(employee_id, client_id, "$.employee_id"),
+         :ok <- validate_employee_role(employee, "NHS ADMIN SIGNER"),
+         :ok <- validate_status(contract_request, [ContractRequest.status(:new), ContractRequest.status(:in_progress)]),
+         update_params <- %{
+           "status" => ContractRequest.status(:in_progress),
+           "updated_at" => NaiveDateTime.utc_now(),
+           "updated_by" => user_id,
+           "assignee_id" => params["employee_id"]
+         },
+         %Ecto.Changeset{valid?: true} = changes <- assign_changeset(contract_request, update_params),
+         {:ok, contract_request} <- Repo.update(changes),
+         _ <- EventManager.insert_change_status(contract_request, contract_request.status, user_id) do
       {:ok, contract_request, preload_references(contract_request)}
     end
   end
@@ -232,7 +257,7 @@ defmodule Core.ContractRequests do
          :ok <- JsonSchema.validate(:contract_request_approve, content),
          :ok <- validate_contractor_legal_entity(contract_request.contractor_legal_entity_id),
          :ok <- validate_approve_content(content, contract_request, references),
-         :ok <- validate_status(contract_request, ContractRequest.status(:new)),
+         :ok <- validate_status(contract_request, ContractRequest.status(:in_progress)),
          :ok <-
            save_signed_content(
              contract_request.id,
@@ -311,7 +336,7 @@ defmodule Core.ContractRequests do
          :ok <- JsonSchema.validate(:contract_request_decline, content),
          :ok <- validate_contractor_legal_entity(contract_request.contractor_legal_entity_id),
          :ok <- validate_decline_content(content, contract_request, references),
-         :ok <- validate_status(contract_request, ContractRequest.status(:new)),
+         :ok <- validate_status(contract_request, ContractRequest.status(:in_progress)),
          :ok <-
            save_signed_content(
              contract_request.id,
@@ -665,6 +690,19 @@ defmodule Core.ContractRequests do
     |> validate_required(fields_required)
   end
 
+  defp assign_changeset(%ContractRequest{} = contract_request, params) do
+    fields_required = ~w(
+      status
+      assignee_id
+      updated_at
+      updated_by
+    )a
+
+    contract_request
+    |> cast(params, fields_required)
+    |> validate_required(fields_required)
+  end
+
   def approve_msp_changeset(%ContractRequest{} = contract_request, params) do
     fields = ~w(
       status
@@ -814,30 +852,54 @@ defmodule Core.ContractRequests do
     end
   end
 
-  defp validate_nhs_signer_id(%ContractRequest{nhs_signer_id: nhs_signer_id}, client_id)
-       when not is_nil(nhs_signer_id) do
-    validate_nhs_signer_id(%{"nhs_signer_id" => nhs_signer_id}, client_id)
+  defp validate_nhs_signer_id(%ContractRequest{nhs_signer_id: nhs_signer_id}, client_id) when nhs_signer_id != nil do
+    with {:ok, _employee} <- validate_employee(nhs_signer_id, client_id, "$.nhs_signer_id") do
+      :ok
+    end
   end
 
-  defp validate_nhs_signer_id(%{"nhs_signer_id" => nhs_signer_id}, client_id)
-       when not is_nil(nhs_signer_id) do
-    with %Employee{} = employee <- Employees.get_by_id(nhs_signer_id),
-         {:client_id, true} <- {:client_id, employee.legal_entity_id == client_id},
-         {:active, true} <- {:active, employee.is_active and employee.status == Employee.status(:approved)} do
+  defp validate_nhs_signer_id(%{"nhs_signer_id" => nhs_signer_id}, client_id) when nhs_signer_id != nil do
+    with {:ok, _employee} <- validate_employee(nhs_signer_id, client_id, "$.nhs_signer_id") do
       :ok
-    else
-      {:active, _} ->
-        Error.dump(%ValidationError{description: "Employee must be active", path: "$.nhs_signer_id"})
-
-      {:client_id, _} ->
-        Error.dump(%ValidationError{description: "Employee doesn't belong to legal_entity", path: "$.nhs_signer_id"})
-
-      _ ->
-        Error.dump(%ValidationError{description: "Invalid nhs_signer_id", path: "$.nhs_signer_id"})
     end
   end
 
   defp validate_nhs_signer_id(_, _), do: :ok
+
+  defp validate_employee(employee_id, client_id, path) do
+    with %Employee{} = employee <- Employees.get_by_id(employee_id),
+         {:client_id, true} <- {:client_id, employee.legal_entity_id == client_id},
+         {:active, true} <- {:active, employee.is_active and employee.status == Employee.status(:approved)} do
+      {:ok, employee}
+    else
+      {:active, _} ->
+        Error.dump(%ValidationError{description: "Employee must be active", path: path})
+
+      {:client_id, _} ->
+        Error.dump(%ValidationError{description: "Employee doesn't belong to legal_entity", path: path})
+
+      _ ->
+        Error.dump(%ValidationError{description: "Invalid #{path}", path: path})
+    end
+  end
+
+  defp validate_employee_role(%Employee{} = employee, role) do
+    user_ids =
+      employee
+      |> PRMRepo.preload(:party_users)
+      |> Map.get(:party_users)
+      |> Enum.map(& &1.user_id)
+      |> Enum.join(",")
+
+    with true <- user_ids != "",
+         {:ok, %{"data" => user_data}} <- @mithril_api.search_user_roles(%{user_ids: user_ids}, []),
+         :ok <- user_has_role(user_data, role) do
+      :ok
+    else
+      _ ->
+        {:error, {:forbidden, "Employee doesn't have required role"}}
+    end
+  end
 
   defp validate_unique_contractor_employee_divisions(%{
          "contractor_employee_divisions" => employee_divisions
@@ -1216,11 +1278,13 @@ defmodule Core.ContractRequests do
         "Incorrect status of contract_request to modify it"
       )
 
-  defp validate_status(%ContractRequest{status: status}, required_status, _)
-       when status == required_status,
-       do: :ok
-
-  defp validate_status(_, _, msg), do: {:error, {:conflict, msg}}
+  defp validate_status(%ContractRequest{status: status}, required_status, message) do
+    cond do
+      status == required_status -> :ok
+      is_list(required_status) and status in required_status -> :ok
+      true -> {:error, {:conflict, message}}
+    end
+  end
 
   def get_by_id(headers, client_type, id) do
     client_id = get_client_id(headers)

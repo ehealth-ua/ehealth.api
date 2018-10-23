@@ -35,6 +35,7 @@ defmodule Core.API.MithrilBehaviour do
   @callback delete_app(id :: binary, headers :: list) :: api_response()
 
   # user_roles
+  @callback search_user_roles(params :: map, headers :: list) :: api_response()
   @callback get_user_roles(user_id :: binary, params :: map, headers :: list) :: api_response()
   @callback create_user_role(user_id :: binary, params :: map, headers :: list) :: api_response()
   @callback create_global_user_role(user_id :: binary, params :: map, headers :: list) :: api_response()

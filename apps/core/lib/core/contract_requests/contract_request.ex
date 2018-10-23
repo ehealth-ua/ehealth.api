@@ -5,6 +5,7 @@ defmodule Core.ContractRequests.ContractRequest do
   alias Ecto.UUID
 
   @status_new "NEW"
+  @status_in_progress "IN_PROGRESS"
   @status_declined "DECLINED"
   @status_approved "APPROVED"
   @status_pending_nhs_sign "PENDING_NHS_SIGN"
@@ -13,6 +14,7 @@ defmodule Core.ContractRequests.ContractRequest do
   @status_terminated "TERMINATED"
 
   def status(:new), do: @status_new
+  def status(:in_progress), do: @status_in_progress
   def status(:declined), do: @status_declined
   def status(:approved), do: @status_approved
   def status(:pending_nhs_sign), do: @status_pending_nhs_sign
