@@ -2,11 +2,21 @@ defmodule GraphQLWeb.Schema.RelatedLegalEntityTypes do
   @moduledoc false
 
   use Absinthe.Schema.Notation
-  use Absinthe.Relay.Schema.Notation, :classic
+  use Absinthe.Relay.Schema.Notation, :modern
 
   import Absinthe.Resolution.Helpers, only: [dataloader: 1]
 
   alias GraphQLWeb.Loaders.PRM
+
+  connection(node_type: :related_legal_entity) do
+    field :nodes, list_of(:related_legal_entity) do
+      resolve(fn _, %{source: conn} ->
+        {:ok, Enum.map(conn.edges, & &1.node)}
+      end)
+    end
+
+    edge(do: nil)
+  end
 
   node object(:related_legal_entity) do
     field(:database_id, non_null(:id))

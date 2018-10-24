@@ -57,36 +57,6 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
     edge(do: nil)
   end
 
-  connection(node_type: :related_legal_entity) do
-    field :nodes, list_of(:related_legal_entity) do
-      resolve(fn _, %{source: conn} ->
-        {:ok, Enum.map(conn.edges, & &1.node)}
-      end)
-    end
-
-    edge(do: nil)
-  end
-
-  connection(node_type: :employee) do
-    field :nodes, list_of(:employee) do
-      resolve(fn _, %{source: conn} ->
-        {:ok, Enum.map(conn.edges, & &1.node)}
-      end)
-    end
-
-    edge(do: nil)
-  end
-
-  connection(node_type: :division) do
-    field :nodes, list_of(:division) do
-      resolve(fn _, %{source: conn} ->
-        {:ok, Enum.map(conn.edges, & &1.node)}
-      end)
-    end
-
-    edge(do: nil)
-  end
-
   node object(:legal_entity) do
     field(:database_id, non_null(:id))
     field(:name, non_null(:string))

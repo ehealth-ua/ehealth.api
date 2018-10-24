@@ -19,6 +19,16 @@ defmodule GraphQLWeb.Schema.EmployeeTypes do
   @status_approved Employee.status(:approved)
   @status_dismissed Employee.status(:dismissed)
 
+  connection(node_type: :employee) do
+    field :nodes, list_of(:employee) do
+      resolve(fn _, %{source: conn} ->
+        {:ok, Enum.map(conn.edges, & &1.node)}
+      end)
+    end
+
+    edge(do: nil)
+  end
+
   node object(:employee) do
     field(:database_id, non_null(:id))
     field(:position, non_null(:string))

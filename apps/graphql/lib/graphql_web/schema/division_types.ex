@@ -18,6 +18,18 @@ defmodule GraphQLWeb.Schema.DivisionTypes do
   @type_drugstore Division.type(:drugstore)
   @type_drugstore_point Division.type(:drugstore_point)
 
+  connection node_type: :division do
+    field :nodes, list_of(:division) do
+      resolve(fn
+        _, %{source: conn} ->
+          nodes = conn.edges |> Enum.map(& &1.node)
+          {:ok, nodes}
+      end)
+    end
+
+    edge(do: nil)
+  end
+
   node object(:division) do
     field(:database_id, non_null(:id))
     field(:name, non_null(:string))
