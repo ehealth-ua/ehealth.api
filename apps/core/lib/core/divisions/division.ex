@@ -14,6 +14,8 @@ defmodule Core.Divisions.Division do
   @type_clinic "CLINIC"
   @type_ambulant_clinic "AMBULANT_CLINIC"
   @type_fap "FAP"
+  @type_drugstore "DRUGSTORE"
+  @type_drugstore_point "DRUGSTORE_POINT"
 
   def status(:active), do: @status_active
   def status(:inactive), do: @status_inactive
@@ -21,6 +23,8 @@ defmodule Core.Divisions.Division do
   def type(:clinic), do: @type_clinic
   def type(:ambulant_clinic), do: @type_ambulant_clinic
   def type(:fap), do: @type_fap
+  def type(:drugstore), do: @type_drugstore
+  def type(:drugstore_point), do: @type_drugstore_point
 
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "divisions" do

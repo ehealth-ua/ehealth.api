@@ -15,6 +15,8 @@ defmodule GraphQLWeb.Schema.DivisionTypes do
   @type_clinic Division.type(:clinic)
   @type_ambulant_clinic Division.type(:ambulant_clinic)
   @type_fap Division.type(:fap)
+  @type_drugstore Division.type(:drugstore)
+  @type_drugstore_point Division.type(:drugstore_point)
 
   node object(:division) do
     field(:database_id, non_null(:id))
@@ -58,6 +60,8 @@ defmodule GraphQLWeb.Schema.DivisionTypes do
     value(:clinit, as: @type_clinic)
     value(:ambulant_clinic, as: @type_ambulant_clinic)
     value(:fap, as: @type_fap)
+    value(:drugstore, as: @type_drugstore)
+    value(:drugstore_point, as: @type_drugstore_point)
   end
 
   # embed

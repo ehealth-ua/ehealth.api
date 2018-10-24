@@ -32,6 +32,7 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
     field(:settlement, :string)
     field(:id, :id)
     field(:edrpou, :string)
+    field(:type, :legal_entity_type)
   end
 
   enum :legal_entity_order_by do
@@ -173,7 +174,7 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
   # enum
 
   enum :legal_entity_type do
-    value(:mis, as: "MIS")
+    value(:nhs, as: "NHS")
     value(:msp, as: "MSP")
     value(:pharmacy, as: "PHARMACY")
   end
