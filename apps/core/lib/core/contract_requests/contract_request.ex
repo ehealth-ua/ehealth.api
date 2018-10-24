@@ -22,7 +22,7 @@ defmodule Core.ContractRequests.ContractRequest do
   def status(:signed), do: @status_signed
   def status(:terminated), do: @status_terminated
 
-  @derive {Jason.Encoder, except: [:__meta__]}
+  @derive {Jason.Encoder, except: [:__meta__, :previous_request]}
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "contract_requests" do
     field(:contractor_legal_entity_id, UUID)
@@ -54,9 +54,10 @@ defmodule Core.ContractRequests.ContractRequest do
     field(:data, :map)
     field(:misc, :string)
     field(:assignee_id, UUID)
-    field(:previous_request_id, UUID)
     field(:inserted_by, UUID)
     field(:updated_by, UUID)
+
+    belongs_to(:previous_request, __MODULE__, type: UUID)
 
     timestamps()
   end
