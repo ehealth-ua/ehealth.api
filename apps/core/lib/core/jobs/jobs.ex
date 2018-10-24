@@ -5,6 +5,7 @@ defmodule Core.Jobs do
 
   import Core.API.Helpers.Connection, only: [get_consumer_id: 1]
 
+  alias Absinthe.Relay.Node
   alias Core.Jobs.LegalEntityMergeJob
   alias Core.LegalEntities
   alias Core.LegalEntities.LegalEntity
@@ -31,11 +32,19 @@ defmodule Core.Jobs do
          :ok <- validate_is_merged(:to, content),
          {:ok, legal_entity_from} <- validate_legal_entity("from", content),
          {:ok, legal_entity_to} <- validate_legal_entity("to", content),
-         :ok <- validate_legal_entities_type(legal_entity_from, legal_entity_to) do
-      create(content, encoded_content, headers)
+         :ok <- validate_legal_entities_type(legal_entity_from, legal_entity_to),
+         :ok <- create(content, encoded_content, headers) do
+      :ok
     else
-      {:error, {code, reason}} when is_atom(code) -> {:error, reason}
-      err -> err
+      {:error, {code, reason}} when is_atom(code) ->
+        {:error, reason}
+
+      {:job_exists, id} ->
+        id = Node.to_global_id("LegalEntityMergeJob", id)
+        {:error, "Merge Legal Entity job already created with id #{id}"}
+
+      err ->
+        err
     end
   end
 

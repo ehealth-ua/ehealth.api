@@ -47,7 +47,7 @@ defmodule GraphQLWeb.LegalEntityMergeJobResolverTest do
 
   describe "merge legal entities" do
     test "success", %{conn: conn} do
-      expect_decode_and_validate()
+      expect_decode_and_validate(2)
 
       from = insert(:prm, :legal_entity)
       to = insert(:prm, :legal_entity)
@@ -64,6 +64,28 @@ defmodule GraphQLWeb.LegalEntityMergeJobResolverTest do
       assert "PENDING" == job["status"]
       assert Map.has_key?(job, "endedAt")
       refute job["endedAt"]
+
+      resp =
+        conn
+        |> post_query(@query, input_signed_content(signed_content))
+        |> json_response(200)
+
+      assert %{"message" => "Merge Legal Entity job already created with id " <> id} = hd(resp["errors"])
+
+      query = """
+        query GetLegalEntityMergeJobQuery($id: ID) {
+          legalEntityMergeJob(id: $id) {
+            status
+          }
+        }
+      """
+
+      assert "PENDING" ==
+               conn
+               |> put_scope("legal_entity_merge_job:read")
+               |> post_query(query, %{id: id})
+               |> json_response(200)
+               |> get_in(~w(data legalEntityMergeJob status))
     end
 
     test "invalid scope", %{conn: conn} do
