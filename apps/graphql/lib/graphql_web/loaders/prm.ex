@@ -9,20 +9,15 @@ defmodule GraphQLWeb.Loaders.PRM do
   def data, do: Dataloader.Ecto.new(PRMRepo, query: &query/2)
 
   def query(queryable, %{filter: filter, order_by: order_by} = args) do
-    {:ok, :forward, limit} = Connection.limit(args)
-    limit = limit + 1
+    with {:ok, offset, limit} <- Connection.offset_and_limit_for_query(args, []) do
+      limit = limit + 1
 
-    offset =
-      case Connection.offset(args) do
-        {:ok, offset} when is_integer(offset) -> offset
-        _ -> 0
-      end
-
-    queryable
-    |> where(^filter)
-    |> order_by(^order_by)
-    |> limit(^limit)
-    |> offset(^offset)
+      queryable
+      |> where(^filter)
+      |> order_by(^order_by)
+      |> limit(^limit)
+      |> offset(^offset)
+    end
   end
 
   def query(queryable, _), do: queryable

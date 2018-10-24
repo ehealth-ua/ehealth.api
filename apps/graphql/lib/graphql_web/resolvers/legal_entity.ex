@@ -26,18 +26,12 @@ defmodule GraphQLWeb.Resolvers.LegalEntity do
     loader
     |> Dataloader.load(PRM, {:divisions, args}, legal_entity)
     |> on_load(fn loader ->
-      {:ok, :forward, limit} = Connection.limit(args)
+      with {:ok, offset, limit} <- Connection.offset_and_limit_for_query(args, []) do
+        records = Dataloader.get(loader, PRM, {:divisions, args}, legal_entity)
+        opts = [has_previous_page: offset > 0, has_next_page: length(records) > limit]
 
-      offset =
-        case Connection.offset(args) do
-          {:ok, offset} when is_integer(offset) -> offset
-          _ -> 0
-        end
-
-      records = Dataloader.get(loader, PRM, {:divisions, args}, legal_entity)
-      opts = [has_previous_page: offset > 0, has_next_page: length(records) > limit]
-
-      Connection.from_slice(Enum.take(records, limit), offset, opts)
+        Connection.from_slice(Enum.take(records, limit), offset, opts)
+      end
     end)
   end
 
@@ -45,18 +39,12 @@ defmodule GraphQLWeb.Resolvers.LegalEntity do
     loader
     |> Dataloader.load(PRM, {:employees, args}, legal_entity)
     |> on_load(fn loader ->
-      {:ok, :forward, limit} = Connection.limit(args)
+      with {:ok, offset, limit} <- Connection.offset_and_limit_for_query(args, []) do
+        records = Dataloader.get(loader, PRM, {:employees, args}, legal_entity)
+        opts = [has_previous_page: offset > 0, has_next_page: length(records) > limit]
 
-      offset =
-        case Connection.offset(args) do
-          {:ok, offset} when is_integer(offset) -> offset
-          _ -> 0
-        end
-
-      records = Dataloader.get(loader, PRM, {:employees, args}, legal_entity)
-      opts = [has_previous_page: offset > 0, has_next_page: length(records) > limit]
-
-      Connection.from_slice(Enum.take(records, limit), offset, opts)
+        Connection.from_slice(Enum.take(records, limit), offset, opts)
+      end
     end)
   end
 

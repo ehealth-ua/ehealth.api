@@ -205,6 +205,33 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
       refute data["pageInfo"]["hasNextPage"]
       assert data["pageInfo"]["hasPreviousPage"]
     end
+
+    test "first param not set", %{conn: conn} do
+      legal_entity = insert(:prm, :legal_entity)
+
+      query = """
+      query ListLegalEntitiesQuery {
+          legalEntities(first: 1) {
+            nodes {
+              databaseId
+              divisions{
+                nodes {
+                  databaseId
+                }
+              }
+            }
+          }
+        }
+      """
+
+      data =
+        conn
+        |> post_query(query)
+        |> json_response(200)
+
+      assert legal_entity.id == hd(get_in(data, ~w(data legalEntities nodes)))["databaseId"]
+      assert Enum.any?(data["errors"], &match?(%{"message" => "You must either supply `:first` or `:last`"}, &1))
+    end
   end
 
   describe "get by id" do
