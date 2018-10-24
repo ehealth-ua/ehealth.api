@@ -1,7 +1,7 @@
 defmodule GraphQLWeb.Resolvers.LegalEntity do
   @moduledoc false
 
-  import Ecto.Query, only: [where: 2, order_by: 2]
+  import Ecto.Query
   import Absinthe.Resolution.Helpers, only: [on_load: 2]
 
   alias Absinthe.Relay.Connection
@@ -11,11 +11,29 @@ defmodule GraphQLWeb.Resolvers.LegalEntity do
   alias Core.PRMRepo
   alias GraphQLWeb.Loaders.PRM
 
+  @address_search_fields ~w(area settlement)a
+
   def list_legal_entities(%{filter: filter, order_by: order_by} = args, _context) do
     LegalEntity
-    |> where(^filter)
+    |> prepare_where(filter)
     |> order_by(^order_by)
     |> Connection.from_query(&PRMRepo.all/1, args)
+  end
+
+  defp prepare_where(query, []), do: query
+
+  defp prepare_where(query, [{field, value} | tail]) when field in @address_search_fields do
+    condition = [Map.put(%{}, field, value)]
+
+    query
+    |> where([l], fragment("? @> ?", l.addresses, ^condition))
+    |> prepare_where(tail)
+  end
+
+  defp prepare_where(query, [{field, value} | tail]) do
+    query
+    |> where([l], field(l, ^field) == ^value)
+    |> prepare_where(tail)
   end
 
   def get_legal_entity_by_id(_parent, %{id: id}, _resolution) do

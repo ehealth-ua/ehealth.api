@@ -4,7 +4,7 @@ defmodule Core.LegalEntities.MedicalServiceProvider do
   use Ecto.Schema
   import Ecto.Changeset
 
-  @derive {Jason.Encoder, except: [:__meta__]}
+  @derive {Jason.Encoder, except: [:__meta__, :legal_entity]}
 
   @optional_fields ~w(
     accreditation

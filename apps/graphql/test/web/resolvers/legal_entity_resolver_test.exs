@@ -232,6 +232,33 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
       assert legal_entity.id == hd(get_in(data, ~w(data legalEntities nodes)))["databaseId"]
       assert Enum.any?(data["errors"], &match?(%{"message" => "You must either supply `:first` or `:last`"}, &1))
     end
+
+    test "filter by area and settlement", %{conn: conn} do
+      insert(:prm, :legal_entity)
+      address = Map.merge(build(:address), %{"area" => "ЛЬВІВСЬКА", "settlement" => "ЛЬВІВ"})
+      legal_entity = insert(:prm, :legal_entity, addresses: [address])
+
+      query = """
+        query ListLegalEntitiesQuery($first: Int!, $filter: LegalEntityFilter!) {
+          legalEntities(first: $first, filter: $filter) {
+            nodes {
+              databaseId
+            }
+          }
+        }
+      """
+
+      variables = %{first: 1, filter: %{area: "ЛЬВІВСЬКА", settlement: "ЛЬВІВ", edrpou: legal_entity.edrpou}}
+
+      legal_entities =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+        |> get_in(~w(data legalEntities nodes))
+
+      refute [] == legal_entities
+      assert legal_entity.id == hd(legal_entities)["databaseId"]
+    end
   end
 
   describe "get by id" do
@@ -273,6 +300,25 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
               date
               place
             }
+            medicalServiceProvider{
+              licenses {
+                license_number
+                issued_by
+                issued_date
+                active_from_date
+                order_no
+                expiry_date
+                what_licensed
+              }
+              accreditation{
+                category
+                order_no
+                order_date
+                issued_date
+                expiry_date
+              }
+            }
+            receiverFundsCode
             owner {
               databaseId
               position
@@ -341,15 +387,6 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
                 publicName
               }
             }
-            medicalServiceProvider {
-              licenses {
-                licenseNumber
-                whatLicensed
-              }
-              accreditation {
-                category
-              }
-            }
           }
         }
       """
@@ -394,6 +431,11 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
                  }
                ] == employee_from_resp["additionalInfo"]["specialities"]
       end)
+
+      # msp
+      msp = legal_entity.medical_service_provider |> Jason.encode!() |> Jason.decode!()
+      assert msp["accreditation"] == resp["medicalServiceProvider"]["accreditation"]
+      assert msp["licenses"] == resp["medicalServiceProvider"]["licenses"]
 
       # divisions
       assert 1 == length(resp["divisions"]["nodes"])
