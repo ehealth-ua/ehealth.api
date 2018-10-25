@@ -1,4 +1,4 @@
-defmodule Core.DeclarationRequests.API.Persons do
+defmodule Core.DeclarationRequests.API.V1.Persons do
   @moduledoc false
 
   @person_active "active"

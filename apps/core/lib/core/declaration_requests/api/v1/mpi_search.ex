@@ -3,7 +3,7 @@ defmodule Core.DeclarationRequests.API.V1.MpiSearch do
   Provides mpi search
   """
 
-  alias Core.DeclarationRequests.API.Persons
+  alias Core.DeclarationRequests.API.V1.Persons
 
   @mpi_api Application.get_env(:core, :api_resolvers)[:mpi]
 

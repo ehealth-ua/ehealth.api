@@ -7,7 +7,8 @@ defmodule Core.Persons.V2.Validator do
   alias Core.Validators.JsonObjects
 
   def validate(person) do
-    with :ok <- validate_tax_id(person),
+    with :ok <- validate_person_registry_identifier(person),
+         :ok <- validate_tax_id(person),
          :ok <- validate_unzr(person),
          :ok <- validate_national_id(person),
          :ok <- validate_birth_certificate_number(person),
@@ -21,6 +22,20 @@ defmodule Core.Persons.V2.Validator do
     else
       %ValidationError{path: path} = error ->
         Error.dump(%{error | path: JsonObjects.combine_path("person", path)})
+    end
+  end
+
+  def validate_person_registry_identifier(%{"birth_date" => birth_date} = person) do
+    age = Timex.diff(Timex.now(), Date.from_iso8601!(birth_date), :years)
+
+    if age > 14 and is_nil(person["tax_id"] || person["unzr"]) do
+      %ValidationError{
+        description: "Persons older that 14 years should have registry identifiers: unzr or tax_id",
+        params: ["tax_id or unzr"],
+        path: "$.person.unzr"
+      }
+    else
+      :ok
     end
   end
 

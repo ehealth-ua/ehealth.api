@@ -601,17 +601,8 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
 
       gen_sequence_number()
 
-      expect(MPIMock, :search, fn params, _ ->
-        {:ok,
-         %{
-           "data" => [
-             params
-             |> Map.put("id", "b5350f79-f2ca-408f-b15d-1ae0a8cc861c")
-             |> Map.put("authentication_methods", [
-               %{"type" => "OTP", "phone_number" => "+380508887700"}
-             ])
-           ]
-         }}
+      expect(MediaStorageMock, :create_signed_url, 3, fn _, _, resource_name, resource_id, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://a.link.for/#{resource_id}/#{resource_name}"}}}
       end)
 
       role_id = UUID.generate()
@@ -637,11 +628,7 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
         {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
       end)
 
-      expect(OTPVerificationMock, :initialize, fn _number, _headers ->
-        {:ok, %{}}
-      end)
-
-      age = 16
+      age = 12
       person_birth_date = Timex.shift(Timex.today(), years: -age) |> to_string()
 
       declaration_request_params =
@@ -683,6 +670,49 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
       assert "NEW" = resp["data"]["status"]
       assert "NEW" = Repo.get(DeclarationRequest, d1.id).status
       assert "CANCELLED" = Repo.get(DeclarationRequest, d2.id).status
+    end
+
+    test "declaration request is fail for person without tax_id unz and age > 14", %{conn: conn} do
+      age = 16
+      person_birth_date = Timex.shift(Timex.today(), years: -age) |> to_string()
+
+      declaration_request_params =
+        "../core/test/data/v2/declaration_request.json"
+        |> File.read!()
+        |> Jason.decode!()
+        |> put_in(["declaration_request", "person", "birth_date"], person_birth_date)
+
+      person =
+        declaration_request_params
+        |> get_in(~W(declaration_request person))
+        |> Map.put("authentication_methods", [%{"type" => "OFFLINE"}])
+        |> Map.put("no_tax_id", true)
+        |> Map.delete("tax_id")
+
+      declaration_request_params = put_in(declaration_request_params, ~W(declaration_request person), person)
+
+      resp =
+        conn
+        |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
+        |> post(v2_declaration_request_post_path(conn, :create), Jason.encode!(declaration_request_params))
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.person.person.unzr",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "Persons older that 14 years should have registry identifiers: unzr or tax_id",
+                       "params" => ["tax_id or unzr"],
+                       "rule" => "invalid"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
     end
 
     test "declaration request failed for person without tax_id but no_tax_id=false", %{conn: conn} do

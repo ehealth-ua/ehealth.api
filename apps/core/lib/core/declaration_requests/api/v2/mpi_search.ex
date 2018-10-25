@@ -3,14 +3,14 @@ defmodule Core.DeclarationRequests.API.V2.MpiSearch do
   Provides mpi search
   """
 
-  alias Core.DeclarationRequests.API.Persons
+  alias Core.DeclarationRequests.API.V1.Persons
 
   @mpi_api Application.get_env(:core, :api_resolvers)[:mpi]
 
-  def search(person) do
+  def search(person, headers \\ []) do
     with {:ok, search_params} <- Persons.get_search_params(person) do
       search_params
-      |> @mpi_api.search([])
+      |> @mpi_api.search(headers)
       |> search_result()
     else
       {:error, :ignore} -> {:ok, nil}

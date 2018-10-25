@@ -308,6 +308,7 @@ defmodule Core.Persons.V2.ValidatorTest do
     test "Error on no unzr when NATIONAL_ID document", %{person: person} do
       person =
         person
+        |> Map.put("birth_date", "2018-10-17")
         |> Map.delete("unzr")
         |> Map.put("documents", [%{"type" => "NATIONAL_ID", "number" => "1234567"}])
 
@@ -315,6 +316,20 @@ defmodule Core.Persons.V2.ValidatorTest do
 
       assert %{rule: :invalid, description: "unzr is mandatory for document type NATIONAL_ID", params: ["unzr"]} ==
                rules
+    end
+
+    test "Error on no unzr no tax_id", %{person: person} do
+      person =
+        person
+        |> Map.delete("unzr")
+
+      {:error, [{rules, _path}]} = Validator.validate(person)
+
+      assert %{
+               description: "Persons older that 14 years should have registry identifiers: unzr or tax_id",
+               params: ["tax_id or unzr"],
+               rule: :invalid
+             } == rules
     end
 
     test "Error on invalid birth certificate number", %{person: person} do
