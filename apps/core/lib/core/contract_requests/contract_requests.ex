@@ -216,9 +216,10 @@ defmodule Core.ContractRequests do
     end
   end
 
-  def update_assignee(headers, %{"id" => contract_request_id, "employee_id" => employee_id} = params) do
+  def update_assignee(headers, %{"id" => contract_request_id} = params) do
     user_id = get_consumer_id(headers)
     client_id = get_client_id(headers)
+    employee_id = params["employee_id"]
 
     with :ok <- JsonSchema.validate(:contract_request_assign, Map.take(params, ~w(employee_id))),
          {:ok, %{"data" => user_data}} <- @mithril_api.get_user_roles(user_id, %{}, headers),
@@ -231,7 +232,7 @@ defmodule Core.ContractRequests do
            "status" => ContractRequest.status(:in_process),
            "updated_at" => NaiveDateTime.utc_now(),
            "updated_by" => user_id,
-           "assignee_id" => params["employee_id"]
+           "assignee_id" => employee_id
          },
          %Ecto.Changeset{valid?: true} = changes <- update_assignee_changeset(contract_request, update_params),
          {:ok, contract_request} <- Repo.update(changes),
