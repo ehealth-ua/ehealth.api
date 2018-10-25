@@ -17,7 +17,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
   alias Core.EventManager.Event
 
   @contract_request_status_new ContractRequest.status(:new)
-  @contract_request_status_in_progress ContractRequest.status(:in_progress)
+  @contract_request_status_in_process ContractRequest.status(:in_process)
   @contract_request_status_declined ContractRequest.status(:declined)
 
   @forbidden_statuses_for_termination [
@@ -1365,7 +1365,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         insert(
           :il,
           :contract_request,
-          status: @contract_request_status_in_progress,
+          status: @contract_request_status_in_process,
           start_date: Date.add(Date.utc_today(), 10),
           contractor_owner_id: employee.id
         )
@@ -1432,6 +1432,31 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       assert json_response(conn, 404)
     end
 
+    test "fail: invalid employee status", %{conn: conn} do
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
+      end)
+
+      expect(MithrilMock, :search_user_roles, fn _, _ ->
+        {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
+      end)
+
+      legal_entity = insert(:prm, :legal_entity)
+      %{party: party} = insert(:prm, :party_user)
+      employee = insert(:prm, :employee, legal_entity_id: legal_entity.id, party: party, status: Employee.status(:new))
+      contract_request = insert(:il, :contract_request, status: ContractRequest.status(:signed))
+
+      assert resp =
+               conn
+               |> put_client_id_header(legal_entity.id)
+               |> patch(contract_request_path(conn, :update_assignee, contract_request.id), %{
+                 "employee_id" => employee.id
+               })
+               |> json_response(409)
+
+      assert %{"message" => "Invalid employee status", "type" => "request_conflict"} == resp["error"]
+    end
+
     test "fail: contract_request has wrong status", %{conn: conn} do
       expect(MithrilMock, :get_user_roles, fn _, _, _ ->
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
@@ -1478,12 +1503,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
                })
                |> json_response(422)
 
-      assert %{
-               "type" => "validation_failed",
-               "invalid" => [
-                 %{"rules" => [%{"description" => "Employee doesn't belong to legal_entity"}]}
-               ]
-             } = error
+      assert %{"message" => "Invalid legal entity id"} = error
     end
 
     test "fail: employee doesn't have required role", %{conn: conn} do
@@ -1526,7 +1546,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
           :il,
           :contract_request,
           contractor_owner_id: employee.id,
-          status: @contract_request_status_in_progress
+          status: @contract_request_status_in_process
         )
 
       expect(MithrilMock, :get_user_roles, fn _, _, _ ->
@@ -2081,7 +2101,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         insert(
           :il,
           :contract_request,
-          status: @contract_request_status_in_progress,
+          status: @contract_request_status_in_process,
           contractor_legal_entity_id: legal_entity.id,
           contractor_owner_id: UUID.generate()
         )
@@ -2149,7 +2169,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         insert(
           :il,
           :contract_request,
-          status: @contract_request_status_in_progress,
+          status: @contract_request_status_in_process,
           contractor_legal_entity_id: legal_entity.id,
           contractor_owner_id: employee.id
         )
@@ -2217,7 +2237,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         insert(
           :il,
           :contract_request,
-          status: @contract_request_status_in_progress,
+          status: @contract_request_status_in_process,
           contractor_legal_entity_id: legal_entity.id,
           contractor_owner_id: employee.id
         )
@@ -2285,7 +2305,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         insert(
           :il,
           :contract_request,
-          status: @contract_request_status_in_progress,
+          status: @contract_request_status_in_process,
           contractor_legal_entity_id: legal_entity.id,
           contractor_owner_id: employee.id
         )
@@ -2363,7 +2383,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         insert(
           :il,
           :contract_request,
-          status: @contract_request_status_in_progress,
+          status: @contract_request_status_in_process,
           contractor_legal_entity_id: legal_entity.id,
           contractor_owner_id: employee.id,
           contractor_divisions: [contractor_division_1.id, contractor_division_2.id],
@@ -2481,7 +2501,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         insert(
           :il,
           :contract_request,
-          status: @contract_request_status_in_progress,
+          status: @contract_request_status_in_process,
           contractor_legal_entity_id: legal_entity.id,
           contractor_owner_id: employee_owner.id,
           start_date: start_date,
@@ -2587,7 +2607,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         insert(
           :il,
           :contract_request,
-          status: @contract_request_status_in_progress,
+          status: @contract_request_status_in_process,
           nhs_signer_id: employee_owner.id,
           nhs_legal_entity_id: legal_entity.id,
           contractor_legal_entity_id: legal_entity.id,
@@ -3540,7 +3560,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         insert(
           :il,
           :contract_request,
-          status: @contract_request_status_in_progress,
+          status: @contract_request_status_in_process,
           nhs_signer_id: employee_owner.id,
           contractor_legal_entity_id: legal_entity.id,
           contractor_owner_id: employee_owner.id,

@@ -204,7 +204,7 @@ defmodule Core.ContractRequests do
          :ok <- user_has_role(data, "NHS ADMIN SIGNER"),
          %ContractRequest{} = contract_request <- Repo.get(ContractRequest, id),
          :ok <- validate_nhs_signer_id(params, client_id),
-         :ok <- validate_status(contract_request, ContractRequest.status(:in_progress)),
+         :ok <- validate_status(contract_request, ContractRequest.status(:in_process)),
          :ok <- validate_start_date(contract_request),
          update_params <-
            params
@@ -224,16 +224,16 @@ defmodule Core.ContractRequests do
          {:ok, %{"data" => user_data}} <- @mithril_api.get_user_roles(user_id, %{}, headers),
          :ok <- user_has_role(user_data, "NHS ADMIN SIGNER"),
          %ContractRequest{} = contract_request <- Repo.get(ContractRequest, contract_request_id),
-         {:ok, employee} <- validate_employee(employee_id, client_id, "$.employee_id"),
+         {:ok, employee} <- validate_employee(employee_id, client_id),
          :ok <- validate_employee_role(employee, "NHS ADMIN SIGNER"),
-         :ok <- validate_status(contract_request, [ContractRequest.status(:new), ContractRequest.status(:in_progress)]),
+         :ok <- validate_status(contract_request, [ContractRequest.status(:new), ContractRequest.status(:in_process)]),
          update_params <- %{
-           "status" => ContractRequest.status(:in_progress),
+           "status" => ContractRequest.status(:in_process),
            "updated_at" => NaiveDateTime.utc_now(),
            "updated_by" => user_id,
            "assignee_id" => params["employee_id"]
          },
-         %Ecto.Changeset{valid?: true} = changes <- assign_changeset(contract_request, update_params),
+         %Ecto.Changeset{valid?: true} = changes <- update_assignee_changeset(contract_request, update_params),
          {:ok, contract_request} <- Repo.update(changes),
          _ <- EventManager.insert_change_status(contract_request, contract_request.status, user_id) do
       {:ok, contract_request, preload_references(contract_request)}
@@ -257,7 +257,7 @@ defmodule Core.ContractRequests do
          :ok <- JsonSchema.validate(:contract_request_approve, content),
          :ok <- validate_contractor_legal_entity(contract_request.contractor_legal_entity_id),
          :ok <- validate_approve_content(content, contract_request, references),
-         :ok <- validate_status(contract_request, ContractRequest.status(:in_progress)),
+         :ok <- validate_status(contract_request, ContractRequest.status(:in_process)),
          :ok <-
            save_signed_content(
              contract_request.id,
@@ -336,7 +336,7 @@ defmodule Core.ContractRequests do
          :ok <- JsonSchema.validate(:contract_request_decline, content),
          :ok <- validate_contractor_legal_entity(contract_request.contractor_legal_entity_id),
          :ok <- validate_decline_content(content, contract_request, references),
-         :ok <- validate_status(contract_request, ContractRequest.status(:in_progress)),
+         :ok <- validate_status(contract_request, ContractRequest.status(:in_process)),
          :ok <-
            save_signed_content(
              contract_request.id,
@@ -690,7 +690,7 @@ defmodule Core.ContractRequests do
     |> validate_required(fields_required)
   end
 
-  defp assign_changeset(%ContractRequest{} = contract_request, params) do
+  defp update_assignee_changeset(%ContractRequest{} = contract_request, params) do
     fields_required = ~w(
       status
       assignee_id
@@ -852,34 +852,40 @@ defmodule Core.ContractRequests do
     end
   end
 
-  defp validate_nhs_signer_id(%ContractRequest{nhs_signer_id: nhs_signer_id}, client_id) when nhs_signer_id != nil do
-    with {:ok, _employee} <- validate_employee(nhs_signer_id, client_id, "$.nhs_signer_id") do
-      :ok
-    end
+  defp validate_nhs_signer_id(%ContractRequest{nhs_signer_id: nhs_signer_id}, client_id)
+       when not is_nil(nhs_signer_id) do
+    validate_nhs_signer_id(%{"nhs_signer_id" => nhs_signer_id}, client_id)
   end
 
-  defp validate_nhs_signer_id(%{"nhs_signer_id" => nhs_signer_id}, client_id) when nhs_signer_id != nil do
-    with {:ok, _employee} <- validate_employee(nhs_signer_id, client_id, "$.nhs_signer_id") do
+  defp validate_nhs_signer_id(%{"nhs_signer_id" => nhs_signer_id}, client_id)
+       when not is_nil(nhs_signer_id) do
+    with %Employee{} = employee <- Employees.get_by_id(nhs_signer_id),
+         {:client_id, true} <- {:client_id, employee.legal_entity_id == client_id},
+         {:active, true} <- {:active, employee.is_active and employee.status == Employee.status(:approved)} do
       :ok
+    else
+      {:active, _} ->
+        Error.dump(%ValidationError{description: "Employee must be active", path: "$.nhs_signer_id"})
+
+      {:client_id, _} ->
+        Error.dump(%ValidationError{description: "Employee doesn't belong to legal_entity", path: "$.nhs_signer_id"})
+
+      _ ->
+        Error.dump(%ValidationError{description: "Invalid nhs_signer_id", path: "$.nhs_signer_id"})
     end
   end
 
   defp validate_nhs_signer_id(_, _), do: :ok
 
-  defp validate_employee(employee_id, client_id, path) do
+  defp validate_employee(employee_id, client_id) do
     with %Employee{} = employee <- Employees.get_by_id(employee_id),
          {:client_id, true} <- {:client_id, employee.legal_entity_id == client_id},
          {:active, true} <- {:active, employee.is_active and employee.status == Employee.status(:approved)} do
       {:ok, employee}
     else
-      {:active, _} ->
-        Error.dump(%ValidationError{description: "Employee must be active", path: path})
-
-      {:client_id, _} ->
-        Error.dump(%ValidationError{description: "Employee doesn't belong to legal_entity", path: path})
-
-      _ ->
-        Error.dump(%ValidationError{description: "Invalid #{path}", path: path})
+      {:active, _} -> {:error, {:conflict, "Invalid employee status"}}
+      {:client_id, _} -> {:error, {:"422", "Invalid legal entity id"}}
+      nil -> {:error, {:not_found, "Employee not found"}}
     end
   end
 
