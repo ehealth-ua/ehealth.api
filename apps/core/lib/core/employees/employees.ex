@@ -141,8 +141,6 @@ defmodule Core.Employees do
   def get_by_id_with_users(id) do
     Employee
     |> where([e], e.id == ^id)
-    |> join(:left, [e], p in assoc(e, :party))
-    |> join(:left, [e, p], pu in assoc(p, :users))
     |> PRMRepo.one()
     |> case do
       nil -> nil

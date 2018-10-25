@@ -538,7 +538,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
       legal_entity = insert(:prm, :legal_entity)
       employee = insert(:prm, :employee, party: party_user.party, legal_entity: legal_entity)
 
-      assert %{"party" => party} =
+      assert %{"party" => party, "legal_entity_id" => _} =
                conn
                |> put_client_id_header(legal_entity.id)
                |> get(employee_path(conn, :employee_users, employee.id))
