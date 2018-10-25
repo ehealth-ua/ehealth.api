@@ -13,6 +13,9 @@ defmodule Core.ContractRequests.ContractRequest do
   @status_signed "SIGNED"
   @status_terminated "TERMINATED"
 
+  @nhs_payment_method_backward "BACKWARD"
+  @nhs_payment_method_forward "FORWARD"
+
   def status(:new), do: @status_new
   def status(:in_process), do: @status_in_process
   def status(:declined), do: @status_declined
@@ -21,6 +24,9 @@ defmodule Core.ContractRequests.ContractRequest do
   def status(:nhs_signed), do: @status_nhs_signed
   def status(:signed), do: @status_signed
   def status(:terminated), do: @status_terminated
+
+  def nhs_payment_method(:backward), do: @nhs_payment_method_backward
+  def nhs_payment_method(:forward), do: @nhs_payment_method_forward
 
   @derive {Jason.Encoder, except: [:__meta__, :previous_request]}
   @primary_key {:id, :binary_id, autogenerate: true}
