@@ -41,5 +41,5 @@ defmodule GraphQLWeb.Middleware.FilterArgument do
     %{resolution | arguments: arguments}
   end
 
-  def call(res, _), do: res
+  def call(resolution, _), do: resolution
 end

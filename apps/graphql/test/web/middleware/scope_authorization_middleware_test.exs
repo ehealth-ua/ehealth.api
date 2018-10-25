@@ -1,4 +1,4 @@
-defmodule GraphQLWeb.AuthorizationMiddlewareTest do
+defmodule GraphQLWeb.ScopeAuthorizationMiddlewareTest do
   use GraphQLWeb.ConnCase, async: true
 
   @query """
@@ -11,7 +11,7 @@ defmodule GraphQLWeb.AuthorizationMiddlewareTest do
     }
   """
 
-  describe "authorization" do
+  describe "scope authorization middleware" do
     test "success with given scope which includes requested scope", %{conn: conn} do
       resp_body =
         conn

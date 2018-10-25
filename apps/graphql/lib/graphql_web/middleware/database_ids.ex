@@ -29,5 +29,5 @@ defmodule GraphQLWeb.Middleware.DatabaseIDs do
     Resolution.put_result(resolution, {:ok, value})
   end
 
-  def call(res, _), do: res
+  def call(resolution, _), do: resolution
 end

@@ -1,13 +1,13 @@
-defmodule GraphQLWeb.Middleware.Authorization do
+defmodule GraphQLWeb.Middleware.ScopeAuthorization do
   @moduledoc """
   This middleware performs scope-based authorization on the fields.
   """
 
   @behaviour Absinthe.Middleware
 
-  alias Absinthe.{Resolution, Type}
+  import GraphQLWeb.Middleware.Helpers, only: [format_forbidden_error: 1]
 
-  @forbidden_error_message "Your scope does not allow to access this resource"
+  alias Absinthe.{Resolution, Type}
 
   defmacro __using__(opts \\ []) do
     meta_key = Keyword.get(opts, :meta_key, :scope)
@@ -25,9 +25,7 @@ defmodule GraphQLWeb.Middleware.Authorization do
     end
   end
 
-  def call(%{state: :unresolved} = resolution, opts) do
-    [meta_key: meta_key, context_key: context_key] = opts
-
+  def call(%{state: :unresolved} = resolution, meta_key: meta_key, context_key: context_key) do
     requested_scope = Type.meta(resolution.definition.schema_node, meta_key)
     token_scope = Map.get(resolution.context, context_key, [])
 
@@ -40,16 +38,9 @@ defmodule GraphQLWeb.Middleware.Authorization do
     if Enum.empty?(missing_allowances) do
       resolution
     else
-      Resolution.put_result(resolution, {:error, format_forbidden_error(missing_allowances)})
+      Resolution.put_result(resolution, {:error, format_forbidden_error(%{missingAllowances: missing_allowances})})
     end
   end
 
-  def call(res, _), do: res
-
-  defp format_forbidden_error(missing_allowances) do
-    %{
-      message: @forbidden_error_message,
-      extensions: %{code: "FORBIDDEN", exception: %{missingAllowances: missing_allowances}}
-    }
-  end
+  def call(resolution, _), do: resolution
 end

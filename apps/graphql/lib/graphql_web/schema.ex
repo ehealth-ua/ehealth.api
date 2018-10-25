@@ -3,12 +3,17 @@ defmodule GraphQLWeb.Schema do
 
   use Absinthe.Schema
   use Absinthe.Relay.Schema, :modern
-  use GraphQLWeb.Middleware.MapGet
-  use GraphQLWeb.Middleware.Authorization
-  use GraphQLWeb.Middleware.ParseIDs
-  use GraphQLWeb.Middleware.FilterArgument
-  use GraphQLWeb.Middleware.OrderByArgument
-  use GraphQLWeb.Middleware.DatabaseIDs
+
+  use GraphQLWeb.Middleware.{
+    MapGet,
+    DatabaseIDs,
+    ParseIDs,
+    FilterArgument,
+    OrderByArgument,
+    ClientAuthorization,
+    ClientMetadata,
+    ScopeAuthorization
+  }
 
   alias Core.LegalEntities.LegalEntity
   alias Core.LegalEntities.RelatedLegalEntity

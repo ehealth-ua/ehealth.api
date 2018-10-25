@@ -11,7 +11,7 @@ defmodule GraphQLWeb.DatabaseIDsMiddlewareTest do
     {:ok, %{conn: conn}}
   end
 
-  describe "database IDs" do
+  describe "database IDs middleware" do
     test "success on entity lists", %{conn: conn} do
       legal_entities = for _ <- 0..1, do: insert(:prm, :legal_entity)
 
