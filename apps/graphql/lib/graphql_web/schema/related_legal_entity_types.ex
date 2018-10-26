@@ -4,7 +4,7 @@ defmodule GraphQLWeb.Schema.RelatedLegalEntityTypes do
   use Absinthe.Schema.Notation
   use Absinthe.Relay.Schema.Notation, :modern
 
-  import Absinthe.Resolution.Helpers, only: [dataloader: 1]
+  import Absinthe.Resolution.Helpers, only: [dataloader: 3]
 
   alias GraphQLWeb.Loaders.PRM
 
@@ -24,8 +24,8 @@ defmodule GraphQLWeb.Schema.RelatedLegalEntityTypes do
     field(:is_active, non_null(:boolean))
 
     # relations
-    field(:merged_to, non_null(:legal_entity), resolve: dataloader(PRM))
-    field(:merged_from, non_null(:legal_entity), resolve: dataloader(PRM))
+    field(:merged_to_legal_entity, non_null(:legal_entity), resolve: dataloader(PRM, :merged_to, []))
+    field(:merged_from_legal_entity, non_null(:legal_entity), resolve: dataloader(PRM, :merged_from, []))
 
     # dates
     field(:inserted_at, non_null(:string))
@@ -34,6 +34,8 @@ defmodule GraphQLWeb.Schema.RelatedLegalEntityTypes do
 
   input_object :related_legal_entity_filter do
     field(:is_active, :boolean)
+    field(:merged_to_legal_entity, :mergee_legal_entity_filter)
+    field(:merged_from_legal_entity, :mergee_legal_entity_filter)
   end
 
   enum :related_legal_entity_order_by do

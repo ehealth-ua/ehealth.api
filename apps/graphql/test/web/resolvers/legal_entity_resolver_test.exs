@@ -49,11 +49,11 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
                   databaseId
                   reason
                   isActive
-                  mergedTo {
+                  mergedToLegalEntity {
                     databaseId
                     publicName
                   }
-                  mergedFrom {
+                  mergedFromLegalEntity {
                     databaseId
                     publicName
                   }
@@ -62,7 +62,7 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
               mergedToLegalEntity {
                 reason
                 isActive
-                mergedTo {
+                mergedToLegalEntity {
                   databaseId
                   publicName
                 }
@@ -111,6 +111,49 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
 
       assert 1 == length(legal_entities)
       assert "1234567890" == hd(legal_entities)["edrpou"]
+    end
+
+    test "success with filter by related legal entity edrpou", %{conn: conn} do
+      from = insert(:prm, :legal_entity, edrpou: "1234567890")
+      from2 = insert(:prm, :legal_entity, edrpou: "2234567890")
+      from3 = insert(:prm, :legal_entity, edrpou: "3234567890")
+      to = insert(:prm, :legal_entity, edrpou: "3234567899")
+      insert(:prm, :related_legal_entity, merged_from: from, merged_to: to)
+      related_legal_entity = insert(:prm, :related_legal_entity, merged_from: from2, merged_to: to)
+
+      query = """
+        {
+          legalEntities(first: 10, filter: {edrpou: "3234567899"}) {
+            nodes {
+              databaseId
+              mergedFromLegalEntities(
+                first: 5,
+                filter: {
+                  mergedFromLegalEntity: {
+                    edrpou: "2234567890",
+                    is_active: true
+                  }
+                }
+              ){
+                nodes {
+                  databaseId
+                }
+              }
+            }
+          }
+        }
+      """
+
+      legal_entities =
+        conn
+        |> post_query(query)
+        |> json_response(200)
+        |> get_in(~w(data legalEntities nodes))
+
+      assert [legal_entity] = legal_entities
+
+      assert to.id == legal_entity["databaseId"]
+      assert [%{"databaseId" => related_legal_entity.id}] == legal_entity["mergedFromLegalEntities"]["nodes"]
     end
 
     test "success with ordering", %{conn: conn} do
@@ -370,11 +413,11 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
             mergedFromLegalEntities(first: 1, filter: {isActive: true}){
               nodes {
                 databaseId
-                mergedTo {
+                mergedToLegalEntity {
                   databaseId
                   publicName
                 }
-                mergedFrom {
+                mergedFromLegalEntity {
                   databaseId
                   publicName
                 }
@@ -382,7 +425,7 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
             }
             mergedToLegalEntity {
               databaseId
-              mergedTo {
+              mergedToLegalEntity {
                 databaseId
                 publicName
               }

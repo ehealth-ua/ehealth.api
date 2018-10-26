@@ -47,6 +47,7 @@ defmodule GraphQLWeb.Schema.LegalEntityMergeJobTypes do
 
   input_object :mergee_legal_entity_filter do
     field(:edrpou, :string)
+    field(:is_active, :boolean)
   end
 
   enum :legal_entity_merge_job_order_by do

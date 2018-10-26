@@ -1,7 +1,7 @@
 defmodule GraphQLWeb.Loaders.PRM do
   @moduledoc false
 
-  import Ecto.Query, only: [where: 2, order_by: 2, limit: 2, offset: 2]
+  import Ecto.Query
 
   alias Absinthe.Relay.Connection
   alias Core.PRMRepo
@@ -13,7 +13,7 @@ defmodule GraphQLWeb.Loaders.PRM do
       limit = limit + 1
 
       queryable
-      |> where(^filter)
+      |> prepare_where(filter)
       |> order_by(^order_by)
       |> limit(^limit)
       |> offset(^offset)
@@ -21,4 +21,18 @@ defmodule GraphQLWeb.Loaders.PRM do
   end
 
   def query(queryable, _), do: queryable
+
+  defp prepare_where(query, []), do: query
+
+  defp prepare_where(query, [{:merged_from_legal_entity, filter} | tail]) do
+    query
+    |> join(:left, [e], m in assoc(e, :merged_from))
+    |> prepare_where(Enum.into(filter, []))
+  end
+
+  defp prepare_where(query, [{field, value} | tail]) do
+    query
+    |> where([..., l], field(l, ^field) == ^value)
+    |> prepare_where(tail)
+  end
 end
