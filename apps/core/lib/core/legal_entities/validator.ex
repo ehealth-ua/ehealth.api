@@ -38,7 +38,7 @@ defmodule Core.LegalEntities.Validator do
          :ok <- validate_tax_id(content),
          :ok <- validate_owner_birth_date(content),
          :ok <- validate_owner_position(content),
-         :ok <- validate_edrpou(content, signer) do
+         :ok <- validate_state_registry_number(content, signer) do
       {:ok, content}
     else
       {:signed_content, {:error, {:bad_request, reason}}} ->
@@ -94,35 +94,35 @@ defmodule Core.LegalEntities.Validator do
   end
 
   # EDRPOU content to EDRPOU / DRFO signer validator
-  def validate_edrpou(content, %{"edrpou" => edrpou} = signer)
+  def validate_state_registry_number(content, %{"edrpou" => edrpou} = signer)
       when is_nil(edrpou) or edrpou == "",
-      do: validate_edrpou(content, Map.delete(signer, "edrpou"))
+      do: validate_state_registry_number(content, Map.delete(signer, "edrpou"))
 
-  def validate_edrpou(content, %{"edrpou" => _edrpou} = signer) do
+  def validate_state_registry_number(content, %{"edrpou" => edrpou}) do
     data = %{}
     types = %{edrpou: :string}
 
     {data, types}
-    |> cast(signer, Map.keys(types))
+    |> cast(%{"edrpou" => content_edrpou(content)}, Map.keys(types))
     |> validate_required(Map.keys(types))
     |> validate_format(:edrpou, ~r/^[0-9]{8,10}$/)
-    |> validate_inclusion(:edrpou, [content_edrpou(content)])
+    |> validate_inclusion(:edrpou, [edrpou], message: "EDRPOU is not match with signer drfo")
     |> is_valid_content(content)
   end
 
-  def validate_edrpou(content, %{"drfo" => _drfo} = signer) do
+  def validate_state_registry_number(content, %{"drfo" => drfo}) do
     data = %{}
     types = %{drfo: :string}
 
     {data, types}
-    |> cast(signer, Map.keys(types))
+    |> cast(%{"drfo" => content_edrpou(content)}, Map.keys(types))
     |> validate_required(Map.keys(types))
     |> validate_format(:drfo, ~r/^[0-9]{9,10}$/ui)
-    |> validate_inclusion(:drfo, [content_edrpou(content)])
+    |> validate_inclusion(:drfo, [drfo], message: "DRFO is not match with signer drfo")
     |> is_valid_content(content)
   end
 
-  def validate_edrpou(_content, _signer) do
+  def validate_state_registry_number(_content, _signer) do
     Error.dump(%ValidationError{description: "EDRPOU and DRFO is empty in digital sign", path: "$.data.signatures"})
   end
 

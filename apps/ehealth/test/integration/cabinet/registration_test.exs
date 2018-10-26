@@ -4,20 +4,18 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
   import Mox
   import Core.Guardian
 
+  alias Core.Cabinet.API, as: CabinetAPI
   alias Ecto.UUID
 
   setup :verify_on_exit!
 
   describe "Patient registration" do
     setup %{conn: conn} do
-      :ets.new(:jwt, [:named_table])
-
       email = "email@example.com"
       tax_id = "3126509816"
 
       expect(ManMock, :render_template, fn _id, template_data, _ ->
         assert Map.has_key?(template_data, :verification_code)
-        :ets.insert(:jwt, {"jwt", template_data.verification_code})
         {:ok, "<html></html>"}
       end)
 
@@ -124,9 +122,7 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
       |> post(cabinet_auth_path(conn, :email_verification), %{email: email})
       |> json_response(200)
 
-      # 2. Validate JWT from email and generate new JWT
-
-      [{"jwt", jwt}] = :ets.lookup(:jwt, "jwt")
+      {:ok, jwt} = get_jwt_token(email)
 
       auth_token =
         conn
@@ -187,14 +183,12 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
 
   describe "Validation" do
     setup %{conn: conn} do
-      :ets.new(:jwt, [:named_table])
-
       email = "email@example.com"
       tax_id = "3126509816"
 
       expect(ManMock, :render_template, fn _id, template_data, _ ->
         assert Map.has_key?(template_data, :verification_code)
-        :ets.insert(:jwt, {"jwt", template_data.verification_code})
+
         {:ok, "<html></html>"}
       end)
 
@@ -240,8 +234,7 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
       |> json_response(200)
 
       # 2. Validate JWT from email and generate new JWT
-
-      [{"jwt", jwt}] = :ets.lookup(:jwt, "jwt")
+      {:ok, jwt} = get_jwt_token(email)
 
       auth_token =
         conn
@@ -279,9 +272,7 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
       |> post(cabinet_auth_path(conn, :email_verification), %{email: email})
       |> json_response(200)
 
-      # 2. Validate JWT from email and generate new JWT
-
-      [{"jwt", jwt}] = :ets.lookup(:jwt, "jwt")
+      {:ok, jwt} = get_jwt_token(email)
 
       auth_token =
         conn
@@ -323,9 +314,7 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
       |> post(cabinet_auth_path(conn, :email_verification), %{email: email})
       |> json_response(200)
 
-      # 2. Validate JWT from email and generate new JWT
-
-      [{"jwt", jwt}] = :ets.lookup(:jwt, "jwt")
+      {:ok, jwt} = get_jwt_token(email)
 
       auth_token =
         conn
@@ -380,5 +369,17 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
     expect(UAddressesMock, :validate_addresses, fn _, _ ->
       {:ok, %{"data" => %{}}}
     end)
+  end
+
+  defp get_jwt_token(email) do
+    {:ok, jwt, _claims} =
+      encode_and_sign(
+        get_aud(:email_verification),
+        %{email: email},
+        token_type: "access",
+        ttl: {Confex.fetch_env!(:core, CabinetAPI)[:jwt_ttl_email], "hours"}
+      )
+
+    {:ok, jwt}
   end
 end

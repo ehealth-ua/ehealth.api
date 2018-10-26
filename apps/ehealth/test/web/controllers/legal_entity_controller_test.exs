@@ -57,7 +57,22 @@ defmodule EHealth.Web.LegalEntityControllerTest do
         |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
         |> json_response(422)
 
-      assert resp["error"]
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.edrpou",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "string does not match pattern \"^[0-9]{8,10}|[0-9]{9,10}$\"",
+                       "params" => ["^[0-9]{8,10}|[0-9]{9,10}$"],
+                       "rule" => "format"
+                     }
+                   ]
+                 }
+               ],
+               "type" => "validation_failed"
+             } = resp["error"]
     end
 
     test "create legal entity without edrpou / drfo in signature", %{conn: conn} do
@@ -257,7 +272,57 @@ defmodule EHealth.Web.LegalEntityControllerTest do
         |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
         |> json_response(422)
 
-      assert resp["error"]
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.edrpou",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "string does not match pattern \"^[0-9]{8,10}|[0-9]{9,10}$\"",
+                       "params" => ["^[0-9]{8,10}|[0-9]{9,10}$"],
+                       "rule" => "format"
+                     }
+                   ]
+                 }
+               ],
+               "type" => "validation_failed"
+             } = resp["error"]
+    end
+
+    test "create legal entity edrpou is not match with signer", %{conn: conn} do
+      validate_addresses()
+      insert_dictionaries()
+      legal_entity_type = "MSP"
+      legal_entity_params = Map.merge(get_legal_entity_data(), %{"type" => legal_entity_type, "edrpou" => "7564750099"})
+      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
+      drfo_signed_content(legal_entity_params, "0123456789")
+
+      resp =
+        conn
+        |> put_req_header("content-type", "application/json")
+        |> put_req_header("content-length", "7000")
+        |> put_req_header("x-consumer-id", UUID.generate())
+        |> put_req_header("edrpou", legal_entity_params["edrpou"])
+        |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.drfo",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "DRFO is not match with signer drfo",
+                       "params" => ["0123456789"],
+                       "rule" => "inclusion"
+                     }
+                   ]
+                 }
+               ],
+               "type" => "validation_failed"
+             } = resp["error"]
     end
   end
 

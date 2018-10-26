@@ -3238,7 +3238,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "user_id" => user_id,
         "contract_request" => contract_request,
         "legal_entity" => legal_entity,
-        "party_user" => party_user
+        "nhs_signer_party" => nhs_signer_party
       } = prepare_nhs_sign_params(status: ContractRequest.status(:pending_nhs_sign))
 
       conn =
@@ -3248,7 +3248,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> put_req_header("drfo", legal_entity.edrpou)
 
       data = %{"id" => contract_request.id, "printout_content" => "<html></html>"}
-      drfo_signed_content(data, legal_entity.edrpou, party_user.party.last_name)
+      drfo_signed_content(data, legal_entity.edrpou, nhs_signer_party.party.last_name)
 
       conn =
         patch(conn, contract_request_path(conn, :sign_nhs, contract_request.id), %{
@@ -3441,7 +3441,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "user_id" => user_id,
         "contract_request" => contract_request,
         "legal_entity" => legal_entity,
-        "party_user" => party_user
+        "nhs_signer_party" => nhs_signer_party
       } =
         prepare_nhs_sign_params(
           id: id,
@@ -3455,7 +3455,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> put_consumer_id_header(user_id)
         |> put_req_header("drfo", legal_entity.edrpou)
 
-      drfo_signed_content(data, legal_entity.edrpou, party_user.party.last_name)
+      drfo_signed_content(data, legal_entity.edrpou, nhs_signer_party.party.last_name)
 
       conn =
         patch(conn, contract_request_path(conn, :sign_nhs, contract_request.id), %{
@@ -3492,7 +3492,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "user_id" => user_id,
         "contract_request" => contract_request,
         "legal_entity" => legal_entity,
-        "party_user" => party_user
+        "nhs_signer_party" => nhs_signer_party
       } =
         prepare_nhs_sign_params(
           id: id,
@@ -3508,7 +3508,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> put_consumer_id_header(user_id)
         |> put_req_header("drfo", legal_entity.edrpou)
 
-      drfo_signed_content(data, legal_entity.edrpou, party_user.party.last_name)
+      drfo_signed_content(data, legal_entity.edrpou, nhs_signer_party.party.last_name)
 
       conn =
         patch(conn, contract_request_path(conn, :sign_nhs, contract_request.id), %{
@@ -4519,12 +4519,14 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     nhs_signer_id = Keyword.get(contract_request_params, :nhs_signer_id) || UUID.generate()
     party_user = insert(:prm, :party_user, user_id: user_id)
 
+    nhs_signer_party = build(:party_user, user_id: nhs_signer_id)
+
     insert(
       :prm,
       :employee,
-      party: party_user.party,
       legal_entity_id: client_id,
-      id: nhs_signer_id
+      id: nhs_signer_id,
+      party: nhs_signer_party.party
     )
 
     division =
@@ -4543,8 +4545,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         :employee,
         id: user_id,
         legal_entity_id: legal_entity.id,
-        employee_type: Employee.type(:owner),
-        party: party_user.party
+        employee_type: Employee.type(:owner)
       )
 
     now = Date.utc_today()
@@ -4555,7 +4556,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         [
           nhs_signed_date: Date.utc_today(),
           nhs_legal_entity_id: client_id,
-          nhs_signer_id: user_id,
+          nhs_signer_id: nhs_signer_id,
           contractor_legal_entity_id: client_id,
           contractor_owner_id: employee_owner.id,
           contractor_divisions: [division.id],
@@ -4579,7 +4580,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       "user_id" => user_id,
       "legal_entity" => legal_entity,
       "party_user" => party_user,
-      "contract_request" => contract_request
+      "contract_request" => contract_request,
+      "nhs_signer_party" => nhs_signer_party
     }
   end
 

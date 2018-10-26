@@ -1581,6 +1581,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
         employee_request_data
         |> put_in([:party, :email], "mis_bot_1493831618@user.com")
         |> put_in([:party, :tax_id], "47542240")
+        |> put_in([:party, :last_name], party.last_name)
         |> put_in([:legal_entity_id], legal_entity.id)
         |> put_in([:division_id], division.id)
         |> put_in([:employee_type], "OWNER")

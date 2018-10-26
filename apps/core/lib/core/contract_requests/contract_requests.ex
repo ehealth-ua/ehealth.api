@@ -399,7 +399,8 @@ defmodule Core.ContractRequests do
          :ok <- validate_status(contract_request, ContractRequest.status(:pending_nhs_sign)),
          {:ok, %{"content" => content, "signer" => signer}} <- decode_signed_content(:nhs, params, headers),
          :ok <- validate_legal_entity_edrpou(legal_entity, signer),
-         :ok <- validate_user_signer_last_name(contract_request.nhs_signer_id, signer),
+         {:ok, employee} <- validate_employee(contract_request.nhs_signer_id, client_id),
+         :ok <- check_last_name_match(employee.party.last_name, signer["surname"]),
          :ok <- validate_contractor_legal_entity(contract_request.contractor_legal_entity_id),
          :ok <- validate_contractor_owner_id(contract_request),
          {:ok, printout_content} <-
@@ -1346,33 +1347,34 @@ defmodule Core.ContractRequests do
     end
   end
 
-  defp validate_user_signer_last_name(user_id, %{"surname" => surname}) when not is_nil(surname) do
-    with %Party{last_name: last_name} <- Parties.get_by_user_id(user_id),
-         true <- String.upcase(last_name) == String.upcase(surname) do
-      :ok
-    else
-      false ->
-        Error.dump(%ValidationError{
-          description: "Signer surname does not match with current user last_name",
-          path: "$.last_name"
-        })
-
-      error ->
-        error
+  defp validate_user_signer_last_name(user_id, %{"surname" => surname}) do
+    with %Party{last_name: last_name} <- Parties.get_by_user_id(user_id) do
+      check_last_name_match(last_name, surname)
     end
   end
 
-  defp validate_user_signer_last_name(_, _),
-    do:
+  defp check_last_name_match(_last_name, nil) do
+    Error.dump(%ValidationError{
+      description: "Signer surname is not exist in sign info",
+      path: "$.surname"
+    })
+  end
+
+  defp check_last_name_match(last_name, surname) do
+    if String.upcase(last_name) == String.upcase(surname) do
+      :ok
+    else
       Error.dump(%ValidationError{
-        description: "Signer surname is not exist in sign info",
-        path: "$.surname"
+        description: "Signer surname does not match with current user last_name",
+        path: "$.last_name"
       })
+    end
+  end
 
   defp validate_legal_entity_edrpou(legal_entity, nil), do: {:ok, legal_entity}
 
   defp validate_legal_entity_edrpou(legal_entity, signer),
-    do: LegalEntitiesValidator.validate_edrpou(legal_entity, signer)
+    do: LegalEntitiesValidator.validate_state_registry_number(legal_entity, signer)
 
   defp resolve_partially_signed_content_url(contract_request_id, headers) do
     bucket = Confex.fetch_env!(:core, Core.API.MediaStorage)[:contract_request_bucket]

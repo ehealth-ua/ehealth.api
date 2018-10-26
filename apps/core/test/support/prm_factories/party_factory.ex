@@ -8,7 +8,7 @@ defmodule Core.PRMFactories.PartyFactory do
       def party_factory do
         %Core.Parties.Party{
           first_name: "Петро",
-          last_name: "Іванов",
+          last_name: last_name(),
           second_name: "Миколайович",
           birth_date: ~D[1991-08-19],
           gender: "MALE",
@@ -37,6 +37,12 @@ defmodule Core.PRMFactories.PartyFactory do
           user_id: UUID.generate(),
           party: build(:party)
         }
+      end
+
+      defp last_name do
+        Enum.random(
+          ~w(Антоновіч Аркас Білокур Беринда Вавілов Вернадський В'язовська Гамалія Драгоманов Корш Куліш Крушельницька Либідь Пулюй Сікорський Стефанишин Чубиньский Яворський)
+        )
       end
     end
   end

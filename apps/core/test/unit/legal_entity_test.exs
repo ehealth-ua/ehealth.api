@@ -125,7 +125,7 @@ defmodule Core.Unit.LegalEntityTest do
     test "validate legal entity EDRPOU" do
       content = get_legal_entity_data()
       signer = %{"edrpou" => "37367387"}
-      assert :ok = Validator.validate_edrpou(content, signer)
+      assert :ok = Validator.validate_state_registry_number(content, signer)
     end
 
     test "validate legal entity DRFO int" do
@@ -136,7 +136,7 @@ defmodule Core.Unit.LegalEntityTest do
       assert :ok =
                content
                |> Map.put("edrpou", drfo)
-               |> Validator.validate_edrpou(signer)
+               |> Validator.validate_state_registry_number(signer)
     end
 
     test "validate legal entity DRFO text not allowed" do
@@ -147,7 +147,7 @@ defmodule Core.Unit.LegalEntityTest do
       assert {:error, _} =
                content
                |> Map.put("edrpou", "Ёї756475")
-               |> Validator.validate_edrpou(signer)
+               |> Validator.validate_state_registry_number(signer)
     end
 
     test "invalid legal entity DRFO text" do
@@ -158,7 +158,7 @@ defmodule Core.Unit.LegalEntityTest do
       assert {:error, %Changeset{valid?: false}} =
                content
                |> Map.put("edrpou", drfo)
-               |> Validator.validate_edrpou(signer)
+               |> Validator.validate_state_registry_number(signer)
     end
 
     test "empty signer EDRPOU" do
@@ -173,19 +173,19 @@ defmodule Core.Unit.LegalEntityTest do
                  }, "$.data"}
               ]}
 
-      Validator.validate_edrpou(content, signer)
+      Validator.validate_state_registry_number(content, signer)
     end
 
     test "invalid signer EDRPOU" do
       content = get_legal_entity_data()
       signer = %{"edrpou" => "03736738"}
-      assert {:error, %Changeset{valid?: false}} = Validator.validate_edrpou(content, signer)
+      assert {:error, %Changeset{valid?: false}} = Validator.validate_state_registry_number(content, signer)
     end
 
     test "different signer EDRPOU" do
       content = get_legal_entity_data()
       signer = %{"edrpou" => "0373167387"}
-      assert {:error, %Changeset{valid?: false}} = Validator.validate_edrpou(content, signer)
+      assert {:error, %Changeset{valid?: false}} = Validator.validate_state_registry_number(content, signer)
     end
   end
 
