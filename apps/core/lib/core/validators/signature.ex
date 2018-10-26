@@ -12,9 +12,9 @@ defmodule Core.Validators.Signature do
 
   @signature_api Application.get_env(:core, :api_resolvers)[:digital_signature]
 
-  def validate(signed_content, encoding, headers, required_signatures \\ 1) do
+  def validate(signed_content, encoding, headers, required_signatures_count \\ 1, required_stamps_count \\ 0) do
     with {:ok, %{"data" => data}} <- @signature_api.decode_and_validate(signed_content, encoding, headers) do
-      process_data(data, required_signatures)
+      process_data(data, required_signatures_count, required_stamps_count)
     end
   end
 
@@ -76,25 +76,54 @@ defmodule Core.Validators.Signature do
 
   defp process_data(
          %{"content" => content, "signatures" => signatures},
-         required_signatures
+         required_signatures_count,
+         required_stamps_count
        )
        when is_list(signatures) do
-    if Enum.count(signatures) == required_signatures do
-      # return the last signature (they are in reverse order)
-      get_last_signer(content, List.first(signatures))
-    else
-      signer_msg = if required_signatures == 1, do: "signer", else: "signers"
+    {existing_stamps, existing_signatures} = Enum.split_with(signatures, &Map.get(&1, "is_stamp"))
+    existing_signatures_count = Enum.count(existing_signatures)
+    existing_stamps_count = Enum.count(existing_stamps)
 
+    if existing_signatures_count == required_signatures_count && existing_stamps_count == required_stamps_count do
+      invalid_signature = Enum.find(signatures, &(!Map.get(&1, "is_valid")))
+      # return the last signature and stamp (they are in reverse order)
+      prepare_data(content, invalid_signature, List.first(existing_signatures), List.first(existing_stamps))
+    else
       {:error,
        {:bad_request,
-        "document must be signed by #{required_signatures} #{signer_msg} but contains #{Enum.count(signatures)} signatures"}}
+        get_signatures_count_error(
+          required_signatures_count,
+          existing_signatures_count,
+          required_stamps_count,
+          existing_stamps_count
+        )}}
     end
   end
 
-  defp get_last_signer(content, %{"is_valid" => true, "signer" => signer}) do
-    {:ok, %{"content" => content, "signer" => signer}}
+  defp get_signatures_count_error(
+         required_signatures_count,
+         existing_signatures_count,
+         required_stamps_count,
+         existing_stamps_count
+       ) do
+    "document must contain #{get_count_phrase("signature", required_signatures_count)} and #{
+      get_count_phrase("stamp", required_stamps_count)
+    } but contains #{get_count_phrase("signature", existing_signatures_count)} and #{
+      get_count_phrase("stamp", existing_stamps_count)
+    }"
   end
 
-  defp get_last_signer(_, %{"is_valid" => false, "validation_error_message" => error}),
+  defp get_count_phrase(word, count), do: "#{count} #{word}#{if count == 1, do: "", else: "s"}"
+
+  defp prepare_data(content, nil, signature, stamp) do
+    {:ok,
+     %{
+       "content" => content,
+       "signer" => Map.get(signature || %{}, "signer"),
+       "stamp" => Map.get(stamp || %{}, "signer")
+     }}
+  end
+
+  defp prepare_data(_, %{"is_valid" => false, "validation_error_message" => error}, _, _),
     do: {:error, {:bad_request, error}}
 end

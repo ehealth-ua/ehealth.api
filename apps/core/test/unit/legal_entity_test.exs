@@ -79,7 +79,7 @@ defmodule Core.Unit.LegalEntityTest do
       assert {:error,
               [
                 {%{
-                   description: "document must be signed by 1 signer but contains 2 signatures",
+                   description: "document must contain 1 signature and 0 stamps but contains 2 signatures and 0 stamps",
                    params: [],
                    rule: :invalid
                  }, "$.signed_legal_entity_request"}

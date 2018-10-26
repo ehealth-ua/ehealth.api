@@ -250,7 +250,7 @@ defmodule Core.ContractRequests do
          %ContractRequest{} = contract_request <- get_by_id(id),
          references <- preload_references(contract_request),
          :ok <- JsonSchema.validate(:contract_request_sign, params),
-         {:ok, %{"content" => content, "signer" => signer}} <- decode_signed_content(:nhs, params, headers),
+         {:ok, %{"content" => content, "signer" => signer}} <- decode_signed_content(params, headers),
          :ok <- validate_legal_entity_edrpou(legal_entity, signer),
          :ok <- validate_user_signer_last_name(user_id, signer),
          {:ok, %{"data" => data}} <- @mithril_api.get_user_roles(user_id, %{}, headers),
@@ -329,7 +329,7 @@ defmodule Core.ContractRequests do
          %ContractRequest{} = contract_request <- get_by_id(id),
          references <- preload_references(contract_request),
          :ok <- JsonSchema.validate(:contract_request_sign, params),
-         {:ok, %{"content" => content, "signer" => signer}} <- decode_signed_content(:nhs, params, headers),
+         {:ok, %{"content" => content, "signer" => signer}} <- decode_signed_content(params, headers),
          :ok <- validate_legal_entity_edrpou(legal_entity, signer),
          :ok <- validate_user_signer_last_name(user_id, signer),
          {:ok, %{"data" => data}} <- @mithril_api.get_user_roles(user_id, %{}, headers),
@@ -397,8 +397,10 @@ defmodule Core.ContractRequests do
          {_, true} <- {:client_id, client_id == contract_request.nhs_legal_entity_id},
          {_, false} <- {:already_signed, contract_request.status == ContractRequest.status(:nhs_signed)},
          :ok <- validate_status(contract_request, ContractRequest.status(:pending_nhs_sign)),
-         {:ok, %{"content" => content, "signer" => signer}} <- decode_signed_content(:nhs, params, headers),
+         {:ok, %{"content" => content, "signer" => signer, "stamp" => stamp}} <-
+           decode_signed_content(params, headers, 1, 1),
          :ok <- validate_legal_entity_edrpou(legal_entity, signer),
+         :ok <- validate_legal_entity_edrpou(legal_entity, stamp),
          {:ok, employee} <- validate_employee(contract_request.nhs_signer_id, client_id),
          :ok <- check_last_name_match(employee.party.last_name, signer["surname"]),
          :ok <- validate_contractor_legal_entity(contract_request.contractor_legal_entity_id),
@@ -446,7 +448,7 @@ defmodule Core.ContractRequests do
          :ok <- JsonSchema.validate(:contract_request_sign, params),
          {_, true} <- {:signed_nhs, contract_request.status == ContractRequest.status(:nhs_signed)},
          {_, true} <- {:client_id, client_id == contract_request.contractor_legal_entity_id},
-         {:ok, %{"content" => content, "signer" => signer}} <- decode_signed_content(:msp, params, headers),
+         {:ok, %{"content" => content, "signer" => signer}} <- decode_signed_content(params, headers, 2, 1),
          :ok <- validate_legal_entity_edrpou(legal_entity, signer),
          :ok <- validate_user_signer_last_name(contract_request.contractor_owner_id, signer),
          :ok <- validate_content(contract_request, content),
@@ -596,26 +598,12 @@ defmodule Core.ContractRequests do
   end
 
   def decode_signed_content(
-        :nhs,
         %{"signed_content" => signed_content, "signed_content_encoding" => encoding},
-        headers
+        headers,
+        required_signatures_count \\ 1,
+        required_stamps_count \\ 0
       ) do
-    SignatureValidator.validate(signed_content, encoding, headers)
-  end
-
-  def decode_signed_content(
-        :msp,
-        %{"signed_content" => signed_content, "signed_content_encoding" => encoding},
-        headers
-      ) do
-    SignatureValidator.validate(signed_content, encoding, headers, 2)
-  end
-
-  def decode_signed_content(
-        %{"signed_content" => signed_content, "signed_content_encoding" => encoding},
-        headers
-      ) do
-    SignatureValidator.validate(signed_content, encoding, headers)
+    SignatureValidator.validate(signed_content, encoding, headers, required_signatures_count, required_stamps_count)
   end
 
   def decode_and_validate_signed_content(%ContractRequest{id: id}, headers) do

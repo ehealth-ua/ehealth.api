@@ -38,7 +38,11 @@ defmodule Core.Expectations.Signature do
            "content" => params,
            "signatures" =>
              Enum.map(drfos, fn %{drfo: drfo} = signer ->
-               %{"is_valid" => true, "signer" => %{"drfo" => drfo, "surname" => signer[:surname]}}
+               %{
+                 "is_valid" => true,
+                 "is_stamp" => signer[:is_stamp],
+                 "signer" => %{"drfo" => drfo, "surname" => signer[:surname]}
+               }
              end)
          }
        }}
@@ -55,7 +59,16 @@ defmodule Core.Expectations.Signature do
        %{
          "data" => %{
            "content" => params,
-           "signatures" => Enum.map(edrpous, fn edrpou -> %{"is_valid" => true, "signer" => %{"edrpou" => edrpou}} end)
+           "signatures" =>
+             Enum.map(edrpous, fn edrpou ->
+               case is_map(edrpou) do
+                 true ->
+                   %{"is_valid" => true, "is_stamp" => edrpou[:is_stamp], "signer" => %{"edrpou" => edrpou[:edrpou]}}
+
+                 _ ->
+                   %{"is_valid" => true, "is_stamp" => false, "signer" => %{"edrpou" => edrpou}}
+               end
+             end)
          }
        }}
     end)
