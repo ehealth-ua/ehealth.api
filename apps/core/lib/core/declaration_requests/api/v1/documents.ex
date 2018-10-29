@@ -64,8 +64,7 @@ defmodule Core.DeclarationRequests.API.Documents do
 
   def gather_documents_list(person) do
     # Removed person.DECLARATION_FORM
-    person_documents = if person["tax_id"], do: ["person.tax_id"], else: []
-
+    person_documents = if person["no_tax_id"], do: ["person.no_tax_id"], else: ["person.tax_id"]
     person_documents = person_documents ++ Enum.map(person["documents"], &"person.#{&1["type"]}")
 
     has_birth_certificate =

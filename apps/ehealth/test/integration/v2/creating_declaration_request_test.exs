@@ -601,7 +601,7 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
 
       gen_sequence_number()
 
-      expect(MediaStorageMock, :create_signed_url, 3, fn _, _, resource_name, resource_id, _ ->
+      expect(MediaStorageMock, :create_signed_url, 4, fn _, _, resource_name, resource_id, _ ->
         {:ok, %{"data" => %{"secret_url" => "http://a.link.for/#{resource_id}/#{resource_name}"}}}
       end)
 
@@ -670,6 +670,10 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
       assert "NEW" = resp["data"]["status"]
       assert "NEW" = Repo.get(DeclarationRequest, d1.id).status
       assert "CANCELLED" = Repo.get(DeclarationRequest, d2.id).status
+
+      document_types = Enum.map(resp["urgent"]["documents"], fn document -> document["type"] end)
+      assert "person.no_tax_id" in document_types
+      refute "person.tax_id" in document_types
     end
 
     test "declaration request is fail for person without tax_id unz and age > 14", %{conn: conn} do

@@ -1388,7 +1388,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
       end)
 
       expect(MPIMock, :person, fn id, _headers ->
-        get_person(id, 200, %{"tax_id" => "12341234", "status" => "inactive"})
+        get_person(id, 200, %{tax_id: "12341234", status: "inactive"})
       end)
 
       assert resp =

@@ -665,6 +665,88 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       assert "$.signed_content_encoding" == err1["entry"]
       assert "$.signed_declaration_request" == err2["entry"]
     end
+
+    test "success for person with no_tax_id", %{conn: conn} do
+      expect(OPSMock, :create_declaration_with_termination_logic, fn params, _headers ->
+        {:ok, %{"data" => params}}
+      end)
+
+      expect(OPSMock, :get_latest_block, fn _params ->
+        {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
+      end)
+
+      expect(MPIMock, :create_or_update_person, fn _params, _headers ->
+        {:ok,
+         %Response{
+           body: Jason.encode!(%{"data" => string_params_for(:person, no_tax_id: true, tax_id: "")}),
+           status_code: 200
+         }}
+      end)
+
+      expect(CasherMock, :update_person_data, fn _params, _headers ->
+        {:ok, %{}}
+      end)
+
+      data =
+        "../core/test/data/declaration_request/sign_request.json"
+        |> File.read!()
+        |> Jason.decode!()
+        |> put_in(~w(person tax_id), "")
+        |> put_in(~w(employee party tax_id), "")
+        |> put_in(~w(person no_tax_id), true)
+
+      tax_id = get_in(data, ~w(employee party tax_id))
+      employee_id = get_in(data, ~w(employee id))
+
+      %{id: legal_entity_id} = insert(:prm, :legal_entity)
+      insert(:prm, :employee, id: employee_id, legal_entity_id: legal_entity_id)
+      %{user_id: user_id} = insert(:prm, :party_user, party: build(:party, tax_id: tax_id))
+
+      %{id: declaration_id, declaration_number: declaration_number} =
+        insert(
+          :il,
+          :declaration_request,
+          id: data["id"],
+          status: DeclarationRequest.status(:approved),
+          data: %{
+            "person" => data["person"],
+            "declaration_id" => data["declaration_id"],
+            "division" => data["division"],
+            "employee" => data["employee"],
+            "end_date" => data["end_date"],
+            "scope" => data["scope"],
+            "start_date" => data["start_date"],
+            "legal_entity" => data["legal_entity"]
+          },
+          printout_content: data["content"],
+          authentication_method_current: %{
+            "type" => DeclarationRequest.authentication_method(:na)
+          }
+        )
+
+      signed_declaration_request =
+        data
+        |> Map.put("seed", "some_current_hash")
+        |> Map.put("declaration_number", declaration_number)
+
+      drfo_signed_content(signed_declaration_request, tax_id)
+
+      resp =
+        conn
+        |> Plug.Conn.put_req_header("drfo", tax_id)
+        |> put_client_id_header(legal_entity_id)
+        |> put_consumer_id_header(user_id)
+        |> patch(declaration_request_path(conn, :sign, declaration_id), %{
+          "signed_declaration_request" =>
+            signed_declaration_request
+            |> Jason.encode!()
+            |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(200)
+
+      assert get_in(resp, ~w(data status)) == "pending_verification"
+    end
   end
 
   defp fixture_params do

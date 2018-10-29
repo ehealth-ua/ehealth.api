@@ -205,7 +205,7 @@ defmodule Core.DeclarationRequests.API.Sign do
   defp create_or_update_person_response(error), do: error
 
   def create_declaration_with_termination_logic(
-        %{"data" => %{"id" => person_id}},
+        %{"data" => %{"id" => person_id}} = person,
         %DeclarationRequest{
           id: id,
           data: data,
@@ -217,6 +217,7 @@ defmodule Core.DeclarationRequests.API.Sign do
         headers
       ) do
     consumer_id = get_consumer_id(headers)
+    person_no_tax_id = get_in(person, ~w(data no_tax_id)) || false
 
     data
     |> Map.take(["start_date", "end_date", "scope", "seed"])
@@ -226,7 +227,7 @@ defmodule Core.DeclarationRequests.API.Sign do
       "division_id" => get_in(data, ["division", "id"]),
       "legal_entity_id" => get_in(data, ["legal_entity", "id"]),
       "person_id" => person_id,
-      "status" => get_status(authentication_method_current),
+      "status" => get_status(authentication_method_current, person_no_tax_id),
       "is_active" => true,
       "created_by" => consumer_id,
       "updated_by" => consumer_id,
@@ -261,11 +262,13 @@ defmodule Core.DeclarationRequests.API.Sign do
     end
   end
 
-  defp get_status(%{"type" => @auth_offline}), do: "pending_verification"
-  defp get_status(%{"type" => @auth_otp}), do: "active"
-  defp get_status(%{"type" => @auth_na}), do: "active"
+  defp get_status(%{"type" => @auth_offline}, _), do: "pending_verification"
+  defp get_status(%{"type" => @auth_otp}, false), do: "active"
+  defp get_status(%{"type" => @auth_otp}, _), do: "pending_verification"
+  defp get_status(%{"type" => @auth_na}, false), do: "active"
+  defp get_status(%{"type" => @auth_na}, _), do: "pending_verification"
 
-  defp get_status(_) do
+  defp get_status(_, _) do
     Logger.error(fn ->
       Jason.encode!(%{
         "log_type" => "error",

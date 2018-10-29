@@ -17,6 +17,7 @@ defmodule Core.MPIFactories.PersonFactory do
           birth_date: "1996-12-12",
           unzr: "19961212-00000",
           tax_id: sequence(:tax_id, &"tax_id-#{&1}"),
+          no_tax_id: false,
           invalid_tax_id: false,
           birth_country: random_bith_country(),
           birth_settlement: sequence(:birth_settlement, &"birth_settlement-#{&1}"),

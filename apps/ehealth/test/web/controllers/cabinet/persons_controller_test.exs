@@ -41,7 +41,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
         |> Poison.encode!()
         |> Poison.decode!()
         |> Map.drop(
-          ~w(unzr version updated_by updated_at patient_signed merged_ids invalid_tax_id inserted_by inserted_at status is_active id death_date)
+          ~w(unzr version updated_by updated_at patient_signed merged_ids invalid_tax_id inserted_by inserted_at status is_active id death_date no_tax_id)
         )
 
       conn_data
