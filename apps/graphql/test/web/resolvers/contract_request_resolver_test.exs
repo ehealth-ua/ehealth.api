@@ -108,6 +108,54 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       assert 1 == length(resp_entities)
       assert "NEW" == hd(resp_entities)["status"]
     end
+
+    test "filter by closed date interval", %{conn: conn} do
+      nhs()
+
+      today = Date.utc_today()
+
+      for start_date <- [today, Date.add(today, -30)], do: insert(:il, :contract_request, %{start_date: start_date})
+
+      variables = %{
+        filter: %{start_date: "#{to_string(Date.add(today, -10))}/#{to_string(Date.add(today, 10))}"}
+      }
+
+      resp_body =
+        conn
+        |> put_client_id()
+        |> post_query(@list_query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data contractRequests nodes))
+
+      assert nil == resp_body["errors"]
+      assert 1 == length(resp_entities)
+      assert to_string(today) == hd(resp_entities)["startDate"]
+    end
+
+    test "filter by open date interval", %{conn: conn} do
+      nhs()
+
+      today = Date.utc_today()
+
+      for start_date <- [today, Date.add(today, -30)], do: insert(:il, :contract_request, %{start_date: start_date})
+
+      variables = %{
+        filter: %{start_date: "#{to_string(today)}/.."}
+      }
+
+      resp_body =
+        conn
+        |> put_client_id()
+        |> post_query(@list_query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data contractRequests nodes))
+
+      assert nil == resp_body["errors"]
+      assert 1 == length(resp_entities)
+      assert to_string(today) == hd(resp_entities)["startDate"]
+    end
   end
 
   describe "get by id" do

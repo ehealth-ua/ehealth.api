@@ -56,6 +56,8 @@ defmodule GraphQLWeb.Schema.ContractRequestTypes do
     field(:edrpou, :string)
     field(:contract_number, :string)
     field(:status, :contract_request_status)
+    field(:start_date, :date_interval)
+    field(:end_date, :date_interval)
     field(:assignee_id, :id)
     field(:assignee_name, :string)
   end
