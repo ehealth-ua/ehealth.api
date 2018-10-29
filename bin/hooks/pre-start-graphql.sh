@@ -1,6 +1,6 @@
 #!/bin/sh
-# `pwd` should be /opt/ehealth
-APP_NAME="ehealth"
+# `pwd` should be /opt/graphql
+APP_NAME="graphql"
 
 if [ "${DB_MIGRATE}" == "true" ]; then
   echo "[WARNING] Migrating database!"

@@ -1,10 +1,11 @@
-defmodule EHealth.ReleaseTasks do
+defmodule Core.ReleaseTasks do
   @moduledoc """
   Nice way to apply migrations inside a released application.
 
   Example:
 
       ehealth/bin/ehealth command ehealth_tasks migrate!
+      graphql/bin/graphql command ehealth_tasks migrate!
   """
   alias Core.Dictionaries.Dictionary
 
@@ -61,7 +62,6 @@ defmodule EHealth.ReleaseTasks do
   defp load_app do
     start_applications([:logger, :postgrex, :ecto])
     :ok = Application.load(:core)
-    :ok = Application.load(:ehealth)
   end
 
   defp start_applications(apps) do

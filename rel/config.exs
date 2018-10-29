@@ -36,6 +36,7 @@ release :casher do
 end
 
 release :graphql do
+  set(pre_start_hook: "bin/hooks/pre-start-graphql.sh")
   set(version: current_version(:graphql))
 
   set(
