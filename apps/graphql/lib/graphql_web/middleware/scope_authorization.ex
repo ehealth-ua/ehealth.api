@@ -14,12 +14,18 @@ defmodule GraphQLWeb.Middleware.ScopeAuthorization do
     context_key = Keyword.get(opts, :context_key, :scope)
 
     quote do
-      def middleware(middleware, %{__private__: [{:meta, [{unquote(meta_key), _}]} | _]} = field, object) do
-        opts = [meta_key: unquote(meta_key), context_key: unquote(context_key)]
-        [{unquote(__MODULE__), opts} | super(middleware, field, object)]
-      end
+      def middleware(middleware, field, object) do
+        middleware = super(middleware, field, object)
 
-      def middleware(middleware, field, object), do: super(middleware, field, object)
+        case Type.meta(field) do
+          %{unquote(meta_key) => _} ->
+            opts = [meta_key: unquote(meta_key), context_key: unquote(context_key)]
+            [{unquote(__MODULE__), opts} | middleware]
+
+          _ ->
+            middleware
+        end
+      end
 
       defoverridable middleware: 3
     end
