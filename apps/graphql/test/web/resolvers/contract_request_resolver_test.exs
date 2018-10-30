@@ -117,7 +117,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       for start_date <- [today, Date.add(today, -30)], do: insert(:il, :contract_request, %{start_date: start_date})
 
       variables = %{
-        filter: %{start_date: "#{to_string(Date.add(today, -10))}/#{to_string(Date.add(today, 10))}"}
+        filter: %{startDate: Date.Interval.to_edtf(%{first: today, last: Date.add(today, 10)})}
       }
 
       resp_body =
@@ -141,7 +141,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       for start_date <- [today, Date.add(today, -30)], do: insert(:il, :contract_request, %{start_date: start_date})
 
       variables = %{
-        filter: %{start_date: "#{to_string(today)}/.."}
+        filter: %{startDate: Date.Interval.to_edtf(%{first: today, last: nil})}
       }
 
       resp_body =
