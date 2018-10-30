@@ -61,7 +61,62 @@ defmodule EHealth.Web.EmailsControllerTest do
                |> json_response(422)
                |> get_in(~w(error invalid))
 
-      assert "$.to" == err["entry"]
+      assert "$.to[0].receiver" == err["entry"]
+
+      assert [err] =
+               conn
+               |> post(email_path(conn, :send, @man_id), Map.put(@valid_params, :to, "to@smtp.com, not-so-good.com"))
+               |> json_response(422)
+               |> get_in(~w(error invalid))
+
+      assert "$.to[1].receiver" == err["entry"]
+    end
+
+    test "no params", %{conn: conn} do
+      assert errors =
+               conn
+               |> post(email_path(conn, :send, @man_id), %{})
+               |> json_response(422)
+               |> get_in(~w(error invalid))
+
+      entries =
+        errors
+        |> Enum.reduce([], fn error, acc ->
+          assert %{
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "params" => [],
+                       "rule" => "required"
+                     }
+                   ]
+                 } = error
+
+          [error["entry"] | acc]
+        end)
+        |> MapSet.new()
+
+      assert MapSet.new(~w($.from $.to $.data $.subject)) == entries
+    end
+
+    test "no subject parameter", %{conn: conn} do
+      assert [err] =
+               conn
+               |> post(email_path(conn, :send, @man_id), Map.delete(@valid_params, :subject))
+               |> json_response(422)
+               |> get_in(~w(error invalid))
+
+      assert %{
+               "entry" => "$.subject",
+               "entry_type" => "json_data_property",
+               "rules" => [
+                 %{
+                   "description" => "required property subject was not present",
+                   "params" => [],
+                   "rule" => "required"
+                 }
+               ]
+             } == err
     end
 
     test "param from and param to are identical", %{conn: conn} do

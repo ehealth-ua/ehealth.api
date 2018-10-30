@@ -7,7 +7,10 @@ defmodule Core.Email.Schema do
   schema "email" do
     field(:data, :map)
     field(:from, :string)
-    field(:to, :string)
     field(:subject, :string)
+
+    embeds_many :to, Receiver do
+      field(:receiver, :string)
+    end
   end
 end

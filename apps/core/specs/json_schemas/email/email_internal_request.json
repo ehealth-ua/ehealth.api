@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "to": {
+      "type": "string",
+      "description": "Coma separated receivers emails"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Subject of email"
+    },
+    "data": {
+      "type": "object"
+    },
+    "from": {
+      "type": "string",
+      "format": "email"
+    },
+    "id": {
+      "type": "string",
+      "description": "template id"
+    }
+  },
+  "required": [
+    "from",
+    "to",
+    "subject",
+    "data",
+    "id"
+  ],
+  "additionalProperties": true
+}

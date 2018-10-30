@@ -7,6 +7,11 @@ defmodule Core.Validators.JsonSchema do
   alias Core.Validators.SchemaMapper
 
   use_schema(
+    :email_internal_request,
+    "specs/json_schemas/email/email_internal_request.json"
+  )
+
+  use_schema(
     :medication_request_request_create,
     "specs/json_schemas/medication_request_request/medication_request_request_create_request.json"
   )

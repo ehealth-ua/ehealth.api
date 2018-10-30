@@ -36,21 +36,30 @@ defmodule Core.Email do
   end
 
   defp validate_attrs(attrs) do
-    fields = Schema.__schema__(:fields)
+    fields = ~w(data from subject)a
+    receivers = String.split(attrs["to"], ",")
+    attrs = Map.put(attrs, "to", Enum.map(receivers, fn receiver -> %{receiver: String.trim(receiver)} end))
 
     %Schema{}
     |> cast(attrs, fields)
     |> validate_required(fields)
+    |> cast_embed(:to, with: &receivers_changeset/2)
     |> validate_email(:from)
-    |> validate_email(:to)
-    |> validate_not_match(:from, :to)
+    |> validate_not_match(receivers)
   end
 
-  def validate_not_match(changeset, field1, field2) do
-    validate_change(changeset, field1, fn field1, field1_value ->
-      case field1_value == get_change(changeset, field2) do
-        true -> ["#{field1}": "Fields \"#{field1}\" and \"#{field2}\" must be different"]
-        _ -> []
+  defp receivers_changeset(schema, params) do
+    schema
+    |> cast(params, [:receiver])
+    |> validate_email(:receiver)
+  end
+
+  defp validate_not_match(changeset, receivers) do
+    validate_change(changeset, :from, fn :from, from ->
+      if receivers == [from] do
+        [from: "Fields \"#{from}\" and \"#{[from]}\" must be different"]
+      else
+        []
       end
     end)
   end
