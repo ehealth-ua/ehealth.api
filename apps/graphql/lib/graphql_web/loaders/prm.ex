@@ -24,7 +24,7 @@ defmodule GraphQLWeb.Loaders.PRM do
 
   defp prepare_where(query, []), do: query
 
-  defp prepare_where(query, [{:merged_from_legal_entity, filter} | tail]) do
+  defp prepare_where(query, [{:merged_from_legal_entity, filter} | _tail]) do
     query
     |> join(:left, [e], m in assoc(e, :merged_from))
     |> prepare_where(Enum.into(filter, []))

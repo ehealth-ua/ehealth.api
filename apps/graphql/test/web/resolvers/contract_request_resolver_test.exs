@@ -3,9 +3,12 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
 
   import Core.Factories, only: [insert: 2, insert: 3]
   import Core.Expectations.Mithril, only: [mis: 0, msp: 0, nhs: 0]
+  import Core.Expectations.Man, only: [template: 0]
   import Mox, only: [verify_on_exit!: 1]
 
   alias Absinthe.Relay.Node
+  alias Core.ContractRequests.ContractRequest
+  alias Ecto.UUID
 
   @list_query """
     query ListContractRequestsQuery($filter: ContractRequestFilter) {
@@ -354,6 +357,124 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
                |> get_in(~w(division databaseId))
 
       assert nhs_signer.id == resp_entity["nhsSigner"]["databaseId"]
+    end
+  end
+
+  describe "get with printout_content field" do
+    test "success", %{conn: conn} do
+      nhs()
+      template()
+
+      insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
+      insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
+      insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
+      insert(:il, :dictionary, name: "MEDICAL_SERVICE", values: %{})
+
+      client_id = UUID.generate()
+      nhs_signer = insert(:prm, :employee)
+      external_contractor_legal_entity = insert(:prm, :legal_entity)
+      external_contractor_division = insert(:prm, :division)
+
+      contract_request =
+        insert(
+          :il,
+          :contract_request,
+          nhs_signer_id: nhs_signer.id,
+          contractor_legal_entity_id: client_id,
+          status: ContractRequest.status(:pending_nhs_sign),
+          external_contractors: [
+            %{
+              "legal_entity_id" => external_contractor_legal_entity.id,
+              "divisions" => [
+                %{
+                  "id" => external_contractor_division.id,
+                  "medical_service" => "Послуга ПМД"
+                }
+              ]
+            }
+          ]
+        )
+
+      id = Node.to_global_id("ContractRequest", contract_request.id)
+
+      query = """
+        query GetContractRequestPrintountContentQuery($id: ID!) {
+          contractRequest(id: $id) {
+            id
+            status
+            printoutContent
+          }
+        }
+      """
+
+      variables = %{id: id}
+
+      resp_body =
+        conn
+        |> put_client_id(client_id)
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      assert "<html></html>" == get_in(resp_body, ~w(data contractRequest printoutContent))
+    end
+
+    test "Incorrect status of contract_request", %{conn: conn} do
+      nhs()
+      contract_request = insert(:il, :contract_request, status: ContractRequest.status(:new))
+
+      query = """
+        query GetContractRequestPrintountContentQuery($id: ID!) {
+          contractRequest(id: $id) {
+            id
+            printoutContent
+          }
+        }
+      """
+
+      variables = %{id: Node.to_global_id("ContractRequest", contract_request.id)}
+
+      resp_body =
+        conn
+        |> put_client_id()
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      assert %{"errors" => [error]} = resp_body
+
+      assert %{
+               "extensions" => %{"code" => "CONFLICT"},
+               "message" => _
+             } = error
+    end
+
+    test "User is not allowed to perform this action", %{conn: conn} do
+      nhs()
+      contract_request = insert(:il, :contract_request, status: ContractRequest.status(:pending_nhs_sign))
+
+      query = """
+        query GetContractRequestPrintountContentQuery($id: ID!) {
+          contractRequest(id: $id) {
+            status
+            printoutContent
+          }
+        }
+      """
+
+      variables = %{id: Node.to_global_id("ContractRequest", contract_request.id)}
+
+      resp_body =
+        conn
+        |> put_client_id()
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      assert %{"errors" => [error]} = resp_body
+
+      assert %{
+               "extensions" => %{"code" => "FORBIDDEN"},
+               "message" => _,
+               "path" => ["contractRequest", "printoutContent"]
+             } = error
     end
   end
 end

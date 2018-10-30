@@ -5,7 +5,7 @@ defmodule GraphQLWeb.Schema.ContractRequestTypes do
   use Absinthe.Relay.Schema.Notation, :modern
 
   import Absinthe.Resolution.Helpers, only: [dataloader: 1]
-  import GraphQLWeb.Resolvers.Helpers, only: [load_by_args: 2, load_by_parent: 2, load_by_parent: 3]
+  import GraphQLWeb.Resolvers.Helpers.Load, only: [load_by_args: 2, load_by_parent: 2, load_by_parent: 3]
 
   alias Core.ContractRequests.ContractRequest
   alias Core.Divisions.Division
@@ -101,7 +101,7 @@ defmodule GraphQLWeb.Schema.ContractRequestTypes do
     field(:status, non_null(:contract_request_status))
     field(:status_reason, :string)
     field(:issue_city, :string)
-    field(:printout_content, :string)
+    field(:printout_content, :string, resolve: &ContractRequestResolver.get_printout_content/3)
     field(:start_date, non_null(:date))
     field(:end_date, non_null(:date))
     field(:contractor_legal_entity, non_null(:legal_entity), resolve: load_by_parent(PRM, LegalEntity))

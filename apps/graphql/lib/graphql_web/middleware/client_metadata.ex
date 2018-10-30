@@ -6,7 +6,7 @@ defmodule GraphQLWeb.Middleware.ClientMetadata do
   @behaviour Absinthe.Middleware
 
   import Core.API.Helpers.Connection, only: [get_client_id: 1]
-  import GraphQLWeb.Middleware.Helpers, only: [format_unauthenticated_error: 0]
+  import GraphQLWeb.Resolvers.Helpers.Errors, only: [format_unauthenticated_error: 0]
 
   alias Absinthe.{Resolution, Type}
 

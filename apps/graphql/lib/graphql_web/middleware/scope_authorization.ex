@@ -5,7 +5,7 @@ defmodule GraphQLWeb.Middleware.ScopeAuthorization do
 
   @behaviour Absinthe.Middleware
 
-  import GraphQLWeb.Middleware.Helpers, only: [format_forbidden_error: 1]
+  import GraphQLWeb.Resolvers.Helpers.Errors, only: [format_forbidden_error: 1]
 
   alias Absinthe.{Resolution, Type}
 

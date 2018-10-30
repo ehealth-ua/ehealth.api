@@ -1270,7 +1270,7 @@ defmodule Core.ContractRequests do
     end
   end
 
-  defp validate_status(contract_request, status),
+  def validate_status(contract_request, status),
     do:
       validate_status(
         contract_request,
@@ -1278,7 +1278,7 @@ defmodule Core.ContractRequests do
         "Incorrect status of contract_request to modify it"
       )
 
-  defp validate_status(%ContractRequest{status: status}, required_status, message) do
+  def validate_status(%ContractRequest{status: status}, required_status, message) do
     cond do
       status == required_status -> :ok
       is_list(required_status) and status in required_status -> :ok
@@ -1311,8 +1311,8 @@ defmodule Core.ContractRequests do
     end
   end
 
-  defp validate_legal_entity_id(legal_entity_id, legal_entity_id), do: :ok
-  defp validate_legal_entity_id(_, _), do: {:error, {:forbidden, "User is not allowed to perform this action"}}
+  def validate_legal_entity_id(legal_entity_id, legal_entity_id), do: :ok
+  def validate_legal_entity_id(_, _), do: {:error, {:forbidden, "User is not allowed to perform this action"}}
 
   defp validate_contractor_legal_entity(legal_entity_id) do
     with {:ok, legal_entity} <-
