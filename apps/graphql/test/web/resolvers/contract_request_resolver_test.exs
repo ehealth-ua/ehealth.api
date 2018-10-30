@@ -448,7 +448,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
     end
 
     test "User is not allowed to perform this action", %{conn: conn} do
-      nhs()
+      msp()
       contract_request = insert(:il, :contract_request, status: ContractRequest.status(:pending_nhs_sign))
 
       query = """
@@ -468,13 +468,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
         |> post_query(query, variables)
         |> json_response(200)
 
-      assert %{"errors" => [error]} = resp_body
-
-      assert %{
-               "extensions" => %{"code" => "FORBIDDEN"},
-               "message" => _,
-               "path" => ["contractRequest", "printoutContent"]
-             } = error
+      assert %{"data" => %{"contractRequest" => nil}} = resp_body
     end
   end
 end

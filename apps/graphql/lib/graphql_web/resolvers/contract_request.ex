@@ -28,8 +28,6 @@ defmodule GraphQLWeb.Resolvers.ContractRequest do
     contract_request = Map.put(contract_request, :nhs_signed_date, Date.utc_today())
 
     with :ok <- ContractRequests.validate_status(contract_request, ContractRequest.status(:pending_nhs_sign)),
-         :ok <-
-           ContractRequests.validate_legal_entity_id(contract_request.contractor_legal_entity_id, context.client_id),
          # todo: causes N+1 problem with DB query and man templace rendening
          {:ok, printout_content} <- ContractRequestPrintoutForm.render(contract_request, context.headers) do
       {:ok, printout_content}

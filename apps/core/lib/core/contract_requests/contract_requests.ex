@@ -1311,8 +1311,8 @@ defmodule Core.ContractRequests do
     end
   end
 
-  def validate_legal_entity_id(legal_entity_id, legal_entity_id), do: :ok
-  def validate_legal_entity_id(_, _), do: {:error, {:forbidden, "User is not allowed to perform this action"}}
+  defp validate_legal_entity_id(legal_entity_id, legal_entity_id), do: :ok
+  defp validate_legal_entity_id(_, _), do: {:error, {:forbidden, "User is not allowed to perform this action"}}
 
   defp validate_contractor_legal_entity(legal_entity_id) do
     with {:ok, legal_entity} <-
