@@ -205,9 +205,9 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       assert DeclarationRequest.status(:approved) == resp["data"]["status"]
     end
 
-    test "approve NEW declaration_request when limit exited", %{conn: conn} do
+    test "approve when limit exited and person has NOT declarations with doctor", %{conn: conn} do
       expect(OPSMock, :get_declarations_count, fn _, _ ->
-        {:ok, %{"data" => %{"count" => 1}}}
+        {:ok, %{"data" => %{"count" => 4}}}
       end)
 
       expect(MediaStorageMock, :create_signed_url, fn _, _, _, _, _ ->
@@ -218,25 +218,71 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
         {:ok, %HTTPoison.Response{status_code: 200}}
       end)
 
-      party = insert(:prm, :party, declaration_limit: 5)
+      party = insert(:prm, :party)
       legal_entity = insert(:prm, :legal_entity)
 
-      %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity_id: legal_entity.id)
+      # THERAPIST
+      %{id: employee_id} =
+        insert(
+          :prm,
+          :employee,
+          party: party,
+          legal_entity_id: legal_entity.id,
+          speciality: employee_speciality(%{"speciality" => "THERAPIST"})
+        )
+
+      # PEDIATRICIAN
+      insert(
+        :prm,
+        :employee,
+        party: party,
+        legal_entity_id: legal_entity.id,
+        speciality: employee_speciality(%{"speciality" => "PEDIATRICIAN"})
+      )
+
+      # FAMILY_DOCTOR
+      insert(
+        :prm,
+        :employee,
+        party: party,
+        legal_entity_id: legal_entity.id,
+        speciality: employee_speciality(%{"speciality" => "FAMILY_DOCTOR"})
+      )
 
       data = %{"employee" => %{"id" => employee_id}}
+
+      insert(
+        :il,
+        :declaration_request,
+        data: data,
+        status: DeclarationRequest.status(:approved)
+      )
 
       declaration_request =
         insert(
           :il,
           :declaration_request,
           documents: [%{"type" => "ok", "verb" => "HEAD"}],
-          data: data
+          data: data,
+          mpi_id: UUID.generate()
         )
 
-      Enum.each(1..4, fn _ ->
-        insert(:il, :declaration_request, data: data, status: DeclarationRequest.status(:approved))
+      current_speciality_limits = Application.get_env(:core, :employee_speciality_limits)
+
+      on_exit(fn ->
+        Application.put_env(:core, :employee_speciality_limits, current_speciality_limits)
       end)
 
+      Application.put_env(
+        :core,
+        :employee_speciality_limits,
+        therapist_declaration_limit: 5,
+        pediatrician_declaration_limit: 6,
+        family_doctor_declaration_limit: 7
+      )
+
+      # current doctor limit = 5
+      # doctor's declaration count = 5
       resp =
         conn
         |> put_client_id_header(UUID.generate())
@@ -244,6 +290,91 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
         |> json_response(422)
 
       assert resp["error"]["message"] == "This doctor reaches his limit and could not sign more declarations"
+    end
+
+    test "approve when limit exited and person has declarations with doctor", %{conn: conn} do
+      expect(OPSMock, :get_declarations_count, fn _, _ ->
+        {:ok, %{"data" => %{"count" => 3}}}
+      end)
+
+      expect(MediaStorageMock, :create_signed_url, fn _, _, _, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://localhost/good_upload_1"}}}
+      end)
+
+      expect(MediaStorageMock, :verify_uploaded_file, fn _, _ ->
+        {:ok, %HTTPoison.Response{status_code: 200}}
+      end)
+
+      party = insert(:prm, :party)
+      legal_entity = insert(:prm, :legal_entity)
+
+      # THERAPIST
+      %{id: employee_id} =
+        insert(
+          :prm,
+          :employee,
+          party: party,
+          legal_entity_id: legal_entity.id,
+          speciality: employee_speciality(%{"speciality" => "THERAPIST"})
+        )
+
+      # PEDIATRICIAN
+      insert(
+        :prm,
+        :employee,
+        party: party,
+        legal_entity_id: legal_entity.id,
+        speciality: employee_speciality(%{"speciality" => "PEDIATRICIAN"})
+      )
+
+      # FAMILY_DOCTOR
+      insert(
+        :prm,
+        :employee,
+        party: party,
+        legal_entity_id: legal_entity.id,
+        speciality: employee_speciality(%{"speciality" => "FAMILY_DOCTOR"})
+      )
+
+      data = %{"employee" => %{"id" => employee_id}}
+
+      insert(
+        :il,
+        :declaration_request,
+        data: data,
+        status: DeclarationRequest.status(:approved)
+      )
+
+      declaration_request =
+        insert(
+          :il,
+          :declaration_request,
+          documents: [%{"type" => "ok", "verb" => "HEAD"}],
+          data: data,
+          mpi_id: UUID.generate()
+        )
+
+      current_speciality_limits = Application.get_env(:core, :employee_speciality_limits)
+
+      on_exit(fn ->
+        Application.put_env(:core, :employee_speciality_limits, current_speciality_limits)
+      end)
+
+      Application.put_env(
+        :core,
+        :employee_speciality_limits,
+        therapist_declaration_limit: 5,
+        pediatrician_declaration_limit: 6,
+        family_doctor_declaration_limit: 7
+      )
+
+      # current doctor limit = 5
+      # doctor's declaration count = 5
+      # person's declaration count by doctor = 1
+      conn
+      |> put_client_id_header(UUID.generate())
+      |> patch(declaration_request_path(conn, :approve, declaration_request))
+      |> json_response(200)
     end
 
     test "approve APPROVED declaration_request", %{conn: conn} do
@@ -988,5 +1119,21 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
         }
       ]
     }
+  end
+
+  defp employee_speciality(params) do
+    Map.merge(
+      %{
+        "speciality" => "PEDIATRICIAN",
+        "speciality_officio" => true,
+        "level" => "Вища категорія",
+        "qualification_type" => "Підтвердження",
+        "attestation_name" => "random string",
+        "attestation_date" => ~D[1987-04-17],
+        "valid_to_date" => ~D[1987-04-17],
+        "certificate_number" => "random string"
+      },
+      params
+    )
   end
 end

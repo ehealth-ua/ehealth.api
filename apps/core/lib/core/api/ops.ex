@@ -19,8 +19,8 @@ defmodule Core.API.OPS do
     post!("/declarations/person_ids", Jason.encode!(%{"employee_ids" => employee_ids}), headers)
   end
 
-  def get_declarations_count(employee_ids, headers \\ []) do
-    post!("/declarations_count", Jason.encode!(%{ids: employee_ids}), headers)
+  def get_declarations_count(params, headers \\ []) do
+    post!("/declarations_count", Jason.encode!(params), headers)
   end
 
   def terminate_declaration(id, params, headers \\ []) do

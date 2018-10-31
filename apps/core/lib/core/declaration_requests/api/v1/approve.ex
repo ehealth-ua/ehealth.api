@@ -107,7 +107,8 @@ defmodule Core.DeclarationRequests.API.Approve do
 
   defp validate_declaration_limit(
          %DeclarationRequest{
-           data: %{"employee" => %{"id" => employee_id}}
+           data: %{"employee" => %{"id" => employee_id}},
+           mpi_id: person_id
          },
          headers
        ) do
@@ -116,10 +117,10 @@ defmodule Core.DeclarationRequests.API.Approve do
          employee_ids <- Enum.map(employees, &Map.get(&1, :id)),
          declarations_request_count <-
            get_declarations_requests_count(DeclarationRequest.status(:approved), employee_ids),
-         {:ok, %{"data" => %{"count" => declarations_count}}} <- @ops_api.get_declarations_count(employee_ids, headers),
-         {:limit, true} <-
-           {:limit,
-            !party.declaration_limit || declarations_count + declarations_request_count < party.declaration_limit} do
+         {:ok, %{"data" => %{"count" => declarations_count}}} <-
+           @ops_api.get_declarations_count(%{"ids" => employee_ids, "exclude_person_id" => person_id}, headers),
+         declaration_limit <- get_declaration_limit(employees),
+         {:limit, true} <- {:limit, declarations_count + declarations_request_count < declaration_limit} do
       :ok
     else
       {:limit, false} -> Error.dump("This doctor reaches his limit and could not sign more declarations")
@@ -135,5 +136,24 @@ defmodule Core.DeclarationRequests.API.Approve do
       dr.status == ^status and fragment("?->'employee'->>'id'", dr.data) in ^employee_ids
     )
     |> Repo.one()
+  end
+
+  defp get_declaration_limit(employees) do
+    config = Confex.fetch_env!(:core, :employee_speciality_limits)
+
+    employees
+    |> Enum.map(fn employee ->
+      case employee.speciality["speciality"] do
+        "THERAPIST" ->
+          config[:therapist_declaration_limit]
+
+        "PEDIATRICIAN" ->
+          config[:pediatrician_declaration_limit]
+
+        "FAMILY_DOCTOR" ->
+          config[:family_doctor_declaration_limit]
+      end
+    end)
+    |> Enum.min(fn -> 0 end)
   end
 end
