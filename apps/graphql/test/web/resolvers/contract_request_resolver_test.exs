@@ -18,6 +18,9 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
           databaseId
           status
           startDate
+          assignee {
+            databaseId
+          }
         }
       }
     }
@@ -158,6 +161,29 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       assert nil == resp_body["errors"]
       assert 1 == length(resp_entities)
       assert to_string(today) == hd(resp_entities)["startDate"]
+    end
+
+    test "filter by assignee name", %{conn: conn} do
+      nhs()
+
+      assignees = for _ <- 1..2, do: insert(:prm, :employee, %{employee_type: "NHS"})
+      for %{id: id} <- assignees, do: insert(:il, :contract_request, %{assignee_id: id})
+
+      requested_assignee = hd(assignees)
+
+      variables = %{filter: %{assigneeName: requested_assignee.party.last_name}}
+
+      resp_body =
+        conn
+        |> put_client_id()
+        |> post_query(@list_query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data contractRequests nodes))
+
+      assert nil == resp_body["errors"]
+      assert 1 == length(resp_entities)
+      assert requested_assignee.id == hd(resp_entities)["assignee"]["databaseId"]
     end
   end
 
