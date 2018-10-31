@@ -10,10 +10,11 @@ defmodule Core.Email do
 
   @man_api Application.get_env(:core, :api_resolvers)[:man]
 
-  def send(%{"id" => man_id} = attrs) do
-    with %Changeset{valid?: true} <- validate_attrs(attrs),
+  def send(%{"id" => man_id, "to" => to} = attrs) do
+    with receivers <- String.split(to, ","),
+         %Changeset{valid?: true} <- validate_attrs(Map.delete(attrs, "to"), receivers),
          {:ok, body} <- render_template(man_id, attrs) do
-      Sender.send_email(attrs["to"], body, attrs["from"], attrs["subject"])
+      Sender.send_email(receivers, body, attrs["from"], attrs["subject"])
       :ok
     end
   end
@@ -35,9 +36,8 @@ defmodule Core.Email do
     end
   end
 
-  defp validate_attrs(attrs) do
+  defp validate_attrs(attrs, receivers) do
     fields = ~w(data from subject)a
-    receivers = String.split(attrs["to"], ",")
     attrs = Map.put(attrs, "to", Enum.map(receivers, fn receiver -> %{receiver: String.trim(receiver)} end))
 
     %Schema{}

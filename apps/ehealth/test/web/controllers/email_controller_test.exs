@@ -96,22 +96,22 @@ defmodule EHealth.Web.EmailsControllerTest do
         end)
         |> MapSet.new()
 
-      assert MapSet.new(~w($.from $.to $.data $.subject)) == entries
+      assert MapSet.new(~w($.from $.to)) == entries
     end
 
-    test "no subject parameter", %{conn: conn} do
+    test "no from parameter", %{conn: conn} do
       assert [err] =
                conn
-               |> post(email_path(conn, :send, @man_id), Map.delete(@valid_params, :subject))
+               |> post(email_path(conn, :send, @man_id), Map.delete(@valid_params, :from))
                |> json_response(422)
                |> get_in(~w(error invalid))
 
       assert %{
-               "entry" => "$.subject",
+               "entry" => "$.from",
                "entry_type" => "json_data_property",
                "rules" => [
                  %{
-                   "description" => "required property subject was not present",
+                   "description" => "required property from was not present",
                    "params" => [],
                    "rule" => "required"
                  }
