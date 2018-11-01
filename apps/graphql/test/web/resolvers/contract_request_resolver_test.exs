@@ -2,12 +2,14 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
   use GraphQLWeb.ConnCase, async: true
 
   import Core.Factories, only: [insert: 2, insert: 3]
-  import Core.Expectations.Mithril, only: [mis: 0, msp: 0, nhs: 0]
   import Core.Expectations.Man, only: [template: 0]
-  import Mox, only: [verify_on_exit!: 1]
+  import Core.Expectations.Mithril, only: [mis: 0, msp: 0, nhs: 0]
+  import Core.Expectations.Signature
+  import Mox
 
   alias Absinthe.Relay.Node
   alias Core.ContractRequests.ContractRequest
+  alias Core.Employees.Employee
   alias Ecto.UUID
 
   @list_query """
@@ -30,6 +32,26 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
     query GetContractRequestQuery($id: ID!) {
       contractRequest(id: $id) {
         id
+      }
+    }
+  """
+
+  @approve_query """
+    mutation ApproveContractRequest($input: ApproveContractRequestInput!) {
+      approveContractRequest(input: $input) {
+        contractRequest {
+          id
+          databaseId
+          status
+          contractorEmployeeDivisions {
+            employee {
+              databaseId
+            }
+            division {
+              databaseId
+            }
+          }
+        }
       }
     }
   """
@@ -424,7 +446,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       id = Node.to_global_id("ContractRequest", contract_request.id)
 
       query = """
-        query GetContractRequestPrintountContentQuery($id: ID!) {
+        query GetContractRequestPrintoutContentQuery($id: ID!) {
           contractRequest(id: $id) {
             id
             status
@@ -449,7 +471,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       contract_request = insert(:il, :contract_request, status: ContractRequest.status(:new))
 
       query = """
-        query GetContractRequestPrintountContentQuery($id: ID!) {
+        query GetContractRequestPrintoutContentQuery($id: ID!) {
           contractRequest(id: $id) {
             id
             printoutContent
@@ -478,7 +500,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       contract_request = insert(:il, :contract_request, status: ContractRequest.status(:pending_nhs_sign))
 
       query = """
-        query GetContractRequestPrintountContentQuery($id: ID!) {
+        query GetContractRequestPrintoutContentQuery($id: ID!) {
           contractRequest(id: $id) {
             status
             printoutContent
@@ -496,5 +518,105 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
 
       assert %{"data" => %{"contractRequest" => nil}} = resp_body
     end
+  end
+
+  describe "approve" do
+    test "success", %{conn: conn} do
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
+      end)
+
+      #      template()
+
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
+      user_id = UUID.generate()
+      party_user = insert(:prm, :party_user, user_id: user_id)
+      legal_entity = insert(:prm, :legal_entity)
+
+      employee_owner =
+        insert(
+          :prm,
+          :employee,
+          legal_entity_id: legal_entity.id,
+          employee_type: Employee.type(:owner),
+          party: party_user.party
+        )
+
+      division =
+        insert(
+          :prm,
+          :division,
+          legal_entity: legal_entity,
+          phones: [%{"type" => "MOBILE", "number" => "+380631111111"}],
+          working_hours: %{fri: [["08.00", "12.00"], ["14.00", "16.00"]]}
+        )
+
+      employee_doctor = insert(:prm, :employee, legal_entity_id: legal_entity.id, division: division)
+
+      now = Date.utc_today()
+      start_date = Date.add(now, 10)
+
+      contract_request =
+        insert(
+          :il,
+          :contract_request,
+          status: ContractRequest.status(:in_process),
+          nhs_signer_id: employee_owner.id,
+          nhs_legal_entity_id: legal_entity.id,
+          contractor_legal_entity_id: legal_entity.id,
+          contractor_owner_id: employee_owner.id,
+          contractor_divisions: [division.id],
+          contractor_employee_divisions: [
+            %{
+              "employee_id" => employee_doctor.id,
+              "staff_units" => 0.5,
+              "declaration_limit" => 2000,
+              "division_id" => division.id
+            }
+          ],
+          start_date: start_date
+        )
+
+      content = %{
+        "id" => contract_request.id,
+        "next_status" => "APPROVED",
+        "contractor_legal_entity" => %{
+          "id" => contract_request.contractor_legal_entity_id,
+          "name" => legal_entity.name,
+          "edrpou" => legal_entity.edrpou
+        },
+        "text" => "something"
+      }
+
+      drfo_signed_content(content, legal_entity.edrpou, party_user.party.last_name)
+
+      resp_body =
+        conn
+        |> put_client_id(legal_entity.id)
+        |> put_consumer_id(user_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
+        |> put_scope("contract_request:update")
+        |> post_query(@approve_query, input_signed_content(content))
+        |> json_response(200)
+
+      resp_contract_request = get_in(resp_body, ~w(data approveContractRequest contractRequest))
+      contractor_employee_divisions = hd(resp_contract_request["contractorEmployeeDivisions"])
+      assert employee_doctor.id == contractor_employee_divisions["employee"]["databaseId"]
+      assert division.id == contractor_employee_divisions["division"]["databaseId"]
+    end
+  end
+
+  defp input_signed_content(content) do
+    %{
+      input: %{
+        signedContent: %{
+          content: content |> Jason.encode!() |> Base.encode64(),
+          encoding: "BASE64"
+        }
+      }
+    }
   end
 end

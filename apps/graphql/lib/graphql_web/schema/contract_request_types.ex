@@ -77,17 +77,26 @@ defmodule GraphQLWeb.Schema.ContractRequestTypes do
 
   connection node_type: :contract_request do
     field :nodes, list_of(:contract_request) do
-      resolve(fn
-        _, %{source: conn} ->
-          nodes = conn.edges |> Enum.map(& &1.node)
-          {:ok, nodes}
-      end)
+      resolve(fn _, %{source: conn} -> {:ok, Enum.map(conn.edges, & &1.node)} end)
     end
 
     edge(do: nil)
   end
 
   object :contract_request_mutations do
+    payload field(:approve_contract_request) do
+      meta(:scope, ~w(contract_request:update))
+
+      input do
+        field(:signed_content, non_null(:signed_content))
+      end
+
+      output do
+        field(:contract_request, :contract_request)
+      end
+
+      resolve(&ContractRequestResolver.approve/2)
+    end
   end
 
   node object(:contract_request) do

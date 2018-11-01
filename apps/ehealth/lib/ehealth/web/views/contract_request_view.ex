@@ -2,6 +2,7 @@ defmodule EHealth.Web.ContractRequestView do
   @moduledoc false
 
   use EHealth.Web, :view
+  alias Core.ContractRequests.Renderer, as: ContractRequestsRenderer
   alias EHealth.Web.DivisionView
 
   def render("index.json", %{contract_requests: contract_requests}) do
@@ -38,57 +39,7 @@ defmodule EHealth.Web.ContractRequestView do
   end
 
   def render("show.json", %{contract_request: contract_request, references: references}) do
-    data = Map.take(contract_request, ~w(
-      id
-      contractor_base
-      contractor_payment_details
-      contractor_rmsp_amount
-      external_contractor_flag
-      nhs_signer_base
-      nhs_contract_price
-      nhs_payment_method
-      start_date
-      end_date
-      id_form
-      issue_city
-      status
-      contract_number
-      printout_content
-      parent_contract_id
-      status_reason
-      previous_request_id
-      assignee_id
-    )a)
-
-    data
-    |> Map.put(
-      "contractor_legal_entity",
-      render_association(:legal_entity, references, contract_request.contractor_legal_entity_id)
-    )
-    |> Map.put(
-      "nhs_legal_entity",
-      render_association(:legal_entity, references, contract_request.nhs_legal_entity_id)
-    )
-    |> Map.put(
-      "contractor_owner",
-      render_association(:employee, references, contract_request.contractor_owner_id)
-    )
-    |> Map.put(
-      "nhs_signer",
-      render_association(:employee, references, contract_request.nhs_signer_id)
-    )
-    |> Map.put(
-      "contractor_employee_divisions",
-      render_association(:employee_divisions, references, contract_request.contractor_employee_divisions || [])
-    )
-    |> Map.put(
-      "contractor_divisions",
-      render_association(:contractor_divisions, references, contract_request.contractor_divisions || [])
-    )
-    |> Map.put(
-      "external_contractors",
-      render_association(:external_contractors, references, contract_request.external_contractors || [])
-    )
+    ContractRequestsRenderer.render(contract_request, references)
   end
 
   def render("partially_signed_content.json", %{url: url}), do: %{url: url}
@@ -119,89 +70,5 @@ defmodule EHealth.Web.ContractRequestView do
       "id" => contract_request.id,
       "contractor_legal_entity" => Map.take(contractor_legal_entity, ~w(id name edrpou)a)
     }
-  end
-
-  def render_association(_, _, nil), do: nil
-
-  def render_association(:legal_entity, references, id) do
-    with %{} = legal_entity <-
-           references
-           |> Map.get(:legal_entity)
-           |> Map.get(id) do
-      Map.take(legal_entity, ~w(id name edrpou addresses)a)
-    end
-  end
-
-  def render_association(:employee_division, references, id) do
-    with %{} = employee <-
-           references
-           |> Map.get(:employee)
-           |> Map.get(id) do
-      employee
-      |> Map.take(~w(id speciality)a)
-      |> Map.put("party", Map.take(employee.party, ~w(first_name last_name second_name)a))
-    end
-  end
-
-  def render_association(:employee, references, id) do
-    with %{} = employee <-
-           references
-           |> Map.get(:employee)
-           |> Map.get(id) do
-      employee
-      |> Map.take(~w(id)a)
-      |> Map.put("party", Map.take(employee.party, ~w(first_name last_name second_name)a))
-    end
-  end
-
-  def render_association(:division, references, id) do
-    with %{} = division <- references |> Map.get(:division) |> Map.get(id) do
-      division
-      |> Map.take(~w(id name phone email working_hours mountain_group phones)a)
-      |> Map.put(:addresses, render_many(division.addresses, DivisionView, "division_addresses.json", as: :address))
-    end
-  end
-
-  def render_association(:employee_divisions, references, employee_divisions) do
-    Enum.map(employee_divisions, fn employee_division ->
-      employee_division
-      |> Map.take(~w(division_id staff_units declaration_limit))
-      |> Map.put(
-        "employee",
-        render_association(:employee_division, references, Map.get(employee_division, "employee_id"))
-      )
-    end)
-  end
-
-  def render_association(:external_contractor, references, external_contractor) do
-    legal_entity =
-      references
-      |> Map.get(:legal_entity)
-      |> Map.get(external_contractor["legal_entity_id"]) || %{}
-
-    divisions = external_contractor["divisions"] || []
-
-    divisions =
-      Enum.map(divisions, fn %{"id" => id, "medical_service" => medical_service} ->
-        division =
-          references
-          |> Map.get(:division)
-          |> Map.get(id) || %{}
-
-        %{"id" => id, "name" => division.name, "medical_service" => medical_service}
-      end)
-
-    external_contractor
-    |> Map.take(~w(contract))
-    |> Map.put("legal_entity", Map.take(legal_entity, ~w(id name)a))
-    |> Map.put("divisions", divisions)
-  end
-
-  def render_association(:contractor_divisions, references, contractor_divisions) do
-    Enum.map(contractor_divisions, &render_association(:division, references, &1))
-  end
-
-  def render_association(:external_contractors, references, external_contractors) do
-    Enum.map(external_contractors, &render_association(:external_contractor, references, &1))
   end
 end

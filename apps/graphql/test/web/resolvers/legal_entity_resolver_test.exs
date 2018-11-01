@@ -116,7 +116,7 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
     test "success with filter by related legal entity edrpou", %{conn: conn} do
       from = insert(:prm, :legal_entity, edrpou: "1234567890")
       from2 = insert(:prm, :legal_entity, edrpou: "2234567890")
-      from3 = insert(:prm, :legal_entity, edrpou: "3234567890")
+      insert(:prm, :legal_entity, edrpou: "3234567890")
       to = insert(:prm, :legal_entity, edrpou: "3234567899")
       insert(:prm, :related_legal_entity, merged_from: from, merged_to: to)
       related_legal_entity = insert(:prm, :related_legal_entity, merged_from: from2, merged_to: to)

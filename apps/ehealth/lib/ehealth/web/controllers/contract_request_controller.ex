@@ -57,10 +57,7 @@ defmodule EHealth.Web.ContractRequestController do
   end
 
   def approve(%Plug.Conn{req_headers: headers} = conn, params) do
-    render_func = {Phoenix.View, :render, [ContractRequestView, "show.json"]}
-
-    with {:ok, %ContractRequest{} = contract_request, references} <-
-           ContractRequests.approve(headers, params, render_func) do
+    with {:ok, %ContractRequest{} = contract_request, references} <- ContractRequests.approve(headers, params) do
       render(conn, "show.json", contract_request: contract_request, references: references)
     end
   end

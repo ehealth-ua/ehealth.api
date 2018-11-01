@@ -9,6 +9,7 @@ defmodule Core.ContractRequests do
 
   alias Core.API.MediaStorage
   alias Core.ContractRequests.ContractRequest
+  alias Core.ContractRequests.Renderer
   alias Core.ContractRequests.Search
   alias Core.Contracts
   alias Core.Contracts.Contract
@@ -241,21 +242,22 @@ defmodule Core.ContractRequests do
     end
   end
 
-  def approve(headers, %{"id" => id} = params, view_func) do
+  def approve(headers, %{"id" => id} = params) do
     user_id = get_consumer_id(headers)
     client_id = get_client_id(headers)
     params = Map.delete(params, "id")
 
-    with %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(client_id),
-         %ContractRequest{} = contract_request <- get_by_id(id),
-         references <- preload_references(contract_request),
-         :ok <- JsonSchema.validate(:contract_request_sign, params),
+    with :ok <- JsonSchema.validate(:contract_request_sign, params),
          {:ok, %{"content" => content, "signer" => signer}} <- decode_signed_content(params, headers),
+         :ok <- JsonSchema.validate(:contract_request_approve, content),
+         :ok <- validate_contract_request_id(id, content["id"]),
+         %LegalEntity{} = legal_entity <- LegalEntities.get_by_id!(client_id),
+         %ContractRequest{} = contract_request <- get_by_id!(content["id"]),
+         references <- preload_references(contract_request),
          :ok <- validate_legal_entity_edrpou(legal_entity, signer),
          :ok <- validate_user_signer_last_name(user_id, signer),
          {:ok, %{"data" => data}} <- @mithril_api.get_user_roles(user_id, %{}, headers),
          :ok <- user_has_role(data, "NHS ADMIN SIGNER"),
-         :ok <- JsonSchema.validate(:contract_request_approve, content),
          :ok <- validate_contractor_legal_entity(contract_request.contractor_legal_entity_id),
          :ok <- validate_approve_content(content, contract_request, references),
          :ok <- validate_status(contract_request, ContractRequest.status(:in_process)),
@@ -279,7 +281,7 @@ defmodule Core.ContractRequests do
            |> set_contract_number(contract_request)
            |> Map.put("status", ContractRequest.status(:approved)),
          %Ecto.Changeset{valid?: true} = changes <- approve_changeset(contract_request, update_params),
-         data <- prepare_contract_request_data(changes, view_func),
+         data <- render_contract_request_data(changes),
          %Ecto.Changeset{valid?: true} = changes <- put_change(changes, :data, data),
          {:ok, contract_request} <- Repo.update(changes),
          _ <- EventManager.insert_change_status(contract_request, contract_request.status, user_id) do
@@ -1294,9 +1296,9 @@ defmodule Core.ContractRequests do
     end
   end
 
-  def get_by_id(id) do
-    Repo.get(ContractRequest, id)
-  end
+  def get_by_id(id), do: Repo.get(ContractRequest, id)
+
+  def get_by_id!(id), do: Repo.get!(ContractRequest, id)
 
   defp get_contract_request(_, "NHS", id) do
     with %ContractRequest{} = contract_request <- Repo.get(ContractRequest, id) do
@@ -1358,6 +1360,12 @@ defmodule Core.ContractRequests do
       })
     end
   end
+
+  defp validate_contract_request_id(nil, _), do: :ok
+  defp validate_contract_request_id(id, id), do: :ok
+
+  defp validate_contract_request_id(_, _),
+    do: {:error, {:bad_request, "Contract request id doesn't match with id in signed content"}}
 
   defp validate_legal_entity_edrpou(legal_entity, nil), do: {:ok, legal_entity}
 
@@ -1458,16 +1466,9 @@ defmodule Core.ContractRequests do
   defp validate_contractor_legal_entity_id(_, _),
     do: {:error, {:forbidden, "You are not allowed to change this contract"}}
 
-  defp prepare_contract_request_data(%Ecto.Changeset{} = changeset, {view_renderer, func, args}) do
-    render_data = [
-      contract_request: apply_changes(changeset),
-      references: preload_references(apply_changes(changeset))
-    ]
-
-    view_renderer
-    |> apply(func, args ++ [render_data])
-    |> Jason.encode!()
-    |> Jason.decode!()
+  defp render_contract_request_data(%Ecto.Changeset{} = changeset) do
+    structure = apply_changes(changeset)
+    Renderer.render(structure, preload_references(structure))
   end
 
   defp validate_decline_content(content, contract_request, references) do

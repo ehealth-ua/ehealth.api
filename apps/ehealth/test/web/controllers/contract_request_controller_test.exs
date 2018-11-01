@@ -1700,6 +1700,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       data = %{
         "id" => contract_request.id,
+        "next_status" => "APPROVED",
         "contractor_legal_entity" => %{
           "id" => contract_request.contractor_legal_entity_id,
           "name" => legal_entity.name,
@@ -1746,6 +1747,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       data = %{
         "id" => contract_request.id,
+        "next_status" => "APPROVED",
         "contractor_legal_entity" => %{
           "id" => contract_request.contractor_legal_entity_id,
           "name" => legal_entity.name,
@@ -1797,6 +1799,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       data = %{
         "id" => contract_request.id,
+        "next_status" => "APPROVED",
         "contractor_legal_entity" => %{
           "id" => contract_request.contractor_legal_entity_id,
           "name" => legal_entity.name,
@@ -1846,6 +1849,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       data = %{
         "id" => contract_request.id,
+        "next_status" => "APPROVED",
         "contractor_legal_entity" => %{
           "id" => contract_request.contractor_legal_entity_id,
           "name" => legal_entity.name,
@@ -1883,6 +1887,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       data = %{
         "id" => contract_request.id,
+        "next_status" => "APPROVED",
         "contractor_legal_entity" => %{
           "id" => contract_request.contractor_legal_entity_id,
           "name" => legal_entity.name,
@@ -1907,10 +1912,34 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
       end)
 
+      user_id = UUID.generate()
+      party_user = insert(:prm, :party_user, user_id: user_id)
       legal_entity = insert(:prm, :legal_entity)
-      conn = put_client_id_header(conn, legal_entity.id)
-      conn = patch(conn, contract_request_path(conn, :approve, UUID.generate()))
-      assert json_response(conn, 404)
+      contract_request_id = UUID.generate()
+
+      data = %{
+        "id" => contract_request_id,
+        "next_status" => "APPROVED",
+        "contractor_legal_entity" => %{
+          "id" => legal_entity.id,
+          "name" => legal_entity.name,
+          "edrpou" => legal_entity.edrpou
+        },
+        "text" => "something"
+      }
+
+      drfo_signed_content(data, legal_entity.edrpou, party_user.party.last_name)
+
+      assert_raise Ecto.NoResultsError, fn ->
+        conn
+        |> put_consumer_id_header(user_id)
+        |> put_client_id_header(legal_entity.id)
+        |> patch(contract_request_path(conn, :approve, contract_request_id), %{
+          "signed_content" => data |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(404)
+      end
     end
 
     test "contract_request has wrong status", %{conn: conn} do

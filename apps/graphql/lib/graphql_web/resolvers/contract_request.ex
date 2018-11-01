@@ -58,17 +58,47 @@ defmodule GraphQLWeb.Resolvers.ContractRequest do
 
   defp prepare_filter([head | tail]), do: [head | prepare_filter(tail)]
 
+  def approve(%{signed_content: signed_content}, resolution) do
+    params = %{
+      "id" => nil,
+      "signed_content" => signed_content.content,
+      "signed_content_encoding" => to_string(signed_content.encoding)
+    }
+
+    with {:ok, contract_request, references} <- ContractRequests.approve(resolution.context.headers, params) do
+      {:ok, %{contract_request: Map.merge(contract_request, references)}}
+    else
+      # ToDo: Here should be generic way to handle errors. E.g as FallbackController in Phoenix
+      # Should be implemented with task https://github.com/edenlabllc/ehealth.web/issues/423
+      {:error, {:conflict, error}} ->
+        {:error, format_conflict_error(error)}
+
+      {:error, {:forbidden, error}} ->
+        {:error, format_forbidden_error(error)}
+
+      error ->
+        error
+    end
+  end
+
   def get_printout_content(%ContractRequest{} = contract_request, _args, %{context: context}) do
     contract_request = Map.put(contract_request, :nhs_signed_date, Date.utc_today())
 
     with :ok <- ContractRequests.validate_status(contract_request, ContractRequest.status(:pending_nhs_sign)),
-         # todo: causes N+1 problem with DB query and man templace rendening
+         # todo: causes N+1 problem with DB query and man template rendering
          {:ok, printout_content} <- ContractRequestPrintoutForm.render(contract_request, context.headers) do
       {:ok, printout_content}
     else
-      {:error, {:conflict, error}} -> {:error, format_conflict_error(error)}
-      {:error, {:forbidden, error}} -> {:error, format_forbidden_error(error)}
-      error -> error
+      # ToDo: Here should be generic way to handle errors. E.g as FallbackController in Phoenix
+      # Should be implemented with task https://github.com/edenlabllc/ehealth.web/issues/423
+      {:error, {:conflict, error}} ->
+        {:error, format_conflict_error(error)}
+
+      {:error, {:forbidden, error}} ->
+        {:error, format_forbidden_error(error)}
+
+      error ->
+        error
     end
   end
 end

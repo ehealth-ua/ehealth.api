@@ -30,12 +30,12 @@ defmodule Core.Expectations.Signature do
     end)
   end
 
-  def drfo_signed_content(params, drfos) when is_list(drfos) do
+  def drfo_signed_content(content, drfos) when is_list(drfos) do
     expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
       {:ok,
        %{
          "data" => %{
-           "content" => params,
+           "content" => content,
            "signatures" =>
              Enum.map(drfos, fn %{drfo: drfo} = signer ->
                %{
@@ -49,16 +49,16 @@ defmodule Core.Expectations.Signature do
     end)
   end
 
-  def drfo_signed_content(params, drfo, surname \\ "Нечуй-Левицький") do
-    drfo_signed_content(params, [%{drfo: drfo, surname: surname}])
+  def drfo_signed_content(content, drfo, surname \\ "Нечуй-Левицький") do
+    drfo_signed_content(content, [%{drfo: drfo, surname: surname}])
   end
 
-  def edrpou_signed_content(params, edrpous) when is_list(edrpous) do
+  def edrpou_signed_content(content, edrpous) when is_list(edrpous) do
     expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
       {:ok,
        %{
          "data" => %{
-           "content" => params,
+           "content" => content,
            "signatures" =>
              Enum.map(edrpous, fn edrpou ->
                case is_map(edrpou) do
@@ -74,7 +74,7 @@ defmodule Core.Expectations.Signature do
     end)
   end
 
-  def edrpou_signed_content(params, edrpou) do
-    edrpou_signed_content(params, [edrpou])
+  def edrpou_signed_content(content, edrpou) do
+    edrpou_signed_content(content, [edrpou])
   end
 end
