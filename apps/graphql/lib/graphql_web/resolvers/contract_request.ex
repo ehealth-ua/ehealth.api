@@ -12,6 +12,8 @@ defmodule GraphQLWeb.Resolvers.ContractRequest do
   alias Core.Man.Templates.ContractRequestPrintoutForm
   alias Core.{PRMRepo, Repo}
 
+  @status_pending_nhs_sign ContractRequest.status(:pending_nhs_sign)
+
   def list_contract_requests(args, %{context: %{client_type: "NHS"}}) do
     ContractRequest
     |> search(args)
@@ -81,19 +83,15 @@ defmodule GraphQLWeb.Resolvers.ContractRequest do
     end
   end
 
-  def get_printout_content(%ContractRequest{} = contract_request, _args, %{context: context}) do
+  def get_printout_content(%ContractRequest{status: @status_pending_nhs_sign} = contract_request, _, %{context: context}) do
     contract_request = Map.put(contract_request, :nhs_signed_date, Date.utc_today())
 
-    with :ok <- ContractRequests.validate_status(contract_request, ContractRequest.status(:pending_nhs_sign)),
-         # todo: causes N+1 problem with DB query and man template rendering
-         {:ok, printout_content} <- ContractRequestPrintoutForm.render(contract_request, context.headers) do
+    # todo: causes N+1 problem with DB query and man template rendering
+    with {:ok, printout_content} <- ContractRequestPrintoutForm.render(contract_request, context.headers) do
       {:ok, printout_content}
     else
       # ToDo: Here should be generic way to handle errors. E.g as FallbackController in Phoenix
       # Should be implemented with task https://github.com/edenlabllc/ehealth.web/issues/423
-      {:error, {:conflict, error}} ->
-        {:error, format_conflict_error(error)}
-
       {:error, {:forbidden, error}} ->
         {:error, format_forbidden_error(error)}
 
@@ -101,4 +99,6 @@ defmodule GraphQLWeb.Resolvers.ContractRequest do
         error
     end
   end
+
+  def get_printout_content(%ContractRequest{printout_content: printout_content}, _, _), do: {:ok, printout_content}
 end

@@ -36,6 +36,15 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
     }
   """
 
+  @printout_content_query """
+    query GetContractRequestPrintoutContentQuery($id: ID!) {
+      contractRequest(id: $id) {
+        status
+        printoutContent
+      }
+    }
+  """
+
   @approve_query """
     mutation ApproveContractRequest($input: ApproveContractRequestInput!) {
       approveContractRequest(input: $input) {
@@ -409,7 +418,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
   end
 
   describe "get with printout_content field" do
-    test "success", %{conn: conn} do
+    test "success with pending status", %{conn: conn} do
       nhs()
       template()
 
@@ -443,77 +452,47 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
           ]
         )
 
-      id = Node.to_global_id("ContractRequest", contract_request.id)
-
-      query = """
-        query GetContractRequestPrintoutContentQuery($id: ID!) {
-          contractRequest(id: $id) {
-            id
-            status
-            printoutContent
-          }
-        }
-      """
-
-      variables = %{id: id}
+      variables = %{id: Node.to_global_id("ContractRequest", contract_request.id)}
 
       resp_body =
         conn
         |> put_client_id(client_id)
-        |> post_query(query, variables)
+        |> post_query(@printout_content_query, variables)
         |> json_response(200)
 
       assert "<html></html>" == get_in(resp_body, ~w(data contractRequest printoutContent))
     end
 
-    test "Incorrect status of contract_request", %{conn: conn} do
+    test "success with contract_request another status", %{conn: conn} do
       nhs()
-      contract_request = insert(:il, :contract_request, status: ContractRequest.status(:new))
 
-      query = """
-        query GetContractRequestPrintoutContentQuery($id: ID!) {
-          contractRequest(id: $id) {
-            id
-            printoutContent
-          }
-        }
-      """
+      printout_content = "<html></html>"
+
+      contract_request =
+        insert(:il, :contract_request, status: ContractRequest.status(:new), printout_content: printout_content)
 
       variables = %{id: Node.to_global_id("ContractRequest", contract_request.id)}
 
       resp_body =
         conn
         |> put_client_id()
-        |> post_query(query, variables)
+        |> post_query(@printout_content_query, variables)
         |> json_response(200)
 
-      assert %{"errors" => [error]} = resp_body
+      resp_entity = get_in(resp_body, ~w(data contractRequest))
 
-      assert %{
-               "extensions" => %{"code" => "CONFLICT"},
-               "message" => _
-             } = error
+      assert %{"printoutContent" => ^printout_content} = resp_entity
     end
 
     test "User is not allowed to perform this action", %{conn: conn} do
       msp()
       contract_request = insert(:il, :contract_request, status: ContractRequest.status(:pending_nhs_sign))
-
-      query = """
-        query GetContractRequestPrintoutContentQuery($id: ID!) {
-          contractRequest(id: $id) {
-            status
-            printoutContent
-          }
-        }
-      """
-
       variables = %{id: Node.to_global_id("ContractRequest", contract_request.id)}
 
       resp_body =
         conn
         |> put_client_id()
-        |> post_query(query, variables)
+        |> post_query(@printout_content_query, variables)
         |> json_response(200)
 
       assert %{"data" => %{"contractRequest" => nil}} = resp_body
