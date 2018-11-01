@@ -3696,11 +3696,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
   end
 
   describe "decline contract_request" do
-    test "success decline contract request and event manager registration", %{conn: conn} do
-      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
-        {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
-      end)
-
+    setup %{conn: conn} do
       expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
         {:ok, "success"}
       end)
@@ -3740,10 +3736,29 @@ defmodule EHealth.Web.ContractRequestControllerTest do
           ]
         )
 
-      conn =
-        conn
-        |> put_client_id_header(legal_entity.id)
-        |> put_consumer_id_header(user_id)
+      {:ok,
+       %{
+         conn: conn,
+         contract_request: contract_request,
+         legal_entity: legal_entity,
+         user_id: user_id,
+         employee_owner: employee_owner,
+         party_user: party_user
+       }}
+    end
+
+    test "success decline contract request and event manager registration", context do
+      %{
+        conn: conn,
+        contract_request: contract_request,
+        legal_entity: legal_entity,
+        user_id: user_id,
+        party_user: party_user
+      } = context
+
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
+      end)
 
       data = %{
         "id" => contract_request.id,
@@ -3759,15 +3774,16 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       drfo_signed_content(data, legal_entity.edrpou, party_user.party.last_name)
 
-      conn =
+      resp =
         conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(user_id)
         |> put_req_header("drfo", legal_entity.edrpou)
         |> patch(contract_request_path(conn, :decline, contract_request.id), %{
           "signed_content" => data |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
-
-      assert resp = json_response(conn, 200)
+        |> json_response(200)
 
       schema =
         "../core/specs/json_schemas/contract_request/contract_request_show_response.json"
@@ -3796,44 +3812,40 @@ defmodule EHealth.Web.ContractRequestControllerTest do
              } = event
     end
 
-    test "legal entity edrpou does not match with signer drfo", %{conn: conn} do
-      legal_entity = insert(:prm, :legal_entity)
-      user_id = UUID.generate()
-      party_user = insert(:prm, :party_user, user_id: user_id)
-
-      employee_owner =
-        insert(
-          :prm,
-          :employee,
-          legal_entity_id: legal_entity.id,
-          employee_type: Employee.type(:owner),
-          party: party_user.party
-        )
-
-      contract_request =
-        insert(
-          :il,
-          :contract_request,
-          nhs_signer_id: employee_owner.id,
-          contractor_legal_entity_id: legal_entity.id
-        )
+    test "legal entity edrpou does not match with signer drfo", context do
+      %{
+        conn: conn,
+        contract_request: contract_request,
+        legal_entity: legal_entity,
+        user_id: user_id,
+        party_user: party_user
+      } = context
 
       expect(MithrilMock, :get_user_roles, fn _, _, _ ->
-        {:ok, %{"data" => [%{"role_name" => "OWNER"}]}}
+        {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
       end)
 
-      conn =
-        conn
-        |> put_client_id_header(legal_entity.id)
-        |> put_consumer_id_header(user_id)
+      data = %{
+        "id" => contract_request.id,
+        "next_status" => "DECLINED",
+        "contractor_legal_entity" => %{
+          "id" => contract_request.contractor_legal_entity_id,
+          "name" => legal_entity.name,
+          "edrpou" => legal_entity.edrpou
+        },
+        "status_reason" => "Не відповідає попереднім домовленостям",
+        "text" => "something"
+      }
 
-      drfo_signed_content(%{}, party_user.party.tax_id, party_user.party.last_name)
+      drfo_signed_content(data, party_user.party.tax_id, party_user.party.last_name)
 
       resp =
         conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(user_id)
         |> put_req_header("drfo", party_user.party.tax_id)
         |> patch(contract_request_path(conn, :decline, contract_request.id), %{
-          "signed_content" => %{} |> Jason.encode!() |> Base.encode64(),
+          "signed_content" => data |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
         |> json_response(422)
@@ -3847,44 +3859,40 @@ defmodule EHealth.Web.ContractRequestControllerTest do
              } = resp["error"]
     end
 
-    test "user last name does not match with signer surname", %{conn: conn} do
-      legal_entity = insert(:prm, :legal_entity)
-      user_id = UUID.generate()
-      party_user = insert(:prm, :party_user, user_id: user_id)
-
-      employee_owner =
-        insert(
-          :prm,
-          :employee,
-          legal_entity_id: legal_entity.id,
-          employee_type: Employee.type(:owner),
-          party: party_user.party
-        )
-
-      contract_request =
-        insert(
-          :il,
-          :contract_request,
-          nhs_signer_id: employee_owner.id,
-          contractor_legal_entity_id: legal_entity.id
-        )
+    test "user last name does not match with signer surname", context do
+      %{
+        conn: conn,
+        contract_request: contract_request,
+        legal_entity: legal_entity,
+        user_id: user_id,
+        party_user: party_user
+      } = context
 
       expect(MithrilMock, :get_user_roles, fn _, _, _ ->
-        {:ok, %{"data" => [%{"role_name" => "OWNER"}]}}
+        {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
       end)
 
-      conn =
-        conn
-        |> put_client_id_header(legal_entity.id)
-        |> put_consumer_id_header(user_id)
+      content = %{
+        "id" => contract_request.id,
+        "next_status" => "DECLINED",
+        "contractor_legal_entity" => %{
+          "id" => contract_request.contractor_legal_entity_id,
+          "name" => legal_entity.name,
+          "edrpou" => legal_entity.edrpou
+        },
+        "status_reason" => "Не відповідає попереднім домовленостям",
+        "text" => "something"
+      }
 
-      drfo_signed_content(%{}, legal_entity.edrpou, "Підписант")
+      drfo_signed_content(content, legal_entity.edrpou, "Підписант")
 
       resp =
         conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(user_id)
         |> put_req_header("drfo", party_user.party.tax_id)
         |> patch(contract_request_path(conn, :decline, contract_request.id), %{
-          "signed_content" => %{} |> Jason.encode!() |> Base.encode64(),
+          "signed_content" => content |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
         |> json_response(422)
@@ -3903,79 +3911,92 @@ defmodule EHealth.Web.ContractRequestControllerTest do
              } = resp["error"]
     end
 
-    test "user is not NHS ADMIN SIGNER", %{conn: conn} do
-      legal_entity = insert(:prm, :legal_entity)
-      user_id = UUID.generate()
-      party_user = insert(:prm, :party_user, user_id: user_id)
-
-      employee_owner =
-        insert(
-          :prm,
-          :employee,
-          legal_entity_id: legal_entity.id,
-          employee_type: Employee.type(:owner),
-          party: party_user.party
-        )
-
-      contract_request =
-        insert(
-          :il,
-          :contract_request,
-          nhs_signer_id: employee_owner.id,
-          contractor_legal_entity_id: legal_entity.id
-        )
+    test "user is not NHS ADMIN SIGNER", context do
+      %{
+        conn: conn,
+        contract_request: contract_request,
+        legal_entity: legal_entity,
+        user_id: user_id,
+        party_user: party_user
+      } = context
 
       expect(MithrilMock, :get_user_roles, fn _, _, _ ->
         {:ok, %{"data" => [%{"role_name" => "OWNER"}]}}
       end)
 
-      conn =
-        conn
-        |> put_client_id_header(legal_entity.id)
-        |> put_consumer_id_header(user_id)
+      content = %{
+        "id" => contract_request.id,
+        "next_status" => "DECLINED",
+        "contractor_legal_entity" => %{
+          "id" => contract_request.contractor_legal_entity_id,
+          "name" => legal_entity.name,
+          "edrpou" => legal_entity.edrpou
+        },
+        "status_reason" => "Не відповідає попереднім домовленостям",
+        "text" => "something"
+      }
 
-      drfo_signed_content(%{}, legal_entity.edrpou, party_user.party.last_name)
+      drfo_signed_content(content, legal_entity.edrpou, party_user.party.last_name)
 
-      conn =
-        conn
-        |> put_req_header("drfo", party_user.party.tax_id)
-        |> patch(contract_request_path(conn, :decline, contract_request.id), %{
-          "signed_content" => %{} |> Jason.encode!() |> Base.encode64(),
-          "signed_content_encoding" => "base64"
-        })
-
-      assert json_response(conn, 403)
+      conn
+      |> put_client_id_header(legal_entity.id)
+      |> put_consumer_id_header(user_id)
+      |> put_req_header("drfo", party_user.party.tax_id)
+      |> patch(contract_request_path(conn, :decline, contract_request.id), %{
+        "signed_content" => content |> Jason.encode!() |> Base.encode64(),
+        "signed_content_encoding" => "base64"
+      })
+      |> json_response(403)
     end
 
-    test "no contract_request found", %{conn: conn} do
+    test "no contract_request found", context do
+      %{
+        conn: conn,
+        legal_entity: legal_entity,
+        party_user: party_user
+      } = context
+
       expect(MithrilMock, :get_user_roles, fn _, _, _ ->
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
       end)
 
-      legal_entity = insert(:prm, :legal_entity)
-      conn = put_client_id_header(conn, legal_entity.id)
+      contract_request_id = UUID.generate()
 
-      conn =
-        patch(conn, contract_request_path(conn, :decline, UUID.generate()), %{
-          "status_reason" => "Не відповідає попереднім домовленостям"
-        })
+      content = %{
+        "id" => contract_request_id,
+        "next_status" => "DECLINED",
+        "contractor_legal_entity" => %{
+          "id" => legal_entity.id,
+          "name" => legal_entity.name,
+          "edrpou" => legal_entity.edrpou
+        },
+        "status_reason" => "Не відповідає попереднім домовленостям",
+        "text" => "something"
+      }
 
-      assert json_response(conn, 404)
+      drfo_signed_content(content, legal_entity.edrpou, party_user.party.last_name)
+
+      conn
+      |> put_client_id_header(legal_entity.id)
+      |> patch(contract_request_path(conn, :decline, contract_request_id), %{
+        "signed_content" => content |> Jason.encode!() |> Base.encode64(),
+        "signed_content_encoding" => "base64"
+      })
+      |> json_response(404)
     end
 
-    test "contract_request has wrong status", %{conn: conn} do
-      legal_entity = insert(:prm, :legal_entity)
-      user_id = UUID.generate()
-      party_user = insert(:prm, :party_user, user_id: user_id)
+    test "contract_request has wrong status", context do
+      %{
+        conn: conn,
+        legal_entity: legal_entity,
+        user_id: user_id,
+        employee_owner: employee_owner,
+        party_user: party_user
+      } = context
 
-      employee_owner =
-        insert(
-          :prm,
-          :employee,
-          legal_entity_id: legal_entity.id,
-          employee_type: Employee.type(:owner),
-          party: party_user.party
-        )
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
+      end)
 
       contract_request =
         insert(
@@ -3985,15 +4006,6 @@ defmodule EHealth.Web.ContractRequestControllerTest do
           status: ContractRequest.status(:signed),
           nhs_signer_id: employee_owner.id
         )
-
-      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
-        {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
-      end)
-
-      conn =
-        conn
-        |> put_client_id_header(legal_entity.id)
-        |> put_consumer_id_header(user_id)
 
       data = %{
         "id" => contract_request.id,
@@ -4009,15 +4021,16 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       drfo_signed_content(data, legal_entity.edrpou, party_user.party.last_name)
 
-      conn =
+      resp =
         conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(user_id)
         |> put_req_header("drfo", legal_entity.edrpou)
         |> patch(contract_request_path(conn, :decline, contract_request.id), %{
           "signed_content" => data |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
-
-      assert resp = json_response(conn, 409)
+        |> json_response(409)
 
       assert %{
                "message" => "Incorrect status of contract_request to modify it",

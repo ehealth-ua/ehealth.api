@@ -97,6 +97,20 @@ defmodule GraphQLWeb.Schema.ContractRequestTypes do
 
       resolve(&ContractRequestResolver.approve/2)
     end
+
+    payload field(:decline_contract_request) do
+      meta(:scope, ~w(contract_request:update))
+
+      input do
+        field(:signed_content, non_null(:signed_content))
+      end
+
+      output do
+        field(:contract_request, :contract_request)
+      end
+
+      resolve(&ContractRequestResolver.decline/2)
+    end
   end
 
   node object(:contract_request) do

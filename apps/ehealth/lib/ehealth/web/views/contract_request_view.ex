@@ -3,7 +3,6 @@ defmodule EHealth.Web.ContractRequestView do
 
   use EHealth.Web, :view
   alias Core.ContractRequests.Renderer, as: ContractRequestsRenderer
-  alias EHealth.Web.DivisionView
 
   def render("index.json", %{contract_requests: contract_requests}) do
     render_many(contract_requests, __MODULE__, "list_contract_request.json")

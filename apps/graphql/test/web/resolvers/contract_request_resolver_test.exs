@@ -10,7 +10,12 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
   alias Absinthe.Relay.Node
   alias Core.ContractRequests.ContractRequest
   alias Core.Employees.Employee
+  alias Core.EventManagerRepo
+  alias Core.EventManager.Event
+  alias Core.Repo
   alias Ecto.UUID
+
+  @contract_request_status_in_process ContractRequest.status(:in_process)
 
   @list_query """
     query ListContractRequestsQuery($filter: ContractRequestFilter) {
@@ -48,6 +53,26 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
   @approve_query """
     mutation ApproveContractRequest($input: ApproveContractRequestInput!) {
       approveContractRequest(input: $input) {
+        contractRequest {
+          id
+          databaseId
+          status
+          contractorEmployeeDivisions {
+            employee {
+              databaseId
+            }
+            division {
+              databaseId
+            }
+          }
+        }
+      }
+    }
+  """
+
+  @decline_query """
+    mutation DeclineContractRequest($input: DeclineContractRequestInput!) {
+      declineContractRequest(input: $input) {
         contractRequest {
           id
           databaseId
@@ -505,8 +530,6 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
       end)
 
-      #      template()
-
       expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
         {:ok, "success"}
       end)
@@ -585,6 +608,98 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       contractor_employee_divisions = hd(resp_contract_request["contractorEmployeeDivisions"])
       assert employee_doctor.id == contractor_employee_divisions["employee"]["databaseId"]
       assert division.id == contractor_employee_divisions["division"]["databaseId"]
+    end
+  end
+
+  describe "decline" do
+    test "success", %{conn: conn} do
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
+      end)
+
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ -> {:ok, "success"} end)
+
+      user_id = UUID.generate()
+      party_user = insert(:prm, :party_user, user_id: user_id)
+      legal_entity = insert(:prm, :legal_entity)
+
+      employee_owner =
+        insert(
+          :prm,
+          :employee,
+          legal_entity_id: legal_entity.id,
+          employee_type: Employee.type(:owner),
+          party: party_user.party
+        )
+
+      division = insert(:prm, :division, legal_entity: legal_entity)
+
+      employee_doctor = insert(:prm, :employee, legal_entity_id: legal_entity.id, division: division)
+
+      contract_request =
+        insert(
+          :il,
+          :contract_request,
+          status: @contract_request_status_in_process,
+          nhs_signer_id: employee_owner.id,
+          contractor_legal_entity_id: legal_entity.id,
+          contractor_owner_id: employee_owner.id,
+          contractor_employee_divisions: [
+            %{
+              "employee_id" => employee_doctor.id,
+              "staff_units" => 0.5,
+              "declaration_limit" => 2000,
+              "division_id" => division.id
+            }
+          ]
+        )
+
+      content = %{
+        "id" => contract_request.id,
+        "next_status" => "DECLINED",
+        "contractor_legal_entity" => %{
+          "id" => contract_request.contractor_legal_entity_id,
+          "name" => legal_entity.name,
+          "edrpou" => legal_entity.edrpou
+        },
+        "status_reason" => "Не відповідає попереднім домовленостям",
+        "text" => "something"
+      }
+
+      drfo_signed_content(content, legal_entity.edrpou, party_user.party.last_name)
+
+      resp_body =
+        conn
+        |> put_client_id(legal_entity.id)
+        |> put_consumer_id(user_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
+        |> put_scope("contract_request:update")
+        |> post_query(@decline_query, input_signed_content(content))
+        |> json_response(200)
+
+      resp_contract_request = get_in(resp_body, ~w(data declineContractRequest contractRequest))
+
+      assert ContractRequest.status(:declined) == resp_contract_request["status"]
+      contractor_employee_divisions = hd(resp_contract_request["contractorEmployeeDivisions"])
+      assert employee_doctor.id == contractor_employee_divisions["employee"]["databaseId"]
+      assert division.id == contractor_employee_divisions["division"]["databaseId"]
+
+      contract_request = Repo.get(ContractRequest, contract_request.id)
+      assert contract_request.status_reason == "Не відповідає попереднім домовленостям"
+      assert contract_request.nhs_signer_id == user_id
+      assert contract_request.nhs_legal_entity_id == legal_entity.id
+
+      contract_request_id = contract_request.id
+      contract_request_status = contract_request.status
+      assert event = EventManagerRepo.one(Event)
+
+      assert %Event{
+               entity_type: "ContractRequest",
+               event_type: "StatusChangeEvent",
+               entity_id: ^contract_request_id,
+               changed_by: ^user_id,
+               properties: %{"status" => %{"new_value" => ^contract_request_status}}
+             } = event
     end
   end
 

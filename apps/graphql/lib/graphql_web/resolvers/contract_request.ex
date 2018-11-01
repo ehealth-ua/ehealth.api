@@ -83,6 +83,29 @@ defmodule GraphQLWeb.Resolvers.ContractRequest do
     end
   end
 
+  def decline(%{signed_content: signed_content}, resolution) do
+    params = %{
+      "id" => nil,
+      "signed_content" => signed_content.content,
+      "signed_content_encoding" => to_string(signed_content.encoding)
+    }
+
+    with {:ok, contract_request, references} <- ContractRequests.decline(resolution.context.headers, params) do
+      {:ok, %{contract_request: Map.merge(contract_request, references)}}
+    else
+      # ToDo: Here should be generic way to handle errors. E.g as FallbackController in Phoenix
+      # Should be implemented with task https://github.com/edenlabllc/ehealth.web/issues/423
+      {:error, {:conflict, error}} ->
+        {:error, format_conflict_error(error)}
+
+      {:error, {:forbidden, error}} ->
+        {:error, format_forbidden_error(error)}
+
+      error ->
+        error
+    end
+  end
+
   def get_printout_content(%ContractRequest{status: @status_pending_nhs_sign} = contract_request, _, %{context: context}) do
     contract_request = Map.put(contract_request, :nhs_signed_date, Date.utc_today())
 

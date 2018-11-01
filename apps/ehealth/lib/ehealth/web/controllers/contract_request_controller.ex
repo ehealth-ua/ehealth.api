@@ -5,7 +5,6 @@ defmodule EHealth.Web.ContractRequestController do
 
   alias Core.ContractRequests
   alias Core.ContractRequests.ContractRequest
-  alias EHealth.Web.ContractRequestView
   alias EHealth.Web.ContractView
 
   action_fallback(EHealth.Web.FallbackController)

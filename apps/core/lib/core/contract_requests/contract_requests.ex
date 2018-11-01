@@ -327,16 +327,17 @@ defmodule Core.ContractRequests do
     client_id = get_client_id(headers)
     params = Map.delete(params, "id")
 
-    with %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(client_id),
-         %ContractRequest{} = contract_request <- get_by_id(id),
-         references <- preload_references(contract_request),
-         :ok <- JsonSchema.validate(:contract_request_sign, params),
+    with :ok <- JsonSchema.validate(:contract_request_sign, params),
          {:ok, %{"content" => content, "signer" => signer}} <- decode_signed_content(params, headers),
+         :ok <- JsonSchema.validate(:contract_request_decline, content),
+         :ok <- validate_contract_request_id(id, content["id"]),
+         {:ok, legal_entity} <- LegalEntities.fetch_by_id(client_id),
+         %ContractRequest{} = contract_request <- get_by_id(content["id"]),
+         references <- preload_references(contract_request),
          :ok <- validate_legal_entity_edrpou(legal_entity, signer),
          :ok <- validate_user_signer_last_name(user_id, signer),
          {:ok, %{"data" => data}} <- @mithril_api.get_user_roles(user_id, %{}, headers),
          :ok <- user_has_role(data, "NHS ADMIN SIGNER"),
-         :ok <- JsonSchema.validate(:contract_request_decline, content),
          :ok <- validate_contractor_legal_entity(contract_request.contractor_legal_entity_id),
          :ok <- validate_decline_content(content, contract_request, references),
          :ok <- validate_status(contract_request, ContractRequest.status(:in_process)),
