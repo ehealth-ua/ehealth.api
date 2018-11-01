@@ -354,6 +354,24 @@ defmodule EHealth.Web.EmployeesControllerTest do
       assert Map.has_key?(resp, "data")
       assert is_map(resp["data"])
     end
+
+    test "employee is not active", %{conn: conn} do
+      msp()
+
+      expect(ReportMock, :get_declaration_count, fn _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
+      legal_entity = insert(:prm, :legal_entity, id: "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
+      employee = insert(:prm, :employee, legal_entity: legal_entity, is_active: false)
+
+      assert_raise(Ecto.NoResultsError, fn ->
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> get(employee_path(conn, :show, employee.id))
+        |> json_response(404)
+      end)
+    end
   end
 
   describe "deactivate employee" do

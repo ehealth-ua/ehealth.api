@@ -106,14 +106,17 @@ defmodule Core.Employees do
   def get_by_id(id, headers) do
     client_id = get_client_id(headers)
 
-    with employee <- get_by_id!(id),
+    query =
+      Employee
+      |> where([e], e.is_active)
+      |> get_by_id_query(id)
+      |> join(:left, [e], d in assoc(e, :division))
+      |> preload([..., d], division: d)
+
+    with employee <- PRMRepo.one!(query),
          {:ok, client_type} <- @mithril_api.get_client_type_name(client_id, headers),
          :ok <- authorize_legal_entity_id(employee.legal_entity_id, client_id, client_type) do
-      {:ok,
-       employee
-       |> PRMRepo.preload(:party)
-       |> PRMRepo.preload(:division)
-       |> PRMRepo.preload(:legal_entity)}
+      {:ok, employee}
     end
   end
 
