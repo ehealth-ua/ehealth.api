@@ -1,13 +1,45 @@
 defmodule GraphQLWeb.LegalEntityResolverTest do
-  use GraphQLWeb.ConnCase, async: true
+  use GraphQLWeb.ConnCase, async: false
 
   import Core.Factories
+  import Mox
 
   alias Absinthe.Relay.Node
+  alias Core.Contracts.Contract
   alias Core.Employees.Employee
+  alias Core.LegalEntities.LegalEntity
+  alias Core.PRMRepo
 
   @owner Employee.type(:owner)
   @doctor Employee.type(:doctor)
+
+  @legal_entity_status_closed LegalEntity.status(:closed)
+
+  @nhs_verify_query """
+    mutation NhsVerifyLegalEntity($input: NhsVerifyLegalEntityInput!) {
+      nhsVerifyLegalEntity(input: $input){
+        legalEntity {
+          databaseId
+          status
+          nhsVerified
+        }
+      }
+    }
+  """
+
+  @deactivate_query """
+    mutation DeactivateLegalEntity($input: DeactivateLegalEntityInput!) {
+      deactivateLegalEntity(input: $input){
+        legalEntity {
+          databaseId
+          status
+        }
+      }
+    }
+  """
+
+  setup :verify_on_exit!
+  setup :set_mox_global
 
   setup %{conn: conn} do
     conn = put_scope(conn, "legal_entity:read legal_entity:write")
@@ -485,6 +517,138 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
       division_from_resp = hd(resp["divisions"]["nodes"])
       assert division.id == division_from_resp["databaseId"]
       assert match?(%{"area" => _, "region" => _}, hd(division_from_resp["addresses"]))
+    end
+  end
+
+  describe "nsh verify legal_entity" do
+    setup %{conn: conn} do
+      %{conn: put_scope(conn, "legal_entity:nhs_verify")}
+    end
+
+    test "success", %{conn: conn} do
+      %{id: id} = insert(:prm, :legal_entity, nhs_verified: false)
+
+      variables = %{input: %{id: Node.to_global_id("LegalEntity", id)}}
+
+      resp_body =
+        conn
+        |> put_client_id(id)
+        |> post_query(@nhs_verify_query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data nhsVerifyLegalEntity legalEntity))
+
+      assert %{"nhsVerified" => true, "databaseId" => ^id} = resp_entity
+    end
+
+    test "legal already verified", %{conn: conn} do
+      %{id: id} = insert(:prm, :legal_entity, nhs_verified: true)
+      variables = %{input: %{id: Node.to_global_id("LegalEntity", id)}}
+
+      resp_body =
+        conn
+        |> put_client_id(id)
+        |> post_query(@nhs_verify_query, variables)
+        |> json_response(200)
+
+      assert %{"errors" => [error], "data" => %{"nhsVerifyLegalEntity" => nil}} = resp_body
+      assert %{"extensions" => %{"code" => "CONFLICT"}, "message" => _} = error
+    end
+
+    test "not found", %{conn: conn} do
+      variables = %{input: %{id: Node.to_global_id("LegalEntity", Ecto.UUID.generate())}}
+
+      resp_body =
+        conn
+        |> put_client_id()
+        |> post_query(@nhs_verify_query, variables)
+        |> json_response(200)
+
+      assert %{"errors" => [error], "data" => %{"nhsVerifyLegalEntity" => nil}} = resp_body
+      assert %{"extensions" => %{"code" => "NOT_FOUND"}, "message" => _} = error
+    end
+  end
+
+  describe "deactivate legal_entity" do
+    setup %{conn: conn} do
+      %{conn: put_scope(conn, "legal_entity:deactivate")}
+    end
+
+    test "success", %{conn: conn} do
+      legal_entity = insert(:prm, :legal_entity)
+      legal_entity_id = legal_entity.id
+
+      variables = %{input: %{id: Node.to_global_id("LegalEntity", legal_entity_id)}}
+
+      resp_body =
+        conn
+        |> put_consumer_id()
+        |> post_query(@deactivate_query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data deactivateLegalEntity legalEntity))
+
+      assert %{"status" => @legal_entity_status_closed, "databaseId" => ^legal_entity_id} = resp_entity
+    end
+
+    test "invalid transaction", %{conn: conn} do
+      legal_entity = insert(:prm, :legal_entity, is_active: false)
+      variables = %{input: %{id: Node.to_global_id("LegalEntity", legal_entity.id)}}
+
+      resp_body =
+        conn
+        |> put_consumer_id()
+        |> post_query(@deactivate_query, variables)
+        |> json_response(200)
+
+      assert %{"errors" => [error], "data" => %{"deactivateLegalEntity" => nil}} = resp_body
+      assert %{"extensions" => %{"code" => "CONFLICT"}, "message" => _} = error
+    end
+
+    test "suspend contract", %{conn: conn} do
+      %{id: id} = insert(:prm, :legal_entity)
+      %{id: contract_id} = insert(:prm, :contract, contractor_legal_entity_id: id)
+      variables = %{input: %{id: Node.to_global_id("LegalEntity", id)}}
+
+      resp_body =
+        conn
+        |> put_consumer_id()
+        |> put_client_id(id)
+        |> post_query(@deactivate_query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data deactivateLegalEntity legalEntity))
+      contract = PRMRepo.get(Contract, contract_id)
+
+      assert %{"status" => @legal_entity_status_closed} = resp_entity
+      assert true == contract.is_suspended
+    end
+
+    test "deactivate legal entity with OWNER employee", %{conn: conn} do
+      expect(OPSMock, :terminate_employee_declarations, fn _id, _user_id, "auto_employee_deactivate", "", _headers ->
+        {:ok, %{}}
+      end)
+
+      %{id: id} = legal_entity = insert(:prm, :legal_entity)
+      division = build(:division, legal_entity: legal_entity)
+
+      employee =
+        insert(:prm, :employee, employee_type: @owner, legal_entity_id: id, division: division, is_active: true)
+
+      variables = %{input: %{id: Node.to_global_id("LegalEntity", id)}}
+
+      resp_body =
+        conn
+        |> put_consumer_id()
+        |> put_client_id(id)
+        |> post_query(@deactivate_query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data deactivateLegalEntity legalEntity))
+      employee = PRMRepo.get(Employee, employee.id)
+
+      assert %{"status" => @legal_entity_status_closed} = resp_entity
+      assert false == employee.is_active
     end
   end
 end

@@ -28,7 +28,7 @@ defmodule Core.Employees.EmployeeUpdater do
   def deactivate(employee_id, legal_entity_id, reason, headers, with_owner \\ false) do
     user_id = get_consumer_id(headers)
 
-    with employee <- Employees.get_by_id!(employee_id),
+    with {:ok, employee} <- Employees.fetch_by_id(employee_id),
          :ok <- check_legal_entity_id(legal_entity_id, employee),
          :ok <- check_transition(employee, with_owner),
          active_employees <- get_active_employees(employee),

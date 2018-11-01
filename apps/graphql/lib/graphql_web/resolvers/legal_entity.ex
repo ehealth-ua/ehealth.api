@@ -1,13 +1,15 @@
 defmodule GraphQLWeb.Resolvers.LegalEntity do
   @moduledoc false
 
-  import Ecto.Query
   import Absinthe.Resolution.Helpers, only: [on_load: 2]
+  import Ecto.Query
+  import GraphQLWeb.Resolvers.Helpers.Errors, only: [format_conflict_error: 1, format_not_found_error: 1]
 
   alias Absinthe.Relay.Connection
   alias Core.Employees.Employee
   alias Core.LegalEntities
   alias Core.LegalEntities.LegalEntity
+  alias Core.LegalEntities.LegalEntityUpdater
   alias Core.PRMRepo
   alias GraphQLWeb.Loaders.PRM
 
@@ -98,5 +100,37 @@ defmodule GraphQLWeb.Resolvers.LegalEntity do
 
       Connection.from_slice(Enum.take(records, limit), offset, opts)
     end)
+  end
+
+  def nhs_verify(%{id: id}, %{context: %{client_id: client_id}}) do
+    with {:ok, legal_entity} <- LegalEntities.nhs_verify(id, client_id) do
+      {:ok, %{legal_entity: legal_entity}}
+    else
+      # todo: remove after fallback error handling is done
+      {:error, {:conflict, error}} ->
+        {:error, format_conflict_error(error)}
+
+      {:error, {:not_found, error}} ->
+        {:error, format_not_found_error(error)}
+
+      error ->
+        error
+    end
+  end
+
+  def deactivate(%{id: id}, %{context: context}) do
+    with {:ok, legal_entity} <- LegalEntityUpdater.deactivate(id, context.headers) do
+      {:ok, %{legal_entity: legal_entity}}
+    else
+      # todo: remove after fallback error handling is done
+      {:error, {:conflict, error}} ->
+        {:error, format_conflict_error(error)}
+
+      {:error, {:not_found, error}} ->
+        {:error, format_not_found_error(error)}
+
+      error ->
+        error
+    end
   end
 end

@@ -128,6 +128,13 @@ defmodule Core.LegalEntities do
     |> PRMRepo.one()
   end
 
+  def fetch_by_id(id) do
+    case get_by_id(id) do
+      %LegalEntity{} = legal_entity -> {:ok, legal_entity}
+      _ -> {:error, {:not_found, "LegalEntity not found"}}
+    end
+  end
+
   def get_by_id!(id) do
     id
     |> get_by_id_query()
@@ -225,7 +232,7 @@ defmodule Core.LegalEntities do
   def mis_verify(id, consumer_id) do
     update_data = %{mis_verified: @mis_verified_verified}
 
-    with legal_entity <- get_by_id!(id),
+    with {:ok, legal_entity} <- fetch_by_id(id),
          :ok <- check_mis_verify_transition(legal_entity) do
       update(legal_entity, update_data, consumer_id)
     end
@@ -234,7 +241,7 @@ defmodule Core.LegalEntities do
   def nhs_verify(id, consumer_id) do
     update_data = %{nhs_verified: true}
 
-    with legal_entity <- get_by_id!(id),
+    with {:ok, legal_entity} <- fetch_by_id(id),
          :ok <- check_nhs_verify_transition(legal_entity) do
       update(legal_entity, update_data, consumer_id)
     end

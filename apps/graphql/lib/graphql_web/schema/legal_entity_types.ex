@@ -6,6 +6,7 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
 
   import Absinthe.Resolution.Helpers, only: [dataloader: 1]
 
+  alias Absinthe.Relay.Node.ParseIDs
   alias GraphQLWeb.Loaders.PRM
   alias GraphQLWeb.Resolvers.LegalEntity
 
@@ -55,6 +56,39 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
     end
 
     edge(do: nil)
+  end
+
+  object :legal_entity_mutations do
+    payload field(:nhs_verify_legal_entity) do
+      meta(:scope, ~w(legal_entity:nhs_verify))
+      meta(:client_metadata, ~w(client_id)a)
+
+      input do
+        field(:id, non_null(:id))
+      end
+
+      output do
+        field(:legal_entity, :legal_entity)
+      end
+
+      middleware(ParseIDs, id: :legal_entity)
+      resolve(&LegalEntity.nhs_verify/2)
+    end
+
+    payload field(:deactivate_legal_entity) do
+      meta(:scope, ~w(legal_entity:deactivate))
+
+      input do
+        field(:id, non_null(:id))
+      end
+
+      output do
+        field(:legal_entity, :legal_entity)
+      end
+
+      middleware(ParseIDs, id: :legal_entity)
+      resolve(&LegalEntity.deactivate/2)
+    end
   end
 
   node object(:legal_entity) do

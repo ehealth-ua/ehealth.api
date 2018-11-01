@@ -542,11 +542,11 @@ defmodule EHealth.Web.EmployeesControllerTest do
 
     test "not found", %{conn: conn} do
       msp()
-      conn = put_client_id_header(conn)
 
-      assert_raise Ecto.NoResultsError, fn ->
-        patch(conn, employee_path(conn, :deactivate, UUID.generate()))
-      end
+      assert conn
+             |> put_client_id_header()
+             |> patch(employee_path(conn, :deactivate, UUID.generate()))
+             |> json_response(404)
     end
   end
 

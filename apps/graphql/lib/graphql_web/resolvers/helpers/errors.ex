@@ -28,6 +28,13 @@ defmodule GraphQLWeb.Resolvers.Helpers.Errors do
       extensions: %{code: "FORBIDDEN", exception: exception}
     }
 
+  def format_not_found_error(message) when is_binary(message) do
+    %{
+      message: message,
+      extensions: %{code: "NOT_FOUND"}
+    }
+  end
+
   def format_conflict_error(message) when is_binary(message) do
     %{
       message: message,

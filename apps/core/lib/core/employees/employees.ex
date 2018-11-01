@@ -120,6 +120,13 @@ defmodule Core.Employees do
     end
   end
 
+  def fetch_by_id(id) do
+    case get_by_id(id) do
+      %Employee{} = employee -> {:ok, employee}
+      nil -> {:error, {:not_found, "Employee not found"}}
+    end
+  end
+
   defp get_by_id_query(query, id) do
     query
     |> where([e], e.id == ^id)

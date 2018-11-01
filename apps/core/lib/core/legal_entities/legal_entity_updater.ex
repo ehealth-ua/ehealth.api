@@ -17,7 +17,7 @@ defmodule Core.LegalEntities.LegalEntityUpdater do
   @employee_status_approved Employee.status(:approved)
 
   def deactivate(id, headers) do
-    with legal_entity <- LegalEntities.get_by_id!(id),
+    with {:ok, legal_entity} <- LegalEntities.fetch_by_id(id),
          :ok <- check_transition(legal_entity),
          :ok <- deactivate_employees(legal_entity, headers) do
       update_legal_entity_status(legal_entity, headers)
@@ -48,7 +48,7 @@ defmodule Core.LegalEntities.LegalEntityUpdater do
       case resp do
         {:error, err} ->
           log_deactivate_employee_error(err, id)
-          {:halt, err}
+          {:halt, {:error, err}}
 
         _ ->
           {:cont, acc}

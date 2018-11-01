@@ -96,6 +96,12 @@ defmodule EHealth.Web.FallbackController do
     |> render(Error, :"400", %{message: "User OAuth role does not exists"})
   end
 
+  def call(conn, nil) do
+    conn
+    |> put_status(:not_found)
+    |> render(Error, :"404")
+  end
+
   def call(conn, {:error, %{"type" => "not_found"}}) do
     call(conn, {:error, :not_found})
   end
@@ -104,6 +110,12 @@ defmodule EHealth.Web.FallbackController do
     conn
     |> put_status(:not_found)
     |> render(Error, :"404")
+  end
+
+  def call(conn, {:error, {:not_found, reason}}) do
+    conn
+    |> put_status(:not_found)
+    |> render(Error, :"404", %{message: reason})
   end
 
   def call(conn, {:error, :forbidden}) do
@@ -141,12 +153,6 @@ defmodule EHealth.Web.FallbackController do
     conn
     |> put_status(:service_unavailable)
     |> render(Error, :"503", %{message: message})
-  end
-
-  def call(conn, nil) do
-    conn
-    |> put_status(:not_found)
-    |> render(Error, :"404")
   end
 
   def call(conn, {:error, {:conflict, reason}}) do
