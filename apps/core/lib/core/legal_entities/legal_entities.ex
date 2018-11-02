@@ -253,11 +253,15 @@ defmodule Core.LegalEntities do
     {:error, {:conflict, "LegalEntity is VERIFIED and cannot be VERIFIED."}}
   end
 
-  defp check_nhs_verify_transition(%LegalEntity{nhs_verified: false}), do: :ok
-
-  defp check_nhs_verify_transition(_) do
+  defp check_nhs_verify_transition(%LegalEntity{nhs_verified: true}) do
     {:error, {:conflict, "LegalEntity is VERIFIED and cannot be VERIFIED."}}
   end
+
+  defp check_nhs_verify_transition(%LegalEntity{status: status}) when status != @status_active do
+    {:error, {:conflict, "Legal entity is not ACTIVE and cannot be updated"}}
+  end
+
+  defp check_nhs_verify_transition(_), do: :ok
 
   # Create legal entity
 

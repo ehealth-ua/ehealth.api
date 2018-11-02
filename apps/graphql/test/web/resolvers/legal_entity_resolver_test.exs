@@ -541,8 +541,22 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
       assert %{"nhsVerified" => true, "databaseId" => ^id} = resp_entity
     end
 
-    test "legal already verified", %{conn: conn} do
+    test "legal_entity already verified", %{conn: conn} do
       %{id: id} = insert(:prm, :legal_entity, nhs_verified: true)
+      variables = %{input: %{id: Node.to_global_id("LegalEntity", id)}}
+
+      resp_body =
+        conn
+        |> put_client_id(id)
+        |> post_query(@nhs_verify_query, variables)
+        |> json_response(200)
+
+      assert %{"errors" => [error], "data" => %{"nhsVerifyLegalEntity" => nil}} = resp_body
+      assert %{"extensions" => %{"code" => "CONFLICT"}, "message" => _} = error
+    end
+
+    test "legal_entity is not active", %{conn: conn} do
+      %{id: id} = insert(:prm, :legal_entity, status: @legal_entity_status_closed)
       variables = %{input: %{id: Node.to_global_id("LegalEntity", id)}}
 
       resp_body =
