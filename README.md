@@ -4,6 +4,8 @@
 
 Index page for projects that related to Ukrainian Health Services government institution.
 
+## What it is about - WIP
+....
 ## Objectives
 * Design and Develop patient's registry (Master Patient Index) as an independant service
 * Design and Develop registry for Medical Service Providers (MSP), MSP Divisions, 1st echelon Doctors (PRM)
@@ -18,9 +20,11 @@ Index page for projects that related to Ukrainian Health Services government ins
 * OAuth 2.0 authorization for E-Health API
 * Personal data protection according to Ukraine and EU regulations
 
-## Specification
+## Documentation
 
+- [Business prcesses and specifications](https://edenlab.atlassian.net/wiki/spaces/EH/overview)
 - [API docs](http://docs.uaehealthapi.apiary.io/#reference/public.-medical-service-provider-integration-layer)
+- [Architecture](https://docs.google.com/document/d/1oS1FiDJwOMBkR4wLbO51qcS8mO0LaBdXl7TQhk71OWM/edit) - WIP
 
 ## Installation
 
@@ -29,13 +33,19 @@ You can use official Docker container to deploy this service, it can be found on
 ### Dependencies
 
 - PostgreSQL 9.6 is used as storage back-end.
-- Elixir 1.5.1
+- Elixir 1.6+
 - Erlang/OTP 20.0.4
 
 ## Configuration
 
 See [ENVIRONMENT.md](docs/ENVIRONMENT.md).
 
+## Contributing
+To contribute to eHealth please see [CONTRIBUTING](docs/CONTRIBUTING.md)
+
 ## License
 
 See [LICENSE.md](LICENSE.md).
+
+## Legal-WIP
+
