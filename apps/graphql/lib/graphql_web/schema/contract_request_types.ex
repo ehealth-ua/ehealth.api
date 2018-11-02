@@ -84,6 +84,26 @@ defmodule GraphQLWeb.Schema.ContractRequestTypes do
   end
 
   object :contract_request_mutations do
+    payload field(:update_contract_request) do
+      meta(:scope, ~w(contract_request:update))
+
+      input do
+        field(:id, non_null(:string))
+        field(:nhs_signer_id, :string)
+        field(:nhs_signer_base, :string)
+        field(:nhs_contract_price, :float)
+        field(:issue_city, :string)
+        field(:miscellaneous, :string)
+        field(:nhs_payment_method, :nhs_payment_method)
+      end
+
+      output do
+        field(:contract_request, :contract_request)
+      end
+
+      resolve(&ContractRequestResolver.update/2)
+    end
+
     payload field(:approve_contract_request) do
       meta(:scope, ~w(contract_request:update))
 
@@ -140,6 +160,7 @@ defmodule GraphQLWeb.Schema.ContractRequestTypes do
     field(:nhs_signer_base, :string)
     field(:nhs_contract_price, :float)
     field(:nhs_payment_method, :nhs_payment_method)
+    field(:miscellaneous, :string, resolve: fn parent, _, _ -> {:ok, parent.misc} end)
   end
 
   enum :contract_request_status do

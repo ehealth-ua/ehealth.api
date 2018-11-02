@@ -50,6 +50,19 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
     }
   """
 
+  @update_query """
+    mutation UpdateContractRequest($input: UpdateContractRequestInput!) {
+      updateContractRequest(input: $input) {
+        contractRequest {
+          miscellaneous
+          nhsSignerBase
+          nhsContractPrice
+          nhsPaymentMethod
+        }
+      }
+    }
+  """
+
   @approve_query """
     mutation ApproveContractRequest($input: ApproveContractRequestInput!) {
       approveContractRequest(input: $input) {
@@ -521,6 +534,49 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
         |> json_response(200)
 
       assert %{"data" => %{"contractRequest" => nil}} = resp_body
+    end
+  end
+
+  describe "update" do
+    test "success", %{conn: conn} do
+      employee = insert(:prm, :employee)
+      legal_entity = insert(:prm, :legal_entity)
+
+      contract_request =
+        insert(
+          :il,
+          :contract_request,
+          status: @contract_request_status_in_process,
+          start_date: Date.add(Date.utc_today(), 10),
+          contractor_owner_id: employee.id
+        )
+
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
+      end)
+
+      variables = %{
+        input: %{
+          id: contract_request.id,
+          nhs_signer_base: "на підставі наказу",
+          nhs_contract_price: 150_000,
+          nhs_payment_method: "BACKWARD",
+          miscellaneous: "Всяке дозволене"
+        }
+      }
+
+      resp =
+        conn
+        |> put_client_id(legal_entity.id)
+        |> put_scope("contract_request:update")
+        |> post_query(@update_query, variables)
+        |> json_response(200)
+
+      resp_contract_request = get_in(resp, ~w(data updateContractRequest contractRequest))
+      assert variables.input.miscellaneous == resp_contract_request["miscellaneous"]
+      assert variables.input.nhs_signer_base == resp_contract_request["nhsSignerBase"]
+      assert variables.input.nhs_contract_price == resp_contract_request["nhsContractPrice"]
+      assert variables.input.nhs_payment_method == resp_contract_request["nhsPaymentMethod"]
     end
   end
 

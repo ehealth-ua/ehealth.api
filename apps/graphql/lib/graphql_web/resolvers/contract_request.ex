@@ -60,6 +60,34 @@ defmodule GraphQLWeb.Resolvers.ContractRequest do
 
   defp prepare_filter([head | tail]), do: [head | prepare_filter(tail)]
 
+  def update(args, resolution) do
+    params = prepare_update_params(args)
+
+    with {:ok, contract_request, references} <- ContractRequests.update(resolution.context.headers, params) do
+      {:ok, %{contract_request: Map.merge(contract_request, references)}}
+    else
+      # ToDo: Here should be generic way to handle errors. E.g as FallbackController in Phoenix
+      # Should be implemented with task https://github.com/edenlabllc/ehealth.web/issues/423
+      {:error, {:conflict, error}} ->
+        {:error, format_conflict_error(error)}
+
+      {:error, {:forbidden, error}} ->
+        {:error, format_forbidden_error(error)}
+
+      error ->
+        error
+    end
+  end
+
+  defp prepare_update_params(args) do
+    for {key, value} <- args, into: %{} do
+      case key do
+        :miscellaneous -> {"misc", value}
+        key -> {to_string(key), value}
+      end
+    end
+  end
+
   def approve(%{signed_content: signed_content}, resolution) do
     params = %{
       "id" => nil,
