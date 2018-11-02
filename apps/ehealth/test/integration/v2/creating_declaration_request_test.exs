@@ -500,6 +500,81 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
       assert "CANCELLED" = Repo.get(DeclarationRequest, d2.id).status
     end
 
+    test "declaration request is created with 'OTP' verification for person with no_tax_id = true", %{conn: conn} do
+      gen_sequence_number()
+
+      expect(MediaStorageMock, :create_signed_url, fn _, _, resource_name, resource_id, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://a.link.for/#{resource_id}/#{resource_name}"}}}
+      end)
+
+      role_id = UUID.generate()
+      expect(MithrilMock, :get_user_by_id, fn _, _ -> {:ok, %{"data" => %{"email" => "user@email.com"}}} end)
+
+      expect(MithrilMock, :get_roles_by_name, fn "DOCTOR", _headers ->
+        {:ok, %{"data" => [%{"id" => role_id}]}}
+      end)
+
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok,
+         %{
+           "data" => [
+             %{
+               "role_id" => role_id,
+               "user_id" => UUID.generate()
+             }
+           ]
+         }}
+      end)
+
+      expect(OTPVerificationMock, :search, fn _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
+      expect(OPSMock, :get_latest_block, fn _params ->
+        {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
+      end)
+
+      declaration_request_params =
+        "../core/test/data/v2/declaration_request.json"
+        |> File.read!()
+        |> Jason.decode!()
+
+      person_data =
+        declaration_request_params
+        |> get_in(~W(declaration_request person))
+        |> Map.merge(%{
+          "first_name" => "Тест",
+          "authentication_methods" => [%{"type" => "OTP", "phone_number" => "+380508887700"}],
+          "no_tax_id" => true
+        })
+        |> Map.delete("tax_id")
+
+      declaration_request_params = put_in(declaration_request_params, ~W(declaration_request person), person_data)
+
+      html_template("<html><body>Printout form for declaration request.</body></html>")
+      uaddresses_mock_expect()
+
+      resp =
+        conn
+        |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
+        |> post(v2_declaration_request_post_path(conn, :create), Jason.encode!(declaration_request_params))
+        |> json_response(200)
+
+      assert_show_response_schema(resp, "declaration_request/v2", "declaration_request")
+      assert to_string(Date.utc_today()) == resp["data"]["start_date"]
+      assert {:ok, _} = Date.from_iso8601(resp["data"]["end_date"])
+
+      assert "<html><body>Printout form for declaration request.</body></html>" == resp["data"]["content"]
+
+      assert [
+               %{
+                 "type" => "person.no_tax_id",
+                 "url" => "http://a.link.for/#{resp["data"]["id"]}/declaration_request_person.no_tax_id.jpeg"
+               }
+             ] == resp["urgent"]["documents"]
+    end
+
     test "declaration request is created with 'Offline' verification", %{conn: conn} do
       gen_sequence_number()
 
@@ -1314,6 +1389,10 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
 
       expect(OPSMock, :get_latest_block, fn _params ->
         {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
+      end)
+
+      expect(MediaStorageMock, :create_signed_url, fn _, _, resource_name, resource_id, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://a.link.for/#{resource_id}/#{resource_name}"}}}
       end)
 
       uaddresses_mock_expect()

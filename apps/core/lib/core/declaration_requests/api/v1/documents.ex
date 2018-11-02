@@ -14,8 +14,18 @@ defmodule Core.DeclarationRequests.API.Documents do
     render_links(id, ["GET"], Enum.map(documents, &Map.get(&1, "type")))
   end
 
-  def generate_links(%DeclarationRequest{id: declaration_request_id, data: %{"person" => person}}, http_verbs) do
-    documents_list = gather_documents_list(person)
+  def generate_links(
+        %DeclarationRequest{id: declaration_request_id, data: %{"person" => person}},
+        http_verbs,
+        no_tax_id_only
+      ) do
+    documents_list =
+      if no_tax_id_only and person["no_tax_id"] do
+        ["person.no_tax_id"]
+      else
+        gather_documents_list(person)
+      end
+
     render_links(declaration_request_id, http_verbs, documents_list)
   end
 

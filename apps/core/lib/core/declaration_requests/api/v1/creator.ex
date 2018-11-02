@@ -217,30 +217,47 @@ defmodule Core.DeclarationRequests.API.V1.Creator do
     "Error during #{microservice} interaction. Result from #{microservice}: #{inspect(result)}"
   end
 
-  def finalize(declaration_request) do
+  def finalize(%DeclarationRequest{data: %{"person" => person}} = declaration_request) do
     authorization = declaration_request.authentication_method_current
+    no_tax_id = person["no_tax_id"]
+    do_finalize(declaration_request, authorization, no_tax_id)
+  end
 
-    case authorization["type"] do
-      @auth_na ->
+  defp do_finalize(declaration_request, %{"type" => @auth_na}, true),
+    do: generate_links(declaration_request, ["PUT"], true)
+
+  defp do_finalize(declaration_request, %{"type" => @auth_na}, _), do: {:ok, declaration_request}
+
+  defp do_finalize(declaration_request, %{"type" => @auth_otp, "number" => auth_number}, true) do
+    case @otp_verification_api.initialize(auth_number, []) do
+      {:ok, _} ->
+        generate_links(declaration_request, ["PUT"], true)
+
+      {:error, error} ->
+        {:error, error}
+    end
+  end
+
+  defp do_finalize(declaration_request, %{"type" => @auth_otp, "number" => auth_number}, _) do
+    case @otp_verification_api.initialize(auth_number, []) do
+      {:ok, _} ->
         {:ok, declaration_request}
 
-      @auth_otp ->
-        case @otp_verification_api.initialize(authorization["number"], []) do
-          {:ok, _} ->
-            {:ok, declaration_request}
+      {:error, error} ->
+        {:error, error}
+    end
+  end
 
-          {:error, error} ->
-            {:error, error}
-        end
+  defp do_finalize(declaration_request, %{"type" => @auth_offline}, _),
+    do: generate_links(declaration_request, ["PUT"], false)
 
-      @auth_offline ->
-        case Documents.generate_links(declaration_request, ["PUT"]) do
-          {:ok, documents} ->
-            update_documents(declaration_request, documents)
+  defp generate_links(declaration_request, http_verbs, no_tax_id_only) do
+    case Documents.generate_links(declaration_request, http_verbs, no_tax_id_only) do
+      {:ok, documents} ->
+        update_documents(declaration_request, documents)
 
-          {:error, _} = bad_result ->
-            bad_result
-        end
+      {:error, _} = bad_result ->
+        bad_result
     end
   end
 
