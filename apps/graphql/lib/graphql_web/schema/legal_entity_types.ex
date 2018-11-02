@@ -8,7 +8,7 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
 
   alias Absinthe.Relay.Node.ParseIDs
   alias GraphQLWeb.Loaders.PRM
-  alias GraphQLWeb.Resolvers.LegalEntity
+  alias GraphQLWeb.Resolvers.LegalEntityResolver
 
   object :legal_entity_queries do
     @desc "get list of Legal Entities"
@@ -16,14 +16,14 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
       meta(:scope, ~w(legal_entity:read))
       arg(:filter, :legal_entity_filter)
       arg(:order_by, :legal_entity_order_by, default_value: :inserted_at_desc)
-      resolve(&LegalEntity.list_legal_entities/2)
+      resolve(&LegalEntityResolver.list_legal_entities/2)
     end
 
     @desc "get one Legal Entity by id"
     field :legal_entity, :legal_entity do
       meta(:scope, ~w(legal_entity:read))
       arg(:id, non_null(:id))
-      resolve(&LegalEntity.get_legal_entity_by_id/3)
+      resolve(&LegalEntityResolver.get_legal_entity_by_id/3)
     end
   end
 
@@ -72,7 +72,7 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
       end
 
       middleware(ParseIDs, id: :legal_entity)
-      resolve(&LegalEntity.nhs_verify/2)
+      resolve(&LegalEntityResolver.nhs_verify/2)
     end
 
     payload field(:deactivate_legal_entity) do
@@ -87,7 +87,7 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
       end
 
       middleware(ParseIDs, id: :legal_entity)
-      resolve(&LegalEntity.deactivate/2)
+      resolve(&LegalEntityResolver.deactivate/2)
     end
   end
 
@@ -118,18 +118,18 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
     field(:medical_service_provider, non_null(:msp))
 
     # relations
-    field(:owner, :employee, resolve: &LegalEntity.load_owner/3)
+    field(:owner, :employee, resolve: &LegalEntityResolver.load_owner/3)
 
     connection field(:employees, node_type: :employee) do
       arg(:filter, :employee_filter)
       arg(:order_by, :employee_order_by, default_value: :inserted_at_asc)
-      resolve(&LegalEntity.load_employees/3)
+      resolve(&LegalEntityResolver.load_employees/3)
     end
 
     connection field(:divisions, node_type: :division) do
       arg(:filter, :division_filter)
       arg(:order_by, :division_order_by, default_value: :inserted_at_asc)
-      resolve(&LegalEntity.load_divisions/3)
+      resolve(&LegalEntityResolver.load_divisions/3)
     end
 
     field(:merged_to_legal_entity, :related_legal_entity, resolve: dataloader(PRM))
@@ -137,7 +137,7 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
     connection field(:merged_from_legal_entities, node_type: :related_legal_entity) do
       arg(:filter, :related_legal_entity_filter)
       arg(:order_by, :related_legal_entity_order_by, default_value: :inserted_at_asc)
-      resolve(&LegalEntity.load_related_legal_entities/3)
+      resolve(&LegalEntityResolver.load_related_legal_entities/3)
     end
 
     # dates

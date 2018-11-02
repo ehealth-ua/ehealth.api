@@ -4,7 +4,7 @@ defmodule GraphQLWeb.Schema.LegalEntityMergeJobTypes do
   use Absinthe.Schema.Notation
   use Absinthe.Relay.Schema.Notation, :modern
 
-  alias GraphQLWeb.Resolvers.LegalEntityMergeJob
+  alias GraphQLWeb.Resolvers.LegalEntityMergeJobResolver
 
   object :legal_entity_merge_job_queries do
     @desc "get list of Legal Entities merge jobs"
@@ -12,14 +12,14 @@ defmodule GraphQLWeb.Schema.LegalEntityMergeJobTypes do
       meta(:scope, ~w(legal_entity_merge_job:read))
       arg(:filter, :legal_entity_merge_job_filter)
       arg(:order_by, :legal_entity_merge_job_order_by, default_value: :started_at_desc)
-      resolve(&LegalEntityMergeJob.list_jobs/2)
+      resolve(&LegalEntityMergeJobResolver.list_jobs/2)
     end
 
     @desc "get one Legal Entity merge job by id"
     field :legal_entity_merge_job, :legal_entity_merge_job do
       meta(:scope, ~w(legal_entity_merge_job:read))
       arg(:id, non_null(:id))
-      resolve(&LegalEntityMergeJob.get_by_id/3)
+      resolve(&LegalEntityMergeJobResolver.get_by_id/3)
     end
   end
 
@@ -35,7 +35,7 @@ defmodule GraphQLWeb.Schema.LegalEntityMergeJobTypes do
         field(:legal_entity_merge_job, :legal_entity_merge_job)
       end
 
-      resolve(&LegalEntityMergeJob.merge_legal_entities/2)
+      resolve(&LegalEntityMergeJobResolver.merge_legal_entities/2)
     end
   end
 

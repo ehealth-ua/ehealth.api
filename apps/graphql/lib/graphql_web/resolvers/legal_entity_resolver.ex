@@ -1,4 +1,4 @@
-defmodule GraphQLWeb.Resolvers.LegalEntity do
+defmodule GraphQLWeb.Resolvers.LegalEntityResolver do
   @moduledoc false
 
   import Absinthe.Resolution.Helpers, only: [on_load: 2]

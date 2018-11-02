@@ -1,4 +1,4 @@
-defmodule GraphQLWeb.Resolvers.ContractRequest do
+defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
   @moduledoc false
 
   import Ecto.Query, only: [where: 2, where: 3, join: 4, select: 3, order_by: 2]

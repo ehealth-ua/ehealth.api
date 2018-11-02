@@ -1,4 +1,4 @@
-defmodule GraphQLWeb.Resolvers.LegalEntityMergeJob do
+defmodule GraphQLWeb.Resolvers.LegalEntityMergeJobResolver do
   @moduledoc false
 
   alias Absinthe.Relay.Connection

@@ -1,4 +1,4 @@
-defmodule GraphQLWeb.Resolvers.Person do
+defmodule GraphQLWeb.Resolvers.PersonResolver do
   @moduledoc false
 
   # ToDo: get real persons

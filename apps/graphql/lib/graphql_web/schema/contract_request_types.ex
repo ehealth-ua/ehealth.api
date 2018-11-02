@@ -11,8 +11,8 @@ defmodule GraphQLWeb.Schema.ContractRequestTypes do
   alias Core.Divisions.Division
   alias Core.Employees.Employee
   alias Core.LegalEntities.LegalEntity
-  alias GraphQLWeb.Resolvers.ContractRequest, as: ContractRequestResolver
   alias GraphQLWeb.Loaders.{IL, PRM}
+  alias GraphQLWeb.Resolvers.ContractRequestResolver
 
   @status_approved ContractRequest.status(:approved)
   @status_declined ContractRequest.status(:declined)
