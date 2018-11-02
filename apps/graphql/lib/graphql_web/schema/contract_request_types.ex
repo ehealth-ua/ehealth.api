@@ -210,4 +210,15 @@ defmodule GraphQLWeb.Schema.ContractRequestTypes do
     value(:backward, as: @nhs_payment_method_backward)
     value(:forward, as: @nhs_payment_method_forward)
   end
+
+  object :contract_document do
+    field(:type, non_null(:contract_documents_type))
+    field(:url, non_null(:string))
+  end
+
+  enum :contract_documents_type do
+    value(:contract_request_additional_document, as: "CONTRACT_REQUEST_ADDITIONAL_DOCUMENT")
+    value(:contract_request_statute, as: "CONTRACT_REQUEST_STATUTE")
+    value(:signed_content, as: "SIGNED_CONTENT")
+  end
 end

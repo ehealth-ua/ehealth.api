@@ -567,7 +567,7 @@ defmodule EHealth.Web.ContractControllerTest do
 
     test "NHS terminate not verified contract", %{conn: conn} do
       nhs()
-      contract = insert(:prm, :contract, status: "SIGNED")
+      contract = insert(:prm, :contract, status: Contract.status(:terminated))
       params = %{"status_reason" => "Period of contract is wrong"}
 
       resp =

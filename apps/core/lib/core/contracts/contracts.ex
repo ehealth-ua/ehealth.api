@@ -160,7 +160,7 @@ defmodule Core.Contracts do
     legal_entity_id = get_client_id(headers)
     user_id = get_consumer_id(headers)
 
-    with {:ok, contract, references} <- get_by_id(id, params),
+    with {:ok, contract, references} <- fetch_by_id(id, params),
          :ok <- JsonSchema.validate(:contract_terminate, params),
          {:legal_entity_allowed, true} <-
            {:legal_entity_allowed,
@@ -377,6 +377,13 @@ defmodule Core.Contracts do
          :ok <- validate_contractor_legal_entity_id(contract, params),
          {:ok, contract, references} <- load_contract_references(contract) do
       {:ok, contract, references}
+    end
+  end
+
+  def fetch_by_id(id, params) do
+    case get_by_id(id, params) do
+      {:ok, _contract, _references} = result -> result
+      _ -> {:error, {:not_found, "Contract not found"}}
     end
   end
 
