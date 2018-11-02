@@ -13,7 +13,9 @@ defmodule EHealth.Web.PersonController do
 
   def person_declarations(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
     with {:ok, declaration} <- Person.get_person_declaration(id, req_headers) do
-      render(conn, DeclarationView, "show.json", declaration: declaration)
+      conn
+      |> put_view(DeclarationView)
+      |> render("show.json", declaration: declaration)
     end
   end
 

@@ -33,4 +33,6 @@ config :ehealth, EHealth.DeclarationRequests.Terminator,
 config :ehealth, EHealth.Contracts.Terminator,
   termination_batch_size: {:system, :integer, "CONTRACT_AUTOTERMINATION_BATCH", 10}
 
+config :grpc, start_server: true
+
 import_config "#{Mix.env()}.exs"

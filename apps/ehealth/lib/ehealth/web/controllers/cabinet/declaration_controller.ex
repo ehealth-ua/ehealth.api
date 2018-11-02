@@ -11,7 +11,9 @@ defmodule EHealth.Web.Cabinet.DeclarationController do
     with %Ecto.Changeset{valid?: true} <- DeclarationsSearch.changeset(params),
          {:ok, %{declarations: _, declaration_references: _, person: _, paging: _} = response_data} <-
            Declarations.get_person_declarations(params, headers) do
-      render(conn, DeclarationView, "cabinet_index.json", response_data)
+      conn
+      |> put_view(DeclarationView)
+      |> render("cabinet_index.json", response_data)
     end
   end
 
@@ -19,13 +21,17 @@ defmodule EHealth.Web.Cabinet.DeclarationController do
     user_id = get_consumer_id(conn.req_headers)
 
     with {:ok, declaration} <- Declarations.terminate(id, user_id, params, conn.req_headers) do
-      render(conn, DeclarationView, "show.json", declaration: declaration)
+      conn
+      |> put_view(DeclarationView)
+      |> render("show.json", declaration: declaration)
     end
   end
 
   def show_declaration(conn, %{"id" => id}) do
     with {:ok, declaration} <- Declarations.get_declaration(id, conn.req_headers) do
-      render(conn, DeclarationView, "show.json", declaration: declaration)
+      conn
+      |> put_view(DeclarationView)
+      |> render("show.json", declaration: declaration)
     end
   end
 end

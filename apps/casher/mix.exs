@@ -32,8 +32,8 @@ defmodule Casher.Mixfile do
     [
       {:core, in_umbrella: true},
       {:confex, "~> 3.3.1"},
-      {:phoenix, "~> 1.3.3"},
-      {:cowboy, "~> 1.0"},
+      {:phoenix, "~> 1.4.0-rc.3", override: true},
+      {:plug_cowboy, "~> 2.0"},
       {:redix, ">= 0.0.0"},
       {:eview, "~> 0.12"},
       {:plug_logger_json, "~> 0.5"},

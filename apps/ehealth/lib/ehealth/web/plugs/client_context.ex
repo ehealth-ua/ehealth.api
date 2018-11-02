@@ -33,7 +33,8 @@ defmodule EHealth.Web.Plugs.ClientContext do
     else
       conn
       |> put_status(:forbidden)
-      |> render(EView.Views.Error, :"403")
+      |> put_view(EView.Views.Error)
+      |> render(:"403")
       |> halt()
     end
   end
@@ -98,14 +99,16 @@ defmodule EHealth.Web.Plugs.ClientContext do
   defp conn_empty_list(conn) do
     conn
     |> assign_paging()
-    |> render(EHealth.Web.LegalEntityView, "index.json", %{legal_entities: []})
+    |> put_view(EHealth.Web.LegalEntityView)
+    |> render("index.json", %{legal_entities: []})
     |> halt()
   end
 
   defp conn_unauthorized(conn) do
     conn
     |> put_status(:unauthorized)
-    |> render(EView.Views.Error, :"401")
+    |> put_view(EView.Views.Error)
+    |> render(:"401")
     |> halt()
   end
 

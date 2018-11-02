@@ -86,7 +86,9 @@ defmodule EHealth.Web.ContractRequestController do
     client_type = conn.assigns.client_type
 
     with {:ok, contract, references} <- ContractRequests.sign_msp(headers, client_type, params) do
-      render(conn, ContractView, "show.json", contract: contract, references: references)
+      conn
+      |> put_view(ContractView)
+      |> render("show.json", contract: contract, references: references)
     end
   end
 

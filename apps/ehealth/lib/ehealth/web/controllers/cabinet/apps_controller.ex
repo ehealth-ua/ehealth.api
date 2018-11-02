@@ -19,12 +19,9 @@ defmodule EHealth.Web.AppsController do
 
   def show(%Plug.Conn{req_headers: headers} = conn, %{"id" => id} = params) do
     with {:ok, %{"data" => app}} <- @mithril_api.get_app(id, headers, params) do
-      render(
-        conn,
-        AppsView,
-        "app_show.json",
-        app: app
-      )
+      conn
+      |> put_view(AppsView)
+      |> render("app_show.json", app: app)
     end
   end
 
@@ -35,24 +32,17 @@ defmodule EHealth.Web.AppsController do
         |> create_page()
         |> Map.put(:entries, apps)
 
-      render(
-        conn,
-        AppsView,
-        "app_index.json",
-        apps: paging.entries,
-        paging: paging
-      )
+      conn
+      |> put_view(AppsView)
+      |> render("app_index.json", apps: paging.entries, paging: paging)
     end
   end
 
   def update(%Plug.Conn{req_headers: headers} = conn, params) do
     with {:ok, %{"data" => app}} <- @mithril_api.update_app(headers, params) do
-      render(
-        conn,
-        AppsView,
-        "app_show.json",
-        app: app
-      )
+      conn
+      |> put_view(AppsView)
+      |> render("app_show.json", app: app)
     end
   end
 

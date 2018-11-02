@@ -25,7 +25,11 @@ defmodule EHealth do
       ),
       worker(EHealth.DeclarationRequests.Terminator, [:declaration_request_cleaner], id: :declaration_request_cleaner),
       worker(EHealth.Contracts.Terminator, []),
-      worker(EHealth.Scheduler, [])
+      worker(EHealth.Scheduler, []),
+      %{
+        id: GRPC.Server.Supervisor,
+        start: {GRPC.Server.Supervisor, :start_link, [{EHealth.Grpc.Server, 50_051}]}
+      }
     ]
 
     opts = [strategy: :one_for_one, name: EHealth.Supervisor]

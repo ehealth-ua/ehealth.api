@@ -10,7 +10,8 @@ defmodule EHealth.Web.Plugs.Headers do
       [] ->
         conn
         |> put_status(:unauthorized)
-        |> render(EView.Views.Error, :"401", %{
+        |> put_view(EView.Views.Error)
+        |> render(:"401", %{
           message: "Missing header #{header}",
           invalid: [
             %{
@@ -35,7 +36,8 @@ defmodule EHealth.Web.Plugs.Headers do
   defp validate_client_id_existence(nil, conn) do
     conn
     |> put_status(:unauthorized)
-    |> render(EView.Views.Error, :"401", %{
+    |> put_view(EView.Views.Error)
+    |> render(:"401", %{
       message: "Misssing Client ID",
       invalid: [
         %{

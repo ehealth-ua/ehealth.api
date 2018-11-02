@@ -44,7 +44,7 @@ defmodule Core.MixProject do
       {:bamboo, "~> 0.8"},
       {:bamboo_postmark, "~> 0.2.0"},
       {:bamboo_smtp, "~> 1.4.0"},
-      {:guardian, "~> 1.0"},
+      {:guardian, "~> 1.1"},
       {:geo, "~> 1.4"},
       {:jvalid, "~> 0.6.0"},
       {:cipher, "~> 1.3"},

@@ -52,7 +52,8 @@ defmodule EHealth.Web.MedicationRequestRequestController do
     with {:ok, medication_request} <- API.sign(params, conn.req_headers) do
       conn
       |> put_status(200)
-      |> render(MedicationRequestView, "show.json", medication_request: medication_request)
+      |> put_view(MedicationRequestView)
+      |> render("show.json", medication_request: medication_request)
     end
   end
 

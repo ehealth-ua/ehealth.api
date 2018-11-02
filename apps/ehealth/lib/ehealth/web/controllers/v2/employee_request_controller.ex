@@ -9,13 +9,9 @@ defmodule EHealth.Web.V2.EmployeeRequestController do
 
   def create(%Plug.Conn{req_headers: headers} = conn, params) do
     with {:ok, employee_request, references} <- EmployeeRequests.create_signed(params, headers) do
-      render(
-        conn,
-        EmployeeRequestView,
-        "show.json",
-        employee_request: employee_request,
-        references: references
-      )
+      conn
+      |> put_view(EmployeeRequestView)
+      |> render("show.json", employee_request: employee_request, references: references)
     end
   end
 end

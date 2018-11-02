@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+message Grpc {
+    message EmployeeRequest {
+        string id = 1;
+    }
+
+    message EmployeeResponse {
+        message Employee {
+            Speciality speciality = 1;
+        }
+
+        message Speciality {
+            string speciality = 1;
+        }
+
+        Employee employee = 1;
+    }
+}
+
+service Ehealth {
+    rpc EmployeeSpeciality (Grpc.EmployeeRequest) returns (Grpc.EmployeeResponse);
+}

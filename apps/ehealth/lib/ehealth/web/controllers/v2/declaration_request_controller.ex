@@ -17,7 +17,8 @@ defmodule EHealth.Web.V2.DeclarationRequestController do
          {:ok, %{"data" => %{"hash" => hash}}} = @ops_api.get_latest_block(headers) do
       conn
       |> assign(:urgent, urgent_data)
-      |> render(DeclarationRequestView, "declaration_request.json", declaration_request: result, hash: hash)
+      |> put_view(DeclarationRequestView)
+      |> render("declaration_request.json", declaration_request: result, hash: hash)
     end
   end
 end
