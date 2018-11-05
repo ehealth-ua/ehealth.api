@@ -12,6 +12,7 @@ defmodule Core.API.MithrilBehaviour do
   @callback get_client_details(id :: binary, headers :: list) :: api_response()
   @callback get_client_type_name(id :: binary, headers :: list) :: api_response()
   @callback get_client_type_by_name(name :: binary, headers :: list) :: api_response()
+  @callback deactivate_client_tokens(id :: binary, headers :: list) :: api_response()
 
   # connections
   @callback get_client_connections(client_id :: binary, params :: map, headers :: list) :: api_response()

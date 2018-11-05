@@ -33,6 +33,10 @@ defmodule Core.API.Mithril do
     end
   end
 
+  def deactivate_client_tokens(id, headers \\ []) do
+    patch!("/admin/clients/#{id}/actions/deactivate_tokens", "", headers)
+  end
+
   # client connections
 
   def get_client_connections(client_id, params \\ [], headers \\ []) do

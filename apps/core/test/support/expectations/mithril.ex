@@ -57,6 +57,18 @@ defmodule Core.Expectations.Mithril do
     end)
   end
 
+  def deactivate_client_tokens(n \\ 1) do
+    expect(MithrilMock, :deactivate_client_tokens, n, fn client_id, _headers ->
+      client = %{
+        "id" => client_id,
+        "name" => "test",
+        "type" => "client"
+      }
+
+      {:ok, %{"data" => client}}
+    end)
+  end
+
   def get_user(n \\ 1) do
     expect(MithrilMock, :get_user_by_id, n, fn id, _ ->
       {:ok,

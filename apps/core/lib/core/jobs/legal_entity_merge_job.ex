@@ -27,6 +27,7 @@ defmodule Core.Jobs.LegalEntityMergeJob do
     with :ok <- store_signed_content(job.signed_content, related_legal_entity_id),
          :ok <- dismiss_employees(job),
          :ok <- update_client_type(job.merged_from_legal_entity.id, job.headers),
+         :ok <- deactivate_client_tokens(job.merged_from_legal_entity.id, job.headers),
          {:ok, related} <- create_related_legal_entity(related_legal_entity_id, job) do
       Jobs.processed(job.job_id, %{related_legal_entity_id: related.id})
     else
@@ -133,6 +134,16 @@ defmodule Core.Jobs.LegalEntityMergeJob do
 
       {:error, reason} ->
         {:error, "Cannot update client type on Mithril for client `#{legal_entity_id}` with `#{inspect(reason)}`"}
+    end
+  end
+
+  defp deactivate_client_tokens(client_id, headers) do
+    case @mithril_api.deactivate_client_tokens(client_id, headers) do
+      {:ok, _} ->
+        :ok
+
+      {:error, reason} ->
+        {:error, "Cannot deactivate tokens for client `#{client_id}` with `#{inspect(reason)}`"}
     end
   end
 

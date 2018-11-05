@@ -66,6 +66,8 @@ defmodule Core.Unit.LegalEntityMergeJobTest do
         {:ok, %{"data" => params}}
       end)
 
+      deactivate_client_tokens()
+
       expect(OPSMock, :terminate_employee_declarations, 3, fn employee_id, user_id, reason, _description, _headers ->
         assert employee_id in [employee_dismissed.id, employee_dismissed2.id, employee_dismissed3.id]
         assert consumer_id == user_id
@@ -111,6 +113,7 @@ defmodule Core.Unit.LegalEntityMergeJobTest do
 
     test "without employees", %{merged_to: merged_to, merged_from: merged_from, consumer_id: consumer_id} do
       put_client()
+      deactivate_client_tokens()
       expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ -> {:ok, %{"success" => true}} end)
       {:ok, job_id, _} = create_job()
 
@@ -139,6 +142,7 @@ defmodule Core.Unit.LegalEntityMergeJobTest do
     test "related legal entity exist", %{merged_to: merged_to, merged_from: merged_from, consumer_id: consumer_id} do
       expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ -> {:ok, %{"success" => true}} end)
       put_client()
+      deactivate_client_tokens()
       insert(:prm, :related_legal_entity, merged_from: merged_from, merged_to: merged_to)
       {:ok, job_id, _} = create_job()
 
