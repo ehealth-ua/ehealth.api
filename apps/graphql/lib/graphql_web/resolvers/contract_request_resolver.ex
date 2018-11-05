@@ -60,6 +60,25 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
 
   defp prepare_filter([head | tail]), do: [head | prepare_filter(tail)]
 
+  def get_printout_content(%ContractRequest{status: @status_pending_nhs_sign} = contract_request, _, %{context: context}) do
+    contract_request = Map.put(contract_request, :nhs_signed_date, Date.utc_today())
+
+    # todo: causes N+1 problem with DB query and man template rendering
+    with {:ok, printout_content} <- ContractRequestPrintoutForm.render(contract_request, context.headers) do
+      {:ok, printout_content}
+    else
+      # ToDo: Here should be generic way to handle errors. E.g as FallbackController in Phoenix
+      # Should be implemented with task https://github.com/edenlabllc/ehealth.web/issues/423
+      {:error, {:forbidden, error}} ->
+        {:error, format_forbidden_error(error)}
+
+      error ->
+        error
+    end
+  end
+
+  def get_printout_content(%ContractRequest{printout_content: printout_content}, _, _), do: {:ok, printout_content}
+
   def update(args, resolution) do
     params = prepare_update_params(args)
 
@@ -134,22 +153,12 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
     end
   end
 
-  def get_printout_content(%ContractRequest{status: @status_pending_nhs_sign} = contract_request, _, %{context: context}) do
-    contract_request = Map.put(contract_request, :nhs_signed_date, Date.utc_today())
-
-    # todo: causes N+1 problem with DB query and man template rendering
-    with {:ok, printout_content} <- ContractRequestPrintoutForm.render(contract_request, context.headers) do
-      {:ok, printout_content}
-    else
-      # ToDo: Here should be generic way to handle errors. E.g as FallbackController in Phoenix
-      # Should be implemented with task https://github.com/edenlabllc/ehealth.web/issues/423
-      {:error, {:forbidden, error}} ->
-        {:error, format_forbidden_error(error)}
-
-      error ->
-        error
+  def update_assignee(%{id: id, employee_id: employee_id}, %{context: %{headers: headers}}) do
+    # TODO: There is only the happy path are implemented for now.
+    # Error handling in a generic manner should be implemented later.
+    with {:ok, contract_request, _} <-
+           ContractRequests.update_assignee(headers, %{"id" => id, "employee_id" => employee_id}) do
+      {:ok, %{contract_request: contract_request}}
     end
   end
-
-  def get_printout_content(%ContractRequest{printout_content: printout_content}, _, _), do: {:ok, printout_content}
 end

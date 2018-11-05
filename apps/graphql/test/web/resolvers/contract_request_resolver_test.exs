@@ -5,7 +5,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
   import Core.Expectations.Man, only: [template: 0]
   import Core.Expectations.Mithril, only: [mis: 0, msp: 0, nhs: 0]
   import Core.Expectations.Signature
-  import Mox
+  import Mox, only: [expect: 3, verify_on_exit!: 1]
 
   alias Absinthe.Relay.Node
   alias Core.ContractRequests.ContractRequest
@@ -15,6 +15,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
   alias Core.Repo
   alias Ecto.UUID
 
+  @contract_request_status_new ContractRequest.status(:new)
   @contract_request_status_in_process ContractRequest.status(:in_process)
 
   @list_query """
@@ -51,7 +52,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
   """
 
   @update_query """
-    mutation UpdateContractRequest($input: UpdateContractRequestInput!) {
+    mutation UpdateContractRequestMutation($input: UpdateContractRequestInput!) {
       updateContractRequest(input: $input) {
         contractRequest {
           miscellaneous
@@ -64,7 +65,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
   """
 
   @approve_query """
-    mutation ApproveContractRequest($input: ApproveContractRequestInput!) {
+    mutation ApproveContractRequestMutation($input: ApproveContractRequestInput!) {
       approveContractRequest(input: $input) {
         contractRequest {
           id
@@ -84,7 +85,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
   """
 
   @decline_query """
-    mutation DeclineContractRequest($input: DeclineContractRequestInput!) {
+    mutation DeclineContractRequestMutation($input: DeclineContractRequestInput!) {
       declineContractRequest(input: $input) {
         contractRequest {
           id
@@ -103,10 +104,24 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
     }
   """
 
+  @assign_query """
+    mutation AssignContractRequestMutation($input: AssignContractRequestInput) {
+      assignContractRequest(input: $input) {
+        contractRequest {
+          id
+          status
+          assignee {
+            id
+          }
+        }
+      }
+    }
+  """
+
   setup :verify_on_exit!
 
   setup %{conn: conn} do
-    conn = put_scope(conn, "contract_request:read contract_request:write")
+    conn = put_scope(conn, "contract_request:read contract_request:update")
 
     {:ok, %{conn: conn}}
   end
@@ -768,5 +783,41 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
         }
       }
     }
+  end
+
+  describe "update assignee" do
+    test "success", %{conn: conn} do
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
+      end)
+
+      expect(MithrilMock, :search_user_roles, fn _, _ ->
+        {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
+      end)
+
+      legal_entity = insert(:prm, :legal_entity)
+      party_user = insert(:prm, :party_user)
+      employee = insert(:prm, :employee, legal_entity: legal_entity, party: party_user.party)
+      contract_request = insert(:il, :contract_request, status: @contract_request_status_new)
+
+      id = Node.to_global_id("ContractRequest", contract_request.id)
+      employee_id = Node.to_global_id("Employee", employee.id)
+
+      variables = %{input: %{id: id, employeeId: employee_id}}
+
+      resp_body =
+        conn
+        |> put_consumer_id()
+        |> put_client_id(legal_entity.id)
+        |> post_query(@assign_query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data assignContractRequest contractRequest))
+
+      assert nil == resp_body["errors"]
+      assert id == resp_entity["id"]
+      assert @contract_request_status_in_process == resp_entity["status"]
+      assert employee_id == resp_entity["assignee"]["id"]
+    end
   end
 end

@@ -7,6 +7,7 @@ defmodule GraphQLWeb.Schema.ContractRequestTypes do
   import Absinthe.Resolution.Helpers, only: [dataloader: 1]
   import GraphQLWeb.Resolvers.Helpers.Load, only: [load_by_args: 2, load_by_parent: 2, load_by_parent: 3]
 
+  alias Absinthe.Relay.Node.ParseIDs
   alias Core.ContractRequests.ContractRequest
   alias Core.Divisions.Division
   alias Core.Employees.Employee
@@ -130,6 +131,23 @@ defmodule GraphQLWeb.Schema.ContractRequestTypes do
       end
 
       resolve(&ContractRequestResolver.decline/2)
+    end
+
+    payload field(:assign_contract_request) do
+      meta(:scope, ~w(contract_request:update))
+
+      middleware(ParseIDs, id: :contract_request, employee_id: :employee)
+
+      input do
+        field(:id, non_null(:id))
+        field(:employee_id, non_null(:id))
+      end
+
+      output do
+        field(:contract_request, :contract_request)
+      end
+
+      resolve(&ContractRequestResolver.update_assignee/2)
     end
   end
 
