@@ -114,7 +114,7 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
     # embed
     field(:phones, non_null(list_of(:phone)))
     field(:addresses, non_null(list_of(:address)))
-    field(:archive, non_null(list_of(:legal_entity_archive)))
+    field(:archive, list_of(:legal_entity_archive))
     field(:medical_service_provider, non_null(:msp))
 
     # relations

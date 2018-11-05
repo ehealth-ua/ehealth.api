@@ -27,9 +27,7 @@ defmodule Core.API.Mithril do
   end
 
   def get_client_type_name(id, headers) do
-    id
-    |> get_client_details(headers)
-    |> case do
+    case get_client_details(id, headers) do
       {:ok, %{"data" => %{"client_type_name" => client_type}}} -> {:ok, client_type}
       _ -> {:error, :access_denied}
     end
