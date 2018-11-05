@@ -1,47 +1,85 @@
-defmodule Grpc do
+defmodule EHealthProto do
   @moduledoc false
   use Protobuf, syntax: :proto3
 
   defstruct []
 end
 
-defmodule Grpc.EmployeeRequest do
+defmodule EHealthProto.PartyUserRequest do
   @moduledoc false
   use Protobuf, syntax: :proto3
 
   @type t :: %__MODULE__{
-          id: String.t()
+          user_id: String.t()
         }
-  defstruct [:id]
+  defstruct [:user_id]
 
-  field(:id, 1, type: :string)
+  field(:user_id, 1, type: :string)
 end
 
-defmodule Grpc.EmployeeResponse do
+defmodule EHealthProto.PartyUserResponse do
   @moduledoc false
   use Protobuf, syntax: :proto3
 
   @type t :: %__MODULE__{
-          employee: Grpc.EmployeeResponse.Employee.t()
+          party_user: EHealthProto.PartyUserResponse.PartyUser.t()
         }
-  defstruct [:employee]
+  defstruct [:party_user]
 
-  field(:employee, 1, type: Grpc.EmployeeResponse.Employee)
+  field(:party_user, 1, type: EHealthProto.PartyUserResponse.PartyUser)
 end
 
-defmodule Grpc.EmployeeResponse.Employee do
+defmodule EHealthProto.PartyUserResponse.PartyUser do
   @moduledoc false
   use Protobuf, syntax: :proto3
 
   @type t :: %__MODULE__{
-          speciality: Grpc.EmployeeResponse.Speciality.t()
+          party_id: String.t()
+        }
+  defstruct [:party_id]
+
+  field(:party_id, 1, type: :string)
+end
+
+defmodule EHealthProto.EmployeesRequest do
+  @moduledoc false
+  use Protobuf, syntax: :proto3
+
+  @type t :: %__MODULE__{
+          party_id: String.t(),
+          legal_entity_id: String.t()
+        }
+  defstruct [:party_id, :legal_entity_id]
+
+  field(:party_id, 1, type: :string)
+  field(:legal_entity_id, 2, type: :string)
+end
+
+defmodule EHealthProto.EmployeesResponse do
+  @moduledoc false
+  use Protobuf, syntax: :proto3
+
+  @type t :: %__MODULE__{
+          employees: [EHealthProto.EmployeesResponse.Employee.t()]
+        }
+  defstruct [:employees]
+
+  field(:employees, 1, repeated: true, type: EHealthProto.EmployeesResponse.Employee)
+end
+
+defmodule EHealthProto.EmployeesResponse.Employee do
+  @moduledoc false
+  use Protobuf, syntax: :proto3
+
+  @type t :: %__MODULE__{
+          speciality: EHealthProto.EmployeesResponse.Speciality.t()
         }
   defstruct [:speciality]
 
-  field(:speciality, 1, type: Grpc.EmployeeResponse.Speciality)
+  field(:speciality, 1, type: EHealthProto.EmployeesResponse.Speciality)
 end
 
-defmodule Grpc.EmployeeResponse.Speciality do
+defmodule EHealthProto.EmployeesResponse.Speciality do
   @moduledoc false
   use Protobuf, syntax: :proto3
 
@@ -53,14 +91,15 @@ defmodule Grpc.EmployeeResponse.Speciality do
   field(:speciality, 1, type: :string)
 end
 
-defmodule Ehealth.Service do
+defmodule EHealthGrpc.Service do
   @moduledoc false
-  use GRPC.Service, name: "Ehealth"
+  use GRPC.Service, name: "EHealthGrpc"
 
-  rpc(:EmployeeSpeciality, Grpc.EmployeeRequest, Grpc.EmployeeResponse)
+  rpc(:PartyUser, EHealthProto.PartyUserRequest, EHealthProto.PartyUserResponse)
+  rpc(:EmployeesSpeciality, EHealthProto.EmployeesRequest, EHealthProto.EmployeesResponse)
 end
 
-defmodule Ehealth.Stub do
+defmodule EHealthGrpc.Stub do
   @moduledoc false
-  use GRPC.Stub, service: Ehealth.Service
+  use GRPC.Stub, service: EHealthGrpc.Service
 end
