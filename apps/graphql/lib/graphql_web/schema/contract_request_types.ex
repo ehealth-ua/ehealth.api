@@ -45,6 +45,8 @@ defmodule GraphQLWeb.Schema.ContractRequestTypes do
 
       arg(:id, non_null(:id))
 
+      middleware(ParseIDs, id: :contract_request)
+
       resolve(
         load_by_args(IL, fn _args, %{context: context} ->
           {ContractRequest, Map.take(context, ~w(client_id client_type)a)}
@@ -88,9 +90,11 @@ defmodule GraphQLWeb.Schema.ContractRequestTypes do
     payload field(:update_contract_request) do
       meta(:scope, ~w(contract_request:update))
 
+      middleware(ParseIDs, id: :contract_request, nhs_signer_id: :employee)
+
       input do
-        field(:id, non_null(:string))
-        field(:nhs_signer_id, :string)
+        field(:id, non_null(:id))
+        field(:nhs_signer_id, :id)
         field(:nhs_signer_base, :string)
         field(:nhs_contract_price, :float)
         field(:issue_city, :string)

@@ -554,25 +554,28 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
 
   describe "update" do
     test "success", %{conn: conn} do
-      employee = insert(:prm, :employee)
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
+      end)
+
       legal_entity = insert(:prm, :legal_entity)
+      nhs_signer = insert(:prm, :employee, legal_entity: legal_entity)
 
       contract_request =
         insert(
           :il,
           :contract_request,
           status: @contract_request_status_in_process,
-          start_date: Date.add(Date.utc_today(), 10),
-          contractor_owner_id: employee.id
+          start_date: Date.add(Date.utc_today(), 10)
         )
 
-      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
-        {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
-      end)
+      id = Node.to_global_id("ContractRequest", contract_request.id)
+      nhs_signer_id = Node.to_global_id("Employee", nhs_signer.id)
 
       variables = %{
         input: %{
-          id: contract_request.id,
+          id: id,
+          nhs_signer_id: nhs_signer_id,
           nhs_signer_base: "на підставі наказу",
           nhs_contract_price: 150_000,
           nhs_payment_method: "BACKWARD",
@@ -580,18 +583,18 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
         }
       }
 
-      resp =
+      resp_body =
         conn
         |> put_client_id(legal_entity.id)
-        |> put_scope("contract_request:update")
         |> post_query(@update_query, variables)
         |> json_response(200)
 
-      resp_contract_request = get_in(resp, ~w(data updateContractRequest contractRequest))
-      assert variables.input.miscellaneous == resp_contract_request["miscellaneous"]
-      assert variables.input.nhs_signer_base == resp_contract_request["nhsSignerBase"]
-      assert variables.input.nhs_contract_price == resp_contract_request["nhsContractPrice"]
-      assert variables.input.nhs_payment_method == resp_contract_request["nhsPaymentMethod"]
+      resp_entity = get_in(resp_body, ~w(data updateContractRequest contractRequest))
+
+      assert variables.input.miscellaneous == resp_entity["miscellaneous"]
+      assert variables.input.nhs_signer_base == resp_entity["nhsSignerBase"]
+      assert variables.input.nhs_contract_price == resp_entity["nhsContractPrice"]
+      assert variables.input.nhs_payment_method == resp_entity["nhsPaymentMethod"]
     end
   end
 
