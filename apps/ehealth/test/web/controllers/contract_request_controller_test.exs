@@ -4321,7 +4321,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "user_id" => user_id,
         "contract_request" => contract_request,
         "legal_entity" => legal_entity,
-        "party_user" => party_user
+        "contractor_owner_id" => employee_owner
       } = prepare_nhs_sign_params(status: ContractRequest.status(:nhs_signed))
 
       conn =
@@ -4333,9 +4333,9 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       data = %{"id" => contract_request.id, "printout_content" => "<html></html>"}
 
       drfo_signed_content(data, [
-        %{drfo: legal_entity.edrpou, surname: party_user.party.last_name},
+        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name},
         %{drfo: nil, surname: nil},
-        %{drfo: legal_entity.edrpou, surname: party_user.party.last_name, is_stamp: true}
+        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name, is_stamp: true}
       ])
 
       conn =
@@ -4368,7 +4368,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "user_id" => user_id,
         "contract_request" => contract_request,
         "legal_entity" => legal_entity,
-        "party_user" => party_user
+        "contractor_owner_id" => employee_owner
       } =
         prepare_nhs_sign_params(
           id: id,
@@ -4383,9 +4383,9 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> put_req_header("msp_drfo", legal_entity.edrpou)
 
       drfo_signed_content(data, [
-        %{drfo: legal_entity.edrpou, surname: party_user.party.last_name},
+        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name},
         %{drfo: nil, surname: nil},
-        %{drfo: legal_entity.edrpou, surname: party_user.party.last_name, is_stamp: true}
+        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name, is_stamp: true}
       ])
 
       conn =
@@ -4418,7 +4418,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "user_id" => user_id,
         "contract_request" => contract_request,
         "legal_entity" => legal_entity,
-        "party_user" => party_user
+        "contractor_owner_id" => employee_owner
       } =
         prepare_nhs_sign_params(
           id: id,
@@ -4433,9 +4433,9 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> put_req_header("msp_drfo", legal_entity.edrpou)
 
       drfo_signed_content(data, [
-        %{drfo: legal_entity.edrpou, surname: party_user.party.last_name},
+        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name},
         %{drfo: nil, surname: nil},
-        %{drfo: legal_entity.edrpou, surname: party_user.party.last_name, is_stamp: true}
+        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name, is_stamp: true}
       ])
 
       conn =
@@ -4468,7 +4468,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "user_id" => user_id,
         "contract_request" => contract_request,
         "legal_entity" => legal_entity,
-        "party_user" => party_user
+        "contractor_owner_id" => employee_owner
       } =
         prepare_nhs_sign_params(
           id: id,
@@ -4484,9 +4484,9 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> put_req_header("msp_drfo", legal_entity.edrpou)
 
       drfo_signed_content(data, [
-        %{drfo: legal_entity.edrpou, surname: party_user.party.last_name},
+        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name},
         %{drfo: nil, surname: nil},
-        %{drfo: legal_entity.edrpou, surname: party_user.party.last_name, is_stamp: true}
+        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name, is_stamp: true}
       ])
 
       conn =
@@ -4531,7 +4531,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "user_id" => user_id,
         "contract_request" => contract_request,
         "legal_entity" => legal_entity,
-        "party_user" => party_user
+        "contractor_owner_id" => employee_owner
       } =
         prepare_nhs_sign_params(
           id: id,
@@ -4548,9 +4548,9 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> put_req_header("msp_drfo", legal_entity.edrpou)
 
       drfo_signed_content(data, [
-        %{drfo: legal_entity.edrpou, surname: party_user.party.last_name},
+        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name},
         %{drfo: nil, surname: nil},
-        %{drfo: legal_entity.edrpou, surname: party_user.party.last_name, is_stamp: true}
+        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name, is_stamp: true}
       ])
 
       conn =
@@ -4767,6 +4767,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       "legal_entity" => legal_entity,
       "party_user" => party_user,
       "contract_request" => contract_request,
+      "contractor_owner_id" => employee_owner,
       "nhs_signer_party" => nhs_signer_party
     }
   end

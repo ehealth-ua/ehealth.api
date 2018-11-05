@@ -5,6 +5,10 @@ defmodule EHealth.Web.Endpoint do
   use Phoenix.Endpoint, otp_app: :ehealth
   alias Confex.Resolver
 
+  if Application.get_env(:ehealth, :sql_sandbox) do
+    plug(Phoenix.Ecto.SQL.Sandbox)
+  end
+
   plug(Plug.RequestId)
   plug(EView.Plugs.Idempotency)
   plug(Plug.LoggerJSON, level: Logger.level())

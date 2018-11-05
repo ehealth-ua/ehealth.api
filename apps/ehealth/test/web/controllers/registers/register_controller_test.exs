@@ -1,7 +1,7 @@
 defmodule EHealth.Web.RegisterControllerTest do
   @moduledoc false
 
-  use EHealth.Web.ConnCase
+  use EHealth.Web.ConnCase, async: false
   import Mox
 
   alias Ecto.UUID
