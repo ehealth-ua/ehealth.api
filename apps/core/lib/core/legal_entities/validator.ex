@@ -106,7 +106,7 @@ defmodule Core.LegalEntities.Validator do
     |> cast(%{"edrpou" => content_edrpou(content)}, Map.keys(types))
     |> validate_required(Map.keys(types))
     |> validate_format(:edrpou, ~r/^[0-9]{8,10}$/)
-    |> validate_inclusion(:edrpou, [edrpou], message: "EDRPOU is not match with signer drfo")
+    |> validate_inclusion(:edrpou, [edrpou], message: "EDRPOU does not match legal_entity edrpou")
     |> is_valid_content(content)
   end
 
@@ -118,7 +118,7 @@ defmodule Core.LegalEntities.Validator do
     |> cast(%{"drfo" => content_edrpou(content)}, Map.keys(types))
     |> validate_required(Map.keys(types))
     |> validate_format(:drfo, ~r/^[0-9]{9,10}$/ui)
-    |> validate_inclusion(:drfo, [drfo], message: "DRFO is not match with signer drfo")
+    |> validate_inclusion(:drfo, [drfo], message: "DRFO does not match signer drfo")
     |> is_valid_content(content)
   end
 

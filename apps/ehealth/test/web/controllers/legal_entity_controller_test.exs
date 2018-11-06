@@ -314,7 +314,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
                    "entry_type" => "json_data_property",
                    "rules" => [
                      %{
-                       "description" => "DRFO is not match with signer drfo",
+                       "description" => "DRFO does not match signer drfo",
                        "params" => ["0123456789"],
                        "rule" => "inclusion"
                      }
