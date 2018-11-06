@@ -28,6 +28,40 @@ defmodule GraphQLWeb.Resolvers.Helpers.Errors do
       extensions: %{code: "FORBIDDEN", exception: exception}
     }
 
+  def format_bad_request(message) when is_binary(message) do
+    %{
+      message: message,
+      extensions: %{code: "BAD_REQUEST"}
+    }
+  end
+
+  def format_unprocessable_entity_error(message) when is_binary(message) do
+    %{
+      message: message,
+      extensions: %{code: "UNPROCESSABLE_ENTITY"}
+    }
+  end
+
+  def format_unprocessable_entity_error(errors) when is_list(errors) do
+    # ToDo: Here should be generic way to handle errors. E.g as FallbackController in Phoenix
+    # Should be implemented with task https://github.com/edenlabllc/ehealth.web/issues/423
+    %{
+      message: "Validation error",
+      errors: Enum.map(errors, &elem(&1, 0)),
+      extensions: %{code: "UNPROCESSABLE_ENTITY"}
+    }
+  end
+
+  def format_unprocessable_entity_error(%Ecto.Changeset{errors: errors}) do
+    # ToDo: Here should be generic way to handle errors. E.g as FallbackController in Phoenix
+    # Should be implemented with task https://github.com/edenlabllc/ehealth.web/issues/423
+    %{
+      message: "Validation error",
+      errors: Enum.map(errors, fn {_field, {error, _}} -> error end),
+      extensions: %{code: "UNPROCESSABLE_ENTITY"}
+    }
+  end
+
   def format_not_found_error(message) when is_binary(message) do
     %{
       message: message,

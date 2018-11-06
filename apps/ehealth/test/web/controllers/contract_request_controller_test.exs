@@ -3191,9 +3191,17 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "invalid client_id", %{conn: conn} do
-      contract_request = insert(:il, :contract_request)
       nhs()
+      contract_request = insert(:il, :contract_request)
       legal_entity = insert(:prm, :legal_entity)
+      nhs_signer_party = insert(:prm, :party)
+
+      data = %{"id" => contract_request.id, "printout_content" => "<html></html>"}
+
+      drfo_signed_content(data, [
+        %{drfo: legal_entity.edrpou, surname: nhs_signer_party.last_name},
+        %{drfo: legal_entity.edrpou, surname: nhs_signer_party.last_name, is_stamp: true}
+      ])
 
       conn =
         conn
@@ -3207,11 +3215,48 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       assert %{"message" => "Invalid client_id", "type" => "forbidden"} = resp["error"]
     end
 
+    test "invalid contract_request id from signed content", %{conn: conn} do
+      nhs()
+      legal_entity = insert(:prm, :legal_entity)
+      contract_request = insert(:il, :contract_request)
+      nhs_signer_party = insert(:prm, :party)
+
+      data = %{"id" => contract_request.id, "printout_content" => "<html></html>"}
+
+      drfo_signed_content(data, [
+        %{drfo: legal_entity.edrpou, surname: nhs_signer_party.last_name},
+        %{drfo: legal_entity.edrpou, surname: nhs_signer_party.last_name, is_stamp: true}
+      ])
+
+      assert resp =
+               conn
+               |> put_client_id_header(legal_entity.id)
+               |> patch(contract_request_path(conn, :sign_nhs, UUID.generate()), %{
+                 "signed_content" => "",
+                 "signed_content_encoding" => "base64"
+               })
+               |> json_response(400)
+
+      assert %{"message" => _, "type" => "request_malformed"} = resp["error"]
+    end
+
     test "contract_request already signed", %{conn: conn} do
       nhs()
 
-      %{"client_id" => client_id, "user_id" => user_id, "contract_request" => contract_request} =
-        prepare_nhs_sign_params(status: ContractRequest.status(:nhs_signed))
+      %{
+        "client_id" => client_id,
+        "user_id" => user_id,
+        "legal_entity" => legal_entity,
+        "nhs_signer_party" => nhs_signer_party,
+        "contract_request" => contract_request
+      } = prepare_nhs_sign_params(status: ContractRequest.status(:nhs_signed))
+
+      data = %{"id" => contract_request.id, "printout_content" => "<html></html>"}
+
+      drfo_signed_content(data, [
+        %{drfo: legal_entity.edrpou, surname: nhs_signer_party.party.last_name},
+        %{drfo: legal_entity.edrpou, surname: nhs_signer_party.party.last_name, is_stamp: true}
+      ])
 
       conn =
         conn
@@ -3552,22 +3597,26 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "client_id" => client_id,
         "party_user" => party_user,
         "user_id" => user_id,
+        "legal_entity" => legal_entity,
+        "nhs_signer_party" => nhs_signer_party,
         "contract_request" => contract_request
       } = prepare_nhs_sign_params(id: id, data: data)
 
-      conn =
-        conn
-        |> put_client_id_header(client_id)
-        |> put_consumer_id_header(user_id)
-        |> put_req_header("drfo", party_user.party.tax_id)
+      drfo_signed_content(data, [
+        %{drfo: legal_entity.edrpou, surname: nhs_signer_party.party.last_name},
+        %{drfo: legal_entity.edrpou, surname: nhs_signer_party.party.last_name, is_stamp: true}
+      ])
 
-      conn =
-        patch(conn, contract_request_path(conn, :sign_nhs, contract_request.id), %{
-          "signed_content" => data |> Jason.encode!() |> Base.encode64(),
-          "signed_content_encoding" => "base64"
-        })
-
-      assert resp = json_response(conn, 409)
+      assert resp =
+               conn
+               |> put_client_id_header(client_id)
+               |> put_consumer_id_header(user_id)
+               |> put_req_header("drfo", party_user.party.tax_id)
+               |> patch(contract_request_path(conn, :sign_nhs, contract_request.id), %{
+                 "signed_content" => data |> Jason.encode!() |> Base.encode64(),
+                 "signed_content_encoding" => "base64"
+               })
+               |> json_response(409)
 
       assert %{
                "message" => "Incorrect status of contract_request to modify it",

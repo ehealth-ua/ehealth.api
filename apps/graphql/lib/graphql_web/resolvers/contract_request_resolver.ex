@@ -3,7 +3,7 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
 
   import Ecto.Query, only: [where: 2, where: 3, join: 4, select: 3, order_by: 2]
   import GraphQLWeb.Resolvers.Helpers.Search, only: [filter: 2]
-  import GraphQLWeb.Resolvers.Helpers.Errors, only: [format_conflict_error: 1, format_forbidden_error: 1]
+  import GraphQLWeb.Resolvers.Helpers.Errors
 
   alias Absinthe.Relay.Connection
   alias Core.ContractRequests
@@ -124,6 +124,41 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
 
       {:error, {:forbidden, error}} ->
         {:error, format_forbidden_error(error)}
+
+      error ->
+        error
+    end
+  end
+
+  def sign(%{id: id, signed_content: signed_content}, %{context: %{headers: headers}}) do
+    params = %{
+      "id" => id,
+      "signed_content" => signed_content.content,
+      "signed_content_encoding" => to_string(signed_content.encoding)
+    }
+
+    with {:ok, contract_request, _references} <- ContractRequests.sign_nhs(headers, params) do
+      {:ok, %{contract_request: contract_request}}
+    else
+      # ToDo: Here should be generic way to handle errors. E.g as FallbackController in Phoenix
+      # Should be implemented with task https://github.com/edenlabllc/ehealth.web/issues/423
+      {:error, {:bad_request, error}} ->
+        {:error, format_bad_request(error)}
+
+      {:error, {:not_found, error}} ->
+        {:error, format_not_found_error(error)}
+
+      {:error, {:forbidden, error}} ->
+        {:error, format_forbidden_error(error)}
+
+      {:error, {:"422", error}} ->
+        {:error, format_unprocessable_entity_error(error)}
+
+      {:error, [_ | _] = errors} ->
+        {:error, format_unprocessable_entity_error(errors)}
+
+      {:error, %Ecto.Changeset{} = errors} ->
+        {:error, format_unprocessable_entity_error(errors)}
 
       error ->
         error

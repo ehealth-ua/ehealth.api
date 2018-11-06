@@ -392,16 +392,19 @@ defmodule Core.ContractRequests do
   def sign_nhs(headers, %{"id" => id} = params) do
     client_id = get_client_id(headers)
     user_id = get_consumer_id(headers)
-    params = Map.delete(params, "id")
+    params = Map.take(params, ~w(signed_content signed_content_encoding))
 
-    with %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(client_id),
-         %ContractRequest{} = contract_request <- get_by_id(id),
+    with {:ok, legal_entity} <- LegalEntities.fetch_by_id(client_id),
          :ok <- JsonSchema.validate(:contract_request_sign, params),
+         {:ok, %{"content" => content, "signer" => signer, "stamp" => stamp}} <-
+           decode_signed_content(params, headers, 1, 1),
+         # TODO: Update validation schema
+         :ok <- JsonSchema.validate(:contract_request_sign_decoded, content),
+         :ok <- validate_contract_request_id(id, content["id"]),
+         {:ok, contract_request} <- fetch_by_id(id),
          {_, true} <- {:client_id, client_id == contract_request.nhs_legal_entity_id},
          {_, false} <- {:already_signed, contract_request.status == ContractRequest.status(:nhs_signed)},
          :ok <- validate_status(contract_request, ContractRequest.status(:pending_nhs_sign)),
-         {:ok, %{"content" => content, "signer" => signer, "stamp" => stamp}} <-
-           decode_signed_content(params, headers, 1, 1),
          :ok <- validate_legal_entity_edrpou(legal_entity, signer),
          :ok <- validate_legal_entity_edrpou(legal_entity, stamp),
          {:ok, employee} <- validate_employee(contract_request.nhs_signer_id, client_id),
@@ -1302,6 +1305,13 @@ defmodule Core.ContractRequests do
 
   def get_by_id!(id), do: Repo.get!(ContractRequest, id)
 
+  def fetch_by_id(id) do
+    case get_by_id(id) do
+      %ContractRequest{} = contract_request -> {:ok, contract_request}
+      nil -> {:error, {:not_found, "ContractRequest not found"}}
+    end
+  end
+
   defp get_contract_request(_, "NHS", id) do
     with %ContractRequest{} = contract_request <- Repo.get(ContractRequest, id) do
       {:ok, contract_request}
@@ -1413,10 +1423,9 @@ defmodule Core.ContractRequests do
     |> validate_required(fields_required)
   end
 
-  defp validate_contract_id(%ContractRequest{parent_contract_id: contract_id})
-       when not is_nil(contract_id) do
+  defp validate_contract_id(%ContractRequest{parent_contract_id: contract_id}) when not is_nil(contract_id) do
     with %Contract{} = contract <- Contracts.get_by_id(contract_id),
-         true <- contract.status == "VERIFIED" do
+         true <- contract.status == Contract.status(:verified) do
       :ok
     else
       _ -> {:error, {:conflict, "Parent contract can’t be updated"}}

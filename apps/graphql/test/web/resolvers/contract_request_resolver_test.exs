@@ -1,7 +1,9 @@
 defmodule GraphQLWeb.ContractRequestResolverTest do
+  @moduledoc false
+
   use GraphQLWeb.ConnCase, async: true
 
-  import Core.Factories, only: [insert: 2, insert: 3]
+  import Core.Factories, only: [insert: 2, insert: 3, build: 2]
   import Core.Expectations.Man, only: [template: 0]
   import Core.Expectations.Mithril, only: [mis: 0, msp: 0, nhs: 0]
   import Core.Expectations.Signature
@@ -17,6 +19,8 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
 
   @contract_request_status_new ContractRequest.status(:new)
   @contract_request_status_in_process ContractRequest.status(:in_process)
+  @contract_request_status_pending_nhs_sign ContractRequest.status(:pending_nhs_sign)
+  @contract_request_status_nhs_signed ContractRequest.status(:nhs_signed)
 
   @list_query """
     query ListContractRequestsQuery($filter: ContractRequestFilter) {
@@ -113,6 +117,19 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
           assignee {
             id
           }
+        }
+      }
+    }
+  """
+
+  @sign_query """
+    mutation SignContractRequest($input: SignContractRequestInput!) {
+      signContractRequest(input: $input) {
+        contractRequest {
+          id
+          databaseId
+          status
+          printoutContent
         }
       }
     }
@@ -491,7 +508,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
           :contract_request,
           nhs_signer_id: nhs_signer.id,
           contractor_legal_entity_id: client_id,
-          status: ContractRequest.status(:pending_nhs_sign),
+          status: @contract_request_status_pending_nhs_sign,
           external_contractors: [
             %{
               "legal_entity_id" => external_contractor_legal_entity.id,
@@ -539,7 +556,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
 
     test "User is not allowed to perform this action", %{conn: conn} do
       msp()
-      contract_request = insert(:il, :contract_request, status: ContractRequest.status(:pending_nhs_sign))
+      contract_request = insert(:il, :contract_request, status: @contract_request_status_pending_nhs_sign)
       variables = %{id: Node.to_global_id("ContractRequest", contract_request.id)}
 
       resp_body =
@@ -777,15 +794,115 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
     end
   end
 
-  defp input_signed_content(content) do
-    %{
-      input: %{
-        signedContent: %{
-          content: content |> Jason.encode!() |> Base.encode64(),
-          encoding: "BASE64"
+  describe "sign" do
+    test "success", %{conn: conn} do
+      insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
+      insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
+      insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
+      insert(:il, :dictionary, name: "MEDICAL_SERVICE", values: %{})
+      nhs()
+      template()
+
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
+      id = UUID.generate()
+      user_id = UUID.generate()
+      nhs_signer_id = UUID.generate()
+      now = Date.utc_today()
+
+      %{id: client_id} = legal_entity = insert(:prm, :legal_entity)
+      %{party: nhs_signer_party} = build(:party_user, user_id: nhs_signer_id)
+
+      insert(
+        :prm,
+        :employee,
+        legal_entity_id: client_id,
+        id: nhs_signer_id,
+        party: nhs_signer_party
+      )
+
+      division =
+        insert(
+          :prm,
+          :division,
+          legal_entity: legal_entity,
+          phones: [%{"type" => "MOBILE", "number" => "+380631111111"}]
+        )
+
+      employee_doctor = insert(:prm, :employee, legal_entity_id: legal_entity.id, division: division)
+
+      employee_owner =
+        insert(
+          :prm,
+          :employee,
+          id: user_id,
+          legal_entity_id: legal_entity.id,
+          employee_type: Employee.type(:owner)
+        )
+
+      data = %{
+        "id" => id,
+        "contract_number" => "0000-9EAX-XT7X-3115",
+        "status" => @contract_request_status_pending_nhs_sign
+      }
+
+      insert(
+        :il,
+        :contract_request,
+        id: id,
+        data: data,
+        status: @contract_request_status_pending_nhs_sign,
+        nhs_signed_date: Date.add(now, -10),
+        nhs_legal_entity_id: client_id,
+        nhs_signer_id: nhs_signer_id,
+        contractor_legal_entity_id: client_id,
+        contractor_owner_id: employee_owner.id,
+        contractor_divisions: [division.id],
+        contractor_employee_divisions: [
+          %{
+            "employee_id" => employee_doctor.id,
+            "staff_units" => 0.5,
+            "declaration_limit" => 2000,
+            "division_id" => division.id
+          }
+        ],
+        start_date: Date.add(now, 10)
+      )
+
+      printout_content = "<html></html>"
+      data = Map.put(data, "printout_content", printout_content)
+
+      drfo_signed_content(data, [
+        %{drfo: legal_entity.edrpou, surname: nhs_signer_party.last_name},
+        %{drfo: legal_entity.edrpou, surname: nhs_signer_party.last_name, is_stamp: true}
+      ])
+
+      variables = %{
+        input: %{
+          id: Node.to_global_id("ContractRequest", id),
+          signedContent: %{
+            content: data |> Jason.encode!() |> Base.encode64(),
+            encoding: "BASE64"
+          }
         }
       }
-    }
+
+      resp_body =
+        conn
+        |> put_scope("contract_request:sign")
+        |> put_consumer_id(user_id)
+        |> put_client_id(client_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
+        |> post_query(@sign_query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data signContractRequest contractRequest))
+
+      assert nil == resp_body["errors"]
+      assert %{"status" => @contract_request_status_nhs_signed, "printoutContent" => ^printout_content} = resp_entity
+    end
   end
 
   describe "update assignee" do
@@ -822,5 +939,16 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       assert @contract_request_status_in_process == resp_entity["status"]
       assert employee_id == resp_entity["assignee"]["id"]
     end
+  end
+
+  defp input_signed_content(content) do
+    %{
+      input: %{
+        signedContent: %{
+          content: content |> Jason.encode!() |> Base.encode64(),
+          encoding: "BASE64"
+        }
+      }
+    }
   end
 end

@@ -153,6 +153,25 @@ defmodule GraphQLWeb.Schema.ContractRequestTypes do
 
       resolve(&ContractRequestResolver.update_assignee/2)
     end
+
+    payload field(:sign_contract_request) do
+      meta(:scope, ~w(contract_request:sign))
+      meta(:client_metadata, ~w(client_id client_type)a)
+      meta(:allowed_clients, ~w(NHS))
+
+      middleware(ParseIDs, id: :contract_request)
+
+      input do
+        field(:id, non_null(:id))
+        field(:signed_content, non_null(:signed_content))
+      end
+
+      output do
+        field(:contract_request, :contract_request)
+      end
+
+      resolve(&ContractRequestResolver.sign/2)
+    end
   end
 
   node object(:contract_request) do
