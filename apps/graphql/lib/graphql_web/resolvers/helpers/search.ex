@@ -33,7 +33,7 @@ defmodule GraphQLWeb.Resolvers.Helpers.Search do
     |> filter(tail)
   end
 
-  def filter(query, [%Date.Interval{} | tail]), do: filter(query, tail)
+  def filter(query, [{:database_id, value} | tail]), do: filter(query, [{:id, value} | tail])
 
   def filter(query, [{field, value} | tail]) when is_list(value) do
     query

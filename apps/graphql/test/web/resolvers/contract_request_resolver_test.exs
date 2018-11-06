@@ -7,7 +7,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
   import Core.Expectations.Man, only: [template: 0]
   import Core.Expectations.Mithril, only: [mis: 0, msp: 0, nhs: 0]
   import Core.Expectations.Signature
-  import Mox, only: [expect: 3, verify_on_exit!: 1]
+  import Mox, only: [expect: 3, expect: 4, verify_on_exit!: 1]
 
   alias Absinthe.Relay.Node
   alias Core.ContractRequests.ContractRequest
@@ -23,13 +23,16 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
   @contract_request_status_nhs_signed ContractRequest.status(:nhs_signed)
 
   @list_query """
-    query ListContractRequestsQuery($filter: ContractRequestFilter) {
-      contractRequests(first: 10, filter: $filter) {
+    query ListContractRequestsQuery($filter: ContractRequestFilter, $orderBy: ContractRequestOrderBy) {
+      contractRequests(first: 10, filter: $filter, orderBy: $orderBy) {
         nodes {
           id
           databaseId
           status
           startDate
+          contractorLegalEntity {
+            databaseId
+          }
           assignee {
             databaseId
           }
@@ -199,7 +202,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
     test "filter by match", %{conn: conn} do
       nhs()
 
-      for status <- ~w(NEW APPROWED), do: insert(:il, :contract_request, %{status: status})
+      for status <- ~w(NEW APPROWED), do: insert(:il, :contract_request, status: status)
 
       variables = %{filter: %{status: "NEW"}}
 
@@ -216,15 +219,37 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       assert "NEW" == hd(resp_entities)["status"]
     end
 
+    test "filter by database ID", %{conn: conn} do
+      nhs()
+
+      contract_requests = for _ <- 1..2, do: insert(:il, :contract_request)
+
+      requested_contract_request = hd(contract_requests)
+
+      variables = %{filter: %{databaseId: requested_contract_request.id}}
+
+      resp_body =
+        conn
+        |> put_client_id()
+        |> post_query(@list_query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data contractRequests nodes))
+
+      assert nil == resp_body["errors"]
+      assert [resp_entity] = resp_entities
+      assert requested_contract_request.id == resp_entity["databaseId"]
+    end
+
     test "filter by closed date interval", %{conn: conn} do
       nhs()
 
       today = Date.utc_today()
 
-      for start_date <- [today, Date.add(today, -30)], do: insert(:il, :contract_request, %{start_date: start_date})
+      for start_date <- [today, Date.add(today, -30)], do: insert(:il, :contract_request, start_date: start_date)
 
       variables = %{
-        filter: %{startDate: Date.Interval.to_edtf(%{first: today, last: Date.add(today, 10)})}
+        filter: %{startDate: to_string(%Date.Interval{first: today, last: Date.add(today, 10)})}
       }
 
       resp_body =
@@ -245,10 +270,10 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
 
       today = Date.utc_today()
 
-      for start_date <- [today, Date.add(today, -30)], do: insert(:il, :contract_request, %{start_date: start_date})
+      for start_date <- [today, Date.add(today, -30)], do: insert(:il, :contract_request, start_date: start_date)
 
       variables = %{
-        filter: %{startDate: Date.Interval.to_edtf(%{first: today, last: nil})}
+        filter: %{startDate: to_string(%Date.Interval{first: today, last: nil})}
       }
 
       resp_body =
@@ -262,6 +287,33 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       assert nil == resp_body["errors"]
       assert 1 == length(resp_entities)
       assert to_string(today) == hd(resp_entities)["startDate"]
+    end
+
+    test "filter by contractor legal entity edrpou", %{conn: conn} do
+      nhs()
+
+      contractor_legal_entities =
+        for edrpou <- ["1234567890", "0987654321"] do
+          insert(:prm, :legal_entity, edrpou: edrpou)
+        end
+
+      for %{id: id} <- contractor_legal_entities, do: insert(:il, :contract_request, contractor_legal_entity_id: id)
+
+      requested_contractor_legal_entity = hd(contractor_legal_entities)
+
+      variables = %{filter: %{contractorLegalEntityEdrpou: requested_contractor_legal_entity.edrpou}}
+
+      resp_body =
+        conn
+        |> put_client_id()
+        |> post_query(@list_query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data contractRequests nodes))
+
+      assert nil == resp_body["errors"]
+      assert 1 == length(resp_entities)
+      assert requested_contractor_legal_entity.id == hd(resp_entities)["contractorLegalEntity"]["databaseId"]
     end
 
     test "filter by assignee name", %{conn: conn} do
@@ -285,6 +337,27 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       assert nil == resp_body["errors"]
       assert 1 == length(resp_entities)
       assert requested_assignee.id == hd(resp_entities)["assignee"]["databaseId"]
+    end
+
+    test "success with ordering", %{conn: conn} do
+      nhs()
+
+      for status <- [@contract_request_status_in_process, @contract_request_status_new] do
+        insert(:il, :contract_request, status: status)
+      end
+
+      variables = %{orderBy: "STATUS_ASC"}
+
+      resp_body =
+        conn
+        |> put_client_id()
+        |> post_query(@list_query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data contractRequests nodes))
+
+      assert nil == resp_body["errors"]
+      assert @contract_request_status_in_process == hd(resp_entities)["status"]
     end
   end
 
@@ -387,7 +460,9 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       nhs_signer = insert(:prm, :employee)
 
       contract_request =
-        insert(:il, :contract_request, %{
+        insert(
+          :il,
+          :contract_request,
           previous_request: previous_request,
           assignee_id: assignee.id,
           contractor_legal_entity_id: contractor_legal_entity.id,
@@ -406,7 +481,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
             }
           ],
           nhs_signer_id: nhs_signer.id
-        })
+        )
 
       id = Node.to_global_id("ContractRequest", contract_request.id)
 
@@ -484,6 +559,47 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
                |> get_in(~w(division databaseId))
 
       assert nhs_signer.id == resp_entity["nhsSigner"]["databaseId"]
+    end
+
+    test "success with attached documents", %{conn: conn} do
+      nhs()
+
+      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, id, resource_name, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://example.com/#{id}/#{resource_name}"}}}
+      end)
+
+      contract_request = insert(:il, :contract_request)
+
+      id = Node.to_global_id("ContractRequest", contract_request.id)
+
+      query = """
+        query GetContractRequestWithAttachedDocumentsQuery($id: ID!) {
+          contractRequest(id: $id) {
+            attachedDocuments {
+              type
+              url
+            }
+          }
+        }
+      """
+
+      variables = %{id: id}
+
+      resp_body =
+        conn
+        |> put_client_id()
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data contractRequest attachedDocuments))
+
+      assert nil == resp_body["errors"]
+      assert 2 == length(resp_entities)
+
+      Enum.each(resp_entities, fn document ->
+        assert Map.has_key?(document, "type")
+        assert Map.has_key?(document, "url")
+      end)
     end
   end
 

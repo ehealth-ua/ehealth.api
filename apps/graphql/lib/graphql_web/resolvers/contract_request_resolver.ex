@@ -9,6 +9,7 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
   alias Core.ContractRequests
   alias Core.ContractRequests.ContractRequest
   alias Core.Employees.Employee
+  alias Core.LegalEntities.LegalEntity
   alias Core.Man.Templates.ContractRequestPrintoutForm
   alias Core.{PRMRepo, Repo}
 
@@ -36,6 +37,16 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
   end
 
   defp prepare_filter([]), do: []
+
+  defp prepare_filter([{:contractor_legal_entity_edrpou, value} | tail]) do
+    contractor_legal_entity_ids =
+      LegalEntity
+      |> where([l], l.edrpou == ^value)
+      |> select([l], l.id)
+      |> PRMRepo.all()
+
+    [{:contractor_legal_entity_id, contractor_legal_entity_ids} | prepare_filter(tail)]
+  end
 
   defp prepare_filter([{:assignee_name, value} | tail]) do
     assignee_ids =
@@ -78,6 +89,12 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
   end
 
   def get_printout_content(%ContractRequest{printout_content: printout_content}, _, _), do: {:ok, printout_content}
+
+  def get_attached_documents(%{id: id, status: status}, _, _) do
+    with documents when is_list(documents) <- ContractRequests.gen_relevant_get_links(id, status) do
+      {:ok, documents}
+    end
+  end
 
   def update(args, resolution) do
     params = prepare_update_params(args)

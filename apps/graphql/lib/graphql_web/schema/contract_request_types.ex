@@ -18,9 +18,10 @@ defmodule GraphQLWeb.Schema.ContractRequestTypes do
   @status_approved ContractRequest.status(:approved)
   @status_declined ContractRequest.status(:declined)
   @status_in_process ContractRequest.status(:in_process)
-  @status_nhs_signed ContractRequest.status(:nhs_signed)
   @status_new ContractRequest.status(:new)
+  @status_nhs_signed ContractRequest.status(:nhs_signed)
   @status_pending_nhs_sign ContractRequest.status(:pending_nhs_sign)
+  @status_signed ContractRequest.status(:signed)
   @status_terminated ContractRequest.status(:terminated)
 
   @nhs_payment_method_backward ContractRequest.nhs_payment_method(:backward)
@@ -56,7 +57,8 @@ defmodule GraphQLWeb.Schema.ContractRequestTypes do
   end
 
   input_object :contract_request_filter do
-    field(:edrpou, :string)
+    field(:database_id, :id)
+    field(:contractor_legal_entity_edrpou, :string)
     field(:contract_number, :string)
     field(:status, :contract_request_status)
     field(:start_date, :date_interval)
@@ -202,15 +204,26 @@ defmodule GraphQLWeb.Schema.ContractRequestTypes do
     field(:nhs_contract_price, :float)
     field(:nhs_payment_method, :nhs_payment_method)
     field(:miscellaneous, :string, resolve: fn parent, _, _ -> {:ok, parent.misc} end)
+
+    field(
+      :attached_documents,
+      non_null(list_of(:contract_document)),
+      resolve: &ContractRequestResolver.get_attached_documents/3
+    )
+
+    # TODO: Timestamp fields should return :datetime type
+    field(:inserted_at, :naive_datetime)
+    field(:updated_at, :naive_datetime)
   end
 
   enum :contract_request_status do
     value(:approved, as: @status_approved)
     value(:declined, as: @status_declined)
     value(:in_process, as: @status_in_process)
-    value(:nhs_signed, as: @status_nhs_signed)
     value(:new, as: @status_new)
+    value(:nhs_signed, as: @status_nhs_signed)
     value(:pending_nhs_sign, as: @status_pending_nhs_sign)
+    value(:signed, as: @status_signed)
     value(:terminated, as: @status_terminated)
   end
 
