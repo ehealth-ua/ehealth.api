@@ -620,14 +620,14 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
     end
 
     test "suspend contract", %{conn: conn} do
-      %{id: id} = insert(:prm, :legal_entity)
-      %{id: contract_id} = insert(:prm, :contract, contractor_legal_entity_id: id)
-      variables = %{input: %{id: Node.to_global_id("LegalEntity", id)}}
+      legal_entity = insert(:prm, :legal_entity)
+      %{id: contract_id} = insert(:prm, :contract, contractor_legal_entity: legal_entity)
+      variables = %{input: %{id: Node.to_global_id("LegalEntity", legal_entity.id)}}
 
       resp_body =
         conn
         |> put_consumer_id()
-        |> put_client_id(id)
+        |> put_client_id(legal_entity.id)
         |> post_query(@deactivate_query, variables)
         |> json_response(200)
 

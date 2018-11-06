@@ -5,6 +5,8 @@ defmodule Core.Contracts.Contract do
 
   alias Core.Contracts.ContractDivision
   alias Core.Contracts.ContractEmployee
+  alias Core.LegalEntities.LegalEntity
+  alias Core.LegalEntities.RelatedLegalEntity
   alias Ecto.UUID
 
   @status_verified "VERIFIED"
@@ -19,7 +21,6 @@ defmodule Core.Contracts.Contract do
     field(:end_date, :date)
     field(:status, :string)
     field(:status_reason, :string)
-    field(:contractor_legal_entity_id, UUID)
     field(:contractor_owner_id, UUID)
     field(:contractor_base, :string)
     field(:contractor_payment_details, :map)
@@ -42,8 +43,13 @@ defmodule Core.Contracts.Contract do
     field(:id_form, :string)
     field(:nhs_signed_date, :date)
 
+    belongs_to(:contractor_legal_entity, LegalEntity, type: UUID)
+
     has_many(:contract_employees, ContractEmployee)
     has_many(:contract_divisions, ContractDivision)
+
+    has_many(:merged_from, RelatedLegalEntity, foreign_key: :merged_from_id, references: :contractor_legal_entity_id)
+    has_many(:merged_to, RelatedLegalEntity, foreign_key: :merged_to_id, references: :contractor_legal_entity_id)
 
     timestamps()
   end

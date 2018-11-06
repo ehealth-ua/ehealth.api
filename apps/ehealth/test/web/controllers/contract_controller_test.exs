@@ -49,7 +49,7 @@ defmodule EHealth.Web.ContractControllerTest do
           :prm,
           :contract,
           contract_request_id: contract_request.id,
-          contractor_legal_entity_id: legal_entity.id,
+          contractor_legal_entity: legal_entity,
           contractor_owner_id: contract_request.contractor_owner_id,
           nhs_legal_entity_id: legal_entity_nhs.id,
           nhs_signer_id: contract_request.nhs_signer_id,
@@ -125,7 +125,7 @@ defmodule EHealth.Web.ContractControllerTest do
           :prm,
           :contract,
           contract_request_id: contract_request.id,
-          contractor_legal_entity_id: legal_entity.id,
+          contractor_legal_entity: legal_entity,
           contractor_owner_id: contract_request.contractor_owner_id,
           nhs_legal_entity_id: legal_entity_nhs.id,
           nhs_signer_id: contract_request.nhs_signer_id,
@@ -194,7 +194,7 @@ defmodule EHealth.Web.ContractControllerTest do
         insert(
           :prm,
           :contract,
-          contractor_legal_entity_id: contractor_legal_entity.id,
+          contractor_legal_entity: contractor_legal_entity,
           contract_request_id: contract_request.id,
           external_contractors: external_contractors
         )
@@ -255,7 +255,7 @@ defmodule EHealth.Web.ContractControllerTest do
       nhs()
       edrpou = "5432345432"
       contractor_legal_entity = insert(:prm, :legal_entity, edrpou: edrpou)
-      insert(:prm, :contract, contractor_legal_entity_id: contractor_legal_entity.id)
+      insert(:prm, :contract, contractor_legal_entity: contractor_legal_entity)
       insert(:prm, :contract)
 
       conn =
@@ -271,7 +271,7 @@ defmodule EHealth.Web.ContractControllerTest do
     test "validating search params: edrpou is not defined, contractor_legal_entity_id is defined", %{conn: conn} do
       nhs()
       contractor_legal_entity = insert(:prm, :legal_entity)
-      insert(:prm, :contract, contractor_legal_entity_id: contractor_legal_entity.id)
+      insert(:prm, :contract, contractor_legal_entity: contractor_legal_entity)
       insert(:prm, :contract)
 
       conn =
@@ -289,7 +289,7 @@ defmodule EHealth.Web.ContractControllerTest do
       nhs()
       edrpou = "5432345432"
       contractor_legal_entity = insert(:prm, :legal_entity, edrpou: edrpou)
-      insert(:prm, :contract, contractor_legal_entity_id: contractor_legal_entity.id)
+      insert(:prm, :contract, contractor_legal_entity: contractor_legal_entity)
       insert(:prm, :contract)
 
       conn =
@@ -428,7 +428,7 @@ defmodule EHealth.Web.ContractControllerTest do
     test "success contract list for non-NHS admin user", %{conn: conn} do
       msp()
       contractor_legal_entity = insert(:prm, :legal_entity)
-      contract = insert(:prm, :contract, contractor_legal_entity_id: contractor_legal_entity.id, is_suspended: true)
+      contract = insert(:prm, :contract, contractor_legal_entity: contractor_legal_entity, is_suspended: true)
       insert(:prm, :contract)
 
       params = %{
@@ -456,8 +456,8 @@ defmodule EHealth.Web.ContractControllerTest do
     test "success filtering by nhs_signer_id", %{conn: conn} do
       msp()
       contractor_legal_entity = insert(:prm, :legal_entity)
-      contract_in = insert(:prm, :contract, contractor_legal_entity_id: contractor_legal_entity.id)
-      contract_out = insert(:prm, :contract, contractor_legal_entity_id: contractor_legal_entity.id)
+      contract_in = insert(:prm, :contract, contractor_legal_entity: contractor_legal_entity)
+      contract_out = insert(:prm, :contract, contractor_legal_entity: contractor_legal_entity)
 
       params = %{nhs_signer_id: contract_in.nhs_signer_id}
 
@@ -736,7 +736,7 @@ defmodule EHealth.Web.ContractControllerTest do
       nhs()
       contract_request = insert(:il, :contract_request)
       contract = insert(:prm, :contract, contract_request_id: contract_request.id)
-      legal_entity = insert(:prm, :legal_entity, id: contract.contractor_legal_entity_id)
+      legal_entity = contract.contractor_legal_entity
       division = insert(:prm, :division, legal_entity: legal_entity, status: Division.status(:inactive))
       employee = insert(:prm, :employee, legal_entity: legal_entity)
       employee_id = employee.id
@@ -804,7 +804,7 @@ defmodule EHealth.Web.ContractControllerTest do
       contract =
         insert(:prm, :contract, contract_request_id: contract_request.id, external_contractors: external_contractors)
 
-      legal_entity = insert(:prm, :legal_entity, id: contract.contractor_legal_entity_id)
+      legal_entity = contract.contractor_legal_entity
       division = insert(:prm, :division, legal_entity: legal_entity)
       employee = insert(:prm, :employee, legal_entity: legal_entity)
       employee_id = employee.id
@@ -851,7 +851,7 @@ defmodule EHealth.Web.ContractControllerTest do
                resp["data"]["contractor_employee_divisions"]
     end
 
-    test "succes update employee set inactive", %{conn: conn} do
+    test "success update employee set inactive", %{conn: conn} do
       nhs()
 
       expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
@@ -874,7 +874,7 @@ defmodule EHealth.Web.ContractControllerTest do
       contract =
         insert(:prm, :contract, contract_request_id: contract_request.id, external_contractors: external_contractors)
 
-      legal_entity = insert(:prm, :legal_entity, id: contract.contractor_legal_entity_id)
+      legal_entity = contract.contractor_legal_entity
       division = insert(:prm, :division, legal_entity: legal_entity)
       insert(:prm, :contract_division, contract_id: contract.id, division_id: division.id)
 
@@ -924,7 +924,7 @@ defmodule EHealth.Web.ContractControllerTest do
       assert [%{"employee" => %{"id" => ^employee_id_active}}] = resp["data"]["contractor_employee_divisions"]
     end
 
-    test "succes insert employees", %{conn: conn} do
+    test "success insert employees", %{conn: conn} do
       nhs()
 
       expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
@@ -947,7 +947,7 @@ defmodule EHealth.Web.ContractControllerTest do
       contract =
         insert(:prm, :contract, contract_request_id: contract_request.id, external_contractors: external_contractors)
 
-      legal_entity = insert(:prm, :legal_entity, id: contract.contractor_legal_entity_id)
+      legal_entity = contract.contractor_legal_entity
       division = insert(:prm, :division, legal_entity: legal_entity)
       employee = insert(:prm, :employee, legal_entity: legal_entity)
       employee_id = employee.id
@@ -988,7 +988,7 @@ defmodule EHealth.Web.ContractControllerTest do
       nhs()
       contract_request = insert(:il, :contract_request)
       contract = insert(:prm, :contract, contract_request_id: contract_request.id)
-      legal_entity = insert(:prm, :legal_entity, id: contract.contractor_legal_entity_id)
+      legal_entity = contract.contractor_legal_entity
       division = insert(:prm, :division, legal_entity: legal_entity)
       employee = insert(:prm, :employee, legal_entity: legal_entity)
       employee_id = employee.id
@@ -1037,7 +1037,7 @@ defmodule EHealth.Web.ContractControllerTest do
       nhs()
       contract_request = insert(:il, :contract_request)
       contract = insert(:prm, :contract, contract_request_id: contract_request.id)
-      legal_entity = insert(:prm, :legal_entity, id: contract.contractor_legal_entity_id)
+      legal_entity = contract.contractor_legal_entity
       division = insert(:prm, :division, legal_entity: legal_entity)
       employee = insert(:prm, :employee, legal_entity: legal_entity)
       employee_id = employee.id
@@ -1076,7 +1076,7 @@ defmodule EHealth.Web.ContractControllerTest do
       msp()
       contract_request = insert(:il, :contract_request)
       contract = insert(:prm, :contract, contract_request_id: contract_request.id)
-      legal_entity = insert(:prm, :legal_entity, id: contract.contractor_legal_entity_id)
+      legal_entity = contract.contractor_legal_entity
       legal_entity_out = insert(:prm, :legal_entity)
       division = insert(:prm, :division, legal_entity: legal_entity)
       employee = insert(:prm, :employee, legal_entity: legal_entity_out)
@@ -1126,7 +1126,7 @@ defmodule EHealth.Web.ContractControllerTest do
       msp()
       contract_request = insert(:il, :contract_request)
       contract = insert(:prm, :contract, contract_request_id: contract_request.id)
-      legal_entity = insert(:prm, :legal_entity, id: contract.contractor_legal_entity_id)
+      legal_entity = contract.contractor_legal_entity
       legal_entity_out = insert(:prm, :legal_entity)
       division = insert(:prm, :division, legal_entity: legal_entity)
       employee = insert(:prm, :employee, legal_entity: legal_entity_out)
@@ -1258,7 +1258,7 @@ defmodule EHealth.Web.ContractControllerTest do
         insert(
           :prm,
           :contract,
-          contractor_legal_entity_id: contractor_legal_entity.id,
+          contractor_legal_entity: contractor_legal_entity,
           contract_request_id: contract_request.id
         )
 

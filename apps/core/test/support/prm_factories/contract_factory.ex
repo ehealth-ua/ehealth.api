@@ -14,7 +14,7 @@ defmodule Core.PRMFactories.ContractFactory do
           start_date: Date.utc_today(),
           end_date: Date.utc_today(),
           status: Contract.status(:verified),
-          contractor_legal_entity_id: UUID.generate(),
+          contractor_legal_entity: build(:legal_entity),
           contractor_owner_id: UUID.generate(),
           contractor_base: "на підставі закону про Медичне обслуговування населення",
           contractor_payment_details: %{

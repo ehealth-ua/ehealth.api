@@ -8,6 +8,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
   alias Ecto.UUID
   alias Core.Employees.Employee
   alias Core.PRMRepo
+  alias Core.LegalEntities
   alias Core.LegalEntities.LegalEntity
   alias Core.Contracts.Contract
 
@@ -350,7 +351,8 @@ defmodule EHealth.Web.LegalEntityControllerTest do
         |> json_response(200)
 
       id = resp1["data"]["id"]
-      %{id: contract_id} = insert(:prm, :contract, contractor_legal_entity_id: id)
+      legal_entity = LegalEntities.get_by_id(id)
+      %{id: contract_id} = insert(:prm, :contract, contractor_legal_entity: legal_entity)
       legal_entity_params = Map.put(legal_entity_params, "name", "Institute of medical researches ISMT")
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
@@ -393,7 +395,8 @@ defmodule EHealth.Web.LegalEntityControllerTest do
         |> json_response(200)
 
       id = resp1["data"]["id"]
-      %{id: contract_id} = insert(:prm, :contract, contractor_legal_entity_id: id)
+      legal_entity = LegalEntities.get_by_id(id)
+      %{id: contract_id} = insert(:prm, :contract, contractor_legal_entity: legal_entity)
       legal_entity_params = Map.put(legal_entity_params, "status", "CLOSED")
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
@@ -437,10 +440,11 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
       id = resp1["data"]["id"]
 
-      %{id: contract_id} = insert(:prm, :contract, contractor_legal_entity_id: id)
+      legal_entity = LegalEntities.get_by_id(id)
+      %{id: contract_id} = insert(:prm, :contract, contractor_legal_entity: legal_entity)
 
-      [addres | addresses] = legal_entity_params["addresses"]
-      addresses = [%{addres | "apartment" => "42/12"} | addresses]
+      [address | addresses] = legal_entity_params["addresses"]
+      addresses = [%{address | "apartment" => "42/12"} | addresses]
       legal_entity_params = Map.put(legal_entity_params, "addresses", addresses)
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
@@ -461,13 +465,13 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     end
 
     test "deactivate legal entity suspend contract", %{conn: conn} do
-      %{id: id} = insert(:prm, :legal_entity)
-      %{id: contract_id} = insert(:prm, :contract, contractor_legal_entity_id: id)
+      legal_entity = insert(:prm, :legal_entity)
+      %{id: contract_id} = insert(:prm, :contract, contractor_legal_entity: legal_entity)
 
       resp =
         conn
-        |> put_client_id_header(id)
-        |> patch(legal_entity_path(conn, :deactivate, id))
+        |> put_client_id_header(legal_entity.id)
+        |> patch(legal_entity_path(conn, :deactivate, legal_entity.id))
         |> json_response(200)
 
       assert "CLOSED" == resp["data"]["status"]

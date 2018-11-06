@@ -4,7 +4,7 @@ defmodule GraphQLWeb.ContractResolverTest do
   use GraphQLWeb.ConnCase, async: true
 
   import Core.Factories, only: [insert: 2, insert: 3]
-  import Core.Expectations.Mithril, only: [msp: 0, nhs: 0]
+  import Core.Expectations.Mithril
   import Mox
 
   alias Absinthe.Relay.Node
@@ -14,6 +14,22 @@ defmodule GraphQLWeb.ContractResolverTest do
 
   @contract_request_status_signed ContractRequest.status(:signed)
   @contract_status_terminated Contract.status(:terminated)
+
+  @list_query """
+    query ListContractsQuery($filter: ContractFilter) {
+      contracts(first: 10, filter: $filter) {
+        nodes {
+          id
+          databaseId
+          status
+          startDate
+          nhsSigner {
+            databaseId
+          }
+        }
+      }
+    }
+  """
 
   @terminate_query """
     mutation TerminateContract($input: TerminateContractInput!) {
@@ -38,9 +54,170 @@ defmodule GraphQLWeb.ContractResolverTest do
   setup :verify_on_exit!
 
   setup %{conn: conn} do
-    conn = put_scope(conn, "contract:terminate")
+    conn = put_scope(conn, "contract:terminate contract:read")
 
     {:ok, %{conn: conn}}
+  end
+
+  describe "list" do
+    test "return all for NHS client", %{conn: conn} do
+      nhs()
+
+      for _ <- 1..2, do: insert(:prm, :contract)
+
+      resp_body =
+        conn
+        |> put_client_id()
+        |> post_query(@list_query)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data contracts nodes))
+
+      assert nil == resp_body["errors"]
+      assert 2 == length(resp_entities)
+    end
+
+    test "return only related for MSP client", %{conn: conn} do
+      msp()
+
+      contract = for _ <- 1..2, do: insert(:prm, :contract)
+      related_contract = hd(contract)
+
+      resp_body =
+        conn
+        |> put_client_id(related_contract.contractor_legal_entity_id)
+        |> post_query(@list_query)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data contracts nodes))
+
+      assert nil == resp_body["errors"]
+      assert 1 == length(resp_entities)
+      assert related_contract.id == hd(resp_entities)["databaseId"]
+    end
+
+    test "return forbidden error for incorrect client type", %{conn: conn} do
+      mis()
+
+      for _ <- 1..2, do: insert(:prm, :contract)
+
+      resp_body =
+        conn
+        |> put_client_id()
+        |> post_query(@list_query)
+        |> json_response(200)
+
+      assert is_list(resp_body["errors"])
+      assert match?(%{"extensions" => %{"code" => "FORBIDDEN"}}, hd(resp_body["errors"]))
+      assert nil == get_in(resp_body, ~w(data contracts))
+    end
+
+    test "filter by status", %{conn: conn} do
+      nhs()
+
+      for status <- ~w(VERIFIED TERMINATED), do: insert(:prm, :contract, %{status: status})
+
+      variables = %{filter: %{status: "VERIFIED"}}
+
+      resp_body =
+        conn
+        |> put_client_id()
+        |> post_query(@list_query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data contracts nodes))
+
+      assert nil == resp_body["errors"]
+      assert 1 == length(resp_entities)
+      assert "VERIFIED" == hd(resp_entities)["status"]
+    end
+
+    test "filter by closed date interval", %{conn: conn} do
+      nhs()
+
+      today = Date.utc_today()
+
+      for start_date <- [today, Date.add(today, -30)], do: insert(:prm, :contract, %{start_date: start_date})
+
+      variables = %{
+        filter: %{startDate: to_string(%Date.Interval{first: today, last: Date.add(today, 10)})}
+      }
+
+      resp_body =
+        conn
+        |> put_client_id()
+        |> post_query(@list_query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data contracts nodes))
+
+      assert nil == resp_body["errors"]
+      assert 1 == length(resp_entities)
+      assert to_string(today) == hd(resp_entities)["startDate"]
+    end
+
+    test "filter by open date interval", %{conn: conn} do
+      nhs()
+
+      today = Date.utc_today()
+
+      for start_date <- [today, Date.add(today, -30)], do: insert(:prm, :contract, %{start_date: start_date})
+
+      variables = %{
+        filter: %{startDate: Date.Interval.to_edtf(%{first: today, last: nil})}
+      }
+
+      resp_body =
+        conn
+        |> put_client_id()
+        |> post_query(@list_query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data contracts nodes))
+
+      assert nil == resp_body["errors"]
+      assert 1 == length(resp_entities)
+      assert to_string(today) == hd(resp_entities)["startDate"]
+    end
+
+    test "filter by legal entity relation", %{conn: conn} do
+      nhs(2)
+      from = insert(:prm, :legal_entity)
+      to = insert(:prm, :legal_entity)
+      insert(:prm, :related_legal_entity, merged_from: from, merged_to: to)
+      contract_related_from = insert(:prm, :contract, %{contractor_legal_entity: from})
+      contract_related_to = insert(:prm, :contract, %{contractor_legal_entity: to})
+
+      # merged from
+      variables = %{filter: %{legalEntityRelation: "MERGED_FROM"}}
+
+      resp_body =
+        conn
+        |> put_client_id()
+        |> post_query(@list_query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data contracts nodes))
+
+      refute resp_body["errors"]
+      assert 1 == length(resp_entities)
+      assert contract_related_from.id == hd(resp_entities)["databaseId"]
+
+      # merged to
+      variables = %{filter: %{legalEntityRelation: "MERGED_TO"}}
+
+      resp_body =
+        conn
+        |> put_client_id()
+        |> post_query(@list_query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data contracts nodes))
+
+      refute resp_body["errors"]
+      assert 1 == length(resp_entities)
+      assert contract_related_to.id == hd(resp_entities)["databaseId"]
+    end
   end
 
   describe "terminate" do

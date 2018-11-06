@@ -688,7 +688,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         :prm,
         :contract,
         status: Contract.status(:verified),
-        contractor_legal_entity_id: legal_entity.id,
+        contractor_legal_entity: legal_entity,
         start_date: contract_start_date,
         end_date: contract_end_date
       )
@@ -754,7 +754,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         :prm,
         :contract,
         status: Contract.status(:verified),
-        contractor_legal_entity_id: legal_entity.id,
+        contractor_legal_entity: legal_entity,
         start_date: contract_start_date,
         end_date: contract_end_date
       )
@@ -820,7 +820,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         :prm,
         :contract,
         status: Contract.status(:verified),
-        contractor_legal_entity_id: legal_entity.id,
+        contractor_legal_entity: legal_entity,
         start_date: contract_start_date,
         end_date: contract_end_date
       )
@@ -886,7 +886,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         :prm,
         :contract,
         status: Contract.status(:verified),
-        contractor_legal_entity_id: legal_entity.id,
+        contractor_legal_entity: legal_entity,
         start_date: contract_start_date,
         end_date: contract_end_date
       )
@@ -1058,7 +1058,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         :contract,
         contract_number: contract_number,
         status: Contract.status(:verified),
-        contractor_legal_entity_id: legal_entity.id
+        contractor_legal_entity: legal_entity
       )
 
       conn =
