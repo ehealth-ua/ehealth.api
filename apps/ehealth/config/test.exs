@@ -9,7 +9,9 @@ config :ehealth, EHealth.Web.Endpoint,
   http: [port: 4001],
   server: true
 
-config :ehealth, sensitive_data_in_response: {:system, :boolean, "SENSITIVE_DATA_IN_RESPONSE_ENABLED", true}
+config :ehealth,
+  sensitive_data_in_response: {:system, :boolean, "SENSITIVE_DATA_IN_RESPONSE_ENABLED", true},
+  grpc_port: {:system, :integer, "GRPC_PORT", 50_052}
 
 # Configures declaration request terminator
 config :ehealth, EHealth.DeclarationRequest.Terminator,

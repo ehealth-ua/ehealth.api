@@ -51,7 +51,6 @@ defmodule EHealth.Mixfile do
       {:phoenix_ecto, "~> 3.2"},
       {:plug_cowboy, "~> 2.0"},
       {:grpc, "~> 0.3.0-alpha.2"},
-      {:kazan, "~> 0.10.0"},
       {:ecto, "~> 2.1"},
       {:ecto_trail, "0.2.3"},
       {:eview, "~> 0.12.2"},

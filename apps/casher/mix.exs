@@ -36,6 +36,7 @@ defmodule Casher.Mixfile do
       {:plug_cowboy, "~> 2.0"},
       {:redix, ">= 0.0.0"},
       {:eview, "~> 0.12"},
+      {:grpc, "~> 0.3.0-alpha.2"},
       {:plug_logger_json, "~> 0.5"},
       {:ecto_logger_json, git: "https://github.com/edenlabllc/ecto_logger_json.git", branch: "query_params"},
       {:mox, "~> 0.3", only: :test},

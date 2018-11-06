@@ -3,6 +3,6 @@ defmodule EHealth.Grpc.Server do
 
   use GRPC.Server, service: EHealthGrpc.Service
 
-  defdelegate party_user(request, stream), to: EHealth.Grpc.Protobuf.Server.PartyUsers
-  defdelegate employees_speciality(request, stream), to: EHealth.Grpc.Protobuf.Server.Employees
+  defdelegate party_user(request, stream), to: EHealth.Grpc.Server.PartyUsers
+  defdelegate employees_speciality(request, stream), to: EHealth.Grpc.Server.Employees
 end

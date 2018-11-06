@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+message CasherProto {
+    message PersonDataRequest {
+        string user_id = 1;
+        string client_id = 2;
+        string employee_id = 3;
+    }
+
+    message PersonDataResponse {
+        repeated string person_ids = 1;
+    }
+}
+
+service CasherGrpc {
+    rpc PersonData (CasherProto.PersonDataRequest) returns (CasherProto.PersonDataResponse);
+}

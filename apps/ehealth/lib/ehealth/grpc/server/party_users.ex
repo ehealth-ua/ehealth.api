@@ -1,4 +1,4 @@
-defmodule EHealth.Grpc.Protobuf.Server.PartyUsers do
+defmodule EHealth.Grpc.Server.PartyUsers do
   @moduledoc false
 
   alias Core.Parties

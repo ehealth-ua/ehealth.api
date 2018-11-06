@@ -16,6 +16,7 @@ config :logger, :console,
 config :casher,
   cache_ttl: [
     person_data: {:system, :integer, "PERSON_DATA_TTL", _15_min = 15 * 60}
-  ]
+  ],
+  grpc_port: {:system, :integer, "GRPC_PORT", 50_051}
 
 import_config "#{Mix.env()}.exs"

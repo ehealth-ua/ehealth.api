@@ -1,4 +1,4 @@
-defmodule EHealth.Grpc.Protobuf.Server.Employees do
+defmodule EHealth.Grpc.Server.Employees do
   @moduledoc false
 
   alias Core.Employees.Employee
@@ -12,6 +12,7 @@ defmodule EHealth.Grpc.Protobuf.Server.Employees do
 
   @spec employees_speciality(EmployeesRequest.t(), GRPC.Server.Stream.t()) :: EmployeesResponse.t()
   def employees_speciality(%EmployeesRequest{party_id: party_id, legal_entity_id: legal_entity_id}, _) do
+    # query is a function since we need to validate uuid before create a query
     query = fn ->
       Employee
       |> select([e], e.speciality)

@@ -1,8 +1,8 @@
-defmodule EHealth.Integration.Grpc.Server.PartyUsersTest do
+defmodule EHealth.Grpc.Server.PartyUsersTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase
-  alias EHealth.Grpc.Protobuf.Server.PartyUsers
+  alias EHealth.Grpc.Server.PartyUsers
   alias EHealthProto.PartyUserRequest
   alias EHealthProto.PartyUserResponse
   alias EHealthProto.PartyUserResponse.PartyUser

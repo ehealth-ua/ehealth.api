@@ -27,8 +27,8 @@ defmodule EHealth do
       worker(EHealth.Contracts.Terminator, []),
       worker(EHealth.Scheduler, []),
       %{
-        id: GRPC.Server.Supervisor,
-        start: {GRPC.Server.Supervisor, :start_link, [{EHealth.Grpc.Server, 50_051}]}
+        id: GRPC.Server.EHealthSupervisor,
+        start: {GRPC.Server.Supervisor, :start_link, [{EHealth.Grpc.Server, Confex.get_env(:ehealth, :grpc_port)}]}
       }
     ]
 
