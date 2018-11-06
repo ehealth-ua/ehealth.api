@@ -7,9 +7,9 @@ defmodule Casher.Grpc.Server.PersonData do
   alias Ecto.UUID
 
   @spec person_data(PersonDataRequest.t(), GRPC.Server.Stream.t()) :: PersonDataResponse.t()
-  def person_data(%PersonDataRequest{employee_id: employee_id} = request, _) when not is_nil(employee_id) do
-    with {:ok, _} <- UUID.cast(employee_id),
-         {:ok, person_ids} <- CasherPersonData.get_and_update(request) do
+  def person_data(%PersonDataRequest{user_id: "", client_id: ""} = request, _) do
+    with {:ok, _} <- UUID.cast(request.employee_id),
+         {:ok, person_ids} <- CasherPersonData.get_and_update(Map.take(request, ~w(employee_id)a)) do
       PersonDataResponse.new(person_ids: person_ids)
     else
       _ ->
@@ -17,11 +17,10 @@ defmodule Casher.Grpc.Server.PersonData do
     end
   end
 
-  def person_data(%PersonDataRequest{user_id: user_id, client_id: client_id} = request, _)
-      when not is_nil(user_id) and not is_nil(client_id) do
-    with {:ok, _} <- UUID.cast(user_id),
-         {:ok, _} <- UUID.cast(client_id),
-         {:ok, person_ids} <- CasherPersonData.get_and_update(request) do
+  def person_data(%PersonDataRequest{employee_id: ""} = request, _) do
+    with {:ok, _} <- UUID.cast(request.user_id),
+         {:ok, _} <- UUID.cast(request.client_id),
+         {:ok, person_ids} <- CasherPersonData.get_and_update(Map.take(request, ~w(user_id client_id)a)) do
       PersonDataResponse.new(person_ids: person_ids)
     else
       _ ->

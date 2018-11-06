@@ -10,13 +10,13 @@ defmodule EHealth.Grpc.Server.EmployeesTest do
 
   describe "employees_speciality/2" do
     test "invalid uuid" do
-      assert %EmployeesResponse{employees: []} = Employees.employees_speciality(%EmployeesRequest{}, %Stream{})
+      assert %EmployeesResponse{employees: []} = Employees.employees_speciality(EmployeesRequest.new(), %Stream{})
 
       assert %EmployeesResponse{employees: []} =
-               Employees.employees_speciality(%EmployeesRequest{party_id: "invalid"}, %Stream{})
+               Employees.employees_speciality(EmployeesRequest.new(party_id: "invalid"), %Stream{})
 
       assert %EmployeesResponse{employees: []} =
-               Employees.employees_speciality(%EmployeesRequest{legal_entity_id: "invalid"}, %Stream{})
+               Employees.employees_speciality(EmployeesRequest.new(legal_entity_id: "invalid"), %Stream{})
     end
 
     test "success" do
@@ -35,10 +35,10 @@ defmodule EHealth.Grpc.Server.EmployeesTest do
                ]
              } =
                Employees.employees_speciality(
-                 %EmployeesRequest{
+                 EmployeesRequest.new(
                    party_id: employee.party_id,
                    legal_entity_id: employee.legal_entity_id
-                 },
+                 ),
                  %Stream{}
                )
     end
