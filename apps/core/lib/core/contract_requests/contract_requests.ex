@@ -571,8 +571,17 @@ defmodule Core.ContractRequests do
     |> Map.put(:status, Contract.status(:verified))
   end
 
-  defp validate_content(%ContractRequest{printout_content: printout_content} = contract_request, content) do
-    validate_content(contract_request, printout_content, content)
+  defp validate_content(%ContractRequest{data: data, printout_content: printout_content}, content) do
+    data_content =
+      data
+      |> Map.delete("status")
+      |> Map.put("printout_content", printout_content)
+
+    content = Map.drop(content, ["status"])
+
+    if data_content == content,
+      do: :ok,
+      else: Error.dump("Signed content does not match the previously created content")
   end
 
   defp validate_content(%ContractRequest{data: data}, printout_content, content) do
@@ -1364,6 +1373,7 @@ defmodule Core.ContractRequests do
     end
   end
 
+  defp validate_contract_request_id(nil, _), do: :ok
   defp validate_contract_request_id(id, id), do: :ok
 
   defp validate_contract_request_id(_, _),

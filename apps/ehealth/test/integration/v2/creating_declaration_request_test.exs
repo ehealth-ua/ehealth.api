@@ -8,6 +8,7 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
 
   alias Core.DeclarationRequests
   alias Core.DeclarationRequests.DeclarationRequest
+  alias Core.GlobalParameters
   alias Core.Repo
   alias Core.Utils.NumberGenerator
   alias Ecto.UUID
@@ -322,6 +323,70 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
       |> json_response(200)
     end
 
+    test "declaration request with authentication phone number that was present more times than should be", %{
+      conn: conn
+    } do
+      %{"phone_number_auth_limit" => phone_number_auth_limit} = GlobalParameters.get_values()
+
+      gen_sequence_number()
+
+      expect(MPIMock, :search, fn _, _ ->
+        {:ok,
+         %{
+           "data" => []
+         }}
+      end)
+
+      expect(MPIMock, :search, fn _, _ ->
+        {:ok,
+         %{
+           "data" => Enum.map(1..5, fn _ -> %{} end)
+         }}
+      end)
+
+      expect(OTPVerificationMock, :search, fn _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
+      role_id = UUID.generate()
+      expect(MithrilMock, :get_user_by_id, fn _, _ -> {:ok, %{"data" => %{"email" => "user@email.com"}}} end)
+
+      expect(MithrilMock, :get_roles_by_name, fn "DOCTOR", _headers ->
+        {:ok, %{"data" => [%{"id" => role_id}]}}
+      end)
+
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok,
+         %{
+           "data" => [
+             %{
+               "role_id" => role_id,
+               "user_id" => UUID.generate()
+             }
+           ]
+         }}
+      end)
+
+      declaration_request_params =
+        "../core/test/data/v2/declaration_request.json"
+        |> File.read!()
+        |> Jason.decode!()
+
+      uaddresses_mock_expect()
+
+      conn =
+        conn
+        |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
+        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
+        |> post(v2_declaration_request_post_path(conn, :create), declaration_request_params)
+
+      resp = json_response(conn, 422)
+      assert [error] = resp["error"]["invalid"]
+
+      assert "This phone number is present more than #{phone_number_auth_limit} times in the system" ==
+               error["rules"] |> List.first() |> Map.get("description")
+    end
+
     test "declaration request without required phone number", %{conn: conn} do
       gen_sequence_number()
 
@@ -502,6 +567,13 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
 
     test "declaration request is created with 'OTP' verification for person with no_tax_id = true", %{conn: conn} do
       gen_sequence_number()
+
+      expect(MPIMock, :search, fn _, _ ->
+        {:ok,
+         %{
+           "data" => []
+         }}
+      end)
 
       expect(MediaStorageMock, :create_signed_url, fn _, _, resource_name, resource_id, _ ->
         {:ok, %{"data" => %{"secret_url" => "http://a.link.for/#{resource_id}/#{resource_name}"}}}
@@ -870,7 +942,7 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
     test "declaration request is created without verification", %{conn: conn} do
       gen_sequence_number()
 
-      expect(MPIMock, :search, fn _, _ ->
+      expect(MPIMock, :search, 2, fn _, _ ->
         {:ok, %{"data" => []}}
       end)
 

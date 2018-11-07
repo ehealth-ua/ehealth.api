@@ -52,28 +52,30 @@ defmodule Core.DeclarationRequests.API.V2.Creator do
   defdelegate do_determine_auth_method_for_mpi(person, chageset), to: V1Creator
   defdelegate validate_employee_speciality(employee), to: V1Creator
   defdelegate validate_employee_status(employee), to: V1Creator
+  defdelegate check_phone_number_auth_limit(search_result, chageset, auxiliary_entities), to: V1Creator
 
   defp insert_declaration_request(params, user_id, auxiliary_entities, headers) do
     params
     |> changeset(user_id, auxiliary_entities, headers)
-    |> determine_auth_method_for_mpi(params["channel"], auxiliary_entities[:person_id])
+    |> determine_auth_method_for_mpi(params["channel"], auxiliary_entities)
     |> generate_printout_form(auxiliary_entities[:employee])
     |> do_insert_declaration_request()
   end
 
   def determine_auth_method_for_mpi(%Changeset{valid?: false} = changeset, _, _), do: changeset
 
-  def determine_auth_method_for_mpi(changeset, @channel_cabinet, person_id) do
+  def determine_auth_method_for_mpi(changeset, @channel_cabinet, auxiliary_entities) do
     changeset
     |> put_change(:authentication_method_current, %{"type" => @auth_na})
-    |> put_change(:mpi_id, person_id)
+    |> put_change(:mpi_id, auxiliary_entities[:person_id])
   end
 
-  def determine_auth_method_for_mpi(changeset, _, _) do
+  def determine_auth_method_for_mpi(changeset, _, auxiliary_entities) do
     changeset
     |> get_field(:data)
     |> get_in(["person"])
     |> mpi_search()
+    |> check_phone_number_auth_limit(changeset, auxiliary_entities)
     |> do_determine_auth_method_for_mpi(changeset)
   end
 
