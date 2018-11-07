@@ -449,6 +449,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
     test "success with related entities", %{conn: conn} do
       nhs()
 
+      parent_contract = insert(:prm, :contract)
       previous_request = insert(:il, :contract_request)
       assignee = insert(:prm, :employee)
       contractor_legal_entity = insert(:prm, :legal_entity)
@@ -458,11 +459,13 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       external_contractor_legal_entity = insert(:prm, :legal_entity)
       external_contractor_division = insert(:prm, :division)
       nhs_signer = insert(:prm, :employee)
+      nhs_legal_entity = insert(:prm, :legal_entity)
 
       contract_request =
         insert(
           :il,
           :contract_request,
+          parent_contract_id: parent_contract.id,
           previous_request: previous_request,
           assignee_id: assignee.id,
           contractor_legal_entity_id: contractor_legal_entity.id,
@@ -480,7 +483,8 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
               "divisions" => [%{"id" => external_contractor_division.id}]
             }
           ],
-          nhs_signer_id: nhs_signer.id
+          nhs_signer_id: nhs_signer.id,
+          nhs_legal_entity_id: nhs_legal_entity.id
         )
 
       id = Node.to_global_id("ContractRequest", contract_request.id)
@@ -488,9 +492,9 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       query = """
         query GetContractRequestWithRelatedEntitiesQuery($id: ID!) {
           contractRequest(id: $id) {
-            # parentContract {
-            #   id
-            # }
+            parentContract {
+              databaseId
+            }
             previousRequest {
               databaseId
             }
@@ -527,6 +531,9 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
             nhsSigner {
               databaseId
             }
+            nhsLegalEntity {
+              databaseId
+            }
           }
         }
       """
@@ -542,6 +549,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       resp_entity = get_in(resp_body, ~w(data contractRequest))
 
       assert nil == resp_body["errors"]
+      assert parent_contract.id == resp_entity["parentContract"]["databaseId"]
       assert previous_request.id == resp_entity["previousRequest"]["databaseId"]
       assert assignee.id == resp_entity["assignee"]["databaseId"]
       assert contractor_legal_entity.id == resp_entity["contractorLegalEntity"]["databaseId"]
@@ -559,6 +567,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
                |> get_in(~w(division databaseId))
 
       assert nhs_signer.id == resp_entity["nhsSigner"]["databaseId"]
+      assert nhs_legal_entity.id == resp_entity["nhsLegalEntity"]["databaseId"]
     end
 
     test "success with attached documents", %{conn: conn} do

@@ -9,6 +9,7 @@ defmodule GraphQLWeb.Schema.ContractRequestTypes do
 
   alias Absinthe.Relay.Node.ParseIDs
   alias Core.ContractRequests.ContractRequest
+  alias Core.Contracts.Contract
   alias Core.Divisions.Division
   alias Core.Employees.Employee
   alias Core.LegalEntities.LegalEntity
@@ -179,8 +180,7 @@ defmodule GraphQLWeb.Schema.ContractRequestTypes do
   node object(:contract_request) do
     field(:database_id, non_null(:id))
     field(:contract_number, :string)
-    # TODO: uncomment this field when contract schema will be ready
-    # field(:parent_contract, :contract, resolve: load_by_parent(PRM, Contract))
+    field(:parent_contract, :contract, resolve: load_by_parent(PRM, Contract))
     field(:previous_request, :contract_request, resolve: dataloader(IL))
     field(:assignee, :employee, resolve: load_by_parent(PRM, Employee))
     field(:id_form, non_null(:string))
@@ -200,10 +200,11 @@ defmodule GraphQLWeb.Schema.ContractRequestTypes do
     field(:external_contractor_flag, non_null(:boolean))
     field(:external_contractors, list_of(:external_contractor))
     field(:nhs_signer, :employee, resolve: load_by_parent(PRM, Employee))
+    field(:nhs_legal_entity, :legal_entity, resolve: load_by_parent(PRM, LegalEntity))
     field(:nhs_signer_base, :string)
     field(:nhs_contract_price, :float)
     field(:nhs_payment_method, :nhs_payment_method)
-    field(:miscellaneous, :string, resolve: fn parent, _, _ -> {:ok, parent.misc} end)
+    field(:miscellaneous, :string, resolve: fn _, res -> {:ok, res.source.misc} end)
 
     field(
       :attached_documents,
