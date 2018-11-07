@@ -440,7 +440,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.V1.CreateTest do
 
   describe "determine_auth_method_for_mpi/1, MPI has many existing records" do
     test "auth method's type is set to NA if many persons" do
-      expect(MPIMock, :search, fn params, _ ->
+      expect(MPIMock, :search, 2, fn params, _ ->
         person =
           params
           |> Map.put("id", "b5350f79-f2ca-408f-b15d-1ae0a8cc861c")
@@ -480,10 +480,12 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.V1.CreateTest do
       changeset =
         declaration_request
         |> Ecto.Changeset.change()
-        |> Creator.determine_auth_method_for_mpi(
-          DeclarationRequest.channel(:mis),
-          "b5350f79-f2ca-408f-b15d-1ae0a8cc861c"
-        )
+        |> Creator.determine_auth_method_for_mpi(DeclarationRequest.channel(:mis), %{
+          global_parameters: %{
+            "phone_number_auth_limit" => "5"
+          },
+          person_id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c"
+        })
 
       assert %{"type" => "NA"} == get_change(changeset, :authentication_method_current)
       refute "b5350f79-f2ca-408f-b15d-1ae0a8cc861c" == get_change(changeset, :mpi_id)
@@ -492,7 +494,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.V1.CreateTest do
 
   describe "determine_auth_method_for_mpi/1, MPI record does not exist" do
     test "MPI record does not exist" do
-      expect(MPIMock, :search, fn _, _ ->
+      expect(MPIMock, :search, 2, fn _, _ ->
         {:ok, %{"data" => []}}
       end)
 
@@ -515,13 +517,18 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.V1.CreateTest do
       changeset =
         declaration_request
         |> Ecto.Changeset.change()
-        |> Creator.determine_auth_method_for_mpi(DeclarationRequest.channel(:mis), UUID.generate())
+        |> Creator.determine_auth_method_for_mpi(DeclarationRequest.channel(:mis), %{
+          global_parameters: %{
+            "phone_number_auth_limit" => "5"
+          },
+          person_id: UUID.generate()
+        })
 
       assert get_change(changeset, :authentication_method_current) == %{"type" => "NA"}
     end
 
     test "Gandalf makes a NA decision" do
-      expect(MPIMock, :search, fn _, _ ->
+      expect(MPIMock, :search, 2, fn _, _ ->
         {:ok, %{"data" => []}}
       end)
 
@@ -547,7 +554,12 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.V1.CreateTest do
       changeset =
         declaration_request
         |> Ecto.Changeset.change()
-        |> Creator.determine_auth_method_for_mpi(DeclarationRequest.channel(:mis), UUID.generate())
+        |> Creator.determine_auth_method_for_mpi(DeclarationRequest.channel(:mis), %{
+          global_parameters: %{
+            "phone_number_auth_limit" => "5"
+          },
+          person_id: UUID.generate()
+        })
 
       assert %{"type" => "NA"} == get_change(changeset, :authentication_method_current)
     end
@@ -586,7 +598,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.V1.CreateTest do
 
   describe "determine_auth_method_for_mpi/1, MPI record does not exist (2)" do
     test "authentication_methods OTP converts to NA" do
-      expect(MPIMock, :search, fn _, _ ->
+      expect(MPIMock, :search, 2, fn _, _ ->
         {:ok, %{"data" => []}}
       end)
 
@@ -614,7 +626,12 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.V1.CreateTest do
       changeset =
         declaration_request
         |> Ecto.Changeset.change()
-        |> Creator.determine_auth_method_for_mpi(DeclarationRequest.channel(:mis), UUID.generate())
+        |> Creator.determine_auth_method_for_mpi(DeclarationRequest.channel(:mis), %{
+          global_parameters: %{
+            "phone_number_auth_limit" => "5"
+          },
+          person_id: UUID.generate()
+        })
 
       assert get_change(changeset, :authentication_method_current) == %{"type" => "NA"}
     end
@@ -724,6 +741,166 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.V1.CreateTest do
 
       result = Creator.put_party_email(%Ecto.Changeset{data: data, changes: changes, types: types, valid?: true})
       assert expected_result == result
+    end
+  end
+
+  describe "check_phone_number_auth_limit/3" do
+    test "returns expected result when there are no persons with current phone number as auth method" do
+      expect(MPIMock, :search, fn _, _ ->
+        {:ok,
+         %{
+           "data" => []
+         }}
+      end)
+
+      declaration_request = %DeclarationRequest{
+        data: %{
+          "person" => %{
+            "first_name" => "test",
+            "last_name" => "test",
+            "birth_date" => "1990-01-01",
+            "phones" => [
+              %{
+                "number" => "+380508887701"
+              }
+            ],
+            "authentication_methods" => [
+              %{
+                "type" => "OTP",
+                "phone_number" => "+380508887701"
+              }
+            ]
+          }
+        }
+      }
+
+      changeset =
+        declaration_request
+        |> Ecto.Changeset.change()
+
+      auxiliary_entities = %{
+        global_parameters: %{
+          "phone_number_auth_limit" => "5"
+        }
+      }
+
+      assert {:ok, nil} == Creator.check_phone_number_auth_limit({:ok, nil}, changeset, auxiliary_entities)
+    end
+
+    test "returns error when there are too much persons with current phone number as auth method" do
+      expect(MPIMock, :search, fn _, _ ->
+        {:ok,
+         %{
+           "data" => Enum.map(1..5, fn _ -> %{} end)
+         }}
+      end)
+
+      declaration_request = %DeclarationRequest{
+        data: %{
+          "person" => %{
+            "first_name" => "test",
+            "last_name" => "test",
+            "birth_date" => "1990-01-01",
+            "phones" => [
+              %{
+                "number" => "+380508887701"
+              }
+            ],
+            "authentication_methods" => [
+              %{
+                "type" => "OTP",
+                "phone_number" => "+380508887701"
+              }
+            ]
+          }
+        }
+      }
+
+      changeset =
+        declaration_request
+        |> Ecto.Changeset.change()
+
+      auxiliary_entities = %{
+        global_parameters: %{
+          "phone_number_auth_limit" => "5"
+        }
+      }
+
+      assert {:error, :authentication_methods, "This phone number is present more than 5 times in the system"} ==
+               Creator.check_phone_number_auth_limit({:ok, nil}, changeset, auxiliary_entities)
+    end
+
+    test "does not check limit when new person has offline auth method" do
+      declaration_request = %DeclarationRequest{
+        data: %{
+          "person" => %{
+            "first_name" => "test",
+            "last_name" => "test",
+            "birth_date" => "1990-01-01",
+            "phones" => [
+              %{
+                "number" => "+380508887701"
+              }
+            ],
+            "authentication_methods" => [
+              %{
+                "type" => "OFFLINE"
+              }
+            ]
+          }
+        }
+      }
+
+      changeset =
+        declaration_request
+        |> Ecto.Changeset.change()
+
+      auxiliary_entities = %{
+        global_parameters: %{
+          "phone_number_auth_limit" => "5"
+        }
+      }
+
+      assert {:ok, nil} == Creator.check_phone_number_auth_limit({:ok, nil}, changeset, auxiliary_entities)
+    end
+
+    test "does not check limit if this check is turned off in config" do
+      Application.put_env(:core, Core.DeclarationRequests.API.V1.Creator, use_phone_number_auth_limit: false)
+
+      declaration_request = %DeclarationRequest{
+        data: %{
+          "person" => %{
+            "first_name" => "test",
+            "last_name" => "test",
+            "birth_date" => "1990-01-01",
+            "phones" => [
+              %{
+                "number" => "+380508887701"
+              }
+            ],
+            "authentication_methods" => [
+              %{
+                "type" => "OTP",
+                "phone_number" => "+380508887701"
+              }
+            ]
+          }
+        }
+      }
+
+      changeset =
+        declaration_request
+        |> Ecto.Changeset.change()
+
+      auxiliary_entities = %{
+        global_parameters: %{
+          "phone_number_auth_limit" => "5"
+        }
+      }
+
+      assert {:ok, nil} == Creator.check_phone_number_auth_limit({:ok, nil}, changeset, auxiliary_entities)
+
+      Application.put_env(:core, Core.DeclarationRequests.API.V1.Creator, use_phone_number_auth_limit: true)
     end
   end
 
