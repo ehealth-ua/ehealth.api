@@ -1251,7 +1251,7 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
           %{
             type: "BIRTH_CERTIFICATE",
             number: "1234567",
-            issued_at: "1996-12-25",
+            issued_at: "2010-08-19",
             issued_by: "Збухівський РО ГО МЖД"
           }
         ])
@@ -1397,7 +1397,7 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
           %{
             type: "BIRTH_CERTIFICATE",
             number: "1234567",
-            issued_at: "1996-12-25",
+            issued_at: "2010-08-19",
             issued_by: "Збухівський РО ГО МЖД"
           }
         ])
@@ -1498,7 +1498,7 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
           %{
             type: "BIRTH_CERTIFICATE",
             number: "1234567",
-            issued_at: "1996-12-25",
+            issued_at: person_birth_date,
             issued_by: "Збухівський РО ГО МЖД"
           }
         ])

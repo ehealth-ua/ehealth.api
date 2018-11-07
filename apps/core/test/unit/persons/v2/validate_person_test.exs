@@ -27,8 +27,13 @@ defmodule Core.Persons.V2.ValidatorTest do
 
     test "Returns :ok for correct person with NATIONAL_ID document", %{person: person} do
       person =
-        person
-        |> Map.put("documents", [%{"type" => "NATIONAL_ID", "number" => "1234567"}])
+        Map.put(person, "documents", [
+          %{
+            "type" => "NATIONAL_ID",
+            "number" => "1234567",
+            "expiration_date" => to_string(Date.add(Date.utc_today(), 300))
+          }
+        ])
 
       assert :ok == Validator.validate(person)
     end
@@ -427,7 +432,11 @@ defmodule Core.Persons.V2.ValidatorTest do
         "no_tax_id" => true,
         "documents" => [
           %{"type" => "PASSPORT", "number" => "ЇЇ012345"},
-          %{"type" => "REFUGEE_CERTIFICATE", "number" => "ЇЇ012345"}
+          %{
+            "type" => "REFUGEE_CERTIFICATE",
+            "number" => "ЇЇ012345",
+            "expiration_date" => to_string(Date.add(Date.utc_today(), 300))
+          }
         ],
         "phones" => [
           %{"type" => "MOBILE", "number" => 1},

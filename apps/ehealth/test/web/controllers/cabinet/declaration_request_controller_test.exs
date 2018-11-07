@@ -1688,7 +1688,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
             "type" => "PASSPORT",
             "expiration_date" => "2024-02-12"
           },
-          %{"number" => "1234567", "type" => "BIRTH_CERTIFICATE"}
+          %{"number" => "1234567", "type" => "BIRTH_CERTIFICATE", "issued_at" => "2010-01-01"}
         ],
         "last_name" => "Петров",
         "birth_date" => "1991-08-20",
