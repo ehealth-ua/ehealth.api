@@ -817,9 +817,10 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
         |> put_consumer_id(user_id)
         |> put_req_header("drfo", legal_entity.edrpou)
         |> put_scope("contract_request:update")
-        |> post_query(@approve_query, input_signed_content(content))
+        |> post_query(@approve_query, input_signed_content(contract_request.id, content))
         |> json_response(200)
 
+      refute resp_body["errors"]
       resp_contract_request = get_in(resp_body, ~w(data approveContractRequest contractRequest))
       contractor_employee_divisions = hd(resp_contract_request["contractorEmployeeDivisions"])
       assert employee_doctor.id == contractor_employee_divisions["employee"]["databaseId"]
@@ -890,9 +891,10 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
         |> put_consumer_id(user_id)
         |> put_req_header("drfo", legal_entity.edrpou)
         |> put_scope("contract_request:update")
-        |> post_query(@decline_query, input_signed_content(content))
+        |> post_query(@decline_query, input_signed_content(contract_request.id, content))
         |> json_response(200)
 
+      refute resp_body["errors"]
       resp_contract_request = get_in(resp_body, ~w(data declineContractRequest contractRequest))
 
       assert ContractRequest.status(:declined) == resp_contract_request["status"]
@@ -997,22 +999,12 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       )
 
       printout_content = "<html></html>"
-      data = Map.put(data, "printout_content", printout_content)
+      content = Map.put(data, "printout_content", printout_content)
 
-      drfo_signed_content(data, [
+      drfo_signed_content(content, [
         %{drfo: legal_entity.edrpou, surname: nhs_signer_party.last_name},
         %{drfo: legal_entity.edrpou, surname: nhs_signer_party.last_name, is_stamp: true}
       ])
-
-      variables = %{
-        input: %{
-          id: Node.to_global_id("ContractRequest", id),
-          signedContent: %{
-            content: data |> Jason.encode!() |> Base.encode64(),
-            encoding: "BASE64"
-          }
-        }
-      }
 
       resp_body =
         conn
@@ -1020,7 +1012,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
         |> put_consumer_id(user_id)
         |> put_client_id(client_id)
         |> put_req_header("drfo", legal_entity.edrpou)
-        |> post_query(@sign_query, variables)
+        |> post_query(@sign_query, input_signed_content(id, content))
         |> json_response(200)
 
       resp_entity = get_in(resp_body, ~w(data signContractRequest contractRequest))
@@ -1066,9 +1058,10 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
     end
   end
 
-  defp input_signed_content(content) do
+  defp input_signed_content(contract_request_id, content) do
     %{
       input: %{
+        id: Node.to_global_id("ContractRequest", contract_request_id),
         signedContent: %{
           content: content |> Jason.encode!() |> Base.encode64(),
           encoding: "BASE64"

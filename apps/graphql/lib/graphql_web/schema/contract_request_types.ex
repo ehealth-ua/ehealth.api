@@ -114,8 +114,10 @@ defmodule GraphQLWeb.Schema.ContractRequestTypes do
 
     payload field(:approve_contract_request) do
       meta(:scope, ~w(contract_request:update))
+      middleware(ParseIDs, id: :contract_request)
 
       input do
+        field(:id, non_null(:id))
         field(:signed_content, non_null(:signed_content))
       end
 
@@ -128,8 +130,10 @@ defmodule GraphQLWeb.Schema.ContractRequestTypes do
 
     payload field(:decline_contract_request) do
       meta(:scope, ~w(contract_request:update))
+      middleware(ParseIDs, id: :contract_request)
 
       input do
+        field(:id, non_null(:id))
         field(:signed_content, non_null(:signed_content))
       end
 
