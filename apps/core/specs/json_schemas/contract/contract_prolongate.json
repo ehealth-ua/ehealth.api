@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "definitions": {
+    "uuid": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    }
+  },
+  "type": "object",
+  "properties": {
+    "end_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Prolongation end date"
+    },
+    "contractor_legal_entity_id": {
+      "type": "string",
+      "$ref": "#/definitions/uuid",
+      "description": "contract ID"
+    }
+  },
+  "required": [
+    "end_date"
+  ],
+  "additionalProperties": false
+}

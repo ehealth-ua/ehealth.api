@@ -221,6 +221,8 @@ defmodule EHealthWeb.Router do
       pipe_through([:contract_context])
 
       get("/:id", ContractController, :show)
+      patch("/:id/actions/update", ContractController, :prolongate)
+
       get("/:id/employees", ContractController, :show_employees)
       get("/", ContractController, :index)
       get("/:id/printout_content", ContractController, :printout_content)

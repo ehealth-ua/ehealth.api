@@ -42,6 +42,12 @@ defmodule EHealth.Web.ContractController do
     end
   end
 
+  def prolongate(%Plug.Conn{req_headers: headers} = conn, %{"id" => id} = params) do
+    with {:ok, contract, references} <- Contracts.prolongate(id, Map.delete(params, "id"), headers) do
+      render(conn, "show.json", contract: contract, references: references)
+    end
+  end
+
   def terminate(%Plug.Conn{req_headers: headers} = conn, %{"id" => id} = params) do
     with {:ok, contract, references} <-
            Contracts.terminate(id, Map.drop(params, ~w(id contractor_legal_entity_id)), headers) do

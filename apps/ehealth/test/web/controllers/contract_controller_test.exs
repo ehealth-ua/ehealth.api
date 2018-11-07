@@ -474,6 +474,251 @@ defmodule EHealth.Web.ContractControllerTest do
     end
   end
 
+  describe "prolongate contract" do
+    setup %{conn: conn} do
+      msp()
+      legal_entity = insert(:prm, :legal_entity)
+      contractor_legal_entity = insert(:prm, :legal_entity)
+
+      %{id: division_id} = insert(:prm, :division)
+
+      external_contractors = [
+        %{
+          "divisions" => [%{"id" => division_id, "medical_service" => "PHC_SERVICES"}],
+          "contract" => %{"expires_at" => to_string(Date.add(Date.utc_today(), 50))},
+          "legal_entity_id" => legal_entity.id
+        }
+      ]
+
+      contract =
+        insert(
+          :prm,
+          :contract,
+          nhs_legal_entity_id: legal_entity.id,
+          contractor_legal_entity: contractor_legal_entity,
+          end_date: Date.utc_today() |> Date.add(14),
+          external_contractors: external_contractors
+        )
+
+      end_date = Date.utc_today() |> Date.add(365) |> Date.to_string()
+      date_less_end_date_contract = Date.utc_today() |> Date.add(7) |> Date.to_string()
+
+      {:ok,
+       %{
+         conn: conn,
+         legal_entity: legal_entity,
+         contract: contract,
+         contractor_legal_entity: contractor_legal_entity,
+         end_date: end_date,
+         date_less_end_date_contract: date_less_end_date_contract
+       }}
+    end
+
+    test "invalid end date", %{conn: conn, legal_entity: legal_entity, contract: contract} do
+      resp =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> patch(contract_path(conn, :prolongate, contract.id), %{end_date: "invalid"})
+        |> json_response(422)
+
+      assert [
+               %{
+                 "entry" => "$.end_date",
+                 "entry_type" => "json_data_property",
+                 "rules" => [
+                   %{
+                     "description" => "expected \"invalid\" to be a valid ISO 8601 date",
+                     "rule" => "date"
+                   }
+                 ]
+               }
+             ] = resp["error"]["invalid"]
+    end
+
+    test "invalid request params", %{conn: conn, legal_entity: legal_entity, contract: contract} do
+      resp =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> patch(contract_path(conn, :prolongate, contract.id), %{})
+        |> json_response(422)
+
+      assert [
+               %{
+                 "entry" => "$.end_date",
+                 "entry_type" => "json_data_property",
+                 "rules" => [
+                   %{
+                     "description" => "required property end_date was not present",
+                     "params" => [],
+                     "rule" => "required"
+                   }
+                 ]
+               }
+             ] == resp["error"]["invalid"]
+    end
+
+    test "contract not found", %{conn: conn, legal_entity: legal_entity} do
+      assert conn
+             |> put_client_id_header(legal_entity.id)
+             |> patch(contract_path(conn, :prolongate, UUID.generate()), %{start_date: "invalid"})
+             |> json_response(404)
+    end
+
+    test "contract terminated status", %{conn: conn, legal_entity: legal_entity} do
+      contract = insert(:prm, :contract, contractor_legal_entity: legal_entity, status: Contract.status(:terminated))
+
+      resp =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> patch(contract_path(conn, :prolongate, contract.id), %{})
+        |> json_response(409)
+
+      assert "Incorrect status of parent contract" == resp["error"]["message"]
+    end
+
+    test "client is not allowed to perform action", %{conn: conn, contract: contract, end_date: end_date} do
+      resp =
+        conn
+        |> put_client_id_header(UUID.generate())
+        |> patch(contract_path(conn, :prolongate, contract.id), %{"end_date" => end_date})
+        |> json_response(403)
+
+      assert "Legal entity is not allowed to this action by client_id" == resp["error"]["message"]
+    end
+
+    test "merged_from related legal entity does not exists", %{
+      conn: conn,
+      contract: contract,
+      legal_entity: legal_entity,
+      end_date: end_date
+    } do
+      resp =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> patch(contract_path(conn, :prolongate, contract.id), %{"end_date" => end_date})
+        |> json_response(422)
+
+      assert "Contract for this legal entity must be resign with standard procedure" == resp["error"]["message"]
+    end
+
+    test "merged_from related legal entity is not active", %{
+      conn: conn,
+      contract: contract,
+      contractor_legal_entity: contractor_legal_entity,
+      legal_entity: legal_entity,
+      end_date: end_date
+    } do
+      insert(
+        :prm,
+        :related_legal_entity,
+        is_active: false,
+        merged_from: contractor_legal_entity
+      )
+
+      resp =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> patch(contract_path(conn, :prolongate, contract.id), %{"end_date" => end_date})
+        |> json_response(422)
+
+      assert "Contract for this legal entity must be resign with standard procedure" == resp["error"]["message"]
+    end
+
+    test "end date is less then now", %{
+      conn: conn,
+      contract: contract,
+      contractor_legal_entity: contractor_legal_entity,
+      legal_entity: legal_entity
+    } do
+      insert(
+        :prm,
+        :related_legal_entity,
+        is_active: true,
+        merged_from: contractor_legal_entity
+      )
+
+      end_date = Date.utc_today() |> Date.add(-1) |> Date.to_string()
+
+      resp =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> patch(contract_path(conn, :prolongate, contract.id), %{
+          "end_date" => end_date
+        })
+        |> json_response(422)
+
+      assert [
+               %{
+                 "entry" => "$.end_date",
+                 "rules" => [
+                   %{
+                     "description" => "End date should be greater then now"
+                   }
+                 ]
+               }
+             ] = resp["error"]["invalid"]
+    end
+
+    test "end date is less then contract end date", %{
+      conn: conn,
+      contract: contract,
+      contractor_legal_entity: contractor_legal_entity,
+      legal_entity: legal_entity,
+      date_less_end_date_contract: date_less_end_date_contract
+    } do
+      insert(
+        :prm,
+        :related_legal_entity,
+        is_active: true,
+        merged_from: contractor_legal_entity
+      )
+
+      resp =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> patch(contract_path(conn, :prolongate, contract.id), %{
+          "end_date" => date_less_end_date_contract
+        })
+        |> json_response(422)
+
+      assert [
+               %{
+                 "entry" => "$.end_date",
+                 "rules" => [
+                   %{
+                     "description" => "End date should be greater then contract end date"
+                   }
+                 ]
+               }
+             ] = resp["error"]["invalid"]
+    end
+
+    test "success prolongate contract", %{
+      conn: conn,
+      contract: contract,
+      contractor_legal_entity: contractor_legal_entity,
+      legal_entity: legal_entity,
+      end_date: end_date
+    } do
+      insert(
+        :prm,
+        :related_legal_entity,
+        is_active: true,
+        merged_from: contractor_legal_entity
+      )
+
+      resp =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> patch(contract_path(conn, :prolongate, contract.id), %{
+          "end_date" => end_date
+        })
+        |> json_response(200)
+
+      assert end_date == resp["data"]["end_date"]
+    end
+  end
+
   describe "terminate contract" do
     def terminate_response_fields do
       ~w(

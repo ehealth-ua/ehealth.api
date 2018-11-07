@@ -18,6 +18,7 @@ defmodule Core.Contracts do
   alias Core.Employees.Employee
   alias Core.EventManager
   alias Core.LegalEntities.LegalEntity
+  alias Core.LegalEntities.RelatedLegalEntity
   alias Core.PRMRepo
   alias Core.ValidationError
   alias Core.Validators.Error
@@ -85,7 +86,8 @@ defmodule Core.Contracts do
   end
 
   def create(%{parent_contract_id: parent_contract_id} = params, user_id) when not is_nil(parent_contract_id) do
-    with %Contract{status: @status_verified} = contract <- PRMRepo.get(Contract, parent_contract_id) do
+    with %Contract{} = contract <- PRMRepo.get(Contract, parent_contract_id),
+         :ok <- validate_contract_status(@status_verified, contract) do
       contract = load_references(contract)
 
       PRMRepo.transaction(fn ->
@@ -104,8 +106,6 @@ defmodule Core.Contracts do
           new_contract
         end
       end)
-    else
-      _ -> {:error, {:conflict, "Incorrect status of parent contract"}}
     end
   end
 
@@ -122,11 +122,33 @@ defmodule Core.Contracts do
     end
   end
 
+  def prolongate(id, params, headers) do
+    user_id = get_consumer_id(headers)
+    client_id = get_client_id(headers)
+
+    with %Contract{} = contract <- get_by_id(id),
+         :ok <- validate_contract_status(@status_verified, contract),
+         :ok <- JsonSchema.validate(:contract_prolongate, params),
+         :ok <- validate_legal_entity_allowed(client_id, [contract.nhs_legal_entity_id]),
+         :ok <- validate_contractor_related_legal_entity(contract.contractor_legal_entity_id),
+         :ok <- validate_end_date(params["end_date"], contract.end_date),
+         {:ok, contract} <-
+           contract
+           |> changeset(%{
+             "end_date" => params["end_date"],
+             "updated_by" => user_id
+           })
+           |> PRMRepo.update() do
+      load_contract_references(contract)
+    end
+  end
+
   def update(id, params, headers) do
     user_id = get_consumer_id(headers)
     client_id = get_client_id(headers)
 
-    with {:ok, contract, _} <- get_by_id(id, params),
+    with %Contract{} = contract <- get_by_id(id),
+         :ok <- validate_contractor_legal_entity_id(contract, params),
          :ok <- JsonSchema.validate(:contract_sign, params),
          {:ok, %{"content" => content, "signer" => signer}} <- decode_signed_content(params, headers),
          :ok <- SignatureValidator.check_drfo(signer, user_id, "contract_request_update"),
@@ -162,9 +184,11 @@ defmodule Core.Contracts do
 
     with {:ok, contract, references} <- fetch_by_id(id, params),
          :ok <- JsonSchema.validate(:contract_terminate, params),
-         {:legal_entity_allowed, true} <-
-           {:legal_entity_allowed,
-            legal_entity_id in [contract.contractor_legal_entity_id, contract.nhs_legal_entity_id]},
+         :ok <-
+           validate_legal_entity_allowed(legal_entity_id, [
+             contract.contractor_legal_entity_id,
+             contract.nhs_legal_entity_id
+           ]),
          :ok <- validate_status(contract, Contract.status(:verified)),
          {:ok, contract} <-
            contract
@@ -176,12 +200,20 @@ defmodule Core.Contracts do
            |> PRMRepo.update(),
          EventManager.insert_change_status(contract, contract.status, user_id) do
       {:ok, contract, references}
-    else
-      {:legal_entity_allowed, false} ->
-        {:error, {:forbidden, "Legal entity is not allowed to this action by client_id"}}
+    end
+  end
 
-      error ->
-        error
+  defp validate_contract_status(status, %Contract{status: status}), do: :ok
+
+  defp validate_contract_status(_, _) do
+    {:error, {:conflict, "Incorrect status of parent contract"}}
+  end
+
+  defp validate_legal_entity_allowed(client_id, allowed_ids) do
+    if client_id in allowed_ids do
+      :ok
+    else
+      {:error, {:forbidden, "Legal entity is not allowed to this action by client_id"}}
     end
   end
 
@@ -327,14 +359,16 @@ defmodule Core.Contracts do
              "$.employee_id"
            ),
          :ok <- check_employee(employee),
-         {:division_subset, true} <- {:division_subset, params["division_id"] in contract_divisions} do
+         :ok <- check_division_subset(params["division_id"], contract_divisions) do
+      :ok
+    end
+  end
+
+  defp check_division_subset(division_id, contract_divisions) do
+    if division_id in contract_divisions do
       :ok
     else
-      {:division_subset, _} ->
-        Error.dump(%ValidationError{description: "Division should be among contract_divisions", path: "$.division_id"})
-
-      error ->
-        error
+      Error.dump(%ValidationError{description: "Division should be among contract_divisions", path: "$.division_id"})
     end
   end
 
@@ -387,6 +421,39 @@ defmodule Core.Contracts do
     end
   end
 
+  defp validate_contractor_related_legal_entity(contractor_legal_entity_id) do
+    with %RelatedLegalEntity{} <-
+           RelatedLegalEntity
+           |> where([r], r.merged_from_id == ^contractor_legal_entity_id and r.is_active)
+           |> limit(1)
+           |> PRMRepo.one() do
+      :ok
+    else
+      _ -> Error.dump("Contract for this legal entity must be resign with standard procedure")
+    end
+  end
+
+  defp validate_end_date(end_date, contract_end_date) do
+    end_date = Date.from_iso8601!(end_date)
+
+    with {:now, :gt} <- {:now, Date.compare(end_date, Date.utc_today())},
+         {:contract_end_date, :gt} <- {:contract_end_date, Date.compare(end_date, contract_end_date)} do
+      :ok
+    else
+      {:now, _} ->
+        Error.dump(%ValidationError{
+          description: "End date should be greater then now",
+          path: "$.end_date"
+        })
+
+      {:contract_end_date, _} ->
+        Error.dump(%ValidationError{
+          description: "End date should be greater then contract end date",
+          path: "$.end_date"
+        })
+    end
+  end
+
   def get_printout_content(id, client_type, headers) do
     with %Contract{contract_request_id: contract_request_id} = contract <- get_by_id(id),
          {:ok, %ContractRequest{} = contract_request, _} <-
@@ -401,7 +468,7 @@ defmodule Core.Contracts do
     client_id = get_client_id(headers)
 
     with %LegalEntity{} = client_legal_entity <- PRMRepo.get(LegalEntity, client_id),
-         :ok <- check_client_legal_entity(client_legal_entity),
+         :ok <- check_client_legal_entity_is_active(client_legal_entity),
          %Contract{} = contract <- PRMRepo.get(Contract, id),
          :ok <- validate_contractor_legal_entity_id(contract, params),
          %Ecto.Changeset{valid?: true, changes: changes} <- ContractEmployeeSearch.changeset(params),
@@ -410,8 +477,8 @@ defmodule Core.Contracts do
     end
   end
 
-  defp check_client_legal_entity(%LegalEntity{is_active: true}), do: :ok
-  defp check_client_legal_entity(_), do: {:error, {:forbidden, "Client is not active"}}
+  defp check_client_legal_entity_is_active(%LegalEntity{is_active: true}), do: :ok
+  defp check_client_legal_entity_is_active(_), do: {:error, {:forbidden, "Client is not active"}}
 
   defp contract_employee_search(%Contract{id: contract_id}, search_params) do
     is_active = Map.get(search_params, :is_active)
