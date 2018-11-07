@@ -95,7 +95,7 @@ defmodule Core.DeclarationRequests.API.V1.Creator do
   defp insert_declaration_request(params, user_id, auxiliary_entities, headers) do
     params
     |> changeset(user_id, auxiliary_entities, headers)
-    |> determine_auth_method_for_mpi(params["channel"], auxiliary_entities)
+    |> determine_auth_method_for_mpi(params["channel"], auxiliary_entities[:person_id])
     |> generate_printout_form(auxiliary_entities[:employee])
     |> do_insert_declaration_request()
   end
@@ -669,58 +669,19 @@ defmodule Core.DeclarationRequests.API.V1.Creator do
     end
   end
 
-  defp prepare_auth_phone_number_param(%{"phone_number" => phone_number}), do: %{"auth_phone_number" => phone_number}
-  defp prepare_auth_phone_number_param(_), do: {:ok, nil}
-
-  defp use_phone_number_auth_limit do
-    if config()[:use_phone_number_auth_limit] do
-      true
-    else
-      {:ok, nil}
-    end
-  end
-
-  def check_phone_number_auth_limit({:ok, nil}, changeset, auxiliary_entities) do
-    phone_number_auth_limit =
-      auxiliary_entities
-      |> get_in([:global_parameters, "phone_number_auth_limit"])
-      |> String.to_integer()
-
-    search_params =
-      changeset
-      |> get_field(:data)
-      |> get_in(["person", "authentication_methods"])
-      |> Enum.find(fn authentication_method -> Map.has_key?(authentication_method, "phone_number") end)
-      |> prepare_auth_phone_number_param()
-
-    with true <- use_phone_number_auth_limit(),
-         %{"auth_phone_number" => _} <- search_params,
-         {:ok, persons} <- mpi_search(search_params) do
-      if Enum.count(persons) < phone_number_auth_limit do
-        {:ok, nil}
-      else
-        {:error, :authentication_methods,
-         "This phone number is present more than #{phone_number_auth_limit} times in the system"}
-      end
-    end
-  end
-
-  def check_phone_number_auth_limit(person, _, _), do: person
-
   def determine_auth_method_for_mpi(%Changeset{valid?: false} = changeset, _, _), do: changeset
 
-  def determine_auth_method_for_mpi(changeset, @channel_cabinet, auxiliary_entities) do
+  def determine_auth_method_for_mpi(changeset, @channel_cabinet, person_id) do
     changeset
     |> put_change(:authentication_method_current, %{"type" => @auth_na})
-    |> put_change(:mpi_id, auxiliary_entities[:person_id])
+    |> put_change(:mpi_id, person_id)
   end
 
-  def determine_auth_method_for_mpi(changeset, _, auxiliary_entities) do
+  def determine_auth_method_for_mpi(changeset, _, _) do
     changeset
     |> get_field(:data)
     |> get_in(["person"])
     |> mpi_search()
-    |> check_phone_number_auth_limit(changeset, auxiliary_entities)
     |> do_determine_auth_method_for_mpi(changeset)
   end
 
@@ -749,9 +710,6 @@ defmodule Core.DeclarationRequests.API.V1.Creator do
     |> put_change(:authentication_method_current, authentication_method_current)
     |> put_change(:mpi_id, person["id"])
   end
-
-  def do_determine_auth_method_for_mpi({:error, field, reason}, changeset),
-    do: add_error(changeset, field, reason)
 
   def do_determine_auth_method_for_mpi({:error, reason}, changeset),
     do: add_error(changeset, :authentication_method_current, format_error_response("MPI", reason))

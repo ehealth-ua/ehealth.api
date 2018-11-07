@@ -449,6 +449,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
     test "success with related entities", %{conn: conn} do
       nhs()
 
+      parent_contract = insert(:prm, :contract)
       previous_request = insert(:il, :contract_request)
       assignee = insert(:prm, :employee)
       contractor_legal_entity = insert(:prm, :legal_entity)
@@ -458,11 +459,13 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       external_contractor_legal_entity = insert(:prm, :legal_entity)
       external_contractor_division = insert(:prm, :division)
       nhs_signer = insert(:prm, :employee)
+      nhs_legal_entity = insert(:prm, :legal_entity)
 
       contract_request =
         insert(
           :il,
           :contract_request,
+          parent_contract_id: parent_contract.id,
           previous_request: previous_request,
           assignee_id: assignee.id,
           contractor_legal_entity_id: contractor_legal_entity.id,
@@ -480,7 +483,8 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
               "divisions" => [%{"id" => external_contractor_division.id}]
             }
           ],
-          nhs_signer_id: nhs_signer.id
+          nhs_signer_id: nhs_signer.id,
+          nhs_legal_entity_id: nhs_legal_entity.id
         )
 
       id = Node.to_global_id("ContractRequest", contract_request.id)
@@ -488,9 +492,9 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       query = """
         query GetContractRequestWithRelatedEntitiesQuery($id: ID!) {
           contractRequest(id: $id) {
-            # parentContract {
-            #   id
-            # }
+            parentContract {
+              databaseId
+            }
             previousRequest {
               databaseId
             }
@@ -527,6 +531,9 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
             nhsSigner {
               databaseId
             }
+            nhsLegalEntity {
+              databaseId
+            }
           }
         }
       """
@@ -542,6 +549,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       resp_entity = get_in(resp_body, ~w(data contractRequest))
 
       assert nil == resp_body["errors"]
+      assert parent_contract.id == resp_entity["parentContract"]["databaseId"]
       assert previous_request.id == resp_entity["previousRequest"]["databaseId"]
       assert assignee.id == resp_entity["assignee"]["databaseId"]
       assert contractor_legal_entity.id == resp_entity["contractorLegalEntity"]["databaseId"]
@@ -559,6 +567,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
                |> get_in(~w(division databaseId))
 
       assert nhs_signer.id == resp_entity["nhsSigner"]["databaseId"]
+      assert nhs_legal_entity.id == resp_entity["nhsLegalEntity"]["databaseId"]
     end
 
     test "success with attached documents", %{conn: conn} do
@@ -808,9 +817,10 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
         |> put_consumer_id(user_id)
         |> put_req_header("drfo", legal_entity.edrpou)
         |> put_scope("contract_request:update")
-        |> post_query(@approve_query, input_signed_content(content))
+        |> post_query(@approve_query, input_signed_content(contract_request.id, content))
         |> json_response(200)
 
+      refute resp_body["errors"]
       resp_contract_request = get_in(resp_body, ~w(data approveContractRequest contractRequest))
       contractor_employee_divisions = hd(resp_contract_request["contractorEmployeeDivisions"])
       assert employee_doctor.id == contractor_employee_divisions["employee"]["databaseId"]
@@ -881,9 +891,10 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
         |> put_consumer_id(user_id)
         |> put_req_header("drfo", legal_entity.edrpou)
         |> put_scope("contract_request:update")
-        |> post_query(@decline_query, input_signed_content(content))
+        |> post_query(@decline_query, input_signed_content(contract_request.id, content))
         |> json_response(200)
 
+      refute resp_body["errors"]
       resp_contract_request = get_in(resp_body, ~w(data declineContractRequest contractRequest))
 
       assert ContractRequest.status(:declined) == resp_contract_request["status"]
@@ -988,22 +999,12 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       )
 
       printout_content = "<html></html>"
-      data = Map.put(data, "printout_content", printout_content)
+      content = Map.put(data, "printout_content", printout_content)
 
-      drfo_signed_content(data, [
+      drfo_signed_content(content, [
         %{drfo: legal_entity.edrpou, surname: nhs_signer_party.last_name},
         %{drfo: legal_entity.edrpou, surname: nhs_signer_party.last_name, is_stamp: true}
       ])
-
-      variables = %{
-        input: %{
-          id: Node.to_global_id("ContractRequest", id),
-          signedContent: %{
-            content: data |> Jason.encode!() |> Base.encode64(),
-            encoding: "BASE64"
-          }
-        }
-      }
 
       resp_body =
         conn
@@ -1011,7 +1012,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
         |> put_consumer_id(user_id)
         |> put_client_id(client_id)
         |> put_req_header("drfo", legal_entity.edrpou)
-        |> post_query(@sign_query, variables)
+        |> post_query(@sign_query, input_signed_content(id, content))
         |> json_response(200)
 
       resp_entity = get_in(resp_body, ~w(data signContractRequest contractRequest))
@@ -1057,9 +1058,10 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
     end
   end
 
-  defp input_signed_content(content) do
+  defp input_signed_content(contract_request_id, content) do
     %{
       input: %{
+        id: Node.to_global_id("ContractRequest", contract_request_id),
         signedContent: %{
           content: content |> Jason.encode!() |> Base.encode64(),
           encoding: "BASE64"

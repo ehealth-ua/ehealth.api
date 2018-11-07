@@ -492,7 +492,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.V2.CreateTest do
 
   describe "determine_auth_method_for_mpi/1, MPI record does not exist" do
     test "MPI record does not exist" do
-      expect(MPIMock, :search, 2, fn _, _ ->
+      expect(MPIMock, :search, fn _, _ ->
         {:ok, %{"data" => []}}
       end)
 
@@ -515,18 +515,13 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.V2.CreateTest do
       changeset =
         declaration_request
         |> Ecto.Changeset.change()
-        |> Creator.determine_auth_method_for_mpi(DeclarationRequest.channel(:mis), %{
-          global_parameters: %{
-            "phone_number_auth_limit" => "5"
-          },
-          person_id: UUID.generate()
-        })
+        |> Creator.determine_auth_method_for_mpi(DeclarationRequest.channel(:mis), UUID.generate())
 
       assert get_change(changeset, :authentication_method_current) == %{"type" => "NA"}
     end
 
     test "Gandalf makes a NA decision" do
-      expect(MPIMock, :search, 2, fn _, _ ->
+      expect(MPIMock, :search, fn _, _ ->
         {:ok, %{"data" => []}}
       end)
 
@@ -552,12 +547,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.V2.CreateTest do
       changeset =
         declaration_request
         |> Ecto.Changeset.change()
-        |> Creator.determine_auth_method_for_mpi(DeclarationRequest.channel(:mis), %{
-          global_parameters: %{
-            "phone_number_auth_limit" => "5"
-          },
-          person_id: UUID.generate()
-        })
+        |> Creator.determine_auth_method_for_mpi(DeclarationRequest.channel(:mis), UUID.generate())
 
       assert %{"type" => "NA"} == get_change(changeset, :authentication_method_current)
     end
@@ -596,7 +586,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.V2.CreateTest do
 
   describe "determine_auth_method_for_mpi/1, MPI record does not exist (2)" do
     test "authentication_methods OTP converts to NA" do
-      expect(MPIMock, :search, 2, fn _, _ ->
+      expect(MPIMock, :search, fn _, _ ->
         {:ok, %{"data" => []}}
       end)
 
@@ -624,12 +614,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.V2.CreateTest do
       changeset =
         declaration_request
         |> Ecto.Changeset.change()
-        |> Creator.determine_auth_method_for_mpi(DeclarationRequest.channel(:mis), %{
-          global_parameters: %{
-            "phone_number_auth_limit" => "5"
-          },
-          person_id: UUID.generate()
-        })
+        |> Creator.determine_auth_method_for_mpi(DeclarationRequest.channel(:mis), UUID.generate())
 
       assert get_change(changeset, :authentication_method_current) == %{"type" => "NA"}
     end

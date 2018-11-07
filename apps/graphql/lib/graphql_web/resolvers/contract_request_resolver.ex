@@ -124,12 +124,8 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
     end
   end
 
-  def approve(%{signed_content: signed_content}, resolution) do
-    params = %{
-      "id" => nil,
-      "signed_content" => signed_content.content,
-      "signed_content_encoding" => to_string(signed_content.encoding)
-    }
+  def approve(args, resolution) do
+    params = prepare_signed_content_params(args)
 
     with {:ok, contract_request, references} <- ContractRequests.approve(resolution.context.headers, params) do
       {:ok, %{contract_request: Map.merge(contract_request, references)}}
@@ -139,6 +135,9 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
       {:error, {:conflict, error}} ->
         {:error, format_conflict_error(error)}
 
+      {:error, {:bad_request, error}} ->
+        {:error, format_bad_request(error)}
+
       {:error, {:forbidden, error}} ->
         {:error, format_forbidden_error(error)}
 
@@ -147,12 +146,8 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
     end
   end
 
-  def sign(%{id: id, signed_content: signed_content}, %{context: %{headers: headers}}) do
-    params = %{
-      "id" => id,
-      "signed_content" => signed_content.content,
-      "signed_content_encoding" => to_string(signed_content.encoding)
-    }
+  def sign(args, %{context: %{headers: headers}}) do
+    params = prepare_signed_content_params(args)
 
     with {:ok, contract_request, _references} <- ContractRequests.sign_nhs(headers, params) do
       {:ok, %{contract_request: contract_request}}
@@ -182,12 +177,8 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
     end
   end
 
-  def decline(%{signed_content: signed_content}, resolution) do
-    params = %{
-      "id" => nil,
-      "signed_content" => signed_content.content,
-      "signed_content_encoding" => to_string(signed_content.encoding)
-    }
+  def decline(args, resolution) do
+    params = prepare_signed_content_params(args)
 
     with {:ok, contract_request, references} <- ContractRequests.decline(resolution.context.headers, params) do
       {:ok, %{contract_request: Map.merge(contract_request, references)}}
@@ -200,9 +191,20 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
       {:error, {:forbidden, error}} ->
         {:error, format_forbidden_error(error)}
 
+      {:error, {:bad_request, error}} ->
+        {:error, format_bad_request(error)}
+
       error ->
         error
     end
+  end
+
+  defp prepare_signed_content_params(%{signed_content: signed_content, id: id}) do
+    %{
+      "id" => id,
+      "signed_content" => signed_content.content,
+      "signed_content_encoding" => to_string(signed_content.encoding)
+    }
   end
 
   def update_assignee(%{id: id, employee_id: employee_id}, %{context: %{headers: headers}}) do
