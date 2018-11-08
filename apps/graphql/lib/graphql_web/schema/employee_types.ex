@@ -5,19 +5,67 @@ defmodule GraphQLWeb.Schema.EmployeeTypes do
   use Absinthe.Relay.Schema.Notation, :modern
 
   import Absinthe.Resolution.Helpers, only: [dataloader: 1]
+  import GraphQLWeb.Resolvers.Helpers.Load, only: [load_by_args: 2]
 
+  alias Absinthe.Relay.Node.ParseIDs
   alias Core.Employees.Employee
   alias GraphQLWeb.Loaders.PRM
+  alias GraphQLWeb.Resolvers.EmployeeResolver
 
   @type_admin Employee.type(:admin)
-  @type_owner Employee.type(:owner)
   @type_doctor Employee.type(:doctor)
+  @type_owner Employee.type(:owner)
   @type_pharmacist Employee.type(:pharmacist)
   @type_pharmacy_owner Employee.type(:pharmacy_owner)
 
-  @status_new Employee.status(:new)
   @status_approved Employee.status(:approved)
   @status_dismissed Employee.status(:dismissed)
+  @status_new Employee.status(:new)
+
+  object :employee_queries do
+    connection field(:employees, node_type: :employee) do
+      meta(:scope, ~w(employee:read))
+      meta(:client_metadata, ~w(client_id client_type)a)
+      meta(:allowed_clients, ~w(NHS MSP))
+
+      arg(:filter, :employee_filter)
+      arg(:order_by, :employee_order_by, default_value: :inserted_at_desc)
+
+      resolve(&EmployeeResolver.list_employees/2)
+    end
+
+    field :employee, :employee do
+      meta(:scope, ~w(employee:read))
+      meta(:client_metadata, ~w(client_id client_type)a)
+      meta(:allowed_clients, ~w(NHS MSP))
+
+      arg(:id, non_null(:id))
+
+      middleware(ParseIDs, id: :employee)
+
+      resolve(
+        load_by_args(PRM, fn _args, %{context: context} ->
+          {Employee, Map.take(context, ~w(client_id client_type)a)}
+        end)
+      )
+    end
+  end
+
+  input_object :employee_filter do
+    field(:employee_type, :employee_type)
+    field(:status, :employee_status)
+    field(:is_active, :boolean)
+    field(:legal_entity, :legal_entity_filter)
+  end
+
+  enum :employee_order_by do
+    value(:employee_type_asc)
+    value(:employee_type_desc)
+    value(:inserted_at_asc)
+    value(:inserted_at_desc)
+    value(:status_asc)
+    value(:status_desc)
+  end
 
   connection(node_type: :employee) do
     field :nodes, list_of(:employee) do
@@ -49,24 +97,9 @@ defmodule GraphQLWeb.Schema.EmployeeTypes do
     field(:legal_entity, non_null(:legal_entity), resolve: dataloader(PRM))
   end
 
-  input_object :employee_filter do
-    field(:employee_type, :employee_type)
-    field(:status, :employee_status)
-    field(:is_active, :boolean)
-  end
-
-  enum :employee_order_by do
-    value(:inserted_at_asc)
-    value(:inserted_at_desc)
-    value(:employee_type_asc)
-    value(:employee_type_desc)
-    value(:status_asc)
-    value(:status_desc)
-  end
-
   # embed
 
-  object :party do
+  node object(:party) do
     field(:database_id, non_null(:id))
     field(:first_name, non_null(:string))
     field(:last_name, non_null(:string))
@@ -97,17 +130,17 @@ defmodule GraphQLWeb.Schema.EmployeeTypes do
     value(:female, as: "FEMALE")
   end
 
-  enum :employee_status do
-    value(:new, as: @status_new)
-    value(:approved, as: @status_approved)
-    value(:dismissed, as: @status_dismissed)
-  end
-
   enum :employee_type do
     value(:admin, as: @type_admin)
-    value(:owner, as: @type_owner)
     value(:doctor, as: @type_doctor)
+    value(:owner, as: @type_owner)
     value(:pharmacist, as: @type_pharmacist)
     value(:pharmacy_owner, as: @type_pharmacy_owner)
+  end
+
+  enum :employee_status do
+    value(:approved, as: @status_approved)
+    value(:dismissed, as: @status_dismissed)
+    value(:new, as: @status_new)
   end
 end
