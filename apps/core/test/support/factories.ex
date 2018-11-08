@@ -44,6 +44,10 @@ defmodule Core.Factories do
     |> repo_insert!(type)
   end
 
+  def insert_list(number_of_records, type, factory, attrs \\ []) do
+    for i <- 0..number_of_records, i > 0, do: insert(type, factory, attrs)
+  end
+
   def string_params_for(factory, attrs \\ []) do
     ExMachina.Ecto.string_params_for(__MODULE__, factory, attrs)
   end

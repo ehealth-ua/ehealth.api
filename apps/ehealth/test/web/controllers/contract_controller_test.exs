@@ -494,7 +494,7 @@ defmodule EHealth.Web.ContractControllerTest do
         insert(
           :prm,
           :contract,
-          nhs_legal_entity_id: legal_entity.id,
+          nhs_legal_entity: legal_entity,
           contractor_legal_entity: contractor_legal_entity,
           end_date: Date.utc_today() |> Date.add(14),
           external_contractors: external_contractors

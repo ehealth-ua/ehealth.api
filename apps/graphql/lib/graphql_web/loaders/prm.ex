@@ -5,12 +5,17 @@ defmodule GraphQLWeb.Loaders.PRM do
 
   alias Absinthe.Relay.Connection
   alias Core.Contracts.Contract
+  alias Core.Employees.Employee
   alias Core.PRMRepo
 
   def data, do: Dataloader.Ecto.new(PRMRepo, query: &query/2)
 
   def query(Contract, %{client_type: "MSP", client_id: client_id}) do
     where(Contract, contractor_legal_entity_id: ^client_id)
+  end
+
+  def query(Employee, %{client_type: "MSP", client_id: client_id}) do
+    where(Employee, legal_entity_id: ^client_id)
   end
 
   def query(queryable, %{filter: filter, order_by: order_by} = args) do

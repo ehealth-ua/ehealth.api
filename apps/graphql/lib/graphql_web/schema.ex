@@ -44,6 +44,7 @@ defmodule GraphQLWeb.Schema do
   query do
     import_fields(:contract_queries)
     import_fields(:contract_request_queries)
+    import_fields(:employee_queries)
     import_fields(:legal_entity_queries)
     import_fields(:legal_entity_merge_job_queries)
     import_fields(:person_queries)
