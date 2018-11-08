@@ -31,6 +31,14 @@ defmodule GraphQLWeb.ContractResolverTest do
     }
   """
 
+  @get_by_id_query """
+    query GetContractQuery($id: ID!) {
+      contract(id: $id) {
+        id
+      }
+    }
+  """
+
   @terminate_query """
     mutation TerminateContract($input: TerminateContractInput!) {
       terminateContract(input: $input) {
@@ -217,6 +225,277 @@ defmodule GraphQLWeb.ContractResolverTest do
       refute resp_body["errors"]
       assert 1 == length(resp_entities)
       assert contract_related_to.id == hd(resp_entities)["databaseId"]
+    end
+  end
+
+  describe "get by id" do
+    setup %{conn: conn} do
+      contract = insert(:prm, :contract)
+      global_contract_id = Node.to_global_id("Contract", contract.id)
+      {:ok, conn: conn, contract: contract, global_contract_id: global_contract_id}
+    end
+
+    test "success for NHS client", %{conn: conn, global_contract_id: global_contract_id} do
+      nhs()
+
+      variables = %{id: global_contract_id}
+
+      resp_body =
+        conn
+        |> put_client_id()
+        |> post_query(@get_by_id_query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data contract))
+
+      refute resp_body["errors"]
+      assert global_contract_id == resp_entity["id"]
+    end
+
+    test "success for correct MSP client", %{conn: conn, contract: contract, global_contract_id: global_contract_id} do
+      msp()
+
+      variables = %{id: global_contract_id}
+
+      resp_body =
+        conn
+        |> put_client_id(contract.contractor_legal_entity_id)
+        |> post_query(@get_by_id_query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data contract))
+
+      refute resp_body["errors"]
+      assert global_contract_id == resp_entity["id"]
+    end
+
+    test "return nothing for incorrect MSP client", %{conn: conn} = context do
+      msp()
+
+      variables = %{id: context.global_contract_id}
+
+      resp_body =
+        conn
+        |> put_client_id()
+        |> post_query(@get_by_id_query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data contract))
+
+      refute resp_body["errors"]
+      refute resp_entity
+    end
+
+    test "return forbidden error for incorrect client type", %{conn: conn} = context do
+      mis()
+
+      variables = %{id: context.global_contract_id}
+
+      resp_body =
+        conn
+        |> put_client_id()
+        |> post_query(@get_by_id_query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data contract))
+
+      assert is_list(resp_body["errors"])
+      assert match?(%{"extensions" => %{"code" => "FORBIDDEN"}}, hd(resp_body["errors"]))
+      refute resp_entity
+    end
+
+    test "success with related entities", %{conn: conn} do
+      nhs()
+
+      parent_contract = insert(:prm, :contract)
+      contractor_legal_entity = insert(:prm, :legal_entity)
+      contractor_owner = insert(:prm, :employee)
+      contractor_employee = insert(:prm, :employee)
+      external_contractor_legal_entity = insert(:prm, :legal_entity)
+      external_contractor_division = insert(:prm, :division)
+      nhs_signer = insert(:prm, :employee)
+      nhs_legal_entity = insert(:prm, :legal_entity)
+
+      contractor_division = insert(:prm, :division, name: "Будьте здорові!")
+      contractor_employee_division = insert(:prm, :division, name: "Та Ви не хворійте!")
+
+      contract =
+        insert(
+          :prm,
+          :contract,
+          parent_contract: parent_contract,
+          contractor_legal_entity: contractor_legal_entity,
+          contractor_owner: contractor_owner,
+          external_contractors: [
+            %{
+              "legal_entity_id" => external_contractor_legal_entity.id,
+              "divisions" => [%{"id" => external_contractor_division.id}]
+            }
+          ],
+          nhs_signer: nhs_signer,
+          nhs_legal_entity: nhs_legal_entity
+        )
+
+      insert(
+        :prm,
+        :contract_employee,
+        contract_id: contract.id,
+        employee_id: contractor_employee.id,
+        division_id: contractor_division.id
+      )
+
+      insert(
+        :prm,
+        :contract_employee,
+        contract_id: contract.id,
+        employee_id: contractor_employee.id,
+        division_id: contractor_employee_division.id
+      )
+
+      insert(:prm, :contract_division, contract_id: contract.id, division_id: contractor_division.id)
+      insert(:prm, :contract_division, contract_id: contract.id, division_id: contractor_employee_division.id)
+
+      id = Node.to_global_id("Contract", contract.id)
+
+      query = """
+        query GetContractWithRelatedEntitiesQuery(
+            $id: ID!,
+            $divisionFilter: DivisionFilter!,
+            $contractorEmployeeDivisionFilter: ContractorEmployeeDivisionFilter)
+          {
+          contract(id: $id) {
+            contractorLegalEntity {
+              databaseId
+            }
+            contractorOwner {
+              databaseId
+            }
+            contractorDivisions(first: 1, filter: $divisionFilter) {
+              nodes{
+                databaseId
+                name
+              }
+            }
+            contractorEmployeeDivisions(first: 1, filter: $contractorEmployeeDivisionFilter) {
+              nodes{
+                databaseId
+                employee {
+                  databaseId
+                }
+                division {
+                  databaseId
+                  name
+                }
+              }
+            }
+            externalContractors {
+              legalEntity {
+                databaseId
+              }
+              divisions {
+                division {
+                  databaseId
+                }
+              }
+            }
+            nhsSigner {
+              databaseId
+            }
+            nhsLegalEntity {
+              databaseId
+            }
+            parentContract {
+              databaseId
+            }
+          }
+        }
+      """
+
+      variables = %{
+        id: id,
+        divisionFilter: %{
+          name: contractor_division.name
+        },
+        contractorEmployeeDivisionFilter: %{
+          division: %{name: contractor_employee_division.name}
+        }
+      }
+
+      resp_body =
+        conn
+        |> put_client_id()
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data contract))
+
+      assert nil == resp_body["errors"]
+      assert parent_contract.id == resp_entity["parentContract"]["databaseId"]
+      assert contractor_legal_entity.id == resp_entity["contractorLegalEntity"]["databaseId"]
+      assert contractor_owner.id == resp_entity["contractorOwner"]["databaseId"]
+      assert contractor_division.id == hd(resp_entity["contractorDivisions"]["nodes"])["databaseId"]
+      assert contractor_division.name == hd(resp_entity["contractorDivisions"]["nodes"])["name"]
+      assert contractor_employee.id == hd(resp_entity["contractorEmployeeDivisions"]["nodes"])["employee"]["databaseId"]
+
+      assert contractor_employee_division.id ==
+               hd(resp_entity["contractorEmployeeDivisions"]["nodes"])["division"]["databaseId"]
+
+      assert contractor_employee_division.name ==
+               hd(resp_entity["contractorEmployeeDivisions"]["nodes"])["division"]["name"]
+
+      assert external_contractor_legal_entity.id == hd(resp_entity["externalContractors"])["legalEntity"]["databaseId"]
+
+      assert external_contractor_division.id ==
+               resp_entity["externalContractors"]
+               |> hd()
+               |> get_in(~w(divisions))
+               |> hd()
+               |> get_in(~w(division databaseId))
+
+      assert nhs_signer.id == resp_entity["nhsSigner"]["databaseId"]
+      assert nhs_legal_entity.id == resp_entity["nhsLegalEntity"]["databaseId"]
+    end
+
+    @tag :pending
+    test "success with attached documents", %{conn: conn} do
+      nhs()
+
+      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, id, resource_name, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://example.com/#{id}/#{resource_name}"}}}
+      end)
+
+      contract = insert(:prm, :contract)
+
+      id = Node.to_global_id("Contract", contract.id)
+
+      query = """
+        query GetContractWithAttachedDocumentsQuery($id: ID!) {
+          contract(id: $id) {
+            attachedDocuments {
+              type
+              url
+            }
+          }
+        }
+      """
+
+      variables = %{id: id}
+
+      resp_body =
+        conn
+        |> put_client_id()
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data contract attachedDocuments))
+
+      assert nil == resp_body["errors"]
+      assert 2 == length(resp_entities)
+
+      Enum.each(resp_entities, fn document ->
+        assert Map.has_key?(document, "type")
+        assert Map.has_key?(document, "url")
+      end)
     end
   end
 

@@ -106,7 +106,7 @@ defmodule Core.ContractRequests do
     end
   end
 
-  def get_document_attribures_by_status(status) do
+  def get_document_attributes_by_status(status) do
     cond do
       Enum.any?(
         ~w(new approved pending_nhs_sign terminated declined)a,
@@ -130,7 +130,7 @@ defmodule Core.ContractRequests do
   end
 
   def gen_relevant_get_links(id, status) do
-    Enum.reduce(get_document_attribures_by_status(status), [], fn {name, resource_name}, acc ->
+    Enum.reduce(get_document_attributes_by_status(status), [], fn {name, resource_name}, acc ->
       with {:ok, %{"data" => %{"secret_url" => secret_url}}} <-
              @media_storage_api.create_signed_url("GET", get_bucket(), resource_name, id, []) do
         [%{"type" => name, "url" => secret_url} | acc]

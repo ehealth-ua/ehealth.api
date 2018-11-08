@@ -329,7 +329,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
 
       msp()
       employee = insert(:prm, :employee, legal_entity: legal_entity, employee_type: "ADMIN")
-      contract = insert(:prm, :contract, contractor_owner_id: employee.id)
+      contract = insert(:prm, :contract, contractor_owner: employee)
       conn = put_client_id_header(conn, legal_entity.id)
       conn_resp = patch(conn, employee_path(conn, :deactivate, employee.id))
 

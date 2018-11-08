@@ -50,9 +50,9 @@ defmodule EHealth.Web.ContractControllerTest do
           :contract,
           contract_request_id: contract_request.id,
           contractor_legal_entity: legal_entity,
-          contractor_owner_id: contract_request.contractor_owner_id,
-          nhs_legal_entity_id: legal_entity_nhs.id,
-          nhs_signer_id: contract_request.nhs_signer_id,
+          contractor_owner: owner,
+          nhs_legal_entity: legal_entity_nhs,
+          nhs_signer: signer,
           external_contractors: external_contractors
         )
 
@@ -126,9 +126,9 @@ defmodule EHealth.Web.ContractControllerTest do
           :contract,
           contract_request_id: contract_request.id,
           contractor_legal_entity: legal_entity,
-          contractor_owner_id: contract_request.contractor_owner_id,
-          nhs_legal_entity_id: legal_entity_nhs.id,
-          nhs_signer_id: contract_request.nhs_signer_id,
+          contractor_owner: owner,
+          nhs_legal_entity: legal_entity_nhs,
+          nhs_signer: signer,
           external_contractors: external_contractors
         )
 

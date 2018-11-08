@@ -1504,7 +1504,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
           employee_type: "OWNER"
         )
 
-      contract = insert(:prm, :contract, contractor_owner_id: employee.id)
+      contract = insert(:prm, :contract, contractor_owner: employee)
 
       employee_request_data = employee_request_data()
 
@@ -1573,7 +1573,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
           party: party
         )
 
-      contract = insert(:prm, :contract, contractor_owner_id: employee.id)
+      contract = insert(:prm, :contract, contractor_owner: employee)
 
       employee_request_data = employee_request_data()
 
@@ -1645,7 +1645,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
           employee_type: "OWNER"
         )
 
-      contract = insert(:prm, :contract, contractor_owner_id: employee1.id)
+      contract = insert(:prm, :contract, contractor_owner: employee1)
 
       employee2 =
         build(
@@ -1724,8 +1724,8 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
           employee_type: "OWNER"
         )
 
-      contract1 = insert(:prm, :contract, contractor_owner_id: employee1.id)
-      contract2 = insert(:prm, :contract, contractor_owner_id: employee2.id)
+      contract1 = insert(:prm, :contract, contractor_owner: employee1)
+      contract2 = insert(:prm, :contract, contractor_owner: employee2)
 
       # Update employee1
 
@@ -1787,7 +1787,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
           employee_type: "OWNER"
         )
 
-      contract = insert(:prm, :contract, contractor_owner_id: employee1.id)
+      contract = insert(:prm, :contract, contractor_owner: employee1)
 
       employee2 =
         build(
@@ -1862,8 +1862,8 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
           employee_type: "OWNER"
         )
 
-      contract1 = insert(:prm, :contract, contractor_owner_id: employee1.id)
-      contract2 = insert(:prm, :contract, contractor_owner_id: employee2.id)
+      contract1 = insert(:prm, :contract, contractor_owner: employee1)
+      contract2 = insert(:prm, :contract, contractor_owner: employee2)
 
       # Update employee1
 
@@ -1920,7 +1920,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
           party: party
         )
 
-      contract = insert(:prm, :contract, contractor_owner_id: employee.id)
+      contract = insert(:prm, :contract, contractor_owner: employee)
 
       data =
         employee_request_data()
@@ -1975,7 +1975,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
           party: party
         )
 
-      contract = insert(:prm, :contract, contractor_owner_id: employee.id)
+      contract = insert(:prm, :contract, contractor_owner: employee)
 
       data =
         employee_request_data()
@@ -2030,7 +2030,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
           party: party
         )
 
-      contract = insert(:prm, :contract, contractor_owner_id: employee.id)
+      contract = insert(:prm, :contract, contractor_owner: employee)
 
       data =
         employee_request_data()
@@ -2085,7 +2085,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
           party: party
         )
 
-      contract = insert(:prm, :contract, contractor_owner_id: employee.id)
+      contract = insert(:prm, :contract, contractor_owner: employee)
 
       data =
         employee_request_data()
@@ -2141,7 +2141,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
           party: party
         )
 
-      contract = insert(:prm, :contract, contractor_owner_id: employee.id)
+      contract = insert(:prm, :contract, contractor_owner: employee)
 
       data =
         employee_request_data()

@@ -5,6 +5,8 @@ defmodule Core.Contracts.ContractEmployee do
   import Ecto.Changeset
 
   alias Core.Contracts.Contract
+  alias Core.Divisions.Division
+  alias Core.Employees.Employee
   alias Ecto.UUID
 
   @fields_required ~w(
@@ -24,16 +26,16 @@ defmodule Core.Contracts.ContractEmployee do
   @derive {Jason.Encoder, except: [:__meta__, :contract]}
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "contract_employees" do
-    field(:employee_id, UUID)
     field(:staff_units, :float)
     field(:declaration_limit, :integer)
-    field(:division_id, UUID)
     field(:start_date, :naive_datetime)
     field(:end_date, :naive_datetime)
     field(:inserted_by, UUID)
     field(:updated_by, UUID)
 
     belongs_to(:contract, Contract, type: UUID)
+    belongs_to(:employee, Employee, type: UUID)
+    belongs_to(:division, Division, type: UUID)
 
     timestamps()
   end

@@ -5,6 +5,7 @@ defmodule Core.Contracts.ContractDivision do
   import Ecto.Changeset
 
   alias Core.Contracts.Contract
+  alias Core.Divisions.Division
   alias Ecto.UUID
 
   @primary_key {:id, :binary_id, autogenerate: true}
@@ -17,10 +18,10 @@ defmodule Core.Contracts.ContractDivision do
   )a
 
   schema "contract_divisions" do
-    field(:division_id, UUID)
     field(:inserted_by, UUID)
     field(:updated_by, UUID)
 
+    belongs_to(:division, Division, type: UUID)
     belongs_to(:contract, Contract, type: UUID)
 
     timestamps()
