@@ -37,7 +37,7 @@ defmodule GraphQLWeb.Schema.DivisionTypes do
     field(:employee_type, non_null(:string))
     field(:mountain_group, non_null(:boolean))
     field(:is_active, non_null(:boolean))
-    #    field(:working_hours, :division_working_hours)
+    field(:working_hours, :json)
 
     # enums
     field(:type, non_null(:division_type))
