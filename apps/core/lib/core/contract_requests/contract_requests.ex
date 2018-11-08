@@ -398,8 +398,6 @@ defmodule Core.ContractRequests do
          :ok <- JsonSchema.validate(:contract_request_sign, params),
          {:ok, %{"content" => content, "signer" => signer, "stamp" => stamp}} <-
            decode_signed_content(params, headers, 1, 1),
-         # TODO: Update validation schema
-         :ok <- JsonSchema.validate(:contract_request_sign_decoded, content),
          :ok <- validate_contract_request_id(id, content["id"]),
          {:ok, contract_request} <- fetch_by_id(id),
          {_, true} <- {:client_id, client_id == contract_request.nhs_legal_entity_id},
