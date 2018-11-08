@@ -15,7 +15,7 @@ defmodule Core.PRMFactories.ContractFactory do
           end_date: Date.utc_today(),
           status: Contract.status(:verified),
           contractor_legal_entity: build(:legal_entity),
-          contractor_owner_id: UUID.generate(),
+          contractor_owner: build(:employee),
           contractor_base: "на підставі закону про Медичне обслуговування населення",
           contractor_payment_details: %{
             bank_name: "Банк номер 1",
@@ -41,8 +41,8 @@ defmodule Core.PRMFactories.ContractFactory do
               ]
             }
           ],
-          nhs_legal_entity_id: UUID.generate(),
-          nhs_signer_id: UUID.generate(),
+          nhs_legal_entity: build(:legal_entity),
+          nhs_signer: build(:employee),
           nhs_payment_method: "prepayment",
           nhs_signer_base: "на підставі наказу",
           issue_city: "Київ",
@@ -53,7 +53,7 @@ defmodule Core.PRMFactories.ContractFactory do
           is_suspended: false,
           inserted_by: UUID.generate(),
           updated_by: UUID.generate(),
-          parent_contract_id: Enum.random([UUID.generate(), nil]),
+          parent_contract: nil,
           id_form: Enum.random(~w(1..20)),
           nhs_signed_date: Date.utc_today()
         }
