@@ -1,4 +1,4 @@
-defmodule Core.Jobs.LegalEntityMergeJob do
+defmodule GraphQL.Jobs.LegalEntityMergeJob do
   @moduledoc false
 
   use Confex, otp_app: :core

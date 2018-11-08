@@ -50,7 +50,6 @@ defmodule Core.MixProject do
       {:cipher, "~> 1.3"},
       {:translit, "~> 0.1.0"},
       {:csv, "~> 2.0.0"},
-      {:taskafka, "~> 0.0.6"},
       {:ecto_logger_json, git: "https://github.com/edenlabllc/ecto_logger_json.git", branch: "query_params"},
       {:mox, "~> 0.3", only: :test},
       {:ex_machina, "~> 2.0", only: [:dev, :test]}
@@ -68,13 +67,11 @@ defmodule Core.MixProject do
         "run priv/repo/seeds.exs"
       ],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
-      "mongo.reset": ["drop", "migrate"],
       test: [
         "ecto.create --quiet",
         "ecto.create --quiet --repo Core.PRMRepo",
         "ecto.create --quiet --repo Core.EventManagerRepo",
         "ecto.migrate",
-        "mongo.reset",
         "test"
       ]
     ]

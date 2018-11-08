@@ -54,13 +54,22 @@ defmodule GraphQL.Mixfile do
       {:ecto_logger_json, git: "https://github.com/edenlabllc/ecto_logger_json.git", branch: "query_params"},
       {:plug_logger_json, "~> 0.5"},
       {:phoenix, "~> 1.4.0-rc.3", override: true},
-      {:plug_cowboy, "~> 2.0"}
+      {:plug_cowboy, "~> 2.0"},
+      {:taskafka, "~> 0.0.12"}
     ]
   end
 
   defp aliases do
     [
-      "ecto.setup": &ecto_setup/1
+      "ecto.setup": &ecto_setup/1,
+      "mongo.reset": ["drop", "migrate"],
+      test: [
+        "ecto.create --quiet --repo Core.Repo",
+        "ecto.create --quiet --repo Core.PRMRepo",
+        "ecto.migrate",
+        "mongo.reset",
+        "test"
+      ]
     ]
   end
 

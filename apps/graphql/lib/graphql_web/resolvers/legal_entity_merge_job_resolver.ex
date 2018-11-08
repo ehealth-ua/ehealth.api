@@ -3,8 +3,8 @@ defmodule GraphQLWeb.Resolvers.LegalEntityMergeJobResolver do
 
   alias Absinthe.Relay.Connection
   alias BSON.ObjectId
-  alias Core.Jobs
   alias Core.Utils.TypesConverter
+  alias GraphQL.Jobs
   alias TasKafka.Job
   alias TasKafka.Jobs, as: TasKafkaJobs
 

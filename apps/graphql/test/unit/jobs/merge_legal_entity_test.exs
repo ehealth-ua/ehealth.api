@@ -1,4 +1,4 @@
-defmodule Core.Unit.LegalEntityMergeJobTest do
+defmodule GraphQL.Unit.LegalEntityMergeJobTest do
   @moduledoc false
 
   use Core.ConnCase, async: false
@@ -10,8 +10,8 @@ defmodule Core.Unit.LegalEntityMergeJobTest do
   alias Ecto.UUID
   alias Core.Employees
   alias Core.Employees.Employee
-  alias Core.Jobs.LegalEntityMergeJob
   alias Core.LegalEntities
+  alias GraphQL.Jobs.LegalEntityMergeJob
   alias TasKafka.Job
   alias TasKafka.Jobs
 
@@ -77,9 +77,9 @@ defmodule Core.Unit.LegalEntityMergeJobTest do
       end)
 
       expect(MediaStorageMock, :store_signed_content, fn signed_content, bucket, related_id, resource_name, _headers ->
-        assert "some-base-64-encoded-content" = signed_content
-        assert :related_legal_entity_bucket = bucket
-        assert "merged_legal_entities" = resource_name
+        assert "some-base-64-encoded-content" == signed_content
+        assert :related_legal_entity_bucket == bucket
+        assert "merged_legal_entities" == resource_name
         assert related_id
         :ets.insert(:related_legal_entity, {:id, related_id})
         {:ok, "success"}

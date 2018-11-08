@@ -97,5 +97,3 @@ config :core, Core.EventManagerRepo,
   database: "event_manager_dev",
   hostname: "localhost",
   pool_size: 10
-
-config :taskafka, :mongo, url: "mongodb://localhost:27017/taskafka_dev"

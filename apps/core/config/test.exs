@@ -156,7 +156,4 @@ config :core, Core.Guardian,
   issuer: "EHealth",
   secret_key: "some_super-sEcret"
 
-config :taskafka, :mongo, url: "mongodb://localhost:27017/taskafka_test"
-config :taskafka, :idle, true
-
 config :ex_unit, capture_log: true

@@ -15,7 +15,7 @@ defmodule GraphQLWeb.LegalEntityMergeJobResolverTest do
 
   setup :verify_on_exit!
 
-  @type_merge_legal_entities Core.Jobs.type(:merge_legal_entities)
+  @type_merge_legal_entities GraphQL.Jobs.type(:merge_legal_entities)
 
   @tax_id "002233445566"
 

@@ -16,3 +16,6 @@ config :logger, level: :info
 # Do not log passwords, card data and tokens
 config :phoenix, :filter_parameters, ["password", "secret", "token", "password_confirmation", "card", "pan", "cvv"]
 config :phoenix, :serve_endpoints, true
+
+config :kafka_ex, brokers: "${KAFKA_BROKERS_HOST}"
+config :taskafka, :mongo, url: "${MONGO_DB_URL}"

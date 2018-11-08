@@ -1,4 +1,4 @@
-defmodule Core.Jobs do
+defmodule GraphQL.Jobs do
   @moduledoc """
   Kafka Jobs entry
   """
@@ -6,13 +6,13 @@ defmodule Core.Jobs do
   import Core.API.Helpers.Connection, only: [get_consumer_id: 1]
 
   alias Absinthe.Relay.Node
-  alias Core.Jobs.LegalEntityMergeJob
   alias Core.LegalEntities
   alias Core.LegalEntities.LegalEntity
   alias Core.LegalEntities.RelatedLegalEntity
   alias Core.Utils.TypesConverter
   alias Core.Validators.JsonSchema
   alias Core.Validators.Signature
+  alias GraphQL.Jobs.LegalEntityMergeJob
 
   @status_active LegalEntity.status(:active)
   @type_msp LegalEntity.type(:msp)
