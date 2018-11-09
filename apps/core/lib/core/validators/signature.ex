@@ -3,6 +3,8 @@ defmodule Core.Validators.Signature do
 
   alias Core.Employees
   alias Core.Employees.Employee
+  alias Core.LegalEntities
+  alias Core.LegalEntities.LegalEntity
   alias Core.Parties
   alias Core.Parties.Party
   alias Core.ValidationError
@@ -73,6 +75,34 @@ defmodule Core.Validators.Signature do
       })
     end)
   end
+
+  def check_last_name(%{"surname" => surname}, user_id) do
+    with %Party{last_name: last_name} <- Parties.get_by_user_id(user_id) do
+      if surname == last_name do
+        :ok
+      else
+        Error.dump("Does not match the signer last name")
+      end
+    else
+      _ -> {:error, {:forbidden, "User is not allowed to this action by client_id"}}
+    end
+  end
+
+  def check_last_name(_, _), do: Error.dump("Invalid surname")
+
+  def check_legal_entity_edrpou(%{"edrpou" => edrpou}, legal_entity_id) do
+    with %LegalEntity{edrpou: legal_entity_edrpou} <- LegalEntities.get_by_id(legal_entity_id) do
+      if edrpou == legal_entity_edrpou do
+        :ok
+      else
+        Error.dump("Does not match the legal entity")
+      end
+    else
+      _ -> Error.dump(%ValidationError{description: "Legal entity not found", path: "$.legal_entity_id"})
+    end
+  end
+
+  def check_legal_entity_edrpou(_, _), do: Error.dump("Invalid edrpou")
 
   defp process_data(
          %{"content" => content, "signatures" => signatures},

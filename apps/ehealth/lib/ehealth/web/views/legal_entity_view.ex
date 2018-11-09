@@ -6,6 +6,7 @@ defmodule EHealth.Web.LegalEntityView do
   use EHealth.Web, :view
   alias Core.LegalEntities.LegalEntity
   alias Core.LegalEntities.RelatedLegalEntity
+  alias Core.LegalEntities.Renderer, as: LegalEntitiesRenderer
 
   @fields ~w(
     id
@@ -84,6 +85,6 @@ defmodule EHealth.Web.LegalEntityView do
   def render("legal_entity_short.json", _), do: %{}
 
   def render("show_reimbursement.json", %{legal_entity: legal_entity}) do
-    Map.take(legal_entity, ~w(id name short_name public_name type edrpou status)a)
+    LegalEntitiesRenderer.render("show_reimbursement.json", legal_entity)
   end
 end

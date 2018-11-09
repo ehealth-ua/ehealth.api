@@ -64,6 +64,7 @@ config :core, Core.API.MediaStorage,
   declaration_bucket: {:system, "MEDIA_STORAGE_DECLARATION_BUCKET"},
   medication_request_request_bucket: {:system, "MEDIA_STORAGE_MEDICATION_REQUEST_REQUEST_BUCKET"},
   person_bucket: {:system, "MEDIA_STORAGE_PERSON_BUCKET"},
+  medication_dispense_bucket: {:system, "MEDIA_STORAGE_MEDICATION_DISPENSE_BUCKET"},
   related_legal_entity_bucket: {:system, "MEDIA_STORAGE_RELATED_LEGAL_ENTITY_BUCKET"},
   enabled?: {:system, :boolean, "MEDIA_STORAGE_ENABLED", false},
   hackney_options: [

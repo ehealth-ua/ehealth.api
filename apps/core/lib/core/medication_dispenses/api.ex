@@ -4,6 +4,7 @@ defmodule Core.MedicationDispense.API do
   import Core.API.Helpers.Connection, only: [get_client_id: 1, get_consumer_id: 1]
   import Ecto.Changeset, only: [cast: 3]
   import Ecto.Query
+  require Logger
 
   alias Core.Divisions
   alias Core.Divisions.Division
@@ -15,6 +16,7 @@ defmodule Core.MedicationDispense.API do
   alias Core.Medications
   alias Core.Medications.Medication
   alias Core.Medications.Program, as: ProgramMedication
+  alias Core.MedicationDispense.Renderer, as: MedicationDispenseRenderer
   alias Core.MedicationDispenses.Search
   alias Core.MedicationDispenses.SearchByMedicationRequest
   alias Core.MedicationRequests.API, as: MedicationRequests
@@ -27,10 +29,12 @@ defmodule Core.MedicationDispense.API do
   alias Core.Validators.Error
   alias Core.Validators.JsonSchema
   alias Core.Validators.Reference
+  alias Core.Validators.Signature, as: SignatureValidator
 
   use Confex, otp_app: :core
 
   @ops_api Application.get_env(:core, :api_resolvers)[:ops]
+  @media_storage_api Application.get_env(:core, :api_resolvers)[:media_storage]
 
   @search_fields ~w(
     id
@@ -141,20 +145,31 @@ defmodule Core.MedicationDispense.API do
   end
 
   def process(%{"id" => id} = params, headers) do
-    attrs = Map.take(params, ~w(payment_id payment_amount))
+    user_id = get_consumer_id(headers)
+    legal_entity_id = get_client_id(headers)
 
     request_attrs = %{
       "status" => "COMPLETED",
-      "updated_by" => get_consumer_id(headers)
+      "updated_by" => user_id
     }
 
     with {:ok, medication_dispense, references} <- get_by_id(params, headers),
+         :ok <- JsonSchema.validate(:medication_dispense_process, params),
+         {:ok, %{"content" => content, "signer" => signer}} <- decode_signed_content(params, headers),
+         :ok <- SignatureValidator.check_drfo(signer, user_id, "medication_dispense_process"),
+         :ok <- SignatureValidator.check_last_name(signer, user_id),
+         :ok <- SignatureValidator.check_legal_entity_edrpou(signer, legal_entity_id),
          :ok <- validate_status_transition(medication_dispense, "PROCESSED"),
-         :ok <- JsonSchema.validate(:medication_dispense_process, attrs),
+         :ok <- JsonSchema.validate(:medication_dispense_process_content, content),
+         :ok <- compare_with_db(content, medication_dispense, references),
+         :ok <- save_signed_content(id, params, headers),
          attrs <-
-           attrs
-           |> Map.put("status", "PROCESSED")
-           |> Map.put("updated_by", get_consumer_id(headers)),
+           content
+           |> Map.take(~w(payment_id payment_amount))
+           |> Map.merge(%{
+             "status" => "PROCESSED",
+             "updated_by" => user_id
+           }),
          {:ok, %{"data" => medication_dispense}} <-
            @ops_api.update_medication_dispense(id, %{"medication_dispense" => attrs}, headers),
          medication_request_id <- Map.get(references.medication_request, "id"),
@@ -176,6 +191,75 @@ defmodule Core.MedicationDispense.API do
          {:ok, %{"data" => medication_dispense}} <-
            @ops_api.update_medication_dispense(id, %{"medication_dispense" => attrs}, headers) do
       {:ok, medication_dispense, references}
+    end
+  end
+
+  def decode_signed_content(
+        %{"signed_content" => signed_content, "signed_content_encoding" => encoding},
+        headers
+      ) do
+    SignatureValidator.validate(signed_content, encoding, headers)
+  end
+
+  defp compare_with_db(content, medication_dispense, references) do
+    db_content =
+      "show.json"
+      |> MedicationDispenseRenderer.render(medication_dispense, references)
+      |> Jason.encode!()
+      |> Jason.decode!()
+      |> Map.drop(~w(payment_id payment_amount))
+
+    content = Map.drop(content, ~w(payment_id payment_amount))
+
+    case db_content == content do
+      true ->
+        :ok
+
+      _ ->
+        mismatches = do_compare_with_db(db_content, content)
+
+        Logger.info(fn ->
+          Jason.encode!(%{
+            "log_type" => "debug",
+            "process" => "medication_dispense_process",
+            "details" => %{
+              "mismatches" => mismatches
+            },
+            "request_id" => Logger.metadata()[:request_id]
+          })
+        end)
+
+        Error.dump(%ValidationError{
+          description: "Signed content does not match the previously created content",
+          path: "$.content"
+        })
+    end
+  end
+
+  defp do_compare_with_db(db_content, content) do
+    Enum.reduce(Map.keys(db_content), [], fn key, acc ->
+      v1 = Map.get(db_content, key)
+      v2 = Map.get(content, key)
+
+      if v1 != v2 do
+        [%{"db_content.#{key}" => v1, "data.#{key}" => v2} | acc]
+      else
+        acc
+      end
+    end)
+  end
+
+  defp save_signed_content(id, %{"signed_content" => signed_content}, headers) do
+    signed_content
+    |> @media_storage_api.store_signed_content(
+      :medication_dispense_bucket,
+      id,
+      "medication_dispense_process/#{id}",
+      headers
+    )
+    |> case do
+      {:ok, _} -> :ok
+      _error -> {:error, {:bad_gateway, "Failed to save signed content"}}
     end
   end
 

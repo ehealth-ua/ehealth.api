@@ -2,18 +2,10 @@ defmodule EHealth.Web.PartyView do
   @moduledoc false
 
   use EHealth.Web, :view
+  alias Core.Parties.Renderer, as: PartiesRenderer
 
   def render("show.json", %{party: party}) do
-    party
-    |> Map.take(~w(
-      id
-      first_name
-      last_name
-      birth_date
-      birth_settlement
-      no_tax_id
-    )a)
-    |> Map.put(:phones, render_many(Map.get(party, :phones, []), __MODULE__, "phone.json", as: :phone))
+    PartiesRenderer.render("show.json", party)
   end
 
   def render("party_private.json", %{party: party}) do
@@ -46,7 +38,7 @@ defmodule EHealth.Web.PartyView do
   def render("party_short.json", _), do: %{}
 
   def render("phone.json", %{phone: phone}) do
-    Map.take(phone, ~w(type number)a)
+    PartiesRenderer.render("phone.json", phone)
   end
 
   def render("party_users.json", %{party: party}) do

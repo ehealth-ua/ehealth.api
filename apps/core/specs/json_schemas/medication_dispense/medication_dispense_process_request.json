@@ -2,18 +2,18 @@
     "$schema": "http://json-schema.org/draft-04/schema#",
     "type": "object",
     "properties": {
-        "payment_id": {
-            "type": "string",
-            "description": "receipt number for the paid medications"
+        "signed_content": {
+            "type": "string"
         },
-        "payment_amount": {
-            "type": "number",
-            "minimum": 0,
-            "description": "amount for the paid medications"
+        "signed_content_encoding": {
+            "type": "string",
+            "enum": [
+                "base64"
+            ]
         }
     },
     "required": [
-        "payment_id",
-        "payment_amount"
+        "signed_content",
+        "signed_content_encoding"
     ]
 }

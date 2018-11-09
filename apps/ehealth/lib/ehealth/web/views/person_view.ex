@@ -2,18 +2,12 @@ defmodule EHealth.Web.PersonView do
   @moduledoc false
 
   use EHealth.Web, :view
+  alias Core.Persons.Renderer, as: PersonsRenderer
 
   def render("show.json", %{"person" => person}), do: render(__MODULE__, "show.json", person: person)
 
   def render("show.json", %{person: person}) do
-    Map.take(person, ~w(
-      id
-      first_name
-      last_name
-      second_name
-      birth_date
-      addresses
-    ))
+    PersonsRenderer.render("show.json", person)
   end
 
   def render("persons.json", %{persons: persons, fields: fields}) do

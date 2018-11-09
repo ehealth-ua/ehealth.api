@@ -35,6 +35,7 @@ config :core, Core.API.MediaStorage,
   medication_request_request_bucket:
     {:system, "MEDIA_STORAGE_MEDICATION_REQUEST_REQUEST_BUCKET", "medication-request-requests-dev"},
   person_bucket: {:system, "MEDIA_STORAGE_PERSON_BUCKET", "persons-dev"},
+  medication_dispense_bucket: {:system, "MEDIA_STORAGE_MEDICATION_DISPENSE_BUCKET", "medication-dispenses-dev"},
   enabled?: {:system, :boolean, "MEDIA_STORAGE_ENABLED", false}
 
 config :core, :legal_entity_employee_types,

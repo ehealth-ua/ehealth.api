@@ -2,6 +2,7 @@ defmodule EHealth.Web.MedicationRequestRequestView do
   @moduledoc false
 
   use EHealth.Web, :view
+  alias Core.MedicationRequestRequest.Renderer, as: MedicationRequestRequestRenderer
   alias EHealth.Web.DivisionView
   alias EHealth.Web.EmployeeView
   alias EHealth.Web.INNMDosageView
@@ -78,16 +79,7 @@ defmodule EHealth.Web.MedicationRequestRequestView do
     }
   end
 
-  def render_person(%{"birth_date" => birth_date} = person, mrr_created_at) do
-    age = get_age(birth_date, mrr_created_at)
-
-    PersonView
-    |> render("show.json", %{"person" => person})
-    |> Map.put("age", age)
-    |> Map.drop(["birth_date", "addresses"])
-  end
-
-  defp get_age(birth_date, current_date) do
-    Timex.diff(current_date, Timex.parse!(birth_date, "{YYYY}-{0M}-{D}"), :years)
+  def render_person(person, mrr_created_at) do
+    MedicationRequestRequestRenderer.render_person(person, mrr_created_at)
   end
 end
