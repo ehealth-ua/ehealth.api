@@ -21,9 +21,7 @@ defmodule GraphQLWeb.Schema.DivisionTypes do
   connection node_type: :division do
     field :nodes, list_of(:division) do
       resolve(fn
-        _, %{source: conn} ->
-          nodes = conn.edges |> Enum.map(& &1.node)
-          {:ok, nodes}
+        _, %{source: conn} -> {:ok, Enum.map(conn.edges, & &1.node)}
       end)
     end
 
@@ -44,12 +42,12 @@ defmodule GraphQLWeb.Schema.DivisionTypes do
     field(:status, non_null(:division_status))
 
     # embed
-
     field(:phones, non_null(list_of(:phone)))
     field(:addresses, non_null(list_of(:address)), resolve: dataloader(PRM))
   end
 
   input_object :division_filter do
+    field(:database_id, :id)
     field(:name, :string)
     field(:is_active, :boolean)
   end

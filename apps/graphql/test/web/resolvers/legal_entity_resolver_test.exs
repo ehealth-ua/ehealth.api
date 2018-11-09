@@ -188,6 +188,31 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
       assert [%{"databaseId" => related_legal_entity.id}] == legal_entity["mergedFromLegalEntities"]["nodes"]
     end
 
+    test "success with filter by databaseId", %{conn: conn} do
+      insert(:prm, :legal_entity)
+      legal_entity = insert(:prm, :legal_entity)
+
+      query = """
+        query GetLegalEntitiesQuery($filter: LegalEntityFilter) {
+          legalEntities(first: 10, filter: $filter) {
+            nodes {
+              databaseId
+            }
+          }
+        }
+      """
+
+      variables = %{filter: %{databaseId: legal_entity.id}}
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      assert nil == resp_body["errors"]
+      assert [%{"databaseId" => legal_entity.id}] == get_in(resp_body, ~w(data legalEntities nodes))
+    end
+
     test "success with ordering", %{conn: conn} do
       for edrpou <- ["1234567890", "0987654321"], do: insert(:prm, :legal_entity, edrpou: edrpou)
 

@@ -4,6 +4,7 @@ defmodule GraphQLWeb.Resolvers.LegalEntityResolver do
   import Absinthe.Resolution.Helpers, only: [on_load: 2]
   import Ecto.Query
   import GraphQLWeb.Resolvers.Helpers.Errors, only: [format_conflict_error: 1, format_not_found_error: 1]
+  import GraphQLWeb.Resolvers.Helpers.Search, only: [filter: 2]
 
   alias Absinthe.Relay.Connection
   alias Core.Employees.Employee
@@ -16,27 +17,22 @@ defmodule GraphQLWeb.Resolvers.LegalEntityResolver do
   @address_search_fields ~w(area settlement)a
 
   def list_legal_entities(%{filter: filter, order_by: order_by} = args, _context) do
+    filter = prepare_filter(filter)
+
     LegalEntity
-    |> prepare_where(filter)
+    |> filter(filter)
     |> order_by(^order_by)
     |> Connection.from_query(&PRMRepo.all/1, args)
   end
 
-  defp prepare_where(query, []), do: query
+  defp prepare_filter([]), do: []
 
-  defp prepare_where(query, [{field, value} | tail]) when field in @address_search_fields do
+  defp prepare_filter([{field, value} | tail]) when field in @address_search_fields do
     condition = [Map.put(%{}, field, value)]
-
-    query
-    |> where([l], fragment("? @> ?", l.addresses, ^condition))
-    |> prepare_where(tail)
+    [{field, {:fragment, {:contain, :addresses, condition}}} | prepare_filter(tail)]
   end
 
-  defp prepare_where(query, [{field, value} | tail]) do
-    query
-    |> where([l], field(l, ^field) == ^value)
-    |> prepare_where(tail)
-  end
+  defp prepare_filter([head | tail]), do: [head | prepare_filter(tail)]
 
   def get_legal_entity_by_id(_parent, %{id: id}, _resolution) do
     {:ok, LegalEntities.get_by_id(id)}

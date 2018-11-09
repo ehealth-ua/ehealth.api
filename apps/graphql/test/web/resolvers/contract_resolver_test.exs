@@ -351,6 +351,8 @@ defmodule GraphQLWeb.ContractResolverTest do
       contractor_division = insert(:prm, :division, name: "Будьте здорові!")
       contractor_employee_division = insert(:prm, :division, name: "Та Ви не хворійте!")
 
+      contract_request = insert(:il, :contract_request)
+
       contract =
         insert(
           :prm,
@@ -365,7 +367,8 @@ defmodule GraphQLWeb.ContractResolverTest do
             }
           ],
           nhs_signer: nhs_signer,
-          nhs_legal_entity: nhs_legal_entity
+          nhs_legal_entity: nhs_legal_entity,
+          contract_request_id: contract_request.id
         )
 
       insert(
@@ -439,6 +442,9 @@ defmodule GraphQLWeb.ContractResolverTest do
             parentContract {
               databaseId
             }
+            contractRequest {
+              databaseId
+            }
           }
         }
       """
@@ -463,6 +469,8 @@ defmodule GraphQLWeb.ContractResolverTest do
 
       assert nil == resp_body["errors"]
       assert parent_contract.id == resp_entity["parentContract"]["databaseId"]
+      assert contract_request.id == resp_entity["contractRequest"]["databaseId"]
+
       assert contractor_legal_entity.id == resp_entity["contractorLegalEntity"]["databaseId"]
       assert contractor_owner.id == resp_entity["contractorOwner"]["databaseId"]
       assert contractor_division.id == hd(resp_entity["contractorDivisions"]["nodes"])["databaseId"]

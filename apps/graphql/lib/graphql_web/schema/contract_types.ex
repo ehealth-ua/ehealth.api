@@ -5,11 +5,12 @@ defmodule GraphQLWeb.Schema.ContractTypes do
   use Absinthe.Relay.Schema.Notation, :modern
 
   import Absinthe.Resolution.Helpers, only: [dataloader: 1]
-  import GraphQLWeb.Resolvers.Helpers.Load, only: [load_by_args: 2]
+  import GraphQLWeb.Resolvers.Helpers.Load, only: [load_by_args: 2, load_by_parent: 2]
 
   alias Absinthe.Relay.Node.ParseIDs
   alias Core.ContractRequests.ContractRequest
   alias Core.Contracts.Contract
+  alias GraphQLWeb.Loaders.IL
   alias GraphQLWeb.Loaders.PRM
   alias GraphQLWeb.Resolvers.ContractResolver
 
@@ -150,7 +151,8 @@ defmodule GraphQLWeb.Schema.ContractTypes do
     field(:nhs_contract_price, :float)
     field(:nhs_payment_method, :nhs_payment_method)
     field(:attached_documents, list_of(:contract_document))
-    field(:parent_contract, non_null(:contract), resolve: dataloader(PRM))
+    field(:parent_contract, :contract, resolve: dataloader(PRM))
+    field(:contract_request, :contract_request, resolve: load_by_parent(IL, ContractRequest))
   end
 
   connection node_type: :contract_employee_division do
