@@ -14,6 +14,8 @@ defmodule GraphQLWeb.Schema.EmployeeTypes do
 
   @type_admin Employee.type(:admin)
   @type_doctor Employee.type(:doctor)
+  @type_hr Employee.type(:hr)
+  @type_nhs Employee.type(:nhs)
   @type_owner Employee.type(:owner)
   @type_pharmacist Employee.type(:pharmacist)
   @type_pharmacy_owner Employee.type(:pharmacy_owner)
@@ -95,6 +97,11 @@ defmodule GraphQLWeb.Schema.EmployeeTypes do
     field(:party, non_null(:party), resolve: dataloader(PRM))
     field(:division, :division, resolve: dataloader(PRM))
     field(:legal_entity, non_null(:legal_entity), resolve: dataloader(PRM))
+
+    # timestamps
+    # TODO: Timestamp fields should return :datetime type
+    field(:inserted_at, :naive_datetime)
+    field(:updated_at, :naive_datetime)
   end
 
   # embed
@@ -133,6 +140,8 @@ defmodule GraphQLWeb.Schema.EmployeeTypes do
   enum :employee_type do
     value(:admin, as: @type_admin)
     value(:doctor, as: @type_doctor)
+    value(:hr, as: @type_hr)
+    value(:nhs, as: @type_nhs)
     value(:owner, as: @type_owner)
     value(:pharmacist, as: @type_pharmacist)
     value(:pharmacy_owner, as: @type_pharmacy_owner)
