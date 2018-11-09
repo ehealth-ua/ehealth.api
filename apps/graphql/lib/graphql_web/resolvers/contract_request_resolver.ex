@@ -8,6 +8,7 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
   alias Absinthe.Relay.Connection
   alias Core.ContractRequests
   alias Core.ContractRequests.ContractRequest
+  alias Core.ContractRequests.Renderer
   alias Core.Employees.Employee
   alias Core.LegalEntities.LegalEntity
   alias Core.Man.Templates.ContractRequestPrintoutForm
@@ -95,6 +96,20 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
       {:ok, documents}
     end
   end
+
+  def get_to_sign_content(%{status: @status_pending_nhs_sign} = contract_request, args, resolution) do
+    # ToDo: possible duplicated request to MediaStorage. Use dataloader
+    with {:ok, printout_content} <- get_printout_content(contract_request, args, resolution) do
+      to_sign_content =
+        contract_request
+        |> Renderer.render(ContractRequests.preload_references(contract_request))
+        |> Map.put(:printout_content, printout_content)
+
+      {:ok, to_sign_content}
+    end
+  end
+
+  def get_to_sign_content(_, _, _), do: {:ok, nil}
 
   def update(args, resolution) do
     params = prepare_update_params(args)

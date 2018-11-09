@@ -2,7 +2,7 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
   @moduledoc false
 
   import Absinthe.Resolution.Helpers, only: [on_load: 2]
-  import Ecto.Query, only: [order_by: 2, order_by: 3, join: 4, join: 5]
+  import Ecto.Query, only: [order_by: 2, order_by: 3, join: 4]
   import GraphQLWeb.Resolvers.Helpers.Errors
 
   alias Absinthe.Relay.Connection

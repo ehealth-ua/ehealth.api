@@ -210,6 +210,8 @@ defmodule GraphQLWeb.Schema.ContractRequestTypes do
     field(:nhs_payment_method, :nhs_payment_method)
     field(:miscellaneous, :string, resolve: fn _, res -> {:ok, res.source.misc} end)
 
+    field(:to_sign_content, :json, resolve: &ContractRequestResolver.get_to_sign_content/3)
+
     field(
       :attached_documents,
       non_null(list_of(:contract_document)),
