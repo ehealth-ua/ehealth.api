@@ -142,6 +142,7 @@ defmodule Core.DeclarationRequests.API.Approve do
     config = Confex.fetch_env!(:core, :employee_speciality_limits)
 
     employees
+    |> Enum.filter(fn employee -> employee.employee_type == Employee.type(:doctor) end)
     |> Enum.map(fn employee ->
       case employee.speciality["speciality"] do
         "THERAPIST" ->

@@ -371,10 +371,111 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       # current doctor limit = 5
       # doctor's declaration count = 5
       # person's declaration count by doctor = 1
-      conn
-      |> put_client_id_header(UUID.generate())
-      |> patch(declaration_request_path(conn, :approve, declaration_request))
-      |> json_response(200)
+      resp =
+        conn
+        |> put_client_id_header(UUID.generate())
+        |> patch(declaration_request_path(conn, :approve, declaration_request))
+        |> json_response(200)
+
+      assert DeclarationRequest.status(:approved) == resp["data"]["status"]
+    end
+
+    test "all employee types are ignored except DOCTOR", %{conn: conn} do
+      expect(OPSMock, :get_declarations_count, fn _, _ ->
+        {:ok, %{"data" => %{"count" => 3}}}
+      end)
+
+      expect(MediaStorageMock, :create_signed_url, fn _, _, _, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://localhost/good_upload_1"}}}
+      end)
+
+      expect(MediaStorageMock, :verify_uploaded_file, fn _, _ ->
+        {:ok, %HTTPoison.Response{status_code: 200}}
+      end)
+
+      party = insert(:prm, :party)
+      legal_entity = insert(:prm, :legal_entity)
+
+      # THERAPIST
+      %{id: employee_id} =
+        insert(
+          :prm,
+          :employee,
+          party: party,
+          legal_entity_id: legal_entity.id,
+          speciality: employee_speciality(%{"speciality" => "THERAPIST"})
+        )
+
+      # PEDIATRICIAN
+      insert(
+        :prm,
+        :employee,
+        party: party,
+        legal_entity_id: legal_entity.id,
+        speciality: employee_speciality(%{"speciality" => "PEDIATRICIAN"})
+      )
+
+      # FAMILY_DOCTOR
+      insert(
+        :prm,
+        :employee,
+        party: party,
+        legal_entity_id: legal_entity.id,
+        speciality: employee_speciality(%{"speciality" => "FAMILY_DOCTOR"})
+      )
+
+      # OWNER
+      insert(
+        :prm,
+        :employee,
+        party: party,
+        legal_entity_id: legal_entity.id,
+        employee_type: "OWNER",
+        speciality: nil
+      )
+
+      data = %{"employee" => %{"id" => employee_id}}
+
+      insert(
+        :il,
+        :declaration_request,
+        data: data,
+        status: DeclarationRequest.status(:approved)
+      )
+
+      declaration_request =
+        insert(
+          :il,
+          :declaration_request,
+          documents: [%{"type" => "ok", "verb" => "HEAD"}],
+          data: data,
+          mpi_id: UUID.generate()
+        )
+
+      current_speciality_limits = Application.get_env(:core, :employee_speciality_limits)
+
+      on_exit(fn ->
+        Application.put_env(:core, :employee_speciality_limits, current_speciality_limits)
+      end)
+
+      Application.put_env(
+        :core,
+        :employee_speciality_limits,
+        therapist_declaration_limit: 5,
+        pediatrician_declaration_limit: 6,
+        family_doctor_declaration_limit: 7
+      )
+
+      # current doctor limit = 5
+      # doctor's declaration count = 5
+      # person's declaration count by doctor = 1
+      resp =
+        conn
+        |> put_client_id_header(UUID.generate())
+        |> patch(declaration_request_path(conn, :approve, declaration_request))
+        |> json_response(200)
+
+      assert DeclarationRequest.status(:approved) == resp["data"]["status"]
     end
 
     test "approve APPROVED declaration_request", %{conn: conn} do
