@@ -3,7 +3,7 @@ defmodule GraphQLWeb.ContractResolverTest do
 
   use GraphQLWeb.ConnCase, async: true
 
-  import Core.Factories, only: [insert: 2, insert: 3]
+  import Core.Factories, only: [insert: 2, insert: 3, build: 2]
   import Core.Expectations.Mithril
   import Mox
 
@@ -225,6 +225,38 @@ defmodule GraphQLWeb.ContractResolverTest do
       refute resp_body["errors"]
       assert 1 == length(resp_entities)
       assert contract_related_to.id == hd(resp_entities)["databaseId"]
+    end
+
+    test "order by contractor legal_entity edrpou", %{conn: conn} do
+      nhs()
+
+      contract3 = insert(:prm, :contract, contractor_legal_entity: build(:legal_entity, edrpou: "77744433322"))
+      contract1 = insert(:prm, :contract, contractor_legal_entity: build(:legal_entity, edrpou: "33344433322"))
+      contract2 = insert(:prm, :contract, contractor_legal_entity: build(:legal_entity, edrpou: "55544433322"))
+
+      query = """
+        query ListContractsQuery($orderBy: ContractOrderBy) {
+          contracts(first: 10, orderBy: $orderBy) {
+            nodes {
+              databaseId
+            }
+          }
+        }
+      """
+
+      variables = %{orderBy: "CONTRACTOR_LEGAL_ENTITY_EDRPOU_ASC"}
+
+      resp_body =
+        conn
+        |> put_client_id()
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data contracts nodes))
+
+      refute resp_body["errors"]
+      assert 3 == length(resp_entities)
+      assert [contract1.id, contract2.id, contract3.id] == Enum.map(resp_entities, & &1["databaseId"])
     end
   end
 

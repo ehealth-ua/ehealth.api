@@ -2,7 +2,7 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
   @moduledoc false
 
   import Absinthe.Resolution.Helpers, only: [on_load: 2]
-  import Ecto.Query, only: [order_by: 2, join: 4]
+  import Ecto.Query, only: [order_by: 2, order_by: 3, join: 4, join: 5]
   import GraphQLWeb.Resolvers.Helpers.Errors
 
   alias Absinthe.Relay.Connection
@@ -23,7 +23,7 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
   def list_contracts(%{filter: filter, order_by: order_by} = args) do
     Contract
     |> filter(filter)
-    |> order_by(^order_by)
+    |> prepare_order_by(order_by)
     |> Connection.from_query(&PRMRepo.all/1, args)
   end
 
@@ -58,6 +58,14 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
   end
 
   def filter(query, args), do: Search.filter(query, args)
+
+  defp prepare_order_by(query, [{direction, :contractor_legal_entity_edrpou}]) do
+    query
+    |> join(:inner, [c], le in assoc(c, :contractor_legal_entity))
+    |> order_by([..., le], [{^direction, le.edrpou}])
+  end
+
+  defp prepare_order_by(query, order_by), do: order_by(query, ^order_by)
 
   def terminate(%{id: id, status_reason: status_reason}, %{context: %{headers: headers}}) do
     with {:ok, contract, _references} <- Contracts.terminate(id, %{"status_reason" => status_reason}, headers) do
