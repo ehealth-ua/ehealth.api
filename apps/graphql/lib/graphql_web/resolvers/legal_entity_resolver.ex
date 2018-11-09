@@ -72,8 +72,8 @@ defmodule GraphQLWeb.Resolvers.LegalEntityResolver do
     args =
       Map.merge(args, %{
         first: 1,
-        order_by: nil,
-        filter: [employee_type: Employee.type(:owner), is_active: true]
+        order_by: [desc: :updated_at],
+        filter: [employee_type: Employee.type(:owner)]
       })
 
     loader

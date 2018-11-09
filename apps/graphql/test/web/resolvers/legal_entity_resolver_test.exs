@@ -348,7 +348,6 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
       insert(:prm, :employee, inactive_attrs)
       owner = insert(:prm, :employee, division: division, legal_entity_id: legal_entity.id, employee_type: @owner)
       doctor = insert(:prm, :employee, division: division, legal_entity_id: legal_entity.id, employee_type: @doctor)
-      insert(:prm, :employee, inactive_attrs)
 
       insert(:prm, :related_legal_entity, merged_to: legal_entity, is_active: false)
       related_merged_from = insert(:prm, :related_legal_entity, merged_to: legal_entity)
@@ -466,7 +465,7 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
         }
       """
 
-      variables = %{id: id, divisionName: "Захід Сонця", employeeType: "DOCTOR"}
+      variables = %{id: id}
 
       resp =
         conn
@@ -517,6 +516,33 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
       division_from_resp = hd(resp["divisions"]["nodes"])
       assert division.id == division_from_resp["databaseId"]
       assert match?(%{"area" => _, "region" => _}, hd(division_from_resp["addresses"]))
+    end
+
+    test "get owner", %{conn: conn} do
+      legal_entity = insert(:prm, :legal_entity)
+      insert(:prm, :employee, legal_entity_id: legal_entity.id, employee_type: @owner, is_active: false)
+      owner = insert(:prm, :employee, legal_entity_id: legal_entity.id, employee_type: @owner, is_active: false)
+
+      query = """
+        query GetLegalEntityQuery($id: ID) {
+          legalEntity(id: $id) {
+            owner {
+              databaseId
+            }
+          }
+        }
+      """
+
+      id = Node.to_global_id("LegalEntity", legal_entity.id)
+      variables = %{id: id}
+
+      resp =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      refute resp["errors"]
+      assert owner.id == get_in(resp, ~w(data legalEntity owner databaseId))
     end
   end
 
