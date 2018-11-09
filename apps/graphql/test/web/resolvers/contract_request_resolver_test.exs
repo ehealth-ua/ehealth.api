@@ -54,6 +54,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       contractRequest(id: $id) {
         status
         printoutContent
+        toSignContent
       }
     }
   """
@@ -617,6 +618,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
     test "success with pending status", %{conn: conn} do
       nhs()
       template()
+      template()
 
       insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
       insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
@@ -657,6 +659,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
         |> json_response(200)
 
       assert "<html></html>" == get_in(resp_body, ~w(data contractRequest printoutContent))
+      assert get_in(resp_body, ~w(data contractRequest toSignContent))
     end
 
     test "success with contract_request another status", %{conn: conn} do

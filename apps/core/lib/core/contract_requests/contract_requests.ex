@@ -725,7 +725,7 @@ defmodule Core.ContractRequests do
     |> validate_required(fields)
   end
 
-  defp preload_references(%ContractRequest{} = contract_request) do
+  def preload_references(%ContractRequest{} = contract_request) do
     fields = [
       {:contractor_legal_entity_id, :legal_entity},
       {:nhs_legal_entity_id, :legal_entity},
