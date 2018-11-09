@@ -24,7 +24,6 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
           data = %{
             "content" => content,
-            "signed_content" => signed_content,
             "signatures" => [
               %{
                 "is_valid" => true,
@@ -912,7 +911,6 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
         data = %{
           "content" => content,
-          "signed_content" => signed_content,
           "signatures" => [
             %{
               "is_valid" => true,
