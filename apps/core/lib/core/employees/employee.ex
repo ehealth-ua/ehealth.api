@@ -15,6 +15,8 @@ defmodule Core.Employees.Employee do
   @type_doctor "DOCTOR"
   @type_pharmacy_owner "PHARMACY_OWNER"
   @type_pharmacist "PHARMACIST"
+  @type_hr "HR"
+  @type_nhs "NHS"
 
   @status_new "NEW"
   @status_approved "APPROVED"
@@ -25,6 +27,8 @@ defmodule Core.Employees.Employee do
   def type(:doctor), do: @type_doctor
   def type(:pharmacy_owner), do: @type_pharmacy_owner
   def type(:pharmacist), do: @type_pharmacist
+  def type(:hr), do: @type_hr
+  def type(:nhs), do: @type_nhs
 
   def status(:new), do: @status_new
   def status(:approved), do: @status_approved
