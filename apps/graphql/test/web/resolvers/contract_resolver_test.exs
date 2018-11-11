@@ -452,10 +452,14 @@ defmodule GraphQLWeb.ContractResolverTest do
       variables = %{
         id: id,
         divisionFilter: %{
-          name: contractor_division.name
+          databaseId: contractor_division.id,
+          name: "здоров"
         },
         contractorEmployeeDivisionFilter: %{
-          division: %{name: contractor_employee_division.name}
+          division: %{
+            databaseId: contractor_employee_division.id,
+            name: "хвор"
+          }
         }
       }
 

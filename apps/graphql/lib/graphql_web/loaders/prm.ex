@@ -35,16 +35,23 @@ defmodule GraphQLWeb.Loaders.PRM do
   defp prepare_where(query, []), do: query
 
   defp prepare_where(query, [{:merged_from_legal_entity, filter} | tail]) do
-    query
-    |> join(:left, [e], m in assoc(e, :merged_from))
-    |> prepare_where(Enum.into(filter, []))
-    |> prepare_where(tail)
+    prepare_where(query, [merged_from: filter] ++ tail)
   end
 
   defp prepare_where(query, [{field, filter} | tail]) when is_map(filter) do
     query
     |> join(:inner, [r], assoc(r, ^field))
     |> prepare_where(Enum.into(filter, []))
+    |> prepare_where(tail)
+  end
+
+  defp prepare_where(query, [{:database_id, value} | tail]) do
+    prepare_where(query, [id: value] ++ tail)
+  end
+
+  defp prepare_where(query, [{field, {:like, value}} | tail]) do
+    query
+    |> where([..., l], ilike(field(l, ^field), ^("%" <> value <> "%")))
     |> prepare_where(tail)
   end
 
