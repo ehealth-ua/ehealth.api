@@ -45,3 +45,13 @@ release :graphql do
     ]
   )
 end
+
+release :merge_legal_entities_consumer do
+  set(version: current_version(:merge_legal_entities_consumer))
+
+  set(
+    applications: [
+      merge_legal_entities_consumer: :permanent
+    ]
+  )
+end
