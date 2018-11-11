@@ -73,3 +73,11 @@ jobs:
       script:
       - openssl aes-256-cbc -K $encrypted_c996ec964e08_key -iv $encrypted_c996ec964e08_iv -in eHealth-8110bd102a69.json.enc -out eHealth-8110bd102a69.json -d
       - (curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_v2/docker.sh -o docker.sh; bash ./docker.sh) || travis_terminate 1
+
+    - stage: "test and build"
+      name: "Build Docker container for MergeLegalEntities consumer"
+      env:
+      - APPS='[{"app":"merge_legal_entities_consumer","chart":"il","namespace":"il","deployment":"merge_legal_entities_consumer","label":"merge_legal_entities_consumer"}]'
+      script:
+      - openssl aes-256-cbc -K $encrypted_c996ec964e08_key -iv $encrypted_c996ec964e08_iv -in eHealth-8110bd102a69.json.enc -out eHealth-8110bd102a69.json -d
+      - (curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_v2/docker.sh -o docker.sh; bash ./docker.sh) || travis_terminate 1
