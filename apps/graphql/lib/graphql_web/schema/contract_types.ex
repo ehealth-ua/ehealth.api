@@ -8,6 +8,7 @@ defmodule GraphQLWeb.Schema.ContractTypes do
   import GraphQLWeb.Resolvers.Helpers.Load, only: [load_by_args: 2, load_by_parent: 2]
 
   alias Absinthe.Relay.Node.ParseIDs
+  alias Core.ContractRequests.ContractRequest
   alias Core.Contracts.Contract
   alias GraphQLWeb.Loaders.IL
   alias GraphQLWeb.Loaders.PRM

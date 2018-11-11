@@ -3,6 +3,7 @@ defmodule Core.Contracts.Contract do
 
   use Ecto.Schema
 
+  alias Core.ContractRequests.ContractRequest
   alias Core.Contracts.ContractDivision
   alias Core.Contracts.ContractEmployee
   alias Core.Employees.Employee
