@@ -445,6 +445,8 @@ defmodule GraphQLWeb.ContractResolverTest do
             contractRequest {
               databaseId
             }
+            insertedAt
+            updatedAt
           }
         }
       """
@@ -471,7 +473,11 @@ defmodule GraphQLWeb.ContractResolverTest do
 
       resp_entity = get_in(resp_body, ~w(data contract))
 
-      assert nil == resp_body["errors"]
+      refute resp_body["errors"]
+
+      assert resp_entity["insertedAt"]
+      assert resp_entity["updatedAt"]
+
       assert parent_contract.id == resp_entity["parentContract"]["databaseId"]
       assert contract_request.id == resp_entity["contractRequest"]["databaseId"]
 

@@ -153,6 +153,10 @@ defmodule GraphQLWeb.Schema.ContractTypes do
     field(:attached_documents, list_of(:contract_document), resolve: &ContractResolver.get_attached_documents/3)
     field(:parent_contract, :contract, resolve: dataloader(PRM))
     field(:contract_request, :contract_request, resolve: load_by_parent(IL, ContractRequest))
+
+    # TODO: Timestamp fields should return :datetime type
+    field(:inserted_at, :naive_datetime)
+    field(:updated_at, :naive_datetime)
   end
 
   connection node_type: :contract_employee_division do
