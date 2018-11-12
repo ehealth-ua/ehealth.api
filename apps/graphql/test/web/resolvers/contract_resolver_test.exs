@@ -57,6 +57,17 @@ defmodule GraphQLWeb.ContractResolverTest do
     }
   """
 
+  @prolongate_query """
+    mutation ProlongateContract($input: ProlongateContractInput!) {
+      prolongateContract(input: $input) {
+        contract {
+          id
+          endDate
+        }
+      }
+    }
+  """
+
   @status_reason "Period of contract is wrong"
 
   setup :verify_on_exit!
@@ -687,6 +698,41 @@ defmodule GraphQLWeb.ContractResolverTest do
 
       assert %{"errors" => [error]} = resp_body
       assert %{"extensions" => %{"code" => "NOT_FOUND"}} = error
+    end
+  end
+
+  describe "prolongate contract" do
+    test "success", %{conn: conn} do
+      nhs()
+
+      legal_entity = insert(:prm, :legal_entity)
+      contractor_legal_entity = insert(:prm, :legal_entity)
+      insert(:prm, :related_legal_entity, is_active: true, merged_from: contractor_legal_entity)
+
+      contract =
+        insert(:prm, :contract, nhs_legal_entity: legal_entity, contractor_legal_entity: contractor_legal_entity)
+
+      end_date = Date.utc_today() |> Date.add(23) |> to_string()
+
+      variables = %{
+        input: %{
+          id: Node.to_global_id("Contract", contract.id),
+          end_date: end_date
+        }
+      }
+
+      resp_body =
+        conn
+        |> put_scope("contract:update")
+        |> put_consumer_id()
+        |> put_client_id(legal_entity.id)
+        |> post_query(@prolongate_query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data prolongateContract contract))
+
+      refute resp_body["errors"]
+      assert %{"endDate" => ^end_date} = resp_entity
     end
   end
 

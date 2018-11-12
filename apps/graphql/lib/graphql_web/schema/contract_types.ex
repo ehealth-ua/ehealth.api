@@ -110,6 +110,24 @@ defmodule GraphQLWeb.Schema.ContractTypes do
       middleware(ParseIDs, id: :contract)
       resolve(&ContractResolver.terminate/2)
     end
+
+    payload field(:prolongate_contract) do
+      meta(:scope, ~w(contract:update))
+      meta(:client_metadata, ~w(client_id client_type)a)
+      meta(:allowed_clients, ~w(NHS))
+
+      input do
+        field(:id, non_null(:id))
+        field(:end_date, non_null(:date))
+      end
+
+      output do
+        field(:contract, :contract)
+      end
+
+      middleware(ParseIDs, id: :contract)
+      resolve(&ContractResolver.prolongate/2)
+    end
   end
 
   node object(:contract) do

@@ -92,7 +92,8 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
     with {:ok, contract, _references} <- Contracts.terminate(id, %{"status_reason" => status_reason}, headers) do
       {:ok, %{contract: contract}}
     else
-      # TODO: Remove after error handling is done
+      # ToDo: Here should be generic way to handle errors. E.g as FallbackController in Phoenix
+      # Should be implemented with task https://github.com/edenlabllc/ehealth.web/issues/423
       {:error, {:forbidden, error}} ->
         {:error, format_forbidden_error(error)}
 
@@ -101,6 +102,31 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
 
       {:error, {:not_found, error}} ->
         {:error, format_not_found_error(error)}
+
+      error ->
+        error
+    end
+  end
+
+  def prolongate(%{id: id, end_date: end_date}, %{context: %{headers: headers}}) do
+    params = %{"end_date" => to_string(end_date)}
+
+    with {:ok, contract, _} <- Contracts.prolongate(id, params, headers) do
+      {:ok, %{contract: contract}}
+    else
+      # ToDo: Here should be generic way to handle errors. E.g as FallbackController in Phoenix
+      # Should be implemented with task https://github.com/edenlabllc/ehealth.web/issues/423
+      {:error, {:forbidden, error}} ->
+        {:error, format_forbidden_error(error)}
+
+      {:error, {:conflict, error}} ->
+        {:error, format_conflict_error(error)}
+
+      {:error, {:"422", error}} ->
+        {:error, format_unprocessable_entity_error(error)}
+
+      {:error, [_ | _] = errors} ->
+        {:error, format_unprocessable_entity_error(errors)}
 
       error ->
         error
