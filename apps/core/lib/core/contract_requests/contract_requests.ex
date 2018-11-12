@@ -109,7 +109,7 @@ defmodule Core.ContractRequests do
   def get_document_attributes_by_status(status) do
     cond do
       Enum.any?(
-        ~w(new approved pending_nhs_sign terminated declined)a,
+        ~w(new approved in_process pending_nhs_sign terminated declined)a,
         &(ContractRequest.status(&1) == status)
       ) ->
         [
