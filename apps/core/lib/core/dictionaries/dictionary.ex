@@ -3,7 +3,7 @@ defmodule Core.Dictionaries.Dictionary do
 
   use Ecto.Schema
 
-  @primary_key {:id, Ecto.UUID, autogenerate: true}
+  @primary_key {:id, :binary_id, autogenerate: true}
   schema "dictionaries" do
     field(:name, :string)
     field(:labels, {:array, :string})
