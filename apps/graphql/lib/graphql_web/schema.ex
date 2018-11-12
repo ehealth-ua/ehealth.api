@@ -16,6 +16,7 @@ defmodule GraphQLWeb.Schema do
 
   alias Core.ContractRequests.ContractRequest
   alias Core.Contracts.Contract
+  alias Core.Dictionaries.Dictionary
   alias Core.Divisions.Division
   alias Core.Employees.Employee
   alias Core.LegalEntities.LegalEntity
@@ -31,6 +32,7 @@ defmodule GraphQLWeb.Schema do
     AddressTypes,
     ContractRequestTypes,
     ContractTypes,
+    DictionaryTypes,
     DivisionTypes,
     EmployeeTypes,
     LegalEntityTypes,
@@ -45,6 +47,7 @@ defmodule GraphQLWeb.Schema do
     import_fields(:contract_queries)
     import_fields(:contract_request_queries)
     import_fields(:employee_queries)
+    import_fields(:dictionary_queries)
     import_fields(:legal_entity_queries)
     import_fields(:legal_entity_merge_job_queries)
     import_fields(:person_queries)
@@ -53,6 +56,7 @@ defmodule GraphQLWeb.Schema do
   mutation do
     import_fields(:contract_mutations)
     import_fields(:contract_request_mutations)
+    import_fields(:dictionary_mutations)
     import_fields(:legal_entity_mutations)
     import_fields(:legal_entity_merge_job_mutations)
   end
@@ -61,6 +65,7 @@ defmodule GraphQLWeb.Schema do
     resolve_type(fn
       %Contract{}, _ -> :contract
       %ContractRequest{}, _ -> :contract_request
+      %Dictionary{}, _ -> :dictionary
       %Division{}, _ -> :division
       %Employee{}, _ -> :employee
       %LegalEntity{}, _ -> :legal_entity

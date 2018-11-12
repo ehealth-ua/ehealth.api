@@ -44,8 +44,8 @@ defmodule Core.Factories do
     |> repo_insert!(type)
   end
 
-  def insert_list(number_of_records, type, factory, attrs \\ []) do
-    for i <- 0..number_of_records, i > 0, do: insert(type, factory, attrs)
+  def insert_list(count, type, factory, attrs \\ []) when count >= 1 do
+    for _ <- 1..count, do: insert(type, factory, attrs)
   end
 
   def string_params_for(factory, attrs \\ []) do

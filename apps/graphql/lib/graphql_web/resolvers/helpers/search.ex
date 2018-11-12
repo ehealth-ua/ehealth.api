@@ -48,6 +48,12 @@ defmodule GraphQLWeb.Resolvers.Helpers.Search do
     |> filter(Map.to_list(value))
   end
 
+  def filter(query, [{field, {:ilike, value}} | tail]) do
+    query
+    |> where([..., r], ilike(field(r, ^field), ^value))
+    |> filter(tail)
+  end
+
   def filter(query, [{field, {:fragment, {:contain, fragment_field, condition}}} | tail]) do
     query
     |> where([l], fragment("? @> ?", field(l, ^fragment_field), ^condition))
