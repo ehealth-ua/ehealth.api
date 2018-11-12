@@ -38,7 +38,7 @@ defmodule Core.Dictionaries do
     end
   end
 
-  def get_dictionary(name), do: Repo.get(Dictionary, name)
+  def get_dictionary(name), do: Repo.get_by(Dictionary, name: name)
 
   def create_dictionary(attrs \\ %{}) do
     %Dictionary{}
