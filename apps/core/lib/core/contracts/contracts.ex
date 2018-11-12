@@ -131,6 +131,8 @@ defmodule Core.Contracts do
          :ok <- JsonSchema.validate(:contract_prolongate, params),
          :ok <- validate_legal_entity_allowed(client_id, [contract.nhs_legal_entity_id]),
          :ok <- validate_contractor_related_legal_entity(contract.contractor_legal_entity_id),
+         contractor_legal_entity <- PRMRepo.get(LegalEntity, contract.contractor_legal_entity_id),
+         :ok <- check_legal_entity_is_active(contractor_legal_entity, :contractor),
          :ok <- validate_end_date(params["end_date"], contract.end_date),
          {:ok, contract} <-
            contract
@@ -206,7 +208,7 @@ defmodule Core.Contracts do
   defp validate_contract_status(status, %Contract{status: status}), do: :ok
 
   defp validate_contract_status(_, _) do
-    {:error, {:conflict, "Incorrect status of parent contract"}}
+    {:error, {:conflict, "Incorrect contract status to modify it"}}
   end
 
   defp validate_legal_entity_allowed(client_id, allowed_ids) do
@@ -468,7 +470,7 @@ defmodule Core.Contracts do
     client_id = get_client_id(headers)
 
     with %LegalEntity{} = client_legal_entity <- PRMRepo.get(LegalEntity, client_id),
-         :ok <- check_client_legal_entity_is_active(client_legal_entity),
+         :ok <- check_legal_entity_is_active(client_legal_entity, :client),
          %Contract{} = contract <- PRMRepo.get(Contract, id),
          :ok <- validate_contractor_legal_entity_id(contract, params),
          %Ecto.Changeset{valid?: true, changes: changes} <- ContractEmployeeSearch.changeset(params),
@@ -477,8 +479,9 @@ defmodule Core.Contracts do
     end
   end
 
-  defp check_client_legal_entity_is_active(%LegalEntity{is_active: true}), do: :ok
-  defp check_client_legal_entity_is_active(_), do: {:error, {:forbidden, "Client is not active"}}
+  defp check_legal_entity_is_active(%LegalEntity{is_active: true}, _), do: :ok
+  defp check_legal_entity_is_active(_, :client), do: {:error, {:forbidden, "Client is not active"}}
+  defp check_legal_entity_is_active(_, :contractor), do: {:error, {:forbidden, "Contractor legal entity is not active"}}
 
   defp contract_employee_search(%Contract{id: contract_id}, search_params) do
     is_active = Map.get(search_params, :is_active)
