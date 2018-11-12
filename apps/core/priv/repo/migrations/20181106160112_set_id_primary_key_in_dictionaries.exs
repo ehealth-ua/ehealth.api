@@ -1,6 +1,8 @@
 defmodule Core.Repo.Migrations.SetIdPrimaryKeyInDictionaries do
   use Ecto.Migration
 
+  @disable_ddl_transaction true
+
   def change do
     Core.Repo.update_all(Core.Dictionaries.Dictionary, [set: [id: Ecto.UUID.generate()]])
 
