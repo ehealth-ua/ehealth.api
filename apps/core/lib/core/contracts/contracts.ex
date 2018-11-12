@@ -481,7 +481,7 @@ defmodule Core.Contracts do
 
   defp check_legal_entity_is_active(%LegalEntity{is_active: true}, _), do: :ok
   defp check_legal_entity_is_active(_, :client), do: {:error, {:forbidden, "Client is not active"}}
-  defp check_legal_entity_is_active(_, :contractor), do: {:error, {:forbidden, "Contractor legal entity is not active"}}
+  defp check_legal_entity_is_active(_, :contractor), do: {:error, {:conflict, "Contractor legal entity is not active"}}
 
   defp contract_employee_search(%Contract{id: contract_id}, search_params) do
     is_active = Map.get(search_params, :is_active)

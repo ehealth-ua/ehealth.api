@@ -658,7 +658,7 @@ defmodule EHealth.Web.ContractControllerTest do
         conn
         |> put_client_id_header(legal_entity.id)
         |> patch(contract_path(conn, :prolongate, contract.id), %{"end_date" => end_date})
-        |> json_response(403)
+        |> json_response(409)
 
       assert "Contractor legal entity is not active" == resp["error"]["message"]
     end
