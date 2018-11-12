@@ -150,7 +150,7 @@ defmodule GraphQLWeb.Schema.ContractTypes do
     field(:nhs_signer_base, :string)
     field(:nhs_contract_price, :float)
     field(:nhs_payment_method, :nhs_payment_method)
-    field(:attached_documents, list_of(:contract_document))
+    field(:attached_documents, list_of(:contract_document), resolve: &ContractResolver.get_attached_documents/3)
     field(:parent_contract, :contract, resolve: dataloader(PRM))
     field(:contract_request, :contract_request, resolve: load_by_parent(IL, ContractRequest))
   end

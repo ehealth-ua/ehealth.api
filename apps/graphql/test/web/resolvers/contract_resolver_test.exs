@@ -500,7 +500,6 @@ defmodule GraphQLWeb.ContractResolverTest do
       assert nhs_legal_entity.id == resp_entity["nhsLegalEntity"]["databaseId"]
     end
 
-    @tag :pending
     test "success with attached documents", %{conn: conn} do
       nhs()
 
@@ -508,13 +507,17 @@ defmodule GraphQLWeb.ContractResolverTest do
         {:ok, %{"data" => %{"secret_url" => "http://example.com/#{id}/#{resource_name}"}}}
       end)
 
-      contract = insert(:prm, :contract)
+      contract_request = insert(:il, :contract_request)
+      contract = insert(:prm, :contract, contract_request_id: contract_request.id)
 
       id = Node.to_global_id("Contract", contract.id)
 
       query = """
         query GetContractWithAttachedDocumentsQuery($id: ID!) {
           contract(id: $id) {
+            contractRequest{
+              databaseId
+            }
             attachedDocuments {
               type
               url
@@ -533,13 +536,47 @@ defmodule GraphQLWeb.ContractResolverTest do
 
       resp_entities = get_in(resp_body, ~w(data contract attachedDocuments))
 
-      assert nil == resp_body["errors"]
+      refute resp_body["errors"]
       assert 2 == length(resp_entities)
 
       Enum.each(resp_entities, fn document ->
         assert Map.has_key?(document, "type")
         assert Map.has_key?(document, "url")
       end)
+    end
+
+    test "Media Storage invalid response for attachedDocuments", %{conn: conn} do
+      nhs()
+
+      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, _id, _resource_name, _ ->
+        {:error, %{"error" => %{"message" => "not found"}}}
+      end)
+
+      contract_request = insert(:il, :contract_request)
+      contract = insert(:prm, :contract, contract_request_id: contract_request.id)
+
+      id = Node.to_global_id("Contract", contract.id)
+
+      query = """
+        query GetContractWithAttachedDocumentsQuery($id: ID!) {
+          contract(id: $id) {
+            attachedDocuments {
+              url
+            }
+          }
+        }
+      """
+
+      variables = %{id: id}
+
+      resp_body =
+        conn
+        |> put_client_id()
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      assert resp_body["errors"]
+      refute get_in(resp_body, ~w(data contract attachedDocuments))
     end
   end
 

@@ -6,9 +6,12 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
   import GraphQLWeb.Resolvers.Helpers.Errors
 
   alias Absinthe.Relay.Connection
+  alias Core.ContractRequests
+  alias Core.ContractRequests.ContractRequest
   alias Core.Contracts
   alias Core.Contracts.Contract
   alias Core.PRMRepo
+  alias GraphQLWeb.Loaders.IL
   alias GraphQLWeb.Loaders.PRM
   alias GraphQLWeb.Resolvers.Helpers.Search
 
@@ -25,6 +28,24 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
     |> filter(filter)
     |> prepare_order_by(order_by)
     |> Connection.from_query(&PRMRepo.all/1, args)
+  end
+
+  def get_attached_documents(%Contract{} = parent, args, %{context: %{loader: loader}}) do
+    source = IL
+    batch_key = {ContractRequest, args}
+    item_key = parent.contract_request_id
+
+    loader
+    |> Dataloader.load(source, batch_key, item_key)
+    |> on_load(fn loader ->
+      with %ContractRequest{id: id, status: status} <- Dataloader.get(loader, source, batch_key, item_key),
+           documents when is_list(documents) <- ContractRequests.gen_relevant_get_links(id, status) do
+        {:ok, documents}
+      else
+        nil -> {:error, "Contract request not found"}
+        err -> {:error, "Cannot get attachedDocuments with `#{inspect(err)}`"}
+      end
+    end)
   end
 
   def load_contract_divisions(parent, args, resolution) do
