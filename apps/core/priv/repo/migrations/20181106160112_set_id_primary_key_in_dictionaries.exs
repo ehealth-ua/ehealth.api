@@ -12,10 +12,8 @@ defmodule Core.Repo.Migrations.SetIdPrimaryKeyInDictionaries do
     |> Repo.all()
     |> Enum.each(&execute("UPDATE dictionaries SET id = '#{UUID.generate()}' WHERE name='#{&1.name}';"))
 
-    execute("ALTER TABLE dictionaries DROP CONSTRAINT dictionaries_pkey")
+    execute("ALTER TABLE dictionaries DROP CONSTRAINT IF EXISTS dictionaries_pkey")
     create unique_index(:dictionaries, :name, name: :dictionaries_name_uniq)
-
-    flush()
 
     alter table(:dictionaries) do
       modify(:id, :uuid, primary_key: true)
