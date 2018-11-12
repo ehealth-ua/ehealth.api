@@ -573,7 +573,7 @@ defmodule EHealth.Web.ContractControllerTest do
         |> patch(contract_path(conn, :prolongate, contract.id), %{})
         |> json_response(409)
 
-      assert "Incorrect status of parent contract" == resp["error"]["message"]
+      assert "Incorrect contract status to modify it" == resp["error"]["message"]
     end
 
     test "client is not allowed to perform action", %{conn: conn, contract: contract, end_date: end_date} do
@@ -622,6 +622,45 @@ defmodule EHealth.Web.ContractControllerTest do
         |> json_response(422)
 
       assert "Contract for this legal entity must be resign with standard procedure" == resp["error"]["message"]
+    end
+
+    test "contractor legal entity is not active", %{conn: conn, end_date: end_date} do
+      legal_entity = insert(:prm, :legal_entity)
+      contractor_legal_entity = insert(:prm, :legal_entity, is_active: false)
+
+      %{id: division_id} = insert(:prm, :division)
+
+      external_contractors = [
+        %{
+          "divisions" => [%{"id" => division_id, "medical_service" => "PHC_SERVICES"}],
+          "contract" => %{"expires_at" => to_string(Date.add(Date.utc_today(), 50))},
+          "legal_entity_id" => legal_entity.id
+        }
+      ]
+
+      contract =
+        insert(
+          :prm,
+          :contract,
+          nhs_legal_entity: legal_entity,
+          contractor_legal_entity: contractor_legal_entity,
+          end_date: Date.utc_today() |> Date.add(14),
+          external_contractors: external_contractors
+        )
+
+      insert(
+        :prm,
+        :related_legal_entity,
+        merged_from: contractor_legal_entity
+      )
+
+      resp =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> patch(contract_path(conn, :prolongate, contract.id), %{"end_date" => end_date})
+        |> json_response(403)
+
+      assert "Contractor legal entity is not active" == resp["error"]["message"]
     end
 
     test "end date is less then now", %{
