@@ -12,22 +12,14 @@ defmodule EHealth.Web.EmployeeView do
   @doctor Employee.type(:doctor)
   @pharmacist Employee.type(:pharmacist)
 
-  def render("index.json", %{employees: employees, declaration_count_data: declaration_count_data}) do
+  def render("index.json", %{employees: employees}) do
     Enum.map(employees, fn employee ->
-      render_one(employee, __MODULE__, "employee_list.json", %{
-        employee: employee,
-        declaration_count_data: declaration_count_data
-      })
+      render_one(employee, __MODULE__, "employee_list.json", %{employee: employee})
     end)
   end
 
-  def render("employee_list.json", %{employee: employee, declaration_count_data: declaration_count_data}) do
-    declaration_count = Enum.find(declaration_count_data, &(Map.get(&1, "id") == employee.party.id))
-
-    party =
-      employee.party
-      |> Map.take(~w(id first_name second_name last_name no_tax_id declaration_limit)a)
-      |> Map.put(:declaration_count, declaration_count["declaration_count"])
+  def render("employee_list.json", %{employee: employee}) do
+    party = Map.take(employee.party, ~w(id first_name second_name last_name no_tax_id)a)
 
     employee
     |> Map.take(~w(
@@ -72,20 +64,20 @@ defmodule EHealth.Web.EmployeeView do
 
   def render("employee_private.json", _), do: %{}
 
-  def render("employee.json", %{employee: %{employee_type: @doctor, additional_info: info} = employee} = assigns) do
+  def render("employee.json", %{employee: %{employee_type: @doctor, additional_info: info} = employee}) do
     employee
-    |> render_employee(Map.get(assigns, :declaration_count_data))
+    |> render_employee()
     |> render_doctor(Map.put(info, "specialities", get_employee_specialities(employee)))
   end
 
-  def render("employee.json", %{employee: %{employee_type: @pharmacist, additional_info: info} = employee} = assigns) do
+  def render("employee.json", %{employee: %{employee_type: @pharmacist, additional_info: info} = employee}) do
     employee
-    |> render_employee(Map.get(assigns, :declaration_count_data))
+    |> render_employee()
     |> render_pharmacist(Map.put(info, "specialities", get_employee_specialities(employee)))
   end
 
-  def render("employee.json", %{employee: employee} = assigns) do
-    render_employee(employee, Map.get(assigns, :declaration_count_data))
+  def render("employee.json", %{employee: employee}) do
+    render_employee(employee)
   end
 
   def render("employee_users_short.json", %{employee: employee}) do
@@ -96,7 +88,7 @@ defmodule EHealth.Web.EmployeeView do
     }
   end
 
-  def render_employee(employee, declaration_count_data) do
+  def render_employee(employee) do
     employee
     |> Map.take(~w(
       id
@@ -105,14 +97,13 @@ defmodule EHealth.Web.EmployeeView do
       employee_type
       start_date
       end_date
-      declaration_limit
     )a)
-    |> render_association(employee.party, declaration_count_data)
+    |> render_association(employee.party)
     |> render_association(employee.division)
     |> render_association(employee.legal_entity)
   end
 
-  defp render_association(map, %Party{} = party, declaration_count_data) when is_list(declaration_count_data) do
+  defp render_association(map, %Party{} = party) do
     data = Map.take(party, ~w(
       id
       first_name
@@ -126,15 +117,10 @@ defmodule EHealth.Web.EmployeeView do
       phones
       about_myself
       working_experience
-      declaration_limit
     )a)
 
-    declaration_count = Enum.find(declaration_count_data, &(Map.get(&1, "id") == party.id))
-    data = Map.put(data, :declaration_count, declaration_count["declaration_count"])
     Map.put(map, :party, data)
   end
-
-  defp render_association(map, %Party{} = party, _), do: render_association(map, party, [])
 
   defp render_association(map, %Division{} = division) do
     data = Map.take(division, ~w(
