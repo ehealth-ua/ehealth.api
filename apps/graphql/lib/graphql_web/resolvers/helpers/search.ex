@@ -54,7 +54,7 @@ defmodule GraphQLWeb.Resolvers.Helpers.Search do
     |> filter(tail)
   end
 
-  def filter(query, [{field, {:fragment, {:contain, fragment_field, condition}}} | tail]) do
+  def filter(query, [{_field, {:fragment, {:contain, fragment_field, condition}}} | tail]) do
     query
     |> where([l], fragment("? @> ?", field(l, ^fragment_field), ^condition))
     |> filter(tail)

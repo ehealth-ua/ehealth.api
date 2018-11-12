@@ -17,6 +17,7 @@ defmodule Core.Contracts do
   alias Core.Employees
   alias Core.Employees.Employee
   alias Core.EventManager
+  alias Core.LegalEntities
   alias Core.LegalEntities.LegalEntity
   alias Core.LegalEntities.RelatedLegalEntity
   alias Core.PRMRepo
@@ -126,12 +127,12 @@ defmodule Core.Contracts do
     user_id = get_consumer_id(headers)
     client_id = get_client_id(headers)
 
-    with %Contract{} = contract <- get_by_id(id),
+    with {:ok, contract} <- fetch_by_id(id),
          :ok <- validate_contract_status(@status_verified, contract),
          :ok <- JsonSchema.validate(:contract_prolongate, params),
          :ok <- validate_legal_entity_allowed(client_id, [contract.nhs_legal_entity_id]),
          :ok <- validate_contractor_related_legal_entity(contract.contractor_legal_entity_id),
-         contractor_legal_entity <- PRMRepo.get(LegalEntity, contract.contractor_legal_entity_id),
+         {:ok, contractor_legal_entity} <- LegalEntities.fetch_by_id(contract.contractor_legal_entity_id),
          :ok <- check_legal_entity_is_active(contractor_legal_entity, :contractor),
          :ok <- validate_end_date(params["end_date"], contract.end_date),
          {:ok, contract} <-
@@ -413,6 +414,13 @@ defmodule Core.Contracts do
          :ok <- validate_contractor_legal_entity_id(contract, params),
          {:ok, contract, references} <- load_contract_references(contract) do
       {:ok, contract, references}
+    end
+  end
+
+  def fetch_by_id(id) do
+    case get_by_id(id) do
+      %Contract{} = contract -> {:ok, contract}
+      _ -> {:error, {:not_found, "Contract not found"}}
     end
   end
 
