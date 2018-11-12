@@ -289,7 +289,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
         |> patch(declaration_request_path(conn, :approve, declaration_request))
         |> json_response(422)
 
-      assert resp["error"]["message"] == "This doctor reaches his limit and could not sign more declarations"
+      assert resp["error"]["message"] == "This doctor has 5 declarations and could not sign more"
     end
 
     test "approve when limit exited and person has declarations with doctor", %{conn: conn} do
