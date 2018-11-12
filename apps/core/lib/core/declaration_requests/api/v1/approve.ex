@@ -120,11 +120,16 @@ defmodule Core.DeclarationRequests.API.Approve do
          {:ok, %{"data" => %{"count" => declarations_count}}} <-
            @ops_api.get_declarations_count(%{"ids" => employee_ids, "exclude_person_id" => person_id}, headers),
          declaration_limit <- get_declaration_limit(employees),
-         {:limit, true} <- {:limit, declarations_count + declarations_request_count < declaration_limit} do
+         {:limit, _, true} <-
+           {:limit, declarations_count + declarations_request_count,
+            declarations_count + declarations_request_count < declaration_limit} do
       :ok
     else
-      {:limit, false} -> Error.dump("This doctor reaches his limit and could not sign more declarations")
-      _ -> {:error, {:conflict, "employee or party not found"}}
+      {:limit, declaration_count, _} ->
+        Error.dump("This doctor has #{declaration_count} declarations and could not sign more")
+
+      _ ->
+        {:error, {:conflict, "employee or party not found"}}
     end
   end
 
