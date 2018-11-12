@@ -1,6 +1,7 @@
 defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
   @moduledoc false
 
+  import Absinthe.Resolution.Helpers, only: [on_load: 2]
   import Ecto.Query, only: [where: 2, where: 3, join: 4, select: 3, order_by: 2]
   import GraphQLWeb.Resolvers.Helpers.Search, only: [filter: 2]
   import GraphQLWeb.Resolvers.Helpers.Errors
@@ -9,12 +10,18 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
   alias Core.ContractRequests
   alias Core.ContractRequests.ContractRequest
   alias Core.ContractRequests.Renderer
+  alias Core.Dictionaries.Dictionary
   alias Core.Employees.Employee
   alias Core.LegalEntities.LegalEntity
   alias Core.Man.Templates.ContractRequestPrintoutForm
   alias Core.{PRMRepo, Repo}
+  alias GraphQLWeb.Loaders.{IL, PRM}
 
+  @status_in_process ContractRequest.status(:in_process)
   @status_pending_nhs_sign ContractRequest.status(:pending_nhs_sign)
+  @status_signed ContractRequest.status(:signed)
+
+  @review_text_dictionary "CONTRACT_REQUEST_REVIEW_TEXT"
 
   def list_contract_requests(args, %{context: %{client_type: "NHS"}}) do
     ContractRequest
@@ -95,6 +102,40 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
     with documents when is_list(documents) <- ContractRequests.gen_relevant_get_links(id, status) do
       {:ok, documents}
     end
+  end
+
+  def get_to_approve_content(%{status: @status_in_process} = contract_request, _, %{context: %{loader: loader}}) do
+    get_to_review_content("APPROVED", contract_request, loader)
+  end
+
+  def get_to_approve_content(_, _, _), do: {:ok, nil}
+
+  def get_to_decline_content(%{status: @status_signed}, _, _), do: {:ok, nil}
+
+  def get_to_decline_content(contract_request, _, %{context: %{loader: loader}}) do
+    get_to_review_content("DECLINED", contract_request, loader)
+  end
+
+  defp get_to_review_content(next_status, contract_request, loader) do
+    %{contractor_legal_entity_id: contractor_legal_entity_id} = contract_request
+
+    loader
+    |> Dataloader.load(PRM, LegalEntity, contractor_legal_entity_id)
+    |> Dataloader.load(IL, {:one, Dictionary}, name: @review_text_dictionary)
+    |> on_load(fn loader ->
+      with %LegalEntity{} = legal_entity <- Dataloader.get(loader, PRM, LegalEntity, contractor_legal_entity_id),
+           %Dictionary{values: values} <- Dataloader.get(loader, IL, {:one, Dictionary}, name: @review_text_dictionary),
+           {:ok, text} <- Map.fetch(values, next_status) do
+        to_review_content =
+          Renderer.render_review_content(contract_request, %{
+            contractor_legal_entity: legal_entity,
+            text: text,
+            next_status: next_status
+          })
+
+        {:ok, to_review_content}
+      end
+    end)
   end
 
   def get_to_sign_content(%{status: @status_pending_nhs_sign} = contract_request, args, resolution) do
