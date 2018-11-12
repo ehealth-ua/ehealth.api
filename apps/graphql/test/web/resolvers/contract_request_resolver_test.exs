@@ -612,6 +612,66 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
         assert Map.has_key?(document, "url")
       end)
     end
+
+    test "success with review content to sign", %{conn: conn} do
+      nhs()
+
+      approved_text = "Yay! I'm approved!"
+      declined_text = "Sadly, but I'm declined."
+
+      insert(
+        :il,
+        :dictionary,
+        name: "CONTRACT_REQUEST_REVIEW_TEXT",
+        values: %{"APPROVED" => approved_text, "DECLINED" => declined_text}
+      )
+
+      contract_request = insert(:il, :contract_request, status: @contract_request_status_in_process)
+
+      %{id: database_id} = contract_request
+      id = Node.to_global_id("ContractRequest", database_id)
+
+      query = """
+        query GetContractRequestWithContentToSignQuery($id: ID!) {
+          contractRequest(id: $id) {
+            toApproveContent
+            toDeclineContent
+          }
+        }
+      """
+
+      variables = %{id: id}
+
+      resp_body =
+        conn
+        |> put_client_id()
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data contractRequest))
+
+      assert nil == resp_body["errors"]
+
+      assert match?(
+               %{
+                 "id" => ^database_id,
+                 "contractor_legal_entity" => %{"edrpou" => _, "id" => _, "name" => _},
+                 "next_status" => "APPROVED",
+                 "text" => ^approved_text
+               },
+               resp_entity["toApproveContent"]
+             )
+
+      assert match?(
+               %{
+                 "id" => ^database_id,
+                 "contractor_legal_entity" => %{"edrpou" => _, "id" => _, "name" => _},
+                 "next_status" => "DECLINED",
+                 "text" => ^declined_text
+               },
+               resp_entity["toDeclineContent"]
+             )
+    end
   end
 
   describe "get with printout_content field" do

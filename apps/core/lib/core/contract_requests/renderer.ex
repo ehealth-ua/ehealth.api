@@ -52,6 +52,16 @@ defmodule Core.ContractRequests.Renderer do
     })
   end
 
+  def render_review_content(%ContractRequest{} = contract_request, associations) do
+    {legal_entity, review_fields} = Map.pop(associations, :contractor_legal_entity)
+    contractor_legal_entity = Map.take(legal_entity, ~w(id edrpou name)a)
+
+    contract_request
+    |> Map.take(~w(id)a)
+    |> Map.merge(review_fields)
+    |> Map.put(:contractor_legal_entity, contractor_legal_entity)
+  end
+
   def render_association(_, _, nil), do: nil
 
   def render_association(:legal_entity, references, id) do
