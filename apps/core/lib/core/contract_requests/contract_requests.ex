@@ -751,6 +751,7 @@ defmodule Core.ContractRequests do
 
   defp terminate_pending_contracts(params) do
     # TODO: add index here
+
     contract_ids =
       ContractRequest
       |> select([c], c.id)
@@ -760,6 +761,7 @@ defmodule Core.ContractRequests do
         [c],
         c.status in ^[
           ContractRequest.status(:new),
+          ContractRequest.status(:in_process),
           ContractRequest.status(:approved),
           ContractRequest.status(:nhs_signed),
           ContractRequest.status(:pending_nhs_sign)
