@@ -32,6 +32,7 @@ defmodule GraphQLWeb.DictionaryResolverTest do
     mutation UpdateDictionary($input: UpdateDictionaryInput!) {
       updateDictionary(input: $input){
         dictionary {
+          databaseId
           name
           isActive
           labels
@@ -83,40 +84,22 @@ defmodule GraphQLWeb.DictionaryResolverTest do
     end
   end
 
-  describe "update or create dictionary" do
-    test "success create", %{conn: conn} do
-      dictionary_name = "PHONE_TYPE"
-      labels = ["SYSTEM", "EXTERNAL"]
-      values = %{"MOBILE" => "мобільний", "LAND_LINE" => "стаціонарний"}
+  describe "update dictionary" do
+    test "success", %{conn: conn} do
+      name = "UPDATED_DICTIONARY_NAME"
+      %{id: id} = insert(:il, :dictionary, is_active: true)
 
       dictionary_params = %{
-        name: dictionary_name,
-        is_active: true,
-        labels: labels,
-        values: Jason.encode!(values)
-      }
-
-      {resp_body, resp_entity} = call_update_dictionary(conn, dictionary_params)
-
-      refute resp_body["errors"]
-      assert %{"isActive" => true, "labels" => labels, "name" => dictionary_name, "values" => values} == resp_entity
-      assert %Dictionary{name: ^dictionary_name} = Dictionaries.get_dictionary(dictionary_name)
-    end
-
-    test "success update", %{conn: conn} do
-      dictionary_name = "PHONE_TYPE"
-      insert(:il, :dictionary, name: dictionary_name, is_active: true)
-
-      dictionary_params = %{
-        name: dictionary_name,
+        id: id,
+        name: name,
         is_active: false
       }
 
       {resp_body, resp_entity} = call_update_dictionary(conn, dictionary_params)
 
       refute resp_body["errors"]
-      assert %{"isActive" => false, "name" => ^dictionary_name} = resp_entity
-      assert %Dictionary{name: ^dictionary_name, is_active: false} = Dictionaries.get_dictionary(dictionary_name)
+      assert %{"databaseId" => ^id, "name" => ^name, "isActive" => false} = resp_entity
+      assert %Dictionary{name: ^name, is_active: false} = Dictionaries.get_by_id(id)
     end
   end
 

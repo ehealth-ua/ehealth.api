@@ -10,6 +10,15 @@ defmodule Core.Dictionaries do
   alias Core.Dictionaries.DictionarySearch
   alias Core.Repo
 
+  def get_by_id(id), do: Repo.get(Dictionary, id)
+
+  def fetch_by_id(id) do
+    case get_by_id(id) do
+      %Dictionary{} = dictionary -> {:ok, dictionary}
+      nil -> {:error, {:not_found, "Dictionary not found"}}
+    end
+  end
+
   def list_dictionaries(attrs \\ %{}) do
     %DictionarySearch{}
     |> dictionary_changeset(attrs)
