@@ -32,7 +32,7 @@ defmodule Core.Cabinet.API do
   def create_patient(jwt, params, headers) do
     with {:ok, email} <- fetch_email_from_jwt(jwt),
          %Ecto.Changeset{valid?: true, changes: changes} <- validate_params(:patient, params),
-         {:ok, %{"content" => content, "signer" => signer}} <-
+         {:ok, %{"content" => content, "signers" => [signer]}} <-
            SignatureValidator.validate(params["signed_content"], params["signed_content_encoding"], headers),
          :ok <- verify_auth(content, changes, headers),
          :ok <- JsonSchema.validate(:person, content),
@@ -235,7 +235,7 @@ defmodule Core.Cabinet.API do
     with %Ecto.Changeset{valid?: true} <- validate_params(:user_search, params),
          {:ok, %{"email" => email}} <- Guardian.decode_and_verify(jwt),
          true <- email_available_for_registration?(email, headers),
-         {:ok, %{"signer" => signer}} <-
+         {:ok, %{"signers" => [signer]}} <-
            SignatureValidator.validate(params["signed_content"], params["signed_content_encoding"], headers),
          {:ok, tax_id} <- fetch_drfo(signer) do
       %{tax_id: tax_id}

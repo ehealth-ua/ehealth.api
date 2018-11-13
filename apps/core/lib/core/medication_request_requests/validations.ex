@@ -82,7 +82,7 @@ defmodule Core.MedicationRequestRequest.Validations do
     )
   end
 
-  def validate_sign_content(mrr, %{"content" => content, "signer" => signer}) do
+  def validate_sign_content(mrr, %{"content" => content, "signers" => [signer]}) do
     with %Employee{} = employee <- Employees.get_by_id(mrr.data.employee_id),
          doctor_tax_id <- employee |> Map.get(:party) |> Map.get(:tax_id),
          true <-

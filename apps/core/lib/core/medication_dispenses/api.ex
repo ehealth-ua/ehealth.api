@@ -155,7 +155,7 @@ defmodule Core.MedicationDispense.API do
 
     with {:ok, medication_dispense, references} <- get_by_id(params, headers),
          :ok <- JsonSchema.validate(:medication_dispense_process, params),
-         {:ok, %{"content" => content, "signer" => signer}} <- decode_signed_content(params, headers),
+         {:ok, %{"content" => content, "signers" => [signer]}} <- decode_signed_content(params, headers),
          :ok <- SignatureValidator.check_drfo(signer, user_id, "medication_dispense_process"),
          :ok <- SignatureValidator.check_last_name(signer, user_id),
          :ok <- SignatureValidator.check_legal_entity_edrpou(signer, legal_entity_id),

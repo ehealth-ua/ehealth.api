@@ -36,7 +36,7 @@ defmodule Core.Persons do
     with {:ok, %{"data" => user}} <- @mithril_api.get_user_by_id(user_id, headers),
          :ok <- check_user_person_id(user, id),
          %Ecto.Changeset{valid?: true, changes: changes} <- Signed.changeset(params),
-         {:ok, %{"content" => content, "signer" => signer}} <-
+         {:ok, %{"content" => content, "signers" => [signer]}} <-
            SignatureValidator.validate(changes.signed_content, "base64", headers),
          :ok <- PersonsValidator.validate_unzr(content),
          :ok <- PersonsValidator.validate_national_id(content),

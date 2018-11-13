@@ -153,7 +153,7 @@ defmodule Core.Contracts do
     with %Contract{} = contract <- get_by_id(id),
          :ok <- validate_contractor_legal_entity_id(contract, params),
          :ok <- JsonSchema.validate(:contract_sign, params),
-         {:ok, %{"content" => content, "signer" => signer}} <- decode_signed_content(params, headers),
+         {:ok, %{"content" => content, "signers" => [signer]}} <- decode_signed_content(params, headers),
          :ok <- SignatureValidator.check_drfo(signer, user_id, "contract_request_update"),
          :ok <- validate_status(contract, Contract.status(:verified)),
          :ok <- validate_update_json_schema(content),

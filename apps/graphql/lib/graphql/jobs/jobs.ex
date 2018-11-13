@@ -24,7 +24,8 @@ defmodule GraphQL.Jobs do
   def create_merge_legal_entities_job(%{signed_content: %{content: encoded_content, encoding: encoding}}, headers) do
     user_id = get_consumer_id(headers)
 
-    with {:ok, %{"content" => content, "signer" => signer}} <- Signature.validate(encoded_content, encoding, headers),
+    with {:ok, %{"content" => content, "signers" => [signer]}} <-
+           Signature.validate(encoded_content, encoding, headers),
          :ok <- Signature.check_drfo(signer, user_id, "merge_legal_entities"),
          :ok <- JsonSchema.validate(:legal_entity_merge_job, content),
          :ok <- validate_merged_id(content["merged_from_legal_entity"]["id"], content["merged_to_legal_entity"]["id"]),

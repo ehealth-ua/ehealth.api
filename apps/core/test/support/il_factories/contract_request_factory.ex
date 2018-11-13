@@ -23,7 +23,7 @@ defmodule Core.ILFactories.ContractRequestFactory do
 
         %ContractRequest{
           id: UUID.generate(),
-          contractor_owner_id: employee.id,
+          contractor_owner_id: UUID.generate(),
           contractor_base: "на підставі закону про Медичне обслуговування населення",
           contractor_payment_details: %{
             "bank_name" => "Банк номер 1",
@@ -61,10 +61,11 @@ defmodule Core.ILFactories.ContractRequestFactory do
           inserted_by: UUID.generate(),
           updated_by: UUID.generate(),
           issue_city: "Київ",
-          nhs_signer_id: employee.id,
+          nhs_signer_id: UUID.generate(),
           nhs_signer_base: "на підставі наказу",
           nhs_contract_price: 50_000.00,
-          nhs_payment_method: "FORWARD"
+          nhs_payment_method: "FORWARD",
+          nhs_legal_entity_id: UUID.generate()
         }
       end
     end

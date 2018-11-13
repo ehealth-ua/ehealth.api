@@ -146,7 +146,7 @@ defmodule Core.ContractRequests do
     with %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(client_id),
          {:contract_request_exists, true} <- {:contract_request_exists, is_nil(get_by_id(id))},
          :ok <- JsonSchema.validate(:contract_request_sign, params),
-         {:ok, %{"content" => content, "signer" => signer}} <- decode_signed_content(params, headers),
+         {:ok, %{"content" => content, "signers" => [signer]}} <- decode_signed_content(params, headers),
          :ok <- validate_legal_entity_edrpou(legal_entity, signer),
          :ok <- validate_user_signer_last_name(user_id, signer),
          :ok <- JsonSchema.validate(:contract_request, content),
@@ -248,7 +248,7 @@ defmodule Core.ContractRequests do
     params = Map.delete(params, "id")
 
     with :ok <- JsonSchema.validate(:contract_request_sign, params),
-         {:ok, %{"content" => content, "signer" => signer}} <- decode_signed_content(params, headers),
+         {:ok, %{"content" => content, "signers" => [signer]}} <- decode_signed_content(params, headers),
          :ok <- JsonSchema.validate(:contract_request_approve, content),
          :ok <- validate_contract_request_id(id, content["id"]),
          %LegalEntity{} = legal_entity <- LegalEntities.get_by_id!(client_id),
@@ -328,7 +328,7 @@ defmodule Core.ContractRequests do
     params = Map.delete(params, "id")
 
     with :ok <- JsonSchema.validate(:contract_request_sign, params),
-         {:ok, %{"content" => content, "signer" => signer}} <- decode_signed_content(params, headers),
+         {:ok, %{"content" => content, "signers" => [signer]}} <- decode_signed_content(params, headers),
          :ok <- JsonSchema.validate(:contract_request_decline, content),
          :ok <- validate_contract_request_id(id, content["id"]),
          {:ok, legal_entity} <- LegalEntities.fetch_by_id(client_id),
@@ -396,11 +396,11 @@ defmodule Core.ContractRequests do
 
     with {:ok, legal_entity} <- LegalEntities.fetch_by_id(client_id),
          :ok <- JsonSchema.validate(:contract_request_sign, params),
-         {:ok, %{"content" => content, "signer" => signer, "stamp" => stamp}} <-
+         {:ok, %{"content" => content, "signers" => [signer], "stamps" => [stamp]}} <-
            decode_signed_content(params, headers, 1, 1),
          :ok <- validate_contract_request_id(id, content["id"]),
          {:ok, contract_request} <- fetch_by_id(id),
-         {_, true} <- {:client_id, client_id == contract_request.nhs_legal_entity_id},
+         :ok <- validate_client_id(client_id, contract_request.nhs_legal_entity_id, :forbidden),
          {_, false} <- {:already_signed, contract_request.status == ContractRequest.status(:nhs_signed)},
          :ok <- validate_status(contract_request, ContractRequest.status(:pending_nhs_sign)),
          :ok <- validate_legal_entity_edrpou(legal_entity, signer),
@@ -448,14 +448,16 @@ defmodule Core.ContractRequests do
     params = Map.delete(params, "id")
 
     with %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(client_id),
-         {:ok, %ContractRequest{} = contract_request, _references} <- get_by_id(headers, client_type, id),
+         {:ok, %ContractRequest{} = contract_request, _} <- get_by_id(headers, client_type, id),
          :ok <- JsonSchema.validate(:contract_request_sign, params),
          {_, true} <- {:signed_nhs, contract_request.status == ContractRequest.status(:nhs_signed)},
-         {_, true} <- {:client_id, client_id == contract_request.contractor_legal_entity_id},
-         {:ok, %{"content" => content, "signer" => signer}} <- decode_signed_content(params, headers, 2, 1),
-         :ok <- validate_legal_entity_edrpou(legal_entity, signer),
+         :ok <- validate_client_id(client_id, contract_request.contractor_legal_entity_id, :forbidden),
+         {:ok, %{"content" => content, "signers" => [signer_msp, signer_nhs], "stamps" => [nhs_stamp]}} <-
+           decode_signed_content(params, headers, 2, 1),
+         :ok <- validate_legal_entity_edrpou(legal_entity, signer_msp),
          {:ok, employee} <- validate_employee(contract_request.contractor_owner_id, client_id),
-         :ok <- check_last_name_match(employee.party.last_name, signer["surname"]),
+         :ok <- check_last_name_match(employee.party.last_name, signer_msp["surname"]),
+         :ok <- validate_nhs_signatures(signer_nhs, nhs_stamp, contract_request),
          :ok <- validate_content(contract_request, content),
          :ok <- validate_employee_divisions(contract_request, client_id),
          :ok <- validate_start_date(contract_request),
@@ -478,12 +480,6 @@ defmodule Core.ContractRequests do
       {:signed_nhs, false} ->
         Error.dump("Incorrect status for signing")
 
-      {:client_id, _} ->
-        {:error, {:forbidden, "Invalid client_id"}}
-
-      {:employee, _} ->
-        Error.dump("Employee is not allowed to sign")
-
       {:create_contract, _} ->
         {:error, {:bad_gateway, "Failed to save contract"}}
 
@@ -497,15 +493,12 @@ defmodule Core.ContractRequests do
 
     with %ContractRequest{} = contract_request <- Repo.get(ContractRequest, id),
          {_, true} <- {:signed_nhs, contract_request.status == ContractRequest.status(:nhs_signed)},
-         {_, true} <- {:client_id, client_id == contract_request.contractor_legal_entity_id},
+         :ok <- validate_client_id(client_id, contract_request.contractor_legal_entity_id, :forbidden),
          {:ok, url} <- resolve_partially_signed_content_url(contract_request.id, headers) do
       {:ok, url}
     else
       {:signed_nhs, _} ->
         Error.dump("The contract hasn't been signed yet")
-
-      {:client_id, _} ->
-        {:error, {:forbidden, "Invalid client_id"}}
 
       {:error, :media_storage_error} ->
         {:error, {:bad_gateway, "Fail to resolve partially signed content"}}
@@ -568,6 +561,32 @@ defmodule Core.ContractRequests do
     |> Map.put(:updated_by, contract_request.updated_by)
     |> Map.put(:status, Contract.status(:verified))
   end
+
+  defp validate_nhs_signatures(signer_nhs, nhs_stamp, %ContractRequest{
+         nhs_legal_entity_id: nhs_legal_entity_id,
+         nhs_signer_id: nhs_signer_id
+       }) do
+    with {:nhs_legal_entity, %LegalEntity{} = nhs_legal_entity} <-
+           {:nhs_legal_entity, LegalEntities.get_by_id(nhs_legal_entity_id)},
+         {:nhs_employee, %Employee{} = nhs_employee} <- {:nhs_employee, Employees.get_by_id(nhs_signer_id)},
+         :ok <- validate_legal_entity_edrpou(nhs_legal_entity, nhs_stamp),
+         :ok <- validate_legal_entity_edrpou(nhs_legal_entity, signer_nhs),
+         :ok <- check_last_name_match(nhs_employee.party.last_name, signer_nhs["surname"]) do
+      :ok
+    else
+      {:nhs_legal_entity, _} ->
+        {:error, {:conflict, "NHS legal entity not found"}}
+
+      {:nhs_employee, _} ->
+        {:error, {:conflict, "NHS employee not found"}}
+
+      error ->
+        error
+    end
+  end
+
+  defp validate_client_id(client_id, client_id, _), do: :ok
+  defp validate_client_id(_, _, :forbidden), do: {:error, {:forbidden, "Invalid client_id"}}
 
   defp validate_content(%ContractRequest{printout_content: printout_content} = contract_request, content) do
     validate_content(contract_request, printout_content, content)

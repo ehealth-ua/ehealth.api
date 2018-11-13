@@ -29,7 +29,7 @@ defmodule Core.DeclarationRequests.API.Sign do
   @status_approved DeclarationRequest.status(:approved)
 
   def sign(params, headers) do
-    with {:ok, %{"content" => content, "signer" => signer}} <- decode_and_validate(params, headers),
+    with {:ok, %{"content" => content, "signers" => [signer]}} <- decode_and_validate(params, headers),
          %DeclarationRequest{} = declaration_request <- params |> Map.fetch!("id") |> DeclarationRequests.get_by_id!(),
          :ok <- check_status(declaration_request),
          :ok <- check_patient_signed(content),
@@ -64,13 +64,13 @@ defmodule Core.DeclarationRequests.API.Sign do
   end
 
   def validate_signature(%Ecto.Changeset{valid?: true, changes: changes}, headers) do
-    with {:ok, %{"content" => content, "signer" => signer}} <-
+    with {:ok, %{"content" => content, "signers" => [signer]}} <-
            SignatureValidator.validate(
              Map.get(changes, :signed_declaration_request),
              Map.get(changes, :signed_content_encoding),
              headers
            ) do
-      {:ok, %{"content" => content, "signer" => signer}}
+      {:ok, %{"content" => content, "signers" => [signer]}}
     else
       error -> normalize_signature_error(error)
     end

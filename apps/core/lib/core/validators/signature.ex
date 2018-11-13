@@ -111,13 +111,19 @@ defmodule Core.Validators.Signature do
        )
        when is_list(signatures) do
     {existing_stamps, existing_signatures} = Enum.split_with(signatures, &Map.get(&1, "is_stamp"))
+
     existing_signatures_count = Enum.count(existing_signatures)
     existing_stamps_count = Enum.count(existing_stamps)
 
     if existing_signatures_count == required_signatures_count && existing_stamps_count == required_stamps_count do
       invalid_signature = Enum.find(signatures, &(!Map.get(&1, "is_valid")))
       # return the last signature and stamp (they are in reverse order)
-      prepare_data(content, invalid_signature, List.first(existing_signatures), List.first(existing_stamps))
+      prepare_data(
+        content,
+        invalid_signature,
+        Enum.take(existing_signatures, required_signatures_count),
+        Enum.take(existing_stamps, existing_stamps_count)
+      )
     else
       {:error,
        {:bad_request,
@@ -145,12 +151,12 @@ defmodule Core.Validators.Signature do
 
   defp get_count_phrase(word, count), do: "#{count} #{word}#{if count == 1, do: "", else: "s"}"
 
-  defp prepare_data(content, nil, signature, stamp) do
+  defp prepare_data(content, nil, signatures, stamps) do
     {:ok,
      %{
        "content" => content,
-       "signer" => Map.get(signature || %{}, "signer"),
-       "stamp" => Map.get(stamp || %{}, "signer")
+       "signers" => Enum.map(signatures, fn signature -> Map.get(signature || %{}, "signer") end),
+       "stamps" => Enum.map(stamps, fn stamp -> Map.get(stamp || %{}, "signer") end)
      }}
   end
 

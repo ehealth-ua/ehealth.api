@@ -22,7 +22,7 @@ defmodule Core.LegalEntities.Validator do
 
   def decode_and_validate(params, headers) do
     with :ok <- JsonSchema.validate(:legal_entity_sign, params),
-         {_, {:ok, %{"content" => content, "signer" => signer}}} <-
+         {_, {:ok, %{"content" => content, "signers" => [signer]}}} <-
            {:signed_content,
             SignatureValidator.validate(
               params["signed_legal_entity_request"],
