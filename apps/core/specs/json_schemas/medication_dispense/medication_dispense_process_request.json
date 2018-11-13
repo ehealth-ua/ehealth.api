@@ -2,7 +2,7 @@
     "$schema": "http://json-schema.org/draft-04/schema#",
     "type": "object",
     "properties": {
-        "signed_content": {
+        "signed_medication_dispense": {
             "type": "string"
         },
         "signed_content_encoding": {
@@ -13,7 +13,7 @@
         }
     },
     "required": [
-        "signed_content",
+        "signed_medication_dispense",
         "signed_content_encoding"
     ]
 }

@@ -1180,7 +1180,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(party_user.user_id)
         |> patch(medication_dispense_path(conn, :process, medication_dispense["id"]), %{
-          "signed_content" =>
+          "signed_medication_dispense" =>
             content
             |> Jason.encode!()
             |> Base.encode64(),
@@ -1329,7 +1329,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(party_user.user_id)
         |> patch(medication_dispense_path(conn, :process, medication_dispense["id"]), %{
-          "signed_content" =>
+          "signed_medication_dispense" =>
             %{}
             |> Jason.encode!()
             |> Base.encode64(),
@@ -1383,11 +1383,11 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       assert %{
                "invalid" => [
                  %{
-                   "entry" => "$.signed_content",
+                   "entry" => "$.signed_medication_dispense",
                    "entry_type" => "json_data_property",
                    "rules" => [
                      %{
-                       "description" => "required property signed_content was not present",
+                       "description" => "required property signed_medication_dispense was not present",
                        "params" => [],
                        "rule" => "required"
                      }
@@ -1498,7 +1498,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(party_user.user_id)
         |> patch(medication_dispense_path(conn, :process, medication_dispense["id"]), %{
-          "signed_content" => content,
+          "signed_medication_dispense" => content,
           "signed_content_encoding" => "base64"
         })
         |> json_response(422)
@@ -1665,7 +1665,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(party_user.user_id)
         |> patch(medication_dispense_path(conn, :process, medication_dispense["id"]), %{
-          "signed_content" =>
+          "signed_medication_dispense" =>
             %{}
             |> Jason.encode!()
             |> Base.encode64(),
@@ -1739,7 +1739,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(party_user.user_id)
         |> patch(medication_dispense_path(conn, :process, medication_dispense["id"]), %{
-          "signed_content" =>
+          "signed_medication_dispense" =>
             %{}
             |> Jason.encode!()
             |> Base.encode64(),
@@ -1814,7 +1814,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(party_user.user_id)
         |> patch(medication_dispense_path(conn, :process, medication_dispense["id"]), %{
-          "signed_content" =>
+          "signed_medication_dispense" =>
             %{}
             |> Jason.encode!()
             |> Base.encode64(),
@@ -1891,7 +1891,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(party_user.user_id)
         |> patch(medication_dispense_path(conn, :process, medication_dispense["id"]), %{
-          "signed_content" =>
+          "signed_medication_dispense" =>
             %{}
             |> Jason.encode!()
             |> Base.encode64(),
@@ -1967,7 +1967,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(party_user.user_id)
         |> patch(medication_dispense_path(conn, :process, medication_dispense["id"]), %{
-          "signed_content" =>
+          "signed_medication_dispense" =>
             %{}
             |> Jason.encode!()
             |> Base.encode64(),
@@ -2023,7 +2023,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
              |> put_client_id_header(legal_entity_action.id)
              |> put_consumer_id_header(party_user.user_id)
              |> patch(medication_dispense_path(conn, :process, medication_dispense["id"]), %{
-               "signed_content" =>
+               "signed_medication_dispense" =>
                  %{}
                  |> Jason.encode!()
                  |> Base.encode64(),
@@ -2148,7 +2148,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         |> put_client_id_header(legal_entity_action.id)
         |> put_consumer_id_header(party_user.user_id)
         |> patch(medication_dispense_path(conn, :process, medication_dispense["id"]), %{
-          "signed_content" =>
+          "signed_medication_dispense" =>
             content
             |> Jason.encode!()
             |> Base.encode64(),
@@ -2259,7 +2259,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(party_user.user_id)
         |> patch(medication_dispense_path(conn, :process, medication_dispense["id"]), %{
-          "signed_content" =>
+          "signed_medication_dispense" =>
             content
             |> Jason.encode!()
             |> Base.encode64(),

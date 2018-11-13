@@ -153,7 +153,8 @@ defmodule Core.MedicationDispense.API do
       "updated_by" => user_id
     }
 
-    with {:ok, medication_dispense, references} <- get_by_id(params, headers),
+    with {:ok, medication_dispense, references} <-
+           get_by_id(Map.drop(params, ~w(signed_medication_dispense signed_content_encoding)), headers),
          :ok <- JsonSchema.validate(:medication_dispense_process, params),
          {:ok, %{"content" => content, "signers" => [signer]}} <- decode_signed_content(params, headers),
          :ok <- SignatureValidator.check_drfo(signer, user_id, "medication_dispense_process"),
@@ -195,7 +196,7 @@ defmodule Core.MedicationDispense.API do
   end
 
   def decode_signed_content(
-        %{"signed_content" => signed_content, "signed_content_encoding" => encoding},
+        %{"signed_medication_dispense" => signed_content, "signed_content_encoding" => encoding},
         headers
       ) do
     SignatureValidator.validate(signed_content, encoding, headers)
@@ -249,7 +250,7 @@ defmodule Core.MedicationDispense.API do
     end)
   end
 
-  defp save_signed_content(id, %{"signed_content" => signed_content}, headers) do
+  defp save_signed_content(id, %{"signed_medication_dispense" => signed_content}, headers) do
     signed_content
     |> @media_storage_api.store_signed_content(
       :medication_dispense_bucket,
