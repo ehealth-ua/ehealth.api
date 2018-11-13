@@ -28,8 +28,9 @@ defmodule GraphQLWeb.Schema.DictionaryTypes do
   object :dictionary_mutations do
     payload field(:update_dictionary) do
       input do
-        field(:name, non_null(:string))
-        field(:is_active, non_null(:boolean))
+        field(:id, non_null(:id))
+        field(:name, :string)
+        field(:is_active, :boolean)
         field(:labels, list_of(:string))
         field(:values, :json)
       end
@@ -38,7 +39,7 @@ defmodule GraphQLWeb.Schema.DictionaryTypes do
         field(:dictionary, :dictionary)
       end
 
-      resolve(&DictionaryResolver.create_or_update/2)
+      resolve(&DictionaryResolver.update/2)
     end
   end
 

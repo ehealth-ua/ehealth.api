@@ -28,8 +28,9 @@ defmodule GraphQLWeb.Resolvers.DictionaryResolver do
 
   defp prepare_filter([head | tail]), do: [head | prepare_filter(tail)]
 
-  def create_or_update(%{name: name} = args, _resolution) do
-    with {:ok, %Dictionary{} = dictionary} <- Dictionaries.create_or_update_dictionary(name, args) do
+  def update(%{id: id} = args, _resolution) do
+    with {:ok, dictionary} <- Dictionaries.fetch_by_id(id),
+         {:ok, dictionary} <- Dictionaries.update_dictionary(dictionary, args) do
       {:ok, %{dictionary: dictionary}}
     end
   end
