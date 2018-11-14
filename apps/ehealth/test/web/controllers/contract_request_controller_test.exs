@@ -1393,6 +1393,45 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
     end
+
+    test "success with zero nhs_contract_price", %{conn: conn} do
+      msp()
+      employee = insert(:prm, :employee)
+
+      contract_request =
+        insert(
+          :il,
+          :contract_request,
+          status: @contract_request_status_in_process,
+          start_date: Date.add(Date.utc_today(), 10),
+          contractor_owner_id: employee.id
+        )
+
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
+      end)
+
+      legal_entity = insert(:prm, :legal_entity)
+
+      request_data = %{
+        "nhs_contract_price" => 0,
+        "nhs_payment_method" => "prepayment",
+        "nhs_signer_base" => "на підставі наказу"
+      }
+
+      assert resp =
+               conn
+               |> put_client_id_header(legal_entity.id)
+               |> patch(contract_request_path(conn, :update, contract_request.id), request_data)
+               |> json_response(200)
+
+      schema =
+        "../core/specs/json_schemas/contract_request/contract_request_show_response.json"
+        |> File.read!()
+        |> Jason.decode!()
+
+      assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
+    end
   end
 
   describe "assign contract_request" do

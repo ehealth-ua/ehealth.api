@@ -15,7 +15,6 @@
         "nhs_contract_price": {
             "type": "number",
             "minimum": 0,
-            "exclusiveMinimum": true,
             "description": "contract price"
         },
         "nhs_payment_method": {

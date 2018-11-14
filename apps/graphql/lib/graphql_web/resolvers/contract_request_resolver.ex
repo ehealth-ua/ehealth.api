@@ -166,6 +166,9 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
       {:error, {:forbidden, error}} ->
         {:error, format_forbidden_error(error)}
 
+      {:error, [_ | _] = errors} ->
+        {:error, format_unprocessable_entity_error(errors)}
+
       error ->
         error
     end
