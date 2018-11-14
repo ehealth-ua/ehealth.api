@@ -2,15 +2,20 @@ defmodule EHealth.Web.LegalEntityControllerTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase, async: false
+
   import Mox
   import Core.Expectations.Signature
   import Core.Expectations.Man
+
   alias Ecto.UUID
   alias Core.Employees.Employee
   alias Core.PRMRepo
   alias Core.LegalEntities
   alias Core.LegalEntities.LegalEntity
   alias Core.Contracts.Contract
+
+  @legal_entity_type_pharmacy LegalEntity.type(:pharmacy)
+  @kveds_allowed_pharmacy "47.73"
 
   setup :verify_on_exit!
   setup :set_mox_global
@@ -42,7 +47,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       assert resp["error"]
     end
 
-    test "create legal entity with invalid drfo", %{conn: conn} do
+    test "fail to create legal entity with invalid drfo", %{conn: conn} do
       insert_dictionaries()
       legal_entity_type = "MSP"
       legal_entity_params = Map.merge(get_legal_entity_data(), %{"type" => legal_entity_type, "edrpou" => "01234АЄ"})
@@ -76,7 +81,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
              } = resp["error"]
     end
 
-    test "create legal entity without edrpou / drfo in signature", %{conn: conn} do
+    test "fail to create legal entity without edrpou / drfo in signature", %{conn: conn} do
       validate_addresses()
 
       insert_dictionaries()
@@ -111,7 +116,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       assert [%{"rules" => [%{"description" => "EDRPOU and DRFO is empty in digital sign"}]}] = resp["error"]["invalid"]
     end
 
-    test "create legal entity with wrong type", %{conn: conn} do
+    test "fail to create legal entity with wrong type", %{conn: conn} do
       insert_dictionaries()
       invalid_legal_entity_type = "MIS"
       legal_entity_params = Map.merge(get_legal_entity_data(), %{"type" => invalid_legal_entity_type})
@@ -129,6 +134,57 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
       assert resp
       assert resp["error"]["message"] == "Only legal_entity with type MSP or Pharmacy could be created"
+    end
+
+    test "fail to create legal_entity with pharmacy type without licence_number", %{conn: conn} do
+      {_, legal_entity_params} =
+        get_legal_entity_data()
+        |> Map.merge(%{"type" => @legal_entity_type_pharmacy})
+        |> pop_in(["medical_service_provider", "licenses", Access.all(), "license_number"])
+
+      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
+      edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
+
+      resp =
+        conn
+        |> put_req_header("content-type", "application/json")
+        |> put_req_header("content-length", "7000")
+        |> put_req_header("x-consumer-id", UUID.generate())
+        |> put_req_header("edrpou", legal_entity_params["edrpou"])
+        |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
+        |> json_response(422)
+
+      assert %{"error" => %{"invalid" => [%{"entry" => "$.medical_service_provider.licenses.0.license_number"}]}} = resp
+    end
+
+    test "create legal entity with type pharmacy", %{conn: conn} do
+      get_client_type_by_name(UUID.generate())
+      put_client()
+      upsert_client_connection()
+      validate_addresses()
+      template()
+
+      insert_dictionaries()
+
+      legal_entity_params =
+        Map.merge(get_legal_entity_data(), %{
+          "type" => @legal_entity_type_pharmacy,
+          "kveds" => [@kveds_allowed_pharmacy]
+        })
+
+      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
+      edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
+
+      resp =
+        conn
+        |> put_req_header("content-type", "application/json")
+        |> put_req_header("content-length", "7000")
+        |> put_req_header("x-consumer-id", UUID.generate())
+        |> put_req_header("edrpou", legal_entity_params["edrpou"])
+        |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
+        |> json_response(200)
+
+      assert resp
     end
 
     test "create legal entity sign edrpou", %{conn: conn} do
@@ -257,7 +313,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       assert resp
     end
 
-    test "create legal entity sign drfo passport number is not allowed", %{conn: conn} do
+    test "fail to create legal entity sign drfo passport number is not allowed", %{conn: conn} do
       insert_dictionaries()
       legal_entity_type = "MSP"
       legal_entity_params = Map.merge(get_legal_entity_data(), %{"type" => legal_entity_type, "edrpou" => "ЯЁ756475"})
@@ -291,7 +347,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
              } = resp["error"]
     end
 
-    test "create legal entity edrpou is not match with signer", %{conn: conn} do
+    test "fail to create legal entity edrpou is not match with signer", %{conn: conn} do
       validate_addresses()
       insert_dictionaries()
       legal_entity_type = "MSP"

@@ -33,6 +33,7 @@ defmodule Core.LegalEntities.Validator do
          content = lowercase_emails(content),
          :ok <- validate_json_objects(content),
          :ok <- validate_type(content),
+         :ok <- validate_pharmacy_license_number(content),
          :ok <- validate_kveds(content),
          :ok <- validate_addresses(content, headers),
          :ok <- validate_tax_id(content),
@@ -60,6 +61,27 @@ defmodule Core.LegalEntities.Validator do
   defp validate_type(%{"type" => @msp}), do: :ok
   defp validate_type(%{"type" => @pharmacy}), do: :ok
   defp validate_type(_), do: Error.dump("Only legal_entity with type MSP or Pharmacy could be created")
+
+  defp validate_pharmacy_license_number(%{"type" => @pharmacy} = content) do
+    content
+    |> get_in(~w(medical_service_provider licenses))
+    |> Enum.with_index()
+    |> Enum.reduce_while(:ok, fn {licence, index}, _acc ->
+      case Map.has_key?(licence, "license_number") do
+        true ->
+          {:cont, :ok}
+
+        _ ->
+          {:halt,
+           Error.dump(%ValidationError{
+             description: "license_number is required for legal_entity with type \"pharmacy\"",
+             path: "$.medical_service_provider.licenses.#{index}.license_number"
+           })}
+      end
+    end)
+  end
+
+  defp validate_pharmacy_license_number(_), do: :ok
 
   def validate_kveds(content) do
     content
