@@ -649,6 +649,13 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.V1.CreateTest do
          }}
       end)
 
+      expect(MPIMock, :search, fn _, _ ->
+        {:ok,
+         %{
+           "data" => []
+         }}
+      end)
+
       declaration_request = %DeclarationRequest{
         data: %{
           "person" => %{
@@ -673,7 +680,12 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.V1.CreateTest do
       changeset =
         declaration_request
         |> Ecto.Changeset.change()
-        |> Creator.determine_auth_method_for_mpi(DeclarationRequest.channel(:mis), UUID.generate())
+        |> Creator.determine_auth_method_for_mpi(DeclarationRequest.channel(:mis), %{
+          global_parameters: %{
+            "phone_number_auth_limit" => "5"
+          },
+          person_id: UUID.generate()
+        })
 
       assert %{"type" => "OTP", "number" => "+380508887701"} == get_change(changeset, :authentication_method_current)
     end
@@ -787,7 +799,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.V1.CreateTest do
       assert {:ok, nil} == Creator.check_phone_number_auth_limit({:ok, nil}, changeset, auxiliary_entities)
     end
 
-    test "returns error when there are too much persons with current phone number as auth method" do
+    test "returns error when there are too much persons with current phone number as auth method and person is new" do
       expect(MPIMock, :search, fn _, _ ->
         {:ok,
          %{
@@ -828,6 +840,102 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.V1.CreateTest do
 
       assert {:error, :authentication_methods, "This phone number is present more than 5 times in the system"} ==
                Creator.check_phone_number_auth_limit({:ok, nil}, changeset, auxiliary_entities)
+    end
+
+    test "does not check limit when person is not new but phone_number is the same" do
+      declaration_request = %DeclarationRequest{
+        data: %{
+          "person" => %{
+            "first_name" => "test",
+            "last_name" => "test",
+            "birth_date" => "1990-01-01",
+            "phones" => [
+              %{
+                "number" => "+380508887701"
+              }
+            ],
+            "authentication_methods" => [
+              %{
+                "type" => "OTP",
+                "phone_number" => "+380508887701"
+              }
+            ]
+          }
+        }
+      }
+
+      person = %{
+        "authentication_methods" => [
+          %{
+            "type" => "OTP",
+            "phone_number" => "+380508887701"
+          }
+        ]
+      }
+
+      changeset =
+        declaration_request
+        |> Ecto.Changeset.change()
+
+      auxiliary_entities = %{
+        global_parameters: %{
+          "phone_number_auth_limit" => "5"
+        }
+      }
+
+      assert {:ok, person} == Creator.check_phone_number_auth_limit({:ok, person}, changeset, auxiliary_entities)
+    end
+
+    test "returns error when there are too much persons with current phone number as auth method and person is not new but phone_number is new" do
+      expect(MPIMock, :search, fn _, _ ->
+        {:ok,
+         %{
+           "data" => Enum.map(1..5, fn _ -> %{} end)
+         }}
+      end)
+
+      declaration_request = %DeclarationRequest{
+        data: %{
+          "person" => %{
+            "first_name" => "test",
+            "last_name" => "test",
+            "birth_date" => "1990-01-01",
+            "phones" => [
+              %{
+                "number" => "+380508887701"
+              }
+            ],
+            "authentication_methods" => [
+              %{
+                "type" => "OTP",
+                "phone_number" => "+380508887701"
+              }
+            ]
+          }
+        }
+      }
+
+      person = %{
+        "authentication_methods" => [
+          %{
+            "type" => "OTP",
+            "phone_number" => "+380508887702"
+          }
+        ]
+      }
+
+      changeset =
+        declaration_request
+        |> Ecto.Changeset.change()
+
+      auxiliary_entities = %{
+        global_parameters: %{
+          "phone_number_auth_limit" => "5"
+        }
+      }
+
+      assert {:error, :authentication_methods, "This phone number is present more than 5 times in the system"} ==
+               Creator.check_phone_number_auth_limit({:ok, person}, changeset, auxiliary_entities)
     end
 
     test "does not check limit when new person has offline auth method" do
