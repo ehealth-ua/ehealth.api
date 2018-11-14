@@ -653,7 +653,7 @@ defmodule Core.ContractRequests do
         misc
       )a
     )
-    |> validate_number(:nhs_contract_price, greater_than: 0)
+    |> validate_number(:nhs_contract_price, greater_than_or_equal_to: 0)
   end
 
   def approve_changeset(%ContractRequest{} = contract_request, params) do
