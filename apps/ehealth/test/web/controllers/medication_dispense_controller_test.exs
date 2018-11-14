@@ -1211,9 +1211,16 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
          }}
       end)
 
-      conn = put_client_id_header(conn, UUID.generate())
-      conn = patch(conn, medication_dispense_path(conn, :process, UUID.generate()))
-      assert json_response(conn, 404)
+      assert conn
+             |> put_client_id_header(UUID.generate())
+             |> patch(medication_dispense_path(conn, :process, UUID.generate()), %{
+               "signed_medication_dispense" =>
+                 %{}
+                 |> Jason.encode!()
+                 |> Base.encode64(),
+               "signed_content_encoding" => "base64"
+             })
+             |> json_response(404)
     end
 
     test "invalid legal_entity_id", %{conn: conn} do
@@ -1264,9 +1271,16 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         {:ok, %{"data" => [medication_dispense]}}
       end)
 
-      conn = put_client_id_header(conn, UUID.generate())
-      conn = patch(conn, medication_dispense_path(conn, :process, medication_dispense["id"]))
-      assert json_response(conn, 404)
+      assert conn
+             |> put_client_id_header(UUID.generate())
+             |> patch(medication_dispense_path(conn, :process, medication_dispense["id"]), %{
+               "signed_medication_dispense" =>
+                 %{}
+                 |> Jason.encode!()
+                 |> Base.encode64(),
+               "signed_content_encoding" => "base64"
+             })
+             |> json_response(404)
     end
 
     test "invalid transition", %{conn: conn} do
@@ -1342,37 +1356,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
     test "invalid request params", %{conn: conn} do
       msp()
-      expect_mpi_get_person()
-
       legal_entity = insert(:prm, :legal_entity)
-      medication = insert(:prm, :medication)
-      party = insert(:prm, :party)
-      insert(:prm, :party_user, party: party)
-      %{id: innm_dosage_id} = insert_innm_dosage()
-      %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
-      division = insert(:prm, :division, legal_entity: legal_entity)
-      insert_medication(innm_dosage_id)
-      medical_program = insert(:prm, :medical_program)
-
-      {_, medication_dispense} =
-        build_resp(%{
-          legal_entity_id: legal_entity.id,
-          division_id: division.id,
-          employee_id: employee_id,
-          medical_program_id: medical_program.id,
-          medication_id: innm_dosage_id,
-          medication_dispense_params: %{
-            party_id: party.id
-          },
-          medication_dispense_details_params: %{
-            medication_id: medication.id,
-            division_id: division.id
-          }
-        })
-
-      expect(OPSMock, :get_medication_dispenses, fn _params, _headers ->
-        {:ok, %{"data" => [medication_dispense]}}
-      end)
 
       resp =
         conn

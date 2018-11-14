@@ -153,9 +153,9 @@ defmodule Core.MedicationDispense.API do
       "updated_by" => user_id
     }
 
-    with {:ok, medication_dispense, references} <-
+    with :ok <- JsonSchema.validate(:medication_dispense_process, params),
+         {:ok, medication_dispense, references} <-
            get_by_id(Map.drop(params, ~w(signed_medication_dispense signed_content_encoding)), headers),
-         :ok <- JsonSchema.validate(:medication_dispense_process, params),
          {:ok, %{"content" => content, "signers" => [signer]}} <- decode_signed_content(params, headers),
          :ok <- SignatureValidator.check_drfo(signer, user_id, "medication_dispense_process"),
          :ok <- SignatureValidator.check_last_name(signer, user_id),
