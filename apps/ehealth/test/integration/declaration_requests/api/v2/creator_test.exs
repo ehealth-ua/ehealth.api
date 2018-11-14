@@ -647,6 +647,13 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.V2.CreateTest do
          }}
       end)
 
+      expect(MPIMock, :search, fn _, _ ->
+        {:ok,
+         %{
+           "data" => []
+         }}
+      end)
+
       declaration_request = %DeclarationRequest{
         data: %{
           "person" => %{
@@ -671,7 +678,12 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.V2.CreateTest do
       changeset =
         declaration_request
         |> Ecto.Changeset.change()
-        |> Creator.determine_auth_method_for_mpi(DeclarationRequest.channel(:mis), UUID.generate())
+        |> Creator.determine_auth_method_for_mpi(DeclarationRequest.channel(:mis), %{
+          global_parameters: %{
+            "phone_number_auth_limit" => "5"
+          },
+          person_id: UUID.generate()
+        })
 
       assert %{"type" => "OTP", "number" => "+380508887701"} == get_change(changeset, :authentication_method_current)
     end

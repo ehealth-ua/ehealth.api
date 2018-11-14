@@ -669,43 +669,58 @@ defmodule Core.DeclarationRequests.API.V1.Creator do
     end
   end
 
-  defp prepare_auth_phone_number_param(%{"phone_number" => phone_number}), do: %{"auth_phone_number" => phone_number}
-  defp prepare_auth_phone_number_param(_), do: {:ok, nil}
-
-  defp use_phone_number_auth_limit do
+  def check_phone_number_auth_limit({:ok, _} = search_result, changeset, auxiliary_entities) do
     if config()[:use_phone_number_auth_limit] do
-      true
+      phone_number =
+        changeset
+        |> get_field(:data)
+        |> get_in(["person", "authentication_methods"])
+        |> Enum.find(fn authentication_method -> Map.has_key?(authentication_method, "phone_number") end)
+        |> Kernel.||(%{})
+        |> Map.get("phone_number")
+
+      check_search_result(search_result, phone_number, auxiliary_entities)
     else
-      {:ok, nil}
+      search_result
     end
   end
 
-  def check_phone_number_auth_limit({:ok, nil}, changeset, auxiliary_entities) do
+  def check_phone_number_auth_limit(error, _, _), do: error
+
+  defp check_search_result(search_result, nil, _), do: search_result
+
+  defp check_search_result({:ok, nil}, phone_number, auxiliary_entities),
+    do: run_phone_number_auth_limit_check(nil, phone_number, auxiliary_entities)
+
+  defp check_search_result({:ok, person}, phone_number, auxiliary_entities) do
+    new_phone_number? =
+      person
+      |> Map.get("authentication_methods")
+      |> Enum.filter(fn authentication_method -> Map.get(authentication_method, "phone_number") == phone_number end)
+      |> Enum.empty?()
+
+    if new_phone_number? do
+      run_phone_number_auth_limit_check(person, phone_number, auxiliary_entities)
+    else
+      {:ok, person}
+    end
+  end
+
+  defp run_phone_number_auth_limit_check(search_params, phone_number, auxiliary_entities) do
     phone_number_auth_limit =
       auxiliary_entities
       |> get_in([:global_parameters, "phone_number_auth_limit"])
       |> String.to_integer()
 
-    search_params =
-      changeset
-      |> get_field(:data)
-      |> get_in(["person", "authentication_methods"])
-      |> Enum.find(fn authentication_method -> Map.has_key?(authentication_method, "phone_number") end)
-      |> prepare_auth_phone_number_param()
-
-    with true <- use_phone_number_auth_limit(),
-         %{"auth_phone_number" => _} <- search_params,
-         {:ok, persons} <- mpi_search(search_params) do
+    with {:ok, persons} <- mpi_search(%{"auth_phone_number" => phone_number}) do
       if Enum.count(persons) < phone_number_auth_limit do
-        {:ok, nil}
+        {:ok, search_params}
       else
         {:error, :authentication_methods,
          "This phone number is present more than #{phone_number_auth_limit} times in the system"}
       end
     end
   end
-
-  def check_phone_number_auth_limit(person, _, _), do: person
 
   def determine_auth_method_for_mpi(%Changeset{valid?: false} = changeset, _, _), do: changeset
 
