@@ -8,11 +8,6 @@ defmodule Casher do
   def start(_type, _args) do
     children =
       Enum.concat(redis_workers(), [
-        %{
-          id: Casher.GRPC.Server.Supervisor,
-          start:
-            {Casher.GRPC.Server.Supervisor, :start_link, [{Casher.Grpc.Server, Confex.get_env(:casher, :grpc_port)}]}
-        },
         supervisor(Casher.Web.Endpoint, [])
       ])
 

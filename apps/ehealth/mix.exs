@@ -50,7 +50,6 @@ defmodule EHealth.Mixfile do
       {:phoenix, "~> 1.4.0-rc.3", override: true},
       {:phoenix_ecto, "~> 3.2"},
       {:plug_cowboy, "~> 2.0"},
-      {:grpc, "~> 0.3.0-alpha.2"},
       {:ecto, "~> 2.1"},
       {:ecto_trail, "0.2.3"},
       {:eview, "~> 0.12.2"},
