@@ -34,6 +34,7 @@ defmodule Core.LegalEntities.LegalEntity do
   schema "legal_entities" do
     field(:is_active, :boolean, default: false)
     field(:nhs_verified, :boolean, default: false)
+    field(:nhs_reviewed, :boolean, default: false)
     field(:addresses, {:array, :map})
     field(:edrpou, :string)
     field(:email, :string)

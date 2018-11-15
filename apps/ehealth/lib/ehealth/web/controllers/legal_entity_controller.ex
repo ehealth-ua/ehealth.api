@@ -1,7 +1,6 @@
 defmodule EHealth.Web.LegalEntityController do
-  @moduledoc """
-  Sample controller for generated application.
-  """
+  @moduledoc false
+
   use EHealth.Web, :controller
 
   alias Scrivener.Page

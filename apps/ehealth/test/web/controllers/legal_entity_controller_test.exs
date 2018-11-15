@@ -301,16 +301,56 @@ defmodule EHealth.Web.LegalEntityControllerTest do
          }}
       end)
 
-      resp =
-        conn
-        |> put_req_header("content-type", "application/json")
-        |> put_req_header("content-length", "7000")
-        |> put_req_header("x-consumer-id", UUID.generate())
-        |> put_req_header("edrpou", legal_entity_params["edrpou"])
-        |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
-        |> json_response(200)
+      assert %{"data" => resp_data} =
+               conn
+               |> put_req_header("content-type", "application/json")
+               |> put_req_header("content-length", "7000")
+               |> put_req_header("x-consumer-id", UUID.generate())
+               |> put_req_header("edrpou", legal_entity_params["edrpou"])
+               |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
+               |> json_response(200)
 
-      assert resp
+      assert %{"nhs_reviewed" => false, "nhs_verified" => false} = resp_data
+    end
+
+    test "update legal entity sign drfo code when edrpou nil string", %{conn: conn} do
+      %{edrpou: edrpou} = insert(:prm, :legal_entity)
+
+      get_client_type_by_name(UUID.generate())
+      put_client()
+      upsert_client_connection()
+
+      validate_addresses()
+      template()
+
+      insert_dictionaries()
+      legal_entity_type = "MSP"
+      legal_entity_params = Map.merge(get_legal_entity_data(), %{"type" => legal_entity_type, "edrpou" => edrpou})
+      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
+
+      expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
+        {:ok,
+         %{
+           "data" => %{
+             "content" => legal_entity_params,
+             "signatures" =>
+               Enum.map([legal_entity_params["edrpou"]], fn drfo ->
+                 %{"is_valid" => true, "signer" => %{"drfo" => drfo, "edrpou" => nil}}
+               end)
+           }
+         }}
+      end)
+
+      assert %{"data" => resp_data} =
+               conn
+               |> put_req_header("content-type", "application/json")
+               |> put_req_header("content-length", "7000")
+               |> put_req_header("x-consumer-id", UUID.generate())
+               |> put_req_header("edrpou", legal_entity_params["edrpou"])
+               |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
+               |> json_response(200)
+
+      assert %{"nhs_reviewed" => false, "nhs_verified" => false} = resp_data
     end
 
     test "fail to create legal entity sign drfo passport number is not allowed", %{conn: conn} do
@@ -591,8 +631,12 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       assert Map.has_key?(resp, "data")
       assert Map.has_key?(resp, "paging")
       assert_list_response_schema(resp["data"], "legal_entity")
-      assert Enum.all?(resp["data"], &Map.has_key?(&1, "mis_verified"))
-      assert Enum.all?(resp["data"], &Map.has_key?(&1, "nhs_verified"))
+
+      Enum.each(resp["data"], fn resp_entity ->
+        assert %{"mis_verified" => _, "nhs_verified" => _, "nhs_reviewed" => _} = resp_entity
+      end)
+
+      assert_list_response_schema(resp["data"], "legal_entity")
       assert 1 == length(resp["data"])
     end
 
@@ -720,12 +764,14 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       msp()
       get_client_connections()
       %{id: id} = insert(:prm, :legal_entity)
-      conn = put_client_id_header(conn, id)
-      conn = get(conn, legal_entity_path(conn, :show, id))
-      resp = json_response(conn, 200)
 
-      assert "VERIFIED" == resp["data"]["mis_verified"]
-      refute is_nil(resp["data"]["nhs_verified"])
+      resp =
+        conn
+        |> put_client_id_header(id)
+        |> get(legal_entity_path(conn, :show, id))
+        |> json_response(200)
+
+      assert match?(%{"mis_verified" => "VERIFIED", "nhs_reviewed" => _}, resp["data"])
       refute resp["data"]["nhs_verified"]
     end
 

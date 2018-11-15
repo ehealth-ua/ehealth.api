@@ -69,6 +69,7 @@ defmodule Core.LegalEntities do
     email
     is_active
     nhs_verified
+    nhs_reviewed
     created_by_mis_client_id
     archive
     receiver_funds_code
@@ -265,13 +266,13 @@ defmodule Core.LegalEntities do
 
   # Create legal entity
 
-  def create(attrs, headers) do
-    with {:ok, request_params} <- Validator.decode_and_validate(attrs, headers),
+  def create(params, headers) do
+    with {:ok, request_params} <- Validator.decode_and_validate(params, headers),
          edrpou <- Map.fetch!(request_params, "edrpou"),
          type <- Map.fetch!(request_params, "type"),
          legal_entity <- get_or_create_by_edrpou_type(edrpou, type),
          :ok <- check_status(legal_entity),
-         {:ok, _} <- store_signed_content(legal_entity.id, attrs, headers),
+         {:ok, _} <- store_signed_content(legal_entity.id, params, headers),
          request_params <- put_mis_verified_state(request_params),
          {:ok, legal_entity} <- put_legal_entity_to_prm(legal_entity, request_params, headers),
          {:ok, client_type_id} <- get_client_type_id(type, headers),
@@ -323,7 +324,8 @@ defmodule Core.LegalEntities do
         "inserted_by" => consumer_id,
         "updated_by" => consumer_id,
         "created_by_mis_client_id" => client_id,
-        "nhs_verified" => false
+        "nhs_verified" => false,
+        "nhs_reviewed" => false
       })
 
     create(legal_entity, creation_data, consumer_id)
@@ -342,7 +344,9 @@ defmodule Core.LegalEntities do
       |> Map.delete("edrpou")
       |> Map.merge(%{
         "updated_by" => consumer_id,
-        "is_active" => true
+        "is_active" => true,
+        "nhs_verified" => false,
+        "nhs_reviewed" => false
       })
 
     legal_entity

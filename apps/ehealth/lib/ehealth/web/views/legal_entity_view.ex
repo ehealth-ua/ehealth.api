@@ -1,9 +1,10 @@
 defmodule EHealth.Web.LegalEntityView do
   @moduledoc """
-  Sample view for LegalEntitys controller.
+  View for LegalEntities controller.
   """
 
   use EHealth.Web, :view
+
   alias Core.LegalEntities.LegalEntity
   alias Core.LegalEntities.RelatedLegalEntity
   alias Core.LegalEntities.Renderer, as: LegalEntitiesRenderer
@@ -23,16 +24,17 @@ defmodule EHealth.Web.LegalEntityView do
     phones
     email
     is_active
-    inserted_by
-    updated_by
-    inserted_at
-    updated_at
     nhs_verified
+    nhs_reviewed
     mis_verified
     archive
     website
     beneficiary
     receiver_funds_code
+    inserted_at
+    inserted_by
+    updated_at
+    updated_by
   )a
 
   def render("index.json", %{legal_entities: legal_entities}) do
