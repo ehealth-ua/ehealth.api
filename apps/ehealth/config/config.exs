@@ -5,8 +5,7 @@ config :ehealth,
   env: Mix.env(),
   namespace: EHealth,
   run_declaration_request_terminator: true,
-  sensitive_data_in_response: {:system, :boolean, "SENSITIVE_DATA_IN_RESPONSE_ENABLED", false},
-  grpc_port: {:system, :integer, "GRPC_PORT", 50_050}
+  sensitive_data_in_response: {:system, :boolean, "SENSITIVE_DATA_IN_RESPONSE_ENABLED", false}
 
 # Config Jason as default Json encoder for Phoenix
 config :phoenix, :format_encoders, json: Jason
@@ -33,7 +32,5 @@ config :ehealth, EHealth.DeclarationRequests.Terminator,
 
 config :ehealth, EHealth.Contracts.Terminator,
   termination_batch_size: {:system, :integer, "CONTRACT_AUTOTERMINATION_BATCH", 10}
-
-config :grpc, start_server: true
 
 import_config "#{Mix.env()}.exs"

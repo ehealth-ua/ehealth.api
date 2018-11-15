@@ -25,11 +25,7 @@ defmodule EHealth do
       ),
       worker(EHealth.DeclarationRequests.Terminator, [:declaration_request_cleaner], id: :declaration_request_cleaner),
       worker(EHealth.Contracts.Terminator, []),
-      worker(EHealth.Scheduler, []),
-      %{
-        id: GRPC.Server.EHealthSupervisor,
-        start: {GRPC.Server.Supervisor, :start_link, [{EHealth.Grpc.Server, Confex.get_env(:ehealth, :grpc_port)}]}
-      }
+      worker(EHealth.Scheduler, [])
     ]
 
     opts = [strategy: :one_for_one, name: EHealth.Supervisor]
