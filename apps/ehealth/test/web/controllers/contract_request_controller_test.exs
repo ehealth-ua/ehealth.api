@@ -1401,7 +1401,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       contract_request =
         insert(
           :il,
-          :contract_request,
+          :capitation_contract_request,
           status: @contract_request_status_in_process,
           start_date: Date.add(Date.utc_today(), 10),
           contractor_owner_id: employee.id
