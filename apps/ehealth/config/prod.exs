@@ -34,7 +34,8 @@ config :ehealth, EHealth.Scheduler,
   jobs: [
     medication_request_request_autotermination: [
       schedule: "* * * * *",
-      task: {Core.MedicationRequestRequests, :autoterminate, []}
+      task: {Core.MedicationRequestRequests, :autoterminate, []},
+      run_strategy: Quantum.RunStrategy.Local
     ]
   ]
 

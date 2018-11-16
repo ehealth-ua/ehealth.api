@@ -5,6 +5,7 @@ defmodule EHealth.Scheduler do
 
   alias Crontab.CronExpression.Parser
   alias Quantum.Job
+  alias Quantum.RunStrategy.Local
   import EHealth.DeclarationRequests.Terminator, only: [terminate_declaration_requests: 0]
   import Core.EmployeeRequests, only: [terminate_employee_requests: 0]
   import EHealth.Contracts.Terminator, only: [terminate_contracts: 0]
@@ -15,6 +16,7 @@ defmodule EHealth.Scheduler do
     |> Job.set_overlap(false)
     |> Job.set_schedule(Parser.parse!(get_config()[:declaration_request_autotermination]))
     |> Job.set_task(&terminate_declaration_requests/0)
+    |> Job.set_run_strategy(Local)
     |> __MODULE__.add_job()
 
     __MODULE__.new_job()
@@ -22,6 +24,7 @@ defmodule EHealth.Scheduler do
     |> Job.set_overlap(false)
     |> Job.set_schedule(Parser.parse!(get_config()[:employee_request_autotermination]))
     |> Job.set_task(&terminate_employee_requests/0)
+    |> Job.set_run_strategy(Local)
     |> __MODULE__.add_job()
 
     __MODULE__.new_job()
@@ -29,6 +32,7 @@ defmodule EHealth.Scheduler do
     |> Job.set_overlap(false)
     |> Job.set_schedule(Parser.parse!(get_config()[:contract_autotermination]))
     |> Job.set_task(&terminate_contracts/0)
+    |> Job.set_run_strategy(Local)
     |> __MODULE__.add_job()
   end
 
