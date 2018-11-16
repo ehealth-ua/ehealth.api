@@ -4,7 +4,7 @@ defmodule GraphQLWeb.Resolvers.LegalEntityResolver do
   import Absinthe.Resolution.Helpers, only: [on_load: 2]
   import Ecto.Query
   import GraphQLWeb.Resolvers.Helpers.Errors, only: [format_conflict_error: 1, format_not_found_error: 1]
-  import GraphQLWeb.Resolvers.Helpers.Search, only: [filter: 2]
+  import GraphQLWeb.Resolvers.Helpers.Search, only: [search: 2]
 
   alias Absinthe.Relay.Connection
   alias Core.Employees.Employee
@@ -16,12 +16,11 @@ defmodule GraphQLWeb.Resolvers.LegalEntityResolver do
 
   @address_search_fields ~w(area settlement)a
 
-  def list_legal_entities(%{filter: filter, order_by: order_by} = args, _context) do
+  def list_legal_entities(%{filter: filter} = args, _context) do
     filter = prepare_filter(filter)
 
     LegalEntity
-    |> filter(filter)
-    |> order_by(^order_by)
+    |> search(%{args | filter: filter})
     |> Connection.from_query(&PRMRepo.all/1, args)
   end
 

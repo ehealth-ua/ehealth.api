@@ -48,9 +48,9 @@ defmodule GraphQLWeb.Resolvers.Helpers.Search do
     |> filter(Map.to_list(value))
   end
 
-  def filter(query, [{field, {:ilike, value}} | tail]) do
+  def filter(query, [{field, {:like, value}} | tail]) do
     query
-    |> where([..., r], ilike(field(r, ^field), ^value))
+    |> where([..., r], ilike(field(r, ^field), ^"%#{value}%"))
     |> filter(tail)
   end
 
