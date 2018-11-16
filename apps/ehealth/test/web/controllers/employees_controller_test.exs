@@ -144,7 +144,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
       msp()
       edrpou = "37367387"
       legal_entity = insert(:prm, :legal_entity, edrpou: edrpou)
-      employee = insert(:prm, :employee, legal_entity: legal_entity)
+      insert(:prm, :employee, legal_entity: legal_entity)
       insert(:prm, :employee)
       conn = put_client_id_header(build_conn(), legal_entity.id)
       conn = get(conn, employee_path(conn, :index, edrpou: edrpou))

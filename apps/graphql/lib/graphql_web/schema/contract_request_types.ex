@@ -8,7 +8,7 @@ defmodule GraphQLWeb.Schema.ContractRequestTypes do
   import GraphQLWeb.Resolvers.Helpers.Load, only: [load_by_args: 2, load_by_parent: 2, load_by_parent: 3]
 
   alias Absinthe.Relay.Node.ParseIDs
-  alias Core.ContractRequests.ContractRequest
+  alias Core.ContractRequests.CapitationContractRequest
   alias Core.Contracts.Contract
   alias Core.Divisions.Division
   alias Core.Employees.Employee
@@ -16,17 +16,17 @@ defmodule GraphQLWeb.Schema.ContractRequestTypes do
   alias GraphQLWeb.Loaders.{IL, PRM}
   alias GraphQLWeb.Resolvers.ContractRequestResolver
 
-  @status_approved ContractRequest.status(:approved)
-  @status_declined ContractRequest.status(:declined)
-  @status_in_process ContractRequest.status(:in_process)
-  @status_new ContractRequest.status(:new)
-  @status_nhs_signed ContractRequest.status(:nhs_signed)
-  @status_pending_nhs_sign ContractRequest.status(:pending_nhs_sign)
-  @status_signed ContractRequest.status(:signed)
-  @status_terminated ContractRequest.status(:terminated)
+  @status_approved CapitationContractRequest.status(:approved)
+  @status_declined CapitationContractRequest.status(:declined)
+  @status_in_process CapitationContractRequest.status(:in_process)
+  @status_new CapitationContractRequest.status(:new)
+  @status_nhs_signed CapitationContractRequest.status(:nhs_signed)
+  @status_pending_nhs_sign CapitationContractRequest.status(:pending_nhs_sign)
+  @status_signed CapitationContractRequest.status(:signed)
+  @status_terminated CapitationContractRequest.status(:terminated)
 
-  @nhs_payment_method_backward ContractRequest.nhs_payment_method(:backward)
-  @nhs_payment_method_forward ContractRequest.nhs_payment_method(:forward)
+  @nhs_payment_method_backward CapitationContractRequest.nhs_payment_method(:backward)
+  @nhs_payment_method_forward CapitationContractRequest.nhs_payment_method(:forward)
 
   object :contract_request_queries do
     connection field(:contract_requests, node_type: :contract_request) do
@@ -51,7 +51,7 @@ defmodule GraphQLWeb.Schema.ContractRequestTypes do
 
       resolve(
         load_by_args(IL, fn _args, %{context: context} ->
-          {ContractRequest, Map.take(context, ~w(client_id client_type)a)}
+          {CapitationContractRequest, Map.take(context, ~w(client_id client_type)a)}
         end)
       )
     end

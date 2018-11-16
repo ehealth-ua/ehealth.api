@@ -7,7 +7,7 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
 
   alias Absinthe.Relay.Connection
   alias Core.ContractRequests
-  alias Core.ContractRequests.ContractRequest
+  alias Core.ContractRequests.CapitationContractRequest
   alias Core.Contracts
   alias Core.Contracts.Contract
   alias Core.PRMRepo
@@ -32,13 +32,13 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
 
   def get_attached_documents(%Contract{} = parent, args, %{context: %{loader: loader}}) do
     source = IL
-    batch_key = {ContractRequest, args}
+    batch_key = {CapitationContractRequest, args}
     item_key = parent.contract_request_id
 
     loader
     |> Dataloader.load(source, batch_key, item_key)
     |> on_load(fn loader ->
-      with %ContractRequest{id: id, status: status} <- Dataloader.get(loader, source, batch_key, item_key),
+      with %CapitationContractRequest{id: id, status: status} <- Dataloader.get(loader, source, batch_key, item_key),
            documents when is_list(documents) <- ContractRequests.gen_relevant_get_links(id, status) do
         {:ok, documents}
       else

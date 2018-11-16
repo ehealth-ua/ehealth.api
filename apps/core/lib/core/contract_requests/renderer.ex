@@ -5,11 +5,12 @@ defmodule Core.ContractRequests.Renderer do
   and validation can be used in different applications
   """
 
-  alias Core.ContractRequests.ContractRequest
+  alias Core.ContractRequests.CapitationContractRequest
 
-  def render(%ContractRequest{} = contract_request, references) do
+  def render(%CapitationContractRequest{} = contract_request, references) do
     data = Map.take(contract_request, ~w(
       id
+      contract_type
       contractor_base
       contractor_payment_details
       contractor_rmsp_amount
@@ -52,7 +53,7 @@ defmodule Core.ContractRequests.Renderer do
     })
   end
 
-  def render_review_content(%ContractRequest{} = contract_request, associations) do
+  def render_review_content(%CapitationContractRequest{} = contract_request, associations) do
     {legal_entity, review_fields} = Map.pop(associations, :contractor_legal_entity)
     contractor_legal_entity = Map.take(legal_entity, ~w(id edrpou name)a)
 

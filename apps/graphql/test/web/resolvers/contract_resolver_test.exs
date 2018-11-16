@@ -10,9 +10,9 @@ defmodule GraphQLWeb.ContractResolverTest do
   alias Absinthe.Relay.Node
   alias Ecto.UUID
   alias Core.Contracts.Contract
-  alias Core.ContractRequests.ContractRequest
+  alias Core.ContractRequests.CapitationContractRequest
 
-  @contract_request_status_signed ContractRequest.status(:signed)
+  @contract_request_status_signed CapitationContractRequest.status(:signed)
   @contract_status_terminated Contract.status(:terminated)
 
   @list_query """
@@ -362,7 +362,7 @@ defmodule GraphQLWeb.ContractResolverTest do
       contractor_division = insert(:prm, :division, name: "Будьте здорові!")
       contractor_employee_division = insert(:prm, :division, name: "Та Ви не хворійте!")
 
-      contract_request = insert(:il, :contract_request)
+      contract_request = insert(:il, :capitation_contract_request)
 
       contract =
         insert(
@@ -524,7 +524,7 @@ defmodule GraphQLWeb.ContractResolverTest do
         {:ok, %{"data" => %{"secret_url" => "http://example.com/#{id}/#{resource_name}"}}}
       end)
 
-      contract_request = insert(:il, :contract_request)
+      contract_request = insert(:il, :capitation_contract_request)
       contract = insert(:prm, :contract, contract_request_id: contract_request.id)
 
       id = Node.to_global_id("Contract", contract.id)
@@ -569,7 +569,7 @@ defmodule GraphQLWeb.ContractResolverTest do
         {:error, %{"error" => %{"message" => "not found"}}}
       end)
 
-      contract_request = insert(:il, :contract_request)
+      contract_request = insert(:il, :capitation_contract_request)
       contract = insert(:prm, :contract, contract_request_id: contract_request.id)
 
       id = Node.to_global_id("Contract", contract.id)
@@ -615,7 +615,7 @@ defmodule GraphQLWeb.ContractResolverTest do
       contract_request =
         insert(
           :il,
-          :contract_request,
+          :capitation_contract_request,
           status: @contract_request_status_signed,
           external_contractors: external_contractors
         )
@@ -651,7 +651,7 @@ defmodule GraphQLWeb.ContractResolverTest do
       contract_request =
         insert(
           :il,
-          :contract_request,
+          :capitation_contract_request,
           status: @contract_request_status_signed,
           external_contractors: external_contractors
         )

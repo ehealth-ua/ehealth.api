@@ -8,7 +8,6 @@ defmodule EHealth.Web.MedicationRequestRequestView do
   alias EHealth.Web.INNMDosageView
   alias EHealth.Web.LegalEntityView
   alias EHealth.Web.MedicalProgramView
-  alias EHealth.Web.PersonView
 
   def render("index.json", %{medication_request_requests: medication_request_requests}) do
     render_many(

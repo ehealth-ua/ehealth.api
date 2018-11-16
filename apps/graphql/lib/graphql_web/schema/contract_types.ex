@@ -8,7 +8,7 @@ defmodule GraphQLWeb.Schema.ContractTypes do
   import GraphQLWeb.Resolvers.Helpers.Load, only: [load_by_args: 2, load_by_parent: 2]
 
   alias Absinthe.Relay.Node.ParseIDs
-  alias Core.ContractRequests.ContractRequest
+  alias Core.ContractRequests.CapitationContractRequest
   alias Core.Contracts.Contract
   alias GraphQLWeb.Loaders.IL
   alias GraphQLWeb.Loaders.PRM
@@ -170,7 +170,7 @@ defmodule GraphQLWeb.Schema.ContractTypes do
     field(:nhs_payment_method, :nhs_payment_method)
     field(:attached_documents, list_of(:contract_document), resolve: &ContractResolver.get_attached_documents/3)
     field(:parent_contract, :contract, resolve: dataloader(PRM))
-    field(:contract_request, :contract_request, resolve: load_by_parent(IL, ContractRequest))
+    field(:contract_request, :contract_request, resolve: load_by_parent(IL, CapitationContractRequest))
 
     # TODO: Timestamp fields should return :datetime type
     field(:inserted_at, :naive_datetime)

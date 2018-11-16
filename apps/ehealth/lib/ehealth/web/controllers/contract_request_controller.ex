@@ -4,7 +4,7 @@ defmodule EHealth.Web.ContractRequestController do
   use EHealth.Web, :controller
 
   alias Core.ContractRequests
-  alias Core.ContractRequests.ContractRequest
+  alias Core.ContractRequests.CapitationContractRequest
   alias EHealth.Web.ContractView
 
   action_fallback(EHealth.Web.FallbackController)
@@ -22,16 +22,18 @@ defmodule EHealth.Web.ContractRequestController do
     end
   end
 
-  def create(%Plug.Conn{req_headers: headers} = conn, params) do
-    with {:ok, %ContractRequest{} = contract_request, references} <- ContractRequests.create(headers, params) do
+  def create(%Plug.Conn{} = conn, params) do
+    with {:ok, %CapitationContractRequest{} = contract_request, references} <-
+           ContractRequests.create(conn.req_headers, params) do
       conn
       |> put_status(:created)
       |> render("show.json", contract_request: contract_request, references: references)
     end
   end
 
-  def update(%Plug.Conn{req_headers: headers} = conn, params) do
-    with {:ok, %ContractRequest{} = contract_request, references} <- ContractRequests.update(headers, params) do
+  def update(%Plug.Conn{} = conn, params) do
+    with {:ok, %CapitationContractRequest{} = contract_request, references} <-
+           ContractRequests.update(conn.req_headers, params) do
       render(conn, "show.json", contract_request: contract_request, references: references)
     end
   end
@@ -39,7 +41,7 @@ defmodule EHealth.Web.ContractRequestController do
   def show(%Plug.Conn{req_headers: headers} = conn, %{"id" => id}) do
     client_type = conn.assigns.client_type
 
-    with {:ok, %ContractRequest{} = contract_request, references} <-
+    with {:ok, %CapitationContractRequest{} = contract_request, references} <-
            ContractRequests.get_by_id(headers, client_type, id) do
       conn
       |> assign(:urgent, %{"documents" => ContractRequests.gen_relevant_get_links(id, contract_request.status)})
@@ -50,19 +52,21 @@ defmodule EHealth.Web.ContractRequestController do
   def update_assignee(%Plug.Conn{req_headers: headers} = conn, params) do
     update_result = ContractRequests.update_assignee(headers, params)
 
-    with {:ok, %ContractRequest{} = contract_request, references} <- update_result do
+    with {:ok, %CapitationContractRequest{} = contract_request, references} <- update_result do
       render(conn, "show.json", contract_request: contract_request, references: references)
     end
   end
 
-  def approve(%Plug.Conn{req_headers: headers} = conn, params) do
-    with {:ok, %ContractRequest{} = contract_request, references} <- ContractRequests.approve(headers, params) do
+  def approve(%Plug.Conn{} = conn, params) do
+    with {:ok, %CapitationContractRequest{} = contract_request, references} <-
+           ContractRequests.approve(conn.req_headers, params) do
       render(conn, "show.json", contract_request: contract_request, references: references)
     end
   end
 
   def approve_msp(%Plug.Conn{req_headers: headers} = conn, params) do
-    with {:ok, %ContractRequest{} = contract_request, references} <- ContractRequests.approve_msp(headers, params) do
+    with {:ok, %CapitationContractRequest{} = contract_request, references} <-
+           ContractRequests.approve_msp(headers, params) do
       render(conn, "show.json", contract_request: contract_request, references: references)
     end
   end
@@ -70,14 +74,15 @@ defmodule EHealth.Web.ContractRequestController do
   def terminate(%Plug.Conn{req_headers: headers} = conn, params) do
     client_type = conn.assigns.client_type
 
-    with {:ok, %ContractRequest{} = contract_request, references} <-
+    with {:ok, %CapitationContractRequest{} = contract_request, references} <-
            ContractRequests.terminate(headers, client_type, params) do
       render(conn, "show.json", contract_request: contract_request, references: references)
     end
   end
 
   def sign_nhs(%Plug.Conn{req_headers: headers} = conn, params) do
-    with {:ok, %ContractRequest{} = contract_request, references} <- ContractRequests.sign_nhs(headers, params) do
+    with {:ok, %CapitationContractRequest{} = contract_request, references} <-
+           ContractRequests.sign_nhs(headers, params) do
       render(conn, "show.json", contract_request: contract_request, references: references)
     end
   end
@@ -92,8 +97,9 @@ defmodule EHealth.Web.ContractRequestController do
     end
   end
 
-  def decline(%Plug.Conn{req_headers: headers} = conn, params) do
-    with {:ok, %ContractRequest{} = contract_request, references} <- ContractRequests.decline(headers, params) do
+  def decline(%Plug.Conn{} = conn, params) do
+    with {:ok, %CapitationContractRequest{} = contract_request, references} <-
+           ContractRequests.decline(conn.req_headers, params) do
       render(conn, "show.json", contract_request: contract_request, references: references)
     end
   end

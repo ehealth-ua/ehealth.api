@@ -115,6 +115,14 @@
         "null"
       ]
     },
+    "contract_type": {
+      "type": "string",
+      "enum": [
+        "CAPITATION",
+        "REIMBURSEMENT"
+      ],
+      "description": "Contract type which allows to represent clinic"
+    },
     "contractor_legal_entity": {
       "type": "object",
       "properties": {

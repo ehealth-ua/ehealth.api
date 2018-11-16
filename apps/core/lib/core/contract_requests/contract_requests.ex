@@ -8,7 +8,7 @@ defmodule Core.ContractRequests do
   import Ecto.Query
 
   alias Core.API.MediaStorage
-  alias Core.ContractRequests.ContractRequest
+  alias Core.ContractRequests.CapitationContractRequest
   alias Core.ContractRequests.Renderer
   alias Core.ContractRequests.Search
   alias Core.Contracts
@@ -43,6 +43,7 @@ defmodule Core.ContractRequests do
   @signature_api Application.get_env(:core, :api_resolvers)[:digital_signature]
 
   @fields_required ~w(
+    contract_type
     contractor_legal_entity_id
     contractor_owner_id
     contractor_base
@@ -67,14 +68,14 @@ defmodule Core.ContractRequests do
   )a
 
   @forbidden_statuses_for_termination [
-    ContractRequest.status(:declined),
-    ContractRequest.status(:signed),
-    ContractRequest.status(:terminated)
+    CapitationContractRequest.status(:declined),
+    CapitationContractRequest.status(:signed),
+    CapitationContractRequest.status(:terminated)
   ]
 
   def search(search_params) do
     with %Ecto.Changeset{valid?: true} = changeset <- Search.changeset(search_params),
-         %Page{} = paging <- search(changeset, search_params, ContractRequest) do
+         %Page{} = paging <- search(changeset, search_params, CapitationContractRequest) do
       {:ok, paging}
     end
   end
@@ -110,14 +111,14 @@ defmodule Core.ContractRequests do
     cond do
       Enum.any?(
         ~w(new approved in_process pending_nhs_sign terminated declined)a,
-        &(ContractRequest.status(&1) == status)
+        &(CapitationContractRequest.status(&1) == status)
       ) ->
         [
           {"CONTRACT_REQUEST_STATUTE", "media/contract_request_statute.pdf"},
           {"CONTRACT_REQUEST_ADDITIONAL_DOCUMENT", "media/contract_request_additional_document.pdf"}
         ]
 
-      Enum.any?(~w(signed nhs_signed)a, &(ContractRequest.status(&1) == status)) ->
+      Enum.any?(~w(signed nhs_signed)a, &(CapitationContractRequest.status(&1) == status)) ->
         [
           {"CONTRACT_REQUEST_STATUTE", "media/contract_request_statute.pdf"},
           {"CONTRACT_REQUEST_ADDITIONAL_DOCUMENT", "media/contract_request_additional_document.pdf"},
@@ -183,10 +184,10 @@ defmodule Core.ContractRequests do
          _ <- terminate_pending_contracts(params),
          insert_params <-
            params
-           |> Map.put("status", ContractRequest.status(:new))
+           |> Map.put("status", CapitationContractRequest.status(:new))
            |> Map.put("inserted_by", user_id)
            |> Map.put("updated_by", user_id),
-         %Ecto.Changeset{valid?: true} = changes <- changeset(%ContractRequest{id: id}, insert_params),
+         %Ecto.Changeset{valid?: true} = changes <- changeset(%CapitationContractRequest{id: id}, insert_params),
          {:ok, contract_request} <- Repo.insert(changes) do
       {:ok, contract_request, preload_references(contract_request)}
     else
@@ -203,9 +204,9 @@ defmodule Core.ContractRequests do
     with :ok <- JsonSchema.validate(:contract_request_update, params),
          {:ok, %{"data" => data}} <- @mithril_api.get_user_roles(user_id, %{}, headers),
          :ok <- user_has_role(data, "NHS ADMIN SIGNER"),
-         %ContractRequest{} = contract_request <- Repo.get(ContractRequest, id),
+         %CapitationContractRequest{} = contract_request <- Repo.get(CapitationContractRequest, id),
          :ok <- validate_nhs_signer_id(params, client_id),
-         :ok <- validate_status(contract_request, ContractRequest.status(:in_process)),
+         :ok <- validate_status(contract_request, CapitationContractRequest.status(:in_process)),
          :ok <- validate_start_date(contract_request),
          update_params <-
            params
@@ -225,12 +226,16 @@ defmodule Core.ContractRequests do
     with :ok <- JsonSchema.validate(:contract_request_assign, Map.take(params, ~w(employee_id))),
          {:ok, %{"data" => user_data}} <- @mithril_api.get_user_roles(user_id, %{}, headers),
          :ok <- user_has_role(user_data, "NHS ADMIN SIGNER"),
-         %ContractRequest{} = contract_request <- Repo.get(ContractRequest, contract_request_id),
+         %CapitationContractRequest{} = contract_request <- Repo.get(CapitationContractRequest, contract_request_id),
          {:ok, employee} <- validate_employee(employee_id, client_id),
          :ok <- validate_employee_role(employee, "NHS ADMIN SIGNER"),
-         :ok <- validate_status(contract_request, [ContractRequest.status(:new), ContractRequest.status(:in_process)]),
+         :ok <-
+           validate_status(contract_request, [
+             CapitationContractRequest.status(:new),
+             CapitationContractRequest.status(:in_process)
+           ]),
          update_params <- %{
-           "status" => ContractRequest.status(:in_process),
+           "status" => CapitationContractRequest.status(:in_process),
            "updated_at" => NaiveDateTime.utc_now(),
            "updated_by" => user_id,
            "assignee_id" => employee_id
@@ -252,7 +257,7 @@ defmodule Core.ContractRequests do
          :ok <- JsonSchema.validate(:contract_request_approve, content),
          :ok <- validate_contract_request_id(id, content["id"]),
          %LegalEntity{} = legal_entity <- LegalEntities.get_by_id!(client_id),
-         %ContractRequest{} = contract_request <- get_by_id!(content["id"]),
+         %CapitationContractRequest{} = contract_request <- get_by_id!(content["id"]),
          references <- preload_references(contract_request),
          :ok <- validate_legal_entity_edrpou(legal_entity, signer),
          :ok <- validate_user_signer_last_name(user_id, signer),
@@ -260,7 +265,7 @@ defmodule Core.ContractRequests do
          :ok <- user_has_role(data, "NHS ADMIN SIGNER"),
          :ok <- validate_contractor_legal_entity(contract_request.contractor_legal_entity_id),
          :ok <- validate_approve_content(content, contract_request, references),
-         :ok <- validate_status(contract_request, ContractRequest.status(:in_process)),
+         :ok <- validate_status(contract_request, CapitationContractRequest.status(:in_process)),
          :ok <-
            save_signed_content(
              contract_request.id,
@@ -279,7 +284,7 @@ defmodule Core.ContractRequests do
            |> Map.delete("id")
            |> Map.put("updated_by", user_id)
            |> set_contract_number(contract_request)
-           |> Map.put("status", ContractRequest.status(:approved)),
+           |> Map.put("status", CapitationContractRequest.status(:approved)),
          %Ecto.Changeset{valid?: true} = changes <- approve_changeset(contract_request, update_params),
          data <- render_contract_request_data(changes),
          %Ecto.Changeset{valid?: true} = changes <- put_change(changes, :data, data),
@@ -293,9 +298,9 @@ defmodule Core.ContractRequests do
     client_id = get_client_id(headers)
     user_id = get_consumer_id(headers)
 
-    with %ContractRequest{} = contract_request <- get_by_id(id),
+    with %CapitationContractRequest{} = contract_request <- get_by_id(id),
          {_, true} <- {:client_id, client_id == contract_request.contractor_legal_entity_id},
-         :ok <- validate_status(contract_request, ContractRequest.status(:approved)),
+         :ok <- validate_status(contract_request, CapitationContractRequest.status(:approved)),
          :ok <- validate_contractor_legal_entity(contract_request.contractor_legal_entity_id),
          {:contractor_owner, :ok} <- {:contractor_owner, validate_contractor_owner_id(contract_request)},
          :ok <- validate_employee_divisions(contract_request, client_id),
@@ -305,7 +310,7 @@ defmodule Core.ContractRequests do
            params
            |> Map.delete("id")
            |> Map.put("updated_by", user_id)
-           |> Map.put("status", ContractRequest.status(:pending_nhs_sign)),
+           |> Map.put("status", CapitationContractRequest.status(:pending_nhs_sign)),
          %Ecto.Changeset{valid?: true} = changes <- approve_msp_changeset(contract_request, update_params),
          {:ok, contract_request} <- Repo.update(changes),
          _ <- EventManager.insert_change_status(contract_request, contract_request.status, user_id) do
@@ -332,7 +337,7 @@ defmodule Core.ContractRequests do
          :ok <- JsonSchema.validate(:contract_request_decline, content),
          :ok <- validate_contract_request_id(id, content["id"]),
          {:ok, legal_entity} <- LegalEntities.fetch_by_id(client_id),
-         %ContractRequest{} = contract_request <- get_by_id(content["id"]),
+         %CapitationContractRequest{} = contract_request <- get_by_id(content["id"]),
          references <- preload_references(contract_request),
          :ok <- validate_legal_entity_edrpou(legal_entity, signer),
          :ok <- validate_user_signer_last_name(user_id, signer),
@@ -340,7 +345,7 @@ defmodule Core.ContractRequests do
          :ok <- user_has_role(data, "NHS ADMIN SIGNER"),
          :ok <- validate_contractor_legal_entity(contract_request.contractor_legal_entity_id),
          :ok <- validate_decline_content(content, contract_request, references),
-         :ok <- validate_status(contract_request, ContractRequest.status(:in_process)),
+         :ok <- validate_status(contract_request, CapitationContractRequest.status(:in_process)),
          :ok <-
            save_signed_content(
              contract_request.id,
@@ -351,7 +356,7 @@ defmodule Core.ContractRequests do
          update_params <-
            content
            |> Map.take(~w(status_reason))
-           |> Map.put("status", ContractRequest.status(:declined))
+           |> Map.put("status", CapitationContractRequest.status(:declined))
            |> Map.put("nhs_signer_id", user_id)
            |> Map.put("nhs_legal_entity_id", client_id)
            |> Map.put("updated_by", user_id),
@@ -366,12 +371,13 @@ defmodule Core.ContractRequests do
     client_id = get_client_id(headers)
     user_id = get_consumer_id(headers)
 
-    with {:ok, %ContractRequest{} = contract_request} <- get_contract_request(client_id, client_type, params["id"]),
+    with {:ok, %CapitationContractRequest{} = contract_request} <-
+           get_contract_request(client_id, client_type, params["id"]),
          {:contractor_owner, :ok} <- {:contractor_owner, validate_contractor_owner_id(contract_request)},
          true <- contract_request.status not in @forbidden_statuses_for_termination,
          update_params <-
            params
-           |> Map.put("status", ContractRequest.status(:terminated))
+           |> Map.put("status", CapitationContractRequest.status(:terminated))
            |> Map.put("updated_by", user_id),
          %Ecto.Changeset{valid?: true} = changes <- terminate_changeset(contract_request, update_params),
          {:ok, contract_request} <- Repo.update(changes),
@@ -401,8 +407,8 @@ defmodule Core.ContractRequests do
          :ok <- validate_contract_request_id(id, content["id"]),
          {:ok, contract_request} <- fetch_by_id(id),
          :ok <- validate_client_id(client_id, contract_request.nhs_legal_entity_id, :forbidden),
-         {_, false} <- {:already_signed, contract_request.status == ContractRequest.status(:nhs_signed)},
-         :ok <- validate_status(contract_request, ContractRequest.status(:pending_nhs_sign)),
+         {_, false} <- {:already_signed, contract_request.status == CapitationContractRequest.status(:nhs_signed)},
+         :ok <- validate_status(contract_request, CapitationContractRequest.status(:pending_nhs_sign)),
          :ok <- validate_legal_entity_edrpou(legal_entity, signer),
          :ok <- validate_legal_entity_edrpou(legal_entity, stamp),
          {:ok, employee} <- validate_employee(contract_request.nhs_signer_id, client_id),
@@ -428,7 +434,7 @@ defmodule Core.ContractRequests do
          update_params <-
            params
            |> Map.put("updated_by", user_id)
-           |> Map.put("status", ContractRequest.status(:nhs_signed))
+           |> Map.put("status", CapitationContractRequest.status(:nhs_signed))
            |> Map.put("nhs_signed_date", Date.utc_today())
            |> Map.put("printout_content", printout_content),
          %Ecto.Changeset{valid?: true} = changes <- nhs_signed_changeset(contract_request, update_params),
@@ -448,9 +454,9 @@ defmodule Core.ContractRequests do
     params = Map.delete(params, "id")
 
     with %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(client_id),
-         {:ok, %ContractRequest{} = contract_request, _} <- get_by_id(headers, client_type, id),
+         {:ok, %CapitationContractRequest{} = contract_request, _} <- get_by_id(headers, client_type, id),
          :ok <- JsonSchema.validate(:contract_request_sign, params),
-         {_, true} <- {:signed_nhs, contract_request.status == ContractRequest.status(:nhs_signed)},
+         {_, true} <- {:signed_nhs, contract_request.status == CapitationContractRequest.status(:nhs_signed)},
          :ok <- validate_client_id(client_id, contract_request.contractor_legal_entity_id, :forbidden),
          {:ok, %{"content" => content, "signers" => [signer_msp, signer_nhs], "stamps" => [nhs_stamp]}} <-
            decode_signed_content(params, headers, 2, 1),
@@ -468,7 +474,7 @@ defmodule Core.ContractRequests do
          update_params <-
            params
            |> Map.put("updated_by", user_id)
-           |> Map.put("status", ContractRequest.status(:signed))
+           |> Map.put("status", CapitationContractRequest.status(:signed))
            |> Map.put("contract_id", contract_id),
          %Ecto.Changeset{valid?: true} = changes <- msp_signed_changeset(contract_request, update_params),
          {:ok, contract_request} <- Repo.update(changes),
@@ -491,8 +497,8 @@ defmodule Core.ContractRequests do
   def get_partially_signed_content_url(headers, %{"id" => id}) do
     client_id = get_client_id(headers)
 
-    with %ContractRequest{} = contract_request <- Repo.get(ContractRequest, id),
-         {_, true} <- {:signed_nhs, contract_request.status == ContractRequest.status(:nhs_signed)},
+    with %CapitationContractRequest{} = contract_request <- Repo.get(CapitationContractRequest, id),
+         {_, true} <- {:signed_nhs, contract_request.status == CapitationContractRequest.status(:nhs_signed)},
          :ok <- validate_client_id(client_id, contract_request.contractor_legal_entity_id, :forbidden),
          {:ok, url} <- resolve_partially_signed_content_url(contract_request.id, headers) do
       {:ok, url}
@@ -513,7 +519,7 @@ defmodule Core.ContractRequests do
          :ok <-
            validate_status(
              contract_request,
-             ContractRequest.status(:pending_nhs_sign),
+             CapitationContractRequest.status(:pending_nhs_sign),
              "Incorrect status of contract_request to generate printout form"
            ),
          {:ok, printout_content} <-
@@ -525,7 +531,7 @@ defmodule Core.ContractRequests do
     end
   end
 
-  defp get_contract_create_params(%ContractRequest{id: id, contract_id: contract_id} = contract_request) do
+  defp get_contract_create_params(%CapitationContractRequest{id: id, contract_id: contract_id} = contract_request) do
     contract_request
     |> Map.take(~w(
       start_date
@@ -553,16 +559,18 @@ defmodule Core.ContractRequests do
       id_form
       nhs_signed_date
     )a)
-    |> Map.put(:id, contract_id)
-    |> Map.put(:contract_request_id, id)
-    |> Map.put(:is_suspended, false)
-    |> Map.put(:is_active, true)
-    |> Map.put(:inserted_by, contract_request.updated_by)
-    |> Map.put(:updated_by, contract_request.updated_by)
-    |> Map.put(:status, Contract.status(:verified))
+    |> Map.merge(%{
+      id: contract_id,
+      contract_request_id: id,
+      is_suspended: false,
+      is_active: true,
+      inserted_by: contract_request.updated_by,
+      updated_by: contract_request.updated_by,
+      status: Contract.status(:verified)
+    })
   end
 
-  defp validate_nhs_signatures(signer_nhs, nhs_stamp, %ContractRequest{
+  defp validate_nhs_signatures(signer_nhs, nhs_stamp, %CapitationContractRequest{
          nhs_legal_entity_id: nhs_legal_entity_id,
          nhs_signer_id: nhs_signer_id
        }) do
@@ -588,11 +596,11 @@ defmodule Core.ContractRequests do
   defp validate_client_id(client_id, client_id, _), do: :ok
   defp validate_client_id(_, _, :forbidden), do: {:error, {:forbidden, "Invalid client_id"}}
 
-  defp validate_content(%ContractRequest{printout_content: printout_content} = contract_request, content) do
+  defp validate_content(%CapitationContractRequest{printout_content: printout_content} = contract_request, content) do
     validate_content(contract_request, printout_content, content)
   end
 
-  defp validate_content(%ContractRequest{data: data}, printout_content, content) do
+  defp validate_content(%CapitationContractRequest{data: data}, printout_content, content) do
     data_content =
       data
       |> Map.delete("status")
@@ -621,7 +629,7 @@ defmodule Core.ContractRequests do
     SignatureValidator.validate(signed_content, encoding, headers, required_signatures_count, required_stamps_count)
   end
 
-  def decode_and_validate_signed_content(%ContractRequest{id: id}, headers) do
+  def decode_and_validate_signed_content(%CapitationContractRequest{id: id}, headers) do
     with {:ok, %{"data" => %{"secret_url" => secret_url}}} <-
            @media_storage_api.create_signed_url(
              "GET",
@@ -652,13 +660,13 @@ defmodule Core.ContractRequests do
     end
   end
 
-  def changeset(%ContractRequest{} = contract_request, params) do
+  def changeset(%CapitationContractRequest{} = contract_request, params) do
     contract_request
     |> cast(params, @fields_required ++ @fields_optional)
     |> validate_required(@fields_required)
   end
 
-  def update_changeset(%ContractRequest{} = contract_request, params) do
+  def update_changeset(%CapitationContractRequest{} = contract_request, params) do
     contract_request
     |> cast(
       params,
@@ -675,7 +683,7 @@ defmodule Core.ContractRequests do
     |> validate_number(:nhs_contract_price, greater_than_or_equal_to: 0)
   end
 
-  def approve_changeset(%ContractRequest{} = contract_request, params) do
+  def approve_changeset(%CapitationContractRequest{} = contract_request, params) do
     fields_required = ~w(
       nhs_legal_entity_id
       nhs_signer_id
@@ -695,7 +703,7 @@ defmodule Core.ContractRequests do
     |> validate_required(fields_required)
   end
 
-  defp update_assignee_changeset(%ContractRequest{} = contract_request, params) do
+  defp update_assignee_changeset(%CapitationContractRequest{} = contract_request, params) do
     fields_required = ~w(
       status
       assignee_id
@@ -708,7 +716,7 @@ defmodule Core.ContractRequests do
     |> validate_required(fields_required)
   end
 
-  def approve_msp_changeset(%ContractRequest{} = contract_request, params) do
+  def approve_msp_changeset(%CapitationContractRequest{} = contract_request, params) do
     fields = ~w(
       status
       updated_by
@@ -719,7 +727,7 @@ defmodule Core.ContractRequests do
     |> validate_required(fields)
   end
 
-  def terminate_changeset(%ContractRequest{} = contract_request, params) do
+  def terminate_changeset(%CapitationContractRequest{} = contract_request, params) do
     fields_required = ~w(status updated_by)a
     fields_optional = ~w(status_reason)a
 
@@ -728,7 +736,7 @@ defmodule Core.ContractRequests do
     |> validate_required(fields_required)
   end
 
-  def nhs_signed_changeset(%ContractRequest{} = contract_request, params) do
+  def nhs_signed_changeset(%CapitationContractRequest{} = contract_request, params) do
     fields = ~w(status updated_by printout_content nhs_signed_date)a
 
     contract_request
@@ -736,7 +744,7 @@ defmodule Core.ContractRequests do
     |> validate_required(fields)
   end
 
-  def msp_signed_changeset(%ContractRequest{} = contract_request, params) do
+  def msp_signed_changeset(%CapitationContractRequest{} = contract_request, params) do
     fields = ~w(status updated_by contract_id)a
 
     contract_request
@@ -744,7 +752,7 @@ defmodule Core.ContractRequests do
     |> validate_required(fields)
   end
 
-  def preload_references(%ContractRequest{} = contract_request) do
+  def preload_references(%CapitationContractRequest{} = contract_request) do
     fields = [
       {:contractor_legal_entity_id, :legal_entity},
       {:nhs_legal_entity_id, :legal_entity},
@@ -772,26 +780,26 @@ defmodule Core.ContractRequests do
     # TODO: add index here
 
     contract_ids =
-      ContractRequest
+      CapitationContractRequest
       |> select([c], c.id)
       |> where([c], c.contractor_legal_entity_id == ^params["contractor_legal_entity_id"])
       |> where([c], c.id_form == ^params["id_form"])
       |> where(
         [c],
         c.status in ^[
-          ContractRequest.status(:new),
-          ContractRequest.status(:in_process),
-          ContractRequest.status(:approved),
-          ContractRequest.status(:nhs_signed),
-          ContractRequest.status(:pending_nhs_sign)
+          CapitationContractRequest.status(:new),
+          CapitationContractRequest.status(:in_process),
+          CapitationContractRequest.status(:approved),
+          CapitationContractRequest.status(:nhs_signed),
+          CapitationContractRequest.status(:pending_nhs_sign)
         ]
       )
       |> where([c], c.end_date >= ^params["start_date"] and c.start_date <= ^params["end_date"])
       |> Repo.all()
 
-    ContractRequest
+    CapitationContractRequest
     |> where([c], c.id in ^contract_ids)
-    |> Repo.update_all(set: [status: ContractRequest.status(:terminated)])
+    |> Repo.update_all(set: [status: CapitationContractRequest.status(:terminated)])
   end
 
   defp user_has_role(data, role) do
@@ -801,7 +809,7 @@ defmodule Core.ContractRequests do
     end
   end
 
-  defp validate_employee_divisions(%ContractRequest{} = contract_request, client_id) do
+  defp validate_employee_divisions(%CapitationContractRequest{} = contract_request, client_id) do
     contract_request
     |> Jason.encode!()
     |> Jason.decode!()
@@ -859,7 +867,7 @@ defmodule Core.ContractRequests do
     end
   end
 
-  defp validate_nhs_signer_id(%ContractRequest{nhs_signer_id: nhs_signer_id}, client_id)
+  defp validate_nhs_signer_id(%CapitationContractRequest{nhs_signer_id: nhs_signer_id}, client_id)
        when not is_nil(nhs_signer_id) do
     validate_nhs_signer_id(%{"nhs_signer_id" => nhs_signer_id}, client_id)
   end
@@ -946,7 +954,7 @@ defmodule Core.ContractRequests do
     end
   end
 
-  defp validate_contractor_divisions(%ContractRequest{} = contract_request) do
+  defp validate_contractor_divisions(%CapitationContractRequest{} = contract_request) do
     validate_contractor_divisions(%{
       "contractor_divisions" => contract_request.contractor_divisions,
       "contractor_legal_entity_id" => contract_request.contractor_legal_entity_id
@@ -1146,10 +1154,10 @@ defmodule Core.ContractRequests do
 
   defp validate_previous_request(%{"previous_request_id" => previous_request_id}, contractor_legal_entity_id)
        when not is_nil(previous_request_id) do
-    with {_, %ContractRequest{} = contract_request} <- {:request, get_by_id(previous_request_id)},
+    with {_, %CapitationContractRequest{} = contract_request} <- {:request, get_by_id(previous_request_id)},
          {_, true} <-
            {:contractor_legal_entity_id, contract_request.contractor_legal_entity_id == contractor_legal_entity_id},
-         {_, true} <- {:status, contract_request.status != ContractRequest.status(:signed)} do
+         {_, true} <- {:status, contract_request.status != CapitationContractRequest.status(:signed)} do
       :ok
     else
       {:contractor_legal_entity_id, _} -> {:error, {:"422", "Previous request doesn't belong to legal entity"}}
@@ -1195,7 +1203,7 @@ defmodule Core.ContractRequests do
     |> Map.put("end_date", to_string(contract.end_date))
   end
 
-  defp validate_contractor_owner_id(%ContractRequest{
+  defp validate_contractor_owner_id(%CapitationContractRequest{
          contractor_owner_id: contractor_owner_id,
          contractor_legal_entity_id: contractor_legal_entity_id
        }) do
@@ -1224,7 +1232,7 @@ defmodule Core.ContractRequests do
     end
   end
 
-  defp validate_start_date(%ContractRequest{} = contract_request) do
+  defp validate_start_date(%CapitationContractRequest{} = contract_request) do
     contract_request
     |> Jason.encode!()
     |> Jason.decode!()
@@ -1253,7 +1261,7 @@ defmodule Core.ContractRequests do
     end
   end
 
-  defp validate_end_date(%ContractRequest{} = contract_request) do
+  defp validate_end_date(%CapitationContractRequest{} = contract_request) do
     contract_request
     |> Jason.encode!()
     |> Jason.decode!()
@@ -1295,7 +1303,7 @@ defmodule Core.ContractRequests do
         "Incorrect status of contract_request to modify it"
       )
 
-  def validate_status(%ContractRequest{status: status}, required_status, message) do
+  def validate_status(%CapitationContractRequest{status: status}, required_status, message) do
     cond do
       status == required_status -> :ok
       is_list(required_status) and status in required_status -> :ok
@@ -1306,30 +1314,30 @@ defmodule Core.ContractRequests do
   def get_by_id(headers, client_type, id) do
     client_id = get_client_id(headers)
 
-    with {:ok, %ContractRequest{} = contract_request} <- get_contract_request(client_id, client_type, id) do
+    with {:ok, %CapitationContractRequest{} = contract_request} <- get_contract_request(client_id, client_type, id) do
       {:ok, contract_request, preload_references(contract_request)}
     end
   end
 
-  def get_by_id(id), do: Repo.get(ContractRequest, id)
+  def get_by_id(id), do: Repo.get(CapitationContractRequest, id)
 
-  def get_by_id!(id), do: Repo.get!(ContractRequest, id)
+  def get_by_id!(id), do: Repo.get!(CapitationContractRequest, id)
 
   def fetch_by_id(id) do
     case get_by_id(id) do
-      %ContractRequest{} = contract_request -> {:ok, contract_request}
-      nil -> {:error, {:not_found, "ContractRequest not found"}}
+      %CapitationContractRequest{} = contract_request -> {:ok, contract_request}
+      nil -> {:error, {:not_found, "CapitationContractRequest not found"}}
     end
   end
 
   defp get_contract_request(_, "NHS", id) do
-    with %ContractRequest{} = contract_request <- Repo.get(ContractRequest, id) do
+    with %CapitationContractRequest{} = contract_request <- Repo.get(CapitationContractRequest, id) do
       {:ok, contract_request}
     end
   end
 
   defp get_contract_request(client_id, "MSP", id) do
-    with %ContractRequest{} = contract_request <- Repo.get(ContractRequest, id),
+    with %CapitationContractRequest{} = contract_request <- Repo.get(CapitationContractRequest, id),
          :ok <- validate_legal_entity_id(client_id, contract_request.contractor_legal_entity_id) do
       {:ok, contract_request}
     end
@@ -1423,7 +1431,7 @@ defmodule Core.ContractRequests do
     end
   end
 
-  defp decline_changeset(%ContractRequest{} = contract_request, params) do
+  defp decline_changeset(%CapitationContractRequest{} = contract_request, params) do
     fields_required = ~w(status nhs_signer_id nhs_legal_entity_id updated_by)a
     fields_optional = ~w(status_reason)a
 
@@ -1432,7 +1440,7 @@ defmodule Core.ContractRequests do
     |> validate_required(fields_required)
   end
 
-  defp validate_contract_id(%ContractRequest{parent_contract_id: contract_id}) when not is_nil(contract_id) do
+  defp validate_contract_id(%CapitationContractRequest{parent_contract_id: contract_id}) when not is_nil(contract_id) do
     with %Contract{} = contract <- Contracts.get_by_id(contract_id),
          true <- contract.status == Contract.status(:verified) do
       :ok

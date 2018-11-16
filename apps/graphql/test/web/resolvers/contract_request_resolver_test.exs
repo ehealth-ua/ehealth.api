@@ -10,17 +10,17 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
   import Mox, only: [expect: 3, expect: 4, verify_on_exit!: 1]
 
   alias Absinthe.Relay.Node
-  alias Core.ContractRequests.ContractRequest
+  alias Core.ContractRequests.CapitationContractRequest
   alias Core.Employees.Employee
   alias Core.EventManagerRepo
   alias Core.EventManager.Event
   alias Core.Repo
   alias Ecto.UUID
 
-  @contract_request_status_new ContractRequest.status(:new)
-  @contract_request_status_in_process ContractRequest.status(:in_process)
-  @contract_request_status_pending_nhs_sign ContractRequest.status(:pending_nhs_sign)
-  @contract_request_status_nhs_signed ContractRequest.status(:nhs_signed)
+  @contract_request_status_new CapitationContractRequest.status(:new)
+  @contract_request_status_in_process CapitationContractRequest.status(:in_process)
+  @contract_request_status_pending_nhs_sign CapitationContractRequest.status(:pending_nhs_sign)
+  @contract_request_status_nhs_signed CapitationContractRequest.status(:nhs_signed)
 
   @list_query """
     query ListContractRequestsQuery($filter: ContractRequestFilter, $orderBy: ContractRequestOrderBy) {
@@ -151,7 +151,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
     test "return all for NHS client", %{conn: conn} do
       nhs()
 
-      for _ <- 1..2, do: insert(:il, :contract_request)
+      for _ <- 1..2, do: insert(:il, :capitation_contract_request)
 
       resp_body =
         conn
@@ -168,7 +168,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
     test "return only related for MSP client", %{conn: conn} do
       msp()
 
-      contract_requests = for _ <- 1..2, do: insert(:il, :contract_request)
+      contract_requests = for _ <- 1..2, do: insert(:il, :capitation_contract_request)
       related_contract_request = hd(contract_requests)
 
       resp_body =
@@ -187,7 +187,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
     test "return forbidden error for incorrect client type", %{conn: conn} do
       mis()
 
-      for _ <- 1..2, do: insert(:il, :contract_request)
+      for _ <- 1..2, do: insert(:il, :capitation_contract_request)
 
       resp_body =
         conn
@@ -203,7 +203,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
     test "filter by match", %{conn: conn} do
       nhs()
 
-      for status <- ~w(NEW APPROWED), do: insert(:il, :contract_request, status: status)
+      for status <- ~w(NEW APPROWED), do: insert(:il, :capitation_contract_request, status: status)
 
       variables = %{filter: %{status: "NEW"}}
 
@@ -223,7 +223,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
     test "filter by database ID", %{conn: conn} do
       nhs()
 
-      contract_requests = for _ <- 1..2, do: insert(:il, :contract_request)
+      contract_requests = for _ <- 1..2, do: insert(:il, :capitation_contract_request)
 
       requested_contract_request = hd(contract_requests)
 
@@ -247,7 +247,8 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
 
       today = Date.utc_today()
 
-      for start_date <- [today, Date.add(today, -30)], do: insert(:il, :contract_request, start_date: start_date)
+      for start_date <- [today, Date.add(today, -30)],
+          do: insert(:il, :capitation_contract_request, start_date: start_date)
 
       variables = %{
         filter: %{startDate: to_string(%Date.Interval{first: today, last: Date.add(today, 10)})}
@@ -271,7 +272,8 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
 
       today = Date.utc_today()
 
-      for start_date <- [today, Date.add(today, -30)], do: insert(:il, :contract_request, start_date: start_date)
+      for start_date <- [today, Date.add(today, -30)],
+          do: insert(:il, :capitation_contract_request, start_date: start_date)
 
       variables = %{
         filter: %{startDate: to_string(%Date.Interval{first: today, last: nil})}
@@ -298,7 +300,8 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
           insert(:prm, :legal_entity, edrpou: edrpou)
         end
 
-      for %{id: id} <- contractor_legal_entities, do: insert(:il, :contract_request, contractor_legal_entity_id: id)
+      for %{id: id} <- contractor_legal_entities,
+          do: insert(:il, :capitation_contract_request, contractor_legal_entity_id: id)
 
       requested_contractor_legal_entity = hd(contractor_legal_entities)
 
@@ -322,7 +325,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
 
       parties = for last_name <- ~w(Roe Doe), do: insert(:prm, :party, last_name: last_name)
       assignees = for party <- parties, do: insert(:prm, :employee, employee_type: "NHS", party: party)
-      for %{id: id} <- assignees, do: insert(:il, :contract_request, assignee_id: id)
+      for %{id: id} <- assignees, do: insert(:il, :capitation_contract_request, assignee_id: id)
 
       requested_assignee = hd(assignees)
 
@@ -345,7 +348,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       nhs()
 
       for status <- [@contract_request_status_in_process, @contract_request_status_new] do
-        insert(:il, :contract_request, status: status)
+        insert(:il, :capitation_contract_request, status: status)
       end
 
       variables = %{orderBy: "STATUS_ASC"}
@@ -366,7 +369,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
   describe "get by id" do
     test "success for NHS client", %{conn: conn} do
       nhs()
-      contract_request = insert(:il, :contract_request)
+      contract_request = insert(:il, :capitation_contract_request)
 
       id = Node.to_global_id("ContractRequest", contract_request.id)
 
@@ -387,7 +390,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
     test "success for correct MSP client", %{conn: conn} do
       msp()
 
-      contract_request = insert(:il, :contract_request)
+      contract_request = insert(:il, :capitation_contract_request)
 
       id = Node.to_global_id("ContractRequest", contract_request.id)
 
@@ -408,7 +411,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
     test "return nothing for incorrect MSP client", %{conn: conn} do
       msp()
 
-      contract_request = insert(:il, :contract_request)
+      contract_request = insert(:il, :capitation_contract_request)
 
       id = Node.to_global_id("ContractRequest", contract_request.id)
 
@@ -429,7 +432,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
     test "return forbidden error for incorrect client type", %{conn: conn} do
       mis()
 
-      contract_request = insert(:il, :contract_request)
+      contract_request = insert(:il, :capitation_contract_request)
 
       id = Node.to_global_id("ContractRequest", contract_request.id)
 
@@ -452,7 +455,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       nhs()
 
       parent_contract = insert(:prm, :contract)
-      previous_request = insert(:il, :contract_request)
+      previous_request = insert(:il, :capitation_contract_request)
       assignee = insert(:prm, :employee)
       contractor_legal_entity = insert(:prm, :legal_entity)
       contractor_owner = insert(:prm, :employee)
@@ -466,7 +469,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       contract_request =
         insert(
           :il,
-          :contract_request,
+          :capitation_contract_request,
           parent_contract_id: parent_contract.id,
           previous_request: previous_request,
           assignee_id: assignee.id,
@@ -579,7 +582,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
         {:ok, %{"data" => %{"secret_url" => "http://example.com/#{id}/#{resource_name}"}}}
       end)
 
-      contract_request = insert(:il, :contract_request)
+      contract_request = insert(:il, :capitation_contract_request)
 
       id = Node.to_global_id("ContractRequest", contract_request.id)
 
@@ -626,7 +629,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
         values: %{"APPROVED" => approved_text, "DECLINED" => declined_text}
       )
 
-      contract_request = insert(:il, :contract_request, status: @contract_request_status_in_process)
+      contract_request = insert(:il, :capitation_contract_request, status: @contract_request_status_in_process)
 
       %{id: database_id} = contract_request
       id = Node.to_global_id("ContractRequest", database_id)
@@ -693,7 +696,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       contract_request =
         insert(
           :il,
-          :contract_request,
+          :capitation_contract_request,
           nhs_signer_id: nhs_signer.id,
           contractor_legal_entity_id: client_id,
           status: @contract_request_status_pending_nhs_sign,
@@ -728,7 +731,12 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       printout_content = "<html></html>"
 
       contract_request =
-        insert(:il, :contract_request, status: ContractRequest.status(:new), printout_content: printout_content)
+        insert(
+          :il,
+          :capitation_contract_request,
+          status: CapitationContractRequest.status(:new),
+          printout_content: printout_content
+        )
 
       variables = %{id: Node.to_global_id("ContractRequest", contract_request.id)}
 
@@ -745,7 +753,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
 
     test "User is not allowed to perform this action", %{conn: conn} do
       msp()
-      contract_request = insert(:il, :contract_request, status: @contract_request_status_pending_nhs_sign)
+      contract_request = insert(:il, :capitation_contract_request, status: @contract_request_status_pending_nhs_sign)
       variables = %{id: Node.to_global_id("ContractRequest", contract_request.id)}
 
       resp_body =
@@ -770,7 +778,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       contract_request =
         insert(
           :il,
-          :contract_request,
+          :capitation_contract_request,
           status: @contract_request_status_in_process,
           start_date: Date.add(Date.utc_today(), 10)
         )
@@ -844,8 +852,8 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       contract_request =
         insert(
           :il,
-          :contract_request,
-          status: ContractRequest.status(:in_process),
+          :capitation_contract_request,
+          status: CapitationContractRequest.status(:in_process),
           nhs_signer_id: employee_owner.id,
           nhs_legal_entity_id: legal_entity.id,
           contractor_legal_entity_id: legal_entity.id,
@@ -920,7 +928,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       contract_request =
         insert(
           :il,
-          :contract_request,
+          :capitation_contract_request,
           status: @contract_request_status_in_process,
           nhs_signer_id: employee_owner.id,
           contractor_legal_entity_id: legal_entity.id,
@@ -961,12 +969,12 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       refute resp_body["errors"]
       resp_contract_request = get_in(resp_body, ~w(data declineContractRequest contractRequest))
 
-      assert ContractRequest.status(:declined) == resp_contract_request["status"]
+      assert CapitationContractRequest.status(:declined) == resp_contract_request["status"]
       contractor_employee_divisions = hd(resp_contract_request["contractorEmployeeDivisions"])
       assert employee_doctor.id == contractor_employee_divisions["employee"]["databaseId"]
       assert division.id == contractor_employee_divisions["division"]["databaseId"]
 
-      contract_request = Repo.get(ContractRequest, contract_request.id)
+      contract_request = Repo.get(CapitationContractRequest, contract_request.id)
       assert contract_request.status_reason == "Не відповідає попереднім домовленостям"
       assert contract_request.nhs_signer_id == user_id
       assert contract_request.nhs_legal_entity_id == legal_entity.id
@@ -976,7 +984,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       assert event = EventManagerRepo.one(Event)
 
       assert %Event{
-               entity_type: "ContractRequest",
+               entity_type: "CapitationContractRequest",
                event_type: "StatusChangeEvent",
                entity_id: ^contract_request_id,
                changed_by: ^user_id,
@@ -1041,7 +1049,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
 
       insert(
         :il,
-        :contract_request,
+        :capitation_contract_request,
         id: id,
         data: data,
         status: @contract_request_status_pending_nhs_sign,
@@ -1099,7 +1107,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       legal_entity = insert(:prm, :legal_entity)
       party_user = insert(:prm, :party_user)
       employee = insert(:prm, :employee, legal_entity: legal_entity, party: party_user.party)
-      contract_request = insert(:il, :contract_request, status: @contract_request_status_new)
+      contract_request = insert(:il, :capitation_contract_request, status: @contract_request_status_new)
 
       id = Node.to_global_id("ContractRequest", contract_request.id)
       employee_id = Node.to_global_id("Employee", employee.id)

@@ -5,7 +5,7 @@ defmodule Core.Man.Templates.ContractRequestPrintoutForm do
 
   import Ecto.Query
 
-  alias Core.ContractRequests.ContractRequest
+  alias Core.ContractRequests.CapitationContractRequest
   alias Core.Contracts.Contract
   alias Core.Dictionaries
   alias Core.Dictionaries.Dictionary
@@ -24,7 +24,8 @@ defmodule Core.Man.Templates.ContractRequestPrintoutForm do
   ]
 
   def render(
-        %ContractRequest{parent_contract_id: parent_contract_id, contract_number: contract_number} = contract_request,
+        %CapitationContractRequest{parent_contract_id: parent_contract_id, contract_number: contract_number} =
+          contract_request,
         headers
       )
       when not is_nil(parent_contract_id) do
@@ -47,7 +48,7 @@ defmodule Core.Man.Templates.ContractRequestPrintoutForm do
     @man_api.render_template(template_id, template_data, headers)
   end
 
-  def render(%ContractRequest{} = contract_request, headers) do
+  def render(%CapitationContractRequest{} = contract_request, headers) do
     template_data =
       contract_request
       |> Jason.encode!()

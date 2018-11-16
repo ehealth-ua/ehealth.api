@@ -7,7 +7,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
   import Core.Expectations.Signature
   import Mox
 
-  alias Core.ContractRequests.ContractRequest
+  alias Core.ContractRequests.CapitationContractRequest
   alias Core.Contracts.Contract
   alias Core.Employees.Employee
   alias Core.LegalEntities.LegalEntity
@@ -16,21 +16,21 @@ defmodule EHealth.Web.ContractRequestControllerTest do
   alias Core.EventManagerRepo
   alias Core.EventManager.Event
 
-  @contract_request_status_new ContractRequest.status(:new)
-  @contract_request_status_in_process ContractRequest.status(:in_process)
-  @contract_request_status_declined ContractRequest.status(:declined)
+  @contract_request_status_new CapitationContractRequest.status(:new)
+  @contract_request_status_in_process CapitationContractRequest.status(:in_process)
+  @contract_request_status_declined CapitationContractRequest.status(:declined)
 
   @forbidden_statuses_for_termination [
-    ContractRequest.status(:declined),
-    ContractRequest.status(:signed),
-    ContractRequest.status(:terminated)
+    CapitationContractRequest.status(:declined),
+    CapitationContractRequest.status(:signed),
+    CapitationContractRequest.status(:terminated)
   ]
 
   @allowed_statuses_for_termination [
-    ContractRequest.status(:new),
-    ContractRequest.status(:approved),
-    ContractRequest.status(:pending_nhs_sign),
-    ContractRequest.status(:nhs_signed)
+    CapitationContractRequest.status(:new),
+    CapitationContractRequest.status(:approved),
+    CapitationContractRequest.status(:pending_nhs_sign),
+    CapitationContractRequest.status(:nhs_signed)
   ]
 
   describe "contract request draft" do
@@ -69,25 +69,24 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         {:ok, %HTTPoison.Response{status_code: 200, headers: [{"etag", resource}]}}
       end)
 
-      conn =
+      params =
+        division
+        |> prepare_params(employee)
+        |> Map.put("contractor_divisions", [division.id, UUID.generate()])
+
+      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
+      signed_content = params |> Jason.encode!() |> Base.encode64()
+
+      resp =
         conn
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(party_user.user_id)
         |> put_req_header("drfo", legal_entity.edrpou)
-
-      params =
-        prepare_params(division, employee)
-        |> Map.put("contractor_divisions", [division.id, UUID.generate()])
-
-      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
-
-      conn =
-        post(conn, contract_request_path(conn, :create, UUID.generate()), %{
-          "signed_content" => params |> Jason.encode!() |> Base.encode64(),
+        |> post(contract_request_path(conn, :create, UUID.generate()), %{
+          "signed_content" => signed_content,
           "signed_content_encoding" => "base64"
         })
-
-      resp = json_response(conn, 422)
+        |> json_response(422)
 
       assert %{
                "invalid" => [
@@ -891,7 +890,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         end_date: contract_end_date
       )
 
-      previous_request = insert(:il, :contract_request, contractor_legal_entity_id: legal_entity.id)
+      previous_request = insert(:il, :capitation_contract_request, contractor_legal_entity_id: legal_entity.id)
 
       params =
         division
@@ -1061,12 +1060,6 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         contractor_legal_entity: legal_entity
       )
 
-      conn =
-        conn
-        |> put_client_id_header(legal_entity.id)
-        |> put_consumer_id_header(user_id)
-        |> put_req_header("drfo", legal_entity.edrpou)
-
       params =
         division
         |> prepare_params(employee, Date.to_iso8601(Date.add(start_date, 1)))
@@ -1076,20 +1069,24 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
 
-      conn =
-        post(conn, contract_request_path(conn, :create, UUID.generate()), %{
+      resp =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
+        |> post(contract_request_path(conn, :create, UUID.generate()), %{
           "signed_content" => params |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
-
-      assert resp = json_response(conn, 201)
+        |> json_response(201)
+        |> Map.get("data")
 
       schema =
         "../core/specs/json_schemas/contract_request/contract_request_show_response.json"
         |> File.read!()
         |> Jason.decode!()
 
-      assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
+      assert :ok = NExJsonSchema.Validator.validate(schema, resp)
     end
 
     test "success create contract request without contract_number", %{conn: conn} do
@@ -1292,7 +1289,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
   describe "update contract_request" do
     test "user is not NHS ADMIN SIGNER", %{conn: conn} do
       msp()
-      contract_request = insert(:il, :contract_request)
+      contract_request = insert(:il, :capitation_contract_request)
 
       expect(MithrilMock, :get_user_roles, fn _, _, _ ->
         {:ok, %{"data" => [%{"role_name" => "OWNER"}]}}
@@ -1333,7 +1330,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
     test "contract_request has wrong status", %{conn: conn} do
       msp()
-      contract_request = insert(:il, :contract_request, status: ContractRequest.status(:signed))
+      contract_request = insert(:il, :capitation_contract_request, status: CapitationContractRequest.status(:signed))
 
       expect(MithrilMock, :get_user_roles, fn _, _, _ ->
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
@@ -1364,7 +1361,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       contract_request =
         insert(
           :il,
-          :contract_request,
+          :capitation_contract_request,
           status: @contract_request_status_in_process,
           start_date: Date.add(Date.utc_today(), 10),
           contractor_owner_id: employee.id
@@ -1436,7 +1433,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
   describe "assign contract_request" do
     test "fail: user is not NHS ADMIN SIGNER", %{conn: conn} do
-      contract_request = insert(:il, :contract_request)
+      contract_request = insert(:il, :capitation_contract_request)
       employee = insert(:prm, :employee)
 
       expect(MithrilMock, :get_user_roles, fn _, _, _ ->
@@ -1483,7 +1480,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       legal_entity = insert(:prm, :legal_entity)
       %{party: party} = insert(:prm, :party_user)
       employee = insert(:prm, :employee, legal_entity_id: legal_entity.id, party: party, status: Employee.status(:new))
-      contract_request = insert(:il, :contract_request, status: ContractRequest.status(:signed))
+      contract_request = insert(:il, :capitation_contract_request, status: CapitationContractRequest.status(:signed))
 
       assert resp =
                conn
@@ -1508,7 +1505,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       legal_entity = insert(:prm, :legal_entity)
       %{party: party} = insert(:prm, :party_user)
       employee = insert(:prm, :employee, legal_entity_id: legal_entity.id, party: party)
-      contract_request = insert(:il, :contract_request, status: ContractRequest.status(:signed))
+      contract_request = insert(:il, :capitation_contract_request, status: CapitationContractRequest.status(:signed))
 
       conn = put_client_id_header(conn, legal_entity.id)
 
@@ -1532,7 +1529,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       legal_entity = insert(:prm, :legal_entity)
       employee = insert(:prm, :employee)
-      contract_request = insert(:il, :contract_request)
+      contract_request = insert(:il, :capitation_contract_request)
 
       assert %{"error" => error} =
                conn
@@ -1557,7 +1554,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       legal_entity = insert(:prm, :legal_entity)
       %{party: party} = insert(:prm, :party_user)
       employee = insert(:prm, :employee, legal_entity_id: legal_entity.id, party: party)
-      contract_request = insert(:il, :contract_request, status: ContractRequest.status(:signed))
+      contract_request = insert(:il, :capitation_contract_request, status: CapitationContractRequest.status(:signed))
 
       conn = put_client_id_header(conn, legal_entity.id)
 
@@ -1583,7 +1580,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       contract_request =
         insert(
           :il,
-          :contract_request,
+          :capitation_contract_request,
           contractor_owner_id: employee.id,
           status: @contract_request_status_in_process
         )
@@ -1619,11 +1616,13 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     setup %{conn: conn} do
       %{id: legal_entity_id_1} = insert(:prm, :legal_entity, type: "MSP")
 
-      %{id: contract_request_id_1} = insert(:il, :contract_request, contractor_legal_entity_id: legal_entity_id_1)
+      %{id: contract_request_id_1} =
+        insert(:il, :capitation_contract_request, contractor_legal_entity_id: legal_entity_id_1)
 
       %{id: legal_entity_id_2} = insert(:prm, :legal_entity, type: "MSP")
 
-      %{id: contract_request_id_2} = insert(:il, :contract_request, contractor_legal_entity_id: legal_entity_id_2)
+      %{id: contract_request_id_2} =
+        insert(:il, :capitation_contract_request, contractor_legal_entity_id: legal_entity_id_2)
 
       {:ok,
        %{
@@ -1729,7 +1728,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       party_user = insert(:prm, :party_user, user_id: user_id)
       legal_entity = insert(:prm, :legal_entity)
 
-      contract_request = insert(:il, :contract_request, contractor_legal_entity_id: legal_entity.id)
+      contract_request = insert(:il, :capitation_contract_request, contractor_legal_entity_id: legal_entity.id)
 
       conn =
         conn
@@ -1776,7 +1775,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       party_user = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
 
-      contract_request = insert(:il, :contract_request, contractor_legal_entity_id: legal_entity.id)
+      contract_request = insert(:il, :capitation_contract_request, contractor_legal_entity_id: legal_entity.id)
 
       conn =
         conn
@@ -1828,7 +1827,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       party_user = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
 
-      contract_request = insert(:il, :contract_request, contractor_legal_entity_id: legal_entity.id)
+      contract_request = insert(:il, :capitation_contract_request, contractor_legal_entity_id: legal_entity.id)
 
       conn =
         conn
@@ -1878,7 +1877,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       legal_entity = insert(:prm, :legal_entity)
 
-      contract_request = insert(:il, :contract_request, contractor_legal_entity_id: legal_entity.id)
+      contract_request = insert(:il, :capitation_contract_request, contractor_legal_entity_id: legal_entity.id)
 
       conn =
         conn
@@ -1916,7 +1915,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       party_user = insert(:prm, :party_user, user_id: user_id)
       legal_entity = insert(:prm, :legal_entity)
 
-      contract_request = insert(:il, :contract_request, contractor_legal_entity_id: legal_entity.id)
+      contract_request = insert(:il, :capitation_contract_request, contractor_legal_entity_id: legal_entity.id)
 
       conn =
         conn
@@ -1987,8 +1986,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       contract_request =
         insert(
           :il,
-          :contract_request,
-          status: ContractRequest.status(:signed),
+          :capitation_contract_request,
+          status: CapitationContractRequest.status(:signed),
           contractor_legal_entity_id: legal_entity.id
         )
 
@@ -2045,7 +2044,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       party_user = insert(:prm, :party_user, user_id: user_id)
       legal_entity = insert(:prm, :legal_entity)
 
-      contract_request = insert(:il, :contract_request, contractor_legal_entity_id: UUID.generate())
+      contract_request = insert(:il, :capitation_contract_request, contractor_legal_entity_id: UUID.generate())
 
       data = %{
         "id" => contract_request.id,
@@ -2104,7 +2103,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       party_user = insert(:prm, :party_user, user_id: user_id)
       legal_entity = insert(:prm, :legal_entity, status: LegalEntity.status(:closed))
 
-      contract_request = insert(:il, :contract_request, contractor_legal_entity_id: legal_entity.id)
+      contract_request = insert(:il, :capitation_contract_request, contractor_legal_entity_id: legal_entity.id)
 
       legal_entity = insert(:prm, :legal_entity)
 
@@ -2168,7 +2167,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       contract_request =
         insert(
           :il,
-          :contract_request,
+          :capitation_contract_request,
           status: @contract_request_status_in_process,
           contractor_legal_entity_id: legal_entity.id,
           contractor_owner_id: UUID.generate()
@@ -2236,7 +2235,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       contract_request =
         insert(
           :il,
-          :contract_request,
+          :capitation_contract_request,
           status: @contract_request_status_in_process,
           contractor_legal_entity_id: legal_entity.id,
           contractor_owner_id: employee.id
@@ -2304,7 +2303,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       contract_request =
         insert(
           :il,
-          :contract_request,
+          :capitation_contract_request,
           status: @contract_request_status_in_process,
           contractor_legal_entity_id: legal_entity.id,
           contractor_owner_id: employee.id
@@ -2372,7 +2371,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       contract_request =
         insert(
           :il,
-          :contract_request,
+          :capitation_contract_request,
           status: @contract_request_status_in_process,
           contractor_legal_entity_id: legal_entity.id,
           contractor_owner_id: employee.id
@@ -2450,7 +2449,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       contract_request =
         insert(
           :il,
-          :contract_request,
+          :capitation_contract_request,
           status: @contract_request_status_in_process,
           contractor_legal_entity_id: legal_entity.id,
           contractor_owner_id: employee.id,
@@ -2568,7 +2567,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       contract_request =
         insert(
           :il,
-          :contract_request,
+          :capitation_contract_request,
           status: @contract_request_status_in_process,
           contractor_legal_entity_id: legal_entity.id,
           contractor_owner_id: employee_owner.id,
@@ -2674,7 +2673,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       contract_request =
         insert(
           :il,
-          :contract_request,
+          :capitation_contract_request,
           status: @contract_request_status_in_process,
           nhs_signer_id: employee_owner.id,
           nhs_legal_entity_id: legal_entity.id,
@@ -2760,8 +2759,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       contract_request =
         insert(
           :il,
-          :contract_request,
-          status: ContractRequest.status(:approved),
+          :capitation_contract_request,
+          status: CapitationContractRequest.status(:approved),
           contractor_legal_entity_id: legal_entity.id,
           contractor_owner_id: employee_owner.id,
           contractor_divisions: [division.id],
@@ -2798,8 +2797,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       contract_request =
         insert(
           :il,
-          :contract_request,
-          status: ContractRequest.status(:approved)
+          :capitation_contract_request,
+          status: CapitationContractRequest.status(:approved)
         )
 
       conn = put_client_id_header(conn, legal_entity.id)
@@ -2838,7 +2837,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         contract_request =
           insert(
             :il,
-            :contract_request,
+            :capitation_contract_request,
             status: status,
             contractor_legal_entity_id: legal_entity.id,
             contractor_owner_id: employee_owner.id,
@@ -2869,7 +2868,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
         assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
 
-        assert resp["data"]["status"] == ContractRequest.status(:terminated)
+        assert resp["data"]["status"] == CapitationContractRequest.status(:terminated)
       end
     end
 
@@ -2891,7 +2890,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       msp()
       legal_entity = insert(:prm, :legal_entity)
 
-      contract_request = insert(:il, :contract_request, contractor_legal_entity_id: UUID.generate())
+      contract_request = insert(:il, :capitation_contract_request, contractor_legal_entity_id: UUID.generate())
 
       conn =
         conn
@@ -2912,7 +2911,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       contract_request =
         insert(
           :il,
-          :contract_request,
+          :capitation_contract_request,
           contractor_legal_entity_id: legal_entity.id,
           contractor_owner_id: employee.id
         )
@@ -2936,7 +2935,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       contract_request =
         insert(
           :il,
-          :contract_request,
+          :capitation_contract_request,
           contractor_legal_entity_id: legal_entity.id,
           contractor_owner_id: employee.id
         )
@@ -2975,7 +2974,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         contract_request =
           insert(
             :il,
-            :contract_request,
+            :capitation_contract_request,
             status: status,
             contractor_legal_entity_id: legal_entity.id,
             contractor_owner_id: employee_owner.id,
@@ -3031,7 +3030,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       contract_request =
         insert(
           :il,
-          :contract_request,
+          :capitation_contract_request,
           contractor_legal_entity_id: legal_entity.id,
           contractor_owner_id: employee_owner.id,
           contractor_employee_divisions: [
@@ -3055,12 +3054,12 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       assert json_response(conn, 200)
 
       contract_request_id = contract_request.id
-      contract_request_status = ContractRequest.status(:terminated)
+      contract_request_status = CapitationContractRequest.status(:terminated)
 
       assert event = EventManagerRepo.one(Event)
 
       assert %Event{
-               entity_type: "ContractRequest",
+               entity_type: "CapitationContractRequest",
                event_type: "StatusChangeEvent",
                entity_id: ^contract_request_id,
                properties: %{"status" => %{"new_value" => ^contract_request_status}}
@@ -3078,36 +3077,36 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       insert(:prm, :legal_entity, type: "MSP", id: legal_entity_id_1)
       insert(:prm, :legal_entity, type: "NHS", id: legal_entity_id_2)
-      insert(:il, :contract_request, %{issue_city: "Львів"})
+      insert(:il, :capitation_contract_request, %{issue_city: "Львів"})
 
-      insert(:il, :contract_request, %{
+      insert(:il, :capitation_contract_request, %{
         issue_city: "Київ",
         contractor_legal_entity_id: legal_entity_id_1,
         contract_number: contract_number
       })
 
-      insert(:il, :contract_request, %{
+      insert(:il, :capitation_contract_request, %{
         issue_city: "Київ",
         contractor_legal_entity_id: legal_entity_id_1,
         nhs_signer_id: nhs_signer_id
       })
 
-      insert(:il, :contract_request, %{
+      insert(:il, :capitation_contract_request, %{
         issue_city: "Львів",
         contractor_legal_entity_id: legal_entity_id_1,
-        status: ContractRequest.status(:declined)
+        status: CapitationContractRequest.status(:declined)
       })
 
-      insert(:il, :contract_request, %{
+      insert(:il, :capitation_contract_request, %{
         issue_city: "Київ",
         contractor_legal_entity_id: legal_entity_id_2,
         contractor_owner_id: contractor_owner_id
       })
 
-      insert(:il, :contract_request, %{
+      insert(:il, :capitation_contract_request, %{
         issue_city: "Львів",
         nhs_signer_id: nhs_signer_id,
-        status: ContractRequest.status(:signed)
+        status: CapitationContractRequest.status(:signed)
       })
 
       {:ok,
@@ -3229,7 +3228,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
     test "invalid client_id", %{conn: conn} do
       nhs()
-      contract_request = insert(:il, :contract_request)
+      contract_request = insert(:il, :capitation_contract_request)
       legal_entity = insert(:prm, :legal_entity)
       nhs_signer_party = insert(:prm, :party)
 
@@ -3255,7 +3254,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     test "invalid contract_request id from signed content", %{conn: conn} do
       nhs()
       legal_entity = insert(:prm, :legal_entity)
-      contract_request = insert(:il, :contract_request)
+      contract_request = insert(:il, :capitation_contract_request)
       nhs_signer_party = insert(:prm, :party)
 
       data = %{"id" => contract_request.id, "printout_content" => "<html></html>"}
@@ -3285,7 +3284,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "legal_entity" => legal_entity,
         "nhs_signer" => nhs_signer,
         "contract_request" => contract_request
-      } = prepare_nhs_sign_params(status: ContractRequest.status(:nhs_signed))
+      } = prepare_nhs_sign_params(status: CapitationContractRequest.status(:nhs_signed))
 
       data = %{"id" => contract_request.id, "printout_content" => "<html></html>"}
 
@@ -3317,7 +3316,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "client_id" => client_id,
         "user_id" => user_id,
         "contract_request" => contract_request
-      } = prepare_nhs_sign_params(status: ContractRequest.status(:pending_nhs_sign))
+      } = prepare_nhs_sign_params(status: CapitationContractRequest.status(:pending_nhs_sign))
 
       conn =
         conn
@@ -3348,7 +3347,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "contract_request" => contract_request,
         "legal_entity" => legal_entity,
         "nhs_signer" => nhs_signer
-      } = prepare_nhs_sign_params(status: ContractRequest.status(:pending_nhs_sign))
+      } = prepare_nhs_sign_params(status: CapitationContractRequest.status(:pending_nhs_sign))
 
       client_id = nhs_signer.legal_entity.id
 
@@ -3390,7 +3389,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       data = %{
         "id" => id,
         "contract_number" => "0000-9EAX-XT7X-3115",
-        "status" => ContractRequest.status(:pending_nhs_sign)
+        "status" => CapitationContractRequest.status(:pending_nhs_sign)
       }
 
       %{
@@ -3403,7 +3402,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         prepare_nhs_sign_params(
           id: id,
           data: data,
-          status: ContractRequest.status(:pending_nhs_sign)
+          status: CapitationContractRequest.status(:pending_nhs_sign)
         )
 
       data = Map.put(data, "printout_content", "<html></html>")
@@ -3449,7 +3448,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       data = %{
         "id" => id,
         "contract_number" => "0000-9EAX-XT7X-3115",
-        "status" => ContractRequest.status(:pending_nhs_sign)
+        "status" => CapitationContractRequest.status(:pending_nhs_sign)
       }
 
       %{
@@ -3461,7 +3460,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         prepare_nhs_sign_params(
           id: id,
           data: data,
-          status: ContractRequest.status(:pending_nhs_sign)
+          status: CapitationContractRequest.status(:pending_nhs_sign)
         )
 
       data = Map.put(data, "printout_content", "<html></html>")
@@ -3510,7 +3509,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       data = %{
         "id" => id,
         "contract_number" => "0000-9EAX-XT7X-3115",
-        "status" => ContractRequest.status(:pending_nhs_sign)
+        "status" => CapitationContractRequest.status(:pending_nhs_sign)
       }
 
       %{
@@ -3523,7 +3522,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         prepare_nhs_sign_params(
           id: id,
           data: data,
-          status: ContractRequest.status(:pending_nhs_sign)
+          status: CapitationContractRequest.status(:pending_nhs_sign)
         )
 
       data = Map.put(data, "printout_content", "<html></html>")
@@ -3572,7 +3571,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       data = %{
         "id" => id,
         "contract_number" => "0000-9EAX-XT7X-3115",
-        "status" => ContractRequest.status(:pending_nhs_sign)
+        "status" => CapitationContractRequest.status(:pending_nhs_sign)
       }
 
       %{
@@ -3584,7 +3583,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         prepare_nhs_sign_params(
           id: id,
           data: data,
-          status: ContractRequest.status(:pending_nhs_sign)
+          status: CapitationContractRequest.status(:pending_nhs_sign)
         )
 
       data = Map.put(data, "printout_content", "<html></html>")
@@ -3682,7 +3681,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "id" => id,
         "printout_content" => "<html></html>",
         "contract_number" => "0000-9EAX-XT7X-3115",
-        "status" => ContractRequest.status(:pending_nhs_sign)
+        "status" => CapitationContractRequest.status(:pending_nhs_sign)
       }
 
       %{
@@ -3694,7 +3693,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         prepare_nhs_sign_params(
           id: id,
           data: data,
-          status: ContractRequest.status(:pending_nhs_sign)
+          status: CapitationContractRequest.status(:pending_nhs_sign)
         )
 
       client_id = nhs_signer.legal_entity.id
@@ -3735,7 +3734,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       data = %{
         "id" => id,
         "contract_number" => "0000-9EAX-XT7X-3115",
-        "status" => ContractRequest.status(:pending_nhs_sign)
+        "status" => CapitationContractRequest.status(:pending_nhs_sign)
       }
 
       %{
@@ -3747,7 +3746,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         prepare_nhs_sign_params(
           id: id,
           data: data,
-          status: ContractRequest.status(:pending_nhs_sign)
+          status: CapitationContractRequest.status(:pending_nhs_sign)
         )
 
       data = Map.put(data, "printout_content", "<html></html>")
@@ -3758,7 +3757,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name, is_stamp: true}
       ])
 
-      contract_request = Core.Repo.get(ContractRequest, contract_request.id)
+      contract_request = Core.Repo.get(CapitationContractRequest, contract_request.id)
       assert contract_request.nhs_signed_date == Date.utc_today()
 
       assert resp =
@@ -3807,7 +3806,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       contract_request =
         insert(
           :il,
-          :contract_request,
+          :capitation_contract_request,
           status: @contract_request_status_in_process,
           nhs_signer_id: employee_owner.id,
           contractor_legal_entity_id: legal_entity.id,
@@ -3878,9 +3877,9 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
 
-      assert resp["data"]["status"] == ContractRequest.status(:declined)
+      assert resp["data"]["status"] == CapitationContractRequest.status(:declined)
 
-      contract_request = Core.Repo.get(ContractRequest, contract_request.id)
+      contract_request = Core.Repo.get(CapitationContractRequest, contract_request.id)
       assert contract_request.status_reason == "Не відповідає попереднім домовленостям"
       assert contract_request.nhs_signer_id == user_id
       assert contract_request.nhs_legal_entity_id == legal_entity.id
@@ -3890,7 +3889,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       assert event = EventManagerRepo.one(Event)
 
       assert %Event{
-               entity_type: "ContractRequest",
+               entity_type: "CapitationContractRequest",
                event_type: "StatusChangeEvent",
                entity_id: ^contract_request_id,
                changed_by: ^user_id,
@@ -4087,9 +4086,9 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       contract_request =
         insert(
           :il,
-          :contract_request,
+          :capitation_contract_request,
           contractor_legal_entity_id: legal_entity.id,
-          status: ContractRequest.status(:signed),
+          status: CapitationContractRequest.status(:signed),
           nhs_signer_id: employee_owner.id
         )
 
@@ -4139,8 +4138,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       contract_request =
         insert(
           :il,
-          :contract_request,
-          status: ContractRequest.status(:nhs_signed),
+          :capitation_contract_request,
+          status: CapitationContractRequest.status(:nhs_signed),
           contractor_owner_id: employee.id,
           contractor_legal_entity_id: client_id
         )
@@ -4157,7 +4156,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
     test "contract request was not signed by nhs", %{conn: conn} do
       msp()
-      contract_request = insert(:il, :contract_request, status: ContractRequest.status(:new))
+      contract_request = insert(:il, :capitation_contract_request, status: CapitationContractRequest.status(:new))
 
       assert %{"error" => %{"message" => "The contract hasn't been signed yet"}} =
                conn
@@ -4170,7 +4169,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     test "invalid client id for contractor_legal_entity_id", %{conn: conn} do
       msp()
 
-      contract_request = insert(:il, :contract_request, status: ContractRequest.status(:nhs_signed))
+      contract_request =
+        insert(:il, :capitation_contract_request, status: CapitationContractRequest.status(:nhs_signed))
 
       assert %{"error" => %{"type" => "forbidden", "message" => _}} =
                conn
@@ -4193,8 +4193,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       contract_request =
         insert(
           :il,
-          :contract_request,
-          status: ContractRequest.status(:nhs_signed),
+          :capitation_contract_request,
+          status: CapitationContractRequest.status(:nhs_signed),
           contractor_owner_id: employee.id,
           contractor_legal_entity_id: client_id
         )
@@ -4221,7 +4221,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     test "invalid client_id", %{conn: conn} do
       nhs()
 
-      contract_request = insert(:il, :contract_request, status: ContractRequest.status(:nhs_signed))
+      contract_request =
+        insert(:il, :capitation_contract_request, status: CapitationContractRequest.status(:nhs_signed))
 
       legal_entity = insert(:prm, :legal_entity)
       conn = put_client_id_header(conn, legal_entity.id)
@@ -4241,7 +4242,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       nhs()
 
       %{"client_id" => client_id, "user_id" => user_id, "contract_request" => contract_request} =
-        prepare_nhs_sign_params(status: ContractRequest.status(:signed))
+        prepare_nhs_sign_params(status: CapitationContractRequest.status(:signed))
 
       assert resp =
                conn
@@ -4265,7 +4266,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "user_id" => user_id,
         "contract_request" => contract_request,
         "party_user" => party_user
-      } = prepare_nhs_sign_params(status: ContractRequest.status(:nhs_signed))
+      } = prepare_nhs_sign_params(status: CapitationContractRequest.status(:nhs_signed))
 
       assert resp =
                conn
@@ -4309,7 +4310,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "contract_request" => contract_request,
         "legal_entity" => legal_entity,
         "party_user" => party_user
-      } = prepare_nhs_sign_params(status: ContractRequest.status(:nhs_signed))
+      } = prepare_nhs_sign_params(status: CapitationContractRequest.status(:nhs_signed))
 
       conn =
         conn
@@ -4355,7 +4356,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "contract_request" => contract_request,
         "legal_entity" => legal_entity,
         "nhs_signer" => nhs_signer
-      } = prepare_nhs_sign_params(status: ContractRequest.status(:nhs_signed))
+      } = prepare_nhs_sign_params(status: CapitationContractRequest.status(:nhs_signed))
 
       data = %{"id" => contract_request.id, "printout_content" => "<html></html>"}
 
@@ -4404,7 +4405,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "legal_entity" => legal_entity,
         "contractor_owner_id" => employee_owner,
         "nhs_signer" => nhs_signer
-      } = prepare_nhs_sign_params(status: ContractRequest.status(:nhs_signed))
+      } = prepare_nhs_sign_params(status: CapitationContractRequest.status(:nhs_signed))
 
       data = %{"id" => contract_request.id, "printout_content" => "<html></html>"}
 
@@ -4440,7 +4441,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       data = %{
         "id" => id,
         "printout_content" => nil,
-        "status" => ContractRequest.status(:nhs_signed)
+        "status" => CapitationContractRequest.status(:nhs_signed)
       }
 
       %{
@@ -4454,7 +4455,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         prepare_nhs_sign_params(
           id: id,
           data: data,
-          status: ContractRequest.status(:nhs_signed)
+          status: CapitationContractRequest.status(:nhs_signed)
         )
 
       drfo_signed_content(data, [
@@ -4489,7 +4490,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       data = %{
         "id" => id,
         "printout_content" => nil,
-        "status" => ContractRequest.status(:nhs_signed)
+        "status" => CapitationContractRequest.status(:nhs_signed)
       }
 
       %{
@@ -4503,7 +4504,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         prepare_nhs_sign_params(
           id: id,
           data: data,
-          status: ContractRequest.status(:nhs_signed)
+          status: CapitationContractRequest.status(:nhs_signed)
         )
 
       conn =
@@ -4539,7 +4540,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       data = %{
         "id" => id,
         "printout_content" => nil,
-        "status" => ContractRequest.status(:nhs_signed)
+        "status" => CapitationContractRequest.status(:nhs_signed)
       }
 
       client_id = UUID.generate()
@@ -4574,7 +4575,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       params = %{
         id: id,
         data: data,
-        status: ContractRequest.status(:nhs_signed),
+        status: CapitationContractRequest.status(:nhs_signed),
         contract_number: "1345",
         nhs_signed_date: Date.utc_today(),
         nhs_signer_id: nhs_signer.id,
@@ -4593,7 +4594,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         start_date: start_date
       }
 
-      contract_request = insert(:il, :contract_request, params)
+      contract_request = insert(:il, :capitation_contract_request, params)
 
       conn =
         conn
@@ -4631,7 +4632,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       data = %{
         "id" => id,
         "printout_content" => nil,
-        "status" => ContractRequest.status(:nhs_signed)
+        "status" => CapitationContractRequest.status(:nhs_signed)
       }
 
       client_id = UUID.generate()
@@ -4665,7 +4666,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       params = %{
         id: id,
         data: data,
-        status: ContractRequest.status(:nhs_signed),
+        status: CapitationContractRequest.status(:nhs_signed),
         contract_number: "1345",
         nhs_signed_date: Date.utc_today(),
         nhs_signer_id: UUID.generate(),
@@ -4684,7 +4685,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         start_date: start_date
       }
 
-      contract_request = insert(:il, :contract_request, params)
+      contract_request = insert(:il, :capitation_contract_request, params)
 
       conn =
         conn
@@ -4722,7 +4723,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       data = %{
         "id" => id,
         "printout_content" => nil,
-        "status" => ContractRequest.status(:nhs_signed)
+        "status" => CapitationContractRequest.status(:nhs_signed)
       }
 
       %{
@@ -4736,7 +4737,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         prepare_nhs_sign_params(
           id: id,
           data: data,
-          status: ContractRequest.status(:nhs_signed),
+          status: CapitationContractRequest.status(:nhs_signed),
           contract_number: "1345"
         )
 
@@ -4785,7 +4786,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       data = %{
         "id" => id,
         "printout_content" => nil,
-        "status" => ContractRequest.status(:nhs_signed)
+        "status" => CapitationContractRequest.status(:nhs_signed)
       }
 
       %{
@@ -4799,7 +4800,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         prepare_nhs_sign_params(
           id: id,
           data: data,
-          status: ContractRequest.status(:nhs_signed),
+          status: CapitationContractRequest.status(:nhs_signed),
           contract_number: "1345"
         )
 
@@ -4851,7 +4852,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       data = %{
         "id" => id,
         "printout_content" => nil,
-        "status" => ContractRequest.status(:nhs_signed)
+        "status" => CapitationContractRequest.status(:nhs_signed)
       }
 
       %{
@@ -4865,7 +4866,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         prepare_nhs_sign_params(
           id: id,
           data: data,
-          status: ContractRequest.status(:nhs_signed),
+          status: CapitationContractRequest.status(:nhs_signed),
           contract_number: "1345"
         )
 
@@ -4914,7 +4915,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       data = %{
         "id" => id,
         "printout_content" => nil,
-        "status" => ContractRequest.status(:nhs_signed)
+        "status" => CapitationContractRequest.status(:nhs_signed)
       }
 
       %{
@@ -4928,7 +4929,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         prepare_nhs_sign_params(
           id: id,
           data: data,
-          status: ContractRequest.status(:nhs_signed),
+          status: CapitationContractRequest.status(:nhs_signed),
           contract_number: "1345"
         )
 
@@ -4973,7 +4974,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       data = %{
         "id" => id,
         "printout_content" => nil,
-        "status" => ContractRequest.status(:nhs_signed)
+        "status" => CapitationContractRequest.status(:nhs_signed)
       }
 
       contract = insert(:prm, :contract, contract_number: "1345")
@@ -4992,7 +4993,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         prepare_nhs_sign_params(
           id: id,
           data: data,
-          status: ContractRequest.status(:nhs_signed),
+          status: CapitationContractRequest.status(:nhs_signed),
           contract_number: "1345",
           parent_contract_id: contract.id
         )
@@ -5032,7 +5033,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       nhs()
       template()
 
-      contract_request = insert(:il, :contract_request, status: ContractRequest.status(:pending_nhs_sign))
+      contract_request =
+        insert(:il, :capitation_contract_request, status: CapitationContractRequest.status(:pending_nhs_sign))
 
       id = contract_request.id
 
@@ -5046,7 +5048,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
 
     test "invalid status", %{conn: conn} do
-      contract_request = insert(:il, :contract_request)
+      contract_request = insert(:il, :capitation_contract_request)
       nhs()
 
       conn =
@@ -5210,7 +5212,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         contract_request_params
       )
 
-    contract_request = insert(:il, :contract_request, params)
+    contract_request = insert(:il, :capitation_contract_request, params)
 
     %{
       "client_id" => client_id,

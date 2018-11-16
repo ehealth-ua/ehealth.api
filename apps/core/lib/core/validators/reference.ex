@@ -4,7 +4,7 @@ defmodule Core.Validators.Reference do
   """
 
   alias Core.ContractRequests
-  alias Core.ContractRequests.ContractRequest
+  alias Core.ContractRequests.CapitationContractRequest
   alias Core.Divisions
   alias Core.Divisions.Division
   alias Core.Employees
@@ -88,7 +88,7 @@ defmodule Core.Validators.Reference do
   end
 
   def validate(:contract_request = type, id, path) do
-    with %ContractRequest{} = contract_request <- ContractRequests.get_by_id(id) do
+    with %CapitationContractRequest{} = contract_request <- ContractRequests.get_by_id(id) do
       {:ok, contract_request}
     else
       _ -> error(type, path)

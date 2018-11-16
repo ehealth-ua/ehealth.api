@@ -4,7 +4,7 @@ defmodule EHealth.Web.ContractController do
   use EHealth.Web, :controller
 
   alias Core.ContractRequests
-  alias Core.ContractRequests.ContractRequest
+  alias Core.ContractRequests.CapitationContractRequest
   alias Core.Contracts
   alias Scrivener.Page
 
@@ -20,7 +20,7 @@ defmodule EHealth.Web.ContractController do
 
   def show(conn, %{"id" => id} = params) do
     with {:ok, contract, references} <- Contracts.get_by_id(id, params) do
-      %ContractRequest{status: status} = references[:contract_request][contract.contract_request_id]
+      %CapitationContractRequest{status: status} = references[:contract_request][contract.contract_request_id]
 
       conn
       |> assign(:urgent, %{

@@ -14,7 +14,7 @@ defmodule GraphQLWeb.Schema do
     ScopeAuthorization
   }
 
-  alias Core.ContractRequests.ContractRequest
+  alias Core.ContractRequests.CapitationContractRequest
   alias Core.Contracts.Contract
   alias Core.Dictionaries.Dictionary
   alias Core.Divisions.Division
@@ -64,7 +64,7 @@ defmodule GraphQLWeb.Schema do
   node interface do
     resolve_type(fn
       %Contract{}, _ -> :contract
-      %ContractRequest{}, _ -> :contract_request
+      %CapitationContractRequest{}, _ -> :contract_request
       %Dictionary{}, _ -> :dictionary
       %Division{}, _ -> :division
       %Employee{}, _ -> :employee

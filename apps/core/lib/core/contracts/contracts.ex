@@ -6,7 +6,7 @@ defmodule Core.Contracts do
   import Ecto.Query
 
   alias Core.ContractRequests
-  alias Core.ContractRequests.ContractRequest
+  alias Core.ContractRequests.CapitationContractRequest
   alias Core.Contracts.Contract
   alias Core.Contracts.ContractDivision
   alias Core.Contracts.ContractEmployee
@@ -466,7 +466,7 @@ defmodule Core.Contracts do
 
   def get_printout_content(id, client_type, headers) do
     with %Contract{contract_request_id: contract_request_id} = contract <- get_by_id(id),
-         {:ok, %ContractRequest{} = contract_request, _} <-
+         {:ok, %CapitationContractRequest{} = contract_request, _} <-
            ContractRequests.get_by_id(headers, client_type, contract_request_id),
          {:ok, %{"printout_content" => printout_content}} <-
            ContractRequests.decode_and_validate_signed_content(contract_request, headers) do

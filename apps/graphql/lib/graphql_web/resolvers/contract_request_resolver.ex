@@ -8,7 +8,7 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
 
   alias Absinthe.Relay.Connection
   alias Core.ContractRequests
-  alias Core.ContractRequests.ContractRequest
+  alias Core.ContractRequests.CapitationContractRequest
   alias Core.ContractRequests.Renderer
   alias Core.Dictionaries.Dictionary
   alias Core.Employees.Employee
@@ -17,20 +17,20 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
   alias Core.{PRMRepo, Repo}
   alias GraphQLWeb.Loaders.{IL, PRM}
 
-  @status_in_process ContractRequest.status(:in_process)
-  @status_pending_nhs_sign ContractRequest.status(:pending_nhs_sign)
-  @status_signed ContractRequest.status(:signed)
+  @status_in_process CapitationContractRequest.status(:in_process)
+  @status_pending_nhs_sign CapitationContractRequest.status(:pending_nhs_sign)
+  @status_signed CapitationContractRequest.status(:signed)
 
   @review_text_dictionary "CONTRACT_REQUEST_REVIEW_TEXT"
 
   def list_contract_requests(args, %{context: %{client_type: "NHS"}}) do
-    ContractRequest
+    CapitationContractRequest
     |> search(args)
     |> Connection.from_query(&Repo.all/1, args)
   end
 
   def list_contract_requests(args, %{context: %{client_type: "MSP", client_id: client_id}}) do
-    ContractRequest
+    CapitationContractRequest
     |> where(contractor_legal_entity_id: ^client_id)
     |> search(args)
     |> Connection.from_query(&Repo.all/1, args)
@@ -79,7 +79,9 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
 
   defp prepare_filter([head | tail]), do: [head | prepare_filter(tail)]
 
-  def get_printout_content(%ContractRequest{status: @status_pending_nhs_sign} = contract_request, _, %{context: context}) do
+  def get_printout_content(%CapitationContractRequest{status: @status_pending_nhs_sign} = contract_request, _, %{
+        context: context
+      }) do
     contract_request = Map.put(contract_request, :nhs_signed_date, Date.utc_today())
 
     # todo: causes N+1 problem with DB query and man template rendering
@@ -96,7 +98,8 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
     end
   end
 
-  def get_printout_content(%ContractRequest{printout_content: printout_content}, _, _), do: {:ok, printout_content}
+  def get_printout_content(%CapitationContractRequest{printout_content: printout_content}, _, _),
+    do: {:ok, printout_content}
 
   def get_attached_documents(%{id: id, status: status}, _, _) do
     with documents when is_list(documents) <- ContractRequests.gen_relevant_get_links(id, status) do
