@@ -2,7 +2,7 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
   @moduledoc false
 
   import Absinthe.Resolution.Helpers, only: [on_load: 2]
-  import Ecto.Query, only: [where: 2, where: 3, join: 4, select: 3, order_by: 2]
+  import Ecto.Query, only: [where: 3, join: 4, select: 3, order_by: 2]
   import GraphQLWeb.Resolvers.Helpers.Search, only: [filter: 2]
   import GraphQLWeb.Resolvers.Helpers.Errors
 
@@ -23,25 +23,21 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
 
   @review_text_dictionary "CONTRACT_REQUEST_REVIEW_TEXT"
 
-  def list_contract_requests(args, %{context: %{client_type: "NHS"}}) do
-    CapitationContractRequest
-    |> search(args)
-    |> Connection.from_query(&Repo.all/1, args)
-  end
+  def list_contract_requests(args, %{context: %{client_type: "NHS"}}), do: list_contract_requests(args)
 
   def list_contract_requests(args, %{context: %{client_type: "MSP", client_id: client_id}}) do
-    CapitationContractRequest
-    |> where(contractor_legal_entity_id: ^client_id)
-    |> search(args)
-    |> Connection.from_query(&Repo.all/1, args)
+    args
+    |> Map.update!(:filter, &[{:contractor_legal_entity_id, client_id} | &1])
+    |> list_contract_requests()
   end
 
-  defp search(query, %{filter: filter, order_by: order_by}) do
+  defp list_contract_requests(%{filter: filter, order_by: order_by} = args) do
     filter = prepare_filter(filter)
 
-    query
+    CapitationContractRequest
     |> filter(filter)
     |> order_by(^order_by)
+    |> Connection.from_query(&Repo.all/1, args)
   end
 
   defp prepare_filter([]), do: []

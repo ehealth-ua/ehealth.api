@@ -17,9 +17,9 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
 
   def list_contracts(args, %{context: %{client_type: "NHS"}}), do: list_contracts(args)
 
-  def list_contracts(%{filter: filter} = args, %{context: %{client_type: "MSP", client_id: client_id}}) do
+  def list_contracts(args, %{context: %{client_type: "MSP", client_id: client_id}}) do
     args
-    |> Map.put(:filter, filter ++ [contractor_legal_entity_id: client_id])
+    |> Map.update!(:filter, &[{:contractor_legal_entity_id, client_id} | &1])
     |> list_contracts()
   end
 

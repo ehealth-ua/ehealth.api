@@ -23,7 +23,7 @@ defmodule GraphQLWeb.Resolvers.DictionaryResolver do
   end
 
   defp prepare_filter([{:name, value} | tail]) do
-    [{:name, {:ilike, "%#{value}%"}} | prepare_filter(tail)]
+    [{:name, {:like, value}} | prepare_filter(tail)]
   end
 
   defp prepare_filter([head | tail]), do: [head | prepare_filter(tail)]
