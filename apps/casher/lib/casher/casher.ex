@@ -27,9 +27,9 @@ defmodule Casher do
             host: redis_config[:host],
             port: redis_config[:port],
             password: redis_config[:password],
-            database: redis_config[:database]
-          ],
-          [name: :"redis_#{connection_index}"]
+            database: redis_config[:database],
+            name: :"redis_#{connection_index}"
+          ]
         ],
         id: {Redix, connection_index}
       )

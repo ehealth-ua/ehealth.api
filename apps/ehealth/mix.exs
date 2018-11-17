@@ -45,21 +45,21 @@ defmodule EHealth.Mixfile do
     [
       {:core, in_umbrella: true},
       {:confex, "~> 3.2"},
-      {:poison, "~> 3.1"},
-      {:httpoison, "~> 1.1.0"},
+      {:ecto, "~> 2.1"},
+      {:ecto_trail, "0.2.3"},
+      {:eview, "~> 0.15"},
+      {:httpoison, "~> 1.4"},
+      {:jason, "~> 1.1"},
+      {:jvalid, "~> 0.7"},
+      {:nex_json_schema, ">= 0.8.0"},
       {:phoenix, "~> 1.4.0-rc.3", override: true},
       {:phoenix_ecto, "~> 3.2"},
       {:plug_cowboy, "~> 2.0"},
-      {:ecto, "~> 2.1"},
-      {:ecto_trail, "0.2.3"},
-      {:eview, "~> 0.12.2"},
-      {:jvalid, "~> 0.6.0"},
-      {:quantum, "~> 2.2"},
       {:plug_logger_json, "~> 0.5"},
-      {:jason, "~> 1.1"},
-      {:nex_json_schema, ">= 0.7.2"},
+      {:poison, "~> 3.1"},
+      {:quantum, "~> 2.2"},
       {:mox, "~> 0.3", only: :test},
-      {:ex_doc, ">= 0.15.0", only: [:dev, :test]}
+      {:ex_doc, ">= 0.0.0", only: [:dev, :test]}
     ]
   end
 

@@ -4,9 +4,9 @@ defmodule Core.Man.Templates.EmployeeRequestInvitation do
   use Confex, otp_app: :core
 
   alias Core.Dictionaries
-  alias Core.LegalEntities.LegalEntity
   alias Core.EmployeeRequests.EmployeeRequest, as: Request
   alias Core.LegalEntities
+  alias Core.LegalEntities.LegalEntity
   alias Core.Utils.AddressMerger
 
   @man_api Application.get_env(:core, :api_resolvers)[:man]

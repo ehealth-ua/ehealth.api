@@ -2,9 +2,9 @@ defmodule EHealth.Web.INNMController do
   @moduledoc false
   use EHealth.Web, :controller
 
-  alias Scrivener.Page
   alias Core.Medications, as: API
   alias Core.Medications.INNM
+  alias Scrivener.Page
 
   action_fallback(EHealth.Web.FallbackController)
 

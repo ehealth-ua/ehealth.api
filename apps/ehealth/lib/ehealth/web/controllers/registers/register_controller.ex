@@ -2,8 +2,8 @@ defmodule EHealth.Web.RegisterController do
   @moduledoc false
 
   use EHealth.Web, :controller
-  alias Scrivener.Page
   alias Core.Registers.API, as: Registers
+  alias Scrivener.Page
 
   action_fallback(EHealth.Web.FallbackController)
 

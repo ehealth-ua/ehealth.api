@@ -15,8 +15,8 @@ defmodule Core.Medications do
   alias Core.Medications.INNM.Search, as: INNMSearch
   alias Core.Medications.INNMDosage
   alias Core.Medications.INNMDosage.Search, as: INNMDosageSearch
-  alias Core.Medications.Medication.Ingredient, as: MedicationIngredient
   alias Core.Medications.Medication
+  alias Core.Medications.Medication.Ingredient, as: MedicationIngredient
   alias Core.Medications.Medication.Search, as: MedicationSearch
   alias Core.Medications.Program, as: ProgramMedication
   alias Core.Medications.Program.Search, as: ProgramMedicationSearch

@@ -2,9 +2,9 @@ defmodule Core.DeclarationRequests.API.V2.Creator do
   @moduledoc false
   import Ecto.Changeset
 
-  alias Core.DeclarationRequests.DeclarationRequest
   alias Core.DeclarationRequests.API.V1.Creator, as: V1Creator
   alias Core.DeclarationRequests.API.V2.MpiSearch
+  alias Core.DeclarationRequests.DeclarationRequest
   alias Core.GlobalParameters
   alias Core.Repo
   alias Ecto.Changeset

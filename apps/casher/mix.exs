@@ -32,12 +32,12 @@ defmodule Casher.Mixfile do
     [
       {:core, in_umbrella: true},
       {:confex, "~> 3.3.1"},
-      {:phoenix, "~> 1.4.0-rc.3", override: true},
-      {:plug_cowboy, "~> 2.0"},
-      {:redix, ">= 0.0.0"},
-      {:eview, "~> 0.12"},
-      {:plug_logger_json, "~> 0.5"},
       {:ecto_logger_json, git: "https://github.com/edenlabllc/ecto_logger_json.git", branch: "query_params"},
+      {:eview, "~> 0.12"},
+      {:phoenix, "~> 1.4.0", override: true},
+      {:plug_cowboy, "~> 2.0"},
+      {:plug_logger_json, "~> 0.5"},
+      {:redix, ">= 0.0.0"},
       {:mox, "~> 0.3", only: :test},
       {:ex_machina, "~> 2.0", only: [:dev, :test]}
     ]

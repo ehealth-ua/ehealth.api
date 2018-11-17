@@ -3,9 +3,9 @@ defmodule Core.Man.Templates.EmployeeCreatedNotification do
 
   use Confex, otp_app: :core
 
-  alias Core.Man.Templates.EmployeeRequestInvitation
   alias Core.EmployeeRequests.EmployeeRequest, as: Request
   alias Core.LegalEntities
+  alias Core.Man.Templates.EmployeeRequestInvitation
 
   @man_api Application.get_env(:core, :api_resolvers)[:man]
 

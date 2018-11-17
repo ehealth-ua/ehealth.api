@@ -3,9 +3,9 @@ defmodule EHealth.Web.LegalEntityController do
 
   use EHealth.Web, :controller
 
-  alias Scrivener.Page
   alias Core.LegalEntities, as: API
   alias Core.LegalEntities.LegalEntityUpdater
+  alias Scrivener.Page
 
   action_fallback(EHealth.Web.FallbackController)
 

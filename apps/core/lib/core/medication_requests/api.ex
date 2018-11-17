@@ -9,18 +9,18 @@ defmodule Core.MedicationRequests.API do
   alias Core.Divisions.Division
   alias Core.Employees
   alias Core.Employees.Employee
+  alias Core.LegalEntities
   alias Core.LegalEntities.LegalEntity
+  alias Core.MedicalPrograms
   alias Core.MedicalPrograms.MedicalProgram
   alias Core.MedicationRequests.Search
   alias Core.MedicationRequests.SMSSender
-  alias Core.Medications.INNMDosage
-  alias Core.Medications.Program, as: ProgramMedication
   alias Core.Medications
+  alias Core.Medications.INNMDosage
+  alias Core.Medications.INNMDosage.Ingredient, as: INNMDosageIngredient
   alias Core.Medications.Medication
   alias Core.Medications.Medication.Ingredient
-  alias Core.Medications.INNMDosage.Ingredient, as: INNMDosageIngredient
-  alias Core.LegalEntities
-  alias Core.MedicalPrograms
+  alias Core.Medications.Program, as: ProgramMedication
   alias Core.PartyUsers
   alias Core.PartyUsers.PartyUser
   alias Core.PRMRepo

@@ -3,9 +3,9 @@ defmodule EHealth.Web.EmployeeController do
 
   use EHealth.Web, :controller
 
-  alias Scrivener.Page
   alias Core.Employees, as: API
   alias Core.Employees.EmployeeUpdater
+  alias Scrivener.Page
 
   action_fallback(EHealth.Web.FallbackController)
 

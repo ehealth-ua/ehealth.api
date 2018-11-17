@@ -6,11 +6,11 @@ defmodule Core.Persons do
   alias Core.Persons.Person
   alias Core.Persons.Search
   alias Core.Persons.Signed
+  alias Core.Persons.V2.Validator, as: PersonsValidator
   alias Core.ValidationError
   alias Core.Validators.Addresses
   alias Core.Validators.Error
   alias Core.Validators.JsonSchema
-  alias Core.Persons.V2.Validator, as: PersonsValidator
   alias Core.Validators.Signature, as: SignatureValidator
 
   @mpi_api Application.get_env(:core, :api_resolvers)[:mpi]

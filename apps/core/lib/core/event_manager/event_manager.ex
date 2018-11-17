@@ -2,8 +2,8 @@ defmodule Core.EventManager do
   @moduledoc false
 
   alias Core.EmployeeRequests.EmployeeRequest
-  alias Core.EventManagerRepo, as: Repo
   alias Core.EventManager.Event
+  alias Core.EventManagerRepo, as: Repo
 
   @type_change_status "StatusChangeEvent"
 

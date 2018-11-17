@@ -1,8 +1,8 @@
 defmodule Core.Medications.INNMDosage do
   @moduledoc false
   use Ecto.Schema
-  alias Core.Medications.Medication.Ingredient, as: MedicationIngredient
   alias Core.Medications.INNMDosage.Ingredient, as: INNMDosageIngredient
+  alias Core.Medications.Medication.Ingredient, as: MedicationIngredient
 
   @medication_type "INNM_DOSAGE"
 

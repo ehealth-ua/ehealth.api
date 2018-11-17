@@ -30,27 +30,27 @@ defmodule Core.MixProject do
 
   defp deps do
     [
-      {:jason, "~> 1.0"},
-      {:httpoison, "~> 1.1.0"},
-      {:timex, "~> 3.2"},
-      {:plug, "~> 1.4"},
-      {:confex, "~> 3.2"},
-      {:eview, "~> 0.12.2"},
-      {:phoenix_ecto, "~> 3.2"},
-      {:postgrex, ">= 0.0.0"},
-      {:ecto, "~> 2.1"},
-      {:scrivener_ecto, "~> 1.2"},
-      {:ecto_trail, "0.2.3"},
       {:bamboo, "~> 0.8"},
       {:bamboo_postmark, "~> 0.2.0"},
       {:bamboo_smtp, "~> 1.4.0"},
-      {:guardian, "~> 1.1"},
-      {:geo, "~> 1.4"},
-      {:jvalid, "~> 0.6.0"},
       {:cipher, "~> 1.3"},
-      {:translit, "~> 0.1.0"},
-      {:csv, "~> 2.0.0"},
+      {:confex, "~> 3.2"},
+      {:csv, "~> 2.1"},
+      {:ecto, "~> 2.1"},
+      {:ecto_trail, "0.2.3"},
+      {:eview, "~> 0.15"},
       {:ecto_logger_json, git: "https://github.com/edenlabllc/ecto_logger_json.git", branch: "query_params"},
+      {:geo, "~> 1.4"},
+      {:guardian, "~> 1.1"},
+      {:httpoison, "~> 1.4"},
+      {:jason, "~> 1.0"},
+      {:jvalid, "~> 0.7"},
+      {:phoenix_ecto, "~> 3.2"},
+      {:plug, "~> 1.4"},
+      {:postgrex, ">= 0.0.0"},
+      {:scrivener_ecto, "~> 1.2"},
+      {:timex, "~> 3.2"},
+      {:translit, "~> 0.1.0"},
       {:mox, "~> 0.3", only: :test},
       {:ex_machina, "~> 2.0", only: [:dev, :test]}
     ]
@@ -63,8 +63,7 @@ defmodule Core.MixProject do
         "ecto.create --repo Core.FraudRepo",
         "ecto.create --repo Core.PRMRepo",
         "ecto.create --repo Core.EventManagerRepo",
-        "ecto.migrate",
-        "run priv/repo/seeds.exs"
+        "ecto.migrate"
       ],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: [

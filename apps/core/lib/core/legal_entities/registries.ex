@@ -5,9 +5,9 @@ defmodule Core.Registries do
 
   import Ecto.{Query, Changeset}, warn: false
 
-  alias Core.PRMRepo, as: Repo
-  alias Core.LegalEntities.Registry, as: UkrMedRegistry
   alias Core.LegalEntities.LegalEntity
+  alias Core.LegalEntities.Registry, as: UkrMedRegistry
+  alias Core.PRMRepo, as: Repo
 
   def count_registries_with_edrpou(edrpou, type) do
     Repo.one(

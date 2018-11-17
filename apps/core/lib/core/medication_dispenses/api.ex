@@ -13,13 +13,13 @@ defmodule Core.MedicationDispense.API do
   alias Core.LegalEntities
   alias Core.LegalEntities.LegalEntity
   alias Core.MedicalPrograms
-  alias Core.Medications
-  alias Core.Medications.Medication
-  alias Core.Medications.Program, as: ProgramMedication
   alias Core.MedicationDispense.Renderer, as: MedicationDispenseRenderer
   alias Core.MedicationDispenses.Search
   alias Core.MedicationDispenses.SearchByMedicationRequest
   alias Core.MedicationRequests.API, as: MedicationRequests
+  alias Core.Medications
+  alias Core.Medications.Medication
+  alias Core.Medications.Program, as: ProgramMedication
   alias Core.Parties
   alias Core.Parties.Party
   alias Core.PartyUsers

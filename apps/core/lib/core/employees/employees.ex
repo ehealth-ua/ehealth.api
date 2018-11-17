@@ -10,8 +10,8 @@ defmodule Core.Employees do
 
   alias Core.Contracts
   alias Core.Contracts.Contract
-  alias Core.EmployeeRequests.EmployeeRequest, as: Request
   alias Core.EmployeeRequests
+  alias Core.EmployeeRequests.EmployeeRequest, as: Request
   alias Core.Employees.Employee
   alias Core.Employees.EmployeeCreator
   alias Core.Employees.Search

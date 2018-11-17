@@ -4,9 +4,9 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestController do
   use EHealth.Web, :controller
   alias Core.Cabinet.DeclarationRequests, as: CabinetDeclarationRequests
   alias Core.DeclarationRequests
-  alias Core.V2.DeclarationRequests, as: DeclarationRequestsV2
   alias Core.Employees
   alias Core.Employees.Employee
+  alias Core.V2.DeclarationRequests, as: DeclarationRequestsV2
   alias EHealth.Web.DeclarationRequestView
   require Logger
 

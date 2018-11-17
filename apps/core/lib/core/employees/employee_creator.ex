@@ -9,11 +9,11 @@ defmodule Core.Employees.EmployeeCreator do
 
   alias Core.Contracts
   alias Core.Contracts.Contract
+  alias Core.EmployeeRequests
+  alias Core.EmployeeRequests.EmployeeRequest, as: Request
   alias Core.Employees
   alias Core.Employees.Employee
   alias Core.Employees.EmployeeUpdater
-  alias Core.EmployeeRequests.EmployeeRequest, as: Request
-  alias Core.EmployeeRequests
   alias Core.Parties
   alias Core.Parties.Party
   alias Core.PartyUsers

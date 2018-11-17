@@ -18,9 +18,9 @@ defmodule Core.EmployeeRequests do
   alias Core.LegalEntities
   alias Core.LegalEntities.LegalEntity
   alias Core.Log
+  alias Core.Man.Templates.EmployeeCreatedNotification, as: EmployeeCreatedNotificationTemplate
   alias Core.Man.Templates.EmployeeRequestInvitation, as: EmployeeRequestInvitationTemplate
   alias Core.Man.Templates.EmployeeRequestUpdateInvitation, as: EmployeeUpdateInvitationTemplate
-  alias Core.Man.Templates.EmployeeCreatedNotification, as: EmployeeCreatedNotificationTemplate
   alias Core.OAuth.API, as: OAuth
   alias Core.PRMRepo
   alias Core.Repo
