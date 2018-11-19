@@ -19,7 +19,10 @@ defmodule EHealth.Web.EmployeeView do
   end
 
   def render("employee_list.json", %{employee: employee}) do
-    party = Map.take(employee.party, ~w(id first_name second_name last_name no_tax_id)a)
+    party =
+      employee.party
+      |> Map.take(~w(id first_name second_name last_name no_tax_id)a)
+      |> Map.merge(%{declaration_count: 0, declaration_limit: 0})
 
     employee
     |> Map.take(~w(
@@ -104,20 +107,23 @@ defmodule EHealth.Web.EmployeeView do
   end
 
   defp render_association(map, %Party{} = party) do
-    data = Map.take(party, ~w(
-      id
-      first_name
-      last_name
-      second_name
-      birth_date
-      gender
-      tax_id
-      no_tax_id
-      documents
-      phones
-      about_myself
-      working_experience
-    )a)
+    data =
+      party
+      |> Map.take(~w(
+        id
+        first_name
+        last_name
+        second_name
+        birth_date
+        gender
+        tax_id
+        no_tax_id
+        documents
+        phones
+        about_myself
+        working_experience
+      )a)
+      |> Map.merge(%{declaration_limit: 0, declaration_count: 0})
 
     Map.put(map, :party, data)
   end
