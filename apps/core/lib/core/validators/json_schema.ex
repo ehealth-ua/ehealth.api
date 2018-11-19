@@ -88,8 +88,14 @@ defmodule Core.Validators.JsonSchema do
     "specs/json_schemas/medication_request/medication_request_qualify_request.json"
   )
 
-  use_schema(:credentials_recovery_request, "specs/json_schemas/user/credentials_recovery_request.json")
+  use_schema(:medication_request_reject, "specs/json_schemas/medication_request/medication_request_reject_request.json")
 
+  use_schema(
+    :medication_request_reject_content,
+    "specs/json_schemas/medication_request/medication_request_reject_content.json"
+  )
+
+  use_schema(:credentials_recovery_request, "specs/json_schemas/user/credentials_recovery_request.json")
   use_schema(:connection_update, "specs/json_schemas/connection/connection_update.json")
 
   def validate(schema, attrs) do

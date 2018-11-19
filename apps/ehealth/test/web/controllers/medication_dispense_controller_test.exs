@@ -1657,11 +1657,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         })
         |> json_response(422)
 
-      assert %{
-               "invalid" => [
-                 %{"entry_type" => "request", "rules" => [%{"rule" => "json"}]}
-               ]
-             } = resp["error"]
+      assert %{"message" => "Does not match the signer drfo"} = resp["error"]
     end
 
     test "invalid user in DS: drfo is absent", %{conn: conn} do

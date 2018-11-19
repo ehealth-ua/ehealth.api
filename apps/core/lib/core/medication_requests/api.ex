@@ -13,6 +13,7 @@ defmodule Core.MedicationRequests.API do
   alias Core.LegalEntities.LegalEntity
   alias Core.MedicalPrograms
   alias Core.MedicalPrograms.MedicalProgram
+  alias Core.MedicationRequests.Renderer, as: MedicationRequestsRenderer
   alias Core.MedicationRequests.Search
   alias Core.MedicationRequests.SMSSender
   alias Core.Medications
@@ -25,12 +26,17 @@ defmodule Core.MedicationRequests.API do
   alias Core.PartyUsers.PartyUser
   alias Core.PRMRepo
   alias Core.Utils.NumberGenerator
+  alias Core.ValidationError
+  alias Core.Validators.Content, as: ContentValidator
+  alias Core.Validators.Error
   alias Core.Validators.JsonSchema
+  alias Core.Validators.Signature, as: SignatureValidator
 
   require Logger
 
   @ops_api Application.get_env(:core, :api_resolvers)[:ops]
   @mpi_api Application.get_env(:core, :api_resolvers)[:mpi]
+  @media_storage_api Application.get_env(:core, :api_resolvers)[:media_storage]
 
   @legal_entity_msp LegalEntity.type(:msp)
   @legal_entity_pharmacy LegalEntity.type(:pharmacy)
@@ -70,17 +76,30 @@ defmodule Core.MedicationRequests.API do
   end
 
   def reject(params, client_type, headers) do
-    update_params = %{
-      medication_request: %{
-        status: "REJECTED",
-        updated_by: get_client_id(headers),
-        updated_at: NaiveDateTime.utc_now(),
-        reject_reason: params["reject_reason"]
-      }
-    }
+    user_id = get_consumer_id(headers)
 
-    with {:ok, %{"status" => "ACTIVE"} = medication_request} <- show(%{"id" => params["id"]}, client_type, headers),
-         {:ok, %{"data" => mr}} <- @ops_api.update_medication_request(medication_request["id"], update_params, []) do
+    with :ok <- JsonSchema.validate(:medication_request_reject, params),
+         {:ok, %{"content" => content, "signers" => [signer]}} <- decode_signed_content(params, headers),
+         :ok <- SignatureValidator.check_drfo(signer, user_id, "medication_request_reject"),
+         {:ok, %{"status" => "ACTIVE"} = medication_request} <- show(%{"id" => params["id"]}, client_type, headers),
+         :ok <- check_medication_dispenses(medication_request, headers),
+         :ok <- JsonSchema.validate(:medication_request_reject_content, content),
+         :ok <- compare_with_db(content, medication_request),
+         :ok <- save_signed_content(params["id"], params, headers),
+         update_params <-
+           content
+           |> Map.take(~w(reject_reason))
+           |> Map.merge(%{
+             "status" => "REJECTED",
+             "updated_by" => get_client_id(headers),
+             "updated_at" => NaiveDateTime.utc_now()
+           }),
+         {:ok, %{"data" => mr}} <-
+           @ops_api.update_medication_request(
+             medication_request["id"],
+             %{"medication_request" => update_params},
+             headers
+           ) do
       SMSSender.maybe_send_sms(
         %{request_number: medication_request["request_number"], created_at: medication_request["created_at"]},
         medication_request["person"],
@@ -420,5 +439,47 @@ defmodule Core.MedicationRequests.API do
 
   defp validate_medication_request_status(_) do
     {:conflict, "Invalid status Medication request for qualify action!"}
+  end
+
+  defp decode_signed_content(
+         %{"signed_medication_reject" => signed_content, "signed_content_encoding" => encoding},
+         headers
+       ) do
+    SignatureValidator.validate(signed_content, encoding, headers)
+  end
+
+  defp check_medication_dispenses(%{"id" => medication_request_id}, headers) do
+    params = %{"status" => "NEW,PROCESSED", "medication_request_id" => medication_request_id}
+
+    with {:ok, %{"data" => []}} <- @ops_api.get_medication_dispenses(params, headers) do
+      :ok
+    else
+      _ -> {:error, {:conflict, "Medication request with connected processed medication dispenses can not be rejected"}}
+    end
+  end
+
+  defp compare_with_db(content, medication_request) do
+    db_content =
+      "show.json"
+      |> MedicationRequestsRenderer.render(medication_request)
+      |> Jason.encode!()
+      |> Jason.decode!()
+
+    content = Map.delete(content, "reject_reason")
+    ContentValidator.compare_with_db(content, db_content, "medication_request_reject")
+  end
+
+  defp save_signed_content(id, %{"signed_medication_reject" => signed_content}, headers) do
+    signed_content
+    |> @media_storage_api.store_signed_content(
+      :medication_request_bucket,
+      id,
+      "medication_request_reject",
+      headers
+    )
+    |> case do
+      {:ok, _} -> :ok
+      _error -> {:error, {:bad_gateway, "Failed to save signed content"}}
+    end
   end
 end

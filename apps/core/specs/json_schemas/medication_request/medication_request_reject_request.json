@@ -1,0 +1,19 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "signed_medication_reject": {
+            "type": "string"
+        },
+        "signed_content_encoding": {
+            "type": "string",
+            "enum": [
+                "base64"
+            ]
+        }
+    },
+    "required": [
+        "signed_medication_reject",
+        "signed_content_encoding"
+    ]
+}

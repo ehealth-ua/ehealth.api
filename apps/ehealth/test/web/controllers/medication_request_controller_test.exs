@@ -594,10 +594,12 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
 
   describe "reject medication request" do
     test "success", %{conn: conn} do
-      msp()
+      msp(2)
 
-      expect(MPIMock, :person, fn id, _headers ->
-        {:ok, %{"data" => string_params_for(:person, id: id)}}
+      person = string_params_for(:person)
+
+      expect(MPIMock, :person, 2, fn _, _headers ->
+        {:ok, %{"data" => person}}
       end)
 
       user_id = get_consumer_id(conn.req_headers)
@@ -607,13 +609,13 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       insert_medication(innm_dosage_id)
       %{id: medical_program_id} = insert(:prm, :medical_program)
 
-      %{party: party} =
+      party_user =
         :prm
         |> insert(:party_user, user_id: user_id)
         |> PRMRepo.preload(:party)
 
       legal_entity = PRMRepo.get!(LegalEntity, legal_entity_id)
-      %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
+      %{id: employee_id} = insert(:prm, :employee, party: party_user.party, legal_entity: legal_entity)
 
       medication_request =
         build_resp(%{
@@ -624,7 +626,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
           medication_id: innm_dosage_id
         })
 
-      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
+      expect(OPSMock, :get_doctor_medication_requests, 2, fn _params, _headers ->
         {:ok,
          %{
            "data" => [medication_request],
@@ -637,26 +639,86 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
          }}
       end)
 
-      expect(OPSMock, :update_medication_request, fn _id, _params, _headers ->
-        {:ok, %{"data" => medication_request}}
+      expect(OPSMock, :get_medication_dispenses, fn _params, _headers ->
+        {:ok,
+         %{
+           "data" => [],
+           "paging" => %{
+             "page_number" => 1,
+             "page_size" => 50,
+             "total_entries" => 1,
+             "total_pages" => 1
+           }
+         }}
+      end)
+
+      expect(OPSMock, :update_medication_request, fn _id, %{"medication_request" => params}, _headers ->
+        {:ok, %{"data" => Map.merge(medication_request, params)}}
       end)
 
       expect(OTPVerificationMock, :send_sms, fn phone_number, body, type, _ ->
         {:ok, %{"data" => %{"body" => body, "phone_number" => phone_number, "type" => type}}}
       end)
 
-      conn = patch(conn, medication_request_path(conn, :reject, medication_request["id"]), %{reject_reason: "TEST"})
+      reject_reason = "TEST"
 
-      assert json_response(conn, 200)
+      content =
+        conn
+        |> get(medication_request_path(conn, :show, medication_request["id"]))
+        |> json_response(200)
+        |> Map.get("data")
+        |> Map.put("reject_reason", reject_reason)
+
+      expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
+        {:ok,
+         %{
+           "data" => %{
+             "content" => content,
+             "signatures" => [
+               %{
+                 "is_valid" => true,
+                 "is_stamp" => false,
+                 "signer" => %{
+                   "edrpou" => legal_entity.edrpou,
+                   "drfo" => party_user.party.tax_id,
+                   "surname" => party_user.party.last_name
+                 }
+               }
+             ]
+           }
+         }}
+      end)
+
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
+      resp =
+        conn
+        |> patch(medication_request_path(conn, :reject, medication_request["id"]), %{
+          "signed_medication_reject" =>
+            content
+            |> Jason.encode!()
+            |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(200)
+        |> Map.get("data")
+        |> assert_show_response_schema("medication_request")
+
+      assert "REJECTED" == resp["status"]
     end
 
-    test "404", %{conn: conn} do
+    test "fail to find medication request", %{conn: conn} do
       msp()
       user_id = get_consumer_id(conn.req_headers)
+      legal_entity_id = get_client_id(conn.req_headers)
+      legal_entity = PRMRepo.get!(LegalEntity, legal_entity_id)
 
-      :prm
-      |> insert(:party_user, user_id: user_id)
-      |> PRMRepo.preload(:party)
+      party_user =
+        :prm
+        |> insert(:party_user, user_id: user_id)
+        |> PRMRepo.preload(:party)
 
       expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
         {:ok,
@@ -671,9 +733,546 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
          }}
       end)
 
-      conn = patch(conn, medication_request_path(conn, :reject, UUID.generate()), %{reject_reason: "TEST"})
+      expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
+        {:ok,
+         %{
+           "data" => %{
+             "content" => %{},
+             "signatures" => [
+               %{
+                 "is_valid" => true,
+                 "is_stamp" => false,
+                 "signer" => %{
+                   "edrpou" => legal_entity.edrpou,
+                   "drfo" => party_user.party.tax_id,
+                   "surname" => party_user.party.last_name
+                 }
+               }
+             ]
+           }
+         }}
+      end)
 
-      assert json_response(conn, 404)
+      assert conn
+             |> patch(medication_request_path(conn, :reject, UUID.generate()), %{
+               "signed_medication_reject" =>
+                 %{}
+                 |> Jason.encode!()
+                 |> Base.encode64(),
+               "signed_content_encoding" => "base64"
+             })
+             |> json_response(404)
+    end
+
+    test "invalid transition", %{conn: conn} do
+      msp()
+
+      expect(MPIMock, :person, fn id, _headers ->
+        {:ok, %{"data" => string_params_for(:person, id: id)}}
+      end)
+
+      user_id = get_consumer_id(conn.req_headers)
+
+      party_user =
+        :prm
+        |> insert(:party_user, user_id: user_id)
+        |> PRMRepo.preload(:party)
+
+      legal_entity_id = get_client_id(conn.req_headers)
+      legal_entity = PRMRepo.get!(LegalEntity, legal_entity_id)
+      division = insert(:prm, :division)
+      %{id: employee_id} = insert(:prm, :employee, party: party_user.party, legal_entity: legal_entity)
+      %{id: innm_dosage_id} = insert_innm_dosage()
+      insert_medication(innm_dosage_id)
+      %{id: medical_program_id} = insert(:prm, :medical_program)
+
+      medication_request =
+        build_resp(%{
+          legal_entity_id: legal_entity_id,
+          division_id: division.id,
+          employee_id: employee_id,
+          medical_program_id: medical_program_id,
+          medication_id: innm_dosage_id,
+          status: "COMPLETED"
+        })
+
+      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
+        {:ok,
+         %{
+           "data" => [medication_request],
+           "paging" => %{
+             "page_number" => 1,
+             "page_size" => 50,
+             "total_entries" => 0,
+             "total_pages" => 1
+           }
+         }}
+      end)
+
+      expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
+        {:ok,
+         %{
+           "data" => %{
+             "content" => %{},
+             "signatures" => [
+               %{
+                 "is_valid" => true,
+                 "is_stamp" => false,
+                 "signer" => %{
+                   "edrpou" => legal_entity.edrpou,
+                   "drfo" => party_user.party.tax_id,
+                   "surname" => party_user.party.last_name
+                 }
+               }
+             ]
+           }
+         }}
+      end)
+
+      resp =
+        conn
+        |> patch(medication_request_path(conn, :reject, medication_request["id"]), %{
+          "signed_medication_reject" =>
+            %{}
+            |> Jason.encode!()
+            |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(409)
+
+      assert get_in(resp, ~w(error message)) == "Invalid status Request for Medication request for reject transition!"
+    end
+
+    test "medication request has medication dispenses with status NEW, PROCESSED etc", %{conn: conn} do
+      msp()
+
+      expect(MPIMock, :person, fn id, _headers ->
+        {:ok, %{"data" => string_params_for(:person, id: id)}}
+      end)
+
+      user_id = get_consumer_id(conn.req_headers)
+
+      party_user =
+        :prm
+        |> insert(:party_user, user_id: user_id)
+        |> PRMRepo.preload(:party)
+
+      legal_entity_id = get_client_id(conn.req_headers)
+      legal_entity = PRMRepo.get!(LegalEntity, legal_entity_id)
+      division = insert(:prm, :division)
+      %{id: employee_id} = insert(:prm, :employee, party: party_user.party, legal_entity: legal_entity)
+      %{id: innm_dosage_id} = insert_innm_dosage()
+      insert_medication(innm_dosage_id)
+      %{id: medical_program_id} = insert(:prm, :medical_program)
+
+      medication_request =
+        build_resp(%{
+          legal_entity_id: legal_entity_id,
+          division_id: division.id,
+          employee_id: employee_id,
+          medical_program_id: medical_program_id,
+          medication_id: innm_dosage_id
+        })
+
+      medication_dispense = build(:medication_dispense, medication_request_id: medication_request["id"], status: "NEW")
+
+      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
+        {:ok,
+         %{
+           "data" => [medication_request],
+           "paging" => %{
+             "page_number" => 1,
+             "page_size" => 50,
+             "total_entries" => 0,
+             "total_pages" => 1
+           }
+         }}
+      end)
+
+      expect(OPSMock, :get_medication_dispenses, fn _params, _headers ->
+        {:ok,
+         %{
+           "data" => [medication_dispense],
+           "paging" => %{
+             "page_number" => 1,
+             "page_size" => 50,
+             "total_entries" => 1,
+             "total_pages" => 1
+           }
+         }}
+      end)
+
+      expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
+        {:ok,
+         %{
+           "data" => %{
+             "content" => %{},
+             "signatures" => [
+               %{
+                 "is_valid" => true,
+                 "is_stamp" => false,
+                 "signer" => %{
+                   "edrpou" => legal_entity.edrpou,
+                   "drfo" => party_user.party.tax_id,
+                   "surname" => party_user.party.last_name
+                 }
+               }
+             ]
+           }
+         }}
+      end)
+
+      resp =
+        conn
+        |> patch(medication_request_path(conn, :reject, medication_request["id"]), %{
+          "signed_medication_reject" =>
+            %{}
+            |> Jason.encode!()
+            |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(409)
+
+      assert get_in(resp, ~w(error message)) ==
+               "Medication request with connected processed medication dispenses can not be rejected"
+    end
+
+    test "invalid user drfo in DS", %{conn: conn} do
+      msp()
+      user_id = get_consumer_id(conn.req_headers)
+      legal_entity_id = get_client_id(conn.req_headers)
+      legal_entity = PRMRepo.get!(LegalEntity, legal_entity_id)
+
+      party_user =
+        :prm
+        |> insert(:party_user, user_id: user_id)
+        |> PRMRepo.preload(:party)
+
+      expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
+        {:ok,
+         %{
+           "data" => %{
+             "content" => %{},
+             "signatures" => [
+               %{
+                 "is_valid" => true,
+                 "is_stamp" => false,
+                 "signer" => %{
+                   "edrpou" => legal_entity.edrpou,
+                   "drfo" => "test",
+                   "surname" => party_user.party.last_name
+                 }
+               }
+             ]
+           }
+         }}
+      end)
+
+      resp =
+        conn
+        |> patch(medication_request_path(conn, :reject, UUID.generate()), %{
+          "signed_medication_reject" =>
+            %{}
+            |> Jason.encode!()
+            |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(422)
+
+      assert %{"message" => "Does not match the signer drfo"} = resp["error"]
+    end
+
+    test "invalid request params", %{conn: conn} do
+      msp()
+
+      resp =
+        conn
+        |> patch(medication_request_path(conn, :reject, UUID.generate()), %{"test" => "test"})
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.signed_medication_reject",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "required property signed_medication_reject was not present",
+                       "params" => [],
+                       "rule" => "required"
+                     }
+                   ]
+                 },
+                 %{
+                   "entry" => "$.signed_content_encoding",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "required property signed_content_encoding was not present",
+                       "params" => [],
+                       "rule" => "required"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
+    end
+
+    test "invalid content params", %{conn: conn} do
+      msp(2)
+
+      person = string_params_for(:person)
+
+      expect(MPIMock, :person, 2, fn _, _headers ->
+        {:ok, %{"data" => person}}
+      end)
+
+      user_id = get_consumer_id(conn.req_headers)
+      legal_entity_id = get_client_id(conn.req_headers)
+      division = insert(:prm, :division)
+      %{id: innm_dosage_id} = insert_innm_dosage()
+      insert_medication(innm_dosage_id)
+      %{id: medical_program_id} = insert(:prm, :medical_program)
+
+      party_user =
+        :prm
+        |> insert(:party_user, user_id: user_id)
+        |> PRMRepo.preload(:party)
+
+      legal_entity = PRMRepo.get!(LegalEntity, legal_entity_id)
+      %{id: employee_id} = insert(:prm, :employee, party: party_user.party, legal_entity: legal_entity)
+
+      medication_request =
+        build_resp(%{
+          legal_entity_id: legal_entity_id,
+          division_id: division.id,
+          employee_id: employee_id,
+          medical_program_id: medical_program_id,
+          medication_id: innm_dosage_id
+        })
+
+      expect(OPSMock, :get_doctor_medication_requests, 2, fn _params, _headers ->
+        {:ok,
+         %{
+           "data" => [medication_request],
+           "paging" => %{
+             "page_number" => 1,
+             "page_size" => 50,
+             "total_entries" => 1,
+             "total_pages" => 1
+           }
+         }}
+      end)
+
+      expect(OPSMock, :get_medication_dispenses, fn _params, _headers ->
+        {:ok,
+         %{
+           "data" => [],
+           "paging" => %{
+             "page_number" => 1,
+             "page_size" => 50,
+             "total_entries" => 1,
+             "total_pages" => 1
+           }
+         }}
+      end)
+
+      content =
+        conn
+        |> get(medication_request_path(conn, :show, medication_request["id"]))
+        |> json_response(200)
+        |> Map.get("data")
+        |> Map.merge(%{
+          "reject_reason" => 12345,
+          "test" => "test"
+        })
+        |> Map.delete("id")
+
+      expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
+        {:ok,
+         %{
+           "data" => %{
+             "content" => content,
+             "signatures" => [
+               %{
+                 "is_valid" => true,
+                 "is_stamp" => false,
+                 "signer" => %{
+                   "edrpou" => legal_entity.edrpou,
+                   "drfo" => party_user.party.tax_id,
+                   "surname" => party_user.party.last_name
+                 }
+               }
+             ]
+           }
+         }}
+      end)
+
+      resp =
+        conn
+        |> patch(medication_request_path(conn, :reject, medication_request["id"]), %{
+          "signed_medication_reject" =>
+            content
+            |> Jason.encode!()
+            |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.reject_reason",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "type mismatch. Expected String but got Integer",
+                       "params" => ["string"],
+                       "rule" => "cast"
+                     }
+                   ]
+                 },
+                 %{
+                   "entry" => "$.test",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "schema does not allow additional properties",
+                       "params" => %{"test" => "test"},
+                       "rule" => "schema"
+                     }
+                   ]
+                 },
+                 %{
+                   "entry" => "$.id",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "required property id was not present",
+                       "params" => [],
+                       "rule" => "required"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
+    end
+
+    test "failed when signed content does not match the previously created content", %{conn: conn} do
+      msp(2)
+
+      person = string_params_for(:person)
+
+      expect(MPIMock, :person, 2, fn _, _headers ->
+        {:ok, %{"data" => person}}
+      end)
+
+      user_id = get_consumer_id(conn.req_headers)
+      legal_entity_id = get_client_id(conn.req_headers)
+      division = insert(:prm, :division)
+      %{id: innm_dosage_id} = insert_innm_dosage()
+      insert_medication(innm_dosage_id)
+      %{id: medical_program_id} = insert(:prm, :medical_program)
+
+      party_user =
+        :prm
+        |> insert(:party_user, user_id: user_id)
+        |> PRMRepo.preload(:party)
+
+      legal_entity = PRMRepo.get!(LegalEntity, legal_entity_id)
+      %{id: employee_id} = insert(:prm, :employee, party: party_user.party, legal_entity: legal_entity)
+
+      medication_request =
+        build_resp(%{
+          legal_entity_id: legal_entity_id,
+          division_id: division.id,
+          employee_id: employee_id,
+          medical_program_id: medical_program_id,
+          medication_id: innm_dosage_id
+        })
+
+      expect(OPSMock, :get_doctor_medication_requests, 2, fn _params, _headers ->
+        {:ok,
+         %{
+           "data" => [medication_request],
+           "paging" => %{
+             "page_number" => 1,
+             "page_size" => 50,
+             "total_entries" => 1,
+             "total_pages" => 1
+           }
+         }}
+      end)
+
+      expect(OPSMock, :get_medication_dispenses, fn _params, _headers ->
+        {:ok,
+         %{
+           "data" => [],
+           "paging" => %{
+             "page_number" => 1,
+             "page_size" => 50,
+             "total_entries" => 1,
+             "total_pages" => 1
+           }
+         }}
+      end)
+
+      content =
+        conn
+        |> get(medication_request_path(conn, :show, medication_request["id"]))
+        |> json_response(200)
+        |> Map.get("data")
+        |> Map.merge(%{
+          "reject_reason" => "TEST",
+          "id" => UUID.generate()
+        })
+
+      expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
+        {:ok,
+         %{
+           "data" => %{
+             "content" => content,
+             "signatures" => [
+               %{
+                 "is_valid" => true,
+                 "is_stamp" => false,
+                 "signer" => %{
+                   "edrpou" => legal_entity.edrpou,
+                   "drfo" => party_user.party.tax_id,
+                   "surname" => party_user.party.last_name
+                 }
+               }
+             ]
+           }
+         }}
+      end)
+
+      resp =
+        conn
+        |> patch(medication_request_path(conn, :reject, medication_request["id"]), %{
+          "signed_medication_reject" =>
+            content
+            |> Jason.encode!()
+            |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.content",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "Signed content does not match the previously created content",
+                       "params" => [],
+                       "rule" => "invalid"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
     end
   end
 

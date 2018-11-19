@@ -26,6 +26,7 @@ defmodule Core.MedicationDispense.API do
   alias Core.PartyUsers.PartyUser
   alias Core.PRMRepo
   alias Core.ValidationError
+  alias Core.Validators.Content, as: ContentValidator
   alias Core.Validators.Error
   alias Core.Validators.JsonSchema
   alias Core.Validators.Reference
@@ -213,43 +214,7 @@ defmodule Core.MedicationDispense.API do
       |> Map.drop(~w(payment_id payment_amount))
 
     content = Map.drop(content, ~w(payment_id payment_amount))
-
-    case db_content == content do
-      true ->
-        :ok
-
-      _ ->
-        mismatches = do_compare_with_db(db_content, content)
-
-        Logger.info(fn ->
-          Jason.encode!(%{
-            "log_type" => "debug",
-            "process" => "medication_dispense_process",
-            "details" => %{
-              "mismatches" => mismatches
-            },
-            "request_id" => Logger.metadata()[:request_id]
-          })
-        end)
-
-        Error.dump(%ValidationError{
-          description: "Signed content does not match the previously created content",
-          path: "$.content"
-        })
-    end
-  end
-
-  defp do_compare_with_db(db_content, content) do
-    Enum.reduce(Map.keys(db_content), [], fn key, acc ->
-      v1 = Map.get(db_content, key)
-      v2 = Map.get(content, key)
-
-      if v1 != v2 do
-        [%{"db_content.#{key}" => v1, "data.#{key}" => v2} | acc]
-      else
-        acc
-      end
-    end)
+    ContentValidator.compare_with_db(content, db_content, "medication_dispense_process")
   end
 
   defp save_signed_content(id, %{"signed_medication_dispense" => signed_content}, headers) do

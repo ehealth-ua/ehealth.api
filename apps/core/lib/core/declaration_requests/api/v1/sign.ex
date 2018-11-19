@@ -12,6 +12,7 @@ defmodule Core.DeclarationRequests.API.Sign do
   alias Core.Employees.Employee
   alias Core.Repo
   alias Core.ValidationError
+  alias Core.Validators.Content, as: ContentValidator
   alias Core.Validators.Error
   alias Core.Validators.Signature, as: SignatureValidator
   alias HTTPoison.Response
@@ -123,29 +124,7 @@ defmodule Core.DeclarationRequests.API.Sign do
       |> Map.put("declaration_number", Map.get(declaration_request, :declaration_number))
       |> Map.put("seed", current_hash(headers))
 
-    case db_content == content do
-      true ->
-        :ok
-
-      _ ->
-        mismatches = do_compare_with_db(db_content, content)
-
-        Logger.info(fn ->
-          Jason.encode!(%{
-            "log_type" => "debug",
-            "process" => "declaration_request_sign",
-            "details" => %{
-              "mismatches" => mismatches
-            },
-            "request_id" => Logger.metadata()[:request_id]
-          })
-        end)
-
-        Error.dump(%ValidationError{
-          description: "Signed content does not match the previously created content",
-          path: "$.content"
-        })
-    end
+    ContentValidator.compare_with_db(content, db_content, "declaration_request_sign")
   end
 
   def check_employee_id(content, headers) do
@@ -278,19 +257,6 @@ defmodule Core.DeclarationRequests.API.Sign do
     end)
 
     ""
-  end
-
-  defp do_compare_with_db(db_content, content) do
-    Enum.reduce(Map.keys(db_content), [], fn key, acc ->
-      v1 = Map.get(db_content, key)
-      v2 = Map.get(content, key)
-
-      if v1 != v2 do
-        [%{"db_content.#{key}" => v1, "data.#{key}" => v2} | acc]
-      else
-        acc
-      end
-    end)
   end
 
   defp current_hash(headers) do
