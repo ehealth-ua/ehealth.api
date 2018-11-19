@@ -41,10 +41,8 @@ defmodule EHealth.Web.LegalEntityController do
   end
 
   def show(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
-    with {:ok, legal_entity, security} <- API.get_by_id(id, req_headers) do
-      conn
-      |> assign_security(security)
-      |> render("show.json", legal_entity: legal_entity)
+    with {:ok, legal_entity, _} <- API.get_by_id(id, req_headers) do
+      render(conn, "show.json", legal_entity: legal_entity)
     end
   end
 
