@@ -790,7 +790,6 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       assert Map.has_key?(resp["data"], "beneficiary")
       assert Map.has_key?(resp["data"], "receiver_funds_code")
       refute Map.has_key?(resp, "paging")
-      assert_security_in_urgent_response(resp)
     end
 
     test "with x-consumer-metadata that contains MIS client_id that does not match legal entity id", %{conn: conn} do
@@ -804,7 +803,6 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       assert id == resp["data"]["id"]
       assert Map.has_key?(resp["data"], "medical_service_provider")
       refute Map.has_key?(resp, "paging")
-      assert_security_in_urgent_response(resp)
     end
 
     test "with x-consumer-metadata that contains client_id that matches inactive legal entity id", %{conn: conn} do
