@@ -4,6 +4,7 @@ defmodule GraphQLWeb.Schema.DictionaryTypes do
   use Absinthe.Schema.Notation
   use Absinthe.Relay.Schema.Notation, :modern
 
+  alias Absinthe.Relay.Node.ParseIDs
   alias GraphQLWeb.Resolvers.DictionaryResolver
 
   object :dictionary_queries do
@@ -27,6 +28,8 @@ defmodule GraphQLWeb.Schema.DictionaryTypes do
 
   object :dictionary_mutations do
     payload field(:update_dictionary) do
+      middleware(ParseIDs, id: :dictionary)
+
       input do
         field(:id, non_null(:id))
         field(:name, :string)

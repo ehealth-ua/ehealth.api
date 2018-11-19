@@ -5,6 +5,7 @@ defmodule GraphQLWeb.DictionaryResolverTest do
 
   import Core.Factories
 
+  alias Absinthe.Relay.Node
   alias Core.Dictionaries
   alias Core.Dictionaries.Dictionary
 
@@ -90,7 +91,7 @@ defmodule GraphQLWeb.DictionaryResolverTest do
       %{id: id} = insert(:il, :dictionary, is_active: true)
 
       dictionary_params = %{
-        id: id,
+        id: Node.to_global_id("Dictionary", id),
         name: name,
         is_active: false
       }
