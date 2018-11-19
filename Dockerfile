@@ -1,4 +1,4 @@
-FROM elixir:1.6.6-alpine as builder
+FROM elixir:1.7.4-alpine as builder
 
 ARG APP_NAME
 
