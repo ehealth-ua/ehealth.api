@@ -4539,7 +4539,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       nhs()
       template()
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, bucket, _, _, _ ->
+        assert :contract_bucket == bucket
         {:ok, "success"}
       end)
 

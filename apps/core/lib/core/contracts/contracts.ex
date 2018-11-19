@@ -672,6 +672,13 @@ defmodule Core.Contracts do
     end
   end
 
+  def gen_relevant_get_links(id, status) do
+    with {:ok, %{"data" => %{"secret_url" => secret_url}}} <-
+           @media_storage_api.create_signed_url("GET", get_bucket(), "signed_content/signed_content", id, []) do
+      [%{"type" => "SIGNED_CONTENT", "url" => secret_url}]
+    end
+  end
+
   defp validate_edrpou(search_params) do
     edrpou = Map.get(search_params, :edrpou)
     contractor_legal_entity_id = Map.get(search_params, :contractor_legal_entity_id)
@@ -732,5 +739,9 @@ defmodule Core.Contracts do
     contract
     |> PRMRepo.preload(:contract_employees)
     |> PRMRepo.preload(:contract_divisions)
+  end
+
+  defp get_bucket do
+    Confex.fetch_env!(:core, Core.API.MediaStorage)[:contract_bucket]
   end
 end
