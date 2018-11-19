@@ -8,6 +8,7 @@ defmodule EHealth.Web.ContractControllerTest do
 
   alias Core.Contracts.Contract
   alias Core.Divisions.Division
+  alias Core.LegalEntities.LegalEntity
   alias Ecto.UUID
 
   describe "show contract" do
@@ -626,7 +627,7 @@ defmodule EHealth.Web.ContractControllerTest do
 
     test "contractor legal entity is not active", %{conn: conn, end_date: end_date} do
       legal_entity = insert(:prm, :legal_entity)
-      contractor_legal_entity = insert(:prm, :legal_entity, is_active: false)
+      contractor_legal_entity = insert(:prm, :legal_entity, status: LegalEntity.status(:closed))
 
       %{id: division_id} = insert(:prm, :division)
 

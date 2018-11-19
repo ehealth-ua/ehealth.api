@@ -133,7 +133,7 @@ defmodule Core.Contracts do
          :ok <- validate_legal_entity_allowed(client_id, [contract.nhs_legal_entity_id]),
          :ok <- validate_contractor_related_legal_entity(contract.contractor_legal_entity_id),
          {:ok, contractor_legal_entity} <- LegalEntities.fetch_by_id(contract.contractor_legal_entity_id),
-         :ok <- check_legal_entity_is_active(contractor_legal_entity, :contractor),
+         :ok <- validate_status(contractor_legal_entity, LegalEntity.status(:active)),
          :ok <- validate_end_date(params["end_date"], contract.end_date),
          {:ok, contract} <-
            contract
@@ -398,7 +398,9 @@ defmodule Core.Contracts do
   end
 
   defp validate_status(%Contract{status: status}, status), do: :ok
-  defp validate_status(_, _), do: {:error, {:conflict, "Not active contract can't be updated"}}
+  defp validate_status(%LegalEntity{status: status}, status), do: :ok
+  defp validate_status(%Contract{}, _), do: {:error, {:conflict, "Not active contract can't be updated"}}
+  defp validate_status(%LegalEntity{}, _), do: {:error, {:conflict, "Contractor legal entity is not active"}}
 
   def get_by_id(id) do
     Contract
@@ -489,7 +491,6 @@ defmodule Core.Contracts do
 
   defp check_legal_entity_is_active(%LegalEntity{is_active: true}, _), do: :ok
   defp check_legal_entity_is_active(_, :client), do: {:error, {:forbidden, "Client is not active"}}
-  defp check_legal_entity_is_active(_, :contractor), do: {:error, {:conflict, "Contractor legal entity is not active"}}
 
   defp contract_employee_search(%Contract{id: contract_id}, search_params) do
     is_active = Map.get(search_params, :is_active)
