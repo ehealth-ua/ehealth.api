@@ -470,7 +470,7 @@ defmodule Core.ContractRequests do
          :ok <- validate_contractor_legal_entity(contract_request.contractor_legal_entity_id),
          :ok <- validate_contractor_owner_id(contract_request),
          contract_id <- UUID.generate(),
-         :ok <- save_signed_content(contract_id, params, headers, "signed_content/signed_content"),
+         :ok <- save_signed_content(contract_id, params, headers, "signed_content/signed_content", :contract_bucket),
          update_params <-
            params
            |> Map.put("updated_by", user_id)
@@ -613,8 +613,14 @@ defmodule Core.ContractRequests do
       else: Error.dump("Signed content does not match the previously created content")
   end
 
-  defp save_signed_content(id, %{"signed_content" => content}, headers, resource_name) do
-    case @media_storage_api.store_signed_content(content, :contract_request_bucket, id, resource_name, headers) do
+  defp save_signed_content(
+         id,
+         %{"signed_content" => content},
+         headers,
+         resource_name,
+         bucket \\ :contract_request_bucket
+       ) do
+    case @media_storage_api.store_signed_content(content, bucket, id, resource_name, headers) do
       {:ok, _} -> :ok
       _error -> {:error, {:bad_gateway, "Failed to save signed content"}}
     end

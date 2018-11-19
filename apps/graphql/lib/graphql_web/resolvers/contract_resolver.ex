@@ -39,8 +39,10 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
     |> Dataloader.load(source, batch_key, item_key)
     |> on_load(fn loader ->
       with %CapitationContractRequest{id: id, status: status} <- Dataloader.get(loader, source, batch_key, item_key),
-           documents when is_list(documents) <- ContractRequests.gen_relevant_get_links(id, status) do
-        {:ok, documents}
+           contract_documents when is_list(contract_documents) <- Contracts.gen_relevant_get_links(parent.id, status),
+           contract_request_documents when is_list(contract_request_documents) <-
+             ContractRequests.gen_relevant_get_links(id, status) do
+        {:ok, contract_documents ++ contract_request_documents}
       else
         nil -> {:error, "Contract request not found"}
         err -> {:error, "Cannot get attachedDocuments with `#{inspect(err)}`"}

@@ -520,7 +520,7 @@ defmodule GraphQLWeb.ContractResolverTest do
     test "success with attached documents", %{conn: conn} do
       nhs()
 
-      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, id, resource_name, _ ->
+      expect(MediaStorageMock, :create_signed_url, 3, fn _, _, id, resource_name, _ ->
         {:ok, %{"data" => %{"secret_url" => "http://example.com/#{id}/#{resource_name}"}}}
       end)
 
@@ -554,7 +554,7 @@ defmodule GraphQLWeb.ContractResolverTest do
       resp_entities = get_in(resp_body, ~w(data contract attachedDocuments))
 
       refute resp_body["errors"]
-      assert 2 == length(resp_entities)
+      assert 3 == length(resp_entities)
 
       Enum.each(resp_entities, fn document ->
         assert Map.has_key?(document, "type")
@@ -565,7 +565,7 @@ defmodule GraphQLWeb.ContractResolverTest do
     test "Media Storage invalid response for attachedDocuments", %{conn: conn} do
       nhs()
 
-      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, _id, _resource_name, _ ->
+      expect(MediaStorageMock, :create_signed_url, 1, fn _, _, _id, _resource_name, _ ->
         {:error, %{"error" => %{"message" => "not found"}}}
       end)
 
