@@ -2031,6 +2031,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
         )
 
       contract = insert(:prm, :contract, contractor_owner: employee)
+      %{id: contract_id2} = insert(:prm, :contract)
 
       data =
         employee_request_data()
@@ -2059,7 +2060,10 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       assert "APPROVED" == resp["status"]
 
       contract = PRMRepo.get(Contract, contract.id)
-      assert contract.is_suspended == true
+      contract2 = PRMRepo.get(Contract, contract_id2)
+
+      assert contract.is_suspended
+      refute contract2.is_suspended
     end
 
     test "update employee type suspend contract", %{conn: conn} do
