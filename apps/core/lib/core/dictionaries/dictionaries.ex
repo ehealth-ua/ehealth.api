@@ -81,12 +81,16 @@ defmodule Core.Dictionaries do
     labels = ~W(
       SYSTEM
       EXTERNAL
+      ADMIN
+      READ_ONLY
+      TRANSLATIONS
     )
 
     dictionary
     |> cast(attrs, fields)
     |> validate_required(fields)
     |> validate_subset(:labels, labels)
+    |> validate_values()
   end
 
   def get_dictionary_value(value, dictionary_name) do
@@ -112,5 +116,12 @@ defmodule Core.Dictionaries do
     dictionary_list
     |> get_dictionaries()
     |> Enum.reduce(%{}, fn {d_name, d_values}, acc -> Map.put(acc, d_name, Map.keys(d_values)) end)
+  end
+
+  defp validate_values(changeset) do
+    case fetch_field(changeset, :values) do
+      {:changes, value} when value == %{} -> add_error(changeset, :values, "Values should not be empty")
+      _ -> changeset
+    end
   end
 end
