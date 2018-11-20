@@ -664,15 +664,6 @@ defmodule Core.Contracts do
     end
   end
 
-  def update_is_suspended(ids, is_suspended) when is_list(ids) and is_boolean(is_suspended) do
-    query = where(Contract, [c], c.id in ^ids)
-
-    case PRMRepo.update_all(query, set: [is_suspended: is_suspended]) do
-      {suspended, _} -> {:ok, suspended}
-      err -> err
-    end
-  end
-
   def gen_relevant_get_links(id, status) do
     with {:ok, %{"data" => %{"secret_url" => secret_url}}} <-
            @media_storage_api.create_signed_url("GET", get_bucket(), "signed_content/signed_content", id, []) do

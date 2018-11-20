@@ -189,7 +189,7 @@ defmodule Core.LegalEntities do
   end
 
   def update_with_ops_contract(%Changeset{valid?: true} = changeset, headers) do
-    if maybe_suspend_contracts?(changeset, :legal_entity) do
+    if suspend_contracts?(changeset, :legal_entity) do
       transaction_update_with_contract(changeset, headers)
     else
       PRMRepo.update_and_log(changeset, get_consumer_id(headers))
