@@ -153,9 +153,8 @@ defmodule Core.LegalEntities do
 
     with {:ok, client_type} <- @mithril_api.get_client_type_name(client_id, headers),
          :ok <- Context.authorize_legal_entity_id(id, client_id, client_type),
-         {:ok, legal_entity} <- load_legal_entity(id),
-         {:ok, credentials} <- OAuth.get_connection_credentials(legal_entity.id, headers) do
-      {:ok, legal_entity, credentials}
+         {:ok, legal_entity} <- load_legal_entity(id) do
+      {:ok, legal_entity}
     end
   end
 

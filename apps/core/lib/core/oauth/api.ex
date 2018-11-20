@@ -56,32 +56,4 @@ defmodule Core.OAuth.API do
   end
 
   def create_user(err, _email, _headers), do: err
-
-  def get_connection_credentials(client_id, headers) do
-    attrs = %{"consumer_id" => get_client_id(headers)}
-
-    with {:ok, %{"data" => connections}} <- @mithril_api.get_client_connections(client_id, attrs, headers) do
-      {:ok, fetch_connection_credentials(connections, client_id)}
-    end
-  end
-
-  defp fetch_connection_credentials([connection], client_id) do
-    %{
-      "client_id" => client_id,
-      "client_secret" => Map.get(connection, "secret"),
-      "redirect_uri" => Map.get(connection, "redirect_uri")
-    }
-  end
-
-  defp fetch_connection_credentials(_, client_id) do
-    Logger.error(fn ->
-      Jason.encode!(%{
-        "log_type" => "error",
-        "message" => "Cannot create or find Mithril client for Legal Entity #{client_id}}",
-        "request_id" => Logger.metadata()[:request_id]
-      })
-    end)
-
-    %{}
-  end
 end

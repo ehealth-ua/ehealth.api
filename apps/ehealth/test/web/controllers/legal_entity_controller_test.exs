@@ -662,7 +662,6 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
     test "check required legal entity fields", %{conn: conn} do
       msp()
-      get_client_connections()
       %{id: id} = insert(:prm, :legal_entity)
       conn = put_client_id_header(conn, id)
       conn = get(conn, legal_entity_path(conn, :show, id))
@@ -675,7 +674,6 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
     test "with x-consumer-metadata that contains client_id that matches legal entity id", %{conn: conn} do
       msp()
-      get_client_connections()
       %{id: id} = insert(:prm, :legal_entity)
       conn = put_client_id_header(conn, id)
       conn = get(conn, legal_entity_path(conn, :show, id))
@@ -692,7 +690,6 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
     test "with x-consumer-metadata that contains MIS client_id that does not match legal entity id", %{conn: conn} do
       mis()
-      get_client_connections()
       %{id: id} = insert(:prm, :legal_entity)
       conn = put_client_id_header(conn, id)
       conn = get(conn, legal_entity_path(conn, :show, id))
