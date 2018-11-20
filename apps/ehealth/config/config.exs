@@ -33,4 +33,18 @@ config :ehealth, EHealth.DeclarationRequests.Terminator,
 config :ehealth, EHealth.Contracts.Terminator,
   termination_batch_size: {:system, :integer, "CONTRACT_AUTOTERMINATION_BATCH", 10}
 
+config :ehealth,
+  topologies: [
+    k8s_me: [
+      strategy: Elixir.Cluster.Strategy.Kubernetes,
+      config: [
+        mode: :dns,
+        kubernetes_node_basename: "medical_events_api",
+        kubernetes_selector: "app=api-medical-events",
+        kubernetes_namespace: "me",
+        polling_interval: 10_000
+      ]
+    ]
+  ]
+
 import_config "#{Mix.env()}.exs"

@@ -39,6 +39,7 @@ defmodule Core.MixProject do
       {:ecto, "~> 2.1"},
       {:ecto_trail, "0.2.3"},
       {:eview, "~> 0.15"},
+      {:libcluster, "~> 3.0", git: "https://github.com/AlexKovalevych/libcluster.git", branch: "kube_namespaces"},
       {:ecto_logger_json, git: "https://github.com/edenlabllc/ecto_logger_json.git", branch: "query_params"},
       {:geo, "~> 1.4"},
       {:guardian, "~> 1.1"},

@@ -25,7 +25,8 @@ defmodule EHealth do
       ),
       worker(EHealth.DeclarationRequests.Terminator, [:declaration_request_cleaner], id: :declaration_request_cleaner),
       worker(EHealth.Contracts.Terminator, []),
-      worker(EHealth.Scheduler, [])
+      worker(EHealth.Scheduler, []),
+      {Cluster.Supervisor, [Application.get_env(:ehealth, :topologies), [name: EHealth.ClusterSupervisor]]}
     ]
 
     opts = [strategy: :one_for_one, name: EHealth.Supervisor]
