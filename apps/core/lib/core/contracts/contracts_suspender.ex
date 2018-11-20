@@ -3,10 +3,10 @@ defmodule Core.Contracts.ContractSuspender do
 
   import Ecto.Query
 
-  alias Core.Contracts.Contract
+  alias Core.Contracts.CapitationContract
   alias Core.PRMRepo
 
-  @contract_status_verified Contract.status(:verified)
+  @contract_status_verified CapitationContract.status(:verified)
 
   def suspend_contracts?(%{changes: changes}, :party) do
     suspend_contracts?(changes, ~w(first_name last_name second_name)a)
@@ -27,7 +27,7 @@ defmodule Core.Contracts.ContractSuspender do
   def suspend_by_contractor_owner_ids([]), do: :ok
 
   def suspend_by_contractor_owner_ids(owner_ids) when is_list(owner_ids) do
-    Contract
+    CapitationContract
     |> where([c], c.contractor_owner_id in ^owner_ids)
     |> where([c], c.status == @contract_status_verified)
     |> where([c], c.is_suspended == false)
@@ -57,7 +57,7 @@ defmodule Core.Contracts.ContractSuspender do
   end
 
   defp update_is_suspended(ids, is_suspended) when is_list(ids) and is_boolean(is_suspended) do
-    query = where(Contract, [c], c.id in ^ids)
+    query = where(CapitationContract, [c], c.id in ^ids)
 
     case PRMRepo.update_all(query, set: [is_suspended: is_suspended]) do
       {suspended, _} -> {:ok, suspended}

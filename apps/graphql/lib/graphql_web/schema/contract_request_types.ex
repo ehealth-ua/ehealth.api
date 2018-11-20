@@ -9,7 +9,7 @@ defmodule GraphQLWeb.Schema.ContractRequestTypes do
 
   alias Absinthe.Relay.Node.ParseIDs
   alias Core.ContractRequests.CapitationContractRequest
-  alias Core.Contracts.Contract
+  alias Core.Contracts.CapitationContract
   alias Core.Divisions.Division
   alias Core.Employees.Employee
   alias Core.LegalEntities.LegalEntity
@@ -184,7 +184,7 @@ defmodule GraphQLWeb.Schema.ContractRequestTypes do
   node object(:contract_request) do
     field(:database_id, non_null(:id))
     field(:contract_number, :string)
-    field(:parent_contract, :contract, resolve: load_by_parent(PRM, Contract))
+    field(:parent_contract, :contract, resolve: load_by_parent(PRM, CapitationContract))
     field(:previous_request, :contract_request, resolve: dataloader(IL))
     field(:assignee, :employee, resolve: load_by_parent(PRM, Employee))
     field(:id_form, non_null(:string))

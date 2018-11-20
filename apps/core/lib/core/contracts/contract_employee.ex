@@ -4,7 +4,7 @@ defmodule Core.Contracts.ContractEmployee do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias Core.Contracts.Contract
+  alias Core.Contracts.CapitationContract
   alias Core.Divisions.Division
   alias Core.Employees.Employee
   alias Ecto.UUID
@@ -33,7 +33,7 @@ defmodule Core.Contracts.ContractEmployee do
     field(:inserted_by, UUID)
     field(:updated_by, UUID)
 
-    belongs_to(:contract, Contract, type: UUID)
+    belongs_to(:contract, CapitationContract, type: UUID, foreign_key: :contract_id)
     belongs_to(:employee, Employee, type: UUID)
     belongs_to(:division, Division, type: UUID)
 

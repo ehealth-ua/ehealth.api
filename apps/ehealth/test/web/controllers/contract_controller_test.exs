@@ -6,7 +6,7 @@ defmodule EHealth.Web.ContractControllerTest do
   import Core.Expectations.Signature
   import Mox
 
-  alias Core.Contracts.Contract
+  alias Core.Contracts.CapitationContract
   alias Core.Divisions.Division
   alias Core.LegalEntities.LegalEntity
   alias Ecto.UUID
@@ -48,7 +48,7 @@ defmodule EHealth.Web.ContractControllerTest do
       contract =
         insert(
           :prm,
-          :contract,
+          :capitation_contract,
           contract_request_id: contract_request.id,
           contractor_legal_entity: legal_entity,
           contractor_owner: owner,
@@ -124,7 +124,7 @@ defmodule EHealth.Web.ContractControllerTest do
       contract =
         insert(
           :prm,
-          :contract,
+          :capitation_contract,
           contract_request_id: contract_request.id,
           contractor_legal_entity: legal_entity,
           contractor_owner: owner,
@@ -194,7 +194,7 @@ defmodule EHealth.Web.ContractControllerTest do
       contract =
         insert(
           :prm,
-          :contract,
+          :capitation_contract,
           contractor_legal_entity: contractor_legal_entity,
           contract_request_id: contract_request.id,
           external_contractors: external_contractors
@@ -212,7 +212,7 @@ defmodule EHealth.Web.ContractControllerTest do
     test "ensure TOKENS_TYPES_PERSONAL has no access to other contracts", %{conn: conn} do
       msp()
       contractor_legal_entity = insert(:prm, :legal_entity)
-      contract = insert(:prm, :contract)
+      contract = insert(:prm, :capitation_contract)
 
       assert %{"error" => %{"type" => "forbidden", "message" => _}} =
                conn
@@ -235,8 +235,8 @@ defmodule EHealth.Web.ContractControllerTest do
   describe "contract list" do
     test "validating search params: ignore invalid search params", %{conn: conn} do
       nhs()
-      insert(:prm, :contract)
-      insert(:prm, :contract)
+      insert(:prm, :capitation_contract)
+      insert(:prm, :capitation_contract)
 
       conn =
         conn
@@ -256,8 +256,8 @@ defmodule EHealth.Web.ContractControllerTest do
       nhs()
       edrpou = "5432345432"
       contractor_legal_entity = insert(:prm, :legal_entity, edrpou: edrpou)
-      insert(:prm, :contract, contractor_legal_entity: contractor_legal_entity)
-      insert(:prm, :contract)
+      insert(:prm, :capitation_contract, contractor_legal_entity: contractor_legal_entity)
+      insert(:prm, :capitation_contract)
 
       conn =
         conn
@@ -272,8 +272,8 @@ defmodule EHealth.Web.ContractControllerTest do
     test "validating search params: edrpou is not defined, contractor_legal_entity_id is defined", %{conn: conn} do
       nhs()
       contractor_legal_entity = insert(:prm, :legal_entity)
-      insert(:prm, :contract, contractor_legal_entity: contractor_legal_entity)
-      insert(:prm, :contract)
+      insert(:prm, :capitation_contract, contractor_legal_entity: contractor_legal_entity)
+      insert(:prm, :capitation_contract)
 
       conn =
         conn
@@ -290,8 +290,8 @@ defmodule EHealth.Web.ContractControllerTest do
       nhs()
       edrpou = "5432345432"
       contractor_legal_entity = insert(:prm, :legal_entity, edrpou: edrpou)
-      insert(:prm, :contract, contractor_legal_entity: contractor_legal_entity)
-      insert(:prm, :contract)
+      insert(:prm, :capitation_contract, contractor_legal_entity: contractor_legal_entity)
+      insert(:prm, :capitation_contract)
 
       conn =
         conn
@@ -363,8 +363,8 @@ defmodule EHealth.Web.ContractControllerTest do
 
     test "success contract list for NHS admin user", %{conn: conn} do
       nhs()
-      contract = insert(:prm, :contract, is_suspended: true)
-      insert(:prm, :contract)
+      contract = insert(:prm, :capitation_contract, is_suspended: true)
+      insert(:prm, :capitation_contract)
 
       params = %{
         id: contract.id,
@@ -390,8 +390,8 @@ defmodule EHealth.Web.ContractControllerTest do
 
     test "success contract list for NHS admin user from dates only", %{conn: conn} do
       nhs()
-      contract = insert(:prm, :contract)
-      insert(:prm, :contract, start_date: ~D[2017-01-01])
+      contract = insert(:prm, :capitation_contract)
+      insert(:prm, :capitation_contract, start_date: ~D[2017-01-01])
 
       params = %{
         date_from_start_date: contract.start_date,
@@ -409,8 +409,8 @@ defmodule EHealth.Web.ContractControllerTest do
 
     test "success contract list for NHS admin user to dates only", %{conn: conn} do
       nhs()
-      contract = insert(:prm, :contract, end_date: ~D[2017-01-01])
-      insert(:prm, :contract)
+      contract = insert(:prm, :capitation_contract, end_date: ~D[2017-01-01])
+      insert(:prm, :capitation_contract)
 
       params = %{
         date_to_start_date: contract.start_date,
@@ -429,8 +429,11 @@ defmodule EHealth.Web.ContractControllerTest do
     test "success contract list for non-NHS admin user", %{conn: conn} do
       msp()
       contractor_legal_entity = insert(:prm, :legal_entity)
-      contract = insert(:prm, :contract, contractor_legal_entity: contractor_legal_entity, is_suspended: true)
-      insert(:prm, :contract)
+
+      contract =
+        insert(:prm, :capitation_contract, contractor_legal_entity: contractor_legal_entity, is_suspended: true)
+
+      insert(:prm, :capitation_contract)
 
       params = %{
         id: contract.id,
@@ -457,8 +460,8 @@ defmodule EHealth.Web.ContractControllerTest do
     test "success filtering by nhs_signer_id", %{conn: conn} do
       msp()
       contractor_legal_entity = insert(:prm, :legal_entity)
-      contract_in = insert(:prm, :contract, contractor_legal_entity: contractor_legal_entity)
-      contract_out = insert(:prm, :contract, contractor_legal_entity: contractor_legal_entity)
+      contract_in = insert(:prm, :capitation_contract, contractor_legal_entity: contractor_legal_entity)
+      contract_out = insert(:prm, :capitation_contract, contractor_legal_entity: contractor_legal_entity)
 
       params = %{nhs_signer_id: contract_in.nhs_signer_id}
 
@@ -494,7 +497,7 @@ defmodule EHealth.Web.ContractControllerTest do
       contract =
         insert(
           :prm,
-          :contract,
+          :capitation_contract,
           nhs_legal_entity: legal_entity,
           contractor_legal_entity: contractor_legal_entity,
           end_date: Date.utc_today() |> Date.add(14),
@@ -566,7 +569,13 @@ defmodule EHealth.Web.ContractControllerTest do
     end
 
     test "contract terminated status", %{conn: conn, legal_entity: legal_entity} do
-      contract = insert(:prm, :contract, contractor_legal_entity: legal_entity, status: Contract.status(:terminated))
+      contract =
+        insert(
+          :prm,
+          :capitation_contract,
+          contractor_legal_entity: legal_entity,
+          status: CapitationContract.status(:terminated)
+        )
 
       resp =
         conn
@@ -642,7 +651,7 @@ defmodule EHealth.Web.ContractControllerTest do
       contract =
         insert(
           :prm,
-          :contract,
+          :capitation_contract,
           nhs_legal_entity: legal_entity,
           contractor_legal_entity: contractor_legal_entity,
           end_date: Date.utc_today() |> Date.add(14),
@@ -788,7 +797,12 @@ defmodule EHealth.Web.ContractControllerTest do
         insert(:il, :capitation_contract_request, status: "SIGNED", external_contractors: external_contractors)
 
       contract =
-        insert(:prm, :contract, contract_request_id: contract_request.id, external_contractors: external_contractors)
+        insert(
+          :prm,
+          :capitation_contract,
+          contract_request_id: contract_request.id,
+          external_contractors: external_contractors
+        )
 
       params = %{"status_reason" => "Period of contract is wrong"}
 
@@ -798,7 +812,7 @@ defmodule EHealth.Web.ContractControllerTest do
         |> patch(contract_path(conn, :terminate, contract.id), params)
         |> json_response(200)
 
-      assert resp["data"]["status"] == Contract.status(:terminated)
+      assert resp["data"]["status"] == CapitationContract.status(:terminated)
       assert resp["data"]["status_reason"] == "Period of contract is wrong"
       Enum.each(terminate_response_fields(), fn field -> assert %{^field => _} = resp["data"] end)
 
@@ -829,7 +843,12 @@ defmodule EHealth.Web.ContractControllerTest do
         insert(:il, :capitation_contract_request, status: "SIGNED", external_contractors: external_contractors)
 
       contract =
-        insert(:prm, :contract, contract_request_id: contract_request.id, external_contractors: external_contractors)
+        insert(
+          :prm,
+          :capitation_contract,
+          contract_request_id: contract_request.id,
+          external_contractors: external_contractors
+        )
 
       params = %{"status_reason" => "Period of contract is wrong"}
 
@@ -839,7 +858,7 @@ defmodule EHealth.Web.ContractControllerTest do
         |> patch(contract_path(conn, :terminate, contract.id), params)
         |> json_response(200)
 
-      assert resp["data"]["status"] == Contract.status(:terminated)
+      assert resp["data"]["status"] == CapitationContract.status(:terminated)
       assert resp["data"]["status_reason"] == "Period of contract is wrong"
       Enum.each(terminate_response_fields(), fn field -> assert %{^field => _} = resp["data"] end)
 
@@ -854,7 +873,7 @@ defmodule EHealth.Web.ContractControllerTest do
 
     test "NHS terminate not verified contract", %{conn: conn} do
       nhs()
-      contract = insert(:prm, :contract, status: Contract.status(:terminated))
+      contract = insert(:prm, :capitation_contract, status: CapitationContract.status(:terminated))
       params = %{"status_reason" => "Period of contract is wrong"}
 
       resp =
@@ -867,7 +886,7 @@ defmodule EHealth.Web.ContractControllerTest do
 
     test "NHS terminate contract without request data", %{conn: conn} do
       nhs()
-      contract = insert(:prm, :contract)
+      contract = insert(:prm, :capitation_contract)
 
       resp =
         conn
@@ -879,7 +898,7 @@ defmodule EHealth.Web.ContractControllerTest do
 
     test "terminate contract with wrong client id", %{conn: conn} do
       nhs()
-      contract = insert(:prm, :contract)
+      contract = insert(:prm, :capitation_contract)
       params = %{"status_reason" => "Period of contract is wrong"}
 
       resp =
@@ -917,7 +936,7 @@ defmodule EHealth.Web.ContractControllerTest do
 
     test "failed to decode signed content", %{conn: conn} do
       nhs()
-      contract = insert(:prm, :contract)
+      contract = insert(:prm, :capitation_contract)
 
       params = %{
         "signed_content" => Jason.encode!(%{}),
@@ -946,7 +965,7 @@ defmodule EHealth.Web.ContractControllerTest do
 
     test "invalid drfo", %{conn: conn} do
       nhs()
-      contract = insert(:prm, :contract)
+      contract = insert(:prm, :capitation_contract)
       division = insert(:prm, :division)
       employee = insert(:prm, :employee)
       employee_id = employee.id
@@ -984,7 +1003,7 @@ defmodule EHealth.Web.ContractControllerTest do
 
     test "invalid status", %{conn: conn} do
       nhs()
-      contract = insert(:prm, :contract, status: Contract.status(:terminated))
+      contract = insert(:prm, :capitation_contract, status: CapitationContract.status(:terminated))
       division = insert(:prm, :division)
       employee = insert(:prm, :employee)
       employee_id = employee.id
@@ -1022,7 +1041,7 @@ defmodule EHealth.Web.ContractControllerTest do
     test "inactive division", %{conn: conn} do
       nhs()
       contract_request = insert(:il, :capitation_contract_request)
-      contract = insert(:prm, :contract, contract_request_id: contract_request.id)
+      contract = insert(:prm, :capitation_contract, contract_request_id: contract_request.id)
       legal_entity = contract.contractor_legal_entity
       division = insert(:prm, :division, legal_entity: legal_entity, status: Division.status(:inactive))
       employee = insert(:prm, :employee, legal_entity: legal_entity)
@@ -1089,7 +1108,12 @@ defmodule EHealth.Web.ContractControllerTest do
       contract_request = insert(:il, :capitation_contract_request, external_contractors: external_contractors)
 
       contract =
-        insert(:prm, :contract, contract_request_id: contract_request.id, external_contractors: external_contractors)
+        insert(
+          :prm,
+          :capitation_contract,
+          contract_request_id: contract_request.id,
+          external_contractors: external_contractors
+        )
 
       legal_entity = contract.contractor_legal_entity
       division = insert(:prm, :division, legal_entity: legal_entity)
@@ -1159,7 +1183,12 @@ defmodule EHealth.Web.ContractControllerTest do
       contract_request = insert(:il, :capitation_contract_request, external_contractors: external_contractors)
 
       contract =
-        insert(:prm, :contract, contract_request_id: contract_request.id, external_contractors: external_contractors)
+        insert(
+          :prm,
+          :capitation_contract,
+          contract_request_id: contract_request.id,
+          external_contractors: external_contractors
+        )
 
       legal_entity = contract.contractor_legal_entity
       division = insert(:prm, :division, legal_entity: legal_entity)
@@ -1232,7 +1261,12 @@ defmodule EHealth.Web.ContractControllerTest do
       contract_request = insert(:il, :capitation_contract_request, external_contractors: external_contractors)
 
       contract =
-        insert(:prm, :contract, contract_request_id: contract_request.id, external_contractors: external_contractors)
+        insert(
+          :prm,
+          :capitation_contract,
+          contract_request_id: contract_request.id,
+          external_contractors: external_contractors
+        )
 
       legal_entity = contract.contractor_legal_entity
       division = insert(:prm, :division, legal_entity: legal_entity)
@@ -1274,7 +1308,7 @@ defmodule EHealth.Web.ContractControllerTest do
     test "update employee limit validation failed", %{conn: conn} do
       nhs()
       contract_request = insert(:il, :capitation_contract_request)
-      contract = insert(:prm, :contract, contract_request_id: contract_request.id)
+      contract = insert(:prm, :capitation_contract, contract_request_id: contract_request.id)
       legal_entity = contract.contractor_legal_entity
       division = insert(:prm, :division, legal_entity: legal_entity)
       employee = insert(:prm, :employee, legal_entity: legal_entity)
@@ -1323,7 +1357,7 @@ defmodule EHealth.Web.ContractControllerTest do
     test "insert employees limit validation failed", %{conn: conn} do
       nhs()
       contract_request = insert(:il, :capitation_contract_request)
-      contract = insert(:prm, :contract, contract_request_id: contract_request.id)
+      contract = insert(:prm, :capitation_contract, contract_request_id: contract_request.id)
       legal_entity = contract.contractor_legal_entity
       division = insert(:prm, :division, legal_entity: legal_entity)
       employee = insert(:prm, :employee, legal_entity: legal_entity)
@@ -1362,7 +1396,7 @@ defmodule EHealth.Web.ContractControllerTest do
     test "client_id validation failed during update_employee", %{conn: conn} do
       msp()
       contract_request = insert(:il, :capitation_contract_request)
-      contract = insert(:prm, :contract, contract_request_id: contract_request.id)
+      contract = insert(:prm, :capitation_contract, contract_request_id: contract_request.id)
       legal_entity = contract.contractor_legal_entity
       legal_entity_out = insert(:prm, :legal_entity)
       division = insert(:prm, :division, legal_entity: legal_entity)
@@ -1412,7 +1446,7 @@ defmodule EHealth.Web.ContractControllerTest do
     test "client_id validation failed during insert_employee", %{conn: conn} do
       msp()
       contract_request = insert(:il, :capitation_contract_request)
-      contract = insert(:prm, :contract, contract_request_id: contract_request.id)
+      contract = insert(:prm, :capitation_contract, contract_request_id: contract_request.id)
       legal_entity = contract.contractor_legal_entity
       legal_entity_out = insert(:prm, :legal_entity)
       division = insert(:prm, :division, legal_entity: legal_entity)
@@ -1477,8 +1511,8 @@ defmodule EHealth.Web.ContractControllerTest do
       %{id: contract_id} =
         insert(
           :prm,
-          :contract,
-          status: Contract.status(:verified),
+          :capitation_contract,
+          status: CapitationContract.status(:verified),
           contract_request_id: contract_request_id
         )
 
@@ -1505,7 +1539,7 @@ defmodule EHealth.Web.ContractControllerTest do
       %{id: client_id} = insert(:prm, :legal_entity)
 
       contract_request = insert(:il, :capitation_contract_request)
-      contract = insert(:prm, :contract, contract_request_id: contract_request.id)
+      contract = insert(:prm, :capitation_contract, contract_request_id: contract_request.id)
       division = insert(:prm, :division)
       employee = insert(:prm, :employee)
       insert(:prm, :contract_division, contract_id: contract.id, division_id: division.id)
@@ -1544,7 +1578,7 @@ defmodule EHealth.Web.ContractControllerTest do
       contract =
         insert(
           :prm,
-          :contract,
+          :capitation_contract,
           contractor_legal_entity: contractor_legal_entity,
           contract_request_id: contract_request.id
         )
@@ -1560,7 +1594,7 @@ defmodule EHealth.Web.ContractControllerTest do
       %{id: client_id} = insert(:prm, :legal_entity)
 
       contract_request = insert(:il, :capitation_contract_request)
-      contract = insert(:prm, :contract, contract_request_id: contract_request.id)
+      contract = insert(:prm, :capitation_contract, contract_request_id: contract_request.id)
       division = insert(:prm, :division)
       employee = insert(:prm, :employee)
       insert(:prm, :contract_division, contract_id: contract.id, division_id: division.id)
@@ -1607,7 +1641,7 @@ defmodule EHealth.Web.ContractControllerTest do
     test "ensure MSP has no access to other contracts", %{conn: conn} do
       msp()
       contractor_legal_entity = insert(:prm, :legal_entity)
-      contract = insert(:prm, :contract)
+      contract = insert(:prm, :capitation_contract)
 
       assert %{"error" => %{"type" => "forbidden", "message" => _}} =
                conn
@@ -1643,7 +1677,7 @@ defmodule EHealth.Web.ContractControllerTest do
       %{id: client_id} = insert(:prm, :legal_entity)
 
       contract_request = insert(:il, :capitation_contract_request)
-      contract = insert(:prm, :contract, contract_request_id: contract_request.id)
+      contract = insert(:prm, :capitation_contract, contract_request_id: contract_request.id)
       division_1 = insert(:prm, :division)
       division_2 = insert(:prm, :division)
       employee = insert(:prm, :employee)
@@ -1701,7 +1735,7 @@ defmodule EHealth.Web.ContractControllerTest do
       %{id: client_id} = insert(:prm, :legal_entity)
 
       contract_request = insert(:il, :capitation_contract_request)
-      contract = insert(:prm, :contract, contract_request_id: contract_request.id)
+      contract = insert(:prm, :capitation_contract, contract_request_id: contract_request.id)
       division = insert(:prm, :division)
       employee = insert(:prm, :employee)
       insert(:prm, :contract_division, contract_id: contract.id, division_id: division.id)
@@ -1739,7 +1773,7 @@ defmodule EHealth.Web.ContractControllerTest do
       %{id: client_id} = insert(:prm, :legal_entity)
 
       contract_request = insert(:il, :capitation_contract_request)
-      contract = insert(:prm, :contract, contract_request_id: contract_request.id)
+      contract = insert(:prm, :capitation_contract, contract_request_id: contract_request.id)
       division = insert(:prm, :division)
       employee = insert(:prm, :employee)
       insert(:prm, :contract_division, contract_id: contract.id, division_id: division.id)

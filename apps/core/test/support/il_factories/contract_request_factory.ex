@@ -22,7 +22,7 @@ defmodule Core.ILFactories.ContractRequestFactory do
         end_date = Date.add(today, 50)
 
         data =
-          Map.merge(generic_contract_data(legal_entity, division), %{
+          Map.merge(generic_contract_request_data(legal_entity, division), %{
             contract_type: CapitationContractRequest.type(),
             nhs_contract_price: 50_000.00,
             external_contractor_flag: true,
@@ -51,7 +51,7 @@ defmodule Core.ILFactories.ContractRequestFactory do
         struct(CapitationContractRequest, data)
       end
 
-      def generic_contract_data(legal_entity, division) do
+      def generic_contract_request_data(legal_entity, division) do
         today = Date.utc_today()
         end_date = Date.add(today, 50)
 

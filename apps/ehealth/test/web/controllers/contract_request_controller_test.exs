@@ -8,7 +8,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
   import Mox
 
   alias Core.ContractRequests.CapitationContractRequest
-  alias Core.Contracts.Contract
+  alias Core.Contracts.CapitationContract
   alias Core.Employees.Employee
   alias Core.LegalEntities.LegalEntity
   alias Core.Utils.NumberGenerator
@@ -685,8 +685,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       insert(
         :prm,
-        :contract,
-        status: Contract.status(:verified),
+        :capitation_contract,
+        status: CapitationContract.status(:verified),
         contractor_legal_entity: legal_entity,
         start_date: contract_start_date,
         end_date: contract_end_date
@@ -751,8 +751,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       insert(
         :prm,
-        :contract,
-        status: Contract.status(:verified),
+        :capitation_contract,
+        status: CapitationContract.status(:verified),
         contractor_legal_entity: legal_entity,
         start_date: contract_start_date,
         end_date: contract_end_date
@@ -817,8 +817,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       insert(
         :prm,
-        :contract,
-        status: Contract.status(:verified),
+        :capitation_contract,
+        status: CapitationContract.status(:verified),
         contractor_legal_entity: legal_entity,
         start_date: contract_start_date,
         end_date: contract_end_date
@@ -883,8 +883,8 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       insert(
         :prm,
-        :contract,
-        status: Contract.status(:verified),
+        :capitation_contract,
+        status: CapitationContract.status(:verified),
         contractor_legal_entity: legal_entity,
         start_date: contract_start_date,
         end_date: contract_end_date
@@ -1054,9 +1054,9 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       insert(
         :prm,
-        :contract,
+        :capitation_contract,
         contract_number: contract_number,
-        status: Contract.status(:verified),
+        status: CapitationContract.status(:verified),
         contractor_legal_entity: legal_entity
       )
 
@@ -4978,7 +4978,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         "status" => CapitationContractRequest.status(:nhs_signed)
       }
 
-      contract = insert(:prm, :contract, contract_number: "1345")
+      contract = insert(:prm, :capitation_contract, contract_number: "1345")
       employee = insert(:prm, :employee)
       insert(:prm, :contract_employee, contract_id: contract.id, employee_id: employee.id)
       insert(:prm, :contract_division, contract_id: contract.id)

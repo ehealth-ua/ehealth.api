@@ -6,7 +6,7 @@ defmodule EHealth.Contracts.Terminator do
 
   import Ecto.Query
 
-  alias Core.Contracts.Contract
+  alias Core.Contracts.CapitationContract
   alias Core.EventManager
   alias Core.PRMRepo
 
@@ -59,16 +59,16 @@ defmodule EHealth.Contracts.Terminator do
   end
 
   defp terminate_contracts(user_id, limit) do
-    terminated = Contract.status(:terminated)
+    terminated = CapitationContract.status(:terminated)
 
     subselect_ids =
-      Contract
+      CapitationContract
       |> select([c], %{id: c.id})
       |> where([c], c.end_date < ^NaiveDateTime.utc_now() and c.status != ^terminated)
       |> limit(^limit)
 
     {rows_updated, contracts} =
-      Contract
+      CapitationContract
       |> join(:inner, [c], cr in subquery(subselect_ids), c.id == cr.id)
       |> PRMRepo.update_all(
         [

@@ -12,7 +12,7 @@ defmodule Core.LegalEntities do
   alias Core.API.MediaStorage
   alias Core.Context
   alias Core.Contracts
-  alias Core.Contracts.Contract
+  alias Core.Contracts.CapitationContract
   alias Core.EmployeeRequests
   alias Core.Employees.Employee
   alias Core.LegalEntities.LegalEntity
@@ -201,7 +201,7 @@ defmodule Core.LegalEntities do
   def transaction_update_with_contract(%Ecto.Changeset{valid?: true} = changeset, headers) do
     get_contracts_params = %{
       legal_entity_id: Changeset.get_field(changeset, :id),
-      status: Contract.status(:verified),
+      status: CapitationContract.status(:verified),
       is_suspended: false
     }
 

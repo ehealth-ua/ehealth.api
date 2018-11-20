@@ -2,7 +2,7 @@ defmodule EHealth.Contracts.TerminatorTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase, async: false
-  alias Core.Contracts.Contract
+  alias Core.Contracts.CapitationContract
   alias Core.PRMRepo
   import EHealth.Contracts.Terminator
 
@@ -10,11 +10,11 @@ defmodule EHealth.Contracts.TerminatorTest do
     tomorrow = Date.add(Date.utc_today(), 1)
     yesterday = Date.add(Date.utc_today(), -1)
 
-    contract = insert(:prm, :contract, end_date: tomorrow)
+    contract = insert(:prm, :capitation_contract, end_date: tomorrow)
 
     terminated_ids =
       Enum.reduce(1..9, [], fn _, acc ->
-        %{id: id} = insert(:prm, :contract, end_date: yesterday)
+        %{id: id} = insert(:prm, :capitation_contract, end_date: yesterday)
         [id | acc]
       end)
 
@@ -24,13 +24,13 @@ defmodule EHealth.Contracts.TerminatorTest do
     assert 9 =
              terminated_ids
              |> Enum.reduce([], fn id, acc ->
-               contract = PRMRepo.get(Contract, id)
-               assert contract.status == Contract.status(:terminated)
+               contract = PRMRepo.get(CapitationContract, id)
+               assert contract.status == CapitationContract.status(:terminated)
                [id | acc]
              end)
              |> Enum.count()
 
-    contract = PRMRepo.get(Contract, contract.id)
-    refute contract.status == Contract.status(:terminated)
+    contract = PRMRepo.get(CapitationContract, contract.id)
+    refute contract.status == CapitationContract.status(:terminated)
   end
 end

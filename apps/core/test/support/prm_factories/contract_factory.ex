@@ -2,18 +2,47 @@ defmodule Core.PRMFactories.ContractFactory do
   @moduledoc false
 
   alias Ecto.UUID
-  alias Core.Contracts.Contract
+  alias Core.Contracts.CapitationContract
   alias Core.Contracts.ContractDivision
   alias Core.Contracts.ContractEmployee
 
   defmacro __using__(_opts) do
     quote do
-      def contract_factory do
-        %Contract{
+      def capitation_contract_factory do
+        data =
+          Map.merge(generic_contract_data(), %{
+            contract_type: CapitationContract.type(),
+            nhs_contract_price: to_float(Enum.random(100_000..200_000)),
+            contractor_rmsp_amount: Enum.random(50_000..100_000),
+            external_contractor_flag: true,
+            external_contractors: [
+              %{
+                legal_entity_id: UUID.generate(),
+                contract: %{
+                  number: "1234567",
+                  issued_at: NaiveDateTime.utc_now(),
+                  expires_at: NaiveDateTime.add(NaiveDateTime.utc_now(), days_to_seconds(365), :seconds)
+                },
+                divisions: [
+                  %{
+                    id: UUID.generate(),
+                    name: "Бориспільське відділення Клініки Ноунейм",
+                    medical_service: "Послуга ПМД"
+                  }
+                ]
+              }
+            ]
+          })
+
+        struct(%CapitationContract{}, data)
+      end
+
+      def generic_contract_data() do
+        %{
           id: UUID.generate(),
           start_date: Date.utc_today(),
           end_date: Date.utc_today(),
-          status: Contract.status(:verified),
+          status: CapitationContract.status(:verified),
           contractor_legal_entity: build(:legal_entity),
           contractor_owner: build(:employee),
           contractor_base: "на підставі закону про Медичне обслуговування населення",
@@ -22,31 +51,11 @@ defmodule Core.PRMFactories.ContractFactory do
             MFO: "351005",
             payer_account: "32009102701026"
           },
-          contractor_rmsp_amount: Enum.random(50_000..100_000),
-          external_contractor_flag: true,
-          external_contractors: [
-            %{
-              legal_entity_id: UUID.generate(),
-              contract: %{
-                number: "1234567",
-                issued_at: NaiveDateTime.utc_now(),
-                expires_at: NaiveDateTime.add(NaiveDateTime.utc_now(), days_to_seconds(365), :seconds)
-              },
-              divisions: [
-                %{
-                  id: UUID.generate(),
-                  name: "Бориспільське відділення Клініки Ноунейм",
-                  medical_service: "Послуга ПМД"
-                }
-              ]
-            }
-          ],
           nhs_legal_entity: build(:legal_entity),
           nhs_signer: build(:employee),
           nhs_payment_method: "prepayment",
           nhs_signer_base: "на підставі наказу",
           issue_city: "Київ",
-          nhs_contract_price: to_float(Enum.random(100_000..200_000)),
           contract_number: "0000-9EAX-XT7X-3115",
           contract_request_id: UUID.generate(),
           is_active: true,

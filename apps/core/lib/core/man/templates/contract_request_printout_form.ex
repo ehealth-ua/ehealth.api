@@ -6,7 +6,7 @@ defmodule Core.Man.Templates.ContractRequestPrintoutForm do
   import Ecto.Query
 
   alias Core.ContractRequests.CapitationContractRequest
-  alias Core.Contracts.Contract
+  alias Core.Contracts.CapitationContract
   alias Core.Dictionaries
   alias Core.Dictionaries.Dictionary
   alias Core.PRMRepo
@@ -30,7 +30,7 @@ defmodule Core.Man.Templates.ContractRequestPrintoutForm do
       )
       when not is_nil(parent_contract_id) do
     parent_contract =
-      Contract
+      CapitationContract
       |> where([c], c.contract_number == ^contract_number and is_nil(c.parent_contract_id))
       |> PRMRepo.one()
 

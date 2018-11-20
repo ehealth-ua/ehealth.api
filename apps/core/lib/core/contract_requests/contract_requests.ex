@@ -12,7 +12,7 @@ defmodule Core.ContractRequests do
   alias Core.ContractRequests.Renderer
   alias Core.ContractRequests.Search
   alias Core.Contracts
-  alias Core.Contracts.Contract
+  alias Core.Contracts.CapitationContract
   alias Core.Divisions.Division
   alias Core.Employees
   alias Core.Employees.Employee
@@ -566,7 +566,7 @@ defmodule Core.ContractRequests do
       is_active: true,
       inserted_by: contract_request.updated_by,
       updated_by: contract_request.updated_by,
-      status: Contract.status(:verified)
+      status: CapitationContract.status(:verified)
     })
   end
 
@@ -1203,7 +1203,7 @@ defmodule Core.ContractRequests do
 
   defp set_dates(nil, params), do: params
 
-  defp set_dates(%Contract{} = contract, params) do
+  defp set_dates(%CapitationContract{} = contract, params) do
     params
     |> Map.put("start_date", to_string(contract.start_date))
     |> Map.put("end_date", to_string(contract.end_date))
@@ -1447,8 +1447,8 @@ defmodule Core.ContractRequests do
   end
 
   defp validate_contract_id(%CapitationContractRequest{parent_contract_id: contract_id}) when not is_nil(contract_id) do
-    with %Contract{} = contract <- Contracts.get_by_id(contract_id),
-         true <- contract.status == Contract.status(:verified) do
+    with %CapitationContract{} = contract <- Contracts.get_by_id(contract_id),
+         true <- contract.status == CapitationContract.status(:verified) do
       :ok
     else
       _ -> {:error, {:conflict, "Parent contract can’t be updated"}}
@@ -1459,9 +1459,9 @@ defmodule Core.ContractRequests do
 
   defp validate_contract_number(%{"contract_number" => contract_number} = params, headers)
        when not is_nil(contract_number) do
-    with {:ok, %Page{entries: [%Contract{} = contract]}, _} <-
+    with {:ok, %Page{entries: [%CapitationContract{} = contract]}, _} <-
            Contracts.list(
-             %{"contract_number" => contract_number, "status" => Contract.status(:verified)},
+             %{"contract_number" => contract_number, "status" => CapitationContract.status(:verified)},
              nil,
              headers
            ) do
@@ -1480,7 +1480,7 @@ defmodule Core.ContractRequests do
            Contracts.list(
              %{
                "contractor_legal_entity_id" => legal_entity_id,
-               "status" => Contract.status(:verified),
+               "status" => CapitationContract.status(:verified),
                "date_to_start_date" => params["end_date"],
                "date_from_end_date" => params["start_date"]
              },
@@ -1495,7 +1495,7 @@ defmodule Core.ContractRequests do
 
   defp validate_contractor_legal_entity_id(_, nil), do: :ok
 
-  defp validate_contractor_legal_entity_id(id, %Contract{contractor_legal_entity_id: id}), do: :ok
+  defp validate_contractor_legal_entity_id(id, %CapitationContract{contractor_legal_entity_id: id}), do: :ok
 
   defp validate_contractor_legal_entity_id(_, _),
     do: {:error, {:forbidden, "You are not allowed to change this contract"}}

@@ -9,7 +9,7 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
   alias Core.ContractRequests
   alias Core.ContractRequests.CapitationContractRequest
   alias Core.Contracts
-  alias Core.Contracts.Contract
+  alias Core.Contracts.CapitationContract
   alias Core.PRMRepo
   alias GraphQLWeb.Loaders.IL
   alias GraphQLWeb.Loaders.PRM
@@ -24,13 +24,13 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
   end
 
   def list_contracts(%{filter: filter, order_by: order_by} = args) do
-    Contract
+    CapitationContract
     |> filter(filter)
     |> prepare_order_by(order_by)
     |> Connection.from_query(&PRMRepo.all/1, args)
   end
 
-  def get_attached_documents(%Contract{} = parent, args, %{context: %{loader: loader}}) do
+  def get_attached_documents(%CapitationContract{} = parent, args, %{context: %{loader: loader}}) do
     source = IL
     batch_key = {CapitationContractRequest, args}
     item_key = parent.contract_request_id

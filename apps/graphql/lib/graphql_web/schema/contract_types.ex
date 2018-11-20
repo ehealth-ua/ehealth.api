@@ -9,13 +9,13 @@ defmodule GraphQLWeb.Schema.ContractTypes do
 
   alias Absinthe.Relay.Node.ParseIDs
   alias Core.ContractRequests.CapitationContractRequest
-  alias Core.Contracts.Contract
+  alias Core.Contracts.CapitationContract
   alias GraphQLWeb.Loaders.IL
   alias GraphQLWeb.Loaders.PRM
   alias GraphQLWeb.Resolvers.ContractResolver
 
-  @contract_status_terminated Contract.status(:terminated)
-  @contract_status_verified Contract.status(:verified)
+  @contract_status_terminated CapitationContract.status(:terminated)
+  @contract_status_verified CapitationContract.status(:verified)
 
   object :contract_queries do
     connection field(:contracts, node_type: :contract) do
@@ -40,7 +40,7 @@ defmodule GraphQLWeb.Schema.ContractTypes do
 
       resolve(
         load_by_args(PRM, fn _args, %{context: context} ->
-          {Contract, Map.take(context, ~w(client_id client_type)a)}
+          {CapitationContract, Map.take(context, ~w(client_id client_type)a)}
         end)
       )
     end

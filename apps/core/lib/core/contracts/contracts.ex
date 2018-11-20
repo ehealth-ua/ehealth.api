@@ -7,7 +7,7 @@ defmodule Core.Contracts do
 
   alias Core.ContractRequests
   alias Core.ContractRequests.CapitationContractRequest
-  alias Core.Contracts.Contract
+  alias Core.Contracts.CapitationContract
   alias Core.Contracts.ContractDivision
   alias Core.Contracts.ContractEmployee
   alias Core.Contracts.ContractEmployeeSearch
@@ -31,8 +31,8 @@ defmodule Core.Contracts do
 
   @media_storage_api Application.get_env(:core, :api_resolvers)[:media_storage]
 
-  @status_verified Contract.status(:verified)
-  @status_terminated Contract.status(:terminated)
+  @status_verified CapitationContract.status(:verified)
+  @status_terminated CapitationContract.status(:terminated)
 
   @fields_required ~w(
     id
@@ -87,7 +87,7 @@ defmodule Core.Contracts do
   end
 
   def create(%{parent_contract_id: parent_contract_id} = params, user_id) when not is_nil(parent_contract_id) do
-    with %Contract{} = contract <- PRMRepo.get(Contract, parent_contract_id),
+    with %CapitationContract{} = contract <- PRMRepo.get(CapitationContract, parent_contract_id),
          :ok <- validate_contract_status(@status_verified, contract) do
       contract = load_references(contract)
 
@@ -116,7 +116,7 @@ defmodule Core.Contracts do
 
   defp do_create(params) do
     with {:ok, contract} <-
-           %Contract{}
+           %CapitationContract{}
            |> changeset(params)
            |> PRMRepo.insert() do
       {:ok, load_references(contract)}
@@ -150,12 +150,12 @@ defmodule Core.Contracts do
     user_id = get_consumer_id(headers)
     client_id = get_client_id(headers)
 
-    with %Contract{} = contract <- get_by_id(id),
+    with %CapitationContract{} = contract <- get_by_id(id),
          :ok <- validate_contractor_legal_entity_id(contract, params),
          :ok <- JsonSchema.validate(:contract_sign, params),
          {:ok, %{"content" => content, "signers" => [signer]}} <- decode_signed_content(params, headers),
          :ok <- SignatureValidator.check_drfo(signer, user_id, "contract_request_update"),
-         :ok <- validate_status(contract, Contract.status(:verified)),
+         :ok <- validate_status(contract, CapitationContract.status(:verified)),
          :ok <- validate_update_json_schema(content),
          {:ok, _} <- process_employee_division(contract, content, user_id, client_id),
          :ok <-
@@ -192,12 +192,12 @@ defmodule Core.Contracts do
              contract.contractor_legal_entity_id,
              contract.nhs_legal_entity_id
            ]),
-         :ok <- validate_status(contract, Contract.status(:verified)),
+         :ok <- validate_status(contract, CapitationContract.status(:verified)),
          {:ok, contract} <-
            contract
            |> changeset(%{
              "status_reason" => params["status_reason"],
-             "status" => Contract.status(:terminated),
+             "status" => CapitationContract.status(:terminated),
              "updated_by" => user_id
            })
            |> PRMRepo.update(),
@@ -206,7 +206,7 @@ defmodule Core.Contracts do
     end
   end
 
-  defp validate_contract_status(status, %Contract{status: status}), do: :ok
+  defp validate_contract_status(status, %CapitationContract{status: status}), do: :ok
 
   defp validate_contract_status(_, _) do
     {:error, {:conflict, "Incorrect contract status to modify it"}}
@@ -228,7 +228,9 @@ defmodule Core.Contracts do
     JsonSchema.validate(:contract_update_employees, content)
   end
 
-  defp validate_legal_entity_division(%Contract{contractor_legal_entity_id: legal_entity_id}, %{"division_id" => id}) do
+  defp validate_legal_entity_division(%CapitationContract{contractor_legal_entity_id: legal_entity_id}, %{
+         "division_id" => id
+       }) do
     with %Page{entries: [_]} <- Divisions.search(legal_entity_id, %{"ids" => id, "status" => Division.status(:active)}) do
       :ok
     else
@@ -236,7 +238,9 @@ defmodule Core.Contracts do
     end
   end
 
-  defp validate_legal_entity_employee(%Contract{contractor_legal_entity_id: legal_entity_id}, %{"employee_id" => id}) do
+  defp validate_legal_entity_employee(%CapitationContract{contractor_legal_entity_id: legal_entity_id}, %{
+         "employee_id" => id
+       }) do
     with %Employee{} = employee <- Employees.get_by_id(id),
          true <- employee.legal_entity_id == legal_entity_id && employee.status == Employee.status(:approved) do
       :ok
@@ -246,7 +250,7 @@ defmodule Core.Contracts do
   end
 
   defp process_employee_division(
-         %Contract{id: id} = contract,
+         %CapitationContract{id: id} = contract,
          %{"employee_id" => employee_id, "division_id" => division_id} = params,
          user_id,
          client_id
@@ -322,7 +326,12 @@ defmodule Core.Contracts do
     |> PRMRepo.update()
   end
 
-  defp update_contract_employee(%Contract{} = contract, %ContractEmployee{} = contract_employee, params, user_id) do
+  defp update_contract_employee(
+         %CapitationContract{} = contract,
+         %ContractEmployee{} = contract_employee,
+         params,
+         user_id
+       ) do
     with :ok <- validate_legal_entity_division(contract, params),
          :ok <- validate_legal_entity_employee(contract, params),
          :ok <- validate_employee_division(contract, params) do
@@ -336,7 +345,7 @@ defmodule Core.Contracts do
 
   defp insert_contract_employee(_, %{"is_active" => false}, _), do: Error.dump("Invalid employee_id to deactivate")
 
-  defp insert_contract_employee(%Contract{} = contract, params, user_id) do
+  defp insert_contract_employee(%CapitationContract{} = contract, params, user_id) do
     with :ok <- validate_employee_division(contract, params) do
       %ContractEmployee{contract: contract}
       |> ContractEmployee.changeset(%{
@@ -352,7 +361,7 @@ defmodule Core.Contracts do
     end
   end
 
-  defp validate_employee_division(%Contract{} = contract, params) do
+  defp validate_employee_division(%CapitationContract{} = contract, params) do
     contract_divisions = Enum.map(contract.contract_divisions, &Map.get(&1, :division_id))
 
     with {:ok, %Employee{} = employee} <-
@@ -397,13 +406,13 @@ defmodule Core.Contracts do
     SignatureValidator.validate(signed_content, encoding, headers)
   end
 
-  defp validate_status(%Contract{status: status}, status), do: :ok
+  defp validate_status(%CapitationContract{status: status}, status), do: :ok
   defp validate_status(%LegalEntity{status: status}, status), do: :ok
-  defp validate_status(%Contract{}, _), do: {:error, {:conflict, "Not active contract can't be updated"}}
+  defp validate_status(%CapitationContract{}, _), do: {:error, {:conflict, "Not active contract can't be updated"}}
   defp validate_status(%LegalEntity{}, _), do: {:error, {:conflict, "Contractor legal entity is not active"}}
 
   def get_by_id(id) do
-    Contract
+    CapitationContract
     |> where([c], c.id == ^id)
     |> join(:left, [c], ce in ContractEmployee, c.id == ce.contract_id and is_nil(ce.end_date))
     |> join(:left, [c], cd in ContractDivision, c.id == cd.contract_id)
@@ -412,7 +421,7 @@ defmodule Core.Contracts do
   end
 
   def get_by_id(id, params) do
-    with %Contract{} = contract <- get_by_id(id),
+    with %CapitationContract{} = contract <- get_by_id(id),
          :ok <- validate_contractor_legal_entity_id(contract, params),
          {:ok, contract, references} <- load_contract_references(contract) do
       {:ok, contract, references}
@@ -421,7 +430,7 @@ defmodule Core.Contracts do
 
   def fetch_by_id(id) do
     case get_by_id(id) do
-      %Contract{} = contract -> {:ok, contract}
+      %CapitationContract{} = contract -> {:ok, contract}
       _ -> {:error, {:not_found, "Contract not found"}}
     end
   end
@@ -467,7 +476,7 @@ defmodule Core.Contracts do
   end
 
   def get_printout_content(id, client_type, headers) do
-    with %Contract{contract_request_id: contract_request_id} = contract <- get_by_id(id),
+    with %CapitationContract{contract_request_id: contract_request_id} = contract <- get_by_id(id),
          {:ok, %CapitationContractRequest{} = contract_request, _} <-
            ContractRequests.get_by_id(headers, client_type, contract_request_id),
          {:ok, %{"printout_content" => printout_content}} <-
@@ -481,7 +490,7 @@ defmodule Core.Contracts do
 
     with %LegalEntity{} = client_legal_entity <- PRMRepo.get(LegalEntity, client_id),
          :ok <- check_legal_entity_is_active(client_legal_entity, :client),
-         %Contract{} = contract <- PRMRepo.get(Contract, id),
+         %CapitationContract{} = contract <- PRMRepo.get(CapitationContract, id),
          :ok <- validate_contractor_legal_entity_id(contract, params),
          %Ecto.Changeset{valid?: true, changes: changes} <- ContractEmployeeSearch.changeset(params),
          %Page{entries: contract_employees} = paging <- contract_employee_search(contract, changes) do
@@ -492,7 +501,7 @@ defmodule Core.Contracts do
   defp check_legal_entity_is_active(%LegalEntity{is_active: true}, _), do: :ok
   defp check_legal_entity_is_active(_, :client), do: {:error, {:forbidden, "Client is not active"}}
 
-  defp contract_employee_search(%Contract{id: contract_id}, search_params) do
+  defp contract_employee_search(%CapitationContract{id: contract_id}, search_params) do
     is_active = Map.get(search_params, :is_active)
 
     params =
@@ -537,7 +546,7 @@ defmodule Core.Contracts do
       page_size
     )a)
 
-    query = if map_size(params) > 0, do: where(Contract, ^Map.to_list(params)), else: Contract
+    query = if map_size(params) > 0, do: where(CapitationContract, ^Map.to_list(params)), else: CapitationContract
 
     query
     |> add_date_range_at_query(:start_date, date_from_start_date, date_to_start_date)
@@ -566,7 +575,7 @@ defmodule Core.Contracts do
     where(query, [c], c.nhs_legal_entity_id == ^legal_entity_id or c.contractor_legal_entity_id == ^legal_entity_id)
   end
 
-  defp validate_contractor_legal_entity_id(%Contract{} = contract, %{
+  defp validate_contractor_legal_entity_id(%CapitationContract{} = contract, %{
          "contractor_legal_entity_id" => contractor_legal_entity_id
        }) do
     if contract.contractor_legal_entity_id == contractor_legal_entity_id,
@@ -602,7 +611,7 @@ defmodule Core.Contracts do
     cast(contract, attrs, fields)
   end
 
-  defp changeset(%Contract{} = contract, attrs) do
+  defp changeset(%CapitationContract{} = contract, attrs) do
     inserted_by = Map.get(attrs, :inserted_by)
     updated_by = Map.get(attrs, :updated_by)
 
@@ -651,14 +660,9 @@ defmodule Core.Contracts do
       DateTime.utc_now()
       |> DateTime.to_unix()
 
-    signed_content
-    |> @media_storage_api.store_signed_content(
-      :contract_bucket,
-      id,
-      "employee_update/#{employee_id}/#{datetime}",
-      headers
-    )
-    |> case do
+    resource_name = "employee_update/#{employee_id}/#{datetime}"
+
+    case @media_storage_api.store_signed_content(signed_content, :contract_bucket, id, resource_name, headers) do
       {:ok, _} -> :ok
       _error -> {:error, {:bad_gateway, "Failed to save signed content"}}
     end
@@ -727,7 +731,7 @@ defmodule Core.Contracts do
      }, %{}}
   end
 
-  defp load_references(%Contract{} = contract) do
+  defp load_references(%CapitationContract{} = contract) do
     contract
     |> PRMRepo.preload(:contract_employees)
     |> PRMRepo.preload(:contract_divisions)

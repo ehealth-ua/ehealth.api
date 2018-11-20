@@ -454,7 +454,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
     test "success with related entities", %{conn: conn} do
       nhs()
 
-      parent_contract = insert(:prm, :contract)
+      parent_contract = insert(:prm, :capitation_contract)
       previous_request = insert(:il, :capitation_contract_request)
       assignee = insert(:prm, :employee)
       contractor_legal_entity = insert(:prm, :legal_entity)

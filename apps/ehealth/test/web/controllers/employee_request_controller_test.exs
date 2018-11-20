@@ -13,7 +13,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   alias Core.Employees.Employee
   alias Core.PartyUsers.PartyUser
   alias Core.EventManager.Event
-  alias Core.Contracts.Contract
+  alias Core.Contracts.CapitationContract
   alias Ecto.UUID
 
   @moduletag :with_client_id
@@ -1504,7 +1504,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
           employee_type: "OWNER"
         )
 
-      contract = insert(:prm, :contract, contractor_owner: employee)
+      contract = insert(:prm, :capitation_contract, contractor_owner: employee)
 
       employee_request_data = employee_request_data()
 
@@ -1535,7 +1535,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
       assert "APPROVED" == resp["status"]
 
-      contract = PRMRepo.get(Contract, contract.id)
+      contract = PRMRepo.get(CapitationContract, contract.id)
 
       assert contract.is_suspended
     end
@@ -1573,7 +1573,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
           party: party
         )
 
-      contract = insert(:prm, :contract, contractor_owner: employee)
+      contract = insert(:prm, :capitation_contract, contractor_owner: employee)
 
       employee_request_data = employee_request_data()
 
@@ -1604,7 +1604,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
       assert "APPROVED" == resp["status"]
 
-      contract = PRMRepo.get(Contract, contract.id)
+      contract = PRMRepo.get(CapitationContract, contract.id)
 
       assert false == contract.is_suspended
     end
@@ -1645,7 +1645,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
           employee_type: "OWNER"
         )
 
-      contract = insert(:prm, :contract, contractor_owner: employee1)
+      contract = insert(:prm, :capitation_contract, contractor_owner: employee1)
 
       employee2 =
         build(
@@ -1685,7 +1685,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
       assert "APPROVED" == resp["status"]
 
-      contract = PRMRepo.get(Contract, contract.id)
+      contract = PRMRepo.get(CapitationContract, contract.id)
       assert contract.is_suspended
     end
 
@@ -1724,8 +1724,8 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
           employee_type: "OWNER"
         )
 
-      contract1 = insert(:prm, :contract, contractor_owner: employee1)
-      contract2 = insert(:prm, :contract, contractor_owner: employee2)
+      contract1 = insert(:prm, :capitation_contract, contractor_owner: employee1)
+      contract2 = insert(:prm, :capitation_contract, contractor_owner: employee2)
 
       # Update employee1
 
@@ -1755,8 +1755,8 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
       assert "APPROVED" == resp["status"]
 
-      contract1 = PRMRepo.get(Contract, contract1.id)
-      contract2 = PRMRepo.get(Contract, contract2.id)
+      contract1 = PRMRepo.get(CapitationContract, contract1.id)
+      contract2 = PRMRepo.get(CapitationContract, contract2.id)
       assert contract1.is_suspended
       assert contract2.is_suspended
     end
@@ -1787,7 +1787,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
           employee_type: "OWNER"
         )
 
-      contract = insert(:prm, :contract, contractor_owner: employee1)
+      contract = insert(:prm, :capitation_contract, contractor_owner: employee1)
 
       employee2 =
         build(
@@ -1823,7 +1823,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
       assert "APPROVED" == resp["status"]
 
-      contract = PRMRepo.get(Contract, contract.id)
+      contract = PRMRepo.get(CapitationContract, contract.id)
       assert false == contract.is_suspended
     end
 
@@ -1862,8 +1862,8 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
           employee_type: "OWNER"
         )
 
-      contract1 = insert(:prm, :contract, contractor_owner: employee1)
-      contract2 = insert(:prm, :contract, contractor_owner: employee2)
+      contract1 = insert(:prm, :capitation_contract, contractor_owner: employee1)
+      contract2 = insert(:prm, :capitation_contract, contractor_owner: employee2)
 
       # Update employee1
 
@@ -1891,8 +1891,8 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
       assert "APPROVED" == resp["status"]
 
-      contract1 = PRMRepo.get(Contract, contract1.id)
-      contract2 = PRMRepo.get(Contract, contract2.id)
+      contract1 = PRMRepo.get(CapitationContract, contract1.id)
+      contract2 = PRMRepo.get(CapitationContract, contract2.id)
       assert false == contract1.is_suspended
       assert false == contract2.is_suspended
     end
@@ -1920,7 +1920,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
           party: party
         )
 
-      contract = insert(:prm, :contract, contractor_owner: employee)
+      contract = insert(:prm, :capitation_contract, contractor_owner: employee)
 
       data =
         employee_request_data()
@@ -1948,7 +1948,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
       assert "APPROVED" == resp["status"]
 
-      contract = PRMRepo.get(Contract, contract.id)
+      contract = PRMRepo.get(CapitationContract, contract.id)
       assert contract.is_suspended == true
     end
 
@@ -1975,7 +1975,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
           party: party
         )
 
-      contract = insert(:prm, :contract, contractor_owner: employee)
+      contract = insert(:prm, :capitation_contract, contractor_owner: employee)
 
       data =
         employee_request_data()
@@ -2003,7 +2003,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
       assert "APPROVED" == resp["status"]
 
-      contract = PRMRepo.get(Contract, contract.id)
+      contract = PRMRepo.get(CapitationContract, contract.id)
       assert contract.is_suspended == true
     end
 
@@ -2030,8 +2030,8 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
           party: party
         )
 
-      contract = insert(:prm, :contract, contractor_owner: employee)
-      %{id: contract_id2} = insert(:prm, :contract)
+      contract = insert(:prm, :capitation_contract, contractor_owner: employee)
+      %{id: contract_id2} = insert(:prm, :capitation_contract)
 
       data =
         employee_request_data()
@@ -2059,8 +2059,8 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
       assert "APPROVED" == resp["status"]
 
-      contract = PRMRepo.get(Contract, contract.id)
-      contract2 = PRMRepo.get(Contract, contract_id2)
+      contract = PRMRepo.get(CapitationContract, contract.id)
+      contract2 = PRMRepo.get(CapitationContract, contract_id2)
 
       assert contract.is_suspended
       refute contract2.is_suspended
@@ -2089,7 +2089,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
           party: party
         )
 
-      contract = insert(:prm, :contract, contractor_owner: employee)
+      contract = insert(:prm, :capitation_contract, contractor_owner: employee)
 
       data =
         employee_request_data()
@@ -2117,7 +2117,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
       assert "APPROVED" == resp["status"]
 
-      contract = PRMRepo.get(Contract, contract.id)
+      contract = PRMRepo.get(CapitationContract, contract.id)
       assert contract.is_suspended == true
     end
 
@@ -2145,7 +2145,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
           party: party
         )
 
-      contract = insert(:prm, :contract, contractor_owner: employee)
+      contract = insert(:prm, :capitation_contract, contractor_owner: employee)
 
       data =
         employee_request_data()
@@ -2173,7 +2173,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
       assert "APPROVED" == resp["status"]
 
-      contract = PRMRepo.get(Contract, contract.id)
+      contract = PRMRepo.get(CapitationContract, contract.id)
       assert contract.is_suspended == true
     end
   end

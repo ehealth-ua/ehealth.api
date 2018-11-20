@@ -3,8 +3,9 @@ defmodule Core.Contracts.ContractDivision do
 
   use Ecto.Schema
   import Ecto.Changeset
+  import Ecto.Query, only: [dynamic: 2]
 
-  alias Core.Contracts.Contract
+  alias Core.Contracts.CapitationContract
   alias Core.Divisions.Division
   alias Ecto.UUID
 
@@ -20,9 +21,10 @@ defmodule Core.Contracts.ContractDivision do
   schema "contract_divisions" do
     field(:inserted_by, UUID)
     field(:updated_by, UUID)
+    # because of polymorphic Contract, it's impossible to use `belongs_to` for :contract field
+    field(:contract_id, UUID)
 
     belongs_to(:division, Division, type: UUID)
-    belongs_to(:contract, Contract, type: UUID)
 
     timestamps()
   end

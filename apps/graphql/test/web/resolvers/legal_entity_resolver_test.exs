@@ -5,7 +5,7 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
   import Mox
 
   alias Absinthe.Relay.Node
-  alias Core.Contracts.Contract
+  alias Core.Contracts.CapitationContract
   alias Core.Employees.Employee
   alias Core.LegalEntities.LegalEntity
   alias Core.PRMRepo
@@ -672,7 +672,7 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
 
     test "suspend contract", %{conn: conn} do
       legal_entity = insert(:prm, :legal_entity)
-      %{id: contract_id} = insert(:prm, :contract, contractor_legal_entity: legal_entity)
+      %{id: contract_id} = insert(:prm, :capitation_contract, contractor_legal_entity: legal_entity)
       variables = %{input: %{id: Node.to_global_id("LegalEntity", legal_entity.id)}}
 
       resp_body =
@@ -683,7 +683,7 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
         |> json_response(200)
 
       resp_entity = get_in(resp_body, ~w(data deactivateLegalEntity legalEntity))
-      contract = PRMRepo.get(Contract, contract_id)
+      contract = PRMRepo.get(CapitationContract, contract_id)
 
       assert %{"status" => @legal_entity_status_closed} = resp_entity
       assert true == contract.is_suspended

@@ -8,7 +8,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
   alias Core.Parties.Party
   alias Ecto.UUID
   alias Core.PRMRepo
-  alias Core.Contracts.Contract
+  alias Core.Contracts.CapitationContract
 
   describe "list employees" do
     test "gets only employees that have legal_entity_id == client_id", %{conn: conn} do
@@ -332,15 +332,15 @@ defmodule EHealth.Web.EmployeesControllerTest do
       employee = insert(:prm, :employee, legal_entity: legal_entity, employee_type: "ADMIN", party: party)
       employee2 = insert(:prm, :employee, party: party)
 
-      contract = insert(:prm, :contract, contractor_owner: employee)
-      contract2 = insert(:prm, :contract, contractor_owner: employee2)
+      contract = insert(:prm, :capitation_contract, contractor_owner: employee)
+      contract2 = insert(:prm, :capitation_contract, contractor_owner: employee2)
 
       conn = put_client_id_header(conn, legal_entity.id)
       conn_resp = patch(conn, employee_path(conn, :deactivate, employee.id))
 
       assert json_response(conn_resp, 200)
-      contract = PRMRepo.get(Contract, contract.id)
-      contract2 = PRMRepo.get(Contract, contract2.id)
+      contract = PRMRepo.get(CapitationContract, contract.id)
+      contract2 = PRMRepo.get(CapitationContract, contract2.id)
 
       assert contract.is_suspended
       refute contract2.is_suspended

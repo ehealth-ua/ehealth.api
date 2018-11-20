@@ -12,7 +12,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
   alias Core.PRMRepo
   alias Core.LegalEntities
   alias Core.LegalEntities.LegalEntity
-  alias Core.Contracts.Contract
+  alias Core.Contracts.CapitationContract
 
   @legal_entity_type_pharmacy LegalEntity.type(:pharmacy)
   @kveds_allowed_pharmacy "47.73"
@@ -448,8 +448,11 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
       id = resp1["data"]["id"]
       legal_entity = LegalEntities.get_by_id(id)
-      %{id: contract_id} = insert(:prm, :contract, contractor_legal_entity: legal_entity, is_suspended: false)
-      %{id: contract_id2} = insert(:prm, :contract, is_suspended: false)
+
+      %{id: contract_id} =
+        insert(:prm, :capitation_contract, contractor_legal_entity: legal_entity, is_suspended: false)
+
+      %{id: contract_id2} = insert(:prm, :capitation_contract, is_suspended: false)
 
       legal_entity_params = Map.put(legal_entity_params, "name", "Institute of medical researches ISMT")
       legal_entity_params = Map.put(legal_entity_params, "status", "CLOSED")
@@ -465,8 +468,8 @@ defmodule EHealth.Web.LegalEntityControllerTest do
              |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
              |> json_response(200)
 
-      contract = PRMRepo.get(Contract, contract_id)
-      contract2 = PRMRepo.get(Contract, contract_id2)
+      contract = PRMRepo.get(CapitationContract, contract_id)
+      contract2 = PRMRepo.get(CapitationContract, contract_id2)
 
       assert contract.is_suspended
       refute contract2.is_suspended
@@ -494,7 +497,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
       id = resp1["data"]["id"]
       legal_entity = LegalEntities.get_by_id(id)
-      %{id: contract_id} = insert(:prm, :contract, contractor_legal_entity: legal_entity)
+      %{id: contract_id} = insert(:prm, :capitation_contract, contractor_legal_entity: legal_entity)
       legal_entity_params = Map.put(legal_entity_params, "status", "CLOSED")
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
@@ -508,7 +511,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
       assert resp2
 
-      contract = PRMRepo.get(Contract, contract_id)
+      contract = PRMRepo.get(CapitationContract, contract_id)
       assert contract.is_suspended
     end
 
@@ -537,7 +540,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       id = resp1["data"]["id"]
 
       legal_entity = LegalEntities.get_by_id(id)
-      %{id: contract_id} = insert(:prm, :contract, contractor_legal_entity: legal_entity)
+      %{id: contract_id} = insert(:prm, :capitation_contract, contractor_legal_entity: legal_entity)
 
       [address | addresses] = legal_entity_params["addresses"]
       addresses = [%{address | "apartment" => "42/12"} | addresses]
@@ -556,13 +559,13 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
       assert resp2
 
-      contract = PRMRepo.get(Contract, contract_id)
+      contract = PRMRepo.get(CapitationContract, contract_id)
       assert contract.is_suspended
     end
 
     test "deactivate legal entity suspend contract", %{conn: conn} do
       legal_entity = insert(:prm, :legal_entity)
-      %{id: contract_id} = insert(:prm, :contract, contractor_legal_entity: legal_entity)
+      %{id: contract_id} = insert(:prm, :capitation_contract, contractor_legal_entity: legal_entity)
 
       resp =
         conn
@@ -571,7 +574,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
         |> json_response(200)
 
       assert "CLOSED" == resp["data"]["status"]
-      contract = PRMRepo.get(Contract, contract_id)
+      contract = PRMRepo.get(CapitationContract, contract_id)
       assert contract.is_suspended
     end
   end

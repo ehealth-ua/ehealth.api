@@ -15,7 +15,7 @@ defmodule GraphQLWeb.Schema do
   }
 
   alias Core.ContractRequests.CapitationContractRequest
-  alias Core.Contracts.Contract
+  alias Core.Contracts.CapitationContract
   alias Core.Dictionaries.Dictionary
   alias Core.Divisions.Division
   alias Core.Employees.Employee
@@ -63,7 +63,7 @@ defmodule GraphQLWeb.Schema do
 
   node interface do
     resolve_type(fn
-      %Contract{}, _ -> :contract
+      %CapitationContract{}, _ -> :contract
       %CapitationContractRequest{}, _ -> :contract_request
       %Dictionary{}, _ -> :dictionary
       %Division{}, _ -> :division
