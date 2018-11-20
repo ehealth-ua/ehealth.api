@@ -20,6 +20,15 @@ defmodule Core.Rpc do
     |> select([e], e.id)
     |> where([e], e.party_id == ^party_id)
     |> where([e], e.legal_entity_id == ^client_id)
+    |> where([e], e.status == ^Employee.status(:approved))
     |> PRMRepo.all()
+  end
+
+  def tax_id_by_employee_id(employee_id) do
+    Party
+    |> select([p], p.tax_id)
+    |> join(:left, [p], e in Employee, p.id == e.party_id)
+    |> where([p, e], e.id == ^employee_id)
+    |> PRMRepo.one()
   end
 end
