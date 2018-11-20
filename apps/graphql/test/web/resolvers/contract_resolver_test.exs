@@ -524,7 +524,7 @@ defmodule GraphQLWeb.ContractResolverTest do
         {:ok, %{"data" => %{"secret_url" => "http://example.com/#{id}/#{resource_name}"}}}
       end)
 
-      contract_request = insert(:il, :contract_request)
+      contract_request = insert(:il, :contract_request, status: ContractRequest.status(:signed))
       contract = insert(:prm, :contract, contract_request_id: contract_request.id)
 
       id = Node.to_global_id("Contract", contract.id)
@@ -551,12 +551,12 @@ defmodule GraphQLWeb.ContractResolverTest do
         |> post_query(query, variables)
         |> json_response(200)
 
-      resp_entities = get_in(resp_body, ~w(data contract attachedDocuments))
+      attached_documents = get_in(resp_body, ~w(data contract attachedDocuments))
 
       refute resp_body["errors"]
-      assert 3 == length(resp_entities)
+      assert 3 == length(attached_documents)
 
-      Enum.each(resp_entities, fn document ->
+      Enum.each(attached_documents, fn document ->
         assert Map.has_key?(document, "type")
         assert Map.has_key?(document, "url")
       end)

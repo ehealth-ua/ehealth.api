@@ -672,7 +672,7 @@ defmodule Core.Contracts do
     end
   end
 
-  def gen_relevant_get_links(id, status) do
+  def gen_relevant_get_links(id) do
     with {:ok, %{"data" => %{"secret_url" => secret_url}}} <-
            @media_storage_api.create_signed_url("GET", get_bucket(), "signed_content/signed_content", id, []) do
       [%{"type" => "SIGNED_CONTENT", "url" => secret_url}]
