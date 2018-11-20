@@ -58,7 +58,7 @@ defmodule Core.OAuth.API do
   def create_user(err, _email, _headers), do: err
 
   def get_connection_credentials(client_id, headers) do
-    attrs = %{"consumer_id" => get_consumer_id(headers)}
+    attrs = %{"consumer_id" => get_client_id(headers)}
 
     with {:ok, %{"data" => connections}} <- @mithril_api.get_client_connections(client_id, attrs, headers) do
       {:ok, fetch_connection_credentials(connections, client_id)}
