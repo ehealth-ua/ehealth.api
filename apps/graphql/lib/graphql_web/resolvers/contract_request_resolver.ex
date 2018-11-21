@@ -60,7 +60,7 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
       |> where(
         [..., p],
         fragment(
-          "to_tsvector(concat_ws(' ', ?, ?, ?)) @@ to_tsquery(?)",
+          "to_tsvector(concat_ws(' ', ?, ?, ?)) @@ plainto_tsquery(?)",
           p.last_name,
           p.first_name,
           p.second_name,
