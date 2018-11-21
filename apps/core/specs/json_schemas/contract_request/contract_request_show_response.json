@@ -115,7 +115,7 @@
         "null"
       ]
     },
-    "contract_type": {
+    "type": {
       "type": "string",
       "enum": [
         "CAPITATION",

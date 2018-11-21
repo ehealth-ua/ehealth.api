@@ -1,9 +1,13 @@
 defmodule Core.ContractRequests.ContractRequest do
   @moduledoc false
 
+  @inheritance_column :type
+
   defmacro __using__(opts) do
-    unless opts[:fields] do
-      raise("Please define fields for ContractRequest")
+    {inheritance_name, opts} = Keyword.pop(opts, :inheritance_name)
+
+    unless inheritance_name do
+      raise("Please define inheritance name for ContractRequest")
     end
 
     quote do
@@ -34,9 +38,12 @@ defmodule Core.ContractRequests.ContractRequest do
       def nhs_payment_method(:backward), do: @nhs_payment_method_backward
       def nhs_payment_method(:forward), do: @nhs_payment_method_forward
 
+      def unquote(@inheritance_column)(), do: unquote(inheritance_name)
+
       @derive {Jason.Encoder, except: [:__meta__, :previous_request]}
       @primary_key {:id, :binary_id, autogenerate: true}
       schema "contract_requests" do
+        field(unquote(@inheritance_column), :string, default: unquote(inheritance_name))
         field(:contractor_legal_entity_id, UUID)
         field(:contractor_owner_id, UUID)
         field(:contractor_base, :string)
@@ -64,18 +71,31 @@ defmodule Core.ContractRequests.ContractRequest do
         field(:inserted_by, UUID)
         field(:updated_by, UUID)
 
-        fields = unquote(opts)[:fields]
-
-        for args <- fields do
-          case args do
-            {field, type, opts} -> field(field, type, opts)
-            {field, type} -> field(field, type)
-          end
-        end
-
         belongs_to(:previous_request, __MODULE__, type: UUID)
 
         timestamps()
+
+        # TODO: we need the macro for this
+        if fields = unquote(opts)[:fields] do
+          for args <- fields do
+            case args do
+              {field, type, opts} -> field(field, type, opts)
+              {field, type} -> field(field, type)
+            end
+          end
+        end
+
+        if belongs_to = unquote(opts)[:belongs_to] do
+          for {key, queryable, opts} <- belongs_to do
+            belongs_to(key, queryable, opts)
+          end
+        end
+
+        if has_many = unquote(opts)[:has_many] do
+          for {key, queryable, opts} <- has_many do
+            has_many(key, queryable, opts)
+          end
+        end
       end
     end
   end

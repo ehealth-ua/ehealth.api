@@ -1,9 +1,13 @@
 defmodule Core.Contracts.Contract do
   @moduledoc false
 
+  @inheritance_column :type
+
   defmacro __using__(opts) do
-    unless opts[:fields] do
-      raise("Please define fields for Contract")
+    {inheritance_name, opts} = Keyword.pop(opts, :inheritance_name)
+
+    unless inheritance_name do
+      raise("Please define inheritance name for Contract")
     end
 
     quote do
@@ -21,8 +25,11 @@ defmodule Core.Contracts.Contract do
       def status(:verified), do: @status_verified
       def status(:terminated), do: @status_terminated
 
+      def unquote(@inheritance_column)(), do: unquote(inheritance_name)
+
       @primary_key {:id, Ecto.UUID, autogenerate: false}
       schema "contracts" do
+        field(unquote(@inheritance_column), :string, default: unquote(inheritance_name))
         field(:start_date, :date)
         field(:end_date, :date)
         field(:status, :string)
@@ -41,21 +48,6 @@ defmodule Core.Contracts.Contract do
         field(:id_form, :string)
         field(:nhs_signed_date, :date)
 
-        fields = unquote(opts)[:fields]
-
-        for args <- fields do
-          case args do
-            {field, type, opts} -> field(field, type, opts)
-            {field, type} -> field(field, type)
-          end
-        end
-
-        if has_many = unquote(opts)[:has_many] do
-          for {key, schema, opts} <- has_many do
-            has_many(key, schema, opts)
-          end
-        end
-
         belongs_to(:contractor_legal_entity, LegalEntity, type: UUID)
         belongs_to(:contractor_owner, Employee, type: UUID)
         belongs_to(:nhs_legal_entity, LegalEntity, type: UUID)
@@ -69,6 +61,28 @@ defmodule Core.Contracts.Contract do
         has_many(:merged_to, RelatedLegalEntity, foreign_key: :merged_to_id, references: :contractor_legal_entity_id)
 
         timestamps()
+
+        # TODO: we need the macro for this
+        if fields = unquote(opts)[:fields] do
+          for args <- fields do
+            case args do
+              {field, type, opts} -> field(field, type, opts)
+              {field, type} -> field(field, type)
+            end
+          end
+        end
+
+        if belongs_to = unquote(opts)[:belongs_to] do
+          for {key, queryable, opts} <- belongs_to do
+            belongs_to(key, queryable, opts)
+          end
+        end
+
+        if has_many = unquote(opts)[:has_many] do
+          for {key, queryable, opts} <- has_many do
+            has_many(key, queryable, opts)
+          end
+        end
       end
     end
   end

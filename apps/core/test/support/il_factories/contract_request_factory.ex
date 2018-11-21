@@ -23,7 +23,7 @@ defmodule Core.ILFactories.ContractRequestFactory do
 
         data =
           Map.merge(generic_contract_request_data(legal_entity, division), %{
-            contract_type: CapitationContractRequest.type(),
+            type: CapitationContractRequest.type(),
             nhs_contract_price: 50_000.00,
             external_contractor_flag: true,
             contractor_rmsp_amount: 10,

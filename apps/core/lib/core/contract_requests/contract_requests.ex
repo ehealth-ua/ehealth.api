@@ -43,7 +43,7 @@ defmodule Core.ContractRequests do
   @signature_api Application.get_env(:core, :api_resolvers)[:digital_signature]
 
   @fields_required ~w(
-    contract_type
+    type
     contractor_legal_entity_id
     contractor_owner_id
     contractor_base

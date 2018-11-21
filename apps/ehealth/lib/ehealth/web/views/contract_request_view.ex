@@ -11,7 +11,7 @@ defmodule EHealth.Web.ContractRequestView do
   def render("list_contract_request.json", %{contract_request: contract_request}) do
     Map.take(contract_request, ~w(
       id
-      contract_type
+      type
       contractor_legal_entity_id
       contractor_owner_id
       contractor_base

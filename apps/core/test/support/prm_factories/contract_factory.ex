@@ -11,7 +11,7 @@ defmodule Core.PRMFactories.ContractFactory do
       def capitation_contract_factory do
         data =
           Map.merge(generic_contract_data(), %{
-            contract_type: CapitationContract.type(),
+            type: CapitationContract.type(),
             nhs_contract_price: to_float(Enum.random(100_000..200_000)),
             contractor_rmsp_amount: Enum.random(50_000..100_000),
             external_contractor_flag: true,

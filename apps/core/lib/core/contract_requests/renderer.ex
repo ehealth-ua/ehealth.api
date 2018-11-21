@@ -10,7 +10,7 @@ defmodule Core.ContractRequests.Renderer do
   def render(%CapitationContractRequest{} = contract_request, references) do
     data = Map.take(contract_request, ~w(
       id
-      contract_type
+      type
       contractor_base
       contractor_payment_details
       contractor_rmsp_amount

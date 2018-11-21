@@ -3,13 +3,11 @@ defmodule Core.ContractRequests.ReimbursementContractRequest do
 
   alias Ecto.UUID
 
-  @contract_type "REIMBURSEMENT"
+  @inheritance_name "REIMBURSEMENT"
 
   use Core.ContractRequests.ContractRequest,
+    inheritance_name: @inheritance_name,
     fields: [
-      {:contract_type, :string, default: @contract_type},
-      {:program_id, UUID}
+      {:medical_program_id, UUID}
     ]
-
-  def type, do: @contract_type
 end

@@ -4,11 +4,11 @@ defmodule Core.Contracts.CapitationContract do
   alias Core.ContractRequests.CapitationContractRequest
   alias Core.Contracts.ContractEmployee
 
-  @contract_type CapitationContractRequest.type()
+  @inheritance_name CapitationContractRequest.type()
 
   use Core.Contracts.Contract,
+    inheritance_name: @inheritance_name,
     fields: [
-      {:contract_type, :string, default: @contract_type},
       {:contractor_rmsp_amount, :integer},
       {:external_contractor_flag, :boolean},
       {:external_contractors, {:array, :map}},
@@ -18,6 +18,4 @@ defmodule Core.Contracts.CapitationContract do
       {:contract_employees, ContractEmployee, foreign_key: :contract_id},
       {:contract_employees_divisions, [through: [:contract_employees, :division]], []}
     ]
-
-  def type, do: @contract_type
 end
