@@ -121,6 +121,9 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
       {:error, {:forbidden, error}} ->
         {:error, format_forbidden_error(error)}
 
+      {:error, {:not_found, error}} ->
+        {:error, format_not_found_error(error)}
+
       {:error, {:conflict, error}} ->
         {:error, format_conflict_error(error)}
 
