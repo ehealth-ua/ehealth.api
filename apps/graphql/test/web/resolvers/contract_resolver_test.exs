@@ -208,7 +208,13 @@ defmodule GraphQLWeb.ContractResolverTest do
       contract_related_to = insert(:prm, :contract, %{contractor_legal_entity: to})
 
       # merged from
-      variables = %{filter: %{legalEntityRelation: "MERGED_FROM"}}
+      variables = %{
+        filter: %{
+          legalEntityRelation: "MERGED_FROM",
+          isSuspended: false,
+          status: contract_related_from.status
+        }
+      }
 
       resp_body =
         conn
