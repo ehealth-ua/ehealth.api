@@ -217,28 +217,29 @@ defmodule EHealthWeb.Router do
     patch("/declaration_requests/:id/actions/reject", DeclarationRequestController, :reject)
     post("/declaration_requests/:id/actions/resend_otp", DeclarationRequestController, :resend_otp)
 
-    scope "/contracts" do
+    scope "/contracts/:type" do
       pipe_through([:contract_context])
 
-      get("/:id", ContractController, :show)
-      patch("/:id/actions/update", ContractController, :prolongate)
-
-      get("/:id/employees", ContractController, :show_employees)
       get("/", ContractController, :index)
+      get("/:id", ContractController, :show)
       get("/:id/printout_content", ContractController, :printout_content)
+      get("/:id/employees", ContractController, :show_employees)
       patch("/:id/employees/actions/update", ContractController, :update)
+      patch("/:id/actions/update", ContractController, :prolongate)
       patch("/:id/actions/terminate", ContractController, :terminate)
     end
 
-    post("/contract_requests", ContractRequestController, :draft)
-    post("/contract_requests/:id", ContractRequestController, :create)
-    patch("/contract_requests/:id", ContractRequestController, :update)
-    patch("/contract_requests/:id/actions/assign", ContractRequestController, :update_assignee)
-    patch("/contract_requests/:id/actions/approve", ContractRequestController, :approve)
-    patch("/contract_requests/:id/actions/approve_msp", ContractRequestController, :approve_msp)
-    patch("/contract_requests/:id/actions/decline", ContractRequestController, :decline)
+    scope "/contract_requests/:type" do
+      post("/", ContractRequestController, :draft)
+      post("/:id", ContractRequestController, :create)
+      patch("/:id", ContractRequestController, :update)
+      patch("/:id/actions/assign", ContractRequestController, :update_assignee)
+      patch("/:id/actions/approve", ContractRequestController, :approve)
+      patch("/:id/actions/approve_msp", ContractRequestController, :approve_msp)
+      patch("/:id/actions/decline", ContractRequestController, :decline)
+    end
 
-    scope "/contract_requests" do
+    scope "/contract_requests/:type" do
       pipe_through([:contract_context])
 
       get("/", ContractRequestController, :index)

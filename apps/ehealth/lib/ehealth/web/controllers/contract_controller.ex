@@ -13,13 +13,13 @@ defmodule EHealth.Web.ContractController do
   def index(%Plug.Conn{req_headers: headers} = conn, params) do
     client_type = conn.assigns.client_type
 
-    with {:ok, %Page{} = paging, references} <- Contracts.list(params, client_type, headers) do
+    with {:ok, %Page{} = paging, references} <- Contracts.list(drop_type(params), client_type, headers) do
       render(conn, "index.json", contracts: paging.entries, paging: paging, references: references)
     end
   end
 
   def show(conn, %{"id" => id} = params) do
-    with {:ok, contract, references} <- Contracts.get_by_id(id, params) do
+    with {:ok, contract, references} <- Contracts.get_by_id(id, drop_type(params)) do
       %CapitationContractRequest{status: status} = references[:contract_request][contract.contract_request_id]
 
       conn
@@ -31,26 +31,26 @@ defmodule EHealth.Web.ContractController do
   end
 
   def show_employees(%Plug.Conn{req_headers: headers} = conn, %{"id" => id} = params) do
-    with {:ok, paging, references} <- Contracts.get_employees_by_id(id, params, headers) do
+    with {:ok, paging, references} <- Contracts.get_employees_by_id(id, drop_type(params), headers) do
       render(conn, "show_employees.json", contract_employees: paging.entries, paging: paging, references: references)
     end
   end
 
   def update(%Plug.Conn{req_headers: headers} = conn, %{"id" => id} = params) do
-    with {:ok, contract, references} <- Contracts.update(id, Map.delete(params, "id"), headers) do
+    with {:ok, contract, references} <- Contracts.update(id, Map.delete(drop_type(params), "id"), headers) do
       render(conn, "show.json", contract: contract, references: references)
     end
   end
 
   def prolongate(%Plug.Conn{req_headers: headers} = conn, %{"id" => id} = params) do
-    with {:ok, contract, references} <- Contracts.prolongate(id, Map.delete(params, "id"), headers) do
+    with {:ok, contract, references} <- Contracts.prolongate(id, Map.delete(drop_type(params), "id"), headers) do
       render(conn, "show.json", contract: contract, references: references)
     end
   end
 
   def terminate(%Plug.Conn{req_headers: headers} = conn, %{"id" => id} = params) do
     with {:ok, contract, references} <-
-           Contracts.terminate(id, Map.drop(params, ~w(id contractor_legal_entity_id)), headers) do
+           Contracts.terminate(id, Map.drop(drop_type(params), ~w(id contractor_legal_entity_id)), headers) do
       render(conn, "terminate.json", contract: contract, references: references)
     end
   end
@@ -62,4 +62,7 @@ defmodule EHealth.Web.ContractController do
       render(conn, "printout_content.json", contract: contract, printout_content: printout_content)
     end
   end
+
+  # ToDo: remove it after implementation type for each function
+  defp drop_type(params), do: Map.delete(params, "type")
 end
