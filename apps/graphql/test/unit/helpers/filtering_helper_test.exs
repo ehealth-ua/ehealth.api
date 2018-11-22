@@ -6,13 +6,9 @@ defmodule GraphQL.Unit.FilteringHelperTest do
   import Core.Factories, only: [insert: 3, insert_list: 3]
   import GraphQL.Helpers.Filtering, only: [filter: 2]
 
-  alias Core.Contracts.Contract
   alias Core.Divisions.Division
   alias Core.LegalEntities.LegalEntity
   alias Core.PRMRepo
-
-  @contract_status_verified Contract.status(:verified)
-  @contract_status_terminated Contract.status(:terminated)
 
   @division_status_active Division.status(:active)
 
@@ -22,24 +18,24 @@ defmodule GraphQL.Unit.FilteringHelperTest do
 
   describe "fields" do
     test "with empty condition" do
-      insert_list(2, :prm, :contract)
+      insert_list(2, :prm, :legal_entity)
 
-      results = do_filter(Contract, [])
+      results = do_filter(LegalEntity, [])
 
       assert 2 = length(results)
     end
 
     test "with equal condition" do
-      contracts =
-        for status <- [@contract_status_verified, @contract_status_terminated] do
-          insert(:prm, :contract, status: status)
+      legal_entities =
+        for type <- [@legal_entity_type_msp, @legal_entity_type_nhs] do
+          insert(:prm, :legal_entity, type: type)
         end
 
-      expected_result = hd(contracts)
+      expected_result = hd(legal_entities)
 
-      condition = [{:status, :equal, @contract_status_verified}]
+      condition = [{:type, :equal, @legal_entity_type_msp}]
 
-      results = do_filter(Contract, condition)
+      results = do_filter(LegalEntity, condition)
 
       assert 1 = length(results)
       assert expected_result.id == hd(results).id
