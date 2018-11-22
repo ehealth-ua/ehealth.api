@@ -4,6 +4,7 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
   import Absinthe.Resolution.Helpers, only: [on_load: 2]
   import Ecto.Query, only: [order_by: 2, order_by: 3, join: 4]
   import GraphQLWeb.Resolvers.Helpers.Errors
+  import GraphQLWeb.Resolvers.Helpers.Search, only: [filter: 2]
 
   alias Absinthe.Relay.Connection
   alias Core.ContractRequests
@@ -13,7 +14,6 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
   alias Core.PRMRepo
   alias GraphQLWeb.Loaders.IL
   alias GraphQLWeb.Loaders.PRM
-  alias GraphQLWeb.Resolvers.Helpers.Search
 
   def list_contracts(args, %{context: %{client_type: "NHS"}}), do: list_contracts(args)
 
@@ -24,6 +24,8 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
   end
 
   def list_contracts(%{filter: filter, order_by: order_by} = args) do
+    filter = prepare_filter(filter)
+
     CapitationContract
     |> filter(filter)
     |> prepare_order_by(order_by)
@@ -74,13 +76,9 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
     end)
   end
 
-  def filter(query, [{:legal_entity_relation, relation} | tail]) do
-    query
-    |> join(:inner, [c], r in assoc(c, ^relation))
-    |> filter(tail)
-  end
-
-  def filter(query, args), do: Search.filter(query, args)
+  defp prepare_filter([]), do: []
+  defp prepare_filter([{:legal_entity_relation, relation} | tail]), do: [{relation, %{}} | prepare_filter(tail)]
+  defp prepare_filter([head | tail]), do: [head | prepare_filter(tail)]
 
   defp prepare_order_by(query, [{direction, :contractor_legal_entity_edrpou}]) do
     query
