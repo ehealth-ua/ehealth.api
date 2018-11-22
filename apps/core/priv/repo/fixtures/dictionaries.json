@@ -3840,20 +3840,6 @@
     "is_active": true
   },
   {
-    "name": "eHealth/encounter_types",
-    "values": {
-      "ADMS": "Annual diabetes mellitus screening",
-      "BD/BM-clin": "Bone drilling/bone marrow punction in clinic",
-      "CCS60": "Infant colon screening - 60 minutes",
-      "OKI": "Outpatient Kenacort injection"
-    },
-    "labels": [
-      "SYSTEM",
-      "EXTERNAL"
-    ],
-    "is_active": true
-  },
-  {
     "name": "eHealth/observation_interpretations",
     "values": {
       "<": "Off scale low",
