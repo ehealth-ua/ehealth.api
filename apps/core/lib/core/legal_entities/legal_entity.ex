@@ -13,8 +13,9 @@ defmodule Core.LegalEntities.LegalEntity do
   @status_active "ACTIVE"
   @status_closed "CLOSED"
 
-  @type_msp "MSP"
   @type_mis "MIS"
+  @type_msp "MSP"
+  @type_nhs "NHS"
   @type_pharmacy "PHARMACY"
 
   @mis_verified_verified "VERIFIED"
@@ -22,6 +23,7 @@ defmodule Core.LegalEntities.LegalEntity do
 
   def type(:mis), do: @type_mis
   def type(:msp), do: @type_msp
+  def type(:nhs), do: @type_nhs
   def type(:pharmacy), do: @type_pharmacy
 
   def mis_verified(:verified), do: @mis_verified_verified
