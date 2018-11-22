@@ -120,7 +120,7 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
     field(:phones, non_null(list_of(:phone)))
     field(:addresses, non_null(list_of(:address)))
     field(:archive, list_of(:legal_entity_archive))
-    field(:medical_service_provider, :msp)
+    field(:medical_service_provider, :msp, resolve: dataloader(PRM))
 
     # relations
     field(:owner, :employee, resolve: &LegalEntityResolver.load_owner/3)
