@@ -31,4 +31,11 @@ defmodule Core.Rpc do
     |> where([p, e], e.id == ^employee_id)
     |> PRMRepo.one()
   end
+
+  def employee_by_id(employee_id) do
+    Employee
+    |> where([e], e.id == ^employee_id)
+    |> preload([e], :party)
+    |> PRMRepo.one()
+  end
 end
