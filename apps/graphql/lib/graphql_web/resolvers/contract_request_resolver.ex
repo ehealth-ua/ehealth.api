@@ -56,7 +56,7 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
     assignee_ids =
       Employee
       |> join(:inner, [e], p in assoc(e, :party))
-      |> where([e], e.employee_type == "NHS")
+      |> where([e], e.employee_type in ~w(NHS NHS_SIGNER))
       |> where(
         [..., p],
         fragment(
