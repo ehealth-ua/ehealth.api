@@ -33,6 +33,7 @@ defmodule GraphQLWeb.EmployeeResolverTest do
 
   @employee_type_admin Employee.type(:admin)
   @employee_type_owner Employee.type(:owner)
+  @employee_type_doctor Employee.type(:doctor)
 
   @employee_status_approved Employee.status(:approved)
   @employee_status_dismissed Employee.status(:dismissed)
@@ -102,11 +103,12 @@ defmodule GraphQLWeb.EmployeeResolverTest do
     test "filter by match", %{conn: conn} do
       nhs()
 
-      for employee_type <- [@employee_type_admin, @employee_type_owner] do
+      for employee_type <- [@employee_type_admin, @employee_type_owner, @employee_type_doctor] do
         insert(:prm, :employee, employee_type: employee_type)
       end
 
-      variables = %{filter: %{employeeType: @employee_type_admin}}
+      employee_types = [@employee_type_admin, @employee_type_doctor]
+      variables = %{filter: %{employeeType: employee_types}}
 
       resp_body =
         conn
@@ -117,8 +119,11 @@ defmodule GraphQLWeb.EmployeeResolverTest do
       resp_entities = get_in(resp_body, ~w(data employees nodes))
 
       assert nil == resp_body["errors"]
-      assert 1 == length(resp_entities)
-      assert @employee_type_admin == hd(resp_entities)["employeeType"]
+      assert 2 == length(resp_entities)
+
+      Enum.each(resp_entities, fn employee ->
+        assert employee["employeeType"] in employee_types
+      end)
     end
 
     test "filter by association", %{conn: conn} do
