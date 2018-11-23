@@ -163,17 +163,23 @@ defmodule Core.Man.Templates.ContractRequestPrintoutForm do
 
   defp translate_address(nil, _), do: nil
 
+  defp translate_address(%{__struct__: _} = address, dictionaries) do
+    address
+    |> Jason.encode!()
+    |> Jason.decode!()
+    |> translate_address(dictionaries)
+  end
+
   defp translate_address(address, dictionaries) do
     %Dictionary{values: values} = Enum.find(dictionaries, fn %Dictionary{name: name} -> name == "STREET_TYPE" end)
-    street_type_key = Map.get(address, "street_type") || Map.get(address, :street_type)
+    street_type_key = Map.get(address, "street_type")
     street_type = values[street_type_key]
 
     %Dictionary{values: values} = Enum.find(dictionaries, fn %Dictionary{name: name} -> name == "SETTLEMENT_TYPE" end)
-    settlement_type_key = Map.get(address, "settlement_type") || Map.get(address, :settlement_type)
+    settlement_type_key = Map.get(address, "settlement_type")
     settlement_type = values[settlement_type_key]
 
     address
-    |> Map.drop([:street_type, :settlement_type])
     |> Map.merge(%{
       "street_type" => street_type,
       "settlement_type" => settlement_type
