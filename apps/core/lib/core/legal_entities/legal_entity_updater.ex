@@ -16,9 +16,10 @@ defmodule Core.LegalEntities.LegalEntityUpdater do
 
   @employee_status_approved Employee.status(:approved)
 
-  def deactivate(id, headers) do
+  def deactivate(id, headers, check_nhs_reviewed? \\ false) do
     with {:ok, legal_entity} <- LegalEntities.fetch_by_id(id),
          :ok <- check_transition(legal_entity),
+         :ok <- LegalEntities.check_nhs_reviewed(legal_entity, check_nhs_reviewed?),
          :ok <- deactivate_employees(legal_entity, headers) do
       update_legal_entity_status(legal_entity, headers)
     end

@@ -39,6 +39,8 @@ defmodule Core.PRMFactories.LegalEntityFactory do
           mis_verified: "VERIFIED",
           type: "MSP",
           nhs_verified: false,
+          nhs_reviewed: true,
+          nhs_comment: "",
           website: "http://example.com",
           archive: [%{"date" => "2012-12-29", "place" => "Житомир вул. Малярів, буд. 211, корп. 2, оф. 1"}],
           beneficiary: "Марко Вовчок",

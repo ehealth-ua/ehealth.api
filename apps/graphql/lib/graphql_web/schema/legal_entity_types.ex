@@ -37,6 +37,7 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
     field(:type, :legal_entity_type)
     field(:edrpou, :string)
     field(:nhs_verified, :boolean)
+    field(:nhs_reviewed, :boolean)
     field(:area, :string)
     field(:settlement, :string)
   end
@@ -80,6 +81,38 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
       resolve(&LegalEntityResolver.nhs_verify/2)
     end
 
+    payload field(:nhs_review_legal_entity) do
+      meta(:scope, ~w(legal_entity:nhs_verify))
+
+      input do
+        field(:id, non_null(:id))
+        field(:nhs_reviewed, non_null(:boolean))
+      end
+
+      output do
+        field(:legal_entity, :legal_entity)
+      end
+
+      middleware(ParseIDs, id: :legal_entity)
+      resolve(&LegalEntityResolver.nhs_review/2)
+    end
+
+    payload field(:nhs_comment_legal_entity) do
+      meta(:scope, ~w(legal_entity:nhs_verify))
+
+      input do
+        field(:id, non_null(:id))
+        field(:nhs_comment, non_null(:string))
+      end
+
+      output do
+        field(:legal_entity, :legal_entity)
+      end
+
+      middleware(ParseIDs, id: :legal_entity)
+      resolve(&LegalEntityResolver.nhs_comment/2)
+    end
+
     payload field(:deactivate_legal_entity) do
       meta(:scope, ~w(legal_entity:deactivate))
 
@@ -110,6 +143,8 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
     field(:receiver_funds_code, :string)
     field(:beneficiary, :string)
     field(:nhs_verified, :boolean)
+    field(:nhs_reviewed, :boolean)
+    field(:nhs_comment, :string)
 
     # enums
     field(:type, non_null(:legal_entity_type))

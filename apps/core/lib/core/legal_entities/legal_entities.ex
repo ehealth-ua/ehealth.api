@@ -70,6 +70,7 @@ defmodule Core.LegalEntities do
     is_active
     nhs_verified
     nhs_reviewed
+    nhs_comment
     created_by_mis_client_id
     archive
     receiver_funds_code
@@ -182,6 +183,8 @@ defmodule Core.LegalEntities do
   end
 
   def update(%LegalEntity{} = legal_entity, attrs, author_id) do
+    attrs = Map.put(attrs, :updated_by, author_id)
+
     legal_entity
     |> changeset(attrs)
     |> PRMRepo.update_and_log(author_id)
@@ -238,11 +241,12 @@ defmodule Core.LegalEntities do
     end
   end
 
-  def nhs_verify(id, consumer_id) do
+  def nhs_verify(id, consumer_id, check_nhs_reviewed? \\ false) do
     update_data = %{nhs_verified: true}
 
     with {:ok, legal_entity} <- fetch_by_id(id),
-         :ok <- check_nhs_verify_transition(legal_entity) do
+         :ok <- check_nhs_verify_transition(legal_entity),
+         :ok <- check_nhs_reviewed(legal_entity, check_nhs_reviewed?) do
       update(legal_entity, update_data, consumer_id)
     end
   end
@@ -383,6 +387,30 @@ defmodule Core.LegalEntities do
     |> EmployeeRequests.create_owner()
   end
 
+  def nhs_review(%{id: id, nhs_reviewed: nhs_reviewed?}, headers) do
+    updated_by = get_consumer_id(headers)
+
+    with {:ok, legal_entity} <- fetch_by_id(id),
+         {:ok, legal_entity} <- update(legal_entity, %{nhs_reviewed: nhs_reviewed?}, updated_by) do
+      {:ok, legal_entity}
+    end
+  end
+
+  def nhs_comment(%{id: id, nhs_comment: nhs_comment}, headers) do
+    updated_by = get_consumer_id(headers)
+
+    with {:ok, legal_entity} <- fetch_by_id(id),
+         :ok <- check_nhs_reviewed(legal_entity),
+         {:ok, legal_entity} <- update(legal_entity, %{nhs_comment: nhs_comment}, updated_by) do
+      {:ok, legal_entity}
+    end
+  end
+
+  def check_nhs_reviewed(legal_entity, do_check? \\ true)
+  def check_nhs_reviewed(_, false), do: :ok
+  def check_nhs_reviewed(%LegalEntity{nhs_reviewed: true}, _), do: :ok
+  def check_nhs_reviewed(_, _), do: {:error, {:conflict, "Legal entity should be reviewed first"}}
+
   defp prepare_employee_request_data(legal_entity_id, party) do
     request = %{
       "legal_entity_id" => legal_entity_id,
@@ -412,13 +440,13 @@ defmodule Core.LegalEntities do
     preload(query, :medical_service_provider)
   end
 
-  def changeset(%Search{} = legal_entity, attrs) do
-    cast(legal_entity, attrs, @search_fields)
+  def changeset(%Search{} = legal_entity, params) do
+    cast(legal_entity, params, @search_fields)
   end
 
-  def changeset(%LegalEntity{} = legal_entity, attrs) do
+  def changeset(%LegalEntity{} = legal_entity, params) do
     legal_entity
-    |> cast(attrs, @required_fields ++ @optional_fields)
+    |> cast(params, @required_fields ++ @optional_fields)
     |> cast_assoc(:medical_service_provider)
     |> validate_required(@required_fields)
     |> validate_msp_required()

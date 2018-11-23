@@ -1,4 +1,6 @@
 defmodule GraphQLWeb.LegalEntityResolverTest do
+  @moduledoc false
+
   use GraphQLWeb.ConnCase, async: false
 
   import Core.Factories
@@ -9,6 +11,7 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
   alias Core.Employees.Employee
   alias Core.LegalEntities.LegalEntity
   alias Core.PRMRepo
+  alias Ecto.UUID
 
   @owner Employee.type(:owner)
   @doctor Employee.type(:doctor)
@@ -50,6 +53,28 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
         legalEntity {
           databaseId
           status
+        }
+      }
+    }
+  """
+
+  @nhs_review_query """
+    mutation NhsReviewLegalEntity($input: NhsReviewLegalEntityInput!) {
+      nhsReviewLegalEntity(input: $input){
+        legalEntity {
+          databaseId
+          nhsReviewed
+        }
+      }
+    }
+  """
+
+  @nhs_comment_query """
+    mutation NhsCommentLegalEntity($input: NhsCommentLegalEntityInput!) {
+      nhsCommentLegalEntity(input: $input){
+        legalEntity {
+          databaseId
+          nhsComment
         }
       }
     }
@@ -228,6 +253,35 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
 
       assert nil == resp_body["errors"]
       assert [%{"databaseId" => legal_entity.id}] == get_in(resp_body, ~w(data legalEntities nodes))
+    end
+
+    test "success with filter by nhsReviewed", %{conn: conn} do
+      [%{id: legal_entity_id}, %{id: legal_entity_id2}] = insert_list(2, :prm, :legal_entity, nhs_reviewed: true)
+      insert_list(4, :prm, :legal_entity, nhs_reviewed: false)
+
+      query = """
+        query GetLegalEntitiesQuery($filter: LegalEntityFilter) {
+          legalEntities(first: 10, filter: $filter) {
+            nodes {
+              databaseId
+            }
+          }
+        }
+      """
+
+      variables = %{filter: %{nhsReviewed: true}}
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      result_ids = get_in(resp_body, ["data", "legalEntities", "nodes", Access.all(), "databaseId"])
+
+      assert nil == resp_body["errors"]
+      assert 2 == length(result_ids)
+      assert legal_entity_id in result_ids
+      assert legal_entity_id2 in result_ids
     end
 
     test "success with ordering", %{conn: conn} do
@@ -675,6 +729,23 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
       assert %{"errors" => [error], "data" => %{"nhsVerifyLegalEntity" => nil}} = resp_body
       assert %{"extensions" => %{"code" => "NOT_FOUND"}, "message" => _} = error
     end
+
+    test "fails on unreviewed legal_entity by nhs", %{conn: conn} do
+      %{id: id} = insert(:prm, :legal_entity, nhs_reviewed: false)
+      variables = %{input: %{id: Node.to_global_id("LegalEntity", id)}}
+
+      resp_body =
+        conn
+        |> put_client_id(id)
+        |> post_query(@nhs_verify_query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data nhsVerifyLegalEntity legalEntity))
+
+      assert [error] = resp_body["errors"]
+      assert "CONFLICT" == error["extensions"]["code"]
+      refute resp_entity
+    end
   end
 
   describe "deactivate legal_entity" do
@@ -711,6 +782,24 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
 
       assert %{"errors" => [error], "data" => %{"deactivateLegalEntity" => nil}} = resp_body
       assert %{"extensions" => %{"code" => "CONFLICT"}, "message" => _} = error
+    end
+
+    test "fails on unreviewed legal_entity by nhs", %{conn: conn} do
+      %{id: id} = insert(:prm, :legal_entity, nhs_reviewed: false)
+      variables = %{input: %{id: Node.to_global_id("LegalEntity", id)}}
+
+      resp_body =
+        conn
+        |> put_consumer_id()
+        |> put_client_id(id)
+        |> post_query(@deactivate_query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data deactivateLegalEntity legalEntity))
+
+      assert [error] = resp_body["errors"]
+      assert "CONFLICT" == error["extensions"]["code"]
+      refute resp_entity
     end
 
     test "suspend contract", %{conn: conn} do
@@ -757,6 +846,112 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
 
       assert %{"status" => @legal_entity_status_closed} = resp_entity
       assert false == employee.is_active
+    end
+  end
+
+  describe "legal_entity nhs review" do
+    test "success", %{conn: conn} do
+      %{id: id} = insert(:prm, :legal_entity, nhs_reviewed: false)
+
+      variables = %{
+        input: %{
+          id: Node.to_global_id("LegalEntity", id),
+          nhs_reviewed: true
+        }
+      }
+
+      resp_body =
+        conn
+        |> put_scope("legal_entity:nhs_verify")
+        |> put_consumer_id()
+        |> put_client_id(id)
+        |> post_query(@nhs_review_query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data nhsReviewLegalEntity legalEntity))
+      legal_entity = PRMRepo.get(LegalEntity, id)
+
+      refute resp_body["errors"]
+      assert %{"databaseId" => ^id, "nhsReviewed" => true} = resp_entity
+      assert %{id: ^id, nhs_reviewed: true} = legal_entity
+    end
+
+    test "not found", %{conn: conn} do
+      variables = %{
+        input: %{
+          id: Node.to_global_id("LegalEntity", UUID.generate()),
+          nhs_reviewed: true
+        }
+      }
+
+      resp_body =
+        conn
+        |> put_scope("legal_entity:nhs_verify")
+        |> put_consumer_id()
+        |> put_client_id(UUID.generate())
+        |> post_query(@nhs_review_query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data nhsReviewLegalEntity legalEntity))
+
+      refute resp_entity
+      assert [error] = resp_body["errors"]
+      assert "NOT_FOUND" == error["extensions"]["code"]
+    end
+  end
+
+  describe "nhs comment" do
+    test "success", %{conn: conn} do
+      %{id: id} = insert(:prm, :legal_entity)
+
+      nhs_comment = "test comment here"
+
+      variables = %{
+        input: %{
+          id: Node.to_global_id("LegalEntity", id),
+          nhs_comment: nhs_comment
+        }
+      }
+
+      resp_body =
+        conn
+        |> put_scope("legal_entity:nhs_verify")
+        |> put_consumer_id()
+        |> put_client_id(id)
+        |> post_query(@nhs_comment_query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data nhsCommentLegalEntity legalEntity))
+      legal_entity = PRMRepo.get(LegalEntity, id)
+
+      refute resp_body["errors"]
+      assert %{"databaseId" => ^id, "nhsComment" => ^nhs_comment} = resp_entity
+      assert %{id: ^id, nhs_comment: ^nhs_comment} = legal_entity
+    end
+
+    test "fails due to legal entity hasn't beed reviewed by nhs", %{conn: conn} do
+      %{id: id} = insert(:prm, :legal_entity, nhs_reviewed: false)
+
+      variables = %{
+        input: %{
+          id: Node.to_global_id("LegalEntity", id),
+          nhs_comment: ""
+        }
+      }
+
+      resp_body =
+        conn
+        |> put_scope("legal_entity:nhs_verify")
+        |> put_consumer_id()
+        |> put_client_id(id)
+        |> post_query(@nhs_comment_query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data nhsCommentLegalEntity legalEntity))
+
+      refute resp_entity
+      assert [error] = resp_body["errors"]
+      assert "CONFLICT" == error["extensions"]["code"]
     end
   end
 end

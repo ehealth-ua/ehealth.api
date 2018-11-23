@@ -40,7 +40,7 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
     loader
     |> Dataloader.load(source, batch_key, item_key)
     |> on_load(fn loader ->
-      with %CapitationContractRequest{id: id, status: status} <- Dataloader.get(loader, source, batch_key, item_key),
+      with %CapitationContractRequest{id: id, status: _status} <- Dataloader.get(loader, source, batch_key, item_key),
            contract_documents when is_list(contract_documents) <- Contracts.gen_relevant_get_links(parent.id),
            contract_request_documents when is_list(contract_request_documents) <-
              ContractRequests.gen_relevant_get_links(id, "APPROVED") do

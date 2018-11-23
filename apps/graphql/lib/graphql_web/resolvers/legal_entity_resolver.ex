@@ -2,7 +2,6 @@ defmodule GraphQLWeb.Resolvers.LegalEntityResolver do
   @moduledoc false
 
   import Absinthe.Resolution.Helpers, only: [on_load: 2]
-  import Ecto.Query
   import GraphQLWeb.Resolvers.Helpers.Errors, only: [format_conflict_error: 1, format_not_found_error: 1]
   import GraphQLWeb.Resolvers.Helpers.Search, only: [search: 2]
 
@@ -98,10 +97,11 @@ defmodule GraphQLWeb.Resolvers.LegalEntityResolver do
   end
 
   def nhs_verify(%{id: id}, %{context: %{client_id: client_id}}) do
-    with {:ok, legal_entity} <- LegalEntities.nhs_verify(id, client_id) do
+    with {:ok, legal_entity} <- LegalEntities.nhs_verify(id, client_id, true) do
       {:ok, %{legal_entity: legal_entity}}
     else
-      # todo: remove after fallback error handling is done
+      # ToDo: Here should be generic way to handle errors. E.g as FallbackController in Phoenix
+      # Should be implemented with task https://github.com/edenlabllc/ehealth.web/issues/423
       {:error, {:conflict, error}} ->
         {:error, format_conflict_error(error)}
 
@@ -113,11 +113,43 @@ defmodule GraphQLWeb.Resolvers.LegalEntityResolver do
     end
   end
 
-  def deactivate(%{id: id}, %{context: context}) do
-    with {:ok, legal_entity} <- LegalEntityUpdater.deactivate(id, context.headers) do
+  def nhs_review(args, %{context: %{headers: headers}}) do
+    with {:ok, legal_entity} <- LegalEntities.nhs_review(args, headers) do
       {:ok, %{legal_entity: legal_entity}}
     else
-      # todo: remove after fallback error handling is done
+      # ToDo: Here should be generic way to handle errors. E.g as FallbackController in Phoenix
+      # Should be implemented with task https://github.com/edenlabllc/ehealth.web/issues/423
+      {:error, {:not_found, error}} ->
+        {:error, format_not_found_error(error)}
+
+      error ->
+        error
+    end
+  end
+
+  def nhs_comment(args, %{context: %{headers: headers}}) do
+    with {:ok, legal_entity} <- LegalEntities.nhs_comment(args, headers) do
+      {:ok, %{legal_entity: legal_entity}}
+    else
+      # ToDo: Here should be generic way to handle errors. E.g as FallbackController in Phoenix
+      # Should be implemented with task https://github.com/edenlabllc/ehealth.web/issues/423
+      {:error, {:not_found, error}} ->
+        {:error, format_not_found_error(error)}
+
+      {:error, {:conflict, error}} ->
+        {:error, format_conflict_error(error)}
+
+      error ->
+        error
+    end
+  end
+
+  def deactivate(%{id: id}, %{context: context}) do
+    with {:ok, legal_entity} <- LegalEntityUpdater.deactivate(id, context.headers, true) do
+      {:ok, %{legal_entity: legal_entity}}
+    else
+      # ToDo: Here should be generic way to handle errors. E.g as FallbackController in Phoenix
+      # Should be implemented with task https://github.com/edenlabllc/ehealth.web/issues/423
       {:error, {:conflict, error}} ->
         {:error, format_conflict_error(error)}
 
