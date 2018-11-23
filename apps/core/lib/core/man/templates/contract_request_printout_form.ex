@@ -173,8 +173,11 @@ defmodule Core.Man.Templates.ContractRequestPrintoutForm do
     settlement_type = values[settlement_type_key]
 
     address
-    |> Map.put("street_type", street_type)
-    |> Map.put("settlement_type", settlement_type)
+    |> Map.drop([:street_type, :settlement_type])
+    |> Map.merge(%{
+      "street_type" => street_type,
+      "settlement_type" => settlement_type
+    })
   end
 
   defp prepare_contractor_employee_divisions(data, references, dictionaries) do
