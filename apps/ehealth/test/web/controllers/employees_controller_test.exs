@@ -304,7 +304,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
 
   describe "deactivate employee" do
     setup %{conn: conn} do
-      party = insert(:prm, :party, tax_id: "22222222250")
+      party = insert(:prm, :party, tax_id: "2222222225")
       insert(:prm, :party_user, party: party)
       insert(:prm, :party_user, party: party)
       legal_entity = insert(:prm, :legal_entity)
@@ -328,22 +328,14 @@ defmodule EHealth.Web.EmployeesControllerTest do
       end)
 
       msp()
-      party = insert(:prm, :party)
-      employee = insert(:prm, :employee, legal_entity: legal_entity, employee_type: "ADMIN", party: party)
-      employee2 = insert(:prm, :employee, party: party)
-
+      employee = insert(:prm, :employee, legal_entity: legal_entity, employee_type: "ADMIN")
       contract = insert(:prm, :contract, contractor_owner: employee)
-      contract2 = insert(:prm, :contract, contractor_owner: employee2)
-
       conn = put_client_id_header(conn, legal_entity.id)
       conn_resp = patch(conn, employee_path(conn, :deactivate, employee.id))
 
       assert json_response(conn_resp, 200)
       contract = PRMRepo.get(Contract, contract.id)
-      contract2 = PRMRepo.get(Contract, contract2.id)
-
       assert contract.is_suspended
-      refute contract2.is_suspended
     end
 
     test "deactivate employee", %{conn: conn, legal_entity: legal_entity} do

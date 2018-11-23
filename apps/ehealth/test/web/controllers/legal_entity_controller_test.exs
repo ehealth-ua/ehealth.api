@@ -352,28 +352,24 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
       id = resp1["data"]["id"]
       legal_entity = LegalEntities.get_by_id(id)
-      %{id: contract_id} = insert(:prm, :contract, contractor_legal_entity: legal_entity, is_suspended: false)
-      %{id: contract_id2} = insert(:prm, :contract, is_suspended: false)
-
+      %{id: contract_id} = insert(:prm, :contract, contractor_legal_entity: legal_entity)
       legal_entity_params = Map.put(legal_entity_params, "name", "Institute of medical researches ISMT")
-      legal_entity_params = Map.put(legal_entity_params, "status", "CLOSED")
-
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
-      assert conn
-             |> put_req_header("content-type", "application/json")
-             |> put_req_header("content-length", "7000")
-             |> put_req_header("edrpou", legal_entity_params["edrpou"])
-             |> put_consumer_id_header()
-             |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
-             |> json_response(200)
+      resp2 =
+        conn
+        |> put_req_header("content-type", "application/json")
+        |> put_req_header("content-length", "7000")
+        |> put_req_header("x-consumer-id", UUID.generate())
+        |> put_req_header("edrpou", legal_entity_params["edrpou"])
+        |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
+        |> json_response(200)
+
+      assert resp2
 
       contract = PRMRepo.get(Contract, contract_id)
-      contract2 = PRMRepo.get(Contract, contract_id2)
-
       assert contract.is_suspended
-      refute contract2.is_suspended
     end
 
     test "contract suspend on change status", %{conn: conn} do
@@ -391,6 +387,8 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
       resp1 =
         conn
+        |> put_req_header("content-type", "application/json")
+        |> put_req_header("content-length", "7000")
         |> put_req_header("x-consumer-id", consumer_id)
         |> put_req_header("edrpou", legal_entity_params["edrpou"])
         |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
@@ -405,6 +403,8 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
       resp2 =
         conn
+        |> put_req_header("content-type", "application/json")
+        |> put_req_header("content-length", "7000")
         |> put_req_header("x-consumer-id", UUID.generate())
         |> put_req_header("edrpou", legal_entity_params["edrpou"])
         |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)

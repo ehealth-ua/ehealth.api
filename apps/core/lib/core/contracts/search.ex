@@ -17,7 +17,6 @@ defmodule Core.Contracts.Search do
     field(:date_to_end_date, :date)
     field(:status, :string)
     field(:edrpou, :string)
-    field(:legal_entity_id, UUID)
     field(:contractor_legal_entity_id, UUID)
     field(:contractor_owner_id, UUID)
     field(:nhs_signer_id, UUID)

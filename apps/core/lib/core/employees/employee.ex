@@ -17,7 +17,6 @@ defmodule Core.Employees.Employee do
   @type_pharmacist "PHARMACIST"
   @type_hr "HR"
   @type_nhs "NHS"
-  @type_nhs_signer "NHS_SIGNER"
 
   @status_new "NEW"
   @status_approved "APPROVED"
@@ -30,7 +29,6 @@ defmodule Core.Employees.Employee do
   def type(:pharmacist), do: @type_pharmacist
   def type(:hr), do: @type_hr
   def type(:nhs), do: @type_nhs
-  def type(:nhs_signer), do: @type_nhs_signer
 
   def status(:new), do: @status_new
   def status(:approved), do: @status_approved

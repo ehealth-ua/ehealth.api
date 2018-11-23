@@ -16,7 +16,6 @@ defmodule GraphQLWeb.Schema.EmployeeTypes do
   @type_doctor Employee.type(:doctor)
   @type_hr Employee.type(:hr)
   @type_nhs Employee.type(:nhs)
-  @type_nhs_signer Employee.type(:nhs_signer)
   @type_owner Employee.type(:owner)
   @type_pharmacist Employee.type(:pharmacist)
   @type_pharmacy_owner Employee.type(:pharmacy_owner)
@@ -55,7 +54,7 @@ defmodule GraphQLWeb.Schema.EmployeeTypes do
   end
 
   input_object :employee_filter do
-    field(:employee_type, list_of(:employee_type))
+    field(:employee_type, :employee_type)
     field(:status, :employee_status)
     field(:is_active, :boolean)
     field(:legal_entity, :legal_entity_filter)
@@ -143,7 +142,6 @@ defmodule GraphQLWeb.Schema.EmployeeTypes do
     value(:doctor, as: @type_doctor)
     value(:hr, as: @type_hr)
     value(:nhs, as: @type_nhs)
-    value(:nhs_signer, as: @type_nhs_signer)
     value(:owner, as: @type_owner)
     value(:pharmacist, as: @type_pharmacist)
     value(:pharmacy_owner, as: @type_pharmacy_owner)

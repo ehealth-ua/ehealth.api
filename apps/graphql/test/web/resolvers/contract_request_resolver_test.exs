@@ -320,17 +320,13 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
     test "filter by assignee name", %{conn: conn} do
       nhs()
 
-      parties =
-        for [last_name, first_name, second_name] <- [~w(Островський Олег Едуардович), ~w(Островський Едуард Олегович)] do
-          insert(:prm, :party, last_name: last_name, first_name: first_name, second_name: second_name)
-        end
-
+      parties = for last_name <- ~w(Roe Doe), do: insert(:prm, :party, last_name: last_name)
       assignees = for party <- parties, do: insert(:prm, :employee, employee_type: "NHS", party: party)
       for %{id: id} <- assignees, do: insert(:il, :contract_request, assignee_id: id)
 
       requested_assignee = hd(assignees)
 
-      variables = %{filter: %{assigneeName: "Островський Олег Едуардович"}}
+      variables = %{filter: %{assigneeName: requested_assignee.party.last_name}}
 
       resp_body =
         conn

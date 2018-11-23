@@ -5,11 +5,13 @@ defmodule Core.Employees do
 
   import Core.API.Helpers.Connection
   import Ecto.Changeset
+  import Core.Contracts.ContractSuspender
   import Core.Context, only: [authorize_legal_entity_id: 3]
-  import Core.Contracts.ContractSuspender, only: [suspend_contracts?: 2, suspend_by_contractor_owner_ids: 1]
 
+  alias Core.Contracts
+  alias Core.Contracts.Contract
+  alias Core.EmployeeRequests.EmployeeRequest, as: Request
   alias Core.EmployeeRequests
-  alias Core.EmployeeRequests.EmployeeRequest
   alias Core.Employees.Employee
   alias Core.Employees.EmployeeCreator
   alias Core.Employees.Search
@@ -18,6 +20,7 @@ defmodule Core.Employees do
   alias Core.Parties
   alias Core.PRMRepo
   alias Ecto.Changeset
+  alias Scrivener.Page
 
   @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
 
@@ -170,85 +173,91 @@ defmodule Core.Employees do
   end
 
   def create_or_update_employee(
-        %EmployeeRequest{data: %{"employee_id" => employee_id} = employee_request},
+        %Request{data: %{"employee_id" => employee_id} = employee_request},
         headers
       ) do
-    author_id = get_consumer_id(headers)
-
     employee = get_by_id!(employee_id)
+    party = Parties.get_by_id!(employee.party.id)
+    party_update_params = EmployeeRequests.create_party_params(employee_request)
 
     employee_update_params =
       Map.merge(employee_request, %{
         "employee_type" => employee.employee_type,
-        "updated_by" => author_id,
+        "updated_by" => get_consumer_id(headers),
         "speciality" => EmployeeRequests.get_employee_speciality(employee_request)
       })
 
-    party = Parties.get_by_id!(employee.party.id)
-    party_update_params = EmployeeRequests.create_party_params(employee_request)
-
-    with {:ok, _} <- EmployeeCreator.create_party_user(party, headers),
+    with {:ok, _} <- EmployeeCreator.suspend_party_contracts(party, employee_request, headers),
+         {:ok, _} <- EmployeeCreator.create_party_user(party, headers),
          :ok <- UserRoleCreator.create(employee, headers),
          %Changeset{valid?: true} = party_changeset <- Parties.changeset(party, party_update_params),
-         :ok <- update_party(party_changeset, author_id),
-         :ok <- suspend_contracts(party_changeset) do
-      __MODULE__.update(employee, employee_update_params, get_consumer_id(headers))
+         %Changeset{valid?: true} = employee_changeset <- changeset(employee, employee_update_params) do
+      if maybe_suspend_contracts?(party_changeset, :party) || maybe_suspend_contracts?(employee_changeset, :employee) do
+        transaction_update_with_contract(party_changeset, employee_changeset, headers)
+      else
+        __MODULE__.update(employee, employee_update_params, get_consumer_id(headers))
+      end
     end
   end
 
-  def create_or_update_employee(%EmployeeRequest{} = employee_request, headers) do
+  def create_or_update_employee(%Request{} = employee_request, headers) do
     with {:ok, employee} <- EmployeeCreator.create(employee_request, headers),
          :ok <- UserRoleCreator.create(employee, headers) do
       {:ok, employee}
     end
   end
 
-  def update(%Employee{status: old_status} = employee, params, author_id) do
+  def update(%Employee{status: old_status} = employee, attrs, author_id) do
     with {:ok, employee} <-
            employee
-           |> changeset(params)
+           |> changeset(attrs)
            |> PRMRepo.update_and_log(author_id),
          _ <- EventManager.insert_change_status(employee, old_status, employee.status, author_id) do
       {:ok, load_references(employee)}
     end
   end
 
-  def update_with_ops_contract(%Employee{id: employee_id, status: old_status} = employee, params, headers) do
+  def update_with_ops_contract(%Employee{status: old_status} = employee, attrs, headers) do
+    with {:ok, employee} <- transaction_update_with_contract(nil, changeset(employee, attrs), headers) do
+      EventManager.insert_change_status(
+        employee,
+        old_status,
+        employee.status,
+        get_consumer_id(headers)
+      )
+
+      {:ok, employee}
+    end
+  end
+
+  defp transaction_update_with_contract(party_changeset, employee_changeset, headers) do
     author_id = get_consumer_id(headers)
+    employee_id = Changeset.get_field(employee_changeset, :id)
+
+    get_contracts_params = %{
+      contractor_owner_id: employee_id,
+      status: Contract.status(:verified),
+      is_suspended: false
+    }
 
     PRMRepo.transaction(fn ->
-      with %Changeset{valid?: true} = employee_changeset <- changeset(employee, params),
-           {:ok, employee} <- EctoTrail.update_and_log(PRMRepo, employee_changeset, author_id),
-           :ok <- suspend_by_contractor_owner_ids([employee_id]),
-           _ <- EventManager.insert_change_status(employee, old_status, employee.status, author_id) do
-        load_references(employee)
+      {:ok, %Page{entries: contracts}, _} = Contracts.list(get_contracts_params, nil, headers)
+      {:ok, _} = suspend_contracts(contracts)
+
+      with {:ok, _} <- transaction_update_party(party_changeset, author_id),
+           {:ok, result} <- EctoTrail.update_and_log(PRMRepo, employee_changeset, author_id) do
+        load_references(result)
       else
-        %Changeset{} = changeset -> PRMRepo.rollback(changeset)
-        {:error, reason} -> PRMRepo.rollback(reason)
+        {:error, reason} ->
+          PRMRepo.rollback(reason)
       end
     end)
   end
 
-  def suspend_contracts(%Changeset{} = party_changeset) do
-    party_id = Changeset.get_field(party_changeset, :id)
+  defp transaction_update_party(nil, _author_id), do: {:ok, "party not changed"}
 
-    if suspend_contracts?(party_changeset, :party) do
-      Employee
-      |> select([e], e.id)
-      |> where([e], e.party_id == ^party_id)
-      |> PRMRepo.all()
-      |> suspend_by_contractor_owner_ids()
-    else
-      :ok
-    end
-  end
-
-  defp update_party(%Changeset{changes: changes}, _) when changes == %{}, do: :ok
-
-  defp update_party(party_changeset, author_id) do
-    with {:ok, _party} <- EctoTrail.update_and_log(PRMRepo, party_changeset, author_id) do
-      :ok
-    end
+  defp transaction_update_party(party_changeset, author_id) do
+    EctoTrail.update_and_log(PRMRepo, party_changeset, author_id)
   end
 
   defp changeset(%Search{} = employee, attrs) do

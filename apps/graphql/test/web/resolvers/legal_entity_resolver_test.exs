@@ -15,23 +15,6 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
 
   @legal_entity_status_closed LegalEntity.status(:closed)
 
-  @list_legal_entities_msp_query """
-    query ListLegalEntitiesQuery{
-      legalEntities(first: 10){
-        nodes{
-          medicalServiceProvider{
-            licenses{
-              orderNo
-            }
-            accreditation{
-              category
-            }
-          }
-        }
-      }
-    }
-  """
-
   @nhs_verify_query """
     mutation NhsVerifyLegalEntity($input: NhsVerifyLegalEntityInput!) {
       nhsVerifyLegalEntity(input: $input){
@@ -327,11 +310,11 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
       legal_entity = insert(:prm, :legal_entity)
 
       query = """
-        query ListLegalEntitiesQuery {
+      query ListLegalEntitiesQuery {
           legalEntities(first: 1) {
             nodes {
               databaseId
-              divisions {
+              divisions{
                 nodes {
                   databaseId
                 }
@@ -348,32 +331,6 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
 
       assert legal_entity.id == hd(get_in(data, ~w(data legalEntities nodes)))["databaseId"]
       assert Enum.any?(data["errors"], &match?(%{"message" => "You must either supply `:first` or `:last`"}, &1))
-    end
-
-    test "success with medical_service_provider", %{conn: conn} do
-      insert_list(10, :prm, :legal_entity)
-
-      resp_body =
-        conn
-        |> post_query(@list_legal_entities_msp_query)
-        |> json_response(200)
-
-      resp_entities = get_in(resp_body, ~w(data legalEntities nodes))
-
-      assert Enum.all?(resp_entities, &(get_in(&1, ~w(medicalServiceProvider accreditation category)) != nil))
-    end
-
-    test "success without medical_service_provider", %{conn: conn} do
-      insert_list(10, :prm, :legal_entity, medical_service_provider: nil)
-
-      resp_body =
-        conn
-        |> post_query(@list_legal_entities_msp_query)
-        |> json_response(200)
-
-      resp_entities = get_in(resp_body, ~w(data legalEntities nodes))
-
-      assert Enum.all?(resp_entities, &(&1["medicalServiceProvider"] == nil))
     end
 
     test "filter by area and settlement", %{conn: conn} do
