@@ -5969,15 +5969,9 @@
   {
     "name": "eHealth/vaccination_dose_statuses",
     "values": {
-      "1857005": "Gestational rubella syndrome",
-      "14189004": "Measles",
-      "27836007": "Pertussis",
-      "36653000": "Rubella",
-      "36989005": "Mumps",
-      "76902006": "Tetanus",
-      "397430003": "Diphtheria due to Corynebacterium diphtheriae",
-      "398102009": "Acute poliomyelitis",
-      "709410003": "Haemophilus influenzae type b infection"
+      "count": "The dose counts toward fulfilling a path to immunity for a patient, providing protection against the target disease.",
+      "nocount": "The dose does not count toward fulfilling a path to immunity for a patient.",
+      
     },
     "labels": [
       "SYSTEM",
