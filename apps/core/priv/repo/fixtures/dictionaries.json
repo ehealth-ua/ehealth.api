@@ -5970,7 +5970,7 @@
     "name": "eHealth/vaccination_dose_statuses",
     "values": {
       "count": "The dose counts toward fulfilling a path to immunity for a patient, providing protection against the target disease.",
-      "nocount": "The dose does not count toward fulfilling a path to immunity for a patient.",
+      "nocount": "The dose does not count toward fulfilling a path to immunity for a patient."
     },
     "labels": [
       "SYSTEM",
