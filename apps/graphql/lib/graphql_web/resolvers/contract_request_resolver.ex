@@ -4,7 +4,7 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
   import Absinthe.Resolution.Helpers, only: [on_load: 2]
   import Ecto.Query, only: [where: 3, join: 4, select: 3, order_by: 2]
   import GraphQLWeb.Resolvers.Helpers.Search, only: [filter: 2]
-  import GraphQLWeb.Resolvers.Helpers.Errors
+  import GraphQLWeb.Resolvers.Helpers.Errors, only: [render_error: 1]
 
   alias Absinthe.Relay.Connection
   alias Core.ContractRequests
@@ -84,13 +84,7 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
     with {:ok, printout_content} <- ContractRequestPrintoutForm.render(contract_request, context.headers) do
       {:ok, printout_content}
     else
-      # ToDo: Here should be generic way to handle errors. E.g as FallbackController in Phoenix
-      # Should be implemented with task https://github.com/edenlabllc/ehealth.web/issues/423
-      {:error, {:forbidden, error}} ->
-        {:error, format_forbidden_error(error)}
-
-      error ->
-        error
+      err -> render_error(err)
     end
   end
 
@@ -157,19 +151,7 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
     with {:ok, contract_request, references} <- ContractRequests.update(resolution.context.headers, params) do
       {:ok, %{contract_request: Map.merge(contract_request, references)}}
     else
-      # ToDo: Here should be generic way to handle errors. E.g as FallbackController in Phoenix
-      # Should be implemented with task https://github.com/edenlabllc/ehealth.web/issues/423
-      {:error, {:conflict, error}} ->
-        {:error, format_conflict_error(error)}
-
-      {:error, {:forbidden, error}} ->
-        {:error, format_forbidden_error(error)}
-
-      {:error, [_ | _] = errors} ->
-        {:error, format_unprocessable_entity_error(errors)}
-
-      error ->
-        error
+      err -> render_error(err)
     end
   end
 
@@ -188,19 +170,7 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
     with {:ok, contract_request, references} <- ContractRequests.approve(resolution.context.headers, params) do
       {:ok, %{contract_request: Map.merge(contract_request, references)}}
     else
-      # ToDo: Here should be generic way to handle errors. E.g as FallbackController in Phoenix
-      # Should be implemented with task https://github.com/edenlabllc/ehealth.web/issues/423
-      {:error, {:conflict, error}} ->
-        {:error, format_conflict_error(error)}
-
-      {:error, {:bad_request, error}} ->
-        {:error, format_bad_request(error)}
-
-      {:error, {:forbidden, error}} ->
-        {:error, format_forbidden_error(error)}
-
-      error ->
-        error
+      err -> render_error(err)
     end
   end
 
@@ -210,28 +180,7 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
     with {:ok, contract_request, _references} <- ContractRequests.sign_nhs(headers, params) do
       {:ok, %{contract_request: contract_request}}
     else
-      # ToDo: Here should be generic way to handle errors. E.g as FallbackController in Phoenix
-      # Should be implemented with task https://github.com/edenlabllc/ehealth.web/issues/423
-      {:error, {:bad_request, error}} ->
-        {:error, format_bad_request(error)}
-
-      {:error, {:not_found, error}} ->
-        {:error, format_not_found_error(error)}
-
-      {:error, {:forbidden, error}} ->
-        {:error, format_forbidden_error(error)}
-
-      {:error, {:"422", error}} ->
-        {:error, format_unprocessable_entity_error(error)}
-
-      {:error, [_ | _] = errors} ->
-        {:error, format_unprocessable_entity_error(errors)}
-
-      {:error, %Ecto.Changeset{} = errors} ->
-        {:error, format_unprocessable_entity_error(errors)}
-
-      error ->
-        error
+      err -> render_error(err)
     end
   end
 
@@ -241,19 +190,7 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
     with {:ok, contract_request, references} <- ContractRequests.decline(resolution.context.headers, params) do
       {:ok, %{contract_request: Map.merge(contract_request, references)}}
     else
-      # ToDo: Here should be generic way to handle errors. E.g as FallbackController in Phoenix
-      # Should be implemented with task https://github.com/edenlabllc/ehealth.web/issues/423
-      {:error, {:conflict, error}} ->
-        {:error, format_conflict_error(error)}
-
-      {:error, {:forbidden, error}} ->
-        {:error, format_forbidden_error(error)}
-
-      {:error, {:bad_request, error}} ->
-        {:error, format_bad_request(error)}
-
-      error ->
-        error
+      err -> render_error(err)
     end
   end
 
@@ -266,11 +203,11 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
   end
 
   def update_assignee(%{id: id, employee_id: employee_id}, %{context: %{headers: headers}}) do
-    # TODO: There is only the happy path are implemented for now.
-    # Error handling in a generic manner should be implemented later.
     with {:ok, contract_request, _} <-
            ContractRequests.update_assignee(headers, %{"id" => id, "employee_id" => employee_id}) do
       {:ok, %{contract_request: contract_request}}
+    else
+      err -> render_error(err)
     end
   end
 end

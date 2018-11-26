@@ -1,8 +1,35 @@
 defmodule GraphQLWeb.Resolvers.Helpers.Errors do
   @moduledoc false
 
+  alias Ecto.Changeset
+  require Logger
+
   @unauthenticated_error_message "Unable to authenticate request"
   @forbidden_error_message "Current client is not allowed to access this resource"
+
+  def render_error({:error, {:conflict, reason}}), do: {:error, format_conflict_error(reason)}
+
+  def render_error({:error, {:bad_request, reason}}), do: {:error, format_bad_request(reason)}
+
+  def render_error({:error, {:not_found, reason}}), do: {:error, format_not_found_error(reason)}
+
+  def render_error({:error, :forbidden}), do: {:error, format_forbidden_error()}
+  def render_error({:error, {:forbidden, reason}}), do: {:error, format_forbidden_error(reason)}
+
+  def render_error({:error, [_ | _] = errors}), do: {:error, format_unprocessable_entity_error(errors)}
+  def render_error({:error, {:"422", reason}}), do: {:error, format_unprocessable_entity_error(reason)}
+  def render_error({:error, %Changeset{} = errors}), do: {:error, format_unprocessable_entity_error(errors)}
+
+  def render_error({:error, nil}) do
+    {:error, format_not_found_error("Not found")}
+  end
+
+  def render_error({:error, error}) do
+    Logger.info("Got undefined error #{inspect(error)}}")
+    {:error, error}
+  end
+
+  def render_error(error), do: render_error({:error, error})
 
   def format_unauthenticated_error,
     do: %{
@@ -43,8 +70,6 @@ defmodule GraphQLWeb.Resolvers.Helpers.Errors do
   end
 
   def format_unprocessable_entity_error(errors) when is_list(errors) do
-    # ToDo: Here should be generic way to handle errors. E.g as FallbackController in Phoenix
-    # Should be implemented with task https://github.com/edenlabllc/ehealth.web/issues/423
     %{
       message: "Validation error",
       errors: Enum.map(errors, &elem(&1, 0)),
@@ -53,8 +78,6 @@ defmodule GraphQLWeb.Resolvers.Helpers.Errors do
   end
 
   def format_unprocessable_entity_error(%Ecto.Changeset{errors: errors}) do
-    # ToDo: Here should be generic way to handle errors. E.g as FallbackController in Phoenix
-    # Should be implemented with task https://github.com/edenlabllc/ehealth.web/issues/423
     %{
       message: "Validation error",
       errors: Enum.map(errors, fn {_field, {error, _}} -> error end),
