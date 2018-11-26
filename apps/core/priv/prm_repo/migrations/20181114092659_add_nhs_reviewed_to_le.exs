@@ -1,4 +1,4 @@
-defmodule Core.Repo.Migrations.AddNhsReviewedToLe do
+defmodule Core.PRMRepo.Migrations.AddNhsReviewedToLe do
   use Ecto.Migration
 
   def change do

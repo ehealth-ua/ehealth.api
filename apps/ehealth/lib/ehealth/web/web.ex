@@ -23,8 +23,9 @@ defmodule EHealth.Web do
       import Plug.Conn
       import Phoenix.Controller
       import Core.API.Helpers.Connection
-      import EHealth.Web.Plugs.Headers
       import EHealth.Web.Plugs.ClientContext
+      import EHealth.Web.Plugs.ContractType, only: [upcase_contract_type_param: 2]
+      import EHealth.Web.Plugs.Headers
     end
   end
 

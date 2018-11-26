@@ -9,6 +9,7 @@ defmodule Core.ContractRequests.Search do
   @primary_key false
   embedded_schema do
     field(:id, Ecto.UUID)
+    field(:type, :string)
     field(:contractor_legal_entity_id, Ecto.UUID)
     field(:contractor_owner_id, Ecto.UUID)
     field(:nhs_signer_id, Ecto.UUID)

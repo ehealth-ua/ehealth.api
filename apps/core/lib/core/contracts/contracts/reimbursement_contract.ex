@@ -1,4 +1,4 @@
-defmodule Core.ContractRequests.ReimbursementContract do
+defmodule Core.Contracts.ReimbursementContract do
   @moduledoc false
 
   alias Core.ContractRequests.ReimbursementContractRequest

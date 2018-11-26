@@ -3,36 +3,30 @@ defmodule Core.ContractRequests do
 
   use Core.Search, Core.Repo
 
-  import Core.API.Helpers.Connection, only: [get_header: 2, get_consumer_id: 1, get_client_id: 1]
+  import Core.API.Helpers.Connection, only: [get_consumer_id: 1, get_client_id: 1]
   import Ecto.Changeset
   import Ecto.Query
+  import Core.ContractRequests.Validator
 
   alias Core.API.MediaStorage
   alias Core.ContractRequests.CapitationContractRequest
+  alias Core.ContractRequests.ReimbursementContractRequest
   alias Core.ContractRequests.Renderer
   alias Core.ContractRequests.Search
   alias Core.Contracts
   alias Core.Contracts.CapitationContract
-  alias Core.Divisions.Division
-  alias Core.Employees
-  alias Core.Employees.Employee
   alias Core.EventManager
   alias Core.LegalEntities
   alias Core.LegalEntities.LegalEntity
-  alias Core.LegalEntities.Validator, as: LegalEntitiesValidator
   alias Core.Man.Templates.ContractRequestPrintoutForm
-  alias Core.Parties
-  alias Core.Parties.Party
-  alias Core.PRMRepo
   alias Core.Repo
   alias Core.Utils.NumberGenerator
-  alias Core.ValidationError
   alias Core.Validators.Error
   alias Core.Validators.JsonSchema
   alias Core.Validators.Preload
-  alias Core.Validators.Reference
   alias Core.Validators.Signature, as: SignatureValidator
   alias Ecto.Adapters.SQL
+  alias Ecto.Changeset
   alias Ecto.UUID
   alias Scrivener.Page
 
@@ -42,30 +36,8 @@ defmodule Core.ContractRequests do
   @media_storage_api Application.get_env(:core, :api_resolvers)[:media_storage]
   @signature_api Application.get_env(:core, :api_resolvers)[:digital_signature]
 
-  @fields_required ~w(
-    type
-    contractor_legal_entity_id
-    contractor_owner_id
-    contractor_base
-    contractor_payment_details
-    contractor_rmsp_amount
-    contractor_divisions
-    start_date
-    end_date
-    id_form
-    status
-    inserted_by
-    updated_by
-  )a
-
-  @fields_optional ~w(
-    contractor_employee_divisions
-    external_contractor_flag
-    external_contractors
-    contract_number
-    parent_contract_id
-    previous_request_id
-  )a
+  @capitation CapitationContractRequest.type()
+  @reimbursement ReimbursementContractRequest.type()
 
   @forbidden_statuses_for_termination [
     CapitationContractRequest.status(:declined),
@@ -74,9 +46,28 @@ defmodule Core.ContractRequests do
   ]
 
   def search(search_params) do
-    with %Ecto.Changeset{valid?: true} = changeset <- Search.changeset(search_params),
+    with %Changeset{valid?: true} = changeset <- Search.changeset(search_params),
          %Page{} = paging <- search(changeset, search_params, CapitationContractRequest) do
       {:ok, paging}
+    end
+  end
+
+  def get_by_id(headers, client_type, id) do
+    client_id = get_client_id(headers)
+
+    with {:ok, %CapitationContractRequest{} = contract_request} <- get_contract_request(client_id, client_type, id) do
+      {:ok, contract_request, preload_references(contract_request)}
+    end
+  end
+
+  def get_by_id(id), do: Repo.get(CapitationContractRequest, id)
+
+  def get_by_id!(id), do: Repo.get!(CapitationContractRequest, id)
+
+  def fetch_by_id(id) do
+    case get_by_id(id) do
+      %CapitationContractRequest{} = contract_request -> {:ok, contract_request}
+      nil -> {:error, {:not_found, "CapitationContractRequest not found"}}
     end
   end
 
@@ -139,30 +130,29 @@ defmodule Core.ContractRequests do
     end)
   end
 
-  def create(headers, %{"id" => id} = params) do
+  def create(headers, %{"id" => id, "type" => type} = params) do
     user_id = get_consumer_id(headers)
     client_id = get_client_id(headers)
-    params = Map.delete(params, "id")
+    params = Map.drop(params, ~w(id type))
 
     with %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(client_id),
          {:contract_request_exists, true} <- {:contract_request_exists, is_nil(get_by_id(id))},
          :ok <- JsonSchema.validate(:contract_request_sign, params),
          {:ok, %{"content" => content, "signers" => [signer]}} <- decode_signed_content(params, headers),
+         :ok <- validate_contract_request_type(type, legal_entity),
+         content <- Map.put(content, "type", type),
+         :ok <- validate_create_content_schema(content),
          :ok <- validate_legal_entity_edrpou(legal_entity, signer),
          :ok <- validate_user_signer_last_name(user_id, signer),
-         :ok <- JsonSchema.validate(:contract_request, content),
          content <- Map.put(content, "contractor_legal_entity_id", client_id),
          {:ok, params, contract} <- validate_contract_number(content, headers),
          :ok <- validate_contractor_legal_entity_id(client_id, contract),
          :ok <- validate_previous_request(params, client_id),
          :ok <- validate_dates(params),
          params <- set_dates(contract, params),
-         :ok <- validate_unique_contractor_employee_divisions(params),
+         {:ok, contract_request} <- validate_create_content(params, client_id),
          :ok <- validate_unique_contractor_divisions(params),
-         :ok <- validate_employee_divisions(params, client_id),
          :ok <- validate_contractor_divisions(params),
-         :ok <- validate_external_contractors(params),
-         :ok <- validate_external_contractor_flag(params),
          :ok <- validate_start_date(params),
          :ok <- validate_end_date(params),
          :ok <- validate_contractor_owner_id(params),
@@ -183,11 +173,12 @@ defmodule Core.ContractRequests do
          :ok <- move_uploaded_documents(id, headers),
          _ <- terminate_pending_contracts(params),
          insert_params <-
-           params
-           |> Map.put("status", CapitationContractRequest.status(:new))
-           |> Map.put("inserted_by", user_id)
-           |> Map.put("updated_by", user_id),
-         %Ecto.Changeset{valid?: true} = changes <- changeset(%CapitationContractRequest{id: id}, insert_params),
+           Map.merge(params, %{
+             "status" => CapitationContractRequest.status(:new),
+             "inserted_by" => user_id,
+             "updated_by" => user_id
+           }),
+         %Changeset{valid?: true} = changes <- changeset(contract_request, insert_params),
          {:ok, contract_request} <- Repo.insert(changes) do
       {:ok, contract_request, preload_references(contract_request)}
     else
@@ -212,7 +203,7 @@ defmodule Core.ContractRequests do
            params
            |> Map.put("nhs_legal_entity_id", client_id)
            |> Map.put("updated_by", user_id),
-         %Ecto.Changeset{valid?: true} = changes <- update_changeset(contract_request, update_params),
+         %Changeset{valid?: true} = changes <- update_changeset(contract_request, update_params),
          {:ok, contract_request} <- Repo.update(changes) do
       {:ok, contract_request, preload_references(contract_request)}
     end
@@ -240,7 +231,7 @@ defmodule Core.ContractRequests do
            "updated_by" => user_id,
            "assignee_id" => employee_id
          },
-         %Ecto.Changeset{valid?: true} = changes <- update_assignee_changeset(contract_request, update_params),
+         %Changeset{valid?: true} = changes <- update_assignee_changeset(contract_request, update_params),
          {:ok, contract_request} <- Repo.update(changes),
          _ <- EventManager.insert_change_status(contract_request, contract_request.status, user_id) do
       {:ok, contract_request, preload_references(contract_request)}
@@ -285,9 +276,9 @@ defmodule Core.ContractRequests do
            |> Map.put("updated_by", user_id)
            |> set_contract_number(contract_request)
            |> Map.put("status", CapitationContractRequest.status(:approved)),
-         %Ecto.Changeset{valid?: true} = changes <- approve_changeset(contract_request, update_params),
+         %Changeset{valid?: true} = changes <- approve_changeset(contract_request, update_params),
          data <- render_contract_request_data(changes),
-         %Ecto.Changeset{valid?: true} = changes <- put_change(changes, :data, data),
+         %Changeset{valid?: true} = changes <- put_change(changes, :data, data),
          {:ok, contract_request} <- Repo.update(changes),
          _ <- EventManager.insert_change_status(contract_request, contract_request.status, user_id) do
       {:ok, contract_request, preload_references(contract_request)}
@@ -311,7 +302,7 @@ defmodule Core.ContractRequests do
            |> Map.delete("id")
            |> Map.put("updated_by", user_id)
            |> Map.put("status", CapitationContractRequest.status(:pending_nhs_sign)),
-         %Ecto.Changeset{valid?: true} = changes <- approve_msp_changeset(contract_request, update_params),
+         %Changeset{valid?: true} = changes <- approve_msp_changeset(contract_request, update_params),
          {:ok, contract_request} <- Repo.update(changes),
          _ <- EventManager.insert_change_status(contract_request, contract_request.status, user_id) do
       {:ok, contract_request, preload_references(contract_request)}
@@ -360,7 +351,7 @@ defmodule Core.ContractRequests do
            |> Map.put("nhs_signer_id", user_id)
            |> Map.put("nhs_legal_entity_id", client_id)
            |> Map.put("updated_by", user_id),
-         %Ecto.Changeset{valid?: true} = changes <- decline_changeset(contract_request, update_params),
+         %Changeset{valid?: true} = changes <- decline_changeset(contract_request, update_params),
          {:ok, contract_request} <- Repo.update(changes),
          _ <- EventManager.insert_change_status(contract_request, contract_request.status, user_id) do
       {:ok, contract_request, preload_references(contract_request)}
@@ -379,7 +370,7 @@ defmodule Core.ContractRequests do
            params
            |> Map.put("status", CapitationContractRequest.status(:terminated))
            |> Map.put("updated_by", user_id),
-         %Ecto.Changeset{valid?: true} = changes <- terminate_changeset(contract_request, update_params),
+         %Changeset{valid?: true} = changes <- terminate_changeset(contract_request, update_params),
          {:ok, contract_request} <- Repo.update(changes),
          _ <- EventManager.insert_change_status(contract_request, contract_request.status, user_id) do
       {:ok, contract_request, preload_references(contract_request)}
@@ -570,49 +561,6 @@ defmodule Core.ContractRequests do
     })
   end
 
-  defp validate_nhs_signatures(signer_nhs, nhs_stamp, %CapitationContractRequest{
-         nhs_legal_entity_id: nhs_legal_entity_id,
-         nhs_signer_id: nhs_signer_id
-       }) do
-    with {:nhs_legal_entity, %LegalEntity{} = nhs_legal_entity} <-
-           {:nhs_legal_entity, LegalEntities.get_by_id(nhs_legal_entity_id)},
-         {:nhs_employee, %Employee{} = nhs_employee} <- {:nhs_employee, Employees.get_by_id(nhs_signer_id)},
-         :ok <- validate_legal_entity_edrpou(nhs_legal_entity, nhs_stamp),
-         :ok <- validate_legal_entity_edrpou(nhs_legal_entity, signer_nhs),
-         :ok <- check_last_name_match(nhs_employee.party.last_name, signer_nhs["surname"]) do
-      :ok
-    else
-      {:nhs_legal_entity, _} ->
-        {:error, {:conflict, "NHS legal entity not found"}}
-
-      {:nhs_employee, _} ->
-        {:error, {:conflict, "NHS employee not found"}}
-
-      error ->
-        error
-    end
-  end
-
-  defp validate_client_id(client_id, client_id, _), do: :ok
-  defp validate_client_id(_, _, :forbidden), do: {:error, {:forbidden, "Invalid client_id"}}
-
-  defp validate_content(%CapitationContractRequest{printout_content: printout_content} = contract_request, content) do
-    validate_content(contract_request, printout_content, content)
-  end
-
-  defp validate_content(%CapitationContractRequest{data: data}, printout_content, content) do
-    data_content =
-      data
-      |> Map.delete("status")
-      |> Map.put("printout_content", printout_content)
-
-    content = Map.drop(content, ["status"])
-
-    if data_content == content,
-      do: :ok,
-      else: Error.dump("Signed content does not match the previously created content")
-  end
-
   defp save_signed_content(
          id,
          %{"signed_content" => content},
@@ -666,10 +614,20 @@ defmodule Core.ContractRequests do
     end
   end
 
+  defp set_dates(nil, params), do: params
+
+  defp set_dates(%{start_date: start_date, end_date: end_date}, params) do
+    params
+    |> Map.put("start_date", to_string(start_date))
+    |> Map.put("end_date", to_string(end_date))
+  end
+
   def changeset(%CapitationContractRequest{} = contract_request, params) do
-    contract_request
-    |> cast(params, @fields_required ++ @fields_optional)
-    |> validate_required(@fields_required)
+    CapitationContractRequest.changeset(contract_request, params)
+  end
+
+  def changeset(%ReimbursementContractRequest{} = contract_request, params) do
+    ReimbursementContractRequest.changeset(contract_request, params)
   end
 
   def update_changeset(%CapitationContractRequest{} = contract_request, params) do
@@ -782,14 +740,38 @@ defmodule Core.ContractRequests do
     Preload.preload_references(contract_request, fields)
   end
 
+  def preload_references(%ReimbursementContractRequest{} = contract_request) do
+    fields = [
+      {:contractor_legal_entity_id, :legal_entity},
+      {:nhs_legal_entity_id, :legal_entity},
+      {:contractor_owner_id, :employee},
+      {:nhs_signer_id, :employee},
+      {:contractor_divisions, :division}
+    ]
+
+    Preload.preload_references(contract_request, fields)
+  end
+
+  defp render_contract_request_data(%Changeset{} = changeset) do
+    structure = Changeset.apply_changes(changeset)
+    Renderer.render(structure, preload_references(structure))
+  end
+
   defp terminate_pending_contracts(params) do
     # TODO: add index here
 
+    schema =
+      case params["type"] do
+        @capitation -> CapitationContractRequest
+        @reimbursement -> ReimbursementContractRequest
+      end
+
     contract_ids =
-      CapitationContractRequest
+      schema
       |> select([c], c.id)
       |> where([c], c.contractor_legal_entity_id == ^params["contractor_legal_entity_id"])
       |> where([c], c.id_form == ^params["id_form"])
+      |> where_medical_program(params)
       |> where(
         [c],
         c.status in ^[
@@ -808,531 +790,16 @@ defmodule Core.ContractRequests do
     |> Repo.update_all(set: [status: CapitationContractRequest.status(:terminated)])
   end
 
-  defp user_has_role(data, role) do
+  defp where_medical_program(query, %{"type" => @reimbursement, "medical_program_id" => medical_program_id}) do
+    where(query, [c], c.medical_program_id == ^medical_program_id)
+  end
+
+  defp where_medical_program(query, _), do: query
+
+  def user_has_role(data, role, reason \\ "FORBIDDEN") do
     case Enum.find(data, &(Map.get(&1, "role_name") == role)) do
-      nil -> {:error, :forbidden}
+      nil -> {:error, {:forbidden, reason}}
       _ -> :ok
-    end
-  end
-
-  defp validate_employee_divisions(%CapitationContractRequest{} = contract_request, client_id) do
-    contract_request
-    |> Jason.encode!()
-    |> Jason.decode!()
-    |> validate_employee_divisions(client_id)
-  end
-
-  defp validate_employee_divisions(params, client_id) do
-    contractor_divisions = params["contractor_divisions"]
-    contractor_employee_divisions = params["contractor_employee_divisions"] || []
-
-    errors =
-      contractor_employee_divisions
-      |> Enum.with_index()
-      |> Enum.reduce([], fn {employee_division, i}, errors_list ->
-        errors_list
-        |> validate_employee_division_employee(employee_division, client_id, i)
-        |> validate_employee_division_subset(contractor_divisions, employee_division, i)
-      end)
-
-    if length(errors) > 0 do
-      errors
-      |> validate_and_convert_errors
-      |> Error.dump()
-    else
-      :ok
-    end
-  end
-
-  defp validate_employee_division_employee(errors, division, client_id, index) do
-    with {:ok, %Employee{} = employee} <-
-           Reference.validate(
-             :employee,
-             division["employee_id"],
-             "$.contractor_employee_divisions[#{index}].employee_id"
-           ),
-         :ok <- check_employee(employee, client_id, index) do
-      errors
-    else
-      {:error, error} when is_list(error) -> errors ++ error
-      {:error, error} -> errors ++ [error]
-    end
-  end
-
-  defp validate_employee_division_subset(errors, division_subset, division, index) do
-    if division["division_id"] in division_subset do
-      errors
-    else
-      errors ++
-        [
-          %ValidationError{
-            description: "Division should be among contractor_divisions",
-            path: "$.contractor_employee_divisions[#{index}].division_id"
-          }
-        ]
-    end
-  end
-
-  defp validate_nhs_signer_id(%CapitationContractRequest{nhs_signer_id: nhs_signer_id}, client_id)
-       when not is_nil(nhs_signer_id) do
-    validate_nhs_signer_id(%{"nhs_signer_id" => nhs_signer_id}, client_id)
-  end
-
-  defp validate_nhs_signer_id(%{"nhs_signer_id" => nhs_signer_id}, client_id)
-       when not is_nil(nhs_signer_id) do
-    with %Employee{} = employee <- Employees.get_by_id(nhs_signer_id),
-         {:client_id, true} <- {:client_id, employee.legal_entity_id == client_id},
-         {:active, true} <- {:active, employee.is_active and employee.status == Employee.status(:approved)} do
-      :ok
-    else
-      {:active, _} ->
-        Error.dump(%ValidationError{description: "Employee must be active", path: "$.nhs_signer_id"})
-
-      {:client_id, _} ->
-        Error.dump(%ValidationError{description: "Employee doesn't belong to legal_entity", path: "$.nhs_signer_id"})
-
-      _ ->
-        Error.dump(%ValidationError{description: "Invalid nhs_signer_id", path: "$.nhs_signer_id"})
-    end
-  end
-
-  defp validate_nhs_signer_id(_, _), do: :ok
-
-  defp validate_employee(employee_id, client_id) do
-    with %Employee{} = employee <- Employees.get_by_id(employee_id),
-         {:client_id, true} <- {:client_id, employee.legal_entity_id == client_id},
-         {:active, true} <- {:active, employee.is_active and employee.status == Employee.status(:approved)} do
-      {:ok, employee}
-    else
-      {:active, _} -> {:error, {:conflict, "Invalid employee status"}}
-      {:client_id, _} -> {:error, {:"422", "Invalid legal entity id"}}
-      nil -> {:error, {:not_found, "Employee not found"}}
-    end
-  end
-
-  defp validate_employee_role(%Employee{} = employee, role) do
-    user_ids =
-      employee
-      |> PRMRepo.preload(:party_users)
-      |> Map.get(:party_users)
-      |> Enum.map(& &1.user_id)
-      |> Enum.join(",")
-
-    with true <- user_ids != "",
-         {:ok, %{"data" => user_data}} <- @mithril_api.search_user_roles(%{user_ids: user_ids}, []),
-         :ok <- user_has_role(user_data, role) do
-      :ok
-    else
-      _ ->
-        {:error, {:forbidden, "Employee doesn't have required role"}}
-    end
-  end
-
-  defp validate_unique_contractor_employee_divisions(%{
-         "contractor_employee_divisions" => employee_divisions
-       })
-       when is_list(employee_divisions) do
-    employee_divisions_values =
-      Enum.map(employee_divisions, fn %{
-                                        "employee_id" => employee_id,
-                                        "division_id" => division_id
-                                      } ->
-        "#{employee_id}#{division_id}"
-      end)
-
-    if Enum.uniq(employee_divisions_values) == employee_divisions_values do
-      :ok
-    else
-      Error.dump(%ValidationError{
-        description: "Employee division must be unique",
-        path: "$.contractor_employee_divisions"
-      })
-    end
-  end
-
-  defp validate_unique_contractor_employee_divisions(_), do: :ok
-
-  defp validate_unique_contractor_divisions(%{"contractor_divisions" => contractor_divisions}) do
-    if Enum.uniq(contractor_divisions) == contractor_divisions do
-      :ok
-    else
-      Error.dump(%ValidationError{description: "Division must be unique", path: "$.contractor_divisions"})
-    end
-  end
-
-  defp validate_contractor_divisions(%CapitationContractRequest{} = contract_request) do
-    validate_contractor_divisions(%{
-      "contractor_divisions" => contract_request.contractor_divisions,
-      "contractor_legal_entity_id" => contract_request.contractor_legal_entity_id
-    })
-  end
-
-  defp validate_contractor_divisions(%{
-         "contractor_divisions" => contractor_divisions,
-         "contractor_legal_entity_id" => contractor_legal_entity_id
-       }) do
-    errors =
-      contractor_divisions
-      |> Enum.with_index()
-      |> Enum.reduce([], fn {division_id, i}, acc ->
-        result =
-          with {:ok, division} <- Reference.validate(:division, division_id, "$.contractor_divisions[#{i}]") do
-            check_division(division, contractor_legal_entity_id, "$.contractor_divisions[#{i}]")
-          end
-
-        case result do
-          :ok -> acc
-          {:error, error} when is_list(error) -> acc ++ error
-          {:error, error} -> acc ++ [error]
-        end
-      end)
-
-    if length(errors) > 0 do
-      errors
-      |> validate_and_convert_errors
-      |> Error.dump()
-    else
-      :ok
-    end
-  end
-
-  defp validate_external_contractor_flag(%{
-         "external_contractors" => external_contractors,
-         "external_contractor_flag" => true
-       })
-       when not is_nil(external_contractors) and external_contractors != [],
-       do: :ok
-
-  defp validate_external_contractor_flag(params) do
-    external_contractors = Map.get(params, "external_contractors")
-    external_contractor_flag = Map.get(params, "external_contractor_flag", false)
-
-    if is_nil(external_contractors) && !external_contractor_flag do
-      :ok
-    else
-      Error.dump(%ValidationError{description: "Invalid external_contractor_flag", path: "$.external_contractor_flag"})
-    end
-  end
-
-  defp validate_external_legal_entity(errors, %{"legal_entity_id" => legal_entity_id}, index)
-       when not is_nil(legal_entity_id) do
-    validation_result =
-      Reference.validate(
-        :legal_entity,
-        legal_entity_id,
-        "$.external_contractors[#{index}].legal_entity_id"
-      )
-
-    case validation_result do
-      {:error, _} ->
-        errors ++
-          [
-            %ValidationError{
-              description: "Active $external_contractors[#{index}].legal_entity_id does not exist",
-              path: "$.external_contractors[#{index}].legal_entity_id"
-            }
-          ]
-
-      _ ->
-        errors
-    end
-  end
-
-  defp validate_external_legal_entity(errors, _, index) do
-    errors ++
-      [
-        %ValidationError{
-          description: "Active $external_contractors[#{index}].legal_entity_id does not exist",
-          path: "$.external_contractors[#{index}].legal_entity_id"
-        }
-      ]
-  end
-
-  defp validate_divisions(errors, params, contractor, i) do
-    contractor["divisions"]
-    |> Enum.with_index()
-    |> Enum.reduce(errors, fn {contractor_division, j}, errors ->
-      with :ok <-
-             validate_external_contractor_division(
-               params["contractor_divisions"],
-               contractor_division,
-               "$.external_contractors[#{i}].divisions[#{j}].id"
-             ) do
-        errors
-      else
-        {:error, error} when is_list(error) -> errors ++ error
-        {:error, error} -> errors ++ [error]
-      end
-    end)
-  end
-
-  defp validate_external_contractors(params) do
-    external_contractors = params["external_contractors"] || []
-
-    errors =
-      external_contractors
-      |> Enum.with_index()
-      |> Enum.reduce([], fn {contractor, i}, errors_list ->
-        errors_list
-        |> validate_external_legal_entity(contractor, i)
-        |> validate_divisions(params, contractor, i)
-        |> validate_external_contract(
-          contractor,
-          params,
-          "$.external_contractors[#{i}].contract.expires_at"
-        )
-      end)
-
-    if length(errors) > 0 do
-      errors
-      |> validate_and_convert_errors
-      |> Error.dump()
-    else
-      :ok
-    end
-  end
-
-  defp validate_external_contractor_division(division_ids, division, error) do
-    if division["id"] in division_ids do
-      :ok
-    else
-      Error.dump(%ValidationError{description: "The division is not belong to contractor_divisions", path: error})
-    end
-  end
-
-  defp validate_external_contract(errors, contractor, params, error) do
-    expires_at = Date.from_iso8601!(contractor["contract"]["expires_at"])
-    start_date = Date.from_iso8601!(params["start_date"])
-
-    case Date.compare(expires_at, start_date) do
-      :gt ->
-        errors
-
-      _ ->
-        errors ++ [%ValidationError{description: "Expires date must be greater than contract start_date", path: error}]
-    end
-  end
-
-  defp check_employee(employee, client_id, index) do
-    errors =
-      []
-      |> check_employee_type_and_status(employee, index)
-      |> check_employee_legal_entity(employee, client_id, index)
-
-    if length(errors) > 0, do: {:error, errors}, else: :ok
-  end
-
-  defp check_employee_type_and_status(errors, %Employee{employee_type: "DOCTOR", status: "APPROVED"}, _), do: errors
-
-  defp check_employee_type_and_status(errors, _, index) do
-    errors ++
-      [
-        %ValidationError{
-          description: "Employee must be active DOCTOR",
-          path: "$.contractor_employee_divisions[#{index}].employee_id"
-        }
-      ]
-  end
-
-  defp check_employee_legal_entity(errors, %Employee{legal_entity_id: legal_entity_id}, legal_entity_id, _), do: errors
-
-  defp check_employee_legal_entity(errors, _, _, index) do
-    errors ++
-      [
-        %ValidationError{
-          description: "Employee should be active Doctor within current legal_entity_id",
-          path: "$.contractor_employee_divisions[#{index}].employee_id"
-        }
-      ]
-  end
-
-  defp check_division(
-         %Division{status: "ACTIVE", legal_entity_id: legal_entity_id},
-         contractor_legal_entity_id,
-         _
-       )
-       when legal_entity_id == contractor_legal_entity_id,
-       do: :ok
-
-  defp check_division(_, _, error) do
-    Error.dump(%ValidationError{description: "Division must be active and within current legal_entity", path: error})
-  end
-
-  defp validate_previous_request(%{"previous_request_id" => previous_request_id}, contractor_legal_entity_id)
-       when not is_nil(previous_request_id) do
-    with {_, %CapitationContractRequest{} = contract_request} <- {:request, get_by_id(previous_request_id)},
-         {_, true} <-
-           {:contractor_legal_entity_id, contract_request.contractor_legal_entity_id == contractor_legal_entity_id},
-         {_, true} <- {:status, contract_request.status != CapitationContractRequest.status(:signed)} do
-      :ok
-    else
-      {:contractor_legal_entity_id, _} -> {:error, {:"422", "Previous request doesn't belong to legal entity"}}
-      {:request, _} -> {:error, {:"422", "previous_request_id does not exist"}}
-      {:status, _} -> {:error, {:"422", "In case contract exists new contract request should be created"}}
-    end
-  end
-
-  defp validate_previous_request(_, _), do: :ok
-
-  defp validate_dates(%{"parent_contract_id" => parent_contract_id, "start_date" => start_date})
-       when not is_nil(parent_contract_id) and not is_nil(start_date) do
-    Error.dump(%ValidationError{description: "Start date can't be updated via Contract Request", path: "$.start_date"})
-  end
-
-  defp validate_dates(%{"parent_contract_id" => parent_contract_id, "end_date" => end_date})
-       when not is_nil(parent_contract_id) and not is_nil(end_date) do
-    Error.dump(%ValidationError{description: "End date can't be updated via Contract Request", path: "$.end_date"})
-  end
-
-  defp validate_dates(%{"parent_contract_id" => parent_contract_id})
-       when not is_nil(parent_contract_id),
-       do: :ok
-
-  defp validate_dates(params) do
-    cond do
-      is_nil(params["start_date"]) ->
-        Error.dump(%ValidationError{description: "Start date can't be empty", path: "$.start_date"})
-
-      is_nil(params["end_date"]) ->
-        Error.dump(%ValidationError{description: "End date can't be empty", path: "$.end_date"})
-
-      true ->
-        :ok
-    end
-  end
-
-  defp set_dates(nil, params), do: params
-
-  defp set_dates(%CapitationContract{} = contract, params) do
-    params
-    |> Map.put("start_date", to_string(contract.start_date))
-    |> Map.put("end_date", to_string(contract.end_date))
-  end
-
-  defp validate_contractor_owner_id(%CapitationContractRequest{
-         contractor_owner_id: contractor_owner_id,
-         contractor_legal_entity_id: contractor_legal_entity_id
-       }) do
-    validate_contractor_owner_id(%{
-      "contractor_owner_id" => contractor_owner_id,
-      "contractor_legal_entity_id" => contractor_legal_entity_id
-    })
-  end
-
-  defp validate_contractor_owner_id(%{
-         "contractor_owner_id" => contractor_owner_id,
-         "contractor_legal_entity_id" => contractor_legal_entity_id
-       }) do
-    with %Employee{} = employee <- Employees.get_by_id(contractor_owner_id),
-         true <- employee.status == Employee.status(:approved),
-         true <- employee.is_active,
-         true <- employee.legal_entity_id == contractor_legal_entity_id,
-         true <- employee.employee_type in [Employee.type(:owner), Employee.type(:admin)] do
-      :ok
-    else
-      _ ->
-        Error.dump(%ValidationError{
-          description: "Contractor owner must be active within current legal entity in contract request",
-          path: "$.contractor_owner_id"
-        })
-    end
-  end
-
-  defp validate_start_date(%CapitationContractRequest{} = contract_request) do
-    contract_request
-    |> Jason.encode!()
-    |> Jason.decode!()
-    |> validate_start_date()
-  end
-
-  defp validate_start_date(%{"parent_contract_id" => parent_contract_id})
-       when not is_nil(parent_contract_id) do
-    :ok
-  end
-
-  defp validate_start_date(%{"start_date" => start_date}) do
-    now = Date.utc_today()
-    start_date = Date.from_iso8601!(start_date)
-    year_diff = start_date.year - now.year
-
-    with {:diff, true} <- {:diff, year_diff >= 0 && year_diff <= 1},
-         {:future, true} <- {:future, Date.compare(start_date, now) == :gt} do
-      :ok
-    else
-      {:diff, false} ->
-        Error.dump(%ValidationError{description: "Start date must be within this or next year", path: "$.start_date"})
-
-      {:future, false} ->
-        Error.dump(%ValidationError{description: "Start date must be greater than current date", path: "$.start_date"})
-    end
-  end
-
-  defp validate_end_date(%CapitationContractRequest{} = contract_request) do
-    contract_request
-    |> Jason.encode!()
-    |> Jason.decode!()
-    |> validate_end_date()
-  end
-
-  defp validate_end_date(%{"parent_contract_id" => parent_contract_id})
-       when not is_nil(parent_contract_id) do
-    :ok
-  end
-
-  defp validate_end_date(%{"start_date" => start_date, "end_date" => end_date}) do
-    start_date = Date.from_iso8601!(start_date)
-    end_date = Date.from_iso8601!(end_date)
-
-    cond do
-      start_date.year != end_date.year ->
-        Error.dump(%ValidationError{
-          description: "The year of start_date and and date must be equal",
-          path: "$.end_date"
-        })
-
-      Date.compare(start_date, end_date) == :gt ->
-        Error.dump(%ValidationError{
-          description: "end_date should be equal or greater than start_date",
-          path: "$.end_date"
-        })
-
-      true ->
-        :ok
-    end
-  end
-
-  def validate_status(contract_request, status),
-    do:
-      validate_status(
-        contract_request,
-        status,
-        "Incorrect status of contract_request to modify it"
-      )
-
-  def validate_status(%CapitationContractRequest{status: status}, required_status, message) do
-    cond do
-      status == required_status -> :ok
-      is_list(required_status) and status in required_status -> :ok
-      true -> {:error, {:conflict, message}}
-    end
-  end
-
-  def get_by_id(headers, client_type, id) do
-    client_id = get_client_id(headers)
-
-    with {:ok, %CapitationContractRequest{} = contract_request} <- get_contract_request(client_id, client_type, id) do
-      {:ok, contract_request, preload_references(contract_request)}
-    end
-  end
-
-  def get_by_id(id), do: Repo.get(CapitationContractRequest, id)
-
-  def get_by_id!(id), do: Repo.get!(CapitationContractRequest, id)
-
-  def fetch_by_id(id) do
-    case get_by_id(id) do
-      %CapitationContractRequest{} = contract_request -> {:ok, contract_request}
-      nil -> {:error, {:not_found, "CapitationContractRequest not found"}}
     end
   end
 
@@ -1348,64 +815,6 @@ defmodule Core.ContractRequests do
       {:ok, contract_request}
     end
   end
-
-  defp validate_legal_entity_id(legal_entity_id, legal_entity_id), do: :ok
-  defp validate_legal_entity_id(_, _), do: {:error, {:forbidden, "User is not allowed to perform this action"}}
-
-  defp validate_contractor_legal_entity(legal_entity_id) do
-    with {:ok, legal_entity} <-
-           Reference.validate(
-             :legal_entity,
-             legal_entity_id,
-             "$.contractor_legal_entity_id"
-           ),
-         true <- legal_entity.status == LegalEntity.status(:active) and legal_entity.is_active do
-      :ok
-    else
-      false ->
-        Error.dump(%ValidationError{
-          description: "Legal entity in contract request should be active",
-          path: "$.contractor_legal_entity_id"
-        })
-
-      error ->
-        error
-    end
-  end
-
-  defp validate_user_signer_last_name(user_id, %{"surname" => surname}) do
-    with %Party{last_name: last_name} <- Parties.get_by_user_id(user_id) do
-      check_last_name_match(last_name, surname)
-    end
-  end
-
-  defp check_last_name_match(_last_name, nil) do
-    Error.dump(%ValidationError{
-      description: "Signer surname is not exist in sign info",
-      path: "$.surname"
-    })
-  end
-
-  defp check_last_name_match(last_name, surname) do
-    if String.upcase(last_name) == String.upcase(surname) do
-      :ok
-    else
-      Error.dump(%ValidationError{
-        description: "Signer surname does not match with current user last_name",
-        path: "$.last_name"
-      })
-    end
-  end
-
-  defp validate_contract_request_id(id, id), do: :ok
-
-  defp validate_contract_request_id(_, _),
-    do: {:error, {:bad_request, "Contract request id doesn't match with id in signed content"}}
-
-  defp validate_legal_entity_edrpou(legal_entity, nil), do: {:ok, legal_entity}
-
-  defp validate_legal_entity_edrpou(legal_entity, signer),
-    do: LegalEntitiesValidator.validate_state_registry_number(legal_entity, signer)
 
   defp resolve_partially_signed_content_url(contract_request_id, headers) do
     bucket = Confex.fetch_env!(:core, Core.API.MediaStorage)[:contract_request_bucket]
@@ -1446,119 +855,6 @@ defmodule Core.ContractRequests do
     |> validate_required(fields_required)
   end
 
-  defp validate_contract_id(%CapitationContractRequest{parent_contract_id: contract_id}) when not is_nil(contract_id) do
-    with %CapitationContract{} = contract <- Contracts.get_by_id(contract_id),
-         true <- contract.status == CapitationContract.status(:verified) do
-      :ok
-    else
-      _ -> {:error, {:conflict, "Parent contract can’t be updated"}}
-    end
-  end
-
-  defp validate_contract_id(_), do: :ok
-
-  defp validate_contract_number(%{"contract_number" => contract_number} = params, headers)
-       when not is_nil(contract_number) do
-    with {:ok, %Page{entries: [%CapitationContract{} = contract]}, _} <-
-           Contracts.list(
-             %{"contract_number" => contract_number, "status" => CapitationContract.status(:verified)},
-             nil,
-             headers
-           ) do
-      {:ok, Map.put(params, "parent_contract_id", contract.id), contract}
-    else
-      _ ->
-        Error.dump("Verified contract with such contract number does not exist")
-    end
-  end
-
-  defp validate_contract_number(
-         %{"contractor_legal_entity_id" => legal_entity_id} = params,
-         headers
-       ) do
-    with {:ok, %Page{entries: [_ | _]}, _} <-
-           Contracts.list(
-             %{
-               "contractor_legal_entity_id" => legal_entity_id,
-               "status" => CapitationContract.status(:verified),
-               "date_to_start_date" => params["end_date"],
-               "date_from_end_date" => params["start_date"]
-             },
-             nil,
-             headers
-           ) do
-      Error.dump("Active contract is found. Contract number must be sent in request")
-    else
-      _ -> {:ok, params, nil}
-    end
-  end
-
-  defp validate_contractor_legal_entity_id(_, nil), do: :ok
-
-  defp validate_contractor_legal_entity_id(id, %CapitationContract{contractor_legal_entity_id: id}), do: :ok
-
-  defp validate_contractor_legal_entity_id(_, _),
-    do: {:error, {:forbidden, "You are not allowed to change this contract"}}
-
-  defp render_contract_request_data(%Ecto.Changeset{} = changeset) do
-    structure = apply_changes(changeset)
-    Renderer.render(structure, preload_references(structure))
-  end
-
-  defp validate_decline_content(content, contract_request, references) do
-    contractor_legal_entity =
-      references
-      |> Map.get(:legal_entity)
-      |> Map.get(contract_request.contractor_legal_entity_id)
-
-    data =
-      %{
-        "id" => contract_request.id,
-        "contractor_legal_entity" => Map.take(contractor_legal_entity, ~w(id name edrpou)a)
-      }
-      |> Jason.encode!()
-      |> Jason.decode!()
-
-    if data == Map.drop(content, ~w(next_status status_reason text)) do
-      :ok
-    else
-      {:error, {:bad_request, "Signed content doesn't match with contract request"}}
-    end
-  end
-
-  defp validate_approve_content(content, contract_request, references) do
-    contractor_legal_entity =
-      references
-      |> Map.get(:legal_entity)
-      |> Map.get(contract_request.contractor_legal_entity_id)
-
-    data =
-      %{
-        "id" => contract_request.id,
-        "contractor_legal_entity" => Map.take(contractor_legal_entity, ~w(id name edrpou)a)
-      }
-      |> Jason.encode!()
-      |> Jason.decode!()
-
-    if data == Map.drop(content, ~w(next_status text)) do
-      :ok
-    else
-      {:error, {:bad_request, "Signed content doesn't match with contract request"}}
-    end
-  end
-
-  defp validate_document(id, resource_name, md5, headers) do
-    with {:ok, %{"data" => %{"secret_url" => url}}} <-
-           @media_storage_api.create_signed_url("HEAD", get_bucket(), resource_name, id, headers),
-         {:ok, %HTTPoison.Response{status_code: 200, headers: resource_headers}} <-
-           @media_storage_api.verify_uploaded_file(url, resource_name),
-         true <- md5 == resource_headers |> get_header("ETag") |> Jason.decode!() do
-      :ok
-    else
-      _ -> Error.dump("#{resource_name} md5 doesn't match")
-    end
-  end
-
   defp move_uploaded_documents(id, headers) do
     Enum.reduce_while(
       [
@@ -1586,21 +882,5 @@ defmodule Core.ContractRequests do
 
   defp get_bucket do
     Confex.fetch_env!(:core, Core.API.MediaStorage)[:contract_request_bucket]
-  end
-
-  defp validate_and_convert_errors(errors) when is_list(errors) do
-    Enum.map(errors, fn error ->
-      case error do
-        {%{
-           description: description,
-           params: params,
-           rule: rule
-         }, path} ->
-          %ValidationError{description: description, rule: rule, path: path, params: params}
-
-        _ ->
-          error
-      end
-    end)
   end
 end

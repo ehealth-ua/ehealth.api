@@ -46,6 +46,10 @@ defmodule EHealthWeb.Router do
     plug(:process_client_context_for_list, context_param_name: "contractor_legal_entity_id")
   end
 
+  pipeline :contract_type_upcase do
+    plug(:upcase_contract_type_param)
+  end
+
   pipeline :cabinet do
     plug(:process_client_context_for_list, required_types: ["CABINET"])
   end
@@ -218,7 +222,7 @@ defmodule EHealthWeb.Router do
     post("/declaration_requests/:id/actions/resend_otp", DeclarationRequestController, :resend_otp)
 
     scope "/contracts/:type" do
-      pipe_through([:contract_context])
+      pipe_through([:contract_context, :contract_type_upcase])
 
       get("/", ContractController, :index)
       get("/:id", ContractController, :show)
@@ -230,6 +234,7 @@ defmodule EHealthWeb.Router do
     end
 
     scope "/contract_requests/:type" do
+      pipe_through([:contract_type_upcase])
       post("/", ContractRequestController, :draft)
       post("/:id", ContractRequestController, :create)
       patch("/:id", ContractRequestController, :update)
@@ -240,7 +245,7 @@ defmodule EHealthWeb.Router do
     end
 
     scope "/contract_requests/:type" do
-      pipe_through([:contract_context])
+      pipe_through([:contract_context, :contract_type_upcase])
 
       get("/", ContractRequestController, :index)
       get("/:id", ContractRequestController, :show)

@@ -27,7 +27,7 @@ defmodule Core.Contracts.Contract do
 
       def unquote(@inheritance_column)(), do: unquote(inheritance_name)
 
-      @primary_key {:id, Ecto.UUID, autogenerate: false}
+      @primary_key {:id, UUID, autogenerate: false}
       schema "contracts" do
         field(unquote(@inheritance_column), :string, default: unquote(inheritance_name))
         field(:start_date, :date)
@@ -62,7 +62,6 @@ defmodule Core.Contracts.Contract do
 
         timestamps()
 
-        # TODO: we need the macro for this
         if fields = unquote(opts)[:fields] do
           for args <- fields do
             case args do

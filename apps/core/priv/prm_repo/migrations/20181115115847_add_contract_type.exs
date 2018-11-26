@@ -1,4 +1,4 @@
-defmodule Core.Repo.Migrations.AddContractType do
+defmodule Core.PRMRepo.Migrations.AddContractType do
   use Ecto.Migration
 
   def change do

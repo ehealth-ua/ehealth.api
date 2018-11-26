@@ -26,7 +26,6 @@ defmodule Core.MedicationRequests.API do
   alias Core.PartyUsers.PartyUser
   alias Core.PRMRepo
   alias Core.Utils.NumberGenerator
-  alias Core.ValidationError
   alias Core.Validators.Content, as: ContentValidator
   alias Core.Validators.Error
   alias Core.Validators.JsonSchema

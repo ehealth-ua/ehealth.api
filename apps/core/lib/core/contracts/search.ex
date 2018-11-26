@@ -15,6 +15,7 @@ defmodule Core.Contracts.Search do
     field(:date_to_start_date, :date)
     field(:date_from_end_date, :date)
     field(:date_to_end_date, :date)
+    field(:type, :string)
     field(:status, :string)
     field(:edrpou, :string)
     field(:legal_entity_id, UUID)

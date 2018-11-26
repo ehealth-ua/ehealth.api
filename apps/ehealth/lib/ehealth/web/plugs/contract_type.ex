@@ -1,4 +1,4 @@
-defmodule EHealth.Web.Plugs.ContractTypes do
+defmodule EHealth.Web.Plugs.ContractType do
   @moduledoc false
 
   alias Ecto.UUID
@@ -33,4 +33,10 @@ defmodule EHealth.Web.Plugs.ContractTypes do
 
   # not contract requests
   def call(conn, _opts), do: conn
+
+  def upcase_contract_type_param(%{params: %{"type" => type} = params} = conn, _opts) do
+    Map.put(conn, :params, Map.put(params, "type", String.upcase(type)))
+  end
+
+  def upcase_contract_type_param(conn, _), do: conn
 end

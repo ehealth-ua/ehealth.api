@@ -5,6 +5,7 @@ defmodule Core.PRMFactories.ContractFactory do
   alias Core.Contracts.CapitationContract
   alias Core.Contracts.ContractDivision
   alias Core.Contracts.ContractEmployee
+  alias Core.Contracts.ReimbursementContract
 
   defmacro __using__(_opts) do
     quote do
@@ -35,6 +36,15 @@ defmodule Core.PRMFactories.ContractFactory do
           })
 
         struct(%CapitationContract{}, data)
+      end
+
+      def reimbursement_contract_factory do
+        data =
+          Map.merge(generic_contract_data(), %{
+            type: ReimbursementContract.type()
+          })
+
+        struct(%ReimbursementContract{}, data)
       end
 
       def generic_contract_data() do

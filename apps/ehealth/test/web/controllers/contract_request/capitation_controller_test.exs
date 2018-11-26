@@ -1,4 +1,4 @@
-defmodule EHealth.Web.ContractRequestControllerTest do
+defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase
@@ -34,7 +34,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     CapitationContractRequest.status(:nhs_signed)
   ]
 
-  describe "contract request draft" do
+  describe "capitation contract request draft" do
     test "success create draft", %{conn: conn} do
       msp()
 
@@ -61,7 +61,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
   end
 
-  describe "create contract request" do
+  describe "create capitation contract request" do
     test "employee division is not active", %{conn: conn} do
       msp()
       %{legal_entity: legal_entity, employee: employee, party_user: party_user} = prepare_data()
@@ -77,7 +77,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       params =
         division
-        |> prepare_params(employee)
+        |> prepare_capitation_params(employee)
         |> Map.put("contractor_divisions", [division.id, UUID.generate()])
 
       drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
@@ -139,7 +139,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> put_consumer_id_header(party_user.user_id)
 
       params =
-        prepare_params(division, employee)
+        prepare_capitation_params(division, employee)
         |> Map.put("contractor_divisions", [division.id, UUID.generate()])
 
       drfo_signed_content(params, party_user.party.tax_id, party_user.party.last_name)
@@ -177,7 +177,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> put_consumer_id_header(party_user.user_id)
 
       params =
-        prepare_params(division, employee)
+        prepare_capitation_params(division, employee)
         |> Map.put("contractor_divisions", [division.id, UUID.generate()])
 
       drfo_signed_content(params, legal_entity.edrpou, "Інше прізвище")
@@ -224,7 +224,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> put_consumer_id_header(party_user.user_id)
 
       params =
-        prepare_params(division, employee)
+        prepare_capitation_params(division, employee)
         |> Map.put("contractor_divisions", [division.id, UUID.generate()])
 
       drfo_signed_content(params, [%{drfo: legal_entity.edrpou}])
@@ -271,7 +271,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> put_consumer_id_header(UUID.generate())
 
       params =
-        prepare_params(division, employee)
+        prepare_capitation_params(division, employee)
         |> Map.put("contractor_divisions", [division.id, UUID.generate()])
 
       drfo_signed_content(params, [%{drfo: legal_entity.edrpou, surname: "Підпісант"}])
@@ -312,7 +312,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       params =
         division
-        |> prepare_params(employee)
+        |> prepare_capitation_params(employee)
         |> Map.delete("external_contractor_flag")
         |> Map.put("external_contractors", [
           %{
@@ -377,7 +377,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       contractor =
         division
-        |> prepare_params(employee, expires_at)
+        |> prepare_capitation_params(employee, expires_at)
         |> Map.get("external_contractors")
         |> Enum.at(0)
 
@@ -389,7 +389,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       params =
         division
-        |> prepare_params(employee, expires_at)
+        |> prepare_capitation_params(employee, expires_at)
         |> Map.put("contractor_owner_id", owner.id)
         |> Map.put("start_date", Date.to_iso8601(start_date))
         |> Map.put("end_date", Date.to_iso8601(Date.add(now, 30)))
@@ -458,7 +458,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       params =
         division
-        |> prepare_params(employee, "2018-01-01")
+        |> prepare_capitation_params(employee, "2018-01-01")
         |> Map.put("start_date", "2018-02-01")
         |> Map.delete("external_contractor_flag")
 
@@ -505,7 +505,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       params =
         division
-        |> prepare_params(employee, "2018-03-01")
+        |> prepare_capitation_params(employee, "2018-03-01")
         |> Map.put("start_date", "2018-02-01")
         |> Map.delete("external_contractor_flag")
 
@@ -547,7 +547,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       params =
         division
-        |> prepare_params(employee, "2018-03-01")
+        |> prepare_capitation_params(employee, "2018-03-01")
         |> Map.put("start_date", "2018-02-01")
 
       drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
@@ -591,7 +591,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       params =
         division
-        |> prepare_params(employee, Date.to_iso8601(Date.add(start_date, 1)))
+        |> prepare_capitation_params(employee, Date.to_iso8601(Date.add(start_date, 1)))
         |> Map.put("start_date", Date.to_iso8601(start_date))
 
       drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
@@ -635,7 +635,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       params =
         division
-        |> prepare_params(employee, Date.to_iso8601(Date.add(start_date, 1)))
+        |> prepare_capitation_params(employee, Date.to_iso8601(Date.add(start_date, 1)))
         |> Map.put("start_date", Date.to_iso8601(start_date))
         |> Map.put("end_date", Date.to_iso8601(Date.add(now, 365 * 3)))
 
@@ -700,7 +700,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       params =
         division
-        |> prepare_params(employee, expires_at)
+        |> prepare_capitation_params(employee, expires_at)
         |> Map.put("contractor_owner_id", owner.id)
         |> Map.put("start_date", Date.to_iso8601(contract_request_start_date))
         |> Map.put("end_date", Date.to_iso8601(contract_request_end_date))
@@ -766,7 +766,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       params =
         division
-        |> prepare_params(employee, expires_at)
+        |> prepare_capitation_params(employee, expires_at)
         |> Map.put("contractor_owner_id", owner.id)
         |> Map.put("start_date", Date.to_iso8601(contract_request_start_date))
         |> Map.put("end_date", Date.to_iso8601(contract_request_end_date))
@@ -832,7 +832,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       params =
         division
-        |> prepare_params(employee, expires_at)
+        |> prepare_capitation_params(employee, expires_at)
         |> Map.put("contractor_owner_id", owner.id)
         |> Map.put("start_date", Date.to_iso8601(contract_request_start_date))
         |> Map.put("end_date", Date.to_iso8601(contract_request_end_date))
@@ -900,7 +900,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       params =
         division
-        |> prepare_params(employee, expires_at)
+        |> prepare_capitation_params(employee, expires_at)
         |> Map.put("contractor_owner_id", owner.id)
         |> Map.put("start_date", Date.to_iso8601(contract_request_start_date))
         |> Map.put("end_date", Date.to_iso8601(contract_request_end_date))
@@ -954,7 +954,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       params =
         division
-        |> prepare_params(employee, Date.to_iso8601(Date.add(start_date, 1)))
+        |> prepare_capitation_params(employee, Date.to_iso8601(Date.add(start_date, 1)))
         |> Map.put("start_date", Date.to_iso8601(start_date))
         |> Map.put("end_date", Date.to_iso8601(Date.add(now, 30)))
 
@@ -1006,7 +1006,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       params =
         division
-        |> prepare_params(employee, Date.to_iso8601(Date.add(start_date, 1)))
+        |> prepare_capitation_params(employee, Date.to_iso8601(Date.add(start_date, 1)))
         |> Map.put("contractor_owner_id", owner.id)
         |> Map.put("contract_number", "invalid")
         |> Map.put("start_date", Date.to_iso8601(start_date))
@@ -1068,7 +1068,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       params =
         division
-        |> prepare_params(employee, Date.to_iso8601(Date.add(start_date, 1)))
+        |> prepare_capitation_params(employee, Date.to_iso8601(Date.add(start_date, 1)))
         |> Map.put("contractor_owner_id", owner.id)
         |> Map.put("contract_number", contract_number)
         |> Map.drop(~w(start_date end_date))
@@ -1088,7 +1088,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> Map.get("data")
 
       schema =
-        "../core/specs/json_schemas/contract_request/contract_request_show_response.json"
+        "../core/specs/json_schemas/contract_request/capitation_contract_request_show_response.json"
         |> File.read!()
         |> Jason.decode!()
 
@@ -1130,7 +1130,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       params =
         division
-        |> prepare_params(employee, Date.to_iso8601(Date.add(start_date, 1)))
+        |> prepare_capitation_params(employee, Date.to_iso8601(Date.add(start_date, 1)))
         |> Map.put("contractor_owner_id", owner.id)
         |> Map.put("start_date", Date.to_iso8601(start_date))
         |> Map.put("end_date", Date.to_iso8601(Date.add(now, 30)))
@@ -1146,7 +1146,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       assert resp = json_response(conn1, 201)
 
       schema =
-        "../core/specs/json_schemas/contract_request/contract_request_show_response.json"
+        "../core/specs/json_schemas/contract_request/capitation_contract_request_show_response.json"
         |> File.read!()
         |> Jason.decode!()
 
@@ -1219,7 +1219,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
 
       params =
         division
-        |> prepare_params(employee, expires_at)
+        |> prepare_capitation_params(employee, expires_at)
         |> Map.put("contractor_owner_id", owner.id)
         |> Map.put("start_date", Date.to_iso8601(start_date))
         |> Map.put("end_date", Date.to_iso8601(Date.add(now, 30)))
@@ -1390,7 +1390,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       assert resp = json_response(conn, 200)
 
       schema =
-        "../core/specs/json_schemas/contract_request/contract_request_show_response.json"
+        "../core/specs/json_schemas/contract_request/capitation_contract_request_show_response.json"
         |> File.read!()
         |> Jason.decode!()
 
@@ -1429,7 +1429,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
                |> json_response(200)
 
       schema =
-        "../core/specs/json_schemas/contract_request/contract_request_show_response.json"
+        "../core/specs/json_schemas/contract_request/capitation_contract_request_show_response.json"
         |> File.read!()
         |> Jason.decode!()
 
@@ -1610,7 +1610,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
                |> Map.get("data")
 
       schema =
-        "../core/specs/json_schemas/contract_request/contract_request_show_response.json"
+        "../core/specs/json_schemas/contract_request/capitation_contract_request_show_response.json"
         |> File.read!()
         |> Jason.decode!()
 
@@ -2726,7 +2726,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       assert resp = json_response(conn, 200)
 
       schema =
-        "../core/specs/json_schemas/contract_request/contract_request_show_response.json"
+        "../core/specs/json_schemas/contract_request/capitation_contract_request_show_response.json"
         |> File.read!()
         |> Jason.decode!()
 
@@ -2791,7 +2791,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
       assert resp = json_response(conn, 200)
 
       schema =
-        "../core/specs/json_schemas/contract_request/contract_request_show_response.json"
+        "../core/specs/json_schemas/contract_request/capitation_contract_request_show_response.json"
         |> File.read!()
         |> Jason.decode!()
 
@@ -2869,7 +2869,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         assert resp = json_response(conn_resp, 200)
 
         schema =
-          "../core/specs/json_schemas/contract_request/contract_request_show_response.json"
+          "../core/specs/json_schemas/contract_request/capitation_contract_request_show_response.json"
           |> File.read!()
           |> Jason.decode!()
 
@@ -3074,7 +3074,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
   end
 
-  describe "search contract request" do
+  describe "search capitation contract request" do
     setup do
       nhs_signer_id = UUID.generate()
       contract_number = UUID.generate()
@@ -3779,7 +3779,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
                |> json_response(200)
 
       schema =
-        "../core/specs/json_schemas/contract_request/contract_request_show_response.json"
+        "../core/specs/json_schemas/contract_request/capitation_contract_request_show_response.json"
         |> File.read!()
         |> Jason.decode!()
 
@@ -3878,7 +3878,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
         |> json_response(200)
 
       schema =
-        "../core/specs/json_schemas/contract_request/contract_request_show_response.json"
+        "../core/specs/json_schemas/contract_request/capitation_contract_request_show_response.json"
         |> File.read!()
         |> Jason.decode!()
 
@@ -4131,7 +4131,7 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     end
   end
 
-  describe "get partially signed contract request url" do
+  describe "get partially signed capitation contract request url" do
     test "returns url successfully to owner", %{conn: conn} do
       msp()
 
@@ -5112,8 +5112,10 @@ defmodule EHealth.Web.ContractRequestControllerTest do
     }
   end
 
-  defp prepare_params(division, employee, expires_at \\ nil) do
+  defp prepare_capitation_params(division, employee, expires_at \\ nil) do
     %{id: external_legal_entity_id} = insert(:prm, :legal_entity)
+
+    expires_at = expires_at || Date.utc_today() |> Date.add(10) |> Date.to_iso8601()
 
     %{
       "contractor_owner_id" => UUID.generate(),

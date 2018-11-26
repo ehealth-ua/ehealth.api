@@ -11,6 +11,7 @@ defmodule Core.Contracts do
   alias Core.Contracts.ContractDivision
   alias Core.Contracts.ContractEmployee
   alias Core.Contracts.ContractEmployeeSearch
+  alias Core.Contracts.ReimbursementContract
   alias Core.Contracts.Search
   alias Core.Divisions
   alias Core.Divisions.Division
@@ -33,6 +34,9 @@ defmodule Core.Contracts do
 
   @status_verified CapitationContract.status(:verified)
   @status_terminated CapitationContract.status(:terminated)
+
+  @capitation CapitationContract.type()
+  @reimbursement ReimbursementContract.type()
 
   @fields_required ~w(
     id
@@ -546,7 +550,13 @@ defmodule Core.Contracts do
       page_size
     )a)
 
-    query = if map_size(params) > 0, do: where(CapitationContract, ^Map.to_list(params)), else: CapitationContract
+    contract_schema =
+      case Map.get(params, :type, @capitation) do
+        @capitation -> CapitationContract
+        @reimbursement -> ReimbursementContract
+      end
+
+    query = if map_size(params) > 0, do: where(contract_schema, ^Map.to_list(params)), else: contract_schema
 
     query
     |> add_date_range_at_query(:start_date, date_from_start_date, date_to_start_date)

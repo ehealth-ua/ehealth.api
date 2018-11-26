@@ -22,9 +22,8 @@ defmodule EHealth.Web.ContractRequestController do
     end
   end
 
-  def create(%Plug.Conn{} = conn, params) do
-    with {:ok, %CapitationContractRequest{} = contract_request, references} <-
-           ContractRequests.create(conn.req_headers, drop_type(params)) do
+  def create(%Plug.Conn{} = conn, %{} = params) do
+    with {:ok, contract_request, references} <- ContractRequests.create(conn.req_headers, params) do
       conn
       |> put_status(:created)
       |> render("show.json", contract_request: contract_request, references: references)

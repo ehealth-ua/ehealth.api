@@ -6,6 +6,46 @@ defmodule Core.ContractRequests.Renderer do
   """
 
   alias Core.ContractRequests.CapitationContractRequest
+  alias Core.ContractRequests.ReimbursementContractRequest
+
+  def render(%ReimbursementContractRequest{} = contract_request, references) do
+    data = Map.take(contract_request, ~w(
+      id
+      type
+      contractor_base
+      contractor_payment_details
+      nhs_signer_base
+      nhs_payment_method
+      start_date
+      end_date
+      id_form
+      issue_city
+      status
+      contract_number
+      printout_content
+      parent_contract_id
+      status_reason
+      previous_request_id
+      assignee_id
+      medical_program_id
+    )a)
+
+    %{
+      nhs_signer_id: nhs_signer_id,
+      nhs_legal_entity_id: nhs_legal_entity_id,
+      contractor_legal_entity_id: contractor_legal_entity_id,
+      contractor_owner_id: contractor_owner_id,
+      contractor_divisions: contractor_divisions
+    } = contract_request
+
+    Map.merge(data, %{
+      contractor_legal_entity: render_association(:legal_entity, references, contractor_legal_entity_id),
+      nhs_legal_entity: render_association(:legal_entity, references, nhs_legal_entity_id),
+      contractor_owner: render_association(:employee, references, contractor_owner_id),
+      nhs_signer: render_association(:employee, references, nhs_signer_id),
+      contractor_divisions: render_association(:contractor_divisions, references, contractor_divisions || [])
+    })
+  end
 
   def render(%CapitationContractRequest{} = contract_request, references) do
     data = Map.take(contract_request, ~w(
@@ -53,7 +93,7 @@ defmodule Core.ContractRequests.Renderer do
     })
   end
 
-  def render_review_content(%CapitationContractRequest{} = contract_request, associations) do
+  def render_review_content(contract_request, associations) do
     {legal_entity, review_fields} = Map.pop(associations, :contractor_legal_entity)
     contractor_legal_entity = Map.take(legal_entity, ~w(id edrpou name)a)
 

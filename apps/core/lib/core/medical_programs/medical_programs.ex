@@ -29,17 +29,18 @@ defmodule Core.MedicalPrograms do
     |> PRMRepo.all()
   end
 
-  def get_by_id(id) do
-    PRMRepo.get(MedicalProgram, id)
+  def get_by_id(id), do: PRMRepo.get(MedicalProgram, id)
+
+  def get_by_id!(id), do: PRMRepo.get!(MedicalProgram, id)
+
+  def fetch_by_id(id) do
+    case get_by_id(id) do
+      %MedicalProgram{} = medical_program -> {:ok, medical_program}
+      _ -> {:error, {:not_found, "Medical program not found"}}
+    end
   end
 
-  def get_by_id!(id) do
-    PRMRepo.get!(MedicalProgram, id)
-  end
-
-  def get_by!(params) do
-    PRMRepo.get_by!(MedicalProgram, params)
-  end
+  def get_by!(params), do: PRMRepo.get_by!(MedicalProgram, params)
 
   def create(user_id, params) do
     %MedicalProgram{}

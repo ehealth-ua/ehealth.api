@@ -25,7 +25,7 @@ defmodule EHealth.Web.Endpoint do
   plug(Plug.MethodOverride)
   plug(Plug.Head)
 
-  plug(EHealth.Web.Plugs.ContractTypes)
+  plug(EHealth.Web.Plugs.ContractType)
   plug(EHealthWeb.Router)
 
   @doc """

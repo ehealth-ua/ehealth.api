@@ -12,6 +12,7 @@ defmodule Core.ContractRequests.ContractRequest do
 
     quote do
       use Ecto.Schema
+      import Ecto.Changeset
       alias Ecto.UUID
 
       @status_new "NEW"
@@ -75,7 +76,6 @@ defmodule Core.ContractRequests.ContractRequest do
 
         timestamps()
 
-        # TODO: we need the macro for this
         if fields = unquote(opts)[:fields] do
           for args <- fields do
             case args do
