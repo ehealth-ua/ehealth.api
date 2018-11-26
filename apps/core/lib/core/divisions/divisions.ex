@@ -21,6 +21,7 @@ defmodule Core.Divisions do
   alias Core.Validators.JsonSchema
   alias Ecto.Multi
   alias EctoTrail.Changelog
+  alias Scrivener.Page
 
   @uaddresses_api Application.get_env(:core, :api_resolvers)[:uaddresses]
 
@@ -54,28 +55,31 @@ defmodule Core.Divisions do
   @default_mountain_group "0"
 
   def list(params) do
-    %Search{}
-    |> changeset(params)
-    |> search(params, Division)
+    with %Page{entries: entries} = page <-
+           %Search{}
+           |> changeset(params)
+           |> search(params, Division) do
+      %{page | entries: PRMRepo.preload(entries, :addresses)}
+    end
   end
 
   def get_by_id!(id) do
     Division
-    |> query_addresses()
     |> PRMRepo.get!(id)
+    |> PRMRepo.preload(:addresses)
   end
 
   def get_by_id(id) do
     Division
-    |> query_addresses()
     |> PRMRepo.get(id)
+    |> PRMRepo.preload(:addresses)
   end
 
   def get_by_ids(ids) when is_list(ids) do
     Division
     |> where([d], d.id in ^ids)
-    |> query_addresses()
     |> PRMRepo.all()
+    |> PRMRepo.preload(:addresses)
   end
 
   def search(legal_entity_id, params \\ %{}) do
@@ -119,7 +123,10 @@ defmodule Core.Divisions do
       put_mountain_group(params)
     else
       nil ->
-        Error.dump(%ValidationError{description: "invalid legal entity", path: "$.legal_entity_id"})
+        Error.dump(%ValidationError{
+          description: "invalid legal entity",
+          path: "$.legal_entity_id"
+        })
 
       err ->
         err
@@ -204,7 +211,10 @@ defmodule Core.Divisions do
     end
   end
 
-  defp changeset(%Division{} = division, %{"location" => %{"longitude" => lng, "latitude" => lat}} = attrs) do
+  defp changeset(
+         %Division{} = division,
+         %{"location" => %{"longitude" => lng, "latitude" => lat}} = attrs
+       ) do
     division
     |> changeset(Map.put(attrs, "location", %Geo.Point{coordinates: {lng, lat}}))
     |> cast_assoc(:addresses)
@@ -231,9 +241,7 @@ defmodule Core.Divisions do
   end
 
   def get_search_query(Division = entity, %{ids: _} = changes) do
-    entity
-    |> super(convert_comma_params_to_where_in_clause(changes, :ids, :id))
-    |> preload([:addresses])
+    super(entity, convert_comma_params_to_where_in_clause(changes, :ids, :id))
   end
 
   def get_search_query(Division = division, changes) do
@@ -244,7 +252,6 @@ defmodule Core.Divisions do
 
     division
     |> select([d], d)
-    |> query_addresses()
     |> query_name(Map.get(changes, :name))
     |> where(^params)
   end
@@ -253,12 +260,6 @@ defmodule Core.Divisions do
 
   defp query_name(query, name) do
     query |> where([d], ilike(d.name, ^"%#{name}%"))
-  end
-
-  defp query_addresses(division_query) do
-    division_query
-    |> join(:left, [d], da in assoc(d, :addresses))
-    |> preload([d, da], addresses: da)
   end
 
   defp convert_comma_params_to_where_in_clause(changes, param_name, db_field) do

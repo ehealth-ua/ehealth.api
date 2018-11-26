@@ -145,6 +145,21 @@ defmodule EHealth.Web.DivisionsControllerTest do
 
       assert 1 == length(resp["data"])
     end
+
+    test "divisions pagination", %{conn: conn} do
+      msp()
+      legal_entity = insert(:prm, :legal_entity)
+      conn = put_client_id_header(conn, legal_entity.id)
+      Enum.each(1..10, fn _ -> insert(:prm, :division, legal_entity: legal_entity) end)
+
+      resp =
+        conn
+        |> get(division_path(conn, :index))
+        |> json_response(200)
+
+      assert 10 == length(resp["data"])
+      assert 10 == resp["paging"]["total_entries"]
+    end
   end
 
   test "get division by id", %{conn: conn} do

@@ -49,7 +49,7 @@ defmodule Core.MixProject do
       {:phoenix_ecto, "~> 3.2"},
       {:plug, "~> 1.4"},
       {:postgrex, ">= 0.0.0"},
-      {:scrivener_ecto, "~> 1.2"},
+      {:scrivener_ecto, "~> 1.3.0"},
       {:timex, "~> 3.2"},
       {:translit, "~> 0.1.0"},
       {:mox, "~> 0.3", only: :test},
