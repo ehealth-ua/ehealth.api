@@ -96,7 +96,7 @@ defmodule Core.ContractRequests do
     end
   end
 
-  @doc "@deprecated. Use get_by_id/4"
+  @deprecated "Use get_by_id/4"
   def get_by_id(headers, client_type, id), do: CapitationContractRequests.get_by_id(headers, client_type, id)
 
   def get_by_id(@capitation, headers, client_type, id),
@@ -105,19 +105,19 @@ defmodule Core.ContractRequests do
   def get_by_id(@reimbursement, headers, client_type, id),
     do: ReimbursementContractRequests.get_by_id(headers, client_type, id)
 
-  @doc "@deprecated. Use get_by_id/2"
+  @deprecated "Use get_by_id/2"
   def get_by_id(id), do: get_by_id(@capitation, id)
 
   def get_by_id(@capitation, id), do: CapitationContractRequests.get_by_id(id)
   def get_by_id(@reimbursement, id), do: ReimbursementContractRequests.get_by_id(id)
 
-  @doc "@deprecated. Use get_by_id!/2"
+  @deprecated "Use get_by_id!/2"
   def get_by_id!(id), do: get_by_id!(@capitation, id)
 
   def get_by_id!(@capitation, id), do: CapitationContractRequests.get_by_id!(id)
   def get_by_id!(@reimbursement, id), do: ReimbursementContractRequests.get_by_id!(id)
 
-  @doc "@deprecated. Use fetch_by_id/2"
+  @deprecated "Use fetch_by_id/2"
   def fetch_by_id(id), do: fetch_by_id(@capitation, id)
 
   def fetch_by_id(@capitation, id), do: CapitationContractRequests.fetch_by_id(id)
