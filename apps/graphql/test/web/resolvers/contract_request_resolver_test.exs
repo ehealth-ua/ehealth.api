@@ -915,15 +915,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
   end
 
   describe "approve" do
-    test "success", %{conn: conn} do
-      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
-        {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
-      end)
-
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
-        {:ok, "success"}
-      end)
-
+    setup %{conn: conn} do
       user_id = UUID.generate()
       party_user = insert(:prm, :party_user, user_id: user_id)
       legal_entity = insert(:prm, :legal_entity)
@@ -972,6 +964,33 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
           start_date: start_date
         )
 
+      {:ok,
+       conn: conn,
+       contract_request: contract_request,
+       legal_entity: legal_entity,
+       division: division,
+       party_user: party_user,
+       employee_doctor: employee_doctor}
+    end
+
+    test "success", context do
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
+      end)
+
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
+      %{
+        conn: conn,
+        contract_request: contract_request,
+        legal_entity: legal_entity,
+        division: division,
+        employee_doctor: employee_doctor,
+        party_user: party_user
+      } = context
+
       content = %{
         "id" => contract_request.id,
         "next_status" => "APPROVED",
@@ -988,7 +1007,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       resp_body =
         conn
         |> put_client_id(legal_entity.id)
-        |> put_consumer_id(user_id)
+        |> put_consumer_id(party_user.user_id)
         |> put_req_header("drfo", legal_entity.edrpou)
         |> put_scope("contract_request:update")
         |> post_query(@approve_query, input_signed_content(contract_request.id, content))
@@ -999,6 +1018,115 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       contractor_employee_divisions = hd(resp_contract_request["contractorEmployeeDivisions"])
       assert employee_doctor.id == contractor_employee_divisions["employee"]["databaseId"]
       assert division.id == contractor_employee_divisions["division"]["databaseId"]
+    end
+
+    test "invalid response from DS", context do
+      expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
+        {:error,
+         %{
+           "meta" => %{
+             "url" => "http://api-svc.digital-signature.svc.cluster.local/digital_signatures",
+             "type" => "object",
+             "request_id" => "b006b174-42ff-4199-9a2e-88381e34392e#77823",
+             "code" => 422
+           },
+           "error" => %{
+             "type" => "validation_failed",
+             "message" => "Validation failed. You can find validators ...",
+             "invalid" => [
+               %{
+                 "rules" => [
+                   %{
+                     "rule" => "invalid",
+                     "params" => [],
+                     "description" => "Not a base64 string"
+                   }
+                 ],
+                 "entry_type" => "json_data_property",
+                 "entry" => "$.signed_content"
+               }
+             ]
+           }
+         }}
+      end)
+
+      %{
+        conn: conn,
+        contract_request: contract_request,
+        legal_entity: legal_entity,
+        party_user: party_user
+      } = context
+
+      content = %{
+        "id" => contract_request.id,
+        "next_status" => "APPROVED",
+        "contractor_legal_entity" => %{
+          "id" => contract_request.contractor_legal_entity_id,
+          "name" => legal_entity.name,
+          "edrpou" => legal_entity.edrpou
+        },
+        "text" => "something"
+      }
+
+      resp_body =
+        conn
+        |> put_client_id(legal_entity.id)
+        |> put_consumer_id(party_user.user_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
+        |> put_scope("contract_request:update")
+        |> post_query(@approve_query, input_signed_content(contract_request.id, content))
+        |> json_response(200)
+
+      refute resp_body["data"]["approveContractRequest"]
+
+      assert match?(
+               %{"message" => "Validation error", "extensions" => %{"code" => "UNPROCESSABLE_ENTITY"}},
+               hd(resp_body["errors"])
+             )
+    end
+
+    test "invalid HTTP error", context do
+      import ExUnit.CaptureLog
+
+      expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
+        {:error, {:errconn, "Bad Gateway"}}
+      end)
+
+      %{
+        conn: conn,
+        contract_request: contract_request,
+        legal_entity: legal_entity,
+        party_user: party_user
+      } = context
+
+      content = %{
+        "id" => contract_request.id,
+        "next_status" => "APPROVED",
+        "contractor_legal_entity" => %{
+          "id" => contract_request.contractor_legal_entity_id,
+          "name" => legal_entity.name,
+          "edrpou" => legal_entity.edrpou
+        },
+        "text" => "something"
+      }
+
+      assert capture_log(fn ->
+               resp_body =
+                 conn
+                 |> put_client_id(legal_entity.id)
+                 |> put_consumer_id(party_user.user_id)
+                 |> put_req_header("drfo", legal_entity.edrpou)
+                 |> put_scope("contract_request:update")
+                 |> post_query(@approve_query, input_signed_content(contract_request.id, content))
+                 |> json_response(200)
+
+               refute resp_body["data"]["approveContractRequest"]
+
+               assert match?(
+                        %{"message" => "Undefined error", "extensions" => %{"code" => "BAD_REQUEST"}},
+                        hd(resp_body["errors"])
+                      )
+             end) =~ "Got undefined error"
     end
   end
 

@@ -24,9 +24,22 @@ defmodule GraphQLWeb.Resolvers.Helpers.Errors do
     {:error, format_not_found_error("Not found")}
   end
 
+  def render_error({:error, %{"error" => %{"invalid" => errors}}}) do
+    {:error, format_unprocessable_entity_error(hd(errors))}
+  end
+
+  def render_error({:error, %{"error" => %{"message" => message}}}) do
+    {:error, format_bad_request(message)}
+  end
+
   def render_error({:error, error}) do
-    Logger.info("Got undefined error #{inspect(error)}}")
-    {:error, error}
+    Logger.error("Got undefined error #{inspect(error)}}")
+
+    {:error,
+     %{
+       message: "Undefined error",
+       extensions: %{code: "BAD_REQUEST", exception: inspect(error)}
+     }}
   end
 
   def render_error(error), do: render_error({:error, error})
@@ -73,6 +86,14 @@ defmodule GraphQLWeb.Resolvers.Helpers.Errors do
     %{
       message: "Validation error",
       errors: Enum.map(errors, &elem(&1, 0)),
+      extensions: %{code: "UNPROCESSABLE_ENTITY"}
+    }
+  end
+
+  def format_unprocessable_entity_error(%{"rules" => errors}) do
+    %{
+      message: "Validation error",
+      errors: errors,
       extensions: %{code: "UNPROCESSABLE_ENTITY"}
     }
   end
