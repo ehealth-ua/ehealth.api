@@ -54,15 +54,6 @@ defmodule Core.ContractRequests do
       alias Core.ContractRequests.Validator
       alias Core.Repo
 
-      def get_by_id(headers, client_type, id) do
-        client_id = get_client_id(headers)
-
-        with {:ok, %unquote(contract_request_schema){} = contract_request} <-
-               get_contract_request(client_id, client_type, id) do
-          {:ok, contract_request, ContractRequests.preload_references(contract_request)}
-        end
-      end
-
       def get_by_id(id), do: Repo.get(unquote(contract_request_schema), id)
 
       def get_by_id!(id), do: Repo.get!(unquote(contract_request_schema), id)
@@ -70,7 +61,7 @@ defmodule Core.ContractRequests do
       def fetch_by_id(id) do
         case get_by_id(id) do
           %unquote(contract_request_schema){} = contract_request -> {:ok, contract_request}
-          nil -> {:error, {:not_found, "Reimbursement Contract Request not found"}}
+          nil -> {:error, {:not_found, "Contract Request not found"}}
         end
       end
 
@@ -96,14 +87,14 @@ defmodule Core.ContractRequests do
     end
   end
 
-  @deprecated "Use get_by_id/4"
-  def get_by_id(headers, client_type, id), do: CapitationContractRequests.get_by_id(headers, client_type, id)
+  # ToDo: should be refactored
+  def get_by_id(headers, client_type, id) do
+    client_id = get_client_id(headers)
 
-  def get_by_id(@capitation, headers, client_type, id),
-    do: CapitationContractRequests.get_by_id(headers, client_type, id)
-
-  def get_by_id(@reimbursement, headers, client_type, id),
-    do: ReimbursementContractRequests.get_by_id(headers, client_type, id)
+    with {:ok, %CapitationContractRequest{} = contract_request} <- get_contract_request(client_id, client_type, id) do
+      {:ok, contract_request, preload_references(contract_request)}
+    end
+  end
 
   @deprecated "Use get_by_id/2"
   def get_by_id(id), do: get_by_id(@capitation, id)
