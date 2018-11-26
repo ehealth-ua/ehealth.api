@@ -51,4 +51,20 @@ defmodule Core.RpcTest do
       assert ^tax_id = Rpc.tax_id_by_employee_id(employee.id)
     end
   end
+
+  describe "employee_by_id/1" do
+    test "no employee found" do
+      refute Rpc.employee_by_id(UUID.generate())
+    end
+
+    test "get emplyoee by id" do
+      employee =
+        :prm
+        |> insert(:employee)
+        |> PRMRepo.preload(:party)
+
+      id = employee.id
+      assert %{id: ^id} = Rpc.employee_by_id(employee.id)
+    end
+  end
 end
