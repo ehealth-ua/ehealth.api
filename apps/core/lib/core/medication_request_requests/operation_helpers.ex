@@ -77,6 +77,14 @@ defmodule Core.MedicationRequestRequest.OperationHelpers do
     Validations.validate_dates(data)
   end
 
+  def validate_medical_event_entity(operation, context) do
+    Validations.validate_medical_event_entity(context, operation.data.person["id"])
+  end
+
+  def validate_dosage_instruction(_operation, dosage_instruction) do
+    Validations.validate_dosage_instruction(dosage_instruction)
+  end
+
   def validate_foreign_key(operation, data, fetch_function, validate_function, opts \\ [])
 
   def validate_foreign_key(%Operation{valid?: false} = operation, _data, _fetch_function, _validate_function, _opts) do
@@ -126,54 +134,92 @@ defmodule Core.MedicationRequestRequest.OperationHelpers do
   end
 
   def custom_errors(error_tuple, operation) when is_tuple(error_tuple) do
-    operation =
-      case error_tuple do
-        {:invalid_employee, _} ->
-          Operation.call_changeset(operation, &add_error/4, [
-            :employee_id,
-            "Only active employee with type DOCTOR can create medication request!",
-            [validation: :required]
-          ])
+    error_tuple
+    |> add_changeset_error(operation)
+    |> Map.put(:valid?, false)
+  end
 
-        {:invalid_person, _} ->
-          Operation.call_changeset(operation, &add_error/4, [
-            :person_id,
-            "Only active legal entity with type MSP can provide medication request!",
-            [validation: :required]
-          ])
+  defp add_changeset_error({:invalid_employee, _}, operation) do
+    Operation.call_changeset(operation, &add_error/4, [
+      :employee_id,
+      "Only active employee with type DOCTOR can create medication request!",
+      [validation: :required]
+    ])
+  end
 
-        {:invalid_division, _} ->
-          Operation.call_changeset(operation, &add_error/4, [
-            :division_id,
-            "Only employee of active divisions can create medication request!",
-            [validation: :required]
-          ])
+  defp add_changeset_error({:invalid_person, _}, operation) do
+    Operation.call_changeset(operation, &add_error/4, [
+      :person_id,
+      "Only active legal entity with type MSP can provide medication request!",
+      [validation: :required]
+    ])
+  end
 
-        {:invalid_state, {field, message}} ->
-          Operation.call_changeset(operation, &add_error/4, [field, message, []])
+  defp add_changeset_error({:invalid_division, _}, operation) do
+    Operation.call_changeset(operation, &add_error/4, [
+      :division_id,
+      "Only employee of active divisions can create medication request!",
+      [validation: :required]
+    ])
+  end
 
-        {:invalid_declarations_count, _} ->
-          Operation.call_changeset(operation, &add_error/4, [
-            :employee_id,
-            "Only doctors with an active declaration with the patient can create medication request!",
-            []
-          ])
+  defp add_changeset_error({:invalid_state, {field, message}}, operation) do
+    Operation.call_changeset(operation, &add_error/4, [field, message, []])
+  end
 
-        {:invalid_medication, _} ->
-          Operation.call_changeset(operation, &add_error/4, [
-            :medication_id,
-            "Not found any medications allowed for create medication request for this medical program!",
-            []
-          ])
+  defp add_changeset_error({:invalid_declarations_count, _}, operation) do
+    Operation.call_changeset(operation, &add_error/4, [
+      :employee_id,
+      "Only doctors with an active declaration with the patient can create medication request!",
+      []
+    ])
+  end
 
-        {:invalid_medication_qty, _} ->
-          Operation.call_changeset(operation, &add_error/4, [
-            :medication_qty,
-            "The amount of medications in medication request must be divisible to package minimum quantity",
-            []
-          ])
-      end
+  defp add_changeset_error({:invalid_medication, _}, operation) do
+    Operation.call_changeset(operation, &add_error/4, [
+      :medication_id,
+      "Not found any medications allowed for create medication request for this medical program!",
+      []
+    ])
+  end
 
-    %{operation | valid?: false}
+  defp add_changeset_error({:invalid_medication_qty, _}, operation) do
+    Operation.call_changeset(operation, &add_error/4, [
+      :medication_qty,
+      "The amount of medications in medication request must be divisible to package minimum quantity",
+      []
+    ])
+  end
+
+  defp add_changeset_error({:invalid_encounter, _}, operation) do
+    Operation.call_changeset(operation, &add_error/4, [
+      :context,
+      "Entity in status \"entered-in-error\" can not be referenced",
+      [validation: :invalid]
+    ])
+  end
+
+  defp add_changeset_error({:not_found_encounter, _}, operation) do
+    Operation.call_changeset(operation, &add_error/4, [
+      :context,
+      "Entity not found",
+      [validation: :invalid]
+    ])
+  end
+
+  defp add_changeset_error({:sequence_error, _}, operation) do
+    Operation.call_changeset(operation, &add_error/4, [
+      :dosage_instruction,
+      "Sequence must be unique",
+      [validation: :invalid]
+    ])
+  end
+
+  defp add_changeset_error({:invalid_dosage_instruction, %{description: description, path: path}}, operation) do
+    Operation.call_changeset(operation, &add_error/4, [
+      :dosage_instruction,
+      "incorrect #{description} (#{path})",
+      [validation: :invalid]
+    ])
   end
 end

@@ -1,0 +1,18 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "intent": {
+            "type": "string",
+            "enum": [
+                "plan",
+                "order"
+            ],
+            "description": "Represents the medication request purpose. Dictionary MEDICATION_REQUEST_INTENT"
+        }
+    },
+    "required": [
+        "intent"
+    ],
+    "additionalProperties": true
+}

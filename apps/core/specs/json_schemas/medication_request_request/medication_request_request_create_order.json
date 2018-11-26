@@ -1,6 +1,14 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
   "definitions": {
+    "date": {
+      "type": "string",
+      "pattern": "^(\\d{4}(?!\\d{2}\\b))((-)((0[1-9]|1[0-2])(\\3([12]\\d|0[1-9]|3[01]))|(00[1-9]|0[1-9]\\d|[12]\\d{2}|3([0-5]\\d|6[1-6]))))$"
+    },
+    "uuid": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{12}$"
+    },
     "simple_quantity": {
       "type": "object",
       "properties": {
@@ -47,6 +55,8 @@
       "properties": {
         "sequence": {
           "type": "integer",
+          "minimum": 0,
+          "exclusiveMinimum": true,
           "description": "The order of the dosage instructions"
         },
         "text": {
@@ -60,14 +70,19 @@
             "properties": {
               "coding": {
                 "type": "array",
+                "minItems": 1,
                 "items": {
                   "type": "object",
                   "properties": {
                     "system": {
-                      "type": "string"
+                      "type": "string",
+                      "enum": [
+                        "eHealth/SNOMED/additional_dosage_instructions"
+                      ]
                     },
                     "code": {
                       "type": "string",
+                      "minLength": 1,
                       "description": "Symbol in syntax defined by the system"
                     }
                   },
@@ -90,6 +105,7 @@
         },
         "patient_instruction": {
           "type": "string",
+          "minLength": 1,
           "description": "Patient or consumer oriented instructions"
         },
         "timing": {
@@ -108,49 +124,92 @@
               "properties": {
                 "count": {
                   "type": "integer",
+                  "minimum": 0,
+                  "exclusiveMinimum": true,
                   "description": "Number of times to repeat"
                 },
                 "count_max": {
                   "type": "integer",
+                  "minimum": 0,
+                  "exclusiveMinimum": true,
                   "description": "Maximum number of times to repeat"
                 },
                 "duration": {
                   "type": "number",
+                  "minimum": 0,
+                  "exclusiveMinimum": true,
                   "description": "How long when it happens"
                 },
                 "duration_max": {
                   "type": "number",
+                  "minimum": 0,
+                  "exclusiveMinimum": true,
                   "description": "How long when it happens Max"
                 },
                 "duration_unit": {
                   "type": "string",
+                  "enum": [
+                    "s",
+                    "min",
+                    "h",
+                    "d",
+                    "wk",
+                    "mo",
+                    "a"
+                  ],
                   "description": "Dictionary UNITS_OF_TIME"
                 },
                 "frequency": {
                   "type": "integer",
+                  "minimum": 0,
+                  "exclusiveMinimum": true,
                   "description": "Event occurs frequency times per period"
                 },
                 "frequency_max": {
                   "type": "integer",
+                  "minimum": 0,
+                  "exclusiveMinimum": true,
                   "description": "Event occurs up to frequencyMax times per period"
                 },
                 "period": {
                   "type": "number",
+                  "minimum": 0,
+                  "exclusiveMinimum": true,
                   "description": "Event occurs frequency times per period"
                 },
                 "period_max": {
                   "type": "number",
+                  "minimum": 0,
+                  "exclusiveMinimum": true,
                   "description": "Upper limit of period"
                 },
                 "period_unit": {
                   "type": "string",
+                  "enum": [
+                    "s",
+                    "min",
+                    "h",
+                    "d",
+                    "wk",
+                    "mo",
+                    "a"
+                  ],
                   "description": "Dictionary UNITS_OF_TIME"
                 },
                 "day_of_week": {
                   "type": "array",
                   "description": "day of week. Dictionary DAYS_OF_WEEK",
                   "items": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                      "mon",
+                      "tue",
+                      "wed",
+                      "thu",
+                      "fri",
+                      "sat",
+                      "sun"
+                    ]
                   }
                 },
                 "time_of_day": {
@@ -231,6 +290,7 @@
               "properties": {
                 "coding": {
                   "type": "array",
+                  "minItems": 1,
                   "items": {
                     "type": "object",
                     "properties": {
@@ -267,281 +327,65 @@
   },
   "type": "object",
   "properties": {
-    "id": {
-      "type": "string",
-      "description": "Medication Request request identifier"
+    "person_id": {
+      "$ref": "#/definitions/uuid",
+      "description": "Person identifier"
     },
-    "status": {
-      "type": "string",
-      "description": "Medication Request status. Find available **statuses** on State Charts wiki page"
+    "employee_id": {
+      "$ref": "#/definitions/uuid",
+      "description": "Employee ID with `type=DOCTOR` who issued Medication Request."
     },
-    "request_number": {
-      "type": "string",
-      "description": "Public medication request human readable number"
+    "division_id": {
+      "$ref": "#/definitions/uuid",
+      "description": "Division identifier"
     },
     "created_at": {
-      "type": "string",
-      "description": "Medication request creation date, which is determined by the external system. Format *DATE '2017-09-07'*"
+      "$ref": "#/definitions/date",
+      "description": "Medication request creation date, which is determined by the external system. Format DATE '2017-09-07'"
     },
     "started_at": {
-      "type": "string",
-      "description": "Start date of a treatment period, which is determined by the external system. Greater or equal to **created_at**. Format *DATE '2017-09-07'*"
+      "$ref": "#/definitions/date",
+      "description": "Start date of a treatment period, which is determined by the external system. Greater or equal to created_at. Format DATE '2017-09-07'"
     },
     "ended_at": {
-      "type": "string",
-      "description": "End date of a treatment period, which is determined by the external system. Greater or equal to **started_at**. Format *DATE '2017-10-07'*"
+      "$ref": "#/definitions/date",
+      "description": "End date of a treatment period, which is determined by the external system. Greater or equal to started_at. Format DATE '2017-10-07'"
     },
     "dispense_valid_from": {
-      "type": "string",
-      "description": "Start date of dispense period, which is determined by the external system. Format *DATE '2017-09-07'*"
+      "$ref": "#/definitions/date",
+      "description": "Start date of dispense period, which is determined by the external system. Format DATE '2017-09-07'"
     },
     "dispense_valid_to": {
-      "type": "string",
-      "description": "End date of dispense period, which is determined by the external system. Greater or equal to **dispense_valid_from**. Format *DATE '2017-10-07'*"
+      "$ref": "#/definitions/date",
+      "description": "End date of dispense period, which is determined by the external system. Greater or equal to dispense_valid_from. Format DATE '2017-10-07'"
     },
-    "legal_entity": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "short_name": {
-          "type": "string"
-        },
-        "public_name": {
-          "type": "string"
-        },
-        "type": {
-          "type": "string"
-        },
-        "edrpou": {
-          "type": "string"
-        },
-        "status": {
-          "type": "string",
-          "enum": [
-            "ACTIVE",
-            "CLOSED"
-          ]
-        }
-      },
-      "required": [
-        "id",
-        "name",
-        "short_name",
-        "public_name",
-        "type",
-        "edrpou",
-        "status"
-      ]
+    "medication_id": {
+      "$ref": "#/definitions/uuid",
+      "description": "Medication identified"
     },
-    "division": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "addresses": {
-          "type": "array"
-        },
-        "phones": {
-          "type": "array"
-        },
-        "email": {
-          "type": "string"
-        },
-        "type": {
-          "type": "string"
-        },
-        "external_id": {
-          "type": "string"
-        },
-        "location": {
-          "type": "object",
-          "properties": {
-            "latitude": {
-              "type": "number"
-            },
-            "longitude": {
-              "type": "number"
-            }
-          },
-          "required": [
-            "latitude",
-            "longitude"
-          ]
-        }
-      },
-      "required": [
-        "id",
-        "name",
-        "addresses",
-        "phones",
-        "email",
-        "type"
-      ]
+    "medication_qty": {
+      "type": "number",
+      "minimum": 0,
+      "exclusiveMinimum": true,
+      "description": "Medication quantity isuued by the doctor"
     },
-    "employee": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "position": {
-          "type": "string",
-          "description": "Dictionary: POSITION"
-        },
-        "party": {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "string"
-            },
-            "first_name": {
-              "type": "string"
-            },
-            "last_name": {
-              "type": "string"
-            },
-            "second_name": {
-              "type": "string"
-            },
-            "email": {
-              "type": "string"
-            },
-            "phones": {
-              "type": "array"
-            },
-            "tax_id": {
-              "not": {}
-            },
-            "documents": {
-              "not": {}
-            }
-          },
-          "required": [
-            "id",
-            "first_name",
-            "last_name"
-          ]
-        }
-      },
-      "required": [
-        "id",
-        "position"
-      ]
-    },
-    "person": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "first_name": {
-          "type": "string"
-        },
-        "last_name": {
-          "type": "string"
-        },
-        "second_name": {
-          "type": "string"
-        },
-        "age": {
-          "type": "integer",
-          "description": "Full years between birth date and medication request date"
-        }
-      },
-      "required": [
-        "id",
-        "first_name",
-        "last_name",
-        "age"
-      ],
-      "additionalProperties": false
-    },
-    "medication_info": {
-      "type": "object",
-      "properties": {
-        "medication_id": {
-          "type": "string",
-          "description": "`Identifier medication with type **INNM_DOSAGE**`"
-        },
-        "medication_name": {
-          "type": "string",
-          "description": "`Name of medication with type **INNM_DOSAGE**`"
-        },
-        "form": {
-          "type": "string",
-          "description": "Dictionary: MEDICATION_FORM"
-        },
-        "dosage": {
-          "type": "object",
-          "properties": {
-            "numerator_unit": {
-              "type": "string",
-              "description": "Dictionary: MEDICATION_UNIT"
-            },
-            "numerator_value": {
-              "type": "number"
-            },
-            "denumerator_unit": {
-              "type": "string",
-              "description": "Dictionary: MEDICATION_UNIT"
-            },
-            "denumerator_value": {
-              "type": "number"
-            }
-          },
-          "required": [
-            "numerator_unit",
-            "numerator_value",
-            "denumerator_unit",
-            "denumerator_value"
-          ],
-          "description": "Dosage of innm_dosage object"
-        },
-        "medication_qty": {
-          "type": "number",
-          "description": "Medication quantity isuued by the doctor"
-        }
-      },
-      "required": [
-        "medication_id",
-        "medication_name",
-        "form",
-        "dosage",
-        "medication_qty"
-      ]
-    },
-    "medical_program": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "`Medical program Identifier`"
-        },
-        "name": {
-          "type": "string",
-          "description": "`Medical program name`"
-        }
-      },
-      "required": [
-        "id",
-        "name"
-      ]
+    "medical_program_id": {
+      "$ref": "#/definitions/uuid",
+      "description": "Medical program identifier"
     },
     "intent": {
       "type": "string",
+      "enum": [
+        "plan",
+        "order"
+      ],
       "description": "Represents the medication request purpose. Dictionary MEDICATION_REQUEST_INTENT"
     },
     "category": {
       "type": "string",
+      "enum": [
+        "community"
+      ],
       "description": "Type of medication usage. Dictionary MEDICATION_REQUEST_CATEGORY"
     },
     "context": {
@@ -555,14 +399,21 @@
               "properties": {
                 "coding": {
                   "type": "array",
+                  "minItems": 1,
                   "items": {
                     "type": "object",
                     "properties": {
                       "system": {
-                        "type": "string"
+                        "type": "string",
+                        "enum": [
+                          "eHealth/resources"
+                        ]
                       },
                       "code": {
                         "type": "string",
+                        "enum": [
+                          "encounter"
+                        ],
                         "description": "Symbol in syntax defined by the system"
                       }
                     },
@@ -602,20 +453,17 @@
     }
   },
   "required": [
-    "id",
-    "status",
-    "request_number",
+    "person_id",
+    "employee_id",
+    "division_id",
     "created_at",
     "started_at",
     "ended_at",
     "dispense_valid_from",
     "dispense_valid_to",
-    "legal_entity",
-    "division",
-    "employee",
-    "person",
-    "medication_info",
-    "medical_program",
+    "medication_id",
+    "medication_qty",
+    "medical_program_id",
     "intent",
     "category"
   ],

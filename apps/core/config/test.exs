@@ -17,7 +17,8 @@ config :core,
   ],
   cache: [
     validators: Core.Validators.CacheTest
-  ]
+  ],
+  rpc_worker: RPCWorkerMock
 
 # Configures PRM API
 config :core, Core.API.PRM, endpoint: {:system, "PRM_ENDPOINT", "http://localhost:4040"}

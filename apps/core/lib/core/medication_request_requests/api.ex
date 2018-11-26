@@ -127,7 +127,12 @@ defmodule Core.MedicationRequestRequests do
 
   """
   def create(attrs, user_id, client_id) do
-    with :ok <- Validations.validate_create_schema(attrs) do
+    with :ok <- Validations.validate_create_schema(:generic, attrs),
+         intent <-
+           attrs
+           |> Map.get("intent")
+           |> String.to_atom(),
+         :ok <- Validations.validate_create_schema(intent, attrs) do
       create_operation = CreateDataOperation.create(attrs, client_id)
 
       case create_operation

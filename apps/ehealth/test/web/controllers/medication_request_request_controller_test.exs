@@ -4,6 +4,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
   use EHealth.Web.ConnCase, async: false
   import Mox
   import Core.Expectations.Signature
+  alias Core.MedicationRequestRequest
   alias Core.MedicationRequestRequests
   alias EHealth.MockServer
   alias Core.Repo
@@ -13,6 +14,24 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
   setup :verify_on_exit!
 
   @legal_entity_id "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
+  @medication_request_request_data_fields ~w(
+    created_at
+    started_at
+    ended_at
+    dispense_valid_from
+    dispense_valid_to
+    person_id
+    employee_id
+    division_id
+    medication_id
+    legal_entity_id
+    medication_qty
+    medical_program_id
+    intent
+    category
+    context
+    dosage_instruction
+  )a
 
   def fixture(:medication_request_request) do
     {medication_id, pm} = create_medications_structure()
@@ -53,6 +72,18 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     user_id = Ecto.UUID.generate()
     PRMRepo.insert!(%Core.PartyUsers.PartyUser{user_id: user_id, party_id: party_id})
 
+    insert(:il, :dictionary, name: "eHealth/SNOMED/additional_dosage_instructions", values: %{"311504000" => ""})
+    insert(:il, :dictionary, name: "eHealth/timing_abbreviation", values: %{"patient" => ""})
+
+    insert(:il, :dictionary,
+      name: "eHealth/SNOMED/anatomical_structure_administration_site_codes",
+      values: %{"344001" => ""}
+    )
+
+    insert(:il, :dictionary, name: "eHealth/SNOMED/route_codes", values: %{"46713006" => ""})
+    insert(:il, :dictionary, name: "eHealth/SNOMED/administration_methods", values: %{"419747000" => ""})
+    insert(:il, :dictionary, name: "eHealth/dose_and_rate", values: %{"ordered" => ""})
+
     conn =
       conn
       |> put_consumer_id_header(user_id)
@@ -71,6 +102,10 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       expect_ops_get_declarations()
       expect_mpi_get_person(2)
 
+      expect(RPCWorkerMock, :run, fn _, _, :encounter_status_by_id, _, _ ->
+        {:ok, "finished"}
+      end)
+
       mrr = fixture(:medication_request_request)
       data = %{"employee_id" => mrr.medication_request_request.data.employee_id}
 
@@ -87,6 +122,10 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       expect_ops_get_declarations()
       expect_mpi_get_person(2)
 
+      expect(RPCWorkerMock, :run, fn _, _, :encounter_status_by_id, _, _ ->
+        {:ok, "finished"}
+      end)
+
       fixture(:medication_request_request)
 
       assert 1 =
@@ -101,6 +140,10 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     test "lists all medication_request_requests with data search by person_id", %{conn: conn} do
       expect_ops_get_declarations()
       expect_mpi_get_person(2)
+
+      expect(RPCWorkerMock, :run, fn _, _, :encounter_status_by_id, _, _ ->
+        {:ok, "finished"}
+      end)
 
       mrr = fixture(:medication_request_request)
       data = %{"person_id" => mrr.medication_request_request.data.person_id}
@@ -117,6 +160,10 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     test "lists all medication_request_requests with data search by all posible filters", %{conn: conn} do
       expect_ops_get_declarations()
       expect_mpi_get_person(2)
+
+      expect(RPCWorkerMock, :run, fn _, _, :encounter_status_by_id, _, _ ->
+        {:ok, "finished"}
+      end)
 
       mrr = fixture(:medication_request_request)
 
@@ -141,6 +188,10 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       expect_ops_get_declarations()
       expect_mpi_get_person(2)
 
+      expect(RPCWorkerMock, :run, fn _, _, :encounter_status_by_id, _, _ ->
+        {:ok, "finished"}
+      end)
+
       %{medication_request_request: %{id: id}} = fixture(:medication_request_request)
 
       conn = get(conn, medication_request_request_path(conn, :show, id))
@@ -159,6 +210,10 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     test "render medication_request_request when data is valid", %{conn: conn} do
       expect_ops_get_declarations()
       expect_mpi_get_person(2)
+
+      expect(RPCWorkerMock, :run, fn _, _, :encounter_status_by_id, _, _ ->
+        {:ok, "finished"}
+      end)
 
       {medication_id, pm} = create_medications_structure()
 
@@ -179,11 +234,38 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       |> json_response(200)
       |> Map.get("data")
       |> assert_show_response_schema("medication_request_request")
+
+      medication_request_request_data =
+        MedicationRequestRequest
+        |> Repo.get!(id)
+        |> Map.get(:data)
+
+      Enum.each(@medication_request_request_data_fields, fn field ->
+        assert Map.has_key?(medication_request_request_data, field)
+      end)
     end
 
-    test "render errors when data is invalid", %{conn: conn} do
-      conn = post(conn, medication_request_request_path(conn, :create), medication_request_request: %{})
-      assert json_response(conn, 422)["errors"] != %{}
+    test "render errors when request data is invalid", %{conn: conn} do
+      resp =
+        conn
+        |> post(medication_request_request_path(conn, :create), medication_request_request: %{})
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.intent",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "required property intent was not present",
+                       "params" => [],
+                       "rule" => "required"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
     end
 
     test "render errors when person_id is invalid", %{conn: conn} do
@@ -358,6 +440,10 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       expect_ops_get_declarations()
       expect_mpi_get_person()
 
+      expect(RPCWorkerMock, :run, fn _, _, :encounter_status_by_id, _, _ ->
+        {:ok, "finished"}
+      end)
+
       {medication_id, pm} = create_medications_structure()
 
       %{id: med_id1} =
@@ -395,6 +481,391 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       assert json_response(conn, 422)
       assert List.first(json_response(conn, 422)["error"]["invalid"])["entry"] == "$.data.medical_program_id"
     end
+
+    test "render errors when request ORDER data is invalid", %{conn: conn} do
+      test_request =
+        test_request()
+        |> Map.drop(~w(medical_program_id category))
+        |> Map.merge(%{
+          "intent" => "order",
+          "medication_id" => UUID.generate(),
+          "context" => %{
+            "identifier" => %{
+              "type" => %{
+                "coding" => %{
+                  "system" => "eHealth/resources",
+                  "code" => "encounter"
+                }
+              },
+              value: "9183a36b-4d45-4244-9339-63d81cd08d9c"
+            }
+          }
+        })
+
+      resp =
+        conn
+        |> post(medication_request_request_path(conn, :create), medication_request_request: test_request)
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.context.identifier.type.coding",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "type mismatch. Expected Array but got Object",
+                       "params" => ["array"],
+                       "rule" => "cast"
+                     }
+                   ]
+                 },
+                 %{
+                   "entry" => "$.medical_program_id",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "required property medical_program_id was not present",
+                       "params" => [],
+                       "rule" => "required"
+                     }
+                   ]
+                 },
+                 %{
+                   "entry" => "$.category",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "required property category was not present",
+                       "params" => [],
+                       "rule" => "required"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
+    end
+
+    test "render errors when request PLAN data is invalid", %{conn: conn} do
+      test_request =
+        test_request()
+        |> Map.drop(~w(medical_program_id category))
+        |> Map.merge(%{
+          "medication_id" => UUID.generate(),
+          "context" => %{
+            "identifier" => %{
+              "type" => %{
+                "coding" => %{
+                  "system" => "eHealth/resources",
+                  "code" => "encounter"
+                }
+              },
+              value: "9183a36b-4d45-4244-9339-63d81cd08d9c"
+            }
+          }
+        })
+
+      resp =
+        conn
+        |> post(medication_request_request_path(conn, :create), medication_request_request: test_request)
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.context.identifier.type.coding",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "type mismatch. Expected Array but got Object",
+                       "params" => ["array"],
+                       "rule" => "cast"
+                     }
+                   ]
+                 },
+                 %{
+                   "entry" => "$.category",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "required property category was not present",
+                       "params" => [],
+                       "rule" => "required"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
+    end
+
+    test "render errors when context coding type is invalid", %{conn: conn} do
+      test_request =
+        test_request()
+        |> Map.merge(%{
+          "medication_id" => UUID.generate(),
+          "medical_program_id" => UUID.generate(),
+          "context" => %{
+            "identifier" => %{
+              "type" => %{
+                "coding" => [
+                  %{
+                    "system" => "eHealth/resources",
+                    "code" => "test"
+                  }
+                ]
+              },
+              value: "9183a36b-4d45-4244-9339-63d81cd08d9c"
+            }
+          }
+        })
+
+      resp =
+        conn
+        |> post(medication_request_request_path(conn, :create), medication_request_request: test_request)
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.context.identifier.type.coding.[0].code",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "value is not allowed in enum",
+                       "params" => ["encounter"],
+                       "rule" => "inclusion"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
+    end
+
+    test "render errors when context encounter status is invalid", %{conn: conn} do
+      expect_ops_get_declarations()
+      expect_mpi_get_person()
+
+      expect(RPCWorkerMock, :run, fn _, _, :encounter_status_by_id, _, _ ->
+        {:ok, "entered_in_error"}
+      end)
+
+      {medication_id, pm} = create_medications_structure()
+
+      test_request =
+        test_request()
+        |> Map.put("medication_id", medication_id)
+        |> Map.put("medical_program_id", pm.medical_program_id)
+
+      resp =
+        conn
+        |> post(medication_request_request_path(conn, :create), medication_request_request: test_request)
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.data.context",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "Entity in status \"entered-in-error\" can not be referenced",
+                       "params" => [],
+                       "rule" => "invalid"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
+    end
+
+    test "render errors when context encounter not found", %{conn: conn} do
+      expect_ops_get_declarations()
+      expect_mpi_get_person()
+
+      expect(RPCWorkerMock, :run, fn _, _, :encounter_status_by_id, _, _ ->
+        nil
+      end)
+
+      {medication_id, pm} = create_medications_structure()
+
+      test_request =
+        test_request()
+        |> Map.put("medication_id", medication_id)
+        |> Map.put("medical_program_id", pm.medical_program_id)
+
+      resp =
+        conn
+        |> post(medication_request_request_path(conn, :create), medication_request_request: test_request)
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.data.context",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "Entity not found",
+                       "params" => [],
+                       "rule" => "invalid"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
+    end
+
+    test "render errors when sequence is not unique within dosage instruction array", %{conn: conn} do
+      expect_ops_get_declarations()
+      expect_mpi_get_person()
+
+      expect(RPCWorkerMock, :run, fn _, _, :encounter_status_by_id, _, _ ->
+        {:ok, "finished"}
+      end)
+
+      {medication_id, pm} = create_medications_structure()
+
+      test_request =
+        test_request()
+        |> Map.put("medication_id", medication_id)
+        |> Map.put("medical_program_id", pm.medical_program_id)
+
+      dosage_instruction = Map.get(test_request, "dosage_instruction")
+      dosage_instruction_item = hd(dosage_instruction)
+      test_request = Map.put(test_request, "dosage_instruction", [dosage_instruction_item | dosage_instruction])
+
+      resp =
+        conn
+        |> post(medication_request_request_path(conn, :create), medication_request_request: test_request)
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.data.dosage_instruction",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "Sequence must be unique",
+                       "params" => [],
+                       "rule" => "invalid"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
+    end
+
+    test "render errors when dosage instruction entry code is not valid in dictionary", %{conn: conn} do
+      expect_ops_get_declarations(2)
+      expect_mpi_get_person(2)
+
+      expect(RPCWorkerMock, :run, 2, fn _, _, :encounter_status_by_id, _, _ ->
+        {:ok, "finished"}
+      end)
+
+      {medication_id, pm} = create_medications_structure()
+
+      test_request =
+        test_request()
+        |> Map.put("medication_id", medication_id)
+        |> Map.put("medical_program_id", pm.medical_program_id)
+
+      dosage_instruction = Map.get(test_request, "dosage_instruction")
+
+      endpoint_call = fn request ->
+        conn
+        |> post(medication_request_request_path(conn, :create), medication_request_request: request)
+        |> json_response(422)
+      end
+
+      # additional_instruction testing
+
+      dosage_instruction_item =
+        dosage_instruction
+        |> hd()
+        |> Map.merge(%{
+          "sequence" => 2,
+          "additional_instruction" => [
+            %{
+              "coding" => [
+                %{
+                  "system" => "eHealth/SNOMED/additional_dosage_instructions",
+                  "code" => "311504000"
+                }
+              ]
+            },
+            %{
+              "coding" => [
+                %{
+                  "system" => "eHealth/SNOMED/additional_dosage_instructions",
+                  "code" => "311504000"
+                },
+                %{
+                  "system" => "eHealth/SNOMED/additional_dosage_instructions",
+                  "code" => "test"
+                }
+              ]
+            }
+          ]
+        })
+
+      resp =
+        endpoint_call.(Map.put(test_request, "dosage_instruction", dosage_instruction ++ [dosage_instruction_item]))
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.data.dosage_instruction",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" =>
+                         "incorrect additional instruction ($.dosage_instruction[1].additional_instruction[1].coding[1].code)",
+                       "params" => [],
+                       "rule" => "invalid"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
+
+      # site testing
+
+      dosage_instruction_item =
+        dosage_instruction
+        |> hd()
+        |> Map.put("site", %{
+          "coding" => [
+            %{
+              "system" => "eHealth/SNOMED/anatomical_structure_administration_site_codes",
+              "code" => "344001"
+            },
+            %{
+              "system" => "eHealth/SNOMED/anatomical_structure_administration_site_codes",
+              "code" => "test"
+            }
+          ]
+        })
+
+      resp = endpoint_call.(Map.put(test_request, "dosage_instruction", [dosage_instruction_item]))
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.data.dosage_instruction",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "incorrect site ($.dosage_instruction[0].site.coding[1].code)",
+                       "params" => [],
+                       "rule" => "invalid"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
+    end
   end
 
   describe "prequalify medication request request" do
@@ -411,7 +882,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       test_request =
         test_request()
         |> Map.put("medication_id", medication_id)
-        |> Map.delete("medical_program_id")
+        |> Map.drop(~w(medical_program_id intent category context dosage_instruction))
 
       data = %{medication_request_request: test_request, programs: [%{id: pm.medical_program_id}]}
 
@@ -441,7 +912,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       test_request =
         test_request()
         |> Map.put("medication_id", medication_id)
-        |> Map.delete("medical_program_id")
+        |> Map.drop(~w(medical_program_id intent category context dosage_instruction))
 
       data = %{
         medication_request_request: test_request,
@@ -491,18 +962,22 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       test_request =
         test_request()
         |> Map.put("medication_id", medication_id)
-        |> Map.delete("medical_program_id")
+        |> Map.drop(~w(medical_program_id intent category context dosage_instruction))
 
-      conn1 =
-        post(conn, medication_request_request_path(conn, :prequalify), %{
+      resp =
+        conn
+        |> post(medication_request_request_path(conn, :prequalify), %{
           medication_request_request: test_request,
           programs: [%{id: pm1.medical_program_id}]
         })
+        |> json_response(200)
+        |> Map.get("data")
+        |> hd()
 
       assert %{
                "status" => "INVALID",
                "rejection_reason" => ~s(Innm not on the list of approved innms for program "Доступні ліки")
-             } = json_response(conn1, 200)["data"] |> Enum.at(0)
+             } = resp
     end
 
     test "render error when data is invalid", %{conn: conn} do
@@ -524,6 +999,10 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     test "works when data is valid", %{conn: conn} do
       expect_ops_get_declarations()
       expect_mpi_get_person(2)
+
+      expect(RPCWorkerMock, :run, fn _, _, :encounter_status_by_id, _, _ ->
+        {:ok, "finished"}
+      end)
 
       {medication_id, pm} = create_medications_structure()
 
@@ -554,6 +1033,10 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       expect_ops_get_declarations()
       expect_mpi_get_person()
 
+      expect(RPCWorkerMock, :run, fn _, _, :encounter_status_by_id, _, _ ->
+        {:ok, "finished"}
+      end)
+
       {medication_id, pm} = create_medications_structure()
 
       test_request =
@@ -580,6 +1063,10 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
       expect_ops_get_declarations()
       expect_mpi_get_person(2)
+
+      expect(RPCWorkerMock, :run, fn _, _, :encounter_status_by_id, _, _ ->
+        {:ok, "finished"}
+      end)
 
       expect(OPSMock, :create_medication_request, fn params, _headers ->
         medication_request = build(:medication_request, id: params.medication_request.id)
@@ -640,6 +1127,10 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       expect_ops_get_declarations()
       expect_mpi_get_person()
 
+      expect(RPCWorkerMock, :run, fn _, _, :encounter_status_by_id, _, _ ->
+        {:ok, "finished"}
+      end)
+
       {medication_id, pm} = create_medications_structure()
 
       test_request =
@@ -674,6 +1165,10 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       expect_ops_get_declarations()
       expect_mpi_get_person(2)
 
+      expect(RPCWorkerMock, :run, fn _, _, :encounter_status_by_id, _, _ ->
+        {:ok, "finished"}
+      end)
+
       {medication_id, pm} = create_medications_structure()
 
       test_request =
@@ -699,8 +1194,8 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
   end
 
-  defp expect_ops_get_declarations do
-    expect(OPSMock, :get_declarations, fn _params, _headers ->
+  defp expect_ops_get_declarations(times_called \\ 1) do
+    expect(OPSMock, :get_declarations, times_called, fn _params, _headers ->
       declaration = build(:declaration)
 
       {:ok, MockServer.wrap_response_with_paging([declaration])}

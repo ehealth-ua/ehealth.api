@@ -30,7 +30,8 @@ config :core,
   ],
   cache: [
     validators: Core.Validators.Cache
-  ]
+  ],
+  rpc_worker: Core.Rpc.Worker
 
 # Configures Legal Entities token permission
 config :core, Core.Context,
@@ -316,5 +317,7 @@ config :core, Core.DeclarationRequests.API.V1.Creator,
 config :cipher,
   keyphrase: System.get_env("CIPHER_KEYPHRASE") || "8()VN#U#_CU#X)*BFG(Cadsvn$&",
   ivphrase: System.get_env("CIPHER_IVPHRASE") || "B((%(^(%V(CWBY(**(by(*YCBDYB#(Y(C#"
+
+config :core, Core.Rpc.Worker, max_attempts: {:system, :integer, "RPC_MAX_ATTEMPTS", 3}
 
 import_config "#{Mix.env()}.exs"

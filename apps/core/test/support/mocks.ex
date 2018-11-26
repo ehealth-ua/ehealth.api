@@ -8,6 +8,6 @@ Mox.defmock(ReportMock, for: Core.API.ReportBehaviour)
 Mox.defmock(OTPVerificationMock, for: Core.API.OTPVerificationBehaviour)
 Mox.defmock(UAddressesMock, for: Core.API.UAddressesBehaviour)
 Mox.defmock(CasherMock, for: Core.API.CasherBehaviour)
-
 Mox.defmock(PostmarkMock, for: Core.API.PostmarkBehaviour)
 Mox.defmock(DeclarationRequestsCreatorMock, for: Core.DeclarationRequests.API.CreatorBehaviour)
+Mox.defmock(RPCWorkerMock, for: Core.API.RPCWorkerBehaviour)

@@ -50,5 +50,9 @@ defmodule Core.MedicationRequestRequest.EmbeddedData do
     field(:legal_entity_id, Ecto.UUID, null: false)
     field(:medication_qty, :integer, null: false)
     field(:medical_program_id, Ecto.UUID, null: false)
+    field(:intent, :string, null: false)
+    field(:category, :string, null: false)
+    field(:context, :map)
+    field(:dosage_instruction, {:array, :map})
   end
 end

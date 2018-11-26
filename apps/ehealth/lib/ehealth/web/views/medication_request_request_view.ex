@@ -23,26 +23,26 @@ defmodule EHealth.Web.MedicationRequestRequestView do
   end
 
   def render("medication_request_request_detail.json", %{data: values}) do
+    additional_fields = ~w(intent category context dosage_instruction)a
+
     values.medication_request_request.data
     |> Map.take(~w(created_at started_at ended_at dispense_valid_from dispense_valid_to)a)
-    |> Map.put(:id, values.medication_request_request.id)
-    |> Map.put(:person, render_person(values.person, values.medication_request_request.data.created_at))
-    |> Map.put(:employee, render(EmployeeView, "employee_private.json", %{employee: values.employee}))
-    |> Map.put(
-      :legal_entity,
-      render(LegalEntityView, "show_reimbursement.json", %{legal_entity: values.legal_entity})
-    )
-    |> Map.put(:division, render(DivisionView, "division.json", %{division: values.division}))
-    |> Map.put(
-      :medication_info,
-      render(INNMDosageView, "innm_dosage_short.json", %{
-        innm_dosage: values.medication,
-        medication_qty: values.medication_request_request.data.medication_qty
-      })
-    )
-    |> Map.put(:medical_program, render(MedicalProgramView, "show.json", %{medical_program: values.medical_program}))
-    |> Map.put(:request_number, values.medication_request_request.request_number)
-    |> Map.put(:status, values.medication_request_request.status)
+    |> Map.merge(%{
+      id: values.medication_request_request.id,
+      person: render_person(values.person, values.medication_request_request.data.created_at),
+      employee: render(EmployeeView, "employee_private.json", %{employee: values.employee}),
+      legal_entity: render(LegalEntityView, "show_reimbursement.json", %{legal_entity: values.legal_entity}),
+      division: render(DivisionView, "division.json", %{division: values.division}),
+      medication_info:
+        render(INNMDosageView, "innm_dosage_short.json", %{
+          innm_dosage: values.medication,
+          medication_qty: values.medication_request_request.data.medication_qty
+        }),
+      medical_program: render(MedicalProgramView, "show.json", %{medical_program: values.medical_program}),
+      request_number: values.medication_request_request.request_number,
+      status: values.medication_request_request.status
+    })
+    |> put_additional_fields(values.medication_request_request.data, additional_fields)
   end
 
   def render("medication_request_request.json", %{medication_request_request: medication_request_request}) do
@@ -80,5 +80,14 @@ defmodule EHealth.Web.MedicationRequestRequestView do
 
   def render_person(person, mrr_created_at) do
     MedicationRequestRequestRenderer.render_person(person, mrr_created_at)
+  end
+
+  defp put_additional_fields(response, data, additional_fields) do
+    additional_response =
+      Enum.reduce(additional_fields, %{}, fn field, acc ->
+        if Map.has_key?(data, field), do: Map.put(acc, field, Map.get(data, field)), else: acc
+      end)
+
+    Map.merge(response, additional_response)
   end
 end

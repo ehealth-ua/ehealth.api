@@ -2,14 +2,25 @@ defmodule Core.MedicationRequestRequest.Validations do
   @moduledoc false
 
   alias Core.Declarations.API, as: DeclarationsAPI
+  alias Core.Dictionaries
   alias Core.Employees
   alias Core.Employees.Employee
   alias Core.Medications
   alias Core.Validators.JsonSchema
   alias Core.Validators.Signature, as: SignatureValidator
 
-  def validate_create_schema(params) do
-    JsonSchema.validate(:medication_request_request_create, params)
+  @rpc_worker Application.get_env(:core, :rpc_worker)
+
+  def validate_create_schema(:generic, params) do
+    JsonSchema.validate(:medication_request_request_create_generic, params)
+  end
+
+  def validate_create_schema(:order, params) do
+    JsonSchema.validate(:medication_request_request_create_order, params)
+  end
+
+  def validate_create_schema(:plan, params) do
+    JsonSchema.validate(:medication_request_request_create_plan, params)
   end
 
   def validate_prequalify_schema(params) do
@@ -72,6 +83,141 @@ defmodule Core.MedicationRequestRequest.Validations do
 
   defp validate_medication_qty(medications, medication_qty) do
     {0 in Enum.map(medications, fn med -> rem(medication_qty, med.package_min_qty) end), :medication_qty}
+  end
+
+  def validate_medical_event_entity(nil, _), do: {:ok, nil}
+
+  def validate_medical_event_entity(context, patient_id) do
+    type =
+      context
+      |> get_in(~w(identifier type coding))
+      |> hd()
+      |> Map.get("code")
+      |> String.to_atom()
+
+    entity_id = get_in(context, ~w(identifier value))
+
+    do_validate_medical_event_entity(type, patient_id, entity_id)
+  end
+
+  defp do_validate_medical_event_entity(:encounter, patient_id, entity_id) do
+    case @rpc_worker.run("me", Core.Rpc, :encounter_status_by_id, [patient_id, entity_id], []) do
+      {:ok, "entered_in_error"} ->
+        {:invalid_encounter, nil}
+
+      {:ok, _} ->
+        {:ok, nil}
+
+      _ ->
+        {:not_found_encounter, nil}
+    end
+  end
+
+  def validate_dosage_instruction(nil), do: {:ok, nil}
+
+  def validate_dosage_instruction(dosage_instruction) do
+    with :ok <- validate_sequences(dosage_instruction),
+         :ok <- validate_codeable(dosage_instruction) do
+      {:ok, nil}
+    end
+  end
+
+  defp validate_sequences(dosage_instruction) do
+    sequences = Enum.map(dosage_instruction, &Map.get(&1, "sequence"))
+
+    if Enum.uniq(sequences) == sequences do
+      :ok
+    else
+      {:sequence_error, nil}
+    end
+  end
+
+  defp validate_codeable(dosage_instruction) do
+    dosage_instruction
+    |> Enum.with_index()
+    |> Enum.reduce_while(:ok, fn {instruction, instruction_index}, acc ->
+      with :ok <-
+             do_validate_codeable(instruction["additional_instruction"], "additional instruction", fn i ->
+               "$.dosage_instruction[#{Enum.at(i, 0)}].additional_instruction[#{Enum.at(i, 1)}].coding[#{Enum.at(i, 2)}].code"
+             end),
+           :ok <-
+             do_validate_codeable(instruction["site"], "site", fn i ->
+               "$.dosage_instruction[#{Enum.at(i, 0)}].site.coding[#{Enum.at(i, 1)}].code"
+             end),
+           :ok <-
+             do_validate_codeable(instruction["route"], "route", fn i ->
+               "$.dosage_instruction[#{Enum.at(i, 0)}].route.coding[#{Enum.at(i, 1)}].code"
+             end),
+           :ok <-
+             do_validate_codeable(instruction["method"], "method", fn i ->
+               "$.dosage_instruction[#{Enum.at(i, 0)}].method.coding[#{Enum.at(i, 1)}].code"
+             end),
+           :ok <-
+             do_validate_codeable(instruction["dose_and_rate"]["type"], "dose and rate type", fn i ->
+               "$.dosage_instruction[#{Enum.at(i, 0)}].dose_and_rate.type.coding[#{Enum.at(i, 1)}].code"
+             end) do
+        {:cont, acc}
+      else
+        {:error,
+         %{
+           description: description,
+           indexes: indexes,
+           path: path_fun
+         }} ->
+          indexes = [instruction_index | Enum.reject(indexes, &is_nil/1)]
+          {:halt, {:invalid_dosage_instruction, %{description: description, path: path_fun.(indexes)}}}
+      end
+    end)
+  end
+
+  defp do_validate_codeable(codeable, description, path_fun) when is_list(codeable) do
+    codeable
+    |> Enum.with_index()
+    |> Enum.reduce_while(:ok, fn {codeable_item, codeable_index}, acc ->
+      case do_validate_codeable(codeable_item, description, path_fun) do
+        :ok ->
+          {:cont, acc}
+
+        {:error,
+         %{
+           description: description,
+           indexes: [nil, coding_index],
+           path: path_fun
+         }} ->
+          {:halt,
+           {:error,
+            %{
+              description: description,
+              indexes: [codeable_index, coding_index],
+              path: path_fun
+            }}}
+      end
+    end)
+  end
+
+  defp do_validate_codeable(codeable, description, path_fun) do
+    codeable
+    |> Map.get("coding")
+    |> Enum.with_index()
+    |> Enum.reduce_while(:ok, fn {%{
+                                    "system" => system,
+                                    "code" => code
+                                  }, coding_index},
+                                 acc ->
+      {:ok, [dictionary]} = Dictionaries.list_dictionaries(%{name: system, is_active: true})
+
+      if Map.has_key?(dictionary.values, code) do
+        {:cont, acc}
+      else
+        {:halt,
+         {:error,
+          %{
+            description: description,
+            indexes: [nil, coding_index],
+            path: path_fun
+          }}}
+      end
+    end)
   end
 
   def decode_sign_content(content, headers) do

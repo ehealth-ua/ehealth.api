@@ -1647,6 +1647,147 @@
     "is_active": true
   },
   {
+    "name": "MEDICATION_REQUEST_INTENT",
+    "values": {
+      "plan": "План застосування",
+      "order": "Замовлення ліків"
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
+  },
+  {
+    "name": "MEDICATION_REQUEST_CATEGORY",
+    "values": {
+      "community": "Самостійне застосування медичних препаратів для профілактики та лікування"
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
+  },
+  {
+    "name": "eHealth/SNOMED/additional_dosage_instructions",
+    "values": {
+      "311501008": "Half to one hour before food",
+      "311504000": "With or after food",
+      "417929005": "Times",
+      "417980006": "Contains aspirin",
+      "417995008": "Dissolve or mix with water before taking",
+      "418071006": "Warning. Causes drowsiness which may continue the next day. If affected do not drive or operate machinery. Avoid alcoholic drink",
+      "418194009": "Contains an aspirin-like medicine",
+      "418281004": "Do not take anything containing aspirin while taking this medicine",
+      "418443006": "Do not take more than . . . in 24 hours or . . . in any one week",
+      "418521000": "Avoid exposure of skin to direct sunlight or sun lamps",
+      "418577003": "Take at regular intervals. Complete the prescribed course unless otherwise directed",
+      "418637003": "Do not take with any other paracetamol products",
+      "418639000": "Warning. May cause drowsiness",
+      "418693002": "Swallowed whole, not chewed",
+      "418849000": "Warning. Follow the printed instructions you have been given with this medicine",
+      "418850000": "Contains aspirin and paracetamol. Do not take with any other paracetamol products",
+      "418914006": "Warning. May cause drowsiness. If affected do not drive or operate machinery. Avoid alcoholic drink",
+      "418954008": "Warning. May cause drowsiness. If affected do not drive or operate machinery",
+      "418991002": "Sucked or chewed",
+      "419111009": "Allow to dissolve under the tongue. Do not transfer from this container. Keep tightly closed. Discard eight weeks after opening",
+      "419115000": "Do not take milk, indigestion remedies, or medicines containing iron or zinc at the same time of day as this medicine",
+      "419303009": "With plenty of water",
+      "419437002": "Do not take more than 2 at any one time. Do not take more than 8 in 24 hours",
+      "419439004": "Caution flammable: keep away from fire or flames",
+      "419444006": "Do not stop taking this medicine except on your doctor's advice",
+      "419473009": "Each",
+      "419529008": "Dissolved under the tongue",
+      "419822006": "Warning. Avoid alcoholic drink",
+      "419974005": "This medicine may color the urine",
+      "420003005": "Do not take more than . . . in 24 hours",
+      "420082003": "Do not take indigestion remedies or medicines containing iron or zinc at the same time of day as this medicine",
+      "420110001": "Do not take indigestion remedies at the same time of day as this medicine",
+      "420162004": "To be spread thinly",
+      "420652005": "Until gone",
+      "421484000": "Then discontinue",
+      "421769005": "Follow directions",
+      "421984009": "Until finished",
+      "422327006": "Then stop",
+      "428579001": "Use with caution",
+      "717154004": "Take on an empty stomach"
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
+  },
+  {
+    "name": "eHealth/SNOMED/medication_as_needed_reason_codes",
+    "values": {
+      "144008": "Нормальний периферичний зір"
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
+  },
+  {
+    "name": "eHealth/SNOMED/anatomical_structure_administration_site_codes",
+    "values": {
+      "344001": "Щиколотка"
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
+  },
+  {
+    "name": "eHealth/SNOMED/route_codes",
+    "values": {
+      "46713006": "Нозальне використання"
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
+  },
+  {
+    "name": "eHealth/SNOMED/administration_methods",
+    "values": {
+      "419747000": "Жувати"
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
+  },
+  {
+    "name": "EVENT_TIMING",
+    "values": {
+      "HS": "HS",
+      "WAKE": "WAKE",
+      "C": "C",
+      "CM": "CM",
+      "CD": "CD",
+      "CV": "CV",
+      "AC": "AC",
+      "ACM": "ACM",
+      "ACD": "ACD",
+      "ACV": "ACV",
+      "PC": "PC",
+      "PCM": "PCM",
+      "PCD": "PCD",
+      "PCV": "PCV"
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
+  },
+  {
     "name": "DICTIONARY_LABELS",
     "values": {
       "SYSTEM": "Системний",

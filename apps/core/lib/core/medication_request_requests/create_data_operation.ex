@@ -18,7 +18,11 @@ defmodule Core.MedicationRequestRequest.CreateDataOperation do
     :division_id,
     :medication_id,
     :medication_qty,
-    :medical_program_id
+    :medical_program_id,
+    :intent,
+    :category,
+    :context,
+    :dosage_instruction
   ]
 
   def create(data, client_id) do
@@ -39,5 +43,7 @@ defmodule Core.MedicationRequestRequest.CreateDataOperation do
     |> validate_data(data, &validate_dates/2)
     |> validate_data(data, &validate_declaration_existance/2)
     |> validate_data(data, &validate_medication_id/2)
+    |> validate_data(data["context"], &validate_medical_event_entity/2)
+    |> validate_data(data["dosage_instruction"], &validate_dosage_instruction/2)
   end
 end
