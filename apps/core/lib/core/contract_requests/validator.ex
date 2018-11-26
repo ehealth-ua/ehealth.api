@@ -516,7 +516,7 @@ defmodule Core.ContractRequests.Validator do
     JsonSchema.validate(:reimbursement_contract_request, content)
   end
 
-  def validate_create_content(%{"type" => @capitation} = content, client_id) do
+  def validate_contract_request_content(:create, %{"type" => @capitation} = content, client_id) do
     with :ok <- validate_unique_contractor_employee_divisions(content),
          :ok <- validate_employee_divisions(content, client_id),
          :ok <- validate_external_contractors(content),
@@ -525,7 +525,7 @@ defmodule Core.ContractRequests.Validator do
     end
   end
 
-  def validate_create_content(%{"type" => @reimbursement} = content, _client_id) do
+  def validate_contract_request_content(:create, %{"type" => @reimbursement} = content, _client_id) do
     with medical_program <- MedicalPrograms.get_by_id(content["medical_program_id"]),
          :ok <- validate_medical_program(medical_program) do
       {:ok, %ReimbursementContractRequest{id: content["id"]}}

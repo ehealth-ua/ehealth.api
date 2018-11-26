@@ -9,6 +9,7 @@ defmodule Core.ContractRequests do
   import Core.ContractRequests.Validator
 
   alias Core.API.MediaStorage
+  alias Core.CapitationContractRequests
   alias Core.ContractRequests.CapitationContractRequest
   alias Core.ContractRequests.ReimbursementContractRequest
   alias Core.ContractRequests.Renderer
@@ -45,6 +46,49 @@ defmodule Core.ContractRequests do
     CapitationContractRequest.status(:terminated)
   ]
 
+  defmacro __using__(contract_request_schema: contract_request_schema) do
+    quote do
+      import Core.API.Helpers.Connection, only: [get_consumer_id: 1, get_client_id: 1]
+
+      alias Core.ContractRequests
+      alias Core.ContractRequests.Validator
+      alias Core.Repo
+
+      def get_by_id(headers, client_type, id) do
+        client_id = get_client_id(headers)
+
+        with {:ok, %unquote(contract_request_schema){} = contract_request} <-
+               get_contract_request(client_id, client_type, id) do
+          {:ok, contract_request, ContractRequests.preload_references(contract_request)}
+        end
+      end
+
+      def get_by_id(id), do: Repo.get(unquote(contract_request_schema), id)
+
+      def get_by_id!(id), do: Repo.get!(unquote(contract_request_schema), id)
+
+      def fetch_by_id(id) do
+        case get_by_id(id) do
+          %unquote(contract_request_schema){} = contract_request -> {:ok, contract_request}
+          nil -> {:error, {:not_found, "Reimbursement Contract Request not found"}}
+        end
+      end
+
+      defp get_contract_request(_, "NHS", id) do
+        with %unquote(contract_request_schema){} = contract_request <- Repo.get(unquote(contract_request_schema), id) do
+          {:ok, contract_request}
+        end
+      end
+
+      defp get_contract_request(client_id, "MSP", id) do
+        with %unquote(contract_request_schema){} = contract_request <- Repo.get(unquote(contract_request_schema), id),
+             :ok <- Validator.validate_legal_entity_id(client_id, contract_request.contractor_legal_entity_id) do
+          {:ok, contract_request}
+        end
+      end
+    end
+  end
+
   def search(search_params) do
     with %Changeset{valid?: true} = changeset <- Search.changeset(search_params),
          %Page{} = paging <- search(changeset, search_params, CapitationContractRequest) do
@@ -52,24 +96,32 @@ defmodule Core.ContractRequests do
     end
   end
 
-  def get_by_id(headers, client_type, id) do
-    client_id = get_client_id(headers)
+  @doc "@deprecated. Use get_by_id/4"
+  def get_by_id(headers, client_type, id), do: CapitationContractRequests.get_by_id(headers, client_type, id)
 
-    with {:ok, %CapitationContractRequest{} = contract_request} <- get_contract_request(client_id, client_type, id) do
-      {:ok, contract_request, preload_references(contract_request)}
-    end
-  end
+  def get_by_id(@capitation, headers, client_type, id),
+    do: CapitationContractRequests.get_by_id(headers, client_type, id)
 
-  def get_by_id(id), do: Repo.get(CapitationContractRequest, id)
+  def get_by_id(@reimbursement, headers, client_type, id),
+    do: ReimbursementContractRequests.get_by_id(headers, client_type, id)
 
-  def get_by_id!(id), do: Repo.get!(CapitationContractRequest, id)
+  @doc "@deprecated. Use get_by_id/2"
+  def get_by_id(id), do: get_by_id(@capitation, id)
 
-  def fetch_by_id(id) do
-    case get_by_id(id) do
-      %CapitationContractRequest{} = contract_request -> {:ok, contract_request}
-      nil -> {:error, {:not_found, "CapitationContractRequest not found"}}
-    end
-  end
+  def get_by_id(@capitation, id), do: CapitationContractRequests.get_by_id(id)
+  def get_by_id(@reimbursement, id), do: ReimbursementContractRequests.get_by_id(id)
+
+  @doc "@deprecated. Use get_by_id!/2"
+  def get_by_id!(id), do: get_by_id!(@capitation, id)
+
+  def get_by_id!(@capitation, id), do: CapitationContractRequests.get_by_id!(id)
+  def get_by_id!(@reimbursement, id), do: ReimbursementContractRequests.get_by_id!(id)
+
+  @doc "@deprecated. Use fetch_by_id/2"
+  def fetch_by_id(id), do: fetch_by_id(@capitation, id)
+
+  def fetch_by_id(@capitation, id), do: CapitationContractRequests.fetch_by_id(id)
+  def fetch_by_id(@reimbursement, id), do: ReimbursementContractRequests.fetch_by_id(id)
 
   def draft do
     id = UUID.generate()
@@ -150,7 +202,7 @@ defmodule Core.ContractRequests do
          :ok <- validate_previous_request(params, client_id),
          :ok <- validate_dates(params),
          params <- set_dates(contract, params),
-         {:ok, contract_request} <- validate_create_content(params, client_id),
+         {:ok, contract_request} <- validate_contract_request_content(:create, params, client_id),
          :ok <- validate_unique_contractor_divisions(params),
          :ok <- validate_contractor_divisions(params),
          :ok <- validate_start_date(params),
