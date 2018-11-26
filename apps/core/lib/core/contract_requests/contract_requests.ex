@@ -47,7 +47,7 @@ defmodule Core.ContractRequests do
   ]
 
   defmacro __using__(contract_request_schema: contract_request_schema) do
-    quote do
+    quote bind_quoted: [contract_request_schema: contract_request_schema] do
       import Core.API.Helpers.Connection, only: [get_consumer_id: 1, get_client_id: 1]
 
       alias Core.ContractRequests
