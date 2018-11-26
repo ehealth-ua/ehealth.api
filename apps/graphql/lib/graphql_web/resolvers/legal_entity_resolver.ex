@@ -104,22 +104,6 @@ defmodule GraphQLWeb.Resolvers.LegalEntityResolver do
     end
   end
 
-  def nhs_review(args, %{context: %{headers: headers}}) do
-    with {:ok, legal_entity} <- LegalEntities.nhs_review(args, headers) do
-      {:ok, %{legal_entity: legal_entity}}
-    else
-      err -> render_error(err)
-    end
-  end
-
-  def nhs_comment(args, %{context: %{headers: headers}}) do
-    with {:ok, legal_entity} <- LegalEntities.nhs_comment(args, headers) do
-      {:ok, %{legal_entity: legal_entity}}
-    else
-      err -> render_error(err)
-    end
-  end
-
   def deactivate(%{id: id}, %{context: context}) do
     with {:ok, legal_entity} <- LegalEntityUpdater.deactivate(id, context.headers) do
       {:ok, %{legal_entity: legal_entity}}

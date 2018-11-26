@@ -815,7 +815,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       contract_request =
         insert(
           :il,
-          :capitation_contract_request,
+          :contract_request,
           status: @contract_request_status_in_process,
           start_date: Date.add(Date.utc_today(), 10)
         )
@@ -854,7 +854,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       contract_request =
         insert(
           :il,
-          :capitation_contract_request,
+          :contract_request,
           status: @contract_request_status_in_process,
           start_date: ~D[2000-01-01]
         )
