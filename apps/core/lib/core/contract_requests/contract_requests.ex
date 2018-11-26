@@ -46,33 +46,39 @@ defmodule Core.ContractRequests do
     CapitationContractRequest.status(:terminated)
   ]
 
-  defmacro __using__(contract_request_schema: contract_request_schema) do
-    quote bind_quoted: [contract_request_schema: contract_request_schema] do
-      import Core.API.Helpers.Connection, only: [get_consumer_id: 1, get_client_id: 1]
+  defmacro __using__(schema: schema) do
+    quote bind_quoted: [schema: schema] do
+      import Core.API.Helpers.Connection, only: [get_client_id: 1]
 
       alias Core.ContractRequests
       alias Core.ContractRequests.Validator
       alias Core.Repo
 
-      def get_by_id(id), do: Repo.get(unquote(contract_request_schema), id)
+      def get_by_id(id), do: Repo.get(unquote(schema), id)
 
-      def get_by_id!(id), do: Repo.get!(unquote(contract_request_schema), id)
+      def get_by_id!(id), do: Repo.get!(unquote(schema), id)
 
       def fetch_by_id(id) do
         case get_by_id(id) do
-          %unquote(contract_request_schema){} = contract_request -> {:ok, contract_request}
+          %unquote(schema){} = contract_request -> {:ok, contract_request}
           nil -> {:error, {:not_found, "Contract Request not found"}}
         end
       end
 
-      defp get_contract_request(_, "NHS", id) do
-        with %unquote(contract_request_schema){} = contract_request <- Repo.get(unquote(contract_request_schema), id) do
-          {:ok, contract_request}
+      def get_by_id_with_client_validation(id, client_type, headers, :preload) do
+        with {:ok, contract_request} <- get_by_id_with_client_validation(id, client_type, headers) do
+          {:ok, contract_request, ContractRequests.preload_references(contract_request)}
         end
       end
 
-      defp get_contract_request(client_id, "MSP", id) do
-        with %unquote(contract_request_schema){} = contract_request <- Repo.get(unquote(contract_request_schema), id),
+      def get_by_id_with_client_validation(id, client_type, headers) when is_list(headers) do
+        get_by_id_with_client_validation(id, client_type, get_client_id(headers))
+      end
+
+      def get_by_id_with_client_validation(id, "NHS", _), do: fetch_by_id(id)
+
+      def get_by_id_with_client_validation(id, "MSP", client_id) do
+        with {:ok, contract_request} <- fetch_by_id(id),
              :ok <- Validator.validate_legal_entity_id(client_id, contract_request.contractor_legal_entity_id) do
           {:ok, contract_request}
         end
@@ -87,7 +93,7 @@ defmodule Core.ContractRequests do
     end
   end
 
-  # ToDo: should be refactored
+  @deprecated "Use get_by_id_with_client_validation/{3,4} instead"
   def get_by_id(headers, client_type, id) do
     client_id = get_client_id(headers)
 
