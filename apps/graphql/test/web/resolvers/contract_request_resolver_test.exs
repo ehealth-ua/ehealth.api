@@ -763,13 +763,18 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
   end
 
   describe "update" do
-    test "success", %{conn: conn} do
+    setup %{conn: conn} do
+      legal_entity = insert(:prm, :legal_entity)
+      nhs_signer = insert(:prm, :employee, legal_entity: legal_entity)
+      nhs_signer_id = Node.to_global_id("Employee", nhs_signer.id)
+
+      {:ok, conn: conn, nhs_signer_id: nhs_signer_id, legal_entity: legal_entity}
+    end
+
+    test "success", %{conn: conn, nhs_signer_id: nhs_signer_id, legal_entity: legal_entity} do
       expect(MithrilMock, :get_user_roles, fn _, _, _ ->
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
       end)
-
-      legal_entity = insert(:prm, :legal_entity)
-      nhs_signer = insert(:prm, :employee, legal_entity: legal_entity)
 
       contract_request =
         insert(
@@ -780,7 +785,6 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
         )
 
       id = Node.to_global_id("ContractRequest", contract_request.id)
-      nhs_signer_id = Node.to_global_id("Employee", nhs_signer.id)
 
       variables = %{
         input: %{
@@ -805,6 +809,100 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       assert variables.input.nhs_signer_base == resp_entity["nhsSignerBase"]
       assert variables.input.nhs_contract_price == resp_entity["nhsContractPrice"]
       assert variables.input.nhs_payment_method == resp_entity["nhsPaymentMethod"]
+    end
+
+    test "invalid nhs contract price", %{conn: conn, nhs_signer_id: nhs_signer_id, legal_entity: legal_entity} do
+      contract_request =
+        insert(
+          :il,
+          :capitation_contract_request,
+          status: @contract_request_status_in_process,
+          start_date: Date.add(Date.utc_today(), 10)
+        )
+
+      id = Node.to_global_id("ContractRequest", contract_request.id)
+
+      variables = %{
+        input: %{
+          id: id,
+          nhs_signer_id: nhs_signer_id,
+          nhs_contract_price: -1
+        }
+      }
+
+      resp_body =
+        conn
+        |> put_client_id(legal_entity.id)
+        |> post_query(@update_query, variables)
+        |> json_response(200)
+
+      assert Enum.any?(resp_body["errors"], &match?(%{"extensions" => %{"code" => "UNPROCESSABLE_ENTITY"}}, &1))
+
+      assert [error] = resp_body["errors"]
+      assert "expected the value to be >= 0" == hd(error["errors"])["description"]
+    end
+
+    test "Start date must be greater than create date", %{
+      conn: conn,
+      nhs_signer_id: nhs_signer_id,
+      legal_entity: legal_entity
+    } do
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
+      end)
+
+      contract_request =
+        insert(
+          :il,
+          :capitation_contract_request,
+          status: @contract_request_status_in_process,
+          start_date: ~D[2000-01-01]
+        )
+
+      id = Node.to_global_id("ContractRequest", contract_request.id)
+
+      variables = %{
+        input: %{
+          id: id,
+          nhs_signer_id: nhs_signer_id,
+          nhs_contract_price: 100
+        }
+      }
+
+      resp_body =
+        conn
+        |> put_client_id(legal_entity.id)
+        |> post_query(@update_query, variables)
+        |> json_response(200)
+
+      assert Enum.any?(resp_body["errors"], &match?(%{"extensions" => %{"code" => "UNPROCESSABLE_ENTITY"}}, &1))
+
+      assert [error] = resp_body["errors"]
+      assert "Start date must be within this or next year" == hd(error["errors"])["description"]
+    end
+
+    test "contract request not found", %{conn: conn, nhs_signer_id: nhs_signer_id, legal_entity: legal_entity} do
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
+      end)
+
+      id = Node.to_global_id("ContractRequest", UUID.generate())
+
+      variables = %{
+        input: %{
+          id: id,
+          nhs_signer_id: nhs_signer_id,
+          nhs_contract_price: 100
+        }
+      }
+
+      resp_body =
+        conn
+        |> put_client_id(legal_entity.id)
+        |> post_query(@update_query, variables)
+        |> json_response(200)
+
+      assert Enum.any?(resp_body["errors"], &match?(%{"extensions" => %{"code" => "NOT_FOUND"}}, &1))
     end
   end
 

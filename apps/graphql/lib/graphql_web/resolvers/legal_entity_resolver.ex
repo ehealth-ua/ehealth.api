@@ -2,8 +2,7 @@ defmodule GraphQLWeb.Resolvers.LegalEntityResolver do
   @moduledoc false
 
   import Absinthe.Resolution.Helpers, only: [on_load: 2]
-  import Ecto.Query
-  import GraphQLWeb.Resolvers.Helpers.Errors, only: [format_conflict_error: 1, format_not_found_error: 1]
+  import GraphQLWeb.Resolvers.Helpers.Errors, only: [render_error: 1]
   import GraphQLWeb.Resolvers.Helpers.Search, only: [search: 2]
 
   alias Absinthe.Relay.Connection
@@ -101,15 +100,23 @@ defmodule GraphQLWeb.Resolvers.LegalEntityResolver do
     with {:ok, legal_entity} <- LegalEntities.nhs_verify(id, client_id) do
       {:ok, %{legal_entity: legal_entity}}
     else
-      # todo: remove after fallback error handling is done
-      {:error, {:conflict, error}} ->
-        {:error, format_conflict_error(error)}
+      err -> render_error(err)
+    end
+  end
 
-      {:error, {:not_found, error}} ->
-        {:error, format_not_found_error(error)}
+  def nhs_review(args, %{context: %{headers: headers}}) do
+    with {:ok, legal_entity} <- LegalEntities.nhs_review(args, headers) do
+      {:ok, %{legal_entity: legal_entity}}
+    else
+      err -> render_error(err)
+    end
+  end
 
-      error ->
-        error
+  def nhs_comment(args, %{context: %{headers: headers}}) do
+    with {:ok, legal_entity} <- LegalEntities.nhs_comment(args, headers) do
+      {:ok, %{legal_entity: legal_entity}}
+    else
+      err -> render_error(err)
     end
   end
 
@@ -117,15 +124,7 @@ defmodule GraphQLWeb.Resolvers.LegalEntityResolver do
     with {:ok, legal_entity} <- LegalEntityUpdater.deactivate(id, context.headers) do
       {:ok, %{legal_entity: legal_entity}}
     else
-      # todo: remove after fallback error handling is done
-      {:error, {:conflict, error}} ->
-        {:error, format_conflict_error(error)}
-
-      {:error, {:not_found, error}} ->
-        {:error, format_not_found_error(error)}
-
-      error ->
-        error
+      err -> render_error(err)
     end
   end
 end
