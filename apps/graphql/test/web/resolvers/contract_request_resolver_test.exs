@@ -1225,10 +1225,40 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
 
       resp_entity = get_in(resp_body, ~w(data assignContractRequest contractRequest))
 
-      assert nil == resp_body["errors"]
+      refute resp_body["errors"]
       assert id == resp_entity["id"]
       assert @contract_request_status_in_process == resp_entity["status"]
       assert employee_id == resp_entity["assignee"]["id"]
+    end
+
+    test "invalid employee status", %{conn: conn} do
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
+      end)
+
+      legal_entity = insert(:prm, :legal_entity)
+      party_user = insert(:prm, :party_user)
+      employee = insert(:prm, :employee, legal_entity: legal_entity, party: party_user.party, status: "DISMISSED")
+      contract_request = insert(:il, :capitation_contract_request, status: @contract_request_status_new)
+
+      id = Node.to_global_id("ContractRequest", contract_request.id)
+      employee_id = Node.to_global_id("Employee", employee.id)
+
+      variables = %{input: %{id: id, employeeId: employee_id}}
+
+      resp_body =
+        conn
+        |> put_consumer_id()
+        |> put_client_id(legal_entity.id)
+        |> post_query(@assign_query, variables)
+        |> json_response(200)
+
+      refute resp_body["data"]["assignContractRequest"]
+
+      assert match?(
+               %{"message" => "Invalid employee status", "extensions" => %{"code" => "CONFLICT"}},
+               hd(resp_body["errors"])
+             )
     end
   end
 
