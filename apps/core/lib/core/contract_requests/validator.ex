@@ -3,9 +3,11 @@ defmodule Core.ContractRequests.Validator do
 
   import Core.API.Helpers.Connection, only: [get_header: 2]
 
+  alias Core.CapitationContractRequests
   alias Core.ContractRequests
   alias Core.ContractRequests.CapitationContractRequest
   alias Core.ContractRequests.ReimbursementContractRequest
+  alias Core.ContractRequests.RequestPack
   alias Core.Contracts
   alias Core.Contracts.CapitationContract
   alias Core.Contracts.ReimbursementContract
@@ -20,6 +22,7 @@ defmodule Core.ContractRequests.Validator do
   alias Core.Parties
   alias Core.Parties.Party
   alias Core.PRMRepo
+  alias Core.ReimbursementContractRequests
   alias Core.ValidationError
   alias Core.Validators.Error
   alias Core.Validators.JsonSchema
@@ -30,6 +33,7 @@ defmodule Core.ContractRequests.Validator do
   @reimbursement ReimbursementContractRequest.type()
 
   @msp LegalEntity.type(:msp)
+  @nhs LegalEntity.type(:nhs)
   @pharmacy LegalEntity.type(:pharmacy)
 
   @allowed_types [@capitation, @reimbursement]
@@ -52,8 +56,6 @@ defmodule Core.ContractRequests.Validator do
 
     {:error, {:conflict, reason}}
   end
-
-  def validate_contract_request_type(type, _), do: {:error, {:conflict, "Contract type \"#{type}\" is not allowed"}}
 
   def validate_status(contract_request, status),
     do:
@@ -89,11 +91,17 @@ defmodule Core.ContractRequests.Validator do
 
   # Legal Entity
 
+  def validate_contract_request_client_access(@nhs, _client_id, _contract_request), do: :ok
+
+  def validate_contract_request_client_access(@msp, client_id, %{contractor_legal_entity_id: id}) do
+    validate_legal_entity_id(client_id, id)
+  end
+
+  defp validate_legal_entity_id(legal_entity_id, legal_entity_id), do: :ok
+  defp validate_legal_entity_id(_, _), do: {:error, {:forbidden, "User is not allowed to perform this action"}}
+
   def validate_client_id(client_id, client_id, _), do: :ok
   def validate_client_id(_, _, :forbidden), do: {:error, {:forbidden, "Invalid client_id"}}
-
-  def validate_legal_entity_id(legal_entity_id, legal_entity_id), do: :ok
-  def validate_legal_entity_id(_, _), do: {:error, {:forbidden, "User is not allowed to perform this action"}}
 
   def validate_legal_entity_edrpou(legal_entity, nil), do: {:ok, legal_entity}
 
@@ -529,6 +537,19 @@ defmodule Core.ContractRequests.Validator do
     with medical_program <- MedicalPrograms.get_by_id(content["medical_program_id"]),
          :ok <- validate_medical_program(medical_program) do
       {:ok, %ReimbursementContractRequest{id: content["id"]}}
+    end
+  end
+
+  def validate_contract_request_content(%RequestPack{type: @capitation, action: :sign_msp} = pack, client_id) do
+    with :ok <- validate_employee_divisions(pack.contract_request, client_id) do
+      :ok
+    end
+  end
+
+  def validate_contract_request_content(%RequestPack{type: @reimbursement, action: :sign_msp} = pack, _client_id) do
+    with medical_program <- MedicalPrograms.get_by_id(pack.decoded_content["medical_program_id"]),
+         :ok <- validate_medical_program(medical_program) do
+      :ok
     end
   end
 

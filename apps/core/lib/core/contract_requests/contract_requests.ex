@@ -13,6 +13,7 @@ defmodule Core.ContractRequests do
   alias Core.ContractRequests.CapitationContractRequest
   alias Core.ContractRequests.ReimbursementContractRequest
   alias Core.ContractRequests.Renderer
+  alias Core.ContractRequests.RequestPack
   alias Core.ContractRequests.Search
   alias Core.Contracts
   alias Core.Contracts.CapitationContract
@@ -20,6 +21,7 @@ defmodule Core.ContractRequests do
   alias Core.LegalEntities
   alias Core.LegalEntities.LegalEntity
   alias Core.Man.Templates.ContractRequestPrintoutForm
+  alias Core.ReimbursementContractRequests
   alias Core.Repo
   alias Core.Utils.NumberGenerator
   alias Core.Validators.Error
@@ -64,25 +66,6 @@ defmodule Core.ContractRequests do
           nil -> {:error, {:not_found, "Contract Request not found"}}
         end
       end
-
-      def get_by_id_with_client_validation(id, client_type, headers, :preload) do
-        with {:ok, contract_request} <- get_by_id_with_client_validation(id, client_type, headers) do
-          {:ok, contract_request, ContractRequests.preload_references(contract_request)}
-        end
-      end
-
-      def get_by_id_with_client_validation(id, client_type, headers) when is_list(headers) do
-        get_by_id_with_client_validation(id, client_type, get_client_id(headers))
-      end
-
-      def get_by_id_with_client_validation(id, "NHS", _), do: fetch_by_id(id)
-
-      def get_by_id_with_client_validation(id, "MSP", client_id) do
-        with {:ok, contract_request} <- fetch_by_id(id),
-             :ok <- Validator.validate_legal_entity_id(client_id, contract_request.contractor_legal_entity_id) do
-          {:ok, contract_request}
-        end
-      end
     end
   end
 
@@ -93,7 +76,9 @@ defmodule Core.ContractRequests do
     end
   end
 
-  @deprecated "Use get_by_id_with_client_validation/{3,4} instead"
+  @deprecated "Use separated functions like: fetch_by_id/2,
+  validate_contract_request_client_access/3,
+  preload_references/1"
   def get_by_id(headers, client_type, id) do
     client_id = get_client_id(headers)
 
@@ -488,35 +473,46 @@ defmodule Core.ContractRequests do
     end
   end
 
-  def sign_msp(headers, client_type, %{"id" => id} = params) do
+  def sign_msp(headers, client_type, %{"id" => _, "type" => _} = params) do
     client_id = get_client_id(headers)
     user_id = get_consumer_id(headers)
-    params = Map.delete(params, "id")
+    pack = RequestPack.new(:sign_msp, params)
 
     with %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(client_id),
-         {:ok, %CapitationContractRequest{} = contract_request, _} <- get_by_id(headers, client_type, id),
-         :ok <- JsonSchema.validate(:contract_request_sign, params),
-         {_, true} <- {:signed_nhs, contract_request.status == CapitationContractRequest.status(:nhs_signed)},
-         :ok <- validate_client_id(client_id, contract_request.contractor_legal_entity_id, :forbidden),
+         :ok <- validate_contract_request_type(pack.type, legal_entity),
+         {:ok, contract_request} <- pack.provider.fetch_by_id(pack.contract_request_id),
+         pack <- RequestPack.put_contract_request(pack, contract_request),
+         {_, true} <- {:signed_nhs, pack.contract_request.status == CapitationContractRequest.status(:nhs_signed)},
+         :ok <- validate_client_id(client_id, pack.contract_request.contractor_legal_entity_id, :forbidden),
+         :ok <- JsonSchema.validate(:contract_request_sign, pack.input_params),
          {:ok, %{"content" => content, "signers" => [signer_msp, signer_nhs], "stamps" => [nhs_stamp]}} <-
-           decode_signed_content(params, headers, 2, 1),
+           decode_signed_content(pack.input_params, headers, 2, 1),
+         pack <- RequestPack.put_decoded_content(pack, content),
+         :ok <- validate_contract_request_content(pack, client_id),
+         :ok <- validate_contract_request_client_access(client_type, client_id, pack.contract_request),
          :ok <- validate_legal_entity_edrpou(legal_entity, signer_msp),
-         {:ok, employee} <- validate_employee(contract_request.contractor_owner_id, client_id),
+         {:ok, employee} <- validate_employee(pack.contract_request.contractor_owner_id, client_id),
          :ok <- check_last_name_match(employee.party.last_name, signer_msp["surname"]),
-         :ok <- validate_nhs_signatures(signer_nhs, nhs_stamp, contract_request),
-         :ok <- validate_content(contract_request, content),
-         :ok <- validate_employee_divisions(contract_request, client_id),
-         :ok <- validate_start_date(contract_request),
-         :ok <- validate_contractor_legal_entity(contract_request.contractor_legal_entity_id),
-         :ok <- validate_contractor_owner_id(contract_request),
+         :ok <- validate_nhs_signatures(signer_nhs, nhs_stamp, pack.contract_request),
+         :ok <- validate_content(pack.contract_request, pack.decoded_content),
+         :ok <- validate_start_date(pack.contract_request),
+         :ok <- validate_contractor_legal_entity(pack.contract_request.contractor_legal_entity_id),
+         :ok <- validate_contractor_owner_id(pack.contract_request),
          contract_id <- UUID.generate(),
-         :ok <- save_signed_content(contract_id, params, headers, "signed_content/signed_content", :contract_bucket),
+         :ok <-
+           save_signed_content(
+             contract_id,
+             pack.input_params,
+             headers,
+             "signed_content/signed_content",
+             :contract_bucket
+           ),
          update_params <-
-           params
+           pack.input_params
            |> Map.put("updated_by", user_id)
            |> Map.put("status", CapitationContractRequest.status(:signed))
            |> Map.put("contract_id", contract_id),
-         %Ecto.Changeset{valid?: true} = changes <- msp_signed_changeset(contract_request, update_params),
+         %Ecto.Changeset{valid?: true} = changes <- msp_signed_changeset(pack.contract_request, update_params),
          {:ok, contract_request} <- Repo.update(changes),
          contract_params <- get_contract_create_params(contract_request),
          {:create_contract, {:ok, contract}} <- {:create_contract, Contracts.create(contract_params, user_id)},
@@ -852,15 +848,10 @@ defmodule Core.ContractRequests do
     end
   end
 
-  defp get_contract_request(_, "NHS", id) do
-    with %CapitationContractRequest{} = contract_request <- Repo.get(CapitationContractRequest, id) do
-      {:ok, contract_request}
-    end
-  end
-
-  defp get_contract_request(client_id, "MSP", id) do
-    with %CapitationContractRequest{} = contract_request <- Repo.get(CapitationContractRequest, id),
-         :ok <- validate_legal_entity_id(client_id, contract_request.contractor_legal_entity_id) do
+  @deprecated "use get_by_id/2 + Validator.validate_contract_request_client_access/3 instead"
+  defp get_contract_request(client_id, client_type, id) do
+    with {:ok, contract_request} <- fetch_by_id(@capitation, id),
+         :ok <- validate_contract_request_client_access(client_type, client_id, contract_request) do
       {:ok, contract_request}
     end
   end
