@@ -3,7 +3,6 @@ defmodule Core.ContractRequests.Validator do
 
   import Core.API.Helpers.Connection, only: [get_header: 2]
 
-  alias Core.CapitationContractRequests
   alias Core.ContractRequests
   alias Core.ContractRequests.CapitationContractRequest
   alias Core.ContractRequests.ReimbursementContractRequest
@@ -22,7 +21,6 @@ defmodule Core.ContractRequests.Validator do
   alias Core.Parties
   alias Core.Parties.Party
   alias Core.PRMRepo
-  alias Core.ReimbursementContractRequests
   alias Core.ValidationError
   alias Core.Validators.Error
   alias Core.Validators.JsonSchema
@@ -633,8 +631,7 @@ defmodule Core.ContractRequests.Validator do
     |> validate_start_date()
   end
 
-  def validate_start_date(%{"parent_contract_id" => parent_contract_id})
-      when not is_nil(parent_contract_id) do
+  def validate_start_date(%{"parent_contract_id" => parent_contract_id}) when not is_nil(parent_contract_id) do
     :ok
   end
 
@@ -810,6 +807,8 @@ defmodule Core.ContractRequests.Validator do
     end
   end
 
+  def validate_employee_divisions(%ReimbursementContractRequest{} = _contract_request, _client_id), do: :ok
+
   def validate_employee_divisions(%CapitationContractRequest{} = contract_request, client_id) do
     contract_request
     |> Jason.encode!()
@@ -840,6 +839,14 @@ defmodule Core.ContractRequests.Validator do
   end
 
   # medical program
+
+  def validate_medical_program_is_active(%CapitationContractRequest{} = _contract_request), do: :ok
+
+  def validate_medical_program_is_active(%ReimbursementContractRequest{medical_program_id: medical_program_id}) do
+    medical_program_id
+    |> MedicalPrograms.get_by_id()
+    |> validate_medical_program()
+  end
 
   defp validate_medical_program(%MedicalProgram{is_active: true}), do: :ok
 

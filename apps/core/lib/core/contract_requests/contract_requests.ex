@@ -21,7 +21,6 @@ defmodule Core.ContractRequests do
   alias Core.LegalEntities
   alias Core.LegalEntities.LegalEntity
   alias Core.Man.Templates.ContractRequestPrintoutForm
-  alias Core.ReimbursementContractRequests
   alias Core.Repo
   alias Core.Utils.NumberGenerator
   alias Core.Validators.Error
@@ -41,6 +40,9 @@ defmodule Core.ContractRequests do
 
   @capitation CapitationContractRequest.type()
   @reimbursement ReimbursementContractRequest.type()
+
+  @approved CapitationContractRequest.status(:approved)
+  @pending_nhs_sign CapitationContractRequest.status(:pending_nhs_sign)
 
   @forbidden_statuses_for_termination [
     CapitationContractRequest.status(:declined),
@@ -87,20 +89,20 @@ defmodule Core.ContractRequests do
     end
   end
 
+  def get_by_id(%RequestPack{} = pack), do: pack.provider.get_by_id(pack.contract_request_id)
+
   @deprecated "Use get_by_id(%RequestPack{})"
   def get_by_id(id), do: CapitationContractRequests.get_by_id(id)
 
-  def get_by_id(%RequestPack{} = pack), do: pack.provider.get_by_id(pack.contract_request_id)
+  def get_by_id!(%RequestPack{} = pack), do: pack.provider.get_by_id!(pack.contract_request_id)
 
   @deprecated "Use get_by_id!(%RequestPack{})"
   def get_by_id!(id), do: CapitationContractRequests.get_by_id!(id)
 
-  def get_by_id!(%RequestPack{} = pack), do: pack.provider.get_by_id!(pack.contract_request_id)
+  def fetch_by_id(%RequestPack{} = pack), do: pack.provider.fetch_by_id(pack.contract_request_id)
 
   @deprecated "Use fetch_by_id(%RequestPack{})"
   def fetch_by_id(id), do: CapitationContractRequests.fetch_by_id(id)
-
-  def fetch_by_id(%RequestPack{} = pack), do: pack.provider.fetch_by_id(pack.contract_request_id)
 
   def draft do
     id = UUID.generate()
@@ -316,23 +318,20 @@ defmodule Core.ContractRequests do
     end
   end
 
-  def approve_msp(headers, %{"id" => id} = params) do
+  def approve_msp(headers, %{"id" => _, "type" => _} = params) do
     client_id = get_client_id(headers)
     user_id = get_consumer_id(headers)
+    update_params = %{"updated_by" => user_id, "status" => @pending_nhs_sign}
 
-    with %CapitationContractRequest{} = contract_request <- get_by_id(id),
+    with %{__struct__: _} = contract_request <- get_by_id(RequestPack.new(params)),
          {_, true} <- {:client_id, client_id == contract_request.contractor_legal_entity_id},
-         :ok <- validate_status(contract_request, CapitationContractRequest.status(:approved)),
+         :ok <- validate_status(contract_request, @approved),
          :ok <- validate_contractor_legal_entity(contract_request.contractor_legal_entity_id),
          {:contractor_owner, :ok} <- {:contractor_owner, validate_contractor_owner_id(contract_request)},
          :ok <- validate_employee_divisions(contract_request, client_id),
          :ok <- validate_contractor_divisions(contract_request),
          :ok <- validate_start_date(contract_request),
-         update_params <-
-           params
-           |> Map.delete("id")
-           |> Map.put("updated_by", user_id)
-           |> Map.put("status", CapitationContractRequest.status(:pending_nhs_sign)),
+         :ok <- validate_medical_program_is_active(contract_request),
          %Changeset{valid?: true} = changes <- approve_msp_changeset(contract_request, update_params),
          {:ok, contract_request} <- Repo.update(changes),
          _ <- EventManager.insert_change_status(contract_request, contract_request.status, user_id) do
@@ -722,7 +721,7 @@ defmodule Core.ContractRequests do
     |> validate_required(fields_required)
   end
 
-  def approve_msp_changeset(%CapitationContractRequest{} = contract_request, params) do
+  def approve_msp_changeset(%{__struct__: _} = contract_request, params) do
     fields = ~w(
       status
       updated_by

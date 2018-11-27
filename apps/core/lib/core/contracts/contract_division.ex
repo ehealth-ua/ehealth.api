@@ -3,9 +3,7 @@ defmodule Core.Contracts.ContractDivision do
 
   use Ecto.Schema
   import Ecto.Changeset
-  import Ecto.Query, only: [dynamic: 2]
 
-  alias Core.Contracts.CapitationContract
   alias Core.Divisions.Division
   alias Ecto.UUID
 

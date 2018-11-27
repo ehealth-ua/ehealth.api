@@ -18,6 +18,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
 
   @msp LegalEntity.type(:msp)
   @pharmacy LegalEntity.type(:pharmacy)
+
   @reimbursement ReimbursementContractRequest.type()
   @path_type String.downcase(@reimbursement)
 
@@ -288,6 +289,85 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
         |> get_in(~w(error message))
 
       assert "Reimbursement program is not active" == reason
+    end
+  end
+
+  describe "approve contract_request by msp" do
+    test "success", %{conn: conn} do
+      legal_entity = insert(:prm, :legal_entity)
+      employee_owner = insert(:prm, :employee, legal_entity_id: legal_entity.id, employee_type: Employee.type(:owner))
+
+      division =
+        insert(
+          :prm,
+          :division,
+          legal_entity: legal_entity,
+          phones: [%{"type" => "MOBILE", "number" => "+380631111111"}]
+        )
+
+      now = Date.utc_today()
+      start_date = Date.add(now, 10)
+      %{id: medical_program_id} = insert(:prm, :medical_program)
+
+      contract_request =
+        insert(
+          :il,
+          :reimbursement_contract_request,
+          status: ReimbursementContractRequest.status(:approved),
+          contractor_legal_entity_id: legal_entity.id,
+          contractor_owner_id: employee_owner.id,
+          contractor_divisions: [division.id],
+          start_date: start_date,
+          medical_program_id: medical_program_id
+        )
+
+      assert resp_data =
+               conn
+               |> put_client_id_header(legal_entity.id)
+               |> put_consumer_id_header()
+               |> patch(contract_request_path(conn, :approve_msp, @path_type, contract_request.id))
+               |> json_response(200)
+               |> Map.get("data")
+
+      assert_show_response_schema(resp_data, "contract_request", "reimbursement_contract_request")
+    end
+
+    test "fails on inactive medical program", %{conn: conn} do
+      legal_entity = insert(:prm, :legal_entity)
+      employee_owner = insert(:prm, :employee, legal_entity_id: legal_entity.id, employee_type: Employee.type(:owner))
+
+      division =
+        insert(
+          :prm,
+          :division,
+          legal_entity: legal_entity,
+          phones: [%{"type" => "MOBILE", "number" => "+380631111111"}]
+        )
+
+      now = Date.utc_today()
+      start_date = Date.add(now, 10)
+      %{id: medical_program_id} = insert(:prm, :medical_program, is_active: false)
+
+      contract_request =
+        insert(
+          :il,
+          :reimbursement_contract_request,
+          status: ReimbursementContractRequest.status(:approved),
+          contractor_legal_entity_id: legal_entity.id,
+          contractor_owner_id: employee_owner.id,
+          contractor_divisions: [division.id],
+          start_date: start_date,
+          medical_program_id: medical_program_id
+        )
+
+      assert %{"error" => error} =
+               conn
+               |> put_client_id_header(legal_entity.id)
+               |> put_consumer_id_header()
+               |> patch(contract_request_path(conn, :approve_msp, @path_type, contract_request.id))
+               |> json_response(409)
+
+      assert "Reimbursement program is not active" == error["message"]
     end
   end
 
