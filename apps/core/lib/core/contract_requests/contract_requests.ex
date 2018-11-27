@@ -87,23 +87,20 @@ defmodule Core.ContractRequests do
     end
   end
 
-  @deprecated "Use get_by_id/2"
-  def get_by_id(id), do: get_by_id(@capitation, id)
+  @deprecated "Use get_by_id(%RequestPack{})"
+  def get_by_id(id), do: CapitationContractRequests.get_by_id(id)
 
-  def get_by_id(@capitation, id), do: CapitationContractRequests.get_by_id(id)
-  def get_by_id(@reimbursement, id), do: ReimbursementContractRequests.get_by_id(id)
+  def get_by_id(%RequestPack{} = pack), do: pack.provider.get_by_id(pack.contract_request_id)
 
-  @deprecated "Use get_by_id!/2"
-  def get_by_id!(id), do: get_by_id!(@capitation, id)
+  @deprecated "Use get_by_id!(%RequestPack{})"
+  def get_by_id!(id), do: CapitationContractRequests.get_by_id!(id)
 
-  def get_by_id!(@capitation, id), do: CapitationContractRequests.get_by_id!(id)
-  def get_by_id!(@reimbursement, id), do: ReimbursementContractRequests.get_by_id!(id)
+  def get_by_id!(%RequestPack{} = pack), do: pack.provider.get_by_id!(pack.contract_request_id)
 
-  @deprecated "Use fetch_by_id/2"
-  def fetch_by_id(id), do: fetch_by_id(@capitation, id)
+  @deprecated "Use fetch_by_id(%RequestPack{})"
+  def fetch_by_id(id), do: CapitationContractRequests.fetch_by_id(id)
 
-  def fetch_by_id(@capitation, id), do: CapitationContractRequests.fetch_by_id(id)
-  def fetch_by_id(@reimbursement, id), do: ReimbursementContractRequests.fetch_by_id(id)
+  def fetch_by_id(%RequestPack{} = pack), do: pack.provider.fetch_by_id(pack.contract_request_id)
 
   def draft do
     id = UUID.generate()
@@ -476,7 +473,7 @@ defmodule Core.ContractRequests do
   def sign_msp(headers, client_type, %{"id" => _, "type" => _} = params) do
     client_id = get_client_id(headers)
     user_id = get_consumer_id(headers)
-    pack = RequestPack.new(:sign_msp, params)
+    pack = RequestPack.new(params)
 
     with %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(client_id),
          :ok <- validate_contract_request_type(pack.type, legal_entity),
@@ -488,7 +485,7 @@ defmodule Core.ContractRequests do
          {:ok, %{"content" => content, "signers" => [signer_msp, signer_nhs], "stamps" => [nhs_stamp]}} <-
            decode_signed_content(pack.input_params, headers, 2, 1),
          pack <- RequestPack.put_decoded_content(pack, content),
-         :ok <- validate_contract_request_content(pack, client_id),
+         :ok <- validate_contract_request_content(:sign, pack, client_id),
          :ok <- validate_contract_request_client_access(client_type, client_id, pack.contract_request),
          :ok <- validate_legal_entity_edrpou(legal_entity, signer_msp),
          {:ok, employee} <- validate_employee(pack.contract_request.contractor_owner_id, client_id),
@@ -848,9 +845,9 @@ defmodule Core.ContractRequests do
     end
   end
 
-  @deprecated "use get_by_id/2 + Validator.validate_contract_request_client_access/3 instead"
+  @deprecated "use get_by_id/1 + Validator.validate_contract_request_client_access/3 instead"
   defp get_contract_request(client_id, client_type, id) do
-    with {:ok, contract_request} <- fetch_by_id(@capitation, id),
+    with {:ok, contract_request} <- fetch_by_id(id),
          :ok <- validate_contract_request_client_access(client_type, client_id, contract_request) do
       {:ok, contract_request}
     end

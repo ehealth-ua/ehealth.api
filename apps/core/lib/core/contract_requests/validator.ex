@@ -540,13 +540,13 @@ defmodule Core.ContractRequests.Validator do
     end
   end
 
-  def validate_contract_request_content(%RequestPack{type: @capitation, action: :sign_msp} = pack, client_id) do
+  def validate_contract_request_content(:sign, %RequestPack{type: @capitation} = pack, client_id) do
     with :ok <- validate_employee_divisions(pack.contract_request, client_id) do
       :ok
     end
   end
 
-  def validate_contract_request_content(%RequestPack{type: @reimbursement, action: :sign_msp} = pack, _client_id) do
+  def validate_contract_request_content(:sign, %RequestPack{type: @reimbursement} = pack, _client_id) do
     with medical_program <- MedicalPrograms.get_by_id(pack.decoded_content["medical_program_id"]),
          :ok <- validate_medical_program(medical_program) do
       :ok

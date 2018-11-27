@@ -9,7 +9,6 @@ defmodule Core.ContractRequests.RequestPack do
   alias Core.ReimbursementContractRequests
 
   defstruct ~w(
-    action
     type
     schema
     provider
@@ -19,18 +18,11 @@ defmodule Core.ContractRequests.RequestPack do
     contract_request_id
   )a
 
-  @enforce_keys ~w(action type schema provider input_params)a
-
   @capitation CapitationContractRequest.type()
   @reimbursement ReimbursementContractRequest.type()
 
-  @allowed_types [@capitation, @reimbursement]
-  @allowed_actions ~w(create sign_nhs sign_msp)a
-
-  def new(action, %{"type" => type} = params) when action in @allowed_actions do
-    __MODULE__
-    |> struct(map_params(params, action))
-    |> validate()
+  def new(%{"type" => type} = params) do
+    struct(__MODULE__, map_params(params))
   end
 
   def put_decoded_content(%__MODULE__{} = pack, decoded_content), do: Map.put(pack, :decoded_content, decoded_content)
@@ -38,10 +30,9 @@ defmodule Core.ContractRequests.RequestPack do
   def put_contract_request(%__MODULE__{} = pack, contract_request),
     do: Map.put(pack, :contract_request, contract_request)
 
-  defp map_params(%{"type" => type} = params, action) do
+  defp map_params(%{"type" => type} = params) do
     %{
       type: type,
-      action: action,
       schema: get_schema_by_type(type),
       provider: get_provider_by_type(type),
       contract_request_id: params["id"],
@@ -54,13 +45,4 @@ defmodule Core.ContractRequests.RequestPack do
 
   defp get_provider_by_type(@capitation), do: CapitationContractRequests
   defp get_provider_by_type(@reimbursement), do: ReimbursementContractRequests
-
-  def validate(%__MODULE__{} = pack) do
-    with :ok <- validate_type(pack.type) do
-      pack
-    end
-  end
-
-  defp validate_type(type) when type in @allowed_types, do: :ok
-  defp validate_type(type), do: {:error, {:conflict, "Contract type \"#{type}\" is not allowed"}}
 end
