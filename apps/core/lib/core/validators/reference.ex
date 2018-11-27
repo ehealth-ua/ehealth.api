@@ -3,8 +3,9 @@ defmodule Core.Validators.Reference do
   Validates reference existance
   """
 
-  alias Core.ContractRequests
+  alias Core.CapitationContractRequests
   alias Core.ContractRequests.CapitationContractRequest
+  alias Core.ContractRequests.ReimbursementContractRequest
   alias Core.Divisions
   alias Core.Divisions.Division
   alias Core.Employees
@@ -15,6 +16,7 @@ defmodule Core.Validators.Reference do
   alias Core.MedicalPrograms.MedicalProgram
   alias Core.Medications
   alias Core.Medications.Medication
+  alias Core.ReimbursementContractRequests
   alias Core.ValidationError
   alias Core.Validators.Error
 
@@ -87,8 +89,17 @@ defmodule Core.Validators.Reference do
     end
   end
 
+  # TODO: rename everywhere
   def validate(:contract_request = type, id, path) do
-    with %CapitationContractRequest{} = contract_request <- ContractRequests.get_by_id(id) do
+    with %CapitationContractRequest{} = contract_request <- CapitationContractRequests.get_by_id(id) do
+      {:ok, contract_request}
+    else
+      _ -> error(type, path)
+    end
+  end
+
+  def validate(:reimbursement_contract_request = type, id, path) do
+    with %ReimbursementContractRequest{} = contract_request <- ReimbursementContractRequests.get_by_id(id) do
       {:ok, contract_request}
     else
       _ -> error(type, path)

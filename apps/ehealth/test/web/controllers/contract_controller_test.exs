@@ -7,11 +7,15 @@ defmodule EHealth.Web.ContractControllerTest do
   import Mox
 
   alias Core.Contracts.CapitationContract
+  alias Core.Contracts.ReimbursementContract
   alias Core.Divisions.Division
   alias Core.LegalEntities.LegalEntity
   alias Ecto.UUID
 
   @capitation "capitation"
+  @reimbursement "reimbursement"
+
+  @contract_type_reimbursement ReimbursementContract.type()
 
   describe "show contract" do
     test "finds contract successfully and nhs can see any contracts", %{conn: conn} do
@@ -82,12 +86,7 @@ defmodule EHealth.Web.ContractControllerTest do
         assert Map.has_key?(legal_entity, "name")
       end)
 
-      schema =
-        "../core/specs/json_schemas/contract/contract_show_response.json"
-        |> File.read!()
-        |> Poison.decode!()
-
-      assert :ok = NExJsonSchema.Validator.validate(schema, response_data)
+      assert_show_response_schema(response["data"], "contract", "capitation_contract")
     end
 
     test "contract employees are only with nil end_date", %{conn: conn} do
@@ -1830,6 +1829,73 @@ defmodule EHealth.Web.ContractControllerTest do
     end
   end
 
+  describe "list reimbursement contracts" do
+    test "success", %{conn: conn} do
+      nhs()
+
+      insert_list(4, :prm, :reimbursement_contract)
+      insert_list(2, :prm, :capitation_contract)
+
+      assert resp_data =
+               conn
+               |> put_client_id_header()
+               |> get(contract_path(conn, :index, @reimbursement), %{})
+               |> json_response(200)
+               |> Map.get("data")
+
+      assert 4 == length(resp_data)
+    end
+
+    test "search by medical_program_id", %{conn: conn} do
+      nhs()
+      medical_program_id = UUID.generate()
+      insert_list(2, :prm, :reimbursement_contract, medical_program_id: medical_program_id)
+      insert_list(4, :prm, :reimbursement_contract)
+      insert_list(8, :prm, :capitation_contract)
+
+      assert resp_data =
+               conn
+               |> put_client_id_header()
+               |> get(contract_path(conn, :index, @reimbursement), %{medical_program_id: medical_program_id})
+               |> json_response(200)
+               |> Map.get("data")
+
+      assert 2 == length(resp_data)
+      assert Enum.all?(resp_data, &(&1["type"] == @contract_type_reimbursement))
+    end
+  end
+
+  describe "show reimbursement contract" do
+    test "success", %{conn: conn} do
+      nhs()
+
+      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, id, resource_name, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://url.com/#{id}/#{resource_name}"}}}
+      end)
+
+      %{id: contract_request_id} = insert(:il, :reimbursement_contract_request)
+      %{id: id} = insert(:prm, :reimbursement_contract, contract_request_id: contract_request_id)
+
+      assert resp_data =
+               conn
+               |> put_client_id_header()
+               |> get(contract_path(conn, :show, @reimbursement, id))
+               |> json_response(200)
+               |> Map.get("data")
+
+      assert_show_response_schema(resp_data, "contract", "reimbursement_contract")
+    end
+
+    test "not found", %{conn: conn} do
+      nhs()
+
+      assert conn
+             |> put_client_id_header()
+             |> get(contract_path(conn, :show, @reimbursement, UUID.generate()))
+             |> json_response(404)
+    end
+  end
+
   describe "route without contract type works as capitation" do
     setup %{conn: conn} do
       expect(MediaStorageMock, :create_signed_url, 2, fn _, _, id, resource_name, _ ->
@@ -1885,7 +1951,7 @@ defmodule EHealth.Web.ContractControllerTest do
         |> Map.get("data")
 
       schema =
-        "../core/specs/json_schemas/contract/contract_show_response.json"
+        "../core/specs/json_schemas/contract/capitation_contract_show_response.json"
         |> File.read!()
         |> Poison.decode!()
 

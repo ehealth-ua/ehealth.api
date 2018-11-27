@@ -15,6 +15,8 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
   alias GraphQLWeb.Loaders.IL
   alias GraphQLWeb.Loaders.PRM
 
+  @capitation CapitationContract.type()
+
   def list_contracts(args, %{context: %{client_type: "NHS"}}), do: list_contracts(args)
 
   def list_contracts(args, %{context: %{client_type: "MSP", client_id: client_id}}) do
@@ -89,7 +91,9 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
   defp prepare_order_by(query, order_by), do: order_by(query, ^order_by)
 
   def terminate(%{id: id, status_reason: status_reason}, %{context: %{headers: headers}}) do
-    with {:ok, contract, _references} <- Contracts.terminate(id, %{"status_reason" => status_reason}, headers) do
+    params = %{"status_reason" => status_reason, "type" => @capitation}
+
+    with {:ok, contract, _references} <- Contracts.terminate(id, params, headers) do
       {:ok, %{contract: contract}}
     else
       err -> render_error(err)

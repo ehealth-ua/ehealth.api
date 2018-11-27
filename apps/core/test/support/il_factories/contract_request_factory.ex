@@ -3,6 +3,7 @@ defmodule Core.ILFactories.ContractRequestFactory do
 
   alias Ecto.UUID
   alias Core.ContractRequests.CapitationContractRequest
+  alias Core.ContractRequests.ReimbursementContractRequest
 
   defmacro __using__(_opts) do
     quote do
@@ -49,6 +50,27 @@ defmodule Core.ILFactories.ContractRequestFactory do
           })
 
         struct(CapitationContractRequest, data)
+      end
+
+      def reimbursement_contract_request_factory do
+        legal_entity = insert(:prm, :legal_entity)
+        employee = insert(:prm, :employee)
+
+        division =
+          insert(
+            :prm,
+            :division,
+            legal_entity: legal_entity,
+            phones: [%{"type" => "MOBILE", "number" => "+380631111111"}]
+          )
+
+        data =
+          Map.merge(generic_contract_request_data(legal_entity, division), %{
+            type: ReimbursementContractRequest.type(),
+            medical_program_id: UUID.generate()
+          })
+
+        struct(ReimbursementContractRequest, data)
       end
 
       def generic_contract_request_data(legal_entity, division) do

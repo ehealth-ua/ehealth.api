@@ -2,29 +2,32 @@ defmodule EHealth.Web.ContractView do
   @moduledoc false
 
   use EHealth.Web, :view
+
   alias Core.ContractRequests.Renderer
+  alias Core.Contracts.CapitationContract
+  alias Core.Contracts.ReimbursementContract
   alias EHealth.Web.DivisionView
 
+  @capitation CapitationContract.type()
+  @reimbursement ReimbursementContract.type()
+
   def render("index.json", %{contracts: contracts, references: references}) do
-    Enum.map(contracts, fn contract ->
-      render_one(contract, __MODULE__, "contract.json", references: references)
-    end)
+    render_many(contracts, __MODULE__, "contract.json", references: references)
   end
 
-  def render("contract.json", %{contract: contract, references: references}) do
+  def render("contract.json", %{contract: %{type: @capitation} = contract, references: references}) do
     contract
     |> Map.take(~w(
       id
+      type
       start_date
       end_date
       status
-      contractor_legal_entity_id
       contractor_base
-      external_contractor_flag
+      contractor_legal_entity_id
       nhs_legal_entity_id
       nhs_signer_id
       nhs_signer_base
-      nhs_contract_price
       issue_city
       contract_number
       is_suspended
@@ -32,15 +35,44 @@ defmodule EHealth.Web.ContractView do
       parent_contract_id
       id_form
       nhs_signed_date
+      external_contractor_flag
+      nhs_contract_price
     )a)
     |> Map.put(:contractor_owner, Renderer.render_association(:employee, references, contract.contractor_owner_id))
     |> Map.put(:contract_divisions, Enum.map(contract.contract_divisions, &render_association(:contract_division, &1)))
   end
 
-  def render("show.json", %{contract: contract, references: references}) do
+  def render("contract.json", %{contract: %{type: @reimbursement} = contract, references: references}) do
     contract
     |> Map.take(~w(
       id
+      type
+      start_date
+      end_date
+      status
+      contractor_base
+      contractor_legal_entity_id
+      nhs_legal_entity_id
+      nhs_signer_id
+      nhs_signer_base
+      issue_city
+      contract_number
+      is_suspended
+      contract_request_id
+      parent_contract_id
+      id_form
+      nhs_signed_date
+      medical_program_id
+    )a)
+    |> Map.put(:contractor_owner, Renderer.render_association(:employee, references, contract.contractor_owner_id))
+    |> Map.put(:contract_divisions, Enum.map(contract.contract_divisions, &render_association(:contract_division, &1)))
+  end
+
+  def render("show.json", %{contract: %{type: @capitation} = contract, references: references}) do
+    contract
+    |> Map.take(~w(
+      id
+      type
       start_date
       end_date
       status
@@ -58,6 +90,30 @@ defmodule EHealth.Web.ContractView do
       parent_contract_id
       id_form
       nhs_signed_date
+    )a)
+    |> render_associations(contract, references)
+  end
+
+  def render("show.json", %{contract: %{type: @reimbursement} = contract, references: references}) do
+    contract
+    |> Map.take(~w(
+      id
+      type
+      start_date
+      end_date
+      status
+      contractor_base
+      contractor_payment_details
+      nhs_payment_method
+      nhs_signer_base
+      issue_city
+      contract_number
+      is_suspended
+      contract_request_id
+      parent_contract_id
+      id_form
+      nhs_signed_date
+      medical_program_id
     )a)
     |> render_associations(contract, references)
   end
@@ -154,7 +210,7 @@ defmodule EHealth.Web.ContractView do
     end
   end
 
-  def render_associations(data, contract, references) do
+  def render_associations(data, %{type: @capitation} = contract, references) do
     Map.merge(data, %{
       nhs_signer: Renderer.render_association(:employee, references, contract.nhs_signer_id),
       nhs_legal_entity: Renderer.render_association(:legal_entity, references, contract.nhs_legal_entity_id),
@@ -166,6 +222,17 @@ defmodule EHealth.Web.ContractView do
       contractor_divisions: render_association(:contractor_divisions, references, contract.contract_divisions || []),
       contractor_employee_divisions:
         render_association(:employee_divisions, references, contract.contract_employees || [])
+    })
+  end
+
+  def render_associations(data, %{type: @reimbursement} = contract, references) do
+    Map.merge(data, %{
+      nhs_signer: Renderer.render_association(:employee, references, contract.nhs_signer_id),
+      nhs_legal_entity: Renderer.render_association(:legal_entity, references, contract.nhs_legal_entity_id),
+      contractor_owner: Renderer.render_association(:employee, references, contract.contractor_owner_id),
+      contractor_legal_entity:
+        Renderer.render_association(:legal_entity, references, contract.contractor_legal_entity_id),
+      contractor_divisions: render_association(:contractor_divisions, references, contract.contract_divisions || [])
     })
   end
 end

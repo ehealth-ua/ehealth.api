@@ -56,7 +56,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
         contract_number: contract_number,
         status: ReimbursementContract.status(:verified),
         contractor_legal_entity: legal_entity,
-        medical_program: medical_program
+        medical_program_id: medical_program.id
       )
 
       params =
@@ -208,7 +208,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
         contract_number: contract_number,
         status: ReimbursementContract.status(:verified),
         contractor_legal_entity: legal_entity,
-        medical_program: medical_program
+        medical_program_id: medical_program.id
       )
 
       params =

@@ -22,6 +22,7 @@ defmodule Core.Contracts.Search do
     field(:contractor_legal_entity_id, UUID)
     field(:contractor_owner_id, UUID)
     field(:nhs_signer_id, UUID)
+    field(:medical_program_id, UUID)
     field(:contract_number, :string)
     field(:is_suspended, :boolean)
     field(:page, :integer)

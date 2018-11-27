@@ -131,7 +131,7 @@ defmodule Core.Contracts do
     user_id = get_consumer_id(headers)
     client_id = get_client_id(headers)
 
-    with {:ok, contract} <- fetch_by_id(id),
+    with {:ok, contract} <- fetch_by_id(id, @capitation),
          :ok <- validate_contract_status(@status_verified, contract),
          :ok <- JsonSchema.validate(:contract_prolongate, params),
          :ok <- validate_legal_entity_allowed(client_id, [contract.nhs_legal_entity_id]),
@@ -154,7 +154,7 @@ defmodule Core.Contracts do
     user_id = get_consumer_id(headers)
     client_id = get_client_id(headers)
 
-    with %CapitationContract{} = contract <- get_by_id(id),
+    with %CapitationContract{} = contract <- get_by_id(id, @capitation),
          :ok <- validate_contractor_legal_entity_id(contract, params),
          :ok <- JsonSchema.validate(:contract_sign, params),
          {:ok, %{"content" => content, "signers" => [signer]}} <- decode_signed_content(params, headers),
@@ -415,7 +415,7 @@ defmodule Core.Contracts do
   defp validate_status(%CapitationContract{}, _), do: {:error, {:conflict, "Not active contract can't be updated"}}
   defp validate_status(%LegalEntity{}, _), do: {:error, {:conflict, "Contractor legal entity is not active"}}
 
-  def get_by_id(id) do
+  def get_by_id(id, @capitation) do
     CapitationContract
     |> where([c], c.id == ^id)
     |> join(:left, [c], ce in ContractEmployee, c.id == ce.contract_id and is_nil(ce.end_date))
@@ -424,25 +424,33 @@ defmodule Core.Contracts do
     |> PRMRepo.one()
   end
 
-  def get_by_id(id, params) do
-    with %CapitationContract{} = contract <- get_by_id(id),
+  def get_by_id(id, @reimbursement) do
+    ReimbursementContract
+    |> where([c], c.id == ^id)
+    |> join(:left, [c], cd in ContractDivision, c.id == cd.contract_id)
+    |> preload([c, cd], contract_divisions: cd)
+    |> PRMRepo.one()
+  end
+
+  def fetch_by_id(id, type) when is_binary(type) do
+    case get_by_id(id, type) do
+      %{} = contract -> {:ok, contract}
+      _ -> {:error, {:not_found, "Contract not found"}}
+    end
+  end
+
+  def fetch_by_id(id, %{} = params) do
+    case get_by_id_with_client_validation(id, params) do
+      {:ok, _contract, _references} = result -> result
+      _ -> {:error, {:not_found, "Contract not found"}}
+    end
+  end
+
+  def get_by_id_with_client_validation(id, %{"type" => type} = params) do
+    with %{} = contract <- get_by_id(id, type),
          :ok <- validate_contractor_legal_entity_id(contract, params),
          {:ok, contract, references} <- load_contract_references(contract) do
       {:ok, contract, references}
-    end
-  end
-
-  def fetch_by_id(id) do
-    case get_by_id(id) do
-      %CapitationContract{} = contract -> {:ok, contract}
-      _ -> {:error, {:not_found, "Contract not found"}}
-    end
-  end
-
-  def fetch_by_id(id, params) do
-    case get_by_id(id, params) do
-      {:ok, _contract, _references} = result -> result
-      _ -> {:error, {:not_found, "Contract not found"}}
     end
   end
 
@@ -480,7 +488,7 @@ defmodule Core.Contracts do
   end
 
   def get_printout_content(id, client_type, headers) do
-    with %CapitationContract{contract_request_id: contract_request_id} = contract <- get_by_id(id),
+    with %CapitationContract{contract_request_id: contract_request_id} = contract <- get_by_id(id, @capitation),
          {:ok, %CapitationContractRequest{} = contract_request, _} <-
            ContractRequests.get_by_id(headers, client_type, contract_request_id),
          {:ok, %{"printout_content" => printout_content}} <-
@@ -585,17 +593,17 @@ defmodule Core.Contracts do
     where(query, [c], c.nhs_legal_entity_id == ^legal_entity_id or c.contractor_legal_entity_id == ^legal_entity_id)
   end
 
-  defp validate_contractor_legal_entity_id(%CapitationContract{} = contract, %{
-         "contractor_legal_entity_id" => contractor_legal_entity_id
+  defp validate_contractor_legal_entity_id(%{contractor_legal_entity_id: contractor_legal_entity_id}, %{
+         "contractor_legal_entity_id" => param_contractor_legal_entity_id
        }) do
-    if contract.contractor_legal_entity_id == contractor_legal_entity_id,
+    if contractor_legal_entity_id == param_contractor_legal_entity_id,
       do: :ok,
       else: {:error, {:forbidden, "You are not allowed to view this contract"}}
   end
 
   defp validate_contractor_legal_entity_id(_contract, _params), do: :ok
 
-  def load_contract_references(contract) do
+  def load_contract_references(%CapitationContract{} = contract) do
     references =
       Preload.preload_references(contract, [
         {:contractor_legal_entity_id, :legal_entity},
@@ -611,6 +619,22 @@ defmodule Core.Contracts do
 
     {:ok, contract, references}
   end
+
+  def load_contract_references(%ReimbursementContract{} = contract) do
+    references =
+      Preload.preload_references(contract, [
+        {:contractor_legal_entity_id, :legal_entity},
+        {:contractor_owner_id, :employee},
+        {:nhs_legal_entity_id, :legal_entity},
+        {:nhs_signer_id, :employee},
+        {:contract_request_id, :reimbursement_contract_request},
+        {[:contract_divisions, "$", :division_id], :division}
+      ])
+
+    {:ok, contract, references}
+  end
+
+  def load_contract_references(nil), do: %{}
 
   defp changeset(%Search{} = contract, attrs) do
     fields =

@@ -1,11 +1,11 @@
 defmodule Core.PRMFactories.ContractFactory do
   @moduledoc false
 
-  alias Ecto.UUID
   alias Core.Contracts.CapitationContract
   alias Core.Contracts.ContractDivision
   alias Core.Contracts.ContractEmployee
   alias Core.Contracts.ReimbursementContract
+  alias Ecto.UUID
 
   defmacro __using__(_opts) do
     quote do
@@ -39,15 +39,18 @@ defmodule Core.PRMFactories.ContractFactory do
       end
 
       def reimbursement_contract_factory do
+        %{id: medical_program_id} = insert(:prm, :medical_program)
+
         data =
           Map.merge(generic_contract_data(), %{
-            type: ReimbursementContract.type()
+            type: ReimbursementContract.type(),
+            medical_program_id: medical_program_id
           })
 
         struct(%ReimbursementContract{}, data)
       end
 
-      def generic_contract_data() do
+      def generic_contract_data do
         %{
           id: UUID.generate(),
           start_date: Date.utc_today(),
@@ -73,7 +76,7 @@ defmodule Core.PRMFactories.ContractFactory do
           inserted_by: UUID.generate(),
           updated_by: UUID.generate(),
           parent_contract: nil,
-          id_form: Enum.random(~w(1..20)),
+          id_form: to_string(Enum.random(1..20)),
           nhs_signed_date: Date.utc_today()
         }
       end

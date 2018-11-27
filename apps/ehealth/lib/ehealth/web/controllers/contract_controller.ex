@@ -5,22 +5,41 @@ defmodule EHealth.Web.ContractController do
 
   alias Core.ContractRequests
   alias Core.ContractRequests.CapitationContractRequest
+  alias Core.ContractRequests.ReimbursementContractRequest
   alias Core.Contracts
+  alias Core.Contracts.CapitationContract
+  alias Core.Contracts.ReimbursementContract
   alias Scrivener.Page
+
+  @capitation CapitationContract.type()
+  @reimbursement ReimbursementContract.type()
 
   action_fallback(EHealth.Web.FallbackController)
 
-  def index(%Plug.Conn{req_headers: headers} = conn, params) do
+  def index(%Plug.Conn{req_headers: headers} = conn, %{"type" => _type} = params) do
     client_type = conn.assigns.client_type
 
-    with {:ok, %Page{} = paging, references} <- Contracts.list(drop_type(params), client_type, headers) do
+    with {:ok, %Page{} = paging, references} <- Contracts.list(params, client_type, headers) do
       render(conn, "index.json", contracts: paging.entries, paging: paging, references: references)
     end
   end
 
-  def show(conn, %{"id" => id} = params) do
-    with {:ok, contract, references} <- Contracts.get_by_id(id, drop_type(params)) do
+  def show(conn, %{"id" => id, "type" => @capitation} = params) do
+    with {:ok, contract, references} <- Contracts.get_by_id_with_client_validation(id, params) do
       %CapitationContractRequest{status: status} = references[:contract_request][contract.contract_request_id]
+
+      conn
+      |> assign(:urgent, %{
+        "documents" => ContractRequests.gen_relevant_get_links(contract.contract_request_id, status)
+      })
+      |> render("show.json", contract: contract, references: references)
+    end
+  end
+
+  def show(conn, %{"id" => id, "type" => @reimbursement} = params) do
+    with {:ok, contract, references} <- Contracts.get_by_id_with_client_validation(id, params) do
+      %ReimbursementContractRequest{status: status} =
+        references[:reimbursement_contract_request][contract.contract_request_id]
 
       conn
       |> assign(:urgent, %{
@@ -49,8 +68,13 @@ defmodule EHealth.Web.ContractController do
   end
 
   def terminate(%Plug.Conn{req_headers: headers} = conn, %{"id" => id} = params) do
-    with {:ok, contract, references} <-
-           Contracts.terminate(id, Map.drop(drop_type(params), ~w(id contractor_legal_entity_id)), headers) do
+    params =
+      params
+      |> drop_type()
+      |> Map.drop(~w(id contractor_legal_entity_id))
+      |> Map.put("type", @capitation)
+
+    with {:ok, contract, references} <- Contracts.terminate(id, params, headers) do
       render(conn, "terminate.json", contract: contract, references: references)
     end
   end

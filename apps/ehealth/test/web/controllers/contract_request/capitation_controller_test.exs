@@ -4962,7 +4962,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
                |> json_response(200)
 
       schema =
-        "../core/specs/json_schemas/contract/contract_show_response.json"
+        "../core/specs/json_schemas/contract/capitation_contract_show_response.json"
         |> File.read!()
         |> Poison.decode!()
 
@@ -5024,7 +5024,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
                |> json_response(200)
 
       schema =
-        "../core/specs/json_schemas/contract/contract_show_response.json"
+        "../core/specs/json_schemas/contract/capitation_contract_show_response.json"
         |> File.read!()
         |> Poison.decode!()
 

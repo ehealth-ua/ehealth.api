@@ -5,6 +5,10 @@
       "status_reason": {
         "type": "string",
         "description": "the reason of terminated status"
+      },
+      "type": {
+        "type": "string",
+        "enum": ["CAPITATION", "REIMBURSEMENT"]
       }
     },
     "required": [
