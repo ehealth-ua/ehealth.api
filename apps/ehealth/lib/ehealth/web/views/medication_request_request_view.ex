@@ -23,10 +23,18 @@ defmodule EHealth.Web.MedicationRequestRequestView do
   end
 
   def render("medication_request_request_detail.json", %{data: values}) do
-    additional_fields = ~w(intent category context dosage_instruction)a
+    optional_fields = ~w(context dosage_instruction)a
 
     values.medication_request_request.data
-    |> Map.take(~w(created_at started_at ended_at dispense_valid_from dispense_valid_to)a)
+    |> Map.take(~w(
+      created_at
+      started_at
+      ended_at
+      dispense_valid_from
+      dispense_valid_to
+      intent
+      category
+    )a)
     |> Map.merge(%{
       id: values.medication_request_request.id,
       person: render_person(values.person, values.medication_request_request.data.created_at),
@@ -42,7 +50,7 @@ defmodule EHealth.Web.MedicationRequestRequestView do
       request_number: values.medication_request_request.request_number,
       status: values.medication_request_request.status
     })
-    |> put_additional_fields(values.medication_request_request.data, additional_fields)
+    |> put_optional_fields(values.medication_request_request.data, optional_fields)
   end
 
   def render("medication_request_request.json", %{medication_request_request: medication_request_request}) do
@@ -82,12 +90,12 @@ defmodule EHealth.Web.MedicationRequestRequestView do
     MedicationRequestRequestRenderer.render_person(person, mrr_created_at)
   end
 
-  defp put_additional_fields(response, data, additional_fields) do
-    additional_response =
-      Enum.reduce(additional_fields, %{}, fn field, acc ->
-        if Map.has_key?(data, field), do: Map.put(acc, field, Map.get(data, field)), else: acc
+  defp put_optional_fields(response, data, optional_fields) do
+    optional_response =
+      Enum.reduce(optional_fields, %{}, fn field, acc ->
+        if Map.get(data, field), do: Map.put(acc, field, Map.get(data, field)), else: acc
       end)
 
-    Map.merge(response, additional_response)
+    Map.merge(response, optional_response)
   end
 end

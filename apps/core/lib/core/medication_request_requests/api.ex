@@ -155,6 +155,7 @@ defmodule Core.MedicationRequestRequests do
   def prequalify(attrs, user_id, client_id) do
     with :ok <- Validations.validate_prequalify_schema(attrs),
          %{"medication_request_request" => mrr, "programs" => programs} <- attrs,
+         :ok <- check_intent(mrr),
          create_operation <- CreateDataOperation.create(mrr, client_id),
          %Ecto.Changeset{valid?: true} <- create_changeset(create_operation, mrr, user_id, client_id),
          :ok <- validate_medical_programs(attrs) do
@@ -427,4 +428,7 @@ defmodule Core.MedicationRequestRequests do
       {:error, errors}
     end
   end
+
+  defp check_intent(%{"intent" => "plan"}), do: {:error, {:conflict, "Plan can't be qualified"}}
+  defp check_intent(%{"intent" => _}), do: :ok
 end

@@ -245,6 +245,27 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       end)
     end
 
+    test "render medication_request_request when optional fields are absent", %{conn: conn} do
+      expect_ops_get_declarations()
+      expect_mpi_get_person()
+
+      {medication_id, pm} = create_medications_structure()
+
+      test_request =
+        test_request()
+        |> Map.merge(%{
+          "medication_id" => medication_id,
+          "medical_program_id" => pm.medical_program_id
+        })
+        |> Map.drop(~w(context dosage_instruction))
+
+      assert conn
+             |> post(medication_request_request_path(conn, :create), medication_request_request: test_request)
+             |> json_response(201)
+             |> Map.get("data")
+             |> assert_show_response_schema("medication_request_request")
+    end
+
     test "render errors when request data is invalid", %{conn: conn} do
       resp =
         conn
@@ -873,6 +894,10 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       expect_ops_get_declarations()
       expect_mpi_get_person()
 
+      expect(RPCWorkerMock, :run, fn _, _, :encounter_status_by_id, _, _ ->
+        {:ok, "finished"}
+      end)
+
       expect(OPSMock, :get_prequalify_medication_requests, fn _params, _headers ->
         {:ok, %{"data" => []}}
       end)
@@ -881,8 +906,11 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
       test_request =
         test_request()
-        |> Map.put("medication_id", medication_id)
-        |> Map.drop(~w(medical_program_id intent category context dosage_instruction))
+        |> Map.merge(%{
+          "medication_id" => medication_id,
+          "intent" => "order"
+        })
+        |> Map.delete("medical_program_id")
 
       data = %{medication_request_request: test_request, programs: [%{id: pm.medical_program_id}]}
 
@@ -904,6 +932,10 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       expect_ops_get_declarations()
       expect_mpi_get_person()
 
+      expect(RPCWorkerMock, :run, fn _, _, :encounter_status_by_id, _, _ ->
+        {:ok, "finished"}
+      end)
+
       {medication_id, pm} = create_medications_structure()
 
       inactive_mp = insert(:prm, :medical_program, is_active: false)
@@ -911,8 +943,11 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
       test_request =
         test_request()
-        |> Map.put("medication_id", medication_id)
-        |> Map.drop(~w(medical_program_id intent category context dosage_instruction))
+        |> Map.merge(%{
+          "medication_id" => medication_id,
+          "intent" => "order"
+        })
+        |> Map.delete("medical_program_id")
 
       data = %{
         medication_request_request: test_request,
@@ -956,13 +991,20 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       expect_ops_get_declarations()
       expect_mpi_get_person()
 
+      expect(RPCWorkerMock, :run, fn _, _, :encounter_status_by_id, _, _ ->
+        {:ok, "finished"}
+      end)
+
       {medication_id, _} = create_medications_structure()
       pm1 = insert(:prm, :program_medication)
 
       test_request =
         test_request()
-        |> Map.put("medication_id", medication_id)
-        |> Map.drop(~w(medical_program_id intent category context dosage_instruction))
+        |> Map.merge(%{
+          "medication_id" => medication_id,
+          "intent" => "order"
+        })
+        |> Map.delete("medical_program_id")
 
       resp =
         conn
@@ -985,13 +1027,55 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
         test_request()
         |> Map.put("person_id", "")
 
-      conn1 =
-        post(conn, medication_request_request_path(conn, :prequalify), %{
-          medication_request_request: test_request,
-          programs: []
-        })
+      assert conn
+             |> post(medication_request_request_path(conn, :prequalify), %{
+               medication_request_request: test_request,
+               programs: []
+             })
+             |> json_response(422)
+    end
 
-      assert json_response(conn1, 422)
+    test "failed when intent is PLAN", %{conn: conn} do
+      {medication_id, pm} = create_medications_structure()
+
+      test_request =
+        test_request()
+        |> Map.put("medication_id", medication_id)
+        |> Map.delete("medical_program_id")
+
+      data = %{medication_request_request: test_request, programs: [%{id: pm.medical_program_id}]}
+
+      resp =
+        conn
+        |> post(medication_request_request_path(conn, :prequalify), data)
+        |> json_response(409)
+
+      assert get_in(resp, ~w(error message)) == "Plan can't be qualified"
+    end
+
+    test "render medication_request_request when optional fields are absent", %{conn: conn} do
+      expect_ops_get_declarations()
+      expect_mpi_get_person()
+
+      expect(OPSMock, :get_prequalify_medication_requests, fn _params, _headers ->
+        {:ok, %{"data" => []}}
+      end)
+
+      {medication_id, pm} = create_medications_structure()
+
+      test_request =
+        test_request()
+        |> Map.merge(%{
+          "medication_id" => medication_id,
+          "intent" => "order"
+        })
+        |> Map.drop(~w(medical_program_id context dosage_instruction))
+
+      data = %{medication_request_request: test_request, programs: [%{id: pm.medical_program_id}]}
+
+      assert conn
+             |> post(medication_request_request_path(conn, :prequalify), data)
+             |> json_response(200)
     end
   end
 
