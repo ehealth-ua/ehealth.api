@@ -44,7 +44,8 @@ defmodule EHealth.Web.MedicationControllerTest do
         [innm_dosage_id: 123],
         [innm_dosage_name: 123],
         [innm_dosage_form: 123],
-        [medication_code_atc: 123]
+        [medication_code_atc: 123],
+        [medical_program_id: 123]
       ]
 
       Enum.each(params, fn param ->
@@ -159,6 +160,30 @@ defmodule EHealth.Web.MedicationControllerTest do
       conn = get(conn, medication_path(conn, :drugs), innm_dosage_name: "он Ла")
       data = json_response(conn, 200)["data"]
       assert 0 == length(data), "Get Drugs should return an empty list"
+    end
+
+    test "find by medical program id", %{conn: conn} do
+      %{medical_program: medical_program_id, innms: innms, innm_dosage: innm_dosage} =
+        fixture(:list_with_medication_program)
+
+      [innm_in | innms_out] = innms
+      [innm_dosage_in | innm_dosages_out] = innm_dosage
+
+      resp =
+        conn
+        |> get(medication_path(conn, :drugs), medical_program_id: medical_program_id)
+        |> json_response(200)
+        |> Map.get("data")
+
+      assert 1 == length(resp)
+
+      resp_innm = resp |> hd() |> get_in(~w(innm id))
+      assert innm_in == resp_innm
+      Enum.each(innms_out, fn innm_out -> refute innm_out == resp_innm end)
+
+      resp_innm_dosage = resp |> hd() |> Map.get("id")
+      assert innm_dosage_in == resp_innm_dosage
+      Enum.each(innm_dosages_out, fn innm_dosage_out -> refute innm_dosage_out == resp_innm_dosage end)
     end
   end
 
@@ -565,6 +590,37 @@ defmodule EHealth.Web.MedicationControllerTest do
     insert(:prm, :ingredient_medication, parent_id: med_id, medication_child_id: dosage_id)
 
     dosage_id
+  end
+
+  def fixture(:list_with_medication_program) do
+    %{id: innm_id} = insert(:prm, :innm, name: "Бупропіон")
+    %{id: innm_id_out} = insert(:prm, :innm, name: "Діетіламід")
+
+    %{id: dosage_id} = insert(:prm, :innm_dosage, name: "Бупропіон Форте")
+    %{id: dosage_id_out_1} = insert(:prm, :innm_dosage, name: "Діетіламід Форте")
+    %{id: dosage_id_out_2} = insert(:prm, :innm_dosage, name: "Діетіламід Лайт")
+
+    insert(:prm, :ingredient_innm_dosage, parent_id: dosage_id, innm_child_id: innm_id)
+    insert(:prm, :ingredient_innm_dosage, parent_id: dosage_id, innm_child_id: innm_id, is_primary: false)
+    insert(:prm, :ingredient_innm_dosage, parent_id: dosage_id_out_1, innm_child_id: innm_id_out)
+    insert(:prm, :ingredient_innm_dosage, parent_id: dosage_id_out_1, innm_child_id: innm_id_out, is_primary: false)
+
+    %{id: med_id} = insert(:prm, :medication, package_qty: 5, package_min_qty: 20, name: "Бупропіонол")
+    %{id: med_id_out} = insert(:prm, :medication, package_qty: 10, package_min_qty: 20, name: "Діетіламідон")
+
+    insert(:prm, :ingredient_medication, parent_id: med_id, medication_child_id: dosage_id)
+    insert(:prm, :ingredient_medication, parent_id: med_id, medication_child_id: dosage_id)
+    insert(:prm, :ingredient_medication, parent_id: med_id_out, medication_child_id: dosage_id_out_1)
+    insert(:prm, :ingredient_medication, parent_id: med_id_out, medication_child_id: dosage_id_out_2, is_primary: false)
+
+    %{medical_program_id: medical_program_id} = insert(:prm, :program_medication, medication_id: med_id)
+    insert(:prm, :program_medication, medication_id: med_id_out)
+
+    %{
+      medical_program: medical_program_id,
+      innms: [innm_id, innm_id_out],
+      innm_dosage: [dosage_id, dosage_id_out_1, dosage_id_out_2]
+    }
   end
 
   defp get_ingredient(params) do

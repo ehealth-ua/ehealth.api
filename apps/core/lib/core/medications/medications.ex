@@ -96,20 +96,9 @@ defmodule Core.Medications do
       |> join(:inner, [id], idi in assoc(id, :ingredients_medication))
       |> where([..., idi], idi.is_primary)
       |> join(:inner, [..., idi], m in assoc(idi, :medication))
+      |> join_program_medications(attrs)
       |> where_drugs_attrs(attrs)
-      |> select([innm_dosage, innm_ingredient, innm, _, medication], %{
-        innm_id: innm.id,
-        innm_name: innm.name,
-        innm_name_original: innm.name_original,
-        innm_sctid: innm.sctid,
-        innm_dosage_id: innm_dosage.id,
-        innm_dosage_name: innm_dosage.name,
-        innm_dosage_form: innm_dosage.form,
-        innm_dosage_dosage: innm_ingredient.dosage,
-        medication_container: medication.container,
-        medication_package_qty: medication.package_qty,
-        medication_package_min_qty: medication.package_min_qty
-      })
+      |> do_select(attrs)
       |> subquery()
       |> group_by([a], a.innm_id)
       |> group_by([a], a.innm_name)
@@ -169,38 +158,82 @@ defmodule Core.Medications do
     changeset
   end
 
+  defp join_program_medications(query, %{medical_program_id: _}) do
+    join(query, :inner, [..., m], pm in ProgramMedication, pm.medication_id == m.id)
+  end
+
+  defp join_program_medications(query, _), do: query
+
   defp where_drugs_attrs(query, attrs) do
-    attrs
-    |> Enum.reduce(query, fn {field, value}, query ->
-      case field do
-        :innm_id ->
-          where(query, [_, _, innm], innm.id == ^value)
-
-        :innm_name ->
-          where(query, [_, _, innm], ilike(innm.name, ^("%" <> value <> "%")))
-
-        :innm_sctid ->
-          where(query, [_, _, innm], innm.sctid == ^value)
-
-        :innm_dosage_id ->
-          where(query, [innm_dosage], innm_dosage.id == ^value)
-
-        :innm_dosage_name ->
-          where(query, [innm_dosage], ilike(innm_dosage.name, ^("%" <> value <> "%")))
-
-        :innm_dosage_form ->
-          where(query, [innm_dosage], innm_dosage.form == ^value)
-
-        :medication_code_atc ->
-          where(query, [..., med], fragment("? @> ?", med.code_atc, ^value))
-
-        _ ->
-          query
-      end
-    end)
+    query
+    |> do_where_drugs_attrs(attrs)
     |> where([innm_dosage, ...], innm_dosage.is_active)
     |> where([_, _, innm], innm.is_active)
     |> where([..., med], med.is_active)
+  end
+
+  defp do_where_drugs_attrs(query, attrs) do
+    Enum.reduce(attrs, query, fn
+      {:innm_id, value}, query ->
+        where(query, [_, _, innm], innm.id == ^value)
+
+      {:innm_name, value}, query ->
+        where(query, [_, _, innm], ilike(innm.name, ^("%" <> value <> "%")))
+
+      {:innm_sctid, value}, query ->
+        where(query, [_, _, innm], innm.sctid == ^value)
+
+      {:innm_dosage_id, value}, query ->
+        where(query, [innm_dosage], innm_dosage.id == ^value)
+
+      {:innm_dosage_name, value}, query ->
+        where(query, [innm_dosage], ilike(innm_dosage.name, ^("%" <> value <> "%")))
+
+      {:innm_dosage_form, value}, query ->
+        where(query, [innm_dosage], innm_dosage.form == ^value)
+
+      {:medication_code_atc, value}, query ->
+        where(query, [..., med], fragment("? @> ?", med.code_atc, ^value))
+
+      {:medical_program_id, value}, query ->
+        where(query, [..., pm], pm.medical_program_id == ^value and pm.is_active and pm.medication_request_allowed)
+
+      _, query ->
+        query
+    end)
+  end
+
+  defp do_select(query, %{medical_program_id: _}) do
+    select(query, [innm_dosage, innm_ingredient, innm, _, medication, program_medications], %{
+      innm_id: innm.id,
+      innm_name: innm.name,
+      innm_name_original: innm.name_original,
+      innm_sctid: innm.sctid,
+      innm_dosage_id: innm_dosage.id,
+      innm_dosage_name: innm_dosage.name,
+      innm_dosage_form: innm_dosage.form,
+      innm_dosage_dosage: innm_ingredient.dosage,
+      medication_container: medication.container,
+      medication_package_qty: medication.package_qty,
+      medication_package_min_qty: medication.package_min_qty,
+      medical_program_id: program_medications.medical_program_id
+    })
+  end
+
+  defp do_select(query, _) do
+    select(query, [innm_dosage, innm_ingredient, innm, _, medication], %{
+      innm_id: innm.id,
+      innm_name: innm.name,
+      innm_name_original: innm.name_original,
+      innm_sctid: innm.sctid,
+      innm_dosage_id: innm_dosage.id,
+      innm_dosage_name: innm_dosage.name,
+      innm_dosage_form: innm_dosage.form,
+      innm_dosage_dosage: innm_ingredient.dosage,
+      medication_container: medication.container,
+      medication_package_qty: medication.package_qty,
+      medication_package_min_qty: medication.package_min_qty
+    })
   end
 
   def list_medications(params) do

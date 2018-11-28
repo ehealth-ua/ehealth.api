@@ -12,5 +12,6 @@ defmodule Core.Medications.DrugsSearch do
     field(:innm_dosage_name, :string)
     field(:innm_dosage_form, :string)
     field(:medication_code_atc, :string)
+    field(:medical_program_id, Ecto.UUID)
   end
 end
