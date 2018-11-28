@@ -16,6 +16,7 @@ defmodule Core.ContractRequests.Search do
     field(:issue_city, StringLike)
     field(:status, :string)
     field(:contract_number, :string)
+    field(:medical_program_id, Ecto.UUID)
   end
 
   def changeset(params) do

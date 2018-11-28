@@ -5,13 +5,14 @@ defmodule EHealth.Web.ContractRequestController do
 
   alias Core.ContractRequests
   alias Core.ContractRequests.CapitationContractRequest
+  alias Core.ContractRequests.RequestPack
   alias EHealth.Web.ContractView
 
   action_fallback(EHealth.Web.FallbackController)
 
   def index(conn, params) do
-    with {:ok, paging} <- ContractRequests.search(drop_type(params)) do
-      render(conn, "index.json", contract_requests: paging.entries, paging: paging)
+    with {:ok, %{entries: contract_requests} = paging} <- ContractRequests.search(params) do
+      render(conn, "index.json", contract_requests: contract_requests, paging: paging)
     end
   end
 
@@ -37,11 +38,12 @@ defmodule EHealth.Web.ContractRequestController do
     end
   end
 
-  def show(%Plug.Conn{req_headers: headers} = conn, %{"id" => id}) do
+  def show(%Plug.Conn{req_headers: headers} = conn, %{"id" => id, "type" => _} = params) do
     client_type = conn.assigns.client_type
+    pack = RequestPack.new(params)
 
-    with {:ok, %CapitationContractRequest{} = contract_request, references} <-
-           ContractRequests.get_by_id(headers, client_type, id) do
+    with {:ok, contract_request, references} <-
+           ContractRequests.get_by_id_with_client_validation(headers, client_type, pack) do
       conn
       |> assign(:urgent, %{"documents" => ContractRequests.gen_relevant_get_links(id, contract_request.status)})
       |> render("show.json", contract_request: contract_request, references: references)

@@ -2,14 +2,21 @@ defmodule EHealth.Web.ContractRequestView do
   @moduledoc false
 
   use EHealth.Web, :view
+
+  alias Core.ContractRequests.CapitationContractRequest
+  alias Core.ContractRequests.ReimbursementContractRequest
   alias Core.ContractRequests.Renderer, as: ContractRequestsRenderer
+
+  @capitation CapitationContractRequest.type()
+  @reimbursement ReimbursementContractRequest.type()
 
   def render("index.json", %{contract_requests: contract_requests}) do
     render_many(contract_requests, __MODULE__, "list_contract_request.json")
   end
 
   def render("list_contract_request.json", %{contract_request: contract_request}) do
-    Map.take(contract_request, ~w(
+    contract_request
+    |> Map.take(~w(
       id
       type
       contractor_legal_entity_id
@@ -28,6 +35,7 @@ defmodule EHealth.Web.ContractRequestView do
       end_date
       parent_contract_id
     )a)
+    |> put_reimbursment_data(contract_request)
   end
 
   def render("draft.json", %{id: id, statute_url: statute_url, additional_document_url: additional_document_url}) do
@@ -70,5 +78,11 @@ defmodule EHealth.Web.ContractRequestView do
       "id" => contract_request.id,
       "contractor_legal_entity" => Map.take(contractor_legal_entity, ~w(id name edrpou)a)
     }
+  end
+
+  defp put_reimbursment_data(view_data, %{type: @capitation}), do: view_data
+
+  defp put_reimbursment_data(view_data, %{type: @reimbursement} = contract_request) do
+    Map.put(view_data, :medical_program_id, contract_request.medical_program_id)
   end
 end

@@ -21,7 +21,7 @@ defmodule Core.ContractRequests.RequestPack do
   @capitation CapitationContractRequest.type()
   @reimbursement ReimbursementContractRequest.type()
 
-  def new(%{"type" => type} = params) do
+  def new(%{"type" => _} = params) do
     struct(__MODULE__, map_params(params))
   end
 
@@ -40,8 +40,8 @@ defmodule Core.ContractRequests.RequestPack do
     }
   end
 
-  defp get_schema_by_type(@capitation), do: CapitationContractRequest
-  defp get_schema_by_type(@reimbursement), do: ReimbursementContractRequest
+  def get_schema_by_type(@capitation), do: CapitationContractRequest
+  def get_schema_by_type(@reimbursement), do: ReimbursementContractRequest
 
   defp get_provider_by_type(@capitation), do: CapitationContractRequests
   defp get_provider_by_type(@reimbursement), do: ReimbursementContractRequests

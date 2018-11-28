@@ -51,16 +51,16 @@ defmodule Core.ContractRequests do
   ]
 
   defmacro __using__(schema: schema) do
-    quote bind_quoted: [schema: schema] do
+    quote do
       import Core.API.Helpers.Connection, only: [get_client_id: 1]
 
       alias Core.ContractRequests
       alias Core.ContractRequests.Validator
       alias Core.Repo
 
-      def get_by_id(id), do: Repo.get(unquote(schema), id)
+      def get_by_id(id), do: Repo.get_by(unquote(schema), %{id: id, type: unquote(schema).type()})
 
-      def get_by_id!(id), do: Repo.get!(unquote(schema), id)
+      def get_by_id!(id), do: Repo.get_by!(unquote(schema), %{id: id, type: unquote(schema).type()})
 
       def fetch_by_id(id) do
         case get_by_id(id) do
@@ -71,20 +71,18 @@ defmodule Core.ContractRequests do
     end
   end
 
-  def search(search_params) do
+  def search(%{"type" => type} = search_params) do
     with %Changeset{valid?: true} = changeset <- Search.changeset(search_params),
-         %Page{} = paging <- search(changeset, search_params, CapitationContractRequest) do
+         %Page{} = paging <- search(changeset, search_params, RequestPack.get_schema_by_type(type)) do
       {:ok, paging}
     end
   end
 
-  @deprecated "Use separated functions like: fetch_by_id/2,
-  validate_contract_request_client_access/3,
-  preload_references/1"
-  def get_by_id(headers, client_type, id) do
+  def get_by_id_with_client_validation(headers, client_type, %RequestPack{} = pack) do
     client_id = get_client_id(headers)
 
-    with {:ok, %CapitationContractRequest{} = contract_request} <- get_contract_request(client_id, client_type, id) do
+    with {:ok, contract_request} <- fetch_by_id(pack),
+         :ok <- validate_contract_request_client_access(client_type, client_id, contract_request) do
       {:ok, contract_request, preload_references(contract_request)}
     end
   end
@@ -388,12 +386,12 @@ defmodule Core.ContractRequests do
     end
   end
 
-  def terminate(headers, client_type, params) do
+  def terminate(headers, client_type, %{"id" => id} = params) do
     client_id = get_client_id(headers)
     user_id = get_consumer_id(headers)
 
-    with {:ok, %CapitationContractRequest{} = contract_request} <-
-           get_contract_request(client_id, client_type, params["id"]),
+    with {:ok, %CapitationContractRequest{} = contract_request} <- fetch_by_id(id),
+         :ok <- validate_contract_request_client_access(client_type, client_id, contract_request),
          {:contractor_owner, :ok} <- {:contractor_owner, validate_contractor_owner_id(contract_request)},
          true <- contract_request.status not in @forbidden_statuses_for_termination,
          update_params <-
@@ -547,7 +545,10 @@ defmodule Core.ContractRequests do
   end
 
   def get_printout_content(id, client_type, headers) do
-    with {:ok, contract_request, _} <- get_by_id(headers, client_type, id),
+    client_id = get_client_id(headers)
+
+    with {:ok, %CapitationContractRequest{} = contract_request} <- fetch_by_id(id),
+         :ok <- validate_contract_request_client_access(client_type, client_id, contract_request),
          :ok <-
            validate_status(
              contract_request,
@@ -841,14 +842,6 @@ defmodule Core.ContractRequests do
     case Enum.find(data, &(Map.get(&1, "role_name") == role)) do
       nil -> {:error, {:forbidden, reason}}
       _ -> :ok
-    end
-  end
-
-  @deprecated "use get_by_id/1 + Validator.validate_contract_request_client_access/3 instead"
-  defp get_contract_request(client_id, client_type, id) do
-    with {:ok, contract_request} <- fetch_by_id(id),
-         :ok <- validate_contract_request_client_access(client_type, client_id, contract_request) do
-      {:ok, contract_request}
     end
   end
 

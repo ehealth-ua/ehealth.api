@@ -17,10 +17,95 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
   setup :verify_on_exit!
 
   @msp LegalEntity.type(:msp)
+  @nhs LegalEntity.type(:nhs)
   @pharmacy LegalEntity.type(:pharmacy)
 
   @reimbursement ReimbursementContractRequest.type()
   @path_type String.downcase(@reimbursement)
+
+  describe "list reimbursement contract requests" do
+    test "successfully finds by medical_program_id", %{conn: conn} do
+      nhs()
+
+      %{id: medical_program_id} = insert(:prm, :medical_program)
+      insert_list(2, :il, :reimbursement_contract_request, medical_program_id: medical_program_id)
+      insert_list(4, :il, :reimbursement_contract_request)
+      insert_list(8, :il, :capitation_contract_request)
+
+      assert resp_data =
+               conn
+               |> put_consumer_id_header()
+               |> put_client_id_header()
+               |> get(contract_request_path(conn, :index, @path_type), %{medical_program_id: medical_program_id})
+               |> json_response(200)
+               |> Map.get("data")
+
+      assert 2 == length(resp_data)
+    end
+  end
+
+  describe "show reimbursement contract requests" do
+    test "success by MSP", %{conn: conn} do
+      msp()
+
+      %{id: employee_id} = insert(:prm, :employee)
+      %{id: legal_entity_id} = insert(:prm, :legal_entity, type: @msp)
+
+      %{id: id} =
+        insert(:il, :reimbursement_contract_request,
+          contractor_legal_entity_id: legal_entity_id,
+          contractor_owner_id: employee_id
+        )
+
+      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, id, resource_name, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://url.com/#{id}/#{resource_name}"}}}
+      end)
+
+      assert conn
+             |> put_consumer_id_header()
+             |> put_client_id_header(legal_entity_id)
+             |> get(contract_request_path(conn, :show, @path_type, id))
+             |> json_response(200)
+             |> Map.get("data")
+             |> assert_show_response_schema("contract_request", "reimbursement_contract_request")
+    end
+
+    test "success by NHS", %{conn: conn} do
+      nhs()
+
+      %{id: employee_id} = insert(:prm, :employee)
+      %{id: legal_entity_id} = insert(:prm, :legal_entity, type: @nhs)
+
+      %{id: id} =
+        insert(:il, :reimbursement_contract_request,
+          contractor_legal_entity_id: legal_entity_id,
+          contractor_owner_id: employee_id
+        )
+
+      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, id, resource_name, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://url.com/#{id}/#{resource_name}"}}}
+      end)
+
+      assert conn
+             |> put_client_id_header()
+             |> get(contract_request_path(conn, :show, @path_type, id))
+             |> json_response(200)
+             |> Map.get("data")
+             |> assert_show_response_schema("contract_request", "reimbursement_contract_request")
+    end
+
+    test "fails on not finding reimbursement contract request", %{conn: conn} do
+      nhs()
+
+      %{id: id} = insert(:il, :capitation_contract_request)
+
+      assert conn
+             |> put_client_id_header()
+             |> put_consumer_id_header()
+             |> get(contract_request_path(conn, :show, @path_type, id))
+             |> json_response(404)
+    end
+  end
 
   describe "successful creation reimbursement contract request" do
     setup %{conn: conn} do
