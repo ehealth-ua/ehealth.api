@@ -30,6 +30,7 @@ defmodule GraphQLWeb.Schema do
   import_types(GraphQLWeb.Schema.{
     ScalarTypes,
     AddressTypes,
+    CapitationContractRequestTypes,
     ContractRequestTypes,
     ContractTypes,
     DictionaryTypes,
@@ -44,8 +45,8 @@ defmodule GraphQLWeb.Schema do
   })
 
   query do
+    import_fields(:capitation_contract_request_queries)
     import_fields(:contract_queries)
-    import_fields(:contract_request_queries)
     import_fields(:employee_queries)
     import_fields(:dictionary_queries)
     import_fields(:legal_entity_queries)
@@ -63,8 +64,8 @@ defmodule GraphQLWeb.Schema do
 
   node interface do
     resolve_type(fn
-      %CapitationContract{}, _ -> :contract
-      %CapitationContractRequest{}, _ -> :contract_request
+      %CapitationContract{}, _ -> :capitation_contract
+      %CapitationContractRequest{}, _ -> :capitation_contract_request
       %Dictionary{}, _ -> :dictionary
       %Division{}, _ -> :division
       %Employee{}, _ -> :employee

@@ -5,7 +5,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
 
   import Core.Factories, only: [insert: 2, insert: 3, build: 2]
   import Core.Expectations.Man, only: [template: 0]
-  import Core.Expectations.Mithril, only: [mis: 0, msp: 0, nhs: 0]
+  import Core.Expectations.Mithril, only: [msp: 0, nhs: 0]
   import Core.Expectations.Signature
   import Mox, only: [expect: 3, expect: 4, verify_on_exit!: 1]
 
@@ -23,8 +23,11 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
   @contract_request_status_nhs_signed CapitationContractRequest.status(:nhs_signed)
 
   @list_query """
-    query ListContractRequestsQuery($filter: ContractRequestFilter, $orderBy: ContractRequestOrderBy) {
-      contractRequests(first: 10, filter: $filter, orderBy: $orderBy) {
+    query ListContractRequestsQuery(
+      $filter: CapitationContractRequestFilter
+      $orderBy: CapitationContractRequestOrderBy
+    ) {
+      capitationContractRequests(first: 10, filter: $filter, orderBy: $orderBy) {
         nodes {
           id
           databaseId
@@ -41,17 +44,9 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
     }
   """
 
-  @get_by_id_query """
-    query GetContractRequestQuery($id: ID!) {
-      contractRequest(id: $id) {
-        id
-      }
-    }
-  """
-
   @printout_content_query """
     query GetContractRequestPrintoutContentQuery($id: ID!) {
-      contractRequest(id: $id) {
+      capitationContractRequest(id: $id) {
         status
         printoutContent
         toSignContent
@@ -148,150 +143,6 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
   end
 
   describe "list" do
-    test "return all for NHS client", %{conn: conn} do
-      nhs()
-
-      for _ <- 1..2, do: insert(:il, :capitation_contract_request)
-
-      resp_body =
-        conn
-        |> put_client_id()
-        |> post_query(@list_query)
-        |> json_response(200)
-
-      resp_entities = get_in(resp_body, ~w(data contractRequests nodes))
-
-      assert nil == resp_body["errors"]
-      assert 2 == length(resp_entities)
-    end
-
-    test "return only related for MSP client", %{conn: conn} do
-      msp()
-
-      contract_requests = for _ <- 1..2, do: insert(:il, :capitation_contract_request)
-      related_contract_request = hd(contract_requests)
-
-      resp_body =
-        conn
-        |> put_client_id(related_contract_request.contractor_legal_entity_id)
-        |> post_query(@list_query)
-        |> json_response(200)
-
-      resp_entities = get_in(resp_body, ~w(data contractRequests nodes))
-
-      assert nil == resp_body["errors"]
-      assert 1 == length(resp_entities)
-      assert related_contract_request.id == hd(resp_entities)["databaseId"]
-    end
-
-    test "return forbidden error for incorrect client type", %{conn: conn} do
-      mis()
-
-      for _ <- 1..2, do: insert(:il, :capitation_contract_request)
-
-      resp_body =
-        conn
-        |> put_client_id()
-        |> post_query(@list_query)
-        |> json_response(200)
-
-      assert is_list(resp_body["errors"])
-      assert match?(%{"extensions" => %{"code" => "FORBIDDEN"}}, hd(resp_body["errors"]))
-      assert nil == get_in(resp_body, ~w(data contractRequests))
-    end
-
-    test "filter by match", %{conn: conn} do
-      nhs()
-
-      for status <- ~w(NEW APPROWED), do: insert(:il, :capitation_contract_request, status: status)
-
-      variables = %{filter: %{status: "NEW"}}
-
-      resp_body =
-        conn
-        |> put_client_id()
-        |> post_query(@list_query, variables)
-        |> json_response(200)
-
-      resp_entities = get_in(resp_body, ~w(data contractRequests nodes))
-
-      assert nil == resp_body["errors"]
-      assert 1 == length(resp_entities)
-      assert "NEW" == hd(resp_entities)["status"]
-    end
-
-    test "filter by database ID", %{conn: conn} do
-      nhs()
-
-      contract_requests = for _ <- 1..2, do: insert(:il, :capitation_contract_request)
-
-      requested_contract_request = hd(contract_requests)
-
-      variables = %{filter: %{databaseId: requested_contract_request.id}}
-
-      resp_body =
-        conn
-        |> put_client_id()
-        |> post_query(@list_query, variables)
-        |> json_response(200)
-
-      resp_entities = get_in(resp_body, ~w(data contractRequests nodes))
-
-      assert nil == resp_body["errors"]
-      assert [resp_entity] = resp_entities
-      assert requested_contract_request.id == resp_entity["databaseId"]
-    end
-
-    test "filter by closed date interval", %{conn: conn} do
-      nhs()
-
-      today = Date.utc_today()
-
-      for start_date <- [today, Date.add(today, -30)],
-          do: insert(:il, :capitation_contract_request, start_date: start_date)
-
-      variables = %{
-        filter: %{startDate: to_string(%Date.Interval{first: today, last: Date.add(today, 10)})}
-      }
-
-      resp_body =
-        conn
-        |> put_client_id()
-        |> post_query(@list_query, variables)
-        |> json_response(200)
-
-      resp_entities = get_in(resp_body, ~w(data contractRequests nodes))
-
-      assert nil == resp_body["errors"]
-      assert 1 == length(resp_entities)
-      assert to_string(today) == hd(resp_entities)["startDate"]
-    end
-
-    test "filter by open date interval", %{conn: conn} do
-      nhs()
-
-      today = Date.utc_today()
-
-      for start_date <- [today, Date.add(today, -30)],
-          do: insert(:il, :capitation_contract_request, start_date: start_date)
-
-      variables = %{
-        filter: %{startDate: to_string(%Date.Interval{first: today, last: nil})}
-      }
-
-      resp_body =
-        conn
-        |> put_client_id()
-        |> post_query(@list_query, variables)
-        |> json_response(200)
-
-      resp_entities = get_in(resp_body, ~w(data contractRequests nodes))
-
-      assert nil == resp_body["errors"]
-      assert 1 == length(resp_entities)
-      assert to_string(today) == hd(resp_entities)["startDate"]
-    end
-
     test "filter by contractor legal entity edrpou", %{conn: conn} do
       nhs()
 
@@ -313,7 +164,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
         |> post_query(@list_query, variables)
         |> json_response(200)
 
-      resp_entities = get_in(resp_body, ~w(data contractRequests nodes))
+      resp_entities = get_in(resp_body, ~w(data capitationContractRequests nodes))
 
       assert nil == resp_body["errors"]
       assert 1 == length(resp_entities)
@@ -341,120 +192,16 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
         |> post_query(@list_query, variables)
         |> json_response(200)
 
-      resp_entities = get_in(resp_body, ~w(data contractRequests nodes))
+      resp_entities = get_in(resp_body, ~w(data capitationContractRequests nodes))
 
       assert nil == resp_body["errors"]
       assert 1 == length(resp_entities)
       assert requested_assignee.id == hd(resp_entities)["assignee"]["databaseId"]
     end
-
-    test "success with ordering", %{conn: conn} do
-      nhs()
-
-      for status <- [@contract_request_status_in_process, @contract_request_status_new] do
-        insert(:il, :capitation_contract_request, status: status)
-      end
-
-      variables = %{orderBy: "STATUS_ASC"}
-
-      resp_body =
-        conn
-        |> put_client_id()
-        |> post_query(@list_query, variables)
-        |> json_response(200)
-
-      resp_entities = get_in(resp_body, ~w(data contractRequests nodes))
-
-      assert nil == resp_body["errors"]
-      assert @contract_request_status_in_process == hd(resp_entities)["status"]
-    end
   end
 
   describe "get by id" do
-    test "success for NHS client", %{conn: conn} do
-      nhs()
-      contract_request = insert(:il, :capitation_contract_request)
-
-      id = Node.to_global_id("ContractRequest", contract_request.id)
-
-      variables = %{id: id}
-
-      resp_body =
-        conn
-        |> put_client_id()
-        |> post_query(@get_by_id_query, variables)
-        |> json_response(200)
-
-      resp_entity = get_in(resp_body, ~w(data contractRequest))
-
-      assert nil == resp_body["errors"]
-      assert id == resp_entity["id"]
-    end
-
-    test "success for correct MSP client", %{conn: conn} do
-      msp()
-
-      contract_request = insert(:il, :capitation_contract_request)
-
-      id = Node.to_global_id("ContractRequest", contract_request.id)
-
-      variables = %{id: id}
-
-      resp_body =
-        conn
-        |> put_client_id(contract_request.contractor_legal_entity_id)
-        |> post_query(@get_by_id_query, variables)
-        |> json_response(200)
-
-      resp_entity = get_in(resp_body, ~w(data contractRequest))
-
-      assert nil == resp_body["errors"]
-      assert id == resp_entity["id"]
-    end
-
-    test "return nothing for incorrect MSP client", %{conn: conn} do
-      msp()
-
-      contract_request = insert(:il, :capitation_contract_request)
-
-      id = Node.to_global_id("ContractRequest", contract_request.id)
-
-      variables = %{id: id}
-
-      resp_body =
-        conn
-        |> put_client_id()
-        |> post_query(@get_by_id_query, variables)
-        |> json_response(200)
-
-      resp_entity = get_in(resp_body, ~w(data contractRequest))
-
-      assert nil == resp_body["errors"]
-      assert nil == resp_entity
-    end
-
-    test "return forbidden error for incorrect client type", %{conn: conn} do
-      mis()
-
-      contract_request = insert(:il, :capitation_contract_request)
-
-      id = Node.to_global_id("ContractRequest", contract_request.id)
-
-      variables = %{id: id}
-
-      resp_body =
-        conn
-        |> put_client_id()
-        |> post_query(@get_by_id_query, variables)
-        |> json_response(200)
-
-      resp_entity = get_in(resp_body, ~w(data contractRequest))
-
-      assert is_list(resp_body["errors"])
-      assert match?(%{"extensions" => %{"code" => "FORBIDDEN"}}, hd(resp_body["errors"]))
-      assert nil == resp_entity
-    end
-
+    @tag :pending
     test "success with related entities", %{conn: conn} do
       nhs()
 
@@ -496,11 +243,11 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
           nhs_legal_entity_id: nhs_legal_entity.id
         )
 
-      id = Node.to_global_id("ContractRequest", contract_request.id)
+      id = Node.to_global_id("CapitationContractRequest", contract_request.id)
 
       query = """
         query GetContractRequestWithRelatedEntitiesQuery($id: ID!) {
-          contractRequest(id: $id) {
+          capitationContractRequest(id: $id) {
             parentContract {
               databaseId
             }
@@ -555,7 +302,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
         |> post_query(query, variables)
         |> json_response(200)
 
-      resp_entity = get_in(resp_body, ~w(data contractRequest))
+      resp_entity = get_in(resp_body, ~w(data capitationContractRequest))
 
       assert nil == resp_body["errors"]
       assert parent_contract.id == resp_entity["parentContract"]["databaseId"]
@@ -588,11 +335,11 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
 
       contract_request = insert(:il, :capitation_contract_request)
 
-      id = Node.to_global_id("ContractRequest", contract_request.id)
+      id = Node.to_global_id("CapitationContractRequest", contract_request.id)
 
       query = """
         query GetContractRequestWithAttachedDocumentsQuery($id: ID!) {
-          contractRequest(id: $id) {
+          capitationContractRequest(id: $id) {
             attachedDocuments {
               type
               url
@@ -609,7 +356,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
         |> post_query(query, variables)
         |> json_response(200)
 
-      resp_entities = get_in(resp_body, ~w(data contractRequest attachedDocuments))
+      resp_entities = get_in(resp_body, ~w(data capitationContractRequest attachedDocuments))
 
       assert nil == resp_body["errors"]
       assert 2 == length(resp_entities)
@@ -636,11 +383,11 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       contract_request = insert(:il, :capitation_contract_request, status: @contract_request_status_in_process)
 
       %{id: database_id} = contract_request
-      id = Node.to_global_id("ContractRequest", database_id)
+      id = Node.to_global_id("CapitationContractRequest", database_id)
 
       query = """
         query GetContractRequestWithContentToSignQuery($id: ID!) {
-          contractRequest(id: $id) {
+          capitationContractRequest(id: $id) {
             toApproveContent
             toDeclineContent
           }
@@ -655,7 +402,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
         |> post_query(query, variables)
         |> json_response(200)
 
-      resp_entity = get_in(resp_body, ~w(data contractRequest))
+      resp_entity = get_in(resp_body, ~w(data capitationContractRequest))
 
       assert nil == resp_body["errors"]
 
@@ -717,7 +464,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
           ]
         )
 
-      variables = %{id: Node.to_global_id("ContractRequest", contract_request.id)}
+      variables = %{id: Node.to_global_id("CapitationContractRequest", contract_request.id)}
 
       resp_body =
         conn
@@ -725,8 +472,8 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
         |> post_query(@printout_content_query, variables)
         |> json_response(200)
 
-      assert "<html></html>" == get_in(resp_body, ~w(data contractRequest printoutContent))
-      assert get_in(resp_body, ~w(data contractRequest toSignContent))
+      assert "<html></html>" == get_in(resp_body, ~w(data capitationContractRequest printoutContent))
+      assert get_in(resp_body, ~w(data capitationContractRequest toSignContent))
     end
 
     test "success with contract_request another status", %{conn: conn} do
@@ -742,7 +489,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
           printout_content: printout_content
         )
 
-      variables = %{id: Node.to_global_id("ContractRequest", contract_request.id)}
+      variables = %{id: Node.to_global_id("CapitationContractRequest", contract_request.id)}
 
       resp_body =
         conn
@@ -750,7 +497,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
         |> post_query(@printout_content_query, variables)
         |> json_response(200)
 
-      resp_entity = get_in(resp_body, ~w(data contractRequest))
+      resp_entity = get_in(resp_body, ~w(data capitationContractRequest))
 
       assert %{"printoutContent" => ^printout_content} = resp_entity
     end
@@ -758,7 +505,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
     test "User is not allowed to perform this action", %{conn: conn} do
       msp()
       contract_request = insert(:il, :capitation_contract_request, status: @contract_request_status_pending_nhs_sign)
-      variables = %{id: Node.to_global_id("ContractRequest", contract_request.id)}
+      variables = %{id: Node.to_global_id("CapitationContractRequest", contract_request.id)}
 
       resp_body =
         conn
@@ -766,7 +513,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
         |> post_query(@printout_content_query, variables)
         |> json_response(200)
 
-      assert %{"data" => %{"contractRequest" => nil}} = resp_body
+      assert %{"data" => %{"capitationContractRequest" => nil}} = resp_body
     end
   end
 
@@ -792,7 +539,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
           start_date: Date.add(Date.utc_today(), 10)
         )
 
-      id = Node.to_global_id("ContractRequest", contract_request.id)
+      id = Node.to_global_id("CapitationContractRequest", contract_request.id)
 
       variables = %{
         input: %{
@@ -828,7 +575,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
           start_date: Date.add(Date.utc_today(), 10)
         )
 
-      id = Node.to_global_id("ContractRequest", contract_request.id)
+      id = Node.to_global_id("CapitationContractRequest", contract_request.id)
 
       variables = %{
         input: %{
@@ -867,7 +614,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
           start_date: ~D[2000-01-01]
         )
 
-      id = Node.to_global_id("ContractRequest", contract_request.id)
+      id = Node.to_global_id("CapitationContractRequest", contract_request.id)
 
       variables = %{
         input: %{
@@ -894,7 +641,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
       end)
 
-      id = Node.to_global_id("ContractRequest", UUID.generate())
+      id = Node.to_global_id("CapitationContractRequest", UUID.generate())
 
       variables = %{
         input: %{
@@ -1339,7 +1086,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       employee = insert(:prm, :employee, legal_entity: legal_entity, party: party_user.party)
       contract_request = insert(:il, :capitation_contract_request, status: @contract_request_status_new)
 
-      id = Node.to_global_id("ContractRequest", contract_request.id)
+      id = Node.to_global_id("CapitationContractRequest", contract_request.id)
       employee_id = Node.to_global_id("Employee", employee.id)
 
       variables = %{input: %{id: id, employeeId: employee_id}}
@@ -1369,7 +1116,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       employee = insert(:prm, :employee, legal_entity: legal_entity, party: party_user.party, status: "DISMISSED")
       contract_request = insert(:il, :capitation_contract_request, status: @contract_request_status_new)
 
-      id = Node.to_global_id("ContractRequest", contract_request.id)
+      id = Node.to_global_id("CapitationContractRequest", contract_request.id)
       employee_id = Node.to_global_id("Employee", employee.id)
 
       variables = %{input: %{id: id, employeeId: employee_id}}
@@ -1393,7 +1140,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
   defp input_signed_content(contract_request_id, content) do
     %{
       input: %{
-        id: Node.to_global_id("ContractRequest", contract_request_id),
+        id: Node.to_global_id("CapitationContractRequest", contract_request_id),
         signedContent: %{
           content: content |> Jason.encode!() |> Base.encode64(),
           encoding: "BASE64"

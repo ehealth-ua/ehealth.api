@@ -8,7 +8,7 @@ defmodule GraphQL.Mixfile do
       app: :graphql,
       description: "GraphQL panel for Ukrainian Health Services government institution.",
       version: @version,
-      elixir: "~> 1.6",
+      elixir: "~> 1.7",
       build_path: "../../_build",
       config_path: "../../config/config.exs",
       deps_path: "../../deps",
@@ -21,7 +21,7 @@ defmodule GraphQL.Mixfile do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       aliases: aliases(),
-      preferred_cli_env: [coveralls: :test],
+      preferred_cli_env: [coveralls: :test, "white_bread.run": :test],
       test_coverage: [tool: ExCoveralls]
     ]
   end
@@ -37,7 +37,7 @@ defmodule GraphQL.Mixfile do
   end
 
   # Specifies which paths to compile per environment.
-  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(:test), do: ["lib", "features/support", "test/support"]
   defp elixirc_paths(_), do: ["lib"]
 
   # Specifies your project dependencies.
@@ -55,7 +55,8 @@ defmodule GraphQL.Mixfile do
       {:plug_logger_json, "~> 0.5"},
       {:phoenix, "~> 1.4.0", override: true},
       {:plug_cowboy, "~> 2.0"},
-      {:taskafka, "~> 0.0.12"}
+      {:taskafka, "~> 0.0.12"},
+      {:white_bread, "~> 4.4", only: [:dev, :test]}
     ]
   end
 

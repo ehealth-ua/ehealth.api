@@ -36,6 +36,7 @@
   "gen_state_machine": {:hex, :gen_state_machine, "2.0.3", "477ea51b466a749ab23a0d6090e9e84073f41f9aa28c7efc40eac18f3d4a9f77", [:mix], [], "hexpm"},
   "geo": {:hex, :geo, "1.5.0", "14301aae05bc9124f36b3726e028830477d2ee6b397b7a00b98eca3da06de193", [:mix], [{:ecto, "~> 2.1", [hex: :ecto, repo: "hexpm", optional: true]}, {:poison, "~> 1.5 or ~> 2.0 or ~> 3.0", [hex: :poison, repo: "hexpm", optional: true]}, {:postgrex, "~> 0.13", [hex: :postgrex, repo: "hexpm", optional: true]}], "hexpm"},
   "gettext": {:hex, :gettext, "0.16.1", "e2130b25eebcbe02bb343b119a07ae2c7e28bd4b146c4a154da2ffb2b3507af2", [:mix], [], "hexpm"},
+  "gherkin": {:hex, :gherkin, "1.6.0", "a7a2925e6153b7f475646e411e45eed657eb8648ae4bec4222334bf46d37798e", [:mix], [], "hexpm"},
   "guardian": {:hex, :guardian, "1.1.1", "be14c4007eaf05268251ae114030cb7237ed9a9631c260022f020164ff4ed733", [:mix], [{:jose, "~> 1.8", [hex: :jose, repo: "hexpm", optional: false]}, {:phoenix, "~> 1.0 or ~> 1.2 or ~> 1.3", [hex: :phoenix, repo: "hexpm", optional: true]}, {:plug, "~> 1.3.3 or ~> 1.4", [hex: :plug, repo: "hexpm", optional: true]}, {:poison, "~> 2.2 or ~> 3.0", [hex: :poison, repo: "hexpm", optional: false]}], "hexpm"},
   "gun": {:hex, :gun, "1.3.0", "18e5d269649c987af95aec309f68a27ffc3930531dd227a6eaa0884d6684286e", [:rebar3], [{:cowlib, "~> 2.6.0", [hex: :cowlib, repo: "hexpm", optional: false]}], "hexpm"},
   "hackney": {:hex, :hackney, "1.14.3", "b5f6f5dcc4f1fba340762738759209e21914516df6be440d85772542d4a5e412", [:rebar3], [{:certifi, "2.4.2", [hex: :certifi, repo: "hexpm", optional: false]}, {:idna, "6.0.0", [hex: :idna, repo: "hexpm", optional: false]}, {:metrics, "1.0.1", [hex: :metrics, repo: "hexpm", optional: false]}, {:mimerl, "1.0.2", [hex: :mimerl, repo: "hexpm", optional: false]}, {:ssl_verify_fun, "1.1.4", [hex: :ssl_verify_fun, repo: "hexpm", optional: false]}], "hexpm"},
@@ -85,6 +86,7 @@
   "unicode_util_compat": {:hex, :unicode_util_compat, "0.4.1", "d869e4c68901dd9531385bb0c8c40444ebf624e60b6962d95952775cac5e90cd", [:rebar3], [], "hexpm"},
   "uuid": {:hex, :uuid, "1.1.8", "e22fc04499de0de3ed1116b770c7737779f226ceefa0badb3592e64d5cfb4eb9", [:mix], [], "hexpm"},
   "vex": {:hex, :vex, "0.8.0", "0a04e3aebe5ec443525c88f3833b4481d97de272f891243b62b18efbda85b121", [:mix], [], "hexpm"},
+  "white_bread": {:hex, :white_bread, "4.4.0", "b3dcec173d7d62da4c625274346a41cdd6876ce98a0806540aafe73183d561d2", [:mix], [{:gherkin, "~> 1.4", [hex: :gherkin, repo: "hexpm", optional: false]}, {:poison, "~> 3.1", [hex: :poison, repo: "hexpm", optional: true]}], "hexpm"},
   "yamerl": {:hex, :yamerl, "0.7.0", "e51dba652dce74c20a88294130b48051ebbbb0be7d76f22de064f0f3ccf0aaf5", [:rebar3], [], "hexpm"},
   "yaml_elixir": {:hex, :yaml_elixir, "2.1.0", "79ec163e0f379dadf4b0e8b5162567dc1feb96c3cfa793105869e2c616ab4342", [:mix], [{:yamerl, "~> 0.7", [hex: :yamerl, repo: "hexpm", optional: false]}], "hexpm"},
 }

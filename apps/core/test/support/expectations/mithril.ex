@@ -9,7 +9,7 @@ defmodule Core.Expectations.Mithril do
   def cabinet(n \\ 1), do: get_client_type_name("CABINET", n)
   defdelegate admin(n \\ 1), to: __MODULE__, as: :nhs
 
-  defp get_client_type_name(type, n) do
+  def get_client_type_name(type, n \\ 1) do
     expect(MithrilMock, :get_client_type_name, n, fn _, _ -> {:ok, type} end)
   end
 
