@@ -96,8 +96,8 @@ defmodule GraphQLWeb.Resolvers.LegalEntityResolver do
     end)
   end
 
-  def nhs_verify(%{id: id}, %{context: %{client_id: client_id}}) do
-    with {:ok, legal_entity} <- LegalEntities.nhs_verify(id, client_id, true) do
+  def nhs_verify(%{id: id, nhs_verified: nhs_verified} = args, %{context: %{client_id: client_id}}) do
+    with {:ok, legal_entity} <- LegalEntities.nhs_verify(args, client_id, true) do
       {:ok, %{legal_entity: legal_entity}}
     else
       err -> render_error(err)

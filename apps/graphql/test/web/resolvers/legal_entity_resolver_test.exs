@@ -674,9 +674,9 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
     end
 
     test "success", %{conn: conn} do
-      %{id: id} = insert(:prm, :legal_entity, nhs_verified: false)
+      %{id: id} = insert(:prm, :legal_entity, nhs_verified: true)
 
-      variables = %{input: %{id: Node.to_global_id("LegalEntity", id)}}
+      variables = %{input: %{id: Node.to_global_id("LegalEntity", id), nhs_verified: false}}
 
       resp_body =
         conn
@@ -686,12 +686,12 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
 
       resp_entity = get_in(resp_body, ~w(data nhsVerifyLegalEntity legalEntity))
 
-      assert %{"nhsVerified" => true, "databaseId" => ^id} = resp_entity
+      assert %{"nhsVerified" => false, "databaseId" => ^id} = resp_entity
     end
 
     test "legal_entity already verified", %{conn: conn} do
       %{id: id} = insert(:prm, :legal_entity, nhs_verified: true)
-      variables = %{input: %{id: Node.to_global_id("LegalEntity", id)}}
+      variables = %{input: %{id: Node.to_global_id("LegalEntity", id), nhs_verified: true}}
 
       resp_body =
         conn
@@ -705,7 +705,7 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
 
     test "legal_entity is not active", %{conn: conn} do
       %{id: id} = insert(:prm, :legal_entity, status: @legal_entity_status_closed)
-      variables = %{input: %{id: Node.to_global_id("LegalEntity", id)}}
+      variables = %{input: %{id: Node.to_global_id("LegalEntity", id), nhs_verified: true}}
 
       resp_body =
         conn
@@ -718,7 +718,7 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
     end
 
     test "not found", %{conn: conn} do
-      variables = %{input: %{id: Node.to_global_id("LegalEntity", Ecto.UUID.generate())}}
+      variables = %{input: %{id: Node.to_global_id("LegalEntity", Ecto.UUID.generate()), nhs_verified: true}}
 
       resp_body =
         conn
@@ -732,7 +732,7 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
 
     test "fails on unreviewed legal_entity by nhs", %{conn: conn} do
       %{id: id} = insert(:prm, :legal_entity, nhs_reviewed: false)
-      variables = %{input: %{id: Node.to_global_id("LegalEntity", id)}}
+      variables = %{input: %{id: Node.to_global_id("LegalEntity", id), nhs_verified: true}}
 
       resp_body =
         conn
