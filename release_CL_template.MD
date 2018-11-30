@@ -3,10 +3,17 @@
 - [ ] prepare all the release specific chekpoints: what should be checked in addition to the postman collection tests for this specifica release
 - [ ] prepare all the DB scripts that should be executed and that were not included in the migrations (configurations, scopes, etc.)
 - [ ] create PR with the new version of API specs in the repo https://github.com/ehealth-ua/api-spec
+- [ ] prepare the chart env. values for prod
+- [ ] verify all the new chart env. values for prod
+- [ ] prepare strategy for all the mass migrations that should be performed with the release
 
 # todo checklist that should be used for any eHealth deployment
 
 - [ ] define required versions of repo to the destination env.
+  - [ ] NHS.admin
+  - [ ] auth.web
+  - [ ] mithril.web
+  - [ ] BE services
 - [ ] apply the required versions of repo to the destination env.
   - [ ] ehealth.api
   - [ ] prm.api
