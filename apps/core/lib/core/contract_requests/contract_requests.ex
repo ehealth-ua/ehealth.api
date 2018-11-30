@@ -26,6 +26,7 @@ defmodule Core.ContractRequests do
   alias Core.Validators.Error
   alias Core.Validators.JsonSchema
   alias Core.Validators.Preload
+  alias Core.Validators.Signature, as: SignatureValidator
   alias Ecto.Adapters.SQL
   alias Ecto.Changeset
   alias Ecto.UUID
