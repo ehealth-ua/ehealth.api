@@ -154,7 +154,11 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
         })
         |> Map.drop(~w(start_date end_date))
 
-      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(params, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
 
       conn
       |> put_client_id_header(legal_entity.id)
@@ -181,7 +185,11 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
         |> prepare_reimbursement_params(medical_program)
         |> Map.put("contractor_owner_id", owner.id)
 
-      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(params, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
 
       conn
       |> put_client_id_header(legal_entity.id)
@@ -224,7 +232,11 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
         })
         |> Map.drop(~w(start_date end_date))
 
-      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(params, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
 
       reason =
         conn
@@ -257,7 +269,11 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
         })
         |> Map.drop(~w(start_date end_date))
 
-      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(params, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
 
       reason =
         conn
@@ -304,7 +320,11 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
         |> Map.put("contract_number", contract_number)
         |> Map.drop(~w(start_date end_date))
 
-      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(params, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
 
       reason =
         conn
@@ -332,7 +352,11 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
         |> prepare_reimbursement_params(legal_entity)
         |> Map.put("contractor_owner_id", owner.id)
 
-      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(params, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
 
       assert [err] =
                conn
@@ -362,7 +386,11 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
         |> prepare_reimbursement_params(medical_program)
         |> Map.put("contractor_owner_id", owner.id)
 
-      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(params, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
 
       reason =
         conn

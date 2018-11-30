@@ -170,6 +170,7 @@ defmodule Core.ContractRequests do
          {:contract_request_exists, true} <- {:contract_request_exists, is_nil(get_by_id(id))},
          :ok <- JsonSchema.validate(:contract_request_sign, params),
          {:ok, %{"content" => content, "signers" => [signer]}} <- decode_signed_content(params, headers),
+         :ok <- SignatureValidator.check_drfo(signer, user_id, "contract_request_create"),
          :ok <- validate_contract_request_type(type, legal_entity),
          content <- Map.put(content, "type", type),
          :ok <- validate_create_content_schema(content),
@@ -276,6 +277,7 @@ defmodule Core.ContractRequests do
 
     with :ok <- JsonSchema.validate(:contract_request_sign, params),
          {:ok, %{"content" => content, "signers" => [signer]}} <- decode_signed_content(params, headers),
+         :ok <- SignatureValidator.check_drfo(signer, user_id, "contract_request_approve"),
          :ok <- JsonSchema.validate(:contract_request_approve, content),
          :ok <- validate_contract_request_id(id, content["id"]),
          %LegalEntity{} = legal_entity <- LegalEntities.get_by_id!(client_id),
@@ -353,6 +355,7 @@ defmodule Core.ContractRequests do
 
     with :ok <- JsonSchema.validate(:contract_request_sign, params),
          {:ok, %{"content" => content, "signers" => [signer]}} <- decode_signed_content(params, headers),
+         :ok <- SignatureValidator.check_drfo(signer, user_id, "contract_request_decline"),
          :ok <- JsonSchema.validate(:contract_request_decline, content),
          :ok <- validate_contract_request_id(id, content["id"]),
          {:ok, legal_entity} <- LegalEntities.fetch_by_id(client_id),
@@ -426,6 +429,13 @@ defmodule Core.ContractRequests do
          :ok <- validate_contract_request_id(id, content["id"]),
          {:ok, contract_request} <- fetch_by_id(id),
          :ok <- validate_client_id(client_id, contract_request.nhs_legal_entity_id, :forbidden),
+         :ok <-
+           SignatureValidator.check_drfo(
+             signer,
+             contract_request.nhs_signer_id,
+             "$.drfo",
+             "contract_request_sign_nhs"
+           ),
          {_, false} <- {:already_signed, contract_request.status == CapitationContractRequest.status(:nhs_signed)},
          :ok <- validate_status(contract_request, CapitationContractRequest.status(:pending_nhs_sign)),
          :ok <- validate_legal_entity_edrpou(legal_entity, signer),
@@ -484,6 +494,13 @@ defmodule Core.ContractRequests do
          pack <- RequestPack.put_decoded_content(pack, content),
          :ok <- validate_contract_request_content(:sign, pack, client_id),
          :ok <- validate_contract_request_client_access(client_type, client_id, pack.contract_request),
+         :ok <-
+           SignatureValidator.check_drfo(
+             signer_msp,
+             pack.contract_request.contractor_owner_id,
+             "$.drfo",
+             "contract_request_sign_msp"
+           ),
          :ok <- validate_legal_entity_edrpou(legal_entity, signer_msp),
          {:ok, employee} <- validate_employee(pack.contract_request.contractor_owner_id, client_id),
          :ok <- check_last_name_match(employee.party.last_name, signer_msp["surname"]),

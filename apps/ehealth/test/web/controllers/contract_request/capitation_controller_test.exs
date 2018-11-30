@@ -80,7 +80,12 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         |> prepare_capitation_params(employee)
         |> Map.put("contractor_divisions", [division.id, UUID.generate()])
 
-      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(params, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
+
       signed_content = params |> Jason.encode!() |> Base.encode64()
 
       resp =
@@ -180,7 +185,11 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         prepare_capitation_params(division, employee)
         |> Map.put("contractor_divisions", [division.id, UUID.generate()])
 
-      drfo_signed_content(params, legal_entity.edrpou, "Інше прізвище")
+      expect_signed_content(params, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: "Інше прізвище"
+      })
 
       resp =
         conn
@@ -227,7 +236,11 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         prepare_capitation_params(division, employee)
         |> Map.put("contractor_divisions", [division.id, UUID.generate()])
 
-      drfo_signed_content(params, [%{drfo: legal_entity.edrpou}])
+      expect_signed_content(params, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: nil
+      })
 
       resp =
         conn
@@ -274,14 +287,57 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         prepare_capitation_params(division, employee)
         |> Map.put("contractor_divisions", [division.id, UUID.generate()])
 
-      drfo_signed_content(params, [%{drfo: legal_entity.edrpou, surname: "Підпісант"}])
+      drfo_signed_content(params, [%{drfo: "test", surname: "Підпісант"}])
 
       conn
       |> post(contract_request_path(conn, :create, @capitation, UUID.generate()), %{
         "signed_content" => params |> Jason.encode!() |> Base.encode64(),
         "signed_content_encoding" => "base64"
       })
-      |> json_response(404)
+      |> json_response(403)
+    end
+
+    test "invalid user drfo in DS", %{conn: conn} do
+      msp()
+      %{legal_entity: legal_entity, employee: employee, party_user: party_user} = prepare_data()
+      division = insert(:prm, :division)
+
+      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      end)
+
+      expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
+        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"etag", resource}]}}
+      end)
+
+      conn =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(party_user.user_id)
+
+      params = prepare_capitation_params(division, employee)
+
+      expect_signed_content(params, %{
+        edrpou: legal_entity.edrpou,
+        drfo: "test",
+        surname: party_user.party.last_name
+      })
+
+      resp =
+        conn
+        |> post(contract_request_path(conn, :create, @capitation, UUID.generate()), %{
+          "signed_content" => params |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{"entry_type" => "request", "rules" => [%{"rule" => "json"}]}
+               ],
+               "message" => "Does not match the signer drfo",
+               "type" => "request_malformed"
+             } = resp["error"]
     end
 
     test "external contractor division is not present in contract divisions", %{conn: conn} do
@@ -326,7 +382,11 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
           }
         ])
 
-      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(params, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
 
       conn =
         post(conn, contract_request_path(conn, :create, @capitation, UUID.generate()), %{
@@ -395,7 +455,11 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         |> Map.put("end_date", Date.to_iso8601(Date.add(now, 30)))
         |> Map.put("external_contractors", external_contractors)
 
-      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(params, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
 
       conn =
         post(conn, contract_request_path(conn, :create, @capitation, UUID.generate()), %{
@@ -462,7 +526,11 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         |> Map.put("start_date", "2018-02-01")
         |> Map.delete("external_contractor_flag")
 
-      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(params, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
 
       conn =
         post(conn, contract_request_path(conn, :create, @capitation, UUID.generate()), %{
@@ -509,7 +577,11 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         |> Map.put("start_date", "2018-02-01")
         |> Map.delete("external_contractor_flag")
 
-      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(params, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
 
       conn =
         post(conn, contract_request_path(conn, :create, @capitation, UUID.generate()), %{
@@ -550,7 +622,11 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         |> prepare_capitation_params(employee, "2018-03-01")
         |> Map.put("start_date", "2018-02-01")
 
-      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(params, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
 
       conn =
         post(conn, contract_request_path(conn, :create, @capitation, UUID.generate()), %{
@@ -594,7 +670,11 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         |> prepare_capitation_params(employee, Date.to_iso8601(Date.add(start_date, 1)))
         |> Map.put("start_date", Date.to_iso8601(start_date))
 
-      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(params, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
 
       conn =
         post(conn, contract_request_path(conn, :create, @capitation, UUID.generate()), %{
@@ -639,7 +719,11 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         |> Map.put("start_date", Date.to_iso8601(start_date))
         |> Map.put("end_date", Date.to_iso8601(Date.add(now, 365 * 3)))
 
-      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(params, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
 
       conn =
         post(conn, contract_request_path(conn, :create, @capitation, UUID.generate()), %{
@@ -705,7 +789,11 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         |> Map.put("start_date", Date.to_iso8601(contract_request_start_date))
         |> Map.put("end_date", Date.to_iso8601(contract_request_end_date))
 
-      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(params, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
 
       conn =
         post(conn, contract_request_path(conn, :create, @capitation, UUID.generate()), %{
@@ -771,7 +859,11 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         |> Map.put("start_date", Date.to_iso8601(contract_request_start_date))
         |> Map.put("end_date", Date.to_iso8601(contract_request_end_date))
 
-      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(params, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
 
       conn =
         post(conn, contract_request_path(conn, :create, @capitation, UUID.generate()), %{
@@ -837,7 +929,11 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         |> Map.put("start_date", Date.to_iso8601(contract_request_start_date))
         |> Map.put("end_date", Date.to_iso8601(contract_request_end_date))
 
-      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(params, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
 
       conn =
         post(conn, contract_request_path(conn, :create, @capitation, UUID.generate()), %{
@@ -906,7 +1002,11 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         |> Map.put("end_date", Date.to_iso8601(contract_request_end_date))
         |> Map.put("previous_request_id", previous_request.id)
 
-      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(params, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
 
       conn =
         post(conn, contract_request_path(conn, :create, @capitation, UUID.generate()), %{
@@ -958,7 +1058,11 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         |> Map.put("start_date", Date.to_iso8601(start_date))
         |> Map.put("end_date", Date.to_iso8601(Date.add(now, 30)))
 
-      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(params, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
 
       conn =
         post(conn, contract_request_path(conn, :create, @capitation, UUID.generate()), %{
@@ -1012,7 +1116,11 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         |> Map.put("start_date", Date.to_iso8601(start_date))
         |> Map.put("end_date", Date.to_iso8601(Date.add(now, 30)))
 
-      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(params, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
 
       conn =
         post(conn, contract_request_path(conn, :create, @capitation, UUID.generate()), %{
@@ -1073,7 +1181,11 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         |> Map.put("contract_number", contract_number)
         |> Map.drop(~w(start_date end_date))
 
-      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(params, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
 
       resp =
         conn
@@ -1135,7 +1247,11 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         |> Map.put("start_date", Date.to_iso8601(start_date))
         |> Map.put("end_date", Date.to_iso8601(Date.add(now, 30)))
 
-      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(params, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
 
       conn1 =
         post(conn, contract_request_path(conn, :create, @capitation, UUID.generate()), %{
@@ -1225,7 +1341,11 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         |> Map.put("end_date", Date.to_iso8601(Date.add(now, 30)))
         |> Map.put("contractor_employee_divisions", contractor_employee_divisions)
 
-      drfo_signed_content(params, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(params, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
 
       conn =
         post(conn, contract_request_path(conn, :create, @capitation, UUID.generate()), %{
@@ -1800,7 +1920,11 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         "text" => "something"
       }
 
-      drfo_signed_content(data, legal_entity.edrpou, "Інше Прізвище")
+      expect_signed_content(data, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: "Інше Прізвище"
+      })
 
       resp =
         conn
@@ -1852,7 +1976,11 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         "text" => "something"
       }
 
-      drfo_signed_content(data, [%{drfo: legal_entity.edrpou}])
+      expect_signed_content(data, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: nil
+      })
 
       resp =
         conn
@@ -1902,14 +2030,14 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         "text" => "something"
       }
 
-      drfo_signed_content(data, [%{drfo: legal_entity.edrpou, surname: "Підписант"}])
+      drfo_signed_content(data, [%{drfo: "test", surname: "Підписант"}])
 
       conn
       |> patch(contract_request_path(conn, :approve, @capitation, contract_request.id), %{
         "signed_content" => data |> Jason.encode!() |> Base.encode64(),
         "signed_content_encoding" => "base64"
       })
-      |> json_response(404)
+      |> json_response(403)
     end
 
     test "user is not NHS ADMIN SIGNER", %{conn: conn} do
@@ -1940,7 +2068,11 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         "text" => "something"
       }
 
-      drfo_signed_content(data, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(data, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
 
       conn =
         patch(conn, contract_request_path(conn, :approve, @capitation, contract_request.id), %{
@@ -1949,6 +2081,56 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         })
 
       assert json_response(conn, 403)
+    end
+
+    test "invalid user drfo in DS", %{conn: conn} do
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok, %{"data" => [%{"role_name" => "OWNER"}]}}
+      end)
+
+      user_id = UUID.generate()
+      party_user = insert(:prm, :party_user, user_id: user_id)
+      legal_entity = insert(:prm, :legal_entity)
+      contract_request = insert(:il, :capitation_contract_request, contractor_legal_entity_id: legal_entity.id)
+
+      conn =
+        conn
+        |> put_consumer_id_header(user_id)
+        |> put_client_id_header(legal_entity.id)
+        |> put_req_header("drfo", legal_entity.edrpou)
+
+      data = %{
+        "id" => contract_request.id,
+        "next_status" => "APPROVED",
+        "contractor_legal_entity" => %{
+          "id" => contract_request.contractor_legal_entity_id,
+          "name" => legal_entity.name,
+          "edrpou" => legal_entity.edrpou
+        },
+        "text" => "something"
+      }
+
+      expect_signed_content(data, %{
+        edrpou: legal_entity.edrpou,
+        drfo: "test",
+        surname: party_user.party.last_name
+      })
+
+      resp =
+        conn
+        |> patch(contract_request_path(conn, :approve, @capitation, contract_request.id), %{
+          "signed_content" => data |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{"entry_type" => "request", "rules" => [%{"rule" => "json"}]}
+               ],
+               "message" => "Does not match the signer drfo",
+               "type" => "request_malformed"
+             } = resp["error"]
     end
 
     test "no contract_request found", %{conn: conn} do
@@ -1972,7 +2154,11 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         "text" => "something"
       }
 
-      drfo_signed_content(data, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(data, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
 
       assert_raise Ecto.NoResultsError, fn ->
         conn
@@ -2025,7 +2211,11 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         "text" => "something"
       }
 
-      drfo_signed_content(data, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(data, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
 
       conn =
         patch(conn, contract_request_path(conn, :approve, @capitation, contract_request.id), %{
@@ -2063,7 +2253,11 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         "text" => "something"
       }
 
-      drfo_signed_content(data, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(data, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
 
       conn =
         conn
@@ -2130,7 +2324,11 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         "text" => "something"
       }
 
-      drfo_signed_content(data, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(data, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
 
       conn =
         patch(conn, contract_request_path(conn, :approve, @capitation, contract_request.id), %{
@@ -2196,7 +2394,11 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         "text" => "something"
       }
 
-      drfo_signed_content(data, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(data, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
 
       conn =
         patch(conn, contract_request_path(conn, :approve, @capitation, contract_request.id), %{
@@ -2264,7 +2466,11 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         "text" => "something"
       }
 
-      drfo_signed_content(data, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(data, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
 
       # query path without contract type
       conn =
@@ -2333,7 +2539,11 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         "text" => "something"
       }
 
-      drfo_signed_content(data, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(data, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
 
       conn =
         patch(conn, contract_request_path(conn, :approve, @capitation, contract_request.id), %{
@@ -2401,7 +2611,11 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         |> put_client_id_header(legal_entity.id)
         |> put_req_header("drfo", legal_entity.edrpou)
 
-      drfo_signed_content(data, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(data, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
 
       conn =
         patch(conn, contract_request_path(conn, :approve, @capitation, contract_request.id), %{
@@ -2486,7 +2700,11 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         "text" => "something"
       }
 
-      drfo_signed_content(data, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(data, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
 
       conn =
         patch(conn, contract_request_path(conn, :approve, @capitation, contract_request.id), %{
@@ -2608,7 +2826,11 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         "text" => "something"
       }
 
-      drfo_signed_content(data, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(data, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
 
       conn =
         patch(conn, contract_request_path(conn, :approve, @capitation, contract_request.id), %{
@@ -2715,7 +2937,11 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         "text" => "something"
       }
 
-      drfo_signed_content(data, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(data, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
 
       conn =
         patch(conn, contract_request_path(conn, :approve, @capitation, contract_request.id), %{
@@ -3241,9 +3467,18 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
 
       data = %{"id" => contract_request.id, "printout_content" => "<html></html>"}
 
-      drfo_signed_content(data, [
-        %{drfo: legal_entity.edrpou, surname: nhs_signer_party.last_name},
-        %{drfo: legal_entity.edrpou, surname: nhs_signer_party.last_name, is_stamp: true}
+      expect_signed_content(data, [
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: nhs_signer_party.tax_id,
+          surname: nhs_signer_party.last_name
+        },
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: nhs_signer_party.tax_id,
+          surname: nhs_signer_party.last_name,
+          is_stamp: true
+        }
       ])
 
       assert resp =
@@ -3256,6 +3491,73 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
                |> json_response(403)
 
       assert %{"message" => "Invalid client_id", "type" => "forbidden"} = resp["error"]
+    end
+
+    test "invalid user drfo in DS", %{conn: conn} do
+      nhs()
+      id = UUID.generate()
+
+      data = %{
+        "id" => id,
+        "contract_number" => "0000-9EAX-XT7X-3115",
+        "status" => CapitationContractRequest.status(:pending_nhs_sign)
+      }
+
+      %{
+        "user_id" => user_id,
+        "contract_request" => contract_request,
+        "legal_entity" => legal_entity,
+        "nhs_signer" => nhs_signer
+      } =
+        prepare_nhs_sign_params(
+          id: id,
+          data: data,
+          status: CapitationContractRequest.status(:pending_nhs_sign)
+        )
+
+      data = Map.put(data, "printout_content", "<html></html>")
+      client_id = nhs_signer.legal_entity.id
+
+      expect_signed_content(data, [
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: "test",
+          surname: nhs_signer.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: "test",
+          surname: nhs_signer.party.last_name,
+          is_stamp: true
+        }
+      ])
+
+      assert resp =
+               conn
+               |> put_client_id_header(client_id)
+               |> put_consumer_id_header(user_id)
+               |> put_req_header("drfo", legal_entity.edrpou)
+               |> patch(contract_request_path(conn, :sign_nhs, @capitation, contract_request.id), %{
+                 "signed_content" => "",
+                 "signed_content_encoding" => "base64"
+               })
+               |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.drfo",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "Does not match the signer drfo",
+                       "params" => [],
+                       "rule" => "invalid"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
     end
 
     test "invalid contract_request id from signed content", %{conn: conn} do
@@ -3295,9 +3597,18 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
 
       data = %{"id" => contract_request.id, "printout_content" => "<html></html>"}
 
-      drfo_signed_content(data, [
-        %{drfo: legal_entity.edrpou, surname: nhs_signer.party.last_name},
-        %{drfo: legal_entity.edrpou, surname: nhs_signer.party.last_name, is_stamp: true}
+      expect_signed_content(data, [
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name
+        },
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name,
+          is_stamp: true
+        }
       ])
 
       client_id = nhs_signer.legal_entity.id
@@ -3360,9 +3671,18 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
 
       data = %{"id" => contract_request.id, "printout_content" => "<html></html>"}
 
-      drfo_signed_content(data, [
-        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name},
-        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name, is_stamp: true}
+      expect_signed_content(data, [
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name,
+          is_stamp: true
+        }
       ])
 
       resp =
@@ -3472,9 +3792,18 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
 
       data = Map.put(data, "printout_content", "<html></html>")
 
-      edrpou_signed_content(data, [
-        %{edrpou: nhs_signer.party.tax_id},
-        %{edrpou: legal_entity.edrpou, is_stamp: true}
+      expect_signed_content(data, [
+        %{
+          edrpou: nhs_signer.party.tax_id,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name
+        },
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name,
+          is_stamp: true
+        }
       ])
 
       client_id = nhs_signer.legal_entity.id
@@ -3534,9 +3863,18 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
 
       data = Map.put(data, "printout_content", "<html></html>")
 
-      edrpou_signed_content(data, [
-        %{edrpou: legal_entity.edrpou},
-        %{edrpou: party_user.party.tax_id, is_stamp: true}
+      expect_signed_content(data, [
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: party_user.party.tax_id,
+          surname: party_user.party.last_name
+        },
+        %{
+          edrpou: party_user.party.tax_id,
+          drfo: party_user.party.tax_id,
+          surname: party_user.party.last_name,
+          is_stamp: true
+        }
       ])
 
       client_id = nhs_signer.legal_entity.id
@@ -3595,9 +3933,18 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
 
       data = Map.put(data, "printout_content", "<html></html>")
 
-      drfo_signed_content(data, [
-        %{drfo: nhs_signer.legal_entity.edrpou, surname: "Підписант"},
-        %{drfo: nhs_signer.legal_entity.edrpou, surname: "Підписант", is_stamp: true}
+      expect_signed_content(data, [
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: "Підписант"
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: "Підписант",
+          is_stamp: true
+        }
       ])
 
       client_id = nhs_signer.legal_entity.id
@@ -3646,9 +3993,18 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         "contract_request" => contract_request
       } = prepare_nhs_sign_params(id: id, data: data)
 
-      drfo_signed_content(data, [
-        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name},
-        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name, is_stamp: true}
+      expect_signed_content(data, [
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.tax_id
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.tax_id,
+          is_stamp: true
+        }
       ])
 
       client_id = nhs_signer.legal_entity.id
@@ -3693,6 +4049,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
 
       %{
         "user_id" => user_id,
+        "party_user" => party_user,
         "legal_entity" => legal_entity,
         "contract_request" => contract_request,
         "nhs_signer" => nhs_signer
@@ -3705,9 +4062,18 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
 
       client_id = nhs_signer.legal_entity.id
 
-      drfo_signed_content(data, [
-        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name},
-        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name, is_stamp: true}
+      expect_signed_content(data, [
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: party_user.party.tax_id,
+          surname: party_user.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: party_user.party.tax_id,
+          surname: party_user.party.last_name,
+          is_stamp: true
+        }
       ])
 
       assert resp =
@@ -3759,9 +4125,18 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       data = Map.put(data, "printout_content", "<html></html>")
       client_id = nhs_signer.legal_entity.id
 
-      drfo_signed_content(data, [
-        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name},
-        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name, is_stamp: true}
+      expect_signed_content(data, [
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name,
+          is_stamp: true
+        }
       ])
 
       contract_request = Core.Repo.get(CapitationContractRequest, contract_request.id)
@@ -3864,7 +4239,11 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         "text" => "something"
       }
 
-      drfo_signed_content(data, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(data, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
 
       resp =
         conn
@@ -3976,7 +4355,11 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         "text" => "something"
       }
 
-      drfo_signed_content(content, legal_entity.edrpou, "Підписант")
+      expect_signed_content(content, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: "Підписант"
+      })
 
       resp =
         conn
@@ -4028,7 +4411,11 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         "text" => "something"
       }
 
-      drfo_signed_content(content, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(content, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
 
       conn
       |> put_client_id_header(legal_entity.id)
@@ -4041,10 +4428,62 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       |> json_response(403)
     end
 
+    test "invalid user drfo in DS", context do
+      %{
+        conn: conn,
+        contract_request: contract_request,
+        legal_entity: legal_entity,
+        user_id: user_id,
+        party_user: party_user
+      } = context
+
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok, %{"data" => [%{"role_name" => "OWNER"}]}}
+      end)
+
+      content = %{
+        "id" => contract_request.id,
+        "next_status" => "DECLINED",
+        "contractor_legal_entity" => %{
+          "id" => contract_request.contractor_legal_entity_id,
+          "name" => legal_entity.name,
+          "edrpou" => legal_entity.edrpou
+        },
+        "status_reason" => "Не відповідає попереднім домовленостям",
+        "text" => "something"
+      }
+
+      expect_signed_content(content, %{
+        edrpou: legal_entity.edrpou,
+        drfo: "test",
+        surname: party_user.party.last_name
+      })
+
+      resp =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("drfo", party_user.party.tax_id)
+        |> patch(contract_request_path(conn, :decline, @capitation, contract_request.id), %{
+          "signed_content" => content |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{"entry_type" => "request", "rules" => [%{"rule" => "json"}]}
+               ],
+               "message" => "Does not match the signer drfo",
+               "type" => "request_malformed"
+             } = resp["error"]
+    end
+
     test "no contract_request found", context do
       %{
         conn: conn,
         legal_entity: legal_entity,
+        user_id: user_id,
         party_user: party_user
       } = context
 
@@ -4066,10 +4505,15 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         "text" => "something"
       }
 
-      drfo_signed_content(content, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(content, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
 
       conn
       |> put_client_id_header(legal_entity.id)
+      |> put_consumer_id_header(user_id)
       |> patch(contract_request_path(conn, :decline, @capitation, contract_request_id), %{
         "signed_content" => content |> Jason.encode!() |> Base.encode64(),
         "signed_content_encoding" => "base64"
@@ -4111,7 +4555,11 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         "text" => "something"
       }
 
-      drfo_signed_content(data, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(data, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
 
       resp =
         conn
@@ -4367,10 +4815,23 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
 
       data = %{"id" => contract_request.id, "printout_content" => "<html></html>"}
 
-      drfo_signed_content(data, [
-        %{drfo: legal_entity.edrpou, surname: "Підписант"},
-        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name},
-        %{drfo: legal_entity.edrpou, surname: "Підписант", is_stamp: true}
+      expect_signed_content(data, [
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: "Підписант"
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.legal_entity.edrpou,
+          surname: nhs_signer.party.last_name
+        },
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: "Підписант",
+          is_stamp: true
+        }
       ])
 
       assert resp =
@@ -4416,10 +4877,23 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
 
       data = %{"id" => contract_request.id, "printout_content" => "<html></html>"}
 
-      drfo_signed_content(data, [
-        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name},
-        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name},
-        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name, is_stamp: true}
+      expect_signed_content(data, [
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: employee_owner.party.tax_id,
+          surname: employee_owner.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name,
+          is_stamp: true
+        }
       ])
 
       assert resp =
@@ -4465,10 +4939,23 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
           status: CapitationContractRequest.status(:nhs_signed)
         )
 
-      drfo_signed_content(data, [
-        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name},
-        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name},
-        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name, is_stamp: true}
+      expect_signed_content(data, [
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: employee_owner.party.tax_id,
+          surname: employee_owner.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name,
+          is_stamp: true
+        }
       ])
 
       assert resp =
@@ -4520,10 +5007,23 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         |> put_consumer_id_header(user_id)
         |> put_req_header("msp_drfo", legal_entity.edrpou)
 
-      drfo_signed_content(data, [
-        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name},
-        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name},
-        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name, is_stamp: true}
+      expect_signed_content(data, [
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: employee_owner.party.tax_id,
+          surname: employee_owner.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name,
+          is_stamp: true
+        }
       ])
 
       assert conn
@@ -4609,10 +5109,23 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         |> put_consumer_id_header(user_id)
         |> put_req_header("msp_drfo", legal_entity.edrpou)
 
-      drfo_signed_content(data, [
-        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name},
-        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name},
-        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name, is_stamp: true}
+      expect_signed_content(data, [
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: employee_owner.party.tax_id,
+          surname: employee_owner.party.last_name
+        },
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name
+        },
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name,
+          is_stamp: true
+        }
       ])
 
       assert resp =
@@ -4700,10 +5213,23 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         |> put_consumer_id_header(user_id)
         |> put_req_header("msp_drfo", legal_entity.edrpou)
 
-      drfo_signed_content(data, [
-        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name},
-        %{drfo: nhs_legal_entity.edrpou, surname: employee_owner.party.last_name},
-        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name, is_stamp: true}
+      expect_signed_content(data, [
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: employee_owner.party.tax_id,
+          surname: employee_owner.party.last_name
+        },
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: employee_owner.party.tax_id,
+          surname: employee_owner.party.last_name
+        },
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: employee_owner.party.tax_id,
+          surname: employee_owner.party.last_name,
+          is_stamp: true
+        }
       ])
 
       assert resp =
@@ -4754,10 +5280,23 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         |> put_consumer_id_header(user_id)
         |> put_req_header("msp_drfo", legal_entity.edrpou)
 
-      drfo_signed_content(data, [
-        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name},
-        %{drfo: legal_entity.edrpou, surname: nhs_signer.party.last_name},
-        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name, is_stamp: true}
+      expect_signed_content(data, [
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: legal_entity.edrpou,
+          surname: employee_owner.party.last_name
+        },
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: legal_entity.edrpou,
+          surname: nhs_signer.party.last_name
+        },
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: legal_entity.edrpou,
+          surname: employee_owner.party.last_name,
+          is_stamp: true
+        }
       ])
 
       assert resp =
@@ -4773,7 +5312,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
                  "entry" => "$.drfo",
                  "rules" => [
                    %{
-                     "description" => "DRFO does not match signer drfo"
+                     "description" => "Does not match the signer drfo"
                    }
                  ]
                }
@@ -4817,10 +5356,23 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         |> put_consumer_id_header(user_id)
         |> put_req_header("msp_drfo", legal_entity.edrpou)
 
-      drfo_signed_content(data, [
-        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name},
-        %{drfo: nhs_signer.legal_entity.edrpou, surname: "Чужий"},
-        %{drfo: nhs_signer.legal_entity.edrpou, surname: "Чужий", is_stamp: true}
+      expect_signed_content(data, [
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: employee_owner.party.tax_id,
+          surname: employee_owner.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: "Чужий"
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: "Чужий",
+          is_stamp: true
+        }
       ])
 
       assert resp =
@@ -4883,10 +5435,23 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         |> put_consumer_id_header(user_id)
         |> put_req_header("msp_drfo", legal_entity.edrpou)
 
-      drfo_signed_content(data, [
-        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name},
-        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name},
-        %{drfo: legal_entity.edrpou, surname: nhs_signer.party.last_name, is_stamp: true}
+      expect_signed_content(data, [
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: legal_entity.edrpou,
+          surname: employee_owner.party.last_name
+        },
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: legal_entity.edrpou,
+          surname: nhs_signer.party.last_name
+        },
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: legal_entity.edrpou,
+          surname: employee_owner.party.last_name,
+          is_stamp: true
+        }
       ])
 
       assert resp =
@@ -4902,7 +5467,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
                  "entry" => "$.drfo",
                  "rules" => [
                    %{
-                     "description" => "DRFO does not match signer drfo"
+                     "description" => "Does not match the signer drfo"
                    }
                  ]
                }
@@ -4947,10 +5512,23 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         |> put_consumer_id_header(user_id)
         |> put_req_header("msp_drfo", legal_entity.edrpou)
 
-      drfo_signed_content(data, [
-        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name},
-        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name},
-        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name, is_stamp: true}
+      expect_signed_content(data, [
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: employee_owner.party.tax_id,
+          surname: employee_owner.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name,
+          is_stamp: true
+        }
       ])
 
       assert resp =
@@ -5006,10 +5584,23 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
           parent_contract_id: contract.id
         )
 
-      drfo_signed_content(data, [
-        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name},
-        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name},
-        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name, is_stamp: true}
+      expect_signed_content(data, [
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: employee_owner.party.tax_id,
+          surname: employee_owner.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name,
+          is_stamp: true
+        }
       ])
 
       assert resp =
@@ -5029,6 +5620,90 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         |> Poison.decode!()
 
       assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
+    end
+
+    test "invalid user drfo in DS", %{conn: conn} do
+      nhs()
+      template()
+
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
+      id = UUID.generate()
+
+      data = %{
+        "id" => id,
+        "printout_content" => nil,
+        "status" => CapitationContractRequest.status(:nhs_signed)
+      }
+
+      contract = insert(:prm, :capitation_contract, contract_number: "1345")
+      employee = insert(:prm, :employee)
+      insert(:prm, :contract_employee, contract_id: contract.id, employee_id: employee.id)
+      insert(:prm, :contract_division, contract_id: contract.id)
+
+      %{
+        "client_id" => client_id,
+        "user_id" => user_id,
+        "legal_entity" => legal_entity,
+        "contract_request" => contract_request,
+        "contractor_owner_id" => employee_owner,
+        "nhs_signer" => nhs_signer
+      } =
+        prepare_nhs_sign_params(
+          id: id,
+          data: data,
+          status: CapitationContractRequest.status(:nhs_signed),
+          contract_number: "1345",
+          parent_contract_id: contract.id
+        )
+
+      expect_signed_content(data, [
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: "test",
+          surname: employee_owner.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: "test",
+          surname: nhs_signer.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: "test",
+          surname: nhs_signer.party.last_name,
+          is_stamp: true
+        }
+      ])
+
+      resp =
+        conn
+        |> put_client_id_header(client_id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("msp_drfo", legal_entity.edrpou)
+        |> patch(contract_request_path(conn, :sign_msp, @capitation, contract_request.id), %{
+          "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.drfo",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "Does not match the signer drfo",
+                       "params" => [],
+                       "rule" => "invalid"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
     end
   end
 
@@ -5168,15 +5843,16 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
     legal_entity = insert(:prm, :legal_entity, params)
     nhs_legal_entity = insert(:prm, :legal_entity)
 
+    user_id = UUID.generate()
+    party_user = insert(:prm, :party_user, user_id: user_id)
+
     nhs_signer =
       insert(
         :prm,
         :employee,
+        party: party_user.party,
         legal_entity: nhs_legal_entity
       )
-
-    user_id = UUID.generate()
-    party_user = insert(:prm, :party_user, user_id: user_id)
 
     division =
       insert(
@@ -5192,7 +5868,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       insert(
         :prm,
         :employee,
-        id: user_id,
+        party: party_user.party,
         legal_entity_id: legal_entity.id,
         employee_type: Employee.type(:owner)
       )

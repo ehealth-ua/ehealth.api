@@ -749,7 +749,11 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
         "text" => "something"
       }
 
-      drfo_signed_content(content, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(content, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
 
       resp_body =
         conn
@@ -932,7 +936,11 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
         "text" => "something"
       }
 
-      drfo_signed_content(content, legal_entity.edrpou, party_user.party.last_name)
+      expect_signed_content(content, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
 
       resp_body =
         conn
@@ -1050,9 +1058,18 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       printout_content = "<html></html>"
       content = Map.put(data, "printout_content", printout_content)
 
-      drfo_signed_content(content, [
-        %{drfo: legal_entity.edrpou, surname: nhs_signer_party.last_name},
-        %{drfo: legal_entity.edrpou, surname: nhs_signer_party.last_name, is_stamp: true}
+      expect_signed_content(content, [
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: nhs_signer_party.tax_id,
+          surname: nhs_signer_party.last_name
+        },
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: nhs_signer_party.tax_id,
+          surname: nhs_signer_party.last_name,
+          is_stamp: true
+        }
       ])
 
       resp_body =

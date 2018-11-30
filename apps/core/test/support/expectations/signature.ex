@@ -77,4 +77,41 @@ defmodule Core.Expectations.Signature do
   def edrpou_signed_content(content, edrpou) do
     edrpou_signed_content(content, [edrpou])
   end
+
+  def expect_signed_content(content, signers) when is_list(signers) do
+    expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
+      {:ok,
+       %{
+         "data" => %{
+           "content" => content,
+           "signatures" =>
+             Enum.map(signers, fn signer ->
+               %{
+                 "is_valid" => Map.get(signer, :is_valid, true),
+                 "is_stamp" => Map.get(signer, :is_stamp, false),
+                 "signer" => %{"edrpou" => signer[:edrpou], "drfo" => signer[:drfo], "surname" => signer[:surname]}
+               }
+             end)
+         }
+       }}
+    end)
+  end
+
+  def expect_signed_content(content, signer) when is_map(signer) do
+    expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
+      {:ok,
+       %{
+         "data" => %{
+           "content" => content,
+           "signatures" => [
+             %{
+               "is_valid" => Map.get(signer, :is_valid, true),
+               "is_stamp" => Map.get(signer, :is_stamp, false),
+               "signer" => %{"edrpou" => signer[:edrpou], "drfo" => signer[:drfo], "surname" => signer[:surname]}
+             }
+           ]
+         }
+       }}
+    end)
+  end
 end
