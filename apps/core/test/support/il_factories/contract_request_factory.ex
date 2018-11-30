@@ -55,6 +55,7 @@ defmodule Core.ILFactories.ContractRequestFactory do
       def reimbursement_contract_request_factory do
         legal_entity = insert(:prm, :legal_entity)
         employee = insert(:prm, :employee)
+        %{id: medical_program_id} = insert(:prm, :medical_program)
 
         division =
           insert(
@@ -67,7 +68,7 @@ defmodule Core.ILFactories.ContractRequestFactory do
         data =
           Map.merge(generic_contract_request_data(legal_entity, division), %{
             type: ReimbursementContractRequest.type(),
-            medical_program_id: UUID.generate()
+            medical_program_id: medical_program_id
           })
 
         struct(ReimbursementContractRequest, data)

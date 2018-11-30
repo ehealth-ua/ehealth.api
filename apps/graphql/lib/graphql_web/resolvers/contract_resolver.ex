@@ -11,6 +11,7 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
   alias Core.ContractRequests.CapitationContractRequest
   alias Core.Contracts
   alias Core.Contracts.CapitationContract
+  alias Core.Contracts.Storage
   alias Core.PRMRepo
   alias GraphQLWeb.Loaders.IL
   alias GraphQLWeb.Loaders.PRM
@@ -43,7 +44,7 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
     |> Dataloader.load(source, batch_key, item_key)
     |> on_load(fn loader ->
       with %CapitationContractRequest{id: id, status: _status} <- Dataloader.get(loader, source, batch_key, item_key),
-           contract_documents when is_list(contract_documents) <- Contracts.gen_relevant_get_links(parent.id),
+           contract_documents when is_list(contract_documents) <- Storage.gen_relevant_get_links(parent.id),
            contract_request_documents when is_list(contract_request_documents) <-
              ContractRequests.gen_relevant_get_links(id, "APPROVED") do
         {:ok, contract_documents ++ contract_request_documents}

@@ -3,6 +3,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
 
   use EHealth.Web.ConnCase
 
+  import Core.Expectations.Man
   import Core.Expectations.Signature
   import Mox
 
@@ -24,13 +25,30 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
   @path_type String.downcase(@reimbursement)
 
   describe "list reimbursement contract requests" do
+    test "successfully finds only reimbursement contracts", %{conn: conn} do
+      nhs()
+
+      insert_list(2, :il, :capitation_contract_request)
+      insert_list(4, :il, :reimbursement_contract_request)
+
+      assert resp_data =
+               conn
+               |> put_consumer_id_header()
+               |> put_client_id_header()
+               |> get(contract_request_path(conn, :index, @path_type))
+               |> json_response(200)
+               |> Map.get("data")
+
+      assert 4 == length(resp_data)
+    end
+
     test "successfully finds by medical_program_id", %{conn: conn} do
       nhs()
 
       %{id: medical_program_id} = insert(:prm, :medical_program)
       insert_list(2, :il, :reimbursement_contract_request, medical_program_id: medical_program_id)
       insert_list(4, :il, :reimbursement_contract_request)
-      insert_list(8, :il, :capitation_contract_request)
+      insert_list(8, :il, :reimbursement_contract_request)
 
       assert resp_data =
                conn
@@ -291,7 +309,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
     end
   end
 
-  describe "invalid medical program" do
+  describe "create reimbursement contract when medical program is invalid" do
     test "program id not match with previously created request", %{conn: conn} do
       %{
         medical_program: medical_program,
@@ -405,9 +423,773 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
     end
   end
 
+  describe "sign reimbursement contract MSP" do
+    test "no contract_request found", %{conn: conn} do
+      msp()
+
+      assert conn
+             |> put_client_id_header(UUID.generate())
+             |> patch(contract_request_path(conn, :sign_msp, @path_type, UUID.generate()))
+             |> json_response(404)
+    end
+
+    test "invalid client_id", %{conn: conn} do
+      msp()
+
+      contract_request =
+        insert(:il, :reimbursement_contract_request, status: ReimbursementContractRequest.status(:nhs_signed))
+
+      legal_entity = insert(:prm, :legal_entity, type: @pharmacy)
+      conn = put_client_id_header(conn, legal_entity.id)
+
+      assert resp =
+               conn
+               |> patch(contract_request_path(conn, :sign_msp, @path_type, contract_request.id), %{
+                 "signed_content" => "",
+                 "signed_content_encoding" => "base64"
+               })
+               |> json_response(403)
+
+      assert "Invalid client_id" == resp["error"]["message"]
+    end
+
+    test "contract_request already signed", %{conn: conn} do
+      nhs()
+
+      %{"client_id" => client_id, "user_id" => user_id, "contract_request" => contract_request} =
+        prepare_nhs_sign_params(status: ReimbursementContractRequest.status(:signed))
+
+      assert resp =
+               conn
+               |> put_client_id_header(client_id)
+               |> put_consumer_id_header(user_id)
+               |> patch(contract_request_path(conn, :sign_msp, @path_type, contract_request.id), %{
+                 "signed_content" => "",
+                 "signed_content_encoding" => "base64"
+               })
+               |> json_response(422)
+
+      assert_error(resp, "Incorrect status for signing")
+    end
+
+    test "failed to decode signed content", %{conn: conn} do
+      nhs()
+      invalid_signed_content()
+
+      %{
+        "client_id" => client_id,
+        "user_id" => user_id,
+        "contract_request" => contract_request,
+        "party_user" => party_user
+      } = prepare_nhs_sign_params(status: ReimbursementContractRequest.status(:nhs_signed))
+
+      assert resp =
+               conn
+               |> put_client_id_header(client_id)
+               |> put_consumer_id_header(user_id)
+               |> put_req_header("msp_drfo", party_user.party.tax_id)
+               |> patch(contract_request_path(conn, :sign_msp, @path_type, contract_request.id), %{
+                 "signed_content" => "invalid",
+                 "signed_content_encoding" => "base64"
+               })
+               |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.signed_content",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "Not a base64 string",
+                       "params" => [],
+                       "rule" => "invalid"
+                     }
+                   ]
+                 }
+               ],
+               "type" => "validation_failed"
+             } = resp["error"]
+    end
+
+    test "legal entity edrpou does not match with signer drfo", %{conn: conn} do
+      insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
+      insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
+      insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
+      nhs()
+
+      %{
+        "client_id" => client_id,
+        "user_id" => user_id,
+        "contract_request" => contract_request,
+        "legal_entity" => legal_entity,
+        "party_user" => party_user
+      } = prepare_nhs_sign_params(status: ReimbursementContractRequest.status(:nhs_signed))
+
+      conn =
+        conn
+        |> put_client_id_header(client_id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("msp_drfo", legal_entity.edrpou)
+
+      data = %{"id" => contract_request.id, "printout_content" => "<html></html>"}
+
+      drfo_signed_content(data, [
+        %{drfo: party_user.party.tax_id, surname: party_user.party.last_name},
+        %{drfo: nil, surname: nil},
+        %{drfo: legal_entity.edrpou, surname: party_user.party.last_name, is_stamp: true}
+      ])
+
+      resp =
+        conn
+        |> patch(contract_request_path(conn, :sign_msp, @path_type, contract_request.id), %{
+          "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.drfo"
+                 }
+               ]
+             } = resp["error"]
+    end
+
+    test "party last_name does not match with signer surname", %{conn: conn} do
+      insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
+      insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
+      insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
+      nhs()
+
+      %{
+        "client_id" => client_id,
+        "user_id" => user_id,
+        "contract_request" => contract_request,
+        "legal_entity" => legal_entity,
+        "nhs_signer" => nhs_signer
+      } = prepare_nhs_sign_params(status: ReimbursementContractRequest.status(:nhs_signed))
+
+      data = %{"id" => contract_request.id, "printout_content" => "<html></html>"}
+
+      drfo_signed_content(data, [
+        %{drfo: legal_entity.edrpou, surname: "Підписант"},
+        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name},
+        %{drfo: legal_entity.edrpou, surname: "Підписант", is_stamp: true}
+      ])
+
+      assert resp =
+               conn
+               |> put_client_id_header(client_id)
+               |> put_consumer_id_header(user_id)
+               |> put_req_header("msp_drfo", legal_entity.edrpou)
+               |> patch(contract_request_path(conn, :sign_msp, @path_type, contract_request.id), %{
+                 "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+                 "signed_content_encoding" => "base64"
+               })
+               |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.last_name",
+                   "rules" => [
+                     %{
+                       "description" => "Signer surname does not match with current user last_name"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
+    end
+
+    test "content doesn't match", %{conn: conn} do
+      insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
+      insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
+      insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
+      nhs()
+
+      %{
+        "client_id" => client_id,
+        "user_id" => user_id,
+        "contract_request" => contract_request,
+        "legal_entity" => legal_entity,
+        "contractor_owner_id" => employee_owner,
+        "nhs_signer" => nhs_signer
+      } = prepare_nhs_sign_params(status: ReimbursementContractRequest.status(:nhs_signed))
+
+      data = %{"id" => contract_request.id, "printout_content" => "<html></html>"}
+
+      drfo_signed_content(data, [
+        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name},
+        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name},
+        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name, is_stamp: true}
+      ])
+
+      assert resp =
+               conn
+               |> put_client_id_header(client_id)
+               |> put_consumer_id_header(user_id)
+               |> put_req_header("msp_drfo", legal_entity.edrpou)
+               |> patch(contract_request_path(conn, :sign_msp, @path_type, contract_request.id), %{
+                 "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+                 "signed_content_encoding" => "base64"
+               })
+               |> json_response(422)
+
+      assert_error(resp, "Signed content does not match the previously created content")
+    end
+
+    test "failed to save signed content", %{conn: conn} do
+      nhs()
+
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:error, "failed to save content"}
+      end)
+
+      id = UUID.generate()
+
+      data = %{
+        "id" => id,
+        "printout_content" => nil,
+        "status" => ReimbursementContractRequest.status(:nhs_signed)
+      }
+
+      %{
+        "client_id" => client_id,
+        "user_id" => user_id,
+        "contract_request" => contract_request,
+        "legal_entity" => legal_entity,
+        "contractor_owner_id" => employee_owner,
+        "nhs_signer" => nhs_signer
+      } =
+        prepare_nhs_sign_params(
+          id: id,
+          data: data,
+          status: ReimbursementContractRequest.status(:nhs_signed)
+        )
+
+      drfo_signed_content(data, [
+        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name},
+        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name},
+        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name, is_stamp: true}
+      ])
+
+      assert resp =
+               conn
+               |> put_client_id_header(client_id)
+               |> put_consumer_id_header(user_id)
+               |> put_req_header("msp_drfo", legal_entity.edrpou)
+               |> patch(contract_request_path(conn, :sign_msp, @path_type, contract_request.id), %{
+                 "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+                 "signed_content_encoding" => "base64"
+               })
+               |> json_response(502)
+
+      assert "Failed to save signed content" == resp["error"]["message"]
+    end
+
+    test "failed to create contract", %{conn: conn} do
+      nhs()
+
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
+      id = UUID.generate()
+
+      data = %{
+        "id" => id,
+        "printout_content" => nil,
+        "status" => ReimbursementContractRequest.status(:nhs_signed)
+      }
+
+      %{
+        "client_id" => client_id,
+        "user_id" => user_id,
+        "contract_request" => contract_request,
+        "legal_entity" => legal_entity,
+        "contractor_owner_id" => employee_owner,
+        "nhs_signer" => nhs_signer
+      } =
+        prepare_nhs_sign_params(
+          id: id,
+          data: data,
+          status: ReimbursementContractRequest.status(:nhs_signed)
+        )
+
+      conn =
+        conn
+        |> put_client_id_header(client_id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("msp_drfo", legal_entity.edrpou)
+
+      drfo_signed_content(data, [
+        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name},
+        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name},
+        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name, is_stamp: true}
+      ])
+
+      assert conn
+             |> patch(contract_request_path(conn, :sign_msp, @path_type, contract_request.id), %{
+               "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+               "signed_content_encoding" => "base64"
+             })
+             |> json_response(502)
+    end
+
+    test "nhs_legal_entity does not exists", %{conn: conn} do
+      nhs()
+
+      id = UUID.generate()
+
+      data = %{
+        "id" => id,
+        "printout_content" => nil,
+        "status" => ReimbursementContractRequest.status(:nhs_signed)
+      }
+
+      client_id = UUID.generate()
+      legal_entity = insert(:prm, :legal_entity, type: @pharmacy, id: client_id)
+
+      nhs_signer = insert(:prm, :employee)
+
+      user_id = UUID.generate()
+
+      division =
+        insert(
+          :prm,
+          :division,
+          legal_entity: legal_entity,
+          phones: [%{"type" => "MOBILE", "number" => "+380631111111"}]
+        )
+
+      employee_owner =
+        insert(
+          :prm,
+          :employee,
+          id: user_id,
+          legal_entity_id: legal_entity.id,
+          employee_type: Employee.type(:owner)
+        )
+
+      now = Date.utc_today()
+      start_date = Date.add(now, 10)
+
+      params = [
+        id: id,
+        data: data,
+        status: ReimbursementContractRequest.status(:nhs_signed),
+        contract_number: "1345",
+        nhs_signed_date: Date.utc_today(),
+        nhs_signer_id: nhs_signer.id,
+        nhs_legal_entity_id: UUID.generate(),
+        contractor_legal_entity_id: client_id,
+        contractor_owner_id: employee_owner.id,
+        contractor_divisions: [division.id],
+        start_date: start_date
+      ]
+
+      contract_request = insert(:il, :reimbursement_contract_request, params)
+
+      drfo_signed_content(data, [
+        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name},
+        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name},
+        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name, is_stamp: true}
+      ])
+
+      assert resp =
+               conn
+               |> put_client_id_header(client_id)
+               |> put_consumer_id_header(user_id)
+               |> put_req_header("msp_drfo", legal_entity.edrpou)
+               |> patch(contract_request_path(conn, :sign_msp, @path_type, contract_request.id), %{
+                 "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+                 "signed_content_encoding" => "base64"
+               })
+               |> json_response(409)
+
+      assert "NHS legal entity not found" == resp["error"]["message"]
+    end
+
+    test "nhs employee does not exists", %{conn: conn} do
+      nhs()
+
+      id = UUID.generate()
+
+      data = %{
+        "id" => id,
+        "printout_content" => nil,
+        "status" => ReimbursementContractRequest.status(:nhs_signed)
+      }
+
+      client_id = UUID.generate()
+      legal_entity = insert(:prm, :legal_entity, type: @pharmacy, id: client_id)
+      nhs_legal_entity = insert(:prm, :legal_entity)
+
+      user_id = UUID.generate()
+
+      division =
+        insert(
+          :prm,
+          :division,
+          legal_entity: legal_entity,
+          phones: [%{"type" => "MOBILE", "number" => "+380631111111"}]
+        )
+
+      employee_owner =
+        insert(
+          :prm,
+          :employee,
+          id: user_id,
+          legal_entity_id: legal_entity.id,
+          employee_type: Employee.type(:owner)
+        )
+
+      now = Date.utc_today()
+      start_date = Date.add(now, 10)
+
+      params = %{
+        id: id,
+        data: data,
+        status: ReimbursementContractRequest.status(:nhs_signed),
+        contract_number: "1345",
+        nhs_signed_date: Date.utc_today(),
+        nhs_signer_id: UUID.generate(),
+        nhs_legal_entity_id: nhs_legal_entity.id,
+        contractor_legal_entity_id: client_id,
+        contractor_owner_id: employee_owner.id,
+        contractor_divisions: [division.id],
+        start_date: start_date
+      }
+
+      contract_request = insert(:il, :reimbursement_contract_request, params)
+
+      conn =
+        conn
+        |> put_client_id_header(client_id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("msp_drfo", legal_entity.edrpou)
+
+      drfo_signed_content(data, [
+        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name},
+        %{drfo: nhs_legal_entity.edrpou, surname: employee_owner.party.last_name},
+        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name, is_stamp: true}
+      ])
+
+      assert resp =
+               conn
+               |> patch(contract_request_path(conn, :sign_msp, @path_type, contract_request.id), %{
+                 "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+                 "signed_content_encoding" => "base64"
+               })
+               |> json_response(409)
+
+      assert "NHS employee not found" == resp["error"]["message"]
+    end
+
+    test "nhs signer edrpou does not match with nhs legal entity edrpou", %{conn: conn} do
+      nhs()
+
+      id = UUID.generate()
+
+      data = %{
+        "id" => id,
+        "printout_content" => nil,
+        "status" => ReimbursementContractRequest.status(:nhs_signed)
+      }
+
+      %{
+        "client_id" => client_id,
+        "user_id" => user_id,
+        "contract_request" => contract_request,
+        "legal_entity" => legal_entity,
+        "contractor_owner_id" => employee_owner,
+        "nhs_signer" => nhs_signer
+      } =
+        prepare_nhs_sign_params(
+          id: id,
+          data: data,
+          status: ReimbursementContractRequest.status(:nhs_signed),
+          contract_number: "1345"
+        )
+
+      conn =
+        conn
+        |> put_client_id_header(client_id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("msp_drfo", legal_entity.edrpou)
+
+      drfo_signed_content(data, [
+        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name},
+        %{drfo: legal_entity.edrpou, surname: nhs_signer.party.last_name},
+        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name, is_stamp: true}
+      ])
+
+      assert resp =
+               conn
+               |> patch(contract_request_path(conn, :sign_msp, @path_type, contract_request.id), %{
+                 "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+                 "signed_content_encoding" => "base64"
+               })
+               |> json_response(422)
+
+      assert [
+               %{
+                 "entry" => "$.drfo",
+                 "rules" => [
+                   %{
+                     "description" => "DRFO does not match signer drfo"
+                   }
+                 ]
+               }
+             ] = resp["error"]["invalid"]
+    end
+
+    test "nhs signer surname does not match with nhs employee edrpou", %{conn: conn} do
+      nhs()
+
+      id = UUID.generate()
+
+      data = %{
+        "id" => id,
+        "printout_content" => nil,
+        "status" => ReimbursementContractRequest.status(:nhs_signed)
+      }
+
+      %{
+        "client_id" => client_id,
+        "user_id" => user_id,
+        "contract_request" => contract_request,
+        "legal_entity" => legal_entity,
+        "contractor_owner_id" => employee_owner,
+        "nhs_signer" => nhs_signer
+      } =
+        prepare_nhs_sign_params(
+          id: id,
+          data: data,
+          status: ReimbursementContractRequest.status(:nhs_signed),
+          contract_number: "1345"
+        )
+
+      conn =
+        conn
+        |> put_client_id_header(client_id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("msp_drfo", legal_entity.edrpou)
+
+      drfo_signed_content(data, [
+        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name},
+        %{drfo: nhs_signer.legal_entity.edrpou, surname: "Чужий"},
+        %{drfo: nhs_signer.legal_entity.edrpou, surname: "Чужий", is_stamp: true}
+      ])
+
+      assert resp =
+               conn
+               |> patch(contract_request_path(conn, :sign_msp, @path_type, contract_request.id), %{
+                 "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+                 "signed_content_encoding" => "base64"
+               })
+               |> json_response(422)
+
+      assert [
+               %{
+                 "entry" => "$.last_name",
+                 "entry_type" => "json_data_property",
+                 "rules" => [
+                   %{
+                     "description" => "Signer surname does not match with current user last_name",
+                     "params" => [],
+                     "rule" => "invalid"
+                   }
+                 ]
+               }
+             ] == resp["error"]["invalid"]
+    end
+
+    test "stamp edrpou does not match nhs legal entity", %{conn: conn} do
+      nhs()
+
+      id = UUID.generate()
+
+      data = %{
+        "id" => id,
+        "printout_content" => nil,
+        "status" => ReimbursementContractRequest.status(:nhs_signed)
+      }
+
+      %{
+        "client_id" => client_id,
+        "user_id" => user_id,
+        "contract_request" => contract_request,
+        "legal_entity" => legal_entity,
+        "contractor_owner_id" => employee_owner,
+        "nhs_signer" => nhs_signer
+      } =
+        prepare_nhs_sign_params(
+          id: id,
+          data: data,
+          status: ReimbursementContractRequest.status(:nhs_signed),
+          contract_number: "1345"
+        )
+
+      conn =
+        conn
+        |> put_client_id_header(client_id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("msp_drfo", legal_entity.edrpou)
+
+      drfo_signed_content(data, [
+        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name},
+        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name},
+        %{drfo: legal_entity.edrpou, surname: nhs_signer.party.last_name, is_stamp: true}
+      ])
+
+      assert resp =
+               conn
+               |> patch(contract_request_path(conn, :sign_msp, @path_type, contract_request.id), %{
+                 "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+                 "signed_content_encoding" => "base64"
+               })
+               |> json_response(422)
+
+      assert [
+               %{
+                 "entry" => "$.drfo",
+                 "rules" => [
+                   %{
+                     "description" => "DRFO does not match signer drfo"
+                   }
+                 ]
+               }
+             ] = resp["error"]["invalid"]
+    end
+
+    test "success to sign contract_request", %{conn: conn} do
+      nhs()
+
+      expect(MediaStorageMock, :store_signed_content, fn _, bucket, _, _, _ ->
+        assert :contract_bucket == bucket
+        {:ok, "success"}
+      end)
+
+      id = UUID.generate()
+
+      data = %{
+        "id" => id,
+        "printout_content" => nil,
+        "status" => ReimbursementContractRequest.status(:nhs_signed)
+      }
+
+      %{
+        "client_id" => client_id,
+        "user_id" => user_id,
+        "contract_request" => contract_request,
+        "legal_entity" => legal_entity,
+        "contractor_owner_id" => employee_owner,
+        "nhs_signer" => nhs_signer
+      } =
+        prepare_nhs_sign_params(
+          id: id,
+          data: data,
+          status: ReimbursementContractRequest.status(:nhs_signed),
+          contract_number: "1345"
+        )
+
+      conn =
+        conn
+        |> put_client_id_header(client_id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("msp_drfo", legal_entity.edrpou)
+
+      drfo_signed_content(data, [
+        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name},
+        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name},
+        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name, is_stamp: true}
+      ])
+
+      assert resp =
+               conn
+               |> patch(contract_request_path(conn, :sign_msp, @path_type, contract_request.id), %{
+                 "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+                 "signed_content_encoding" => "base64"
+               })
+               |> json_response(200)
+
+      schema =
+        "../core/specs/json_schemas/contract/reimbursement_contract_show_response.json"
+        |> File.read!()
+        |> Poison.decode!()
+
+      assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
+    end
+
+    test "success to sign contract_request with existing parent_contract_id", %{conn: conn} do
+      nhs()
+
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
+      id = UUID.generate()
+
+      data = %{
+        "id" => id,
+        "printout_content" => nil,
+        "status" => ReimbursementContractRequest.status(:nhs_signed)
+      }
+
+      contract = insert(:prm, :capitation_contract, contract_number: "1345")
+      employee = insert(:prm, :employee)
+      insert(:prm, :contract_employee, contract_id: contract.id, employee_id: employee.id)
+      insert(:prm, :contract_division, contract_id: contract.id)
+
+      %{
+        "client_id" => client_id,
+        "user_id" => user_id,
+        "legal_entity" => legal_entity,
+        "contract_request" => contract_request,
+        "contractor_owner_id" => employee_owner,
+        "nhs_signer" => nhs_signer
+      } =
+        prepare_nhs_sign_params(
+          id: id,
+          data: data,
+          status: ReimbursementContractRequest.status(:nhs_signed),
+          contract_number: "1345",
+          parent_contract_id: contract.id
+        )
+
+      drfo_signed_content(data, [
+        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name},
+        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name},
+        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name, is_stamp: true}
+      ])
+
+      assert resp =
+               conn
+               |> put_client_id_header(client_id)
+               |> put_consumer_id_header(user_id)
+               |> put_req_header("msp_drfo", legal_entity.edrpou)
+               |> patch(contract_request_path(conn, :sign_msp, @path_type, contract_request.id), %{
+                 "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+                 "signed_content_encoding" => "base64"
+               })
+               |> json_response(200)
+
+      schema =
+        "../core/specs/json_schemas/contract/reimbursement_contract_show_response.json"
+        |> File.read!()
+        |> Poison.decode!()
+
+      assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
+    end
+  end
+
   describe "approve contract_request by msp" do
     test "success", %{conn: conn} do
-      legal_entity = insert(:prm, :legal_entity)
+      legal_entity = insert(:prm, :legal_entity, type: @pharmacy)
       employee_owner = insert(:prm, :employee, legal_entity_id: legal_entity.id, employee_type: Employee.type(:owner))
 
       division =
@@ -420,7 +1202,6 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
 
       now = Date.utc_today()
       start_date = Date.add(now, 10)
-      %{id: medical_program_id} = insert(:prm, :medical_program)
 
       contract_request =
         insert(
@@ -430,8 +1211,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
           contractor_legal_entity_id: legal_entity.id,
           contractor_owner_id: employee_owner.id,
           contractor_divisions: [division.id],
-          start_date: start_date,
-          medical_program_id: medical_program_id
+          start_date: start_date
         )
 
       assert resp_data =
@@ -446,7 +1226,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
     end
 
     test "fails on inactive medical program", %{conn: conn} do
-      legal_entity = insert(:prm, :legal_entity)
+      legal_entity = insert(:prm, :legal_entity, type: @pharmacy)
       employee_owner = insert(:prm, :employee, legal_entity_id: legal_entity.id, employee_type: Employee.type(:owner))
 
       division =
@@ -556,5 +1336,81 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
       |> Jason.decode!()
 
     assert :ok = JsonValidator.validate(schema, resp)
+  end
+
+  defp prepare_nhs_sign_params(contract_request_params, legal_entity_params \\ []) do
+    client_id = UUID.generate()
+    params = Keyword.merge([id: client_id, type: "PHARMACY"], legal_entity_params)
+    legal_entity = insert(:prm, :legal_entity, params)
+    nhs_legal_entity = insert(:prm, :legal_entity)
+
+    nhs_signer =
+      insert(
+        :prm,
+        :employee,
+        legal_entity: nhs_legal_entity
+      )
+
+    user_id = UUID.generate()
+    party_user = insert(:prm, :party_user, user_id: user_id)
+
+    division =
+      insert(
+        :prm,
+        :division,
+        legal_entity: legal_entity,
+        phones: [%{"type" => "MOBILE", "number" => "+380631111111"}]
+      )
+
+    employee_owner =
+      insert(
+        :prm,
+        :employee,
+        id: user_id,
+        legal_entity_id: legal_entity.id,
+        employee_type: Employee.type(:owner)
+      )
+
+    now = Date.utc_today()
+    start_date = Date.add(now, 10)
+
+    %{id: medical_program_id} = insert(:prm, :medical_program)
+
+    params =
+      Keyword.merge(
+        [
+          nhs_signed_date: Date.utc_today(),
+          nhs_signer_id: nhs_signer.id,
+          nhs_legal_entity_id: nhs_legal_entity.id,
+          contractor_legal_entity_id: client_id,
+          contractor_owner_id: employee_owner.id,
+          contractor_divisions: [division.id],
+          medical_program_id: medical_program_id,
+          start_date: start_date
+        ],
+        contract_request_params
+      )
+
+    contract_request = insert(:il, :reimbursement_contract_request, params)
+
+    %{
+      "client_id" => client_id,
+      "user_id" => user_id,
+      "legal_entity" => legal_entity,
+      "contract_request" => contract_request,
+      "contractor_owner_id" => employee_owner,
+      "nhs_signer" => nhs_signer,
+      "party_user" => party_user
+    }
+  end
+
+  defp assert_error(resp, message) do
+    assert %{
+             "invalid" => [
+               %{"entry_type" => "request", "rules" => [%{"rule" => "json"}]}
+             ],
+             "message" => ^message,
+             "type" => "request_malformed"
+           } = resp["error"]
   end
 end

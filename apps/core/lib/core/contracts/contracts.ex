@@ -2,12 +2,16 @@ defmodule Core.Contracts do
   @moduledoc false
 
   import Core.API.Helpers.Connection, only: [get_client_id: 1, get_consumer_id: 1]
+  import Core.Contracts.Storage, only: [save_signed_content: 4]
+  import Core.Contracts.Validator
   import Ecto.Changeset
   import Ecto.Query
 
   alias Core.CapitationContractRequests
-  alias Core.ContractRequests
   alias Core.ContractRequests.CapitationContractRequest
+  alias Core.ContractRequests.ReimbursementContractRequest
+  alias Core.ContractRequests.RequestPack
+  alias Core.ContractRequests.Storage
   alias Core.ContractRequests.Validator, as: ContractRequestsValidator
   alias Core.Contracts.CapitationContract
   alias Core.Contracts.ContractDivision
@@ -15,63 +19,22 @@ defmodule Core.Contracts do
   alias Core.Contracts.ContractEmployeeSearch
   alias Core.Contracts.ReimbursementContract
   alias Core.Contracts.Search
-  alias Core.Divisions
-  alias Core.Divisions.Division
-  alias Core.Employees
   alias Core.Employees.Employee
   alias Core.EventManager
   alias Core.LegalEntities
   alias Core.LegalEntities.LegalEntity
-  alias Core.LegalEntities.RelatedLegalEntity
   alias Core.PRMRepo
-  alias Core.ValidationError
   alias Core.Validators.Error
   alias Core.Validators.JsonSchema
   alias Core.Validators.Preload
-  alias Core.Validators.Reference
   alias Core.Validators.Signature, as: SignatureValidator
   alias Scrivener.Page
-
-  @media_storage_api Application.get_env(:core, :api_resolvers)[:media_storage]
 
   @status_verified CapitationContract.status(:verified)
   @status_terminated CapitationContract.status(:terminated)
 
   @capitation CapitationContract.type()
   @reimbursement ReimbursementContract.type()
-
-  @fields_required ~w(
-    id
-    start_date
-    end_date
-    status
-    contractor_legal_entity_id
-    contractor_owner_id
-    contractor_base
-    contractor_payment_details
-    contractor_rmsp_amount
-    nhs_legal_entity_id
-    nhs_signer_id
-    nhs_payment_method
-    nhs_signer_base
-    issue_city
-    nhs_contract_price
-    contract_number
-    contract_request_id
-    is_suspended
-    is_active
-    inserted_by
-    updated_by
-    id_form
-    nhs_signed_date
-  )a
-
-  @fields_optional ~w(
-    parent_contract_id
-    status_reason
-    external_contractor_flag
-    external_contractors
-  )a
 
   def list(params, client_type, headers) do
     client_id = get_client_id(headers)
@@ -92,15 +55,24 @@ defmodule Core.Contracts do
     end
   end
 
-  def create(%{parent_contract_id: parent_contract_id} = params, user_id) when not is_nil(parent_contract_id) do
-    with %CapitationContract{} = contract <- PRMRepo.get(CapitationContract, parent_contract_id),
+  def create_from_contract_request(
+        %RequestPack{contract_request: %{parent_contract_id: parent_contract_id}} = pack,
+        user_id
+      )
+      when not is_nil(parent_contract_id) do
+    schema = get_contract_schema_relatively_contract_request(pack.schema)
+
+    with contract <- PRMRepo.get(schema, parent_contract_id),
          :ok <- validate_contract_status(@status_verified, contract) do
       contract = load_references(contract)
+      params = get_contract_create_params(pack.contract_request)
 
       PRMRepo.transaction(fn ->
-        ContractEmployee
-        |> where([ce], ce.contract_id == ^contract.id)
-        |> PRMRepo.update_all(set: [end_date: NaiveDateTime.utc_now(), updated_by: params.updated_by])
+        if %CapitationContract{} == schema do
+          ContractEmployee
+          |> where([ce], ce.contract_id == ^contract.id)
+          |> PRMRepo.update_all(set: [end_date: NaiveDateTime.utc_now(), updated_by: params.updated_by])
+        end
 
         with {:ok, _} <-
                contract
@@ -109,25 +81,47 @@ defmodule Core.Contracts do
           EventManager.insert_change_status(contract, @status_terminated, user_id)
         end
 
-        with {:ok, new_contract} <- do_create(params) do
+        with {:ok, new_contract} <- do_create(schema, params) do
           new_contract
+        else
+          err -> PRMRepo.rollback(err)
         end
       end)
     end
   end
 
-  def create(params, _) do
-    do_create(params)
+  def create_from_contract_request(pack, _) do
+    pack.schema
+    |> get_contract_schema_relatively_contract_request()
+    |> do_create(get_contract_create_params(pack.contract_request))
   end
 
-  defp do_create(params) do
+  defp do_create(schema, params) when schema in [CapitationContract, ReimbursementContract] do
     with {:ok, contract} <-
-           %CapitationContract{}
-           |> changeset(params)
+           schema
+           |> struct(%{})
+           |> schema.changeset(params)
            |> PRMRepo.insert() do
       {:ok, load_references(contract)}
     end
   end
+
+  defp get_contract_create_params(%{__struct__: _, id: id, contract_id: contract_id} = contract_request) do
+    contract_request
+    |> Map.take(contract_request.__struct__.__schema__(:fields))
+    |> Map.drop(~w(id inserted_at updated_at)a)
+    |> Map.merge(%{
+      id: contract_id,
+      contract_request_id: id,
+      is_suspended: false,
+      is_active: true,
+      status: CapitationContract.status(:verified)
+    })
+  end
+
+  # ToDo: ugly schema matching. Is it possible match in more elegant way?
+  defp get_contract_schema_relatively_contract_request(CapitationContractRequest), do: CapitationContract
+  defp get_contract_schema_relatively_contract_request(ReimbursementContractRequest), do: ReimbursementContract
 
   def prolongate(id, params, headers) do
     user_id = get_consumer_id(headers)
@@ -212,49 +206,6 @@ defmodule Core.Contracts do
     end
   end
 
-  defp validate_contract_status(status, %CapitationContract{status: status}), do: :ok
-
-  defp validate_contract_status(_, _) do
-    {:error, {:conflict, "Incorrect contract status to modify it"}}
-  end
-
-  defp validate_legal_entity_allowed(client_id, allowed_ids) do
-    if client_id in allowed_ids do
-      :ok
-    else
-      {:error, {:forbidden, "Legal entity is not allowed to this action by client_id"}}
-    end
-  end
-
-  defp validate_update_json_schema(%{"is_active" => false} = content) do
-    JsonSchema.validate(:contract_update_employees_is_active, content)
-  end
-
-  defp validate_update_json_schema(content) do
-    JsonSchema.validate(:contract_update_employees, content)
-  end
-
-  defp validate_legal_entity_division(%CapitationContract{contractor_legal_entity_id: legal_entity_id}, %{
-         "division_id" => id
-       }) do
-    with %Page{entries: [_]} <- Divisions.search(legal_entity_id, %{"ids" => id, "status" => Division.status(:active)}) do
-      :ok
-    else
-      _ -> Error.dump("Division must be active and within current legal_entity")
-    end
-  end
-
-  defp validate_legal_entity_employee(%CapitationContract{contractor_legal_entity_id: legal_entity_id}, %{
-         "employee_id" => id
-       }) do
-    with %Employee{} = employee <- Employees.get_by_id(id),
-         true <- employee.legal_entity_id == legal_entity_id && employee.status == Employee.status(:approved) do
-      :ok
-    else
-      _ -> Error.dump("Employee must be within current legal_entity")
-    end
-  end
-
   defp process_employee_division(
          %CapitationContract{id: id} = contract,
          %{"employee_id" => employee_id, "division_id" => division_id} = params,
@@ -270,7 +221,7 @@ defmodule Core.Contracts do
 
         with %ContractEmployee{} = contract_employee <- get_contract_employee(id, employee_id, division_id),
              :ok <- validate_employee_speciality_limit(Map.get(params, "declaration_limit"), employee_speciality),
-             :ok <- check_employee_legal_entity(client_id, legal_entity_id) do
+             :ok <- validate_employee_legal_entity(client_id, legal_entity_id) do
           update_contract_employee(contract, contract_employee, params, user_id)
         else
           nil ->
@@ -291,40 +242,10 @@ defmodule Core.Contracts do
 
   defp insert_and_validate_contract_employee(contract, params, user_id, client_id, employee_speciality, legal_entity_id) do
     with :ok <- validate_employee_speciality_limit(Map.get(params, "declaration_limit"), employee_speciality),
-         :ok <- check_employee_legal_entity(client_id, legal_entity_id) do
+         :ok <- validate_employee_legal_entity(client_id, legal_entity_id) do
       insert_contract_employee(contract, params, user_id)
     end
   end
-
-  defp validate_employee_speciality_limit(_, nil), do: {:error, {:"422", "Employee speciality is invalid"}}
-  defp validate_employee_speciality_limit(nil, _), do: :ok
-
-  defp validate_employee_speciality_limit(declaration_limit, employee_speciality) do
-    config = Confex.fetch_env!(:core, :employee_speciality_limits)
-
-    employee_speciality_limit =
-      case employee_speciality do
-        "THERAPIST" ->
-          config[:therapist_declaration_limit]
-
-        "PEDIATRICIAN" ->
-          config[:pediatrician_declaration_limit]
-
-        "FAMILY_DOCTOR" ->
-          config[:family_doctor_declaration_limit]
-      end
-
-    if declaration_limit <= employee_speciality_limit do
-      :ok
-    else
-      Error.dump("declaration_limit is not allowed for employee speciality")
-    end
-  end
-
-  defp check_employee_legal_entity(client_id, client_id), do: :ok
-
-  defp check_employee_legal_entity(_, _),
-    do: Error.dump("Employee should be active Doctor within current legal_entity_id")
 
   defp update_contract_employee(_, %ContractEmployee{} = contract_employee, %{"is_active" => false}, user_id) do
     contract_employee
@@ -367,35 +288,6 @@ defmodule Core.Contracts do
     end
   end
 
-  defp validate_employee_division(%CapitationContract{} = contract, params) do
-    contract_divisions = Enum.map(contract.contract_divisions, &Map.get(&1, :division_id))
-
-    with {:ok, %Employee{} = employee} <-
-           Reference.validate(
-             :employee,
-             params["employee_id"],
-             "$.employee_id"
-           ),
-         :ok <- check_employee(employee),
-         :ok <- check_division_subset(params["division_id"], contract_divisions) do
-      :ok
-    end
-  end
-
-  defp check_division_subset(division_id, contract_divisions) do
-    if division_id in contract_divisions do
-      :ok
-    else
-      Error.dump(%ValidationError{description: "Division should be among contract_divisions", path: "$.division_id"})
-    end
-  end
-
-  defp check_employee(%Employee{employee_type: "DOCTOR", status: "APPROVED"}), do: :ok
-
-  defp check_employee(_) do
-    Error.dump(%ValidationError{description: "Employee must be active DOCTOR", path: "$.employee.id"})
-  end
-
   defp get_contract_employee(contract_id, employee_id, division_id) do
     ContractEmployee
     |> where([ce], ce.contract_id == ^contract_id)
@@ -411,11 +303,6 @@ defmodule Core.Contracts do
       ) do
     SignatureValidator.validate(signed_content, encoding, headers)
   end
-
-  defp validate_status(%CapitationContract{status: status}, status), do: :ok
-  defp validate_status(%LegalEntity{status: status}, status), do: :ok
-  defp validate_status(%CapitationContract{}, _), do: {:error, {:conflict, "Not active contract can't be updated"}}
-  defp validate_status(%LegalEntity{}, _), do: {:error, {:conflict, "Contractor legal entity is not active"}}
 
   def get_by_id(id, @capitation) do
     CapitationContract
@@ -456,39 +343,6 @@ defmodule Core.Contracts do
     end
   end
 
-  defp validate_contractor_related_legal_entity(contractor_legal_entity_id) do
-    with %RelatedLegalEntity{} <-
-           RelatedLegalEntity
-           |> where([r], r.merged_from_id == ^contractor_legal_entity_id and r.is_active)
-           |> limit(1)
-           |> PRMRepo.one() do
-      :ok
-    else
-      _ -> Error.dump("Contract for this legal entity must be resign with standard procedure")
-    end
-  end
-
-  defp validate_end_date(end_date, contract_end_date) do
-    end_date = Date.from_iso8601!(end_date)
-
-    with {:now, :gt} <- {:now, Date.compare(end_date, Date.utc_today())},
-         {:contract_end_date, :gt} <- {:contract_end_date, Date.compare(end_date, contract_end_date)} do
-      :ok
-    else
-      {:now, _} ->
-        Error.dump(%ValidationError{
-          description: "End date should be greater then now",
-          path: "$.end_date"
-        })
-
-      {:contract_end_date, _} ->
-        Error.dump(%ValidationError{
-          description: "End date should be greater then contract end date",
-          path: "$.end_date"
-        })
-    end
-  end
-
   def get_printout_content(id, client_type, headers) do
     client_id = get_client_id(headers)
 
@@ -498,7 +352,7 @@ defmodule Core.Contracts do
          :ok <-
            ContractRequestsValidator.validate_contract_request_client_access(client_type, client_id, contract_request),
          {:ok, %{"printout_content" => printout_content}} <-
-           ContractRequests.decode_and_validate_signed_content(contract_request, headers) do
+           Storage.decode_and_validate_signed_content(contract_request, headers) do
       {:ok, contract, printout_content}
     end
   end
@@ -507,7 +361,7 @@ defmodule Core.Contracts do
     client_id = get_client_id(headers)
 
     with %LegalEntity{} = client_legal_entity <- PRMRepo.get(LegalEntity, client_id),
-         :ok <- check_legal_entity_is_active(client_legal_entity, :client),
+         :ok <- validate_legal_entity_is_active(client_legal_entity, :client),
          %CapitationContract{} = contract <- PRMRepo.get(CapitationContract, id),
          :ok <- validate_contractor_legal_entity_id(contract, params),
          %Ecto.Changeset{valid?: true, changes: changes} <- ContractEmployeeSearch.changeset(params),
@@ -515,9 +369,6 @@ defmodule Core.Contracts do
       {:ok, paging, load_contract_employees_references(contract_employees)}
     end
   end
-
-  defp check_legal_entity_is_active(%LegalEntity{is_active: true}, _), do: :ok
-  defp check_legal_entity_is_active(_, :client), do: {:error, {:forbidden, "Client is not active"}}
 
   defp contract_employee_search(%CapitationContract{id: contract_id}, search_params) do
     is_active = Map.get(search_params, :is_active)
@@ -599,16 +450,6 @@ defmodule Core.Contracts do
     where(query, [c], c.nhs_legal_entity_id == ^legal_entity_id or c.contractor_legal_entity_id == ^legal_entity_id)
   end
 
-  defp validate_contractor_legal_entity_id(%{contractor_legal_entity_id: contractor_legal_entity_id}, %{
-         "contractor_legal_entity_id" => param_contractor_legal_entity_id
-       }) do
-    if contractor_legal_entity_id == param_contractor_legal_entity_id,
-      do: :ok,
-      else: {:error, {:forbidden, "You are not allowed to view this contract"}}
-  end
-
-  defp validate_contractor_legal_entity_id(_contract, _params), do: :ok
-
   def load_contract_references(%CapitationContract{} = contract) do
     references =
       Preload.preload_references(contract, [
@@ -651,105 +492,11 @@ defmodule Core.Contracts do
     cast(contract, attrs, fields)
   end
 
-  defp changeset(%CapitationContract{} = contract, attrs) do
-    inserted_by = Map.get(attrs, :inserted_by)
-    updated_by = Map.get(attrs, :updated_by)
+  @deprecated "Use CapitationContract.changeset/2 instead"
+  defp changeset(%CapitationContract{} = contract, attrs), do: CapitationContract.changeset(contract, attrs)
 
-    attrs =
-      case Map.get(attrs, :contractor_employee_divisions) do
-        nil ->
-          attrs
-
-        contractor_employee_divisions ->
-          contractor_employee_divisions =
-            Enum.map(
-              contractor_employee_divisions,
-              &(&1
-                |> Map.put("start_date", NaiveDateTime.from_erl!({Date.to_erl(attrs.start_date), {0, 0, 0}}))
-                |> Map.put("inserted_by", inserted_by)
-                |> Map.put("updated_by", updated_by))
-            )
-
-          Map.put(attrs, :contract_employees, contractor_employee_divisions)
-      end
-
-    attrs =
-      case Map.get(attrs, :contractor_divisions) do
-        nil ->
-          attrs
-
-        contractor_divisions ->
-          contractor_divisions =
-            Enum.map(
-              contractor_divisions,
-              &%{"division_id" => &1, "inserted_by" => inserted_by, "updated_by" => updated_by}
-            )
-
-          Map.put(attrs, :contract_divisions, contractor_divisions)
-      end
-
-    contract
-    |> cast(attrs, @fields_required ++ @fields_optional)
-    |> cast_assoc(:contract_employees)
-    |> cast_assoc(:contract_divisions)
-    |> validate_required(@fields_required)
-  end
-
-  defp save_signed_content(id, %{"signed_content" => signed_content}, headers, employee_id) do
-    datetime =
-      DateTime.utc_now()
-      |> DateTime.to_unix()
-
-    resource_name = "employee_update/#{employee_id}/#{datetime}"
-
-    case @media_storage_api.store_signed_content(signed_content, :contract_bucket, id, resource_name, headers) do
-      {:ok, _} -> :ok
-      _error -> {:error, {:bad_gateway, "Failed to save signed content"}}
-    end
-  end
-
-  def gen_relevant_get_links(id) do
-    with {:ok, %{"data" => %{"secret_url" => secret_url}}} <-
-           @media_storage_api.create_signed_url("GET", get_bucket(), "signed_content/signed_content", id, []) do
-      [%{"type" => "SIGNED_CONTENT", "url" => secret_url}]
-    end
-  end
-
-  defp validate_edrpou(search_params) do
-    edrpou = Map.get(search_params, :edrpou)
-    contractor_legal_entity_id = Map.get(search_params, :contractor_legal_entity_id)
-    search_params = Map.delete(search_params, :edrpou)
-
-    with false <- is_nil(edrpou),
-         %LegalEntity{} = legal_entity <- PRMRepo.get_by(LegalEntity, edrpou: edrpou) do
-      cond do
-        contractor_legal_entity_id == legal_entity.id ->
-          {:ok, search_params}
-
-        is_nil(contractor_legal_entity_id) ->
-          search_params = Map.put(search_params, :contractor_legal_entity_id, legal_entity.id)
-          {:ok, search_params}
-
-        true ->
-          :error
-      end
-    else
-      true -> {:ok, search_params}
-      nil -> :error
-    end
-  end
-
-  defp validate_client_type(_, "NHS", search_params), do: {:ok, search_params}
-
-  defp validate_client_type(client_id, "MSP", %{contractor_legal_entity_id: id} = search_params) do
-    cond do
-      id == client_id -> {:ok, search_params}
-      is_nil(id) -> {:ok, Map.put(search_params, :contractor_legal_entity_id, client_id)}
-      true -> get_empty_response(search_params)
-    end
-  end
-
-  defp validate_client_type(_, nil, search_params), do: {:ok, search_params}
+  @deprecated "Use ReimbursementContract.changeset/2 instead"
+  defp changeset(%ReimbursementContract{} = contract, attrs), do: ReimbursementContract.changeset(contract, attrs)
 
   defp load_contracts_references(contracts) do
     references =
@@ -760,7 +507,7 @@ defmodule Core.Contracts do
     {:ok, references}
   end
 
-  defp get_empty_response(params) do
+  def get_empty_response(params) do
     {:ok,
      %Page{
        entries: [],
@@ -777,7 +524,7 @@ defmodule Core.Contracts do
     |> PRMRepo.preload(:contract_divisions)
   end
 
-  defp get_bucket do
-    Confex.fetch_env!(:core, Core.API.MediaStorage)[:contract_bucket]
+  defp load_references(%ReimbursementContract{} = contract) do
+    PRMRepo.preload(contract, :contract_divisions)
   end
 end

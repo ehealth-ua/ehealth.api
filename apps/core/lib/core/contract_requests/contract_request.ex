@@ -84,18 +84,6 @@ defmodule Core.ContractRequests.ContractRequest do
             end
           end
         end
-
-        if belongs_to = unquote(opts)[:belongs_to] do
-          for {key, queryable, opts} <- belongs_to do
-            belongs_to(key, queryable, opts)
-          end
-        end
-
-        if has_many = unquote(opts)[:has_many] do
-          for {key, queryable, opts} <- has_many do
-            has_many(key, queryable, opts)
-          end
-        end
       end
     end
   end

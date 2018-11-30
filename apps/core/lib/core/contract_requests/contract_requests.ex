@@ -6,17 +6,17 @@ defmodule Core.ContractRequests do
   import Core.API.Helpers.Connection, only: [get_consumer_id: 1, get_client_id: 1]
   import Ecto.Changeset
   import Ecto.Query
+  import Core.ContractRequests.Storage
   import Core.ContractRequests.Validator
 
-  alias Core.API.MediaStorage
   alias Core.CapitationContractRequests
   alias Core.ContractRequests.CapitationContractRequest
   alias Core.ContractRequests.ReimbursementContractRequest
   alias Core.ContractRequests.Renderer
   alias Core.ContractRequests.RequestPack
   alias Core.ContractRequests.Search
+  alias Core.ContractRequests.Storage
   alias Core.Contracts
-  alias Core.Contracts.CapitationContract
   alias Core.EventManager
   alias Core.LegalEntities
   alias Core.LegalEntities.LegalEntity
@@ -26,7 +26,6 @@ defmodule Core.ContractRequests do
   alias Core.Validators.Error
   alias Core.Validators.JsonSchema
   alias Core.Validators.Preload
-  alias Core.Validators.Signature, as: SignatureValidator
   alias Ecto.Adapters.SQL
   alias Ecto.Changeset
   alias Ecto.UUID
@@ -35,8 +34,6 @@ defmodule Core.ContractRequests do
   require Logger
 
   @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
-  @media_storage_api Application.get_env(:core, :api_resolvers)[:media_storage]
-  @signature_api Application.get_env(:core, :api_resolvers)[:digital_signature]
 
   @capitation CapitationContractRequest.type()
   @reimbursement ReimbursementContractRequest.type()
@@ -102,64 +99,9 @@ defmodule Core.ContractRequests do
   @deprecated "Use fetch_by_id(%RequestPack{})"
   def fetch_by_id(id), do: CapitationContractRequests.fetch_by_id(id)
 
-  def draft do
-    id = UUID.generate()
+  defdelegate draft, to: Storage, as: :draft
 
-    with {:ok, %{"data" => %{"secret_url" => statute_url}}} <-
-           @media_storage_api.create_signed_url(
-             "PUT",
-             get_bucket(),
-             "media/upload_contract_request_statute.pdf",
-             id,
-             []
-           ),
-         {:ok, %{"data" => %{"secret_url" => additional_document_url}}} <-
-           @media_storage_api.create_signed_url(
-             "PUT",
-             get_bucket(),
-             "media/upload_contract_request_additional_document.pdf",
-             id,
-             []
-           ) do
-      %{
-        "id" => id,
-        "statute_url" => statute_url,
-        "additional_document_url" => additional_document_url
-      }
-    end
-  end
-
-  def get_document_attributes_by_status(status) do
-    cond do
-      Enum.any?(
-        ~w(new approved in_process pending_nhs_sign terminated declined)a,
-        &(CapitationContractRequest.status(&1) == status)
-      ) ->
-        [
-          {"CONTRACT_REQUEST_STATUTE", "media/contract_request_statute.pdf"},
-          {"CONTRACT_REQUEST_ADDITIONAL_DOCUMENT", "media/contract_request_additional_document.pdf"}
-        ]
-
-      Enum.any?(~w(signed nhs_signed)a, &(CapitationContractRequest.status(&1) == status)) ->
-        [
-          {"CONTRACT_REQUEST_STATUTE", "media/contract_request_statute.pdf"},
-          {"CONTRACT_REQUEST_ADDITIONAL_DOCUMENT", "media/contract_request_additional_document.pdf"},
-          {"SIGNED_CONTENT", "signed_content/signed_content"}
-        ]
-
-      true ->
-        []
-    end
-  end
-
-  def gen_relevant_get_links(id, status) do
-    Enum.reduce(get_document_attributes_by_status(status), [], fn {name, resource_name}, acc ->
-      with {:ok, %{"data" => %{"secret_url" => secret_url}}} <-
-             @media_storage_api.create_signed_url("GET", get_bucket(), resource_name, id, []) do
-        [%{"type" => name, "url" => secret_url} | acc]
-      end
-    end)
-  end
+  defdelegate gen_relevant_get_links(id, status), to: Storage, as: :gen_relevant_get_links
 
   def create(headers, %{"id" => id, "type" => type} = params) do
     user_id = get_consumer_id(headers)
@@ -519,21 +461,25 @@ defmodule Core.ContractRequests do
              :contract_bucket
            ),
          update_params <-
-           pack.input_params
-           |> Map.put("updated_by", user_id)
-           |> Map.put("status", CapitationContractRequest.status(:signed))
-           |> Map.put("contract_id", contract_id),
+           Map.merge(pack.input_params, %{
+             "updated_by" => user_id,
+             "status" => CapitationContractRequest.status(:signed),
+             "contract_id" => contract_id
+           }),
          %Ecto.Changeset{valid?: true} = changes <- msp_signed_changeset(pack.contract_request, update_params),
          {:ok, contract_request} <- Repo.update(changes),
-         contract_params <- get_contract_create_params(contract_request),
-         {:create_contract, {:ok, contract}} <- {:create_contract, Contracts.create(contract_params, user_id)},
+         pack <- RequestPack.put_contract_request(pack, contract_request),
+         {:create_contract, {:ok, contract}} <-
+           {:create_contract, Contracts.create_from_contract_request(pack, user_id)},
          _ <- EventManager.insert_change_status(contract_request, contract_request.status, user_id) do
       Contracts.load_contract_references(contract)
     else
       {:signed_nhs, false} ->
         Error.dump("Incorrect status for signing")
 
-      {:create_contract, _} ->
+      {:create_contract, err} ->
+        # ToDo: validation errors showed as 502. Improve transaction error handling
+        Logger.error("Failed to save contract with `#{inspect(err)}}`")
         {:error, {:bad_gateway, "Failed to save contract"}}
 
       error ->
@@ -578,87 +524,6 @@ defmodule Core.ContractRequests do
              headers
            ) do
       {:ok, contract_request, printout_content}
-    end
-  end
-
-  defp get_contract_create_params(%CapitationContractRequest{id: id, contract_id: contract_id} = contract_request) do
-    contract_request
-    |> Map.take(~w(
-      start_date
-      end_date
-      status_reason
-      contractor_legal_entity_id
-      contractor_owner_id
-      contractor_base
-      contractor_payment_details
-      contractor_rmsp_amount
-      external_contractor_flag
-      external_contractors
-      nhs_legal_entity_id
-      nhgs_signed_id
-      nhs_payment_method
-      nhs_signer_base
-      issue_city
-      contract_number
-      contractor_divisions
-      contractor_employee_divisions
-      status
-      nhs_signer_id
-      nhs_contract_price
-      parent_contract_id
-      id_form
-      nhs_signed_date
-    )a)
-    |> Map.merge(%{
-      id: contract_id,
-      contract_request_id: id,
-      is_suspended: false,
-      is_active: true,
-      inserted_by: contract_request.updated_by,
-      updated_by: contract_request.updated_by,
-      status: CapitationContract.status(:verified)
-    })
-  end
-
-  defp save_signed_content(
-         id,
-         %{"signed_content" => content},
-         headers,
-         resource_name,
-         bucket \\ :contract_request_bucket
-       ) do
-    case @media_storage_api.store_signed_content(content, bucket, id, resource_name, headers) do
-      {:ok, _} -> :ok
-      _error -> {:error, {:bad_gateway, "Failed to save signed content"}}
-    end
-  end
-
-  def decode_signed_content(
-        %{"signed_content" => signed_content, "signed_content_encoding" => encoding},
-        headers,
-        required_signatures_count \\ 1,
-        required_stamps_count \\ 0
-      ) do
-    SignatureValidator.validate(signed_content, encoding, headers, required_signatures_count, required_stamps_count)
-  end
-
-  def decode_and_validate_signed_content(%CapitationContractRequest{id: id}, headers) do
-    with {:ok, %{"data" => %{"secret_url" => secret_url}}} <-
-           @media_storage_api.create_signed_url(
-             "GET",
-             MediaStorage.config()[:contract_request_bucket],
-             "signed_content/signed_content",
-             id,
-             headers
-           ),
-         {:ok, %{body: content, status_code: 200}} <- @media_storage_api.get_signed_content(secret_url),
-         {:ok, %{"data" => %{"content" => content}}} <-
-           @signature_api.decode_and_validate(
-             Base.encode64(content),
-             "base64",
-             headers
-           ) do
-      {:ok, content}
     end
   end
 
@@ -750,7 +615,7 @@ defmodule Core.ContractRequests do
     |> validate_required(fields)
   end
 
-  def terminate_changeset(%CapitationContractRequest{} = contract_request, params) do
+  def terminate_changeset(%{} = contract_request, params) do
     fields_required = ~w(status updated_by)a
     fields_optional = ~w(status_reason)a
 
@@ -759,7 +624,7 @@ defmodule Core.ContractRequests do
     |> validate_required(fields_required)
   end
 
-  def nhs_signed_changeset(%CapitationContractRequest{} = contract_request, params) do
+  def nhs_signed_changeset(%{} = contract_request, params) do
     fields = ~w(status updated_by printout_content nhs_signed_date)a
 
     contract_request
@@ -767,7 +632,7 @@ defmodule Core.ContractRequests do
     |> validate_required(fields)
   end
 
-  def msp_signed_changeset(%CapitationContractRequest{} = contract_request, params) do
+  def msp_signed_changeset(%{} = contract_request, params) do
     fields = ~w(status updated_by contract_id)a
 
     contract_request
@@ -862,25 +727,6 @@ defmodule Core.ContractRequests do
     end
   end
 
-  defp resolve_partially_signed_content_url(contract_request_id, headers) do
-    bucket = Confex.fetch_env!(:core, Core.API.MediaStorage)[:contract_request_bucket]
-    resource_name = "contract_request_content.pkcs7"
-
-    media_storage_response =
-      @media_storage_api.create_signed_url(
-        "GET",
-        bucket,
-        contract_request_id,
-        resource_name,
-        headers
-      )
-
-    case media_storage_response do
-      {:ok, %{"data" => %{"secret_url" => url}}} -> {:ok, url}
-      _ -> {:error, :media_storage_error}
-    end
-  end
-
   defp get_contract_request_sequence do
     case SQL.query(Repo, "SELECT nextval('contract_request');", []) do
       {:ok, %Postgrex.Result{rows: [[sequence]]}} ->
@@ -899,34 +745,5 @@ defmodule Core.ContractRequests do
     contract_request
     |> cast(params, fields_required ++ fields_optional)
     |> validate_required(fields_required)
-  end
-
-  defp move_uploaded_documents(id, headers) do
-    Enum.reduce_while(
-      [
-        {"media/upload_contract_request_statute.pdf", "media/contract_request_statute.pdf"},
-        {"media/upload_contract_request_additional_document.pdf", "media/contract_request_additional_document.pdf"}
-      ],
-      :ok,
-      fn {temp_resource_name, resource_name}, _ ->
-        move_file(id, temp_resource_name, resource_name, headers)
-      end
-    )
-  end
-
-  defp move_file(id, temp_resource_name, resource_name, headers) do
-    with {:ok, %{"data" => %{"secret_url" => url}}} <-
-           @media_storage_api.create_signed_url("GET", get_bucket(), temp_resource_name, id, []),
-         {:ok, %{body: signed_content}} <- @media_storage_api.get_signed_content(url),
-         {:ok, _} <- @media_storage_api.save_file(id, signed_content, get_bucket(), resource_name, headers),
-         {:ok, %{"data" => %{"secret_url" => url}}} <-
-           @media_storage_api.create_signed_url("DELETE", get_bucket(), temp_resource_name, id, []),
-         {:ok, _} <- @media_storage_api.delete_file(url) do
-      {:cont, :ok}
-    end
-  end
-
-  defp get_bucket do
-    Confex.fetch_env!(:core, Core.API.MediaStorage)[:contract_request_bucket]
   end
 end
