@@ -54,6 +54,7 @@ PR must be linked with an [issue](https://github.com/edenlabllc/ehealth.api/issu
 5. Use pattern matching where it's possible.
 6. Since `ehealth.api` is just a single microservice among many others, to test requests between them we use a [Mox library](https://github.com/plataformatec/mox).
 That means sometimes you need to refer to different repository to understand how to mock the request response.
+7. Environment variables should be used for the application configuration. Whenever you add new configuration parameter, it should be added to the [docs/environment.md] documentation of the respective application.
 
 We use [travis.ci](https://travis-ci.org/) as CI engine. Each PR triggers travis builds which run tests and build docker images.
 So, to be able to merge the PR, tests should pass and image should be able to build.
