@@ -571,10 +571,23 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
 
       data = %{"id" => contract_request.id, "printout_content" => "<html></html>"}
 
-      drfo_signed_content(data, [
-        %{drfo: legal_entity.edrpou, surname: "Підписант"},
-        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name},
-        %{drfo: legal_entity.edrpou, surname: "Підписант", is_stamp: true}
+      expect_signed_content(data, [
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: "Підписант"
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.legal_entity.edrpou,
+          surname: nhs_signer.party.last_name
+        },
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: "Підписант",
+          is_stamp: true
+        }
       ])
 
       assert resp =
@@ -619,22 +632,35 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
 
       data = %{"id" => contract_request.id, "printout_content" => "<html></html>"}
 
-      drfo_signed_content(data, [
-        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name},
-        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name},
-        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name, is_stamp: true}
+      expect_signed_content(data, [
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: employee_owner.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name,
+          is_stamp: true
+        }
       ])
 
-      assert resp =
-               conn
-               |> put_client_id_header(client_id)
-               |> put_consumer_id_header(user_id)
-               |> put_req_header("msp_drfo", legal_entity.edrpou)
-               |> patch(contract_request_path(conn, :sign_msp, @path_type, contract_request.id), %{
-                 "signed_content" => data |> Poison.encode!() |> Base.encode64(),
-                 "signed_content_encoding" => "base64"
-               })
-               |> json_response(422)
+      resp =
+        conn
+        |> put_client_id_header(client_id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("msp_drfo", legal_entity.edrpou)
+        |> patch(contract_request_path(conn, :sign_msp, @path_type, contract_request.id), %{
+          "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(422)
 
       assert_error(resp, "Signed content does not match the previously created content")
     end
@@ -668,22 +694,35 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
           status: ReimbursementContractRequest.status(:nhs_signed)
         )
 
-      drfo_signed_content(data, [
-        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name},
-        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name},
-        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name, is_stamp: true}
+      expect_signed_content(data, [
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: employee_owner.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name,
+          is_stamp: true
+        }
       ])
 
-      assert resp =
-               conn
-               |> put_client_id_header(client_id)
-               |> put_consumer_id_header(user_id)
-               |> put_req_header("msp_drfo", legal_entity.edrpou)
-               |> patch(contract_request_path(conn, :sign_msp, @path_type, contract_request.id), %{
-                 "signed_content" => data |> Poison.encode!() |> Base.encode64(),
-                 "signed_content_encoding" => "base64"
-               })
-               |> json_response(502)
+      resp =
+        conn
+        |> put_client_id_header(client_id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("msp_drfo", legal_entity.edrpou)
+        |> patch(contract_request_path(conn, :sign_msp, @path_type, contract_request.id), %{
+          "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(502)
 
       assert "Failed to save signed content" == resp["error"]["message"]
     end
@@ -717,19 +756,29 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
           status: ReimbursementContractRequest.status(:nhs_signed)
         )
 
-      conn =
-        conn
-        |> put_client_id_header(client_id)
-        |> put_consumer_id_header(user_id)
-        |> put_req_header("msp_drfo", legal_entity.edrpou)
-
-      drfo_signed_content(data, [
-        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name},
-        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name},
-        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name, is_stamp: true}
+      expect_signed_content(data, [
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: employee_owner.party.tax_id,
+          surname: employee_owner.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name,
+          is_stamp: true
+        }
       ])
 
       assert conn
+             |> put_client_id_header(client_id)
+             |> put_consumer_id_header(user_id)
+             |> put_req_header("msp_drfo", legal_entity.edrpou)
              |> patch(contract_request_path(conn, :sign_msp, @path_type, contract_request.id), %{
                "signed_content" => data |> Poison.encode!() |> Base.encode64(),
                "signed_content_encoding" => "base64"
@@ -791,22 +840,35 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
 
       contract_request = insert(:il, :reimbursement_contract_request, params)
 
-      drfo_signed_content(data, [
-        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name},
-        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name},
-        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name, is_stamp: true}
+      expect_signed_content(data, [
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: employee_owner.party.tax_id,
+          surname: employee_owner.party.last_name
+        },
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name
+        },
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name,
+          is_stamp: true
+        }
       ])
 
-      assert resp =
-               conn
-               |> put_client_id_header(client_id)
-               |> put_consumer_id_header(user_id)
-               |> put_req_header("msp_drfo", legal_entity.edrpou)
-               |> patch(contract_request_path(conn, :sign_msp, @path_type, contract_request.id), %{
-                 "signed_content" => data |> Poison.encode!() |> Base.encode64(),
-                 "signed_content_encoding" => "base64"
-               })
-               |> json_response(409)
+      resp =
+        conn
+        |> put_client_id_header(client_id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("msp_drfo", legal_entity.edrpou)
+        |> patch(contract_request_path(conn, :sign_msp, @path_type, contract_request.id), %{
+          "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(409)
 
       assert "NHS legal entity not found" == resp["error"]["message"]
     end
@@ -827,6 +889,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
       nhs_legal_entity = insert(:prm, :legal_entity)
 
       user_id = UUID.generate()
+      party_user = insert(:prm, :party_user, user_id: user_id)
 
       division =
         insert(
@@ -841,8 +904,17 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
           :prm,
           :employee,
           id: user_id,
+          party: party_user.party,
           legal_entity_id: legal_entity.id,
           employee_type: Employee.type(:owner)
+        )
+
+      nhs_signer =
+        insert(
+          :prm,
+          :employee,
+          party: party_user.party,
+          legal_entity: nhs_legal_entity
         )
 
       now = Date.utc_today()
@@ -864,25 +936,35 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
 
       contract_request = insert(:il, :reimbursement_contract_request, params)
 
-      conn =
+      expect_signed_content(data, [
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: employee_owner.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name,
+          is_stamp: true
+        }
+      ])
+
+      resp =
         conn
         |> put_client_id_header(client_id)
         |> put_consumer_id_header(user_id)
         |> put_req_header("msp_drfo", legal_entity.edrpou)
-
-      drfo_signed_content(data, [
-        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name},
-        %{drfo: nhs_legal_entity.edrpou, surname: employee_owner.party.last_name},
-        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name, is_stamp: true}
-      ])
-
-      assert resp =
-               conn
-               |> patch(contract_request_path(conn, :sign_msp, @path_type, contract_request.id), %{
-                 "signed_content" => data |> Poison.encode!() |> Base.encode64(),
-                 "signed_content_encoding" => "base64"
-               })
-               |> json_response(409)
+        |> patch(contract_request_path(conn, :sign_msp, @path_type, contract_request.id), %{
+          "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(409)
 
       assert "NHS employee not found" == resp["error"]["message"]
     end
@@ -913,32 +995,42 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
           contract_number: "1345"
         )
 
-      conn =
+      expect_signed_content(data, [
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: legal_entity.edrpou,
+          surname: employee_owner.party.last_name
+        },
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: legal_entity.edrpou,
+          surname: nhs_signer.party.last_name
+        },
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: legal_entity.edrpou,
+          surname: employee_owner.party.last_name,
+          is_stamp: true
+        }
+      ])
+
+      resp =
         conn
         |> put_client_id_header(client_id)
         |> put_consumer_id_header(user_id)
         |> put_req_header("msp_drfo", legal_entity.edrpou)
-
-      drfo_signed_content(data, [
-        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name},
-        %{drfo: legal_entity.edrpou, surname: nhs_signer.party.last_name},
-        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name, is_stamp: true}
-      ])
-
-      assert resp =
-               conn
-               |> patch(contract_request_path(conn, :sign_msp, @path_type, contract_request.id), %{
-                 "signed_content" => data |> Poison.encode!() |> Base.encode64(),
-                 "signed_content_encoding" => "base64"
-               })
-               |> json_response(422)
+        |> patch(contract_request_path(conn, :sign_msp, @path_type, contract_request.id), %{
+          "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(422)
 
       assert [
                %{
                  "entry" => "$.drfo",
                  "rules" => [
                    %{
-                     "description" => "DRFO does not match signer drfo"
+                     "description" => "Does not match the signer drfo"
                    }
                  ]
                }
@@ -971,25 +1063,35 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
           contract_number: "1345"
         )
 
-      conn =
+      expect_signed_content(data, [
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: employee_owner.party.tax_id,
+          surname: employee_owner.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: "Чужий"
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: "Чужий",
+          is_stamp: true
+        }
+      ])
+
+      resp =
         conn
         |> put_client_id_header(client_id)
         |> put_consumer_id_header(user_id)
         |> put_req_header("msp_drfo", legal_entity.edrpou)
-
-      drfo_signed_content(data, [
-        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name},
-        %{drfo: nhs_signer.legal_entity.edrpou, surname: "Чужий"},
-        %{drfo: nhs_signer.legal_entity.edrpou, surname: "Чужий", is_stamp: true}
-      ])
-
-      assert resp =
-               conn
-               |> patch(contract_request_path(conn, :sign_msp, @path_type, contract_request.id), %{
-                 "signed_content" => data |> Poison.encode!() |> Base.encode64(),
-                 "signed_content_encoding" => "base64"
-               })
-               |> json_response(422)
+        |> patch(contract_request_path(conn, :sign_msp, @path_type, contract_request.id), %{
+          "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(422)
 
       assert [
                %{
@@ -1044,20 +1146,20 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
         %{drfo: legal_entity.edrpou, surname: nhs_signer.party.last_name, is_stamp: true}
       ])
 
-      assert resp =
-               conn
-               |> patch(contract_request_path(conn, :sign_msp, @path_type, contract_request.id), %{
-                 "signed_content" => data |> Poison.encode!() |> Base.encode64(),
-                 "signed_content_encoding" => "base64"
-               })
-               |> json_response(422)
+      resp =
+        conn
+        |> patch(contract_request_path(conn, :sign_msp, @path_type, contract_request.id), %{
+          "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(422)
 
       assert [
                %{
                  "entry" => "$.drfo",
                  "rules" => [
                    %{
-                     "description" => "DRFO does not match signer drfo"
+                     "description" => "Does not match the signer drfo"
                    }
                  ]
                }
@@ -1095,10 +1197,23 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
           contract_number: "1345"
         )
 
-      drfo_signed_content(data, [
-        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name},
-        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name},
-        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name, is_stamp: true}
+      expect_signed_content(data, [
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: employee_owner.party.tax_id,
+          surname: employee_owner.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name,
+          is_stamp: true
+        }
       ])
 
       conn
@@ -1150,10 +1265,23 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
           parent_contract_id: contract.id
         )
 
-      drfo_signed_content(data, [
-        %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name},
-        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name},
-        %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name, is_stamp: true}
+      expect_signed_content(data, [
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: employee_owner.party.tax_id,
+          surname: employee_owner.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name,
+          is_stamp: true
+        }
       ])
 
       conn
@@ -1316,15 +1444,16 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
     legal_entity = insert(:prm, :legal_entity, params)
     nhs_legal_entity = insert(:prm, :legal_entity)
 
+    user_id = UUID.generate()
+    party_user = insert(:prm, :party_user, user_id: user_id)
+
     nhs_signer =
       insert(
         :prm,
         :employee,
+        party: party_user.party,
         legal_entity: nhs_legal_entity
       )
-
-    user_id = UUID.generate()
-    party_user = insert(:prm, :party_user, user_id: user_id)
 
     division =
       insert(
@@ -1339,6 +1468,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
         :prm,
         :employee,
         id: user_id,
+        party: party_user.party,
         legal_entity_id: legal_entity.id,
         employee_type: Employee.type(:owner)
       )

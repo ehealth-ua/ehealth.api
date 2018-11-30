@@ -5103,12 +5103,6 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
 
       contract_request = insert(:il, :capitation_contract_request, params)
 
-      conn =
-        conn
-        |> put_client_id_header(client_id)
-        |> put_consumer_id_header(user_id)
-        |> put_req_header("msp_drfo", legal_entity.edrpou)
-
       expect_signed_content(data, [
         %{
           edrpou: legal_entity.edrpou,
@@ -5128,13 +5122,16 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         }
       ])
 
-      assert resp =
-               conn
-               |> patch(contract_request_path(conn, :sign_msp, @capitation, contract_request.id), %{
-                 "signed_content" => data |> Poison.encode!() |> Base.encode64(),
-                 "signed_content_encoding" => "base64"
-               })
-               |> json_response(409)
+      resp =
+        conn
+        |> put_client_id_header(client_id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("msp_drfo", legal_entity.edrpou)
+        |> patch(contract_request_path(conn, :sign_msp, @capitation, contract_request.id), %{
+          "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(409)
 
       assert "NHS legal entity not found" == resp["error"]["message"]
     end
@@ -5274,12 +5271,6 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
           contract_number: "1345"
         )
 
-      conn =
-        conn
-        |> put_client_id_header(client_id)
-        |> put_consumer_id_header(user_id)
-        |> put_req_header("msp_drfo", legal_entity.edrpou)
-
       expect_signed_content(data, [
         %{
           edrpou: legal_entity.edrpou,
@@ -5299,13 +5290,16 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         }
       ])
 
-      assert resp =
-               conn
-               |> patch(contract_request_path(conn, :sign_msp, @capitation, contract_request.id), %{
-                 "signed_content" => data |> Poison.encode!() |> Base.encode64(),
-                 "signed_content_encoding" => "base64"
-               })
-               |> json_response(422)
+      resp =
+        conn
+        |> put_client_id_header(client_id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("msp_drfo", legal_entity.edrpou)
+        |> patch(contract_request_path(conn, :sign_msp, @capitation, contract_request.id), %{
+          "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(422)
 
       assert [
                %{
@@ -5350,12 +5344,6 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
           contract_number: "1345"
         )
 
-      conn =
-        conn
-        |> put_client_id_header(client_id)
-        |> put_consumer_id_header(user_id)
-        |> put_req_header("msp_drfo", legal_entity.edrpou)
-
       expect_signed_content(data, [
         %{
           edrpou: legal_entity.edrpou,
@@ -5377,6 +5365,9 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
 
       assert resp =
                conn
+               |> put_client_id_header(client_id)
+               |> put_consumer_id_header(user_id)
+               |> put_req_header("msp_drfo", legal_entity.edrpou)
                |> patch(contract_request_path(conn, :sign_msp, @capitation, contract_request.id), %{
                  "signed_content" => data |> Poison.encode!() |> Base.encode64(),
                  "signed_content_encoding" => "base64"
