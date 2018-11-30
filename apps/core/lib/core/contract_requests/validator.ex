@@ -547,7 +547,7 @@ defmodule Core.ContractRequests.Validator do
   def validate_contract_request_content(:sign, %RequestPack{type: @reimbursement} = pack, _client_id) do
     medical_program_id = pack.decoded_content["medical_program_id"] || pack.contract_request.medical_program_id
 
-    with medical_program <- MedicalPrograms.get_by_id(medical_program_id),
+    with {:ok, medical_program} <- MedicalPrograms.fetch_by_id(medical_program_id),
          :ok <- validate_medical_program(medical_program) do
       :ok
     end

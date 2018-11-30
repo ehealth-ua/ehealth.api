@@ -62,7 +62,7 @@ defmodule Core.Contracts do
       when not is_nil(parent_contract_id) do
     schema = get_contract_schema_relatively_contract_request(pack.schema)
 
-    with contract <- PRMRepo.get(schema, parent_contract_id),
+    with {:contract, %{__struct__: _} = contract} <- {:contract, PRMRepo.get(schema, parent_contract_id)},
          :ok <- validate_contract_status(@status_verified, contract) do
       contract = load_references(contract)
       params = get_contract_create_params(pack.contract_request)
@@ -87,6 +87,9 @@ defmodule Core.Contracts do
           err -> PRMRepo.rollback(err)
         end
       end)
+    else
+      {:contract, nil} -> {:error, {:not_found, "Contract not found"}}
+      err -> err
     end
   end
 

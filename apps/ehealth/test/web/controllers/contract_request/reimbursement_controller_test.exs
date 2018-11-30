@@ -3,7 +3,6 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
 
   use EHealth.Web.ConnCase
 
-  import Core.Expectations.Man
   import Core.Expectations.Signature
   import Mox
 
@@ -13,7 +12,6 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
   alias Core.LegalEntities.LegalEntity
   alias Core.Utils.NumberGenerator
   alias Ecto.UUID
-  alias NExJsonSchema.Validator, as: JsonValidator
 
   setup :verify_on_exit!
 
@@ -48,7 +46,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
       %{id: medical_program_id} = insert(:prm, :medical_program)
       insert_list(2, :il, :reimbursement_contract_request, medical_program_id: medical_program_id)
       insert_list(4, :il, :reimbursement_contract_request)
-      insert_list(8, :il, :reimbursement_contract_request)
+      insert_list(8, :il, :capitation_contract_request)
 
       assert resp_data =
                conn
@@ -79,13 +77,13 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
         {:ok, %{"data" => %{"secret_url" => "http://url.com/#{id}/#{resource_name}"}}}
       end)
 
-      assert conn
-             |> put_consumer_id_header()
-             |> put_client_id_header(legal_entity_id)
-             |> get(contract_request_path(conn, :show, @path_type, id))
-             |> json_response(200)
-             |> Map.get("data")
-             |> assert_show_response_schema("contract_request", "reimbursement_contract_request")
+      conn
+      |> put_consumer_id_header()
+      |> put_client_id_header(legal_entity_id)
+      |> get(contract_request_path(conn, :show, @path_type, id))
+      |> json_response(200)
+      |> Map.get("data")
+      |> assert_show_response_schema("contract_request", "reimbursement_contract_request")
     end
 
     test "success by NHS", %{conn: conn} do
@@ -104,12 +102,12 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
         {:ok, %{"data" => %{"secret_url" => "http://url.com/#{id}/#{resource_name}"}}}
       end)
 
-      assert conn
-             |> put_client_id_header()
-             |> get(contract_request_path(conn, :show, @path_type, id))
-             |> json_response(200)
-             |> Map.get("data")
-             |> assert_show_response_schema("contract_request", "reimbursement_contract_request")
+      conn
+      |> put_client_id_header()
+      |> get(contract_request_path(conn, :show, @path_type, id))
+      |> json_response(200)
+      |> Map.get("data")
+      |> assert_show_response_schema("contract_request", "reimbursement_contract_request")
     end
 
     test "fails on not finding reimbursement contract request", %{conn: conn} do
@@ -185,7 +183,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
       |> post(contract_request_path(conn, :create, @path_type, UUID.generate()), signed_content_params(params))
       |> json_response(201)
       |> Map.get("data")
-      |> assert_response()
+      |> assert_show_response_schema("contract_request", "reimbursement_contract_request")
     end
 
     test "without contract_number", %{conn: conn} do
@@ -216,7 +214,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
       |> post(contract_request_path(conn, :create, @path_type, UUID.generate()), signed_content_params(params))
       |> json_response(201)
       |> Map.get("data")
-      |> assert_response()
+      |> assert_show_response_schema("contract_request", "reimbursement_contract_request")
     end
   end
 
@@ -1097,32 +1095,23 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
           contract_number: "1345"
         )
 
-      conn =
-        conn
-        |> put_client_id_header(client_id)
-        |> put_consumer_id_header(user_id)
-        |> put_req_header("msp_drfo", legal_entity.edrpou)
-
       drfo_signed_content(data, [
         %{drfo: legal_entity.edrpou, surname: employee_owner.party.last_name},
         %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name},
         %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name, is_stamp: true}
       ])
 
-      assert resp =
-               conn
-               |> patch(contract_request_path(conn, :sign_msp, @path_type, contract_request.id), %{
-                 "signed_content" => data |> Poison.encode!() |> Base.encode64(),
-                 "signed_content_encoding" => "base64"
-               })
-               |> json_response(200)
-
-      schema =
-        "../core/specs/json_schemas/contract/reimbursement_contract_show_response.json"
-        |> File.read!()
-        |> Poison.decode!()
-
-      assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
+      conn
+      |> put_client_id_header(client_id)
+      |> put_consumer_id_header(user_id)
+      |> put_req_header("msp_drfo", legal_entity.edrpou)
+      |> patch(contract_request_path(conn, :sign_msp, @path_type, contract_request.id), %{
+        "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+        "signed_content_encoding" => "base64"
+      })
+      |> json_response(200)
+      |> Map.get("data")
+      |> assert_show_response_schema("contract", "reimbursement_contract")
     end
 
     test "success to sign contract_request with existing parent_contract_id", %{conn: conn} do
@@ -1167,23 +1156,17 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
         %{drfo: nhs_signer.legal_entity.edrpou, surname: nhs_signer.party.last_name, is_stamp: true}
       ])
 
-      assert resp =
-               conn
-               |> put_client_id_header(client_id)
-               |> put_consumer_id_header(user_id)
-               |> put_req_header("msp_drfo", legal_entity.edrpou)
-               |> patch(contract_request_path(conn, :sign_msp, @path_type, contract_request.id), %{
-                 "signed_content" => data |> Poison.encode!() |> Base.encode64(),
-                 "signed_content_encoding" => "base64"
-               })
-               |> json_response(200)
-
-      schema =
-        "../core/specs/json_schemas/contract/reimbursement_contract_show_response.json"
-        |> File.read!()
-        |> Poison.decode!()
-
-      assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
+      conn
+      |> put_client_id_header(client_id)
+      |> put_consumer_id_header(user_id)
+      |> put_req_header("msp_drfo", legal_entity.edrpou)
+      |> patch(contract_request_path(conn, :sign_msp, @path_type, contract_request.id), %{
+        "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+        "signed_content_encoding" => "base64"
+      })
+      |> json_response(200)
+      |> Map.get("data")
+      |> assert_show_response_schema("contract", "reimbursement_contract")
     end
   end
 
@@ -1214,15 +1197,13 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
           start_date: start_date
         )
 
-      assert resp_data =
-               conn
-               |> put_client_id_header(legal_entity.id)
-               |> put_consumer_id_header()
-               |> patch(contract_request_path(conn, :approve_msp, @path_type, contract_request.id))
-               |> json_response(200)
-               |> Map.get("data")
-
-      assert_show_response_schema(resp_data, "contract_request", "reimbursement_contract_request")
+      conn
+      |> put_client_id_header(legal_entity.id)
+      |> put_consumer_id_header()
+      |> patch(contract_request_path(conn, :approve_msp, @path_type, contract_request.id))
+      |> json_response(200)
+      |> Map.get("data")
+      |> assert_show_response_schema("contract_request", "reimbursement_contract_request")
     end
 
     test "fails on inactive medical program", %{conn: conn} do
@@ -1327,15 +1308,6 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
       "signed_content" => content |> Jason.encode!() |> Base.encode64(),
       "signed_content_encoding" => "base64"
     }
-  end
-
-  defp assert_response(resp) do
-    schema =
-      "../core/specs/json_schemas/contract_request/reimbursement_contract_request_show_response.json"
-      |> File.read!()
-      |> Jason.decode!()
-
-    assert :ok = JsonValidator.validate(schema, resp)
   end
 
   defp prepare_nhs_sign_params(contract_request_params, legal_entity_params \\ []) do

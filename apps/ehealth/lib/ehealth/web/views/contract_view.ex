@@ -38,8 +38,10 @@ defmodule EHealth.Web.ContractView do
       external_contractor_flag
       nhs_contract_price
     )a)
-    |> Map.put(:contractor_owner, Renderer.render_association(:employee, references, contract.contractor_owner_id))
-    |> Map.put(:contract_divisions, Enum.map(contract.contract_divisions, &render_association(:contract_division, &1)))
+    |> Map.merge(%{
+      contractor_owner: Renderer.render_association(:employee, references, contract.contractor_owner_id),
+      contract_divisions: Enum.map(contract.contract_divisions, &render_association(:contract_division, &1))
+    })
   end
 
   def render("contract.json", %{contract: %{type: @reimbursement} = contract, references: references}) do
@@ -64,8 +66,10 @@ defmodule EHealth.Web.ContractView do
       nhs_signed_date
       medical_program_id
     )a)
-    |> Map.put(:contractor_owner, Renderer.render_association(:employee, references, contract.contractor_owner_id))
-    |> Map.put(:contract_divisions, Enum.map(contract.contract_divisions, &render_association(:contract_division, &1)))
+    |> Map.merge(%{
+      contractor_owner: Renderer.render_association(:employee, references, contract.contractor_owner_id),
+      contract_divisions: Enum.map(contract.contract_divisions, &render_association(:contract_division, &1))
+    })
   end
 
   def render("show.json", %{contract: %{type: @capitation} = contract, references: references}) do
