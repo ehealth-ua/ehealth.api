@@ -18,6 +18,8 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
       arg(:filter, :legal_entity_filter)
       arg(:order_by, :legal_entity_order_by, default_value: :inserted_at_desc)
 
+      # TODO: Replace it with `GraphQLWeb.Middleware.Filtering`
+      middleware(GraphQLWeb.Middleware.FilterArgument)
       resolve(&LegalEntityResolver.list_legal_entities/2)
     end
 
@@ -164,12 +166,18 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
     connection field(:employees, node_type: :employee) do
       arg(:filter, :employee_filter)
       arg(:order_by, :employee_order_by, default_value: :inserted_at_asc)
+
+      # TODO: Replace it with `GraphQLWeb.Middleware.Filtering`
+      middleware(GraphQLWeb.Middleware.FilterArgument)
       resolve(&LegalEntityResolver.load_employees/3)
     end
 
     connection field(:divisions, node_type: :division) do
       arg(:filter, :division_filter)
       arg(:order_by, :division_order_by, default_value: :inserted_at_asc)
+
+      # TODO: Replace it with `GraphQLWeb.Middleware.Filtering`
+      middleware(GraphQLWeb.Middleware.FilterArgument)
       resolve(&LegalEntityResolver.load_divisions/3)
     end
 
@@ -178,6 +186,9 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
     connection field(:merged_from_legal_entities, node_type: :related_legal_entity) do
       arg(:filter, :related_legal_entity_filter)
       arg(:order_by, :related_legal_entity_order_by, default_value: :inserted_at_asc)
+
+      # TODO: Replace it with `GraphQLWeb.Middleware.Filtering`
+      middleware(GraphQLWeb.Middleware.FilterArgument)
       resolve(&LegalEntityResolver.load_related_legal_entities/3)
     end
 

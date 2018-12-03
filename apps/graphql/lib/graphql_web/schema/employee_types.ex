@@ -34,6 +34,8 @@ defmodule GraphQLWeb.Schema.EmployeeTypes do
       arg(:filter, :employee_filter)
       arg(:order_by, :employee_order_by, default_value: :inserted_at_desc)
 
+      # TODO: Replace it with `GraphQLWeb.Middleware.Filtering`
+      middleware(GraphQLWeb.Middleware.FilterArgument)
       resolve(&EmployeeResolver.list_employees/2)
     end
 

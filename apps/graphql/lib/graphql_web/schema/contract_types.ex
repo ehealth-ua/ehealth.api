@@ -26,6 +26,8 @@ defmodule GraphQLWeb.Schema.ContractTypes do
       arg(:filter, :contract_filter)
       arg(:order_by, :contract_order_by, default_value: :inserted_at_desc)
 
+      # TODO: Replace it with `GraphQLWeb.Middleware.Filtering`
+      middleware(GraphQLWeb.Middleware.FilterArgument)
       resolve(&ContractResolver.list_contracts/2)
     end
 
@@ -152,12 +154,18 @@ defmodule GraphQLWeb.Schema.ContractTypes do
     connection field(:contractor_divisions, node_type: :division) do
       arg(:filter, :division_filter)
       arg(:order_by, :division_order_by, default_value: :inserted_at_asc)
+
+      # TODO: Replace it with `GraphQLWeb.Middleware.Filtering`
+      middleware(GraphQLWeb.Middleware.FilterArgument)
       resolve(&ContractResolver.load_contract_divisions/3)
     end
 
     connection field(:contractor_employee_divisions, node_type: :contract_employee_division) do
       arg(:filter, :contractor_employee_division_filter)
       arg(:order_by, :contractor_employee_division_order_by, default_value: :inserted_at_asc)
+
+      # TODO: Replace it with `GraphQLWeb.Middleware.Filtering`
+      middleware(GraphQLWeb.Middleware.FilterArgument)
       resolve(&ContractResolver.load_contract_employees/3)
     end
 

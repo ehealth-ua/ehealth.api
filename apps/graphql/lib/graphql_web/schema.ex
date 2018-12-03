@@ -7,7 +7,6 @@ defmodule GraphQLWeb.Schema do
   use GraphQLWeb.Middleware.{
     MapGet,
     DatabaseIDs,
-    FilterArgument,
     OrderByArgument,
     ClientAuthorization,
     ClientMetadata,

@@ -15,6 +15,8 @@ defmodule GraphQLWeb.Schema.LegalEntityMergeJobTypes do
       arg(:filter, :legal_entity_merge_job_filter)
       arg(:order_by, :legal_entity_merge_job_order_by, default_value: :started_at_desc)
 
+      # TODO: Replace it with `GraphQLWeb.Middleware.Filtering`
+      middleware(GraphQLWeb.Middleware.FilterArgument)
       resolve(&LegalEntityMergeJobResolver.list_jobs/2)
     end
 

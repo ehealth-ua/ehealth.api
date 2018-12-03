@@ -25,6 +25,8 @@ defmodule GraphQLWeb.Schema.CapitationContractRequestTypes do
       arg(:filter, :capitation_contract_request_filter)
       arg(:order_by, :capitation_contract_request_order_by, default_value: :inserted_at_desc)
 
+      # TODO: Replace it with `GraphQLWeb.Middleware.Filtering`
+      middleware(GraphQLWeb.Middleware.FilterArgument)
       resolve(&CapitationContractRequestResolver.list_contract_requests/2)
     end
 

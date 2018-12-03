@@ -11,6 +11,8 @@ defmodule GraphQLWeb.Schema.DictionaryTypes do
     connection field(:dictionaries, node_type: :dictionary) do
       arg(:filter, :dictionary_filter)
 
+      # TODO: Replace it with `GraphQLWeb.Middleware.Filtering`
+      middleware(GraphQLWeb.Middleware.FilterArgument)
       resolve(&DictionaryResolver.list_dictionaries/2)
     end
   end
