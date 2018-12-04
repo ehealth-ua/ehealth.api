@@ -16,7 +16,6 @@ defmodule EHealth do
 
     # Define workers and child supervisors to be supervised
     children = [
-      supervisor(EHealth.DuplicatePersons, []),
       supervisor(EHealth.Web.Endpoint, []),
       worker(
         EHealth.DeclarationRequests.Terminator,

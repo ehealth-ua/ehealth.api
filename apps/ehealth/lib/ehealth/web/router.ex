@@ -386,10 +386,6 @@ defmodule EHealthWeb.Router do
   scope "/internal", EHealth.Web do
     pipe_through([:api])
 
-    scope "/deduplication" do
-      post("/found_duplicates", DeduplicationsController, :found_duplicates)
-    end
-
     scope "/hash_chain" do
       post("/verification_failed", HashChainController, :verification_failed)
     end

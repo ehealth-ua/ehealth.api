@@ -669,9 +669,10 @@ defmodule Core.ContractRequests.Validator do
   def validate_end_date(%{"start_date" => start_date, "end_date" => end_date}) do
     start_date = Date.from_iso8601!(start_date)
     end_date = Date.from_iso8601!(end_date)
+    days_in_year = if Date.leap_year?(start_date) or Date.leap_year?(end_date), do: 366, else: 365
 
     cond do
-      start_date.year != end_date.year ->
+      Date.diff(end_date, start_date) > days_in_year ->
         Error.dump(%ValidationError{
           description: "The year of start_date and and date must be equal",
           path: "$.end_date"
