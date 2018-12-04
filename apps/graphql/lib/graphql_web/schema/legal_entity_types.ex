@@ -49,6 +49,8 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
     value(:edrpou_desc)
     value(:inserted_at_asc)
     value(:inserted_at_desc)
+    value(:nhs_reviewed_asc)
+    value(:nhs_reviewed_desc)
     value(:nhs_verified_asc)
     value(:nhs_verified_desc)
     value(:status_asc)

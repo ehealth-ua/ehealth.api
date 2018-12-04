@@ -311,6 +311,38 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
       assert "0987654321" == hd(resp_entities)["edrpou"]
     end
 
+    test "success with ordering by nhs_reviewed", %{conn: conn} do
+      insert_list(1, :prm, :legal_entity, nhs_reviewed: false)
+      insert_list(2, :prm, :legal_entity, nhs_reviewed: true)
+      insert_list(4, :prm, :legal_entity, nhs_reviewed: false)
+
+      query = """
+          query ListLegalEntitiesQuery($first: Int!, $order_by: LegalEntityFilter!) {
+            legalEntities(first: $first, orderBy: $order_by) {
+              nodes {
+                id
+                nhsReviewed
+              }
+            }
+          }
+      """
+
+      variables = %{first: 10, order_by: "NHS_REVIEWED_ASC"}
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data legalEntities nodes))
+
+      assert nil == resp_body["errors"]
+
+      assert resp_entities
+             |> Enum.take(5)
+             |> Enum.all?(&(&1["nhsReviewed"] == false))
+    end
+
     test "cursor pagination", %{conn: conn} do
       insert(:prm, :legal_entity)
       insert(:prm, :legal_entity)
